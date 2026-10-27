@@ -1350,6 +1350,8 @@ dialog.validation-backdrop:not([open]) {
 .mapping-explorer {
   height: 100%;
   overflow: auto;
+  display: flex;
+  flex-direction: column;
   padding: 26px;
   background: var(--color-surface-page);
   font-size: 13px;
@@ -1415,8 +1417,9 @@ dialog.validation-backdrop:not([open]) {
   display: grid;
   grid-template-columns: minmax(0, 230px) minmax(0, 1fr);
   grid-template-areas: 'concepts bindings';
+  grid-template-rows: minmax(0, 1fr);
   gap: 18px;
-  align-items: start;
+  align-items: stretch;
 }
 .mapping-concepts button {
   display: block;
@@ -1516,6 +1519,15 @@ dialog.validation-backdrop:not([open]) {
 .mapping-detail {
   grid-area: bindings;
   overflow-wrap: break-word;
+  overflow-y: auto;
+}
+.mapping-detail > h3 {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin-top: 0;
+  padding: 4px 0;
+  background: var(--color-surface-page);
 }
 .mapping-query {
   min-width: 0;
@@ -1577,6 +1589,7 @@ dialog.validation-backdrop:not([open]) {
   .mapping-columns {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas: 'concepts' 'bindings';
+    grid-template-rows: minmax(150px, 0.4fr) minmax(0, 1fr);
   }
   .mapping-concepts {
     max-height: 40vh;
@@ -1748,7 +1761,7 @@ main > .status {
   width: auto;
   max-width: none;
   margin: 0;
-  padding: 7px 9px;
+  padding: 5px 9px;
   background: var(--color-surface);
   border: 0;
   border-bottom: 1px solid var(--color-border-subtle);
@@ -3004,18 +3017,11 @@ button.danger:hover {
   }
 }
 @media (min-width: 651px) and (max-width: 1100px) {
-  /* Two compact rows, with local scrolling for unusually long labels. */
+  /* Compact controls that wrap onto further rows, so none is hidden behind a scroll. */
   .full-graph-tools,
   .neighborhood-tools {
-    display: grid;
-    grid-template-rows: repeat(2, max-content);
-    grid-auto-flow: column;
-    grid-auto-columns: max-content;
-    justify-content: start;
     gap: 4px 6px;
     padding: 5px 7px;
-    overflow-x: auto;
-    overscroll-behavior-inline: contain;
   }
   .full-graph-tools button,
   .full-graph-tools select,
@@ -3284,13 +3290,19 @@ main > .status {
   align-items: center;
   gap: 5px;
 }
-.pierce-direction {
+.pierce-direction-label {
+  font-size: var(--text-small);
+  color: var(--color-text-secondary);
+}
+.pierce-direction,
+.segmented {
   display: inline-flex;
   border: 1px solid var(--color-border);
   border-radius: 7px;
   overflow: hidden;
 }
-.pierce-direction button {
+.pierce-direction button,
+.segmented button {
   border: 0 !important;
   border-radius: 0 !important;
   background: var(--color-surface);
@@ -3298,10 +3310,12 @@ main > .status {
   cursor: pointer;
   font-size: var(--text-small);
 }
-.pierce-direction button + button {
+.pierce-direction button + button,
+.segmented button + button {
   border-left: 1px solid var(--color-border) !important;
 }
-.pierce-direction button[aria-checked='true'] {
+.pierce-direction button[aria-checked='true'],
+.segmented button[aria-checked='true'] {
   background: var(--color-accent-soft);
   font-weight: 600;
 }
@@ -3384,15 +3398,10 @@ main > .status {
     padding-right: 0;
   }
 }
-/* The wider sidebar leaves less graph toolbar space. Keep desktop controls on one row with
-   horizontal scrolling and the cues of the scroll strip. */
+/* Desktop graph toolbars wrap onto a second row rather than hiding controls behind a
+   horizontal scroll. */
 @media (min-width: 1101px) {
   .full-graph-tools {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    overscroll-behavior-inline: contain;
-    scrollbar-width: thin;
-    scroll-padding-inline: 18px;
     gap: 5px;
   }
   .full-graph-tools > * {
@@ -3835,67 +3844,61 @@ button.import {
 .zoom-buttons button {
   min-width: 32px;
 }
+/* The secondary graph controls sit in the toolbar itself. Each group keeps its controls together
+   when the toolbar wraps, and a thin rule separates it from the previous group. */
 .graph-options {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.option-group h3 {
-  margin: 12px 0 6px;
-}
-.option-group-body {
-  display: flex;
+  display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
-.option-group-body label {
+.option-group {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  padding-left: 6px;
+  border-left: 1px solid var(--color-border-subtle);
+}
+.option-group label {
+  display: inline-flex;
   flex-direction: row;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   margin: 0;
+  font-size: var(--text-small);
+  color: var(--color-text-secondary);
 }
-.option-group-body button {
-  font-size: 13px;
-  padding: 7px 11px;
+/* The crosshair names the select, and a narrow select keeps the Graph toolbar on one row. */
+.option-group .zoom-to-group select {
+  width: 92px;
+  text-overflow: ellipsis;
+}
+.show-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+/* The check keeps its space when off, so switching does not shift the controls beside it. */
+.show-toggle .show-toggle-check {
+  visibility: hidden;
+}
+.show-toggle[aria-pressed='true'] {
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent-border);
+  color: var(--color-accent-text);
+}
+.show-toggle[aria-pressed='true'] .show-toggle-check {
+  visibility: visible;
+}
+/* On a phone the folded panel stacks one group per row. */
+.compact-controls-panel .option-group {
+  flex-wrap: wrap;
+  flex-basis: 100%;
+  padding-left: 0;
+  border-left: 0;
 }
 
-/* Zoomed far out, card text would be a few pixels tall. The cards then drop their detail lines
-   and buttons and show the name at a size that stays readable once scaled down. */
-.zoom-far .node small,
-.zoom-far .node > span,
-.zoom-far .frontier-marker {
-  display: none;
-}
-.zoom-far .node {
-  padding: 6px 10px;
-}
-.zoom-far .node-actions {
-  gap: 10px;
-}
-.zoom-far .node-actions .kpi-badge {
-  display: none;
-}
-.zoom-far .node-actions button {
-  font-size: 0;
-  min-width: calc(var(--far-name-size, 28px) * 2);
-  min-height: calc(var(--far-name-size, 28px) * 2);
-  padding: 4px;
-  justify-content: center;
-}
-.zoom-far .node-actions button svg {
-  width: var(--far-name-size, 28px);
-  height: var(--far-name-size, 28px);
-}
-.zoom-far .node strong {
-  display: -webkit-box;
-  font-size: var(--far-name-size, 28px);
-  line-height: 1.2;
-  margin: 0;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: var(--far-name-lines, 1);
-}
 .zoom-far .lineage-card-title small {
   display: none;
 }

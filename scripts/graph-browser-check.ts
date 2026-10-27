@@ -2,7 +2,7 @@
 import { appUrl } from './helpers/base-url';
 import { recordResizeErrors } from './helpers/resize-errors';
 import { checkExpansionViewports } from './graph-expansion-checks';
-import { viewOptions } from './helpers/graph-options';
+import { chooseLayout, setShown, viewOptions } from './helpers/graph-options';
 import { chromium, expect } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { neighborhoodEdgeProblems, neighborhoodState, pickCenter } from './helpers/edge-geometry';
@@ -99,9 +99,25 @@ try {
         'data-relationship-count',
         '277',
       );
+      // The first view names every entity in the Network layout; no area is folded into a count.
+      await expect(page.locator('.full-graph-status strong')).toHaveCount(0);
+      await expect(page.locator('.full-graph .react-flow__node-entity')).toHaveCount(45);
+      await viewOptions(page, async options => {
+        await expect(
+          options.getByRole('radiogroup', { name: 'Graph layout' }).getByRole('radio', {
+            name: 'Network',
+            exact: true,
+          }),
+        ).toBeChecked();
+      });
+      await page.screenshot({ path: '/tmp/real-graph-network.png' });
+      await viewOptions(page, async options => {
+        await chooseLayout(options, 'layered');
+      });
+      await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60000 });
       await page.screenshot({ path: '/tmp/real-graph-layered.png' });
       await viewOptions(page, async options => {
-        await options.getByLabel('Graph layout').selectOption('network');
+        await chooseLayout(options, 'network');
       });
       await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60000 });
       await page.screenshot({ path: '/tmp/real-graph-network.png' });
@@ -113,7 +129,7 @@ try {
       const miniMap = page.locator('.react-flow__minimap');
       await expect(miniMap).toHaveCount(0);
       await viewOptions(page, async options => {
-        await options.getByRole('button', { name: 'Map off', exact: true }).click();
+        await setShown(options, 'Mini-map', true);
       });
       await expect(miniMap).toBeVisible();
       await page.reload();
@@ -122,7 +138,7 @@ try {
       await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60000 });
       await expect(miniMap).toBeVisible();
       await viewOptions(page, async options => {
-        await options.getByRole('button', { name: 'Map on', exact: true }).click();
+        await setShown(options, 'Mini-map', false);
       });
       await expect(miniMap).toHaveCount(0);
     },
@@ -194,7 +210,8 @@ try {
         await page.getByRole('button', { name: 'Back', exact: true }).click();
         await expect.poll(async () => (await neighborhoodState(page)).center).toBe(walked[step]);
       }
-      await expect(page.getByRole('button', { name: 'Back', exact: true })).toBeDisabled();
+      // Back is the workspace's Back: past the first center it still undoes earlier actions.
+      await expect(page.getByRole('button', { name: 'Back', exact: true })).toBeEnabled();
       await page.getByRole('button', { name: 'Forward', exact: true }).click();
       await expect.poll(async () => (await neighborhoodState(page)).center).toBe(walked[1]);
     },
@@ -206,19 +223,17 @@ try {
         viewOptions(page, async options => {
           await options.getByRole('button', { name: /^Links between neighbors/ }).click();
         });
-      const toggleLabels = (from: 'on' | 'off') =>
-        viewOptions(page, async options => {
-          await options.getByRole('button', { name: `Labels ${from}`, exact: true }).click();
-        });
+      const showLabels = (shown: boolean) =>
+        viewOptions(page, options => setShown(options, 'Labels', shown));
       const before = await page.locator('.neighborhood-canvas .react-flow__edge').count();
       await toggleLinks();
       await expect
         .poll(() => page.locator('.neighborhood-canvas .react-flow__edge').count())
         .not.toBe(before);
-      await toggleLabels('off');
+      await showLabels(true);
       expect(await neighborhoodEdgeProblems(page)).toEqual([]);
       await shot('ubl-labels');
-      await toggleLabels('on');
+      await showLabels(false);
       await toggleLinks();
     },
   );
@@ -248,12 +263,9 @@ try {
       await page.waitForTimeout(300);
       expect((await kinds()).every(k => k.includes('OWL class'))).toBe(true);
       await viewOptions(page, async options => {
-        const technical = options.getByRole('button', { name: /^Technical resources hidden/ });
-        await expect(technical).toBeVisible();
-        await technical.click();
-        await expect(
-          options.getByRole('button', { name: 'Technical resources shown', exact: true }),
-        ).toBeVisible();
+        const technical = options.getByRole('button', { name: /^Technical resources/ });
+        await expect(technical).toHaveAttribute('aria-pressed', 'false');
+        await setShown(options, /^Technical resources/, true);
       });
       await shot('owl');
     },
@@ -271,14 +283,8 @@ try {
       const metricBadge = page.getByRole('button', {
         name: /^Open \d+ metrics for Property$/,
       });
-      await expect(metricBadge).toBeHidden();
-      await expect
-        .poll(async () => {
-          if (await metricBadge.isVisible()) return true;
-          await page.getByRole('button', { name: 'Zoom in', exact: true }).click();
-          return metricBadge.isVisible();
-        })
-        .toBe(true);
+      // The fitted view keeps the indicator; zooming in is not needed to see it.
+      await expect(metricBadge).toBeVisible();
       await metricBadge.click();
       await expect(page.getByRole('textbox', { name: 'Find a metric' })).toHaveValue('Property');
       await expect(page.getByRole('region', { name: 'Metrics' })).toContainText('Occupancy rate');

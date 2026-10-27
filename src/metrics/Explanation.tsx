@@ -87,7 +87,7 @@ export function Explanation({
           <CompositionTree node={e.tree} />
         </div>
       </div>
-      <OnDemandStep number={3} title="Rules">
+      <Step number={3} title="Rules">
         <div className="rule-grid">
           <Rule icon={<CalendarDays size={15} />} title="Time">
             {e.time ? (
@@ -150,15 +150,15 @@ export function Explanation({
             <span>{e.missingValues}</span>
           </Rule>
         </div>
-      </OnDemandStep>
-      <OnDemandStep number={4} title="SQL preview">
+      </Step>
+      <Step number={4} title="SQL preview">
         <Preview e={e} query={query} onQuery={onQuery} loading={loading} />
-      </OnDemandStep>
+      </Step>
     </section>
   );
 }
-/** A numbered step whose content opens on demand, so the formula stays the first thing read. */
-function OnDemandStep({
+/** A numbered step of the explanation: a heading with its content below. */
+function Step({
   number,
   title,
   children,
@@ -170,12 +170,10 @@ function OnDemandStep({
   return (
     <div className="explain-step">
       <span className="step-number">{number}</span>
-      <details className="step-body on-demand">
-        <summary>
-          <h4>{title}</h4>
-        </summary>
+      <div className="step-body">
+        <h4>{title}</h4>
         {children}
-      </details>
+      </div>
     </div>
   );
 }
@@ -266,7 +264,10 @@ function Preview({
   const grains = e.time ? GRAINS : [];
   const dims = query.dimensions ?? [];
   const toggle = (d: string) =>
-    onQuery({ ...query, dimensions: dims.includes(d) ? dims.filter(x => x !== d) : [...dims, d] });
+    onQuery({
+      ...query,
+      dimensions: dims.includes(d) ? dims.filter(x => x !== d) : [...dims, d],
+    });
   return (
     <div className="sql-preview">
       <div className="preview-controls">

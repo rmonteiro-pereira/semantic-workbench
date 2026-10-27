@@ -6,7 +6,7 @@ import { screenshotPath } from './screenshots';
 import { headerProblems } from './header';
 import { layoutProblems } from './layout-geometry';
 import { menuSurfaceProblems } from './menu-geometry';
-import { closeSyncDialog, offersSyncDialog, openSyncDialog, remoteButton } from './sync-dialog';
+import { remoteButton } from './sync-dialog';
 import { lowContrastProblems, smallTextProblems, textCollisionProblems } from './text-geometry';
 import {
   assertAuthBrandLoaded,
@@ -497,14 +497,11 @@ export async function agentBearerChecks(browser: Browser, target: SignInTarget) 
   }
 }
 
-// Only an Admin may change the remote; the control lives in the Sync dialog.
+// Only an Admin may change the remote; the control sits in the Source control panel.
 async function checkRemoteControl(page: Page, mayChangeRemote: boolean) {
-  if (!mayChangeRemote && !(await offersSyncDialog(page))) return;
-  const dialog = await openSyncDialog(page);
-  const remote = remoteButton(dialog);
+  const remote = remoteButton(page);
   if (mayChangeRemote) await expect(remote).toBeVisible();
   else await expect(remote).toBeHidden();
-  await closeSyncDialog(dialog);
 }
 
 // Text is measured inside the screen or dialog that the check is about: a whole workspace page

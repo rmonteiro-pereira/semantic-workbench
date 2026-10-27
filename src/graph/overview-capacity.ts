@@ -1,16 +1,11 @@
-/** Decides how many entity cards the whole-model graph can show with names people can read. */
+/** Sizes the whole-model graph's cards and decides when its areas start as single cards. */
 
 // Names are 16 px, so this zoom keeps them at 12 px or more on screen without any help.
 const READABLE_ZOOM = 0.75;
-// Below it names are drawn larger. At this zoom they are 18 px, one line, still 12 px on screen,
-// and the cards still hold most of a name; a first view needs no more room than this.
-const CAPACITY_ZOOM = 0.7;
-const CARD_WIDTH = 184;
 const CARD_HEIGHT = 60;
-// The layout leaves room for areas and lines around each card; measured on the 45-entity UBL
-// model, one card takes about six cards' worth of space.
-const SPACE_PER_CARD = 6;
 const LARGE_MODEL = 250;
+/** Taller names no longer fit a card, so names stop growing here as the canvas zooms out. */
+export const LARGEST_ENTITY_NAME_PX = 44;
 
 /** Reserves room for both the entity count and relationship guidance in a collapsed area. */
 export function modelCardHeight(collapsed: boolean): number {
@@ -19,7 +14,8 @@ export function modelCardHeight(collapsed: boolean): number {
 
 /** Returns the type sizes, in canvas units, that keep names readable once the canvas is scaled. */
 export function textSizesAt(zoom: number) {
-  const entityName = zoom >= READABLE_ZOOM ? 16 : Math.min(44, Math.ceil(12 / zoom));
+  const entityName =
+    zoom >= READABLE_ZOOM ? 16 : Math.min(LARGEST_ENTITY_NAME_PX, Math.ceil(12 / zoom));
   const areaTitle = Math.min(48, Math.max(20, Math.ceil(13 / zoom)));
   // Two lines of the larger name no longer fit the card, so it keeps one.
   const entityLines = entityName > 17 ? 1 : 2;
@@ -29,22 +25,7 @@ export function textSizesAt(zoom: number) {
   return { entityName, areaTitle, entityLines, entityPadding, showDetail };
 }
 
-/** The pane the graph is drawn in, in screen pixels. */
-export type PaneSize = { width: number; height: number };
-
-/** Keeps a long or tall initial layout behind counted areas when its names would be cramped. */
-export function layoutNeedsAreaCards(layout: PaneSize, pane: PaneSize): boolean {
-  const zoom = Math.min(pane.width / layout.width, pane.height / layout.height) / 1.24;
-  return zoom < CAPACITY_ZOOM;
-}
-
-/** Returns how many entity cards fit the pane at a zoom where their names read at 12 px. */
-export function readableCapacity(pane: PaneSize): number {
-  const worldArea = (pane.width * pane.height) / CAPACITY_ZOOM ** 2;
-  return Math.floor(worldArea / (CARD_WIDTH * CARD_HEIGHT * SPACE_PER_CARD));
-}
-
-/** Says whether the first view shows each area as one card, because the entities would not read. */
-export function startsCollapsed(entityCount: number, pane: PaneSize): boolean {
-  return entityCount > LARGE_MODEL || entityCount > readableCapacity(pane);
+/** Says whether the first view shows each area as one card, because the model is very large. */
+export function startsCollapsed(entityCount: number): boolean {
+  return entityCount > LARGE_MODEL;
 }

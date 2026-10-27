@@ -63,6 +63,8 @@ bun run build
 - `fmt` runs Oxfmt on source, scripts, tests and generated validators. Markdown, fixtures and
   other excluded trees are not reformatted by that command.
 - `check` runs TypeScript with no emit, formatting checks, Oxlint and comment/theme/brand checks.
+- `tests/action-recorder.test.ts` and `tests/action-history.test.ts` cover the Back and Forward
+  history without a browser; `test:back-history` covers it in Chromium.
 - `test` includes logic, handler, integration and some Chromium-backed component checks. It is
   not exclusively a browser-free unit command.
 - `build` runs `schemas:compile` and then the production browser build. The Bun server runs
@@ -130,6 +132,7 @@ suites use `SW_BASE_URL`. The full runner supplies fresh frontend processes as n
 | `test:examples:ui` | Example loading, mappings and governed metric presentation |
 | `test:projects` | Project tree, external changes, stale saves, cache rebuild and export |
 | `test:trash` | Delete warnings, Undo, restore, suggestions, row actions and Clear |
+| `test:sidebar` | Sidebar footer visibility and project list fill at short heights, resize and delete |
 | `test:metrics` | Metric list, definitions, explanations and graph navigation |
 | `test:graph` | Whole graph, neighborhood walk, expansion, scale and response budget |
 | `test:editor` | Serialization colors, located findings, byte preservation and typing |
@@ -147,6 +150,7 @@ suites use `SW_BASE_URL`. The full runner supplies fresh frontend processes as n
 | `test:terminology` | Metric/table naming across the interface and current guides |
 | `test:mappings-layout` | Binding presentation, geometry and selected-document Source |
 | `test:mapping-graph` | Every displayed mapping line against resolver evidence |
+| `test:back-history` | Back and Forward undo and redo every click action, in the app and the browser |
 | `test:theme` | Theme choice, token propagation, contrast and viewport tours |
 | `test:auth` | Entra-shaped mock, sessions, grants, agents and content guards |
 | `test:two-editors` | Personal worktrees, authorship, isolation and publication |

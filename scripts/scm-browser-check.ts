@@ -1,10 +1,8 @@
 // Checks browser Source Control actions using isolated workspaces and local Git remotes.
-import { expectDialogGeometry } from './helpers/dialog-geometry';
 import { smallTextProblems, textCollisionProblems } from './helpers/text-geometry';
 import {
-  closeSyncDialog,
   openRemoteDialog,
-  openSyncDialog,
+  remoteActions,
   remoteDialog,
   runSyncAction,
 } from './helpers/sync-dialog';
@@ -61,7 +59,7 @@ const tree = (p: Page = page) => p.getByRole('tree', { name: 'Projects' });
 async function openFile(path: string, p: Page = page) {
   await tree(p).getByRole('button', { name: path, exact: true }).first().click();
 }
-// Source control has no view tabs, so the editor is reached from the sidebar.
+// The sidebar button opens the Source editor without going through the model tabs.
 async function showSourceEditor(p: Page) {
   await p.getByRole('button', { name: /^Source editor/ }).click();
 }
@@ -146,6 +144,20 @@ try {
       ).toBeVisible();
       expect(sh(dir, ['log', '-1', '--format=%s']).trim()).toBe('Describe customers');
       expect(sh(dir, ['status', '--porcelain'])).toBe('');
+    },
+  );
+  await check(
+    'Source control keeps the model tabs and Find an entity, and a tab leaves the panel',
+    async () => {
+      await openScm();
+      const tabs = page.locator('.tabs');
+      for (const name of ['Overview', 'Graph', 'Source', 'Metrics']) {
+        await expect(tabs.getByRole('button', { name: new RegExp(`^${name}`) })).toBeVisible();
+      }
+      await expect(page.getByPlaceholder('Find an entity…')).toBeVisible();
+      await tabs.getByRole('button', { name: /^Graph/ }).click();
+      await expect(panel()).toHaveCount(0);
+      await openScm();
     },
   );
   await check(
@@ -421,7 +433,7 @@ try {
       }
     },
   );
-  await check('the panel and the Sync dialog fit at 390, 1280, 1440 and 2560 px', async () => {
+  await check('the panel and its remote actions fit at 390, 1280, 1440 and 2560 px', async () => {
     await openScm();
     for (const [width, height] of [
       [390, 844],
@@ -444,9 +456,19 @@ try {
       }
       expect(await smallTextProblems(page, '.scm')).toEqual([]);
       expect(await textCollisionProblems(page, '.scm')).toEqual([]);
-      const sync = await openSyncDialog(page);
-      await expectDialogGeometry(page, 'sync');
-      await closeSyncDialog(sync);
+      // Fetch, Pull, Push and Sync sit on the panel as one row, each inside the column and whole.
+      const buttons = remoteActions(page).getByRole('button');
+      await expect(buttons).toHaveText(['Fetch', 'Pull', 'Push', 'Sync']);
+      await expect(panel().getByRole('button', { name: 'Sync…', exact: true })).toHaveCount(0);
+      for (const box of await buttons.evaluateAll(items =>
+        items.map(item => ({
+          right: item.getBoundingClientRect().right,
+          cut: item.scrollWidth > item.clientWidth,
+        })),
+      )) {
+        expect(box.right).toBeLessThanOrEqual(column.x + column.width);
+        expect(box.cut).toBe(false);
+      }
     }
     await page.setViewportSize({ width: 1440, height: 900 });
   });

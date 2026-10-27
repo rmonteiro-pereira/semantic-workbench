@@ -1,6 +1,6 @@
 /** The sidebar's Examples button and the fly-out menu that loads one example project. */
 import './ExampleMenu.css';
-import { ChevronUp, Layers, Network } from 'lucide-react';
+import { ChevronRight, ChevronUp, Layers, Network } from 'lucide-react';
 import type { MenuItem } from '../projects/Menu';
 import { MenuButton } from '../projects/Menu';
 
@@ -78,7 +78,7 @@ function toMenuItem(entry: ExampleEntry, props: Props): MenuItem {
   };
 }
 
-/** Renders the Examples button; its menu opens upward because the button sits at the bottom. */
+/** Renders the Examples button; its menu opens against the button, or upward on a phone. */
 export function ExampleMenu(props: Props) {
   return (
     <MenuButton
@@ -86,7 +86,8 @@ export function ExampleMenu(props: Props) {
       label={
         <>
           Examples
-          <ChevronUp size={14} aria-hidden="true" />
+          <ChevronRight className="flyout-arrow-side" size={14} aria-hidden="true" />
+          <ChevronUp className="flyout-arrow-up" size={14} aria-hidden="true" />
         </>
       }
       icon={<Layers size={16} />}
@@ -95,6 +96,7 @@ export function ExampleMenu(props: Props) {
       align="start"
       placement="above"
       matchButtonWidth
+      flyoutBesideSidebar
       items={exampleEntries.map(entry => toMenuItem(entry, props))}
     />
   );

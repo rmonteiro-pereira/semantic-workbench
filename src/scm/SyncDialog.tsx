@@ -1,11 +1,9 @@
-/** Dialog that holds the actions meeting a remote or the published branch: Fetch, Pull, Push,
- * Sync, Publish and the remote itself. */
+/** Dialog that holds the actions meeting the published branch of a server working copy: Pull,
+ * Publish and Push. The remote actions sit on the Source control panel itself. */
 import { useState } from 'react';
-import { ArrowDown, ArrowUp, RefreshCw } from 'lucide-react';
 import { Modal } from '../projects/Modal';
 import { useCapabilities } from '../auth/Capabilities';
 import type { GitStatus, WorkingCopyInfo } from '../projects/api';
-import { actionTitle, type RemoteAction } from './RemoteConnectPrompt';
 import { DefaultBranchActions } from './DefaultBranchActions';
 
 type Props = {
@@ -15,82 +13,10 @@ type Props = {
   copy: WorkingCopyInfo | null;
   busy: boolean;
   onClose: () => void;
-  onRemoteAction: (action: RemoteAction) => void;
-  onEditRemote: () => void;
   onPullDefault: () => void;
   onPublish: () => void;
   onPushDefault: () => void;
 };
-
-const REMOTE_ACTIONS: { action: RemoteAction; explanation: string }[] = [
-  { action: 'fetch', explanation: 'Look for new commits without changing your files.' },
-  { action: 'pull', explanation: 'Bring the remote commits into this branch.' },
-  { action: 'push', explanation: 'Send your commits to the remote.' },
-  { action: 'sync', explanation: 'Pull, then push.' },
-];
-
-function remoteActionLabel(action: RemoteAction, status: GitStatus): string {
-  if (action === 'pull' && status.pullSource) {
-    return `Pull ${status.pullSource} into ${status.branch}`;
-  }
-  return actionTitle(action);
-}
-
-function RemoteActionIcon({ action }: { action: RemoteAction }) {
-  if (action === 'sync') return <RefreshCw size={13} />;
-  if (action === 'push') return <ArrowUp size={13} />;
-  return <ArrowDown size={13} />;
-}
-
-// Sync pulls and pushes, so it needs both rights; the other actions need their own.
-function mayRun(action: RemoteAction, can: (name: string) => boolean): boolean {
-  if (action === 'sync') return can('pull') && can('push');
-  return can(action);
-}
-
-type RemoteSectionProps = Pick<Props, 'status' | 'busy' | 'onEditRemote' | 'onRemoteAction'> & {
-  can: (action: string) => boolean;
-};
-
-function RemoteSection({ status, busy, can, onEditRemote, onRemoteAction }: RemoteSectionProps) {
-  const remoteNames = Object.keys(status.remotes);
-  return (
-    <section aria-label="Remote">
-      <h3>Remote</h3>
-      <div className="scm-sync-remote">
-        {remoteNames.length ? (
-          <span className="scm-remote-url" title={status.remotes[remoteNames[0]]}>
-            {remoteNames[0]}: {status.remotes[remoteNames[0]]}
-          </span>
-        ) : (
-          <p>No remote yet. Add one to push and pull.</p>
-        )}
-        <button
-          className={remoteNames.length ? undefined : 'primary'}
-          hidden={!can('setRemote')}
-          onClick={onEditRemote}
-        >
-          {remoteNames.length ? 'Change remote…' : 'Add remote…'}
-        </button>
-      </div>
-      {remoteNames.length > 0 && (
-        <ul className="scm-sync-actions" role="group" aria-label="Remote actions">
-          {REMOTE_ACTIONS.filter(({ action }) => mayRun(action, can)).map(
-            ({ action, explanation }) => (
-              <li key={action}>
-                <button disabled={busy} onClick={() => onRemoteAction(action)}>
-                  <RemoteActionIcon action={action} />
-                  {remoteActionLabel(action, status)}
-                </button>
-                <span>{explanation}</span>
-              </li>
-            ),
-          )}
-        </ul>
-      )}
-    </section>
-  );
-}
 
 /** Asks before the person's branch becomes the published branch for everyone. */
 function ConfirmPublish({
@@ -127,7 +53,7 @@ function ConfirmPublish({
   );
 }
 
-/** Shows the remote and published-branch actions that used to crowd the changes column. */
+/** Shows the published-branch actions of a server working copy. */
 export function SyncDialog(props: Props) {
   const { copy, status, busy, onClose, onPullDefault, onPublish, onPushDefault } = props;
   const access = useCapabilities(props.project);
@@ -163,13 +89,6 @@ export function SyncDialog(props: Props) {
           onPushDefault={onPushDefault}
         />
       )}
-      <RemoteSection
-        status={status}
-        busy={busy}
-        can={access.can}
-        onEditRemote={props.onEditRemote}
-        onRemoteAction={props.onRemoteAction}
-      />
     </Modal>
   );
 }

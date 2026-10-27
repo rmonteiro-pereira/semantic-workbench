@@ -9,12 +9,38 @@
   align-items: flex-start;
   gap: 2px;
 }
-/* The page owns scrolling so the final concept never ends behind a second scroll mask. */
+/* The tab keeps a fixed height: the header rows stay put and the two columns fill the rest,
+   each scrolling on its own. The columns never get shorter than a usable list. */
+.mapping-explorer > * {
+  flex-shrink: 0;
+}
+.mapping-explorer > .mapping-columns {
+  flex: 1 0 520px;
+  min-height: 520px;
+}
 .mapping-concept-list {
-  max-height: none;
-  overflow: visible;
   padding-bottom: 16px;
   mask-image: none;
+}
+
+/* Buttons that reveal more items stay inside the box of the list or group they extend. */
+.mapping-show-more {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-width: 100%;
+  margin-top: 10px;
+}
+.mapping-show-more button {
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+.mapping-concepts .mapping-show-more button {
+  margin: 0;
+  width: auto;
 }
 .mapping-heading-note {
   margin: 0;

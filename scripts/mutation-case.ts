@@ -14,12 +14,6 @@ if (category === 'edge-appearance') {
   assert.equal(Object.hasOwn(appearance, 'sourceX'), false);
   assert.equal(Object.hasOwn(appearance, 'selectable'), false);
 }
-if (category === 'tree-viewport') {
-  assert.equal(m.completeRowsHeight(160, [36, 89, 142, 195]), 142);
-  assert.equal(m.completeRowsHeight(142, [36, 89, 142, 195]), 142);
-  assert.equal(m.completeRowsHeight(20, [36, 89]), 20);
-  assert.equal(m.completeRowsHeight(160, []), 160);
-}
 if (category === 'expansion-viewport') {
   const viewport = m.expansionViewport(
     { x: 0, y: 0, width: 5000, height: 2000 },

@@ -444,7 +444,7 @@ export function modelOverview(
     provenance: {
       kind: mode,
       counts,
-      algorithm: mode === 'suggested' ? 'bounded modularity local moving' : undefined,
+      algorithm: mode === 'suggested' ? 'Louvain modularity' : undefined,
     },
     memberships,
     groups: ordered,

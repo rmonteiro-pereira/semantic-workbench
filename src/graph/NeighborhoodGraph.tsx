@@ -2,6 +2,8 @@
 import { DETAIL_ZOOM, LOWEST_FIT_ZOOM, useFarZoom } from './FarZoom';
 import { ScrollStrip } from '../shared/ScrollStrip';
 import { EntityName } from './EntityName';
+import { useActionHistory } from '../app/ActionHistoryContext';
+import { useRecordedState } from '../app/useRecordedState';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ReactFlow,
@@ -36,7 +38,7 @@ import { placeLayers, placeNew } from './incremental-layout';
 import { expansionViewport } from './expansion-viewport';
 import { PIERCE_BUDGET, PIERCE_MAX } from './pierce';
 import { PierceBanner, PierceControls, usePierce } from './PierceControls';
-import { GraphOptions, OptionGroup } from './GraphOptions';
+import { GraphOptions, OptionGroup, ShowToggle } from './GraphOptions';
 import { ZoomButtons } from './ZoomButtons';
 import { CompactControls, useCompactToolbar } from './CompactControls';
 import type { Entity, Relationship } from '../core/model';
@@ -47,8 +49,6 @@ import {
   projectModel,
   NEIGHBOR_PAGE,
 } from './graph-view';
-// A phone shows half as many neighbors at first, so the cards stay big enough to read.
-const PHONE_NEIGHBOR_PAGE = 6;
 import { neighborhoodLayout, NEIGHBOR_COLUMN, NEIGHBOR_ROW } from './layout';
 import {
   assignRoutes,
@@ -85,8 +85,6 @@ export type NeighborhoodGraphProps = {
   onClearSearch: () => void;
   onSelectEntity: (id: string) => void;
   onSelectEdge: (id: string) => void;
-  onOverview: () => void;
-  onFullGraph: () => void;
   modelName?: string;
   kpiBadges?: Map<string, string[]>;
   /** The colour of an entity's group under the current Group by choice. */
@@ -131,6 +129,14 @@ const writeHideValues = (name: string | undefined, hide: boolean) => {
     else localStorage.removeItem(valuesKey(name));
   } catch {}
 };
+function keepMeasuredSizes(previous: Node[], next: Node[]): Node[] {
+  const measuredById = new Map(previous.map(node => [node.id, node.measured]));
+  return next.map(node => {
+    const measured = measuredById.get(node.id);
+    return measured ? { ...node, measured } : node;
+  });
+}
+
 function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
   const {
     docId,
@@ -143,17 +149,22 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
     kpiBadges,
     groupColorOf,
   } = props;
-  const [hideKpis, setHideKpis] = useState(false);
-  const [lateralChoice, setLateral] = useState<boolean | null>(null);
-  const [technical, setTechnical] = useState(false);
-  const [labels, setLabels] = useState(false);
+  const actionHistory = useActionHistory();
+  const [hideKpis, setHideKpis] = useRecordedState('neighborhood.hideKpis', false);
+  const [lateralChoice, setLateral] = useRecordedState<boolean | null>(
+    'neighborhood.lateral',
+    null,
+  );
+  const [technical, setTechnical] = useRecordedState('neighborhood.technical', false);
+  const [labels, setLabels] = useRecordedState('neighborhood.labels', false);
   const [hovered, setHovered] = useState('');
   const compact = useCompactToolbar();
-  const pageSize = compact ? PHONE_NEIGHBOR_PAGE : NEIGHBOR_PAGE;
-  const [limit, setLimit] = useState(pageSize);
-  const [relationship, setRelationship] = useState('');
+  const [limit, setLimit] = useRecordedState('neighborhood.limit', NEIGHBOR_PAGE);
+  const [relationship, setRelationship] = useRecordedState('neighborhood.relationship', '');
   const kpiCount = useMemo(() => all.filter(e => e.kind === 'Metric').length, [all]);
-  const [hideValues, setHideValues] = useState(() => readHideValues(props.modelName));
+  const [hideValues, setHideValues] = useRecordedState('neighborhood.hideValues', () =>
+    readHideValues(props.modelName),
+  );
   const valueCount = useMemo(() => all.filter(e => VALUE_KINDS.has(e.kind)).length, [all]);
   const entities = useMemo(
     () =>
@@ -251,9 +262,9 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
   const pierceSet = canvasState.active.filter(s => s.kind === 'pierce').at(-1);
   // Paging and the relationship filter belong to one center.
   useEffect(() => {
-    setLimit(pageSize);
+    setLimit(NEIGHBOR_PAGE);
     setRelationship('');
-  }, [center, pageSize]);
+  }, [center]);
   const groups = useMemo(() => groupRelationships(shownEdges), [shownEdges]);
   const membership = JSON.stringify([center, shownEntities.map(e => e.id)]);
   // Base positions from the column layout; each expansion places only its new nodes beside its
@@ -305,6 +316,10 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
       data: { entity: e },
     }));
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>(build());
+  // A rebuilt node keeps the size React Flow measured, because the browser reports a size only
+  // when it changes and a node left unmeasured would stay hidden.
+  const rebuildNodes = (limit = reveal) =>
+    setNodes(previous => keepMeasuredSizes(previous, build(limit)));
   const built = useRef(membership);
   useEffect(() => {
     if (built.current === membership) return;
@@ -312,7 +327,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
     const have = nodes.length;
     if (shownEntities.length - have <= REVEAL_CHUNK) {
       setReveal(Infinity);
-      setNodes(build(Infinity));
+      rebuildNodes(Infinity);
       return;
     }
     let n = have;
@@ -321,7 +336,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
       n += REVEAL_CHUNK;
       const done = n >= shownEntities.length;
       setReveal(done ? Infinity : n);
-      setNodes(build(done ? Infinity : n));
+      rebuildNodes(done ? Infinity : n);
       if (!done) frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);
@@ -406,31 +421,39 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
         `collapsed ${nameOf(id)}`,
       );
   };
-  const [direction, setDirection] = useState<Direction>('out');
+  const [direction, setDirection] = useRecordedState<Direction>('neighborhood.direction', 'out');
   const pierce = usePierce();
   const fullPierce = async (budget = PIERCE_BUDGET) => {
     const from = selected && canvasState.nodes.includes(selected) ? selected : center;
     if (!from) return;
     const r = await pierce.run(
       projection.entities.map(e => ({ id: e.id, name: e.name, kind: e.kind })),
-      projection.edges.map(e => ({ id: e.id, source: e.source, target: e.target, label: e.label })),
+      projection.edges.map(e => ({
+        id: e.id,
+        source: e.source,
+        target: e.target,
+        label: e.label,
+      })),
       [from],
       { direction, valueTypes: !hideValues, technical, metrics: !hideKpis, budget },
     );
     if (!r) return;
-    record(
-      registerSet({
-        kind: 'pierce',
-        from,
-        direction,
-        nodes: r.nodes.filter(n => n !== from),
-        edges: r.edges,
-        frontier: r.frontier,
-        total: r.total,
-        budget,
-        steps: r.steps,
-      }),
-      `pierced ${nameOf(from)}`,
+    // The result arrives after the click that asked for it, so it opens its own history step.
+    actionHistory.act('pierce', () =>
+      record(
+        registerSet({
+          kind: 'pierce',
+          from,
+          direction,
+          nodes: r.nodes.filter(n => n !== from),
+          edges: r.edges,
+          frontier: r.frontier,
+          total: r.total,
+          budget,
+          steps: r.steps,
+        }),
+        `pierced ${nameOf(from)}`,
+      ),
     );
   };
   const undoable = walk.steps[walk.index]?.kind === 'expand';
@@ -553,13 +576,14 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
       }),
     [nodes, center, previous, selected, kpiBadges, groupColorOf, view, canvasState, pierceSet],
   );
-  const farZoom = useFarZoom();
-  const labelScale = farZoom.labelScale;
-  const showAllLabels = labels && !farZoom.className;
+  // Relationship labels grow as the canvas zooms out so they stay readable; the cards do not
+  // change with zoom.
+  const zoomWatch = useFarZoom();
+  const labelScale = zoomWatch.labelScale;
   const labelText = (g: (typeof groups)[number]) =>
     g.data.relationships.length > 1 ? `${g.data.relationships.length} relationships` : g.label;
   const shownLabels = groups.filter(
-    g => showAllLabels || hovered === g.id || g.data.relationships.some(r => r.id === selectedEdge),
+    g => labels || hovered === g.id || g.data.relationships.some(r => r.id === selectedEdge),
   );
   const labelAt = useMemo(
     () =>
@@ -607,7 +631,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
           labelAt: labelAt.get(g.id),
           labelScale,
         },
-        label: showAllLabels || active || hovered === g.id ? labelText(g) : undefined,
+        label: labels || active || hovered === g.id ? labelText(g) : undefined,
         selected: active,
         interactionWidth: 24,
         markerEnd: { type: MarkerType.ArrowClosed, color, width: 14, height: 14 },
@@ -659,8 +683,8 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
       }
     });
   };
-  // After an expansion or pierce, show what it added around its origin at a zoom where cards keep
-  // their detail lines; the zoom-out controls and Re-center show the whole canvas.
+  // After an expansion or pierce, show what it added around its origin at the unscaled card size;
+  // the zoom-out controls and Re-center show the whole canvas.
   const READABLE = DETAIL_ZOOM;
   const focusLatest = () => {
     const s = canvasState.active.at(-1);
@@ -754,6 +778,13 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
   const kpiFor = centerEntity ? (kpiBadges?.get(centerEntity.name) ?? []) : [];
   // The counts and paging sit in the toolbar, or in the row below it on a phone, where the
   // toolbar keeps only the centre picker and the Controls button.
+  useEffect(() => writeHideValues(props.modelName, hideValues), [props.modelName, hideValues]);
+  const toggleValueTypes = () => setHideValues(hidden => !hidden);
+  // Dragged nodes go back to their columns; the center stays the same.
+  const rearrange = () => {
+    rebuildNodes();
+    setFitted('');
+  };
   const neighborCounts = (
     <>
       <span className="neighborhood-counts" role="status" aria-label="Neighbor counts">
@@ -772,12 +803,12 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
         )}
       </span>
       {view.hidden > 0 && (
-        <button onClick={() => setLimit(l => l + pageSize)}>
-          {Math.min(pageSize, view.hidden)} more{' '}
-          {Math.min(pageSize, view.hidden) === 1 ? 'neighbor' : 'neighbors'}
+        <button onClick={() => setLimit(l => l + NEIGHBOR_PAGE)}>
+          {Math.min(NEIGHBOR_PAGE, view.hidden)} more{' '}
+          {Math.min(NEIGHBOR_PAGE, view.hidden) === 1 ? 'neighbor' : 'neighbors'}
         </button>
       )}
-      {limit > pageSize && <button onClick={() => setLimit(pageSize)}>Fewer</button>}
+      {limit > NEIGHBOR_PAGE && <button onClick={() => setLimit(NEIGHBOR_PAGE)}>Fewer</button>}
     </>
   );
   return (
@@ -848,7 +879,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
             onPierce={() => void fullPierce()}
             onStop={pierce.stop}
             canUndo={undoable}
-            onUndo={() => props.onWalkTo(walk.index - 1)}
+            onUndo={actionHistory.back}
             title={`Expand everything reachable from ${pierceOrigin}`}
           />
           <ZoomButtons
@@ -876,69 +907,50 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
                   </select>
                 </label>
               )}
-              <button
-                onClick={() => setLateral(!lateral)}
-                aria-pressed={lateral}
+              <ShowToggle
+                on={lateral}
+                onToggle={() => setLateral(!lateral)}
                 title="Relationships among the visible neighbors"
               >
-                Links between neighbors ({lateralCount}) {lateral ? 'on' : 'off'}
-              </button>
+                Links between neighbors ({lateralCount})
+              </ShowToggle>
               {view.technicalHidden > 0 || technical ? (
-                <button
-                  onClick={() => setTechnical(v => !v)}
-                  aria-pressed={technical}
+                <ShowToggle
+                  on={technical}
+                  onToggle={() => setTechnical(shown => !shown)}
                   title="OWL properties, restrictions and other RDF resources"
                 >
-                  Technical resources {technical ? 'shown' : `hidden (${view.technicalHidden})`}
-                </button>
+                  Technical resources{technical ? '' : ` (${view.technicalHidden})`}
+                </ShowToggle>
               ) : null}
             </OptionGroup>
             <OptionGroup title="Show">
-              <button onClick={() => setLabels(v => !v)} aria-pressed={labels}>
-                Labels {labels ? 'on' : 'off'}
-              </button>
-              {farZoom.className && (
-                <p>Hover or select a relationship for its label. Zoom in to show all labels.</p>
-              )}
+              <ShowToggle on={labels} onToggle={() => setLabels(shown => !shown)}>
+                Labels
+              </ShowToggle>
               {valueCount > 0 && (
-                <button
-                  onClick={() =>
-                    setHideValues(v => {
-                      writeHideValues(props.modelName, !v);
-                      return !v;
-                    })
-                  }
-                  aria-pressed={hideValues}
+                <ShowToggle
+                  on={!hideValues}
+                  onToggle={toggleValueTypes}
                   title={`${valueCount} value types and built-in concepts`}
                 >
-                  Value types {hideValues ? 'hidden' : 'shown'}
-                </button>
+                  Value types
+                </ShowToggle>
               )}
               {kpiCount > 0 && (
-                <button
-                  onClick={() => setHideKpis(v => !v)}
-                  aria-pressed={hideKpis}
+                <ShowToggle
+                  on={!hideKpis}
+                  onToggle={() => setHideKpis(hidden => !hidden)}
                   title={`${kpiCount} metric nodes`}
                 >
-                  <Gauge size={14} />
-                  Metrics {hideKpis ? 'hidden' : 'shown'}
-                </button>
+                  Metrics
+                </ShowToggle>
               )}
             </OptionGroup>
             <OptionGroup title="Layout">
-              <button
-                onClick={() => {
-                  setNodes(build());
-                  setFitted('');
-                }}
-                title="Put every node back in its column"
-              >
-                Re-center
+              <button onClick={rearrange} title="Put every node back in its column">
+                Re-arrange
               </button>
-            </OptionGroup>
-            <OptionGroup title="Go to">
-              <button onClick={props.onOverview}>Model overview</button>
-              <button onClick={props.onFullGraph}>Full graph</button>
             </OptionGroup>
           </GraphOptions>
           {props.fullscreen && <FullscreenButton fullscreen={props.fullscreen} />}
@@ -955,16 +967,16 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
           <button
             aria-label="Back"
             title="Back"
-            disabled={walk.index <= 0}
-            onClick={() => props.onWalkTo(walk.index - 1)}
+            disabled={!actionHistory.canBack}
+            onClick={actionHistory.back}
           >
             <ArrowLeft size={14} />
           </button>
           <button
             aria-label="Forward"
             title="Forward"
-            disabled={walk.index >= walk.steps.length - 1}
-            onClick={() => props.onWalkTo(walk.index + 1)}
+            disabled={!actionHistory.canForward}
+            onClick={actionHistory.forward}
           >
             <ArrowRight size={14} />
           </button>
@@ -1064,8 +1076,6 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
           </div>
         ) : (
           <ReactFlow
-            className={farZoom.className}
-            style={farZoom.style}
             nodes={rendered}
             edges={visibleEdges}
             edgeTypes={relationshipEdgeTypes}
@@ -1094,7 +1104,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
             onEdgeMouseLeave={() => setHovered('')}
           >
             <Background gap={22} size={1} />
-            {farZoom.watcher}
+            {zoomWatch.watcher}
           </ReactFlow>
         )}
       </div>

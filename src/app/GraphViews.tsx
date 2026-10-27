@@ -74,7 +74,6 @@ type Props = {
   walkTo: (index: number) => void;
   handleNeighborhoodGraphSelectEntity: (id: string) => void;
   setSelectedEdge: React.Dispatch<React.SetStateAction<string>>;
-  handleNeighborhoodGraphFullGraph: () => void;
   handleNeighborhoodGraphOpenKpis: (concept: string) => void;
   crossFile: (
     e: import('../core/model').Entity,
@@ -117,7 +116,6 @@ export function GraphViews({
   walkTo,
   handleNeighborhoodGraphSelectEntity,
   setSelectedEdge,
-  handleNeighborhoodGraphFullGraph,
   handleNeighborhoodGraphOpenKpis,
   crossFile,
   crossTo,
@@ -184,11 +182,6 @@ export function GraphViews({
         search={search}
         onSelectEntity={selectEntity}
         onSelectEdge={handleFullGraphSelectEdge}
-        onOverview={() => {
-          setTab('overview');
-          setSearch('');
-        }}
-        onNeighborhood={() => showNeighborhood()}
       />
     );
   }
@@ -235,11 +228,6 @@ export function GraphViews({
       onSelectEdge={id => {
         setSelectedEdge(id);
       }}
-      onOverview={() => {
-        setSearch('');
-        setTab('overview');
-      }}
-      onFullGraph={handleNeighborhoodGraphFullGraph}
       onOpenKpis={handleNeighborhoodGraphOpenKpis}
       crossFile={crossFile}
       onCrossFile={crossTo}

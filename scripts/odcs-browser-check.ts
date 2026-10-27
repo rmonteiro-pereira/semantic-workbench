@@ -111,10 +111,11 @@ try {
       await expect(o.getByRole('button', { name: 'Copy contract id' })).toBeVisible();
       for (const fact of ['1.2.0', 'active', 'Commerce', 'Sales analytics', 'v3.1.0'])
         await expect(o).toContainText(fact);
-      const team = await openSection('Team and roles');
+      // Who owns the contract is on the page itself, with no dialog to open.
+      const team = o.getByRole('region', { name: 'Team and roles' });
       await expect(team).toContainText('commerce-data');
       await expect(team).toContainText('owner');
-      await closeSection(team);
+      await expect(o.getByRole('button', { name: 'Team and roles' })).toHaveCount(0);
       const table = o.getByRole('table', { name: 'Tables' });
       await expect(table.getByRole('row')).toHaveCount(5);
       const orders = table.getByRole('row').filter({ hasText: 'analytics.commerce.orders' });
@@ -157,23 +158,23 @@ try {
         'true',
       );
       const table = d.getByRole('table', { name: 'Properties' });
-      // Columns nobody fills (physical type, classification, tags) are not drawn.
+      // Columns nobody fills (physical type, classification, tags) are not drawn. Logical type and
+      // the three flags are controls in the row.
       expect(await table.getByRole('columnheader').allTextContents()).toEqual([
         'Name',
-        'Type',
-        'Constraints',
+        'Logical type',
+        'Required',
+        'Unique',
+        'Primary key',
         'Description',
         'Foreign keys',
         'Edit',
       ]);
       await expect(table.getByRole('row')).toHaveCount(7);
-      const id = table.getByRole('row').filter({ hasText: 'order_id' }).first();
-      await expect(id.getByRole('cell').nth(1)).toHaveText('integer');
-      await expect(id.getByRole('cell').nth(2)).toContainText('PK');
-      await expect(id.getByRole('cell').nth(2)).toContainText('Required');
-      await expect(id.getByRole('cell').nth(2)).toContainText('Unique');
-      const amount = table.getByRole('row').filter({ hasText: 'amount' });
-      await expect(amount.getByRole('cell').nth(2)).not.toContainText('PK');
+      await expect(table.getByLabel('Logical type of order_id')).toHaveValue('integer');
+      for (const flag of ['Required', 'Unique', 'Primary key'])
+        await expect(table.getByLabel(`${flag} of order_id`)).toBeChecked();
+      await expect(table.getByLabel('Primary key of amount')).not.toBeChecked();
       const names = async () =>
         (await table.getByRole('row').locator('td:first-child').allTextContents()).map(s =>
           s.trim(),
@@ -232,13 +233,10 @@ try {
       await expect(graph.locator('.lineage-card.center')).toBeVisible({ timeout: 8000 });
       await graph.getByRole('button', { name: 'Fit' }).click();
       await page.waitForTimeout(300);
-      for (const name of [
-        'Table orders',
-        'Table customers',
-        'Table order_lines',
-        'Semantic dataset orders',
-      ])
+      for (const name of ['Table orders', 'Table customers', 'Table order_lines'])
         await expect(graph.getByRole('group', { name }).first()).toBeVisible({ timeout: 8000 });
+      // The orders dataset copies its table, so it has no card of its own.
+      await expect(graph.getByRole('group', { name: 'Semantic dataset orders' })).toHaveCount(0);
       await expect(graph.locator('.lineage-card.k-metric')).toHaveCount(3);
       await expect(graph.getByRole('group', { name: 'Table orders' })).toHaveClass(/center/);
       const props = dataset('orders').getByRole('table', { name: 'Property lineage' });
@@ -459,6 +457,27 @@ try {
       await expect(
         dataset('orders').getByRole('region', { name: 'Changes between versions' }),
       ).toContainText('classification');
+    },
+  );
+  await check(
+    'logical type and the Required, Unique and Primary key flags change in the table row, with no dialog',
+    async () => {
+      const table = dataset('orders').getByRole('table', { name: 'Properties' });
+      await views('orders').getByRole('tab', { name: 'Properties' }).click();
+      const diff = async () =>
+        (await git(commerce.slug, ['diff', '-U0', '--', 'commerce.odcs.yaml']))
+          .split('\n')
+          .filter(line => /^[-+](?![-+])/.test(line));
+      await table.getByLabel('Logical type of amount').selectOption('integer');
+      await expect.poll(diff).toContain('-        logicalType: number');
+      await expect(page.locator('main > .status')).toContainText('Saved logicalType of amount');
+      await table.getByLabel('Unique of amount').check();
+      await expect.poll(diff).toContain('+        unique: true');
+      await expect(page.locator('main > .status')).toContainText('Saved unique of amount');
+      await table.getByLabel('Primary key of status').check();
+      await expect.poll(diff).toContain('+        primaryKey: true');
+      await expect(page.locator('main > .status')).toContainText('Saved primaryKey of status');
+      await expect(page.getByRole('dialog')).toHaveCount(0);
     },
   );
   await check('no browser errors', async () => {

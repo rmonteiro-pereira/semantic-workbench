@@ -1,4 +1,5 @@
 /** Loads project metrics and maintains metric selection, filters, and concept badges. */
+import { useRecordedState } from './useRecordedState';
 import { useEffect, useMemo, useState } from 'react';
 import type { KpiSummary } from '../server/agent/explain';
 import type { Doc } from '../projects/api';
@@ -11,7 +12,7 @@ export function useMetrics({ current, docs }: Options) {
   const [kpis, setKpis] = useState<KpiSummary[]>([]);
   const [kpiError, setKpiError] = useState('');
   const [kpiLoading, setKpiLoading] = useState(false);
-  const [selectedKpi, setSelectedKpi] = useState('');
+  const [selectedKpi, setSelectedKpi] = useRecordedState('metrics.selected', '');
   const [kpiFilter, setKpiFilter] = useState('');
   const kpiProject = current?.project ?? null;
   const kpiRevision = docs

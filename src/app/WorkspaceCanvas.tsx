@@ -250,6 +250,7 @@ export function WorkspaceCanvas({
           onEditItem={editMappingItem}
           onOpenSource={openMappingSource}
           currentId={current?.id}
+          currentProject={current?.project}
           revisionKey={docs.map(d => d.id + ':' + d.hash).join('|')}
           dirty={!!current && source !== current.source}
         />
@@ -355,7 +356,6 @@ export function WorkspaceCanvas({
         walkTo={walkTo}
         handleNeighborhoodGraphSelectEntity={handleNeighborhoodGraphSelectEntity}
         setSelectedEdge={setSelectedEdge}
-        handleNeighborhoodGraphFullGraph={handleNeighborhoodGraphFullGraph}
         handleNeighborhoodGraphOpenKpis={handleNeighborhoodGraphOpenKpis}
         crossFile={crossFile}
         crossTo={crossTo}
@@ -391,11 +391,6 @@ export function WorkspaceCanvas({
   function handleNeighborhoodGraphSelectEntity(id: string) {
     setSelected(id);
     setSelectedEdge('');
-  }
-
-  function handleNeighborhoodGraphFullGraph() {
-    setSearch('');
-    setTab('fullgraph');
   }
 
   function handleNeighborhoodGraphOpenKpis(concept: string) {

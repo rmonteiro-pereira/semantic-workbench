@@ -1,54 +1,85 @@
-/** The "View options" button of a graph toolbar and the dialog that holds its rarely used controls. */
-import React, { useState } from 'react';
-import { createPortal } from 'react-dom';
-import { SlidersHorizontal } from 'lucide-react';
-import { Modal } from '../projects/Modal';
+/** The secondary controls of a graph toolbar, shown in the toolbar next to the primary ones. */
+import React from 'react';
+import { Check } from 'lucide-react';
 
-// Graph toolbars keep the few controls a person reaches for every minute (centre or search, fit,
-// zoom, full pierce). Everything else lives here, so the toolbar stays on one row and the canvas
-// keeps its height.
-/** Opens a dialog with the graph's secondary controls, grouped by what they do. */
+// These controls used to sit in a dialog. That cost a click for every change, covered the graph
+// while choosing, and hid which options were on. In the toolbar every state stays visible and a
+// change shows its effect at once. The toolbar wraps on a wide window, and on a phone
+// CompactControls folds the whole toolbar into one panel, so nothing is cut off.
+/** Groups a graph's secondary controls in its toolbar. */
 export function GraphOptions({
   title = 'View options',
   intro,
   children,
 }: {
   title?: string;
-  intro?: React.ReactNode;
+  /** What the view shows, offered as the group's tooltip. */
+  intro?: string;
   children: React.ReactNode;
 }) {
-  const [open, setOpen] = useState(false);
-  const close = () => setOpen(false);
-  const doneButton = (
-    <button className="primary" onClick={close}>
-      Done
-    </button>
-  );
-  // The dialog renders outside the toolbar so the toolbar's compact control styles do not apply.
   return (
-    <>
-      <button onClick={() => setOpen(true)} title={title} className="graph-options-button">
-        <SlidersHorizontal size={14} />
-        <span className="tool-label">{title}…</span>
-      </button>
-      {open &&
-        createPortal(
-          <Modal title={title} size="narrow" onCancel={close} footer={doneButton}>
-            {intro && <p>{intro}</p>}
-            <div className="graph-options">{children}</div>
-          </Modal>,
-          document.body,
-        )}
-    </>
+    <span className="graph-options" role="group" aria-label={title} title={intro}>
+      {children}
+    </span>
   );
 }
 
-/** One titled group of options inside the View options dialog. */
+/** One group of related controls, separated from its neighbors in the toolbar. */
 export function OptionGroup({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="option-group" aria-label={title}>
-      <h3>{title}</h3>
-      <div className="option-group-body">{children}</div>
-    </section>
+    <span className="option-group" role="group" aria-label={title}>
+      {children}
+    </span>
+  );
+}
+
+// "Labels off" read as either a state or an action. The label now names what the switch shows
+// and never changes; the check mark and the pressed style say whether it is on.
+/** A toolbar switch that shows or hides one kind of graph content. */
+export function ShowToggle({
+  on,
+  onToggle,
+  title,
+  children,
+}: {
+  on: boolean;
+  onToggle: () => void;
+  title?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <button className="show-toggle" aria-pressed={on} onClick={onToggle} title={title}>
+      <Check size={13} aria-hidden="true" className="show-toggle-check" />
+      {children}
+    </button>
+  );
+}
+
+/** Two or more mutually exclusive choices shown side by side, such as the graph layout. */
+export function Segmented<Value extends string>({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: Value;
+  options: { value: Value; label: string; title?: string }[];
+  onChange: (value: Value) => void;
+}) {
+  return (
+    <span className="segmented" role="radiogroup" aria-label={label}>
+      {options.map(option => (
+        <button
+          key={option.value}
+          role="radio"
+          aria-checked={option.value === value}
+          title={option.title}
+          onClick={() => onChange(option.value)}
+        >
+          {option.label}
+        </button>
+      ))}
+    </span>
   );
 }

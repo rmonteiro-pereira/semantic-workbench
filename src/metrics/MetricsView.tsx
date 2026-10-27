@@ -1,13 +1,13 @@
 /** Lists, filters and groups project metrics alongside the selected metric's explanation. */
+import { useRecordedState } from '../app/useRecordedState';
 import { useCapabilities } from '../auth/Capabilities';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, Gauge, ListFilter, Plus, Search } from 'lucide-react';
+import { ArrowLeft, Gauge, Plus, Search } from 'lucide-react';
 import type { KpiSummary } from '../server/agent/explain';
 import { MetricDetail } from './MetricDetail';
-import { MetricFiltersDialog } from './MetricFiltersDialog';
+import { MetricFilterControls } from './MetricFilterControls';
 import { MetricsTable } from './MetricsTable';
 import {
-  activeFilterCount,
   filterMetrics,
   groupMetrics,
   isNarrowed,
@@ -16,7 +16,7 @@ import {
   visibleColumns,
 } from './metric-filters';
 import './metrics.css';
-// The list shows what identifies a metric; filters and grouping sit behind one Filters button.
+// The list shows what identifies a metric; grouping and filters sit beside the search box.
 // Metrics without workbench attributes offer Add attributes in their detail view.
 /** Displays searchable project metrics with the selected metric's detail pane. */
 export function MetricsView({
@@ -51,8 +51,7 @@ export function MetricsView({
     onAddAttributes = undefined;
   }
   const [query, setQuery] = useState('');
-  const [filters, setFilters] = useState(noFilters);
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [filters, setFilters] = useRecordedState('metrics.filters', noFilters);
   // A concept chosen elsewhere (the neighborhood's metric indicator) filters the list.
   useEffect(() => {
     if (filter) setQuery(filter.split('\u0000')[0]);
@@ -67,7 +66,6 @@ export function MetricsView({
   useEffect(() => {
     detailPane.current?.scrollTo({ top: 0 });
   }, [selected]);
-  const activeFilters = activeFilterCount(filters);
   const filtered = isNarrowed(filters, term);
   // Clearing removes what hides metrics; how the list is grouped stays as the reader set it.
   function clearFilters() {
@@ -103,20 +101,7 @@ export function MetricsView({
               onChange={e => setQuery(e.target.value)}
             />
           </label>
-          <button
-            type="button"
-            className="metrics-filters-button"
-            aria-haspopup="dialog"
-            onClick={() => setFiltersOpen(true)}
-          >
-            <ListFilter size={14} />
-            Filters
-            {activeFilters > 0 && (
-              <span className="count-badge" aria-label={`${activeFilters} active`}>
-                {activeFilters}
-              </span>
-            )}
-          </button>
+          <MetricFilterControls kpis={kpis} filters={filters} onChange={setFilters} />
         </div>
         {!project ? (
           <p className="metrics-empty">Open a file of a project to see its metrics.</p>
@@ -157,14 +142,6 @@ export function MetricsView({
           </>
         )}
       </section>
-      {filtersOpen && (
-        <MetricFiltersDialog
-          kpis={kpis}
-          filters={filters}
-          onChange={setFilters}
-          onClose={() => setFiltersOpen(false)}
-        />
-      )}
       {current && project && (
         <section ref={detailPane} className="metrics-detail" aria-label={`Metric ${current.label}`}>
           <button className="metrics-back" onClick={() => onSelect('')}>

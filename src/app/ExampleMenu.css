@@ -4,3 +4,16 @@
   width: 100%;
   margin: 4px 0;
 }
+
+/* The arrow points where the menu opens: out to the right, or up on a phone. */
+.examples-menu .flyout-arrow-up {
+  display: none;
+}
+@media (max-width: 650px) {
+  .examples-menu .flyout-arrow-side {
+    display: none;
+  }
+  .examples-menu .flyout-arrow-up {
+    display: inline;
+  }
+}

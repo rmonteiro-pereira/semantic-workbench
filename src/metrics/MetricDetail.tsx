@@ -1,4 +1,5 @@
 /** Displays metric metadata and server-generated explanations without executing SQL. */
+import { useRecordedState } from '../app/useRecordedState';
 import React, { useEffect, useState } from 'react';
 import { Target, UserRound, FileCode, AlertTriangle, Pencil, Tags } from 'lucide-react';
 import type { KpiExplanation, KpiSummary } from '../server/agent/explain';
@@ -22,7 +23,7 @@ export function MetricDetail({
   onEdit?: () => void;
   onAddAttributes?: () => void;
 }) {
-  const [query, setQuery] = useState<ExplainQuery>({});
+  const [query, setQuery] = useRecordedState<ExplainQuery>('metrics.explain', {});
   const [explanation, setExplanation] = useState<KpiExplanation | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);

@@ -99,9 +99,12 @@ type Options = {
   base: string;
   onSaved: (saved: Saved[], label: string) => void;
 };
-/** What the Properties tab needs to offer editing: which rows can be edited, and the dialog. */
+/** What the Properties tab needs to offer editing: which rows can be edited, a one-attribute save
+ * for the controls in the row, and the dialog for the rest. */
 export type PropertyEditor = {
   canEditProperty: (path: string, property: Record<string, any>) => boolean;
+  /** Saves one attribute; resolves to the reason it was not written, or null when it was. */
+  saveChange: (objectIndex: number, path: string, change: PropertyChange) => Promise<string | null>;
   renderDialog: (request: PropertyEditRequest) => React.ReactNode;
 };
 /** Names the property an open edit dialog works on. */
@@ -124,6 +127,7 @@ export function propertyEditor(options: Options): PropertyEditor {
       const locked = !canClassify && isProtected(property.classification, classification);
       return canEdit && !locked && !/[.[]/.test(path);
     },
+    saveChange: (objectIndex, path, change) => saveChanges(options, objectIndex, path, [change]),
     renderDialog: request => (
       <PropertyEditDialog key={request.path} {...request} options={options} />
     ),

@@ -6,6 +6,71 @@ not configure a production deployment.
 
 ## Unreleased
 
+### Added
+
+- Back and Forward now undo and redo every action a click caused, not only a change of file or
+  walk. The browser buttons, the mouse buttons and the Neighborhood and lineage arrows share one
+  list of actions: files, tabs, selections, centres and expansions, graph switches, opened areas,
+  groups and bundled lines, layout and grouping choices, Mappings concepts and **Show more**, and
+  metric selection. Typing and deletions are not undone by Back.
+
+### Changed
+
+- Show the metric filters (Group by, Type, Status, Owner, Governed only) beside the search box
+  again instead of behind a Filters dialog, and show a metric's Rules and SQL preview open in its
+  detail instead of closed behind Show.
+- Show the remote address and **Remote…** in Source control again, so the remote form is one click
+  away, and keep the model tabs and **Find an entity** above Source control. **Fetch**, **Pull**,
+  **Push** and **Sync** are buttons under the remote line again; **Sync…** remains only on a server,
+  for Pull, Publish and Push of the published branch.
+- Show graph options in the graph toolbar instead of a View options dialog. Layout is a
+  Layered / Network switch, and Labels, Value types, Metrics, Mini-map and the other switches keep
+  a fixed name with a check mark when on. The Neighborhood **Re-center** button, which puts nodes
+  back in their columns, is now **Re-arrange**.
+- Open the sidebar Examples menu as a flyout against the right side of its button, level with it,
+  with the button's arrow pointing at it, on windows wider than a phone; it keeps opening upward
+  on a phone.
+- Suggested graph areas join small communities into larger ones, level by level, as the Louvain
+  method does, and entities with no relationships are grouped by type instead of getting an area
+  each. The mall semantic model now opens with 11 areas instead of 48.
+- Show a semantic dataset that copies an ODCS table column for column as that table's card, with
+  a Semantic dataset badge beside its type, instead of a second card joined to it line by line.
+
+### Fixed
+
+- The ODCS graph no longer hides cards behind a "N of M cards shown · Show all" control. Every
+  card is laid out, the first view frames the nearest cards at a readable size, and expanding an
+  "N more tables" card lays out all of its members.
+- ODCS property rows edit the logical type and the Required, Unique and Primary key flags in the
+  table again, with physical type and tags in columns of their own; **Edit** keeps the rest.
+- The ODCS Contract page shows team and roles on the page again instead of behind a count button.
+- Open the whole-model graph on every entity by name in the Network layout, as before, instead of
+  one counted card per area; only models above 250 entities start folded. Idle lines are faint
+  again.
+- Keep neighborhood cards whole when zoomed out: type, description, metric count and the full name
+  stay, and **Labels** on shows every relationship name at any zoom. A phone opens with twelve
+  neighbors again.
+- Keep the Graph toolbar on one row at 1280 px, with **Re-layout** as an icon, so the graph keeps
+  its height. On a phone the Controls panel closes when the details sheet opens.
+- A neighborhood expansion no longer leaves cards unmeasured, which could keep the view from
+  fitting.
+- Lineage lines can be clicked: a single line selects its relationship, a bundled line splits
+  into its lines, and a line to a counted card opens it.
+- A lineage card that shows more columns stays in view where it was, instead of leaving the
+  view, and the view pans so the whole card shows, or its top when it is taller than the canvas.
+- Clicking a bundled line to a counted card keeps the card at its other end on screen, so the
+  canvas is never left empty.
+- Keep the Graph toolbar of the ontology and of an ODCS contract on one row at 1280 px with the
+  mall example: the area zoom is a narrower select marked by an icon, and the ODCS toolbar spaces
+  its controls more tightly.
+- Keep the Mappings tab at a normal height: the concept list and the bindings scroll on their own,
+  each dataset group shows its first five bindings with Show more and Show fewer, and a long
+  concept list does the same. The tab opens on a mapping of the open file's project.
+- Keep the whole sidebar footer, including the Theme control, visible at short window heights; the
+  project list shrinks and scrolls instead.
+- Stop the project list from shrinking to a single row after loading several examples, and keep it
+  stable after deleting a file or a project.
+
 ### Documentation
 
 - Explain the architecture, full technology stack and definition-to-preview flow in the README.

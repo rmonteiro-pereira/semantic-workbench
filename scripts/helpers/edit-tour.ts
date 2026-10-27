@@ -25,14 +25,6 @@ async function openFirstMetric(page: Page) {
   await page.waitForTimeout(800);
 }
 
-async function openOnDemandSections(page: Page) {
-  const closed = page.locator('details.on-demand:not([open]) > summary');
-  while (await closed.count()) await closed.first().click();
-  // Clicking the summaries scrolls the pane; a reader opens the metric at its title.
-  await page.locator('.metrics-detail').evaluate(pane => pane.scrollTo({ top: 0 }));
-  await page.waitForTimeout(400);
-}
-
 /** Lists the edit, metrics, mappings and catalog screens, one per view and dialog. */
 export function editScreens({ ontology, metricsModel }: EditTourFiles): Screen[] {
   const dialog = 'dialog[open]';
@@ -61,19 +53,10 @@ export function editScreens({ ontology, metricsModel }: EditTourFiles): Screen[]
     },
     { name: 'metrics-list', show: metricsList(metricsModel) },
     {
-      name: 'metrics-filters',
-      dialog,
-      show: async page => {
-        await metricsList(metricsModel)(page);
-        await page.getByRole('button', { name: /^Filters/ }).click();
-      },
-    },
-    {
       name: 'metric-detail',
       show: async page => {
         await metricsList(metricsModel)(page);
         await openFirstMetric(page);
-        await openOnDemandSections(page);
       },
     },
     {

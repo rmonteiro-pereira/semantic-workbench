@@ -1,4 +1,5 @@
 /** Displays a mapping's resolved graph at the saved revision and indicates unsaved edits. */
+import { useRecordedState } from '../app/useRecordedState';
 import { apiFetch } from '../projects/api';
 import React, { useEffect, useMemo, useState } from 'react';
 import { LineageCanvas } from '../odcs/LineageCanvas';
@@ -70,7 +71,7 @@ export function MappingCanvas({
     () => (context ? buildMappingGraph(context, revisionKey) : null),
     [context],
   );
-  const [onlyUnmapped, setOnlyUnmapped] = useState(false);
+  const [onlyUnmapped, setOnlyUnmapped] = useRecordedState('mappings.onlyUnmapped', false);
   const [finding, setFinding] = useState<{ card: string; message: string } | null>(null);
   const storageKey = `workbench:mapping-center:${mappingId}`;
   const center = useMemo(() => {

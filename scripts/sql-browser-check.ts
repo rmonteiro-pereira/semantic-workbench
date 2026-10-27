@@ -183,9 +183,7 @@ try {
       await tab(/^Metrics/).click();
       // The clean and the broken fixture both define occupancy_rate: group by file and pick the
       // broken one.
-      await page.getByRole('button', { name: /^Filters/ }).click();
       await page.getByRole('combobox', { name: 'Group metrics by' }).selectOption('file');
-      await page.getByRole('button', { name: 'Done', exact: true }).click();
       await page
         .locator('.metrics-table tbody')
         .filter({ hasText: 'case-when-broken.ossie.yaml' })
@@ -237,11 +235,6 @@ try {
       await open('mall.semantic.yaml', mall.name);
       await tab(/^Metrics/).click();
       await page.getByRole('button', { name: 'Occupancy rate: explain' }).click();
-      await page
-        .locator('details.on-demand')
-        .filter({ hasText: 'SQL preview' })
-        .locator('summary')
-        .click();
       const pre = page.getByLabel('SQL preview, not executed');
       await expect(pre).toBeVisible();
       await expect(pre.locator('span').first()).toBeVisible();

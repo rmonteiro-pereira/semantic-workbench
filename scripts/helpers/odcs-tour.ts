@@ -30,7 +30,7 @@ function datasetTab(file: string, tab: string): Screen['show'] {
   };
 }
 
-/** Lists the contract page, its section dialog, the dataset page tabs and the property dialog. */
+/** Lists the contract page with its team, the dataset page tabs and the property dialog. */
 export function odcsScreens(contract: string): Screen[] {
   return [
     {
@@ -42,11 +42,10 @@ export function odcsScreens(contract: string): Screen[] {
       },
     },
     {
-      name: 'odcs-contract-section',
-      dialog: 'dialog[open]',
+      name: 'odcs-contract-team',
       show: async page => {
         await openContract(page, contract);
-        await page.getByRole('button', { name: 'Team and roles' }).click();
+        await page.getByRole('region', { name: 'Team and roles' }).waitFor();
       },
     },
     { name: 'odcs-dataset-properties', show: datasetTab(contract, 'Properties') },

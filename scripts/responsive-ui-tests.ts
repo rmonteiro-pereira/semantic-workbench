@@ -3,12 +3,19 @@ import { tabStripProblems } from './helpers/strip-geometry';
 import { recordResizeErrors } from './helpers/resize-errors';
 import { appUrl } from './helpers/base-url';
 import { expectInitialGraphSettled } from './helpers/graph-readiness';
-import { revealGraphControls, showEveryEntity, viewOptions } from './helpers/graph-options';
+import {
+  hideGraphControls,
+  revealGraphControls,
+  setShown,
+  showEveryEntity,
+  viewOptions,
+} from './helpers/graph-options';
 import { LOCAL_READER } from '../src/server/projects/reader';
 import { chromium, expect, type Locator, type Page } from '@playwright/test';
 import { plainCommerceModel } from './helpers/commerce-fixture';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import {
+  examplesFlyoutProblems,
   examplesKeyboardProblems,
   headerScreenProblems,
   headerScreens,
@@ -16,8 +23,9 @@ import {
 import { treeRowProblems } from './helpers/tree-geometry';
 import { neighborhoodEdgeProblems, neighborhoodState, pickCenter } from './helpers/edge-geometry';
 import { inspect } from '../src/core/model';
+import { NEIGHBOR_PAGE } from '../src/graph/graph-view';
 import { layoutProblems, lineageProblems } from './helpers/layout-geometry';
-import { screenProblems, showScreen, type Screen } from './helpers/screen-tour';
+import { fileTab, screenProblems, showScreen, type Screen } from './helpers/screen-tour';
 import { tourGroups } from './helpers/all-tours';
 import { editContainmentProblems } from './helpers/edit-tour';
 import { adminScreens, leaveAdminPage } from './helpers/admin-tour';
@@ -78,7 +86,10 @@ await api.ws.importBatch(
     name: 'Flights',
     files: await Promise.all(
       ['flights.ontology.yaml', 'flights.semantic_model.yaml', 'flights.mapping.yaml'].map(
-        async path => ({ path, source: await Bun.file(`public/examples/ossie/${path}`).text() }),
+        async path => ({
+          path,
+          source: await Bun.file(`public/examples/ossie/${path}`).text(),
+        }),
       ),
     ),
   },
@@ -96,6 +107,12 @@ await api.ws.importBatch(
   },
   LOCAL_READER,
 );
+// The canvas heights at 1280×720 on the release where the secondary controls sat in a dialog,
+// minus 2 px: the Graph tab of the mall ontology and of the mall data contract.
+const MALL_GRAPH_CANVAS_HEIGHT = [
+  ['mall.ontology.yaml', 473],
+  ['mall.odcs.yaml', 421],
+] as const;
 const ublModel = inspect(
   await Bun.file('public/examples/ubl/ubl.ontology.yaml').text(),
   'ubl.ontology.yaml',
@@ -151,15 +168,15 @@ async function openPage(width: number, height: number) {
     );
     console.log('INJECTED_SMALL_TEXT_MUTATION');
   }
-  if (process.env.RESPONSIVE_MUTATION === 'far-names-small') {
+  if (process.env.RESPONSIVE_MUTATION === 'far-details-hidden') {
     await page.addInitScript(() =>
       document.addEventListener('DOMContentLoaded', () => {
         const style = document.createElement('style');
-        style.textContent = '.zoom-far .node strong{font-size:12px!important}';
+        style.textContent = '.neighborhood-node .node small{display:none!important}';
         document.head.append(style);
       }),
     );
-    console.log('INJECTED_FAR_NAMES_MUTATION');
+    console.log('INJECTED_FAR_DETAILS_MUTATION');
   }
   if (process.env.RESPONSIVE_MUTATION === 'graph-names-small') {
     await page.addInitScript(() =>
@@ -208,11 +225,16 @@ async function openPage(width: number, height: number) {
       const anchor = 'const timer = setTimeout(() => setMessage(""), 5e3);';
       if (!source.includes(anchor)) throw Error('Status mutation anchor missing');
       console.log('INJECTED_STATUS_MUTATION');
-      await route.fulfill({ response, body: source.replace(anchor, 'const timer = 0;') });
+      await route.fulfill({
+        response,
+        body: source.replace(anchor, 'const timer = 0;'),
+      });
     });
   await page.goto(appUrl());
   await expect(page.locator('h1')).toContainText('UBL');
-  await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60_000 });
+  await expect(page.locator('.full-graph-loading')).toHaveCount(0, {
+    timeout: 60_000,
+  });
   await expect(page.locator('.react-flow__node-entity').first()).toBeVisible();
   await expectInitialGraphSettled(page);
   return page;
@@ -244,7 +266,10 @@ async function visibleGraph(page: Page) {
             );
           }).length;
         }),
-      { timeout: 15_000, message: 'At least one measured graph node intersects the actual canvas' },
+      {
+        timeout: 15_000,
+        message: 'At least one measured graph node intersects the actual canvas',
+      },
     )
     .toBeGreaterThan(0);
 }
@@ -273,7 +298,10 @@ async function clickVisibleEdge(page: Page) {
         });
         return !!point;
       },
-      { timeout: 10000, message: 'Relationship hit area becomes accessible after fit animation' },
+      {
+        timeout: 10000,
+        message: 'Relationship hit area becomes accessible after fit animation',
+      },
     )
     .toBe(true);
   await page.mouse.click(point!.x, point!.y);
@@ -307,7 +335,9 @@ try {
             exact: true,
           }),
         ).toBeVisible();
-        await page.screenshot({ path: `/tmp/workbench-responsive-${width}x${height}.png` });
+        await page.screenshot({
+          path: `/tmp/workbench-responsive-${width}x${height}.png`,
+        });
       },
     );
     await check(
@@ -323,7 +353,10 @@ try {
             .toBeGreaterThan(before + 150);
         }
         await page
-          .getByRole('button', { name: desktop ? 'Show sidebar' : 'Open workspace', exact: true })
+          .getByRole('button', {
+            name: desktop ? 'Show sidebar' : 'Open workspace',
+            exact: true,
+          })
           .click();
         await expect(
           page.getByRole('button', { name: 'ubl.ontology.yaml', exact: true }),
@@ -332,11 +365,16 @@ try {
         await expect(page.locator('input[type=file]')).toHaveCount(1);
         // Project tree rows: name, delete icon and menu stay side by side at every viewport.
         await expect(
-          page.getByRole('button', { name: 'Delete ubl.ontology.yaml', exact: true }),
+          page.getByRole('button', {
+            name: 'Delete ubl.ontology.yaml',
+            exact: true,
+          }),
         ).toBeVisible();
         expect(await treeRowProblems(page)).toEqual([]);
         if (width === 390)
-          await page.screenshot({ path: '/tmp/workbench-responsive-drawer-390.png' });
+          await page.screenshot({
+            path: '/tmp/workbench-responsive-drawer-390.png',
+          });
         if (desktop) await page.getByRole('button', { name: 'Hide sidebar', exact: true }).click();
         else await page.keyboard.press('Escape');
         await expect(
@@ -359,15 +397,13 @@ try {
         await pickCenter(page, name40);
         await expect.poll(() => centerOf(page)).toBe('ontology/40');
         await expect.poll(() => neighborhoodEdgeProblems(page)).toEqual([]);
-        await viewOptions(page, async options => {
-          await options.getByRole('button', { name: 'Labels off', exact: true }).click();
-        });
+        await viewOptions(page, options => setShown(options, 'Labels', true));
         await expect.poll(() => neighborhoodEdgeProblems(page)).toEqual([]);
-        await viewOptions(page, async options => {
-          await options.getByRole('button', { name: 'Labels on', exact: true }).click();
-        });
+        await viewOptions(page, options => setShown(options, 'Labels', false));
         if (width === 1280)
-          await page.screenshot({ path: '/tmp/workbench-responsive-neighborhood-1280.png' });
+          await page.screenshot({
+            path: '/tmp/workbench-responsive-neighborhood-1280.png',
+          });
         const focused = page.locator('.react-flow__node[data-id="ontology/40"]');
         await expect(focused).toBeVisible();
         await visibleGraph(page);
@@ -390,7 +426,9 @@ try {
         await expect(page.locator('.inspector')).toHaveCount(0);
         for (let index = 0; index < 3; index++) {
           await page.locator('.tabs').getByRole('button', { name: 'Graph', exact: true }).click();
-          await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60_000 });
+          await expect(page.locator('.full-graph-loading')).toHaveCount(0, {
+            timeout: 60_000,
+          });
           await visibleGraph(page);
           await page
             .locator('.tabs')
@@ -402,7 +440,7 @@ try {
       },
     );
     await check(
-      `${width}×${height}: zoomed far out, neighborhood names stay readable and details give way`,
+      `${width}×${height}: zoomed far out, neighborhood cards keep their type, description and full name`,
       async () => {
         await page
           .locator('.tabs')
@@ -410,41 +448,42 @@ try {
           .click();
         await pickCenter(page, name40);
         await expect.poll(() => centerOf(page)).toBe('ontology/40');
-        const flow = page.locator('.react-flow').first();
-        // Zoom out until the far layout starts, then one step more to cross a level.
-        let zoomedOut = 0;
+        const opened = await neighborhoodState(page);
+        expect(opened.shown).toBe(Math.min(NEIGHBOR_PAGE, opened.total ?? 0));
         await revealGraphControls(page);
-        const isFar = () => flow.evaluate(el => el.classList.contains('zoom-far'));
-        for (let step = 0; step < 12 && !(await isFar()); step++) {
+        const zoomOutSteps = 5;
+        for (let step = 0; step < zoomOutSteps; step++) {
           await page.getByRole('button', { name: 'Zoom out', exact: true }).click();
           await page.waitForTimeout(250);
-          zoomedOut++;
         }
-        await page.getByRole('button', { name: 'Zoom out', exact: true }).click();
-        await page.waitForTimeout(250);
-        zoomedOut++;
-        await expect(flow).toHaveClass(/zoom-far/);
-        const sizes = await page.evaluate(() =>
-          [...document.querySelectorAll<HTMLElement>('.neighborhood-node .node strong')]
-            .filter(name => name.getBoundingClientRect().width > 0)
-            .map(name => {
-              const scale = name.getBoundingClientRect().height / name.offsetHeight;
-              return parseFloat(getComputedStyle(name).fontSize) * scale;
+        const cards = await page.evaluate(() =>
+          [...document.querySelectorAll<HTMLElement>('.neighborhood-node .node')]
+            .filter(card => card.getBoundingClientRect().width > 0)
+            .map(card => {
+              const name = card.querySelector<HTMLElement>('strong')!;
+              const type = card.querySelector<HTMLElement>('small');
+              const description = card.querySelector<HTMLElement>(':scope > span');
+              return {
+                nameIsWhole:
+                  name.textContent === name.title && name.scrollWidth <= name.clientWidth,
+                typeShown: !!type && getComputedStyle(type).display !== 'none',
+                descriptionShown: !description || getComputedStyle(description).display !== 'none',
+              };
             }),
         );
-        expect(sizes.length).toBeGreaterThan(0);
-        expect(Math.min(...sizes)).toBeGreaterThanOrEqual(11.5);
-        const button = await page
-          .locator('.neighborhood-node .node-actions button')
-          .first()
-          .evaluate(el => {
-            const box = el.getBoundingClientRect();
-            return { width: box.width, height: box.height };
-          });
-        expect(Math.min(button.width, button.height)).toBeGreaterThanOrEqual(11);
-        for (let step = 0; step < zoomedOut; step++) {
+        expect(cards.length).toBeGreaterThan(0);
+        expect(cards.every(card => card.nameIsWhole)).toBe(true);
+        expect(cards.every(card => card.typeShown)).toBe(true);
+        expect(cards.every(card => card.descriptionShown)).toBe(true);
+        // Labels on is a request to see every relationship name, whatever the zoom.
+        await viewOptions(page, options => setShown(options, 'Labels', true));
+        await expect.poll(() => page.locator('.relationship-label').count()).toBeGreaterThan(0);
+        await viewOptions(page, options => setShown(options, 'Labels', false));
+        await revealGraphControls(page);
+        for (let step = 0; step < zoomOutSteps; step++) {
           await page.getByRole('button', { name: 'Zoom in', exact: true }).click();
         }
+        await hideGraphControls(page);
         await page.waitForTimeout(250);
       },
     );
@@ -501,7 +540,9 @@ try {
     'full screen: Graph fills the screen, details overlay it, Escape restores zoom and selection',
     async () => {
       await fsPage.locator('.tabs').getByRole('button', { name: 'Graph', exact: true }).click();
-      await expect(fsPage.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60_000 });
+      await expect(fsPage.locator('.full-graph-loading')).toHaveCount(0, {
+        timeout: 60_000,
+      });
       await fsPage.getByRole('button', { name: 'Fit model' }).click();
       await fsPage.mouse.move(700, 500);
       await fsPage.mouse.wheel(0, -240);
@@ -553,7 +594,9 @@ try {
       await fsPage.keyboard.press('f');
       await expect(fsPage.locator('.canvas-row.is-fullscreen')).toBeVisible();
       await expect.poll(() => neighborhoodEdgeProblems(fsPage)).toEqual([]);
-      await fsPage.screenshot({ path: '/tmp/workbench-fullscreen-neighborhood.png' });
+      await fsPage.screenshot({
+        path: '/tmp/workbench-fullscreen-neighborhood.png',
+      });
       await fsPage.getByRole('button', { name: 'Exit full screen' }).click();
       await expect(fsPage.locator('.canvas-row.is-fullscreen')).toHaveCount(0);
       await expect.poll(() => transform(fsPage), { timeout: 3000 }).toBe(before);
@@ -583,10 +626,6 @@ try {
     [1440, 900],
   ];
   async function tab(p: Page, name: string) {
-    // Source control has no view tabs; Model explorer in the sidebar brings them back.
-    if (await p.getByRole('region', { name: 'Source Control' }).count()) {
-      await sidebarNav(p, /^Model explorer/);
-    }
     if (!(await p.locator('.tabs').isVisible())) return;
     await p.locator('.tabs').getByRole('button', { name, exact: true }).click();
   }
@@ -618,7 +657,9 @@ try {
       async p => {
         await openFile(p, 'ubl.ontology.yaml');
         await tab(p, 'Graph');
-        await expect(p.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60_000 });
+        await expect(p.locator('.full-graph-loading')).toHaveCount(0, {
+          timeout: 60_000,
+        });
       },
     ],
     ['Neighborhood', async p => tab(p, 'Neighborhood')],
@@ -838,7 +879,9 @@ try {
           found.push(`${width}×${height} with a path: ${problem}`);
         for (const problem of await layoutProblems(sweep))
           found.push(`${width}×${height} with a path: ${problem}`);
-        await sweep.screenshot({ path: `/tmp/workbench-lineage-path-${width}.png` });
+        await sweep.screenshot({
+          path: `/tmp/workbench-lineage-path-${width}.png`,
+        });
         await clearSelectedPath(graph, sweep);
       }
       expect(found).toEqual([]);
@@ -905,19 +948,25 @@ try {
       await closeDrawer(sweep);
       await openFile(sweep, 'ubl.ontology.yaml');
       await tab(sweep, 'Graph');
-      await expect(sweep.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60_000 });
+      await expect(sweep.locator('.full-graph-loading')).toHaveCount(0, {
+        timeout: 60_000,
+      });
       // Labels are turned on and areas collapsed, so a bundled connection (its label counts its
       // relationships) can be selected to show the bundle selector.
       await viewOptions(sweep, async options => {
-        const labels = options.getByRole('button', { name: /^Labels (off|on)$/ });
-        if ((await labels.textContent())?.includes('off')) await labels.click();
+        await setShown(options, 'Labels', true);
         // The mini-map is off by default; it is turned on so the overlap checks cover it.
-        await options.getByRole('button', { name: 'Map off', exact: true }).click();
+        await setShown(options, 'Mini-map', true);
         // A pane this size may already open with the areas collapsed.
-        const collapse = options.getByRole('button', { name: 'Collapse areas', exact: true });
+        const collapse = options.getByRole('button', {
+          name: 'Collapse areas',
+          exact: true,
+        });
         if (await collapse.isEnabled()) await collapse.click();
       });
-      await expect(sweep.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60_000 });
+      await expect(sweep.locator('.full-graph-loading')).toHaveCount(0, {
+        timeout: 60_000,
+      });
       await sweep.getByRole('button', { name: 'Fit model', exact: true }).click();
       await sweep.waitForTimeout(450);
       // Click a visible point of an edge labelled "N relationships" (a bundled connection).
@@ -948,7 +997,9 @@ try {
           found.push(...(await overlapProblems(sweep, `${width}×${height}`)));
         else found.push(`${width}×${height}: bundle selector not visible`);
         if (width === 390 || width === 1280)
-          await sweep.screenshot({ path: `/tmp/workbench-overlap-bundle-${width}.png` });
+          await sweep.screenshot({
+            path: `/tmp/workbench-overlap-bundle-${width}.png`,
+          });
       }
       await closeDetails(sweep);
       await viewOptions(sweep, async options => {
@@ -1014,7 +1065,9 @@ try {
         if (b.top < s.y - 1)
           found.push(`${width}×${height}: grouping details open above their control`);
         if (width === 390)
-          await sweep.screenshot({ path: '/tmp/workbench-grouping-popover-390.png' });
+          await sweep.screenshot({
+            path: '/tmp/workbench-grouping-popover-390.png',
+          });
         await sweep.locator('summary[aria-label="Grouping details"]').click();
         await expect(pop).toHaveCount(0);
       }
@@ -1092,7 +1145,9 @@ try {
     await assertFinalOverlays(p, lineageOverlays);
     await selectLineagePath(p);
     await assertFinalOverlays(p, lineageOverlays);
-    await p.screenshot({ path: `/tmp/workbench-final-sweep-lineage-${width}.png` });
+    await p.screenshot({
+      path: `/tmp/workbench-final-sweep-lineage-${width}.png`,
+    });
   }
   async function sweepPierce(p: Page, width: number) {
     await openFile(p, 'ubl.ontology.yaml');
@@ -1114,7 +1169,9 @@ try {
     await expect(p.locator('.inspector')).toBeVisible();
     await expect(p.locator('.pierce-banner')).toBeVisible();
     await assertFinalOverlays(p, pierceOverlays);
-    await p.screenshot({ path: `/tmp/workbench-final-sweep-pierce-${width}.png` });
+    await p.screenshot({
+      path: `/tmp/workbench-final-sweep-pierce-${width}.png`,
+    });
     await closeDetails(p);
   }
   const dialogNames = [
@@ -1124,7 +1181,6 @@ try {
     'Grouping suggestions',
     'Import',
     'View definition',
-    'View options',
     'Trash',
   ];
   async function openSweepDialog(p: Page, name: string) {
@@ -1144,14 +1200,9 @@ try {
         .click();
       return;
     }
-    const file = name === 'View options' ? 'commerce.odcs.yaml' : 'ubl.ontology.yaml';
-    await openFile(p, file);
+    await openFile(p, 'ubl.ontology.yaml');
     await closeDrawer(p);
-    if (name === 'View options') {
-      await tab(p, 'Graph');
-      await revealGraphControls(p);
-      await p.getByRole('button', { name: /View options/ }).click();
-    } else if (name === 'View definition') {
+    if (name === 'View definition') {
       await tab(p, 'Catalog');
       await p.locator('.catalog button').first().click();
       await p.getByRole('button', { name: 'View definition' }).click();
@@ -1227,7 +1278,9 @@ try {
     await openSweepDialog(p, name);
     await assertDialogLayout(p);
     const area = name.toLowerCase().replaceAll(' ', '-');
-    await p.screenshot({ path: `/tmp/workbench-final-sweep-dialog-${area}-${width}.png` });
+    await p.screenshot({
+      path: `/tmp/workbench-final-sweep-dialog-${area}-${width}.png`,
+    });
     await p.keyboard.press('Escape');
     await closeDrawer(p);
     await closeDetails(p);
@@ -1280,8 +1333,14 @@ try {
   // for it to settle, then open it only if the loader is not already on screen.
   async function loadCommerce() {
     await sweep.waitForTimeout(400);
-    const examplesButton = sweep.getByRole('button', { name: 'Examples', exact: true });
-    const openWorkspace = sweep.getByRole('button', { name: 'Open workspace', exact: true });
+    const examplesButton = sweep.getByRole('button', {
+      name: 'Examples',
+      exact: true,
+    });
+    const openWorkspace = sweep.getByRole('button', {
+      name: 'Open workspace',
+      exact: true,
+    });
     if (!(await examplesButton.isVisible()) && (await openWorkspace.isVisible())) {
       await openWorkspace.click();
     }
@@ -1310,7 +1369,9 @@ try {
       await loadCommerce();
       await expect(sweep.locator('main > .status')).toBeVisible();
       await tab(sweep, 'Catalog');
-      await expect(sweep.locator('main > .status')).toHaveCount(0, { timeout: 1_000 });
+      await expect(sweep.locator('main > .status')).toHaveCount(0, {
+        timeout: 1_000,
+      });
     },
   );
   // Navigation state: exactly one sidebar item and one tab are current, and they match.
@@ -1338,7 +1399,10 @@ try {
       await expect
         .poll(async () => (await nav()).map(t => t.trim().replace(/\d+$/, '')))
         .toEqual(['Source control']);
+      // The tabs and the entity search stay above Source control; none is marked current.
       await expect.poll(tabs).toEqual([]);
+      await expect(sweep.locator('.tabs').getByRole('button', { name: 'Graph' })).toBeVisible();
+      await expect(sweep.getByPlaceholder('Find an entity…')).toBeVisible();
       // Neighborhood and Overview are separate views: each keeps its own state.
       await tab(sweep, 'Neighborhood');
       await pickCenter(sweep, name40);
@@ -1359,7 +1423,9 @@ try {
       await openFile(sweep, 'commerce.mapping.yaml');
       await tab(sweep, 'Graph');
       const graph = sweep.getByRole('region', { name: 'Mapping graph' });
-      await expect(graph.locator('.lineage-card').first()).toBeVisible({ timeout: 15_000 });
+      await expect(graph.locator('.lineage-card').first()).toBeVisible({
+        timeout: 15_000,
+      });
       const found: string[] = [];
       for (const [width, height] of [
         [390, 844],
@@ -1387,7 +1453,9 @@ try {
           found.push(`${width}×${height} with a selection: ${problem}`);
         for (const problem of await layoutProblems(sweep))
           found.push(`${width}×${height} with a selection: ${problem}`);
-        await sweep.screenshot({ path: `/tmp/workbench-mapping-graph-path-${width}.png` });
+        await sweep.screenshot({
+          path: `/tmp/workbench-mapping-graph-path-${width}.png`,
+        });
         await clearSelectedPath(graph, sweep);
       }
       expect(found).toEqual([]);
@@ -1400,7 +1468,9 @@ try {
   await check(
     'sidebar: resize by pointer and keyboard (220–520, persisted), two-line names, Examples menu, one toggle',
     async () => {
-      const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+      const context = await browser.newContext({
+        viewport: { width: 1440, height: 900 },
+      });
       const page = await context.newPage();
       await recordPageErrors(page, 'sidebar');
       await routeApi(page, api);
@@ -1476,7 +1546,10 @@ try {
       expect(await treeRowProblems(page)).toEqual([]);
       await page.screenshot({ path: '/tmp/workbench-sidebar-220.png' });
       // Examples: a closed menu button that opens on demand, even in the narrowest sidebar.
-      const examples = page.getByRole('button', { name: 'Examples', exact: true });
+      const examples = page.getByRole('button', {
+        name: 'Examples',
+        exact: true,
+      });
       await expect(examples).toBeVisible();
       await expect(page.getByRole('menuitem', { name: /Load UBL business model/ })).toBeHidden();
       await examples.click();
@@ -1609,7 +1682,12 @@ try {
       async () => {
         for (const screen of adminScreens()) {
           await showScreen(adminPage, screen);
-          expect(await screenProblems(adminPage, { ...screen, dialog: '.admin-page' })).toEqual([]);
+          expect(
+            await screenProblems(adminPage, {
+              ...screen,
+              dialog: '.admin-page',
+            }),
+          ).toEqual([]);
           await noOverflow(adminPage);
           for (const part of ['.admin-nav', '.admin-content']) {
             const box = await adminPage.locator(part).boundingBox();
@@ -1619,7 +1697,10 @@ try {
             ).toBe(true);
           }
           await expect(
-            adminPage.getByRole('button', { name: 'Back to workspace', exact: true }),
+            adminPage.getByRole('button', {
+              name: 'Back to workspace',
+              exact: true,
+            }),
           ).toBeVisible();
         }
         await leaveAdminPage(adminPage);
@@ -1652,9 +1733,13 @@ try {
         for (const name of ['New', 'Export', 'Commit…', 'Admin']) {
           await expect(headerPage.getByRole('button', { name, exact: true })).toBeVisible();
         }
-        const saveState = headerPage.getByRole('status', { name: 'Save state', exact: true });
+        const saveState = headerPage.getByRole('status', {
+          name: 'Save state',
+          exact: true,
+        });
         await expect(saveState).toBeVisible();
         await examplesKeyboardProblems(headerPage);
+        expect(await examplesFlyoutProblems(headerPage)).toEqual([]);
       },
     );
     await headerPage.close();
@@ -1693,7 +1778,9 @@ try {
         [1440, 900],
         [2560, 1440],
       ]) {
-        const examplePage = await browser.newPage({ viewport: { width: width!, height: height! } });
+        const examplePage = await browser.newPage({
+          viewport: { width: width!, height: height! },
+        });
         await recordPageErrors(examplePage, `examples ${width}×${height}`);
         await routeApi(examplePage, exampleApi);
         await examplePage.goto(appUrl());
@@ -1708,6 +1795,25 @@ try {
             }
           },
         );
+        if (width === 1280) {
+          await check(
+            'examples: 1280×720 mall Graph toolbars keep the canvas height they had as dialogs',
+            async () => {
+              for (const [file, minimumHeight] of MALL_GRAPH_CANVAS_HEIGHT) {
+                await fileTab(file, 'Graph')(examplePage);
+                await expect(examplePage.locator('.full-graph-loading')).toHaveCount(0);
+                await examplePage.waitForTimeout(500);
+                const canvas = (await examplePage
+                  .locator('.react-flow:visible')
+                  .first()
+                  .boundingBox())!;
+                expect(canvas.height, `${file} canvas height`).toBeGreaterThanOrEqual(
+                  minimumHeight,
+                );
+              }
+            },
+          );
+        }
         await examplePage.close();
       }
     } finally {
@@ -1781,7 +1887,9 @@ try {
     );
     await loadingPage.goto(appUrl());
     await loadingPage.getByRole('button', { name: 'Open workspace', exact: true }).click();
-    const closeButton = loadingPage.getByRole('button', { name: 'Close workspace drawer' });
+    const closeButton = loadingPage.getByRole('button', {
+      name: 'Close workspace drawer',
+    });
     await expect(closeButton).toBeVisible();
     await expect(loadingPage.locator('.workspace-title h1')).not.toHaveText('Semantic Workbench', {
       timeout: 30_000,

@@ -25,9 +25,12 @@ test('UBL invoice_line.line_extension_amount, Both: exactly the cards on its ups
   expect(new Set(r.cards)).toEqual(want);
   expect(r.total).toBe(want.size);
   expect(r.hidden).toBe(0);
-  // UBL's governed metrics count rows rather than reading this column, so its path ends
-  // at the dataset field.
-  expect(r.cards).toContain('dataset:ubl.semantic.yaml#/invoice_line');
+  // UBL's governed metrics count rows rather than reading this column, and the invoice_line
+  // dataset copies its table column for column, so the path ends at the table card, which
+  // stands for the dataset too.
+  expect(r.cards).not.toContain('dataset:ubl.semantic.yaml#/invoice_line');
+  const table = [...g.cards.values()].find(c => c.label === 'invoice_line')!;
+  expect(table.badges?.some(b => b.kind === 'semantic')).toBe(true);
   expect(r.steps[r.cards[0]]).toBe(0);
 });
 test('direction: upstream never includes downstream-only cards; a card pierces the union of its columns; the budget cuts in step order', () => {

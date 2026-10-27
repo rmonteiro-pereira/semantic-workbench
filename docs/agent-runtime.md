@@ -169,9 +169,10 @@ unsaved editor drafts are not read and remote references/schemas are never fetch
 | Read context | `GET /api/agent/context?mappingId=ID` |
 | Request a plan | `POST /api/agent/plan` |
 
-Catalog returns mapping IDs, names, references, standalone/embedded distinctions and runtime
-policy. Context includes concepts/constraints, original mapping trees, resolved bindings,
-semantic fields/metrics/dependencies, sources, joins, AI metadata, revisions, evidence and findings.
+Catalog returns mapping IDs, names, the project each mapping belongs to, references,
+standalone/embedded distinctions and runtime policy. Context includes concepts/constraints,
+original mapping trees, resolved bindings, semantic fields/metrics/dependencies, sources, joins,
+AI metadata, revisions, evidence and findings.
 Repeated `concept` query parameters can limit selected roots/targets; the necessary metric
 formulas/fields remain included and full datasets/joins remain available for traversal.
 

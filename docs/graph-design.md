@@ -31,7 +31,7 @@ it is not a drop-in performance switch.
    one link bundle, but every original relationship remains available for inspection.
 2. Apply the selected display grouping. Automatic uses the first applicable mode with useful
    groups. These areas are view organization, not additional standard semantics.
-3. Use Layered layout by default. Network uses fCoSE positions, then overlap cleanup and area
+3. Use Network layout by default. Layered uses ELK routes. Network uses fCoSE positions, then overlap cleanup and area
    packing rather than assuming that force layout cannot overlap HTML cards.
 4. Render parent areas before their children using relative positions and `parentId`.
 5. Retain ELK route vertices while their endpoints match live handles. Dragging invalidates stale
@@ -39,12 +39,12 @@ it is not a drop-in performance switch.
    metadata is not forwarded onto DOM elements.
 6. Compute obstacle-aware worker routes only at useful detail levels or for selected connections.
    Whole-model views use inexpensive native paths instead of routing thousands of tiny edges.
-7. Fit the actual pane. When every entity name would be unreadable, start with counted area
-   cards. Models above 250 visible business entities always start collapsed; expanding restores
-   all entities and their folded relationships.
+7. Fit the actual pane and show every entity by name. Models above 250 visible business
+   entities start with counted area cards; expanding restores all entities and their folded
+   relationships.
 
 `src/graph/full-layout.ts` and its workers own engine input/output.
-`src/graph/overview-capacity.ts` decides readable initial capacity.
+`src/graph/overview-capacity.ts` sizes cards and decides when areas start as counted cards.
 `src/graph/edge-styles.ts` supplies line/legend styles and SVG-safe appearance;
 `src/graph/RoutedEdge.tsx` keeps fallback routes attached while a worker result is pending or no
 longer matches current endpoints.
@@ -72,8 +72,8 @@ an expanded canvas instead of briefly mounting it at fit-all scale.
 
 Names use identifier-boundary breaks without changing text. Relationship labels compensate for
 zoom, reserve their painted bounds and stay above edge paths. Displaced labels have leader lines;
-labels that cannot fit within the current canvas remain available on hover. At low zoom, showing
-all labels is intentionally replaced by hover/selection detail.
+labels that cannot fit within the current canvas remain available on hover. Labels on shows every
+label at any zoom.
 
 ## Contract lineage and mapping graphs
 
@@ -108,14 +108,16 @@ changing the meaning or direction of the declared key.
 
 ### First-view readability
 
-`lineage-view.ts` chooses nearby cards that fit whole at the readable entry zoom. It prioritizes
-tables, then datasets and metrics. If the actual layout is larger than estimated, the last
-candidate is removed and the view is laid out again. Omitted cards remain reachable through a
-counted Show all action or selected path. Explicit Fit can zoom out beyond the readable entry
-scale; it takes precedence over a pending automatic first-view adjustment.
+`lineage-view.ts` chooses the nearby cards that fit whole at the readable entry zoom and the canvas
+frames them. It prioritizes tables, then datasets and metrics. If the actual layout is larger than
+estimated, the farthest chosen card leaves the frame until the rest fit. Every card of the reach
+is still laid out, so the others sit past the edge of the frame, a pan away, and no card waits
+behind a control. Explicit Fit zooms out beyond the readable entry scale to show every card; it
+takes precedence over a pending automatic first-view adjustment.
 
-Graph labels and card names use zoom-dependent typography; small detail lines disappear rather
-than being shown at an unreadable size. Compensated names are bounded by card height. These are
+Whole-model and lineage card names use zoom-dependent typography, and whole-model detail lines
+disappear rather than being shown at an unreadable size. Neighborhood cards keep their name, type,
+description and metric count at every zoom. Compensated names are bounded by card height. These are
 initial/readable-view guarantees, not a claim that arbitrary user zoom cannot make text small.
 
 ## Measurement and resize lifecycle

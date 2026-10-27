@@ -2,13 +2,7 @@
 // guide. Every remote is a local bare repository or a local test server; no network remote is used.
 import { expectDialogGeometry } from './helpers/dialog-geometry';
 import { lowContrastProblems, smallTextProblems } from './helpers/text-geometry';
-import {
-  closeSyncDialog,
-  openRemoteDialog,
-  openSyncDialog,
-  remoteDialog,
-  runSyncAction,
-} from './helpers/sync-dialog';
+import { openRemoteDialog, remoteButton, remoteDialog, runSyncAction } from './helpers/sync-dialog';
 import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Locator, type Route } from '@playwright/test';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -151,9 +145,8 @@ try {
     async () => {
       await page.getByRole('button', { name: /^Source control/ }).click();
       await expect(panel()).toBeVisible();
-      const sync = await openSyncDialog(page);
-      await expect(sync).toContainText('No remote yet');
-      await closeSyncDialog(sync);
+      await expect(panel()).toContainText('No remote yet');
+      await expect(remoteButton(page)).toBeVisible();
       await setRemote(pushTarget);
       await runSyncAction(page, 'Push');
       await expect(panel().getByRole('status').filter({ hasText: 'Push finished' })).toBeVisible({

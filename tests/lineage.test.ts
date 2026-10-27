@@ -53,6 +53,22 @@ function oracle(files: { path: string; data: any }[], contract: string): Edge[] 
       const o: any = byPhysical.get(d.source) ?? c.schema.find((x: any) => x.name === d.source);
       if (!o) continue;
       const ds = `dataset:${f.path}#/${d.name}`;
+      // A dataset named after its table whose fields are that table's columns, unchanged, is a
+      // copy: its fields are the table's own columns and it adds no card or reads lines.
+      const column = (name: string) =>
+        (o.properties ?? []).find((x: any) => (x.physicalName ?? x.name) === name);
+      const named = [o.name, o.physicalName ?? o.name].map((n: string) => n.toLowerCase());
+      const copy =
+        named.includes(String(d.name).toLowerCase()) &&
+        (d.fields ?? []).length > 0 &&
+        (d.fields ?? []).every(
+          (fd: any) => column(fd.name) && String(ansi(fd) ?? fd.name).trim() === fd.name,
+        );
+      if (copy) {
+        for (const fd of d.fields)
+          fields.set(`${d.name}.${fd.name}`, `${obj(o.name)}/${column(fd.name).name}`);
+        continue;
+      }
       for (const fd of d.fields ?? []) {
         fields.set(`${d.name}.${fd.name}`, `${ds}/${fd.name}`);
         const e = String(ansi(fd) ?? fd.name);
@@ -147,20 +163,19 @@ test('commerce: customers.customer_id → orders.customer_id (parent left of chi
       kind: 'foreign-key',
     }),
   );
-  expect(
-    g.edges.some(
-      e =>
-        e.from === `${o('orders')}/amount` &&
-        e.to === 'dataset:sales.ossie.yaml#/orders/amount' &&
-        e.kind === 'reads',
-    ),
-  ).toBe(true);
+  // The orders dataset copies the orders table column for column, so the table card stands for it:
+  // no second card, no reads lines, and the metric reads the table column directly.
+  expect(g.cards.has('dataset:sales.ossie.yaml#/orders')).toBe(false);
+  expect(g.edges.some(e => e.from === `${o('orders')}/amount` && e.kind === 'reads')).toBe(false);
   expect(
     g.edges
-      .filter(e => e.from === 'dataset:sales.ossie.yaml#/orders/amount')
-      .map(e => e.to)
-      .sort(),
-  ).toEqual(['metric:sales.ossie.yaml#/gross_revenue']);
+      .filter(e => e.from === `${o('orders')}/amount` && e.kind === 'aggregates')
+      .map(e => e.to),
+  ).toContain('metric:sales.ossie.yaml#/gross_revenue');
+  const semantic = g.cards.get(o('orders'))!.badges!.filter(b => b.kind === 'semantic');
+  expect(semantic.map(b => b.label)).toEqual(['Semantic dataset']);
+  // A dataset that adds a field of its own is not a copy and keeps its card.
+  expect(g.cards.has('dataset:commerce.mapped-semantic.yaml#/customers')).toBe(true);
   // The average order value is built on gross revenue, so it reaches the amount through it.
   expect(g.edges).toContainEqual(
     expect.objectContaining({

@@ -1,5 +1,6 @@
 /** Selects contract lineage centers and routes navigation into related documents. */
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
+import { useRecordedState } from './useRecordedState';
 import type { WalkAction } from '../graph/walk';
 import { buildLineage, defaultCenter, type LineageCard } from '../odcs/lineage';
 import { projectFiles, projectRevision } from '../odcs/project-files';
@@ -58,7 +59,10 @@ export function useLineage({
     !isMappingDoc &&
     Array.isArray((model as any)?.document?.ontology_mappings) &&
     (model as any).document.ontology_mappings.length > 0;
-  const [mappingView, setMappingView] = useState<'mapping' | 'ontology'>('mapping');
+  const [mappingView, setMappingView] = useRecordedState<'mapping' | 'ontology'>(
+    'lineage.mappingView',
+    'mapping',
+  );
   useEffect(() => setMappingView('mapping'), [current?.id]);
   const mappingId = getMappingId();
   const graphViewSwitch = isConsolidated ? (
@@ -70,7 +74,10 @@ export function useLineage({
       ))}
     </span>
   ) : null;
-  const [contractObject, setContractObject] = useState<string | null>(null);
+  const [contractObject, setContractObject] = useRecordedState<string | null>(
+    'contract.object',
+    null,
+  );
   // Column-level lineage of the open contract, built from the project's saved files.
   const lineageDocs = isContract && current ? docs.filter(d => d.project === current.project) : [];
   const lineageRev = isContract && current ? projectRevision(lineageDocs) : '';
@@ -82,7 +89,7 @@ export function useLineage({
     [isContract, current?.project, current?.path, lineageRev],
   );
   const lineageKey = current ? `workbench:lineage-center:${current.id}` : '';
-  const [lineageCenter, setLineageCenter] = useState('');
+  const [lineageCenter, setLineageCenter] = useRecordedState('lineage.center', '');
   useEffect(() => {
     if (!lineage) {
       setLineageCenter('');

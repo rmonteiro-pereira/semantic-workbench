@@ -1,43 +1,29 @@
-/** The metrics list's filters and grouping, opened from one Filters button. */
+/** The metrics list's grouping and filters, shown inline beside the search box. */
 import React, { useMemo } from 'react';
 import type { KpiSummary } from '../server/agent/explain';
-import { Modal } from '../projects/Modal';
 import { typeLabel } from './format';
 import type { GroupBy, MetricFilters } from './metric-filters';
-import { groupLabel, noFilters } from './metric-filters';
+import { groupLabel } from './metric-filters';
 
 function distinct(values: (string | undefined)[]): string[] {
   return [...new Set(values.filter(Boolean) as string[])].sort();
 }
 
 /** Lets the reader narrow and group the metrics list; changes apply as they are made. */
-export function MetricFiltersDialog({
+export function MetricFilterControls({
   kpis,
   filters,
   onChange,
-  onClose,
 }: {
   kpis: KpiSummary[];
   filters: MetricFilters;
   onChange: (filters: MetricFilters) => void;
-  onClose: () => void;
 }) {
   const owners = useMemo(() => distinct(kpis.map(kpi => kpi.owner)), [kpis]);
   const statuses = useMemo(() => distinct(kpis.map(kpi => kpi.status)), [kpis]);
   const types = useMemo(() => [...new Set(kpis.map(kpi => kpi.type))].sort(), [kpis]);
-  const footer = (
-    <>
-      <button type="button" onClick={() => onChange(noFilters)}>
-        Reset
-      </button>
-      <span className="dialog-footer-spacer" />
-      <button type="button" className="primary" onClick={onClose}>
-        Done
-      </button>
-    </>
-  );
   return (
-    <Modal title="Filters" size="narrow" onCancel={onClose} footer={footer}>
+    <>
       <label>
         Group by
         <select
@@ -100,7 +86,7 @@ export function MetricFiltersDialog({
         </select>
       </label>
       <label
-        className="item-check"
+        className="metrics-governed"
         title="Only metrics with workbench attributes (type, owner, status, targets)"
       >
         <input
@@ -110,6 +96,6 @@ export function MetricFiltersDialog({
         />
         Governed only
       </label>
-    </Modal>
+    </>
   );
 }

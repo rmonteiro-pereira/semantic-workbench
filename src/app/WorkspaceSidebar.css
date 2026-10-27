@@ -1,27 +1,15 @@
 /* The sidebar: navigation on top, the project tree in the middle, the workspace actions below. */
 
-/* The frame keeps spare height outside the scroller so its last row stays complete. */
-.workspace-sidebar .documents-frame {
-  flex: 1 1 auto;
-  min-height: 160px;
-  overflow: hidden;
-}
-
-/* Snap rows flush with the top edge without fading or clipping file names. */
+/* The project list takes the height left between the navigation and the footer and scrolls. It
+   may shrink to nothing, so the footer is never pushed out of the sidebar. */
 .workspace-sidebar .documents {
-  height: 100%;
+  flex: 1 1 0;
   min-height: 0;
   padding-block: 0;
   overflow-y: auto;
   scrollbar-width: thin;
-  scroll-snap-type: y mandatory;
-  scroll-padding-block: 0;
   border-block: 1px solid var(--color-border-subtle);
   background: none;
-}
-.documents .project-tree :is(.repository, .project) > .tree-row,
-.documents .project-tree .project-file {
-  scroll-snap-align: start;
 }
 
 /* The four actions below the tree share one look and one row height, so they leave the tree as
@@ -71,4 +59,9 @@
   .sidebar-footer > :not(.examples-menu, .import) {
     grid-column: 1 / -1;
   }
+}
+
+/* The Examples button stays highlighted while its menu is open beside the sidebar. */
+.sidebar-footer .examples-menu button[aria-expanded='true'] {
+  background: var(--color-surface-hover);
 }

@@ -60,9 +60,6 @@ export const WorkspaceToolbar = React.memo(function WorkspaceToolbar({
   // the mapping canvas.
   const groupingApplies =
     tab === 'overview' || (tab === 'fullgraph' && (!lineageShown || isContract));
-  // Source control has no model tabs or entity search; they would sit above a view they do not
-  // act on.
-  if (tab === 'scm') return null;
   return (
     <>
       <div className="toolbar">

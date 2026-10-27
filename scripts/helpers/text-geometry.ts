@@ -87,6 +87,12 @@ export async function textCollisionProblems(page: Page, within = 'body'): Promis
         const x = (area.left + area.right) / 2;
         const y = (area.top + area.bottom) / 2;
         const top = document.elementFromPoint(x, y);
+        // An open Controls panel is a menu laid over the graph on purpose; its own text is checked.
+        if (
+          top?.closest('.compact-controls-panel') &&
+          !run.element.closest('.compact-controls-panel')
+        )
+          continue;
         if (top && !run.element.contains(top) && !top.contains(run.element))
           found.add(
             `"${run.label}" is covered by ${top.tagName.toLowerCase()}.${String(top.className).split(/\s+/)[0]}`,
@@ -97,6 +103,8 @@ export async function textCollisionProblems(page: Page, within = 'body'): Promis
           const a = shown[i];
           const b = shown[j];
           if (a.run.element === b.run.element) continue;
+          const inPanel = (run: Run) => !!run.element.closest('.compact-controls-panel');
+          if (inPanel(a.run) !== inPanel(b.run)) continue;
           if (a.run.element.contains(b.run.element) && a.run.element.children.length === 0)
             continue;
           const width = Math.min(a.area.right, b.area.right) - Math.max(a.area.left, b.area.left);

@@ -1,8 +1,8 @@
 /** Connects document state, navigation, editing, and persistence to the workspace views. */
-import React, { useMemo, useReducer, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { type CodeEditorHandle } from '../editor/CodeEditor';
 import { exportDocument } from '../core/export';
-import { emptyWalk, walkReducer } from '../graph/walk';
+import { emptyWalk, reconcileWalk, walkReducer, type WalkAction } from '../graph/walk';
 import { modelOverview } from '../graph/overview';
 import {
   type Deleted,
@@ -23,6 +23,7 @@ import { useInspector } from './useInspector';
 import { useItemEditing } from './useItemEditing';
 import { useLineage } from './useLineage';
 import { useMetrics } from './useMetrics';
+import { useRecordedState } from './useRecordedState';
 import { useNewItems } from './useNewItems';
 import { useProjectActions } from './useProjectActions';
 import { useReferences } from './useReferences';
@@ -38,9 +39,9 @@ export function useWorkbench({ setMessage }: Options) {
   const [docs, setDocs] = useState<Doc[]>([]);
   const [current, setCurrentState] = useState<Doc | null>(null);
   const [source, setSource] = useState('');
-  const [selected, setSelected] = useState('');
-  const [selectedEdge, setSelectedEdge] = useState('');
-  const [tab, setTabState] = useState('fullgraph');
+  const [selected, setSelected] = useRecordedState('workbench.selected', '');
+  const [selectedEdge, setSelectedEdge] = useRecordedState('workbench.selectedEdge', '');
+  const [tab, setTabState] = useRecordedState('workbench.tab', 'fullgraph');
   const [search, setSearch] = useState('');
   const [busy, setBusy] = useState(false);
   function setCurrent(next: Doc | null) {
@@ -89,7 +90,11 @@ export function useWorkbench({ setMessage }: Options) {
   const { kpiProject } = metrics;
   const sourceEditor = useRef<CodeEditorHandle | null>(null);
   // Neighborhood walk across centers and files.
-  const [walk, dispatchWalk] = useReducer(walkReducer, emptyWalk);
+  const [walk, setWalk] = useRecordedState('neighborhood.walk', emptyWalk, reconcileWalk);
+  const dispatchWalk = useCallback(
+    (action: WalkAction) => setWalk(previous => walkReducer(previous, action)),
+    [setWalk],
+  );
   const walkStep = walk.steps[walk.index];
   const neighborhoodFocus = walkStep && walkStep.doc === current?.id ? walkStep.center : '';
   const setNeighborhoodFocus = (id: string) => {
@@ -141,6 +146,7 @@ export function useWorkbench({ setMessage }: Options) {
     currentRef,
     sourceRef,
     getDraftOf: () => draftOf,
+    docsRef,
   });
   const { openDocument } = fileNavigation;
   const validationState = useValidation({

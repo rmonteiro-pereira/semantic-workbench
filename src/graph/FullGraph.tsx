@@ -6,6 +6,7 @@ import { RoutedEdge } from './RoutedEdge';
 import { roundedPath, pointAtHalf, type Point } from '../odcs/edge-route';
 import { pathMatchesEndpoints } from './edge-path';
 import { edgeAppearance } from './edge-styles';
+import { useRecordedState } from '../app/useRecordedState';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ReactFlow,
@@ -26,11 +27,11 @@ import {
 import { SmartEdgeProvider, type SmartEdgeMetrics } from '@tisoap/react-flow-smart-edge';
 import ELK from 'elkjs/lib/elk-api.js';
 import elkWorkerUrl from 'elkjs/lib/elk-worker.min.js?url';
-import { Layers, Maximize, Maximize2, Minimize2, RefreshCw, Focus, Gauge } from 'lucide-react';
+import { Crosshair, Maximize, Maximize2, Minimize2, RefreshCw, Gauge } from 'lucide-react';
 import { useViewRestore, type Fullscreen } from './fullscreen';
-import { GraphOptions, OptionGroup } from './GraphOptions';
+import { GraphOptions, OptionGroup, Segmented, ShowToggle } from './GraphOptions';
 import { ZoomButtons } from './ZoomButtons';
-import { startsCollapsed, textSizesAt, layoutNeedsAreaCards } from './overview-capacity';
+import { startsCollapsed, textSizesAt } from './overview-capacity';
 import { CompactControls } from './CompactControls';
 import { modelOverview } from './overview';
 import { groupRelationships } from './graph-view';
@@ -39,10 +40,10 @@ import { FALLBACK_GROUP_COLOR } from '../theme/theme-palette';
 import { layoutFullGraph, packNetwork } from './full-layout';
 import type { Entity, Relationship } from '../core/model';
 import { timeOperation } from '../observability/page-reporting';
-function relationshipOpacity(emphasized: boolean, hasFocus: boolean) {
+function relationshipOpacity(emphasized: boolean, hasFocus: boolean, zoom: number) {
   if (emphasized) return 0.95;
   if (hasFocus) return 0.07;
-  return 1;
+  return zoom < 0.6 ? 0.22 : 0.48;
 }
 
 const sides = [
@@ -154,8 +155,6 @@ type Props = {
   search: string;
   onSelectEntity: (id: string) => void;
   onSelectEdge: (id: string) => void;
-  onOverview: () => void;
-  onNeighborhood: () => void;
   kpiBadges?: Map<string, string[]>;
   fullscreen?: Fullscreen;
 };
@@ -190,20 +189,20 @@ export function FullGraph(props: Props) {
   const [size, setSize] = useState({ width: 1200, height: 650 });
   const flow = useRef<ReactFlowInstance<any, any> | null>(null);
   const [nodes, setNodes, onNodesChange] = useNodesState<any>([]);
-  const [algorithm, setAlgorithm] = useState<'network' | 'layered'>('layered');
+  const [algorithm, setAlgorithm] = useRecordedState<'network' | 'layered'>(
+    'graph.algorithm',
+    'network',
+  );
   const [layoutRoutes, setLayoutRoutes] = useState<LayoutResult['routes']>({});
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState('');
   const [hover, setHover] = useState('');
   const [hoverEdge, setHoverEdge] = useState('');
-  const [labels, setLabels] = useState(false);
+  const [labels, setLabels] = useRecordedState('graph.labels', false);
   const [version, setVersion] = useState(0);
-  const [miniMap, setMiniMap] = useState(() => readFlag(MINI_MAP_KEY));
-  const toggleMiniMap = () => {
-    const next = !miniMap;
-    setMiniMap(next);
-    writeFlag(MINI_MAP_KEY, next);
-  };
+  const [miniMap, setMiniMap] = useRecordedState('graph.miniMap', () => readFlag(MINI_MAP_KEY));
+  useEffect(() => writeFlag(MINI_MAP_KEY, miniMap), [miniMap]);
+  const toggleMiniMap = () => setMiniMap(shown => !shown);
   const [routeMetrics, setRouteMetrics] = useState<SmartEdgeMetrics | null>(null);
   // Value types (including built-ins) can be hidden with their edges; the choice is remembered per
   // model in this browser.
@@ -211,23 +210,21 @@ export function FullGraph(props: Props) {
     () => new Set(props.entities.filter(e => VALUE_KINDS.has(e.kind)).map(e => e.id)),
     [props.entities],
   );
-  const [hideValues, setHideValues] = useState(() => readHideValues(props.name));
-  const toggleValues = () =>
-    setHideValues(v => {
-      writeHideValues(props.name, !v);
-      return !v;
-    });
+  const [hideValues, setHideValues] = useRecordedState('graph.hideValues', () =>
+    readHideValues(props.name),
+  );
+  useEffect(() => writeHideValues(props.name, hideValues), [props.name, hideValues]);
+  const toggleValues = () => setHideValues(hidden => !hidden);
   // Metric nodes (governed metrics) can be hidden the same way.
   const kpiIds = useMemo(
     () => new Set(props.entities.filter(e => e.kind === 'Metric').map(e => e.id)),
     [props.entities],
   );
-  const [hideKpis, setHideKpis] = useState(() => readFlag(kpisKey(props.name)));
-  const toggleKpis = () =>
-    setHideKpis(v => {
-      writeFlag(kpisKey(props.name), !v);
-      return !v;
-    });
+  const [hideKpis, setHideKpis] = useRecordedState('graph.hideKpis', () =>
+    readFlag(kpisKey(props.name)),
+  );
+  useEffect(() => writeFlag(kpisKey(props.name), hideKpis), [props.name, hideKpis]);
+  const toggleKpis = () => setHideKpis(hidden => !hidden);
   const hidden = useMemo(
     () => new Set([...(hideValues ? valueIds : []), ...(hideKpis ? kpiIds : [])]),
     [hideValues, hideKpis, valueIds, kpiIds],
@@ -247,17 +244,17 @@ export function FullGraph(props: Props) {
     () => modelOverview(graphEntities, graphEdges, props.name, false, props.grouping),
     [graphEntities, graphEdges, props.name, props.grouping],
   );
-  // Until a person collapses or expands areas, the first view follows the pane: areas show as one
-  // card each when the entities would not read at the size the pane gives them.
-  const [firstPane, setFirstPane] = useState<{ width: number; height: number } | null>(null);
-  const [collapseChoice, setCollapseChoice] = useState<Set<string> | null>(null);
-  const [layoutCramped, setLayoutCramped] = useState(false);
+  // Until a person collapses or expands areas, only a very large model starts as one card per area.
+  const [collapseChoice, setCollapseChoice] = useRecordedState<Set<string> | null>(
+    'graph.collapsedAreas',
+    null,
+  );
   const autoCollapsed = useMemo(
     () =>
-      firstPane && (layoutCramped || startsCollapsed(overview.entities.length, firstPane))
+      startsCollapsed(overview.entities.length)
         ? new Set(overview.groups.map(g => g.id))
         : new Set<string>(),
-    [overview, firstPane, layoutCramped],
+    [overview],
   );
   const collapsed = collapseChoice ?? autoCollapsed;
   const setCollapsed = (next: Set<string>) => setCollapseChoice(next);
@@ -280,6 +277,7 @@ export function FullGraph(props: Props) {
     next.delete(areaId);
     setCollapsed(next);
   };
+  const relayout = () => setVersion(current => current + 1);
   const zoomToGroup = (groupId: string) => {
     if (!groupId) {
       fit();
@@ -309,7 +307,6 @@ export function FullGraph(props: Props) {
           setSize(previous =>
             previous.width === pane.width && previous.height === pane.height ? previous : pane,
           );
-          setFirstPane(first => first ?? pane);
         });
       });
     });
@@ -358,8 +355,6 @@ export function FullGraph(props: Props) {
       );
   }, []);
   useEffect(() => {
-    // The first view waits for the pane size, which decides whether areas start collapsed.
-    if (!firstPane) return;
     let cancelled = false;
     let worker: Worker | undefined;
     let elk: { layout: (g: any) => Promise<any>; terminateWorker: () => void } | undefined;
@@ -375,10 +370,6 @@ export function FullGraph(props: Props) {
     setRouteMetrics(null);
     function apply(result: LayoutResult) {
       if (cancelled) return;
-      if (!collapseChoice && !collapsed.size && layoutNeedsAreaCards(result, firstPane!)) {
-        setLayoutCramped(true);
-        return;
-      }
       setLayoutRoutes(result.routes ?? {});
       cache.set(key, result);
       if (cache.size > 6) cache.delete(cache.keys().next().value!);
@@ -495,7 +486,7 @@ export function FullGraph(props: Props) {
       worker?.terminate();
       elk?.terminateWorker();
     };
-  }, [overview, display, algorithm, version, layoutGrouping, firstPane]);
+  }, [overview, display, algorithm, version, layoutGrouping]);
   // Full screen keeps the view it started from and puts it back on exit.
   const held = useViewRestore(
     !!props.fullscreen?.active,
@@ -650,8 +641,7 @@ export function FullGraph(props: Props) {
           style: {
             stroke: active || adjacent ? 'var(--color-edge-active)' : 'var(--color-edge-idle)',
             strokeWidth: active ? 2 : 1.2,
-            vectorEffect: 'non-scaling-stroke' as const,
-            strokeOpacity: relationshipOpacity(active || adjacent, Boolean(focus)),
+            strokeOpacity: relationshipOpacity(active || adjacent, Boolean(focus), viewport.zoom),
           },
         };
       }),
@@ -705,7 +695,7 @@ export function FullGraph(props: Props) {
   } as React.CSSProperties;
   const metrics = useCallback((m: SmartEdgeMetrics) => setRouteMetrics(m), []);
   return (
-    <div className="full-graph" ref={container} style={textStyle}>
+    <div className="full-graph" ref={container} style={textStyle} data-layout={algorithm}>
       <ScrollStrip className="full-graph-tools">
         {props.toolbarExtra}
         <button onClick={fit}>
@@ -719,19 +709,20 @@ export function FullGraph(props: Props) {
           />
           <GraphOptions>
             <OptionGroup title="Layout">
-              <label>
-                Layout
-                <select
-                  aria-label="Graph layout"
-                  value={algorithm}
-                  onChange={e => setAlgorithm(e.target.value as any)}
-                >
-                  <option value="network">Network · fCoSE</option>
-                  <option value="layered">Layered · ELK</option>
-                </select>
-              </label>
-              <label>
-                Zoom to group
+              <Segmented
+                label="Graph layout"
+                value={algorithm}
+                onChange={setAlgorithm}
+                options={[
+                  { value: 'layered', label: 'Layered', title: 'Layered layout (ELK)' },
+                  { value: 'network', label: 'Network', title: 'Network layout (fCoSE)' },
+                ]}
+              />
+              <button onClick={relayout} disabled={busy} title="Re-layout" aria-label="Re-layout">
+                <RefreshCw size={13} />
+              </button>
+              <label className="zoom-to-group">
+                <Crosshair size={13} aria-hidden="true" />
                 <select
                   aria-label="Zoom to group"
                   title={overview.groupingLabel}
@@ -746,10 +737,6 @@ export function FullGraph(props: Props) {
                   ))}
                 </select>
               </label>
-              <button onClick={() => setVersion(v => v + 1)} disabled={busy}>
-                <RefreshCw size={13} />
-                Re-layout
-              </button>
             </OptionGroup>
             <OptionGroup title="Areas">
               <button
@@ -763,41 +750,30 @@ export function FullGraph(props: Props) {
               </button>
             </OptionGroup>
             <OptionGroup title="Show">
-              <button onClick={() => setLabels(v => !v)} aria-pressed={labels}>
-                Labels {labels ? 'on' : 'off'}
-              </button>
+              <ShowToggle on={labels} onToggle={() => setLabels(shown => !shown)}>
+                Labels
+              </ShowToggle>
               {valueIds.size > 0 && (
-                <button
-                  onClick={toggleValues}
-                  aria-pressed={hideValues}
+                <ShowToggle
+                  on={!hideValues}
+                  onToggle={toggleValues}
                   title={`${valueIds.size} value types and their relationships`}
                 >
-                  Value types {hideValues ? 'hidden' : 'shown'}
-                </button>
+                  Value types
+                </ShowToggle>
               )}
               {kpiIds.size > 0 && (
-                <button
-                  onClick={toggleKpis}
-                  aria-pressed={hideKpis}
+                <ShowToggle
+                  on={!hideKpis}
+                  onToggle={toggleKpis}
                   title={`${kpiIds.size} metric nodes and their relationships`}
                 >
-                  <Gauge size={14} />
-                  Metrics {hideKpis ? 'hidden' : 'shown'}
-                </button>
+                  Metrics
+                </ShowToggle>
               )}
-              <button onClick={toggleMiniMap} aria-pressed={miniMap}>
-                Map {miniMap ? 'on' : 'off'}
-              </button>
-            </OptionGroup>
-            <OptionGroup title="Go to">
-              <button onClick={props.onOverview}>
-                <Layers size={13} />
-                Overview
-              </button>
-              <button onClick={props.onNeighborhood}>
-                <Focus size={13} />
-                Neighborhood
-              </button>
+              <ShowToggle on={miniMap} onToggle={toggleMiniMap} title="Mini-map of the whole model">
+                Mini-map
+              </ShowToggle>
             </OptionGroup>
           </GraphOptions>
           {props.fullscreen && <FullscreenButton fullscreen={props.fullscreen} />}

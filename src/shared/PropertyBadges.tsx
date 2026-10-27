@@ -11,7 +11,8 @@ export type BadgeKind =
   | 'unique'
   | 'classification'
   | 'identifying'
-  | 'unmapped';
+  | 'unmapped'
+  | 'semantic';
 /** Describes a badge's kind, visible label and tooltip. */
 export type BadgeInfo = { kind: BadgeKind; label: string; title: string };
 const LABEL: Record<Exclude<BadgeKind, 'classification'>, string> = {
@@ -21,6 +22,7 @@ const LABEL: Record<Exclude<BadgeKind, 'classification'>, string> = {
   unique: 'Unique',
   identifying: 'Identifying',
   unmapped: 'Unmapped',
+  semantic: 'Semantic dataset',
 };
 const TITLE: Record<Exclude<BadgeKind, 'classification' | 'fk'>, string> = {
   pk: 'Primary key',
@@ -28,6 +30,7 @@ const TITLE: Record<Exclude<BadgeKind, 'classification' | 'fk'>, string> = {
   unique: 'Unique',
   identifying: 'Identifying field of the object mapping',
   unmapped: 'No mapping refers to this item',
+  semantic: 'A semantic dataset of the same name copies this table column for column',
 };
 const text = (v: unknown) =>
   typeof v === 'string' ? v : typeof v === 'number' || typeof v === 'boolean' ? String(v) : '';

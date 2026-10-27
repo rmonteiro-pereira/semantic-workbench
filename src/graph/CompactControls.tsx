@@ -60,11 +60,15 @@ export function CompactControls({
   useEffect(() => {
     const canvas = button.current?.closest('.canvas-row');
     if (!canvas) return;
-    let fullscreen = canvas.classList.contains('is-fullscreen');
+    // The panel closes when the canvas changes shape: full screen toggles, or the details sheet
+    // opens below the graph and the panel would lie over its controls.
+    const shapeOf = () =>
+      ['is-fullscreen', 'has-inspector'].map(name => canvas.classList.contains(name)).join();
+    let shape = shapeOf();
     const observer = new MutationObserver(() => {
-      const current = canvas.classList.contains('is-fullscreen');
-      if (current !== fullscreen) setOpen(false);
-      fullscreen = current;
+      const current = shapeOf();
+      if (current !== shape) setOpen(false);
+      shape = current;
     });
     observer.observe(canvas, { attributes: true, attributeFilter: ['class'] });
     return () => observer.disconnect();

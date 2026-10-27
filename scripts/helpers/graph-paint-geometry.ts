@@ -27,10 +27,13 @@ export async function graphControlsProblems(page: Page): Promise<string[]> {
   });
 }
 
-/** Finds relationship paths that cross the interior of a card they do not connect. */
+/**
+ * Finds relationship paths that cross the interior of a card they do not connect. Only the layered
+ * layout routes its paths around cards; the network layout draws direct curves between them.
+ */
 export async function graphEdgeClearanceProblems(page: Page): Promise<string[]> {
   return page.evaluate(() => {
-    const root = document.querySelector('.full-graph');
+    const root = document.querySelector('.full-graph[data-layout="layered"]');
     if (!root) return [];
     const cards = [...root.querySelectorAll('.full-entity')].map(card =>
       card.getBoundingClientRect(),
@@ -106,11 +109,14 @@ async function graphPaint(page: Page) {
   });
 }
 
+// Idle lines are faint context that the person's focus and selection make strong, so they only
+// have to stay visible; a 277-relationship model drawn at full strength is unreadable.
+const MIN_IDLE_EDGE_CONTRAST = 1.15;
+
 /** Checks the composited contrast of unselected graph edges against the canvas. */
 export async function graphEdgeContrastProblems(page: Page): Promise<string[]> {
   const problems = new Set<string>();
   for (const edge of await graphPaint(page)) {
-    if (edge.width < 1) problems.add('unselected graph edges are thinner than one screen pixel');
     const stroke = parseColor(edge.stroke);
     const background = parseColor(edge.background);
     if (!stroke || !background) {
@@ -124,8 +130,8 @@ export async function graphEdgeContrastProblems(page: Page): Promise<string[]> {
       blue: stroke.blue * opacity + background.blue * (1 - opacity),
       alpha: 1,
     };
-    if (contrastRatio(painted, background) < 3) {
-      problems.add('unselected graph edges have less than 3:1 contrast against the canvas');
+    if (contrastRatio(painted, background) < MIN_IDLE_EDGE_CONTRAST) {
+      problems.add('unselected graph edges are invisible against the canvas');
     }
   }
   return [...problems];

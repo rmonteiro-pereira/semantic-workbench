@@ -1,7 +1,8 @@
 // Measures the whole-model graph and the neighborhood graph in screen coordinates: names that
-// read, detail lines only where they read, cards that do not overlap, a toolbar that fits, and a
-// canvas that keeps most of a phone screen.
+// are as large as their cards allow, detail lines that keep their size, cards that do not overlap,
+// a toolbar that fits, and a canvas that keeps most of a phone screen.
 import type { Page } from '@playwright/test';
+import { LARGEST_ENTITY_NAME_PX } from '../../src/graph/overview-capacity';
 import {
   graphRelationshipContrastProblems,
   graphRelationshipLabelProblems,
@@ -15,6 +16,8 @@ import {
 /** The smallest on-screen size of an entity name, and of a detail line where one is shown. */
 export const MIN_NAME_PX = 12;
 export const MIN_DETAIL_PX = 12;
+/** A neighborhood card draws its name at this size whatever the zoom. */
+const NEIGHBORHOOD_NAME_PX = 16;
 /** The share of the window height the canvas keeps on a phone. */
 export const MIN_PHONE_CANVAS_SHARE = 0.55;
 
@@ -23,7 +26,7 @@ type Which = 'model' | 'neighborhood';
 /** Returns what is wrong with the graph now on screen; an empty list means it is clean. */
 export async function graphCanvasProblems(page: Page, which: Which): Promise<string[]> {
   const problems = await page.evaluate(
-    ({ which, minName, minDetail, minShare }) => {
+    ({ which, minName, minDetail, minShare, largestModelNamePx, neighborhoodNamePx }) => {
       const out: string[] = [];
       const root = document.querySelector(
         which === 'model' ? '.full-graph' : '.neighborhood-graph',
@@ -46,7 +49,15 @@ export async function graphCanvasProblems(page: Page, which: Which): Promise<str
       for (const name of root.querySelectorAll(nameSelector)) {
         if (!onScreen(name.getBoundingClientRect())) continue;
         const px = sizeOnScreen(name);
-        if (px < minName) out.push(`name "${name.textContent}" is ${px.toFixed(1)} px on screen`);
+        // A graph that opens on every entity can be zoomed out past the point where a card could
+        // hold a 12 px name. Its names must then be the largest the card holds, and a card
+        // never shrinks its own name.
+        const largestName = which === 'model' ? largestModelNamePx : neighborhoodNamePx;
+        const largestCardName = Math.min(largestName, Math.ceil(minName / scale));
+        const minimum = Math.min(minName, largestCardName * scale);
+        if (px < minimum - 0.01) {
+          out.push(`name "${name.textContent}" is ${px.toFixed(1)} px on screen`);
+        }
       }
       if (which === 'model') {
         const caption = root.querySelector('.full-graph-status');
@@ -64,12 +75,13 @@ export async function graphCanvasProblems(page: Page, which: Which): Promise<str
         for (const button of root.querySelectorAll('.node-actions button')) {
           const bounds = button.getBoundingClientRect();
           if (!onScreen(bounds)) continue;
-          if (bounds.width < 24 || bounds.height < 24) {
-            out.push('a neighborhood card control is smaller than twenty-four screen pixels');
+          // Cards zoom with the canvas, so a control is measured at the card's own scale.
+          if (bounds.width / scale < 23.5 || bounds.height / scale < 23.5) {
+            out.push('a neighborhood card control is smaller than twenty-four pixels');
           }
           const icon = button.querySelector('svg')?.getBoundingClientRect();
-          if (icon && (icon.width < 12 || icon.height < 12)) {
-            out.push('a neighborhood card control icon is smaller than twelve screen pixels');
+          if (icon && (icon.width / scale < 11.5 || icon.height / scale < 11.5)) {
+            out.push('a neighborhood card control icon is smaller than twelve pixels');
           }
         }
         for (const name of root.querySelectorAll<HTMLElement>('.node strong')) {
@@ -81,8 +93,9 @@ export async function graphCanvasProblems(page: Page, which: Which): Promise<str
         }
         for (const detail of root.querySelectorAll('.node small, .node > span')) {
           if (!onScreen(detail.getBoundingClientRect())) continue;
-          const px = sizeOnScreen(detail);
-          if (px < minDetail) out.push(`detail text is ${px.toFixed(1)} px on screen`);
+          // Cards always keep their detail lines, so they are measured at the card's own scale.
+          const px = parseFloat(getComputedStyle(detail).fontSize);
+          if (px < minDetail) out.push(`detail text is ${px.toFixed(1)} px`);
         }
       }
       const cards = [...root.querySelectorAll(cardSelector)]
@@ -126,7 +139,14 @@ export async function graphCanvasProblems(page: Page, which: Which): Promise<str
         );
       return out;
     },
-    { which, minName: MIN_NAME_PX, minDetail: MIN_DETAIL_PX, minShare: MIN_PHONE_CANVAS_SHARE },
+    {
+      which,
+      minName: MIN_NAME_PX,
+      minDetail: MIN_DETAIL_PX,
+      minShare: MIN_PHONE_CANVAS_SHARE,
+      largestModelNamePx: LARGEST_ENTITY_NAME_PX,
+      neighborhoodNamePx: NEIGHBORHOOD_NAME_PX,
+    },
   );
   problems.push(...(await graphControlsProblems(page)));
   if (which === 'neighborhood') {

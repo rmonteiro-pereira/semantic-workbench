@@ -8,11 +8,9 @@ import { useStore } from '@xyflow/react';
 const FAR_ZOOM_LEVELS = [1, 0.75, 0.6, 0.45, 0.35, 0.28];
 /** The lowest zoom a first view uses: names are at 12 px there, and a wider canvas is panned. */
 export const LOWEST_FIT_ZOOM = 0.3;
-/** The zoom at or above which cards show their detail lines. */
+/** The zoom at which cards are drawn at their natural size. */
 export const DETAIL_ZOOM = FAR_ZOOM_LEVELS[0];
 const BASE_NAME_PX = 18;
-// Two lines of a name larger than this no longer fit the card's height.
-const TWO_LINE_NAME_PX = 28;
 // Taller names would no longer fit the fixed card height. 44 px stays at 12 px on screen down
 // to a zoom of about 0.27; below that the names keep shrinking with the canvas.
 const LARGEST_NAME_PX = 44;
@@ -46,10 +44,7 @@ export function useFarZoom() {
   const [level, setLevel] = useState(0);
   const far = level > 0;
   const style = far
-    ? ({
-        '--far-name-size': `${nameSizeOf(level)}px`,
-        '--far-name-lines': nameSizeOf(level) > TWO_LINE_NAME_PX ? 1 : 2,
-      } as CSSProperties)
+    ? ({ '--far-name-size': `${nameSizeOf(level)}px` } as CSSProperties)
     : undefined;
   return {
     className: far ? 'zoom-far' : undefined,

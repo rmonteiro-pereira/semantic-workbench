@@ -47,13 +47,6 @@ export async function selectMetric(page: Page, name: string) {
   await expect(metricDetail(page)).toBeVisible();
 }
 
-/** Opens one of the detail's closed sections: the rules or the SQL preview. */
-export async function openMetricSection(page: Page, title: 'Rules' | 'SQL preview') {
-  const section = page.locator('details.on-demand').filter({ hasText: title }).first();
-  if ((await section.getAttribute('open')) === null) await section.locator('summary').click();
-  await expect(section).toHaveAttribute('open', '');
-}
-
 /** The joins the SQL preview lists, empty when the preview has no join. */
 export async function previewJoins(page: Page): Promise<string[]> {
   const line: Locator = page.locator('.preview-head .muted');
@@ -68,8 +61,6 @@ function brokenDownMetric(setId: string): Screen['show'] {
   return async page => {
     await openExampleMetrics(page, setId);
     await selectMetric(page, path.name);
-    await openMetricSection(page, 'Rules');
-    await openMetricSection(page, 'SQL preview');
     await page.getByRole('checkbox', { name: path.dimension, exact: true }).check();
     await expect(page.getByLabel('SQL preview, not executed')).toBeVisible();
   };
@@ -112,7 +103,6 @@ async function expectGovernedWithLineage(page: Page) {
 
 // The rules list the dimensions the metric can be broken down by, and name the one asked for.
 async function expectBreakdown(page: Page, dimension?: string) {
-  await openMetricSection(page, 'Rules');
   const rule = page.locator('.rule').filter({ hasText: 'Break down by' });
   await expect(rule.locator('code').first()).toBeVisible();
   if (dimension) await expect(rule.locator('code', { hasText: dimension })).toBeVisible();
@@ -120,7 +110,6 @@ async function expectBreakdown(page: Page, dimension?: string) {
 
 // The SQL preview shows a statement that is labelled as not executed.
 async function expectSqlPreview(page: Page) {
-  await openMetricSection(page, 'SQL preview');
   await expect(page.locator('.not-executed')).toHaveText('Preview · not executed');
   await expect(page.getByLabel('SQL preview, not executed')).toContainText('SELECT');
 }

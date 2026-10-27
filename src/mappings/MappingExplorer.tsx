@@ -1,11 +1,28 @@
 /** Displays resolved concept mappings and their validation findings. */
+import { useRecordedState } from '../app/useRecordedState';
 import { apiFetch } from '../projects/api';
 import React, { useEffect, useState, useRef } from 'react';
 import type { Binding, Finding, RuntimeContext } from '../server/agent/runtime';
 import { QueryComposer } from './QueryComposer';
 import { EmptyState } from '../projects/EmptyState';
+import { ShowMoreControl } from './ShowMoreControl';
+import { chooseMapping } from './mapping-choice';
+import {
+  BINDINGS_PER_GROUP,
+  BINDINGS_STEP,
+  CONCEPTS_SHOWN,
+  CONCEPTS_STEP,
+  limitCovering,
+  visibleCount,
+} from './list-window';
 import './mapping-explorer.css';
-type MappingOption = { id: string; name: string; filename: string; embedded: boolean };
+type MappingOption = {
+  id: string;
+  name: string;
+  filename: string;
+  embedded: boolean;
+  project?: string;
+};
 const stepLabels = {
   concept: 'Concept',
   relationship: 'Relationship',
@@ -61,12 +78,15 @@ function bindingSteps(b: Binding, context: RuntimeContext) {
 /** Displays resolved mappings and their findings. */
 export function MappingExplorer({
   currentId,
+  currentProject,
   revisionKey,
   dirty,
   onEditItem,
   onOpenSource,
 }: {
   currentId?: string;
+  /** Project of the open file; the tab starts on a mapping from this project. */
+  currentProject?: string;
   revisionKey: string;
   dirty: boolean;
   onEditItem?: (docId: string, path: (string | number)[]) => void;
@@ -75,18 +95,25 @@ export function MappingExplorer({
 }) {
   const requestVersion = useRef(0);
   const [options, setOptions] = useState<MappingOption[]>([]);
-  const [mappingId, setMappingId] = useState('');
+  const [mappingId, setMappingId] = useRecordedState('mappings.mapping', '');
   const [context, setContext] = useState<RuntimeContext | null>(null);
-  const [concept, setConcept] = useState('');
+  const [concept, setConcept] = useRecordedState('mappings.concept', '');
   const [query, setQuery] = useState('');
-  const [metrics, setMetrics] = useState<string[]>([]);
-  const [dimensions, setDimensions] = useState<string[]>([]);
+  const [metrics, setMetrics] = useRecordedState<string[]>('mappings.metrics', []);
+  const [dimensions, setDimensions] = useRecordedState<string[]>('mappings.dimensions', []);
   const [plan, setPlan] = useState<any>(null);
   // A failed load shows on the page; a failed query preview shows in the composer.
   const [loadError, setLoadError] = useState('');
   const [planError, setPlanError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [composing, setComposing] = useState(false);
+  const [composing, setComposing] = useRecordedState('mappings.composing', false);
+  // How many bindings each dataset group shows, and how many concepts the list shows.
+  const [bindingLimits, setBindingLimits] = useRecordedState<Record<string, number>>(
+    'mappings.bindingLimits',
+    {},
+  );
+  const [conceptLimit, setConceptLimit] = useRecordedState('mappings.conceptLimit', CONCEPTS_SHOWN);
+  const conceptList = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const abort = new AbortController();
     apiFetch('/api/agent/catalog', { signal: abort.signal })
@@ -94,19 +121,13 @@ export function MappingExplorer({
         const d = await r.json();
         if (!r.ok) throw Error(d.error);
         setOptions(d.mappings);
-        setMappingId(
-          old =>
-            d.mappings.find(
-              (m: MappingOption) => m.id === currentId || m.id.startsWith(currentId + '#'),
-            )?.id ??
-            (d.mappings.some((m: MappingOption) => m.id === old) ? old : (d.mappings[0]?.id ?? '')),
-        );
+        setMappingId(old => chooseMapping(d.mappings, currentId, currentProject, old));
       })
       .catch(e => {
         if (e.name !== 'AbortError') setLoadError(e.message);
       });
     return () => abort.abort();
-  }, [revisionKey, currentId]);
+  }, [revisionKey, currentId, currentProject]);
   useEffect(() => {
     requestVersion.current++;
     setContext(null);
@@ -114,6 +135,8 @@ export function MappingExplorer({
     setMetrics([]);
     setDimensions([]);
     setConcept('');
+    setBindingLimits({});
+    setConceptLimit(CONCEPTS_SHOWN);
     setLoadError('');
     setPlanError('');
     setComposing(false);
@@ -182,6 +205,20 @@ export function MappingExplorer({
             .filter(x => typeof x === 'string')
             .some(s => s.toLocaleLowerCase().includes(term))),
     ) ?? [];
+  const selectedConceptIndex = concepts.findIndex(c => c.concept === concept);
+  const shownConcepts = visibleCount(
+    limitCovering(conceptLimit, selectedConceptIndex),
+    concepts.length,
+  );
+  // The selected concept can sit past the limit, so keep it in view inside the list's own scroll.
+  useEffect(() => {
+    const selected = conceptList.current?.querySelector('[aria-pressed="true"]:not(:first-child)');
+    selected?.scrollIntoView({ block: 'nearest' });
+  }, [concept]);
+  const showMoreBindings = (dataset: string, shown: number) =>
+    setBindingLimits(old => ({ ...old, [dataset]: shown + BINDINGS_STEP }));
+  const showFewerBindings = (dataset: string) =>
+    setBindingLimits(old => ({ ...old, [dataset]: BINDINGS_PER_GROUP }));
   const toggle = (id: string, values: string[], set: (v: string[]) => void) => {
     requestVersion.current++;
     setLoading(false);
@@ -197,6 +234,7 @@ export function MappingExplorer({
     requestVersion.current++;
     setLoading(false);
     setConcept(name);
+    setBindingLimits({});
     setMetrics([]);
     setDimensions([]);
     setPlan(null);
@@ -352,7 +390,7 @@ export function MappingExplorer({
                   onChange={e => setQuery(e.target.value)}
                 />
               </label>
-              <div className="mapping-concept-list">
+              <div className="mapping-concept-list" ref={conceptList}>
                 <button aria-pressed={!concept} onClick={() => openConcept('')}>
                   All concepts
                 </button>
@@ -361,7 +399,7 @@ export function MappingExplorer({
                     {concepts.length} concepts, none mapped. Find a concept to inspect it.
                   </p>
                 ) : (
-                  concepts.map(c => {
+                  concepts.slice(0, shownConcepts).map(c => {
                     const bindingCount = context.bindings.filter(
                       binding => binding.rootConcept === c.concept || binding.concept === c.concept,
                     ).length;
@@ -379,6 +417,14 @@ export function MappingExplorer({
                     );
                   })
                 )}
+                <ShowMoreControl
+                  hidden={concepts.length - shownConcepts}
+                  step={CONCEPTS_STEP}
+                  expanded={shownConcepts > CONCEPTS_SHOWN}
+                  noun="concepts"
+                  onShowMore={() => setConceptLimit(shownConcepts + CONCEPTS_STEP)}
+                  onShowFewer={() => setConceptLimit(CONCEPTS_SHOWN)}
+                />
               </div>
             </div>
             <div className="mapping-detail">
@@ -409,61 +455,77 @@ export function MappingExplorer({
                   {bindings.length} resolved {bindings.length === 1 ? 'binding' : 'bindings'} ·
                   source evidence
                 </summary>
-                {[...groups].map(([dataset, items]) => (
-                  <details className="mapping-group" data-dataset={dataset} key={dataset} open>
-                    <summary>
-                      {dataset || 'Metrics'} · {items.length} binding{items.length === 1 ? '' : 's'}
-                      {dataset && (
-                        <small>
-                          {' '}
-                          · {context.datasets.find(d => d.name === dataset)?.source ?? 'Unresolved'}
-                        </small>
-                      )}
-                    </summary>
-                    {items.map(b => (
-                      <article
-                        className="mapping-binding"
-                        role="group"
-                        aria-label={`Binding ${b.rootConcept}`}
-                        key={b.id}
-                      >
-                        <div className="mapping-binding-chain">
-                          {bindingSteps(b, context).map((step, i) => (
-                            <span data-step={step.kind} key={i}>
-                              <small className="step-label">{stepLabels[step.kind]}</small>
-                              <span>{breakableName(step.value)}</span>
-                            </span>
-                          ))}
-                        </div>
-                        <code>{b.expression}</code>
-                        {b.condition != null && (
-                          <p className="mapping-condition mapping-notice">
-                            Conditional population mapping. Review its meaning before composing a
-                            query.
-                          </p>
+                {[...groups].map(([dataset, items]) => {
+                  const shown = visibleCount(
+                    bindingLimits[dataset] ?? BINDINGS_PER_GROUP,
+                    items.length,
+                  );
+                  return (
+                    <details className="mapping-group" data-dataset={dataset} key={dataset} open>
+                      <summary>
+                        {dataset || 'Metrics'} · {items.length} binding
+                        {items.length === 1 ? '' : 's'}
+                        {dataset && (
+                          <small>
+                            {' '}
+                            ·{' '}
+                            {context.datasets.find(d => d.name === dataset)?.source ?? 'Unresolved'}
+                          </small>
                         )}
-                        {context.findings
-                          .filter(f => belongsTo(f, b))
-                          .map((f, i) => (
-                            <p
-                              key={i}
-                              className={`mapping-binding-finding ${f.severity === 'error' ? 'mapping-error' : 'mapping-notice'}`}
-                            >
-                              {findingContent(f)}
+                      </summary>
+                      {items.slice(0, shown).map(b => (
+                        <article
+                          className="mapping-binding"
+                          role="group"
+                          aria-label={`Binding ${b.rootConcept}`}
+                          key={b.id}
+                        >
+                          <div className="mapping-binding-chain">
+                            {bindingSteps(b, context).map((step, i) => (
+                              <span data-step={step.kind} key={i}>
+                                <small className="step-label">{stepLabels[step.kind]}</small>
+                                <span>{breakableName(step.value)}</span>
+                              </span>
+                            ))}
+                          </div>
+                          <code>{b.expression}</code>
+                          {b.condition != null && (
+                            <p className="mapping-condition mapping-notice">
+                              Conditional population mapping. Review its meaning before composing a
+                              query.
                             </p>
-                          ))}
-                        <small>
-                          {b.evidence.filename} · revision {b.evidence.revision} · /
-                          {b.evidence.path.join('/')}
-                        </small>
-                        <details>
-                          <summary>Mapping evidence</summary>
-                          <pre>{JSON.stringify(b, null, 2)}</pre>
-                        </details>
-                      </article>
-                    ))}
-                  </details>
-                ))}
+                          )}
+                          {context.findings
+                            .filter(f => belongsTo(f, b))
+                            .map((f, i) => (
+                              <p
+                                key={i}
+                                className={`mapping-binding-finding ${f.severity === 'error' ? 'mapping-error' : 'mapping-notice'}`}
+                              >
+                                {findingContent(f)}
+                              </p>
+                            ))}
+                          <small>
+                            {b.evidence.filename} · revision {b.evidence.revision} · /
+                            {b.evidence.path.join('/')}
+                          </small>
+                          <details>
+                            <summary>Mapping evidence</summary>
+                            <pre>{JSON.stringify(b, null, 2)}</pre>
+                          </details>
+                        </article>
+                      ))}
+                      <ShowMoreControl
+                        hidden={items.length - shown}
+                        step={BINDINGS_STEP}
+                        expanded={shown > BINDINGS_PER_GROUP}
+                        noun="bindings"
+                        onShowMore={() => showMoreBindings(dataset, shown)}
+                        onShowFewer={() => showFewerBindings(dataset)}
+                      />
+                    </details>
+                  );
+                })}
               </details>
               <details>
                 <summary>AI context · the metadata an agent receives</summary>

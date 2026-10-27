@@ -1,7 +1,7 @@
 // Checks workspace interactions in the browser using isolated example projects.
 import { LOCAL_READER } from '../src/server/projects/reader';
 import { appUrl } from './helpers/base-url';
-import { showEveryEntity, viewOptions } from './helpers/graph-options';
+import { graphOptions, showEveryEntity, viewOptions } from './helpers/graph-options';
 import { chromium, expect } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { inspect } from '../src/core/model';
@@ -10,6 +10,7 @@ import { editorValue, expectEditorValue, fillEditor } from './helpers/code-edito
 import { example } from './helpers/examples';
 import { exportFile } from './helpers/header';
 import { closeComposer, openComposer } from './helpers/query-composer';
+import { expectResolvedBindings } from './helpers/mapping-bindings';
 // Isolated data root: the UBL example project plus commerce.owl imported as its own project.
 const api = await startIsolatedApi();
 const store = {
@@ -105,7 +106,7 @@ try {
     await expectNeighborhood();
     await expect(page.locator('.react-flow__edge-text, .relationship-label')).toHaveCount(0);
     await expect(await example(page, /Load UBL business model/)).toBeInViewport();
-    await expect(page.getByRole('button', { name: /^View options/ })).toBeInViewport();
+    await expect(graphOptions(page)).toBeInViewport();
     await expect(
       page.getByRole('button', { name: 'Show all connected', exact: true }),
     ).toBeInViewport();
@@ -184,9 +185,9 @@ try {
       await page.getByPlaceholder('Find an entity…').fill('Invoice');
       await expect(page.locator('.react-flow__node').first()).toBeVisible();
       await viewOptions(page, async options => {
-        const recenter = options.getByRole('button', { name: 'Re-center', exact: true });
-        await recenter.click();
-        await expect(recenter).toBeEnabled();
+        const rearrange = options.getByRole('button', { name: 'Re-arrange', exact: true });
+        await rearrange.click();
+        await expect(rearrange).toBeEnabled();
       });
     },
   );
@@ -246,9 +247,10 @@ try {
       await expect(page.locator('.react-flow__node-entity')).toHaveCount(45);
       await expect(page.locator('.react-flow__edge')).toHaveCount(183);
       await viewOptions(page, async options => {
-        const layout = options.getByLabel('Graph layout');
-        await expect(layout).toHaveValue('layered');
-        await layout.selectOption('network');
+        const layout = options.getByRole('radiogroup', { name: 'Graph layout' });
+        await expect(layout.getByRole('radio', { name: 'Network', exact: true })).toBeChecked();
+        // Network is already the default, so a re-layout is what routes the lines a second time.
+        await options.getByRole('button', { name: 'Re-layout', exact: true }).click();
       });
       await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60000 });
       await expect(page.locator('.react-flow__node-entity')).toHaveCount(45);
@@ -472,7 +474,7 @@ try {
       await expect(page.locator('.mapping-layer-chain')).toContainText(
         'Mapped commerce semantic model',
       );
-      await expect(page.locator('.mapping-binding')).toHaveCount(9);
+      await expectResolvedBindings(page, 9);
       await page
         .locator('.mapping-concepts')
         .getByRole('button', { name: /^Revenue/ })
@@ -552,7 +554,7 @@ try {
         timeout: 5000,
       });
       await page.locator('.tabs').getByRole('button', { name: 'Mappings', exact: true }).click();
-      await expect(page.locator('.mapping-binding')).toHaveCount(9);
+      await expectResolvedBindings(page, 9);
       await expect(page.locator('.mapping-findings')).toHaveCount(0);
       await page.getByRole('button', { name: 'ubl.ontology.yaml', exact: true }).click();
       await page.locator('.tabs').getByRole('button', { name: 'Graph', exact: true }).click();

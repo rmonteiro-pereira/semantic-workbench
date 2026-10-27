@@ -98,16 +98,6 @@
   }
 }
 
-/* A neighborhood card keeps the same height when it drops its details, so the lines that meet
-   it have room to spread along its side. */
-.react-flow.zoom-far .neighborhood-node .node {
-  box-sizing: border-box;
-  min-height: 96px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
 /* The fade at the end of a scrolling toolbar would also cut off the open panel. */
 .full-graph-tools:has(.compact-controls-panel),
 .neighborhood-tools:has(.compact-controls-panel),

@@ -4,6 +4,7 @@ import { BrandProvider } from './brand/BrandContext';
 import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { PersonMenu } from './auth/PersonMenu';
+import { ActionHistoryProvider } from './app/ActionHistoryContext';
 import { AdminHost } from './app/admin/AdminHost';
 import { AdminLauncher } from './app/admin/AdminLauncher';
 import { AppDialogs } from './app/AppDialogs';
@@ -442,6 +443,8 @@ function App() {
 startBrowserReporting();
 createRoot(document.getElementById('root')!).render(
   <BrandProvider>
-    <App />
+    <ActionHistoryProvider>
+      <App />
+    </ActionHistoryProvider>
   </BrandProvider>,
 );

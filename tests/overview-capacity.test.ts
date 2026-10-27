@@ -1,36 +1,14 @@
 // Tests when the whole-model graph opens with one card per area and how its text sizes follow zoom.
 import { test, expect } from 'bun:test';
-import {
-  readableCapacity,
-  startsCollapsed,
-  textSizesAt,
-  layoutNeedsAreaCards,
-  modelCardHeight,
-} from '../src/graph/overview-capacity';
+import { startsCollapsed, textSizesAt, modelCardHeight } from '../src/graph/overview-capacity';
 
-const phone = { width: 370, height: 330 };
-const laptop = { width: 950, height: 500 };
-const wideMonitor = { width: 2000, height: 1100 };
-
-test('a bigger pane holds more entity cards', () => {
-  expect(readableCapacity(phone)).toBeLessThan(readableCapacity(laptop));
-  expect(readableCapacity(laptop)).toBeLessThan(readableCapacity(wideMonitor));
+test('the 45-entity model opens with every entity visible, whatever the pane', () => {
+  expect(startsCollapsed(45)).toBe(false);
+  expect(startsCollapsed(250)).toBe(false);
 });
 
-test('the 45-entity model opens as areas on a phone and a laptop, and expanded on a wide monitor', () => {
-  expect(startsCollapsed(45, phone)).toBe(true);
-  expect(startsCollapsed(45, laptop)).toBe(true);
-  expect(startsCollapsed(45, wideMonitor)).toBe(false);
-});
-
-test('a model of more than 250 entities always opens as areas', () => {
-  expect(startsCollapsed(251, { width: 8000, height: 8000 })).toBe(true);
-});
-
-test('long layouts use counted areas even when a balanced arrangement would fit', () => {
-  expect(layoutNeedsAreaCards({ width: 7000, height: 1000 }, wideMonitor)).toBe(true);
-  expect(layoutNeedsAreaCards({ width: 1000, height: 7000 }, wideMonitor)).toBe(true);
-  expect(layoutNeedsAreaCards({ width: 1500, height: 900 }, wideMonitor)).toBe(false);
+test('a model of more than 250 entities opens as areas', () => {
+  expect(startsCollapsed(251)).toBe(true);
 });
 
 test('collapsed cards fit count text and two lines of relationship guidance', () => {

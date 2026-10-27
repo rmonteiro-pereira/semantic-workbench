@@ -50,6 +50,16 @@ export function walkReducer(walk: Walk, action: WalkAction): Walk {
   const steps = [...walk.steps.slice(0, walk.index + 1), action.step].slice(-MAX_STEPS);
   return { steps, index: steps.length - 1 };
 }
+/**
+ * The walk to show after Back or Forward restores another walk. When one walk continues the other,
+ * the longer one is kept and only the position moves, so steps ahead stay on the trail.
+ */
+export function reconcileWalk(shown: Walk, restored: Walk): Walk {
+  const [shorter, longer] =
+    shown.steps.length <= restored.steps.length ? [shown, restored] : [restored, shown];
+  const continues = shorter.steps.every((step, index) => step === longer.steps[index]);
+  return continues ? { steps: longer.steps, index: restored.index } : restored;
+}
 /** Returns the active navigation step, if any. */
 export const currentStep = (walk: Walk) => walk.steps[walk.index];
 /** Checks whether navigation has an earlier step. */

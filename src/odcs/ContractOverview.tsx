@@ -1,4 +1,5 @@
 /** Displays contract metadata and a searchable schema-object summary. */
+import { useRecordedState } from '../app/useRecordedState';
 import React, { useDeferredValue, useMemo, useState } from 'react';
 import { ChevronRight, FileCheck2, Search, Table2, Workflow } from 'lucide-react';
 import { odcsForeignKeys } from './foreign-keys';
@@ -82,8 +83,9 @@ function Records({ items, columns }: { items: any[]; columns: RecordColumns }) {
     </div>
   );
 }
-/** One contract-level section: its name, how many entries it has and the detail for its dialog. */
-type SectionSummary = { label: string; count: number; detail: React.ReactNode };
+/** One contract-level section: its name, how many entries it has and its detail. The detail opens
+ * in a dialog, except for an inline section, which stays on the page. */
+type SectionSummary = { label: string; count: number; detail: React.ReactNode; inline?: boolean };
 
 const SERVER_COLUMNS: RecordColumns = [
   ['server', 'Server'],
@@ -176,6 +178,8 @@ function sectionSummaries(data: any, objectRules: number): SectionSummary[] {
           label: 'Team and roles',
           count: team.length + roles.length,
           detail: teamDetail(team, roles),
+          // Who owns the contract is part of reading it, so it is not behind a button.
+          inline: true,
         }
       : null,
     sectionOf('Service levels', list(data?.slaProperties), items => (
@@ -209,22 +213,37 @@ function sectionOf(
   return items.length ? { label, count: items.length, detail: detail(items) } : null;
 }
 
+function InlineSection({ section }: { section: SectionSummary }) {
+  return (
+    <section className="odcs-inline-section" aria-label={section.label}>
+      <h3>{section.label}</h3>
+      {section.detail}
+    </section>
+  );
+}
+
 function SectionRows({ sections }: { sections: SectionSummary[] }) {
-  const [open, setOpen] = useState<SectionSummary | null>(null);
-  if (!sections.length) return null;
+  const [open, setOpen] = useRecordedState<SectionSummary | null>('contract.section', null);
+  const inline = sections.filter(section => section.inline);
+  const behindButton = sections.filter(section => !section.inline);
   return (
     <>
-      <ul className="odcs-section-rows" aria-label="Contract sections">
-        {sections.map(section => (
-          <li key={section.label}>
-            <button type="button" onClick={() => setOpen(section)}>
-              <span>{section.label}</span>
-              <small>{section.count}</small>
-              <ChevronRight size={14} />
-            </button>
-          </li>
-        ))}
-      </ul>
+      {inline.map(section => (
+        <InlineSection key={section.label} section={section} />
+      ))}
+      {behindButton.length > 0 && (
+        <ul className="odcs-section-rows" aria-label="Contract sections">
+          {behindButton.map(section => (
+            <li key={section.label}>
+              <button type="button" onClick={() => setOpen(section)}>
+                <span>{section.label}</span>
+                <small>{section.count}</small>
+                <ChevronRight size={14} />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
       {open && (
         <Modal
           title={open.label}

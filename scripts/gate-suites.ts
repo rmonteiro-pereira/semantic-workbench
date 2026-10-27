@@ -10,6 +10,7 @@ export const gateSuites: string[] = [
   'test:examples:ui',
   'test:projects',
   'test:trash',
+  'test:sidebar',
   'test:metrics',
   'test:graph',
   'test:editor',
@@ -27,6 +28,7 @@ export const gateSuites: string[] = [
   'test:terminology',
   'test:mappings-layout',
   'test:mapping-graph',
+  'test:back-history',
   'test:theme',
   'test:brand',
 ];

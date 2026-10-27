@@ -168,7 +168,7 @@ async function stewardControls(person: Person) {
   const dialog = await openSyncDialog(person.page);
   await expect(dialog.getByRole('button', { name: 'Publish to main', exact: true })).toBeEnabled();
   await expect(dialog.getByRole('button', { name: 'Push main', exact: true })).toBeHidden();
-  await expect(remoteButton(dialog)).toBeHidden();
+  await expect(remoteButton(person.page)).toBeHidden();
   return dialog;
 }
 
@@ -178,7 +178,7 @@ async function editorControls(person: Person) {
   await expect(dialog.getByRole('button', { name: 'Publish to main', exact: true })).toBeDisabled();
   await expect(dialog.getByText('Requires Steward to publish to main.')).toBeVisible();
   await expect(dialog.getByRole('button', { name: 'Push main', exact: true })).toBeHidden();
-  await expect(remoteButton(dialog)).toBeHidden();
+  await expect(remoteButton(person.page)).toBeHidden();
   await expect(dialog.getByRole('button', { name: 'Pull from main', exact: true })).toBeVisible();
   return dialog;
 }

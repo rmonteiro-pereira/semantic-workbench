@@ -138,6 +138,37 @@ async function bindingLayoutProblems(target: Page) {
   });
 }
 
+// Problems with the tab's height and with the "Show more" buttons: the tab must not grow with its
+// content, each column must scroll by itself, and a control must stay inside its group's box.
+async function boundedLayoutProblems(target: Page, viewportHeight: number) {
+  return target.evaluate(viewport => {
+    const found: string[] = [];
+    const explorer = document.querySelector<HTMLElement>('.mapping-explorer')!;
+    if (explorer.scrollHeight > viewport * 3)
+      found.push(`the tab is ${explorer.scrollHeight}px tall`);
+    for (const selector of ['.mapping-concept-list', '.mapping-detail']) {
+      const column = document.querySelector<HTMLElement>(selector)!;
+      const box = column.getBoundingClientRect();
+      if (box.height > viewport) found.push(`${selector} is ${box.height}px tall`);
+    }
+    const groups = document.querySelectorAll<HTMLElement>('.mapping-group');
+    for (const group of groups) {
+      const groupBox = group.getBoundingClientRect();
+      for (const button of group.querySelectorAll<HTMLElement>(
+        '.mapping-show-more, .mapping-show-more button',
+      )) {
+        const box = button.getBoundingClientRect();
+        if (box.left < groupBox.left - 1 || box.right > groupBox.right + 1)
+          found.push(`a show-more control leaves its group sideways`);
+        if (box.bottom > groupBox.bottom + 1) found.push(`a show-more control leaves its group`);
+      }
+    }
+    const cards = document.querySelectorAll('.mapping-group:first-of-type .mapping-binding');
+    if (cards.length > 15) found.push(`${cards.length} bindings rendered in the first group`);
+    return found;
+  }, viewportHeight);
+}
+
 try {
   await page.goto(appUrl());
   await page.locator('.tabs').getByRole('button', { name: 'Mappings', exact: true }).click();
@@ -215,6 +246,43 @@ try {
       }
     },
   );
+  await check('opening a file selects a mapping of its own project', async () => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await showSidebar(page);
+    const mallProject = page.getByRole('treeitem', { name: 'Mall', exact: true });
+    if ((await mallProject.getAttribute('aria-expanded')) === 'false') {
+      await mallProject.getByRole('button', { name: 'Mall', exact: true }).click();
+    }
+    await fileTab('mall.ontology.yaml', 'Mappings')(page);
+    await expect(chooser).toHaveValue(/mall\.mapping\.yaml/);
+    await expect(page.locator('.mapping-binding').first()).toBeAttached();
+  });
+  await check('long mapping lists stay bounded and show-more stays in its group', async () => {
+    const found: string[] = [];
+    for (const [width, height] of [
+      [390, 844],
+      [1280, 720],
+      [1440, 900],
+    ]) {
+      await page.setViewportSize({ width, height });
+      await showSidebar(page);
+      await fileTab('mall.ontology.yaml', 'Mappings')(page);
+      await expect(page.locator('.mapping-binding').first()).toBeAttached();
+      await page.locator('.mapping-bindings > summary').click();
+      const first = await boundedLayoutProblems(page, height);
+      found.push(...first.map(problem => `${width}: ${problem}`));
+      const more = page.locator('.mapping-group .mapping-show-more button').first();
+      await more.click();
+      const second = await boundedLayoutProblems(page, height);
+      found.push(...second.map(problem => `${width} after show more: ${problem}`));
+      await page
+        .locator('.mapping-group')
+        .first()
+        .getByRole('button', { name: 'Show fewer' })
+        .click();
+    }
+    expect(found).toEqual([]);
+  });
   await check('browser has no uncaught runtime errors', async () => expect(errors).toEqual([]));
   console.log(`${passed} mapping layout checks passed on isolated data root ${api.root}.`);
 } finally {

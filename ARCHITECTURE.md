@@ -170,9 +170,15 @@ check that happens to succeed.
 - `src/main.tsx` composes the application. `src/app/` separates workbench state/effects from
   `Workspace*` presentation and dialogs. Stable event handlers call the latest committed logic;
   source text stays synchronous rather than being deferred back into the editor.
+- One action history serves Back and Forward. `src/app/action-history.ts` is the pure list of steps
+  and cursor; `action-recorder.ts` groups the state changes of one click into one step and
+  remembers the values of screens that unmount; `ActionHistoryContext.tsx` owns the recorder,
+  mirrors each step into `history.pushState` and moves the cursor on `popstate`.
+  `useRecordedState` replaces `useState` for state a click changes, and keeps state in the
+  component that owns it. Typing is not recorded; undo and redo never record.
 - `src/projects/api.ts` is the browser HTTP boundary. `useEvents.ts` owns SSE delivery and
   connection readiness. `autosave.ts` coordinates validation, drafts, version checks and saving.
-  `Sidebar.tsx` and `tree-viewport.ts` keep the selected file and whole-row viewport reachable.
+  `Sidebar.tsx` keeps the selected file reachable in the scrolling project list.
 - `src/scm/` owns Source Control, diffs, branch/commit/remote/clone dialogs and personal-credential
   prompts. `src/projects/Modal.tsx`, `Menu.tsx`, `WizardStepper.tsx`, `EmptyState.tsx` and
   `src/shared/ScrollStrip.tsx` provide shared interaction and layout behavior.

@@ -1,5 +1,5 @@
-import { expect, test } from 'bun:test';
-import { placeMenu } from '../src/projects/menu-position';
+import { describe, expect, test } from 'bun:test';
+import { placeFlyout, placeMenu } from '../src/projects/menu-position';
 
 const viewport = { width: 1000, height: 800 };
 const menu = { width: 200, height: 300 };
@@ -38,4 +38,25 @@ test('the preferred upward side is kept when the menu fits there', () => {
   const anchor = { left: 100, top: 600, right: 400, bottom: 640 };
   const placed = placeMenu(anchor, menu, viewport, { side: 'above', align: 'start' });
   expect(placed.side).toBe('above');
+});
+
+describe('a flyout beside its button', () => {
+  const button = { left: 8, top: 640, right: 240, bottom: 676 };
+  test('touches the right side of its button, with its bottom on the button bottom', () => {
+    const placed = placeFlyout(button, menu, viewport);
+    expect(placed).toEqual({ top: 676 - 300, left: button.right, maxHeight: 300, side: 'above' });
+  });
+
+  test('is capped to the window and scrolls when taller than the room above', () => {
+    const tall = { width: 200, height: 900 };
+    const placed = placeFlyout(button, tall, viewport);
+    expect(placed?.top).toBe(12);
+    expect(placed?.maxHeight).toBe(676 - 12);
+  });
+
+  test('gives way on a phone and when the menu does not fit on the right', () => {
+    expect(placeFlyout(button, menu, { width: 650, height: 800 })).toBeUndefined();
+    const nearRightEdge = { ...button, right: 900 };
+    expect(placeFlyout(nearRightEdge, menu, viewport)).toBeUndefined();
+  });
 });

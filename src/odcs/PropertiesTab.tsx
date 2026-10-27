@@ -1,11 +1,14 @@
-/** Lists an ODCS object's properties as read-only rows, with filter, sort and an edit dialog. */
+/** Lists an ODCS object's properties with filter and sort. Logical type and the Required, Unique
+ * and Primary key flags change in the row; the rest changes in an edit dialog. */
+import { useRecordedState } from '../app/useRecordedState';
 import React, { useMemo, useState } from 'react';
 import { ArrowDown, ArrowUp, Pencil, Search } from 'lucide-react';
 import { odcsForeignKeys } from './foreign-keys';
 import { flattenProperties } from './odcs-diff';
 import { hopSentence } from './lineage';
 import { Badge, badge } from '../shared/PropertyBadges';
-import type { PropertyEditor } from './PropertyEditors';
+import type { PropertyChange, PropertyEditor } from './PropertyEditors';
+import { FlagCheckbox, LogicalTypeSelect } from './PropertyInlineControls';
 import './odcs.css';
 import './contract.css';
 const list = (v: unknown): any[] => (Array.isArray(v) ? v : []);
@@ -99,9 +102,14 @@ function visibleRows(
 function usedColumns(rows: Row[], targets: Map<string, string[]>, editor?: PropertyEditor) {
   const some = (test: (p: Property) => boolean) => rows.some(row => test(row.property));
   return {
+    // With an editor the three flags are checkboxes in columns of their own, drawn even when no
+    // row sets one yet; without it they are badges, drawn only when a row has one.
+    flagColumns: Boolean(editor),
     constraints: some(p => p.required === true || p.unique === true || p.primaryKey === true),
+    physicalType: some(p => Boolean(text(p.physicalType))),
     classification: some(p => Boolean(text(p.classification))),
-    description: some(p => Boolean(text(p.description)) || list(p.tags).length > 0),
+    description: some(p => Boolean(text(p.description))),
+    tags: some(p => list(p.tags).length > 0),
     foreignKeys: rows.some(row => (targets.get(row.path) ?? []).length > 0),
     actions: Boolean(editor) && rows.some(row => editor!.canEditProperty(row.path, row.property)),
   };
@@ -120,13 +128,18 @@ export function PropertiesTab({ data, objectIndex, onOpenObject, editor }: TabPr
   const targets = useMemo(() => foreignKeys(data, objectIndex), [data, objectIndex]);
   const sentences = useMemo(() => foreignKeySentences(data, objectIndex), [data, objectIndex]);
   const [filter, setFilter] = useState('');
-  const [sort, setSort] = useState<Sort | null>(null);
+  const [sort, setSort] = useRecordedState<Sort | null>('dataset.sort', null);
   const [editing, setEditing] = useState<Row | null>(null);
+  const [saveError, setSaveError] = useState('');
   const shown = useMemo(
     () => visibleRows(rows, filter, sort, targets),
     [rows, filter, sort, targets],
   );
   const columns = usedColumns(rows, targets, editor);
+  async function saveInRow(row: Row, change: PropertyChange) {
+    const failure = await editor?.saveChange(objectIndex, row.path, change);
+    setSaveError(failure ?? '');
+  }
   return (
     <>
       <div className="odcs-toolbar">
@@ -160,11 +173,17 @@ export function PropertiesTab({ data, objectIndex, onOpenObject, editor }: TabPr
                 columns={columns}
                 onOpenObject={onOpenObject}
                 onEdit={editor?.canEditProperty(row.path, row.property) ? setEditing : undefined}
+                onChange={change => saveInRow(row, change)}
               />
             ))}
           </tbody>
         </table>
       </div>
+      {saveError && (
+        <p role="alert" className="dialog-error">
+          {saveError}
+        </p>
+      )}
       {!shown.length && <p className="odcs-note">No property matches “{filter}”.</p>}
       {editing &&
         editor?.renderDialog({
@@ -230,10 +249,19 @@ function PropertiesHead({ columns }: { columns: UsedColumns }) {
     <thead>
       <tr>
         <th>Name</th>
-        <th>Type</th>
-        {columns.constraints && <th>Constraints</th>}
+        <th>Logical type</th>
+        {columns.physicalType && <th>Physical type</th>}
+        {columns.flagColumns && (
+          <>
+            <th>Required</th>
+            <th>Unique</th>
+            <th>Primary key</th>
+          </>
+        )}
+        {!columns.flagColumns && columns.constraints && <th>Constraints</th>}
         {columns.classification && <th>Classification</th>}
         {columns.description && <th>Description</th>}
+        {columns.tags && <th>Tags</th>}
         {columns.foreignKeys && <th>Foreign keys</th>}
         {columns.actions && <th className="col-actions">Edit</th>}
       </tr>
@@ -289,33 +317,55 @@ function ForeignKeyChips({
 
 function DescriptionCell({ property }: { property: Property }) {
   const description = text(property.description);
-  const tags = list(property.tags);
+  if (!description) return null;
   return (
-    <>
-      {description && (
-        <span className="odcs-clamp" title={description}>
-          {description}
-        </span>
-      )}
-      {tags.length > 0 && (
-        <span className="odcs-tags">
-          {tags.map(tag => (
-            <em key={text(tag)} className="odcs-tag">
-              {text(tag)}
-            </em>
-          ))}
-        </span>
-      )}
-    </>
+    <span className="odcs-clamp" title={description}>
+      {description}
+    </span>
   );
 }
 
-function TypeCell({ property }: { property: Property }) {
-  const physical = text(property.physicalType);
+function TagsCell({ property }: { property: Property }) {
+  const tags = list(property.tags);
+  if (!tags.length) return null;
+  return (
+    <span className="odcs-tags">
+      {tags.map(tag => (
+        <em key={text(tag)} className="odcs-tag">
+          {text(tag)}
+        </em>
+      ))}
+    </span>
+  );
+}
+
+const FLAG_COLUMNS = [
+  { key: 'required', label: 'Required' },
+  { key: 'unique', label: 'Unique' },
+  { key: 'primaryKey', label: 'Primary key' },
+] as const;
+
+function FlagCells({
+  row,
+  canEdit,
+  onChange,
+}: {
+  row: Row;
+  canEdit: boolean;
+  onChange: (change: PropertyChange) => Promise<void>;
+}) {
   return (
     <>
-      <span>{text(property.logicalType) || '—'}</span>
-      {physical && <small className="odcs-secondary">{physical}</small>}
+      {FLAG_COLUMNS.map(({ key, label }) => (
+        <td key={key} data-label={label}>
+          <FlagCheckbox
+            label={`${label} of ${row.path}`}
+            checked={row.property[key] === true}
+            disabled={!canEdit}
+            onChange={checked => onChange({ key, value: checked ? true : undefined })}
+          />
+        </td>
+      ))}
     </>
   );
 }
@@ -327,8 +377,10 @@ type RowProps = {
   columns: UsedColumns;
   onOpenObject: (name: string) => void;
   onEdit?: (row: Row) => void;
+  onChange: (change: PropertyChange) => Promise<void>;
 };
-function PropertyRow({ row, targets, sentences, columns, onOpenObject, onEdit }: RowProps) {
+function PropertyRow(props: RowProps) {
+  const { row, targets, sentences, columns, onOpenObject, onEdit, onChange } = props;
   const { path, property } = row;
   const depth = path.split('.').length - 1 + (path.match(/\[\]/g)?.length ?? 0);
   const classification = text(property.classification);
@@ -341,10 +393,20 @@ function PropertyRow({ row, targets, sentences, columns, onOpenObject, onEdit }:
       >
         <code>{path}</code>
       </td>
-      <td data-label="Type">
-        <TypeCell property={property} />
+      <td data-label="Logical type">
+        {onEdit ? (
+          <LogicalTypeSelect
+            label={`Logical type of ${path}`}
+            value={text(property.logicalType)}
+            onChange={value => onChange({ key: 'logicalType', value: value || undefined })}
+          />
+        ) : (
+          text(property.logicalType) || '—'
+        )}
       </td>
-      {columns.constraints && (
+      {columns.physicalType && <td data-label="Physical type">{text(property.physicalType)}</td>}
+      {columns.flagColumns && <FlagCells row={row} canEdit={Boolean(onEdit)} onChange={onChange} />}
+      {!columns.flagColumns && columns.constraints && (
         <td data-label="Constraints">
           <ConstraintBadges property={property} />
         </td>
@@ -361,6 +423,11 @@ function PropertyRow({ row, targets, sentences, columns, onOpenObject, onEdit }:
       {columns.description && (
         <td data-label="Description">
           <DescriptionCell property={property} />
+        </td>
+      )}
+      {columns.tags && (
+        <td data-label="Tags">
+          <TagsCell property={property} />
         </td>
       )}
       {columns.foreignKeys && (

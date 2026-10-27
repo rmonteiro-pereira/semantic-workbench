@@ -109,6 +109,17 @@
   background: var(--color-surface-sunken);
   border-radius: 10px;
 }
+.scm-remote {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  font-size: var(--text-small);
+}
+.scm-remote > button {
+  font-size: var(--text-small);
+  padding: 5px 9px;
+}
 .scm-remote-url {
   flex: 1 1 0;
   min-width: 0;
@@ -910,7 +921,18 @@
   line-height: 1.45;
 }
 
-/* The Sync dialog lists each action with a line saying what it does. */
+/* The four remote actions sit side by side under the remote line, as one row of equal buttons. */
+.scm-remote-actions {
+  display: flex;
+  gap: 4px;
+  flex: 1 1 100%;
+}
+.scm-remote-actions button {
+  flex: 1;
+  font-size: 12px;
+  padding: 6px 4px;
+  gap: 3px;
+}
 .scm-sync-open {
   font-size: var(--text-small);
   padding: 4px 9px;
@@ -923,20 +945,7 @@
 .scm-sync-dialog section:first-child h3 {
   margin-top: 0;
 }
-.scm-sync-remote {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px 10px;
-  margin: 0 0 8px;
-  font-size: var(--text-small);
-  color: var(--text-muted);
-}
-/* With no remote the sentence takes its own line and the Add remote button sits below it. */
-.scm-sync-remote > p {
-  flex: 1 1 100%;
-  margin: 0;
-}
+/* The published-branch actions of the Sync dialog list each action with a line saying what it does. */
 .scm-sync-actions {
   display: grid;
   gap: 8px;
@@ -964,13 +973,6 @@
   font-size: var(--text-small);
   color: var(--text-muted);
 }
-/* The dialog has the room to show the whole address. */
-.scm-sync-remote .scm-remote-url {
-  flex: 1 1 200px;
-  white-space: normal;
-  overflow-wrap: anywhere;
-}
-
 /* The optional folder field of the Clone and Remote dialogs. */
 .workbench-dialog .folder-hint {
   font-size: var(--text-small);

@@ -75,13 +75,13 @@ export const LineageCardNode = memo(({ data }: NodeProps) => {
             <KindIcon kind={legendKind} />
             {kindLabel}
             {d.center && <em>center</em>}
+            {c.badges?.length ? <PropertyBadges badges={c.badges} /> : null}
           </span>
           <strong>{c.label}</strong>
           {c.detail && <small>{c.detail}</small>}
         </button>
-        {c.badges?.length || c.findings?.length ? (
+        {c.findings?.length ? (
           <span className="lineage-card-marks nodrag">
-            {c.badges?.length ? <PropertyBadges badges={c.badges} /> : null}
             {c.findings?.map((m, i) => (
               <button
                 key={i}

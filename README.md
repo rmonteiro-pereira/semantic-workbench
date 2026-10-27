@@ -287,8 +287,8 @@ same definitions. They do not maintain independent copies of a metric formula.
 
 ### Graph architecture
 
-React Flow renders interactive HTML/SVG nodes and connections. ELK calculates the default layered
-positions and compound routes. The optional Network layout uses headless Cytoscape/fCoSE followed
+React Flow renders interactive HTML/SVG nodes and connections. ELK calculates the optional layered
+positions and compound routes. The default Network layout uses headless Cytoscape/fCoSE followed
 by overlap cleanup/packing; Cytoscape does not render the page. Smart Edge supplies worker routing
 at useful detail levels.
 

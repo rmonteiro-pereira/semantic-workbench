@@ -244,16 +244,14 @@ export const WorkspaceSidebar = React.memo(function WorkspaceSidebar({
         <div className="section-label">
           PROJECTS <span>{projects.length}</span>
         </div>
-        <div className="documents-frame">
-          <div className="documents">
-            <ProjectTree
-              projects={projects}
-              currentId={current?.id}
-              shown={sidebarOpen}
-              onAction={handleTreeAction}
-              onOpen={handleProjectTreeOpen}
-            />
-          </div>
+        <div className="documents">
+          <ProjectTree
+            projects={projects}
+            currentId={current?.id}
+            shown={sidebarOpen}
+            onAction={handleTreeAction}
+            onOpen={handleProjectTreeOpen}
+          />
         </div>
         <div className="sidebar-footer">
           <div className="workspace-actions">

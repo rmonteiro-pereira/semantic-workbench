@@ -1,4 +1,5 @@
 /** Displays model groups and their entities as a browsable catalog. */
+import { useRecordedState } from '../app/useRecordedState';
 import type { GroupingOptions } from './overview';
 import { useMemo, useState } from 'react';
 import { ArrowRight, Focus, Grid2X2, Layers, Search, X, Network } from 'lucide-react';
@@ -25,9 +26,9 @@ function relationshipHeat(count: number): string {
 }
 /** Displays grouped model entities as catalog cards. */
 export function ModelOverview(props: Props) {
-  const [mode, setMode] = useState<'areas' | 'matrix'>('areas');
-  const [technical, setTechnical] = useState(false);
-  const [pair, setPair] = useState<[string, string] | null>(null);
+  const [mode, setMode] = useRecordedState<'areas' | 'matrix'>('overview.mode', 'areas');
+  const [technical, setTechnical] = useRecordedState('overview.technical', false);
+  const [pair, setPair] = useRecordedState<[string, string] | null>('overview.pair', null);
   const [hover, setHover] = useState('');
   const overview = useMemo(
     () => modelOverview(props.entities, props.edges, props.name, technical, props.grouping),

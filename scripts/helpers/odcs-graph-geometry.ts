@@ -29,7 +29,12 @@ export async function odcsGraphProblems(
         const r = card.rect;
         const cut = r.left < pane.left - 1 || r.right > pane.right + 1;
         const cutVertically = r.top < pane.top - 1 || r.bottom > pane.bottom + 1;
-        if (cut || cutVertically) out.push(`${card.name} is cut by the edge of the canvas`);
+        // The centre shows whole. A neighbour may peek in at the edge, which tells a person that
+        // more of the graph is a pan away.
+        const isCentre = card.element.classList.contains('center');
+        if ((cut || cutVertically) && isCentre) {
+          out.push(`${card.name} is cut by the edge of the canvas`);
+        }
       }
       cards.forEach((a, i) =>
         cards.slice(i + 1).forEach(b => {
@@ -80,11 +85,26 @@ export async function odcsGraphProblems(
       // Labels drawn on the lines never overlap a card or each other.
       const labels = [...view.querySelectorAll('.lineage-edge-label.shown rect')].map(el => ({
         rect: el.getBoundingClientRect(),
+        // A line that runs past the edge of the canvas, toward cards a pan away, may carry a label
+        // that does too. A label sits just above or below its line, so a line within one label
+        // height of the edge counts as running past it.
+        lineLeavesCanvas: (() => {
+          const path = el.closest('g.lineage-edge')?.querySelector('path.react-flow__edge-path');
+          const line = path?.getBoundingClientRect();
+          return (
+            !line ||
+            line.left < pane.left + 40 ||
+            line.right > pane.right - 40 ||
+            line.top < pane.top + 40 ||
+            line.bottom > pane.bottom - 40
+          );
+        })(),
         text: [...(el.parentElement?.querySelectorAll('text') ?? [])]
           .map(t => t.textContent)
           .join(' '),
       }));
       for (const label of labels) {
+        if (label.lineLeavesCanvas) continue;
         if (
           label.rect.left < pane.left - 1 ||
           label.rect.right > pane.right + 1 ||

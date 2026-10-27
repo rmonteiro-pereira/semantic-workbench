@@ -34,6 +34,23 @@
   color: var(--text-muted);
   font-size: var(--text-small);
 }
+.odcs-inline-section {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.odcs-inline-section h3 {
+  margin: 0;
+  font-size: var(--text-small);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
 .odcs-section-rows {
   list-style: none;
   margin: 0;
@@ -324,4 +341,36 @@
   outline: none;
   border-color: var(--color-focus);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-focus) 20%, transparent);
+}
+
+/* Controls that edit a property in its table row look like text until hovered or focused. */
+.odcs-edit {
+  font: inherit;
+  font-size: var(--text-small);
+  color: inherit;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  padding: 3px 5px;
+  max-width: 100%;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+.odcs-edit:hover:not(:disabled) {
+  border-color: var(--color-border);
+  background: var(--color-surface);
+}
+.odcs-edit:focus-visible {
+  outline: none;
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-focus) 20%, transparent);
+}
+.odcs-edit-check {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+.odcs-edit-check:disabled {
+  cursor: default;
 }

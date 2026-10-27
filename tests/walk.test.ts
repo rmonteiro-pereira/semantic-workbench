@@ -7,6 +7,7 @@ import {
   canBack,
   canForward,
   MAX_STEPS,
+  reconcileWalk,
   type Walk,
   type WalkAction,
 } from '../src/graph/walk';
@@ -103,4 +104,21 @@ test('re-centering starts a new canvas; legacy steps without kind still dedupe',
   expect(canvasAt(emptyWalk)).toEqual({ center: undefined, sets: [] });
   const legacy: Walk = { steps: [{ doc: 'd', center: 'x', name: 'x' }], index: 0 };
   expect(canvasAt(legacy).center?.center).toBe('x');
+});
+
+test('reconcileWalk keeps the steps ahead when Back moves within one branch', () => {
+  const full = run(emptyWalk, { type: 'push', step: step('a') }, { type: 'push', step: step('b') });
+  const earlier = { steps: full.steps.slice(0, 1), index: 0 };
+  expect(reconcileWalk(full, earlier)).toEqual({ steps: full.steps, index: 0 });
+  expect(reconcileWalk(earlier, full)).toEqual({ steps: full.steps, index: 1 });
+});
+
+test('reconcileWalk restores a different branch as it was', () => {
+  const left = run(emptyWalk, { type: 'push', step: step('a') }, { type: 'push', step: step('b') });
+  const right = run(
+    emptyWalk,
+    { type: 'push', step: step('a') },
+    { type: 'push', step: step('c') },
+  );
+  expect(reconcileWalk(left, right)).toBe(right);
 });

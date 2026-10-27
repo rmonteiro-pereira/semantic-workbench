@@ -17,8 +17,7 @@ async function openGraph(page: Page, file: string) {
 
 async function showAllCards(page: Page, file: string) {
   await openGraph(page, file);
-  const showAll = page.getByRole('button', { name: /Show all$/ });
-  if (await showAll.isVisible()) await showAll.click();
+  await page.getByRole('button', { name: 'Fit', exact: true }).click();
   await page.waitForTimeout(1200);
 }
 
@@ -52,11 +51,9 @@ export function odcsGraphScreens(contract: string): Screen[] {
     },
     {
       name: 'odcs-graph-options',
-      dialog: 'dialog[open]',
       show: async page => {
         await openGraph(page, contract);
         await revealGraphControls(page);
-        await page.getByRole('button', { name: /^View options/ }).click();
       },
     },
   ];

@@ -11,9 +11,11 @@ are covered in [the server guide](server-mode.md).
 ## Workspace navigation
 
 The sidebar contains **Model explorer**, **Source editor**, **Source control**, the **Projects**
-tree, and a footer with **Clear workspace**, **Trash**, **Examples** and **Import…**. The tree has
-its own scrollbar and ends at a complete row above the footer. All files remain reachable by
-scrolling and keyboard focus. The selected file is brought into view when it would be hidden.
+tree, and a footer with **Clear workspace**, **Trash**, **Examples** and **Import…**. On a wide
+window **Examples** opens its menu against the right side of the button, level with it, and the
+button's arrow points at it; on a phone it opens above the button. The tree has its own scrollbar and takes the height left above the
+footer, so the footer, including the Theme control, stays fully visible at any window height. All
+files remain reachable by scrolling and keyboard focus. The selected file is brought into view when it would be hidden.
 
 On desktop, drag the sidebar separator or use its arrow keys, Home and End to choose a width
 between 220 and 520 pixels; the browser remembers it. Long project and file names wrap to two
@@ -28,6 +30,23 @@ Source and Source Control retain separate sidebar navigation states.
 **Admin** opens the administration page for people allowed to administer. In server mode, the
 person menu contains **Connected accounts** and **Sign out**. In local mode there is no sign-in or
 person menu.
+
+### Back and Forward
+
+Back undoes the last action a click caused, and Forward redoes it. The browser's Back and Forward
+buttons, the mouse's back and forward buttons and the Back and Forward arrows of the Neighborhood
+and lineage trails all move through the same list of actions. Back covers opening a file, changing
+the tab, selecting an entity, a relationship or a metric, centring or expanding the Neighborhood,
+the lineage walk (centre, expand, full pierce, opening a count card or a column list, splitting a
+bundled line), opening or collapsing graph areas, the graph, Neighborhood and lineage switches
+(Labels, Value types, Metrics, Mini-map, Technical resources and the others), layout and grouping
+choices, the Mappings concept and **Show more**, and the sidebar's folders. Typing is not an
+action: the editor keeps its own undo, and text in a search box is not restored. Deleting a file is
+not undone by Back; **Undo** in the toast and **Trash** restore it. Back and Forward only change
+what is shown: a grouping choice is saved when you make it, and going back shows the earlier
+grouping without saving it. After a reload the earlier actions are gone, and Back leaves the app as
+the browser normally does. The Admin page keeps its own
+address, so Back leaves a section as before.
 
 ## Files, imports and project organization
 
@@ -139,7 +158,10 @@ The **Source control** panel provides:
 - Staged changes, unstaged changes and merge conflicts, with side-by-side diffs.
 - Per-file or bulk stage/unstage, commit messages and commit actions.
 - Local and remote branches, new branches and branch switching.
-- **Sync…** with remote setup and explicit Fetch, Pull, Push and Sync actions.
+- The remote address with **Remote…** to set it up, and **Fetch**, **Pull**, **Push** and
+  **Sync** buttons under it. On a server, **Sync…** opens Pull, Publish and Push for the published
+  branch.
+- The same model tabs and **Find an entity** search as the model views, so a tab is one click away.
 - Exact-path, extension and folder ignore rules, plus a Source editor for `.gitignore`.
 - File history and comparison of two revisions or a revision with the working tree.
 
@@ -224,22 +246,28 @@ inferred equivalence.
 
 ### Full graph
 
-The default **Layered (ELK)** layout preserves orthogonal routes while they match current handles.
-**Network (fCoSE)** is available in **View options…**. The canvas supports grouped areas, dragging,
-area zoom, selection, labels, zoom controls and an optional mini-map. Network detail routing uses
-a shared background worker; whole-model views use less expensive paths.
+The default **Network (fCoSE)** layout groups connected entities by area. Switch to **Layered
+(ELK)**, which preserves orthogonal routes while they match current handles, with the **Layered /
+Network** control in the graph toolbar. The
+toolbar also holds **Re-layout**, the crosshair select that zooms to an area (**Zoom to group**), **Collapse areas**, **Expand all**, and
+switches for **Labels**, **Value types**, **Metrics** and **Mini-map**; a check mark shows which
+are on. On a phone these controls fold behind **Controls**. The canvas supports grouped areas,
+dragging, area zoom and selection. Network detail routing uses a shared background worker;
+whole-model views use less expensive paths.
 
-An initial view can use counted area cards when all entity names would be unreadable; models
-above 250 visible business entities start collapsed. Expand an area or choose **Expand all** to
+The first view shows every entity by name; models above 250 visible business entities start with
+one counted card per area. Expand an area or choose **Expand all** to
 show every entity. Internal relationships remain available when the area opens. **Fit model**
 returns the complete layout to view. A finite viewport cannot show unlimited full-size labels.
 
 ### Neighborhood and expansion
 
 Incoming neighbors appear left of the center; outgoing neighbors appear right. The initial view
-shows up to twelve neighbors, or six on a phone, with a shown/hidden count and **N more neighbors**.
+shows up to twelve neighbors, on a phone too, with a shown/hidden count and **N more neighbors**.
+Cards keep their type, description and metric count at every zoom, and **Labels** shows every
+relationship name when it is on.
 The picker ranks exact name matches first. Walking to a neighbor records a trail; Back, Forward
-and breadcrumbs restore earlier centers. **Continue in <file>** follows an explicitly shared
+and breadcrumbs restore earlier centers (see [Back and Forward](#back-and-forward)). **Continue in <file>** follows an explicitly shared
 identity into another project file and retains return navigation.
 
 **+** expands a node in place without moving already placed nodes. **−**, **Undo expansion** and
@@ -248,8 +276,9 @@ Outgoing, Incoming or Both directions from the selection or center. It stops at 
 frontier markers explain hidden reachable nodes. **Expand further** permits up to 500, and **Stop**
 cancels the worker operation. The same bounded traversal is used by lineage and mapping cards.
 
-**View options…** controls relationships, labels, links among visible neighbors, technical
-resources, value types and metrics. OWL opens with classes only unless technical resources are
+The toolbar filters neighbors by **Relationship** and switches **Links between neighbors**,
+**Technical resources**, **Labels**, **Value types** and **Metrics** on or off. **Re-arrange** puts
+dragged nodes back in their columns. OWL opens with classes only unless technical resources are
 requested. Graph names and labels compensate for zoom; names retain full-name tooltips, and long
 identifiers wrap at natural separators without changing their spelling.
 
@@ -263,37 +292,54 @@ cross-file links behind **Other files**.
 **Group by** offers declared domains, IRI namespaces, suggested communities, definition types and
 curated UBL areas where applicable. Unavailable modes are disabled with their reason. Automatic
 selects the first applicable mode and names the choice. Communities are deterministic structural
-suggestions, not new semantic facts. **Adjust grouping…** changes view state, not source files.
+suggestions, not new semantic facts: closely linked entities are joined, and those groups are
+joined again while that keeps links inside areas. Entities with no relationships are grouped by
+type. **Adjust grouping…** changes view state, not source files.
 Grouping corrections are personal in server mode.
 
 ## Data contracts and column-level lineage
 
-The **Contract** tab shows the ODCS identity, status, declared sections and searchable tables.
+The **Contract** tab shows the ODCS identity, status, team and roles, further declared sections
+as count buttons that open a dialog, and searchable tables.
 Open a table for Properties, Lineage, Relationships, History and Data Quality. Sections that the
 contract does not declare are omitted rather than presented as empty required inputs.
 
 Properties include logical/physical types, keys, classification, descriptions and tags. Nested
-names use `parent.child`. Filtering, sorting and property editing preserve the original YAML or
+names use `parent.child`. The logical type and the Required, Unique and Primary key flags change in
+the table row and save at once; **Edit** opens a dialog for the rest. Filtering, sorting and
+property editing preserve the original YAML or
 JSON. Server-mode classification restrictions remain enforced by the API. History compares
 committed property changes. Data Quality displays declared rules and thresholds; none is run.
 
 The lineage canvas connects tables, semantic datasets, metrics and external references by their
 columns. It reads declared foreign keys, transforms and expression references. Exact physical
 names connect semantic sources with ODCS tables; this interpretation is workbench behavior rather
-than an additional claim made by either standard.
+than an additional claim made by either standard. A semantic dataset with its table's name whose
+fields are that table's columns, unchanged, is a copy: the table card stands for both and carries
+a **Semantic dataset** badge beside its type, and metrics connect to the table's columns. A dataset that renames,
+computes or adds a field keeps its own card.
+
+Click a line to see what it stands for. A single line selects its relationship, highlighting
+both columns and listing them under **Selected path**. A bundled line, labelled with the number
+of lines it stands for, splits into those lines. A line to a counted card, such as **17 more
+tables**, opens that card; the view keeps the table at the other end of the line in place, so the
+opened cards stay on screen.
 
 Select a column to highlight its upstream/downstream path. **Selected path** appears beside the
 canvas or in a phone dialog. **Find assets**, Walk here, Back/Forward and expansion retain context.
-The first view keeps nearby cards whole at a readable size; **Show all** and **Fit** reveal more.
+The first view frames the nearest cards whole at a readable size; the other cards are laid out
+beside them, a pan away, and **Fit** shows every card.
 
 A wide table shows relevant columns and **+ N more columns**, which opens one scrolling list,
 not pagination. Lists above thirty columns offer filtering. Edges for offscreen connected rows
-remain anchored at the list edge with a marker. **Show fewer** closes the list. A foreign-key
+remain anchored at the list edge with a marker. When the list opens, the view pans so the whole
+card shows, or its top when the card is taller than the canvas. **Show fewer** closes the list. A foreign-key
 sentence reads child to parent, such as `orders.customer_id → customers.id`, even though dependency
 lines run from referenced columns toward their consumers.
 
 The **Hops** control follows one to five foreign keys in either direction and lists the reached
-tables and keys by hop. Badges and the legend distinguish PK, FK, Required, Unique and line kinds.
+tables and keys by hop. Toolbar switches show or hide **Metrics** and **Other contracts**
+(references to tables in other contracts). Badges and the legend distinguish PK, FK, Required, Unique and line kinds.
 Labels without room remain available on hover. **Open in lineage** centers on the selected table.
 
 ## Editing and validation
@@ -357,8 +403,8 @@ escapes, never modify bytes, and never block saving. Nothing is executed.
 
 ## Metrics and governed definitions
 
-The **Metrics** tab lists every metric in the open file's project. Search and **Filters** support
-owner, type, status, concept and file views; **Governed only** keeps metrics with workbench
+The **Metrics** tab lists every metric in the open file's project. Search and the Group by, Type, Status
+and Owner selects beside it support owner, type, status, concept and file views; **Governed only** keeps metrics with workbench
 attributes. A metric without attributes can use **Add attributes** without changing its name or
 formula. Metric badges connect concepts and graph nodes to the relevant definitions.
 
@@ -366,7 +412,8 @@ Each detail explains:
 
 - **What it is:** description, type, additivity, unit, status, ownership and measured concept.
 - **How it is calculated:** formula in words, dependent metrics and fields, time/grain/breakdown
-  rules, additivity, missing values, division-by-zero behavior and a SQL preview.
+  rules, additivity, missing values, division-by-zero behavior and a SQL preview, all shown
+  without opening anything.
 - **Where inputs come from:** semantic fields and sources, ODCS tables/properties and declared
   quality/service-level information.
 
@@ -395,7 +442,10 @@ reason. See [the server governance rules](server-mode.md#governed-content).
 
 The **Mappings** view resolves ontology → mapping → semantic model → physical source. Object,
 referent and link mappings retain source evidence and report missing or ambiguous references.
-Bindings are grouped by dataset. Search includes unbound concepts; empty views offer Source
+Bindings are grouped by dataset. The concept list and the bindings scroll on their own inside the
+tab; each dataset group shows its first five bindings and **Show N more** reveals ten at a time,
+**Show fewer** folds them again, and a long concept list works the same way. The tab opens on a
+mapping from the open file's project. Search includes unbound concepts; empty views offer Source
 navigation for the selected mapping document. **Compose a query…** selects mapped fields/metrics
 and previews a newly composed governed query. **Export agent context** downloads metadata.
 

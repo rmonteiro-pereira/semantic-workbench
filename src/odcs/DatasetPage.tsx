@@ -1,5 +1,6 @@
 /** Displays an ODCS object's properties, relationships, lineage, Git history and declared quality
  * rules. */
+import { useRecordedState } from '../app/useRecordedState';
 import React, { useEffect, useMemo, useState } from 'react';
 import { parse } from 'yaml';
 import { ArrowLeft, ShieldCheck, Table2, Workflow } from 'lucide-react';
@@ -73,7 +74,7 @@ export function DatasetPage({
   const schema = list(data?.schema);
   const index = schema.findIndex((o: any) => o?.name === objectName);
   const object = schema[index];
-  const [tab, setTab] = useState<Tab>('Properties');
+  const [tab, setTab] = useRecordedState<Tab>('dataset.tab', 'Properties');
   const [versions, setVersions] = useState<Version[] | null>(null);
   const [historyError, setHistoryError] = useState('');
   useEffect(() => {
@@ -285,6 +286,9 @@ function LineageTab({
             fields.push(`${c.label}.${n.slice(c.id.length + 1)}`);
           if (c.kind === 'metric') metrics.push(c.label);
         }
+        // A dataset that copies this table names its field after the column it copies.
+        for (const copy of card?.copies ?? [])
+          if (copy.columns.includes(col.path)) fields.push(`${copy.dataset}.${col.path}`);
         return {
           path: col.path,
           fields: [...new Set(fields)].sort(),

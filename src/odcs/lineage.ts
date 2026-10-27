@@ -68,6 +68,8 @@ export type LineageCard = {
   badges?: BadgeInfo[];
   findings?: string[];
   missing?: boolean;
+  /** Semantic datasets that copy this table, with the columns each one copies. */
+  copies?: { dataset: string; columns: string[] }[];
 };
 // `via`: rows a mapping link passes through (highlighted with it); `bindings`: resolver binding
 // ids.
@@ -82,6 +84,38 @@ export type ColumnEdge = {
   via?: string[];
   bindings?: string[];
 };
+// A semantic dataset with the table's own name whose every field is one of the table's columns,
+// unchanged, is a copy of that table. Drawing it as a second card joined 1:1 doubles every table
+// and every line, so the table card stands for both. Returns field → property name, or null when
+// the dataset renames, computes or adds anything.
+function copiedColumns(dataset: any, table: any): Map<string, string> | null {
+  const sameName = String(dataset.name).toLowerCase();
+  if (sameName !== String(table.name).toLowerCase() && sameName !== physical(table).toLowerCase())
+    return null;
+  const properties = new Map(
+    list(table.properties)
+      .filter(isObject)
+      .map((property: any) => [columnOf(property), String(property.name)]),
+  );
+  const fields = list(dataset.fields).filter(isObject);
+  if (!fields.length) return null;
+  const copied = new Map<string, string>();
+  for (const field of fields) {
+    const name = String(field.name);
+    const expression = ansiExpression(field)?.trim();
+    const property = properties.get(name);
+    if (!property || (expression && expression !== name)) return null;
+    copied.set(name, property);
+  }
+  return copied;
+}
+// The table card stands for the copying dataset: one badge, and the copied columns so the
+// property lineage can still name the dataset's fields.
+function markCopy(table: LineageCard, dataset: string, columns: string[]) {
+  if (!table.badges?.some(existing => existing.kind === 'semantic'))
+    table.badges = [...(table.badges ?? []), badge('semantic')];
+  table.copies = [...(table.copies ?? []), { dataset, columns }];
+}
 /** Collects asset cards, column edges and adjacency indexes for traversal. */
 export type LineageGraph = {
   contract: string;
@@ -295,6 +329,15 @@ export function buildLineage(
         );
         if (!readers.length) {
           unmatched++;
+          return;
+        }
+        const copied = readers.length === 1 ? copiedColumns(d, readers[0]) : null;
+        if (copied) {
+          const objId = objectId(contractPath, String(readers[0].name));
+          const table = cards.get(objId);
+          if (table) markCopy(table, String(d.name), [...copied.values()]);
+          for (const [field, property] of copied)
+            fieldColumns.set(`${d.name}.${field}`, columnId(objId, property));
           return;
         }
         const id = datasetCardId(file, key, String(d.name));

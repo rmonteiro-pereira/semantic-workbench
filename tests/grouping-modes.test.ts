@@ -131,6 +131,19 @@ test('semantic models and mapping documents get suggested communities', async ()
   }
 });
 
+test('suggested areas merge small communities and keep unlinked entities out of them', async () => {
+  for (const path of [
+    'public/examples/mall/mall.semantic.yaml',
+    'public/examples/mall/mall.mapping.yaml',
+    'public/examples/billing/billing.semantic.yaml',
+  ]) {
+    const overview = overviewOf(await load(path), 'suggested');
+    const sizes = overview.groups.map(g => g.entities.length);
+    expect({ path, areas: sizes.length <= 20 }).toEqual({ path, areas: true });
+    expect({ path, smallest: Math.min(...sizes) >= 3 }).toEqual({ path, smallest: true });
+  }
+});
+
 test('a mapping document with no links between its concepts disables suggested communities', () => {
   const source = [
     'version: 0.2.0.dev0',

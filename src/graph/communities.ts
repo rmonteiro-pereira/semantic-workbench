@@ -18,6 +18,81 @@ export const isBusinessEntity = (entity: Entity) => BUSINESS_KINDS.has(entity.ki
 export const isInheritance = (edge: Relationship) =>
   /inheritance|subclass/i.test(edge.data.kind) ||
   /^(extends|subClassOf|rdfs:subClassOf)$/i.test(edge.label);
+// Each node's links to other nodes with their weights. A self link holds the links inside a node
+// once it stands for a whole community, counted from both ends.
+type WeightedGraph = Map<string, Map<string, number>>;
+
+const MAX_PASSES = 20;
+const MAX_LEVELS = 10;
+
+function addWeight(graph: WeightedGraph, from: string, to: string, weight: number) {
+  const row = graph.get(from)!;
+  row.set(to, (row.get(to) ?? 0) + weight);
+}
+
+function weightedDegree(graph: WeightedGraph, node: string) {
+  let total = 0;
+  for (const weight of graph.get(node)!.values()) total += weight;
+  return total;
+}
+
+// One level of modularity local moving: each node joins the neighbouring community that raises
+// modularity most, until no node moves. Nodes are visited in sorted order so the result does not
+// depend on input order.
+function moveNodes(graph: WeightedGraph, twiceWeight: number) {
+  const nodes = [...graph.keys()].sort();
+  const membership = new Map(nodes.map(node => [node, node]));
+  const degree = new Map(nodes.map(node => [node, weightedDegree(graph, node)]));
+  const totals = new Map(degree);
+  let moved = false;
+  for (let pass = 0; pass < MAX_PASSES; pass++) {
+    let changed = false;
+    for (const node of nodes) {
+      const nodeDegree = degree.get(node)!;
+      if (!nodeDegree) continue;
+      const current = membership.get(node)!;
+      const linkWeights = new Map<string, number>();
+      for (const [neighbor, weight] of [...graph.get(node)!].sort(([a], [b]) =>
+        a.localeCompare(b),
+      )) {
+        if (neighbor === node) continue;
+        const community = membership.get(neighbor)!;
+        linkWeights.set(community, (linkWeights.get(community) ?? 0) + weight);
+      }
+      totals.set(current, totals.get(current)! - nodeDegree);
+      const gain = (community: string) =>
+        (linkWeights.get(community) ?? 0) -
+        (nodeDegree * (totals.get(community) ?? 0)) / twiceWeight;
+      let best = current;
+      let bestGain = gain(current);
+      for (const candidate of [...linkWeights.keys()].sort()) {
+        const candidateGain = gain(candidate);
+        if (candidateGain > bestGain + 1e-10) {
+          best = candidate;
+          bestGain = candidateGain;
+        }
+      }
+      membership.set(node, best);
+      totals.set(best, (totals.get(best) ?? 0) + nodeDegree);
+      if (best !== current) changed = true;
+    }
+    if (!changed) break;
+    moved = true;
+  }
+  return { membership, moved };
+}
+
+// Turns each community into one node whose links add up the links of its members.
+function aggregate(graph: WeightedGraph, membership: Map<string, string>): WeightedGraph {
+  const next: WeightedGraph = new Map();
+  for (const community of new Set(membership.values())) next.set(community, new Map());
+  for (const [node, row] of graph) {
+    const from = membership.get(node)!;
+    for (const [neighbor, weight] of row) addWeight(next, from, membership.get(neighbor)!, weight);
+  }
+  return next;
+}
+
 /** Suggests deterministic communities from an undirected business graph. Direction, duplicate
  * edges, inheritance and primitive hubs do not affect weights. These groups are suggestions, not
  * domain classifications. */
@@ -34,44 +109,29 @@ export function suggestCommunities(entities: Entity[], edges: Relationship[]) {
       adjacent.get(edge.source)!.add(edge.target);
       adjacent.get(edge.target)!.add(edge.source);
     }
-  const membership = new Map(business.map(e => [e.id, e.id]));
   const degree = new Map([...adjacent].map(([id, next]) => [id, next.size]));
-  const totals = new Map(degree);
   const twiceEdges = [...degree.values()].reduce((a, b) => a + b, 0);
-  let passes = 0;
+
+  // Local moving alone stops at pairs and triples on sparse models, so the communities found at
+  // one level become the nodes of the next, as in the Louvain method, until nothing moves.
+  let graph: WeightedGraph = new Map(
+    [...adjacent].map(([id, next]) => [id, new Map([...next].map(other => [other, 1]))]),
+  );
+  const membership = new Map(business.map(e => [e.id, e.id]));
+  let levels = 0;
   if (twiceEdges)
-    for (; passes < 20; passes++) {
-      let changed = false;
-      for (const entity of business) {
-        const id = entity.id;
-        const old = membership.get(id)!;
-        const k = degree.get(id)!;
-        if (!k) continue;
-        const weights = new Map<string, number>();
-        for (const neighbor of [...adjacent.get(id)!].sort()) {
-          const group = membership.get(neighbor)!;
-          weights.set(group, (weights.get(group) ?? 0) + 1);
-        }
-        totals.set(old, totals.get(old)! - k);
-        const score = (group: string) =>
-          (weights.get(group) ?? 0) - (k * (totals.get(group) ?? 0)) / twiceEdges;
-        let best = old;
-        let bestScore = score(old);
-        for (const candidate of [...weights.keys()].sort()) {
-          const value = score(candidate);
-          if (value > bestScore + 1e-10) {
-            best = candidate;
-            bestScore = value;
-          }
-        }
-        membership.set(id, best);
-        totals.set(best, (totals.get(best) ?? 0) + k);
-        if (best !== old) changed = true;
-      }
-      if (!changed) break;
+    for (; levels < MAX_LEVELS; levels++) {
+      const level = moveNodes(graph, twiceEdges);
+      if (!level.moved) break;
+      for (const [id, node] of membership) membership.set(id, level.membership.get(node)!);
+      graph = aggregate(graph, level.membership);
     }
+
+  // An entity with no links has no community to suggest, so it keeps no anchor and the overview
+  // groups it with others of its type instead of giving it an area of its own.
   const clusters = new Map<string, string[]>();
   for (const [id, group] of membership) {
+    if (!degree.get(id)) continue;
     const ids = clusters.get(group) ?? [];
     ids.push(id);
     clusters.set(group, ids);
@@ -83,7 +143,7 @@ export function suggestCommunities(entities: Entity[], edges: Relationship[]) {
       .sort((a, b) => degree.get(b)! - degree.get(a)! || a.localeCompare(b))[0];
     for (const id of ids) anchors.set(id, anchor);
   }
-  return { membership: anchors, degree, passes, backboneEdges: twiceEdges / 2 };
+  return { membership: anchors, degree, levels, backboneEdges: twiceEdges / 2 };
 }
 
 // Concepts named anywhere inside a mapping (link targets, nested object mappings), except the

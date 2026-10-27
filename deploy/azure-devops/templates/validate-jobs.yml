@@ -42,6 +42,8 @@ jobs:
           suite: test:projects
         trash:
           suite: test:trash
+        sidebar:
+          suite: test:sidebar
         metrics:
           suite: test:metrics
         graph:
@@ -76,6 +78,8 @@ jobs:
           suite: test:mappings-layout
         mapping_graph:
           suite: test:mapping-graph
+        back_history:
+          suite: test:back-history
         theme:
           suite: test:theme
         brand:

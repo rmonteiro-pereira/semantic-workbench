@@ -1,7 +1,7 @@
 // Dialogs reached from Source control and the project tree, as screens of the responsive suite.
 import type { Page } from '@playwright/test';
 import { openFile, showSidebar, type Screen } from './screen-tour';
-import { openSyncDialog } from './sync-dialog';
+import { openRemoteDialog } from './sync-dialog';
 
 async function openSourceControlPanel(page: Page) {
   await showSidebar(page);
@@ -12,9 +12,9 @@ async function openSourceControlPanel(page: Page) {
   await page.waitForTimeout(500);
 }
 
-async function showSyncDialog(page: Page) {
+async function showRemoteDialog(page: Page) {
   await openSourceControlPanel(page);
-  await openSyncDialog(page);
+  await openRemoteDialog(page);
 }
 
 /** Opens the Clone repository dialog from the sidebar's Import dialog. */
@@ -68,7 +68,7 @@ export async function projectDialogBackdropProblems(page: Page): Promise<string[
 /** Lists the dialogs reached from Source control and the project tree. */
 export function projectDialogScreens(file: string): Screen[] {
   return [
-    { name: 'source-control-sync', show: showSyncDialog, dialog: 'dialog[open]' },
+    { name: 'source-control-remote', show: showRemoteDialog, dialog: 'dialog[open]' },
     { name: 'clone-repository', show: openCloneDialog, dialog: 'dialog[open]' },
     {
       name: 'project-rename',

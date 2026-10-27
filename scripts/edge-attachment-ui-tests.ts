@@ -1,6 +1,6 @@
 // Checks that graph edges stay attached to their nodes during browser interactions.
 import { appUrl } from './helpers/base-url';
-import { showEveryEntity, viewOptions } from './helpers/graph-options';
+import { chooseLayout, showEveryEntity, viewOptions } from './helpers/graph-options';
 import { chromium, expect, type Page } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { inspect } from '../src/core/model';
@@ -183,9 +183,7 @@ try {
   await page.goto(appUrl());
   await expect(page.locator('h1')).toContainText('Flights');
   await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60000 });
-  await viewOptions(page, async options => {
-    await options.getByLabel('Graph layout').selectOption('network');
-  });
+  await viewOptions(page, options => chooseLayout(options, 'network'));
   await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60000 });
   // A small pane opens with one card per area; these checks measure entity cards.
   await showEveryEntity(page);
@@ -222,10 +220,8 @@ try {
     await attached('area drag');
   });
   await check('layered and network layout changes preserve attachment', async () => {
-    for (const layout of ['layered', 'network']) {
-      await viewOptions(page, async options => {
-        await options.getByLabel('Graph layout').selectOption(layout);
-      });
+    for (const layout of ['layered', 'network'] as const) {
+      await viewOptions(page, options => chooseLayout(options, layout));
       await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60000 });
       await attached(layout);
       await drag(page, '.react-flow__node-entity .full-entity', 48, 24);

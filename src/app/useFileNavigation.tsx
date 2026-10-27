@@ -3,6 +3,7 @@ import { apiFetch } from '../projects/api';
 import React from 'react';
 import { validateInput } from '../validation/input';
 import { scm as scmApi, type Doc } from '../projects/api';
+import { useActionRecorder } from './ActionHistoryContext';
 
 /** Opening a document leaves the phone drawer open only when the caller says so. */
 export type OpenOptions = { keepDrawer?: boolean };
@@ -25,6 +26,7 @@ type Options = {
   currentRef: React.RefObject<import('../projects/api').Doc | null>;
   sourceRef: React.RefObject<string>;
   getDraftOf: () => React.RefObject<{ project: string; path: string } | null>;
+  docsRef: React.RefObject<Map<string, Doc>>;
 };
 /** Manages file navigation. */
 export function useFileNavigation({
@@ -45,7 +47,9 @@ export function useFileNavigation({
   currentRef,
   sourceRef,
   getDraftOf,
+  docsRef,
 }: Options) {
+  const recorder = useActionRecorder();
   /**
    * Opens a document. A person's choice closes the phone drawer behind it; the first file the app
    * opens by itself at start-up leaves the drawer as the person has it.
@@ -59,6 +63,10 @@ export function useFileNavigation({
       closeDrawerUnlessKept();
       return true;
     }
+    recorder.noteCommand('open file', {
+      undo: () => showDocument(current?.id ?? null),
+      redo: () => showDocument(d.id),
+    });
     if (current && source !== current.source) void getLeaveCurrent()();
     setCurrent(d);
     setSource(d.source);
@@ -74,6 +82,17 @@ export function useFileNavigation({
     )
       setTab('mappings');
     return true;
+  }
+  // Back and Forward bring a file back as it is now, without the resets a person's choice does.
+  function showDocument(id: string | null) {
+    const target = id ? docsRef.current.get(id) : null;
+    if (id && !target) return;
+    const shown = currentRef.current;
+    if (shown && sourceRef.current !== shown.source) void getLeaveCurrent()();
+    setMessage('');
+    setCurrent(target ?? null);
+    setSource(target?.source ?? '');
+    if (target) void restoreDraft(target);
   }
   // A draft kept for this file (invalid or not yet saved text) comes back when the file opens.
   async function restoreDraft(d: Doc) {

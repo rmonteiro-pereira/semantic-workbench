@@ -527,7 +527,7 @@ button.odcs-link.fk:hover {
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   padding: 8px 10px;
   border-bottom: 1px solid var(--color-border-subtle);
   flex-wrap: wrap;
@@ -540,7 +540,7 @@ button.odcs-link.fk:hover {
   align-items: center;
   gap: 5px;
   font-size: var(--text-small);
-  padding: 6px 9px;
+  padding: 6px 7px;
   border: 1px solid var(--color-border);
   border-radius: 7px;
   background: var(--color-surface);
@@ -561,7 +561,7 @@ button.odcs-link.fk:hover {
   padding: 0 8px;
   background: var(--color-surface);
   min-width: 0;
-  flex: 1 1 150px;
+  flex: 1 1 110px;
   max-width: 300px;
 }
 .lineage-search input {
@@ -799,19 +799,7 @@ button.odcs-link.fk:hover {
 .selected-path > li.current button {
   font-weight: 700;
 }
-.lineage-overflow {
-  flex: none;
-  margin-left: auto;
-  padding: 3px 9px;
-  font-size: var(--text-small);
-  border: 1px solid var(--color-warning-line);
-  border-radius: 6px;
-  background: var(--color-warning-soft);
-  color: var(--color-warning-text);
-  cursor: pointer;
-  white-space: nowrap;
-}
-.lineage-overflow + .lineage-path-toggle {
+.lineage-path-toggle {
   margin-left: 0;
 }
 .lineage-path-toggle {
@@ -957,6 +945,17 @@ button.odcs-link.fk:hover {
   letter-spacing: 0.4px;
   text-transform: uppercase;
   color: var(--card-accent);
+}
+.lineage-card-kind .prop-badges {
+  flex-wrap: nowrap;
+  min-width: 0;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.lineage-card-kind .prop-badge {
+  font-size: var(--text-small);
+  line-height: 13px;
+  font-weight: 600;
 }
 .lineage-card-kind em {
   font-style: normal;
@@ -1168,6 +1167,13 @@ button.odcs-link.fk:hover {
   border: 0;
   opacity: 0.7;
 }
+/* Every line can be clicked to show the relationships it stands for. */
+.lineage-edge {
+  cursor: pointer;
+}
+.lineage-edge:hover path.react-flow__edge-path {
+  stroke-width: 2.4px;
+}
 .lineage-edge.on-path path.react-flow__edge-path {
   stroke: var(--color-warning-bright) !important;
   stroke-width: 2.6px !important;
@@ -1338,14 +1344,6 @@ button.odcs-link.fk:hover {
   min-width: 0;
   align-self: center;
   overflow-x: auto;
-}
-.lineage-card-marks .prop-badges {
-  flex: none;
-  flex-wrap: nowrap;
-}
-.lineage-card-marks .prop-badge {
-  font-size: var(--text-small);
-  line-height: 17px;
 }
 .lineage-finding {
   box-sizing: border-box;

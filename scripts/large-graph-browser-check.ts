@@ -1,15 +1,11 @@
 // Checks large graph rendering and interactions in the browser.
 import { appUrl } from './helpers/base-url';
-import { viewOptions } from './helpers/graph-options';
+import { chooseLayout, viewOptions } from './helpers/graph-options';
 import { chromium, expect, type Page } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { LOCAL_READER } from '../src/server/projects/reader';
 async function openGraphOverview(page: Page) {
-  await page.getByRole('button', { name: /^View options/ }).click();
-  const options = page.getByRole('dialog', { name: 'View options' });
-  await expect(options).toBeVisible();
-  await options.getByRole('button', { name: 'Overview', exact: true }).click();
-  await expect(options).toHaveCount(0);
+  await page.locator('.tabs').getByRole('button', { name: 'Overview', exact: true }).click();
 }
 
 const browser = await chromium.launch();
@@ -34,7 +30,7 @@ try {
   await page.locator('.tabs').getByRole('button', { name: 'Graph', exact: true }).click();
   await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 120000 });
   await viewOptions(page, async options => {
-    await options.getByLabel('Graph layout').selectOption('network');
+    await chooseLayout(options, 'network');
   });
   await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 120000 });
   const laidOut = performance.now();

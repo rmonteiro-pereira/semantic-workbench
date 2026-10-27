@@ -35,18 +35,6 @@ export const noFilters: MetricFilters = {
 /** The columns that are worth showing: the ones with a value in at least one metric. */
 export type MetricColumns = { unit: boolean; status: boolean; owner: boolean; concept: boolean };
 
-/** Counts the settings of the dialog that differ from their default, for the Filters badge. */
-export function activeFilterCount(filters: MetricFilters): number {
-  const settings = [
-    filters.type,
-    filters.status,
-    filters.owner,
-    filters.governedOnly,
-    filters.groupBy !== 'none',
-  ];
-  return settings.filter(Boolean).length;
-}
-
 /** Tells whether the filters or the search text hide any metric; grouping hides none. */
 export function isNarrowed(filters: MetricFilters, term: string): boolean {
   const narrowing = [filters.type, filters.status, filters.owner, filters.governedOnly, term];

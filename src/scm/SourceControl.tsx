@@ -41,6 +41,7 @@ import {
 import { DiffView } from './DiffView';
 import { BranchPicker } from './BranchPicker';
 import { SyncDialog } from './SyncDialog';
+import { RemoteActions } from './RemoteActions';
 import { ignoreChoices } from './gitignore';
 import './scm.css';
 
@@ -445,8 +446,8 @@ export function SourceControl({
       </section>
     );
   const remoteNames = Object.keys(status.remotes);
-  // Without a remote, a working copy or the right to add a remote, the dialog would be empty.
-  const offersSync = remoteNames.length > 0 || copy !== null || access.can('setRemote');
+  // The dialog holds only the published-branch actions of a server working copy.
+  const offersSync = copy !== null;
   function fromSync(run: () => void) {
     setSyncOpen(false);
     run();
@@ -629,6 +630,29 @@ export function SourceControl({
             </button>
           )}
         </div>
+        <div className="scm-remote">
+          {remoteNames.length ? (
+            <span className="scm-remote-url" title={status.remotes[remoteNames[0]]}>
+              {remoteNames[0]}: {status.remotes[remoteNames[0]]}
+            </span>
+          ) : (
+            <span className="scm-remote-url">No remote yet. Add one to push and pull.</span>
+          )}
+          <button
+            hidden={!access.can('setRemote')}
+            onClick={() => openGitSetup({ kind: 'remote', project })}
+          >
+            Remote…
+          </button>
+          {remoteNames.length > 0 && (
+            <RemoteActions
+              status={status}
+              busy={busy}
+              can={access.can}
+              onRemoteAction={action => void remote(action)}
+            />
+          )}
+        </div>
         {status.folder && (
           <p className="scm-where" aria-label="Repository location">
             {repositoryLocation(status)}
@@ -798,8 +822,6 @@ export function SourceControl({
           copy={copy}
           busy={busy}
           onClose={() => setSyncOpen(false)}
-          onRemoteAction={action => fromSync(() => void remote(action))}
-          onEditRemote={() => fromSync(() => openGitSetup({ kind: 'remote', project }))}
           onPullDefault={() => fromSync(pullDefault)}
           onPublish={() => fromSync(publishCopy)}
           onPushDefault={() => fromSync(pushDefault)}

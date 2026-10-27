@@ -1,8 +1,7 @@
-// Tests the pure rules of the metrics list: filters, grouping, optional columns and the badge.
+// Tests the pure rules of the metrics list: filters, grouping, optional columns.
 import { expect, test } from 'bun:test';
 import type { KpiSummary } from '../src/server/agent/explain';
 import {
-  activeFilterCount,
   filterMetrics,
   groupMetrics,
   isNarrowed,
@@ -71,13 +70,10 @@ test('a column is drawn only when some metric has a value for it', () => {
   expect(visibleColumns(all)).toEqual({ unit: true, status: true, owner: true, concept: false });
 });
 
-test('the badge counts every changed setting, but only filters narrow the list', () => {
-  expect(activeFilterCount(noFilters)).toBe(0);
+test('only filters narrow the list; grouping does not', () => {
   const grouped = { ...noFilters, groupBy: 'owner' as const };
-  expect(activeFilterCount(grouped)).toBe(1);
   expect(isNarrowed(grouped, '')).toBe(false);
   const narrowed = { ...grouped, type: 'ratio' as const };
-  expect(activeFilterCount(narrowed)).toBe(2);
   expect(isNarrowed(narrowed, '')).toBe(true);
   expect(isNarrowed(noFilters, 'revenue')).toBe(true);
 });
