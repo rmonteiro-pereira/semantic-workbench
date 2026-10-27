@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Modal, type ModalSize } from '../../projects/Modal';
+import { Modal, type ModalSize } from '../projects/Modal';
 import { BootstrapNotice, LastAdminNotice } from './AdminNotices';
 
 /**

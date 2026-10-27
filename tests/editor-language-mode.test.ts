@@ -2,7 +2,7 @@
 import { expect, test } from 'bun:test';
 import { LanguageSupport, StreamLanguage } from '@codemirror/language';
 import { highlightTree, tagHighlighter, tags } from '@lezer/highlight';
-import { languageFor } from '../src/editor/languages';
+import { languageFor } from '../src/app/editor/languages';
 
 function yamlSupport(largeDocument: boolean) {
   const support = languageFor('YAML', largeDocument);

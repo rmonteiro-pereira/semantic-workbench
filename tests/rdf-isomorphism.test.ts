@@ -2,16 +2,23 @@
 import { test, expect } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { Writer } from 'n3';
-import { applyPatches } from '../src/editor/patch';
-import { isomorphic, gate, description } from '../src/edit/rdf-patch/isomorphism';
-import { parseGraph, termKey, formatOf, RDFS, SH, type Triple } from '../src/edit/rdf-patch/terms';
+import { applyPatches } from '../src/shared/editor/patch';
+import { isomorphic, gate, description } from '../src/app/edit/rdf-patch/isomorphism';
+import {
+  parseGraph,
+  termKey,
+  formatOf,
+  RDFS,
+  SH,
+  type Triple,
+} from '../src/app/edit/rdf-patch/terms';
 import {
   readRdfItem,
   editRdfItem,
   deleteRdfItem,
   addRdfItem,
   checkRdfSource,
-} from '../src/edit/rdf-patch/index';
+} from '../src/app/edit/rdf-patch/index';
 // Round trips must preserve the RDF graph, while a label edit changes exactly one triple belonging
 // to the selected resource.
 const bn = (v: string) => ({ termType: 'BlankNode' as const, value: v });

@@ -2,8 +2,8 @@
 import { test, expect } from 'bun:test';
 import { Glob } from 'bun';
 import { parse } from 'yaml';
-import { datasetReferences, expressionRefs, metricDependencies } from '../src/metrics/deps';
-import { inspect } from '../src/core/model';
+import { datasetReferences, expressionRefs, metricDependencies } from '../src/shared/metrics/deps';
+import { inspect } from '../src/shared/core/model';
 import { columnRefs, parseExpression } from '../src/server/agent/sql';
 
 function expressions(value: any, out: string[] = []) {

@@ -17,7 +17,7 @@ import { adminRoutes } from './routes/admin';
 import { auditRoutes } from './routes/audit';
 import { agentCatalog, buildContext, selectContext, planQuery } from './agent/runtime';
 import { decodeSegment, readJson, requestAuditId, type AuditRequest } from './request';
-import { InputError, MAX_INPUT_BYTES } from '../validation/diagnostics';
+import { InputError, MAX_INPUT_BYTES } from '../shared/validation/diagnostics';
 import { NotFoundError, StaleError, type Workspace } from './projects/workspace';
 import { errorResponse, type Route } from './routes/http';
 import { authRoutes, FRONT_CHANNEL_LOGOUT_PATH } from './routes/auth';

@@ -3,7 +3,7 @@ import type { SourceLanguage } from './color-literals';
 import { walkFiles } from './walk-files';
 
 // These files are where colour literals are allowed to live.
-const THEME_FILES = ['src/theme/theme.css', 'src/theme/theme-palette.ts'];
+const THEME_FILES = ['src/shared/theme/theme.css', 'src/app/theme/theme-palette.ts'];
 
 /** The source tree and page shell that must use theme tokens. */
 export const THEMED_PATHS = ['src', 'index.html'];

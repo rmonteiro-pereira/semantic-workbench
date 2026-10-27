@@ -15,7 +15,7 @@ import {
 } from './helpers/header-tour';
 import { treeRowProblems } from './helpers/tree-geometry';
 import { neighborhoodEdgeProblems, neighborhoodState, pickCenter } from './helpers/edge-geometry';
-import { inspect } from '../src/core/model';
+import { inspect } from '../src/shared/core/model';
 import { layoutProblems, lineageProblems } from './helpers/layout-geometry';
 import { screenProblems, showScreen, type Screen } from './helpers/screen-tour';
 import { tourGroups } from './helpers/all-tours';
@@ -202,7 +202,7 @@ async function openPage(width: number, height: number) {
     console.log('INJECTED_SAVE_STATE_MUTATION');
   }
   if (process.env.RESPONSIVE_MUTATION === 'status-stays')
-    await page.route('**/src/main.tsx*', async route => {
+    await page.route('**/src/app/main.tsx*', async route => {
       const response = await route.fetch();
       const source = await response.text();
       const anchor = 'const timer = setTimeout(() => setMessage(""), 5e3);';

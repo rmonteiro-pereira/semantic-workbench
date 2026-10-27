@@ -14,8 +14,8 @@ import {
   fieldId,
   metricId,
   type MappingGraph,
-} from '../src/mappings/mapping-graph';
-import { aroundHops } from '../src/odcs/lineage';
+} from '../src/app/mappings/mapping-graph';
+import { aroundHops } from '../src/app/odcs/lineage';
 // The concept-mapping graph: built from the resolver's context, so every drawn line is a binding
 // the Mappings tab and the agent context also see.
 const docs = (folder: string, files: string[]): StoredDocument[] =>

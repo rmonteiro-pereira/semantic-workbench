@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, expect, test } from 'bun:test';
 import { chromium, type Browser } from '@playwright/test';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { EntityName } from '../src/graph/EntityName';
+import { EntityName } from '../src/app/graph/EntityName';
 
 let browser: Browser;
 beforeAll(async () => {

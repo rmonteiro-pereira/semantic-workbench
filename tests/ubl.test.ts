@@ -1,7 +1,7 @@
 // Tests the generated UBL example and its schema-derived relationships.
 import { test, expect } from 'bun:test';
-import { inspect } from '../src/core/model';
-import { graphView } from '../src/graph/graph-view';
+import { inspect } from '../src/shared/core/model';
+import { graphView } from '../src/app/graph/graph-view';
 test('UBL model derives 45 business entities and 277 roles from XSD references', async () => {
   const map = await Bun.file('public/examples/ubl/model-map.json').json();
   const model = inspect(await Bun.file('public/examples/ubl/ubl.ontology.yaml').text());

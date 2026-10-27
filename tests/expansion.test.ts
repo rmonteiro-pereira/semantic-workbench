@@ -7,8 +7,8 @@ import {
   neighbours,
   setsOf,
   type ExpansionSet,
-} from '../src/graph/expansion';
-import { walkReducer, emptyWalk, canvasAt } from '../src/graph/walk';
+} from '../src/app/graph/expansion';
+import { walkReducer, emptyWalk, canvasAt } from '../src/app/graph/walk';
 
 const edges = [
   ['C', 'A'],

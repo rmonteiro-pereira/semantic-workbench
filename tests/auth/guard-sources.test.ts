@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createAccessControl } from '../../src/server/auth/authorize';
 import { guardFor, GuardedChangeError } from '../../src/server/auth/guards';
-import { demoteMetric } from '../../src/governance/guards';
+import { demoteMetric } from '../../src/shared/governance/guards';
 import { payloadChanges } from '../../src/server/projects/trash';
 import { accessFixture, person } from './access-fixture';
 

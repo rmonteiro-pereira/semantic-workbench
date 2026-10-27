@@ -3,7 +3,7 @@ import { SelectField } from './SelectField';
 import { adminApi, problemText } from './api';
 import { useAdminData } from './useAdminData';
 import { commaList } from './change-review';
-import { ACTIONS } from '../../server/auth/actions';
+import { ACTIONS } from '../../shared/auth/actions';
 import type { AccessExplanation } from './types';
 
 /** Names the decision in words when the server sends `{allow}`, and shows any other shape as is. */

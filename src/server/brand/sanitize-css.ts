@@ -9,7 +9,7 @@ export type SanitizedCss = { css: string; dropped: string[] };
 
 type Block = { prelude: string; body: string };
 
-// The selectors src/theme/theme.css uses for its light, dark and system-dark token sets.
+// The selectors src/shared/theme/theme.css uses for its light, dark and system-dark token sets.
 const THEME_SELECTORS = new Set([
   ':root',
   ":root[data-theme='dark']",

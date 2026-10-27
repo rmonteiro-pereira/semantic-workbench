@@ -2,7 +2,7 @@
 import type { Workspace } from '../projects/workspace';
 import { projectPath, projectPrefix, repoDir } from '../projects/paths';
 import { LOCAL_READER } from '../projects/reader';
-import type { Action } from './actions';
+import type { Action } from '../../shared/auth/actions';
 import type { ResourceRef, DecisionContext } from './resource';
 import { authorizeWrite } from './write-access';
 import { requestReader, requestScope } from './request-scope';

@@ -1,5 +1,5 @@
 // Carries the resolved identity and policy snapshot from the access boundary to route handlers.
-import type { Action } from './actions';
+import type { Action } from '../../shared/auth/actions';
 import type { AccessScope } from './authorize';
 import type { RemoteCredentials } from './remote-credentials';
 import { LOCAL_READER, type CopyAccess, type Reader } from '../projects/reader';

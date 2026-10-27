@@ -2,8 +2,8 @@
 import { expect, test } from 'bun:test';
 import { EditorState, Text } from '@codemirror/state';
 import { foldService } from '@codemirror/language';
-import { foldYamlBlock, findYamlLine } from '../src/editor/yamlIndentation';
-import { languageFor } from '../src/editor/languages';
+import { foldYamlBlock, findYamlLine } from '../src/app/editor/yamlIndentation';
+import { languageFor } from '../src/app/editor/languages';
 
 test('The installed fold service includes deeper lines and excludes following siblings', () => {
   const state = EditorState.create({

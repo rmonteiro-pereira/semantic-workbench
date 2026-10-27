@@ -6,7 +6,7 @@ import {
   foreignKeyHop,
   foreignKeyPath,
   hopSentence,
-} from '../src/odcs/lineage';
+} from '../src/app/odcs/lineage';
 
 const table = (name: string, properties: any[]) => ({
   name,

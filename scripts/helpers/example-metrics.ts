@@ -6,8 +6,8 @@ import {
   VENDOR,
   type KpiBinding,
   type MetricExtension,
-} from '../../src/metrics/extension';
-import { bindingsText, sortedBindings } from '../../src/metrics/metric-save';
+} from '../../src/shared/metrics/extension';
+import { bindingsText, sortedBindings } from '../../src/shared/metrics/metric-save';
 
 /** Describes a governed metric as an example generator declares it. */
 export type GovernedMetric = {

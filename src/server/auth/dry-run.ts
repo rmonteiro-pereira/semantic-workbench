@@ -1,6 +1,6 @@
 // Compares decisions using the real access boundary without changing the active configuration.
 import { createAccessControl, type AccessOptions } from './authorize';
-import { ACTIONS, FILE_ACTIONS, isAction, type Action } from './actions';
+import { ACTIONS, FILE_ACTIONS, isAction, type Action } from '../../shared/auth/actions';
 import type { AccessConfig } from './access-config';
 import { clientPrincipal, type NormalizedPrincipal } from './principal';
 import type { ResourceRef } from './resource';

@@ -5,12 +5,12 @@ import {
   MAX_REPORTS_PER_REQUEST,
   type BrowserReport,
   type ErrorReport,
-} from '../../src/observability/browser-report';
+} from '../../src/shared/observability/browser-report';
 import {
   createReporter,
   DEFAULT_REPORTER_LIMITS,
   topFrames,
-} from '../../src/observability/reporter';
+} from '../../src/app/observability/reporter';
 
 function setup(status = 204, limits = DEFAULT_REPORTER_LIMITS) {
   const batches: BrowserReport[][] = [];

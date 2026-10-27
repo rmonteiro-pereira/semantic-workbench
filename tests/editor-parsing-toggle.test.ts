@@ -1,6 +1,6 @@
 /** Verifies that explicit parser choices survive replacements until another document opens. */
 import { expect, test } from 'bun:test';
-import { resolveDocumentMode } from '../src/editor/documentMode';
+import { resolveDocumentMode } from '../src/app/editor/documentMode';
 
 test('Full parsing survives typing and external replacement in the same document', () => {
   const sameDocument = { previous: true, override: false, newDocument: false };

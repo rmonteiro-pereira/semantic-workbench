@@ -5,8 +5,8 @@ import { createHash } from 'node:crypto';
 import { Database } from 'bun:sqlite';
 import { parse } from 'yaml';
 import { testWorkspace } from '../tests/helpers/temp-data-dir';
-import { validateInput } from '../src/validation/input';
-import { exportDocument } from '../src/core/export';
+import { validateInput } from '../src/shared/validation/input';
+import { exportDocument } from '../src/app/core/export';
 import {
   agentCatalog,
   buildContext,

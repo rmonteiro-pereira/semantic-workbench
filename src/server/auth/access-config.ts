@@ -2,7 +2,7 @@
 import Ajv2020 from 'ajv/dist/2020';
 import addFormats from 'ajv-formats';
 import schema from '../../../schemas/semantic-workbench-access-v1.json';
-import { LEVELS, BUILTIN_ROLE_IDS, type Action, type Level } from './actions';
+import { LEVELS, BUILTIN_ROLE_IDS, type Action, type Level } from '../../shared/auth/actions';
 import { validateCustomRole } from './role-compiler';
 
 /** The workspace, domains, or named projects covered by a grant. */

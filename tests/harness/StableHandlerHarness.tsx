@@ -1,7 +1,7 @@
 /** Renders stable handlers through React's commit lifecycle without a server. */
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { useStableHandler } from '../../src/app/useStableHandler';
+import { useStableHandler } from '../../src/app/workspace/hooks/useStableHandler';
 
 function App() {
   const [version, setVersion] = useState(1);

@@ -6,7 +6,7 @@ import {
   validateAgentReferences,
   type AccessConfig,
 } from './access-config';
-import { BUILTIN_ROLE_IDS } from './actions';
+import { BUILTIN_ROLE_IDS } from '../../shared/auth/actions';
 import { checkLastAdmin, isBootstrapAdmin } from './admin-guard';
 import { commitMessage, describeChange } from './change-summary';
 import { compareAccess, isReplayable, MAX_AUDIT_SNAPSHOTS } from './dry-run';

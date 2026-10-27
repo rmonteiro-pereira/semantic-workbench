@@ -5,7 +5,7 @@ import {
   labelInViewport,
   nearestRoutePoint,
   type Box,
-} from '../src/graph/routes';
+} from '../src/app/graph/routes';
 
 const line: [number, number][] = [
   [0, 100],

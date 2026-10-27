@@ -3,7 +3,7 @@ import { expect, test } from 'bun:test';
 import { createAccessControl } from '../../src/server/auth/authorize';
 import { loadPolicySet, PolicyLoadError } from '../../src/server/auth/cedar';
 import { clientFromToken, localPrincipal } from '../../src/server/auth/principal';
-import { ACTIONS, type Action } from '../../src/server/auth/actions';
+import { ACTIONS, type Action } from '../../src/shared/auth/actions';
 import type { GrantScope, Role } from '../../src/server/auth/grants';
 import builtin from '../../policies/builtin-roles.json';
 import { accessFixture, person } from './access-fixture';
