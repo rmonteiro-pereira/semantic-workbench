@@ -234,9 +234,10 @@ folder. Server working copies each retain their own sparse configuration.
 
 ## Model views and graph navigation
 
-**Overview** retains business areas and a relationship matrix. **Catalog** exposes definitions.
-**Graph** shows the complete interactive model; ODCS and mapping documents use their specialized
-canvases. **Neighborhood** centers exploration on one entity.
+**Overview** retains business areas and a relationship matrix. **Catalog** exposes definitions;
+a long entity name wraps between its words on the card instead of being cut. **Graph** shows the
+complete interactive model; ODCS and mapping documents use their specialized canvases.
+**Neighborhood** centers exploration on one entity.
 
 Graph connections may bundle parallel relationships, but the inspector retains every original
 definition. Selecting an entity lists its relationships; selecting a relationship shows endpoints,

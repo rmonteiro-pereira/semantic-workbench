@@ -44,6 +44,8 @@ not configure a production deployment.
 - ODCS property rows edit the logical type and the Required, Unique and Primary key flags in the
   table again, with physical type and tags in columns of their own; **Edit** keeps the rest.
 - The ODCS Contract page shows team and roles on the page again instead of behind a count button.
+- Catalog cards show an entity's whole name again, wrapping long names such as
+  CommodityClassification between their words instead of cutting them with an ellipsis.
 - Open the whole-model graph on every entity by name in the Network layout, as before, instead of
   one counted card per area; only models above 250 entities start folded. Idle lines are faint
   again.

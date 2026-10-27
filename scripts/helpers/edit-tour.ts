@@ -241,8 +241,8 @@ export async function editContainmentProblems(page: Page, screenName: string): P
         }
       }
       for (const title of document.querySelectorAll<HTMLElement>('.catalog-card strong')) {
-        if (title.scrollWidth > title.clientWidth && title.title !== title.textContent) {
-          problems.push('a truncated catalog title has no full name tooltip');
+        if (title.scrollWidth > title.clientWidth + 1) {
+          problems.push(`the catalog title ${title.textContent} is cut`);
         }
       }
     }

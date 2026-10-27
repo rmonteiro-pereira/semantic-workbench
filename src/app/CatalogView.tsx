@@ -2,6 +2,7 @@
 import { Gauge, Pencil } from 'lucide-react';
 import React from 'react';
 import type { Entity } from '../core/model';
+import { EntityName } from '../graph/EntityName';
 import type { ItemTarget, RdfTarget, ValidatedModel } from './types';
 import './catalog.css';
 
@@ -54,7 +55,7 @@ export function CatalogView({
                     </span>
                   )}
                 </small>
-                <strong title={e.name}>{e.name}</strong>
+                <EntityName name={e.name} />
                 <p title={e.description || undefined}>{e.description || 'No description yet'}</p>
                 <span className="catalog-details">View details</span>
               </button>

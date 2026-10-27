@@ -40,12 +40,13 @@
 .catalog-card small {
   min-height: 22px;
 }
+/* Long names wrap between the words of the identifier instead of being cut, so every name in the
+   catalog can be read whole. */
 .catalog-card strong {
   display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   width: 100%;
+  /* Only a single word wider than the card breaks inside itself. */
+  overflow-wrap: anywhere;
 }
 .catalog {
   padding-bottom: 40px;
