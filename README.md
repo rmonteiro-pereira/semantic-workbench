@@ -561,8 +561,10 @@ When the published history has been rewritten, update an existing clone with:
 
 ```sh
 git fetch --force --tags origin
-git reset --keep @{upstream}
+git reset --keep '@{upstream}'
 ```
+
+The quotes keep PowerShell from reading `@{...}` as a hash table; Bash and zsh accept them too.
 
 `--keep` moves the current branch to its rewritten upstream and keeps uncommitted edits. It stops
 without changing anything if one of those edits is in a file the rewrite also changed.
