@@ -241,8 +241,9 @@ project. Property editors retain read-only classification explanations where nee
 
 ## Remote Git
 
-Server mode uses HTTPS and the configured allowed-host list. Only Admins set remotes, clone or
-register repository projects. A push URL must remain on the same allowed host. Canonical host and
+Server mode uses HTTPS and the configured allowed-host list. Only Admins set or remove remotes (in
+Admin → Git remotes), clone or register repository projects; Fetch, Pull and Push keep their own
+permissions. A push URL must remain on the same allowed host. Canonical host and
 path checks run before commands; helper transports and ambiguous host syntax are refused.
 
 - **Azure DevOps:** Entra on-behalf-of exchange supplies a personal token when the App Registration

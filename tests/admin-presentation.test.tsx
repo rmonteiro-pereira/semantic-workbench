@@ -149,6 +149,7 @@ test('browser check names screenshots and enforces the three-minute limit', () =
     'users-groups',
     'policies',
     'projects-access',
+    'git-remotes',
     'audit',
     'settings',
     'access-check',

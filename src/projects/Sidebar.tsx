@@ -79,10 +79,11 @@ function foldKeys(open: boolean, toggle: () => void) {
   };
 }
 
+// Only an Admin may change where a project pushes, so Remote… is offered to Admins alone.
 function projectMenu(
   project: ProjectInfo,
   onAction: (action: TreeAction) => void,
-  can: (action: string) => boolean,
+  access: ReturnType<typeof useCapabilities>,
 ) {
   const run = (action: Exclude<TreeAction, { path: string }>['action']) => () =>
     onAction({ action, project: project.slug });
@@ -98,7 +99,7 @@ function projectMenu(
       run: run('repository-projects'),
     },
     { action: 'deleteProject', label: 'Delete', run: run('delete-project') },
-  ].filter(item => can(item.action));
+  ].filter(item => access.can(item.action) && (item.action !== 'setRemote' || access.admin));
 }
 
 function FileItem({
@@ -184,7 +185,7 @@ function ProjectItem({ project, ...props }: { project: ProjectInfo } & TreeProps
             onClick={() => props.onAction({ action: 'delete-project', project: project.slug })}
           />
         )}
-        <ItemMenu label={project.name} items={projectMenu(project, props.onAction, access.can)} />
+        <ItemMenu label={project.name} items={projectMenu(project, props.onAction, access)} />
       </div>
       {open && (
         <ul role="group">

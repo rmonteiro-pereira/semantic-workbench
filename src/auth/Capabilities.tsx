@@ -48,6 +48,8 @@ export function useCapabilities(project?: string) {
   const projects = useContext(Projects);
   return {
     local: me?.mode === 'local',
+    /** Whether the person is an Admin of the workspace; the local user always is. */
+    admin: can(me, [], 'admin'),
     /** How the project reads classification values; absent in local mode. */
     classification: projects.find(item => item.slug === project)?.classification,
     can: (action: string, target = project) => can(me, projects, action, target),

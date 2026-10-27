@@ -26,6 +26,11 @@ export const ADMIN_SECTIONS = [
     description: 'Set which domains and projects each group can see.',
   },
   {
+    id: 'git-remotes',
+    label: 'Git remotes',
+    description: 'See where each project pushes and pulls, and set or remove its remote.',
+  },
+  {
     id: 'audit',
     label: 'Audit',
     description: 'Search and export the record of access decisions.',

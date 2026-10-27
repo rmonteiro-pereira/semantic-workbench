@@ -27,7 +27,9 @@ The title and icon-only controls have tooltips. Phone layouts use two header row
 fit scroll sideways with edge cues; keyboard navigation reveals the focused tab. Model views,
 Source and Source Control retain separate sidebar navigation states.
 
-**Admin** opens the administration page for people allowed to administer. In server mode, the
+**Admin** opens the administration page for people allowed to administer. Its **Git remotes**
+section lists every project with its remote address, or "No remote", with **Set remote…** and
+**Remove remote** for each project. Addresses are shown without credentials. In server mode, the
 person menu contains **Connected accounts** and **Sign out**. In local mode there is no sign-in or
 person menu.
 
@@ -158,8 +160,9 @@ The **Source control** panel provides:
 - Staged changes, unstaged changes and merge conflicts, with side-by-side diffs.
 - Per-file or bulk stage/unstage, commit messages and commit actions.
 - Local and remote branches, new branches and branch switching.
-- The remote address with **Remote…** to set it up, and **Fetch**, **Pull**, **Push** and
-  **Sync** buttons under it. On a server, **Sync…** opens Pull, Publish and Push for the published
+- The remote address, and **Fetch**, **Pull**, **Push** and **Sync** buttons under it. **Remote…**
+  to set the address up appears for Admins only (always in local mode); everyone else sees the
+  address without the button. On a server, **Sync…** opens Pull, Publish and Push for the published
   branch.
 - The same model tabs and **Find an entity** search as the model views, so a tab is one click away.
 - Exact-path, extension and folder ignore rules, plus a Source editor for `.gitignore`.

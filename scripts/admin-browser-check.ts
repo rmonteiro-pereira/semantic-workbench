@@ -222,6 +222,19 @@ async function adminRouting(page: Page) {
   await leaveAdmin(page);
 }
 
+/** A person without the Admin role cannot set or remove a remote, even by calling the API. */
+async function remoteChangeRefused(page: Page, url: string) {
+  const headers = { Origin: url, 'X-SW-Request': '1' };
+  const endpoint = url + '/api/projects/sales-contracts/git/remote';
+  const set = await page.request.put(endpoint, {
+    headers,
+    data: { name: 'origin', url: 'https://example.invalid/sales.git' },
+  });
+  assert.equal(set.status(), 403);
+  const removed = await page.request.delete(endpoint, { headers, data: { name: 'origin' } });
+  assert.equal(removed.status(), 403);
+}
+
 /** Runs administration against real routes and a disposable mock identity provider. */
 export async function adminBrowserCheck() {
   const url = `http://127.0.0.1:${freeAuthPort()}`;
@@ -245,6 +258,7 @@ export async function adminBrowserCheck() {
         await expect(alice.getByRole('button', { name: 'Admin', exact: true })).toHaveCount(0);
         await alice.goto(url + '/#/admin/grants');
         await expect(alice.locator('.admin-page')).toHaveCount(0);
+        await remoteChangeRefused(alice, url);
         await signIn(erin, target, 'erin');
         await signIn(page, target, 'dave');
         await timedAdministration(page, erin, target);

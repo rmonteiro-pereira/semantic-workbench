@@ -15,6 +15,7 @@ import { startIsolatedApi, routeApi, type IsolatedApi } from './helpers/isolated
 import { projectDir, projectFile } from '../src/server/projects/paths';
 import { editorValue, fillEditor } from './helpers/code-editor';
 import { example } from './helpers/examples';
+import { adminArea, leaveAdmin } from './helpers/admin-browser';
 // Local remotes and a second clone exercise conflicts and credential cancellation without network
 // access. Screenshots use /tmp/workbench-scm-*.png.
 const api = await startIsolatedApi();
@@ -396,6 +397,30 @@ try {
       }
     },
   );
+  await check('Admin → Git remotes sets and removes a local bare remote', async () => {
+    const adminBare = join(extra, 'admin-remote.git');
+    sh(extra, ['init', '-q', '--bare', '-b', 'main', adminBare]);
+    const remotes = await adminArea(page, 'Git remotes');
+    const projectRow = remotes.getByRole('row').filter({ hasText: commerce.name });
+    await projectRow.getByRole('button', { name: 'Set remote…', exact: true }).click();
+    const dialog = remoteDialog(page);
+    await dialog.getByLabel('Remote URL').fill(adminBare);
+    await dialog.getByRole('button', { name: 'Save remote' }).click();
+    await expect(dialog).toHaveCount(0);
+    await expect(projectRow).toContainText(adminBare);
+    expect(sh(dir, ['remote', 'get-url', 'origin']).trim()).toBe(adminBare);
+    await projectRow.getByRole('button', { name: 'Remove remote', exact: true }).click();
+    const confirmation = page.getByRole('dialog', { name: /^Remove the remote of/ });
+    await confirmation.getByRole('button', { name: 'Remove remote', exact: true }).click();
+    await expect(projectRow).toContainText('No remote');
+    expect(sh(dir, ['remote']).trim()).toBe('');
+    // The later checks need a remote, so it is set again from the same section.
+    await projectRow.getByRole('button', { name: 'Set remote…', exact: true }).click();
+    await dialog.getByLabel('Remote URL').fill(bare);
+    await dialog.getByRole('button', { name: 'Save remote' }).click();
+    await expect(projectRow).toContainText(bare);
+    await leaveAdmin(page);
+  });
   await check(
     'missing Git: the banner explains it, the panel says so, editing and saving still work',
     async () => {

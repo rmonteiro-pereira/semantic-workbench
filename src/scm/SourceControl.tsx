@@ -148,6 +148,8 @@ export function SourceControl({
   onCommit,
 }: Props) {
   const access = useCapabilities(project);
+  // Remotes are managed by Admins only, and the project's own rules can still refuse the change.
+  const canManageRemotes = access.admin && access.can('setRemote');
   // Server mode: the person's own working copy of this project's repository.
   const copy = projects.find(item => item.slug === project)?.copy ?? null;
   const [status, setStatus] = useState<GitStatus | null>(null);
@@ -639,7 +641,7 @@ export function SourceControl({
             <span className="scm-remote-url">No remote yet. Add one to push and pull.</span>
           )}
           <button
-            hidden={!access.can('setRemote')}
+            hidden={!canManageRemotes}
             onClick={() => openGitSetup({ kind: 'remote', project })}
           >
             Remote…

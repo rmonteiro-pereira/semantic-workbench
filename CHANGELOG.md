@@ -8,6 +8,10 @@ not configure a production deployment.
 
 ### Added
 
+- Admin has a **Git remotes** section that lists every project with its remote address, or "No
+  remote", and offers **Set remote…** and **Remove remote** for each. In Source control, **Remote…**
+  now appears only for Admins; everyone else still sees the address and Fetch, Pull and Push.
+  Setting or removing a remote already required Admin on the server, and a test now covers it.
 - Back and Forward now undo and redo every action a click caused, not only a change of file or
   walk. The browser buttons, the mouse buttons and the Neighborhood and lineage arrows share one
   list of actions: files, tabs, selections, centres and expansions, graph switches, opened areas,

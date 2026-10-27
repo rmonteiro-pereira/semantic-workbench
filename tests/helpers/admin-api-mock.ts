@@ -290,7 +290,18 @@ function auditPage(url: URL) {
   return { entries: [auditEntry], next: url.searchParams.has('cursor') ? null : 'next' };
 }
 
+const workspaceProjects = [
+  { slug: 'sales-contracts', name: 'Sales contracts', files: [] },
+  { slug: 'lab-notes', name: 'Lab notes', files: [] },
+];
+
+function gitStatus(slug: string) {
+  const remotes = slug === 'sales-contracts' ? { origin: 'https://git.example.org/sales.git' } : {};
+  return { branch: 'main', upstream: '', ahead: 0, behind: 0, remotes, changes: [] };
+}
+
 const fixedResponses: Record<string, unknown> = {
+  '/api/projects': workspaceProjects,
   '/api/admin/roles': roles,
   '/api/admin/grants': { grants, version: VERSION },
   '/api/admin/users': users,
@@ -347,6 +358,8 @@ export function adminMockResponse(url: URL, method: string, state: AdminMockStat
       body: { id, displayName: group?.name ?? null, resolved: Boolean(group) },
     };
   }
+  const statusMatch = path.match(/^\/api\/projects\/([^/]+)\/git\/status$/);
+  if (statusMatch) return { status: 200, body: gitStatus(statusMatch[1]) };
   if (path.endsWith('/diff')) return { status: 200, body: diff };
   if (path.endsWith('/rollback')) return { status: 200, body: { version: 'rolled-back' } };
   if (path === '/api/admin/policies/template') return { status: 200, body: templateRule };

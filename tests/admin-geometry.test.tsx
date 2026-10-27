@@ -49,6 +49,17 @@ test('the launcher opens the page and every section fits each viewport', async (
   await leaveAdmin(page);
 }, 180_000);
 
+test('Git remotes lists each project with its address or No remote', async () => {
+  const remotes = await adminArea(page, 'Git remotes');
+  const sales = remotes.getByRole('row').filter({ hasText: 'Sales contracts' });
+  await expect(sales).toContainText('origin: https://git.example.org/sales.git');
+  await expect(sales.getByRole('button', { name: 'Remove remote', exact: true })).toBeVisible();
+  const lab = remotes.getByRole('row').filter({ hasText: 'Lab notes' });
+  await expect(lab).toContainText('No remote');
+  await expect(lab.getByRole('button', { name: 'Set remote…', exact: true })).toBeVisible();
+  await expect(lab.getByRole('button', { name: 'Remove remote', exact: true })).toHaveCount(0);
+});
+
 test('grant panes fit each viewport, and the dry-run preview is a dialog', async () => {
   const grants = await adminArea(page, 'Access grants');
   await grants.getByRole('button', { name: 'Add grant', exact: true }).click();

@@ -7,6 +7,7 @@ import { adminHash } from './admin-route';
 import { adminSection, ADMIN_SECTIONS, type AdminSectionId } from './admin-sections';
 import { BootstrapNotice } from './AdminNotices';
 import { AuditSection } from './AuditSection';
+import { GitRemotesSection } from './GitRemotesSection';
 import { PoliciesSection } from './PoliciesSection';
 import { ProjectAccessSection } from './ProjectAccessSection';
 import { RolesAccessSection } from './RolesAccessSection';
@@ -20,6 +21,7 @@ const sectionViews: Record<AdminSectionId, ComponentType> = {
   users: UsersSection,
   policies: PoliciesSection,
   projects: ProjectAccessSection,
+  'git-remotes': GitRemotesSection,
   audit: AuditSection,
   settings: SettingsSection,
   'access-check': AccessCheckSection,
