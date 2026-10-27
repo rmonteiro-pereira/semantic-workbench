@@ -1,7 +1,7 @@
 // Tests SQL extraction and offsets back to the original YAML or JSON.
 import { test, expect } from 'bun:test';
 import { readFileSync } from 'node:fs';
-import { grammarOf, lineColumn, sqlRegions, type SqlRegion } from '../src/sql/regions';
+import { grammarOf, lineColumn, sqlRegions, type SqlRegion } from '../src/shared/sql/regions';
 // SQL regions and offset maps: every location of the contract, every scalar style, escapes, flow
 // and multi-document YAML.
 const fixture = (name: string) => readFileSync(`tests/fixtures/sql/${name}`, 'utf8');

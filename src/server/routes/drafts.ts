@@ -1,6 +1,6 @@
 // Serves durable drafts, including the source hash needed to detect conflicting edits.
 import { requestReader } from '../auth/request-scope';
-import { MAX_INPUT_BYTES } from '../../validation/diagnostics';
+import { MAX_INPUT_BYTES } from '../../shared/validation/diagnostics';
 import { decodeSegment, decodePath, readJson } from '../request';
 import { projectPath, assertSlug } from '../projects/paths';
 import type { PersonalState } from '../projects/state';

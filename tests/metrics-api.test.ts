@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parse, parseDocument } from 'yaml';
 import { sha256 } from '../src/server/projects/atomic';
-import { extensionOf } from '../src/edit/item-model';
+import { extensionOf } from '../src/shared/edit/item-model';
 import { LOCAL_READER } from '../src/server/projects/reader';
 import { testWorkspace } from './helpers/temp-data-dir';
 // Metrics endpoints: GET lists every metric with `governed`; POST `metrics` and `metrics/preview`

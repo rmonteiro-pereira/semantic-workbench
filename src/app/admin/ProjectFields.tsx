@@ -1,5 +1,5 @@
 import type { ProjectsConfig } from './types';
-import { LEVELS, type Level } from '../../server/auth/actions';
+import { LEVELS, type Level } from '../../shared/auth/actions';
 import { SelectField } from './SelectField';
 import { ListInput } from './ListInput';
 import { commaList } from './change-review';

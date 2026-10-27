@@ -3,7 +3,7 @@ import { expect, test } from 'bun:test';
 import { createAccessControl } from '../../src/server/auth/authorize';
 import { InvalidResourceError, normalizeResource } from '../../src/server/auth/resource';
 import { validateAccessConfig } from '../../src/server/auth/access-config';
-import { BUILTIN_ROLE_IDS } from '../../src/server/auth/actions';
+import { BUILTIN_ROLE_IDS } from '../../src/shared/auth/actions';
 import { clientFromToken, localPrincipal } from '../../src/server/auth/principal';
 import { accessFixture, person } from './access-fixture';
 

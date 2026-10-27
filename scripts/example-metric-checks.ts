@@ -5,8 +5,8 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { explainMetric, projectMetrics, type KpiSummary } from '../src/server/agent/explain';
 import type { StoredDocument } from '../src/server/agent/runtime';
-import { validateInput } from '../src/validation/input';
-import { EXAMPLE_SETS, type ExampleSet } from '../src/projects/examples';
+import { validateInput } from '../src/shared/validation/input';
+import { EXAMPLE_SETS, type ExampleSet } from '../src/shared/projects/examples';
 import manifest from '../tests/fixtures/ossie-mapping/manifest.json';
 
 /** Names the metrics a browser or test opens to see each kind of presentation. */

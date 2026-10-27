@@ -6,7 +6,7 @@ import type { Proposal } from '../../src/app/admin/types';
 import { createRoot } from 'react-dom/client';
 import { AdminHost } from '../../src/app/admin/AdminHost';
 import { AdminLauncher } from '../../src/app/admin/AdminLauncher';
-import '../../src/style.css';
+import '../../src/app/style.css';
 
 // Parent updates can arrive while the native dialog makes the underlying form inert.
 function ReviewHarness() {

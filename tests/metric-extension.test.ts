@@ -1,9 +1,13 @@
 // Tests metric extension validation across shipped examples.
 import { test, expect } from 'bun:test';
 import { parseDocument, stringify } from 'yaml';
-import { validateInput } from '../src/validation/input';
-import { ansiExpression } from '../src/metrics/deps';
-import { inferredAdditivity, inferredType, readMetricExtension } from '../src/metrics/extension';
+import { validateInput } from '../src/shared/validation/input';
+import { ansiExpression } from '../src/shared/metrics/deps';
+import {
+  inferredAdditivity,
+  inferredType,
+  readMetricExtension,
+} from '../src/shared/metrics/extension';
 // Metric extensions on copies of the 59 metrics shipped in the examples.
 const shipped = [
   'billing/billing.semantic.yaml',

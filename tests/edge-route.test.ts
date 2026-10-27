@@ -1,6 +1,6 @@
 // Tests the rounded route a line takes through the layout's bend points.
 import { test, expect } from 'bun:test';
-import { pointAtHalf, roundedPath } from '../src/odcs/edge-route';
+import { pointAtHalf, roundedPath } from '../src/app/odcs/edge-route';
 
 test('a route with no corner is one straight segment', () => {
   expect(

@@ -1,16 +1,16 @@
 // Tests adding and deleting items while preserving document style.
 import { test, expect } from 'bun:test';
 import { readFileSync } from 'node:fs';
-import { applyPatches } from '../src/editor/patch';
-import { insertPatches, removePatches, itemValue, edit } from '../src/edit/yaml-patch';
-import { newItem, itemKindAt, listPathFor } from '../src/edit/item-model';
+import { applyPatches } from '../src/shared/editor/patch';
+import { insertPatches, removePatches, itemValue, edit } from '../src/shared/edit/yaml-patch';
+import { newItem, itemKindAt, listPathFor } from '../src/shared/edit/item-model';
 import {
   findReferences,
   removeDependents,
   rewriteReferences,
   type ProjectDoc,
-} from '../src/edit/references';
-import { validateInput } from '../src/validation/input';
+} from '../src/app/edit/references';
+import { validateInput } from '../src/shared/validation/input';
 
 const read = (p: string) => readFileSync(p, 'utf8');
 const doc = (path: string, dir = 'public/examples/commerce'): ProjectDoc => ({

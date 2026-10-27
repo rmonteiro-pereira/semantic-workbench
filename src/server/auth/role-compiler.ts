@@ -1,5 +1,11 @@
 // Compiles role permissions into Cedar text without loading the engine or reading files.
-import { BUILTIN_ROLE_IDS, BRANCH_ACTIONS, FILE_ACTIONS, isAction, LEVELS } from './actions';
+import {
+  BUILTIN_ROLE_IDS,
+  BRANCH_ACTIONS,
+  FILE_ACTIONS,
+  isAction,
+  LEVELS,
+} from '../../shared/auth/actions';
 import type { Conditions, Role } from './access-config';
 
 /** A role that cannot safely compile against the access schema. */

@@ -62,8 +62,8 @@ export const themeMutants: [string, string, string, string][] = [
   [
     'theme-files',
     'scripts/helpers/theme-files.ts',
-    "['src/theme/theme.css', 'src/theme/theme-palette.ts']",
-    "['src/theme/theme.css']",
+    "['src/shared/theme/theme.css', 'src/app/theme/theme-palette.ts']",
+    "['src/shared/theme/theme.css']",
   ],
   [
     'theme-codemod',

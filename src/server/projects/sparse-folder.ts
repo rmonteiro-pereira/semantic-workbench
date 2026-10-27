@@ -5,7 +5,7 @@
 // timeouts and per-repository queue.
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { checkRepositoryFolder } from '../../scm/repository-folder';
+import { checkRepositoryFolder } from '../../shared/scm/repository-folder';
 import { BadRequestError, MissingFolderError } from './errors';
 import { commitOf, symbolicBranch, type Git, type RemoteCredential } from './git';
 import { assertNoLinks } from './paths';

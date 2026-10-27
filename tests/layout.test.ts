@@ -1,7 +1,7 @@
 // Tests graph alignment, scale and relationship metadata.
 import { test, expect } from 'bun:test';
-import { layoutGraph } from '../src/graph/layout';
-import { inspect } from '../src/core/model';
+import { layoutGraph } from '../src/app/graph/layout';
+import { inspect } from '../src/shared/core/model';
 test('chain follows left-to-right direction without overlaps', () => {
   const positions = layoutGraph(
     ['a', 'b', 'c'],

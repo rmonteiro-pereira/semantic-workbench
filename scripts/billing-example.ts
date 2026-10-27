@@ -2,7 +2,7 @@
 // grains.
 import { mkdir } from 'node:fs/promises';
 import { stringify } from 'yaml';
-import { inspect } from '../src/core/model';
+import { inspect } from '../src/shared/core/model';
 import { buildContext } from '../src/server/agent/runtime';
 import { billingContract } from './billing-contract';
 import { governedMetrics } from './billing-metrics';

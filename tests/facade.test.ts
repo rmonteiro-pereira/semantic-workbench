@@ -2,7 +2,7 @@
 import { LOCAL_READER } from '../src/server/projects/reader';
 import { test, expect } from 'bun:test';
 import { readFileSync } from 'node:fs';
-import { editEntity, inspect } from '../src/core/model';
+import { editEntity, inspect } from '../src/shared/core/model';
 import { testWorkspace } from './helpers/temp-data-dir';
 const yaml = `# retain this comment\nname: Business\ncustom: preserved\nontology:\n  - concept: Customer\n    type: EntityType\n`;
 test('edits preserve unknown fields and comments', () => {

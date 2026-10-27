@@ -1,6 +1,6 @@
 // Tests source navigation, feature labels and safe handling of stale locations.
 import { test, expect } from 'bun:test';
-import { issueFeature, sourceLineRange } from '../src/editor/feature';
+import { issueFeature, sourceLineRange } from '../src/app/editor/feature';
 test('feature paths decode pointer escapes and identify list entries', () => {
   expect(issueFeature('/schema/2/properties/0/name')).toBe(
     'schema → item 3 → properties → item 1 → name',

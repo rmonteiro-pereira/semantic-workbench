@@ -1,7 +1,7 @@
 // Which identity values may verify a metric owner, and that self-approval still refuses on any.
 import { expect, test } from 'bun:test';
 import { normalizeClaims } from '../../src/server/auth/principal';
-import { ownerChoices, ownerVerifier, type KnownPerson } from '../../src/governance/guards';
+import { ownerChoices, ownerVerifier, type KnownPerson } from '../../src/shared/governance/guards';
 import { TEST_TENANT_ID } from '../helpers/auth-identities';
 
 const entra = { provider: 'entra' as const, tenantId: TEST_TENANT_ID, groupClaim: 'groups' };

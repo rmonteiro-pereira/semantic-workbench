@@ -1,7 +1,7 @@
 // Generates shopping center models and synthetic fixtures from shared business definitions.
 import { mkdir } from 'node:fs/promises';
 import { stringify } from 'yaml';
-import { inspect } from '../src/core/model';
+import { inspect } from '../src/shared/core/model';
 import { buildContext } from '../src/server/agent/runtime';
 // Fictional shopping-center and real-estate administration model. One domain specification
 // produces the Ossie ontology, OWL, SHACL, RDF data, ODCS contract, semantic model, mapping and an

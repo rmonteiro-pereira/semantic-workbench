@@ -1,5 +1,5 @@
 // Presents effective identity and grant provenance without provider credentials.
-import { ACTIONS } from '../auth/actions';
+import { ACTIONS } from '../../shared/auth/actions';
 import { auditableProjects } from '../auth/audit';
 import { roleSource } from '../auth/grants';
 import { requestScope } from '../auth/request-scope';

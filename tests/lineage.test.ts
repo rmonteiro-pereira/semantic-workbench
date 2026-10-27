@@ -2,7 +2,13 @@
 import { test, expect } from 'bun:test';
 import { readFileSync, readdirSync, existsSync, writeFileSync, mkdirSync } from 'node:fs';
 import { parse } from 'yaml';
-import { buildLineage, objectId, closure, around, type LineageGraph } from '../src/odcs/lineage';
+import {
+  buildLineage,
+  objectId,
+  closure,
+  around,
+  type LineageGraph,
+} from '../src/app/odcs/lineage';
 // Expected edges are derived independently from parsed YAML, without the lineage builder. Saved
 // reference graphs make edge changes visible in review.
 type Edge = [string, string, string];

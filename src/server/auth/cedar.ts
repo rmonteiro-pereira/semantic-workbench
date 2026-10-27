@@ -4,7 +4,7 @@ import { randomUUID } from 'node:crypto';
 import * as cedar from '@cedar-policy/cedar-wasm/nodejs';
 import { compileRoles } from './role-compiler';
 import { holdersOfGrant, type GrantOptions } from './grants';
-import { levelNumber, type Action } from './actions';
+import { levelNumber, type Action } from '../../shared/auth/actions';
 import { matchesSegmentGlob } from './path-rules';
 import type { AccessConfig, Role } from './access-config';
 import type { Principal } from './principal';

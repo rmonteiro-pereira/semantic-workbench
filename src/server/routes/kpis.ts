@@ -4,10 +4,10 @@ import { BadRequestError, OccupiedError } from '../projects/errors';
 import { requestReader } from '../auth/request-scope';
 import { authorizeWrite } from '../auth/write-access';
 import { decodeSegment, readJson } from '../request';
-import { MAX_INPUT_BYTES } from '../../validation/diagnostics';
+import { MAX_INPUT_BYTES } from '../../shared/validation/diagnostics';
 import { explainMetric } from '../agent/explain';
-import { planKpiSave, KpiError, type KpiRequest } from '../../metrics/metric-save';
-import { InputError } from '../../validation/diagnostics';
+import { planKpiSave, KpiError, type KpiRequest } from '../../shared/metrics/metric-save';
+import { InputError } from '../../shared/validation/diagnostics';
 import type { Route } from './http';
 const HASH = /^[0-9a-f]{64}$/;
 const object = (v: unknown): v is Record<string, any> =>

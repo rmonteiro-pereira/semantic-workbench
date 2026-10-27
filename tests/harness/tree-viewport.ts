@@ -1,4 +1,4 @@
-import { observeTreeViewport } from '../../src/projects/tree-viewport';
+import { observeTreeViewport } from '../../src/app/projects/tree-viewport';
 
 const tree = document.querySelector<HTMLElement>('.project-tree');
 if (!tree) throw new Error('The tree viewport harness needs a project tree.');

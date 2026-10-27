@@ -2,7 +2,7 @@
 // stated reason, so a new write route cannot skip the governance guards unnoticed.
 import { expect, test } from 'bun:test';
 import { authWorkspace } from '../helpers/auth-workspace';
-import { READ_ACTIONS } from '../../src/server/auth/actions';
+import { READ_ACTIONS } from '../../src/shared/auth/actions';
 import { ROUTE_ACTIONS, type RouteAction } from '../../src/server/auth/route-actions';
 import {
   ADMIN_EXEMPTION,

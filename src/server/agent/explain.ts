@@ -1,11 +1,11 @@
 // Explains project metrics using semantic models, mappings, and data contracts. SQL previews use
 // governed definitions and are never executed.
-import { inspect } from '../../core/model';
-import { rdfSyntax } from '../../validation/rdf';
-import { semanticModelPaths } from '../../edit/item-model';
-import { isMapping } from '../../mappings/mapping-schema';
-import type { Issue } from '../../validation/diagnostics';
-import { ansiExpression, expressionRefs, metricDependencies } from '../../metrics/deps';
+import { inspect } from '../../shared/core/model';
+import { rdfSyntax } from '../../shared/validation/rdf';
+import { semanticModelPaths } from '../../shared/edit/item-model';
+import { isMapping } from '../../shared/mappings/mapping-schema';
+import type { Issue } from '../../shared/validation/diagnostics';
+import { ansiExpression, expressionRefs, metricDependencies } from '../../shared/metrics/deps';
 import {
   GRAINS,
   inferredAdditivity,
@@ -18,12 +18,12 @@ import {
   type Grain,
   type KpiType,
   type MetricExtension,
-} from '../../metrics/extension';
+} from '../../shared/metrics/extension';
 import {
   mappingExpressionBindings,
   resolveBindings,
   type ResolvedBinding,
-} from '../../metrics/bindings';
+} from '../../shared/metrics/bindings';
 import { modelContext, planQuery, type StoredDocument } from './runtime';
 import { BadRequestError } from '../projects/errors';
 type ProjectDocument = StoredDocument & { path: string };

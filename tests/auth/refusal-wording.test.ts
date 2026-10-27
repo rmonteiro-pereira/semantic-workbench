@@ -8,8 +8,8 @@ import { GuardedChangeError } from '../../src/server/auth/guards';
 import { requestAccess, requestReader } from '../../src/server/auth/request-scope';
 import { SignInError, type SignInReason } from '../../src/server/auth/sign-in-error';
 import { signInErrorResponse } from '../../src/server/routes/auth';
-import { failureReason, saveStateLabel } from '../../src/projects/autosave';
-import { hiddenCommitsLine } from '../../src/scm/SourceControl';
+import { failureReason, saveStateLabel } from '../../src/app/projects/autosave';
+import { hiddenCommitsLine } from '../../src/app/scm/SourceControl';
 import { accessFixture, person } from './access-fixture';
 
 beforeAll(useDefaultBrand);

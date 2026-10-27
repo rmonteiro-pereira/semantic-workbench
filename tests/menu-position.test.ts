@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { placeMenu } from '../src/projects/menu-position';
+import { placeMenu } from '../src/app/projects/menu-position';
 
 const viewport = { width: 1000, height: 800 };
 const menu = { width: 200, height: 300 };

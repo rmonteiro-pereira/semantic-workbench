@@ -1,5 +1,5 @@
 // Tells a person which role an action needs, in the role names the workspace shows them.
-import { ACTIONS, type Action } from './actions';
+import { ACTIONS, type Action } from '../../shared/auth/actions';
 import builtin from '../../../policies/builtin-roles.json';
 import type { Role } from './access-config';
 

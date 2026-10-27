@@ -75,9 +75,12 @@ check that happens to succeed.
 
 ### HTTP, startup and ownership
 
-- `src/server/` contains the Bun-only runtime, grouped under the same source root as the browser
-  application. `src/server/index.ts` composes startup, storage, authentication, brand, telemetry and
-  the listener; browser modules must not import server modules.
+- `src/` has three runtime areas. `src/app/` is the browser application, `src/server/` the Bun-only
+  runtime, and `src/shared/` the code both import. `src/shared/` imports only itself and
+  `src/generated/`; the server never imports `src/app/`, and the browser imports nothing from
+  `src/server/` but types; `tests/layout-boundaries.test.ts` enforces these directions. Each area groups its files by feature (`app/metrics/`,
+  `shared/metrics/`). `src/server/index.ts` composes startup, storage, authentication, brand,
+  telemetry and the listener.
   `src/server/config.ts` is the typed runtime configuration boundary. Startup diagnostics live in
   `src/server/startup-log.ts`; signal and hot-reload cleanup live in `src/server/shutdown.ts`.
 - `src/server/handler.ts` composes health/static handling and route dispatch.
@@ -133,60 +136,65 @@ check that happens to succeed.
   resolve identity once and attach the filtered scope. Unmapped protected routes fail closed.
 - `write-access.ts`, `git-access.ts` and `project-creation.ts` authorize concrete write targets,
   repository-wide actions and new-project domains before mutation.
-- `src/governance/guards.ts` contains shared pure content rules and classification levels. Server
-  `auth/guards.ts` binds them to a principal. Browser `src/auth/guards-client.ts` explains the
+- `src/shared/governance/guards.ts` contains shared pure content rules and classification levels. Server
+  `auth/guards.ts` binds them to a principal. Browser `src/app/auth/guards-client.ts` explains the
   controls but cannot authorize a write.
 - `admin-repo.ts`, `access-admin.ts`, `dry-run.ts`, `admin-guard.ts`, `policies.ts` and
   `change-summary.ts` own versioned access documents, reviewed proposals, replay, last-Admin
   protection and activation. Requested rollback is a new reviewed commit.
 - `remote-hosts.ts`, `remote-credentials.ts` and `github-oauth.ts` choose permitted remote hosts
-  and command-scoped credentials. `server/bin/sw-askpass` is the final host-specific credential
+  and command-scoped credentials. `src/server/bin/sw-askpass` is the final host-specific credential
   boundary; Git filters and local merge steps must not inherit remote tokens.
 
 ### Parsing, editing, metrics and agent planning
 
-- `src/core/model.ts` projects supported definitions into entities and relationships.
-  `src/validation/` owns input checks, diagnostics and RDF parsing; `src/odcs/foreign-keys.ts`
+- `src/shared/core/model.ts` projects supported definitions into entities and relationships.
+  `src/shared/validation/` owns input checks, diagnostics and RDF parsing; `src/shared/odcs/foreign-keys.ts`
   resolves contract relationships. These modules are reused by browser and server logic.
-- `src/mappings/` owns mapping schemas, built-ins and the mapping explorer. `src/core/` holds the
-  shared model, document references and export projection.
+- `src/shared/mappings/` owns mapping schemas and built-ins; `src/app/mappings/` the mapping
+  explorer. `src/shared/core/` holds the model and document references; `src/app/core/export.ts`
+  the export projection.
 - `schemas/` contains pinned standards and application schemas. `scripts/compile-schemas.ts`
   produces checked-in, formatted standalone browser validators grouped by schema family in
   `src/generated/validators.js`;
   browser CSP does not need runtime evaluation to compile schemas.
-- `src/editor/` owns CodeMirror configuration, serialization/embedded-language highlighting,
-  findings and byte-range patches. `documentMode.ts`, `viewportYaml.ts`, `largeYaml.ts` and
+- `src/app/editor/` owns CodeMirror configuration, serialization/embedded-language highlighting,
+  and findings. Byte-range patches are `src/shared/editor/patch.ts`, which the server also uses.
+  `documentMode.ts`, `viewportYaml.ts`, `largeYaml.ts` and
   `yamlIndentation.ts` keep large-document work within its highlighting budget.
-- `src/edit/` owns item models, source fragments, insertion/deletion and serialization-aware
-  patch construction. RDF edits additionally verify the intended graph difference.
-- `src/metrics/`, `src/mappings/` and `src/sql/` own definition presentation, authoring,
-  binding traversal and supported SQL syntax. They do not access a data source.
+- `src/shared/edit/` builds item models, source text and serialization-aware YAML/JSON patches.
+  `src/app/edit/` holds the item editors, source fragments, insertion/deletion and the RDF patches,
+  which additionally verify the intended graph difference.
+- `src/shared/metrics/` resolves dependencies, bindings, extensions and metric saves;
+  `src/app/metrics/` draws the metric views and wizards. `src/shared/sql/` lints SQL and finds its
+  regions; `src/app/sql/` highlights it in the browser. None of them access a data source.
 - `src/server/agent/explain.ts`, `runtime.ts` and `sql.ts` produce filtered catalog/context,
   definition-preserving metric explanations and governed query plans. They never execute a plan or
   call an LLM. Synthetic example execution belongs only to verification scripts/tests.
 
 ### Browser shell and graph rendering
 
-- `src/main.tsx` composes the application. `src/app/` separates workbench state/effects from
-  `Workspace*` presentation and dialogs. Stable event handlers call the latest committed logic;
+- `src/app/main.tsx` composes the application. `src/app/workspace/` is the workbench shell. Its about 18
+  state hooks sit in `hooks/`, apart from `Workspace*` presentation and dialogs; smaller features
+  keep their `use*` files next to their components. Stable event handlers call the latest committed logic;
   source text stays synchronous rather than being deferred back into the editor.
-- `src/projects/api.ts` is the browser HTTP boundary. `useEvents.ts` owns SSE delivery and
+- `src/app/projects/api.ts` is the browser HTTP boundary. `useEvents.ts` owns SSE delivery and
   connection readiness. `autosave.ts` coordinates validation, drafts, version checks and saving.
   `Sidebar.tsx` and `tree-viewport.ts` keep the selected file and whole-row viewport reachable.
-- `src/scm/` owns Source Control, diffs, branch/commit/remote/clone dialogs and personal-credential
-  prompts. `src/projects/Modal.tsx`, `Menu.tsx`, `WizardStepper.tsx`, `EmptyState.tsx` and
-  `src/shared/ScrollStrip.tsx` provide shared interaction and layout behavior.
-- `src/shared/` contains UI and small utilities used by multiple domains; `src/theme/` owns theme
-  tokens, runtime palettes and browser preference. The root of `src/` is reserved for the entry,
-  global stylesheet and browser type declarations.
-- `src/auth/` consumes server-reported identity and capabilities. `src/app/admin/` is the browser
+- `src/app/scm/` owns Source Control, diffs, branch/commit/remote/clone dialogs and personal-credential
+  prompts. `src/app/projects/Modal.tsx`, `Menu.tsx`, `WizardStepper.tsx`, `EmptyState.tsx` and
+  `src/app/components/ScrollStrip.tsx` provide shared interaction and layout behavior.
+- `src/app/components/` contains UI used by several features; `src/app/theme/` owns runtime
+  palettes and browser preference. The root of `src/` holds only the three runtime areas,
+  `src/generated/` and browser type declarations.
+- `src/app/auth/` consumes server-reported identity and capabilities. `src/app/admin/` is the browser
   administration feature: it proposes/reviews access changes through its typed client and is
   separate from the server's versioned `DATA_DIR/admin/` configuration repository. Admin URL hashes
   select sections; no general routing framework computes authorization in the browser.
-- `src/graph/` owns whole-model and neighborhood views, traversal, grouping projection, layout,
+- `src/app/graph/` owns whole-model and neighborhood views, traversal, grouping projection, layout,
   workers, controls, name wrapping and shared edge appearance. `overview.ts` and `communities.ts`
   decide display grouping, not standard semantics.
-- `src/odcs/lineage.ts` builds declared column dependencies; `LineageCanvas.tsx`, `LineageCard.tsx`
+- `src/app/odcs/lineage.ts` builds declared column dependencies; `LineageCanvas.tsx`, `LineageCard.tsx`
   and `LineageColumnList.tsx` draw row ports, selection and windowed column lists. Mapping canvases
   reuse this infrastructure with resolver-derived cards/lines.
 - `docs/graph-design.md` describes ELK versus headless fCoSE, worker routing, card measurement,
@@ -194,16 +202,17 @@ check that happens to succeed.
 
 ### Branding, observability and delivery
 
-- `src/theme/theme.css` defines semantic light/dark tokens; `theme-palette.ts` is the runtime group
-  palette. `theme-preference.ts`, `src/app/ThemeControl.tsx` and `public/theme-init.js` own browser
+- `src/shared/theme/theme.css` defines semantic light/dark tokens; `src/app/theme/theme-palette.ts` is the
+  runtime group palette. `src/app/theme/theme-preference.ts`, `src/app/workspace/ThemeControl.tsx` and `public/theme-init.js` own browser
   choice.
 - `public/brand/` is the default bundle. `src/server/brand/` loads and sanitizes it once at startup;
-  `src/brand/` consumes the known public assets. Product identity must not be duplicated in view
+  `src/app/brand/` consumes the known public assets; `src/shared/brand/manifest.ts` lists them. Product identity must not be duplicated in view
   components. `docs/theme.md` owns deployment/customization details.
 - `src/server/observability/` owns typed settings, redaction, request context, explicit spans/metrics,
   logs, browser report recording and optional exporter loading. SDK/exporter imports stay behind
   `telemetry.ts`; ordinary application code uses the no-op-capable OpenTelemetry API.
-- `src/observability/` owns bounded browser reporting to the workbench API. No browser exporter
+- `src/app/observability/` owns bounded browser reporting to the workbench API; the report shape
+  both sides check is `src/shared/observability/browser-report.ts`. No browser exporter
   contacts an external ingestion host. `src/server/auth/audit.ts` remains a separate durable security
   record, with integrity verification described in `docs/audit-tamper-evidence.md`.
 - `Dockerfile`, `compose.yaml`, `scripts/image.ts` and `container-*.ts` own image construction and
@@ -283,11 +292,11 @@ check that happens to succeed.
 | Runtime setting | `src/server/config.ts`, then `docs/configuration.md` |
 | Route/resource | `src/server/routes/` and `auth/route-actions.ts` |
 | Access decision | `auth/authorize.ts`, Cedar policies and grant/compiler modules |
-| Content protection | `src/governance/`, then server/client bindings |
-| Definition syntax | `src/core/model.ts`, `src/validation/`, `src/odcs/` and pinned schemas |
-| Byte-preserving item edit | `src/edit/` and `src/editor/patch.ts` |
-| Metrics/bindings/plans | `src/metrics/`, `src/mappings/`, `src/server/agent/` |
-| Graph layout/routing | `FullGraph.tsx`, `src/graph/`, `src/odcs/` |
+| Content protection | `src/shared/governance/`, then server/client bindings |
+| Definition syntax | `src/shared/core/model.ts`, `src/shared/validation/`, `src/shared/odcs/` and pinned schemas |
+| Byte-preserving item edit | `src/shared/edit/`, `src/app/edit/` and `src/shared/editor/patch.ts` |
+| Metrics/bindings/plans | `src/shared/metrics/`, `src/app/metrics/`, `src/server/agent/` |
+| Graph layout/routing | `FullGraph.tsx`, `src/app/graph/`, `src/app/odcs/` |
 | Git/repository behavior | `src/server/projects/git.ts`, `scm.ts`, working-copy modules |
 | Theme/brand | Tokens and `public/brand/`; server sanitation under `src/server/brand/` |
 | Diagnostics/export | `src/server/observability/`, browser report schema and recorder |

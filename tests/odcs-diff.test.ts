@@ -8,7 +8,7 @@ import {
   diffObject,
   flattenProperties,
   lastChange,
-} from '../src/odcs/odcs-diff';
+} from '../src/app/odcs/odcs-diff';
 const base = parse(readFileSync('public/examples/commerce/commerce.odcs.yaml', 'utf8'));
 const clone = () => structuredClone(base);
 const orders = (c: any) => c.schema.find((o: any) => o.name === 'orders');

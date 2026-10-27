@@ -1,7 +1,7 @@
 // Tests document format detection and parsing.
 import { test, expect } from 'bun:test';
-import { inspect } from '../src/core/model';
-import { graphView } from '../src/graph/graph-view';
+import { inspect } from '../src/shared/core/model';
+import { graphView } from '../src/app/graph/graph-view';
 import { readdir } from 'node:fs/promises';
 // A mapping that only binds metrics maps no concept, so it draws no entities.
 const bindingsOnlyMappings = ['sales.mapping.yaml'];

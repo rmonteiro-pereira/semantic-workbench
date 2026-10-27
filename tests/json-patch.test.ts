@@ -2,10 +2,15 @@
 import { test, expect } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { parse } from 'yaml';
-import { applyPatches } from '../src/editor/patch';
-import { valuePatches, insertPatches, removePatches, itemValue } from '../src/edit/yaml-patch';
-import { jsonTextPatches } from '../src/edit/json-patch';
-import { validateInput } from '../src/validation/input';
+import { applyPatches } from '../src/shared/editor/patch';
+import {
+  valuePatches,
+  insertPatches,
+  removePatches,
+  itemValue,
+} from '../src/shared/edit/yaml-patch';
+import { jsonTextPatches } from '../src/shared/edit/json-patch';
+import { validateInput } from '../src/shared/validation/input';
 // JSON item edits change only the edited value's text and keep the document's indentation style
 // elsewhere; the file is never re-serialized.
 const contract = (indent: string | number) =>

@@ -76,5 +76,5 @@ test('detection stops four folders down and skips Git internals', () => {
   expect(detectProjectFolders(['a/b/c/d/e/f/deep.yaml', '.git/config.yaml'])).toEqual([
     { path: 'a/b/c/d', files: 1 },
   ]);
-  expect(detectProjectFolders(['docs/readme.md', 'src/main.ts'])).toEqual([]);
+  expect(detectProjectFolders(['docs/readme.md', 'src/app/main.ts'])).toEqual([]);
 });

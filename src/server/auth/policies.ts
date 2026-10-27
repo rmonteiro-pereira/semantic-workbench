@@ -7,7 +7,7 @@ import { loadPolicySet } from './cedar';
 import { compileRoles } from './role-compiler';
 import { AdminConfigError } from './admin-repo';
 import type { Role } from './access-config';
-import { isAction, type Action } from './actions';
+import { isAction, type Action } from '../../shared/auth/actions';
 
 /** One editable administrator rule; metadata is stored as Cedar annotations. */
 export type AdminRule = {

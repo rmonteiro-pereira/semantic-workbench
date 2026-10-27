@@ -1,6 +1,11 @@
 // Tests that line labels never cover a card or each other.
 import { test, expect } from 'bun:test';
-import { labelSize, placeEdgeLabels, type LabelRequest, type Rect } from '../src/odcs/edge-labels';
+import {
+  labelSize,
+  placeEdgeLabels,
+  type LabelRequest,
+  type Rect,
+} from '../src/app/odcs/edge-labels';
 
 const request = (id: string, y: number, priority = 1, width = 260): LabelRequest => ({
   id,

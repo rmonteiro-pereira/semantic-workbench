@@ -5,7 +5,11 @@
 import { lstatSync, readdirSync, readFileSync, realpathSync } from 'node:fs';
 import { join, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { BrandManifestError, parseBrandManifest, type BrandManifest } from '../../brand/manifest';
+import {
+  BrandManifestError,
+  parseBrandManifest,
+  type BrandManifest,
+} from '../../shared/brand/manifest';
 import {
   BRAND_FILE_NAMES,
   BrandFileError,
