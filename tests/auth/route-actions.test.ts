@@ -56,7 +56,7 @@ test('every route literal in the server has an example request', () => {
     'src/server/handler.ts',
     ...readdirSync('src/server/routes')
       .filter(name => name.endsWith('.ts'))
-      .map(name => `server/routes/${name}`),
+      .map(name => `src/server/routes/${name}`),
   ];
   for (const file of files) assertRouteCoverage(readFileSync(file, 'utf8'), file);
 });
