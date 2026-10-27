@@ -25,7 +25,7 @@ export function lintRegion(source: string, region: SqlRegion, astify: Astify): S
   const body = fillPlaceholders(region.value);
   const sql = region.kind === 'expression' ? PREFIX + body : body;
   const shift = region.kind === 'expression' ? PREFIX.length : 0;
-  // ANSI expressions follow the planner (server/agent/sql.ts): PostgreSQL grammar, then SQLite's;
+  // ANSI expressions follow the planner (src/server/agent/sql.ts): PostgreSQL grammar, then SQLite's;
   // the finding reports the PostgreSQL error.
   const grammars = region.grammar === 'postgresql' ? ['postgresql', 'sqlite'] : [region.grammar];
   let first: unknown = null;

@@ -140,7 +140,7 @@ check that happens to succeed.
   `change-summary.ts` own versioned access documents, reviewed proposals, replay, last-Admin
   protection and activation. Requested rollback is a new reviewed commit.
 - `remote-hosts.ts`, `remote-credentials.ts` and `github-oauth.ts` choose permitted remote hosts
-  and command-scoped credentials. `server/bin/sw-askpass` is the final host-specific credential
+  and command-scoped credentials. `src/server/bin/sw-askpass` is the final host-specific credential
   boundary; Git filters and local merge steps must not inherit remote tokens.
 
 ### Parsing, editing, metrics and agent planning

@@ -1548,7 +1548,7 @@ mutants.push(
 let killed = 0;
 // The askpass program is a shell script, so its mutants run the askpass case with the mutated
 // script beside an unchanged Git module.
-const ASKPASS = 'server/bin/sw-askpass';
+const ASKPASS = 'src/server/bin/sw-askpass';
 const askpassMutants: [string, string][] = [
   [`"Username for 'https://$host': " | "Username for 'http://$host': ")`, `"Username for '"*)`],
   [`user="\${user%"@$host': "}"`, `user="\${user%%@*}"`],
