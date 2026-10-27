@@ -16,10 +16,14 @@ import type { Doc, WorkspaceStatus } from '../projects/api';
 import type { AutosaveStatus } from '../projects/autosave';
 import type { MenuItem } from '../projects/Menu';
 import { MenuButton } from '../projects/Menu';
+import { PhoneHeaderActions } from './PhoneHeaderActions';
 import type { ValidatedModel } from './types';
+import { usePhoneScreen } from './useNarrowScreen';
 
 type Props = {
   personMenu?: React.ReactNode;
+  /** The Admin entry; on a phone it moves into the More actions menu instead. */
+  adminLauncher?: React.ReactNode;
   workspaceToggle: React.RefObject<HTMLButtonElement | null>;
   compact: boolean;
   sidebarOpen: boolean;
@@ -44,6 +48,7 @@ type Props = {
 /** Renders workspace header. */
 export const WorkspaceHeader = React.memo(function WorkspaceHeader({
   personMenu,
+  adminLauncher,
   workspaceToggle,
   compact,
   sidebarOpen,
@@ -66,6 +71,7 @@ export const WorkspaceHeader = React.memo(function WorkspaceHeader({
 }: Props) {
   const access = useCapabilities(current?.project);
   const { productName } = useBrand();
+  const isPhone = usePhoneScreen();
   function getWorkspaceToggleLabel() {
     if (compact) {
       if (sidebarOpen) {
@@ -113,12 +119,25 @@ export const WorkspaceHeader = React.memo(function WorkspaceHeader({
     setCommitting(true);
   }
 
+  function getCommitTitle() {
+    if (status?.gitAvailable === false) return 'Git is not available on this machine';
+    return 'Commit changed files of this project';
+  }
+
   // With no document open, the header names the product.
   const title = model?.name ?? current?.filename ?? productName;
+  const canCreate = access.can('edit');
+  const exportTitle = hasSource
+    ? 'Download the file exactly as it is'
+    : 'Open a file to export it.';
+  const saveStateLabel = current ? saveState : 'No file open';
+  const saveStateTitle = `${saveStateLabel} — ${getSaveStateAction()}`;
+  const commitDisabled = !current || status?.gitAvailable === false || !access.can('commit');
+  const commitTitle = access.control('commit').title ?? getCommitTitle();
 
   return (
     <>
-      <header className="workspace-header">
+      <header className={`workspace-header${isPhone ? ' header-phone' : ''}`}>
         <button
           ref={workspaceToggle}
           className="workspace-toggle"
@@ -137,60 +156,75 @@ export const WorkspaceHeader = React.memo(function WorkspaceHeader({
             {model?.kind ?? 'ODCS + Apache Ossie'}
           </span>
         </div>
-        <div className="header-actions">
-          <div className="header-group header-files" role="group" aria-label="File">
-            <MenuButton
-              ariaLabel="New"
-              title="Create a new file or item"
-              label={<span className="action-label">New</span>}
-              icon={<Plus size={15} />}
-              buttonClassName="new-menu"
-              items={access.can('edit') ? newItems() : []}
-            />
-            <button
-              className="export-button"
-              aria-label="Export"
-              title={hasSource ? 'Download the file exactly as it is' : 'Open a file to export it.'}
-              disabled={!hasSource}
-              onClick={download}
-            >
-              <Download size={15} />
-              <span className="action-label">Export</span>
-            </button>
-          </div>
-          <div className="header-group header-state" role="group" aria-label="Save and commit">
-            <button
-              className={`save-state s-${saveStatus}`}
-              role="status"
-              aria-label="Save state"
-              disabled={!current}
-              title={`${current ? saveState : 'No file open'} — ${getSaveStateAction()}`}
-              onClick={handleSaveStateClick}
-            >
-              <span
-                className="save-state-text"
-                data-short={current && saveStateShort !== saveState ? saveStateShort : undefined}
+        {isPhone ? (
+          <PhoneHeaderActions
+            newItems={canCreate ? newItems() : []}
+            newTitle="Create a new file or item"
+            newDisabled={canCreate ? false : 'Your role cannot create items here.'}
+            download={download}
+            exportTitle={exportTitle}
+            exportDisabled={!hasSource}
+            hasFile={!!current}
+            saveStatus={saveStatus}
+            saveStateLabel={saveStateLabel}
+            saveStateTitle={saveStateTitle}
+            onSaveStateClick={handleSaveStateClick}
+            onCommitClick={handleCommitClick}
+            commitDisabled={commitDisabled}
+            commitTitle={commitTitle}
+          />
+        ) : (
+          <div className="header-actions">
+            <div className="header-group header-files" role="group" aria-label="File">
+              <MenuButton
+                ariaLabel="New"
+                title="Create a new file or item"
+                label={<span className="action-label">New</span>}
+                icon={<Plus size={15} />}
+                buttonClassName="new-menu"
+                items={canCreate ? newItems() : []}
+              />
+              <button
+                className="export-button"
+                aria-label="Export"
+                title={exportTitle}
+                disabled={!hasSource}
+                onClick={download}
               >
-                {current ? saveState : 'No file open'}
-              </span>
-            </button>
-            <button
-              className="primary"
-              onClick={handleCommitClick}
-              disabled={!current || status?.gitAvailable === false || !access.can('commit')}
-              title={
-                access.control('commit').title ??
-                (status?.gitAvailable === false
-                  ? 'Git is not available on this machine'
-                  : 'Commit changed files of this project')
-              }
-            >
-              <GitCommitIcon size={15} />
-              <span className="action-label">Commit…</span>
-            </button>
+                <Download size={15} />
+                <span className="action-label">Export</span>
+              </button>
+            </div>
+            <div className="header-group header-state" role="group" aria-label="Save and commit">
+              <button
+                className={`save-state s-${saveStatus}`}
+                role="status"
+                aria-label="Save state"
+                disabled={!current}
+                title={saveStateTitle}
+                onClick={handleSaveStateClick}
+              >
+                <span
+                  className="save-state-text"
+                  data-short={current && saveStateShort !== saveState ? saveStateShort : undefined}
+                >
+                  {saveStateLabel}
+                </span>
+              </button>
+              <button
+                className="primary"
+                onClick={handleCommitClick}
+                disabled={commitDisabled}
+                title={commitTitle}
+              >
+                <GitCommitIcon size={15} />
+                <span className="action-label">Commit…</span>
+              </button>
+            </div>
           </div>
-        </div>
+        )}
         <div className="header-group header-account" role="group" aria-label="Account">
+          {isPhone ? null : adminLauncher}
           {personMenu}
         </div>
       </header>

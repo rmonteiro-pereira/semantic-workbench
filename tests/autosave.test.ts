@@ -5,6 +5,7 @@ import {
   initialAutosave,
   isDirty,
   saveStateLabel,
+  saveNeedsAction,
   saveStateShortLabel,
   type AutosaveEvent,
   type AutosaveState,
@@ -219,6 +220,14 @@ test('the short label says only "Saved" when nothing waits to be committed', () 
   expect(saveStateShortLabel({ ...saved, status: 'stale' }, 0)).toBe(
     'Not saved: file changed on disk',
   );
+});
+test('only the Not saved states ask to be read', () => {
+  for (const status of ['clean', 'pending', 'saving', 'saved'] as const) {
+    expect(saveNeedsAction(status)).toBe(false);
+  }
+  for (const status of ['invalid', 'stale', 'failed', 'waiting', 'cancelled'] as const) {
+    expect(saveNeedsAction(status)).toBe(true);
+  }
 });
 test('stored text that differs from the sent text is followed unless something was typed since', () => {
   const saving = run([

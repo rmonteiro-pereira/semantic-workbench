@@ -251,3 +251,84 @@
     display: none;
   }
 }
+
+/* Up to 650 px the header is one row: toggle, title, a save-state dot, Commit and More actions.
+   New, Export and Admin live in the More actions menu. The rules are written for the extra
+   class so they win over the two-row layout that still serves 651 to 699 px. */
+header.workspace-header.header-phone {
+  --header-control-height: 34px;
+  display: flex;
+  align-items: center;
+  min-height: 0;
+  padding: 7px 9px;
+  gap: 6px;
+}
+.header-phone .workspace-title {
+  flex: 1 1 0;
+}
+.header-phone .workspace-title h1 {
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.header-phone .workspace-title .badge {
+  display: none;
+}
+.header-phone-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.header-phone-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--header-control-height);
+  height: var(--header-control-height);
+  padding: 0;
+}
+.header-phone-actions .menu-button > button {
+  width: var(--header-control-height);
+}
+/* The save state is only a coloured dot; its words stay for assistive technology. */
+.header-phone-actions .save-dot {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.header-phone-actions .save-dot::before {
+  width: 10px;
+  height: 10px;
+}
+.header-phone-actions .save-dot:disabled {
+  opacity: 0.5;
+}
+.header-phone-actions .save-dot .save-state-text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.header-phone .header-account {
+  padding-left: 0;
+  border-left: 0;
+}
+/* A save that needs action shows its label beside the dot, cut to fit, with the full text in the
+   tooltip. */
+.header-phone-actions .save-dot.save-dot-alert {
+  width: auto;
+  max-width: 38vw;
+  gap: 5px;
+  padding: 0 4px;
+}
+.header-phone-actions .save-dot.save-dot-alert .save-state-text {
+  position: static;
+  width: auto;
+  height: auto;
+  clip-path: none;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}

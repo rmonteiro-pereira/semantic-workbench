@@ -23,9 +23,13 @@ lines and retain full-name tooltips. Below 1100 pixels the sidebar becomes a dra
 opened while the workspace loads stays open when the initial document appears.
 
 The header groups **New**, **Export**, the save-state indicator, **Commit…**, and account actions.
-The title and icon-only controls have tooltips. Phone layouts use two header rows. Tabs that do not
-fit scroll sideways with edge cues; keyboard navigation reveals the focused tab. Model views,
-Source and Source Control retain separate sidebar navigation states.
+The title and icon-only controls have tooltips. On a phone (up to 650 px wide) the header is one
+row: the menu button, the title, a dot for the save state, **Commit…** as an icon and **More
+actions**, whose menu holds **New** (its items open in place, under a **Back** row), **Export**
+and, for administrators, **Admin**. A save that needs action, such as "Not saved: 2 errors", keeps
+its words beside the dot. Tabs that do not fit scroll sideways with edge cues; keyboard navigation
+reveals the focused tab. Model views, Source and Source Control retain separate sidebar navigation
+states.
 
 **Admin** opens the administration page for people allowed to administer. Its **Git remotes**
 section lists every project with its remote address, or "No remote", with **Set remote…** and

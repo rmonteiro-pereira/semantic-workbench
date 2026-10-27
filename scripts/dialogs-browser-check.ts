@@ -4,6 +4,7 @@ import { chromium, expect, type Page } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { LOCAL_READER } from '../src/server/projects/reader';
 import { menuSurfaceProblems } from './helpers/menu-geometry';
+import { isPhoneHeader, openNewMenu } from './helpers/header';
 // Dialogs must fit six viewports, trap focus and return focus to their trigger after Escape.
 // Screenshots use /tmp/workbench-dialog-*.png.
 const api = await startIsolatedApi();
@@ -84,10 +85,11 @@ const entries: Entry[] = [
     dialog: /^Add concept/,
     open: async p => {
       await openFile(p, mall.name, 'mall.ontology.yaml');
-      await header(p, 'New').click();
+      await openNewMenu(p);
     },
     trigger: p => p.getByRole('menuitem', { name: 'Add concept…', exact: true }),
-    returns: p => header(p, 'New'),
+    // On a phone New sits inside More actions, which gets the focus back.
+    returns: p => header(p, isPhoneHeader(p) ? 'More actions' : 'New'),
   },
   {
     name: 'Grouping suggestions',
@@ -229,7 +231,7 @@ try {
           const openers = [
             {
               name: 'New',
-              open: async () => p.getByRole('button', { name: 'New', exact: true }).click(),
+              open: async () => openNewMenu(p),
             },
             {
               name: 'project',

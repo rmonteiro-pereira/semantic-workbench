@@ -1,5 +1,6 @@
 /** Provides keyboard-accessible menus that return focus to their trigger when closed. */
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { Fragment, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   placeFlyout,
@@ -19,6 +20,10 @@ export type MenuItem = {
   hint?: string;
   /** A second line under the label, for items that need a short description. */
   detail?: string;
+  /** Draws a divider above this item, to start a new group. */
+  separatorBefore?: boolean;
+  /** Replaces the list with these items, under a Back row, instead of running something. */
+  submenu?: MenuItem[];
 };
 /** Draws the menu inside the open dialog that holds its button, which hides the rest of the page. */
 function menuHost(button: HTMLElement | null): HTMLElement {
@@ -66,6 +71,7 @@ export function MenuButton({
   menuLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
+  const [openSubmenu, setOpenSubmenu] = useState<MenuItem | null>(null);
   const root = useRef<HTMLSpanElement>(null);
   const button = useRef<HTMLButtonElement>(null);
   const popup = useRef<HTMLDivElement>(null);
@@ -75,6 +81,7 @@ export function MenuButton({
   };
   // The menu is drawn in the window, not inside the panel that holds its button, so a scrolling or
   // masked list cannot clip or fade it. It follows the button and flips when there is no room.
+  // Swapping in a submenu places it again before the browser paints.
   useLayoutEffect(() => {
     if (!open) return;
     const menu = popup.current;
@@ -114,7 +121,7 @@ export function MenuButton({
       window.removeEventListener('resize', schedulePlace);
       window.removeEventListener('scroll', schedulePlace, true);
     };
-  }, [open, placement, align, matchButtonWidth, flyoutBesideSidebar]);
+  }, [open, openSubmenu, placement, align, matchButtonWidth, flyoutBesideSidebar]);
   useEffect(() => {
     if (!open) return;
     const out = (e: MouseEvent) => {
@@ -125,6 +132,37 @@ export function MenuButton({
     popup.current?.querySelector<HTMLElement>('[role=menuitem]:not([aria-disabled=true])')?.focus();
     return () => document.removeEventListener('mousedown', out);
   }, [open]);
+  useEffect(() => {
+    if (!open) setOpenSubmenu(null);
+  }, [open]);
+  // Moving into or out of a submenu swaps the whole list, so focus starts again at its top. Opening
+  // the menu is handled above, so this runs only when the submenu changes while it is open.
+  const shownSubmenu = useRef<MenuItem | null>(null);
+  useEffect(() => {
+    if (!open || shownSubmenu.current === openSubmenu) return;
+    shownSubmenu.current = openSubmenu;
+    popup.current?.querySelector<HTMLElement>('[role=menuitem]:not([aria-disabled=true])')?.focus();
+  }, [open, openSubmenu]);
+  const back: MenuItem = {
+    label: 'Back',
+    icon: <ChevronLeft size={15} />,
+    run: () => setOpenSubmenu(null),
+  };
+  const shownItems = openSubmenu?.submenu ? [back, ...openSubmenu.submenu] : items;
+  const choose = (item: MenuItem) => {
+    if (item.disabled) return;
+    if (item.submenu) {
+      setOpenSubmenu(item);
+      return;
+    }
+    if (item === back) {
+      back.run();
+      return;
+    }
+    setOpen(false);
+    button.current?.focus();
+    item.run();
+  };
   const move = (e: React.KeyboardEvent) => {
     const list = [...(popup.current?.querySelectorAll<HTMLElement>('[role=menuitem]') ?? [])];
     const i = list.indexOf(document.activeElement as HTMLElement);
@@ -175,30 +213,34 @@ export function MenuButton({
       </button>
       {open &&
         createPortal(
-          <div ref={popup} role="menu" aria-label={menuLabel ?? ariaLabel} className="menu-popup">
+          <div
+            ref={popup}
+            role="menu"
+            aria-label={openSubmenu?.label ?? menuLabel ?? ariaLabel}
+            className="menu-popup"
+          >
             {header}
-            {items.map(it => (
-              <button
-                key={it.label}
-                role="menuitem"
-                tabIndex={-1}
-                aria-disabled={it.disabled ? true : undefined}
-                aria-description={it.disabled || undefined}
-                title={it.disabled || it.hint || undefined}
-                onClick={() => {
-                  if (it.disabled) return;
-                  setOpen(false);
-                  button.current?.focus();
-                  it.run();
-                }}
-              >
-                {it.icon}
-                <span>
-                  {it.label}
-                  {it.detail && <small>{it.detail}</small>}
-                  {it.disabled && <small>{it.disabled}</small>}
-                </span>
-              </button>
+            {shownItems.map(it => (
+              <Fragment key={it.label}>
+                {it.separatorBefore && <div role="separator" />}
+                <button
+                  role="menuitem"
+                  tabIndex={-1}
+                  aria-disabled={it.disabled ? true : undefined}
+                  aria-description={it.disabled || undefined}
+                  aria-haspopup={it.submenu ? 'menu' : undefined}
+                  title={it.disabled || it.hint || undefined}
+                  onClick={() => choose(it)}
+                >
+                  {it.icon}
+                  <span>
+                    {it.label}
+                    {it.detail && <small>{it.detail}</small>}
+                    {it.disabled && <small>{it.disabled}</small>}
+                  </span>
+                  {it.submenu && <ChevronRight size={15} className="menu-submenu-arrow" />}
+                </button>
+              </Fragment>
             ))}
           </div>,
           menuHost(button.current),

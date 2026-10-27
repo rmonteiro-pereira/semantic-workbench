@@ -3474,6 +3474,15 @@ button.import {
   flex: none;
   margin-top: 2px;
 }
+.menu-popup [role='menuitem'] > .menu-submenu-arrow {
+  margin-left: auto;
+  color: var(--text-muted);
+}
+.menu-popup [role='separator'] {
+  height: 1px;
+  margin: 3px 4px;
+  background: var(--color-border-subtle);
+}
 .menu-popup [role='menuitem'] small {
   font-size: var(--text-small);
   color: var(--text-muted);

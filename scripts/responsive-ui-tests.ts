@@ -17,9 +17,14 @@ import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import {
   examplesFlyoutProblems,
   examplesKeyboardProblems,
+  headerGeometry,
   headerScreenProblems,
   headerScreens,
+  moreActionsProblems,
+  moreActionsWork,
+  phoneRowProblems,
 } from './helpers/header-tour';
+import { isPhoneHeader, openNewMenu } from './helpers/header';
 import { treeRowProblems } from './helpers/tree-geometry';
 import { neighborhoodEdgeProblems, neighborhoodState, pickCenter } from './helpers/edge-geometry';
 import { inspect } from '../src/core/model';
@@ -139,6 +144,50 @@ async function recordPageErrors(page: Page, label: string) {
       errors.push(`${label}: ${message.text()}`);
     }
   });
+}
+
+// The header before the one-row phone header, measured with the UBL ontology open. Its long title
+// takes two lines at 1280 px. A phone used two rows; wider windows must keep the geometry they had.
+const PHONE_HEADER_HEIGHT_BEFORE = 93;
+const DESKTOP_HEADER_GEOMETRY: Record<number, { height: number; controls: string[] }> = {
+  1280: {
+    height: 60,
+    controls: [
+      'Hide sidebar@316,11,36,36',
+      'New@801,11,73,36',
+      'Export@880,11,84,36',
+      'Save state@976,11,90,36',
+      'Commit…@1072,11,106,36',
+      'Admin@1203,11,61,36',
+    ],
+  },
+  1440: {
+    height: 58,
+    controls: [
+      'Hide sidebar@316,11,36,36',
+      'New@961,11,73,36',
+      'Export@1040,11,84,36',
+      'Save state@1136,11,90,36',
+      'Commit…@1232,11,106,36',
+      'Admin@1363,11,61,36',
+    ],
+  },
+};
+
+async function checkPhoneHeader(page: Page) {
+  // The earlier screens leave the sidebar drawer open, and its backdrop covers the header.
+  if (await page.locator('#workspace-sidebar[role=dialog]').count()) {
+    await page.keyboard.press('Escape');
+  }
+  await expect(page.locator('.workspace-scrim')).toHaveCount(0);
+  const { height } = await headerGeometry(page);
+  console.log(
+    `header height at ${page.viewportSize()!.width}px: ${height}px (was ${PHONE_HEADER_HEIGHT_BEFORE}px)`,
+  );
+  expect(height).toBeLessThan(PHONE_HEADER_HEIGHT_BEFORE);
+  expect(await phoneRowProblems(page)).toEqual([]);
+  expect(await moreActionsProblems(page)).toEqual([]);
+  await moreActionsWork(page);
 }
 
 async function openPage(width: number, height: number) {
@@ -1207,7 +1256,7 @@ try {
       await p.locator('.catalog button').first().click();
       await p.getByRole('button', { name: 'View definition' }).click();
     } else if (name === 'Add concept') {
-      await header.getByRole('button', { name: 'New', exact: true }).click();
+      await openNewMenu(p);
       await p.getByRole('menuitem', { name: 'Add concept…', exact: true }).click();
     } else if (name === 'Validation details') {
       await p.getByRole('button', { name: /^Validation details/ }).click();
@@ -1727,11 +1776,17 @@ try {
           await noOverflow(headerPage);
         }
         await headerPage.keyboard.press('Escape');
-        for (const group of ['File', 'Save and commit', 'Account']) {
-          await expect(headerPage.getByRole('group', { name: group, exact: true })).toBeVisible();
-        }
-        for (const name of ['New', 'Export', 'Commit…', 'Admin']) {
-          await expect(headerPage.getByRole('button', { name, exact: true })).toBeVisible();
+        if (isPhoneHeader(headerPage)) {
+          await checkPhoneHeader(headerPage);
+        } else {
+          for (const group of ['File', 'Save and commit', 'Account']) {
+            await expect(headerPage.getByRole('group', { name: group, exact: true })).toBeVisible();
+          }
+          for (const name of ['New', 'Export', 'Commit…', 'Admin']) {
+            await expect(headerPage.getByRole('button', { name, exact: true })).toBeVisible();
+          }
+          const before = DESKTOP_HEADER_GEOMETRY[width!];
+          if (before) expect(await headerGeometry(headerPage)).toEqual(before);
         }
         const saveState = headerPage.getByRole('status', {
           name: 'Save state',

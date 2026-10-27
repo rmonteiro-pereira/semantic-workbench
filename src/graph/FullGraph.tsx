@@ -316,7 +316,10 @@ export function FullGraph(props: Props) {
       cancelAnimationFrame(resizeFrame);
     };
   }, []);
-  const fit = useCallback(() => {
+  // An animated move reads the canvas size one frame later. If the workspace is hidden by then
+  // (Admin opening), the size is zero and the viewport becomes NaN. So resize refits move at once,
+  // and a NaN viewport is replaced without animating from it.
+  const fitWithin = useCallback((duration: number) => {
     const instance = flow.current;
     const canvas = container.current?.querySelector('.react-flow');
     if (!instance || !canvas) return;
@@ -348,12 +351,14 @@ export function FullGraph(props: Props) {
     const width = Math.max(...boxes.map(n => n.x + n.width)) - x;
     const height = Math.max(...boxes.map(n => n.y + n.height)) - y;
     const rect = canvas.getBoundingClientRect();
-    if (rect.width && rect.height)
-      void instance.setViewport(
-        getViewportForBounds({ x, y, width, height }, rect.width, rect.height, 0.001, 1, 0.12),
-        { duration: 250 },
-      );
+    if (!rect.width || !rect.height) return;
+    const startsValid = Number.isFinite(instance.getViewport().zoom);
+    void instance.setViewport(
+      getViewportForBounds({ x, y, width, height }, rect.width, rect.height, 0.001, 1, 0.12),
+      { duration: startsValid ? duration : 0 },
+    );
   }, []);
+  const fit = useCallback(() => fitWithin(250), [fitWithin]);
   useEffect(() => {
     let cancelled = false;
     let worker: Worker | undefined;
@@ -504,7 +509,7 @@ export function FullGraph(props: Props) {
     const observer = new ResizeObserver(() => {
       clearTimeout(timer);
       timer = setTimeout(() => {
-        if (!held()) fit();
+        if (!held()) fitWithin(0);
       }, 100);
     });
     observer.observe(el);
@@ -512,7 +517,7 @@ export function FullGraph(props: Props) {
       observer.disconnect();
       clearTimeout(timer);
     };
-  }, [busy, fit]);
+  }, [busy, fitWithin]);
   useEffect(() => {
     // A person who opened every area keeps them open under another grouping; any other choice
     // belonged to the old groups.

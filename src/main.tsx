@@ -271,12 +271,8 @@ function App() {
         <main inert={sidebar.compact && sidebar.sidebarOpen}>
           <GitBanner status={status} />
           <WorkspaceHeader
-            personMenu={
-              <>
-                <AdminLauncher />
-                <PersonMenu />
-              </>
-            }
+            adminLauncher={<AdminLauncher />}
+            personMenu={<PersonMenu />}
             workspaceToggle={sidebar.workspaceToggle}
             compact={sidebar.compact}
             sidebarOpen={sidebar.sidebarOpen}

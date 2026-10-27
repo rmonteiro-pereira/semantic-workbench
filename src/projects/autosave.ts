@@ -198,6 +198,14 @@ export function saveStateLabel(s: AutosaveState, uncommitted: number) {
   }
 }
 /**
+ * Whether the save state is a "Not saved" one that the person should read: errors, a change on
+ * disk, a failure, a wait for Git or a removed file. Saved, clean and in-progress saves are not.
+ */
+export function saveNeedsAction(status: AutosaveStatus): boolean {
+  return !['clean', 'pending', 'saving', 'saved'].includes(status);
+}
+
+/**
  * The save-state label for a header with little room: a clean save is just "Saved". Every other
  * state keeps its full label because it tells the person what to do.
  */

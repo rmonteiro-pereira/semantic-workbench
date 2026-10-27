@@ -1,13 +1,36 @@
 // Opens file actions through the header menus used by browser checks and measures the header.
 import type { Page } from '@playwright/test';
-// Export is a header button; New ▾ holds one Add item per kind.
-/** Clicks the header's Export button. */
+import { PHONE_SCREEN_PX } from '../../src/app/useNarrowScreen';
+// Export is a header button; New ▾ holds one Add item per kind. On a phone both sit in the More
+// actions menu.
+/** Says whether the window is narrow enough for the one-row phone header. */
+export function isPhoneHeader(page: Page): boolean {
+  return (page.viewportSize()?.width ?? 0) < PHONE_SCREEN_PX;
+}
+/** Chooses an entry of the phone header's More actions menu. */
+export async function chooseMoreAction(page: Page, name: string) {
+  await page.getByRole('button', { name: 'More actions', exact: true }).click();
+  await page.getByRole('menuitem', { name, exact: true }).click();
+}
+/** Clicks the header's Export button, or the Export entry of More actions on a phone. */
 export async function exportFile(page: Page) {
+  if (isPhoneHeader(page)) {
+    await chooseMoreAction(page, 'Export');
+    return;
+  }
   await page.getByRole('button', { name: 'Export', exact: true }).click();
+}
+/** Opens the New menu, which on a phone is an entry of the More actions menu. */
+export async function openNewMenu(page: Page) {
+  if (isPhoneHeader(page)) {
+    await chooseMoreAction(page, 'New');
+    return;
+  }
+  await page.getByRole('button', { name: 'New', exact: true }).click();
 }
 /** Opens the named item creation action through the New menu. */
 export async function newItem(page: Page, name: RegExp | string) {
-  await page.getByRole('button', { name: 'New', exact: true }).click();
+  await openNewMenu(page);
   await page.getByRole('menuitem', { name, exact: typeof name === 'string' }).click();
 }
 

@@ -20,6 +20,10 @@ not configure a production deployment.
 
 ### Changed
 
+- Show the header on a phone (up to 650 px wide) as one row: the menu button, the title, a dot
+  for the save state, **Commit…** as an icon and **More actions**. **More actions** opens a menu
+  with **New**, **Export** and, for administrators, **Admin**. A save that needs action keeps its
+  words beside the dot. Wider windows are unchanged.
 - Show the metric filters (Group by, Type, Status, Owner, Governed only) beside the search box
   again instead of behind a Filters dialog, and show a metric's Rules and SQL preview open in its
   detail instead of closed behind Show.
@@ -48,6 +52,8 @@ not configure a production deployment.
 - ODCS property rows edit the logical type and the Required, Unique and Primary key flags in the
   table again, with physical type and tags in columns of their own; **Edit** keeps the rest.
 - The ODCS Contract page shows team and roles on the page again instead of behind a count button.
+- The graph no longer loses its position and background when Admin opens while the graph is
+  refitting to a new size.
 - Catalog cards show an entity's whole name again, wrapping long names such as
   CommodityClassification between their words instead of cutting them with an ellipsis.
 - Open the whole-model graph on every entity by name in the Network layout, as before, instead of

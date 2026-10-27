@@ -21,20 +21,26 @@ export async function headerTitleProblems(page: Page, width: number): Promise<st
     const found: string[] = [];
     const title = document.querySelector<HTMLElement>('.workspace-title h1');
     if (!title?.getAttribute('title')) found.push('the file title has no tooltip');
+    // The phone header cuts a long title with an ellipsis and keeps the full text in the tooltip.
+    const cutByEllipsis = !!title && getComputedStyle(title).textOverflow === 'ellipsis';
     if (
       title &&
+      !cutByEllipsis &&
       (title.scrollWidth > title.clientWidth + 1 || title.scrollHeight > title.clientHeight + 1)
     ) {
       found.push('the file title is clipped');
     }
-    for (const button of document.querySelectorAll<HTMLElement>('.header-actions button')) {
+    for (const button of document.querySelectorAll<HTMLElement>(
+      '.header-actions button, .header-phone-actions button',
+    )) {
       const drawn = button.querySelector('.action-label');
       const hidden = !drawn || getComputedStyle(drawn).position === 'absolute';
       const hasTooltip = !!button.getAttribute('title');
       if (hidden && !hasTooltip) found.push(`an icon-only header button has no tooltip`);
     }
     const pill = document.querySelector<HTMLElement>('.save-state-text');
-    if (pill) {
+    // The phone header draws only a dot, so there is no pill text to shorten.
+    if (pill && !pill.closest('.save-dot')) {
       const short = getComputedStyle(pill, '::after').content;
       const drawsShort = short !== 'none' && short !== 'normal';
       if (viewport < 1500 && !drawsShort) found.push('the save state is not shortened');
