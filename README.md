@@ -557,6 +557,16 @@ canonical browser suites, image build/scan/SBOM, container checks and offline pi
 Tests use disposable workspaces, local Git remotes and mock identity providers, never your real
 data or a real Azure/Entra tenant. The optional Keycloak compatibility suite is separate.
 
+When the published history has been rewritten, update an existing clone with:
+
+```sh
+git fetch --force --tags origin
+git reset --keep @{upstream}
+```
+
+`--keep` moves the current branch to its rewritten upstream and keeps uncommitted edits. It stops
+without changing anything if one of those edits is in a file the rewrite also changed.
+
 [The development guide](docs/development.md) contains the browser-suite catalog, targeted commands,
 port selection, captures, mutation checks, quality limits and contributor rules. Live telemetry
 and real-tenant deployment acceptance require the separate operator checklist.
