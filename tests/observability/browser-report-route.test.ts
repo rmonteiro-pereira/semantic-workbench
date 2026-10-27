@@ -3,7 +3,7 @@ import { afterEach, beforeEach, expect, test } from 'bun:test';
 import { createAccessControl } from '../../src/server/auth/authorize';
 import { createHandler } from '../../src/server/handler';
 import { addLogSink, configureLogging, type LogRecord } from '../../src/server/observability/log';
-import { MAX_REPORT_BODY_BYTES } from '../../src/observability/browser-report';
+import { MAX_REPORT_BODY_BYTES } from '../../src/shared/observability/browser-report';
 import { accessFixture, person } from '../auth/access-fixture';
 import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 import { testWorkspace } from '../helpers/temp-data-dir';

@@ -2,7 +2,7 @@
 // Browser harness for tests/modal.test.tsx (bundled with Bun.build, run in Chromium).
 import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Modal } from '../../src/projects/Modal';
+import { Modal } from '../../src/app/projects/Modal';
 function App() {
   const [open, setOpen] = useState(false);
   const [log, setLog] = useState<string[]>([]);

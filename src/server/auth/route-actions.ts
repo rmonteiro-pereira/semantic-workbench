@@ -1,5 +1,5 @@
 // Maps HTTP entry points to the access boundary before any route can run.
-import type { Action } from './actions';
+import type { Action } from '../../shared/auth/actions';
 import type { ResourceRef } from './resource';
 import { decodeSegment, decodePath } from '../request';
 

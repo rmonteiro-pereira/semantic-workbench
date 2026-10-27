@@ -3,7 +3,7 @@
 import { readFileSync } from 'node:fs';
 
 // The image ships both API and browser source under src/, so both use the same theme file.
-const THEME_FILE = new URL('../../theme/theme.css', import.meta.url);
+const THEME_FILE = new URL('../../shared/theme/theme.css', import.meta.url);
 
 // A centred card on the workbench background. Every colour is a token from the theme file.
 const AUTH_LAYOUT =

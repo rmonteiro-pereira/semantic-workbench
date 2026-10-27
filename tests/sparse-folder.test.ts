@@ -4,7 +4,7 @@
 import { expect, test } from 'bun:test';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { checkRepositoryFolder } from '../src/scm/repository-folder';
+import { checkRepositoryFolder } from '../src/shared/scm/repository-folder';
 import { createGit } from '../src/server/projects/git';
 import {
   conePathspecs,

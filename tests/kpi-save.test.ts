@@ -10,10 +10,10 @@ import {
   allowedStatuses,
   writeExtension,
   extensionOf,
-} from '../src/edit/item-model';
-import { findReferences } from '../src/edit/references';
-import { readMetricExtension, VENDOR } from '../src/metrics/extension';
-import { itemValue } from '../src/edit/yaml-patch';
+} from '../src/shared/edit/item-model';
+import { findReferences } from '../src/app/edit/references';
+import { readMetricExtension, VENDOR } from '../src/shared/metrics/extension';
+import { itemValue } from '../src/shared/edit/yaml-patch';
 // A metric save updates the semantic model and inserts one sorted mapping binding in a single
 // journaled operation.
 const api = (
@@ -285,7 +285,7 @@ test('dependents of a KPI are listed: metrics that use it and its binding', () =
   expect(labels).toContain('metric binding of total_gla');
   expect(existsSync('data')).toBeDefined();
 });
-import { expressionFor, extensionFor, type Draft } from '../src/metrics/metric-draft';
+import { expressionFor, extensionFor, type Draft } from '../src/app/metrics/metric-draft';
 test('the wizard writes the formula once, as the expression; the extension names inputs and rules', () => {
   const d: Draft = {
     measures: 'Property',

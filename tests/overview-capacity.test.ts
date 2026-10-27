@@ -6,7 +6,7 @@ import {
   textSizesAt,
   layoutNeedsAreaCards,
   modelCardHeight,
-} from '../src/graph/overview-capacity';
+} from '../src/app/graph/overview-capacity';
 
 const phone = { width: 370, height: 330 };
 const laptop = { width: 950, height: 500 };

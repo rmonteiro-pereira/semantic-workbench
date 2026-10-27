@@ -1,6 +1,6 @@
 // Tests which cards open whole in the first view of the lineage canvas.
 import { test, expect } from 'bun:test';
-import { planFirstView } from '../src/odcs/lineage-view';
+import { planFirstView } from '../src/app/odcs/lineage-view';
 
 // customers -> orders -> order_lines -> metric, each 200 tall.
 const heights = new Map([

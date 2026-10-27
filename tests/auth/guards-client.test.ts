@@ -1,7 +1,7 @@
 // The browser's governance controls follow the same rules as the server's guards.
 import { expect, test } from 'bun:test';
-import { approvalControl, isProtected, ownsMetric } from '../../src/auth/guards-client';
-import type { Me } from '../../src/auth/useMe';
+import { approvalControl, isProtected, ownsMetric } from '../../src/app/auth/guards-client';
+import type { Me } from '../../src/app/auth/useMe';
 
 const bob: Me = {
   mode: 'server',

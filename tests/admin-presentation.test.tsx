@@ -5,7 +5,7 @@ import { DryRunResult } from '../src/app/admin/ReviewChange';
 import { canOpenAdmin } from '../src/app/admin/AdminLauncher';
 import { grantScope } from '../src/app/admin/GrantForm';
 import { RolePermissions } from '../src/app/admin/RolePermissions';
-import type { Me } from '../src/auth/useMe';
+import type { Me } from '../src/app/auth/useMe';
 import builtin from '../policies/builtin-roles.json';
 import { decisionLabel } from '../src/app/admin/AccessCheckSection';
 import { inUseMessage } from '../src/app/admin/ReviewChange';

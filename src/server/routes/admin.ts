@@ -5,7 +5,7 @@ import type { HandlerOptions } from '../auth/middleware';
 import { requestScope } from '../auth/request-scope';
 import { AdminConfigError, withSettingsDefaults } from '../auth/admin-repo';
 import { hypotheticalPrincipal } from '../auth/authorize';
-import { isAction, ACTIONS, LEVELS, type Level } from '../auth/actions';
+import { isAction, ACTIONS, LEVELS, type Level } from '../../shared/auth/actions';
 import { roleSource } from '../auth/grants';
 import {
   validatePolicies,

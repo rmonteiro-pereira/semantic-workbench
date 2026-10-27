@@ -4,7 +4,7 @@ import {
   initialDocumentMode,
   largeDocumentThreshold,
   resolveDocumentMode,
-} from '../src/editor/documentMode';
+} from '../src/app/editor/documentMode';
 
 test('Opening a document uses the strict size threshold', () => {
   expect(initialDocumentMode(largeDocumentThreshold)).toBe(false);

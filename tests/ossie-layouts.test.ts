@@ -1,8 +1,8 @@
 // Tests equivalent parsing of split and consolidated Ossie documents.
 import { test, expect } from 'bun:test';
 import { parse, stringify } from 'yaml';
-import { inspect } from '../src/core/model';
-import { validateInput } from '../src/validation/input';
+import { inspect } from '../src/shared/core/model';
+import { validateInput } from '../src/shared/validation/input';
 import { buildContext, agentCatalog } from '../src/server/agent/runtime';
 import { projectMetrics } from '../src/server/agent/explain';
 // Both official Ossie layouts: split files and the consolidated file whose ontology_mappings embed

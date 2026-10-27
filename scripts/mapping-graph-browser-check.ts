@@ -3,9 +3,9 @@ import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Page } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { agentCatalog, buildContext } from '../src/server/agent/runtime';
-import { buildMappingGraph, type MappingGraph } from '../src/mappings/mapping-graph';
-import { lineagePierce } from '../src/odcs/lineage-pierce';
-import { selectionNodes } from '../src/odcs/lineage';
+import { buildMappingGraph, type MappingGraph } from '../src/app/mappings/mapping-graph';
+import { lineagePierce } from '../src/app/odcs/lineage-pierce';
+import { selectionNodes } from '../src/app/odcs/lineage';
 import { LOCAL_READER } from '../src/server/projects/reader';
 // Checks rendered bindings against the resolver, including selection, filters and warnings.
 // Screenshots use /tmp/workbench-mapping-graph-*.png.

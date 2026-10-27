@@ -2,9 +2,9 @@
 // of truth; the SQLite cache can be rebuilt.
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { dirname, join, posix } from 'node:path';
-import { validateInput } from '../../validation/input';
-import { InputError, MAX_INPUT_BYTES, type Issue } from '../../validation/diagnostics';
-import { exampleSet } from '../../projects/examples';
+import { validateInput } from '../../shared/validation/input';
+import { InputError, MAX_INPUT_BYTES, type Issue } from '../../shared/validation/diagnostics';
+import { exampleSet } from '../../shared/projects/examples';
 import { atomicWrite, atomicWriteJson, decode, encode, readJsonFile, sha256 } from './atomic';
 import { createCache, type Cache } from './cache';
 import { createEvents, type EventTags } from './events';

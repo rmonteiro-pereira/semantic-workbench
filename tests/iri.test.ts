@@ -1,10 +1,10 @@
 // Tests resource identifiers and namespace resolution.
 import { test, expect } from 'bun:test';
 import { parse, stringify } from 'yaml';
-import { validateInput } from '../src/validation/input';
-import { inspect } from '../src/core/model';
-import { modelOverview } from '../src/graph/overview';
-import { expandIri, namespaceOf } from '../src/validation/iri';
+import { validateInput } from '../src/shared/validation/input';
+import { inspect } from '../src/shared/core/model';
+import { modelOverview } from '../src/app/graph/overview';
+import { expandIri, namespaceOf } from '../src/shared/validation/iri';
 import { buildContext, type StoredDocument } from '../src/server/agent/runtime';
 const uriSource = await Bun.file('tests/fixtures/issue-2/uri.ontology.yaml').text();
 const iriSource = uriSource.replaceAll('uri:', 'iri:');

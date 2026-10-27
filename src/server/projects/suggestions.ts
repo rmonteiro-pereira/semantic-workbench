@@ -1,9 +1,9 @@
 // Suggests project moves from exact references, shared IRIs, and matching physical sources. Files
 // move only after the user accepts a suggestion.
 import { posix } from 'node:path';
-import { validateInput } from '../../validation/input';
-import { isMapping } from '../../mappings/mapping-schema';
-import { documentKeys } from '../../core/references';
+import { validateInput } from '../../shared/validation/input';
+import { isMapping } from '../../shared/mappings/mapping-schema';
+import { documentKeys } from '../../shared/core/references';
 import { sha256 } from './atomic';
 /** Names, references, IRIs, and physical sources used as grouping evidence. */
 export type FileFacts = {

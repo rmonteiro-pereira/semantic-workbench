@@ -1,5 +1,5 @@
 // Carries additional target decisions back to the request boundary for a single audit record.
-import type { Action } from './actions';
+import type { Action } from '../../shared/auth/actions';
 import type { ResourceRef, DecisionContext } from './resource';
 import { requestScope } from './request-scope';
 import { WriteAccessError } from './write-access-error';

@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { expansionViewport } from '../src/graph/expansion-viewport';
+import { expansionViewport } from '../src/app/graph/expansion-viewport';
 
 const pane = { width: 1000, height: 600 };
 

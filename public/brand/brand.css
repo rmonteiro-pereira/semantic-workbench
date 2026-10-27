@@ -1,6 +1,6 @@
 /* Brand overrides. This default changes nothing.
 
-   Put only theme tokens here: custom properties from src/theme.css, under :root, under
+   Put only theme tokens here: custom properties from src/shared/theme/theme.css, under :root, under
    :root[data-theme='dark'], or inside the prefers-color-scheme blocks. Anything else is dropped
    when the server starts.
 

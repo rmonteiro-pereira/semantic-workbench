@@ -18,7 +18,7 @@ import {
   type NormalizedPrincipal,
   type Principal,
 } from './principal';
-import { ACTIONS, levelNumber, type Action } from './actions';
+import { ACTIONS, levelNumber, type Action } from '../../shared/auth/actions';
 import { matchesSegmentGlob, matchesCedarLike } from './path-rules';
 import type { ClassificationSettings } from './guards';
 

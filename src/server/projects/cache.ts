@@ -2,7 +2,7 @@
 // are recreated from source files.
 import { Database } from 'bun:sqlite';
 import { rmSync } from 'node:fs';
-import type { Issue } from '../../validation/diagnostics';
+import type { Issue } from '../../shared/validation/diagnostics';
 /** Schema version required for the rebuildable SQLite cache. */
 export const CACHE_VERSION = 4;
 /** The copy id of the published state, which local mode and Viewers read. */

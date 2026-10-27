@@ -36,8 +36,11 @@ function themeCheckCase(candidate: any) {
   const leaks = candidate.violationsIn('src/panel.css', '.a {\n  color: #fff;\n}');
   assert.deepEqual(leaks, [{ file: 'src/panel.css', line: 2, literal: '#fff' }]);
   assert.deepEqual(candidate.violationsIn('src/panel.css', '.a { color: var(--color-text); }'), []);
-  assert.deepEqual(candidate.violationsIn('src/theme/theme.css', '.a { color: #fff; }'), []);
-  assert.deepEqual(candidate.violationsIn('src/theme/theme-palette.ts', "const a = '#fff';"), []);
+  assert.deepEqual(candidate.violationsIn('src/shared/theme/theme.css', '.a { color: #fff; }'), []);
+  assert.deepEqual(
+    candidate.violationsIn('src/app/theme/theme-palette.ts', "const a = '#fff';"),
+    [],
+  );
   assert.deepEqual(candidate.violationsIn('src/data.json', '{"color": "#fff"}'), []);
   assert.equal(candidate.runThemeCheck(['tests/fixtures/theme/leaky.css']), 1);
   assert.equal(candidate.runThemeCheck(['tests/fixtures/theme/clean.css']), 0);
@@ -49,9 +52,9 @@ function themeFilesCase(candidate: any) {
   assert.equal(candidate.languageOf('index.html'), 'html');
   assert.equal(candidate.languageOf('src/data.json'), null);
   assert.equal(candidate.languageOf('src/generated/validators.ts'), null);
-  assert.equal(candidate.isThemeFile('src/theme/theme.css'), true);
-  assert.equal(candidate.isThemeFile('src/theme/theme-palette.ts'), true);
-  assert.equal(candidate.isThemeFile('src/style.css'), false);
+  assert.equal(candidate.isThemeFile('src/shared/theme/theme.css'), true);
+  assert.equal(candidate.isThemeFile('src/app/theme/theme-palette.ts'), true);
+  assert.equal(candidate.isThemeFile('src/app/style.css'), false);
   const files = candidate.themedFiles(['tests/fixtures/theme']);
   assert.deepEqual(files.sort(), [
     'tests/fixtures/theme/clean.css',
@@ -61,7 +64,7 @@ function themeFilesCase(candidate: any) {
 }
 
 function codemodCase(candidate: any) {
-  const tokens = candidate.readTokens(readFileSync('src/theme/theme.css', 'utf8'));
+  const tokens = candidate.readTokens(readFileSync('src/shared/theme/theme.css', 'utf8'));
   const surface = candidate.mapLiteral('#fff', 'background', tokens);
   assert.equal(surface.token, '--color-surface');
   assert.equal(candidate.mapLiteral('#fff', 'color', tokens).token, '--color-on-accent');

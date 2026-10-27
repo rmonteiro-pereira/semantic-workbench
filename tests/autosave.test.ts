@@ -8,7 +8,7 @@ import {
   saveStateShortLabel,
   type AutosaveEvent,
   type AutosaveState,
-} from '../src/projects/autosave';
+} from '../src/app/projects/autosave';
 // The autosave state machine: pending → saving → saved/stale/failed/invalid, one save in flight,
 // queued text saved on the returned hash, cancel on delete/move, wait for Git.
 const run = (events: AutosaveEvent[], state: AutosaveState = initialAutosave) => {

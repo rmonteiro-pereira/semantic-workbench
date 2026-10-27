@@ -10,7 +10,7 @@ import {
   MAX_NAME_LENGTH,
   MAX_REPORTS_PER_REQUEST,
   scrubErrorMessage,
-} from '../../src/observability/browser-report';
+} from '../../src/shared/observability/browser-report';
 
 const error = { kind: 'error', name: 'TypeError', message: 'x is not a function' } as const;
 const operation = { kind: 'operation', operation: 'save', durationMs: 2500 } as const;

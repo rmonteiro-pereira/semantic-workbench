@@ -3,7 +3,7 @@
 import { Database } from 'bun:sqlite';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
-import { exampleForFilename } from '../../projects/examples';
+import { exampleForFilename } from '../../shared/projects/examples';
 import { atomicWrite, atomicWriteJson, sha256 } from './atomic';
 import type { Git } from './git';
 import type { Journal } from './journal';

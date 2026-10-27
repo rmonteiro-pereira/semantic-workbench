@@ -1,6 +1,6 @@
 // A refused write target. It lives apart from authorizeWrite so the content guards can extend it
 // without importing the request scope, which itself builds those guards.
-import type { Action } from './actions';
+import type { Action } from '../../shared/auth/actions';
 import type { Decision, ResourceRef } from './resource';
 
 /** A refused target, retained so the middleware audits the actual failed decision. */

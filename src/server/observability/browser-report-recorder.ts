@@ -5,7 +5,7 @@ import {
   OPERATION_BUDGETS_MS,
   scrubErrorMessage,
   type BrowserReport,
-} from '../../observability/browser-report';
+} from '../../shared/observability/browser-report';
 import { log } from './log';
 import { recordBrowserError, recordBrowserOperation } from './metrics';
 

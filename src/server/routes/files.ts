@@ -1,5 +1,5 @@
 // Serves project files and validates save requests against their original content hashes.
-import { MAX_INPUT_BYTES } from '../../validation/diagnostics';
+import { MAX_INPUT_BYTES } from '../../shared/validation/diagnostics';
 import { requestReader } from '../auth/request-scope';
 import { decodeSegment, decodePath, readJson } from '../request';
 import type { Route } from './http';

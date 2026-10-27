@@ -1,6 +1,6 @@
 // Tests neighborhood reachability and directional lineage paths.
 import { test, expect } from 'bun:test';
-import { buildLineage, around, closure, findAssets, selectionNodes } from '../src/odcs/lineage';
+import { buildLineage, around, closure, findAssets, selectionNodes } from '../src/app/odcs/lineage';
 const doc = (n: string, props: any[], extra: any = {}) => ({
   name: n,
   physicalName: 'db.' + n,

@@ -1,9 +1,9 @@
 // Tests document validation and actionable findings.
 import { test, expect } from 'bun:test';
-import { validateInput } from '../src/validation/input';
-import { inspect } from '../src/core/model';
-import { InputError, MAX_INPUT_BYTES } from '../src/validation/diagnostics';
-import { inheritanceCycle } from '../src/validation/validation';
+import { validateInput } from '../src/shared/validation/input';
+import { inspect } from '../src/shared/core/model';
+import { InputError, MAX_INPUT_BYTES } from '../src/shared/validation/diagnostics';
+import { inheritanceCycle } from '../src/shared/validation/validation';
 import { readdir } from 'node:fs/promises';
 const ontology = {
   name: 'Test',

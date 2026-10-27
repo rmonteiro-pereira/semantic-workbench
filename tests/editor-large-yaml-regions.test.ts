@@ -4,8 +4,8 @@ import { readFileSync } from 'node:fs';
 import { Text } from '@codemirror/state';
 import { LanguageSupport } from '@codemirror/language';
 import { yamlLanguage } from '@codemirror/lang-yaml';
-import { languageFor } from '../src/editor/languages';
-import { findYamlRegions, visibleYamlRegions } from '../src/editor/viewportYaml';
+import { languageFor } from '../src/app/editor/languages';
+import { findYamlRegions, visibleYamlRegions } from '../src/app/editor/viewportYaml';
 
 function fullSqlRanges(source: string) {
   const support = languageFor('YAML');

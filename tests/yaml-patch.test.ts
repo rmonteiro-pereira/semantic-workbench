@@ -1,9 +1,14 @@
 // Tests YAML item edits that preserve surrounding bytes.
 import { test, expect } from 'bun:test';
 import { readFileSync } from 'node:fs';
-import { applyPatches } from '../src/editor/patch';
-import { valuePatches, insertPatches, removePatches, itemValue } from '../src/edit/yaml-patch';
-import { validateInput } from '../src/validation/input';
+import { applyPatches } from '../src/shared/editor/patch';
+import {
+  valuePatches,
+  insertPatches,
+  removePatches,
+  itemValue,
+} from '../src/shared/edit/yaml-patch';
+import { validateInput } from '../src/shared/validation/input';
 // YAML item edits change only the edited node's text: comments, anchors, key order, quoting and
 // indentation elsewhere keep their bytes.
 const set = (src: string, path: (string | number)[], value: any) =>
@@ -169,8 +174,8 @@ import {
   setField,
   fragmentIssues,
   fragmentValue,
-} from '../src/edit/fragment';
-import { fieldsFor } from '../src/edit/item-model';
+} from '../src/app/edit/fragment';
+import { fieldsFor } from '../src/shared/edit/item-model';
 test('the item editor edits the item fragment and puts it back in place', () => {
   const sem = readFileSync('public/examples/mall/mall.semantic.yaml', 'utf8');
   const metrics = itemValue(sem, ['metrics']) as any[];

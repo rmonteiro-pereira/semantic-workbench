@@ -1,12 +1,12 @@
 // Builds evidence-backed semantic context and SQL plans from stored definitions. Plans preserve
 // governed formulas and never execute SQL.
-import { OSSIE_BUILTINS, builtinConcept } from '../../mappings/ossie-builtins';
-import { inspect } from '../../core/model';
-import { rdfSyntax } from '../../validation/rdf';
-import { isMapping } from '../../mappings/mapping-schema';
-import { metricDependencies as syntaxDependencies } from '../../metrics/deps';
-import { readKpiBindings, workbenchEntry } from '../../metrics/extension';
-import { resolveBindings, type ConceptRef } from '../../metrics/bindings';
+import { OSSIE_BUILTINS, builtinConcept } from '../../shared/mappings/ossie-builtins';
+import { inspect } from '../../shared/core/model';
+import { rdfSyntax } from '../../shared/validation/rdf';
+import { isMapping } from '../../shared/mappings/mapping-schema';
+import { metricDependencies as syntaxDependencies } from '../../shared/metrics/deps';
+import { readKpiBindings, workbenchEntry } from '../../shared/metrics/extension';
+import { resolveBindings, type ConceptRef } from '../../shared/metrics/bindings';
 import {
   columnRefs,
   parseExpression,

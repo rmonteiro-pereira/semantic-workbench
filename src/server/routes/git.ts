@@ -13,7 +13,7 @@ import { authorizeWrite } from '../auth/write-access';
 import { existsSync, readFileSync } from 'node:fs';
 import { decodeSegment, readJson } from '../request';
 import { decode, sha256 } from '../projects/atomic';
-import { appendIgnore } from '../../scm/gitignore';
+import { appendIgnore } from '../../shared/scm/gitignore';
 import type { Route } from './http';
 import type { HandlerOptions } from '../auth/middleware';
 import { BadRequestError } from '../projects/errors';
