@@ -289,6 +289,7 @@ function App() {
             setSidebarHidden={sidebar.setSidebarHidden}
             model={validationState.model}
             current={current}
+            projects={projects}
             newItems={creationMenu.newItems}
             download={exportSource}
             hasSource={!!source}

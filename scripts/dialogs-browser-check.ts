@@ -4,7 +4,7 @@ import { chromium, expect, type Page } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { LOCAL_READER } from '../src/server/projects/reader';
 import { menuSurfaceProblems } from './helpers/menu-geometry';
-import { isPhoneHeader, openNewMenu } from './helpers/header';
+import { openNewMenu } from './helpers/header';
 // Dialogs must fit six viewports, trap focus and return focus to their trigger after Escape.
 // Screenshots use /tmp/workbench-dialog-*.png.
 const api = await startIsolatedApi();
@@ -88,8 +88,8 @@ const entries: Entry[] = [
       await openNewMenu(p);
     },
     trigger: p => p.getByRole('menuitem', { name: 'Add concept…', exact: true }),
-    // On a phone New sits inside More actions, which gets the focus back.
-    returns: p => header(p, isPhoneHeader(p) ? 'More actions' : 'New'),
+    // New sits inside More actions, which gets the focus back.
+    returns: p => header(p, 'More actions'),
   },
   {
     name: 'Grouping suggestions',

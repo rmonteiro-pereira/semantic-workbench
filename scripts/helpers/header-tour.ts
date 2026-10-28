@@ -1,6 +1,7 @@
 // The header and the Add project menu in each state a person reaches, for the responsive suite and
 // the screenshot tool.
 import { expect, type Page } from '@playwright/test';
+import { tokenColour } from './color-literals';
 import { exportFile, headerProblems, isPhoneHeader, openNewMenu } from './header';
 import { showSidebar, type Screen } from './screen-tour';
 
@@ -275,6 +276,14 @@ function themeControlProblems(): string[] {
   return found;
 }
 
+/** The focused control shows the theme's focus colour, not the browser's black ring. */
+function focusRingProblems(focusColour: string): string[] {
+  const focused = document.activeElement as HTMLElement;
+  const style = getComputedStyle(focused);
+  if (style.outlineStyle === 'solid' && style.outlineColor === focusColour) return [];
+  return [`focus ring is ${style.outlineStyle} ${style.outlineColor}`];
+}
+
 /** Opens Settings and lists where its panel sits: just past the sidebar, level with the row. */
 export async function settingsPanelProblems(page: Page): Promise<string[]> {
   await showSidebar(page);
@@ -310,6 +319,8 @@ export async function settingsPanelProblems(page: Page): Promise<string[]> {
   await page.keyboard.press('Escape');
   await expect(panel).toHaveCount(0);
   await expect(button).toBeFocused();
+  const focusColour = await page.evaluate(tokenColour, '--color-focus');
+  const ringProblems = await page.evaluate(focusRingProblems, focusColour);
   // The panel is drawn at the end of the page. Tab past its last control closes it and returns
   // to the Settings row, so focus never runs off the page or out of the phone drawer.
   await button.click();
@@ -317,7 +328,7 @@ export async function settingsPanelProblems(page: Page): Promise<string[]> {
   await page.keyboard.press('Tab');
   await expect(panel).toHaveCount(0);
   await expect(button).toBeFocused();
-  return [...themeProblems, ...problems];
+  return [...themeProblems, ...problems, ...ringProblems];
 }
 
 /** Runs New and Export from the More actions menu and checks that each one works. */

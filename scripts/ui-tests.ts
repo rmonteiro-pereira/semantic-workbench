@@ -8,7 +8,7 @@ import { inspect } from '../src/core/model';
 import { readFile } from 'node:fs/promises';
 import { editorValue, expectEditorValue, fillEditor } from './helpers/code-editor';
 import { example } from './helpers/examples';
-import { exportFile } from './helpers/header';
+import { expectModelName, exportFile } from './helpers/header';
 import { closeComposer, openComposer } from './helpers/query-composer';
 import { expectResolvedBindings } from './helpers/mapping-bindings';
 // Isolated data root: the UBL example project plus commerce.owl imported as its own project.
@@ -350,7 +350,7 @@ try {
       await expectEditorValue(dialog.getByLabel('Repair definition'), good);
       await dialog.getByRole('button', { name: 'Import repaired files' }).click();
       await expect(dialog).toHaveCount(0);
-      await expect(page.locator('h1')).toHaveText('Repaired');
+      await expectModelName(page, 'Repaired');
       if (store.list().length !== before + 2) throw Error('Repaired batch not saved');
       const saved = store.list().find((d: any) => d.filename === 'batch-good.yaml') as any;
       if (saved.source !== good) throw Error('Valid batch file changed');

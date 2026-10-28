@@ -1,5 +1,6 @@
 // Inspects the running workspace while refusing requests that could change it.
 import { appUrl } from './helpers/base-url';
+import { exportFile } from './helpers/header';
 import { chromium } from '@playwright/test';
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1905, height: 980 } });
@@ -30,10 +31,7 @@ await page.getByRole('button', { name: 'ubl.ontology.yaml', exact: true }).click
 await page.waitForTimeout(600);
 console.log('REOPEN NODES', await page.locator('.react-flow__node').count());
 await page.screenshot({ path: '/tmp/workbench-live-reopen.png' });
-const [download] = await Promise.all([
-  page.waitForEvent('download'),
-  page.getByRole('button', { name: 'Export', exact: true }).click(),
-]);
+const [download] = await Promise.all([page.waitForEvent('download'), exportFile(page)]);
 const downloaded = await Bun.file((await download.path())!).text();
 const documents = await (await fetch('http://127.0.0.1:4310/api/documents')).json();
 const original = documents.find((d: any) => d.filename === 'ubl.ontology.yaml');

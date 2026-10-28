@@ -8,7 +8,7 @@ import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { editorSelection, expectEditorValue, fillEditor } from './helpers/code-editor';
 import { inspect } from '../src/core/model';
 import { groupRelationships } from '../src/graph/graph-view';
-import { exportFile } from './helpers/header';
+import { expectModelName, exportFile } from './helpers/header';
 import { LOCAL_READER } from '../src/server/projects/reader';
 
 const fixtures = [
@@ -179,7 +179,7 @@ async function attachedFlights() {
 
 try {
   await page.goto(appUrl());
-  await expect(page.locator('h1')).toHaveText('Flights');
+  await expectModelName(page, 'Flights');
   await graphReady();
   await check(
     'Flights grouping modes state provenance honestly and retain all graph connections',
@@ -269,7 +269,7 @@ try {
       await page.getByRole('button', { name: 'ubl.ontology.yaml', exact: true }).click();
       await page.getByRole('button', { name: 'flights.ontology.yaml', exact: true }).click();
       await page.reload();
-      await expect(page.locator('h1')).toHaveText('Flights');
+      await expectModelName(page, 'Flights');
       await page.locator('.tabs').getByRole('button', { name: 'Overview', exact: true }).click();
       await expect(custom).toBeVisible();
       await expect(custom.locator('[data-entity-id="' + airport.id + '"]')).toBeVisible();
@@ -281,7 +281,7 @@ try {
     'UBL grouping provenance remains explicit and source exports remain unchanged',
     async () => {
       await page.getByRole('button', { name: 'ubl.ontology.yaml', exact: true }).click();
-      await expect(page.locator('h1')).toContainText('UBL');
+      await expectModelName(page, /UBL/);
       await page.locator('.tabs').getByRole('button', { name: 'Overview', exact: true }).click();
       const mode = page.getByLabel('Group model by', { exact: true });
       await mode.selectOption('example');

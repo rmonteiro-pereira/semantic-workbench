@@ -9,6 +9,7 @@ import { join } from 'node:path';
 import { chromium, expect, type Browser } from '@playwright/test';
 import { freeAuthPort, startAuthApi } from './auth-environment';
 import { check } from './helpers/sign-in';
+import { expectNoFileOpen } from './helpers/header';
 import { loadBrandBundle, setActiveBrand } from '../src/server/brand/bundle';
 import { createAuthRoutes } from '../src/server/routes/auth';
 import { serveStatic } from '../src/server/static';
@@ -48,20 +49,23 @@ async function customBrandChecks(browser: Browser, url: string) {
   try {
     await page.goto(url);
     await page.locator('.workspace-header').waitFor();
-    await check('the header, title and favicon come from the brand folder', async () => {
-      await expect(page).toHaveTitle(BRAND_NAME);
-      await expect(page.locator('.workspace-title h1')).toHaveText(BRAND_NAME);
-      const logo = page.locator('.workspace-sidebar .brand img');
-      await expect(logo).toHaveAttribute('alt', BRAND_NAME);
-      const width = await logo.evaluate((image: HTMLImageElement) =>
-        image.decode().then(() => image.naturalWidth),
-      );
-      assert.equal(width, CUSTOM_LOGO_WIDTH);
-      const icon = await page.locator('link[rel="icon"]').getAttribute('href');
-      assert.equal(icon, '/brand/favicon.svg');
-      const favicon = await page.request.get(url + icon!);
-      assert.match(await favicon.text(), new RegExp(ACCENT));
-    });
+    await check(
+      'the window title, sidebar logo and favicon come from the brand folder',
+      async () => {
+        await expect(page).toHaveTitle(BRAND_NAME);
+        await expectNoFileOpen(page);
+        const logo = page.locator('.workspace-sidebar .brand img');
+        await expect(logo).toHaveAttribute('alt', BRAND_NAME);
+        const width = await logo.evaluate((image: HTMLImageElement) =>
+          image.decode().then(() => image.naturalWidth),
+        );
+        assert.equal(width, CUSTOM_LOGO_WIDTH);
+        const icon = await page.locator('link[rel="icon"]').getAttribute('href');
+        assert.equal(icon, '/brand/favicon.svg');
+        const favicon = await page.request.get(url + icon!);
+        assert.match(await favicon.text(), new RegExp(ACCENT));
+      },
+    );
     await check('brand.css overrides the accent token and nothing else', async () => {
       const accent = await page.evaluate(() =>
         getComputedStyle(document.documentElement).getPropertyValue('--color-accent').trim(),

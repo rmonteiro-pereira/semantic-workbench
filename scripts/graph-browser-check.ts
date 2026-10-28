@@ -10,6 +10,7 @@ import { inspect } from '../src/core/model';
 import { neighborhood, projectModel } from '../src/graph/graph-view';
 import { boundedClosure, PIERCE_BUDGET } from '../src/graph/pierce';
 import { neighbours, registerSet, canvasOf } from '../src/graph/expansion';
+import { expectModelName } from './helpers/header';
 // Real-browser check of the full graph and the neighborhood walk on the UBL, shopping center and
 // 1,000-entity scale models, on an isolated data root. Screenshots of every step are written to
 // /tmp/workbench-neighborhood-*.png.
@@ -298,7 +299,7 @@ try {
         .poll(async () => (await neighborhoodState(page)).center)
         .toBe(id(mall, 'Property'));
       await page.getByRole('button', { name: /Continue in mall\.mapping\.yaml/ }).click();
-      await expect(page.locator('h1')).toContainText('mappings');
+      await expectModelName(page, /mappings/);
       await expect(page.locator('.react-flow__node.center')).toContainText('Property');
       await expect(
         page.getByRole('navigation', { name: 'Walk' }).locator('[aria-current=step]'),
@@ -308,7 +309,7 @@ try {
       );
       await shot('mall-mapping');
       await page.getByRole('button', { name: 'Back', exact: true }).click();
-      await expect(page.locator('h1')).toContainText('Shopping center administration ontology');
+      await expectModelName(page, /Shopping center administration ontology/);
       await expect
         .poll(async () => (await neighborhoodState(page)).center)
         .toBe(id(mall, 'Property'));

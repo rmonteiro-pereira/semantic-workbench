@@ -6,7 +6,7 @@ import { Parser, Writer } from 'n3';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { projectDir, projectFile } from '../src/server/projects/paths';
 import { editorValue, fillEditor } from './helpers/code-editor';
-import { newItem } from './helpers/header';
+import { expectFileOpen, newItem } from './helpers/header';
 import { LOCAL_READER } from '../src/server/projects/reader';
 // RDF edits must change only the selected resource statements. Unsupported rules and edits
 // spanning other resources must be refused with a link to Source.
@@ -73,7 +73,7 @@ async function check(name: string, run: () => Promise<void>) {
 const tree = () => page.getByRole('tree', { name: 'Projects' });
 async function openFile(path: string) {
   await tree().getByRole('button', { name: path, exact: true }).first().click();
-  await expect(page.locator('h1')).not.toHaveText('Semantic Workbench');
+  await expectFileOpen(page);
 }
 const tabs = () => page.locator('.tabs');
 const editor = (name: string) => page.getByRole('dialog', { name: `Edit ${name}` });

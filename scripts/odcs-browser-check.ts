@@ -6,6 +6,7 @@ import { parse } from 'yaml';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { projectDir, projectFile } from '../src/server/projects/paths';
 import { LOCAL_READER } from '../src/server/projects/reader';
+import { expectFileOpen } from './helpers/header';
 // Contract property edits must change only the edited value. Screenshots use
 // /tmp/workbench-odcs-*.png.
 const api = await startIsolatedApi();
@@ -68,7 +69,7 @@ async function openFile(path: string, project: string) {
     .getByRole('treeitem', { name: project })
     .getByRole('button', { name: path, exact: true })
     .click();
-  await expect(page.locator('h1')).not.toHaveText('Semantic Workbench');
+  await expectFileOpen(page);
 }
 const contractTab = () => page.locator('.tabs').getByRole('button', { name: 'Contract' });
 const overview = () => page.getByRole('region', { name: 'Contract overview' });

@@ -26,7 +26,12 @@ import {
   settingsPanelProblems,
   phoneRowProblems,
 } from './helpers/header-tour';
-import { isPhoneHeader, openNewMenu } from './helpers/header';
+import {
+  disabledNewItemProblems,
+  failingSaveProblems,
+  headerContentProblems,
+} from './helpers/header-title-tour';
+import { expectFileOpen, expectModelName, isPhoneHeader, openNewMenu } from './helpers/header';
 import { treeRowProblems } from './helpers/tree-geometry';
 import { neighborhoodEdgeProblems, neighborhoodState, pickCenter } from './helpers/edge-geometry';
 import { inspect } from '../src/core/model';
@@ -150,27 +155,37 @@ async function recordPageErrors(page: Page, label: string) {
 }
 
 // The header measured with the UBL ontology open, after Admin moved into Settings. A phone used
-// two rows before the one-row phone header; wider windows must keep this geometry.
+// two rows before the one-row phone header. Wider windows keep the geometry of the one-row header
+// with New and Export inside More actions.
 const PHONE_HEADER_HEIGHT_BEFORE = 93;
+const ublSlug = api.ws
+  .documentsFor(LOCAL_READER)
+  .find(candidate => candidate.filename === 'ubl.ontology.yaml')!.project;
+const ublProject = (await api.ws.listProjects(LOCAL_READER)).find(
+  project => project.slug === ublSlug,
+)!;
+const ublHeader = {
+  fileName: 'ubl.ontology.yaml',
+  projectName: ublProject.name,
+  kind: ublModel.kind,
+};
 const DESKTOP_HEADER_GEOMETRY: Record<number, { height: number; controls: string[] }> = {
   1280: {
     height: 58,
     controls: [
       'Hide sidebar@316,11,36,36',
-      'New@887,11,73,36',
-      'Export@966,11,84,36',
-      'Save state@1062,11,90,36',
-      'Commit…@1158,11,106,36',
+      'Save state@763,32,45,16',
+      'Commit…@1115,11,107,36',
+      'More actions@1228,11,36,36',
     ],
   },
   1440: {
     height: 58,
     controls: [
       'Hide sidebar@316,11,36,36',
-      'New@1047,11,73,36',
-      'Export@1126,11,84,36',
-      'Save state@1222,11,90,36',
-      'Commit…@1318,11,106,36',
+      'Save state@763,32,45,16',
+      'Commit…@1275,11,107,36',
+      'More actions@1388,11,36,36',
     ],
   },
 };
@@ -187,8 +202,6 @@ async function checkPhoneHeader(page: Page) {
   );
   expect(height).toBeLessThan(PHONE_HEADER_HEIGHT_BEFORE);
   expect(await phoneRowProblems(page)).toEqual([]);
-  expect(await moreActionsProblems(page)).toEqual([]);
-  await moreActionsWork(page);
 }
 
 async function openPage(width: number, height: number) {
@@ -262,7 +275,7 @@ async function openPage(width: number, height: number) {
     await page.addInitScript(() =>
       document.addEventListener('DOMContentLoaded', () => {
         const style = document.createElement('style');
-        style.textContent = '.header-actions .save-state{max-width:90px!important}';
+        style.textContent = '.header-meta .save-state{max-width:90px!important}';
         document.head.append(style);
       }),
     );
@@ -281,7 +294,7 @@ async function openPage(width: number, height: number) {
       });
     });
   await page.goto(appUrl());
-  await expect(page.locator('h1')).toContainText('UBL');
+  await expectModelName(page, /UBL/);
   await expect(page.locator('.full-graph-loading')).toHaveCount(0, {
     timeout: 60_000,
   });
@@ -1789,15 +1802,16 @@ try {
           await checkPhoneHeader(headerPage);
         } else {
           // Local mode has no person menu, so the empty Account group stays hidden.
-          for (const group of ['File', 'Save and commit']) {
-            await expect(headerPage.getByRole('group', { name: group, exact: true })).toBeVisible();
-          }
-          for (const name of ['New', 'Export', 'Commit…']) {
+          for (const name of ['Commit…', 'More actions']) {
             await expect(headerPage.getByRole('button', { name, exact: true })).toBeVisible();
           }
           const before = DESKTOP_HEADER_GEOMETRY[width!];
           if (before) expect(await headerGeometry(headerPage)).toEqual(before);
         }
+        expect(await headerContentProblems(headerPage, ublHeader)).toEqual([]);
+        expect(await moreActionsProblems(headerPage)).toEqual([]);
+        await moreActionsWork(headerPage);
+        expect(await disabledNewItemProblems(headerPage)).toEqual([]);
         const saveState = headerPage.getByRole('status', {
           name: 'Save state',
           exact: true,
@@ -1814,6 +1828,21 @@ try {
       },
     );
     await headerPage.close();
+  }
+  // A save that needs action is drawn in the danger colour, on a phone and on a wide window.
+  for (const [width, height] of [
+    [390, 844],
+    [1280, 720],
+  ]) {
+    const failingPage = await openPage(width!, height!);
+    await check(
+      `header: ${width}×${height} a failing save shows in the danger colour`,
+      async () => {
+        await showScreen(failingPage, headerScreens('ubl.ontology.yaml')[0]!);
+        expect(await failingSaveProblems(failingPage)).toEqual([]);
+      },
+    );
+    await failingPage.close();
   }
   // The ODCS graph and its dialogs: whole cards, readable column names, clear lines and labels, a
   // legend, the hop row, and readable text without collisions.
@@ -1962,9 +1991,7 @@ try {
       name: 'Close workspace drawer',
     });
     await expect(closeButton).toBeVisible();
-    await expect(loadingPage.locator('.workspace-title h1')).not.toHaveText('Semantic Workbench', {
-      timeout: 30_000,
-    });
+    await expectFileOpen(loadingPage, { timeout: 30_000 });
     await loadingPage.waitForTimeout(500);
     await expect(closeButton).toBeVisible();
     await loadingPage.close();

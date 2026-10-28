@@ -1,4 +1,5 @@
 import { expect, type Page } from '@playwright/test';
+import { tokenColour } from './color-literals';
 import { geometryProblems } from './screen-tour';
 
 /** The open dialog stays in the window and holds no small, covered or colliding text. */
@@ -26,8 +27,10 @@ const PHONE_MAX_WIDTH = 699;
  * A drawer (the item editor and the metric wizard) keeps its own width.
  */
 export async function dialogStandardProblems(page: Page): Promise<string[]> {
+  const mutedText = await page.evaluate(tokenColour, '--text-muted');
+  const sunkenBackground = await page.evaluate(tokenColour, '--color-surface-sunken');
   return page.evaluate(
-    ({ widths, margin, phoneMargin, phoneMax }) => {
+    ({ widths, margin, phoneMargin, phoneMax, mutedText, sunkenBackground }) => {
       const panel = document.querySelector<HTMLElement>('dialog[open] .workbench-dialog');
       if (!panel) return [];
       const problems: string[] = [];
@@ -76,11 +79,6 @@ export async function dialogStandardProblems(page: Page): Promise<string[]> {
       if (main >= 0 && lastMain !== buttons.length - 1) {
         problems.push('the main action is not the last button');
       }
-      const probe = document.createElement('button');
-      probe.style.color = 'var(--text-muted)';
-      probe.style.backgroundColor = 'var(--color-surface-sunken)';
-      document.body.append(probe);
-      const expected = getComputedStyle(probe);
       for (const button of buttons.filter(candidate => candidate.disabled)) {
         const style = getComputedStyle(button);
         if (style.borderTopStyle !== 'dashed') {
@@ -88,11 +86,10 @@ export async function dialogStandardProblems(page: Page): Promise<string[]> {
         }
         const readable =
           style.opacity === '1' &&
-          style.color === expected.color &&
-          style.backgroundColor === expected.backgroundColor;
+          style.color === mutedText &&
+          style.backgroundColor === sunkenBackground;
         if (!readable) problems.push(`the disabled "${button.textContent}" button is faint`);
       }
-      probe.remove();
       return problems;
     },
     {
@@ -100,6 +97,8 @@ export async function dialogStandardProblems(page: Page): Promise<string[]> {
       margin: BACKDROP_MARGIN,
       phoneMargin: PHONE_BACKDROP_MARGIN,
       phoneMax: PHONE_MAX_WIDTH,
+      mutedText,
+      sunkenBackground,
     },
   );
 }

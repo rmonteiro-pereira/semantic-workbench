@@ -25,10 +25,17 @@ not configure a production deployment.
   navigation above it. **Settings** opens a panel with **Theme**, **Clear workspace** and **Admin**,
   so the Theme control, the Examples and Import buttons and the header's **Admin** button are gone.
   The examples drop their "Load" prefix, as they now sit under **Load an example**.
-- Show the header on a phone (up to 650 px wide) as one row: the menu button, the title, a dot
-  for the save state, **Commit…** as an icon and **More actions**. **More actions** opens a menu
-  with **New** and **Export**; **Admin** is under **Settings**. A save that needs action keeps its
-  words beside the dot. Wider windows are unchanged.
+- Show the header as one row at every width. The title is the open file's name (the model's long
+  name is its tooltip), with a muted line under it that reads project, kind and save state; the
+  kind badge and the save-state pill are gone, and a save that needs action turns red and
+  underlined. **Commit…** is the primary button, followed by **More actions**, whose menu holds
+  **New** and **Export**; the separate **New** and **Export** buttons are gone. **Admin** is under
+  **Settings**. With no file open the title reads "Open a file from Projects" and Commit is left
+  out. On a phone (up to 650 px wide) the row shows the file name, a dot for the save state,
+  **Commit…** as an icon and **More actions**; a save that needs action keeps its words beside
+  the dot. Below 1100 px **Commit…** is an icon on every
+  window. Keyboard focus now shows a ring in the theme's focus colour, including on the brand
+  buttons.
 - Show the metric filters (Group by, Type, Status, Owner, Governed only) beside the search box
   again instead of behind a Filters dialog, and show a metric's Rules and SQL preview open in its
   detail instead of closed behind Show.

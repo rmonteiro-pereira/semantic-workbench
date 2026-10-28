@@ -25,11 +25,14 @@ between 220 and 520 pixels; the browser remembers it. Long project and file name
 lines and retain full-name tooltips. Below 1100 pixels the sidebar becomes a drawer. A drawer
 opened while the workspace loads stays open when the initial document appears.
 
-The header groups **New**, **Export**, the save-state indicator, **Commit…**, and account actions.
-The title and icon-only controls have tooltips. On a phone (up to 650 px wide) the header is one
-row: the menu button, the title, a dot for the save state, **Commit…** as an icon and **More
-actions**, whose menu holds **New** (its items open in place, under a **Back** row) and
-**Export**. A save that needs action, such as "Not saved: 2 errors", keeps
+The header is one row at every width. Its title is the open file's name, with the model's long
+name in the tooltip; with no file open it reads "Open a file from Projects" and has no Commit
+button. Under the name, a muted line gives the project, the kind of file and the save state. A
+save that needs action, such as "Not saved: 2 errors", turns red and underlined; selecting it
+opens the findings. On the right are **Commit…** (an icon below 1100 px), **More actions** and
+the account menu. **More actions** holds **New** and **Export**; on a phone the **New** items open
+in place, under a **Back** row. On a phone (up to 650 px wide) the row shows the file name, a dot
+for the save state, **Commit…** as an icon and **More actions**; a save that needs action keeps
 its words beside the dot. Tabs that do not fit scroll sideways with edge cues; keyboard navigation
 reveals the focused tab. Model views, Source and Source Control retain separate sidebar navigation
 states.
@@ -95,10 +98,10 @@ and a changed disk version. Invalid text remains an unsaved draft that survives 
 the indicator or **Validation details** opens the findings. SQL syntax findings are warnings and
 do not block saving.
 
-The header's **Export** downloads the current open source, including an invalid unsaved draft,
-without saving or committing it. Use it to keep a separate copy before resolving a conflict or
-abandoning a draft. **Export project…** is different: its ZIP reads stored project files and
-excludes unsaved drafts.
+The **Export** entry of **More actions** downloads the current open source, including an invalid
+unsaved draft, without saving or committing it. Use it to keep a separate copy before resolving a
+conflict or abandoning a draft. **Export project…** is different: its ZIP reads stored project
+files and excludes unsaved drafts.
 
 Every save carries the SHA-256 of the source it started from. If that version is stale, the save
 is refused and a side-by-side diff offers these choices:

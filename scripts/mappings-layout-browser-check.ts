@@ -277,7 +277,10 @@ try {
           .getByRole('button', { name: 'Open Source to add bindings', exact: true })
           .click();
         await expect(page.locator('.tabs .selected')).toHaveText('Source');
-        await expect(page.locator('.workspace-title h1')).toHaveText('Unbound mapping regression');
+        // The title is the file name; the model's own name moves to its tooltip.
+        const title = page.locator('.workspace-title h1');
+        await expect(title).toHaveText(document.filename);
+        await expect(title).toHaveAttribute('title', 'Unbound mapping regression');
         await expect(page.getByLabel('Definition source')).toContainText('concept_mappings: []');
       }
     },

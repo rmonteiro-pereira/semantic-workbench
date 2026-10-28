@@ -18,7 +18,7 @@ semantic definition; they are not copied into an ontology, mapping or agent requ
    `customers.region`. Preview the composed query; the stored metric and declared join determine
    it rather than a predefined query or replacement formula.
 4. **Export agent context** downloads resolved layers, the original mapping tree, definitions,
-   AI context, revisions and evidence. Header **Export** still returns source bytes.
+   AI context, revisions and evidence. **More actions → Export** still returns source bytes.
 5. Inspect missing or ambiguous references in findings. **Edit item** opens the affected form or
    Source line. Save a correction to refresh resolution. Unsaved drafts are not planner inputs;
    the view identifies the saved revisions it is using.

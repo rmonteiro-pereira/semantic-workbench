@@ -13,6 +13,7 @@ import { sh, ontology } from '../tests/helpers/scm';
 import { bareRepository, emptyBareRepository } from '../tests/helpers/git-fixtures';
 import { LOCAL_READER } from '../src/server/projects/reader';
 import { addProjectItem } from './helpers/sidebar-menus';
+import { expectNoFileOpen } from './helpers/header';
 
 const api = await startIsolatedApi();
 const extra = mkdtempSync(join(tmpdir(), 'workbench-git-setup-'));
@@ -405,9 +406,7 @@ try {
         const emptyProject = page.getByRole('region', { name: 'empty has no definitions' });
         await expect(emptyProject).toContainText('No supported definitions found in empty.');
         await expect(emptyProject.getByRole('button', { name: 'Import files' })).toBeVisible();
-        await expect(
-          page.getByRole('heading', { level: 1, name: 'Semantic Workbench' }),
-        ).toBeVisible();
+        await expectNoFileOpen(page);
         await emptyProject.getByRole('button', { name: 'Import files' }).click();
         await expect(page.getByRole('dialog', { name: 'Import' })).toBeVisible();
         await page.keyboard.press('Escape');

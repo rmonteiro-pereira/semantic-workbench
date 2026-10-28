@@ -170,6 +170,10 @@ check that happens to succeed.
 - `src/main.tsx` composes the application. `src/app/` separates workbench state/effects from
   `Workspace*` presentation and dialogs. Stable event handlers call the latest committed logic;
   source text stays synchronous rather than being deferred back into the editor.
+- `WorkspaceHeader` decides what the header shows; `HeaderTitle` draws the file name and the meta
+  line, `SaveStateButton` the save state (inline text, or a dot on a phone) and `HeaderActions`
+  Commit and the More actions menu. One `moreActionItems` list defines New and Export for every
+  width.
 - One action history serves Back and Forward. `src/app/action-history.ts` is the pure list of steps
   and cursor; `action-recorder.ts` groups the state changes of one click into one step and
   remembers the values of screens that unmount; `ActionHistoryContext.tsx` owns the recorder,

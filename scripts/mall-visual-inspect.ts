@@ -3,6 +3,7 @@ import { appUrl } from './helpers/base-url';
 import { example } from './helpers/examples';
 import { chromium, expect } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
+import { expectModelName, headerTitle } from './helpers/header';
 // Opens every shopping-center document in every applicable view against an isolated temporary data
 // root, records what renders, and saves screenshots.
 const out = process.argv[2] ?? '/tmp/mall-inspect';
@@ -28,9 +29,7 @@ const tab = async (name: string) => {
 try {
   await page.goto(appUrl());
   await (await example(page, /Shopping center administration/)).click();
-  await expect(page.locator('h1')).toContainText('Shopping center administration ontology', {
-    timeout: 30000,
-  });
+  await expectModelName(page, /Shopping center administration ontology/, { timeout: 30000 });
   for (const file of [
     'mall.ontology.yaml',
     'mall.semantic.yaml',
@@ -45,7 +44,7 @@ try {
     report.push(entry);
     await page.getByRole('button', { name: file, exact: true }).click();
     await page.waitForTimeout(800);
-    entry.title = await page.locator('h1').innerText();
+    entry.title = (await headerTitle(page).getAttribute('title')) ?? '';
     entry.footer = (
       await page
         .locator('footer')

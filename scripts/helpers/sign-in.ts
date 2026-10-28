@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { expect, type Browser, type Page, type Route } from '@playwright/test';
 import { TEST_CLIENTS, TEST_USERS, type TestUserName } from '../../tests/helpers/auth-identities';
 import { screenshotPath } from './screenshots';
-import { headerProblems } from './header';
+import { exportFile, headerProblems } from './header';
 import { layoutProblems } from './layout-geometry';
 import { menuSurfaceProblems } from './menu-geometry';
 import { remoteButton } from './sync-dialog';
@@ -383,7 +383,7 @@ export async function readVisibilityChecks(browser: Browser, target: SignInTarge
       assertReadable(Buffer.concat(chunks).toString('utf8'));
     };
     await downloadText(async () => {
-      await page.getByRole('button', { name: 'Export', exact: true }).click();
+      await exportFile(page);
     });
     await page.getByRole('button', { name: /^Mappings/ }).click();
     await expect(page.getByRole('button', { name: 'Export agent context' })).toBeEnabled();

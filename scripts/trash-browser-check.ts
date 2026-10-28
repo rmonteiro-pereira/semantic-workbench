@@ -8,6 +8,7 @@ import { treeRowProblems } from './helpers/tree-geometry';
 import { expectEditorValue, fillEditor } from './helpers/code-editor';
 import { LOCAL_READER } from '../src/server/projects/reader';
 import { chooseSetting } from './helpers/sidebar-menus';
+import { expectNoFileOpen } from './helpers/header';
 // Browser check: suggestions accept/dismiss, delete with confirmation, undo, trash restore and
 // purge, project delete, Clear, without any page reload. Runs against an isolated temporary data
 // root.
@@ -323,7 +324,7 @@ try {
     await expect(dialog.locator('.delete-file-count')).toHaveText(/^\d+ files? in \d+ projects?:$/);
     await dialog.getByRole('button', { name: 'Delete', exact: true }).click();
     await expect(page.getByText('No projects yet.')).toBeVisible();
-    await expect(page.locator('h1')).toHaveText('Semantic Workbench');
+    await expectNoFileOpen(page);
     await page.screenshot({ path: '/tmp/workbench-trash-cleared.png' });
     await toast().getByRole('button', { name: 'Undo' }).click();
     await expect(tree().getByRole('treeitem', { name: 'Flights', exact: true })).toBeVisible();

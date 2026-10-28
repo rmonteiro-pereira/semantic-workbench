@@ -22,6 +22,13 @@ input,
 textarea {
   font: inherit;
 }
+/* Keyboard focus, including focus handed back to a button when its dialog closes, shows in the
+   theme's focus colour. The browser's own ring is a thick black outline that looks broken on the
+   brand buttons. :where() keeps this weaker than any control that styles its own focus. */
+:where(button, a, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
 /* Form controls take their fill and writing from the theme. Without this the browser paints its
    own grey or white, which shows as a light patch in the dark theme. :where() keeps the
    specificity at that of an element name, so a rule for a class that sets its own background

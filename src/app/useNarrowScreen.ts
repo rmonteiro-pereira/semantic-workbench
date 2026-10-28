@@ -5,8 +5,9 @@ import { useEffect, useState } from 'react';
 export const NARROW_SCREEN_PX = 1100;
 
 /**
- * Windows narrower than this many pixels get the one-row phone header. The two-row header rules in
- * WorkspaceHeader.css (max-width: 699px) start above it; change both together.
+ * Windows narrower than this many pixels get the phone header: the file name, a save-state dot,
+ * Commit and More actions. WorkspaceHeader.css names the same width in its short-window rule;
+ * change both together.
  */
 export const PHONE_SCREEN_PX = 651;
 

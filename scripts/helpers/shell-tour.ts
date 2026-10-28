@@ -30,9 +30,7 @@ export async function headerTitleProblems(page: Page, width: number): Promise<st
     ) {
       found.push('the file title is clipped');
     }
-    for (const button of document.querySelectorAll<HTMLElement>(
-      '.header-actions button, .header-phone-actions button',
-    )) {
+    for (const button of document.querySelectorAll<HTMLElement>('.header-actions button')) {
       const drawn = button.querySelector('.action-label');
       const hidden = !drawn || getComputedStyle(drawn).position === 'absolute';
       const hasTooltip = !!button.getAttribute('title');

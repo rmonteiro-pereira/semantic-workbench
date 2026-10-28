@@ -415,3 +415,13 @@ export function colorDistance(first: Rgba, second: Rgba): number {
   const [l2, a2, b2] = toLab(second);
   return Math.hypot(l1 - l2, a1 - a2, b1 - b2);
 }
+
+/** Runs in the page: resolves a theme colour token such as `--color-focus` to the colour drawn. */
+export function tokenColour(token: string): string {
+  const probe = document.createElement('span');
+  probe.style.color = `var(${token})`;
+  document.body.append(probe);
+  const colour = getComputedStyle(probe).color;
+  probe.remove();
+  return colour;
+}

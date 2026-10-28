@@ -1,5 +1,5 @@
-/* The header holds the sidebar toggle, the title and two clusters on the right: the actions
-   (file actions, then the save state with Commit) and the account (the person menu). */
+/* The header is one row: the sidebar toggle, the title block with the file name and its meta
+   line, then on the right Commit with More actions and the account (the person menu). */
 .workspace-header {
   --header-control-height: 36px;
   flex: 0 0 auto;
@@ -19,28 +19,40 @@
   flex: 1 1 0;
   min-width: 0;
   display: flex;
-  align-items: center;
-  gap: 8px 12px;
+  flex-direction: column;
+  gap: 1px;
 }
 .workspace-title h1 {
   margin: 0;
-  font-size: clamp(15px, 1.15vw, 21px);
+  font-size: 16px;
   line-height: 1.35;
-  font-weight: 650;
+  font-weight: 600;
   min-width: 0;
   overflow: hidden;
-  white-space: normal;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
-.workspace-title .badge {
-  flex-shrink: 0;
-  padding: 4px 8px;
+/* With no file open the title is a prompt, not a name. */
+.workspace-title h1.no-file {
+  color: var(--color-text-muted);
+  font-weight: 500;
 }
-.header-actions {
-  flex: 0 0 auto;
+/* Project, kind and save state in one muted line under the file name. */
+.header-meta {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 6px;
+  min-width: 0;
+  font-size: var(--text-small);
+  line-height: 1.3;
+  color: var(--color-text-muted);
+}
+.header-meta-text {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .header-group {
   display: flex;
@@ -57,46 +69,49 @@
 .header-account:not(:has(button, [role='status'])) {
   display: none;
 }
-.header-group > button,
-.header-group > .menu-button > button {
+.header-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.header-actions > button,
+.header-actions .menu-button > button,
+.header-account .menu-button > button {
   height: var(--header-control-height);
   padding: 0 12px;
   font-size: 13px;
   white-space: nowrap;
 }
-.header-state {
+/* The icon button has no label, so it takes no side padding: with it the 18 px icon is squeezed. */
+.header-actions .menu-button > .more-actions {
+  width: var(--header-control-height);
+  padding: 0;
+}
+.commit-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Save state: plain text with a coloured dot at the end of the meta line. It opens Commit, the
+   findings or the diff. A save that needs action turns red and underlined. */
+.header-meta > .save-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   flex: 0 1 auto;
   min-width: 0;
-}
-
-/* Long save refusals yield space to a readable document title. */
-@media (min-width: 700px) {
-  .workspace-title {
-    flex-basis: 160px;
-    flex-shrink: 0;
-  }
-  .header-actions {
-    flex-shrink: 1;
-    min-width: 0;
-  }
-  .header-files {
-    flex-shrink: 0;
-  }
-}
-
-/* Save state: a pill next to Commit; it opens Commit, the findings or the diff. */
-.header-group > .save-state {
-  min-width: 90px;
-  max-width: min(300px, 26vw);
-  border: 1px solid var(--color-accent-border);
-  background: var(--color-surface-hover);
-  color: var(--color-text-secondary);
-  font-size: var(--text-small);
-  font-weight: 600;
-  border-radius: 999px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  height: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
   cursor: pointer;
+}
+.header-meta > .save-state:disabled {
+  color: var(--color-text-muted);
 }
 .save-state::before {
   content: '';
@@ -111,38 +126,14 @@
 .save-state.s-waiting::before {
   background: var(--color-warning-bright);
 }
-.header-group > .save-state.s-invalid,
-.header-group > .save-state.s-stale,
-.header-group > .save-state.s-failed,
-.header-group > .save-state.s-cancelled {
-  background: var(--color-danger-soft);
-  border-color: var(--color-danger-border);
-  color: var(--color-danger-text);
-}
-.save-state.s-invalid::before,
-.save-state.s-stale::before,
-.save-state.s-failed::before,
-.save-state.s-cancelled::before {
+.save-state.needs-action::before {
   background: var(--color-danger-text);
 }
-/* A refusal is a whole sentence: the pill grows to two lines instead of cutting it. */
-.header-group > .save-state.s-failed {
-  max-width: min(380px, 32vw);
-  height: auto;
-  min-height: var(--header-control-height);
-  padding-block: 3px;
-  border-radius: 14px;
-  line-height: 1.25;
-}
-.save-state.s-failed .save-state-text {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  white-space: normal;
-  overflow-wrap: anywhere;
-}
-.header-group > .save-state:disabled {
-  color: var(--text-muted);
+.header-meta > .save-state.needs-action {
+  color: var(--color-danger-text);
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 .save-state .save-state-text {
   min-width: 0;
@@ -151,9 +142,9 @@
   white-space: nowrap;
 }
 
-/* Below 1500 px the pill draws a short form of its text, so the title keeps the room. The full
-   text stays in the element for tests and assistive technology, and in the tooltip. The text is
-   emptied by a zero font size and the short form comes from the element's data attribute. */
+/* Below 1500 px the save state draws a short form of its text, so the file name keeps the room.
+   The full text stays in the element for tests and assistive technology, and in the tooltip. The
+   text is emptied by a zero font size and the short form comes from the element's data attribute. */
 @media (max-width: 1499px) {
   .save-state .save-state-text[data-short] {
     font-size: 0;
@@ -164,9 +155,9 @@
   }
 }
 
-/* From 700 to 1099 px the file actions and Commit keep their icon; the names stay for assistive
-   technology and in the tooltips. A phone has a row of its own for them and shows the names. */
-@media (min-width: 700px) and (max-width: 1099px) {
+/* Below 1100 px Commit keeps its icon; the name stays for assistive technology and in the
+   tooltip. */
+@media (max-width: 1099px) {
   .header-actions .action-label {
     position: absolute;
     width: 1px;
@@ -176,85 +167,31 @@
     clip-path: inset(50%);
     white-space: nowrap;
   }
-  .header-group > button,
-  .header-group > .menu-button > button {
+  .header-actions > button,
+  .header-actions .menu-button > button,
+  .header-account .menu-button > button {
     min-width: var(--header-control-height);
     padding: 0 9px;
-  }
-  .header-group > .save-state {
-    max-width: 180px;
   }
 }
 
 /* A short window needs every pixel for the graph. */
-@media (max-height: 650px) and (min-width: 700px) {
+@media (max-height: 650px) and (min-width: 651px) {
   .workspace-header {
     min-height: 46px;
     padding-block: 5px;
   }
-}
-
-/* On a phone the row has room for the names of New and Commit but not for a third name, so Export
-   keeps its icon and its tooltip. */
-@media (max-width: 699px) {
-  .header-actions .export-button .action-label {
-    display: none;
-  }
-  .header-group > button {
-    flex: none;
-  }
-}
-
-/* Phones use two rows: sidebar toggle, title and account on top; file actions, save state and
-   Commit below, with the save state taking the free width so its text stays readable. The
-   selector is specific enough to win over the Admin panel's own header grid. */
-@media (max-width: 699px) {
-  header.workspace-header:has(.header-actions) {
-    --header-control-height: 34px;
-    display: grid;
-    grid-template-columns: var(--header-control-height) minmax(0, 1fr) auto;
-    align-items: center;
-    padding: 7px 9px;
-    gap: 6px;
-  }
   .workspace-title h1 {
-    font-size: 14px;
+    line-height: 1.2;
   }
-  .header-actions {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    gap: 6px;
-  }
-  .header-state {
-    flex: 1 1 0;
-  }
-  .header-group > .save-state {
-    flex: 1 1 0;
-    max-width: none;
-    min-width: 0;
-    justify-content: flex-start;
-  }
-  .header-group > .save-state.s-failed {
-    max-width: none;
-  }
-  .header-account {
-    grid-column: 3;
-    grid-row: 1;
-    padding-left: 0;
-    border-left: 0;
-  }
-}
-/* Phones: the title needs the room more than the kind badge (the kind is in the details panel
-   and the Source tab). */
-@media (max-width: 480px) {
-  .workspace-title .badge {
-    display: none;
+  .header-meta {
+    line-height: 1.2;
   }
 }
 
-/* Up to 650 px the header is one row: toggle, title, a save-state dot, Commit and More actions.
-   New and Export live in the More actions menu. The rules are written for the extra
-   class so they win over the two-row layout that still serves 651 to 699 px. */
+/* Up to 650 px the header shows only the file name, a save-state dot, Commit and More actions.
+   Project and kind are in the details panel and the Source tab. The rules are written for the
+   extra class so they win over the Admin panel's own header grid. */
 header.workspace-header.header-phone {
   --header-control-height: 34px;
   display: flex;
@@ -263,25 +200,13 @@ header.workspace-header.header-phone {
   padding: 7px 9px;
   gap: 6px;
 }
-.header-phone .workspace-title {
-  flex: 1 1 0;
-}
 .header-phone .workspace-title h1 {
   font-size: 14px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
-.header-phone .workspace-title .badge {
-  display: none;
-}
-.header-phone-actions {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
+.header-phone .header-actions {
   gap: 2px;
 }
-.header-phone-actions button {
+.header-phone .header-actions button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -289,23 +214,23 @@ header.workspace-header.header-phone {
   height: var(--header-control-height);
   padding: 0;
 }
-.header-phone-actions .menu-button > button {
+.header-phone .header-actions .menu-button > button {
   width: var(--header-control-height);
 }
 /* The save state is only a coloured dot; its words stay for assistive technology. */
-.header-phone-actions .save-dot {
+.header-phone .header-actions .save-dot {
   border: 0;
   background: transparent;
   cursor: pointer;
 }
-.header-phone-actions .save-dot::before {
+.header-phone .header-actions .save-dot::before {
   width: 10px;
   height: 10px;
 }
-.header-phone-actions .save-dot:disabled {
+.header-phone .header-actions .save-dot:disabled {
   opacity: 0.5;
 }
-.header-phone-actions .save-dot .save-state-text {
+.header-phone .header-actions .save-dot .save-state-text {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -318,13 +243,14 @@ header.workspace-header.header-phone {
 }
 /* A save that needs action shows its label beside the dot, cut to fit, with the full text in the
    tooltip. */
-.header-phone-actions .save-dot.save-dot-alert {
+.header-phone .header-actions .save-dot.needs-action {
   width: auto;
   max-width: 38vw;
   gap: 5px;
   padding: 0 4px;
+  color: var(--color-danger-text);
 }
-.header-phone-actions .save-dot.save-dot-alert .save-state-text {
+.header-phone .header-actions .save-dot.needs-action .save-state-text {
   position: static;
   width: auto;
   height: auto;

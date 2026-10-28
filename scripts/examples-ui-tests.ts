@@ -9,7 +9,7 @@ import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import manifest from '../tests/fixtures/ossie-mapping/manifest.json';
 import { exampleSet } from '../src/projects/examples';
 import { example } from './helpers/examples';
-import { exportFile } from './helpers/header';
+import { expectModelName, exportFile } from './helpers/header';
 import { closeComposer, composerDialog, openComposer } from './helpers/query-composer';
 import { EXPECTED_EXAMPLE_METRICS } from './example-metric-checks';
 import { expectMetricPresented, metricsList } from './helpers/examples-tour';
@@ -73,7 +73,7 @@ try {
       const exampleFiles = 7;
       for (let i = 0; i < 2; i++) {
         await (await example(page, /Ossie Flights/)).click();
-        await expect(page.locator('h1')).toContainText('Flight');
+        await expectModelName(page, /Flight/);
         await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60000 });
         await expect(page.locator('.full-graph-status')).toHaveAttribute('data-entity-count', '49');
         if (store.list().length !== importedFiles + exampleFiles)
@@ -405,7 +405,7 @@ try {
     async () => {
       const before = store.list().length;
       await (await example(page, /Shopping center administration/)).click();
-      await expect(page.locator('h1')).toContainText('Shopping center administration ontology');
+      await expectModelName(page, /Shopping center administration ontology/);
       if (store.list().length !== before + 7)
         throw Error('Shopping center loader did not save seven documents');
       await page.locator('.tabs').getByRole('button', { name: 'Overview', exact: true }).click();

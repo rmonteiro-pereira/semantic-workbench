@@ -6,6 +6,7 @@ import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { inspect } from '../src/core/model';
 import { groupRelationships } from '../src/graph/graph-view';
 import { LOCAL_READER } from '../src/server/projects/reader';
+import { expectModelName } from './helpers/header';
 const filename = 'flights.ontology.yaml';
 const source = await Bun.file('public/examples/ossie/' + filename).text();
 const api = await startIsolatedApi();
@@ -181,7 +182,7 @@ async function drag(page: Page, selector: string, dx: number, dy: number) {
 
 try {
   await page.goto(appUrl());
-  await expect(page.locator('h1')).toContainText('Flights');
+  await expectModelName(page, /Flights/);
   await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60000 });
   await viewOptions(page, options => chooseLayout(options, 'network'));
   await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60000 });

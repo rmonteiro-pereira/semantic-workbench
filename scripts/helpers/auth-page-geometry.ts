@@ -48,6 +48,5 @@ export async function assertAuthHeaderGeometry(page: Page): Promise<void> {
   const title = await page.locator('.workspace-title h1').boundingBox();
   assert(header && title, 'The workspace header and document title are drawn');
   assert(title.width >= 80, `The document title has only ${title.width}px of width`);
-  const phone = (page.viewportSize()?.width ?? 0) < 700;
-  assert(header.height <= (phone ? 180 : 120), `The header consumes ${header.height}px`);
+  assert(header.height <= 120, `The header consumes ${header.height}px`);
 }
