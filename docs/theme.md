@@ -36,7 +36,7 @@ values:
 
 The matching `color-scheme` setting makes native form controls and scrollbars follow the theme.
 
-The Theme control (System, Light, Dark) in the sidebar footer lives in
+The Theme control (System, Light, Dark) in the sidebar's Settings panel lives in
 `src/app/ThemeControl.tsx`. `src/theme/theme-preference.ts` parses, reads and stores the choice under
 the local-storage key `workbench.theme`; every read and write is wrapped in `try`, so blocked storage
 leaves the system setting in charge. `public/theme-init.js` is a plain script in the page head. It

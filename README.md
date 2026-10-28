@@ -51,7 +51,8 @@ Open **http://127.0.0.1:5173**. The API listens on **http://127.0.0.1:4310**. Th
 launcher waits for API readiness before starting the frontend, and stops the two services together.
 No sign-in, identity provider, cloud account or external database is needed in local mode.
 
-Choose **Examples** in the sidebar to load a workspace, or **Import…** to open your definitions.
+Choose **Add project → Load an example** in the sidebar to load a workspace, or **Add project →
+Import files** to open your definitions.
 Configure a Git identity globally or through **Set Git identity…** in the app. The in-app action
 writes repository-local settings, never your global Git configuration. Missing Git/identity does
 not prevent file editing; unavailable commit operations are explained in the UI.
@@ -378,7 +379,7 @@ See [validation coverage](docs/user-guide.md#validation-coverage-and-limits) and
 
 ## Example workspaces
 
-Open **Examples** in the sidebar. Reopening an example selects its existing project rather than
+Choose **Add project → Load an example** in the sidebar. Reopening an example selects its existing project rather than
 importing another copy. Every metric-bearing example has simple, composed and cross-table
 metrics, explicit concept bindings and ODCS inputs.
 

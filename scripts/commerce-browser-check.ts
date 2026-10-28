@@ -16,7 +16,7 @@ const docs = {
 };
 await routeApi(page, api);
 await page.goto(appUrl());
-await (await example(page, /Load commerce workspace/)).click();
+await (await example(page, /Commerce workspace/)).click();
 await page
   .getByRole('status')
   .filter({ hasText: 'Loaded commerce contracts' })
@@ -39,7 +39,7 @@ for (const [filename, kind] of [
     throw Error(`No nodes for ${filename}`);
   await page.screenshot({ path: `/tmp/commerce-${filename.replaceAll('.', '-')}.png` });
 }
-await (await example(page, /Load commerce scale data/)).click();
+await (await example(page, /Commerce scale data/)).click();
 await page
   .getByText('1000 entities · 5000 relationships', { exact: true })
   .waitFor({ timeout: 60000 });

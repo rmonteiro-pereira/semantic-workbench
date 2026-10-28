@@ -1,9 +1,8 @@
 /** The header actions on a phone: save state dot, Commit icon and a More actions menu. */
-import { Download, GitCommit as GitCommitIcon, MoreHorizontal, Plus, Shield } from 'lucide-react';
+import { Download, GitCommit as GitCommitIcon, MoreHorizontal, Plus } from 'lucide-react';
 import type { MenuItem } from '../projects/Menu';
 import { MenuButton } from '../projects/Menu';
 import { saveNeedsAction, type AutosaveStatus } from '../projects/autosave';
-import { useAdminEntry } from './admin/AdminLauncher';
 
 /** The header's decisions, made once by WorkspaceHeader for both of its layouts. */
 export type HeaderActionState = {
@@ -23,10 +22,9 @@ export type HeaderActionState = {
   commitTitle: string;
 };
 
-/** Lists what the wide header shows as buttons: New and Export, then Admin when allowed. */
-function useMoreActionItems(state: HeaderActionState): MenuItem[] {
-  const openAdmin = useAdminEntry();
-  const items: MenuItem[] = [
+/** Lists what the wide header shows as buttons: New and Export. */
+function moreActionItems(state: HeaderActionState): MenuItem[] {
+  return [
     {
       label: 'New',
       icon: <Plus size={15} />,
@@ -43,20 +41,11 @@ function useMoreActionItems(state: HeaderActionState): MenuItem[] {
       run: state.download,
     },
   ];
-  if (openAdmin) {
-    items.push({
-      label: 'Admin',
-      icon: <Shield size={15} />,
-      separatorBefore: true,
-      run: openAdmin,
-    });
-  }
-  return items;
 }
 
 /** Renders the phone's actions; everything else lives in the More actions menu. */
 export function PhoneHeaderActions(state: HeaderActionState) {
-  const items = useMoreActionItems(state);
+  const items = moreActionItems(state);
   const needsAttention = state.hasFile && saveNeedsAction(state.saveStatus);
   const attentionClass = needsAttention ? ' save-dot-alert' : '';
   return (

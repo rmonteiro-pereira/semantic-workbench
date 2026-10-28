@@ -27,7 +27,7 @@ const tab = async (name: string) => {
 };
 try {
   await page.goto(appUrl());
-  await (await example(page, /Load shopping center administration/)).click();
+  await (await example(page, /Shopping center administration/)).click();
   await expect(page.locator('h1')).toContainText('Shopping center administration ontology', {
     timeout: 30000,
   });

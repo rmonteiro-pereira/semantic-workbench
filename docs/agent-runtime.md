@@ -10,7 +10,7 @@ semantic definition; they are not copied into an ontology, mapping or agent requ
 
 ## Try it in the interface
 
-1. Choose **Examples → Load mapped commerce**. It loads separate ontology, semantic and mapping
+1. Choose **Add project → Load an example → Mapped commerce**. It loads separate ontology, semantic and mapping
    documents, plus the ODCS contract used by their metrics.
 2. In **Mappings**, select Revenue to inspect its binding to `gross_revenue`. Customer and Region
    expose nested referent/link mappings to fields and physical sources, with source evidence.

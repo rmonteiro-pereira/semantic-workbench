@@ -98,10 +98,16 @@ export function tourScreens({ ontology, contract }: TourFiles): Screen[] {
     {
       name: 'import',
       show: async page => {
-        await pressSidebarButton(page, /Import/);
+        await pressSidebarButton(page, /^Add project$/);
+        await page.getByRole('menuitem', { name: 'Import files', exact: true }).click();
         await expect(page.getByText('Uses the name of the definition you import.')).toBeVisible();
       },
       dialog: 'dialog[open]',
+    },
+    {
+      name: 'settings',
+      show: page => pressSidebarButton(page, /^Settings$/),
+      dialog: '.settings-panel',
     },
   );
   return screens;

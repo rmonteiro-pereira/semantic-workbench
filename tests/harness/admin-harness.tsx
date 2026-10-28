@@ -1,11 +1,11 @@
-// Renders the Admin entry and page with the app's stylesheet so the page keeps its real geometry.
+// Renders the Settings panel's Admin entry and the page with the app's stylesheet so the page keeps its real geometry.
 // Browser harness for tests/admin-dialogs.test.tsx (bundled by bun build, run in Chromium).
 import { useEffect, useState } from 'react';
 import { ReviewChange } from '../../src/app/admin/ReviewChange';
 import type { Proposal } from '../../src/app/admin/types';
 import { createRoot } from 'react-dom/client';
 import { AdminHost } from '../../src/app/admin/AdminHost';
-import { AdminLauncher } from '../../src/app/admin/AdminLauncher';
+import { SettingsPanel } from '../../src/app/SettingsPanel';
 import '../../src/style.css';
 
 // Parent updates can arrive while the native dialog makes the underlying form inert.
@@ -38,7 +38,7 @@ createRoot(document.getElementById('root')!).render(
     <ReviewHarness />
   ) : (
     <AdminHost>
-      <AdminLauncher />
+      <SettingsPanel onClearWorkspace={() => {}} clearDisabled={false} />
     </AdminHost>
   ),
 );

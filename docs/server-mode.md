@@ -262,7 +262,7 @@ This differs from local mode, which uses the machine's own Git helper/SSH config
 
 ## Administration and audit
 
-**Admin** opens a full page while retaining the workspace state. Browser Back/reload follows
+**Settings → Admin**, in the sidebar, opens a full page while retaining the workspace state. Browser Back/reload follows
 `#/admin/<section>`. Sections cover projects/access, grants, roles, users/groups, policies, audit,
 settings and access checks. Editors replace their list in place; dialogs are used for review and
 confirmation rather than nesting whole administration screens.

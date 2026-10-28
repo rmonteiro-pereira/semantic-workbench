@@ -1,13 +1,14 @@
-// Opens the sidebar's Examples menu so browser checks can load an example.
+// Opens the examples list under Add project so browser checks can load an example.
 import type { Page } from '@playwright/test';
-// The "Load …" examples are menu items of the Examples button above Import.
-// Opens the menu when it is closed and returns the menu item.
-/** Opens the Examples menu if needed and returns the matching loader menu item. */
+import { addProjectItem } from './sidebar-menus';
+
+/** Opens Add project, then Load an example, if needed and returns the matching example item. */
 export async function example(page: Page, name: RegExp) {
   const item = page.getByRole('menuitem', { name });
   // Wait for the project list so the sidebar has settled before the menu opens.
   await page.locator('.project-tree, .projects-empty').first().waitFor();
-  const button = page.getByRole('button', { name: 'Examples', exact: true });
-  if ((await button.getAttribute('aria-expanded')) !== 'true') await button.click();
+  const examples = page.getByRole('menu', { name: 'Load an example', exact: true });
+  if (await examples.isVisible()) return item;
+  await (await addProjectItem(page, 'Load an example')).click();
   return item;
 }

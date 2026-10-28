@@ -1,6 +1,7 @@
 // Dialogs reached from Source control and the project tree, as screens of the responsive suite.
 import type { Page } from '@playwright/test';
 import { openFile, showSidebar, type Screen } from './screen-tour';
+import { addProjectItem } from './sidebar-menus';
 import { openRemoteDialog } from './sync-dialog';
 
 async function openSourceControlPanel(page: Page) {
@@ -17,14 +18,9 @@ async function showRemoteDialog(page: Page) {
   await openRemoteDialog(page);
 }
 
-/** Opens the Clone repository dialog from the sidebar's Import dialog. */
+/** Opens the Clone repository dialog from the sidebar's Add project menu. */
 export async function openCloneDialog(page: Page) {
-  await showSidebar(page);
-  await page
-    .getByRole('button', { name: /Import/ })
-    .first()
-    .click();
-  await page.getByRole('button', { name: 'Clone a Git repository…' }).click();
+  await (await addProjectItem(page, 'Clone a repository')).click();
 }
 
 /**

@@ -7,6 +7,7 @@ import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { treeRowProblems } from './helpers/tree-geometry';
 import { expectEditorValue, fillEditor } from './helpers/code-editor';
 import { LOCAL_READER } from '../src/server/projects/reader';
+import { chooseSetting } from './helpers/sidebar-menus';
 // Browser check: suggestions accept/dismiss, delete with confirmation, undo, trash restore and
 // purge, project delete, Clear, without any page reload. Runs against an isolated temporary data
 // root.
@@ -316,7 +317,7 @@ try {
       .registry()
       .projects.map(p => p.slug)
       .sort();
-    await page.getByRole('button', { name: 'Clear workspace', exact: true }).click();
+    await chooseSetting(page, 'Clear workspace');
     const dialog = page.getByRole('dialog', { name: 'Clear workspace?' });
     await expect(dialog).toContainText('Flights');
     await expect(dialog.locator('.delete-file-count')).toHaveText(/^\d+ files? in \d+ projects?:$/);
@@ -334,7 +335,7 @@ try {
     ).toEqual(before);
   });
   await check('Clear again, then empty the trash with confirmation', async () => {
-    await page.getByRole('button', { name: 'Clear workspace', exact: true }).click();
+    await chooseSetting(page, 'Clear workspace');
     await page.getByRole('dialog').getByRole('button', { name: 'Delete', exact: true }).click();
     await expect(page.getByText('No projects yet.')).toBeVisible();
     await page.getByRole('button', { name: 'Trash', exact: true }).click();

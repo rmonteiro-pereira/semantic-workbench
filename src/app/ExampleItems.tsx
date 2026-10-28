@@ -1,8 +1,6 @@
-/** The sidebar's Examples button and the fly-out menu that loads one example project. */
-import './ExampleMenu.css';
-import { ChevronRight, ChevronUp, Layers, Network } from 'lucide-react';
+/** The example projects that the Add project menu can load. */
+import { Layers, Network } from 'lucide-react';
 import type { MenuItem } from '../projects/Menu';
-import { MenuButton } from '../projects/Menu';
 
 type ExampleEntry = {
   id: string;
@@ -14,43 +12,43 @@ type ExampleEntry = {
 const exampleEntries: ExampleEntry[] = [
   {
     id: 'ubl',
-    title: 'Load UBL business model',
+    title: 'UBL business model',
     detail: '45 entities · 277 relationships',
     icon: 'layers',
   },
   {
     id: 'commerce',
-    title: 'Load commerce workspace',
+    title: 'Commerce workspace',
     detail: 'ODCS · Ossie · OWL · SHACL · RDF',
     icon: 'layers',
   },
   {
     id: 'commerce-scale',
-    title: 'Load commerce scale data',
+    title: 'Commerce scale data',
     detail: '1,000 entities · 5,000 relationships',
     icon: 'network',
   },
   {
     id: 'mapped-commerce',
-    title: 'Load mapped commerce',
+    title: 'Mapped commerce',
     detail: 'Ontology → mappings → governed queries',
     icon: 'layers',
   },
   {
     id: 'flights',
-    title: 'Load Ossie Flights',
+    title: 'Ossie Flights',
     detail: 'Official ontology · semantic model · mappings',
     icon: 'network',
   },
   {
     id: 'billing',
-    title: 'Load subscription billing',
+    title: 'Subscription billing',
     detail: '36 business entities · 4 governed metrics',
     icon: 'layers',
   },
   {
     id: 'mall',
-    title: 'Load shopping center administration',
+    title: 'Shopping center administration',
     detail: '145 entity types · 11 namespaces · 25 metrics',
     icon: 'layers',
   },
@@ -78,26 +76,7 @@ function toMenuItem(entry: ExampleEntry, props: Props): MenuItem {
   };
 }
 
-/** Renders the Examples button; its menu opens against the button, or upward on a phone. */
-export function ExampleMenu(props: Props) {
-  return (
-    <MenuButton
-      ariaLabel="Examples"
-      label={
-        <>
-          Examples
-          <ChevronRight className="flyout-arrow-side" size={14} aria-hidden="true" />
-          <ChevronUp className="flyout-arrow-up" size={14} aria-hidden="true" />
-        </>
-      }
-      icon={<Layers size={16} />}
-      className="examples-menu"
-      buttonClassName="import"
-      align="start"
-      placement="above"
-      matchButtonWidth
-      flyoutBesideSidebar
-      items={exampleEntries.map(entry => toMenuItem(entry, props))}
-    />
-  );
+/** Lists one menu item per example; each loads its project. */
+export function exampleMenuItems(props: Props): MenuItem[] {
+  return exampleEntries.map(entry => toMenuItem(entry, props));
 }

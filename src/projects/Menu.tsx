@@ -1,14 +1,9 @@
 /** Provides keyboard-accessible menus that return focus to their trigger when closed. */
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import React, { Fragment, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { Fragment, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import {
-  placeFlyout,
-  placeMenu,
-  type MenuPlacement,
-  type MenuPreference,
-  type Size,
-} from './menu-position';
+import { placeMenu, type MenuPlacement, type MenuPreference, type Size } from './menu-position';
+import { popupNaturalSize, useAnchoredPopup, usePopupDismiss } from './useAnchoredPopup';
 // Arrow keys move between menu items; Escape or an outside click restores button focus. Disabled
 // items stay visible with an accessible explanation.
 /** Defines a menu action, icon and optional disabled explanation. */
@@ -29,11 +24,9 @@ export type MenuItem = {
 function menuHost(button: HTMLElement | null): HTMLElement {
   return button?.closest<HTMLElement>('dialog[open]') ?? document.body;
 }
-/** The menu's width and the height it would have without a height cap, borders included. */
-function naturalSize(menu: HTMLElement): Size {
-  const border = menu.offsetHeight - menu.clientHeight;
-  return { width: menu.getBoundingClientRect().width, height: menu.scrollHeight + border };
-}
+/** The item that takes focus when a menu or submenu opens. */
+const FIRST_ITEM = '[role=menuitem]:not([aria-disabled=true])';
+
 /** Opens a keyboard-accessible action menu and restores focus when it closes. */
 export function MenuButton({
   label,
@@ -45,7 +38,6 @@ export function MenuButton({
   align = 'end',
   placement = 'below',
   matchButtonWidth = false,
-  flyoutBesideSidebar = false,
   title,
   header,
   menuLabel,
@@ -61,11 +53,6 @@ export function MenuButton({
   placement?: 'below' | 'above';
   /** Makes the menu as wide as the button's wrapper, as for a full-width sidebar button. */
   matchButtonWidth?: boolean;
-  /**
-   * Opens the menu against the right side of the button, bottom-aligned with it. On a phone, or
-   * without room on the right, the menu uses its normal placement.
-   */
-  flyoutBesideSidebar?: boolean;
   title?: string;
   header?: React.ReactNode;
   menuLabel?: string;
@@ -82,56 +69,18 @@ export function MenuButton({
   // The menu is drawn in the window, not inside the panel that holds its button, so a scrolling or
   // masked list cannot clip or fade it. It follows the button and flips when there is no room.
   // Swapping in a submenu places it again before the browser paints.
-  useLayoutEffect(() => {
-    if (!open) return;
-    const menu = popup.current;
-    if (!menu) return;
+  function placePopup(menu: HTMLElement, anchor: DOMRect, viewport: Size): MenuPlacement {
+    menu.style.width = matchButtonWidth ? `${root.current?.getBoundingClientRect().width}px` : '';
     const preference: MenuPreference = { side: placement, align };
-    const place = () => {
-      const anchor = button.current?.getBoundingClientRect();
-      if (!anchor) return;
-      const viewport = { width: window.innerWidth, height: window.innerHeight };
-      const flyout = flyoutBesideSidebar ? placeBesideButton(menu, anchor, viewport) : undefined;
-      const placed = flyout ?? placeNormally(menu, anchor, viewport);
-      menu.style.maxHeight = `${placed.maxHeight}px`;
-      menu.style.top = `${placed.top}px`;
-      menu.style.left = `${placed.left}px`;
-    };
-    const placeBesideButton = (menu: HTMLElement, anchor: DOMRect, viewport: Size) => {
-      menu.style.width = '';
-      return placeFlyout(anchor, naturalSize(menu), viewport);
-    };
-    const placeNormally = (menu: HTMLElement, anchor: DOMRect, viewport: Size): MenuPlacement => {
-      menu.style.width = matchButtonWidth ? `${root.current?.getBoundingClientRect().width}px` : '';
-      return placeMenu(anchor, naturalSize(menu), viewport, preference);
-    };
-    let frame = 0;
-    const schedulePlace = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(place);
-    };
-    place();
-    const observer = new ResizeObserver(schedulePlace);
-    observer.observe(menu);
-    window.addEventListener('resize', schedulePlace);
-    window.addEventListener('scroll', schedulePlace, true);
-    return () => {
-      observer.disconnect();
-      cancelAnimationFrame(frame);
-      window.removeEventListener('resize', schedulePlace);
-      window.removeEventListener('scroll', schedulePlace, true);
-    };
-  }, [open, openSubmenu, placement, align, matchButtonWidth, flyoutBesideSidebar]);
-  useEffect(() => {
-    if (!open) return;
-    const out = (e: MouseEvent) => {
-      const target = e.target as Node;
-      if (!root.current?.contains(target) && !popup.current?.contains(target)) setOpen(false);
-    };
-    document.addEventListener('mousedown', out);
-    popup.current?.querySelector<HTMLElement>('[role=menuitem]:not([aria-disabled=true])')?.focus();
-    return () => document.removeEventListener('mousedown', out);
-  }, [open]);
+    return placeMenu(anchor, popupNaturalSize(menu), viewport, preference);
+  }
+  useAnchoredPopup(open, { popup, anchor: button }, placePopup, [
+    openSubmenu,
+    placement,
+    align,
+    matchButtonWidth,
+  ]);
+  usePopupDismiss(open, { popup, anchor: root }, FIRST_ITEM, () => setOpen(false));
   useEffect(() => {
     if (!open) setOpenSubmenu(null);
   }, [open]);
@@ -141,7 +90,7 @@ export function MenuButton({
   useEffect(() => {
     if (!open || shownSubmenu.current === openSubmenu) return;
     shownSubmenu.current = openSubmenu;
-    popup.current?.querySelector<HTMLElement>('[role=menuitem]:not([aria-disabled=true])')?.focus();
+    popup.current?.querySelector<HTMLElement>(FIRST_ITEM)?.focus();
   }, [open, openSubmenu]);
   const back: MenuItem = {
     label: 'Back',

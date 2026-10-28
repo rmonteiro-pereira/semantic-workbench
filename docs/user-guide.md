@@ -10,12 +10,15 @@ are covered in [the server guide](server-mode.md).
 
 ## Workspace navigation
 
-The sidebar contains **Model explorer**, **Source editor**, **Source control**, the **Projects**
-tree, and a footer with **Clear workspace**, **Trash**, **Examples** and **Import…**. On a wide
-window **Examples** opens its menu against the right side of the button, level with it, and the
-button's arrow points at it; on a phone it opens above the button. The tree has its own scrollbar and takes the height left above the
-footer, so the footer, including the Theme control, stays fully visible at any window height. All
-files remain reachable by scrolling and keyboard focus. The selected file is brought into view when it would be hidden.
+The sidebar starts with **Add project**, whose menu holds **Import files**, **Clone a
+repository** and **Load an example** (the examples open in place, under a **Back** row). Below it
+are **Model explorer**, **Source editor**, **Source control** and the **Projects** tree, and the
+footer holds **Trash**, **Settings** and where the project folders live. **Settings** opens a panel
+beside the sidebar, level with its row (on a phone, above it), with **Theme** (System, Light,
+Dark), **Clear workspace** and, for people allowed to administer, **Admin**. The tree has its own
+scrollbar and takes the height left above the footer, so the footer stays fully visible at any
+window height. All files remain reachable by scrolling and keyboard focus. The selected file is
+brought into view when it would be hidden.
 
 On desktop, drag the sidebar separator or use its arrow keys, Home and End to choose a width
 between 220 and 520 pixels; the browser remembers it. Long project and file names wrap to two
@@ -25,13 +28,13 @@ opened while the workspace loads stays open when the initial document appears.
 The header groups **New**, **Export**, the save-state indicator, **Commit…**, and account actions.
 The title and icon-only controls have tooltips. On a phone (up to 650 px wide) the header is one
 row: the menu button, the title, a dot for the save state, **Commit…** as an icon and **More
-actions**, whose menu holds **New** (its items open in place, under a **Back** row), **Export**
-and, for administrators, **Admin**. A save that needs action, such as "Not saved: 2 errors", keeps
+actions**, whose menu holds **New** (its items open in place, under a **Back** row) and
+**Export**. A save that needs action, such as "Not saved: 2 errors", keeps
 its words beside the dot. Tabs that do not fit scroll sideways with edge cues; keyboard navigation
 reveals the focused tab. Model views, Source and Source Control retain separate sidebar navigation
 states.
 
-**Admin** opens the administration page for people allowed to administer. Its **Git remotes**
+**Settings → Admin** opens the administration page for people allowed to administer. Its **Git remotes**
 section lists every project with its remote address, or "No remote", with **Set remote…** and
 **Remove remote** for each project. Addresses are shown without credentials. In server mode, the
 person menu contains **Connected accounts** and **Sign out**. In local mode there is no sign-in or
@@ -56,7 +59,7 @@ address, so Back leaves a section as before.
 
 ## Files, imports and project organization
 
-Choose **Import…** and then **A new project** or **An existing project**. One selection for a new
+Choose **Add project → Import files** and then **A new project** or **An existing project**. One selection for a new
 project becomes one project, named from its definitions when possible. New-project imports are
 preflighted as a batch. Errors open **Review import** so you can choose a file, repair its source
 or filename, and import only when all errors are resolved. Cancel leaves the current document and
@@ -125,7 +128,7 @@ confirmation. Restore never silently overwrites another file: it offers a free n
 A file whose original project no longer exists can be restored into a newly created project.
 Server mode also applies project-creation, ownership and restore permissions.
 
-**Clear workspace** moves the projects to the trash. Shared-repository projects are handled as
+**Settings → Clear workspace** moves the projects to the trash. Shared-repository projects are handled as
 repository groups so their history and unpublished work can be retained together.
 
 ### Project export
@@ -185,7 +188,7 @@ collecting a password or token. Server-mode credentials work differently; see
 
 ### Clone a repository
 
-Choose **Import… → Clone a Git repository…**. Supply a URL or local path, an optional name and,
+Choose **Add project → Clone a repository** (the Import dialog also links to it). Supply a URL or local path, an optional name and,
 if needed, **Folder in repository**. A clone is staged before registration. Failure, cancellation
 or interrupted startup recovery leaves no partially registered clone. Invalid definitions are
 listed for repair, not rewritten.

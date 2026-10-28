@@ -276,26 +276,6 @@
     font-size: var(--text-small);
   }
 }
-.admin-launcher {
-  flex-shrink: 0;
-  /* Same size as the header actions beside it, so the header keeps its height. */
-  padding: 8px 10px;
-  font-size: var(--text-small);
-  white-space: nowrap;
-}
-@media (max-width: 699px) {
-  .workspace-header:has(.admin-launcher) {
-    grid-template-columns: 34px minmax(0, 1fr) auto auto auto;
-  }
-  .workspace-header > .admin-launcher {
-    grid-column: 4;
-    grid-row: 1;
-    height: 34px;
-  }
-  .workspace-header:has(.admin-launcher) > .person-menu {
-    grid-column: 5;
-  }
-}
 /* An identifier follows the name it belongs to, quieter and in a face that keeps characters apart. */
 .admin-scope .admin-id {
   display: block;

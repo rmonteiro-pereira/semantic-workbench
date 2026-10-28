@@ -31,7 +31,7 @@ type SidebarGeometry = {
   sidebarScrolls: boolean;
   footerTop: number;
   footerBottom: number;
-  themeBottom: number;
+  settingsBottom: number;
   listTop: number;
   listBottom: number;
   lastRowBottom: number;
@@ -43,7 +43,9 @@ function readSidebarGeometry(page: Page): Promise<SidebarGeometry> {
   return page.evaluate(() => {
     const sidebar = document.querySelector<HTMLElement>('.workspace-sidebar')!;
     const footer = document.querySelector('.sidebar-footer')!.getBoundingClientRect();
-    const theme = document.querySelector('.sidebar-footer .theme-control')!.getBoundingClientRect();
+    const settings = document
+      .querySelector('.sidebar-footer .settings-toggle')!
+      .getBoundingClientRect();
     const list = document.querySelector<HTMLElement>('.workspace-sidebar .documents')!;
     const listBox = list.getBoundingClientRect();
     const rows = [...list.querySelectorAll('.tree-row, .project-file')].map(row =>
@@ -57,7 +59,7 @@ function readSidebarGeometry(page: Page): Promise<SidebarGeometry> {
       sidebarScrolls: sidebar.scrollHeight > sidebar.clientHeight + 1,
       footerTop: footer.top,
       footerBottom: footer.bottom,
-      themeBottom: theme.bottom,
+      settingsBottom: settings.bottom,
       listTop: listBox.top,
       listBottom: listBox.bottom,
       lastRowBottom: Math.max(0, ...visible.map(row => row.bottom)),
@@ -72,7 +74,7 @@ function expectFooterVisible(geometry: SidebarGeometry, label: string) {
   expect(geometry.footerBottom, `${label}: footer bottom`).toBeLessThanOrEqual(
     geometry.windowHeight + 1,
   );
-  expect(geometry.themeBottom, `${label}: theme control bottom`).toBeLessThanOrEqual(
+  expect(geometry.settingsBottom, `${label}: Settings row bottom`).toBeLessThanOrEqual(
     geometry.windowHeight + 1,
   );
 }
@@ -90,12 +92,12 @@ function expectListFillsSpace(geometry: SidebarGeometry, label: string) {
 
 async function loadExamples(page: Page) {
   for (const name of [
-    /^Load UBL/,
-    /^Load commerce workspace/,
-    /^Load mapped commerce/,
-    /^Load Ossie Flights/,
-    /^Load subscription billing/,
-    /^Load shopping center/,
+    /^UBL/,
+    /^Commerce workspace/,
+    /^Mapped commerce/,
+    /^Ossie Flights/,
+    /^Subscription billing/,
+    /^Shopping center/,
   ]) {
     await (await example(page, name)).click();
     await expect(page.locator('.project-tree')).toBeVisible();

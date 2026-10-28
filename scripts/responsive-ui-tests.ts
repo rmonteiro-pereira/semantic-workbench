@@ -15,13 +15,14 @@ import { chromium, expect, type Locator, type Page } from '@playwright/test';
 import { plainCommerceModel } from './helpers/commerce-fixture';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import {
-  examplesFlyoutProblems,
-  examplesKeyboardProblems,
+  addProjectKeyboardProblems,
+  addProjectMenuProblems,
   headerGeometry,
   headerScreenProblems,
   headerScreens,
   moreActionsProblems,
   moreActionsWork,
+  settingsPanelProblems,
   phoneRowProblems,
 } from './helpers/header-tour';
 import { isPhoneHeader, openNewMenu } from './helpers/header';
@@ -55,6 +56,7 @@ import {
   darkTourScreens,
   themedScreenProblems,
 } from './helpers/theme-tour';
+import { addProjectItem, chooseSetting } from './helpers/sidebar-menus';
 
 // Isolated API fixture: exercising viewport changes never modifies the local workspace. The UBL
 // ontology is imported first so that it opens first.
@@ -146,30 +148,28 @@ async function recordPageErrors(page: Page, label: string) {
   });
 }
 
-// The header before the one-row phone header, measured with the UBL ontology open. Its long title
-// takes two lines at 1280 px. A phone used two rows; wider windows must keep the geometry they had.
+// The header measured with the UBL ontology open, after Admin moved into Settings. A phone used
+// two rows before the one-row phone header; wider windows must keep this geometry.
 const PHONE_HEADER_HEIGHT_BEFORE = 93;
 const DESKTOP_HEADER_GEOMETRY: Record<number, { height: number; controls: string[] }> = {
   1280: {
-    height: 60,
+    height: 58,
     controls: [
       'Hide sidebar@316,11,36,36',
-      'New@801,11,73,36',
-      'Export@880,11,84,36',
-      'Save state@976,11,90,36',
-      'Commit…@1072,11,106,36',
-      'Admin@1203,11,61,36',
+      'New@887,11,73,36',
+      'Export@966,11,84,36',
+      'Save state@1062,11,90,36',
+      'Commit…@1158,11,106,36',
     ],
   },
   1440: {
     height: 58,
     controls: [
       'Hide sidebar@316,11,36,36',
-      'New@961,11,73,36',
-      'Export@1040,11,84,36',
-      'Save state@1136,11,90,36',
-      'Commit…@1232,11,106,36',
-      'Admin@1363,11,61,36',
+      'New@1047,11,73,36',
+      'Export@1126,11,84,36',
+      'Save state@1222,11,90,36',
+      'Commit…@1318,11,106,36',
     ],
   },
 };
@@ -410,7 +410,7 @@ try {
         await expect(
           page.getByRole('button', { name: 'ubl.ontology.yaml', exact: true }),
         ).toBeInViewport();
-        await expect(page.getByRole('button', { name: 'Examples', exact: true })).toBeVisible();
+        await expect(page.getByRole('button', { name: 'Add project', exact: true })).toBeVisible();
         await expect(page.locator('input[type=file]')).toHaveCount(1);
         // Project tree rows: name, delete icon and menu stay side by side at every viewport.
         await expect(
@@ -1236,9 +1236,12 @@ try {
     const header = p.locator('.workspace-header');
     if (['Grouping suggestions', 'Import', 'Trash'].includes(name)) {
       await showSidebar(p);
+      if (name === 'Import') {
+        await (await addProjectItem(p, 'Import files')).click();
+        return;
+      }
       const labels = {
         'Grouping suggestions': /grouping suggestion/,
-        Import: /^Import/,
         Trash: /^Trash$/,
       };
       await p
@@ -1382,20 +1385,21 @@ try {
   // for it to settle, then open it only if the loader is not already on screen.
   async function loadCommerce() {
     await sweep.waitForTimeout(400);
-    const examplesButton = sweep.getByRole('button', {
-      name: 'Examples',
+    const addProjectButton = sweep.getByRole('button', {
+      name: 'Add project',
       exact: true,
     });
     const openWorkspace = sweep.getByRole('button', {
       name: 'Open workspace',
       exact: true,
     });
-    if (!(await examplesButton.isVisible()) && (await openWorkspace.isVisible())) {
+    if (!(await addProjectButton.isVisible()) && (await openWorkspace.isVisible())) {
       await openWorkspace.click();
     }
-    // The examples are the items of the Examples menu.
-    await examplesButton.click();
-    await sweep.getByRole('menuitem', { name: /Load commerce workspace/ }).click();
+    // The examples are under Add project, then Load an example.
+    await addProjectButton.click();
+    await sweep.getByRole('menuitem', { name: 'Load an example', exact: true }).click();
+    await sweep.getByRole('menuitem', { name: /Commerce workspace/ }).click();
   }
   await check(
     'status messages: never cover a control, auto-dismiss within 6 s and clear on the next action',
@@ -1515,7 +1519,7 @@ try {
   // two lines and keep their full text; Examples is a menu; one sidebar
   // toggle on desktop, the drawer's close button only below 1100 px.
   await check(
-    'sidebar: resize by pointer and keyboard (220–520, persisted), two-line names, Examples menu, one toggle',
+    'sidebar: resize by pointer and keyboard (220–520, persisted), two-line names, Add project menu, one toggle',
     async () => {
       const context = await browser.newContext({
         viewport: { width: 1440, height: 900 },
@@ -1594,17 +1598,17 @@ try {
       expect(clipped).toEqual([]);
       expect(await treeRowProblems(page)).toEqual([]);
       await page.screenshot({ path: '/tmp/workbench-sidebar-220.png' });
-      // Examples: a closed menu button that opens on demand, even in the narrowest sidebar.
-      const examples = page.getByRole('button', {
-        name: 'Examples',
+      // Add project: a closed menu button that opens on demand, even in the narrowest sidebar.
+      const addProject = page.getByRole('button', {
+        name: 'Add project',
         exact: true,
       });
-      await expect(examples).toBeVisible();
-      await expect(page.getByRole('menuitem', { name: /Load UBL business model/ })).toBeHidden();
-      await examples.click();
-      await expect(page.getByRole('menuitem', { name: /Load UBL business model/ })).toBeVisible();
+      await expect(addProject).toBeVisible();
+      await expect(page.getByRole('menuitem', { name: 'Import files' })).toBeHidden();
+      await addProject.click();
+      await expect(page.getByRole('menuitem', { name: 'Import files' })).toBeVisible();
       await page.keyboard.press('Escape');
-      await expect(examples).toBeFocused();
+      await expect(addProject).toBeFocused();
       // One toggle on desktop; the drawer's close button is not shown.
       await expect(page.getByRole('button', { name: 'Close workspace drawer' })).toBeHidden();
       await expect(page.getByRole('button', { name: /^(Open|Close) workspace$/ })).toHaveCount(0);
@@ -1702,7 +1706,9 @@ try {
         await showSidebar(shellPage);
         const footer = (await shellPage.locator('.sidebar-footer').boundingBox())!;
         expect(footer.y + footer.height).toBeLessThanOrEqual(height! + 1);
-        await expect(shellPage.getByRole('button', { name: /^Import/ })).toBeInViewport();
+        await expect(
+          shellPage.getByRole('button', { name: 'Settings', exact: true }),
+        ).toBeInViewport();
         const tree = (await shellPage.locator('.workspace-sidebar .documents').boundingBox())!;
         expect(tree.height).toBeGreaterThanOrEqual(150);
         // A dialog opened from the phone drawer closes the drawer, and focus goes back to the
@@ -1779,10 +1785,11 @@ try {
         if (isPhoneHeader(headerPage)) {
           await checkPhoneHeader(headerPage);
         } else {
-          for (const group of ['File', 'Save and commit', 'Account']) {
+          // Local mode has no person menu, so the empty Account group stays hidden.
+          for (const group of ['File', 'Save and commit']) {
             await expect(headerPage.getByRole('group', { name: group, exact: true })).toBeVisible();
           }
-          for (const name of ['New', 'Export', 'Commit…', 'Admin']) {
+          for (const name of ['New', 'Export', 'Commit…']) {
             await expect(headerPage.getByRole('button', { name, exact: true })).toBeVisible();
           }
           const before = DESKTOP_HEADER_GEOMETRY[width!];
@@ -1793,8 +1800,13 @@ try {
           exact: true,
         });
         await expect(saveState).toBeVisible();
-        await examplesKeyboardProblems(headerPage);
-        expect(await examplesFlyoutProblems(headerPage)).toEqual([]);
+        await addProjectKeyboardProblems(headerPage);
+        expect(await addProjectMenuProblems(headerPage)).toEqual([]);
+        expect(await settingsPanelProblems(headerPage)).toEqual([]);
+        // Admin lives in Settings at every width, the phone drawer included.
+        await chooseSetting(headerPage, 'Admin');
+        await headerPage.locator('.admin-page').waitFor();
+        await leaveAdminPage(headerPage);
       },
     );
     await headerPage.close();

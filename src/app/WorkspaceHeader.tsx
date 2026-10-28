@@ -22,8 +22,6 @@ import { usePhoneScreen } from './useNarrowScreen';
 
 type Props = {
   personMenu?: React.ReactNode;
-  /** The Admin entry; on a phone it moves into the More actions menu instead. */
-  adminLauncher?: React.ReactNode;
   workspaceToggle: React.RefObject<HTMLButtonElement | null>;
   compact: boolean;
   sidebarOpen: boolean;
@@ -48,7 +46,6 @@ type Props = {
 /** Renders workspace header. */
 export const WorkspaceHeader = React.memo(function WorkspaceHeader({
   personMenu,
-  adminLauncher,
   workspaceToggle,
   compact,
   sidebarOpen,
@@ -224,7 +221,6 @@ export const WorkspaceHeader = React.memo(function WorkspaceHeader({
           </div>
         )}
         <div className="header-group header-account" role="group" aria-label="Account">
-          {isPhone ? null : adminLauncher}
           {personMenu}
         </div>
       </header>

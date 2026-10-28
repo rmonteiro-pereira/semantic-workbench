@@ -1,5 +1,5 @@
 /* The header holds the sidebar toggle, the title and two clusters on the right: the actions
-   (file actions, then the save state with Commit) and the account (Admin and the person menu). */
+   (file actions, then the save state with Commit) and the account (the person menu). */
 .workspace-header {
   --header-control-height: 36px;
   flex: 0 0 auto;
@@ -253,7 +253,7 @@
 }
 
 /* Up to 650 px the header is one row: toggle, title, a save-state dot, Commit and More actions.
-   New, Export and Admin live in the More actions menu. The rules are written for the extra
+   New and Export live in the More actions menu. The rules are written for the extra
    class so they win over the two-row layout that still serves 651 to 699 px. */
 header.workspace-header.header-phone {
   --header-control-height: 34px;

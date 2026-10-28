@@ -3,22 +3,31 @@
 import type { Page } from '@playwright/test';
 import { contrastRatio, parseColor } from './color-literals';
 import type { TourGroup } from './all-tours';
-import { showSidebar, screenProblems, type Screen } from './screen-tour';
+import { screenProblems, type Screen } from './screen-tour';
+import { openSettings } from './sidebar-menus';
 import { controlThemeProblems } from './control-geometry';
 import { lowContrastProblems, lowDisabledContrastProblems } from './text-geometry';
 
 /** The three choices of the Theme control, as the buttons are labelled. */
 export type ThemeChoice = 'System' | 'Light' | 'Dark';
 
-/** Presses one button of the Theme control in the sidebar footer. */
+/** Presses one button of the Theme control in the Settings panel, then closes the panel. */
 export async function chooseTheme(page: Page, choice: ThemeChoice) {
-  await showSidebar(page);
-  const control = page.getByRole('group', { name: 'Theme', exact: true });
+  const settings = await openSettings(page);
+  const control = settings.getByRole('group', { name: 'Theme', exact: true });
   await control.getByRole('button', { name: choice, exact: true }).click();
+  await page.keyboard.press('Escape');
 }
 
-/** The sidebar footer with its Theme control; a phone shows it in the drawer. */
-export const themeScreens: Screen[] = [{ name: 'theme-control', show: showSidebar }];
+/** Opens the Settings panel, which holds the Theme control. */
+async function showSettings(page: Page) {
+  await openSettings(page);
+}
+
+/** The Settings panel with its Theme control; a phone opens it from the drawer. */
+export const themeScreens: Screen[] = [
+  { name: 'theme-control', show: showSettings, dialog: '.settings-panel' },
+];
 
 /** Returns geometry problems, unreadable text and unthemed controls of one screen in the theme now applied. */
 export async function themedScreenProblems(page: Page, screen: Screen): Promise<string[]> {

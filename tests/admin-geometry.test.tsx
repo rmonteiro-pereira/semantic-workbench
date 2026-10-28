@@ -38,7 +38,8 @@ async function chooseMenuItem(area: ReturnType<typeof pane>, menu: string, item:
   await page.getByRole('menuitem', { name: item, exact: true }).click();
 }
 
-test('the launcher opens the page and every section fits each viewport', async () => {
+test('Settings opens the page and every section fits each viewport', async () => {
+  await page.getByRole('button', { name: 'Settings', exact: true }).click();
   await page.getByRole('button', { name: 'Admin', exact: true }).click();
   await expect(page.locator('.admin-page')).toBeVisible();
   for (const area of ADMIN_AREAS) {

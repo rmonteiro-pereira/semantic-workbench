@@ -1,3 +1,4 @@
+/** Decides who may open Admin and what opens it, for the Settings panel and the Admin host. */
 import { useMe, type Me } from '../../auth/useMe';
 import { useAdminRoute } from './admin-route';
 
@@ -12,15 +13,4 @@ export function useAdminEntry(): (() => void) | null {
   const { open } = useAdminRoute();
   if (!canOpenAdmin(me)) return null;
   return () => open();
-}
-
-/** Adds the Admin entry to the workspace header; it opens the Admin page. */
-export function AdminLauncher() {
-  const openAdmin = useAdminEntry();
-  if (!openAdmin) return null;
-  return (
-    <button className="admin-launcher" onClick={openAdmin}>
-      Admin
-    </button>
-  );
 }

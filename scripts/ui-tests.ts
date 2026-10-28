@@ -94,7 +94,7 @@ try {
   await page.goto(appUrl());
   await check('existing example opens repeatedly without clearing graph', async () => {
     for (let i = 0; i < 3; i++) {
-      await (await example(page, /Load UBL business model/)).click();
+      await (await example(page, /UBL business model/)).click();
       await expect(page.locator('footer')).toContainText('45 entities · 277 relationships');
       await expect(page.locator('.react-flow__node').first()).toBeVisible();
     }
@@ -105,7 +105,7 @@ try {
     await page.mouse.move(250, 100);
     await expectNeighborhood();
     await expect(page.locator('.react-flow__edge-text, .relationship-label')).toHaveCount(0);
-    await expect(await example(page, /Load UBL business model/)).toBeInViewport();
+    await expect(await example(page, /UBL business model/)).toBeInViewport();
     await expect(graphOptions(page)).toBeInViewport();
     await expect(
       page.getByRole('button', { name: 'Show all connected', exact: true }),
@@ -180,7 +180,7 @@ try {
   await check(
     'switching documents and loading example after import rebuilds the graph',
     async () => {
-      await (await example(page, /Load UBL business model/)).click();
+      await (await example(page, /UBL business model/)).click();
       await expectNeighborhood();
       await page.getByPlaceholder('Find an entity…').fill('Invoice');
       await expect(page.locator('.react-flow__node').first()).toBeVisible();
@@ -469,7 +469,7 @@ try {
   await check(
     'mapped commerce exposes separate layers and composes governed revenue by region',
     async () => {
-      await (await example(page, /Load mapped commerce/)).click();
+      await (await example(page, /Mapped commerce/)).click();
       await expect(page.locator('.mapping-layer-chain')).toContainText('Mapped commerce ontology');
       await expect(page.locator('.mapping-layer-chain')).toContainText(
         'Mapped commerce semantic model',

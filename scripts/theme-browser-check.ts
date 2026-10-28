@@ -8,6 +8,7 @@ import { openFile, showScreen } from './helpers/screen-tour';
 import { chooseTheme, themedScreenProblems, tokenContrast, tokenValue } from './helpers/theme-tour';
 import { luminance, parseColor } from './helpers/color-literals';
 import { showEveryEntity } from './helpers/graph-options';
+import { openSettings } from './helpers/sidebar-menus';
 
 const api = await startIsolatedApi();
 for (const id of ['ubl', 'commerce', 'mall']) await api.ws.loadExample(id);
@@ -84,10 +85,12 @@ async function controlCheck() {
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   expect(await pageBrightness(page)).toBeLessThan(0.1);
   expect(await page.evaluate(() => localStorage.getItem('workbench.theme'))).toBe('dark');
-  await expect(page.getByRole('button', { name: 'Dark', exact: true })).toHaveAttribute(
+  const settings = await openSettings(page);
+  await expect(settings.getByRole('button', { name: 'Dark', exact: true })).toHaveAttribute(
     'aria-pressed',
     'true',
   );
+  await page.keyboard.press('Escape');
   await page.reload();
   await page.waitForTimeout(800);
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');

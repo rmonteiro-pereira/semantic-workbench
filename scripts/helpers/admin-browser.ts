@@ -6,6 +6,7 @@ import { smallTextProblems, textCollisionProblems } from './text-geometry';
 import { screenshotPath } from './screenshots';
 import { ADMIN_SECTIONS } from '../../src/app/admin/admin-sections';
 import { adminPageProblems } from './admin-page-geometry';
+import { chooseSetting } from './sidebar-menus';
 
 /** The sections the Admin page lists, in its navigation order. */
 export const ADMIN_AREAS = ADMIN_SECTIONS.map(section => section.label);
@@ -22,14 +23,14 @@ export function screenshotName(name: string): string {
 export function withinAdministrationTime(startMs: number, endMs: number): boolean {
   return endMs - startMs < ADMINISTRATION_TIME_LIMIT_MS;
 }
-/** Opens the Admin page from the header when it is not already shown. */
+/** Opens the Admin page from the sidebar's Settings when it is not already shown. */
 export async function openAdminPage(page: Page) {
   if (!(await page.locator('.admin-page').isVisible())) {
-    await page.getByRole('button', { name: 'Admin', exact: true }).click();
+    await chooseSetting(page, 'Admin');
   }
   await expect(page.locator('.admin-page')).toBeVisible();
 }
-/** Opens a section through the real header button and the section navigation. */
+/** Opens a section through Settings and the section navigation. */
 export async function adminArea(page: Page, name: string) {
   await openAdminPage(page);
   await page

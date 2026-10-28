@@ -72,7 +72,7 @@ try {
       const importedFiles = manifest.files.length;
       const exampleFiles = 7;
       for (let i = 0; i < 2; i++) {
-        await (await example(page, /Load Ossie Flights/)).click();
+        await (await example(page, /Ossie Flights/)).click();
         await expect(page.locator('h1')).toContainText('Flight');
         await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60000 });
         await expect(page.locator('.full-graph-status')).toHaveAttribute('data-entity-count', '49');
@@ -378,7 +378,7 @@ try {
       const before = store.list().length;
       const exampleDocuments = 4;
       for (let opening = 0; opening < 2; opening++) {
-        await (await example(page, /Load subscription billing/)).click();
+        await (await example(page, /Subscription billing/)).click();
         await expect(page.locator('.mapping-layer-chain')).toContainText(
           'Subscription billing mappings',
         );
@@ -392,7 +392,7 @@ try {
     'shopping center example loads seven documents and groups its ontology by namespace',
     async () => {
       const before = store.list().length;
-      await (await example(page, /Load shopping center administration/)).click();
+      await (await example(page, /Shopping center administration/)).click();
       await expect(page.locator('h1')).toContainText('Shopping center administration ontology');
       if (store.list().length !== before + 7)
         throw Error('Shopping center loader did not save seven documents');
@@ -500,8 +500,8 @@ try {
     'UBL and commerce ODCS contracts show their foreign keys in the neighborhood',
     async () => {
       for (const [button, file, relationships] of [
-        [/Load UBL business model/, 'ubl.odcs.yaml', '401'],
-        [/Load commerce workspace/, 'commerce.odcs.yaml', '3'],
+        [/UBL business model/, 'ubl.odcs.yaml', '401'],
+        [/Commerce workspace/, 'commerce.odcs.yaml', '3'],
       ] as const) {
         await (await example(page, button as RegExp)).click();
         await page.getByRole('button', { name: file, exact: true }).click();
@@ -526,7 +526,7 @@ try {
   await check(
     'mapped commerce Customer chains reach fields, datasets and sources; a mapping finding opens the item editor',
     async () => {
-      await (await example(page, /Load mapped commerce/)).click();
+      await (await example(page, /Mapped commerce/)).click();
       await page.locator('.tabs').getByRole('button', { name: 'Mappings', exact: true }).click();
       await expect(page.locator('.mapping-layer-chain')).toContainText('Mapped commerce ontology');
       await page
@@ -574,7 +574,7 @@ try {
     async () => {
       for (const [setId, expected] of Object.entries(EXPECTED_EXAMPLE_METRICS)) {
         const set = exampleSet(setId)!;
-        const loader = new RegExp(`Load ${set.name}`, 'i');
+        const loader = new RegExp(`^${set.name}`, 'i');
         await (await example(page, loader)).click();
         await expect(page.locator('main > .status')).toHaveText(set.message);
         await page

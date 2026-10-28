@@ -46,7 +46,7 @@ await page.getByRole('status').filter({ hasText: 'Saved to the project folder' }
 if (!savedSource()?.includes('Updated relationship description'))
   throw Error('Relationship edit was not saved');
 await page.screenshot({ path: '/tmp/semantic-workbench-relationship.png' });
-await (await example(page, /Load commerce scale data/)).click();
+await (await example(page, /Commerce scale data/)).click();
 await page
   .getByText('1000 entities · 5000 relationships', { exact: true })
   .waitFor({ timeout: 60000 });

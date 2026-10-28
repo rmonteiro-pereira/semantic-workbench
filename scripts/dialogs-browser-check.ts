@@ -100,8 +100,12 @@ const entries: Entry[] = [
   {
     name: 'Import',
     dialog: 'Import',
-    open: workspace,
-    trigger: p => p.locator('#workspace-sidebar').getByRole('button', { name: /^Import/ }),
+    open: async page => {
+      await workspace(page);
+      await page.getByRole('button', { name: 'Add project', exact: true }).click();
+    },
+    trigger: page => page.getByRole('menuitem', { name: 'Import files', exact: true }),
+    returns: page => page.getByRole('button', { name: 'Add project', exact: true }),
   },
   {
     name: 'View definition',
@@ -249,10 +253,10 @@ try {
               },
             },
             {
-              name: 'Examples',
+              name: 'Add project',
               open: async () => {
                 await workspace(p);
-                await p.getByRole('button', { name: 'Examples', exact: true }).click();
+                await p.getByRole('button', { name: 'Add project', exact: true }).click();
               },
             },
           ];

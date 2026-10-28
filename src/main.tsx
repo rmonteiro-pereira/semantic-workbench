@@ -6,7 +6,6 @@ import { createRoot } from 'react-dom/client';
 import { PersonMenu } from './auth/PersonMenu';
 import { ActionHistoryProvider } from './app/ActionHistoryContext';
 import { AdminHost } from './app/admin/AdminHost';
-import { AdminLauncher } from './app/admin/AdminLauncher';
 import { AppDialogs } from './app/AppDialogs';
 import { DetailsPanel } from './app/DetailsPanel';
 import { SidebarResizeHandle } from './app/SidebarResizeHandle';
@@ -271,7 +270,6 @@ function App() {
         <main inert={sidebar.compact && sidebar.sidebarOpen}>
           <GitBanner status={status} />
           <WorkspaceHeader
-            adminLauncher={<AdminLauncher />}
             personMenu={<PersonMenu />}
             workspaceToggle={sidebar.workspaceToggle}
             compact={sidebar.compact}

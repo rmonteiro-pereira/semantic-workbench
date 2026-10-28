@@ -3,7 +3,7 @@ import './WorkspaceSidebar.css';
 import { useCapabilities } from '../auth/Capabilities';
 import { useMe } from '../auth/useMe';
 import { useGitSetup } from '../scm/GitSetup';
-import { FileCode, GitBranch, Network, Upload, X } from 'lucide-react';
+import { FileCode, GitBranch, Network, Trash2, X } from 'lucide-react';
 import { BrandLogo } from '../brand/BrandContext';
 import React from 'react';
 import type { Doc, ProjectInfo, Suggestion } from '../projects/api';
@@ -12,8 +12,8 @@ import type { DeleteTarget } from '../projects/DeleteDialog';
 import type { TreeAction } from '../projects/Sidebar';
 import { ProjectTree } from '../projects/Sidebar';
 import { Suggestions } from '../projects/Suggestions';
-import { ExampleMenu } from './ExampleMenu';
-import { ThemeControl } from './ThemeControl';
+import { AddProjectMenu } from './AddProjectMenu';
+import { SettingsPanel } from './SettingsPanel';
 
 type Props = {
   compact: boolean;
@@ -69,6 +69,13 @@ function WorkspaceLocation({ place }: { place: FolderPlace }) {
       <small>{note}</small>
     </div>
   );
+}
+
+/** Says why the workspace cannot be cleared, or false when it can. */
+function clearWorkspaceBlocker(hasProjects: boolean, allowed: boolean, roleNeeded?: string) {
+  if (!hasProjects) return 'There are no projects to clear';
+  if (!allowed) return roleNeeded ?? 'Your role cannot clear the workspace';
+  return false;
 }
 
 /** Viewers read the published state; anyone who can edit works in their own copy. */
@@ -200,6 +207,14 @@ export const WorkspaceSidebar = React.memo(function WorkspaceSidebar({
         <div className="brand">
           <BrandLogo className="brand-logo" />
         </div>
+        {access.can('createProject') && (
+          <AddProjectMenu
+            onImport={() => setImporting({})}
+            onClone={() => openGitSetup({ kind: 'clone' })}
+            loadExample={loadExample}
+            busy={busy}
+          />
+        )}
         <div
           className="workspace-label"
           title={
@@ -254,30 +269,24 @@ export const WorkspaceSidebar = React.memo(function WorkspaceSidebar({
           />
         </div>
         <div className="sidebar-footer">
-          <div className="workspace-actions">
-            <button
-              onClick={() => setDeleteTarget({ kind: 'clear' })}
-              disabled={!projects.length || !access.can('clear')}
-              title={access.control('clear').title}
-            >
-              Clear workspace
-            </button>
-            <button onClick={() => setTrashOpen(true)}>Trash</button>
-          </div>
           <Suggestions
             items={suggestions}
             projects={projects}
             onAccept={handleSuggestionsAccept}
             onReject={handleSuggestionsReject}
           />
-          {access.can('createProject') && <ExampleMenu loadExample={loadExample} busy={busy} />}
-          <button
-            hidden={!access.can('createProject')}
-            className="import"
-            onClick={() => setImporting({})}
-          >
-            <Upload size={16} /> Import…
+          <button className="nav sidebar-row" onClick={() => setTrashOpen(true)}>
+            <Trash2 size={16} /> Trash
           </button>
+          <SettingsPanel
+            sidebar={sidebarRef}
+            onClearWorkspace={() => setDeleteTarget({ kind: 'clear' })}
+            clearDisabled={clearWorkspaceBlocker(
+              projects.length > 0,
+              access.can('clear'),
+              access.control('clear').title,
+            )}
+          />
           {/* The one file field: the Import dialog opens it for a new or an existing project. */}
           <input
             ref={importInput}
@@ -290,7 +299,6 @@ export const WorkspaceSidebar = React.memo(function WorkspaceSidebar({
             onChange={handleImportInputChange}
           />
           {me && <WorkspaceLocation place={folderPlace(me.mode, access.can('edit'))} />}
-          <ThemeControl />
         </div>
       </aside>
     </>

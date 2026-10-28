@@ -20,9 +20,14 @@ not configure a production deployment.
 
 ### Changed
 
+- The sidebar starts with one **Add project** button whose menu holds **Import files**, **Clone a
+  repository** and **Load an example**. Its footer is now **Trash** and **Settings**, a row like the
+  navigation above it. **Settings** opens a panel with **Theme**, **Clear workspace** and **Admin**,
+  so the Theme control, the Examples and Import buttons and the header's **Admin** button are gone.
+  The examples drop their "Load" prefix, as they now sit under **Load an example**.
 - Show the header on a phone (up to 650 px wide) as one row: the menu button, the title, a dot
   for the save state, **Commit…** as an icon and **More actions**. **More actions** opens a menu
-  with **New**, **Export** and, for administrators, **Admin**. A save that needs action keeps its
+  with **New** and **Export**; **Admin** is under **Settings**. A save that needs action keeps its
   words beside the dot. Wider windows are unchanged.
 - Show the metric filters (Group by, Type, Status, Owner, Governed only) beside the search box
   again instead of behind a Filters dialog, and show a metric's Rules and SQL preview open in its

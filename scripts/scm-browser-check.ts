@@ -427,7 +427,7 @@ try {
       const noGit = await startIsolatedApi({ gitBinary: join(extra, 'no-such-git') });
       try {
         const p = await newPage(noGit);
-        await (await example(p, /Load commerce workspace/)).click();
+        await (await example(p, /Commerce workspace/)).click();
         await expect(tree(p).getByRole('button', { name: file, exact: true })).toBeVisible({
           timeout: 10000,
         });

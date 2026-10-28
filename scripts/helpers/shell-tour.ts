@@ -64,14 +64,6 @@ export async function sidebarTreeProblems(page: Page, file: string): Promise<str
     if (treeStyle.backgroundImage !== 'none') {
       found.push('the tree still fades');
     }
-    const examples = document.querySelector('.sidebar-footer .examples-menu');
-    const importButton = document.querySelector('.sidebar-footer .import');
-    if (innerHeight <= 800 && examples && importButton) {
-      const offset = Math.abs(
-        examples.getBoundingClientRect().top - importButton.getBoundingClientRect().top,
-      );
-      if (offset > 1) found.push('the short-window footer does not pair Examples and Import');
-    }
     const frame = scroller.getBoundingClientRect();
     const box = row.getBoundingClientRect();
     if (box.top < frame.top - 1 || box.bottom > frame.bottom + 1) {

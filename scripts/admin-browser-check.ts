@@ -14,6 +14,7 @@ import {
   screenshotName,
   withinAdministrationTime,
 } from './helpers/admin-browser';
+import { openSettings } from './helpers/sidebar-menus';
 
 /**
  * Runs the dry run in `scope`, checks the result and confirms. The result is in a dialog for a
@@ -216,7 +217,7 @@ async function adminRouting(page: Page) {
   await page.goBack();
   await expect(page.getByRole('region', { name: 'Policies', exact: true })).toBeVisible();
   await leaveAdmin(page);
-  await expect(page.getByRole('button', { name: 'Admin', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Settings', exact: true })).toBeVisible();
   await page.goBack();
   await expect(page.getByRole('region', { name: 'Policies', exact: true })).toBeVisible();
   await leaveAdmin(page);
@@ -255,7 +256,11 @@ export async function adminBrowserCheck() {
         const erin = await browser.newPage({ viewport: { width: 1440, height: 900 } });
         const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
         await signIn(alice, target, 'alice');
-        await expect(alice.getByRole('button', { name: 'Admin', exact: true })).toHaveCount(0);
+        const aliceSettings = await openSettings(alice);
+        await expect(aliceSettings.getByRole('button', { name: 'Admin', exact: true })).toHaveCount(
+          0,
+        );
+        await alice.keyboard.press('Escape');
         await alice.goto(url + '/#/admin/grants');
         await expect(alice.locator('.admin-page')).toHaveCount(0);
         await remoteChangeRefused(alice, url);

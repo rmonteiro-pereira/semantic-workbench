@@ -2,7 +2,7 @@ import { actionLabel, newIdentifier, whenLabel } from '../src/app/admin/helpers'
 import { expect, test } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { DryRunResult } from '../src/app/admin/ReviewChange';
-import { canOpenAdmin } from '../src/app/admin/AdminLauncher';
+import { canOpenAdmin } from '../src/app/admin/admin-entry';
 import { grantScope } from '../src/app/admin/GrantForm';
 import { RolePermissions } from '../src/app/admin/RolePermissions';
 import type { Me } from '../src/auth/useMe';

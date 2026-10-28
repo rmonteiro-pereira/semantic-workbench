@@ -15,7 +15,7 @@ const docs = {
 };
 await routeApi(page, api);
 await page.goto(appUrl());
-await (await example(page, /Load UBL business model/)).click();
+await (await example(page, /UBL business model/)).click();
 await page.getByRole('status').filter({ hasText: 'Loaded UBL:' }).waitFor({ timeout: 60000 });
 await page
   .locator('footer')

@@ -11,6 +11,7 @@ import { join } from 'node:path';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { sh, ontology } from '../tests/helpers/scm';
 import { LOCAL_READER } from '../src/server/projects/reader';
+import { addProjectItem } from './helpers/sidebar-menus';
 
 const api = await startIsolatedApi();
 const extra = mkdtempSync(join(tmpdir(), 'workbench-git-setup-'));
@@ -249,7 +250,7 @@ try {
   await check(
     'clone: Clone repository makes a project; invalid files are listed, not rewritten',
     async () => {
-      await page.getByRole('button', { name: 'Import…' }).click();
+      await (await addProjectItem(page, 'Import files')).click();
       await page
         .getByRole('dialog', { name: 'Import' })
         .getByRole('button', { name: 'Clone a Git repository…' })
@@ -283,8 +284,7 @@ try {
         await updatesReady;
         await route.continue({ url: api.url + '/api/events' });
       });
-      await page.getByRole('button', { name: 'Import…' }).click();
-      await page.getByRole('button', { name: 'Clone a Git repository…' }).click();
+      await (await addProjectItem(page, 'Clone a repository')).click();
       const dialog = page.getByRole('dialog', { name: 'Clone repository' });
       await dialog.getByLabel('Repository URL or path').fill(folderBare);
       await dialog.getByLabel('Folder in repository').fill('../outside');
@@ -306,8 +306,7 @@ try {
         .click();
       await expect(dialog.getByRole('status')).toContainText('Cloned.', { timeout: 20_000 });
       await dialog.getByRole('button', { name: 'Close' }).click();
-      await page.getByRole('button', { name: 'Import…' }).click();
-      await page.getByRole('button', { name: 'Clone a Git repository…' }).click();
+      await (await addProjectItem(page, 'Clone a repository')).click();
       await dialog.getByLabel('Repository URL or path').fill(folderBare);
       await dialog.getByLabel('Folder in repository').fill('semantic/ubl');
       await dialog.getByRole('button', { name: 'Clone', exact: true }).click();
@@ -346,8 +345,7 @@ try {
       await page.goto(appUrl());
       if (width < 1100)
         await page.getByRole('button', { name: 'Open workspace', exact: true }).click();
-      await page.getByRole('button', { name: 'Import…' }).click();
-      await page.getByRole('button', { name: 'Clone a Git repository…' }).click();
+      await (await addProjectItem(page, 'Clone a repository')).click();
       const dialog = page.getByRole('dialog', { name: 'Clone repository' });
       await expect(dialog).toBeVisible();
       const box = (await dialog.locator('.workbench-dialog').boundingBox())!;

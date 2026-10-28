@@ -9,6 +9,7 @@ import { join } from 'node:path';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { sh } from '../tests/helpers/scm';
 import { bareRepository, ontologyText } from '../tests/helpers/git-fixtures';
+import { addProjectItem } from './helpers/sidebar-menus';
 
 const api = await startIsolatedApi();
 const declared = bareRepository('monorepo');
@@ -41,11 +42,7 @@ const slugOf = (name: string) =>
   api.ws.state.registry().projects.find(entry => entry.name === name)?.slug;
 
 async function clone(target: Page, address: string) {
-  await target.getByRole('button', { name: 'Import…' }).click();
-  await target
-    .getByRole('dialog', { name: 'Import' })
-    .getByRole('button', { name: 'Clone a Git repository…' })
-    .click();
+  await (await addProjectItem(target, 'Clone a repository')).click();
   const dialog = target.getByRole('dialog', { name: 'Clone repository' });
   await dialog.getByLabel('Repository URL or path').fill(address);
   await dialog.getByRole('button', { name: 'Clone', exact: true }).click();

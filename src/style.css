@@ -159,19 +159,6 @@ button:disabled:hover {
 .chosen {
   background: var(--color-surface-sunken);
 }
-.import {
-  border: 1px dashed var(--color-border-strong);
-  border-radius: 8px;
-  padding: 13px 8px;
-  display: flex;
-  gap: 8px;
-  justify-content: center;
-  font-size: var(--text-small);
-  cursor: pointer;
-}
-.import input {
-  display: none;
-}
 .local {
   font-size: var(--text-small);
   margin: 25px 7px 0;
@@ -2383,17 +2370,6 @@ main > .status {
   flex: 0 0 28px;
   display: inline-flex;
 }
-.workspace-actions {
-  display: flex;
-  gap: 6px;
-  margin: 8px 0 2px;
-  flex-shrink: 0;
-}
-.workspace-actions button {
-  flex: 1;
-  font-size: var(--text-small);
-  padding: 7px 6px;
-}
 .dialog-footer-spacer {
   flex: 1;
 }
@@ -3420,12 +3396,6 @@ main > .status {
 /* Dialog and menu sizing. */
 .import-input {
   display: none;
-}
-button.import {
-  background: transparent;
-  width: 100%;
-  align-items: center;
-  color: var(--color-text);
 }
 .menu-button {
   position: relative;

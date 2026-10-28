@@ -181,12 +181,14 @@ check that happens to succeed.
   `Sidebar.tsx` keeps the selected file reachable in the scrolling project list.
 - `src/scm/` owns Source Control, diffs, branch/commit/remote/clone dialogs and personal-credential
   prompts. `src/projects/Modal.tsx`, `Menu.tsx`, `WizardStepper.tsx`, `EmptyState.tsx` and
-  `src/shared/ScrollStrip.tsx` provide shared interaction and layout behavior.
+  `src/shared/ScrollStrip.tsx` provide shared interaction and layout behavior;
+  `src/projects/useAnchoredPopup.ts` places and dismisses the popups that menus and the Settings
+  panel draw beside their button.
 - `src/shared/` contains UI and small utilities used by multiple domains; `src/theme/` owns theme
   tokens, runtime palettes and browser preference. The root of `src/` is reserved for the entry,
   global stylesheet and browser type declarations.
 - `src/auth/` consumes server-reported identity and capabilities. `src/app/admin/` is the browser
-  administration feature: it proposes/reviews access changes through its typed client and is
+  administration feature, reached from the sidebar's Settings panel through `admin-entry.ts`: it proposes/reviews access changes through its typed client and is
   separate from the server's versioned `DATA_DIR/admin/` configuration repository. Admin URL hashes
   select sections; no general routing framework computes authorization in the browser.
 - `src/graph/` owns whole-model and neighborhood views, traversal, grouping projection, layout,
