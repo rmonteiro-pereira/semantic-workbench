@@ -1,12 +1,7 @@
 import { ListInput } from './ListInput';
 import type { Role } from './types';
 import { SelectField } from './SelectField';
-import {
-  BRANCH_ACTIONS,
-  FILE_ACTIONS,
-  LEVELS,
-  type Action,
-} from '../../server/auth/actions';
+import { BRANCH_ACTIONS, FILE_ACTIONS, LEVELS, type Action } from '../../shared/auth/actions';
 import { commaList } from './change-review';
 import { actionLabel } from './helpers';
 

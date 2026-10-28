@@ -2,8 +2,8 @@
 import { test, expect } from 'bun:test';
 import { parse, stringify } from 'yaml';
 import { Database } from 'bun:sqlite';
-import { inspect } from '../src/core/model';
-import { validateInput } from '../src/validation/input';
+import { inspect } from '../src/shared/core/model';
+import { validateInput } from '../src/shared/validation/input';
 import {
   agentCatalog,
   buildContext,

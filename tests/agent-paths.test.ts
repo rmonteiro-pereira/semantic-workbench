@@ -1,6 +1,6 @@
 // Tests that agent API requests from the browser always name their project.
 import { expect, test } from 'bun:test';
-import { agentCatalogPath, agentContextPath } from '../src/mappings/agent-paths';
+import { agentCatalogPath, agentContextPath } from '../src/app/mappings/agent-paths';
 
 test('the catalog and context addresses carry the project', () => {
   expect(agentCatalogPath('sales team')).toBe('/api/agent/catalog?project=sales%20team');

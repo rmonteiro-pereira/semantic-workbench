@@ -34,8 +34,8 @@ import {
 import { expectFileOpen, expectModelName, isPhoneHeader, openNewMenu } from './helpers/header';
 import { treeRowProblems } from './helpers/tree-geometry';
 import { neighborhoodEdgeProblems, neighborhoodState, pickCenter } from './helpers/edge-geometry';
-import { inspect } from '../src/core/model';
-import { NEIGHBOR_PAGE } from '../src/graph/graph-view';
+import { inspect } from '../src/shared/core/model';
+import { NEIGHBOR_PAGE } from '../src/app/graph/graph-view';
 import { layoutProblems, lineageProblems } from './helpers/layout-geometry';
 import { fileTab, screenProblems, showScreen, type Screen } from './helpers/screen-tour';
 import { tourGroups } from './helpers/all-tours';
@@ -282,7 +282,7 @@ async function openPage(width: number, height: number) {
     console.log('INJECTED_SAVE_STATE_MUTATION');
   }
   if (process.env.RESPONSIVE_MUTATION === 'status-stays')
-    await page.route('**/src/main.tsx*', async route => {
+    await page.route('**/src/app/main.tsx*', async route => {
       const response = await route.fetch();
       const source = await response.text();
       const anchor = 'const timer = setTimeout(() => setMessage(""), 5e3);';

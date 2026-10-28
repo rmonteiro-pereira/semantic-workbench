@@ -544,7 +544,7 @@ if (
 }
 
 if (category === 'overview') {
-  const { inspect } = await import('../src/core/model');
+  const { inspect } = await import('../src/shared/core/model');
   const input = inspect(await Bun.file('public/examples/ubl/ubl.ontology.yaml').text());
   const o = m.modelOverview(input.entities, input.edges, input.name);
   const flights = inspect(await Bun.file('public/examples/ossie/flights.ontology.yaml').text());
@@ -977,7 +977,7 @@ if (category === 'lint') {
 }
 // An item edit changes one value; the rest keeps its own layout (no re-serialization).
 if (category === 'json-patch') {
-  const { applyPatches } = await import('../src/editor/patch');
+  const { applyPatches } = await import('../src/shared/editor/patch');
   const { parseDocument } = await import('yaml');
   const src = '{\n    "a": 1,\n    "tags": ["x", "y"],\n    "b": {"c": 2}\n}\n';
   assert.equal(
@@ -995,7 +995,7 @@ if (category === 'json-patch') {
   );
 }
 if (category === 'yaml-patch') {
-  const { applyPatches } = await import('../src/editor/patch');
+  const { applyPatches } = await import('../src/shared/editor/patch');
   const src =
     '# keep\nname: X\nontology:\n  - concept: A   # tail\n    type: EntityType\n    extends: [B]\n';
   const item = m.itemValue(src, ['ontology', 0]);
@@ -1125,7 +1125,7 @@ if (category === 'rdf-gate') {
   );
 }
 if (category === 'rdf-lines') {
-  const { applyPatches } = await import('../src/editor/patch');
+  const { applyPatches } = await import('../src/shared/editor/patch');
   const src = '<https://e/a> <https://e/p> "1" .\n<https://e/b>   <https://e/p>  "2" .   # kept\n';
   const out = applyPatches(
     src,

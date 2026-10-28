@@ -329,21 +329,21 @@ owns the data root; merely increasing container replicas is not safe scaling.
 
 | Area | Owns |
 | --- | --- |
-| `src/app/`, `src/main.tsx` | Browser composition, workspace state and shared navigation |
+| `src/app/main.tsx`, `src/app/workspace/` | Browser entry and the workbench shell and its state |
 | `src/app/admin/` | Browser access-administration UI and its typed API client; separate from `DATA_DIR/admin/` |
-| `src/editor/`, `src/edit/` | Source/item edits, validation display and byte-range patches |
-| `src/metrics/`, `src/mappings/`, `src/odcs/` | Metric, mapping and contract/lineage views |
-| `src/graph/` | Whole-model and neighborhood graphs, layout, traversal and workers |
-| `src/core/`, `src/validation/` | Shared model projection, parsers, diagnostics and input validation |
-| `src/shared/`, `src/theme/` | Cross-domain UI utilities and semantic theme tokens |
+| `src/app/editor/`, `src/app/edit/` | Source/item editing and validation display |
+| `src/app/metrics/`, `src/app/mappings/`, `src/app/odcs/` | Metric, mapping and contract/lineage views |
+| `src/app/graph/` | Whole-model and neighborhood graphs, layout, traversal and workers |
+| `src/shared/` | Code the browser and server both import: model, parsers, validation, patches, metric bindings |
+| `src/app/components/`, `src/app/theme/` | Cross-feature UI and theme palettes |
 | `schemas/`, `src/generated/` | Pinned schema sources and compiled browser validators |
 | `src/server/routes/`, `src/server/handler.ts` | HTTP request parsing and service dispatch |
 | `src/server/projects/` | Files, Git, journals, index, worktrees, trash and events |
 | `src/server/auth/`, `policies/` | Identity, sessions, Cedar decisions, access review and audit |
-| `src/governance/` | Shared pure metric/classification protection rules |
+| `src/shared/governance/` | Shared pure metric/classification protection rules |
 | `src/server/agent/` | Filtered metadata, metric explanations and SQL planning |
-| `src/server/observability/`, `src/observability/` | Operational diagnostics and optional reporting |
-| `public/brand/`, `src/server/brand/`, `src/theme/theme.css` | Product identity and semantic theme tokens |
+| `src/server/observability/`, `src/app/observability/` | Operational diagnostics and optional reporting |
+| `public/brand/`, `src/server/brand/`, `src/shared/theme/theme.css` | Product identity and semantic theme tokens |
 | `scripts/`, `tests/`, `patches/` | Tooling, isolated verification and locked dependency fixes |
 | `deploy/`, pipeline YAML | Target setup, source hand-over and explicit delivery |
 | `.github/` | Shared Copilot instructions and reusable agent skills |
@@ -524,8 +524,8 @@ The application does not require or call a hosted language model.
 
 ## Theme and white-labelling
 
-The sidebar offers System, Light and Dark. Semantic color tokens live in `src/theme/theme.css`, with
-runtime group palettes in `src/theme/theme-palette.ts`. Components do not own private color literals.
+The sidebar offers System, Light and Dark. Semantic color tokens live in `src/shared/theme/theme.css`, with
+runtime group palettes in `src/app/theme/theme-palette.ts`. Components do not own private color literals.
 
 A server deployment can override the product name, logo, mark, favicon and theme tokens with a
 startup-loaded `SW_BRAND_DIR` bundle without rebuilding. SVG/CSS/JSON are sanitized and bounded;

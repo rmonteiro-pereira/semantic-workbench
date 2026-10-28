@@ -1,6 +1,6 @@
 // Tests which attributes the property edit dialog writes.
 import { describe, expect, test } from 'bun:test';
-import { changesOf, draftOf } from '../src/odcs/PropertyEditors';
+import { changesOf, draftOf } from '../src/app/odcs/PropertyEditors';
 
 const property = { name: 'amount', logicalType: 'number', required: true, description: 'Amount.' };
 

@@ -1,9 +1,9 @@
-// Replaces colour literals in stylesheets and source files by the tokens of src/theme/theme.css.
+// Replaces colour literals in stylesheets and source files by the tokens of src/shared/theme/theme.css.
 //
 //   bun scripts/theme-codemod.ts            rewrite the files in place
 //   bun scripts/theme-codemod.ts --dry-run  print what would change and write nothing
 //   bun scripts/theme-codemod.ts --report   also list every literal with the token it maps to
-//   bun scripts/theme-codemod.ts src/odcs   limit the run to files under the given paths
+//   bun scripts/theme-codemod.ts src/app/odcs  limit the run to files under the given paths
 //
 // Each literal becomes the closest token whose role fits the property it is used in: a
 // background maps to a surface or solid colour, a border to a border colour, text to a text
@@ -242,7 +242,7 @@ function printUnmapped(left: Change[]) {
 /** Runs the codemod over the given paths and prints a summary. */
 export function runCodemod(args: string[]): number {
   const options = readOptions(args);
-  const tokens = readTokens(readFileSync('src/theme/theme.css', 'utf8'));
+  const tokens = readTokens(readFileSync('src/shared/theme/theme.css', 'utf8'));
   const changes: Change[] = [];
   for (const file of themedFiles(options.paths)) {
     const language = languageOf(file)!;

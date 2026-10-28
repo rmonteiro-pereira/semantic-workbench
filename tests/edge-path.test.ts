@@ -1,6 +1,6 @@
 // Tests validation of edge routes against current endpoint coordinates.
 import { test, expect } from 'bun:test';
-import { pathMatchesEndpoints } from '../src/graph/edge-path';
+import { pathMatchesEndpoints } from '../src/app/graph/edge-path';
 test('accepts routed curves only at their actual current handle coordinates', () => {
   const route = 'M 10,20 C 30,40 50,60 70,80';
   expect(pathMatchesEndpoints(route, 10, 20, 70, 80)).toBe(true);

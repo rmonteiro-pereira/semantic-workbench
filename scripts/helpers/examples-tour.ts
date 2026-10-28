@@ -2,7 +2,7 @@
 // down across tables, for the responsive suite and the example checks.
 import { expect, type Locator, type Page } from '@playwright/test';
 import { EXPECTED_EXAMPLE_METRICS, type ExpectedExampleMetrics } from '../example-metric-checks';
-import { exampleSet } from '../../src/projects/examples';
+import { exampleSet } from '../../src/shared/projects/examples';
 import { showSidebar, type Screen } from './screen-tour';
 
 /** Opens the Metrics tab of an example project, expanding the project in the sidebar first. */

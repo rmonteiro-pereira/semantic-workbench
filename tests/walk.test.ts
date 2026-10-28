@@ -11,7 +11,7 @@ import {
   walkWithinProject,
   type Walk,
   type WalkAction,
-} from '../src/graph/walk';
+} from '../src/app/graph/walk';
 const step = (center: string, doc = 'd') => ({ doc, center, name: center });
 const run = (walk: Walk, ...actions: WalkAction[]): Walk => actions.reduce(walkReducer, walk);
 test('push, back and forward move through the trail', () => {
@@ -66,7 +66,7 @@ test('jump and reset; the trail is bounded', () => {
   expect(w.index).toBe(MAX_STEPS - 1);
 });
 // Expansion steps (data-model WalkStep); steps without `kind` stay re-centering steps.
-import { canvasAt } from '../src/graph/walk';
+import { canvasAt } from '../src/app/graph/walk';
 const expand = (center: string, set: string, name = set) => ({
   doc: 'd',
   center,

@@ -1,6 +1,6 @@
 // Faults in the folder path check, the sparse-checkout arguments and the partial clone, apart from
 // the older inventory. Each tuple is the category, the module, the exact text and its replacement.
-const FOLDER = 'src/scm/repository-folder.ts';
+const FOLDER = 'src/shared/scm/repository-folder.ts';
 const SPARSE = 'src/server/projects/sparse-folder.ts';
 
 /** Deliberate faults in sparse project boundaries and checkout behavior. */

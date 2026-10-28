@@ -8,7 +8,7 @@ import {
   dominantLineBreak,
   lineStarts,
   normalize,
-} from '../src/editor/patch';
+} from '../src/shared/editor/patch';
 
 function edit(
   original: string,

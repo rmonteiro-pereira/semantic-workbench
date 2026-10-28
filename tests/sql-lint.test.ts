@@ -2,8 +2,8 @@
 import { test, expect } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { sqlFindings } from '../src/server/projects/scanner';
-import { fillPlaceholders, type SqlFinding } from '../src/sql/lint';
-import { validateInput } from '../src/validation/input';
+import { fillPlaceholders, type SqlFinding } from '../src/shared/sql/lint';
+import { validateInput } from '../src/shared/validation/input';
 // SQL lint: findings at exact, hand-computed positions, warnings only, nothing changed.
 const fixture = (name: string) => readFileSync(`tests/fixtures/sql/${name}`, 'utf8');
 const warnings = (src: string, name: string) =>

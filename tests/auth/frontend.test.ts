@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
-import { apiFetch } from '../../src/projects/api';
-import { personRoles, loadIdentity } from '../../src/auth/useMe';
+import { apiFetch } from '../../src/app/projects/api';
+import { personRoles, loadIdentity } from '../../src/app/auth/useMe';
 
 test('API wrapper preserves request options, marks writes and reloads only once', async () => {
   const originalFetch = globalThis.fetch;
@@ -80,7 +80,7 @@ test('identity retries a rejected request and shares the successful promise', as
 });
 
 test('the sidebar names one hidden file in the singular', async () => {
-  const { hiddenFilesLine } = await import('../../src/projects/Sidebar');
+  const { hiddenFilesLine } = await import('../../src/app/projects/Sidebar');
   expect(hiddenFilesLine(1)).toBe('1 file you cannot open');
   expect(hiddenFilesLine(3)).toBe('3 files you cannot open');
 });

@@ -2,7 +2,7 @@
 // are as large as their cards allow, detail lines that keep their size, cards that do not overlap,
 // a toolbar that fits, and a canvas that keeps most of a phone screen.
 import type { Page } from '@playwright/test';
-import { LARGEST_ENTITY_NAME_PX } from '../../src/graph/overview-capacity';
+import { LARGEST_ENTITY_NAME_PX } from '../../src/app/graph/overview-capacity';
 import {
   graphRelationshipContrastProblems,
   graphRelationshipLabelProblems,

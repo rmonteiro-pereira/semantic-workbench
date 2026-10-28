@@ -1,8 +1,8 @@
 // The browser recognises a request that needs an account and describes connected accounts.
 import { expect, test } from 'bun:test';
-import { connectRequired } from '../../src/scm/RemoteConnectPrompt';
-import { accountsSummary } from '../../src/auth/ConnectedAccounts';
-import type { Me } from '../../src/auth/useMe';
+import { connectRequired } from '../../src/app/scm/RemoteConnectPrompt';
+import { accountsSummary } from '../../src/app/auth/ConnectedAccounts';
+import type { Me } from '../../src/app/auth/useMe';
 
 const me: Me = {
   mode: 'server',

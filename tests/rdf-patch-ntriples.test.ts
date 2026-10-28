@@ -1,6 +1,11 @@
 // Tests whole-line N-Triples edits that preserve other lines.
 import { test, expect } from 'bun:test';
-import { readRdfItem, editRdfItem, deleteRdfItem, addRdfItem } from '../src/edit/rdf-patch/index';
+import {
+  readRdfItem,
+  editRdfItem,
+  deleteRdfItem,
+  addRdfItem,
+} from '../src/app/edit/rdf-patch/index';
 // N-Triples item edits are whole-line edits; other lines keep their bytes.
 const src =
   '# people\r\n<https://e/a>  <http://www.w3.org/2000/01/rdf-schema#label>   "Alice" .\r\n<https://e/b> <http://www.w3.org/2000/01/rdf-schema#label> "Bob" .\r\n<https://e/a> <https://e/knows> <https://e/b> .\r\n<https://e/a> <https://e/address> _:addr .\r\n_:addr <https://e/city> "Lisbon" .\r\n';

@@ -1,7 +1,7 @@
 // Tests that Source Control lists only the selected project's changes in a shared repository.
 import { expect, test } from 'bun:test';
-import type { GitChange } from '../src/projects/api';
-import { changesOfProject, elsewhereLine } from '../src/scm/project-changes';
+import type { GitChange } from '../src/app/projects/api';
+import { changesOfProject, elsewhereLine } from '../src/app/scm/project-changes';
 
 const change = (path: string, outside = false) => ({ path, repoPath: path, outside }) as GitChange;
 

@@ -1,8 +1,8 @@
 import { expect, test } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { ValidationPanel } from '../src/validation/ValidationPanel';
-import { EntityName } from '../src/graph/EntityName';
-import type { Issue } from '../src/validation/diagnostics';
+import { ValidationPanel } from '../src/app/validation/ValidationPanel';
+import { EntityName } from '../src/app/graph/EntityName';
+import type { Issue } from '../src/shared/validation/diagnostics';
 
 function findings(errors: number, warnings: number): Issue[] {
   const errorIssues: Issue[] = Array.from({ length: errors }, () => ({

@@ -1,7 +1,7 @@
 // Exercises clone events arriving before or after the server's start response.
 import { expect, test } from 'bun:test';
-import { cloneProgressReducer, initialCloneProgress } from '../src/scm/clone-progress';
-import type { CloneEvent } from '../src/projects/api';
+import { cloneProgressReducer, initialCloneProgress } from '../src/app/scm/clone-progress';
+import type { CloneEvent } from '../src/app/projects/api';
 
 const operation = { op: 'clone-one', name: 'Orders' };
 const failure: CloneEvent = {

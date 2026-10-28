@@ -6,8 +6,8 @@ import { chromium, expect, type Locator } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { editorSelection, expectEditorValue, fillEditor } from './helpers/code-editor';
-import { inspect } from '../src/core/model';
-import { groupRelationships } from '../src/graph/graph-view';
+import { inspect } from '../src/shared/core/model';
+import { groupRelationships } from '../src/app/graph/graph-view';
 import { expectModelName, exportFile } from './helpers/header';
 import { LOCAL_READER } from '../src/server/projects/reader';
 

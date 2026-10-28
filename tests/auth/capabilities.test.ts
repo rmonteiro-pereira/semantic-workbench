@@ -1,7 +1,7 @@
 // UI permissions are API capabilities, including custom roles with unexpected names.
 import { expect, test } from 'bun:test';
-import { can, requiredRole } from '../../src/auth/Capabilities';
-import type { Me } from '../../src/auth/useMe';
+import { can, requiredRole } from '../../src/app/auth/Capabilities';
+import type { Me } from '../../src/app/auth/useMe';
 
 const me: Me = {
   mode: 'server',
@@ -31,7 +31,7 @@ test('local mode retains every control and disabled controls name the needed rol
 });
 
 test('creation APIs send the caller domain without consulting a global dialog', async () => {
-  const { api, scm } = await import('../../src/projects/api');
+  const { api, scm } = await import('../../src/app/projects/api');
   const originalFetch = globalThis.fetch;
   const bodies: unknown[] = [];
   globalThis.fetch = (async (_url, init) => {

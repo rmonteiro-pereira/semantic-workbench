@@ -1,7 +1,7 @@
 import { ArrowLeft } from 'lucide-react';
 import type { ComponentType } from 'react';
-import { PersonMenu } from '../../auth/PersonMenu';
-import { ScrollStrip } from '../../shared/ScrollStrip';
+import { PersonMenu } from '../auth/PersonMenu';
+import { ScrollStrip } from '../components/ScrollStrip';
 import { AccessCheckSection } from './AccessCheckSection';
 import { adminHash } from './admin-route';
 import { adminSection, ADMIN_SECTIONS, type AdminSectionId } from './admin-sections';

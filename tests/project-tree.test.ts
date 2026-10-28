@@ -1,6 +1,6 @@
 // Tests that a repository row acts for the selected project when it belongs to the repository.
 import { expect, test } from 'bun:test';
-import { repositoryMember, type RepositoryMembers } from '../src/projects/project-tree';
+import { repositoryMember, type RepositoryMembers } from '../src/app/projects/project-tree';
 
 const members = [{ slug: 'sales' }, { slug: 'finance' }] as unknown as RepositoryMembers;
 

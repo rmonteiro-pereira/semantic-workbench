@@ -1,7 +1,7 @@
 // Tests document format detection and parsing.
 import { test, expect } from 'bun:test';
-import { inspect } from '../src/core/model';
-import { graphView } from '../src/graph/graph-view';
+import { inspect } from '../src/shared/core/model';
+import { graphView } from '../src/app/graph/graph-view';
 import { readdir } from 'node:fs/promises';
 test('all commerce formats import and preserve full definitions', async () => {
   for (const filename of await readdir('public/examples/commerce')) {

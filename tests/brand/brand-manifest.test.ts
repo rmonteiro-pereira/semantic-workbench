@@ -1,6 +1,6 @@
 // Tests the rules for brand.json: required names, their lengths and the support link scheme.
 import { expect, test } from 'bun:test';
-import { parseBrandManifest } from '../../src/brand/manifest';
+import { parseBrandManifest } from '../../src/shared/brand/manifest';
 
 const valid = { productName: 'Acme Models', shortName: 'Acme' };
 

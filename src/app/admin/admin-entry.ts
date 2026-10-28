@@ -1,5 +1,5 @@
 /** Decides who may open Admin and what opens it, for the Settings panel and the Admin host. */
-import { useMe, type Me } from '../../auth/useMe';
+import { useMe, type Me } from '../auth/useMe';
 import { useAdminRoute } from './admin-route';
 
 /** Uses the server's capability, including the implicit local administrator. */

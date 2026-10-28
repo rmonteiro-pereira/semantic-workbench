@@ -1,7 +1,7 @@
 // Tests that the trash lists the selected project's files and the deleted projects apart.
 import { expect, test } from 'bun:test';
-import type { TrashItem } from '../src/projects/api';
-import { otherProjectFilesLine, trashSections } from '../src/projects/trash-sections';
+import type { TrashItem } from '../src/app/projects/api';
+import { otherProjectFilesLine, trashSections } from '../src/app/projects/trash-sections';
 
 const entry = (entryId: string, kind: TrashItem['kind'], project: string) =>
   ({ entryId, kind, project, projectName: project }) as TrashItem;

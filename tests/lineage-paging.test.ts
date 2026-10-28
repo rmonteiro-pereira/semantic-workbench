@@ -7,7 +7,7 @@ import {
   SMALL_CARD,
   type ColumnWhy,
   type LineageCard,
-} from '../src/odcs/lineage';
+} from '../src/app/odcs/lineage';
 
 const none: ColumnWhy = { focus: new Set(), connected: new Set() };
 const columnId = (i: number) => `object:c#big/c${i}`;

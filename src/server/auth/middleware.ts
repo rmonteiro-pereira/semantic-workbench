@@ -17,7 +17,7 @@ import { WriteAccessError } from './write-access';
 import type { GroupName } from './directory';
 import type { ProviderStatus } from './oidc';
 import { GuardedChangeError } from './guards';
-import { READ_ACTIONS } from './actions';
+import { READ_ACTIONS } from '../../shared/auth/actions';
 import { requestAccess, requestAuditProjects, type AccessRequest } from './request-scope';
 import {
   hiddenResponses,

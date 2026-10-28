@@ -5,8 +5,8 @@ import { ReviewChange } from '../../src/app/admin/ReviewChange';
 import type { Proposal } from '../../src/app/admin/types';
 import { createRoot } from 'react-dom/client';
 import { AdminHost } from '../../src/app/admin/AdminHost';
-import { SettingsPanel } from '../../src/app/SettingsPanel';
-import '../../src/style.css';
+import { SettingsPanel } from '../../src/app/workspace/SettingsPanel';
+import '../../src/app/style.css';
 
 // Parent updates can arrive while the native dialog makes the underlying form inert.
 function ReviewHarness() {

@@ -1,6 +1,6 @@
 // Tests when the whole-model graph opens with one card per area and how its text sizes follow zoom.
 import { test, expect } from 'bun:test';
-import { startsCollapsed, textSizesAt, modelCardHeight } from '../src/graph/overview-capacity';
+import { startsCollapsed, textSizesAt, modelCardHeight } from '../src/app/graph/overview-capacity';
 
 test('the 45-entity model opens with every entity visible, whatever the pane', () => {
   expect(startsCollapsed(45)).toBe(false);

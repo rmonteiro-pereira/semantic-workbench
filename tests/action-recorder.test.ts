@@ -1,6 +1,6 @@
 // Tests how the recorder groups changes into steps and brings back state across screens.
 import { expect, test } from 'bun:test';
-import { createActionRecorder, type StateRegistration } from '../src/app/action-recorder';
+import { createActionRecorder, type StateRegistration } from '../src/app/workspace/action-recorder';
 
 function createFixture() {
   const deferred: (() => void)[] = [];

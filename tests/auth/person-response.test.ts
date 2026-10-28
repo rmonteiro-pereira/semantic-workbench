@@ -70,7 +70,7 @@ test('mock confidential client accepts the per-run secret and refuses the fixtur
 });
 
 test('permission explanations come from server role definitions, including custom sources', async () => {
-  const { ACTIONS } = await import('../../src/server/auth/actions');
+  const { ACTIONS } = await import('../../src/shared/auth/actions');
   const builtin = (await import('../../policies/builtin-roles.json')).default;
   const access = createAccessControl(accessFixture());
   for (const name of ['alice', 'hank'] as const) {

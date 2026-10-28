@@ -2,7 +2,7 @@
 import { test, expect } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { appendIgnore, escapeIgnore, ignoreChoices } from '../src/scm/gitignore';
+import { appendIgnore, escapeIgnore, ignoreChoices } from '../src/shared/scm/gitignore';
 import { call, ok, scmProject, sh } from './helpers/scm';
 import { LOCAL_READER } from '../src/server/projects/reader';
 test('Add to .gitignore offers the exact path, the extension and the folder, escaped for Git', () => {

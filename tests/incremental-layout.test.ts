@@ -1,6 +1,6 @@
 // Tests placement of new graph nodes without moving existing nodes.
 import { test, expect } from 'bun:test';
-import { placeNew, placeLayers, placeBoxes } from '../src/graph/incremental-layout';
+import { placeNew, placeLayers, placeBoxes } from '../src/app/graph/incremental-layout';
 
 const g = { column: 360, row: 130 };
 test('placed nodes never move; new nodes go beside their origin, left for incoming and right for outgoing', () => {

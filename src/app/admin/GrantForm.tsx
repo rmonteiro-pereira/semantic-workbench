@@ -1,4 +1,4 @@
-import { useMe } from '../../auth/useMe';
+import { useMe } from '../auth/useMe';
 import { useEffect, useState } from 'react';
 import { SelectField } from './SelectField';
 import { AdminPane, type PaneProps } from './AdminPane';

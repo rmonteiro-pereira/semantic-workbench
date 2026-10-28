@@ -1,5 +1,5 @@
 import { patchDiffs } from './version-diff';
-import { apiFetch } from '../../projects/api';
+import { apiFetch } from '../projects/api';
 import type {
   AdminUser,
   RolesResponse,

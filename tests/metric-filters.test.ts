@@ -8,7 +8,7 @@ import {
   metricKey,
   noFilters,
   visibleColumns,
-} from '../src/metrics/metric-filters';
+} from '../src/app/metrics/metric-filters';
 
 function metric(overrides: Partial<KpiSummary>): KpiSummary {
   return {

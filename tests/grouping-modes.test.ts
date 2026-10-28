@@ -2,8 +2,12 @@
 import { test, expect } from 'bun:test';
 import { Glob } from 'bun';
 import { basename, resolve } from 'node:path';
-import { inspect, type Entity, type Relationship } from '../src/core/model';
-import { modelOverview, GROUPING_ORDER, type ConcreteGroupingMode } from '../src/graph/overview';
+import { inspect, type Entity, type Relationship } from '../src/shared/core/model';
+import {
+  modelOverview,
+  GROUPING_ORDER,
+  type ConcreteGroupingMode,
+} from '../src/app/graph/overview';
 
 type Model = { name: string; entities: Entity[]; edges: Relationship[] };
 

@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
 import { Position } from '@xyflow/react';
-import { edgeAppearance } from '../src/graph/edge-styles';
+import { edgeAppearance } from '../src/app/graph/edge-styles';
 
 test('SVG appearance keeps markers and labels but excludes graph internals', () => {
   const props = {

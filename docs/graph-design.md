@@ -25,7 +25,7 @@ it is not a drop-in performance switch.
 
 ## Whole-model graph pipeline
 
-`src/graph/FullGraph.tsx` renders the projection built from original entities and relationships:
+`src/app/graph/FullGraph.tsx` renders the projection built from original entities and relationships:
 
 1. Preserve each definition's ID and source evidence. Parallel directed relationships can share
    one link bundle, but every original relationship remains available for inspection.
@@ -43,10 +43,10 @@ it is not a drop-in performance switch.
    entities start with counted area cards; expanding restores all entities and their folded
    relationships.
 
-`src/graph/full-layout.ts` and its workers own engine input/output.
-`src/graph/overview-capacity.ts` sizes cards and decides when areas start as counted cards.
-`src/graph/edge-styles.ts` supplies line/legend styles and SVG-safe appearance;
-`src/graph/RoutedEdge.tsx` keeps fallback routes attached while a worker result is pending or no
+`src/app/graph/full-layout.ts` and its workers own engine input/output.
+`src/app/graph/overview-capacity.ts` sizes cards and decides when areas start as counted cards.
+`src/app/graph/edge-styles.ts` supplies line/legend styles and SVG-safe appearance;
+`src/app/graph/RoutedEdge.tsx` keeps fallback routes attached while a worker result is pending or no
 longer matches current endpoints.
 
 Selection changes emphasis rather than deleting the rest of the model. The optional mini-map is
@@ -55,12 +55,12 @@ area collapse, zoom and focused views make that trade-off explicit.
 
 ## Neighborhood and incremental traversal
 
-`src/graph/NeighborhoodGraph.tsx` places the center between incoming and outgoing neighbors. Local
+`src/app/graph/NeighborhoodGraph.tsx` places the center between incoming and outgoing neighbors. Local
 functions group links, assign distinct routes and place labels; full model layout engines are not
 rerun for every small walk.
 
 A walk records centers and the relationship used to reach them. Expansion sets record their
-origin, nodes, edges and direction. `src/graph/incremental-layout.ts` places new nodes beside that
+origin, nodes, edges and direction. `src/app/graph/incremental-layout.ts` places new nodes beside that
 origin without moving existing nodes. Collapse removes only nodes contributed by that expansion;
 shared contributions remain. Back, Forward and Undo reconstruct the recorded canvas.
 
@@ -77,7 +77,7 @@ label at any zoom.
 
 ## Contract lineage and mapping graphs
 
-`src/odcs/lineage.ts` builds project-local dependency cards for tables, semantic datasets, metrics
+`src/app/odcs/lineage.ts` builds project-local dependency cards for tables, semantic datasets, metrics
 and external references. Names and expression references provide evidence; no external contract
 is fetched and no SQL is run. Mapping graphs use the same canvas with cards and lines supplied
 by the mapping resolver.

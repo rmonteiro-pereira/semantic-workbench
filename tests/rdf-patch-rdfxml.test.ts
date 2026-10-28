@@ -1,7 +1,12 @@
 // Tests RDF/XML resource edits and refusal of unsupported constructs.
 import { test, expect } from 'bun:test';
 import { readFileSync } from 'node:fs';
-import { readRdfItem, editRdfItem, deleteRdfItem, addRdfItem } from '../src/edit/rdf-patch/index';
+import {
+  readRdfItem,
+  editRdfItem,
+  deleteRdfItem,
+  addRdfItem,
+} from '../src/app/edit/rdf-patch/index';
 // RDF/XML item edits change the subject's node element in place; constructs that span more than
 // one element are refused with their line.
 const src = readFileSync('public/examples/commerce/commerce.owl', 'utf8');

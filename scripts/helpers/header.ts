@@ -1,7 +1,7 @@
 // Opens file actions through the header menus used by browser checks and measures the header.
 import { expect, type Page } from '@playwright/test';
-import { NO_FILE_TITLE } from '../../src/app/HeaderTitle';
-import { PHONE_SCREEN_PX } from '../../src/app/useNarrowScreen';
+import { NO_FILE_TITLE } from '../../src/app/workspace/HeaderTitle';
+import { PHONE_SCREEN_PX } from '../../src/app/workspace/hooks/useNarrowScreen';
 // New and Export sit in the More actions menu at every window width.
 /** Waits until the header has switched to the layout that suits the window's current width. */
 export async function expectHeaderSettled(page: Page) {

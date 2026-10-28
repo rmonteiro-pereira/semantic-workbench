@@ -2,10 +2,10 @@
 import { test, expect } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { parse } from 'yaml';
-import { validateInput } from '../src/validation/input';
-import { valuePatches, edit } from '../src/edit/yaml-patch';
-import { extensionOf } from '../src/edit/item-model';
-import { readKpiBindings } from '../src/metrics/extension';
+import { validateInput } from '../src/shared/validation/input';
+import { valuePatches, edit } from '../src/shared/edit/yaml-patch';
+import { extensionOf } from '../src/shared/edit/item-model';
+import { readKpiBindings } from '../src/shared/metrics/extension';
 // Stored metric attributes remain valid and byte-exact. UI vocabulary changes must not rename
 // stored keys such as `kpi_bindings` or schema identifiers.
 const files = ['mall/mall.semantic.yaml', 'mall/mall.mapping.yaml'].map(p => ({

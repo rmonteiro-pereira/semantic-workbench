@@ -1,6 +1,6 @@
 // Owns resource identities and validates file paths before policy matching.
 import { posix } from 'node:path';
-import type { Level } from './actions';
+import type { Level } from '../../shared/auth/actions';
 
 /** A resource identity and the file attributes relevant to policy evaluation. */
 export type ResourceRef =

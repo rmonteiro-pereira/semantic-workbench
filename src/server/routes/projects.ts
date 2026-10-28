@@ -1,6 +1,6 @@
 // Handles project management, imports, example loading, and workspace status.
 import { creationDomain, assignProjectDomain } from '../auth/project-creation';
-import { ACTIONS } from '../auth/actions';
+import { ACTIONS } from '../../shared/auth/actions';
 import { requestReader, requestScope } from '../auth/request-scope';
 import { authorizeWrite } from '../auth/write-access';
 import { decodeSegment, readJson } from '../request';

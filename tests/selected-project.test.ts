@@ -1,7 +1,7 @@
 // Tests that the selected project decides which documents the app shows.
 import { expect, test } from 'bun:test';
-import { documentsOfProject, firstDocumentOfProject } from '../src/core/project-scope';
-import { projectRevisionKey, resolveSelectedProject } from '../src/core/selected-project';
+import { documentsOfProject, firstDocumentOfProject } from '../src/shared/core/project-scope';
+import { projectRevisionKey, resolveSelectedProject } from '../src/shared/core/selected-project';
 
 const projects = [{ slug: 'sales' }, { slug: 'billing' }];
 const documents = [

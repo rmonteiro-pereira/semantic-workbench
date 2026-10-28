@@ -7,7 +7,7 @@ import { readFile } from 'node:fs/promises';
 import { Database } from 'bun:sqlite';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import manifest from '../tests/fixtures/ossie-mapping/manifest.json';
-import { exampleSet } from '../src/projects/examples';
+import { exampleSet } from '../src/shared/projects/examples';
 import { example } from './helpers/examples';
 import { expectModelName, exportFile } from './helpers/header';
 import { closeComposer, composerDialog, openComposer } from './helpers/query-composer';

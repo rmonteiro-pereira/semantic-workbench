@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import Ajv2020 from 'ajv/dist/2020';
 import addFormats from 'ajv-formats';
 import accessSchema from '../../schemas/semantic-workbench-access-v1.json';
-import { documentsOfProject } from '../../src/core/project-scope';
+import { documentsOfProject } from '../../src/shared/core/project-scope';
 import { buildContext } from '../../src/server/agent/runtime';
 import {
   AUTH_FIXTURE,

@@ -18,7 +18,7 @@ test('the product name, the wordmark and the logo path are found', () => {
 
 test('schema identifiers and the extension vendor name are not a brand', () => {
   const text = "'semantic-workbench/metric/v1' SEMANTIC_WORKBENCH .semantic-workbench.json";
-  expect(brandViolationsIn('src/metrics/extension.ts', text)).toEqual([]);
+  expect(brandViolationsIn('src/shared/metrics/extension.ts', text)).toEqual([]);
 });
 
 test('an allow-listed technical identity passes only in its own file', () => {

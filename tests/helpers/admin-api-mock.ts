@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { Page, Route } from '@playwright/test';
 import builtin from '../../policies/builtin-roles.json';
-import type { Me } from '../../src/auth/useMe';
+import type { Me } from '../../src/app/auth/useMe';
 import { TEST_GROUPS } from './auth-identities';
 
 /** The origin the harness page is served from inside Playwright's request routing. */

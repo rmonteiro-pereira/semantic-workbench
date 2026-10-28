@@ -1,7 +1,7 @@
 // Tests business-area grouping and summary connections in the overview graph.
 import { test, expect } from 'bun:test';
-import { inspect } from '../src/core/model';
-import { modelOverview } from '../src/graph/overview';
+import { inspect } from '../src/shared/core/model';
+import { modelOverview } from '../src/app/graph/overview';
 async function ubl() {
   return inspect(await Bun.file('public/examples/ubl/ubl.ontology.yaml').text());
 }

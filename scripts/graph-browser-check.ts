@@ -6,10 +6,10 @@ import { chooseLayout, setShown, viewOptions } from './helpers/graph-options';
 import { chromium, expect } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { neighborhoodEdgeProblems, neighborhoodState, pickCenter } from './helpers/edge-geometry';
-import { inspect } from '../src/core/model';
-import { neighborhood, projectModel } from '../src/graph/graph-view';
-import { boundedClosure, PIERCE_BUDGET } from '../src/graph/pierce';
-import { neighbours, registerSet, canvasOf } from '../src/graph/expansion';
+import { inspect } from '../src/shared/core/model';
+import { neighborhood, projectModel } from '../src/app/graph/graph-view';
+import { boundedClosure, PIERCE_BUDGET } from '../src/app/graph/pierce';
+import { neighbours, registerSet, canvasOf } from '../src/app/graph/expansion';
 import { expectModelName } from './helpers/header';
 // Real-browser check of the full graph and the neighborhood walk on the UBL, shopping center and
 // 1,000-entity scale models, on an isolated data root. Screenshots of every step are written to

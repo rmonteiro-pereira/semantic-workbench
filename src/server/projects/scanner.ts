@@ -3,10 +3,10 @@
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, posix } from 'node:path';
 import { Parser } from 'node-sql-parser';
-import { validateInput } from '../../validation/input';
-import { rdfSyntax } from '../../validation/rdf';
-import type { Issue } from '../../validation/diagnostics';
-import { lintSql } from '../../sql/lint';
+import { validateInput } from '../../shared/validation/input';
+import { rdfSyntax } from '../../shared/validation/rdf';
+import type { Issue } from '../../shared/validation/diagnostics';
+import { lintSql } from '../../shared/sql/lint';
 import { decode, sha256, TEMP_SUFFIX } from './atomic';
 import type { CachedFile, CopyIndex } from './cache';
 import type { Git, FileGitState } from './git';

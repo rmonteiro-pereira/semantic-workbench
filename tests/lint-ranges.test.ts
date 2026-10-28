@@ -1,8 +1,8 @@
 // Tests mapping findings to source ranges and document-level fallbacks.
 import { test, expect } from 'bun:test';
 import { Text } from '@codemirror/state';
-import { issueRange, summarizeDiagnostics, toDiagnostics } from '../src/editor/lint';
-import { validateInput } from '../src/validation/input';
+import { issueRange, summarizeDiagnostics, toDiagnostics } from '../src/app/editor/lint';
+import { validateInput } from '../src/shared/validation/input';
 
 const doc = (s: string) => Text.of(s.split('\n'));
 test('a finding with line and column covers the token there', () => {

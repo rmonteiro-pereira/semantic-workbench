@@ -6,7 +6,7 @@ import { createRateLimiter, type RateLimit } from '../auth/rate-limit';
 import { BadRequestError } from '../projects/errors';
 import { recordBrowserReports } from '../observability/browser-report-recorder';
 import { readJson } from '../request';
-import { checkReportBatch, MAX_REPORT_BODY_BYTES } from '../../observability/browser-report';
+import { checkReportBatch, MAX_REPORT_BODY_BYTES } from '../../shared/observability/browser-report';
 import type { Route } from './http';
 
 /** Reports per person: a short burst after a page load, then a trickle. */

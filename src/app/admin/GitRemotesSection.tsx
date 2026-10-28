@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { EmptyState } from '../../projects/EmptyState';
-import { api, scm } from '../../projects/api';
-import { RemoteDialog } from '../../scm/RemoteDialog';
+import { EmptyState } from '../projects/EmptyState';
+import { api, scm } from '../projects/api';
+import { RemoteDialog } from '../scm/RemoteDialog';
 import { AdminConfirmation } from './AdminConfirmation';
 import { problemText } from './api';
 import { useAdminRoute } from './admin-route';

@@ -1,5 +1,5 @@
 import { commaList } from './change-review';
-import type { Action } from '../../server/auth/actions';
+import type { Action } from '../../shared/auth/actions';
 import type { PolicyTemplate } from './types';
 
 /** What the template form collects; the server turns the request into Cedar text. */

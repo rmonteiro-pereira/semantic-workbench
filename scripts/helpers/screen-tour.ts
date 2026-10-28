@@ -1,7 +1,7 @@
 // The screens and dialogs a person reaches from the sidebar and the view tabs. The responsive
 // suite measures each of them at every viewport size, and the screenshot tool captures them.
 import { expect, type Page } from '@playwright/test';
-import { NARROW_SCREEN_PX } from '../../src/app/useNarrowScreen';
+import { NARROW_SCREEN_PX } from '../../src/app/workspace/hooks/useNarrowScreen';
 import { adminPageProblems } from './admin-page-geometry';
 import { graphCanvasProblems } from './graph-canvas-geometry';
 import { layoutProblems } from './layout-geometry';

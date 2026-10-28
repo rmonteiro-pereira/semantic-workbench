@@ -1,10 +1,10 @@
 // Tests full graph placement and routing.
 import { test, expect } from 'bun:test';
 import ELK from 'elkjs/lib/elk-api.js';
-import { layoutNetwork } from '../src/graph/network-layout';
-import { layoutFullGraph, packNetwork } from '../src/graph/full-layout';
-import { inspect } from '../src/core/model';
-import { groupRelationships } from '../src/graph/graph-view';
+import { layoutNetwork } from '../src/app/graph/network-layout';
+import { layoutFullGraph, packNetwork } from '../src/app/graph/full-layout';
+import { inspect } from '../src/shared/core/model';
+import { groupRelationships } from '../src/app/graph/graph-view';
 function engine() {
   return new ELK({
     algorithms: ['layered', 'sporeOverlap', 'box'],

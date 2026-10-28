@@ -12,7 +12,7 @@ import {
   travel,
   type ActionHistory,
   type ActionStep,
-} from '../src/app/action-history';
+} from '../src/app/workspace/action-history';
 
 const step = (label: string): ActionStep => ({ label, undo: () => {}, redo: () => {} });
 const recordAll = (labels: string[]): ActionHistory =>

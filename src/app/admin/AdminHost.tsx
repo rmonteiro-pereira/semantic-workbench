@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { useMe } from '../../auth/useMe';
+import { useMe } from '../auth/useMe';
 import { canOpenAdmin } from './admin-entry';
 import { useAdminRoute } from './admin-route';
 import { AdminPage } from './AdminPage';

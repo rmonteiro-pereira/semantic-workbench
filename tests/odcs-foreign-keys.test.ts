@@ -6,7 +6,7 @@ import {
   odcsForeignKeys,
   odcsExternalForeignKeys,
   odcsReferenceIssues,
-} from '../src/odcs/foreign-keys';
+} from '../src/shared/odcs/foreign-keys';
 // Foreign keys column to column: fromColumns/toColumns are property paths of the referencing and
 // referenced objects, paired by position.
 const table = (name: string, properties: any[], extra: any = {}) => ({

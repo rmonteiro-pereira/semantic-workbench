@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { tableTypeBadge } from '../src/odcs/ContractOverview';
+import { tableTypeBadge } from '../src/app/odcs/ContractOverview';
 
 test('an ordinary table shows no type badge, whichever of the usual types it declares', () => {
   expect(tableTypeBadge({ physicalType: 'table', logicalType: 'object' })).toBe('');

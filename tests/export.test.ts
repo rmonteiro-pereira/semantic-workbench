@@ -1,7 +1,7 @@
 // Tests document exports and preservation of source content.
 import { test, expect } from 'bun:test';
-import { exportDocument } from '../src/core/export';
-import { inspect, editEntity } from '../src/core/model';
+import { exportDocument } from '../src/app/core/export';
+import { inspect, editEntity } from '../src/shared/core/model';
 test('exports every UBL artifact byte-for-byte with its original filename', async () => {
   for (const filename of [
     'ubl.owl.ttl',

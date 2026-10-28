@@ -1,7 +1,7 @@
 // Binds the shared governance rules to a request: each guarded change of a write is decided by
 // the access policies (`approveMetric` or `editGuarded`), and a refusal names what was guarded.
-// The pure rules live in src/governance/guards.ts, which this module re-exports.
-import { levelNumber, type Action } from './actions';
+// The pure rules live in src/shared/governance/guards.ts, which this module re-exports.
+import { levelNumber, type Action } from '../../shared/auth/actions';
 import { NEW_PROJECT, type Decision, type ResourceRef } from './resource';
 import type { AccessScope } from './authorize';
 import { WriteAccessError } from './write-access-error';
@@ -11,9 +11,9 @@ import {
   type GuardedChange,
   type GuardKind,
   type GuardOperation,
-} from '../../governance/guards';
+} from '../../shared/governance/guards';
 
-export * from '../../governance/guards';
+export * from '../../shared/governance/guards';
 
 /** A guarded part of a readable file that the refused write would have changed. */
 export type GuardedItem = { file: string; pointer: string; kind: GuardKind };

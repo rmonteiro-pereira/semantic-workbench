@@ -2,9 +2,9 @@
 import { expect, test } from 'bun:test';
 import { Text } from '@codemirror/state';
 import { tags } from '@lezer/highlight';
-import { syntaxHighlight } from '../src/editor/languages';
-import { highlightVisibleYaml } from '../src/editor/largeYaml';
-import { visibleYamlRegions } from '../src/editor/viewportYaml';
+import { syntaxHighlight } from '../src/app/editor/languages';
+import { highlightVisibleYaml } from '../src/app/editor/largeYaml';
+import { visibleYamlRegions } from '../src/app/editor/viewportYaml';
 
 function marksFor(source: string, from = 0, to = source.length) {
   const doc = Text.of(source.split('\n'));

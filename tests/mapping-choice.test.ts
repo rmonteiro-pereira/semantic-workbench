@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
-import { chooseMapping, mappingsOfProject, shownMapping } from '../src/mappings/mapping-choice';
-import { limitCovering, showMoreLabel, visibleCount } from '../src/mappings/list-window';
+import { chooseMapping, mappingsOfProject, shownMapping } from '../src/app/mappings/mapping-choice';
+import { limitCovering, showMoreLabel, visibleCount } from '../src/app/mappings/list-window';
 
 const mappings = [
   { id: 'ubl.mapping', project: 'ubl' },

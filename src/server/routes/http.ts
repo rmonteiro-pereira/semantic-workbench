@@ -6,7 +6,7 @@ import { AdminConfigError, AdminStaleError } from '../auth/admin-repo';
 import { AccessConfigError } from '../auth/access-config';
 import { ConnectRequiredError } from '../auth/remote-credentials';
 import { RemoteHostError } from '../auth/remote-hosts';
-import { InputError } from '../../validation/diagnostics';
+import { InputError } from '../../shared/validation/diagnostics';
 import { CaseVariantError, PathError } from '../projects/paths';
 import { GitError } from '../projects/git';
 import { BlockedError } from '../projects/scm';

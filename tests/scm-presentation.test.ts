@@ -1,10 +1,10 @@
 // Covers the wording the Source control panel and Clone dialog derive from Git state.
 import { expect, test } from 'bun:test';
-import { isPublished, trackingLine, upstreamRemote } from '../src/scm/branch-tracking';
-import { terminalSignInCommand } from '../src/scm/credential-command';
-import { definitionsSummary } from '../src/scm/clone-summary';
-import { cleanTreeText } from '../src/scm/empty-repository';
-import { isRejectedPush } from '../src/scm/push-rejection';
+import { isPublished, trackingLine, upstreamRemote } from '../src/app/scm/branch-tracking';
+import { terminalSignInCommand } from '../src/app/scm/credential-command';
+import { definitionsSummary } from '../src/app/scm/clone-summary';
+import { cleanTreeText } from '../src/app/scm/empty-repository';
+import { isRejectedPush } from '../src/app/scm/push-rejection';
 
 const REJECTED_PUSH = `To /tmp/remote.git
  ! [rejected]        main -> main (non-fast-forward)
