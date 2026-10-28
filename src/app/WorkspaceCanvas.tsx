@@ -16,6 +16,7 @@ import type { GroupingOptions, modelOverview } from '../graph/overview';
 import type { Doc, ProjectInfo } from '../projects/api';
 import type { AutosaveState } from '../projects/autosave';
 import type { ImportDraft } from '../validation/ValidationPanel';
+import { EmptyProject } from './EmptyProject';
 import { CatalogView } from './CatalogView';
 import { ContractView } from './ContractView';
 import { GraphViews } from './GraphViews';
@@ -108,6 +109,9 @@ type Props = {
   setKpiFilter: React.Dispatch<React.SetStateAction<string>>;
   crossFile: (e: Entity) => CrossFileTarget[];
   crossTo: (t: CrossFileTarget) => void;
+  /** A project the person opened that has no definitions, shown instead of the welcome text. */
+  emptyProject?: ProjectInfo;
+  onImportInto: (slug: string) => void;
 };
 /** Renders workspace canvas. */
 export function WorkspaceCanvas({
@@ -183,6 +187,8 @@ export function WorkspaceCanvas({
   setKpiFilter,
   crossFile,
   crossTo,
+  emptyProject,
+  onImportInto,
 }: Props) {
   function openMappingSource(documentId: string) {
     const document = docs.find(candidate => candidate.id === documentId);
@@ -253,6 +259,14 @@ export function WorkspaceCanvas({
           currentProject={current?.project}
           revisionKey={docs.map(d => d.id + ':' + d.hash).join('|')}
           dirty={!!current && source !== current.source}
+        />
+      );
+    }
+    if (!source && !current && emptyProject) {
+      return (
+        <EmptyProject
+          project={emptyProject}
+          onImportFiles={() => onImportInto(emptyProject.slug)}
         />
       );
     }

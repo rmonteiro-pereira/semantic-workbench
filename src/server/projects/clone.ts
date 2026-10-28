@@ -21,9 +21,20 @@ import { checkOutFolder, repositoryFolder } from './sparse-folder';
 export const CLONE_STAGING = '.staging-clone-';
 
 /** Progress and outcome of one clone, sent to the browser as `clone` events. */
-export type CloneEvent = {
+export type CloneEvent = CloneEventFields &
+  (
+    | { phase: 'cloning' | 'scanning' | 'failed' | 'cancelled' }
+    | {
+        phase: 'done';
+        /** How many definition files the clone holds, valid or not. */
+        definitions: number;
+        /** False when the repository has no commits yet. */
+        hasCommits: boolean;
+      }
+  );
+
+type CloneEventFields = {
   op: string;
-  phase: 'cloning' | 'scanning' | 'done' | 'failed' | 'cancelled';
   message?: string;
   repo?: string;
   name?: string;
@@ -64,6 +75,7 @@ export type CloneDeps = {
   registrySteps: (stateStaging: string, next: ProjectEntry[]) => { from: string; to: string }[];
   scan: (slug: string) => Promise<unknown>;
   invalidFiles: (slug: string) => string[];
+  definitionCount: (slug: string) => number;
   added: (slug: string) => void;
   /** Reads the repository's manifest or proposes folders, and registers declared projects. */
   afterClone: (
@@ -176,10 +188,21 @@ export function createCloner(deps: CloneDeps) {
       await deps.scan(slug);
       deps.added(slug);
       const invalid = deps.invalidFiles(slug);
+      const definitions = deps.definitionCount(slug);
+      const hasCommits = (await git.head(projectDir(layout, slug))) !== null;
       // A folder is the project root; the repository's manifest and layout do not apply to it.
       const projects = folder ? {} : await deps.afterClone(slug);
       await assign?.(projects.projects ?? [slug]);
-      const done: CloneEvent = { op, phase: 'done', repo: slug, name, invalid, ...projects };
+      const done: CloneEvent = {
+        op,
+        phase: 'done',
+        repo: slug,
+        name,
+        invalid,
+        definitions,
+        hasCommits,
+        ...projects,
+      };
       deps.emit(folder ? { ...done, folder } : done, owner);
     } catch (e) {
       rmSync(staging, { recursive: true, force: true });

@@ -147,6 +147,8 @@ export type GitStatus = {
   gitAvailable: boolean;
   identityConfigured: boolean;
   merging: boolean;
+  /** False while the repository has no commit, so there is no last commit to compare with. */
+  hasCommits: boolean;
   remotes: Record<string, string>;
   /** The folder of the repository a project lives in, when only that folder is checked out. */
   folder?: string;

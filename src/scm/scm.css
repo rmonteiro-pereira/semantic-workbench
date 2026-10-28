@@ -997,6 +997,20 @@
   overflow-wrap: anywhere;
 }
 
+/* The remote branch Pull and Push use. */
+.scm-tracking {
+  margin: 0;
+  font-size: var(--text-small);
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+.scm-error details {
+  max-width: 100%;
+}
+.scm-error summary {
+  cursor: pointer;
+  font-size: var(--text-small);
+}
 /* Where the project sits in its repository: remote, branch and folder. */
 .scm-where {
   margin: 0;

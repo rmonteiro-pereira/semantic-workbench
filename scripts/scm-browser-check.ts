@@ -3,6 +3,7 @@ import { smallTextProblems, textCollisionProblems } from './helpers/text-geometr
 import {
   openRemoteDialog,
   remoteActions,
+  remoteButton,
   remoteDialog,
   runSyncAction,
 } from './helpers/sync-dialog';
@@ -232,10 +233,20 @@ try {
     'remote: save a local bare remote and push; pull a commit made elsewhere',
     async () => {
       await setRemote(bare);
-      await runSyncAction(page, 'Push');
+      // The branch has never been pushed: no counters, a tracking note and a Publish action.
+      await expect(panel().getByLabel('Not published')).toBeVisible();
+      await expect(panel().getByLabel(/commits to push/)).toHaveCount(0);
+      await expect(panel().getByText('Not tracking a remote branch')).toBeVisible();
+      await expect(remoteActions(page).getByRole('button', { name: 'Push' })).toHaveCount(0);
+      await runSyncAction(page, 'Publish branch');
       await expect(panel().getByRole('status').filter({ hasText: 'Push finished' })).toBeVisible({
         timeout: 20000,
       });
+      await expect(panel().getByText('Tracking origin/main')).toBeVisible();
+      await expect(panel().getByLabel('0 commits to push, 0 to pull')).toBeVisible();
+      await expect(remoteActions(page).getByRole('button', { name: 'Publish branch' })).toHaveCount(
+        0,
+      );
       expect(sh(bare, ['log', '-1', '--format=%s', 'main']).trim()).toBe('Ignore temporary files');
       sh(extra, ['clone', '-q', bare, other]);
       writeFileSync(
@@ -350,6 +361,74 @@ try {
       expect(sh(bare, ['log', '-1', '--format=%s', 'main']).trim()).toBe('Merge their wording');
     },
   );
+  await check(
+    'a rejected push leads with a plain summary and Pull remote changes; Git output is under Show details',
+    async () => {
+      sh(other, ['pull', '-q', '--no-rebase']);
+      const otherFile = join(other, file);
+      writeFileSync(
+        otherFile,
+        readFileSync(otherFile, 'utf8').replace(
+          'Product in the order-to-cash process.',
+          'Product edited elsewhere.',
+        ),
+      );
+      sh(other, ['commit', '-qam', 'Product elsewhere']);
+      sh(other, ['push', '-q']);
+      await editInSource(file, t =>
+        t.replace('Warehouse in the order-to-cash process.', 'Warehouse edited here.'),
+      );
+      await saveSource();
+      await openScm();
+      await commitAll('Warehouse here');
+      await runSyncAction(page, 'Push');
+      const rejection = panel().getByRole('alert').filter({ hasText: 'Push rejected' });
+      await expect(rejection).toContainText(
+        'Push rejected: the remote has commits you have not integrated.',
+        { timeout: 20000 },
+      );
+      await expect(rejection.getByText('[rejected]')).toBeHidden();
+      await rejection.getByText('Show details').click();
+      await expect(rejection.getByText('[rejected]')).toBeVisible();
+      await rejection.getByRole('button', { name: 'Pull remote changes' }).click();
+      await expect(panel().getByRole('status').filter({ hasText: 'Pull finished' })).toBeVisible({
+        timeout: 20000,
+      });
+      await runSyncAction(page, 'Push');
+      await expect(panel().getByRole('status').filter({ hasText: 'Push finished' })).toBeVisible({
+        timeout: 20000,
+      });
+      expect(sh(bare, ['log', '-1', '--format=%P', 'main']).trim().split(' ')).toHaveLength(2);
+    },
+  );
+  await check(
+    'New branch form: Escape and Cancel return focus to the New branch button',
+    async () => {
+      const newBranch = panel().getByRole('button', { name: 'New branch' });
+      await newBranch.click();
+      await panel().getByLabel('New branch name').fill('feature/unfinished');
+      await page.keyboard.press('Escape');
+      await expect(panel().getByLabel('New branch name')).toHaveCount(0);
+      await expect(newBranch).toBeFocused();
+      await newBranch.click();
+      await panel().getByRole('button', { name: 'Cancel', exact: true }).click();
+      await expect(newBranch).toBeFocused();
+      expect(sh(dir, ['branch', '--list', 'feature/unfinished']).trim()).toBe('');
+    },
+  );
+  await check(
+    'the Remote dialog starts on the address field; Escape returns to Remote…',
+    async () => {
+      const trigger = remoteButton(page);
+      await trigger.click();
+      const dialog = remoteDialog(page);
+      await expect(dialog.getByLabel('Remote URL')).toHaveValue(bare);
+      await expect(dialog.getByLabel('Remote URL')).toBeFocused();
+      await page.keyboard.press('Escape');
+      await expect(dialog).toHaveCount(0);
+      await expect(trigger).toBeFocused();
+    },
+  );
   await check('file history: compare two versions of a file', async () => {
     await tree()
       .getByRole('button', { name: `Actions for ${file} in ${commerce.name}` })
@@ -421,6 +500,44 @@ try {
     await expect(projectRow).toContainText(bare);
     await leaveAdmin(page);
   });
+  await check('feedback about a remote ends when the remote is removed', async () => {
+    await openScm();
+    await runSyncAction(page, 'Fetch');
+    const finished = panel().getByRole('status').filter({ hasText: 'Fetch finished' });
+    await expect(finished).toBeVisible({ timeout: 20000 });
+    const remotes = await adminArea(page, 'Git remotes');
+    const projectRow = remotes.getByRole('row').filter({ hasText: commerce.name });
+    await projectRow.getByRole('button', { name: 'Remove remote', exact: true }).click();
+    const confirmation = page.getByRole('dialog', { name: /^Remove the remote of/ });
+    await confirmation.getByRole('button', { name: 'Remove remote', exact: true }).click();
+    await expect(projectRow).toContainText('No remote');
+    await leaveAdmin(page);
+    await expect(panel()).toContainText('No remote yet');
+    await expect(finished).toHaveCount(0);
+    await setRemote(bare);
+    await runSyncAction(page, 'Publish branch');
+    await expect(panel().getByText('Tracking origin/main')).toBeVisible({ timeout: 20000 });
+  });
+  await check(
+    'Admin → Git remotes explains an empty workspace and leads back to Add project',
+    async () => {
+      const empty = await startIsolatedApi();
+      try {
+        const p = await newPage(empty);
+        const remotes = await adminArea(p, 'Git remotes');
+        await expect(remotes).toContainText(
+          'No projects yet. Add or clone a project to configure its remote.',
+        );
+        await expect(remotes.getByRole('table')).toHaveCount(0);
+        await remotes.getByRole('button', { name: 'Back to workspace' }).click();
+        await expect(p.locator('.admin-page')).toHaveCount(0);
+        await expect(p.getByRole('button', { name: 'Add project' })).toBeVisible();
+        await p.close();
+      } finally {
+        await empty.stop();
+      }
+    },
+  );
   await check(
     'missing Git: the banner explains it, the panel says so, editing and saving still work',
     async () => {

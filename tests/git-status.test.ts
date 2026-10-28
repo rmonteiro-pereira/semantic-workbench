@@ -166,3 +166,10 @@ test("branches: create, list, switch; a switched branch's content is rescanned",
     p.dispose();
   }
 });
+
+test('porcelain v2 reports an initial repository as having no commits', () => {
+  const initial = ['# branch.oid (initial)', '# branch.head main', ''].join('\0');
+  expect(parseStatus(initial).hasCommits).toBe(false);
+  const committed = ['# branch.oid abc123', '# branch.head main', ''].join('\0');
+  expect(parseStatus(committed).hasCommits).toBe(true);
+});

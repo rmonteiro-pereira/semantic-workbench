@@ -1,6 +1,7 @@
 /** The Fetch, Pull, Push and Sync buttons under the remote line of the Source control panel. */
 import { ArrowDown, ArrowUp, RefreshCw } from 'lucide-react';
 import type { GitStatus } from '../projects/api';
+import { isPublished } from './branch-tracking';
 import { actionTitle, type RemoteAction } from './RemoteConnectPrompt';
 
 const REMOTE_ACTIONS: RemoteAction[] = ['fetch', 'pull', 'push', 'sync'];
@@ -9,6 +10,8 @@ function remoteActionLabel(action: RemoteAction, status: GitStatus): string {
   if (action === 'pull' && status.pullSource) {
     return `Pull ${status.pullSource} into ${status.branch}`;
   }
+  // The first push creates the branch on the remote, so it is named for what it does.
+  if (action === 'push' && !isPublished(status.upstream)) return 'Publish branch';
   return actionTitle(action);
 }
 

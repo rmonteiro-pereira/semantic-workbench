@@ -85,7 +85,22 @@ export function RemoteDialog({ project, onClose }: Props) {
   const [loaded, setLoaded] = useState(false);
   const existing = Object.hasOwn(remotes, name);
   const typed = useRef(false);
+  const urlField = useRef<HTMLInputElement>(null);
+  // The control the dialog focused when it opened, so a later move by the person can be told apart.
+  const openingFocus = useRef<Element | null>(null);
   const folderChanged = folderInput.folder !== '' && folderInput.folder !== currentFolder;
+
+  useEffect(() => {
+    openingFocus.current = document.activeElement;
+  }, []);
+
+  // Once the settings are known, editing starts in the address field unless focus already moved.
+  useEffect(() => {
+    if (!loaded || typed.current) return;
+    const active = document.activeElement;
+    const untouched = active === openingFocus.current || active === document.body;
+    if (untouched) urlField.current?.focus();
+  }, [loaded]);
 
   useEffect(() => {
     scm
@@ -194,6 +209,7 @@ export function RemoteDialog({ project, onClose }: Props) {
           <label>
             <span>Remote URL or path</span>
             <input
+              ref={urlField}
               aria-label="Remote URL"
               disabled={!loaded}
               value={url}

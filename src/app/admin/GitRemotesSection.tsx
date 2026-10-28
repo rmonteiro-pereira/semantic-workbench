@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { EmptyState } from '../../projects/EmptyState';
 import { api, scm } from '../../projects/api';
 import { RemoteDialog } from '../../scm/RemoteDialog';
 import { AdminConfirmation } from './AdminConfirmation';
 import { problemText } from './api';
+import { useAdminRoute } from './admin-route';
 import { useAdminData } from './useAdminData';
 
 /** One project and the remote Source control shows for it; the address never carries credentials. */
@@ -44,6 +46,7 @@ export function GitRemotesSection() {
   const [setting, setSetting] = useState<string | null>(null);
   const [removing, setRemoving] = useState<ProjectRemote | null>(null);
   const [failure, setFailure] = useState('');
+  const { close: backToWorkspace } = useAdminRoute();
 
   async function removeRemote() {
     if (!removing?.remoteName) return;
@@ -61,6 +64,19 @@ export function GitRemotesSection() {
   function closeRemoteDialog() {
     setSetting(null);
     reload();
+  }
+
+  if (data?.length === 0) {
+    return (
+      <EmptyState
+        title="No projects yet. Add or clone a project to configure its remote."
+        action={
+          <button onClick={backToWorkspace} title="Back to the workspace to use Add project">
+            Back to workspace
+          </button>
+        }
+      />
+    );
   }
 
   return (

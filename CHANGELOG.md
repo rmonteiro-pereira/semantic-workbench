@@ -61,6 +61,19 @@ not configure a production deployment.
   the right arrow key; on a phone they replace the menu under **Back**. **Settings** shows the
   theme as one control without a focus ring after a click, stays inside the phone drawer, and lines
   Trash and Settings up with the navigation above.
+- Git remote flows explain themselves. A failed clone keeps its URL, name and folder and offers
+  **Edit details** and **Retry** beside **Close**, with a plain line above Git's output. A clone
+  with no commits or definitions says so instead of "Every definition file is valid", and **Open
+  project** then lands in that project with an empty-project page and **Import files** rather than
+  leaving the previous model on screen. Source control on a repository with no commits no longer
+  says it matches the last commit. A branch with no upstream shows **Not published** with a
+  **Publish branch** action, and a **Tracking origin/…** line under the branch picker names the
+  remote branch Pull and Push use. A rejected push leads with "Push rejected: the remote has
+  commits you have not integrated." and **Pull remote changes**, with Git's output under **Show
+  details**. Feedback such as "Fetch finished" disappears when the remote changes. The credential
+  guide tells you to sign in once from a terminal with a copyable command for the current remote,
+  then retry. **Remote…** starts on the address field, **New branch** returns focus to its button
+  when cancelled, and Admin → Git remotes with no projects points to **Add project**.
 - The ODCS graph no longer hides cards behind a "N of M cards shown · Show all" control. Every
   card is laid out, the first view frames the nearest cards at a readable size, and expanding an
   "N more tables" card lays out all of its members.

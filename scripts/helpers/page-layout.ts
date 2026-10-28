@@ -77,7 +77,9 @@ export async function pageLayoutProblems(page: Page, screenName: string) {
         problems.push('Source control has no gap below the header');
       }
       const counts = document.querySelector('.scm-sync');
-      if (counts && !/to push.*to pull/s.test(counts.textContent ?? '')) {
+      // A branch that was never pushed shows "Not published" in place of the counts.
+      const labelled = /to push.*to pull|^\s*Not published\s*$/s;
+      if (counts && !labelled.test(counts.textContent ?? '')) {
         problems.push('the source-control counts have no visible labels');
       }
       const title = document.querySelector('.scm-title');

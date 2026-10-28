@@ -6,12 +6,13 @@ import { scm, type CloneEvent } from '../projects/api';
 import { useEvents } from '../projects/useEvents';
 import { cloneProgressReducer, initialCloneProgress } from './clone-progress';
 import { looksLikeAuthFailure } from './CredentialGuide';
+import { definitionsSummary } from './clone-summary';
 import { FolderField, useFolderInput } from './FolderField';
 
 type Props = {
   onClose: () => void;
   onOpenProject: (slug: string) => void;
-  onCredentials: () => void;
+  onCredentials: (remote?: string) => void;
   onChooseProjects: (repo: string) => void;
 };
 
@@ -87,8 +88,30 @@ function FilesToRepair({ paths }: { paths: string[] }) {
   );
 }
 
+function FailureExplanation({ event }: { event: CloneEvent }) {
+  if (event.phase !== 'failed') return null;
+  return (
+    <p className="clone-explanation">
+      The repository was not cloned and nothing was added to the workspace. Check the address,
+      folder and credentials, then edit the details or retry.
+    </p>
+  );
+}
+
 function CloneResult({ event }: { event: CloneEvent }) {
-  if (event.phase !== 'done') return event.message ? <pre>{event.message}</pre> : null;
+  if (event.phase !== 'done') {
+    return (
+      <>
+        <FailureExplanation event={event} />
+        {event.message && (
+          <>
+            <h3>Git details</h3>
+            <pre>{event.message}</pre>
+          </>
+        )}
+      </>
+    );
+  }
   return (
     <>
       <RepositoryNotes event={event} />
@@ -96,7 +119,7 @@ function CloneResult({ event }: { event: CloneEvent }) {
       {event.invalid?.length ? (
         <FilesToRepair paths={event.invalid} />
       ) : (
-        <p>Every definition file is valid.</p>
+        <p>{definitionsSummary(event)}</p>
       )}
     </>
   );
@@ -163,6 +186,8 @@ type FooterProps = {
   canStart: boolean;
   progress: CloneEvent | null;
   onStart: () => void;
+  onEditDetails: () => void;
+  onRetry: () => void;
   onCreateFolder: () => void;
   onCancel: () => void;
   onClose: () => void;
@@ -178,6 +203,7 @@ function CloneFooter(props: FooterProps) {
   // A manifest replaces the repository's own project with its folders' projects.
   const cloned = done?.projects?.[0] ?? done?.repo;
   const missingFolder = progress?.phase === 'failed' ? progress.missingFolder : undefined;
+  const failed = progress?.phase === 'failed';
   const choosable = done?.repo && subfolderCandidates(done).length > 0 ? done.repo : undefined;
   return (
     <>
@@ -199,6 +225,21 @@ function CloneFooter(props: FooterProps) {
         >
           Clone
         </button>
+      )}
+      {failed && (
+        <>
+          <button type="button" onClick={props.onEditDetails}>
+            Edit details
+          </button>
+          <button
+            type="button"
+            className={missingFolder ? undefined : 'primary'}
+            disabled={!props.canStart}
+            onClick={props.onRetry}
+          >
+            Retry
+          </button>
+        </>
       )}
       {missingFolder && (
         <button
@@ -263,11 +304,13 @@ export function CloneDialog({ onClose, onOpenProject, onCredentials, onChoosePro
       canStart={updatesConnected && !!url.trim() && !folderInput.problem}
       progress={progress}
       onStart={() => void start()}
+      onEditDetails={() => dispatchProgress({ type: 'reset' })}
+      onRetry={() => void start()}
       onCreateFolder={() => void start(undefined, true)}
       onCancel={() => op && void scm.cancelClone(op.op)}
       onClose={onClose}
       onOpenProject={onOpenProject}
-      onCredentials={onCredentials}
+      onCredentials={() => onCredentials(url.trim())}
       onChooseProjects={onChooseProjects}
     />
   );

@@ -13,7 +13,12 @@ export type BareFixture = {
   dispose(): void;
 };
 /** Selects the repository layout or unsafe-path fixture to generate. */
-export type FixtureKind = 'monorepo' | 'monorepo-no-manifest' | 'hazards' | 'single';
+export type FixtureKind =
+  | 'monorepo'
+  | 'monorepo-no-manifest'
+  | 'hazards'
+  | 'single'
+  | 'documentation';
 const git = (cwd: string, args: string[]) => {
   const r = Bun.spawnSync(['git', ...args], {
     cwd,
@@ -62,6 +67,8 @@ export function fixtureFiles(kind: FixtureKind): Record<string, string> {
         'big.ontology.yaml': `name: Big\ndescription: ${'x'.repeat(2_100_000)}\n`,
         'notes.txt': 'Unsupported file.\n',
       };
+    case 'documentation':
+      return { 'README.md': 'Notes only; no definitions.\n' };
     case 'single':
       return { 'shop.ontology.yaml': ontologyText('Shop', ['Customer', 'Order']) };
   }
@@ -86,4 +93,13 @@ export function bareRepository(kind: FixtureKind): BareFixture {
   git(work, ['commit', '-q', '-m', 'Fixture']);
   git(dir, ['clone', '-q', '--bare', work, bare]);
   return { bare, dir, files, dispose: () => rmSync(dir, { recursive: true, force: true }) };
+}
+
+/** Creates a disposable bare repository that has no commit at all, as a new hosted repository is. */
+export function emptyBareRepository(): Pick<BareFixture, 'bare' | 'dir' | 'dispose'> {
+  isolateGit();
+  const dir = mkdtempSync(join(tmpdir(), 'workbench-gitfix-'));
+  const bare = join(dir, 'empty.git');
+  git(dir, ['init', '-q', '--bare', '-b', 'main', bare]);
+  return { bare, dir, dispose: () => rmSync(dir, { recursive: true, force: true }) };
 }

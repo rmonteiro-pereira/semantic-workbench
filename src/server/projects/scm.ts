@@ -265,6 +265,7 @@ export function createScm(deps: ScmDeps) {
         gitAvailable: false,
         identityConfigured: false,
         merging: false,
+        hasCommits: false,
         remotes: {},
         changes: [],
       };
@@ -289,6 +290,7 @@ export function createScm(deps: ScmDeps) {
       ...(await sparseProjectFolder(slug, d)),
       identityConfigured: deps.signedCommits || (await git.identity(d)),
       merging,
+      hasCommits: s.hasCommits,
       remotes: Object.fromEntries(
         [...(await git.remotes(d))].map(([n, u]) => [n, redactCredentials(u)]),
       ),

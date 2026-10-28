@@ -180,7 +180,9 @@ check that happens to succeed.
   connection readiness. `autosave.ts` coordinates validation, drafts, version checks and saving.
   `Sidebar.tsx` keeps the selected file reachable in the scrolling project list.
 - `src/scm/` owns Source Control, diffs, branch/commit/remote/clone dialogs and personal-credential
-  prompts. `src/projects/Modal.tsx`, `Menu.tsx`, `WizardStepper.tsx`, `EmptyState.tsx` and
+  prompts. Its `*.ts` files hold the pure wording rules for Git state: push rejection, tracking,
+  clone summary and sign-in command. `src/app/EmptyProject.tsx` is the canvas for a project with
+  no definitions. `src/projects/Modal.tsx`, `Menu.tsx`, `WizardStepper.tsx`, `EmptyState.tsx` and
   `src/shared/ScrollStrip.tsx` provide shared interaction and layout behavior;
   `src/projects/useAnchoredPopup.ts` places and dismisses the popups that menus and the Settings
   panel draw beside their button. `Menu.tsx` opens a submenu beside its menu when the window has

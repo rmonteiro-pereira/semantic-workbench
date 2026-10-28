@@ -139,11 +139,22 @@ function App() {
   ]
     .filter(Boolean)
     .join(' ');
+  const emptyProject = current
+    ? undefined
+    : projects.find(
+        item =>
+          item.slug === fileNavigation.emptyProjectSlug && !docs.some(d => d.project === item.slug),
+      );
   // After a clone or a change to a repository's projects, show the project's first file.
   async function openProject(slug: string) {
     const loaded = await workspaceEvents.refresh();
     const first = loaded.find(doc => doc.project === slug);
-    if (first) fileNavigation.openDocument(first);
+    if (first) {
+      fileNavigation.openDocument(first);
+      return;
+    }
+    fileNavigation.closeDocument(slug);
+    itemEditing.setScmProject(slug);
   }
 
   const content = (
@@ -382,6 +393,8 @@ function App() {
               setKpiFilter={metrics.setKpiFilter}
               crossFile={references.crossFile}
               crossTo={walkNavigation.crossTo}
+              emptyProject={emptyProject}
+              onImportInto={slug => setImporting({ project: slug })}
             />
             <DetailsPanel
               inspectorVisible={inspector.inspectorVisible}

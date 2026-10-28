@@ -18,6 +18,7 @@ import { join } from 'node:path';
 import { openWorkspace } from '../src/server/projects/workspace';
 import { tempDataDir, testWorkspace } from './helpers/temp-data-dir';
 import { call, ok, ontology, sh } from './helpers/scm';
+import { bareRepository, emptyBareRepository } from './helpers/git-fixtures';
 
 const CRLF_TEXT = 'name: Windows\r\nontology:\r\n  - concept: Store\r\n    type: EntityType\r\n';
 const INVALID_TEXT = 'name: Broken\nontology:\n  - concept: [unclosed\n';
@@ -104,6 +105,32 @@ test('a clone becomes a project with its bytes, without links or submodules', as
   } finally {
     app.dispose();
     source.dispose();
+  }
+});
+
+test('a clone reports how many definitions and whether the repository has commits', async () => {
+  const documentation = bareRepository('documentation');
+  const single = bareRepository('single');
+  const empty = emptyBareRepository();
+  const app = await testWorkspace();
+  try {
+    const expectations = [
+      { url: single.bare, definitions: 1, hasCommits: true },
+      { url: documentation.bare, definitions: 0, hasCommits: true },
+      { url: empty.bare, definitions: 0, hasCommits: false },
+    ];
+    for (const { url, definitions, hasCommits } of expectations) {
+      const started = await ok(call(app, 'POST', '/api/clone', { url }));
+      const done = await outcome(app, started.op);
+      expect(done).toMatchObject({ phase: 'done', definitions, hasCommits });
+      const status = await ok(call(app, 'GET', `/api/projects/${started.slug}/git/status`));
+      expect(status.hasCommits).toBe(hasCommits);
+    }
+  } finally {
+    app.dispose();
+    single.dispose();
+    documentation.dispose();
+    empty.dispose();
   }
 });
 

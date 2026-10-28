@@ -2,7 +2,9 @@
  * cancellation. */
 import { useCapabilities } from '../auth/Capabilities';
 import { useGitSetup } from './GitSetup';
-import { looksLikeAuthFailure } from './CredentialGuide';
+import { ScmError } from './ScmError';
+import { isPublished, trackingLine, upstreamRemote } from './branch-tracking';
+import { cleanTreeText } from './empty-repository';
 import { EmptyState } from '../projects/EmptyState';
 import {
   ConnectPrompt,
@@ -49,9 +51,7 @@ import './scm.css';
 export function repositoryLocation(
   status: Pick<GitStatus, 'upstream' | 'remotes' | 'branch' | 'folder'>,
 ): string {
-  const remote = status.upstream
-    ? status.upstream.slice(0, status.upstream.indexOf('/'))
-    : (Object.keys(status.remotes)[0] ?? 'no remote');
+  const remote = upstreamRemote(status) ?? 'no remote';
   return [remote, status.branch, status.folder].filter(Boolean).join(' · ');
 }
 
@@ -213,6 +213,16 @@ export function SourceControl({
       live = false;
     };
   }, [project, version, tick]);
+  // Feedback names a remote action; it stops describing the project once the remote changes.
+  const remoteSignature = status ? JSON.stringify(status.remotes) : null;
+  const previousRemotes = useRef<string | null>(null);
+  useEffect(() => {
+    const changed = previousRemotes.current !== null && previousRemotes.current !== remoteSignature;
+    previousRemotes.current = remoteSignature;
+    if (!changed) return;
+    setNote(null);
+    setError('');
+  }, [remoteSignature]);
   const groups = useMemo(() => groupsOf(status?.changes ?? []), [status]);
   // Selections name the file from the repository root: two projects may hold the same path.
   const change = selected && status?.changes.find(c => c.repoPath === selected.path);
@@ -615,16 +625,7 @@ export function SourceControl({
             inUse={copy?.inUseBranches}
             onSwitch={switchTo}
           />
-          <span
-            className="scm-sync"
-            aria-label={`${status.ahead} commits to push, ${status.behind} to pull`}
-            title={status.upstream ? `Tracking ${status.upstream}` : 'No upstream branch yet'}
-          >
-            <ArrowUp size={12} />
-            {status.ahead} to push
-            <ArrowDown size={12} />
-            {status.behind} to pull
-          </span>
+          <SyncCounters status={status} />
           {offersSync && (
             <button className="scm-sync-open" onClick={() => setSyncOpen(true)}>
               <RefreshCw size={13} />
@@ -655,6 +656,7 @@ export function SourceControl({
             />
           )}
         </div>
+        <p className="scm-tracking">{trackingLine(status.upstream)}</p>
         {status.folder && (
           <p className="scm-where" aria-label="Repository location">
             {repositoryLocation(status)}
@@ -710,14 +712,18 @@ export function SourceControl({
           />
         )}
         {error && (
-          <div role="alert" className="scm-error">
-            <pre>{error}</pre>
-            {looksLikeAuthFailure(error) && (
-              <button hidden={!access.local} onClick={() => openGitSetup({ kind: 'credentials' })}>
-                Credential setup guide
-              </button>
-            )}
-          </div>
+          <ScmError
+            message={error}
+            canOpenGuide={access.local}
+            busy={busy}
+            onOpenGuide={() =>
+              openGitSetup({
+                kind: 'credentials',
+                remote: status.remotes[upstreamRemote(status) ?? ''],
+              })
+            }
+            onPull={() => void remote('pull')}
+          />
         )}
         {status.merging && !note && (
           <p className="scm-note warning">
@@ -759,9 +765,7 @@ export function SourceControl({
             </small>
           )}
         </div>
-        {!status.changes.length && (
-          <p className="scm-empty">No changes. The working tree matches the last commit.</p>
-        )}
+        {!status.changes.length && <p className="scm-empty">{cleanTreeText(status)}</p>}
         {section('conflicts', 'Merge conflicts', groups.conflicts)}
         {section('staged', 'Staged changes', groups.staged, {
           label: 'Unstage all',
@@ -899,6 +903,32 @@ export function SourceControl({
         )}
       </div>
     </section>
+  );
+}
+/** Counts commits to push and pull, or says the branch was never published. */
+function SyncCounters({ status }: { status: GitStatus }) {
+  if (!isPublished(status.upstream)) {
+    return (
+      <span
+        className="scm-sync"
+        aria-label="Not published"
+        title="This branch has no upstream branch yet. Publish branch creates it."
+      >
+        Not published
+      </span>
+    );
+  }
+  return (
+    <span
+      className="scm-sync"
+      aria-label={`${status.ahead} commits to push, ${status.behind} to pull`}
+      title={`Tracking ${status.upstream}`}
+    >
+      <ArrowUp size={12} />
+      {status.ahead} to push
+      <ArrowDown size={12} />
+      {status.behind} to pull
+    </span>
   );
 }
 function versionName(rev: string, log: Commit[] = []) {

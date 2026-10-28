@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Copy } from 'lucide-react';
 import { Modal } from '../projects/Modal';
 import { scm } from '../projects/api';
+import { terminalSignInCommand } from './credential-command';
 
 type System = 'Windows' | 'macOS' | 'Linux';
 
@@ -58,7 +59,14 @@ const guessSystem = (): System => {
 };
 
 /** Explains a credential helper and an SSH key for each operating system. */
-export function CredentialGuide({ onClose }: { onClose: () => void }) {
+export function CredentialGuide({
+  remote,
+  onClose,
+}: {
+  /** The address that refused the sign-in, used to build the terminal command. */
+  remote?: string;
+  onClose: () => void;
+}) {
   const [system, setSystem] = useState<System>(guessSystem);
   const [helper, setHelper] = useState<string | null | undefined>(undefined);
   useEffect(() => {
@@ -96,6 +104,12 @@ export function CredentialGuide({ onClose }: { onClose: () => void }) {
             </button>
           ))}
         </div>
+        <h3>Sign in once from a terminal</h3>
+        <p>
+          The app cannot answer a terminal prompt for a username or token. Run this command in a
+          terminal, sign in when Git asks, then return here and retry the action that failed.
+        </p>
+        <CopyableCommand command={terminalSignInCommand(remote)} />
         <h3>HTTPS: a credential helper</h3>
         <p>{HELPERS[system].text}</p>
         <CopyableCommand command={HELPERS[system].command} />

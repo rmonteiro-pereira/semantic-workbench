@@ -28,7 +28,13 @@ test('a terminal event after the start response replaces the running state', () 
 
 test('events for another operation do not replace the active clone', () => {
   const started = cloneProgressReducer(initialCloneProgress, { type: 'started', operation });
-  const unrelated: CloneEvent = { op: 'another-clone', phase: 'done', repo: 'another' };
+  const unrelated: CloneEvent = {
+    op: 'another-clone',
+    phase: 'done',
+    repo: 'another',
+    definitions: 0,
+    hasCommits: true,
+  };
   const updated = cloneProgressReducer(started, { type: 'progress', event: unrelated });
   expect(updated.operation).toEqual(operation);
   expect(updated.progress).toEqual(started.progress);
@@ -42,4 +48,11 @@ test('retrying a missing folder starts the new operation without the old failure
   expect(started.progress).toEqual({ ...retry, phase: 'cloning' });
   const stale = cloneProgressReducer(started, { type: 'progress', event: failure });
   expect(stale.progress).toEqual(started.progress);
+});
+
+test('Edit details forgets the failed operation so the form can be shown again', () => {
+  const started = cloneProgressReducer(initialCloneProgress, { type: 'started', operation });
+  const failed = cloneProgressReducer(started, { type: 'progress', event: failure });
+  expect(failed.progress?.phase).toBe('failed');
+  expect(cloneProgressReducer(failed, { type: 'reset' })).toEqual(initialCloneProgress);
 });

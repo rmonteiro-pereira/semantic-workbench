@@ -36,7 +36,8 @@ states.
 
 **Settings → Admin** opens the administration page for people allowed to administer. Its **Git remotes**
 section lists every project with its remote address, or "No remote", with **Set remote…** and
-**Remove remote** for each project. Addresses are shown without credentials. In server mode, the
+**Remove remote** for each project. With no projects it says so and offers **Back to
+workspace**, where **Add project** is. Addresses are shown without credentials. In server mode, the
 person menu contains **Connected accounts** and **Sign out**. In local mode there is no sign-in or
 person menu.
 
@@ -166,7 +167,9 @@ The **Source control** panel provides:
 
 - Staged changes, unstaged changes and merge conflicts, with side-by-side diffs.
 - Per-file or bulk stage/unstage, commit messages and commit actions.
-- Local and remote branches, new branches and branch switching.
+- Local and remote branches, new branches and branch switching. A **Tracking origin/main** line
+  under the picker names the remote branch Pull and Push use; a branch with no upstream shows
+  **Not published** instead of counters, and its first push is **Publish branch**.
 - The remote address, and **Fetch**, **Pull**, **Push** and **Sync** buttons under it. **Remote…**
   to set the address up appears for Admins only (always in local mode); everyone else sees the
   address without the button. On a server, **Sync…** opens Pull, Publish and Push for the published
@@ -183,7 +186,10 @@ the panel reports the mismatch. Managed repositories use `core.autocrlf=false`.
 Remote commands run only after an explicit user action, can be cancelled and have a ten-minute
 limit. Local credential helpers may open their own authentication window; the application shows
 that it is waiting for Git. The **Credential setup guide** explains helper and SSH setup without
-collecting a password or token. Server-mode credentials work differently; see
+collecting a password or token; it also gives a command to sign in once from a terminal, because
+the application cannot answer terminal prompts. After signing in, retry the action. A push that
+Git rejects because the remote has newer commits shows a plain summary and **Pull remote changes**;
+Git's own output is under **Show details**. Server-mode credentials work differently; see
 [remote Git on a shared server](server-mode.md#remote-git).
 
 ### Clone a repository
@@ -191,7 +197,9 @@ collecting a password or token. Server-mode credentials work differently; see
 Choose **Add project → Clone a repository** (the Import dialog also links to it). Supply a URL or local path, an optional name and,
 if needed, **Folder in repository**. A clone is staged before registration. Failure, cancellation
 or interrupted startup recovery leaves no partially registered clone. Invalid definitions are
-listed for repair, not rewritten.
+listed for repair, not rewritten. A failed clone keeps what you entered: **Edit details** returns to
+the form and **Retry** runs it again. A repository with no commits or no definitions is cloned and
+reported as such; **Open project** then shows an empty project with **Import files**.
 
 Submodules are not fetched. Symlinks are checked out as plain files, line-ending conversion is
 kept off, and external Git helper transports such as `ext::` are refused.

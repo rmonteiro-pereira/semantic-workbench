@@ -99,6 +99,10 @@ export type WorkspaceOptions = {
 export type ImportCommit =
   | { committed: true; commit: string; message: string }
   | { committed: false; reason: 'no-git' | 'no-identity' | 'merging' | 'nothing' };
+/** A definition file is one the person sees as a definition: visible, and not a .gitignore. */
+function isDefinitionFile(file: { visible: boolean; docType: string }) {
+  return file.visible && file.docType !== 'gitignore';
+}
 /** Builds an import commit message naming the file or count and optional subfolder. */
 export function importMessage(paths: string[], subfolder = '') {
   const what = paths.length === 1 ? posix.basename(paths[0]) : `${paths.length} files`;
@@ -221,9 +225,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       const files = filesOf(p.slug);
       return files.cache
         .files(p.slug)
-        .filter(
-          f => f.visible && f.docType !== 'gitignore' && (!view || view.canRead(p.slug, f.path)),
-        )
+        .filter(f => isDefinitionFile(f) && (!view || view.canRead(p.slug, f.path)))
         .flatMap(f => {
           let fx = facts.get(f.hash);
           if (!fx) {
@@ -1265,6 +1267,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
         .files(slug)
         .filter(f => f.visible && !f.valid)
         .map(f => f.path),
+    definitionCount: slug => cache.files(slug).filter(isDefinitionFile).length,
     added: slug => {
       watcher?.add(slug);
       notifySuggestions();

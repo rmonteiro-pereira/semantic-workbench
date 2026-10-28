@@ -1,5 +1,5 @@
 /** Displays the current branch and offers branch creation and switching. */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { GitBranch, Plus } from 'lucide-react';
 import { scm, type BranchInUse } from '../projects/api';
 
@@ -38,6 +38,18 @@ export function BranchPicker({
   });
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState('');
+  const newBranchButton = useRef<HTMLButtonElement>(null);
+  const returnFocus = useRef(false);
+  // The form's controls vanish when it closes, so focus goes back to the button that opened it.
+  useEffect(() => {
+    if (creating || !returnFocus.current) return;
+    returnFocus.current = false;
+    newBranchButton.current?.focus();
+  }, [creating]);
+  function cancelCreating() {
+    returnFocus.current = true;
+    setCreating(false);
+  }
   useEffect(() => {
     let live = true;
     scm
@@ -113,19 +125,24 @@ export function BranchPicker({
             onKeyDown={e => {
               if (e.key === 'Escape') {
                 e.stopPropagation();
-                setCreating(false);
+                cancelCreating();
               }
             }}
           />
           <button type="submit" className="primary" disabled={!name.trim()}>
             Create
           </button>
-          <button type="button" onClick={() => setCreating(false)}>
+          <button type="button" onClick={cancelCreating}>
             Cancel
           </button>
         </form>
       ) : (
-        <button type="button" onClick={() => setCreating(true)} disabled={disabled}>
+        <button
+          ref={newBranchButton}
+          type="button"
+          onClick={() => setCreating(true)}
+          disabled={disabled}
+        >
           <Plus size={13} />
           New branch
         </button>

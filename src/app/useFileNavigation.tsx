@@ -50,6 +50,8 @@ export function useFileNavigation({
   docsRef,
 }: Options) {
   const recorder = useActionRecorder();
+  // The project the person opened though it has no definitions; the canvas explains it.
+  const [emptyProjectSlug, setEmptyProjectSlug] = React.useState<string | null>(null);
   /**
    * Opens a document. A person's choice closes the phone drawer behind it; the first file the app
    * opens by itself at start-up leaves the drawer as the person has it.
@@ -59,6 +61,7 @@ export function useFileNavigation({
       if (compact && !options.keepDrawer) closeWorkspace();
     };
     setMessage('');
+    setEmptyProjectSlug(null);
     if (current?.id === d.id) {
       closeDrawerUnlessKept();
       return true;
@@ -83,6 +86,23 @@ export function useFileNavigation({
       setTab('mappings');
     return true;
   }
+  /**
+   * Leaves the open file without opening another, for a project that has no definitions to show.
+   * Unsaved edits are written first, as when another file opens. The canvas then explains the
+   * empty project named by `emptyProject`.
+   */
+  function closeDocument(emptyProject: string) {
+    setEmptyProjectSlug(emptyProject);
+    if (current && source !== current.source) void getLeaveCurrent()();
+    setMessage('');
+    setCurrent(null);
+    setSource('');
+    setNeighborhoodFocus('');
+    setSelected('');
+    setSelectedEdge('');
+    setSearch('');
+    if (compact) closeWorkspace();
+  }
   // Back and Forward bring a file back as it is now, without the resets a person's choice does.
   function showDocument(id: string | null) {
     const target = id ? docsRef.current.get(id) : null;
@@ -90,6 +110,7 @@ export function useFileNavigation({
     const shown = currentRef.current;
     if (shown && sourceRef.current !== shown.source) void getLeaveCurrent()();
     setMessage('');
+    setEmptyProjectSlug(null);
     setCurrent(target ?? null);
     setSource(target?.source ?? '');
     if (target) void restoreDraft(target);
@@ -118,5 +139,5 @@ export function useFileNavigation({
     } catch {}
   }
 
-  return { openDocument };
+  return { openDocument, closeDocument, emptyProjectSlug };
 }

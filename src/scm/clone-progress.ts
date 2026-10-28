@@ -14,7 +14,8 @@ export type CloneProgressState = {
 /** Records either a start response or an event from the workspace stream. */
 export type CloneProgressAction =
   | { type: 'started'; operation: CloneOperation }
-  | { type: 'progress'; event: CloneEvent };
+  | { type: 'progress'; event: CloneEvent }
+  | { type: 'reset' };
 
 /** Empty state for a newly opened clone dialog. */
 export const initialCloneProgress: CloneProgressState = {
@@ -28,6 +29,7 @@ export function cloneProgressReducer(
   state: CloneProgressState,
   action: CloneProgressAction,
 ): CloneProgressState {
+  if (action.type === 'reset') return initialCloneProgress;
   if (action.type === 'started') {
     const operation = action.operation;
     const progress = state.events[operation.op] ?? {

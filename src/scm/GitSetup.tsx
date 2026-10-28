@@ -16,7 +16,7 @@ export type GitSetupDialog =
   | { kind: 'remote'; project: string }
   | { kind: 'clone' }
   | { kind: 'repository-projects'; repo: string; start?: StartingChoice }
-  | { kind: 'credentials' };
+  | { kind: 'credentials'; remote?: string };
 
 type Opener = (dialog: GitSetupDialog) => void;
 
@@ -47,7 +47,7 @@ export function GitSetupProvider({
         />
       )}
       {dialog?.kind === 'remote' && <RemoteDialog project={dialog.project} onClose={close} />}
-      {dialog?.kind === 'credentials' && <CredentialGuide onClose={close} />}
+      {dialog?.kind === 'credentials' && <CredentialGuide remote={dialog.remote} onClose={close} />}
       {dialog?.kind === 'clone' && (
         <CloneDialog
           onClose={close}
@@ -55,7 +55,7 @@ export function GitSetupProvider({
             close();
             onOpenProject(slug);
           }}
-          onCredentials={() => setDialog({ kind: 'credentials' })}
+          onCredentials={remote => setDialog({ kind: 'credentials', remote })}
           onChooseProjects={repo =>
             setDialog({ kind: 'repository-projects', repo, start: 'proposed' })
           }

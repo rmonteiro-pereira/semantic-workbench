@@ -1575,6 +1575,7 @@ if (category === 'clone') {
           fs.mkdirSync(path.join(parent, folder), { recursive: true });
         },
         cancel: () => false,
+        head: async () => null,
       },
       journal: { newId: () => 'op1', run: () => {} },
       projects: () => [],
@@ -1582,6 +1583,7 @@ if (category === 'clone') {
       registrySteps: () => [],
       scan: async () => {},
       invalidFiles: () => [],
+      definitionCount: () => 0,
       added: () => {},
       afterClone: async () => ({}),
       emit: (event: any) => events.push(event),

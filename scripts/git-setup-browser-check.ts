@@ -10,6 +10,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { sh, ontology } from '../tests/helpers/scm';
+import { bareRepository, emptyBareRepository } from '../tests/helpers/git-fixtures';
 import { LOCAL_READER } from '../src/server/projects/reader';
 import { addProjectItem } from './helpers/sidebar-menus';
 
@@ -103,6 +104,18 @@ async function expectCloneWaiting(dialog: Locator) {
   await page.setViewportSize({ width: 1440, height: 900 });
 }
 
+// Fixture repositories are committed with the harness identity, not the identity-less Git
+// configuration this check runs under.
+function fixtureWithIdentity<Fixture>(build: () => Fixture): Fixture {
+  const identityless = process.env.GIT_CONFIG_GLOBAL;
+  process.env.GIT_CONFIG_GLOBAL = isolatedGlobal;
+  try {
+    return build();
+  } finally {
+    process.env.GIT_CONFIG_GLOBAL = identityless;
+  }
+}
+
 async function setRemote(url: string) {
   await openRemoteDialog(page);
   const dialog = remoteDialog(page);
@@ -149,7 +162,7 @@ try {
       await expect(panel()).toContainText('No remote yet');
       await expect(remoteButton(page)).toBeVisible();
       await setRemote(pushTarget);
-      await runSyncAction(page, 'Push');
+      await runSyncAction(page, 'Publish branch');
       await expect(panel().getByRole('status').filter({ hasText: 'Push finished' })).toBeVisible({
         timeout: 20_000,
       });
@@ -172,6 +185,7 @@ try {
       releaseStatus.resolve();
       await expect(dialog.getByLabel('Remote URL')).toBeEnabled();
       await expect(dialog.getByLabel('Remote URL')).toHaveValue(pushTarget);
+      await expect(dialog.getByLabel('Remote URL')).toBeFocused();
       await dialog.getByLabel('Remote URL').fill('/elsewhere.git');
       await expect(dialog.getByLabel('Remote URL')).toHaveValue('/elsewhere.git');
       await page.unroute('**/git/status', holdStatus);
@@ -241,6 +255,12 @@ try {
             .first(),
         ).toBeVisible();
       }
+      await expect(guide).toContainText('The app cannot answer a terminal prompt');
+      await expect(
+        guide.getByRole('button', {
+          name: `Copy git ls-remote 'http://127.0.0.1:${host.port}/shop.git'`,
+        }),
+      ).toBeVisible();
       await expect(guide.locator('input[type=password]')).toHaveCount(0);
       await page.screenshot({ path: '/tmp/workbench-git-credentials.png' });
       await guide.getByRole('button', { name: 'Close' }).click();
@@ -318,6 +338,83 @@ try {
       const repository = join(api.root, 'projects', folderProject.repo!);
       expect(existsSync(join(repository, 'semantic/ubl/shop.yaml'))).toBe(true);
       expect(existsSync(join(repository, 'semantic/crm'))).toBe(false);
+    },
+  );
+  await check(
+    'clone: a failed clone keeps the entered values; Edit details and Retry sit next to Close',
+    async () => {
+      const fixed = fixtureWithIdentity(() => bareRepository('single'));
+      try {
+        const missing = join(extra, 'missing.git');
+        await (await addProjectItem(page, 'Clone a repository')).click();
+        const dialog = page.getByRole('dialog', { name: 'Clone repository' });
+        await dialog.getByLabel('Repository URL or path').fill(missing);
+        await dialog.getByLabel('Project name').fill('Typo project');
+        await dialog.getByRole('button', { name: 'Clone', exact: true }).click();
+        await expect(dialog.getByRole('status')).toContainText('The clone failed.', {
+          timeout: 20_000,
+        });
+        await expect(dialog).toContainText('The repository was not cloned');
+        await expect(dialog.getByRole('heading', { name: 'Git details' })).toBeVisible();
+        await expect(dialog.getByRole('button', { name: 'Close' })).toBeVisible();
+        await dialog.getByRole('button', { name: 'Retry' }).click();
+        await expect(dialog.getByRole('status')).toContainText('The clone failed.', {
+          timeout: 20_000,
+        });
+        await dialog.getByRole('button', { name: 'Edit details' }).click();
+        await expect(dialog.getByLabel('Repository URL or path')).toHaveValue(missing);
+        await expect(dialog.getByLabel('Project name')).toHaveValue('Typo project');
+        await dialog.getByLabel('Repository URL or path').fill(fixed.bare);
+        await dialog.getByRole('button', { name: 'Clone', exact: true }).click();
+        await expect(dialog.getByRole('status')).toContainText('Cloned.', { timeout: 20_000 });
+        await dialog.getByRole('button', { name: 'Close' }).click();
+      } finally {
+        fixed.dispose();
+      }
+    },
+  );
+  await check(
+    'clone: a repository without definitions says so and Open project explains its empty project',
+    async () => {
+      const documentation = fixtureWithIdentity(() => bareRepository('documentation'));
+      const empty = fixtureWithIdentity(emptyBareRepository);
+      try {
+        // A project with a model is open, so a stale model would be visible.
+        await page.getByRole('tree', { name: 'Projects' }).getByRole('button').first().click();
+        const cloneFrom = async (address: string) => {
+          await (await addProjectItem(page, 'Clone a repository')).click();
+          const dialog = page.getByRole('dialog', { name: 'Clone repository' });
+          await dialog.getByLabel('Repository URL or path').fill(address);
+          await dialog.getByRole('button', { name: 'Clone', exact: true }).click();
+          await expect(dialog.getByRole('status')).toContainText('Cloned.', { timeout: 20_000 });
+          return dialog;
+        };
+        const notes = await cloneFrom(documentation.bare);
+        await expect(notes).toContainText('Repository cloned; no definitions yet.');
+        await expect(notes).not.toContainText('Every definition file is valid');
+        await notes.getByRole('button', { name: 'Close' }).click();
+        const dialog = await cloneFrom(empty.bare);
+        await expect(dialog).toContainText('Repository cloned; no commits or definitions yet.');
+        await expect(dialog).not.toContainText('Every definition file is valid');
+        await dialog.getByRole('button', { name: 'Open project' }).click();
+        await expect(dialog).toHaveCount(0);
+        await expect(panel()).toContainText(empty.bare);
+        await expect(panel()).toContainText('No changes. This repository has no commits yet.');
+        await expect(panel()).not.toContainText('matches the last commit');
+        await page.getByRole('button', { name: /^Model explorer/ }).click();
+        const emptyProject = page.getByRole('region', { name: 'empty has no definitions' });
+        await expect(emptyProject).toContainText('No supported definitions found in empty.');
+        await expect(emptyProject.getByRole('button', { name: 'Import files' })).toBeVisible();
+        await expect(
+          page.getByRole('heading', { level: 1, name: 'Semantic Workbench' }),
+        ).toBeVisible();
+        await emptyProject.getByRole('button', { name: 'Import files' }).click();
+        await expect(page.getByRole('dialog', { name: 'Import' })).toBeVisible();
+        await page.keyboard.press('Escape');
+      } finally {
+        documentation.dispose();
+        empty.dispose();
+      }
     },
   );
   await check('every remote used is local: a folder or 127.0.0.1', async () => {
