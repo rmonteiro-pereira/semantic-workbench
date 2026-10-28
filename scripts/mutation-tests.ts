@@ -1044,8 +1044,8 @@ mutants.push(
   [
     'read-agent',
     'src/server/handler.ts',
-    'buildContext(ws.documentsFor(requestReader(req)), mappingRef(mappingId))',
-    'buildContext(ws.documents(), mappingRef(mappingId))',
+    'documentsOfProject(ws.documentsFor(requestReader(request)), project)',
+    'documentsOfProject(ws.documents(), project)',
   ],
 );
 

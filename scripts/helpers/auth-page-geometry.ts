@@ -1,7 +1,7 @@
 // Authentication captures must show loaded branding and settled workspace content.
 import assert from 'node:assert/strict';
 import { expect, type Page } from '@playwright/test';
-import { headerProblems } from './header';
+import { expectHeaderSettled, headerProblems, isPhoneHeader } from './header';
 import { graphCanvasProblems } from './graph-canvas-geometry';
 import { graphBoundsProblems } from './graph-readiness';
 
@@ -43,10 +43,22 @@ export async function assertAuthBrandLoaded(page: Page): Promise<void> {
 /** Rejects a collapsed title or a header that consumes the workspace after a refusal. */
 export async function assertAuthHeaderGeometry(page: Page): Promise<void> {
   if (!(await page.locator('.workspace-header').count())) return;
+  await expectHeaderSettled(page);
   assert.deepEqual(await headerProblems(page), []);
   const header = await page.locator('.workspace-header').boundingBox();
   const title = await page.locator('.workspace-title h1').boundingBox();
   assert(header && title, 'The workspace header and document title are drawn');
-  assert(title.width >= 80, `The document title has only ${title.width}px of width`);
+  // The title is the file name and takes only the width of its text, so a short name is narrow.
+  // A collapsed title is one that is narrow and cut off. The phone header shares its one row with
+  // four controls and cuts a long name with an ellipsis by design, so it only needs room for a few
+  // letters.
+  const cutOff = await page
+    .locator('.workspace-title h1')
+    .evaluate(heading => heading.scrollWidth > heading.clientWidth + 1);
+  const minimumWidth = isPhoneHeader(page) ? 48 : 80;
+  assert(
+    title.width >= minimumWidth || !cutOff,
+    `The document title has only ${title.width}px of width and is cut off`,
+  );
   assert(header.height <= 120, `The header consumes ${header.height}px`);
 }

@@ -64,7 +64,7 @@ async function connectFlow(page: Page, target: SignInTarget, github: CredentialG
   });
   assert.equal(switched.status(), 200);
   await openSourceControl(page, target);
-  await runSyncAction(page, 'Push');
+  await runSyncAction(page, 'Publish branch');
   const prompt = page.getByRole('alert').filter({ hasText: 'Connect your GitHub account' });
   await expect(prompt).toBeVisible();
   assert.equal(github.requests.length, 0, 'Nothing reaches GitHub before consent');

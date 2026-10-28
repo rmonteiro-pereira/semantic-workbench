@@ -132,7 +132,9 @@ beforeAll(async () => {
   const { version: baseVersion, ...document } = settings;
   const saved = await call('/api/admin/settings', 'PUT', { ...document, baseVersion });
   expect(saved.status, JSON.stringify(await saved.clone().json())).toBe(200);
-  await call('/api/agent/catalog', 'GET', undefined, { Authorization: `Bearer ${SECRET_TOKEN}` });
+  await call('/api/agent/catalog?project=sales-metrics', 'GET', undefined, {
+    Authorization: `Bearer ${SECRET_TOKEN}`,
+  });
   await call('/api/telemetry/browser', 'POST', {
     reports: [
       { kind: 'error', name: 'TypeError', message: `bad "${DOCUMENT_TEXT}"` },

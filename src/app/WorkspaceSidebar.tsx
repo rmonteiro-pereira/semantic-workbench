@@ -22,9 +22,10 @@ type Props = {
   sidebarRef: React.RefObject<HTMLElement | null>;
   tab: string;
   setTab: (next: string) => void;
-  setHistoryPath: React.Dispatch<React.SetStateAction<string | undefined>>;
+  setHistoryPath: (path: string | undefined) => void;
   projects: ProjectInfo[];
-  scmSlug: string;
+  selectedProject: string;
+  selectProject: (project: string) => boolean;
   current: Doc | null;
   treeAction: (a: TreeAction) => void;
   docs: Doc[];
@@ -94,7 +95,8 @@ export const WorkspaceSidebar = React.memo(function WorkspaceSidebar({
   setTab,
   setHistoryPath,
   projects,
-  scmSlug,
+  selectedProject,
+  selectProject,
   current,
   treeAction,
   docs,
@@ -246,7 +248,7 @@ export const WorkspaceSidebar = React.memo(function WorkspaceSidebar({
         >
           <GitBranch size={18} /> Source control
           {(() => {
-            const count = projects.find(p => p.slug === scmSlug)?.changes ?? 0;
+            const count = projects.find(p => p.slug === selectedProject)?.changes ?? 0;
             return (
               count > 0 && (
                 <span className="nav-count" aria-label={`${count} changed files`}>
@@ -263,6 +265,8 @@ export const WorkspaceSidebar = React.memo(function WorkspaceSidebar({
           <ProjectTree
             projects={projects}
             currentId={current?.id}
+            selectedProject={selectedProject}
+            onSelectProject={selectProject}
             shown={sidebarOpen}
             onAction={handleTreeAction}
             onOpen={handleProjectTreeOpen}

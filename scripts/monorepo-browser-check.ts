@@ -95,7 +95,7 @@ try {
     await expect(tree().getByRole('treeitem', { name: 'monorepo', exact: true })).toHaveCount(0);
   });
   await check(
-    "Source Control shows the whole repository and names each file's project",
+    "Source Control lists the selected project's changes and counts the other projects'",
     async () => {
       writeFileSync(financeFile, ontologyText('Finance', ['Invoice']));
       await expect(
@@ -104,7 +104,17 @@ try {
       await page.getByRole('button', { name: /^Source control/ }).click();
       await expect(panel()).toBeVisible();
       const row = panel().locator('.scm-row').filter({ hasText: 'finance.ontology.yaml' });
-      await expect(row.locator('.scm-project')).toHaveText('Finance');
+      const projectRow = (name: string) =>
+        repositoryRow('monorepo').getByRole('button', { name, exact: true });
+      // Selecting Sales hides the Finance change and says that it is there.
+      await projectRow('Sales').click();
+      await expect(panel().locator('.scm-elsewhere')).toContainText(
+        '1 change in other projects of this repository is not listed',
+      );
+      await expect(row).toHaveCount(0);
+      await projectRow('Finance').click();
+      await expect(row).toBeVisible();
+      await expect(panel().locator('.scm-elsewhere')).toHaveCount(0);
       await page.screenshot({ path: '/tmp/workbench-monorepo-scm.png' });
       await row.getByRole('button', { name: /^Stage / }).click();
       await expect
@@ -113,7 +123,7 @@ try {
       await page.getByRole('button', { name: 'Commit…' }).click();
       const commit = page.getByRole('dialog', { name: 'Commit' });
       await expect(commit.getByRole('list', { name: 'Changed files' })).toContainText(
-        'domains/finance/finance.ontology.yaml',
+        'finance.ontology.yaml',
       );
       await commit.getByRole('button', { name: 'Commit', exact: true }).click();
       await expect(commit).toHaveCount(0);

@@ -11,8 +11,9 @@ type Options = {
   setExporting: React.Dispatch<React.SetStateAction<ProjectInfo | null>>;
   setMoving: React.Dispatch<React.SetStateAction<{ project: string; path: string } | null>>;
   setDeleteTarget: React.Dispatch<React.SetStateAction<DeleteTarget | null>>;
-  setScmProject: React.Dispatch<React.SetStateAction<string | null>>;
-  setHistoryPath: React.Dispatch<React.SetStateAction<string | undefined>>;
+  selectedProject: string;
+  selectProject: (project: string) => boolean;
+  setHistoryPath: (path: string | undefined, project?: string) => void;
   setTab: (next: string) => void;
   compact: boolean;
   closeWorkspace: () => void;
@@ -43,7 +44,8 @@ export function useProjectActions({
   setExporting,
   setMoving,
   setDeleteTarget,
-  setScmProject,
+  selectedProject,
+  selectProject,
   setHistoryPath,
   setTab,
   compact,
@@ -69,8 +71,8 @@ export function useProjectActions({
     else if (a.action === 'delete-project')
       setDeleteTarget({ kind: 'project', project: a.project });
     else if (a.action === 'history') {
-      setScmProject(a.project);
-      setHistoryPath(a.path);
+      if (a.project !== selectedProject) selectProject(a.project);
+      setHistoryPath(a.path, a.project);
       setTab('scm');
       if (compact) closeWorkspace();
     } else if (a.action === 'gitignore') void editGitignore(a.project);

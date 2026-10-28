@@ -5,7 +5,10 @@
 //   AGENT_TENANT_ID=<tenant id> AGENT_CLIENT_ID=<agent app id> \
 //   AGENT_RESOURCE=api://<workbench app id> \
 //   AGENT_CERTIFICATE_KEY="$(cat agent-key.pem)" AGENT_CERTIFICATE_THUMBPRINT=<sha-256 hex> \
-//   bun scripts/examples/agent-client.ts
+//   bun scripts/examples/agent-client.ts [project slug]
+//
+// Without a project slug it lists the projects the client may read, and reads the catalog of the
+// only one.
 //
 // Instead of the certificate pair, set AGENT_CLIENT_SECRET, or AGENT_MANAGED_IDENTITY=1 on an
 // Azure resource (AGENT_CLIENT_ID then names a user-assigned identity; omit it for the
@@ -110,9 +113,26 @@ export async function requestAgentToken(
   return result.accessToken;
 }
 
-/** Reads the agent catalog: the definitions this client was granted. */
-export async function fetchAgentCatalog(settings: AgentSettings, token: string, request = fetch) {
-  const response = await request(settings.workbenchUrl + '/api/agent/catalog', {
+/** Lists the projects this client may read, with the slugs the other requests name. */
+export async function fetchAgentProjects(settings: AgentSettings, token: string, request = fetch) {
+  const response = await request(settings.workbenchUrl + '/api/agent/projects', {
+    headers: { Authorization: 'Bearer ' + token },
+    signal: AbortSignal.timeout(10_000),
+  });
+  if (!response.ok) throw new Error(`The workbench answered ${response.status}.`);
+  const body = (await response.json()) as { projects: { slug: string; name: string }[] };
+  return body.projects;
+}
+
+/** Reads the agent catalog of one project: the definitions this client was granted in it. */
+export async function fetchAgentCatalog(
+  settings: AgentSettings,
+  token: string,
+  project: string,
+  request = fetch,
+) {
+  const url = `${settings.workbenchUrl}/api/agent/catalog?project=${encodeURIComponent(project)}`;
+  const response = await request(url, {
     headers: { Authorization: 'Bearer ' + token },
     signal: AbortSignal.timeout(10_000),
   });
@@ -123,5 +143,13 @@ export async function fetchAgentCatalog(settings: AgentSettings, token: string, 
 if (import.meta.main) {
   const settings = readAgentSettings();
   const token = await requestAgentToken(settings);
-  console.log(JSON.stringify(await fetchAgentCatalog(settings, token), null, 2));
+  const projects = await fetchAgentProjects(settings, token);
+  const project = process.argv[2] ?? (projects.length === 1 ? projects[0]!.slug : undefined);
+  if (!project) {
+    const slugs = projects.map(item => item.slug).join(', ') || 'none';
+    throw new Error(
+      `Name the project: bun scripts/examples/agent-client.ts <slug>. Readable: ${slugs}.`,
+    );
+  }
+  console.log(JSON.stringify(await fetchAgentCatalog(settings, token, project), null, 2));
 }

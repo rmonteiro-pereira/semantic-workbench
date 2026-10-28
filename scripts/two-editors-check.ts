@@ -82,10 +82,21 @@ async function commitFile(person: Person, path: string, message: string) {
 
 const branchOf = async (person: Person) => (await person.call(projectApi('git/status'))).body;
 
+// Source control follows the selected project, so the project is chosen in the sidebar tree.
+async function chooseProjectInSidebar(person: Person, project: string) {
+  const tree = person.page.getByRole('tree', { name: 'Projects' });
+  const row = tree.getByRole('treeitem', { name: project, exact: true });
+  if (
+    (await row.getByRole('button', { name: project, exact: true }).getAttribute('aria-current')) ===
+    'true'
+  )
+    return;
+  await row.getByRole('button', { name: project, exact: true }).click();
+}
+
 async function openSourceControl(person: Person) {
+  await chooseProjectInSidebar(person, PROJECT);
   await person.page.getByRole('button', { name: 'Source control', exact: false }).click();
-  // Every person here reads more than one project, so the panel offers a project chooser.
-  await person.page.getByRole('combobox', { name: 'Project', exact: true }).selectOption(PROJECT);
   const branch = person.page.getByRole('combobox', { name: 'Branch', exact: true });
   await expect(branch).toHaveValue((await branchOf(person)).branch);
 }
@@ -254,10 +265,8 @@ async function sparseProjectStaysInItsFolder(root: string, alice: Person, frank:
     ),
   );
   assert.equal((await frank.call(sparseApi('git/status'))).body.folder, SPARSE_FOLDER);
+  await chooseProjectInSidebar(alice, 'Sparse team');
   await alice.page.getByRole('button', { name: 'Source control', exact: false }).click();
-  await alice.page
-    .getByRole('combobox', { name: 'Project', exact: true })
-    .selectOption(SPARSE_SLUG);
   const where = alice.page.getByLabel('Repository location');
   await expect(where).toContainText(`work/alice · ${SPARSE_FOLDER}`);
   await authGeometry(alice.page, 'two-editors-sparse-source-control', '.scm');

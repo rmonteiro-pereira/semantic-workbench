@@ -2571,6 +2571,11 @@ button.danger:hover {
   font-size: var(--text-small);
   padding: 6px 9px;
 }
+.trash-elsewhere {
+  color: var(--text-muted);
+  font-size: var(--text-small);
+  margin: 0 0 8px;
+}
 .trash-confirm {
   font-size: var(--text-small);
   align-items: center;

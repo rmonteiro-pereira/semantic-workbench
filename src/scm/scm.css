@@ -304,7 +304,6 @@
 .scm-file > small {
   grid-column: 1 / -1;
 }
-.scm-file > .scm-project,
 .scm-file > .scm-label {
   grid-column: 2;
   grid-row: 1;
@@ -868,17 +867,10 @@
   font-size: 13px;
   padding: 6px 8px;
 }
-.scm-project {
-  font-style: normal;
+.scm-elsewhere {
+  color: var(--text-muted);
   font-size: var(--text-small);
-  color: var(--color-text-secondary);
-  background: var(--color-accent-soft);
-  border-radius: 4px;
-  padding: 1px 5px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 12ch;
+  margin: 8px 0;
 }
 .subproject-choice {
   margin: 0 0 14px;

@@ -272,8 +272,14 @@ try {
       await page.getByRole('dialog').getByRole('button', { name: 'Delete', exact: true }).click();
       await expect(toast()).toBeVisible();
       await expect(toast()).toHaveCount(0, { timeout: 12000 });
+      // The trash lists the selected project's files, so Flights hides the Scratch file.
       await page.getByRole('button', { name: 'Trash', exact: true }).click();
       const trash = page.getByRole('dialog', { name: 'Trash' });
+      await expect(trash).toContainText('1 deleted file in other projects is not listed.');
+      await expect(trash).not.toContainText('scratch.yaml');
+      await trash.getByRole('button', { name: 'Close' }).click();
+      await tree().getByRole('button', { name: 'Scratch', exact: true }).click();
+      await page.getByRole('button', { name: 'Trash', exact: true }).click();
       await expect(trash).toContainText('scratch.yaml (Scratch)');
       await trash.getByRole('button', { name: 'Restore' }).click();
       await expect(trash).toContainText('Nothing here yet');

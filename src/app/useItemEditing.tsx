@@ -9,13 +9,13 @@ import { isIri } from '../edit/rdf-patch/index';
 import { itemValue } from '../edit/yaml-patch';
 import type { CodeEditorHandle } from '../editor/CodeEditor';
 import type { Entity, Relationship } from '../core/model';
-import type { Doc, ProjectInfo } from '../projects/api';
+import type { Doc } from '../projects/api';
 import { rdfSyntax } from '../validation/rdf';
 import type { ItemTarget, RdfTarget, ValidatedModel } from './types';
 import { useSourceControl } from './useSourceControl';
 
 type Options = {
-  projects: ProjectInfo[];
+  selectedProject: string;
   current: Doc | null;
   source: string;
   model: ValidatedModel;
@@ -50,7 +50,7 @@ type Options = {
 };
 /** Manages item editing. */
 export function useItemEditing({
-  projects,
+  selectedProject,
   current,
   source,
   model,
@@ -82,8 +82,8 @@ export function useItemEditing({
   } | null>(null);
   const [deleting, setDeleting] = useState<ItemTarget | null>(null);
   const [wizard, setWizard] = useState<boolean | KpiSummary>(false);
-  const { draftOf, setHistoryPath, scmSlug, historyPath, setScmProject } = useSourceControl({
-    projects,
+  const { draftOf, setHistoryPath, historyPath } = useSourceControl({
+    project: selectedProject,
     current,
     source,
   });
@@ -259,9 +259,7 @@ export function useItemEditing({
     wizard,
     setWizard,
     setHistoryPath,
-    scmSlug,
     historyPath,
-    setScmProject,
     editKpi,
     editMappingItem,
     entityTarget,

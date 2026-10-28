@@ -10,6 +10,14 @@ are covered in [the server guide](server-mode.md).
 
 ## Workspace navigation
 
+The app works on one project at a time, the **selected project**.
+Opening a file selects the file's project, and choosing another project's row in the **Projects**
+tree switches to it and opens its first file (a project with no files shows its empty state).
+Everything else follows the selected project: the open files, metrics, Mappings, shared references,
+the Neighborhood trail, Source control, the files in Trash and the project that Import starts on.
+Nothing falls back to another project's documents, and Back and Forward return to the project you
+left. Other projects stay in the tree so you can switch to them.
+
 The sidebar starts with **Add project**, whose menu holds **Import files**, **Clone a repository**
 and **Load an example**. The examples open beside the menu; on a phone they replace it, under a
 **Back** row. Below it are **Model explorer**, **Source editor**, **Source control** and the
@@ -127,8 +135,10 @@ keeps its Git repository and history. Git sees deleted files as normal uncommitt
 history is not rewritten.
 
 **Undo** is available for ten seconds and restores files, drafts and grouping corrections.
-Afterward, **Trash** can restore entries or permanently purge them. Emptying the trash asks for
-confirmation. Restore never silently overwrites another file: it offers a free name when needed.
+Afterward, **Trash** can restore entries or permanently purge them. It lists the selected
+project's deleted files, says how many deleted files of other projects are not listed, and a separate
+section lists deleted projects. Emptying the trash asks for
+confirmation and removes the entries of every project. Restore never silently overwrites another file: it offers a free name when needed.
 A file whose original project no longer exists can be restored into a newly created project.
 Server mode also applies project-creation, ownership and restore permissions.
 
@@ -168,7 +178,10 @@ a banner explains which version-control operations are unavailable.
 
 The **Source control** panel provides:
 
-- Staged changes, unstaged changes and merge conflicts, with side-by-side diffs.
+- Staged changes, unstaged changes and merge conflicts of the selected project, with side-by-side
+  diffs. In a repository shared by several projects, changes of the other projects are counted in a
+  note rather than listed; Stage all, Unstage all and Commit act on the whole repository. Switch
+  project in the sidebar to see another project's changes.
 - Per-file or bulk stage/unstage, commit messages and commit actions.
 - Local and remote branches, new branches and branch switching. A **Tracking origin/main** line
   under the picker names the remote branch Pull and Push use; a branch with no upstream shows

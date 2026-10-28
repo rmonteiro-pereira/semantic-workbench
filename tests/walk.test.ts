@@ -8,6 +8,7 @@ import {
   canForward,
   MAX_STEPS,
   reconcileWalk,
+  walkWithinProject,
   type Walk,
   type WalkAction,
 } from '../src/graph/walk';
@@ -121,4 +122,37 @@ test('reconcileWalk restores a different branch as it was', () => {
     { type: 'push', step: step('c') },
   );
   expect(reconcileWalk(left, right)).toBe(right);
+});
+
+test('the trail stops at the project boundary', () => {
+  const projectOf = (id: string) => id.split('/')[0];
+  const walk = run(
+    emptyWalk,
+    { type: 'push', step: step('a', 'sales/a.yaml') },
+    { type: 'push', step: step('b', 'billing/b.yaml') },
+    { type: 'push', step: step('c', 'billing/c.yaml') },
+  );
+  const inBilling = walkWithinProject(walk, 'billing', projectOf);
+  expect(inBilling.steps.map(s => s.center)).toEqual(['b', 'c']);
+  expect(currentStep(inBilling).center).toBe('c');
+  const inSales = walkWithinProject(walk, 'sales', projectOf);
+  expect(inSales.steps.map(s => s.center)).toEqual(['a']);
+  expect(inSales.index).toBe(0);
+  expect(walkWithinProject(walk, 'empty', projectOf)).toEqual(emptyWalk);
+  const unchanged = walkWithinProject(inSales, 'sales', projectOf);
+  expect(unchanged).toBe(inSales);
+});
+
+test('with no kept step before the position the trail goes to its first kept step', () => {
+  const projectOf = (id: string) => id.split('/')[0];
+  const walk = run(
+    emptyWalk,
+    { type: 'push', step: step('a', 'sales/a.yaml') },
+    { type: 'push', step: step('b', 'billing/b.yaml') },
+    { type: 'push', step: step('c', 'billing/c.yaml') },
+    { type: 'jump', index: 0 },
+  );
+  const inBilling = walkWithinProject(walk, 'billing', projectOf);
+  expect(inBilling.steps.map(s => s.center)).toEqual(['b', 'c']);
+  expect(inBilling.index).toBe(0);
 });

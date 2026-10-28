@@ -8,6 +8,7 @@ import type { Saved } from '../edit/ItemEditor';
 import type { CodeEditorHandle } from '../editor/CodeEditor';
 import type { Fullscreen } from '../graph/fullscreen';
 import type { Walk, WalkAction } from '../graph/walk';
+import { projectRevisionKey } from '../core/selected-project';
 import { MappingExplorer } from '../mappings/MappingExplorer';
 import type { Entity } from '../core/model';
 import type { CrossFileTarget } from '../graph/NeighborhoodGraph';
@@ -40,7 +41,7 @@ type Props = {
   docText: (id: string) => string;
   applySaved: (saved: Saved[], label: string) => void;
   setMessage: React.Dispatch<React.SetStateAction<string>>;
-  scmSlug: string;
+  project: string;
   setGitBusy: React.Dispatch<React.SetStateAction<boolean>>;
   autosave: {
     state: AutosaveState;
@@ -52,8 +53,6 @@ type Props = {
   projects: ProjectInfo[];
   source: string;
   historyPath: string | undefined;
-  setScmProject: React.Dispatch<React.SetStateAction<string | null>>;
-  setHistoryPath: React.Dispatch<React.SetStateAction<string | undefined>>;
   refresh: () => Promise<Doc[]>;
   docsRef: React.RefObject<Map<string, Doc>>;
   openDocument: (d: Doc) => boolean;
@@ -129,15 +128,13 @@ export function WorkspaceCanvas({
   docText,
   applySaved,
   setMessage,
-  scmSlug,
+  project,
   setGitBusy,
   autosave,
   setCommitting,
   projects,
   source,
   historyPath,
-  setScmProject,
-  setHistoryPath,
   refresh,
   docsRef,
   openDocument,
@@ -215,7 +212,7 @@ export function WorkspaceCanvas({
     if (tab === 'scm') {
       return (
         <SourceControlView
-          scmSlug={scmSlug}
+          project={project}
           setGitBusy={setGitBusy}
           autosave={autosave}
           setCommitting={setCommitting}
@@ -224,9 +221,6 @@ export function WorkspaceCanvas({
           current={current}
           source={source}
           historyPath={historyPath}
-          setMessage={setMessage}
-          setScmProject={setScmProject}
-          setHistoryPath={setHistoryPath}
           refresh={refresh}
           docsRef={docsRef}
           openDocument={openDocument}
@@ -256,8 +250,8 @@ export function WorkspaceCanvas({
           onEditItem={editMappingItem}
           onOpenSource={openMappingSource}
           currentId={current?.id}
-          currentProject={current?.project}
-          revisionKey={docs.map(d => d.id + ':' + d.hash).join('|')}
+          currentProject={project}
+          revisionKey={projectRevisionKey(docs, project)}
           dirty={!!current && source !== current.source}
         />
       );

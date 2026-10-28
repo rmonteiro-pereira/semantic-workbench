@@ -21,7 +21,8 @@ function git(cwd: string, args: string[]) {
 
 function writeTeamFiles(work: string) {
   for (const [path, text] of Object.entries({
-    [`${SPARSE_FOLDER}/shop.yaml`]: ontology('Buys.'),
+    // The title is long enough to fill the header, which opens this file when the project is chosen.
+    [`${SPARSE_FOLDER}/shop.yaml`]: ontology('Buys.').replace('name: Shop', 'name: Shop catalogue'),
     [`${SPARSE_OTHER_FOLDER}/crm.yaml`]: ontology('Sells.'),
     'README.md': 'Team repository.\n',
   })) {

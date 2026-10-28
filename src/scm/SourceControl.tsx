@@ -45,6 +45,7 @@ import { BranchPicker } from './BranchPicker';
 import { SyncDialog } from './SyncDialog';
 import { RemoteActions } from './RemoteActions';
 import { ignoreChoices } from './gitignore';
+import { changesOfProject, elsewhereLine } from './project-changes';
 import './scm.css';
 
 /** Names the remote, branch and folder a sparse project lives in. */
@@ -107,19 +108,6 @@ function historyRange(previous: { from: string; to: string } | null, log: Commit
     to: log.length > 1 ? log[0].commit : 'worktree',
   };
 }
-// In a repository shared by several projects, each change names the project that holds it.
-function ChangeOwner({ change, projects }: { change: GitChange; projects: ProjectInfo[] }) {
-  const owner = projects.find(item => item.slug === change.project);
-  const text = owner ? owner.name : 'Repository file';
-  const title = owner
-    ? `In project ${owner.name}`
-    : 'This file belongs to no project; stage it with Stage all.';
-  return (
-    <em className="scm-project" title={title}>
-      {text}
-    </em>
-  );
-}
 // `onBusy` tells the editor that a pull, sync or branch switch runs (automatic saving waits);
 // `onCommit` opens the Commit dialog, offered when a pull, sync or switch is refused.
 type Props = {
@@ -128,7 +116,6 @@ type Props = {
   version: number;
   unsaved: string[];
   historyPath?: string;
-  onProject: (slug: string) => void;
   onOpen: (project: string, path: string) => void;
   onChanged: () => void;
   onBusy?: (busy: boolean) => void;
@@ -141,7 +128,6 @@ export function SourceControl({
   version,
   unsaved,
   historyPath,
-  onProject,
   onOpen,
   onChanged,
   onBusy,
@@ -223,7 +209,8 @@ export function SourceControl({
     setNote(null);
     setError('');
   }, [remoteSignature]);
-  const groups = useMemo(() => groupsOf(status?.changes ?? []), [status]);
+  const scoped = useMemo(() => changesOfProject(status?.changes ?? []), [status]);
+  const groups = useMemo(() => groupsOf(scoped.inProject), [scoped]);
   // Selections name the file from the repository root: two projects may hold the same path.
   const change = selected && status?.changes.find(c => c.repoPath === selected.path);
   // The diff of the selected change; it follows the file as it changes.
@@ -464,8 +451,6 @@ export function SourceControl({
     setSyncOpen(false);
     run();
   }
-  const repo = projects.find(item => item.slug === project)?.repo;
-  const sharedRepository = projects.filter(item => item.repo === repo).length > 1;
   const canCommit =
     access.can('commit') &&
     !!message.trim() &&
@@ -495,7 +480,6 @@ export function SourceControl({
           <span className="scm-name">{name}</span>
           {folder && <small>{folder}</small>}
           {c.orig && <small>← {c.orig}</small>}
-          {(sharedRepository || c.outside) && <ChangeOwner change={c} projects={projects} />}
           {c.hidden && (
             <em
               className="scm-label"
@@ -608,15 +592,6 @@ export function SourceControl({
       <div className="scm-side">
         <h2 className="scm-title">Source control</h2>
         <div className="scm-head">
-          {projects.length > 1 && (
-            <select aria-label="Project" value={project} onChange={e => onProject(e.target.value)}>
-              {projects.map(p => (
-                <option key={p.slug} value={p.slug}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-          )}
           <BranchPicker
             project={project}
             current={status.branch}
@@ -765,7 +740,12 @@ export function SourceControl({
             </small>
           )}
         </div>
-        {!status.changes.length && <p className="scm-empty">{cleanTreeText(status)}</p>}
+        {!scoped.inProject.length && (
+          <p className="scm-empty">
+            {status.changes.length ? 'No changes in this project.' : cleanTreeText(status)}
+          </p>
+        )}
+        {scoped.elsewhere > 0 && <p className="scm-elsewhere">{elsewhereLine(scoped.elsewhere)}</p>}
         {section('conflicts', 'Merge conflicts', groups.conflicts)}
         {section('staged', 'Staged changes', groups.staged, {
           label: 'Unstage all',

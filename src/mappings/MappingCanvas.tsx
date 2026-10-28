@@ -12,10 +12,12 @@ import {
   type MappingContext,
   type MappingGraph,
 } from './mapping-graph';
+import { agentContextPath } from './agent-paths';
 // The resolver reads the saved revision for standalone and embedded mappings. The canvas indicates
 // when the open document has unsaved edits.
 type EditItem = (docId: string, path: (string | number)[]) => void;
 type Props = {
+  project: string;
   mappingId: string;
   revisionKey: string;
   dirty?: boolean;
@@ -31,6 +33,7 @@ const unmapped = (c: LineageCard) =>
   c.columns.some(x => x.badges.some(b => b.kind === 'unmapped'));
 /** Displays the resolver's saved mapping graph through the shared lineage canvas. */
 export function MappingCanvas({
+  project,
   mappingId,
   revisionKey,
   dirty,
@@ -48,9 +51,7 @@ export function MappingCanvas({
     const abort = new AbortController();
     setLoading(true);
     setError('');
-    apiFetch('/api/agent/context?mappingId=' + encodeURIComponent(mappingId), {
-      signal: abort.signal,
-    })
+    apiFetch(agentContextPath(project, mappingId), { signal: abort.signal })
       .then(async r => {
         const d = await r.json();
         if (!r.ok) throw Error(d.error);
@@ -66,7 +67,7 @@ export function MappingCanvas({
         if (!abort.signal.aborted) setLoading(false);
       });
     return () => abort.abort();
-  }, [mappingId, revisionKey]);
+  }, [project, mappingId, revisionKey]);
   const graph = useMemo(
     () => (context ? buildMappingGraph(context, revisionKey) : null),
     [context],

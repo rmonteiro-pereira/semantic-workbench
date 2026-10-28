@@ -2195,7 +2195,7 @@ if (category.startsWith('read-')) {
       });
       const response = await handler(
         new Request(
-          'http://localhost/api/agent/context?mappingId=sales-contracts/people.mapping.yaml',
+          'http://localhost/api/agent/context?project=sales-contracts&mappingId=sales-contracts/people.mapping.yaml',
         ),
       );
       assert.equal(response.status, 200);

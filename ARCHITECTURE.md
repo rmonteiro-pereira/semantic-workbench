@@ -180,6 +180,13 @@ check that happens to succeed.
   mirrors each step into `history.pushState` and moves the cursor on `popstate`.
   `useRecordedState` replaces `useState` for state a click changes, and keeps state in the
   component that owns it. Typing is not recorded; undo and redo never record.
+- The selected project is the context of the whole app. `useWorkbench` holds one recorded choice,
+  `resolveSelectedProject` in `src/core/selected-project.ts` turns it into a project that exists,
+  and every view derives from it: showing a document selects its project, fallbacks open the first
+  file of that project, and Mappings, metrics, Source Control, Trash and
+  Import read it instead of keeping their own project choice. `src/core/project-scope.ts`
+  (`documentsOfProject`, `firstDocumentOfProject`) scopes documents for the browser and for server
+  agent requests, so references never resolve across projects.
 - `src/projects/api.ts` is the browser HTTP boundary. `useEvents.ts` owns SSE delivery and
   connection readiness. `autosave.ts` coordinates validation, drafts, version checks and saving.
   `Sidebar.tsx` keeps the selected file reachable in the scrolling project list.

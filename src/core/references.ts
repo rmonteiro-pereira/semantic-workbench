@@ -28,3 +28,21 @@ export function entityKeys(entity: Entity, model: ModelLike): string[] {
 /** Collects shared identity keys for a model's entities. */
 export const documentKeys = (model: ModelLike) =>
   new Set((model?.entities ?? []).flatMap(e => entityKeys(e, model)));
+
+/**
+ * The other documents of the open file's project that define one of the given identities, either
+ * in their parsed identities or in their text. Another project's files are never related.
+ */
+export function relatedDocumentsOf<Related extends { id: string; project: string; source: string }>(
+  documents: Related[],
+  open: { id: string; project: string },
+  keys: string[],
+  identitiesOf: (documentId: string) => Set<string> | undefined,
+) {
+  return documents.filter(
+    candidate =>
+      candidate.project === open.project &&
+      candidate.id !== open.id &&
+      keys.some(key => identitiesOf(candidate.id)?.has(key) || candidate.source.includes(key)),
+  );
+}

@@ -672,6 +672,13 @@
       }
     },
     {
+      "case": "GET /api/agent/projects",
+      "action": "read",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
       "case": "GET /api/agent/catalog",
       "action": "read",
       "resource": {

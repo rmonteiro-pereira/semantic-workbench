@@ -1,6 +1,7 @@
 /** Presentation and event handling for graph views. */
 import React, { useCallback, useMemo } from 'react';
 import { FullGraph } from '../graph/FullGraph';
+import { projectRevisionKey } from '../core/selected-project';
 import { MappingCanvas } from '../mappings/MappingCanvas';
 import { ModelOverview } from '../graph/ModelOverview';
 import { NeighborhoodGraph } from '../graph/NeighborhoodGraph';
@@ -126,11 +127,9 @@ export function GraphViews({
     return (
       <MappingCanvas
         key={mappingId}
+        project={current?.project ?? ''}
         mappingId={mappingId}
-        revisionKey={docs
-          .filter(d => d.project === current?.project)
-          .map(d => d.id + ':' + d.hash)
-          .join('|')}
+        revisionKey={projectRevisionKey(docs, current?.project ?? '')}
         dirty={!!current && source !== current.source}
         fullscreen={fullscreen}
         toolbarExtra={graphViewSwitch}

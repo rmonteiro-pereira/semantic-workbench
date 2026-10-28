@@ -93,14 +93,19 @@ identities so an Admin can inspect changes in their readable scope.
 
 ### Call the API
 
-Discover IDs rather than guessing them. The following uses a shell-held token and a mapping ID
-returned by the catalog:
+Discover IDs rather than guessing them. The following uses a shell-held token, a project slug
+returned by `/api/agent/projects` and a mapping ID returned by the catalog:
 
 ```sh
-curl "$SW_URL/api/agent/catalog" \
+curl "$SW_URL/api/agent/projects" \
+  -H "Authorization: Bearer $ACCESS_TOKEN"
+
+curl --get "$SW_URL/api/agent/catalog" \
+  --data-urlencode "project=$PROJECT" \
   -H "Authorization: Bearer $ACCESS_TOKEN"
 
 curl --get "$SW_URL/api/agent/context" \
+  --data-urlencode "project=$PROJECT" \
   --data-urlencode "mappingId=$MAPPING_ID" \
   -H "Authorization: Bearer $ACCESS_TOKEN"
 ```
@@ -113,6 +118,7 @@ After discovering the actual IDs, a mapped-commerce-style plan body is:
 
 ```json
 {
+  "project": "<project slug>",
   "mappingId": "<catalog mapping ID>",
   "concepts": ["Revenue", "Customer"],
   "metrics": ["gross_revenue"],
@@ -165,9 +171,16 @@ unsaved editor drafts are not read and remote references/schemas are never fetch
 
 | Operation | Endpoint |
 | --- | --- |
-| Discover mappings | `GET /api/agent/catalog` |
-| Read context | `GET /api/agent/context?mappingId=ID` |
+| Discover projects | `GET /api/agent/projects` returns `{projects: [{slug, name}]}` |
+| Discover mappings | `GET /api/agent/catalog?project=SLUG` |
+| Read context | `GET /api/agent/context?project=SLUG&mappingId=ID` |
 | Request a plan | `POST /api/agent/plan` |
+
+Every request names the project it works in. References resolve only against that project's files,
+so a mapping never reads an ontology or semantic model of another project. `GET
+/api/agent/projects` lists the projects the client may read; use its slugs. A missing project gets 400 `project is required…`; an
+unknown project and one the client cannot read get the same 400 `Project not found.`, and a
+`mappingId` of another project gets 400 `mappingId belongs to project X, not Y.`
 
 Catalog returns mapping IDs, names, the project each mapping belongs to, references,
 standalone/embedded distinctions and runtime policy. Context includes concepts/constraints,
@@ -176,7 +189,7 @@ AI metadata, revisions, evidence and findings.
 Repeated `concept` query parameters can limit selected roots/targets; the necessary metric
 formulas/fields remain included and full datasets/joins remain available for traversal.
 
-Plan accepts `{mappingId, concepts?, metrics: [metricId], dimensions: [fieldId]}`. It returns a SQL
+Plan accepts `{project, mappingId, concepts?, metrics: [metricId], dimensions: [fieldId]}`. It returns a SQL
 preview, original expressions, joins, sources, bindings and revision provenance. Keys such as
 `expression`, raw SQL, metric objects and formula overrides are rejected. Re-fetch context after
 saves; this is not a historical-revision-pinned agent session.

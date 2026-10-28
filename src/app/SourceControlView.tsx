@@ -5,7 +5,7 @@ import type { AutosaveState } from '../projects/autosave';
 import { SourceControl } from '../scm/SourceControl';
 
 type Props = {
-  scmSlug: string;
+  project: string;
   setGitBusy: React.Dispatch<React.SetStateAction<boolean>>;
   autosave: {
     state: AutosaveState;
@@ -19,9 +19,6 @@ type Props = {
   current: Doc | null;
   source: string;
   historyPath: string | undefined;
-  setMessage: React.Dispatch<React.SetStateAction<string>>;
-  setScmProject: React.Dispatch<React.SetStateAction<string | null>>;
-  setHistoryPath: React.Dispatch<React.SetStateAction<string | undefined>>;
   refresh: () => Promise<Doc[]>;
   docsRef: React.RefObject<Map<string, Doc>>;
   openDocument: (d: Doc) => boolean;
@@ -29,7 +26,7 @@ type Props = {
 };
 /** Renders source control view. */
 export function SourceControlView({
-  scmSlug,
+  project,
   setGitBusy,
   autosave,
   setCommitting,
@@ -38,26 +35,17 @@ export function SourceControlView({
   current,
   source,
   historyPath,
-  setMessage,
-  setScmProject,
-  setHistoryPath,
   refresh,
   docsRef,
   openDocument,
   setTab,
 }: Props) {
-  function handleSourceControlProject(slug: string) {
-    setMessage('');
-    setScmProject(slug);
-    setHistoryPath(undefined);
-  }
-
   function handleSourceControlOpen(project: string, path: string) {
     const document = docsRef.current.get(`${project}/${path}`);
     if (document && openDocument(document)) setTab('source');
   }
 
-  return scmSlug ? (
+  return project ? (
     <SourceControl
       onBusy={setGitBusy}
       onCommit={() => {
@@ -65,13 +53,12 @@ export function SourceControlView({
         setCommitting(true);
       }}
       projects={projects}
-      project={scmSlug}
+      project={project}
       version={gitVersion}
       unsaved={
-        current && current.project === scmSlug && source !== current.source ? [current.path] : []
+        current && current.project === project && source !== current.source ? [current.path] : []
       }
       historyPath={historyPath}
-      onProject={handleSourceControlProject}
       onChanged={() => void refresh().catch(() => {})}
       onOpen={handleSourceControlOpen}
     />

@@ -8,6 +8,7 @@ import { expectEditorValue, fillEditor } from './helpers/code-editor';
 import { geometryProblems } from './helpers/screen-tour';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { sha256 } from '../src/server/projects/atomic';
+import { addProjectItem } from './helpers/sidebar-menus';
 import { readZip } from '../tests/helpers/zip-reader';
 // Browser check: project tree, live refresh after external edits, two-tab stale save, cache
 // deletion and restart. Runs against an isolated temporary data root.
@@ -276,6 +277,51 @@ try {
     const historyZip = readZip(new Uint8Array(readFileSync((await (await withHistory).path())!)));
     expect(historyZip.has('git-history.bundle')).toBe(true);
   });
+  await check(
+    'the selected project is the context: fallbacks and Import stay in it, never in another project',
+    async () => {
+      const ontology = (name: string) =>
+        `name: ${name}\nontology:\n  - concept: Item\n    type: EntityType\n`;
+      await api.ws.importBatch(
+        { name: 'Alpha', files: [{ path: 'alpha.yaml', source: ontology('Alpha') }] },
+        LOCAL_READER,
+      );
+      const beta = await api.ws.importBatch(
+        {
+          name: 'Beta',
+          files: [
+            { path: 'one.yaml', source: ontology('Beta one') },
+            { path: 'two.yaml', source: ontology('Beta two') },
+          ],
+        },
+        LOCAL_READER,
+      );
+      const page = await openPage();
+      const tree = page.getByRole('tree', { name: 'Projects' });
+      const chosenFile = tree.locator('button.document.chosen');
+      const inBeta = tree.getByRole('treeitem', { name: 'Beta', exact: true });
+      // Start-up opens a file of the first project, which is not Beta.
+      await expect(chosenFile).toHaveCount(1);
+      await expect(inBeta.locator('button.document.chosen')).toHaveCount(0);
+      await tree.getByRole('button', { name: 'Beta', exact: true }).click();
+      await expect(inBeta.locator('button.document.chosen')).toHaveText('one.yaml');
+      // Import into an existing project starts on the selected project.
+      await (await addProjectItem(page, 'Import files')).click();
+      const dialog = page.getByRole('dialog', { name: 'Import' });
+      await dialog.getByRole('radio', { name: /An existing project/ }).check();
+      await expect(dialog.getByRole('combobox', { name: 'Project' })).toHaveValue(beta.slug);
+      await dialog.getByRole('button', { name: 'Cancel' }).click();
+      // Deleting the open file opens the next file of Beta, not a file of the first project.
+      await api.ws.deleteFile(beta.slug, 'one.yaml', LOCAL_READER);
+      await expect(inBeta.locator('button.document.chosen')).toHaveText('two.yaml');
+      await expect(chosenFile).toHaveCount(1);
+      // With Beta empty the app shows Beta's empty state and opens nothing else.
+      await api.ws.deleteFile(beta.slug, 'two.yaml', LOCAL_READER);
+      await expect(chosenFile).toHaveCount(0);
+      await expect(page.getByRole('region', { name: 'Beta has no definitions' })).toBeVisible();
+      await page.close();
+    },
+  );
   if (errors.length) throw Error('Browser errors: ' + errors.join('\n'));
   console.log(`${passed} project checks passed on isolated data root ${api.root}.`);
 } finally {

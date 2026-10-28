@@ -1,4 +1,5 @@
 /** Displays project files and validation status, keeping invalid files available for repair. */
+import { repositoryMember, treeEntries, type RepositoryMembers } from './project-tree';
 import { useRecordedState } from '../app/useRecordedState';
 import { useCapabilities } from '../auth/Capabilities';
 import React, { useLayoutEffect, useRef } from 'react';
@@ -63,6 +64,9 @@ const typeLabel = (docType: string) =>
   docType === 'unknown' ? 'Unrecognized' : docType === 'gitignore' ? '.gitignore' : docType;
 type TreeProps = {
   currentId?: string;
+  /** The project the app works on; its row is marked, and choosing another switches to it. */
+  selectedProject?: string;
+  onSelectProject: (project: string) => void;
   onOpen: (project: string, path: string) => void;
   onAction: (action: TreeAction) => void;
   collapsed: Set<string>;
@@ -160,7 +164,18 @@ function FileItem({
 function ProjectItem({ project, ...props }: { project: ProjectInfo } & TreeProps) {
   const access = useCapabilities(project.slug);
   const open = !props.collapsed.has(project.slug);
-  const toggle = () => props.toggle(project.slug);
+  const isSelected = props.selectedProject === project.slug;
+  // Choosing the row of another project switches to it and shows its files; the selected
+  // project's row folds and unfolds.
+  const fold = () => props.toggle(project.slug);
+  const handleClick = () => {
+    if (isSelected) {
+      fold();
+      return;
+    }
+    props.onSelectProject(project.slug);
+    if (!open) fold();
+  };
   // A subfolder project names its folder, since the repository row above already names the
   // repository.
   const where = project.folder ? `${project.name} (${project.folder})` : project.name;
@@ -169,10 +184,11 @@ function ProjectItem({ project, ...props }: { project: ProjectInfo } & TreeProps
       <div className="tree-row">
         <button
           className="project-toggle"
+          aria-current={isSelected ? 'true' : undefined}
           title={where}
           aria-label={project.name}
-          onClick={toggle}
-          onKeyDown={foldKeys(open, toggle)}
+          onClick={handleClick}
+          onKeyDown={foldKeys(open, fold)}
         >
           {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
           {project.folder ? <Folder size={15} /> : <FolderGit2 size={15} />}
@@ -206,8 +222,9 @@ function RepositoryItem({
   repo,
   projects,
   ...props
-}: { repo: string; projects: ProjectInfo[] } & TreeProps) {
-  const access = useCapabilities(projects[0]?.slug);
+}: { repo: string; projects: RepositoryMembers } & TreeProps) {
+  const member = repositoryMember(projects, props.selectedProject);
+  const access = useCapabilities(member.slug);
   const key = 'repository:' + repo;
   const open = !props.collapsed.has(key);
   const toggle = () => props.toggle(key);
@@ -235,7 +252,7 @@ function RepositoryItem({
                   {
                     label: 'Projects in this repository…',
                     run: () =>
-                      props.onAction({ action: 'repository-projects', project: projects[0].slug }),
+                      props.onAction({ action: 'repository-projects', project: member.slug }),
                   },
                 ]
               : []
@@ -251,25 +268,6 @@ function RepositoryItem({
       )}
     </li>
   );
-}
-
-// Projects in tree order: a repository with subfolder projects becomes one group, placed where
-// its first project was; every other project stays a top-level row.
-function treeEntries(projects: ProjectInfo[]) {
-  const byRepo = new Map<string, ProjectInfo[]>();
-  for (const project of projects)
-    byRepo.set(project.repo, [...(byRepo.get(project.repo) ?? []), project]);
-  const entries: ({ repo: string; projects: ProjectInfo[] } | { project: ProjectInfo })[] = [];
-  const placed = new Set<string>();
-  for (const project of projects) {
-    const members = byRepo.get(project.repo)!;
-    if (!members.some(member => member.folder)) entries.push({ project: project });
-    else if (!placed.has(project.repo)) {
-      placed.add(project.repo);
-      entries.push({ repo: project.repo, projects: members });
-    }
-  }
-  return entries;
 }
 
 /**
@@ -288,12 +286,16 @@ function revealRow(scroller: HTMLElement, row: HTMLElement) {
 export function ProjectTree({
   projects,
   currentId,
+  selectedProject,
+  onSelectProject,
   shown = true,
   onOpen,
   onAction,
 }: {
   projects: ProjectInfo[];
   currentId?: string;
+  selectedProject?: string;
+  onSelectProject: (project: string) => void;
   /** False while the tree cannot be seen, as in a closed phone drawer, so it has no size to fit. */
   shown?: boolean;
   onOpen: (project: string, path: string) => void;
@@ -321,7 +323,15 @@ export function ProjectTree({
     return (
       <p className="projects-empty">No projects yet. Import definitions or load an example.</p>
     );
-  const props = { currentId, onOpen, onAction, collapsed, toggle };
+  const props = {
+    currentId,
+    selectedProject,
+    onSelectProject,
+    onOpen,
+    onAction,
+    collapsed,
+    toggle,
+  };
   return (
     <ul ref={tree} className="project-tree" role="tree" aria-label="Projects">
       {treeEntries(projects).map(entry =>

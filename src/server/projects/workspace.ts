@@ -1159,7 +1159,8 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     if (p !== undefined && !place.cache.file(slug, p)) throw new NotFoundError('File not found.');
     const removed = (f: { project: string; path: string }) =>
       f.project === slug && (p === undefined || f.path === p);
-    const all = indexedFiles(LOCAL_READER);
+    // References resolve inside a project, so another project's files never keep one alive.
+    const all = indexedFiles(LOCAL_READER).filter(f => f.project === slug);
     const gone = all.filter(removed);
     const kept = all.filter(f => !removed(f));
     const brokenReferences: {

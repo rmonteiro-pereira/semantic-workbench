@@ -1,19 +1,21 @@
 /** Opens documents and restores unsaved drafts without discarding current edits. */
 import { apiFetch } from '../projects/api';
 import React from 'react';
+import { firstDocumentOfProject } from '../core/project-scope';
 import { validateInput } from '../validation/input';
 import { scm as scmApi, type Doc } from '../projects/api';
 import { useActionRecorder } from './ActionHistoryContext';
 
-/** Opening a document leaves the phone drawer open only when the caller says so. */
-export type OpenOptions = { keepDrawer?: boolean };
+/**
+ * Opening a document leaves the phone drawer open, or the open tab as it is, only when the caller
+ * says so.
+ */
+export type OpenOptions = { keepDrawer?: boolean; keepTab?: boolean };
 
 type Options = {
   setMessage: React.Dispatch<React.SetStateAction<string>>;
-  current: import('../projects/api').Doc | null;
   compact: boolean;
   closeWorkspace: () => void;
-  source: string;
   getLeaveCurrent: () => () => Promise<void>;
   setCurrent: (next: import('../projects/api').Doc | null) => void;
   setSource: React.Dispatch<React.SetStateAction<string>>;
@@ -27,14 +29,13 @@ type Options = {
   sourceRef: React.RefObject<string>;
   getDraftOf: () => React.RefObject<{ project: string; path: string } | null>;
   docsRef: React.RefObject<Map<string, Doc>>;
+  setChosenProject: (project: string) => void;
 };
 /** Manages file navigation. */
 export function useFileNavigation({
   setMessage,
-  current,
   compact,
   closeWorkspace,
-  source,
   getLeaveCurrent,
   setCurrent,
   setSource,
@@ -48,6 +49,7 @@ export function useFileNavigation({
   sourceRef,
   getDraftOf,
   docsRef,
+  setChosenProject,
 }: Options) {
   const recorder = useActionRecorder();
   // The project the person opened though it has no definitions; the canvas explains it.
@@ -62,15 +64,17 @@ export function useFileNavigation({
     };
     setMessage('');
     setEmptyProjectSlug(null);
-    if (current?.id === d.id) {
+    // The refs hold what is open now, also when a delete or a disk change has just replaced it.
+    const shown = currentRef.current;
+    if (shown?.id === d.id) {
       closeDrawerUnlessKept();
       return true;
     }
     recorder.noteCommand('open file', {
-      undo: () => showDocument(current?.id ?? null),
+      undo: () => showDocument(shown?.id ?? null),
       redo: () => showDocument(d.id),
     });
-    if (current && source !== current.source) void getLeaveCurrent()();
+    if (shown && sourceRef.current !== shown.source) void getLeaveCurrent()();
     setCurrent(d);
     setSource(d.source);
     void restoreDraft(d);
@@ -80,6 +84,7 @@ export function useFileNavigation({
     setSelectedEdge('');
     setSearch('');
     if (
+      !options.keepTab &&
       tab !== 'neighborhood' &&
       validateInput(d.source, d.filename).model?.kind === 'Ossie mappings'
     )
@@ -87,13 +92,30 @@ export function useFileNavigation({
     return true;
   }
   /**
+   * Switches the app to another project: it opens the project's first file, or shows the
+   * project's empty state when it has none.
+   */
+  function selectProject(project: string) {
+    const first = firstDocumentOfProject([...docsRef.current.values()], project);
+    if (first) return openDocument(first);
+    const shown = currentRef.current;
+    recorder.noteCommand('select project', {
+      undo: () => showDocument(shown?.id ?? null),
+      redo: () => showDocument(null),
+    });
+    closeDocument(project);
+    return true;
+  }
+  /**
    * Leaves the open file without opening another, for a project that has no definitions to show.
    * Unsaved edits are written first, as when another file opens. The canvas then explains the
-   * empty project named by `emptyProject`.
+   * empty project named by `emptyProject`, which becomes the selected project.
    */
   function closeDocument(emptyProject: string) {
     setEmptyProjectSlug(emptyProject);
-    if (current && source !== current.source) void getLeaveCurrent()();
+    setChosenProject(emptyProject);
+    const shown = currentRef.current;
+    if (shown && sourceRef.current !== shown.source) void getLeaveCurrent()();
     setMessage('');
     setCurrent(null);
     setSource('');
@@ -139,5 +161,5 @@ export function useFileNavigation({
     } catch {}
   }
 
-  return { openDocument, closeDocument, emptyProjectSlug };
+  return { openDocument, closeDocument, selectProject, emptyProjectSlug };
 }

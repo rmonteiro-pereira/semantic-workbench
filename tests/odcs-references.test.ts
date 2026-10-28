@@ -3,7 +3,7 @@ import { test, expect } from 'bun:test';
 import { stringify } from 'yaml';
 import { validateInput } from '../src/validation/input';
 import { inspect } from '../src/core/model';
-import { documentKeys, entityKeys } from '../src/core/references';
+import { documentKeys, entityKeys, relatedDocumentsOf } from '../src/core/references';
 const contract = (schema: any[]) =>
   stringify({
     apiVersion: 'v3.1.0',
@@ -108,4 +108,15 @@ test('shared references match a QName IRI with the expanded IRI used by another 
     true,
   );
   expect(entityKeys(odcs.entities[0], odcs).some(k => documentKeys(ontology).has(k))).toBe(true);
+});
+
+test('shared references come from the open file project, never from another project', () => {
+  const shared = 'https://example.org/definitions/customer';
+  const documents = [
+    { id: 'sales/orders.yaml', project: 'sales', source: `url: ${shared}` },
+    { id: 'sales/customers.yaml', project: 'sales', source: `url: ${shared}` },
+    { id: 'billing/invoices.yaml', project: 'billing', source: `url: ${shared}` },
+  ];
+  const related = relatedDocumentsOf(documents, documents[0]!, [shared], () => undefined);
+  expect(related.map(document => document.id)).toEqual(['sales/customers.yaml']);
 });

@@ -45,8 +45,9 @@ describe('read matrix', () => {
         access,
         principal: () => principal,
       });
-      const paths = ['/api/projects', '/api/documents', '/api/agent/catalog', '/api/suggestions'];
+      const paths = ['/api/projects', '/api/documents', '/api/suggestions'];
       for (const project of AUTH_PROJECTS) {
+        if (view.readableProjects.has(project)) paths.push(`/api/agent/catalog?project=${project}`);
         for (const file of fixtureFiles(project)) {
           paths.push(`/api/projects/${project}/files/${file.path}`);
         }
@@ -88,6 +89,12 @@ async function expectAllowedReadResponse(
         'Choosing a folder for an existing project works in local mode. ' +
         'Clone the folder instead.',
     });
+    return;
+  }
+  // The project is checked first: a person who cannot read the project the example names is told
+  // it is not found, exactly as for an unknown one.
+  if (path.startsWith('/api/agent/') && response.status === 400) {
+    expect(await response.clone().json()).toEqual({ error: 'Project not found.' });
     return;
   }
   expect(
@@ -140,10 +147,17 @@ describe('read route inventory', () => {
           if (path.includes('/explain/')) {
             path = `/api/projects/${project}/files/preview.semantic.yaml/explain/preview_metric`;
           }
+          if (path === '/api/agent/catalog') {
+            // A project the person cannot read answers like an unknown one, so ask for one they can.
+            const readable = scope.view().readableProjects;
+            const named = readable.has(project) ? project : ([...readable][0] ?? project);
+            path += `?project=${named}`;
+          }
           if (path === '/api/agent/context')
-            path += '?mappingId=sales-contracts/sales.mapping.yaml';
+            path += '?project=sales-contracts&mappingId=sales-contracts/sales.mapping.yaml';
           if (path === '/api/agent/plan') {
             requestBody = {
+              project: 'sales-contracts',
               mappingId: 'sales-contracts/sales.mapping.yaml',
               metrics: ['gross_revenue'],
               dimensions: [],

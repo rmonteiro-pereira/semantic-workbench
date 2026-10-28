@@ -3,6 +3,18 @@ import { expect, type Page } from '@playwright/test';
 import { NO_FILE_TITLE } from '../../src/app/HeaderTitle';
 import { PHONE_SCREEN_PX } from '../../src/app/useNarrowScreen';
 // New and Export sit in the More actions menu at every window width.
+/** Waits until the header has switched to the layout that suits the window's current width. */
+export async function expectHeaderSettled(page: Page) {
+  await expect
+    .poll(() =>
+      page.evaluate(phoneWidth => {
+        const header = document.querySelector('.workspace-header');
+        if (!header) return true;
+        return header.classList.contains('header-phone') === window.innerWidth < phoneWidth;
+      }, PHONE_SCREEN_PX),
+    )
+    .toBe(true);
+}
 /** Says whether the window is narrow enough for the phone header. */
 export function isPhoneHeader(page: Page): boolean {
   return (page.viewportSize()?.width ?? 0) < PHONE_SCREEN_PX;

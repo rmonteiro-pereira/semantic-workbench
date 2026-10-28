@@ -357,9 +357,9 @@ export async function readVisibilityChecks(browser: Browser, target: SignInTarge
     for (const path of [
       '/api/projects',
       '/api/documents',
-      '/api/agent/catalog',
+      '/api/agent/catalog?project=sales-contracts',
       '/api/projects/sales-metrics/metrics',
-      '/api/agent/context?mappingId=sales-contracts/people.mapping.yaml',
+      '/api/agent/context?project=sales-contracts&mappingId=sales-contracts/people.mapping.yaml',
     ]) {
       const response = await context.request.get(target.url + path);
       assert.equal(response.status(), 200);
@@ -477,7 +477,10 @@ export async function agentBearerChecks(browser: Browser, target: SignInTarget) 
     await check('agent client sees only granted projects', async () => {
       const token = await agentToken(page, target, TEST_CLIENTS.granted);
       const headers = { Authorization: 'Bearer ' + token };
-      const catalog = await context.request.get(target.url + '/api/agent/catalog', { headers });
+      const catalog = await context.request.get(
+        target.url + '/api/agent/catalog?project=sales-contracts',
+        { headers },
+      );
       assert.equal(catalog.status(), 200);
       const text = await catalog.text();
       assert(text.includes('sales-contracts/'));

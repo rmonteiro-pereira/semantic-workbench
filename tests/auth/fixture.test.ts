@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import Ajv2020 from 'ajv/dist/2020';
 import addFormats from 'ajv-formats';
 import accessSchema from '../../schemas/semantic-workbench-access-v1.json';
+import { documentsOfProject } from '../../src/core/project-scope';
 import { buildContext } from '../../src/server/agent/runtime';
 import {
   AUTH_FIXTURE,
@@ -64,7 +65,7 @@ test('every fixture file is valid and has a document type', async () => {
   const files = listed.flatMap(project =>
     project.files.map(file => ({ ...file, project: project.slug })),
   );
-  expect(files.length).toBe(10);
+  expect(files.length).toBe(12);
   for (const file of files)
     expect({ path: `${file.project}/${file.path}`, valid: file.valid }).toEqual({
       path: `${file.project}/${file.path}`,
@@ -74,13 +75,14 @@ test('every fixture file is valid and has a document type', async () => {
   expect(metrics?.docType).toBeTruthy();
 });
 
-test('the sales mapping resolves references in two other projects', async () => {
+test('the sales mapping resolves its references inside its own project', async () => {
   await using workspace = await authWorkspace();
-  const context = buildContext(workspace.ws.documents(), 'sales-contracts/sales.mapping.yaml');
+  const inProject = documentsOfProject(workspace.ws.documents(), 'sales-contracts');
+  const context = buildContext(inProject, 'sales-contracts/sales.mapping.yaml');
   expect(context.findings).toEqual([]);
   const used = JSON.stringify(context.documents);
-  expect(used).toContain('shared-reference/reference.ontology.yaml');
-  expect(used).toContain('sales-metrics/sales.semantic.yaml');
+  expect(used).toContain('sales-contracts/reference.ontology.yaml');
+  expect(used).toContain('sales-contracts/sales.semantic.yaml');
   const people = buildContext(workspace.ws.documents(), 'sales-contracts/people.mapping.yaml');
   expect(JSON.stringify(people.documents)).toContain('hr-people/people.ontology.yaml');
 });

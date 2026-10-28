@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { EmptyState } from './EmptyState';
 import { Modal } from './Modal';
 import { api, type TrashItem } from './api';
+import { otherProjectFilesLine, trashSections } from './trash-sections';
 // Restore or permanently delete trash entries; emptying the trash asks for confirmation. A restore
 // never overwrites; when the location is taken, the free alternative is offered.
 // How a trash entry reads in the list.
@@ -15,7 +16,17 @@ function entryLabel(item: TrashItem) {
   return `Project ${item.projectName}`;
 }
 /** Reviews trash entries and offers restore or confirmed permanent deletion. */
-export function TrashDialog({ onClose, version }: { onClose: () => void; version: number }) {
+export function TrashDialog({
+  onClose,
+  version,
+  selectedProject,
+  selectedProjectName,
+}: {
+  onClose: () => void;
+  version: number;
+  selectedProject: string;
+  selectedProjectName: string;
+}) {
   const access = useCapabilities();
   const [items, setItems] = useState<TrashItem[] | null>(null);
   const [error, setError] = useState('');
@@ -54,9 +65,46 @@ export function TrashDialog({ onClose, version }: { onClose: () => void; version
       else setError(e.message);
     }
   }
+  function renderRow(t: TrashItem) {
+    return (
+      <li key={t.entryId}>
+        <div>
+          <strong>{entryLabel(t)}</strong>
+          <small>
+            Deleted {new Date(t.deletedAt).toLocaleString()}
+            {t.batchId ? ' · by Clear' : ''}
+          </small>
+        </div>
+        {confirming === t.entryId ? (
+          <span className="trash-confirm">
+            Delete permanently?{' '}
+            <button className="danger" onClick={() => act(() => api.purge(t.entryId))}>
+              Yes, delete
+            </button>
+            <button onClick={() => setConfirming(null)}>No</button>
+          </span>
+        ) : (
+          <span>
+            <button
+              hidden={!access.can('restoreOwn', t.project)}
+              onClick={() => restore(t.entryId)}
+            >
+              Restore
+            </button>
+            <button hidden={!access.can('purge')} onClick={() => setConfirming(t.entryId)}>
+              Delete permanently
+            </button>
+          </span>
+        )}
+      </li>
+    );
+  }
+  const sections = trashSections(items ?? [], selectedProject);
+  const count = items?.length ?? 0;
   const emptyingNote =
     confirming === '*'
-      ? `Permanently delete all ${items?.length} item${items?.length === 1 ? '' : 's'}? This cannot be undone.`
+      ? `Permanently delete all ${count} item${count === 1 ? '' : 's'} in the trash, from every ` +
+        'project? This cannot be undone.'
       : undefined;
   const footer =
     confirming === '*' ? (
@@ -95,40 +143,23 @@ export function TrashDialog({ onClose, version }: { onClose: () => void; version
           Deleted projects and files stay here until you empty the trash.
         </EmptyState>
       ) : (
-        <ul className="trash-list">
-          {items.map(t => (
-            <li key={t.entryId}>
-              <div>
-                <strong>{entryLabel(t)}</strong>
-                <small>
-                  Deleted {new Date(t.deletedAt).toLocaleString()}
-                  {t.batchId ? ' · by Clear' : ''}
-                </small>
-              </div>
-              {confirming === t.entryId ? (
-                <span className="trash-confirm">
-                  Delete permanently?{' '}
-                  <button className="danger" onClick={() => act(() => api.purge(t.entryId))}>
-                    Yes, delete
-                  </button>
-                  <button onClick={() => setConfirming(null)}>No</button>
-                </span>
-              ) : (
-                <span>
-                  <button
-                    hidden={!access.can('restoreOwn', t.project)}
-                    onClick={() => restore(t.entryId)}
-                  >
-                    Restore
-                  </button>
-                  <button hidden={!access.can('purge')} onClick={() => setConfirming(t.entryId)}>
-                    Delete permanently
-                  </button>
-                </span>
-              )}
-            </li>
-          ))}
-        </ul>
+        <>
+          {sections.otherProjectFiles > 0 && (
+            <p className="trash-elsewhere">{otherProjectFilesLine(sections.otherProjectFiles)}</p>
+          )}
+          {sections.files.length > 0 && (
+            <section aria-label="Deleted files">
+              <h3>Deleted files in {selectedProjectName}</h3>
+              <ul className="trash-list">{sections.files.map(renderRow)}</ul>
+            </section>
+          )}
+          {sections.projects.length > 0 && (
+            <section aria-label="Deleted projects">
+              <h3>Deleted projects</h3>
+              <ul className="trash-list">{sections.projects.map(renderRow)}</ul>
+            </section>
+          )}
+        </>
       )}
       {occupied && (
         <div role="alert" className="delete-warning">

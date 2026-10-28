@@ -8,6 +8,15 @@ not configure a production deployment.
 
 ### Added
 
+- The app works on one **selected project** at a time. Opening a file selects
+  its project, and choosing another project's row in the sidebar switches to it. Every view shows
+  that project only: its files, metrics, Mappings, shared references, Neighborhood trail, Source
+  control, Trash files and import target. Nothing falls back to another project's documents, and
+  Back and Forward bring the previous project back.
+- **Trash** lists the selected project's deleted files in one section and deleted projects in
+  another, and says how many deleted files of other projects are not listed.
+- `GET /api/agent/projects` lists the projects an agent client may read, as
+  `{projects: [{slug, name}]}`, so a client can find the slugs the other agent requests need.
 - Admin has a **Git remotes** section that lists every project with its remote address, or "No
   remote", and offers **Set remote…** and **Remove remote** for each. In Source control, **Remote…**
   now appears only for Admins; everyone else still sees the address and Fetch, Pull and Push.
@@ -20,6 +29,20 @@ not configure a production deployment.
 
 ### Changed
 
+- Breaking: `GET /api/agent/catalog`, `GET /api/agent/context` and `POST /api/agent/plan` now
+  require a `project`; requests without `project` now return 400. References resolve inside that
+  project only. A project that is unknown or that the client cannot read gets the same 400
+  `Project not found.`, and a `mappingId` that belongs to another project gets 400. Discover the
+  slugs with `GET /api/agent/projects`.
+- Source control follows the selected project: its separate project list is gone. In a repository
+  shared by several projects it lists the selected project's changes and counts the others, since
+  Stage all, Unstage all and Commit still act on the whole repository.
+- After a file is deleted or a project is removed, the app opens the first file of the selected
+  project, or shows its empty state, instead of a file of another project. Start-up opens the
+  recorded project or the first one. **Import files** into an existing project starts on the
+  selected project, and the repository row in the sidebar acts for it.
+- The delete warning counts a reference as still resolvable only when another file of the same
+  project defines it.
 - The sidebar starts with one **Add project** button whose menu holds **Import files**, **Clone a
   repository** and **Load an example**. Its footer is now **Trash** and **Settings**, a row like the
   navigation above it. **Settings** opens a panel with **Theme**, **Clear workspace** and **Admin**,

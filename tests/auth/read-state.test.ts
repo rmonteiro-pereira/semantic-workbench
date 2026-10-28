@@ -100,7 +100,9 @@ test('derived data and basic status do not resolve hidden sources or expose serv
     principal: () => principal,
   });
   const context = await handler(
-    new Request('http://localhost/api/agent/context?mappingId=sales-contracts/people.mapping.yaml'),
+    new Request(
+      'http://localhost/api/agent/context?project=sales-contracts&mappingId=sales-contracts/people.mapping.yaml',
+    ),
   );
   expect(context.status).toBe(200);
   const body = await context.text();

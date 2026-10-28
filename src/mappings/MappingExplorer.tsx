@@ -6,6 +6,7 @@ import type { Binding, Finding, RuntimeContext } from '../server/agent/runtime';
 import { QueryComposer } from './QueryComposer';
 import { EmptyState } from '../projects/EmptyState';
 import { ShowMoreControl } from './ShowMoreControl';
+import { agentCatalogPath, agentContextPath } from './agent-paths';
 import { chooseMapping, mappingsOfProject, shownMapping } from './mapping-choice';
 import {
   BINDINGS_PER_GROUP,
@@ -102,8 +103,8 @@ export function MappingExplorer({
   onOpenSource,
 }: {
   currentId?: string;
-  /** Project of the open file; the tab starts on a mapping from this project. */
-  currentProject?: string;
+  /** The selected project; the tab offers its mappings only, and none when it is empty. */
+  currentProject: string;
   revisionKey: string;
   dirty: boolean;
   onEditItem?: (docId: string, path: (string | number)[]) => void;
@@ -134,8 +135,12 @@ export function MappingExplorer({
   const [conceptLimit, setConceptLimit] = useRecordedState('mappings.conceptLimit', CONCEPTS_SHOWN);
   const conceptList = useRef<HTMLDivElement>(null);
   useEffect(() => {
+    if (!currentProject) {
+      setCatalog([]);
+      return;
+    }
     const abort = new AbortController();
-    apiFetch('/api/agent/catalog', { signal: abort.signal })
+    apiFetch(agentCatalogPath(currentProject), { signal: abort.signal })
       .then(async r => {
         const d = await r.json();
         if (!r.ok) throw Error(d.error);
@@ -167,9 +172,7 @@ export function MappingExplorer({
     if (!activeMappingId) return;
     const abort = new AbortController();
     setLoading(true);
-    apiFetch('/api/agent/context?mappingId=' + encodeURIComponent(activeMappingId), {
-      signal: abort.signal,
-    })
+    apiFetch(agentContextPath(currentProject, activeMappingId), { signal: abort.signal })
       .then(async r => {
         const data = await r.json();
         if (!r.ok) throw Error(data.error);
@@ -286,6 +289,7 @@ export function MappingExplorer({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          project: currentProject,
           mappingId: activeMappingId,
           concepts: concept ? [concept] : [],
           metrics,

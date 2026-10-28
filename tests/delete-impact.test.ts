@@ -49,7 +49,7 @@ test('delete impact lists removed items, unsaved drafts and references that brea
         .deleteImpact(slug, 'flights.semantic_model.yaml', LOCAL_READER)
         .brokenReferences.map(b => b.name),
     ).toEqual(['Flights semantic model']);
-    // A second copy of the ontology elsewhere keeps the reference resolvable.
+    // A copy of the ontology in another project does not keep the reference resolvable.
     await t.ws.importBatch(
       {
         name: 'Copy',
@@ -62,9 +62,11 @@ test('delete impact lists removed items, unsaved drafts and references that brea
       },
       LOCAL_READER,
     );
-    expect(t.ws.deleteImpact(slug, 'flights.ontology.yaml', LOCAL_READER).brokenReferences).toEqual(
-      [],
-    );
+    expect(
+      t.ws
+        .deleteImpact(slug, 'flights.ontology.yaml', LOCAL_READER)
+        .brokenReferences.map(b => b.name),
+    ).toEqual(['Flights']);
     expect(
       (
         await t.handler(

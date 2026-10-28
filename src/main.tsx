@@ -45,6 +45,8 @@ function App() {
     setSource,
     deleteTarget,
     projects,
+    selectedProject,
+    selectProject,
     setDeleteTarget,
     sourceRef,
     setDeleted,
@@ -145,16 +147,11 @@ function App() {
         item =>
           item.slug === fileNavigation.emptyProjectSlug && !docs.some(d => d.project === item.slug),
       );
-  // After a clone or a change to a repository's projects, show the project's first file.
+  // After a clone or a change to a repository's projects, show the project's first file, or its
+  // empty state.
   async function openProject(slug: string) {
-    const loaded = await workspaceEvents.refresh();
-    const first = loaded.find(doc => doc.project === slug);
-    if (first) {
-      fileNavigation.openDocument(first);
-      return;
-    }
-    fileNavigation.closeDocument(slug);
-    itemEditing.setScmProject(slug);
+    await workspaceEvents.refresh();
+    fileNavigation.selectProject(slug);
   }
 
   const content = (
@@ -219,6 +216,7 @@ function App() {
           rdfDeleting={itemEditing.rdfDeleting}
           wizard={itemEditing.wizard}
           kpiProject={metrics.kpiProject}
+          selectedProject={selectedProject}
           docs={docs}
           kpis={metrics.kpis}
           setWizard={itemEditing.setWizard}
@@ -251,7 +249,8 @@ function App() {
           setTab={setTab}
           setHistoryPath={itemEditing.setHistoryPath}
           projects={projects}
-          scmSlug={itemEditing.scmSlug}
+          selectedProject={selectedProject}
+          selectProject={selectProject}
           current={current}
           treeAction={treeAction}
           docs={docs}
@@ -336,15 +335,13 @@ function App() {
               docText={itemEditing.docText}
               applySaved={itemEditing.applySaved}
               setMessage={setMessage}
-              scmSlug={itemEditing.scmSlug}
+              project={selectedProject}
               setGitBusy={saving.setGitBusy}
               autosave={saving.autosave}
               setCommitting={saving.setCommitting}
               projects={projects}
               source={source}
               historyPath={itemEditing.historyPath}
-              setScmProject={itemEditing.setScmProject}
-              setHistoryPath={itemEditing.setHistoryPath}
               refresh={refresh}
               docsRef={docsRef}
               openDocument={openDocument}

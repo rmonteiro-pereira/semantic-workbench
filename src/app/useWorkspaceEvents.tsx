@@ -2,24 +2,26 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { ProjectInfo, Suggestion, WorkspaceStatus } from '../projects/api';
 import { api, loadWorkspace, type Doc } from '../projects/api';
+import { firstDocumentOfProject } from '../core/project-scope';
 import { useEvents } from '../projects/useEvents';
 import type { OpenOptions } from './useFileNavigation';
 
 type Options = {
   docsRef: React.RefObject<Map<string, Doc>>;
-  setProjects: React.Dispatch<React.SetStateAction<ProjectInfo[]>>;
+  setProjects: (projects: ProjectInfo[]) => void;
   setDocs: React.Dispatch<React.SetStateAction<Doc[]>>;
   currentRef: React.RefObject<Doc | null>;
   sourceRef: React.RefObject<string>;
   setCurrent: (next: Doc | null) => void;
   setSource: React.Dispatch<React.SetStateAction<string>>;
-  setSelected: React.Dispatch<React.SetStateAction<string>>;
-  setSelectedEdge: React.Dispatch<React.SetStateAction<string>>;
-  setNeighborhoodFocus: (id: string) => void;
   setSuggestions: React.Dispatch<React.SetStateAction<Suggestion[]>>;
   setTrashVersion: React.Dispatch<React.SetStateAction<number>>;
   setStatus: React.Dispatch<React.SetStateAction<WorkspaceStatus | null>>;
   getOpen: () => (d: Doc, options?: OpenOptions) => boolean;
+  /** Shows the empty state of a project that has no files. */
+  getCloseDocument: () => (project: string) => void;
+  /** The selected project, resolved against the projects loaded last. */
+  getSelectedProject: () => string;
   setMessage: React.Dispatch<React.SetStateAction<string>>;
 };
 /** Manages workspace events. */
@@ -31,17 +33,27 @@ export function useWorkspaceEvents({
   sourceRef,
   setCurrent,
   setSource,
-  setSelected,
-  setSelectedEdge,
-  setNeighborhoodFocus,
   setSuggestions,
   setTrashVersion,
   setStatus,
   getOpen,
+  getCloseDocument,
+  getSelectedProject,
   setMessage,
 }: Options) {
   // Refetch the folder store on startup and whenever the server reports a change.
   const refreshing = useRef<Promise<Doc[]> | null>(null);
+  // The file a fallback or the start-up opens: the first of the selected project, never another's.
+  function showProjectStart(documents: Doc[], options?: OpenOptions) {
+    const project = getSelectedProject();
+    const first = firstDocumentOfProject(documents, project);
+    if (first) getOpen()(first, options);
+    else if (project) getCloseDocument()(project);
+    else {
+      setCurrent(null);
+      setSource('');
+    }
+  }
   const again = useRef(false);
   async function refresh(): Promise<Doc[]> {
     if (refreshing.current) {
@@ -68,12 +80,8 @@ export function useWorkspaceEvents({
         }
         // Keep unsaved edits when the open file disappears from the workspace.
         if (openDocument && !fresh && sourceRef.current === openDocument.source) {
-          const next = loaded.docs[0] ?? null;
-          setCurrent(next);
-          setSource(next?.source ?? '');
-          setSelected('');
-          setSelectedEdge('');
-          setNeighborhoodFocus('');
+          // The view stays as it is: the file left is replaced, not chosen.
+          showProjectStart(loaded.docs, { keepTab: true });
         }
         api
           .suggestions()
@@ -115,7 +123,7 @@ export function useWorkspaceEvents({
       .catch(() => {});
     refresh()
       .then(d => {
-        if (d[0]) getOpen()(d[0], { keepDrawer: true });
+        showProjectStart(d, { keepDrawer: true });
       })
       .catch(() => setMessage('Cannot reach local API'));
   }, []);

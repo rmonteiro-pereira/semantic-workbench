@@ -15,6 +15,7 @@ import type { AdminRepository } from './auth/admin-repo';
 import { createAuditLog } from './auth/audit';
 import { adminRoutes } from './routes/admin';
 import { auditRoutes } from './routes/audit';
+import { documentsOfProject } from '../core/project-scope';
 import { agentCatalog, buildContext, selectContext, planQuery } from './agent/runtime';
 import { decodeSegment, readJson, requestAuditId, type AuditRequest } from './request';
 import { InputError, MAX_INPUT_BYTES } from '../validation/diagnostics';
@@ -62,14 +63,19 @@ const legacyRoutes: Route = async (ws, req, url) => {
     const legacy = ws.state.legacyIds().ids[doc];
     return legacy ? `${legacy.project}/${legacy.path}${rest}` : id;
   };
+  if (url.pathname === '/api/agent/projects' && req.method === 'GET')
+    return Response.json({ projects: agentProjects(ws, req) });
   if (url.pathname === '/api/agent/catalog' && req.method === 'GET')
-    return Response.json(agentCatalog(ws.documentsFor(requestReader(req))));
+    return Response.json(agentCatalog(agentDocuments(ws, req, url.searchParams.get('project'))));
   if (url.pathname === '/api/agent/context' && req.method === 'GET') {
     const mappingId = url.searchParams.get('mappingId');
     if (!mappingId)
       throw new BadRequestError('mappingId is required. List mappings at /api/agent/catalog.');
+    const project = url.searchParams.get('project') ?? '';
+    const documents = agentDocuments(ws, req, project);
     requireReadableDocument(ws, req, mappingRef(mappingId));
-    let context = buildContext(ws.documentsFor(requestReader(req)), mappingRef(mappingId));
+    requireMappingInProject(ws, mappingRef(mappingId), project);
+    let context = buildContext(documents, mappingRef(mappingId));
     const concepts = url.searchParams.getAll('concept');
     if (concepts.length) context = selectContext(context, concepts);
     return Response.json(context);
@@ -80,12 +86,12 @@ const legacyRoutes: Route = async (ws, req, url) => {
       !body ||
       Array.isArray(body) ||
       Object.keys(body).some(
-        k => !['mappingId', 'concepts', 'metrics', 'dimensions'].includes(k),
+        k => !['project', 'mappingId', 'concepts', 'metrics', 'dimensions'].includes(k),
       ) ||
       typeof body.mappingId !== 'string'
     )
       throw new BadRequestError(
-        'Expected mappingId, optional concepts, metrics and dimensions. Expressions and metric overrides are not accepted.',
+        'Expected project, mappingId, optional concepts, metrics and dimensions. Expressions and metric overrides are not accepted.',
       );
     for (const key of ['concepts', 'metrics', 'dimensions'])
       if (
@@ -95,13 +101,10 @@ const legacyRoutes: Route = async (ws, req, url) => {
           body[key].some((id: any) => typeof id !== 'string' || !id.trim() || id.length > 4096))
       )
         throw new BadRequestError(`${key} must be an array of at most 100 non-empty ids.`);
+    const documents = agentDocuments(ws, req, body.project);
     requireReadableDocument(ws, req, mappingRef(body.mappingId));
-    return Response.json(
-      planQuery(
-        buildContext(ws.documentsFor(requestReader(req)), mappingRef(body.mappingId)),
-        body,
-      ),
-    );
+    requireMappingInProject(ws, mappingRef(body.mappingId), body.project);
+    return Response.json(planQuery(buildContext(documents, mappingRef(body.mappingId)), body));
   }
   const groupingPath = url.pathname.match(/^\/api\/documents\/([^/]+)\/grouping$/);
   if (groupingPath) {
@@ -235,6 +238,31 @@ function requireReadableDocument(ws: Workspace, request: Request, id: string) {
   if (!view) return;
   const resource = ws.resolveId(id.split('#')[0]);
   if (!view.canRead(resource.project, resource.path)) throw new HiddenResourceError();
+}
+/** The projects the caller may read: the slugs an agent request can name. */
+function agentProjects(ws: Workspace, request: Request) {
+  const { view } = requestReader(request);
+  return ws.state
+    .registry()
+    .projects.filter(project => !view || view.readableProjects.has(project.slug))
+    .map(({ slug, name }) => ({ slug, name }));
+}
+/**
+ * The readable documents of the project an agent request names; the project is required. A hidden
+ * project answers exactly like an unknown one, so a slug cannot be probed.
+ */
+function agentDocuments(ws: Workspace, request: Request, project: unknown) {
+  if (typeof project !== 'string' || !project)
+    throw new BadRequestError('project is required. List projects at /api/agent/projects.');
+  if (!agentProjects(ws, request).some(known => known.slug === project))
+    throw new BadRequestError('Project not found.');
+  return documentsOfProject(ws.documentsFor(requestReader(request)), project);
+}
+/** A mapping is resolved inside its own project, so the request must name that project. */
+function requireMappingInProject(ws: Workspace, mappingId: string, project: string) {
+  const owner = ws.resolveId(mappingId.split('#')[0]).project;
+  if (owner !== project)
+    throw new BadRequestError(`mappingId belongs to project ${owner}, not ${project}.`);
 }
 function workspaceRoutes(
   administration: AdminRepository,

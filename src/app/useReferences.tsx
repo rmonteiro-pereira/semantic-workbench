@@ -4,11 +4,13 @@ import { groupRelationships } from '../graph/graph-view';
 import type { Entity } from '../core/model';
 import type { CrossFileTarget } from '../graph/NeighborhoodGraph';
 import type { Doc } from '../projects/api';
-import { entityKeys } from '../core/references';
+import { entityKeys, relatedDocumentsOf } from '../core/references';
+import { documentsOfProject } from '../core/project-scope';
 import type { ValidatedModel } from './types';
 
 type Options = {
   docs: Doc[];
+  project: string;
   current: Doc | null;
   parsedDoc: (d: Doc) => { hash: string; model: ValidatedModel; keys: Set<string> };
   entity: Entity | undefined;
@@ -19,6 +21,7 @@ type Options = {
 /** Manages references. */
 export function useReferences({
   docs,
+  project,
   current,
   parsedDoc,
   entity,
@@ -26,22 +29,21 @@ export function useReferences({
   selectedEdge,
   docsRef,
 }: Options) {
-  // Other documents only: the open file's own identities are never looked up here.
+  const projectDocuments = useMemo(() => documentsOfProject(docs, project), [docs, project]);
+  // Other documents of the selected project only: the open file's own identities are never looked
+  // up here, and another project's files are never related.
   const documentIdentities = useMemo(
-    () => new Map(docs.filter(d => d.id !== current?.id).map(d => [d.id, parsedDoc(d).keys])),
-    [docs, current?.id],
+    () =>
+      new Map(
+        projectDocuments.filter(d => d.id !== current?.id).map(d => [d.id, parsedDoc(d).keys]),
+      ),
+    [projectDocuments, current?.id],
   );
   const relatedDocuments = useMemo(() => {
-    if (!entity?.definition) return [];
+    if (!entity?.definition || !current) return [];
     const keys = entityKeys(entity, model);
-    return docs.filter(
-      d =>
-        d.id !== current?.id &&
-        keys.some(
-          (key: string) => documentIdentities.get(d.id)?.has(key) || d.source.includes(key),
-        ),
-    );
-  }, [entity, model, docs, documentIdentities, current?.id]);
+    return relatedDocumentsOf(projectDocuments, current, keys, id => documentIdentities.get(id));
+  }, [entity, model, projectDocuments, documentIdentities, current]);
   const relationship = model?.edges.find(e => e.id === selectedEdge);
   const globalGroups = useMemo(() => groupRelationships(model?.edges ?? []), [model]);
   const activeGroup = globalGroups.find(e => e.data.relationships.some(r => r.id === selectedEdge));
@@ -50,8 +52,8 @@ export function useReferences({
   const projectModels = useMemo(
     () =>
       new Map(
-        docs
-          .filter(d => d.project === current?.project && d.id !== current?.id)
+        projectDocuments
+          .filter(d => d.id !== current?.id)
           .flatMap(d => {
             try {
               const projectModelValue = parsedDoc(d).model;
@@ -61,7 +63,7 @@ export function useReferences({
             }
           }),
       ),
-    [docs, current?.project, current?.id],
+    [projectDocuments, current?.id],
   );
   const conceptKinds = new Set(['EntityType', 'ValueType', 'Built-in concept', 'OWL class']);
   function crossFile(e: Entity): CrossFileTarget[] {

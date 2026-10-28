@@ -141,6 +141,11 @@ export const ROUTE_ACTIONS: RouteAction[] = [
   row('GET', '/api/repos/:repo/project-candidates', 'registerProjects', workspace),
   row('PUT', '/api/repos/:repo/projects', 'registerProjects', workspace),
   {
+    ...row('GET', '/api/agent/projects', 'read', workspace),
+    audited: true,
+    clientAction: 'agentRead',
+  },
+  {
     ...row('GET', '/api/agent/catalog', 'read', workspace),
     audited: true,
     clientAction: 'agentRead',

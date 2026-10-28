@@ -60,6 +60,24 @@ export function reconcileWalk(shown: Walk, restored: Walk): Walk {
   const continues = shorter.steps.every((step, index) => step === longer.steps[index]);
   return continues ? { steps: longer.steps, index: restored.index } : restored;
 }
+/**
+ * The part of a walk that lies in one project. The trail stops at the project boundary: a step in
+ * another project is dropped, and the position stays on the step it was on, or the nearest kept
+ * step before it. When no kept step precedes the position, it goes to the first kept step.
+ */
+export function walkWithinProject(
+  walk: Walk,
+  project: string,
+  projectOfDocument: (documentId: string) => string | undefined,
+): Walk {
+  const kept = walk.steps.filter(step => projectOfDocument(step.doc) === project);
+  if (kept.length === walk.steps.length) return walk;
+  const keptUpToPosition = walk.steps
+    .slice(0, walk.index + 1)
+    .filter(step => projectOfDocument(step.doc) === project).length;
+  const index = Math.max(keptUpToPosition - 1, kept.length ? 0 : -1);
+  return { steps: kept, index };
+}
 /** Returns the active navigation step, if any. */
 export const currentStep = (walk: Walk) => walk.steps[walk.index];
 /** Checks whether navigation has an earlier step. */

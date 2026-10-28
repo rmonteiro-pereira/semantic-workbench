@@ -107,6 +107,7 @@ type Props = {
   rdfDeleting: RdfTarget | null;
   wizard: boolean | KpiSummary;
   kpiProject: string | null;
+  selectedProject: string;
   docs: Doc[];
   kpis: KpiSummary[];
   setWizard: React.Dispatch<React.SetStateAction<boolean | KpiSummary>>;
@@ -201,6 +202,7 @@ export function AppDialogs({
   rdfDeleting,
   wizard,
   kpiProject,
+  selectedProject,
   docs,
   kpis,
   setWizard,
@@ -257,6 +259,7 @@ export function AppDialogs({
         sourceRef={sourceRef}
         setDeleted={setDeleted}
         refresh={refresh}
+        selectedProject={selectedProject}
         trashOpen={trashOpen}
         trashVersion={trashVersion}
         setTrashOpen={setTrashOpen}
@@ -370,6 +373,7 @@ export function AppDialogs({
       {importing && (
         <ImportDialog
           projects={projects}
+          selectedProject={selectedProject}
           initialProject={importing.project}
           onClose={() => setImporting(null)}
           onPick={handleImportDialogPick}

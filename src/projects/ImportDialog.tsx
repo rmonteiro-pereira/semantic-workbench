@@ -8,19 +8,22 @@ import type { ProjectInfo } from './api';
 /** Chooses a destination and files for a project import. */
 export function ImportDialog({
   projects,
+  selectedProject,
   initialProject,
   onPick,
   onClose,
   onClone,
 }: {
   projects: ProjectInfo[];
+  /** The project the app works on; an import into an existing project starts there. */
+  selectedProject: string;
   initialProject?: string;
   onPick: (project: string | null) => void;
   onClose: () => void;
   onClone?: () => void;
 }) {
   const [target, setTarget] = useState<'new' | 'existing'>(initialProject ? 'existing' : 'new');
-  const [project, setProject] = useState(initialProject ?? projects[0]?.slug ?? '');
+  const [project, setProject] = useState(initialProject ?? selectedProject);
   const into = target === 'existing' && project ? project : null;
   return (
     <Modal

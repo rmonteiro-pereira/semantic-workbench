@@ -2,23 +2,21 @@
 import { useRecordedState } from './useRecordedState';
 import { useEffect, useMemo, useState } from 'react';
 import type { KpiSummary } from '../server/agent/explain';
+import { projectRevisionKey } from '../core/selected-project';
 import type { Doc } from '../projects/api';
 import { api } from '../projects/api';
 
-type Options = { current: Doc | null; docs: Doc[] };
+type Options = { project: string; docs: Doc[] };
 /** Manages metrics. */
-export function useMetrics({ current, docs }: Options) {
-  // metrics of the open file's project, for the Metrics tab and the metric badges on concepts.
+export function useMetrics({ project, docs }: Options) {
+  // Metrics of the selected project, for the Metrics tab and the metric badges on concepts.
   const [kpis, setKpis] = useState<KpiSummary[]>([]);
   const [kpiError, setKpiError] = useState('');
   const [kpiLoading, setKpiLoading] = useState(false);
   const [selectedKpi, setSelectedKpi] = useRecordedState('metrics.selected', '');
   const [kpiFilter, setKpiFilter] = useState('');
-  const kpiProject = current?.project ?? null;
-  const kpiRevision = docs
-    .filter(d => d.project === kpiProject)
-    .map(d => d.path + ':' + d.hash)
-    .join('|');
+  const kpiProject = project || null;
+  const kpiRevision = projectRevisionKey(docs, project);
   useEffect(() => {
     if (!kpiProject) {
       setKpis([]);

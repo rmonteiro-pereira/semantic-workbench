@@ -2,7 +2,14 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { type CodeEditorHandle } from '../editor/CodeEditor';
 import { exportDocument } from '../core/export';
-import { emptyWalk, reconcileWalk, walkReducer, type WalkAction } from '../graph/walk';
+import { resolveSelectedProject } from '../core/selected-project';
+import {
+  emptyWalk,
+  reconcileWalk,
+  walkReducer,
+  walkWithinProject,
+  type WalkAction,
+} from '../graph/walk';
 import { modelOverview } from '../graph/overview';
 import {
   type Deleted,
@@ -44,9 +51,34 @@ export function useWorkbench({ setMessage }: Options) {
   const [tab, setTabState] = useRecordedState('workbench.tab', 'fullgraph');
   const [search, setSearch] = useState('');
   const [busy, setBusy] = useState(false);
+  const [projects, setProjects] = useState<ProjectInfo[]>([]);
+  // The app works on one project at a time. The choice is recorded so Back and Forward return to
+  // it; a choice that no longer exists is not shown.
+  const [chosenProject, setChosenProject] = useRecordedState('workbench.project', '');
+  const chosenProjectRef = useRef(chosenProject);
+  chosenProjectRef.current = chosenProject;
+  const selectedProject = resolveSelectedProject(projects, chosenProject);
+  // Kept current as soon as a load arrives, for code that runs before the next render.
+  const projectsRef = useRef<ProjectInfo[]>([]);
+  function setProjectsNow(next: ProjectInfo[]) {
+    projectsRef.current = next;
+    setProjects(next);
+  }
+  const getSelectedProject = () =>
+    resolveSelectedProject(projectsRef.current, chosenProjectRef.current);
+  // Showing a document selects its project, so the context always matches what is open.
   function setCurrent(next: Doc | null) {
     if (next?.id !== current?.id) setMessage('');
     setCurrentState(next);
+    if (next) selectProjectOf(next.project);
+  }
+  // The neighborhood trail stops at the project boundary, so switching project drops the steps of
+  // the project left; Back brings the recorded trail back.
+  function selectProjectOf(project: string) {
+    if (project === chosenProjectRef.current) return;
+    setChosenProject(project);
+    const projectOfDocument = (id: string) => docsRef.current.get(id)?.project;
+    setWalk(previous => walkWithinProject(previous, project, projectOfDocument));
   }
   // Switching views writes a due valid save first.
   function setTab(next: string) {
@@ -56,7 +88,6 @@ export function useWorkbench({ setMessage }: Options) {
   }
 
   const [pendingImport, setPendingImport] = useState<ImportDraft[] | null>(null);
-  const [projects, setProjects] = useState<ProjectInfo[]>([]);
   const [status, setStatus] = useState<WorkspaceStatus | null>(null);
   const [stale, setStale] = useState<{ current: string | null; currentHash: string | null } | null>(
     null,
@@ -86,7 +117,7 @@ export function useWorkbench({ setMessage }: Options) {
   const [definition, setDefinition] = useState<{ title: string; value: unknown } | null>(null);
   const [importing, setImporting] = useState<{ project?: string } | null>(null);
   const grouping = useGrouping(current?.id);
-  const metrics = useMetrics({ current, docs });
+  const metrics = useMetrics({ project: selectedProject, docs });
   const { kpiProject } = metrics;
   const sourceEditor = useRef<CodeEditorHandle | null>(null);
   // Neighborhood walk across centers and files.
@@ -112,28 +143,25 @@ export function useWorkbench({ setMessage }: Options) {
   const { compact, closeWorkspace } = sidebar;
   const workspaceEvents = useWorkspaceEvents({
     docsRef,
-    setProjects,
+    setProjects: setProjectsNow,
     setDocs,
     currentRef,
     sourceRef,
     setCurrent,
     setSource,
-    setSelected,
-    setSelectedEdge,
-    setNeighborhoodFocus,
     setSuggestions,
     setTrashVersion,
     setStatus,
     getOpen: () => openDocument,
+    getCloseDocument: () => closeDocument,
+    getSelectedProject,
     setMessage,
   });
   const { refresh } = workspaceEvents;
   const fileNavigation = useFileNavigation({
     setMessage,
-    current,
     compact,
     closeWorkspace,
-    source,
     getLeaveCurrent: () => leaveCurrent,
     setCurrent,
     setSource,
@@ -147,8 +175,9 @@ export function useWorkbench({ setMessage }: Options) {
     sourceRef,
     getDraftOf: () => draftOf,
     docsRef,
+    setChosenProject: selectProjectOf,
   });
-  const { openDocument } = fileNavigation;
+  const { openDocument, closeDocument, selectProject } = fileNavigation;
   const validationState = useValidation({
     current,
     source,
@@ -175,6 +204,7 @@ export function useWorkbench({ setMessage }: Options) {
   const entity = model?.entities.find(e => e.id === selected);
   const references = useReferences({
     docs,
+    project: selectedProject,
     current,
     parsedDoc,
     entity,
@@ -201,7 +231,7 @@ export function useWorkbench({ setMessage }: Options) {
   });
 
   const itemEditing = useItemEditing({
-    projects,
+    selectedProject,
     current,
     source,
     model,
@@ -222,8 +252,7 @@ export function useWorkbench({ setMessage }: Options) {
     entity,
     relationship,
   });
-  const { latest, currentIsRdf, draftOf, setAdding, setRdfAdding, setHistoryPath, setScmProject } =
-    itemEditing;
+  const { latest, currentIsRdf, draftOf, setAdding, setRdfAdding, setHistoryPath } = itemEditing;
   const inspector = useInspector({
     tab,
     entity,
@@ -296,7 +325,8 @@ export function useWorkbench({ setMessage }: Options) {
     setExporting,
     setMoving,
     setDeleteTarget,
-    setScmProject,
+    selectedProject,
+    selectProject,
     setHistoryPath,
     setTab,
     compact,
@@ -336,6 +366,8 @@ export function useWorkbench({ setMessage }: Options) {
     setSource,
     deleteTarget,
     projects,
+    selectedProject,
+    selectProject,
     setDeleteTarget,
     sourceRef,
     setDeleted,

@@ -55,7 +55,11 @@ async function setup() {
   const client = await createOidcClient(transport.config, { fetch: providerFetch });
   const auth = await createServerAuthentication(fixture.ws, transport.config, client);
   const handler = createHandler(fixture.ws, auth);
-  async function call(bearer: string, path = '/api/agent/catalog', body?: unknown) {
+  async function call(
+    bearer: string,
+    path = '/api/agent/catalog?project=sales-contracts',
+    body?: unknown,
+  ) {
     return handler(
       new Request(transport.config.publicUrl + path, {
         method: body ? 'POST' : 'GET',
@@ -107,18 +111,27 @@ test('client without app roles sees only granted mappings and every call is attr
   for (const mapping of ['people', 'sales']) {
     const context = await app.call(
       token,
-      '/api/agent/context?mappingId=sales-contracts/' + mapping + '.mapping.yaml',
+      '/api/agent/context?project=sales-contracts&mappingId=sales-contracts/' +
+        mapping +
+        '.mapping.yaml',
     );
     const text = await context.text();
     expect(text).not.toContain('LEAK-hr-people');
     expect(text).not.toContain('LEAK-shared-reference');
     expect(text).not.toContain('LEAK-sales-metrics');
-    expect(text).toContain('resolves to 0 local documents');
-    expect(JSON.parse(text).ontology).toEqual({});
-    expect(JSON.parse(text).semanticModel).toEqual({});
+    // The people mapping refers to a project the client cannot read, so nothing resolves; the
+    // sales mapping resolves inside its own project.
+    if (mapping === 'people') {
+      expect(text).toContain('resolves to 0 local documents');
+      expect(JSON.parse(text).ontology).toEqual({});
+      expect(JSON.parse(text).semanticModel).toEqual({});
+    } else {
+      expect(JSON.parse(text).findings).toEqual([]);
+    }
     expect(app.audit(context)).toHaveLength(1);
   }
   const plan = await app.call(token, '/api/agent/plan', {
+    project: 'sales-contracts',
     mappingId: 'sales-contracts/people.mapping.yaml',
     metrics: [],
     dimensions: [],
@@ -246,7 +259,7 @@ test('a browser session cannot rescue invalid or ungranted bearer credentials', 
     [await app.token(false), 403],
   ] as const) {
     const response = await app.handler(
-      new Request(origin + '/api/agent/catalog', {
+      new Request(origin + '/api/agent/catalog?project=sales-contracts', {
         headers: { Cookie: cookie, Authorization: 'Bearer ' + token },
       }),
     );
@@ -254,7 +267,7 @@ test('a browser session cannot rescue invalid or ungranted bearer credentials', 
   }
   // A granted client's token next to the Admin's cookie is decided and audited as the client.
   const granted = await app.handler(
-    new Request(origin + '/api/agent/catalog', {
+    new Request(origin + '/api/agent/catalog?project=sales-contracts', {
       headers: { Cookie: cookie, Authorization: 'Bearer ' + (await app.token()) },
     }),
   );
@@ -263,7 +276,7 @@ test('a browser session cannot rescue invalid or ungranted bearer credentials', 
     { principal: { id: 'client:sw-agent', kind: 'client' }, action: 'agentRead' },
   ]);
   const browser = await app.handler(
-    new Request(origin + '/api/agent/catalog', {
+    new Request(origin + '/api/agent/catalog?project=sales-contracts', {
       headers: { Cookie: cookie },
     }),
   );
@@ -350,19 +363,49 @@ test('a granted client cannot open documents of ungranted projects or restricted
     'sales-contracts/finance/revenue-recognition.odcs.yaml',
   ];
   for (const mappingId of hidden) {
-    const context = await app.call(token, '/api/agent/context?mappingId=' + mappingId);
+    const project = 'sales-contracts';
+    const context = await app.call(
+      token,
+      `/api/agent/context?project=${project}&mappingId=${mappingId}`,
+    );
     expect(context.status).toBe(404);
     expect(await context.json()).toEqual({ error: 'Not found.' });
     expect(app.audit(context)).toMatchObject([
       { principal: { id: 'client:sw-agent' }, decision: 'deny', reason: 'not-readable' },
     ]);
     const plan = await app.call(token, '/api/agent/plan', {
+      project,
       mappingId,
       metrics: [],
       dimensions: [],
     });
     expect(plan.status).toBe(404);
   }
+});
+
+test('a client discovers only the projects it may read, and hidden slugs look unknown', async () => {
+  using app = await setup();
+  const token = await app.token();
+  const listed = await app.call(token, '/api/agent/projects');
+  expect(listed.status).toBe(200);
+  const { projects } = await listed.json();
+  expect(projects.map((project: { slug: string }) => project.slug)).toEqual(['sales-contracts']);
+  expect(Object.keys(projects[0]).sort()).toEqual(['name', 'slug']);
+  const hidden = await app.call(token, '/api/agent/catalog?project=hr-people');
+  const unknown = await app.call(token, '/api/agent/catalog?project=no-such-project');
+  expect(hidden.status).toBe(400);
+  expect(unknown.status).toBe(hidden.status);
+  expect(await hidden.json()).toEqual(await unknown.json());
+  const hiddenPlan = await app.call(token, '/api/agent/plan', {
+    project: 'hr-people',
+    mappingId: 'sales-contracts/sales.mapping.yaml',
+  });
+  const unknownPlan = await app.call(token, '/api/agent/plan', {
+    project: 'no-such-project',
+    mappingId: 'sales-contracts/sales.mapping.yaml',
+  });
+  expect(hiddenPlan.status).toBe(400);
+  expect(await hiddenPlan.json()).toEqual(await unknownPlan.json());
 });
 
 test('a deactivated client is refused although agents.json still grants it', async () => {

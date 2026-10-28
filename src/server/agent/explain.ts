@@ -24,6 +24,7 @@ import {
   resolveBindings,
   type ResolvedBinding,
 } from '../../metrics/bindings';
+import { documentsOfProject } from '../../core/project-scope';
 import { modelContext, planQuery, type StoredDocument } from './runtime';
 import { BadRequestError } from '../projects/errors';
 type ProjectDocument = StoredDocument & { path: string };
@@ -375,7 +376,8 @@ export function explainMetric(
   metric: string,
   options: { grain?: string | null; dimensions?: string[]; rollup?: string | null } = {},
 ): KpiExplanation {
-  const parsed = parseProject(documents, slug);
+  const projectDocuments = documentsOfProject(documents, slug);
+  const parsed = parseProject(projectDocuments, slug);
   const refs = semanticModels(parsed).filter(r => r.doc.path === path);
   if (!refs.length) throw new BadRequestError(`${path} has no semantic model in project ${slug}.`);
   const ref = refs.find(r => list(r.model.metrics).some((m: any) => m?.name === metric));
@@ -560,7 +562,7 @@ export function explainMetric(
         : ''),
     concepts: kpi.concepts,
     targets: ext?.targets ?? [],
-    sqlPreview: preview(documents, ref, kpi, byName, time, options),
+    sqlPreview: preview(projectDocuments, ref, kpi, byName, time, options),
     policy: 'Semantic Workbench explains metrics and previews SQL. It never executes queries.',
   };
 }

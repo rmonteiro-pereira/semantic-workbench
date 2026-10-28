@@ -77,6 +77,7 @@ export const routeExamples: { method: string; path: string; body?: unknown }[] =
   { method: 'POST', path: '/api/clone/missing/cancel' },
   { method: 'GET', path: '/api/repos/missing/project-candidates' },
   { method: 'PUT', path: '/api/repos/missing/projects' },
+  { method: 'GET', path: '/api/agent/projects' },
   { method: 'GET', path: '/api/agent/catalog' },
   { method: 'GET', path: '/api/agent/context' },
   { method: 'POST', path: '/api/agent/plan' },

@@ -1,22 +1,22 @@
-/** Tracks the active source-control project and preserves unsaved text as server drafts. */
+/** Tracks the open file's history and preserves unsaved text as server drafts. */
 import { useEffect, useRef, useState } from 'react';
 import { scm as scmApi } from '../projects/api';
 
 type Options = {
-  projects: import('../projects/api').ProjectInfo[];
+  project: string;
   current: import('../projects/api').Doc | null;
   source: string;
 };
+type History = { project: string; path: string | undefined };
 /** Manages source control. */
-export function useSourceControl({ projects, current, source }: Options) {
-  // Source Control: the project shown, a file whose history is open, and the open file's
-  // unsaved text kept as a server draft so pull and switch are refused while it exists.
-  const [scmProject, setScmProject] = useState<string | null>(null);
-  const [historyPath, setHistoryPath] = useState<string | undefined>(undefined);
-  const scmSlug =
-    scmProject && projects.some(p => p.slug === scmProject)
-      ? scmProject
-      : (current?.project ?? projects[0]?.slug ?? null);
+export function useSourceControl({ project, current, source }: Options) {
+  // Source Control shows the selected project. A file whose history is open belongs to one project
+  // and is not shown after the selection moves to another. The open file's unsaved text is kept
+  // as a server draft so pull and switch are refused while it exists.
+  const [history, setHistory] = useState<History | null>(null);
+  const historyPath = history?.project === project ? history.path : undefined;
+  const setHistoryPath = (path: string | undefined, historyProject = project) =>
+    setHistory({ project: historyProject, path });
   const draftOf = useRef<{ project: string; path: string } | null>(null);
   useEffect(() => {
     const dirty = !!current && source !== current.source;
@@ -38,5 +38,5 @@ export function useSourceControl({ projects, current, source }: Options) {
     return () => clearTimeout(draftTimer);
   }, [source, current?.id, current?.hash]);
 
-  return { draftOf, setHistoryPath, scmSlug, historyPath, setScmProject };
+  return { draftOf, setHistoryPath, historyPath };
 }
