@@ -1,7 +1,7 @@
 // The header and the Add project menu in each state a person reaches, for the responsive suite and
 // the screenshot tool.
 import { expect, type Page } from '@playwright/test';
-import { exportFile, headerProblems, openNewMenu } from './header';
+import { exportFile, headerProblems, isPhoneHeader, openNewMenu } from './header';
 import { showSidebar, type Screen } from './screen-tour';
 
 async function openFirstFile(page: Page, file: string) {
@@ -191,6 +191,90 @@ export async function addProjectMenuProblems(page: Page): Promise<string[]> {
   return problems;
 }
 
+/** Where the examples list sits against the Add project menu and its Load an example row. */
+function exampleListPlacement(): string[] {
+  const menu = document.querySelector<HTMLElement>('[role=menu][aria-label="Add project"]')!;
+  const list = document.querySelector<HTMLElement>('.menu-popup.menu-submenu')!;
+  const row = [...menu.querySelectorAll<HTMLElement>('[role=menuitem]')].find(
+    item => item.textContent?.trim() === 'Load an example',
+  )!;
+  const menuBox = menu.getBoundingClientRect();
+  const listBox = list.getBoundingClientRect();
+  const rowBox = row.getBoundingClientRect();
+  const found: string[] = [];
+  if (listBox.left < menuBox.right) found.push('examples list covers the Add project menu');
+  if (listBox.left - menuBox.right > 12) found.push('examples list is not beside the menu');
+  if (listBox.bottom > window.innerHeight || listBox.right > window.innerWidth) {
+    found.push('examples list leaves the window');
+  }
+  const levelWithRow = listBox.top <= rowBox.top && listBox.bottom >= rowBox.bottom;
+  if (!levelWithRow) found.push('examples list is not level with its row');
+  if (row.getAttribute('aria-expanded') !== 'true') found.push('Load an example not expanded');
+  // Assistive technology reaches the examples from their row, and names them after it.
+  if (row.getAttribute('aria-controls') !== list.id) found.push('row does not control the list');
+  if (list.getAttribute('aria-labelledby') !== row.id) found.push('list is not named by its row');
+  return found;
+}
+
+/**
+ * Opens Load an example and lists what is wrong with it. Wide windows show the examples beside the
+ * menu, by pointer or by ArrowRight, and ArrowLeft goes back to the row. A phone has no room
+ * beside, so the examples replace the list under a Back row.
+ */
+export async function exampleListProblems(page: Page): Promise<string[]> {
+  await openAddProjectMenu(page);
+  const menu = page.getByRole('menu', { name: 'Add project' });
+  const row = page.getByRole('menuitem', { name: 'Load an example', exact: true });
+  const list = page.getByRole('menu', { name: 'Load an example', exact: true });
+  const firstExample = list.getByRole('menuitem').first();
+  if (isPhoneHeader(page)) {
+    await row.click();
+    await expect(list.getByRole('menuitem', { name: 'Back', exact: true })).toBeVisible();
+    await page.keyboard.press('Escape');
+    return [];
+  }
+  await row.hover();
+  await expect(list).toBeVisible();
+  await expect(menu).toBeVisible();
+  const problems = await page.evaluate(exampleListPlacement);
+  await page.getByRole('menuitem', { name: 'Import files', exact: true }).hover();
+  await expect(list).toHaveCount(0);
+  // Pointing opens the list; moving to another row with the keyboard closes it.
+  await row.hover();
+  await expect(list).toBeVisible();
+  await row.focus();
+  await page.keyboard.press('ArrowDown');
+  await expect(list).toHaveCount(0);
+  await row.focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(firstExample).toBeFocused();
+  await page.keyboard.press('ArrowLeft');
+  await expect(list).toHaveCount(0);
+  await expect(row).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('menu')).toHaveCount(0);
+  return problems;
+}
+
+/** The theme buttons form one control: one row under the word Theme, edges touching. */
+function themeControlProblems(): string[] {
+  const control = document.querySelector<HTMLElement>('.settings-panel .theme-control')!;
+  const label = control.querySelector<HTMLElement>('.theme-control-label')!.getBoundingClientRect();
+  const buttons = [...control.querySelectorAll<HTMLElement>('button')].map(button =>
+    button.getBoundingClientRect(),
+  );
+  const found: string[] = [];
+  if (buttons.some(box => box.top < label.bottom)) found.push('theme buttons beside the label');
+  if (buttons.some(box => Math.abs(box.top - buttons[0]!.top) > 1)) {
+    found.push('theme buttons on more than one row');
+  }
+  for (let index = 1; index < buttons.length; index++) {
+    const gap = buttons[index]!.left - buttons[index - 1]!.right;
+    if (Math.abs(gap) > 1) found.push(`a ${gap} px gap between theme buttons`);
+  }
+  return found;
+}
+
 /** Opens Settings and lists where its panel sits: just past the sidebar, level with the row. */
 export async function settingsPanelProblems(page: Page): Promise<string[]> {
   await showSidebar(page);
@@ -199,6 +283,9 @@ export async function settingsPanelProblems(page: Page): Promise<string[]> {
   const panel = page.getByRole('dialog', { name: 'Settings', exact: true });
   await expect(panel).toBeVisible();
   await expect(panel.getByRole('group', { name: 'Theme', exact: true })).toBeVisible();
+  // Opened by the mouse, the panel holds focus, so no theme button wears the focus ring.
+  await expect(panel).toBeFocused();
+  const themeProblems = await page.evaluate(themeControlProblems);
   const problems = await page.evaluate(() => {
     const trigger = document.querySelector<HTMLElement>('.settings-toggle')!;
     const popup = document.querySelector<HTMLElement>('.settings-panel')!;
@@ -230,7 +317,7 @@ export async function settingsPanelProblems(page: Page): Promise<string[]> {
   await page.keyboard.press('Tab');
   await expect(panel).toHaveCount(0);
   await expect(button).toBeFocused();
-  return problems;
+  return [...themeProblems, ...problems];
 }
 
 /** Runs New and Export from the More actions menu and checks that each one works. */

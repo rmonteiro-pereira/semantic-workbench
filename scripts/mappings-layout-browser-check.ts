@@ -83,6 +83,38 @@ const errors: string[] = [];
 page.on('pageerror', error => errors.push(error.message));
 await routeApi(page, api);
 let passed = 0;
+
+// One file of each imported project; Mappings lists only the mappings of the open file's project.
+const projectFiles: [string, string][] = [
+  ['Commerce', 'commerce.mapped-ontology.yaml'],
+  ['Billing', 'billing.ontology.yaml'],
+  ['Flights', 'flights.ontology.yaml'],
+  ['Mall', 'mall.ontology.yaml'],
+  ['Long names', 'commerce.mapped-ontology.yaml'],
+];
+
+/** Opens a file of one project in the sidebar tree and shows its Mappings tab. */
+async function openProjectMappings(target: Page, project: string, file: string) {
+  await showSidebar(target);
+  const tree = target.getByRole('treeitem', { name: project, exact: true });
+  if ((await tree.getAttribute('aria-expanded')) === 'false') {
+    await tree.getByRole('button', { name: project, exact: true }).click();
+  }
+  await tree.getByRole('button', { name: file, exact: true }).click();
+  await target.locator('.tabs').getByRole('button', { name: 'Mappings', exact: true }).click();
+}
+
+/** The mapping ids the open project offers, once the list has loaded. */
+async function listedMappings(target: Page) {
+  const chooser = target.getByLabel('Mapping document');
+  await expect(chooser.locator('option').nth(1)).toBeAttached();
+  return chooser
+    .locator('option')
+    .evaluateAll(options =>
+      options.map(option => (option as HTMLOptionElement).value).filter(Boolean),
+    );
+}
+
 async function check(name: string, run: () => Promise<void>) {
   await run();
   passed++;
@@ -171,17 +203,23 @@ async function boundedLayoutProblems(target: Page, viewportHeight: number) {
 
 try {
   await page.goto(appUrl());
-  await page.locator('.tabs').getByRole('button', { name: 'Mappings', exact: true }).click();
   const chooser = page.getByLabel('Mapping document');
-  await expect(chooser.locator('option')).toHaveCount(7);
-  const documents = await chooser
-    .locator('option')
-    .evaluateAll(options =>
-      options.map(option => (option as HTMLOptionElement).value).filter(Boolean),
-    );
+  const documentsByProject = new Map<string, string[]>();
+  await check('each project lists only its own mapping documents', async () => {
+    for (const [project, file] of projectFiles) {
+      await openProjectMappings(page, project, file);
+      const listed = await listedMappings(page);
+      const slugs = new Set(listed.map(id => id.split('/')[0]));
+      expect(slugs.size, `${project} lists ${listed.join(', ')}`).toBe(1);
+      documentsByProject.set(project, listed);
+    }
+    const total = [...documentsByProject.values()].flat();
+    expect(new Set(total).size).toBe(6);
+  });
 
   await check('a concept with one binding reads "1 binding"', async () => {
-    const commerce = documents.find(id => id.includes('commerce.mapping.yaml'))!;
+    await openProjectMappings(page, 'Commerce', 'commerce.mapped-ontology.yaml');
+    const commerce = documentsByProject.get('Commerce')!.find(id => id.endsWith('mapping.yaml'))!;
     await chooser.selectOption(commerce);
     const revenue = page.locator('.mapping-concepts').getByRole('button', { name: /^Revenue/ });
     await expect(revenue).toContainText(/(^|\D)1 binding$/);
@@ -190,11 +228,14 @@ try {
     const found: string[] = [];
     for (const [width, height] of VIEWPORTS) {
       await page.setViewportSize({ width, height });
-      for (const id of documents) {
-        await chooser.selectOption(id);
-        await expect(page.locator('.mapping-binding').first()).toBeAttached();
-        for (const problem of await bindingLayoutProblems(page))
-          found.push(`${width}×${height} ${id}: ${problem}`);
+      for (const [project, file] of projectFiles) {
+        await openProjectMappings(page, project, file);
+        for (const id of documentsByProject.get(project)!) {
+          await chooser.selectOption(id);
+          await expect(page.locator('.mapping-binding').first()).toBeAttached();
+          for (const problem of await bindingLayoutProblems(page))
+            found.push(`${width}×${height} ${id}: ${problem}`);
+        }
       }
       await page.screenshot({ path: `/tmp/workbench-mappings-${width}.png`, fullPage: false });
     }
@@ -227,12 +268,7 @@ try {
         )!;
       for (const [width, height] of VIEWPORTS) {
         await page.setViewportSize({ width, height });
-        await showSidebar(page);
-        const commerceProject = page.getByRole('treeitem', { name: 'Commerce', exact: true });
-        if ((await commerceProject.getAttribute('aria-expanded')) === 'false') {
-          await commerceProject.getByRole('button', { name: 'Commerce', exact: true }).click();
-        }
-        await fileTab('commerce.mapped-ontology.yaml', 'Mappings')(page);
+        await openProjectMappings(page, 'Unbound commerce', 'commerce.mapped-ontology.yaml');
         await chooser.selectOption(document.id);
         await expect(page.getByText('No bindings in this mapping', { exact: true })).toBeVisible();
         await expect(page.locator('.mapping-concept-list > button')).toHaveCount(1);

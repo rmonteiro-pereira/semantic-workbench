@@ -3408,6 +3408,7 @@ main > .status {
   z-index: 100;
   width: max-content;
   min-width: min(230px, calc(100vw - 24px));
+  /* SUBMENU_WIDTH in menu-position.ts repeats this cap to know whether a submenu fits beside. */
   max-width: min(340px, calc(100vw - 24px));
   overflow: auto;
   padding: 5px;
@@ -3459,6 +3460,7 @@ main > .status {
   white-space: normal;
 }
 .menu-popup [role='menuitem']:hover:not([aria-disabled='true']),
+.menu-popup [role='menuitem'][aria-expanded='true'],
 .menu-popup [role='menuitem']:focus-visible {
   background: var(--color-surface-hover);
   outline: none;

@@ -6,7 +6,7 @@ import type { Binding, Finding, RuntimeContext } from '../server/agent/runtime';
 import { QueryComposer } from './QueryComposer';
 import { EmptyState } from '../projects/EmptyState';
 import { ShowMoreControl } from './ShowMoreControl';
-import { chooseMapping } from './mapping-choice';
+import { chooseMapping, mappingsOfProject, shownMapping } from './mapping-choice';
 import {
   BINDINGS_PER_GROUP,
   BINDINGS_STEP,
@@ -75,6 +75,23 @@ function bindingSteps(b: Binding, context: RuntimeContext) {
   }
   return steps;
 }
+/** Says there is no mapping document to show: none in the open project, or no project open. */
+function NoMappings({ projectOpen }: { projectOpen: boolean }) {
+  if (!projectOpen) {
+    return (
+      <EmptyState title="Open a project">
+        Mappings shows the mapping documents of the project whose file is open.
+      </EmptyState>
+    );
+  }
+  return (
+    <EmptyState title="This project has no mapping document">
+      Import an Ossie mapping document and its referenced ontology and semantic model, or load the
+      mapped commerce example.
+    </EmptyState>
+  );
+}
+
 /** Displays resolved mappings and their findings. */
 export function MappingExplorer({
   currentId,
@@ -94,7 +111,9 @@ export function MappingExplorer({
   onOpenSource?: (documentId: string) => void;
 }) {
   const requestVersion = useRef(0);
-  const [options, setOptions] = useState<MappingOption[]>([]);
+  const [catalog, setCatalog] = useState<MappingOption[]>([]);
+  // Derived while rendering, so switching project hides the last project's mapping at once.
+  const options = mappingsOfProject(catalog, currentProject);
   const [mappingId, setMappingId] = useRecordedState('mappings.mapping', '');
   const [context, setContext] = useState<RuntimeContext | null>(null);
   const [concept, setConcept] = useRecordedState('mappings.concept', '');
@@ -120,7 +139,7 @@ export function MappingExplorer({
       .then(async r => {
         const d = await r.json();
         if (!r.ok) throw Error(d.error);
-        setOptions(d.mappings);
+        setCatalog(d.mappings);
         setMappingId(old => chooseMapping(d.mappings, currentId, currentProject, old));
       })
       .catch(e => {
@@ -128,22 +147,27 @@ export function MappingExplorer({
       });
     return () => abort.abort();
   }, [revisionKey, currentId, currentProject]);
+  const activeMappingId = shownMapping(options, mappingId);
+  // A new mapping choice starts from a clean selection.
   useEffect(() => {
-    requestVersion.current++;
-    setContext(null);
     setPlan(null);
     setMetrics([]);
     setDimensions([]);
     setConcept('');
     setBindingLimits({});
     setConceptLimit(CONCEPTS_SHOWN);
-    setLoadError('');
     setPlanError('');
     setComposing(false);
-    if (!mappingId) return;
+  }, [mappingId, revisionKey]);
+  useEffect(() => {
+    requestVersion.current++;
+    setContext(null);
+    setLoadError('');
+    setLoading(false);
+    if (!activeMappingId) return;
     const abort = new AbortController();
     setLoading(true);
-    apiFetch('/api/agent/context?mappingId=' + encodeURIComponent(mappingId), {
+    apiFetch('/api/agent/context?mappingId=' + encodeURIComponent(activeMappingId), {
       signal: abort.signal,
     })
       .then(async r => {
@@ -158,7 +182,7 @@ export function MappingExplorer({
         if (!abort.signal.aborted) setLoading(false);
       });
     return () => abort.abort();
-  }, [mappingId, revisionKey]);
+  }, [activeMappingId, revisionKey]);
   const bindings =
     context?.bindings.filter(b => !concept || b.rootConcept === concept || b.concept === concept) ??
     [];
@@ -185,7 +209,7 @@ export function MappingExplorer({
       ) : null}
     </>
   );
-  const mappingFile = options.find(m => m.id === mappingId)?.filename;
+  const mappingFile = options.find(m => m.id === activeMappingId)?.filename;
   const fieldIds = new Set(bindings.flatMap(b => b.fields));
   const metricIds = new Set(bindings.flatMap(b => b.metrics));
   const fields = context?.fields.filter(f => fieldIds.has(f.id)) ?? [];
@@ -228,7 +252,7 @@ export function MappingExplorer({
   };
   function openBindingSource() {
     setComposing(false);
-    onOpenSource?.(mappingId.split('#')[0]);
+    onOpenSource?.(activeMappingId.split('#')[0]);
   }
   const openConcept = (name: string) => {
     requestVersion.current++;
@@ -262,7 +286,7 @@ export function MappingExplorer({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          mappingId,
+          mappingId: activeMappingId,
           concepts: concept ? [concept] : [],
           metrics,
           dimensions,
@@ -306,7 +330,7 @@ export function MappingExplorer({
         Mapping document
         <select
           aria-label="Mapping document"
-          value={mappingId}
+          value={activeMappingId}
           onChange={e => setMappingId(e.target.value)}
         >
           <option value="">Choose a mapping</option>
@@ -318,12 +342,7 @@ export function MappingExplorer({
           ))}
         </select>
       </label>
-      {!options.length && !loadError && (
-        <p>
-          Import an Ossie mapping document and its referenced ontology and semantic model, or load
-          the mapped commerce example.
-        </p>
-      )}
+      {!options.length && !loadError && <NoMappings projectOpen={Boolean(currentProject)} />}
       {loading && <p role="status">Resolving saved layers…</p>}
       {loadError && (
         <p role="alert" className="mapping-error">

@@ -26,23 +26,28 @@ function placePanel(
   viewport: Size,
   sidebar: HTMLElement | null,
 ): MenuPlacement {
-  const size = popupNaturalSize(panel);
+  panel.style.width = '';
   // The panel starts past the sidebar's border, not over it, level with the Settings row.
   const sidebarRight = sidebar?.getBoundingClientRect().right ?? anchor.right;
   const besideSidebar = { ...anchor.toJSON(), right: sidebarRight + SIDEBAR_GAP };
-  const beside = placeFlyout(besideSidebar, size, viewport);
+  const beside = placeFlyout(besideSidebar, popupNaturalSize(panel), viewport);
   if (beside) return beside;
-  return placeMenu(anchor, size, viewport, { side: 'above', align: 'start' });
+  // In the phone drawer there is no room beside it, so the panel takes the row's width and stays
+  // inside the drawer instead of spilling over the dimmed page.
+  panel.style.width = `${anchor.width}px`;
+  return placeMenu(anchor, popupNaturalSize(panel), viewport, { side: 'above', align: 'start' });
 }
 
 /** The controls Tab moves between inside the panel. */
 const PANEL_CONTROLS = 'button:not(:disabled), input:not(:disabled), select:not(:disabled)';
 
-/** True when Tab would move focus past the panel's first or last control. */
+/** True when Tab would move focus past the last control, or Shift+Tab back past the first. */
 function tabLeavesPanel(panel: HTMLElement, event: React.KeyboardEvent): boolean {
   const controls = [...panel.querySelectorAll<HTMLElement>(PANEL_CONTROLS)];
-  const edge = event.shiftKey ? controls[0] : controls.at(-1);
-  return document.activeElement === edge;
+  if (event.shiftKey) {
+    return document.activeElement === panel || document.activeElement === controls[0];
+  }
+  return document.activeElement === controls.at(-1);
 }
 
 /** Renders the Settings row; its panel holds controls, so it is a dialog rather than a menu. */
@@ -55,7 +60,9 @@ export function SettingsPanel({ sidebar, onClearWorkspace, clearDisabled }: Prop
     return placePanel(popup, anchor, viewport, sidebar?.current ?? null);
   }
   useAnchoredPopup(open, { popup: panel, anchor: button }, placeBesideSidebar, []);
-  usePopupDismiss(open, { popup: panel, anchor: button }, PANEL_CONTROLS, () => setOpen(false));
+  // The panel itself takes focus, not its first button: a button focused by a mouse click would
+  // draw the keyboard focus ring and read as the chosen theme. Tab then reaches the first control.
+  usePopupDismiss(open, { popup: panel, anchor: button }, 'popup', () => setOpen(false));
 
   function close() {
     setOpen(false);
@@ -92,13 +99,14 @@ export function SettingsPanel({ sidebar, onClearWorkspace, clearDisabled }: Prop
         aria-controls={open ? 'settings-panel' : undefined}
         onClick={() => setOpen(isOpen => !isOpen)}
       >
-        <Settings size={16} /> Settings
+        <Settings size={18} /> Settings
       </button>
       {open &&
         createPortal(
           <section
             id="settings-panel"
             ref={panel}
+            tabIndex={-1}
             className="settings-panel"
             role="dialog"
             aria-label="Settings"

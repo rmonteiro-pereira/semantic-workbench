@@ -17,6 +17,7 @@ import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import {
   addProjectKeyboardProblems,
   addProjectMenuProblems,
+  exampleListProblems,
   headerGeometry,
   headerScreenProblems,
   headerScreens,
@@ -1640,6 +1641,8 @@ try {
     ontology: 'ubl.ontology.yaml',
     contract: 'commerce.odcs.yaml',
     metricsModel: 'sales.ossie.yaml',
+    // Mappings lists only the open project's mappings; the Flights project has one.
+    mappedFile: 'flights.ontology.yaml',
   });
   // Checks that only some groups need on top of the shared ones.
   const extraProblems: Record<string, (page: Page, screen: Screen) => Promise<string[]>> = {
@@ -1802,6 +1805,7 @@ try {
         await expect(saveState).toBeVisible();
         await addProjectKeyboardProblems(headerPage);
         expect(await addProjectMenuProblems(headerPage)).toEqual([]);
+        expect(await exampleListProblems(headerPage)).toEqual([]);
         expect(await settingsPanelProblems(headerPage)).toEqual([]);
         // Admin lives in Settings at every width, the phone drawer included.
         await chooseSetting(headerPage, 'Admin');

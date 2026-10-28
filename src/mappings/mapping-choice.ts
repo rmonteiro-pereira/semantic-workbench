@@ -2,10 +2,21 @@
 export type MappingChoice = { id: string; project?: string };
 
 /**
+ * Keeps the mappings of the open file's project. The app works on one project at a time, so
+ * another project's mapping is never offered, and with no project open there is none.
+ */
+export function mappingsOfProject<Mapping extends MappingChoice>(
+  mappings: Mapping[],
+  openProject: string | undefined,
+) {
+  return mappings.filter(mapping => openProject !== undefined && mapping.project === openProject);
+}
+
+/**
  * Picks the mapping the tab opens with. A mapping defined in the open file wins, then the one
  * already selected if it belongs to the open file's project, then the first mapping of that
- * project. Only when the project has no mapping does it fall back to any other one, because
- * showing another project's mapping next to an unrelated file reads as a broken, empty view.
+ * project. A project with no mapping keeps the previous choice, which it does not show: stepping
+ * Back through it to the previous project then finds that project's concept and Show more intact.
  */
 export function chooseMapping(
   mappings: MappingChoice[],
@@ -17,9 +28,13 @@ export function chooseMapping(
     mapping => mapping.id === openFileId || mapping.id.startsWith(openFileId + '#'),
   );
   if (ofOpenFile) return ofOpenFile.id;
-  const inProject = mappings.filter(mapping => !openProject || mapping.project === openProject);
-  const previous = mappings.find(mapping => mapping.id === previousId);
-  if (previous && inProject.includes(previous)) return previous.id;
-  if (inProject[0]) return inProject[0].id;
-  return previous?.id ?? mappings[0]?.id ?? '';
+  const inProject = mappingsOfProject(mappings, openProject);
+  if (!inProject.length) return previousId;
+  const previous = inProject.find(mapping => mapping.id === previousId);
+  return previous?.id ?? inProject[0]!.id;
+}
+
+/** The chosen mapping if the open project offers it, or none: another project's is never shown. */
+export function shownMapping(offered: MappingChoice[], chosenId: string) {
+  return offered.some(mapping => mapping.id === chosenId) ? chosenId : '';
 }

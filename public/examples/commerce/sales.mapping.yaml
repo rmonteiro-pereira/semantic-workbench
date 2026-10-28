@@ -1,4 +1,5 @@
-# Workbench addition: binds the governed metrics of sales.ossie.yaml to business concepts.
+# Workbench addition: maps the business concepts to the sales tables through their keys,
+# and binds the governed metrics of sales.ossie.yaml to business concepts.
 # It is not part of any upstream standard example.
 version: 0.2.0.dev0
 name: Commerce sales mappings
@@ -8,7 +9,43 @@ ontology_ref:
 semantic_model_ref:
   name: Commerce sales
   iri: ./sales.ossie.yaml
-concept_mappings: []
+concept_mappings:
+  - concept: Customer
+    object_mappings:
+      - expression: customers.customer_id
+    link_mappings:
+      - object_mapping:
+          expression: orders.customer_id
+        children:
+          - relationship: places
+            object_mapping:
+              concept: Order
+              expression: orders.order_id
+  - concept: Order
+    object_mappings:
+      - expression: orders.order_id
+    link_mappings:
+      - object_mapping:
+          expression: order_lines.order_id
+        children:
+          - relationship: contains
+            object_mapping:
+              concept: OrderLine
+              expression: order_lines.line_id
+  - concept: OrderLine
+    object_mappings:
+      - expression: order_lines.line_id
+    link_mappings:
+      - object_mapping:
+          expression: order_lines.line_id
+        children:
+          - relationship: product
+            object_mapping:
+              concept: Product
+              expression: order_lines.product_id
+  - concept: Product
+    object_mappings:
+      - expression: products.product_id
 custom_extensions:
   - vendor_name: SEMANTIC_WORKBENCH
     data: |

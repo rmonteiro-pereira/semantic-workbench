@@ -1,3 +1,4 @@
+version: 0.2.0.dev0
 name: UBL 2.3 procurement-to-payment · 45 business entities
 description: A schema-derived, focused business model spanning procurement,
   fulfillment, invoicing, tax and settlement. Application projection, not an

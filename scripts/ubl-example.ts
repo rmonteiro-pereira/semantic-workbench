@@ -1,6 +1,6 @@
 // Generates UBL model examples, declared foreign keys and analytical fixtures.
 import { stringify } from 'yaml';
-import { bindingsOnlyMappingText, ossieMetric } from './helpers/example-metrics';
+import { exampleMappingText, linkMapping, ossieMetric } from './helpers/example-metrics';
 import { governedMetrics } from './ubl-metrics';
 const mapping = await Bun.file('public/examples/ubl/model-map.json').json();
 const dir = 'public/examples/ubl/';
@@ -136,6 +136,7 @@ await Bun.write(dir + 'ubl.shacl.ttl', shacl);
 await Bun.write(
   dir + 'ubl.ontology.yaml',
   stringify({
+    version: '0.2.0.dev0',
     name: ontologyName,
     description:
       'A schema-derived, focused business model spanning procurement, fulfillment, invoicing, tax and settlement. Application projection, not an official OASIS ontology.',
@@ -177,6 +178,27 @@ await Bun.write(
   }),
 );
 const expression = (expression: string) => ({ dialects: [{ dialect: 'ANSI_SQL', expression }] });
+
+/**
+ * Maps each UBL component to the dataset that holds it, keyed by record_id. A role that occurs at
+ * most once is linked through its foreign key column; a repeatable role through its bridge table.
+ */
+function conceptMapping(entity: any) {
+  const dataset = snake(entity.name);
+  const links = entity.relationships.map((r: any) => {
+    if (r.max === '1') {
+      const foreignKey = `${dataset}.${snake(r.name)}_id`;
+      return linkMapping(`${dataset}.record_id`, r.name, r.target, foreignKey);
+    }
+    const bridge = `${dataset}__${snake(r.name)}`;
+    return linkMapping(`${bridge}.source_id`, r.name, r.target, `${bridge}.target_id`);
+  });
+  return {
+    concept: entity.name,
+    object_mappings: [{ expression: `${dataset}.record_id` }],
+    ...(links.length ? { link_mappings: links } : {}),
+  };
+}
 await Bun.write(
   dir + 'ubl.semantic.yaml',
   stringify({
@@ -209,13 +231,15 @@ await Bun.write(
 );
 await Bun.write(
   dir + 'ubl.semantic-mapping.yaml',
-  bindingsOnlyMappingText({
-    name: 'UBL metric bindings',
+  exampleMappingText({
+    name: 'UBL concept mappings and metric bindings',
     ontology: { name: ontologyName, iri: './ubl.ontology.yaml' },
     semanticModel: { name: semanticModelName, iri: './ubl.semantic.yaml' },
     metrics: governedMetrics,
+    conceptMappings: mapping.entities.map(conceptMapping),
     comment: [
-      'binds the governed metrics of ubl.semantic.yaml to UBL concepts.',
+      'maps every UBL component to its dataset and every role to its key or bridge table,',
+      'and binds the governed metrics of ubl.semantic.yaml to UBL concepts.',
       'It is not part of the UBL standard or of any upstream example.',
     ],
   }),
@@ -251,7 +275,7 @@ const readmeLines = [
   `- ubl.shacl.ttl: projected aggregate-role cardinality and target-class constraints.`,
   `- ubl.odcs.yaml: ${tables.length} normalized tables, basic fields, surrogate IDs and repeatable-role bridge tables.`,
   `- ubl.semantic.yaml: matching datasets, ${joins.length} joins and ${governedMetrics.length} governed metrics.`,
-  `- ubl.semantic-mapping.yaml: binds the governed metrics to UBL concepts.`,
+  `- ubl.semantic-mapping.yaml: maps each component and role to its dataset, key or bridge table, and binds the governed metrics.`,
   `- model-map.json: extracted references and cardinalities for auditing and regeneration.`,
   ``,
   [

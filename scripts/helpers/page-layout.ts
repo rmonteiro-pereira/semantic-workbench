@@ -31,8 +31,10 @@ export async function pageLayoutProblems(page: Page, screenName: string) {
       }
     }
     if (name === 'ontology-mappings') {
+      // A project without a mapping document shows one empty state for the whole tab instead.
       const detail = document.querySelector('.mapping-detail');
-      if (!detail?.querySelector('.mapping-binding, .empty-state')) {
+      const projectEmpty = document.querySelector('.mapping-explorer > .empty-state');
+      if (!detail?.querySelector('.mapping-binding, .empty-state') && !projectEmpty) {
         problems.push('the detail shows neither a binding nor an empty state');
       }
       const chain = rows('.mapping-layer-chain > span');

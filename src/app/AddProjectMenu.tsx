@@ -38,6 +38,7 @@ export function AddProjectMenu({ onImport, onClone, loadExample, busy }: Props) 
       buttonClassName="primary add-project"
       align="start"
       matchButtonWidth
+      submenuBeside
       items={items}
     />
   );

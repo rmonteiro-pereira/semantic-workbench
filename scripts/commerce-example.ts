@@ -1,7 +1,7 @@
 // Generates commerce model examples, RDF instances and analytical fixtures.
 import { stringify } from 'yaml';
 import { governedMetrics } from './commerce-metrics';
-import { bindingsOnlyMappingText, ossieMetric } from './helpers/example-metrics';
+import { exampleMappingText, linkMapping, ossieMetric } from './helpers/example-metrics';
 import { graph, parse, serialize } from 'rdflib';
 const dir = 'public/examples/commerce/';
 const tables = [
@@ -141,20 +141,9 @@ await Bun.write(
     metrics: governedMetrics.map(ossieMetric),
   }),
 );
-await Bun.write(
-  dir + 'sales.mapping.yaml',
-  bindingsOnlyMappingText({
-    name: 'Commerce sales mappings',
-    ontology: { name: ontologyName, iri: './commerce-business.ossie.yaml' },
-    semanticModel: { name: semanticModelName, iri: './sales.ossie.yaml' },
-    metrics: governedMetrics,
-    comment: [
-      'binds the governed metrics of sales.ossie.yaml to business concepts.',
-      'It is not part of any upstream standard example.',
-    ],
-  }),
-);
-const rels = [
+/** A business relationship: subject concept, relationship name, target concept. */
+type Relationship = readonly [subject: string, relationship: string, target: string];
+const rels: readonly Relationship[] = [
   ['Customer', 'places', 'Order'],
   ['Order', 'contains', 'OrderLine'],
   ['OrderLine', 'product', 'Product'],
@@ -163,6 +152,59 @@ const rels = [
   ['Invoice', 'payment', 'Payment'],
   ['Shipment', 'warehouse', 'Warehouse'],
 ];
+
+/** The table holding a concept, and the column that identifies one of its rows. */
+function tableOf(concept: string) {
+  const table = tables.find(candidate => candidate.concept === concept);
+  return table && { name: table.name, key: `${table.name}.${table.cols[0]![0]}` };
+}
+
+/**
+ * Maps a relationship through the foreign key that joins its two tables: a key on the target's
+ * table pointing back (one subject, many targets), or a key on the subject's table pointing out.
+ */
+function relationshipMapping([subject, relationship, target]: Relationship) {
+  const from = tableOf(subject);
+  const to = tableOf(target);
+  if (!from || !to) return undefined;
+  const back = Object.entries(foreignKeys).find(([column, key]) => {
+    return column.startsWith(to.name + '.') && key.startsWith(from.name + '.');
+  });
+  const out = Object.entries(foreignKeys).find(([column, key]) => {
+    return column.startsWith(from.name + '.') && key.startsWith(to.name + '.');
+  });
+  if (back) return linkMapping(back[0], relationship, target, to.key);
+  if (out) return linkMapping(from.key, relationship, target, out[0]);
+  return undefined;
+}
+
+/** Maps each concept that has a table to it, with the relationships its foreign keys carry. */
+function conceptMappings() {
+  return tables.map(table => {
+    const links = rels.filter(([subject]) => subject === table.concept).map(relationshipMapping);
+    const linkMappings = links.filter(link => link !== undefined);
+    return {
+      concept: table.concept,
+      object_mappings: [{ expression: tableOf(table.concept)!.key }],
+      ...(linkMappings.length ? { link_mappings: linkMappings } : {}),
+    };
+  });
+}
+await Bun.write(
+  dir + 'sales.mapping.yaml',
+  exampleMappingText({
+    name: 'Commerce sales mappings',
+    ontology: { name: ontologyName, iri: './commerce-business.ossie.yaml' },
+    semanticModel: { name: semanticModelName, iri: './sales.ossie.yaml' },
+    metrics: governedMetrics,
+    conceptMappings: conceptMappings(),
+    comment: [
+      'maps the business concepts to the sales tables through their keys,',
+      'and binds the governed metrics of sales.ossie.yaml to business concepts.',
+      'It is not part of any upstream standard example.',
+    ],
+  }),
+);
 const classes = [
   'Customer',
   'Order',

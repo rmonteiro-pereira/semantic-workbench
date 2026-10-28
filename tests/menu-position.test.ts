@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { placeFlyout, placeMenu } from '../src/projects/menu-position';
+import { placeFlyout, placeMenu, placeSubmenu, submenuFits } from '../src/projects/menu-position';
 
 const viewport = { width: 1000, height: 800 };
 const menu = { width: 200, height: 300 };
@@ -58,5 +58,28 @@ describe('a flyout beside its button', () => {
     expect(placeFlyout(button, menu, { width: 650, height: 800 })).toBeUndefined();
     const nearRightEdge = { ...button, right: 900 };
     expect(placeFlyout(nearRightEdge, menu, viewport)).toBeUndefined();
+  });
+});
+
+describe('a submenu beside its menu', () => {
+  const addProjectMenu = { left: 14, top: 120, right: 285, bottom: 250 };
+  const row = { left: 20, top: 200, right: 279, bottom: 234 };
+
+  test('fits beside a menu on a wide window, never on a phone or at the right edge', () => {
+    expect(submenuFits(addProjectMenu, viewport)).toBe(true);
+    expect(submenuFits(addProjectMenu, { width: 650, height: 800 })).toBe(false);
+    expect(submenuFits({ ...addProjectMenu, right: 700 }, viewport)).toBe(false);
+  });
+
+  test('starts level with its row, just past the menu edge', () => {
+    const placed = placeSubmenu(row, { width: 300, height: 400 }, viewport);
+    expect(placed).toEqual({ top: 195, left: 289, maxHeight: 400, side: 'below' });
+  });
+
+  test('moves up to stay inside the window, and caps its height at the window', () => {
+    const lowRow = { ...row, top: 600, bottom: 634 };
+    expect(placeSubmenu(lowRow, { width: 300, height: 500 }, viewport).top).toBe(288);
+    const tall = placeSubmenu(row, { width: 300, height: 2000 }, viewport);
+    expect(tall).toEqual({ top: 12, left: 289, maxHeight: 776, side: 'below' });
   });
 });

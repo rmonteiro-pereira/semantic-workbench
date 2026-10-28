@@ -5,7 +5,7 @@
 .add-project-menu {
   display: flex;
   width: 100%;
-  margin: 14px 0 0;
+  margin: 14px 0 12px;
 }
 .add-project-menu > .add-project {
   flex: 1;
@@ -24,8 +24,15 @@
   padding-block: 0;
   overflow-y: auto;
   scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
   border-block: 1px solid var(--color-border-subtle);
   background: none;
+}
+/* Windows draws a classic scrollbar that never hides. The tree shows its thumb only while the
+   pointer or focus is in it, in the theme's colours, so a resting sidebar has no grey bar. */
+.workspace-sidebar .documents:hover,
+.workspace-sidebar .documents:focus-within {
+  scrollbar-color: var(--color-border-strong) transparent;
 }
 
 /* The footer keeps its own height; only the tree grows and shrinks. */
@@ -37,11 +44,13 @@
   padding-top: 8px;
 }
 
-/* Trash and Settings are rows like the navigation above, only shorter, with one icon size. */
+/* Trash and Settings are rows like the navigation above: the same icon size, indent and text
+   size, so their icons line up with Model explorer's. Only their height is smaller. */
 .sidebar-footer .sidebar-row {
   width: 100%;
   margin: 0;
-  padding: 8px 10px;
+  padding: 9px 13px;
+  font-size: 13px;
   gap: 10px;
   border-radius: 8px;
   color: var(--color-text-secondary);

@@ -114,38 +114,50 @@ try {
   await check(
     'both official standalone and embedded Flights mappings render 60 bindings and export their context',
     async () => {
-      await page.locator('.tabs').getByRole('button', { name: 'Mappings', exact: true }).click();
-      // The mapping list loads from the server; wait for it before reading the options. It lists
-      // the mappings of every project: the standalone and the embedded form of the imported
-      // files and of the Flights example, and the example's own metrics mapping.
-      await expect(page.getByLabel('Mapping document').locator('option')).toHaveCount(6);
-      const options = await page
-        .getByLabel('Mapping document')
-        .locator('option')
-        .evaluateAll(list => list.map((o: any) => ({ value: o.value, text: o.textContent })));
-      const metricsMappings = options.filter(o => o.value && o.text.includes('Flights metrics'));
-      if (metricsMappings.length !== 1) throw Error('Missing Flights metrics mapping');
-      const ids = options
-        .filter(o => o.value && !o.text.includes('Flights metrics'))
-        .map(o => o.value);
-      if (ids.length !== 4) throw Error('Missing Flights mapping forms');
-      for (const id of ids) {
-        await page.getByLabel('Mapping document').selectOption(id);
-        await expectResolvedBindings(page, 60);
-        await expect(page.locator('.mapping-findings')).toHaveCount(0);
-        const [download] = await Promise.all([
-          page.waitForEvent('download'),
-          page.getByRole('button', { name: 'Export agent context', exact: true }).click(),
-        ]);
-        const path = await download.path();
-        if (!path) throw Error('Missing context');
-        const context = JSON.parse(await readFile(path, 'utf8'));
-        if (
-          context.bindings.length !== 60 ||
-          context.bindings.filter((b: any) => b.condition).length !== 2
-        )
-          throw Error('Lost official bindings/conditions');
+      // The imported official files and the Flights example are two projects, and each lists only
+      // its own mappings: the standalone and embedded forms of the official files, plus, in the
+      // example, its own metrics mapping. Open a file of each project to see its list.
+      const projects = [
+        { open: page.getByRole('button', { name: 'flights.mapping.yaml', exact: true }).first() },
+        { open: page.getByRole('button', { name: 'flights.mapping.yaml', exact: true }).last() },
+      ];
+      const allIds: string[] = [];
+      let metricsMappings = 0;
+      for (const project of projects) {
+        await project.open.click();
+        await page.locator('.tabs').getByRole('button', { name: 'Mappings', exact: true }).click();
+        const chooser = page.getByLabel('Mapping document');
+        // The list loads from the server; wait for it before reading the options.
+        await expect(chooser.locator('option').nth(2)).toBeAttached();
+        const options = await chooser
+          .locator('option')
+          .evaluateAll(list => list.map((o: any) => ({ value: o.value, text: o.textContent })));
+        const listed = options.filter(o => o.value);
+        const slugs = new Set(listed.map(o => o.value.split('/')[0]));
+        if (slugs.size !== 1) throw Error('Mapping list mixes projects: ' + [...slugs].join(', '));
+        metricsMappings += listed.filter(o => o.text.includes('Flights metrics')).length;
+        const ids = listed.filter(o => !o.text.includes('Flights metrics')).map(o => o.value);
+        allIds.push(...ids);
+        for (const id of ids) {
+          await chooser.selectOption(id);
+          await expectResolvedBindings(page, 60);
+          await expect(page.locator('.mapping-findings')).toHaveCount(0);
+          const [download] = await Promise.all([
+            page.waitForEvent('download'),
+            page.getByRole('button', { name: 'Export agent context', exact: true }).click(),
+          ]);
+          const path = await download.path();
+          if (!path) throw Error('Missing context');
+          const context = JSON.parse(await readFile(path, 'utf8'));
+          if (
+            context.bindings.length !== 60 ||
+            context.bindings.filter((b: any) => b.condition).length !== 2
+          )
+            throw Error('Lost official bindings/conditions');
+        }
       }
+      if (metricsMappings !== 1) throw Error('Missing Flights metrics mapping');
+      if (new Set(allIds).size !== 4) throw Error('Missing Flights mapping forms');
       await page.screenshot({ path: '/tmp/ossie-flights-mappings.png' });
     },
   );

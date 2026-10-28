@@ -5,8 +5,11 @@ import type { Page } from '@playwright/test';
 import { newItem } from './header';
 import { fileTab, openFile, type Screen } from './screen-tour';
 
-/** Files the tour opens: an ontology with a catalog and mappings, and a model with metrics. */
-export type EditTourFiles = { ontology: string; metricsModel: string };
+/**
+ * Files the tour opens: an ontology with a catalog, a model with metrics, and a file whose project
+ * has a mapping document, so Mappings and the query composer have something to show.
+ */
+export type EditTourFiles = { ontology: string; metricsModel: string; mappedFile: string };
 
 // A metric opened by an earlier screen hides the list on a phone until All metrics is pressed.
 function metricsList(file: string): Screen['show'] {
@@ -26,7 +29,7 @@ async function openFirstMetric(page: Page) {
 }
 
 /** Lists the edit, metrics, mappings and catalog screens, one per view and dialog. */
-export function editScreens({ ontology, metricsModel }: EditTourFiles): Screen[] {
+export function editScreens({ ontology, metricsModel, mappedFile }: EditTourFiles): Screen[] {
   const dialog = 'dialog[open]';
   return [
     { name: 'catalog', show: fileTab(ontology, 'Catalog') },
@@ -68,12 +71,12 @@ export function editScreens({ ontology, metricsModel }: EditTourFiles): Screen[]
         await page.waitForTimeout(500);
       },
     },
-    { name: 'mappings', show: fileTab(ontology, 'Mappings') },
+    { name: 'mappings', show: fileTab(mappedFile, 'Mappings') },
     {
       name: 'query-composer',
       dialog,
       show: async page => {
-        await fileTab(ontology, 'Mappings')(page);
+        await fileTab(mappedFile, 'Mappings')(page);
         await page.getByRole('button', { name: 'Compose a query…', exact: true }).click();
         await page.waitForTimeout(500);
       },

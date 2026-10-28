@@ -276,7 +276,7 @@ export const WorkspaceSidebar = React.memo(function WorkspaceSidebar({
             onReject={handleSuggestionsReject}
           />
           <button className="nav sidebar-row" onClick={() => setTrashOpen(true)}>
-            <Trash2 size={16} /> Trash
+            <Trash2 size={18} /> Trash
           </button>
           <SettingsPanel
             sidebar={sidebarRef}

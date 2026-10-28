@@ -73,6 +73,20 @@ export function fileTab(file: string, tab: string): Screen['show'] {
   };
 }
 
+/**
+ * Opens a file's Mappings tab and waits until it shows bindings or an empty state, since a mapping
+ * with hundreds of bindings resolves after the tab opens.
+ */
+function resolvedMappings(file: string): Screen['show'] {
+  return async page => {
+    await fileTab(file, 'Mappings')(page);
+    const resolved = page.locator(
+      '.mapping-detail .mapping-binding, .mapping-detail .empty-state, .mapping-explorer > .empty-state',
+    );
+    await resolved.first().waitFor({ state: 'attached', timeout: 30000 });
+  };
+}
+
 /** Lists every screen of the tour for the two files it opens. */
 export function tourScreens({ ontology, contract }: TourFiles): Screen[] {
   const modelTabs = [
@@ -86,7 +100,8 @@ export function tourScreens({ ontology, contract }: TourFiles): Screen[] {
   ];
   const screens: Screen[] = [{ name: 'sidebar-projects', show: showSidebar }];
   for (const tab of modelTabs) {
-    screens.push({ name: `ontology-${tab.toLowerCase()}`, show: fileTab(ontology, tab) });
+    const show = tab === 'Mappings' ? resolvedMappings(ontology) : fileTab(ontology, tab);
+    screens.push({ name: `ontology-${tab.toLowerCase()}`, show });
   }
   for (const tab of ['Contract', 'Graph']) {
     screens.push({ name: `contract-${tab.toLowerCase()}`, show: fileTab(contract, tab) });

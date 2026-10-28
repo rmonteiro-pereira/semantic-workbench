@@ -57,3 +57,27 @@ export function placeFlyout(anchor: Box, menu: Size, viewport: Size): MenuPlacem
   const maxHeight = Math.min(menu.height, room);
   return { top: anchor.bottom - maxHeight, left, maxHeight, side: 'above' };
 }
+
+/** The widest a submenu beside its menu can be: the max-width of .menu-popup in style.css. */
+const SUBMENU_WIDTH = 340;
+/** Clears the menu's padding and border, so the submenu starts just past the menu's edge. */
+const SUBMENU_GAP = 10;
+
+/** True when a submenu fits beside the open menu, which never happens on a phone. */
+export function submenuFits(menu: Box, viewport: Size): boolean {
+  const fits = menu.right + SUBMENU_GAP + SUBMENU_WIDTH <= viewport.width - EDGE;
+  return viewport.width > PHONE_BREAKPOINT && fits;
+}
+
+/**
+ * Places a submenu beside the row that opened it, its first item level with that row. It moves
+ * up when it would run past the bottom of the window, and is capped to the window's height.
+ */
+export function placeSubmenu(row: Box, menu: Size, viewport: Size): MenuPlacement {
+  const maxHeight = Math.max(0, Math.min(menu.height, viewport.height - 2 * EDGE));
+  const lowest = viewport.height - EDGE - maxHeight;
+  const top = Math.max(EDGE, Math.min(row.top - SUBMENU_GAP / 2, lowest));
+  const furthest = viewport.width - EDGE - menu.width;
+  const left = Math.max(EDGE, Math.min(row.right + SUBMENU_GAP, furthest));
+  return { top, left, maxHeight, side: 'below' };
+}

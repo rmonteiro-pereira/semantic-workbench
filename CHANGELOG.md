@@ -51,6 +51,16 @@ not configure a production deployment.
 
 ### Fixed
 
+- The UBL example opens without a "Basic checks only" warning: its ontology declares its Ossie
+  version and gets the full schema checks. Its mapping now maps all 45 components to their datasets
+  and all 277 roles to their keys or bridge tables, instead of mapping no concept. The commerce
+  workspace's sales mapping maps Customer, Order, OrderLine and Product to the sales tables.
+- **Mappings** lists only the open project's mapping documents, and says when the project has
+  none, instead of offering every project's mappings.
+- **Load an example** opens the examples beside the **Add project** menu again, by pointer or with
+  the right arrow key; on a phone they replace the menu under **Back**. **Settings** shows the
+  theme as one control without a focus ring after a click, stays inside the phone drawer, and lines
+  Trash and Settings up with the navigation above.
 - The ODCS graph no longer hides cards behind a "N of M cards shown · Show all" control. Every
   card is laid out, the first view frames the nearest cards at a readable size, and expanding an
   "N more tables" card lays out all of its members.

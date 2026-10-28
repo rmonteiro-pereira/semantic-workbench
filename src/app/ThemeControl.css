@@ -1,33 +1,33 @@
-/* One row in the Settings panel: the word Theme and three joined buttons. */
+/* The word Theme above three buttons joined into one control, as wide as the Settings panel. */
 .theme-control {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   margin: 10px 0 0;
   font-size: var(--text-small);
   color: var(--color-text-muted);
 }
 .theme-control-label {
-  flex: none;
+  grid-column: 1 / -1;
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: var(--color-text);
 }
 .theme-control button {
-  flex: 1;
   min-width: 0;
-  padding: 5px 4px;
-  font-size: var(--text-small);
+  padding: 7px 4px;
+  font-size: 13px;
   border-radius: 0;
   border-left-width: 0;
 }
 .theme-control-label + button {
   border-left-width: 1px;
-  border-radius: 7px 0 0 7px;
+  border-radius: 8px 0 0 8px;
 }
 .theme-control button:last-child {
-  border-radius: 0 7px 7px 0;
+  border-radius: 0 8px 8px 0;
 }
 .theme-control button[aria-pressed='true'] {
   background: var(--color-accent-soft);
-  border-color: var(--color-accent-border-strong);
   color: var(--color-accent-text);
   font-weight: 600;
 }

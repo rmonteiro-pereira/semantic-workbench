@@ -5,6 +5,8 @@ import type { MenuPlacement, Size } from './menu-position';
 type PopupElements = {
   popup: RefObject<HTMLElement | null>;
   anchor: RefObject<HTMLElement | null>;
+  /** A second popup that belongs to this one, such as a submenu beside it. */
+  related?: RefObject<HTMLElement | null>;
 };
 
 /** The popup's width and the height it would have without a height cap, borders included. */
@@ -60,26 +62,30 @@ export function useAnchoredPopup(
   }, [open, ...dependencies]);
 }
 
+/** What takes focus when a popup opens: its first control matching a selector, or the popup. */
+export type PopupFocus = { firstControl: string } | 'popup';
+
 /**
- * Focuses the popup's first control matching `firstControl` when it opens. A mousedown outside the
- * popup and its anchor dismisses it without moving focus, so the click lands where it was aimed.
+ * Moves focus into the popup when it opens, as `focus` says. A mousedown outside the popup and
+ * its anchor dismisses it without moving focus, so the click lands where it was aimed.
  */
 export function usePopupDismiss(
   open: boolean,
   elements: PopupElements,
-  firstControl: string,
+  focus: PopupFocus,
   onDismiss: () => void,
 ) {
-  const { popup, anchor } = elements;
+  const { popup, anchor, related } = elements;
   useEffect(() => {
     if (!open) return;
     const dismissOnOutsideClick = (event: MouseEvent) => {
       const target = event.target as Node;
-      const inside = anchor.current?.contains(target) || popup.current?.contains(target);
+      const inside = [anchor, popup, related].some(element => element?.current?.contains(target));
       if (!inside) onDismiss();
     };
     document.addEventListener('mousedown', dismissOnOutsideClick);
-    popup.current?.querySelector<HTMLElement>(firstControl)?.focus();
+    if (focus === 'popup') popup.current?.focus();
+    else popup.current?.querySelector<HTMLElement>(focus.firstControl)?.focus();
     return () => document.removeEventListener('mousedown', dismissOnOutsideClick);
     // Callers pass a dismiss that only closes the popup, so the effect need not rerun for it.
   }, [open]);

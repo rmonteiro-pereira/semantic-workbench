@@ -3,17 +3,16 @@ import { test, expect } from 'bun:test';
 import { inspect } from '../src/core/model';
 import { graphView } from '../src/graph/graph-view';
 import { readdir } from 'node:fs/promises';
-// A mapping that only binds metrics maps no concept, so it draws no entities.
-const bindingsOnlyMappings = ['sales.mapping.yaml'];
 test('all commerce formats import and preserve full definitions', async () => {
   for (const filename of await readdir('public/examples/commerce')) {
     if (filename.endsWith('.md')) continue;
     const source = await Bun.file('public/examples/commerce/' + filename).text();
     const model = inspect(source, filename);
     console.log(filename, model.kind, model.entities.length, model.edges.length);
-    if (bindingsOnlyMappings.includes(filename)) {
+    // The sales mapping maps the four concepts that have sales tables.
+    if (filename === 'sales.mapping.yaml') {
       expect(model.kind).toBe('Ossie mappings');
-      expect(model.entities).toHaveLength(0);
+      expect(model.entities).toHaveLength(4);
       continue;
     }
     expect(model.entities.length).toBeGreaterThan(0);

@@ -10,15 +10,15 @@ are covered in [the server guide](server-mode.md).
 
 ## Workspace navigation
 
-The sidebar starts with **Add project**, whose menu holds **Import files**, **Clone a
-repository** and **Load an example** (the examples open in place, under a **Back** row). Below it
-are **Model explorer**, **Source editor**, **Source control** and the **Projects** tree, and the
-footer holds **Trash**, **Settings** and where the project folders live. **Settings** opens a panel
-beside the sidebar, level with its row (on a phone, above it), with **Theme** (System, Light,
-Dark), **Clear workspace** and, for people allowed to administer, **Admin**. The tree has its own
-scrollbar and takes the height left above the footer, so the footer stays fully visible at any
-window height. All files remain reachable by scrolling and keyboard focus. The selected file is
-brought into view when it would be hidden.
+The sidebar starts with **Add project**, whose menu holds **Import files**, **Clone a repository**
+and **Load an example**. The examples open beside the menu; on a phone they replace it, under a
+**Back** row. Below it are **Model explorer**, **Source editor**, **Source control** and the
+**Projects** tree, and the footer holds **Trash**, **Settings** and where the project folders live.
+**Settings** opens a panel beside the sidebar, level with its row (on a phone, above it), with
+**Theme** (System, Light, Dark), **Clear workspace** and, for people allowed to administer,
+**Admin**. The tree has its own scrollbar and takes the height left above the footer, so the footer
+stays fully visible at any window height. All files remain reachable by scrolling and keyboard
+focus. The selected file is brought into view when it would be hidden.
 
 On desktop, drag the sidebar separator or use its arrow keys, Home and End to choose a width
 between 220 and 520 pixels; the browser remembers it. Long project and file names wrap to two
@@ -455,10 +455,11 @@ The **Mappings** view resolves ontology → mapping → semantic model → physi
 referent and link mappings retain source evidence and report missing or ambiguous references.
 Bindings are grouped by dataset. The concept list and the bindings scroll on their own inside the
 tab; each dataset group shows its first five bindings and **Show N more** reveals ten at a time,
-**Show fewer** folds them again, and a long concept list works the same way. The tab opens on a
-mapping from the open file's project. Search includes unbound concepts; empty views offer Source
-navigation for the selected mapping document. **Compose a query…** selects mapped fields/metrics
-and previews a newly composed governed query. **Export agent context** downloads metadata.
+**Show fewer** folds them again, and a long concept list works the same way. The tab lists only the
+mappings of the open file's project, says so when that project has none, and asks you to open a
+project when no file is open. Search includes unbound concepts; empty views offer Source navigation
+for the selected mapping document. **Compose a query…** selects mapped fields/metrics and previews a
+newly composed governed query. **Export agent context** downloads metadata.
 
 For mapping files, **Graph** shows concepts and relationship rows, datasets/fields, metrics and
 resolved mapping lines. Select a row to highlight its bindings and relevant joins. **Unmapped

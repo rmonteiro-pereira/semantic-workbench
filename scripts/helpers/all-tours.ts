@@ -19,6 +19,8 @@ export type AllTourFiles = {
   ontology: string;
   contract: string;
   metricsModel: string;
+  /** A file whose project has a mapping document; the metrics model's project by default. */
+  mappedFile?: string;
   serverMode?: boolean;
 };
 
@@ -36,7 +38,11 @@ export function tourGroups(files: AllTourFiles): TourGroup[] {
     {
       title: 'edit screens',
       summary: 'readable text and no overlaps',
-      screens: editScreens({ ontology: files.ontology, metricsModel: files.metricsModel }),
+      screens: editScreens({
+        ontology: files.ontology,
+        metricsModel: files.metricsModel,
+        mappedFile: files.mappedFile ?? files.metricsModel,
+      }),
     },
     {
       title: 'ODCS screens',

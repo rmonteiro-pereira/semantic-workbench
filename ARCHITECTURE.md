@@ -183,7 +183,8 @@ check that happens to succeed.
   prompts. `src/projects/Modal.tsx`, `Menu.tsx`, `WizardStepper.tsx`, `EmptyState.tsx` and
   `src/shared/ScrollStrip.tsx` provide shared interaction and layout behavior;
   `src/projects/useAnchoredPopup.ts` places and dismisses the popups that menus and the Settings
-  panel draw beside their button.
+  panel draw beside their button. `Menu.tsx` opens a submenu beside its menu when the window has
+  room and in place under **Back** otherwise; `menu-position.ts` holds the pure placement rules.
 - `src/shared/` contains UI and small utilities used by multiple domains; `src/theme/` owns theme
   tokens, runtime palettes and browser preference. The root of `src/` is reserved for the entry,
   global stylesheet and browser type declarations.

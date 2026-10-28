@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { chooseMapping } from '../src/mappings/mapping-choice';
+import { chooseMapping, mappingsOfProject, shownMapping } from '../src/mappings/mapping-choice';
 import { limitCovering, showMoreLabel, visibleCount } from '../src/mappings/list-window';
 
 const mappings = [
@@ -29,9 +29,25 @@ describe('chooseMapping', () => {
     ).toBe('mall.ontology#ontology_mappings/0');
   });
 
-  test('falls back to any mapping when the project has none', () => {
-    expect(chooseMapping(mappings, 'other.file', 'other', '')).toBe('ubl.mapping');
+  test('keeps but never shows another project mapping when the open project has none', () => {
+    const offered = mappingsOfProject(mappings, 'other');
+    expect(offered).toEqual([]);
+    expect(chooseMapping(mappings, 'other.file', 'other', 'ubl.mapping')).toBe('ubl.mapping');
+    expect(shownMapping(offered, 'ubl.mapping')).toBe('');
+    expect(shownMapping(mappingsOfProject(mappings, 'ubl'), 'ubl.mapping')).toBe('ubl.mapping');
+  });
+
+  test('offers no mapping when no project is open', () => {
+    expect(mappingsOfProject(mappings, undefined)).toEqual([]);
+    expect(chooseMapping(mappings, undefined, undefined, '')).toBe('');
     expect(chooseMapping([], undefined, undefined, '')).toBe('');
+  });
+
+  test('lists only the open project mappings', () => {
+    expect(mappingsOfProject(mappings, 'mall').map(mapping => mapping.id)).toEqual([
+      'mall.mapping',
+      'mall.ontology#ontology_mappings/0',
+    ]);
   });
 });
 

@@ -1,7 +1,10 @@
-// Tests the generated UBL example and its schema-derived relationships.
+// Tests the generated UBL example, its schema-derived relationships and the example mappings.
 import { test, expect } from 'bun:test';
 import { inspect } from '../src/core/model';
 import { graphView } from '../src/graph/graph-view';
+import { parse } from 'yaml';
+import { buildContext } from '../src/server/agent/runtime';
+import { validateStructured } from '../src/validation/validation';
 test('UBL model derives 45 business entities and 277 roles from XSD references', async () => {
   const map = await Bun.file('public/examples/ubl/model-map.json').json();
   const model = inspect(await Bun.file('public/examples/ubl/ubl.ontology.yaml').text());
@@ -41,4 +44,50 @@ test('UBL OWL and SHACL imports remain bounded in default graph', async () => {
     expect(model.entities.length).toBeGreaterThan(30);
     expect(graphView(model.entities, model.edges, '').entities.length).toBeLessThanOrEqual(16);
   }
+});
+
+/** Reads shipped example files as the stored documents of one project. */
+async function exampleProject(project: string, filenames: string[]) {
+  return Promise.all(
+    filenames.map(async (filename, index) => ({
+      id: `${project}/${filename}`,
+      filename,
+      project,
+      revision: index + 1,
+      source: await Bun.file(`public/examples/${project}/${filename}`).text(),
+    })),
+  );
+}
+
+test('the UBL ontology declares its Ossie version, so it gets full schema checks', async () => {
+  const ontology = parse(await Bun.file('public/examples/ubl/ubl.ontology.yaml').text());
+  expect(validateStructured(ontology)).toEqual([]);
+});
+
+test('the UBL mapping maps every component and role to its dataset, key or bridge', async () => {
+  const documents = await exampleProject('ubl', [
+    'ubl.ontology.yaml',
+    'ubl.semantic.yaml',
+    'ubl.semantic-mapping.yaml',
+  ]);
+  const context = buildContext(documents, 'ubl/ubl.semantic-mapping.yaml');
+  expect(context.findings).toEqual([]);
+  const mapped = new Set(context.bindings.map(binding => binding.rootConcept));
+  expect(mapped.size).toBe(45);
+  // Each link also binds its subject, with no relationship; only the role targets count here.
+  const links = context.bindings.filter(binding => binding.relationships.length > 0);
+  const roles = new Set(links.map(link => `${link.rootConcept}.${link.relationships.join('.')}`));
+  expect(roles.size).toBe(277);
+});
+
+test('the commerce sales mapping maps each concept that has a sales table', async () => {
+  const documents = await exampleProject('commerce', [
+    'commerce-business.ossie.yaml',
+    'sales.ossie.yaml',
+    'sales.mapping.yaml',
+  ]);
+  const context = buildContext(documents, 'commerce/sales.mapping.yaml');
+  expect(context.findings).toEqual([]);
+  const mapped = [...new Set(context.bindings.map(binding => binding.rootConcept))].sort();
+  expect(mapped).toEqual(['Customer', 'Order', 'OrderLine', 'Product']);
 });

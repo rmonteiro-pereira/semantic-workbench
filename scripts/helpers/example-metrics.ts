@@ -45,18 +45,33 @@ export function ossieMetric(metric: GovernedMetric) {
   };
 }
 
-/** Describes a mapping document that only carries metric bindings. */
-export type BindingsOnlyMapping = {
+/** Describes an example mapping document: concept mappings and metric bindings. */
+export type ExampleMapping = {
   name: string;
   ontology: { name: string; iri: string };
   semanticModel: { name: string; iri: string };
   metrics: GovernedMetric[];
+  /** Ossie concept mappings from ontology concepts to semantic-model fields. */
+  conceptMappings: unknown[];
   /** The comment lines that say why the file exists, written after the first line. */
   comment: string[];
 };
 
-/** Writes a mapping that binds metrics to concepts and maps no concept to a dataset. */
-export function bindingsOnlyMappingText(mapping: BindingsOnlyMapping) {
+/** A link from the subject identified by one column to the target identified by another. */
+export function linkMapping(
+  subject: string,
+  relationship: string,
+  target: string,
+  targetColumn: string,
+) {
+  return {
+    object_mapping: { expression: subject },
+    children: [{ relationship, object_mapping: { concept: target, expression: targetColumn } }],
+  };
+}
+
+/** Writes a mapping document that maps concepts to fields and binds metrics to concepts. */
+export function exampleMappingText(mapping: ExampleMapping) {
   const header = mapping.comment.map((line, index) =>
     index === 0 ? `# Workbench addition: ${line}` : `# ${line}`,
   );
@@ -65,7 +80,7 @@ export function bindingsOnlyMappingText(mapping: BindingsOnlyMapping) {
     name: mapping.name,
     ontology_ref: mapping.ontology,
     semantic_model_ref: mapping.semanticModel,
-    concept_mappings: [],
+    concept_mappings: mapping.conceptMappings,
     custom_extensions: bindingEntries(mapping.metrics),
   };
   return header.join('\n') + '\n' + stringify(document);

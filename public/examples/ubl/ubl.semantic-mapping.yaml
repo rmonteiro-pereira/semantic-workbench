@@ -1,14 +1,2129 @@
-# Workbench addition: binds the governed metrics of ubl.semantic.yaml to UBL concepts.
+# Workbench addition: maps every UBL component to its dataset and every role to its key or bridge table,
+# and binds the governed metrics of ubl.semantic.yaml to UBL concepts.
 # It is not part of the UBL standard or of any upstream example.
 version: 0.2.0.dev0
-name: UBL metric bindings
+name: UBL concept mappings and metric bindings
 ontology_ref:
   name: UBL 2.3 procurement-to-payment · 45 business entities
   iri: ./ubl.ontology.yaml
 semantic_model_ref:
   name: UBL procurement-to-payment analytical model
   iri: ./ubl.semantic.yaml
-concept_mappings: []
+concept_mappings:
+  - concept: Order
+    object_mappings:
+      - expression: purchase_order.record_id
+    link_mappings:
+      - object_mapping:
+          expression: purchase_order.record_id
+        children:
+          - relationship: QuotationDocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: purchase_order.quotation_document_reference_id
+      - object_mapping:
+          expression: purchase_order__order_document_reference.source_id
+        children:
+          - relationship: OrderDocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: purchase_order__order_document_reference.target_id
+      - object_mapping:
+          expression: purchase_order.record_id
+        children:
+          - relationship: OriginatorDocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: purchase_order.originator_document_reference_id
+      - object_mapping:
+          expression: purchase_order__additional_document_reference.source_id
+        children:
+          - relationship: AdditionalDocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: purchase_order__additional_document_reference.target_id
+      - object_mapping:
+          expression: purchase_order__contract.source_id
+        children:
+          - relationship: Contract
+            object_mapping:
+              concept: Contract
+              expression: purchase_order__contract.target_id
+      - object_mapping:
+          expression: purchase_order.record_id
+        children:
+          - relationship: BuyerCustomerParty
+            object_mapping:
+              concept: CustomerParty
+              expression: purchase_order.buyer_customer_party_id
+      - object_mapping:
+          expression: purchase_order.record_id
+        children:
+          - relationship: SellerSupplierParty
+            object_mapping:
+              concept: SupplierParty
+              expression: purchase_order.seller_supplier_party_id
+      - object_mapping:
+          expression: purchase_order.record_id
+        children:
+          - relationship: OriginatorCustomerParty
+            object_mapping:
+              concept: CustomerParty
+              expression: purchase_order.originator_customer_party_id
+      - object_mapping:
+          expression: purchase_order.record_id
+        children:
+          - relationship: FreightForwarderParty
+            object_mapping:
+              concept: Party
+              expression: purchase_order.freight_forwarder_party_id
+      - object_mapping:
+          expression: purchase_order.record_id
+        children:
+          - relationship: AccountingCustomerParty
+            object_mapping:
+              concept: CustomerParty
+              expression: purchase_order.accounting_customer_party_id
+      - object_mapping:
+          expression: purchase_order__delivery.source_id
+        children:
+          - relationship: Delivery
+            object_mapping:
+              concept: Delivery
+              expression: purchase_order__delivery.target_id
+      - object_mapping:
+          expression: purchase_order__payment_means.source_id
+        children:
+          - relationship: PaymentMeans
+            object_mapping:
+              concept: PaymentMeans
+              expression: purchase_order__payment_means.target_id
+      - object_mapping:
+          expression: purchase_order__payment_terms.source_id
+        children:
+          - relationship: PaymentTerms
+            object_mapping:
+              concept: PaymentTerms
+              expression: purchase_order__payment_terms.target_id
+      - object_mapping:
+          expression: purchase_order__allowance_charge.source_id
+        children:
+          - relationship: AllowanceCharge
+            object_mapping:
+              concept: AllowanceCharge
+              expression: purchase_order__allowance_charge.target_id
+      - object_mapping:
+          expression: purchase_order.record_id
+        children:
+          - relationship: DestinationCountry
+            object_mapping:
+              concept: Country
+              expression: purchase_order.destination_country_id
+      - object_mapping:
+          expression: purchase_order__tax_total.source_id
+        children:
+          - relationship: TaxTotal
+            object_mapping:
+              concept: TaxTotal
+              expression: purchase_order__tax_total.target_id
+      - object_mapping:
+          expression: purchase_order.record_id
+        children:
+          - relationship: AnticipatedMonetaryTotal
+            object_mapping:
+              concept: MonetaryTotal
+              expression: purchase_order.anticipated_monetary_total_id
+      - object_mapping:
+          expression: purchase_order__order_line.source_id
+        children:
+          - relationship: OrderLine
+            object_mapping:
+              concept: OrderLine
+              expression: purchase_order__order_line.target_id
+  - concept: Invoice
+    object_mappings:
+      - expression: invoice.record_id
+    link_mappings:
+      - object_mapping:
+          expression: invoice.record_id
+        children:
+          - relationship: OrderReference
+            object_mapping:
+              concept: OrderReference
+              expression: invoice.order_reference_id
+      - object_mapping:
+          expression: invoice__billing_reference.source_id
+        children:
+          - relationship: BillingReference
+            object_mapping:
+              concept: BillingReference
+              expression: invoice__billing_reference.target_id
+      - object_mapping:
+          expression: invoice__despatch_document_reference.source_id
+        children:
+          - relationship: DespatchDocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: invoice__despatch_document_reference.target_id
+      - object_mapping:
+          expression: invoice__receipt_document_reference.source_id
+        children:
+          - relationship: ReceiptDocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: invoice__receipt_document_reference.target_id
+      - object_mapping:
+          expression: invoice__statement_document_reference.source_id
+        children:
+          - relationship: StatementDocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: invoice__statement_document_reference.target_id
+      - object_mapping:
+          expression: invoice__originator_document_reference.source_id
+        children:
+          - relationship: OriginatorDocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: invoice__originator_document_reference.target_id
+      - object_mapping:
+          expression: invoice__contract_document_reference.source_id
+        children:
+          - relationship: ContractDocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: invoice__contract_document_reference.target_id
+      - object_mapping:
+          expression: invoice__additional_document_reference.source_id
+        children:
+          - relationship: AdditionalDocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: invoice__additional_document_reference.target_id
+      - object_mapping:
+          expression: invoice.record_id
+        children:
+          - relationship: AccountingSupplierParty
+            object_mapping:
+              concept: SupplierParty
+              expression: invoice.accounting_supplier_party_id
+      - object_mapping:
+          expression: invoice.record_id
+        children:
+          - relationship: AccountingCustomerParty
+            object_mapping:
+              concept: CustomerParty
+              expression: invoice.accounting_customer_party_id
+      - object_mapping:
+          expression: invoice.record_id
+        children:
+          - relationship: PayeeParty
+            object_mapping:
+              concept: Party
+              expression: invoice.payee_party_id
+      - object_mapping:
+          expression: invoice.record_id
+        children:
+          - relationship: BuyerCustomerParty
+            object_mapping:
+              concept: CustomerParty
+              expression: invoice.buyer_customer_party_id
+      - object_mapping:
+          expression: invoice.record_id
+        children:
+          - relationship: SellerSupplierParty
+            object_mapping:
+              concept: SupplierParty
+              expression: invoice.seller_supplier_party_id
+      - object_mapping:
+          expression: invoice.record_id
+        children:
+          - relationship: TaxRepresentativeParty
+            object_mapping:
+              concept: Party
+              expression: invoice.tax_representative_party_id
+      - object_mapping:
+          expression: invoice__delivery.source_id
+        children:
+          - relationship: Delivery
+            object_mapping:
+              concept: Delivery
+              expression: invoice__delivery.target_id
+      - object_mapping:
+          expression: invoice__payment_means.source_id
+        children:
+          - relationship: PaymentMeans
+            object_mapping:
+              concept: PaymentMeans
+              expression: invoice__payment_means.target_id
+      - object_mapping:
+          expression: invoice__payment_terms.source_id
+        children:
+          - relationship: PaymentTerms
+            object_mapping:
+              concept: PaymentTerms
+              expression: invoice__payment_terms.target_id
+      - object_mapping:
+          expression: invoice__allowance_charge.source_id
+        children:
+          - relationship: AllowanceCharge
+            object_mapping:
+              concept: AllowanceCharge
+              expression: invoice__allowance_charge.target_id
+      - object_mapping:
+          expression: invoice__tax_total.source_id
+        children:
+          - relationship: TaxTotal
+            object_mapping:
+              concept: TaxTotal
+              expression: invoice__tax_total.target_id
+      - object_mapping:
+          expression: invoice__withholding_tax_total.source_id
+        children:
+          - relationship: WithholdingTaxTotal
+            object_mapping:
+              concept: TaxTotal
+              expression: invoice__withholding_tax_total.target_id
+      - object_mapping:
+          expression: invoice.record_id
+        children:
+          - relationship: LegalMonetaryTotal
+            object_mapping:
+              concept: MonetaryTotal
+              expression: invoice.legal_monetary_total_id
+      - object_mapping:
+          expression: invoice__invoice_line.source_id
+        children:
+          - relationship: InvoiceLine
+            object_mapping:
+              concept: InvoiceLine
+              expression: invoice__invoice_line.target_id
+  - concept: DespatchAdvice
+    object_mappings:
+      - expression: despatch_advice.record_id
+    link_mappings:
+      - object_mapping:
+          expression: despatch_advice__order_reference.source_id
+        children:
+          - relationship: OrderReference
+            object_mapping:
+              concept: OrderReference
+              expression: despatch_advice__order_reference.target_id
+      - object_mapping:
+          expression: despatch_advice__additional_document_reference.source_id
+        children:
+          - relationship: AdditionalDocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: despatch_advice__additional_document_reference.target_id
+      - object_mapping:
+          expression: despatch_advice.record_id
+        children:
+          - relationship: DespatchSupplierParty
+            object_mapping:
+              concept: SupplierParty
+              expression: despatch_advice.despatch_supplier_party_id
+      - object_mapping:
+          expression: despatch_advice.record_id
+        children:
+          - relationship: DeliveryCustomerParty
+            object_mapping:
+              concept: CustomerParty
+              expression: despatch_advice.delivery_customer_party_id
+      - object_mapping:
+          expression: despatch_advice.record_id
+        children:
+          - relationship: BuyerCustomerParty
+            object_mapping:
+              concept: CustomerParty
+              expression: despatch_advice.buyer_customer_party_id
+      - object_mapping:
+          expression: despatch_advice.record_id
+        children:
+          - relationship: SellerSupplierParty
+            object_mapping:
+              concept: SupplierParty
+              expression: despatch_advice.seller_supplier_party_id
+      - object_mapping:
+          expression: despatch_advice.record_id
+        children:
+          - relationship: OriginatorCustomerParty
+            object_mapping:
+              concept: CustomerParty
+              expression: despatch_advice.originator_customer_party_id
+      - object_mapping:
+          expression: despatch_advice.record_id
+        children:
+          - relationship: Shipment
+            object_mapping:
+              concept: Shipment
+              expression: despatch_advice.shipment_id
+      - object_mapping:
+          expression: despatch_advice__despatch_line.source_id
+        children:
+          - relationship: DespatchLine
+            object_mapping:
+              concept: DespatchLine
+              expression: despatch_advice__despatch_line.target_id
+  - concept: ReceiptAdvice
+    object_mappings:
+      - expression: receipt_advice.record_id
+    link_mappings:
+      - object_mapping:
+          expression: receipt_advice__order_reference.source_id
+        children:
+          - relationship: OrderReference
+            object_mapping:
+              concept: OrderReference
+              expression: receipt_advice__order_reference.target_id
+      - object_mapping:
+          expression: receipt_advice__despatch_document_reference.source_id
+        children:
+          - relationship: DespatchDocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: receipt_advice__despatch_document_reference.target_id
+      - object_mapping:
+          expression: receipt_advice__additional_document_reference.source_id
+        children:
+          - relationship: AdditionalDocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: receipt_advice__additional_document_reference.target_id
+      - object_mapping:
+          expression: receipt_advice.record_id
+        children:
+          - relationship: DeliveryCustomerParty
+            object_mapping:
+              concept: CustomerParty
+              expression: receipt_advice.delivery_customer_party_id
+      - object_mapping:
+          expression: receipt_advice.record_id
+        children:
+          - relationship: DespatchSupplierParty
+            object_mapping:
+              concept: SupplierParty
+              expression: receipt_advice.despatch_supplier_party_id
+      - object_mapping:
+          expression: receipt_advice.record_id
+        children:
+          - relationship: BuyerCustomerParty
+            object_mapping:
+              concept: CustomerParty
+              expression: receipt_advice.buyer_customer_party_id
+      - object_mapping:
+          expression: receipt_advice.record_id
+        children:
+          - relationship: SellerSupplierParty
+            object_mapping:
+              concept: SupplierParty
+              expression: receipt_advice.seller_supplier_party_id
+      - object_mapping:
+          expression: receipt_advice.record_id
+        children:
+          - relationship: Shipment
+            object_mapping:
+              concept: Shipment
+              expression: receipt_advice.shipment_id
+      - object_mapping:
+          expression: receipt_advice__receipt_line.source_id
+        children:
+          - relationship: ReceiptLine
+            object_mapping:
+              concept: ReceiptLine
+              expression: receipt_advice__receipt_line.target_id
+  - concept: CreditNote
+    object_mappings:
+      - expression: credit_note.record_id
+    link_mappings:
+      - object_mapping:
+          expression: credit_note.record_id
+        children:
+          - relationship: OrderReference
+            object_mapping:
+              concept: OrderReference
+              expression: credit_note.order_reference_id
+      - object_mapping:
+          expression: credit_note__billing_reference.source_id
+        children:
+          - relationship: BillingReference
+            object_mapping:
+              concept: BillingReference
+              expression: credit_note__billing_reference.target_id
+      - object_mapping:
+          expression: credit_note__despatch_document_reference.source_id
+        children:
+          - relationship: DespatchDocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: credit_note__despatch_document_reference.target_id
+      - object_mapping:
+          expression: credit_note__receipt_document_reference.source_id
+        children:
+          - relationship: ReceiptDocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: credit_note__receipt_document_reference.target_id
+      - object_mapping:
+          expression: credit_note__contract_document_reference.source_id
+        children:
+          - relationship: ContractDocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: credit_note__contract_document_reference.target_id
+      - object_mapping:
+          expression: credit_note__additional_document_reference.source_id
+        children:
+          - relationship: AdditionalDocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: credit_note__additional_document_reference.target_id
+      - object_mapping:
+          expression: credit_note__statement_document_reference.source_id
+        children:
+          - relationship: StatementDocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: credit_note__statement_document_reference.target_id
+      - object_mapping:
+          expression: credit_note__originator_document_reference.source_id
+        children:
+          - relationship: OriginatorDocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: credit_note__originator_document_reference.target_id
+      - object_mapping:
+          expression: credit_note.record_id
+        children:
+          - relationship: AccountingSupplierParty
+            object_mapping:
+              concept: SupplierParty
+              expression: credit_note.accounting_supplier_party_id
+      - object_mapping:
+          expression: credit_note.record_id
+        children:
+          - relationship: AccountingCustomerParty
+            object_mapping:
+              concept: CustomerParty
+              expression: credit_note.accounting_customer_party_id
+      - object_mapping:
+          expression: credit_note.record_id
+        children:
+          - relationship: PayeeParty
+            object_mapping:
+              concept: Party
+              expression: credit_note.payee_party_id
+      - object_mapping:
+          expression: credit_note.record_id
+        children:
+          - relationship: BuyerCustomerParty
+            object_mapping:
+              concept: CustomerParty
+              expression: credit_note.buyer_customer_party_id
+      - object_mapping:
+          expression: credit_note.record_id
+        children:
+          - relationship: SellerSupplierParty
+            object_mapping:
+              concept: SupplierParty
+              expression: credit_note.seller_supplier_party_id
+      - object_mapping:
+          expression: credit_note.record_id
+        children:
+          - relationship: TaxRepresentativeParty
+            object_mapping:
+              concept: Party
+              expression: credit_note.tax_representative_party_id
+      - object_mapping:
+          expression: credit_note__delivery.source_id
+        children:
+          - relationship: Delivery
+            object_mapping:
+              concept: Delivery
+              expression: credit_note__delivery.target_id
+      - object_mapping:
+          expression: credit_note__payment_means.source_id
+        children:
+          - relationship: PaymentMeans
+            object_mapping:
+              concept: PaymentMeans
+              expression: credit_note__payment_means.target_id
+      - object_mapping:
+          expression: credit_note__payment_terms.source_id
+        children:
+          - relationship: PaymentTerms
+            object_mapping:
+              concept: PaymentTerms
+              expression: credit_note__payment_terms.target_id
+      - object_mapping:
+          expression: credit_note__allowance_charge.source_id
+        children:
+          - relationship: AllowanceCharge
+            object_mapping:
+              concept: AllowanceCharge
+              expression: credit_note__allowance_charge.target_id
+      - object_mapping:
+          expression: credit_note__tax_total.source_id
+        children:
+          - relationship: TaxTotal
+            object_mapping:
+              concept: TaxTotal
+              expression: credit_note__tax_total.target_id
+      - object_mapping:
+          expression: credit_note__withholding_tax_total.source_id
+        children:
+          - relationship: WithholdingTaxTotal
+            object_mapping:
+              concept: TaxTotal
+              expression: credit_note__withholding_tax_total.target_id
+      - object_mapping:
+          expression: credit_note.record_id
+        children:
+          - relationship: LegalMonetaryTotal
+            object_mapping:
+              concept: MonetaryTotal
+              expression: credit_note.legal_monetary_total_id
+      - object_mapping:
+          expression: credit_note__credit_note_line.source_id
+        children:
+          - relationship: CreditNoteLine
+            object_mapping:
+              concept: CreditNoteLine
+              expression: credit_note__credit_note_line.target_id
+  - concept: Party
+    object_mappings:
+      - expression: party.record_id
+    link_mappings:
+      - object_mapping:
+          expression: party.record_id
+        children:
+          - relationship: PostalAddress
+            object_mapping:
+              concept: Address
+              expression: party.postal_address_id
+      - object_mapping:
+          expression: party.record_id
+        children:
+          - relationship: PhysicalLocation
+            object_mapping:
+              concept: Location
+              expression: party.physical_location_id
+      - object_mapping:
+          expression: party.record_id
+        children:
+          - relationship: Contact
+            object_mapping:
+              concept: Contact
+              expression: party.contact_id
+      - object_mapping:
+          expression: party__person.source_id
+        children:
+          - relationship: Person
+            object_mapping:
+              concept: Person
+              expression: party__person.target_id
+      - object_mapping:
+          expression: party.record_id
+        children:
+          - relationship: AgentParty
+            object_mapping:
+              concept: Party
+              expression: party.agent_party_id
+      - object_mapping:
+          expression: party.record_id
+        children:
+          - relationship: FinancialAccount
+            object_mapping:
+              concept: FinancialAccount
+              expression: party.financial_account_id
+  - concept: CustomerParty
+    object_mappings:
+      - expression: customer_party.record_id
+    link_mappings:
+      - object_mapping:
+          expression: customer_party.record_id
+        children:
+          - relationship: Party
+            object_mapping:
+              concept: Party
+              expression: customer_party.party_id
+      - object_mapping:
+          expression: customer_party.record_id
+        children:
+          - relationship: DeliveryContact
+            object_mapping:
+              concept: Contact
+              expression: customer_party.delivery_contact_id
+      - object_mapping:
+          expression: customer_party.record_id
+        children:
+          - relationship: AccountingContact
+            object_mapping:
+              concept: Contact
+              expression: customer_party.accounting_contact_id
+      - object_mapping:
+          expression: customer_party.record_id
+        children:
+          - relationship: BuyerContact
+            object_mapping:
+              concept: Contact
+              expression: customer_party.buyer_contact_id
+  - concept: SupplierParty
+    object_mappings:
+      - expression: supplier_party.record_id
+    link_mappings:
+      - object_mapping:
+          expression: supplier_party.record_id
+        children:
+          - relationship: Party
+            object_mapping:
+              concept: Party
+              expression: supplier_party.party_id
+      - object_mapping:
+          expression: supplier_party.record_id
+        children:
+          - relationship: DespatchContact
+            object_mapping:
+              concept: Contact
+              expression: supplier_party.despatch_contact_id
+      - object_mapping:
+          expression: supplier_party.record_id
+        children:
+          - relationship: AccountingContact
+            object_mapping:
+              concept: Contact
+              expression: supplier_party.accounting_contact_id
+      - object_mapping:
+          expression: supplier_party.record_id
+        children:
+          - relationship: SellerContact
+            object_mapping:
+              concept: Contact
+              expression: supplier_party.seller_contact_id
+  - concept: Person
+    object_mappings:
+      - expression: person.record_id
+    link_mappings:
+      - object_mapping:
+          expression: person.record_id
+        children:
+          - relationship: BirthplaceLocation
+            object_mapping:
+              concept: Location
+              expression: person.birthplace_location_id
+      - object_mapping:
+          expression: person.record_id
+        children:
+          - relationship: CitizenshipCountry
+            object_mapping:
+              concept: Country
+              expression: person.citizenship_country_id
+      - object_mapping:
+          expression: person.record_id
+        children:
+          - relationship: Contact
+            object_mapping:
+              concept: Contact
+              expression: person.contact_id
+      - object_mapping:
+          expression: person.record_id
+        children:
+          - relationship: FinancialAccount
+            object_mapping:
+              concept: FinancialAccount
+              expression: person.financial_account_id
+      - object_mapping:
+          expression: person__identity_document_reference.source_id
+        children:
+          - relationship: IdentityDocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: person__identity_document_reference.target_id
+      - object_mapping:
+          expression: person.record_id
+        children:
+          - relationship: ResidenceAddress
+            object_mapping:
+              concept: Address
+              expression: person.residence_address_id
+  - concept: Contact
+    object_mappings:
+      - expression: contact.record_id
+  - concept: Address
+    object_mappings:
+      - expression: address.record_id
+    link_mappings:
+      - object_mapping:
+          expression: address.record_id
+        children:
+          - relationship: Country
+            object_mapping:
+              concept: Country
+              expression: address.country_id
+  - concept: Location
+    object_mappings:
+      - expression: location.record_id
+    link_mappings:
+      - object_mapping:
+          expression: location.record_id
+        children:
+          - relationship: Address
+            object_mapping:
+              concept: Address
+              expression: location.address_id
+      - object_mapping:
+          expression: location__subsidiary_location.source_id
+        children:
+          - relationship: SubsidiaryLocation
+            object_mapping:
+              concept: Location
+              expression: location__subsidiary_location.target_id
+  - concept: Country
+    object_mappings:
+      - expression: country.record_id
+  - concept: Item
+    object_mappings:
+      - expression: item.record_id
+    link_mappings:
+      - object_mapping:
+          expression: item.record_id
+        children:
+          - relationship: CatalogueDocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: item.catalogue_document_reference_id
+      - object_mapping:
+          expression: item__item_specification_document_reference.source_id
+        children:
+          - relationship: ItemSpecificationDocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: item__item_specification_document_reference.target_id
+      - object_mapping:
+          expression: item.record_id
+        children:
+          - relationship: OriginCountry
+            object_mapping:
+              concept: Country
+              expression: item.origin_country_id
+      - object_mapping:
+          expression: item__commodity_classification.source_id
+        children:
+          - relationship: CommodityClassification
+            object_mapping:
+              concept: CommodityClassification
+              expression: item__commodity_classification.target_id
+      - object_mapping:
+          expression: item__classified_tax_category.source_id
+        children:
+          - relationship: ClassifiedTaxCategory
+            object_mapping:
+              concept: TaxCategory
+              expression: item__classified_tax_category.target_id
+      - object_mapping:
+          expression: item__manufacturer_party.source_id
+        children:
+          - relationship: ManufacturerParty
+            object_mapping:
+              concept: Party
+              expression: item__manufacturer_party.target_id
+      - object_mapping:
+          expression: item.record_id
+        children:
+          - relationship: InformationContentProviderParty
+            object_mapping:
+              concept: Party
+              expression: item.information_content_provider_party_id
+      - object_mapping:
+          expression: item__origin_address.source_id
+        children:
+          - relationship: OriginAddress
+            object_mapping:
+              concept: Address
+              expression: item__origin_address.target_id
+  - concept: CommodityClassification
+    object_mappings:
+      - expression: commodity_classification.record_id
+  - concept: OrderLine
+    object_mappings:
+      - expression: order_line.record_id
+    link_mappings:
+      - object_mapping:
+          expression: order_line.record_id
+        children:
+          - relationship: LineItem
+            object_mapping:
+              concept: LineItem
+              expression: order_line.line_item_id
+      - object_mapping:
+          expression: order_line__seller_proposed_substitute_line_item.source_id
+        children:
+          - relationship: SellerProposedSubstituteLineItem
+            object_mapping:
+              concept: LineItem
+              expression: order_line__seller_proposed_substitute_line_item.target_id
+      - object_mapping:
+          expression: order_line__seller_substituted_line_item.source_id
+        children:
+          - relationship: SellerSubstitutedLineItem
+            object_mapping:
+              concept: LineItem
+              expression: order_line__seller_substituted_line_item.target_id
+      - object_mapping:
+          expression: order_line__buyer_proposed_substitute_line_item.source_id
+        children:
+          - relationship: BuyerProposedSubstituteLineItem
+            object_mapping:
+              concept: LineItem
+              expression: order_line__buyer_proposed_substitute_line_item.target_id
+      - object_mapping:
+          expression: order_line__document_reference.source_id
+        children:
+          - relationship: DocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: order_line__document_reference.target_id
+  - concept: LineItem
+    object_mappings:
+      - expression: line_item.record_id
+    link_mappings:
+      - object_mapping:
+          expression: line_item__delivery.source_id
+        children:
+          - relationship: Delivery
+            object_mapping:
+              concept: Delivery
+              expression: line_item__delivery.target_id
+      - object_mapping:
+          expression: line_item.record_id
+        children:
+          - relationship: OriginatorParty
+            object_mapping:
+              concept: Party
+              expression: line_item.originator_party_id
+      - object_mapping:
+          expression: line_item__allowance_charge.source_id
+        children:
+          - relationship: AllowanceCharge
+            object_mapping:
+              concept: AllowanceCharge
+              expression: line_item__allowance_charge.target_id
+      - object_mapping:
+          expression: line_item.record_id
+        children:
+          - relationship: Price
+            object_mapping:
+              concept: Price
+              expression: line_item.price_id
+      - object_mapping:
+          expression: line_item.record_id
+        children:
+          - relationship: Item
+            object_mapping:
+              concept: Item
+              expression: line_item.item_id
+      - object_mapping:
+          expression: line_item__sub_line_item.source_id
+        children:
+          - relationship: SubLineItem
+            object_mapping:
+              concept: LineItem
+              expression: line_item__sub_line_item.target_id
+      - object_mapping:
+          expression: line_item.record_id
+        children:
+          - relationship: WarrantyParty
+            object_mapping:
+              concept: Party
+              expression: line_item.warranty_party_id
+      - object_mapping:
+          expression: line_item__tax_total.source_id
+        children:
+          - relationship: TaxTotal
+            object_mapping:
+              concept: TaxTotal
+              expression: line_item__tax_total.target_id
+  - concept: Delivery
+    object_mappings:
+      - expression: delivery.record_id
+    link_mappings:
+      - object_mapping:
+          expression: delivery.record_id
+        children:
+          - relationship: DeliveryAddress
+            object_mapping:
+              concept: Address
+              expression: delivery.delivery_address_id
+      - object_mapping:
+          expression: delivery.record_id
+        children:
+          - relationship: DeliveryLocation
+            object_mapping:
+              concept: Location
+              expression: delivery.delivery_location_id
+      - object_mapping:
+          expression: delivery.record_id
+        children:
+          - relationship: AlternativeDeliveryLocation
+            object_mapping:
+              concept: Location
+              expression: delivery.alternative_delivery_location_id
+      - object_mapping:
+          expression: delivery.record_id
+        children:
+          - relationship: CarrierParty
+            object_mapping:
+              concept: Party
+              expression: delivery.carrier_party_id
+      - object_mapping:
+          expression: delivery.record_id
+        children:
+          - relationship: DeliveryParty
+            object_mapping:
+              concept: Party
+              expression: delivery.delivery_party_id
+      - object_mapping:
+          expression: delivery__notify_party.source_id
+        children:
+          - relationship: NotifyParty
+            object_mapping:
+              concept: Party
+              expression: delivery__notify_party.target_id
+      - object_mapping:
+          expression: delivery.record_id
+        children:
+          - relationship: Shipment
+            object_mapping:
+              concept: Shipment
+              expression: delivery.shipment_id
+  - concept: Shipment
+    object_mappings:
+      - expression: shipment.record_id
+    link_mappings:
+      - object_mapping:
+          expression: shipment__consignment.source_id
+        children:
+          - relationship: Consignment
+            object_mapping:
+              concept: Consignment
+              expression: shipment__consignment.target_id
+      - object_mapping:
+          expression: shipment__goods_item.source_id
+        children:
+          - relationship: GoodsItem
+            object_mapping:
+              concept: GoodsItem
+              expression: shipment__goods_item.target_id
+      - object_mapping:
+          expression: shipment.record_id
+        children:
+          - relationship: Delivery
+            object_mapping:
+              concept: Delivery
+              expression: shipment.delivery_id
+      - object_mapping:
+          expression: shipment__transport_handling_unit.source_id
+        children:
+          - relationship: TransportHandlingUnit
+            object_mapping:
+              concept: TransportHandlingUnit
+              expression: shipment__transport_handling_unit.target_id
+      - object_mapping:
+          expression: shipment.record_id
+        children:
+          - relationship: ReturnAddress
+            object_mapping:
+              concept: Address
+              expression: shipment.return_address_id
+      - object_mapping:
+          expression: shipment.record_id
+        children:
+          - relationship: OriginAddress
+            object_mapping:
+              concept: Address
+              expression: shipment.origin_address_id
+      - object_mapping:
+          expression: shipment.record_id
+        children:
+          - relationship: FirstArrivalPortLocation
+            object_mapping:
+              concept: Location
+              expression: shipment.first_arrival_port_location_id
+      - object_mapping:
+          expression: shipment.record_id
+        children:
+          - relationship: LastExitPortLocation
+            object_mapping:
+              concept: Location
+              expression: shipment.last_exit_port_location_id
+      - object_mapping:
+          expression: shipment.record_id
+        children:
+          - relationship: ExportCountry
+            object_mapping:
+              concept: Country
+              expression: shipment.export_country_id
+      - object_mapping:
+          expression: shipment__freight_allowance_charge.source_id
+        children:
+          - relationship: FreightAllowanceCharge
+            object_mapping:
+              concept: AllowanceCharge
+              expression: shipment__freight_allowance_charge.target_id
+  - concept: Consignment
+    object_mappings:
+      - expression: consignment.record_id
+    link_mappings:
+      - object_mapping:
+          expression: consignment__consolidated_shipment.source_id
+        children:
+          - relationship: ConsolidatedShipment
+            object_mapping:
+              concept: Shipment
+              expression: consignment__consolidated_shipment.target_id
+      - object_mapping:
+          expression: consignment__child_consignment.source_id
+        children:
+          - relationship: ChildConsignment
+            object_mapping:
+              concept: Consignment
+              expression: consignment__child_consignment.target_id
+      - object_mapping:
+          expression: consignment.record_id
+        children:
+          - relationship: ConsigneeParty
+            object_mapping:
+              concept: Party
+              expression: consignment.consignee_party_id
+      - object_mapping:
+          expression: consignment.record_id
+        children:
+          - relationship: ExporterParty
+            object_mapping:
+              concept: Party
+              expression: consignment.exporter_party_id
+      - object_mapping:
+          expression: consignment.record_id
+        children:
+          - relationship: ConsignorParty
+            object_mapping:
+              concept: Party
+              expression: consignment.consignor_party_id
+      - object_mapping:
+          expression: consignment.record_id
+        children:
+          - relationship: ImporterParty
+            object_mapping:
+              concept: Party
+              expression: consignment.importer_party_id
+      - object_mapping:
+          expression: consignment.record_id
+        children:
+          - relationship: CarrierParty
+            object_mapping:
+              concept: Party
+              expression: consignment.carrier_party_id
+      - object_mapping:
+          expression: consignment.record_id
+        children:
+          - relationship: FreightForwarderParty
+            object_mapping:
+              concept: Party
+              expression: consignment.freight_forwarder_party_id
+      - object_mapping:
+          expression: consignment.record_id
+        children:
+          - relationship: NotifyParty
+            object_mapping:
+              concept: Party
+              expression: consignment.notify_party_id
+      - object_mapping:
+          expression: consignment.record_id
+        children:
+          - relationship: OriginalDespatchParty
+            object_mapping:
+              concept: Party
+              expression: consignment.original_despatch_party_id
+      - object_mapping:
+          expression: consignment.record_id
+        children:
+          - relationship: FinalDeliveryParty
+            object_mapping:
+              concept: Party
+              expression: consignment.final_delivery_party_id
+      - object_mapping:
+          expression: consignment.record_id
+        children:
+          - relationship: PerformingCarrierParty
+            object_mapping:
+              concept: Party
+              expression: consignment.performing_carrier_party_id
+      - object_mapping:
+          expression: consignment.record_id
+        children:
+          - relationship: SubstituteCarrierParty
+            object_mapping:
+              concept: Party
+              expression: consignment.substitute_carrier_party_id
+      - object_mapping:
+          expression: consignment.record_id
+        children:
+          - relationship: LogisticsOperatorParty
+            object_mapping:
+              concept: Party
+              expression: consignment.logistics_operator_party_id
+      - object_mapping:
+          expression: consignment.record_id
+        children:
+          - relationship: TransportAdvisorParty
+            object_mapping:
+              concept: Party
+              expression: consignment.transport_advisor_party_id
+      - object_mapping:
+          expression: consignment.record_id
+        children:
+          - relationship: HazardousItemNotificationParty
+            object_mapping:
+              concept: Party
+              expression: consignment.hazardous_item_notification_party_id
+      - object_mapping:
+          expression: consignment.record_id
+        children:
+          - relationship: InsuranceParty
+            object_mapping:
+              concept: Party
+              expression: consignment.insurance_party_id
+      - object_mapping:
+          expression: consignment.record_id
+        children:
+          - relationship: MortgageHolderParty
+            object_mapping:
+              concept: Party
+              expression: consignment.mortgage_holder_party_id
+      - object_mapping:
+          expression: consignment.record_id
+        children:
+          - relationship: BillOfLadingHolderParty
+            object_mapping:
+              concept: Party
+              expression: consignment.bill_of_lading_holder_party_id
+      - object_mapping:
+          expression: consignment.record_id
+        children:
+          - relationship: OriginalDepartureCountry
+            object_mapping:
+              concept: Country
+              expression: consignment.original_departure_country_id
+      - object_mapping:
+          expression: consignment.record_id
+        children:
+          - relationship: FinalDestinationCountry
+            object_mapping:
+              concept: Country
+              expression: consignment.final_destination_country_id
+      - object_mapping:
+          expression: consignment__transit_country.source_id
+        children:
+          - relationship: TransitCountry
+            object_mapping:
+              concept: Country
+              expression: consignment__transit_country.target_id
+      - object_mapping:
+          expression: consignment.record_id
+        children:
+          - relationship: TransportContract
+            object_mapping:
+              concept: Contract
+              expression: consignment.transport_contract_id
+      - object_mapping:
+          expression: consignment.record_id
+        children:
+          - relationship: OriginalDespatchTransportationService
+            object_mapping:
+              concept: TransportationService
+              expression: consignment.original_despatch_transportation_service_id
+      - object_mapping:
+          expression: consignment.record_id
+        children:
+          - relationship: FinalDeliveryTransportationService
+            object_mapping:
+              concept: TransportationService
+              expression: consignment.final_delivery_transportation_service_id
+      - object_mapping:
+          expression: consignment.record_id
+        children:
+          - relationship: PaymentTerms
+            object_mapping:
+              concept: PaymentTerms
+              expression: consignment.payment_terms_id
+      - object_mapping:
+          expression: consignment.record_id
+        children:
+          - relationship: CollectPaymentTerms
+            object_mapping:
+              concept: PaymentTerms
+              expression: consignment.collect_payment_terms_id
+      - object_mapping:
+          expression: consignment.record_id
+        children:
+          - relationship: DisbursementPaymentTerms
+            object_mapping:
+              concept: PaymentTerms
+              expression: consignment.disbursement_payment_terms_id
+      - object_mapping:
+          expression: consignment.record_id
+        children:
+          - relationship: PrepaidPaymentTerms
+            object_mapping:
+              concept: PaymentTerms
+              expression: consignment.prepaid_payment_terms_id
+      - object_mapping:
+          expression: consignment__freight_allowance_charge.source_id
+        children:
+          - relationship: FreightAllowanceCharge
+            object_mapping:
+              concept: AllowanceCharge
+              expression: consignment__freight_allowance_charge.target_id
+      - object_mapping:
+          expression: consignment__extra_allowance_charge.source_id
+        children:
+          - relationship: ExtraAllowanceCharge
+            object_mapping:
+              concept: AllowanceCharge
+              expression: consignment__extra_allowance_charge.target_id
+      - object_mapping:
+          expression: consignment__transport_handling_unit.source_id
+        children:
+          - relationship: TransportHandlingUnit
+            object_mapping:
+              concept: TransportHandlingUnit
+              expression: consignment__transport_handling_unit.target_id
+      - object_mapping:
+          expression: consignment.record_id
+        children:
+          - relationship: FirstArrivalPortLocation
+            object_mapping:
+              concept: Location
+              expression: consignment.first_arrival_port_location_id
+      - object_mapping:
+          expression: consignment.record_id
+        children:
+          - relationship: LastExitPortLocation
+            object_mapping:
+              concept: Location
+              expression: consignment.last_exit_port_location_id
+      - object_mapping:
+          expression: consignment.record_id
+        children:
+          - relationship: OfficeOfEntryLocation
+            object_mapping:
+              concept: Location
+              expression: consignment.office_of_entry_location_id
+      - object_mapping:
+          expression: consignment.record_id
+        children:
+          - relationship: OfficeOfSubSequentiallyEntryLocation
+            object_mapping:
+              concept: Location
+              expression: consignment.office_of_sub_sequentially_entry_location_id
+      - object_mapping:
+          expression: consignment.record_id
+        children:
+          - relationship: OfficeOfExitLocation
+            object_mapping:
+              concept: Location
+              expression: consignment.office_of_exit_location_id
+      - object_mapping:
+          expression: consignment.record_id
+        children:
+          - relationship: OfficeOfDepartureLocation
+            object_mapping:
+              concept: Location
+              expression: consignment.office_of_departure_location_id
+      - object_mapping:
+          expression: consignment.record_id
+        children:
+          - relationship: OfficeOfDestinationLocation
+            object_mapping:
+              concept: Location
+              expression: consignment.office_of_destination_location_id
+      - object_mapping:
+          expression: consignment.record_id
+        children:
+          - relationship: OfficeOfImportLocation
+            object_mapping:
+              concept: Location
+              expression: consignment.office_of_import_location_id
+      - object_mapping:
+          expression: consignment.record_id
+        children:
+          - relationship: OfficeOfExportLocation
+            object_mapping:
+              concept: Location
+              expression: consignment.office_of_export_location_id
+      - object_mapping:
+          expression: consignment__document_reference.source_id
+        children:
+          - relationship: DocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: consignment__document_reference.target_id
+  - concept: TransportHandlingUnit
+    object_mappings:
+      - expression: transport_handling_unit.record_id
+    link_mappings:
+      - object_mapping:
+          expression: transport_handling_unit__handling_unit_despatch_line.source_id
+        children:
+          - relationship: HandlingUnitDespatchLine
+            object_mapping:
+              concept: DespatchLine
+              expression: transport_handling_unit__handling_unit_despatch_line.target_id
+      - object_mapping:
+          expression: transport_handling_unit__received_handling_unit_receipt_line.source_id
+        children:
+          - relationship: ReceivedHandlingUnitReceiptLine
+            object_mapping:
+              concept: ReceiptLine
+              expression: transport_handling_unit__received_handling_unit_receipt_line.target_id
+      - object_mapping:
+          expression: transport_handling_unit__transport_equipment.source_id
+        children:
+          - relationship: TransportEquipment
+            object_mapping:
+              concept: TransportEquipment
+              expression: transport_handling_unit__transport_equipment.target_id
+      - object_mapping:
+          expression: transport_handling_unit__transport_means.source_id
+        children:
+          - relationship: TransportMeans
+            object_mapping:
+              concept: TransportMeans
+              expression: transport_handling_unit__transport_means.target_id
+      - object_mapping:
+          expression: transport_handling_unit__goods_item.source_id
+        children:
+          - relationship: GoodsItem
+            object_mapping:
+              concept: GoodsItem
+              expression: transport_handling_unit__goods_item.target_id
+      - object_mapping:
+          expression: transport_handling_unit__shipment_document_reference.source_id
+        children:
+          - relationship: ShipmentDocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: transport_handling_unit__shipment_document_reference.target_id
+      - object_mapping:
+          expression: transport_handling_unit__referenced_shipment.source_id
+        children:
+          - relationship: ReferencedShipment
+            object_mapping:
+              concept: Shipment
+              expression: transport_handling_unit__referenced_shipment.target_id
+  - concept: TransportEquipment
+    object_mappings:
+      - expression: transport_equipment.record_id
+    link_mappings:
+      - object_mapping:
+          expression: transport_equipment.record_id
+        children:
+          - relationship: ProviderParty
+            object_mapping:
+              concept: Party
+              expression: transport_equipment.provider_party_id
+      - object_mapping:
+          expression: transport_equipment.record_id
+        children:
+          - relationship: LoadingProofParty
+            object_mapping:
+              concept: Party
+              expression: transport_equipment.loading_proof_party_id
+      - object_mapping:
+          expression: transport_equipment.record_id
+        children:
+          - relationship: SupplierParty
+            object_mapping:
+              concept: SupplierParty
+              expression: transport_equipment.supplier_party_id
+      - object_mapping:
+          expression: transport_equipment.record_id
+        children:
+          - relationship: OwnerParty
+            object_mapping:
+              concept: Party
+              expression: transport_equipment.owner_party_id
+      - object_mapping:
+          expression: transport_equipment.record_id
+        children:
+          - relationship: OperatingParty
+            object_mapping:
+              concept: Party
+              expression: transport_equipment.operating_party_id
+      - object_mapping:
+          expression: transport_equipment.record_id
+        children:
+          - relationship: LoadingLocation
+            object_mapping:
+              concept: Location
+              expression: transport_equipment.loading_location_id
+      - object_mapping:
+          expression: transport_equipment.record_id
+        children:
+          - relationship: UnloadingLocation
+            object_mapping:
+              concept: Location
+              expression: transport_equipment.unloading_location_id
+      - object_mapping:
+          expression: transport_equipment.record_id
+        children:
+          - relationship: StorageLocation
+            object_mapping:
+              concept: Location
+              expression: transport_equipment.storage_location_id
+      - object_mapping:
+          expression: transport_equipment.record_id
+        children:
+          - relationship: ApplicableTransportMeans
+            object_mapping:
+              concept: TransportMeans
+              expression: transport_equipment.applicable_transport_means_id
+      - object_mapping:
+          expression: transport_equipment__packaged_transport_handling_unit.source_id
+        children:
+          - relationship: PackagedTransportHandlingUnit
+            object_mapping:
+              concept: TransportHandlingUnit
+              expression: transport_equipment__packaged_transport_handling_unit.target_id
+      - object_mapping:
+          expression: transport_equipment__service_allowance_charge.source_id
+        children:
+          - relationship: ServiceAllowanceCharge
+            object_mapping:
+              concept: AllowanceCharge
+              expression: transport_equipment__service_allowance_charge.target_id
+      - object_mapping:
+          expression: transport_equipment__freight_allowance_charge.source_id
+        children:
+          - relationship: FreightAllowanceCharge
+            object_mapping:
+              concept: AllowanceCharge
+              expression: transport_equipment__freight_allowance_charge.target_id
+      - object_mapping:
+          expression: transport_equipment__attached_transport_equipment.source_id
+        children:
+          - relationship: AttachedTransportEquipment
+            object_mapping:
+              concept: TransportEquipment
+              expression: transport_equipment__attached_transport_equipment.target_id
+      - object_mapping:
+          expression: transport_equipment.record_id
+        children:
+          - relationship: Delivery
+            object_mapping:
+              concept: Delivery
+              expression: transport_equipment.delivery_id
+      - object_mapping:
+          expression: transport_equipment__shipment_document_reference.source_id
+        children:
+          - relationship: ShipmentDocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: transport_equipment__shipment_document_reference.target_id
+      - object_mapping:
+          expression: transport_equipment__contained_in_transport_equipment.source_id
+        children:
+          - relationship: ContainedInTransportEquipment
+            object_mapping:
+              concept: TransportEquipment
+              expression: transport_equipment__contained_in_transport_equipment.target_id
+      - object_mapping:
+          expression: transport_equipment__goods_item.source_id
+        children:
+          - relationship: GoodsItem
+            object_mapping:
+              concept: GoodsItem
+              expression: transport_equipment__goods_item.target_id
+  - concept: GoodsItem
+    object_mappings:
+      - expression: goods_item.record_id
+    link_mappings:
+      - object_mapping:
+          expression: goods_item__item.source_id
+        children:
+          - relationship: Item
+            object_mapping:
+              concept: Item
+              expression: goods_item__item.target_id
+      - object_mapping:
+          expression: goods_item__freight_allowance_charge.source_id
+        children:
+          - relationship: FreightAllowanceCharge
+            object_mapping:
+              concept: AllowanceCharge
+              expression: goods_item__freight_allowance_charge.target_id
+      - object_mapping:
+          expression: goods_item__invoice_line.source_id
+        children:
+          - relationship: InvoiceLine
+            object_mapping:
+              concept: InvoiceLine
+              expression: goods_item__invoice_line.target_id
+      - object_mapping:
+          expression: goods_item__contained_goods_item.source_id
+        children:
+          - relationship: ContainedGoodsItem
+            object_mapping:
+              concept: GoodsItem
+              expression: goods_item__contained_goods_item.target_id
+      - object_mapping:
+          expression: goods_item.record_id
+        children:
+          - relationship: OriginAddress
+            object_mapping:
+              concept: Address
+              expression: goods_item.origin_address_id
+      - object_mapping:
+          expression: goods_item.record_id
+        children:
+          - relationship: Delivery
+            object_mapping:
+              concept: Delivery
+              expression: goods_item.delivery_id
+      - object_mapping:
+          expression: goods_item.record_id
+        children:
+          - relationship: ShipmentDocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: goods_item.shipment_document_reference_id
+  - concept: InvoiceLine
+    object_mappings:
+      - expression: invoice_line.record_id
+    link_mappings:
+      - object_mapping:
+          expression: invoice_line__billing_reference.source_id
+        children:
+          - relationship: BillingReference
+            object_mapping:
+              concept: BillingReference
+              expression: invoice_line__billing_reference.target_id
+      - object_mapping:
+          expression: invoice_line__document_reference.source_id
+        children:
+          - relationship: DocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: invoice_line__document_reference.target_id
+      - object_mapping:
+          expression: invoice_line.record_id
+        children:
+          - relationship: OriginatorParty
+            object_mapping:
+              concept: Party
+              expression: invoice_line.originator_party_id
+      - object_mapping:
+          expression: invoice_line__delivery.source_id
+        children:
+          - relationship: Delivery
+            object_mapping:
+              concept: Delivery
+              expression: invoice_line__delivery.target_id
+      - object_mapping:
+          expression: invoice_line__payment_terms.source_id
+        children:
+          - relationship: PaymentTerms
+            object_mapping:
+              concept: PaymentTerms
+              expression: invoice_line__payment_terms.target_id
+      - object_mapping:
+          expression: invoice_line__allowance_charge.source_id
+        children:
+          - relationship: AllowanceCharge
+            object_mapping:
+              concept: AllowanceCharge
+              expression: invoice_line__allowance_charge.target_id
+      - object_mapping:
+          expression: invoice_line__tax_total.source_id
+        children:
+          - relationship: TaxTotal
+            object_mapping:
+              concept: TaxTotal
+              expression: invoice_line__tax_total.target_id
+      - object_mapping:
+          expression: invoice_line__withholding_tax_total.source_id
+        children:
+          - relationship: WithholdingTaxTotal
+            object_mapping:
+              concept: TaxTotal
+              expression: invoice_line__withholding_tax_total.target_id
+      - object_mapping:
+          expression: invoice_line.record_id
+        children:
+          - relationship: Item
+            object_mapping:
+              concept: Item
+              expression: invoice_line.item_id
+      - object_mapping:
+          expression: invoice_line.record_id
+        children:
+          - relationship: Price
+            object_mapping:
+              concept: Price
+              expression: invoice_line.price_id
+      - object_mapping:
+          expression: invoice_line__sub_invoice_line.source_id
+        children:
+          - relationship: SubInvoiceLine
+            object_mapping:
+              concept: InvoiceLine
+              expression: invoice_line__sub_invoice_line.target_id
+  - concept: CreditNoteLine
+    object_mappings:
+      - expression: credit_note_line.record_id
+    link_mappings:
+      - object_mapping:
+          expression: credit_note_line__billing_reference.source_id
+        children:
+          - relationship: BillingReference
+            object_mapping:
+              concept: BillingReference
+              expression: credit_note_line__billing_reference.target_id
+      - object_mapping:
+          expression: credit_note_line__document_reference.source_id
+        children:
+          - relationship: DocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: credit_note_line__document_reference.target_id
+      - object_mapping:
+          expression: credit_note_line.record_id
+        children:
+          - relationship: OriginatorParty
+            object_mapping:
+              concept: Party
+              expression: credit_note_line.originator_party_id
+      - object_mapping:
+          expression: credit_note_line__delivery.source_id
+        children:
+          - relationship: Delivery
+            object_mapping:
+              concept: Delivery
+              expression: credit_note_line__delivery.target_id
+      - object_mapping:
+          expression: credit_note_line__payment_terms.source_id
+        children:
+          - relationship: PaymentTerms
+            object_mapping:
+              concept: PaymentTerms
+              expression: credit_note_line__payment_terms.target_id
+      - object_mapping:
+          expression: credit_note_line__tax_total.source_id
+        children:
+          - relationship: TaxTotal
+            object_mapping:
+              concept: TaxTotal
+              expression: credit_note_line__tax_total.target_id
+      - object_mapping:
+          expression: credit_note_line__allowance_charge.source_id
+        children:
+          - relationship: AllowanceCharge
+            object_mapping:
+              concept: AllowanceCharge
+              expression: credit_note_line__allowance_charge.target_id
+      - object_mapping:
+          expression: credit_note_line.record_id
+        children:
+          - relationship: Item
+            object_mapping:
+              concept: Item
+              expression: credit_note_line.item_id
+      - object_mapping:
+          expression: credit_note_line.record_id
+        children:
+          - relationship: Price
+            object_mapping:
+              concept: Price
+              expression: credit_note_line.price_id
+      - object_mapping:
+          expression: credit_note_line__sub_credit_note_line.source_id
+        children:
+          - relationship: SubCreditNoteLine
+            object_mapping:
+              concept: CreditNoteLine
+              expression: credit_note_line__sub_credit_note_line.target_id
+  - concept: PaymentMeans
+    object_mappings:
+      - expression: payment_means.record_id
+    link_mappings:
+      - object_mapping:
+          expression: payment_means.record_id
+        children:
+          - relationship: PayerFinancialAccount
+            object_mapping:
+              concept: FinancialAccount
+              expression: payment_means.payer_financial_account_id
+      - object_mapping:
+          expression: payment_means.record_id
+        children:
+          - relationship: PayeeFinancialAccount
+            object_mapping:
+              concept: FinancialAccount
+              expression: payment_means.payee_financial_account_id
+  - concept: PaymentTerms
+    object_mappings:
+      - expression: payment_terms.record_id
+  - concept: FinancialAccount
+    object_mappings:
+      - expression: financial_account.record_id
+    link_mappings:
+      - object_mapping:
+          expression: financial_account.record_id
+        children:
+          - relationship: FinancialInstitutionBranch
+            object_mapping:
+              concept: Branch
+              expression: financial_account.financial_institution_branch_id
+      - object_mapping:
+          expression: financial_account.record_id
+        children:
+          - relationship: Country
+            object_mapping:
+              concept: Country
+              expression: financial_account.country_id
+  - concept: FinancialInstitution
+    object_mappings:
+      - expression: financial_institution.record_id
+    link_mappings:
+      - object_mapping:
+          expression: financial_institution.record_id
+        children:
+          - relationship: Address
+            object_mapping:
+              concept: Address
+              expression: financial_institution.address_id
+  - concept: Branch
+    object_mappings:
+      - expression: branch.record_id
+    link_mappings:
+      - object_mapping:
+          expression: branch.record_id
+        children:
+          - relationship: FinancialInstitution
+            object_mapping:
+              concept: FinancialInstitution
+              expression: branch.financial_institution_id
+      - object_mapping:
+          expression: branch.record_id
+        children:
+          - relationship: Address
+            object_mapping:
+              concept: Address
+              expression: branch.address_id
+  - concept: TaxTotal
+    object_mappings:
+      - expression: tax_total.record_id
+    link_mappings:
+      - object_mapping:
+          expression: tax_total__tax_subtotal.source_id
+        children:
+          - relationship: TaxSubtotal
+            object_mapping:
+              concept: TaxSubtotal
+              expression: tax_total__tax_subtotal.target_id
+  - concept: TaxSubtotal
+    object_mappings:
+      - expression: tax_subtotal.record_id
+    link_mappings:
+      - object_mapping:
+          expression: tax_subtotal.record_id
+        children:
+          - relationship: TaxCategory
+            object_mapping:
+              concept: TaxCategory
+              expression: tax_subtotal.tax_category_id
+  - concept: TaxCategory
+    object_mappings:
+      - expression: tax_category.record_id
+    link_mappings:
+      - object_mapping:
+          expression: tax_category.record_id
+        children:
+          - relationship: TaxScheme
+            object_mapping:
+              concept: TaxScheme
+              expression: tax_category.tax_scheme_id
+  - concept: TaxScheme
+    object_mappings:
+      - expression: tax_scheme.record_id
+    link_mappings:
+      - object_mapping:
+          expression: tax_scheme__jurisdiction_region_address.source_id
+        children:
+          - relationship: JurisdictionRegionAddress
+            object_mapping:
+              concept: Address
+              expression: tax_scheme__jurisdiction_region_address.target_id
+  - concept: Price
+    object_mappings:
+      - expression: price.record_id
+    link_mappings:
+      - object_mapping:
+          expression: price__allowance_charge.source_id
+        children:
+          - relationship: AllowanceCharge
+            object_mapping:
+              concept: AllowanceCharge
+              expression: price__allowance_charge.target_id
+      - object_mapping:
+          expression: price__alternative_currency_price.source_id
+        children:
+          - relationship: AlternativeCurrencyPrice
+            object_mapping:
+              concept: Price
+              expression: price__alternative_currency_price.target_id
+  - concept: AllowanceCharge
+    object_mappings:
+      - expression: allowance_charge.record_id
+    link_mappings:
+      - object_mapping:
+          expression: allowance_charge__tax_category.source_id
+        children:
+          - relationship: TaxCategory
+            object_mapping:
+              concept: TaxCategory
+              expression: allowance_charge__tax_category.target_id
+      - object_mapping:
+          expression: allowance_charge.record_id
+        children:
+          - relationship: TaxTotal
+            object_mapping:
+              concept: TaxTotal
+              expression: allowance_charge.tax_total_id
+      - object_mapping:
+          expression: allowance_charge__payment_means.source_id
+        children:
+          - relationship: PaymentMeans
+            object_mapping:
+              concept: PaymentMeans
+              expression: allowance_charge__payment_means.target_id
+  - concept: Contract
+    object_mappings:
+      - expression: contract.record_id
+    link_mappings:
+      - object_mapping:
+          expression: contract__contract_document_reference.source_id
+        children:
+          - relationship: ContractDocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: contract__contract_document_reference.target_id
+      - object_mapping:
+          expression: contract.record_id
+        children:
+          - relationship: ContractualDelivery
+            object_mapping:
+              concept: Delivery
+              expression: contract.contractual_delivery_id
+  - concept: DocumentReference
+    object_mappings:
+      - expression: document_reference.record_id
+    link_mappings:
+      - object_mapping:
+          expression: document_reference.record_id
+        children:
+          - relationship: IssuerParty
+            object_mapping:
+              concept: Party
+              expression: document_reference.issuer_party_id
+  - concept: ReceiptLine
+    object_mappings:
+      - expression: receipt_line.record_id
+    link_mappings:
+      - object_mapping:
+          expression: receipt_line__document_reference.source_id
+        children:
+          - relationship: DocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: receipt_line__document_reference.target_id
+      - object_mapping:
+          expression: receipt_line__item.source_id
+        children:
+          - relationship: Item
+            object_mapping:
+              concept: Item
+              expression: receipt_line__item.target_id
+      - object_mapping:
+          expression: receipt_line__shipment.source_id
+        children:
+          - relationship: Shipment
+            object_mapping:
+              concept: Shipment
+              expression: receipt_line__shipment.target_id
+  - concept: DespatchLine
+    object_mappings:
+      - expression: despatch_line.record_id
+    link_mappings:
+      - object_mapping:
+          expression: despatch_line__document_reference.source_id
+        children:
+          - relationship: DocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: despatch_line__document_reference.target_id
+      - object_mapping:
+          expression: despatch_line.record_id
+        children:
+          - relationship: Item
+            object_mapping:
+              concept: Item
+              expression: despatch_line.item_id
+      - object_mapping:
+          expression: despatch_line__shipment.source_id
+        children:
+          - relationship: Shipment
+            object_mapping:
+              concept: Shipment
+              expression: despatch_line__shipment.target_id
+      - object_mapping:
+          expression: despatch_line__sub_despatch_line.source_id
+        children:
+          - relationship: SubDespatchLine
+            object_mapping:
+              concept: DespatchLine
+              expression: despatch_line__sub_despatch_line.target_id
+  - concept: TransportationService
+    object_mappings:
+      - expression: transportation_service.record_id
+    link_mappings:
+      - object_mapping:
+          expression: transportation_service__transport_equipment.source_id
+        children:
+          - relationship: TransportEquipment
+            object_mapping:
+              concept: TransportEquipment
+              expression: transportation_service__transport_equipment.target_id
+      - object_mapping:
+          expression: transportation_service__supported_transport_equipment.source_id
+        children:
+          - relationship: SupportedTransportEquipment
+            object_mapping:
+              concept: TransportEquipment
+              expression: transportation_service__supported_transport_equipment.target_id
+      - object_mapping:
+          expression: transportation_service__unsupported_transport_equipment.source_id
+        children:
+          - relationship: UnsupportedTransportEquipment
+            object_mapping:
+              concept: TransportEquipment
+              expression: transportation_service__unsupported_transport_equipment.target_id
+      - object_mapping:
+          expression: transportation_service__commodity_classification.source_id
+        children:
+          - relationship: CommodityClassification
+            object_mapping:
+              concept: CommodityClassification
+              expression: transportation_service__commodity_classification.target_id
+      - object_mapping:
+          expression: transportation_service__supported_commodity_classification.source_id
+        children:
+          - relationship: SupportedCommodityClassification
+            object_mapping:
+              concept: CommodityClassification
+              expression: transportation_service__supported_commodity_classification.target_id
+      - object_mapping:
+          expression: transportation_service__unsupported_commodity_classification.source_id
+        children:
+          - relationship: UnsupportedCommodityClassification
+            object_mapping:
+              concept: CommodityClassification
+              expression: transportation_service__unsupported_commodity_classification.target_id
+      - object_mapping:
+          expression: transportation_service.record_id
+        children:
+          - relationship: ResponsibleTransportServiceProviderParty
+            object_mapping:
+              concept: Party
+              expression: transportation_service.responsible_transport_service_provider_party_id
+  - concept: TransportMeans
+    object_mappings:
+      - expression: transport_means.record_id
+    link_mappings:
+      - object_mapping:
+          expression: transport_means.record_id
+        children:
+          - relationship: OwnerParty
+            object_mapping:
+              concept: Party
+              expression: transport_means.owner_party_id
+  - concept: OrderReference
+    object_mappings:
+      - expression: order_reference.record_id
+    link_mappings:
+      - object_mapping:
+          expression: order_reference.record_id
+        children:
+          - relationship: DocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: order_reference.document_reference_id
+  - concept: BillingReference
+    object_mappings:
+      - expression: billing_reference.record_id
+    link_mappings:
+      - object_mapping:
+          expression: billing_reference.record_id
+        children:
+          - relationship: InvoiceDocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: billing_reference.invoice_document_reference_id
+      - object_mapping:
+          expression: billing_reference.record_id
+        children:
+          - relationship: SelfBilledInvoiceDocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: billing_reference.self_billed_invoice_document_reference_id
+      - object_mapping:
+          expression: billing_reference.record_id
+        children:
+          - relationship: CreditNoteDocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: billing_reference.credit_note_document_reference_id
+      - object_mapping:
+          expression: billing_reference.record_id
+        children:
+          - relationship: SelfBilledCreditNoteDocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: billing_reference.self_billed_credit_note_document_reference_id
+      - object_mapping:
+          expression: billing_reference.record_id
+        children:
+          - relationship: DebitNoteDocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: billing_reference.debit_note_document_reference_id
+      - object_mapping:
+          expression: billing_reference.record_id
+        children:
+          - relationship: ReminderDocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: billing_reference.reminder_document_reference_id
+      - object_mapping:
+          expression: billing_reference.record_id
+        children:
+          - relationship: AdditionalDocumentReference
+            object_mapping:
+              concept: DocumentReference
+              expression: billing_reference.additional_document_reference_id
+  - concept: MonetaryTotal
+    object_mappings:
+      - expression: monetary_total.record_id
 custom_extensions:
   - vendor_name: SEMANTIC_WORKBENCH
     data: >
