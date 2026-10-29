@@ -421,7 +421,8 @@ try {
     const path = await download.path();
     if (!path) throw Error('Missing context download');
     const context = JSON.parse(await readFile(path, 'utf8'));
-    if (context.bindings.length !== 9 || context.aiContext.length !== 2 || context.documents.length !== 3) throw Error('Context layers missing');
+    if (context.bindings.length !== 9 || context.aiContext.length !== 2 || context.documents.filter((document: { role: string }) => document.role !== 'source').length !== 3)
+      throw Error('Context layers missing');
     if (context.metrics.find((m: any) => m.name === 'gross_revenue')?.definition.expression.dialects[0].expression !== 'SUM(orders.amount)') throw Error('Governed formula changed');
     if (!context.bindings.every((b: any) => b.evidence.documentId && b.evidence.path.length && b.evidence.revision)) throw Error('Provenance lost');
   });
