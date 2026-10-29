@@ -6,7 +6,7 @@ import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Page } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { editorValue, fillEditor } from './helpers/code-editor';
-import { nestedScrollBoxes } from './helpers/clipped-text';
+import { nestedScrollBoxes, sidewaysOverflowProblems } from './helpers/clipped-text';
 import { showSidebar } from './helpers/screen-tour';
 import { example } from './helpers/examples';
 
@@ -193,8 +193,7 @@ async function mappingStructureChecks(page: Page, label: string, expectedProject
   await check(`${label}: the tab scrolls as one page, nothing in it scrolls on its own and no label ends in an ellipsis`, async () => {
     expect(await nestedScrollBoxes(page, '.mapping-explorer')).toEqual([]);
     expect(await ellipsisProblems(page, '.mapping-explorer')).toEqual([]);
-    const sideways = await page.locator('.mapping-explorer').evaluate(element => element.scrollWidth > element.clientWidth + 1);
-    expect(sideways).toBe(false);
+    expect(await sidewaysOverflowProblems(page, '.mapping-explorer')).toEqual([]);
   });
 }
 
