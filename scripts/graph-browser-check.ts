@@ -5,6 +5,7 @@ import { checkExpansionViewports } from './graph-expansion-checks';
 import { chooseLayout, setShown, viewOptions } from './helpers/graph-options';
 import { chromium, expect } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
+import { neighborhoodCardProblems } from './helpers/card-geometry';
 import { neighborhoodEdgeProblems, neighborhoodState, pickCenter } from './helpers/edge-geometry';
 import { inspect } from '../src/shared/core/model';
 import { neighborhood, projectModel } from '../src/app/graph/graph-view';
@@ -196,6 +197,29 @@ try {
     await expect(page.getByPlaceholder('Find an entity…')).toHaveValue('');
     await expect.poll(async () => (await neighborhoodState(page)).center).toBe(id(ubl, 'Invoice'));
   });
+  await check('UBL Party: nine clicks of Show all connected leave one trail step; cards are whole, apart, labelled in words, and no edge crosses a card', async () => {
+    await openFile('ubl.ontology.yaml');
+    await tab('Neighborhood').click();
+    await pickCenter(page, 'Party');
+    await page.getByRole('radiogroup', { name: 'Pierce direction' }).getByRole('radio', { name: 'Both' }).click();
+    const trail = page.getByRole('navigation', { name: 'Walk' });
+    const steps = trail.locator('ol li');
+    const stepsBefore = await steps.count();
+    const pierce = page.getByRole('button', { name: 'Show all connected' });
+    for (let click = 0; click < 9; click++) {
+      await pierce.click();
+      await expect(pierce).toBeEnabled();
+    }
+    await expect(page.locator('.neighborhood-canvas')).toHaveAttribute('data-viewport-ready', 'true');
+    await page.waitForTimeout(500);
+    await expect(trail.getByRole('button', { name: 'All connected to Party' })).toHaveCount(1);
+    await expect(trail).not.toContainText('pierced');
+    expect(await steps.count()).toBeLessThanOrEqual(stepsBefore + 1);
+    const kinds = await page.locator('.neighborhood-canvas .react-flow__node .node > small').allTextContents();
+    expect(kinds.some(kind => kind.includes('Entity type'))).toBe(true);
+    expect(kinds.some(kind => kind.includes('EntityType'))).toBe(false);
+    expect(await neighborhoodCardProblems(page)).toEqual([]);
+  });
   await check('UBL OWL: the classes-only projection holds with and without a center; technical resources only on request', async () => {
     await openFile('ubl.owl.ttl');
     await tab('Neighborhood').click();
@@ -316,12 +340,14 @@ try {
     await expectState(ubl, id(ubl, 'Order'));
     const done: { expand?: string }[] = [];
     for (const name of ['OrderLine', 'LineItem', 'Item']) {
+      await expect(page.locator('.neighborhood-canvas')).toHaveAttribute('data-viewport-ready', 'true');
       const before = await nodePositions();
       await node(ubl, name)
         .getByRole('button', { name: `Expand ${name}` })
         .click();
       done.push({ expand: name });
       await expect.poll(nodeIds).toEqual(expectedCanvas(ubl, 'Order', done));
+      await expect(page.locator('.neighborhood-canvas')).toHaveAttribute('data-viewport-ready', 'true');
       const after = await nodePositions();
       for (const [key, value] of Object.entries(before)) expect(after[key], `${key} moved`).toBe(value);
       await expect(page.getByRole('navigation', { name: 'Walk' })).toContainText(`expanded ${name}`);
@@ -336,6 +362,7 @@ try {
     await expect.poll(nodeIds).toEqual(expectedCanvas(ubl, 'Order', [{ expand: 'OrderLine' }, { expand: 'LineItem' }, { expand: 'Item' }, { collapse: 'Item' }]));
     await page.getByRole('button', { name: 'Undo expansion' }).click();
     await expect.poll(nodeIds).toEqual(ids);
+    await expect(page.locator('.neighborhood-canvas')).toHaveAttribute('data-viewport-ready', 'true');
     expect(await nodePositions()).toEqual(before);
     await page.getByRole('navigation', { name: 'Walk' }).getByRole('button', { name: 'Forward' }).click();
     await expect.poll(nodeIds).toEqual(expectedCanvas(ubl, 'Order', [{ expand: 'OrderLine' }, { expand: 'LineItem' }, { expand: 'Item' }, { collapse: 'Item' }]));

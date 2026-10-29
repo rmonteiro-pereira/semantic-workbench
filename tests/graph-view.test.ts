@@ -1,6 +1,6 @@
 // Tests neighborhood projection, search, ranking and paging.
 import { test, expect } from 'bun:test';
-import { graphView, groupRelationships, neighborhood, projectModel, searchEntities, defaultCenter, NEIGHBOR_PAGE } from '../src/app/graph/graph-view';
+import { kindWords, graphView, groupRelationships, neighborhood, projectModel, searchEntities, defaultCenter, NEIGHBOR_PAGE } from '../src/app/graph/graph-view';
 import { layoutGraph } from '../src/app/graph/layout';
 
 const nodes = Array.from({ length: 30 }, (_, i) => ({
@@ -100,4 +100,11 @@ test('wrapped layout positions never overlap and broad layers stay short', () =>
 test('isolated center stays visible; empty search shows nothing unrelated', () => {
   expect(neighborhood(nodes, [], { center: '29' }).entities.map(n => n.id)).toEqual(['29']);
   expect(graphView(nodes, [], 'not present').entities).toHaveLength(0);
+});
+
+test('model kinds read as words', () => {
+  expect(kindWords('EntityType')).toBe('Entity type');
+  expect(kindWords('ValueType')).toBe('Value type');
+  expect(kindWords('OWL class')).toBe('OWL class');
+  expect(kindWords('Built-in concept')).toBe('Built-in concept');
 });

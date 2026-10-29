@@ -2,7 +2,7 @@
 import { BaseEdge, EdgeLabelRenderer, useStore, type EdgeProps } from '@xyflow/react';
 import { labelBox, labelInViewport, nearestRoutePoint, orthogonalPath, routePoints, type EdgeRoute } from './routes';
 /** Exports the shared relationship routing geometry and types. */
-export { assignRoutes, placeLabels, routePoints, orthogonalPath, type EdgeRoute, type Box } from './routes';
+export { assignRoutes, heightForEdgeEnds, placeLabels, routePoints, orthogonalPath, type EdgeRoute, type Box } from './routes';
 
 /** Renders an assigned relationship route and its label. */
 export function RelationshipEdge(props: EdgeProps) {

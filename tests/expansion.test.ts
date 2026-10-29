@@ -1,6 +1,6 @@
 // Tests graph expansion, shared-node retention and collapse.
 import { test, expect } from 'bun:test';
-import { registerSet, canvasOf, addedBy, neighbours, setsOf, type ExpansionSet } from '../src/app/graph/expansion';
+import { allConnectedLabel, sameExpansion, registerSet, canvasOf, addedBy, neighbours, setsOf, type ExpansionSet } from '../src/app/graph/expansion';
 import { walkReducer, emptyWalk, canvasAt } from '../src/app/graph/walk';
 
 const edges = [
@@ -116,4 +116,16 @@ test('neighbours follow the direction and are ordered by relationship, then name
   ];
   expect(neighbours(named, 'S', 'out').nodes).toEqual(['c', 'a', 'b']);
   expect(neighbours(named, 'S', 'out', id => id, 'z').nodes).toEqual(['a', 'b']);
+});
+
+test('the same pierce is recognised, and a different origin, direction, budget or result is not', () => {
+  const pierce = { kind: 'pierce' as const, from: 'a', direction: 'both' as const, nodes: ['b', 'c'], edges: [], frontier: {}, total: 3, budget: 150 };
+  expect(sameExpansion(pierce, { ...pierce, nodes: ['c', 'b'] })).toBe(true);
+  expect(sameExpansion(pierce, { ...pierce, from: 'b' })).toBe(false);
+  expect(sameExpansion(pierce, { ...pierce, direction: 'out' })).toBe(false);
+  expect(sameExpansion(pierce, { ...pierce, budget: 300 })).toBe(false);
+  expect(sameExpansion(pierce, { ...pierce, nodes: ['b'] })).toBe(false);
+});
+test('a Show all connected step is worded in plain words', () => {
+  expect(allConnectedLabel('Party')).toBe('All connected to Party');
 });

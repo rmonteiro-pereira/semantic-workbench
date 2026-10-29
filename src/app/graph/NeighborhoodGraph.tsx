@@ -8,8 +8,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ReactFlow, ReactFlowProvider, Background, Position, MarkerType, useNodesState, useReactFlow, type Node } from '@xyflow/react';
 import { ArrowLeft, ArrowRight, Crosshair, FileSymlink, Gauge, LocateFixed, Minus, Plus } from 'lucide-react';
 import { canvasAt } from './walk';
-import { canvasOf, neighbours, registerSet, setsOf, type Direction, type ExpansionSet } from './expansion';
-import { placeLayers, placeNew } from './incremental-layout';
+import { allConnectedLabel, canvasOf, getSet, neighbours, registerSet, sameExpansion, setsOf, type Direction, type ExpansionSet } from './expansion';
+import { placeLayers, placeNew, separateCards } from './incremental-layout';
 import { expansionViewport } from './expansion-viewport';
 import { PIERCE_BUDGET, PIERCE_MAX } from './pierce';
 import { PierceBanner, PierceControls, usePierce } from './PierceControls';
@@ -17,9 +17,9 @@ import { GraphOptions, OptionGroup, ShowToggle } from './GraphOptions';
 import { ZoomButtons } from './ZoomButtons';
 import { CompactControls, useCompactToolbar } from './CompactControls';
 import type { Entity, Relationship } from '../../shared/core/model';
-import { groupRelationships, neighborhood, searchEntities, projectModel, NEIGHBOR_PAGE } from './graph-view';
+import { groupRelationships, kindWords, neighborhood, searchEntities, projectModel, NEIGHBOR_PAGE } from './graph-view';
 import { neighborhoodLayout, NEIGHBOR_COLUMN, NEIGHBOR_ROW } from './layout';
-import { assignRoutes, placeLabels, routePoints, relationshipEdgeTypes, type Box } from './RelationshipEdge';
+import { assignRoutes, heightForEdgeEnds, placeLabels, routePoints, relationshipEdgeTypes, type Box } from './RelationshipEdge';
 import type { Walk, WalkStep } from './walk';
 import { useViewRestore, type Fullscreen } from './fullscreen';
 import { FullscreenButton } from './FullGraph';
@@ -247,7 +247,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>(build());
   // A rebuilt node keeps the size React Flow measured, because the browser reports a size only
   // when it changes and a node left unmeasured would stay hidden.
-  const rebuildNodes = (limit = reveal) => setNodes(previous => keepMeasuredSizes(previous, build(limit)));
+  const rebuildNodes = (limit = reveal) => setNodes(previous => separateNodes(keepMeasuredSizes(previous, build(limit))));
   const built = useRef(membership);
   useEffect(() => {
     if (built.current === membership) return;
@@ -270,6 +270,37 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
   }, [membership]);
+  // Cards grow when their description wraps, so once every card is measured they are moved apart
+  // using their real heights.
+  const heightKey = useMemo(() => nodes.map(node => `${node.id}:${node.measured?.height ?? ''}`).join('|'), [nodes]);
+  const [separatedKey, setSeparatedKey] = useState('');
+  // Earlier cards are placed first: the center's own view, then each expansion in the order it was made.
+  const placementRank = useMemo(() => {
+    const rank = new Map<string, number>();
+    for (const id of view.entities.map(e => e.id)) rank.set(id, 0);
+    canvasState.active.forEach((expansionSet, index) => {
+      for (const id of [expansionSet.from, ...expansionSet.nodes]) if (!rank.has(id)) rank.set(id, index + 1);
+    });
+    return rank;
+  }, [view, canvasState]);
+  // Positions always start from the column layout, so the same cards give the same placement and
+  // Back, Forward and Undo restore a canvas exactly.
+  const separateNodes = (toSeparate: Node[]): Node[] => {
+    const startById = new Map(toSeparate.map(node => [node.id, positions.get(node.id) ?? node.position]));
+    const sizeById = new Map(toSeparate.map(node => [node.id, { width: node.measured?.width ?? NODE.width, height: node.measured?.height ?? NODE.height }]));
+    const centerSize = sizeById.get(center ?? '');
+    const centerTop = startById.get(center ?? '')?.y ?? 0;
+    const separated = separateCards(startById, sizeById, centerTop + (centerSize?.height ?? NODE.height) / 2, placementRank);
+    return toSeparate.map(node => ({ ...node, position: separated.get(node.id) ?? node.position }));
+  };
+  const separateMeasured = () => {
+    setNodes(previous => separateNodes(previous));
+    setSeparatedKey(heightKey);
+  };
+  useEffect(() => {
+    const allMeasured = nodes.length > 0 && nodes.every(node => node.measured?.height);
+    if (allMeasured && separatedKey !== heightKey) separateMeasured();
+  }, [heightKey, separatedKey]);
   const boxes = useMemo(
     () =>
       new Map<string, Box>(
@@ -349,6 +380,9 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
   };
   const [direction, setDirection] = useRecordedState<Direction>('neighborhood.direction', 'out');
   const pierce = usePierce();
+  // The pierce result arrives later, so it reads the walk and canvas as they are then.
+  const latest = useRef({ walk, canvasNodes: canvasState.nodes });
+  latest.current = { walk, canvasNodes: canvasState.nodes };
   const fullPierce = async (budget = PIERCE_BUDGET) => {
     const from = selected && canvasState.nodes.includes(selected) ? selected : center;
     if (!from) return;
@@ -364,23 +398,31 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
       { direction, valueTypes: !hideValues, technical, metrics: !hideKpis, budget },
     );
     if (!pierceResult) return;
+    const pierceRequest: Omit<ExpansionSet, 'id'> = {
+      kind: 'pierce',
+      from,
+      direction,
+      nodes: pierceResult.nodes.filter(n => n !== from),
+      edges: pierceResult.edges,
+      frontier: pierceResult.frontier,
+      total: pierceResult.total,
+      budget,
+      steps: pierceResult.steps,
+    };
+    // Repeating a request that is already on the trail goes back to that step instead of adding another.
+    const { walk: currentWalk, canvasNodes } = latest.current;
+    const repeatedIndex = currentWalk.steps.findIndex(walkStep => {
+      const earlier = walkStep.set ? getSet(walkStep.set) : undefined;
+      return !!earlier && sameExpansion(earlier, pierceRequest);
+    });
+    if (repeatedIndex >= 0) {
+      props.onWalkTo(repeatedIndex);
+      return;
+    }
+    const shownNodes = new Set(canvasNodes);
+    if (pierceRequest.nodes.every(node => shownNodes.has(node))) return;
     // The result arrives after the click that asked for it, so it opens its own history step.
-    actionHistory.act('pierce', () =>
-      record(
-        registerSet({
-          kind: 'pierce',
-          from,
-          direction,
-          nodes: pierceResult.nodes.filter(n => n !== from),
-          edges: pierceResult.edges,
-          frontier: pierceResult.frontier,
-          total: pierceResult.total,
-          budget,
-          steps: pierceResult.steps,
-        }),
-        `pierced ${nameOf(from)}`,
-      ),
-    );
+    actionHistory.act('pierce', () => record(registerSet(pierceRequest), allConnectedLabel(nameOf(from))));
   };
   const undoable = walk.steps[walk.index]?.kind === 'expand';
   const pierceOrigin = selected && canvasState.nodes.includes(selected) ? nameOf(selected) : 'the center';
@@ -390,6 +432,17 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
     const relationship = view.edges.find(x => (x.source === center && x.target === target) || (x.target === center && x.source === target));
     return relationship ? { id: relationship.id, label: relationship.label } : undefined;
   };
+  // A card with many edges on one side is tall enough to give each edge end its own spot.
+  const minHeights = useMemo(() => {
+    const arriving = new Map<string, number>();
+    const leaving = new Map<string, number>();
+    for (const group of groups) {
+      if (group.source === group.target) continue;
+      arriving.set(group.target, (arriving.get(group.target) ?? 0) + 1);
+      leaving.set(group.source, (leaving.get(group.source) ?? 0) + 1);
+    }
+    return new Map([...new Set([...arriving.keys(), ...leaving.keys()])].map(id => [id, heightForEdgeEnds(Math.max(arriving.get(id) ?? 0, leaving.get(id) ?? 0))] as const));
+  }, [groups]);
   const rendered = useMemo(
     () =>
       nodes.map(node => {
@@ -412,7 +465,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
         }
         return {
           ...node,
-          style: groupColor ? ({ ...node.style, '--group-color': groupColor } as React.CSSProperties) : node.style,
+          style: { ...node.style, minHeight: minHeights.get(entity.id), ...(groupColor ? { '--group-color': groupColor } : {}) } as React.CSSProperties,
           className: ['neighborhood-node', isCenter ? ' center' : '', node.id === previous ? ' origin' : '', node.id === selected ? ' selected-entity' : ''].join(''),
           data: {
             ...node.data,
@@ -425,11 +478,13 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
                       <Gauge size={10} /> Metric
                     </>
                   ) : (
-                    entity.kind
+                    kindWords(entity.kind)
                   )}
                 </small>
                 <EntityName name={entity.name} />
-                <span>{entity.fields.length ? `${entity.fields.length} ${entity.fields.length === 1 ? 'field' : 'fields'}` : entity.description || 'Select to inspect'}</span>
+                <span title={entity.description || undefined}>
+                  {entity.fields.length ? `${entity.fields.length} ${entity.fields.length === 1 ? 'field' : 'fields'}` : entity.description || 'Select to inspect'}
+                </span>
                 <div className="node-actions">
                   {!isCenter &&
                     (canvasState.expandedBy.has(entity.id) ? (
@@ -495,7 +550,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
           },
         };
       }),
-    [nodes, center, previous, selected, kpiBadges, groupColorOf, view, canvasState, pierceSet],
+    [nodes, center, previous, selected, kpiBadges, groupColorOf, view, canvasState, pierceSet, minHeights],
   );
   // Relationship labels grow as the canvas zooms out so they stay readable; the cards do not
   // change with zoom.
@@ -582,7 +637,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
       void setViewport(v);
     },
   );
-  const measured = nodes.length > 0 && nodes.every(n => n.measured?.width) && JSON.stringify([center, nodes.map(n => n.id)]) === membership;
+  const measured = nodes.length > 0 && separatedKey === heightKey && nodes.every(n => n.measured?.width) && JSON.stringify([center, nodes.map(n => n.id)]) === membership;
   // The fitted area is symmetric around the center node, so the center sits in the middle of the
   // canvas even when one side has more columns; it leaves room for the lanes above and below.
   const fitRef = useRef(() => {});
@@ -692,6 +747,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
   const toggleValueTypes = () => setHideValues(hidden => !hidden);
   // Dragged nodes go back to their columns; the center stays the same.
   const rearrange = () => {
+    setSeparatedKey('');
     rebuildNodes();
     setFitted('');
   };

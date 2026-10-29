@@ -28,6 +28,13 @@ export function registerSet(set: Omit<ExpansionSet, 'id'> & { id?: string }): Ex
   registry.set(expansionSet.id, expansionSet);
   return expansionSet;
 }
+/** The trail wording for a Show all connected step, shared by every view that has one. */
+export const allConnectedLabel = (name: string) => `All connected to ${name}`;
+/** Tells whether two expansions are the same request: same origin, direction, options and result. */
+export function sameExpansion(first: Omit<ExpansionSet, 'id'>, second: Omit<ExpansionSet, 'id'>) {
+  const sameNodes = first.nodes.length === second.nodes.length && [...first.nodes].sort().join('\n') === [...second.nodes].sort().join('\n');
+  return first.kind === second.kind && first.from === second.from && first.direction === second.direction && first.relationship === second.relationship && first.budget === second.budget && sameNodes;
+}
 /** Looks up a recorded expansion by identifier. */
 export const getSet = (id: string) => registry.get(id);
 /** Resolves expansion identifiers in order, ignoring missing entries. */
