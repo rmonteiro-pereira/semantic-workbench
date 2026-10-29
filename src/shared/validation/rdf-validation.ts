@@ -131,22 +131,6 @@ export function validateRdf(store: any): Issue[] {
       }
     }
   }
-  const shacl = store.statements.some((s: any) => s.predicate.value.startsWith(SH) || s.object.value.startsWith(SH));
-  const owl = store.statements.some((s: any) => s.predicate.value.startsWith(OWL) || s.object.value.startsWith(OWL));
-  if (shacl)
-    issues.push({
-      severity: 'warning',
-      code: 'coverage',
-      path: '/',
-      message: 'Coverage: RDF syntax and selected SHACL shape-definition checks. This does not execute shapes against a separate data graph; advanced/SPARQL constraints are not evaluated.',
-    });
-  if (owl)
-    issues.push({
-      severity: 'warning',
-      code: 'coverage',
-      path: '/',
-      message: 'Coverage: OWL RDF syntax and basic restriction checks. Logical consistency, imports, and OWL profile conformance require a reasoner and are not evaluated.',
-    });
   rejectIssues(issues);
   return issues;
 }

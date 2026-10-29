@@ -18,9 +18,11 @@ type Props = {
       text?: string | undefined;
     } | null>
   >;
+  assumeOssieVersion: boolean;
+  validateAsShippedVersion: () => void;
 };
 /** Renders source view. */
-export function SourceView({ sourceEditor, current, source, setSource, setEditorIssues }: Props) {
+export function SourceView({ sourceEditor, current, source, setSource, setEditorIssues, assumeOssieVersion, validateAsShippedVersion }: Props) {
   const access = useCapabilities(current?.project);
   return (
     <CodeEditor
@@ -33,6 +35,8 @@ export function SourceView({ sourceEditor, current, source, setSource, setEditor
       value={source}
       onChange={setSource}
       onIssues={(issues, text) => setEditorIssues({ id: current?.id, issues, text })}
+      assumeOssieVersion={assumeOssieVersion}
+      onValidateAsShippedVersion={validateAsShippedVersion}
     />
   );
 }

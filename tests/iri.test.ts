@@ -27,7 +27,7 @@ test('issue 2: uri is rejected with a rename hint, iri with prefixes is accepted
     'u.yaml',
   );
   expect(unversioned.valid).toBe(true);
-  expect(unversioned.issues.filter(i => i.path.endsWith('/uri')).every(i => i.severity === 'warning')).toBe(true);
+  expect(unversioned.issues.map(i => i.code)).toEqual(['not-validated']);
 });
 test('QName IRIs require a declared prefix; full IRIs and duplicate expansions are checked', () => {
   const undeclared = validateInput(
@@ -52,7 +52,6 @@ test('QName IRIs require a declared prefix; full IRIs and duplicate expansions a
   expect(
     validateInput(
       edit(iriSource, d => {
-        delete d.version;
         d.prefixes.ex = 'not an iri';
       }),
       'x.yaml',

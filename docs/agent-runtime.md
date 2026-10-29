@@ -275,7 +275,7 @@ PostgreSQL-compatible parsing/serialization, with a SQLite expression fallback f
 Other stored dialects are preserved, not translated into ANSI_SQL. Subqueries, window expressions,
 wildcards, arbitrary filters, ambiguous/multi-fact grains, conditional-population execution and
 full n-ary tuple population execution are not implemented. There is no ontology satisfiability
-check, OWL reasoner or SHACL instance validator.
+check or OWL reasoner. SHACL instance validation exists only in the workbench's validation details and is not part of the agent runtime.
 
 ## Verification and provenance
 

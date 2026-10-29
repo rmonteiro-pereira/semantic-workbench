@@ -14,7 +14,7 @@ const api = (workspace: { handler: (request: Request) => Promise<Response> }, me
       ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
     }),
   );
-const ontology = '# keep\r\nname: Shop\r\nontology:\r\n  - concept: Customer\r\n    type: EntityType\r\n';
+const ontology = '# keep\r\nversion: 0.2.0.dev0\r\nname: Shop\r\nontology:\r\n  - concept: Customer\r\n    type: EntityType\r\n';
 async function project() {
   const workspace = await testWorkspace();
   const response = await api(workspace, 'POST', '/api/import', {
@@ -59,7 +59,7 @@ test('import creates one project per batch, named after its ontology, with one c
     const invalid = await api(workspace, 'POST', '/api/import', {
       files: [
         { path: 'ok.yaml', source: ontology },
-        { path: 'bad.yaml', source: 'ontology: []' },
+        { path: 'bad.yaml', source: 'version: 0.2.0.dev0\nontology: []' },
       ],
     });
     expect(invalid.status).toBe(400);
@@ -194,7 +194,7 @@ test('an invalid source is rejected with issues and no write', async () => {
     const before = readdirSync(join(workspace.root, 'projects/shop'));
     const response = await api(workspace, 'PUT', '/api/projects/shop/files/shop.yaml', {
       baseHash: sha256(ontology),
-      source: 'ontology: [ ]',
+      source: 'version: 0.2.0.dev0\nontology: [ ]',
     });
     expect(response.status).toBe(400);
     const body = await response.json();

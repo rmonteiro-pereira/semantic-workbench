@@ -96,13 +96,12 @@ async function readSet(set: ExampleSet): Promise<ProjectDocument[]> {
   );
 }
 
-// A file may only carry the coverage notes the validator prints for ontology and RDF formats;
-// no error and no other warning is allowed.
+// A bundled example must validate with no finding of any kind: the owner's rule is that our own
+// examples never show a warning.
 function assertValidation(set: ExampleSet, documents: ProjectDocument[]) {
   for (const document of documents) {
     const result = validateInput(document.source, document.filename);
-    const unexpected = result.issues.filter(issue => issue.code !== 'coverage');
-    assert.deepEqual(unexpected, [], `${set.id}/${document.filename} has findings`);
+    assert.deepEqual(result.issues, [], `${set.id}/${document.filename} has findings`);
   }
 }
 

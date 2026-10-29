@@ -6,8 +6,9 @@ metric from its business meaning through its formula to the columns declared in 
 and review the SQL that would calculate it.
 
 **The application never executes those SQL previews or computes live metric values.** It does not
-connect to a warehouse, run quality rules, perform OWL reasoning or apply SHACL shapes to a data
-graph. SQLite supports the application's internal index; it is not an analytical data source.
+connect to a warehouse, run quality rules or perform OWL reasoning. It does run SHACL shapes,
+including SPARQL constraints, against a data file you choose in the same project, inside the
+workbench. SQLite supports the application's internal index; it is not an analytical data source.
 Separate verification scripts can execute SQL against disposable synthetic fixtures.
 
 ## Contents
@@ -360,16 +361,20 @@ authorization boundaries and invariants. It is the detailed reference for changi
 | Ossie semantic model | YAML, JSON | Datasets, fields, joins, expressions and metrics |
 | Ossie mappings | YAML, JSON | Standalone and deprecated embedded mappings |
 | RDF | Turtle, N-Triples, N3, RDF/XML | Resource inspection, safe item edits and Source |
-| OWL / SHACL | Turtle or RDF/XML | Definitions and selected structural checks |
+| OWL / SHACL | Turtle or RDF/XML | Definitions and selected structural checks; SHACL shapes also run against a chosen Turtle, N-Triples or N3 data file in the project |
 
 The input limit is **2,000,000 UTF-8 bytes per definition**. File extensions guide parser selection;
 `.owl` does not identify a serialization by itself. RDF/XML is supported, not OWL/XML. JSON-LD,
 TriG, N-Quads, OWL Functional Syntax and Manchester syntax are not supported inputs.
 
 No runtime fetch of remote schemas, ontologies or `owl:imports` occurs. Schema/structure checks
-are not complete semantic-conformance certification. SHACL/SPARQL constraints are preserved where
-readable, not evaluated against instance data. Other format versions and legacy wrappers report
-their narrower coverage.
+are not complete semantic-conformance certification. In a SHACL shapes file, Validation details
+lists the project's RDF files; pick one and the shapes (SPARQL constraints included) run against it
+in the browser, with each finding naming the focus node, the shape and the rule. This is
+instance validation of one file against one shapes file, with no warehouse connection and no OWL
+reasoning. An Ossie file is validated against the one Ossie schema the app ships, 0.2.0.dev0. A
+file that names another version, or none, shows "Not validated" once, with a button to validate it
+as 0.2.0.dev0; syntax errors still show. The status bar reads "Not validated" in that case.
 
 SQL highlighting and warning coverage are dialect-dependent. Non-SQL expressions such as DAX or
 MDX remain plain with a not-checked note. Syntax warnings do not block autosave. The planner

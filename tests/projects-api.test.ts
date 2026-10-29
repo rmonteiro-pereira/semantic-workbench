@@ -97,7 +97,7 @@ test('re-import into a project asks about existing names: 409 conflicts, then re
     expect(
       (
         await api(workspace, 'POST', '/api/projects/alpha/import', {
-          files: [{ path: 'bad.yaml', source: 'ontology: []' }],
+          files: [{ path: 'bad.yaml', source: 'version: 0.2.0.dev0\nontology: []' }],
         })
       ).status,
     ).toBe(400);

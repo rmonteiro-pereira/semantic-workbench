@@ -12,4 +12,8 @@ export type CodeEditorOptions = {
   className?: string;
   onIssues?: (issues: Issue[], text: string) => void;
   validate?: (text: string) => Promise<Issue[]>;
+  /** Check the text as the Ossie version the app ships, even when the file names another one. */
+  assumeOssieVersion?: boolean;
+  /** Offered next to a "not validated" notice so the user can ask for that check. */
+  onValidateAsShippedVersion?: () => void;
 };

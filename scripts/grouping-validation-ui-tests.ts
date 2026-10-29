@@ -270,7 +270,7 @@ try {
   await check('invalid source highlights the precise feature and finding action selects its offending line', async () => {
     await page.locator('.tabs').getByRole('button', { name: 'Source', exact: true }).click();
     const editor = page.getByLabel('Definition source', { exact: true });
-    const invalid = 'name: Source diagnostics\nontology:\n  - concept: Airport\n    type: EntityType\n    extends: [MissingSourceParent]\n';
+    const invalid = 'version: 0.2.0.dev0\nname: Source diagnostics\nontology:\n  - concept: Airport\n    type: EntityType\n    extends: [MissingSourceParent]\n';
     await fillEditor(editor, invalid);
     await expect(page.getByRole('status', { name: 'Save state' })).toHaveText(/^Not saved: \d+ errors?$/, { timeout: 5000 });
     const highlight = page.locator('.cm-lintRange-error').filter({ hasText: 'MissingSourceParent' });
@@ -283,7 +283,7 @@ try {
     await expect(finding.locator('.validation-source-line')).toContainText('MissingSourceParent');
     await expect(finding).toContainText(/inherit|parent|extends/i);
     await expect(finding).toContainText('MissingSourceParent');
-    await finding.getByRole('button', { name: /Go to line 5/ }).click();
+    await finding.getByRole('button', { name: /Go to line 6/ }).click();
     await expect(editor).toBeFocused();
     expect(await selectedText(editor)).toContain('MissingSourceParent');
     expect(store.list().find(doc => doc.filename === 'ubl.ontology.yaml')?.source).toBe(originals.get('ubl.ontology.yaml')!);
@@ -292,12 +292,12 @@ try {
   });
   await check('mixed import repair highlights and locates the faulty file without modifying saved documents', async () => {
     const count = store.list().length;
-    const invalid = 'name: Repair diagnostics\nontology:\n  - concept: Flight\n    type: EntityType\n    extends: [MissingRepairParent]\n';
+    const invalid = 'version: 0.2.0.dev0\nname: Repair diagnostics\nontology:\n  - concept: Flight\n    type: EntityType\n    extends: [MissingRepairParent]\n';
     await page.locator('input[type=file]').setInputFiles([
       {
         name: 'valid.yaml',
         mimeType: 'application/yaml',
-        buffer: Buffer.from('name: Valid\nontology: [{concept: A}]'),
+        buffer: Buffer.from('version: 0.2.0.dev0\nname: Valid\nontology: [{concept: A, type: EntityType}]'),
       },
       { name: 'invalid.yaml', mimeType: 'application/yaml', buffer: Buffer.from(invalid) },
     ]);
@@ -308,7 +308,7 @@ try {
     await expectEditorValue(editor, invalid);
     await expect(dialog.locator('.cm-lintRange-error').filter({ hasText: 'MissingRepairParent' })).toHaveCount(1);
     const finding = dialog.locator('.validation-report li').filter({ hasText: 'Unknown parent concept' }).first();
-    await finding.getByRole('button', { name: /Go to line 5/ }).click();
+    await finding.getByRole('button', { name: /Go to line 6/ }).click();
     await expect(editor).toBeFocused();
     expect(await selectedText(editor)).toContain('MissingRepairParent');
     await expect(dialog.getByRole('button', { name: 'Import repaired files', exact: true })).toBeDisabled();
