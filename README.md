@@ -115,8 +115,7 @@ application API and command scripts run with Bun.
 | --- | --- | --- |
 | React Flow | 12.12.0, locally patched | Interactive nodes, handles and compound canvases |
 | React Flow Smart Edge | 5.0.0 | Background obstacle-aware edge routing |
-| ELK.js | 0.12.0 | Layered layout, overlap cleanup and box packing |
-| Cytoscape.js / fCoSE | 3.34.4 / 2.2.0 | Headless network positioning, not UI rendering |
+| ELK.js | 0.12.0 | Layered layout |
 | YAML | 2.9.1 | YAML parsing and byte-preserving edits |
 | Ajv / ajv-formats | 8.20.0 / 3.0.1 | JSON Schema validation and browser validators |
 | N3 / rdflib | 2.13.12 / 2.4.1 | RDF parsing and graph operations |
@@ -290,8 +289,8 @@ same definitions. They do not maintain independent copies of a metric formula.
 ### Graph architecture
 
 React Flow renders interactive HTML/SVG nodes and connections. ELK calculates the optional layered
-positions and compound routes. The default Network layout uses headless Cytoscape/fCoSE followed
-by overlap cleanup/packing; Cytoscape does not render the page. Smart Edge supplies worker routing
+positions and compound routes. The default Network layout sizes each area as a tile to fit its
+entity names, packs the tiles in rows (`packTiles`) and draws only links inside an area. Smart Edge supplies worker routing
 at useful detail levels.
 
 Neighborhood traversal adds nearby entities without moving existing ones and records reversible

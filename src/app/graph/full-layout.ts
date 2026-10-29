@@ -3,9 +3,7 @@ import type { GroupingOptions } from './overview';
 import { modelOverview } from './overview';
 import { groupRelationships } from './graph-view';
 import type { Entity, Relationship } from '../../shared/core/model';
-import { modelCardHeight } from './overview-capacity';
-// Area titles grow as the graph zooms out; reserve two lines at their largest size.
-const GROUP_HEADER_HEIGHT = 136;
+import { GROUP_HEADER_HEIGHT, modelCardHeight } from './overview-capacity';
 
 /** The model name, the ELK engine that runs the layout, and the optional grouping of areas. */
 export type FullLayoutOptions = { name: string; elk: { layout: (elkGraph: any) => Promise<any> }; grouping?: GroupingOptions };
@@ -114,47 +112,5 @@ export async function layoutFullGraph(entities: Entity[], edges: Relationship[],
     height: result.height ?? 0,
     entityCount: overview.entities.length,
     relationshipCount: overview.links.length,
-  };
-}
-// Keep fCoSE's internal compound layout, then pack the area rectangles with ELK's box packer to
-// remove empty space without stretching individual nodes.
-/** Packs group rectangles while preserving their internal network layouts. */
-export async function packNetwork(result: any, elk: { layout: (elkGraph: any) => Promise<any> }, _grouping?: GroupingOptions) {
-  const groups = result.nodes.filter((n: any) => n.group);
-  const interiors = await Promise.all(
-    groups.map((group: any) =>
-      elk.layout({
-        id: group.id,
-        layoutOptions: {
-          'elk.algorithm': 'sporeOverlap',
-          'elk.spacing.nodeNode': '24',
-          'elk.padding': `[top=${GROUP_HEADER_HEIGHT},left=28,bottom=28,right=28]`,
-        },
-        children: result.nodes.filter((n: any) => n.parentId === group.id).map((n: any) => ({ id: n.id, x: n.x, y: n.y, width: n.width, height: n.height })),
-      }),
-    ),
-  );
-  const dimensions = new Map(interiors.map((g: any) => [g.id, g]));
-  const children = new Map(interiors.flatMap((g: any) => g.children.map((n: any) => [n.id, n])));
-  const packed = await elk.layout({
-    id: 'packing',
-    layoutOptions: {
-      'elk.algorithm': 'box',
-      'elk.aspectRatio': '2.0',
-      'elk.spacing.nodeNode': '70',
-      'elk.padding': '[top=40,left=40,bottom=40,right=40]',
-    },
-    children: groups.map((group: any) => ({
-      id: group.id,
-      width: (dimensions.get(group.id) as any).width,
-      height: (dimensions.get(group.id) as any).height,
-    })),
-  });
-  const positions = new Map(packed.children.map((g: any) => [g.id, g]));
-  return {
-    ...result,
-    width: packed.width,
-    height: packed.height,
-    nodes: result.nodes.map((n: any) => (n.group ? { ...n, ...(positions.get(n.id) as any) } : { ...n, x: (children.get(n.id) as any).x, y: (children.get(n.id) as any).y })),
   };
 }

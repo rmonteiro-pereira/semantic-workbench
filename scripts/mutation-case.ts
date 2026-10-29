@@ -519,31 +519,23 @@ if (category === 'overview') {
 }
 
 if (category === 'full-layout') {
-  const { default: ELK } = await import('elkjs/lib/elk-api.js');
-  const elk = new ELK({
-    algorithms: ['layered', 'sporeOverlap'],
-    workerFactory: () => new Worker(import.meta.resolve('elkjs/lib/elk-worker.min.js')),
-  });
-  try {
-    const result = await loadedModule.packNetwork(
-      {
-        nodes: [
-          { id: 'area:g', group: 'g', x: 0, y: 0, width: 250, height: 200 },
-          { id: 'a', parentId: 'area:g', x: 28, y: 62, width: 184, height: 60 },
-          { id: 'b', parentId: 'area:g', x: 30, y: 65, width: 184, height: 60 },
-        ],
-        entityCount: 2,
-        relationshipCount: 1,
-        routes: {},
-      },
-      elk,
-    );
-    const children = result.nodes.filter((n: any) => !n.group);
-    assert.equal(children.length, 2);
-    const [first, second] = children;
-    assert(!(first.x < second.x + second.width && first.x + first.width > second.x && first.y < second.y + second.height && first.y + first.height > second.y));
-  } finally {
-    elk.terminateWorker();
+  const sizes = [
+    { width: 640, height: 320 },
+    { width: 844, height: 396 },
+    { width: 300, height: 244 },
+    { width: 640, height: 320 },
+    { width: 300, height: 244 },
+  ];
+  const { corners } = loadedModule.packTiles(sizes);
+  for (let first = 0; first < sizes.length; first++) {
+    for (let second = first + 1; second < sizes.length; second++) {
+      const apart =
+        corners[first].x + sizes[first].width <= corners[second].x ||
+        corners[second].x + sizes[second].width <= corners[first].x ||
+        corners[first].y + sizes[first].height <= corners[second].y ||
+        corners[second].y + sizes[second].height <= corners[first].y;
+      assert(apart);
+    }
   }
 }
 

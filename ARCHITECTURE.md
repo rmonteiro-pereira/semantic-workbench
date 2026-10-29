@@ -223,7 +223,7 @@ check that happens to succeed.
 - `src/app/odcs/lineage.ts` builds declared column dependencies; `LineageCanvas.tsx`, `LineageCard.tsx`
   and `LineageColumnList.tsx` draw row ports, selection and windowed column lists. Mapping canvases
   reuse this infrastructure with resolver-derived cards/lines.
-- `docs/graph-design.md` describes ELK versus headless fCoSE, worker routing, card measurement,
+- `docs/graph-design.md` describes ELK layered versus area tiles, worker routing, card measurement,
   viewport fitting and the pinned React Flow observer patch. No WebGL/Sigma renderer is active.
 
 ### Branding, observability and delivery
