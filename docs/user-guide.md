@@ -40,7 +40,9 @@ button. Under the name, a muted line gives the kind of file and the save state. 
 save that needs action, such as "Not saved: 2 errors", turns red and underlined; selecting it
 opens the findings. On the right are **Commit** (an icon below 1100 px), **More actions** and, in
 server mode, the round account button with the person's initials. **Commit** shows how many files
-wait to be committed, and is dimmed when nothing waits or the save failed. **More actions** holds **New** and **Export**; on a phone the **New** items open
+wait to be committed, and is dimmed when nothing waits. It is also dimmed while the open file's save needs action
+(a failed, invalid, stale, waiting or cancelled save), because the file on disk is not what you see;
+fix the save first. The count of uncommitted files lives on the **Commit** badge, not in the save state. **More actions** holds **New** and **Export**; on a phone the **New** items open
 in place, under a **Back** row. On a phone (up to 650 px wide) the row shows the file name, a dot
 for the save state, **Commit** as an icon and **More actions**; a save that needs action keeps
 its words beside the dot. Tabs that do not fit scroll sideways with edge cues; keyboard navigation

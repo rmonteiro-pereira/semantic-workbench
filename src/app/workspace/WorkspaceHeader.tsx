@@ -4,10 +4,10 @@ import { useCapabilities } from '../auth/Capabilities';
 import { Menu, PanelLeft, X } from 'lucide-react';
 import React from 'react';
 import type { Doc, ProjectInfo, WorkspaceStatus } from '../projects/api';
-import type { AutosaveStatus } from '../projects/autosave';
+import { saveNeedsAction, type AutosaveStatus } from '../projects/autosave';
 import type { MenuItem } from '../projects/Menu';
 import { HeaderActions } from './HeaderActions';
-import { hasNothingToCommit, NOTHING_TO_COMMIT, SAVE_FAILED, saveBlocksCommit } from './commit-availability';
+import { hasNothingToCommit, NOTHING_TO_COMMIT, SAVE_FAILED } from './commit-availability';
 import { HeaderTitle } from './HeaderTitle';
 import { SaveStateButton } from './SaveStateButton';
 import type { ValidatedModel } from './types';
@@ -61,9 +61,11 @@ export const WorkspaceHeader = React.memo(function WorkspaceHeader({
 }: Props) {
   const access = useCapabilities(current?.project);
   // A file that cannot be parsed has no model, so the header keeps the kind it showed while the file was valid.
-  const lastKind = React.useRef<{ fileId: string; kind: string } | null>(null);
-  if (current && model?.kind) lastKind.current = { fileId: current.id, kind: model.kind };
-  const keptKind = lastKind.current?.fileId === current?.id ? lastKind.current?.kind : undefined;
+  const [lastKind, setLastKind] = React.useState<{ fileId: string; kind: string } | null>(null);
+  React.useEffect(() => {
+    if (current && model?.kind) setLastKind({ fileId: current.id, kind: model.kind });
+  }, [current?.id, model?.kind]);
+  const keptKind = lastKind?.fileId === current?.id ? lastKind?.kind : undefined;
   const isPhone = usePhoneScreen();
   function getWorkspaceToggleLabel() {
     if (compact) {
@@ -126,7 +128,7 @@ export const WorkspaceHeader = React.memo(function WorkspaceHeader({
   const saveStateTitle = `${saveStateLabel} — ${getSaveStateAction()}`;
   const uncommittedFiles = projects.find(project => project.slug === current?.project)?.changes ?? 0;
   const nothingToCommit = !!current && hasNothingToCommit(uncommittedFiles, saveStatus);
-  const saveFailed = !!current && saveBlocksCommit(saveStatus);
+  const saveFailed = !!current && saveNeedsAction(saveStatus);
   const commitDisabled = !current || status?.gitAvailable === false || !access.can('commit') || nothingToCommit || saveFailed;
   const commitTitle = access.control('commit').title ?? commitDisabledTitle();
 

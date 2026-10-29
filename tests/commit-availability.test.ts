@@ -1,5 +1,6 @@
 import { expect, test } from 'bun:test';
-import { hasNothingToCommit, NOTHING_TO_COMMIT, saveBlocksCommit, SAVE_FAILED } from '../src/app/workspace/commit-availability';
+import { hasNothingToCommit, NOTHING_TO_COMMIT, SAVE_FAILED } from '../src/app/workspace/commit-availability';
+import { saveNeedsAction } from '../src/app/projects/autosave';
 
 test('commit is off only when no file changed and no edit is on its way to the file', () => {
   expect(hasNothingToCommit(0, 'clean')).toBe(true);
@@ -14,7 +15,7 @@ test('the reason names the next step', () => {
 });
 
 test('commit is also off while the open file could not be saved, and says so', () => {
-  for (const status of ['invalid', 'stale', 'failed', 'waiting', 'cancelled'] as const) expect(saveBlocksCommit(status)).toBe(true);
-  for (const status of ['clean', 'pending', 'saving', 'saved'] as const) expect(saveBlocksCommit(status)).toBe(false);
+  for (const status of ['invalid', 'stale', 'failed', 'waiting', 'cancelled'] as const) expect(saveNeedsAction(status)).toBe(true);
+  for (const status of ['clean', 'pending', 'saving', 'saved'] as const) expect(saveNeedsAction(status)).toBe(false);
   expect(SAVE_FAILED).toContain('saved');
 });
