@@ -6,8 +6,8 @@ import { viewOptions } from './helpers/graph-options';
 import { chromium, expect } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { neighborhoodEdgeProblems, neighborhoodState, pickCenter } from './helpers/edge-geometry';
-import { inspect } from '../src/model';
-import { neighborhood, projectModel } from '../src/graph-view';
+import { inspect } from '../src/core/model';
+import { neighborhood, projectModel } from '../src/graph/graph-view';
 import { boundedClosure, PIERCE_BUDGET } from '../src/graph/pierce';
 import { neighbours, registerSet, canvasOf } from '../src/graph/expansion';
 // Real-browser check of the full graph and the neighborhood walk on the UBL, shopping center and

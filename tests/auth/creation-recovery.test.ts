@@ -1,17 +1,17 @@
 // Creation recovery keeps access metadata and registered projects in agreement.
 import { expect, spyOn, test } from 'bun:test';
-import * as administration from '../../server/auth/admin-repo';
-import * as cedar from '../../server/auth/cedar';
-import { assignProjectDomain, assignProjectDomains } from '../../server/auth/project-creation';
-import { createServerAuthentication } from '../../server/auth/authentication';
-import { createOidcClient } from '../../server/auth/oidc';
-import type { CloneEvent } from '../../server/projects/clone';
+import * as administration from '../../src/server/auth/admin-repo';
+import * as cedar from '../../src/server/auth/cedar';
+import { assignProjectDomain, assignProjectDomains } from '../../src/server/auth/project-creation';
+import { createServerAuthentication } from '../../src/server/auth/authentication';
+import { createOidcClient } from '../../src/server/auth/oidc';
+import type { CloneEvent } from '../../src/server/projects/clone';
 import { bareRepository } from '../helpers/git-fixtures';
-import { LOCAL_READER } from '../../server/projects/reader';
+import { LOCAL_READER } from '../../src/server/projects/reader';
 import { oidcTransport } from '../helpers/oidc-transport';
-import { requestAccess, type AccessRequest } from '../../server/auth/request-scope';
-import { createAccessControl } from '../../server/auth/authorize';
-import { createHandler } from '../../server/handler';
+import { requestAccess, type AccessRequest } from '../../src/server/auth/request-scope';
+import { createAccessControl } from '../../src/server/auth/authorize';
+import { createHandler } from '../../src/server/handler';
 import { authWorkspace } from '../helpers/auth-workspace';
 import { accessFixture, person } from './access-fixture';
 import { allowEveryRemote } from '../helpers/remote-credentials-fixture';

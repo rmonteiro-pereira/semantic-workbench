@@ -8,8 +8,8 @@ import {
   searchEntities,
   defaultCenter,
   NEIGHBOR_PAGE,
-} from '../src/graph-view';
-import { layoutGraph } from '../src/layout';
+} from '../src/graph/graph-view';
+import { layoutGraph } from '../src/graph/layout';
 
 const nodes = Array.from({ length: 30 }, (_, i) => ({
   id: String(i),

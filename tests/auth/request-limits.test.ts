@@ -2,15 +2,15 @@
 // audit records.
 import { expect, spyOn, test } from 'bun:test';
 import { join } from 'node:path';
-import { ANONYMOUS_AUDIT_BURST } from '../../server/auth/rate-limit';
-import { createAuditLog } from '../../server/auth/audit';
-import { createAccessControl } from '../../server/auth/authorize';
-import { localPrincipal } from '../../server/auth/principal';
+import { ANONYMOUS_AUDIT_BURST } from '../../src/server/auth/rate-limit';
+import { createAuditLog } from '../../src/server/auth/audit';
+import { createAccessControl } from '../../src/server/auth/authorize';
+import { localPrincipal } from '../../src/server/auth/principal';
 import { accessFixture } from './access-fixture';
-import { createHandler } from '../../server/handler';
+import { createHandler } from '../../src/server/handler';
 import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 import { testWorkspace } from '../helpers/temp-data-dir';
-import { configureLogging } from '../../server/observability/log';
+import { configureLogging } from '../../src/server/observability/log';
 import { useQuietLogging } from '../helpers/quiet-logging';
 
 const month = () => new Date().toISOString().slice(0, 7);

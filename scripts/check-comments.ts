@@ -3,7 +3,7 @@ import ts from 'typescript';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
-// Run with directory arguments, or omit them to check source, server, scripts and tests.
+// Run with directory arguments, or omit them to check source, scripts and tests.
 
 const ID_PATTERNS: [RegExp, string][] = [
   [/\b(?:FR|NFR|SC)-\d+/, 'requirement or success-criterion ID'],
@@ -19,7 +19,7 @@ function sourceFiles(dir: string): string[] {
   const files: string[] = [];
   for (const entry of readdirSync(dir)) {
     const path = join(dir, entry);
-    if (path === 'src/generated/schema-validators') continue;
+    if (path.replaceAll('\\', '/') === 'src/generated/validators.js') continue;
     if (entry === 'node_modules' || entry === 'fixtures') continue;
     if (statSync(path).isDirectory()) files.push(...sourceFiles(path));
     else if (SOURCE.test(entry)) files.push(path);
@@ -54,9 +54,7 @@ function commentsOf(path: string): { line: number; text: string }[] {
     }));
 }
 
-const dirs = process.argv.slice(2).length
-  ? process.argv.slice(2)
-  : ['src', 'server', 'scripts', 'tests'];
+const dirs = process.argv.slice(2).length ? process.argv.slice(2) : ['src', 'scripts', 'tests'];
 const problems: string[] = [];
 for (const file of dirs.flatMap(sourceFiles)) {
   if (file.endsWith('check-comments.ts')) continue;

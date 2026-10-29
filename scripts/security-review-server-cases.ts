@@ -7,9 +7,10 @@ import { allowAll, type Candidate } from './security-review-scm-cases';
 /** A server-mode workspace of the access fixture and requests carrying a person's scope. */
 async function serverFixture() {
   const { authWorkspace } = await import('../tests/helpers/auth-workspace');
-  const { createAccessControl } = await import('../server/auth/authorize');
+  const { createAccessControl } = await import('../src/server/auth/authorize');
   const { accessFixture, person } = await import('../tests/auth/access-fixture');
-  const { attachRemoteCredentials, requestAccess } = await import('../server/auth/request-scope');
+  const { attachRemoteCredentials, requestAccess } =
+    await import('../src/server/auth/request-scope');
   const { allowEveryRemote } = await import('../tests/helpers/remote-credentials-fixture');
   const fixture = await authWorkspace();
   const access = createAccessControl(accessFixture());
@@ -35,7 +36,7 @@ async function serverFixture() {
 }
 
 async function gitRoutesCase(candidate: Candidate) {
-  const { requestReader } = await import('../server/auth/request-scope');
+  const { requestReader } = await import('../src/server/auth/request-scope');
   const { mkdirSync, writeFileSync } = await import('node:fs');
   const { fixture, scoped, keyOf } = await serverFixture();
   try {
@@ -146,8 +147,8 @@ function routeCaller(
 }
 
 async function trashRoutesCase(candidate: Candidate) {
-  const { LOCAL_READER } = await import('../server/projects/reader');
-  const { openAdminRepository } = await import('../server/auth/admin-repo');
+  const { LOCAL_READER } = await import('../src/server/projects/reader');
+  const { openAdminRepository } = await import('../src/server/auth/admin-repo');
   const { readFileSync } = await import('node:fs');
   const { fixture, scoped, idOf } = await serverFixture();
   try {
@@ -231,8 +232,8 @@ async function trashRoutesCase(candidate: Candidate) {
 
 async function trashCopyCase(candidate: Candidate) {
   const { testWorkspace } = await import('../tests/helpers/temp-data-dir');
-  const { copyLayout } = await import('../server/projects/paths');
-  const { LOCAL_READER } = await import('../server/projects/reader');
+  const { copyLayout } = await import('../src/server/projects/paths');
+  const { LOCAL_READER } = await import('../src/server/projects/reader');
   const { existsSync, mkdirSync: makeFolder } = await import('node:fs');
   const fixture = await testWorkspace();
   const key = 'u' + 'd'.repeat(20);
@@ -304,7 +305,7 @@ async function gitAccessCase(candidate: Candidate) {
 }
 
 async function guardsCase(candidate: Candidate) {
-  const { createAccessControl } = await import('../server/auth/authorize');
+  const { createAccessControl } = await import('../src/server/auth/authorize');
   const { accessFixture, person } = await import('../tests/auth/access-fixture');
   const { readFileSync } = await import('node:fs');
   const metrics = readFileSync(
@@ -358,7 +359,7 @@ async function guardsCase(candidate: Candidate) {
 
 async function auditCase(candidate: Candidate) {
   const { tempDataDir } = await import('../tests/helpers/temp-data-dir');
-  const { sha256 } = await import('../server/projects/atomic');
+  const { sha256 } = await import('../src/server/projects/atomic');
   const { readFileSync } = await import('node:fs');
   const input = {
     requestId: 'r',

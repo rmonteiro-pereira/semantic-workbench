@@ -1,10 +1,10 @@
 // Tests equivalent parsing of split and consolidated Ossie documents.
 import { test, expect } from 'bun:test';
 import { parse, stringify } from 'yaml';
-import { inspect } from '../src/model';
-import { validateInput } from '../src/input';
-import { buildContext, agentCatalog } from '../server/agent/runtime';
-import { projectMetrics } from '../server/agent/explain';
+import { inspect } from '../src/core/model';
+import { validateInput } from '../src/validation/input';
+import { buildContext, agentCatalog } from '../src/server/agent/runtime';
+import { projectMetrics } from '../src/server/agent/explain';
 // Both official Ossie layouts: split files and the consolidated file whose ontology_mappings embed
 // the semantic model (deprecated upstream) give the same model.
 const dir = 'public/examples/ossie/';

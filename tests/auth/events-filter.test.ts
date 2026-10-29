@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
-import { createEvents } from '../../server/projects/events';
-import { createAccessControl } from '../../server/auth/authorize';
+import { createEvents } from '../../src/server/projects/events';
+import { createAccessControl } from '../../src/server/auth/authorize';
 import { accessFixture, person } from './access-fixture';
 // Events that carry no suggestion counting; the stubs keep a count round cheap.
 const noSuggestions = { suggestionIndex: () => [], sharedSuggestionCount: () => 0 };
@@ -46,7 +46,7 @@ test('live and replayed events hide unreadable projects', async () => {
 });
 
 test('multi-item events reduce paths and suggestions use the receiving count', async () => {
-  const { readableEvent } = await import('../../server/projects/event-access');
+  const { readableEvent } = await import('../../src/server/projects/event-access');
   const access = createAccessControl(accessFixture());
   const scope = access.forRequest(access.principalFor(person('alice')));
   const receiver = { scope, owner: scope.principal.id, suggestions: () => 2 };
@@ -111,7 +111,7 @@ test('grant changes send access and close the stream', async () => {
 });
 
 test('tagged multi-path events retain their readable items', async () => {
-  const { readableEvent } = await import('../../server/projects/event-access');
+  const { readableEvent } = await import('../../src/server/projects/event-access');
   const access = createAccessControl(accessFixture());
   const principal = access.principalFor(person('alice'));
   const event = readableEvent(
@@ -137,7 +137,7 @@ test('tagged multi-path events retain their readable items', async () => {
 });
 
 test('Git invalidations with no named paths still reach readers and omit repository counts', async () => {
-  const { readableEvent } = await import('../../server/projects/event-access');
+  const { readableEvent } = await import('../../src/server/projects/event-access');
   const access = createAccessControl(accessFixture());
   const principal = access.principalFor(person('alice'));
   const receiver = { scope: access.forRequest(principal), owner: principal.id };
@@ -161,7 +161,7 @@ test('a connected scope sees newly registered projects', async () => {
   const projects = [...fixture.knownProjects()];
   const access = createAccessControl({ ...fixture, knownProjects: () => projects });
   const scope = access.forRequest(access.principalFor(person('dave')));
-  const { readableEvent } = await import('../../server/projects/event-access');
+  const { readableEvent } = await import('../../src/server/projects/event-access');
   const receiver = { scope, owner: scope.principal.id };
   scope.view();
   projects.push('new-project' as (typeof projects)[number]);
@@ -229,7 +229,7 @@ test('suggestion counts debounce once per owner and notify only changed people',
 });
 
 test('tags alone govern delivery even when payload resource names disagree', async () => {
-  const { readableEvent } = await import('../../server/projects/event-access');
+  const { readableEvent } = await import('../../src/server/projects/event-access');
   const access = createAccessControl(accessFixture());
   const scope = access.forRequest(access.principalFor(person('alice')));
   const receiver = { scope, owner: scope.principal.id };
@@ -252,7 +252,7 @@ test('tags alone govern delivery even when payload resource names disagree', asy
 });
 
 test('trash events reach owners and authorized restorers but conceal restricted paths', async () => {
-  const { readableEvent } = await import('../../server/projects/event-access');
+  const { readableEvent } = await import('../../src/server/projects/event-access');
   const access = createAccessControl(accessFixture());
   const owner = access.forRequest(access.principalFor(person('alice')));
   const other = access.forRequest(access.principalFor(person('frank')));
@@ -325,7 +325,7 @@ test('project removals reach the project readers and keep the slug from everyone
 });
 
 test('removal readers are fixed per project while the project is still registered', async () => {
-  const { currentReaders, readableEvent } = await import('../../server/projects/event-access');
+  const { currentReaders, readableEvent } = await import('../../src/server/projects/event-access');
   const fixture = accessFixture();
   const projects: string[] = [...fixture.knownProjects()];
   const access = createAccessControl({ ...fixture, knownProjects: () => projects });
@@ -358,8 +358,8 @@ test('removal readers are fixed per project while the project is still registere
 });
 
 test('trash events and the trash listing apply the same rule, including project entries', async () => {
-  const { readableEvent } = await import('../../server/projects/event-access');
-  const { readableTrash } = await import('../../server/projects/trash');
+  const { readableEvent } = await import('../../src/server/projects/event-access');
+  const { readableTrash } = await import('../../src/server/projects/trash');
   const access = createAccessControl(accessFixture());
   const people = (['alice', 'frank', 'dave', 'carol'] as const).map(name => {
     const scope = access.forRequest(access.principalFor(person(name)));

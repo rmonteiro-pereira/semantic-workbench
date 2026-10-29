@@ -8,7 +8,7 @@ import { mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spyOn } from 'bun:test';
-import { ANONYMOUS_AUDIT_BURST } from '../server/auth/rate-limit';
+import { ANONYMOUS_AUDIT_BURST } from '../src/server/auth/rate-limit';
 import { allowEveryRemote } from '../tests/helpers/remote-credentials-fixture';
 
 const month = () => new Date().toISOString().slice(0, 7);
@@ -16,7 +16,7 @@ const get = (path: string, headers: Record<string, string> = {}) =>
   new Request('http://localhost' + path, { headers });
 
 async function sessionsCase(candidate: any) {
-  const { localPrincipal } = await import('../server/auth/principal');
+  const { localPrincipal } = await import('../src/server/auth/principal');
   const dir = mkdtempSync(join(tmpdir(), 'sec-sessions-'));
   const identity = {
     principal: localPrincipal(),
@@ -121,7 +121,7 @@ function rateLimitCase(candidate: any) {
 
 async function requestLimitsCase(candidate: any) {
   const { testWorkspace } = await import('../tests/helpers/temp-data-dir');
-  const { createAuditLog } = await import('../server/auth/audit');
+  const { createAuditLog } = await import('../src/server/auth/audit');
   using workspace = await testWorkspace();
   const noRefill = (burst: number) => ({ burst, perSecond: 0.0001 });
   let source = '203.0.113.7';
@@ -202,9 +202,9 @@ async function requestLimitsCase(candidate: any) {
 }
 
 async function personAndAddressChecks(candidate: any, workspace: any) {
-  const { createAuditLog } = await import('../server/auth/audit');
-  const { createAccessControl } = await import('../server/auth/authorize');
-  const { localPrincipal } = await import('../server/auth/principal');
+  const { createAuditLog } = await import('../src/server/auth/audit');
+  const { createAccessControl } = await import('../src/server/auth/authorize');
+  const { localPrincipal } = await import('../src/server/auth/principal');
   const { accessFixture } = await import('../tests/auth/access-fixture');
   let milliseconds = Date.now();
   let peer = '10.0.0.1';
@@ -259,7 +259,7 @@ async function personAndAddressChecks(candidate: any, workspace: any) {
 }
 
 async function errorMappingCase(candidate: any) {
-  const { BadRequestError } = await import('../server/projects/errors');
+  const { BadRequestError } = await import('../src/server/projects/errors');
   const messages: string[] = [];
   const original = console.error;
   console.error = (...parts: unknown[]) => void messages.push(parts.join(' '));
@@ -281,7 +281,7 @@ async function errorMappingCase(candidate: any) {
     );
     assert.equal(typed.status, 400);
     assert.deepEqual(await typed.json(), { error: 'Bad body.' });
-    const { GitError } = await import('../server/projects/git');
+    const { GitError } = await import('../src/server/projects/git');
     const git = new GitError('git push failed', {
       code: 1,
       stdout: '',
@@ -321,10 +321,10 @@ async function internalErrorCase(candidate: any) {
 
 async function legacyErrorsCase(candidate: any) {
   const { testWorkspace } = await import('../tests/helpers/temp-data-dir');
-  const { createAccessControl } = await import('../server/auth/authorize');
-  const { localPrincipal } = await import('../server/auth/principal');
+  const { createAccessControl } = await import('../src/server/auth/authorize');
+  const { localPrincipal } = await import('../src/server/auth/principal');
   const { accessFixture } = await import('../tests/auth/access-fixture');
-  const { createAuditLog } = await import('../server/auth/audit');
+  const { createAuditLog } = await import('../src/server/auth/audit');
   using workspace = await testWorkspace();
   const options = {
     mode: 'server' as const,
@@ -411,7 +411,7 @@ async function csrfBodyCase(candidate: any) {
 }
 
 async function signInStatusCase(candidate: any) {
-  const { SignInError } = await import('../server/auth/sign-in-error');
+  const { SignInError } = await import('../src/server/auth/sign-in-error');
   const expected = {
     'attempt-invalid': 400,
     'token-invalid': 400,
@@ -444,7 +444,7 @@ function serveOptionsCase(candidate: any) {
 }
 
 async function keepOpenCase(candidate: any) {
-  const { requestAccess } = await import('../server/auth/request-scope');
+  const { requestAccess } = await import('../src/server/auth/request-scope');
   const kept: string[] = [];
   const route = candidate.eventRoutes({ keepOpen: (request: Request) => kept.push(request.url) });
   const request = get('/api/events');
@@ -456,7 +456,7 @@ async function keepOpenCase(candidate: any) {
 }
 
 function attemptLedgerCase(candidate: any) {
-  const { sha256 } = require('../server/projects/atomic');
+  const { sha256 } = require('../src/server/projects/atomic');
   const dir = mkdtempSync(join(tmpdir(), 'sec-ledger-'));
   try {
     const now = 10_000_000;
@@ -481,10 +481,10 @@ function attemptLedgerCase(candidate: any) {
 async function authenticationCase(candidate: any) {
   const { authWorkspace } = await import('../tests/helpers/auth-workspace');
   const { oidcTransport } = await import('../tests/helpers/oidc-transport');
-  const { createOidcClient } = await import('../server/auth/oidc');
-  const { createHandler } = await import('../server/handler');
-  const { SignInError } = await import('../server/auth/sign-in-error');
-  const { sha256 } = await import('../server/projects/atomic');
+  const { createOidcClient } = await import('../src/server/auth/oidc');
+  const { createHandler } = await import('../src/server/handler');
+  const { SignInError } = await import('../src/server/auth/sign-in-error');
+  const { sha256 } = await import('../src/server/projects/atomic');
   const transport = await oidcTransport();
   using fixture = await authWorkspace();
   const client = await createOidcClient(transport.config, { fetch: transport.fetch });
@@ -629,14 +629,14 @@ async function auditSuppressedCase(candidate: any) {
 }
 
 async function decodeCase(candidate: any) {
-  const { PathError } = await import('../server/projects/paths');
+  const { PathError } = await import('../src/server/projects/paths');
   assert.equal(candidate.decodeSegment('a%20b'), 'a b');
   assert.throws(() => candidate.decodeSegment('%E0%A4%A'), PathError);
   assert.throws(() => candidate.decodePath('a/%E0%A4%A'), PathError);
 }
 
 async function routeActionsCase(candidate: any) {
-  const { PathError } = await import('../server/projects/paths');
+  const { PathError } = await import('../src/server/projects/paths');
   const url = new URL('http://localhost/api/projects/%E0%A4%A/files/x.yaml');
   const found = candidate.routeFor('GET', url.pathname, 'server');
   assert.throws(() => found.row.resource(found.match, url), PathError);

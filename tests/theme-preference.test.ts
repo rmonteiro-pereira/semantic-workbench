@@ -6,7 +6,7 @@ import {
   parseThemePreference,
   readThemePreference,
   storeThemePreference,
-} from '../src/theme-preference';
+} from '../src/theme/theme-preference';
 
 const realStorage = globalThis.localStorage;
 

@@ -4,8 +4,8 @@ import { afterEach, expect, spyOn, test } from 'bun:test';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { localPrincipal } from '../../server/auth/principal';
-import { createSessionStore, providerIndexKey } from '../../server/auth/sessions';
+import { localPrincipal } from '../../src/server/auth/principal';
+import { createSessionStore, providerIndexKey } from '../../src/server/auth/sessions';
 
 const roots: string[] = [];
 afterEach(() => roots.splice(0).forEach(root => rmSync(root, { recursive: true, force: true })));

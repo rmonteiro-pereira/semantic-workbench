@@ -4,10 +4,10 @@
 import { expect, test } from 'bun:test';
 import { createHash, randomBytes } from 'node:crypto';
 import { decodeJwt, exportPKCS8, exportSPKI, generateKeyPair } from 'jose';
-import { createOidcClient } from '../../server/auth/oidc';
-import { createSignInProvider, signInLibrary } from '../../server/auth/sign-in-provider';
-import { createMsalProvider } from '../../server/auth/msal-provider';
-import type { SignInError } from '../../server/auth/sign-in-error';
+import { createOidcClient } from '../../src/server/auth/oidc';
+import { createSignInProvider, signInLibrary } from '../../src/server/auth/sign-in-provider';
+import { createMsalProvider } from '../../src/server/auth/msal-provider';
+import type { SignInError } from '../../src/server/auth/sign-in-error';
 import {
   TEST_GROUPS,
   TEST_TENANT_ID,

@@ -2,8 +2,8 @@
 import { test, expect } from 'bun:test';
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { sha256 } from '../server/projects/atomic';
-import { projectMetrics } from '../server/agent/explain';
+import { sha256 } from '../src/server/projects/atomic';
+import { projectMetrics } from '../src/server/agent/explain';
 import { testWorkspace, example } from './helpers/temp-data-dir';
 import {
   applyStatusRules,

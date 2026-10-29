@@ -1,11 +1,11 @@
 // Read coverage stays separate so write cases can extend the matrix independently.
-import { LOCAL_READER } from '../../server/projects/reader';
+import { LOCAL_READER } from '../../src/server/projects/reader';
 import { describe, expect, test } from 'bun:test';
 import { authWorkspace, AUTH_PROJECTS, fixtureFiles, leakMarker } from '../helpers/auth-workspace';
 import { TEST_USERS, type TestUserName } from '../helpers/auth-identities';
 import { accessFixture, person } from './access-fixture';
-import { createAccessControl } from '../../server/auth/authorize';
-import { createHandler } from '../../server/handler';
+import { createAccessControl } from '../../src/server/auth/authorize';
+import { createHandler } from '../../src/server/handler';
 import { join } from 'node:path';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { sh } from '../helpers/scm';
@@ -105,7 +105,7 @@ describe('read route inventory', () => {
       extension: { type: 'simple', additivity: 'additive' },
     };
     const { readRouteExamples } = await import('./route-actions');
-    const { routeFor } = await import('../../server/auth/route-actions');
+    const { routeFor } = await import('../../src/server/auth/route-actions');
     using fixture = await authWorkspace();
     const source = fixtureFiles('sales-metrics')
       .find(file => file.path === 'sales.semantic.yaml')!

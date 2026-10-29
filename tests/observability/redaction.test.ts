@@ -6,7 +6,7 @@ import {
   redactFields,
   redactText,
   REDACTED,
-} from '../../server/observability/redaction';
+} from '../../src/server/observability/redaction';
 
 const JWT = 'eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.c2lnbmF0dXJl';
 

@@ -1,5 +1,5 @@
 /** Runs document and SQL validation off the main thread, loading SQL grammars only when needed. */
-import { validateInput } from '../input';
+import { validateInput } from '../validation/input';
 import { isGitignore } from '../scm/gitignore';
 import { browserSqlFindings, browserSqlTextFindings } from '../sql/browser';
 // Shared validation rules off the main thread: typing never waits for a parse. SQL inside

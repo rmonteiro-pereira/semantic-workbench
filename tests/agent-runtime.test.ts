@@ -2,16 +2,16 @@
 import { test, expect } from 'bun:test';
 import { parse, stringify } from 'yaml';
 import { Database } from 'bun:sqlite';
-import { inspect } from '../src/model';
-import { validateInput } from '../src/input';
+import { inspect } from '../src/core/model';
+import { validateInput } from '../src/validation/input';
 import {
   agentCatalog,
   buildContext,
   selectContext,
   planQuery,
   type StoredDocument,
-} from '../server/agent/runtime';
-import { parseExpression, columnRefs } from '../server/agent/sql';
+} from '../src/server/agent/runtime';
+import { parseExpression, columnRefs } from '../src/server/agent/sql';
 const names = [
   'commerce.mapping.yaml',
   'commerce.mapped-ontology.yaml',

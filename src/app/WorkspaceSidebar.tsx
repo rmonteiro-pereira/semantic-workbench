@@ -4,7 +4,7 @@ import { useCapabilities } from '../auth/Capabilities';
 import { useMe } from '../auth/useMe';
 import { useGitSetup } from '../scm/GitSetup';
 import { FileCode, GitBranch, Network, Upload, X } from 'lucide-react';
-import { BrandLogo } from '../brand/BrandLogo';
+import { BrandLogo } from '../brand/BrandContext';
 import React from 'react';
 import type { Doc, ProjectInfo, Suggestion } from '../projects/api';
 import { api } from '../projects/api';

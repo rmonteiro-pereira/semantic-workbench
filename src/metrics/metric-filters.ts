@@ -1,5 +1,5 @@
 /** Filters, grouping and optional columns of the metrics list, as pure functions. */
-import type { KpiSummary } from '../../server/agent/explain';
+import type { KpiSummary } from '../server/agent/explain';
 import { typeLabel } from './format';
 
 /** Names the stable key used by selection and navigation. */

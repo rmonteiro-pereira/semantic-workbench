@@ -20,10 +20,10 @@ import {
   startRemoteSetup,
   type RemoteSetup,
 } from './remote-setup';
-import { repoDir } from '../../server/projects/paths';
-import { createSessionStore } from '../../server/auth/sessions';
-import { createRemoteCredentials } from '../../server/auth/remote-credentials';
-import { localPrincipal } from '../../server/auth/principal';
+import { repoDir } from '../../src/server/projects/paths';
+import { createSessionStore } from '../../src/server/auth/sessions';
+import { createRemoteCredentials } from '../../src/server/auth/remote-credentials';
+import { localPrincipal } from '../../src/server/auth/principal';
 
 beforeAll(useDefaultBrand);
 

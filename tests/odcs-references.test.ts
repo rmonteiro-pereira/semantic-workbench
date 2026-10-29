@@ -1,9 +1,9 @@
 // Tests resolution of contract references.
 import { test, expect } from 'bun:test';
 import { stringify } from 'yaml';
-import { validateInput } from '../src/input';
-import { inspect } from '../src/model';
-import { documentKeys, entityKeys } from '../src/references';
+import { validateInput } from '../src/validation/input';
+import { inspect } from '../src/core/model';
+import { documentKeys, entityKeys } from '../src/core/references';
 const contract = (schema: any[]) =>
   stringify({
     apiVersion: 'v3.1.0',

@@ -1,5 +1,5 @@
 /** Resolves metric-to-concept bindings from extensions and standard mapping expressions. */
-import { expandIri, prefixMap } from '../iri';
+import { expandIri, prefixMap } from '../validation/iri';
 import { readKpiBindings, type KpiBinding } from './extension';
 // Bindings live in a mapping root extension or an embedded semantic model root. They resolve
 // against the referenced ontology and model. Exact metric-name mapping expressions also provide

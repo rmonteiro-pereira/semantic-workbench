@@ -1,4 +1,4 @@
-// Replaces colour literals in stylesheets and source files by the tokens of src/theme.css.
+// Replaces colour literals in stylesheets and source files by the tokens of src/theme/theme.css.
 //
 //   bun scripts/theme-codemod.ts            rewrite the files in place
 //   bun scripts/theme-codemod.ts --dry-run  print what would change and write nothing
@@ -242,7 +242,7 @@ function printUnmapped(left: Change[]) {
 /** Runs the codemod over the given paths and prints a summary. */
 export function runCodemod(args: string[]): number {
   const options = readOptions(args);
-  const tokens = readTokens(readFileSync('src/theme.css', 'utf8'));
+  const tokens = readTokens(readFileSync('src/theme/theme.css', 'utf8'));
   const changes: Change[] = [];
   for (const file of themedFiles(options.paths)) {
     const language = languageOf(file)!;

@@ -3,10 +3,10 @@ import type { SourceLanguage } from './color-literals';
 import { walkFiles } from './walk-files';
 
 // These files are where colour literals are allowed to live.
-const THEME_FILES = ['src/theme.css', 'src/theme-palette.ts'];
+const THEME_FILES = ['src/theme/theme.css', 'src/theme/theme-palette.ts'];
 
-/** The folders that hold interface and server code, and the page shell, that must use tokens. */
-export const THEMED_PATHS = ['src', 'server', 'index.html'];
+/** The source tree and page shell that must use theme tokens. */
+export const THEMED_PATHS = ['src', 'index.html'];
 
 /** Returns true for a file that may hold colour literals. */
 export function isThemeFile(path: string): boolean {

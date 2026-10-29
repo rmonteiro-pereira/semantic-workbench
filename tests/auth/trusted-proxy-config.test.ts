@@ -1,6 +1,6 @@
 // SW_TRUSTED_PROXY_HOPS says how many reverse proxies append to X-Forwarded-For.
 import { expect, test } from 'bun:test';
-import { ConfigError } from '../../server/config';
+import { ConfigError } from '../../src/server/config';
 import { oidcConfig } from '../helpers/server-auth';
 
 const configured = (extra: Record<string, string>) =>

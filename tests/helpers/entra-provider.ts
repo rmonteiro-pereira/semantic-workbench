@@ -1,6 +1,6 @@
 // Runs sign-in tests against the mock provider in Entra's endpoint layout, which drives MSAL.
-import type { ClientAuth, ServerConfig } from '../../server/config';
-import type { SignInProvider } from '../../server/auth/sign-in-provider';
+import type { ClientAuth, ServerConfig } from '../../src/server/config';
+import type { SignInProvider } from '../../src/server/auth/sign-in-provider';
 import { startMockOidc, type MockOidc, type MockOidcOptions } from './mock-oidc';
 import { oidcConfig } from './server-auth';
 import type { TestUserName } from './auth-identities';

@@ -4,8 +4,8 @@ import {
   createInstanceLock,
   lockDecision,
   revisionIdentity,
-} from '../../server/projects/instance-lock';
-import type { InstanceRecord } from '../../server/projects/instance-lock';
+} from '../../src/server/projects/instance-lock';
+import type { InstanceRecord } from '../../src/server/projects/instance-lock';
 
 const record = (revision = 'old', heartbeat = 0): InstanceRecord => ({
   instance: crypto.randomUUID(),
@@ -166,9 +166,9 @@ for (const signal of ['SIGTERM', 'SIGINT'] as const) {
     const path = join(root, 'state/instance.lock');
     const source = `
       import { createInstanceLock, instanceLockFiles } from ${JSON.stringify(
-        resolve('server/projects/instance-lock.ts'),
+        resolve('src/server/projects/instance-lock.ts'),
       )};
-      import { installShutdownHandlers } from ${JSON.stringify(resolve('server/shutdown.ts'))};
+      import { installShutdownHandlers } from ${JSON.stringify(resolve('src/server/shutdown.ts'))};
       const lock = createInstanceLock({
         host: 'test', pid: process.pid, revision: 'dev', now: Date.now,
         files: instanceLockFiles(process.env.TEST_LOCK), open: async () => {}, log: () => {},
@@ -204,7 +204,7 @@ test('disk acquisition rechecks the lease and never overwrites a fresh claimant'
   const { mkdtempSync, rmSync, writeFileSync } = await import('node:fs');
   const { join } = await import('node:path');
   const { tmpdir } = await import('node:os');
-  const { instanceLockFiles } = await import('../../server/projects/instance-lock');
+  const { instanceLockFiles } = await import('../../src/server/projects/instance-lock');
   const root = mkdtempSync(join(tmpdir(), 'workbench-claim-'));
   const path = join(root, 'state/instance.lock');
   let now = 0;
@@ -331,7 +331,7 @@ test('a timer firing at 9.99 seconds refreshes the heartbeat', async () => {
 test('only one competing stale breaker renames the guard and both defer acquisition', async () => {
   const fs = await import('node:fs');
   const { spyOn } = await import('bun:test');
-  const { instanceLockFiles } = await import('../../server/projects/instance-lock');
+  const { instanceLockFiles } = await import('../../src/server/projects/instance-lock');
   const root = fs.mkdtempSync('/tmp/workbench-stale-');
   const path = `${root}/instance.lock`;
   const guard = `${path}.claim`;
@@ -369,7 +369,7 @@ test('only one competing stale breaker renames the guard and both defer acquisit
 
 test('on-disk identities must contain a valid instance nonce', async () => {
   const { mkdtempSync, writeFileSync, rmSync } = await import('node:fs');
-  const { instanceLockFiles } = await import('../../server/projects/instance-lock');
+  const { instanceLockFiles } = await import('../../src/server/projects/instance-lock');
   const root = mkdtempSync('/tmp/workbench-nonce-');
   const path = `${root}/instance.lock`;
   try {

@@ -1,6 +1,6 @@
 // Tests the pure rules of the metrics list: filters, grouping, optional columns and the badge.
 import { expect, test } from 'bun:test';
-import type { KpiSummary } from '../server/agent/explain';
+import type { KpiSummary } from '../src/server/agent/explain';
 import {
   activeFilterCount,
   filterMetrics,

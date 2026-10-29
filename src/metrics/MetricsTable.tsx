@@ -1,6 +1,6 @@
 /** The metrics list as a table that becomes a stack of cards on phones. */
 import React from 'react';
-import type { KpiSummary } from '../../server/agent/explain';
+import type { KpiSummary } from '../server/agent/explain';
 import { conceptText, typeLabel } from './format';
 import type { GroupBy, MetricColumns } from './metric-filters';
 import { metricKey } from './metric-filters';

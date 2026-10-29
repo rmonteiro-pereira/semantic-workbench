@@ -3,9 +3,9 @@
 import { expect, test } from 'bun:test';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { createAccessControl } from '../../server/auth/authorize';
-import { LOCAL_READER } from '../../server/projects/reader';
-import { locationOf } from '../../server/projects/paths';
+import { createAccessControl } from '../../src/server/auth/authorize';
+import { LOCAL_READER } from '../../src/server/projects/reader';
+import { locationOf } from '../../src/server/projects/paths';
 import { testWorkspace } from '../helpers/temp-data-dir';
 import {
   OTHER_FOLDER,

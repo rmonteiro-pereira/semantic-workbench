@@ -1,6 +1,6 @@
 /** Edits an item's own lines while preserving every byte outside it and unchanged values
  * inside it. */
-import type { Issue } from '../diagnostics';
+import type { Issue } from '../validation/diagnostics';
 import { applyPatches } from '../editor/patch';
 import { parseSource, valuePatches, itemValue } from './yaml-patch';
 import { dedent, itemSpan, reindent } from './source-text';

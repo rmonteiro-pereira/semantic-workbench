@@ -4,10 +4,10 @@ import assert from 'node:assert/strict';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { requestAccess } from '../server/auth/request-scope';
-import { createGit } from '../server/projects/git';
-import { dataLayout } from '../server/projects/paths';
-import { LOCAL_READER } from '../server/projects/reader';
+import { requestAccess } from '../src/server/auth/request-scope';
+import { createGit } from '../src/server/projects/git';
+import { dataLayout } from '../src/server/projects/paths';
+import { LOCAL_READER } from '../src/server/projects/reader';
 import { readZip } from '../tests/helpers/zip-reader';
 
 const NO_HISTORY = { includeHistory: false, historyAllowed: true };

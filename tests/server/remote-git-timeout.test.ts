@@ -1,7 +1,7 @@
 // Remote Git commands can be silent for longer than the idle timeout, so their connections are
 // kept open; local ones are not.
 import { expect, test } from 'bun:test';
-import { createGitRoutes } from '../../server/routes/git';
+import { createGitRoutes } from '../../src/server/routes/git';
 
 async function keptOpenFor(action: string) {
   const kept: string[] = [];

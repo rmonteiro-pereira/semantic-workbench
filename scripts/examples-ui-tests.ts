@@ -1,5 +1,5 @@
 // Checks example loading, mappings and metric composition in the browser.
-import { LOCAL_READER } from '../server/projects/reader';
+import { LOCAL_READER } from '../src/server/projects/reader';
 import { appUrl } from './helpers/base-url';
 import { viewOptions } from './helpers/graph-options';
 import { chromium, expect } from '@playwright/test';

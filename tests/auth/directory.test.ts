@@ -1,6 +1,6 @@
 // Checks overage batching and fail-closed resolution using an injected HTTP edge.
 import { expect, test } from 'bun:test';
-import { createDirectoryClient, createGroupNameCache } from '../../server/auth/directory';
+import { createDirectoryClient, createGroupNameCache } from '../../src/server/auth/directory';
 
 test('checks at most twenty candidate groups per call and drops unexpected groups', async () => {
   const batches: string[][] = [];
@@ -106,9 +106,9 @@ test('Admin group lookup uses the Graph stand-in, degrades to the ID and refresh
   const { startMockOidc } = await import('../helpers/mock-oidc');
   const { authWorkspace } = await import('../helpers/auth-workspace');
   const { oidcConfig } = await import('../helpers/server-auth');
-  const { createServerAuthentication } = await import('../../server/auth/authentication');
-  const { createHandler } = await import('../../server/handler');
-  const { openAdminRepository } = await import('../../server/auth/admin-repo');
+  const { createServerAuthentication } = await import('../../src/server/auth/authentication');
+  const { createHandler } = await import('../../src/server/handler');
+  const { openAdminRepository } = await import('../../src/server/auth/admin-repo');
   const { TEST_GROUPS } = await import('../helpers/auth-identities');
   const provider = await startMockOidc();
   using fixture = await authWorkspace();

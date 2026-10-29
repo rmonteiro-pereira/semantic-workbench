@@ -1,16 +1,16 @@
 /** Resolves editable targets and applies saved item changes across workspace views. */
 import React, { useRef, useState } from 'react';
-import type { KpiSummary } from '../../server/agent/explain';
-import type { Issue } from '../diagnostics';
+import type { KpiSummary } from '../server/agent/explain';
+import type { Issue } from '../validation/diagnostics';
 import { openFragment } from '../edit/fragment';
 import { itemKindAt, type Choices, type ItemKind, type Path } from '../edit/item-model';
 import { type Saved } from '../edit/ItemEditor';
 import { isIri } from '../edit/rdf-patch/index';
 import { itemValue } from '../edit/yaml-patch';
 import type { CodeEditorHandle } from '../editor/CodeEditor';
-import type { Entity, Relationship } from '../model';
+import type { Entity, Relationship } from '../core/model';
 import type { Doc, ProjectInfo } from '../projects/api';
-import { rdfSyntax } from '../rdf';
+import { rdfSyntax } from '../validation/rdf';
 import type { ItemTarget, RdfTarget, ValidatedModel } from './types';
 import { useSourceControl } from './useSourceControl';
 

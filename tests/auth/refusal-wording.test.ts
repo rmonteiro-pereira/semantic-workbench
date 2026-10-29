@@ -3,11 +3,11 @@
 import { beforeAll, expect, test } from 'bun:test';
 import { useDefaultBrand } from '../helpers/brand-fixture';
 import { readFileSync } from 'node:fs';
-import { createAccessControl } from '../../server/auth/authorize';
-import { GuardedChangeError } from '../../server/auth/guards';
-import { requestAccess, requestReader } from '../../server/auth/request-scope';
-import { SignInError, type SignInReason } from '../../server/auth/sign-in-error';
-import { signInErrorResponse } from '../../server/routes/auth';
+import { createAccessControl } from '../../src/server/auth/authorize';
+import { GuardedChangeError } from '../../src/server/auth/guards';
+import { requestAccess, requestReader } from '../../src/server/auth/request-scope';
+import { SignInError, type SignInReason } from '../../src/server/auth/sign-in-error';
+import { signInErrorResponse } from '../../src/server/routes/auth';
 import { failureReason, saveStateLabel } from '../../src/projects/autosave';
 import { hiddenCommitsLine } from '../../src/scm/SourceControl';
 import { accessFixture, person } from './access-fixture';

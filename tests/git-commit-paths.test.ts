@@ -3,7 +3,7 @@ import { test, expect } from 'bun:test';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createGit } from '../server/projects/git';
+import { createGit } from '../src/server/projects/git';
 import { isolateGit } from './helpers/temp-data-dir';
 // Selected-path commits stage untracked files before using `git commit --only`.
 // Other staged and unstaged work must remain untouched.

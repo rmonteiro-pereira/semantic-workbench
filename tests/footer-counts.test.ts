@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { footerCounts } from '../src/app/footerCounts';
+import { footerCounts } from '../src/app/StatusFooter';
 
 test('an ontology reports entities and relationships', () => {
   expect(footerCounts('Ossie ontology', 45, 277)).toBe('45 entities · 277 relationships');

@@ -5,7 +5,7 @@
 import { chromium } from '@playwright/test';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { createGit } from '../server/projects/git';
+import { createGit } from '../src/server/projects/git';
 import { withCleanup } from './helpers/processes';
 import { TEST_USERS } from '../tests/helpers/auth-identities';
 import { startMockOidc } from '../tests/helpers/mock-oidc';

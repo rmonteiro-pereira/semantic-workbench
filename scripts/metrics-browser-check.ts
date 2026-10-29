@@ -1,5 +1,5 @@
 // Checks metric details, explanations and graph navigation in an isolated browser workspace.
-import { LOCAL_READER } from '../server/projects/reader';
+import { LOCAL_READER } from '../src/server/projects/reader';
 import { appUrl } from './helpers/base-url';
 import { showEveryEntity, viewOptions } from './helpers/graph-options';
 import { chromium, expect, type Page } from '@playwright/test';

@@ -1,12 +1,12 @@
 // Creation must give scoped creators a readable project without widening their grants.
 import { expect, spyOn, test } from 'bun:test';
-import * as cedar from '../../server/auth/cedar';
-import { newProjectIn } from '../../server/auth/resource';
+import * as cedar from '../../src/server/auth/cedar';
+import { newProjectIn } from '../../src/server/auth/resource';
 import { authWorkspace } from '../helpers/auth-workspace';
-import { createAccessControl } from '../../server/auth/authorize';
-import { createHandler } from '../../server/handler';
+import { createAccessControl } from '../../src/server/auth/authorize';
+import { createHandler } from '../../src/server/handler';
 import { accessFixture, person } from './access-fixture';
-import { openAdminRepository } from '../../server/auth/admin-repo';
+import { openAdminRepository } from '../../src/server/auth/admin-repo';
 import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 
 const origin = 'http://127.0.0.1:4310';

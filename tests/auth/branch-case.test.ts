@@ -5,7 +5,7 @@ import {
   branchShownTo,
   branchSpelledDifferently,
   isPersonalBranch,
-} from '../../server/projects/worktrees';
+} from '../../src/server/projects/worktrees';
 import { authWorkspace } from '../helpers/auth-workspace';
 import { person } from './access-fixture';
 import { gitOutput, copyFolder, openCopy, signedIn } from './working-copy-fixture';

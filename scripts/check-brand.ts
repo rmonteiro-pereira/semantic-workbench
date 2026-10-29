@@ -11,7 +11,7 @@
 //   logo-path     the path data of the inline layers logo
 //
 // What is not scanned: public/brand (the defaults themselves), public/examples (stored unmodified),
-// src/generated (schema validators compiled from the schemas), and everything outside src, server,
+// src/generated (schema validators compiled from the schemas), and everything outside src,
 // index.html and public: tests, scripts, specs and documentation may name the product.
 // Identifiers such as "semantic-workbench/metric/v1" or SEMANTIC_WORKBENCH do not match.
 //
@@ -35,37 +35,48 @@ const RULES: { rule: BrandRule; pattern: RegExp }[] = [
 // Technical identities. The committer of server commits is stored in every repository's history,
 // so a brand swap must not rewrite it; an operator changes it with SW_COMMITTER_NAME instead.
 const ALLOWED: { file: string; rule: BrandRule; reason: string }[] = [
-  { file: 'server/config.ts', rule: 'product-name', reason: 'default of SW_COMMITTER_NAME' },
-  { file: 'server/projects/git.ts', rule: 'product-name', reason: 'service committer identity' },
+  { file: 'src/server/config.ts', rule: 'product-name', reason: 'default of SW_COMMITTER_NAME' },
   {
-    file: 'server/auth/admin-repo.ts',
+    file: 'src/server/projects/git.ts',
+    rule: 'product-name',
+    reason: 'service committer identity',
+  },
+  {
+    file: 'src/server/auth/admin-repo.ts',
     rule: 'product-name',
     reason: 'committer of the policy repo',
   },
   {
-    file: 'server/projects/migration.ts',
+    file: 'src/server/projects/migration.ts',
     rule: 'product-name',
     reason: 'fixed import commit text',
   },
   {
-    file: 'server/agent/explain.ts',
+    file: 'src/server/agent/explain.ts',
     rule: 'product-name',
     reason: 'agent reply text pinned by a digest test',
   },
   {
-    file: 'server/agent/runtime.ts',
+    file: 'src/server/agent/runtime.ts',
     rule: 'product-name',
     reason: 'agent reply text pinned by a digest test',
   },
-  { file: 'server/projects/worktrees.ts', rule: 'product-name', reason: 'lock reason kept in Git' },
+  {
+    file: 'src/server/projects/worktrees.ts',
+    rule: 'product-name',
+    reason: 'lock reason kept in Git',
+  },
 ];
 
-const SCANNED_PATHS = ['src', 'server', 'index.html', 'public'];
+const SCANNED_PATHS = ['src', 'index.html', 'public'];
 const SKIPPED_PATHS = ['public/brand', 'public/examples', 'src/generated'];
 const TEXT_FILE = /\.(?:ts|tsx|js|mjs|css|html|json|svg|webmanifest)$/;
 
 function isSkipped(path: string): boolean {
-  return SKIPPED_PATHS.some(skipped => path === skipped || path.startsWith(skipped + '/'));
+  const normalized = path.replaceAll('\\', '/');
+  return SKIPPED_PATHS.some(
+    skipped => normalized === skipped || normalized.startsWith(skipped + '/'),
+  );
 }
 
 function isAllowed(file: string, rule: BrandRule): boolean {
@@ -88,7 +99,10 @@ export function brandViolationsIn(file: string, text: string): BrandViolation[] 
 /** Returns every violation in the given paths, in file order. */
 export function brandViolations(paths: string[] = SCANNED_PATHS): BrandViolation[] {
   const files = walkFiles(paths, file => TEXT_FILE.test(file) && !isSkipped(file));
-  return files.flatMap(file => brandViolationsIn(file, readFileSync(file, 'utf8')));
+  return files.flatMap(file => {
+    const normalized = file.replaceAll('\\', '/');
+    return brandViolationsIn(normalized, readFileSync(file, 'utf8'));
+  });
 }
 
 /** Prints one `file:line` per violation and returns the process exit code. */

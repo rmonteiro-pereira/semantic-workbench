@@ -6,7 +6,15 @@ import { parseSource } from '../edit/yaml-patch';
 import { withMetricAttributes } from '../metrics/metric-save';
 import { extensionOf, semanticModelPaths, type Path } from '../edit/item-model';
 import { deepEqual, isObject } from '../edit/source-text';
-import { LEVELS, levelNumber, type Level } from './levels';
+
+/** Classification levels from least to most sensitive; their index is the level number. */
+export const LEVELS = ['public', 'internal', 'confidential', 'restricted'] as const;
+
+/** One classification level. */
+export type Level = (typeof LEVELS)[number];
+
+/** Numeric value of a level for comparisons in policies. */
+export const levelNumber = (level: Level) => LEVELS.indexOf(level);
 
 /** What a guarded change touches, which decides the permission it needs. */
 export type GuardKind =

@@ -1,6 +1,6 @@
 // UI permissions are API capabilities, including custom roles with unexpected names.
 import { expect, test } from 'bun:test';
-import { can, requiredRole } from '../../src/auth/can';
+import { can, requiredRole } from '../../src/auth/Capabilities';
 import type { Me } from '../../src/auth/useMe';
 
 const me: Me = {

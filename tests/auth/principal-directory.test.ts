@@ -1,6 +1,10 @@
 // Checks directory membership replacement and tenant isolation outside token parsing tests.
 import { expect, test } from 'bun:test';
-import { localPrincipal, normalizeClaims, withDirectoryGroups } from '../../server/auth/principal';
+import {
+  localPrincipal,
+  normalizeClaims,
+  withDirectoryGroups,
+} from '../../src/server/auth/principal';
 
 test('directory results replace groups without changing identity or retaining stale membership', () => {
   const principal = { ...localPrincipal(), groupOverage: true };

@@ -10,8 +10,8 @@ dialog or progressive disclosure over more controls in a panel), the ODCS data v
 that is readable at normal zoom.
 
 Severity: **S1** content overlaps, is cut off or cannot be reached; **S2** crammed, hard to use
-or hard to read; **S3** polish. Screenshots are in `screenshots/before/` (taken before any fix,
-from the v0.4.0 build). `screenshots/after/` holds the same screens after the fixes.
+or hard to read; **S3** polish. The v0.4.0 baseline screenshots were removed to reduce repository
+size; `screenshots/after/` retains the reviewed final captures and manifests.
 
 ## S1: overlap, cut-off or unreachable content
 
@@ -127,20 +127,20 @@ reported by the existing control check, because scrolling strips count as reacha
 ## S5: strict audit rounds
 
 Each round photographs every screen and dialog at four sizes, in light and dark, in local and server
-mode, and a reviewer who did not build the app reads every image. The reviewer's rows are in
-`specs/004-ui-polish/audit/round-N-<letter>.md`; every S1 and S2 row there is a finding of this
-release, and the round is closed only when the next round reports none.
+mode, and a reviewer who did not build the app reads every image. Detailed per-round reviewer
+reports were removed after the final acceptance summary was recorded here and in
+`r11-verification.md`.
 
 | Round | Files | Rows (S1 / S2 / S3) | Status |
 | --- | --- | --- | --- |
-| 1, local light | audit/round-1-A.md, round-1-B.md | 3 / 15 / 5 and 3 / 12 / 6 | historical; superseded by round 16 |
-| 1, local dark | audit/round-1-C.md, round-1-D.md | 1 / 13 / 8 and 5 / 18 / 4 | historical; superseded by round 16 |
+| 1, local light | initial reviewer partitions | 3 / 15 / 5 and 3 / 12 / 6 | historical; superseded by round 16 |
+| 1, local dark | initial reviewer partitions | 1 / 13 / 8 and 5 / 18 / 4 | historical; superseded by round 16 |
 | 1, server light and dark | not completed in round 1 | | historical gap; fresh complete server review in round 16 |
 
 ## Round 2 remediation
 
-The baseline rows and current evidence are tracked in [the resolution ledger](audit/round-2-resolution.md).
-Round 8 independently reviewed all 864 native screenshots with no S1/S2 rows.
+The baseline findings and their dispositions are summarized in this document. Round 8 independently
+reviewed all 864 native screenshots with no S1/S2 rows.
 The final 49-command gate and all seven R11 asks are verified; see FINAL.md.
 
 | Finding | Area | Remediation | Status |
@@ -210,8 +210,8 @@ image; all twelve reports account for every filename. They found **0 S1, 0 S2 an
 representing the two repeated minor patterns below. A subsequent resize runtime correction
 requires a fresh complete round before final R10 closure.
 
-The [closure ledger](audit/closure.md) links earlier serious rows to their fixes. Final JPEGs
-retain native dimensions, with source/output hashes in `screenshots/after/manifest.json`.
+Final JPEGs retain native dimensions, with source/output hashes in
+`screenshots/after/manifest.json`.
 
 | Finding | Area | Observed minor polish | Status |
 | --- | --- | --- | --- |
@@ -228,7 +228,7 @@ retain native dimensions, with source/output hashes in `screenshots/after/manife
 ## Authentication supplement after round 9
 
 The complete 864-image tour was clear. Independent review of all 84 authentication-suite
-screenshots then found four serious rows in `audit/round-9-AUTH-{A,B,C}.md`: the same broken
+screenshots then found four serious issues: the same broken
 public-page logo in two partitions, the long-refusal header and a cropped phone graph captured
 before resize fitting. Loading metric/viewer captures also lacked settled content evidence.
 These supplemental findings reopen the complete visual result until a fresh round is clear.
@@ -244,7 +244,7 @@ These supplemental findings reopen the complete visual result until a fresh roun
 
 The 168 authentication originals were independently reviewed. Twelve requested dark account
 screens were light because their separate capture helper bypassed shared theme setup. The main
-tour was stopped while incomplete; no complete round 10 is claimed. See `audit/round-10-coverage.md`.
+tour was stopped while incomplete; no complete round 10 is claimed.
 
 | Finding | Area | Remediation | Status |
 | --- | --- | --- | --- |
@@ -276,7 +276,7 @@ The subsequent expansion fix, final round 16 and complete gate are recorded in [
 
 | Finding | Area | Observed issue | Evidence | Resolution | Status |
 | --- | --- | --- | --- | --- | --- |
-| F131 | Neighborhood large expansion | An intermediate fit-all viewport mounts otherwise offscreen nodes and can exceed the 100 ms main-thread budget. | audit/round-15-performance.md | Choose and publish the readable viewport once; retain the original performance assertion. | fixed/verified: round 16, eight viewport transitions and final full gate pass |
+| F131 | Neighborhood large expansion | An intermediate fit-all viewport mounts otherwise offscreen nodes and can exceed the 100 ms main-thread budget. | Choose and publish the readable viewport once; retain the original performance assertion. | fixed/verified: round 16, eight viewport transitions and final full gate pass |
 
 ## Round 16: complete fresh expansion-fix visual result
 

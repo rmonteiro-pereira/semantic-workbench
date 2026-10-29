@@ -3,11 +3,11 @@
 // data contracts. The server decides again on every save.
 import {
   classificationLevel,
+  levelNumber,
   ownerMatches,
   type ClassificationSettings,
 } from '../governance/guards';
-import { levelNumber } from '../governance/levels';
-import type { KpiSummary } from '../../server/agent/explain';
+import type { KpiSummary } from '../server/agent/explain';
 import type { Me } from './useMe';
 
 /** The approval action a metric offers, and why it is disabled when it is. */

@@ -3,9 +3,9 @@ import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
-import { projectFile } from '../server/projects/paths';
+import { projectFile } from '../src/server/projects/paths';
 import { exportFile } from './helpers/header';
-import { LOCAL_READER } from '../server/projects/reader';
+import { LOCAL_READER } from '../src/server/projects/reader';
 // SQL warnings must identify the exact source location within 500 ms of a typing pause.
 // Highlighting and previews must leave export bytes unchanged.
 const api = await startIsolatedApi();

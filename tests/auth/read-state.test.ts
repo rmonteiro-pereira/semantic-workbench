@@ -1,9 +1,9 @@
-import { LOCAL_READER } from '../../server/projects/reader';
+import { LOCAL_READER } from '../../src/server/projects/reader';
 import { expect, test } from 'bun:test';
 import { authWorkspace } from '../helpers/auth-workspace';
 import { accessFixture, boundaryReader, person } from './access-fixture';
-import { createAccessControl } from '../../server/auth/authorize';
-import { createHandler } from '../../server/handler';
+import { createAccessControl } from '../../src/server/auth/authorize';
+import { createHandler } from '../../src/server/handler';
 import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 
 test('drafts are owner-only, including listing, reads, replacement and deletion', async () => {
@@ -265,7 +265,7 @@ test('save, move, delete and restore update every personal draft and grouping', 
 
 test('ordinary missing drafts are not audited as unreadable denials', async () => {
   using fixture = await authWorkspace();
-  const { createAuditLog } = await import('../../server/auth/audit');
+  const { createAuditLog } = await import('../../src/server/auth/audit');
   const access = createAccessControl(accessFixture());
   const principal = access.principalFor(person('alice'));
   const records: string[] = [];
@@ -304,7 +304,7 @@ test('ordinary missing drafts are not audited as unreadable denials', async () =
 });
 
 test('trash visibility evaluates restore policy instead of built-in role names', async () => {
-  const { readableTrash } = await import('../../server/projects/trash');
+  const { readableTrash } = await import('../../src/server/projects/trash');
   const fixture = accessFixture();
   const access = createAccessControl(fixture);
   const scope = access.forRequest(access.principalFor(person('alice')));
@@ -516,7 +516,7 @@ test('local trash requests keep the route message for a missing entry', async ()
 
 test('grouping and document saves take the reader and hide restricted documents', async () => {
   using fixture = await authWorkspace();
-  const { HiddenResourceError } = await import('../../server/projects/errors');
+  const { HiddenResourceError } = await import('../../src/server/projects/errors');
   const access = createAccessControl(accessFixture());
   const principal = access.principalFor(person('alice'));
   const reader = boundaryReader(access.view(principal), principal.id);
@@ -535,7 +535,7 @@ test('grouping and document saves take the reader and hide restricted documents'
 
 test('workspace modules depend on the access boundary, never on the HTTP middleware', async () => {
   const { readdirSync, readFileSync } = await import('node:fs');
-  for (const name of readdirSync('server/projects')) {
+  for (const name of readdirSync('src/server/projects')) {
     const source = readFileSync(`server/projects/${name}`, 'utf8');
     expect(`${name}: ${source.includes('auth/middleware')}`).toBe(`${name}: false`);
   }

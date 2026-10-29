@@ -3,7 +3,7 @@
 import { memo, useEffect, useMemo, useState } from 'react';
 import { Handle, Position, useUpdateNodeInternals } from '@xyflow/react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { PropertyBadges } from '../PropertyBadges';
+import { PropertyBadges } from '../shared/PropertyBadges';
 import type { LineageCard, LineageColumn } from './lineage';
 import { FILTER_H, FOOT_H, ROW_H, listBox } from './lineage-layout';
 

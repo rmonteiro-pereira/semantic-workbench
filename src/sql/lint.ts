@@ -1,5 +1,5 @@
 /** Reports SQL syntax warnings at source positions without executing SQL or blocking saves. */
-import type { Issue } from '../diagnostics';
+import type { Issue } from '../validation/diagnostics';
 import { lineColumn, sqlRegions, type SqlRegion } from './regions';
 // Expressions parse as SELECT lists; quality queries and transforms parse as statements. Syntax
 // errors become warnings at exact source locations and never block saving. The caller supplies the

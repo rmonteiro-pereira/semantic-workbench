@@ -2,9 +2,9 @@
 // never lends its metric name to the message.
 import { describe, expect, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
-import { createAccessControl } from '../../server/auth/authorize';
-import { GuardedChangeError, type FileChange } from '../../server/auth/guards';
-import { requestAccess, requestReader } from '../../server/auth/request-scope';
+import { createAccessControl } from '../../src/server/auth/authorize';
+import { GuardedChangeError, type FileChange } from '../../src/server/auth/guards';
+import { requestAccess, requestReader } from '../../src/server/auth/request-scope';
 import { accessFixture, person } from './access-fixture';
 
 const METRICS = readFileSync(

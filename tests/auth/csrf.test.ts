@@ -1,6 +1,6 @@
 // Checks the browser request boundary without a network server.
 import { expect, test } from 'bun:test';
-import { validCsrf } from '../../server/auth/csrf';
+import { validCsrf } from '../../src/server/auth/csrf';
 const origin = 'https://workbench.example';
 
 test('writes require both the request marker and exact public origin', async () => {

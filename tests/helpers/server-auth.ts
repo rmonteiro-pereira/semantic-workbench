@@ -1,5 +1,5 @@
 // Supplies explicit configuration for isolated server authentication tests.
-import { readConfig, type ServerConfig } from '../../server/config';
+import { readConfig, type ServerConfig } from '../../src/server/config';
 import { TEST_TENANT_ID, TEST_WORKBENCH_CLIENT } from './auth-identities';
 
 /** Builds server settings that can send tokens only to the mock provider. */

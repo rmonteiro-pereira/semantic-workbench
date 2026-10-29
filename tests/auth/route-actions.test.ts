@@ -2,7 +2,7 @@
 import { expect, test } from 'bun:test';
 import { readdirSync, readFileSync } from 'node:fs';
 import ts from 'typescript';
-import { ROUTE_ACTIONS, routeFor } from '../../server/auth/route-actions';
+import { ROUTE_ACTIONS, routeFor } from '../../src/server/auth/route-actions';
 import { routeExamples } from './route-actions';
 import { testWorkspace } from '../helpers/temp-data-dir';
 
@@ -53,8 +53,8 @@ function assertRouteCoverage(text: string, file = 'synthetic.ts'): void {
 
 test('every route literal in the server has an example request', () => {
   const files = [
-    'server/handler.ts',
-    ...readdirSync('server/routes')
+    'src/server/handler.ts',
+    ...readdirSync('src/server/routes')
       .filter(name => name.endsWith('.ts'))
       .map(name => `server/routes/${name}`),
   ];
@@ -74,7 +74,7 @@ test('route scan ignores formatting prefixes but refuses unmapped routes', () =>
 });
 
 test('handler retains the DNS rebinding explanation', () => {
-  const source = readFileSync('server/handler.ts', 'utf8').replace(/\n\s*\/\/ /g, ' ');
+  const source = readFileSync('src/server/handler.ts', 'utf8').replace(/\n\s*\/\/ /g, ' ');
   expect(source).toContain(
     'DNS rebinding: a page on another name resolved to 127.0.0.1 sends its own name as Host, and a ' +
       'same-origin GET carries no Origin. Only loopback names are served.',

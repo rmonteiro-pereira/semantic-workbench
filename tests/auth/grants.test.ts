@@ -1,7 +1,12 @@
 // Exercises grant membership and scope expansion independently of the policy engine.
 import { expect, test } from 'bun:test';
-import { adminHolders, holdersOfGrant, resolveGrants, type Grant } from '../../server/auth/grants';
-import { localPrincipal } from '../../server/auth/principal';
+import {
+  adminHolders,
+  holdersOfGrant,
+  resolveGrants,
+  type Grant,
+} from '../../src/server/auth/grants';
+import { localPrincipal } from '../../src/server/auth/principal';
 
 const scope = { kind: 'workspace' } as const;
 const group: Grant = {

@@ -1,8 +1,8 @@
 // Public identity pages need only the sanitized brand bundle, never workspace assets or data.
 import { beforeEach, expect, test } from 'bun:test';
-import { createHandler } from '../../server/handler';
-import { createAccessControl } from '../../server/auth/authorize';
-import { activeBrand } from '../../server/brand/active-brand';
+import { createHandler } from '../../src/server/handler';
+import { createAccessControl } from '../../src/server/auth/authorize';
+import { activeBrand } from '../../src/server/brand/bundle';
 import { accessFixture, person } from '../auth/access-fixture';
 import { authWorkspace } from '../helpers/auth-workspace';
 import { useDefaultBrand } from '../helpers/brand-fixture';

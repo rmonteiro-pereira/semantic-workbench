@@ -1,10 +1,10 @@
 // Keeps unrestricted local access explicit at every service call boundary.
 import { expect, expectTypeOf, test } from 'bun:test';
-import { requestReader } from '../../server/auth/request-scope';
-import { LOCAL_READER, type Reader } from '../../server/projects/reader';
-import type { Workspace } from '../../server/projects/workspace';
-import type { AssignProject, FolderRequest } from '../../server/projects/clone';
-import type { RemoteCredential } from '../../server/projects/git';
+import { requestReader } from '../../src/server/auth/request-scope';
+import { LOCAL_READER, type Reader } from '../../src/server/projects/reader';
+import type { Workspace } from '../../src/server/projects/workspace';
+import type { AssignProject, FolderRequest } from '../../src/server/projects/clone';
+import type { RemoteCredential } from '../../src/server/projects/git';
 
 test('read services require a Reader and requests require an attached scope', () => {
   expectTypeOf<Parameters<Workspace['documentsFor']>>().toEqualTypeOf<[Reader]>();

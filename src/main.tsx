@@ -4,13 +4,14 @@ import { BrandProvider } from './brand/BrandContext';
 import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { PersonMenu } from './auth/PersonMenu';
-import { AdminHost } from './admin/AdminHost';
-import { AdminLauncher } from './admin/AdminLauncher';
+import { AdminHost } from './app/admin/AdminHost';
+import { AdminLauncher } from './app/admin/AdminLauncher';
 import { AppDialogs } from './app/AppDialogs';
 import { DetailsPanel } from './app/DetailsPanel';
 import { SidebarResizeHandle } from './app/SidebarResizeHandle';
 import { StatusFooter } from './app/StatusFooter';
 import { useStableHandler } from './app/useStableHandler';
+import { clampSidebarWidth } from './app/useSidebar';
 import { useWorkbench } from './app/useWorkbench';
 import { WorkspaceCanvas } from './app/WorkspaceCanvas';
 import { WorkspaceHeader } from './app/WorkspaceHeader';
@@ -22,6 +23,7 @@ import { startBrowserReporting } from './observability/page-reporting';
 // Stylesheet order matters: React Flow's base styles must come after the component styles and
 // before the app's own overrides, as they always have.
 import '@xyflow/react/dist/style.css';
+import './theme/theme.css';
 import './style.css';
 function App() {
   const [message, setMessage] = useState('');
@@ -32,7 +34,6 @@ function App() {
   }, [message]);
   const {
     sample,
-    clampSidebarWidth,
     sidebar,
     stale,
     current,

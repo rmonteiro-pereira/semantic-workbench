@@ -5,7 +5,7 @@ import { parse } from 'yaml';
 import { applyPatches } from '../src/editor/patch';
 import { valuePatches, insertPatches, removePatches, itemValue } from '../src/edit/yaml-patch';
 import { jsonTextPatches } from '../src/edit/json-patch';
-import { validateInput } from '../src/input';
+import { validateInput } from '../src/validation/input';
 // JSON item edits change only the edited value's text and keep the document's indentation style
 // elsewhere; the file is never re-serialized.
 const contract = (indent: string | number) =>

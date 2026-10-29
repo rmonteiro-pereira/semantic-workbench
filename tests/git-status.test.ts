@@ -2,7 +2,7 @@
 import { test, expect } from 'bun:test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { parseStatus } from '../server/projects/git';
+import { parseStatus } from '../src/server/projects/git';
 import { call, ok, ontology, scmProject } from './helpers/scm';
 test('porcelain v2 -z: index and worktree columns, renames with their origin, conflicts, upstream', () => {
   const out = [

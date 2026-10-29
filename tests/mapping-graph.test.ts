@@ -6,7 +6,7 @@ import {
   agentCatalog,
   type StoredDocument,
   type RuntimeContext,
-} from '../server/agent/runtime';
+} from '../src/server/agent/runtime';
 import {
   buildMappingGraph,
   conceptId,

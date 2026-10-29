@@ -81,7 +81,7 @@ For an already built local frontend served by Bun instead of Vite:
 bun run build
 ```
 
-Then set `SW_SERVE_STATIC=1` and run `bun server/index.ts`. Open the API origin on port 4310.
+Then set `SW_SERVE_STATIC=1` and run `bun src/server/index.ts`. Open the API origin on port 4310.
 See [configuration](docs/configuration.md) for shell examples and binding rules.
 
 ## Technology stack
@@ -329,19 +329,23 @@ owns the data root; merely increasing container replicas is not safe scaling.
 | Area | Owns |
 | --- | --- |
 | `src/app/`, `src/main.tsx` | Browser composition, workspace state and shared navigation |
+| `src/app/admin/` | Browser access-administration UI and its typed API client; separate from `DATA_DIR/admin/` |
 | `src/editor/`, `src/edit/` | Source/item edits, validation display and byte-range patches |
 | `src/metrics/`, `src/mappings/`, `src/odcs/` | Metric, mapping and contract/lineage views |
-| `src/graph/`, `src/FullGraph.tsx` | Traversal, graph controls, placement and rendering |
-| `src/model.ts`, validators and `schemas/` | Supported definition parsing and schema coverage |
-| `server/routes/`, `server/handler.ts` | HTTP request parsing and service dispatch |
-| `server/projects/` | Files, Git, journals, index, worktrees, trash and events |
-| `server/auth/`, `policies/` | Identity, sessions, Cedar decisions, access review and audit |
+| `src/graph/` | Whole-model and neighborhood graphs, layout, traversal and workers |
+| `src/core/`, `src/validation/` | Shared model projection, parsers, diagnostics and input validation |
+| `src/shared/`, `src/theme/` | Cross-domain UI utilities and semantic theme tokens |
+| `schemas/`, `src/generated/` | Pinned schema sources and compiled browser validators |
+| `src/server/routes/`, `src/server/handler.ts` | HTTP request parsing and service dispatch |
+| `src/server/projects/` | Files, Git, journals, index, worktrees, trash and events |
+| `src/server/auth/`, `policies/` | Identity, sessions, Cedar decisions, access review and audit |
 | `src/governance/` | Shared pure metric/classification protection rules |
-| `server/agent/` | Filtered metadata, metric explanations and SQL planning |
-| `server/observability/`, `src/observability/` | Operational diagnostics and optional reporting |
-| `public/brand/`, `server/brand/`, `src/theme.css` | Product identity and semantic theme tokens |
+| `src/server/agent/` | Filtered metadata, metric explanations and SQL planning |
+| `src/server/observability/`, `src/observability/` | Operational diagnostics and optional reporting |
+| `public/brand/`, `src/server/brand/`, `src/theme/theme.css` | Product identity and semantic theme tokens |
 | `scripts/`, `tests/`, `patches/` | Tooling, isolated verification and locked dependency fixes |
 | `deploy/`, pipeline YAML | Target setup, source hand-over and explicit delivery |
+| `.github/` | Shared Copilot instructions and reusable agent skills |
 
 [ARCHITECTURE.md](ARCHITECTURE.md) expands this map with concrete service owners, request flows,
 authorization boundaries and invariants. It is the detailed reference for changing behavior.
@@ -410,7 +414,7 @@ application choices. [The example report](docs/example-verification.json) record
 | Telemetry | Never exported | Optional, explicitly enabled Azure Monitor export |
 
 For a shared server, install dependencies, build the frontend and supply the required settings
-before `bun server/index.ts`. There is no application-owned password form. Roles come from
+before `bun src/server/index.ts`. There is no application-owned password form. Roles come from
 workbench grants to groups or verified addresses; provider app-role claims do not grant access.
 Built-in roles are Viewer, Editor, Steward and Admin, with custom roles and Cedar conditions.
 
@@ -519,8 +523,8 @@ The application does not require or call a hosted language model.
 
 ## Theme and white-labelling
 
-The sidebar offers System, Light and Dark. Semantic color tokens live in `src/theme.css`, with
-runtime group palettes in `src/theme-palette.ts`. Components do not own private color literals.
+The sidebar offers System, Light and Dark. Semantic color tokens live in `src/theme/theme.css`, with
+runtime group palettes in `src/theme/theme-palette.ts`. Components do not own private color literals.
 
 A server deployment can override the product name, logo, mark, favicon and theme tokens with a
 startup-loaded `SW_BRAND_DIR` bundle without rebuilding. SVG/CSS/JSON are sanitized and bounded;

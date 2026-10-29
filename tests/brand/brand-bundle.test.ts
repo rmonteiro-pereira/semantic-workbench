@@ -4,8 +4,8 @@ import { afterEach, beforeEach, expect, test } from 'bun:test';
 import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { loadBrandBundle } from '../../server/brand/bundle';
-import { BRAND_FILE_NAMES, MAX_IMAGE_BYTES, MAX_TEXT_BYTES } from '../../server/brand/files';
+import { loadBrandBundle } from '../../src/server/brand/bundle';
+import { BRAND_FILE_NAMES, MAX_IMAGE_BYTES, MAX_TEXT_BYTES } from '../../src/server/brand/files';
 
 const GOOD_SVG = '<svg xmlns="http://www.w3.org/2000/svg"><circle r="4" fill="#abcdef"/></svg>';
 const GOOD_JSON = JSON.stringify({ productName: 'Acme Models', shortName: 'Acme' });

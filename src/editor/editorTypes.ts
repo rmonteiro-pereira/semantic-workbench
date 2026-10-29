@@ -1,5 +1,5 @@
 /** Shared options for the source editor and its view lifecycle. */
-import type { Issue } from '../diagnostics';
+import type { Issue } from '../validation/diagnostics';
 
 /** Configures a source editor, optionally validating an item instead of a whole file. */
 export type CodeEditorOptions = {

@@ -4,8 +4,8 @@ import { useDefaultBrand } from '../helpers/brand-fixture';
 import { startMockOidc } from '../helpers/mock-oidc';
 import { authWorkspace } from '../helpers/auth-workspace';
 import { oidcConfig } from '../helpers/server-auth';
-import { createServerAuthentication } from '../../server/auth/authentication';
-import { createHandler } from '../../server/handler';
+import { createServerAuthentication } from '../../src/server/auth/authentication';
+import { createHandler } from '../../src/server/handler';
 
 beforeAll(useDefaultBrand);
 

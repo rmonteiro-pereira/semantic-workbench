@@ -1,7 +1,7 @@
 /** Cached document models for identity matching and cross-file navigation. */
-import { validateInput } from '../input';
+import { validateInput } from '../validation/input';
 import type { Doc } from '../projects/api';
-import { documentKeys } from '../references';
+import { documentKeys } from '../core/references';
 const parsedDocs = new Map<
   string,
   { hash: string; model: ReturnType<typeof validateInput>['model']; keys: Set<string> }

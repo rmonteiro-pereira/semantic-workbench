@@ -1,5 +1,5 @@
 /** Assigns separate orthogonal routes and rounded corners to neighborhood relationships. */
-import type { Link } from '../layout';
+import type { Link } from './layout';
 // Short forward edges bend between columns; long and backward edges get separate outer lanes.
 // Self-relationships loop over their nodes, and each corner follows the travel direction.
 /** Describes an edge's assigned lane or bend and endpoint offsets. */

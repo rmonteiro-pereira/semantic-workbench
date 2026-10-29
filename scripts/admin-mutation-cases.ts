@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import { cpSync } from 'node:fs';
 import { tempDataDir } from '../tests/helpers/temp-data-dir';
 import { accessFixture, person } from '../tests/auth/access-fixture';
-import { openAdminRepository } from '../server/auth/admin-repo';
-import { createAccessControl } from '../server/auth/authorize';
-import { createAuditLog } from '../server/auth/audit';
+import { openAdminRepository } from '../src/server/auth/admin-repo';
+import { createAccessControl } from '../src/server/auth/authorize';
+import { createAuditLog } from '../src/server/auth/audit';
 import builtin from '../policies/builtin-roles.json';
 
 async function proposals(candidate: any) {

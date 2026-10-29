@@ -1,7 +1,7 @@
 /** Shares asset icons and line-style labels between lineage and mapping canvases. */
 import React from 'react';
 import { Boxes, Columns3, Database, Gauge, Table2, Link2 } from 'lucide-react';
-import { Badge, badge } from '../PropertyBadges';
+import { Badge, badge } from '../shared/PropertyBadges';
 import { LEGEND_LINES, type LegendLine } from './edge-styles';
 import './legend.css';
 // Asset icons and edge-style labels are shared so all canvases use the same legend.

@@ -4,7 +4,7 @@ import { recordResizeErrors } from './helpers/resize-errors';
 import { appUrl } from './helpers/base-url';
 import { expectInitialGraphSettled } from './helpers/graph-readiness';
 import { revealGraphControls, showEveryEntity, viewOptions } from './helpers/graph-options';
-import { LOCAL_READER } from '../server/projects/reader';
+import { LOCAL_READER } from '../src/server/projects/reader';
 import { chromium, expect, type Locator, type Page } from '@playwright/test';
 import { plainCommerceModel } from './helpers/commerce-fixture';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
@@ -15,7 +15,7 @@ import {
 } from './helpers/header-tour';
 import { treeRowProblems } from './helpers/tree-geometry';
 import { neighborhoodEdgeProblems, neighborhoodState, pickCenter } from './helpers/edge-geometry';
-import { inspect } from '../src/model';
+import { inspect } from '../src/core/model';
 import { layoutProblems, lineageProblems } from './helpers/layout-geometry';
 import { screenProblems, showScreen, type Screen } from './helpers/screen-tour';
 import { tourGroups } from './helpers/all-tours';

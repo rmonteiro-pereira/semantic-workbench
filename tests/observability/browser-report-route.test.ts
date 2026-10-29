@@ -1,8 +1,8 @@
 // The report route: closed when telemetry is off, open only to signed-in people, and bounded.
 import { afterEach, beforeEach, expect, test } from 'bun:test';
-import { createAccessControl } from '../../server/auth/authorize';
-import { createHandler } from '../../server/handler';
-import { addLogSink, configureLogging, type LogRecord } from '../../server/observability/log';
+import { createAccessControl } from '../../src/server/auth/authorize';
+import { createHandler } from '../../src/server/handler';
+import { addLogSink, configureLogging, type LogRecord } from '../../src/server/observability/log';
 import { MAX_REPORT_BODY_BYTES } from '../../src/observability/browser-report';
 import { accessFixture, person } from '../auth/access-fixture';
 import { allowEveryRemote } from '../helpers/remote-credentials-fixture';

@@ -5,7 +5,7 @@ import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
-import { LOCAL_READER } from '../server/projects/reader';
+import { LOCAL_READER } from '../src/server/projects/reader';
 import { fileTab, showSidebar } from './helpers/screen-tour';
 
 const VIEWPORTS: [number, number][] = [

@@ -25,7 +25,7 @@ it is not a drop-in performance switch.
 
 ## Whole-model graph pipeline
 
-`src/FullGraph.tsx` renders the projection built from original entities and relationships:
+`src/graph/FullGraph.tsx` renders the projection built from original entities and relationships:
 
 1. Preserve each definition's ID and source evidence. Parallel directed relationships can share
    one link bundle, but every original relationship remains available for inspection.
@@ -43,10 +43,11 @@ it is not a drop-in performance switch.
    cards. Models above 250 visible business entities always start collapsed; expanding restores
    all entities and their folded relationships.
 
-`src/full-layout.ts` and its workers own engine input/output. `src/graph/overview-capacity.ts`
-decides readable initial capacity. `src/graph/edge-styles.ts` supplies line/legend styles and
-SVG-safe appearance; `src/RoutedEdge.tsx` keeps fallback routes attached while a worker result is
-pending or no longer matches current endpoints.
+`src/graph/full-layout.ts` and its workers own engine input/output.
+`src/graph/overview-capacity.ts` decides readable initial capacity.
+`src/graph/edge-styles.ts` supplies line/legend styles and SVG-safe appearance;
+`src/graph/RoutedEdge.tsx` keeps fallback routes attached while a worker result is pending or no
+longer matches current endpoints.
 
 Selection changes emphasis rather than deleting the rest of the model. The optional mini-map is
 off until requested. A finite viewport cannot display an unlimited number of full-size labels;
@@ -54,7 +55,7 @@ area collapse, zoom and focused views make that trade-off explicit.
 
 ## Neighborhood and incremental traversal
 
-`src/NeighborhoodGraph.tsx` places the center between incoming and outgoing neighbors. Local
+`src/graph/NeighborhoodGraph.tsx` places the center between incoming and outgoing neighbors. Local
 functions group links, assign distinct routes and place labels; full model layout engines are not
 rerun for every small walk.
 

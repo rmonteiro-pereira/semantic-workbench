@@ -3,7 +3,7 @@ import { test, expect } from 'bun:test';
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { testWorkspace } from './helpers/temp-data-dir';
-import { LOCAL_READER } from '../server/projects/reader';
+import { LOCAL_READER } from '../src/server/projects/reader';
 // Only binding kinds and metric bindings may extend the existing agent context. The remaining
 // fields must match the saved digests; UPDATE_GOLDEN=1 deliberately replaces them.
 const req = (path: string) => new Request('http://localhost' + path);

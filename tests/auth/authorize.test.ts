@@ -1,10 +1,10 @@
 // Exercises the real Cedar boundary with the shipped access fixture and role matrix.
 import { expect, test } from 'bun:test';
-import { createAccessControl } from '../../server/auth/authorize';
-import { loadPolicySet, PolicyLoadError } from '../../server/auth/cedar';
-import { clientFromToken, localPrincipal } from '../../server/auth/principal';
-import { ACTIONS, type Action } from '../../server/auth/actions';
-import type { GrantScope, Role } from '../../server/auth/grants';
+import { createAccessControl } from '../../src/server/auth/authorize';
+import { loadPolicySet, PolicyLoadError } from '../../src/server/auth/cedar';
+import { clientFromToken, localPrincipal } from '../../src/server/auth/principal';
+import { ACTIONS, type Action } from '../../src/server/auth/actions';
+import type { GrantScope, Role } from '../../src/server/auth/grants';
 import builtin from '../../policies/builtin-roles.json';
 import { accessFixture, person } from './access-fixture';
 

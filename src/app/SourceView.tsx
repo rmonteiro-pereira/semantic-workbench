@@ -1,7 +1,7 @@
 /** Presentation and event handling for source view. */
 import { useCapabilities } from '../auth/Capabilities';
 import React from 'react';
-import type { Issue } from '../diagnostics';
+import type { Issue } from '../validation/diagnostics';
 import type { CodeEditorHandle } from '../editor/CodeEditor';
 import { CodeEditor } from '../editor/CodeEditor';
 import type { Doc } from '../projects/api';

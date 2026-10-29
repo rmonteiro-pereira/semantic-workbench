@@ -4,10 +4,10 @@ import { afterEach, expect, spyOn, test } from 'bun:test';
 import { mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createSessionStore } from '../../server/auth/sessions';
-import { localPrincipal } from '../../server/auth/principal';
+import { createSessionStore } from '../../src/server/auth/sessions';
+import { localPrincipal } from '../../src/server/auth/principal';
 import { sessionCookieOf, signInContext } from '../helpers/sign-in-context';
-import { configureLogging } from '../../server/observability/log';
+import { configureLogging } from '../../src/server/observability/log';
 import { useQuietLogging } from '../helpers/quiet-logging';
 
 const roots: string[] = [];

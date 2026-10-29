@@ -1,9 +1,9 @@
 /** Connects document state, navigation, editing, and persistence to the workspace views. */
 import React, { useMemo, useReducer, useRef, useState } from 'react';
 import { type CodeEditorHandle } from '../editor/CodeEditor';
-import { exportDocument } from '../export';
+import { exportDocument } from '../core/export';
 import { emptyWalk, walkReducer } from '../graph/walk';
-import { modelOverview } from '../overview';
+import { modelOverview } from '../graph/overview';
 import {
   type Deleted,
   type Doc,
@@ -12,11 +12,10 @@ import {
   type WorkspaceStatus,
 } from '../projects/api';
 import { type DeleteTarget } from '../projects/DeleteDialog';
-import { useGrouping } from '../useGrouping';
-import { type ImportDraft } from '../ValidationPanel';
+import { useGrouping } from '../graph/useGrouping';
+import { type ImportDraft } from '../validation/ValidationPanel';
 import { parsedDoc } from './parsedDocument';
 import { sample } from './sample';
-import { clampSidebarWidth, readSidebarWidth } from './sidebarWidth';
 import { useExamples } from './useExamples';
 import { useFileNavigation } from './useFileNavigation';
 import { useImport } from './useImport';
@@ -104,7 +103,7 @@ export function useWorkbench({ setMessage }: Options) {
         },
       });
   };
-  const sidebar = useSidebar({ readSidebarWidth });
+  const sidebar = useSidebar();
   const { compact, closeWorkspace } = sidebar;
   const workspaceEvents = useWorkspaceEvents({
     docsRef,
@@ -320,7 +319,6 @@ export function useWorkbench({ setMessage }: Options) {
 
   return {
     sample,
-    clampSidebarWidth,
     sidebar,
     stale,
     current,

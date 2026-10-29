@@ -2,7 +2,7 @@
  * Checks the "Folder in repository" a project lives in, such as `semantic/ubl`. The browser and
  * the server run this same check, so a path the dialog accepts is a path the server accepts.
  */
-import { hasControlCharacter } from '../control-characters';
+import { hasControlCharacter } from '../shared/control-characters';
 
 export type RepositoryFolderCheck = { ok: true; folder: string } | { ok: false; message: string };
 

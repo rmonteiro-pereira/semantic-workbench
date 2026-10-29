@@ -4,7 +4,7 @@ import { Compartment, EditorState } from '@codemirror/state';
 import { EditorView, type ViewUpdate } from '@codemirror/view';
 import { linter, forceLinting } from '@codemirror/lint';
 import { baseEditorExtensions, editorKeymap } from './editorExtensions';
-import type { Issue } from '../diagnostics';
+import type { Issue } from '../validation/diagnostics';
 import { normalize } from './patch';
 import {
   applyEditorTransactions,

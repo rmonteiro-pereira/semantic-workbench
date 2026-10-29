@@ -13,7 +13,7 @@ import {
   Sigma,
   CircleSlash,
 } from 'lucide-react';
-import type { KpiExplanation, KpiSummary, TreeNode } from '../../server/agent/explain';
+import type { KpiExplanation, KpiSummary, TreeNode } from '../server/agent/explain';
 import type { ExplainQuery } from '../projects/api';
 import { additivityLabel, readableFormula, typeLabel } from './format';
 import { SqlCode } from '../sql/SqlCode';

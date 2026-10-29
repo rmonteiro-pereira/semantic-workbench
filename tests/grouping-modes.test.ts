@@ -1,21 +1,24 @@
 // Tests which Group by modes each document offers, why a mode is disabled, and what Auto picks.
 import { test, expect } from 'bun:test';
 import { Glob } from 'bun';
-import { inspect, type Entity, type Relationship } from '../src/model';
-import { modelOverview, GROUPING_ORDER, type ConcreteGroupingMode } from '../src/overview';
+import { basename, resolve } from 'node:path';
+import { inspect, type Entity, type Relationship } from '../src/core/model';
+import { modelOverview, GROUPING_ORDER, type ConcreteGroupingMode } from '../src/graph/overview';
 
 type Model = { name: string; entities: Entity[]; edges: Relationship[] };
 
 const read = (path: string) => Bun.file(path).text();
 
 async function load(path: string): Promise<Model> {
-  return inspect(await read(path), path.split('/').pop()) as Model;
+  return inspect(await read(path), basename(path)) as Model;
 }
 
 // Every shipped example that the workbench opens as a model.
 async function shippedModels() {
   const files: string[] = [];
-  for await (const path of new Glob('public/examples/**/*.{yaml,ttl,owl}').scan('.'))
+  for await (const path of new Glob('public/examples/**/*.{yaml,ttl,owl}').scan({
+    cwd: resolve(import.meta.dir, '..'),
+  }))
     files.push(path);
   const models: [string, Model][] = [];
   for (const path of files.sort()) {

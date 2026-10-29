@@ -2,13 +2,13 @@
 // an owner is verified, how classifications are read, and that local mode is unchanged.
 import { expect, test } from 'bun:test';
 import { authWorkspace } from '../helpers/auth-workspace';
-import { createAccessControl } from '../../server/auth/authorize';
-import { createHandler } from '../../server/handler';
-import type { Workspace } from '../../server/projects/workspace';
+import { createAccessControl } from '../../src/server/auth/authorize';
+import { createHandler } from '../../src/server/handler';
+import type { Workspace } from '../../src/server/projects/workspace';
 import type { TestUserName } from '../helpers/auth-identities';
 import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 import { accessFixture, person } from './access-fixture';
-import { LOCAL_READER } from '../../server/projects/reader';
+import { LOCAL_READER } from '../../src/server/projects/reader';
 
 const origin = 'http://localhost';
 function serverAs(ws: Workspace, name: TestUserName) {

@@ -1,10 +1,10 @@
 import { expect, test } from 'bun:test';
 import { randomBytes } from 'node:crypto';
-import { meResponse } from '../../server/routes/me';
-import { requestAccess, type AccessRequest } from '../../server/auth/request-scope';
-import { createAccessControl } from '../../server/auth/authorize';
-import { createSessionStore } from '../../server/auth/sessions';
-import { validCsrf } from '../../server/auth/csrf';
+import { meResponse } from '../../src/server/routes/me';
+import { requestAccess, type AccessRequest } from '../../src/server/auth/request-scope';
+import { createAccessControl } from '../../src/server/auth/authorize';
+import { createSessionStore } from '../../src/server/auth/sessions';
+import { validCsrf } from '../../src/server/auth/csrf';
 import { tempDataDir } from '../helpers/temp-data-dir';
 import { accessFixture, person } from './access-fixture';
 import { createProviderState } from '../helpers/mock-oidc-state';
@@ -70,7 +70,7 @@ test('mock confidential client accepts the per-run secret and refuses the fixtur
 });
 
 test('permission explanations come from server role definitions, including custom sources', async () => {
-  const { ACTIONS } = await import('../../server/auth/actions');
+  const { ACTIONS } = await import('../../src/server/auth/actions');
   const builtin = (await import('../../policies/builtin-roles.json')).default;
   const access = createAccessControl(accessFixture());
   for (const name of ['alice', 'hank'] as const) {

@@ -1,6 +1,6 @@
 // Ensures memoisation uses Cedar globs while restricted paths use POSIX segments.
 import { expect, test } from 'bun:test';
-import { matchesSegmentGlob, matchesCedarLike } from '../../server/auth/path-rules';
+import { matchesSegmentGlob, matchesCedarLike } from '../../src/server/auth/path-rules';
 
 test('restricted stars stay in a segment and double stars span zero or more directories', () => {
   expect(matchesSegmentGlob('a/b/c.yaml', 'a/*.yaml')).toBe(false);

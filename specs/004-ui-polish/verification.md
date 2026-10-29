@@ -517,7 +517,7 @@ The corrected dark authentication replay passed all 36 checks and saved all 84 i
 static checks and readability checks pass; independent actual-diff architecture review reports
 SHIP. The complete round will run against a committed, rebuilt head with no concurrent edits.
 Independent review of the twelve corrected account-dialog images confirms genuine dark styling
-at every size, with zero S1/S2/S3. The focused report is `audit/round-10-dark-focus.md`.
+at every size, with zero S1/S2/S3.
 
 
 ## Round 11 complete visual audit
@@ -661,8 +661,8 @@ inventory is now 657 targets. Full static checks, formatter, readability and pro
 pass. Independent actual-diff review reports SHIP. Focused native visual review and the fresh
 complete audit are recorded separately.
 The focused round 12 native review inspected all eight waiting-state originals and found
-0 S1, 0 S2 and 0 S3. The diagnostic serious row and complete disposition are in
-`audit/round-12-progress.md`; no complete round 12 is claimed.
+0 S1, 0 S2 and 0 S3. The diagnostic serious row was fixed in the following complete round; no
+complete round 12 is claimed.
 
 ## Round 13: complete fresh visual result
 

@@ -2,10 +2,10 @@
 import { test, expect } from 'bun:test';
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { sha256 } from '../server/projects/atomic';
-import { applyPatches } from '../server/projects/workspace';
+import { sha256 } from '../src/server/projects/atomic';
+import { applyPatches } from '../src/server/projects/workspace';
 import { testWorkspace, example } from './helpers/temp-data-dir';
-import { LOCAL_READER } from '../server/projects/reader';
+import { LOCAL_READER } from '../src/server/projects/reader';
 const api = (
   t: { handler: (r: Request) => Promise<Response> },
   method: string,

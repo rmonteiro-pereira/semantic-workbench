@@ -1,7 +1,7 @@
 // Only an address the tenant vouches for may match an e-mail grant or a bootstrap Admin: a
 // verified e-mail claim, or the user name of a member of the home directory.
 import { expect, test } from 'bun:test';
-import { normalizeClaims, type ClaimMapping } from '../../server/auth/principal';
+import { normalizeClaims, type ClaimMapping } from '../../src/server/auth/principal';
 
 const tenant = '4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f';
 const entra: ClaimMapping = { provider: 'entra', groupClaim: 'groups', tenantId: tenant };

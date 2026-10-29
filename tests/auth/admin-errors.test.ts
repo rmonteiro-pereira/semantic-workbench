@@ -1,8 +1,8 @@
 // Checks the shared HTTP mapping for administration failures.
 import { expect, test } from 'bun:test';
-import { AdminConfigError, AdminStaleError } from '../../server/auth/admin-repo';
-import { AccessConfigError } from '../../server/auth/access-config';
-import { errorResponse } from '../../server/routes/http';
+import { AdminConfigError, AdminStaleError } from '../../src/server/auth/admin-repo';
+import { AccessConfigError } from '../../src/server/auth/access-config';
+import { errorResponse } from '../../src/server/routes/http';
 
 test('stale administration versions return a conflict', async () => {
   const response = errorResponse(new AdminStaleError());

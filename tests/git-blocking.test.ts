@@ -2,7 +2,7 @@
 import { test, expect } from 'bun:test';
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { blockers } from '../server/projects/scm';
+import { blockers } from '../src/server/projects/scm';
 import { call, ok, ontology, scmProject, sh } from './helpers/scm';
 const entry = (path: string, untracked = false) => ({
   path,

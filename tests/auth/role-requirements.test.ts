@@ -1,12 +1,12 @@
 // The role an action needs is named the way the workspace names its roles to people.
 import { expect, test } from 'bun:test';
-import { roleRequirements } from '../../server/auth/role-requirements';
-import { createAccessControl } from '../../server/auth/authorize';
-import { createHandler } from '../../server/handler';
+import { roleRequirements } from '../../src/server/auth/role-requirements';
+import { createAccessControl } from '../../src/server/auth/authorize';
+import { createHandler } from '../../src/server/handler';
 import { authWorkspace } from '../helpers/auth-workspace';
 import { accessFixture, person } from './access-fixture';
-import type { Role } from '../../server/auth/access-config';
-import { openAdminRepository } from '../../server/auth/admin-repo';
+import type { Role } from '../../src/server/auth/access-config';
+import { openAdminRepository } from '../../src/server/auth/admin-repo';
 import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 
 const reviewer: Role = {

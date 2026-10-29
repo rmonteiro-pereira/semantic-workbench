@@ -3,7 +3,7 @@ import { revealGraphControls } from './helpers/graph-options';
 import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Page } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
-import { LOCAL_READER } from '../server/projects/reader';
+import { LOCAL_READER } from '../src/server/projects/reader';
 import { menuSurfaceProblems } from './helpers/menu-geometry';
 // Dialogs must fit six viewports, trap focus and return focus to their trigger after Escape.
 // Screenshots use /tmp/workbench-dialog-*.png.

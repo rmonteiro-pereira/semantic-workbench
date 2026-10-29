@@ -3,9 +3,9 @@
 import { existsSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test } from 'bun:test';
-import { PublishedCheckoutChangedError } from '../../server/projects/published-checkout';
-import { LOCAL_READER } from '../../server/projects/reader';
-import { openWorkspace } from '../../server/projects/workspace';
+import { PublishedCheckoutChangedError } from '../../src/server/projects/published-checkout';
+import { LOCAL_READER } from '../../src/server/projects/reader';
+import { openWorkspace } from '../../src/server/projects/workspace';
 import { authWorkspace } from '../helpers/auth-workspace';
 import { gitOutput } from './working-copy-fixture';
 

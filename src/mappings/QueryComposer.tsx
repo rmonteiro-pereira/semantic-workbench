@@ -1,6 +1,6 @@
 /** Dialog that composes a governed query from mapped metrics and fields, and previews its SQL. */
 import React, { useMemo, useState } from 'react';
-import type { RuntimeContext } from '../../server/agent/runtime';
+import type { RuntimeContext } from '../server/agent/runtime';
 import { Modal } from '../projects/Modal';
 import { SqlCode } from '../sql/SqlCode';
 import { groupFieldsByDataset } from './field-groups';

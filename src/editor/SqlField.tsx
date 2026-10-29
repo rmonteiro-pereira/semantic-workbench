@@ -8,7 +8,7 @@ import { StandardSQL } from '@codemirror/lang-sql';
 import { highlighting } from './languages';
 import { toDiagnostics, lintSqlInWorker } from './lint';
 import { grammarOf } from '../sql/regions';
-import type { Issue } from '../diagnostics';
+import type { Issue } from '../validation/diagnostics';
 import './editor.css';
 // Findings appear as warnings and never block saving. Non-SQL dialects such as DAX and MDX are
 // left unchecked.

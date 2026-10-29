@@ -15,7 +15,7 @@ import { StandardSQL } from '@codemirror/lang-sql';
 import { jsonSql, yamlEmbeddedLanguage } from './embeddedLanguages';
 import { largeYamlSupport } from './largeYaml';
 export { sqlKeyPath } from './embeddedLanguages';
-import { rdfSyntax } from '../rdf';
+import { rdfSyntax } from '../validation/rdf';
 // Unknown files and .gitignore use plain text. Workbench extension data inside YAML is highlighted
 // as JSON.
 /** Names a source serialization supported by editor highlighting. */
@@ -140,7 +140,7 @@ export function languageFor(syntax: SyntaxName, largeDocument = false) {
     return new LanguageSupport(rdfLanguage);
   return [];
 }
-// The colors are the syntax tokens of src/theme.css. The light theme follows VS Code's Light+ (YAML
+// The colors are the syntax tokens of src/theme/theme.css. The light theme follows VS Code's Light+ (YAML
 // keys and XML tags dark red, values and keywords blue, strings red-brown, numbers and comments
 // green, IRIs teal) and the dark theme follows Dark+.
 /** Supplies the shared token colors for syntax trees and viewport decorations. */

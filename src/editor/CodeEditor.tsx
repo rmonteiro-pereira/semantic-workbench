@@ -1,7 +1,7 @@
 /** Source editor with byte-preserving edits, inline validation and navigation controls. */
 import { forwardRef, useImperativeHandle } from 'react';
 import { openSearchPanel } from '@codemirror/search';
-import type { Issue } from '../diagnostics';
+import type { Issue } from '../validation/diagnostics';
 import type { CodeEditorOptions } from './editorTypes';
 import { EditorStatusBar } from './EditorStatusBar';
 import { goToEditorLine } from './editorNavigation';

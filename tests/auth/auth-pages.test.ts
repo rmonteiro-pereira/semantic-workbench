@@ -1,8 +1,8 @@
 // Checks that public authentication pages reveal identity only and need no scripts.
 import { beforeAll, expect, test } from 'bun:test';
 import { useDefaultBrand } from '../helpers/brand-fixture';
-import { authPage } from '../../server/routes/auth';
-import { localPrincipal } from '../../server/auth/principal';
+import { authPage } from '../../src/server/routes/auth';
+import { localPrincipal } from '../../src/server/auth/principal';
 
 beforeAll(useDefaultBrand);
 
@@ -31,7 +31,7 @@ test('Signed out stays signed out and errors offer a safe retry', async () => {
 });
 
 test('No access routing reads only the session identity and csrf token', async () => {
-  const { createAuthRoutes } = await import('../../server/routes/auth');
+  const { createAuthRoutes } = await import('../../src/server/routes/auth');
   const principal = { ...localPrincipal(), grants: [], name: 'Identity only' };
   const session = new Proxy(
     {
@@ -63,7 +63,7 @@ test('No access routing reads only the session identity and csrf token', async (
 });
 
 test('identity pages share script-free button and link styles', async () => {
-  const { createAuthRoutes } = await import('../../server/routes/auth');
+  const { createAuthRoutes } = await import('../../src/server/routes/auth');
   const route = createAuthRoutes({
     session: async () => null,
     login: async () => new Response(),
@@ -84,8 +84,8 @@ test('identity pages share script-free button and link styles', async () => {
 });
 
 test('the HTTP error mapper clears the attempt cookie and preserves a safe return path', async () => {
-  const { errorResponse } = await import('../../server/routes/http');
-  const { SignInError } = await import('../../server/auth/sign-in-error');
+  const { errorResponse } = await import('../../src/server/routes/http');
+  const { SignInError } = await import('../../src/server/auth/sign-in-error');
   for (const origin of ['https://workbench.example', 'http://127.0.0.1:4310']) {
     const error = new SignInError('attempt-invalid', '/catalog');
     const response = errorResponse(error, origin);

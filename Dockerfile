@@ -33,7 +33,6 @@ LABEL org.opencontainers.image.version=$SW_VERSION \
       org.opencontainers.image.created=$SW_CREATED
 ENV SW_VERSION=$SW_VERSION SW_COMMIT=$SW_COMMIT
 ENV DATA_DIR=/data SW_CACHE_DIR=/tmp/sw-cache SW_SERVE_STATIC=1 SW_IN_CONTAINER=1 SW_PORT=4310
-COPY --from=build /app/server ./server
 COPY --from=build /app/src ./src
 COPY --from=build /app/policies ./policies
 COPY --from=build /app/schemas ./schemas
@@ -47,4 +46,4 @@ USER bun
 VOLUME /data
 EXPOSE 4310
 HEALTHCHECK --interval=10s --timeout=5s CMD bun -e 'const r = await fetch(`http://127.0.0.1:${process.env.SW_PORT}/healthz`); process.exit(r.ok ? 0 : 1)'
-ENTRYPOINT ["bun", "server/index.ts"]
+ENTRYPOINT ["bun", "src/server/index.ts"]

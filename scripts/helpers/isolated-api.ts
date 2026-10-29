@@ -1,10 +1,10 @@
 // Routes browser checks to a temporary API workspace without changing the user's data.
 import type { Page, Route } from '@playwright/test';
 import { rmSync } from 'node:fs';
-import { openWorkspace, type Workspace } from '../../server/projects/workspace';
-import { ALLOWED_ORIGINS, createHandler } from '../../server/handler';
+import { openWorkspace, type Workspace } from '../../src/server/projects/workspace';
+import { ALLOWED_ORIGINS, createHandler } from '../../src/server/handler';
 import { tempDataDir } from '../../tests/helpers/temp-data-dir';
-import { configureLogging } from '../../server/observability/log';
+import { configureLogging } from '../../src/server/observability/log';
 // Browser checks run the API on a temporary DATA_DIR (never the user's data/) and send the page's
 // /api requests there, whatever the dev server's own API points at.
 /** Provides a temporary API workspace, its URL and cleanup operation. */

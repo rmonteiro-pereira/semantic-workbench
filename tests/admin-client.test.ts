@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, mock, test } from 'bun:test';
-import { adminApi, AdminApiError, problemText } from '../src/admin/api';
-import { canConfirm, proposalKey } from '../src/admin/change-review';
-import { patchDiffs } from '../src/admin/version-diff';
-import { templateRequest, windowHours } from '../src/admin/policy-templates';
-import type { DryRun } from '../src/admin/types';
+import { adminApi, AdminApiError, problemText } from '../src/app/admin/api';
+import { canConfirm, proposalKey } from '../src/app/admin/change-review';
+import { patchDiffs } from '../src/app/admin/version-diff';
+import { templateRequest, windowHours } from '../src/app/admin/policy-templates';
+import type { DryRun } from '../src/app/admin/types';
 
 const originalFetch = globalThis.fetch;
 afterEach(() => {

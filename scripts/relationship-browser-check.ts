@@ -3,7 +3,7 @@ import { appUrl } from './helpers/base-url';
 import { chromium } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { example } from './helpers/examples';
-import { LOCAL_READER } from '../server/projects/reader';
+import { LOCAL_READER } from '../src/server/projects/reader';
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 const errors: string[] = [];

@@ -4,8 +4,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { setActiveBrand } from '../server/brand/active-brand';
-import { loadBrandBundle } from '../server/brand/bundle';
+import { loadBrandBundle, setActiveBrand } from '../src/server/brand/bundle';
 
 const SVG_OPEN = '<svg xmlns="http://www.w3.org/2000/svg"';
 
@@ -218,7 +217,7 @@ function checkCase(candidate: any) {
     ['1:product-name', '2:wordmark', '3:logo-path'],
   );
   assert.deepEqual(
-    candidate.brandViolationsIn('server/projects/git.ts', "name: 'Semantic Workbench'"),
+    candidate.brandViolationsIn('src/server/projects/git.ts', "name: 'Semantic Workbench'"),
     [],
   );
   assert.equal(

@@ -60,17 +60,17 @@ bun test
 bun run build
 ```
 
-- `fmt` runs Oxfmt on source, server, scripts and tests. Markdown, fixtures, generated validators
-  and other excluded trees are not reformatted by that command.
+- `fmt` runs Oxfmt on source, scripts, tests and generated validators. Markdown, fixtures and
+  other excluded trees are not reformatted by that command.
 - `check` runs TypeScript with no emit, formatting checks, Oxlint and comment/theme/brand checks.
 - `test` includes logic, handler, integration and some Chromium-backed component checks. It is
   not exclusively a browser-free unit command.
 - `build` runs `schemas:compile` and then the production browser build. The Bun server runs
   TypeScript directly; this is not a separate compiled backend output.
 
-Generated standalone schema validators are checked in. Regenerate with `bun run schemas:compile`;
-tests verify reproducible output. The browser uses these validators without eval under the CSP.
-Do not edit pinned upstream schemas to make a fixture pass.
+Generated standalone schema validators are checked in and formatted with the project rules.
+Regenerate with `bun run schemas:compile`; tests verify reproducible output. The browser uses these
+validators without eval under the CSP. Do not edit pinned upstream schemas to make a fixture pass.
 
 ## Complete quality gate
 

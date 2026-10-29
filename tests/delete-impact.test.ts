@@ -1,5 +1,5 @@
 // Tests references and drafts affected by deletion.
-import { LOCAL_READER } from '../server/projects/reader';
+import { LOCAL_READER } from '../src/server/projects/reader';
 import { test, expect } from 'bun:test';
 import { testWorkspace, example } from './helpers/temp-data-dir';
 const flights = async () =>
