@@ -4,6 +4,7 @@ import { FullGraph } from '../graph/FullGraph';
 import { projectRevisionKey } from '../../shared/core/selected-project';
 import { MappingCanvas } from '../mappings/MappingCanvas';
 import { ModelOverview } from '../graph/ModelOverview';
+import { GroupingControls } from '../graph/GroupingControls';
 import { NeighborhoodGraph } from '../graph/NeighborhoodGraph';
 import { LineageCanvas } from '../odcs/LineageCanvas';
 import type { LineageCard } from '../odcs/lineage';
@@ -121,6 +122,8 @@ export function GraphViews({
   crossTo,
 }: Props) {
   const looks = useMemo(() => groupLooks(groupingOverview), [groupingOverview]);
+  // The Group menu sits in the graph's own tool row, beside Fit and the layout controls.
+  const groupMenu = groupingOverview ? <GroupingControls overview={groupingOverview} value={grouping.value} onChange={grouping.change} error={grouping.error} /> : null;
   const groupColorOf = useCallback((id: string) => looks.get(id)?.color, [looks]);
   if (tab === 'fullgraph' && mappingId && mappingView === 'mapping') {
     return (
@@ -156,6 +159,7 @@ export function GraphViews({
         onOpenAsset={handleLineageCanvasOpenAsset}
         onNeighborhood={continueInNeighborhood}
         groupOf={contractGroupOf}
+        toolbarExtra={groupMenu}
       />
     );
   }
@@ -163,6 +167,7 @@ export function GraphViews({
     return (
       <FullGraph
         toolbarExtra={graphViewSwitch}
+        groupMenu={groupMenu}
         fullscreen={fullscreen}
         kpiBadges={kpiBadges}
         grouping={grouping.value}

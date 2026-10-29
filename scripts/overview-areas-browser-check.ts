@@ -82,6 +82,22 @@ try {
     await expect(page.locator('.catalog-card')).toHaveCount(49);
   });
 
+  await check('the Group button is never cut at any width: its text fits and does not end in an ellipsis', async () => {
+    await openTab('Graph');
+    for (const width of [1100, 1280, 1450, 390]) {
+      await page.setViewportSize({ width, height: 900 });
+      // On a phone the graph options, Group included, sit behind the Controls button.
+      const controls = page.getByRole('button', { name: 'Controls', exact: true });
+      if (await controls.isVisible()) await controls.click();
+      const trigger = groupTrigger(page);
+      await expect(trigger).toBeVisible();
+      const fit = await trigger.evaluate(button => ({ scrollWidth: button.scrollWidth, clientWidth: button.clientWidth, text: (button.textContent ?? '').trim() }));
+      expect(fit.scrollWidth, `${width}px: button content fits`).toBeLessThanOrEqual(fit.clientWidth);
+      expect(fit.text.endsWith('…'), `${width}px: text ${fit.text}`).toBe(false);
+    }
+    await page.setViewportSize({ width: 1600, height: 1000 });
+  });
+
   await check('Overview cards pack as a masonry: no card leaves a gap larger than the column gap or empty room inside', async () => {
     await openTab('Overview');
     await expect(page.locator('.business-area').first()).toBeVisible();

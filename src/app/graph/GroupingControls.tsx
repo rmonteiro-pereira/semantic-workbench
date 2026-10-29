@@ -116,9 +116,9 @@ export function GroupingControls({ overview, value, onChange, error }: Props) {
 
   return (
     <div className="grouping-controls" ref={wrapper}>
-      <button ref={button} type="button" className="grouping-trigger" aria-haspopup="menu" aria-expanded={opened} title={`Group: ${GROUPING_LABELS[overview.mode]}`} onClick={() => setOpened(!opened)}>
+      <button ref={button} type="button" className="grouping-trigger" aria-haspopup="menu" aria-expanded={opened} onClick={() => setOpened(!opened)}>
         <LayoutGrid size={16} />
-        <span className="grouping-name">Group: {GROUPING_LABELS[overview.mode]}</span>
+        Group: {GROUPING_LABELS[overview.mode]}
         <ChevronDown size={14} />
       </button>
       {opened && (

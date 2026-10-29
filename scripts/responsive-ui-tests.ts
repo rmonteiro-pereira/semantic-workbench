@@ -329,7 +329,8 @@ try {
       expect(header!.height).toBeLessThanOrEqual(desktop ? 64 : 110);
       const graph = await page.locator('.react-flow').boundingBox();
       expect(graph).not.toBeNull();
-      expect(graph!.height).toBeGreaterThan(height! * (desktop ? 0.7 : 0.55));
+      // The graph tool row may wrap onto a second line now that it holds the whole Group button name, so a desktop window keeps a little less than before.
+      expect(graph!.height).toBeGreaterThan(height! * (desktop ? 0.6 : 0.55));
       expect(graph!.width).toBeGreaterThan(desktop ? width! * 0.5 : width! * 0.7);
       await noOverflow(page);
       await visibleGraph(page);
@@ -965,6 +966,8 @@ try {
     for (const [width, height] of six) {
       await sweep.setViewportSize({ width, height });
       await sweep.waitForTimeout(250);
+      const controls = sweep.getByRole('button', { name: 'Controls', exact: true });
+      if (await controls.isVisible()) await controls.click();
       const trigger = groupTrigger(sweep);
       await trigger.click();
       const menu = sweep.getByRole('menu', { name: 'Group by' });
@@ -1484,7 +1487,7 @@ try {
       }
       // Graph toolbars keep their frequent controls to at most two rows: the rest is in a dialog.
       const toolbar = async (selector: string) => (await shellPage.locator(selector).boundingBox())!;
-      expect((await toolbar('.full-graph-tools')).height).toBeLessThanOrEqual(58);
+      expect((await toolbar('.full-graph-tools')).height).toBeLessThanOrEqual(phone ? 58 : 104);
       await shellPage.locator('.tabs').getByRole('button', { name: 'Neighborhood' }).click();
       await expect(shellPage.locator('.neighborhood-tools')).toBeVisible();
       expect((await toolbar('.neighborhood-tools')).height).toBeLessThanOrEqual(phone ? 58 : 104);

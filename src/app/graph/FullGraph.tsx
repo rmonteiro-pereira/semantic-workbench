@@ -130,6 +130,8 @@ type LayoutResult = Awaited<ReturnType<typeof layoutFullGraph>>;
 const cache = new Map<string, LayoutResult>();
 type Props = {
   toolbarExtra?: React.ReactNode;
+  /** The Group menu; on a phone it folds into the Controls panel with the other options. */
+  groupMenu?: React.ReactNode;
   grouping?: GroupingOptions;
   onGroupingChange?: (value: GroupingOptions) => void;
   groupingError?: string;
@@ -610,6 +612,7 @@ export function FullGraph(props: Props) {
           Fit model
         </button>
         <CompactControls>
+          {props.groupMenu}
           <ZoomButtons onZoomIn={() => void flow.current?.zoomIn({ duration: 150 })} onZoomOut={() => void flow.current?.zoomOut({ duration: 150 })} />
           <GraphOptions>
             <OptionGroup title="Layout">

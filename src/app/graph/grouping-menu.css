@@ -5,7 +5,7 @@
   align-items: center;
   gap: 5px;
   min-width: 0;
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   font-size: var(--text-small);
   color: var(--color-text-muted);
 }
@@ -20,17 +20,6 @@
   background: var(--color-accent-soft);
   color: var(--color-accent-text);
   font-size: var(--text-small);
-}
-/* The name is cut with an ellipsis on mid-width screens so the control never pushes the tabs onto a second row. */
-.grouping-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 260px;
-}
-@media (min-width: 1100px) and (max-width: 1450px) {
-  .grouping-name {
-    max-width: 105px;
-  }
 }
 .grouping-menu {
   position: fixed;

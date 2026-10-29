@@ -9,6 +9,9 @@ export function groupTrigger(page: Page): Locator {
 /** Opens the Group menu if it is closed and returns it. */
 export async function openGroupMenu(page: Page): Promise<Locator> {
   const menu = page.getByRole('menu', { name: 'Group by' });
+  // On a phone the Group button sits behind the Controls button of the graph toolbar.
+  const controls = page.getByRole('button', { name: 'Controls', exact: true });
+  if (!(await groupTrigger(page).isVisible()) && (await controls.isVisible())) await controls.click();
   if (!(await menu.isVisible())) await groupTrigger(page).click();
   await expect(menu).toBeVisible();
   return menu;
