@@ -130,7 +130,7 @@ export function GroupingControls({ overview, value, onChange, error }: Props) {
           <div className="grouping-divider" />
           <p className="grouping-footer">Only ways that work for this file are listed. Automatic picked {GROUPING_LABELS[overview.autoMode]}.</p>
           <button type="button" className="grouping-adjust" onClick={openAdjustDialog}>
-            Adjust grouping…
+            Adjust grouping
           </button>
         </div>
       )}

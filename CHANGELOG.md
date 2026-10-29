@@ -8,6 +8,17 @@ not configure a production deployment.
 
 ### Added
 
+- The header, the tab row and **Mappings** follow the approved designs. The header is 60 px
+  with the file name over its kind and save state, a green **Commit** with the number of files
+  waiting to be committed (dimmed when nothing waits or the save failed), **More actions**, and in
+  server mode a round account button with the person's initials. **Mappings** has no mapping
+  picker: it shows the mapping that is the open file, or the project's mapping that reads it, with
+  a strip of the four connected layers, the concepts, and for the selected concept its definition,
+  datasets with fields, metrics and the AI context the agent API returns. No label, menu item or
+  placeholder ends in an ellipsis any more.
+- `GET /api/agent/context` with `concept=NAME` also returns the metrics bound straight to that
+  concept, not only those reached through a mapping expression.
+- The Mapped commerce and Subscription billing examples describe every concept in their ontology.
 - The app works on one **selected project** at a time. Opening a file selects
   its project, and choosing another project's row in the sidebar switches to it. Every view shows
   that project only: its files, metrics, Mappings, shared references, Neighborhood trail, Source

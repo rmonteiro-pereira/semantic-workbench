@@ -151,9 +151,9 @@ export function AddItem({ doc, base, document, kind: fixed, owner, preset = {}, 
   const valueOf = (spec: FieldSpec) => String(raw[spec.key] ?? '');
   let saveStatus;
   if (saving) {
-    saveStatus = 'Saving…';
+    saveStatus = 'Saving';
   } else if (pending) {
-    saveStatus = 'Checking…';
+    saveStatus = 'Checking';
   } else {
     saveStatus = 'Save to file';
   }

@@ -403,7 +403,7 @@ export function SourceControl({ projects, project, version, unsaved, historyPath
   if (!status)
     return (
       <section className="scm scm-message" aria-label="Source Control">
-        <p className="scm-empty">Loading Source Control…</p>
+        <p className="scm-empty">Loading Source Control</p>
       </section>
     );
   if (!status.gitAvailable)
@@ -598,7 +598,7 @@ export function SourceControl({ projects, project, version, unsaved, historyPath
           {offersSync && (
             <button className="scm-sync-open" onClick={() => setSyncOpen(true)}>
               <RefreshCw size={13} />
-              Sync…
+              Sync
             </button>
           )}
         </div>
@@ -611,7 +611,7 @@ export function SourceControl({ projects, project, version, unsaved, historyPath
             <span className="scm-remote-url">No remote yet. Add one to push and pull.</span>
           )}
           <button hidden={!canManageRemotes} onClick={() => openGitSetup({ kind: 'remote', project })}>
-            Remote…
+            Remote
           </button>
           {remoteNames.length > 0 && <RemoteActions status={status} busy={busy} can={access.can} onRemoteAction={action => void remote(action)} />}
         </div>
@@ -624,7 +624,7 @@ export function SourceControl({ projects, project, version, unsaved, historyPath
         {waiting && (
           <div role="status" className="scm-note waiting">
             <span className="spinner" aria-hidden />
-            <span>{access.local ? 'Waiting for Git (credentials may be requested in a separate window)…' : 'Waiting for Git…'}</span>
+            <span>{access.local ? 'Waiting for Git (credentials may be requested in a separate window)' : 'Waiting for Git'}</span>
             <button hidden={!access.can('cancelOwn')} onClick={() => void scm.cancel(project)}>
               Cancel
             </button>
@@ -646,7 +646,7 @@ export function SourceControl({ projects, project, version, unsaved, historyPath
               )}
               {note.commit && onCommit && (
                 <button className="scm-note-action" onClick={onCommit}>
-                  Commit…
+                  Commit
                 </button>
               )}
             </div>
@@ -698,7 +698,7 @@ export function SourceControl({ projects, project, version, unsaved, historyPath
             <small>
               Git has no user.name or user.email, so commits are not possible yet.{' '}
               <button className="link" onClick={() => openGitSetup({ kind: 'identity', project })}>
-                Set Git identity…
+                Set Git identity
               </button>
             </small>
           )}

@@ -26,7 +26,7 @@ for (const file of ['ubl.owl.ttl', 'ubl.odcs.yaml', 'ubl.semantic.yaml', 'ubl.sh
   if (!(await page.locator('.react-flow__node').count())) throw Error(`No graph: ${file}`);
 }
 await page.getByRole('button', { name: 'ubl.ontology.yaml', exact: true }).click();
-await page.getByPlaceholder('Find an entity…').fill('Invoice');
+await page.getByPlaceholder('Find an entity').fill('Invoice');
 await page.waitForTimeout(400);
 if (!(await page.locator('.react-flow__node').count())) throw Error('Invoice neighborhood missing');
 console.log(

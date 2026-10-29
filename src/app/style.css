@@ -1352,129 +1352,6 @@ dialog.validation-backdrop:not([open]) {
   display: none;
 }
 
-.mapping-explorer {
-  height: 100%;
-  overflow: auto;
-  display: flex;
-  flex-direction: column;
-  padding: 26px;
-  background: var(--color-surface-page);
-  font-size: 13px;
-}
-.mapping-heading {
-  display: flex;
-  justify-content: space-between;
-  align-items: start;
-  gap: 20px;
-}
-.mapping-explorer > label {
-  display: block;
-  margin-top: 16px;
-}
-.mapping-heading-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 8px;
-}
-.mapping-heading small {
-  color: var(--color-text-muted);
-  letter-spacing: 2px;
-  font-size: var(--text-small);
-}
-.mapping-heading h2 {
-  margin: 8px 0;
-}
-.mapping-heading p {
-  color: var(--text-muted);
-}
-.mapping-explorer select,
-.mapping-explorer input:not([type='checkbox']) {
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  padding: 9px;
-  border-radius: 6px;
-  width: 100%;
-  margin: 5px 0;
-}
-.mapping-layer-chain {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 20px;
-  margin: 14px 0 18px;
-  padding: 10px 14px;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  background: var(--color-surface);
-}
-.mapping-layer-chain span {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  color: var(--text-muted);
-}
-.mapping-layer-chain strong {
-  min-width: 0;
-  color: var(--color-text-secondary);
-  overflow-wrap: anywhere;
-}
-.mapping-columns {
-  display: grid;
-  grid-template-columns: minmax(0, 230px) minmax(0, 1fr);
-  grid-template-areas: 'concepts bindings';
-  grid-template-rows: minmax(0, 1fr);
-  gap: 18px;
-  align-items: stretch;
-}
-.mapping-concepts button {
-  display: block;
-  width: 100%;
-  text-align: left;
-  margin: 5px 0;
-  padding: 10px;
-}
-.mapping-concepts button[aria-pressed='true'] {
-  background: var(--color-accent-soft);
-  border-color: var(--color-accent-border-strong);
-}
-.mapping-concepts small {
-  display: block;
-  margin-top: 4px;
-  color: var(--text-muted);
-}
-.mapping-binding {
-  padding: 16px;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  background: var(--color-surface);
-  margin: 12px 0;
-  overflow-wrap: break-word;
-}
-.mapping-binding > code {
-  display: block;
-  white-space: pre-wrap;
-  overflow-wrap: break-word;
-  margin: 8px 0;
-  color: var(--color-accent);
-}
-.mapping-binding > small {
-  display: block;
-  color: var(--text-muted);
-}
-.mapping-explorer pre {
-  overflow: auto;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  background: var(--color-surface-sunken);
-  padding: 12px;
-  font-size: var(--text-small);
-}
-.mapping-explorer details {
-  margin-top: 12px;
-}
-.mapping-explorer summary {
-  cursor: pointer;
-}
 .mapping-notice {
   padding: 10px;
   background: var(--color-warning-soft);
@@ -1503,37 +1380,6 @@ dialog.validation-backdrop:not([open]) {
   font-size: var(--text-small);
   color: var(--color-text-muted);
 }
-.mapping-concepts {
-  grid-area: concepts;
-  overflow-wrap: break-word;
-  max-height: 65vh;
-  display: flex;
-  flex-direction: column;
-}
-.mapping-concept-list {
-  min-height: 0;
-  overflow: auto;
-  scroll-snap-type: y proximity;
-}
-.mapping-concept-list > button {
-  scroll-snap-align: start;
-}
-.mapping-columns > * {
-  min-width: 0;
-}
-.mapping-detail {
-  grid-area: bindings;
-  overflow-wrap: break-word;
-  overflow-y: auto;
-}
-.mapping-detail > h3 {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  margin-top: 0;
-  padding: 4px 0;
-  background: var(--color-surface-page);
-}
 .mapping-query {
   min-width: 0;
   overflow-wrap: break-word;
@@ -1546,59 +1392,6 @@ dialog.validation-backdrop:not([open]) {
 }
 .mapping-query label input {
   flex-shrink: 0;
-}
-.mapping-binding-chain {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 7px;
-}
-.mapping-binding-chain [data-step] {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  max-width: 100%;
-  min-width: 0;
-  padding: 5px 8px;
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  background: var(--color-surface-page);
-}
-.mapping-binding-chain .step-label {
-  font-size: var(--text-small);
-  color: var(--color-text-muted);
-}
-.mapping-binding-chain [data-step] + [data-step] {
-  padding-left: 26px;
-}
-.mapping-binding-chain [data-step] + [data-step]::before {
-  content: '→' / '';
-  position: absolute;
-  left: 8px;
-  top: 5px;
-  color: var(--text-muted);
-}
-.mapping-group > summary {
-  overflow-wrap: anywhere;
-}
-.mapping-group > summary small,
-.mapping-grouping-note {
-  color: var(--color-text-muted);
-}
-.mapping-binding-finding button,
-.mapping-findings button {
-  margin-left: 8px;
-}
-@media (max-width: 759px) {
-  .mapping-columns {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: 'concepts' 'bindings';
-    grid-template-rows: minmax(150px, 0.4fr) minmax(0, 1fr);
-  }
-  .mapping-concepts {
-    max-height: 40vh;
-  }
 }
 
 /* Viewport-sized workbench: keep model controls compact and the canvas flexible. */
@@ -1830,9 +1623,6 @@ main > .status {
 .overview-top h2 {
   font-size: 19px;
 }
-.mapping-explorer {
-  padding: 18px;
-}
 @media (min-width: 1100px) {
   .workspace-sidebar {
     position: relative;
@@ -1938,17 +1728,6 @@ main > .status {
   }
   .overview-switch {
     flex-wrap: wrap;
-  }
-  .mapping-explorer {
-    padding: 12px;
-  }
-  .mapping-heading {
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .mapping-layer-chain {
-    flex-direction: column;
-    gap: 2px;
   }
   .validation-backdrop {
     padding: 10px;
@@ -2944,14 +2723,6 @@ button.danger:hover {
     min-width: 180px;
   }
 }
-.mapping-explorer p {
-  max-width: 90ch;
-}
-.mapping-explorer select {
-  display: block;
-  width: auto;
-  max-width: min(100%, 640px);
-}
 @media (min-width: 1920px) {
   .catalog {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -3795,4 +3566,60 @@ main > .status {
     max-width: var(--content-max-width);
     margin-inline: auto;
   }
+}
+
+/* The tab row is one flat 48 px row under the header: text tabs on the left and a 240 px search
+   field on the right. A phone keeps its own compact rules above. */
+@media (min-width: 651px) {
+  .toolbar {
+    height: 48px;
+    margin: 0;
+    padding: 0 12px;
+    gap: 4px;
+    flex-wrap: nowrap;
+    border: 0;
+    border-bottom: 1px solid var(--color-border-subtle);
+    border-radius: 0;
+  }
+  .toolbar .tabs {
+    flex: 1 1 auto;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 4px;
+  }
+  .toolbar .tabs button {
+    height: 32px;
+    padding: 0 10px;
+    border-radius: 7px;
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+  .toolbar .tabs .selected {
+    background: var(--color-accent-soft);
+    color: var(--color-accent-text);
+    font-weight: 500;
+  }
+  .toolbar .search {
+    flex: 0 0 240px;
+    width: 240px;
+    height: 34px;
+    min-width: 0;
+    gap: 8px;
+    padding: 0 10px;
+    border-radius: 8px;
+    font-size: 14px;
+  }
+  .toolbar .search input {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: 100%;
+    font-size: 14px;
+  }
+}
+
+/* The Mappings tab is a flat page under the tab row, not a card inside the canvas. */
+.canvas-row:has(.mapping-explorer) {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
 }

@@ -1,4 +1,4 @@
-/** The header's title block: the open file's name, and under it the project, kind and save state. */
+/** The header's title block: the open file's name, and under it the kind and save state. */
 import React from 'react';
 
 type Props = {
@@ -6,7 +6,6 @@ type Props = {
   fileName: string | null;
   /** The longer model name shown as the tooltip. */
   tooltip: string;
-  projectName: string;
   kind: string;
   /** Whether the meta line is drawn; a phone has no room for it. */
   showMeta: boolean;
@@ -18,7 +17,7 @@ type Props = {
 export const NO_FILE_TITLE = 'Open a file from Projects';
 
 /** Renders the h1 and, for an open file when `showMeta` is set, the meta line below it. */
-export function HeaderTitle({ fileName, tooltip, projectName, kind, showMeta, saveState }: Props) {
+export function HeaderTitle({ fileName, tooltip, kind, showMeta, saveState }: Props) {
   const hasFile = fileName !== null;
   return (
     <div className="workspace-title">
@@ -27,8 +26,6 @@ export function HeaderTitle({ fileName, tooltip, projectName, kind, showMeta, sa
       </h1>
       {hasFile && showMeta && (
         <div className="header-meta">
-          <span className="header-meta-text">{projectName}</span>
-          <span aria-hidden="true">·</span>
           <span className="header-meta-text">{kind}</span>
           <span aria-hidden="true">·</span>
           {saveState}

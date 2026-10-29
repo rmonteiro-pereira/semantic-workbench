@@ -78,6 +78,8 @@ export async function textCollisionProblems(page: Page, within = 'body'): Promis
       const shown = runs.map(run => ({ run, area: visibleRect(run) }));
       for (const { run, area } of shown) {
         if (area.width < 2 || area.height < 2) continue;
+        // A tooltip ignores the pointer on purpose, so a hit test finds whatever lies under it, not the tooltip.
+        if (run.element.closest('[role=tooltip]')) continue;
         // Something else on top at the middle of the text covers it.
         const x = (area.left + area.right) / 2;
         const y = (area.top + area.bottom) / 2;

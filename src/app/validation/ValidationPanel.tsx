@@ -157,7 +157,7 @@ export function ImportRepair({ initial, onCancel, onImport }: { initial: ImportD
               }
             }}
           >
-            {busy ? 'Importing…' : 'Import repaired files'}
+            {busy ? 'Importing' : 'Import repaired files'}
           </button>
         </div>
       </section>

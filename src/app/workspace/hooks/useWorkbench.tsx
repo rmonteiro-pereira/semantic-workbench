@@ -275,7 +275,6 @@ export function useWorkbench({ setMessage }: Options) {
     setCurrentState,
     setStale,
     setMessage,
-    projects,
     sourceRef,
     setSource,
     draftOf,

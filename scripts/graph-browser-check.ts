@@ -191,11 +191,11 @@ try {
     await toggleLinks();
   });
   await check('UBL: toolbar search offers results; the chosen one stays the center after the search is cleared', async () => {
-    await page.getByPlaceholder('Find an entity…').fill('Invoice');
+    await page.getByPlaceholder('Find an entity').fill('Invoice');
     const results = page.getByRole('region', { name: 'Search results' });
     await expect(results.getByRole('option').first()).toContainText('Invoice');
     await results.getByRole('button').first().click();
-    await expect(page.getByPlaceholder('Find an entity…')).toHaveValue('');
+    await expect(page.getByPlaceholder('Find an entity')).toHaveValue('');
     await expect.poll(async () => (await neighborhoodState(page)).center).toBe(id(ubl, 'Invoice'));
   });
   await check('UBL Party: nine clicks of Show all connected leave one trail step; cards are whole, apart, labelled in words, and no edge crosses a card', async () => {

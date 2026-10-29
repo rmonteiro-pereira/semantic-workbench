@@ -71,7 +71,7 @@ export function useImport({
     const imported = `Imported ${fileCount} file${fileCount === 1 ? '' : 's'} into project ${created.name}.`;
     // Without an identity the files are saved but not committed; the banner offers to set it.
     const notCommitted =
-      created.commit && !created.commit.committed && created.commit.reason === 'no-identity' ? ' Not committed: set your Git identity with Set Git identity… in the banner above.' : '';
+      created.commit && !created.commit.committed && created.commit.reason === 'no-identity' ? ' Not committed: set your Git identity with Set Git identity in the banner above.' : '';
     setMessage(imported + notCommitted);
   }
   async function importFiles(files: File[]) {

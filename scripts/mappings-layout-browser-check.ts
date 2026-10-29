@@ -1,5 +1,5 @@
-// Checks that every binding in the Mappings tab stays inside its card, that arrows stay with the
-// step they lead to, and that counts read "1 binding". It covers every shipped mapping document
+// Checks that every card of the Mappings tab keeps its content inside, that the tab stays one page
+// of bounded length, and that counts read "1 binding". It covers every shipped mapping document
 // and a synthetic one with 80-character identifiers and long dotted paths, at six viewports.
 import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Page } from '@playwright/test';
@@ -88,120 +88,82 @@ async function openProjectMappings(target: Page, project: string, file: string) 
   await target.locator('.tabs').getByRole('button', { name: 'Mappings', exact: true }).click();
 }
 
-/** The mapping ids the open project offers, once the list has loaded. */
-async function listedMappings(target: Page) {
-  const chooser = target.getByLabel('Mapping document');
-  await expect(chooser.locator('option').nth(1)).toBeAttached();
-  return chooser.locator('option').evaluateAll(options => options.map(option => (option as HTMLOptionElement).value).filter(Boolean));
-}
-
 async function check(name: string, run: () => Promise<void>) {
   await run();
   passed++;
   console.log('PASS', name);
 }
 
-// Problems in the expanded bindings: an element past its card, text overflowing its own box, or
-// an arrow on a different line from the step it leads to.
-async function bindingLayoutProblems(target: Page) {
+// Problems in the cards and the strip: an element past its box sideways, or text overflowing its own box.
+async function cardLayoutProblems(target: Page) {
   return target.evaluate(() => {
     const found: string[] = [];
-    const overlaps = (first: DOMRect, second: DOMRect) => first.bottom > second.top + 1 && first.top < second.bottom - 1;
-    for (const details of document.querySelectorAll<HTMLDetailsElement>('.mapping-bindings, .mapping-group')) details.open = true;
-    for (const card of document.querySelectorAll<HTMLElement>('.mapping-binding')) {
-      const box = card.getBoundingClientRect();
-      const label = card.getAttribute('aria-label');
-      for (const element of card.querySelectorAll<HTMLElement>('*')) {
-        if (element.closest('details:not([open]) > :not(summary)')) continue;
+    for (const container of document.querySelectorAll<HTMLElement>('.mapping-card, .mapping-layers, .mapping-concepts')) {
+      const box = container.getBoundingClientRect();
+      for (const element of container.querySelectorAll<HTMLElement>('*')) {
         const rect = element.getBoundingClientRect();
         if (!rect.width || !rect.height) continue;
-        if (rect.left < box.left - 1 || rect.right > box.right + 1) found.push(`${label}: <${element.tagName.toLowerCase()}> ${element.className} leaves its card`);
-        const style = getComputedStyle(element);
-        const clips = ['auto', 'scroll', 'hidden'].includes(style.overflowX);
-        if (!clips && element.scrollWidth > element.clientWidth + 1 && element.clientWidth > 0) found.push(`${label}: <${element.tagName.toLowerCase()}> text overflows its box`);
+        const name = `<${element.tagName.toLowerCase()}> ${element.className}`;
+        if (rect.left < box.left - 1 || rect.right > box.right + 1) found.push(`${name} leaves its box`);
+        if (element.scrollWidth > element.clientWidth + 1 && element.clientWidth > 0 && getComputedStyle(element).display !== 'inline') found.push(`${name} text overflows its box`);
       }
-      const steps = [...card.querySelectorAll<HTMLElement>('.mapping-binding-chain [data-step]')];
-      // The arrow is drawn before each step after the first; it must share a line with the
-      // step's label, or it would hang alone at the end of the previous line.
-      steps.slice(1).forEach(step => {
-        const arrow = getComputedStyle(step, '::before');
-        const first = step.firstElementChild?.getClientRects()[0];
-        if (!arrow.content.includes('→')) {
-          found.push(`${label}: no arrow before ${step.textContent}`);
-          return;
-        }
-        const box = step.getBoundingClientRect();
-        const top = arrow.position === 'absolute' ? box.top + parseFloat(arrow.top) : box.top;
-        const height = parseFloat(arrow.lineHeight) || parseFloat(arrow.fontSize) * 1.2;
-        const arrowBox = { top, bottom: top + height } as DOMRect;
-        if (first && !overlaps(arrowBox, first)) found.push(`${label}: the arrow before ${step.textContent} sits on another line`);
-      });
     }
+    if (document.documentElement.scrollWidth > innerWidth) found.push('the page scrolls sideways');
     return found;
   });
 }
 
 // Problems with the tab's height and with the "Show more" buttons: the tab scrolls as one page and
 // stays a reasonable length because every list shows a few items first, no column is a scroll box
-// of its own, and a control must stay inside its group's box.
+// of its own, and a control must stay inside its card.
 async function boundedLayoutProblems(target: Page, viewportHeight: number) {
   return target.evaluate(viewport => {
     const found: string[] = [];
     const explorer = document.querySelector<HTMLElement>('.mapping-explorer')!;
     if (explorer.scrollHeight > viewport * 12) found.push(`the tab is ${explorer.scrollHeight}px tall`);
-    for (const selector of ['.mapping-concepts', '.mapping-concept-list', '.mapping-detail']) {
+    for (const selector of ['.mapping-columns', '.mapping-concepts', '.mapping-detail']) {
       const column = document.querySelector<HTMLElement>(selector)!;
       if (getComputedStyle(column).overflowY !== 'visible') found.push(`${selector} scrolls on its own`);
     }
-    const groups = document.querySelectorAll<HTMLElement>('.mapping-group');
-    for (const group of groups) {
-      const groupBox = group.getBoundingClientRect();
-      for (const button of group.querySelectorAll<HTMLElement>('.mapping-show-more, .mapping-show-more button')) {
+    for (const card of document.querySelectorAll<HTMLElement>('.mapping-card')) {
+      const cardBox = card.getBoundingClientRect();
+      for (const button of card.querySelectorAll<HTMLElement>('.mapping-show-more, .mapping-show-more button')) {
         const box = button.getBoundingClientRect();
-        if (box.left < groupBox.left - 1 || box.right > groupBox.right + 1) found.push(`a show-more control leaves its group sideways`);
-        if (box.bottom > groupBox.bottom + 1) found.push(`a show-more control leaves its group`);
+        if (box.left < cardBox.left - 1 || box.right > cardBox.right + 1) found.push('a show-more control leaves its card sideways');
+        if (box.bottom > cardBox.bottom + 1) found.push('a show-more control leaves its card');
       }
     }
-    const cards = document.querySelectorAll('.mapping-group:first-of-type .mapping-binding');
-    if (cards.length > 15) found.push(`${cards.length} bindings rendered in the first group`);
+    const datasetRows = document.querySelectorAll('.mapping-dataset-row').length;
+    if (datasetRows > 3) found.push(`${datasetRows} dataset rows rendered before Show more`);
     return found;
   }, viewportHeight);
 }
 
 try {
   await page.goto(appUrl());
-  const chooser = page.getByLabel('Mapping document');
-  const documentsByProject = new Map<string, string[]>();
-  await check('each project lists only its own mapping documents', async () => {
+  await check('each project shows only the mapping of its own project', async () => {
     for (const [project, file] of projectFiles) {
       await openProjectMappings(page, project, file);
-      const listed = await listedMappings(page);
-      const slugs = new Set(listed.map(id => id.split('/')[0]));
-      expect(slugs.size, `${project} lists ${listed.join(', ')}`).toBe(1);
-      documentsByProject.set(project, listed);
+      await expect(page.locator('.mapping-page').first()).toBeVisible();
+      for (const description of await page.locator('.mapping-page .mapping-top p').allTextContents()) {
+        expect(description, `${project} shows ${description}`).toContain(`The mapping of the ${project} project`);
+      }
     }
-    const total = [...documentsByProject.values()].flat();
-    expect(new Set(total).size).toBe(6);
   });
 
   await check('a concept with one binding reads "1 binding"', async () => {
     await openProjectMappings(page, 'Commerce', 'commerce.mapped-ontology.yaml');
-    const commerce = documentsByProject.get('Commerce')!.find(id => id.endsWith('mapping.yaml'))!;
-    await chooser.selectOption(commerce);
     const revenue = page.locator('.mapping-concepts').getByRole('button', { name: /^Revenue/ });
     await expect(revenue).toContainText(/(^|\D)1 binding$/);
   });
-  await check('every binding stays inside its card at six viewports', async () => {
+  await check('every card stays inside its box at six viewports', async () => {
     const found: string[] = [];
     for (const [width, height] of VIEWPORTS) {
       await page.setViewportSize({ width, height });
       for (const [project, file] of projectFiles) {
         await openProjectMappings(page, project, file);
-        for (const id of documentsByProject.get(project)!) {
-          await chooser.selectOption(id);
-          await expect(page.locator('.mapping-binding').first()).toBeAttached();
-          for (const problem of await bindingLayoutProblems(page)) found.push(`${width}×${height} ${id}: ${problem}`);
-        }
+        await expect(page.locator('.mapping-detail .mapping-card').first()).toBeVisible();
+        for (const problem of await cardLayoutProblems(page)) found.push(`${width}×${height} ${project}: ${problem}`);
       }
       await page.screenshot({ path: `/tmp/workbench-mappings-${width}.png`, fullPage: false });
     }
@@ -222,10 +184,9 @@ try {
     const document = api.ws.documentsFor(LOCAL_READER).find(candidate => candidate.project === 'unbound-commerce' && candidate.filename === 'commerce.mapping.yaml')!;
     for (const [width, height] of VIEWPORTS) {
       await page.setViewportSize({ width, height });
-      await openProjectMappings(page, 'Unbound commerce', 'commerce.mapped-ontology.yaml');
-      await chooser.selectOption(document.id);
-      await expect(page.getByText('No bindings in this mapping', { exact: true })).toBeVisible();
-      await expect(page.locator('.mapping-concept-list > button')).toHaveCount(1);
+      await openProjectMappings(page, 'Unbound commerce', 'commerce.mapping.yaml');
+      await expect(page.locator('.mapping-detail .mapping-note').first()).toContainText('No binding of all concepts');
+      await expect(page.locator('.mapping-concepts .mapping-concept')).toHaveCount(1);
       await page.getByRole('button', { name: 'Show query', exact: true }).click();
       await page.getByRole('button', { name: 'Open Source to add bindings', exact: true }).click();
       await expect(page.locator('.tabs .selected')).toHaveText('Source');
@@ -236,7 +197,7 @@ try {
       await expect(page.getByLabel('Definition source')).toContainText('concept_mappings: []');
     }
   });
-  await check('opening a file selects a mapping of its own project', async () => {
+  await check('opening a file shows the mapping of its own project', async () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await showSidebar(page);
     const mallProject = page.getByRole('treeitem', { name: 'Mall', exact: true });
@@ -244,10 +205,10 @@ try {
       await mallProject.getByRole('button', { name: 'Mall', exact: true }).click();
     }
     await fileTab('mall.ontology.yaml', 'Mappings')(page);
-    await expect(chooser).toHaveValue(/mall\.mapping\.yaml/);
-    await expect(page.locator('.mapping-binding').first()).toBeAttached();
+    await expect(page.locator('.mapping-page .mapping-top p')).toContainText('mall.mapping.yaml');
+    await expect(page.locator('.mapping-detail .mapping-card').first()).toBeVisible();
   });
-  await check('long mapping lists stay bounded and show-more stays in its group', async () => {
+  await check('long mapping lists stay bounded and show-more stays in its card', async () => {
     const found: string[] = [];
     for (const [width, height] of [
       [390, 844],
@@ -257,15 +218,16 @@ try {
       await page.setViewportSize({ width, height });
       await showSidebar(page);
       await fileTab('mall.ontology.yaml', 'Mappings')(page);
-      await expect(page.locator('.mapping-binding').first()).toBeAttached();
-      await page.locator('.mapping-bindings > summary').click();
+      await expect(page.locator('.mapping-detail .mapping-card').first()).toBeVisible();
       const first = await boundedLayoutProblems(page, height);
       found.push(...first.map(problem => `${width}: ${problem}`));
-      const more = page.locator('.mapping-group .mapping-show-more button').first();
-      await more.click();
-      const second = await boundedLayoutProblems(page, height);
-      found.push(...second.map(problem => `${width} after show more: ${problem}`));
-      await page.locator('.mapping-group').first().getByRole('button', { name: 'Show fewer' }).click();
+      const more = page.locator('.mapping-detail .mapping-show-more button').first();
+      if (await more.count()) {
+        await more.click();
+        const second = await boundedLayoutProblems(page, height);
+        found.push(...second.filter(problem => !problem.includes('dataset rows rendered')).map(problem => `${width} after show more: ${problem}`));
+        await page.locator('.mapping-detail .mapping-show-more').getByRole('button', { name: 'Show fewer' }).click();
+      }
     }
     expect(found).toEqual([]);
   });

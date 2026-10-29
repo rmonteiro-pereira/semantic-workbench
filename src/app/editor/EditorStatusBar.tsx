@@ -60,7 +60,7 @@ export function EditorStatusBar({ syntax, largeMode, modeAvailable, onTogglePars
       )}
       {checking && (
         <span className="code-editor-checking" role="status">
-          Checking…
+          Checking
         </span>
       )}
       {findingSummary && (

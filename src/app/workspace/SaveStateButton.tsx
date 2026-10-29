@@ -7,8 +7,6 @@ type Props = {
   status: AutosaveStatus;
   hasFile: boolean;
   label: string;
-  /** The label in few words; drawn instead of `label` while the header is narrow. */
-  shortLabel?: string;
   title: string;
   onClick: () => void;
 };
@@ -23,14 +21,10 @@ function buttonClassName({ variant, status, hasFile }: Props): string {
 
 /** Renders the save state; it opens Commit, the findings or the diff when clicked. */
 export function SaveStateButton(props: Props) {
-  const { variant, hasFile, label, shortLabel, title, onClick } = props;
-  // The dot on a phone has no text to shorten.
-  const hasShortForm = variant === 'inline' && hasFile && !!shortLabel && shortLabel !== label;
+  const { hasFile, label, title, onClick } = props;
   return (
     <button className={buttonClassName(props)} role="status" aria-label="Save state" disabled={!hasFile} title={title} onClick={onClick}>
-      <span className="save-state-text" data-short={hasShortForm ? shortLabel : undefined}>
-        {label}
-      </span>
+      <span className="save-state-text">{label}</span>
     </button>
   );
 }

@@ -171,7 +171,7 @@ export function ItemEditor({ doc, base, path, kind, projectDocs, choices, onClos
   }, []);
   let editStatus;
   if (pending && changed) {
-    editStatus = 'Checking…';
+    editStatus = 'Checking';
   } else if (parsed.error) {
     editStatus = 'Not one item';
   } else if (errors.length) {
@@ -185,7 +185,7 @@ export function ItemEditor({ doc, base, path, kind, projectDocs, choices, onClos
     <>
       <button type="button" className="item-delete" hidden={!access.can('edit')} onClick={onDelete} disabled={saving}>
         <Trash2 size={13} />
-        Delete…
+        Delete
       </button>
       <span className="item-state" role="status">
         {editStatus}
@@ -194,7 +194,7 @@ export function ItemEditor({ doc, base, path, kind, projectDocs, choices, onClos
         Cancel
       </button>
       <button type="button" className="primary" onClick={save} title={access.control('edit').title} disabled={!canSave || !access.can('edit')}>
-        {saving ? 'Saving…' : 'Save to file'}
+        {saving ? 'Saving' : 'Save to file'}
       </button>
     </>
   );

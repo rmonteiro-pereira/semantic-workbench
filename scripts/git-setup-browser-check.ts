@@ -92,7 +92,7 @@ async function expectCloneWaiting(dialog: Locator) {
     ]) {
       await page.setViewportSize({ width, height });
       await expect(cloneButton).toBeDisabled();
-      await expect(dialog).toContainText('Connecting to workspace updates…');
+      await expect(dialog).toContainText('Connecting to workspace updates');
       await expectDialogGeometry(page, `Clone connecting ${theme} at ${width}`);
       expect(await smallTextProblems(page, 'dialog[open]')).toEqual([]);
       expect(await lowContrastProblems(page, 'dialog[open]')).toEqual([]);
@@ -130,7 +130,7 @@ try {
   await check('identity: the banner offers Set Git identity; the values go into the repository and count at once', async () => {
     const banner = page.getByRole('alert').filter({ hasText: 'no user.name or user.email' });
     await expect(banner).toBeVisible();
-    await banner.getByRole('button', { name: 'Set Git identity…' }).click();
+    await banner.getByRole('button', { name: 'Set Git identity' }).click();
     const dialog = page.getByRole('dialog', { name: 'Set Git identity' });
     await expect(dialog).toBeVisible();
     await dialog.getByLabel('Name').fill('Ana Lima');
@@ -143,7 +143,7 @@ try {
     expect(readFileSync(emptyGlobal, 'utf8')).toBe('[init]\n\tdefaultBranch = main\n');
   });
   await check('commit: the files saved before the identity existed commit now', async () => {
-    await page.getByRole('button', { name: 'Commit…' }).click();
+    await page.getByRole('button', { name: 'Commit' }).click();
     const dialog = page.getByRole('dialog', { name: 'Commit' });
     await expect(dialog.getByRole('button', { name: 'Commit', exact: true })).toBeEnabled();
     await dialog.getByRole('button', { name: 'Commit', exact: true }).click();
@@ -241,7 +241,7 @@ try {
   });
   await check('clone: Clone repository makes a project; invalid files are listed, not rewritten', async () => {
     await (await addProjectItem(page, 'Import files')).click();
-    await page.getByRole('dialog', { name: 'Import' }).getByRole('button', { name: 'Clone a Git repository…' }).click();
+    await page.getByRole('dialog', { name: 'Import' }).getByRole('button', { name: 'Clone a Git repository' }).click();
     const dialog = page.getByRole('dialog', { name: 'Clone repository' });
     await expect(dialog).toBeVisible();
     await dialog.getByLabel('Repository URL or path').fill(teamBare);

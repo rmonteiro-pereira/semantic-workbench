@@ -79,6 +79,14 @@ test('governed metrics are reached by mapping, retain source formulas, and resol
   expect(selected.fields.map(f => f.name)).toEqual(['amount']);
   expect(() => selectContext(runtimeContext, ['Unknown'])).toThrow('Unknown concept');
 });
+test('a metric bound straight to a concept is part of that concept context', () => {
+  const runtimeContext = context();
+  const evidence = runtimeContext.bindings[0]!.evidence;
+  const bound = { ...runtimeContext, bindings: [], metricBindings: [{ metric: 'gross_revenue', measures: { concept: 'Revenue' }, findings: [], evidence }] } as unknown as typeof runtimeContext;
+  expect(selectContext(bound, ['Revenue']).metrics.map(m => m.id)).toEqual(['gross_revenue']);
+  expect(selectContext(bound, ['Customer']).metrics).toEqual([]);
+  expect(selectContext(bound, []).metrics.map(m => m.id)).toEqual(['gross_revenue']);
+});
 test('novel revenue by region query composes governed metric and declared join without predefined query', () => {
   const before = structuredClone(fixture);
   const queryPlan = plan();

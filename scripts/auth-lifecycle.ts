@@ -164,7 +164,7 @@ export async function localAuthSmoke(browser: Browser) {
         await expect(page.locator('.workspace-header')).toBeVisible();
         await expect(page.locator('.workspace-sidebar')).toContainText('LOCAL WORKSPACE');
         assert.equal((await (await page.request.get(url + '/api/me')).json()).mode, 'local');
-        await expect(page.getByRole('button', { name: 'Person menu' })).toHaveCount(0);
+        await expect(page.getByRole('button', { name: 'Account and Admin' })).toHaveCount(0);
       });
     } finally {
       await page.close();

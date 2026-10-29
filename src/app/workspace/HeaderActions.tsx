@@ -17,6 +17,8 @@ export type HeaderActionState = {
   onCommitClick: () => void;
   commitDisabled: boolean;
   commitTitle: string;
+  /** Files with changes not yet committed; the badge on Commit shows it when above zero. */
+  uncommittedCount: number;
 };
 
 /** Lists the actions behind More actions, for the wide and the phone header alike. */
@@ -45,6 +47,12 @@ type Props = HeaderActionState & {
   leadingStatus?: ReactNode;
 };
 
+/** Adds the number of changed files to the tooltip, because the badge itself is hidden from screen readers. */
+function commitTitleWithCount(state: HeaderActionState): string {
+  if (state.uncommittedCount === 0) return state.commitTitle;
+  return `${state.commitTitle} (${state.uncommittedCount} changed)`;
+}
+
 /**
  * Commit stays focusable while it is off, so keyboard users reach the reason too. It is marked
  * aria-disabled instead of disabled, and a tooltip says why on hover and focus.
@@ -53,18 +61,26 @@ function CommitButton({ state }: { state: HeaderActionState }) {
   const tooltipId = useId();
   const unavailable = state.commitDisabled;
   const handleClick = unavailable ? undefined : state.onCommitClick;
+  // A button that cannot run is the plain button, dimmed, and shows no count.
+  const className = unavailable ? 'commit-button' : 'primary commit-button';
+  const showCount = !unavailable && state.uncommittedCount > 0;
   return (
     <span className="commit-wrap">
       <button
-        className="primary commit-button"
-        aria-label="Commit…"
+        className={className}
+        aria-label="Commit"
         aria-disabled={unavailable || undefined}
         aria-describedby={unavailable ? tooltipId : undefined}
         onClick={handleClick}
-        title={unavailable ? undefined : state.commitTitle}
+        title={unavailable ? undefined : commitTitleWithCount(state)}
       >
         <GitCommitIcon size={16} />
-        <span className="action-label">Commit…</span>
+        <span className="action-label">Commit</span>
+        {showCount && (
+          <span className="commit-count" aria-hidden="true">
+            {state.uncommittedCount}
+          </span>
+        )}
       </button>
       {unavailable && (
         <span role="tooltip" id={tooltipId} className="commit-tooltip">

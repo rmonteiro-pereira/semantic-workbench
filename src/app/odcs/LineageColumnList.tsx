@@ -96,7 +96,7 @@ export function ColumnList(props: ListProps) {
     <>
       {filterable && (
         <div className="lineage-list-filter nodrag" style={{ height: FILTER_H }}>
-          <input type="search" aria-label={`Filter columns of ${card.label}`} placeholder="Filter columns…" value={filter} onChange={e => setFilter(e.target.value)} />
+          <input type="search" aria-label={`Filter columns of ${card.label}`} placeholder="Filter columns" value={filter} onChange={e => setFilter(e.target.value)} />
         </div>
       )}
       <div

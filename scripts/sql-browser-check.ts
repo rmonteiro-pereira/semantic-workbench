@@ -119,7 +119,7 @@ try {
     const shown = Date.now() - paused;
     console.log(`  warning ${shown} ms after the last keystroke (typed in ${paused - typed} ms)`);
     expect(shown).toBeLessThanOrEqual(500);
-    await expect(page.getByRole('status', { name: 'Save state' })).toHaveText(/^Saved to file/, {
+    await expect(page.getByRole('status', { name: 'Save state' })).toHaveText(/^Saved/, {
       timeout: 8000,
     });
     const saved = readFileSync(projectFile(api.ws.layout, sql.slug, 'case-when.ossie.yaml'), 'utf8');

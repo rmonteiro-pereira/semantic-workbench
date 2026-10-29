@@ -232,7 +232,7 @@ export function CommitDialog({ project, projectName, itemHints = {}, unsaved = [
           ) : null}
         </p>
       )}
-      {!status && !error && <p>Loading changes…</p>}
+      {!status && !error && <p>Loading changes</p>}
       {error && (
         <p role="alert" className="scm-error">
           {error}
@@ -242,7 +242,7 @@ export function CommitDialog({ project, projectName, itemHints = {}, unsaved = [
         <div role="alert" className="scm-note warning">
           <AlertTriangle size={14} />
           <span>Not committed: set your Git identity (user.name and user.email) for this repository.</span>
-          {access.local && onSetIdentity && <button onClick={onSetIdentity}>Set Git identity…</button>}
+          {access.local && onSetIdentity && <button onClick={onSetIdentity}>Set Git identity</button>}
         </div>
       )}
       {unsaved.length > 0 && (

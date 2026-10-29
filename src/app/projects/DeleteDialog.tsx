@@ -45,7 +45,7 @@ function RemovedList({ target, impact, projects, name }: { target: DeleteTarget;
         {target.path} in {name(target.project)}
       </li>
     );
-  if (!impact) return <li>Loading…</li>;
+  if (!impact) return <li>Loading</li>;
   return (
     <>
       {impact.removes.files.map(file => (
@@ -212,8 +212,8 @@ async function runDeletion(target: DeleteTarget, removing: boolean, name: (slug:
 }
 
 function actionText(removing: boolean, busy: boolean) {
-  if (removing) return busy ? 'Removing…' : 'Remove from workspace';
-  return busy ? 'Deleting…' : 'Delete';
+  if (removing) return busy ? 'Removing' : 'Remove from workspace';
+  return busy ? 'Deleting' : 'Delete';
 }
 
 /** Shows deletion impact and requires an explicit delete action. */

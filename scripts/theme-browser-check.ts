@@ -57,6 +57,8 @@ async function accentCheck() {
   const selectedTab = page.locator('.tabs .selected').first();
   const before = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--color-accent').trim());
   await page.evaluate(value => document.documentElement.style.setProperty('--color-accent', value), ACCENT_SWAP);
+  // The selected tab writes in the accent's text colour, which a brand swaps together with the accent.
+  await page.evaluate(value => document.documentElement.style.setProperty('--color-accent-text', value), ACCENT_SWAP);
   await expect(primary).toHaveCSS('background-color', SWAPPED);
   await expect(primary).toHaveCSS('border-color', SWAPPED);
   await expect(selectedTab).toHaveCSS('color', SWAPPED);
@@ -67,6 +69,7 @@ async function accentCheck() {
   const arrow = page.locator('marker polyline').first();
   expect(await arrow.count()).toBeGreaterThan(0);
   await page.evaluate(() => document.documentElement.style.removeProperty('--color-accent'));
+  await page.evaluate(() => document.documentElement.style.removeProperty('--color-accent-text'));
   expect(await tokenValue(page, '--color-accent')).toBe(before);
   await page.close();
 }

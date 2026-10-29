@@ -71,7 +71,7 @@ export function MetricsView({
   } else if (loading && !kpis.length) {
     metricsBody = (
       <p role="status" className="metrics-empty">
-        Reading the project’s semantic models…
+        Reading the project’s semantic models
       </p>
     );
   } else if (error) {

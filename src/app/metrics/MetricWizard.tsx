@@ -294,7 +294,7 @@ export function MetricWizard({
         </button>
       ) : (
         <button type="button" className="primary" onClick={save} disabled={busy || !preview}>
-          {busy ? 'Saving…' : 'Save to file'}
+          {busy ? 'Saving' : 'Save to file'}
         </button>
       )}
     </>
@@ -370,7 +370,7 @@ export function MetricWizard({
                         </option>
                       )),
                       aria: 'Semantic model',
-                      empty: 'Choose…',
+                      empty: 'Choose',
                     }),
                     undefined,
                     true,
@@ -404,8 +404,8 @@ export function MetricWizard({
               )}
               {draft.type === 'ratio' && (
                 <>
-                  {field('Numerator', select({ value: draft.numerator, onChange: v => set({ numerator: v }), options: model?.metrics.map(metricOption), aria: 'Numerator', empty: 'Choose…' }))}
-                  {field('Denominator', select({ value: draft.denominator, onChange: v => set({ denominator: v }), options: model?.metrics.map(metricOption), aria: 'Denominator', empty: 'Choose…' }))}
+                  {field('Numerator', select({ value: draft.numerator, onChange: v => set({ numerator: v }), options: model?.metrics.map(metricOption), aria: 'Numerator', empty: 'Choose' }))}
+                  {field('Denominator', select({ value: draft.denominator, onChange: v => set({ denominator: v }), options: model?.metrics.map(metricOption), aria: 'Denominator', empty: 'Choose' }))}
                 </>
               )}
               {['derived', 'cumulative', 'filtered'].includes(draft.type) &&
@@ -463,16 +463,16 @@ export function MetricWizard({
                   )}
                   {field(
                     'Field',
-                    select({ value: draft.field, onChange: v => set({ field: v }), options: fields.map(f => <option key={f}>{f}</option>), aria: 'Field to aggregate', empty: 'Choose…' }),
+                    select({ value: draft.field, onChange: v => set({ field: v }), options: fields.map(f => <option key={f}>{f}</option>), aria: 'Field to aggregate', empty: 'Choose' }),
                   )}
                 </>
               )}
               {draft.type === 'ratio' && (
                 <>
-                  {field('Numerator', select({ value: draft.numerator, onChange: v => set({ numerator: v }), options: model?.metrics.map(metricOption), aria: 'Numerator', empty: 'Choose…' }))}
+                  {field('Numerator', select({ value: draft.numerator, onChange: v => set({ numerator: v }), options: model?.metrics.map(metricOption), aria: 'Numerator', empty: 'Choose' }))}
                   {field(
                     'Denominator',
-                    select({ value: draft.denominator, onChange: v => set({ denominator: v }), options: model?.metrics.map(metricOption), aria: 'Denominator', empty: 'Choose…' }),
+                    select({ value: draft.denominator, onChange: v => set({ denominator: v }), options: model?.metrics.map(metricOption), aria: 'Denominator', empty: 'Choose' }),
                     'Division by zero gives no value (NULLIF)',
                   )}
                 </>
@@ -608,7 +608,7 @@ export function MetricWizard({
           )}
           {step === 6 &&
             (busy && !preview ? (
-              <p role="status">Explaining the {existing ? 'metric' : 'new metric'}…</p>
+              <p role="status">Explaining the {existing ? 'metric' : 'new metric'}</p>
             ) : (
               preview && (
                 <div className="wizard-preview">

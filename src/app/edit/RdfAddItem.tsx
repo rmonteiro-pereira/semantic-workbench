@@ -154,9 +154,9 @@ export function RdfAddItem({ doc, base, onClose, onSaved }: { doc: Doc; base: st
   );
   let saveStatus;
   if (saving) {
-    saveStatus = 'Saving…';
+    saveStatus = 'Saving';
   } else if (pending) {
-    saveStatus = 'Checking…';
+    saveStatus = 'Checking';
   } else {
     saveStatus = 'Save to file';
   }
@@ -183,7 +183,7 @@ export function RdfAddItem({ doc, base, onClose, onSaved }: { doc: Doc; base: st
             ))}
           </select>
         </label>
-        {field('iri', 'IRI', `A prefixed name (${Object.keys(prefixes).slice(0, 4).join(', ')}…) or a full <IRI>`, true)}
+        {field('iri', 'IRI', `A prefixed name, such as ${Object.keys(prefixes).slice(0, 4).join(', ')}, or a full <IRI>`, true)}
         {field('label', kind === 'property' ? 'Name' : 'Label')}
         {field('comment', 'Description')}
         {KINDS[kind].fields.map(f => field(f.key, f.label, f.hint))}
@@ -259,7 +259,7 @@ export function RdfDeleteItem({
         Cancel
       </button>
       <button type="button" className="danger" onClick={confirm} title={access.control('edit').title} disabled={!access.can('edit') || busy || !result.ok}>
-        {busy ? 'Deleting…' : 'Delete'}
+        {busy ? 'Deleting' : 'Delete'}
       </button>
     </>
   );

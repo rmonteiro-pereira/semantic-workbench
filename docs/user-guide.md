@@ -36,22 +36,23 @@ opened while the workspace loads stays open when the initial document appears.
 
 The header is one row at every width. Its title is the open file's name, with the model's long
 name in the tooltip; with no file open it reads "Open a file from Projects" and has no Commit
-button. Under the name, a muted line gives the project, the kind of file and the save state. A
+button. Under the name, a muted line gives the kind of file and the save state. A
 save that needs action, such as "Not saved: 2 errors", turns red and underlined; selecting it
-opens the findings. On the right are **Commit…** (an icon below 1100 px), **More actions** and
-the account menu. **More actions** holds **New** and **Export**; on a phone the **New** items open
+opens the findings. On the right are **Commit** (an icon below 1100 px), **More actions** and, in
+server mode, the round account button with the person's initials. **Commit** shows how many files
+wait to be committed, and is dimmed when nothing waits or the save failed. **More actions** holds **New** and **Export**; on a phone the **New** items open
 in place, under a **Back** row. On a phone (up to 650 px wide) the row shows the file name, a dot
-for the save state, **Commit…** as an icon and **More actions**; a save that needs action keeps
+for the save state, **Commit** as an icon and **More actions**; a save that needs action keeps
 its words beside the dot. Tabs that do not fit scroll sideways with edge cues; keyboard navigation
 reveals the focused tab. Model views, Source and Source Control retain separate sidebar navigation
 states.
 
 **Settings → Admin** opens the administration page for people allowed to administer. Its **Git remotes**
-section lists every project with its remote address, or "No remote", with **Set remote…** and
+section lists every project with its remote address, or "No remote", with **Set remote** and
 **Remove remote** for each project. With no projects it says so and offers **Back to
 workspace**, where **Add project** is. Addresses are shown without credentials. In server mode, the
-person menu contains **Connected accounts** and **Sign out**. In local mode there is no sign-in or
-person menu.
+account button (named Account and Admin, with the person's initials) opens a menu with
+**Connected accounts** and **Sign out**. In local mode there is no sign-in and no account button.
 
 ### Back and Forward
 
@@ -62,7 +63,7 @@ the tab, selecting an entity, a relationship or a metric, centring or expanding 
 the lineage walk (centre, expand, full pierce, opening a count card or a column list, splitting a
 bundled line), opening or collapsing graph areas, the graph, Neighborhood and lineage switches
 (Labels, Value types, Metrics, Mini-map, Technical resources and the others), layout and grouping
-choices, the Mappings concept and **Show more**, and the sidebar's folders. Typing is not an
+choices, the Mappings concept and **Show all concepts**, and the sidebar's folders. Typing is not an
 action: the editor keeps its own undo, and text in a search box is not restored. Deleting a file is
 not undone by Back; **Undo** in the toast and **Trash** restore it. Back and Forward only change
 what is shown: a grouping choice is saved when you make it, and going back shows the earlier
@@ -102,14 +103,14 @@ Valid Source edits autosave one second after typing stops. Item editors, add/del
 the metric wizard retain explicit **Save to file** or confirmation actions. Saving never implies
 that a file has been committed or pushed.
 
-The save-state indicator distinguishes saving, saved-but-uncommitted changes, validation errors
+The save-state indicator distinguishes saving, saved, validation errors
 and a changed disk version. Invalid text remains an unsaved draft that survives reload. Selecting
 the indicator or **Validation details** opens the findings. SQL syntax findings are warnings and
 do not block saving.
 
 The **Export** entry of **More actions** downloads the current open source, including an invalid
 unsaved draft, without saving or committing it. Use it to keep a separate copy before resolving a
-conflict or abandoning a draft. **Export project…** is different: its ZIP reads stored project
+conflict or abandoning a draft. **Export project** is different: its ZIP reads stored project
 files and excludes unsaved drafts.
 
 Every save carries the SHA-256 of the source it started from. If that version is stale, the save
@@ -123,7 +124,7 @@ Untouched bytes, comments, quoting, indentation and line endings remain unchange
 is atomic. Multi-file imports, moves and other coordinated changes use a recovery journal that is
 completed or rolled back at the next startup.
 
-**Commit…** lists changed files with a diff, initial selections and a suggested message.
+**Commit** lists changed files with a diff, initial selections and a suggested message.
 **Commit** commits only selected files; unrelated staged or unstaged changes are preserved.
 **Commit & push** then performs an explicit push. **Revert to last commit** asks first, restores
 the committed file and retains the replaced version in the trash.
@@ -148,7 +149,7 @@ repository groups so their history and unpublished work can be retained together
 
 ### Project export
 
-**Export project…** downloads a streaming, uncompressed ZIP containing the project's stored files,
+**Export project** downloads a streaming, uncompressed ZIP containing the project's stored files,
 relative folders and `.gitignore`. It excludes `.git/`, ignored files and unsaved drafts. The dialog
 names known unsaved edits and can offer **Save and export** for the open file.
 
@@ -172,7 +173,7 @@ working copy and access.
 
 ## Source Control and Git repositories
 
-Local mode uses the machine's Git configuration. **Set Git identity…** writes repository-local
+Local mode uses the machine's Git configuration. **Set Git identity** writes repository-local
 `user.name` and `user.email`, optionally for other repositories that have no identity. It never
 changes global Git configuration. Without Git or an identity, definitions can still be edited;
 a banner explains which version-control operations are unavailable.
@@ -187,9 +188,9 @@ The **Source control** panel provides:
 - Local and remote branches, new branches and branch switching. A **Tracking origin/main** line
   under the picker names the remote branch Pull and Push use; a branch with no upstream shows
   **Not published** instead of counters, and its first push is **Publish branch**.
-- The remote address, and **Fetch**, **Pull**, **Push** and **Sync** buttons under it. **Remote…**
+- The remote address, and **Fetch**, **Pull**, **Push** and **Sync** buttons under it. **Remote**
   to set the address up appears for Admins only (always in local mode); everyone else sees the
-  address without the button. On a server, **Sync…** opens Pull, Publish and Push for the published
+  address without the button. On a server, **Sync** opens Pull, Publish and Push for the published
   branch.
 - The same model tabs and **Find an entity** search as the model views, so a tab is one click away.
 - Exact-path, extension and folder ignore rules, plus a Source editor for `.gitignore`.
@@ -235,9 +236,9 @@ A repository-root `.semantic-workbench.json` can declare project folders:
 }
 ```
 
-Declared folders become projects after clone. Without a manifest, **Choose projects…** proposes
+Declared folders become projects after clone. Without a manifest, **Choose projects** proposes
 folders containing definitions, down to four levels, and can save a manifest. **Projects in this
-repository…** changes the selection later.
+repository** changes the selection later.
 
 The tree groups projects under their repository. They share a branch, history and Source Control
 panel; repository-wide operations rescan every project. **Remove from workspace** unregisters a
@@ -338,7 +339,7 @@ applicable mode and the menu footer names the choice. When a file has fewer than
 to group, the menu is hidden. Communities are deterministic structural
 suggestions, not new semantic facts: closely linked entities are joined, and those groups are
 joined again while that keeps links inside areas. Entities with no relationships are grouped by
-type. **Adjust grouping…** changes view state, not source files.
+type. **Adjust grouping** changes view state, not source files.
 Grouping corrections are personal in server mode.
 
 ## Data contracts and column-level lineage
@@ -492,17 +493,23 @@ reason. See [the server governance rules](server-mode.md#governed-content).
 
 ## Ontology mappings and agent context
 
-The **Mappings** view resolves ontology → mapping → semantic model → physical source. Object,
-referent and link mappings retain source evidence and report missing or ambiguous references.
-Bindings are grouped by dataset. The concept list and the bindings scroll on their own inside the
-tab; each dataset group shows its first five bindings and **Show N more** reveals ten at a time,
-**Show fewer** folds them again, and a long concept list works the same way. The tab lists only the
-mappings of the open file's project, says so when that project has none, and asks you to open a
-project when no file is open. Search includes unbound concepts; empty views offer Source navigation
-for the selected mapping document. **Show query** selects mapped fields/metrics and previews a
-newly composed governed query without running it. **AI context** lists the concepts, fields and
-metrics an agent receives for the selected concept (or all concepts), with any `ai_context` the
-documents declare. **Export agent context** downloads metadata.
+The **Mappings** view follows the open file and its project; there is no mapping picker. It shows
+the mapping when the open file is a mapping document. For any other file it shows the selected
+project's mapping that reads the file as its ontology or semantic model; two such mappings appear
+one after the other under their names, and a file no mapping reads gets a one-line message. A
+project with no mapping says so, and with no file open the tab asks you to open a project. Each
+mapping opens with its name, "The mapping of the project for the open file" and its file, and
+**Show query** and **Export agent context** on the right. A strip of four cells connects
+**Ontology**, **Mapping**, **Semantic model** and **Physical sources**, each with its name, count
+and file. The left column lists the concepts with their binding counts (the first twelve, then
+**Show all N concepts**) and a **Find a concept** field. The right column describes the selected
+concept in four cards: its definition from the ontology; **Where it lives**, one row per dataset
+with the fields bound (three datasets, then **Show N more datasets**); the governed metrics bound
+to it; and **AI context**, which lists what the agent API returns for the concept (its definition
+and synonyms, datasets, governed metrics and any `ai_context` written in the files). The whole tab
+scrolls as one page. Findings, such as a reference that cannot be resolved, appear under the strip
+with an **Edit item** button. **Show query** selects mapped fields and metrics and previews a newly
+composed governed query without running it. **Export agent context** downloads the same metadata.
 
 For mapping files, **Graph** shows concepts and relationship rows, datasets/fields, metrics and
 resolved mapping lines. Select a row to highlight its bindings and relevant joins. **Unmapped

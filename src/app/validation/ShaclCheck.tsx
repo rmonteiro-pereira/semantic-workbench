@@ -68,7 +68,7 @@ export function ShaclCheck({ shapes, shapesSource, projectDocs }: Props) {
         </select>
       </label>
       <button type="button" onClick={run} disabled={check.status === 'running'}>
-        {check.status === 'running' ? 'Running…' : `Run shapes on ${data.filename}`}
+        {check.status === 'running' ? 'Running' : `Run shapes on ${data.filename}`}
       </button>
       <ShaclResult check={check} dataFilename={data.filename} />
     </section>

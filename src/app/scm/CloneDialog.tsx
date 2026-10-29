@@ -17,8 +17,8 @@ type Props = {
 };
 
 const PHASE_TEXT: Record<CloneEvent['phase'], string> = {
-  cloning: 'Cloning… Git may ask for credentials in a separate window.',
-  scanning: 'Checking the files…',
+  cloning: 'Cloning. Git may ask for credentials in a separate window.',
+  scanning: 'Checking the files',
   done: 'Cloned.',
   failed: 'The clone failed.',
   cancelled: 'Clone cancelled. Nothing was added.',
@@ -40,7 +40,7 @@ function RepositoryNotes({ event }: { event: CloneEvent }) {
           The repository's .semantic-workbench.json was not used: {event.manifestError}
         </p>
       )}
-      {folders.length > 0 && <p>{folders.length} folders hold definitions. Choose projects… makes each chosen folder its own project; otherwise the repository stays one project.</p>}
+      {folders.length > 0 && <p>{folders.length} folders hold definitions. Choose projects makes each chosen folder its own project; otherwise the repository stays one project.</p>}
     </>
   );
 }
@@ -127,7 +127,7 @@ function CloneForm(props: FormProps) {
       </p>
       <label>
         <span>Repository URL or path</span>
-        <input aria-label="Repository URL or path" value={url} onChange={e => setUrl(e.target.value)} placeholder="https://… or git@… or /path/to/repo.git" />
+        <input aria-label="Repository URL or path" value={url} onChange={e => setUrl(e.target.value)} placeholder="https://host/repo.git, git@host:repo.git or /path/to/repo.git" />
       </label>
       <label>
         <span>Project name (optional)</span>
@@ -207,7 +207,7 @@ function CloneFooter(props: FooterProps) {
       )}
       {choosable && (
         <button type="button" onClick={() => props.onChooseProjects(choosable)}>
-          Choose projects…
+          Choose projects
         </button>
       )}
       {cloned && (
@@ -270,7 +270,7 @@ export function CloneDialog({ onClose, onOpenProject, onCredentials, onChoosePro
   );
 
   function footerNote() {
-    if (!updatesConnected) return 'Connecting to workspace updates…';
+    if (!updatesConnected) return 'Connecting to workspace updates';
     if (op) return undefined;
     if (!url.trim()) return 'Enter a repository URL or path to clone.';
     return undefined;

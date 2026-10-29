@@ -43,7 +43,7 @@ test('the save label does not repeat the refusal prefix', () => {
   expect(failureReason('file changed on disk')).toBe('file changed on disk');
   expect(failureReason(null)).toBe('the save failed');
   const state = { status: 'failed', message: refused } as Parameters<typeof saveStateLabel>[0];
-  expect(saveStateLabel(state, 0)).toBe('Not saved: this would include changing a classification.');
+  expect(saveStateLabel(state)).toBe('Not saved: this would include changing a classification.');
 });
 
 test('every sign-in failure page ends its reason with a full stop', async () => {

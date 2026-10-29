@@ -46,7 +46,7 @@ function CopyableCommand({ command }: { command: string }) {
 
 // What the guide says about the helper Git has configured; undefined while it is being read.
 function helperMessage(helper: string | null | undefined) {
-  if (helper === undefined) return 'Checking Git’s credential helper…';
+  if (helper === undefined) return 'Checking Git’s credential helper';
   if (helper) return `Credential helper in your Git settings: ${helper}.`;
   return 'No credential helper is set in your Git settings.';
 }
@@ -107,7 +107,8 @@ export function CredentialGuide({
         <p>Use a personal access token from your Git host instead of your account password; the helper asks for it on the next push.</p>
         <h3>SSH: a key</h3>
         <p>
-          Create a key, add the public key (the <code>.pub</code> file) to your Git host’s SSH settings, test the connection, then use the SSH address (<code>git@…</code>) as the remote.
+          Create a key, add the public key (the <code>.pub</code> file) to your Git host’s SSH settings, test the connection, then use the SSH address (<code>git@host:owner/repo.git</code>) as the
+          remote.
         </p>
         {SSH_COMMANDS.map(command => (
           <CopyableCommand key={command} command={command} />

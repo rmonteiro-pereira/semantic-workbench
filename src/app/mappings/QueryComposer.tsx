@@ -97,7 +97,7 @@ export function QueryComposer(props: Props) {
             </section>
           ))}
         </fieldset>
-        {props.loading && <p role="status">Composing the query…</p>}
+        {props.loading && <p role="status">Composing the query</p>}
         {props.error && (
           <p role="alert" className="mapping-error">
             {props.error}

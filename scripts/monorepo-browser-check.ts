@@ -52,7 +52,7 @@ async function openRepositoryProjects(name: string) {
   await repositoryRow(name)
     .getByRole('button', { name: `Actions for Repository ${name}` })
     .click();
-  await page.getByRole('menuitem', { name: 'Projects in this repository…' }).click();
+  await page.getByRole('menuitem', { name: 'Projects in this repository' }).click();
   const dialog = page.getByRole('dialog', { name: `Projects in ${name}` });
   await expect(dialog.getByRole('list', { name: 'Folders' })).toBeVisible();
   return dialog;
@@ -107,7 +107,7 @@ try {
     await page.screenshot({ path: '/tmp/workbench-monorepo-scm.png' });
     await row.getByRole('button', { name: /^Stage / }).click();
     await expect.poll(() => sh(repo, ['diff', '--cached', '--name-only']).trim()).toBe('domains/finance/finance.ontology.yaml');
-    await page.getByRole('button', { name: 'Commit…' }).click();
+    await page.getByRole('button', { name: 'Commit', exact: true }).click();
     const commit = page.getByRole('dialog', { name: 'Commit' });
     await expect(commit.getByRole('list', { name: 'Changed files' })).toContainText('finance.ontology.yaml');
     await commit.getByRole('button', { name: 'Commit', exact: true }).click();
@@ -151,7 +151,7 @@ try {
   await check('without a manifest, Choose projects proposes the definition folders', async () => {
     const dialog = await clone(page, undeclared.bare);
     await expect(dialog).toContainText('2 folders hold definitions.');
-    await dialog.getByRole('button', { name: 'Choose projects…' }).click();
+    await dialog.getByRole('button', { name: 'Choose projects' }).click();
     const chooser = page.getByRole('dialog', { name: 'Projects in monorepo-no-manifest' });
     await expect(chooser.getByRole('checkbox', { name: 'domains/finance' })).toBeChecked();
     await expect(chooser.getByRole('checkbox', { name: 'domains/sales' })).toBeChecked();

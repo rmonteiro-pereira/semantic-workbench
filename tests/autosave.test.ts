@@ -1,6 +1,6 @@
 // Tests queued automatic saves, stale versions and cancellation.
 import { test, expect } from 'bun:test';
-import { autosave, initialAutosave, isDirty, saveStateLabel, saveNeedsAction, saveStateShortLabel, type AutosaveEvent, type AutosaveState } from '../src/app/projects/autosave';
+import { autosave, initialAutosave, isDirty, saveStateLabel, saveNeedsAction, type AutosaveEvent, type AutosaveState } from '../src/app/projects/autosave';
 // The autosave state machine: pending → saving → saved/stale/failed/invalid, one save in flight,
 // queued text saved on the returned hash, cancel on delete/move, wait for Git.
 const run = (events: AutosaveEvent[], state: AutosaveState = initialAutosave) => {
@@ -41,7 +41,7 @@ test('invalid text is never written and is reported with its error count', () =>
   expect(effects[2]).toBeNull();
   expect(state.status).toBe('invalid');
   expect(state.errors).toBe(2);
-  expect(saveStateLabel(state, 0)).toBe('Not saved: 2 errors');
+  expect(saveStateLabel(state)).toBe('Not saved: 2 errors');
   // Repaired: saved on the next pause.
   const trace = run(
     [
@@ -86,7 +86,7 @@ test('one save in flight; edits meanwhile are saved next on the returned hash', 
 test('a stale save pauses autosave until the user chooses; then it resumes on the new base', () => {
   let { state } = run([open, { type: 'edit', text: 'mine' }, { type: 'idle', text: 'mine', errors: 0 }, { type: 'stale' }]);
   expect(state.status).toBe('stale');
-  expect(saveStateLabel(state, 1)).toBe('Not saved: file changed on disk');
+  expect(saveStateLabel(state)).toBe('Not saved: file changed on disk');
   const blocked = run(
     [
       { type: 'edit', text: 'mine2' },
@@ -115,7 +115,7 @@ test('a stale save pauses autosave until the user chooses; then it resumes on th
 test('a failed save is reported and retried on the next edit', () => {
   let { state } = run([open, { type: 'edit', text: 'c' }, { type: 'idle', text: 'c', errors: 0 }, { type: 'failed', message: 'disk full' }]);
   expect(state.status).toBe('failed');
-  expect(saveStateLabel(state, 0)).toBe('Not saved: disk full');
+  expect(saveStateLabel(state)).toBe('Not saved: disk full');
   const trace = run(
     [
       { type: 'edit', text: 'cc' },
@@ -161,16 +161,9 @@ test('the disk is followed only when there are no unsaved edits', () => {
   expect(autosave(state, { type: 'external', hash: 'h5', text: 'z' }).state).toBe(state);
 });
 test('labels', () => {
-  expect(saveStateLabel({ ...initialAutosave, status: 'saved' }, 3)).toBe('Saved to file · 3 uncommitted changes');
-  expect(saveStateLabel({ ...initialAutosave, status: 'saved' }, 1)).toBe('Saved to file · 1 uncommitted change');
-  expect(saveStateLabel({ ...initialAutosave, status: 'saving' }, 1)).toBe('Saving…');
-});
-test('the short label says only "Saved" when nothing waits to be committed', () => {
-  const saved = { ...initialAutosave, status: 'saved' as const };
-  expect(saveStateShortLabel(saved, 0)).toBe('Saved');
-  expect(saveStateShortLabel(saved, 3)).toBe('Saved · 3 to commit');
-  expect(saveStateShortLabel({ ...saved, status: 'saving' }, 3)).toBe('Saving…');
-  expect(saveStateShortLabel({ ...saved, status: 'stale' }, 0)).toBe('Not saved: file changed on disk');
+  expect(saveStateLabel({ ...initialAutosave, status: 'saved' })).toBe('Saved');
+  expect(saveStateLabel({ ...initialAutosave, status: 'saving' })).toBe('Saving');
+  expect(saveStateLabel({ ...initialAutosave, status: 'pending' })).toBe('Editing');
 });
 test('only the Not saved states ask to be read', () => {
   for (const status of ['clean', 'pending', 'saving', 'saved'] as const) {

@@ -1,13 +1,13 @@
 /** Presentation and event handling for workspace header. */
 import './WorkspaceHeader.css';
 import { useCapabilities } from '../auth/Capabilities';
-import { Menu, PanelLeftClose, PanelLeftOpen, X } from 'lucide-react';
+import { Menu, PanelLeft, X } from 'lucide-react';
 import React from 'react';
 import type { Doc, ProjectInfo, WorkspaceStatus } from '../projects/api';
 import type { AutosaveStatus } from '../projects/autosave';
 import type { MenuItem } from '../projects/Menu';
 import { HeaderActions } from './HeaderActions';
-import { hasNothingToCommit, NOTHING_TO_COMMIT } from './commit-availability';
+import { hasNothingToCommit, NOTHING_TO_COMMIT, SAVE_FAILED, saveBlocksCommit } from './commit-availability';
 import { HeaderTitle } from './HeaderTitle';
 import { SaveStateButton } from './SaveStateButton';
 import type { ValidatedModel } from './types';
@@ -30,8 +30,6 @@ type Props = {
   saveStatus: AutosaveStatus;
   flush: () => Promise<void>;
   saveState: string;
-  /** The save state in few words, drawn instead of `saveState` when the header is narrow. */
-  saveStateShort: string;
   error: string;
   setShowValidation: React.Dispatch<React.SetStateAction<boolean>>;
   openStale: () => Promise<void>;
@@ -55,7 +53,6 @@ export const WorkspaceHeader = React.memo(function WorkspaceHeader({
   saveStatus,
   flush,
   saveState,
-  saveStateShort,
   error,
   setShowValidation,
   openStale,
@@ -63,6 +60,10 @@ export const WorkspaceHeader = React.memo(function WorkspaceHeader({
   status,
 }: Props) {
   const access = useCapabilities(current?.project);
+  // A file that cannot be parsed has no model, so the header keeps the kind it showed while the file was valid.
+  const lastKind = React.useRef<{ fileId: string; kind: string } | null>(null);
+  if (current && model?.kind) lastKind.current = { fileId: current.id, kind: model.kind };
+  const keptKind = lastKind.current?.fileId === current?.id ? lastKind.current?.kind : undefined;
   const isPhone = usePhoneScreen();
   function getWorkspaceToggleLabel() {
     if (compact) {
@@ -84,10 +85,7 @@ export const WorkspaceHeader = React.memo(function WorkspaceHeader({
       }
       return <Menu size={18} />;
     }
-    if (sidebarOpen) {
-      return <PanelLeftClose size={18} />;
-    }
-    return <PanelLeftOpen size={18} />;
+    return <PanelLeft size={18} />;
   }
 
   function getSaveStateAction() {
@@ -116,27 +114,23 @@ export const WorkspaceHeader = React.memo(function WorkspaceHeader({
     return 'Commit changed files of this project';
   }
 
-  const projectName = projects.find(project => project.slug === current?.project)?.name ?? current?.project ?? '';
+  function commitDisabledTitle() {
+    if (saveFailed) return SAVE_FAILED;
+    if (nothingToCommit) return NOTHING_TO_COMMIT;
+    return getCommitTitle();
+  }
+
   const canCreate = access.can('edit');
   const exportTitle = hasSource ? 'Download the file exactly as it is' : 'Open a file to export it.';
   const saveStateLabel = current ? saveState : 'No file open';
   const saveStateTitle = `${saveStateLabel} — ${getSaveStateAction()}`;
   const uncommittedFiles = projects.find(project => project.slug === current?.project)?.changes ?? 0;
   const nothingToCommit = !!current && hasNothingToCommit(uncommittedFiles, saveStatus);
-  const commitDisabled = !current || status?.gitAvailable === false || !access.can('commit') || nothingToCommit;
-  const commitTitle = access.control('commit').title ?? (nothingToCommit ? NOTHING_TO_COMMIT : getCommitTitle());
+  const saveFailed = !!current && saveBlocksCommit(saveStatus);
+  const commitDisabled = !current || status?.gitAvailable === false || !access.can('commit') || nothingToCommit || saveFailed;
+  const commitTitle = access.control('commit').title ?? commitDisabledTitle();
 
-  const saveStateButton = (
-    <SaveStateButton
-      variant={isPhone ? 'dot' : 'inline'}
-      status={saveStatus}
-      hasFile={!!current}
-      label={saveStateLabel}
-      shortLabel={saveStateShort}
-      title={saveStateTitle}
-      onClick={handleSaveStateClick}
-    />
-  );
+  const saveStateButton = <SaveStateButton variant={isPhone ? 'dot' : 'inline'} status={saveStatus} hasFile={!!current} label={saveStateLabel} title={saveStateTitle} onClick={handleSaveStateClick} />;
 
   return (
     <>
@@ -155,8 +149,7 @@ export const WorkspaceHeader = React.memo(function WorkspaceHeader({
         <HeaderTitle
           fileName={current?.filename ?? null}
           tooltip={model?.name ?? current?.filename ?? ''}
-          projectName={projectName}
-          kind={model?.kind ?? 'ODCS + Apache Ossie'}
+          kind={model?.kind ?? keptKind ?? 'ODCS + Apache Ossie'}
           showMeta={!isPhone}
           saveState={saveStateButton}
         />
@@ -172,6 +165,7 @@ export const WorkspaceHeader = React.memo(function WorkspaceHeader({
           onCommitClick={handleCommitClick}
           commitDisabled={commitDisabled}
           commitTitle={commitTitle}
+          uncommittedCount={uncommittedFiles}
         />
         <div className="header-group header-account" role="group" aria-label="Account">
           {personMenu}

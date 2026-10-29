@@ -165,7 +165,7 @@ try {
   await check('switching documents and loading example after import rebuilds the graph', async () => {
     await (await example(page, /UBL business model/)).click();
     await expectNeighborhood();
-    await page.getByPlaceholder('Find an entity…').fill('Invoice');
+    await page.getByPlaceholder('Find an entity').fill('Invoice');
     await expect(page.locator('.react-flow__node').first()).toBeVisible();
     await viewOptions(page, async options => {
       const rearrange = options.getByRole('button', { name: 'Re-arrange', exact: true });
@@ -197,9 +197,9 @@ try {
     await page.screenshot({ path: '/tmp/workbench-ui-matrix.png' });
     await page.getByRole('button', { name: 'Close relationship list', exact: true }).click();
     await page.getByRole('button', { name: 'Business areas', exact: true }).click();
-    await page.getByPlaceholder('Find an entity…').fill('Shipment');
+    await page.getByPlaceholder('Find an entity').fill('Shipment');
     await expect(page.locator('.area-entities button')).toHaveCount(1);
-    await page.getByPlaceholder('Find an entity…').fill('');
+    await page.getByPlaceholder('Find an entity').fill('');
     await expectAreaEntityTotal(page, 45);
     await page.screenshot({ path: '/tmp/workbench-ui-overview.png' });
     await page.locator('.tabs').getByRole('button', { name: 'Neighborhood', exact: true }).click();
@@ -338,7 +338,7 @@ try {
     await page.getByRole('button', { name: 'Repair in Source' }).click();
     await expect(editor).toContainText('Invalid');
     await fillEditor(editor, original);
-    await expect(page.getByRole('status', { name: 'Save state' })).toHaveText(/^Saved to file/, {
+    await expect(page.getByRole('status', { name: 'Save state' })).toHaveText(/^Saved/, {
       timeout: 5000,
     });
     await page.getByRole('button', { name: /^Validation details/ }).click();
@@ -393,16 +393,17 @@ try {
   });
   await check('mapped commerce exposes separate layers and composes governed revenue by region', async () => {
     await (await example(page, /Mapped commerce/)).click();
-    await expect(page.locator('.mapping-layer-chain')).toContainText('Mapped commerce ontology');
-    await expect(page.locator('.mapping-layer-chain')).toContainText('Mapped commerce semantic model');
+    await expect(page.locator('.mapping-layers')).toContainText('Mapped commerce ontology');
+    await expect(page.locator('.mapping-layers')).toContainText('Mapped commerce semantic model');
+    await page.getByRole('button', { name: /^All concepts/ }).click();
     await expectResolvedBindings(page, 9);
     await page
       .locator('.mapping-concepts')
       .getByRole('button', { name: /^Revenue/ })
       .click();
-    await expect(page.locator('.mapping-binding')).toHaveCount(1);
-    await expect(page.locator('.mapping-binding')).toContainText('gross_revenue');
-    await page.getByRole('button', { name: 'All concepts', exact: true }).click();
+    await expectResolvedBindings(page, 1);
+    await expect(page.locator('.mapping-chip')).toContainText('gross_revenue');
+    await page.getByRole('button', { name: /^All concepts/ }).click();
     await openComposer(page);
     await page.getByRole('checkbox', { name: 'Metric gross_revenue', exact: true }).check();
     await page.getByRole('checkbox', { name: 'Dimension customers.region', exact: true }).check();
@@ -423,8 +424,6 @@ try {
     if (context.bindings.length !== 9 || context.aiContext.length !== 2 || context.documents.length !== 3) throw Error('Context layers missing');
     if (context.metrics.find((m: any) => m.name === 'gross_revenue')?.definition.expression.dialects[0].expression !== 'SUM(orders.amount)') throw Error('Governed formula changed');
     if (!context.bindings.every((b: any) => b.evidence.documentId && b.evidence.path.length && b.evidence.revision)) throw Error('Provenance lost');
-    await page.locator('.mapping-explorer').evaluate(el => (el.scrollTop = 0));
-    await page.screenshot({ path: '/tmp/workbench-mapping-layers.png' });
   });
   await check('mapping runtime reports missing targets and refreshes on repaired saved references', async () => {
     await page.getByRole('button', { name: 'commerce.mapping.yaml', exact: true }).click();
@@ -432,7 +431,7 @@ try {
     const editor = page.getByLabel('Definition source');
     const original = await editorValue(editor);
     await fillEditor(editor, original.replace('Mapped commerce ontology', 'Missing ontology'));
-    await expect(page.getByRole('status', { name: 'Save state' })).toHaveText(/^Saved to file/, {
+    await expect(page.getByRole('status', { name: 'Save state' })).toHaveText(/^Saved/, {
       timeout: 5000,
     });
     await page.locator('.tabs').getByRole('button', { name: 'Mappings', exact: true }).click();
@@ -443,10 +442,11 @@ try {
     await page.screenshot({ path: '/tmp/workbench-mapping-unresolved.png' });
     await page.locator('.tabs').getByRole('button', { name: 'Source', exact: true }).click();
     await fillEditor(editor, original);
-    await expect(page.getByRole('status', { name: 'Save state' })).toHaveText(/^Saved to file/, {
+    await expect(page.getByRole('status', { name: 'Save state' })).toHaveText(/^Saved/, {
       timeout: 5000,
     });
     await page.locator('.tabs').getByRole('button', { name: 'Mappings', exact: true }).click();
+    await page.getByRole('button', { name: /^All concepts/ }).click();
     await expectResolvedBindings(page, 9);
     await expect(page.locator('.mapping-findings')).toHaveCount(0);
     await page.getByRole('button', { name: 'ubl.ontology.yaml', exact: true }).click();
@@ -459,12 +459,13 @@ try {
     await store.save('commerce.second.mapping.yaml', original.replace('name: Commerce ontology mapping', 'name: Second commerce mapping'));
     await page.reload();
     await page.getByRole('button', { name: 'commerce.second.mapping.yaml', exact: true }).click();
-    await expect(page.locator('.mapping-layer-chain')).toContainText('Second commerce mapping');
+    await page.locator('.tabs').getByRole('button', { name: 'Mappings', exact: true }).click();
+    await expect(page.locator('.mapping-page h2')).toHaveText('Second commerce mapping');
     await page.getByRole('button', { name: 'commerce.mapping.yaml', exact: true }).click();
-    await expect(page.getByLabel('Mapping document').locator('option:checked')).toHaveText('Commerce ontology mapping');
-    await expect(page.locator('.mapping-layer-chain')).not.toContainText('Second commerce mapping');
+    await expect(page.locator('.mapping-page h2')).toHaveText('Commerce ontology mapping');
   });
   await check('late query responses cannot overwrite a changed concept selection', async () => {
+    await page.getByRole('button', { name: /^All concepts/ }).click();
     await openComposer(page);
     await expect(page.getByRole('checkbox', { name: 'Metric gross_revenue', exact: true })).toBeVisible();
     await page.getByRole('checkbox', { name: 'Metric gross_revenue', exact: true }).check();
@@ -479,7 +480,7 @@ try {
       .click();
     releasePlan!();
     await page.waitForTimeout(200);
-    await expect(page.locator('.mapping-detail>h3')).toHaveText('Customer');
+    await expect(page.locator('.mapping-detail h3').first()).toContainText('Customer');
     // The late answer was for the previous selection, so the reopened composer shows no SQL.
     await openComposer(page);
     await expect(page.getByLabel('Governed SQL preview')).toHaveCount(0);

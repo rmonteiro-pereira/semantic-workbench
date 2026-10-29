@@ -110,7 +110,7 @@ function DialogFooter(props: { busy: boolean; canSave: boolean; onCancel: () => 
         Cancel
       </button>
       <button type="button" className="primary" disabled={props.busy || !props.canSave} onClick={props.onSave}>
-        {props.busy ? 'Saving…' : 'Save projects'}
+        {props.busy ? 'Saving' : 'Save projects'}
       </button>
     </>
   );
@@ -160,7 +160,7 @@ export function RepositoryProjectsDialog({ repo, start = 'current', onClose, onS
           The repository's .semantic-workbench.json was not used: {found.manifestError}
         </p>
       )}
-      {!found && !error && <p role="status">Reading the repository…</p>}
+      {!found && !error && <p role="status">Reading the repository</p>}
       {found && (
         <ul className="repository-folders" aria-label="Folders">
           {rows.map(row => (

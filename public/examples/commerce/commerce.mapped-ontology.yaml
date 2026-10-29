@@ -8,6 +8,7 @@ ontology:
   - concept: Identifier
     type: ValueType
     extends: [String]
+    description: Key that names one customer or order.
   - concept: Region
     type: ValueType
     extends: [String]
@@ -15,8 +16,10 @@ ontology:
   - concept: Money
     type: ValueType
     extends: [Decimal]
+    description: Amount of an order in USD.
   - concept: Customer
     type: EntityType
+    description: Registered customer who places orders and belongs to one reporting region.
     identify_by: [id]
     relationships:
       - name: id
@@ -29,6 +32,7 @@ ontology:
         verbalizes: ['{Customer} belongs to {Region}']
   - concept: Order
     type: EntityType
+    description: Order a customer placed. Cancelled orders are kept; the amount is in USD.
     identify_by: [id]
     relationships:
       - name: id

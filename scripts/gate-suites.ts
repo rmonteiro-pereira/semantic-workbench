@@ -30,6 +30,7 @@ export const gateSuites: string[] = [
   'test:terminology',
   'test:mappings-layout',
   'test:clipping',
+  'test:header-mappings',
   'test:mapping-graph',
   'test:back-history',
   'test:theme',

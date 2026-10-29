@@ -186,7 +186,7 @@ try {
     await goTo(5);
     await page.keyboard.press('End');
     await Promise.all([page.waitForResponse(r => r.request().method() === 'PUT', { timeout: 5000 }), page.keyboard.type('s and sellers')]);
-    await expect(page.getByRole('status', { name: 'Save state' })).toHaveText(/^Saved to file/, {
+    await expect(page.getByRole('status', { name: 'Save state' })).toHaveText(/^Saved/, {
       timeout: 5000,
     });
     const saved = readFileSync(projectFile(api.ws.layout, formats.slug, 'endings.yaml'), 'utf8');
@@ -318,7 +318,7 @@ try {
         return { mean, longest };
       };
       const before = await measure('no save running');
-      await expect(typingPage.getByRole('status', { name: 'Save state' })).toHaveText(/^Saved to file/, {
+      await expect(typingPage.getByRole('status', { name: 'Save state' })).toHaveText(/^Saved/, {
         timeout: 15000,
       });
       const put = typingPage.waitForRequest(r => r.method() === 'PUT' && r.url().includes('large.yaml'), {
@@ -329,7 +329,7 @@ try {
       const during = await measure('automatic save in flight');
       expect(during.mean).toBeLessThan(Math.max(30, before.mean + 4));
       expect(during.longest).toBeLessThan(100);
-      await expect(typingPage.getByRole('status', { name: 'Save state' })).toHaveText(/^Saved to file/, {
+      await expect(typingPage.getByRole('status', { name: 'Save state' })).toHaveText(/^Saved/, {
         timeout: 15000,
       });
       await expect

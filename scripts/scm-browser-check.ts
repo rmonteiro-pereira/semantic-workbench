@@ -99,7 +99,7 @@ async function saveSource() {
   await page.waitForResponse(r => r.request().method() === 'PUT' && r.url().includes('/files/'), {
     timeout: 5000,
   });
-  await expect(page.getByRole('status', { name: 'Save state' })).toHaveText(/^Saved to file/, {
+  await expect(page.getByRole('status', { name: 'Save state' })).toHaveText(/^Saved/, {
     timeout: 5000,
   });
 }
@@ -131,7 +131,7 @@ try {
     for (const name of ['Overview', 'Graph', 'Source', 'Metrics']) {
       await expect(tabs.getByRole('button', { name: new RegExp(`^${name}`) })).toBeVisible();
     }
-    await expect(page.getByPlaceholder('Find an entity…')).toBeVisible();
+    await expect(page.getByPlaceholder('Find an entity')).toBeVisible();
     await tabs.getByRole('button', { name: /^Graph/ }).click();
     await expect(panel()).toHaveCount(0);
     await openScm();
@@ -217,8 +217,8 @@ try {
     await page.screenshot({ path: '/tmp/workbench-scm-pulled.png' });
   });
   // Valid edits are saved automatically, so the edit that stays unsaved is an invalid one (a
-  // server draft); the refusal lists it and offers Commit….
-  await check('pull is refused while the open file has edits not saved to file; nothing is stashed; Commit… is offered', async () => {
+  // server draft); the refusal lists it and offers Commit.
+  await check('pull is refused while the open file has edits not saved to file; nothing is stashed; Commit is offered', async () => {
     let original = '';
     await editInSource(file, t => {
       original = t;
@@ -229,14 +229,14 @@ try {
     await runSyncAction(page, 'Pull');
     const refusal = panel().getByRole('alert').filter({ hasText: 'not saved to file yet' });
     await expect(refusal).toContainText(file);
-    await expect(refusal.getByRole('button', { name: 'Commit…' })).toBeVisible();
+    await expect(refusal.getByRole('button', { name: 'Commit' })).toBeVisible();
     // The server refuses too, from the stored draft.
     await expect.poll(() => api.ws.state.drafts().map(d => d.path)).toEqual([file]);
     const response = await api.handler(new Request(`http://127.0.0.1/api/projects/${commerce.slug}/git/pull`, { method: 'POST' }));
     expect(response.status).toBe(409);
     expect((await response.json()).error).toBe('drafts');
     expect(sh(dir, ['stash', 'list'])).toBe('');
-    await refusal.getByRole('button', { name: 'Commit…' }).click();
+    await refusal.getByRole('button', { name: 'Commit' }).click();
     await expect(page.getByRole('dialog', { name: 'Commit' })).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(page.getByRole('dialog', { name: 'Commit' })).toHaveCount(0);
@@ -321,7 +321,7 @@ try {
     await expect(newBranch).toBeFocused();
     expect(sh(dir, ['branch', '--list', 'feature/unfinished']).trim()).toBe('');
   });
-  await check('the Remote dialog starts on the address field; Escape returns to Remote…', async () => {
+  await check('the Remote dialog starts on the address field; Escape returns to Remote', async () => {
     const trigger = remoteButton(page);
     await trigger.click();
     const dialog = remoteDialog(page);
@@ -376,7 +376,7 @@ try {
     sh(extra, ['init', '-q', '--bare', '-b', 'main', adminBare]);
     const remotes = await adminArea(page, 'Git remotes');
     const projectRow = remotes.getByRole('row').filter({ hasText: commerce.name });
-    await projectRow.getByRole('button', { name: 'Set remote…', exact: true }).click();
+    await projectRow.getByRole('button', { name: 'Set remote', exact: true }).click();
     const dialog = remoteDialog(page);
     await dialog.getByLabel('Remote URL').fill(adminBare);
     await dialog.getByRole('button', { name: 'Save remote' }).click();
@@ -389,7 +389,7 @@ try {
     await expect(projectRow).toContainText('No remote');
     expect(sh(dir, ['remote']).trim()).toBe('');
     // The later checks need a remote, so it is set again from the same section.
-    await projectRow.getByRole('button', { name: 'Set remote…', exact: true }).click();
+    await projectRow.getByRole('button', { name: 'Set remote', exact: true }).click();
     await dialog.getByLabel('Remote URL').fill(bare);
     await dialog.getByRole('button', { name: 'Save remote' }).click();
     await expect(projectRow).toContainText(bare);
@@ -476,7 +476,8 @@ try {
       // Fetch, Pull, Push and Sync sit on the panel as one row, each inside the column and whole.
       const buttons = remoteActions(page).getByRole('button');
       await expect(buttons).toHaveText(['Fetch', 'Pull', 'Push', 'Sync']);
-      await expect(panel().getByRole('button', { name: 'Sync…', exact: true })).toHaveCount(0);
+      // The server's Sync dialog opener is not offered in local mode.
+      await expect(panel().locator('.scm-sync-open')).toHaveCount(0);
       for (const box of await buttons.evaluateAll(items =>
         items.map(item => ({
           right: item.getBoundingClientRect().right,

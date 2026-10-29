@@ -135,21 +135,18 @@ async function recordPageErrors(page: Page, label: string) {
 // two rows before the one-row phone header. Wider windows keep the geometry of the one-row header
 // with New and Export inside More actions.
 const PHONE_HEADER_HEIGHT_BEFORE = 93;
-const ublSlug = api.ws.documentsFor(LOCAL_READER).find(candidate => candidate.filename === 'ubl.ontology.yaml')!.project;
-const ublProject = (await api.ws.listProjects(LOCAL_READER)).find(project => project.slug === ublSlug)!;
 const ublHeader = {
   fileName: 'ubl.ontology.yaml',
-  projectName: ublProject.name,
   kind: ublModel.kind,
 };
 const DESKTOP_HEADER_GEOMETRY: Record<number, { height: number; controls: string[] }> = {
   1280: {
-    height: 58,
-    controls: ['Hide sidebar@316,11,36,36', 'Save state@763,32,45,16', 'Commit…@1115,11,107,36', 'More actions@1228,11,36,36'],
+    height: 60,
+    controls: ['Hide sidebar@316,12,36,36', 'Save state@463,32,33,16', 'Commit@1115,12,101,36', 'More actions@1228,12,36,36'],
   },
   1440: {
-    height: 58,
-    controls: ['Hide sidebar@316,11,36,36', 'Save state@763,32,45,16', 'Commit…@1275,11,107,36', 'More actions@1388,11,36,36'],
+    height: 60,
+    controls: ['Hide sidebar@316,12,36,36', 'Save state@463,32,33,16', 'Commit@1275,12,101,36', 'More actions@1388,12,36,36'],
   },
 };
 
@@ -231,7 +228,7 @@ async function openPage(width: number, height: number) {
     await page.addInitScript(() =>
       document.addEventListener('DOMContentLoaded', () => {
         const style = document.createElement('style');
-        style.textContent = '.header-meta .save-state{max-width:90px!important}';
+        style.textContent = '.header-meta .save-state{max-width:20px!important}';
         document.head.append(style);
       }),
     );
@@ -744,7 +741,7 @@ try {
         await expect(commit).toBeDisabled();
         await commit.hover({ force: true });
         await expect(page.getByRole('tooltip')).toHaveText(/Requires Editor/);
-        await page.getByRole('button', { name: 'Person menu', exact: true }).click();
+        await page.getByRole('button', { name: 'Account and Admin', exact: true }).click();
         expect(await layoutProblems(page)).toEqual([]);
         const menu = page.getByRole('menu');
         await expect(menu).toBeVisible();
@@ -1106,7 +1103,7 @@ try {
       await targetPage.getByRole('button', { name: 'View definition' }).click();
     } else if (name === 'Add concept') {
       await openNewMenu(targetPage);
-      await targetPage.getByRole('menuitem', { name: 'Add concept…', exact: true }).click();
+      await targetPage.getByRole('menuitem', { name: 'Add concept', exact: true }).click();
     } else if (name === 'Validation details') {
       await targetPage.getByRole('button', { name: /^Validation details/ }).click();
     } else {
@@ -1289,7 +1286,7 @@ try {
     // The tabs and the entity search stay above Source control; none is marked current.
     await expect.poll(tabs).toEqual([]);
     await expect(sweep.locator('.tabs').getByRole('button', { name: 'Graph' })).toBeVisible();
-    await expect(sweep.getByPlaceholder('Find an entity…')).toBeVisible();
+    await expect(sweep.getByPlaceholder('Find an entity')).toBeVisible();
     // Neighborhood and Overview are separate views: each keeps its own state.
     await tab(sweep, 'Neighborhood');
     await pickCenter(sweep, name40);
@@ -1575,7 +1572,7 @@ try {
         await checkPhoneHeader(headerPage);
       } else {
         // Local mode has no person menu, so the empty Account group stays hidden.
-        for (const name of ['Commit…', 'More actions']) {
+        for (const name of ['Commit', 'More actions']) {
           await expect(headerPage.getByRole('button', { name, exact: true })).toBeVisible();
         }
         const before = DESKTOP_HEADER_GEOMETRY[width!];
@@ -1715,7 +1712,7 @@ try {
       for (const screen of shellScreens('ubl.ontology.yaml', 'commerce.odcs.yaml')) {
         await showScreen(shellTourPage, screen);
         expect(await screenProblems(shellTourPage, screen)).toEqual([]);
-        expect(await headerTitleProblems(shellTourPage, width), screen.name).toEqual([]);
+        expect(await headerTitleProblems(shellTourPage), screen.name).toEqual([]);
         expect(await tabStripProblems(shellTourPage), screen.name).toEqual([]);
         expect(await contentWidthProblems(shellTourPage, width), screen.name).toEqual([]);
         await noOverflow(shellTourPage);

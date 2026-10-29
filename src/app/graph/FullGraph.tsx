@@ -720,7 +720,7 @@ export function FullGraph(props: Props) {
       )}
       {busy && (
         <div className="full-graph-loading" role="status">
-          Arranging {display.entities.length} graph nodes…
+          Arranging {display.entities.length} graph nodes
         </div>
       )}
       <div className="full-graph-status" data-entity-count={overview.entities.length} data-relationship-count={overview.links.length} data-routing={routeMetrics?.executedOn ?? 'pending'}>

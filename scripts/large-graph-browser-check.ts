@@ -58,7 +58,7 @@ try {
     await page.getByRole('button', { name: 'Fit model', exact: true }).click();
     await page.waitForTimeout(500);
     await expect(page.locator('.react-flow__node-entity')).toHaveCount(1000, { timeout: 20000 });
-    await page.getByPlaceholder('Find an entity…').fill('customer_0');
+    await page.getByPlaceholder('Find an entity').fill('customer_0');
     await page.waitForTimeout(600);
     await page.locator('.react-flow__node[data-id="https://example.org/commerce#customer_0"] .full-entity').click();
     await expect(page.locator('.full-graph-status')).toHaveAttribute('data-routing', 'worker', {

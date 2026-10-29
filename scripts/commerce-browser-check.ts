@@ -41,7 +41,7 @@ await page.waitForTimeout(500);
 const visible = await page.locator('.react-flow__node').count();
 if (visible > 16 || visible === 0) throw Error(`Bad neighborhood size ${visible}`);
 await page.screenshot({ path: '/tmp/commerce-scale.png' });
-await page.getByPlaceholder('Find an entity…').fill('Order 10199');
+await page.getByPlaceholder('Find an entity').fill('Order 10199');
 await page.waitForTimeout(500);
 if ((await page.locator('.react-flow__node').count()) === 0) throw Error('Search did not find order');
 for (const [name, example] of [
