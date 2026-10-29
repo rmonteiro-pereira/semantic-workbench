@@ -6,6 +6,11 @@ not configure a production deployment.
 
 ## Unreleased
 
+### Changed
+
+- Open the sidebar Examples menu as a flyout to the right of the sidebar, level with its button,
+  on windows wider than a phone; it keeps opening upward on a phone.
+
 ### Documentation
 
 - Explain the architecture, full technology stack and definition-to-preview flow in the README.

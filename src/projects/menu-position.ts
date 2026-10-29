@@ -40,3 +40,25 @@ export function placeMenu(
   const left = Math.max(EDGE, Math.min(wanted, furthest));
   return { top, left, maxHeight, side };
 }
+
+/** Windows this narrow or narrower use the drawer layout, where a flyout has no room. */
+const PHONE_BREAKPOINT = 650;
+
+/**
+ * Places a menu just beyond `edge` (a sidebar's right side), bottom-aligned with its button and
+ * growing upward. Returns nothing when the window is a phone or the menu does not fit sideways, so
+ * the caller can fall back to the normal placement.
+ */
+export function placeFlyout(
+  anchor: Box,
+  edge: number,
+  menu: Size,
+  viewport: Size,
+): MenuPlacement | undefined {
+  const left = edge + GAP;
+  const fitsSideways = left + menu.width <= viewport.width - EDGE;
+  if (viewport.width <= PHONE_BREAKPOINT || !fitsSideways) return undefined;
+  const room = Math.max(0, anchor.bottom - EDGE);
+  const maxHeight = Math.min(menu.height, room);
+  return { top: anchor.bottom - maxHeight, left, maxHeight, side: 'above' };
+}

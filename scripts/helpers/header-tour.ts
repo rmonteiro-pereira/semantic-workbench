@@ -62,7 +62,10 @@ async function menuProblems(page: Page, panel: string | null): Promise<string[]>
 export async function headerScreenProblems(page: Page, screen: Screen): Promise<string[]> {
   const problems = await headerProblems(page);
   if (screen.dialog) {
-    const panel = screen.name === 'examples-menu' ? '#workspace-sidebar' : null;
+    // Beside the sidebar on a wide window, the Examples menu is checked against the window; on a
+    // phone it stays inside the drawer.
+    const isPhone = (page.viewportSize()?.width ?? 0) <= 650;
+    const panel = screen.name === 'examples-menu' && isPhone ? '#workspace-sidebar' : null;
     problems.push(...(await menuProblems(page, panel)));
   }
   return problems.map(problem => `${screen.name}: ${problem}`);
@@ -91,4 +94,40 @@ export async function examplesKeyboardProblems(page: Page): Promise<void> {
   await page.keyboard.press('Tab');
   await expect(page.getByRole('menu')).toHaveCount(0);
   await expect(button).not.toBeFocused();
+}
+
+/** Opens the Examples menu and lists where it sits against the sidebar and the button. */
+export async function examplesFlyoutProblems(page: Page): Promise<string[]> {
+  await showSidebar(page);
+  await page.getByRole('button', { name: 'Examples', exact: true }).click();
+  await expect(page.getByRole('menu', { name: 'Examples' })).toBeVisible();
+  const problems = await page.evaluate(() => {
+    const trigger = document.querySelector<HTMLElement>('button[aria-label="Examples"]')!;
+    const popup = document.querySelector<HTMLElement>('[role=menu][aria-label="Examples"]')!;
+    const sidebar = trigger.closest('aside')!.getBoundingClientRect();
+    const buttonBox = trigger.getBoundingClientRect();
+    const menuBox = popup.getBoundingClientRect();
+    const found: string[] = [];
+    if (trigger.getAttribute('aria-expanded') !== 'true') found.push('button not expanded');
+    const outsideWindow =
+      menuBox.top < 0 ||
+      menuBox.bottom > window.innerHeight ||
+      menuBox.left < 0 ||
+      menuBox.right > window.innerWidth;
+    if (outsideWindow) found.push('menu leaves the window');
+    const coversButton =
+      menuBox.left < buttonBox.right &&
+      menuBox.right > buttonBox.left &&
+      menuBox.top < buttonBox.bottom &&
+      menuBox.bottom > buttonBox.top;
+    if (coversButton) found.push('menu covers the button');
+    if (window.innerWidth <= 650) return found;
+    if (menuBox.left < sidebar.right) found.push('menu not right of the sidebar');
+    if (menuBox.left - sidebar.right > 12) found.push('menu detached from the sidebar');
+    if (Math.abs(menuBox.bottom - buttonBox.bottom) > 1) found.push('menu bottom off the button');
+    return found;
+  });
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('menu')).toHaveCount(0);
+  return problems;
 }

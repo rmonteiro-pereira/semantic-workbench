@@ -9,6 +9,7 @@ import { chromium, expect, type Locator, type Page } from '@playwright/test';
 import { plainCommerceModel } from './helpers/commerce-fixture';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import {
+  examplesFlyoutProblems,
   examplesKeyboardProblems,
   headerScreenProblems,
   headerScreens,
@@ -1655,6 +1656,7 @@ try {
         const saveState = headerPage.getByRole('status', { name: 'Save state', exact: true });
         await expect(saveState).toBeVisible();
         await examplesKeyboardProblems(headerPage);
+        expect(await examplesFlyoutProblems(headerPage)).toEqual([]);
       },
     );
     await headerPage.close();

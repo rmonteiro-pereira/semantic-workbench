@@ -78,7 +78,7 @@ function toMenuItem(entry: ExampleEntry, props: Props): MenuItem {
   };
 }
 
-/** Renders the Examples button; its menu opens upward because the button sits at the bottom. */
+/** Renders the Examples button; its menu opens beside the sidebar, or upward on a phone. */
 export function ExampleMenu(props: Props) {
   return (
     <MenuButton
@@ -95,6 +95,7 @@ export function ExampleMenu(props: Props) {
       align="start"
       placement="above"
       matchButtonWidth
+      flyoutBesideSidebar
       items={exampleEntries.map(entry => toMenuItem(entry, props))}
     />
   );

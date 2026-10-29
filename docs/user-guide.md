@@ -11,7 +11,9 @@ are covered in [the server guide](server-mode.md).
 ## Workspace navigation
 
 The sidebar contains **Model explorer**, **Source editor**, **Source control**, the **Projects**
-tree, and a footer with **Clear workspace**, **Trash**, **Examples** and **Import…**. The tree has
+tree, and a footer with **Clear workspace**, **Trash**, **Examples** and **Import…**. On a wide
+window **Examples** opens its menu to the right of the sidebar, level with the button; on a phone
+it opens above the button. The tree has
 its own scrollbar and ends at a complete row above the footer. All files remain reachable by
 scrolling and keyboard focus. The selected file is brought into view when it would be hidden.
 

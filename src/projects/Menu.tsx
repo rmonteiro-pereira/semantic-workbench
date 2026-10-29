@@ -1,7 +1,13 @@
 /** Provides keyboard-accessible menus that return focus to their trigger when closed. */
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { placeMenu, type MenuPreference } from './menu-position';
+import {
+  placeFlyout,
+  placeMenu,
+  type MenuPlacement,
+  type MenuPreference,
+  type Size,
+} from './menu-position';
 // Arrow keys move between menu items; Escape or an outside click restores button focus. Disabled
 // items stay visible with an accessible explanation.
 /** Defines a menu action, icon and optional disabled explanation. */
@@ -18,6 +24,11 @@ export type MenuItem = {
 function menuHost(button: HTMLElement | null): HTMLElement {
   return button?.closest<HTMLElement>('dialog[open]') ?? document.body;
 }
+/** The menu's width and the height it would have without a height cap, borders included. */
+function naturalSize(menu: HTMLElement): Size {
+  const border = menu.offsetHeight - menu.clientHeight;
+  return { width: menu.getBoundingClientRect().width, height: menu.scrollHeight + border };
+}
 /** Opens a keyboard-accessible action menu and restores focus when it closes. */
 export function MenuButton({
   label,
@@ -29,6 +40,7 @@ export function MenuButton({
   align = 'end',
   placement = 'below',
   matchButtonWidth = false,
+  flyoutBesideSidebar = false,
   title,
   header,
   menuLabel,
@@ -44,6 +56,11 @@ export function MenuButton({
   placement?: 'below' | 'above';
   /** Makes the menu as wide as the button's wrapper, as for a full-width sidebar button. */
   matchButtonWidth?: boolean;
+  /**
+   * Opens the menu to the right of the sidebar that holds the button, bottom-aligned with it. On a
+   * phone, or without room on the right, the menu uses its normal placement.
+   */
+  flyoutBesideSidebar?: boolean;
   title?: string;
   header?: React.ReactNode;
   menuLabel?: string;
@@ -66,15 +83,27 @@ export function MenuButton({
     const place = () => {
       const anchor = button.current?.getBoundingClientRect();
       if (!anchor) return;
-      menu.style.width = matchButtonWidth ? `${root.current?.getBoundingClientRect().width}px` : '';
-      const box = menu.getBoundingClientRect();
-      const border = menu.offsetHeight - menu.clientHeight;
-      const natural = { width: box.width, height: menu.scrollHeight + border };
       const viewport = { width: window.innerWidth, height: window.innerHeight };
-      const placed = placeMenu(anchor, natural, viewport, preference);
+      const flyout = flyoutBesideSidebar ? placeBesideSidebar(menu, anchor, viewport) : undefined;
+      const placed = flyout ?? placeNormally(menu, anchor, viewport);
       menu.style.maxHeight = `${placed.maxHeight}px`;
       menu.style.top = `${placed.top}px`;
       menu.style.left = `${placed.left}px`;
+    };
+    const placeBesideSidebar = (menu: HTMLElement, anchor: DOMRect, viewport: Size) => {
+      const sidebar = button.current?.closest('aside');
+      if (!sidebar) return undefined;
+      menu.style.width = '';
+      return placeFlyout(
+        anchor,
+        sidebar.getBoundingClientRect().right,
+        naturalSize(menu),
+        viewport,
+      );
+    };
+    const placeNormally = (menu: HTMLElement, anchor: DOMRect, viewport: Size): MenuPlacement => {
+      menu.style.width = matchButtonWidth ? `${root.current?.getBoundingClientRect().width}px` : '';
+      return placeMenu(anchor, naturalSize(menu), viewport, preference);
     };
     let frame = 0;
     const schedulePlace = () => {
@@ -92,7 +121,7 @@ export function MenuButton({
       window.removeEventListener('resize', schedulePlace);
       window.removeEventListener('scroll', schedulePlace, true);
     };
-  }, [open, placement, align, matchButtonWidth]);
+  }, [open, placement, align, matchButtonWidth, flyoutBesideSidebar]);
   useEffect(() => {
     if (!open) return;
     const out = (e: MouseEvent) => {

@@ -72,3 +72,8 @@
     grid-column: 1 / -1;
   }
 }
+
+/* The Examples button stays highlighted while its menu is open beside the sidebar. */
+.sidebar-footer .examples-menu button[aria-expanded='true'] {
+  background: var(--color-surface-hover);
+}
