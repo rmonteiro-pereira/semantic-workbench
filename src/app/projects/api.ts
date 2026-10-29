@@ -1,5 +1,7 @@
 /** Defines browser requests and response types for project files, metrics and source control. */
 import type { KpiSummary, KpiExplanation } from '../../server/agent/explain';
+import type { PlanRequest, SelectedContext } from '../../server/agent/runtime';
+import { agentCatalogPath, agentContextPath } from '../mappings/agent-paths';
 import type { GitIdentity } from '../../server/projects/git';
 import type { CloneEvent } from '../../server/projects/clone';
 import type { ProjectCandidates } from '../../server/projects/repository-projects';
@@ -282,6 +284,10 @@ const explainQuery = (query: ExplainQuery) => {
   const queryString = params.toString();
   return queryString ? '?' + queryString : '';
 };
+/** A mapping as the agent catalog lists it. */
+export type AgentMapping = { id: string; name: string; filename: string; embedded: boolean; project?: string };
+/** The SQL preview the plan endpoint returns, with the rest of its fields left open. */
+export type AgentPlan = { sql: string } & Record<string, unknown>;
 /** Provides browser operations for projects, documents, imports and metrics. */
 export const api = {
   metrics: (project: string) => apiFetch(`/api/projects/${encodeURIComponent(project)}/metrics`).then(r => json<KpiSummary[]>(r)),
@@ -289,6 +295,13 @@ export const api = {
     apiFetch(`${fileUrl(project, path)}/explain/${encodeURIComponent(metric)}${explainQuery(query)}`, {
       signal,
     }).then(r => json<KpiExplanation>(r)),
+  /** Lists the mappings of one project, as the agent API reports them. */
+  agentCatalog: (project: string, signal?: AbortSignal) => apiFetch(agentCatalogPath(project), { signal }).then(r => json<{ mappings: AgentMapping[] }>(r)),
+  /** Reads one mapping's context, narrowed to one concept when it is named. */
+  agentContext: (project: string, mappingId: string, concept?: string, signal?: AbortSignal) => apiFetch(agentContextPath(project, mappingId, concept), { signal }).then(r => json<SelectedContext>(r)),
+  /** Asks for an unexecuted SQL plan over the chosen metrics and dimensions. */
+  agentPlan: (request: Pick<PlanRequest, 'mappingId' | 'concepts' | 'metrics' | 'dimensions'> & { project: string }) =>
+    apiFetch('/api/agent/plan', send('POST', request)).then(r => json<AgentPlan>(r)),
   status: () => apiFetch('/api/status').then(r => json<WorkspaceStatus>(r)),
   projects: () => apiFetch('/api/projects').then(r => json<ProjectInfo[]>(r)),
   /** People a metric owner in this project can be chosen from; empty in local mode. */

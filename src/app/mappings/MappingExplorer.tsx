@@ -1,22 +1,16 @@
 /** The Mappings tab: the mapping of the open file, or the project's mappings that cover it. */
 import React, { useEffect, useMemo, useState } from 'react';
-import type { RuntimeContext } from '../../server/agent/runtime';
+import type { SelectedContext } from '../../server/agent/runtime';
 import { EmptyState } from '../projects/EmptyState';
-import { apiFetch } from '../projects/api';
+import { api, type AgentMapping, type Doc } from '../projects/api';
 import { MappingSection } from './MappingSection';
-import { agentCatalogPath, agentContextPath } from './agent-paths';
-import { candidateMappings, coveringMappings, dataContractFilenames, isDefinedIn, type ProjectFile } from './mapping-scope';
+import { candidateMappings, coveringMappings, dataContractFilenames, isDefinedIn } from './mapping-scope';
 import './mapping-explorer.css';
 
-type MappingOption = {
-  id: string;
-  name: string;
-  filename: string;
-  embedded: boolean;
-  project?: string;
-};
+type MappingOption = AgentMapping;
 
-type LoadedMapping = { option: MappingOption; context: RuntimeContext };
+/** A mapping of the project with its context, or the reason the context could not be loaded. */
+type LoadedMapping = { option: MappingOption; context?: SelectedContext; error?: string };
 
 type Props = {
   currentId?: string;
@@ -25,7 +19,7 @@ type Props = {
   currentProject: string;
   projectName: string;
   /** The files of the open workspace; the data contracts among those of the project are the physical sources. */
-  projectFiles: (ProjectFile & { project: string })[];
+  projectFiles: Doc[];
   revisionKey: string;
   dirty: boolean;
   onEditItem?: (docId: string, path: (string | number)[]) => void;
@@ -33,11 +27,9 @@ type Props = {
   onOpenSource?: (documentId: string) => void;
 };
 
-async function fetchJson(path: string, signal: AbortSignal) {
-  const response = await apiFetch(path, { signal });
-  const body = await response.json();
-  if (!response.ok) throw Error(body.error);
-  return body;
+function loadedMapping(option: MappingOption, result: PromiseSettledResult<SelectedContext>): LoadedMapping {
+  if (result.status === 'fulfilled') return { option, context: result.value };
+  return { option, error: result.reason instanceof Error ? result.reason.message : String(result.reason) };
 }
 
 /** Loads the project's mapping list, then the context of each mapping that may cover the open file. */
@@ -52,11 +44,12 @@ function useProjectMappings(currentProject: string, currentId: string | undefine
     if (!currentProject) return;
     const abort = new AbortController();
     async function load() {
-      const body = await fetchJson(agentCatalogPath(currentProject), abort.signal);
+      const body = await api.agentCatalog(currentProject, abort.signal);
       setCatalog(body.mappings);
       const candidates = candidateMappings<MappingOption>(body.mappings, currentProject, currentId);
-      const contexts = await Promise.all(candidates.map(option => fetchJson(agentContextPath(currentProject, option.id), abort.signal)));
-      setLoaded(candidates.map((option, index) => ({ option, context: contexts[index] })));
+      const results = await Promise.allSettled(candidates.map(option => api.agentContext(currentProject, option.id, undefined, abort.signal)));
+      if (abort.signal.aborted) return;
+      setLoaded(candidates.map((option, index) => loadedMapping(option, results[index])));
     }
     load().catch(failure => {
       if (failure.name !== 'AbortError') setError(failure.message);
@@ -77,14 +70,26 @@ function NoMappings({ projectOpen, hasCatalog, fileName }: { projectOpen: boolea
   return <EmptyState title={`No mapping of this project covers ${fileName || 'the open file'}`} />;
 }
 
+/** Names a mapping whose context could not be loaded and says why, so the healthy mappings still show. */
+function MappingFailure({ name, message }: { name: string; message: string }) {
+  return (
+    <section className="mapping-page" aria-label={name}>
+      <h2>{name}</h2>
+      <p role="alert" className="mapping-error">
+        {message}
+      </p>
+    </section>
+  );
+}
+
 /** Shows each mapping that is the open file or reads it, one after the other under its own name. */
 export function MappingExplorer({ currentId, currentFilename, currentProject, projectName, projectFiles, revisionKey, dirty, onEditItem, onOpenSource }: Props) {
   const dataContractFiles = useMemo(() => dataContractFilenames(projectFiles.filter(file => file.project === currentProject)), [projectFiles, currentProject]);
   const { catalog, loaded, error } = useProjectMappings(currentProject, currentId, revisionKey);
-  const shown = coveringMappings(
-    loaded.map(entry => ({ ...entry, documents: entry.context.documents })),
-    currentId,
-  );
+  const healthy = loaded.flatMap(({ option, context }) => (context ? [{ option, context, documents: context.documents }] : []));
+  const shown = coveringMappings(healthy, currentId);
+  // A mapping that failed to load cannot say which files it reads, so its error is always shown under its name.
+  const failed = loaded.filter(entry => entry.error !== undefined);
   const settled = catalog !== null && loaded.length === candidateMappings(catalog, currentProject, currentId).length;
   const hasCatalog = catalog !== null && catalog.some(option => option.project === currentProject);
   return (
@@ -96,6 +101,9 @@ export function MappingExplorer({ currentId, currentFilename, currentProject, pr
         </p>
       )}
       {(!currentProject || (settled && shown.length === 0)) && <NoMappings projectOpen={Boolean(currentProject)} hasCatalog={hasCatalog} fileName={currentFilename ?? ''} />}
+      {failed.map(({ option, error: message }) => (
+        <MappingFailure key={option.id} name={option.name} message={message ?? ''} />
+      ))}
       {shown.map(({ option, context }) => (
         <MappingSection
           key={option.id}

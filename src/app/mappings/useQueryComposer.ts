@@ -1,15 +1,13 @@
 /** The state behind the query composer of one mapping: the choices, and the SQL plan the server previews. */
 import { useRef, useState } from 'react';
-import { apiFetch } from '../projects/api';
-
-type Plan = { sql: string } & Record<string, unknown>;
+import { api, type AgentPlan } from '../projects/api';
 
 /** Holds the chosen metrics and group-by fields and asks the server for an unexecuted plan. */
 export function useQueryComposer(project: string, mappingId: string, concept: string) {
   const requestVersion = useRef(0);
   const [metrics, setMetrics] = useState<string[]>([]);
   const [dimensions, setDimensions] = useState<string[]>([]);
-  const [plan, setPlan] = useState<Plan | null>(null);
+  const [plan, setPlan] = useState<AgentPlan | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -38,13 +36,7 @@ export function useQueryComposer(project: string, mappingId: string, concept: st
     setError('');
     setPlan(null);
     try {
-      const response = await apiFetch('/api/agent/plan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ project, mappingId, concepts: concept ? [concept] : [], metrics, dimensions }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw Error(data.error);
+      const data = await api.agentPlan({ project, mappingId, concepts: concept ? [concept] : [], metrics, dimensions });
       if (version === requestVersion.current) setPlan(data);
     } catch (failure) {
       if (version === requestVersion.current) setError((failure as Error).message);

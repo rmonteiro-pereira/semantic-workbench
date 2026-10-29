@@ -1,10 +1,9 @@
 /** Decides which mappings the Mappings tab shows for the open file. */
+import type { Doc } from '../projects/api';
+import { projectFiles } from '../odcs/project-files';
 
 /** The parts of a mapping option that decide whether the tab shows it. */
 export type MappingChoice = { id: string; project?: string };
-
-/** A file of the open project, as far as the tab needs to recognise a data contract. */
-export type ProjectFile = { filename: string; source: string };
 
 /** Keeps the mappings of the selected project. Another project's mapping is never shown, and with no project open there is none. */
 export function mappingsOfProject<Mapping extends MappingChoice>(mappings: Mapping[], project: string | undefined) {
@@ -34,7 +33,12 @@ export function coveringMappings<Loaded extends { option: MappingChoice; documen
   return loaded.filter(entry => isDefinedIn(entry.option, openFileId) || entry.documents.some(document => document.documentId === openFileId));
 }
 
-/** Names the data contract files of the project, which are the physical sources of its datasets. */
-export function dataContractFilenames(files: ProjectFile[]) {
-  return files.filter(file => /^kind:\s*['"]?DataContract\b/m.test(file.source)).map(file => file.filename);
+/** Names the data contract files among the documents of one project: the physical sources of its datasets. */
+export function dataContractFilenames(documents: Doc[]) {
+  const contractPaths = new Set(
+    projectFiles(documents)
+      .filter(file => file.data.kind === 'DataContract')
+      .map(file => file.path),
+  );
+  return documents.filter(document => contractPaths.has(document.path)).map(document => document.filename);
 }

@@ -54,10 +54,12 @@ describe('which loaded mappings cover the open file', () => {
 });
 
 test('the data contract files of a project are found by their kind, not their name', () => {
+  const file = (filename: string, source: string) => ({ id: filename, project: 'shop', path: filename, filename, source, hash: filename + source.length });
   const files = [
-    { filename: 'shop.odcs.yaml', source: 'apiVersion: v3.0.2\nkind: DataContract\n' },
-    { filename: 'model.yaml', source: 'name: model\ndatasets: []\n' },
-    { filename: 'other.yaml', source: "kind: 'DataContract'\n" },
+    file('shop.odcs.yaml', 'apiVersion: v3.0.2\nkind: DataContract\n'),
+    file('model.yaml', 'name: model\ndatasets: []\n'),
+    file('other.yaml', "kind: 'DataContract'\n"),
+    file('notes.yaml', 'description: "kind: DataContract is a phrase"\n'),
   ];
   expect(dataContractFilenames(files)).toEqual(['shop.odcs.yaml', 'other.yaml']);
 });
