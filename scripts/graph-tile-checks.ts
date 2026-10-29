@@ -1,6 +1,7 @@
 import { expect, type Browser, type Page } from '@playwright/test';
 import { appUrl } from './helpers/base-url';
 import { revealGraphControls } from './helpers/graph-options';
+import { clippedTextProblems, cutTextProblems, sidewaysOverflowProblems } from './helpers/clipped-text';
 import { routeApi, type IsolatedApi } from './helpers/isolated-api';
 import { groupRelationships } from '../src/app/graph/graph-view';
 import { inspect } from '../src/shared/core/model';
@@ -24,7 +25,7 @@ async function openUblGraph(page: Page, api: IsolatedApi) {
 }
 
 async function nameProblems(page: Page) {
-  return page.evaluate(() => {
+  const geometry = await page.evaluate(() => {
     const problems: string[] = [];
     for (const card of document.querySelectorAll<HTMLElement>('.full-graph .full-entity')) {
       const name = card.querySelector<HTMLElement>('strong')!;
@@ -32,13 +33,12 @@ async function nameProblems(page: Page) {
       const nameBox = name.getBoundingClientRect();
       const text = name.textContent ?? '';
       if (text.includes('…') || text.includes('...')) problems.push(`${text} ends with an ellipsis`);
-      if (getComputedStyle(name).textOverflow === 'ellipsis') problems.push(`${text} uses text-overflow ellipsis`);
-      if (name.scrollWidth > name.clientWidth + 1 || name.scrollHeight > name.clientHeight + 1) problems.push(`${text} is clipped by its own box`);
       const outside = nameBox.left < cardBox.left - 1 || nameBox.right > cardBox.right + 1 || nameBox.top < cardBox.top - 1 || nameBox.bottom > cardBox.bottom + 1;
       if (outside) problems.push(`${text} overflows its card`);
     }
     return problems;
   });
+  return [...geometry, ...(await cutTextProblems(page, '.full-graph .full-entity strong'))];
 }
 
 async function areaBoxes(page: Page): Promise<Box[]> {
@@ -93,36 +93,22 @@ export async function checkTiles(page: Page, api: IsolatedApi) {
   expect(await page.locator('.full-graph .react-flow__edge').count()).toBeGreaterThan(drawnBefore);
 }
 
-// The drop-down arrow of a select takes about this much of its width.
-const SELECT_ARROW_WIDTH = 18;
-
+/** The toolbar controls that sit outside the toolbar's frame, plus any cut or sideways-scrolling text. */
 async function toolbarProblems(page: Page) {
-  return page.evaluate(SELECT_ARROW_WIDTH => {
+  const outsideFrame = await page.evaluate(() => {
     const problems: string[] = [];
-    const toolbar = document.querySelector<HTMLElement>('.full-graph-tools')!;
-    const frame = toolbar.getBoundingClientRect();
-    if (toolbar.scrollWidth > toolbar.clientWidth + 1) problems.push('the toolbar scrolls sideways');
-    for (const control of toolbar.querySelectorAll<HTMLElement>('button, select')) {
+    const frame = document.querySelector<HTMLElement>('.full-graph-tools')!.getBoundingClientRect();
+    for (const control of document.querySelectorAll<HTMLElement>('.full-graph-tools button, .full-graph-tools select')) {
       const box = control.getBoundingClientRect();
-      const label = control.textContent?.trim() || control.getAttribute('aria-label') || control.tagName;
       if (box.width === 0) continue;
+      const label = control.textContent?.trim() || control.getAttribute('aria-label') || control.tagName;
       if (box.left < frame.left - 1 || box.right > frame.right + 1 || box.right > window.innerWidth + 1) problems.push(`${label} is cut off by the toolbar`);
-      if (control.scrollWidth > control.clientWidth + 1) problems.push(`${label} has a clipped label`);
-      if (control instanceof HTMLSelectElement) {
-        // A select hides the end of its text without any overflow, so measure the chosen option.
-        const style = getComputedStyle(control);
-        const ruler = document.createElement('span');
-        ruler.style.cssText = `position:absolute;visibility:hidden;white-space:nowrap;font:${style.font}`;
-        ruler.textContent = control.selectedOptions[0]?.textContent ?? '';
-        document.body.append(ruler);
-        const textWidth = ruler.getBoundingClientRect().width;
-        ruler.remove();
-        const room = control.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight) - SELECT_ARROW_WIDTH;
-        if (textWidth > room + 1) problems.push(`${ruler.textContent} is cut off inside its select`);
-      }
     }
     return problems;
-  }, SELECT_ARROW_WIDTH);
+  });
+  const cut = await clippedTextProblems(page, '.full-graph-tools');
+  const sideways = await sidewaysOverflowProblems(page, '.full-graph-tools');
+  return [...outsideFrame, ...cut, ...sideways];
 }
 
 export async function checkToolbar(page: Page, api: IsolatedApi) {

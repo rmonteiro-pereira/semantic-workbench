@@ -30,11 +30,6 @@ function notValidatedIssue(version: unknown): Issue {
   const declared = version === undefined ? 'the file declares no version' : `the file says ${String(version)}`;
   return { severity: 'info', code: 'not-validated', path: '/version', message: `Not validated — this app checks Ossie ${OSSIE_SCHEMA_VERSION}, ${declared}.` };
 }
-/** Tells whether parsed data is an Ossie ontology, semantic model or mapping rather than a data contract. */
-function isOssieDocument(data: any) {
-  const isContract = data.kind === 'DataContract' || data.apiVersion !== undefined || data.schema !== undefined;
-  return !isContract && (data.ontology !== undefined || data.datasets !== undefined || data.semantic_model !== undefined || isMapping(data));
-}
 /** Options that change how a document is checked. */
 export type ValidationOptions = {
   /** Check a file with an unknown Ossie version as if it declared the shipped version. */
@@ -97,16 +92,16 @@ export function validateStructured(data: any, applyPinnedSchema = true, options:
     fail('/', 'Cyclic aliases or non-JSON scalar values are unsupported.', 'serialization');
     rejectIssues(issues);
   }
-  if (applyPinnedSchema && isOssieDocument(data) && data.version !== OSSIE_SCHEMA_VERSION) {
-    if (!options.assumeOssieVersion) return [notValidatedIssue(data.version)];
-    data = { ...data, version: OSSIE_SCHEMA_VERSION };
-  }
-  const families = [
-    data.kind === 'DataContract' || data.apiVersion !== undefined || data.schema !== undefined,
-    data.ontology !== undefined,
-    data.datasets !== undefined || data.semantic_model !== undefined,
-    isMapping(data),
-  ].filter(Boolean).length;
+  const isContract = data.kind === 'DataContract' || data.apiVersion !== undefined || data.schema !== undefined;
+  const families = [isContract, data.ontology !== undefined, data.datasets !== undefined || data.semantic_model !== undefined, isMapping(data)].filter(Boolean).length;
+  const isOssie = !isContract && families > 0;
+  const versionIsUnknown = applyPinnedSchema && isOssie && data.version !== OSSIE_SCHEMA_VERSION;
+  const checkAsShippedVersion = versionIsUnknown && !!options.assumeOssieVersion;
+  if (checkAsShippedVersion) data = { ...data, version: OSSIE_SCHEMA_VERSION };
+  // A file on another Ossie version still gets the structural checks; only the pinned schema is skipped.
+  const skipPinnedSchema = versionIsUnknown && !checkAsShippedVersion;
+  const checkPinnedSchema = applyPinnedSchema && !skipPinnedSchema;
+  if (skipPinnedSchema) issues.push(notValidatedIssue(data.version));
   if (families !== 1) {
     fail(
       '/',
@@ -119,7 +114,7 @@ export function validateStructured(data: any, applyPinnedSchema = true, options:
     return issues;
   }
   if (isMapping(data)) {
-    issues.push(...mappingSchemaIssues(data));
+    if (checkPinnedSchema) issues.push(...mappingSchemaIssues(data));
     issues.push(...readKpiBindings(data, '').issues);
   } else if (data.kind === 'DataContract' || data.apiVersion !== undefined || data.schema !== undefined) {
     if (data.kind !== 'DataContract') fail('/kind', 'ODCS kind must be DataContract.');
@@ -194,7 +189,7 @@ export function validateStructured(data: any, applyPinnedSchema = true, options:
     });
     const cycle = inheritanceCycle([...names], parents);
     if (cycle.length) fail('/ontology', `Cyclic inheritance detected near: ${cycle.slice(0, 8).join(', ')}. Remove an extends link to break the cycle.`, 'inheritance-cycle');
-    if (applyPinnedSchema) issues.push(...mappingSchemaIssues(data, 'ontology'));
+    if (checkPinnedSchema) issues.push(...mappingSchemaIssues(data, 'ontology'));
     arr(data.ontology_mappings, '/ontology_mappings').forEach((embeddedMapping, i) => {
       const prefix = `/ontology_mappings/${i}`;
       const schemaIssues = mappingSchemaIssues(embeddedMapping, 'embedded', prefix);
@@ -290,7 +285,7 @@ export function validateStructured(data: any, applyPinnedSchema = true, options:
     });
   }
   let validator: typeof contract | typeof semantic | null;
-  if (!applyPinnedSchema) {
+  if (!checkPinnedSchema) {
     validator = null;
   } else if (data.kind === 'DataContract' && data.apiVersion === 'v3.1.0') {
     validator = contract;

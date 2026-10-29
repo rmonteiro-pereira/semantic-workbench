@@ -3,19 +3,22 @@ import type { Page } from '@playwright/test';
 
 const TEXT_CONTROLS = 'button, [role=button], [role=tab], [role=menuitem], label, select, summary';
 
+/** The width a select's drop-down arrow takes from the text beside it. */
+export const SELECT_ARROW_ROOM = 20;
+
 /**
- * Lists the visible buttons, labels and selects inside `within` whose text is cut: wider than the
- * box that holds it, shown with an ellipsis by CSS, or a select whose chosen option does not fit
- * beside its arrow. A control that grows or wraps is fine; one that hides text is a problem.
+ * Lists the visible elements matching `selector` whose text is cut: wider than the box that holds
+ * it, taller than a box that hides its overflow, shown with an ellipsis by CSS, or a select whose
+ * chosen option does not fit beside its arrow. An element that grows or wraps is fine; one that
+ * hides text is a problem.
  */
-export async function clippedTextProblems(page: Page, within = 'body'): Promise<string[]> {
+export async function cutTextProblems(page: Page, selector: string): Promise<string[]> {
   return page.evaluate(
-    ({ root, selector }) => {
-      const scope = document.querySelector(root) ?? document.body;
+    ({ selector, arrowRoom }) => {
       const problems = new Set<string>();
       const measure = document.createElement('canvas').getContext('2d')!;
       const describe = (element: Element) => `<${element.tagName.toLowerCase()}> "${(element.textContent ?? '').trim().slice(0, 40)}"`;
-      for (const element of scope.querySelectorAll<HTMLElement>(selector)) {
+      for (const element of document.querySelectorAll<HTMLElement>(selector)) {
         const box = element.getBoundingClientRect();
         if (box.width < 1 || box.height < 1) continue;
         const style = getComputedStyle(element);
@@ -23,19 +26,24 @@ export async function clippedTextProblems(page: Page, within = 'body'): Promise<
           measure.font = style.font;
           const chosen = element.selectedOptions[0]?.textContent ?? '';
           const padding = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
-          const arrowRoom = 20;
           if (measure.measureText(chosen).width + padding + arrowRoom > element.clientWidth + 1) {
             problems.add(`${describe(element)} select cuts its chosen value "${chosen}"`);
           }
           continue;
         }
         if (element.scrollWidth > element.clientWidth + 1) problems.add(`${describe(element)} is wider than its box`);
+        if (style.overflowY !== 'visible' && element.scrollHeight > element.clientHeight + 1) problems.add(`${describe(element)} is taller than its box`);
         if (style.textOverflow === 'ellipsis' && element.scrollWidth > element.clientWidth) problems.add(`${describe(element)} ends in an ellipsis`);
       }
       return [...problems];
     },
-    { root: within, selector: TEXT_CONTROLS },
+    { selector, arrowRoom: SELECT_ARROW_ROOM },
   );
+}
+
+/** Lists the visible buttons, labels and selects inside `within` whose text is cut. */
+export async function clippedTextProblems(page: Page, within = 'body'): Promise<string[]> {
+  return cutTextProblems(page, `${within} :is(${TEXT_CONTROLS})`);
 }
 
 /**

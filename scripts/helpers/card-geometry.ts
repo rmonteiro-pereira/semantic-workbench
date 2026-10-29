@@ -1,9 +1,12 @@
 // Measures neighborhood cards and how edges meet them, in browser screen coordinates.
 import type { Page } from '@playwright/test';
+import { cutTextProblems } from './clipped-text';
+
+const CARD_TEXT = '.neighborhood-canvas .node > small, .neighborhood-canvas .node > strong, .neighborhood-canvas .node > span';
 
 /** Returns overlapping cards, text cut off or ending in an ellipsis, and edges drawn across a card body. */
 export async function neighborhoodCardProblems(page: Page) {
-  return page.evaluate(() => {
+  const geometryProblems = await page.evaluate(() => {
     type Card = { id: string; rect: DOMRect; element: HTMLElement };
     const cards: Card[] = [...document.querySelectorAll<HTMLElement>('.neighborhood-canvas .react-flow__node')].map(element => ({
       id: element.getAttribute('data-id') ?? '',
@@ -22,13 +25,11 @@ export async function neighborhoodCardProblems(page: Page) {
       }
       return found;
     };
-    const cutOffText = () => {
+    const unfinishedText = () => {
       const found: string[] = [];
       for (const { id, element } of cards) {
         for (const text of element.querySelectorAll<HTMLElement>('.node > small, .node > strong, .node > span')) {
-          const clipped = text.scrollWidth > text.clientWidth + 1 || text.scrollHeight > text.clientHeight + 1;
-          const ellipsis = (text.textContent ?? '').endsWith('…') || getComputedStyle(text).textOverflow === 'ellipsis';
-          if (clipped || ellipsis) found.push(`card ${id} text "${text.textContent}" is cut off`);
+          if ((text.textContent ?? '').endsWith('…')) found.push(`card ${id} text "${text.textContent}" ends in an ellipsis`);
         }
         const body = element.querySelector<HTMLElement>('.node');
         if (body && body.scrollHeight > body.clientHeight + 1) found.push(`card ${id} content overflows its card`);
@@ -98,6 +99,7 @@ export async function neighborhoodCardProblems(page: Page) {
       }
       return found;
     };
-    return [...new Set([...overlapping(), ...cutOffText(), ...crossings(), ...stackedArrowheads()])];
+    return [...new Set([...overlapping(), ...unfinishedText(), ...crossings(), ...stackedArrowheads()])];
   });
+  return [...new Set([...geometryProblems, ...(await cutTextProblems(page, CARD_TEXT))])];
 }

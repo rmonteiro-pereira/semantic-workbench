@@ -8,7 +8,7 @@ import { GroupingControls } from '../graph/GroupingControls';
 import { NeighborhoodGraph } from '../graph/NeighborhoodGraph';
 import { LineageCanvas } from '../odcs/LineageCanvas';
 import type { LineageCard } from '../odcs/lineage';
-import type { modelOverview } from '../graph/overview';
+import type { AreaFilter, modelOverview } from '../graph/overview';
 
 type GroupLook = { name: string; color: string };
 
@@ -69,7 +69,7 @@ type Props = {
   setSearch: React.Dispatch<React.SetStateAction<string>>;
   showNeighborhood: (id?: string | undefined) => void;
   handleModelOverviewSelectRelationship: (id: string) => void;
-  showAreaInCatalog: (area: import('../graph/ModelOverview').AreaFilter) => void;
+  showAreaInCatalog: (area: AreaFilter) => void;
   docsRef: React.RefObject<Map<string, import('../projects/api').Doc>>;
   walk: import('../graph/walk').Walk;
   handleNeighborhoodGraphWalk: (steps: import('../graph/walk').WalkStep[]) => void;
@@ -79,6 +79,8 @@ type Props = {
   handleNeighborhoodGraphOpenKpis: (concept: string) => void;
   crossFile: (entity: import('../../shared/core/model').Entity) => import('../graph/NeighborhoodGraph').CrossFileTarget[];
   crossTo: (crossFileTarget: import('../graph/NeighborhoodGraph').CrossFileTarget) => void;
+  /** Posts a short message to the workspace's status line. */
+  onStatus: (message: string) => void;
 };
 /** Renders graph views. */
 export function GraphViews({
@@ -120,6 +122,7 @@ export function GraphViews({
   handleNeighborhoodGraphOpenKpis,
   crossFile,
   crossTo,
+  onStatus,
 }: Props) {
   const looks = useMemo(() => groupLooks(groupingOverview), [groupingOverview]);
   // The Group menu sits in the graph's own tool row, beside Fit and the layout controls.
@@ -230,6 +233,7 @@ export function GraphViews({
       onOpenKpis={handleNeighborhoodGraphOpenKpis}
       crossFile={crossFile}
       onCrossFile={crossTo}
+      onStatus={onStatus}
     />
   );
 }

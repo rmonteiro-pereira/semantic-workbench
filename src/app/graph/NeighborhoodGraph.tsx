@@ -11,13 +11,14 @@ import { canvasAt } from './walk';
 import { allConnectedLabel, canvasOf, getSet, neighbours, registerSet, sameExpansion, setsOf, type Direction, type ExpansionSet } from './expansion';
 import { placeLayers, placeNew, separateCards } from './incremental-layout';
 import { expansionViewport } from './expansion-viewport';
+import { kindWords } from './text-fit';
 import { PIERCE_BUDGET, PIERCE_MAX } from './pierce';
 import { PierceBanner, PierceControls, usePierce } from './PierceControls';
 import { GraphOptions, OptionGroup, ShowToggle } from './GraphOptions';
 import { ZoomButtons } from './ZoomButtons';
 import { CompactControls, useCompactToolbar } from './CompactControls';
 import type { Entity, Relationship } from '../../shared/core/model';
-import { groupRelationships, kindWords, neighborhood, searchEntities, projectModel, NEIGHBOR_PAGE } from './graph-view';
+import { groupRelationships, neighborhood, searchEntities, projectModel, NEIGHBOR_PAGE } from './graph-view';
 import { neighborhoodLayout, NEIGHBOR_COLUMN, NEIGHBOR_ROW } from './layout';
 import { assignRoutes, heightForEdgeEnds, placeLabels, routePoints, relationshipEdgeTypes, type Box } from './RelationshipEdge';
 import type { Walk, WalkStep } from './walk';
@@ -56,6 +57,8 @@ export type NeighborhoodGraphProps = {
   onOpenKpis?: (concept: string) => void;
   crossFile?: (entity: Entity) => CrossFileTarget[];
   onCrossFile?: (target: CrossFileTarget) => void;
+  /** Posts a short message to the workspace's status line. */
+  onStatus?: (message: string) => void;
 };
 /** Displays the current graph center and its expandable neighborhood. */
 export function NeighborhoodGraph(props: NeighborhoodGraphProps) {
@@ -420,7 +423,10 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
       return;
     }
     const shownNodes = new Set(canvasNodes);
-    if (pierceRequest.nodes.every(node => shownNodes.has(node))) return;
+    if (pierceRequest.nodes.every(node => shownNodes.has(node))) {
+      props.onStatus?.(`Everything connected to ${nameOf(from)} is already shown`);
+      return;
+    }
     // The result arrives after the click that asked for it, so it opens its own history step.
     actionHistory.act('pierce', () => record(registerSet(pierceRequest), allConnectedLabel(nameOf(from))));
   };

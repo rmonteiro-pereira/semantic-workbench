@@ -1,6 +1,7 @@
 // Tests neighborhood projection, search, ranking and paging.
+import { kindWords } from '../src/app/graph/text-fit';
 import { test, expect } from 'bun:test';
-import { kindWords, graphView, groupRelationships, neighborhood, projectModel, searchEntities, defaultCenter, NEIGHBOR_PAGE } from '../src/app/graph/graph-view';
+import { graphView, groupRelationships, neighborhood, projectModel, searchEntities, defaultCenter, NEIGHBOR_PAGE } from '../src/app/graph/graph-view';
 import { layoutGraph } from '../src/app/graph/layout';
 
 const nodes = Array.from({ length: 30 }, (_, i) => ({

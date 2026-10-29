@@ -47,14 +47,14 @@ try {
     await expect(groupTrigger(page)).toBeVisible();
   });
 
-  await check('the Graph menu lists only usable ways, each explained, with a footer naming what Automatic picked', async () => {
+  await check('the Graph menu lists only usable ways, each explained, with Automatic naming what it picked', async () => {
     const menu = await openGroupMenu(page);
     await expect(menu.getByRole('menuitemradio', { disabled: true })).toHaveCount(0);
     await expect(menu.locator('[disabled], [aria-disabled="true"]')).toHaveCount(0);
     expect(await groupingMenuLabels(page)).toEqual(['Suggested communities', 'Definition types', 'Automatic']);
     const reopened = await openGroupMenu(page);
     for (const item of await reopened.getByRole('menuitemradio').all()) await expect(item.locator('small')).not.toBeEmpty();
-    await expect(reopened).toContainText('Only ways that work for this file are listed. Automatic picked Suggested communities.');
+    await expect(reopened.getByRole('menuitemradio', { name: /^Automatic/ })).toContainText('Currently Suggested communities');
     await page.keyboard.press('Escape');
   });
 

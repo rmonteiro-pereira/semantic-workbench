@@ -191,7 +191,7 @@ try {
     const menu = await openGroupMenu(page);
     await expect(menu.getByRole('menuitemradio', { name: /^Automatic/ })).toContainText('Currently Suggested communities');
     await menu.getByRole('menuitemradio', { name: /^Suggested communities/ }).click();
-    await (await openGroupMenu(page)).getByRole('button', { name: 'Adjust grouping…', exact: true }).click();
+    await (await openGroupMenu(page)).getByRole('menuitem', { name: 'Adjust grouping…', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: 'Adjust grouping' });
     await expect(dialog).toBeVisible();
     await expect(dialog.getByRole('list', { name: 'Current groups' }).getByRole('listitem')).not.toHaveCount(0);

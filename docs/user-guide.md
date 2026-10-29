@@ -316,7 +316,7 @@ walk history remove or restore only that expansion's contribution. **Show all co
 Outgoing, Incoming or Both directions from the selection or center. It stops at 150 entities;
 frontier markers explain hidden reachable nodes. **Expand further** permits up to 500, and **Stop**
 cancels the worker operation. Each run is one trail step, "All connected to <name>"; repeating the
-same run goes back to that step, and a run that adds nothing new adds no step. The same bounded traversal is used by lineage and mapping cards.
+same run goes back to that step, and a run that adds nothing new adds no step and says "Everything connected to <name> is already shown" in the status line. The same bounded traversal is used by lineage and mapping cards.
 
 The toolbar filters neighbors by **Relationship** and switches **Links between neighbors**,
 **Technical resources**, **Labels**, **Value types** and **Metrics** on or off. **Re-arrange** puts
@@ -428,9 +428,10 @@ inheritance cycles, declared keys/joins and supported schema checks. Ordinary re
 self-links and disconnected components remain legal.
 
 ODCS 3.1.0 and Ossie 0.2.0.dev0 definitions use pinned companion schemas. An Ossie file that names
-another version, or none, is not validated: Validation details and the editor say "Not validated"
-once, and **Validate as Ossie 0.2.0.dev0** checks it against the shipped schema for that file.
-Syntax errors still show. RDF/XML is checked
+another version, or none, gets every structural check (syntax, duplicate names, dangling references,
+inheritance cycles, empty ontologies) but not the schema check: Validation details and the editor say
+"Not validated" once, and **Validate as Ossie 0.2.0.dev0** also checks it against the shipped schema
+for that file. RDF/XML is checked
 for XML errors and rejects DTD/entity declarations. RDF imports never fetch remote ontologies or
 `owl:imports`.
 

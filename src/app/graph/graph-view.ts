@@ -180,8 +180,3 @@ export function groupRelationships(edges: Relationship[]) {
     data: { ...relationships[0].data, relationships },
   }));
 }
-
-/** A model kind in words a reader knows: "EntityType" becomes "Entity type", other kinds keep their wording. */
-export function kindWords(kind: string) {
-  return kind.replace(/([a-z])([A-Z])/g, (_match, before: string, after: string) => `${before} ${after.toLowerCase()}`);
-}
