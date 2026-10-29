@@ -202,16 +202,8 @@ try {
     await expect(page.locator('.mapping-layers')).toContainText('36 datasets');
     await page.getByRole('button', { name: /^All concepts/ }).click();
     await expectResolvedBindings(page, 119);
-    await expect(page.locator('.mapping-bindings')).not.toHaveAttribute('open', '');
-    // The concept list shows only the first concepts, so the test finds Plan the way a reader does.
-    await page.getByLabel('Find concept').fill('Plan');
-    await page
-      .locator('.mapping-concepts')
-      .getByRole('button', { name: /^Plan / })
-      .click();
+    await chooseConcept(page, /^Plan\s*\d/);
     await expectResolvedBindings(page, 4);
-    await expect(page.locator('.mapping-bindings')).toHaveAttribute('open', '');
-    await page.getByLabel('Find concept').fill('');
     await page.getByRole('button', { name: /^All concepts/ }).click();
   });
   await check('billing query selected in the UI produces verified net revenue, distinct counts and governed ratios', async () => {
