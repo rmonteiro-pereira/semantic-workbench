@@ -9,32 +9,14 @@ import { ProjectAccessSection } from './ProjectAccessSection';
 import type { Policy } from './types';
 import type { Issue } from '../../shared/validation/diagnostics';
 
-const templates = [
-  'Metric ownership and steward',
-  'Git action limits',
-  'Classification level for editing',
-  'Branch protection',
-  'Agent client scope',
-  'Time condition',
-  'Network condition',
-];
-const dataTemplates = [
-  'Classification level for editing',
-  'Branch protection',
-  'Agent client scope',
-];
+const templates = ['Metric ownership and steward', 'Git action limits', 'Classification level for editing', 'Branch protection', 'Agent client scope', 'Time condition', 'Network condition'];
+const dataTemplates = ['Classification level for editing', 'Branch protection', 'Agent client scope'];
 // The editor has no Cedar grammar; a .txt name keeps it from highlighting the rule as YAML.
 function policyEditorFilename(id: string): string {
   return id + '.txt';
 }
 /** Edits raw Cedar with inline server validation, or constructs it from structured parameters. */
-export function PolicyEditor({
-  initial,
-  rules,
-  version,
-  onBack,
-  onSaved,
-}: PaneProps & { initial: Policy; rules: Policy[]; version: string; onSaved: () => void }) {
+export function PolicyEditor({ initial, rules, version, onBack, onSaved }: PaneProps & { initial: Policy; rules: Policy[]; version: string; onSaved: () => void }) {
   const [policy, setPolicy] = useState(initial);
   const [template, setTemplate] = useState(initial.template ?? templates[0]);
   const [advanced, setAdvanced] = useState(Boolean(initial.text));
@@ -57,9 +39,7 @@ export function PolicyEditor({
         column: issue.column,
       }));
     } catch (problem) {
-      return [
-        { severity: 'error', code: 'policy', path: policy.id, message: problemText(problem) },
-      ];
+      return [{ severity: 'error', code: 'policy', path: policy.id, message: problemText(problem) }];
     }
   }
   async function validateProposal() {
@@ -105,26 +85,15 @@ export function PolicyEditor({
     <AdminPane title="Policy editor" backLabel="Back to policies" onBack={onBack}>
       <label>
         Description
-        <input
-          value={policy.description}
-          onChange={event => setPolicy({ ...policy, description: event.target.value })}
-        />
+        <input value={policy.description} onChange={event => setPolicy({ ...policy, description: event.target.value })} />
       </label>
       <label>
-        <input
-          type="checkbox"
-          checked={advanced}
-          onChange={event => setAdvanced(event.target.checked)}
-        />
+        <input type="checkbox" checked={advanced} onChange={event => setAdvanced(event.target.checked)} />
         Advanced raw editor
       </label>
       {!advanced && (
         <>
-          <SelectField
-            label="Template"
-            value={template}
-            onChange={event => setTemplate(event.target.value)}
-          >
+          <SelectField label="Template" value={template} onChange={event => setTemplate(event.target.value)}>
             {templates.map(name => (
               <option key={name}>{name}</option>
             ))}
@@ -135,24 +104,11 @@ export function PolicyEditor({
               <button onClick={() => setProjects(true)}>Configure {template.toLowerCase()}</button>
             </>
           ) : (
-            <PolicyTemplateForm
-              key={template}
-              id={policy.id}
-              template={template}
-              onApply={applyTemplate}
-            />
+            <PolicyTemplateForm key={template} id={policy.id} template={template} onApply={applyTemplate} />
           )}
         </>
       )}
-      {advanced && (
-        <CodeEditor
-          value={policy.text}
-          filename={policyEditorFilename(policy.id)}
-          ariaLabel="Policy source"
-          onChange={text => setPolicy({ ...policy, text })}
-          validate={validate}
-        />
-      )}
+      {advanced && <CodeEditor value={policy.text} filename={policyEditorFilename(policy.id)} ariaLabel="Policy source" onChange={text => setPolicy({ ...policy, text })} validate={validate} />}
       <button onClick={validateProposal}>Validate</button>
       {error && <p role="alert">{error}</p>}
       {issues.map((issue, index) => (
@@ -161,14 +117,7 @@ export function PolicyEditor({
         </p>
       ))}
       {validated === key && <p>Policy is valid.</p>}
-      <ReviewChange
-        area="policies"
-        changeLabel={`Save policy ${policy.description || policy.id}`}
-        proposal={proposal}
-        baseVersion={version}
-        disabled={validated !== key}
-        onSaved={onSaved}
-      />
+      <ReviewChange area="policies" changeLabel={`Save policy ${policy.description || policy.id}`} proposal={proposal} baseVersion={version} disabled={validated !== key} onSaved={onSaved} />
     </AdminPane>
   );
 }

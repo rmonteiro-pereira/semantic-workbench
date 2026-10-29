@@ -19,8 +19,7 @@ export type EventTags = { owner?: string; copy?: string; readers?: Record<string
   | { audience?: never; projects: string[]; paths?: { project: string; path: string }[] }
   | { audience?: never; projects?: string[]; paths: { project: string; path: string }[] }
 );
-const frame = (e: WorkbenchEvent) =>
-  `id: ${e.id}\nevent: ${e.event}\ndata: ${JSON.stringify(e.data)}\n\n`;
+const frame = (e: WorkbenchEvent) => `id: ${e.id}\nevent: ${e.event}\ndata: ${JSON.stringify(e.data)}\n\n`;
 /** Ring size, heartbeat and how a suggestion round indexes files and counts for local clients. */
 export type EventOptions = {
   ringSize?: number;
@@ -118,12 +117,7 @@ export function createEvents(options: EventOptions) {
   // Events after `since`, or null when they are no longer in the ring (the client must resync).
   function replay(since: number): WorkbenchEvent[] | null {
     if (since === lastId) return [];
-    if (
-      since > lastId ||
-      (ring.length && since < ring[0].id - 1) ||
-      (!ring.length && since < lastId)
-    )
-      return null;
+    if (since > lastId || (ring.length && since < ring[0].id - 1) || (!ring.length && since < lastId)) return null;
     return ring.filter(e => e.id > since);
   }
   // A local client must not replay another person's count.
@@ -169,12 +163,7 @@ export function createEvents(options: EventOptions) {
       const connections = [...clients.values()].filter(access => access !== undefined);
       return { ...tags, readers: currentReaders(event, tags, connections) };
     },
-    stream(
-      req: Request,
-      onSessionEnd?: (listener: (reason?: 'changed' | 'session-ended') => void) => () => void,
-      access?: EventAccess,
-      onAccessChange?: (listener: () => void) => () => void,
-    ) {
+    stream(req: Request, onSessionEnd?: (listener: (reason?: 'changed' | 'session-ended') => void) => () => void, access?: EventAccess, onAccessChange?: (listener: () => void) => () => void) {
       const header = req.headers.get('last-event-id');
       const since = header !== null && /^\d+$/.test(header) ? Number(header) : null;
       let send: ((chunk: string) => void) | undefined;
@@ -210,8 +199,7 @@ export function createEvents(options: EventOptions) {
           send(`retry: 2000\n: connected ${lastId}\n\n`);
           if (since !== null) {
             const missed = replay(since);
-            if (missed === null)
-              send(frame({ id: lastId, event: 'resync', data: {}, tags: { audience: 'all' } }));
+            if (missed === null) send(frame({ id: lastId, event: 'resync', data: {}, tags: { audience: 'all' } }));
             else
               for (const e of missed) {
                 const visible = replayable(e, access);

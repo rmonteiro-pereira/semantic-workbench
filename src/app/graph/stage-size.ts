@@ -13,9 +13,7 @@ export function useStageSize(ref: RefObject<HTMLElement | null>, frozen = false)
     if (!element || frozen) return;
     const measure = () => {
       const { clientWidth: width, clientHeight: height } = element;
-      setSize(previous =>
-        previous.width === width && previous.height === height ? previous : { width, height },
-      );
+      setSize(previous => (previous.width === width && previous.height === height ? previous : { width, height }));
     };
     let frame = 0;
     const observer = new ResizeObserver(() => {

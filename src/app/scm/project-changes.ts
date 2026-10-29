@@ -14,8 +14,5 @@ export function changesOfProject(changes: GitChange[]) {
 /** The sentence that says how many changes of the repository are not listed. */
 export function elsewhereLine(elsewhere: number) {
   const noun = elsewhere === 1 ? 'change' : 'changes';
-  return (
-    `${elsewhere} ${noun} in other projects of this repository ${elsewhere === 1 ? 'is' : 'are'} ` +
-    'not listed. Stage all, Unstage all and Commit apply to the whole repository.'
-  );
+  return `${elsewhere} ${noun} in other projects of this repository ${elsewhere === 1 ? 'is' : 'are'} ` + 'not listed. Stage all, Unstage all and Commit apply to the whole repository.';
 }

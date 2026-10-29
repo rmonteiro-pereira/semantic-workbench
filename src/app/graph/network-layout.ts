@@ -8,13 +8,7 @@ import type { Entity, Relationship } from '../../shared/core/model';
 import { modelCardHeight } from './overview-capacity';
 cytoscape.use(fcose);
 /** Requests a worker-computed layout for a model network. */
-export function layoutNetwork(
-  entities: Entity[],
-  edges: Relationship[],
-  name: string,
-  options: Record<string, unknown> = {},
-  grouping?: GroupingOptions,
-) {
+export function layoutNetwork(entities: Entity[], edges: Relationship[], name: string, options: Record<string, unknown> = {}, grouping?: GroupingOptions) {
   const o = modelOverview(entities, edges, name, false, grouping);
   const connections = groupRelationships(o.links);
   const cy = cytoscape({
@@ -60,14 +54,7 @@ export function layoutNetwork(
     packComponents: true,
     ...options,
   } as any).run();
-  const groupBounds = new Map(
-    o.groups.map(g => [
-      g.id,
-      cy
-        .getElementById('area:' + g.id)
-        .boundingBox({ includeLabels: false, includeOverlays: false }),
-    ]),
-  );
+  const groupBounds = new Map(o.groups.map(g => [g.id, cy.getElementById('area:' + g.id).boundingBox({ includeLabels: false, includeOverlays: false })]));
   const minX = Math.min(0, ...[...groupBounds.values()].map(b => b.x1)) - 40;
   const minY = Math.min(0, ...[...groupBounds.values()].map(b => b.y1)) - 40;
   const nodes = [
@@ -86,9 +73,7 @@ export function layoutNetwork(
     ...o.entities.map(e => {
       const g = o.groupOf.get(e.id)!;
       const parent = groupBounds.get(g)!;
-      const b = cy
-        .getElementById(e.id)
-        .boundingBox({ includeLabels: false, includeOverlays: false });
+      const b = cy.getElementById(e.id).boundingBox({ includeLabels: false, includeOverlays: false });
       return {
         id: e.id,
         x: b.x1 - parent.x1,

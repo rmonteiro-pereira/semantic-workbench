@@ -30,20 +30,13 @@ export function themeViolations(paths?: string[]): ThemeViolation[] {
 export function runThemeCheck(paths?: string[]): number {
   const violations = themeViolations(paths);
   if (!violations.length) {
-    console.log(
-      'No colour literals outside src/shared/theme/theme.css and src/app/theme/theme-palette.ts.',
-    );
+    console.log('No colour literals outside src/shared/theme/theme.css and src/app/theme/theme-palette.ts.');
     return 0;
   }
   for (const { file, line, literal } of violations) {
-    console.error(
-      `${file}:${line}  colour literal ${literal}; use a token from src/shared/theme/theme.css`,
-    );
+    console.error(`${file}:${line}  colour literal ${literal}; use a token from src/shared/theme/theme.css`);
   }
-  console.error(
-    `${violations.length} colour literals outside the theme. Run bun scripts/theme-codemod.ts ` +
-      'to replace them with tokens.',
-  );
+  console.error(`${violations.length} colour literals outside the theme. Run bun scripts/theme-codemod.ts ` + 'to replace them with tokens.');
   return 1;
 }
 

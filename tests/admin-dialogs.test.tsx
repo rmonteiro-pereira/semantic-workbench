@@ -26,9 +26,7 @@ test('cancelled grant reviews require a new dry run and server guard errors stay
   await form.getByLabel('E-mail address').fill('Erin@Example.org');
   await form.getByRole('button', { name: 'Dry run', exact: true }).click();
   const preview = page.getByRole('dialog');
-  await browserExpect(preview.getByRole('region', { name: 'Dry-run result' })).toContainText(
-    'Erin',
-  );
+  await browserExpect(preview.getByRole('region', { name: 'Dry-run result' })).toContainText('Erin');
   expect(await preview.evaluate(element => element.matches(':modal'))).toBe(true);
   await preview.getByRole('button', { name: 'Cancel changes', exact: true }).click();
   await form.getByLabel('Role', { exact: true }).selectOption('editor');
@@ -77,9 +75,7 @@ test('invalid raw policies show line and column and cannot reach dry run', async
   const editor = page.getByRole('region', { name: 'Policy editor', exact: true });
   await editor.getByLabel('Advanced raw editor').check();
   await editor.getByRole('button', { name: 'Validate', exact: true }).click();
-  await browserExpect(editor.getByRole('alert').last()).toContainText(
-    'Line 1, column 2: Invalid policy',
-  );
+  await browserExpect(editor.getByRole('alert').last()).toContainText('Line 1, column 2: Invalid policy');
   await browserExpect(editor.getByRole('button', { name: 'Dry run', exact: true })).toBeDisabled();
 }, 20_000);
 
@@ -90,27 +86,18 @@ test('access check sends hypothetical attributes and renders provenance', async 
   await area.getByLabel('E-mail address').fill('Erin@Example.org');
   await area.getByLabel('Project', { exact: true }).fill('sales');
   await area.getByRole('button', { name: 'Check access', exact: true }).click();
-  await browserExpect(area.getByRole('region', { name: 'Access result' })).toContainText(
-    'role:editor:1',
-  );
+  await browserExpect(area.getByRole('region', { name: 'Access result' })).toContainText('role:editor:1');
   const sent = requests.filter(request => request.path === '/api/admin/check').at(-1)!;
   expect(sent.body.principal).toEqual({ groups: ['sales', 'hr'], email: 'erin@example.org' });
   await area.getByRole('button', { name: 'Who can access', exact: true }).click();
-  await browserExpect(area.getByRole('region', { name: 'Who can access results' })).toContainText(
-    'erin@example.org',
-  );
+  await browserExpect(area.getByRole('region', { name: 'Who can access results' })).toContainText('erin@example.org');
 }, 20_000);
 
 test('project changes require review and preserve unrelated restrictions', async () => {
   const area = await openArea('Projects access');
   await area.getByLabel('Domain for sales', { exact: true }).selectOption('');
-  await area
-    .getByRole('region', { name: 'Save project access', exact: true })
-    .getByRole('button', { name: 'Preview project access', exact: true })
-    .click();
-  await browserExpect(
-    page.getByRole('dialog').getByRole('button', { name: 'Confirm save project access' }),
-  ).toBeVisible();
+  await area.getByRole('region', { name: 'Save project access', exact: true }).getByRole('button', { name: 'Preview project access', exact: true }).click();
+  await browserExpect(page.getByRole('dialog').getByRole('button', { name: 'Confirm save project access' })).toBeVisible();
   await cancelAdminDialog(page, 'Cancel changes');
   const sent = requests.filter(request => request.path === '/api/admin/policies/dry-run').at(-1)!;
   expect(sent.body.projects.sales.domain).toBeUndefined();
@@ -122,16 +109,10 @@ test('settings show provider metadata and confirm lifetime changes', async () =>
   await browserExpect(area).toContainText('workbench');
   await area.getByLabel('Idle hours').fill('4');
   await area.getByRole('button', { name: 'Save settings', exact: true }).click();
-  await browserExpect(
-    area.getByRole('button', { name: 'Confirm save settings', exact: true }),
-  ).toBeVisible();
+  await browserExpect(area.getByRole('button', { name: 'Confirm save settings', exact: true })).toBeVisible();
   await area.getByRole('button', { name: 'Confirm save settings', exact: true }).click();
-  await browserExpect(
-    area.getByRole('button', { name: 'Confirm save settings', exact: true }),
-  ).toHaveCount(0);
-  const sent = requests
-    .filter(request => request.path === '/api/admin/settings' && request.method === 'PUT')
-    .at(-1)!;
+  await browserExpect(area.getByRole('button', { name: 'Confirm save settings', exact: true })).toHaveCount(0);
+  const sent = requests.filter(request => request.path === '/api/admin/settings' && request.method === 'PUT').at(-1)!;
   expect(sent.body.session.idleHours).toBe(4);
   expect(sent.body.baseVersion).toBe('base');
 }, 20_000);
@@ -139,13 +120,9 @@ test('settings show provider metadata and confirm lifetime changes', async () =>
 test('audit paging uses the server cursor and filters reset pagination', async () => {
   const area = await openArea('Audit');
   await area.getByRole('button', { name: 'Next page', exact: true }).click();
-  await browserExpect(
-    area.getByRole('button', { name: 'Previous page', exact: true }),
-  ).toBeEnabled();
+  await browserExpect(area.getByRole('button', { name: 'Previous page', exact: true })).toBeEnabled();
   await area.getByLabel('Decision', { exact: true }).selectOption('deny');
-  await browserExpect(
-    area.getByRole('button', { name: 'Previous page', exact: true }),
-  ).toBeDisabled();
+  await browserExpect(area.getByRole('button', { name: 'Previous page', exact: true })).toBeDisabled();
 }, 20_000);
 
 test('Escape closes only the dialog on top, leaving the page and its pane open', async () => {
@@ -169,9 +146,7 @@ test('sections have their own address, and Back returns to the previous section'
   expect(new URL(page.url()).hash).toBe('#/admin/users');
   await page.goBack();
   expect(new URL(page.url()).hash).toBe('#/admin/grants');
-  await browserExpect(
-    page.getByRole('region', { name: 'Access grants', exact: true }),
-  ).toBeVisible();
+  await browserExpect(page.getByRole('region', { name: 'Access grants', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Back to workspace', exact: true }).click();
   await browserExpect(page.locator('.admin-page')).toHaveCount(0);
   expect(new URL(page.url()).hash).toBe('');
@@ -189,14 +164,10 @@ test('a proposal update while review is open requires a fresh component review',
     await reviewPage.addStyleTag({ content: style });
     await reviewPage.addScriptTag({ content: script, type: 'module' });
     await reviewPage.getByRole('button', { name: 'Dry run', exact: true }).click();
-    await browserExpect(
-      reviewPage.getByRole('button', { name: 'Confirm save changes' }),
-    ).toBeVisible();
+    await browserExpect(reviewPage.getByRole('button', { name: 'Confirm save changes' })).toBeVisible();
     await reviewPage.evaluate(() => window.dispatchEvent(new Event('review-proposal-changed')));
     await browserExpect(reviewPage.getByRole('dialog')).toHaveCount(0);
-    await browserExpect(
-      reviewPage.getByRole('button', { name: 'Confirm save changes' }),
-    ).toHaveCount(0);
+    await browserExpect(reviewPage.getByRole('button', { name: 'Confirm save changes' })).toHaveCount(0);
     expect(reviewState.requests.filter(request => request.method === 'PUT')).toHaveLength(0);
     await reviewPage.getByRole('button', { name: 'Dry run', exact: true }).click();
     await reviewPage.getByRole('button', { name: 'Confirm save changes' }).click();

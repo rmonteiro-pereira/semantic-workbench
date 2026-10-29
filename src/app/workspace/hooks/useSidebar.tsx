@@ -20,10 +20,7 @@ function readSidebarWidth(): number {
 /** Manages sidebar. */
 export function useSidebar() {
   const compact = useNarrowScreen();
-  const [drawerOpen, setSidebarOpen, setSidebarOpenSilently] = useRecordedState(
-    'sidebar.drawer',
-    false,
-  );
+  const [drawerOpen, setSidebarOpen, setSidebarOpenSilently] = useRecordedState('sidebar.drawer', false);
   const [sidebarHidden, setSidebarHidden] = useRecordedState('sidebar.hidden', () => {
     try {
       return localStorage.getItem('workbench.sidebarHidden') === 'true';
@@ -87,17 +84,8 @@ export function useSidebar() {
     if (!compact || !sidebarOpen) return;
     const element = sidebarRef.current;
     if (!element) return;
-    const focusSelector = [
-      'button:not([disabled])',
-      'input:not([disabled])',
-      'select:not([disabled])',
-      'summary',
-      '[tabindex="0"]',
-    ].join(',');
-    const focusable = () =>
-      Array.from(element.querySelectorAll<HTMLElement>(focusSelector)).filter(
-        node => node.getClientRects().length > 0,
-      );
+    const focusSelector = ['button:not([disabled])', 'input:not([disabled])', 'select:not([disabled])', 'summary', '[tabindex="0"]'].join(',');
+    const focusable = () => Array.from(element.querySelectorAll<HTMLElement>(focusSelector)).filter(node => node.getClientRects().length > 0);
     focusable()[0]?.focus();
     const keyboard = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {

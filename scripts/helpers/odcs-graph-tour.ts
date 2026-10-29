@@ -64,9 +64,6 @@ export async function odcsGraphScreenProblems(page: Page, screen: Screen): Promi
   if (screen.dialog) return [];
   // With every card on screen the canvas zooms out, so only the first view must read at 12 px.
   const readableColumns = screen.name !== 'odcs-graph-all-cards';
-  const problems = [
-    ...(await odcsGraphProblems(page, { readableColumns })),
-    ...(await hopRowProblems(page)),
-  ];
+  const problems = [...(await odcsGraphProblems(page, { readableColumns })), ...(await hopRowProblems(page))];
   return problems.map(problem => `${screen.name}: ${problem}`);
 }

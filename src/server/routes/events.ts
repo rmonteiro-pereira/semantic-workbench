@@ -12,12 +12,7 @@ export function eventRoutes(options: HandlerOptions = {}): Route {
     options.keepOpen?.(request);
     if (options.authentication) return sessionEventResponse(ws, request, options.authentication);
     // Without server sessions nobody is told individually, so every policy reload closes the stream.
-    return ws.events.stream(
-      request,
-      undefined,
-      eventAccess(ws, request),
-      options.access?.subscribe,
-    );
+    return ws.events.stream(request, undefined, eventAccess(ws, request), options.access?.subscribe);
   };
 }
 
@@ -38,18 +33,10 @@ function eventAccess(ws: Workspace, request: Request): EventAccess | undefined {
 }
 
 /** Binds an authenticated event stream to revocation of its server-held session. */
-export async function sessionEventResponse(
-  ws: Workspace,
-  request: Request,
-  authentication: ServerAuthentication['authentication'],
-) {
+export async function sessionEventResponse(ws: Workspace, request: Request, authentication: ServerAuthentication['authentication']) {
   const session = await authentication.session(request);
   if (!session) return Response.json({ error: 'sign-in required' }, { status: 401 });
   // The administration service closes only the streams of the people a change affects, through
   // their sessions, so a policy reload alone leaves the others open.
-  return ws.events.stream(
-    request,
-    listener => authentication.sessions.subscribe(session.id, listener),
-    eventAccess(ws, request),
-  );
+  return ws.events.stream(request, listener => authentication.sessions.subscribe(session.id, listener), eventAccess(ws, request));
 }

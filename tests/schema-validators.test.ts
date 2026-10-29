@@ -18,9 +18,7 @@ test('regeneration is byte-identical to the checked-in validators', () => {
     const existing = 'src/generated';
     expect(readdirSync(root).sort()).toEqual(readdirSync(existing).sort());
     for (const name of readdirSync(root)) {
-      expect(readFileSync(`${root}/${name}`, 'utf8')).toBe(
-        readFileSync(`${existing}/${name}`, 'utf8'),
-      );
+      expect(readFileSync(`${root}/${name}`, 'utf8')).toBe(readFileSync(`${existing}/${name}`, 'utf8'));
     }
     const generated = readFileSync(join(root, 'validators.js'), 'utf8');
     expect(generated).toContain('const odcsContractSchema =');
@@ -53,12 +51,7 @@ for (const [name, schema, precompiled, valid] of [
     },
   ],
   ['metric', metricSchema, metric, { schema: 'semantic-workbench/metric/v1', type: 'simple' }],
-  [
-    'mapping',
-    mappingSchema,
-    mapping,
-    { schema: 'semantic-workbench/mapping/v1', kpi_bindings: [] },
-  ],
+  ['mapping', mappingSchema, mapping, { schema: 'semantic-workbench/mapping/v1', kpi_bindings: [] }],
 ] as const) {
   test(`${name} standalone validation preserves acceptance and error details`, () => {
     const compiler = new Ajv2020({ strict: false, allErrors: true });

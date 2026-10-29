@@ -7,12 +7,7 @@ import { createAccessControl } from '../../src/server/auth/authorize';
 import { LOCAL_READER } from '../../src/server/projects/reader';
 import { locationOf } from '../../src/server/projects/paths';
 import { testWorkspace } from '../helpers/temp-data-dir';
-import {
-  OTHER_FOLDER,
-  PROJECT_FOLDER,
-  cloneOutcome,
-  teamRepository,
-} from '../helpers/sparse-fixtures';
+import { OTHER_FOLDER, PROJECT_FOLDER, cloneOutcome, teamRepository } from '../helpers/sparse-fixtures';
 import { accessFixture, person } from './access-fixture';
 import { copyFolder, gitOutput, saveText, signedIn, textAt } from './working-copy-fixture';
 
@@ -92,8 +87,7 @@ test('folder changes explain the server restriction without revealing unreadable
     const administrator = as(person('dave'));
     const carol = as(person('carol'));
     const route = `/api/projects/${project.slug}/git/folder`;
-    const guidance =
-      'Choosing a folder for an existing project works in local mode. Clone the folder instead.';
+    const guidance = 'Choosing a folder for an existing project works in local mode. Clone the folder instead.';
     for (const method of ['GET', 'PUT']) {
       const path = method === 'GET' ? `${route}?folder=semantic%2Fother` : route;
       const body = method === 'PUT' ? { folder: 'semantic/other' } : undefined;

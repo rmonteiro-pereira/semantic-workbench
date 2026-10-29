@@ -40,11 +40,7 @@ type Props = {
   setImporting: React.Dispatch<React.SetStateAction<{ project?: string | undefined } | null>>;
   importInput: React.RefObject<HTMLInputElement | null>;
   importInto: React.RefObject<string>;
-  importIntoProject: (
-    files: { path: string; source: string }[],
-    onConflict?: 'replace' | 'keep-both' | undefined,
-    slug?: string | undefined,
-  ) => Promise<void>;
+  importIntoProject: (files: { path: string; source: string }[], onConflict?: 'replace' | 'keep-both' | undefined, slug?: string | undefined) => Promise<void>;
   importFiles: (files: File[]) => Promise<void>;
 };
 /** Where the project folders live, and where an edit goes, for the person signed in. */
@@ -60,10 +56,7 @@ function WorkspaceLocation({ place }: { place: FolderPlace }) {
       </div>
     );
   }
-  const note =
-    place === 'own-copy'
-      ? 'Your changes stay in your own working copy until published.'
-      : 'You see the published definitions.';
+  const note = place === 'own-copy' ? 'Your changes stay in your own working copy until published.' : 'You see the published definitions.';
   return (
     <div className="local">
       <span className="dot" /> Project folders · on the server
@@ -137,8 +130,7 @@ export const WorkspaceSidebar = React.memo(function WorkspaceSidebar({
   function handleTreeAction(action: TreeAction) {
     const repo = projects.find(project => project.slug === action.project)?.repo;
     if (action.action === 'remote') openGitSetup({ kind: 'remote', project: action.project });
-    else if (action.action === 'repository-projects' && repo)
-      openGitSetup({ kind: 'repository-projects', repo });
+    else if (action.action === 'repository-projects' && repo) openGitSetup({ kind: 'repository-projects', repo });
     else treeAction(action);
   }
 
@@ -170,24 +162,15 @@ export const WorkspaceSidebar = React.memo(function WorkspaceSidebar({
     importInto.current = '';
     e.target.value = '';
     if (into)
-      void Promise.all(files.map(async f => ({ path: f.name, source: await f.text() }))).then(
-        list => {
-          if (list.length) void importIntoProject(list, undefined, into);
-        },
-      );
+      void Promise.all(files.map(async f => ({ path: f.name, source: await f.text() }))).then(list => {
+        if (list.length) void importIntoProject(list, undefined, into);
+      });
     else void importFiles(files);
   }
 
   return (
     <>
-      {compact && sidebarOpen && (
-        <button
-          className="workspace-scrim"
-          aria-label="Dismiss workspace drawer"
-          tabIndex={-1}
-          onClick={closeWorkspace}
-        />
-      )}
+      {compact && sidebarOpen && <button className="workspace-scrim" aria-label="Dismiss workspace drawer" tabIndex={-1} onClick={closeWorkspace} />}
       <aside
         id="workspace-sidebar"
         className="sidebar workspace-sidebar"
@@ -198,54 +181,24 @@ export const WorkspaceSidebar = React.memo(function WorkspaceSidebar({
         aria-label="Workspace documents"
       >
         {compact && (
-          <button
-            className="workspace-close"
-            aria-label="Close workspace drawer"
-            onClick={closeWorkspace}
-          >
+          <button className="workspace-close" aria-label="Close workspace drawer" onClick={closeWorkspace}>
             <X size={18} />
           </button>
         )}
         <div className="brand">
           <BrandLogo className="brand-logo" />
         </div>
-        {access.can('createProject') && (
-          <AddProjectMenu
-            onImport={() => setImporting({})}
-            onClone={() => openGitSetup({ kind: 'clone' })}
-            loadExample={loadExample}
-            busy={busy}
-          />
-        )}
-        <div
-          className="workspace-label"
-          title={
-            me?.mode === 'server'
-              ? 'Project folders live on the shared server.'
-              : 'Project folders live on this machine.'
-          }
-        >
+        {access.can('createProject') && <AddProjectMenu onImport={() => setImporting({})} onClone={() => openGitSetup({ kind: 'clone' })} loadExample={loadExample} busy={busy} />}
+        <div className="workspace-label" title={me?.mode === 'server' ? 'Project folders live on the shared server.' : 'Project folders live on this machine.'}>
           {me?.mode === 'server' ? 'SHARED WORKSPACE' : 'LOCAL WORKSPACE'} <span className="dot" />
         </div>
-        <button
-          className={`nav${tab !== 'scm' && tab !== 'source' ? ' active' : ''}`}
-          aria-current={tab !== 'scm' && tab !== 'source' ? 'page' : undefined}
-          onClick={handleButtonClick}
-        >
+        <button className={`nav${tab !== 'scm' && tab !== 'source' ? ' active' : ''}`} aria-current={tab !== 'scm' && tab !== 'source' ? 'page' : undefined} onClick={handleButtonClick}>
           <Network size={18} /> Model explorer
         </button>
-        <button
-          className={`nav${tab === 'source' ? ' active' : ''}`}
-          aria-current={tab === 'source' ? 'page' : undefined}
-          onClick={handleButtonClick2}
-        >
+        <button className={`nav${tab === 'source' ? ' active' : ''}`} aria-current={tab === 'source' ? 'page' : undefined} onClick={handleButtonClick2}>
           <FileCode size={18} /> Source editor
         </button>
-        <button
-          className={`nav${tab === 'scm' ? ' active' : ''}`}
-          aria-current={tab === 'scm' ? 'page' : undefined}
-          onClick={handleButtonClick3}
-        >
+        <button className={`nav${tab === 'scm' ? ' active' : ''}`} aria-current={tab === 'scm' ? 'page' : undefined} onClick={handleButtonClick3}>
           <GitBranch size={18} /> Source control
           {(() => {
             const count = projects.find(p => p.slug === selectedProject)?.changes ?? 0;
@@ -273,23 +226,14 @@ export const WorkspaceSidebar = React.memo(function WorkspaceSidebar({
           />
         </div>
         <div className="sidebar-footer">
-          <Suggestions
-            items={suggestions}
-            projects={projects}
-            onAccept={handleSuggestionsAccept}
-            onReject={handleSuggestionsReject}
-          />
+          <Suggestions items={suggestions} projects={projects} onAccept={handleSuggestionsAccept} onReject={handleSuggestionsReject} />
           <button className="nav sidebar-row" onClick={() => setTrashOpen(true)}>
             <Trash2 size={18} /> Trash
           </button>
           <SettingsPanel
             sidebar={sidebarRef}
             onClearWorkspace={() => setDeleteTarget({ kind: 'clear' })}
-            clearDisabled={clearWorkspaceBlocker(
-              projects.length > 0,
-              access.can('clear'),
-              access.control('clear').title,
-            )}
+            clearDisabled={clearWorkspaceBlocker(projects.length > 0, access.can('clear'), access.control('clear').title)}
           />
           {/* The one file field: the Import dialog opens it for a new or an existing project. */}
           <input

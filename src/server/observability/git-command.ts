@@ -34,12 +34,7 @@ export function summarizeGitArgs(args: string[]): GitSummary {
 export type GitOutcome = { code: number };
 
 /** Runs a Git command inside a span and records its duration and whether it failed. */
-export async function observeGitCommand<T extends GitOutcome>(
-  subcommand: string,
-  args: string[],
-  remote: boolean,
-  run: () => Promise<T>,
-): Promise<T> {
+export async function observeGitCommand<T extends GitOutcome>(subcommand: string, args: string[], remote: boolean, run: () => Promise<T>): Promise<T> {
   const summary = summarizeGitArgs(args);
   const attributes = {
     'sw.git.subcommand': subcommand,

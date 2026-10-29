@@ -115,8 +115,6 @@ test('pages redirect, denied identities stay outside, refresh removes grants, lo
 test('the auth modules never import HTTP routing, which depends on them', async () => {
   const { readdirSync, readFileSync } = await import('node:fs');
   const modules = readdirSync('src/server/auth').filter(name => name.endsWith('.ts'));
-  const importers = modules.filter(name =>
-    /from '\.\.\/routes\//.test(readFileSync('src/server/auth/' + name, 'utf8')),
-  );
+  const importers = modules.filter(name => /from '\.\.\/routes\//.test(readFileSync('src/server/auth/' + name, 'utf8')));
   expect(importers).toEqual([]);
 });

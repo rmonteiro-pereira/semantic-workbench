@@ -88,13 +88,9 @@ test('after the key rotates the server starts, old cookies are signed out and si
   const log = spyOn(console, 'error').mockImplementation(() => {});
   try {
     const restarted = await context.restart(rotated);
-    const stale = await restarted.handler(
-      new Request(context.origin + '/api/me', { headers: { Cookie: oldCookie } }),
-    );
+    const stale = await restarted.handler(new Request(context.origin + '/api/me', { headers: { Cookie: oldCookie } }));
     expect(stale.status).toBe(401);
-    const again = await restarted.handler(
-      new Request(context.origin + '/api/me', { headers: { Cookie: oldCookie } }),
-    );
+    const again = await restarted.handler(new Request(context.origin + '/api/me', { headers: { Cookie: oldCookie } }));
     expect(again.status).toBe(401);
     expect(readdirSync(join(context.fixture.root, 'state/sessions'))).toEqual([]);
   } finally {
@@ -112,14 +108,10 @@ test('a callback that still carries a cookie of the old key completes the sign-i
     const first = await restarted.handler(new Request(context.origin + '/auth/login'));
     const attempt = first.headers.getSetCookie()[0].split(';')[0];
     const callback = context.transport.authorize(first.headers.get('location')!, 'bob');
-    const response = await restarted.handler(
-      new Request(callback, { headers: { Cookie: `${attempt}; ${oldCookie}` } }),
-    );
+    const response = await restarted.handler(new Request(callback, { headers: { Cookie: `${attempt}; ${oldCookie}` } }));
     expect(response.status).toBe(302);
     const fresh = sessionCookieOf(response);
-    const me = await restarted.handler(
-      new Request(context.origin + '/api/me', { headers: { Cookie: fresh } }),
-    );
+    const me = await restarted.handler(new Request(context.origin + '/api/me', { headers: { Cookie: fresh } }));
     expect(me.status).toBe(200);
   } finally {
     log.mockRestore();

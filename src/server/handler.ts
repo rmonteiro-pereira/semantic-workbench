@@ -4,12 +4,7 @@ import { BadRequestError, HiddenResourceError } from './projects/errors';
 import { join } from 'node:path';
 import { requestReader } from './auth/request-scope';
 import { authorizeWrite, WriteAccessError } from './auth/write-access';
-import {
-  createAccessMiddleware,
-  defaultAccess,
-  defaultAdministration,
-  type HandlerOptions,
-} from './auth/middleware';
+import { createAccessMiddleware, defaultAccess, defaultAdministration, type HandlerOptions } from './auth/middleware';
 import { createAccessAdmin, type AccessAdmin } from './auth/access-admin';
 import type { AdminRepository } from './auth/admin-repo';
 import { createAuditLog } from './auth/audit';
@@ -44,12 +39,7 @@ import { browserReportRoutes } from './routes/browser-reports';
 export const ALLOWED_ORIGINS = allowedOrigins(4310);
 /** Includes the configured API origin and the Vite development server. */
 export function allowedOrigins(port: number) {
-  return [
-    'http://127.0.0.1:5173',
-    'http://localhost:5173',
-    `http://127.0.0.1:${port}`,
-    `http://localhost:${port}`,
-  ];
+  return ['http://127.0.0.1:5173', 'http://localhost:5173', `http://127.0.0.1:${port}`, `http://localhost:${port}`];
 }
 
 // Legacy clients still use document, grouping, and agent endpoints.
@@ -63,14 +53,11 @@ const legacyRoutes: Route = async (ws, req, url) => {
     const legacy = ws.state.legacyIds().ids[doc];
     return legacy ? `${legacy.project}/${legacy.path}${rest}` : id;
   };
-  if (url.pathname === '/api/agent/projects' && req.method === 'GET')
-    return Response.json({ projects: agentProjects(ws, req) });
-  if (url.pathname === '/api/agent/catalog' && req.method === 'GET')
-    return Response.json(agentCatalog(agentDocuments(ws, req, url.searchParams.get('project'))));
+  if (url.pathname === '/api/agent/projects' && req.method === 'GET') return Response.json({ projects: agentProjects(ws, req) });
+  if (url.pathname === '/api/agent/catalog' && req.method === 'GET') return Response.json(agentCatalog(agentDocuments(ws, req, url.searchParams.get('project'))));
   if (url.pathname === '/api/agent/context' && req.method === 'GET') {
     const mappingId = url.searchParams.get('mappingId');
-    if (!mappingId)
-      throw new BadRequestError('mappingId is required. List mappings at /api/agent/catalog.');
+    if (!mappingId) throw new BadRequestError('mappingId is required. List mappings at /api/agent/catalog.');
     const project = url.searchParams.get('project') ?? '';
     const documents = agentDocuments(ws, req, project);
     requireReadableDocument(ws, req, mappingRef(mappingId));
@@ -82,23 +69,12 @@ const legacyRoutes: Route = async (ws, req, url) => {
   }
   if (url.pathname === '/api/agent/plan' && req.method === 'POST') {
     const body = await readJson(req, 64_000);
-    if (
-      !body ||
-      Array.isArray(body) ||
-      Object.keys(body).some(
-        k => !['project', 'mappingId', 'concepts', 'metrics', 'dimensions'].includes(k),
-      ) ||
-      typeof body.mappingId !== 'string'
-    )
-      throw new BadRequestError(
-        'Expected project, mappingId, optional concepts, metrics and dimensions. Expressions and metric overrides are not accepted.',
-      );
+    if (!body || Array.isArray(body) || Object.keys(body).some(k => !['project', 'mappingId', 'concepts', 'metrics', 'dimensions'].includes(k)) || typeof body.mappingId !== 'string')
+      throw new BadRequestError('Expected project, mappingId, optional concepts, metrics and dimensions. Expressions and metric overrides are not accepted.');
     for (const key of ['concepts', 'metrics', 'dimensions'])
       if (
         (key !== 'concepts' || body[key] !== undefined) &&
-        (!Array.isArray(body[key]) ||
-          body[key].length > 100 ||
-          body[key].some((id: any) => typeof id !== 'string' || !id.trim() || id.length > 4096))
+        (!Array.isArray(body[key]) || body[key].length > 100 || body[key].some((id: any) => typeof id !== 'string' || !id.trim() || id.length > 4096))
       )
         throw new BadRequestError(`${key} must be an array of at most 100 non-empty ids.`);
     const documents = agentDocuments(ws, req, body.project);
@@ -119,9 +95,7 @@ const legacyRoutes: Route = async (ws, req, url) => {
           typeof value !== 'object' ||
           Array.isArray(value) ||
           Object.keys(value).some(k => !['mode', 'assignments', 'names'].includes(k)) ||
-          !['auto', 'declared', 'namespaces', 'suggested', 'types', 'example'].includes(
-            value.mode ?? 'auto',
-          )
+          !['auto', 'declared', 'namespaces', 'suggested', 'types', 'example'].includes(value.mode ?? 'auto')
         )
           throw new BadRequestError('Invalid grouping view.');
         for (const key of ['assignments', 'names'])
@@ -131,23 +105,18 @@ const legacyRoutes: Route = async (ws, req, url) => {
               !value[key] ||
               Array.isArray(value[key]) ||
               Object.keys(value[key]).length > 10000 ||
-              Object.entries(value[key]).some(
-                ([k, v]) =>
-                  k.length > 4096 || typeof v !== 'string' || !v.trim() || v.length > 4096,
-              ))
+              Object.entries(value[key]).some(([k, v]) => k.length > 4096 || typeof v !== 'string' || !v.trim() || v.length > 4096))
           )
             throw new BadRequestError('Invalid grouping corrections.');
         return Response.json(await ws.saveGrouping(id, value, reader));
       }
     } catch (e) {
       // Legacy local clients expect a 400; server mode answers a missing document like a hidden one.
-      if (e instanceof NotFoundError && !reader.view)
-        throw new BadRequestError('Document not found.');
+      if (e instanceof NotFoundError && !reader.view) throw new BadRequestError('Document not found.');
       throw e;
     }
   }
-  if (url.pathname === '/api/documents' && req.method === 'GET')
-    return Response.json(ws.documentsFor(requestReader(req)));
+  if (url.pathname === '/api/documents' && req.method === 'GET') return Response.json(ws.documentsFor(requestReader(req)));
   if (url.pathname === '/api/documents' && req.method === 'POST') {
     // Bound the request stream before parsing; JSON escaping can expand a 2 MB source.
     const reader = req.body?.getReader();
@@ -176,25 +145,10 @@ const legacyRoutes: Route = async (ws, req, url) => {
     } catch {
       throw new BadRequestError('Malformed JSON request.');
     }
-    if (
-      !body ||
-      Array.isArray(body) ||
-      typeof body.filename !== 'string' ||
-      typeof body.source !== 'string'
-    )
-      throw new BadRequestError('Expected filename and source strings.');
-    if (
-      body.id !== undefined &&
-      (typeof body.id !== 'string' || !body.id.trim() || body.id.length > 1300)
-    )
-      throw new BadRequestError('Invalid document id.');
-    if (body.revision !== undefined && (!Number.isSafeInteger(body.revision) || body.revision < 1))
-      throw new BadRequestError('Revision must be a positive integer.');
-    if (
-      body.baseHash !== undefined &&
-      (typeof body.baseHash !== 'string' || !/^[0-9a-f]{64}$/.test(body.baseHash))
-    )
-      throw new BadRequestError('baseHash must be a SHA-256 hex digest.');
+    if (!body || Array.isArray(body) || typeof body.filename !== 'string' || typeof body.source !== 'string') throw new BadRequestError('Expected filename and source strings.');
+    if (body.id !== undefined && (typeof body.id !== 'string' || !body.id.trim() || body.id.length > 1300)) throw new BadRequestError('Invalid document id.');
+    if (body.revision !== undefined && (!Number.isSafeInteger(body.revision) || body.revision < 1)) throw new BadRequestError('Revision must be a positive integer.');
+    if (body.baseHash !== undefined && (typeof body.baseHash !== 'string' || !/^[0-9a-f]{64}$/.test(body.baseHash))) throw new BadRequestError('baseHash must be a SHA-256 hex digest.');
     if (body.id !== undefined) {
       const reference = ws.resolveId(body.id);
       authorizeWrite(req, 'edit', [
@@ -214,19 +168,9 @@ const legacyRoutes: Route = async (ws, req, url) => {
     };
     const version = { revision: body.revision, baseHash: body.baseHash };
     try {
-      return Response.json(
-        await ws.saveDocument(
-          body.filename,
-          body.source,
-          requestReader(req),
-          body.id,
-          version,
-          authorizeTargets,
-        ),
-      );
+      return Response.json(await ws.saveDocument(body.filename, body.source, requestReader(req), body.id, version, authorizeTargets));
     } catch (e) {
-      if (e instanceof StaleError)
-        throw new BadRequestError('Document changed. Reload before saving.');
+      if (e instanceof StaleError) throw new BadRequestError('Document changed. Reload before saving.');
       if (e instanceof NotFoundError) throw new BadRequestError('Document not found.');
       throw e;
     }
@@ -252,23 +196,16 @@ function agentProjects(ws: Workspace, request: Request) {
  * project answers exactly like an unknown one, so a slug cannot be probed.
  */
 function agentDocuments(ws: Workspace, request: Request, project: unknown) {
-  if (typeof project !== 'string' || !project)
-    throw new BadRequestError('project is required. List projects at /api/agent/projects.');
-  if (!agentProjects(ws, request).some(known => known.slug === project))
-    throw new BadRequestError('Project not found.');
+  if (typeof project !== 'string' || !project) throw new BadRequestError('project is required. List projects at /api/agent/projects.');
+  if (!agentProjects(ws, request).some(known => known.slug === project)) throw new BadRequestError('Project not found.');
   return documentsOfProject(ws.documentsFor(requestReader(request)), project);
 }
 /** A mapping is resolved inside its own project, so the request must name that project. */
 function requireMappingInProject(ws: Workspace, mappingId: string, project: string) {
   const owner = ws.resolveId(mappingId.split('#')[0]).project;
-  if (owner !== project)
-    throw new BadRequestError(`mappingId belongs to project ${owner}, not ${project}.`);
+  if (owner !== project) throw new BadRequestError(`mappingId belongs to project ${owner}, not ${project}.`);
 }
-function workspaceRoutes(
-  administration: AdminRepository,
-  access: AccessControl,
-  options: HandlerOptions,
-): Route[] {
+function workspaceRoutes(administration: AdminRepository, access: AccessControl, options: HandlerOptions): Route[] {
   return [
     trashRoutesWith(administration),
     suggestionRoutes,
@@ -288,9 +225,7 @@ function workspaceRoutes(
 /** Accepts loopback hostnames or a missing Host header. */
 export function loopbackHost(host: string | null) {
   if (host === null) return true;
-  const name = host.startsWith('[')
-    ? host.slice(0, host.indexOf(']') + 1)
-    : host.replace(/:\d+$/, '');
+  const name = host.startsWith('[') ? host.slice(0, host.indexOf(']') + 1) : host.replace(/:\d+$/, '');
   return ['127.0.0.1', 'localhost', '[::1]'].includes(name.toLowerCase());
 }
 /** Creates the API handler with local-access checks and shared error responses. */
@@ -332,19 +267,15 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
   const routes: Route[] = [
     adminRoutes(adminService, options),
     auditRoutes(options),
-    ...(options.authentication
-      ? [authRoutes(options.authentication, options.remoteCredentials)]
-      : []),
-    (_workspace, request, url) =>
-      url.pathname === '/api/me' && request.method === 'GET' ? meResponse(request, options) : null,
+    ...(options.authentication ? [authRoutes(options.authentication, options.remoteCredentials)] : []),
+    (_workspace, request, url) => (url.pathname === '/api/me' && request.method === 'GET' ? meResponse(request, options) : null),
     eventRoutes(options),
     browserReportRoutes({ enabled: options.browserReports === true, now: options.now }),
     ...workspaceRoutes(administration, access, options),
   ];
   function localCheck(req: Request): Response | null {
     const origin = req.headers.get('origin');
-    if (origin && !allowedOrigins(options.port ?? 4310).includes(origin))
-      return new Response('Forbidden', { status: 403 });
+    if (origin && !allowedOrigins(options.port ?? 4310).includes(origin)) return new Response('Forbidden', { status: 403 });
     // DNS rebinding: a page on another name resolved to 127.0.0.1 sends its own name as Host, and a
     // same-origin GET carries no Origin. Only loopback names are served.
     if (!loopbackHost(req.headers.get('host'))) return new Response('Forbidden', { status: 403 });
@@ -355,12 +286,7 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
     attachRemoteCredentials(req, remoteMode);
     try {
       if (options.mode === 'server') {
-        const staticResponse = await serveStatic(
-          req,
-          options.staticRoot,
-          options.publicOrigin,
-          options.mode,
-        );
+        const staticResponse = await serveStatic(req, options.staticRoot, options.publicOrigin, options.mode);
         if (staticResponse) return staticResponse;
       }
       for (const route of routes) {
@@ -378,13 +304,9 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
       }
       // Local legacy document and agent clients expect every error to use HTTP 400. A server
       // maps errors alike for every route, so an unexpected failure cannot leak its text.
-      const legacyClient =
-        url.pathname.startsWith('/api/documents') || url.pathname.startsWith('/api/agent/');
+      const legacyClient = url.pathname.startsWith('/api/documents') || url.pathname.startsWith('/api/agent/');
       if (legacyClient && !serverMode) {
-        return Response.json(
-          { error: (e as Error).message, ...(e instanceof InputError ? { issues: e.issues } : {}) },
-          { status: 400 },
-        );
+        return Response.json({ error: (e as Error).message, ...(e instanceof InputError ? { issues: e.issues } : {}) }, { status: 400 });
       }
       return errorResponse(e, options.publicOrigin, context);
     }

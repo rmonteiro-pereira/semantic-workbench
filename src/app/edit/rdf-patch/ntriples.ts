@@ -27,8 +27,7 @@ export function readLines(src: string): Line[] {
     let triple: Triple | null = null;
     if (text.trim() && !text.trim().startsWith('#')) {
       const q = new Parser({ format: 'N-Triples', baseIRI: BASE, blankNodePrefix: '' }).parse(text);
-      if (q.length === 1)
-        triple = { s: plain(q[0].subject), p: plain(q[0].predicate), o: plain(q[0].object) };
+      if (q.length === 1) triple = { s: plain(q[0].subject), p: plain(q[0].predicate), o: plain(q[0].object) };
     }
     out.push({ start, end: start + m[0].length, text, triple });
   }
@@ -38,28 +37,15 @@ export function readLines(src: string): Line[] {
 /** Serializes one triple without a trailing line break. */
 export const ntLine = (s: string, p: string, o: Term) => `<${s}> <${p}> ${ntTerm(o)} .`;
 /** Adds, removes or replaces triple lines while preserving unrelated bytes. */
-export function ntPatches(
-  src: string,
-  lines: Line[],
-  subject: string,
-  removed: Set<number>,
-  replaced: Map<number, string>,
-  added: string[],
-  eol: string,
-): Patch[] {
+export function ntPatches(src: string, lines: Line[], subject: string, removed: Set<number>, replaced: Map<number, string>, added: string[], eol: string): Patch[] {
   const patches: Patch[] = [];
   lines.forEach((l, i) => {
     if (removed.has(i)) patches.push({ from: l.start, to: l.end, insert: '' });
-    else if (replaced.has(i))
-      patches.push({ from: l.start, to: l.start + l.text.length, insert: replaced.get(i)! });
+    else if (replaced.has(i)) patches.push({ from: l.start, to: l.start + l.text.length, insert: replaced.get(i)! });
   });
   if (added.length) {
     // After the subject's last line, or at the end of the file.
-    const last = [...lines.keys()]
-      .filter(
-        i => lines[i].triple?.s.value === subject && lines[i].triple?.s.termType === 'NamedNode',
-      )
-      .at(-1);
+    const last = [...lines.keys()].filter(i => lines[i].triple?.s.value === subject && lines[i].triple?.s.termType === 'NamedNode').at(-1);
     const at = last !== undefined ? lines[last].end : src.length;
     const needsBreak = at > 0 && !/[\r\n]$/.test(src.slice(0, at));
     patches.push({

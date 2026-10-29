@@ -6,12 +6,7 @@ import { LineageCanvas } from '../odcs/LineageCanvas';
 import { Modal } from '../projects/Modal';
 import type { Fullscreen } from '../graph/fullscreen';
 import type { LineageCard, LineageGraph } from '../odcs/lineage';
-import {
-  buildMappingGraph,
-  defaultMappingCenter,
-  type MappingContext,
-  type MappingGraph,
-} from './mapping-graph';
+import { buildMappingGraph, defaultMappingCenter, type MappingContext, type MappingGraph } from './mapping-graph';
 import { agentContextPath } from './agent-paths';
 // The resolver reads the saved revision for standalone and embedded mappings. The canvas indicates
 // when the open document has unsaved edits.
@@ -28,22 +23,9 @@ type Props = {
   toolbarExtra?: React.ReactNode;
   onEditItem?: EditItem;
 };
-const unmapped = (c: LineageCard) =>
-  !!c.badges?.some(b => b.kind === 'unmapped') ||
-  c.columns.some(x => x.badges.some(b => b.kind === 'unmapped'));
+const unmapped = (c: LineageCard) => !!c.badges?.some(b => b.kind === 'unmapped') || c.columns.some(x => x.badges.some(b => b.kind === 'unmapped'));
 /** Displays the resolver's saved mapping graph through the shared lineage canvas. */
-export function MappingCanvas({
-  project,
-  mappingId,
-  revisionKey,
-  dirty,
-  fullscreen,
-  compact,
-  center: requested,
-  ariaLabel = 'Mapping graph',
-  toolbarExtra,
-  onEditItem,
-}: Props) {
+export function MappingCanvas({ project, mappingId, revisionKey, dirty, fullscreen, compact, center: requested, ariaLabel = 'Mapping graph', toolbarExtra, onEditItem }: Props) {
   const [context, setContext] = useState<(MappingContext & { bindings: any[] }) | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -68,10 +50,7 @@ export function MappingCanvas({
       });
     return () => abort.abort();
   }, [project, mappingId, revisionKey]);
-  const graph = useMemo(
-    () => (context ? buildMappingGraph(context, revisionKey) : null),
-    [context],
-  );
+  const graph = useMemo(() => (context ? buildMappingGraph(context, revisionKey) : null), [context]);
   const [onlyUnmapped, setOnlyUnmapped] = useRecordedState('mappings.onlyUnmapped', false);
   const [finding, setFinding] = useState<{ card: string; message: string } | null>(null);
   const storageKey = `workbench:mapping-center:${mappingId}`;
@@ -107,18 +86,12 @@ export function MappingCanvas({
     );
   const bindingsOf = (selected: string, path: { edges: Set<number> } | null) => {
     const ids = new Set<string>();
-    if (path)
-      for (const i of path.edges)
-        for (const b of (graph.edges[i] as any).bindings ?? []) ids.add(b);
+    if (path) for (const i of path.edges) for (const b of (graph.edges[i] as any).bindings ?? []) ids.add(b);
     return [...ids].map(id => graph.bindings.get(id)).filter(Boolean) as any[];
   };
   return (
     <div className={`mapping-canvas${compact ? ' compact' : ''}`}>
-      {dirty && (
-        <p className="mapping-notice">
-          The graph shows the saved revision; your edits appear here once they are saved.
-        </p>
-      )}
+      {dirty && <p className="mapping-notice">The graph shows the saved revision; your edits appear here once they are saved.</p>}
       {graph.findings.length > 0 && (
         <ul className="mapping-graph-findings" aria-label="Mapping findings">
           {graph.findings.map(f => (
@@ -146,11 +119,7 @@ export function MappingCanvas({
           <>
             {toolbarExtra}
             <label className="lineage-check">
-              <input
-                type="checkbox"
-                checked={onlyUnmapped}
-                onChange={e => setOnlyUnmapped(e.target.checked)}
-              />
+              <input type="checkbox" checked={onlyUnmapped} onChange={e => setOnlyUnmapped(e.target.checked)} />
               Unmapped only
             </label>
           </>
@@ -170,12 +139,7 @@ export function MappingCanvas({
                       {b.relationships.length ? '.' + b.relationships.join('.') : ''}
                       {b.expression ? <code>{b.expression}</code> : null}
                     </span>
-                    <button
-                      onClick={() =>
-                        onEditItem?.(b.evidence.documentId, b.evidence.path.slice(0, -1))
-                      }
-                      disabled={!onEditItem}
-                    >
+                    <button onClick={() => onEditItem?.(b.evidence.documentId, b.evidence.path.slice(0, -1))} disabled={!onEditItem}>
                       Edit item
                     </button>
                   </li>

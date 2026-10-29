@@ -35,21 +35,11 @@ export function StaleSaveDialog({
     >
       <section className="stale-save">
         <h2 id="stale-title">{filename} changed since you opened it</h2>
-        <p>
-          Another tab, an external editor or Git wrote a newer version. Your edits were not saved.
-          Compare the versions and choose how to continue.
-        </p>
+        <p>Another tab, an external editor or Git wrote a newer version. Your edits were not saved. Compare the versions and choose how to continue.</p>
         {current === null ? (
           <p>The file no longer exists on disk.</p>
         ) : (
-          <DiffView
-            label="Your version and the current file"
-            filename={filename}
-            before={current}
-            after={mine}
-            beforeLabel="Current file on disk"
-            afterLabel="Your version (not saved)"
-          />
+          <DiffView label="Your version and the current file" filename={filename} before={current} after={mine} beforeLabel="Current file on disk" afterLabel="Your version (not saved)" />
         )}
         <div className="repair-actions">
           <button onClick={onCancel}>Keep editing</button>

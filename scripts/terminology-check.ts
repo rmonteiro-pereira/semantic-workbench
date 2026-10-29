@@ -7,8 +7,7 @@ import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 // such as `kpi_bindings` are allowed.
 const api = await startIsolatedApi();
 const loaded: Record<string, { slug: string; name: string }> = {};
-for (const id of ['mall', 'flights', 'commerce', 'mapped-commerce', 'billing'])
-  loaded[id] = await api.ws.loadExample(id);
+for (const id of ['mall', 'flights', 'commerce', 'mapped-commerce', 'billing']) loaded[id] = await api.ws.loadExample(id);
 const sources = readdirSync('public/examples', { recursive: true, withFileTypes: true })
   .filter(f => f.isFile() && /\.(ya?ml|json|ttl|owl|sql)$/.test(f.name))
   .map(f => readFileSync(`${f.parentPath}/${f.name}`, 'utf8'))
@@ -16,8 +15,7 @@ const sources = readdirSync('public/examples', { recursive: true, withFileTypes:
 const KPI = /KPI/;
 // ODCS schema entries are Tables in the interface; the standard's own name for them stays out.
 const CONTRACT_OBJECT = /contract objects?/i;
-const retiredTerm = (text: string) =>
-  KPI.test(text.replace(/kpi_bindings/g, '')) || CONTRACT_OBJECT.test(text);
+const retiredTerm = (text: string) => KPI.test(text.replace(/kpi_bindings/g, '')) || CONTRACT_OBJECT.test(text);
 const allowed = (text: string) => {
   const t = text.trim();
   return !retiredTerm(t) || (t.length > 3 && sources.includes(t));
@@ -34,9 +32,7 @@ async function scan(p: Page, where: string) {
       if (s.display === 'none' || s.visibility === 'hidden') continue;
       if (n.textContent?.trim()) out.push(n.textContent);
     }
-    for (const el of document.querySelectorAll(
-      '[aria-label],[title],[placeholder],[aria-description]',
-    ))
+    for (const el of document.querySelectorAll('[aria-label],[title],[placeholder],[aria-description]'))
       for (const a of ['aria-label', 'title', 'placeholder', 'aria-description']) {
         const v = el.getAttribute(a);
         if (v && !el.closest('.cm-editor')) out.push(v);
@@ -57,23 +53,11 @@ await routeApi(page, api);
 const tree = () => page.getByRole('tree', { name: 'Projects' });
 const tab = (name: RegExp | string) => page.locator('.tabs').getByRole('button', { name });
 async function openFile(project: string, path: string) {
-  await tree()
-    .getByRole('treeitem', { name: project })
-    .getByRole('button', { name: path, exact: true })
-    .click();
+  await tree().getByRole('treeitem', { name: project }).getByRole('button', { name: path, exact: true }).click();
   await page.waitForTimeout(400);
 }
 async function visitTabs(where: string) {
-  for (const name of [
-    'Overview',
-    'Graph',
-    'Neighborhood',
-    'Catalog',
-    'Source',
-    'Mappings',
-    /^Metrics/,
-    'Contract',
-  ]) {
+  for (const name of ['Overview', 'Graph', 'Neighborhood', 'Catalog', 'Source', 'Mappings', /^Metrics/, 'Contract']) {
     const t = tab(name as any);
     if (!(await t.count())) continue;
     await t.first().click();
@@ -146,10 +130,7 @@ try {
     throw Error('Terminology check failed.');
   }
   if (errors.length) throw Error(errors.join('\n'));
-  console.log(
-    `Terminology check passed: no "KPI" or "contract object" in ${files.length} files' views, ` +
-      `the metric detail, the wizard, README and docs (isolated data root ${api.root}).`,
-  );
+  console.log(`Terminology check passed: no "KPI" or "contract object" in ${files.length} files' views, ` + `the metric detail, the wizard, README and docs (isolated data root ${api.root}).`);
 } finally {
   await browser.close();
   await api.stop();

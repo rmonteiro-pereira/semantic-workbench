@@ -7,34 +7,17 @@ import { join } from 'node:path';
 import { fixtureFiles } from '../helpers/auth-workspace';
 import { TEST_USERS } from '../helpers/auth-identities';
 import { testWorkspace } from '../helpers/temp-data-dir';
-import {
-  AZURE_DEVOPS_AUDIENCE,
-  GITHUB_APP,
-  MACHINE_HELPER,
-  git,
-  lastPush,
-  origin,
-  projectPath,
-  startRemoteSetup,
-  type RemoteSetup,
-} from './remote-setup';
+import { AZURE_DEVOPS_AUDIENCE, GITHUB_APP, MACHINE_HELPER, git, lastPush, origin, projectPath, startRemoteSetup, type RemoteSetup } from './remote-setup';
 import { repoDir } from '../../src/server/projects/paths';
 import { ASKPASS_PROGRAM, credentialSetup, maskToken } from '../../src/server/projects/git';
-import {
-  AZURE_DEVOPS_HOSTS,
-  RemoteHostError,
-  allowedRemoteAddresses,
-  allowedRemoteHost,
-  credentialKind,
-} from '../../src/server/auth/remote-hosts';
+import { AZURE_DEVOPS_HOSTS, RemoteHostError, allowedRemoteAddresses, allowedRemoteHost, credentialKind } from '../../src/server/auth/remote-hosts';
 import { githubUsable } from '../../src/server/auth/remote-credentials';
 
 beforeAll(useDefaultBrand);
 
 let setup: RemoteSetup;
 const signIn = (username: string) => setup.signIn(username);
-const call = (cookie: string, method: string, path: string, body?: unknown) =>
-  setup.call(cookie, method, path, body);
+const call = (cookie: string, method: string, path: string, body?: unknown) => setup.call(cookie, method, path, body);
 
 beforeAll(async () => {
   setup = await startRemoteSetup();
@@ -54,9 +37,7 @@ test('an Azure DevOps push uses a token obtained on behalf of the person who pus
     expect(lastPush(setup.azureDevOps)?.identity).toBe(TEST_USERS[username].oid);
   }
   expect(setup.azureDevOps.requests.some(request => request.identity === 'machine')).toBe(false);
-  const tokenRequests = setup.provider.calls.filter(
-    entry => entry.endpoint === 'token' && entry.params.requested_token_use === 'on_behalf_of',
-  );
+  const tokenRequests = setup.provider.calls.filter(entry => entry.endpoint === 'token' && entry.params.requested_token_use === 'on_behalf_of');
   // MSAL adds the OpenID Connect scopes to every request; Entra ignores them for this grant.
   const openIdScopes = new Set(['openid', 'profile', 'offline_access']);
   const requested = tokenRequests.map(entry =>
@@ -65,10 +46,7 @@ test('an Azure DevOps push uses a token obtained on behalf of the person who pus
       .filter(scope => !openIdScopes.has(scope))
       .join(' '),
   );
-  expect(requested).toEqual([
-    `${AZURE_DEVOPS_AUDIENCE}/.default`,
-    `${AZURE_DEVOPS_AUDIENCE}/.default`,
-  ]);
+  expect(requested).toEqual([`${AZURE_DEVOPS_AUDIENCE}/.default`, `${AZURE_DEVOPS_AUDIENCE}/.default`]);
 });
 
 test('an Admin clone uses the Admin’s own Azure DevOps token', async () => {
@@ -79,9 +57,7 @@ test('an Admin clone uses the Admin’s own Azure DevOps token', async () => {
   let phase = '';
   for (let attempt = 0; attempt < 500 && !['done', 'failed'].includes(phase); attempt++) {
     const events = setup.fixture.ws.events.replay(0) as { event: string; data: any }[];
-    const clone = events.filter(
-      event => event.event === 'clone' && event.data.op === started.body.op,
-    );
+    const clone = events.filter(event => event.event === 'clone' && event.data.op === started.body.op);
     phase = clone.at(-1)?.data.phase ?? '';
     if (!['done', 'failed'].includes(phase)) await Bun.sleep(10);
   }
@@ -107,9 +83,7 @@ test('without a connected GitHub account the push asks for consent and then cont
   const start = await call(alice, 'GET', '/auth/github/start?returnTo=/catalog?view=scm');
   expect(start.status).toBe(302);
   const authorize = new URL(start.headers.get('location')!);
-  expect(authorize.origin + authorize.pathname).toBe(
-    setup.github.origin + '/login/oauth/authorize',
-  );
+  expect(authorize.origin + authorize.pathname).toBe(setup.github.origin + '/login/oauth/authorize');
   expect(authorize.searchParams.get('client_id')).toBe(GITHUB_APP.clientId);
   expect(authorize.searchParams.get('redirect_uri')).toBe(origin + '/auth/github/callback');
   const state = encodeURIComponent(authorize.searchParams.get('state')!);
@@ -194,21 +168,13 @@ test('only an Admin changes remotes, clones or registers projects, and only to a
   for (const username of ['alice', 'bob'] as const) {
     const cookie = await signIn(username);
     expect((await call(cookie, 'PUT', sales + '/git/remote', remote)).status).toBe(403);
-    expect((await call(cookie, 'DELETE', sales + '/git/remote', { name: 'origin' })).status).toBe(
-      403,
-    );
+    expect((await call(cookie, 'DELETE', sales + '/git/remote', { name: 'origin' })).status).toBe(403);
     expect((await call(cookie, 'POST', '/api/clone', { url: remote.url })).status).toBe(403);
     const register = { projects: [{ path: '' }] };
     expect((await call(cookie, 'PUT', '/api/repos/lab-notes/projects', register)).status).toBe(403);
   }
   const dave = await signIn('dave');
-  for (const url of [
-    'https://gitlab.example.com/team/sales.git',
-    'git@github.com:team/sales.git',
-    'ssh://git@github.com/team/sales.git',
-    'http://github.com/team/sales.git',
-    '/srv/elsewhere.git',
-  ]) {
+  for (const url of ['https://gitlab.example.com/team/sales.git', 'git@github.com:team/sales.git', 'ssh://git@github.com/team/sales.git', 'http://github.com/team/sales.git', '/srv/elsewhere.git']) {
     const refused = await call(dave, 'PUT', sales + '/git/remote', { name: 'mirror', url });
     expect(refused.status, url).toBe(400);
     expect(refused.body.allowedHosts).toEqual(setup.allowedHosts);
@@ -216,12 +182,7 @@ test('only an Admin changes remotes, clones or registers projects, and only to a
   const clone = await call(dave, 'POST', '/api/clone', { url: 'https://gitlab.example.com/x.git' });
   expect(clone.status).toBe(400);
   expect(clone.body.allowedHosts).toEqual(setup.allowedHosts);
-  git(repoDir(setup.fixture.ws.layout, 'lab-notes'), [
-    'remote',
-    'add',
-    'origin',
-    'https://gitlab.example.com/notes.git',
-  ]);
+  git(repoDir(setup.fixture.ws.layout, 'lab-notes'), ['remote', 'add', 'origin', 'https://gitlab.example.com/notes.git']);
   const register = await call(dave, 'PUT', '/api/repos/lab-notes/projects', {
     projects: [{ path: '' }],
   });
@@ -230,11 +191,7 @@ test('only an Admin changes remotes, clones or registers projects, and only to a
   const remotes = git(repoDir(setup.fixture.ws.layout, 'sales-contracts'), ['remote']);
   expect(remotes.trim()).toBe('origin');
   const audit = setup.auditEntries().filter(entry => entry.action === 'setRemote');
-  expect(
-    audit.some(
-      entry => entry.decision === 'allow' && entry.principal.id.endsWith(TEST_USERS.dave.oid),
-    ),
-  ).toBe(true);
+  expect(audit.some(entry => entry.decision === 'allow' && entry.principal.id.endsWith(TEST_USERS.dave.oid))).toBe(true);
   expect(audit.filter(entry => entry.decision === 'deny').length).toBeGreaterThanOrEqual(4);
 });
 
@@ -266,9 +223,7 @@ test('allowed hosts and the canonical address server mode stores', () => {
   const allowed = ['github.com', '127.0.0.1:9418'];
   const github = allowedRemoteHost('https://GitHub.com/team/a.git', allowed);
   expect(github).toEqual({ host: 'github.com', address: 'https://github.com/team/a.git' });
-  expect(allowedRemoteHost('https://github.com/team/a.git', ['GitHub.com']).host).toBe(
-    'github.com',
-  );
+  expect(allowedRemoteHost('https://github.com/team/a.git', ['GitHub.com']).host).toBe('github.com');
   expect(allowedRemoteHost('http://127.0.0.1:9418/a.git', allowed).host).toBe('127.0.0.1:9418');
   for (const address of [
     'https://gitlab.example.com/a.git',
@@ -284,20 +239,14 @@ test('allowed hosts and the canonical address server mode stores', () => {
   ]) {
     expect(() => allowedRemoteHost(address, allowed)).toThrow(RemoteHostError);
   }
-  expect(() => allowedRemoteHost('https://me:secret@github.com/a.git', allowed)).toThrow(
-    'password',
-  );
+  expect(() => allowedRemoteHost('https://me:secret@github.com/a.git', allowed)).toThrow('password');
   const remote = { name: 'origin', fetchUrl: 'https://github.com/a.git', pushUrl: '' };
-  expect(allowedRemoteAddresses({ ...remote, pushUrl: remote.fetchUrl }, allowed)).toBe(
-    'github.com',
-  );
+  expect(allowedRemoteAddresses({ ...remote, pushUrl: remote.fetchUrl }, allowed)).toBe('github.com');
   const elsewhere = { ...remote, pushUrl: 'http://127.0.0.1:9418/a.git' };
   expect(() => allowedRemoteAddresses(elsewhere, allowed)).toThrow('same host');
   // Git prompts with the host as the stored address writes it, so it must be canonical.
   const userAddress = 'https://person@github.com/a.git';
-  expect(
-    allowedRemoteAddresses({ ...remote, fetchUrl: userAddress, pushUrl: userAddress }, allowed),
-  ).toBe('github.com');
+  expect(allowedRemoteAddresses({ ...remote, fetchUrl: userAddress, pushUrl: userAddress }, allowed)).toBe('github.com');
   for (const written of ['https://GitHub.com/a.git', 'https://github.com:443/a.git']) {
     const stored = { ...remote, fetchUrl: written, pushUrl: written };
     expect(() => allowedRemoteAddresses(stored, allowed), written).toThrow('save it again');
@@ -351,9 +300,7 @@ test('the per-command credential handed to Git', () => {
     SW_GIT_HOST: 'github.com',
   });
   expect(credentialSetup({ kind: 'none' }).env).toEqual({ GIT_ASKPASS: ASKPASS_PROGRAM });
-  expect(maskToken('denied secret-token-value twice secret-token-value', credential)).toBe(
-    'denied *** twice ***',
-  );
+  expect(maskToken('denied secret-token-value twice secret-token-value', credential)).toBe('denied *** twice ***');
 });
 
 test('the askpass program answers only a whole prompt for its own host', () => {
@@ -364,8 +311,7 @@ test('the askpass program answers only a whole prompt for its own host', () => {
     SW_GIT_TOKEN: 'tok',
     SW_GIT_HOST: 'github.com',
   };
-  const ask = (prompt: string) =>
-    Bun.spawnSync([ASKPASS_PROGRAM, prompt], { env }).stdout.toString();
+  const ask = (prompt: string) => Bun.spawnSync([ASKPASS_PROGRAM, prompt], { env }).stdout.toString();
   expect(ask("Username for 'https://github.com': ")).toBe('person\n');
   expect(ask("Password for 'https://person@github.com': ")).toBe('tok\n');
   // Any other host, such as a redirect target, or a prompt that only ends in the host gets nothing.

@@ -23,10 +23,7 @@ export type DataLayout = {
   locate?: (slug: string) => ProjectLocation | undefined;
 };
 /** Resolves storage paths from a root, defaulting to DATA_DIR or the data directory. */
-export function dataLayout(
-  root = process.env.DATA_DIR || 'data',
-  cacheDir: string | null = process.env.SW_CACHE_DIR || null,
-): DataLayout {
+export function dataLayout(root = process.env.DATA_DIR || 'data', cacheDir: string | null = process.env.SW_CACHE_DIR || null): DataLayout {
   const r = resolve(root);
   const state = join(r, 'state');
   return {
@@ -74,34 +71,23 @@ export function assertSlug(slug: unknown): string {
 export function projectPath(path: unknown): string {
   // Control characters are rejected on purpose: they never belong in a path.
   // oxlint-disable-next-line no-control-regex
-  if (typeof path !== 'string' || !path || path.length > 1024 || /[\x00-\x1f\\]/.test(path))
-    throw new PathError('Invalid file path.');
-  if (path.startsWith('/') || /^[a-zA-Z]:/.test(path))
-    throw new PathError('Absolute paths are not allowed.');
+  if (typeof path !== 'string' || !path || path.length > 1024 || /[\x00-\x1f\\]/.test(path)) throw new PathError('Invalid file path.');
+  if (path.startsWith('/') || /^[a-zA-Z]:/.test(path)) throw new PathError('Absolute paths are not allowed.');
   const parts = path.split('/');
-  if (parts.some(p => p === '' || p === '.' || p === '..'))
-    throw new PathError('Paths may not contain empty, "." or ".." segments.');
-  if (parts.some(p => p.toLowerCase() === '.git'))
-    throw new PathError('Paths under .git are not allowed.');
+  if (parts.some(p => p === '' || p === '.' || p === '..')) throw new PathError('Paths may not contain empty, "." or ".." segments.');
+  if (parts.some(p => p.toLowerCase() === '.git')) throw new PathError('Paths under .git are not allowed.');
   return posix.normalize(path);
 }
 /** Resolves registry folders, ensuring the project lies within its repository. */
-export function locationOf(entry: {
-  slug: string;
-  folder?: string;
-  repo?: string;
-}): ProjectLocation {
+export function locationOf(entry: { slug: string; folder?: string; repo?: string }): ProjectLocation {
   assertSlug(entry.slug);
-  if (entry.folder === undefined && entry.repo === undefined)
-    return { folder: entry.slug, repo: entry.slug };
+  if (entry.folder === undefined && entry.repo === undefined) return { folder: entry.slug, repo: entry.slug };
   const folder = projectPath(entry.folder ?? entry.repo);
   const repo = projectPath(entry.repo ?? folder);
-  if (folder !== repo && !folder.startsWith(repo + '/'))
-    throw new PathError('A project folder must be its repository folder or lie inside it.');
+  if (folder !== repo && !folder.startsWith(repo + '/')) throw new PathError('A project folder must be its repository folder or lie inside it.');
   return { folder, repo };
 }
-const located = (layout: DataLayout, slug: string) =>
-  layout.locate?.(assertSlug(slug)) ?? { folder: slug, repo: slug };
+const located = (layout: DataLayout, slug: string) => layout.locate?.(assertSlug(slug)) ?? { folder: slug, repo: slug };
 /** Returns the project folder using the registry or the slug as a fallback. */
 export function projectDir(layout: DataLayout, slug: string) {
   return join(layout.projects, located(layout, slug).folder);
@@ -157,8 +143,7 @@ export class CaseVariantError extends PathError {
   }
 }
 
-const isMissing = (error: unknown) =>
-  ['ENOENT', 'ENOTDIR'].includes((error as NodeJS.ErrnoException).code ?? '');
+const isMissing = (error: unknown) => ['ENOENT', 'ENOTDIR'].includes((error as NodeJS.ErrnoException).code ?? '');
 
 const foldCase = (name: string) => name.normalize('NFC').toLowerCase();
 
@@ -167,11 +152,7 @@ const foldCase = (name: string) => name.normalize('NFC').toLowerCase();
  * from a sibling only in case. A case-insensitive volume, such as Azure Files over SMB, opens
  * `SECRET/plan.yaml` as `secret/plan.yaml`, so a rule written for `secret/**` would not see it.
  */
-export function assertExactCase(
-  directory: string,
-  rel: string,
-  list: DirectoryLister = readdirSync,
-): void {
+export function assertExactCase(directory: string, rel: string, list: DirectoryLister = readdirSync): void {
   let at = directory;
   for (const part of rel.split('/')) {
     let names: string[];
@@ -209,10 +190,8 @@ export function projectName(name: unknown, existing: string[] = [], except?: str
   const value = name.trim();
   // Control characters are rejected on purpose: they never belong in a name.
   // oxlint-disable-next-line no-control-regex
-  if (!value || value.length > 200 || /[\x00-\x1f]/.test(value))
-    throw new PathError('Use a project name of 1–200 characters.');
-  if (existing.some(n => n !== except && n.toLocaleLowerCase() === value.toLocaleLowerCase()))
-    throw new PathError(`A project named "${value}" already exists.`);
+  if (!value || value.length > 200 || /[\x00-\x1f]/.test(value)) throw new PathError('Use a project name of 1–200 characters.');
+  if (existing.some(n => n !== except && n.toLocaleLowerCase() === value.toLocaleLowerCase())) throw new PathError(`A project named "${value}" already exists.`);
   return value;
 }
 /** Creates an available project identifier by normalizing the name and adding a suffix. */

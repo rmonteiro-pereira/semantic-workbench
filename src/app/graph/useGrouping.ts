@@ -32,12 +32,10 @@ export function useGrouping(documentId?: string) {
           return r.json();
         })
         .then(value => {
-          if (version.current === revision)
-            setState({ id: documentId, value, loaded: true, error: '' });
+          if (version.current === revision) setState({ id: documentId, value, loaded: true, error: '' });
         })
         .catch(e => {
-          if (e.name !== 'AbortError' && version.current === revision)
-            setState({ id: documentId, value: {}, loaded: false, error: e.message });
+          if (e.name !== 'AbortError' && version.current === revision) setState({ id: documentId, value: {}, loaded: false, error: e.message });
         });
     return () => controller.abort();
   }, [documentId]);
@@ -69,10 +67,7 @@ export function useGrouping(documentId?: string) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(value),
         });
-        if (!response.ok)
-          throw Error(
-            'Grouping could not be saved. Your current view is retained; try the change again.',
-          );
+        if (!response.ok) throw Error('Grouping could not be saved. Your current view is retained; try the change again.');
       })
       .catch(e => {
         if (version.current === revision) setState(old => ({ ...old, error: e.message }));

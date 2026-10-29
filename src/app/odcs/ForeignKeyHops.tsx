@@ -7,9 +7,7 @@ import './hops.css';
 
 /** The most hops a view can follow. */
 export const MAX_HOPS = 5;
-const HELP =
-  'A hop is one foreign key, followed from the centre table in either direction. ' +
-  'Each key reads column → the column it references.';
+const HELP = 'A hop is one foreign key, followed from the centre table in either direction. ' + 'Each key reads column → the column it references.';
 const hopsWord = (n: number) => (n === 1 ? '1 hop' : `${n} hops`);
 
 type Props = { path: ForeignKeyPath; hops: number; onHops: (hops: number) => void };
@@ -29,13 +27,7 @@ export function ForeignKeyHops({ path, hops, onHops }: Props) {
       </span>
       <div className="lineage-hops-steps" role="group" aria-label="How far to follow foreign keys">
         {Array.from({ length: MAX_HOPS }, (_, i) => i + 1).map(n => (
-          <button
-            key={n}
-            aria-label={hopsWord(n)}
-            aria-pressed={hops === n}
-            title={`Follow foreign keys ${hopsWord(n)} from the centre table`}
-            onClick={() => onHops(n)}
-          >
+          <button key={n} aria-label={hopsWord(n)} aria-pressed={hops === n} title={`Follow foreign keys ${hopsWord(n)} from the centre table`} onClick={() => onHops(n)}>
             {n}
           </button>
         ))}

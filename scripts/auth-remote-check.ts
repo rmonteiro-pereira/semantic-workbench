@@ -8,10 +8,7 @@ import { join } from 'node:path';
 import { expect, type Browser, type Locator, type Page } from '@playwright/test';
 import { startAuthApi, type AuthProvider } from './auth-environment';
 import { authGeometry, check, signIn, type SignInTarget } from './helpers/sign-in';
-import {
-  startCredentialGitServer,
-  type CredentialGitServer,
-} from '../tests/auth/credential-git-server';
+import { startCredentialGitServer, type CredentialGitServer } from '../tests/auth/credential-git-server';
 
 const GITHUB_APP = { clientId: 'sw-github-browser', clientSecret: 'github-browser-secret' };
 
@@ -73,18 +70,10 @@ async function connectFlow(page: Page, target: SignInTarget, github: CredentialG
 }
 
 /** Connects GitHub from the push prompt and checks that the push then continues as Alice. */
-export async function remoteCredentialChecks(
-  browser: Browser,
-  target: SignInTarget,
-  provider: AuthProvider,
-) {
+export async function remoteCredentialChecks(browser: Browser, target: SignInTarget, provider: AuthProvider) {
   const gitRoot = mkdtempSync(join(tmpdir(), 'workbench-auth-remote-'));
   const tokens = new Map<string, string>();
-  const github = startCredentialGitServer(
-    join(gitRoot, 'github'),
-    async (_user, password) => tokens.get(password) ?? null,
-    { ...GITHUB_APP, redirectUri: target.url + '/auth/github/callback' },
-  );
+  const github = startCredentialGitServer(join(gitRoot, 'github'), async (_user, password) => tokens.get(password) ?? null, { ...GITHUB_APP, redirectUri: target.url + '/auth/github/callback' });
   const api = await startAuthApi(target.url, provider, {
     env: {
       SW_GITHUB_HOST: github.host,

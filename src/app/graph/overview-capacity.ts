@@ -14,8 +14,7 @@ export function modelCardHeight(collapsed: boolean): number {
 
 /** Returns the type sizes, in canvas units, that keep names readable once the canvas is scaled. */
 export function textSizesAt(zoom: number) {
-  const entityName =
-    zoom >= READABLE_ZOOM ? 16 : Math.min(LARGEST_ENTITY_NAME_PX, Math.ceil(12 / zoom));
+  const entityName = zoom >= READABLE_ZOOM ? 16 : Math.min(LARGEST_ENTITY_NAME_PX, Math.ceil(12 / zoom));
   const areaTitle = Math.min(48, Math.max(20, Math.ceil(13 / zoom)));
   // Two lines of the larger name no longer fit the card, so it keeps one.
   const entityLines = entityName > 17 ? 1 : 2;

@@ -51,24 +51,12 @@ export function HeaderActions({ leadingStatus, ...state }: Props) {
     <div className="header-actions">
       {leadingStatus}
       {state.hasFile && (
-        <button
-          className="primary commit-button"
-          aria-label="Commit…"
-          onClick={state.onCommitClick}
-          disabled={state.commitDisabled}
-          title={state.commitTitle}
-        >
+        <button className="primary commit-button" aria-label="Commit…" onClick={state.onCommitClick} disabled={state.commitDisabled} title={state.commitTitle}>
           <GitCommitIcon size={16} />
           <span className="action-label">Commit…</span>
         </button>
       )}
-      <MenuButton
-        ariaLabel="More actions"
-        title="More actions"
-        icon={<MoreHorizontal size={18} strokeWidth={4} />}
-        buttonClassName="more-actions"
-        items={moreActionItems(state)}
-      />
+      <MenuButton ariaLabel="More actions" title="More actions" icon={<MoreHorizontal size={18} strokeWidth={4} />} buttonClassName="more-actions" items={moreActionItems(state)} />
     </div>
   );
 }

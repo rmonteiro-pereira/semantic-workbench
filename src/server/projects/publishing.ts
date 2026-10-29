@@ -48,8 +48,7 @@ async function announce(deps: PublishingDeps, slug: string, branch: string, comm
 async function publish(deps: PublishingDeps, slug: string, reader: Reader) {
   const repo = deps.repoOf(slug);
   const key = reader.copy?.key;
-  if (!key)
-    throw new BadRequestError('Publishing works on a personal working copy in server mode.');
+  if (!key) throw new BadRequestError('Publishing works on a personal working copy in server mode.');
   if (!deps.worktrees.exists(key, repo)) throw new NothingToPublishError();
   const place = await deps.copies.writePlace(reader, slug);
   const result = await deps.worktrees.publish(repo, key, judgePublish(place, slug, reader.guard));
@@ -64,12 +63,7 @@ async function publish(deps: PublishingDeps, slug: string, reader: Reader) {
  * may publish and only when the guards accept what it brings. Otherwise both stay, and the
  * result says why; the fetch itself still succeeds.
  */
-async function followRemote(
-  deps: PublishingDeps,
-  slug: string,
-  remote: string,
-  { reader, mayPublish }: FollowRequest,
-): Promise<FollowResult | null> {
+async function followRemote(deps: PublishingDeps, slug: string, remote: string, { reader, mayPublish }: FollowRequest): Promise<FollowResult | null> {
   const repo = deps.repoOf(slug);
   const ahead = await deps.worktrees.remoteAhead(repo, remote);
   if (!ahead) return null;
@@ -92,7 +86,6 @@ async function followRemote(
 export function createPublishing(deps: PublishingDeps) {
   return {
     publish: (slug: string, reader: Reader) => publish(deps, slug, reader),
-    followRemote: (slug: string, remote: string, follow: FollowRequest) =>
-      followRemote(deps, slug, remote, follow),
+    followRemote: (slug: string, remote: string, follow: FollowRequest) => followRemote(deps, slug, remote, follow),
   };
 }

@@ -97,10 +97,7 @@ export function createSessionStore(options: SessionOptions) {
   const now = options.now ?? Date.now;
   let idle = (options.idleHours ?? 8) * 3600000;
   let absolute = (options.absoluteHours ?? 24) * 3600000;
-  const key = crypto.subtle.importKey('raw', new Uint8Array(options.key), 'AES-GCM', false, [
-    'encrypt',
-    'decrypt',
-  ]);
+  const key = crypto.subtle.importKey('raw', new Uint8Array(options.key), 'AES-GCM', false, ['encrypt', 'decrypt']);
   const records = new Map<string, Session>();
   const listeners = new Map<string, Set<(reason?: 'changed' | 'session-ended') => void>>();
   const pending = new Map<string, Promise<unknown>>();
@@ -139,13 +136,7 @@ export function createSessionStore(options: SessionOptions) {
     const { id: _id, ...payload } = session;
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const bytes = new TextEncoder().encode(JSON.stringify(payload));
-    const encrypted = new Uint8Array(
-      await crypto.subtle.encrypt(
-        { name: 'AES-GCM', iv, additionalData: new TextEncoder().encode(hash) },
-        await key,
-        bytes,
-      ),
-    );
+    const encrypted = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv, additionalData: new TextEncoder().encode(hash) }, await key, bytes));
     atomicWrite(
       path(hash),
       JSON.stringify({
@@ -164,10 +155,7 @@ export function createSessionStore(options: SessionOptions) {
   async function decryptRecord(hash: string, text: string): Promise<Omit<Session, 'id'>> {
     const envelope = JSON.parse(text);
     if (envelope.formatVersion !== 1) throw new Error('Unsupported session record.');
-    const bytes = Buffer.concat([
-      Buffer.from(envelope.ciphertext, 'base64'),
-      Buffer.from(envelope.tag, 'base64'),
-    ]);
+    const bytes = Buffer.concat([Buffer.from(envelope.ciphertext, 'base64'), Buffer.from(envelope.tag, 'base64')]);
     const decrypted = await crypto.subtle.decrypt(
       {
         name: 'AES-GCM',
@@ -178,12 +166,7 @@ export function createSessionStore(options: SessionOptions) {
       bytes,
     );
     const payload = JSON.parse(new TextDecoder().decode(decrypted));
-    if (
-      !Number.isFinite(payload.createdAt) ||
-      !Number.isFinite(payload.lastSeenAt) ||
-      typeof payload.csrf !== 'string' ||
-      typeof payload.principal?.id !== 'string'
-    ) {
+    if (!Number.isFinite(payload.createdAt) || !Number.isFinite(payload.lastSeenAt) || typeof payload.csrf !== 'string' || typeof payload.principal?.id !== 'string') {
       throw new Error('Invalid session record.');
     }
     return payload;
@@ -323,8 +306,7 @@ export function createSessionStore(options: SessionOptions) {
     get,
     sweep: () => sweep(),
     endPrincipal: (principalId: string) => sweep(principalId),
-    end: (id: string, reason = 'sign-out') =>
-      serialize(sha256(id), () => remove(sha256(id), reason)),
+    end: (id: string, reason = 'sign-out') => serialize(sha256(id), () => remove(sha256(id), reason)),
     create: async (input: Pick<Session, 'principal' | 'tokens'>) => {
       const session: Session = {
         ...input,

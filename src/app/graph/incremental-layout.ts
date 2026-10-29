@@ -7,8 +7,7 @@ export type Pos = { x: number; y: number };
 /** Defines horizontal and vertical spacing for incremental placement. */
 export type Grid = { column: number; row: number };
 const free = (positions: Map<string, Pos>, x: number, y: number, g: Grid) => {
-  for (const p of positions.values())
-    if (Math.abs(p.x - x) < g.column / 2 && Math.abs(p.y - y) < g.row / 2) return false;
+  for (const p of positions.values()) if (Math.abs(p.x - x) < g.column / 2 && Math.abs(p.y - y) < g.row / 2) return false;
   return true;
 };
 // Rows tried around a row: 0, +1, -1, +2, -2, …
@@ -23,12 +22,7 @@ function nearestFree(positions: Map<string, Pos>, x: number, y: number, g: Grid)
 // `items` in the order to place; `side` -1 places left of `from`, 1 right, and `step` (default 1)
 // how many columns away (Full pierce places by step distance).
 /** Places new nodes beside their origin without moving existing positions. */
-export function placeNew(
-  positions: Map<string, Pos>,
-  from: string,
-  items: { id: string; side: -1 | 1; step?: number }[],
-  g: Grid,
-): Map<string, Pos> {
+export function placeNew(positions: Map<string, Pos>, from: string, items: { id: string; side: -1 | 1; step?: number }[], g: Grid): Map<string, Pos> {
   const out = new Map(positions);
   const origin = out.get(from) ?? { x: 0, y: 0 };
   for (const it of items) {
@@ -40,13 +34,7 @@ export function placeNew(
 // Full pierce placement: nodes by step distance, each step in columns of at most `rows` nodes,
 // further steps further out; within the free space, never moving placed nodes.
 /** Places traversal layers outward in bounded columns without moving existing nodes. */
-export function placeLayers(
-  positions: Map<string, Pos>,
-  from: string,
-  items: { id: string; side: -1 | 1; step: number }[],
-  g: Grid,
-  rows = 8,
-): Map<string, Pos> {
+export function placeLayers(positions: Map<string, Pos>, from: string, items: { id: string; side: -1 | 1; step: number }[], g: Grid, rows = 8): Map<string, Pos> {
   const out = new Map(positions);
   const origin = out.get(from) ?? { x: 0, y: 0 };
   for (const side of [1, -1] as const) {
@@ -60,15 +48,7 @@ export function placeLayers(
         const c = column + Math.floor(i / rows);
         const inCol = Math.min(rows, layer.length - Math.floor(i / rows) * rows);
         const r = i % rows;
-        out.set(
-          it.id,
-          nearestFree(
-            out,
-            origin.x + side * (c + 1) * g.column,
-            origin.y + (r - (inCol - 1) / 2) * g.row,
-            g,
-          ),
-        );
+        out.set(it.id, nearestFree(out, origin.x + side * (c + 1) * g.column, origin.y + (r - (inCol - 1) / 2) * g.row, g));
       });
       column += cols;
     }
@@ -81,25 +61,11 @@ export function placeLayers(
 /** Records a positioned rectangle used for graph layout. */
 export type Box = { x: number; y: number; w: number; h: number };
 /** Places variable-height cards in nearby free slots without moving existing cards. */
-export function placeBoxes(
-  boxes: Map<string, Box>,
-  from: string,
-  items: { id: string; side: -1 | 1; w: number; h: number }[],
-  gapX = 110,
-  gapY = 24,
-  step = 24,
-): Map<string, Box> {
+export function placeBoxes(boxes: Map<string, Box>, from: string, items: { id: string; side: -1 | 1; w: number; h: number }[], gapX = 110, gapY = 24, step = 24): Map<string, Box> {
   const out = new Map(boxes);
   const o = out.get(from) ?? { x: 0, y: 0, w: 0, h: 0 };
   const hits = (b: Box) => {
-    for (const p of out.values())
-      if (
-        b.x < p.x + p.w + gapX / 2 &&
-        b.x + b.w + gapX / 2 > p.x &&
-        b.y < p.y + p.h + gapY &&
-        b.y + b.h + gapY > p.y
-      )
-        return true;
+    for (const p of out.values()) if (b.x < p.x + p.w + gapX / 2 && b.x + b.w + gapX / 2 > p.x && b.y < p.y + p.h + gapY && b.y + b.h + gapY > p.y) return true;
     return false;
   };
   for (const it of items) {

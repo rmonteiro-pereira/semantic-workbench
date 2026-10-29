@@ -62,9 +62,7 @@ test('static assets, fallback, traversal, namespaces and security headers', asyn
     expect(asset!.headers.get('Cache-Control')).toContain('immutable');
     for (const mode of ['local', 'server'] as const) {
       const cached = await serveStatic(request('/assets/app.js'), root, undefined, mode);
-      expect(cached!.headers.get('Cache-Control')).toBe(
-        `${mode === 'server' ? 'private' : 'public'}, max-age=31536000, immutable`,
-      );
+      expect(cached!.headers.get('Cache-Control')).toBe(`${mode === 'server' ? 'private' : 'public'}, max-age=31536000, immutable`);
       const html = await serveStatic(request('/projects/one'), root, undefined, mode);
       expect(html!.headers.get('Cache-Control')).toBe(mode === 'server' ? 'no-store' : 'no-cache');
     }
@@ -117,9 +115,7 @@ test('configured origins keep API host and origin checks in force', async () => 
       { origin: 'http://evil.test', host: 'localhost:4321' },
       { origin: 'http://localhost:4321', host: 'evil.test' },
     ]) {
-      expect(
-        (await handler(new Request('http://localhost/api/projects', { headers }))).status,
-      ).toBe(403);
+      expect((await handler(new Request('http://localhost/api/projects', { headers }))).status).toBe(403);
     }
     const health = healthResponse(new Request('http://localhost/healthz'), 'serving', {})!;
     expect((await handler(new Request('http://localhost/healthz'))).status).toBe(404);
@@ -228,9 +224,7 @@ test('hand-over is ready for orchestration while workspace traffic asks clients 
 });
 
 test('the sign-out form may follow the redirect to the provider and nowhere else', () => {
-  const policy = securityHeaders(undefined, 'https://login.example.test').get(
-    'Content-Security-Policy',
-  );
+  const policy = securityHeaders(undefined, 'https://login.example.test').get('Content-Security-Policy');
   expect(policy).toContain("form-action 'self' https://login.example.test;");
   expect(securityHeaders().get('Content-Security-Policy')).toContain("form-action 'self';");
 });

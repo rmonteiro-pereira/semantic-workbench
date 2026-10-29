@@ -17,10 +17,7 @@ await routeApi(page, api);
 await page.goto(appUrl());
 await (await example(page, /UBL business model/)).click();
 await page.getByRole('status').filter({ hasText: 'Loaded UBL:' }).waitFor({ timeout: 60000 });
-await page
-  .locator('footer')
-  .getByText('45 entities · 277 relationships', { exact: true })
-  .waitFor();
+await page.locator('footer').getByText('45 entities · 277 relationships', { exact: true }).waitFor();
 await page.waitForTimeout(500);
 await page.screenshot({ path: '/tmp/ubl-business-model.png' });
 for (const file of ['ubl.owl.ttl', 'ubl.odcs.yaml', 'ubl.semantic.yaml', 'ubl.shacl.ttl']) {

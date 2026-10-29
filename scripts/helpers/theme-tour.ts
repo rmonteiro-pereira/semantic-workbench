@@ -25,9 +25,7 @@ async function showSettings(page: Page) {
 }
 
 /** The Settings panel with its Theme control; a phone opens it from the drawer. */
-export const themeScreens: Screen[] = [
-  { name: 'theme-control', show: showSettings, dialog: '.settings-panel' },
-];
+export const themeScreens: Screen[] = [{ name: 'theme-control', show: showSettings, dialog: '.settings-panel' }];
 
 /** Returns geometry problems, unreadable text and unthemed controls of one screen in the theme now applied. */
 export async function themedScreenProblems(page: Page, screen: Screen): Promise<string[]> {
@@ -36,18 +34,12 @@ export async function themedScreenProblems(page: Page, screen: Screen): Promise<
   const contrast = await lowContrastProblems(page, scope);
   const disabled = await lowDisabledContrastProblems(page, scope);
   const controls = await controlThemeProblems(page, scope);
-  return [
-    ...geometry,
-    ...[...contrast, ...disabled, ...controls].map(problem => `${screen.name}: ${problem}`),
-  ];
+  return [...geometry, ...[...contrast, ...disabled, ...controls].map(problem => `${screen.name}: ${problem}`)];
 }
 
 /** Reads a token as the page resolves it, as a hex string such as `#566c65`. */
 export async function tokenValue(page: Page, token: string): Promise<string> {
-  const value = await page.evaluate(
-    name => getComputedStyle(document.documentElement).getPropertyValue(name).trim(),
-    token,
-  );
+  const value = await page.evaluate(name => getComputedStyle(document.documentElement).getPropertyValue(name).trim(), token);
   return value;
 }
 

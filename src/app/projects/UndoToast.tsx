@@ -3,15 +3,7 @@ import React, { useEffect, useState } from 'react';
 import type { Deleted } from './api';
 
 /** Offers undo while the server's deletion deadline remains valid. */
-export function UndoToast({
-  deleted,
-  onUndo,
-  onExpire,
-}: {
-  deleted: Deleted;
-  onUndo: () => void;
-  onExpire: () => void;
-}) {
+export function UndoToast({ deleted, onUndo, onExpire }: { deleted: Deleted; onUndo: () => void; onExpire: () => void }) {
   const left = () => Math.max(0, Math.ceil((Date.parse(deleted.undoUntil) - Date.now()) / 1000));
   const [seconds, setSeconds] = useState(left());
   useEffect(() => {

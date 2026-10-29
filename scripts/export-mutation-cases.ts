@@ -16,10 +16,7 @@ const HIDDEN_FILE = 'secret.txt';
 
 function filterCase(candidate: any) {
   const paths = ['a.yaml', '.git/config', 'sub/.git/HEAD', 'x.yaml.workbench-tmp', 'secret/b.yaml'];
-  const { included, restricted } = candidate.selectExportPaths(
-    paths,
-    (path: string) => !path.startsWith('secret/'),
-  );
+  const { included, restricted } = candidate.selectExportPaths(paths, (path: string) => !path.startsWith('secret/'));
   assert.deepEqual(included, ['a.yaml']);
   assert.equal(restricted, 1);
 }
@@ -82,10 +79,7 @@ async function planCase(candidate: any) {
     // The file's bytes, including CRLF and the trailing blank line, leave unchanged.
     const bytes = plan.entries[0].read();
     assert.equal(new TextDecoder().decode(bytes), 'line one\r\nline two\r\n\r\n');
-    await assert.rejects(
-      candidate.planProjectExport(deps(env, 5), 'demo', LOCAL_READER, NO_HISTORY),
-      { name: 'TooLargeError' },
-    );
+    await assert.rejects(candidate.planProjectExport(deps(env, 5), 'demo', LOCAL_READER, NO_HISTORY), { name: 'TooLargeError' });
     await historyCases(candidate, env);
   } finally {
     env.cleanup();
@@ -94,10 +88,7 @@ async function planCase(candidate: any) {
 
 async function historyCases(candidate: any, env: Fixture) {
   // Refused while the reader cannot read a file the history holds.
-  await assert.rejects(
-    candidate.planProjectExport(deps(env), 'demo', serverReader(), WITH_HISTORY),
-    { name: 'BadRequestError' },
-  );
+  await assert.rejects(candidate.planProjectExport(deps(env), 'demo', serverReader(), WITH_HISTORY), { name: 'BadRequestError' });
   const readsAll = serverReader([]);
   const allowed = await candidate.planProjectExport(deps(env), 'demo', readsAll, WITH_HISTORY);
   assert.equal(allowed.includesHistory, true);
@@ -110,29 +101,13 @@ async function historyCases(candidate: any, env: Fixture) {
   );
   // A file the reader cannot read closes the history even when no commit holds it yet.
   writeFileSync(join(env.repo, 'private.txt'), 'uncommitted');
-  await assert.rejects(
-    candidate.planProjectExport(deps(env), 'demo', serverReader(['private.txt']), WITH_HISTORY),
-    { name: 'BadRequestError' },
-  );
+  await assert.rejects(candidate.planProjectExport(deps(env), 'demo', serverReader(['private.txt']), WITH_HISTORY), { name: 'BadRequestError' });
   rmSync(join(env.repo, 'private.txt'));
   // An old commit that touched a file the reader may not read keeps the history closed even
   // when the file is gone from the current tree.
   sh(env.repo, 'rm', '-q', HIDDEN_FILE);
-  sh(
-    env.repo,
-    '-c',
-    'user.name=t',
-    '-c',
-    'user.email=t@example.invalid',
-    'commit',
-    '-q',
-    '-m',
-    'x',
-  );
-  await assert.rejects(
-    candidate.planProjectExport(deps(env), 'demo', serverReader(), WITH_HISTORY),
-    { name: 'BadRequestError' },
-  );
+  sh(env.repo, '-c', 'user.name=t', '-c', 'user.email=t@example.invalid', 'commit', '-q', '-m', 'x');
+  await assert.rejects(candidate.planProjectExport(deps(env), 'demo', serverReader(), WITH_HISTORY), { name: 'BadRequestError' });
   // A server reader gets the checked-out branch only; a local person gets every branch.
   sh(env.repo, 'branch', 'other-persons-work');
   const own = await candidate.planProjectExport(deps(env), 'demo', readsAll, WITH_HISTORY);
@@ -143,10 +118,7 @@ async function historyCases(candidate: any, env: Fixture) {
   const localBundle = local.entries.find((entry: any) => entry.name === 'git-history.bundle');
   assert((await bundleHeads(localBundle.read(), env.root)).includes('other-persons-work'));
   // The bundle counts against the limit.
-  await assert.rejects(
-    candidate.planProjectExport(deps(env, 30), 'demo', LOCAL_READER, WITH_HISTORY),
-    { name: 'TooLargeError' },
-  );
+  await assert.rejects(candidate.planProjectExport(deps(env, 30), 'demo', LOCAL_READER, WITH_HISTORY), { name: 'TooLargeError' });
   await subfolderCase(candidate);
 }
 
@@ -154,10 +126,7 @@ async function subfolderCase(candidate: any) {
   const env = fixture(true);
   try {
     // Another project's history shares the repository, so a server reader is refused.
-    await assert.rejects(
-      candidate.planProjectExport(deps(env), 'demo', serverReader([]), WITH_HISTORY),
-      { name: 'BadRequestError' },
-    );
+    await assert.rejects(candidate.planProjectExport(deps(env), 'demo', serverReader([]), WITH_HISTORY), { name: 'BadRequestError' });
   } finally {
     env.cleanup();
   }

@@ -6,15 +6,7 @@ import { TEST_GROUPS } from '../tests/helpers/auth-identities';
 import { startMockOidc, type MockOidc } from '../tests/helpers/mock-oidc';
 import { freeAuthPort, startAuthApi } from './auth-environment';
 import { freeLoopbackPort } from './helpers/processes';
-import {
-  agentBearerChecks,
-  check,
-  readVisibilityChecks,
-  roleControlChecks,
-  signIn,
-  signInChecks,
-  type SignInTarget,
-} from './helpers/sign-in';
+import { agentBearerChecks, check, readVisibilityChecks, roleControlChecks, signIn, signInChecks, type SignInTarget } from './helpers/sign-in';
 import { mockLifecycleChecks, localAuthSmoke } from './auth-lifecycle';
 import { governanceChecks } from './auth-governance';
 import { remoteCredentialChecks } from './auth-remote-check';
@@ -66,9 +58,7 @@ export async function authBrowserCheck() {
         const target: SignInTarget = { url, issuer: mock.endpointBase, kind: 'entra' };
         await signInChecks(browser, target);
         await check('sign-in through MSAL at the Entra endpoints', async () => msalCheck(mock));
-        await check('provider sign-out ends the session through the front channel', () =>
-          providerSignOutCheck(browser, target, mock),
-        );
+        await check('provider sign-out ends the session through the front channel', () => providerSignOutCheck(browser, target, mock));
         await roleControlChecks(browser, target);
         await agentBearerChecks(browser, target);
         await governanceChecks(browser, target);

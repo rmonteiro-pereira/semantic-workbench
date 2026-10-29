@@ -5,19 +5,8 @@
 import { lstatSync, readdirSync, readFileSync, realpathSync } from 'node:fs';
 import { join, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import {
-  BrandManifestError,
-  parseBrandManifest,
-  type BrandManifest,
-} from '../../shared/brand/manifest';
-import {
-  BRAND_FILE_NAMES,
-  BrandFileError,
-  contentTypeOf,
-  isBrandFileName,
-  maxBytesOf,
-  type BrandFileName,
-} from './files';
+import { BrandManifestError, parseBrandManifest, type BrandManifest } from '../../shared/brand/manifest';
+import { BRAND_FILE_NAMES, BrandFileError, contentTypeOf, isBrandFileName, maxBytesOf, type BrandFileName } from './files';
 import { sanitizeBrandCss } from './sanitize-css';
 import { sanitizeSvg } from './sanitize-svg';
 
@@ -49,9 +38,7 @@ export function resetActiveBrand(): void {
 }
 
 /** Where the shipped defaults live; the image carries public/ beside src/. */
-export const DEFAULT_BRAND_DIRECTORY = fileURLToPath(
-  new URL('../../../public/brand/', import.meta.url),
-);
+export const DEFAULT_BRAND_DIRECTORY = fileURLToPath(new URL('../../../public/brand/', import.meta.url));
 
 type Warn = (message: string) => void;
 
@@ -122,9 +109,7 @@ function warnAboutUnknownFiles(directory: string, warn: Warn): void {
  * Builds the bundle. Without a brand folder the defaults are used as they are. The defaults pass
  * the same checks as an operator's files, and a missing default brand.json stops the start.
  */
-export function loadBrandBundle(
-  options: { directory?: string | null; defaults?: string; warn?: Warn } = {},
-): BrandBundle {
+export function loadBrandBundle(options: { directory?: string | null; defaults?: string; warn?: Warn } = {}): BrandBundle {
   const warn = options.warn ?? (message => console.warn(`[brand] ${message}`));
   const defaults = options.defaults ?? DEFAULT_BRAND_DIRECTORY;
   const files = new Map<BrandFileName, BrandFile>();

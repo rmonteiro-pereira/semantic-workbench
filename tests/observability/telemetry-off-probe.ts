@@ -45,7 +45,5 @@ for (const environment of environments) {
   await telemetry.shutdown();
 }
 if (process.env.PROBE_CONTROL === '1') await import('@opentelemetry/sdk-trace-base');
-const loaded = Object.keys(require.cache).filter(path =>
-  /@opentelemetry\/(sdk-|resources|context-async-hooks)|@azure\/monitor/.test(path),
-);
+const loaded = Object.keys(require.cache).filter(path => /@opentelemetry\/(sdk-|resources|context-async-hooks)|@azure\/monitor/.test(path));
 console.log(JSON.stringify({ attempts, loaded }));

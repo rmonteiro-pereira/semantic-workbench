@@ -10,10 +10,7 @@ for (const [error, reason] of [
   [new ClaimError('private context', 'tenant-mismatch'), 'tenant-mismatch'],
   [new ClaimError('missing claim'), 'token-invalid'],
   [new errors.JWTExpired('private token', {}), 'token-invalid'],
-  [
-    new oidc.AuthorizationResponseError('denied', { cause: new URLSearchParams('error=denied') }),
-    'attempt-invalid',
-  ],
+  [new oidc.AuthorizationResponseError('denied', { cause: new URLSearchParams('error=denied') }), 'attempt-invalid'],
   [
     new oidc.ResponseBodyError('bad grant', {
       cause: { error: 'invalid_grant' },
@@ -22,10 +19,7 @@ for (const [error, reason] of [
     'attempt-invalid',
   ],
   [new Error('tenant JWT state secret-code'), 'provider-unreachable'],
-  [
-    Object.assign(new oidc.ClientError('private transport context'), { code: 'OAUTH_TIMEOUT' }),
-    'provider-unreachable',
-  ],
+  [Object.assign(new oidc.ClientError('private transport context'), { code: 'OAUTH_TIMEOUT' }), 'provider-unreachable'],
   [new SignInError('attempt-invalid'), 'attempt-invalid'],
 ] as const) {
   test('maps typed ' + error.constructor.name + ' to ' + reason, () => {

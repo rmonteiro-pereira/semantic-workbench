@@ -38,8 +38,7 @@ const excerpt = (src: string, pos: number) => {
     .slice(0, 160);
 };
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-const startsWith = (path: Path, prefix: Path) =>
-  prefix.length <= path.length && prefix.every((k, i) => path[i] === k);
+const startsWith = (path: Path, prefix: Path) => prefix.length <= path.length && prefix.every((k, i) => path[i] === k);
 // Every string scalar of a document, with its path, node and the nearest list item paths.
 function scalars(doc: Document.Parsed) {
   const out: { path: Path; node: Node; value: string }[] = [];
@@ -49,8 +48,7 @@ function scalars(doc: Document.Parsed) {
         if (isScalar(p.key)) walk(p.value, [...path, String(p.key.value)]);
       }
     else if (isSeq(n)) n.items.forEach((x: any, i: number) => walk(x, [...path, i]));
-    else if (isScalar(n) && typeof n.value === 'string' && n.range)
-      out.push({ path, node: n, value: n.value });
+    else if (isScalar(n) && typeof n.value === 'string' && n.range) out.push({ path, node: n, value: n.value });
   };
   walk(doc.contents, []);
   return out;
@@ -81,11 +79,9 @@ function describe(path: Path, data: any) {
   };
   if (path.includes('concept_mappings')) return `concept mapping ${item('concept_mappings')}`;
   if (path.includes('metrics')) return `metric ${item('metrics')}`;
-  if (path.includes('relationships') && path.includes('ontology'))
-    return `relationship ${item('relationships')} of ${item('ontology')}`;
+  if (path.includes('relationships') && path.includes('ontology')) return `relationship ${item('relationships')} of ${item('ontology')}`;
   if (path.includes('extends')) return `extends of ${item('ontology')}`;
-  if (path.includes('relationships') && data?.kind === 'DataContract')
-    return `foreign key of ${item('properties') || item('schema')}`;
+  if (path.includes('relationships') && data?.kind === 'DataContract') return `foreign key of ${item('properties') || item('schema')}`;
   if (path.includes('relationships')) return `dataset relationship ${item('relationships')}`;
   if (path.includes('fields')) return `field ${item('fields')} of ${item('datasets')}`;
   if (path.includes('identify_by')) return `identifier of ${item('ontology')}`;
@@ -99,9 +95,7 @@ export function findReferences(target: Target, docs: ProjectDoc[]): Reference[] 
   const quoted = JSON.stringify(name);
   const word = new RegExp(`(?<![\\w$.'"])(${escape(name)})(?![\\w$'"(])`, 'g');
   const qualifier = new RegExp(`(?<![\\w$.'"])(${escape(name)})(?=\\s*\\.)`, 'g');
-  const fieldRef = target.owner
-    ? new RegExp(`(?<![\\w$'"])${escape(target.owner)}\\s*\\.\\s*(${escape(name)})(?![\\w$])`, 'g')
-    : null;
+  const fieldRef = target.owner ? new RegExp(`(?<![\\w$'"])${escape(target.owner)}\\s*\\.\\s*(${escape(name)})(?![\\w$])`, 'g') : null;
   for (const d of docs) {
     if (rdfSyntax(d.source, d.filename)) continue;
     let doc: Document.Parsed;
@@ -128,8 +122,7 @@ export function findReferences(target: Target, docs: ProjectDoc[]): Reference[] 
           dependent,
         });
     };
-    const dep = (p: Path | null): Dependent | null =>
-      p ? { path: p, label: describe(p, data) } : null;
+    const dep = (p: Path | null): Dependent | null => (p ? { path: p, label: describe(p, data) } : null);
     for (const s of scalars(doc)) {
       const { path, node, value } = s;
       const key = path.at(-1);
@@ -148,19 +141,11 @@ export function findReferences(target: Target, docs: ProjectDoc[]): Reference[] 
         }
         if (Array.isArray(json?.kpi_bindings))
           for (const b of json.kpi_bindings) {
-            const hit =
-              target.kind === 'metric'
-                ? b.metric === name
-                : target.kind === 'concept'
-                  ? b.measures === name || b.of === name
-                  : false;
+            const hit = target.kind === 'metric' ? b.metric === name : target.kind === 'concept' ? b.measures === name || b.of === name : false;
             if (!hit) continue;
             const [a, z] = node.range;
             const text = src.slice(a, z);
-            const at =
-              text.indexOf(`${JSON.stringify(b.metric)}`) >= 0
-                ? text.indexOf(JSON.stringify(b.metric))
-                : 0;
+            const at = text.indexOf(`${JSON.stringify(b.metric)}`) >= 0 ? text.indexOf(JSON.stringify(b.metric)) : 0;
             const spans: [number, number][] = [];
             let i = text.indexOf(quoted, at);
             const end = text.indexOf('}', at);
@@ -188,88 +173,41 @@ export function findReferences(target: Target, docs: ProjectDoc[]): Reference[] 
       }
       switch (target.kind) {
         case 'concept':
-          if (key === 'concept' && path.at(-3) === 'roles' && value === name)
-            add(
-              path,
-              within(src, node, new RegExp(escape(name), 'g')).slice(0, 1),
-              dep(upTo(path, 'relationships')),
-            );
-          else if (path.at(-2) === 'extends' && value === name)
-            add(path, within(src, node, new RegExp(escape(name), 'g')).slice(0, 1), dep(path));
+          if (key === 'concept' && path.at(-3) === 'roles' && value === name) add(path, within(src, node, new RegExp(escape(name), 'g')).slice(0, 1), dep(upTo(path, 'relationships')));
+          else if (path.at(-2) === 'extends' && value === name) add(path, within(src, node, new RegExp(escape(name), 'g')).slice(0, 1), dep(path));
           else if (key === 'concept' && path.includes('concept_mappings') && value === name)
-            add(
-              path,
-              within(src, node, new RegExp(escape(name), 'g')).slice(0, 1),
-              dep(upTo(path, 'concept_mappings')),
-            );
+            add(path, within(src, node, new RegExp(escape(name), 'g')).slice(0, 1), dep(upTo(path, 'concept_mappings')));
           break;
         case 'ontology-relationship':
-          if (
-            path.at(-2) === 'identify_by' &&
-            value === name &&
-            startsWith(path, target.path.slice(0, -2))
-          )
-            add(path, within(src, node, new RegExp(escape(name), 'g')).slice(0, 1), dep(path));
+          if (path.at(-2) === 'identify_by' && value === name && startsWith(path, target.path.slice(0, -2))) add(path, within(src, node, new RegExp(escape(name), 'g')).slice(0, 1), dep(path));
           break;
         case 'dataset':
-          if (
-            (key === 'from' || key === 'to') &&
-            path.at(-3) === 'relationships' &&
-            data?.kind !== 'DataContract' &&
-            value === name
-          )
-            add(
-              path,
-              within(src, node, new RegExp(escape(name), 'g')).slice(0, 1),
-              dep(upTo(path, 'relationships')),
-            );
+          if ((key === 'from' || key === 'to') && path.at(-3) === 'relationships' && data?.kind !== 'DataContract' && value === name)
+            add(path, within(src, node, new RegExp(escape(name), 'g')).slice(0, 1), dep(upTo(path, 'relationships')));
           else if (key === 'expression') {
             const spans = within(src, node, qualifier);
-            if (spans.length)
-              add(path, spans, dep(path.includes('metrics') ? upTo(path, 'metrics') : null));
+            if (spans.length) add(path, spans, dep(path.includes('metrics') ? upTo(path, 'metrics') : null));
           }
           break;
         case 'field':
           if (key === 'expression' && fieldRef) {
             const spans = within(src, node, fieldRef);
-            if (spans.length)
-              add(path, spans, dep(path.includes('metrics') ? upTo(path, 'metrics') : null));
+            if (spans.length) add(path, spans, dep(path.includes('metrics') ? upTo(path, 'metrics') : null));
           }
           break;
         case 'metric':
           if (key === 'expression') {
             const spans = within(src, node, word);
-            if (spans.length)
-              add(
-                path,
-                spans,
-                path.includes('metrics')
-                  ? dep(upTo(path, 'metrics'))
-                  : path.includes('object_mappings')
-                    ? dep(upTo(path, 'object_mappings'))
-                    : null,
-              );
+            if (spans.length) add(path, spans, path.includes('metrics') ? dep(upTo(path, 'metrics')) : path.includes('object_mappings') ? dep(upTo(path, 'object_mappings')) : null);
           }
           break;
         case 'odcs-object':
         case 'odcs-property': {
           // Foreign keys name their target as object.property.
-          const isRef =
-            (key === 'to' ||
-              key === 'from' ||
-              (typeof key === 'number' && (path.at(-2) === 'to' || path.at(-2) === 'from'))) &&
-            path.includes('relationships');
-          const offset =
-            target.kind === 'odcs-object'
-              ? value === name || value.startsWith(name + '.')
-                ? 0
-                : -1
-              : value === `${target.owner}.${name}`
-                ? String(target.owner).length + 1
-                : -1;
+          const isRef = (key === 'to' || key === 'from' || (typeof key === 'number' && (path.at(-2) === 'to' || path.at(-2) === 'from'))) && path.includes('relationships');
+          const offset = target.kind === 'odcs-object' ? (value === name || value.startsWith(name + '.') ? 0 : -1) : value === `${target.owner}.${name}` ? String(target.owner).length + 1 : -1;
           if (isRef && offset >= 0) {
-            const at =
-              node.range[0] + src.slice(node.range[0], node.range[1]).indexOf(value) + offset;
+            const at = node.range[0] + src.slice(node.range[0], node.range[1]).indexOf(value) + offset;
             add(path, [[at, at + name.length]], dep(upTo(path, 'relationships')));
           }
           break;
@@ -282,29 +220,17 @@ export function findReferences(target: Target, docs: ProjectDoc[]): Reference[] 
 // Removal of the given dependents, file by file, applied from the last path to the first so list
 // positions stay valid; bindings are removed by metric name.
 /** Removes dependents in reverse path order so list indexes remain valid. */
-export function removeDependents(
-  docs: ProjectDoc[],
-  dependents: { docId: string; dependent: Dependent }[],
-): { docId: string; source: string }[] {
+export function removeDependents(docs: ProjectDoc[], dependents: { docId: string; dependent: Dependent }[]): { docId: string; source: string }[] {
   const byDoc = new Map<string, Dependent[]>();
   for (const { docId, dependent } of dependents) {
     const list = byDoc.get(docId) ?? [];
-    if (
-      !list.some(
-        x =>
-          JSON.stringify(x.path) === JSON.stringify(dependent.path) &&
-          x.binding?.metric === dependent.binding?.metric,
-      )
-    )
-      list.push(dependent);
+    if (!list.some(x => JSON.stringify(x.path) === JSON.stringify(dependent.path) && x.binding?.metric === dependent.binding?.metric)) list.push(dependent);
     byDoc.set(docId, list);
   }
   const cmp = (a: Path, b: Path) => {
     for (let i = 0; i < Math.min(a.length, b.length); i++) {
       if (a[i] === b[i]) continue;
-      return typeof a[i] === 'number' && typeof b[i] === 'number'
-        ? (a[i] as number) - (b[i] as number)
-        : String(a[i]).localeCompare(String(b[i]));
+      return typeof a[i] === 'number' && typeof b[i] === 'number' ? (a[i] as number) - (b[i] as number) : String(a[i]).localeCompare(String(b[i]));
     }
     return a.length - b.length;
   };
@@ -312,14 +238,7 @@ export function removeDependents(
     const d = docs.find(x => x.id === docId)!;
     // A dependent inside another removed dependent goes with it.
     const items = list
-      .filter(
-        x =>
-          x.binding ||
-          !list.some(
-            y =>
-              !y.binding && y !== x && startsWith(x.path, y.path) && y.path.length < x.path.length,
-          ),
-      )
+      .filter(x => x.binding || !list.some(y => !y.binding && y !== x && startsWith(x.path, y.path) && y.path.length < x.path.length))
       .sort((a, b) => cmp(b.binding?.dataPath ?? b.path, a.binding?.dataPath ?? a.path));
     const steps = items.map(x => (text: string): Patch[] => {
       if (!x.binding) return removePatches(text, x.path, d.filename);
@@ -339,11 +258,7 @@ export function removeDependents(
 }
 
 /** Rewrites only the rename occurrences explicitly selected by the user. */
-export function rewriteReferences(
-  docs: ProjectDoc[],
-  refs: Reference[],
-  newName: string,
-): { docId: string; source: string }[] {
+export function rewriteReferences(docs: ProjectDoc[], refs: Reference[], newName: string): { docId: string; source: string }[] {
   const byDoc = new Map<string, Reference[]>();
   for (const r of refs) byDoc.set(r.docId, [...(byDoc.get(r.docId) ?? []), r]);
   return [...byDoc].map(([docId, list]) => {

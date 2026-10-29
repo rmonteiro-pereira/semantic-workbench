@@ -21,18 +21,7 @@ export function RoutedEdge(props: EdgeProps) {
     options: { nodePadding: 10, gridRatio: 10, borderRadius: 5 },
   });
   const appearance = { ...edgeAppearance(props), interactionWidth: 24 };
-  if (
-    isDragging ||
-    !route ||
-    route.kind !== 'routed' ||
-    !pathMatchesEndpoints(
-      route.svgPathString,
-      props.sourceX,
-      props.sourceY,
-      props.targetX,
-      props.targetY,
-    )
-  )
+  if (isDragging || !route || route.kind !== 'routed' || !pathMatchesEndpoints(route.svgPathString, props.sourceX, props.sourceY, props.targetX, props.targetY))
     return (
       <BezierEdge
         {...appearance}
@@ -44,12 +33,5 @@ export function RoutedEdge(props: EdgeProps) {
         targetPosition={props.targetPosition}
       />
     );
-  return (
-    <BaseEdge
-      {...appearance}
-      path={route.svgPathString}
-      labelX={route.edgeCenterX}
-      labelY={route.edgeCenterY}
-    />
-  );
+  return <BaseEdge {...appearance} path={route.svgPathString} labelX={route.edgeCenterX} labelY={route.edgeCenterY} />;
 }

@@ -47,9 +47,7 @@ export type RunOptions = {
  * A server-mode credential for one remote command: a person's token, or none for a public
  * remote. Local mode passes no credential, so Git's own helpers answer as before.
  */
-export type RemoteCredential =
-  | { kind: 'token'; username: string; token: string; host: string }
-  | { kind: 'none' };
+export type RemoteCredential = { kind: 'token'; username: string; token: string; host: string } | { kind: 'none' };
 /** The fetch and push addresses of one remote, as Git resolves them. */
 export type RemoteAddresses = { name: string; fetchUrl: string; pushUrl: string };
 /** The program Git runs to ask for a username and password; it reads them from its environment. */
@@ -102,12 +100,7 @@ export function authorship(author?: CommitAuthor): {
 } {
   if (!author) return { config: [], env: {}, trailer: [] };
   return {
-    config: [
-      '-c',
-      `user.name=${SERVICE_COMMITTER.name}`,
-      '-c',
-      `user.email=${SERVICE_COMMITTER.email}`,
-    ],
+    config: ['-c', `user.name=${SERVICE_COMMITTER.name}`, '-c', `user.email=${SERVICE_COMMITTER.email}`],
     env: { GIT_AUTHOR_NAME: oneLine(author.name), GIT_AUTHOR_EMAIL: oneLine(author.email) },
     trailer: ['--trailer', `${SIGNED_IN_TRAILER}: ${oneLine(author.id)}`],
   };
@@ -119,16 +112,7 @@ export function gitEnv(base: Record<string, string | undefined> = process.env) {
   for (const [k, v] of Object.entries(base))
     if (
       v !== undefined &&
-      ![
-        'GIT_DIR',
-        'GIT_WORK_TREE',
-        'GIT_INDEX_FILE',
-        'GIT_OBJECT_DIRECTORY',
-        'GIT_PREFIX',
-        'GIT_CONFIG_PARAMETERS',
-        'GIT_CONFIG_COUNT',
-        'GIT_EXEC_PATH',
-      ].includes(k) &&
+      !['GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE', 'GIT_OBJECT_DIRECTORY', 'GIT_PREFIX', 'GIT_CONFIG_PARAMETERS', 'GIT_CONFIG_COUNT', 'GIT_EXEC_PATH'].includes(k) &&
       !/^GIT_CONFIG_(KEY|VALUE)_/.test(k)
     )
       env[k] = v;
@@ -144,12 +128,10 @@ export function redactCredentials(text: string) {
   return text.replace(/([A-Za-z][A-Za-z0-9+.-]*:\/\/)[^@/\s]+@/g, '$1***@');
 }
 /** Tells whether text holds a control character (a newline, a tab, NUL, DEL and the like). */
-export const hasControlCharacters = (text: string) =>
-  [...text].some(char => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127);
+export const hasControlCharacters = (text: string) => [...text].some(char => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127);
 /** Checks a remote's name: letters, digits, dot, dash or underscore. */
 export function remoteName(name: unknown) {
-  if (typeof name !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$/.test(name))
-    throw new BadRequestError('A remote name uses letters, digits, dot, dash or underscore.');
+  if (typeof name !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$/.test(name)) throw new BadRequestError('A remote name uses letters, digits, dot, dash or underscore.');
   return name;
 }
 /** The branch HEAD names, also before its first commit; null when HEAD is detached. */
@@ -186,20 +168,9 @@ export async function isBranchName(git: Git, dir: string, name: string) {
  * are refused because they run a program; so are values Git could read as an option, and the
  * masked form the app shows, which would replace a working address with one that cannot sign in. */
 export function remoteAddress(url: unknown) {
-  if (
-    typeof url !== 'string' ||
-    !url.trim() ||
-    url.trim().startsWith('-') ||
-    hasControlCharacters(url) ||
-    url.length > 2000
-  )
-    throw new BadRequestError('Give the remote URL or path.');
-  if (/^[A-Za-z][A-Za-z0-9+.-]*::/.test(url.trim()))
-    throw new BadRequestError('Remote helper addresses (transport::address) are not accepted.');
-  if (url.includes('://***@'))
-    throw new BadRequestError(
-      'This address shows *** in place of credentials; give the full address.',
-    );
+  if (typeof url !== 'string' || !url.trim() || url.trim().startsWith('-') || hasControlCharacters(url) || url.length > 2000) throw new BadRequestError('Give the remote URL or path.');
+  if (/^[A-Za-z][A-Za-z0-9+.-]*::/.test(url.trim())) throw new BadRequestError('Remote helper addresses (transport::address) are not accepted.');
+  if (url.includes('://***@')) throw new BadRequestError('This address shows *** in place of credentials; give the full address.');
   return url.trim();
 }
 /** Finds the Git subcommand after global options, recognizing remote update separately. */
@@ -239,18 +210,8 @@ export function createGit(options: GitOptions) {
   }
   // Every Git process starts here, so every command is traced and timed once. A cancellable
   // command is a remote one.
-  function spawnGit(
-    cwd: string,
-    args: string[],
-    stdin?: string,
-    timeout = timeoutMs,
-    cancellable = false,
-    credential?: RemoteCredential,
-    extraEnv: Record<string, string> = {},
-  ): Promise<GitResult> {
-    return observeGitCommand(subcommandOf(args) || 'unknown', args, cancellable, () =>
-      spawnGitProcess(cwd, args, stdin, timeout, cancellable, credential, extraEnv),
-    );
+  function spawnGit(cwd: string, args: string[], stdin?: string, timeout = timeoutMs, cancellable = false, credential?: RemoteCredential, extraEnv: Record<string, string> = {}): Promise<GitResult> {
+    return observeGitCommand(subcommandOf(args) || 'unknown', args, cancellable, () => spawnGitProcess(cwd, args, stdin, timeout, cancellable, credential, extraEnv));
   }
   async function spawnGitProcess(
     cwd: string,
@@ -261,8 +222,7 @@ export function createGit(options: GitOptions) {
     credential?: RemoteCredential,
     extraEnv: Record<string, string> = {},
   ): Promise<GitResult> {
-    if (!Array.isArray(args) || args.some(a => typeof a !== 'string'))
-      throw new GitError('Git arguments must be an array of strings.');
+    if (!Array.isArray(args) || args.some(a => typeof a !== 'string')) throw new GitError('Git arguments must be an array of strings.');
     let proc;
     try {
       proc = Bun.spawn([binary, ...args], {
@@ -293,20 +253,12 @@ export function createGit(options: GitOptions) {
           res('cancelled');
         });
     });
-    const done = Promise.all([
-      new Response(proc.stdout).arrayBuffer(),
-      new Response(proc.stderr).text(),
-      proc.exited,
-    ]);
+    const done = Promise.all([new Response(proc.stdout).arrayBuffer(), new Response(proc.stderr).text(), proc.exited]);
     const result = await Promise.race([done, stopped]);
     clearTimeout(timer);
     if (cancellable) cancels.delete(cwd);
-    if (result === 'cancelled')
-      throw new GitError(`git ${subcommandOf(args)} was cancelled.`, undefined, true);
-    if (result === 'timeout')
-      throw new GitError(
-        `git ${subcommandOf(args)} timed out after ${Math.round(timeout / 1000)} s.`,
-      );
+    if (result === 'cancelled') throw new GitError(`git ${subcommandOf(args)} was cancelled.`, undefined, true);
+    if (result === 'timeout') throw new GitError(`git ${subcommandOf(args)} timed out after ${Math.round(timeout / 1000)} s.`);
     const [out, stderr, code] = result;
     const bytes = new Uint8Array(out);
     return {
@@ -320,34 +272,15 @@ export function createGit(options: GitOptions) {
   // skip the queue, so status stays live while a push waits for a credential window.
   async function run(cwd: string, args: string[], opts: RunOptions = {}): Promise<GitResult> {
     const dir = insideProjects(cwd);
-    if (!Array.isArray(args) || args.some(a => typeof a !== 'string'))
-      throw new GitError('Git arguments must be an array of strings.');
-    if (REMOTE_COMMANDS.has(subcommandOf(args)) && !opts.remote)
-      throw new GitError(
-        'Remote Git commands run only from an explicit fetch, pull, push or sync.',
-      );
-    if (opts.credential && !opts.remote)
-      throw new GitError('A credential is passed only to a remote command.');
+    if (!Array.isArray(args) || args.some(a => typeof a !== 'string')) throw new GitError('Git arguments must be an array of strings.');
+    if (REMOTE_COMMANDS.has(subcommandOf(args)) && !opts.remote) throw new GitError('Remote Git commands run only from an explicit fetch, pull, push or sync.');
+    if (opts.credential && !opts.remote) throw new GitError('A credential is passed only to a remote command.');
     // Remote commands never run transport helpers that execute programs (`ext::`).
     const credentialArgs = opts.credential ? credentialSetup(opts.credential).args : [];
-    const argv = opts.remote
-      ? ['-c', 'protocol.ext.allow=never', ...credentialArgs, ...args]
-      : args;
+    const argv = opts.remote ? ['-c', 'protocol.ext.allow=never', ...credentialArgs, ...args] : args;
     const exec = async () => {
-      const r = await spawnGit(
-        dir,
-        argv,
-        opts.stdin,
-        opts.timeout ?? (opts.remote ? remoteTimeoutMs : timeoutMs),
-        !!opts.remote,
-        opts.credential,
-        opts.env,
-      );
-      if (r.code !== 0 && !opts.allowFailure)
-        throw new GitError(
-          r.stderr.trim() || `git ${subcommandOf(args)} failed with exit code ${r.code}.`,
-          r,
-        );
+      const r = await spawnGit(dir, argv, opts.stdin, opts.timeout ?? (opts.remote ? remoteTimeoutMs : timeoutMs), !!opts.remote, opts.credential, opts.env);
+      if (r.code !== 0 && !opts.allowFailure) throw new GitError(r.stderr.trim() || `git ${subcommandOf(args)} failed with exit code ${r.code}.`, r);
       return r;
     };
     if (opts.readOnly) return exec();
@@ -382,9 +315,7 @@ export function createGit(options: GitOptions) {
     const name = await configValue(cwd, 'user.name');
     const email = await configValue(cwd, 'user.email');
     if (!name || !email) return { name, email, scope: 'none' };
-    const local =
-      (await configValue(cwd, 'user.name', 'local')) &&
-      (await configValue(cwd, 'user.email', 'local'));
+    const local = (await configValue(cwd, 'user.name', 'local')) && (await configValue(cwd, 'user.email', 'local'));
     return { name, email, scope: local ? 'local' : 'global' };
   }
   // Whether commits here have an author, read each time so an identity set meanwhile counts.
@@ -395,33 +326,19 @@ export function createGit(options: GitOptions) {
     await run(cwd, ['config', '--local', 'user.name', name]);
     await run(cwd, ['config', '--local', 'user.email', email]);
   }
-  const merging = async (cwd: string) =>
-    (await read(cwd, ['rev-parse', '-q', '--verify', 'MERGE_HEAD'], true)).code === 0;
+  const merging = async (cwd: string) => (await read(cwd, ['rev-parse', '-q', '--verify', 'MERGE_HEAD'], true)).code === 0;
   // Commit only these paths from the working tree to preserve unrelated staged and unstaged
   // changes. Skip ignored or unchanged paths; report missing identity, active merges, or no changes
   // as outcomes.
-  async function commitPaths(
-    cwd: string,
-    paths: string[],
-    message: string,
-    author?: CommitAuthor,
-  ): Promise<CommitPathsResult> {
-    if (typeof message !== 'string' || !message.trim())
-      throw new GitError('A commit message is required.');
+  async function commitPaths(cwd: string, paths: string[], message: string, author?: CommitAuthor): Promise<CommitPathsResult> {
+    if (typeof message !== 'string' || !message.trim()) throw new GitError('A commit message is required.');
     if (!Array.isArray(paths) || !paths.length) throw new GitError('Name the files to commit.');
     // A server-mode commit is authored by the signed-in person, so no repository identity is needed.
     if (!author && !(await identity(cwd))) return { committed: false, reason: 'no-identity' };
     if (await merging(cwd)) return { committed: false, reason: 'merging' };
     const changed = new Set<string>();
     for (const c of chunks(paths)) {
-      const r = await read(cwd, [
-        'status',
-        '--porcelain=v1',
-        '-z',
-        '--untracked-files=all',
-        '--',
-        ...c,
-      ]);
+      const r = await read(cwd, ['status', '--porcelain=v1', '-z', '--untracked-files=all', '--', ...c]);
       for (const e of r.stdout.split('\0')) if (e.length > 3) changed.add(e.slice(3));
     }
     const list = paths.filter(p => changed.has(p));
@@ -433,16 +350,11 @@ export function createGit(options: GitOptions) {
     }
     for (const c of chunks(untracked)) await run(cwd, ['add', '--', ...c]);
     const signed = authorship(author);
-    await run(
-      cwd,
-      [...signed.config, 'commit', '-q', ...signed.trailer, '--only', '-F', '-', '--', ...list],
-      { stdin: message, env: signed.env },
-    );
+    await run(cwd, [...signed.config, 'commit', '-q', ...signed.trailer, '--only', '-F', '-', '--', ...list], { stdin: message, env: signed.env });
     const head = await read(cwd, ['rev-parse', '-q', '--verify', 'HEAD']);
     return { committed: true, commit: head.stdout.trim() };
   }
-  const chunks = <T>(list: T[], n = 200) =>
-    Array.from({ length: Math.ceil(list.length / n) }, (_, i) => list.slice(i * n, i * n + n));
+  const chunks = <T>(list: T[], n = 200) => Array.from({ length: Math.ceil(list.length / n) }, (_, i) => list.slice(i * n, i * n + n));
   return {
     run,
     // Kill the running remote operation of this repository (the UI's Cancel).
@@ -469,31 +381,9 @@ export function createGit(options: GitOptions) {
     // kept as committed, symbolic links arrive as plain files and submodules are not fetched. A
     // partial clone leaves out file contents and the checkout, so a sparse checkout can fetch
     // only the folder it needs.
-    async clone(
-      parent: string,
-      url: string,
-      folder: string,
-      credential?: RemoteCredential,
-      options: { partial?: boolean } = {},
-    ) {
+    async clone(parent: string, url: string, folder: string, credential?: RemoteCredential, options: { partial?: boolean } = {}) {
       const partial = options.partial ? ['--filter=blob:none', '--no-checkout'] : [];
-      await run(
-        parent,
-        [
-          '-c',
-          'core.autocrlf=false',
-          '-c',
-          'core.symlinks=false',
-          'clone',
-          '-q',
-          '--no-recurse-submodules',
-          ...partial,
-          '--',
-          url,
-          folder,
-        ],
-        { remote: true, credential },
-      );
+      await run(parent, ['-c', 'core.autocrlf=false', '-c', 'core.symlinks=false', 'clone', '-q', '--no-recurse-submodules', ...partial, '--', url, folder], { remote: true, credential });
       const dir = resolve(parent, folder);
       await run(dir, ['config', 'core.autocrlf', 'false']);
       await run(dir, ['config', 'core.safecrlf', 'false']);
@@ -507,8 +397,7 @@ export function createGit(options: GitOptions) {
     },
     addAll: (cwd: string) => run(cwd, ['add', '-A', '--', '.']),
     commit: async (cwd: string, message: string, allowEmpty = false, author?: CommitAuthor) => {
-      if (typeof message !== 'string' || !message.trim())
-        throw new GitError('A commit message is required.');
+      if (typeof message !== 'string' || !message.trim()) throw new GitError('A commit message is required.');
       const signed = authorship(author);
       const empty = allowEmpty ? ['--allow-empty'] : [];
       return run(cwd, [...signed.config, 'commit', '-q', ...empty, ...signed.trailer, '-F', '-'], {
@@ -536,13 +425,7 @@ export function createGit(options: GitOptions) {
       await run(cwd, ['bundle', 'create', '-q', file, ...revs]);
     },
     async status(cwd: string) {
-      const r = await read(cwd, [
-        'status',
-        '--porcelain=v2',
-        '-z',
-        '--branch',
-        '--untracked-files=all',
-      ]);
+      const r = await read(cwd, ['status', '--porcelain=v2', '-z', '--branch', '--untracked-files=all']);
       return parseStatus(r.stdout);
     },
     async stage(cwd: string, paths: string[]) {
@@ -550,11 +433,7 @@ export function createGit(options: GitOptions) {
     },
     async unstage(cwd: string, paths: string[]) {
       const head = (await read(cwd, ['rev-parse', '-q', '--verify', 'HEAD'], true)).code === 0;
-      for (const c of chunks(paths))
-        await run(
-          cwd,
-          head ? ['restore', '--staged', '--', ...c] : ['rm', '-q', '-r', '--cached', '--', ...c],
-        );
+      for (const c of chunks(paths)) await run(cwd, head ? ['restore', '--staged', '--', ...c] : ['rm', '-q', '-r', '--cached', '--', ...c]);
     },
     // A file's bytes at a revision (`HEAD`, a commit, or '' for the index); null when it is absent.
     async blob(cwd: string, rev: string, path: string) {
@@ -568,18 +447,11 @@ export function createGit(options: GitOptions) {
     merging,
     commitPaths,
     async branches(cwd: string) {
-      const r = await read(cwd, [
-        'for-each-ref',
-        '--format=%(refname)',
-        'refs/heads',
-        'refs/remotes',
-      ]);
+      const r = await read(cwd, ['for-each-ref', '--format=%(refname)', 'refs/heads', 'refs/remotes']);
       const refs = r.stdout.split('\n').filter(Boolean);
       return {
         local: refs.filter(x => x.startsWith('refs/heads/')).map(x => x.slice(11)),
-        remote: refs
-          .filter(x => x.startsWith('refs/remotes/') && !x.endsWith('/HEAD'))
-          .map(x => x.slice(13)),
+        remote: refs.filter(x => x.startsWith('refs/remotes/') && !x.endsWith('/HEAD')).map(x => x.slice(13)),
       };
     },
     // Every remote with the fetch and push addresses Git resolves (`insteadOf`, `pushurl`).
@@ -631,22 +503,13 @@ export function createGit(options: GitOptions) {
       return out;
     },
     async changedBetween(cwd: string, from: string | null, to: string) {
-      const r = from
-        ? await read(cwd, ['diff', '--no-ext-diff', '--name-only', '-z', from, to])
-        : await read(cwd, ['ls-tree', '-r', '-z', '--name-only', to]);
+      const r = from ? await read(cwd, ['diff', '--no-ext-diff', '--name-only', '-z', from, to]) : await read(cwd, ['ls-tree', '-r', '-z', '--name-only', to]);
       return r.stdout.split('\0').filter(Boolean);
     },
     async log(cwd: string, path?: string, limit = 50) {
       const r = await read(
         cwd,
-        [
-          'log',
-          '-z',
-          '--name-only',
-          `-n${Math.max(1, Math.min(500, limit))}`,
-          '--format=%x1e%H%x1f%an%x1f%aI%x1f%s%x00',
-          ...(path ? [...(path.endsWith('/') ? [] : ['--follow']), '--', path] : []),
-        ],
+        ['log', '-z', '--name-only', `-n${Math.max(1, Math.min(500, limit))}`, '--format=%x1e%H%x1f%an%x1f%aI%x1f%s%x00', ...(path ? [...(path.endsWith('/') ? [] : ['--follow']), '--', path] : [])],
         true,
       );
       if (r.code !== 0) return [];
@@ -671,18 +534,9 @@ export type GitIdentity = {
 /** Repository operations backed by the installed Git executable. */
 export type Git = ReturnType<typeof createGit>;
 /** A selected-path commit result or the reason no commit was made. */
-export type CommitPathsResult =
-  | { committed: true; commit: string }
-  | { committed: false; reason: 'no-identity' | 'merging' | 'nothing' };
+export type CommitPathsResult = { committed: true; commit: string } | { committed: false; reason: 'no-identity' | 'merging' | 'nothing' };
 /** Workspace status of a file relative to Git’s index and working tree. */
-export type FileGitState =
-  | 'clean'
-  | 'modified'
-  | 'added'
-  | 'deleted'
-  | 'renamed'
-  | 'untracked'
-  | 'conflicted';
+export type FileGitState = 'clean' | 'modified' | 'added' | 'deleted' | 'renamed' | 'untracked' | 'conflicted';
 /** A changed path with Git index and worktree codes, including rename and conflict details. */
 export type StatusEntry = {
   path: string;

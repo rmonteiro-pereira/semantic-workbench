@@ -25,9 +25,7 @@ test('idle expiry and administrative termination close live streams', async () =
         tokens: { accessToken: 'secret', expiresAt: 90000 },
       });
       const events = createEvents(noSuggestions);
-      const response = events.stream(new Request('http://localhost/api/events'), listener =>
-        store.subscribe(session.id, listener),
-      );
+      const response = events.stream(new Request('http://localhost/api/events'), listener => store.subscribe(session.id, listener));
       const reader = response.body!.getReader();
       await reader.read();
       if (reason === 'admin') await store.endPrincipal(session.principal.id);

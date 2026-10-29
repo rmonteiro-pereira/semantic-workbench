@@ -7,12 +7,7 @@ import { browserSqlFindings } from '../src/app/sql/browser';
 import { testWorkspace } from './helpers/temp-data-dir';
 // SQL findings through the API: the file findings carry the same SQL warnings as the browser
 // module (per-dialect grammar builds), and they never block a save.
-const api = (
-  t: { handler: (r: Request) => Promise<Response> },
-  method: string,
-  path: string,
-  body?: unknown,
-) =>
+const api = (t: { handler: (r: Request) => Promise<Response> }, method: string, path: string, body?: unknown) =>
   t.handler(
     new Request('http://127.0.0.1:4310' + path, {
       method,
@@ -35,14 +30,7 @@ const sqlOnly = (findings: any[]) =>
 test("file findings include the browser module's SQL warnings; a file with SQL warnings saves and stays valid", async () => {
   const t = await testWorkspace();
   try {
-    const names = [
-      'case-when.ossie.yaml',
-      'case-when-broken.ossie.yaml',
-      'escaped.semantic.json',
-      'folded.ossie.yaml',
-      'quality.odcs.yaml',
-      'dax.ossie.yaml',
-    ];
+    const names = ['case-when.ossie.yaml', 'case-when-broken.ossie.yaml', 'escaped.semantic.json', 'folded.ossie.yaml', 'quality.odcs.yaml', 'dax.ossie.yaml'];
     const r = await api(t, 'POST', '/api/import', {
       name: 'Sql',
       files: names.map(path => ({ path, source: fixture(path) })),
@@ -66,12 +54,8 @@ test("file findings include the browser module's SQL warnings; a file with SQL w
       source: broken,
     });
     expect(saved.status).toBe(200);
-    expect(readFileSync(join(t.root, 'projects', slug, 'case-when.ossie.yaml'), 'utf8')).toBe(
-      broken,
-    );
-    const after = await (
-      await api(t, 'GET', `/api/projects/${slug}/files/case-when.ossie.yaml`)
-    ).json();
+    expect(readFileSync(join(t.root, 'projects', slug, 'case-when.ossie.yaml'), 'utf8')).toBe(broken);
+    const after = await (await api(t, 'GET', `/api/projects/${slug}/files/case-when.ossie.yaml`)).json();
     expect(sqlOnly(after.findings).map(f => [f.line, f.column])).toEqual([[23, 77]]);
   } finally {
     t.dispose();

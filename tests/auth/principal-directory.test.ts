@@ -1,10 +1,6 @@
 // Checks directory membership replacement and tenant isolation outside token parsing tests.
 import { expect, test } from 'bun:test';
-import {
-  localPrincipal,
-  normalizeClaims,
-  withDirectoryGroups,
-} from '../../src/server/auth/principal';
+import { localPrincipal, normalizeClaims, withDirectoryGroups } from '../../src/server/auth/principal';
 
 test('directory results replace groups without changing identity or retaining stale membership', () => {
   const principal = { ...localPrincipal(), groupOverage: true };
@@ -18,10 +14,5 @@ test('directory results replace groups without changing identity or retaining st
 });
 
 test('Entra claims from another tenant cannot establish an identity', () => {
-  expect(() =>
-    normalizeClaims(
-      { tid: 'other', oid: 'object' },
-      { provider: 'entra', tenantId: 'expected', groupClaim: 'groups' },
-    ),
-  ).toThrow();
+  expect(() => normalizeClaims({ tid: 'other', oid: 'object' }, { provider: 'entra', tenantId: 'expected', groupClaim: 'groups' })).toThrow();
 });

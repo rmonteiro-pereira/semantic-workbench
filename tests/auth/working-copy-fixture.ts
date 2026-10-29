@@ -56,19 +56,13 @@ export function gitOutput(cwd: string, args: string[]) {
 }
 
 /** The working copy folder of one person's copy of a repository. */
-export const copyFolder = (ws: Workspace, key: string, repo: string) =>
-  join(ws.layout.worktrees, key, repo);
+export const copyFolder = (ws: Workspace, key: string, repo: string) => join(ws.layout.worktrees, key, repo);
 
 /** A file's text in a folder. */
 export const textAt = (folder: string, path: string) => readFileSync(join(folder, path), 'utf8');
 
 /** Saves new text over a file through the API, based on the version the person reads. */
-export async function saveText(
-  call: ReturnType<ReturnType<typeof signedIn>>['call'],
-  project: string,
-  path: string,
-  edit: (text: string) => string,
-) {
+export async function saveText(call: ReturnType<ReturnType<typeof signedIn>>['call'], project: string, path: string, edit: (text: string) => string) {
   const file = `/api/projects/${project}/files/${path}`;
   const current = await call(file);
   return call(file, 'PUT', { baseHash: current.body.hash, source: edit(current.body.source) });
@@ -78,9 +72,6 @@ export async function saveText(
  * Starts a person's working copy without changing a file: staging everything when nothing is
  * changed is the smallest change a person can make.
  */
-export async function openCopy(
-  call: ReturnType<ReturnType<typeof signedIn>>['call'],
-  project: string,
-) {
+export async function openCopy(call: ReturnType<ReturnType<typeof signedIn>>['call'], project: string) {
   return call(`/api/projects/${project}/git/stage`, 'POST', { all: true });
 }

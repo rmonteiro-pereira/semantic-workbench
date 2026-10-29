@@ -85,15 +85,7 @@ export function Modal({
     onCancel();
   };
   return (
-    <dialog
-      ref={dialog}
-      className="validation-backdrop"
-      aria-labelledby={id}
-      aria-describedby={describedBy}
-      aria-modal="true"
-      onCancel={cancelThisDialog}
-      onKeyDown={trap}
-    >
+    <dialog ref={dialog} className="validation-backdrop" aria-labelledby={id} aria-describedby={describedBy} aria-modal="true" onCancel={cancelThisDialog} onKeyDown={trap}>
       <section className={`workbench-dialog has-footer size-${size} ${className}`.trim()}>
         <h2 id={id} title={title}>
           {title}

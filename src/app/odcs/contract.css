@@ -287,13 +287,7 @@
   flex-wrap: nowrap;
   scrollbar-width: none;
   scroll-padding-inline: 18px;
-  mask-image: linear-gradient(
-    to right,
-    transparent,
-    var(--color-mask-opaque) var(--fade-start, 0px),
-    var(--color-mask-opaque) calc(100% - var(--fade-end, 0px)),
-    transparent
-  );
+  mask-image: linear-gradient(to right, transparent, var(--color-mask-opaque) var(--fade-start, 0px), var(--color-mask-opaque) calc(100% - var(--fade-end, 0px)), transparent);
 }
 .odcs-tabs button {
   flex: none;

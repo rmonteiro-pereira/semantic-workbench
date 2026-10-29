@@ -173,8 +173,7 @@ const NAMED = `(?<![\\w#.$-])(?:${NAMED_COLORS.join('|')})(?![\\w(-])`;
 const VALUE_COLOR = new RegExp(`${HEX}|${FUNCTION}[^)]*\\)|${NAMED}`, 'g');
 const SCRIPT_COLOR_FUNCTION = new RegExp(`${FUNCTION}[^)]*\\)`, 'g');
 const WHOLE_STRING_HEX = new RegExp(`^${HEX}$`);
-const COLOR_PROPERTY =
-  /(?:color|fill|stroke|background\w*|border\w*|outline\w*|shadow\w*|stopColor|floodColor)\s*[:=]\s*$/i;
+const COLOR_PROPERTY = /(?:color|fill|stroke|background\w*|border\w*|outline\w*|shadow\w*|stopColor|floodColor)\s*[:=]\s*$/i;
 
 function lineAt(text: string, index: number): number {
   let line = 1;
@@ -228,13 +227,7 @@ function endOfString(text: string, start: number): number {
   return at + 1;
 }
 
-function collect(
-  into: ColorLiteral[],
-  text: string,
-  value: string,
-  valueStart: number,
-  property: string,
-) {
+function collect(into: ColorLiteral[], text: string, value: string, valueStart: number, property: string) {
   for (const match of value.matchAll(VALUE_COLOR)) {
     const index = valueStart + match.index;
     into.push({ text: match[0], index, line: lineAt(text, index), property });
@@ -308,9 +301,7 @@ function htmlLiterals(text: string): ColorLiteral[] {
     const valueStart = match.index + match[0].indexOf('"') + 1;
     const body = match[2];
     const prefix = match[1] === 'style' ? '' : `${match[1]}:`;
-    const inner = cssLiterals(prefix + body + ';').map(item =>
-      shift(item, text, valueStart - prefix.length),
-    );
+    const inner = cssLiterals(prefix + body + ';').map(item => shift(item, text, valueStart - prefix.length));
     found.push(...inner);
   }
   return found;

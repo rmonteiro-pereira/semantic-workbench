@@ -1,16 +1,8 @@
 // The browser reporter holds reports until the server wants them, sends them in bounded batches
 // and never retries.
 import { describe, expect, test } from 'bun:test';
-import {
-  MAX_REPORTS_PER_REQUEST,
-  type BrowserReport,
-  type ErrorReport,
-} from '../../src/shared/observability/browser-report';
-import {
-  createReporter,
-  DEFAULT_REPORTER_LIMITS,
-  topFrames,
-} from '../../src/app/observability/reporter';
+import { MAX_REPORTS_PER_REQUEST, type BrowserReport, type ErrorReport } from '../../src/shared/observability/browser-report';
+import { createReporter, DEFAULT_REPORTER_LIMITS, topFrames } from '../../src/app/observability/reporter';
 
 function setup(status = 204, limits = DEFAULT_REPORTER_LIMITS) {
   const batches: BrowserReport[][] = [];
@@ -115,9 +107,7 @@ describe('what is sent', () => {
     advance(DEFAULT_REPORTER_LIMITS.slowOperationGapMs);
     reporter.reportOperation('save', 7000);
     await runTimers();
-    expect(batches.flat().map(report => (report as { durationMs: number }).durationMs)).toEqual([
-      5000, 7000,
-    ]);
+    expect(batches.flat().map(report => (report as { durationMs: number }).durationMs)).toEqual([5000, 7000]);
   });
 });
 
@@ -181,8 +171,7 @@ describe('stack frames', () => {
   });
 
   test('the message line of a stack, which may quote a document, is never kept', () => {
-    const stack =
-      'SyntaxError: Unexpected "salary: 90000"\n    at parse (app.js:10:5)\nrun@app.js:3:1';
+    const stack = 'SyntaxError: Unexpected "salary: 90000"\n    at parse (app.js:10:5)\nrun@app.js:3:1';
     const frames = topFrames(stack)!;
     expect(frames).not.toContain('salary');
     expect(frames).toContain('at parse (app.js:10:5)');

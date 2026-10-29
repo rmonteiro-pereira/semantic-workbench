@@ -24,14 +24,11 @@ export async function logWorkspace(ws: Workspace) {
   }
   if (!ws.gitAvailable) {
     log.warn('startup.git-missing', {
-      detail:
-        'Git 2.40 or newer was not found; projects are not version-controlled until it is installed.',
+      detail: 'Git 2.40 or newer was not found; projects are not version-controlled until it is installed.',
     });
     return;
   }
-  const missing = (await ws.repositoryStatus()).filter(
-    repository => !repository.identityConfigured,
-  );
+  const missing = (await ws.repositoryStatus()).filter(repository => !repository.identityConfigured);
   if (missing.length) {
     log.warn('startup.git-identity-missing', {
       repositories: missing.length,

@@ -37,22 +37,14 @@ export function RolesAccessSection({ view }: { view: 'grants' | 'roles' }) {
       id: newIdentifier('r_'),
       name: source ? source.name + ' copy' : '',
       description: source?.description ?? '',
-      permissions:
-        source?.permissions.filter(permission => !permission.actions.includes('admin')) ?? [],
+      permissions: source?.permissions.filter(permission => !permission.actions.includes('admin')) ?? [],
       // roles.json records who created each custom role and when, as grants.json does for grants.
       createdBy: me?.id ?? '',
       createdAt: new Date().toISOString(),
     });
   }
   if (grant && data) {
-    return (
-      <GrantForm
-        initial={grant === 'new' ? undefined : grant}
-        backLabel="Back to grants"
-        onBack={() => setGrant(null)}
-        onSaved={saved}
-      />
-    );
+    return <GrantForm initial={grant === 'new' ? undefined : grant} backLabel="Back to grants" onBack={() => setGrant(null)} onSaved={saved} />;
   }
   if (role && data) {
     return <RoleEditor initial={role} {...data} onBack={() => setRole(null)} onSaved={saved} />;
@@ -73,11 +65,7 @@ export function RolesAccessSection({ view }: { view: 'grants' | 'roles' }) {
     <>
       {error && <p role="alert">{error}</p>}
       <div className="admin-actions">
-        {view === 'grants' ? (
-          <button onClick={() => setGrant('new')}>Add grant</button>
-        ) : (
-          <button onClick={() => duplicate()}>New role</button>
-        )}
+        {view === 'grants' ? <button onClick={() => setGrant('new')}>Add grant</button> : <button onClick={() => duplicate()}>New role</button>}
         <button onClick={() => setHistory(true)}>History</button>
       </div>
       {data && view === 'grants' && (
@@ -112,9 +100,7 @@ export function RolesAccessSection({ view }: { view: 'grants' | 'roles' }) {
                       )}
                     </td>
                     <td>
-                      {[...data.roles.builtIn, ...data.roles.custom].find(
-                        role => role.id === item.roleId,
-                      )?.name ?? item.roleId}
+                      {[...data.roles.builtIn, ...data.roles.custom].find(role => role.id === item.roleId)?.name ?? item.roleId}
                       <br />
                       {scopeLabel(item.scope)}
                     </td>
@@ -160,42 +146,17 @@ export function RolesAccessSection({ view }: { view: 'grants' | 'roles' }) {
           ))}
         </>
       )}
-      {removal && data && (
-        <RemoveAccess
-          item={removal}
-          data={data}
-          onCancel={() => setRemoval(null)}
-          onSaved={saved}
-        />
-      )}
+      {removal && data && <RemoveAccess item={removal} data={data} onCancel={() => setRemoval(null)} onSaved={saved} />}
     </>
   );
 }
 
-function RemoveAccess({
-  item,
-  data,
-  onCancel,
-  onSaved,
-}: {
-  item: Grant | Role;
-  data: Awaited<ReturnType<typeof loadRoles>>;
-  onCancel: () => void;
-  onSaved: () => void;
-}) {
+function RemoveAccess({ item, data, onCancel, onSaved }: { item: Grant | Role; data: Awaited<ReturnType<typeof loadRoles>>; onCancel: () => void; onSaved: () => void }) {
   const grant = 'roleId' in item;
-  const proposal = grant
-    ? { grants: data.grants.filter(entry => entry.id !== item.id) }
-    : { roles: data.roles.custom.filter(entry => entry.id !== item.id) };
-  const question = grant
-    ? `Remove ${grantSummary(item, data.roles)}?`
-    : `Delete the role ${item.name} and all of its grants?`;
+  const proposal = grant ? { grants: data.grants.filter(entry => entry.id !== item.id) } : { roles: data.roles.custom.filter(entry => entry.id !== item.id) };
+  const question = grant ? `Remove ${grantSummary(item, data.roles)}?` : `Delete the role ${item.name} and all of its grants?`;
   return (
-    <AdminConfirmation
-      title={grant ? 'Remove grant' : 'Delete role'}
-      onCancel={onCancel}
-      lastAdminNotice={grant}
-    >
+    <AdminConfirmation title={grant ? 'Remove grant' : 'Delete role'} onCancel={onCancel} lastAdminNotice={grant}>
       <p>{question}</p>
       {!grant && <RoleHolders roleId={item.id} grants={data.roles.usage[item.id]?.grants ?? 0} />}
       <ReviewChange

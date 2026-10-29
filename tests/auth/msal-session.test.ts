@@ -14,11 +14,7 @@ import { entraConfig, withEntraProvider } from '../helpers/entra-provider';
 const origin = 'http://127.0.0.1:4310';
 
 /** Signs a person in through the handler and returns their session cookie and its id. */
-async function browserSignIn(
-  handler: ReturnType<typeof createHandler>,
-  provider: MockOidc,
-  username: TestUserName,
-) {
+async function browserSignIn(handler: ReturnType<typeof createHandler>, provider: MockOidc, username: TestUserName) {
   const start = await handler(new Request(origin + '/auth/login'));
   const attempt = start.headers.getSetCookie()[0].split(';')[0];
   const callback = await provider.authorizeAs(username, start.headers.get('location')!);
@@ -49,9 +45,7 @@ async function captureConsole(step: () => Promise<void>): Promise<string> {
 /** Every secret held in a serialized MSAL token cache. */
 function cacheSecrets(serialized: string): string[] {
   const cache = JSON.parse(serialized) as Record<string, Record<string, { secret?: string }>>;
-  return Object.values(cache).flatMap(entries =>
-    Object.values(entries).flatMap(entry => (entry.secret ? [entry.secret] : [])),
-  );
+  return Object.values(cache).flatMap(entries => Object.values(entries).flatMap(entry => (entry.secret ? [entry.secret] : [])));
 }
 
 test('each session keeps its own MSAL cache, encrypted, and no token reaches a response or log', () =>
@@ -83,9 +77,7 @@ test('each session keeps its own MSAL cache, encrypted, and no token reaches a r
     const sessionDir = join(fixture.ws.layout.state, 'sessions');
     const files = readdirSync(sessionDir).map(name => readFileSync(join(sessionDir, name), 'utf8'));
     // A base64-encoded copy would hide plain text from a text search, so decode it too.
-    const decoded = files.map(text =>
-      Buffer.from(JSON.parse(text).ciphertext, 'base64').toString('latin1'),
-    );
+    const decoded = files.map(text => Buffer.from(JSON.parse(text).ciphertext, 'base64').toString('latin1'));
     const stored = [...files, ...decoded];
     expect(files).toHaveLength(2);
     for (const text of [...stored, ...responses, logged]) {

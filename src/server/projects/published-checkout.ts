@@ -9,10 +9,7 @@ export class PublishedCheckoutChangedError extends Error {
     public repo: string,
     public paths: string[],
   ) {
-    super(
-      `The published checkout of ${repo} has changes that are not deletions kept in the trash: ` +
-        `${paths.join(', ')}. Commit or discard them in data/projects/${repo} and start again.`,
-    );
+    super(`The published checkout of ${repo} has changes that are not deletions kept in the trash: ` + `${paths.join(', ')}. Commit or discard them in data/projects/${repo} and start again.`);
     this.name = 'PublishedCheckoutChangedError';
   }
 }
@@ -37,12 +34,7 @@ export async function restoreTrashedDeletions(options: {
   const explained: string[] = [];
   const unexplained: string[] = [];
   for (const entry of entries) {
-    const deletion =
-      !entry.untracked &&
-      !entry.conflicted &&
-      isDeletion(entry.index) &&
-      isDeletion(entry.worktree) &&
-      (entry.index === 'D' || entry.worktree === 'D');
+    const deletion = !entry.untracked && !entry.conflicted && isDeletion(entry.index) && isDeletion(entry.worktree) && (entry.index === 'D' || entry.worktree === 'D');
     if (deletion && trashed.has(entry.path)) explained.push(entry.path);
     else unexplained.push(entry.path);
   }

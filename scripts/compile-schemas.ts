@@ -27,10 +27,7 @@ const extensions = new Ajv2020(options);
 for (const validator of [contracts, semantics, mappings]) addFormats(validator);
 mappings.addFormat('iri', /^[a-z][a-z\d+.-]*:[^\s]+$/i);
 const ontologyId = 'https://raw.githubusercontent.com/apache/ossie/main/ontology/ontology.json';
-mappings.addSchema(
-  ossie,
-  'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json',
-);
+mappings.addSchema(ossie, 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json');
 mappings.addSchema(ontology, ontologyId);
 const mappingRef = 'urn:semantic-workbench:mapping';
 const embeddedMappingRef = 'urn:semantic-workbench:embedded-mapping';
@@ -77,26 +74,9 @@ const outputs = [
     validators: { metric: metricRef, mapping: mappingExtensionRef },
   },
 ] as const;
-const oldOutputs = [
-  'contract',
-  'semantic',
-  'embedded-mapping',
-  'extensions',
-  'mapping-extension',
-  'mapping',
-  'mappings',
-  'metric',
-  'ontology',
-  'validators',
-];
+const oldOutputs = ['contract', 'semantic', 'embedded-mapping', 'extensions', 'mapping-extension', 'mapping', 'mappings', 'metric', 'ontology', 'validators'];
 
-const schemaChildKeywords = [
-  '$defs',
-  'definitions',
-  'properties',
-  'patternProperties',
-  'dependentSchemas',
-] as const;
+const schemaChildKeywords = ['$defs', 'definitions', 'properties', 'patternProperties', 'dependentSchemas'] as const;
 const schemaDescriptionStopWords = new Set([
   'a',
   'an',
@@ -124,13 +104,7 @@ const schemaDescriptionStopWords = new Set([
   'which',
   'with',
 ]);
-const schemaSingleChildKeywords = [
-  'additionalProperties',
-  'contains',
-  'if',
-  'not',
-  'propertyNames',
-] as const;
+const schemaSingleChildKeywords = ['additionalProperties', 'contains', 'if', 'not', 'propertyNames'] as const;
 const schemaArrayChildKeywords = ['allOf', 'anyOf', 'oneOf', 'prefixItems'] as const;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -138,29 +112,15 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function pascalCase(value: string): string {
-  return (value.match(/[A-Za-z0-9]+/g) ?? [])
-    .map(part => part[0].toUpperCase() + part.slice(1))
-    .join('');
+  return (value.match(/[A-Za-z0-9]+/g) ?? []).map(part => part[0].toUpperCase() + part.slice(1)).join('');
 }
 
 function schemaNameFromDescription(rootName: string, declaration: ts.VariableDeclaration): string {
-  if (!declaration.initializer || !ts.isObjectLiteralExpression(declaration.initializer))
-    return `${pascalCase(rootName)}SchemaComponent`;
+  if (!declaration.initializer || !ts.isObjectLiteralExpression(declaration.initializer)) return `${pascalCase(rootName)}SchemaComponent`;
   const properties = declaration.initializer.properties;
   const stringProperty = (name: string) => {
-    const property = properties.find(
-      item =>
-        ts.isPropertyAssignment(item) &&
-        (ts.isIdentifier(item.name) || ts.isStringLiteral(item.name)) &&
-        item.name.text === name,
-    );
-    if (
-      !property ||
-      !ts.isPropertyAssignment(property) ||
-      (!ts.isStringLiteral(property.initializer) &&
-        !ts.isNoSubstitutionTemplateLiteral(property.initializer))
-    )
-      return undefined;
+    const property = properties.find(item => ts.isPropertyAssignment(item) && (ts.isIdentifier(item.name) || ts.isStringLiteral(item.name)) && item.name.text === name);
+    if (!property || !ts.isPropertyAssignment(property) || (!ts.isStringLiteral(property.initializer) && !ts.isNoSubstitutionTemplateLiteral(property.initializer))) return undefined;
     return property.initializer.text;
   };
   const title = stringProperty('title');
@@ -193,19 +153,16 @@ function schemaNames(roots: readonly { name: string; schema: object }[]): WeakMa
     for (const keyword of schemaChildKeywords) {
       const children = schema[keyword];
       if (!isRecord(children)) continue;
-      for (const [key, child] of Object.entries(children))
-        visit(child, `${name}${pascalCase(key)}`);
+      for (const [key, child] of Object.entries(children)) visit(child, `${name}${pascalCase(key)}`);
     }
-    for (const keyword of schemaSingleChildKeywords)
-      if (isRecord(schema[keyword])) visit(schema[keyword], `${name}${pascalCase(keyword)}`);
+    for (const keyword of schemaSingleChildKeywords) if (isRecord(schema[keyword])) visit(schema[keyword], `${name}${pascalCase(keyword)}`);
     for (const keyword of schemaArrayChildKeywords) {
       const children = schema[keyword];
       if (!Array.isArray(children)) continue;
       children.forEach((child, index) => visit(child, `${name}${pascalCase(keyword)}${index + 1}`));
     }
     if (isRecord(schema.items)) visit(schema.items, `${name}Item`);
-    else if (Array.isArray(schema.items))
-      schema.items.forEach((child, index) => visit(child, `${name}Item${index + 1}`));
+    else if (Array.isArray(schema.items)) schema.items.forEach((child, index) => visit(child, `${name}Item${index + 1}`));
     if (isRecord(schema.else)) visit(schema.else, `${name}Else`);
     if (isRecord(schema.then)) visit(schema.then, `${name}Then`);
   };
@@ -232,11 +189,7 @@ export function compileSchemas(destination = 'src/generated') {
   const declarations: string[] = [];
   for (const output of outputs) {
     const runtimeImports: string[] = [];
-    const generated = (
-      'validator' in output
-        ? standaloneCode(output.compiler, output.validator)
-        : standaloneCode(output.compiler, output.validators)
-    ).replace(/^"use strict";/, '');
+    const generated = ('validator' in output ? standaloneCode(output.compiler, output.validator) : standaloneCode(output.compiler, output.validators)).replace(/^"use strict";/, '');
     const knownSchemaNames = schemaNames(output.schemaRoots);
     const validators =
       'validator' in output
@@ -248,41 +201,20 @@ export function compileSchemas(destination = 'src/generated') {
     for (const validator of validators) {
       for (const symbol of validator.source?.scopeValues.schema ?? []) {
         const value = symbol.value;
-        if (!isRecord(value) || !isRecord(value.ref))
-          throw new Error(
-            `AJV did not provide source schema metadata for ${output.name} ${symbol.str}.`,
-          );
+        if (!isRecord(value) || !isRecord(value.ref)) throw new Error(`AJV did not provide source schema metadata for ${output.name} ${symbol.str}.`);
         const reference = value.ref;
         const schemaName =
           knownSchemaNames.get(reference) ??
-          `${output.schemaRoots[0].name}${pascalCase(
-            typeof reference.title === 'string'
-              ? reference.title
-              : typeof reference.description === 'string'
-                ? reference.description
-                : 'Referenced',
-          )}Schema`;
+          `${output.schemaRoots[0].name}${pascalCase(typeof reference.title === 'string' ? reference.title : typeof reference.description === 'string' ? reference.description : 'Referenced')}Schema`;
         namesByAjvSymbol.set(symbol.str, schemaName);
       }
     }
-    const generatedSource = ts.createSourceFile(
-      `${output.name}.js`,
-      generated,
-      ts.ScriptTarget.Latest,
-      true,
-      ts.ScriptKind.JS,
-    );
+    const generatedSource = ts.createSourceFile(`${output.name}.js`, generated, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
     const usedNames = new Set<string>();
     const schemaVariableNames = new Map<string, string>();
     const assignNames = (node: ts.Node) => {
-      if (
-        ts.isVariableDeclaration(node) &&
-        ts.isIdentifier(node.name) &&
-        /^schema\d+$/.test(node.name.text)
-      ) {
-        const preferred =
-          namesByAjvSymbol.get(node.name.text) ??
-          schemaNameFromDescription(output.schemaRoots[0].name, node);
+      if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && /^schema\d+$/.test(node.name.text)) {
+        const preferred = namesByAjvSymbol.get(node.name.text) ?? schemaNameFromDescription(output.schemaRoots[0].name, node);
         let name = preferred;
         let suffix = 2;
         while (usedNames.has(name)) name = `${preferred.replace(/Schema$/, '')}Schema${suffix++}`;
@@ -297,16 +229,13 @@ export function compileSchemas(destination = 'src/generated') {
       if (!name) throw new Error(`No descriptive source name found for ${output.name} ${symbol}.`);
       return name;
     });
-    if (/\bformats\./.test(generated))
-      imports.add("import { fullFormats as formats } from 'ajv-formats/dist/formats.js';");
+    if (/\bformats\./.test(generated)) imports.add("import { fullFormats as formats } from 'ajv-formats/dist/formats.js';");
     const code = namedGenerated.replace(/require\("([^"]+)"\)/g, (_match, module: string) => {
       const binding = `${output.name}Runtime${runtimeImports.length}`;
       imports.add(`import * as ${binding}Module from '${module}.js';`);
       // Bundlers expose a CommonJS module either as its exports or under `default`; take the
       // exports object in both cases so `.default` and named members resolve the same way.
-      runtimeImports.push(
-        `const ${binding} = ${binding}Module.default?.__esModule ? ${binding}Module.default : ${binding}Module;`,
-      );
+      runtimeImports.push(`const ${binding} = ${binding}Module.default?.__esModule ? ${binding}Module.default : ${binding}Module;`);
       return binding;
     });
     const generatedExports = new Map<string, string>();
@@ -327,26 +256,14 @@ export function compileSchemas(destination = 'src/generated') {
       return `${name}: ${validator}`;
     });
     const moduleName = `generated${pascalCase(output.name)}`;
-    modules.push(
-      `const ${moduleName} = (() => {\n${runtimeImports.join('\n')}\n${body}\nreturn { ${returned.join(', ')} };\n})();`,
-    );
+    modules.push(`const ${moduleName} = (() => {\n${runtimeImports.join('\n')}\n${body}\nreturn { ${returned.join(', ')} };\n})();`);
     exports.push(...outputNames.map(name => `export const ${name} = ${moduleName}.${name};`));
-    declarations.push(
-      ...outputNames.map(name => `export declare const ${name}: ValidateFunction;`),
-    );
+    declarations.push(...outputNames.map(name => `export declare const ${name}: ValidateFunction;`));
   }
   const jsPath = join(destination, 'validators.js');
   const declarationPath = join(destination, 'validators.d.ts');
-  writeFileSync(
-    jsPath,
-    `// generated, do not edit\n${[...imports].join('\n')}\n${modules.join('\n')}\n${exports.join('\n')}\n`,
-  );
-  writeFileSync(
-    declarationPath,
-    '// generated, do not edit\n' +
-      "import type { ValidateFunction } from 'ajv';\n" +
-      `${declarations.join('\n')}\n`,
-  );
+  writeFileSync(jsPath, `// generated, do not edit\n${[...imports].join('\n')}\n${modules.join('\n')}\n${exports.join('\n')}\n`);
+  writeFileSync(declarationPath, '// generated, do not edit\n' + "import type { ValidateFunction } from 'ajv';\n" + `${declarations.join('\n')}\n`);
   for (const name of oldOutputs) {
     if (name === 'validators') continue;
     for (const extension of ['.js', '.d.ts']) {
@@ -354,15 +271,7 @@ export function compileSchemas(destination = 'src/generated') {
       if (existsSync(path)) unlinkSync(path);
     }
   }
-  const formatted = Bun.spawnSync([
-    process.execPath,
-    'x',
-    'oxfmt',
-    '--config',
-    join(process.cwd(), '.oxfmtrc.json'),
-    jsPath,
-    declarationPath,
-  ]);
+  const formatted = Bun.spawnSync([process.execPath, 'x', 'oxfmt', '--config', join(process.cwd(), '.oxfmtrc.json'), jsPath, declarationPath]);
   if (formatted.exitCode !== 0) {
     throw new Error(`Oxfmt failed to format generated validators: ${formatted.stderr.toString()}`);
   }

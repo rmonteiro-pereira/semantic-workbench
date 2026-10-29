@@ -128,11 +128,7 @@ export function expressionRefs(sql: string): ExprRef[] {
     const start = i;
     const parts = [t.value];
     let j = i;
-    while (
-      tokens[j + 1]?.value === '.' &&
-      tokens[j + 1].kind === 'punct' &&
-      isName(tokens[j + 2])
-    ) {
+    while (tokens[j + 1]?.value === '.' && tokens[j + 1].kind === 'punct' && isName(tokens[j + 2])) {
       parts.push(tokens[j + 2].value);
       j += 2;
     }
@@ -144,12 +140,7 @@ export function expressionRefs(sql: string): ExprRef[] {
     if (previous?.kind === 'ident' && previous.value.toLowerCase() === 'as') continue;
     if (previous?.value === ':' && tokens[start - 2]?.value === ':') continue;
     // EXTRACT(YEAR FROM x) and typed literals such as DATE '2024-01-01' are not references.
-    if (
-      parts.length === 1 &&
-      ((next?.kind === 'ident' && next.value.toLowerCase() === 'from') ||
-        (next?.kind === 'other' && next.value === 'string'))
-    )
-      continue;
+    if (parts.length === 1 && ((next?.kind === 'ident' && next.value.toLowerCase() === 'from') || (next?.kind === 'other' && next.value === 'string'))) continue;
     refs.push({
       table: parts.length > 1 ? parts.slice(0, -1).join('.') : null,
       column: parts.at(-1)!,

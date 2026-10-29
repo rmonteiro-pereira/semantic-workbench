@@ -25,12 +25,8 @@ const SVG_OPEN = '<svg xmlns="http://www.w3.org/2000/svg"';
 function writeBrandFolder(): string {
   const folder = mkdtempSync(join(tmpdir(), 'workbench-brand-check-'));
   const files: Record<string, string> = {
-    'logo.svg':
-      `${SVG_OPEN} width="${CUSTOM_LOGO_WIDTH}" height="40">` +
-      `<rect width="${CUSTOM_LOGO_WIDTH}" height="40" fill="${ACCENT}"/></svg>`,
-    'logo-mark.svg':
-      `${SVG_OPEN} width="${CUSTOM_MARK_WIDTH}" height="36" onload="alert('mark')">` +
-      `<script>alert('mark')</script><rect width="36" height="36" fill="${ACCENT}"/></svg>`,
+    'logo.svg': `${SVG_OPEN} width="${CUSTOM_LOGO_WIDTH}" height="40">` + `<rect width="${CUSTOM_LOGO_WIDTH}" height="40" fill="${ACCENT}"/></svg>`,
+    'logo-mark.svg': `${SVG_OPEN} width="${CUSTOM_MARK_WIDTH}" height="36" onload="alert('mark')">` + `<script>alert('mark')</script><rect width="36" height="36" fill="${ACCENT}"/></svg>`,
     'favicon.svg': `${SVG_OPEN} width="16" height="16"><circle r="8" fill="${ACCENT}"/></svg>`,
     'brand.json': JSON.stringify({ productName: BRAND_NAME, shortName: 'Acme' }),
     'brand.css': `:root { --color-accent: ${ACCENT}; } body { display: none; }`,
@@ -49,27 +45,20 @@ async function customBrandChecks(browser: Browser, url: string) {
   try {
     await page.goto(url);
     await page.locator('.workspace-header').waitFor();
-    await check(
-      'the window title, sidebar logo and favicon come from the brand folder',
-      async () => {
-        await expect(page).toHaveTitle(BRAND_NAME);
-        await expectNoFileOpen(page);
-        const logo = page.locator('.workspace-sidebar .brand img');
-        await expect(logo).toHaveAttribute('alt', BRAND_NAME);
-        const width = await logo.evaluate((image: HTMLImageElement) =>
-          image.decode().then(() => image.naturalWidth),
-        );
-        assert.equal(width, CUSTOM_LOGO_WIDTH);
-        const icon = await page.locator('link[rel="icon"]').getAttribute('href');
-        assert.equal(icon, '/brand/favicon.svg');
-        const favicon = await page.request.get(url + icon!);
-        assert.match(await favicon.text(), new RegExp(ACCENT));
-      },
-    );
+    await check('the window title, sidebar logo and favicon come from the brand folder', async () => {
+      await expect(page).toHaveTitle(BRAND_NAME);
+      await expectNoFileOpen(page);
+      const logo = page.locator('.workspace-sidebar .brand img');
+      await expect(logo).toHaveAttribute('alt', BRAND_NAME);
+      const width = await logo.evaluate((image: HTMLImageElement) => image.decode().then(() => image.naturalWidth));
+      assert.equal(width, CUSTOM_LOGO_WIDTH);
+      const icon = await page.locator('link[rel="icon"]').getAttribute('href');
+      assert.equal(icon, '/brand/favicon.svg');
+      const favicon = await page.request.get(url + icon!);
+      assert.match(await favicon.text(), new RegExp(ACCENT));
+    });
     await check('brand.css overrides the accent token and nothing else', async () => {
-      const accent = await page.evaluate(() =>
-        getComputedStyle(document.documentElement).getPropertyValue('--color-accent').trim(),
-      );
+      const accent = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--color-accent').trim());
       assert.equal(accent, ACCENT);
       assert.equal(await page.locator('.workspace-header').isVisible(), true);
     });
@@ -77,10 +66,7 @@ async function customBrandChecks(browser: Browser, url: string) {
       const response = await page.request.get(url + '/brand/logo-mark.svg');
       assert.equal(response.headers()['content-type'], 'image/svg+xml');
       assert.equal(response.headers()['x-content-type-options'], 'nosniff');
-      assert.equal(
-        response.headers()['content-security-policy'],
-        "default-src 'none'; style-src 'unsafe-inline'; sandbox",
-      );
+      assert.equal(response.headers()['content-security-policy'], "default-src 'none'; style-src 'unsafe-inline'; sandbox");
       const body = await response.text();
       assert(!/script|onload|alert/.test(body), body);
       await page.goto(url + '/brand/logo-mark.svg');
@@ -100,9 +86,7 @@ async function defaultBrandChecks(browser: Browser, url: string) {
       await expect(page).toHaveTitle('Semantic Workbench');
       const logo = page.locator('.workspace-sidebar .brand img');
       await logo.waitFor();
-      const width = await logo.evaluate((image: HTMLImageElement) =>
-        image.decode().then(() => image.naturalWidth),
-      );
+      const width = await logo.evaluate((image: HTMLImageElement) => image.decode().then(() => image.naturalWidth));
       assert.equal(width, DEFAULT_LOGO_WIDTH);
     } finally {
       await page.close();
@@ -137,18 +121,11 @@ async function signInPageChecks(browser: Browser, folder: string) {
         assert.equal(await page.title(), `Signed out · ${BRAND_NAME}`);
         assert.equal(await page.locator('.brand span').innerText(), BRAND_NAME);
         const mark = page.locator('.brand img');
-        const width = await mark.evaluate((image: HTMLImageElement) =>
-          image.decode().then(() => image.naturalWidth),
-        );
+        const width = await mark.evaluate((image: HTMLImageElement) => image.decode().then(() => image.naturalWidth));
         assert.equal(width, CUSTOM_MARK_WIDTH);
-        const color = await page
-          .locator('.brand')
-          .evaluate(element => getComputedStyle(element).color);
+        const color = await page.locator('.brand').evaluate(element => getComputedStyle(element).color);
         assert.equal(color, ACCENT_RGB);
-        assert.equal(
-          await page.locator('link[rel="icon"]').getAttribute('href'),
-          '/brand/favicon.svg',
-        );
+        assert.equal(await page.locator('link[rel="icon"]').getAttribute('href'), '/brand/favicon.svg');
       } finally {
         await page.close();
       }
@@ -162,11 +139,7 @@ export async function brandBrowserCheck() {
   const folder = writeBrandFolder();
   const browser = await chromium.launch({ headless: true });
   const customUrl = `http://127.0.0.1:${freeAuthPort()}`;
-  const custom = await startAuthApi(
-    customUrl,
-    { mode: 'local' },
-    { env: { SW_BRAND_DIR: folder } },
-  );
+  const custom = await startAuthApi(customUrl, { mode: 'local' }, { env: { SW_BRAND_DIR: folder } });
   try {
     await customBrandChecks(browser, customUrl);
     await signInPageChecks(browser, folder);

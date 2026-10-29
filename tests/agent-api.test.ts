@@ -4,24 +4,12 @@ import { test, expect } from 'bun:test';
 import { testWorkspace } from './helpers/temp-data-dir';
 async function fixture() {
   const t = await testWorkspace();
-  for (const file of [
-    'commerce.mapping.yaml',
-    'commerce.mapped-ontology.yaml',
-    'commerce.mapped-semantic.yaml',
-  ])
-    await t.ws.saveDocument(
-      file,
-      await Bun.file('public/examples/commerce/' + file).text(),
-      LOCAL_READER,
-    );
+  for (const file of ['commerce.mapping.yaml', 'commerce.mapped-ontology.yaml', 'commerce.mapped-semantic.yaml'])
+    await t.ws.saveDocument(file, await Bun.file('public/examples/commerce/' + file).text(), LOCAL_READER);
   return t;
 }
 const PROJECT = 'ungrouped';
-const req = (path: string, body?: any) =>
-  new Request(
-    'http://localhost' + path,
-    body !== undefined ? { method: 'POST', body: JSON.stringify(body) } : {},
-  );
+const req = (path: string, body?: any) => new Request('http://localhost' + path, body !== undefined ? { method: 'POST', body: JSON.stringify(body) } : {});
 test('agent discovers layers and generates a new grounded query through the real HTTP API', async () => {
   const t = await fixture();
   try {
@@ -31,16 +19,8 @@ test('agent discovers layers and generates a new grounded query through the real
     expect(catalog.mappings).toHaveLength(1);
     const id = catalog.mappings[0].id;
     expect(id).toBe('ungrouped/commerce.mapping.yaml');
-    const context = await (
-      await handler(
-        req(`/api/agent/context?project=${PROJECT}&mappingId=` + encodeURIComponent(id)),
-      )
-    ).json();
-    expect(
-      context.bindings.some(
-        (b: any) => b.rootConcept === 'Revenue' && b.metrics.includes('gross_revenue'),
-      ),
-    ).toBe(true);
+    const context = await (await handler(req(`/api/agent/context?project=${PROJECT}&mappingId=` + encodeURIComponent(id)))).json();
+    expect(context.bindings.some((b: any) => b.rootConcept === 'Revenue' && b.metrics.includes('gross_revenue'))).toBe(true);
     expect(context.aiContext.length).toBe(2);
     const response = await handler(
       req('/api/agent/plan', {
@@ -57,19 +37,9 @@ test('agent discovers layers and generates a new grounded query through the real
     expect(plan.metrics[0].governedExpression.dialects[0].expression).toBe('SUM(orders.amount)');
     expect(plan.documents[0].documentId).toBe(id);
     expect(t.ws.documents()).toEqual(before);
-    const focused = await (
-      await handler(
-        req(
-          `/api/agent/context?project=${PROJECT}&mappingId=` +
-            encodeURIComponent(id) +
-            '&concept=Revenue',
-        ),
-      )
-    ).json();
+    const focused = await (await handler(req(`/api/agent/context?project=${PROJECT}&mappingId=` + encodeURIComponent(id) + '&concept=Revenue'))).json();
     expect(focused.metrics.map((m: any) => m.name)).toEqual(['gross_revenue']);
-    expect(
-      focused.bindings.every((b: any) => b.rootConcept === 'Revenue' || b.concept === 'Revenue'),
-    ).toBe(true);
+    expect(focused.bindings.every((b: any) => b.rootConcept === 'Revenue' || b.concept === 'Revenue')).toBe(true);
   } finally {
     t.dispose();
   }
@@ -96,12 +66,8 @@ test('agent requests cannot override metrics, inject expressions or select unkno
       expect((await r.json()).error).toBeTruthy();
     }
     expect((await h(req(`/api/agent/context?project=${PROJECT}`))).status).toBe(400);
-    expect((await h(req(`/api/agent/context?project=${PROJECT}&mappingId=missing`))).status).toBe(
-      400,
-    );
-    const tooLarge = await h(
-      new Request('http://localhost/api/agent/plan', { method: 'POST', body: 'x'.repeat(64001) }),
-    );
+    expect((await h(req(`/api/agent/context?project=${PROJECT}&mappingId=missing`))).status).toBe(400);
+    const tooLarge = await h(new Request('http://localhost/api/agent/plan', { method: 'POST', body: 'x'.repeat(64001) }));
     expect(tooLarge.status).toBe(400);
     expect(t.ws.documents()).toHaveLength(3);
   } finally {
@@ -115,16 +81,8 @@ test('reference diagnostics update immediately when referenced documents are sav
     const catalog = await (await h(req(`/api/agent/catalog?project=${PROJECT}`))).json();
     const id = catalog.mappings[0].id;
     const ontology = t.ws.documents().find(d => d.filename === 'commerce.mapped-ontology.yaml')!;
-    await t.ws.saveDocument(
-      ontology.filename,
-      ontology.source.replace('Mapped commerce ontology', 'Renamed ontology'),
-      LOCAL_READER,
-      ontology.id,
-      { revision: ontology.revision },
-    );
-    const c = await (
-      await h(req(`/api/agent/context?project=${PROJECT}&mappingId=` + encodeURIComponent(id)))
-    ).json();
+    await t.ws.saveDocument(ontology.filename, ontology.source.replace('Mapped commerce ontology', 'Renamed ontology'), LOCAL_READER, ontology.id, { revision: ontology.revision });
+    const c = await (await h(req(`/api/agent/context?project=${PROJECT}&mappingId=` + encodeURIComponent(id)))).json();
     expect(c.findings.some((f: any) => f.code === 'reference')).toBe(true);
     const r = await h(
       req('/api/agent/plan', {
@@ -173,11 +131,7 @@ test('an agent request names its project and never resolves references in anothe
     await t.ws.deleteFile(PROJECT, ontology.filename, LOCAL_READER);
     await t.ws.deleteFile(PROJECT, semantic.filename, LOCAL_READER);
     const id = mapping.id;
-    const context = await (
-      await t.handler(
-        req(`/api/agent/context?project=${PROJECT}&mappingId=${encodeURIComponent(id)}`),
-      )
-    ).json();
+    const context = await (await t.handler(req(`/api/agent/context?project=${PROJECT}&mappingId=${encodeURIComponent(id)}`))).json();
     expect(context.findings.some((f: any) => f.code === 'reference')).toBe(true);
     expect((await t.handler(req('/api/agent/catalog'))).status).toBe(400);
     const unknown = await t.handler(req('/api/agent/catalog?project=missing'));
@@ -213,16 +167,12 @@ test('agent requests refuse a missing or malformed project and a mapping of anot
       const plan = await t.handler(req('/api/agent/plan', { project, mappingId: id }));
       expect(plan.status).toBe(400);
     }
-    const mismatched = await t.handler(
-      req(`/api/agent/context?project=other&mappingId=${encoded}`),
-    );
+    const mismatched = await t.handler(req(`/api/agent/context?project=other&mappingId=${encoded}`));
     expect(mismatched.status).toBe(400);
     expect(await mismatched.json()).toEqual({
       error: 'mappingId belongs to project ungrouped, not other.',
     });
-    const mismatchedPlan = await t.handler(
-      req('/api/agent/plan', { project: 'other', mappingId: id, metrics: [], dimensions: [] }),
-    );
+    const mismatchedPlan = await t.handler(req('/api/agent/plan', { project: 'other', mappingId: id, metrics: [], dimensions: [] }));
     expect(mismatchedPlan.status).toBe(400);
     const projects = await (await t.handler(req('/api/agent/projects'))).json();
     expect(projects.projects.map((p: { slug: string }) => p.slug)).toContain('other');
@@ -237,9 +187,7 @@ test('an agent request without a project is refused before the mapping is looked
     const context = await t.handler(req('/api/agent/context?mappingId=missing/not-there.yaml'));
     expect(context.status).toBe(400);
     expect((await context.json()).error).toMatch(/^project is required/);
-    const plan = await t.handler(
-      req('/api/agent/plan', { mappingId: 'missing/not-there.yaml', metrics: [], dimensions: [] }),
-    );
+    const plan = await t.handler(req('/api/agent/plan', { mappingId: 'missing/not-there.yaml', metrics: [], dimensions: [] }));
     expect(plan.status).toBe(400);
     expect((await plan.json()).error).toMatch(/^project is required/);
   } finally {

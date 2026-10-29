@@ -25,9 +25,7 @@ export type TelemetryBackends = {
 };
 
 /** Builds the backends; the default sends to Application Insights. */
-export type BackendFactory = (
-  settings: Extract<TelemetrySettings, { enabled: true }>,
-) => Promise<TelemetryBackends>;
+export type BackendFactory = (settings: Extract<TelemetrySettings, { enabled: true }>) => Promise<TelemetryBackends>;
 
 /** A running (or declined) telemetry pipeline. */
 export type Telemetry = {
@@ -37,9 +35,7 @@ export type Telemetry = {
 };
 
 /** What `/healthz` may say about telemetry: whether it is on, never where it sends. */
-export type TelemetryStatus =
-  | { enabled: false; reason: string }
-  | { enabled: true; sampleRatio: number };
+export type TelemetryStatus = { enabled: false; reason: string } | { enabled: true; sampleRatio: number };
 
 /** Options of {@link startTelemetry}. */
 export type StartOptions = {
@@ -150,10 +146,7 @@ async function withTimeout(work: Promise<unknown>): Promise<void> {
     timer = setTimeout(resolve, SHUTDOWN_TIMEOUT_MS);
   });
   try {
-    await Promise.race([
-      work.catch(error => log.failure('telemetry.shutdown-failed', error)),
-      expired.then(() => log.warn('telemetry.shutdown-timed-out')),
-    ]);
+    await Promise.race([work.catch(error => log.failure('telemetry.shutdown-failed', error)), expired.then(() => log.warn('telemetry.shutdown-timed-out'))]);
   } finally {
     clearTimeout(timer);
   }

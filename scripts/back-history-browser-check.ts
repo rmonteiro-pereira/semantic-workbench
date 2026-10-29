@@ -33,13 +33,7 @@ const wideModel = [
   '  - name: wide_view',
   '    source: analytics.wide_table',
   '    fields:',
-  ...wideColumns.flatMap(column => [
-    `      - name: ${column}`,
-    '        expression:',
-    '          dialects:',
-    '            - dialect: ANSI_SQL',
-    `              expression: ${column}`,
-  ]),
+  ...wideColumns.flatMap(column => [`      - name: ${column}`, '        expression:', '          dialects:', '            - dialect: ANSI_SQL', `              expression: ${column}`]),
 ].join('\n');
 const wide = await api.ws.importBatch(
   {
@@ -74,10 +68,8 @@ type Fingerprint = Record<string, unknown>;
 const fingerprint = (): Promise<Fingerprint> =>
   page.evaluate(() => {
     const clean = (text: string | null | undefined) => (text ?? '').replace(/\s+/g, ' ').trim();
-    const texts = (selector: string) =>
-      [...document.querySelectorAll(selector)].map(element => clean(element.textContent));
-    const ids = (selector: string, attribute: string) =>
-      [...document.querySelectorAll(selector)].map(e => e.getAttribute(attribute)).sort();
+    const texts = (selector: string) => [...document.querySelectorAll(selector)].map(element => clean(element.textContent));
+    const ids = (selector: string, attribute: string) => [...document.querySelectorAll(selector)].map(e => e.getAttribute(attribute)).sort();
     const switches = [...document.querySelectorAll('.canvas [aria-pressed], .canvas [role=radio]')]
       .map(element => {
         const label = clean(element.getAttribute('aria-label') ?? element.textContent);
@@ -92,9 +84,7 @@ const fingerprint = (): Promise<Fingerprint> =>
       // on the trail has its own entry, so only the steps up to the current one count.
       trail: (() => {
         const selector = '.walk-trail ol button, .lineage-trail ol button';
-        const buttons = [...document.querySelectorAll(selector)].filter(
-          button => button.getAttribute('title') !== 'Current center',
-        );
+        const buttons = [...document.querySelectorAll(selector)].filter(button => button.getAttribute('title') !== 'Current center');
         const current = buttons.findIndex(button => button.getAttribute('aria-current') === 'step');
         return buttons.slice(0, current + 1).map(button => clean(button.textContent));
       })(),
@@ -253,17 +243,13 @@ const journey: Action[] = [
 // The in-app back and forward arrows of the Neighborhood and lineage walks must move exactly as
 // the browser's buttons do.
 async function checkArrows() {
-  const arrow = (trail: string, name: 'Back' | 'Forward') =>
-    page.locator(`${trail} button[aria-label="${name}"]`);
+  const arrow = (trail: string, name: 'Back' | 'Forward') => page.locator(`${trail} button[aria-label="${name}"]`);
   const walks = [
     {
       name: 'Neighborhood',
       trail: '.walk-trail',
       start: [openFile('mall.ontology.yaml'), openTab('Neighborhood')],
-      steps: [
-        async () => void (await neighbours().nth(0).click()),
-        async () => void (await neighbours().nth(1).click()),
-      ],
+      steps: [async () => void (await neighbours().nth(0).click()), async () => void (await neighbours().nth(1).click())],
     },
     {
       name: 'lineage',
@@ -299,9 +285,7 @@ async function checkArrows() {
     expect(await settledFingerprint(), `${walk.name} arrow Forward`).toEqual(states[last]);
     for (let index = last - 1; index >= 0; index--) {
       await arrow(walk.trail, 'Back').click();
-      expect(await settledFingerprint(), `${walk.name} arrow Back to ${index}`).toEqual(
-        states[index],
-      );
+      expect(await settledFingerprint(), `${walk.name} arrow Back to ${index}`).toEqual(states[index]);
     }
     console.log('ARROWS ok', walk.name);
   }

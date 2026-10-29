@@ -4,15 +4,7 @@ import { Modal } from './Modal';
 import { api, type ProjectInfo } from './api';
 
 /** Renames a project's display label while retaining its folder identifier. */
-export function RenameDialog({
-  project,
-  onClose,
-  onDone,
-}: {
-  project: ProjectInfo;
-  onClose: () => void;
-  onDone: (name: string) => void;
-}) {
+export function RenameDialog({ project, onClose, onDone }: { project: ProjectInfo; onClose: () => void; onDone: (name: string) => void }) {
   const [name, setName] = useState(project.name);
   const [error, setError] = useState('');
   const footer = (
@@ -88,12 +80,7 @@ export function MoveDialog({
       <button type="button" onClick={onClose}>
         Cancel
       </button>
-      <button
-        className="primary"
-        type="submit"
-        form="move-file"
-        disabled={!target || !toPath.trim()}
-      >
+      <button className="primary" type="submit" form="move-file" disabled={!target || !toPath.trim()}>
         Move
       </button>
     </>
@@ -165,10 +152,7 @@ export function ImportConflictDialog({
           <li key={c}>{c}</li>
         ))}
       </ul>
-      <p>
-        Replace overwrites these files with the imported ones (committed versions remain in the
-        project's Git history). Keep both imports them as "name (2)".
-      </p>
+      <p>Replace overwrites these files with the imported ones (committed versions remain in the project's Git history). Keep both imports them as "name (2)".</p>
     </Modal>
   );
 }
@@ -195,12 +179,7 @@ export function ProjectDomainDialog({
       <button type="button" onClick={onClose}>
         Cancel
       </button>
-      <button
-        className="primary"
-        type="submit"
-        form="project-domain"
-        disabled={!allowUnassigned && !domain}
-      >
+      <button className="primary" type="submit" form="project-domain" disabled={!allowUnassigned && !domain}>
         Continue
       </button>
     </>

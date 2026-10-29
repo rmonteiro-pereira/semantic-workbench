@@ -102,10 +102,7 @@ function validRange(range: string): boolean {
 function metricOwnershipText(domain: string, groups: string[]): string {
   if (!groups.length) throw new AdminConfigError('Expected at least one approver group.');
   const members = groups.map(group => `principal in SW::Group::${quote(group)}`).join(' || ');
-  return (
-    `permit(principal, action == SW::Action::"approveMetric", resource)\n` +
-    `when { resource.domain == ${quote(domain)} && (${members}) };`
-  );
+  return `permit(principal, action == SW::Action::"approveMetric", resource)\n` + `when { resource.domain == ${quote(domain)} && (${members}) };`;
 }
 
 function classificationText(domain: string, level: number): string {
@@ -142,11 +139,7 @@ function restrictingText(input: Exclude<PolicyTemplate, { template: 'metric-owne
   const head = `forbid(principal, action in [${actions}], resource)\n`;
   if (input.template === 'git-limits') {
     if (!/^[a-z][a-z0-9_]*$/.test(input.role)) throw new AdminConfigError('Invalid role.');
-    return (
-      head +
-      `when { principal in resource.holders.${input.role} && ` +
-      `context.branch like ${quote(input.branch)} };`
-    );
+    return head + `when { principal in resource.holders.${input.role} && ` + `context.branch like ${quote(input.branch)} };`;
   }
   if (input.template === 'time') {
     return head + `unless { ${quote(allowedHours(input.hours))}.contains(context.hour) };`;
@@ -161,10 +154,7 @@ function restrictingText(input: Exclude<PolicyTemplate, { template: 'metric-owne
 
 /** Generates policy text; Cedar still gives baseline prohibitions precedence over permits. */
 export function policyTemplate(input: PolicyTemplate): AdminRule {
-  const text =
-    input.template === 'metric-ownership'
-      ? metricOwnershipText(input.domain, input.groups)
-      : restrictingText(input);
+  const text = input.template === 'metric-ownership' ? metricOwnershipText(input.domain, input.groups) : restrictingText(input);
   return { id: input.id, enabled: true, template: input.template, text };
 }
 
@@ -187,9 +177,7 @@ function checkAdminRecovery(text: string) {
   const parsed = cedar.policyToJson(text);
   if (parsed.type !== 'success') return;
   if (forbidsAdminAction(parsed.json)) {
-    throw new AdminConfigError(
-      'A forbid rule must list its actions and cannot include admin; Admins must keep access.',
-    );
+    throw new AdminConfigError('A forbid rule must list its actions and cannot include admin; Admins must keep access.');
   }
   const namesAdmins = JSON.stringify(parsed.json.principal).includes('admin@workspace');
   if (parsed.json.effect === 'forbid' && namesAdmins && parsed.json.conditions.length === 0) {
@@ -214,10 +202,7 @@ export function policyTexts(input: unknown): Record<string, string> {
       throw new AdminConfigError('Invalid policy rule.');
     }
     if (Object.hasOwn(result, rule.id)) throw new AdminConfigError('Duplicate policy ID.');
-    const text = rule.text.replace(
-      /@(id|enabled|template|description)\("(?:[^"\\]|\\.)*"\)\s*/g,
-      '',
-    );
+    const text = rule.text.replace(/@(id|enabled|template|description)\("(?:[^"\\]|\\.)*"\)\s*/g, '');
     checkAdminRecovery(text);
     const metadata = {
       id: rule.id,
@@ -281,8 +266,7 @@ export function listPolicies(rules: Record<string, string> = {}, roles: Role[] =
   const source = readFileSync(new URL('../../../policies/baseline.cedar', import.meta.url), 'utf8');
   const parts = cedar.policySetTextToParts(source);
   if (parts.type === 'failure') throw new AdminConfigError('Invalid shipped baseline.');
-  const annotation = (text: string, key: string) =>
-    new RegExp(`@${key}\\("([^"\\n]*)"\\)`).exec(text)?.[1];
+  const annotation = (text: string, key: string) => new RegExp(`@${key}\\("([^"\\n]*)"\\)`).exec(text)?.[1];
   return {
     baseline: parts.policies.map(text => ({
       id: annotation(text, 'id')!,
@@ -296,10 +280,7 @@ export function listPolicies(rules: Record<string, string> = {}, roles: Role[] =
       template: annotation(text, 'template'),
       description: annotation(text, 'description') ?? '',
     })),
-    schema:
-      readFileSync(new URL('../../../policies/schema.cedarschema', import.meta.url), 'utf8') +
-      '\n' +
-      compileRoles([...(builtin.roles as Role[]), ...roles]).holdersFragment,
+    schema: readFileSync(new URL('../../../policies/schema.cedarschema', import.meta.url), 'utf8') + '\n' + compileRoles([...(builtin.roles as Role[]), ...roles]).holdersFragment,
   };
 }
 
@@ -315,10 +296,7 @@ export type PolicyDataTemplate =
     };
 
 /** Produces a proposed document for the ordinary validation and dry-run save path. */
-export function policyDataTemplate(
-  config: import('./access-config').AccessConfig,
-  input: PolicyDataTemplate,
-) {
+export function policyDataTemplate(config: import('./access-config').AccessConfig, input: PolicyDataTemplate) {
   if (input.template === 'branch-protection') {
     const projects = structuredClone(config.projects);
     for (const slug of input.projects) {
@@ -351,10 +329,7 @@ function policyErrors(error: Error, input: unknown) {
     if (!rule || !detail.error) return fallback[0];
     const canonical = policyTexts([rule])[rule.id];
     const addedBytes = Buffer.byteLength(canonical) - Buffer.byteLength(rule.text);
-    const offset = Math.max(
-      0,
-      (detail.error.sourceLocations?.[0]?.start ?? addedBytes) - addedBytes,
-    );
+    const offset = Math.max(0, (detail.error.sourceLocations?.[0]?.start ?? addedBytes) - addedBytes);
     const prefix = Buffer.from(rule.text).subarray(0, offset).toString().split('\n');
     return {
       id: rule.id,

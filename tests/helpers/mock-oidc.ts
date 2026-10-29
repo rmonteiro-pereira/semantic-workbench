@@ -1,27 +1,9 @@
 // Serves a loopback OpenID provider and Graph stand-in for isolated authentication tests.
-import {
-  TEST_GROUPS,
-  TEST_TENANT_ID,
-  TEST_WORKBENCH_CLIENT,
-  type TestGroup,
-  type TestUser,
-} from './auth-identities';
+import { TEST_GROUPS, TEST_TENANT_ID, TEST_WORKBENCH_CLIENT, type TestGroup, type TestUser } from './auth-identities';
 import { tokenEndpoint } from './mock-oidc-grants';
-import {
-  createProviderState,
-  readAccessToken,
-  userClaims,
-  type MockEndpoint,
-  type MockOidcOptions,
-  type ProviderState,
-} from './mock-oidc-state';
+import { createProviderState, readAccessToken, userClaims, type MockEndpoint, type MockOidcOptions, type ProviderState } from './mock-oidc-state';
 
-export type {
-  ClaimShape,
-  ClientCertificate,
-  MockEndpoint,
-  MockOidcOptions,
-} from './mock-oidc-state';
+export type { ClaimShape, ClientCertificate, MockEndpoint, MockOidcOptions } from './mock-oidc-state';
 
 /** Running provider endpoints, request history and isolated test controls. */
 export type MockOidc = {
@@ -34,10 +16,7 @@ export type MockOidc = {
   calls: { endpoint: string; params: Record<string, string> }[];
   stop(): Promise<void>;
   setUserGroups(username: string, groups: TestGroup[]): void;
-  setUserEmail(
-    username: string,
-    change: Partial<Pick<TestUser, 'email' | 'emailDomainVerified' | 'emailVerified' | 'upn'>>,
-  ): void;
+  setUserEmail(username: string, change: Partial<Pick<TestUser, 'email' | 'emailDomainVerified' | 'emailVerified' | 'upn'>>): void;
   setLifetimes(seconds: { idToken?: number; accessToken?: number; refreshToken?: number }): void;
   setClockOffset(seconds: number): void;
   fail(endpoint: MockEndpoint, mode: 'error' | 'hang' | null): void;
@@ -72,15 +51,8 @@ function discoveryEndpoint(state: ProviderState): Response {
     subject_types_supported: ['pairwise'],
     code_challenge_methods_supported: ['S256'],
     id_token_signing_alg_values_supported: ['RS256'],
-    token_endpoint_auth_methods_supported: entraLayout(state)
-      ? [...authMethods, 'private_key_jwt']
-      : authMethods,
-    grant_types_supported: [
-      'authorization_code',
-      'refresh_token',
-      'client_credentials',
-      'urn:ietf:params:oauth:grant-type:jwt-bearer',
-    ],
+    token_endpoint_auth_methods_supported: entraLayout(state) ? [...authMethods, 'private_key_jwt'] : authMethods,
+    grant_types_supported: ['authorization_code', 'refresh_token', 'client_credentials', 'urn:ietf:params:oauth:grant-type:jwt-bearer'],
   });
 }
 
@@ -101,28 +73,16 @@ function authorizeProblem(state: ProviderState, params: URLSearchParams): string
 }
 
 function escapeHtml(value: string): string {
-  return value
-    .replaceAll('&', '&amp;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;');
+  return value.replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll("'", '&#39;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 }
 
 function authorizePage(state: ProviderState, params: URLSearchParams): Response {
   const hidden = [...params]
     .filter(([name]) => name !== 'username' && name !== 'login_hint')
-    .map(
-      ([name, value]) =>
-        `<input type="hidden" name="${escapeHtml(name)}" value="${escapeHtml(value)}">`,
-    )
+    .map(([name, value]) => `<input type="hidden" name="${escapeHtml(name)}" value="${escapeHtml(value)}">`)
     .join('\n');
   const buttons = Object.values(state.users)
-    .map(
-      user =>
-        `<button name="username" value="${escapeHtml(user.username)}">` +
-        `${escapeHtml(user.name)}</button>`,
-    )
+    .map(user => `<button name="username" value="${escapeHtml(user.username)}">` + `${escapeHtml(user.name)}</button>`)
     .join('\n');
   const html =
     '<!doctype html><html><head><title>Mock sign-in</title></head><body>' +
@@ -183,41 +143,24 @@ async function userinfoEndpoint(state: ProviderState, request: Request) {
 
 function graphCheckEndpoint(state: ProviderState, oid: string, body: unknown) {
   const groupIds = (body as { groupIds?: unknown } | null)?.groupIds;
-  if (
-    !Array.isArray(groupIds) ||
-    groupIds.length > 20 ||
-    !groupIds.every(id => typeof id === 'string')
-  ) {
+  if (!Array.isArray(groupIds) || groupIds.length > 20 || !groupIds.every(id => typeof id === 'string')) {
     return new Response('Expected at most 20 groupIds', { status: 400 });
   }
-  const user = Object.values(state.users).find(
-    person => person.oid.toLowerCase() === oid.toLowerCase(),
-  );
+  const user = Object.values(state.users).find(person => person.oid.toLowerCase() === oid.toLowerCase());
   if (!user) return new Response('Unknown user', { status: 404 });
   const memberships = new Set(user.groups.map(group => group.id.toLowerCase()));
   return Response.json({ value: groupIds.filter(id => memberships.has(id.toLowerCase())) });
 }
 
 function graphGroupEndpoint(id: string) {
-  const group = Object.values(TEST_GROUPS).find(
-    entry => entry.id.toLowerCase() === id.toLowerCase(),
-  );
+  const group = Object.values(TEST_GROUPS).find(entry => entry.id.toLowerCase() === id.toLowerCase());
   if (!group) return new Response('Unknown group', { status: 404 });
   return Response.json({ id: group.id, displayName: group.name });
 }
 
 async function graphEndpoint(state: ProviderState, request: Request, path: string, body: unknown) {
-  const identity = await readAccessToken(
-    state,
-    bearerToken(request),
-    'https://graph.microsoft.com',
-  );
-  if (
-    !identity ||
-    identity.username ||
-    identity.clientId !== TEST_WORKBENCH_CLIENT.clientId ||
-    identity.payload.idtyp !== 'app'
-  ) {
+  const identity = await readAccessToken(state, bearerToken(request), 'https://graph.microsoft.com');
+  if (!identity || identity.username || identity.clientId !== TEST_WORKBENCH_CLIENT.clientId || identity.payload.idtyp !== 'app') {
     return new Response('A workbench app-only Graph token is required', { status: 401 });
   }
   const userMatch = /^\/graph\/v1.0\/users\/([^/]+)\/checkMemberGroups$/.exec(path);
@@ -225,8 +168,7 @@ async function graphEndpoint(state: ProviderState, request: Request, path: strin
     return graphCheckEndpoint(state, decodeURIComponent(userMatch[1]), body);
   }
   const groupMatch = /^\/graph\/v1.0\/groups\/([^/]+)$/.exec(path);
-  if (groupMatch && request.method === 'GET')
-    return graphGroupEndpoint(decodeURIComponent(groupMatch[1]));
+  if (groupMatch && request.method === 'GET') return graphGroupEndpoint(decodeURIComponent(groupMatch[1]));
   return new Response('Not found', { status: 404 });
 }
 
@@ -289,8 +231,7 @@ async function handleRequest(state: ProviderState, request: Request): Promise<Re
   if (endpoint === 'authorize' && ['GET', 'POST'].includes(request.method)) {
     return authorizeEndpoint(state, params, request.method);
   }
-  if (endpoint === 'token' && request.method === 'POST')
-    return tokenEndpoint(state, request, params);
+  if (endpoint === 'token' && request.method === 'POST') return tokenEndpoint(state, request, params);
   if (request.method !== 'GET') return new Response('Method not allowed', { status: 405 });
   switch (endpoint) {
     case 'discovery':

@@ -19,8 +19,6 @@ test('read services require a Reader and requests require an attached scope', ()
 test('grouping, document saves and clones require a Reader', () => {
   expectTypeOf<Parameters<Workspace['grouping']>>().toEqualTypeOf<[string, Reader]>();
   expectTypeOf<Parameters<Workspace['saveGrouping']>>().toEqualTypeOf<[string, unknown, Reader]>();
-  expectTypeOf<Parameters<Workspace['clone']>>().toEqualTypeOf<
-    [unknown, unknown, Reader, AssignProject?, RemoteCredential?, FolderRequest?]
-  >();
+  expectTypeOf<Parameters<Workspace['clone']>>().toEqualTypeOf<[unknown, unknown, Reader, AssignProject?, RemoteCredential?, FolderRequest?]>();
   expectTypeOf<Parameters<Workspace['saveDocument']>[2]>().toEqualTypeOf<Reader>();
 });

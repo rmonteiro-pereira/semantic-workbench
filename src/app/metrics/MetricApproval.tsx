@@ -68,30 +68,16 @@ export function MetricApproval({ project, kpi }: { project: string; kpi: KpiSumm
   const Icon = control.action === 'approve' ? BadgeCheck : Archive;
   return (
     <div className="kpi-approval">
-      <button
-        className="kpi-edit"
-        onClick={start}
-        disabled={control.disabled || busy || reason !== null}
-        title={control.reason}
-      >
+      <button className="kpi-edit" onClick={start} disabled={control.disabled || busy || reason !== null} title={control.reason}>
         <Icon size={13} />
         {control.label}
       </button>
-      {control.disabled && control.reason && (
-        <small className="kpi-approval-reason">{control.reason}.</small>
-      )}
+      {control.disabled && control.reason && <small className="kpi-approval-reason">{control.reason}.</small>}
       {reason !== null && (
         <form className="kpi-deprecate" onSubmit={deprecate}>
           <label>
             Deprecation reason
-            <textarea
-              aria-label="Reason for deprecating"
-              placeholder="Reason or replacement metric"
-              rows={2}
-              value={reason}
-              onChange={event => setReason(event.target.value)}
-              autoFocus
-            />
+            <textarea aria-label="Reason for deprecating" placeholder="Reason or replacement metric" rows={2} value={reason} onChange={event => setReason(event.target.value)} autoFocus />
           </label>
           <button type="submit" className="primary" disabled={busy || !reason.trim()}>
             Deprecate metric

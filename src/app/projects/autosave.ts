@@ -5,16 +5,7 @@
 // later edits use the hash returned by that save.
 import { applyDemotions, type Demotion } from '../../shared/governance/guards';
 /** Names the current saving, validation or conflict state of an open file. */
-export type AutosaveStatus =
-  | 'clean'
-  | 'pending'
-  | 'saving'
-  | 'saved'
-  | 'invalid'
-  | 'stale'
-  | 'failed'
-  | 'waiting'
-  | 'cancelled';
+export type AutosaveStatus = 'clean' | 'pending' | 'saving' | 'saved' | 'invalid' | 'stale' | 'failed' | 'waiting' | 'cancelled';
 /** Tracks editor text, saved text, base hash and pending autosave work. */
 export type AutosaveState = {
   file: string | null;
@@ -41,10 +32,7 @@ export type AutosaveEvent =
   | { type: 'git'; busy: boolean }
   | { type: 'external'; hash: string; text: string };
 /** Requests a validation or save side effect from the autosave driver. */
-export type AutosaveEffect =
-  | { type: 'save'; file: string; baseHash: string | null; from: string; to: string }
-  | { type: 'schedule' }
-  | null;
+export type AutosaveEffect = { type: 'save'; file: string; baseHash: string | null; from: string; to: string } | { type: 'schedule' } | null;
 export const AUTOSAVE_DELAY_MS = 1000;
 export const initialAutosave: AutosaveState = {
   file: null,
@@ -57,18 +45,14 @@ export const initialAutosave: AutosaveState = {
   gitBusy: false,
 };
 const paused = (s: AutosaveState) => s.status === 'stale' || s.status === 'cancelled';
-const settled = (s: AutosaveState): AutosaveStatus =>
-  s.lastSavedAt !== undefined ? 'saved' : 'clean';
+const settled = (s: AutosaveState): AutosaveStatus => (s.lastSavedAt !== undefined ? 'saved' : 'clean');
 /** Text typed during a save, with the metrics the server demoted demoted in it too. */
 function typedAfterDemotion(state: AutosaveState, demoted: Demotion[] | undefined): string {
   if (!demoted?.length || !state.file) return state.text;
   return applyDemotions(state.text, state.file, demoted);
 }
 /** Advances autosave state and returns effects without performing writes itself. */
-export function autosave(
-  state: AutosaveState,
-  event: AutosaveEvent,
-): { state: AutosaveState; effect: AutosaveEffect } {
+export function autosave(state: AutosaveState, event: AutosaveEvent): { state: AutosaveState; effect: AutosaveEffect } {
   const keep = (next: AutosaveState, effect: AutosaveEffect = null) => ({ state: next, effect });
   switch (event.type) {
     case 'open':
@@ -84,8 +68,7 @@ export function autosave(
       const next = { ...state, text: event.text };
       if (paused(state)) return keep(next);
       if (state.inFlight !== null) return keep({ ...next, status: 'saving' });
-      if (event.text === state.savedText)
-        return keep({ ...next, status: settled(state), errors: 0 });
+      if (event.text === state.savedText) return keep({ ...next, status: settled(state), errors: 0 });
       return keep({ ...next, status: 'pending' }, { type: 'schedule' });
     }
     case 'idle': {
@@ -93,8 +76,7 @@ export function autosave(
       if (event.text !== state.text || !state.file) return keep(state);
       if (state.status === 'stale') return keep(state);
       if (state.status === 'cancelled') return keep(state);
-      if (state.text === state.savedText && state.inFlight === null)
-        return keep({ ...state, status: settled(state), errors: 0 });
+      if (state.text === state.savedText && state.inFlight === null) return keep({ ...state, status: settled(state), errors: 0 });
       if (event.errors > 0) return keep({ ...state, status: 'invalid', errors: event.errors });
       if (state.gitBusy) return keep({ ...state, status: 'waiting', errors: 0 });
       if (state.inFlight !== null) return keep({ ...state, status: 'saving', errors: 0 });
@@ -110,13 +92,11 @@ export function autosave(
       );
     }
     case 'saved': {
-      if (state.status === 'cancelled' || state.inFlight === null)
-        return keep({ ...state, inFlight: null });
+      if (state.status === 'cancelled' || state.inFlight === null) return keep({ ...state, inFlight: null });
       // The server may store other bytes than sent (an edited approved metric is kept as
       // proposed); the editor follows them when nothing was typed meanwhile, and otherwise
       // applies the same demotion to what was typed, so the next save is not an approval.
-      const text =
-        state.text === state.inFlight ? event.text : typedAfterDemotion(state, event.demoted);
+      const text = state.text === state.inFlight ? event.text : typedAfterDemotion(state, event.demoted);
       const next = {
         ...state,
         text,
@@ -126,8 +106,7 @@ export function autosave(
         lastSavedAt: event.at,
         errors: 0,
       };
-      if (next.text !== next.savedText)
-        return keep({ ...next, status: 'pending' }, { type: 'schedule' });
+      if (next.text !== next.savedText) return keep({ ...next, status: 'pending' }, { type: 'schedule' });
       return keep({ ...next, status: 'saved' });
     }
     case 'stale':
@@ -144,8 +123,7 @@ export function autosave(
     case 'git': {
       const next = { ...state, gitBusy: event.busy };
       // After the Git operation, the next save re-checks the base hash on the server.
-      if (!event.busy && state.status === 'waiting')
-        return keep({ ...next, status: 'pending' }, { type: 'schedule' });
+      if (!event.busy && state.status === 'waiting') return keep({ ...next, status: 'pending' }, { type: 'schedule' });
       return keep(next);
     }
     case 'external': {
@@ -233,12 +211,7 @@ export type AutosaveOptions = {
   /** Resolves with the stored hash, and with the stored text when the server changed it. */
   save: (request: SaveRequest) => Promise<{ hash: string; source?: string; demoted?: Demotion[] }>;
   /** Receives the text the server stored and the text that was sent. */
-  onSaved: (
-    file: string,
-    text: string,
-    hash: string,
-    sent: { text: string; demoted?: Demotion[] },
-  ) => void;
+  onSaved: (file: string, text: string, hash: string, sent: { text: string; demoted?: Demotion[] }) => void;
   onStale: (file: string, error: unknown) => void;
   isStale: (error: unknown) => boolean;
   onFailed?: (file: string, message: string) => void;
@@ -325,12 +298,10 @@ export function useAutosave(o: AutosaveOptions) {
       if (o.text !== o.saved) dispatch({ type: 'edit', text: o.text });
       return;
     }
-    if (o.hash !== ref.current.baseHash && ref.current.inFlight === null)
-      dispatch({ type: 'external', hash: o.hash ?? '', text: o.saved });
+    if (o.hash !== ref.current.baseHash && ref.current.inFlight === null) dispatch({ type: 'external', hash: o.hash ?? '', text: o.saved });
   }, [o.file, o.hash, o.saved]);
   useEffect(() => {
-    if (o.file === ref.current.file && o.text !== ref.current.text)
-      dispatch({ type: 'edit', text: o.text });
+    if (o.file === ref.current.file && o.text !== ref.current.text) dispatch({ type: 'edit', text: o.text });
   }, [o.text]);
   useEffect(() => {
     if (!!o.gitBusy !== ref.current.gitBusy) dispatch({ type: 'git', busy: !!o.gitBusy });
@@ -344,8 +315,7 @@ export function useAutosave(o: AutosaveOptions) {
         clearTimeout(timer.current);
         void fire();
       }
-      if (ref.current.inFlight === null && !timer.current && ref.current.status !== 'pending')
-        return Promise.resolve();
+      if (ref.current.inFlight === null && !timer.current && ref.current.status !== 'pending') return Promise.resolve();
       return new Promise(res => {
         waiters.current.push(res);
         setTimeout(res, 10_000);

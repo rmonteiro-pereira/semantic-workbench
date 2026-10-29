@@ -6,10 +6,7 @@ import type { Page } from '@playwright/test';
 export const MIN_COLUMN_PX = 12;
 
 /** Returns what is wrong with the graph now shown; an empty list means it is clean. */
-export async function odcsGraphProblems(
-  page: Page,
-  options: { withKeys?: boolean; readableColumns?: boolean } = {},
-): Promise<string[]> {
+export async function odcsGraphProblems(page: Page, options: { withKeys?: boolean; readableColumns?: boolean } = {}): Promise<string[]> {
   return page.evaluate(
     ({ minimum, withKeys, readable }) => {
       const out: string[] = [];
@@ -17,9 +14,7 @@ export async function odcsGraphProblems(
       const flow = view?.querySelector('.react-flow');
       if (!view || !flow) return ['no graph on screen'];
       const pane = flow.getBoundingClientRect();
-      const hit = (a: DOMRect, b: DOMRect) =>
-        Math.min(a.right, b.right) - Math.max(a.left, b.left) > 1 &&
-        Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 1;
+      const hit = (a: DOMRect, b: DOMRect) => Math.min(a.right, b.right) - Math.max(a.left, b.left) > 1 && Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 1;
       const cards = [...view.querySelectorAll('.lineage-card')].map(element => ({
         element,
         rect: element.getBoundingClientRect(),
@@ -58,9 +53,7 @@ export async function odcsGraphProblems(
       }
       for (const edge of view.querySelectorAll('g.lineage-edge')) {
         const path = edge.querySelector('path.react-flow__edge-path') as SVGPathElement | null;
-        const ends = [edge.getAttribute('data-from'), edge.getAttribute('data-to')].map(id =>
-          id ? owner.get(id) : undefined,
-        );
+        const ends = [edge.getAttribute('data-from'), edge.getAttribute('data-to')].map(id => (id ? owner.get(id) : undefined));
         const matrix = path?.getScreenCTM();
         if (!path || !matrix) continue;
         const length = path.getTotalLength();
@@ -91,32 +84,17 @@ export async function odcsGraphProblems(
         lineLeavesCanvas: (() => {
           const path = el.closest('g.lineage-edge')?.querySelector('path.react-flow__edge-path');
           const line = path?.getBoundingClientRect();
-          return (
-            !line ||
-            line.left < pane.left + 40 ||
-            line.right > pane.right - 40 ||
-            line.top < pane.top + 40 ||
-            line.bottom > pane.bottom - 40
-          );
+          return !line || line.left < pane.left + 40 || line.right > pane.right - 40 || line.top < pane.top + 40 || line.bottom > pane.bottom - 40;
         })(),
-        text: [...(el.parentElement?.querySelectorAll('text') ?? [])]
-          .map(t => t.textContent)
-          .join(' '),
+        text: [...(el.parentElement?.querySelectorAll('text') ?? [])].map(t => t.textContent).join(' '),
       }));
       for (const label of labels) {
         if (label.lineLeavesCanvas) continue;
-        if (
-          label.rect.left < pane.left - 1 ||
-          label.rect.right > pane.right + 1 ||
-          label.rect.top < pane.top - 1 ||
-          label.rect.bottom > pane.bottom + 1
-        ) {
+        if (label.rect.left < pane.left - 1 || label.rect.right > pane.right + 1 || label.rect.top < pane.top - 1 || label.rect.bottom > pane.bottom + 1) {
           out.push(`label "${label.text}" is clipped by the canvas`);
         }
       }
-      for (const label of labels)
-        for (const card of cards)
-          if (hit(label.rect, card.rect)) out.push(`label "${label.text}" covers ${card.name}`);
+      for (const label of labels) for (const card of cards) if (hit(label.rect, card.rect)) out.push(`label "${label.text}" covers ${card.name}`);
       labels.forEach((a, i) =>
         labels.slice(i + 1).forEach(b => {
           if (hit(a.rect, b.rect)) out.push(`labels "${a.text}" and "${b.text}" overlap`);
@@ -125,8 +103,7 @@ export async function odcsGraphProblems(
       // The legend is on screen, with the key badges of the ODCS graph.
       const legend = view.querySelector('.lineage-foot .lineage-legend');
       if (!legend || legend.getClientRects().length === 0) out.push('the legend is missing');
-      else if (withKeys && !/Primary key/.test(legend.textContent ?? ''))
-        out.push('the legend does not explain the PK badge');
+      else if (withKeys && !/Primary key/.test(legend.textContent ?? '')) out.push('the legend does not explain the PK badge');
       // The hop row stays inside the canvas area.
       const hops = view.querySelector('.lineage-hops');
       if (hops) {
@@ -134,8 +111,7 @@ export async function odcsGraphProblems(
         for (const child of hops.children) {
           const r = child.getBoundingClientRect();
           if (r.width < 1) continue;
-          if (r.left < box.left - 1 || r.right > box.right + 1)
-            out.push(`the hop row sticks out: ${child.textContent?.slice(0, 20)}`);
+          if (r.left < box.left - 1 || r.right > box.right + 1) out.push(`the hop row sticks out: ${child.textContent?.slice(0, 20)}`);
         }
       }
       return out;
@@ -158,12 +134,10 @@ export async function hopRowProblems(page: Page): Promise<string[]> {
     for (const child of row.querySelectorAll('span, button')) {
       if (child.children.length > 0 && child.tagName !== 'BUTTON') continue;
       const style = getComputedStyle(child);
-      if (parseFloat(style.fontSize) < minimum)
-        out.push(`"${child.textContent}" is ${style.fontSize}`);
+      if (parseFloat(style.fontSize) < minimum) out.push(`"${child.textContent}" is ${style.fontSize}`);
       if (child.closest('.lineage-hops-steps') && child.tagName === 'SPAN') continue;
       const rect = child.getBoundingClientRect();
-      if (rect.width > 0 && child.textContent?.trim())
-        boxes.push({ text: child.textContent.trim(), rect });
+      if (rect.width > 0 && child.textContent?.trim()) boxes.push({ text: child.textContent.trim(), rect });
     }
     boxes.forEach((a, i) =>
       boxes.slice(i + 1).forEach(b => {

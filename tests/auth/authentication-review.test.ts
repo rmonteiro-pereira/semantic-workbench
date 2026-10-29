@@ -76,9 +76,7 @@ test('sign-in audit failure returns 503 before creating a session', async () => 
 test('directory degradation preserves successful sign-in and refresh request ids', async () => {
   using context = await setup();
   context.transport.changeClaims({ hasgroups: true });
-  const token = spyOn(context.client, 'directoryToken').mockRejectedValue(
-    new Error('secret token'),
-  );
+  const token = spyOn(context.client, 'directoryToken').mockRejectedValue(new Error('secret token'));
   const log = spyOn(console, 'error').mockImplementation(() => {});
   try {
     const response = await context.signIn();
@@ -95,19 +93,12 @@ test('directory degradation preserves successful sign-in and refresh request ids
     );
     expect(refresh.status).toBe(200);
     const entries = auditEntries(context.fixture.root);
-    expect(entries.filter(entry => entry.action === 'signIn').map(entry => entry.decision)).toEqual(
-      ['allow'],
-    );
+    expect(entries.filter(entry => entry.action === 'signIn').map(entry => entry.decision)).toEqual(['allow']);
     const degraded = entries.filter(entry => entry.action === 'directoryLookup');
     expect(degraded.map(entry => entry.outcome)).toEqual(['degraded', 'degraded']);
-    expect(degraded.map(entry => entry.requestId)).toEqual([
-      response.headers.get('x-request-id'),
-      refresh.headers.get('x-request-id'),
-    ]);
+    expect(degraded.map(entry => entry.requestId)).toEqual([response.headers.get('x-request-id'), refresh.headers.get('x-request-id')]);
     expect(log.mock.calls.flat().join('\n')).not.toContain('secret token');
-    expect(log.mock.calls.flat().join('\n')).toContain(
-      'auth.failure requestId=' + refresh.headers.get('x-request-id'),
-    );
+    expect(log.mock.calls.flat().join('\n')).toContain('auth.failure requestId=' + refresh.headers.get('x-request-id'));
   } finally {
     token.mockRestore();
     log.mockRestore();
@@ -165,13 +156,9 @@ test('login and callback errors are logged safely with their request ids', async
   const log = spyOn(console, 'error').mockImplementation(() => {});
   try {
     for (const path of ['/auth/login', '/catalog', '/auth/callback?code=secret-code']) {
-      const response = await context.handler(
-        new Request(context.transport.config.publicUrl + path),
-      );
+      const response = await context.handler(new Request(context.transport.config.publicUrl + path));
       expect(await response.text()).toContain('Try again');
-      expect(log.mock.calls.flat().join('\n')).toContain(
-        'auth.failure requestId=' + response.headers.get('x-request-id'),
-      );
+      expect(log.mock.calls.flat().join('\n')).toContain('auth.failure requestId=' + response.headers.get('x-request-id'));
     }
     expect(log.mock.calls.flat().join('\n')).not.toMatch(/secret-code| token/);
     expect(
@@ -195,10 +182,7 @@ test('failed sign-out audit preserves the session and returns 503', async () => 
     throw new Error('disk unavailable');
   });
   try {
-    const response = await context.auth.authentication.logout(
-      new Request(context.transport.config.publicUrl + '/auth/logout', { method: 'POST' }),
-      session,
-    );
+    const response = await context.auth.authentication.logout(new Request(context.transport.config.publicUrl + '/auth/logout', { method: 'POST' }), session);
     expect(response.status).toBe(503);
     expect(response.headers.get('set-cookie')).toBeNull();
     expect(await context.auth.authentication.sessions.get(id)).not.toBeNull();
@@ -211,10 +195,7 @@ test('sign-out audit precedes session termination with explicit outcomes', async
   using context = await setup();
   const cookie = sessionCookie(await context.signIn());
   const session = (await context.auth.authentication.sessions.get(cookie.split('=')[1]))!;
-  await context.auth.authentication.logout(
-    new Request(context.transport.config.publicUrl),
-    session,
-  );
+  await context.auth.authentication.logout(new Request(context.transport.config.publicUrl), session);
   const entries = auditEntries(context.fixture.root);
   const signOut = entries.findIndex(entry => entry.action === 'signOut');
   const ended = entries.findIndex(entry => entry.action === 'sessionEnded');

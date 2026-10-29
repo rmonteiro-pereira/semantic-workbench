@@ -18,11 +18,7 @@ export const metricRoutes: Route = (ws, req, url) => {
     if (!reader.view) return Response.json(metrics);
     // In server mode an owner that names nobody who has signed in is shown as unverified.
     const verified = ownerVerifier(ws.state.users().users);
-    return Response.json(
-      metrics.map(metric =>
-        metric.owner ? { ...metric, ownerVerified: verified(metric.owner) } : metric,
-      ),
-    );
+    return Response.json(metrics.map(metric => (metric.owner ? { ...metric, ownerVerified: verified(metric.owner) } : metric)));
   }
   const m = url.pathname.match(/^\/api\/projects\/([^/]+)\/files\/(.+)\/explain\/([^/]+)$/);
   if (!m) return null;
@@ -31,8 +27,7 @@ export const metricRoutes: Route = (ws, req, url) => {
   const metric = decodeSegment(m[3]);
   ws.project(slug);
   const dimensions = url.searchParams.getAll('dimension');
-  if (dimensions.length > 20 || dimensions.some(d => !/^[^.\s]+\.[^.\s]+$/.test(d)))
-    throw new BadRequestError('dimension must be dataset.field (at most 20).');
+  if (dimensions.length > 20 || dimensions.some(d => !/^[^.\s]+\.[^.\s]+$/.test(d))) throw new BadRequestError('dimension must be dataset.field (at most 20).');
   return Response.json(
     explainMetric(ws.documentsFor(requestReader(req)), slug, path, metric, {
       grain: url.searchParams.get('grain'),

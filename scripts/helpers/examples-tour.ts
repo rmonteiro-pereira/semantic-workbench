@@ -15,18 +15,13 @@ export async function openExampleMetrics(page: Page, setId: string) {
     await showSidebar(page);
     await expect(project).toBeVisible({ timeout: 2000 });
   }).toPass({ timeout: 30_000 });
-  if ((await project.getAttribute('aria-expanded')) === 'false')
-    await project.getByRole('button', { name, exact: true }).click();
-  await project
-    .getByRole('button', { name: EXPECTED_EXAMPLE_METRICS[setId].file, exact: true })
-    .click();
+  if ((await project.getAttribute('aria-expanded')) === 'false') await project.getByRole('button', { name, exact: true }).click();
+  await project.getByRole('button', { name: EXPECTED_EXAMPLE_METRICS[setId].file, exact: true }).click();
   await page
     .locator('.tabs')
     .getByRole('button', { name: /^Metrics/ })
     .click();
-  await expect(metricsList(page).getByRole('status')).toHaveText(
-    `${EXPECTED_EXAMPLE_METRICS[setId].count} metrics`,
-  );
+  await expect(metricsList(page).getByRole('status')).toHaveText(`${EXPECTED_EXAMPLE_METRICS[setId].count} metrics`);
 }
 
 /** The metrics list of the Metrics tab. */
@@ -115,20 +110,14 @@ async function expectSqlPreview(page: Page) {
 }
 
 /** Checks a metric of one kind: governance, contract lineage, breakdown and SQL preview. */
-export async function expectMetricPresented(
-  page: Page,
-  setId: string,
-  kind: 'simple' | 'composed' | 'path',
-) {
+export async function expectMetricPresented(page: Page, setId: string, kind: 'simple' | 'composed' | 'path') {
   const expected: ExpectedExampleMetrics = EXPECTED_EXAMPLE_METRICS[setId];
-  const name =
-    kind === 'simple' ? expected.simple : expected[kind === 'path' ? 'path' : 'composed'].name;
+  const name = kind === 'simple' ? expected.simple : expected[kind === 'path' ? 'path' : 'composed'].name;
   await selectMetric(page, name);
   await expectGovernedWithLineage(page);
   await expectBreakdown(page, kind === 'path' ? expected.path.dimension : undefined);
   await expectSqlPreview(page);
-  if (kind === 'composed')
-    expect(await page.getByRole('treeitem').count()).toBeGreaterThanOrEqual(3);
+  if (kind === 'composed') expect(await page.getByRole('treeitem').count()).toBeGreaterThanOrEqual(3);
   if (kind !== 'path') return;
   await page.getByRole('checkbox', { name: expected.path.dimension, exact: true }).check();
   await expect(page.getByLabel('SQL preview, not executed')).toContainText('JOIN');

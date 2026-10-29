@@ -7,10 +7,8 @@ const dir = 'public/examples/ubl/';
 const iri = 'https://example.org/ubl-workbench#';
 const ontologyName = 'UBL 2.3 procurement-to-payment · 45 business entities';
 const semanticModelName = 'UBL procurement-to-payment analytical model';
-const snake = (s: string) =>
-  s === 'Order' ? 'purchase_order' : s.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase();
-const desc = (e: any) =>
-  `UBL 2.3 ${e.name} component, projected from its published XSD. Roles retain source min/max occurrence counts.`;
+const snake = (s: string) => (s === 'Order' ? 'purchase_order' : s.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase());
+const desc = (e: any) => `UBL 2.3 ${e.name} component, projected from its published XSD. Roles retain source min/max occurrence counts.`;
 const prefixes = `@prefix u: <${iri}> .\n@prefix owl: <http://www.w3.org/2002/07/owl#> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n@prefix sh: <http://www.w3.org/ns/shacl#> .\n`;
 const quote = (v: string) => JSON.stringify(v);
 let owl =
@@ -28,20 +26,13 @@ for (const e of mapping.entities) {
       required: true,
       primaryKey: true,
       unique: true,
-      description:
-        'Application-generated surrogate ID for the analytical projection; not a UBL XML field.',
+      description: 'Application-generated surrogate ID for the analytical projection; not a UBL XML field.',
     },
   ];
   for (const f of e.fields) {
     const name = snake(f.name);
     if (props.some(p => p.name === name)) continue;
-    const logicalType = /Amount|Quantity|Percent|Rate|Numeric$/.test(f.name)
-      ? 'number'
-      : f.name.endsWith('Indicator')
-        ? 'boolean'
-        : f.name.endsWith('Date')
-          ? 'date'
-          : 'string';
+    const logicalType = /Amount|Quantity|Percent|Rate|Numeric$/.test(f.name) ? 'number' : f.name.endsWith('Indicator') ? 'boolean' : f.name.endsWith('Date') ? 'date' : 'string';
     props.push({
       name,
       logicalType,
@@ -54,9 +45,7 @@ for (const e of mapping.entities) {
   for (const r of e.relationships) {
     const property = `${e.name}_${r.name}`;
     owl += `u:${property} a owl:ObjectProperty ; rdfs:label ${quote(r.name)} ; rdfs:domain u:${e.name} ; rdfs:range u:${r.target} ; rdfs:comment ${quote(`UBL cac:${r.name}; ${r.min}..${r.max} occurrences.`)} ; rdfs:isDefinedBy <${e.source}> .\n`;
-    constraints.push(
-      `[ sh:path u:${property} ; sh:class u:${r.target} ; sh:minCount ${r.min}${r.max === 'unbounded' ? '' : ` ; sh:maxCount ${r.max}`} ]`,
-    );
+    constraints.push(`[ sh:path u:${property} ; sh:class u:${r.target} ; sh:minCount ${r.min}${r.max === 'unbounded' ? '' : ` ; sh:maxCount ${r.max}`} ]`);
     if (r.max === '1') {
       const col = snake(r.name) + '_id';
       props.push({
@@ -125,12 +114,7 @@ for (const e of mapping.entities) {
   });
 }
 // Every analytical join is also declared as an ODCS foreign key on its source column.
-for (const j of joins)
-  tables
-    .find(t => t.name === j.from)!
-    .properties.find((p: any) => p.name === j.from_columns[0])!.relationships = [
-    { type: 'foreignKey', to: `${j.to}.${j.to_columns[0]}` },
-  ];
+for (const j of joins) tables.find(t => t.name === j.from)!.properties.find((p: any) => p.name === j.from_columns[0])!.relationships = [{ type: 'foreignKey', to: `${j.to}.${j.to_columns[0]}` }];
 await Bun.write(dir + 'ubl.owl.ttl', owl);
 await Bun.write(dir + 'ubl.shacl.ttl', shacl);
 await Bun.write(
@@ -138,8 +122,7 @@ await Bun.write(
   stringify({
     version: '0.2.0.dev0',
     name: ontologyName,
-    description:
-      'A schema-derived, focused business model spanning procurement, fulfillment, invoicing, tax and settlement. Application projection, not an official OASIS ontology.',
+    description: 'A schema-derived, focused business model spanning procurement, fulfillment, invoicing, tax and settlement. Application projection, not an official OASIS ontology.',
     ontology: mapping.entities.map((e: any) => ({
       concept: e.name,
       type: 'EntityType',
@@ -150,9 +133,7 @@ await Bun.write(
         description: `UBL role cac:${r.name}; source occurrences ${r.min}..${r.max}.`,
         roles: [{ concept: r.target, ...(r.target === e.name ? { name: 'related' } : {}) }],
         ...(r.max === '1' ? { multiplicity: 'ManyToOne' } : {}),
-        verbalizes: [
-          `{${e.name}} has ${r.name} {${r.target}${r.target === e.name ? ':related' : ''}}`,
-        ],
+        verbalizes: [`{${e.name}} has ${r.name} {${r.target}${r.target === e.name ? ':related' : ''}}`],
       })),
     })),
   }),
@@ -168,10 +149,8 @@ await Bun.write(
     status: 'draft',
     domain: 'Procurement and logistics',
     description: {
-      purpose:
-        'Analytical projection of a 45-component UBL 2.3 subset, with surrogate keys and bridge tables for repeating aggregate roles.',
-      limitations:
-        'Not the UBL XML schema. Surrogate IDs, normalization and type mappings are application choices. Components outside the selected subset are omitted.',
+      purpose: 'Analytical projection of a 45-component UBL 2.3 subset, with surrogate keys and bridge tables for repeating aggregate roles.',
+      limitations: 'Not the UBL XML schema. Surrogate IDs, normalization and type mappings are application choices. Components outside the selected subset are omitted.',
     },
     schema: tables,
     team: [{ username: 'procurement-data', role: 'owner' }],
@@ -246,10 +225,7 @@ await Bun.write(
 );
 const summary = {
   businessEntities: mapping.entities.length,
-  businessRelationships: mapping.entities.reduce(
-    (n: number, e: any) => n + e.relationships.length,
-    0,
-  ),
+  businessRelationships: mapping.entities.reduce((n: number, e: any) => n + e.relationships.length, 0),
   analyticalDatasets: tables.length,
   analyticalJoins: joins.length,
   source: mapping.source,

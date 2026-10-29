@@ -19,17 +19,7 @@ type Props = {
 };
 
 /** Asks before the person's branch becomes the published branch for everyone. */
-function ConfirmPublish({
-  target,
-  branch,
-  onCancel,
-  onConfirm,
-}: {
-  target: string;
-  branch: string;
-  onCancel: () => void;
-  onConfirm: () => void;
-}) {
+function ConfirmPublish({ target, branch, onCancel, onConfirm }: { target: string; branch: string; onCancel: () => void; onConfirm: () => void }) {
   return (
     <Modal
       title={`Publish to ${target}?`}
@@ -45,8 +35,7 @@ function ConfirmPublish({
       }
     >
       <p>
-        {branch} becomes the published {target} on this server, so everyone who opens the project
-        sees it.
+        {branch} becomes the published {target} on this server, so everyone who opens the project sees it.
       </p>
       <p className="scm-hint">This does not push to a remote. Push {target} does that.</p>
     </Modal>
@@ -59,23 +48,10 @@ export function SyncDialog(props: Props) {
   const access = useCapabilities(props.project);
   const [confirming, setConfirming] = useState(false);
   if (confirming && copy) {
-    return (
-      <ConfirmPublish
-        target={copy.defaultBranch}
-        branch={status.branch}
-        onCancel={() => setConfirming(false)}
-        onConfirm={onPublish}
-      />
-    );
+    return <ConfirmPublish target={copy.defaultBranch} branch={status.branch} onCancel={() => setConfirming(false)} onConfirm={onPublish} />;
   }
   return (
-    <Modal
-      title="Sync"
-      size="narrow"
-      onCancel={onClose}
-      className="scm-sync-dialog"
-      footer={<button onClick={onClose}>Close</button>}
-    >
+    <Modal title="Sync" size="narrow" onCancel={onClose} className="scm-sync-dialog" footer={<button onClick={onClose}>Close</button>}>
       {copy && (
         <DefaultBranchActions
           copy={copy}

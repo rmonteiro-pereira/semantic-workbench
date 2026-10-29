@@ -121,8 +121,7 @@ export async function editContainmentProblems(page: Page, screenName: string): P
       else {
         // The item editor fills the window; the wizard is as tall as its step and no taller.
         const pinnedTo = name === 'metric-wizard' && panel ? panel.bottom : height;
-        if (Math.abs(footer.bottom - pinnedTo) > 2)
-          problems.push('the drawer footer is not pinned');
+        if (Math.abs(footer.bottom - pinnedTo) > 2) problems.push('the drawer footer is not pinned');
         if (footer.bottom > height + 1) problems.push('the drawer footer leaves the window');
         if (body.bottom > footer.top + 1) problems.push('the drawer body runs under its footer');
         if (footer.right > width + 1) problems.push('the drawer footer leaves the screen');
@@ -140,9 +139,7 @@ export async function editContainmentProblems(page: Page, screenName: string): P
     }
     if (name === 'query-composer') {
       const choices = document.querySelectorAll('dialog[open] input[type="checkbox"]');
-      const sourceAction = [...document.querySelectorAll('dialog[open] button')].find(
-        button => button.textContent === 'Open Source to add bindings',
-      );
+      const sourceAction = [...document.querySelectorAll('dialog[open] button')].find(button => button.textContent === 'Open Source to add bindings');
       if (!choices.length && !sourceAction) {
         problems.push('an empty query composer has no direct route to add bindings');
       }
@@ -157,23 +154,16 @@ export async function editContainmentProblems(page: Page, screenName: string): P
       if (width < 1200 && !/^Step \d+ of \d+$/.test(progressTitle?.textContent?.trim() ?? '')) {
         problems.push('compact wizard progress repeats the step name beside its selector');
       }
-      if (
-        Math.abs(panel.left + panel.width / 2 - width / 2) > 2 ||
-        Math.abs(panel.top + panel.height / 2 - height / 2) > 2
-      ) {
+      if (Math.abs(panel.left + panel.width / 2 - width / 2) > 2 || Math.abs(panel.top + panel.height / 2 - height / 2) > 2) {
         problems.push('the metric wizard is not centred in the viewport');
       }
-      const picker =
-        box('dialog[open] .wizard-stepper-compact') ?? box('dialog[open] .wizard-stepper-list');
+      const picker = box('dialog[open] .wizard-stepper-compact') ?? box('dialog[open] .wizard-stepper-list');
       if (!picker || picker.right > panel.right) problems.push('the step list leaves the dialog');
-      const current = document.querySelector<HTMLElement>(
-        '.wizard-stepper-list [aria-current="step"]',
-      );
+      const current = document.querySelector<HTMLElement>('.wizard-stepper-list [aria-current="step"]');
       if (current && current.getClientRects().length > 0) {
         const style = getComputedStyle(current);
         const pending = document.querySelector('.wizard-stepper-list button:disabled');
-        if (style.justifyContent !== 'flex-start')
-          problems.push('step labels are not left aligned');
+        if (style.justifyContent !== 'flex-start') problems.push('step labels are not left aligned');
         if (pending && style.backgroundColor === getComputedStyle(pending).backgroundColor) {
           problems.push('the current step has the same fill as a pending step');
         }
@@ -193,25 +183,16 @@ export async function editContainmentProblems(page: Page, screenName: string): P
         if (isChip && labelStyle.display !== 'none') {
           problems.push('phone metric chips repeat their field labels');
         }
-        if (
-          !isChip &&
-          cell.getAttribute('data-label') !== 'Metric' &&
-          labelStyle.display !== 'inline'
-        ) {
+        if (!isChip && cell.getAttribute('data-label') !== 'Metric' && labelStyle.display !== 'inline') {
           problems.push('phone metric values do not use compact inline labels');
         }
       }
     }
     if (name === 'metric-detail') {
       const tableElement = document.querySelector('.metrics-table');
-      const visible = (selector: string) =>
-        [...(tableElement?.querySelectorAll(selector) ?? [])].filter(
-          cell => getComputedStyle(cell).display !== 'none',
-        );
+      const visible = (selector: string) => [...(tableElement?.querySelectorAll(selector) ?? [])].filter(cell => getComputedStyle(cell).display !== 'none');
       const headings = visible('thead th').map(cell => cell.textContent?.trim());
-      const values = visible('tbody tr:not(.metrics-group):first-of-type td').map(cell =>
-        cell.getAttribute('data-label'),
-      );
+      const values = visible('tbody tr:not(.metrics-group):first-of-type td').map(cell => cell.getAttribute('data-label'));
       if (width >= 1280 && headings.join('|') !== values.join('|')) {
         problems.push('visible metric column headings do not match their cells');
       }
@@ -228,15 +209,11 @@ export async function editContainmentProblems(page: Page, screenName: string): P
       if (pane && pane.scrollTop !== 0) problems.push('the metric detail is not at its top');
     }
     if (name === 'catalog') {
-      const cards = [...document.querySelectorAll('.catalog-card')].map(card =>
-        card.getBoundingClientRect(),
-      );
+      const cards = [...document.querySelectorAll('.catalog-card')].map(card => card.getBoundingClientRect());
       const firstRow = cards.filter(card => Math.abs(card.top - cards[0].top) < 2);
       const unequal = firstRow.some(card => Math.abs(card.height - firstRow[0].height) > 1);
       if (unequal) problems.push('cards of one row differ in height');
-      const clamped = [...document.querySelectorAll<HTMLElement>('.catalog-card p')].some(
-        paragraph => paragraph.scrollHeight > paragraph.clientHeight && !paragraph.title,
-      );
+      const clamped = [...document.querySelectorAll<HTMLElement>('.catalog-card p')].some(paragraph => paragraph.scrollHeight > paragraph.clientHeight && !paragraph.title);
       if (clamped) problems.push('a clamped card description has no tooltip with the full text');
       for (const card of document.querySelectorAll('.catalog-card')) {
         if (card.querySelector('.catalog-details')?.textContent !== 'View details') {

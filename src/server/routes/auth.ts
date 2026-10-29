@@ -10,12 +10,7 @@ import { authStylesheet } from './auth-stylesheet';
 import { activeBrand } from '../brand/bundle';
 
 function escapeHtml(value: string): string {
-  return value
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;');
+  return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;');
 }
 
 type AuthPageOptions = {
@@ -30,12 +25,7 @@ type AuthPageKind = 'no-access' | 'signed-out' | 'error' | 'connect-failed';
 // The compact logo and product name of the active brand. The mark is a separate request, so the
 // pages stay free of inline images and scripts.
 function brandMarkup(): string {
-  return (
-    '<div class="brand"><img src="/brand/logo-mark.svg" width="28" height="28" alt="">' +
-    '<span>' +
-    escapeHtml(activeBrand().manifest.productName) +
-    '</span></div>'
-  );
+  return '<div class="brand"><img src="/brand/logo-mark.svg" width="28" height="28" alt="">' + '<span>' + escapeHtml(activeBrand().manifest.productName) + '</span></div>';
 }
 
 function pageContent(page: AuthPageKind, options: AuthPageOptions) {
@@ -61,20 +51,11 @@ function pageContent(page: AuthPageKind, options: AuthPageOptions) {
   if (page === 'error') {
     title = 'Sign-in error';
     content =
-      '<p>' +
-      escapeHtml(options.reason ?? 'Provider unreachable') +
-      '</p>' +
-      '<a href="/auth/login?returnTo=' +
-      escapeHtml(encodeURIComponent(safeReturnTo(options.returnTo))) +
-      '">Try again</a>';
+      '<p>' + escapeHtml(options.reason ?? 'Provider unreachable') + '</p>' + '<a href="/auth/login?returnTo=' + escapeHtml(encodeURIComponent(safeReturnTo(options.returnTo))) + '">Try again</a>';
   }
   if (page === 'connect-failed') {
     title = 'GitHub not connected';
-    content =
-      '<p>Your GitHub account could not be connected. Nothing was changed.</p>' +
-      '<a href="' +
-      escapeHtml(safeReturnTo(options.returnTo)) +
-      '">Back to the workbench</a>';
+    content = '<p>Your GitHub account could not be connected. Nothing was changed.</p>' + '<a href="' + escapeHtml(safeReturnTo(options.returnTo)) + '">Back to the workbench</a>';
   }
   return { title, content };
 }
@@ -122,16 +103,10 @@ export type AuthRouteOptions = {
 /** The GitHub consent steps of the delegated-credential service. */
 export type GitHubConsent = Pick<RemoteCredentials, 'startGitHub' | 'finishGitHub'>;
 
-const gitHubConsentStep = (request: Request, url: URL) =>
-  request.method === 'GET' && /^\/auth\/github\/(start|callback)$/.test(url.pathname);
+const gitHubConsentStep = (request: Request, url: URL) => request.method === 'GET' && /^\/auth\/github\/(start|callback)$/.test(url.pathname);
 
 // Connect GitHub: the session that starts the consent is the only one that can complete it.
-async function githubRoute(
-  request: Request,
-  url: URL,
-  options: AuthRouteOptions,
-  consent?: GitHubConsent,
-) {
+async function githubRoute(request: Request, url: URL, options: AuthRouteOptions, consent?: GitHubConsent) {
   const session = await options.session(request);
   if (!session) return options.login(url.pathname + url.search, request);
   if (url.pathname === '/auth/github/start') {
@@ -206,11 +181,7 @@ export function signInErrorResponse(error: SignInError, publicUrl?: string) {
     'provider-unsupported': 'Not supported by the identity provider.',
     'session-upgraded': 'Signed out after an update; sign in again.',
   };
-  const response = authPage(
-    'error',
-    { reason: reasons[error.reason], returnTo: error.returnTo },
-    SIGN_IN_FAILURE_STATUS[error.reason],
-  );
+  const response = authPage('error', { reason: reasons[error.reason], returnTo: error.returnTo }, SIGN_IN_FAILURE_STATUS[error.reason]);
   if (publicUrl) response.headers.append('Set-Cookie', sessionCookie('', publicUrl, 'auth', 0));
   return response;
 }

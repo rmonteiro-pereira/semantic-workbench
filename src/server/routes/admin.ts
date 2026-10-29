@@ -7,12 +7,7 @@ import { AdminConfigError, withSettingsDefaults } from '../auth/admin-repo';
 import { hypotheticalPrincipal } from '../auth/authorize';
 import { isAction, ACTIONS, LEVELS, type Level } from '../../shared/auth/actions';
 import { roleSource } from '../auth/grants';
-import {
-  validatePolicies,
-  listPolicies,
-  policyTemplate,
-  policyTemplateFrom,
-} from '../auth/policies';
+import { validatePolicies, listPolicies, policyTemplate, policyTemplateFrom } from '../auth/policies';
 import type { AccessAdmin, AdminActor } from '../auth/access-admin';
 import type { AccessConfig } from '../auth/access-config';
 import { clientPrincipal, type NormalizedPrincipal } from '../auth/principal';
@@ -59,11 +54,7 @@ function actorOf(request: Request): AdminActor {
 function metricFrom(input: unknown): NonNullable<FileResource['metric']> {
   const metric = input as Record<string, unknown> | null;
   const valid =
-    metric !== null &&
-    typeof metric === 'object' &&
-    typeof metric.name === 'string' &&
-    typeof metric.status === 'string' &&
-    (metric.owner === undefined || typeof metric.owner === 'string');
+    metric !== null && typeof metric === 'object' && typeof metric.name === 'string' && typeof metric.status === 'string' && (metric.owner === undefined || typeof metric.owner === 'string');
   if (!valid) throw new AdminConfigError('Expected metric name, status and optional owner.');
   return {
     name: metric.name as string,
@@ -89,8 +80,7 @@ function resourceFrom(input: unknown): ResourceRef {
   if (!input || typeof input !== 'object') throw new AdminConfigError('Expected resource.');
   const resource = input as Record<string, unknown>;
   if (resource.type === 'workspace') return { type: 'workspace' };
-  if (typeof resource.project !== 'string' || !resource.project)
-    throw new AdminConfigError('Expected project.');
+  if (typeof resource.project !== 'string' || !resource.project) throw new AdminConfigError('Expected project.');
   if (resource.type === 'project') return { type: 'project', project: resource.project };
   if (resource.type !== 'file') throw new AdminConfigError('Invalid resource.');
   return fileResourceFrom(resource, resource.project);
@@ -99,9 +89,7 @@ function resourceFrom(input: unknown): ResourceRef {
 /** A described principal has groups and an optional address; a string names a known one. */
 function checkedPrincipal(service: AccessAdmin, input: unknown): NormalizedPrincipal {
   if (typeof input === 'string') {
-    const client = service.repository
-      .load()
-      .agents.clients.find(candidate => `client:${candidate.clientId}` === input);
+    const client = service.repository.load().agents.clients.find(candidate => `client:${candidate.clientId}` === input);
     if (client) return clientPrincipal(client.clientId, client.name);
     const user = service.users().find(candidate => candidate.id === input);
     if (user) return user;
@@ -123,8 +111,7 @@ function accessCheck(service: AccessAdmin, body: Record<string, unknown>) {
   const identity = checkedPrincipal(service, body.principal);
   const resource = resourceFrom(body.resource);
   const branch = (body.resource as Record<string, unknown>).branch;
-  if (branch !== undefined && typeof branch !== 'string')
-    throw new AdminConfigError('Invalid branch.');
+  if (branch !== undefined && typeof branch !== 'string') throw new AdminConfigError('Invalid branch.');
   return service.access.explain(identity, body.action, resource, {
     branch: branch as string | undefined,
   });
@@ -134,24 +121,16 @@ function accessCheck(service: AccessAdmin, body: Record<string, unknown>) {
 function groupNames(service: AccessAdmin) {
   return service.groupNames(service.users().flatMap(user => user.groups));
 }
-function personRow(
-  service: AccessAdmin,
-  user: ReturnType<AccessAdmin['users']>[number],
-  names: Map<string, GroupName>,
-) {
+function personRow(service: AccessAdmin, user: ReturnType<AccessAdmin['users']>[number], names: Map<string, GroupName>) {
   const principal = service.access.principalFor(user);
   const view = service.access.view(principal);
-  const workspaceRoles = principal.grants
-    .filter(grant => grant.scope.kind === 'workspace')
-    .map(grant => grant.roleId);
+  const workspaceRoles = principal.grants.filter(grant => grant.scope.kind === 'workspace').map(grant => grant.roleId);
   const projectRoles = [...view.readableProjects].map(project => [project, view.roles(project)]);
   const hasAccess = principal.grants.length > 0 && !principal.deactivated;
   return {
     ...user,
     deactivated: principal.deactivated,
-    roleSources: principal.grants.map(grant =>
-      roleSource(grant, grant.group ? names.get(grant.group)?.displayName : null),
-    ),
+    roleSources: principal.grants.map(grant => roleSource(grant, grant.group ? names.get(grant.group)?.displayName : null)),
     bootstrap: principal.grants.some(grant => grant.via === 'bootstrap'),
     access: hasAccess ? 'granted' : 'none',
     roles: { workspace: workspaceRoles, projects: Object.fromEntries(projectRoles) },
@@ -173,11 +152,7 @@ function clientRow(client: AccessConfig['agents']['clients'][number]) {
     roles: { workspace: [], projects: {} },
   };
 }
-function matchesSearch(
-  row: Record<string, unknown>,
-  groups: (GroupName | undefined)[],
-  query: string,
-) {
+function matchesSearch(row: Record<string, unknown>, groups: (GroupName | undefined)[], query: string) {
   const names = groups.map(group => group?.displayName ?? group?.id);
   const fields = [row.id, row.name, row.verifiedEmail, row.username, row.clientId, ...names];
   return fields.some(field => typeof field === 'string' && field.toLowerCase().includes(query));
@@ -191,9 +166,7 @@ async function userList(context: AdminRequest) {
     const groups = user.groups.map(id => names.get(id));
     return { row: { ...personRow(service, user, names), groups }, groups };
   });
-  const clients = service.repository
-    .load()
-    .agents.clients.map(client => ({ row: clientRow(client), groups: [] }));
+  const clients = service.repository.load().agents.clients.map(client => ({ row: clientRow(client), groups: [] }));
   return [...people, ...clients]
     .filter(({ row, groups }) => !query || matchesSearch(row, groups, query))
     .filter(({ row }) => !onlyWithoutAccess || row.access === 'none')
@@ -219,10 +192,7 @@ function rolesDocument(service: AccessAdmin, config: AccessConfig) {
 async function versionedDocument({ service, path }: AdminRequest) {
   const snapshot = await service.repository.snapshot();
   const config = service.repository.validate(snapshot.files);
-  const document =
-    path === 'roles'
-      ? rolesDocument(service, config)
-      : listPolicies(config.adminRules, config.roles);
+  const document = path === 'roles' ? rolesDocument(service, config) : listPolicies(config.adminRules, config.roles);
   return { ...document, version: snapshot.version };
 }
 /** Returns one stored document; group grants carry the directory's current name when known. */
@@ -232,9 +202,7 @@ async function storedDocument({ service, path }: AdminRequest) {
   if (path === 'settings') return { ...withSettingsDefaults(document), version };
   if (path !== 'grants') return { ...document, version };
   const grants = document.grants as AccessConfig['grants'];
-  const names = await service.groupNames(
-    grants.flatMap(grant => (grant.member.kind === 'group' ? [grant.member.groupId] : [])),
-  );
+  const names = await service.groupNames(grants.flatMap(grant => (grant.member.kind === 'group' ? [grant.member.groupId] : [])));
   for (const grant of grants) {
     if (grant.member.kind !== 'group') continue;
     const name = names.get(grant.member.groupId);
@@ -247,9 +215,7 @@ function whoCan({ service, url }: AdminRequest) {
   const project = url.searchParams.get('project');
   if (!project) throw new AdminConfigError('Expected project.');
   const file = url.searchParams.get('path');
-  const resource: ResourceRef = file
-    ? { type: 'file', project, path: file }
-    : { type: 'project', project };
+  const resource: ResourceRef = file ? { type: 'file', project, path: file } : { type: 'project', project };
   return service.access.whoCan(resource, service.users());
 }
 function versions({ service, url }: AdminRequest) {
@@ -277,8 +243,7 @@ async function getResponse(context: AdminRequest): Promise<unknown> {
 }
 async function deactivationResponse(context: AdminRequest, match: RegExpExecArray) {
   const body = await objectBody(context.request);
-  if (typeof body.reason !== 'string' || !body.reason.trim())
-    throw new AdminConfigError('Expected reason.');
+  if (typeof body.reason !== 'string' || !body.reason.trim()) throw new AdminConfigError('Expected reason.');
   const change = { disabled: match[2] === 'deactivate', reason: body.reason };
   const id = decodeSegment(match[1]);
   return context.service.setDeactivated(id, change, actorOf(context.request));
@@ -289,8 +254,7 @@ async function postResponse(context: AdminRequest): Promise<unknown> {
   if (user) return deactivationResponse(context, user);
   const body = await objectBody(request);
   if (path === 'check') return accessCheck(service, body);
-  if (path === 'policies/validate')
-    return validatePolicies(body.rules, service.repository.load().roles);
+  if (path === 'policies/validate') return validatePolicies(body.rules, service.repository.load().roles);
   if (path === 'policies/template') return policyTemplate(policyTemplateFrom(body));
   if (path === 'policies/dry-run') return service.dryRun(body);
   const rollback = /^versions\/([^/]+)\/rollback$/.exec(path);
@@ -312,17 +276,13 @@ async function changeResponse(context: AdminRequest): Promise<unknown> {
 }
 
 /** Mounts the administration contract behind the shared Admin route boundary. */
-export function adminRoutes(
-  getService: () => Promise<AccessAdmin>,
-  options: HandlerOptions,
-): Route {
+export function adminRoutes(getService: () => Promise<AccessAdmin>, options: HandlerOptions): Route {
   return async (_workspace, request, url) => {
     if (!url.pathname.startsWith('/api/admin/')) return null;
     const service = await getService();
     const path = url.pathname.slice('/api/admin/'.length);
     const context: AdminRequest = { service, request, url, path, options };
-    const body =
-      request.method === 'GET' ? await getResponse(context) : await changeResponse(context);
+    const body = request.method === 'GET' ? await getResponse(context) : await changeResponse(context);
     return body === null ? null : Response.json(body);
   };
 }

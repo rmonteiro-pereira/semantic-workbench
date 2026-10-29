@@ -1,20 +1,10 @@
 // Preserves UTF-8 content and replaces files atomically through temporary files beside each target.
-import {
-  openSync,
-  writeSync,
-  fsyncSync,
-  closeSync,
-  renameSync,
-  unlinkSync,
-  mkdirSync,
-  readFileSync,
-} from 'node:fs';
+import { openSync, writeSync, fsyncSync, closeSync, renameSync, unlinkSync, mkdirSync, readFileSync } from 'node:fs';
 import { dirname, basename, join } from 'node:path';
 import { createHash, randomBytes } from 'node:crypto';
 import { BadRequestError } from './errors';
 /** Returns the SHA-256 hex digest of bytes or UTF-8 text. */
-export const sha256 = (bytes: Uint8Array | string) =>
-  createHash('sha256').update(bytes).digest('hex');
+export const sha256 = (bytes: Uint8Array | string) => createHash('sha256').update(bytes).digest('hex');
 // Keep a leading BOM: it is part of the file's bytes.
 const decoder = new TextDecoder('utf-8', { ignoreBOM: true, fatal: true });
 /** Encodes text as UTF-8 without normalizing its contents. */
@@ -41,8 +31,7 @@ function fsyncDir(dir: string) {
 /** Suffix used to recognize temporary files and exclude them from indexing. */
 export const TEMP_SUFFIX = '.workbench-tmp';
 /** Returns a randomized temporary path beside the destination file. */
-export const tempPath = (path: string) =>
-  join(dirname(path), `.${basename(path)}.${randomBytes(6).toString('hex')}${TEMP_SUFFIX}`);
+export const tempPath = (path: string) => join(dirname(path), `.${basename(path)}.${randomBytes(6).toString('hex')}${TEMP_SUFFIX}`);
 /** Error codes Windows returns while another process briefly holds the destination open. */
 const TRANSIENT_RENAME_CODES = new Set(['EPERM', 'EACCES', 'EBUSY']);
 /** Total time a rename keeps retrying before the original error is raised. */

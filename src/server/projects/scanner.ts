@@ -10,20 +10,8 @@ import { lintSql } from '../../shared/sql/lint';
 import { decode, sha256, TEMP_SUFFIX } from './atomic';
 import type { CachedFile, CopyIndex } from './cache';
 import type { Git, FileGitState } from './git';
-import {
-  assertExactCase,
-  CaseVariantError,
-  projectDir,
-  projectPath,
-  projectPrefix,
-  type DataLayout,
-  type DirectoryLister,
-} from './paths';
-import {
-  observeScan,
-  observeValidation,
-  type ValidationTrigger,
-} from '../observability/workspace-work';
+import { assertExactCase, CaseVariantError, projectDir, projectPath, projectPrefix, type DataLayout, type DirectoryLister } from './paths';
+import { observeScan, observeValidation, type ValidationTrigger } from '../observability/workspace-work';
 const parser = new Parser();
 
 /** Returns shared SQL findings, falling back to no findings if linting fails. */
@@ -38,15 +26,7 @@ export function sqlFindings(source: string, filename: string): Issue[] {
 }
 
 /** A recognized file syntax, Git ignore file, or unsupported format. */
-export type Serialization =
-  | 'yaml'
-  | 'json'
-  | 'turtle'
-  | 'ntriples'
-  | 'n3'
-  | 'rdfxml'
-  | 'gitignore'
-  | 'unsupported';
+export type Serialization = 'yaml' | 'json' | 'turtle' | 'ntriples' | 'n3' | 'rdfxml' | 'gitignore' | 'unsupported';
 /** The repository manifest that lists project folders: workbench settings, not a definition. */
 export const MANIFEST_FILE = '.semantic-workbench.json';
 /** Infers a file format from its path, consulting source text for ambiguous OWL files. */
@@ -62,8 +42,7 @@ export function serializationOf(path: string, source?: string): Serialization {
   if (ext === 'nt') return 'ntriples';
   if (ext === 'n3') return 'n3';
   if (['rdf', 'xml'].includes(ext)) return 'rdfxml';
-  if (ext === 'owl')
-    return source !== undefined && rdfSyntax(source, name) === 'text/turtle' ? 'turtle' : 'rdfxml';
+  if (ext === 'owl') return source !== undefined && rdfSyntax(source, name) === 'text/turtle' ? 'turtle' : 'rdfxml';
   return 'unsupported';
 }
 /** A file’s cache metadata, extracted entities, and validation findings. */
@@ -73,13 +52,7 @@ export type Indexed = {
   findings: Issue[];
 };
 /** Validates bytes without writing, for both indexing and save checks. */
-export function indexBytes(
-  project: string,
-  path: string,
-  bytes: Uint8Array,
-  gitState: FileGitState | 'unknown' = 'unknown',
-  trigger: ValidationTrigger = 'save',
-): Indexed {
+export function indexBytes(project: string, path: string, bytes: Uint8Array, gitState: FileGitState | 'unknown' = 'unknown', trigger: ValidationTrigger = 'save'): Indexed {
   const hash = sha256(bytes);
   const base = { project, path, hash, gitState, indexedAt: new Date().toISOString() };
   let serialization = serializationOf(path);
@@ -129,10 +102,7 @@ export function indexBytes(
     };
   const result = observeValidation(trigger, () => validateInput(source, posix.basename(path)));
   // SQL findings are warnings only and do not make a document invalid.
-  const sql =
-    serialization === 'yaml' || serialization === 'json'
-      ? sqlFindings(source, posix.basename(path))
-      : [];
+  const sql = serialization === 'yaml' || serialization === 'json' ? sqlFindings(source, posix.basename(path)) : [];
   return {
     file: {
       ...base,
@@ -157,21 +127,10 @@ export function walk(dir: string, prefix = '', out: string[] = []) {
   return out;
 }
 /** Creates serialized project scans that refresh the cache and publish file changes. */
-export function createScanner(
-  layout: DataLayout,
-  cache: CopyIndex,
-  git: Git,
-  gitAvailable: () => boolean,
-  listDirectory: DirectoryLister = readdirSync,
-) {
+export function createScanner(layout: DataLayout, cache: CopyIndex, git: Git, gitAvailable: () => boolean, listDirectory: DirectoryLister = readdirSync) {
   const queues = new Map<string, Promise<unknown>>();
   // Another working copy may hold the same bytes at the same path; its parse is reused.
-  function indexedOnce(
-    slug: string,
-    path: string,
-    bytes: Uint8Array,
-    gitState: FileGitState | 'unknown',
-  ) {
+  function indexedOnce(slug: string, path: string, bytes: Uint8Array, gitState: FileGitState | 'unknown') {
     const hash = sha256(bytes);
     const known = cache.parsedElsewhere(slug, path, hash);
     if (known) {
@@ -190,11 +149,7 @@ export function createScanner(
       try {
         // Git reports states by repository path; a subfolder project keeps only its own files.
         const prefix = projectPrefix(layout, slug);
-        states = new Map(
-          [...(await git.status(dir)).files]
-            .filter(([path]) => path.startsWith(prefix))
-            .map(([path, gitState]) => [path.slice(prefix.length), gitState] as const),
-        );
+        states = new Map([...(await git.status(dir)).files].filter(([path]) => path.startsWith(prefix)).map(([path, gitState]) => [path.slice(prefix.length), gitState] as const));
       } catch {
         /* File listing still works when the repository has no commits. */
       }
@@ -242,8 +197,7 @@ export function createScanner(
       const old = cache.file(slug, path);
       const gitState = states.get(path) ?? (gitAvailable() ? 'clean' : 'unknown');
       if (old && old.hash === sha256(bytes)) {
-        if (old.gitState !== gitState)
-          cache.put({ ...old, gitState }, cache.entities(slug, path), cache.findings(slug, path));
+        if (old.gitState !== gitState) cache.put({ ...old, gitState }, cache.entities(slug, path), cache.findings(slug, path));
         continue;
       }
       cache.put(...indexedOnce(slug, path, bytes, gitState));
@@ -259,9 +213,7 @@ export function createScanner(
   return {
     // Scans of one project are serialized; concurrent requests share the queue.
     scan(slug: string): Promise<{ project: string; changed: string[]; removed: string[] }> {
-      const next = (queues.get(slug) ?? Promise.resolve())
-        .catch(() => {})
-        .then(() => observeScan(() => scan(slug)));
+      const next = (queues.get(slug) ?? Promise.resolve()).catch(() => {}).then(() => observeScan(() => scan(slug)));
       queues.set(slug, next);
       next
         .catch(() => {})

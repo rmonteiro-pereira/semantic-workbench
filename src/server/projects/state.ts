@@ -51,18 +51,7 @@ export type LegacyIds = {
   ids: Record<string, { project: string; path: string }>;
 };
 /** Last known identity and access, without tokens or session credentials. */
-export type UserRecord = Pick<
-  Principal,
-  | 'key'
-  | 'id'
-  | 'kind'
-  | 'name'
-  | 'verifiedEmail'
-  | 'username'
-  | 'usernameVerified'
-  | 'groups'
-  | 'groupsResolved'
-> & {
+export type UserRecord = Pick<Principal, 'key' | 'id' | 'kind' | 'name' | 'verifiedEmail' | 'username' | 'usernameVerified' | 'groups' | 'groupsResolved'> & {
   lastSignInAt: string;
   access: 'granted' | 'none';
   handle: string;
@@ -115,8 +104,7 @@ function writeUser(path: string, principal: Principal, at: string): UserRecord {
 function load<T extends { formatVersion: number }>(path: string, empty: () => T): T {
   const value = readJsonFile<T>(path);
   if (value === null) return empty();
-  if (!value || typeof value !== 'object' || value.formatVersion !== STATE_FORMAT)
-    throw Error(`Unsupported state file format in ${path}.`);
+  if (!value || typeof value !== 'object' || value.formatVersion !== STATE_FORMAT) throw Error(`Unsupported state file format in ${path}.`);
   return value;
 }
 /** Creates readers and atomic writers for durable workspace state. */
@@ -133,9 +121,7 @@ export function createState(layout: DataLayout) {
   }
   function personalStates() {
     const root = join(layout.state, 'users');
-    const keys = existsSync(root)
-      ? readdirSync(root).filter(key => /^u[0-9a-f]{20}$/.test(key))
-      : [];
+    const keys = existsSync(root) ? readdirSync(root).filter(key => /^u[0-9a-f]{20}$/.test(key)) : [];
     return keys.map(key => ({ key, state: ownerState(key) }));
   }
   const usersFile = join(layout.state, 'users.json');
@@ -146,15 +132,11 @@ export function createState(layout: DataLayout) {
     forOwner: (owner: string): PersonalState => ownerState('u' + sha256(owner).slice(0, 20)),
     users: () => load<UsersRegistry>(usersFile, () => ({ formatVersion: 1, users: [] })),
     recordUser: (principal: Principal, at: string) => writeUser(usersFile, principal, at),
-    registry: () =>
-      load<Registry>(layout.registry, () => ({ formatVersion: STATE_FORMAT, projects: [] })),
+    registry: () => load<Registry>(layout.registry, () => ({ formatVersion: STATE_FORMAT, projects: [] })),
     hasRegistry: () => readJsonFile(layout.registry) !== null,
-    writeRegistry: (projects: ProjectEntry[]) =>
-      atomicWriteJson(layout.registry, { formatVersion: STATE_FORMAT, projects }),
-    legacyIds: () =>
-      load<LegacyIds>(layout.legacyIds, () => ({ formatVersion: STATE_FORMAT, ids: {} })),
-    writeLegacyIds: (ids: LegacyIds['ids']) =>
-      atomicWriteJson(layout.legacyIds, { formatVersion: STATE_FORMAT, ids }),
+    writeRegistry: (projects: ProjectEntry[]) => atomicWriteJson(layout.registry, { formatVersion: STATE_FORMAT, projects }),
+    legacyIds: () => load<LegacyIds>(layout.legacyIds, () => ({ formatVersion: STATE_FORMAT, ids: {} })),
+    writeLegacyIds: (ids: LegacyIds['ids']) => atomicWriteJson(layout.legacyIds, { formatVersion: STATE_FORMAT, ids }),
   };
 }
 /** Access to durable registry, view, draft, suggestion, and legacy ID state. */
@@ -164,26 +146,19 @@ export type State = ReturnType<typeof createState>;
 export type PersonalState = ReturnType<typeof createPersonalState>;
 function createPersonalState(layout: DataLayout) {
   const viewFile = (slug: string) => join(layout.views, assertSlug(slug) + '.json');
-  const draftFile = (slug: string, path: string) =>
-    join(layout.drafts, assertSlug(slug), sha256(projectPath(path)) + '.json');
+  const draftFile = (slug: string, path: string) => join(layout.drafts, assertSlug(slug), sha256(projectPath(path)) + '.json');
   return {
     viewFile,
     draftFile,
     draftDir: (slug: string) => join(layout.drafts, assertSlug(slug)),
-    view: (slug: string) =>
-      load<ViewState>(viewFile(slug), () => ({ formatVersion: STATE_FORMAT, files: {} })),
-    writeView: (slug: string, files: Record<string, unknown>) =>
-      atomicWriteJson(viewFile(slug), { formatVersion: STATE_FORMAT, files }),
+    view: (slug: string) => load<ViewState>(viewFile(slug), () => ({ formatVersion: STATE_FORMAT, files: {} })),
+    writeView: (slug: string, files: Record<string, unknown>) => atomicWriteJson(viewFile(slug), { formatVersion: STATE_FORMAT, files }),
     draft: (slug: string, path: string) => {
       const d = readJsonFile<Draft>(draftFile(slug, path));
       if (d && d.formatVersion !== STATE_FORMAT) throw Error('Unsupported draft format.');
       return d;
     },
-    writeDraft: (
-      slug: string,
-      path: string,
-      draft: { baseHash: string | null; text: string; patches: Patch[] },
-    ) => {
+    writeDraft: (slug: string, path: string, draft: { baseHash: string | null; text: string; patches: Patch[] }) => {
       const value: Draft = {
         formatVersion: STATE_FORMAT,
         project: slug,

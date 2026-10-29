@@ -88,15 +88,8 @@ export async function cloneOutcome(app: Workspace, op: string): Promise<CloneOut
 }
 
 /** Clones a folder of the team repository and returns the project's slug and folders. */
-export async function cloneFolder(
-  app: Workspace,
-  team: TeamRepository,
-  folder = PROJECT_FOLDER,
-  createFolder = false,
-) {
-  const started = await ok(
-    call(app, 'POST', '/api/clone', { url: team.address, folder, createFolder }),
-  );
+export async function cloneFolder(app: Workspace, team: TeamRepository, folder = PROJECT_FOLDER, createFolder = false) {
+  const started = await ok(call(app, 'POST', '/api/clone', { url: team.address, folder, createFolder }));
   const done = await cloneOutcome(app, started.op);
   const repository = join(app.root, 'projects', started.slug);
   return { ...started, done, repository, project: join(repository, folder) };

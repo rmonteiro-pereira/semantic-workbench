@@ -51,8 +51,7 @@ export function useEvents(onChange: (event: string, data: any) => void) {
     };
     source.onerror = () => setConnected(false);
     return () => {
-      for (const [type, listener] of listeners)
-        source.removeEventListener(type, listener as EventListener);
+      for (const [type, listener] of listeners) source.removeEventListener(type, listener as EventListener);
       source.close();
     };
   }, []);

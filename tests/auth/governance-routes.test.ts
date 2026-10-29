@@ -42,10 +42,7 @@ test('owner choices list only people who may read the project; local mode gets n
   ]);
   const viewer = await serverAs(fixture.ws, 'hank')(new Request(origin + path));
   expect(viewer.status).toBe(403);
-  const carol = await serverAs(
-    fixture.ws,
-    'carol',
-  )(new Request(origin + '/api/projects/hr-people/people'));
+  const carol = await serverAs(fixture.ws, 'carol')(new Request(origin + '/api/projects/hr-people/people'));
   expect(carol.status).toBe(403);
   expect(await get(createHandler(fixture.ws), path)).toEqual([]);
 });
@@ -64,9 +61,7 @@ test('an owner who names nobody who signed in is marked unverified in server mod
     LOCAL_READER,
   );
   const metrics = await get(serverAs(fixture.ws, 'bob'), '/api/projects/sales-metrics/metrics');
-  const verified = Object.fromEntries(
-    metrics.map((metric: any) => [metric.name, metric.ownerVerified]),
-  );
+  const verified = Object.fromEntries(metrics.map((metric: any) => [metric.name, metric.ownerVerified]));
   expect(verified).toEqual({
     gross_revenue: true,
     order_count: true,
@@ -92,9 +87,7 @@ test('local mode saves governed changes exactly as before', async () => {
   using fixture = await authWorkspace();
   const local = createHandler(fixture.ws);
   const file = fixture.ws.readFile('sales-metrics', 'sales.semantic.yaml');
-  const edited = file.source
-    .replace("'SUM(orders.amount)'", "'SUM(orders.amount) * 2'")
-    .replace('"status": "proposed"', '"status": "approved"');
+  const edited = file.source.replace("'SUM(orders.amount)'", "'SUM(orders.amount) * 2'").replace('"status": "proposed"', '"status": "approved"');
   const response = await local(
     new Request('http://127.0.0.1:4310/api/projects/sales-metrics/files/sales.semantic.yaml', {
       method: 'PUT',

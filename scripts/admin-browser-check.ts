@@ -6,14 +6,7 @@ import { startMockOidc } from '../tests/helpers/mock-oidc';
 import { TEST_GROUPS, TEST_TENANT_ID, TEST_USERS } from '../tests/helpers/auth-identities';
 import { freeAuthPort, startAuthApi } from './auth-environment';
 import { signIn, type SignInTarget } from './helpers/sign-in';
-import {
-  ADMIN_AREAS,
-  adminGeometry,
-  adminArea,
-  leaveAdmin,
-  screenshotName,
-  withinAdministrationTime,
-} from './helpers/admin-browser';
+import { ADMIN_AREAS, adminGeometry, adminArea, leaveAdmin, screenshotName, withinAdministrationTime } from './helpers/admin-browser';
 import { openSettings } from './helpers/sidebar-menus';
 
 /**
@@ -47,9 +40,7 @@ async function addGrant(page: Page, { member, value, role, scope, target }: Gran
   if (member === 'group') await expect(dialog).toContainText(TEST_GROUPS.salesEditors.name);
   await dialog.getByLabel('Role', { exact: true }).selectOption(role);
   await dialog.getByLabel('Scope', { exact: true }).selectOption(scope);
-  await dialog
-    .getByLabel(scope === 'domains' ? 'Domain IDs (comma separated)' : 'Projects (comma separated)')
-    .fill(target);
+  await dialog.getByLabel(scope === 'domains' ? 'Domain IDs (comma separated)' : 'Projects (comma separated)').fill(target);
   await adminGeometry(page, 'grant-form');
   await review(page, dialog);
   await expect(dialog).toHaveCount(0);
@@ -81,16 +72,11 @@ async function timedAdministration(page: Page, erin: Page, target: SignInTarget)
   const identity = await response.json();
   assert(identity.roles.projects['sales-contracts'].includes('editor'));
   const access = await adminArea(page, 'Access check');
-  await access
-    .getByLabel('Person ID', { exact: true })
-    .fill(TEST_TENANT_ID + ':' + TEST_USERS.alice.oid);
+  await access.getByLabel('Person ID', { exact: true }).fill(TEST_TENANT_ID + ':' + TEST_USERS.alice.oid);
   await access.getByLabel('Project', { exact: true }).fill('sales-contracts');
   await access.getByRole('button', { name: 'Check access', exact: true }).click();
   await expect(access.getByRole('region', { name: 'Access result' })).toContainText('Allowed');
-  assert(
-    withinAdministrationTime(start, performance.now()),
-    'Domain assignment, both grants and check exceeded three minutes',
-  );
+  assert(withinAdministrationTime(start, performance.now()), 'Domain assignment, both grants and check exceeded three minutes');
   await access.getByLabel('Hypothetical person').check();
   await access.getByLabel('Groups (comma separated)').fill(TEST_GROUPS.salesEditors.id);
   await access.getByLabel('E-mail address').fill('someone@example.org');
@@ -115,9 +101,7 @@ async function customRole(page: Page) {
   const response = await page.request.get(new URL(page.url()).origin + '/api/admin/roles');
   assert.equal(response.status(), 200);
   const inventory = await response.json();
-  const created = inventory.custom.find(
-    (role: { name: string }) => role.name === 'Metric reviewer browser',
-  );
+  const created = inventory.custom.find((role: { name: string }) => role.name === 'Metric reviewer browser');
   assert(created);
   await addGrant(page, {
     member: 'group',
@@ -140,17 +124,12 @@ async function customRole(page: Page) {
   await review(page, deletion, 'delete role and grants');
   // The dialog closes only after the server has committed the deletion.
   await expect(deletion).toHaveCount(0);
-  const grants = await (
-    await page.request.get(new URL(page.url()).origin + '/api/admin/grants')
-  ).json();
+  const grants = await (await page.request.get(new URL(page.url()).origin + '/api/admin/grants')).json();
   assert(!grants.grants.some((grant: { roleId: string }) => grant.roleId === created.id));
   const rejected = await page.request.put(new URL(page.url()).origin + '/api/admin/roles', {
     headers: { Origin: new URL(page.url()).origin, 'X-SW-Request': '1' },
     data: {
-      roles: [
-        ...inventory.builtIn.filter((role: { id: string }) => role.id !== 'viewer'),
-        ...inventory.custom,
-      ],
+      roles: [...inventory.builtIn.filter((role: { id: string }) => role.id !== 'viewer'), ...inventory.custom],
       // The current version, so the refusal comes from the built-in role and not a stale base.
       baseVersion: grants.version,
       dryRunId: '',
@@ -171,9 +150,7 @@ async function policyHistory(page: Page) {
   await expect(editor.getByText('Policy is valid.', { exact: true })).toBeVisible();
   await adminGeometry(page, 'policy-editor');
   await review(page, editor);
-  const rule = policies
-    .getByRole('heading', { name: 'Browser branch limit', exact: true })
-    .locator('..');
+  const rule = policies.getByRole('heading', { name: 'Browser branch limit', exact: true }).locator('..');
   await rule.getByLabel('Enabled', { exact: true }).click();
   const disable = page.getByRole('dialog', { name: 'Disable Browser branch limit', exact: true });
   await adminGeometry(page, 'disable-policy');
@@ -198,9 +175,7 @@ async function policyHistory(page: Page) {
 
 async function auditExport(page: Page) {
   const audit = await adminArea(page, 'Audit');
-  await audit
-    .getByLabel('From', { exact: true })
-    .fill(new Date().toISOString().slice(0, 10) + 'T00:00');
+  await audit.getByLabel('From', { exact: true }).fill(new Date().toISOString().slice(0, 10) + 'T00:00');
   const download = page.waitForEvent('download');
   await audit.getByRole('button', { name: 'Export CSV', exact: true }).click();
   assert((await download).suggestedFilename().endsWith('.csv'));
@@ -257,9 +232,7 @@ export async function adminBrowserCheck() {
         const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
         await signIn(alice, target, 'alice');
         const aliceSettings = await openSettings(alice);
-        await expect(aliceSettings.getByRole('button', { name: 'Admin', exact: true })).toHaveCount(
-          0,
-        );
+        await expect(aliceSettings.getByRole('button', { name: 'Admin', exact: true })).toHaveCount(0);
         await alice.keyboard.press('Escape');
         await alice.goto(url + '/#/admin/grants');
         await expect(alice.locator('.admin-page')).toHaveCount(0);

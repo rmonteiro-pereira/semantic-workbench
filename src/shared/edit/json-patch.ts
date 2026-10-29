@@ -1,15 +1,7 @@
 /** Patches changed JSON values and separators in place, preserving untouched bytes and local
  * layout. */
 import { isMap, isSeq, isScalar, parseDocument, type Node, type Pair } from 'yaml';
-import {
-  deepEqual,
-  isObject,
-  leadingSpace,
-  textStyle,
-  withEol,
-  type Patch,
-  type TextStyle,
-} from './source-text';
+import { deepEqual, isObject, leadingSpace, textStyle, withEol, type Patch, type TextStyle } from './source-text';
 // Only changed values, keys and list entries are replaced, including their separators. New values
 // follow the surrounding inline or multiline layout; unrelated bytes stay exact.
 type Range = [number, number, number];
@@ -53,11 +45,7 @@ function layoutOf(src: string, node: any, style: TextStyle, parentIndent: string
   const indent = first ? (leadingSpace(src, firstStart) ?? '') : parentIndent + style.unit;
   const own = separators(src, node);
   const nested = items.map(i => (isMap(node) ? i.value : i)).filter(v => isMap(v) || isSeq(v));
-  const compactValues = !lines
-    ? true
-    : nested.length
-      ? nested.every(v => !multiline(src, v))
-      : null;
+  const compactValues = !lines ? true : nested.length ? nested.every(v => !multiline(src, v)) : null;
   const sample = nested.find(v => v.items.length > 1) ?? nested[0];
   return {
     sep: lines ? style.eol + indent : own.comma.slice(1),
@@ -80,67 +68,31 @@ const compact = (v: any, colon: string, comma: string): string =>
       : JSON.stringify(v ?? null);
 
 /** Renders a JSON value using the requested indentation and inline layout. */
-export function renderJson(
-  v: any,
-  indent: string,
-  style: TextStyle,
-  inline = false,
-  colon = ': ',
-  comma = ', ',
-) {
-  if (inline || !(Array.isArray(v) ? v.length : isObject(v) ? Object.keys(v).length : 0))
-    return compact(v, colon, comma);
+export function renderJson(v: any, indent: string, style: TextStyle, inline = false, colon = ': ', comma = ', ') {
+  if (inline || !(Array.isArray(v) ? v.length : isObject(v) ? Object.keys(v).length : 0)) return compact(v, colon, comma);
   return withEol(JSON.stringify(v, null, style.unit).replace(/\n/g, '\n' + indent), style.eol);
 }
 const isCollection = (v: unknown) => Array.isArray(v) || isObject(v);
 function valueText(v: any, layout: Layout, style: TextStyle) {
-  return renderJson(
-    v,
-    layout.indent,
-    style,
-    isCollection(v) && layout.compactValues === true,
-    layout.inner.colon,
-    layout.inner.comma,
-  );
+  return renderJson(v, layout.indent, style, isCollection(v) && layout.compactValues === true, layout.inner.colon, layout.inner.comma);
 }
 
 /** Computes structural JSON patches while preserving unchanged bytes. */
-export function jsonPatches(
-  src: string,
-  node: any,
-  oldV: any,
-  newV: any,
-  style: TextStyle,
-  indent = '',
-): Patch[] {
+export function jsonPatches(src: string, node: any, oldV: any, newV: any, style: TextStyle, indent = ''): Patch[] {
   if (deepEqual(oldV, newV)) return [];
-  if (isMap(node) && isObject(oldV) && isObject(newV) && node.items.length)
-    return mapPatches(src, node, oldV, newV, style, indent);
-  if (isSeq(node) && Array.isArray(oldV) && Array.isArray(newV) && node.items.length)
-    return seqPatches(src, node, oldV, newV, style, indent);
+  if (isMap(node) && isObject(oldV) && isObject(newV) && node.items.length) return mapPatches(src, node, oldV, newV, style, indent);
+  if (isSeq(node) && Array.isArray(oldV) && Array.isArray(newV) && node.items.length) return seqPatches(src, node, oldV, newV, style, indent);
   const [from, to] = range(node);
   const own = leadingSpace(src, from) ?? indent;
   return [
     {
       from,
       to,
-      insert: renderJson(
-        newV,
-        own,
-        style,
-        !multiline(src, node) && isCollection(oldV) && isCollection(newV),
-      ),
+      insert: renderJson(newV, own, style, !multiline(src, node) && isCollection(oldV) && isCollection(newV)),
     },
   ];
 }
-function mapPatches(
-  src: string,
-  node: any,
-  oldV: Record<string, any>,
-  newV: Record<string, any>,
-  style: TextStyle,
-  indent: string,
-): Patch[] {
+function mapPatches(src: string, node: any, oldV: Record<string, any>, newV: Record<string, any>, style: TextStyle, indent: string): Patch[] {
   const pairs: Pair[] = node.items;
   const layout = layoutOf(src, node, style, indent);
   const out: Patch[] = [];
@@ -150,12 +102,7 @@ function mapPatches(
       {
         from: range(node)[0],
         to: range(node)[1],
-        insert: renderJson(
-          newV,
-          leadingSpace(src, range(node)[0]) ?? indent,
-          style,
-          !layout.sep.includes('\n'),
-        ),
+        insert: renderJson(newV, leadingSpace(src, range(node)[0]) ?? indent, style, !layout.sep.includes('\n')),
       },
     ];
   out.push(
@@ -166,8 +113,7 @@ function mapPatches(
     ),
   );
   pairs.forEach((p, i) => {
-    if (kept[i] && p.value)
-      out.push(...jsonPatches(src, p.value, oldV[keyOf(p)], newV[keyOf(p)], style, layout.indent));
+    if (kept[i] && p.value) out.push(...jsonPatches(src, p.value, oldV[keyOf(p)], newV[keyOf(p)], style, layout.indent));
   });
   const added = Object.keys(newV).filter(k => !pairs.some(p => keyOf(p) === k));
   if (added.length) {
@@ -176,12 +122,7 @@ function mapPatches(
     out.push({
       from: at,
       to: at,
-      insert: added
-        .map(
-          k =>
-            ',' + layout.sep + JSON.stringify(k) + layout.colon + valueText(newV[k], layout, style),
-        )
-        .join(''),
+      insert: added.map(k => ',' + layout.sep + JSON.stringify(k) + layout.colon + valueText(newV[k], layout, style)).join(''),
     });
   }
   return out;
@@ -204,42 +145,22 @@ function removeRuns(src: string, spans: [number, number][], kept: boolean[]): Pa
   }
   return out;
 }
-function seqPatches(
-  src: string,
-  node: any,
-  oldV: any[],
-  newV: any[],
-  style: TextStyle,
-  indent: string,
-): Patch[] {
+function seqPatches(src: string, node: any, oldV: any[], newV: any[], style: TextStyle, indent: string): Patch[] {
   const items: any[] = node.items;
   const layout = layoutOf(src, node, style, indent);
   let p = 0;
   while (p < oldV.length && p < newV.length && deepEqual(oldV[p], newV[p])) p++;
   let s = 0;
-  while (
-    s < oldV.length - p &&
-    s < newV.length - p &&
-    deepEqual(oldV[oldV.length - 1 - s], newV[newV.length - 1 - s])
-  )
-    s++;
+  while (s < oldV.length - p && s < newV.length - p && deepEqual(oldV[oldV.length - 1 - s], newV[newV.length - 1 - s])) s++;
   const removed = oldV.length - p - s;
   const added = newV.slice(p, newV.length - s);
-  if (removed === added.length)
-    return items
-      .slice(p, p + removed)
-      .flatMap((n, i) => jsonPatches(src, n, oldV[p + i], added[i], style, layout.indent));
+  if (removed === added.length) return items.slice(p, p + removed).flatMap((n, i) => jsonPatches(src, n, oldV[p + i], added[i], style, layout.indent));
   if (removed === oldV.length)
     return [
       {
         from: range(node)[0],
         to: range(node)[1],
-        insert: renderJson(
-          newV,
-          leadingSpace(src, range(node)[0]) ?? indent,
-          style,
-          !layout.sep.includes('\n'),
-        ),
+        insert: renderJson(newV, leadingSpace(src, range(node)[0]) ?? indent, style, !layout.sep.includes('\n')),
       },
     ];
   const kept = items.map((_, i) => i < p || i >= p + removed);
@@ -269,8 +190,7 @@ export const jsonRemove = (src: string, node: any, index: number) =>
     node.items.map((n: any) => [range(n)[0], range(n)[1]] as [number, number]),
     node.items.map((_: any, i: number) => i !== index),
   );
-const sorted = (patches: Patch[]) =>
-  patches.sort((a, b) => a.from - b.from || a.to - a.from - (b.to - b.from));
+const sorted = (patches: Patch[]) => patches.sort((a, b) => a.from - b.from || a.to - a.from - (b.to - b.from));
 
 /** Patches a JSON path, removing the value when it is undefined. */
 export function jsonTextPatches(text: string, path: (string | number)[], value: any): Patch[] {
@@ -281,8 +201,7 @@ export function jsonTextPatches(text: string, path: (string | number)[], value: 
   const parentPath = path.slice(0, -1);
   const parent: any = parentPath.length ? doc.getIn(parentPath, true) : doc.contents;
   const key = path[path.length - 1];
-  if (!parent || !(isMap(parent) || isSeq(parent)))
-    throw Error(`No JSON object or array at /${parentPath.join('/')}.`);
+  if (!parent || !(isMap(parent) || isSeq(parent))) throw Error(`No JSON object or array at /${parentPath.join('/')}.`);
   const old: any = parentPath.reduce((v: any, k) => v?.[k], doc.toJS());
   let next: any;
   if (Array.isArray(old)) {
@@ -294,9 +213,7 @@ export function jsonTextPatches(text: string, path: (string | number)[], value: 
     if (value === undefined) delete next[key];
     else next[key] = value;
   }
-  return sorted(
-    jsonPatches(text, parent, old, next, style, leadingSpace(text, (parent as any).range[0]) ?? ''),
-  );
+  return sorted(jsonPatches(text, parent, old, next, style, leadingSpace(text, (parent as any).range[0]) ?? ''));
 }
 /** Exports patch ordering for callers that combine JSON edits. */
 export { sorted as sortPatches };

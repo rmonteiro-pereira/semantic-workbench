@@ -14,9 +14,7 @@ hint: Updates were rejected because the tip of your current branch is behind`;
 test('a push refused for missing commits is recognised, other refusals are not', () => {
   expect(isRejectedPush(REJECTED_PUSH)).toBe(true);
   expect(isRejectedPush(' ! [rejected] main -> main (fetch first)')).toBe(true);
-  expect(isRejectedPush(' ! [remote rejected] main -> main (pre-receive hook declined)')).toBe(
-    false,
-  );
+  expect(isRejectedPush(' ! [remote rejected] main -> main (pre-receive hook declined)')).toBe(false);
   expect(isRejectedPush('fatal: Authentication failed')).toBe(false);
 });
 
@@ -28,32 +26,20 @@ test('the tracking line names the upstream or says there is none', () => {
 });
 
 test('a repository without commits is not described as matching its last commit', () => {
-  expect(cleanTreeText({ hasCommits: true })).toBe(
-    'No changes. The working tree matches the last commit.',
-  );
+  expect(cleanTreeText({ hasCommits: true })).toBe('No changes. The working tree matches the last commit.');
   expect(cleanTreeText({ hasCommits: false })).not.toContain('last commit');
 });
 
 test('a clone without commits or definitions does not claim valid definitions', () => {
   const cloned = { op: 'one', phase: 'done' as const };
-  expect(definitionsSummary({ ...cloned, definitions: 3, hasCommits: true })).toBe(
-    'Every definition file is valid.',
-  );
-  expect(definitionsSummary({ ...cloned, definitions: 0, hasCommits: true })).toBe(
-    'Repository cloned; no definitions yet.',
-  );
-  expect(definitionsSummary({ ...cloned, definitions: 0, hasCommits: false })).toBe(
-    'Repository cloned; no commits or definitions yet.',
-  );
+  expect(definitionsSummary({ ...cloned, definitions: 3, hasCommits: true })).toBe('Every definition file is valid.');
+  expect(definitionsSummary({ ...cloned, definitions: 0, hasCommits: true })).toBe('Repository cloned; no definitions yet.');
+  expect(definitionsSummary({ ...cloned, definitions: 0, hasCommits: false })).toBe('Repository cloned; no commits or definitions yet.');
 });
 
 test('the terminal sign-in command names the remote and never carries a password', () => {
-  expect(terminalSignInCommand('https://git.example.org/team/shop.git')).toBe(
-    "git ls-remote 'https://git.example.org/team/shop.git'",
-  );
-  expect(terminalSignInCommand('https://ana:secret@git.example.org/shop.git')).toBe(
-    "git ls-remote 'https://git.example.org/shop.git'",
-  );
+  expect(terminalSignInCommand('https://git.example.org/team/shop.git')).toBe("git ls-remote 'https://git.example.org/team/shop.git'");
+  expect(terminalSignInCommand('https://ana:secret@git.example.org/shop.git')).toBe("git ls-remote 'https://git.example.org/shop.git'");
   expect(terminalSignInCommand(undefined)).toBe('git ls-remote <remote address>');
 });
 

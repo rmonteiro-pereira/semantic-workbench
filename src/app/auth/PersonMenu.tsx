@@ -18,9 +18,7 @@ export function PersonMenu() {
     startLeavingPage();
     form.current?.requestSubmit();
   }
-  const details = [me.name, me.verifiedEmail, ...personRoles(me)].filter((entry): entry is string =>
-    Boolean(entry),
-  );
+  const details = [me.name, me.verifiedEmail, ...personRoles(me)].filter((entry): entry is string => Boolean(entry));
   return (
     <>
       <MenuButton

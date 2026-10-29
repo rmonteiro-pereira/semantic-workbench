@@ -13,20 +13,12 @@ const MAPPING = 'sales.mapping.yaml';
 
 async function deletedInLocalMode(fixture: Awaited<ReturnType<typeof authWorkspace>>) {
   const base = join(fixture.ws.layout.projects, 'sales-contracts');
-  const entry = await fixture.ws.trash.deleteFile(
-    'sales-contracts',
-    MAPPING,
-    'someone',
-    LOCAL_READER,
-  );
+  const entry = await fixture.ws.trash.deleteFile('sales-contracts', MAPPING, 'someone', LOCAL_READER);
   expect(gitOutput(base, ['status', '--porcelain']).text).toContain(`D ${MAPPING}`);
   return { base, entry };
 }
 
-const reopen = (
-  fixture: Awaited<ReturnType<typeof authWorkspace>>,
-  log: (line: string) => void,
-) => {
+const reopen = (fixture: Awaited<ReturnType<typeof authWorkspace>>, log: (line: string) => void) => {
   fixture.ws.close();
   return openWorkspace({ root: fixture.root, reconcilePublished: true, log });
 };
@@ -39,9 +31,7 @@ test('deletions kept in the trash are restored from HEAD once, and the entry sta
   try {
     expect(existsSync(join(base, MAPPING))).toBe(true);
     expect(gitOutput(base, ['status', '--porcelain']).text).toBe('');
-    expect(lines.map(line => JSON.parse(line))).toEqual([
-      { type: 'published-checkout-restored', repo: 'sales-contracts', paths: [MAPPING] },
-    ]);
+    expect(lines.map(line => JSON.parse(line))).toEqual([{ type: 'published-checkout-restored', repo: 'sales-contracts', paths: [MAPPING] }]);
     expect(reopened.trash.entry(entry.entryId).path).toBe(MAPPING);
   } finally {
     reopened.close();
@@ -64,9 +54,7 @@ test('any other change in the published checkout stops the start and names its p
   writeFileSync(join(base, 'orders.odcs.yaml'), '# edited by hand\n');
   writeFileSync(join(base, 'stray.txt'), 'x');
   fixture.ws.close();
-  const error = await openWorkspace({ root: fixture.root, reconcilePublished: true }).catch(
-    caught => caught,
-  );
+  const error = await openWorkspace({ root: fixture.root, reconcilePublished: true }).catch(caught => caught);
   expect(error).toBeInstanceOf(PublishedCheckoutChangedError);
   expect(error.paths.sort()).toEqual(['orders.odcs.yaml', 'stray.txt']);
   expect(error.message).toContain('orders.odcs.yaml');

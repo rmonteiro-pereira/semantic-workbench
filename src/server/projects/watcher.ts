@@ -37,9 +37,7 @@ export function createWatcher(
         timers.delete(slug);
         const g = gitFlags.get(slug) ?? false;
         gitFlags.delete(slug);
-        const next = (running.get(slug) ?? Promise.resolve())
-          .then(() => options.onChange(slug, g))
-          .catch(e => log.failure('watcher.change-failed', e, { project: slug }));
+        const next = (running.get(slug) ?? Promise.resolve()).then(() => options.onChange(slug, g)).catch(e => log.failure('watcher.change-failed', e, { project: slug }));
         running.set(slug, next);
       }, debounceMs),
     );
@@ -58,8 +56,7 @@ export function createWatcher(
             .join('/');
           const inRepo = options.all().filter(project => options.locate(project).repo === repo);
           if (file === '.git' || file.startsWith('.git/')) {
-            if (/^\.git\/(HEAD|index|refs\/)/.test(file))
-              for (const project of inRepo) schedule(project, true);
+            if (/^\.git\/(HEAD|index|refs\/)/.test(file)) for (const project of inRepo) schedule(project, true);
             return;
           }
           for (const project of inRepo) {
@@ -87,9 +84,7 @@ export function createWatcher(
       } catch {
         return;
       }
-      const others = options
-        .all()
-        .filter(project => project !== slug && options.locate(project).repo === repo);
+      const others = options.all().filter(project => project !== slug && options.locate(project).repo === repo);
       if (others.length) return;
       watchers.get(repo)?.close();
       watchers.delete(repo);

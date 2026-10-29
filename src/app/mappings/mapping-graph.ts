@@ -95,12 +95,10 @@ export function buildMappingGraph(context: MappingContext, revision = ''): Mappi
   const findings: string[] = [];
   const findingEvidence = new Map<string, { documentId: string; path: (string | number)[] }>();
   const note = (message: string, e?: Evidence) => {
-    if (e?.documentId && !findingEvidence.has(message))
-      findingEvidence.set(message, { documentId: e.documentId, path: e.path });
+    if (e?.documentId && !findingEvidence.has(message)) findingEvidence.set(message, { documentId: e.documentId, path: e.path });
   };
   const concepts = new Map<string, any>(context.concepts.map(c => [c.concept, c]));
-  const builtin = (n: string) =>
-    OSSIE_BUILTINS.has(n) && !context.concepts.find(c => c.concept === n)?.relationships;
+  const builtin = (n: string) => OSSIE_BUILTINS.has(n) && !context.concepts.find(c => c.concept === n)?.relationships;
   const source = (path: (string | number)[]) => ({ file: context.mappingId, path });
   // Relationship lookup with inheritance (`extends`), for link targets and row order.
   const relationship = (concept: string, name: string): any => {
@@ -187,22 +185,13 @@ export function buildMappingGraph(context: MappingContext, revision = ''): Mappi
     edges.push(e);
     return e;
   };
-  const targets = (b: Binding) => [
-    ...b.fields.map(fieldOf),
-    ...b.metrics.map(m => metricCard(m).id),
-  ];
+  const targets = (b: Binding) => [...b.fields.map(fieldOf), ...b.metrics.map(m => metricCard(m).id)];
   const identifying = new Set<string>();
   const used = new Set<string>();
   const mapped = new Set<string>();
   // Group bindings by the mapping node they come from.
-  const objectGroups = new Map<
-    string,
-    { concept: string; path: (string | number)[]; bindings: Binding[] }
-  >();
-  const linkChildren = new Map<
-    string,
-    { owner: string; child: any; path: (string | number)[]; bindings: Binding[] }
-  >();
+  const objectGroups = new Map<string, { concept: string; path: (string | number)[]; bindings: Binding[] }>();
+  const linkChildren = new Map<string, { owner: string; child: any; path: (string | number)[]; bindings: Binding[] }>();
   const linkAnchors = new Map<string, Binding[]>();
   const tree = context.mapping.conceptMappings ?? [];
   const nodeAt = (path: (string | number)[]) => {
@@ -236,10 +225,7 @@ export function buildMappingGraph(context: MappingContext, revision = ''): Mappi
         if (parentAt >= 0) {
           const parent = nodeAt(childPath.slice(0, parentAt + 2));
           const prevOwner = b.rootConcept;
-          owner =
-            parent?.object_mapping?.concept ??
-            relationship(prevOwner, parent?.relationship)?.roles?.[0]?.concept ??
-            prevOwner;
+          owner = parent?.object_mapping?.concept ?? relationship(prevOwner, parent?.relationship)?.roles?.[0]?.concept ?? prevOwner;
         }
         entry = { owner, child: nodeAt(childPath), path: childPath, bindings: [] };
         linkChildren.set(key, entry);
@@ -268,8 +254,7 @@ export function buildMappingGraph(context: MappingContext, revision = ''): Mappi
     for (const b of g.bindings) {
       if (b.kind === 'referent') {
         const from = row(b.rootConcept, b.relationships.join('.'));
-        for (const t of targets(b))
-          add({ from, to: t, kind: 'referent', bindings: [b.id], source: source(b.evidence.path) });
+        for (const t of targets(b)) add({ from, to: t, kind: 'referent', bindings: [b.id], source: source(b.evidence.path) });
         if (ident.has(b.relationships[0])) for (const f of b.fields) identifying.add(fieldOf(f));
         for (const f of b.fields) {
           const d = datasetId(JSON.parse(f)[0]);
@@ -312,8 +297,7 @@ export function buildMappingGraph(context: MappingContext, revision = ''): Mappi
   for (const [key, c] of linkChildren) {
     const rel = c.child?.relationship;
     if (!rel) continue;
-    const target =
-      c.child?.object_mapping?.concept ?? relationship(c.owner, rel)?.roles?.[0]?.concept;
+    const target = c.child?.object_mapping?.concept ?? relationship(c.owner, rel)?.roles?.[0]?.concept;
     if (!target) continue;
     mapped.add(target);
     const via: string[] = [];
@@ -323,8 +307,7 @@ export function buildMappingGraph(context: MappingContext, revision = ''): Mappi
         if (!via.includes(id)) via.push(id);
         for (const p of joinPartners(id)) if (!via.includes(p)) via.push(p);
       }
-    const anchors =
-      linkAnchors.get(JSON.stringify(c.path.slice(0, c.path.indexOf('link_mappings') + 2))) ?? [];
+    const anchors = linkAnchors.get(JSON.stringify(c.path.slice(0, c.path.indexOf('link_mappings') + 2))) ?? [];
     add({
       from: row(c.owner, rel),
       to: conceptCard(target, !concepts.has(target)).id,
@@ -339,11 +322,7 @@ export function buildMappingGraph(context: MappingContext, revision = ''): Mappi
   // A link mapping with only an anchor (no children) still shows its bindings, as referent-like
   // lines.
   for (const [key, list] of linkAnchors)
-    if (
-      ![...linkChildren.values()].some(
-        c => JSON.stringify(c.path.slice(0, c.path.indexOf('link_mappings') + 2)) === key,
-      )
-    )
+    if (![...linkChildren.values()].some(c => JSON.stringify(c.path.slice(0, c.path.indexOf('link_mappings') + 2)) === key))
       for (const b of list)
         for (const t of targets(b))
           add({
@@ -391,12 +370,7 @@ export function buildMappingGraph(context: MappingContext, revision = ''): Mappi
     const i = f.evidence ? cmIndex(f.evidence.path) : -1;
     const name = i >= 0 ? tree[i]?.concept : undefined;
     note(f.message, f.evidence);
-    const metric =
-      f.code === 'metric'
-        ? context.metrics.find(
-            m => JSON.stringify(m.evidence.path) === JSON.stringify(f.evidence?.path),
-          )
-        : undefined;
+    const metric = f.code === 'metric' ? context.metrics.find(m => JSON.stringify(m.evidence.path) === JSON.stringify(f.evidence?.path)) : undefined;
     if (typeof name === 'string') {
       const c = conceptCard(name, !concepts.has(name));
       (c.findings ??= []).push(f.message);
@@ -427,9 +401,5 @@ export function defaultMappingCenter(g: MappingGraph) {
       const c = owner(n);
       if ((g.cards.get(c)?.kind as string) === 'concept') count.set(c, (count.get(c) ?? 0) + 1);
     }
-  return (
-    [...count].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0]?.[0] ??
-    [...g.cards.keys()][0] ??
-    ''
-  );
+  return [...count].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0]?.[0] ?? [...g.cards.keys()][0] ?? '';
 }

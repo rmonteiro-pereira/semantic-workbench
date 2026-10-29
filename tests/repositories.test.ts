@@ -1,20 +1,11 @@
 // Tests how a repository's project folders are read from its manifest or detected from its files.
 import { test, expect } from 'bun:test';
-import {
-  checkProjectFolders,
-  detectProjectFolders,
-  parseManifest,
-} from '../src/server/projects/repositories';
+import { checkProjectFolders, detectProjectFolders, parseManifest } from '../src/server/projects/repositories';
 
-const manifest = (projects: unknown, extra: Record<string, unknown> = {}) =>
-  JSON.stringify({ schema: 'semantic-workbench/repository/v1', projects, ...extra });
+const manifest = (projects: unknown, extra: Record<string, unknown> = {}) => JSON.stringify({ schema: 'semantic-workbench/repository/v1', projects, ...extra });
 
 test('a manifest lists project folders with optional names', () => {
-  expect(
-    parseManifest(
-      manifest([{ path: 'domains/sales', name: 'Sales' }, { path: 'domains/finance' }]),
-    ),
-  ).toEqual([{ path: 'domains/sales', name: 'Sales' }, { path: 'domains/finance' }]);
+  expect(parseManifest(manifest([{ path: 'domains/sales', name: 'Sales' }, { path: 'domains/finance' }]))).toEqual([{ path: 'domains/sales', name: 'Sales' }, { path: 'domains/finance' }]);
 });
 
 test('manifests with escaping, Git, absolute, nested or repeated folders are refused', () => {
@@ -67,14 +58,10 @@ test('detection proposes the smallest set of folders that holds every definition
 });
 
 test('definitions at the root make the root the one project', () => {
-  expect(detectProjectFolders(['shop.yaml', 'domains/sales/sales.yaml'])).toEqual([
-    { path: '', files: 2 },
-  ]);
+  expect(detectProjectFolders(['shop.yaml', 'domains/sales/sales.yaml'])).toEqual([{ path: '', files: 2 }]);
 });
 
 test('detection stops four folders down and skips Git internals', () => {
-  expect(detectProjectFolders(['a/b/c/d/e/f/deep.yaml', '.git/config.yaml'])).toEqual([
-    { path: 'a/b/c/d', files: 1 },
-  ]);
+  expect(detectProjectFolders(['a/b/c/d/e/f/deep.yaml', '.git/config.yaml'])).toEqual([{ path: 'a/b/c/d', files: 1 }]);
   expect(detectProjectFolders(['docs/readme.md', 'src/app/main.ts'])).toEqual([]);
 });

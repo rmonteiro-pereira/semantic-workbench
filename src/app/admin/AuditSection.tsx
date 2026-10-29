@@ -58,25 +58,15 @@ export function AuditSection() {
   return (
     <>
       <details className="admin-filter-disclosure" open={startsWithFiltersOpen()}>
-        <summary>
-          Filters{activeFilterCount(filters) > 0 && ` (${activeFilterCount(filters)})`}
-        </summary>
+        <summary>Filters{activeFilterCount(filters) > 0 && ` (${activeFilterCount(filters)})`}</summary>
         <div className="admin-filters">
           {Object.entries(filterLabels).map(([name, label]) => (
             <label key={name}>
               {label}
-              <input
-                type={name === 'from' || name === 'to' ? 'datetime-local' : 'text'}
-                value={filters[name] ?? ''}
-                onChange={event => filter(name, event.target.value)}
-              />
+              <input type={name === 'from' || name === 'to' ? 'datetime-local' : 'text'} value={filters[name] ?? ''} onChange={event => filter(name, event.target.value)} />
             </label>
           ))}
-          <SelectField
-            label="Decision"
-            value={filters.decision ?? ''}
-            onChange={event => filter('decision', event.target.value)}
-          >
+          <SelectField label="Decision" value={filters.decision ?? ''} onChange={event => filter('decision', event.target.value)}>
             <option value="">All</option>
             <option value="allow">Allow</option>
             <option value="deny">Deny</option>

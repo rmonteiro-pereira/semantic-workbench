@@ -20,9 +20,7 @@ const dark = process.env.SW_THEME === 'dark';
 const prefix = dark ? 'server-dark' : 'server';
 const requestedUser = process.argv[3] ?? 'dave';
 if (!(requestedUser in TEST_USERS)) {
-  throw new Error(
-    `Unknown user ${requestedUser}; use one of ${Object.keys(TEST_USERS).join(', ')}.`,
-  );
+  throw new Error(`Unknown user ${requestedUser}; use one of ${Object.keys(TEST_USERS).join(', ')}.`);
 }
 const user = requestedUser as keyof typeof TEST_USERS;
 mkdirSync(outputDirectory, { recursive: true });
@@ -52,11 +50,7 @@ async function prepareCaptureContract(root: string) {
   writeFileSync(path, lines.join('\n'));
   const projectsRoot = join(root, 'projects');
   const git = createGit({ projectsRoot });
-  const result = await git.commitPaths(
-    join(projectsRoot, 'sales-contracts'),
-    ['orders.odcs.yaml'],
-    'Prepare visual capture contract',
-  );
+  const result = await git.commitPaths(join(projectsRoot, 'sales-contracts'), ['orders.odcs.yaml'], 'Prepare visual capture contract');
   if (!result.committed) throw Error(`Capture fixture commit refused: ${result.reason}`);
 }
 
@@ -89,9 +83,7 @@ await withCleanup(stopCapture, async () => {
   const loginPage = await context.newPage();
   if (dark) await loginPage.addInitScript(() => localStorage.setItem('workbench.theme', 'dark'));
   await signIn(loginPage, target, user);
-  const files = await loginPage
-    .locator('.workspace-sidebar button.document span')
-    .allTextContents();
+  const files = await loginPage.locator('.workspace-sidebar button.document span').allTextContents();
   await loginPage.close();
   for (const [width, height] of authViewports) {
     const page = await context.newPage();
@@ -103,11 +95,7 @@ await withCleanup(stopCapture, async () => {
     await page.locator('.tabs').waitFor();
     const screens = captureScreens({
       ontology: files.find(name => name.includes('ontology')) ?? files[0] ?? '',
-      contract:
-        files.find(name => name === 'orders.odcs.yaml') ??
-        files.find(name => name.includes('odcs')) ??
-        files[0] ??
-        '',
+      contract: files.find(name => name === 'orders.odcs.yaml') ?? files.find(name => name.includes('odcs')) ?? files[0] ?? '',
       metricsModel: files.find(name => name.includes('semantic')) ?? files[0] ?? '',
       mapping: files.find(name => name.includes('mapping')) ?? '',
       serverMode: true,

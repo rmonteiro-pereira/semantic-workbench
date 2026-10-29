@@ -2,13 +2,7 @@ import { useState } from 'react';
 import { commaList } from './change-review';
 
 /** Keeps separators while typing, committing the parsed member list when focus leaves the field. */
-export function ListInput({
-  value,
-  onChange,
-}: {
-  value: string[];
-  onChange: (value: string[]) => void;
-}) {
+export function ListInput({ value, onChange }: { value: string[]; onChange: (value: string[]) => void }) {
   const [text, setText] = useState(value.join(', '));
   function commit() {
     onChange(commaList(text));

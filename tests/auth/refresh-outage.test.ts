@@ -14,8 +14,7 @@ async function expiredSession() {
   const session = (await sessions.get(id))!;
   session.tokens.expiresAt = 0;
   await sessions.update(session);
-  const me = () =>
-    context.handler(new Request(context.origin + '/api/me', { headers: { Cookie: cookie } }));
+  const me = () => context.handler(new Request(context.origin + '/api/me', { headers: { Cookie: cookie } }));
   return { context, id, me, sessions };
 }
 
@@ -23,9 +22,7 @@ test('while the provider is unreachable the request gets 503 and the session sta
   const { context, id, me, sessions } = await expiredSession();
   using _context = context;
   const log = spyOn(console, 'error').mockImplementation(() => {});
-  const refresh = spyOn(context.client, 'refresh').mockRejectedValue(
-    new SignInError('provider-unreachable'),
-  );
+  const refresh = spyOn(context.client, 'refresh').mockRejectedValue(new SignInError('provider-unreachable'));
   try {
     const outage = await me();
     expect(outage.status).toBe(503);
@@ -55,12 +52,7 @@ test('an unexpected failure of the refresh is treated as an outage, not a sign-o
   }
 });
 
-const endingReasons: SignInReason[] = [
-  'token-invalid',
-  'attempt-invalid',
-  'session-upgraded',
-  'tenant-mismatch',
-];
+const endingReasons: SignInReason[] = ['token-invalid', 'attempt-invalid', 'session-upgraded', 'tenant-mismatch'];
 
 for (const reason of endingReasons) {
   test(`a refresh refused as ${reason} ends the session`, async () => {

@@ -13,12 +13,7 @@ export type BareFixture = {
   dispose(): void;
 };
 /** Selects the repository layout or unsafe-path fixture to generate. */
-export type FixtureKind =
-  | 'monorepo'
-  | 'monorepo-no-manifest'
-  | 'hazards'
-  | 'single'
-  | 'documentation';
+export type FixtureKind = 'monorepo' | 'monorepo-no-manifest' | 'hazards' | 'single' | 'documentation';
 const git = (cwd: string, args: string[]) => {
   const r = Bun.spawnSync(['git', ...args], {
     cwd,

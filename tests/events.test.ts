@@ -11,12 +11,7 @@ async function read(response: Response, until: (text: string) => boolean, timeou
   let text = '';
   const stop = Date.now() + timeout;
   while (!until(text) && Date.now() < stop) {
-    const r = await Promise.race([
-      reader.read(),
-      new Promise<{ done: true; value: undefined }>(res =>
-        setTimeout(() => res({ done: true, value: undefined }), stop - Date.now()),
-      ),
-    ]);
+    const r = await Promise.race([reader.read(), new Promise<{ done: true; value: undefined }>(res => setTimeout(() => res({ done: true, value: undefined }), stop - Date.now()))]);
     if (r.done) break;
     text += decoder.decode(r.value);
   }
@@ -44,25 +39,15 @@ test('Last-Event-ID replays missed events from the ring; older ids get resync', 
   expect(e.replay(5)!.length).toBe(1000);
   expect(e.replay(4)).toBeNull();
   expect(e.replay(2000)).toBeNull();
-  const replayed = await read(
-    e.stream(new Request('http://x/api/events', { headers: { 'Last-Event-ID': '1003' } })),
-    t => ids(t).length >= 2,
-  );
+  const replayed = await read(e.stream(new Request('http://x/api/events', { headers: { 'Last-Event-ID': '1003' } })), t => ids(t).length >= 2);
   expect(ids(replayed)).toEqual([1004, 1005]);
-  const resync = await read(
-    e.stream(new Request('http://x/api/events', { headers: { 'Last-Event-ID': '1' } })),
-    t => t.includes('resync'),
-  );
+  const resync = await read(e.stream(new Request('http://x/api/events', { headers: { 'Last-Event-ID': '1' } })), t => t.includes('resync'));
   expect(resync).toContain('event: resync');
 });
 test('heartbeat comments keep the stream alive (15 s by default)', async () => {
   expect((await import('../src/server/projects/events')).HEARTBEAT_MS).toBe(15_000);
   const e = createEvents({ ...noSuggestions, heartbeatMs: 30 });
-  const text = await read(
-    e.stream(new Request('http://x/api/events')),
-    t => t.includes(': ping'),
-    1000,
-  );
+  const text = await read(e.stream(new Request('http://x/api/events')), t => t.includes(': ping'), 1000);
   expect(text).toContain(': ping');
 });
 test('/api/events applies the origin check and streams workspace changes', async () => {
@@ -83,13 +68,8 @@ test('/api/events applies the origin check and streams workspace changes', async
       }),
     );
     expect(response.status).toBe(200);
-    setTimeout(
-      () => void t.seed([{ path: 'a.yaml', source: 'name: A\nontology: [{concept: A}]' }]),
-      20,
-    );
-    expect(await read(response, x => x.includes('event: projects'), 5000)).toContain(
-      '"added":["a"]',
-    );
+    setTimeout(() => void t.seed([{ path: 'a.yaml', source: 'name: A\nontology: [{concept: A}]' }]), 20);
+    expect(await read(response, x => x.includes('event: projects'), 5000)).toContain('"added":["a"]');
   } finally {
     t.dispose();
   }

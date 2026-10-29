@@ -71,25 +71,11 @@ function requiredHint(labels: string[]) {
 }
 
 /** Previews and validates a new item before saving it. */
-export function AddItem({
-  doc,
-  base,
-  document,
-  kind: fixed,
-  owner,
-  preset = {},
-  choices,
-  onClose,
-  onSaved,
-}: Props) {
+export function AddItem({ doc, base, document, kind: fixed, owner, preset = {}, choices, onClose, onSaved }: Props) {
   const access = useCapabilities(doc.project);
   const kinds = fixed ? [fixed] : addableKinds(document);
   const [kind, setKind] = useState<ItemKind | undefined>(kinds[0]);
-  const [raw, setRaw] = useState<Record<string, string | boolean>>(() =>
-    Object.fromEntries(
-      Object.entries(preset).map(([k, v]) => [k, Array.isArray(v) ? v.join(', ') : v]),
-    ),
-  );
+  const [raw, setRaw] = useState<Record<string, string | boolean>>(() => Object.fromEntries(Object.entries(preset).map(([k, v]) => [k, Array.isArray(v) ? v.join(', ') : v])));
   const [check, setCheck] = useState<{ text: string; issues: Issue[] } | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -98,18 +84,11 @@ export function AddItem({
   const values = useMemo(
     () => ({
       ...preset,
-      ...Object.fromEntries(
-        fields.map(f => [
-          f.key,
-          raw[f.key] === undefined ? undefined : fieldValue({ ...f, required: false }, raw[f.key]),
-        ]),
-      ),
+      ...Object.fromEntries(fields.map(f => [f.key, raw[f.key] === undefined ? undefined : fieldValue({ ...f, required: false }, raw[f.key])])),
     }),
     [raw, kind],
   );
-  const listPath = kind
-    ? listPathFor(kind, document, owner, semanticModelPrefix(document) ?? [])
-    : null;
+  const listPath = kind ? listPathFor(kind, document, owner, semanticModelPrefix(document) ?? []) : null;
   type Plan =
     | { error: string; incomplete?: boolean; text?: undefined }
     | {
@@ -122,13 +101,7 @@ export function AddItem({
       };
   const plan = useMemo((): Plan => {
     if (!kind || !listPath) return { error: 'This document cannot hold this kind of item.' };
-    const missing = fields.filter(
-      f =>
-        f.required &&
-        (values[f.key] === undefined ||
-          values[f.key] === '' ||
-          (Array.isArray(values[f.key]) && !values[f.key].length)),
-    );
+    const missing = fields.filter(f => f.required && (values[f.key] === undefined || values[f.key] === '' || (Array.isArray(values[f.key]) && !values[f.key].length)));
     if (missing.length) {
       const required = fields.filter(f => f.required).map(f => f.label);
       return { error: requiredHint(required), incomplete: true };
@@ -136,12 +109,9 @@ export function AddItem({
     const item = newItem(kind, values);
     const list = itemValue(base, listPath);
     const name = itemName(kind, item);
-    if (Array.isArray(list) && name && list.some(x => itemName(kind, x) === name))
-      return { error: `${kindLabel[kind]} ${name} already exists here.` };
+    if (Array.isArray(list) && name && list.some(x => itemName(kind, x) === name)) return { error: `${kindLabel[kind]} ${name} already exists here.` };
     try {
-      const patches = Array.isArray(list)
-        ? insertPatches(base, listPath, item, undefined, doc.filename)
-        : valuePatches(base, listPath, [item], doc.filename);
+      const patches = Array.isArray(list) ? insertPatches(base, listPath, item, undefined, doc.filename) : valuePatches(base, listPath, [item], doc.filename);
       const text = applyPatches(base, patches);
       const index = Array.isArray(list) ? list.length : 0;
       return {
@@ -170,40 +140,21 @@ export function AddItem({
     setSaving(true);
     setError('');
     try {
-      const r = await api.save(
-        doc.project,
-        doc.path,
-        doc.hash,
-        plan.text,
-        diffPatches(doc.source, plan.text),
-      );
+      const r = await api.save(doc.project, doc.path, doc.hash, plan.text, diffPatches(doc.source, plan.text));
       onSaved({ docId: doc.id, source: plan.text, hash: r.hash }, plan.path, kind);
     } catch (e) {
-      setError(
-        e instanceof StaleSave
-          ? 'Not saved: the file changed since you opened it. Close this and try again.'
-          : (e as Error).message,
-      );
+      setError(e instanceof StaleSave ? 'Not saved: the file changed since you opened it. Close this and try again.' : (e as Error).message);
       setSaving(false);
     }
   }
-  const set = (spec: FieldSpec, input: string | boolean) =>
-    setRaw(v => ({ ...v, [spec.key]: input }));
+  const set = (spec: FieldSpec, input: string | boolean) => setRaw(v => ({ ...v, [spec.key]: input }));
   const valueOf = (spec: FieldSpec) => String(raw[spec.key] ?? '');
   const footer = (
     <>
       <button type="button" onClick={onClose} disabled={saving}>
         Cancel
       </button>
-      <button
-        type="button"
-        className="primary"
-        onClick={save}
-        title={access.control('edit').title}
-        disabled={
-          !access.can('edit') || plan.text === undefined || pending || errors.length > 0 || saving
-        }
-      >
+      <button type="button" className="primary" onClick={save} title={access.control('edit').title} disabled={!access.can('edit') || plan.text === undefined || pending || errors.length > 0 || saving}>
         {saving ? 'Saving…' : pending ? 'Checking…' : 'Save to file'}
       </button>
     </>
@@ -243,30 +194,15 @@ export function AddItem({
           {fields.map(spec => {
             const id = `add-field-${spec.key}`;
             return (
-              <label
-                key={spec.key}
-                htmlFor={id}
-                className={spec.input === 'boolean' ? 'item-check' : ''}
-              >
+              <label key={spec.key} htmlFor={id} className={spec.input === 'boolean' ? 'item-check' : ''}>
                 <span id={id + '-label'}>
                   {spec.label}
                   {spec.required && <em aria-hidden> *</em>}
                 </span>
                 {spec.input === 'boolean' ? (
-                  <input
-                    id={id}
-                    aria-labelledby={id + '-label'}
-                    type="checkbox"
-                    checked={!!raw[spec.key]}
-                    onChange={e => set(spec, e.target.checked)}
-                  />
+                  <input id={id} aria-labelledby={id + '-label'} type="checkbox" checked={!!raw[spec.key]} onChange={e => set(spec, e.target.checked)} />
                 ) : spec.input === 'select' ? (
-                  <select
-                    id={id}
-                    aria-labelledby={id + '-label'}
-                    value={valueOf(spec)}
-                    onChange={e => set(spec, e.target.value)}
-                  >
+                  <select id={id} aria-labelledby={id + '-label'} value={valueOf(spec)} onChange={e => set(spec, e.target.value)}>
                     <option value="">Choose {spec.label.toLowerCase()}</option>
                     {(spec.options ?? []).filter(Boolean).map(o => (
                       <option key={o} value={o}>
@@ -275,28 +211,11 @@ export function AddItem({
                     ))}
                   </select>
                 ) : spec.input === 'code' ? (
-                  <SqlField
-                    id={id}
-                    labelledBy={id + '-label'}
-                    dialect="ANSI_SQL"
-                    value={valueOf(spec)}
-                    onChange={v => set(spec, v)}
-                  />
+                  <SqlField id={id} labelledBy={id + '-label'} dialect="ANSI_SQL" value={valueOf(spec)} onChange={v => set(spec, v)} />
                 ) : spec.input === 'textarea' ? (
-                  <textarea
-                    id={id}
-                    aria-labelledby={id + '-label'}
-                    rows={2}
-                    value={valueOf(spec)}
-                    onChange={e => set(spec, e.target.value)}
-                  />
+                  <textarea id={id} aria-labelledby={id + '-label'} rows={2} value={valueOf(spec)} onChange={e => set(spec, e.target.value)} />
                 ) : (
-                  <input
-                    id={id}
-                    aria-labelledby={id + '-label'}
-                    value={valueOf(spec)}
-                    onChange={e => set(spec, e.target.value)}
-                  />
+                  <input id={id} aria-labelledby={id + '-label'} value={valueOf(spec)} onChange={e => set(spec, e.target.value)} />
                 )}
                 {spec.hint && <small>{spec.hint}</small>}
               </label>

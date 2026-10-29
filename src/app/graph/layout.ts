@@ -73,21 +73,14 @@ export const NEIGHBOR_COLUMN = 400;
 export const NEIGHBOR_ROW = 180;
 export const NEIGHBOR_ROWS = 6;
 /** Places incoming and outgoing neighbors in bounded columns around the center. */
-export function neighborhoodLayout(
-  center: string,
-  incoming: string[],
-  outgoing: string[],
-  both: string[] = [],
-) {
+export function neighborhoodLayout(center: string, incoming: string[], outgoing: string[], both: string[] = []) {
   const left = [...incoming];
   const right = [...outgoing];
   for (const id of both) (left.length < right.length ? left : right).push(id);
   const rows = Math.min(NEIGHBOR_ROWS, Math.max(1, left.length, right.length));
   // Equalize the outer extent of both sides without adding rows or changing edge direction.
   const columns = Math.max(Math.ceil(left.length / rows), Math.ceil(right.length / rows));
-  const positions = new Map<string, { x: number; y: number }>([
-    [center, { x: 0, y: ((rows - 1) * NEIGHBOR_ROW) / 2 }],
-  ]);
+  const positions = new Map<string, { x: number; y: number }>([[center, { x: 0, y: ((rows - 1) * NEIGHBOR_ROW) / 2 }]]);
   const place = (ids: string[], side: -1 | 1) => {
     const spacing = columns / Math.max(1, Math.ceil(ids.length / rows));
     for (let c = 0; c * rows < ids.length; c++) {

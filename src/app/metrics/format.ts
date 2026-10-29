@@ -18,13 +18,10 @@ export const additivityLabel = {
 export const conceptText = (links: ConceptLink[]) => {
   const m = links.find(c => c.role === 'measures');
   const of = links.find(c => c.role === 'of');
-  return [m ? (m.concept ?? m.input) : null, of ? `of ${of.concept ?? of.input}` : null]
-    .filter(Boolean)
-    .join(' ');
+  return [m ? (m.concept ?? m.input) : null, of ? `of ${of.concept ?? of.input}` : null].filter(Boolean).join(' ');
 };
 /** Converts an identifier into readable words. */
-export const humanize = (name: string) =>
-  name.replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2');
+export const humanize = (name: string) => name.replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2');
 // A metric expression as readable parts: governed metrics become their labels, NULLIF guards and
 // operators are shown as arithmetic. Anything else stays as written.
 /** Represents a metric reference, arithmetic operator or unchanged formula text. */
@@ -52,20 +49,8 @@ export function readableFormula(sql: string, labels: Map<string, string>): Formu
 }
 /** Formats a metric target with its optional unit. */
 export function targetText(t: any, unit?: string) {
-  const show = (v: number) =>
-    unit === 'ratio'
-      ? `${Math.round(v * 1000) / 10}%`
-      : `${v.toLocaleString()}${unit ? ' ' + unit : ''}`;
-  const direction =
-    t.direction === 'higher_is_better'
-      ? 'at least'
-      : t.direction === 'lower_is_better'
-        ? 'at most'
-        : 'between';
-  const value = Array.isArray(t.range)
-    ? `${show(t.range[0])} and ${show(t.range[1])}`
-    : typeof t.value === 'number'
-      ? show(t.value)
-      : '';
+  const show = (v: number) => (unit === 'ratio' ? `${Math.round(v * 1000) / 10}%` : `${v.toLocaleString()}${unit ? ' ' + unit : ''}`);
+  const direction = t.direction === 'higher_is_better' ? 'at least' : t.direction === 'lower_is_better' ? 'at most' : 'between';
+  const value = Array.isArray(t.range) ? `${show(t.range[0])} and ${show(t.range[1])}` : typeof t.value === 'number' ? show(t.value) : '';
   return `${direction} ${value}${t.grain ? ` per ${t.grain}` : ''}${t.period ? ` (${t.period})` : ''}`.trim();
 }

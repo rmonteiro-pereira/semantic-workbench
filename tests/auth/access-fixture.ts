@@ -9,8 +9,7 @@ import { AUTH_PROJECTS } from '../helpers/auth-workspace';
 
 /** Access configuration backed solely by the test fixture. */
 export function accessFixture() {
-  const read = (name: string) =>
-    JSON.parse(readFileSync(`tests/fixtures/auth-workspace/admin/${name}.json`, 'utf8'));
+  const read = (name: string) => JSON.parse(readFileSync(`tests/fixtures/auth-workspace/admin/${name}.json`, 'utf8'));
   const config: AccessConfig = {
     roles: read('roles').roles,
     grants: read('grants').grants,

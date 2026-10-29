@@ -34,11 +34,7 @@ export function observeValidation<T>(trigger: ValidationTrigger, validate: () =>
   const started = performance.now();
   try {
     if (trigger === 'scan') return validate();
-    return withSpanSync(
-      'validation',
-      { attributes: { 'sw.validation.trigger': trigger } },
-      validate,
-    );
+    return withSpanSync('validation', { attributes: { 'sw.validation.trigger': trigger } }, validate);
   } finally {
     recordValidation(trigger, performance.now() - started);
   }

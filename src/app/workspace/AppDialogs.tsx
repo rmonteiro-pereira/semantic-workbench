@@ -24,9 +24,7 @@ type Props = {
   stale: { current: string | null; currentHash: string | null } | null;
   current: Doc | null;
   source: string;
-  setStale: React.Dispatch<
-    React.SetStateAction<{ current: string | null; currentHash: string | null } | null>
-  >;
+  setStale: React.Dispatch<React.SetStateAction<{ current: string | null; currentHash: string | null } | null>>;
   autosave: {
     state: AutosaveState;
     flush(): Promise<void>;
@@ -65,11 +63,7 @@ type Props = {
       conflicts: string[];
     } | null>
   >;
-  importIntoProject: (
-    files: { path: string; source: string }[],
-    onConflict?: 'replace' | 'keep-both' | undefined,
-    slug?: string | undefined,
-  ) => Promise<void>;
+  importIntoProject: (files: { path: string; source: string }[], onConflict?: 'replace' | 'keep-both' | undefined, slug?: string | undefined) => Promise<void>;
   deleted: Deleted | null;
   undoDelete: () => Promise<void>;
   editing: ItemTarget | null;
@@ -346,11 +340,7 @@ export function AppDialogs({
             </button>
           }
         >
-          <ValidationPanel
-            source={source}
-            issues={validation.issues}
-            onLocate={handleValidationPanelLocate}
-          />
+          <ValidationPanel source={source} issues={validation.issues} onLocate={handleValidationPanelLocate} />
         </Modal>
       )}
       {definition && (
@@ -383,13 +373,7 @@ export function AppDialogs({
           }}
         />
       )}
-      {pendingImport && (
-        <ImportRepair
-          initial={pendingImport}
-          onCancel={() => setPendingImport(null)}
-          onImport={commitImports}
-        />
-      )}
+      {pendingImport && <ImportRepair initial={pendingImport} onCancel={() => setPendingImport(null)} onImport={commitImports} />}
     </>
   );
 }

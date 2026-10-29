@@ -15,8 +15,7 @@ export function useSourceControl({ project, current, source }: Options) {
   // as a server draft so pull and switch are refused while it exists.
   const [history, setHistory] = useState<History | null>(null);
   const historyPath = history?.project === project ? history.path : undefined;
-  const setHistoryPath = (path: string | undefined, historyProject = project) =>
-    setHistory({ project: historyProject, path });
+  const setHistoryPath = (path: string | undefined, historyProject = project) => setHistory({ project: historyProject, path });
   const draftOf = useRef<{ project: string; path: string } | null>(null);
   useEffect(() => {
     const dirty = !!current && source !== current.source;
@@ -30,8 +29,7 @@ export function useSourceControl({ project, current, source }: Options) {
     }
     const draftTimer = setTimeout(() => {
       const previous = draftOf.current;
-      if (previous && (previous.project !== current!.project || previous.path !== current!.path))
-        void scmApi.deleteDraft(previous.project, previous.path).catch(() => {});
+      if (previous && (previous.project !== current!.project || previous.path !== current!.path)) void scmApi.deleteDraft(previous.project, previous.path).catch(() => {});
       draftOf.current = { project: current!.project, path: current!.path };
       void scmApi.saveDraft(current!.project, current!.path, current!.hash, source).catch(() => {});
     }, 1500);

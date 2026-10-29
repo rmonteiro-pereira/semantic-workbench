@@ -38,11 +38,7 @@ export function UsersSection() {
   }
   if (check) {
     return (
-      <AdminPane
-        title={`Access check for ${check.name}`}
-        backLabel="Back to users"
-        onBack={() => setCheck(null)}
-      >
+      <AdminPane title={`Access check for ${check.name}`} backLabel="Back to users" onBack={() => setCheck(null)}>
         <AccessCheckSection principal={check.id} />
       </AdminPane>
     );
@@ -55,11 +51,7 @@ export function UsersSection() {
         <input value={query} onChange={event => setQuery(event.target.value)} />
       </label>
       <label>
-        <input
-          type="checkbox"
-          checked={noAccess}
-          onChange={event => setNoAccess(event.target.checked)}
-        />
+        <input type="checkbox" checked={noAccess} onChange={event => setNoAccess(event.target.checked)} />
         No access
       </label>
       {error && <p role="alert">{error}</p>}
@@ -94,8 +86,7 @@ export function UsersSection() {
                     <span className="admin-chip" key={index}>
                       {me?.roleNames[source.roleId] ?? source.roleId}
                       {' · '}
-                      {scopeLabel(source.scope)} ·{' '}
-                      {source.via === 'bootstrap' ? 'Bootstrap Admin' : source.via + ' grant'}
+                      {scopeLabel(source.scope)} · {source.via === 'bootstrap' ? 'Bootstrap Admin' : source.via + ' grant'}
                       {source.group && ` · ${source.group.name ?? source.group.id}`}
                     </span>
                   ))}
@@ -145,17 +136,7 @@ export function UsersSection() {
   );
 }
 
-function UserOperation({
-  user,
-  kind,
-  onCancel,
-  onSaved,
-}: {
-  user: AdminUser;
-  kind: 'deactivate' | 'reactivate' | 'sessions';
-  onCancel: () => void;
-  onSaved: () => void;
-}) {
+function UserOperation({ user, kind, onCancel, onSaved }: { user: AdminUser; kind: 'deactivate' | 'reactivate' | 'sessions'; onCancel: () => void; onSaved: () => void }) {
   const [reason, setReason] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -179,11 +160,7 @@ function UserOperation({
       size="narrow"
       lastAdminNotice={kind === 'deactivate'}
       actions={
-        <button
-          className="primary"
-          disabled={busy || (kind !== 'sessions' && !reason.trim())}
-          onClick={confirm}
-        >
+        <button className="primary" disabled={busy || (kind !== 'sessions' && !reason.trim())} onClick={confirm}>
           Confirm {title.toLowerCase()}
         </button>
       }

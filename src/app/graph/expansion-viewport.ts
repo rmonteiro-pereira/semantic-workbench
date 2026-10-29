@@ -4,12 +4,7 @@ import { getViewportForBounds, type Rect, type Viewport, type XYPosition } from 
 export type ExpansionPane = { width: number; height: number };
 
 /** Chooses one readable viewport without briefly exposing the whole expanded canvas. */
-export function expansionViewport(
-  bounds: Rect,
-  origin: XYPosition,
-  pane: ExpansionPane,
-  readableZoom: number,
-): Viewport {
+export function expansionViewport(bounds: Rect, origin: XYPosition, pane: ExpansionPane, readableZoom: number): Viewport {
   const fitted = getViewportForBounds(bounds, pane.width, pane.height, 0.05, 2, 0.08);
   if (fitted.zoom >= readableZoom) return fitted;
 

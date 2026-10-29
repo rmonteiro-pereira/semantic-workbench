@@ -31,8 +31,7 @@ export function conePathspecs(folders: string[]): string[] {
   for (const folder of folders) {
     specs.add(folder);
     const parts = folder.split('/');
-    for (let depth = 1; depth < parts.length; depth++)
-      specs.add(`:(glob)${parts.slice(0, depth).join('/')}/*`);
+    for (let depth = 1; depth < parts.length; depth++) specs.add(`:(glob)${parts.slice(0, depth).join('/')}/*`);
   }
   return [...specs];
 }
@@ -70,16 +69,10 @@ export async function limitToFolders(git: Git, dir: string, folders: string[]) {
  * partial clone downloads the files lazily while checking them out, so the command carries the
  * credential the person's remote needs.
  */
-export async function checkOutFolders(
-  git: Git,
-  dir: string,
-  folders: string[],
-  credential?: RemoteCredential,
-) {
+export async function checkOutFolders(git: Git, dir: string, folders: string[], credential?: RemoteCredential) {
   await limitToFolders(git, dir, folders);
   const branch = await symbolicBranch(git, dir);
-  if (branch && (await commitOf(git, dir, 'HEAD')))
-    await git.run(dir, ['switch', '-q', '--end-of-options', branch], { remote: true, credential });
+  if (branch && (await commitOf(git, dir, 'HEAD'))) await git.run(dir, ['switch', '-q', '--end-of-options', branch], { remote: true, credential });
 }
 
 /**
@@ -87,12 +80,7 @@ export async function checkOutFolders(
  * A folder the branch does not have is refused, unless `createFolder` says the first push will
  * create it; it is then made empty on disk.
  */
-export async function checkOutFolder(
-  git: Git,
-  dir: string,
-  folder: string,
-  options: { createFolder: boolean; credential?: RemoteCredential },
-) {
+export async function checkOutFolder(git: Git, dir: string, folder: string, options: { createFolder: boolean; credential?: RemoteCredential }) {
   const committed = (await commitOf(git, dir, 'HEAD')) !== null;
   const present = committed && (await folderExistsAt(git, dir, 'HEAD', folder));
   if (!present && !options.createFolder) {
@@ -123,37 +111,15 @@ export type WantedContents = {
  */
 export async function fetchMissingContents(git: Git, dir: string, wanted: WantedContents) {
   const { tip, folders, remote, credential } = wanted;
-  const listed = await git.run(
-    dir,
-    [
-      'rev-list',
-      '--objects',
-      '--missing=print',
-      tip,
-      '--not',
-      'HEAD',
-      '--',
-      ...conePathspecs(folders),
-    ],
-    { readOnly: true, allowFailure: true },
-  );
+  const listed = await git.run(dir, ['rev-list', '--objects', '--missing=print', tip, '--not', 'HEAD', '--', ...conePathspecs(folders)], { readOnly: true, allowFailure: true });
   const missing = listed.stdout
     .split('\n')
     .filter(line => line.startsWith('?'))
     .map(line => line.slice(1));
   if (!missing.length) return;
-  await git.run(
-    dir,
-    [
-      'fetch',
-      '--no-tags',
-      '--no-write-fetch-head',
-      '--recurse-submodules=no',
-      '--filter=blob:none',
-      '--stdin',
-      '--end-of-options',
-      remote,
-    ],
-    { remote: true, credential, stdin: missing.join('\n') + '\n' },
-  );
+  await git.run(dir, ['fetch', '--no-tags', '--no-write-fetch-head', '--recurse-submodules=no', '--filter=blob:none', '--stdin', '--end-of-options', remote], {
+    remote: true,
+    credential,
+    stdin: missing.join('\n') + '\n',
+  });
 }

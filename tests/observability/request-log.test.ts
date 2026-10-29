@@ -4,13 +4,7 @@
 import { afterEach, beforeEach, expect, test } from 'bun:test';
 import { createAccessControl } from '../../src/server/auth/authorize';
 import { createHandler } from '../../src/server/handler';
-import {
-  createLogger,
-  addLogSink,
-  configureLogging,
-  log,
-  type LogRecord,
-} from '../../src/server/observability/log';
+import { createLogger, addLogSink, configureLogging, log, type LogRecord } from '../../src/server/observability/log';
 import { levelForStatus, methodLabel } from '../../src/server/observability/http-request';
 import { routeTemplate } from '../../src/server/auth/route-actions';
 import { configureActorSalt } from '../../src/server/observability/request-context';
@@ -65,9 +59,7 @@ test('the id in the response header is the id on the request log line', async ()
 
 test('the finished-request line has method, route template, status, duration and actor', async () => {
   using app = await serverApp();
-  await app.handler(
-    request('/api/projects/sales-metrics/files/secret-folder/payroll.yaml?code=abc'),
-  );
+  await app.handler(request('/api/projects/sales-metrics/files/secret-folder/payroll.yaml?code=abc'));
   const finished = records.find(record => record.event === 'http.request')!;
   expect(finished.fields).toMatchObject({
     method: 'GET',
@@ -141,9 +133,7 @@ test('local mode logs the actor as local and readable lines are produced', async
 });
 
 test('route templates are low-cardinality and unknown paths are grouped', () => {
-  expect(routeTemplate('GET', '/api/projects/abc/files/x/y.yaml', 'server')).toBe(
-    '/api/projects/:slug/files/*',
-  );
+  expect(routeTemplate('GET', '/api/projects/abc/files/x/y.yaml', 'server')).toBe('/api/projects/:slug/files/*');
   expect(routeTemplate('GET', '/api/nope/123', 'server')).toBe('unmatched');
   expect(routeTemplate('GET', '/some/page', 'server')).toBe('pages');
 });

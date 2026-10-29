@@ -1,21 +1,9 @@
 // Checks administration changes in disposable Git repositories.
 import { expect, spyOn, test } from 'bun:test';
-import {
-  readFileSync,
-  readdirSync,
-  writeFileSync,
-  existsSync,
-  mkdirSync,
-  unlinkSync,
-  symlinkSync,
-} from 'node:fs';
+import { readFileSync, readdirSync, writeFileSync, existsSync, mkdirSync, unlinkSync, symlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { createGit, GitError } from '../../src/server/projects/git';
-import {
-  openAdminRepository,
-  AdminConfigError,
-  withSettingsDefaults,
-} from '../../src/server/auth/admin-repo';
+import { openAdminRepository, AdminConfigError, withSettingsDefaults } from '../../src/server/auth/admin-repo';
 import { tempDataDir } from '../helpers/temp-data-dir';
 const author = { name: 'Admin Person', email: 'admin@example.org' };
 test('first use creates one commit and changes preserve authorship, history and rollback', async () => {
@@ -31,10 +19,7 @@ test('first use creates one commit and changes preserve authorship, history and 
     const files = Object.fromEntries(
       readdirSync('tests/fixtures/auth-workspace/admin')
         .filter(name => name.endsWith('.json'))
-        .map(name => [
-          name,
-          readFileSync(join('tests/fixtures/auth-workspace/admin', name), 'utf8'),
-        ]),
+        .map(name => [name, readFileSync(join('tests/fixtures/auth-workspace/admin', name), 'utf8')]),
     );
     const next = await repo.write(files, {
       author,
@@ -74,14 +59,8 @@ test('invalid documents and identities never change files or create commits', as
     const repo = openAdminRepository({ root: dir.root });
     await repo.ensure();
     const baseVersion = await repo.version();
-    for (const files of [
-      { 'grants.json': '{}' },
-      { '../escape': '{}' },
-      { 'roles.json': '{"roles":[{"id":"admin"}]}' },
-    ] as Record<string, string>[]) {
-      await expect(
-        repo.write(files, { author, baseVersion, message: 'access: Invalid' }),
-      ).rejects.toThrow();
+    for (const files of [{ 'grants.json': '{}' }, { '../escape': '{}' }, { 'roles.json': '{"roles":[{"id":"admin"}]}' }] as Record<string, string>[]) {
+      await expect(repo.write(files, { author, baseVersion, message: 'access: Invalid' })).rejects.toThrow();
       expect(await repo.version()).toBe(baseVersion);
     }
     await expect(

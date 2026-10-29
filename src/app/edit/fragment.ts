@@ -4,14 +4,7 @@ import type { Issue } from '../../shared/validation/diagnostics';
 import { applyPatches } from '../../shared/editor/patch';
 import { parseSource, valuePatches, itemValue } from '../../shared/edit/yaml-patch';
 import { dedent, itemSpan, reindent } from '../../shared/edit/source-text';
-import {
-  applyStatusRules,
-  fieldValue,
-  writeField,
-  type FieldSpec,
-  type ItemKind,
-  type Path,
-} from '../../shared/edit/item-model';
+import { applyStatusRules, fieldValue, writeField, type FieldSpec, type ItemKind, type Path } from '../../shared/edit/item-model';
 // The item editor's draft: the item's own lines, without their indentation, are edited on their
 // own (as fields or as source) and put back into the file in place. Every byte outside the item
 // stays as it was; inside it, only the changed values change.
@@ -40,21 +33,17 @@ export function openFragment(base: string, path: Path): Fragment {
   };
 }
 /** Restores fragment indentation and preserves all bytes outside the item. */
-export const splice = (base: string, f: Fragment, text: string) =>
-  base.slice(0, f.from) + reindent(text, f.prefix) + base.slice(f.to);
+export const splice = (base: string, f: Fragment, text: string) => base.slice(0, f.from) + reindent(text, f.prefix) + base.slice(f.to);
 
 /** Parses exactly one item from a fragment or returns an explanation of failure. */
 export function fragmentValue(f: Fragment, text: string): { value?: any; error?: string } {
   try {
     if (f.path.length) {
       const list = itemValue(text, []);
-      if (!Array.isArray(list) || list.length !== 1)
-        return { error: 'Keep this as one list entry; add other items with Add.' };
+      if (!Array.isArray(list) || list.length !== 1) return { error: 'Keep this as one list entry; add other items with Add.' };
     }
     const value = itemValue(text, f.path);
-    return value && typeof value === 'object'
-      ? { value }
-      : { error: 'The item must stay a mapping of keys and values.' };
+    return value && typeof value === 'object' ? { value } : { error: 'The item must stay a mapping of keys and values.' };
   } catch (e) {
     return { error: (e as Error).message };
   }
@@ -84,15 +73,7 @@ export function fragmentIssues(issues: Issue[], f: Fragment, text: string): Issu
 }
 // One form field changed: the item is rewritten through the patcher, so only that value changes.
 /** Patches one form field and reapplies metric status rules when needed. */
-export function setField(
-  text: string,
-  f: Fragment,
-  filename: string,
-  kind: ItemKind,
-  spec: FieldSpec,
-  input: string | boolean,
-  original: any,
-) {
+export function setField(text: string, f: Fragment, filename: string, kind: ItemKind, spec: FieldSpec, input: string | boolean, original: any) {
   const current = fragmentValue(f, text);
   if (!current.value) return { text, reopened: false };
   let next = writeField(current.value, spec, fieldValue(spec, input));

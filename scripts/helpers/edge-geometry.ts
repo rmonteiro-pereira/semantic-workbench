@@ -43,30 +43,21 @@ export async function neighborhoodEdgeProblems(page: Page) {
             const vertical = near(p[0], q[0]) && near(r[0], s[0]) && near(p[0], r[0]);
             const k = horizontal ? 0 : vertical ? 1 : -1;
             if (k < 0) continue;
-            const overlap =
-              Math.min(Math.max(p[k], q[k]), Math.max(r[k], s[k])) -
-              Math.max(Math.min(p[k], q[k]), Math.min(r[k], s[k]));
+            const overlap = Math.min(Math.max(p[k], q[k]), Math.max(r[k], s[k])) - Math.max(Math.min(p[k], q[k]), Math.min(r[k], s[k]));
             if (overlap > 4) {
               problems.push(`${edges[i].id} and ${edges[j].id} share ${Math.round(overlap)} px`);
               break;
             }
           }
-    const labels = [
-      ...document.querySelectorAll(
-        '.neighborhood-canvas .react-flow__edge-textwrapper, .neighborhood-canvas .relationship-label',
-      ),
-    ].map(l => ({ text: l.textContent, box: l.getBoundingClientRect() }));
+    const labels = [...document.querySelectorAll('.neighborhood-canvas .react-flow__edge-textwrapper, .neighborhood-canvas .relationship-label')].map(l => ({
+      text: l.textContent,
+      box: l.getBoundingClientRect(),
+    }));
     for (let i = 0; i < labels.length; i++)
       for (let j = i + 1; j < labels.length; j++) {
         const a = labels[i].box;
         const b = labels[j].box;
-        if (
-          a.left < b.right - 1 &&
-          b.left < a.right - 1 &&
-          a.top < b.bottom - 1 &&
-          b.top < a.bottom - 1
-        )
-          problems.push(`labels "${labels[i].text}" and "${labels[j].text}" overlap`);
+        if (a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1) problems.push(`labels "${labels[i].text}" and "${labels[j].text}" overlap`);
       }
     return problems;
   });

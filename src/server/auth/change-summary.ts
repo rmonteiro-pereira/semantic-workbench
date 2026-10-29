@@ -6,18 +6,12 @@ type ListChange = { added: string[]; removed: string[]; changed: string[] };
 
 const MAX_SUMMARY_LENGTH = 200;
 
-function compareLists<Item>(
-  before: Item[],
-  after: Item[],
-  key: (item: Item) => string,
-): ListChange {
+function compareLists<Item>(before: Item[], after: Item[], key: (item: Item) => string): ListChange {
   const previous = new Map(before.map(item => [key(item), JSON.stringify(item)]));
   const next = new Map(after.map(item => [key(item), JSON.stringify(item)]));
   const added = [...next.keys()].filter(id => !previous.has(id));
   const removed = [...previous.keys()].filter(id => !next.has(id));
-  const changed = [...next.keys()].filter(
-    id => previous.has(id) && previous.get(id) !== next.get(id),
-  );
+  const changed = [...next.keys()].filter(id => previous.has(id) && previous.get(id) !== next.get(id));
   return { added, removed, changed };
 }
 
@@ -46,25 +40,14 @@ function rolePhrases(before: AccessConfig, after: AccessConfig): string[] {
   const change = compareLists(before.roles, after.roles, role => role.id);
   const phrases = listPhrases(change, ['create role', 'delete role', 'change role']);
   const removedGrants = before.grants.filter(grant => change.removed.includes(grant.roleId));
-  if (removedGrants.length)
-    phrases.push(`remove ${removedGrants.length} grant(s) of deleted roles`);
+  if (removedGrants.length) phrases.push(`remove ${removedGrants.length} grant(s) of deleted roles`);
   return phrases;
 }
 
 function projectPhrases(before: AccessConfig, after: AccessConfig): string[] {
-  const domains = compareLists(
-    before.projects.domains,
-    after.projects.domains,
-    domain => domain.id,
-  );
-  const projects = compareLists(
-    Object.entries(before.projects.projects),
-    Object.entries(after.projects.projects),
-    ([slug]) => slug,
-  );
-  const classificationChanged =
-    JSON.stringify(before.projects.classification) !==
-    JSON.stringify(after.projects.classification);
+  const domains = compareLists(before.projects.domains, after.projects.domains, domain => domain.id);
+  const projects = compareLists(Object.entries(before.projects.projects), Object.entries(after.projects.projects), ([slug]) => slug);
+  const classificationChanged = JSON.stringify(before.projects.classification) !== JSON.stringify(after.projects.classification);
   return [
     ...listPhrases(domains, ['add domain', 'remove domain', 'change domain']),
     ...listPhrases(projects, ['add project access', 'remove project access', 'change project']),
@@ -73,20 +56,12 @@ function projectPhrases(before: AccessConfig, after: AccessConfig): string[] {
 }
 
 function agentPhrases(before: AccessConfig, after: AccessConfig): string[] {
-  const change = compareLists(
-    before.agents.clients,
-    after.agents.clients,
-    client => client.clientId,
-  );
+  const change = compareLists(before.agents.clients, after.agents.clients, client => client.clientId);
   return listPhrases(change, ['add client', 'remove client', 'change client']);
 }
 
 function policyPhrases(before: AccessConfig, after: AccessConfig): string[] {
-  const change = compareLists(
-    Object.entries(before.adminRules ?? {}),
-    Object.entries(after.adminRules ?? {}),
-    ([id]) => id,
-  );
+  const change = compareLists(Object.entries(before.adminRules ?? {}), Object.entries(after.adminRules ?? {}), ([id]) => id);
   return listPhrases(change, ['add rule', 'remove rule', 'change rule']);
 }
 
@@ -101,10 +76,7 @@ const AREA_PHRASES: Record<string, (before: AccessConfig, after: AccessConfig) =
 /** Keeps the message on one line and within a length a history list can show. */
 export function commitMessage(area: string, summary: string): string {
   const singleLine = summary.replace(/\s+/g, ' ').trim();
-  const shortened =
-    singleLine.length > MAX_SUMMARY_LENGTH
-      ? singleLine.slice(0, MAX_SUMMARY_LENGTH - 1) + '…'
-      : singleLine;
+  const shortened = singleLine.length > MAX_SUMMARY_LENGTH ? singleLine.slice(0, MAX_SUMMARY_LENGTH - 1) + '…' : singleLine;
   return `${area}: ${shortened || 'No effective change'}`;
 }
 

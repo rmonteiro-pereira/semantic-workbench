@@ -34,18 +34,8 @@ export function ProjectAccessSection() {
       <button onClick={() => setHistory(true)}>History</button>
       {data && (
         <>
-          <ProjectsEditor
-            key={data.projects.version}
-            initial={data.projects.document}
-            version={data.projects.version}
-            onSaved={reload}
-          />
-          <AgentGrants
-            key={'agents-' + data.agents.version}
-            initial={data.agents.document}
-            version={data.agents.version}
-            onSaved={reload}
-          />
+          <ProjectsEditor key={data.projects.version} initial={data.projects.document} version={data.projects.version} onSaved={reload} />
+          <AgentGrants key={'agents-' + data.agents.version} initial={data.agents.document} version={data.agents.version} onSaved={reload} />
         </>
       )}
     </>
@@ -53,15 +43,7 @@ export function ProjectAccessSection() {
 }
 
 /** Edits project access data while retaining classification aliases outside this form. */
-export function ProjectsEditor({
-  initial,
-  version,
-  onSaved,
-}: {
-  initial: ProjectsConfig;
-  version: string;
-  onSaved: () => void;
-}) {
+export function ProjectsEditor({ initial, version, onSaved }: { initial: ProjectsConfig; version: string; onSaved: () => void }) {
   const [config, setConfig] = useState(initial);
   const [newId, setNewId] = useState('');
   const [newName, setNewName] = useState('');
@@ -93,11 +75,7 @@ export function ProjectsEditor({
         <div key={domain.id} className="admin-row">
           <label>
             {domain.id}
-            <input
-              aria-label={`Domain name ${domain.id}`}
-              value={domain.name}
-              onChange={event => renameDomain(domain.id, event.target.value)}
-            />
+            <input aria-label={`Domain name ${domain.id}`} value={domain.name} onChange={event => renameDomain(domain.id, event.target.value)} />
           </label>
           <button aria-label={`Remove domain ${domain.id}`} onClick={() => removeDomain(domain.id)}>
             Remove
@@ -118,22 +96,10 @@ export function ProjectsEditor({
         </button>
       </div>
       {Object.entries(config.projects).map(([slug, project]) => (
-        <ProjectFields
-          key={slug}
-          slug={slug}
-          project={project}
-          domains={config.domains}
-          onChange={value => changeProject(slug, value)}
-        />
+        <ProjectFields key={slug} slug={slug} project={project} domains={config.domains} onChange={value => changeProject(slug, value)} />
       ))}
       <p>Preview changes to domains and project access before saving.</p>
-      <ReviewChange
-        area="projects"
-        proposal={config}
-        baseVersion={version}
-        onSaved={onSaved}
-        description="Save project access"
-      />
+      <ReviewChange area="projects" proposal={config} baseVersion={version} onSaved={onSaved} description="Save project access" />
     </>
   );
 }

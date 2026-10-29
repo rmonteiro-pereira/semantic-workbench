@@ -61,10 +61,7 @@ async function publishedCase(candidate: Candidate) {
       trashed: new Set(trashed),
       log: (line: string) => logged.push(line),
     });
-  const restored = await restore(
-    [entry('a.yaml', '.', 'D'), entry('b.yaml', 'D', '.')],
-    ['a.yaml', 'b.yaml'],
-  );
+  const restored = await restore([entry('a.yaml', '.', 'D'), entry('b.yaml', 'D', '.')], ['a.yaml', 'b.yaml']);
   assert.deepEqual(restored, ['a.yaml', 'b.yaml']);
   assert.deepEqual(calls, [['restore', '--staged', '--worktree', '--', 'a.yaml', 'b.yaml']]);
   assert.deepEqual(JSON.parse(logged[0]), {
@@ -76,9 +73,7 @@ async function publishedCase(candidate: Candidate) {
   const refused = async (entries: object[], paths: string[]) =>
     assert.rejects(
       () => restore(entries, ['a.yaml', 'm.yaml']),
-      (error: any) =>
-        error.name === 'PublishedCheckoutChangedError' &&
-        JSON.stringify(error.paths) === JSON.stringify(paths),
+      (error: any) => error.name === 'PublishedCheckoutChangedError' && JSON.stringify(error.paths) === JSON.stringify(paths),
     );
   await refused([entry('c.yaml', '.', 'D')], ['c.yaml']);
   await refused([entry('m.yaml', '.', 'M')], ['m.yaml']);
@@ -89,8 +84,7 @@ async function publishedCase(candidate: Candidate) {
 
 async function auditMirrorCase(candidate: Candidate) {
   const { sha256 } = await import('../src/server/projects/atomic');
-  const line = (month: string, prev: string) =>
-    JSON.stringify({ type: 'audit', at: `${month}-05T00:00:00.000Z`, prev });
+  const line = (month: string, prev: string) => JSON.stringify({ type: 'audit', at: `${month}-05T00:00:00.000Z`, prev });
   const first = line('2026-09', '0'.repeat(64));
   const second = line('2026-10', sha256(first));
   const stored = [
@@ -112,14 +106,7 @@ async function auditMirrorCase(candidate: Candidate) {
   // A mirrored record older than retention keeps is no longer stored, and need not be.
   const ancient = line('2024-01', '0'.repeat(64));
   assert.equal(check([ancient, first]).ok, true);
-  const parsed = candidate.parseMirror(
-    [
-      'garbage "type":"audit" here',
-      first,
-      '{"type":"audit-anchor","month":"2026-09","tail":"x"}',
-      'x "audit-anchor" y',
-    ].join('\n'),
-  );
+  const parsed = candidate.parseMirror(['garbage "type":"audit" here', first, '{"type":"audit-anchor","month":"2026-09","tail":"x"}', 'x "audit-anchor" y'].join('\n'));
   assert.deepEqual(parsed.records, [first]);
   assert.equal(parsed.anchors.length, 1);
   // The retention cutoff, not the oldest file, decides which anchored month must exist.

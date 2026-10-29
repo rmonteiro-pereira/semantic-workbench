@@ -27,19 +27,7 @@ type Props = {
   tab: string;
 };
 /** Renders status footer. */
-export const StatusFooter = React.memo(function StatusFooter({
-  error,
-  hasSource,
-  hasDocument,
-  dirty,
-  setShowValidation,
-  issueCount,
-  kind,
-  entityCount,
-  relationshipCount,
-  message,
-  tab,
-}: Props) {
+export const StatusFooter = React.memo(function StatusFooter({ error, hasSource, hasDocument, dirty, setShowValidation, issueCount, kind, entityCount, relationshipCount, message, tab }: Props) {
   function getValidationStatus() {
     if (error) {
       return 'Validation failed';
@@ -69,9 +57,7 @@ export const StatusFooter = React.memo(function StatusFooter({
       </footer>
       {(message || (error && tab !== 'scm')) && (
         <div role="status" className={`status ${showsWarning ? 'error' : ''}`}>
-          {error && tab !== 'scm'
-            ? 'Validation failed. Review the findings and repair in Source.'
-            : message}
+          {error && tab !== 'scm' ? 'Validation failed. Review the findings and repair in Source.' : message}
         </div>
       )}
     </>

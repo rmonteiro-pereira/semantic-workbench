@@ -12,8 +12,7 @@ import { ANONYMOUS_AUDIT_BURST } from '../src/server/auth/rate-limit';
 import { allowEveryRemote } from '../tests/helpers/remote-credentials-fixture';
 
 const month = () => new Date().toISOString().slice(0, 7);
-const get = (path: string, headers: Record<string, string> = {}) =>
-  new Request('http://localhost' + path, { headers });
+const get = (path: string, headers: Record<string, string> = {}) => new Request('http://localhost' + path, { headers });
 
 async function sessionsCase(candidate: any) {
   const { localPrincipal } = await import('../src/server/auth/principal');
@@ -109,9 +108,7 @@ function rateLimitCase(candidate: any) {
   assert.deepEqual(gate('10.0.0.1', 'sign-in-required'), { record: true, suppressed: 10 });
   assert.equal(gate('10.0.0.1', 'sign-in-required').record, false);
   const lines: string[] = [];
-  const report = candidate.createRateLimitReport(now, (source: string, refused: number) =>
-    lines.push(`${source} ${refused}`),
-  );
+  const report = candidate.createRateLimitReport(now, (source: string, refused: number) => lines.push(`${source} ${refused}`));
   for (let refusal = 0; refusal < 5; refusal++) report('10.0.0.9');
   assert.deepEqual(lines, ['10.0.0.9 1']);
   milliseconds += 60_000;
@@ -159,8 +156,7 @@ async function requestLimitsCase(candidate: any) {
   assert.equal((await limited.handler(get('/api/projects'))).status, 401);
   source = '203.0.113.7';
   const signIn = build(100, 3);
-  for (let call = 0; call < 3; call++)
-    assert.equal((await signIn.handler(get('/auth/login'))).status, 200);
+  for (let call = 0; call < 3; call++) assert.equal((await signIn.handler(get('/auth/login'))).status, 200);
   assert.equal((await signIn.handler(get('/auth/login'))).status, 429);
   assert.equal((await signIn.handler(get('/auth/callback?code=x'))).status, 429);
   assert.equal((await signIn.handler(get('/api/projects'))).status, 401);
@@ -169,8 +165,7 @@ async function requestLimitsCase(candidate: any) {
   assert.equal((await separate.handler(get('/auth/login'))).status, 200);
   const anonymous = build(1000, 1000);
   await protectedCalls(anonymous.handler, ANONYMOUS_AUDIT_BURST * 2);
-  const denied = () =>
-    anonymous.audit.entries(month()).filter((entry: any) => entry.reason === 'sign-in-required');
+  const denied = () => anonymous.audit.entries(month()).filter((entry: any) => entry.reason === 'sign-in-required');
   assert.equal(denied().length, ANONYMOUS_AUDIT_BURST);
   source = '203.0.113.9';
   await protectedCalls(anonymous.handler, 1);
@@ -181,9 +176,7 @@ async function requestLimitsCase(candidate: any) {
     const response = await bearer.handler(get('/api/projects', { Authorization: 'Bearer x' }));
     assert.equal(response.status, 401);
   }
-  const scoped = bearer.audit
-    .entries(month())
-    .filter((entry: any) => entry.reason === 'bearer-scope');
+  const scoped = bearer.audit.entries(month()).filter((entry: any) => entry.reason === 'bearer-scope');
   assert.equal(scoped.length, ANONYMOUS_AUDIT_BURST);
   await personAndAddressChecks(candidate, workspace);
   const local = build(5, 5, 'local');
@@ -247,8 +240,7 @@ async function personAndAddressChecks(candidate: any, workspace: any) {
     peer = '10.0.0.2';
     client = '203.0.113.7';
     assert.equal((await handler(get('/api/projects'))).status, 429);
-    const denials = () =>
-      audit.entries(month()).filter((entry: any) => entry.reason === 'sign-in-required');
+    const denials = () => audit.entries(month()).filter((entry: any) => entry.reason === 'sign-in-required');
     milliseconds += 3_600_000;
     await handler(get('/api/projects'));
     const left = denials().at(-1);
@@ -265,20 +257,12 @@ async function errorMappingCase(candidate: any) {
   console.error = (...parts: unknown[]) => void messages.push(parts.join(' '));
   try {
     const server = { serverMode: true, requestId: 'req-1' };
-    const unexpected = candidate.errorResponse(
-      new Error('/srv/secret'),
-      'https://x.example',
-      server,
-    );
+    const unexpected = candidate.errorResponse(new Error('/srv/secret'), 'https://x.example', server);
     assert.equal(unexpected.status, 500);
     assert.deepEqual(await unexpected.json(), { error: 'Internal error.' });
     assert(messages.join('\n').includes('http.unexpected-error requestId=req-1'));
     assert(!messages.join('\n').includes('/srv/secret'));
-    const typed = candidate.errorResponse(
-      new BadRequestError('Bad body.'),
-      'https://x.example',
-      server,
-    );
+    const typed = candidate.errorResponse(new BadRequestError('Bad body.'), 'https://x.example', server);
     assert.equal(typed.status, 400);
     assert.deepEqual(await typed.json(), { error: 'Bad body.' });
     const { GitError } = await import('../src/server/projects/git');
@@ -361,11 +345,7 @@ async function legacyErrorsCase(candidate: any) {
 function principalCase(candidate: any) {
   const tenant = '4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f';
   const mapping = { provider: 'entra', groupClaim: 'groups', tenantId: tenant };
-  const email = (extra: Record<string, unknown>) =>
-    candidate.normalizeClaims(
-      { iss: `https://login.microsoftonline.com/${tenant}/v2.0`, oid: 'a1', tid: tenant, ...extra },
-      mapping,
-    ).verifiedEmail;
+  const email = (extra: Record<string, unknown>) => candidate.normalizeClaims({ iss: `https://login.microsoftonline.com/${tenant}/v2.0`, oid: 'a1', tid: tenant, ...extra }, mapping).verifiedEmail;
   const other = 'https://sts.windows.net/0b8e6c2a-1f3d-4e5a-9c7b-2d4f6a8b0c1e/';
   assert.equal(email({ idp: other, preferred_username: 'ceo@example.org' }), null);
   assert.equal(email({ idp: other, upn: 'ceo@example.org' }), null);
@@ -435,9 +415,7 @@ function serveOptionsCase(candidate: any) {
   try {
     const response = options.error(new Error('/srv/secret'));
     assert.equal(response.status, 500);
-    return response
-      .json()
-      .then((body: unknown) => assert.deepEqual(body, { error: 'Internal error.' }));
+    return response.json().then((body: unknown) => assert.deepEqual(body, { error: 'Internal error.' }));
   } finally {
     console.error = original;
   }
@@ -550,10 +528,7 @@ async function authenticationCase(candidate: any) {
     };
     assert.equal((await me()).status, 401);
     assert.equal(await auth.authentication.sessions.get(id, false), null);
-    const failures = () =>
-      auth.audit
-        .entries(month())
-        .filter((entry: any) => entry.action === 'signIn' && entry.reason === 'attempt-invalid');
+    const failures = () => auth.audit.entries(month()).filter((entry: any) => entry.action === 'signIn' && entry.reason === 'attempt-invalid');
     for (let call = 0; call < ANONYMOUS_AUDIT_BURST + 5; call++) {
       await handler(new Request(origin + '/auth/callback?code=x'));
     }
@@ -570,17 +545,11 @@ async function authenticationCase(candidate: any) {
 function sourceAddressCase(candidate: any) {
   assert.equal(candidate.clientAddress('10.0.0.9', '203.0.113.5', 0), '10.0.0.9');
   assert.equal(candidate.clientAddress('10.0.0.9', '1.1.1.1, 203.0.113.5', 1), '203.0.113.5');
-  assert.equal(
-    candidate.clientAddress('10.0.0.9', '9.9.9.9, 203.0.113.5, 10.0.0.1', 2),
-    '203.0.113.5',
-  );
+  assert.equal(candidate.clientAddress('10.0.0.9', '9.9.9.9, 203.0.113.5, 10.0.0.1', 2), '203.0.113.5');
   assert.equal(candidate.clientAddress('10.0.0.9', 'bogus', 1), '10.0.0.9');
   assert.equal(candidate.clientAddress('10.0.0.9', '203.0.113.5:4000', 1), '203.0.113.5');
   assert.equal(candidate.clientAddress('10.0.0.9', null, 1), '10.0.0.9');
-  assert.equal(
-    candidate.addressKey('2001:db8:1:2:aaaa:bbbb:cccc:dddd'),
-    candidate.addressKey('2001:db8:1:2:1:2:3:4'),
-  );
+  assert.equal(candidate.addressKey('2001:db8:1:2:aaaa:bbbb:cccc:dddd'), candidate.addressKey('2001:db8:1:2:1:2:3:4'));
   assert.notEqual(candidate.addressKey('2001:db8:1:3::1'), candidate.addressKey('2001:db8:1:2::1'));
   assert.equal(candidate.addressKey('::ffff:203.0.113.5'), '203.0.113.5');
 }
@@ -595,9 +564,7 @@ async function trustedProxyConfigCase(candidate: any) {
     SW_OIDC_CLIENT_SECRET: 'secret',
     SW_OIDC_PROVIDER: 'entra',
     SW_ENTRA_TENANT_ID: TEST_TENANT_ID,
-    SW_SESSION_KEY: Buffer.from(Array.from({ length: 32 }, (_, index) => index + 1)).toString(
-      'base64',
-    ),
+    SW_SESSION_KEY: Buffer.from(Array.from({ length: 32 }, (_, index) => index + 1)).toString('base64'),
     SW_BOOTSTRAP_ADMINS: 'admin@example.org',
   };
   assert.equal(candidate.readConfig(env).trustedProxyHops, 0);

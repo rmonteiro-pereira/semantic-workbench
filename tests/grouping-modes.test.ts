@@ -3,11 +3,7 @@ import { test, expect } from 'bun:test';
 import { Glob } from 'bun';
 import { basename, resolve } from 'node:path';
 import { inspect, type Entity, type Relationship } from '../src/shared/core/model';
-import {
-  modelOverview,
-  GROUPING_ORDER,
-  type ConcreteGroupingMode,
-} from '../src/app/graph/overview';
+import { modelOverview, GROUPING_ORDER, type ConcreteGroupingMode } from '../src/app/graph/overview';
 
 type Model = { name: string; entities: Entity[]; edges: Relationship[] };
 
@@ -35,8 +31,7 @@ async function shippedModels() {
   return models;
 }
 
-const overviewOf = (model: Model, mode: ConcreteGroupingMode | 'auto' = 'auto') =>
-  modelOverview(model.entities, model.edges, model.name, false, { mode });
+const overviewOf = (model: Model, mode: ConcreteGroupingMode | 'auto' = 'auto') => modelOverview(model.entities, model.edges, model.name, false, { mode });
 
 test('every enabled mode of every shipped example yields at least two groups', async () => {
   const models = await shippedModels();
@@ -88,11 +83,7 @@ test('modes with no basis in a contract are disabled with their reason', async (
 });
 
 test('a contract-level domain alone does not make Auto choose declared domains', async () => {
-  for (const path of [
-    'public/examples/ubl/ubl.odcs.yaml',
-    'public/examples/mall/mall.odcs.yaml',
-    'public/examples/commerce/commerce.odcs.yaml',
-  ]) {
+  for (const path of ['public/examples/ubl/ubl.odcs.yaml', 'public/examples/mall/mall.odcs.yaml', 'public/examples/commerce/commerce.odcs.yaml']) {
     const overview = overviewOf(await load(path));
     expect(overview.modes.declared.reason).toBe('Only the contract-level domain is declared');
     expect(overview.mode).not.toBe('declared');
@@ -122,12 +113,7 @@ test('entities that declare their own domains group by them before a contract-le
 });
 
 test('semantic models and mapping documents get suggested communities', async () => {
-  for (const path of [
-    'public/examples/mall/mall.semantic.yaml',
-    'public/examples/ubl/ubl.semantic.yaml',
-    'public/examples/mall/mall.mapping.yaml',
-    'public/examples/billing/billing.mapping.yaml',
-  ]) {
+  for (const path of ['public/examples/mall/mall.semantic.yaml', 'public/examples/ubl/ubl.semantic.yaml', 'public/examples/mall/mall.mapping.yaml', 'public/examples/billing/billing.mapping.yaml']) {
     const overview = overviewOf(await load(path), 'suggested');
     expect({ path, mode: overview.mode }).toEqual({ path, mode: 'suggested' });
     const communities = overview.groups.filter(g => g.id.startsWith('community:'));
@@ -136,11 +122,7 @@ test('semantic models and mapping documents get suggested communities', async ()
 });
 
 test('suggested areas merge small communities and keep unlinked entities out of them', async () => {
-  for (const path of [
-    'public/examples/mall/mall.semantic.yaml',
-    'public/examples/mall/mall.mapping.yaml',
-    'public/examples/billing/billing.semantic.yaml',
-  ]) {
+  for (const path of ['public/examples/mall/mall.semantic.yaml', 'public/examples/mall/mall.mapping.yaml', 'public/examples/billing/billing.semantic.yaml']) {
     const overview = overviewOf(await load(path), 'suggested');
     const sizes = overview.groups.map(g => g.entities.length);
     expect({ path, areas: sizes.length <= 20 }).toEqual({ path, areas: true });

@@ -52,9 +52,7 @@ test('5,000 entities and 15,000 relationships parse and align', () => {
   expect(model.edges).toHaveLength(15000);
   expect(new Set(positions.map(n => `${n.position.x},${n.position.y}`)).size).toBe(count);
   expect(end - parsed).toBeLessThan(2000);
-  console.log(
-    `Scale benchmark: parsing ${(parsed - start).toFixed(0)}ms, layout ${(end - parsed).toFixed(0)}ms`,
-  );
+  console.log(`Scale benchmark: parsing ${(parsed - start).toFixed(0)}ms, layout ${(end - parsed).toFixed(0)}ms`);
 });
 
 test('loadable enterprise example has exactly 1,000 entities and 5,000 relationships', async () => {

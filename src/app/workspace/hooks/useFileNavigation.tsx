@@ -83,12 +83,7 @@ export function useFileNavigation({
     setSelected('');
     setSelectedEdge('');
     setSearch('');
-    if (
-      !options.keepTab &&
-      tab !== 'neighborhood' &&
-      validateInput(d.source, d.filename).model?.kind === 'Ossie mappings'
-    )
-      setTab('mappings');
+    if (!options.keepTab && tab !== 'neighborhood' && validateInput(d.source, d.filename).model?.kind === 'Ossie mappings') setTab('mappings');
     return true;
   }
   /**
@@ -145,11 +140,7 @@ export function useFileNavigation({
       const response = await apiFetch(`/api/drafts/${project}/${path}`);
       if (!response.ok) return;
       const draft = await response.json();
-      if (
-        currentRef.current?.id === d.id &&
-        sourceRef.current === d.source &&
-        typeof draft.text === 'string'
-      ) {
+      if (currentRef.current?.id === d.id && sourceRef.current === d.source && typeof draft.text === 'string') {
         getDraftOf().current = { project: d.project, path: d.path };
         if (draft.text === d.source) {
           void scmApi.deleteDraft(d.project, d.path).catch(() => {});

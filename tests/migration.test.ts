@@ -40,11 +40,7 @@ async function legacyWorkspace() {
     },
     { id: 'bad', filename: 'broken.yaml', source: 'name: [unclosed' },
   ];
-  docs.forEach((doc, i) =>
-    db
-      .query('INSERT INTO documents VALUES(?,?,?,1,?)')
-      .run(doc.id, doc.filename, doc.source, `2026-10-1${i}T00:00:00.000Z`),
-  );
+  docs.forEach((doc, i) => db.query('INSERT INTO documents VALUES(?,?,?,1,?)').run(doc.id, doc.filename, doc.source, `2026-10-1${i}T00:00:00.000Z`));
   db.query('INSERT INTO document_views VALUES(?,?)').run(
     'u-ont',
     JSON.stringify({
@@ -107,11 +103,7 @@ test('v0.1.0 migration backs up, exports byte for byte, verifies, commits and ma
         expect(written.toString('utf8')).toBe(doc.source);
       }
       for (const slug of ['ubl', 'flights', 'ungrouped']) {
-        const log = (
-          await t.ws.git.run(join(d.root, 'projects', slug), ['log', '--format=%s'])
-        ).stdout
-          .trim()
-          .split('\n');
+        const log = (await t.ws.git.run(join(d.root, 'projects', slug), ['log', '--format=%s'])).stdout.trim().split('\n');
         expect(log).toEqual([MIGRATION_COMMIT]);
         expect((await t.ws.git.status(join(d.root, 'projects', slug))).changes).toBe(0);
       }
@@ -129,25 +121,13 @@ test('v0.1.0 migration backs up, exports byte for byte, verifies, commits and ma
           .documents()
           .map(d => d.id)
           .sort(),
-      ).toEqual([
-        'flights/flights.mapping.yaml',
-        'ubl/ubl.ontology.yaml',
-        'ubl/ubl.owl.ttl',
-        'ungrouped/broken.yaml',
-        'ungrouped/notes (2).yaml',
-        'ungrouped/notes.yaml',
-      ]);
-      expect(
-        existsSync(join(d.root, 'state', 'journal')) &&
-          readdirSync(join(d.root, 'state', 'journal')).length,
-      ).toBeFalsy();
+      ).toEqual(['flights/flights.mapping.yaml', 'ubl/ubl.ontology.yaml', 'ubl/ubl.owl.ttl', 'ungrouped/broken.yaml', 'ungrouped/notes (2).yaml', 'ungrouped/notes.yaml']);
+      expect(existsSync(join(d.root, 'state', 'journal')) && readdirSync(join(d.root, 'state', 'journal')).length).toBeFalsy();
       expect(readdirSync(join(d.root, 'projects')).sort()).toEqual(['flights', 'ubl', 'ungrouped']);
       t.ws.close();
       const again = await testWorkspace({ root: d.root });
       expect(again.ws.migration).toBeNull();
-      expect(readdirSync(join(d.root, 'backup')).sort()).toEqual(
-        [m.backup!, m.backup + '-shm', m.backup + '-wal'].map(p => p.split('/').pop()!),
-      );
+      expect(readdirSync(join(d.root, 'backup')).sort()).toEqual([m.backup!, m.backup + '-shm', m.backup + '-wal'].map(p => p.split('/').pop()!));
       again.ws.close();
     } finally {
       t.ws.close();

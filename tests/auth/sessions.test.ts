@@ -54,12 +54,8 @@ test('idle expiry and absolute expiry apply at their boundaries', async () => {
 });
 
 test('cookie is host-only, secure and inaccessible to scripts except loopback HTTP', () => {
-  expect(sessionCookie('id', 'https://workbench.example')).toBe(
-    '__Host-sw-session=id; Secure; HttpOnly; SameSite=Lax; Path=/',
-  );
-  expect(sessionCookie('id', 'http://127.0.0.1:4310')).toBe(
-    'sw-session=id; HttpOnly; SameSite=Lax; Path=/',
-  );
+  expect(sessionCookie('id', 'https://workbench.example')).toBe('__Host-sw-session=id; Secure; HttpOnly; SameSite=Lax; Path=/');
+  expect(sessionCookie('id', 'http://127.0.0.1:4310')).toBe('sw-session=id; HttpOnly; SameSite=Lax; Path=/');
   expect(() => sessionCookie('id', 'http://workbench.example')).toThrow();
 });
 
@@ -130,10 +126,7 @@ test('a session waiting for encryption does not block another session file', asy
   const touching = store.get(first.id);
   try {
     await entered;
-    const result = await Promise.race([
-      store.get(second.id, false),
-      new Promise<null>(resolve => setTimeout(() => resolve(null), 100)),
-    ]);
+    const result = await Promise.race([store.get(second.id, false), new Promise<null>(resolve => setTimeout(() => resolve(null), 100))]);
     expect(result?.id).toBe(second.id);
   } finally {
     release();

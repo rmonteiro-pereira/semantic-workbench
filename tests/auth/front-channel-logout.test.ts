@@ -46,14 +46,8 @@ test('the provider ends the sessions its session started, without a cookie', () 
     const session = (await auth.authentication.sessions.get(alice.id, false))!;
     const sid = session.tokens.providerSession!.sid;
     expect(session.tokens.providerSession!.issuer).toBe(config.oidc.issuer);
-    const logout = (iss: string, value: string) =>
-      handler(
-        new Request(
-          `${origin}/auth/front-channel-logout?${new URLSearchParams({ iss, sid: value })}`,
-        ),
-      );
-    const me = () =>
-      handler(new Request(origin + '/api/me', { headers: { Cookie: alice.cookie } }));
+    const logout = (iss: string, value: string) => handler(new Request(`${origin}/auth/front-channel-logout?${new URLSearchParams({ iss, sid: value })}`));
+    const me = () => handler(new Request(origin + '/api/me', { headers: { Cookie: alice.cookie } }));
     for (const [iss, value] of [
       ['https://attacker.example/v2.0', sid],
       [config.oidc.issuer, ''],
@@ -68,9 +62,7 @@ test('the provider ends the sessions its session started, without a cookie', () 
     expect(ended.status).toBe(200);
     expect(await ended.text()).toBe('');
     expect(ended.headers.get('cache-control')).toBe('no-store');
-    expect(ended.headers.get('content-security-policy')).toContain(
-      `frame-ancestors ${provider.origin}`,
-    );
+    expect(ended.headers.get('content-security-policy')).toContain(`frame-ancestors ${provider.origin}`);
     expect((await me()).status).toBe(401);
     const page = await handler(new Request(origin + '/auth/signed-out'));
     expect(page.headers.get('content-security-policy')).toContain("frame-ancestors 'none'");
@@ -88,16 +80,13 @@ test('the provider session index survives a restart', () =>
     const config = entraConfig(provider);
     const first = await createServerAuthentication(fixture.ws, config);
     const alice = await signedIn(createHandler(fixture.ws, first), provider);
-    const sid = (await first.authentication.sessions.get(alice.id, false))!.tokens.providerSession!
-      .sid;
+    const sid = (await first.authentication.sessions.get(alice.id, false))!.tokens.providerSession!.sid;
     first.close();
     const restarted = await createServerAuthentication(fixture.ws, config);
     const handler = createHandler(fixture.ws, restarted);
     const query = new URLSearchParams({ iss: config.oidc.issuer, sid });
     await handler(new Request(`${origin}/auth/front-channel-logout?${query}`));
-    const me = await handler(
-      new Request(origin + '/api/me', { headers: { Cookie: alice.cookie } }),
-    );
+    const me = await handler(new Request(origin + '/api/me', { headers: { Cookie: alice.cookie } }));
     expect(me.status).toBe(401);
     restarted.close();
   }));
@@ -116,15 +105,9 @@ test('the session store finds sessions by provider session and forgets ended one
       principal,
       tokens: { ...tokens, providerSession: { ...providerSession, sid: 'other' } },
     });
-    const stored = readdirSync(directory.root).map(name =>
-      readFileSync(join(directory.root, name), 'utf8'),
-    );
+    const stored = readdirSync(directory.root).map(name => readFileSync(join(directory.root, name), 'utf8'));
     expect(stored.join('')).not.toContain('provider-session');
-    const ended = await store.endByProviderSession(
-      providerSession.issuer,
-      providerSession.sid,
-      'x',
-    );
+    const ended = await store.endByProviderSession(providerSession.issuer, providerSession.sid, 'x');
     expect(ended).toHaveLength(2);
     expect(await store.get(two.id)).toBeNull();
     expect(await store.get(one.id)).toBeNull();
@@ -147,9 +130,7 @@ test('Entra may leave the issuer out; the session id alone then ends the session
     const query = new URLSearchParams({ sid: session.tokens.providerSession!.sid });
     const response = await handler(new Request(`${origin}/auth/front-channel-logout?${query}`));
     expect(response.status).toBe(200);
-    const me = await handler(
-      new Request(origin + '/api/me', { headers: { Cookie: alice.cookie } }),
-    );
+    const me = await handler(new Request(origin + '/api/me', { headers: { Cookie: alice.cookie } }));
     expect(me.status).toBe(401);
     auth.close();
   }));

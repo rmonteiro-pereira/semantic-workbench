@@ -10,16 +10,8 @@ test('live and replayed events hide unreadable projects', async () => {
   const access = createAccessControl(accessFixture());
   const scope = access.forRequest(access.principalFor(person('alice')));
   const request = new Request('http://localhost/api/events', { headers: { 'Last-Event-ID': '0' } });
-  events.emit(
-    'files',
-    { project: 'hr-people', paths: ['LEAK-secret.yaml'] },
-    { paths: [{ project: 'hr-people', path: 'LEAK-secret.yaml' }] },
-  );
-  events.emit(
-    'files',
-    { project: 'sales-contracts', paths: ['orders.odcs.yaml'] },
-    { paths: [{ project: 'sales-contracts', path: 'orders.odcs.yaml' }] },
-  );
+  events.emit('files', { project: 'hr-people', paths: ['LEAK-secret.yaml'] }, { paths: [{ project: 'hr-people', path: 'LEAK-secret.yaml' }] });
+  events.emit('files', { project: 'sales-contracts', paths: ['orders.odcs.yaml'] }, { paths: [{ project: 'sales-contracts', path: 'orders.odcs.yaml' }] });
   const response = events.stream(request, undefined, {
     scope,
     owner: scope.principal.id,
@@ -29,16 +21,8 @@ test('live and replayed events hide unreadable projects', async () => {
   const replay = new TextDecoder().decode((await reader.read()).value);
   expect(replay).not.toContain('hr-people');
   expect(replay).toContain('sales-contracts');
-  events.emit(
-    'files',
-    { project: 'hr-people', paths: ['LEAK-secret.yaml'] },
-    { paths: [{ project: 'hr-people', path: 'LEAK-secret.yaml' }] },
-  );
-  events.emit(
-    'files',
-    { project: 'sales-contracts', paths: ['orders.odcs.yaml'] },
-    { paths: [{ project: 'sales-contracts', path: 'orders.odcs.yaml' }] },
-  );
+  events.emit('files', { project: 'hr-people', paths: ['LEAK-secret.yaml'] }, { paths: [{ project: 'hr-people', path: 'LEAK-secret.yaml' }] });
+  events.emit('files', { project: 'sales-contracts', paths: ['orders.odcs.yaml'] }, { paths: [{ project: 'sales-contracts', path: 'orders.odcs.yaml' }] });
   const live = new TextDecoder().decode((await reader.read()).value);
   expect(live).not.toContain('LEAK-');
   expect(live).toContain('sales-contracts');
@@ -96,12 +80,7 @@ test('multi-item events reduce paths and suggestions use the receiving count', a
 test('grant changes send access and close the stream', async () => {
   const access = createAccessControl(accessFixture());
   const events = createEvents(noSuggestions);
-  const response = events.stream(
-    new Request('http://localhost/events'),
-    undefined,
-    undefined,
-    access.subscribe,
-  );
+  const response = events.stream(new Request('http://localhost/events'), undefined, undefined, access.subscribe);
   const reader = response.body!.getReader();
   await reader.read();
   access.reload(accessFixture().config);
@@ -151,9 +130,7 @@ test('Git invalidations with no named paths still reach readers and omit reposit
     project: 'sales-contracts',
     altered: [],
   });
-  expect(
-    readableEvent({ ...event, tags: { ...event.tags, copy: 'another-copy' } }, receiver),
-  ).toBeNull();
+  expect(readableEvent({ ...event, tags: { ...event.tags, copy: 'another-copy' } }, receiver)).toBeNull();
 });
 
 test('a connected scope sees newly registered projects', async () => {
@@ -192,9 +169,7 @@ test('suggestion counts debounce once per owner and notify only changed people',
       return count;
     },
   };
-  const readers = [1, 2].map(() =>
-    events.stream(new Request('http://localhost/events'), undefined, receiver).body!.getReader(),
-  );
+  const readers = [1, 2].map(() => events.stream(new Request('http://localhost/events'), undefined, receiver).body!.getReader());
   const otherScope = access.forRequest(access.principalFor(person('frank')));
   const otherReader = events
     .stream(new Request('http://localhost/events'), undefined, {
@@ -245,9 +220,7 @@ test('tags alone govern delivery even when payload resource names disagree', asy
     ),
   ).toBeNull();
   for (const event of ['identity', 'recovery']) {
-    expect(
-      readableEvent({ id: 1, event, data: {}, tags: { audience: 'all' } }, receiver),
-    ).not.toBeNull();
+    expect(readableEvent({ id: 1, event, data: {}, tags: { audience: 'all' } }, receiver)).not.toBeNull();
   }
 });
 

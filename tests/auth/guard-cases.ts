@@ -107,14 +107,7 @@ function metricCase(ws: Workspace): GuardCase {
 }
 
 /** Names of the save paths every guarded save case goes through. */
-export const GUARDED_SAVES = [
-  'Source save',
-  'item edit',
-  'save-batch',
-  'legacy document save',
-  'import with replace',
-  'metric save',
-] as const;
+export const GUARDED_SAVES = ['Source save', 'item edit', 'save-batch', 'legacy document save', 'import with replace', 'metric save'] as const;
 
 /** The guarded saves an Editor must be refused and a Steward allowed, built from current bytes. */
 export function guardedSaves(ws: Workspace): GuardCase[] {
@@ -126,9 +119,7 @@ export function guardedSaves(ws: Workspace): GuardCase[] {
  * published checkout or, given its folder, in a person's working copy.
  */
 export function revertCase(ws: Workspace, copy?: string): GuardCase {
-  const baseHash = copy
-    ? sha256(readFileSync(join(copy, CONTRACT)))
-    : ws.readFile('sales-contracts', CONTRACT).hash;
+  const baseHash = copy ? sha256(readFileSync(join(copy, CONTRACT))) : ws.readFile('sales-contracts', CONTRACT).hash;
   return {
     name: 'revert',
     method: 'POST',
@@ -235,9 +226,7 @@ export async function expectGuardRefusal(response: Response, item: GuardCase, ro
   expect(response.status, `${item.name}: ${JSON.stringify(body)}`).toBe(403);
   expect(body.guarded, item.name).toContainEqual(item.guarded);
   const audit = join(root, 'state/audit');
-  const lines = readdirSync(audit).flatMap(name =>
-    readFileSync(join(audit, name), 'utf8').trim().split('\n'),
-  );
+  const lines = readdirSync(audit).flatMap(name => readFileSync(join(audit, name), 'utf8').trim().split('\n'));
   const requestId = response.headers.get('X-Request-Id')!;
   const entry = JSON.parse(lines.find(line => line.includes(requestId))!);
   expect(entry.decision).toBe('deny');
@@ -262,9 +251,7 @@ export function deleteCase(): GuardCase {
  */
 export function unprotectedContract(ws: Workspace) {
   const source = ws.readFile('sales-contracts', CONTRACT).source;
-  return source
-    .replace('classification: confidential', 'classification: internal')
-    .replace('1b0c6a52-3f0e-4c55-9d0e-6a1f2b3c4d01', '1b0c6a52-3f0e-4c55-9d0e-6a1f2b3c4d99');
+  return source.replace('classification: confidential', 'classification: internal').replace('1b0c6a52-3f0e-4c55-9d0e-6a1f2b3c4d01', '1b0c6a52-3f0e-4c55-9d0e-6a1f2b3c4d99');
 }
 
 /** Restoring a deleted contract re-creates its classifications. */
@@ -280,9 +267,7 @@ export function restoreCase(entryId: string, file: string): GuardCase {
 
 /** An import that creates a project holding a metric approved and owned by the given person. */
 export function newProjectImport(ws: Workspace, owner: string): GuardCase {
-  const source = ws
-    .readFile('sales-metrics', METRICS)
-    .source.replace('"owner": "bob@example.org"', `"owner": "${owner}"`);
+  const source = ws.readFile('sales-metrics', METRICS).source.replace('"owner": "bob@example.org"', `"owner": "${owner}"`);
   return {
     name: 'new-project import',
     method: 'POST',
@@ -352,10 +337,7 @@ export async function pullDefaultCase({ ws, root }: CaseContext): Promise<BuiltC
 export async function publishCase({ ws }: CaseContext): Promise<BuiltCase> {
   const copy = await openCopyAs(ws, 'bob', 'sales-metrics');
   const source = readFileSync(join(copy, METRICS), 'utf8');
-  const approved = source.replace(
-    '"owner": "alice@example.org", "status": "proposed"',
-    '"owner": "bob@example.org", "status": "approved"',
-  );
+  const approved = source.replace('"owner": "alice@example.org", "status": "proposed"', '"owner": "bob@example.org", "status": "approved"');
   writeFileSync(join(copy, METRICS), approved);
   sh(copy, [...IDENTITY, 'commit', '-q', '-am', 'Approve order count']);
   return {
@@ -380,12 +362,7 @@ function savedCase(name: (typeof GUARDED_SAVES)[number]) {
 /** A deleted contract whose restore would re-create classified properties. */
 async function deletedContract({ ws }: CaseContext) {
   const file = 'catalog.odcs.yaml';
-  await ws.saveFile(
-    'sales-contracts',
-    file,
-    { baseHash: null, source: unprotectedContract(ws) },
-    LOCAL_READER,
-  );
+  await ws.saveFile('sales-contracts', file, { baseHash: null, source: unprotectedContract(ws) }, LOCAL_READER);
   const entry = await ws.trash.deleteFile('sales-contracts', file, undefined, LOCAL_READER);
   return restoreCase(entry.entryId, file);
 }
@@ -467,8 +444,7 @@ export const GUARD_EXEMPTIONS: Record<string, string> = {
   'PUT /api/documents/:id/grouping': 'stores the person’s own grouping view, not a file',
   'POST /api/clear': 'Admin only; moves every project to the trash, whose restore is guarded',
   'PATCH /api/projects/:slug': 'renames the project, not its files',
-  'DELETE /api/projects/:slug':
-    'Admin only; moves the project to the trash, whose restore is guarded',
+  'DELETE /api/projects/:slug': 'Admin only; moves the project to the trash, whose restore is guarded',
   'DELETE /api/trash': 'Admin only; empties the trash and changes no project file',
   'DELETE /api/trash/:entry': 'Admin only; drops one trash entry and changes no project file',
   'GET /api/git/credential-helper': 'answers Git with the person’s credential; no content',
@@ -477,17 +453,13 @@ export const GUARD_EXEMPTIONS: Record<string, string> = {
   'POST /api/projects/:slug/git/stage': 'stages files whose text was already guarded when saved',
   'POST /api/projects/:slug/git/unstage': 'unstages files; the working text does not change',
   'POST /api/projects/:slug/git/commit': 'commits text that was already guarded when saved',
-  'POST /api/projects/:slug/git/fetch':
-    'updates remote-tracking refs; a guarded pull brings text in',
+  'POST /api/projects/:slug/git/fetch': 'updates remote-tracking refs; a guarded pull brings text in',
   'POST /api/projects/:slug/git/push': 'publishes local commits; the working copy does not change',
   'POST /api/projects/:slug/git/cancel': 'stops a running Git operation',
-  'PUT /api/projects/:slug/git/remote':
-    'Admin only; names a remote, whose text a guarded pull checks',
+  'PUT /api/projects/:slug/git/remote': 'Admin only; names a remote, whose text a guarded pull checks',
   'DELETE /api/projects/:slug/git/remote': 'Admin only; removes a remote and changes no file',
-  'PUT /api/projects/:slug/git/folder':
-    'Admin only and refused in server mode; moves a project’s files inside its repository and changes no text',
-  'POST /api/projects/:slug/git/push-default':
-    'Stewards and Admins only; sends the default branch, whose commits a guarded publish judged',
+  'PUT /api/projects/:slug/git/folder': 'Admin only and refused in server mode; moves a project’s files inside its repository and changes no text',
+  'POST /api/projects/:slug/git/push-default': 'Stewards and Admins only; sends the default branch, whose commits a guarded publish judged',
   'GET /api/audit': 'reads the audit log',
   'GET /api/audit/export': 'exports the audit log',
 };

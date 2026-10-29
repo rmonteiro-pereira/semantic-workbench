@@ -99,13 +99,6 @@ export type LayoutResult = {
 };
 /** Extracts card positions and line routes from an ELK layout result. */
 export const positionsOf = (result: any): LayoutResult => ({
-  positions: Object.fromEntries(
-    (result.children ?? []).map((n: any) => [n.id, { x: n.x ?? 0, y: n.y ?? 0 }]),
-  ),
-  routes: Object.fromEntries(
-    (result.edges ?? []).map((e: any) => [
-      e.id,
-      (e.sections?.[0]?.bendPoints ?? []).map((p: any) => ({ x: p.x, y: p.y })),
-    ]),
-  ),
+  positions: Object.fromEntries((result.children ?? []).map((n: any) => [n.id, { x: n.x ?? 0, y: n.y ?? 0 }])),
+  routes: Object.fromEntries((result.edges ?? []).map((e: any) => [e.id, (e.sections?.[0]?.bendPoints ?? []).map((p: any) => ({ x: p.x, y: p.y }))])),
 });

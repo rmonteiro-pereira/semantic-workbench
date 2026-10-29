@@ -17,9 +17,7 @@ const input = (start: string[], direction: 'out' | 'in' | 'both', budget = 150) 
   budget,
 });
 test('UBL invoice_line.line_extension_amount, Both: exactly the cards on its upstream and downstream path, through to fields', () => {
-  const col = [...g.cards.values()]
-    .find(c => c.label === 'invoice_line')!
-    .columns.find(x => x.path === 'line_extension_amount')!.id;
+  const col = [...g.cards.values()].find(c => c.label === 'invoice_line')!.columns.find(x => x.path === 'line_extension_amount')!.id;
   const r = lineagePierce(input([col], 'both'));
   const want = new Set([...closure(g, [col], 'both').nodes].map(n => cardOfNode(g, n)));
   expect(new Set(r.cards)).toEqual(want);
@@ -37,12 +35,8 @@ test('direction: upstream never includes downstream-only cards; a card pierces t
   const card = [...g.cards.values()].find(c => c.label === 'invoice_line')!;
   const up = lineagePierce(input(selectionNodes(g, card.id), 'in'));
   const down = lineagePierce(input(selectionNodes(g, card.id), 'out'));
-  expect(new Set(up.cards)).toEqual(
-    new Set([...closure(g, selectionNodes(g, card.id), 'up').nodes].map(n => cardOfNode(g, n))),
-  );
-  expect(new Set(down.cards)).toEqual(
-    new Set([...closure(g, selectionNodes(g, card.id), 'down').nodes].map(n => cardOfNode(g, n))),
-  );
+  expect(new Set(up.cards)).toEqual(new Set([...closure(g, selectionNodes(g, card.id), 'up').nodes].map(n => cardOfNode(g, n))));
+  expect(new Set(down.cards)).toEqual(new Set([...closure(g, selectionNodes(g, card.id), 'down').nodes].map(n => cardOfNode(g, n))));
   const all = lineagePierce(input(selectionNodes(g, card.id), 'both'));
   const cut = lineagePierce(input(selectionNodes(g, card.id), 'both', 3));
   expect(cut.cards).toEqual(all.cards.slice(0, 3));
@@ -66,9 +60,7 @@ test('commerce orders.amount, Both: through to the metrics over it', () => {
   const col = 'object:commerce.odcs.yaml#orders/amount';
   const r = lineagePierce({
     edges: c.edges.map(e => [e.from, e.to] as [string, string]),
-    owners: Object.fromEntries(
-      [...c.cards.values()].flatMap(k => k.columns.map(x => [x.id, k.id])),
-    ),
+    owners: Object.fromEntries([...c.cards.values()].flatMap(k => k.columns.map(x => [x.id, k.id]))),
     start: [col],
     direction: 'both',
     budget: 150,

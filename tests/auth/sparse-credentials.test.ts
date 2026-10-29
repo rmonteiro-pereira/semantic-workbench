@@ -21,9 +21,7 @@ let address = '';
 beforeAll(() => {
   isolateGit();
   root = mkdtempSync(join(tmpdir(), 'workbench-sparse-credentials-'));
-  server = startCredentialGitServer(join(root, 'git'), async (_user, password) =>
-    password === TOKEN ? 'tester' : null,
-  );
+  server = startCredentialGitServer(join(root, 'git'), async (_user, password) => (password === TOKEN ? 'tester' : null));
   address = server.repository('team.git');
   team = teamRepository();
   const served = server.folder('team.git');

@@ -67,9 +67,7 @@ for (const file of dirs.flatMap(sourceFiles)) {
 }
 if (problems.length) {
   console.error(problems.join('\n'));
-  console.error(
-    `\n${problems.length} comments name specification or task IDs. Explain the code in plain words instead.`,
-  );
+  console.error(`\n${problems.length} comments name specification or task IDs. Explain the code in plain words instead.`);
   process.exit(1);
 }
 console.log('Comments are free of specification and task IDs.');

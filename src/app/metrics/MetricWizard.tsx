@@ -35,16 +35,7 @@ function prefill(k: KpiSummary): Partial<Draft> {
     format: k.format ?? '',
   };
 }
-const STEPS = [
-  'Concept',
-  'Data',
-  'Type and inputs',
-  'Time and breakdowns',
-  'Targets',
-  'Governance',
-  'Explanation and SQL',
-  'Save',
-] as const;
+const STEPS = ['Concept', 'Data', 'Type and inputs', 'Time and breakdowns', 'Targets', 'Governance', 'Explanation and SQL', 'Save'] as const;
 type Model = {
   file: string;
   path: Path;
@@ -88,9 +79,7 @@ const conceptsOf = (docs: Doc[]) =>
     ...new Set(
       docs.flatMap(d => {
         const v = validateInput(d.source, d.filename);
-        return v.valid && 'document' in v.model && Array.isArray(v.model.document.ontology)
-          ? v.model.document.ontology.map((c: any) => c?.concept).filter(Boolean)
-          : [];
+        return v.valid && 'document' in v.model && Array.isArray(v.model.document.ontology) ? v.model.document.ontology.map((c: any) => c?.concept).filter(Boolean) : [];
       }),
     ),
   ].sort() as string[];
@@ -188,41 +177,29 @@ export function MetricWizard({
       ...(d.description.trim() ? { description: d.description.trim() } : {}),
     },
     extension,
-    ...(d.measures && !bound
-      ? { binding: { measures: d.measures, ...(d.of ? { of: d.of } : {}) } }
-      : {}),
+    ...(d.measures && !bound ? { binding: { measures: d.measures, ...(d.of ? { of: d.of } : {}) } } : {}),
   };
   // What blocks each step.
   const problems = (i: number): string[] => {
     const out: string[] = [];
     if (i === 1 && !model) out.push('Choose the semantic model that holds the data.');
     if (i === 2) {
-      if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(d.name))
-        out.push('Give the metric a name of letters, digits and underscores.');
-      else if (!existing && model?.metrics.includes(d.name))
-        out.push(`${d.name} already exists in ${model.name}.`);
+      if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(d.name)) out.push('Give the metric a name of letters, digits and underscores.');
+      else if (!existing && model?.metrics.includes(d.name)) out.push(`${d.name} already exists in ${model.name}.`);
       if (!d.label.trim()) out.push('Give the metric a label people will read.');
     }
     if (i === 2 && !existing) {
       if (d.type === 'simple' && !d.field) out.push('Choose the field to aggregate.');
-      if (d.type === 'ratio' && (!d.numerator || !d.denominator))
-        out.push('Choose the numerator and the denominator.');
-      if (d.type === 'ratio' && d.numerator && d.numerator === d.denominator)
-        out.push('Numerator and denominator must differ.');
-      if (['derived', 'cumulative', 'filtered'].includes(d.type) && !list(d.inputs).length)
-        out.push('Choose the input metrics.');
-      if (['derived', 'cumulative', 'filtered'].includes(d.type) && !expression)
-        out.push('Write the expression over the input metrics.');
+      if (d.type === 'ratio' && (!d.numerator || !d.denominator)) out.push('Choose the numerator and the denominator.');
+      if (d.type === 'ratio' && d.numerator && d.numerator === d.denominator) out.push('Numerator and denominator must differ.');
+      if (['derived', 'cumulative', 'filtered'].includes(d.type) && !list(d.inputs).length) out.push('Choose the input metrics.');
+      if (['derived', 'cumulative', 'filtered'].includes(d.type) && !expression) out.push('Write the expression over the input metrics.');
       if (d.type === 'filtered' && !d.filterField) out.push('Choose the filter field.');
     }
-    if (i === 3 && d.timeDimension && !/^[^.\s]+\.[^.\s]+$/.test(d.timeDimension))
-      out.push('The time dimension is a dataset.field.');
-    if (i === 3 && d.minGrain && d.grains.length && !d.grains.includes(d.minGrain))
-      out.push('The allowed grains must include the minimum grain.');
-    if (i === 4 && d.direction && (d.target.trim() === '' || Number.isNaN(Number(d.target))))
-      out.push('The target is a number.');
-    if (i === 4 && [d.warning, d.critical].some(v => v.trim() !== '' && Number.isNaN(Number(v))))
-      out.push('Thresholds are numbers.');
+    if (i === 3 && d.timeDimension && !/^[^.\s]+\.[^.\s]+$/.test(d.timeDimension)) out.push('The time dimension is a dataset.field.');
+    if (i === 3 && d.minGrain && d.grains.length && !d.grains.includes(d.minGrain)) out.push('The allowed grains must include the minimum grain.');
+    if (i === 4 && d.direction && (d.target.trim() === '' || Number.isNaN(Number(d.target)))) out.push('The target is a number.');
+    if (i === 4 && [d.warning, d.critical].some(v => v.trim() !== '' && Number.isNaN(Number(v)))) out.push('Thresholds are numbers.');
     if (i === 5 && !d.owner.trim()) out.push('Name the owner who answers for this metric.');
     if (i >= 2 && i <= 5) {
       const checked = readMetricExtension({
@@ -267,11 +244,7 @@ export function MetricWizard({
       await api.saveKpi(project, { ...request, baseHashes });
       onSaved(d.file, model!.path, d.name);
     } catch (e) {
-      setError(
-        e instanceof StaleSave
-          ? 'Not saved: a file of the project changed meanwhile. Close the wizard and start again.'
-          : (e as Error).message,
-      );
+      setError(e instanceof StaleSave ? 'Not saved: a file of the project changed meanwhile. Close the wizard and start again.' : (e as Error).message);
       setBusy(false);
     }
   }
@@ -286,34 +259,17 @@ export function MetricWizard({
       {hint && <small>{hint}</small>}
     </label>
   );
-  const select = (
-    value: string,
-    onChange: (v: string) => void,
-    options: React.ReactNode,
-    aria: string,
-    empty = '—',
-  ) => (
+  const select = (value: string, onChange: (v: string) => void, options: React.ReactNode, aria: string, empty = '—') => (
     <select aria-label={aria} value={value} onChange={e => onChange(e.target.value)}>
       <option value="">{empty}</option>
       {options}
     </select>
   );
-  const multi = (
-    values: string[],
-    options: string[],
-    onChange: (v: string[]) => void,
-    aria: string,
-  ) => (
+  const multi = (values: string[], options: string[], onChange: (v: string[]) => void, aria: string) => (
     <div className="wizard-checks" role="group" aria-label={aria}>
       {options.map(o => (
         <label key={o} className="item-check">
-          <input
-            type="checkbox"
-            checked={values.includes(o)}
-            onChange={e =>
-              onChange(e.target.checked ? [...values, o] : values.filter(x => x !== o))
-            }
-          />
+          <input type="checkbox" checked={values.includes(o)} onChange={e => onChange(e.target.checked ? [...values, o] : values.filter(x => x !== o))} />
           {o}
         </label>
       ))}
@@ -329,12 +285,7 @@ export function MetricWizard({
         Cancel
       </button>
       {step < 7 ? (
-        <button
-          type="button"
-          className="primary"
-          onClick={() => go(step + 1)}
-          disabled={blocking.length > 0 || (step === 6 && !preview)}
-        >
+        <button type="button" className="primary" onClick={() => go(step + 1)} disabled={blocking.length > 0 || (step === 6 && !preview)}>
           Next
         </button>
       ) : (
@@ -369,31 +320,16 @@ export function MetricWizard({
           )}
           {step === 0 && !bound && (
             <>
-              <p>
-                Which business concept does this metric measure, and what is it about? The binding
-                is stored in the project's mapping document.
-              </p>
+              <p>Which business concept does this metric measure, and what is it about? The binding is stored in the project's mapping document.</p>
               <div className="item-fields">
                 {field(
                   'Business concept',
-                  <input
-                    list="kpi-concepts"
-                    aria-label="Concept measured"
-                    value={d.measures}
-                    onChange={e => set({ measures: e.target.value })}
-                    placeholder="Concept name"
-                  />,
+                  <input list="kpi-concepts" aria-label="Concept measured" value={d.measures} onChange={e => set({ measures: e.target.value })} placeholder="Concept name" />,
                   'The concept this metric measures. Leave empty to save the metric without one.',
                 )}
                 {field(
                   'Computed per',
-                  <input
-                    list="kpi-concepts"
-                    aria-label="Concept it is about"
-                    value={d.of}
-                    onChange={e => set({ of: e.target.value })}
-                    placeholder="Entity name"
-                  />,
+                  <input list="kpi-concepts" aria-label="Concept it is about" value={d.of} onChange={e => set({ of: e.target.value })} placeholder="Entity name" />,
                   'Optional. The entity the value is computed for, such as Property.',
                 )}
                 <datalist id="kpi-concepts">
@@ -404,8 +340,7 @@ export function MetricWizard({
                 {d.measures && !concepts.includes(d.measures) && (
                   <p className="item-note wide">
                     <AlertTriangle size={13} />
-                    {d.measures} is not a concept of the project's ontology; the metric will show a
-                    finding until it exists.
+                    {d.measures} is not a concept of the project's ontology; the metric will show a finding until it exists.
                   </p>
                 )}
               </div>
@@ -439,8 +374,7 @@ export function MetricWizard({
                 )}
                 {model && (
                   <p className="wide">
-                    {model.datasets.length} datasets · {model.metrics.length} metrics:{' '}
-                    {model.datasets.map(x => x.name).join(', ')}
+                    {model.datasets.length} datasets · {model.metrics.length} metrics: {model.datasets.map(x => x.name).join(', ')}
                   </p>
                 )}
               </div>
@@ -448,19 +382,8 @@ export function MetricWizard({
           )}
           {step === 2 && existing && (
             <div className="item-fields">
-              {field(
-                'Label',
-                <input
-                  aria-label="Label"
-                  value={d.label}
-                  onChange={e => set({ label: e.target.value })}
-                />,
-              )}
-              {field(
-                'Name',
-                <input aria-label="Name" value={d.name} readOnly />,
-                'As written in the semantic model',
-              )}
+              {field('Label', <input aria-label="Label" value={d.label} onChange={e => set({ label: e.target.value })} />)}
+              {field('Name', <input aria-label="Name" value={d.name} readOnly />, 'As written in the semantic model')}
               {field(
                 'Type',
                 select(
@@ -479,44 +402,22 @@ export function MetricWizard({
                 <>
                   {field(
                     'Numerator',
-                    select(
-                      d.numerator,
-                      v => set({ numerator: v }),
-                      model?.metrics.map(metricOption),
-                      'Numerator',
-                      'Choose…',
-                    ),
+                    select(d.numerator, v => set({ numerator: v }), model?.metrics.map(metricOption), 'Numerator', 'Choose…'),
                   )}
                   {field(
                     'Denominator',
-                    select(
-                      d.denominator,
-                      v => set({ denominator: v }),
-                      model?.metrics.map(metricOption),
-                      'Denominator',
-                      'Choose…',
-                    ),
+                    select(d.denominator, v => set({ denominator: v }), model?.metrics.map(metricOption), 'Denominator', 'Choose…'),
                   )}
                 </>
               )}
               {['derived', 'cumulative', 'filtered'].includes(d.type) &&
-                field(
-                  'Input metrics',
-                  <input
-                    aria-label="Input metrics"
-                    value={d.inputs}
-                    onChange={e => set({ inputs: e.target.value })}
-                  />,
-                  'Metric names, separated by commas',
-                )}
+                field('Input metrics', <input aria-label="Input metrics" value={d.inputs} onChange={e => set({ inputs: e.target.value })} />, 'Metric names, separated by commas')}
               {field(
                 'Additivity',
                 select(
                   d.additivity,
                   v => set({ additivity: v }),
-                  ['additive', 'semi_additive', 'non_additive'].map(a => (
-                    <option key={a}>{a}</option>
-                  )),
+                  ['additive', 'semi_additive', 'non_additive'].map(a => <option key={a}>{a}</option>),
                   'Additivity',
                   'From the type',
                 ),
@@ -536,23 +437,13 @@ export function MetricWizard({
                   onChange={e =>
                     set({
                       label: e.target.value,
-                      ...(d.name === snake(d.label) || !d.name
-                        ? { name: snake(e.target.value) }
-                        : {}),
+                      ...(d.name === snake(d.label) || !d.name ? { name: snake(e.target.value) } : {}),
                     })
                   }
                   placeholder="Vacancy rate"
                 />,
               )}
-              {field(
-                'Name',
-                <input
-                  aria-label="Name"
-                  value={d.name}
-                  onChange={e => set({ name: e.target.value })}
-                />,
-                'The metric name in the semantic model',
-              )}
+              {field('Name', <input aria-label="Name" value={d.name} onChange={e => set({ name: e.target.value })} />, 'The metric name in the semantic model')}
               {field(
                 'Type',
                 select(
@@ -593,23 +484,11 @@ export function MetricWizard({
                 <>
                   {field(
                     'Numerator',
-                    select(
-                      d.numerator,
-                      v => set({ numerator: v }),
-                      model?.metrics.map(metricOption),
-                      'Numerator',
-                      'Choose…',
-                    ),
+                    select(d.numerator, v => set({ numerator: v }), model?.metrics.map(metricOption), 'Numerator', 'Choose…'),
                   )}
                   {field(
                     'Denominator',
-                    select(
-                      d.denominator,
-                      v => set({ denominator: v }),
-                      model?.metrics.map(metricOption),
-                      'Denominator',
-                      'Choose…',
-                    ),
+                    select(d.denominator, v => set({ denominator: v }), model?.metrics.map(metricOption), 'Denominator', 'Choose…'),
                     'Division by zero gives no value (NULLIF)',
                   )}
                 </>
@@ -625,9 +504,7 @@ export function MetricWizard({
                       onChange={e =>
                         set({
                           inputs: e.target.value,
-                          ...(!d.expression && d.type !== 'derived'
-                            ? { expression: list(e.target.value)[0] ?? '' }
-                            : {}),
+                          ...(!d.expression && d.type !== 'derived' ? { expression: list(e.target.value)[0] ?? '' } : {}),
                         })
                       }
                     />,
@@ -640,13 +517,7 @@ export function MetricWizard({
                   </datalist>
                   {field(
                     'Expression',
-                    <SqlField
-                      ariaLabel="Expression"
-                      dialect="ANSI_SQL"
-                      rows={2}
-                      value={d.expression}
-                      onChange={v => set({ expression: v })}
-                    />,
+                    <SqlField ariaLabel="Expression" dialect="ANSI_SQL" rows={2} value={d.expression} onChange={v => set({ expression: v })} />,
                     'ANSI SQL over the input metrics; warnings never block',
                     true,
                   )}
@@ -672,15 +543,7 @@ export function MetricWizard({
                       'Window grain',
                     ),
                   )}
-                  {d.window === 'rolling' &&
-                    field(
-                      'Length',
-                      <input
-                        aria-label="Window length"
-                        value={d.windowLength}
-                        onChange={e => set({ windowLength: e.target.value })}
-                      />,
-                    )}
+                  {d.window === 'rolling' && field('Length', <input aria-label="Window length" value={d.windowLength} onChange={e => set({ windowLength: e.target.value })} />)}
                 </>
               )}
               {d.type === 'filtered' && (
@@ -699,29 +562,11 @@ export function MetricWizard({
                     select(
                       d.filterOperator,
                       v => set({ filterOperator: v }),
-                      [
-                        'equals',
-                        'not_equals',
-                        'in',
-                        'not_in',
-                        'gt',
-                        'gte',
-                        'lt',
-                        'lte',
-                        'is_null',
-                        'is_not_null',
-                      ].map(o => <option key={o}>{o}</option>),
+                      ['equals', 'not_equals', 'in', 'not_in', 'gt', 'gte', 'lt', 'lte', 'is_null', 'is_not_null'].map(o => <option key={o}>{o}</option>),
                       'Filter operator',
                     ),
                   )}
-                  {field(
-                    'Value',
-                    <input
-                      aria-label="Filter value"
-                      value={d.filterValue}
-                      onChange={e => set({ filterValue: e.target.value })}
-                    />,
-                  )}
+                  {field('Value', <input aria-label="Filter value" value={d.filterValue} onChange={e => set({ filterValue: e.target.value })} />)}
                 </>
               )}
               {field(
@@ -729,25 +574,13 @@ export function MetricWizard({
                 select(
                   d.additivity,
                   v => set({ additivity: v }),
-                  ['additive', 'semi_additive', 'non_additive'].map(a => (
-                    <option key={a}>{a}</option>
-                  )),
+                  ['additive', 'semi_additive', 'non_additive'].map(a => <option key={a}>{a}</option>),
                   'Additivity',
                   'From the type',
                 ),
                 d.type === 'ratio' ? 'A ratio is never summed across groups' : undefined,
               )}
-              {field(
-                'Description',
-                <textarea
-                  aria-label="Description"
-                  rows={2}
-                  value={d.description}
-                  onChange={e => set({ description: e.target.value })}
-                />,
-                undefined,
-                true,
-              )}
+              {field('Description', <textarea aria-label="Description" rows={2} value={d.description} onChange={e => set({ description: e.target.value })} />, undefined, true)}
               <p className="wide formula-line">
                 Expression: <code>{expression || '—'}</code>
               </p>
@@ -808,16 +641,7 @@ export function MetricWizard({
                   'No target',
                 ),
               )}
-              {field(
-                'Target',
-                <input
-                  aria-label="Target value"
-                  inputMode="decimal"
-                  value={d.target}
-                  onChange={e => set({ target: e.target.value })}
-                  disabled={!d.direction}
-                />,
-              )}
+              {field('Target', <input aria-label="Target value" inputMode="decimal" value={d.target} onChange={e => set({ target: e.target.value })} disabled={!d.direction} />)}
               {field(
                 'Per',
                 select(
@@ -827,47 +651,14 @@ export function MetricWizard({
                   'Target grain',
                 ),
               )}
-              {field(
-                'Warning at',
-                <input
-                  aria-label="Warning threshold"
-                  inputMode="decimal"
-                  value={d.warning}
-                  onChange={e => set({ warning: e.target.value })}
-                  disabled={!d.direction}
-                />,
-              )}
-              {field(
-                'Critical at',
-                <input
-                  aria-label="Critical threshold"
-                  inputMode="decimal"
-                  value={d.critical}
-                  onChange={e => set({ critical: e.target.value })}
-                  disabled={!d.direction}
-                />,
-              )}
+              {field('Warning at', <input aria-label="Warning threshold" inputMode="decimal" value={d.warning} onChange={e => set({ warning: e.target.value })} disabled={!d.direction} />)}
+              {field('Critical at', <input aria-label="Critical threshold" inputMode="decimal" value={d.critical} onChange={e => set({ critical: e.target.value })} disabled={!d.direction} />)}
             </div>
           )}
           {step === 5 && (
             <div className="item-fields">
-              {field(
-                'Owner',
-                <OwnerInput
-                  project={project}
-                  value={d.owner}
-                  onChange={owner => set({ owner })}
-                  verified={d.owner === existing?.owner ? existing?.ownerVerified : undefined}
-                />,
-              )}
-              {field(
-                'Steward',
-                <input
-                  aria-label="Steward"
-                  value={d.steward}
-                  onChange={e => set({ steward: e.target.value })}
-                />,
-              )}
+              {field('Owner', <OwnerInput project={project} value={d.owner} onChange={owner => set({ owner })} verified={d.owner === existing?.owner ? existing?.ownerVerified : undefined} />)}
+              {field('Steward', <input aria-label="Steward" value={d.steward} onChange={e => set({ steward: e.target.value })} />)}
               {field(
                 'Status',
                 select(
@@ -878,24 +669,8 @@ export function MetricWizard({
                 ),
                 'A new metric is a draft or proposed for review',
               )}
-              {field(
-                'Unit',
-                <input
-                  aria-label="Unit"
-                  value={d.unit}
-                  onChange={e => set({ unit: e.target.value })}
-                  placeholder="ratio, m², BRL"
-                />,
-              )}
-              {field(
-                'Format',
-                <input
-                  aria-label="Format"
-                  value={d.format}
-                  onChange={e => set({ format: e.target.value })}
-                  placeholder="0.0%"
-                />,
-              )}
+              {field('Unit', <input aria-label="Unit" value={d.unit} onChange={e => set({ unit: e.target.value })} placeholder="ratio, m², BRL" />)}
+              {field('Format', <input aria-label="Format" value={d.format} onChange={e => set({ format: e.target.value })} placeholder="0.0%" />)}
             </div>
           )}
           {step === 6 &&

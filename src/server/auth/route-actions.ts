@@ -30,15 +30,8 @@ const file = (match: RegExpMatchArray): ResourceRef => ({
   project: decodeSegment(match[1]),
   path: decodePath(match[2]),
 });
-function row(
-  method: string,
-  path: string,
-  action: Action,
-  resource: RouteAction['resource'],
-): RouteAction {
-  const pattern = new RegExp(
-    '^' + path.replace(/:[a-z]+/g, '([^/]+)').replace(/\*/g, '(.+)') + '$',
-  );
+function row(method: string, path: string, action: Action, resource: RouteAction['resource']): RouteAction {
+  const pattern = new RegExp('^' + path.replace(/:[a-z]+/g, '([^/]+)').replace(/\*/g, '(.+)') + '$');
   return {
     method,
     path: `${method} ${path}`,

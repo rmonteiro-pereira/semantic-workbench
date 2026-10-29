@@ -9,11 +9,7 @@ const ORDERS = 'orders.odcs.yaml';
 const LAST_COMMIT = '--format=%an%n%ae%n%cn%n%ce%n%(trailers:key=Signed-in-user,valueonly)';
 
 function lastCommit(folder: string) {
-  const [author, authorEmail, committer, committerEmail, trailer] = gitOutput(folder, [
-    'log',
-    '-1',
-    LAST_COMMIT,
-  ]).text.split('\n');
+  const [author, authorEmail, committer, committerEmail, trailer] = gitOutput(folder, ['log', '-1', LAST_COMMIT]).text.split('\n');
   return { author, authorEmail, committer, committerEmail, trailer };
 }
 
@@ -56,9 +52,7 @@ test('a merge from the default branch is authored by the person who pulls', asyn
     message: 'Publish orders',
     paths: [ORDERS],
   });
-  expect((await bob.call('/api/projects/sales-contracts/git/publish', 'POST', {})).status).toBe(
-    200,
-  );
+  expect((await bob.call('/api/projects/sales-contracts/git/publish', 'POST', {})).status).toBe(200);
   const pulled = await frank.call('/api/projects/sales-contracts/git/pull-default', 'POST', {});
   expect(pulled.body.ok).toBe(true);
   const copy = copyFolder(fixture.ws, frank.principal.key, 'sales-contracts');
@@ -93,15 +87,7 @@ test('provider names cannot add lines to the commit headers', () => {
     GIT_AUTHOR_NAME: 'AliceCommitter: forged',
     GIT_AUTHOR_EMAIL: 'alice@example.org',
   });
-  expect(signed.trailer).toEqual([
-    '--trailer',
-    'Signed-in-user: tenant:objectSigned-in-user: someone-else',
-  ]);
-  expect(signed.config).toEqual([
-    '-c',
-    `user.name=${SERVICE_COMMITTER.name}`,
-    '-c',
-    `user.email=${SERVICE_COMMITTER.email}`,
-  ]);
+  expect(signed.trailer).toEqual(['--trailer', 'Signed-in-user: tenant:objectSigned-in-user: someone-else']);
+  expect(signed.config).toEqual(['-c', `user.name=${SERVICE_COMMITTER.name}`, '-c', `user.email=${SERVICE_COMMITTER.email}`]);
   expect(authorship()).toEqual({ config: [], env: {}, trailer: [] });
 });

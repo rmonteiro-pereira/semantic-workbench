@@ -20,8 +20,7 @@ export type RoleSource = Pick<MatchedGrant, 'roleId' | 'scope' | 'via'> & {
 /** Presents a matched grant without its internal ID; a group carries its name when known. */
 export function roleSource(grant: MatchedGrant, groupName?: string | null): RoleSource {
   const source: RoleSource = { roleId: grant.roleId, scope: grant.scope, via: grant.via };
-  if (grant.group)
-    source.group = groupName ? { id: grant.group, name: groupName } : { id: grant.group };
+  if (grant.group) source.group = groupName ? { id: grant.group, name: groupName } : { id: grant.group };
   return source;
 }
 /** Emergency Admin identities configured outside the administration repository. */
@@ -32,29 +31,18 @@ export type GrantOptions = {
   deactivated: string[];
   groupMatch: 'case-insensitive' | 'exact';
 };
-type GrantIdentity = Pick<
-  NormalizedPrincipal,
-  'id' | 'groups' | 'groupsResolved' | 'verifiedEmail'
->;
+type GrantIdentity = Pick<NormalizedPrincipal, 'id' | 'groups' | 'groupsResolved' | 'verifiedEmail'>;
 
 /** Finds the union of explicit grants and bootstrap membership for an identity. */
-export function resolveGrants(
-  principal: GrantIdentity,
-  grants: Grant[],
-  options: GrantOptions,
-): MatchedGrant[] {
+export function resolveGrants(principal: GrantIdentity, grants: Grant[], options: GrantOptions): MatchedGrant[] {
   if (options.deactivated.includes(principal.id)) return [];
-  const normalize = (value: string) =>
-    options.groupMatch === 'exact' ? value : value.toLowerCase();
+  const normalize = (value: string) => (options.groupMatch === 'exact' ? value : value.toLowerCase());
   const groups = new Set(principal.groups.map(normalize));
   const email = principal.verifiedEmail?.toLowerCase();
   const matched: MatchedGrant[] = [];
   for (const grant of grants) {
     const member = grant.member;
-    const matches =
-      member.kind === 'group'
-        ? principal.groupsResolved !== 'failed' && groups.has(normalize(member.groupId))
-        : email !== undefined && email === member.email.toLowerCase();
+    const matches = member.kind === 'group' ? principal.groupsResolved !== 'failed' && groups.has(normalize(member.groupId)) : email !== undefined && email === member.email.toLowerCase();
     if (!matches) continue;
     matched.push({
       grantId: grant.id,
@@ -64,10 +52,7 @@ export function resolveGrants(
       ...(member.kind === 'group' ? { group: member.groupId } : {}),
     });
   }
-  if (
-    options.bootstrap.ids.includes(principal.id) ||
-    (email && options.bootstrap.emails.some(value => value.toLowerCase() === email))
-  ) {
+  if (options.bootstrap.ids.includes(principal.id) || (email && options.bootstrap.emails.some(value => value.toLowerCase() === email))) {
     matched.push({
       grantId: 'bootstrap',
       roleId: 'admin',
@@ -79,48 +64,29 @@ export function resolveGrants(
 }
 
 /** Expands a grant to role holders, preserving the explicit-project distinction. */
-export function holdersOfGrant(
-  grant: Pick<Grant, 'roleId' | 'scope'>,
-  projects: { slug: string; domain: string | null }[],
-): string[] {
+export function holdersOfGrant(grant: Pick<Grant, 'roleId' | 'scope'>, projects: { slug: string; domain: string | null }[]): string[] {
   const { roleId, scope } = grant;
   if (roleId === 'admin') {
     if (scope.kind !== 'workspace') throw new Error('Admin grants require workspace scope.');
     return ['admin@workspace'];
   }
   if (scope.kind === 'workspace') {
-    return [
-      `${roleId}@workspace`,
-      ...projects.filter(project => project.domain).map(project => `${roleId}@${project.slug}`),
-    ];
+    return [`${roleId}@workspace`, ...projects.filter(project => project.domain).map(project => `${roleId}@${project.slug}`)];
   }
   if (scope.kind === 'domains') {
-    return projects
-      .filter(project => project.domain && scope.domains.includes(project.domain))
-      .map(project => `${roleId}@${project.slug}`);
+    return projects.filter(project => project.domain && scope.domains.includes(project.domain)).map(project => `${roleId}@${project.slug}`);
   }
-  return projects
-    .filter(project => scope.projects.includes(project.slug))
-    .flatMap(project => [`${roleId}@${project.slug}`, `explicit@${project.slug}`]);
+  return projects.filter(project => scope.projects.includes(project.slug)).flatMap(project => [`${roleId}@${project.slug}`, `explicit@${project.slug}`]);
 }
 
 /** Lists recorded Admin holders and the independent number of bootstrap entries. */
-export function adminHolders(
-  users: GrantIdentity[],
-  grants: Grant[],
-  bootstrap: Bootstrap,
-  groupMatch: GrantOptions['groupMatch'] = 'exact',
-) {
-  const admins = grants.filter(
-    grant => grant.roleId === 'admin' && grant.scope.kind === 'workspace',
-  );
+export function adminHolders(users: GrantIdentity[], grants: Grant[], bootstrap: Bootstrap, groupMatch: GrantOptions['groupMatch'] = 'exact') {
+  const admins = grants.filter(grant => grant.roleId === 'admin' && grant.scope.kind === 'workspace');
   const options: GrantOptions = {
     bootstrap: { emails: [], ids: [] },
     deactivated: [],
     groupMatch,
   };
-  const ids = users
-    .filter(user => resolveGrants(user, admins, options).length > 0)
-    .map(user => user.id);
+  const ids = users.filter(user => resolveGrants(user, admins, options).length > 0).map(user => user.id);
   return { ids: [...new Set(ids)], bootstrapCount: bootstrap.emails.length + bootstrap.ids.length };
 }

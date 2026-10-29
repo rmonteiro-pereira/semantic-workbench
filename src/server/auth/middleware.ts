@@ -19,20 +19,8 @@ import type { ProviderStatus } from './oidc';
 import { GuardedChangeError } from './guards';
 import { READ_ACTIONS } from '../../shared/auth/actions';
 import { requestAccess, requestAuditProjects, type AccessRequest } from './request-scope';
-import {
-  hiddenResponses,
-  internalErrorResponse,
-  requestAuditId,
-  requestSourceIp,
-} from '../request';
-import {
-  createAnonymousAuditGate,
-  createRateLimitReport,
-  createRateLimiter,
-  DEFAULT_REQUEST_LIMITS,
-  SIGN_IN_PATHS,
-  type RequestLimits,
-} from './rate-limit';
+import { hiddenResponses, internalErrorResponse, requestAuditId, requestSourceIp } from '../request';
+import { createAnonymousAuditGate, createRateLimitReport, createRateLimiter, DEFAULT_REQUEST_LIMITS, SIGN_IN_PATHS, type RequestLimits } from './rate-limit';
 import type { RemoteCredentials } from './remote-credentials';
 import { observeRequest } from '../observability/http-request';
 import { actorPseudonym, setRequestActor } from '../observability/request-context';
@@ -154,13 +142,7 @@ function auditDenial(audit: AuditLog, input: Parameters<AuditLog['append']>[0]):
   }
 }
 
-function auditInput(request: {
-  requestId: string;
-  principal: AccessScope['principal'];
-  action: RouteAction['action'];
-  resource: ResourceRef;
-  decision: Decision;
-}) {
+function auditInput(request: { requestId: string; principal: AccessScope['principal']; action: RouteAction['action']; resource: ResourceRef; decision: Decision }) {
   const { requestId, principal, action, resource, decision } = request;
   return {
     requestId,
@@ -185,20 +167,12 @@ function refusal(decision: Decision, error?: WriteAccessError): Response {
   if (error instanceof GuardedChangeError) {
     return Response.json({ error: error.message, guarded: error.guarded }, { status: 403 });
   }
-  const body =
-    decision.status === 404
-      ? { error: 'Not found.' }
-      : { error: 'forbidden', rule: decision.rules[0] ?? decision.reason };
+  const body = decision.status === 404 ? { error: 'Not found.' } : { error: 'forbidden', rule: decision.rules[0] ?? decision.reason };
   return Response.json(body, { status: decision.status });
 }
 
 /** Audits the target a route refused and answers like a refusal at the boundary. */
-function refusedTarget(
-  audit: AuditLog,
-  requestId: string,
-  scope: AccessScope,
-  error: WriteAccessError,
-): Response {
+function refusedTarget(audit: AuditLog, requestId: string, scope: AccessScope, error: WriteAccessError): Response {
   const denied = auditInput({
     requestId,
     principal: scope.principal,
@@ -245,11 +219,7 @@ interface RouteVerdict {
  * An agent client is granted projects, never the workspace, so a workspace row passes for it
  * the same way. A pass through a project names that project, so a dry run can replay it.
  */
-function routeDecision(
-  scope: AccessScope,
-  row: RouteAction,
-  { resource, mode, resolvedTarget }: RouteCheck,
-): RouteVerdict {
+function routeDecision(scope: AccessScope, row: RouteAction, { resource, mode, resolvedTarget }: RouteCheck): RouteVerdict {
   const decision = scope.authorize(row.action, resource);
   // Identity settings exist only in local mode. Authorization runs first, so a caller without the
   // permission is refused and audited as for any other route.
@@ -320,9 +290,7 @@ function agentRefusal(audit: AuditLog, refusal: AgentRefusal): Response {
  * The policies in auth/authorize.ts give the client the projects of its agents.json entry, so
  * routeDecision passes a workspace row when one of them is readable.
  */
-function clientRouteRefusal(
-  found: ReturnType<typeof routeFor>,
-): Pick<AgentRefusal, 'reason' | 'status'> | null {
+function clientRouteRefusal(found: ReturnType<typeof routeFor>): Pick<AgentRefusal, 'reason' | 'status'> | null {
   if (!found) return { reason: 'unmapped-route', status: 404 };
   if (!found.row.clientAction) return { reason: 'bearer-scope', status: 403 };
   return null;
@@ -390,10 +358,7 @@ export function createAccessMiddleware(
    * Resolves a bearer header into a client principal. Returns nothing when the request carries no
    * bearer header, and an audited 401 when the header cannot be trusted on this route.
    */
-  async function bearerIdentity(
-    request: Request,
-    requestId: string,
-  ): Promise<Principal | Response | undefined> {
+  async function bearerIdentity(request: Request, requestId: string): Promise<Principal | Response | undefined> {
     const authorization = request.headers.get('Authorization') ?? '';
     if (mode !== 'server' || !/^Bearer(\s|$)/i.test(authorization)) return undefined;
     const refuse = (reason: string) => {
@@ -415,11 +380,7 @@ export function createAccessMiddleware(
     }
   }
   /** Audits a visitor who is not signed in, at most once a minute per source address. */
-  function auditAnonymousDenial(
-    request: Request,
-    requestId: string,
-    action: RouteAction['action'],
-  ): Response | null {
+  function auditAnonymousDenial(request: Request, requestId: string, action: RouteAction['action']): Response | null {
     const { record, suppressed } = auditAnonymous(sourceOf(request), 'sign-in-required');
     if (!record) return null;
     return auditDenial(audit, {
@@ -448,17 +409,7 @@ export function createAccessMiddleware(
     if (client instanceof Response) return client;
     // The cross-site check protects cookies a browser sends on its own. A validated bearer token
     // is never sent that way, so a client skips it.
-    if (
-      !client &&
-      mode === 'server' &&
-      !(await validCsrf(
-        request,
-        options.publicOrigin,
-        url.pathname === '/auth/logout'
-          ? (await options.authentication?.session(request))?.csrf
-          : undefined,
-      ))
-    ) {
+    if (!client && mode === 'server' && !(await validCsrf(request, options.publicOrigin, url.pathname === '/auth/logout' ? (await options.authentication?.session(request))?.csrf : undefined))) {
       recordAuthFailure('csrf-invalid');
       return new Response('Forbidden', { status: 403 });
     }
@@ -483,12 +434,7 @@ export function createAccessMiddleware(
     }
     return execute(request, requestId, { row, resource: row.resource(match, url) }, principal);
   }
-  async function execute(
-    request: AccessRequest,
-    requestId: string,
-    target: { row: RouteAction; resource: ResourceRef },
-    principal: Principal,
-  ): Promise<Response> {
+  async function execute(request: AccessRequest, requestId: string, target: { row: RouteAction; resource: ResourceRef }, principal: Principal): Promise<Response> {
     const scope = access.forRequest(principal, { sourceIp: options.sourceIp?.(request) });
     request[requestAccess] = scope;
     setRequestActor(actorPseudonym(scope.principal));
@@ -518,8 +464,7 @@ export function createAccessMiddleware(
     }
     if (trash && !trash.entry) {
       // A missing entry is not a denial; a caller who could not act on any entry still is one.
-      if (decision.allow && !noAccess)
-        return Response.json({ error: 'Not found.' }, { status: 404 });
+      if (decision.allow && !noAccess) return Response.json({ error: 'Not found.' }, { status: 404 });
       decision = { ...decision, allow: false, status: 404 };
     } else if (trash?.entry && !readableTrash(trash.entry, scope)) {
       decision = { allow: false, status: 404, rules: [], reason: 'not-readable' };

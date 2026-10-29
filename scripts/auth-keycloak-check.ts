@@ -1,10 +1,5 @@
 // Runs the owner's compatibility check with an ephemeral, digest-pinned provider.
-import {
-  runCommand as command,
-  waitUntil,
-  isConnectionRetry,
-  withCleanup,
-} from './helpers/processes';
+import { runCommand as command, waitUntil, isConnectionRetry, withCleanup } from './helpers/processes';
 import assert from 'node:assert/strict';
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -18,8 +13,7 @@ import { check, signIn, signInChecks, type SignInTarget } from './helpers/sign-i
 import { liveUpdateCheck } from './auth-lifecycle';
 
 /** Reviewed Linux amd64 provider image used only by owner compatibility checks. */
-export const keycloakImage =
-  'quay.io/keycloak/keycloak:26.4@sha256:4ee8200b0fd00de0e3743b48220f4feadbdb52deb29730ed804f9364bc2be23f';
+export const keycloakImage = 'quay.io/keycloak/keycloak:26.4@sha256:4ee8200b0fd00de0e3743b48220f4feadbdb52deb29730ed804f9364bc2be23f';
 
 /** Rewrites only browser callback addresses in a disposable copy of the test realm. */
 export function keycloakRealm(url: string) {
@@ -52,11 +46,7 @@ export function keycloakArguments(engine: Engine, name: string, port: number, pa
 
 /** Requires realm discovery to identify this instance and its authorization endpoint. */
 export function validDiscovery(body: any, issuer: string) {
-  return (
-    body?.issuer === issuer &&
-    typeof body.authorization_endpoint === 'string' &&
-    body.authorization_endpoint.startsWith(issuer + '/')
-  );
+  return body?.issuer === issuer && typeof body.authorization_endpoint === 'string' && body.authorization_endpoint.startsWith(issuer + '/');
 }
 
 async function waitKeycloak(issuer: string) {
@@ -134,10 +124,7 @@ export async function authKeycloakCheck() {
   });
 }
 
-async function runCompatibility(
-  target: SignInTarget,
-  registerStop: (stop: () => Promise<void>) => void,
-) {
+async function runCompatibility(target: SignInTarget, registerStop: (stop: () => Promise<void>) => void) {
   const api = await startAuthApi(target.url, { issuer: target.issuer, kind: 'keycloak' });
   let browser: Browser | undefined;
   let stopping: Promise<void> | undefined;

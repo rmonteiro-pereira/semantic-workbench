@@ -59,9 +59,7 @@ export async function lastAdminBrowserCheck(browser: Browser) {
     ]);
     await context.route(config.publicUrl + '/**', route => forward(route, handler));
     const page = await context.newPage();
-    const manifest = page.waitForResponse(
-      response => new URL(response.url()).pathname === '/brand/brand.json',
-    );
+    const manifest = page.waitForResponse(response => new URL(response.url()).pathname === '/brand/brand.json');
     await page.goto(config.publicUrl);
     assert.equal((await manifest).status(), 200, 'The in-process server must load its brand');
     const users = await adminArea(page, 'Users & groups');

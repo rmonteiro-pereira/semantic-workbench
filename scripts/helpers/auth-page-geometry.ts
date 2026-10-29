@@ -20,9 +20,7 @@ export function authPageErrors(page: Page): string[] {
 /** Waits for calculation content and a fully fitted model graph before capturing a viewport. */
 export async function assertAuthContentSettled(page: Page): Promise<void> {
   await expect(page.locator('.full-graph-loading')).toHaveCount(0);
-  await expect(
-    page.locator('.metrics-empty[role=status]').filter({ hasText: /^Explaining / }),
-  ).toHaveCount(0);
+  await expect(page.locator('.metrics-empty[role=status]').filter({ hasText: /^Explaining / })).toHaveCount(0);
   if (!(await page.locator('.full-graph').count())) return;
   await expect(page.locator('.full-graph .react-flow__node').first()).toBeVisible();
   await expect.poll(() => graphBoundsProblems(page)).toEqual([]);
@@ -33,11 +31,7 @@ export async function assertAuthContentSettled(page: Page): Promise<void> {
 export async function assertAuthBrandLoaded(page: Page): Promise<void> {
   const logo = page.locator('main .brand img');
   await expect(logo).toBeVisible();
-  await expect
-    .poll(() =>
-      logo.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0),
-    )
-    .toBe(true);
+  await expect.poll(() => logo.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
 }
 
 /** Rejects a collapsed title or a header that consumes the workspace after a refusal. */
@@ -52,13 +46,8 @@ export async function assertAuthHeaderGeometry(page: Page): Promise<void> {
   // A collapsed title is one that is narrow and cut off. The phone header shares its one row with
   // four controls and cuts a long name with an ellipsis by design, so it only needs room for a few
   // letters.
-  const cutOff = await page
-    .locator('.workspace-title h1')
-    .evaluate(heading => heading.scrollWidth > heading.clientWidth + 1);
+  const cutOff = await page.locator('.workspace-title h1').evaluate(heading => heading.scrollWidth > heading.clientWidth + 1);
   const minimumWidth = isPhoneHeader(page) ? 48 : 80;
-  assert(
-    title.width >= minimumWidth || !cutOff,
-    `The document title has only ${title.width}px of width and is cut off`,
-  );
+  assert(title.width >= minimumWidth || !cutOff, `The document title has only ${title.width}px of width and is cut off`);
   assert(header.height <= 120, `The header consumes ${header.height}px`);
 }

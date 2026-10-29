@@ -10,42 +10,10 @@ import { encode } from '../src/server/projects/atomic';
 import { tempDataDir } from './helpers/temp-data-dir';
 test('serializations come from extensions, with .owl sniffed', () => {
   expect(
-    [
-      'a.yaml',
-      'a.yml',
-      'a.odcs',
-      'a.ossie',
-      'a.json',
-      'a.ttl',
-      'a.shacl',
-      'a.nt',
-      'a.n3',
-      'a.rdf',
-      'a.xml',
-      '.gitignore',
-      'dir/.gitignore',
-      'a.csv',
-      'README.md',
-      'a.yaml.workbench-tmp',
-    ].map(p => serializationOf(p)),
-  ).toEqual([
-    'yaml',
-    'yaml',
-    'yaml',
-    'yaml',
-    'json',
-    'turtle',
-    'turtle',
-    'ntriples',
-    'n3',
-    'rdfxml',
-    'rdfxml',
-    'gitignore',
-    'gitignore',
-    'unsupported',
-    'unsupported',
-    'unsupported',
-  ]);
+    ['a.yaml', 'a.yml', 'a.odcs', 'a.ossie', 'a.json', 'a.ttl', 'a.shacl', 'a.nt', 'a.n3', 'a.rdf', 'a.xml', '.gitignore', 'dir/.gitignore', 'a.csv', 'README.md', 'a.yaml.workbench-tmp'].map(p =>
+      serializationOf(p),
+    ),
+  ).toEqual(['yaml', 'yaml', 'yaml', 'yaml', 'json', 'turtle', 'turtle', 'ntriples', 'n3', 'rdfxml', 'rdfxml', 'gitignore', 'gitignore', 'unsupported', 'unsupported', 'unsupported']);
   expect(serializationOf('a.owl', '@prefix ex: <https://e/> .')).toBe('turtle');
   expect(serializationOf('a.owl', '<?xml version="1.0"?><rdf:RDF/>')).toBe('rdfxml');
 });
@@ -89,13 +57,7 @@ test('the scanner lists files through git ls-files, honours .gitignore and hides
     writeFileSync(join(dir, '.gitignore'), 'ignored.yaml\n');
     const scanner = createScanner(layout, cache, git, () => true);
     const first = await scanner.scan('p');
-    expect(first.changed.sort()).toEqual([
-      '.gitignore',
-      'a.yaml',
-      'broken.ttl',
-      'nested/deep.yaml',
-      'notes.csv',
-    ]);
+    expect(first.changed.sort()).toEqual(['.gitignore', 'a.yaml', 'broken.ttl', 'nested/deep.yaml', 'notes.csv']);
     const files = Object.fromEntries(cache.files('p').map(f => [f.path, f]));
     expect(files['ignored.yaml']).toBeUndefined();
     expect(files['notes.csv'].visible).toBe(false);
@@ -120,12 +82,7 @@ test('without Git the scanner walks the folder and skips .git', async () => {
     mkdirSync(join(dir, '.git'), { recursive: true });
     writeFileSync(join(dir, '.git', 'config'), 'x');
     writeFileSync(join(dir, 'a.yaml'), 'name: T\nontology: [{concept: A}]');
-    const scanner = createScanner(
-      layout,
-      cache,
-      createGit({ projectsRoot: layout.projects, binary: '/nonexistent/git' }),
-      () => false,
-    );
+    const scanner = createScanner(layout, cache, createGit({ projectsRoot: layout.projects, binary: '/nonexistent/git' }), () => false);
     expect((await scanner.scan('p')).changed).toEqual(['a.yaml']);
     expect(cache.file('p', 'a.yaml')!.gitState).toBe('unknown');
     cache.close();

@@ -13,8 +13,7 @@ const page = await browser.newPage({ viewport: { width: 1600, height: 1000 } });
 const problems: string[] = [];
 page.on('pageerror', e => problems.push('pageerror: ' + e.message));
 page.on('console', m => {
-  if (m.type() === 'error' || m.type() === 'warning')
-    problems.push(`console ${m.type()}: ${m.text().slice(0, 300)}`);
+  if (m.type() === 'error' || m.type() === 'warning') problems.push(`console ${m.type()}: ${m.text().slice(0, 300)}`);
 });
 await routeApi(page, api);
 const report: any[] = [];
@@ -30,15 +29,7 @@ try {
   await page.goto(appUrl());
   await (await example(page, /Shopping center administration/)).click();
   await expectModelName(page, /Shopping center administration ontology/, { timeout: 30000 });
-  for (const file of [
-    'mall.ontology.yaml',
-    'mall.semantic.yaml',
-    'mall.mapping.yaml',
-    'mall.odcs.yaml',
-    'mall.owl.ttl',
-    'mall.shacl.ttl',
-    'mall-data.ttl',
-  ]) {
+  for (const file of ['mall.ontology.yaml', 'mall.semantic.yaml', 'mall.mapping.yaml', 'mall.odcs.yaml', 'mall.owl.ttl', 'mall.shacl.ttl', 'mall-data.ttl']) {
     const key = file.replace(/\W/g, '_');
     const entry: any = { file, tabs: {} };
     report.push(entry);

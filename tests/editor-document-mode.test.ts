@@ -1,10 +1,6 @@
 /** Verifies the highlighting budget across document opens, replacements and overrides. */
 import { expect, test } from 'bun:test';
-import {
-  initialDocumentMode,
-  largeDocumentThreshold,
-  resolveDocumentMode,
-} from '../src/app/editor/documentMode';
+import { initialDocumentMode, largeDocumentThreshold, resolveDocumentMode } from '../src/app/editor/documentMode';
 
 test('Opening a document uses the strict size threshold', () => {
   expect(initialDocumentMode(largeDocumentThreshold)).toBe(false);
@@ -40,9 +36,7 @@ test('A different document resets the mode regardless of the old mode or overrid
   for (const previous of [false, true]) {
     for (const override of [undefined, false, true]) {
       for (const length of [largeDocumentThreshold, largeDocumentThreshold + 1]) {
-        expect(resolveDocumentMode({ length, previous, override, newDocument: true })).toBe(
-          initialDocumentMode(length),
-        );
+        expect(resolveDocumentMode({ length, previous, override, newDocument: true })).toBe(initialDocumentMode(length));
       }
     }
   }

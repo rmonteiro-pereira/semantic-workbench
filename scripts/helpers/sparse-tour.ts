@@ -15,9 +15,7 @@ async function openRemoteWithFolder(page: Page, folder: string) {
   const dialog = remoteDialog(page);
   await dialog.getByLabel('Remote URL').fill('/tmp/team-repository.git');
   await dialog.getByLabel('Folder in repository').fill(folder);
-  await expect(dialog.locator('.folder-hint')).toContainText(
-    'In server mode, clone the folder instead.',
-  );
+  await expect(dialog.locator('.folder-hint')).toContainText('In server mode, clone the folder instead.');
   return dialog;
 }
 
@@ -32,12 +30,7 @@ async function showMovePreview(page: Page, serverMode = false) {
   const dialog = await openRemoteWithFolder(page, 'semantic/ubl');
   await dialog.getByRole('button', { name: 'Save remote' }).click();
   if (serverMode) {
-    await dialog
-      .getByText(
-        'Choosing a folder for an existing project works in local mode. Clone the folder instead.',
-        { exact: true },
-      )
-      .waitFor();
+    await dialog.getByText('Choosing a folder for an existing project works in local mode. Clone the folder instead.', { exact: true }).waitFor();
     return;
   }
   await dialog.getByRole('list', { name: 'Files that move' }).waitFor();

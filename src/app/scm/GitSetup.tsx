@@ -5,10 +5,7 @@ import { IdentityDialog } from './IdentityDialog';
 import { RemoteDialog } from './RemoteDialog';
 import { CredentialGuide } from './CredentialGuide';
 import { CloneDialog } from './CloneDialog';
-import {
-  RepositoryProjectsDialog,
-  type StartingChoice,
-} from '../projects/RepositoryProjectsDialog';
+import { RepositoryProjectsDialog, type StartingChoice } from '../projects/RepositoryProjectsDialog';
 
 /** Which Git setup dialog is open, and for which project. */
 export type GitSetupDialog =
@@ -39,13 +36,7 @@ export function GitSetupProvider({
   return (
     <GitSetupContext.Provider value={setDialog}>
       {children}
-      {dialog?.kind === 'identity' && (
-        <IdentityDialog
-          project={dialog.project}
-          everyRepository={dialog.everyRepository}
-          onClose={close}
-        />
-      )}
+      {dialog?.kind === 'identity' && <IdentityDialog project={dialog.project} everyRepository={dialog.everyRepository} onClose={close} />}
       {dialog?.kind === 'remote' && <RemoteDialog project={dialog.project} onClose={close} />}
       {dialog?.kind === 'credentials' && <CredentialGuide remote={dialog.remote} onClose={close} />}
       {dialog?.kind === 'clone' && (
@@ -56,9 +47,7 @@ export function GitSetupProvider({
             onOpenProject(slug);
           }}
           onCredentials={remote => setDialog({ kind: 'credentials', remote })}
-          onChooseProjects={repo =>
-            setDialog({ kind: 'repository-projects', repo, start: 'proposed' })
-          }
+          onChooseProjects={repo => setDialog({ kind: 'repository-projects', repo, start: 'proposed' })}
         />
       )}
       {dialog?.kind === 'repository-projects' && (

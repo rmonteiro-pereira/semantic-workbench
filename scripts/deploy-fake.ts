@@ -25,9 +25,7 @@ export const fakeRelease: Release = {
 };
 /** Creates independent preflight fixtures so tests cannot mutate another run's settings. */
 export function fakeApp(): AppSettings {
-  const identity =
-    '/subscriptions/subscription/resourceGroups/group/providers/' +
-    'Microsoft.ManagedIdentity/userAssignedIdentities/id-sw-app';
+  const identity = '/subscriptions/subscription/resourceGroups/group/providers/' + 'Microsoft.ManagedIdentity/userAssignedIdentities/id-sw-app';
   return {
     mode: 'Single',
     minReplicas: 1,
@@ -37,9 +35,7 @@ export function fakeApp(): AppSettings {
     registryIdentity: identity,
     port: 4310,
     ingress: { external: true, allowInsecure: false, transport: 'auto', corsOrigins: [] },
-    secrets: [
-      { name: 'session', url: 'https://sw-vault.vault.azure.net/secrets/session', identity },
-    ],
+    secrets: [{ name: 'session', url: 'https://sw-vault.vault.azure.net/secrets/session', identity }],
     env: {
       SW_MODE: 'server',
       SW_OIDC_ISSUER: 'https://login.microsoftonline.com/tenant/v2.0',

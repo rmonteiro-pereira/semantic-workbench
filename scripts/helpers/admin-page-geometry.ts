@@ -5,22 +5,14 @@ import { tabStripProblems } from './strip-geometry';
 /** Finds clipped Admin tables or ambiguous built-in role headings at the current viewport. */
 export async function adminPageProblems(page: Page): Promise<string[]> {
   // Resize observers update navigation cues before the next painted frame.
-  await page.evaluate(
-    () =>
-      new Promise<void>(resolve =>
-        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
-      ),
-  );
+  await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
   const problems = await page.evaluate(() => {
     const content = document.querySelector('.admin-content');
     if (!content) return [];
     const found: string[] = [];
     for (const table of content.querySelectorAll('.admin-table')) {
       const rows = table.querySelector('table')?.getBoundingClientRect();
-      if (
-        table.scrollHeight > table.clientHeight + 1 ||
-        (rows && rows.height > table.getBoundingClientRect().height + 1)
-      ) {
+      if (table.scrollHeight > table.clientHeight + 1 || (rows && rows.height > table.getBoundingClientRect().height + 1)) {
         found.push('an Admin table clips its rows in a nested vertical scroller');
       }
     }
@@ -37,12 +29,7 @@ export async function adminPageProblems(page: Page): Promise<string[]> {
     }
     return found;
   });
-  return [
-    ...problems,
-    ...(await adminGuidanceProblems(page)),
-    ...(await adminEmptyStateProblems(page)),
-    ...(await tabStripProblems(page)),
-  ];
+  return [...problems, ...(await adminGuidanceProblems(page)), ...(await adminEmptyStateProblems(page)), ...(await tabStripProblems(page))];
 }
 
 async function adminGuidanceProblems(page: Page): Promise<string[]> {
@@ -82,10 +69,7 @@ async function adminEmptyStateProblems(page: Page): Promise<string[]> {
       }
     }
     for (const heading of content.querySelectorAll('h3')) {
-      if (
-        heading.textContent === 'Active sessions' &&
-        !heading.nextElementSibling?.textContent?.trim()
-      ) {
+      if (heading.textContent === 'Active sessions' && !heading.nextElementSibling?.textContent?.trim()) {
         problems.push('the empty active sessions section has no explanation');
       }
     }
@@ -95,10 +79,7 @@ async function adminEmptyStateProblems(page: Page): Promise<string[]> {
     ];
     for (const [scope, label] of scopes) {
       const review = content.querySelector(`[aria-label="${scope}"]`);
-      if (
-        review &&
-        ![...review.querySelectorAll('button')].some(button => button.textContent?.trim() === label)
-      ) {
+      if (review && ![...review.querySelectorAll('button')].some(button => button.textContent?.trim() === label)) {
         problems.push(`the ${scope} preview does not name its scope`);
       }
     }

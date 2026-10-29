@@ -94,12 +94,7 @@ test('server writes require a configured origin and request marker before routin
     ['https://workbench.example', 'https://workbench.example', '0', 403],
     ['https://workbench.example', 'https://workbench.example', '1', 200],
   ] as const) {
-    const handler = createAccessMiddleware(
-      workspace.ws,
-      { mode: 'server', publicOrigin, principal: localPrincipal, access },
-      () => null,
-      run,
-    );
+    const handler = createAccessMiddleware(workspace.ws, { mode: 'server', publicOrigin, principal: localPrincipal, access }, () => null, run);
     const headers = new Headers();
     if (origin) headers.set('Origin', origin);
     if (marker) headers.set('X-SW-Request', marker);
@@ -112,12 +107,7 @@ test('server writes require a configured origin and request marker before routin
     expect(response.status).toBe(status);
   }
   expect(calls).toBe(1);
-  const handler = createAccessMiddleware(
-    workspace.ws,
-    { mode: 'server', principal: localPrincipal, access },
-    () => null,
-    run,
-  );
+  const handler = createAccessMiddleware(workspace.ws, { mode: 'server', principal: localPrincipal, access }, () => null, run);
   expect((await handler(new Request('http://localhost/api/projects'))).status).toBe(200);
 });
 
@@ -152,23 +142,13 @@ test('audit failures preserve completed writes and prevent denied routes from ru
   const logging = spyOn(console, 'error').mockImplementation(() => {});
   try {
     const allowed = createAccessMiddleware(workspace.ws, { audit }, () => null, run);
-    const response = await allowed(
-      new Request('http://localhost/api/projects', { method: 'POST' }),
-    );
+    const response = await allowed(new Request('http://localhost/api/projects', { method: 'POST' }));
     expect(response.status).toBe(201);
     expect(await response.text()).toBe('created');
     expect(logging).toHaveBeenCalledTimes(1);
     expect(logging.mock.calls[0][0]).toContain(response.headers.get('X-Request-Id')!);
-    for (const principal of [
-      null,
-      { ...localPrincipal(), kind: 'person' as const, id: 'nobody', grants: [] },
-    ]) {
-      const denied = createAccessMiddleware(
-        workspace.ws,
-        { audit, principal: () => principal },
-        () => null,
-        run,
-      );
+    for (const principal of [null, { ...localPrincipal(), kind: 'person' as const, id: 'nobody', grants: [] }]) {
+      const denied = createAccessMiddleware(workspace.ws, { audit, principal: () => principal }, () => null, run);
       expect((await denied(new Request('http://localhost/api/projects'))).status).toBe(503);
     }
     expect(calls).toBe(1);

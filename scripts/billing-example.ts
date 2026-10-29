@@ -134,11 +134,7 @@ const definitions: [string, string, [string, string, string][]][] = [
   ['BillingCycle', 'billing_cycles', []],
   ['Currency', 'currencies', []],
   ['PaymentMethod', 'payment_methods', []],
-  [
-    'RevenueRecognitionSchedule',
-    'recognition_schedules',
-    [['invoice_line', 'InvoiceLine', 'invoice_line_id']],
-  ],
+  ['RevenueRecognitionSchedule', 'recognition_schedules', [['invoice_line', 'InvoiceLine', 'invoice_line_id']]],
   ['JournalEntry', 'journal_entries', [['legal_entity', 'LegalEntity', 'legal_entity_id']]],
   [
     'JournalLine',
@@ -160,8 +156,7 @@ const byConcept = new Map(definitions.map(d => [d[0], d]));
 const ontology: any = {
   version: '0.2.0.dev0',
   name: 'Subscription billing ontology',
-  description:
-    'Fictional subscription-to-cash model: account governance, contracts, entitlements, usage, invoicing, collections and revenue recognition.',
+  description: 'Fictional subscription-to-cash model: account governance, contracts, entitlements, usage, invoicing, collections and revenue recognition.',
   ai_context: {
     instructions:
       'InvoiceLine is the revenue grain. NetRevenue excludes tax and credits. RecurringRevenue excludes usage-only lines. This fixture is USD-only; do not combine currencies in production without governed conversion. Account can mean billed or subscribed account; do not infer that those roles are equivalent.',
@@ -340,48 +335,28 @@ const rows: Record<string, Record<string, any>[]> = {
     currency_id: 1,
     invoice_date: i < 3 ? '2026-03-31' : '2026-04-30',
   })),
-  invoice_lines: lines.map(
-    ([
-      id,
-      invoice_id,
-      subscription_item_id,
-      quantity,
-      unit_price,
-      discount_amount,
-      tax_amount,
-      is_recurring,
-    ]) => ({
-      id,
-      name: `Line ${id}`,
-      invoice_id,
-      subscription_item_id,
-      quantity,
-      unit_price,
-      discount_amount,
-      tax_amount,
-      is_recurring,
-    }),
-  ),
+  invoice_lines: lines.map(([id, invoice_id, subscription_item_id, quantity, unit_price, discount_amount, tax_amount, is_recurring]) => ({
+    id,
+    name: `Line ${id}`,
+    invoice_id,
+    subscription_item_id,
+    quantity,
+    unit_price,
+    discount_amount,
+    tax_amount,
+    is_recurring,
+  })),
 };
-const literal = (value: any) =>
-  value == null
-    ? 'NULL'
-    : typeof value === 'number'
-      ? String(value)
-      : "'" + String(value).replaceAll("'", "''") + "'";
-let sql =
-  "-- Synthetic USD-only fixture, for isolated tests. Not a warehouse migration.\nATTACH ':memory:' AS billing;\n";
+const literal = (value: any) => (value == null ? 'NULL' : typeof value === 'number' ? String(value) : "'" + String(value).replaceAll("'", "''") + "'");
+let sql = "-- Synthetic USD-only fixture, for isolated tests. Not a warehouse migration.\nATTACH ':memory:' AS billing;\n";
 for (const d of semantic.datasets) {
   const columns = d.fields.filter((f: any) => f.name !== 'net_amount').map((f: any) => f.name);
   sql += `CREATE TABLE billing.${d.name} (${columns.map((c: string) => c + ' ' + (c === 'id' ? 'INTEGER PRIMARY KEY' : ['name', 'tier', 'code', 'invoice_date'].includes(c) ? 'TEXT' : 'REAL')).join(', ')});\n`;
-  for (const row of rows[d.name] ?? [])
-    sql += `INSERT INTO billing.${d.name} (${columns.join(', ')}) VALUES (${columns.map((c: string) => literal(row[c])).join(', ')});\n`;
+  for (const row of rows[d.name] ?? []) sql += `INSERT INTO billing.${d.name} (${columns.join(', ')}) VALUES (${columns.map((c: string) => literal(row[c])).join(', ')});\n`;
 }
 const dir = 'public/examples/billing';
 const CONTRACT_FILE = 'billing.odcs.yaml';
-const CONTRACT_LABEL =
-  '# Workbench addition: the data contract that the governed metrics of this example bind to.\n' +
-  '# It is not part of any upstream standard example.\n';
+const CONTRACT_LABEL = '# Workbench addition: the data contract that the governed metrics of this example bind to.\n' + '# It is not part of any upstream standard example.\n';
 await mkdir(dir, { recursive: true });
 for (const [filename, data] of [
   ['billing.ontology.yaml', ontology],
@@ -395,18 +370,15 @@ for (const [filename, data] of [
 }
 await Bun.write(`${dir}/fixture.sql`, sql);
 const docs = await Promise.all(
-  ['billing.mapping.yaml', 'billing.ontology.yaml', 'billing.semantic.yaml'].map(
-    async (filename, i) => ({
-      id: 'billing-' + i,
-      filename,
-      revision: 1,
-      source: await Bun.file(`${dir}/${filename}`).text(),
-    }),
-  ),
+  ['billing.mapping.yaml', 'billing.ontology.yaml', 'billing.semantic.yaml'].map(async (filename, i) => ({
+    id: 'billing-' + i,
+    filename,
+    revision: 1,
+    source: await Bun.file(`${dir}/${filename}`).text(),
+  })),
 );
 const context = buildContext(docs, 'billing-0');
-if (context.findings.some(f => f.severity === 'error'))
-  throw Error(JSON.stringify(context.findings));
+if (context.findings.some(f => f.severity === 'error')) throw Error(JSON.stringify(context.findings));
 await Bun.write(
   `${dir}/expected.json`,
   JSON.stringify(

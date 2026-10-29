@@ -1,10 +1,6 @@
 // Exercises lock transitions with an in-memory filesystem and a controlled clock.
 import { expect, test } from 'bun:test';
-import {
-  createInstanceLock,
-  lockDecision,
-  revisionIdentity,
-} from '../../src/server/projects/instance-lock';
+import { createInstanceLock, lockDecision, revisionIdentity } from '../../src/server/projects/instance-lock';
 import type { InstanceRecord } from '../../src/server/projects/instance-lock';
 
 const record = (revision = 'old', heartbeat = 0): InstanceRecord => ({
@@ -165,9 +161,7 @@ for (const signal of ['SIGTERM', 'SIGINT'] as const) {
     const root = mkdtempSync(join(tmpdir(), 'workbench-signal-'));
     const path = join(root, 'state/instance.lock');
     const source = `
-      import { createInstanceLock, instanceLockFiles } from ${JSON.stringify(
-        resolve('src/server/projects/instance-lock.ts'),
-      )};
+      import { createInstanceLock, instanceLockFiles } from ${JSON.stringify(resolve('src/server/projects/instance-lock.ts'))};
       import { installShutdownHandlers } from ${JSON.stringify(resolve('src/server/shutdown.ts'))};
       const lock = createInstanceLock({
         host: 'test', pid: process.pid, revision: 'dev', now: Date.now,

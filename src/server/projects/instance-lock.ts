@@ -23,11 +23,7 @@ export type LockFiles = {
   remove(): void;
 };
 /** Chooses the platform revision or the complete build identity. */
-export function revisionIdentity(config: {
-  revision: string | null;
-  version: string | null;
-  commit: string | null;
-}): string {
+export function revisionIdentity(config: { revision: string | null; version: string | null; commit: string | null }): string {
   if (config.revision) return config.revision;
   if (config.version && config.commit) return `${config.version}+${config.commit}`;
   return 'dev';
@@ -43,9 +39,7 @@ function readRecord(path: string): InstanceRecord | null {
   if (value === null) return null;
   if (
     typeof value.instance !== 'string' ||
-    !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-      value.instance,
-    ) ||
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value.instance) ||
     typeof value.host !== 'string' ||
     !Number.isSafeInteger(value.pid) ||
     typeof value.revision !== 'string' ||
@@ -98,15 +92,7 @@ export function instanceLockFiles(path: string, now = Date.now): LockFiles {
 }
 
 /** Runs lease transitions; callers tick every ten seconds and close after workspace shutdown. */
-export function createInstanceLock(options: {
-  host: string;
-  pid: number;
-  revision: string;
-  now(): number;
-  files: LockFiles;
-  open(): Promise<void>;
-  log(message: string): void;
-}) {
+export function createInstanceLock(options: { host: string; pid: number; revision: string; now(): number; files: LockFiles; open(): Promise<void>; log(message: string): void }) {
   const instance = randomUUID();
   let state: InstanceState = 'starting';
   let nextCheck = -Infinity;

@@ -2,12 +2,7 @@
 // which remote hosts server mode may reach at all.
 import { randomBytes, timingSafeEqual } from 'node:crypto';
 import type { ServerConfig } from '../config';
-import {
-  AZURE_DEVOPS_HOSTS,
-  allowedRemoteAddresses,
-  allowedRemoteHost,
-  credentialKind,
-} from './remote-hosts';
+import { AZURE_DEVOPS_HOSTS, allowedRemoteAddresses, allowedRemoteHost, credentialKind } from './remote-hosts';
 import { githubOAuth } from './github-oauth';
 import type { RemoteAddresses, RemoteCredential } from '../projects/git';
 import type { WorkbenchSettings } from './admin-repo';
@@ -32,12 +27,7 @@ export class ConnectRequiredError extends Error {
     readonly connect: 'github' | 'azure-devops',
     options?: ErrorOptions,
   ) {
-    super(
-      connect === 'github'
-        ? 'Connect your GitHub account to continue.'
-        : 'Sign in again so the workbench can reach Azure DevOps on your behalf.',
-      options,
-    );
+    super(connect === 'github' ? 'Connect your GitHub account to continue.' : 'Sign in again so the workbench can reach Azure DevOps on your behalf.', options);
     this.name = 'ConnectRequiredError';
   }
 }
@@ -88,10 +78,7 @@ export type RemoteCredentialDependencies = RemoteCredentialOptions & {
  * Applies a change to the latest remote tokens of the session, under the session's own lock, so
  * two requests that each obtain a token keep both. Refuses an ended session.
  */
-type SaveRemote = (
-  session: Session,
-  change: (remote: RemoteTokens) => RemoteTokens,
-) => Promise<void>;
+type SaveRemote = (session: Session, change: (remote: RemoteTokens) => RemoteTokens) => Promise<void>;
 
 // Forgets a GitHub token unless another request of the session has already replaced it.
 function withoutGitHub(remote: RemoteTokens, token: string): RemoteTokens {
@@ -159,13 +146,8 @@ export function createRemoteCredentials(deps: RemoteCredentialDependencies) {
 
 // Tokens for Azure DevOps come from the provider on the person's behalf and are reused until
 // shortly before they expire.
-function azureDevOpsAccount(
-  deps: RemoteCredentialDependencies,
-  save: SaveRemote,
-  now: () => number,
-) {
-  const enabled = () =>
-    deps.config.adoOnBehalfOf && deps.settings().remote?.azureDevOpsObo === true;
+function azureDevOpsAccount(deps: RemoteCredentialDependencies, save: SaveRemote, now: () => number) {
+  const enabled = () => deps.config.adoOnBehalfOf && deps.settings().remote?.azureDevOpsObo === true;
   // A token obtained earlier in the session that is still valid for a whole command.
   function cached(session: Session) {
     const stored = session.remote?.azureDevOps;
@@ -223,9 +205,7 @@ function gitHubAccount(deps: RemoteCredentialDependencies, save: SaveRemote, now
     const refreshToken = stored.refreshToken!;
     let pending = renewing.get(session.id);
     if (!pending) {
-      pending = renew(session, { token: stored.token, refreshToken }).finally(() =>
-        renewing.delete(session.id),
-      );
+      pending = renew(session, { token: stored.token, refreshToken }).finally(() => renewing.delete(session.id));
       renewing.set(session.id, pending);
     }
     return pending;
@@ -255,10 +235,7 @@ function gitHubAccount(deps: RemoteCredentialDependencies, save: SaveRemote, now
     });
     const returnTo = attempt?.returnTo ?? '/';
     const code = params.get('code');
-    const matches =
-      attempt !== undefined &&
-      attempt.expiresAt > now() &&
-      sameText(attempt.state, params.get('state') ?? '');
+    const matches = attempt !== undefined && attempt.expiresAt > now() && sameText(attempt.state, params.get('state') ?? '');
     if (!app || !code || !matches) return { returnTo, connected: false };
     try {
       const github = await oauth.request(app, {

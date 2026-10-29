@@ -6,8 +6,7 @@ import { person } from './access-fixture';
 import { copyFolder, gitOutput, openCopy, salesViewer, signedIn } from './working-copy-fixture';
 
 const PROJECT = '/api/projects/sales-contracts';
-const switchTo = (branch: string, create = false) =>
-  [`${PROJECT}/git/switch`, 'POST', { branch, create }] as const;
+const switchTo = (branch: string, create = false) => [`${PROJECT}/git/switch`, 'POST', { branch, create }] as const;
 
 test('a work branch of another person is refused even when no copy holds it', async () => {
   using fixture = await authWorkspace();
@@ -40,8 +39,7 @@ test('the branch list shows a person only their own work branch', async () => {
   const base = copyFolder(fixture.ws, alice.principal.key, 'sales-contracts');
   gitOutput(base, ['update-ref', 'refs/remotes/origin/work/alice', 'HEAD']);
 
-  const branchesOf = async (who: typeof alice) =>
-    (await who.call(`${PROJECT}/git/branches`)).body as { local: string[]; remote: string[] };
+  const branchesOf = async (who: typeof alice) => (await who.call(`${PROJECT}/git/branches`)).body as { local: string[]; remote: string[] };
   const seenByFrank = await branchesOf(frank);
   expect(seenByFrank.local).toContain('work/frank');
   expect(seenByFrank.local).not.toContain('work/alice');

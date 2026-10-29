@@ -17,14 +17,10 @@ export type IsolatedApi = {
   stop(): Promise<void>;
 };
 /** Starts a temporary API workspace, optionally using the supplied data root. */
-export async function startIsolatedApi(
-  options: { root?: string; watch?: boolean; gitBinary?: string } = {},
-): Promise<IsolatedApi> {
+export async function startIsolatedApi(options: { root?: string; watch?: boolean; gitBinary?: string } = {}): Promise<IsolatedApi> {
   // Routine request lines would bury a check's own output.
   configureLogging({ level: 'error', format: 'text' });
-  const dir = options.root
-    ? { root: options.root, cleanup: () => rmSync(options.root!, { recursive: true, force: true }) }
-    : tempDataDir('workbench-browser-');
+  const dir = options.root ? { root: options.root, cleanup: () => rmSync(options.root!, { recursive: true, force: true }) } : tempDataDir('workbench-browser-');
   let port = 0;
   const start = async () => {
     const ws = await openWorkspace({
@@ -53,8 +49,7 @@ export async function startIsolatedApi(
     async restart({ deleteCache = false } = {}) {
       await current.server.stop(true);
       current.ws.close();
-      if (deleteCache)
-        for (const s of ['', '-wal', '-shm']) rmSync(current.ws.layout.cache + s, { force: true });
+      if (deleteCache) for (const s of ['', '-wal', '-shm']) rmSync(current.ws.layout.cache + s, { force: true });
       current = await start();
     },
     async stop() {
@@ -68,11 +63,7 @@ export async function startIsolatedApi(
 // Forward every /api request of the page to the isolated API. `intercept` may answer a request
 // itself (fault injection) by returning true.
 /** Routes page requests to the isolated API; an interceptor may handle a request itself. */
-export async function routeApi(
-  page: Page,
-  api: IsolatedApi,
-  intercept?: (route: Route) => Promise<boolean> | boolean,
-) {
+export async function routeApi(page: Page, api: IsolatedApi, intercept?: (route: Route) => Promise<boolean> | boolean) {
   await page.route('**/api/**', async route => {
     if (intercept && (await intercept(route))) return;
     const target = new URL(route.request().url());

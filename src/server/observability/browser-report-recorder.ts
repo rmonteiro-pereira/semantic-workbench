@@ -1,11 +1,6 @@
 // Turns checked browser reports into log events and metrics. The browser only sends errors and
 // timings; here they are re-scrubbed, because the server must not trust what a browser says.
-import {
-  isOverBudget,
-  OPERATION_BUDGETS_MS,
-  scrubErrorMessage,
-  type BrowserReport,
-} from '../../shared/observability/browser-report';
+import { isOverBudget, OPERATION_BUDGETS_MS, scrubErrorMessage, type BrowserReport } from '../../shared/observability/browser-report';
 import { log } from './log';
 import { recordBrowserError, recordBrowserOperation } from './metrics';
 

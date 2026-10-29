@@ -371,25 +371,14 @@ export function adminMockResponse(url: URL, method: string, state: AdminMockStat
 export async function buildAdminHarness(): Promise<{ script: string; style: string }> {
   const outdir = await mkdtemp(join(tmpdir(), 'admin-harness-'));
   try {
-    const build = Bun.spawnSync(
-      [
-        process.execPath,
-        'build',
-        'tests/harness/admin-harness.tsx',
-        '--target=browser',
-        '--outdir',
-        outdir,
-        '--define',
-        'process.env.NODE_ENV="development"',
-      ],
-      { stdout: 'pipe', stderr: 'pipe' },
-    );
+    const build = Bun.spawnSync([process.execPath, 'build', 'tests/harness/admin-harness.tsx', '--target=browser', '--outdir', outdir, '--define', 'process.env.NODE_ENV="development"'], {
+      stdout: 'pipe',
+      stderr: 'pipe',
+    });
     if (build.exitCode !== 0) throw new Error(build.stderr.toString());
     const files = await readdir(outdir);
     const styles = files.filter(file => file.endsWith('.css'));
-    const style = (await Promise.all(styles.map(file => Bun.file(join(outdir, file)).text()))).join(
-      '\n',
-    );
+    const style = (await Promise.all(styles.map(file => Bun.file(join(outdir, file)).text()))).join('\n');
     return { script: await Bun.file(join(outdir, 'admin-harness.js')).text(), style };
   } finally {
     await rm(outdir, { recursive: true, force: true });

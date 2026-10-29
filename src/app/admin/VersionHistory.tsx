@@ -10,11 +10,7 @@ import { DiffView } from '../scm/DiffView';
 import type { DryRun, VersionDiff } from './types';
 
 /** Compares administration versions and rolls back after reviewing who gains or loses access. */
-export function VersionHistory({
-  area = '',
-  backLabel,
-  onBack,
-}: PaneProps & { area?: string; backLabel: string }) {
+export function VersionHistory({ area = '', backLabel, onBack }: PaneProps & { area?: string; backLabel: string }) {
   const load = useCallback(async () => {
     const current = await adminApi.versions();
     const versions = area ? await adminApi.versions(area) : current;
@@ -81,11 +77,7 @@ export function VersionHistory({
   return (
     <AdminPane title="Version history" backLabel={backLabel} onBack={onBack}>
       {(error || loadError) && <p role="alert">{error || loadError}</p>}
-      <SelectField
-        label="Version"
-        value={selected}
-        onChange={event => selectVersion(event.target.value)}
-      >
+      <SelectField label="Version" value={selected} onChange={event => selectVersion(event.target.value)}>
         <option value="">Choose a version</option>
         {data?.versions.map(item => (
           <option key={item.version} value={item.version}>
@@ -93,11 +85,7 @@ export function VersionHistory({
           </option>
         ))}
       </SelectField>
-      <SelectField
-        label="Compare against"
-        value={against}
-        onChange={event => selectAgainst(event.target.value)}
-      >
+      <SelectField label="Compare against" value={against} onChange={event => selectAgainst(event.target.value)}>
         <option value="">Previous version</option>
         {data?.versions.map(item => (
           <option key={item.version} value={item.version}>
@@ -109,15 +97,7 @@ export function VersionHistory({
         Show diff
       </button>
       {diff?.map(file => (
-        <DiffView
-          key={file.file}
-          filename={file.file}
-          before={file.before}
-          after={file.after}
-          beforeLabel={against || 'Previous version'}
-          afterLabel={selected}
-          label={file.file}
-        />
+        <DiffView key={file.file} filename={file.file} before={file.before} after={file.after} beforeLabel={against || 'Previous version'} afterLabel={selected} label={file.file} />
       ))}
       <button disabled={!selected || busy || !diff} onClick={previewRollback}>
         Roll back
@@ -133,10 +113,7 @@ export function VersionHistory({
             </button>
           }
         >
-          <p>
-            Restoring version {selected} creates a new commit. Review who gains or loses access,
-            then confirm.
-          </p>
+          <p>Restoring version {selected} creates a new commit. Review who gains or loses access, then confirm.</p>
           <DryRunResult result={review} />
         </AdminConfirmation>
       )}

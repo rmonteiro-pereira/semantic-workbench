@@ -46,13 +46,7 @@ function usePanelTop(button: React.RefObject<HTMLButtonElement | null>, open: bo
  * On a wide window the children sit in the toolbar as they are. On a phone they sit in a panel
  * behind one button, so the canvas keeps its height.
  */
-export function CompactControls({
-  label = 'Controls',
-  children,
-}: {
-  label?: string;
-  children: ReactNode;
-}) {
+export function CompactControls({ label = 'Controls', children }: { label?: string; children: ReactNode }) {
   const compact = useCompactToolbar();
   const [open, setOpen] = useState(false);
   const button = useRef<HTMLButtonElement>(null);
@@ -62,8 +56,7 @@ export function CompactControls({
     if (!canvas) return;
     // The panel closes when the canvas changes shape: full screen toggles, or the details sheet
     // opens below the graph and the panel would lie over its controls.
-    const shapeOf = () =>
-      ['is-fullscreen', 'has-inspector'].map(name => canvas.classList.contains(name)).join();
+    const shapeOf = () => ['is-fullscreen', 'has-inspector'].map(name => canvas.classList.contains(name)).join();
     let shape = shapeOf();
     const observer = new MutationObserver(() => {
       const current = shapeOf();
@@ -84,22 +77,12 @@ export function CompactControls({
   if (!compact) return <>{children}</>;
   return (
     <span className="compact-controls">
-      <button
-        ref={button}
-        aria-expanded={open}
-        aria-haspopup="true"
-        onClick={() => setOpen(value => !value)}
-      >
+      <button ref={button} aria-expanded={open} aria-haspopup="true" onClick={() => setOpen(value => !value)}>
         <SlidersHorizontal size={14} />
         {label}
       </button>
       {open && (
-        <div
-          className="compact-controls-panel"
-          role="group"
-          aria-label="Graph controls"
-          style={{ top }}
-        >
+        <div className="compact-controls-panel" role="group" aria-label="Graph controls" style={{ top }}>
           {children}
         </div>
       )}

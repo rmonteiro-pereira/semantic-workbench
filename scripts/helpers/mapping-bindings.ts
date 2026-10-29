@@ -3,9 +3,7 @@ import { expect, type Page } from '@playwright/test';
 /** The number of resolved bindings the Mappings tab reports, however many cards it renders. */
 export async function expectResolvedBindings(page: Page, count: number) {
   const noun = count === 1 ? 'binding' : 'bindings';
-  await expect(page.locator('.mapping-bindings > summary')).toContainText(
-    `${count} resolved ${noun}`,
-  );
+  await expect(page.locator('.mapping-bindings > summary')).toContainText(`${count} resolved ${noun}`);
 }
 
 /** Presses "Show more" in every dataset group until every binding card is rendered. */

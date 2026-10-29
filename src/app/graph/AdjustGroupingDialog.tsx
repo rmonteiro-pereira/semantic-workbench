@@ -11,8 +11,7 @@ type Props = {
   onClose: () => void;
 };
 
-const firstId = <T extends { id: string }>(items: T[], wanted: string) =>
-  items.some(item => item.id === wanted) ? wanted : (items[0]?.id ?? '');
+const firstId = <T extends { id: string }>(items: T[], wanted: string) => (items.some(item => item.id === wanted) ? wanted : (items[0]?.id ?? ''));
 
 /** Lists the current groups and moves one entity at a time to another or a new group. */
 export function AdjustGroupingDialog({ overview, value, onChange, onClose }: Props) {
@@ -54,12 +53,7 @@ export function AdjustGroupingDialog({ overview, value, onChange, onClose }: Pro
       <button type="button" onClick={onClose}>
         Close
       </button>
-      <button
-        type="button"
-        className="primary"
-        disabled={!selected || (!destination && !newName.trim())}
-        onClick={applyCorrection}
-      >
+      <button type="button" className="primary" disabled={!selected || (!destination && !newName.trim())} onClick={applyCorrection}>
         Apply grouping correction
       </button>
     </>
@@ -67,18 +61,11 @@ export function AdjustGroupingDialog({ overview, value, onChange, onClose }: Pro
 
   return (
     <Modal title="Adjust grouping" onCancel={onClose} footer={footer} className="adjust-grouping">
-      <p className="adjust-grouping-intro">
-        Corrections are saved with this document’s view in the workbench’s state folder, not in the
-        file. Export keeps the original definition.
-      </p>
+      <p className="adjust-grouping-intro">Corrections are saved with this document’s view in the workbench’s state folder, not in the file. Export keeps the original definition.</p>
       <div className="adjust-grouping-form">
         <label>
           <span>Entity</span>
-          <select
-            aria-label="Entity to regroup"
-            value={selected}
-            onChange={e => setEntity(e.target.value)}
-          >
+          <select aria-label="Entity to regroup" value={selected} onChange={e => setEntity(e.target.value)}>
             {overview.entities.map(e => (
               <option key={e.id} value={e.id}>
                 {e.name}
@@ -88,11 +75,7 @@ export function AdjustGroupingDialog({ overview, value, onChange, onClose }: Pro
         </label>
         <label>
           <span>Move to</span>
-          <select
-            aria-label="Move to group"
-            value={destination}
-            onChange={e => setGroup(e.target.value)}
-          >
+          <select aria-label="Move to group" value={destination} onChange={e => setGroup(e.target.value)}>
             {overview.groups.map(g => (
               <option key={g.id} value={g.id}>
                 {g.name}
@@ -102,13 +85,7 @@ export function AdjustGroupingDialog({ overview, value, onChange, onClose }: Pro
         </label>
         <label>
           <span>Or create</span>
-          <input
-            aria-label="New group name"
-            placeholder="New group name"
-            maxLength={100}
-            value={newName}
-            onChange={e => setNewName(e.target.value)}
-          />
+          <input aria-label="New group name" placeholder="New group name" maxLength={100} value={newName} onChange={e => setNewName(e.target.value)} />
         </label>
       </div>
       <h3>Groups</h3>
@@ -129,8 +106,7 @@ export function AdjustGroupingDialog({ overview, value, onChange, onClose }: Pro
           <ul className="adjust-grouping-corrections" aria-label="Grouping corrections">
             {corrections.map(([id, target]) => (
               <li key={id}>
-                {entityName.get(id) ?? id} →{' '}
-                {value.names?.[target] ?? groupName.get(target) ?? target}
+                {entityName.get(id) ?? id} → {value.names?.[target] ?? groupName.get(target) ?? target}
               </li>
             ))}
           </ul>

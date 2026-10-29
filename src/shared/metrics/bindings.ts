@@ -34,20 +34,13 @@ export function resolveConcept(input: string, ontology: any): string | null {
   return hit?.concept ?? null;
 }
 /** Validates metric bindings against known metrics and ontology concepts. */
-export function resolveBindings(
-  bindings: KpiBinding[],
-  ontology: any,
-  metricNames: Set<string>,
-): ResolvedBinding[] {
+export function resolveBindings(bindings: KpiBinding[], ontology: any, metricNames: Set<string>): ResolvedBinding[] {
   return bindings.map(b => {
     const problems: string[] = [];
-    if (!metricNames.has(b.metric))
-      problems.push(`Metric "${b.metric}" is not in the referenced semantic model.`);
+    if (!metricNames.has(b.metric)) problems.push(`Metric "${b.metric}" is not in the referenced semantic model.`);
     const measures = { input: b.measures, concept: resolveConcept(b.measures, ontology) };
-    if (!measures.concept)
-      problems.push(`Concept "${b.measures}" is not in the referenced ontology.`);
-    const of =
-      b.of === undefined ? undefined : { input: b.of, concept: resolveConcept(b.of, ontology) };
+    if (!measures.concept) problems.push(`Concept "${b.measures}" is not in the referenced ontology.`);
+    const of = b.of === undefined ? undefined : { input: b.of, concept: resolveConcept(b.of, ontology) };
     if (of && !of.concept) problems.push(`Concept "${b.of}" is not in the referenced ontology.`);
     return {
       metric: b.metric,
@@ -60,18 +53,11 @@ export function resolveBindings(
 }
 
 /** Reads concept mappings whose expression is exactly a governed metric's name. */
-export function mappingExpressionBindings(
-  mapping: any,
-  metricNames: Set<string>,
-): ResolvedBinding[] {
+export function mappingExpressionBindings(mapping: any, metricNames: Set<string>): ResolvedBinding[] {
   const out: ResolvedBinding[] = [];
   for (const cm of Array.isArray(mapping?.concept_mappings) ? mapping.concept_mappings : [])
     for (const om of Array.isArray(cm?.object_mappings) ? cm.object_mappings : [])
-      if (
-        typeof om?.expression === 'string' &&
-        metricNames.has(om.expression.trim()) &&
-        typeof cm.concept === 'string'
-      )
+      if (typeof om?.expression === 'string' && metricNames.has(om.expression.trim()) && typeof cm.concept === 'string')
         out.push({
           metric: om.expression.trim(),
           measures: { input: cm.concept, concept: cm.concept },

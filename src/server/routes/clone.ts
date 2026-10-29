@@ -14,29 +14,17 @@ export function cloneRoutes(administration: AdminRepository): Route {
     const path = url.pathname;
     if (path === '/api/clone' && req.method === 'POST') {
       const body = await readJson(req, 16_000);
-      if (
-        !body ||
-        typeof body !== 'object' ||
-        Array.isArray(body) ||
-        Object.keys(body).some(
-          key => !['url', 'name', 'domain', 'folder', 'createFolder'].includes(key),
-        )
-      )
+      if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).some(key => !['url', 'name', 'domain', 'folder', 'createFolder'].includes(key)))
         throw new BadRequestError('Expected {url, name?, folder?, createFolder?}.');
-      if (body.createFolder !== undefined && typeof body.createFolder !== 'boolean')
-        throw new BadRequestError('createFolder must be true or false.');
+      if (body.createFolder !== undefined && typeof body.createFolder !== 'boolean') throw new BadRequestError('createFolder must be true or false.');
       if (!ws.gitAvailable) throw new BadRequestError('Git is not available on this machine.');
       const domain = creationDomain(req, body.domain);
       // Also refuses a host that is not allowed, before anything is cloned.
       const { address, credential } = await cloneCredential(req, body.url);
-      const result = ws.clone(
-        address,
-        body.name,
-        requestReader(req),
-        slugs => assignProjectDomains({ ws, administration }, req, slugs, domain),
-        credential,
-        { folder: body.folder, createFolder: body.createFolder },
-      );
+      const result = ws.clone(address, body.name, requestReader(req), slugs => assignProjectDomains({ ws, administration }, req, slugs, domain), credential, {
+        folder: body.folder,
+        createFolder: body.createFolder,
+      });
       return Response.json(result);
     }
     const cancel = path.match(/^\/api\/clone\/([a-z0-9-]+)\/cancel$/);

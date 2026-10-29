@@ -65,10 +65,7 @@ export const moveMessage = (folder: string) => `Move the project into ${folder}`
 // Moving a project works on the person's own checkout; server mode makes the per-person working
 // copies by cloning the folder instead.
 function assertLocalMode(reader: Reader) {
-  if (reader.view !== undefined || reader.copy !== undefined)
-    throw new BadRequestError(
-      'Choosing a folder for an existing project works in local mode. Clone the folder instead.',
-    );
+  if (reader.view !== undefined || reader.copy !== undefined) throw new BadRequestError('Choosing a folder for an existing project works in local mode. Clone the folder instead.');
 }
 
 /** Creates the preview and apply steps for a project's folder in its repository. */
@@ -84,11 +81,7 @@ export function createProjectFolders(deps: ProjectFolderDeps) {
   // The registry with this project living in the folder of its repository.
   function withFolder(entry: ProjectEntry, folder: string) {
     const { repo } = locationOf(entry);
-    return deps
-      .projects()
-      .map(project =>
-        project.slug === entry.slug ? { ...project, folder: `${repo}/${folder}`, repo } : project,
-      );
+    return deps.projects().map(project => (project.slug === entry.slug ? { ...project, folder: `${repo}/${folder}`, repo } : project));
   }
 
   async function situation(slug: string) {
@@ -108,9 +101,7 @@ export function createProjectFolders(deps: ProjectFolderDeps) {
     const { entries } = await git.status(place.dir);
     const blocked = blockers(deps.drafts(slug), entries);
     if (blocked) return { reason: blocked.reason, paths: blocked.paths };
-    const left = entries
-      .filter(entry => entry.untracked && leaving !== '' && entry.path.startsWith(leaving + '/'))
-      .map(entry => entry.path);
+    const left = entries.filter(entry => entry.untracked && leaving !== '' && entry.path.startsWith(leaving + '/')).map(entry => entry.path);
     return left.length ? { reason: 'dirty' as const, paths: left } : undefined;
   }
 
@@ -119,14 +110,10 @@ export function createProjectFolders(deps: ProjectFolderDeps) {
     const folder = repositoryFolder(requested);
     if (!folder) throw new BadRequestError('Give the folder of the repository.');
     const place = await situation(slug);
-    if (place.siblings.length > 1)
-      throw new BadRequestError(
-        'This project shares its repository with other projects. Clone the folder instead.',
-      );
+    if (place.siblings.length > 1) throw new BadRequestError('This project shares its repository with other projects. Clone the folder instead.');
     if (place.checkedOut.length) return previewChange(slug, place, folder);
     if (place.current === folder) return previewFinish(slug, place, folder);
-    if (place.current)
-      throw new BadRequestError('This project already lives in a folder of its repository.');
+    if (place.current) throw new BadRequestError('This project already lives in a folder of its repository.');
     const moves = plannedMoves(await git.lsFiles(place.dir), folder);
     const blocked = await blockedBy(slug, place, '');
     return {
@@ -151,9 +138,7 @@ export function createProjectFolders(deps: ProjectFolderDeps) {
       moves: [],
       moveCount: 0,
       existsOnBranch: recorded,
-      ...(deps.drafts(slug).length
-        ? { blocked: { reason: 'drafts' as const, paths: deps.drafts(slug) } }
-        : {}),
+      ...(deps.drafts(slug).length ? { blocked: { reason: 'drafts' as const, paths: deps.drafts(slug) } } : {}),
     };
   }
 
@@ -178,8 +163,7 @@ export function createProjectFolders(deps: ProjectFolderDeps) {
   // place, so a folder named like an existing top-level entry works and a rollback puts every
   // file back where it was.
   async function moveFiles(place: Place, folder: string) {
-    if (!(await git.identity(place.dir)))
-      throw new GitError('Set your Git identity first: the move is recorded in a commit.');
+    if (!(await git.identity(place.dir))) throw new GitError('Set your Git identity first: the move is recorded in a commit.');
     const op = deps.journal.newId();
     const staging = join(place.dir, `.move-${op}`);
     const stateStaging = join(layout.state, `.staging-${op}`);
@@ -213,9 +197,7 @@ export function createProjectFolders(deps: ProjectFolderDeps) {
       );
     }
     // A stop after staging and before the commit leaves the move staged, which counts too.
-    const staged = (await git.status(dir)).entries.some(
-      entry => !entry.untracked && entry.index !== '.',
-    );
+    const staged = (await git.status(dir)).entries.some(entry => !entry.untracked && entry.index !== '.');
     if (staged) await git.commit(dir, moveMessage(folder));
     await limitToFolders(git, dir, [folder]);
   }
@@ -240,20 +222,12 @@ export function createProjectFolders(deps: ProjectFolderDeps) {
   // can interleave: the projects' locks in sorted order, then the registry's.
   async function exclusively<Result>(slugs: string[], action: () => Promise<Result>) {
     const keys = slugs.map(deps.projectLockKey).sort();
-    const nest = (index: number): Promise<Result> =>
-      index === keys.length
-        ? Promise.resolve(deps.lock('registry', action))
-        : Promise.resolve(deps.lock(keys[index], () => nest(index + 1)));
+    const nest = (index: number): Promise<Result> => (index === keys.length ? Promise.resolve(deps.lock('registry', action)) : Promise.resolve(deps.lock(keys[index], () => nest(index + 1))));
     return nest(0);
   }
 
   /** Applies a previewed change. Refused while unsaved edits or uncommitted changes exist. */
-  async function apply(
-    slug: string,
-    requested: unknown,
-    options: { createFolder?: boolean },
-    reader: Reader,
-  ) {
+  async function apply(slug: string, requested: unknown, options: { createFolder?: boolean }, reader: Reader) {
     assertLocalMode(reader);
     const folder = repositoryFolder(requested);
     return exclusively([slug], async () => {

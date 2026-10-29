@@ -66,10 +66,8 @@ export function useProjectActions({
     if (a.action === 'rename') setRenaming(project);
     else if (a.action === 'export') setExporting(project);
     else if (a.action === 'move') setMoving({ project: a.project, path: a.path });
-    else if (a.action === 'delete-file')
-      setDeleteTarget({ kind: 'file', project: a.project, path: a.path });
-    else if (a.action === 'delete-project')
-      setDeleteTarget({ kind: 'project', project: a.project });
+    else if (a.action === 'delete-file') setDeleteTarget({ kind: 'file', project: a.project, path: a.path });
+    else if (a.action === 'delete-project') setDeleteTarget({ kind: 'project', project: a.project });
     else if (a.action === 'history') {
       if (a.project !== selectedProject) selectProject(a.project);
       setHistoryPath(a.path, a.project);
@@ -94,11 +92,7 @@ export function useProjectActions({
     }
     if (document && openDocument(document)) setTab('source');
   }
-  async function importIntoProject(
-    files: { path: string; source: string }[],
-    onConflict?: 'replace' | 'keep-both',
-    slug?: string,
-  ) {
+  async function importIntoProject(files: { path: string; source: string }[], onConflict?: 'replace' | 'keep-both', slug?: string) {
     const project = projects.find(p => p.slug === (slug ?? importConflict?.project.slug));
     if (!project) return;
     try {
@@ -108,8 +102,7 @@ export function useProjectActions({
       const fileCount = response.written.length;
       setMessage(`Imported ${fileCount} file${fileCount === 1 ? '' : 's'} into ${project.name}.`);
     } catch (e: any) {
-      if (e.status === 409 && e.body?.conflicts)
-        setImportConflict({ project, files, conflicts: e.body.conflicts });
+      if (e.status === 409 && e.body?.conflicts) setImportConflict({ project, files, conflicts: e.body.conflicts });
       else {
         setImportConflict(null);
         setMessage(e.message);

@@ -14,8 +14,7 @@ export function parseRelease(tag: string): ReleaseVersion {
     throw Error(`Invalid release prerelease: ${tag}`);
   }
   const core = match.slice(1, 4).map(Number);
-  if (core.some(value => !Number.isSafeInteger(value)))
-    throw Error(`Release number too large: ${tag}`);
+  if (core.some(value => !Number.isSafeInteger(value))) throw Error(`Release number too large: ${tag}`);
   return { core, prerelease };
 }
 
@@ -51,33 +50,20 @@ export function compareReleases(left: string, right: string): number {
 /** Refuses a mismatched package core or a tag older than any promoted version. */
 export function checkReleaseVersion(tag: string, packageVersion: unknown, registryTags: string[]) {
   const release = parseRelease(tag);
-  if (typeof packageVersion !== 'string')
-    throw Error('package.json must declare a release version');
+  if (typeof packageVersion !== 'string') throw Error('package.json must declare a release version');
   const manifest = parseRelease(`v${packageVersion}`);
   if (release.core.join('.') !== manifest.core.join('.')) {
     throw Error(`Tag ${tag} does not match package.json version ${packageVersion}`);
   }
   for (const promoted of registryTags.filter(value => value.startsWith('v'))) {
-    if (compareReleases(tag, promoted) < 0)
-      throw Error(`${tag} is older than promoted ${promoted}`);
+    if (compareReleases(tag, promoted) < 0) throw Error(`${tag} is older than promoted ${promoted}`);
   }
 }
 
 /** Builds the read-only registry query used before tag publication. */
 export function versionQuery(registry: string): string[] {
   if (!/^[a-zA-Z0-9]{5,50}$/.test(registry)) throw Error(`Invalid ACR_NAME: ${registry}`);
-  return [
-    'az',
-    'acr',
-    'repository',
-    'show-tags',
-    '--name',
-    registry,
-    '--repository',
-    'semantic-workbench',
-    '--output',
-    'json',
-  ];
+  return ['az', 'acr', 'repository', 'show-tags', '--name', registry, '--repository', 'semantic-workbench', '--output', 'json'];
 }
 
 /** Builds the Git query that asks whether a commit is part of the reviewed main branch. */
@@ -136,14 +122,9 @@ async function main() {
   }
   await assertCommitOnMain(process.env.SOURCE_VERSION || (await currentCommit()));
   const child = Bun.spawn(args, { stdout: 'pipe', stderr: 'pipe' });
-  const [output, error, code] = await Promise.all([
-    new Response(child.stdout).text(),
-    new Response(child.stderr).text(),
-    child.exited,
-  ]);
+  const [output, error, code] = await Promise.all([new Response(child.stdout).text(), new Response(child.stderr).text(), child.exited]);
   // A new registry has no repository yet; authentication and network failures still fail closed.
-  if (code !== 0 && !/\bNAME_UNKNOWN\b/.test(error))
-    throw Error(`Registry version query failed: ${error}`);
+  if (code !== 0 && !/\bNAME_UNKNOWN\b/.test(error)) throw Error(`Registry version query failed: ${error}`);
   const tags: unknown = code === 0 ? JSON.parse(output) : [];
   if (!Array.isArray(tags) || tags.some(value => typeof value !== 'string')) {
     throw Error('Registry returned an invalid tag list');

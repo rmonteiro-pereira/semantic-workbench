@@ -2,11 +2,7 @@
 // connection string can only point at Application Insights.
 import { describe, expect, test } from 'bun:test';
 import { ConfigError, readConfig } from '../../src/server/config';
-import {
-  connectionStringProblem,
-  DEFAULT_SAMPLE_RATIO,
-  readTelemetry,
-} from '../../src/server/observability/settings';
+import { connectionStringProblem, DEFAULT_SAMPLE_RATIO, readTelemetry } from '../../src/server/observability/settings';
 
 const KEY = '4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f';
 const GOOD = `InstrumentationKey=${KEY};IngestionEndpoint=https://westeurope-5.in.applicationinsights.azure.com/`;
@@ -83,14 +79,8 @@ describe('the connection string', () => {
   });
 
   test('http, a missing key and a malformed key are refused', () => {
-    expect(
-      connectionStringProblem(
-        `InstrumentationKey=${KEY};IngestionEndpoint=http://a.applicationinsights.azure.com/`,
-      ),
-    ).not.toBeNull();
-    expect(
-      connectionStringProblem('IngestionEndpoint=https://a.in.applicationinsights.azure.com/'),
-    ).not.toBeNull();
+    expect(connectionStringProblem(`InstrumentationKey=${KEY};IngestionEndpoint=http://a.applicationinsights.azure.com/`)).not.toBeNull();
+    expect(connectionStringProblem('IngestionEndpoint=https://a.in.applicationinsights.azure.com/')).not.toBeNull();
     expect(connectionStringProblem('InstrumentationKey=abc')).not.toBeNull();
   });
 

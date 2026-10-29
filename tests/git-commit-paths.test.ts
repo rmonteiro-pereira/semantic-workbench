@@ -44,14 +44,9 @@ test('commits only the listed paths; untracked listed paths are added; other wor
     const out = await r.git.commitPaths(r.dir, ['a.yaml', 'c.yaml'], 'Update a and c');
     if (!out.committed) throw Error('expected a commit');
     expect(out.commit).toMatch(/^[0-9a-f]{40}$/);
-    expect(
-      sh(r.dir, ['show', '--name-only', '--format=', 'HEAD']).trim().split('\n').sort(),
-    ).toEqual(['a.yaml', 'c.yaml']);
+    expect(sh(r.dir, ['show', '--name-only', '--format=', 'HEAD']).trim().split('\n').sort()).toEqual(['a.yaml', 'c.yaml']);
     // File b stays staged and file d stays untracked.
-    expect(sh(r.dir, ['status', '--porcelain']).split('\n').filter(Boolean).sort()).toEqual([
-      '?? d.yaml',
-      'M  b.yaml',
-    ]);
+    expect(sh(r.dir, ['status', '--porcelain']).split('\n').filter(Boolean).sort()).toEqual(['?? d.yaml', 'M  b.yaml']);
   } finally {
     r.dispose();
   }
@@ -109,9 +104,7 @@ test('without a Git identity nothing is committed and the reason is given', asyn
       committed: false,
       reason: 'no-identity',
     });
-    expect(
-      Bun.spawnSync(['git', 'rev-parse', '-q', '--verify', 'HEAD'], { cwd: r.dir }).exitCode,
-    ).not.toBe(0);
+    expect(Bun.spawnSync(['git', 'rev-parse', '-q', '--verify', 'HEAD'], { cwd: r.dir }).exitCode).not.toBe(0);
     // A repository-local identity is seen at once (no restart).
     sh(r.dir, ['config', 'user.name', 'Local Person']);
     sh(r.dir, ['config', 'user.email', 'local@example.invalid']);

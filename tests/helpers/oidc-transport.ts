@@ -37,9 +37,7 @@ export async function oidcTransport(shape: ClaimShape = 'entra') {
     if (body.id_token && (Object.keys(change).length || wrongSignature)) {
       const claims = { ...decodeJwt(body.id_token), ...change };
       const key = state.keys[wrongSignature ? 1 : state.activeKey];
-      body.id_token = await new SignJWT(claims)
-        .setProtectedHeader({ alg: 'RS256', kid: state.keys[state.activeKey].kid })
-        .sign(key.privateKey);
+      body.id_token = await new SignJWT(claims).setProtectedHeader({ alg: 'RS256', kid: state.keys[state.activeKey].kid }).sign(key.privateKey);
     }
     return Response.json(body);
   }

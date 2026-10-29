@@ -21,28 +21,16 @@ export async function treeRowProblems(page: Page) {
       }
       const boxes = [name, del, menu].map(e => e.getBoundingClientRect());
       const text = name.querySelector('span')!.getBoundingClientRect();
-      if (r.right > sidebar.right + 0.5 || r.left < sidebar.left - 0.5)
-        problems.push(`${label}: row leaves the sidebar`);
-      for (const b of boxes)
-        if (b.left < r.left - 0.5 || b.right > r.right + 0.5)
-          problems.push(`${label}: control leaves its row`);
+      if (r.right > sidebar.right + 0.5 || r.left < sidebar.left - 0.5) problems.push(`${label}: row leaves the sidebar`);
+      for (const b of boxes) if (b.left < r.left - 0.5 || b.right > r.right + 0.5) problems.push(`${label}: control leaves its row`);
       for (let i = 0; i < 3; i++)
         for (let j = i + 1; j < 3; j++) {
           const a = boxes[i];
           const b = boxes[j];
-          if (
-            a.left < b.right - 0.5 &&
-            b.left < a.right - 0.5 &&
-            a.top < b.bottom - 0.5 &&
-            b.top < a.bottom - 0.5
-          )
-            problems.push(`${label}: controls ${i} and ${j} overlap`);
+          if (a.left < b.right - 0.5 && b.left < a.right - 0.5 && a.top < b.bottom - 0.5 && b.top < a.bottom - 0.5) problems.push(`${label}: controls ${i} and ${j} overlap`);
         }
-      for (const b of boxes.slice(1))
-        if (b.width < 28 || b.height < 28)
-          problems.push(`${label}: icon hit area ${b.width}×${b.height}`);
-      if (text.right > boxes[1].left + 0.5)
-        problems.push(`${label}: name runs under the delete icon`);
+      for (const b of boxes.slice(1)) if (b.width < 28 || b.height < 28) problems.push(`${label}: icon hit area ${b.width}×${b.height}`);
+      if (text.right > boxes[1].left + 0.5) problems.push(`${label}: name runs under the delete icon`);
     }
     return problems;
   });

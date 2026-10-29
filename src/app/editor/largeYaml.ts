@@ -11,11 +11,7 @@ import { foldYamlBlock } from './yamlIndentation';
 const refreshColors = StateEffect.define<null>();
 
 /** Produces token marks only inside the supplied visible source ranges. */
-export function highlightVisibleYaml(
-  doc: Text,
-  visibleRanges: readonly { from: number; to: number }[],
-  style: HighlightStyle,
-): DecorationSet {
+export function highlightVisibleYaml(doc: Text, visibleRanges: readonly { from: number; to: number }[], style: HighlightStyle): DecorationSet {
   const marks: Range<Decoration>[] = [];
   for (const visible of visibleRanges) {
     const regions = visibleYamlRegions(doc, visible.from, visible.to);
@@ -23,9 +19,7 @@ export function highlightVisibleYaml(
       const parser = region.language === 'sql' ? StandardSQL.language.parser : jsonLanguage.parser;
       const tree = parser.parse(doc.sliceString(region.from, region.to));
       highlightTree(tree, style, (from, to, className) => {
-        marks.push(
-          Decoration.mark({ class: className }).range(region.from + from, region.from + to),
-        );
+        marks.push(Decoration.mark({ class: className }).range(region.from + from, region.from + to));
       });
     }
   }
@@ -51,12 +45,7 @@ export function largeYamlSupport(style: HighlightStyle): Extension {
               timer = undefined;
               view.dispatch({ effects: refreshColors.of(null) });
             }, 150);
-          } else if (
-            update.viewportChanged ||
-            update.transactions.some(transaction =>
-              transaction.effects.some(effect => effect.is(refreshColors)),
-            )
-          ) {
+          } else if (update.viewportChanged || update.transactions.some(transaction => transaction.effects.some(effect => effect.is(refreshColors)))) {
             cancelRefresh();
             this.decorations = highlightVisibleYaml(view.state.doc, view.visibleRanges, style);
           }
@@ -66,8 +55,5 @@ export function largeYamlSupport(style: HighlightStyle): Extension {
     },
     { decorations: plugin => plugin.decorations },
   );
-  return [
-    Prec.highest(colors),
-    foldService.of((state, lineStart) => foldYamlBlock(state.doc, lineStart)),
-  ];
+  return [Prec.highest(colors), foldService.of((state, lineStart) => foldYamlBlock(state.doc, lineStart))];
 }

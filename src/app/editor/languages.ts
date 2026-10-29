@@ -1,10 +1,5 @@
 /** Configures source highlighting, including embedded JSON and SQL in structured definitions. */
-import {
-  LanguageSupport,
-  StreamLanguage,
-  HighlightStyle,
-  syntaxHighlighting,
-} from '@codemirror/language';
+import { LanguageSupport, StreamLanguage, HighlightStyle, syntaxHighlighting } from '@codemirror/language';
 import { parseMixed } from '@lezer/common';
 import { tags as t } from '@lezer/highlight';
 import { yaml, yamlLanguage } from '@codemirror/lang-yaml';
@@ -72,11 +67,7 @@ const rdfMode = {
       return 'string';
     }
     if (stream.match(/^"(?:[^"\\]|\\.)*"?/) || stream.match(/^'(?:[^'\\]|\\.)*'?/)) return 'string';
-    if (
-      stream.match(/^@(prefix|base|forAll|forSome|keywords)\b/i) ||
-      stream.match(/^(PREFIX|BASE)\b/i)
-    )
-      return 'keyword';
+    if (stream.match(/^@(prefix|base|forAll|forSome|keywords)\b/i) || stream.match(/^(PREFIX|BASE)\b/i)) return 'keyword';
     if (stream.match(/^@[a-zA-Z]+(-[a-zA-Z0-9]+)*/)) return 'attributeName';
     if (stream.match('^^')) return 'operator';
     if (stream.match(/^_:[\w.-]*\w/)) return 'labelName';
@@ -110,9 +101,7 @@ const extensionYaml = yamlLanguage.configure({
 const sqlJson = jsonLanguage.configure({
   wrap: parseMixed((node, input) => {
     if (node.name !== 'String' || node.to - node.from <= 2) return null;
-    return jsonSql(node.node, (a, b) => input.read(a, b))
-      ? { parser: sqlParser, overlay: [{ from: node.from + 1, to: node.to - 1 }] }
-      : null;
+    return jsonSql(node.node, (a, b) => input.read(a, b)) ? { parser: sqlParser, overlay: [{ from: node.from + 1, to: node.to - 1 }] } : null;
   }),
 });
 // The tree parser reparses large prefixes after edits; the stream parser stops at the viewport.
@@ -131,13 +120,11 @@ const largeYaml = StreamLanguage.define({
 
 /** Returns the CodeMirror language configuration for a source syntax. */
 export function languageFor(syntax: SyntaxName, largeDocument = false) {
-  if (syntax === 'YAML' && largeDocument)
-    return new LanguageSupport(largeYaml, largeYamlSupport(syntaxHighlight));
+  if (syntax === 'YAML' && largeDocument) return new LanguageSupport(largeYaml, largeYamlSupport(syntaxHighlight));
   if (syntax === 'YAML') return new LanguageSupport(extensionYaml, yaml().support);
   if (syntax === 'JSON') return new LanguageSupport(sqlJson, json().support);
   if (syntax === 'RDF/XML') return xml();
-  if (syntax === 'Turtle' || syntax === 'N3' || syntax === 'N-Triples')
-    return new LanguageSupport(rdfLanguage);
+  if (syntax === 'Turtle' || syntax === 'N3' || syntax === 'N-Triples') return new LanguageSupport(rdfLanguage);
   return [];
 }
 // The colors are the syntax tokens of src/shared/theme/theme.css. The light theme follows VS Code's Light+ (YAML
@@ -171,11 +158,8 @@ export const syntaxHighlight = HighlightStyle.define([
   { tag: t.invalid, color: 'var(--color-syntax-invalid)', textDecoration: 'underline wavy' },
 ]);
 // Plain YAML values are blue as in VS Code; elsewhere (XML text) content keeps the default color.
-const yamlValues = HighlightStyle.define(
-  [{ tag: t.content, color: 'var(--color-syntax-keyword)' }],
-  {
-    scope: extensionYaml,
-  },
-);
+const yamlValues = HighlightStyle.define([{ tag: t.content, color: 'var(--color-syntax-keyword)' }], {
+  scope: extensionYaml,
+});
 /** Installs source token styles. */
 export const highlighting = [syntaxHighlighting(yamlValues), syntaxHighlighting(syntaxHighlight)];

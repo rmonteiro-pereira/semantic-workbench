@@ -54,22 +54,14 @@ export function DefaultBranchActions({
           <span>Bring the latest {target} into your branch.</span>
         </li>
         <li>
-          <button
-            disabled={disabled || !canPublish}
-            title={canPublish ? publishHint : publishTitle}
-            onClick={onPublish}
-          >
+          <button disabled={disabled || !canPublish} title={canPublish ? publishHint : publishTitle} onClick={onPublish}>
             <Upload size={13} />
             Publish to {target}
           </button>
           <span>{publishExplanation}</span>
         </li>
         <li hidden={!canPublish || !hasRemote}>
-          <button
-            disabled={disabled}
-            title={`Send ${target} as published here to the remote`}
-            onClick={onPushDefault}
-          >
+          <button disabled={disabled} title={`Send ${target} as published here to the remote`} onClick={onPushDefault}>
             <ArrowUp size={13} />
             Push {target}
           </button>

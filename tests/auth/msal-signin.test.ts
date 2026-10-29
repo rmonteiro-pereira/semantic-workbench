@@ -8,12 +8,7 @@ import { createOidcClient } from '../../src/server/auth/oidc';
 import { createSignInProvider, signInLibrary } from '../../src/server/auth/sign-in-provider';
 import { createMsalProvider } from '../../src/server/auth/msal-provider';
 import type { SignInError } from '../../src/server/auth/sign-in-error';
-import {
-  TEST_GROUPS,
-  TEST_TENANT_ID,
-  TEST_USERS,
-  TEST_WORKBENCH_CLIENT,
-} from '../helpers/auth-identities';
+import { TEST_GROUPS, TEST_TENANT_ID, TEST_USERS, TEST_WORKBENCH_CLIENT } from '../helpers/auth-identities';
 import { startMockOidc } from '../helpers/mock-oidc';
 import { oidcConfig } from '../helpers/server-auth';
 import { entraConfig, signInWith, withEntraProvider } from '../helpers/entra-provider';
@@ -54,9 +49,7 @@ test('MSAL sends PKCE, state and nonce to the Entra endpoints and checks each on
     const client = await createMsalProvider(entraConfig(provider));
     const started = await client.login('/catalog?view=one');
     const url = new URL(started.url);
-    expect(url.origin + url.pathname).toBe(
-      `${provider.origin}/${TEST_TENANT_ID}/oauth2/v2.0/authorize`,
-    );
+    expect(url.origin + url.pathname).toBe(`${provider.origin}/${TEST_TENANT_ID}/oauth2/v2.0/authorize`);
     const challenge = createHash('sha256').update(started.attempt.verifier).digest('base64url');
     expect(url.searchParams.get('code_challenge')).toBe(challenge);
     expect(url.searchParams.get('code_challenge_method')).toBe('S256');
@@ -81,16 +74,10 @@ test('a wrong state, nonce or verifier, or an error answer, refuses the sign-in'
     };
     const wrongState = await answer();
     wrongState.callback.searchParams.set('state', 'forged');
-    await expectRefused(
-      client.callback(wrongState.callback, wrongState.started.attempt),
-      'attempt-invalid',
-    );
+    await expectRefused(client.callback(wrongState.callback, wrongState.started.attempt), 'attempt-invalid');
     const noState = await answer();
     noState.callback.searchParams.delete('state');
-    await expectRefused(
-      client.callback(noState.callback, noState.started.attempt),
-      'attempt-invalid',
-    );
+    await expectRefused(client.callback(noState.callback, noState.started.attempt), 'attempt-invalid');
     const wrongNonce = await answer();
     const nonce = { ...wrongNonce.started.attempt, nonce: 'other' };
     await expectRefused(client.callback(wrongNonce.callback, nonce), 'attempt-invalid');
@@ -180,19 +167,13 @@ test('Graph and on-behalf-of tokens are application tokens MSAL acquires', () =>
     const client = await createMsalProvider(entraConfig(provider));
     const graph = decodeJwt(await client.directoryToken());
     expect(graph.aud).toBe('https://graph.microsoft.com');
-    const credentials = provider.calls.find(
-      call => call.params.grant_type === 'client_credentials',
-    );
+    const credentials = provider.calls.find(call => call.params.grant_type === 'client_credentials');
     expect(credentials?.params.scope).toContain('https://graph.microsoft.com/.default');
     const signedIn = await signInWith(client, provider, 'alice');
-    const delegated = await client.onBehalfOf(signedIn.tokens.accessToken, [
-      `${AZURE_DEVOPS}/user_impersonation`,
-    ]);
+    const delegated = await client.onBehalfOf(signedIn.tokens.accessToken, [`${AZURE_DEVOPS}/user_impersonation`]);
     const claims = decodeJwt(delegated.token);
     expect(delegated.expiresAt).toBeGreaterThan(Date.now());
     expect(claims.aud).toBe(AZURE_DEVOPS);
     expect(claims.oid).toBe(TEST_USERS.alice.oid);
-    await expect(
-      client.onBehalfOf(await client.directoryToken(), [`${AZURE_DEVOPS}/user_impersonation`]),
-    ).rejects.toThrow();
+    await expect(client.onBehalfOf(await client.directoryToken(), [`${AZURE_DEVOPS}/user_impersonation`])).rejects.toThrow();
   }));

@@ -19,8 +19,5 @@ export function accessMatrix() {
 }
 
 if (import.meta.main) {
-  await Bun.write(
-    new URL('../policies/matrix-cases.json', import.meta.url),
-    JSON.stringify(accessMatrix(), null, 2) + '\n',
-  );
+  await Bun.write(new URL('../policies/matrix-cases.json', import.meta.url), JSON.stringify(accessMatrix(), null, 2) + '\n');
 }

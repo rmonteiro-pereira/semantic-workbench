@@ -13,10 +13,7 @@ function setup() {
   mkdirSync(join(d.root, 's'), { recursive: true });
   return { d, layout, j: createJournal(layout), f: (p: string) => join(d.root, p) };
 }
-const unfinished = (
-  layout: ReturnType<typeof dataLayout>,
-  steps: { from: string; to: string; done: boolean }[],
-) =>
+const unfinished = (layout: ReturnType<typeof dataLayout>, steps: { from: string; to: string; done: boolean }[]) =>
   atomicWriteJson(join(layout.journal, 'op-1.json'), {
     formatVersion: 1,
     opId: 'op-1',
@@ -79,9 +76,7 @@ test('recovery rolls an unfinished operation forward when sources exist and dest
       { from: 's/a', to: 'x/a', done: true },
       { from: 's/b', to: 'x/b', done: false },
     ]);
-    expect(j.recover()).toEqual([
-      { opId: 'op-1', kind: 'move', outcome: 'completed', paths: ['x/a', 'x/b'] },
-    ]);
+    expect(j.recover()).toEqual([{ opId: 'op-1', kind: 'move', outcome: 'completed', paths: ['x/a', 'x/b'] }]);
     expect(readFileSync(f('x/b'), 'utf8')).toBe('B');
     expect(existsSync(f('s/tmp'))).toBe(false);
     expect(j.pending()).toEqual([]);
@@ -133,9 +128,7 @@ test('recovery rolls back when a destination is occupied, without overwriting it
       { from: 's/a', to: 'x/a', done: true },
       { from: 's/b', to: 'x/b', done: false },
     ]);
-    expect(j.recover()).toEqual([
-      { opId: 'op-1', kind: 'move', outcome: 'rolled-back', paths: ['x/a', 'x/b'] },
-    ]);
+    expect(j.recover()).toEqual([{ opId: 'op-1', kind: 'move', outcome: 'rolled-back', paths: ['x/a', 'x/b'] }]);
     expect(readFileSync(f('x/b'), 'utf8')).toBe('someone else');
     expect(readFileSync(f('s/a'), 'utf8')).toBe('A');
     expect(existsSync(f('x/a'))).toBe(false);
@@ -162,9 +155,7 @@ test('recovery rolls back when a source is missing', () => {
 test('journal paths may not leave the data root', () => {
   const { d, j } = setup();
   try {
-    expect(() => j.run('move', [{ from: '/etc/passwd', to: join(d.root, 'x') }])).toThrow(
-      'escapes',
-    );
+    expect(() => j.run('move', [{ from: '/etc/passwd', to: join(d.root, 'x') }])).toThrow('escapes');
   } finally {
     d.cleanup();
   }

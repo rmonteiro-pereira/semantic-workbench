@@ -2,10 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import { waitForApi, type ReadinessProbe } from '../scripts/api-readiness';
 
 /** A probe on a fake clock whose fetch answers from a scripted list of outcomes. */
-function scriptedProbe(
-  outcomes: Array<'refused' | number>,
-  overrides: Partial<ReadinessProbe> = {},
-) {
+function scriptedProbe(outcomes: Array<'refused' | number>, overrides: Partial<ReadinessProbe> = {}) {
   let clock = 0;
   const requested: string[] = [];
   const probe: ReadinessProbe = {

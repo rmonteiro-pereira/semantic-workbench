@@ -4,15 +4,7 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { BranchInUseError, NotFastForwardError } from './errors';
-import {
-  authorship,
-  commitOf,
-  GitError,
-  isBranchName,
-  symbolicBranch,
-  type CommitAuthor,
-  type Git,
-} from './git';
+import { authorship, commitOf, GitError, isBranchName, symbolicBranch, type CommitAuthor, type Git } from './git';
 import { USER_KEY, type DataLayout } from './paths';
 import { checkOutFolders, sparseFolders } from './sparse-folder';
 
@@ -47,12 +39,10 @@ export const personalBranch = (handle: string) => PERSONAL_BRANCH_PREFIX + handl
 const foldBranch = (branch: string) => branch.normalize('NFC').toLowerCase();
 
 /** Whether two branch names are one name on a volume that ignores letter case. */
-export const sameBranchName = (left: string, right: string) =>
-  foldBranch(left) === foldBranch(right);
+export const sameBranchName = (left: string, right: string) => foldBranch(left) === foldBranch(right);
 
 /** Whether a branch name is some person's personal branch, in whatever letter case. */
-export const isPersonalBranch = (branch: string) =>
-  foldBranch(branch).startsWith(PERSONAL_BRANCH_PREFIX);
+export const isPersonalBranch = (branch: string) => foldBranch(branch).startsWith(PERSONAL_BRANCH_PREFIX);
 
 /**
  * Whether a branch is shown to someone whose own personal branch is `own`, or to someone who has
@@ -80,8 +70,7 @@ export function parseWorktreeList(output: string): WorktreeEntry[] {
     } else if (current && line.startsWith('HEAD ')) current.head = line.slice(5);
     else if (current && line.startsWith('branch refs/heads/')) current.branch = line.slice(18);
     else if (current && (line === 'locked' || line.startsWith('locked '))) current.locked = true;
-    else if (current && (line === 'prunable' || line.startsWith('prunable ')))
-      current.prunable = true;
+    else if (current && (line === 'prunable' || line.startsWith('prunable '))) current.prunable = true;
   }
   return entries;
 }
@@ -90,12 +79,7 @@ export function parseWorktreeList(output: string): WorktreeEntry[] {
  * Which branches are checked out, and by whom. A copy's folder name is its owner's key; the
  * base checkout holds the default branch for the published state even while it is detached.
  */
-export function branchHolders(
-  entries: WorktreeEntry[],
-  copiesRoot: string,
-  defaultBranch: string,
-  people: CopyOwner[],
-): Map<string, BranchHolder> {
+export function branchHolders(entries: WorktreeEntry[], copiesRoot: string, defaultBranch: string, people: CopyOwner[]): Map<string, BranchHolder> {
   const holders = new Map<string, BranchHolder>();
   holders.set(defaultBranch, { key: null, name: PUBLISHED_HOLDER });
   for (const copy of copiesOf(entries, copiesRoot)) {
@@ -135,10 +119,8 @@ export class BaseChangedError extends GitError {
 }
 
 const baseDir = ({ layout }: WorktreeContext, repo: string) => join(layout.projects, repo);
-const copyDir = ({ layout }: WorktreeContext, key: string, repo: string) =>
-  join(layout.worktrees, key, repo);
-const copyExists = (context: WorktreeContext, key: string, repo: string) =>
-  existsSync(join(copyDir(context, key, repo), '.git'));
+const copyDir = ({ layout }: WorktreeContext, key: string, repo: string) => join(layout.worktrees, key, repo);
+const copyExists = (context: WorktreeContext, key: string, repo: string) => existsSync(join(copyDir(context, key, repo), '.git'));
 
 /**
  * The repository's default branch: remembered once the base was detached, otherwise the branch
@@ -192,9 +174,7 @@ async function listed(context: WorktreeContext, repo: string) {
   const cached = context.listings?.get(repo);
   if (cached) return cached;
   const list = ['worktree', 'list', '--porcelain'];
-  const listing = context.git
-    .run(baseDir(context, repo), list, { readOnly: true })
-    .then(result => parseWorktreeList(result.stdout));
+  const listing = context.git.run(baseDir(context, repo), list, { readOnly: true }).then(result => parseWorktreeList(result.stdout));
   context.listings?.set(repo, listing);
   // A failed listing is asked again next time.
   listing.catch(() => context.listings?.delete(repo));
@@ -202,12 +182,7 @@ async function listed(context: WorktreeContext, repo: string) {
 }
 
 async function holders(context: WorktreeContext, repo: string, published?: string) {
-  return branchHolders(
-    await listed(context, repo),
-    context.layout.worktrees,
-    published ?? (await defaultBranch(context, repo)),
-    context.people(),
-  );
+  return branchHolders(await listed(context, repo), context.layout.worktrees, published ?? (await defaultBranch(context, repo)), context.people());
 }
 
 /** Refuses a branch that another copy, or the published state, has checked out. */
@@ -252,12 +227,7 @@ async function ensure(context: WorktreeContext, repo: string, owner: CopyOwner) 
  * changed published checkout, a move that is not a fast-forward, or someone else moving the
  * branch first is refused, and nothing changes. `check` judges the exact commits before the move.
  */
-async function moveDefault(
-  context: WorktreeContext,
-  repo: string,
-  move: { branch: string; previous: string | null; next: string },
-  check: (previous: string | null, next: string) => Promise<void>,
-) {
+async function moveDefault(context: WorktreeContext, repo: string, move: { branch: string; previous: string | null; next: string }, check: (previous: string | null, next: string) => Promise<void>) {
   const { git } = context;
   const { branch, previous, next } = move;
   const base = baseDir(context, repo);
@@ -295,12 +265,7 @@ async function moveDefault(
  * Fast-forwards the default branch to the copy's HEAD with a compare-and-swap, then moves the
  * published state to it. A copy that does not contain the current tip is refused.
  */
-async function publish(
-  context: WorktreeContext,
-  repo: string,
-  key: string,
-  check: (previous: string | null, next: string) => Promise<void>,
-) {
+async function publish(context: WorktreeContext, repo: string, key: string, check: (previous: string | null, next: string) => Promise<void>) {
   const { git } = context;
   const branch = await defaultBranch(context, repo);
   const next = await commitOf(git, copyDir(context, key, repo), 'HEAD');
@@ -335,12 +300,7 @@ async function remoteAhead(context: WorktreeContext, repo: string, remote: strin
  * judging the commits it brings. Null when nothing could move, such as a changed checkout or
  * someone publishing first.
  */
-async function followRemote(
-  context: WorktreeContext,
-  repo: string,
-  remote: string,
-  check: (previous: string | null, next: string) => Promise<void>,
-) {
+async function followRemote(context: WorktreeContext, repo: string, remote: string, check: (previous: string | null, next: string) => Promise<void>) {
   const move = await remoteAhead(context, repo, remote);
   if (!move) return null;
   try {
@@ -352,13 +312,7 @@ async function followRemote(
 }
 
 /** Merges the default branch into the person's branch, authored by the person. */
-async function mergeDefault(
-  context: WorktreeContext,
-  repo: string,
-  key: string,
-  author: CommitAuthor | undefined,
-  check: (tip: string) => Promise<void>,
-) {
+async function mergeDefault(context: WorktreeContext, repo: string, key: string, author: CommitAuthor | undefined, check: (tip: string) => Promise<void>) {
   const { git } = context;
   const branch = await defaultBranch(context, repo);
   const copy = copyDir(context, key, repo);
@@ -418,25 +372,11 @@ export function createWorktrees(options: Omit<WorktreeContext, 'listings'>) {
     copies: async (repo: string) => copiesOf(await listed(context, repo), context.layout.worktrees),
     releaseCopies: (repo: string) => releaseCopies(context, repo),
     ensure: (repo: string, owner: CopyOwner) => ensure(context, repo, owner),
-    assertFree: (repo: string, key: string, branch: string) =>
-      assertFree(context, repo, key, branch),
-    publish: (
-      repo: string,
-      key: string,
-      check: (previous: string | null, next: string) => Promise<void>,
-    ) => publish(context, repo, key, check),
+    assertFree: (repo: string, key: string, branch: string) => assertFree(context, repo, key, branch),
+    publish: (repo: string, key: string, check: (previous: string | null, next: string) => Promise<void>) => publish(context, repo, key, check),
     remoteAhead: (repo: string, remote: string) => remoteAhead(context, repo, remote),
-    followRemote: (
-      repo: string,
-      remote: string,
-      check: (previous: string | null, next: string) => Promise<void>,
-    ) => followRemote(context, repo, remote, check),
-    mergeDefault: (
-      repo: string,
-      key: string,
-      author: CommitAuthor | undefined,
-      check: (tip: string) => Promise<void>,
-    ) => mergeDefault(context, repo, key, author, check),
+    followRemote: (repo: string, remote: string, check: (previous: string | null, next: string) => Promise<void>) => followRemote(context, repo, remote, check),
+    mergeDefault: (repo: string, key: string, author: CommitAuthor | undefined, check: (tip: string) => Promise<void>) => mergeDefault(context, repo, key, author, check),
     remove: (repo: string, key: string) => remove(context, repo, key),
   };
 }

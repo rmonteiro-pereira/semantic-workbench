@@ -4,13 +4,7 @@ import { expect, test } from 'bun:test';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import {
-  assertExactCase,
-  CaseVariantError,
-  dataLayout,
-  projectFile,
-  type DirectoryLister,
-} from '../src/server/projects/paths';
+import { assertExactCase, CaseVariantError, dataLayout, projectFile, type DirectoryLister } from '../src/server/projects/paths';
 
 // A listing as the on-disk names of a small tree: `secret/plan.yaml` and `Notes.yaml`.
 const tree: Record<string, string[]> = {

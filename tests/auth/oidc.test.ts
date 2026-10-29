@@ -6,13 +6,7 @@ import { createOidcClient } from '../../src/server/auth/oidc';
 import { safeReturnTo } from '../../src/server/auth/attempts';
 
 test('return destinations cannot leave the origin', () => {
-  for (const value of [
-    '//evil.example',
-    'https://evil.example',
-    '/a/..//evil.example',
-    '/%2e%2e//evil.example',
-    '/\\evil.example',
-  ]) {
+  for (const value of ['//evil.example', 'https://evil.example', '/a/..//evil.example', '/%2e%2e//evil.example', '/\\evil.example']) {
     expect(safeReturnTo(value)).toBe('/');
   }
   expect(safeReturnTo('/catalog?q=one')).toBe('/catalog?q=one');

@@ -35,11 +35,7 @@ function baselinePolicies(): Record<string, string> {
   return policies;
 }
 
-function preparePolicies(options: {
-  builtinRoles: Role[];
-  customRoles: Role[];
-  adminRules?: Record<string, string>;
-}) {
+function preparePolicies(options: { builtinRoles: Role[]; customRoles: Role[]; adminRules?: Record<string, string> }) {
   validateAccessDocument('builtinRolesFile', { formatVersion: 1, roles: options.builtinRoles });
   const roles = [...options.builtinRoles, ...options.customRoles];
   const compiled = compileRoles(roles);
@@ -48,10 +44,7 @@ function preparePolicies(options: {
     if (staticPolicies[id]) throw new PolicyLoadError(`Duplicate policy id: ${id}`);
     if (!/@enabled\("false"\)/.test(text)) staticPolicies[id] = text;
   }
-  const schema =
-    readFileSync(new URL('../../../policies/schema.cedarschema', import.meta.url), 'utf8') +
-    '\n' +
-    compiled.holdersFragment;
+  const schema = readFileSync(new URL('../../../policies/schema.cedarschema', import.meta.url), 'utf8') + '\n' + compiled.holdersFragment;
   const policies = { staticPolicies };
   const validation = cedar.validate({ schema, policies });
   if (validation.type === 'failure') throw new PolicyLoadError(JSON.stringify(validation.errors));
@@ -60,10 +53,7 @@ function preparePolicies(options: {
   }
   const preparsedSchemaName = `schema:${randomUUID()}`;
   const preparsedPolicySetId = `policies:${randomUUID()}`;
-  for (const parsed of [
-    cedar.preparseSchema(preparsedSchemaName, schema),
-    cedar.preparsePolicySet(preparsedPolicySetId, policies),
-  ]) {
+  for (const parsed of [cedar.preparseSchema(preparsedSchemaName, schema), cedar.preparsePolicySet(preparsedPolicySetId, policies)]) {
     if (parsed.type === 'failure') throw new PolicyLoadError(JSON.stringify(parsed.errors));
   }
   const forbids = new Set(
@@ -83,11 +73,7 @@ function preparePolicies(options: {
 }
 
 /** Loads and validates a complete policy set before exposing its prepared handles. */
-export function loadPolicySet(options: {
-  builtinRoles: Role[];
-  customRoles: Role[];
-  adminRules?: Record<string, string>;
-}): PolicySet {
+export function loadPolicySet(options: { builtinRoles: Role[]; customRoles: Role[]; adminRules?: Record<string, string> }): PolicySet {
   try {
     return preparePolicies(options);
   } catch (error) {
@@ -102,12 +88,7 @@ function uid(type: string, id: string): cedar.TypeAndId {
 function reference(type: string, id: string): cedar.CedarValueJson {
   return { __entity: uid(type, id) };
 }
-function entity(
-  type: string,
-  id: string,
-  attrs: cedar.EntityJson['attrs'] = {},
-  parents: cedar.TypeAndId[] = [],
-): cedar.EntityJson {
+function entity(type: string, id: string, attrs: cedar.EntityJson['attrs'] = {}, parents: cedar.TypeAndId[] = []): cedar.EntityJson {
   return { uid: uid(type, id), attrs, parents };
 }
 
@@ -141,8 +122,7 @@ function prospectiveProject(resource: ResourceRef): ProjectDomain | null {
 
 function memberEntities(options: EntityOptions, projects: ProjectDomain[]): cedar.EntityJson[] {
   const members = new Map<string, cedar.EntityJson>();
-  const normalize = (group: string) =>
-    options.groupMatch === 'exact' ? group : group.toLowerCase();
+  const normalize = (group: string) => (options.groupMatch === 'exact' ? group : group.toLowerCase());
   const add = (type: string, id: string, parents: cedar.TypeAndId[]) => {
     const key = `${type}:${id}`;
     const member = members.get(key) ?? entity(type, id, type === 'Group' ? { name: id } : {});
@@ -158,17 +138,12 @@ function memberEntities(options: EntityOptions, projects: ProjectDomain[]): ceda
 }
 
 function accessSets(principal: Principal, options: EntityOptions): cedar.CedarValueJson[] {
-  const normalize = (group: string) =>
-    options.groupMatch === 'exact' ? group : group.toLowerCase();
-  const groups = new Set(
-    principal.groupsResolved === 'failed' ? [] : principal.groups.map(normalize),
-  );
+  const normalize = (group: string) => (options.groupMatch === 'exact' ? group : group.toLowerCase());
+  const groups = new Set(principal.groupsResolved === 'failed' ? [] : principal.groups.map(normalize));
   const email = principal.verifiedEmail?.toLowerCase();
   return Object.entries(options.config.projects.projects).flatMap(([slug, project]) =>
     project.restricted.flatMap((rule, index) => {
-      const matches =
-        rule.groups.some(group => groups.has(normalize(group))) ||
-        rule.emails.some(address => email !== undefined && address.toLowerCase() === email);
+      const matches = rule.groups.some(group => groups.has(normalize(group))) || rule.emails.some(address => email !== undefined && address.toLowerCase() === email);
       return matches ? [reference('AccessSet', `${slug}#${index}`)] : [];
     }),
   );
@@ -176,14 +151,8 @@ function accessSets(principal: Principal, options: EntityOptions): cedar.CedarVa
 
 function principalEntity(principal: Principal, options: EntityOptions): cedar.EntityJson {
   if (principal.kind === 'client') {
-    const client = options.config.agents.clients.find(
-      client => client.clientId === principal.clientId,
-    );
-    const projects = options.projects.filter(
-      slug =>
-        client?.projects.includes(slug) ||
-        client?.domains.includes(options.config.projects.projects[slug]?.domain ?? ''),
-    );
+    const client = options.config.agents.clients.find(client => client.clientId === principal.clientId);
+    const projects = options.projects.filter(slug => client?.projects.includes(slug) || client?.domains.includes(options.config.projects.projects[slug]?.domain ?? ''));
     return entity('Client', principal.id, {
       id: principal.id,
       clientId: principal.clientId ?? '',
@@ -191,9 +160,7 @@ function principalEntity(principal: Principal, options: EntityOptions): cedar.En
     });
   }
   const groups = principal.groupsResolved === 'failed' ? [] : principal.groups;
-  const parents = groups.map(group =>
-    uid('Group', options.groupMatch === 'exact' ? group : group.toLowerCase()),
-  );
+  const parents = groups.map(group => uid('Group', options.groupMatch === 'exact' ? group : group.toLowerCase()));
   if (principal.verifiedEmail) parents.push(uid('Email', principal.verifiedEmail.toLowerCase()));
   if (principal.grants.some(grant => grant.via === 'bootstrap' || grant.via === 'local')) {
     parents.push(uid('RoleHolder', 'admin@workspace'));
@@ -220,16 +187,8 @@ function resourceEntity(resource: ResourceRef, options: EntityOptions): cedar.En
   const domain = project?.domain ?? prospectiveProject(resource)?.domain ?? '';
   const file = resource.type === 'file' ? resource : undefined;
   const path = file?.path ?? '';
-  const restrictedTo = (project?.restricted ?? []).flatMap((rule, index) =>
-    file && matchesSegmentGlob(path, rule.pattern)
-      ? [reference('AccessSet', `${slug}#${index}`)]
-      : [],
-  );
-  const holders = Object.fromEntries(
-    options.roles
-      .filter(role => role.id !== 'admin')
-      .map(role => [role.id, reference('RoleHolder', `${role.id}@${slug || 'workspace'}`)]),
-  );
+  const restrictedTo = (project?.restricted ?? []).flatMap((rule, index) => (file && matchesSegmentGlob(path, rule.pattern) ? [reference('AccessSet', `${slug}#${index}`)] : []));
+  const holders = Object.fromEntries(options.roles.filter(role => role.id !== 'admin').map(role => [role.id, reference('RoleHolder', `${role.id}@${slug || 'workspace'}`)]));
   const attrs: cedar.EntityJson['attrs'] = {
     project: slug,
     domain,
@@ -244,9 +203,7 @@ function resourceEntity(resource: ResourceRef, options: EntityOptions): cedar.En
     restrictedTo,
     status: file?.metric?.status ?? '',
     owner: file?.metric?.owner?.toLowerCase() ?? '',
-    protectedLevel: levelNumber(
-      project?.protectedLevel ?? options.config.projects.classification.protectedLevel,
-    ),
+    protectedLevel: levelNumber(project?.protectedLevel ?? options.config.projects.classification.protectedLevel),
   };
   if (resource.type === 'workspace') return entity('Workspace', 'ws', attrs);
   if (!file) return entity('Project', slug, attrs);
@@ -260,12 +217,7 @@ function resourceEntity(resource: ResourceRef, options: EntityOptions): cedar.En
 export function createPolicyEvaluator(policy: PolicySet, options: EntityOptions) {
   const known = knownProjectDomains(options);
   const members = memberEntities(options, known);
-  return (
-    principal: Principal,
-    action: Action,
-    resource: ResourceRef,
-    context: DecisionContext,
-  ) => {
+  return (principal: Principal, action: Action, resource: ResourceRef, context: DecisionContext) => {
     const person = principalEntity(principal, options);
     const target = resourceEntity(resource, options);
     const prospective = prospectiveProject(resource);

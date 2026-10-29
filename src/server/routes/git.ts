@@ -1,13 +1,6 @@
 // Exposes project source control operations. Remote actions run only through explicit requests.
 import { requestReader } from '../auth/request-scope';
-import {
-  authorizeCheckout,
-  authorizeGitPaths,
-  authorizeGitPush,
-  authorizePublish,
-  authorizeRepository,
-  mayPublish,
-} from '../auth/git-access';
+import { authorizeCheckout, authorizeGitPaths, authorizeGitPush, authorizePublish, authorizeRepository, mayPublish } from '../auth/git-access';
 import { checkRemoteAddress, delegatedCredentials } from '../auth/remote-credentials';
 import { authorizeWrite } from '../auth/write-access';
 import { existsSync, readFileSync } from 'node:fs';
@@ -20,29 +13,20 @@ import { BadRequestError } from '../projects/errors';
 // Files are named relative to the project (`paths`) or to its repository root (`repoPaths`), the
 // latter for files of sibling projects in a shared repository.
 function chosenPaths(body: { paths?: unknown; repoPaths?: unknown }) {
-  if (body.paths !== undefined && body.repoPaths !== undefined)
-    throw new BadRequestError('Send paths or repoPaths, not both.');
+  if (body.paths !== undefined && body.repoPaths !== undefined) throw new BadRequestError('Send paths or repoPaths, not both.');
   if (body.repoPaths !== undefined) return { list: body.repoPaths, base: 'repository' as const };
   return { list: body.paths, base: 'project' as const };
 }
 // Commands that talk to the remote can run longer than the server's idle timeout without sending
 // a byte, so their connections are kept open.
-const REMOTE_ACTIONS = new Set([
-  'git/fetch',
-  'git/pull',
-  'git/push',
-  'git/sync',
-  'git/pull-default',
-  'git/push-default',
-]);
+const REMOTE_ACTIONS = new Set(['git/fetch', 'git/pull', 'git/push', 'git/sync', 'git/pull-default', 'git/push-default']);
 
 /** Handles source control requests, including explicitly requested remote actions. */
 export const createGitRoutes =
   (options: HandlerOptions = {}): Route =>
   async (ws, req, url) => {
     // The credential helper set in the user's or system Git settings; credentials are never read.
-    if (url.pathname === '/api/git/credential-helper' && req.method === 'GET')
-      return Response.json(await ws.credentialHelper());
+    if (url.pathname === '/api/git/credential-helper' && req.method === 'GET') return Response.json(await ws.credentialHelper());
     const m = url.pathname.match(/^\/api\/projects\/([^/]+)\/(git\/[a-z-]+|gitignore)$/);
     if (!m) return null;
     const slug = decodeSegment(m[1]);
@@ -57,13 +41,7 @@ export const createGitRoutes =
 
     const body = async (keys: string[]) => {
       const b = await readJson(req, 64_000);
-      if (
-        !b ||
-        typeof b !== 'object' ||
-        Array.isArray(b) ||
-        Object.keys(b).some(k => !keys.includes(k))
-      )
-        throw new BadRequestError(`Expected {${keys.join(', ')}}.`);
+      if (!b || typeof b !== 'object' || Array.isArray(b) || Object.keys(b).some(k => !keys.includes(k))) throw new BadRequestError(`Expected {${keys.join(', ')}}.`);
       return b;
     };
     if (req.method === 'GET') {
@@ -76,41 +54,17 @@ export const createGitRoutes =
         const path = repoPath ?? q.get('path');
         if (!path) throw new BadRequestError('path or repoPath is required.');
         const base = repoPath === null ? 'project' : 'repository';
-        return Response.json(
-          await scm.diff(
-            slug,
-            path,
-            q.get('from') ?? 'HEAD',
-            q.get('to') ?? 'worktree',
-            base,
-            reader,
-          ),
-        );
+        return Response.json(await scm.diff(slug, path, q.get('from') ?? 'HEAD', q.get('to') ?? 'worktree', base, reader));
       }
       if (action === 'git/folder') {
         return Response.json(await ws.projectFolders.preview(slug, q.get('folder'), reader));
       }
       if (action === 'git/branches') return Response.json(await scm.branches(slug, reader));
-      if (action === 'git/log')
-        return Response.json(
-          await scm.log(
-            slug,
-            q.get('path') ?? undefined,
-            q.has('limit') ? Number(q.get('limit')) : undefined,
-            reader,
-          ),
-        );
+      if (action === 'git/log') return Response.json(await scm.log(slug, q.get('path') ?? undefined, q.has('limit') ? Number(q.get('limit')) : undefined, reader));
       if (action === 'git/versions') {
         const path = q.get('path');
         if (!path) throw new BadRequestError('path is required.');
-        return Response.json(
-          await scm.versions(
-            slug,
-            path,
-            q.has('limit') ? Number(q.get('limit')) : undefined,
-            reader,
-          ),
-        );
+        return Response.json(await scm.versions(slug, path, q.has('limit') ? Number(q.get('limit')) : undefined, reader));
       }
       if (action === 'git/show') {
         const commit = q.get('commit');
@@ -136,8 +90,7 @@ export const createGitRoutes =
       }
       if (action === 'git/commit') {
         const b = await body(['message', 'paths', 'repoPaths', 'push']);
-        if (b.push !== undefined && typeof b.push !== 'boolean')
-          throw new BadRequestError('push must be true or false.');
+        if (b.push !== undefined && typeof b.push !== 'boolean') throw new BadRequestError('push must be true or false.');
         await authorizeGitPaths(gitTarget, 'commit', {
           paths: b.repoPaths ?? b.paths,
           repository: b.repoPaths !== undefined,
@@ -169,9 +122,7 @@ export const createGitRoutes =
         const checkout = (local: string) => authorizeCheckout(gitTarget, local);
         const create = b.create === true;
         const credentialFor = delegatedCredentials(req);
-        return Response.json(
-          await scm.switchBranch(slug, b.branch, create, reader, checkout, credentialFor),
-        );
+        return Response.json(await scm.switchBranch(slug, b.branch, create, reader, checkout, credentialFor));
       }
       if (action === 'git/publish') {
         const b = await body(['branch']);
@@ -211,25 +162,14 @@ export const createGitRoutes =
       // Use the hash-checked save so concurrent edits are detected and the project is rescanned.
       if (action === 'gitignore') {
         const b = await body(['pattern']);
-        if (typeof b.pattern !== 'string' || b.pattern.length > 1000)
-          throw new BadRequestError('pattern must be one line of text.');
+        if (typeof b.pattern !== 'string' || b.pattern.length > 1000) throw new BadRequestError('pattern must be one line of text.');
         authorizeWrite(req, 'edit', [{ type: 'file', project: slug, path: '.gitignore' }]);
         ws.project(slug);
         const file = ws.filePath(slug, '.gitignore', reader);
         const bytes = existsSync(file) ? new Uint8Array(readFileSync(file)) : null;
         const current = bytes ? decode(bytes) : '';
         const next = appendIgnore(current, b.pattern);
-        const hash =
-          next === null
-            ? sha256(bytes!)
-            : (
-                await ws.saveFile(
-                  slug,
-                  '.gitignore',
-                  { baseHash: bytes ? sha256(bytes) : null, source: next },
-                  reader,
-                )
-              ).hash;
+        const hash = next === null ? sha256(bytes!) : (await ws.saveFile(slug, '.gitignore', { baseHash: bytes ? sha256(bytes) : null, source: next }, reader)).hash;
         return Response.json({
           hash,
           added: next !== null,
@@ -248,8 +188,7 @@ export const createGitRoutes =
     }
     if (req.method === 'PUT' && action === 'git/folder') {
       const b = await body(['folder', 'createFolder']);
-      if (b.createFolder !== undefined && typeof b.createFolder !== 'boolean')
-        throw new BadRequestError('createFolder must be true or false.');
+      if (b.createFolder !== undefined && typeof b.createFolder !== 'boolean') throw new BadRequestError('createFolder must be true or false.');
       authorizeRepository(gitTarget, 'setRemote');
       const options = { createFolder: b.createFolder === true };
       return Response.json(await ws.projectFolders.apply(slug, b.folder, options, reader));
@@ -261,8 +200,7 @@ export const createGitRoutes =
     }
     if (req.method === 'PUT' && action === 'git/identity') {
       const b = await body(['name', 'email', 'allRepositories']);
-      if (b.allRepositories !== undefined && typeof b.allRepositories !== 'boolean')
-        throw new BadRequestError('allRepositories must be true or false.');
+      if (b.allRepositories !== undefined && typeof b.allRepositories !== 'boolean') throw new BadRequestError('allRepositories must be true or false.');
       return Response.json(await ws.setIdentity(slug, b.name, b.email, b.allRepositories === true));
     }
     return null;

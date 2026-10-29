@@ -15,9 +15,7 @@ export function ignoreChoices(path: string): IgnoreChoice[] {
   const parts = path.split('/');
   const name = parts.at(-1)!;
   const dir = parts.slice(0, -1).join('/');
-  const out: IgnoreChoice[] = [
-    { pattern: '/' + parts.map(escapeIgnore).join('/'), label: `This file (${path})` },
-  ];
+  const out: IgnoreChoice[] = [{ pattern: '/' + parts.map(escapeIgnore).join('/'), label: `This file (${path})` }];
   const dot = name.lastIndexOf('.');
   if (dot > 0 && dot < name.length - 1) {
     const ext = name.slice(dot + 1);
@@ -33,8 +31,7 @@ export function ignoreChoices(path: string): IgnoreChoice[] {
 
 /** Appends a unique pattern using the file's line endings, or returns null if present. */
 export function appendIgnore(current: string, pattern: string): string | null {
-  if (!pattern.trim() || /[\r\n]/.test(pattern))
-    throw Error('A .gitignore entry is one non-empty line.');
+  if (!pattern.trim() || /[\r\n]/.test(pattern)) throw Error('A .gitignore entry is one non-empty line.');
   const eol = /\r\n/.test(current) ? '\r\n' : '\n';
   const lines = current.split(/\r?\n/);
   if (lines.includes(pattern)) return null;
@@ -42,5 +39,4 @@ export function appendIgnore(current: string, pattern: string): string | null {
 }
 // `.gitignore` is plain text: edited in Source, never validated as a model.
 /** Checks whether a filename denotes a plain-text Git ignore file. */
-export const isGitignore = (filename: string) =>
-  filename === '.gitignore' || filename.endsWith('/.gitignore');
+export const isGitignore = (filename: string) => filename === '.gitignore' || filename.endsWith('/.gitignore');

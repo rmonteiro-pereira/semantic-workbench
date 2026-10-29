@@ -16,8 +16,7 @@ export const governedMetrics: GovernedMetric[] = [
   {
     name: 'gross_revenue',
     datatype: 'Decimal',
-    description:
-      'Order amount before refunds. Aggregate orders only to avoid multiplying totals by lines.',
+    description: 'Order amount before refunds. Aggregate orders only to avoid multiplying totals by lines.',
     expression: 'SUM(orders.amount)',
     extension: {
       label: 'Gross revenue',
@@ -72,8 +71,7 @@ export const governedMetrics: GovernedMetric[] = [
   {
     name: 'units_sold',
     datatype: 'Integer',
-    description:
-      'Product units on order lines. Cancelled orders are included; filter by order status to exclude them.',
+    description: 'Product units on order lines. Cancelled orders are included; filter by order status to exclude them.',
     expression: 'SUM(order_lines.quantity)',
     extension: {
       label: 'Units sold',

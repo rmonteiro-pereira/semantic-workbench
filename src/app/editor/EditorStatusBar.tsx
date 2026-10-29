@@ -4,9 +4,7 @@ import { AlertTriangle, ListOrdered, Search, XCircle } from 'lucide-react';
 import type { FindingSummary } from './lint';
 import { largeDocumentThreshold } from './documentMode';
 
-const largeModeDescription =
-  `This file opened with over ${largeDocumentThreshold.toLocaleString('en-US')} characters. ` +
-  'Colouring and folding work on what is on screen so typing stays fast.';
+const largeModeDescription = `This file opened with over ${largeDocumentThreshold.toLocaleString('en-US')} characters. ` + 'Colouring and folding work on what is on screen so typing stays fast.';
 
 type Props = {
   syntax: string;
@@ -30,19 +28,7 @@ function describeFinding({ count, line, message }: FindingSummary) {
 }
 
 /** Displays file syntax, cursor position, validation status and navigation controls. */
-export function EditorStatusBar({
-  syntax,
-  largeMode,
-  modeAvailable,
-  onToggleParsing,
-  lineEnding,
-  cursor,
-  checking,
-  findingSummary,
-  lineInput,
-  onFind,
-  goToLine,
-}: Props) {
+export function EditorStatusBar({ syntax, largeMode, modeAvailable, onToggleParsing, lineEnding, cursor, checking, findingSummary, lineInput, onFind, goToLine }: Props) {
   function submitLine(event: FormEvent) {
     event.preventDefault();
     const lineNumber = Number(lineInput.current?.value);
@@ -56,10 +42,7 @@ export function EditorStatusBar({
       <span className="code-editor-syntax" title="Detected serialization">
         {syntax}
       </span>
-      <span
-        className="code-editor-eol"
-        title="Line endings are kept as they are in the file; new lines use the file's main style"
-      >
+      <span className="code-editor-eol" title="Line endings are kept as they are in the file; new lines use the file's main style">
         {lineEnding}
       </span>
       <span className="code-editor-position" aria-live="off">
@@ -67,10 +50,7 @@ export function EditorStatusBar({
       </span>
       {modeAvailable && (
         <span className="code-editor-mode">
-          <span
-            className={`code-editor-badge${largeMode ? ' large' : ''}`}
-            title={largeMode ? largeModeDescription : undefined}
-          >
+          <span className={`code-editor-badge${largeMode ? ' large' : ''}`} title={largeMode ? largeModeDescription : undefined}>
             {largeMode ? 'Large file mode' : 'Full parsing'}
           </span>
           <button type="button" onClick={onToggleParsing}>
@@ -84,17 +64,8 @@ export function EditorStatusBar({
         </span>
       )}
       {findingSummary && (
-        <button
-          type="button"
-          className={`code-editor-finding ${findingSummary.severity}`}
-          title={findingSummary.message}
-          onClick={() => goToLine(findingSummary.line)}
-        >
-          {findingSummary.severity === 'error' ? (
-            <XCircle size={13} aria-hidden="true" />
-          ) : (
-            <AlertTriangle size={13} aria-hidden="true" />
-          )}
+        <button type="button" className={`code-editor-finding ${findingSummary.severity}`} title={findingSummary.message} onClick={() => goToLine(findingSummary.line)}>
+          {findingSummary.severity === 'error' ? <XCircle size={13} aria-hidden="true" /> : <AlertTriangle size={13} aria-hidden="true" />}
           <span>{describeFinding(findingSummary)}</span>
         </button>
       )}
@@ -105,14 +76,7 @@ export function EditorStatusBar({
       <form className="code-editor-goto" onSubmit={submitLine}>
         <label title="Go to line (Ctrl+G)">
           <ListOrdered size={13} />
-          <input
-            ref={lineInput}
-            type="number"
-            min={1}
-            inputMode="numeric"
-            aria-label="Go to line"
-            placeholder="Line"
-          />
+          <input ref={lineInput} type="number" min={1} inputMode="numeric" aria-label="Go to line" placeholder="Line" />
         </label>
       </form>
     </div>

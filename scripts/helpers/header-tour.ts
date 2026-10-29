@@ -68,13 +68,9 @@ export async function phoneRowProblems(page: Page): Promise<string[]> {
     if (title.getBoundingClientRect().width < 120) problems.push('the title has no room');
     if (title.getBoundingClientRect().height > 24) problems.push('the title wraps');
     if (!title.getAttribute('title')) problems.push('the title has no tooltip with its full text');
-    const missing = ['Save state', 'Commit…', 'More actions'].filter(
-      name => !header.querySelector(`button[aria-label="${name}"]`),
-    );
+    const missing = ['Save state', 'Commit…', 'More actions'].filter(name => !header.querySelector(`button[aria-label="${name}"]`));
     problems.push(...missing.map(name => `${name} is missing from the phone header`));
-    const wide = ['New', 'Export'].filter(name =>
-      [...header.querySelectorAll('button')].some(button => button.textContent?.trim() === name),
-    );
+    const wide = ['New', 'Export'].filter(name => [...header.querySelectorAll('button')].some(button => button.textContent?.trim() === name));
     problems.push(...wide.map(name => `${name} still sits in the phone header`));
     return problems;
   });
@@ -112,9 +108,7 @@ async function menuProblems(page: Page, panel: string | null): Promise<string[]>
     const problems: string[] = [];
     const menu = document.querySelector('[role=menu]')?.getBoundingClientRect();
     if (!menu) return ['no menu is open'];
-    const room = panelSelector
-      ? document.querySelector(panelSelector)?.getBoundingClientRect()
-      : null;
+    const room = panelSelector ? document.querySelector(panelSelector)?.getBoundingClientRect() : null;
     const bounds = room ?? new DOMRect(0, 0, window.innerWidth, window.innerHeight);
     if (menu.left < bounds.left - 1 || menu.right > bounds.right + 1) {
       problems.push('the menu sticks out sideways');
@@ -177,11 +171,7 @@ export async function addProjectMenuProblems(page: Page): Promise<string[]> {
     const menuBox = popup.getBoundingClientRect();
     const found: string[] = [];
     if (trigger.getAttribute('aria-expanded') !== 'true') found.push('button not expanded');
-    const outsideWindow =
-      menuBox.top < 0 ||
-      menuBox.bottom > window.innerHeight ||
-      menuBox.left < 0 ||
-      menuBox.right > window.innerWidth;
+    const outsideWindow = menuBox.top < 0 || menuBox.bottom > window.innerHeight || menuBox.left < 0 || menuBox.right > window.innerWidth;
     if (outsideWindow) found.push('menu leaves the window');
     if (menuBox.top < buttonBox.bottom) found.push('menu covers the button');
     if (Math.abs(menuBox.left - buttonBox.left) > 1) found.push('menu not level with the button');
@@ -196,9 +186,7 @@ export async function addProjectMenuProblems(page: Page): Promise<string[]> {
 function exampleListPlacement(): string[] {
   const menu = document.querySelector<HTMLElement>('[role=menu][aria-label="Add project"]')!;
   const list = document.querySelector<HTMLElement>('.menu-popup.menu-submenu')!;
-  const row = [...menu.querySelectorAll<HTMLElement>('[role=menuitem]')].find(
-    item => item.textContent?.trim() === 'Load an example',
-  )!;
+  const row = [...menu.querySelectorAll<HTMLElement>('[role=menuitem]')].find(item => item.textContent?.trim() === 'Load an example')!;
   const menuBox = menu.getBoundingClientRect();
   const listBox = list.getBoundingClientRect();
   const rowBox = row.getBoundingClientRect();
@@ -261,9 +249,7 @@ export async function exampleListProblems(page: Page): Promise<string[]> {
 function themeControlProblems(): string[] {
   const control = document.querySelector<HTMLElement>('.settings-panel .theme-control')!;
   const label = control.querySelector<HTMLElement>('.theme-control-label')!.getBoundingClientRect();
-  const buttons = [...control.querySelectorAll<HTMLElement>('button')].map(button =>
-    button.getBoundingClientRect(),
-  );
+  const buttons = [...control.querySelectorAll<HTMLElement>('button')].map(button => button.getBoundingClientRect());
   const found: string[] = [];
   if (buttons.some(box => box.top < label.bottom)) found.push('theme buttons beside the label');
   if (buttons.some(box => Math.abs(box.top - buttons[0]!.top) > 1)) {
@@ -302,11 +288,7 @@ export async function settingsPanelProblems(page: Page): Promise<string[]> {
     const panelBox = popup.getBoundingClientRect();
     const found: string[] = [];
     if (trigger.getAttribute('aria-expanded') !== 'true') found.push('Settings not expanded');
-    const outsideWindow =
-      panelBox.top < 0 ||
-      panelBox.bottom > window.innerHeight ||
-      panelBox.left < 0 ||
-      panelBox.right > window.innerWidth;
+    const outsideWindow = panelBox.top < 0 || panelBox.bottom > window.innerHeight || panelBox.left < 0 || panelBox.right > window.innerWidth;
     if (outsideWindow) found.push('panel leaves the window');
     if (popup.scrollHeight > popup.clientHeight + 1) found.push('panel scrolls');
     if (window.innerWidth <= 650) return found;

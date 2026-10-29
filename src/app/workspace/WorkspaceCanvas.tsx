@@ -257,12 +257,7 @@ export function WorkspaceCanvas({
       );
     }
     if (!source && !current && emptyProject) {
-      return (
-        <EmptyProject
-          project={emptyProject}
-          onImportFiles={() => onImportInto(emptyProject.slug)}
-        />
-      );
+      return <EmptyProject project={emptyProject} onImportFiles={() => onImportInto(emptyProject.slug)} />;
     }
     if (!source && !current) {
       return (
@@ -283,24 +278,13 @@ export function WorkspaceCanvas({
       );
     }
     if (tab === 'source') {
-      return (
-        <SourceView
-          sourceEditor={sourceEditor}
-          current={current}
-          source={source}
-          setSource={setSource}
-          setEditorIssues={setEditorIssues}
-        />
-      );
+      return <SourceView sourceEditor={sourceEditor} current={current} source={source} setSource={setSource} setEditorIssues={setEditorIssues} />;
     }
     if (plainText) {
       return (
         <div className="invalid-definition">
           <h2>Git ignore rules</h2>
-          <p>
-            {current?.path} is plain text: one pattern per line, read by Git. Files it matches are
-            not shown in the workspace or in Source Control.
-          </p>
+          <p>{current?.path} is plain text: one pattern per line, read by Git. Files it matches are not shown in the workspace or in Source Control.</p>
           <button onClick={() => setTab('source')}>Edit in Source</button>
         </div>
       );
@@ -372,9 +356,7 @@ export function WorkspaceCanvas({
   }
 
   function handlePrimaryClick() {
-    return void commitImports([{ filename: 'commerce-business.ossie.yaml', source: sample }]).catch(
-      e => setMessage((e as Error).message),
-    );
+    return void commitImports([{ filename: 'commerce-business.ossie.yaml', source: sample }]).catch(e => setMessage((e as Error).message));
   }
 
   function handleLineageCanvasOpenAsset(c: import('../odcs/lineage').LineageCard) {

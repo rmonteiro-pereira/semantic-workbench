@@ -43,20 +43,14 @@ await page.getByText('ManyToOne', { exact: true }).waitFor();
 await page.getByLabel('Relationship description').fill('Updated relationship description');
 await page.getByRole('button', { name: 'Save changes' }).click();
 await page.getByRole('status').filter({ hasText: 'Saved to the project folder' }).waitFor();
-if (!savedSource()?.includes('Updated relationship description'))
-  throw Error('Relationship edit was not saved');
+if (!savedSource()?.includes('Updated relationship description')) throw Error('Relationship edit was not saved');
 await page.screenshot({ path: '/tmp/semantic-workbench-relationship.png' });
 await (await example(page, /Commerce scale data/)).click();
-await page
-  .getByText('1000 entities · 5000 relationships', { exact: true })
-  .waitFor({ timeout: 60000 });
+await page.getByText('1000 entities · 5000 relationships', { exact: true }).waitFor({ timeout: 60000 });
 await page.getByRole('button', { name: 'Auto align', exact: true }).click();
 await page.waitForTimeout(1500);
-await page
-  .getByRole('button', { name: 'Auto align', exact: true })
-  .waitFor({ state: 'visible', timeout: 60000 });
-if (!api.ws.documents().some(d => d.filename === 'commerce-scale.ttl'))
-  throw Error('Example was not saved to workspace');
+await page.getByRole('button', { name: 'Auto align', exact: true }).waitFor({ state: 'visible', timeout: 60000 });
+if (!api.ws.documents().some(d => d.filename === 'commerce-scale.ttl')) throw Error('Example was not saved to workspace');
 console.log(
   JSON.stringify({
     relationshipSelection: true,

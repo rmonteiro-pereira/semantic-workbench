@@ -14,8 +14,7 @@ const revenueDimensions = ['plans.tier', 'product_families.name', 'currencies.co
 export const governedMetrics: GovernedMetric[] = [
   {
     name: 'net_revenue',
-    description:
-      'Invoice-line quantity × unit price minus line discount, excluding tax and credits.',
+    description: 'Invoice-line quantity × unit price minus line discount, excluding tax and credits.',
     expression: 'SUM(invoice_lines.net_amount)',
     extension: {
       label: 'Net revenue',
@@ -33,8 +32,7 @@ export const governedMetrics: GovernedMetric[] = [
   {
     name: 'recurring_revenue',
     description: 'Only recurring invoice lines; usage-only lines are excluded.',
-    expression:
-      'SUM(CASE WHEN invoice_lines.is_recurring = 1 THEN invoice_lines.net_amount ELSE 0 END)',
+    expression: 'SUM(CASE WHEN invoice_lines.is_recurring = 1 THEN invoice_lines.net_amount ELSE 0 END)',
     extension: {
       label: 'Recurring revenue',
       type: 'simple',
@@ -50,8 +48,7 @@ export const governedMetrics: GovernedMetric[] = [
   },
   {
     name: 'invoice_count',
-    description:
-      'Distinct invoices represented by the selected lines. Not additive across product or plan groups.',
+    description: 'Distinct invoices represented by the selected lines. Not additive across product or plan groups.',
     expression: 'COUNT(DISTINCT invoice_lines.invoice_id)',
     extension: {
       label: 'Invoice count',

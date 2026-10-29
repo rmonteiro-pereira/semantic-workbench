@@ -3,13 +3,7 @@
 import { expect, test } from 'bun:test';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import {
-  createAuditLog,
-  parseMirror,
-  readStoredMonths,
-  verifyAuditChain,
-  type AuditAnchor,
-} from '../../src/server/auth/audit';
+import { createAuditLog, parseMirror, readStoredMonths, verifyAuditChain, type AuditAnchor } from '../../src/server/auth/audit';
 import { sha256 } from '../../src/server/projects/atomic';
 import { tempDataDir } from '../helpers/temp-data-dir';
 
@@ -39,8 +33,7 @@ function writeDays(days: string[]) {
   }
   return { dir, mirrored, anchors: anchorsOf(mirrored) };
 }
-const anchorsOf = (mirrored: string[]): AuditAnchor[] =>
-  mirrored.map(line => JSON.parse(line)).filter(record => record.type === 'audit-anchor');
+const anchorsOf = (mirrored: string[]): AuditAnchor[] => mirrored.map(line => JSON.parse(line)).filter(record => record.type === 'audit-anchor');
 
 test('the first record of a month names the last record of the month before', () => {
   const { dir } = writeDays(['2026-08-30T10:00:00Z', '2026-09-02T10:00:00Z', '2026-10-05Z']);
@@ -71,9 +64,7 @@ test('the mirror receives the closed month and its last hash when the next month
   const { dir, mirrored, anchors } = writeDays(['2026-08-30Z', '2026-09-02Z', '2026-09-03Z']);
   try {
     const august = readStoredMonths(dir.root)[0];
-    expect(anchors).toEqual([
-      { type: 'audit-anchor', month: '2026-08', tail: sha256(august.lines.at(-1)!) },
-    ]);
+    expect(anchors).toEqual([{ type: 'audit-anchor', month: '2026-08', tail: sha256(august.lines.at(-1)!) }]);
     // Every record is mirrored as well, so the mirror holds the whole chain.
     expect(mirrored.filter(line => line.includes('"type":"audit"'))).toHaveLength(3);
     // A restart in the same month does not announce the anchor again.
@@ -210,10 +201,7 @@ test('the verify command fails with --anchors when the mirrored log holds no anc
   try {
     const empty = join(dir.root, 'empty.log');
     writeFileSync(empty, 'some other output\n');
-    const run = Bun.spawnSync(
-      [process.execPath, 'scripts/audit-verify.ts', dir.root, '--anchors', empty],
-      { stdout: 'pipe', stderr: 'pipe' },
-    );
+    const run = Bun.spawnSync([process.execPath, 'scripts/audit-verify.ts', dir.root, '--anchors', empty], { stdout: 'pipe', stderr: 'pipe' });
     expect(run.exitCode).toBe(1);
     expect(run.stderr.toString()).toContain('holds no anchor');
   } finally {
@@ -226,19 +214,7 @@ test('the verify command checks the mirrored records against the stored months',
   try {
     const log = join(dir.root, 'mirror.log');
     writeFileSync(log, mirrored.join(''));
-    const run = () =>
-      Bun.spawnSync(
-        [
-          process.execPath,
-          'scripts/audit-verify.ts',
-          dir.root,
-          '--anchors',
-          log,
-          '--retention-days',
-          '100000',
-        ],
-        { stdout: 'pipe', stderr: 'pipe' },
-      );
+    const run = () => Bun.spawnSync([process.execPath, 'scripts/audit-verify.ts', dir.root, '--anchors', log, '--retention-days', '100000'], { stdout: 'pipe', stderr: 'pipe' });
     expect(run().exitCode).toBe(0);
     const file = join(dir.root, '2026-09.jsonl');
     writeFileSync(file, '');

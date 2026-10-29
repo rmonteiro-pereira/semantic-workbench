@@ -1,12 +1,7 @@
 /** Provides the grouping selector shared by model overview and graph views. */
 import { useState, useRef, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
-import type {
-  modelOverview,
-  GroupingOptions,
-  GroupingMode,
-  ConcreteGroupingMode,
-} from './overview';
+import type { modelOverview, GroupingOptions, GroupingMode, ConcreteGroupingMode } from './overview';
 import { AdjustGroupingDialog } from './AdjustGroupingDialog';
 
 type Overview = ReturnType<typeof modelOverview>;
@@ -84,12 +79,7 @@ export function GroupingControls({ overview, value, onChange, error }: Props) {
     <div className="grouping-controls">
       <label>
         Group by{' '}
-        <select
-          aria-label="Group model by"
-          title={overview.explanation}
-          value={shown}
-          onChange={chooseMode}
-        >
+        <select aria-label="Group model by" title={overview.explanation} value={shown} onChange={chooseMode}>
           <option value="auto" title={`Currently groups by ${AUTO_NAMES[overview.autoMode]}`}>
             Automatic
           </option>
@@ -103,11 +93,7 @@ export function GroupingControls({ overview, value, onChange, error }: Props) {
           })}
         </select>
       </label>
-      <details
-        ref={details}
-        className="grouping-details"
-        onToggle={e => setOpened(e.currentTarget.open)}
-      >
+      <details ref={details} className="grouping-details" onToggle={e => setOpened(e.currentTarget.open)}>
         <summary aria-label="Grouping details" title="Grouping details">
           ⓘ
         </summary>
@@ -123,16 +109,7 @@ export function GroupingControls({ overview, value, onChange, error }: Props) {
       {error && <span role="alert">{error}</span>}
       {/* The dialog renders outside the toolbar so the toolbar's compact control styles do not
           apply to its form. */}
-      {adjusting &&
-        createPortal(
-          <AdjustGroupingDialog
-            overview={overview}
-            value={value}
-            onChange={onChange}
-            onClose={() => setAdjusting(false)}
-          />,
-          document.body,
-        )}
+      {adjusting && createPortal(<AdjustGroupingDialog overview={overview} value={value} onChange={onChange} onClose={() => setAdjusting(false)} />, document.body)}
     </div>
   );
 }

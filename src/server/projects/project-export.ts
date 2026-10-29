@@ -6,15 +6,7 @@ import { randomUUID } from 'node:crypto';
 import { TEMP_SUFFIX } from './atomic';
 import { BadRequestError, TooLargeError } from './errors';
 import type { Git } from './git';
-import {
-  PathError,
-  projectDir,
-  projectFile,
-  projectPath,
-  projectPrefix,
-  repoDir,
-  type DataLayout,
-} from './paths';
+import { PathError, projectDir, projectFile, projectPath, projectPrefix, repoDir, type DataLayout } from './paths';
 import type { Reader } from './reader';
 import { ZIP_MAX_ENTRIES, zipSize, type ZipEntry } from './zip';
 
@@ -81,34 +73,23 @@ function sizedEntry(layout: DataLayout, slug: string, path: string) {
     if (!stat.isFile()) return null;
     return { file, size: stat.size };
   } catch (error) {
-    if (error instanceof PathError || (error as NodeJS.ErrnoException).code === 'ENOENT')
-      return null;
+    if (error instanceof PathError || (error as NodeJS.ErrnoException).code === 'ENOENT') return null;
     throw error;
   }
 }
 
 function tooLarge(limit: number) {
   const megabytes = Math.round(limit / 1_000_000);
-  return new TooLargeError(
-    `This project is too large to export: the limit is ${megabytes} MB. Nothing was downloaded.`,
-    limit,
-  );
+  return new TooLargeError(`This project is too large to export: the limit is ${megabytes} MB. Nothing was downloaded.`, limit);
 }
 
 // A server reader may export history only when no commit ever touched a file they cannot read
 // and the repository holds nothing but this project.
-async function assertHistoryReadable(
-  deps: ExportDeps,
-  slug: string,
-  reader: Reader,
-  facts: { restricted: number; historyAllowed: boolean },
-) {
+async function assertHistoryReadable(deps: ExportDeps, slug: string, reader: Reader, facts: { restricted: number; historyAllowed: boolean }) {
   const { view } = reader;
   if (!view) return;
-  const refusal =
-    'Git history is exported only when you may read every file the project ever held.';
-  if (!facts.historyAllowed || facts.restricted > 0 || projectPrefix(deps.layout, slug) !== '')
-    throw new BadRequestError(refusal);
+  const refusal = 'Git history is exported only when you may read every file the project ever held.';
+  if (!facts.historyAllowed || facts.restricted > 0 || projectPrefix(deps.layout, slug) !== '') throw new BadRequestError(refusal);
   const repo = repoDir(deps.layout, slug);
   const ref = (await deps.git.currentRef(repo)) ?? 'HEAD';
   const touched = await deps.git.historyPaths(repo, ref);
@@ -119,8 +100,7 @@ async function assertHistoryReadable(
 // reader, because other people's working branches are not theirs to receive.
 async function bundleBytes(deps: ExportDeps, slug: string, reader: Reader, remaining: number) {
   const repo = repoDir(deps.layout, slug);
-  if (!deps.gitAvailable || !(await deps.git.head(repo)))
-    throw new BadRequestError('This project has no Git history to include yet.');
+  if (!deps.gitAvailable || !(await deps.git.head(repo))) throw new BadRequestError('This project has no Git history to include yet.');
   const ref = reader.view ? ((await deps.git.currentRef(repo)) ?? 'HEAD') : '--all';
   mkdirSync(deps.scratchDir, { recursive: true });
   const file = join(deps.scratchDir, `${randomUUID()}.bundle`);
@@ -135,12 +115,7 @@ async function bundleBytes(deps: ExportDeps, slug: string, reader: Reader, remai
 }
 
 /** Decides what the export holds and refuses an oversized one before any byte is sent. */
-export async function planProjectExport(
-  deps: ExportDeps,
-  slug: string,
-  reader: Reader,
-  options: ExportOptions,
-): Promise<ExportPlan> {
+export async function planProjectExport(deps: ExportDeps, slug: string, reader: Reader, options: ExportOptions): Promise<ExportPlan> {
   const listed = await deps.listPaths(projectDir(deps.layout, slug));
   const canRead = (path: string) => !reader.view || reader.view.canRead(slug, path);
   const { included, restricted } = selectExportPaths(listed, canRead);

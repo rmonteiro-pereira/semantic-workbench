@@ -69,8 +69,7 @@ function fields<T>(value: unknown, required: Record<string, string>): T {
   for (const [key, kind] of Object.entries(required)) {
     let valid = typeof entry[key] === kind;
     if (kind === 'array') valid = Array.isArray(entry[key]);
-    if (kind === 'object')
-      valid = Boolean(entry[key]) && typeof entry[key] === 'object' && !Array.isArray(entry[key]);
+    if (kind === 'object') valid = Boolean(entry[key]) && typeof entry[key] === 'object' && !Array.isArray(entry[key]);
     if (!valid) throw new Error(`Administration API returned invalid ${key}.`);
   }
   return entry as T;
@@ -84,9 +83,7 @@ function list<T>(value: unknown, required: Record<string, string>): T[] {
 async function request(path: string, method = 'GET', body?: unknown): Promise<unknown> {
   const response = await apiFetch(path, {
     method,
-    ...(body === undefined
-      ? {}
-      : { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }),
+    ...(body === undefined ? {} : { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }),
   });
   if (response.status === 204 && response.ok) return null;
   if (!response.ok) {
@@ -111,9 +108,7 @@ async function errorDetails(response: Response): Promise<Record<string, unknown>
 }
 
 function query(filters: Record<string, string | undefined>) {
-  return new URLSearchParams(
-    Object.entries(filters).filter((pair): pair is [string, string] => Boolean(pair[1])),
-  ).toString();
+  return new URLSearchParams(Object.entries(filters).filter((pair): pair is [string, string] => Boolean(pair[1]))).toString();
 }
 
 const version = (value: unknown) => fields<{ version: string }>(value, { version: 'string' });
@@ -162,8 +157,7 @@ function grantResponse(value: unknown): Grant {
   else throw new Error('Administration API returned an invalid grant member.');
   if (grant.scope.kind === 'domains') strings(grant.scope.domains, 'grant domains');
   else if (grant.scope.kind === 'projects') strings(grant.scope.projects, 'grant projects');
-  else if (grant.scope.kind !== 'workspace')
-    throw new Error('Administration API returned an invalid grant scope.');
+  else if (grant.scope.kind !== 'workspace') throw new Error('Administration API returned an invalid grant scope.');
   return grant;
 }
 
@@ -222,16 +216,10 @@ export const adminApi = {
     return versioned<AgentsConfig>(await request('/api/admin/agents'), { clients: 'array' });
   },
   async group(id: string) {
-    return fields<{ id: string; displayName: string | null; resolved: boolean }>(
-      await request('/api/admin/groups/' + encodeURIComponent(id)),
-      { id: 'string', resolved: 'boolean' },
-    );
+    return fields<{ id: string; displayName: string | null; resolved: boolean }>(await request('/api/admin/groups/' + encodeURIComponent(id)), { id: 'string', resolved: 'boolean' });
   },
   async policies() {
-    return versioned<{ baseline: Policy[]; rules: Policy[]; schema: unknown }>(
-      await request('/api/admin/policies'),
-      { baseline: 'array', rules: 'array' },
-    );
+    return versioned<{ baseline: Policy[]; rules: Policy[]; schema: unknown }>(await request('/api/admin/policies'), { baseline: 'array', rules: 'array' });
   },
   async validate(rules: Policy[]) {
     return fields<{
@@ -258,13 +246,7 @@ export const adminApi = {
       auditCases: 'number',
     });
   },
-  async save(
-    area: AccessArea,
-    proposal: Proposal,
-    baseVersion: string,
-    dryRunId: string,
-    confirmDeleteInUse = false,
-  ) {
+  async save(area: AccessArea, proposal: Proposal, baseVersion: string, dryRunId: string, confirmDeleteInUse = false) {
     if (!dryRunId) throw new Error('Review a dry run before saving.');
     return version(
       await request('/api/admin/' + area, 'PUT', {
@@ -276,10 +258,7 @@ export const adminApi = {
     );
   },
   async versions(area = '') {
-    const entries = list<Version & { author: unknown }>(
-      await request('/api/admin/versions?' + query({ area })),
-      { version: 'string', at: 'string', message: 'string', files: 'array' },
-    );
+    const entries = list<Version & { author: unknown }>(await request('/api/admin/versions?' + query({ area })), { version: 'string', at: 'string', message: 'string', files: 'array' });
     return entries.map(entry => {
       const author =
         typeof entry.author === 'string'
@@ -292,14 +271,10 @@ export const adminApi = {
     });
   },
   async diff(selected: string, against: string) {
-    const value = await request(
-      `/api/admin/versions/${encodeURIComponent(selected)}/diff?` + query({ against }),
-    );
-    if (Array.isArray(value))
-      return list<VersionDiff>(value, { file: 'string', before: 'string', after: 'string' });
+    const value = await request(`/api/admin/versions/${encodeURIComponent(selected)}/diff?` + query({ against }));
+    if (Array.isArray(value)) return list<VersionDiff>(value, { file: 'string', before: 'string', after: 'string' });
     const patches = object(value);
-    if (!Object.values(patches).every(patch => typeof patch === 'string'))
-      throw new Error('Invalid version diff.');
+    if (!Object.values(patches).every(patch => typeof patch === 'string')) throw new Error('Invalid version diff.');
     return patchDiffs(patches as Record<string, string>);
   },
   async rollback(selected: string, baseVersion: string, dryRunId: string) {
@@ -312,9 +287,7 @@ export const adminApi = {
     );
   },
   async changeUser(id: string, operation: 'deactivate' | 'reactivate', reason: string) {
-    return version(
-      await request(`/api/admin/users/${encodeURIComponent(id)}/${operation}`, 'POST', { reason }),
-    );
+    return version(await request(`/api/admin/users/${encodeURIComponent(id)}/${operation}`, 'POST', { reason }));
   },
   async sessions() {
     return list<Session>(await request('/api/admin/sessions'), {
@@ -343,15 +316,8 @@ export const adminApi = {
       overage: 'string',
     });
   },
-  async check(
-    principal: string | { groups: string[]; email: string },
-    action: string,
-    resource: { type: string; project?: string; path?: string; branch?: string; metric?: string },
-  ) {
-    return fields<AccessExplanation>(
-      await request('/api/admin/check', 'POST', { principal, action, resource }),
-      { grants: 'array', roles: 'array', rules: 'array', attributes: 'object' },
-    );
+  async check(principal: string | { groups: string[]; email: string }, action: string, resource: { type: string; project?: string; path?: string; branch?: string; metric?: string }) {
+    return fields<AccessExplanation>(await request('/api/admin/check', 'POST', { principal, action, resource }), { grants: 'array', roles: 'array', rules: 'array', attributes: 'object' });
   },
   async whoCan(project: string, path: string) {
     return list<{
@@ -367,9 +333,7 @@ export const adminApi = {
     return fields<AuditPage>(await request('/api/audit?' + query(filters)), { entries: 'array' });
   },
   async exportAudit(filters: Record<string, string>, format: 'jsonl' | 'csv') {
-    const response = await apiFetch(
-      '/api/audit/export?' + query({ ...filters, format, cursor: undefined }),
-    );
+    const response = await apiFetch('/api/audit/export?' + query({ ...filters, format, cursor: undefined }));
     if (!response.ok) {
       throw new AdminApiError(response.status, await errorDetails(response), 'Export audit');
     }

@@ -1,11 +1,6 @@
 // Exercises grant membership and scope expansion independently of the policy engine.
 import { expect, test } from 'bun:test';
-import {
-  adminHolders,
-  holdersOfGrant,
-  resolveGrants,
-  type Grant,
-} from '../../src/server/auth/grants';
+import { adminHolders, holdersOfGrant, resolveGrants, type Grant } from '../../src/server/auth/grants';
 import { localPrincipal } from '../../src/server/auth/principal';
 
 const scope = { kind: 'workspace' } as const;
@@ -36,10 +31,7 @@ const options = {
 };
 
 test('group matching follows the provider and verified addresses add a union of grants', () => {
-  expect(resolveGrants(principal, [group, email], options).map(grant => grant.grantId)).toEqual([
-    'group',
-    'email',
-  ]);
+  expect(resolveGrants(principal, [group, email], options).map(grant => grant.grantId)).toEqual(['group', 'email']);
   expect(resolveGrants(principal, [group], { ...options, groupMatch: 'exact' })).toEqual([]);
   expect(resolveGrants({ ...principal, groupsResolved: 'failed' }, [group], options)).toEqual([]);
   expect(resolveGrants({ ...principal, verifiedEmail: null }, [email], options)).toEqual([]);
@@ -51,9 +43,7 @@ test('deactivation wins over bootstrap addresses and ids', () => {
     { emails: [], ids: ['person'] },
   ]) {
     expect(resolveGrants(principal, [], { ...options, bootstrap })[0]?.via).toBe('bootstrap');
-    expect(
-      resolveGrants(principal, [], { ...options, bootstrap, deactivated: ['person'] }),
-    ).toEqual([]);
+    expect(resolveGrants(principal, [], { ...options, bootstrap, deactivated: ['person'] })).toEqual([]);
   }
 });
 
@@ -63,22 +53,10 @@ const projects = [
 ];
 test('scope expansion excludes domainless projects except explicit grants and Admin', () => {
   expect(holdersOfGrant(group, projects)).toEqual(['editor@workspace', 'editor@sales']);
-  expect(
-    holdersOfGrant({ ...group, scope: { kind: 'domains', domains: ['sales'] } }, projects),
-  ).toEqual(['editor@sales']);
-  expect(
-    holdersOfGrant(
-      { ...group, scope: { kind: 'projects', projects: ['lab', 'missing'] } },
-      projects,
-    ),
-  ).toEqual(['editor@lab', 'explicit@lab']);
+  expect(holdersOfGrant({ ...group, scope: { kind: 'domains', domains: ['sales'] } }, projects)).toEqual(['editor@sales']);
+  expect(holdersOfGrant({ ...group, scope: { kind: 'projects', projects: ['lab', 'missing'] } }, projects)).toEqual(['editor@lab', 'explicit@lab']);
   expect(holdersOfGrant({ ...group, roleId: 'admin' }, projects)).toEqual(['admin@workspace']);
-  expect(() =>
-    holdersOfGrant(
-      { ...group, roleId: 'admin', scope: { kind: 'projects', projects: ['sales'] } },
-      projects,
-    ),
-  ).toThrow();
+  expect(() => holdersOfGrant({ ...group, roleId: 'admin', scope: { kind: 'projects', projects: ['sales'] } }, projects)).toThrow();
 });
 
 test('the Admin guard counts matching recorded people and bootstrap entries separately', () => {

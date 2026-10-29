@@ -2,17 +2,7 @@
 import { test, expect } from 'bun:test';
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import {
-  atomicWrite,
-  atomicWriteJson,
-  decode,
-  encode,
-  readJsonFile,
-  replaceFile,
-  type RenameEnvironment,
-  sha256,
-  TEMP_SUFFIX,
-} from '../src/server/projects/atomic';
+import { atomicWrite, atomicWriteJson, decode, encode, readJsonFile, replaceFile, type RenameEnvironment, sha256, TEMP_SUFFIX } from '../src/server/projects/atomic';
 import { tempDataDir } from './helpers/temp-data-dir';
 test('SHA-256 of bytes and of the UTF-8 text agree', () => {
   expect(sha256('abc')).toBe('ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad');
@@ -59,9 +49,7 @@ test('a crash between writing and renaming keeps the original bytes', () => {
 });
 test('decode keeps a byte order mark and rejects invalid UTF-8', () => {
   expect(decode(new Uint8Array([0xef, 0xbb, 0xbf, 0x61]))).toBe('\ufeffa');
-  expect(encode(decode(new Uint8Array([0xef, 0xbb, 0xbf, 0x61])))).toEqual(
-    new Uint8Array([0xef, 0xbb, 0xbf, 0x61]),
-  );
+  expect(encode(decode(new Uint8Array([0xef, 0xbb, 0xbf, 0x61])))).toEqual(new Uint8Array([0xef, 0xbb, 0xbf, 0x61]));
   expect(() => decode(new Uint8Array([0xff, 0xfe, 0x00]))).toThrow('UTF-8');
 });
 test('JSON state helpers round-trip and report missing files as null', () => {

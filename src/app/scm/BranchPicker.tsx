@@ -3,8 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { GitBranch, Plus } from 'lucide-react';
 import { scm, type BranchInUse } from '../projects/api';
 
-const holderOf = (inUse: BranchInUse[], branch: string) =>
-  inUse.find(item => item.branch === branch)?.inUseBy;
+const holderOf = (inUse: BranchInUse[], branch: string) => inUse.find(item => item.branch === branch)?.inUseBy;
 
 /** One branch of the list; a branch held by another working copy names who holds it. */
 function BranchOption({ branch, holder }: { branch: string; holder?: string }) {
@@ -64,9 +63,7 @@ export function BranchPicker({
   }, [project, version]);
   const holder = holderOf(inUse, current);
   const currentLabel = holder ? `${current} (in use by ${holder})` : current;
-  const remoteOnly = branches.remote.filter(
-    r => !branches.local.includes(r.slice(r.indexOf('/') + 1)),
-  );
+  const remoteOnly = branches.remote.filter(r => !branches.local.includes(r.slice(r.indexOf('/') + 1)));
   return (
     <div className="branch-picker">
       <label>
@@ -83,15 +80,9 @@ export function BranchPicker({
         >
           <optgroup label="Local">
             {branches.local.map(b => (
-              <BranchOption
-                key={b}
-                branch={b}
-                holder={b === current ? undefined : holderOf(inUse, b)}
-              />
+              <BranchOption key={b} branch={b} holder={b === current ? undefined : holderOf(inUse, b)} />
             ))}
-            {!branches.local.includes(current) && (
-              <option value={current}>{current || '(no branch)'}</option>
-            )}
+            {!branches.local.includes(current) && <option value={current}>{current || '(no branch)'}</option>}
           </optgroup>
           {remoteOnly.length > 0 && (
             <optgroup label="Remote">
@@ -137,12 +128,7 @@ export function BranchPicker({
           </button>
         </form>
       ) : (
-        <button
-          ref={newBranchButton}
-          type="button"
-          onClick={() => setCreating(true)}
-          disabled={disabled}
-        >
+        <button ref={newBranchButton} type="button" onClick={() => setCreating(true)} disabled={disabled}>
           <Plus size={13} />
           New branch
         </button>

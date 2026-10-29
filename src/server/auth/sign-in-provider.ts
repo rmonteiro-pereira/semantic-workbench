@@ -60,10 +60,7 @@ export function signInLibrary(provider: ProviderKind): SignInLibrary {
 }
 
 /** Discovers the configured provider and returns its sign-in operations. */
-export async function createSignInProvider(
-  config: ServerConfig,
-  dependencies: SignInDependencies = {},
-): Promise<SignInProvider> {
+export async function createSignInProvider(config: ServerConfig, dependencies: SignInDependencies = {}): Promise<SignInProvider> {
   if (signInLibrary(config.oidc.provider) === 'msal') {
     return createMsalProvider(config, dependencies);
   }

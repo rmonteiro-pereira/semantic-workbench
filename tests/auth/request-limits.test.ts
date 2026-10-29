@@ -16,10 +16,7 @@ import { useQuietLogging } from '../helpers/quiet-logging';
 const month = () => new Date().toISOString().slice(0, 7);
 const noRefill = { burst: 5, perSecond: 0.0001 };
 
-async function serverHandler(
-  sourceIp: () => string | undefined,
-  limits = { requests: noRefill, signIn: noRefill },
-) {
+async function serverHandler(sourceIp: () => string | undefined, limits = { requests: noRefill, signIn: noRefill }) {
   const workspace = await testWorkspace();
   const audit = createAuditLog({ dir: join(workspace.root, 'audit') });
   const handler = createHandler(workspace.ws, {
@@ -32,8 +29,7 @@ async function serverHandler(
   return { workspace, audit, handler, [Symbol.dispose]: () => workspace.dispose() };
 }
 
-const get = (path: string, headers: Record<string, string> = {}) =>
-  new Request('http://localhost' + path, { headers });
+const get = (path: string, headers: Record<string, string> = {}) => new Request('http://localhost' + path, { headers });
 
 test('a source address that exceeds its request allowance is answered 429', async () => {
   using app = await serverHandler(() => '203.0.113.7');
@@ -101,9 +97,7 @@ test('refused bearer tokens from one address leave a bounded number of audit rec
   const limits = { requests: { burst: 1000, perSecond: 1000 }, signIn: noRefill };
   using app = await serverHandler(() => '203.0.113.7', limits);
   for (let request = 0; request < ANONYMOUS_AUDIT_BURST * 2; request++) {
-    const response = await app.handler(
-      new Request('http://localhost/api/projects', { headers: { Authorization: 'Bearer x' } }),
-    );
+    const response = await app.handler(new Request('http://localhost/api/projects', { headers: { Authorization: 'Bearer x' } }));
     expect(response.status).toBe(401);
   }
   const refusals = app.audit.entries(month()).filter(entry => entry.reason === 'bearer-scope');
@@ -167,8 +161,7 @@ test('left out anonymous refusals are counted on the next record', async () => {
   let milliseconds = Date.now();
   using app = await personApp({ burst: 5000, perSecond: 1 }, () => milliseconds);
   for (let request = 0; request < 1000; request++) await app.handler(get('/api/projects'));
-  const denials = () =>
-    app.audit.entries(month()).filter(entry => entry.reason === 'sign-in-required');
+  const denials = () => app.audit.entries(month()).filter(entry => entry.reason === 'sign-in-required');
   expect(denials()).toHaveLength(ANONYMOUS_AUDIT_BURST);
   expect(denials().every(entry => entry.suppressed === undefined)).toBe(true);
   milliseconds += 60_000;

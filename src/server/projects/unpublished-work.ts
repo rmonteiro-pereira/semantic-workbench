@@ -48,12 +48,7 @@ async function unpublishedDiff(deps: UnpublishedWorkDeps, repo: string, copy: st
  * A person's work that is not on the default branch, as one binary patch against it, untracked
  * files included. Null when there is none.
  */
-async function unpublishedPatch(
-  deps: UnpublishedWorkDeps,
-  repo: string,
-  copy: string,
-  folder = '',
-) {
+async function unpublishedPatch(deps: UnpublishedWorkDeps, repo: string, copy: string, folder = '') {
   const { git } = deps;
   const { against, untracked, within } = await unpublishedDiff(deps, repo, copy, folder);
   const parts: Uint8Array[] = [];
@@ -71,12 +66,7 @@ async function unpublishedPatch(
 }
 
 /** How many files of a copy differ from the default branch. */
-async function unpublishedFiles(
-  deps: UnpublishedWorkDeps,
-  repo: string,
-  copy: string,
-  folder = '',
-) {
+async function unpublishedFiles(deps: UnpublishedWorkDeps, repo: string, copy: string, folder = '') {
   const { against, untracked, within } = await unpublishedDiff(deps, repo, copy, folder);
   const changed = new Set(untracked);
   if (against) {
@@ -87,8 +77,7 @@ async function unpublishedFiles(
   return changed.size;
 }
 
-const nameOf = (deps: UnpublishedWorkDeps, key: string) =>
-  deps.copies.owners().find(person => person.key === key)?.name ?? key;
+const nameOf = (deps: UnpublishedWorkDeps, key: string) => deps.copies.owners().find(person => person.key === key)?.name ?? key;
 
 /**
  * Before a deletion goes to the trash: keeps each person's unpublished work on what is deleted
@@ -96,19 +85,12 @@ const nameOf = (deps: UnpublishedWorkDeps, key: string) =>
  * copies are unlocked; a subproject's folder is noted for removal from each copy. Copies are
  * found from Git itself, so a person missing from the registry keeps their work too.
  */
-async function archiveCopies(
-  deps: UnpublishedWorkDeps,
-  released: Map<string, string[]>,
-  removed: CopyRemoval,
-  entryDir: string,
-) {
+async function archiveCopies(deps: UnpublishedWorkDeps, released: Map<string, string[]>, removed: CopyRemoval, entryDir: string) {
   const kept: UnpublishedWork[] = [];
   if (!deps.gitAvailable) return kept;
   const { repo, folder } = removed;
   const projects = new Set(removed.projects);
-  const copies = folder
-    ? await deps.worktrees.copies(repo)
-    : await deps.worktrees.releaseCopies(repo);
+  const copies = folder ? await deps.worktrees.copies(repo) : await deps.worktrees.releaseCopies(repo);
   released.set(
     entryDir,
     copies.map(copy => (folder ? join(copy.dir, folder) : copy.dir)),
@@ -157,8 +139,7 @@ export function createUnpublishedWork(deps: UnpublishedWorkDeps) {
   const released = new Map<string, string[]>();
   return {
     unpublishedWork: (slug: string) => unpublishedWork(deps, slug),
-    archiveCopies: (removed: CopyRemoval, entryDir: string) =>
-      archiveCopies(deps, released, removed, entryDir),
+    archiveCopies: (removed: CopyRemoval, entryDir: string) => archiveCopies(deps, released, removed, entryDir),
     removeCopies: (entryDir: string) => removeCopies(released, entryDir),
   };
 }

@@ -52,9 +52,7 @@ test('audit replay is bounded to the newest thousand snapshots including unknown
 test('a conditional custom role edit lists exactly the lost metric approval actions', () => {
   const options = accessFixture();
   const next = structuredClone(options.config);
-  next.roles[0].permissions = next.roles[0].permissions.filter(
-    permission => !permission.actions.includes('approveMetric'),
-  );
+  next.roles[0].permissions = next.roles[0].permissions.filter(permission => !permission.actions.includes('approveMetric'));
   const result = compareAccess(options, next, {
     users: [person('hank'), person('dave')],
     audit: [],
@@ -123,17 +121,9 @@ test('rollback restores every shipped matrix decision through the administration
     ];
     const preview = await service.dryRun({ rules });
     expect(preview.changed.length).toBeGreaterThan(0);
-    const saved = await service.save(
-      'policies',
-      { rules, baseVersion: original, dryRunId: preview.dryRunId },
-      { principal: actor, requestId: 'save' },
-    );
+    const saved = await service.save('policies', { rules, baseVersion: original, dryRunId: preview.dryRunId }, { principal: actor, requestId: 'save' });
     const review = await service.dryRun({ rollbackTo: original });
-    await service.rollback(
-      original,
-      { baseVersion: saved.version, dryRunId: review.dryRunId },
-      { principal: actor, requestId: 'rollback' },
-    );
+    await service.rollback(original, { baseVersion: saved.version, dryRunId: review.dryRunId }, { principal: actor, requestId: 'rollback' });
     const comparison = compareAccess(options, repository.load(), { users: [], audit: [] });
     expect(comparison.matrixCases).toBeGreaterThan(500);
     expect(comparison.changed).toEqual([]);
@@ -157,9 +147,7 @@ test('deleting a custom role with its grants lists exactly the people who lose i
     users: [person('hank'), person('dave'), person('bob')],
     audit: [],
   });
-  expect(new Set(result.people.map(entry => entry.principal))).toEqual(
-    new Set([person('hank').id]),
-  );
+  expect(new Set(result.people.map(entry => entry.principal))).toEqual(new Set([person('hank').id]));
   for (const entry of result.people) {
     expect(entry.access).toBe('lost');
     expect(entry.gained).toEqual([]);
@@ -204,10 +192,7 @@ test('activation needs a matching dry run and a valid policy set in every area',
       ['policies', { rules }],
       ['roles', { roles: [{ ...config.roles[0], description: 'Edited' }] }],
       ['grants', { grants: config.grants.slice(1) }],
-      [
-        'projects',
-        { ...config.projects, domains: [...config.projects.domains, { id: 'ops', name: 'Ops' }] },
-      ],
+      ['projects', { ...config.projects, domains: [...config.projects.domains, { id: 'ops', name: 'Ops' }] }],
       ['agents', { clients: [] }],
     ] as const;
     for (const [area, body] of proposals) {
@@ -218,9 +203,7 @@ test('activation needs a matching dry run and a valid policy set in every area',
       await expect(service.save(area, mismatch, actor)).rejects.toThrow(/dry run/);
     }
     const invalid = [{ id: 'broken', enabled: true, text: 'permit(principal, action, resource' }];
-    await expect(service.save('policies', { rules: invalid, baseVersion }, actor)).rejects.toThrow(
-      'Invalid policies.',
-    );
+    await expect(service.save('policies', { rules: invalid, baseVersion }, actor)).rejects.toThrow('Invalid policies.');
     expect(await repository.history()).toHaveLength(1);
   } finally {
     dir.cleanup();

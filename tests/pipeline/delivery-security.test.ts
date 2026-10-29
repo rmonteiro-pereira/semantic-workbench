@@ -70,8 +70,7 @@ describe('ingress preflight', () => {
         },
       };
     };
-    const read = (ingress: object | undefined) =>
-      appSettings(response(ingress), fakeTarget).ingress;
+    const read = (ingress: object | undefined) => appSettings(response(ingress), fakeTarget).ingress;
     expect(read({ external: true, allowInsecure: false, transport: 'Http2' })).toEqual({
       external: true,
       allowInsecure: false,
@@ -81,9 +80,7 @@ describe('ingress preflight', () => {
     expect(read({ allowInsecure: true }).allowInsecure).toBe(true);
     expect(read({}).allowInsecure).toBe(true);
     expect(read(undefined).external).toBe(false);
-    expect(read({ corsPolicy: { allowedOrigins: ['https://a.example'] } }).corsOrigins).toEqual([
-      'https://a.example',
-    ]);
+    expect(read({ corsPolicy: { allowedOrigins: ['https://a.example'] } }).corsOrigins).toEqual(['https://a.example']);
     expect(read({ corsPolicy: {} }).corsOrigins).toEqual(['*']);
     expect(read({ corsPolicy: null }).corsOrigins).toEqual([]);
   });
@@ -124,10 +121,7 @@ describe('tag locking', () => {
       return '';
     });
     await client.lock(fakeRelease);
-    expect(calls).toEqual([
-      lockArguments(fakeTarget, `sha-${fakeRelease.commit}`),
-      lockArguments(fakeTarget, fakeRelease.tag),
-    ]);
+    expect(calls).toEqual([lockArguments(fakeTarget, `sha-${fakeRelease.commit}`), lockArguments(fakeTarget, fakeRelease.tag)]);
   });
 });
 
@@ -156,10 +150,7 @@ describe('rerun after a half-finished lock', () => {
     const client = azureClient(fakeTarget, command);
     await client.promote(fakeRelease);
     await expect(client.lock(fakeRelease)).rejects.toThrow('lock refused');
-    expect(lockCalls).toEqual([
-      `semantic-workbench:sha-${fakeRelease.commit}`,
-      `semantic-workbench:${fakeRelease.tag}`,
-    ]);
+    expect(lockCalls).toEqual([`semantic-workbench:sha-${fakeRelease.commit}`, `semantic-workbench:${fakeRelease.tag}`]);
     failVersionLock = false;
     lockCalls.length = 0;
     const createsBefore = promoted;
@@ -208,8 +199,7 @@ describe('commit tag push', () => {
     'org.opencontainers.image.revision': commit,
     'org.opencontainers.image.version': '0.4.0',
   };
-  const tagJson = (value: string, writeEnabled: boolean) =>
-    JSON.stringify({ digest: value, writeEnabled });
+  const tagJson = (value: string, writeEnabled: boolean) => JSON.stringify({ digest: value, writeEnabled });
   function runner(registry: Registry) {
     const calls: string[][] = [];
     let reads = 0;
@@ -226,8 +216,7 @@ describe('commit tag push', () => {
     throw Error('az acr exited 1: MANIFEST_UNKNOWN: manifest not found');
   };
   const has = (calls: string[][], word: string) => calls.filter(args => args.includes(word));
-  const push = (run: (args: string[]) => Promise<string>) =>
-    pushCommitImage(context, 'swfake.azurecr.io', fakeTarget, run);
+  const push = (run: (args: string[]) => Promise<string>) => pushCommitImage(context, 'swfake.azurecr.io', fakeTarget, run);
 
   test('a locked tag with matching labels is kept and nothing is pushed', async () => {
     const { calls, run } = runner({ tags: [() => tagJson(digest, false)], labels: goodLabels });
@@ -243,11 +232,7 @@ describe('commit tag push', () => {
   });
 
   test('a kept tag whose labels name another commit or version is refused', async () => {
-    for (const labels of [
-      { ...goodLabels, 'org.opencontainers.image.revision': 'b'.repeat(40) },
-      { ...goodLabels, 'org.opencontainers.image.version': '0.3.0' },
-      undefined,
-    ]) {
+    for (const labels of [{ ...goodLabels, 'org.opencontainers.image.revision': 'b'.repeat(40) }, { ...goodLabels, 'org.opencontainers.image.version': '0.3.0' }, undefined]) {
       const { run } = runner({ tags: [() => tagJson(digest, false)], labels });
       await expect(push(run)).rejects.toThrow('Existing image is labelled');
     }
@@ -331,9 +316,7 @@ describe('release commit on main', () => {
     git('checkout', '-q', '-b', 'unreviewed');
     const unreviewed = commitFile('unreviewed');
     await expect(assertCommitOnMain(reviewed, repository)).resolves.toBeUndefined();
-    await expect(assertCommitOnMain(unreviewed, repository)).rejects.toThrow(
-      'is not on origin/main',
-    );
+    await expect(assertCommitOnMain(unreviewed, repository)).rejects.toThrow('is not on origin/main');
   });
 
   test('fails closed when origin/main cannot be compared', async () => {
@@ -347,30 +330,21 @@ describe('release commit on main', () => {
     git('checkout', '-q', '-b', 'unreviewed');
     const unreviewed = commitFile('unreviewed');
     writeFileSync(join(repository, 'package.json'), JSON.stringify({ version: '0.4.0' }));
-    const result = Bun.spawnSync(
-      [process.execPath, join(process.cwd(), 'scripts/deploy-version.ts')],
-      {
-        cwd: repository,
-        env: {
-          ...process.env,
-          ...fakeTarget,
-          SOURCE_REF: 'refs/tags/v0.4.0',
-          SOURCE_VERSION: unreviewed,
-        },
+    const result = Bun.spawnSync([process.execPath, join(process.cwd(), 'scripts/deploy-version.ts')], {
+      cwd: repository,
+      env: {
+        ...process.env,
+        ...fakeTarget,
+        SOURCE_REF: 'refs/tags/v0.4.0',
+        SOURCE_VERSION: unreviewed,
       },
-    );
+    });
     expect(result.exitCode).toBe(1);
     expect(result.stderr.toString()).toContain('is not on origin/main');
   });
 
   test('only a full commit id reaches Git', () => {
-    expect(mainAncestryArguments('a'.repeat(40))).toEqual([
-      'git',
-      'merge-base',
-      '--is-ancestor',
-      'a'.repeat(40),
-      'origin/main',
-    ]);
+    expect(mainAncestryArguments('a'.repeat(40))).toEqual(['git', 'merge-base', '--is-ancestor', 'a'.repeat(40), 'origin/main']);
     for (const value of ['HEAD', '--all', 'abc', `${'a'.repeat(40)}; id`]) {
       expect(() => mainAncestryArguments(value)).toThrow('40-hex');
     }
@@ -461,20 +435,14 @@ describe('service connection gates', () => {
   });
 
   test('the tag check must use the pull connection, not the push connection', () => {
-    const input = edit(
-      imageJobs,
-      'azureSubscription: ${{ parameters.acrPullServiceConnection }}',
-      'azureSubscription: ${{ parameters.acrServiceConnection }}',
-    );
+    const input = edit(imageJobs, 'azureSubscription: ${{ parameters.acrPullServiceConnection }}', 'azureSubscription: ${{ parameters.acrServiceConnection }}');
     expect(() => lintRules(input)).toThrow('pull connection');
   });
 
   test('the push step must use the push connection', () => {
     const input = readPipelineInput();
     const document = parse(input.files[imageJobs]);
-    document.jobs[1].steps.find(
-      (step: any) => step.task === 'AzureCLI@2',
-    ).inputs.azureSubscription = '${{ parameters.acrPullServiceConnection }}';
+    document.jobs[1].steps.find((step: any) => step.task === 'AzureCLI@2').inputs.azureSubscription = '${{ parameters.acrPullServiceConnection }}';
     input.files[imageJobs] = stringify(document);
     expect(() => lintRules(input)).toThrow('main/tag-only push');
   });
@@ -506,8 +474,7 @@ describe('service connection gates', () => {
 });
 
 describe('dry-run plan', () => {
-  const plan = (run: string) =>
-    buildPlan(lintRules(readPipelineInput()), readSampleVariables(), run);
+  const plan = (run: string) => buildPlan(lintRules(readPipelineInput()), readSampleVariables(), run);
 
   test('a pull-request run enables no step with a service connection', () => {
     const steps = plan('pr');
@@ -519,9 +486,7 @@ describe('dry-run plan', () => {
     const documents = lintRules(readPipelineInput());
     const jobs = documents['deploy/azure-devops/templates/image-jobs.yml'].jobs;
     jobs[0].condition = 'succeeded()';
-    expect(() => buildPlan(documents, readSampleVariables(), 'pr')).toThrow(
-      'Pull-request runs must not use a service connection',
-    );
+    expect(() => buildPlan(documents, readSampleVariables(), 'pr')).toThrow('Pull-request runs must not use a service connection');
   });
 
   test('the tag check uses the pull connection, the tagged commit and full history', () => {
@@ -531,34 +496,19 @@ describe('dry-run plan', () => {
     expect(check.env?.SOURCE_VERSION).toBe('a'.repeat(40));
     const checkout = steps.find(step => step.job === 'check' && step.kind === 'setup')!;
     expect(checkout.command).toBe('checkout: self (fetchDepth: 0)');
-    expect(
-      steps.find(step => step.job === 'push' || step.command.includes('image:push'))
-        ?.serviceConnection,
-    ).toBe('sw-azure-push');
+    expect(steps.find(step => step.job === 'push' || step.command.includes('image:push'))?.serviceConnection).toBe('sw-azure-push');
   });
 
   test('delivery installs production dependencies and validation installs everything', () => {
     const steps = plan('tag:v0.4.0');
-    const installs = (stage: string, flag: string) =>
-      steps.filter(
-        step => step.stage === stage && step.command === `bun install --frozen-lockfile${flag}`,
-      );
+    const installs = (stage: string, flag: string) => steps.filter(step => step.stage === stage && step.command === `bun install --frozen-lockfile${flag}`);
     expect(installs('Deploy', ' --production').every(step => step.enabled)).toBe(true);
     expect(installs('Deploy', '').every(step => !step.enabled)).toBe(true);
     expect(installs('Validate', '').every(step => step.enabled)).toBe(true);
     expect(installs('Validate', ' --production').every(step => !step.enabled)).toBe(true);
-    const rollback = buildPlan(
-      lintRules(readPipelineInput()),
-      readSampleVariables(),
-      'tag:v0.4.0',
-      'rollback',
-    );
-    expect(
-      rollback.find(step => step.command === 'bun install --frozen-lockfile --production')?.enabled,
-    ).toBe(true);
-    expect(rollback.find(step => step.command === 'bun install --frozen-lockfile')?.enabled).toBe(
-      false,
-    );
+    const rollback = buildPlan(lintRules(readPipelineInput()), readSampleVariables(), 'tag:v0.4.0', 'rollback');
+    expect(rollback.find(step => step.command === 'bun install --frozen-lockfile --production')?.enabled).toBe(true);
+    expect(rollback.find(step => step.command === 'bun install --frozen-lockfile')?.enabled).toBe(false);
   });
 });
 
@@ -575,26 +525,17 @@ describe('deployment roles and documents', () => {
       'Microsoft.App/locations/containerappOperationResults/read',
     ]);
     expect(deployer.DataActions).toEqual([]);
-    expect(deployer.Actions.filter((action: string) => action.endsWith('*'))).toEqual([
-      'Microsoft.App/containerApps/revisions/*',
-    ]);
+    expect(deployer.Actions.filter((action: string) => action.endsWith('*'))).toEqual(['Microsoft.App/containerApps/revisions/*']);
     expect(JSON.stringify(deployer.Actions)).not.toMatch(/listSecrets|getAuthToken|exec/);
     expect(JSON.stringify(deployer)).not.toContain('operationResults/read"');
-    expect(deployer.AssignableScopes).toEqual([
-      '/subscriptions/<subscription-id>/resourceGroups/<resource-group>',
-    ]);
+    expect(deployer.AssignableScopes).toEqual(['/subscriptions/<subscription-id>/resourceGroups/<resource-group>']);
   });
 
   test('the registry tag lock role grants metadata access and no push, pull or delete', () => {
     const locker = role('registry-tag-lock-role.json');
-    expect(locker.Actions.sort()).toEqual([
-      'Microsoft.ContainerRegistry/registries/metadata/read',
-      'Microsoft.ContainerRegistry/registries/metadata/write',
-    ]);
+    expect(locker.Actions.sort()).toEqual(['Microsoft.ContainerRegistry/registries/metadata/read', 'Microsoft.ContainerRegistry/registries/metadata/write']);
     expect(locker.DataActions).toEqual([]);
-    expect(locker.AssignableScopes).toEqual([
-      '/subscriptions/<subscription-id>/resourceGroups/<resource-group>',
-    ]);
+    expect(locker.AssignableScopes).toEqual(['/subscriptions/<subscription-id>/resourceGroups/<resource-group>']);
   });
 
   test('the setup guide makes branch control mandatory and limits tag creation', () => {
@@ -608,9 +549,7 @@ describe('deployment roles and documents', () => {
     expect(guide).toContain('DataActions');
     expect(guide).toContain('keeps the tag only if it is locked');
     expect(guide).toContain('run the pipeline again on the same tag');
-    expect(guide).toContain(
-      '**Create tag** for the path\n   `refs/tags/v*` to Allow for the release operator only',
-    );
+    expect(guide).toContain('**Create tag** for the path\n   `refs/tags/v*` to Allow for the release operator only');
     expect(guide).toContain('check\n   that it is the commit of the merged pull request on `main`');
     expect(guide).toContain('Do not grant **Contributor** on the\n   container app');
     expect(guide).toContain('External HTTPS only');
@@ -619,22 +558,14 @@ describe('deployment roles and documents', () => {
 
   test('the Log Analytics key is read by command, never typed', () => {
     const guide = readFileSync('deploy/README.md', 'utf8');
-    expect(guide).toContain(
-      '--logs-workspace-key "$(az monitor log-analytics workspace get-shared-keys',
-    );
+    expect(guide).toContain('--logs-workspace-key "$(az monitor log-analytics workspace get-shared-keys');
     expect(guide).toContain('--query primarySharedKey');
     expect(guide).not.toContain('<workspace-key>');
   });
 
   test('the trial report keeps raw output, tokens and names out of the public repository', () => {
     const runbook = readFileSync('deploy/trial-runbook.md', 'utf8');
-    for (const phrase of [
-      'tokens and cookie values',
-      '`Set-Cookie`',
-      'agent-client.ts',
-      'object IDs',
-      'names of approvers',
-    ]) {
+    for (const phrase of ['tokens and cookie values', '`Set-Cookie`', 'agent-client.ts', 'object IDs', 'names of approvers']) {
       expect(runbook).toContain(phrase);
     }
     expect(runbook).not.toContain('<observed output or error>');
@@ -665,24 +596,12 @@ describe('deployment roles and documents', () => {
 
 describe('read-only container run', () => {
   test('the shared flags drop every capability and leave only /tmp writable', () => {
-    expect(hardenedRunArguments()).toEqual([
-      '--read-only',
-      '--tmpfs',
-      '/tmp',
-      '--cap-drop',
-      'ALL',
-      '--security-opt',
-      'no-new-privileges',
-    ]);
+    expect(hardenedRunArguments()).toEqual(['--read-only', '--tmpfs', '/tmp', '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges']);
   });
 
   test('the server container of the authentication check uses them', () => {
     for (const engine of ['docker', 'podman'] as const) {
-      const args = serverContainerArguments(
-        engine,
-        { image: 'image', name: 'name', root: '/tmp/root' },
-        {},
-      );
+      const args = serverContainerArguments(engine, { image: 'image', name: 'name', root: '/tmp/root' }, {});
       expect(args.join(' ')).toContain(hardenedRunArguments().join(' '));
     }
   });

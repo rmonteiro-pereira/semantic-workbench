@@ -14,15 +14,7 @@ type Options = {
   latest: React.RefObject<() => void>;
 };
 /** Manages inspector. */
-export function useInspector({
-  tab,
-  entity,
-  relationship,
-  setSelected,
-  setSelectedEdge,
-  model,
-  latest,
-}: Options) {
+export function useInspector({ tab, entity, relationship, setSelected, setSelectedEdge, model, latest }: Options) {
   // "e" opens the editor of the selected item (outside text fields and dialogs).
   // Full screen for Graph and Neighborhood: the canvas row (graph and details) fills the screen.
   const inspectorVisible = tab !== 'mappings' && tab !== 'metrics' && !!(entity || relationship);
@@ -47,9 +39,7 @@ export function useInspector({
         return;
       }
       if (event.key !== 'Tab' || !panel) return;
-      const controls = Array.from(
-        panel.querySelectorAll<HTMLElement>('button:not(:disabled),input,select,textarea,a[href]'),
-      ).filter(el => el.getClientRects().length);
+      const controls = Array.from(panel.querySelectorAll<HTMLElement>('button:not(:disabled),input,select,textarea,a[href]')).filter(el => el.getClientRects().length);
       const first = controls[0];
       const last = controls.at(-1);
       if (event.shiftKey && document.activeElement === first) {
@@ -72,14 +62,7 @@ export function useInspector({
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
       const element = e.target as HTMLElement;
-      if (
-        e.key !== 'f' ||
-        e.ctrlKey ||
-        e.metaKey ||
-        e.altKey ||
-        element.closest('input,textarea,select,[contenteditable=true],dialog,.cm-editor')
-      )
-        return;
+      if (e.key !== 'f' || e.ctrlKey || e.metaKey || e.altKey || element.closest('input,textarea,select,[contenteditable=true],dialog,.cm-editor')) return;
       e.preventDefault();
       toggleFull.current();
     };
@@ -89,14 +72,7 @@ export function useInspector({
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
       const elementValue = e.target as HTMLElement;
-      if (
-        e.key !== 'e' ||
-        e.ctrlKey ||
-        e.metaKey ||
-        e.altKey ||
-        elementValue.closest('input,textarea,select,[contenteditable=true],dialog')
-      )
-        return;
+      if (e.key !== 'e' || e.ctrlKey || e.metaKey || e.altKey || elementValue.closest('input,textarea,select,[contenteditable=true],dialog')) return;
       e.preventDefault();
       latest.current();
     };

@@ -6,40 +6,11 @@ import { ScmError } from './ScmError';
 import { isPublished, trackingLine, upstreamRemote } from './branch-tracking';
 import { cleanTreeText } from './empty-repository';
 import { EmptyState } from '../projects/EmptyState';
-import {
-  ConnectPrompt,
-  actionTitle,
-  connectRequired,
-  useResumeAfterConnect,
-  type RemoteAction,
-} from './RemoteConnectPrompt';
+import { ConnectPrompt, actionTitle, connectRequired, useResumeAfterConnect, type RemoteAction } from './RemoteConnectPrompt';
 import type { ConnectKind } from '../auth/ConnectedAccounts';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import {
-  AlertTriangle,
-  ArrowDown,
-  ArrowUp,
-  Check,
-  EyeOff,
-  FileCode,
-  GitCommit,
-  History,
-  Minus,
-  Plus,
-  RefreshCw,
-  X,
-} from 'lucide-react';
-import {
-  scm,
-  Blocked,
-  type GitChange,
-  type GitCommit as Commit,
-  type GitDiff,
-  type GitStatus,
-  type ProjectInfo,
-  type RemoteResult,
-  type FollowResult,
-} from '../projects/api';
+import { AlertTriangle, ArrowDown, ArrowUp, Check, EyeOff, FileCode, GitCommit, History, Minus, Plus, RefreshCw, X } from 'lucide-react';
+import { scm, Blocked, type GitChange, type GitCommit as Commit, type GitDiff, type GitStatus, type ProjectInfo, type RemoteResult, type FollowResult } from '../projects/api';
 import { DiffView } from './DiffView';
 import { BranchPicker } from './BranchPicker';
 import { SyncDialog } from './SyncDialog';
@@ -49,9 +20,7 @@ import { changesOfProject, elsewhereLine } from './project-changes';
 import './scm.css';
 
 /** Names the remote, branch and folder a sparse project lives in. */
-export function repositoryLocation(
-  status: Pick<GitStatus, 'upstream' | 'remotes' | 'branch' | 'folder'>,
-): string {
+export function repositoryLocation(status: Pick<GitStatus, 'upstream' | 'remotes' | 'branch' | 'folder'>): string {
   const remote = upstreamRemote(status) ?? 'no remote';
   return [remote, status.branch, status.folder].filter(Boolean).join(' · ');
 }
@@ -70,8 +39,7 @@ const STATE: Record<string, string> = {
   U: 'Conflicted',
   '?': 'Untracked',
 };
-const letter = (c: GitChange, g: Group) =>
-  g === 'conflicts' ? '!' : g === 'staged' ? c.index : c.untracked ? 'U' : c.worktree;
+const letter = (c: GitChange, g: Group) => (g === 'conflicts' ? '!' : g === 'staged' ? c.index : c.untracked ? 'U' : c.worktree);
 /** The commit counts a finished Git action left to push and to pull, when there are any. */
 function aheadBehind(result: { ahead?: number; behind?: number }): string {
   if (!result.ahead && !result.behind) return '';
@@ -80,9 +48,7 @@ function aheadBehind(result: { ahead?: number; behind?: number }): string {
 
 /** The history note for commits that touch only files the person cannot open. */
 export function hiddenCommitsLine(count: number) {
-  return count === 1
-    ? '1 commit with changes you cannot open'
-    : `${count} commits with changes you cannot open`;
+  return count === 1 ? '1 commit with changes you cannot open' : `${count} commits with changes you cannot open`;
 }
 function groupsOf(changes: GitChange[]) {
   return {
@@ -93,21 +59,13 @@ function groupsOf(changes: GitChange[]) {
 }
 // Which two versions a change compares, as VS Code does: staged = last commit → index; changes =
 // index → working tree; conflicts = last commit → working tree (with the markers).
-const rangeOf = (g: Group, c: GitChange) =>
-  g === 'staged'
-    ? ['HEAD', 'index']
-    : g === 'conflicts'
-      ? ['HEAD', 'worktree']
-      : c.untracked
-        ? ['index', 'worktree']
-        : ['index', 'worktree'];
+const rangeOf = (g: Group, c: GitChange) => (g === 'staged' ? ['HEAD', 'index'] : g === 'conflicts' ? ['HEAD', 'worktree'] : c.untracked ? ['index', 'worktree'] : ['index', 'worktree']);
 // The versions to compare after the history reloads. A reload (a commit, a pull, a file event)
 // keeps the two versions the user picked while both are still in the history; otherwise it
 // compares the last two commits, or the last commit with the working tree.
 function historyRange(previous: { from: string; to: string } | null, log: Commit[]) {
   if (!log.length) return null;
-  const known = (commit: string) =>
-    commit === 'worktree' || log.some(entry => entry.commit === commit);
+  const known = (commit: string) => commit === 'worktree' || log.some(entry => entry.commit === commit);
   if (previous && known(previous.from) && known(previous.to)) return previous;
   return {
     from: log[Math.min(1, log.length - 1)].commit,
@@ -128,17 +86,7 @@ type Props = {
   onCommit?: () => void;
 };
 /** Displays project Git changes and actions with progress and cancellation. */
-export function SourceControl({
-  projects,
-  project,
-  version,
-  unsaved,
-  historyPath,
-  onOpen,
-  onChanged,
-  onBusy,
-  onCommit,
-}: Props) {
+export function SourceControl({ projects, project, version, unsaved, historyPath, onOpen, onChanged, onBusy, onCommit }: Props) {
   const access = useCapabilities(project);
   // Remotes are managed by Admins only, and the project's own rules can still refuse the change.
   const canManageRemotes = access.admin && access.can('setRemote');
@@ -308,9 +256,7 @@ export function SourceControl({
     paths.length
       ? setNote({
           tone: 'warning',
-          text:
-            `A Git hook or filter changed these files during the ${what}; ` +
-            'their bytes on disk differ from what was saved or committed:',
+          text: `A Git hook or filter changed these files during the ${what}; ` + 'their bytes on disk differ from what was saved or committed:',
           paths,
         })
       : undefined;
@@ -341,8 +287,7 @@ export function SourceControl({
   // A fetch found the remote's default branch ahead but left the published one where it is.
   function behindText(follow: FollowResult) {
     const behind = `${follow.branch} is behind ${follow.remote}`;
-    if (follow.reason === 'guard')
-      return `${behind}: its new commits hold changes only a Steward or Admin may bring in.`;
+    if (follow.reason === 'guard') return `${behind}: its new commits hold changes only a Steward or Admin may bring in.`;
     return `${behind}; someone with publish must bring it in.`;
   }
   function reportRemote(action: string, r: RemoteResult) {
@@ -354,8 +299,7 @@ export function SourceControl({
         paths: r.conflicted,
       });
     else if (!r.ok) setError(r.stderr || `${actionTitle(action)} failed.`);
-    else if (r.follow && !r.follow.followed)
-      setNote({ tone: 'warning', text: behindText(r.follow) });
+    else if (r.follow && !r.follow.followed) setNote({ tone: 'warning', text: behindText(r.follow) });
     else if (r.altered.length) altered(r.altered, action);
     else
       setNote({
@@ -445,10 +389,7 @@ export function SourceControl({
       <section className="scm scm-message" aria-label="Source Control">
         <div role="alert" className="scm-note warning">
           <AlertTriangle size={14} />
-          <span>
-            Git was not found on this machine, so this project has no version control here. Editing,
-            validation and export keep working. Install Git 2.40 or newer and restart the workbench.
-          </span>
+          <span>Git was not found on this machine, so this project has no version control here. Editing, validation and export keep working. Install Git 2.40 or newer and restart the workbench.</span>
         </div>
       </section>
     );
@@ -459,23 +400,14 @@ export function SourceControl({
     setSyncOpen(false);
     run();
   }
-  const canCommit =
-    access.can('commit') &&
-    !!message.trim() &&
-    (groups.staged.length > 0 || status.merging) &&
-    !groups.conflicts.length &&
-    status.identityConfigured &&
-    !busy;
+  const canCommit = access.can('commit') && !!message.trim() && (groups.staged.length > 0 || status.merging) && !groups.conflicts.length && status.identityConfigured && !busy;
   const row = (c: GitChange, g: Group) => {
     const isSel = selected?.path === c.repoPath && selected.group === g;
     const l = letter(c, g);
     const name = c.path.split('/').pop()!;
     const folder = c.path.slice(0, -name.length).replace(/\/$/, '');
     return (
-      <li
-        key={g + c.repoPath}
-        className={`scm-row${isSel ? ' selected' : ''}${c.hidden ? ' hidden-file' : ''}`}
-      >
+      <li key={g + c.repoPath} className={`scm-row${isSel ? ' selected' : ''}${c.hidden ? ' hidden-file' : ''}`}>
         <button
           className="scm-file"
           aria-label={`${c.path}, ${g === 'conflicts' ? 'conflicted' : (STATE[l] ?? l)}${c.hidden ? ', not shown in workspace' : ''}`}
@@ -489,10 +421,7 @@ export function SourceControl({
           {folder && <small>{folder}</small>}
           {c.orig && <small>← {c.orig}</small>}
           {c.hidden && (
-            <em
-              className="scm-label"
-              title="This file type is not shown in the workspace; it can be diffed, staged and committed here, not edited."
-            >
+            <em className="scm-label" title="This file type is not shown in the workspace; it can be diffed, staged and committed here, not edited.">
               <EyeOff size={11} />
               {c.label}
             </em>
@@ -500,20 +429,12 @@ export function SourceControl({
         </button>
         <span className="scm-actions">
           {!c.hidden && c.project && !(g === 'staged' && c.index === 'D') && c.worktree !== 'D' && (
-            <button
-              aria-label={`Open ${c.path}`}
-              title="Open in the editor"
-              onClick={() => onOpen(c.project ?? project, c.projectPath ?? c.path)}
-            >
+            <button aria-label={`Open ${c.path}`} title="Open in the editor" onClick={() => onOpen(c.project ?? project, c.projectPath ?? c.path)}>
               <FileCode size={13} />
             </button>
           )}
           {g === 'changes' && !c.outside && access.can('edit', c.project ?? project) && (
-            <button
-              aria-label={`Add ${c.path} to .gitignore`}
-              title="Add to .gitignore"
-              onClick={() => setIgnoring(ignoring === c.path ? null : c.path)}
-            >
+            <button aria-label={`Add ${c.path} to .gitignore`} title="Add to .gitignore" onClick={() => setIgnoring(ignoring === c.path ? null : c.path)}>
               <EyeOff size={13} />
             </button>
           )}
@@ -529,10 +450,7 @@ export function SourceControl({
           ) : (
             <button
               aria-label={`Stage ${c.path}`}
-              title={
-                access.control('stage').title ??
-                (g === 'conflicts' ? 'Mark as resolved (stage)' : 'Stage')
-              }
+              title={access.control('stage').title ?? (g === 'conflicts' ? 'Mark as resolved (stage)' : 'Stage')}
               onClick={() => act(() => scm.stageChanges(project, [c.repoPath], true))}
               disabled={busy || !access.can('stage', c.project ?? project)}
             >
@@ -557,17 +475,12 @@ export function SourceControl({
                     r.tracked.length
                       ? {
                           tone: 'warning',
-                          text:
-                            `Added ${pattern} to .gitignore. These files are already committed, ` +
-                            'so Git keeps tracking them until they are removed from the ' +
-                            'repository (git rm --cached):',
+                          text: `Added ${pattern} to .gitignore. These files are already committed, ` + 'so Git keeps tracking them until they are removed from the ' + 'repository (git rm --cached):',
                           paths: r.tracked,
                         }
                       : {
                           tone: 'info',
-                          text: r.added
-                            ? `Added ${pattern} to .gitignore.`
-                            : `${pattern} was already in .gitignore.`,
+                          text: r.added ? `Added ${pattern} to .gitignore.` : `${pattern} was already in .gitignore.`,
                         },
                   );
                 },
@@ -578,12 +491,7 @@ export function SourceControl({
       </li>
     );
   };
-  const section = (
-    g: Group,
-    title: string,
-    items: GitChange[],
-    all?: { label: string; run: () => void },
-  ) =>
+  const section = (g: Group, title: string, items: GitChange[], all?: { label: string; run: () => void }) =>
     items.length > 0 && (
       <section className="scm-group" aria-label={title}>
         <h3>
@@ -603,14 +511,7 @@ export function SourceControl({
       <div className="scm-side">
         <h2 className="scm-title">Source control</h2>
         <div className="scm-head">
-          <BranchPicker
-            project={project}
-            current={status.branch}
-            version={version + tick}
-            disabled={busy || !access.can('branch')}
-            inUse={copy?.inUseBranches}
-            onSwitch={switchTo}
-          />
+          <BranchPicker project={project} current={status.branch} version={version + tick} disabled={busy || !access.can('branch')} inUse={copy?.inUseBranches} onSwitch={switchTo} />
           <SyncCounters status={status} />
           {offersSync && (
             <button className="scm-sync-open" onClick={() => setSyncOpen(true)}>
@@ -627,20 +528,10 @@ export function SourceControl({
           ) : (
             <span className="scm-remote-url">No remote yet. Add one to push and pull.</span>
           )}
-          <button
-            hidden={!canManageRemotes}
-            onClick={() => openGitSetup({ kind: 'remote', project })}
-          >
+          <button hidden={!canManageRemotes} onClick={() => openGitSetup({ kind: 'remote', project })}>
             Remote…
           </button>
-          {remoteNames.length > 0 && (
-            <RemoteActions
-              status={status}
-              busy={busy}
-              can={access.can}
-              onRemoteAction={action => void remote(action)}
-            />
-          )}
+          {remoteNames.length > 0 && <RemoteActions status={status} busy={busy} can={access.can} onRemoteAction={action => void remote(action)} />}
         </div>
         <p className="scm-tracking">{trackingLine(status.upstream)}</p>
         {status.folder && (
@@ -651,21 +542,14 @@ export function SourceControl({
         {waiting && (
           <div role="status" className="scm-note waiting">
             <span className="spinner" aria-hidden />
-            <span>
-              {access.local
-                ? 'Waiting for Git (credentials may be requested in a separate window)…'
-                : 'Waiting for Git…'}
-            </span>
+            <span>{access.local ? 'Waiting for Git (credentials may be requested in a separate window)…' : 'Waiting for Git…'}</span>
             <button hidden={!access.can('cancelOwn')} onClick={() => void scm.cancel(project)}>
               Cancel
             </button>
           </div>
         )}
         {note && (
-          <div
-            role={note.tone === 'warning' ? 'alert' : 'status'}
-            className={`scm-note ${note.tone}`}
-          >
+          <div role={note.tone === 'warning' ? 'alert' : 'status'} className={`scm-note ${note.tone}`}>
             {note.tone === 'warning' ? <AlertTriangle size={14} /> : <Check size={14} />}
             <div>
               <span>{note.text}</span>
@@ -689,14 +573,7 @@ export function SourceControl({
             </button>
           </div>
         )}
-        {connect && (
-          <ConnectPrompt
-            kind={connect.kind}
-            project={project}
-            action={connect.action}
-            onDismiss={() => setConnect(null)}
-          />
-        )}
+        {connect && <ConnectPrompt kind={connect.kind} project={project} action={connect.action} onDismiss={() => setConnect(null)} />}
         {error && (
           <ScmError
             message={error}
@@ -714,9 +591,7 @@ export function SourceControl({
         {status.merging && !note && (
           <p className="scm-note warning">
             <AlertTriangle size={14} />
-            <span>
-              A merge is in progress. Repair each conflicted file in Source, stage it, then commit.
-            </span>
+            <span>A merge is in progress. Repair each conflicted file in Source, stage it, then commit.</span>
           </p>
         )}
         <div className="scm-commit">
@@ -733,12 +608,7 @@ export function SourceControl({
               }
             }}
           />
-          <button
-            className="primary"
-            onClick={() => void commit()}
-            disabled={!canCommit}
-            title={access.control('commit').title ?? 'Commit (Ctrl+Enter)'}
-          >
+          <button className="primary" onClick={() => void commit()} disabled={!canCommit} title={access.control('commit').title ?? 'Commit (Ctrl+Enter)'}>
             <GitCommit size={14} />
             Commit to {status.branch}
           </button>
@@ -751,11 +621,7 @@ export function SourceControl({
             </small>
           )}
         </div>
-        {!scoped.inProject.length && (
-          <p className="scm-empty">
-            {status.changes.length ? 'No changes in this project.' : cleanTreeText(status)}
-          </p>
-        )}
+        {!scoped.inProject.length && <p className="scm-empty">{status.changes.length ? 'No changes in this project.' : cleanTreeText(status)}</p>}
         {scoped.elsewhere > 0 && <p className="scm-elsewhere">{elsewhereLine(scoped.elsewhere)}</p>}
         {section('conflicts', 'Merge conflicts', groups.conflicts)}
         {section('staged', 'Staged changes', groups.staged, {
@@ -796,11 +662,7 @@ export function SourceControl({
                     }
                   }}
                   disabled={!historyFile}
-                  title={
-                    historyFile
-                      ? 'Compare with the version before it'
-                      : 'Select a file to compare its versions'
-                  }
+                  title={historyFile ? 'Compare with the version before it' : 'Select a file to compare its versions'}
                 >
                   <span>{c.message}</span>
                   <small>
@@ -827,9 +689,7 @@ export function SourceControl({
       <div className="scm-main">
         {selected && diff ? (
           diff.binary ? (
-            <p className="scm-empty">
-              {diff.path} is a binary file; it can be staged and committed, but not shown.
-            </p>
+            <p className="scm-empty">{diff.path} is a binary file; it can be staged and committed, but not shown.</p>
           ) : (
             <DiffView
               label={`Changes in ${diff.path}`}
@@ -845,11 +705,7 @@ export function SourceControl({
             <div className="scm-versions" role="group" aria-label="Compare versions">
               <label>
                 <span>From</span>
-                <select
-                  aria-label="From version"
-                  value={range.from}
-                  onChange={e => setRange({ ...range, from: e.target.value })}
-                >
+                <select aria-label="From version" value={range.from} onChange={e => setRange({ ...range, from: e.target.value })}>
                   {log.map(c => (
                     <option key={c.commit} value={c.commit}>
                       {c.commit.slice(0, 7)} {c.message}
@@ -859,11 +715,7 @@ export function SourceControl({
               </label>
               <label>
                 <span>To</span>
-                <select
-                  aria-label="To version"
-                  value={range.to}
-                  onChange={e => setRange({ ...range, to: e.target.value })}
-                >
+                <select aria-label="To version" value={range.to} onChange={e => setRange({ ...range, to: e.target.value })}>
                   <option value="worktree">Working tree</option>
                   {log.map(c => (
                     <option key={c.commit} value={c.commit}>
@@ -887,10 +739,7 @@ export function SourceControl({
             )}
           </>
         ) : (
-          <EmptyState title="No file selected">
-            Select a changed file to see its diff, or a file's history to compare two of its
-            versions.
-          </EmptyState>
+          <EmptyState title="No file selected">Select a changed file to see its diff, or a file's history to compare two of its versions.</EmptyState>
         )}
       </div>
     </section>
@@ -900,21 +749,13 @@ export function SourceControl({
 function SyncCounters({ status }: { status: GitStatus }) {
   if (!isPublished(status.upstream)) {
     return (
-      <span
-        className="scm-sync"
-        aria-label="Not published"
-        title="This branch has no upstream branch yet. Publish branch creates it."
-      >
+      <span className="scm-sync" aria-label="Not published" title="This branch has no upstream branch yet. Publish branch creates it.">
         Not published
       </span>
     );
   }
   return (
-    <span
-      className="scm-sync"
-      aria-label={`${status.ahead} commits to push, ${status.behind} to pull`}
-      title={`Tracking ${status.upstream}`}
-    >
+    <span className="scm-sync" aria-label={`${status.ahead} commits to push, ${status.behind} to pull`} title={`Tracking ${status.upstream}`}>
       <ArrowUp size={12} />
       {status.ahead} to push
       <ArrowDown size={12} />
@@ -929,27 +770,14 @@ function versionName(rev: string, log: Commit[] = []) {
   const c = log.find(x => x.commit === rev);
   return c ? `${rev.slice(0, 7)} ${c.message}` : rev.slice(0, 7);
 }
-function IgnoreChooser({
-  path,
-  onAdd,
-  onCancel,
-}: {
-  path: string;
-  onAdd: (pattern: string) => void;
-  onCancel: () => void;
-}) {
+function IgnoreChooser({ path, onAdd, onCancel }: { path: string; onAdd: (pattern: string) => void; onCancel: () => void }) {
   const choices = ignoreChoices(path);
   const [pattern, setPattern] = useState(choices[0].pattern);
   return (
     <div className="scm-ignore" role="group" aria-label={`Add ${path} to .gitignore`}>
       {choices.map(c => (
         <label key={c.pattern}>
-          <input
-            type="radio"
-            name={'ignore-' + path}
-            checked={pattern === c.pattern}
-            onChange={() => setPattern(c.pattern)}
-          />
+          <input type="radio" name={'ignore-' + path} checked={pattern === c.pattern} onChange={() => setPattern(c.pattern)} />
           <span>{c.label}</span>
           <code>{c.pattern}</code>
         </label>

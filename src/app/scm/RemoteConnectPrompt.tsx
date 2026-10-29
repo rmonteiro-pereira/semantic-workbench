@@ -42,11 +42,7 @@ function takePendingAction(project: string): RemoteAction | null {
 }
 
 /** Runs once the remote action that waited for consent, when its project's panel is ready. */
-export function useResumeAfterConnect(
-  project: string,
-  ready: boolean,
-  resume: (action: RemoteAction) => void,
-) {
+export function useResumeAfterConnect(project: string, ready: boolean, resume: (action: RemoteAction) => void) {
   useEffect(() => {
     if (!ready) return;
     const action = takePendingAction(project);
@@ -67,17 +63,7 @@ const PROMPTS: Record<ConnectKind, { text: string; button: string }> = {
 };
 
 /** Asks for the account a refused remote action needs; the action continues after consent. */
-export function ConnectPrompt({
-  kind,
-  project,
-  action,
-  onDismiss,
-}: {
-  kind: ConnectKind;
-  project: string;
-  action: RemoteAction;
-  onDismiss: () => void;
-}) {
+export function ConnectPrompt({ kind, project, action, onDismiss }: { kind: ConnectKind; project: string; action: RemoteAction; onDismiss: () => void }) {
   const prompt = PROMPTS[kind];
   function connectThenContinue() {
     rememberPendingAction({ project, action });

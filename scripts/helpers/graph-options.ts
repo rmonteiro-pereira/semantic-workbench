@@ -22,11 +22,7 @@ export function graphOptions(page: Page, title = 'View options'): Locator {
 
 /** Reveals the toolbar's secondary controls (View options unless another title is given) and
  * runs the steps on them, then folds them away again. */
-export async function viewOptions(
-  page: Page,
-  use: (options: Locator) => Promise<void>,
-  title = 'View options',
-) {
+export async function viewOptions(page: Page, use: (options: Locator) => Promise<void>, title = 'View options') {
   await revealGraphControls(page);
   const options = graphOptions(page, title);
   await expect(options).toBeVisible();
@@ -37,9 +33,7 @@ export async function viewOptions(
 /** Chooses a graph layout in the toolbar's Layered / Network switch. */
 export async function chooseLayout(options: Locator, layout: 'layered' | 'network') {
   const name = layout === 'layered' ? 'Layered' : 'Network';
-  const choice = options
-    .getByRole('radiogroup', { name: 'Graph layout' })
-    .getByRole('radio', { name, exact: true });
+  const choice = options.getByRole('radiogroup', { name: 'Graph layout' }).getByRole('radio', { name, exact: true });
   await choice.click();
   await expect(choice).toBeChecked();
 }

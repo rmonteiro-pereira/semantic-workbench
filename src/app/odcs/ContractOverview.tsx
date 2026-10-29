@@ -14,19 +14,9 @@ import './contract.css';
 // that is present (servers, team and roles, service levels, quality, support, pricing, custom
 // properties; each opens in a dialog) and a searchable list of tables.
 const list = (v: unknown): any[] => (Array.isArray(v) ? v : []);
-const text = (v: unknown) =>
-  v === undefined || v === null
-    ? ''
-    : typeof v === 'string'
-      ? v
-      : typeof v === 'number' || typeof v === 'boolean'
-        ? String(v)
-        : JSON.stringify(v);
+const text = (v: unknown) => (v === undefined || v === null ? '' : typeof v === 'string' ? v : typeof v === 'number' || typeof v === 'boolean' ? String(v) : JSON.stringify(v));
 /** Collects quality rules declared on an object and its properties. */
-export const rulesOf = (o: any) => [
-  ...list(o?.quality),
-  ...flattenProperties(o?.properties).flatMap(p => list(p.property.quality)),
-];
+export const rulesOf = (o: any) => [...list(o?.quality), ...flattenProperties(o?.properties).flatMap(p => list(p.property.quality))];
 // Every schema entry is a table in the interface. ODCS declares its type as `logicalType` (always
 // `object` in the standard) and `physicalType` (`table`, `view`, ...). Only a type that tells
 // tables apart is worth a badge, so the usual `table` and `object` values show nothing.
@@ -147,8 +137,7 @@ function qualityDetail(quality: any[], objectRules: number) {
   return (
     <>
       <p className="odcs-note">
-        {quality.length} contract-level rule{quality.length === 1 ? '' : 's'} and {objectRules} on
-        objects and properties, as declared; the workbench does not run them.
+        {quality.length} contract-level rule{quality.length === 1 ? '' : 's'} and {objectRules} on objects and properties, as declared; the workbench does not run them.
       </p>
       {quality.length > 0 && <Records items={quality} columns={QUALITY_COLUMNS} />}
     </>
@@ -170,9 +159,7 @@ function sectionSummaries(data: any, objectRules: number): SectionSummary[] {
   const roles = list(data?.roles);
   const quality = list(data?.quality);
   const all: (SectionSummary | null)[] = [
-    sectionOf('Servers', list(data?.servers), items => (
-      <Records items={items} columns={SERVER_COLUMNS} />
-    )),
+    sectionOf('Servers', list(data?.servers), items => <Records items={items} columns={SERVER_COLUMNS} />),
     team.length + roles.length > 0
       ? {
           label: 'Team and roles',
@@ -182,9 +169,7 @@ function sectionSummaries(data: any, objectRules: number): SectionSummary[] {
           inline: true,
         }
       : null,
-    sectionOf('Service levels', list(data?.slaProperties), items => (
-      <Records items={items} columns={SERVICE_LEVEL_COLUMNS} />
-    )),
+    sectionOf('Service levels', list(data?.slaProperties), items => <Records items={items} columns={SERVICE_LEVEL_COLUMNS} />),
     quality.length + objectRules > 0
       ? {
           label: 'Quality',
@@ -192,24 +177,14 @@ function sectionSummaries(data: any, objectRules: number): SectionSummary[] {
           detail: qualityDetail(quality, objectRules),
         }
       : null,
-    sectionOf('Support', list(data?.support), items => (
-      <Records items={items} columns={SUPPORT_COLUMNS} />
-    )),
-    sectionOf('Pricing', data?.price ? [data.price] : [], items => (
-      <Records items={items} columns={PRICE_COLUMNS} />
-    )),
-    sectionOf('Custom properties', list(data?.customProperties), items => (
-      <Records items={items} columns={CUSTOM_COLUMNS} />
-    )),
+    sectionOf('Support', list(data?.support), items => <Records items={items} columns={SUPPORT_COLUMNS} />),
+    sectionOf('Pricing', data?.price ? [data.price] : [], items => <Records items={items} columns={PRICE_COLUMNS} />),
+    sectionOf('Custom properties', list(data?.customProperties), items => <Records items={items} columns={CUSTOM_COLUMNS} />),
   ];
   return all.filter((section): section is SectionSummary => section !== null);
 }
 
-function sectionOf(
-  label: string,
-  items: any[],
-  detail: (items: any[]) => React.ReactNode,
-): SectionSummary | null {
+function sectionOf(label: string, items: any[], detail: (items: any[]) => React.ReactNode): SectionSummary | null {
   return items.length ? { label, count: items.length, detail: detail(items) } : null;
 }
 
@@ -305,8 +280,7 @@ function ContractHead({ data }: { data: any }) {
 }
 
 function IdentityValue({ label, value }: { label: string; value: unknown }) {
-  if (label === 'Status')
-    return <span className={`odcs-status s-${text(value)}`}>{text(value)}</span>;
+  if (label === 'Status') return <span className={`odcs-status s-${text(value)}`}>{text(value)}</span>;
   if (label === 'Id') return <ContractId id={text(value)} />;
   return <>{text(value)}</>;
 }
@@ -329,18 +303,14 @@ function PurposeList({ description }: { description: Record<string, unknown> }) 
 }
 
 type ObjectFacts = ReturnType<typeof objectFacts>[number];
-const matchesQuery = (fact: ObjectFacts, query: string) =>
-  `${fact.name} ${fact.physicalName} ${fact.description}`.toLowerCase().includes(query);
+const matchesQuery = (fact: ObjectFacts, query: string) => `${fact.name} ${fact.physicalName} ${fact.description}`.toLowerCase().includes(query);
 
 function KeyChips({ fact }: { fact: ObjectFacts }) {
   if (!fact.pk && !fact.fk) return <span className="muted">—</span>;
   return (
     <span className="prop-badges">
       {fact.pk > 0 && (
-        <Badge
-          kind="pk"
-          title={`${fact.pk} primary key ${fact.pk === 1 ? 'property' : 'properties'}`}
-        >
+        <Badge kind="pk" title={`${fact.pk} primary key ${fact.pk === 1 ? 'property' : 'properties'}`}>
           {fact.pk} PK
         </Badge>
       )}
@@ -365,20 +335,11 @@ function ObjectRow({ fact, showKind, showRules, onOpen, onOpenInLineage }: Objec
     <tr>
       <td data-label="Table">
         <span className="odcs-object-cell">
-          <button
-            className="odcs-link"
-            aria-label={`Open ${fact.name}`}
-            onClick={() => onOpen(fact.name)}
-          >
+          <button className="odcs-link" aria-label={`Open ${fact.name}`} onClick={() => onOpen(fact.name)}>
             {fact.name}
           </button>
           {onOpenInLineage && (
-            <button
-              className="odcs-lineage-link"
-              aria-label={`Open ${fact.name} in lineage`}
-              title="Open in lineage (Graph)"
-              onClick={() => onOpenInLineage(fact.name)}
-            >
+            <button className="odcs-lineage-link" aria-label={`Open ${fact.name} in lineage`} title="Open in lineage (Graph)" onClick={() => onOpenInLineage(fact.name)}>
               <Workflow size={13} />
             </button>
           )}
@@ -389,11 +350,7 @@ function ObjectRow({ fact, showKind, showRules, onOpen, onOpenInLineage }: Objec
           </small>
         )}
       </td>
-      {showKind && (
-        <td data-label="Type">
-          {fact.type && <span className="odcs-type-badge">{fact.type}</span>}
-        </td>
-      )}
+      {showKind && <td data-label="Type">{fact.type && <span className="odcs-type-badge">{fact.type}</span>}</td>}
       <td className="num" data-label="Properties">
         {fact.properties}
       </td>
@@ -413,15 +370,7 @@ function ObjectRow({ fact, showKind, showRules, onOpen, onOpenInLineage }: Objec
 }
 
 /** Displays declared contract sections and a searchable table summary. */
-export function ContractOverview({
-  data,
-  onOpen,
-  onOpenInLineage,
-}: {
-  data: any;
-  onOpen: (name: string) => void;
-  onOpenInLineage?: (name: string) => void;
-}) {
+export function ContractOverview({ data, onOpen, onOpenInLineage }: { data: any; onOpen: (name: string) => void; onOpenInLineage?: (name: string) => void }) {
   const [query, setQuery] = useState('');
   const deferred = useDeferredValue(query);
   const facts = useMemo(() => objectFacts(data), [data]);
@@ -441,20 +390,11 @@ export function ContractOverview({
         <div className="odcs-objects-head">
           <h3>
             <Table2 size={15} />
-            Tables{' '}
-            <small>
-              {shown.length === facts.length ? facts.length : `${shown.length} of ${facts.length}`}
-            </small>
+            Tables <small>{shown.length === facts.length ? facts.length : `${shown.length} of ${facts.length}`}</small>
           </h3>
           <label className="odcs-search">
             <Search size={14} />
-            <input
-              type="search"
-              aria-label="Find a table"
-              placeholder="Find a table…"
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-            />
+            <input type="search" aria-label="Find a table" placeholder="Find a table…" value={query} onChange={e => setQuery(e.target.value)} />
           </label>
         </div>
         <div className="odcs-table-wrap">
@@ -471,14 +411,7 @@ export function ContractOverview({
             </thead>
             <tbody>
               {shown.map(fact => (
-                <ObjectRow
-                  key={fact.index}
-                  fact={fact}
-                  showKind={showKind}
-                  showRules={showRules}
-                  onOpen={onOpen}
-                  onOpenInLineage={onOpenInLineage}
-                />
+                <ObjectRow key={fact.index} fact={fact} showKind={showKind} showRules={showRules} onOpen={onOpen} onOpenInLineage={onOpenInLineage} />
               ))}
             </tbody>
           </table>

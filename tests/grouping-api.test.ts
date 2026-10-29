@@ -15,9 +15,7 @@ test('grouping corrections persist in view state files without changing source o
       assignments: { 'ontology/0': 'custom:Review' },
       names: { 'custom:Review': 'Review' },
     };
-    expect((await h(new Request(url, { method: 'PUT', body: JSON.stringify(value) }))).status).toBe(
-      200,
-    );
+    expect((await h(new Request(url, { method: 'PUT', body: JSON.stringify(value) }))).status).toBe(200);
     expect(await (await h(new Request(url))).json()).toEqual(value);
     expect(t.ws.documents()[0].hash).toEqual(doc.hash);
     expect(t.ws.grouping(doc.id, LOCAL_READER)).toEqual(value);
@@ -31,23 +29,8 @@ test('grouping API rejects malformed modes and corrections and missing documents
   const h = t.handler;
   try {
     const doc = await t.ws.saveDocument('sample.yaml', 'ontology: [{concept: A}]', LOCAL_READER);
-    for (const value of [
-      { mode: 'inferred truth' },
-      { assignments: [] },
-      { names: { a: 5 } },
-      { assignments: { a: '' } },
-      { unknown: true },
-    ])
-      expect(
-        (
-          await h(
-            new Request(
-              'http://localhost/api/documents/' + encodeURIComponent(doc.id) + '/grouping',
-              { method: 'PUT', body: JSON.stringify(value) },
-            ),
-          )
-        ).status,
-      ).toBe(400);
+    for (const value of [{ mode: 'inferred truth' }, { assignments: [] }, { names: { a: 5 } }, { assignments: { a: '' } }, { unknown: true }])
+      expect((await h(new Request('http://localhost/api/documents/' + encodeURIComponent(doc.id) + '/grouping', { method: 'PUT', body: JSON.stringify(value) }))).status).toBe(400);
     expect(
       (
         await h(

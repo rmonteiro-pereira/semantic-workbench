@@ -88,13 +88,9 @@ for (const shape of ['entra', 'keycloak'] as const) {
           return Response.json({ ready: true, state: probes === 1 ? 'handover' : 'serving' });
         }
         if (path === '/healthz') return Response.json(expected);
-        if (path === '/api/projects')
-          return Response.json({ error: 'Unauthorized' }, { status: 401 });
+        if (path === '/api/projects') return Response.json({ error: 'Unauthorized' }, { status: 401 });
         const response = responses().login;
-        response.headers.set(
-          'location',
-          `${document.authorization_endpoint}?code_challenge_method=S256`,
-        );
+        response.headers.set('location', `${document.authorization_endpoint}?code_challenge_method=S256`);
         return response;
       },
     });
@@ -129,8 +125,7 @@ for (const [index, fault] of faults.entries()) {
           if (input.ready.body.state === 'handover') input.ready.body.state = 'serving';
           return Response.json(input.ready.body, { status: input.ready.status });
         }
-        if (path === '/healthz')
-          return Response.json(input.health.body, { status: input.health.status });
+        if (path === '/healthz') return Response.json(input.health.body, { status: input.health.status });
         if (path === '/api/projects') {
           return Response.json(input.projects.body, { status: input.projects.status });
         }
@@ -188,9 +183,7 @@ for (const header of ['strict-transport-security', 'set-cookie']) {
 
 test('telemetry is checked only when the release is meant to export it', () => {
   const input = responses();
-  expect(smokeChecks(input, expected, endpoint, false).map(check => check.name)).not.toContain(
-    'telemetry configured',
-  );
+  expect(smokeChecks(input, expected, endpoint, false).map(check => check.name)).not.toContain('telemetry configured');
   const off = smokeChecks(input, expected, endpoint, false, true);
   expect(off.find(check => check.name === 'telemetry configured')?.ok).toBe(false);
   input.health.body = {

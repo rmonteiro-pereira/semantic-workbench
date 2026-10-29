@@ -13,17 +13,14 @@ function startOfMonth(now: Date): string {
 /** Serves the audit query and download contract without exposing another domain's records. */
 export function auditRoutes(options: HandlerOptions): Route {
   return (_workspace, request, url) => {
-    if (!['/api/audit', '/api/audit/export'].includes(url.pathname) || request.method !== 'GET')
-      return null;
+    if (!['/api/audit', '/api/audit/export'].includes(url.pathname) || request.method !== 'GET') return null;
     const scope = requestScope(request);
     const projects = auditProjects(request);
     const filters = Object.fromEntries(url.searchParams);
-    if (filters.decision && !['allow', 'deny'].includes(filters.decision))
-      throw new AdminConfigError('Invalid audit decision.');
+    if (filters.decision && !['allow', 'deny'].includes(filters.decision)) throw new AdminConfigError('Invalid audit decision.');
     for (const key of ['from', 'to']) {
       if (!filters[key]) continue;
-      if (!Number.isFinite(Date.parse(filters[key])))
-        throw new AdminConfigError('Invalid audit time.');
+      if (!Number.isFinite(Date.parse(filters[key]))) throw new AdminConfigError('Invalid audit time.');
       filters[key] = new Date(filters[key]).toISOString();
     }
     // Without a start the query covers the current month, so a request never reads every month.
@@ -32,8 +29,7 @@ export function auditRoutes(options: HandlerOptions): Route {
     const entries = queryAudit(stored, filters, { scope, projects });
     if (url.pathname.endsWith('/export')) {
       const format = filters.format ?? 'jsonl';
-      if (format !== 'jsonl' && format !== 'csv')
-        throw new AdminConfigError('Invalid audit format.');
+      if (format !== 'jsonl' && format !== 'csv') throw new AdminConfigError('Invalid audit format.');
       return new Response(exportAudit(entries, format), {
         headers: {
           'Content-Type': format === 'csv' ? 'text/csv; charset=utf-8' : 'application/x-ndjson',
@@ -41,8 +37,7 @@ export function auditRoutes(options: HandlerOptions): Route {
         },
       });
     }
-    if (filters.cursor && !/^\d+$/.test(filters.cursor))
-      throw new AdminConfigError('Invalid audit cursor.');
+    if (filters.cursor && !/^\d+$/.test(filters.cursor)) throw new AdminConfigError('Invalid audit cursor.');
     const offset = Number(filters.cursor ?? 0);
     if (!Number.isSafeInteger(offset)) throw new AdminConfigError('Invalid audit cursor.');
     return Response.json({

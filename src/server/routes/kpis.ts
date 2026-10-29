@@ -10,8 +10,7 @@ import { planKpiSave, KpiError, type KpiRequest } from '../../shared/metrics/met
 import { InputError } from '../../shared/validation/diagnostics';
 import type { Route } from './http';
 const HASH = /^[0-9a-f]{64}$/;
-const object = (v: unknown): v is Record<string, any> =>
-  !!v && typeof v === 'object' && !Array.isArray(v);
+const object = (v: unknown): v is Record<string, any> => !!v && typeof v === 'object' && !Array.isArray(v);
 /** Handles metric previews and journaled saves across related files. */
 export const kpiRoutes: Route = async (ws, req, url) => {
   if (req.method !== 'POST') return null;
@@ -20,9 +19,7 @@ export const kpiRoutes: Route = async (ws, req, url) => {
     const slug = decodeSegment(batch[1]);
     const body = await readJson(req, MAX_INPUT_BYTES * 6 + 4096);
     if (!object(body) || !Array.isArray(body.files) || Object.keys(body).some(k => k !== 'files'))
-      throw new BadRequestError(
-        'Expected {files: [{path, baseHash, source} or {path, baseHash, patches}]}.',
-      );
+      throw new BadRequestError('Expected {files: [{path, baseHash, source} or {path, baseHash, patches}]}.');
     for (const f of body.files)
       if (
         !object(f) ||
@@ -31,9 +28,7 @@ export const kpiRoutes: Route = async (ws, req, url) => {
         (f.source === undefined) === (f.patches === undefined) ||
         (f.source !== undefined && typeof f.source !== 'string')
       )
-        throw new BadRequestError(
-          'Each file needs a path, the SHA-256 of the version the edit started from (null for a new file), and either source or patches.',
-        );
+        throw new BadRequestError('Each file needs a path, the SHA-256 of the version the edit started from (null for a new file), and either source or patches.');
     authorizeWrite(
       req,
       'edit',
@@ -55,18 +50,7 @@ export const kpiRoutes: Route = async (ws, req, url) => {
   const body = await readJson(req, 256_000);
   if (
     !object(body) ||
-    Object.keys(body).some(
-      k =>
-        ![
-          'semanticPath',
-          'modelPath',
-          'existing',
-          'metric',
-          'extension',
-          'binding',
-          'baseHashes',
-        ].includes(k),
-    ) ||
+    Object.keys(body).some(k => !['semanticPath', 'modelPath', 'existing', 'metric', 'extension', 'binding', 'baseHashes'].includes(k)) ||
     typeof body.semanticPath !== 'string' ||
     (body.existing !== undefined && typeof body.existing !== 'boolean') ||
     !object(body.metric) ||
@@ -75,9 +59,7 @@ export const kpiRoutes: Route = async (ws, req, url) => {
     (body.modelPath !== undefined && !Array.isArray(body.modelPath)) ||
     (!preview && !object(body.baseHashes))
   )
-    throw new BadRequestError(
-      'Expected {semanticPath, metric: {name, expression, description?, datatype?}, extension, binding?: {measures, of?}, baseHashes}.',
-    );
+    throw new BadRequestError('Expected {semanticPath, metric: {name, expression, description?, datatype?}, extension, binding?: {measures, of?}, baseHashes}.');
   const { view } = requestReader(req);
   const targetPaths = [body.semanticPath, ...Object.keys(body.baseHashes ?? {})];
   if (view && targetPaths.some(path => !view.canRead(slug, path))) {
@@ -91,8 +73,7 @@ export const kpiRoutes: Route = async (ws, req, url) => {
       body as KpiRequest,
     );
   } catch (e) {
-    if (e instanceof KpiError)
-      throw new InputError([{ severity: 'error', code: 'kpi', path: '/', message: e.message }]);
+    if (e instanceof KpiError) throw new InputError([{ severity: 'error', code: 'kpi', path: '/', message: e.message }]);
     throw e;
   }
   if (preview) {
@@ -119,8 +100,7 @@ export const kpiRoutes: Route = async (ws, req, url) => {
       let p = 0;
       while (p < a.length && p < b.length && a[p] === b[p]) p++;
       let s = 0;
-      while (s < a.length - p && s < b.length - p && a[a.length - 1 - s] === b[b.length - 1 - s])
-        s++;
+      while (s < a.length - p && s < b.length - p && a[a.length - 1 - s] === b[b.length - 1 - s]) s++;
       return {
         path: w.path,
         created: w.created,
@@ -136,10 +116,7 @@ export const kpiRoutes: Route = async (ws, req, url) => {
   const writes = plan.writes.map(w => {
     if (w.created) return { path: w.path, baseHash: null, source: w.source };
     const hash = body.baseHashes[w.path];
-    if (typeof hash !== 'string' || !HASH.test(hash))
-      throw new BadRequestError(
-        `baseHashes must include the hash of ${w.path} as you last read it.`,
-      );
+    if (typeof hash !== 'string' || !HASH.test(hash)) throw new BadRequestError(`baseHashes must include the hash of ${w.path} as you last read it.`);
     return { path: w.path, baseHash: hash, source: w.source };
   });
   authorizeWrite(

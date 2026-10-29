@@ -30,17 +30,7 @@ type Plan = {
   invalid: string[];
 };
 /** Reviews dependencies and confirms an item deletion across affected files. */
-export function DeleteItem({
-  doc,
-  base,
-  path,
-  kind,
-  name,
-  owner,
-  projectDocs,
-  onClose,
-  onDeleted,
-}: Props) {
+export function DeleteItem({ doc, base, path, kind, name, owner, projectDocs, onClose, onDeleted }: Props) {
   const access = useCapabilities(doc.project);
   const [plan, setPlan] = useState<Plan | null>(null);
   const [error, setError] = useState('');
@@ -54,10 +44,7 @@ export function DeleteItem({
         const breaking = refs.filter(r => !r.dependent);
         // The item itself is removed together with its dependents, from the last position to the
         // first.
-        const edited = removeDependents(docs, [
-          { docId: doc.id, dependent: { path, label: name } },
-          ...dependents.map(r => ({ docId: r.docId, dependent: r.dependent! })),
-        ]);
+        const edited = removeDependents(docs, [{ docId: doc.id, dependent: { path, label: name } }, ...dependents.map(r => ({ docId: r.docId, dependent: r.dependent! }))]);
         const files = edited.map(e => ({
           doc: docs.find(d => d.id === e.docId)!,
           source: e.source,
@@ -89,13 +76,7 @@ export function DeleteItem({
       let written: Saved[];
       if (plan.files.length === 1) {
         const f = plan.files[0];
-        const r = await api.save(
-          f.doc.project,
-          f.doc.path,
-          disk(f.doc).hash,
-          f.source,
-          diffPatches(disk(f.doc).source, f.source),
-        );
+        const r = await api.save(f.doc.project, f.doc.path, disk(f.doc).hash, f.source, diffPatches(disk(f.doc).source, f.source));
         written = [{ docId: f.doc.id, source: f.source, hash: r.hash }];
       } else {
         const r = await api.saveBatch(
@@ -114,34 +95,17 @@ export function DeleteItem({
       }
       onDeleted(written);
     } catch (e) {
-      setError(
-        e instanceof StaleSave
-          ? 'Nothing was deleted: a file changed since this opened. Close it and try again.'
-          : `Nothing was deleted: ${(e as Error).message}`,
-      );
+      setError(e instanceof StaleSave ? 'Nothing was deleted: a file changed since this opened. Close it and try again.' : `Nothing was deleted: ${(e as Error).message}`);
       setBusy(false);
     }
   }
-  const unique = (refs: Reference[]) => [
-    ...new Map(
-      refs.map(r => [
-        `${r.docId}|${JSON.stringify(r.dependent?.path ?? r.path)}|${r.dependent?.binding?.metric ?? ''}`,
-        r,
-      ]),
-    ).values(),
-  ];
+  const unique = (refs: Reference[]) => [...new Map(refs.map(r => [`${r.docId}|${JSON.stringify(r.dependent?.path ?? r.path)}|${r.dependent?.binding?.metric ?? ''}`, r])).values()];
   const footer = (
     <>
       <button type="button" onClick={onClose} disabled={busy}>
         Cancel
       </button>
-      <button
-        type="button"
-        className="danger"
-        onClick={confirm}
-        title={access.control('edit').title}
-        disabled={!access.can('edit') || busy || !plan || plan.invalid.length > 0}
-      >
+      <button type="button" className="danger" onClick={confirm} title={access.control('edit').title} disabled={!access.can('edit') || busy || !plan || plan.invalid.length > 0}>
         {busy ? 'Deleting…' : 'Delete'}
       </button>
     </>
@@ -149,8 +113,7 @@ export function DeleteItem({
   return (
     <Modal title={`Delete ${name}?`} onCancel={onClose} footer={footer}>
       <p>
-        The {kindLabel[kind].toLowerCase()} is removed from {doc.path} when you press Delete. Git
-        keeps the previous version of every file.
+        The {kindLabel[kind].toLowerCase()} is removed from {doc.path} when you press Delete. Git keeps the previous version of every file.
       </p>
       <h3>Removed</h3>
       <ul className="delete-list">
@@ -168,11 +131,7 @@ export function DeleteItem({
           ))}
       </ul>
       {!plan && !error && <p role="status">Looking for what depends on {name}…</p>}
-      {plan && plan.dependents.length > 0 && (
-        <p className="item-note">
-          These depend on {name} and are removed with it. Cancel to keep everything.
-        </p>
-      )}
+      {plan && plan.dependents.length > 0 && <p className="item-note">These depend on {name} and are removed with it. Cancel to keep everything.</p>}
       {plan && plan.breaking.length > 0 && (
         <div className="delete-warning">
           <strong>These references will no longer resolve (fix them in Source):</strong>
@@ -190,9 +149,7 @@ export function DeleteItem({
       )}
       {plan && plan.invalid.length > 0 && (
         <div role="alert" className="delete-warning">
-          <strong>
-            After this delete these files would not be valid, so nothing can be deleted yet:
-          </strong>
+          <strong>After this delete these files would not be valid, so nothing can be deleted yet:</strong>
           <ul>
             {plan.invalid.map(m => (
               <li key={m}>{m}</li>

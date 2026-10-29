@@ -99,9 +99,7 @@ export function GitRemotesSection() {
                 <td data-label="Actions">
                   <div className="admin-actions">
                     <button onClick={() => setSetting(project.slug)}>Set remote…</button>
-                    {project.remoteName && (
-                      <button onClick={() => setRemoving(project)}>Remove remote</button>
-                    )}
+                    {project.remoteName && <button onClick={() => setRemoving(project)}>Remove remote</button>}
                   </div>
                 </td>
               </tr>
@@ -120,10 +118,7 @@ export function GitRemotesSection() {
             </button>
           }
         >
-          <p>
-            {removing.name} will no longer fetch, pull or push until a remote is set again. Files
-            and history stay as they are.
-          </p>
+          <p>{removing.name} will no longer fetch, pull or push until a remote is set again. Files and history stay as they are.</p>
         </AdminConfirmation>
       )}
     </>

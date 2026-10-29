@@ -43,9 +43,7 @@ function FarZoomWatcher({ onChange }: { onChange: (level: number) => void }) {
 export function useFarZoom() {
   const [level, setLevel] = useState(0);
   const far = level > 0;
-  const style = far
-    ? ({ '--far-name-size': `${nameSizeOf(level)}px` } as CSSProperties)
-    : undefined;
+  const style = far ? ({ '--far-name-size': `${nameSizeOf(level)}px` } as CSSProperties) : undefined;
   return {
     className: far ? 'zoom-far' : undefined,
     style,

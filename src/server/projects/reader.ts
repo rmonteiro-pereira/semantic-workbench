@@ -17,8 +17,6 @@ export type CopyAccess = {
  * person also carries their working copies; agent clients and readers without one see the
  * published state.
  */
-export type Reader =
-  | { view: AccessView; owner: string; guard: ContentGuard; copy?: CopyAccess }
-  | { view: undefined; owner: undefined; guard?: undefined; copy?: undefined };
+export type Reader = { view: AccessView; owner: string; guard: ContentGuard; copy?: CopyAccess } | { view: undefined; owner: undefined; guard?: undefined; copy?: undefined };
 /** Explicit authority for local workspace operations. */
 export const LOCAL_READER: Reader = Object.freeze({ view: undefined, owner: undefined });

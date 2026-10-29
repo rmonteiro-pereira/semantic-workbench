@@ -16,24 +16,8 @@ export type CodeEditorHandle = {
 };
 
 /** Edits a source file while preserving untouched original bytes. */
-export const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorOptions>(function CodeEditor(
-  { className = '', ...options },
-  ref,
-) {
-  const {
-    host,
-    view,
-    lineInput,
-    lineEnding,
-    documentLevel,
-    cursor,
-    checking,
-    findingSummary,
-    syntax,
-    largeMode,
-    modeAvailable,
-    toggleParsingMode,
-  } = useCodeMirror(options);
+export const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorOptions>(function CodeEditor({ className = '', ...options }, ref) {
+  const { host, view, lineInput, lineEnding, documentLevel, cursor, checking, findingSummary, syntax, largeMode, modeAvailable, toggleParsingMode } = useCodeMirror(options);
 
   function goToLine(line: number, column = 1) {
     goToEditorLine(view.current, line, column);

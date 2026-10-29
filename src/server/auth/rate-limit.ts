@@ -97,8 +97,7 @@ const REPORT_INTERVAL_MS = 60_000;
  */
 export function createRateLimitReport(
   now: () => number = Date.now,
-  write: (source: string, refused: number) => void = (source, refused) =>
-    log.warn('http.rate-limited', { client: source, refused }),
+  write: (source: string, refused: number) => void = (source, refused) => log.warn('http.rate-limited', { client: source, refused }),
 ) {
   const sources = new Map<string, { count: number; reportedAt: number }>();
   return (source: string) => {

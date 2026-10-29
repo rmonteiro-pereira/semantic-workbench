@@ -19,10 +19,7 @@ const ORIGIN = 'http://127.0.0.1:4310';
 const NO_HISTORY = { includeHistory: false, historyAllowed: true };
 
 // Comments, CRLF line endings and a trailing blank line must come back exactly as stored.
-const ODDLY_FORMATTED =
-  '# kept comment\r\n' +
-  readFileSync(CONTRACT_FIXTURE, 'utf8').replaceAll('\n', '\r\n') +
-  '\r\n\r\n';
+const ODDLY_FORMATTED = '# kept comment\r\n' + readFileSync(CONTRACT_FIXTURE, 'utf8').replaceAll('\n', '\r\n') + '\r\n\r\n';
 
 async function projectWithFiles() {
   const t = await testWorkspace();
@@ -129,9 +126,7 @@ test('the bundle is added only when asked, and it clones back to the same files'
   const { t, slug, files } = await projectWithFiles();
   try {
     const plain = await download(t, `/api/projects/${slug}/export`);
-    expect([...readZip(new Uint8Array(await plain.arrayBuffer())).keys()]).not.toContain(
-      HISTORY_BUNDLE_NAME,
-    );
+    expect([...readZip(new Uint8Array(await plain.arrayBuffer())).keys()]).not.toContain(HISTORY_BUNDLE_NAME);
     const response = await download(t, `/api/projects/${slug}/export?history=1`);
     expect(response.status).toBe(200);
     const stored = readZip(new Uint8Array(await response.arrayBuffer()));
@@ -140,10 +135,7 @@ test('the bundle is added only when asked, and it clones back to the same files'
     const scratch = mkdtempSync(join(tmpdir(), 'workbench-bundle-'));
     try {
       writeFileSync(join(scratch, 'history.bundle'), bundle);
-      const clone = Bun.spawnSync(
-        ['git', 'clone', '-q', join(scratch, 'history.bundle'), join(scratch, 'copy')],
-        { env: { ...process.env, GIT_CONFIG_NOSYSTEM: '1' } },
-      );
+      const clone = Bun.spawnSync(['git', 'clone', '-q', join(scratch, 'history.bundle'), join(scratch, 'copy')], { env: { ...process.env, GIT_CONFIG_NOSYSTEM: '1' } });
       expect(clone.exitCode, clone.stderr.toString()).toBe(0);
       const cloned = await Bun.file(join(scratch, 'copy', 'odd.odcs.yaml')).text();
       expect(cloned).toBe(files[1].source);
@@ -177,10 +169,7 @@ test('exporting then importing into a new project gives equal file hashes', asyn
       path,
       source: decoder.decode(bytes),
     }));
-    const imported = await t.ws.importBatch(
-      { files: importFiles, name: 'Round trip' },
-      LOCAL_READER,
-    );
+    const imported = await t.ws.importBatch({ files: importFiles, name: 'Round trip' }, LOCAL_READER);
     expect(imported.slug).not.toBe(slug);
     for (const file of files) {
       const original = t.ws.readFile(slug, file.path).hash;

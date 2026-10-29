@@ -2,26 +2,13 @@
 import { test, expect } from 'bun:test';
 import { readFileSync, readdirSync, existsSync, writeFileSync, mkdirSync } from 'node:fs';
 import { parse } from 'yaml';
-import {
-  buildLineage,
-  objectId,
-  closure,
-  around,
-  type LineageGraph,
-} from '../src/app/odcs/lineage';
+import { buildLineage, objectId, closure, around, type LineageGraph } from '../src/app/odcs/lineage';
 // Expected edges are derived independently from parsed YAML, without the lineage builder. Saved
 // reference graphs make edge changes visible in review.
 type Edge = [string, string, string];
 const load = (dir: string) =>
   readdirSync(`public/examples/${dir}`)
-    .filter(
-      f =>
-        /\.(ya?ml|json)$/.test(f) &&
-        f !== 'manifest.json' &&
-        f !== 'expected.json' &&
-        f !== 'model-map.json' &&
-        f !== 'summary.json',
-    )
+    .filter(f => /\.(ya?ml|json)$/.test(f) && f !== 'manifest.json' && f !== 'expected.json' && f !== 'model-map.json' && f !== 'summary.json')
     .map(f => ({
       path: f,
       data: (() => {
@@ -32,10 +19,7 @@ const load = (dir: string) =>
         }
       })(),
     }));
-const edgesOf = (g: LineageGraph): Edge[] =>
-  g.edges
-    .map(e => [e.from, e.to, e.kind] as Edge)
-    .sort((a, b) => a.join('>').localeCompare(b.join('>')));
+const edgesOf = (g: LineageGraph): Edge[] => g.edges.map(e => [e.from, e.to, e.kind] as Edge).sort((a, b) => a.join('>').localeCompare(b.join('>')));
 function oracle(files: { path: string; data: any }[], contract: string): Edge[] {
   const c = files.find(f => f.path === contract)!.data;
   const out: Edge[] = [];
@@ -61,18 +45,12 @@ function oracle(files: { path: string; data: any }[], contract: string): Edge[] 
       const ds = `dataset:${f.path}#/${d.name}`;
       // A dataset named after its table whose fields are that table's columns, unchanged, is a
       // copy: its fields are the table's own columns and it adds no card or reads lines.
-      const column = (name: string) =>
-        (o.properties ?? []).find((x: any) => (x.physicalName ?? x.name) === name);
+      const column = (name: string) => (o.properties ?? []).find((x: any) => (x.physicalName ?? x.name) === name);
       const named = [o.name, o.physicalName ?? o.name].map((n: string) => n.toLowerCase());
       const copy =
-        named.includes(String(d.name).toLowerCase()) &&
-        (d.fields ?? []).length > 0 &&
-        (d.fields ?? []).every(
-          (fd: any) => column(fd.name) && String(ansi(fd) ?? fd.name).trim() === fd.name,
-        );
+        named.includes(String(d.name).toLowerCase()) && (d.fields ?? []).length > 0 && (d.fields ?? []).every((fd: any) => column(fd.name) && String(ansi(fd) ?? fd.name).trim() === fd.name);
       if (copy) {
-        for (const fd of d.fields)
-          fields.set(`${d.name}.${fd.name}`, `${obj(o.name)}/${column(fd.name).name}`);
+        for (const fd of d.fields) fields.set(`${d.name}.${fd.name}`, `${obj(o.name)}/${column(fd.name).name}`);
         continue;
       }
       for (const fd of d.fields ?? []) {
@@ -105,12 +83,7 @@ function oracle(files: { path: string; data: any }[], contract: string): Edge[] 
       for (const x of m.metrics ?? []) {
         const e = String(ansi(x) ?? '').replace(/'[^']*'/g, '');
         for (const [w] of e.matchAll(/\b[A-Za-z_]\w*\b/g))
-          if (
-            names.has(w) &&
-            w !== x.name &&
-            !/\.\s*$/.test(e.slice(0, e.indexOf(w))) &&
-            inLineage.has(w)
-          ) {
+          if (names.has(w) && w !== x.name && !/\.\s*$/.test(e.slice(0, e.indexOf(w))) && inLineage.has(w)) {
             const edge: Edge = [`metric:${f.path}#/${w}`, `metric:${f.path}#/${x.name}`, 'uses'];
             if (!out.some(o => o.join() === edge.join())) {
               out.push(edge);
@@ -123,9 +96,7 @@ function oracle(files: { path: string; data: any }[], contract: string): Edge[] 
       }
     }
   }
-  return [...new Map(out.map(e => [e.join('>'), e])).values()].sort((a, b) =>
-    a.join('>').localeCompare(b.join('>')),
-  );
+  return [...new Map(out.map(e => [e.join('>'), e])).values()].sort((a, b) => a.join('>').localeCompare(b.join('>')));
 }
 function golden(name: string, edges: Edge[]) {
   const file = `tests/fixtures/lineage/${name}.edges.json`;
@@ -149,10 +120,7 @@ for (const [dir, contract] of [
     expect(want.filter(w => !got.some(e => e.join() === w.join()))).toEqual([]);
     golden(dir, got);
     // A card appears once; every edge end is a known card or column.
-    const nodes = new Set([
-      ...g.cards.keys(),
-      ...[...g.cards.values()].flatMap(c => c.columns.map(x => x.id)),
-    ]);
+    const nodes = new Set([...g.cards.keys(), ...[...g.cards.values()].flatMap(c => c.columns.map(x => x.id))]);
     for (const e of g.edges) {
       expect(nodes.has(e.from)).toBe(true);
       expect(nodes.has(e.to)).toBe(true);
@@ -173,11 +141,7 @@ test('commerce: customers.customer_id → orders.customer_id (parent left of chi
   // no second card, no reads lines, and the metric reads the table column directly.
   expect(g.cards.has('dataset:sales.ossie.yaml#/orders')).toBe(false);
   expect(g.edges.some(e => e.from === `${o('orders')}/amount` && e.kind === 'reads')).toBe(false);
-  expect(
-    g.edges
-      .filter(e => e.from === `${o('orders')}/amount` && e.kind === 'aggregates')
-      .map(e => e.to),
-  ).toContain('metric:sales.ossie.yaml#/gross_revenue');
+  expect(g.edges.filter(e => e.from === `${o('orders')}/amount` && e.kind === 'aggregates').map(e => e.to)).toContain('metric:sales.ossie.yaml#/gross_revenue');
   const semantic = g.cards.get(o('orders'))!.badges!.filter(b => b.kind === 'semantic');
   expect(semantic.map(b => b.label)).toEqual(['Semantic dataset']);
   // A dataset that adds a field of its own is not a copy and keeps its card.
@@ -191,14 +155,8 @@ test('commerce: customers.customer_id → orders.customer_id (parent left of chi
     }),
   );
   const orders = g.cards.get(o('orders'))!;
-  expect(orders.columns.find(c => c.path === 'order_id')!.badges.map(b => b.label)).toEqual([
-    'PK',
-    'Required',
-    'Unique',
-  ]);
-  expect(orders.columns.find(c => c.path === 'customer_id')!.badges.map(b => b.label)).toContain(
-    'FK',
-  );
+  expect(orders.columns.find(c => c.path === 'order_id')!.badges.map(b => b.label)).toEqual(['PK', 'Required', 'Unique']);
+  expect(orders.columns.find(c => c.path === 'customer_id')!.badges.map(b => b.label)).toContain('FK');
   expect(orders.columns.find(c => c.path === 'customer_id')!.fk).toEqual(['customers.customer_id']);
 });
 const contract = (schema: any[]) => ({
@@ -230,11 +188,7 @@ test('nested columns, composite keys, external stubs, declared transforms, cycle
       {
         name: 'b',
         physicalName: 'a',
-        properties: [
-          { name: 'x' },
-          { name: 'y' },
-          { name: 'total', transformSourceObjects: ['a', 'raw_feed'], transformLogic: 'SELECT 1' },
-        ],
+        properties: [{ name: 'x' }, { name: 'y' }, { name: 'total', transformSourceObjects: ['a', 'raw_feed'], transformLogic: 'SELECT 1' }],
         relationships: [{ from: ['b.x', 'b.y'], to: ['a.id', 'a.k2'] }],
       },
     ]),
@@ -257,14 +211,7 @@ test('nested columns, composite keys, external stubs, declared transforms, cycle
   const g = buildLineage(files, 'c.odcs.yaml');
   const a = 'object:c.odcs.yaml#a';
   const b = 'object:c.odcs.yaml#b';
-  expect(g.cards.get(a)!.columns.map(c => c.path)).toEqual([
-    'id',
-    'k2',
-    'address',
-    'address.zip',
-    'parent',
-    'ext',
-  ]);
+  expect(g.cards.get(a)!.columns.map(c => c.path)).toEqual(['id', 'k2', 'address', 'address.zip', 'parent', 'ext']);
   expect(g.edges.filter(e => e.kind === 'foreign-key').map(e => [e.from, e.to])).toEqual([
     [`${a}/id`, `${a}/parent`],
     [`${a}/id`, `${b}/x`],
@@ -280,9 +227,7 @@ test('nested columns, composite keys, external stubs, declared transforms, cycle
   const reads = g.edges.filter(e => e.kind === 'reads');
   expect(reads.map(e => e.from).sort()).toEqual([`${a}/id`]);
   expect(reads.every(e => e.ambiguous)).toBe(true);
-  expect(g.edges.filter(e => e.kind === 'uses').map(e => [e.from, e.to])).toEqual([
-    ['metric:s.yaml#/n', 'metric:s.yaml#/n2'],
-  ]);
+  expect(g.edges.filter(e => e.kind === 'uses').map(e => [e.from, e.to])).toEqual([['metric:s.yaml#/n', 'metric:s.yaml#/n2']]);
   expect(g.cards.has('metric:s.yaml#/orphan')).toBe(false);
   // Self-referencing foreign key: path highlighting terminates.
   const c = closure(g, [`${a}/id`]);

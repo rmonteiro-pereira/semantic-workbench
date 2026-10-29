@@ -95,9 +95,7 @@ test('cards of different heights: placed beside the origin without overlapping a
   expect(out.get('R')).toEqual({ x: 510, y: 0, w: 400, h: 200 });
   expect(out.get('a')!.x).toBe(510);
   expect(out.get('b')!.x).toBe(-510);
-  const ov = (p: any, q: any) =>
-    p.x < q.x + q.w && p.x + p.w > q.x && p.y < q.y + q.h && p.y + p.h > q.y;
+  const ov = (p: any, q: any) => p.x < q.x + q.w && p.x + p.w > q.x && p.y < q.y + q.h && p.y + p.h > q.y;
   const all = [...out.values()];
-  for (let i = 0; i < all.length; i++)
-    for (let j = i + 1; j < all.length; j++) expect(ov(all[i], all[j])).toBe(false);
+  for (let i = 0; i < all.length; i++) for (let j = i + 1; j < all.length; j++) expect(ov(all[i], all[j])).toBe(false);
 });

@@ -29,17 +29,7 @@ async function observerHarness(entrypoint: string) {
       disconnected = true;
     }
   }
-  const instantiate = new Function(
-    'useStore',
-    'selector$b',
-    'useRef',
-    'useState',
-    'useEffect',
-    'ResizeObserver',
-    'requestAnimationFrame',
-    'cancelAnimationFrame',
-    `return (${hookSource})();`,
-  );
+  const instantiate = new Function('useStore', 'selector$b', 'useRef', 'useState', 'useEffect', 'ResizeObserver', 'requestAnimationFrame', 'cancelAnimationFrame', `return (${hookSource})();`);
   instantiate(
     () => (batch: Map<string, { nodeElement: ObservedNode }>) => updates.push(batch),
     null,
@@ -189,40 +179,34 @@ async function paneHarness(entrypoint: string) {
   };
 }
 
-test.each(entrypoints)(
-  '%s defers pane observer updates and keeps the latest size',
-  async entrypoint => {
-    const harness = await paneHarness(entrypoint);
-    try {
-      expect(harness.updates).toEqual([{ width: 800, height: 600 }]);
-      harness.reference.current!.width = 900;
-      harness.deliver();
-      harness.reference.current!.width = 1000;
-      harness.deliver();
-      expect(harness.updates).toHaveLength(1);
-      expect(harness.frames.size).toBe(1);
-      harness.flush();
-      expect(harness.updates.at(-1)).toEqual({ width: 1000, height: 600 });
-    } finally {
-      harness.cleanup();
-    }
-  },
-);
-
-test.each(entrypoints)(
-  '%s cancels pane work even after its DOM ref is cleared',
-  async entrypoint => {
-    const harness = await paneHarness(entrypoint);
+test.each(entrypoints)('%s defers pane observer updates and keeps the latest size', async entrypoint => {
+  const harness = await paneHarness(entrypoint);
+  try {
+    expect(harness.updates).toEqual([{ width: 800, height: 600 }]);
+    harness.reference.current!.width = 900;
     harness.deliver();
-    harness.reference.current = null;
-    harness.cleanup();
-    expect(harness.disconnected()).toBe(true);
-    expect(harness.listeners.size).toBe(0);
-    expect(harness.frames.size).toBe(0);
-    harness.flush();
+    harness.reference.current!.width = 1000;
+    harness.deliver();
     expect(harness.updates).toHaveLength(1);
-  },
-);
+    expect(harness.frames.size).toBe(1);
+    harness.flush();
+    expect(harness.updates.at(-1)).toEqual({ width: 1000, height: 600 });
+  } finally {
+    harness.cleanup();
+  }
+});
+
+test.each(entrypoints)('%s cancels pane work even after its DOM ref is cleared', async entrypoint => {
+  const harness = await paneHarness(entrypoint);
+  harness.deliver();
+  harness.reference.current = null;
+  harness.cleanup();
+  expect(harness.disconnected()).toBe(true);
+  expect(harness.listeners.size).toBe(0);
+  expect(harness.frames.size).toBe(0);
+  harness.flush();
+  expect(harness.updates).toHaveLength(1);
+});
 
 test.each(entrypoints)('%s keeps window resize measurements synchronous', async entrypoint => {
   const harness = await paneHarness(entrypoint);

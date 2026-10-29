@@ -30,11 +30,7 @@ import {
 } from '../projects/errors';
 import { log } from '../observability/log';
 /** Handles a request or returns null so the next route can try it. */
-export type Route = (
-  ws: Workspace,
-  req: Request,
-  url: URL,
-) => Promise<Response | null> | Response | null;
+export type Route = (ws: Workspace, req: Request, url: URL) => Promise<Response | null> | Response | null;
 /** Where an error happened, which decides how much of it the client may see. */
 export type ErrorContext = { serverMode?: boolean; requestId?: string };
 
@@ -71,52 +67,24 @@ export function errorResponse(e: unknown, publicUrl?: string, context: ErrorCont
     return response;
   }
   if (e instanceof SignInError) return signInErrorResponse(e, publicUrl);
-  if (e instanceof AdminStaleError)
-    return Response.json({ error: 'stale', message: e.message }, { status: 409 });
-  if (e instanceof AdminConfigError || e instanceof AccessConfigError)
-    return Response.json({ error: e.message }, { status: 400 });
-  if (e instanceof StaleError)
-    return Response.json(
-      { error: 'stale', currentHash: e.currentHash, currentSource: e.currentSource },
-      { status: 409 },
-    );
-  if (e instanceof ConnectRequiredError)
-    return Response.json({ error: e.message, connect: e.connect }, { status: 428 });
-  if (e instanceof RemoteHostError)
-    return Response.json({ error: e.message, allowedHosts: e.allowedHosts }, { status: 400 });
+  if (e instanceof AdminStaleError) return Response.json({ error: 'stale', message: e.message }, { status: 409 });
+  if (e instanceof AdminConfigError || e instanceof AccessConfigError) return Response.json({ error: e.message }, { status: 400 });
+  if (e instanceof StaleError) return Response.json({ error: 'stale', currentHash: e.currentHash, currentSource: e.currentSource }, { status: 409 });
+  if (e instanceof ConnectRequiredError) return Response.json({ error: e.message, connect: e.connect }, { status: 428 });
+  if (e instanceof RemoteHostError) return Response.json({ error: e.message, allowedHosts: e.allowedHosts }, { status: 400 });
   if (e instanceof GoneError) return Response.json({ error: e.message }, { status: 410 });
-  if (e instanceof OccupiedError)
-    return Response.json(
-      { error: 'occupied', message: e.message, suggestion: e.suggestion },
-      { status: 409 },
-    );
-  if (e instanceof ConflictError)
-    return Response.json(
-      { error: 'conflict', message: e.message, conflicts: e.conflicts },
-      { status: 409 },
-    );
-  if (e instanceof MergingError)
-    return Response.json(
-      { error: 'merging', message: e.message, conflicts: e.conflicts },
-      { status: 409 },
-    );
-  if (e instanceof BranchInUseError)
-    return Response.json({ error: e.message, inUseBy: e.inUseBy }, { status: 409 });
-  if (e instanceof PersonalBranchError)
-    return Response.json({ error: e.message, branch: e.branch }, { status: 403 });
-  if (e instanceof NotFastForwardError)
-    return Response.json({ error: e.message, notFastForward: true }, { status: 409 });
-  if (e instanceof NothingToPublishError)
-    return Response.json({ error: e.message, nothingToPublish: true }, { status: 409 });
-  if (e instanceof MissingFolderError)
-    return Response.json({ error: e.message, missingFolder: e.folder }, { status: 409 });
+  if (e instanceof OccupiedError) return Response.json({ error: 'occupied', message: e.message, suggestion: e.suggestion }, { status: 409 });
+  if (e instanceof ConflictError) return Response.json({ error: 'conflict', message: e.message, conflicts: e.conflicts }, { status: 409 });
+  if (e instanceof MergingError) return Response.json({ error: 'merging', message: e.message, conflicts: e.conflicts }, { status: 409 });
+  if (e instanceof BranchInUseError) return Response.json({ error: e.message, inUseBy: e.inUseBy }, { status: 409 });
+  if (e instanceof PersonalBranchError) return Response.json({ error: e.message, branch: e.branch }, { status: 403 });
+  if (e instanceof NotFastForwardError) return Response.json({ error: e.message, notFastForward: true }, { status: 409 });
+  if (e instanceof NothingToPublishError) return Response.json({ error: e.message, nothingToPublish: true }, { status: 409 });
+  if (e instanceof MissingFolderError) return Response.json({ error: e.message, missingFolder: e.folder }, { status: 409 });
   if (e instanceof NotFoundError) return Response.json({ error: e.message }, { status: 404 });
-  if (e instanceof TooLargeError)
-    return Response.json({ error: e.message, limitBytes: e.limitBytes }, { status: 413 });
-  if (e instanceof InputError)
-    return Response.json({ error: e.message, issues: e.issues }, { status: 400 });
-  if (e instanceof BlockedError)
-    return Response.json({ error: e.reason, message: e.message, paths: e.paths }, { status: 409 });
+  if (e instanceof TooLargeError) return Response.json({ error: e.message, limitBytes: e.limitBytes }, { status: 413 });
+  if (e instanceof InputError) return Response.json({ error: e.message, issues: e.issues }, { status: 400 });
+  if (e instanceof BlockedError) return Response.json({ error: e.reason, message: e.message, paths: e.paths }, { status: 409 });
   if (e instanceof GitError) return gitFailureResponse(e, context);
   if (e instanceof PathError || e instanceof BadRequestError) {
     return Response.json({ error: e.message }, { status: 400 });

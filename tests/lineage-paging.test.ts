@@ -1,13 +1,6 @@
 // Tests which columns a card shows, the "more columns" row and where edges to hidden columns land.
 import { test, expect } from 'bun:test';
-import {
-  cardRows,
-  moreRowId,
-  COLLAPSED_MAX,
-  SMALL_CARD,
-  type ColumnWhy,
-  type LineageCard,
-} from '../src/app/odcs/lineage';
+import { cardRows, moreRowId, COLLAPSED_MAX, SMALL_CARD, type ColumnWhy, type LineageCard } from '../src/app/odcs/lineage';
 
 const none: ColumnWhy = { focus: new Set(), connected: new Set() };
 const columnId = (i: number) => `object:c#big/c${i}`;
@@ -20,9 +13,7 @@ function wideCard(count: number, keyed: number[] = []): LineageCard {
     columns: Array.from({ length: count }, (_, i) => ({
       id: columnId(i),
       path: `c${i}`,
-      badges: keyed.includes(i)
-        ? [{ kind: 'fk' as const, label: 'FK', title: 'Foreign key to x' }]
-        : [],
+      badges: keyed.includes(i) ? [{ kind: 'fk' as const, label: 'FK', title: 'Foreign key to x' }] : [],
     })),
   };
 }

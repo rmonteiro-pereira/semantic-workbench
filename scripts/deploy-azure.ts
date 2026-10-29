@@ -45,30 +45,16 @@ export function appSettings(value: unknown, target: Target): AppSettings {
   const container = template.containers[0];
   const identities = Object.keys(app.identity?.userAssignedIdentities ?? {});
   const identity = identities.find(id => id.endsWith(`/${target.APP_IDENTITY_NAME}`)) ?? '';
-  const env = Object.fromEntries(
-    (container.env ?? []).map((entry: any) => [
-      entry.name,
-      entry.secretRef ? `secretref:${entry.secretRef}` : entry.value,
-    ]),
-  );
+  const env = Object.fromEntries((container.env ?? []).map((entry: any) => [entry.name, entry.secretRef ? `secretref:${entry.secretRef}` : entry.value]));
   return {
     mode: configuration.activeRevisionsMode,
     minReplicas: template.scale?.minReplicas,
     maxReplicas: template.scale?.maxReplicas,
     volume: (container.volumeMounts ?? []).some(
-      (mount: any) =>
-        mount.mountPath === '/data' &&
-        (template.volumes ?? []).some(
-          (volume: any) =>
-            volume.name === mount.volumeName &&
-            ['AzureFile', 'NfsAzureFile'].includes(volume.storageType),
-        ),
+      (mount: any) => mount.mountPath === '/data' && (template.volumes ?? []).some((volume: any) => volume.name === mount.volumeName && ['AzureFile', 'NfsAzureFile'].includes(volume.storageType)),
     ),
     identity,
-    registryIdentity:
-      (configuration.registries ?? []).find(
-        (registry: any) => registry.server === `${target.ACR_NAME}.azurecr.io`,
-      )?.identity ?? '',
+    registryIdentity: (configuration.registries ?? []).find((registry: any) => registry.server === `${target.ACR_NAME}.azurecr.io`)?.identity ?? '',
     port: configuration.ingress?.targetPort,
     ingress: ingressSettings(configuration.ingress),
     secrets: (configuration.secrets ?? []).map((secret: any) => ({
@@ -83,14 +69,7 @@ export function appSettings(value: unknown, target: Target): AppSettings {
 type AzureIO = ReturnType<typeof azureIO>;
 
 function azureIO(target: Target, command: typeof runCommand) {
-  const scope = [
-    '--subscription',
-    target.AZURE_SUBSCRIPTION_ID,
-    '--resource-group',
-    target.ACA_RESOURCE_GROUP,
-    '--name',
-    target.ACA_NAME,
-  ];
+  const scope = ['--subscription', target.AZURE_SUBSCRIPTION_ID, '--resource-group', target.ACA_RESOURCE_GROUP, '--name', target.ACA_NAME];
   const repository = `${target.ACR_NAME}.azurecr.io/semantic-workbench`;
   const json = async (args: string[]) => {
     const output = args.includes('--output') ? args : [...args, '-o', 'json'];
@@ -102,16 +81,11 @@ function azureIO(target: Target, command: typeof runCommand) {
     if (!Array.isArray(result)) throw Error('Invalid Azure revisions response');
     return result.map(value => object(value, 'revision'));
   };
-  const registry = <T>(run: (env: NodeJS.ProcessEnv) => Promise<T>) =>
-    withRegistry(target, command, run);
+  const registry = <T>(run: (env: NodeJS.ProcessEnv) => Promise<T>) => withRegistry(target, command, run);
   return { target, command, scope, repository, json, app, revisions, registry };
 }
 
-async function withRegistry<T>(
-  target: Target,
-  command: typeof runCommand,
-  run: (env: NodeJS.ProcessEnv) => Promise<T>,
-): Promise<T> {
+async function withRegistry<T>(target: Target, command: typeof runCommand, run: (env: NodeJS.ProcessEnv) => Promise<T>): Promise<T> {
   const directory = await mkdtemp(join(tmpdir(), 'sw-deploy-registry-'));
   const env = { ...process.env, ...registryEnvironment('docker', directory) };
   try {
@@ -128,13 +102,7 @@ async function imageMetadata(io: AzureIO, image: string, name: string): Promise<
   if (!image.startsWith(`${repository}@`) || !/^sha256:[a-f0-9]{64}$/.test(digest ?? '')) {
     throw Error(`Revision ${name} is not pinned to a target registry digest`);
   }
-  const output = await registry(env =>
-    command(
-      ['docker', 'buildx', 'imagetools', 'inspect', image, '--format', '{{json .Image}}'],
-      true,
-      env,
-    ),
-  );
+  const output = await registry(env => command(['docker', 'buildx', 'imagetools', 'inspect', image, '--format', '{{json .Image}}'], true, env));
   const config = object(JSON.parse(output), 'image configuration');
   const labels = config.config?.Labels;
   const version = labels?.['org.opencontainers.image.version'];
@@ -148,15 +116,10 @@ async function imageMetadata(io: AzureIO, image: string, name: string): Promise<
 function readOperations(io: AzureIO) {
   const { target, json, app, revisions, repository } = io;
   const metadata = (image: string, name: string) => imageMetadata(io, image, name);
-  const fromRevision = (revision: Record<string, any>) =>
-    metadata(revision.properties?.template?.containers?.[0]?.image ?? '', revision.name);
+  const fromRevision = (revision: Record<string, any>) => metadata(revision.properties?.template?.containers?.[0]?.image ?? '', revision.name);
   const operations: Pick<AzureClient, 'tags' | 'inspect' | 'active' | 'previous' | 'resolve'> = {
     async tags() {
-      const result = await json([
-        ...versionQuery(target.ACR_NAME),
-        '--subscription',
-        target.AZURE_SUBSCRIPTION_ID,
-      ]);
+      const result = await json([...versionQuery(target.ACR_NAME), '--subscription', target.AZURE_SUBSCRIPTION_ID]);
       if (!Array.isArray(result) || result.some(tag => typeof tag !== 'string')) {
         throw Error('Invalid Azure registry tags response');
       }
@@ -175,11 +138,7 @@ function readOperations(io: AzureIO) {
       const history = await revisions();
       const failed = new Set(
         history
-          .filter(
-            revision =>
-              ['Failed', 'Degraded'].includes(revision.properties?.runningState) ||
-              revision.properties?.healthState === 'Unhealthy',
-          )
+          .filter(revision => ['Failed', 'Degraded'].includes(revision.properties?.runningState) || revision.properties?.healthState === 'Unhealthy')
           .map(revision => revision.properties?.template?.containers?.[0]?.image?.split('@')[1]),
       );
       const tags = (await operations.tags()).filter(tag => tag.startsWith('v'));
@@ -192,18 +151,7 @@ function readOperations(io: AzureIO) {
       return previousPromotion(active, promoted, failed);
     },
     async resolve(tag) {
-      const result = await json([
-        'az',
-        'acr',
-        'repository',
-        'show',
-        '--name',
-        target.ACR_NAME,
-        '--subscription',
-        target.AZURE_SUBSCRIPTION_ID,
-        '--image',
-        `semantic-workbench:${tag}`,
-      ]);
+      const result = await json(['az', 'acr', 'repository', 'show', '--name', target.ACR_NAME, '--subscription', target.AZURE_SUBSCRIPTION_ID, '--image', `semantic-workbench:${tag}`]);
       return metadata(`${repository}@${result.digest}`, tag);
     },
   };
@@ -214,11 +162,7 @@ function writeOperations(io: AzureIO) {
   const { target, registry, command, json, scope, repository } = io;
   const operations: Pick<AzureClient, 'promote' | 'lock' | 'update' | 'copy' | 'scan'> = {
     async scan(digest) {
-      await command(
-        ['bun', 'scripts/image.ts', 'scan', '--ref', `${repository}@${digest}`],
-        false,
-        { ...process.env, ...target },
-      );
+      await command(['bun', 'scripts/image.ts', 'scan', '--ref', `${repository}@${digest}`], false, { ...process.env, ...target });
     },
     async promote(release) {
       // A rerun after a half-finished lock finds its own tag already on this digest.
@@ -231,26 +175,11 @@ function writeOperations(io: AzureIO) {
       for (const tag of releaseTags(release)) await command(lockArguments(target, tag), false);
     },
     async update(digest) {
-      const result = await json([
-        'az',
-        'containerapp',
-        'update',
-        ...scope,
-        '--image',
-        `${repository}@${digest}`,
-      ]);
+      const result = await json(['az', 'containerapp', 'update', ...scope, '--image', `${repository}@${digest}`]);
       return revisionName(result);
     },
     async copy(revision) {
-      const result = await json([
-        'az',
-        'containerapp',
-        'revision',
-        'copy',
-        ...scope,
-        '--from-revision',
-        revision.name,
-      ]);
+      const result = await json(['az', 'containerapp', 'revision', 'copy', ...scope, '--from-revision', revision.name]);
       return revisionName(result);
     },
   };
@@ -264,19 +193,8 @@ function monitorOperations(io: AzureIO) {
       await waitUntil(
         `Azure revision ${name}`,
         async () => {
-          const result = await json([
-            'az',
-            'containerapp',
-            'revision',
-            'show',
-            ...scope,
-            '--revision',
-            name,
-          ]);
-          return (
-            result.properties?.runningState === 'Running' &&
-            result.properties?.healthState === 'Healthy'
-          );
+          const result = await json(['az', 'containerapp', 'revision', 'show', ...scope, '--revision', name]);
+          return result.properties?.runningState === 'Running' && result.properties?.healthState === 'Healthy';
         },
         180_000,
       );

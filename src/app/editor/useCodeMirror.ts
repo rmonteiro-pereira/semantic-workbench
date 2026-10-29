@@ -6,28 +6,14 @@ import { linter, forceLinting } from '@codemirror/lint';
 import { baseEditorExtensions, editorKeymap } from './editorExtensions';
 import type { Issue } from '../../shared/validation/diagnostics';
 import { normalize } from '../../shared/editor/patch';
-import {
-  applyEditorTransactions,
-  external,
-  lineEndingLabel,
-  replacementChange,
-} from './editorText';
+import { applyEditorTransactions, external, lineEndingLabel, replacementChange } from './editorText';
 import { languageFor, syntaxFor } from './languages';
 import { initialDocumentMode, resolveDocumentMode } from './documentMode';
 import { summarizeDiagnostics, toDiagnostics, validateInWorker, type FindingSummary } from './lint';
 import type { CodeEditorOptions } from './editorTypes';
 
 /** Creates one editor view and keeps external values, syntax and editability in sync. */
-export function useCodeMirror({
-  value,
-  filename,
-  documentId,
-  onChange,
-  ariaLabel,
-  disabled = false,
-  onIssues,
-  validate,
-}: CodeEditorOptions) {
+export function useCodeMirror({ value, filename, documentId, onChange, ariaLabel, disabled = false, onIssues, validate }: CodeEditorOptions) {
   const host = useRef<HTMLDivElement>(null);
   const view = useRef<EditorView | null>(null);
   const lineInput = useRef<HTMLInputElement>(null);
@@ -62,9 +48,7 @@ export function useCodeMirror({
   async function validateDocument(editorView: EditorView) {
     setChecking(true);
     const text = editorView.state.doc.toString();
-    const issues = await (latestProps.current.validate
-      ? latestProps.current.validate(text)
-      : validateInWorker(text, latestProps.current.filename));
+    const issues = await (latestProps.current.validate ? latestProps.current.validate(text) : validateInWorker(text, latestProps.current.filename));
     setChecking(false);
     if (editorView.state.doc.toString() !== text) return [];
     const { diagnostics, documentLevel } = toDiagnostics(issues, editorView.state.doc);
@@ -82,11 +66,7 @@ export function useCodeMirror({
     }
     const isExternal = update.transactions.some(transaction => transaction.annotation(external));
     if (!update.docChanged || isExternal) return;
-    const text = applyEditorTransactions(
-      bytes.current,
-      update.transactions,
-      hasCarriageReturn.current,
-    );
+    const text = applyEditorTransactions(bytes.current, update.transactions, hasCarriageReturn.current);
     bytes.current = text;
     latestProps.current.onChange(text);
   }
@@ -166,10 +146,7 @@ export function useCodeMirror({
   }, [syntax]);
   useEffect(() => {
     view.current?.dispatch({
-      effects: editable.current.reconfigure([
-        EditorView.editable.of(!disabled),
-        EditorState.readOnly.of(disabled),
-      ]),
+      effects: editable.current.reconfigure([EditorView.editable.of(!disabled), EditorState.readOnly.of(disabled)]),
     });
   }, [disabled]);
   return {

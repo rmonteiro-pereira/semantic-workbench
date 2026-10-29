@@ -35,13 +35,7 @@ export const WELL_KNOWN: Record<string, string> = {
 /** Detects an RDF serialization from a filename and source text. */
 export function formatOf(filename: string, source: string): RdfFormat {
   const ext = filename.split('.').pop()?.toLowerCase();
-  if (
-    /^\s*(<\?xml|<rdf:RDF|<RDF\b)/.test(source) ||
-    (['rdf', 'xml', 'owl'].includes(ext ?? '') &&
-      /^\s*</.test(source) &&
-      !/^\s*<https?:/.test(source))
-  )
-    return 'rdfxml';
+  if (/^\s*(<\?xml|<rdf:RDF|<RDF\b)/.test(source) || (['rdf', 'xml', 'owl'].includes(ext ?? '') && /^\s*</.test(source) && !/^\s*<https?:/.test(source))) return 'rdfxml';
   return ext === 'nt' ? 'ntriples' : ext === 'n3' ? 'n3' : 'turtle';
 }
 const plain = (t: any): Term =>
@@ -93,35 +87,21 @@ export const isBlank = (t: Term) => t.termType === 'BlankNode' || t.termType ===
 export function ntTerm(t: Term) {
   if (t.termType === 'NamedNode') return `<${t.value}>`;
   if (t.termType === 'BlankNode') return `_:${t.value.replace(/[^\w-]/g, '_')}`;
-  const v = t.value
-    .replace(/\\/g, '\\\\')
-    .replace(/"/g, '\\"')
-    .replace(/\n/g, '\\n')
-    .replace(/\r/g, '\\r');
+  const v = t.value.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
   return `"${v}"${t.language ? '@' + t.language : t.datatype && t.datatype !== XSD + 'string' ? '^^<' + t.datatype + '>' : ''}`;
 }
 
 /** Uses a declared prefix when the local part is a valid plain name. */
 export function shortIri(iri: string, prefixes: Record<string, string>) {
   let best: [string, string] | null = null;
-  for (const [p, ns] of Object.entries(prefixes))
-    if (
-      iri.startsWith(ns) &&
-      /^[A-Za-z_][\w-]*$/.test(iri.slice(ns.length)) &&
-      (!best || ns.length > best[1].length)
-    )
-      best = [p, ns];
+  for (const [p, ns] of Object.entries(prefixes)) if (iri.startsWith(ns) && /^[A-Za-z_][\w-]*$/.test(iri.slice(ns.length)) && (!best || ns.length > best[1].length)) best = [p, ns];
   return best ? `${best[0]}:${iri.slice(best[1].length)}` : `<${iri}>`;
 }
 /** Serializes an RDF term using available prefixes. */
 export function turtleTerm(t: Term, prefixes: Record<string, string>) {
   if (t.termType === 'NamedNode') return shortIri(t.value, prefixes);
   if (t.termType !== 'Literal') return ntTerm(t);
-  const v = t.value
-    .replace(/\\/g, '\\\\')
-    .replace(/"/g, '\\"')
-    .replace(/\n/g, '\\n')
-    .replace(/\r/g, '\\r');
+  const v = t.value.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
   if (t.language) return `"${v}"@${t.language}`;
   if (!t.datatype || t.datatype === XSD + 'string') return `"${v}"`;
   if (t.datatype === XSD + 'integer' && /^[+-]?\d+$/.test(t.value)) return t.value;
@@ -136,42 +116,19 @@ const directives = (prefixes: Record<string, string>) =>
     .map(([p, ns]) => `@prefix ${p}: <${ns}> .\n`)
     .join('');
 /** Parses Turtle object input with declared and well-known prefixes. */
-export function parseObject(
-  text: string,
-  prefixes: Record<string, string>,
-  base = BASE,
-): ParsedObject {
-  const triples = parseGraph(
-    `@base <${base}> .\n${directives(prefixes)}<urn:workbench:s> <urn:workbench:p> ${text} .`,
-    'turtle',
-  );
+export function parseObject(text: string, prefixes: Record<string, string>, base = BASE): ParsedObject {
+  const triples = parseGraph(`@base <${base}> .\n${directives(prefixes)}<urn:workbench:s> <urn:workbench:p> ${text} .`, 'turtle');
   const top = triples.find(t => t.s.value === 'urn:workbench:s' && t.p.value === 'urn:workbench:p');
-  if (!top || triples.filter(t => t.s.value === 'urn:workbench:s').length !== 1)
-    throw Error(`"${text}" is not one RDF term.`);
+  if (!top || triples.filter(t => t.s.value === 'urn:workbench:s').length !== 1) throw Error(`"${text}" is not one RDF term.`);
   return { term: top.o, nested: triples.length > 1, triples: triples.filter(t => t !== top) };
 }
 /** Parses a Turtle predicate using the prefixes available to the file. */
-export function parsePredicate(
-  text: string,
-  prefixes: Record<string, string>,
-  base = BASE,
-): string {
+export function parsePredicate(text: string, prefixes: Record<string, string>, base = BASE): string {
   if (text.trim() === 'a') return RDF + 'type';
-  const triples = parseGraph(
-    `@base <${base}> .\n${directives(prefixes)}<urn:workbench:s> ${text} <urn:workbench:o> .`,
-    'turtle',
-  );
+  const triples = parseGraph(`@base <${base}> .\n${directives(prefixes)}<urn:workbench:s> ${text} <urn:workbench:o> .`, 'turtle');
   if (triples.length !== 1) throw Error(`"${text}" is not one predicate.`);
   return triples[0].p.value;
 }
 // Whether a typed prefix is known (the file's, or a well-known one that will be declared).
 /** Lists prefix names used by Turtle text. */
-export const usedPrefixes = (text: string) => [
-  ...new Set(
-    [
-      ...text
-        .replace(/"(?:[^"\\]|\\.)*"|<[^>]*>/g, ' ')
-        .matchAll(/(?:^|[\s,;([^])([A-Za-z][\w-]*):(?![/])/g),
-    ].map(m => m[1]),
-  ),
-];
+export const usedPrefixes = (text: string) => [...new Set([...text.replace(/"(?:[^"\\]|\\.)*"|<[^>]*>/g, ' ').matchAll(/(?:^|[\s,;([^])([A-Za-z][\w-]*):(?![/])/g)].map(m => m[1]))];

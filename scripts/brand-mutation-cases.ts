@@ -12,18 +12,12 @@ function svgCase(candidate: any) {
   const wrap = (inner: string, attributes = '') => `${SVG_OPEN} ${attributes}>${inner}</svg>`;
   const clean = candidate.sanitizeSvg(wrap('<path d="M0 0" fill="#123456"/>'));
   assert(clean.includes('<path d="M0 0" fill="#123456"'));
-  const hostile = candidate.sanitizeSvg(
-    wrap('<script>alert(1)</script><foreignObject><p>x</p></foreignObject><circle r="1"/>'),
-  );
+  const hostile = candidate.sanitizeSvg(wrap('<script>alert(1)</script><foreignObject><p>x</p></foreignObject><circle r="1"/>'));
   assert(!/script|foreignObject|alert/.test(hostile));
   assert(hostile.includes('<circle'));
-  const handler = candidate.sanitizeSvg(
-    wrap('<rect onclick="alert(1)" width="1"/>', 'onload="x()"'),
-  );
+  const handler = candidate.sanitizeSvg(wrap('<rect onclick="alert(1)" width="1"/>', 'onload="x()"'));
   assert(!/onclick|onload|alert|x\(\)/.test(handler));
-  const links = candidate.sanitizeSvg(
-    wrap('<use href="https://evil.example/a.svg#b"/><image href="https://evil.example/p.png"/>'),
-  );
+  const links = candidate.sanitizeSvg(wrap('<use href="https://evil.example/a.svg#b"/><image href="https://evil.example/p.png"/>'));
   assert(!links.includes('evil'));
   assert(candidate.sanitizeSvg(wrap('<use href="#shape"/>')).includes('href="#shape"'));
   const styled = candidate.sanitizeSvg(
@@ -47,63 +41,38 @@ function svgCase(candidate: any) {
   );
   assert(!/evil|q:run|onclick/.test(namespacedLinks));
   assert(namespacedLinks.includes('xml:space="preserve"'));
-  const prolog = candidate.sanitizeSvg(
-    `<?xml-stylesheet href="https://evil.example/x.css"?><!-- c -->${wrap('<!-- d --><g/>')}`,
-  );
+  const prolog = candidate.sanitizeSvg(`<?xml-stylesheet href="https://evil.example/x.css"?><!-- c -->${wrap('<!-- d --><g/>')}`);
   assert(prolog.startsWith('<svg') && !/evil|xml-stylesheet|<!--/.test(prolog));
   for (const value of ['u\\72l(x)', "image('x')", "src('x')", 'cross-fade(red, blue)']) {
-    const styled = candidate.sanitizeSvg(
-      wrap(`<style>.a{background:${value}}</style><rect style="background:${value}"/>`),
-    );
+    const styled = candidate.sanitizeSvg(wrap(`<style>.a{background:${value}}</style><rect style="background:${value}"/>`));
     assert(!styled.includes('<style') && !styled.includes('style='), value);
   }
-  const foreign = candidate.sanitizeSvg(
-    `${SVG_OPEN}><g xmlns="http://www.w3.org/1999/xhtml"><circle r="1"/></g><circle r="2"/></svg>`,
-  );
+  const foreign = candidate.sanitizeSvg(`${SVG_OPEN}><g xmlns="http://www.w3.org/1999/xhtml"><circle r="1"/></g><circle r="2"/></svg>`);
   assert(!foreign.includes('xhtml'));
 }
 
 function cssCase(candidate: any) {
   const kept = candidate.sanitizeBrandCss(
-    ":root { --color-accent: #123456 }\n:root[data-theme='dark'] { --color-accent: #abcdef }\n" +
-      '@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --a: 1px } }',
+    ":root { --color-accent: #123456 }\n:root[data-theme='dark'] { --color-accent: #abcdef }\n" + '@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --a: 1px } }',
   );
   assert.deepEqual(kept.dropped, []);
   assert(kept.css.includes('--color-accent: #123456;'));
   assert(kept.css.includes('@media (prefers-color-scheme: dark)'));
   const mixed = candidate.sanitizeBrandCss(
-    'body { --color-accent: red } :root, body { --color-accent: blue }\n' +
-      '@media (min-width: 10px) { :root { --color-accent: green } }\n' +
-      '@font-face { src: url(x) } @import url(x);',
+    'body { --color-accent: red } :root, body { --color-accent: blue }\n' + '@media (min-width: 10px) { :root { --color-accent: green } }\n' + '@font-face { src: url(x) } @import url(x);',
   );
   assert.equal(mixed.css, '');
-  const values = candidate.sanitizeBrandCss(
-    ':root { color: red; --ok: #111111; --a: url(x); --b: image-set("x" 1x); --c: expression(1) }',
-  );
+  const values = candidate.sanitizeBrandCss(':root { color: red; --ok: #111111; --a: url(x); --b: image-set("x" 1x); --c: expression(1) }');
   assert.equal(values.css, ':root {\n  --ok: #111111;\n}\n');
   assert.throws(() => candidate.sanitizeBrandCss(':root { --a: red'));
-  const escaped = candidate.sanitizeBrandCss(
-    ":root { --a: \\75 rl(x); --b: cross-fade(red, blue); --c: src('x'); --ok: #111111 }",
-  );
+  const escaped = candidate.sanitizeBrandCss(":root { --a: \\75 rl(x); --b: cross-fade(red, blue); --c: src('x'); --ok: #111111 }");
   assert.equal(escaped.css, ':root {\n  --ok: #111111;\n}\n');
-  const unbalanced = candidate.sanitizeBrandCss(
-    ':root { --a: calc(1px; --b: 1px); --e: 1px) (2px; --c: "red; --d: \'x" y"; --ok: #111111 }',
-  );
+  const unbalanced = candidate.sanitizeBrandCss(':root { --a: calc(1px; --b: 1px); --e: 1px) (2px; --c: "red; --d: \'x" y"; --ok: #111111 }');
   assert.equal(unbalanced.css, ':root {\n  --ok: #111111;\n}\n');
 }
 
 function valuesCase(candidate: any) {
-  for (const value of [
-    'u\\72l(x)',
-    'url(https://x.example)',
-    "image('x')",
-    "image-set('x' 1x)",
-    'cross-fade(red, blue)',
-    "src('x')",
-    '@import x',
-    'expression(1)',
-    'javascript:1',
-  ]) {
+  for (const value of ['u\\72l(x)', 'url(https://x.example)', "image('x')", "image-set('x' 1x)", 'cross-fade(red, blue)', "src('x')", '@import x', 'expression(1)', 'javascript:1']) {
     assert(candidate.hasForbiddenValue(value), value);
   }
   assert(!candidate.hasForbiddenValue('#111111'));
@@ -133,10 +102,7 @@ function manifestCase(candidate: any) {
   assert.throws(() => candidate.parseBrandManifest(text({ ...base, shortName: 'x'.repeat(25) })));
   assert.throws(() => candidate.parseBrandManifest(text({ ...base, productName: 'a\nb' })));
   assert.throws(() => candidate.parseBrandManifest(text({ ...base, supportUrl: 'javascript:1' })));
-  assert.equal(
-    candidate.parseBrandManifest(text({ ...base, supportUrl: 'https://x.example/' })).supportUrl,
-    'https://x.example/',
-  );
+  assert.equal(candidate.parseBrandManifest(text({ ...base, supportUrl: 'https://x.example/' })).supportUrl, 'https://x.example/');
 }
 
 function filesCase(candidate: any) {
@@ -146,10 +112,7 @@ function filesCase(candidate: any) {
   assert.equal(candidate.maxBytesOf('logo.svg'), 256 * 1024);
   assert.equal(candidate.maxBytesOf('brand.json'), 64 * 1024);
   assert.equal(candidate.MAX_IMAGE_BYTES, 256 * 1024);
-  assert.equal(
-    candidate.contentSecurityPolicyOf('logo.svg'),
-    "default-src 'none'; style-src 'unsafe-inline'; sandbox",
-  );
+  assert.equal(candidate.contentSecurityPolicyOf('logo.svg'), "default-src 'none'; style-src 'unsafe-inline'; sandbox");
   for (const name of ['brand.json', 'brand.css']) {
     assert.equal(candidate.contentSecurityPolicyOf(name), "default-src 'none'; sandbox");
   }
@@ -165,10 +128,7 @@ function bundleCase(candidate: any) {
     const options = { directory: folder, defaults, warn: (line: string) => warnings.push(line) };
     writeFileSync(join(folder, 'brand.json'), '{"productName":"Acme","shortName":"A","extra":1}');
     writeFileSync(join(folder, 'favicon.svg'), good);
-    writeFileSync(
-      join(folder, 'logo.svg'),
-      good.replace('</svg>', `<!--${'x'.repeat(262144)}--></svg>`),
-    );
+    writeFileSync(join(folder, 'logo.svg'), good.replace('</svg>', `<!--${'x'.repeat(262144)}--></svg>`));
     writeFileSync(join(outside, 'logo-mark.svg'), good);
     symlinkSync(join(outside, 'logo-mark.svg'), join(folder, 'logo-mark.svg'));
     writeFileSync(join(folder, 'brand.css'), 'body{x:y} :root{--color-accent:#102030}');
@@ -194,10 +154,7 @@ function servedFileCase(candidate: any) {
   const response = candidate.serveBrand(request(), '/brand/logo.svg', new Headers());
   assert.equal(response.status, 200);
   assert.equal(response.headers.get('Content-Type'), 'image/svg+xml');
-  assert.equal(
-    response.headers.get('Content-Security-Policy'),
-    "default-src 'none'; style-src 'unsafe-inline'; sandbox",
-  );
+  assert.equal(response.headers.get('Content-Security-Policy'), "default-src 'none'; style-src 'unsafe-inline'; sandbox");
   const stylesheet = candidate.serveBrand(request(), '/brand/brand.css', new Headers());
   assert.equal(stylesheet.headers.get('Content-Security-Policy'), "default-src 'none'; sandbox");
   assert.equal(response.headers.get('X-Content-Type-Options'), 'nosniff');
@@ -208,22 +165,13 @@ function servedFileCase(candidate: any) {
 }
 
 function checkCase(candidate: any) {
-  const found = candidate.brandViolationsIn(
-    'src/a.tsx',
-    "const a = 'Semantic Workbench';\nsemantic<small>WORKBENCH</small>\nM12.83 2.18a2",
-  );
+  const found = candidate.brandViolationsIn('src/a.tsx', "const a = 'Semantic Workbench';\nsemantic<small>WORKBENCH</small>\nM12.83 2.18a2");
   assert.deepEqual(
     found.map((item: any) => `${item.line}:${item.rule}`),
     ['1:product-name', '2:wordmark', '3:logo-path'],
   );
-  assert.deepEqual(
-    candidate.brandViolationsIn('src/server/projects/git.ts', "name: 'Semantic Workbench'"),
-    [],
-  );
-  assert.equal(
-    candidate.brandViolationsIn('server/other.ts', "name: 'Semantic Workbench'").length,
-    1,
-  );
+  assert.deepEqual(candidate.brandViolationsIn('src/server/projects/git.ts', "name: 'Semantic Workbench'"), []);
+  assert.equal(candidate.brandViolationsIn('server/other.ts', "name: 'Semantic Workbench'").length, 1);
   assert.deepEqual(candidate.brandViolationsIn('src/a.ts', "'semantic-workbench/metric/v1'"), []);
 }
 

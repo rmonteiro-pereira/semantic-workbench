@@ -1,14 +1,6 @@
 // Tests path containment, request validation and safe Git invocation.
 import { test, expect } from 'bun:test';
-import {
-  mkdtempSync,
-  mkdirSync,
-  readFileSync,
-  symlinkSync,
-  writeFileSync,
-  existsSync,
-  rmSync,
-} from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, symlinkSync, writeFileSync, existsSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { gitEnv, redactCredentials } from '../src/server/projects/git';
@@ -17,13 +9,7 @@ import { testWorkspace } from './helpers/temp-data-dir';
 import { LOCAL_READER } from '../src/server/projects/reader';
 // Checks symbolic links, DNS rebinding, Git option injection, transport helpers, environment
 // isolation and credential redaction.
-const api = (
-  t: { handler: (r: Request) => Promise<Response> },
-  method: string,
-  path: string,
-  body?: unknown,
-  headers: Record<string, string> = {},
-) =>
+const api = (t: { handler: (r: Request) => Promise<Response> }, method: string, path: string, body?: unknown, headers: Record<string, string> = {}) =>
   t.handler(
     new Request('http://127.0.0.1:4310' + path, {
       method,
@@ -65,16 +51,10 @@ test('symbolic links inside a project are never followed for reads or writes', a
     });
     expect(over.status).toBe(400);
     expect(readFileSync(join(outside, 'secret.yaml'), 'utf8')).toContain('Secret');
-    const diff = await api(
-      t,
-      'GET',
-      '/api/projects/shop/git/diff?path=secret.yaml&from=HEAD&to=worktree',
-    );
+    const diff = await api(t, 'GET', '/api/projects/shop/git/diff?path=secret.yaml&from=HEAD&to=worktree');
     expect(diff.status).toBe(400);
     // The scanner lists real files only.
-    const files = (await (await api(t, 'GET', '/api/projects')).json())[0].files.map(
-      (f: any) => f.path,
-    );
+    const files = (await (await api(t, 'GET', '/api/projects')).json())[0].files.map((f: any) => f.path);
     expect(files).toEqual(['shop.yaml']);
   } finally {
     t.dispose();
@@ -91,10 +71,7 @@ test('only loopback host names are served (DNS rebinding)', async () => {
         })
       ).status,
     ).toBe(403);
-    for (const host of ['127.0.0.1:4310', 'localhost:5173', '[::1]:4310', '127.0.0.1:61234'])
-      expect(
-        (await api(t, 'GET', '/api/projects/shop/files/shop.yaml', undefined, { host })).status,
-      ).toBe(200);
+    for (const host of ['127.0.0.1:4310', 'localhost:5173', '[::1]:4310', '127.0.0.1:61234']) expect((await api(t, 'GET', '/api/projects/shop/files/shop.yaml', undefined, { host })).status).toBe(200);
     expect(loopbackHost(null)).toBe(true);
     expect(loopbackHost('127.0.0.1.attacker.example')).toBe(false);
     expect(loopbackHost('LOCALHOST')).toBe(true);
@@ -105,33 +82,23 @@ test('only loopback host names are served (DNS rebinding)', async () => {
 test('a branch name cannot smuggle an option, and transport helpers are refused as remotes', async () => {
   const t = await project();
   try {
-    for (const branch of [' --detach', ' --orphan=x', '-x', '\t-c'])
-      expect((await api(t, 'POST', '/api/projects/shop/git/switch', { branch })).status).toBe(400);
+    for (const branch of [' --detach', ' --orphan=x', '-x', '\t-c']) expect((await api(t, 'POST', '/api/projects/shop/git/switch', { branch })).status).toBe(400);
     const status = await (await api(t, 'GET', '/api/projects/shop/git/status')).json();
     expect(status.branch).toBe('main');
     const marker = join(t.root, 'ext-ran');
-    for (const url of [`ext::sh -c touch% ${marker}`, 'fd::17', 'EXT::x'])
-      expect(
-        (await api(t, 'PUT', '/api/projects/shop/git/remote', { name: 'origin', url })).status,
-      ).toBe(400);
+    for (const url of [`ext::sh -c touch% ${marker}`, 'fd::17', 'EXT::x']) expect((await api(t, 'PUT', '/api/projects/shop/git/remote', { name: 'origin', url })).status).toBe(400);
     expect(existsSync(marker)).toBe(false);
     // Plain URLs and local paths stay accepted (tests and owners use local bare remotes).
     const bare = join(t.root, 'remote.git');
     mkdirSync(bare);
-    expect(
-      (await api(t, 'PUT', '/api/projects/shop/git/remote', { name: 'origin', url: bare })).status,
-    ).toBe(200);
+    expect((await api(t, 'PUT', '/api/projects/shop/git/remote', { name: 'origin', url: bare })).status).toBe(200);
   } finally {
     t.dispose();
   }
 });
 test('credentials in remote URLs are redacted from status and Git messages', async () => {
-  expect(redactCredentials('fatal: unable to access https://user:tok3n@example.com/r.git/')).toBe(
-    'fatal: unable to access https://***@example.com/r.git/',
-  );
-  expect(redactCredentials('ssh://git@example.com/x and git@example.com:x')).toBe(
-    'ssh://***@example.com/x and git@example.com:x',
-  );
+  expect(redactCredentials('fatal: unable to access https://user:tok3n@example.com/r.git/')).toBe('fatal: unable to access https://***@example.com/r.git/');
+  expect(redactCredentials('ssh://git@example.com/x and git@example.com:x')).toBe('ssh://***@example.com/x and git@example.com:x');
   const t = await project();
   try {
     expect(
@@ -165,12 +132,7 @@ test('Git runs without configuration or helper programs injected through the env
 test('a malformed trash restore body is refused instead of restoring to the original place', async () => {
   const t = await project();
   try {
-    const { entryId: id } = await t.ws.trash.deleteFile(
-      'shop',
-      'shop.yaml',
-      undefined,
-      LOCAL_READER,
-    );
+    const { entryId: id } = await t.ws.trash.deleteFile('shop', 'shop.yaml', undefined, LOCAL_READER);
     const bad = await t.handler(
       new Request(`http://127.0.0.1:4310/api/trash/${id}/restore`, {
         method: 'POST',
@@ -179,9 +141,7 @@ test('a malformed trash restore body is refused instead of restoring to the orig
     );
     expect(bad.status).toBe(400);
     expect(existsSync(join(t.root, 'projects/shop/shop.yaml'))).toBe(false);
-    const ok = await t.handler(
-      new Request(`http://127.0.0.1:4310/api/trash/${id}/restore`, { method: 'POST' }),
-    );
+    const ok = await t.handler(new Request(`http://127.0.0.1:4310/api/trash/${id}/restore`, { method: 'POST' }));
     expect(ok.status).toBe(200);
     expect(existsSync(join(t.root, 'projects/shop/shop.yaml'))).toBe(true);
   } finally {

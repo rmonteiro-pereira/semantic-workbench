@@ -3,16 +3,10 @@ import { expect, test } from 'bun:test';
 import type { TrashItem } from '../src/app/projects/api';
 import { otherProjectFilesLine, trashSections } from '../src/app/projects/trash-sections';
 
-const entry = (entryId: string, kind: TrashItem['kind'], project: string) =>
-  ({ entryId, kind, project, projectName: project }) as TrashItem;
+const entry = (entryId: string, kind: TrashItem['kind'], project: string) => ({ entryId, kind, project, projectName: project }) as TrashItem;
 
 test('files of other projects stay out of the list, and deleted projects get their own section', () => {
-  const items = [
-    entry('1', 'file', 'sales'),
-    entry('2', 'file', 'billing'),
-    entry('3', 'project', 'billing'),
-    entry('4', 'repository', 'monorepo'),
-  ];
+  const items = [entry('1', 'file', 'sales'), entry('2', 'file', 'billing'), entry('3', 'project', 'billing'), entry('4', 'repository', 'monorepo')];
   const { files, projects, otherProjectFiles } = trashSections(items, 'sales');
   expect(files.map(item => item.entryId)).toEqual(['1']);
   expect(projects.map(item => item.entryId)).toEqual(['3', '4']);

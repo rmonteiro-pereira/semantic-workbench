@@ -2,11 +2,7 @@
 // and checks which spans, metrics and logs come out, with which attributes, and that no secret,
 // document text or personal detail is among them.
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import {
-  AlwaysOnSampler,
-  type ReadableSpan,
-  type SpanExporter,
-} from '@opentelemetry/sdk-trace-base';
+import { AlwaysOnSampler, type ReadableSpan, type SpanExporter } from '@opentelemetry/sdk-trace-base';
 import type { PushMetricExporter, ResourceMetrics } from '@opentelemetry/sdk-metrics';
 import type { LogRecordExporter, ReadableLogRecord } from '@opentelemetry/sdk-logs';
 import { createAccessControl } from '../../src/server/auth/authorize';
@@ -106,12 +102,7 @@ beforeAll(async () => {
     principal: () => access.principalFor(dave),
     browserReports: true,
   });
-  const call = (
-    path: string,
-    method = 'GET',
-    body?: unknown,
-    headers: Record<string, string> = {},
-  ) =>
+  const call = (path: string, method = 'GET', body?: unknown, headers: Record<string, string> = {}) =>
     handler(
       new Request('http://localhost' + path, {
         method,
@@ -186,11 +177,7 @@ describe('spans', () => {
 
   test('a Git span sits under the request that caused it', () => {
     const request = spanNamed('GET /api/projects/:slug/git/status')!;
-    const git = spans.spans.find(
-      span =>
-        span.name.startsWith('git ') &&
-        span.spanContext().traceId === request.spanContext().traceId,
-    );
+    const git = spans.spans.find(span => span.name.startsWith('git ') && span.spanContext().traceId === request.spanContext().traceId);
     expect(git).toBeDefined();
     expect(git!.parentSpanContext?.spanId).toBe(request.spanContext().spanId);
   });
@@ -214,9 +201,7 @@ describe('metrics', () => {
   });
 
   test('Git duration, scan duration and validation duration are recorded', () => {
-    expect(points('sw.git.command.duration').some(p => p.attributes.subcommand === 'status')).toBe(
-      true,
-    );
+    expect(points('sw.git.command.duration').some(p => p.attributes.subcommand === 'status')).toBe(true);
     expect(points('sw.workspace.scan.duration').length).toBeGreaterThan(0);
     const triggers = points('sw.validation.duration').map(point => point.attributes.trigger);
     expect(triggers).toContain('save');
@@ -241,9 +226,7 @@ describe('metrics', () => {
 
 describe('logs', () => {
   test('log records reach the exporter with the trace and span of their request', () => {
-    const requestLog = logRecords.records.find(
-      record => record.body === 'http.request' && record.attributes.route === '/api/me',
-    )!;
+    const requestLog = logRecords.records.find(record => record.body === 'http.request' && record.attributes.route === '/api/me')!;
     const span = spanNamed('GET /api/me')!;
     expect(requestLog.attributes.traceId).toBe(span.spanContext().traceId);
     expect(requestLog.attributes.requestId).toBeDefined();
@@ -277,23 +260,11 @@ describe('what never leaves the server', () => {
         attributes: span.attributes,
         events: span.events,
       })),
-      metrics.batches.map(batch =>
-        batch.scopeMetrics.flatMap(scope => scope.metrics.map(metric => metric.dataPoints)),
-      ),
+      metrics.batches.map(batch => batch.scopeMetrics.flatMap(scope => scope.metrics.map(metric => metric.dataPoints))),
       logRecords.records.map(record => ({ body: record.body, attributes: record.attributes })),
     ]);
     const user = TEST_USERS.dave;
-    for (const secret of [
-      SECRET_TOKEN,
-      SECRET_CODE,
-      DOCUMENT_TEXT,
-      user.name,
-      user.email,
-      user.upn,
-      user.oid,
-      'sales-metrics',
-      'sales.semantic.yaml',
-    ]) {
+    for (const secret of [SECRET_TOKEN, SECRET_CODE, DOCUMENT_TEXT, user.name, user.email, user.upn, user.oid, 'sales-metrics', 'sales.semantic.yaml']) {
       expect(everything).not.toContain(secret);
     }
   });

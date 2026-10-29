@@ -48,25 +48,20 @@ async function workspace(p: Page) {
     return;
   }
   await expect(async () => {
-    if (!(await tree(p).isVisible()))
-      await p.getByRole('button', { name: 'Open workspace', exact: true }).click();
+    if (!(await tree(p).isVisible())) await p.getByRole('button', { name: 'Open workspace', exact: true }).click();
     await expect(tree(p)).toBeVisible({ timeout: 1000 });
   }).toPass({ timeout: 15000 });
 }
 async function openFile(p: Page, project: string, path: string) {
   await workspace(p);
-  await tree(p)
-    .getByRole('treeitem', { name: project })
-    .getByRole('button', { name: path, exact: true })
-    .click();
+  await tree(p).getByRole('treeitem', { name: project }).getByRole('button', { name: path, exact: true }).click();
   if (narrow(p)) {
     await p.waitForTimeout(300);
     const close = p.getByRole('button', { name: 'Close workspace', exact: true });
     if (await close.isVisible()) await close.click();
   }
 }
-const header = (p: Page, name: string | RegExp) =>
-  p.locator('.workspace-header').getByRole('button', { name });
+const header = (p: Page, name: string | RegExp) => p.locator('.workspace-header').getByRole('button', { name });
 const entries: Entry[] = [
   {
     name: 'Commit',
@@ -135,86 +130,69 @@ async function check(name: string, run: () => Promise<void>) {
 const ONLY = process.env.DIALOGS_ONLY;
 try {
   for (const e of entries.filter(e => !ONLY || e.name.includes(ONLY)))
-    await check(
-      `${e.name}: opens from its trigger, fits the six viewports, traps focus, Escape closes and returns focus`,
-      async () => {
-        for (const [width, height] of SIX) {
-          const context = await browser.newContext({ viewport: { width, height } });
-          const p = await context.newPage();
-          p.on('pageerror', x => errors.push(`${e.name} ${width}: ${x.message}`));
-          try {
-            await routeApi(p, api);
-            await p.goto(appUrl());
-            await expect(p.locator('.project-tree, .projects-empty').first()).toBeAttached();
-            await e.open(p);
-            const trigger = e.trigger(p);
-            await trigger.scrollIntoViewIfNeeded();
-            await trigger.focus();
-            await p.keyboard.press('Enter');
-            if (!e.dialog) {
-              // A menu: Export lives in More actions.
-              const menu = p.getByRole('menu');
-              await expect(menu).toBeVisible();
-              await expect(menu.getByRole('menuitem', { name: /^Export/ })).toBeVisible();
-              const box = (await menu.boundingBox())!;
-              expect(
-                box.x >= 0 &&
-                  box.y >= 0 &&
-                  box.x + box.width <= width + 1 &&
-                  box.y + box.height <= height + 1,
-              ).toBe(true);
-              await p.keyboard.press('Escape');
-              await expect(menu).toBeHidden();
-              await expect(trigger).toBeFocused();
-              continue;
-            }
-            const dialog = p.getByRole('dialog', { name: e.dialog });
-            await expect(dialog).toBeVisible({ timeout: 10000 });
-            // Fits: the dialog box inside the window, nothing scrolling sideways inside it.
-            const fit = await dialog.evaluate(d => {
-              const s = (d.querySelector('section') ?? d) as HTMLElement;
-              const r = s.getBoundingClientRect();
-              const wide = [s, ...s.querySelectorAll<HTMLElement>('*')]
-                .filter(
-                  el =>
-                    el.scrollWidth > el.clientWidth + 1 &&
-                    getComputedStyle(el).overflowX !== 'auto' &&
-                    getComputedStyle(el).overflowX !== 'scroll' &&
-                    !el.closest('pre,.cm-editor,code'),
-                )
-                .map(el => el.className || el.tagName);
-              return { x: r.x, y: r.y, r: r.right, b: r.bottom, wide: wide.slice(0, 3) };
-            });
-            expect(fit.x).toBeGreaterThanOrEqual(0);
-            expect(fit.y).toBeGreaterThanOrEqual(0);
-            expect(fit.r).toBeLessThanOrEqual(width + 1);
-            expect(fit.b).toBeLessThanOrEqual(height + 1);
-            expect(fit.wide).toEqual([]);
-            // Focus stays inside while tabbing.
-            for (let i = 0; i < 12; i++) {
-              await p.keyboard.press('Tab');
-              expect(await dialog.evaluate(d => d.contains(document.activeElement))).toBe(true);
-            }
-            if ([390, 1280, 2560].includes(width))
-              await p.screenshot({
-                path: `/tmp/workbench-dialog-${e.name.toLowerCase().replace(/ /g, '-')}-${width}.png`,
-              });
+    await check(`${e.name}: opens from its trigger, fits the six viewports, traps focus, Escape closes and returns focus`, async () => {
+      for (const [width, height] of SIX) {
+        const context = await browser.newContext({ viewport: { width, height } });
+        const p = await context.newPage();
+        p.on('pageerror', x => errors.push(`${e.name} ${width}: ${x.message}`));
+        try {
+          await routeApi(p, api);
+          await p.goto(appUrl());
+          await expect(p.locator('.project-tree, .projects-empty').first()).toBeAttached();
+          await e.open(p);
+          const trigger = e.trigger(p);
+          await trigger.scrollIntoViewIfNeeded();
+          await trigger.focus();
+          await p.keyboard.press('Enter');
+          if (!e.dialog) {
+            // A menu: Export lives in More actions.
+            const menu = p.getByRole('menu');
+            await expect(menu).toBeVisible();
+            await expect(menu.getByRole('menuitem', { name: /^Export/ })).toBeVisible();
+            const box = (await menu.boundingBox())!;
+            expect(box.x >= 0 && box.y >= 0 && box.x + box.width <= width + 1 && box.y + box.height <= height + 1).toBe(true);
             await p.keyboard.press('Escape');
-            await expect(dialog).toBeHidden();
-            // A dialog opened from the phone drawer closes the drawer, so focus goes to the button
-            // that opens it again.
-            const fromDrawer = ['Grouping suggestions', 'Import', 'Trash'].includes(e.name);
-            if (fromDrawer && narrow(p))
-              await expect(
-                p.getByRole('button', { name: 'Open workspace', exact: true }),
-              ).toBeFocused();
-            else await expect(e.returns ? e.returns(p) : trigger).toBeFocused();
-          } finally {
-            await context.close();
+            await expect(menu).toBeHidden();
+            await expect(trigger).toBeFocused();
+            continue;
           }
+          const dialog = p.getByRole('dialog', { name: e.dialog });
+          await expect(dialog).toBeVisible({ timeout: 10000 });
+          // Fits: the dialog box inside the window, nothing scrolling sideways inside it.
+          const fit = await dialog.evaluate(d => {
+            const s = (d.querySelector('section') ?? d) as HTMLElement;
+            const r = s.getBoundingClientRect();
+            const wide = [s, ...s.querySelectorAll<HTMLElement>('*')]
+              .filter(el => el.scrollWidth > el.clientWidth + 1 && getComputedStyle(el).overflowX !== 'auto' && getComputedStyle(el).overflowX !== 'scroll' && !el.closest('pre,.cm-editor,code'))
+              .map(el => el.className || el.tagName);
+            return { x: r.x, y: r.y, r: r.right, b: r.bottom, wide: wide.slice(0, 3) };
+          });
+          expect(fit.x).toBeGreaterThanOrEqual(0);
+          expect(fit.y).toBeGreaterThanOrEqual(0);
+          expect(fit.r).toBeLessThanOrEqual(width + 1);
+          expect(fit.b).toBeLessThanOrEqual(height + 1);
+          expect(fit.wide).toEqual([]);
+          // Focus stays inside while tabbing.
+          for (let i = 0; i < 12; i++) {
+            await p.keyboard.press('Tab');
+            expect(await dialog.evaluate(d => d.contains(document.activeElement))).toBe(true);
+          }
+          if ([390, 1280, 2560].includes(width))
+            await p.screenshot({
+              path: `/tmp/workbench-dialog-${e.name.toLowerCase().replace(/ /g, '-')}-${width}.png`,
+            });
+          await p.keyboard.press('Escape');
+          await expect(dialog).toBeHidden();
+          // A dialog opened from the phone drawer closes the drawer, so focus goes to the button
+          // that opens it again.
+          const fromDrawer = ['Grouping suggestions', 'Import', 'Trash'].includes(e.name);
+          if (fromDrawer && narrow(p)) await expect(p.getByRole('button', { name: 'Open workspace', exact: true })).toBeFocused();
+          else await expect(e.returns ? e.returns(p) : trigger).toBeFocused();
+        } finally {
+          await context.close();
         }
-      },
-    );
+      }
+    });
   if (!ONLY || 'menus'.includes(ONLY))
     await check('menus: opaque, inside the window and reachable at four sizes', async () => {
       const menuSizes: [number, number][] = [

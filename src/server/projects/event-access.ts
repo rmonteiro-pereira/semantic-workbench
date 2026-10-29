@@ -43,8 +43,7 @@ export function readableEvent(event: WorkbenchEvent, access: EventAccess): Workb
   const projects = tags.projects?.filter(project => readsProject(project, tags, access));
   if (tags.paths?.length ? !paths?.length : !projects?.length) return null;
   if (['drafts', 'clone'].includes(event.event)) {
-    if (paths?.length !== tags.paths?.length || projects?.length !== tags.projects?.length)
-      return null;
+    if (paths?.length !== tags.paths?.length || projects?.length !== tags.projects?.length) return null;
   }
   const data = event.data as Record<string, any>;
   const next = { ...data };
@@ -68,15 +67,10 @@ export function readableEvent(event: WorkbenchEvent, access: EventAccess): Workb
  * The connected principals who may hear of each tagged project now. Publishers call this before
  * a project leaves the registry, while its grants can still be evaluated.
  */
-export function currentReaders(
-  event: string,
-  tags: EventTags,
-  connections: Iterable<EventAccess>,
-): Record<string, string[]> {
+export function currentReaders(event: string, tags: EventTags, connections: Iterable<EventAccess>): Record<string, string[]> {
   const readers: Record<string, string[]> = {};
   for (const project of tags.projects ?? []) {
-    const probeTags: EventTags =
-      event === 'trash' ? { ...tags, readers: undefined } : { projects: [project] };
+    const probeTags: EventTags = event === 'trash' ? { ...tags, readers: undefined } : { projects: [project] };
     const probe: WorkbenchEvent = { id: 0, event, data: {}, tags: probeTags };
     const owners = new Set<string>();
     for (const access of connections) {

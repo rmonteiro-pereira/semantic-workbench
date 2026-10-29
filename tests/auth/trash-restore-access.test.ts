@@ -13,8 +13,7 @@ const ORDERS = 'orders.odcs.yaml';
 // A file with no classification, which an Editor may restore.
 const MAPPING = 'sales.mapping.yaml';
 const restoreUrl = (entryId: string) => `/api/trash/${entryId}/restore`;
-const slugs = (ws: { state: { registry: () => { projects: { slug: string }[] } } }) =>
-  ws.state.registry().projects.map(project => project.slug);
+const slugs = (ws: { state: { registry: () => { projects: { slug: string }[] } } }) => ws.state.registry().projects.map(project => project.slug);
 
 /** Deletes a file as local mode did (no working copy), then the project that held it. */
 async function fileOfDeletedProject(ws: Parameters<typeof signedIn>[0], deletedBy: string) {
@@ -77,12 +76,7 @@ test('a file deleted outside any copy comes back into the person’s copy, not t
   using fixture = await authWorkspace();
   const alice = signedIn(fixture.ws)(person('alice'));
   const base = join(fixture.ws.layout.projects, 'sales-contracts');
-  const entry = await fixture.ws.trash.deleteFile(
-    'sales-contracts',
-    MAPPING,
-    alice.principal.id,
-    LOCAL_READER,
-  );
+  const entry = await fixture.ws.trash.deleteFile('sales-contracts', MAPPING, alice.principal.id, LOCAL_READER);
   gitOutput(base, ['add', '-A']);
   expect(gitOutput(base, ['commit', '-q', '-m', 'Remove orders']).code).toBe(0);
 

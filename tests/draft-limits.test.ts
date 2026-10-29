@@ -3,11 +3,7 @@
 import { expect, test } from 'bun:test';
 import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
-import {
-  assertRoomForDraft,
-  MAX_DRAFTS_PER_OWNER,
-  MAX_DRAFTS_PER_PROJECT,
-} from '../src/server/routes/drafts';
+import { assertRoomForDraft, MAX_DRAFTS_PER_OWNER, MAX_DRAFTS_PER_PROJECT } from '../src/server/routes/drafts';
 import { testWorkspace } from './helpers/temp-data-dir';
 import { ontologyText } from './helpers/git-fixtures';
 
@@ -25,9 +21,7 @@ const draftFiles = (root: string) => {
 
 test('a draft for a file the project does not have is refused and writes nothing', async () => {
   using fixture = await testWorkspace();
-  const project = await fixture.seed([
-    { path: 'a.ontology.yaml', source: ontologyText('A', ['X']) },
-  ]);
+  const project = await fixture.seed([{ path: 'a.ontology.yaml', source: ontologyText('A', ['X']) }]);
   const reply = await fixture.handler(draftRequest(`${project.slug}/nothing/here.yaml`, 'x: 1\n'));
   expect(reply.status).toBe(404);
   expect(draftFiles(fixture.root)).toEqual([]);
@@ -37,9 +31,7 @@ test('a draft for a file the project does not have is refused and writes nothing
 
 test('a draft far larger than a saved file is refused', async () => {
   using fixture = await testWorkspace();
-  const project = await fixture.seed([
-    { path: 'a.ontology.yaml', source: ontologyText('A', ['X']) },
-  ]);
+  const project = await fixture.seed([{ path: 'a.ontology.yaml', source: ontologyText('A', ['X']) }]);
   const path = `${project.slug}/a.ontology.yaml`;
   expect((await fixture.handler(draftRequest(path, 'a'.repeat(3_000_000)))).status).toBe(200);
   expect((await fixture.handler(draftRequest(path, 'a'.repeat(5_000_000)))).status).toBe(400);
@@ -57,13 +49,9 @@ test('the draft count per project is capped, and replacing a draft is not a new 
     expect(reply.status).toBe(200);
   }
   const last = files[MAX_DRAFTS_PER_PROJECT];
-  expect(
-    (await fixture.handler(draftRequest(`${project.slug}/${last.path}`, 'x: 1\n'))).status,
-  ).toBe(400);
+  expect((await fixture.handler(draftRequest(`${project.slug}/${last.path}`, 'x: 1\n'))).status).toBe(400);
   const again = files[0];
-  expect(
-    (await fixture.handler(draftRequest(`${project.slug}/${again.path}`, 'x: 2\n'))).status,
-  ).toBe(200);
+  expect((await fixture.handler(draftRequest(`${project.slug}/${again.path}`, 'x: 2\n'))).status).toBe(200);
 }, 60_000);
 
 test('the draft count per person is capped across projects', () => {

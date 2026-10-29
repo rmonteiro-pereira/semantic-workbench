@@ -8,13 +8,7 @@ import { testWorkspace } from './temp-data-dir';
 export const AUTH_FIXTURE = 'tests/fixtures/auth-workspace';
 
 /** Project slugs of the fixture, in import order. */
-export const AUTH_PROJECTS = [
-  'shared-reference',
-  'sales-metrics',
-  'sales-contracts',
-  'hr-people',
-  'lab-notes',
-] as const;
+export const AUTH_PROJECTS = ['shared-reference', 'sales-metrics', 'sales-contracts', 'hr-people', 'lab-notes'] as const;
 
 /** Every file of one fixture project, with its path inside the project and its text. */
 export function fixtureFiles(project: string) {

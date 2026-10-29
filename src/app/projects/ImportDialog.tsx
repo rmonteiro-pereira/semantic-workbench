@@ -36,51 +36,28 @@ export function ImportDialog({
           <button type="button" onClick={onClose}>
             Cancel
           </button>
-          <button
-            type="button"
-            className="primary"
-            disabled={target === 'existing' && !project}
-            onClick={() => onPick(into)}
-          >
+          <button type="button" className="primary" disabled={target === 'existing' && !project} onClick={() => onPick(into)}>
             <Upload size={14} />
             Choose files…
           </button>
         </>
       }
     >
-      <p>
-        YAML, JSON, Turtle, N-Triples, RDF/XML and N3 definitions. Files are checked before anything
-        is written; invalid ones open for repair.
-      </p>
+      <p>YAML, JSON, Turtle, N-Triples, RDF/XML and N3 definitions. Files are checked before anything is written; invalid ones open for repair.</p>
       <fieldset className="import-target">
         <legend>Import into</legend>
         <label className="radio">
-          <input
-            type="radio"
-            name="import-target"
-            checked={target === 'new'}
-            onChange={() => setTarget('new')}
-          />
+          <input type="radio" name="import-target" checked={target === 'new'} onChange={() => setTarget('new')} />
           <span>
             <strong>A new project</strong>
             <small>Uses the name of the definition you import.</small>
           </span>
         </label>
         <label className="radio">
-          <input
-            type="radio"
-            name="import-target"
-            checked={target === 'existing'}
-            disabled={!projects.length}
-            onChange={() => setTarget('existing')}
-          />
+          <input type="radio" name="import-target" checked={target === 'existing'} disabled={!projects.length} onChange={() => setTarget('existing')} />
           <span>
             <strong>An existing project</strong>
-            <small>
-              {projects.length
-                ? 'A file with the same name asks to replace it or keep both.'
-                : 'No project yet.'}
-            </small>
+            <small>{projects.length ? 'A file with the same name asks to replace it or keep both.' : 'No project yet.'}</small>
           </span>
         </label>
         {target === 'existing' && (

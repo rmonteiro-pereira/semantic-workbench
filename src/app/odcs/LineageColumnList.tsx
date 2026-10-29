@@ -12,22 +12,8 @@ export function Port({ id, top, edge }: { id: string; top: number; edge?: boolea
   const className = edge ? 'clamped' : undefined;
   return (
     <>
-      <Handle
-        type="target"
-        id={id + ':in'}
-        position={Position.Left}
-        style={{ top }}
-        className={className}
-        isConnectable={false}
-      />
-      <Handle
-        type="source"
-        id={id + ':out'}
-        position={Position.Right}
-        style={{ top }}
-        className={className}
-        isConnectable={false}
-      />
+      <Handle type="target" id={id + ':in'} position={Position.Left} style={{ top }} className={className} isConnectable={false} />
+      <Handle type="source" id={id + ':out'} position={Position.Right} style={{ top }} className={className} isConnectable={false} />
     </>
   );
 }
@@ -94,10 +80,7 @@ export function ColumnList(props: ListProps) {
   const [scrollTop, setScrollTop] = useState(0);
   const updateNodeInternals = useUpdateNodeInternals();
   const needle = filter.trim().toLowerCase();
-  const shown = useMemo(
-    () => (needle ? columns.filter(c => c.path.toLowerCase().includes(needle)) : columns),
-    [columns, needle],
-  );
+  const shown = useMemo(() => (needle ? columns.filter(c => c.path.toLowerCase().includes(needle)) : columns), [columns, needle]);
   const box = listBox(columns.length, filterable, visibleRows);
   useEffect(() => {
     const frame = requestAnimationFrame(() => updateNodeInternals(card.id));
@@ -113,13 +96,7 @@ export function ColumnList(props: ListProps) {
     <>
       {filterable && (
         <div className="lineage-list-filter nodrag" style={{ height: FILTER_H }}>
-          <input
-            type="search"
-            aria-label={`Filter columns of ${card.label}`}
-            placeholder="Filter columns…"
-            value={filter}
-            onChange={e => setFilter(e.target.value)}
-          />
+          <input type="search" aria-label={`Filter columns of ${card.label}`} placeholder="Filter columns…" value={filter} onChange={e => setFilter(e.target.value)} />
         </div>
       )}
       <div
@@ -132,19 +109,8 @@ export function ColumnList(props: ListProps) {
       >
         <ul style={{ height: shown.length * ROW_H }}>
           {shown.slice(first, last).map((column, offset) => (
-            <li
-              key={column.id}
-              data-id={column.id}
-              className={onPath?.has(column.id) ? 'on-path' : ''}
-              style={{ top: (first + offset) * ROW_H, height: ROW_H }}
-            >
-              <ColumnRow
-                card={card}
-                column={column}
-                selected={selected}
-                onPath={onPath}
-                onSelect={onSelect}
-              />
+            <li key={column.id} data-id={column.id} className={onPath?.has(column.id) ? 'on-path' : ''} style={{ top: (first + offset) * ROW_H, height: ROW_H }}>
+              <ColumnRow card={card} column={column} selected={selected} onPath={onPath} onSelect={onSelect} />
             </li>
           ))}
         </ul>
@@ -152,37 +118,20 @@ export function ColumnList(props: ListProps) {
       {above > 0 && <EdgeMarker where="above" count={above} top={box.top} />}
       {below > 0 && <EdgeMarker where="below" count={below} top={box.top + box.height} />}
       {ports.map(p => (
-        <Port
-          key={p.id}
-          id={p.id}
-          top={box.top + Math.min(Math.max(p.y, 0), box.height)}
-          edge={p.y < 0 || p.y > box.height}
-        />
+        <Port key={p.id} id={p.id} top={box.top + Math.min(Math.max(p.y, 0), box.height)} edge={p.y < 0 || p.y > box.height} />
       ))}
       {hiddenByFilter.map(c => (
         <Port key={c.id} id={c.id} top={box.top} edge />
       ))}
       <footer className="lineage-list-foot nodrag" style={{ height: FOOT_H }}>
-        <span>
-          {shown.length === columns.length
-            ? `${columns.length} columns`
-            : `${shown.length} of ${columns.length} columns`}
-        </span>
+        <span>{shown.length === columns.length ? `${columns.length} columns` : `${shown.length} of ${columns.length} columns`}</span>
         <button onClick={onClose}>Show fewer</button>
       </footer>
     </>
   );
 }
 
-function EdgeMarker({
-  where,
-  count,
-  top,
-}: {
-  where: 'above' | 'below';
-  count: number;
-  top: number;
-}) {
+function EdgeMarker({ where, count, top }: { where: 'above' | 'below'; count: number; top: number }) {
   const Icon = where === 'above' ? ChevronUp : ChevronDown;
   const noun = count === 1 ? 'connected column' : 'connected columns';
   return (

@@ -1,12 +1,6 @@
 // Nothing secret, personal or document-shaped may reach a log line or an exported record.
 import { describe, expect, test } from 'bun:test';
-import {
-  describeError,
-  isSensitiveKey,
-  redactFields,
-  redactText,
-  REDACTED,
-} from '../../src/server/observability/redaction';
+import { describeError, isSensitiveKey, redactFields, redactText, REDACTED } from '../../src/server/observability/redaction';
 
 const JWT = 'eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.c2lnbmF0dXJl';
 
@@ -23,9 +17,7 @@ describe('free text', () => {
   });
 
   test('user information in an address is masked', () => {
-    expect(redactText('fetch https://deploy:s3cr3t-token@git.example.org/team/repo.git')).toBe(
-      'fetch https://***@git.example.org/team/repo.git',
-    );
+    expect(redactText('fetch https://deploy:s3cr3t-token@git.example.org/team/repo.git')).toBe('fetch https://***@git.example.org/team/repo.git');
   });
 
   test('the whole query string of an address is dropped', () => {
@@ -34,17 +26,13 @@ describe('free text', () => {
   });
 
   test('secret-looking assignments keep their name and lose their value', () => {
-    expect(redactText('client_secret=hunter2 password: "p w" other=1')).toBe(
-      `client_secret=${REDACTED} password: ${REDACTED} other=1`,
-    );
+    expect(redactText('client_secret=hunter2 password: "p w" other=1')).toBe(`client_secret=${REDACTED} password: ${REDACTED} other=1`);
     expect(redactText('sw_session=0123456789abcdef; Path=/')).toContain(`sw_session=${REDACTED}`);
   });
 
   test('file locations are replaced, on POSIX and Windows', () => {
     expect(redactText('ENOENT /data/projects/payroll/salaries.odcs.yaml')).toBe('ENOENT <path>');
-    expect(redactText('cannot open C:\\Users\\ana\\contracts\\hr.yaml now')).toBe(
-      'cannot open <path> now',
-    );
+    expect(redactText('cannot open C:\\Users\\ana\\contracts\\hr.yaml now')).toBe('cannot open <path> now');
   });
 
   test('long text is cut', () => {

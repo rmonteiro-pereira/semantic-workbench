@@ -7,14 +7,7 @@ import type { KpiSummary } from '../../server/agent/explain';
 import { MetricDetail } from './MetricDetail';
 import { MetricFilterControls } from './MetricFilterControls';
 import { MetricsTable } from './MetricsTable';
-import {
-  filterMetrics,
-  groupMetrics,
-  isNarrowed,
-  metricKey,
-  noFilters,
-  visibleColumns,
-} from './metric-filters';
+import { filterMetrics, groupMetrics, isNarrowed, metricKey, noFilters, visibleColumns } from './metric-filters';
 import './metrics.css';
 // The list shows what identifies a metric; grouping and filters sit beside the search box.
 // Metrics without workbench attributes offer Add attributes in their detail view.
@@ -86,20 +79,12 @@ export function MetricsView({
               </button>
             )}
           </div>
-          <p>
-            What each metric measures, how it is calculated and where its data comes from. Explained
-            here, never executed.
-          </p>
+          <p>What each metric measures, how it is calculated and where its data comes from. Explained here, never executed.</p>
         </header>
         <div className="metrics-filters">
           <label className="metrics-search">
             <Search size={15} />
-            <input
-              aria-label="Find a metric"
-              placeholder="Find a metric, owner or concept"
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-            />
+            <input aria-label="Find a metric" placeholder="Find a metric, owner or concept" value={query} onChange={e => setQuery(e.target.value)} />
           </label>
           <MetricFilterControls kpis={kpis} filters={filters} onChange={setFilters} />
         </div>
@@ -116,28 +101,15 @@ export function MetricsView({
         ) : !kpis.length ? (
           <div className="metrics-empty">
             <Gauge size={28} />
-            <p>
-              This project has no governed metrics yet. Metrics live in an Ossie semantic model,
-              either in its own file or embedded in a consolidated ontology file.
-            </p>
+            <p>This project has no governed metrics yet. Metrics live in an Ossie semantic model, either in its own file or embedded in a consolidated ontology file.</p>
           </div>
         ) : (
           <>
             <p className="metrics-count">
-              <span role="status">
-                {filtered
-                  ? `${visible.length} of ${kpis.length} metrics`
-                  : `${kpis.length} ${kpis.length === 1 ? 'metric' : 'metrics'}`}
-              </span>
+              <span role="status">{filtered ? `${visible.length} of ${kpis.length} metrics` : `${kpis.length} ${kpis.length === 1 ? 'metric' : 'metrics'}`}</span>
               {filtered && <button onClick={clearFilters}>Clear filters</button>}
             </p>
-            <MetricsTable
-              groups={groups}
-              groupBy={filters.groupBy}
-              columns={columns}
-              selected={selected}
-              onSelect={onSelect}
-            />
+            <MetricsTable groups={groups} groupBy={filters.groupBy} columns={columns} selected={selected} onSelect={onSelect} />
             {!visible.length && <p className="metrics-empty">No metric matches these filters.</p>}
           </>
         )}

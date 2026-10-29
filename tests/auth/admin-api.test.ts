@@ -10,10 +10,7 @@ import type { Bootstrap } from '../../src/server/auth/grants';
 import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 
 /** Opens an isolated handler with fixture identities and a recent human administrator. */
-export async function adminFixture(
-  options: Pick<HandlerOptions, 'groupName' | 'audit'> = {},
-  bootstrap: Bootstrap = { ids: [], emails: [] },
-) {
+export async function adminFixture(options: Pick<HandlerOptions, 'groupName' | 'audit'> = {}, bootstrap: Bootstrap = { ids: [], emails: [] }) {
   const fixture = await authWorkspace();
   const access = createAccessControl({ ...accessFixture(), bootstrap });
   for (const name of ['dave', 'erin', 'hank', 'bob', 'alice'] as const) {
@@ -67,15 +64,11 @@ test('Admin-only routes, matching dry run, concurrency, one authored commit and 
       addedAt: new Date().toISOString(),
     },
   ];
-  expect((await fixture.request('/api/admin/grants', 'PUT', { grants, baseVersion })).status).toBe(
-    400,
-  );
+  expect((await fixture.request('/api/admin/grants', 'PUT', { grants, baseVersion })).status).toBe(400);
   const preview = await fixture.request('/api/admin/policies/dry-run', 'POST', { grants });
   expect(preview.status).toBe(200);
   const { dryRunId, people } = await preview.json();
-  expect(
-    people.some((entry: any) => entry.principal === person('erin').id && entry.access === 'gained'),
-  ).toBe(true);
+  expect(people.some((entry: any) => entry.principal === person('erin').id && entry.access === 'gained')).toBe(true);
   const saved = await fixture.request('/api/admin/grants', 'PUT', {
     grants,
     baseVersion,
@@ -90,9 +83,7 @@ test('Admin-only routes, matching dry run, concurrency, one authored commit and 
   expect(history).toHaveLength(2);
   expect(history[0].author).toEqual({ name: 'Dave Dias', email: 'dave@example.org' });
   expect(history[0].message).toContain('grants:');
-  expect(
-    (await fixture.request('/api/admin/grants', 'PUT', { grants, baseVersion, dryRunId })).status,
-  ).toBe(409);
+  expect((await fixture.request('/api/admin/grants', 'PUT', { grants, baseVersion, dryRunId })).status).toBe(409);
   fixture.identify('erin');
   expect((await fixture.request('/api/me')).status).toBe(200);
 }, 30000);
@@ -110,22 +101,15 @@ test('custom role deletion requires confirmation and removes its grants in one c
     id: person('hank').id,
     name: person('hank').name,
   });
-  expect(
-    (await fixture.request('/api/admin/roles', 'PUT', { ...body, confirmDeleteInUse: true }))
-      .status,
-  ).toBe(200);
-  expect(fixture.repository.load().grants.some(grant => grant.roleId === 'r_metric_reviewer')).toBe(
-    false,
-  );
+  expect((await fixture.request('/api/admin/roles', 'PUT', { ...body, confirmDeleteInUse: true })).status).toBe(200);
+  expect(fixture.repository.load().grants.some(grant => grant.roleId === 'r_metric_reviewer')).toBe(false);
   expect(await fixture.repository.history()).toHaveLength(2);
 }, 30000);
 
 test('last Admin guard applies to grants and deactivation, and secrets never appear', async () => {
   using fixture = await adminFixture();
   const grants = fixture.repository.load().grants.filter(grant => grant.roleId !== 'admin');
-  const { dryRunId } = await (
-    await fixture.request('/api/admin/policies/dry-run', 'POST', { grants })
-  ).json();
+  const { dryRunId } = await (await fixture.request('/api/admin/policies/dry-run', 'POST', { grants })).json();
   const response = await fixture.request('/api/admin/grants', 'PUT', {
     grants,
     dryRunId,
@@ -133,11 +117,7 @@ test('last Admin guard applies to grants and deactivation, and secrets never app
   });
   expect(response.status).toBe(400);
   expect(await response.text()).toContain('last-admin');
-  const disabled = await fixture.request(
-    '/api/admin/users/' + encodeURIComponent(person('dave').id) + '/deactivate',
-    'POST',
-    { reason: 'test' },
-  );
+  const disabled = await fixture.request('/api/admin/users/' + encodeURIComponent(person('dave').id) + '/deactivate', 'POST', { reason: 'test' });
   expect(disabled.status).toBe(400);
   for (const path of ['settings', 'sessions', 'provider', 'users']) {
     const response = await fixture.request('/api/admin/' + path);
@@ -172,12 +152,8 @@ test('preview cannot activate a different proposal; rollback restores decisions 
   const baseVersion = await fixture.repository.version();
   const grants = fixture.repository.load().grants;
   const changed = grants.filter(grant => grant.roleId !== 'r_metric_reviewer');
-  const { dryRunId } = await (
-    await fixture.request('/api/admin/policies/dry-run', 'POST', { grants: changed })
-  ).json();
-  expect(
-    (await fixture.request('/api/admin/grants', 'PUT', { grants, baseVersion, dryRunId })).status,
-  ).toBe(400);
+  const { dryRunId } = await (await fixture.request('/api/admin/policies/dry-run', 'POST', { grants: changed })).json();
+  expect((await fixture.request('/api/admin/grants', 'PUT', { grants, baseVersion, dryRunId })).status).toBe(400);
   const saved = await fixture.request('/api/admin/grants', 'PUT', {
     grants: changed,
     baseVersion,
@@ -393,9 +369,7 @@ test('an e-mail grant gives a person without access the role at the next request
     addedAt: new Date().toISOString(),
   };
   const grants = [...fixture.repository.load().grants, grant];
-  const { dryRunId } = await (
-    await fixture.request('/api/admin/policies/dry-run', 'POST', { grants })
-  ).json();
+  const { dryRunId } = await (await fixture.request('/api/admin/policies/dry-run', 'POST', { grants })).json();
   const baseVersion = await fixture.repository.version();
   const saved = await fixture.request('/api/admin/grants', 'PUT', {
     grants,
@@ -432,9 +406,7 @@ test('version history filters by area, including the policies folder, and diffs 
       text: 'forbid(principal, action == SW::Action::"push", resource) when { context.hour == 3 };',
     },
   ];
-  const { dryRunId } = await (
-    await fixture.request('/api/admin/policies/dry-run', 'POST', { rules })
-  ).json();
+  const { dryRunId } = await (await fixture.request('/api/admin/policies/dry-run', 'POST', { rules })).json();
   const saved = await fixture.request('/api/admin/policies', 'PUT', {
     rules,
     dryRunId,
@@ -453,16 +425,8 @@ test('version history filters by area, including the policies folder, and diffs 
 
 test('narrowing the only Admin grant is refused with the last-Admin message', async () => {
   using fixture = await adminFixture();
-  const grants = fixture.repository
-    .load()
-    .grants.map(grant =>
-      grant.roleId === 'admin'
-        ? { ...grant, member: { kind: 'group', groupId: 'nobody-signs-in-with-this-group' } }
-        : grant,
-    );
-  const { dryRunId } = await (
-    await fixture.request('/api/admin/policies/dry-run', 'POST', { grants })
-  ).json();
+  const grants = fixture.repository.load().grants.map(grant => (grant.roleId === 'admin' ? { ...grant, member: { kind: 'group', groupId: 'nobody-signs-in-with-this-group' } } : grant));
+  const { dryRunId } = await (await fixture.request('/api/admin/policies/dry-run', 'POST', { grants })).json();
   const response = await fixture.request('/api/admin/grants', 'PUT', {
     grants,
     dryRunId,
@@ -479,17 +443,11 @@ test('a bootstrap Admin is shown, cannot be deactivated and keeps recovery possi
   using fixture = await adminFixture({}, { ids: [], emails: ['erin@example.org'] });
   const users = await (await fixture.request('/api/admin/users')).json();
   expect(users.find((user: any) => user.id === person('erin').id).bootstrap).toBe(true);
-  const deactivate = await fixture.request(
-    '/api/admin/users/' + encodeURIComponent(person('erin').id) + '/deactivate',
-    'POST',
-    { reason: 'Leaving' },
-  );
+  const deactivate = await fixture.request('/api/admin/users/' + encodeURIComponent(person('erin').id) + '/deactivate', 'POST', { reason: 'Leaving' });
   expect(deactivate.status).toBe(400);
   expect((await deactivate.json()).error).toBe('bootstrap-admin');
   const grants = fixture.repository.load().grants.filter(grant => grant.roleId !== 'admin');
-  const { dryRunId } = await (
-    await fixture.request('/api/admin/policies/dry-run', 'POST', { grants })
-  ).json();
+  const { dryRunId } = await (await fixture.request('/api/admin/policies/dry-run', 'POST', { grants })).json();
   const saved = await fixture.request('/api/admin/grants', 'PUT', {
     grants,
     dryRunId,
@@ -527,11 +485,7 @@ test('a document is proposed without the version it was read with, which is the 
 }, 30000);
 
 /** Previews a proposal and saves it with the receipt, returning the save response. */
-async function reviewAndSave(
-  fixture: Awaited<ReturnType<typeof adminFixture>>,
-  area: string,
-  document: object,
-) {
+async function reviewAndSave(fixture: Awaited<ReturnType<typeof adminFixture>>, area: string, document: object) {
   const preview = await fixture.request('/api/admin/policies/dry-run', 'POST', document);
   const { dryRunId } = await preview.json();
   return fixture.request('/api/admin/' + area, 'PUT', {
@@ -547,10 +501,8 @@ test('rules that could forbid the admin action are refused by validation, dry ru
     'forbid(principal, action == SW::Action::"admin", resource);',
     'forbid(principal in SW::RoleHolder::"admin@workspace", action, resource) when { true };',
     'forbid(principal, action, resource) when { context.hour == 3 };',
-    'forbid(principal, action in [SW::Action::"edit", SW::Action::"admin"], resource)\n' +
-      'unless { [9, 10].contains(context.hour) };',
-    'forbid(principal, action in [SW::Action::"admin"], resource)\n' +
-      'unless { context.sourceIp.isInRange(ip("10.0.0.0/8")) };',
+    'forbid(principal, action in [SW::Action::"edit", SW::Action::"admin"], resource)\n' + 'unless { [9, 10].contains(context.hour) };',
+    'forbid(principal, action in [SW::Action::"admin"], resource)\n' + 'unless { context.sourceIp.isInRange(ip("10.0.0.0/8")) };',
     'forbid(principal, action in SW::Action::"admin", resource);',
   ];
   const baseVersion = await fixture.repository.version();
@@ -593,20 +545,14 @@ test('the template route returns the server-generated rule and refuses invalid p
     expect(refused.status).toBe(400);
   }
   fixture.identify('bob');
-  expect((await fixture.request('/api/admin/policies/template', 'POST', template)).status).toBe(
-    403,
-  );
+  expect((await fixture.request('/api/admin/policies/template', 'POST', template)).status).toBe(403);
 }, 30000);
 
 test('a rollback is previewed, lists people it reactivates and needs the matching receipt', async () => {
   using fixture = await adminFixture();
   const original = await fixture.repository.version();
   const alice = person('alice');
-  const deactivated = await fixture.request(
-    '/api/admin/users/' + encodeURIComponent(alice.id) + '/deactivate',
-    'POST',
-    { reason: 'Leaving' },
-  );
+  const deactivated = await fixture.request('/api/admin/users/' + encodeURIComponent(alice.id) + '/deactivate', 'POST', { reason: 'Leaving' });
   expect(deactivated.status).toBe(200);
   const current = (await deactivated.json()).version;
   const unreviewed = await fixture.request(`/api/admin/versions/${original}/rollback`, 'POST', {
@@ -641,9 +587,7 @@ test('a rollback is previewed, lists people it reactivates and needs the matchin
 
 test('dry-run people carry the display name the panel shows', async () => {
   using fixture = await adminFixture();
-  const grants = fixture.repository
-    .load()
-    .grants.filter(grant => grant.roleId !== 'r_metric_reviewer');
+  const grants = fixture.repository.load().grants.filter(grant => grant.roleId !== 'r_metric_reviewer');
   const preview = await fixture.request('/api/admin/policies/dry-run', 'POST', { grants });
   const { people } = await preview.json();
   expect(people.length).toBeGreaterThan(0);
@@ -716,9 +660,7 @@ test('audit queries read the current month by default and only the months in ran
   const range = '/api/audit?from=2020-01-01T00:00:00Z&to=2020-01-31T00:00:00Z';
   const older = await fixture.request(range);
   expect(older.status).toBe(200);
-  expect((await older.json()).entries.map((entry: any) => entry.requestId)).toEqual([
-    'old-request',
-  ]);
+  expect((await older.json()).entries.map((entry: any) => entry.requestId)).toEqual(['old-request']);
 }, 30000);
 
 test('a failed adminChange audit write is logged with the request id and the new version', async () => {
@@ -840,16 +782,8 @@ test('a Steward allowed to read audit records is audited with the rule that let 
 
 test('the last-Admin refusal reads as a sentence without the internal area name', async () => {
   using fixture = await adminFixture();
-  const grants = fixture.repository
-    .load()
-    .grants.map(grant =>
-      grant.roleId === 'admin'
-        ? { ...grant, member: { kind: 'group', groupId: 'nobody-signs-in-with-this-group' } }
-        : grant,
-    );
-  const { dryRunId } = await (
-    await fixture.request('/api/admin/policies/dry-run', 'POST', { grants })
-  ).json();
+  const grants = fixture.repository.load().grants.map(grant => (grant.roleId === 'admin' ? { ...grant, member: { kind: 'group', groupId: 'nobody-signs-in-with-this-group' } } : grant));
+  const { dryRunId } = await (await fixture.request('/api/admin/policies/dry-run', 'POST', { grants })).json();
   const response = await fixture.request('/api/admin/grants', 'PUT', {
     grants,
     dryRunId,

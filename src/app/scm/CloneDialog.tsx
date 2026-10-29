@@ -24,12 +24,10 @@ const PHASE_TEXT: Record<CloneEvent['phase'], string> = {
   cancelled: 'Clone cancelled. Nothing was added.',
 };
 
-const finished = (event: CloneEvent | null) =>
-  !!event && ['done', 'failed', 'cancelled'].includes(event.phase);
+const finished = (event: CloneEvent | null) => !!event && ['done', 'failed', 'cancelled'].includes(event.phase);
 
 // Folders below the root that could each be a project; the root alone needs no choice.
-const subfolderCandidates = (event: CloneEvent | null) =>
-  (event?.candidates ?? []).filter(candidate => candidate.path !== '');
+const subfolderCandidates = (event: CloneEvent | null) => (event?.candidates ?? []).filter(candidate => candidate.path !== '');
 
 // What the repository's layout meant, beyond the projects it made: a manifest that could not be
 // used, or folders the person may turn into projects.
@@ -42,12 +40,7 @@ function RepositoryNotes({ event }: { event: CloneEvent }) {
           The repository's .semantic-workbench.json was not used: {event.manifestError}
         </p>
       )}
-      {folders.length > 0 && (
-        <p>
-          {folders.length} folders hold definitions. Choose projects… makes each chosen folder its
-          own project; otherwise the repository stays one project.
-        </p>
-      )}
+      {folders.length > 0 && <p>{folders.length} folders hold definitions. Choose projects… makes each chosen folder its own project; otherwise the repository stays one project.</p>}
     </>
   );
 }
@@ -75,10 +68,7 @@ function FilesToRepair({ paths }: { paths: string[] }) {
   return (
     <section aria-label="Files to repair">
       <h3>Files to repair</h3>
-      <p className="clone-explanation">
-        These files are not valid definitions. They were kept exactly as they are and are marked in
-        the tree.
-      </p>
+      <p className="clone-explanation">These files are not valid definitions. They were kept exactly as they are and are marked in the tree.</p>
       <ul className="clone-invalid" aria-label="Invalid files">
         {paths.map(path => (
           <li key={path}>{path}</li>
@@ -90,12 +80,7 @@ function FilesToRepair({ paths }: { paths: string[] }) {
 
 function FailureExplanation({ event }: { event: CloneEvent }) {
   if (event.phase !== 'failed') return null;
-  return (
-    <p className="clone-explanation">
-      The repository was not cloned and nothing was added to the workspace. Check the address,
-      folder and credentials, then edit the details or retry.
-    </p>
-  );
+  return <p className="clone-explanation">The repository was not cloned and nothing was added to the workspace. Check the address, folder and credentials, then edit the details or retry.</p>;
 }
 
 function CloneResult({ event }: { event: CloneEvent }) {
@@ -116,11 +101,7 @@ function CloneResult({ event }: { event: CloneEvent }) {
     <>
       <RepositoryNotes event={event} />
       <ProjectsMade event={event} />
-      {event.invalid?.length ? (
-        <FilesToRepair paths={event.invalid} />
-      ) : (
-        <p>{definitionsSummary(event)}</p>
-      )}
+      {event.invalid?.length ? <FilesToRepair paths={event.invalid} /> : <p>{definitionsSummary(event)}</p>}
     </>
   );
 }
@@ -142,27 +123,15 @@ function CloneForm(props: FormProps) {
   return (
     <form className="clone-form" onSubmit={onSubmit}>
       <p className="dialog-intro">
-        Copies a Git repository into a new project folder in the workspace. Line endings are kept as
-        committed, links arrive as plain files and submodules are not fetched.
+        Copies a Git repository into a new project folder in the workspace. Line endings are kept as committed, links arrive as plain files and submodules are not fetched.
       </p>
       <label>
         <span>Repository URL or path</span>
-        <input
-          aria-label="Repository URL or path"
-          value={url}
-          onChange={e => setUrl(e.target.value)}
-          placeholder="https://… or git@… or /path/to/repo.git"
-        />
+        <input aria-label="Repository URL or path" value={url} onChange={e => setUrl(e.target.value)} placeholder="https://… or git@… or /path/to/repo.git" />
       </label>
       <label>
         <span>Project name (optional)</span>
-        <input
-          aria-label="Project name"
-          value={name}
-          maxLength={120}
-          onChange={e => setName(e.target.value)}
-          placeholder="From the repository name"
-        />
+        <input aria-label="Project name" value={name} maxLength={120} onChange={e => setName(e.target.value)} placeholder="From the repository name" />
       </label>
       <FolderField
         value={folder}
@@ -217,12 +186,7 @@ function CloneFooter(props: FooterProps) {
         {props.running || !props.started ? 'Cancel' : 'Close'}
       </button>
       {!props.started && (
-        <button
-          type="button"
-          className="primary"
-          disabled={!props.canStart}
-          onClick={props.onStart}
-        >
+        <button type="button" className="primary" disabled={!props.canStart} onClick={props.onStart}>
           Clone
         </button>
       )}
@@ -231,23 +195,13 @@ function CloneFooter(props: FooterProps) {
           <button type="button" onClick={props.onEditDetails}>
             Edit details
           </button>
-          <button
-            type="button"
-            className={missingFolder ? undefined : 'primary'}
-            disabled={!props.canStart}
-            onClick={props.onRetry}
-          >
+          <button type="button" className={missingFolder ? undefined : 'primary'} disabled={!props.canStart} onClick={props.onRetry}>
             Retry
           </button>
         </>
       )}
       {missingFolder && (
-        <button
-          type="button"
-          className="primary"
-          disabled={!props.canStart}
-          onClick={props.onCreateFolder}
-        >
+        <button type="button" className="primary" disabled={!props.canStart} onClick={props.onCreateFolder}>
           Create {missingFolder} with the first push
         </button>
       )}
@@ -325,12 +279,7 @@ export function CloneDialog({ onClose, onOpenProject, onCredentials, onChoosePro
   // While Git runs, Escape does not close the dialog: Cancel stops the clone first.
   if (domainChoice.dialog) return domainChoice.dialog;
   return (
-    <Modal
-      title="Clone repository"
-      onCancel={running ? () => {} : onClose}
-      footer={footer}
-      footerNote={footerNote()}
-    >
+    <Modal title="Clone repository" onCancel={running ? () => {} : onClose} footer={footer} footerNote={footerNote()}>
       {op ? (
         <div className="clone-progress" aria-live="polite">
           <p role="status">

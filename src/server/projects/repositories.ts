@@ -25,21 +25,17 @@ export class ManifestError extends Error {
   }
 }
 
-const isAncestor = (folder: string, path: string) =>
-  folder === '' || path === folder || path.startsWith(folder + '/');
+const isAncestor = (folder: string, path: string) => folder === '' || path === folder || path.startsWith(folder + '/');
 
 /** Checks a list of project folders: valid relative paths, none under .git, none inside another,
  * names of 1–200 characters. Returns the list with normalized paths. */
 export function checkProjectFolders(projects: unknown): RepositoryProject[] {
-  if (!Array.isArray(projects) || !projects.length || projects.length > 200)
-    throw new PathError('List 1–200 project folders.');
+  if (!Array.isArray(projects) || !projects.length || projects.length > 200) throw new PathError('List 1–200 project folders.');
   const checked = projects.map(project => {
-    if (!project || typeof project !== 'object' || Array.isArray(project))
-      throw new PathError('Each project is {path, name?}.');
+    if (!project || typeof project !== 'object' || Array.isArray(project)) throw new PathError('Each project is {path, name?}.');
     const { path, name, ...rest } = project as Record<string, unknown>;
     if (Object.keys(rest).length) throw new PathError('Each project is {path, name?}.');
-    if (name !== undefined && (typeof name !== 'string' || !name.trim() || name.length > 200))
-      throw new PathError('A project name has 1–200 characters.');
+    if (name !== undefined && (typeof name !== 'string' || !name.trim() || name.length > 200)) throw new PathError('A project name has 1–200 characters.');
     const folder = path === '' ? '' : projectPath(path);
     return name === undefined ? { path: folder } : { path: folder, name: name.trim() };
   });
@@ -47,9 +43,7 @@ export function checkProjectFolders(projects: unknown): RepositoryProject[] {
     for (const [j, inner] of checked.entries())
       if (i !== j && isAncestor(outer.path, inner.path))
         throw new PathError(
-          outer.path === inner.path
-            ? `The folder ${outer.path || '(root)'} is listed twice.`
-            : `Project folders must not nest: ${inner.path} is inside ${outer.path || 'the root'}.`,
+          outer.path === inner.path ? `The folder ${outer.path || '(root)'} is listed twice.` : `Project folders must not nest: ${inner.path} is inside ${outer.path || 'the root'}.`,
         );
   return checked;
 }
@@ -62,13 +56,10 @@ export function parseManifest(text: string): RepositoryProject[] {
   } catch {
     throw new ManifestError(`${MANIFEST_FILE} is not valid JSON.`);
   }
-  if (!data || typeof data !== 'object' || Array.isArray(data))
-    throw new ManifestError(`${MANIFEST_FILE} must be an object.`);
+  if (!data || typeof data !== 'object' || Array.isArray(data)) throw new ManifestError(`${MANIFEST_FILE} must be an object.`);
   const { schema, projects, ...rest } = data as Record<string, unknown>;
-  if (schema !== MANIFEST_SCHEMA)
-    throw new ManifestError(`${MANIFEST_FILE} needs "schema": "${MANIFEST_SCHEMA}".`);
-  if (Object.keys(rest).length)
-    throw new ManifestError(`${MANIFEST_FILE} may hold only "schema" and "projects".`);
+  if (schema !== MANIFEST_SCHEMA) throw new ManifestError(`${MANIFEST_FILE} needs "schema": "${MANIFEST_SCHEMA}".`);
+  if (Object.keys(rest).length) throw new ManifestError(`${MANIFEST_FILE} may hold only "schema" and "projects".`);
   return checkProjectFolders(projects).map(project => {
     if (project.path === '') throw new PathError('A manifest lists folders below the root.');
     return project;
@@ -87,12 +78,8 @@ export function detectProjectFolders(files: string[], depth = DETECTION_DEPTH): 
     return kind !== 'unsupported' && kind !== 'gitignore';
   });
   const folderOf = (path: string) => posix.dirname(path).split('/').slice(0, depth).join('/');
-  const folders = [
-    ...new Set(definitions.map(path => (folderOf(path) === '.' ? '' : folderOf(path)))),
-  ];
-  const outermost = folders
-    .filter(folder => !folders.some(other => other !== folder && isAncestor(other, folder)))
-    .sort();
+  const folders = [...new Set(definitions.map(path => (folderOf(path) === '.' ? '' : folderOf(path))))];
+  const outermost = folders.filter(folder => !folders.some(other => other !== folder && isAncestor(other, folder))).sort();
   return outermost.map(folder => ({
     path: folder,
     files: definitions.filter(path => isAncestor(folder, path)).length,

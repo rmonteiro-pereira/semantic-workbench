@@ -17,14 +17,7 @@ export type Level = (typeof LEVELS)[number];
 export const levelNumber = (level: Level) => LEVELS.indexOf(level);
 
 /** What a guarded change touches, which decides the permission it needs. */
-export type GuardKind =
-  | 'metric-status'
-  | 'metric-body'
-  | 'classification'
-  | 'critical-data-element'
-  | 'team'
-  | 'roles'
-  | 'protected-property';
+export type GuardKind = 'metric-status' | 'metric-body' | 'classification' | 'critical-data-element' | 'team' | 'roles' | 'protected-property';
 
 /** One file a write would change, with its text before and after; null means absent. */
 export type FileChange = {
@@ -76,8 +69,7 @@ export type GuardOutcome = {
 const APPROVAL_STATUSES = new Set(['approved', 'deprecated']);
 
 const list = (value: unknown): any[] => (Array.isArray(value) ? value : []);
-const pointerOf = (path: Path) =>
-  path.map(key => '/' + String(key).replace(/~/g, '~0').replace(/\//g, '~1')).join('');
+const pointerOf = (path: Path) => path.map(key => '/' + String(key).replace(/~/g, '~0').replace(/\//g, '~1')).join('');
 
 /**
  * The level a classification value stands for. Admin aliases come first, then the level names;
@@ -121,10 +113,7 @@ export function ownerKey(owner: string): string {
  * Whether an owner value names one of the given identity values, in any letter case. Callers
  * deciding self-approval pass every value a person has, so a doubtful match refuses.
  */
-export function ownerMatches(
-  owner: string,
-  person: { verifiedEmail?: string | null; username?: string },
-): boolean {
+export function ownerMatches(owner: string, person: { verifiedEmail?: string | null; username?: string }): boolean {
   const key = ownerKey(owner);
   if (!key) return false;
   const values = [person.verifiedEmail, person.username].filter(Boolean) as string[];
@@ -191,11 +180,7 @@ function metricChanges(file: Origin, before: any, after: any, committed: any) {
     const base = { ...file, pointer: pointerOf(current.path), level: 'public' as Level, metric };
     if (APPROVAL_STATUSES.has(status) && status !== oldStatus) {
       changes.push({ ...base, kind: 'metric-status' });
-    } else if (
-      oldStatus === 'approved' &&
-      status === 'approved' &&
-      !deepEqual(comparable(old!.value), comparable(current.value))
-    ) {
+    } else if (oldStatus === 'approved' && status === 'approved' && !deepEqual(comparable(old!.value), comparable(current.value))) {
       changes.push({ ...base, kind: 'metric-body', demotable: current.path });
     }
   }
@@ -241,10 +226,7 @@ function elementsOf(document: any): Map<string, Element> {
 }
 
 function highestLevel(levels: Level[]): Level {
-  return levels.reduce(
-    (high, level) => (levelNumber(level) > levelNumber(high) ? level : high),
-    'public' as Level,
-  );
+  return levels.reduce((high, level) => (levelNumber(level) > levelNumber(high) ? level : high), 'public' as Level);
 }
 
 /** Classification and critical-data-element changes of one schema element. */
@@ -298,19 +280,13 @@ function contractChanges(file: Origin, before: any, after: any, settings: Classi
 }
 
 /** Every governed part one file change touches, read with the shared document parsers. */
-export function guardedChanges(
-  change: FileChange,
-  settings: ClassificationSettings,
-): GuardedChange[] {
+export function guardedChanges(change: FileChange, settings: ClassificationSettings): GuardedChange[] {
   if (change.before === change.after) return [];
   const before = parsed(change.before);
   const after = parsed(change.after);
   const file = { project: change.project, file: change.path };
   const committed = parsed(change.committed ?? null);
-  return [
-    ...metricChanges(file, before, after, committed),
-    ...contractChanges(file, before, after, settings),
-  ];
+  return [...metricChanges(file, before, after, committed), ...contractChanges(file, before, after, settings)];
 }
 
 /** Sets an approved metric back to proposed through the item editor's attribute write. */
@@ -323,12 +299,7 @@ export function demoteMetric(source: string, filename: string, metricPath: Path)
  * edits of an approved metric, which become proposals when demotion is allowed. The returned
  * changes carry the text to write.
  */
-export function applyGuards(
-  changes: FileChange[],
-  settingsFor: (project: string) => ClassificationSettings,
-  allowed: GuardDecision,
-  options: { demote: boolean },
-): GuardOutcome {
+export function applyGuards(changes: FileChange[], settingsFor: (project: string) => ClassificationSettings, allowed: GuardDecision, options: { demote: boolean }): GuardOutcome {
   const refused: GuardedChange[] = [];
   const demoted: GuardedChange[] = [];
   for (const change of changes) {
@@ -340,14 +311,9 @@ export function applyGuards(
   }
   if (refused.length || !demoted.length) return { changes, refused, demoted };
   const written = changes.map(change => {
-    const own = demoted.filter(
-      guarded => guarded.project === change.project && guarded.file === change.path,
-    );
+    const own = demoted.filter(guarded => guarded.project === change.project && guarded.file === change.path);
     if (!own.length || change.after === null) return change;
-    const after = own.reduce(
-      (text, guarded) => demoteMetric(text, change.path, guarded.demotable!),
-      change.after,
-    );
+    const after = own.reduce((text, guarded) => demoteMetric(text, change.path, guarded.demotable!), change.after);
     return { ...change, after };
   });
   return { changes: written, refused, demoted };
@@ -361,15 +327,7 @@ export type ContentGuard = (changes: FileChange[], options?: GuardOptions) => Gu
 
 /** Writes that bring in text the person did not type; they never demote, and a refusal asks a
  * Steward to do them instead. */
-export type GuardOperation =
-  | 'pull'
-  | 'revert'
-  | 'delete'
-  | 'restore'
-  | 'import'
-  | 'move'
-  | 'switch'
-  | 'publish';
+export type GuardOperation = 'pull' | 'revert' | 'delete' | 'restore' | 'import' | 'move' | 'switch' | 'publish';
 
 /** How a write applies the guards: saves demote approved metrics, other operations name
  * themselves so a refusal can say who may do them. */

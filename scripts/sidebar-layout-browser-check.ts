@@ -43,17 +43,11 @@ function readSidebarGeometry(page: Page): Promise<SidebarGeometry> {
   return page.evaluate(() => {
     const sidebar = document.querySelector<HTMLElement>('.workspace-sidebar')!;
     const footer = document.querySelector('.sidebar-footer')!.getBoundingClientRect();
-    const settings = document
-      .querySelector('.sidebar-footer .settings-toggle')!
-      .getBoundingClientRect();
+    const settings = document.querySelector('.sidebar-footer .settings-toggle')!.getBoundingClientRect();
     const list = document.querySelector<HTMLElement>('.workspace-sidebar .documents')!;
     const listBox = list.getBoundingClientRect();
-    const rows = [...list.querySelectorAll('.tree-row, .project-file')].map(row =>
-      row.getBoundingClientRect(),
-    );
-    const visible = rows.filter(
-      row => row.top >= listBox.top - 1 && row.bottom <= listBox.bottom + 1,
-    );
+    const rows = [...list.querySelectorAll('.tree-row, .project-file')].map(row => row.getBoundingClientRect());
+    const visible = rows.filter(row => row.top >= listBox.top - 1 && row.bottom <= listBox.bottom + 1);
     return {
       windowHeight: window.innerHeight,
       sidebarScrolls: sidebar.scrollHeight > sidebar.clientHeight + 1,
@@ -71,34 +65,21 @@ function readSidebarGeometry(page: Page): Promise<SidebarGeometry> {
 
 function expectFooterVisible(geometry: SidebarGeometry, label: string) {
   expect(geometry.sidebarScrolls, `${label}: the sidebar itself scrolls`).toBe(false);
-  expect(geometry.footerBottom, `${label}: footer bottom`).toBeLessThanOrEqual(
-    geometry.windowHeight + 1,
-  );
-  expect(geometry.settingsBottom, `${label}: Settings row bottom`).toBeLessThanOrEqual(
-    geometry.windowHeight + 1,
-  );
+  expect(geometry.footerBottom, `${label}: footer bottom`).toBeLessThanOrEqual(geometry.windowHeight + 1);
+  expect(geometry.settingsBottom, `${label}: Settings row bottom`).toBeLessThanOrEqual(geometry.windowHeight + 1);
 }
 
 // The list must reach the footer, and when it scrolls its last complete row must sit near the
 // bottom edge instead of leaving blank space below it.
 function expectListFillsSpace(geometry: SidebarGeometry, label: string) {
-  expect(geometry.listBottom, `${label}: list ends at the footer`).toBeGreaterThanOrEqual(
-    geometry.footerTop - 12,
-  );
+  expect(geometry.listBottom, `${label}: list ends at the footer`).toBeGreaterThanOrEqual(geometry.footerTop - 12);
   if (geometry.listScrollable) {
     expect(geometry.listBottom - geometry.lastRowBottom, `${label}: blank space`).toBeLessThan(60);
   }
 }
 
 async function loadExamples(page: Page) {
-  for (const name of [
-    /^UBL/,
-    /^Commerce workspace/,
-    /^Mapped commerce/,
-    /^Ossie Flights/,
-    /^Subscription billing/,
-    /^Shopping center/,
-  ]) {
+  for (const name of [/^UBL/, /^Commerce workspace/, /^Mapped commerce/, /^Ossie Flights/, /^Subscription billing/, /^Shopping center/]) {
     await (await example(page, name)).click();
     await expect(page.locator('.project-tree')).toBeVisible();
     await page.waitForTimeout(300);

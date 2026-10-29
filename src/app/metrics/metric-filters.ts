@@ -52,13 +52,7 @@ export function visibleColumns(kpis: KpiSummary[]): MetricColumns {
 }
 
 function matchesText(kpi: KpiSummary, term: string): boolean {
-  const texts = [
-    kpi.label,
-    kpi.name,
-    kpi.description,
-    kpi.owner,
-    ...kpi.concepts.map(concept => concept.concept ?? concept.input),
-  ];
+  const texts = [kpi.label, kpi.name, kpi.description, kpi.owner, ...kpi.concepts.map(concept => concept.concept ?? concept.input)];
   return texts.some(text => typeof text === 'string' && text.toLocaleLowerCase().includes(term));
 }
 

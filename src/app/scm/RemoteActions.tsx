@@ -28,17 +28,7 @@ function mayRun(action: RemoteAction, can: (name: string) => boolean): boolean {
 }
 
 /** Lists the remote actions this person may run, each disabled while Git is busy. */
-export function RemoteActions({
-  status,
-  busy,
-  can,
-  onRemoteAction,
-}: {
-  status: GitStatus;
-  busy: boolean;
-  can: (action: string) => boolean;
-  onRemoteAction: (action: RemoteAction) => void;
-}) {
+export function RemoteActions({ status, busy, can, onRemoteAction }: { status: GitStatus; busy: boolean; can: (action: string) => boolean; onRemoteAction: (action: RemoteAction) => void }) {
   return (
     <div className="scm-remote-actions" role="group" aria-label="Remote actions">
       {REMOTE_ACTIONS.filter(action => mayRun(action, can)).map(action => (

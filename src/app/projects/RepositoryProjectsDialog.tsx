@@ -14,8 +14,7 @@ export type StartingChoice = 'current' | 'proposed';
 
 // The registered folders, or, right after a clone, the manifest's folders else the detected ones.
 function initialChoice(found: ProjectCandidates, start: StartingChoice) {
-  if (start === 'current' && found.registered.length)
-    return new Set(found.registered.map(project => project.path));
+  if (start === 'current' && found.registered.length) return new Set(found.registered.map(project => project.path));
   if (found.manifest) return new Set(found.manifest.projects.map(entry => entry.path));
   if (found.detected.length) return new Set(found.detected.map(folder => folder.path));
   return new Set(found.registered.map(project => project.path));
@@ -52,20 +51,10 @@ function toggleRow(rows: Row[], path: string, checked: boolean) {
 }
 
 function chosenProjects(rows: Row[]): RepositoryProject[] {
-  return rows
-    .filter(row => row.checked)
-    .map(row => (row.name.trim() ? { path: row.path, name: row.name.trim() } : { path: row.path }));
+  return rows.filter(row => row.checked).map(row => (row.name.trim() ? { path: row.path, name: row.name.trim() } : { path: row.path }));
 }
 
-function FolderRow({
-  row,
-  onToggle,
-  onRename,
-}: {
-  row: Row;
-  onToggle: (checked: boolean) => void;
-  onRename: (name: string) => void;
-}) {
+function FolderRow({ row, onToggle, onRename }: { row: Row; onToggle: (checked: boolean) => void; onRename: (name: string) => void }) {
   const label = row.path || ROOT_LABEL;
   return (
     <li className="repository-folder">
@@ -78,15 +67,7 @@ function FolderRow({
           </small>
         )}
       </label>
-      {row.checked && (
-        <input
-          aria-label={`Project name for ${label}`}
-          value={row.name}
-          maxLength={200}
-          placeholder={row.defaultName}
-          onChange={e => onRename(e.target.value)}
-        />
-      )}
+      {row.checked && <input aria-label={`Project name for ${label}`} value={row.name} maxLength={200} placeholder={row.defaultName} onChange={e => onRename(e.target.value)} />}
     </li>
   );
 }
@@ -112,42 +93,23 @@ function useRepositoryFolders(repo: string, start: StartingChoice) {
 }
 
 // A manifest lists subfolders only, so it cannot record the whole repository as one project.
-function ManifestChoice(props: {
-  checked: boolean;
-  disabled: boolean;
-  onChange: (checked: boolean) => void;
-}) {
+function ManifestChoice(props: { checked: boolean; disabled: boolean; onChange: (checked: boolean) => void }) {
   return (
     <label className="check-row">
-      <input
-        type="checkbox"
-        checked={props.checked}
-        disabled={props.disabled}
-        onChange={e => props.onChange(e.target.checked)}
-      />
+      <input type="checkbox" checked={props.checked} disabled={props.disabled} onChange={e => props.onChange(e.target.checked)} />
       <span>Save as .semantic-workbench.json in the repository; commit it to share the choice</span>
     </label>
   );
 }
 
-function DialogFooter(props: {
-  busy: boolean;
-  canSave: boolean;
-  onCancel: () => void;
-  onSave: () => void;
-}) {
+function DialogFooter(props: { busy: boolean; canSave: boolean; onCancel: () => void; onSave: () => void }) {
   return (
     <>
       <span className="dialog-footer-spacer" />
       <button type="button" onClick={props.onCancel} disabled={props.busy}>
         Cancel
       </button>
-      <button
-        type="button"
-        className="primary"
-        disabled={props.busy || !props.canSave}
-        onClick={props.onSave}
-      >
+      <button type="button" className="primary" disabled={props.busy || !props.canSave} onClick={props.onSave}>
         {props.busy ? 'Saving…' : 'Save projects'}
       </button>
     </>
@@ -185,26 +147,12 @@ export function RepositoryProjectsDialog({ repo, start = 'current', onClose, onS
     }
   }
 
-  const footer = (
-    <DialogFooter
-      busy={busy}
-      canSave={!!found && projects.length > 0}
-      onCancel={onClose}
-      onSave={() => void save()}
-    />
-  );
+  const footer = <DialogFooter busy={busy} canSave={!!found && projects.length > 0} onCancel={onClose} onSave={() => void save()} />;
 
   return (
-    <Modal
-      title={`Projects in ${repo}`}
-      onCancel={busy ? () => {} : onClose}
-      footer={footer}
-      className="repository-projects"
-    >
+    <Modal title={`Projects in ${repo}`} onCancel={busy ? () => {} : onClose} footer={footer} className="repository-projects">
       <p className="dialog-intro">
-        Each chosen folder becomes a project. All of them share this repository's Source Control,
-        branch and history. Leaving a folder out removes its project from the workspace; no file is
-        deleted.
+        Each chosen folder becomes a project. All of them share this repository's Source Control, branch and history. Leaving a folder out removes its project from the workspace; no file is deleted.
       </p>
       {found?.manifestError && (
         <p role="alert" className="dialog-error">
@@ -219,20 +167,12 @@ export function RepositoryProjectsDialog({ repo, start = 'current', onClose, onS
               key={row.path}
               row={row}
               onToggle={checked => setRows(old => toggleRow(old, row.path, checked))}
-              onRename={name =>
-                setRows(old => old.map(item => (item.path === row.path ? { ...item, name } : item)))
-              }
+              onRename={name => setRows(old => old.map(item => (item.path === row.path ? { ...item, name } : item)))}
             />
           ))}
         </ul>
       )}
-      {found && (
-        <ManifestChoice
-          checked={saveManifest && !rootChosen}
-          disabled={rootChosen}
-          onChange={setSaveManifest}
-        />
-      )}
+      {found && <ManifestChoice checked={saveManifest && !rootChosen} disabled={rootChosen} onChange={setSaveManifest} />}
       {error && (
         <p role="alert" className="dialog-error">
           {error}

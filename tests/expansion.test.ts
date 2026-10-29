@@ -1,13 +1,6 @@
 // Tests graph expansion, shared-node retention and collapse.
 import { test, expect } from 'bun:test';
-import {
-  registerSet,
-  canvasOf,
-  addedBy,
-  neighbours,
-  setsOf,
-  type ExpansionSet,
-} from '../src/app/graph/expansion';
+import { registerSet, canvasOf, addedBy, neighbours, setsOf, type ExpansionSet } from '../src/app/graph/expansion';
 import { walkReducer, emptyWalk, canvasAt } from '../src/app/graph/walk';
 
 const edges = [

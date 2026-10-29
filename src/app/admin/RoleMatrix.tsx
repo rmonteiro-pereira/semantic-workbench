@@ -24,11 +24,7 @@ export function RoleMatrix({ roles, actions }: { roles: Role[]; actions: Action[
                 <small className="admin-id">{action}</small>
               </th>
               {roles.map(role => (
-                <td key={role.id}>
-                  {role.permissions.some(permission => permission.actions.includes(action))
-                    ? 'Allowed'
-                    : '—'}
-                </td>
+                <td key={role.id}>{role.permissions.some(permission => permission.actions.includes(action)) ? 'Allowed' : '—'}</td>
               ))}
             </tr>
           ))}

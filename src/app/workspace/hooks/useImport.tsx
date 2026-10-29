@@ -50,18 +50,13 @@ export function useImport({
       );
     } catch (e) {
       const filenames = drafts.map(draft => draft.filename).join(', ');
-      throw Error(
-        `Could not save ${filenames}: ${(e as Error).message} ` +
-          'Nothing from this batch was imported; retry when ready.',
-      );
+      throw Error(`Could not save ${filenames}: ${(e as Error).message} ` + 'Nothing from this batch was imported; retry when ready.');
     }
     setPendingImport(null);
     // Keep the last file active so batch imports preserve the existing navigation behavior.
     const loaded = await refresh();
     const last = drafts[drafts.length - 1].filename;
-    const opened =
-      loaded.find(d => d.project === created.slug && d.path === last) ??
-      loaded.find(d => d.project === created.slug);
+    const opened = loaded.find(d => d.project === created.slug && d.path === last) ?? loaded.find(d => d.project === created.slug);
     if (opened) {
       setCurrent(opened);
       setSource(opened.source);
@@ -76,9 +71,7 @@ export function useImport({
     const imported = `Imported ${fileCount} file${fileCount === 1 ? '' : 's'} into project ${created.name}.`;
     // Without an identity the files are saved but not committed; the banner offers to set it.
     const notCommitted =
-      created.commit && !created.commit.committed && created.commit.reason === 'no-identity'
-        ? ' Not committed: set your Git identity with Set Git identity… in the banner above.'
-        : '';
+      created.commit && !created.commit.committed && created.commit.reason === 'no-identity' ? ' Not committed: set your Git identity with Set Git identity… in the banner above.' : '';
     setMessage(imported + notCommitted);
   }
   async function importFiles(files: File[]) {
@@ -86,9 +79,7 @@ export function useImport({
     if (compact) closeWorkspace();
     await leaveCurrent();
     try {
-      const drafts = await Promise.all(
-        files.map(async file => ({ filename: file.name, source: await file.text() })),
-      );
+      const drafts = await Promise.all(files.map(async file => ({ filename: file.name, source: await file.text() })));
       if (drafts.some(d => !validateInput(d.source, d.filename).valid)) {
         setPendingImport(drafts);
         return;

@@ -46,24 +46,9 @@ test('trash hides other owners and restricted original paths from listing and op
   const access = createAccessControl(accessFixture());
   const alice = access.principalFor(person('alice'));
   const frank = access.principalFor(person('frank'));
-  const own = await fixture.ws.trash.deleteFile(
-    'sales-contracts',
-    'orders.odcs.yaml',
-    alice.id,
-    LOCAL_READER,
-  );
-  const other = await fixture.ws.trash.deleteFile(
-    'sales-contracts',
-    'sales.mapping.yaml',
-    frank.id,
-    LOCAL_READER,
-  );
-  const hidden = await fixture.ws.trash.deleteFile(
-    'sales-contracts',
-    'finance/revenue-recognition.odcs.yaml',
-    alice.id,
-    LOCAL_READER,
-  );
+  const own = await fixture.ws.trash.deleteFile('sales-contracts', 'orders.odcs.yaml', alice.id, LOCAL_READER);
+  const other = await fixture.ws.trash.deleteFile('sales-contracts', 'sales.mapping.yaml', frank.id, LOCAL_READER);
+  const hidden = await fixture.ws.trash.deleteFile('sales-contracts', 'finance/revenue-recognition.odcs.yaml', alice.id, LOCAL_READER);
   const handler = createHandler(fixture.ws, {
     mode: 'server',
     remoteCredentials: allowEveryRemote(),
@@ -99,11 +84,7 @@ test('derived data and basic status do not resolve hidden sources or expose serv
     access,
     principal: () => principal,
   });
-  const context = await handler(
-    new Request(
-      'http://localhost/api/agent/context?project=sales-contracts&mappingId=sales-contracts/people.mapping.yaml',
-    ),
-  );
+  const context = await handler(new Request('http://localhost/api/agent/context?project=sales-contracts&mappingId=sales-contracts/people.mapping.yaml'));
   expect(context.status).toBe(200);
   const body = await context.text();
   expect(body).not.toContain('LEAK-hr');
@@ -114,9 +95,7 @@ test('derived data and basic status do not resolve hidden sources or expose serv
     gitAvailable: true,
   });
   const projects = await (await handler(new Request('http://localhost/api/projects'))).json();
-  expect(
-    projects.find((project: { slug: string }) => project.slug === 'sales-contracts').hiddenFiles,
-  ).toBe(1);
+  expect(projects.find((project: { slug: string }) => project.slug === 'sales-contracts').hiddenFiles).toBe(1);
 });
 
 test('hidden and absent files return identical responses and conflicts hide destinations', async () => {
@@ -130,26 +109,13 @@ test('hidden and absent files return identical responses and conflicts hide dest
     access,
     principal: () => principal,
   });
-  const missing = await handler(
-    new Request('http://localhost/api/projects/sales-contracts/files/missing.yaml'),
-  );
-  const hidden = await handler(
-    new Request(
-      'http://localhost/api/projects/sales-contracts/files/finance/revenue-recognition.odcs.yaml',
-    ),
-  );
+  const missing = await handler(new Request('http://localhost/api/projects/sales-contracts/files/missing.yaml'));
+  const hidden = await handler(new Request('http://localhost/api/projects/sales-contracts/files/finance/revenue-recognition.odcs.yaml'));
   expect(missing.status).toBe(404);
   expect(await missing.text()).toBe(await hidden.text());
-  await expect(
-    fixture.ws.moveFile(
-      'sales-contracts',
-      'orders.odcs.yaml',
-      'sales-contracts',
-      'finance/revenue-recognition.odcs.yaml',
-      false,
-      boundaryReader(view, principal.id),
-    ),
-  ).rejects.toThrow('The target is unavailable.');
+  await expect(fixture.ws.moveFile('sales-contracts', 'orders.odcs.yaml', 'sales-contracts', 'finance/revenue-recognition.odcs.yaml', false, boundaryReader(view, principal.id))).rejects.toThrow(
+    'The target is unavailable.',
+  );
   await expect(
     fixture.ws.importInto(
       'sales-contracts',
@@ -163,11 +129,7 @@ test('hidden and absent files return identical responses and conflicts hide dest
       boundaryReader(view, principal.id),
     ),
   ).rejects.toThrow('The target is unavailable.');
-  const impact = fixture.ws.deleteImpact(
-    'sales-contracts',
-    undefined,
-    boundaryReader(view, principal.id),
-  );
+  const impact = fixture.ws.deleteImpact('sales-contracts', undefined, boundaryReader(view, principal.id));
   expect(JSON.stringify(impact)).not.toContain('finance/');
   expect(impact).toHaveProperty('hiddenReferences');
 });
@@ -217,21 +179,12 @@ test('save, move, delete and restore update every personal draft and grouping', 
     expect('users' in personal).toBe(false);
     personal.writeDraft(project, path, { baseHash: file.hash, text: 'draft', patches: [] });
   }
-  await fixture.ws.saveFiles(
-    project,
-    [{ path, baseHash: file.hash, source: file.source }],
-    LOCAL_READER,
-  );
+  await fixture.ws.saveFiles(project, [{ path, baseHash: file.hash, source: file.source }], LOCAL_READER);
   for (const personal of owners) {
     expect(personal.draft(project, path)).toBeNull();
     personal.writeDraft(project, path, { baseHash: file.hash, text: 'draft', patches: [] });
   }
-  await fixture.ws.saveFile(
-    project,
-    path,
-    { baseHash: file.hash, source: file.source },
-    LOCAL_READER,
-  );
+  await fixture.ws.saveFile(project, path, { baseHash: file.hash, source: file.source }, LOCAL_READER);
   for (const personal of owners) {
     expect(personal.draft(project, path)).toBeNull();
     personal.writeDraft(project, path, { baseHash: file.hash, text: 'draft', patches: [] });
@@ -283,9 +236,7 @@ test('ordinary missing drafts are not audited as unreadable denials', async () =
     publicOrigin: 'http://localhost',
     principal: () => principal,
   });
-  const missing = await handler(
-    new Request('http://localhost/api/drafts/sales-contracts/orders.odcs.yaml'),
-  );
+  const missing = await handler(new Request('http://localhost/api/drafts/sales-contracts/orders.odcs.yaml'));
   expect(missing.status).toBe(404);
   expect(records).toHaveLength(0);
   const missingTrash = await handler(
@@ -298,9 +249,7 @@ test('ordinary missing drafts are not audited as unreadable denials', async () =
   expect(missingTrash.status).toBe(404);
   expect(records).toHaveLength(0);
   const hidden = encodeURIComponent('sales-contracts/finance/revenue-recognition.odcs.yaml');
-  expect(
-    (await handler(new Request(`http://localhost/api/documents/${hidden}/grouping`))).status,
-  ).toBe(404);
+  expect((await handler(new Request(`http://localhost/api/documents/${hidden}/grouping`))).status).toBe(404);
   expect(records).toHaveLength(1);
   expect(JSON.parse(records[0])).toMatchObject({ decision: 'deny', reason: 'not-readable' });
 });
@@ -378,9 +327,7 @@ test('replacing a file on import clears every personal draft of that file', asyn
 test('a deleted empty project stays visible to the person who may restore it', async () => {
   using fixture = await authWorkspace();
   const access = createAccessControl(accessFixture());
-  const [alice, frank] = (['alice', 'frank'] as const).map(name =>
-    access.principalFor(person(name)),
-  );
+  const [alice, frank] = (['alice', 'frank'] as const).map(name => access.principalFor(person(name)));
   const project = 'sales-metrics';
   for (const file of fixture.ws.cache.files(project)) {
     await fixture.ws.trash.deleteFile(project, file.path, alice.id, LOCAL_READER);
@@ -412,32 +359,17 @@ test('keep-both imports never reveal or replace a name the reader cannot open', 
   const source = fixture.ws.readFile(project, 'orders.odcs.yaml').source;
   await fixture.ws.saveFile(project, hiddenName, { baseHash: null, source }, LOCAL_READER);
   const hiddenHash = fixture.ws.readFile(project, hiddenName).hash;
-  const reader = boundaryReader(
-    { ...view, canRead: (slug: string, path: string) => path !== hiddenName },
-    principal.id,
-  );
+  const reader = boundaryReader({ ...view, canRead: (slug: string, path: string) => path !== hiddenName }, principal.id);
   const files = [{ path: 'orders.odcs.yaml', source: source + '# imported\n' }];
-  const refusal = await fixture.ws
-    .importInto(project, files, 'keep-both', reader)
-    .catch(error => error);
+  const refusal = await fixture.ws.importInto(project, files, 'keep-both', reader).catch(error => error);
   expect(refusal.message).toBe('The target is unavailable.');
   expect(JSON.stringify(refusal)).not.toContain('(3)');
   expect(fixture.ws.readFile(project, hiddenName).hash).toBe(hiddenHash);
-  expect(fixture.ws.cache.files(project).map(file => file.path)).not.toContain(
-    'orders.odcs (3).yaml',
-  );
+  expect(fixture.ws.cache.files(project).map(file => file.path)).not.toContain('orders.odcs (3).yaml');
   // A keep-both name skips names already taken by the same batch.
   const batch = [files[0], { path: 'orders.odcs (3).yaml', source }];
-  const imported = await fixture.ws.importInto(
-    project,
-    batch,
-    'keep-both',
-    boundaryReader(view, principal.id),
-  );
-  expect(imported.written.map(file => file.path)).toEqual([
-    'orders.odcs (4).yaml',
-    'orders.odcs (3).yaml',
-  ]);
+  const imported = await fixture.ws.importInto(project, batch, 'keep-both', boundaryReader(view, principal.id));
+  expect(imported.written.map(file => file.path)).toEqual(['orders.odcs (4).yaml', 'orders.odcs (3).yaml']);
 });
 
 test('keep-both moves never reveal or replace a name the reader cannot open', async () => {
@@ -450,27 +382,14 @@ test('keep-both moves never reveal or replace a name the reader cannot open', as
   const source = fixture.ws.readFile(project, 'orders.odcs.yaml').source;
   await fixture.ws.saveFile(project, hiddenName, { baseHash: null, source }, LOCAL_READER);
   const hiddenHash = fixture.ws.readFile(project, hiddenName).hash;
-  const reader = boundaryReader(
-    { ...view, canRead: (slug: string, path: string) => path !== hiddenName },
-    principal.id,
-  );
-  const move = (keepBoth: boolean) =>
-    fixture.ws.moveFile(
-      'sales-metrics',
-      'sales.semantic.yaml',
-      project,
-      'orders.odcs.yaml',
-      keepBoth,
-      reader,
-    );
+  const reader = boundaryReader({ ...view, canRead: (slug: string, path: string) => path !== hiddenName }, principal.id);
+  const move = (keepBoth: boolean) => fixture.ws.moveFile('sales-metrics', 'sales.semantic.yaml', project, 'orders.odcs.yaml', keepBoth, reader);
   await expect(move(true)).rejects.toThrow('The target is unavailable.');
   const refusal = await move(false).catch(error => error);
   expect(refusal.suggestion).toEqual({});
   expect(JSON.stringify(refusal)).not.toContain('(3)');
   expect(fixture.ws.readFile(project, hiddenName).hash).toBe(hiddenHash);
-  expect(fixture.ws.readFile('sales-metrics', 'sales.semantic.yaml').path).toBe(
-    'sales.semantic.yaml',
-  );
+  expect(fixture.ws.readFile('sales-metrics', 'sales.semantic.yaml').path).toBe('sales.semantic.yaml');
 });
 
 test('a move keeps an existing personal draft at the destination, as it does the shared one', async () => {
@@ -489,14 +408,7 @@ test('a move keeps an existing personal draft at the destination, as it does the
       patches: [],
     });
   }
-  await fixture.ws.moveFile(
-    project,
-    'orders.odcs.yaml',
-    project,
-    'moved.yaml',
-    false,
-    LOCAL_READER,
-  );
+  await fixture.ws.moveFile(project, 'orders.odcs.yaml', project, 'moved.yaml', false, LOCAL_READER);
   for (const draftState of [fixture.ws.state, personal]) {
     expect(draftState.draft(project, 'moved.yaml')?.text).toBe('destination draft');
   }
@@ -524,9 +436,7 @@ test('grouping and document saves take the reader and hide restricted documents'
   const reader = boundaryReader(access.view(principal), principal.id);
   const hidden = 'sales-contracts/finance/revenue-recognition.odcs.yaml';
   expect(() => fixture.ws.grouping(hidden, reader)).toThrow(HiddenResourceError);
-  expect(() => fixture.ws.saveGrouping(hidden, { mode: 'types' }, reader)).toThrow(
-    HiddenResourceError,
-  );
+  expect(() => fixture.ws.saveGrouping(hidden, { mode: 'types' }, reader)).toThrow(HiddenResourceError);
   await expect(
     fixture.ws.saveDocument('revenue-recognition.odcs.yaml', 'x', reader, hidden, {
       baseHash: '0'.repeat(64),

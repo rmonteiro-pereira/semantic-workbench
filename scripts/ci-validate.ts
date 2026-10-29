@@ -7,14 +7,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
 /** Canonical execution order, also used by the pipeline plan validator. */
-export const gateSteps = [
-  'verify',
-  'mutation',
-  'browser',
-  'image',
-  'container',
-  'pipeline',
-] as const;
+export const gateSteps = ['verify', 'mutation', 'browser', 'image', 'container', 'pipeline'] as const;
 /** A selectable quality gate step. */
 export type GateStep = (typeof gateSteps)[number];
 /** Validated command-line selection. */
@@ -65,12 +58,7 @@ export function stepCommands(step: GateStep, suite?: string): string[][] {
     case 'container':
       return [run('test:container', '--image', 'semantic-workbench:dev')];
     case 'pipeline':
-      return [
-        run('pipeline:lint'),
-        ...['pr', 'main', 'tag:v0.4.0-alpha.1'].map(kind =>
-          run('pipeline:dry-run', '--', '--run', kind),
-        ),
-      ];
+      return [run('pipeline:lint'), ...['pr', 'main', 'tag:v0.4.0-alpha.1'].map(kind => run('pipeline:dry-run', '--', '--run', kind))];
   }
 }
 
@@ -99,10 +87,7 @@ function escapeXml(value: string): string {
 
 /** Renders a step result as portable JUnit XML. */
 export function renderJUnit(result: GateResult): string {
-  const failure =
-    result.error === undefined
-      ? ''
-      : `<failure message="${escapeXml(result.error)}">${escapeXml(result.error)}</failure>`;
+  const failure = result.error === undefined ? '' : `<failure message="${escapeXml(result.error)}">${escapeXml(result.error)}</failure>`;
   return (
     `<?xml version="1.0" encoding="UTF-8"?>\n` +
     `<testsuite name="${result.step}" tests="1" failures="${Number(!!failure)}"` +
@@ -160,11 +145,7 @@ async function waitForVite(baseUrl: string, child: ReturnType<typeof Bun.spawn>)
 }
 
 /** Copies only this suite's screenshots, preserving the suite error if copying fails. */
-export async function collectScreenshots(
-  directory: string,
-  destination: string,
-  report: (error: unknown) => void = console.error,
-) {
+export async function collectScreenshots(directory: string, destination: string, report: (error: unknown) => void = console.error) {
   try {
     await mkdir(destination, { recursive: true });
     for (const entry of await readdir(directory, { withFileTypes: true })) {
@@ -178,11 +159,7 @@ export async function collectScreenshots(
 }
 
 /** Terminates the detached process group, including descendants surviving their parent. */
-export async function stopVite(
-  child: { pid: number; exited: Promise<number> },
-  kill: (pid: number, signal: NodeJS.Signals) => unknown = process.kill,
-  grace = 5000,
-) {
+export async function stopVite(child: { pid: number; exited: Promise<number> }, kill: (pid: number, signal: NodeJS.Signals) => unknown = process.kill, grace = 5000) {
   const signalGroup = (signal: NodeJS.Signals) => {
     try {
       kill(-child.pid, signal);
@@ -203,10 +180,12 @@ type ViteServer = { baseUrl: string; stop: () => Promise<void> };
 async function startViteOnce(): Promise<ViteServer> {
   const port = freeLoopbackPort();
   const baseUrl = `http://127.0.0.1:${port}`;
-  const child = Bun.spawn(
-    ['bun', 'x', 'vite-plus', 'dev', '--host', '127.0.0.1', '--strictPort', '--port', String(port)],
-    { cwd: process.cwd(), stdout: 'inherit', stderr: 'inherit', detached: true },
-  );
+  const child = Bun.spawn(['bun', 'x', 'vite-plus', 'dev', '--host', '127.0.0.1', '--strictPort', '--port', String(port)], {
+    cwd: process.cwd(),
+    stdout: 'inherit',
+    stderr: 'inherit',
+    detached: true,
+  });
   let stopping: Promise<void> | undefined;
   const stopGroup = () => (stopping ??= stopVite(child));
   activeServers.add(stopGroup);

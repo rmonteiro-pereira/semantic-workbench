@@ -3,14 +3,7 @@
 import { afterAll, beforeAll, test } from 'bun:test';
 import { chromium, expect, type Browser, type Page } from '@playwright/test';
 import { adminMockState, openAdminHarness } from './helpers/admin-api-mock';
-import {
-  ADMIN_AREAS,
-  adminArea,
-  adminGeometry,
-  cancelAdminDialog,
-  leaveAdmin,
-  screenshotName,
-} from '../scripts/helpers/admin-browser';
+import { ADMIN_AREAS, adminArea, adminGeometry, cancelAdminDialog, leaveAdmin, screenshotName } from '../scripts/helpers/admin-browser';
 
 let browser: Browser | undefined;
 let page: Page;
@@ -71,9 +64,7 @@ test('grant panes fit each viewport, and the dry-run preview is a dialog', async
   await grant.getByLabel('Projects (comma separated)').fill('sales');
   await adminGeometry(page, 'add-grant');
   await grant.getByRole('button', { name: 'Dry run', exact: true }).click();
-  await expect(
-    page.getByRole('dialog').getByRole('region', { name: 'Dry-run result' }),
-  ).toBeVisible();
+  await expect(page.getByRole('dialog').getByRole('region', { name: 'Dry-run result' })).toBeVisible();
   await adminGeometry(page, 'add-grant-preview');
   await cancelAdminDialog(page, 'Cancel changes');
   await goBack('Add grant');
@@ -88,10 +79,7 @@ test('grant panes fit each viewport, and the dry-run preview is a dialog', async
 
 test('role panes fit each viewport', async () => {
   const roles = await adminArea(page, 'Roles');
-  await roles
-    .getByRole('region', { name: 'Editor', exact: true })
-    .getByRole('button', { name: 'Duplicate as custom role' })
-    .click();
+  await roles.getByRole('region', { name: 'Editor', exact: true }).getByRole('button', { name: 'Duplicate as custom role' }).click();
   await pane('New role').getByText('Conditions for edit', { exact: true }).click();
   await adminGeometry(page, 'new-role');
   await goBack('New role');
@@ -101,9 +89,7 @@ test('role panes fit each viewport', async () => {
   await adminGeometry(page, 'edit-role');
   await goBack('Edit role');
   await custom.getByRole('button', { name: 'Delete', exact: true }).click();
-  await expect(page.getByRole('dialog', { name: 'Delete role', exact: true })).toContainText(
-    'Alice Andrade',
-  );
+  await expect(page.getByRole('dialog', { name: 'Delete role', exact: true })).toContainText('Alice Andrade');
   await adminGeometry(page, 'delete-role');
   await cancelAdminDialog(page);
 }, 120_000);

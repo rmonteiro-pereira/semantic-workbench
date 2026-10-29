@@ -69,12 +69,7 @@ export function useWorkspaceEvents({
         // An open file that changed on disk follows the disk unless it has unsaved edits.
         const openDocument = currentRef.current;
         const fresh = openDocument && docsRef.current.get(openDocument.id);
-        if (
-          openDocument &&
-          fresh &&
-          fresh.hash !== openDocument.hash &&
-          sourceRef.current === openDocument.source
-        ) {
+        if (openDocument && fresh && fresh.hash !== openDocument.hash && sourceRef.current === openDocument.source) {
           setCurrent(fresh);
           setSource(fresh.source);
         }

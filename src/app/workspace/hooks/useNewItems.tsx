@@ -53,11 +53,7 @@ export function useNewItems({ model, current, currentIsRdf, setAdding, setRdfAdd
       item('concept-mapping', 'Open an Ossie mapping document to add a concept mapping.'),
       {
         label: 'Add RDF resource…',
-        disabled:
-          none ||
-          (currentIsRdf
-            ? false
-            : 'Open a Turtle, N-Triples, RDF/XML or N3 file to add a resource.'),
+        disabled: none || (currentIsRdf ? false : 'Open a Turtle, N-Triples, RDF/XML or N3 file to add a resource.'),
         run: () => {
           if (current) setRdfAdding(current.id);
         },

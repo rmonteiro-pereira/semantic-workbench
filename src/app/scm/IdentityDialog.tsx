@@ -17,24 +17,11 @@ function IdentityFields({ name, email, setName, setEmail }: FieldProps) {
     <>
       <label>
         <span>Name</span>
-        <input
-          aria-label="Name"
-          value={name}
-          maxLength={200}
-          autoComplete="name"
-          onChange={e => setName(e.target.value)}
-        />
+        <input aria-label="Name" value={name} maxLength={200} autoComplete="name" onChange={e => setName(e.target.value)} />
       </label>
       <label>
         <span>Email</span>
-        <input
-          aria-label="Email"
-          type="email"
-          value={email}
-          maxLength={320}
-          autoComplete="email"
-          onChange={e => setEmail(e.target.value)}
-        />
+        <input aria-label="Email" type="email" value={email} maxLength={320} autoComplete="email" onChange={e => setEmail(e.target.value)} />
       </label>
     </>
   );
@@ -78,12 +65,7 @@ export function IdentityDialog({ project, everyRepository = false, onClose }: Pr
       <button type="button" onClick={onClose}>
         Cancel
       </button>
-      <button
-        type="button"
-        className="primary"
-        disabled={busy || !name.trim() || !email.trim()}
-        onClick={() => void save()}
-      >
+      <button type="button" className="primary" disabled={busy || !name.trim() || !email.trim()} onClick={() => void save()}>
         Save identity
       </button>
     </>
@@ -92,10 +74,7 @@ export function IdentityDialog({ project, everyRepository = false, onClose }: Pr
   return (
     <Modal title="Set Git identity" onCancel={onClose} footer={footer} size="narrow">
       <form className="identity-form" onSubmit={save}>
-        <p className="dialog-intro">
-          Commits record a name and an email. They are saved in this repository’s own Git
-          configuration, not in your global settings.
-        </p>
+        <p className="dialog-intro">Commits record a name and an email. They are saved in this repository’s own Git configuration, not in your global settings.</p>
         <IdentityFields name={name} email={email} setName={setName} setEmail={setEmail} />
         <label className="check-row">
           <input type="checkbox" checked={all} onChange={e => setAll(e.target.checked)} />

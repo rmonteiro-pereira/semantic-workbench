@@ -8,33 +8,13 @@ import './scm.css';
 // Side-by-side diff with the file's syntax colors: changed lines are marked on both sides,
 // unchanged stretches fold away. Read-only; used by Source Control, file history and stale saves.
 /** Displays a read-only, syntax-highlighted comparison of two file versions. */
-export function DiffView({
-  before,
-  after,
-  filename,
-  beforeLabel,
-  afterLabel,
-  label,
-}: {
-  before: string;
-  after: string;
-  filename: string;
-  beforeLabel: string;
-  afterLabel: string;
-  label: string;
-}) {
+export function DiffView({ before, after, filename, beforeLabel, afterLabel, label }: { before: string; after: string; filename: string; beforeLabel: string; afterLabel: string; label: string }) {
   const host = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const syntax = syntaxFor(filename, after || before);
     const side = (doc: string) => ({
       doc,
-      extensions: [
-        lineNumbers(),
-        highlighting,
-        languageFor(syntax),
-        EditorState.readOnly.of(true),
-        EditorView.editable.of(false),
-      ],
+      extensions: [lineNumbers(), highlighting, languageFor(syntax), EditorState.readOnly.of(true), EditorView.editable.of(false)],
     });
     const view = new MergeView({
       a: side(before),

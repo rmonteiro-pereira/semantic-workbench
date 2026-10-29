@@ -1,15 +1,6 @@
 // Tests queued automatic saves, stale versions and cancellation.
 import { test, expect } from 'bun:test';
-import {
-  autosave,
-  initialAutosave,
-  isDirty,
-  saveStateLabel,
-  saveNeedsAction,
-  saveStateShortLabel,
-  type AutosaveEvent,
-  type AutosaveState,
-} from '../src/app/projects/autosave';
+import { autosave, initialAutosave, isDirty, saveStateLabel, saveNeedsAction, saveStateShortLabel, type AutosaveEvent, type AutosaveState } from '../src/app/projects/autosave';
 // The autosave state machine: pending → saving → saved/stale/failed/invalid, one save in flight,
 // queued text saved on the returned hash, cancel on delete/move, wait for Git.
 const run = (events: AutosaveEvent[], state: AutosaveState = initialAutosave) => {
@@ -23,11 +14,7 @@ const run = (events: AutosaveEvent[], state: AutosaveState = initialAutosave) =>
 };
 const open: AutosaveEvent = { type: 'open', file: 'p/a.yaml', hash: 'h0', text: 'a: 1\n' };
 test('a valid edit is saved after the pause, from the saved text to the new text on the base hash', () => {
-  const { state, effects } = run([
-    open,
-    { type: 'edit', text: 'a: 2\n' },
-    { type: 'idle', text: 'a: 2\n', errors: 0 },
-  ]);
+  const { state, effects } = run([open, { type: 'edit', text: 'a: 2\n' }, { type: 'idle', text: 'a: 2\n', errors: 0 }]);
   expect(effects[1]).toEqual({ type: 'schedule' });
   expect(effects[2]).toEqual({
     type: 'save',
@@ -50,11 +37,7 @@ test('a valid edit is saved after the pause, from the saved text to the new text
   expect(isDirty(done.state)).toBe(false);
 });
 test('invalid text is never written and is reported with its error count', () => {
-  const { state, effects } = run([
-    open,
-    { type: 'edit', text: 'a: [' },
-    { type: 'idle', text: 'a: [', errors: 2 },
-  ]);
+  const { state, effects } = run([open, { type: 'edit', text: 'a: [' }, { type: 'idle', text: 'a: [', errors: 2 }]);
   expect(effects[2]).toBeNull();
   expect(state.status).toBe('invalid');
   expect(state.errors).toBe(2);
@@ -85,13 +68,7 @@ test('validity of an older text is ignored; reverting to the saved text needs no
   expect(back.state.status).toBe('clean');
 });
 test('one save in flight; edits meanwhile are saved next on the returned hash', () => {
-  let { state } = run([
-    open,
-    { type: 'edit', text: 'b1' },
-    { type: 'idle', text: 'b1', errors: 0 },
-    { type: 'edit', text: 'b2' },
-    { type: 'idle', text: 'b2', errors: 0 },
-  ]);
+  let { state } = run([open, { type: 'edit', text: 'b1' }, { type: 'idle', text: 'b1', errors: 0 }, { type: 'edit', text: 'b2' }, { type: 'idle', text: 'b2', errors: 0 }]);
   expect(state.inFlight).toBe('b1');
   expect(state.status).toBe('saving');
   const r = autosave(state, { type: 'saved', text: 'b1', hash: 'h1', at: 1 });
@@ -107,12 +84,7 @@ test('one save in flight; edits meanwhile are saved next on the returned hash', 
   });
 });
 test('a stale save pauses autosave until the user chooses; then it resumes on the new base', () => {
-  let { state } = run([
-    open,
-    { type: 'edit', text: 'mine' },
-    { type: 'idle', text: 'mine', errors: 0 },
-    { type: 'stale' },
-  ]);
+  let { state } = run([open, { type: 'edit', text: 'mine' }, { type: 'idle', text: 'mine', errors: 0 }, { type: 'stale' }]);
   expect(state.status).toBe('stale');
   expect(saveStateLabel(state, 1)).toBe('Not saved: file changed on disk');
   const blocked = run(
@@ -141,12 +113,7 @@ test('a stale save pauses autosave until the user chooses; then it resumes on th
   });
 });
 test('a failed save is reported and retried on the next edit', () => {
-  let { state } = run([
-    open,
-    { type: 'edit', text: 'c' },
-    { type: 'idle', text: 'c', errors: 0 },
-    { type: 'failed', message: 'disk full' },
-  ]);
+  let { state } = run([open, { type: 'edit', text: 'c' }, { type: 'idle', text: 'c', errors: 0 }, { type: 'failed', message: 'disk full' }]);
   expect(state.status).toBe('failed');
   expect(saveStateLabel(state, 0)).toBe('Not saved: disk full');
   const r = run(
@@ -159,12 +126,7 @@ test('a failed save is reported and retried on the next edit', () => {
   expect(r.effects[1]).toMatchObject({ type: 'save', to: 'cc' });
 });
 test('delete, move or trash cancels the pending save; a late result is ignored', () => {
-  let { state } = run([
-    open,
-    { type: 'edit', text: 'd' },
-    { type: 'idle', text: 'd', errors: 0 },
-    { type: 'cancel' },
-  ]);
+  let { state } = run([open, { type: 'edit', text: 'd' }, { type: 'idle', text: 'd', errors: 0 }, { type: 'cancel' }]);
   expect(state.status).toBe('cancelled');
   const late = autosave(state, { type: 'saved', text: 'd', hash: 'h9', at: 1 });
   expect(late.state.status).toBe('cancelled');
@@ -179,12 +141,7 @@ test('delete, move or trash cancels the pending save; a late result is ignored',
   expect(r.effects).toEqual([null, null]);
 });
 test('during a Git operation the save waits, then resumes and re-checks the base on the server', () => {
-  let { state, effects } = run([
-    open,
-    { type: 'git', busy: true },
-    { type: 'edit', text: 'e' },
-    { type: 'idle', text: 'e', errors: 0 },
-  ]);
+  let { state, effects } = run([open, { type: 'git', busy: true }, { type: 'edit', text: 'e' }, { type: 'idle', text: 'e', errors: 0 }]);
   expect(effects[3]).toBeNull();
   expect(state.status).toBe('waiting');
   const r = run(
@@ -204,12 +161,8 @@ test('the disk is followed only when there are no unsaved edits', () => {
   expect(autosave(state, { type: 'external', hash: 'h5', text: 'z' }).state).toBe(state);
 });
 test('labels', () => {
-  expect(saveStateLabel({ ...initialAutosave, status: 'saved' }, 3)).toBe(
-    'Saved to file · 3 uncommitted changes',
-  );
-  expect(saveStateLabel({ ...initialAutosave, status: 'saved' }, 1)).toBe(
-    'Saved to file · 1 uncommitted change',
-  );
+  expect(saveStateLabel({ ...initialAutosave, status: 'saved' }, 3)).toBe('Saved to file · 3 uncommitted changes');
+  expect(saveStateLabel({ ...initialAutosave, status: 'saved' }, 1)).toBe('Saved to file · 1 uncommitted change');
   expect(saveStateLabel({ ...initialAutosave, status: 'saving' }, 1)).toBe('Saving…');
 });
 test('the short label says only "Saved" when nothing waits to be committed', () => {
@@ -217,9 +170,7 @@ test('the short label says only "Saved" when nothing waits to be committed', () 
   expect(saveStateShortLabel(saved, 0)).toBe('Saved');
   expect(saveStateShortLabel(saved, 3)).toBe('Saved · 3 to commit');
   expect(saveStateShortLabel({ ...saved, status: 'saving' }, 3)).toBe('Saving…');
-  expect(saveStateShortLabel({ ...saved, status: 'stale' }, 0)).toBe(
-    'Not saved: file changed on disk',
-  );
+  expect(saveStateShortLabel({ ...saved, status: 'stale' }, 0)).toBe('Not saved: file changed on disk');
 });
 test('only the Not saved states ask to be read', () => {
   for (const status of ['clean', 'pending', 'saving', 'saved'] as const) {
@@ -230,11 +181,7 @@ test('only the Not saved states ask to be read', () => {
   }
 });
 test('stored text that differs from the sent text is followed unless something was typed since', () => {
-  const saving = run([
-    open,
-    { type: 'edit', text: 'status: approved\n' },
-    { type: 'idle', text: 'status: approved\n', errors: 0 },
-  ]).state;
+  const saving = run([open, { type: 'edit', text: 'status: approved\n' }, { type: 'idle', text: 'status: approved\n', errors: 0 }]).state;
   const stored = { type: 'saved', text: 'status: proposed\n', hash: 'h1', at: 1 } as const;
   const followed = autosave(saving, stored);
   expect(followed.state).toMatchObject({
@@ -265,12 +212,7 @@ test('text typed during a demoted save gets the same demotion, so the next save 
   const sent = metric('approved', 'SUM(a) * 2');
   const typed = metric('approved', 'SUM(a) * 3');
   const opened = { type: 'open', file: 'p/m.yaml', hash: 'h0', text: metric('approved', 'SUM(a)') };
-  const saving = run([
-    opened as AutosaveEvent,
-    { type: 'edit', text: sent },
-    { type: 'idle', text: sent, errors: 0 },
-    { type: 'edit', text: typed },
-  ]).state;
+  const saving = run([opened as AutosaveEvent, { type: 'edit', text: sent }, { type: 'idle', text: sent, errors: 0 }, { type: 'edit', text: typed }]).state;
   const demoted = [{ file: 'm.yaml', pointer: '/metrics/0', metric: 'revenue' }];
   const stored = metric('proposed', 'SUM(a) * 2');
   const next = autosave(saving, { type: 'saved', text: stored, hash: 'h1', at: 1, demoted });

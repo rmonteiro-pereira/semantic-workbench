@@ -1,12 +1,7 @@
 // Builds the SEMANTIC_WORKBENCH extension entries that example generators attach to metrics and
 // to mapping roots, in the same text layout the metric wizard writes.
 import { stringify } from 'yaml';
-import {
-  METRIC_SCHEMA,
-  VENDOR,
-  type KpiBinding,
-  type MetricExtension,
-} from '../../src/shared/metrics/extension';
+import { METRIC_SCHEMA, VENDOR, type KpiBinding, type MetricExtension } from '../../src/shared/metrics/extension';
 import { bindingsText, sortedBindings } from '../../src/shared/metrics/metric-save';
 
 /** Describes a governed metric as an example generator declares it. */
@@ -27,10 +22,7 @@ export function metricExtensionEntries(extension: GovernedMetric['extension']) {
 
 /** Returns the custom_extensions list that holds a mapping's metric bindings, sorted by metric. */
 export function bindingEntries(metrics: GovernedMetric[]) {
-  const bindings = metrics.reduce<KpiBinding[]>(
-    (sorted, metric) => sortedBindings(sorted, { metric: metric.name, ...metric.binding }),
-    [],
-  );
+  const bindings = metrics.reduce<KpiBinding[]>((sorted, metric) => sortedBindings(sorted, { metric: metric.name, ...metric.binding }), []);
   return [{ vendor_name: VENDOR, data: bindingsText(bindings) }];
 }
 
@@ -58,12 +50,7 @@ export type ExampleMapping = {
 };
 
 /** A link from the subject identified by one column to the target identified by another. */
-export function linkMapping(
-  subject: string,
-  relationship: string,
-  target: string,
-  targetColumn: string,
-) {
+export function linkMapping(subject: string, relationship: string, target: string, targetColumn: string) {
   return {
     object_mapping: { expression: subject },
     children: [{ relationship, object_mapping: { concept: target, expression: targetColumn } }],
@@ -72,9 +59,7 @@ export function linkMapping(
 
 /** Writes a mapping document that maps concepts to fields and binds metrics to concepts. */
 export function exampleMappingText(mapping: ExampleMapping) {
-  const header = mapping.comment.map((line, index) =>
-    index === 0 ? `# Workbench addition: ${line}` : `# ${line}`,
-  );
+  const header = mapping.comment.map((line, index) => (index === 0 ? `# Workbench addition: ${line}` : `# ${line}`));
   const document = {
     version: '0.2.0.dev0',
     name: mapping.name,

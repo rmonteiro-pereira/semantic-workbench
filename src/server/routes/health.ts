@@ -3,11 +3,7 @@ import type { InstanceState } from '../projects/instance-lock';
 import type { TelemetryStatus } from '../observability/telemetry';
 
 /** Answers public probes and blocks application traffic until the workspace is serving. */
-export function healthResponse(
-  request: Request,
-  state: InstanceState,
-  build: { version?: string | null; commit?: string | null; telemetry?: TelemetryStatus },
-): Response | null {
+export function healthResponse(request: Request, state: InstanceState, build: { version?: string | null; commit?: string | null; telemetry?: TelemetryStatus }): Response | null {
   const path = new URL(request.url).pathname;
   if (request.method === 'GET' && path === '/healthz') {
     return Response.json({

@@ -2,13 +2,7 @@
 // in the folder is ignored, so the folder can never expose something it was not meant to.
 
 /** Every file name a brand bundle accepts. */
-export const BRAND_FILE_NAMES = [
-  'logo.svg',
-  'logo-mark.svg',
-  'favicon.svg',
-  'brand.json',
-  'brand.css',
-] as const;
+export const BRAND_FILE_NAMES = ['logo.svg', 'logo-mark.svg', 'favicon.svg', 'brand.json', 'brand.css'] as const;
 
 /** One of the file names a brand bundle accepts. */
 export type BrandFileName = (typeof BRAND_FILE_NAMES)[number];

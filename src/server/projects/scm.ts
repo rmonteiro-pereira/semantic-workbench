@@ -21,14 +21,7 @@ import {
 } from './git';
 import { MergingError } from './errors';
 import { decode, sha256 } from './atomic';
-import {
-  assertExactCase,
-  assertNoLinks,
-  projectPath,
-  projectPrefix,
-  repoDir,
-  type DataLayout,
-} from './paths';
+import { assertExactCase, assertNoLinks, projectPath, projectPrefix, repoDir, type DataLayout } from './paths';
 import { serializationOf } from './scanner';
 import { branchShownTo, branchSpelledDifferently } from './worktrees';
 import { fetchMissingContents, folderExistsAt, sparseFolders } from './sparse-folder';
@@ -39,11 +32,7 @@ export class BlockedError extends Error {
     public reason: 'drafts' | 'dirty',
     public paths: string[],
   ) {
-    super(
-      reason === 'drafts'
-        ? 'Save or discard the unsaved edits first.'
-        : 'Commit or discard the changes first; nothing is stashed automatically.',
-    );
+    super(reason === 'drafts' ? 'Save or discard the unsaved edits first.' : 'Commit or discard the changes first; nothing is stashed automatically.');
     this.name = 'BlockedError';
   }
 }
@@ -114,11 +103,7 @@ export type ScmDeps = {
    * Merges the default branch into a working copy's branch; absent in local mode. `check` judges
    * the exact commit before it is merged.
    */
-  mergeDefault?: (
-    slug: string,
-    author: CommitAuthor | undefined,
-    check: (tip: string) => Promise<void>,
-  ) => Promise<GitResult>;
+  mergeDefault?: (slug: string, author: CommitAuthor | undefined, check: (tip: string) => Promise<void>) => Promise<GitResult>;
 };
 // The local branch name a full ref stands for: `refs/heads/x` and `refs/remotes/origin/x` are both
 // `x`. Null for any other kind of ref.
@@ -135,10 +120,7 @@ export function createScm(deps: ScmDeps) {
   // Project paths gain their repository prefix before reaching Git.
   function dir(slug: string) {
     deps.project(slug);
-    if (!deps.gitAvailable)
-      throw new GitError(
-        'Git is not available on this machine. Install Git 2.40 or newer and restart the workbench.',
-      );
+    if (!deps.gitAvailable) throw new GitError('Git is not available on this machine. Install Git 2.40 or newer and restart the workbench.');
     return repoDir(layout, slug);
   }
   const prefix = (slug: string) => projectPrefix(layout, slug);
@@ -149,8 +131,7 @@ export function createScm(deps: ScmDeps) {
   // Paths arrive relative to the project, or relative to the repository root when the panel
   // acts on a file of a sibling project or on a file that belongs to no project.
   const paths = (slug: string, list: unknown, base: PathBase = 'project') => {
-    if (!Array.isArray(list) || !list.length || list.length > 5000)
-      throw new BadRequestError('Expected 1–5000 paths.');
+    if (!Array.isArray(list) || !list.length || list.length > 5000) throw new BadRequestError('Expected 1–5000 paths.');
     const pre = base === 'repository' ? '' : prefix(slug);
     const chosen = list.map(p => pre + projectPath(String(p)));
     for (const path of chosen) assertExactCase(repoDir(layout, slug), path);
@@ -159,15 +140,10 @@ export function createScm(deps: ScmDeps) {
   // Show changes across the repository; paths outside this project keep repository-relative names.
   const fromRepo = (slug: string, path: string) => {
     const pre = prefix(slug);
-    return !pre
-      ? { path }
-      : path.startsWith(pre)
-        ? { path: path.slice(pre.length) }
-        : { path, outside: true };
+    return !pre ? { path } : path.startsWith(pre) ? { path: path.slice(pre.length) } : { path, outside: true };
   };
   // The project a changed file belongs to, and its path inside that project.
-  const ownership = (owner: { project: string; prefix: string } | undefined, path: string) =>
-    owner ? { project: owner.project, projectPath: path.slice(owner.prefix.length) } : {};
+  const ownership = (owner: { project: string; prefix: string } | undefined, path: string) => (owner ? { project: owner.project, projectPath: path.slice(owner.prefix.length) } : {});
   function ownerOf(slug: string, path: string) {
     return deps
       .siblings(slug)
@@ -178,11 +154,7 @@ export function createScm(deps: ScmDeps) {
   function readablePath(slug: string, path: string, view: AccessView, base: PathBase = 'project') {
     const repoPath = (base === 'project' ? prefix(slug) : '') + projectPath(path);
     const owner = ownerOf(slug, repoPath)?.project;
-    return Boolean(
-      owner &&
-      view.readableProjects.has(owner) &&
-      view.canRead(owner, repoPath.slice(prefix(owner).length)),
-    );
+    return Boolean(owner && view.readableProjects.has(owner) && view.canRead(owner, repoPath.slice(prefix(owner).length)));
   }
 
   function requireReadable(slug: string, path: string, view?: AccessView, base?: PathBase) {
@@ -192,11 +164,7 @@ export function createScm(deps: ScmDeps) {
   }
   // Where Pull takes from when it is not the upstream, such as `origin/main` for a personal
   // branch, so the panel can name it.
-  async function pullSource(
-    slug: string,
-    d: string,
-    s: Awaited<ReturnType<Git['status']>>,
-  ): Promise<{ pullSource?: string }> {
+  async function pullSource(slug: string, d: string, s: Awaited<ReturnType<Git['status']>>): Promise<{ pullSource?: string }> {
     if (s.upstream || !deps.untrackedPull) return {};
     const target = await deps.untrackedPull(slug, s.branch);
     const remote = target ? await chosenRemote(d, '') : null;
@@ -217,10 +185,7 @@ export function createScm(deps: ScmDeps) {
     const { folder } = await sparseProjectFolder(slug, d);
     if (!folder) return;
     const outside = repoPaths.filter(path => !path.startsWith(folder + '/'));
-    if (outside.length)
-      throw new BadRequestError(
-        `Only files inside ${folder} can be committed from this project. Outside: ${outside.join(', ')}`,
-      );
+    if (outside.length) throw new BadRequestError(`Only files inside ${folder} can be committed from this project. Outside: ${outside.join(', ')}`);
   }
   // A project moved into a folder of a team repository has history of its own, which the team's
   // branch does not contain. While everything the project holds is inside its folder, its first
@@ -239,11 +204,7 @@ export function createScm(deps: ScmDeps) {
   }
   // Downloads what a judged change brings before it is read, when the repository holds only a
   // folder; a full clone has every file already.
-  async function fetchFolderContents(
-    d: string,
-    tip: string,
-    chooseRemote: () => Promise<RemoteChoice | null>,
-  ) {
+  async function fetchFolderContents(d: string, tip: string, chooseRemote: () => Promise<RemoteChoice | null>) {
     const folders = await sparseFolders(git, d);
     if (!folders.length) return;
     const choice = await chooseRemote();
@@ -291,15 +252,12 @@ export function createScm(deps: ScmDeps) {
       identityConfigured: deps.signedCommits || (await git.identity(d)),
       merging,
       hasCommits: s.hasCommits,
-      remotes: Object.fromEntries(
-        [...(await git.remotes(d))].map(([n, u]) => [n, redactCredentials(u)]),
-      ),
+      remotes: Object.fromEntries([...(await git.remotes(d))].map(([n, u]) => [n, redactCredentials(u)])),
       changes: view
         ? changes
             .filter(change => readablePath(slug, change.repoPath, view, 'repository'))
             .map(change => {
-              if (!change.orig || readablePath(slug, change.orig, view, 'repository'))
-                return change;
+              if (!change.orig || readablePath(slug, change.orig, view, 'repository')) return change;
               const { orig: _original, ...visible } = change;
               return visible;
             })
@@ -332,14 +290,9 @@ export function createScm(deps: ScmDeps) {
   async function alteredAfter(d: string, changed: string[]) {
     if (!changed.length) return [];
     const s = await git.status(d);
-    const busy = new Set(
-      s.entries.filter(e => e.worktree !== '.' || e.conflicted).map(e => e.path),
-    );
+    const busy = new Set(s.entries.filter(e => e.worktree !== '.' || e.conflicted).map(e => e.path));
     const candidates = changed.filter(p => !busy.has(p) && existsSync(join(d, p)));
-    const [disk, tree] = await Promise.all([
-      git.worktreeIds(d, candidates),
-      git.treeIds(d, 'HEAD', candidates),
-    ]);
+    const [disk, tree] = await Promise.all([git.worktreeIds(d, candidates), git.treeIds(d, 'HEAD', candidates)]);
     return candidates.filter(p => tree.has(p) && disk.get(p) !== tree.get(p));
   }
   // The one choice of remote for fetch, pull and push: the branch's upstream, else origin, else
@@ -360,10 +313,7 @@ export function createScm(deps: ScmDeps) {
     return chosenRemote(d, (await git.status(d)).upstream);
   }
   // Chooses the remote once for the whole request, and its credential when one is needed.
-  async function chooseRemote(
-    slug: string,
-    credentialFor?: CredentialFor,
-  ): Promise<RemoteChoice | null> {
+  async function chooseRemote(slug: string, credentialFor?: CredentialFor): Promise<RemoteChoice | null> {
     const chosen = await chosenRemoteAddresses(slug);
     if (!chosen) return null;
     const choice: RemoteChoice = { name: chosen.name, credential: await credentialFor?.(chosen) };
@@ -383,12 +333,7 @@ export function createScm(deps: ScmDeps) {
   }
   // What moving from `base` to `tip` would bring into each project of the repository: every
   // file changed between them, as `base` has it and as `tip` has it.
-  async function incomingChanges(
-    slug: string,
-    d: string,
-    base: string | null,
-    tip: string,
-  ): Promise<FileChange[]> {
+  async function incomingChanges(slug: string, d: string, base: string | null, tip: string): Promise<FileChange[]> {
     const changes: FileChange[] = [];
     for (const path of await git.changedBetween(d, base, tip)) {
       const owner = ownerOf(slug, path);
@@ -415,12 +360,7 @@ export function createScm(deps: ScmDeps) {
   // A pull is checked before any file changes: the branch is fetched and what it would bring in
   // is judged. The checked commit is then merged instead of fetching again, so commits pushed
   // after the check stay out of this pull. A failed fetch is reported as the pull's result.
-  async function guardedPull(
-    slug: string,
-    d: string,
-    source: { remote: string; branch: string; credential?: RemoteCredential },
-    guard: ContentGuard,
-  ) {
+  async function guardedPull(slug: string, d: string, source: { remote: string; branch: string; credential?: RemoteCredential }, guard: ContentGuard) {
     const refspec = 'refs/heads/' + source.branch;
     const fetched = await git.run(d, ['fetch', '--end-of-options', source.remote, refspec], {
       remote: true,
@@ -444,11 +384,7 @@ export function createScm(deps: ScmDeps) {
   }
   // Unsaved edits and uncommitted changes block a merge; conflicts and bytes rewritten by hooks
   // are reported, whichever merge runs.
-  async function mergeIn(
-    slug: string,
-    d: string,
-    merge: (status: Awaited<ReturnType<Git['status']>>) => Promise<GitResult>,
-  ) {
+  async function mergeIn(slug: string, d: string, merge: (status: Awaited<ReturnType<Git['status']>>) => Promise<GitResult>) {
     const s = await git.status(d);
     const blocked = blockers(deps.drafts(slug), s.entries);
     if (blocked) throw blocked;
@@ -457,10 +393,7 @@ export function createScm(deps: ScmDeps) {
     const now = await git.status(d);
     const conflicted = now.entries.filter(e => e.conflicted).map(e => e.path);
     const head = await git.head(d);
-    const altered =
-      head && head !== before
-        ? await alteredAfter(d, await git.changedBetween(d, before, head))
-        : [];
+    const altered = head && head !== before ? await alteredAfter(d, await git.changedBetween(d, before, head)) : [];
     return { ok: r.code === 0, conflicted, altered, stderr: r.stderr.trim() };
   }
   const pullIn = (slug: string, d: string, { choice, guard }: RemoteRequest) =>
@@ -489,11 +422,7 @@ export function createScm(deps: ScmDeps) {
   }
   // Remote actions report Git's result instead of throwing, so the panel can show stderr; Cancel
   // (or the 10-minute limit) ends them.
-  async function remoteAction(
-    slug: string,
-    kind: 'fetch' | 'pull' | 'push' | 'sync',
-    request: RemoteRequest,
-  ) {
+  async function remoteAction(slug: string, kind: 'fetch' | 'pull' | 'push' | 'sync', request: RemoteRequest) {
     const d = dir(slug);
     const choice = request.choice;
     const credential = choice?.credential;
@@ -518,15 +447,11 @@ export function createScm(deps: ScmDeps) {
       }
       if ((kind === 'push' || kind === 'sync') && result.ok) {
         const s = await git.status(d);
-        const r = await git.run(
-          d,
-          ['push', '-u', '--end-of-options', chosenName(choice), s.branch],
-          {
-            remote: true,
-            allowFailure: true,
-            credential,
-          },
-        );
+        const r = await git.run(d, ['push', '-u', '--end-of-options', chosenName(choice), s.branch], {
+          remote: true,
+          allowFailure: true,
+          credential,
+        });
         result = {
           ...result,
           ok: r.code === 0,
@@ -558,8 +483,7 @@ export function createScm(deps: ScmDeps) {
       const f = join(d, path);
       return existsSync(f) ? new Uint8Array(readFileSync(f)) : null;
     }
-    if (rev !== 'index' && !REV.test(rev))
-      throw new BadRequestError('Revision must be HEAD, index, worktree or a commit id.');
+    if (rev !== 'index' && !REV.test(rev)) throw new BadRequestError('Revision must be HEAD, index, worktree or a commit id.');
     return git.blob(d, rev === 'index' ? '' : rev, path);
   }
   const asText = (bytes: Uint8Array | null) => {
@@ -574,8 +498,7 @@ export function createScm(deps: ScmDeps) {
   async function commitIndex(slug: string, message: string, author?: CommitAuthor) {
     const d = dir(slug);
     const s = await git.status(d);
-    if (s.entries.some(e => e.conflicted))
-      throw new GitError('Resolve the conflicted files and stage them before committing.');
+    if (s.entries.some(e => e.conflicted)) throw new GitError('Resolve the conflicted files and stage them before committing.');
     const staged = s.entries.filter(e => e.index !== '.' && !e.untracked);
     const merging = await git.merging(d);
     // A merge commit holds everything the merge brought in, so only a plain commit is limited.
@@ -585,8 +508,7 @@ export function createScm(deps: ScmDeps) {
         d,
         staged.map(e => e.path),
       );
-    if (!staged.length && !merging)
-      throw new GitError('Nothing is staged. Stage the changes to include, then commit.');
+    if (!staged.length && !merging) throw new GitError('Nothing is staged. Stage the changes to include, then commit.');
     const clean = staged.filter(e => e.worktree === '.').map(e => e.path);
     const before = await git.worktreeIds(
       d,
@@ -606,27 +528,17 @@ export function createScm(deps: ScmDeps) {
       ),
       git.treeIds(d, 'HEAD', checked),
     ]);
-    const altered = checked.filter(
-      p => disk.get(p) !== before.get(p) || (tree.has(p) && disk.get(p) !== tree.get(p)),
-    );
+    const altered = checked.filter(p => disk.get(p) !== before.get(p) || (tree.has(p) && disk.get(p) !== tree.get(p)));
     await after(slug, altered);
     return { commit: head, altered };
   }
-  async function commitChosen(
-    slug: string,
-    message: string,
-    list: unknown,
-    base: PathBase,
-    author?: CommitAuthor,
-  ) {
+  async function commitChosen(slug: string, message: string, list: unknown, base: PathBase, author?: CommitAuthor) {
     const d = dir(slug);
     const chosen = paths(slug, list, base);
     await assertInsideFolder(slug, d, chosen);
     if (await git.merging(d)) {
       const s = await git.status(d);
-      throw new MergingError(
-        s.entries.filter(e => e.conflicted).map(e => fromRepo(slug, e.path).path),
-      );
+      throw new MergingError(s.entries.filter(e => e.conflicted).map(e => fromRepo(slug, e.path).path));
     }
     const clean = chosen.filter(p => existsSync(join(d, p)));
     const before = await git.worktreeIds(d, clean);
@@ -647,9 +559,7 @@ export function createScm(deps: ScmDeps) {
       ),
       git.treeIds(d, 'HEAD', checked),
     ]);
-    const altered = checked
-      .filter(p => disk.get(p) !== before.get(p) || (tree.has(p) && disk.get(p) !== tree.get(p)))
-      .map(p => fromRepo(slug, p).path);
+    const altered = checked.filter(p => disk.get(p) !== before.get(p) || (tree.has(p) && disk.get(p) !== tree.get(p))).map(p => fromRepo(slug, p).path);
     await after(slug, altered);
     return { commit: r.commit, altered };
   }
@@ -662,21 +572,16 @@ export function createScm(deps: ScmDeps) {
     // A volume that ignores case keeps `Work/bob` and `work/bob` in one file, so a spelling that
     // differs only in case from an existing branch is that branch under a name no rule matches.
     const known = await git.branches(d);
-    const existing = [
-      ...known.local,
-      ...known.remote.map(remote => remote.slice(remote.indexOf('/') + 1)),
-    ];
+    const existing = [...known.local, ...known.remote.map(remote => remote.slice(remote.indexOf('/') + 1))];
     const clash = branchSpelledDifferently(target.local, existing);
-    if (clash)
-      throw new BadRequestError(`"${target.local}" differs only in letter case from "${clash}".`);
+    if (clash) throw new BadRequestError(`"${target.local}" differs only in letter case from "${clash}".`);
     return target;
   }
   // A branch without the project's folder would remove the project from the disk on a sparse
   // checkout, so the switch is refused with the reason.
   async function assertBranchHasFolder(slug: string, d: string, tip: string, branch: string) {
     const { folder } = await sparseProjectFolder(slug, d);
-    if (folder && !(await folderExistsAt(git, d, tip, folder)))
-      throw new MissingFolderError(folder, branch);
+    if (folder && !(await folderExistsAt(git, d, tip, folder))) throw new MissingFolderError(folder, branch);
   }
   async function judgeSwitch(
     slug: string,
@@ -694,8 +599,7 @@ export function createScm(deps: ScmDeps) {
   }
   async function resolvedBranch(d: string, name: string, create: boolean) {
     if (create) {
-      if (!(await isBranchName(git, d, name)))
-        throw new BadRequestError(`"${name}" is not a valid branch name.`);
+      if (!(await isBranchName(git, d, name))) throw new BadRequestError(`"${name}" is not a valid branch name.`);
       return { local: name, ref: '' };
     }
     if (name.includes('@{')) throw new BadRequestError(`"${name}" is not a valid branch name.`);
@@ -706,20 +610,12 @@ export function createScm(deps: ScmDeps) {
     const ref = resolved.code === 0 ? resolved.stdout.trim() : '';
     const local = localBranchOf(ref);
     if (local === null) throw new BadRequestError(`"${name}" is not a branch.`);
-    if (!(await isBranchName(git, d, local)))
-      throw new BadRequestError(`"${local}" is not a valid branch name.`);
+    if (!(await isBranchName(git, d, local))) throw new BadRequestError(`"${local}" is not a valid branch name.`);
     return { local, ref };
   }
   return {
     status,
-    async diff(
-      slug: string,
-      path: string,
-      from: string | undefined,
-      to: string | undefined,
-      base: PathBase | undefined,
-      { view }: Reader,
-    ) {
+    async diff(slug: string, path: string, from: string | undefined, to: string | undefined, base: PathBase | undefined, { view }: Reader) {
       from ??= 'HEAD';
       to ??= 'worktree';
       base ??= 'project';
@@ -742,12 +638,7 @@ export function createScm(deps: ScmDeps) {
       };
     },
     // The status they return is the caller's own view, so staging never reveals a hidden path.
-    async stage(
-      slug: string,
-      list: unknown,
-      base: PathBase = 'project',
-      reader: Reader = LOCAL_READER,
-    ) {
+    async stage(slug: string, list: unknown, base: PathBase = 'project', reader: Reader = LOCAL_READER) {
       const d = dir(slug);
       const chosen = paths(slug, list, base);
       await assertInsideFolder(slug, d, chosen);
@@ -755,12 +646,7 @@ export function createScm(deps: ScmDeps) {
       await after(slug);
       return status(slug, reader);
     },
-    async unstage(
-      slug: string,
-      list: unknown,
-      base: PathBase = 'project',
-      reader: Reader = LOCAL_READER,
-    ) {
+    async unstage(slug: string, list: unknown, base: PathBase = 'project', reader: Reader = LOCAL_READER) {
       const d = dir(slug);
       await git.unstage(d, paths(slug, list, base));
       await after(slug);
@@ -793,15 +679,11 @@ export function createScm(deps: ScmDeps) {
         author?: CommitAuthor;
       } = {},
     ) {
-      if (typeof message !== 'string' || !message.trim())
-        throw new GitError('A commit message is required.');
+      if (typeof message !== 'string' || !message.trim()) throw new GitError('A commit message is required.');
       // A missing credential stops the request before the commit, so a retry commits only once.
       const choice = options.push ? await chooseRemote(slug, options.credentialFor) : null;
       const { author } = options;
-      const result =
-        options.paths === undefined
-          ? await commitIndex(slug, message, author)
-          : await commitChosen(slug, message, options.paths, options.base ?? 'project', author);
+      const result = options.paths === undefined ? await commitIndex(slug, message, author) : await commitChosen(slug, message, options.paths, options.base ?? 'project', author);
       if (!options.push) return result;
       let pushed: { ok: boolean; message: string };
       try {
@@ -828,18 +710,10 @@ export function createScm(deps: ScmDeps) {
       };
     },
     // The caller authorizes the branch actually checked out: `origin/x` becomes the local `x`.
-    async switchBranch(
-      slug: string,
-      branch: unknown,
-      create: boolean,
-      { guard }: Reader,
-      authorizeBranch?: (local: string) => void,
-      credentialFor?: CredentialFor,
-    ) {
+    async switchBranch(slug: string, branch: unknown, create: boolean, { guard }: Reader, authorizeBranch?: (local: string) => void, credentialFor?: CredentialFor) {
       // Trimmed before any check, so a leading space cannot smuggle an option such as `--detach`.
       const name = typeof branch === 'string' ? branch.trim() : '';
-      if (!name || name.startsWith('-') || name.length > 200)
-        throw new BadRequestError('Give a branch name.');
+      if (!name || name.startsWith('-') || name.length > 200) throw new BadRequestError('Give a branch name.');
       const d = dir(slug);
       const { local, ref } = await branchTarget(d, name, create);
       const s = await git.status(d);
@@ -858,10 +732,7 @@ export function createScm(deps: ScmDeps) {
       await git.run(d, create ? ['switch', '-c', local] : ['switch', '--end-of-options', local]);
       deps.branchesMoved?.(slug);
       const head = await git.head(d);
-      const altered =
-        head && head !== before
-          ? await alteredAfter(d, await git.changedBetween(d, before, head))
-          : [];
+      const altered = head && head !== before ? await alteredAfter(d, await git.changedBetween(d, before, head)) : [];
       await after(slug, altered);
       return { branch: local, altered };
     },
@@ -871,25 +742,16 @@ export function createScm(deps: ScmDeps) {
       const remotes = await git.remotes(d);
       const current = remotes.get(name);
       // The panel shows addresses with credentials masked; saving one unchanged keeps the original.
-      if (
-        current !== undefined &&
-        typeof url === 'string' &&
-        url.trim() === redactCredentials(current)
-      )
-        return { name, url: url.trim() };
+      if (current !== undefined && typeof url === 'string' && url.trim() === redactCredentials(current)) return { name, url: url.trim() };
       const address = remoteAddress(url);
-      await git.run(
-        d,
-        remotes.has(name) ? ['remote', 'set-url', name, address] : ['remote', 'add', name, address],
-      );
+      await git.run(d, remotes.has(name) ? ['remote', 'set-url', name, address] : ['remote', 'add', name, address]);
       await after(slug);
       return { name, url: address };
     },
     async removeRemote(slug: string, requestedName: unknown) {
       const name = remoteName(requestedName);
       const d = dir(slug);
-      if (!(await git.remotes(d)).has(name))
-        throw new BadRequestError(`There is no remote named ${name}.`);
+      if (!(await git.remotes(d)).has(name)) throw new BadRequestError(`There is no remote named ${name}.`);
       await git.run(d, ['remote', 'remove', name]);
       await after(slug);
       return { removed: name };
@@ -902,34 +764,27 @@ export function createScm(deps: ScmDeps) {
      * with the person's credential. Its full ref name keeps it from being read as an option.
      */
     async pushDefault(slug: string, credentialFor?: CredentialFor) {
-      if (!deps.defaultBranch)
-        throw new BadRequestError('This workspace has no default branch to push.');
+      if (!deps.defaultBranch) throw new BadRequestError('This workspace has no default branch to push.');
       const ref = 'refs/heads/' + (await deps.defaultBranch(slug));
       const choice = await chooseRemote(slug, credentialFor);
-      const pushed = await git.run(
-        dir(slug),
-        ['push', '--end-of-options', chosenName(choice), `${ref}:${ref}`],
-        {
-          remote: true,
-          allowFailure: true,
-          credential: choice?.credential,
-        },
-      );
+      const pushed = await git.run(dir(slug), ['push', '--end-of-options', chosenName(choice), `${ref}:${ref}`], {
+        remote: true,
+        allowFailure: true,
+        credential: choice?.credential,
+      });
       const s = await after(slug);
       const result = { ok: pushed.code === 0, conflicted: [], altered: [] };
       return { ...result, stderr: pushed.stderr.trim(), ahead: s.ahead, behind: s.behind };
     },
     /** Fetches; `follow` lets the published default branch follow the remote in server mode. */
-    fetch: async (slug: string, credentialFor?: CredentialFor, follow?: FollowRequest) =>
-      remoteAction(slug, 'fetch', { choice: await chooseRemote(slug, credentialFor), follow }),
+    fetch: async (slug: string, credentialFor?: CredentialFor, follow?: FollowRequest) => remoteAction(slug, 'fetch', { choice: await chooseRemote(slug, credentialFor), follow }),
     /**
      * Merges the default branch into the person's branch, as a pull does: the exact commit
      * merged is the one the guard judged.
      */
     async pullDefault(slug: string, { guard, copy }: Reader) {
       const merge = deps.mergeDefault;
-      if (!merge)
-        throw new BadRequestError('Pull from the default branch works on a personal working copy.');
+      if (!merge) throw new BadRequestError('Pull from the default branch works on a personal working copy.');
       const d = dir(slug);
       const check = async (tip: string) => {
         if (guard) await guardMerge(slug, d, tip, guard);
@@ -939,15 +794,13 @@ export function createScm(deps: ScmDeps) {
       return { ...result, ahead: s.ahead, behind: s.behind };
     },
     /** What moving the repository from `base` to `tip` changes, file by file, per project. */
-    changesBetween: (slug: string, base: string | null, tip: string) =>
-      incomingChanges(slug, dir(slug), base, tip),
+    changesBetween: (slug: string, base: string | null, tip: string) => incomingChanges(slug, dir(slug), base, tip),
     // The reader's guard, given in server mode, refuses a pull that brings in a guarded change.
     pull: async (slug: string, reader: Reader, credentialFor?: CredentialFor) => {
       const choice = await chooseRemote(slug, credentialFor);
       return remoteAction(slug, 'pull', { choice, guard: reader.guard });
     },
-    push: async (slug: string, credentialFor?: CredentialFor) =>
-      remoteAction(slug, 'push', { choice: await chooseRemote(slug, credentialFor) }),
+    push: async (slug: string, credentialFor?: CredentialFor) => remoteAction(slug, 'push', { choice: await chooseRemote(slug, credentialFor) }),
     sync: async (slug: string, reader: Reader, credentialFor?: CredentialFor) => {
       const choice = await chooseRemote(slug, credentialFor);
       return remoteAction(slug, 'sync', { choice, guard: reader.guard });
@@ -955,11 +808,7 @@ export function createScm(deps: ScmDeps) {
     cancel: (slug: string) => ({ cancelled: git.cancel(dir(slug)) }),
     async log(slug: string, path: string | undefined, limit: number | undefined, { view }: Reader) {
       if (path) requireReadable(slug, path, view);
-      const commits = await git.log(
-        dir(slug),
-        path === undefined ? prefix(slug) || undefined : prefix(slug) + projectPath(path),
-        limit,
-      );
+      const commits = await git.log(dir(slug), path === undefined ? prefix(slug) || undefined : prefix(slug) + projectPath(path), limit);
       if (!view) return commits.map(({ paths: _paths, ...commit }) => commit);
       const visible = [];
       let hiddenCommits = 0;
@@ -1002,19 +851,7 @@ export function createScm(deps: ScmDeps) {
     },
     // Git keeps tracking files even after an ignore pattern matches them.
     async ignoredButTracked(slug: string) {
-      const r = await git.run(
-        dir(slug),
-        [
-          '--no-optional-locks',
-          '-c',
-          'core.quotepath=off',
-          'ls-files',
-          '-ci',
-          '--exclude-standard',
-          '-z',
-        ],
-        { readOnly: true, allowFailure: true },
-      );
+      const r = await git.run(dir(slug), ['--no-optional-locks', '-c', 'core.quotepath=off', 'ls-files', '-ci', '--exclude-standard', '-z'], { readOnly: true, allowFailure: true });
       return r.stdout.split('\0').filter(Boolean);
     },
   };

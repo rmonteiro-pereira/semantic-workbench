@@ -7,14 +7,7 @@ import { ArrowLeft, ShieldCheck, Table2, Workflow } from 'lucide-react';
 import { odcsForeignKeys } from '../../shared/odcs/foreign-keys';
 import { scm, type Doc, type GitCommit as Commit } from '../projects/api';
 import { diffObject, flattenProperties, lastChange, type ObjectDiff } from './odcs-diff';
-import {
-  buildLineage,
-  closure,
-  objectId,
-  cardOfNode,
-  type ForeignKeyHop,
-  type LineageCard,
-} from './lineage';
+import { buildLineage, closure, objectId, cardOfNode, type ForeignKeyHop, type LineageCard } from './lineage';
 import { EmptyState } from '../projects/EmptyState';
 import { LineageCanvas } from './LineageCanvas';
 import { projectFiles, projectRevision } from './project-files';
@@ -27,14 +20,7 @@ import './odcs.css';
 // Quality rules are displayed as declared and never executed. Git history compares versions at
 // property level.
 const list = (v: unknown): any[] => (Array.isArray(v) ? v : []);
-const text = (v: unknown) =>
-  v === undefined || v === null
-    ? ''
-    : typeof v === 'string'
-      ? v
-      : typeof v === 'number' || typeof v === 'boolean'
-        ? String(v)
-        : JSON.stringify(v);
+const text = (v: unknown) => (v === undefined || v === null ? '' : typeof v === 'string' ? v : typeof v === 'number' || typeof v === 'boolean' ? String(v) : JSON.stringify(v));
 type Version = Commit & { source: string; data: any };
 
 type Tab = 'Lineage' | 'Relationships' | 'Data Quality' | 'Properties' | 'History';
@@ -57,20 +43,7 @@ type Props = {
   propertiesNote?: string;
 };
 /** Displays one table's properties, lineage, relationships, history and quality. */
-export function DatasetPage({
-  doc,
-  data,
-  objectName,
-  projectDocs,
-  onBack,
-  onOpenSource,
-  onOpenObject,
-  onOpenInLineage,
-  onNeighborhood,
-  editor,
-  propertiesNote,
-  gitVersion = 0,
-}: Props) {
+export function DatasetPage({ doc, data, objectName, projectDocs, onBack, onOpenSource, onOpenObject, onOpenInLineage, onNeighborhood, editor, propertiesNote, gitVersion = 0 }: Props) {
   const schema = list(data?.schema);
   const index = schema.findIndex((o: any) => o?.name === objectName);
   const object = schema[index];
@@ -134,9 +107,7 @@ export function DatasetPage({
           <div>
             <h2>
               {objectName}
-              {tableTypeBadge(object) && (
-                <span className="odcs-type-badge">{tableTypeBadge(object)}</span>
-              )}
+              {tableTypeBadge(object) && <span className="odcs-type-badge">{tableTypeBadge(object)}</span>}
             </h2>
             {object.physicalName && (
               <small>
@@ -145,12 +116,7 @@ export function DatasetPage({
             )}
           </div>
           {onOpenInLineage && (
-            <button
-              type="button"
-              className="odcs-head-action"
-              aria-label={`Open ${objectName} in lineage`}
-              onClick={() => onOpenInLineage(objectName)}
-            >
+            <button type="button" className="odcs-head-action" aria-label={`Open ${objectName} in lineage`} onClick={() => onOpenInLineage(objectName)}>
               <Workflow size={14} />
               Open in lineage
             </button>
@@ -159,10 +125,7 @@ export function DatasetPage({
         <div className="odcs-facts dataset-facts" role="group" aria-label="Table facts">
           <span>
             <b>Type</b>
-            <span>
-              {[object.physicalType, object.logicalType].filter(Boolean).map(text).join(' · ') ||
-                '—'}
-            </span>
+            <span>{[object.physicalType, object.logicalType].filter(Boolean).map(text).join(' · ') || '—'}</span>
           </span>
           <span>
             <b>Properties</b>
@@ -183,8 +146,7 @@ export function DatasetPage({
                 '…'
               ) : changed ? (
                 <>
-                  {changed.message} · <code>{changed.commit.slice(0, 7)}</code> ·{' '}
-                  {new Date(changed.date).toLocaleDateString()} · {changed.author}
+                  {changed.message} · <code>{changed.commit.slice(0, 7)}</code> · {new Date(changed.date).toLocaleDateString()} · {changed.author}
                 </>
               ) : (
                 'Not committed yet'
@@ -208,13 +170,7 @@ export function DatasetPage({
       </header>
       <ScrollStrip className="odcs-tabs" selection={tab} role="tablist" label="Asset views">
         {TABS.map(t => (
-          <button
-            key={t}
-            role="tab"
-            aria-selected={tab === t}
-            className={tab === t ? 'selected' : ''}
-            onClick={() => setTab(t)}
-          >
+          <button key={t} role="tab" aria-selected={tab === t} className={tab === t ? 'selected' : ''} onClick={() => setTab(t)}>
             {t}
             {t === 'Data Quality' && rules.length > 0 && <small>{rules.length}</small>}
           </button>
@@ -222,29 +178,10 @@ export function DatasetPage({
       </ScrollStrip>
       <div className="odcs-panel" role="tabpanel" aria-label={tab}>
         {tab === 'Properties' && propertiesNote && <p className="odcs-note">{propertiesNote}</p>}
-        {tab === 'Properties' && (
-          <PropertiesTab
-            data={data}
-            objectIndex={index}
-            onOpenObject={onOpenObject}
-            editor={editor}
-          />
-        )}
-        {tab === 'Lineage' && (
-          <LineageTab
-            doc={doc}
-            projectDocs={projectDocs}
-            objectName={objectName}
-            onOpenObject={onOpenObject}
-            onNeighborhood={onNeighborhood}
-          />
-        )}
-        {tab === 'Relationships' && (
-          <RelationshipsTab data={data} objectIndex={index} onOpenObject={onOpenObject} />
-        )}
-        {tab === 'History' && (
-          <HistoryTab versions={versions} error={historyError} objectName={objectName} />
-        )}
+        {tab === 'Properties' && <PropertiesTab data={data} objectIndex={index} onOpenObject={onOpenObject} editor={editor} />}
+        {tab === 'Lineage' && <LineageTab doc={doc} projectDocs={projectDocs} objectName={objectName} onOpenObject={onOpenObject} onNeighborhood={onNeighborhood} />}
+        {tab === 'Relationships' && <RelationshipsTab data={data} objectIndex={index} onOpenObject={onOpenObject} />}
+        {tab === 'History' && <HistoryTab versions={versions} error={historyError} objectName={objectName} />}
         {tab === 'Data Quality' && <QualityTab object={object} onOpenSource={onOpenSource} />}
       </div>
     </section>
@@ -266,10 +203,7 @@ function LineageTab({
   onNeighborhood?: (card: LineageCard) => void;
 }) {
   const rev = projectRevision(projectDocs);
-  const graph = useMemo(
-    () => buildLineage(projectFiles(projectDocs), doc.path, rev),
-    [rev, doc.path],
-  );
+  const graph = useMemo(() => buildLineage(projectFiles(projectDocs), doc.path, rev), [rev, doc.path]);
   const id = objectId(doc.path, objectName);
   const card = graph.cards.get(id);
   const rows = useMemo(
@@ -282,13 +216,11 @@ function LineageTab({
           if (n === col.id) continue;
           const c = graph.cards.get(cardOfNode(graph, n));
           if (!c) continue;
-          if (c.kind === 'dataset' && n !== c.id)
-            fields.push(`${c.label}.${n.slice(c.id.length + 1)}`);
+          if (c.kind === 'dataset' && n !== c.id) fields.push(`${c.label}.${n.slice(c.id.length + 1)}`);
           if (c.kind === 'metric') metrics.push(c.label);
         }
         // A dataset that copies this table names its field after the column it copies.
-        for (const copy of card?.copies ?? [])
-          if (copy.columns.includes(col.path)) fields.push(`${copy.dataset}.${col.path}`);
+        for (const copy of card?.copies ?? []) if (copy.columns.includes(col.path)) fields.push(`${copy.dataset}.${col.path}`);
         return {
           path: col.path,
           fields: [...new Set(fields)].sort(),
@@ -358,15 +290,7 @@ function LineageTab({
   );
 }
 // Relationships: foreign keys out of and into each column, both directions, with links.
-function RelationshipsTab({
-  data,
-  objectIndex,
-  onOpenObject,
-}: {
-  data: any;
-  objectIndex: number;
-  onOpenObject: (n: string) => void;
-}) {
+function RelationshipsTab({ data, objectIndex, onOpenObject }: { data: any; objectIndex: number; onOpenObject: (n: string) => void }) {
   const schema = list(data?.schema);
   const name = String(schema[objectIndex]?.name);
   const rows = useMemo(() => {
@@ -399,17 +323,9 @@ function RelationshipsTab({
             },
           });
       });
-    return out.sort(
-      (a, b) =>
-        a.column.localeCompare(b.column) ||
-        a.direction.localeCompare(b.direction) ||
-        a.other.localeCompare(b.other),
-    );
+    return out.sort((a, b) => a.column.localeCompare(b.column) || a.direction.localeCompare(b.direction) || a.other.localeCompare(b.other));
   }, [data, objectIndex]);
-  if (!rows.length)
-    return (
-      <p className="odcs-note">{name} has no foreign keys and no other table references it.</p>
-    );
+  if (!rows.length) return <p className="odcs-note">{name} has no foreign keys and no other table references it.</p>;
   return (
     <>
       <DirectionLegend tableName={name} />
@@ -428,19 +344,9 @@ function RelationshipsTab({
                 <td data-label="Foreign key">
                   <code>{r.hop.child}</code> references <code>{r.hop.parent}</code>
                 </td>
-                <td data-label="Direction">
-                  {r.direction === 'out' ? (
-                    <span className="odcs-dir out">references</span>
-                  ) : (
-                    <span className="odcs-dir in">referenced by</span>
-                  )}
-                </td>
+                <td data-label="Direction">{r.direction === 'out' ? <span className="odcs-dir out">references</span> : <span className="odcs-dir in">referenced by</span>}</td>
                 <td data-label="Other table">
-                  <button
-                    className="odcs-link fk"
-                    aria-label={`Open ${r.other}`}
-                    onClick={() => onOpenObject(r.other)}
-                  >
+                  <button className="odcs-link fk" aria-label={`Open ${r.other}`} onClick={() => onOpenObject(r.other)}>
                     {r.other}
                   </button>
                 </td>
@@ -471,15 +377,7 @@ function DirectionLegend({ tableName }: { tableName: string }) {
     </dl>
   );
 }
-function HistoryTab({
-  versions,
-  error,
-  objectName,
-}: {
-  versions: Version[] | null;
-  error: string;
-  objectName: string;
-}) {
+function HistoryTab({ versions, error, objectName }: { versions: Version[] | null; error: string; objectName: string }) {
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   useEffect(() => {
@@ -538,21 +436,13 @@ function HistoryTab({
         </table>
       </div>
       {versions.length < 2 ? (
-        <p className="odcs-note">
-          {versions.length
-            ? 'Only one committed version so far; commit a change to compare versions.'
-            : 'This file has no commits yet.'}
-        </p>
+        <p className="odcs-note">{versions.length ? 'Only one committed version so far; commit a change to compare versions.' : 'This file has no commits yet.'}</p>
       ) : (
         <>
           <div className="odcs-compare">
             <label>
               <span>From version</span>
-              <select
-                aria-label="From version"
-                value={from}
-                onChange={e => setFrom(e.target.value)}
-              >
+              <select aria-label="From version" value={from} onChange={e => setFrom(e.target.value)}>
                 {versions.map(option)}
               </select>
             </label>
@@ -570,8 +460,7 @@ function HistoryTab({
               <>
                 {diff.kind !== 'changed' && (
                   <p>
-                    <span className={`odcs-change ${diff.kind}`}>{diff.kind}</span> {objectName}{' '}
-                    {diff.kind === 'added' ? 'appears' : 'disappears'} in this version.
+                    <span className={`odcs-change ${diff.kind}`}>{diff.kind}</span> {objectName} {diff.kind === 'added' ? 'appears' : 'disappears'} in this version.
                   </p>
                 )}
                 {diff.attributes.length > 0 && (
@@ -609,8 +498,7 @@ function HistoryTab({
     </>
   );
 }
-const shown = (v: unknown) =>
-  v === undefined ? '(none)' : typeof v === 'string' ? v : JSON.stringify(v);
+const shown = (v: unknown) => (v === undefined ? '(none)' : typeof v === 'string' ? v : JSON.stringify(v));
 const Values = ({ before, after }: { before: unknown; after: unknown }) => (
   <span className="odcs-values">
     <del>{shown(before)}</del> → <ins>{shown(after)}</ins>
@@ -627,10 +515,8 @@ const OPERATORS: [string, string][] = [
 /** Formats a declared quality rule's threshold for display. */
 export function threshold(r: any) {
   for (const [k, op] of OPERATORS) if (r?.[k] !== undefined) return `${op} ${text(r[k])}`;
-  if (Array.isArray(r?.mustBeBetween))
-    return `between ${text(r.mustBeBetween[0])} and ${text(r.mustBeBetween[1])}`;
-  if (Array.isArray(r?.mustNotBeBetween))
-    return `not between ${text(r.mustNotBeBetween[0])} and ${text(r.mustNotBeBetween[1])}`;
+  if (Array.isArray(r?.mustBeBetween)) return `between ${text(r.mustBeBetween[0])} and ${text(r.mustBeBetween[1])}`;
+  if (Array.isArray(r?.mustNotBeBetween)) return `not between ${text(r.mustNotBeBetween[0])} and ${text(r.mustNotBeBetween[1])}`;
   return '';
 }
 type QualityRow = { scope: string; rule: any };
@@ -643,8 +529,7 @@ function qualityColumns(rows: QualityRow[]): QualityColumn[] {
     {
       label: 'Applies to',
       filled: true,
-      cell: ({ scope }) =>
-        scope === 'Table' ? <span className="muted">Table</span> : <code>{scope}</code>,
+      cell: ({ scope }) => (scope === 'Table' ? <span className="muted">Table</span> : <code>{scope}</code>),
     },
     { label: 'Rule', filled: filled(r => r.name), cell: ({ rule }) => text(rule.name) },
     {
@@ -655,10 +540,7 @@ function qualityColumns(rows: QualityRow[]): QualityColumn[] {
     {
       label: 'Severity',
       filled: filled(r => r.severity),
-      cell: ({ rule }) =>
-        rule.severity ? (
-          <span className={`odcs-severity s-${text(rule.severity)}`}>{text(rule.severity)}</span>
-        ) : null,
+      cell: ({ rule }) => (rule.severity ? <span className={`odcs-severity s-${text(rule.severity)}`}>{text(rule.severity)}</span> : null),
     },
     { label: 'Type', filled: filled(r => r.type), cell: ({ rule }) => text(rule.type) },
     {
@@ -685,27 +567,18 @@ function qualityColumns(rows: QualityRow[]): QualityColumn[] {
 function QualityTab({ object, onOpenSource }: { object: any; onOpenSource?: () => void }) {
   const rules: QualityRow[] = [
     ...list(object.quality).map(r => ({ scope: 'Table', rule: r })),
-    ...flattenProperties(object.properties).flatMap(p =>
-      list(p.property.quality).map(r => ({ scope: p.path, rule: r })),
-    ),
+    ...flattenProperties(object.properties).flatMap(p => list(p.property.quality).map(r => ({ scope: p.path, rule: r }))),
   ];
   const columns = qualityColumns(rules);
   return (
     <>
       {!rules.length ? (
-        <EmptyState
-          icon={<ShieldCheck size={28} />}
-          title="No quality rules declared"
-          action={onOpenSource && <button onClick={onOpenSource}>Open Source tab</button>}
-        >
-          Add a quality list to this table or to one of its properties in the contract file (Source
-          tab). Rules appear here as declared; the workbench does not run them.
+        <EmptyState icon={<ShieldCheck size={28} />} title="No quality rules declared" action={onOpenSource && <button onClick={onOpenSource}>Open Source tab</button>}>
+          Add a quality list to this table or to one of its properties in the contract file (Source tab). Rules appear here as declared; the workbench does not run them.
         </EmptyState>
       ) : (
         <>
-          <p className="odcs-note">
-            Rules are shown as declared in the contract; the workbench does not run them.
-          </p>
+          <p className="odcs-note">Rules are shown as declared in the contract; the workbench does not run them.</p>
           <div className="odcs-table-wrap">
             <table className="odcs-table stack" aria-label="Quality rules">
               <thead>

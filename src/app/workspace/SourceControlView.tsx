@@ -25,21 +25,7 @@ type Props = {
   setTab: (next: string) => void;
 };
 /** Renders source control view. */
-export function SourceControlView({
-  project,
-  setGitBusy,
-  autosave,
-  setCommitting,
-  projects,
-  gitVersion,
-  current,
-  source,
-  historyPath,
-  refresh,
-  docsRef,
-  openDocument,
-  setTab,
-}: Props) {
+export function SourceControlView({ project, setGitBusy, autosave, setCommitting, projects, gitVersion, current, source, historyPath, refresh, docsRef, openDocument, setTab }: Props) {
   function handleSourceControlOpen(project: string, path: string) {
     const document = docsRef.current.get(`${project}/${path}`);
     if (document && openDocument(document)) setTab('source');
@@ -55,9 +41,7 @@ export function SourceControlView({
       projects={projects}
       project={project}
       version={gitVersion}
-      unsaved={
-        current && current.project === project && source !== current.source ? [current.path] : []
-      }
+      unsaved={current && current.project === project && source !== current.source ? [current.path] : []}
       historyPath={historyPath}
       onChanged={() => void refresh().catch(() => {})}
       onOpen={handleSourceControlOpen}

@@ -72,15 +72,11 @@ export function StructuredItemDialogs({
     }
     setEditing(null);
     const otherFiles = saved.length - 1;
-    const suffix =
-      otherFiles > 0 ? ` and ${otherFiles} other file${otherFiles > 1 ? 's' : ''}` : '';
+    const suffix = otherFiles > 0 ? ` and ${otherFiles} other file${otherFiles > 1 ? 's' : ''}` : '';
     applySaved(saved, `Saved to ${file}${suffix}.`);
   }
 
-  function handleItemEditorAddChild(
-    kind: import('../../shared/edit/item-model').ItemKind,
-    owner: import('../../shared/edit/item-model').Path,
-  ) {
+  function handleItemEditorAddChild(kind: import('../../shared/edit/item-model').ItemKind, owner: import('../../shared/edit/item-model').Path) {
     if (editing == null) return;
 
     setAdding({ docId: editing.docId, kind, owner });
@@ -95,17 +91,10 @@ export function StructuredItemDialogs({
     openSourceAt(id, line);
   }
 
-  function handleAddItemSaved(
-    saved: import('../edit/ItemEditor').Saved,
-    path: import('../../shared/edit/item-model').Path,
-    kind: import('../../shared/edit/item-model').ItemKind,
-  ) {
+  function handleAddItemSaved(saved: import('../edit/ItemEditor').Saved, path: import('../../shared/edit/item-model').Path, kind: import('../../shared/edit/item-model').ItemKind) {
     setAdding(null);
     applySaved([saved], `Added to ${docsRef.current.get(saved.docId)?.path}.`);
-    if (
-      saved.docId === current?.id &&
-      !['ontology-relationship', 'join', 'odcs-foreign-key'].includes(kind)
-    ) {
+    if (saved.docId === current?.id && !['ontology-relationship', 'join', 'odcs-foreign-key'].includes(kind)) {
       setSelected(path.join('/'));
       setSelectedEdge('');
     }
@@ -157,18 +146,12 @@ export function StructuredItemDialogs({
             setSelectedEdge('');
             const name = itemName(deleting.kind, item);
             const fileCount = saved.length;
-            applySaved(
-              saved,
-              `Deleted ${name} and saved ${fileCount} file${fileCount === 1 ? '' : 's'}.`,
-            );
+            applySaved(saved, `Deleted ${name} and saved ${fileCount} file${fileCount === 1 ? '' : 's'}.`);
           }
 
           const base = docText(deleting.docId);
           const item = itemValue(base, deleting.path);
-          const owner =
-            deleting.kind === 'field' || deleting.kind === 'odcs-property'
-              ? String(itemValue(base, deleting.path.slice(0, -2))?.name ?? '')
-              : undefined;
+          const owner = deleting.kind === 'field' || deleting.kind === 'odcs-property' ? String(itemValue(base, deleting.path.slice(0, -2))?.name ?? '') : undefined;
           return (
             <DeleteItem
               doc={docsRef.current.get(deleting.docId)!}

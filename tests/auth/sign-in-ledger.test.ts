@@ -87,12 +87,9 @@ test('server authentication prunes the ledger at start-up and on a timer, until 
   const client = await createOidcClient(transport.config, { fetch: transport.fetch });
   const ledgerDir = join(fixture.root, 'state/auth-attempts');
   mkdirSync(ledgerDir, { recursive: true });
-  const staleEntry = (age: number) =>
-    `${Date.now() - ttlMilliseconds - age}-${sha256(String(age))}`;
+  const staleEntry = (age: number) => `${Date.now() - ttlMilliseconds - age}-${sha256(String(age))}`;
   writeFileSync(join(ledgerDir, staleEntry(1)), '');
-  const { started: auth, callbacks } = await recordingMinuteIntervals(() =>
-    createServerAuthentication(fixture.ws, transport.config, client),
-  );
+  const { started: auth, callbacks } = await recordingMinuteIntervals(() => createServerAuthentication(fixture.ws, transport.config, client));
   expect(readdirSync(ledgerDir)).toEqual([]);
   expect(callbacks.size).toBe(1);
   writeFileSync(join(ledgerDir, staleEntry(2)), '');

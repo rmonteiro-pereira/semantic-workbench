@@ -2,14 +2,7 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import React, { useEffect, useId, useRef, useState, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
-import {
-  placeSubmenu,
-  placeMenu,
-  submenuFits,
-  type MenuPlacement,
-  type MenuPreference,
-  type Size,
-} from './menu-position';
+import { placeSubmenu, placeMenu, submenuFits, type MenuPlacement, type MenuPreference, type Size } from './menu-position';
 import { popupNaturalSize, useAnchoredPopup, usePopupDismiss } from './useAnchoredPopup';
 // Arrow keys move between menu items; Escape or an outside click restores button focus. Disabled
 // items stay visible with an accessible explanation.
@@ -104,13 +97,7 @@ function SubmenuBeside({ item, ids, row, popup, host, focusFirst, onChoose }: Su
     if (focusFirst) popup.current?.querySelector<HTMLElement>(FIRST_ITEM)?.focus();
   }, [item, focusFirst]);
   return createPortal(
-    <div
-      ref={popup}
-      id={ids.submenu}
-      role="menu"
-      aria-labelledby={ids.row}
-      className="menu-popup menu-submenu"
-    >
+    <div ref={popup} id={ids.submenu} role="menu" aria-labelledby={ids.row} className="menu-popup menu-submenu">
       {item.submenu?.map(entry => (
         <MenuRow key={entry.label} item={entry} onChoose={onChoose} />
       ))}
@@ -218,15 +205,8 @@ export function MenuButton({
     const preference: MenuPreference = { side: placement, align };
     return placeMenu(anchor, popupNaturalSize(menu), viewport, preference);
   }
-  useAnchoredPopup(open, { popup, anchor: button }, placePopup, [
-    openSubmenu,
-    placement,
-    align,
-    matchButtonWidth,
-  ]);
-  usePopupDismiss(open, { popup, anchor: root, related: beside.popup }, MENU_FOCUS, () =>
-    setOpen(false),
-  );
+  useAnchoredPopup(open, { popup, anchor: button }, placePopup, [openSubmenu, placement, align, matchButtonWidth]);
+  usePopupDismiss(open, { popup, anchor: root, related: beside.popup }, MENU_FOCUS, () => setOpen(false));
   useEffect(() => {
     if (open) return;
     setOpenSubmenu(null);
@@ -304,11 +284,7 @@ export function MenuButton({
     closeForKey(e);
   };
   return (
-    <span
-      className={`menu-button ${className}`.trim()}
-      ref={root}
-      onKeyDown={open ? move : undefined}
-    >
+    <span className={`menu-button ${className}`.trim()} ref={root} onKeyDown={open ? move : undefined}>
       <button
         ref={button}
         className={buttonClassName}
@@ -329,35 +305,16 @@ export function MenuButton({
       </button>
       {open &&
         createPortal(
-          <div
-            ref={popup}
-            role="menu"
-            aria-label={openSubmenu?.label ?? menuLabel ?? ariaLabel}
-            className="menu-popup"
-          >
+          <div ref={popup} role="menu" aria-label={openSubmenu?.label ?? menuLabel ?? ariaLabel} className="menu-popup">
             {header}
             {shownItems.map(it => (
-              <MenuRow
-                key={it.label}
-                item={it}
-                openSubmenu={beside.shown?.item === it ? beside.ids : undefined}
-                onChoose={choose}
-                onPoint={beside.point}
-              />
+              <MenuRow key={it.label} item={it} openSubmenu={beside.shown?.item === it ? beside.ids : undefined} onChoose={choose} onPoint={beside.point} />
             ))}
           </div>,
           menuHost(button.current),
         )}
       {open && beside.shown && (
-        <SubmenuBeside
-          item={beside.shown.item}
-          ids={beside.ids}
-          row={beside.row}
-          popup={beside.popup}
-          host={menuHost(button.current)}
-          focusFirst={beside.shown.focus}
-          onChoose={choose}
-        />
+        <SubmenuBeside item={beside.shown.item} ids={beside.ids} row={beside.row} popup={beside.popup} host={menuHost(button.current)} focusFirst={beside.shown.focus} onChoose={choose} />
       )}
     </span>
   );

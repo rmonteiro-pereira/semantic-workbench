@@ -16,9 +16,7 @@ import {
 test('both dependency stages receive patches before their frozen install', async () => {
   const dockerfile = await Bun.file('Dockerfile').text();
   for (const name of ['deps', 'prod-deps']) {
-    const stage = dockerfile
-      .split(/^FROM /m)
-      .find(block => block.split('\n')[0]?.endsWith(` AS ${name}`));
+    const stage = dockerfile.split(/^FROM /m).find(block => block.split('\n')[0]?.endsWith(` AS ${name}`));
     if (!stage) throw new Error(`Missing Docker dependency stage: ${name}`);
     const copy = stage.indexOf('COPY patches ./patches');
     const install = stage.indexOf('RUN bun install --frozen-lockfile');
@@ -53,23 +51,9 @@ test('engine choice fails closed and Podman retains Docker HEALTHCHECK', () => {
 test('dirty commits are tagged locally but never pushed', () => {
   expect(imageCommit(context.commit, true)).toBe(`${context.commit}-dirty`);
   expect(() => imageCommit('short', false)).toThrow('40-hex');
-  expect(() =>
-    pushArguments({ ...context, commit: `${context.commit}-dirty` }, 'swexample.azurecr.io'),
-  ).toThrow('-dirty');
-  expect(pushArguments(context, 'swexample.azurecr.io')[0]).toEqual([
-    'az',
-    'acr',
-    'login',
-    '--name',
-    'swexample',
-  ]);
-  expect(registryLogin('swexample.azurecr.io')).toEqual([
-    'az',
-    'acr',
-    'login',
-    '--name',
-    'swexample',
-  ]);
+  expect(() => pushArguments({ ...context, commit: `${context.commit}-dirty` }, 'swexample.azurecr.io')).toThrow('-dirty');
+  expect(pushArguments(context, 'swexample.azurecr.io')[0]).toEqual(['az', 'acr', 'login', '--name', 'swexample']);
+  expect(registryLogin('swexample.azurecr.io')).toEqual(['az', 'acr', 'login', '--name', 'swexample']);
   expect(() => registryLogin('evil.example')).toThrow('Invalid Azure registry');
   expect(() => validateTarget({})).toThrow('AZURE_SUBSCRIPTION_ID');
 });
@@ -87,24 +71,15 @@ test('scanner produces both gate reports and SPDX, with no container socket', ()
   expect(scanArguments('sbom')[0]).toContain('out/image/sbom.spdx.json');
   const ref = `swexample.azurecr.io/semantic-workbench@sha256:${'a'.repeat(64)}`;
   expect(scanArguments('scan', ref)[0]).toContain(ref);
-  expect(() => scanArguments('scan', 'swexample.azurecr.io/semantic-workbench:latest')).toThrow(
-    'pinned by digest',
-  );
+  expect(() => scanArguments('scan', 'swexample.azurecr.io/semantic-workbench:latest')).toThrow('pinned by digest');
   expect(trivyImage).toMatch(/@sha256:[a-f0-9]{64}$/);
 });
 
 test('exceptions need real reasons and unexpired calendar dates', () => {
   const today = '2026-10-22';
   expect(parseTrivyIgnore('# empty\n', today)).toEqual([]);
-  expect(parseTrivyIgnore('CVE-2026-1234 # Not reachable; expires 2026-10-22', today)).toEqual([
-    'CVE-2026-1234',
-  ]);
-  for (const line of [
-    'CVE-2026-1234',
-    'CVE-2026-1234 # ; expires 2026-12-31',
-    'CVE-2026-1234 # Reason; expires 2026-10-21',
-    'CVE-2026-1234 # Reason; expires 2027-02-30',
-  ]) {
+  expect(parseTrivyIgnore('CVE-2026-1234 # Not reachable; expires 2026-10-22', today)).toEqual(['CVE-2026-1234']);
+  for (const line of ['CVE-2026-1234', 'CVE-2026-1234 # ; expires 2026-12-31', 'CVE-2026-1234 # Reason; expires 2026-10-21', 'CVE-2026-1234 # Reason; expires 2027-02-30']) {
     expect(() => parseTrivyIgnore(line, today)).toThrow();
   }
 });

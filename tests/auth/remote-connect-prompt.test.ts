@@ -24,10 +24,6 @@ test('only a 428 answer asks to connect, naming GitHub or Azure DevOps', () => {
 
 test('the person menu summarises which accounts can push now', () => {
   expect(accountsSummary(me)).toBe('No accounts connected');
-  expect(accountsSummary({ ...me, azureDevOpsAvailable: true })).toBe(
-    'Azure DevOps through your sign-in',
-  );
-  expect(accountsSummary({ ...me, connected: { azureDevOps: true, github: true } })).toBe(
-    'GitHub connected',
-  );
+  expect(accountsSummary({ ...me, azureDevOpsAvailable: true })).toBe('Azure DevOps through your sign-in');
+  expect(accountsSummary({ ...me, connected: { azureDevOps: true, github: true } })).toBe('GitHub connected');
 });

@@ -55,11 +55,7 @@ async function setup() {
   const client = await createOidcClient(transport.config, { fetch: providerFetch });
   const auth = await createServerAuthentication(fixture.ws, transport.config, client);
   const handler = createHandler(fixture.ws, auth);
-  async function call(
-    bearer: string,
-    path = '/api/agent/catalog?project=sales-contracts',
-    body?: unknown,
-  ) {
+  async function call(bearer: string, path = '/api/agent/catalog?project=sales-contracts', body?: unknown) {
     return handler(
       new Request(transport.config.publicUrl + path, {
         method: body ? 'POST' : 'GET',
@@ -109,12 +105,7 @@ test('client without app roles sees only granted mappings and every call is attr
     },
   ]);
   for (const mapping of ['people', 'sales']) {
-    const context = await app.call(
-      token,
-      '/api/agent/context?project=sales-contracts&mappingId=sales-contracts/' +
-        mapping +
-        '.mapping.yaml',
-    );
+    const context = await app.call(token, '/api/agent/context?project=sales-contracts&mappingId=sales-contracts/' + mapping + '.mapping.yaml');
     const text = await context.text();
     expect(text).not.toContain('LEAK-hr-people');
     expect(text).not.toContain('LEAK-shared-reference');
@@ -150,9 +141,7 @@ test('ungranted client is refused and audited even with app roles', async () => 
   using app = await setup();
   const claims = { ...decodeJwt(await app.token(false)), roles: ['Admin', 'Agent'] };
   const key = app.transport.state.keys[0];
-  const token = await new SignJWT(claims)
-    .setProtectedHeader({ alg: 'RS256', kid: key.kid })
-    .sign(key.privateKey);
+  const token = await new SignJWT(claims).setProtectedHeader({ alg: 'RS256', kid: key.kid }).sign(key.privateKey);
   const response = await app.call(token);
   expect(response.status).toBe(403);
   expect(app.audit(response)).toMatchObject([
@@ -170,9 +159,7 @@ test('bearer is refused outside agent routes including public and unknown routes
     const response = await app.call(token, path);
     expect(response.status).toBe(401);
     expect(response.headers.get('WWW-Authenticate')).toBe('Bearer error="invalid_token"');
-    expect(app.audit(response)).toMatchObject([
-      { principal: { id: 'anonymous' }, reason: 'bearer-scope', decision: 'deny' },
-    ]);
+    expect(app.audit(response)).toMatchObject([{ principal: { id: 'anonymous' }, reason: 'bearer-scope', decision: 'deny' }]);
   }
 });
 
@@ -195,9 +182,7 @@ test('invalid application tokens are refused and audited without trusting their 
   ];
   for (const change of [...changes, { wrongSignature: true }]) {
     const key = app.transport.state.keys['wrongSignature' in change ? 1 : 0];
-    const token = await new SignJWT({ ...claims, ...change })
-      .setProtectedHeader({ alg: 'RS256', kid: 'k1' })
-      .sign(key.privateKey);
+    const token = await new SignJWT({ ...claims, ...change }).setProtectedHeader({ alg: 'RS256', kid: 'k1' }).sign(key.privateKey);
     const response = await app.call(token);
     expect(response.status).toBe(401);
     expect(app.audit(response)).toMatchObject([
@@ -234,9 +219,7 @@ test('client identity comes from azp with domain grants and no human membership'
   expect(catalog).not.toContain('hr-people/');
   expect(catalog).not.toContain('shared-reference/');
   // Only v2 tokens pass the issuer check, so a v1-style appid without azp names no client.
-  const appidOnly = await new SignJWT({ ...claims, azp: undefined, appid: claims.azp })
-    .setProtectedHeader({ alg: 'RS256', kid: key.kid })
-    .sign(key.privateKey);
+  const appidOnly = await new SignJWT({ ...claims, azp: undefined, appid: claims.azp }).setProtectedHeader({ alg: 'RS256', kid: key.kid }).sign(key.privateKey);
   expect((await app.call(appidOnly)).status).toBe(401);
 });
 
@@ -272,9 +255,7 @@ test('a browser session cannot rescue invalid or ungranted bearer credentials', 
     }),
   );
   expect(granted.status).toBe(200);
-  expect(app.audit(granted)).toMatchObject([
-    { principal: { id: 'client:sw-agent', kind: 'client' }, action: 'agentRead' },
-  ]);
+  expect(app.audit(granted)).toMatchObject([{ principal: { id: 'client:sw-agent', kind: 'client' }, action: 'agentRead' }]);
   const browser = await app.handler(
     new Request(origin + '/api/agent/catalog?project=sales-contracts', {
       headers: { Cookie: cookie },
@@ -296,9 +277,7 @@ test('a client needs no cross-site headers, and unmapped agent routes are audite
     }),
   );
   expect(plan.status).not.toBe(403);
-  expect(app.audit(plan)).toMatchObject([
-    { principal: { id: 'client:sw-agent' }, action: 'agentRead', decision: 'allow' },
-  ]);
+  expect(app.audit(plan)).toMatchObject([{ principal: { id: 'client:sw-agent' }, action: 'agentRead', decision: 'allow' }]);
   const unknown = await app.call(token, '/api/agent/unknown');
   expect(unknown.status).toBe(404);
   expect(app.audit(unknown)).toMatchObject([
@@ -319,9 +298,7 @@ test('a client cannot write: write routes refuse its token before any file chang
   });
   // Write routes are outside the agent routes, so the token is refused before it is read.
   expect(response.status).toBe(401);
-  expect(app.audit(response)).toMatchObject([
-    { principal: { id: 'anonymous' }, reason: 'bearer-scope', decision: 'deny' },
-  ]);
+  expect(app.audit(response)).toMatchObject([{ principal: { id: 'anonymous' }, reason: 'bearer-scope', decision: 'deny' }]);
   expect(app.fixture.ws.readFile('sales-contracts', 'sales.mapping.yaml').source).toBe(file.source);
 });
 
@@ -334,9 +311,7 @@ test('a client is refused on a row that declares no client action', async () => 
   try {
     const response = await app.call(token);
     expect(response.status).toBe(403);
-    expect(app.audit(response)).toMatchObject([
-      { principal: { id: 'client:sw-agent' }, reason: 'bearer-scope', decision: 'deny' },
-    ]);
+    expect(app.audit(response)).toMatchObject([{ principal: { id: 'client:sw-agent' }, reason: 'bearer-scope', decision: 'deny' }]);
   } finally {
     catalog.clientAction = clientAction;
   }
@@ -349,30 +324,19 @@ test('an unreachable key endpoint answers 503 without a bearer challenge', async
   const response = await app.call(token);
   expect(response.status).toBe(503);
   expect(response.headers.get('WWW-Authenticate')).toBeNull();
-  expect(app.audit(response)).toMatchObject([
-    { principal: { id: 'anonymous' }, reason: 'provider-unreachable', decision: 'deny' },
-  ]);
+  expect(app.audit(response)).toMatchObject([{ principal: { id: 'anonymous' }, reason: 'provider-unreachable', decision: 'deny' }]);
 });
 
 test('a granted client cannot open documents of ungranted projects or restricted files', async () => {
   using app = await setup();
   const token = await app.token();
-  const hidden = [
-    'hr-people/people.ontology.yaml',
-    'shared-reference/reference.ontology.yaml',
-    'sales-contracts/finance/revenue-recognition.odcs.yaml',
-  ];
+  const hidden = ['hr-people/people.ontology.yaml', 'shared-reference/reference.ontology.yaml', 'sales-contracts/finance/revenue-recognition.odcs.yaml'];
   for (const mappingId of hidden) {
     const project = 'sales-contracts';
-    const context = await app.call(
-      token,
-      `/api/agent/context?project=${project}&mappingId=${mappingId}`,
-    );
+    const context = await app.call(token, `/api/agent/context?project=${project}&mappingId=${mappingId}`);
     expect(context.status).toBe(404);
     expect(await context.json()).toEqual({ error: 'Not found.' });
-    expect(app.audit(context)).toMatchObject([
-      { principal: { id: 'client:sw-agent' }, decision: 'deny', reason: 'not-readable' },
-    ]);
+    expect(app.audit(context)).toMatchObject([{ principal: { id: 'client:sw-agent' }, decision: 'deny', reason: 'not-readable' }]);
     const plan = await app.call(token, '/api/agent/plan', {
       project,
       mappingId,
@@ -417,18 +381,14 @@ test('a deactivated client is refused although agents.json still grants it', asy
   app.auth.access.reload(policy);
   const response = await app.call(token);
   expect(response.status).toBe(403);
-  expect(app.audit(response)).toMatchObject([
-    { principal: { id: 'client:sw-agent' }, decision: 'deny', reason: 'no-grant' },
-  ]);
+  expect(app.audit(response)).toMatchObject([{ principal: { id: 'client:sw-agent' }, decision: 'deny', reason: 'no-grant' }]);
 });
 
 test('an audited agent call carries the configured client name', async () => {
   using app = await setup();
   const response = await app.call(await app.token());
   expect(response.status).toBe(200);
-  expect(app.audit(response)).toMatchObject([
-    { principal: { id: 'client:sw-agent', name: 'Sales agent', clientId: 'sw-agent' } },
-  ]);
+  expect(app.audit(response)).toMatchObject([{ principal: { id: 'client:sw-agent', name: 'Sales agent', clientId: 'sw-agent' } }]);
 });
 
 test('a dry run that removes the project from a client changes its replayed agent call', async () => {

@@ -1,14 +1,6 @@
 // Verifies process lifecycle helpers without network or browser services.
 import { expect, spyOn, test } from 'bun:test';
-import {
-  freeLoopbackPort,
-  waitReady,
-  readyState,
-  waitUntil,
-  isConnectionRetry,
-  runCommand,
-  withCleanup,
-} from '../../scripts/helpers/processes';
+import { freeLoopbackPort, waitReady, readyState, waitUntil, isConnectionRetry, runCommand, withCleanup } from '../../scripts/helpers/processes';
 
 test('readiness distinguishes handover, refusal and serving', () => {
   expect(readyState(200, { state: 'handover' }, 'serving')).toBe(false);
@@ -47,9 +39,7 @@ test('only connection failures are retried', () => {
 });
 
 test('commands capture stdout and report failures', async () => {
-  expect(await runCommand([process.execPath, '-e', "console.log('captured')"], true)).toBe(
-    'captured',
-  );
+  expect(await runCommand([process.execPath, '-e', "console.log('captured')"], true)).toBe('captured');
   await expect(runCommand([process.execPath, '-e', 'process.exit(7)'])).rejects.toThrow('exited 7');
 });
 

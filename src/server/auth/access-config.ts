@@ -6,17 +6,12 @@ import { LEVELS, BUILTIN_ROLE_IDS, type Action, type Level } from '../../shared/
 import { validateCustomRole } from './role-compiler';
 
 /** The workspace, domains, or named projects covered by a grant. */
-export type GrantScope =
-  | { kind: 'workspace' }
-  | { kind: 'domains'; domains: string[] }
-  | { kind: 'projects'; projects: string[] };
+export type GrantScope = { kind: 'workspace' } | { kind: 'domains'; domains: string[] } | { kind: 'projects'; projects: string[] };
 /** A role assignment to a group or verified address. */
 export type Grant = {
   id: string;
   roleId: string;
-  member:
-    | { kind: 'group'; groupId: string; displayName?: string; resolvedAt?: string }
-    | { kind: 'email'; email: string };
+  member: { kind: 'group'; groupId: string; displayName?: string; resolvedAt?: string } | { kind: 'email'; email: string };
   scope: GrantScope;
   addedBy: string;
   addedAt: string;
@@ -106,8 +101,7 @@ export function validateAccessConfig(input: AccessConfig): AccessConfig {
     if (ids.has(role.id)) throw new AccessConfigError(`roles.json: duplicate role id: ${role.id}`);
     ids.add(role.id);
     const name = role.name.toLowerCase();
-    if (names.has(name))
-      throw new AccessConfigError(`roles.json: duplicate role name: ${role.name}`);
+    if (names.has(name)) throw new AccessConfigError(`roles.json: duplicate role name: ${role.name}`);
     names.add(name);
   }
   for (const grant of config.grants) {
@@ -157,8 +151,7 @@ function validateReferences(config: AccessConfig): void {
   for (const grant of config.grants) {
     if (ids.has(grant.id)) throw new AccessConfigError(`grants.json: duplicate id ${grant.id}`);
     ids.add(grant.id);
-    const member =
-      grant.member.kind === 'email' ? grant.member.email.toLowerCase() : grant.member.groupId;
+    const member = grant.member.kind === 'email' ? grant.member.email.toLowerCase() : grant.member.groupId;
     const scope = grant.scope;
     let values: string[] = [];
     if (scope.kind === 'domains') {
@@ -169,15 +162,8 @@ function validateReferences(config: AccessConfig): void {
       values = scope.projects;
       references('grants.json', values, projects);
     }
-    const key = JSON.stringify([
-      grant.roleId,
-      grant.member.kind,
-      member,
-      scope.kind,
-      [...values].sort(),
-    ]);
-    if (assignments.has(key))
-      throw new AccessConfigError(`grants.json: duplicate assignment ${grant.id}`);
+    const key = JSON.stringify([grant.roleId, grant.member.kind, member, scope.kind, [...values].sort()]);
+    if (assignments.has(key)) throw new AccessConfigError(`grants.json: duplicate assignment ${grant.id}`);
     assignments.add(key);
   }
 }
@@ -186,14 +172,10 @@ function validateReferences(config: AccessConfig): void {
 export function validateAgentReferences(config: AccessConfig): void {
   const domains = new Set(config.projects.domains.map(domain => domain.id));
   for (const client of config.agents.clients) {
-    const project = client.projects.find(
-      project => !Object.hasOwn(config.projects.projects, project),
-    );
+    const project = client.projects.find(project => !Object.hasOwn(config.projects.projects, project));
     const domain = client.domains.find(domain => !domains.has(domain));
     if (project || domain) {
-      throw new AccessConfigError(
-        `agents.json (${client.clientId}): unknown reference ${project ?? domain}`,
-      );
+      throw new AccessConfigError(`agents.json (${client.clientId}): unknown reference ${project ?? domain}`);
     }
   }
 }

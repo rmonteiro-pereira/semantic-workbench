@@ -6,8 +6,7 @@ import { fillPlaceholders, type SqlFinding } from '../src/shared/sql/lint';
 import { validateInput } from '../src/shared/validation/input';
 // SQL lint: findings at exact, hand-computed positions, warnings only, nothing changed.
 const fixture = (name: string) => readFileSync(`tests/fixtures/sql/${name}`, 'utf8');
-const warnings = (src: string, name: string) =>
-  sqlFindings(src, name).filter(f => f.severity === 'warning') as SqlFinding[];
+const warnings = (src: string, name: string) => sqlFindings(src, name).filter(f => f.severity === 'warning') as SqlFinding[];
 const at = (f: { line: number; column: number }) => [f.line, f.column];
 test('the CASE WHEN fixture is clean', () => {
   expect(warnings(fixture('case-when.ossie.yaml'), 'case-when.ossie.yaml')).toEqual([]);
@@ -23,9 +22,7 @@ test('the broken CASE WHEN: one warning at the ) closing SUM(CASE …, line 23 c
     path: '/metrics/0/expression/dialects/0/expression',
     dialect: 'ANSI_SQL',
   });
-  expect(f[0].message).toBe(
-    'SQL expression (ANSI_SQL): syntax error near ")". Checked, not executed.',
-  );
+  expect(f[0].message).toBe('SQL expression (ANSI_SQL): syntax error near ")". Checked, not executed.');
   expect(src.split('\n')[22][76]).toBe(')');
 });
 test('JSON escapes: the clean twin has no finding; the broken one points at the backslash of \\"x\\" (line 15 column 143)', () => {
@@ -62,20 +59,11 @@ test('a non-SQL dialect is skipped (no warning for DAX, an info note instead); t
       column: 23,
     },
   ]);
-  const broken = fixture('dax.ossie.yaml').replace(
-    'expression: SUM(sales.amount)',
-    'expression: SUM(sales.amount',
-  );
-  expect(warnings(broken, 'dax.ossie.yaml').map(f => f.path)).toEqual([
-    '/metrics/0/expression/dialects/1/expression',
-  ]);
+  const broken = fixture('dax.ossie.yaml').replace('expression: SUM(sales.amount)', 'expression: SUM(sales.amount');
+  expect(warnings(broken, 'dax.ossie.yaml').map(f => f.path)).toEqual(['/metrics/0/expression/dialects/1/expression']);
 });
 test('findings are warnings only: the files stay valid, and the text is unchanged', () => {
-  for (const name of [
-    'case-when-broken.ossie.yaml',
-    'escaped.semantic.json',
-    'folded.ossie.yaml',
-  ]) {
+  for (const name of ['case-when-broken.ossie.yaml', 'escaped.semantic.json', 'folded.ossie.yaml']) {
     const src = fixture(name);
     const copy = src.slice();
     const f = warnings(src, name);

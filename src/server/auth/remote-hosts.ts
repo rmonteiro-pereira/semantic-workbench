@@ -60,10 +60,7 @@ export function allowedRemoteHost(address: unknown, allowedHosts: string[]): All
   const url = typeof address === 'string' ? httpRemote(address) : null;
   const secure = url?.protocol === 'https:' || (url !== null && isLoopbackHost(url.hostname));
   if (!url || !secure) {
-    throw new RemoteHostError(
-      allowedHosts,
-      'Server mode reaches remotes over HTTPS only, at a plain host address.',
-    );
+    throw new RemoteHostError(allowedHosts, 'Server mode reaches remotes over HTTPS only, at a plain host address.');
   }
   // A password in the address would be stored in plain text in the repository's configuration.
   if (url.password) throw new BadRequestError('A remote address may not contain a password.');
@@ -95,10 +92,7 @@ export function allowedRemoteAddresses(remote: RemoteAddresses, allowedHosts: st
 function storedHost(address: string, allowedHosts: string[]) {
   const { host } = allowedRemoteHost(address, allowedHosts);
   if (writtenHost(address) !== host) {
-    throw new RemoteHostError(
-      allowedHosts,
-      `The remote address names ${host} in another form; save it again under Remote.`,
-    );
+    throw new RemoteHostError(allowedHosts, `The remote address names ${host} in another form; save it again under Remote.`);
   }
   return host;
 }
@@ -109,10 +103,7 @@ function hostMatches(host: string, pattern: string) {
 }
 
 /** Which kind of delegated credential a remote host takes. */
-export function credentialKind(
-  host: string,
-  hosts: { github: string | null; azureDevOps: string[] },
-): 'github' | 'azure-devops' | 'none' {
+export function credentialKind(host: string, hosts: { github: string | null; azureDevOps: string[] }): 'github' | 'azure-devops' | 'none' {
   if (hosts.azureDevOps.some(pattern => hostMatches(host, pattern))) return 'azure-devops';
   if (hosts.github !== null && host === hosts.github.toLowerCase()) return 'github';
   return 'none';

@@ -19,17 +19,7 @@ type Options = {
   setSelected: React.Dispatch<React.SetStateAction<string>>;
 };
 /** Manages lineage. */
-export function useLineage({
-  model,
-  current,
-  docs,
-  tab,
-  setTab,
-  openDocument,
-  parsedDoc,
-  dispatchWalk,
-  setSelected,
-}: Options) {
+export function useLineage({ model, current, docs, tab, setTab, openDocument, parsedDoc, dispatchWalk, setSelected }: Options) {
   function getMappingId() {
     if (current && (isMappingDoc || isConsolidated)) {
       if (isMappingDoc) {
@@ -55,14 +45,8 @@ export function useLineage({
   // Mapping documents and consolidated files (embedded ontology_mappings) get the mapping canvas
   // on the Graph tab; a consolidated file can switch to its ontology graph.
   const isMappingDoc = model?.kind === 'Ossie mappings';
-  const isConsolidated =
-    !isMappingDoc &&
-    Array.isArray((model as any)?.document?.ontology_mappings) &&
-    (model as any).document.ontology_mappings.length > 0;
-  const [mappingView, setMappingView] = useRecordedState<'mapping' | 'ontology'>(
-    'lineage.mappingView',
-    'mapping',
-  );
+  const isConsolidated = !isMappingDoc && Array.isArray((model as any)?.document?.ontology_mappings) && (model as any).document.ontology_mappings.length > 0;
+  const [mappingView, setMappingView] = useRecordedState<'mapping' | 'ontology'>('lineage.mappingView', 'mapping');
   useEffect(() => setMappingView('mapping'), [current?.id]);
   const mappingId = getMappingId();
   const graphViewSwitch = isConsolidated ? (
@@ -74,20 +58,11 @@ export function useLineage({
       ))}
     </span>
   ) : null;
-  const [contractObject, setContractObject] = useRecordedState<string | null>(
-    'contract.object',
-    null,
-  );
+  const [contractObject, setContractObject] = useRecordedState<string | null>('contract.object', null);
   // Column-level lineage of the open contract, built from the project's saved files.
   const lineageDocs = isContract && current ? docs.filter(d => d.project === current.project) : [];
   const lineageRev = isContract && current ? projectRevision(lineageDocs) : '';
-  const lineage = useMemo(
-    () =>
-      isContract && current
-        ? buildLineage(projectFiles(lineageDocs), current.path, lineageRev)
-        : null,
-    [isContract, current?.project, current?.path, lineageRev],
-  );
+  const lineage = useMemo(() => (isContract && current ? buildLineage(projectFiles(lineageDocs), current.path, lineageRev) : null), [isContract, current?.project, current?.path, lineageRev]);
   const lineageKey = current ? `workbench:lineage-center:${current.id}` : '';
   const [lineageCenter, setLineageCenter] = useRecordedState('lineage.center', '');
   useEffect(() => {
@@ -103,9 +78,7 @@ export function useLineage({
   }, [lineage?.contract, current?.id, !!lineage]);
   // The stored centre belongs to the previous contract for one render after switching files.
   const lineageCenterId = getLineageCenterId();
-  const lineageShown =
-    tab === 'fullgraph' &&
-    ((isContract && !!lineage && !!lineageCenterId) || (!!mappingId && mappingView === 'mapping'));
+  const lineageShown = tab === 'fullgraph' && ((isContract && !!lineage && !!lineageCenterId) || (!!mappingId && mappingView === 'mapping'));
   function lineageCenterChanged(id: string) {
     try {
       localStorage.setItem(lineageKey, id);
@@ -125,9 +98,7 @@ export function useLineage({
     const documentValue = docs.find(x => x.project === current?.project && x.path === card.file);
     if (!documentValue || !openDocument(documentValue)) return;
     const name = card.kind === 'metric' ? card.id.slice(card.id.lastIndexOf('/') + 1) : card.label;
-    const target = parsedDoc(documentValue).model?.entities.find(
-      e => e.name === name && (e.kind === 'Dataset' || e.kind === 'Metric'),
-    );
+    const target = parsedDoc(documentValue).model?.entities.find(e => e.name === name && (e.kind === 'Dataset' || e.kind === 'Metric'));
     setTab('neighborhood');
     if (target) {
       dispatchWalk({

@@ -5,36 +5,18 @@ import { conceptText, typeLabel } from './format';
 import type { GroupBy, MetricColumns } from './metric-filters';
 import { metricKey } from './metric-filters';
 
-function MetricRow({
-  kpi,
-  columns,
-  active,
-  onSelect,
-}: {
-  kpi: KpiSummary;
-  columns: MetricColumns;
-  active: boolean;
-  onSelect: (key: string) => void;
-}) {
+function MetricRow({ kpi, columns, active, onSelect }: { kpi: KpiSummary; columns: MetricColumns; active: boolean; onSelect: (key: string) => void }) {
   const key = metricKey(kpi);
   const needsRepair = kpi.findings.some(finding => finding.severity === 'error');
   return (
     <tr className={active ? 'selected' : ''} aria-selected={active}>
       <td data-label="Metric">
-        <button
-          className="metrics-name"
-          aria-label={`${kpi.label}: explain`}
-          aria-current={active ? 'true' : undefined}
-          onClick={() => onSelect(active ? '' : key)}
-        >
+        <button className="metrics-name" aria-label={`${kpi.label}: explain`} aria-current={active ? 'true' : undefined} onClick={() => onSelect(active ? '' : key)}>
           <strong>{kpi.label}</strong>
           <code>{kpi.name}</code>
         </button>
         {needsRepair && (
-          <span
-            className="metrics-flag error"
-            title={kpi.findings.map(finding => finding.message).join('\n')}
-          >
+          <span className="metrics-flag error" title={kpi.findings.map(finding => finding.message).join('\n')}>
             Needs repair
           </span>
         )}
@@ -52,15 +34,7 @@ function MetricRow({
           {kpi.unit ?? <span className="muted">—</span>}
         </td>
       )}
-      {columns.status && (
-        <td data-label="Status">
-          {kpi.status ? (
-            <span className={`kpi-status status-${kpi.status}`}>{kpi.status}</span>
-          ) : (
-            <span className="muted">—</span>
-          )}
-        </td>
-      )}
+      {columns.status && <td data-label="Status">{kpi.status ? <span className={`kpi-status status-${kpi.status}`}>{kpi.status}</span> : <span className="muted">—</span>}</td>}
       {columns.owner && (
         <td data-label="Owner" className="col-owner">
           {kpi.owner ?? <span className="muted">—</span>}
@@ -68,11 +42,7 @@ function MetricRow({
       )}
       {columns.concept && (
         <td data-label="Concept" className="col-concept">
-          {kpi.concepts.length ? (
-            <span className="kpi-concepts">{conceptText(kpi.concepts)}</span>
-          ) : (
-            <span className="muted">Not bound</span>
-          )}
+          {kpi.concepts.length ? <span className="kpi-concepts">{conceptText(kpi.concepts)}</span> : <span className="muted">Not bound</span>}
         </td>
       )}
     </tr>
@@ -132,13 +102,7 @@ export function MetricsTable({
               </tr>
             )}
             {items.map(kpi => (
-              <MetricRow
-                key={metricKey(kpi)}
-                kpi={kpi}
-                columns={columns}
-                active={metricKey(kpi) === selected}
-                onSelect={onSelect}
-              />
+              <MetricRow key={metricKey(kpi)} kpi={kpi} columns={columns} active={metricKey(kpi) === selected} onSelect={onSelect} />
             ))}
           </tbody>
         ))}

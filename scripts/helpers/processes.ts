@@ -1,16 +1,8 @@
 // Owns disposable command execution, readiness polling and signal cleanup.
 /** Runs a command, optionally capturing stdout without printing its arguments or secrets. */
-export async function runCommand(
-  args: string[],
-  capture = false,
-  env = process.env,
-): Promise<string> {
+export async function runCommand(args: string[], capture = false, env = process.env): Promise<string> {
   const child = Bun.spawn(args, { env, stdout: capture ? 'pipe' : 'inherit', stderr: 'pipe' });
-  const [output, error, code] = await Promise.all([
-    capture ? new Response(child.stdout).text() : Promise.resolve(''),
-    new Response(child.stderr).text(),
-    child.exited,
-  ]);
+  const [output, error, code] = await Promise.all([capture ? new Response(child.stdout).text() : Promise.resolve(''), new Response(child.stderr).text(), child.exited]);
   if (code !== 0) throw new Error(`${args[0]} ${args[1]} exited ${code}: ${error}`);
   if (error) process.stderr.write(error);
   return output.trim();
@@ -34,22 +26,11 @@ export function isConnectionRetry(error: unknown): boolean {
 
 /** Recognizes a ready response without accepting handover as serving. */
 export function readyState(status: number, body: unknown, state: string, expected = 200) {
-  return (
-    status === expected &&
-    typeof body === 'object' &&
-    body !== null &&
-    'state' in body &&
-    body.state === state
-  );
+  return status === expected && typeof body === 'object' && body !== null && 'state' in body && body.state === state;
 }
 
 /** Polls a condition with a bounded deadline and injectable clock for offline tests. */
-export async function waitUntil(
-  label: string,
-  probe: () => Promise<boolean>,
-  timeout = 30_000,
-  clock = { now: Date.now, sleep: (ms: number) => Bun.sleep(ms) },
-) {
+export async function waitUntil(label: string, probe: () => Promise<boolean>, timeout = 30_000, clock = { now: Date.now, sleep: (ms: number) => Bun.sleep(ms) }) {
   const deadline = clock.now() + timeout;
   while (clock.now() < deadline) {
     if (await probe()) return;
@@ -76,10 +57,7 @@ export async function waitReady(url: string, state = 'serving', status = 200, ti
 }
 
 /** Cleans once on completion, failure or termination and restores the caller's signal handlers. */
-export async function withCleanup<T>(
-  clean: () => Promise<void>,
-  body: () => Promise<T>,
-): Promise<T> {
+export async function withCleanup<T>(clean: () => Promise<void>, body: () => Promise<T>): Promise<T> {
   let cleaning: Promise<void> | undefined;
   const cleanOnce = () => (cleaning ??= Promise.resolve().then(clean));
   const onSignal = (signal: 'SIGINT' | 'SIGTERM') => {

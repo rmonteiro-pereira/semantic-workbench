@@ -3,13 +3,7 @@ import { errors } from 'jose';
 import { ClaimError } from './principal';
 
 /** Stable reasons shared by protocol validation and authentication audits. */
-export type SignInReason =
-  | 'tenant-mismatch'
-  | 'attempt-invalid'
-  | 'token-invalid'
-  | 'provider-unreachable'
-  | 'provider-unsupported'
-  | 'session-upgraded';
+export type SignInReason = 'tenant-mismatch' | 'attempt-invalid' | 'token-invalid' | 'provider-unreachable' | 'provider-unsupported' | 'session-upgraded';
 
 /** A safe authentication failure with no provider tokens or authorization codes. */
 export class SignInError extends Error {

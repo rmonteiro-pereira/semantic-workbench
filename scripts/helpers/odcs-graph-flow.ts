@@ -4,12 +4,7 @@ import type { Page } from '@playwright/test';
 
 /** Counts page buttons and pagers on the cards of the canvas; there must be none. */
 export async function paginationControls(page: Page): Promise<number> {
-  return page.evaluate(
-    () =>
-      document.querySelectorAll(
-        '.lineage-card nav, .lineage-card [aria-label^="Page "], .lineage-pager',
-      ).length,
-  );
+  return page.evaluate(() => document.querySelectorAll('.lineage-card nav, .lineage-card [aria-label^="Page "], .lineage-pager').length);
 }
 
 /** What the handles of an opened card do: how many sit on their row, how many wait on a list edge,
@@ -20,15 +15,11 @@ export type AnchorReport = { onRow: number; onEdge: number; markers: number; pro
 export async function anchorReport(page: Page, cardName: string): Promise<AnchorReport> {
   return page.evaluate(name => {
     const report: AnchorReport = { onRow: 0, onEdge: 0, markers: 0, problems: [] };
-    const card = [...document.querySelectorAll('.lineage-card')].find(
-      c => c.getAttribute('aria-label') === name,
-    );
+    const card = [...document.querySelectorAll('.lineage-card')].find(c => c.getAttribute('aria-label') === name);
     const list = card?.querySelector('.lineage-list');
     if (!card || !list) return { ...report, problems: [`${name} has no opened list`] };
     const box = list.getBoundingClientRect();
-    const rows = new Map(
-      [...list.querySelectorAll('li[data-id]')].map(li => [li.getAttribute('data-id')!, li]),
-    );
+    const rows = new Map([...list.querySelectorAll('li[data-id]')].map(li => [li.getAttribute('data-id')!, li]));
     const centre = (r: DOMRect) => (r.top + r.bottom) / 2;
     for (const handle of card.querySelectorAll('.react-flow__handle.source')) {
       const id = (handle.getAttribute('data-handleid') ?? '').replace(/:out$/, '');
@@ -39,8 +30,7 @@ export async function anchorReport(page: Page, cardName: string): Promise<Anchor
       else if (handle.classList.contains('clamped')) {
         const onEdge = Math.abs(at - box.top) <= 3 || Math.abs(at - box.bottom) <= 3;
         if (onEdge) report.onEdge++;
-        else
-          report.problems.push(`${id}: edge handle is ${Math.round(at - box.top)} px from the top`);
+        else report.problems.push(`${id}: edge handle is ${Math.round(at - box.top)} px from the top`);
       } else report.problems.push(`${id}: handle is not on its row`);
     }
     report.markers = card.querySelectorAll('.lineage-list-marker').length;

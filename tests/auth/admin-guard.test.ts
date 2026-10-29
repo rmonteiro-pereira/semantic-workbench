@@ -37,18 +37,14 @@ test('removing or deactivating the last recent Admin is refused unless bootstrap
   const narrowed = structuredClone(config);
   narrowed.grants[0].scope = { kind: 'domains', domains: ['sales'] };
   const deactivated = structuredClone(config);
-  deactivated.deactivated.principals = [
-    { id: user.id, at: user.lastSignInAt, by: 'test', reason: '' },
-  ];
+  deactivated.deactivated.principals = [{ id: user.id, at: user.lastSignInAt, by: 'test', reason: '' }];
   const email = structuredClone(config);
   email.grants[0].member = { kind: 'email', email: 'admin@example.org' };
   expect(checkLastAdmin(email, options)).toEqual({ ok: true });
   email.grants = [];
   for (const next of [absent, narrowed, deactivated, email]) {
     expect(checkLastAdmin(next, options)).toEqual({ ok: false, reason: 'last-admin' });
-    expect(
-      checkLastAdmin(next, { ...options, bootstrap: { ids: ['emergency'], emails: [] } }),
-    ).toEqual({ ok: true });
+    expect(checkLastAdmin(next, { ...options, bootstrap: { ids: ['emergency'], emails: [] } })).toEqual({ ok: true });
   }
   expect(checkLastAdmin(config, { ...options, now: new Date('2026-10-23Z') }).ok).toBe(false);
 });
@@ -74,9 +70,7 @@ test('Admin group matching uses the provider rule even for names shaped like dir
   ];
   const users = [{ ...user, groups: ['admin'] }];
   expect(checkLastAdmin(config, { ...options, users, groupMatch: 'exact' }).ok).toBe(false);
-  expect(checkLastAdmin(config, { ...options, users, groupMatch: 'case-insensitive' }).ok).toBe(
-    true,
-  );
+  expect(checkLastAdmin(config, { ...options, users, groupMatch: 'case-insensitive' }).ok).toBe(true);
 });
 
 test('the guard decides with the proposed policies, so a rule forbidding admin removes Admins', () => {

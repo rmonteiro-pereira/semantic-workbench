@@ -19,26 +19,11 @@ type Options = {
   docsRef: React.RefObject<Map<string, Doc>>;
 };
 /** Manages references. */
-export function useReferences({
-  docs,
-  project,
-  current,
-  parsedDoc,
-  entity,
-  model,
-  selectedEdge,
-  docsRef,
-}: Options) {
+export function useReferences({ docs, project, current, parsedDoc, entity, model, selectedEdge, docsRef }: Options) {
   const projectDocuments = useMemo(() => documentsOfProject(docs, project), [docs, project]);
   // Other documents of the selected project only: the open file's own identities are never looked
   // up here, and another project's files are never related.
-  const documentIdentities = useMemo(
-    () =>
-      new Map(
-        projectDocuments.filter(d => d.id !== current?.id).map(d => [d.id, parsedDoc(d).keys]),
-      ),
-    [projectDocuments, current?.id],
-  );
+  const documentIdentities = useMemo(() => new Map(projectDocuments.filter(d => d.id !== current?.id).map(d => [d.id, parsedDoc(d).keys])), [projectDocuments, current?.id]);
   const relatedDocuments = useMemo(() => {
     if (!entity?.definition || !current) return [];
     const keys = entityKeys(entity, model);
@@ -91,9 +76,7 @@ export function useReferences({
           file: document.path,
           entity: target.id,
           name: target.name,
-          reason: hit
-            ? 'Same identity (IRI, physical name or business definition)'
-            : 'Ossie mapping reference',
+          reason: hit ? 'Same identity (IRI, physical name or business definition)' : 'Ossie mapping reference',
         });
     }
     return targets;

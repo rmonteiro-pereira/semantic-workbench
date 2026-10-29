@@ -10,24 +10,13 @@ const unquote = (value: string) => value.trim().replace(/^(['"])(.*)\1$/s, '$2')
 export function sqlKeyPath(keys: string[], sibling: (key: string) => string | undefined) {
   const length = keys.length;
   const last = keys[length - 1];
-  if (
-    last === 'expression' &&
-    keys[length - 2] === 'dialects' &&
-    keys[length - 3] === 'expression' &&
-    (keys[length - 4] === 'fields' || keys[length - 4] === 'metrics')
-  ) {
+  if (last === 'expression' && keys[length - 2] === 'dialects' && keys[length - 3] === 'expression' && (keys[length - 4] === 'fields' || keys[length - 4] === 'metrics')) {
     const dialect = sibling('dialect');
     return !dialect || !NOT_SQL.has(dialect.toUpperCase());
   }
-  if (last === 'expression' && MAPPINGS.has(keys[length - 2]) && keys.includes('concept_mappings'))
-    return true;
+  if (last === 'expression' && MAPPINGS.has(keys[length - 2]) && keys.includes('concept_mappings')) return true;
   if (last === 'transformLogic' && keys[0] === 'schema' && keys.includes('properties')) return true;
-  if (
-    last === 'query' &&
-    keys[length - 2] === 'quality' &&
-    (keys[0] === 'schema' || keys[0] === 'quality')
-  )
-    return (sibling('type') ?? '').toLowerCase() === 'sql';
+  if (last === 'query' && keys[length - 2] === 'quality' && (keys[0] === 'schema' || keys[0] === 'quality')) return (sibling('type') ?? '').toLowerCase() === 'sql';
   return false;
 }
 function yamlSibling(owner: SyntaxNode | null, name: string, read: Read): string | undefined {
@@ -48,11 +37,7 @@ export function yamlSql(value: SyntaxNode, read: Read): boolean {
   const pair = value.name === 'BlockLiteralContent' ? value.parent?.parent : value.parent;
   if (!pair || pair.name !== 'Pair') return false;
   const keys: string[] = [];
-  for (
-    let ancestor: SyntaxNode | null = pair;
-    ancestor && keys.length < 24;
-    ancestor = ancestor.parent
-  ) {
+  for (let ancestor: SyntaxNode | null = pair; ancestor && keys.length < 24; ancestor = ancestor.parent) {
     if (ancestor.name !== 'Pair') continue;
     const key = ancestor.getChild('Key');
     if (!key) return false;
@@ -88,11 +73,7 @@ export function jsonSql(value: SyntaxNode, read: Read): boolean {
   const property = value.parent;
   if (!property || property.name !== 'Property' || value.prevSibling?.name !== ':') return false;
   const keys: string[] = [];
-  for (
-    let ancestor: SyntaxNode | null = property;
-    ancestor && keys.length < 24;
-    ancestor = ancestor.parent
-  ) {
+  for (let ancestor: SyntaxNode | null = property; ancestor && keys.length < 24; ancestor = ancestor.parent) {
     if (ancestor.name !== 'Property') continue;
     const key = jsonString(ancestor.getChild('PropertyName'), read);
     if (key === undefined) return false;
@@ -102,8 +83,7 @@ export function jsonSql(value: SyntaxNode, read: Read): boolean {
 }
 
 /** Recognizes the immediate prefix of a value that can contain SQL. */
-export const SQL_KEY_BEFORE =
-  /(?:expression|query|transformLogic)["']?\s*:\s*(?:[|>][-+0-9]*[ \t]*(?:#[^\n]*)?\n[ \t]*)?['"]?$/;
+export const SQL_KEY_BEFORE = /(?:expression|query|transformLogic)["']?\s*:\s*(?:[|>][-+0-9]*[ \t]*(?:#[^\n]*)?\n[ \t]*)?['"]?$/;
 
 /** Identifies the embedded language using the same rules in both editor modes. */
 export function yamlEmbeddedLanguage(node: SyntaxNode, read: Read): 'sql' | 'json' | null {

@@ -1,22 +1,9 @@
 // Tests the pure action history behind Back and Forward.
 import { expect, test } from 'bun:test';
-import {
-  MAX_ACTIONS,
-  back,
-  canBack,
-  canForward,
-  emptyActionHistory,
-  forward,
-  positionOf,
-  record,
-  travel,
-  type ActionHistory,
-  type ActionStep,
-} from '../src/app/workspace/action-history';
+import { MAX_ACTIONS, back, canBack, canForward, emptyActionHistory, forward, positionOf, record, travel, type ActionHistory, type ActionStep } from '../src/app/workspace/action-history';
 
 const step = (label: string): ActionStep => ({ label, undo: () => {}, redo: () => {} });
-const recordAll = (labels: string[]): ActionHistory =>
-  labels.reduce((history, label) => record(history, step(label)), emptyActionHistory);
+const recordAll = (labels: string[]): ActionHistory => labels.reduce((history, label) => record(history, step(label)), emptyActionHistory);
 const labelsOf = (moves: { step: ActionStep }[]) => moves.map(move => move.step.label);
 
 test('an empty history cannot go back or forward', () => {

@@ -23,12 +23,7 @@ test('the route inventory refuses a malformed project name as a path error', () 
   expect(() => found.row.resource(found.match, url)).toThrow(PathError);
 });
 
-const paths = [
-  '/api/projects/%E0%A4%A/files/x',
-  '/api/projects/%E0%A4%A/git/status',
-  '/api/projects/%E0%A4%A/metrics',
-  '/api/projects/%E0%A4%A/delete-impact',
-];
+const paths = ['/api/projects/%E0%A4%A/files/x', '/api/projects/%E0%A4%A/git/status', '/api/projects/%E0%A4%A/metrics', '/api/projects/%E0%A4%A/delete-impact'];
 
 test('server mode answers 400 for a malformed escape in a path', async () => {
   const workspace = await testWorkspace();

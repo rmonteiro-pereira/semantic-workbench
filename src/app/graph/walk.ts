@@ -13,40 +13,18 @@ export type WalkStep = {
 /** Stores navigation steps and the active history position. */
 export type Walk = { steps: WalkStep[]; index: number };
 /** Describes a navigation push, move, jump or reset. */
-export type WalkAction =
-  | { type: 'push'; step: WalkStep }
-  | { type: 'back' }
-  | { type: 'forward' }
-  | { type: 'jump'; index: number }
-  | { type: 'reset'; step?: WalkStep };
+export type WalkAction = { type: 'push'; step: WalkStep } | { type: 'back' } | { type: 'forward' } | { type: 'jump'; index: number } | { type: 'reset'; step?: WalkStep };
 export const emptyWalk: Walk = { steps: [], index: -1 };
 export const MAX_STEPS = 100;
 /** Updates bounded navigation history and discards forward steps after a new branch. */
 export function walkReducer(walk: Walk, action: WalkAction): Walk {
   if (action.type === 'back') return walk.index > 0 ? { ...walk, index: walk.index - 1 } : walk;
-  if (action.type === 'forward')
-    return walk.index < walk.steps.length - 1 ? { ...walk, index: walk.index + 1 } : walk;
-  if (action.type === 'jump')
-    return action.index >= 0 && action.index < walk.steps.length
-      ? { ...walk, index: action.index }
-      : walk;
+  if (action.type === 'forward') return walk.index < walk.steps.length - 1 ? { ...walk, index: walk.index + 1 } : walk;
+  if (action.type === 'jump') return action.index >= 0 && action.index < walk.steps.length ? { ...walk, index: action.index } : walk;
   if (action.type === 'reset') return action.step ? { steps: [action.step], index: 0 } : emptyWalk;
   const current = walk.steps[walk.index];
-  if (
-    current &&
-    current.doc === action.step.doc &&
-    current.center === action.step.center &&
-    isCenter(current) &&
-    isCenter(action.step)
-  )
-    return walk;
-  if (
-    current &&
-    !isCenter(action.step) &&
-    current.set === action.step.set &&
-    current.kind === action.step.kind
-  )
-    return walk;
+  if (current && current.doc === action.step.doc && current.center === action.step.center && isCenter(current) && isCenter(action.step)) return walk;
+  if (current && !isCenter(action.step) && current.set === action.step.set && current.kind === action.step.kind) return walk;
   const steps = [...walk.steps.slice(0, walk.index + 1), action.step].slice(-MAX_STEPS);
   return { steps, index: steps.length - 1 };
 }
@@ -55,8 +33,7 @@ export function walkReducer(walk: Walk, action: WalkAction): Walk {
  * the longer one is kept and only the position moves, so steps ahead stay on the trail.
  */
 export function reconcileWalk(shown: Walk, restored: Walk): Walk {
-  const [shorter, longer] =
-    shown.steps.length <= restored.steps.length ? [shown, restored] : [restored, shown];
+  const [shorter, longer] = shown.steps.length <= restored.steps.length ? [shown, restored] : [restored, shown];
   const continues = shorter.steps.every((step, index) => step === longer.steps[index]);
   return continues ? { steps: longer.steps, index: restored.index } : restored;
 }
@@ -65,16 +42,10 @@ export function reconcileWalk(shown: Walk, restored: Walk): Walk {
  * another project is dropped, and the position stays on the step it was on, or the nearest kept
  * step before it. When no kept step precedes the position, it goes to the first kept step.
  */
-export function walkWithinProject(
-  walk: Walk,
-  project: string,
-  projectOfDocument: (documentId: string) => string | undefined,
-): Walk {
+export function walkWithinProject(walk: Walk, project: string, projectOfDocument: (documentId: string) => string | undefined): Walk {
   const kept = walk.steps.filter(step => projectOfDocument(step.doc) === project);
   if (kept.length === walk.steps.length) return walk;
-  const keptUpToPosition = walk.steps
-    .slice(0, walk.index + 1)
-    .filter(step => projectOfDocument(step.doc) === project).length;
+  const keptUpToPosition = walk.steps.slice(0, walk.index + 1).filter(step => projectOfDocument(step.doc) === project).length;
   const index = Math.max(keptUpToPosition - 1, kept.length ? 0 : -1);
   return { steps: kept, index };
 }

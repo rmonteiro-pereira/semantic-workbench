@@ -8,8 +8,7 @@ const generatedContract = (() => {
   const odcsContractSchema = {
     $schema: 'https://json-schema.org/draft/2019-09/schema',
     title: 'Open Data Contract Standard (ODCS)',
-    description:
-      'An open data contract specification to establish agreement between data producers and consumers.',
+    description: 'An open data contract specification to establish agreement between data producers and consumers.',
     type: 'object',
     properties: {
       version: { type: 'string', description: 'Current version of the data contract.' },
@@ -22,20 +21,17 @@ const generatedContract = (() => {
       apiVersion: {
         type: 'string',
         default: 'v3.1.0',
-        description:
-          'Version of the standard used to build data contract. Default value is v3.1.0.',
+        description: 'Version of the standard used to build data contract. Default value is v3.1.0.',
         enum: ['v3.1.0', 'v3.0.2', 'v3.0.1', 'v3.0.0', 'v2.2.2', 'v2.2.1', 'v2.2.0'],
       },
       id: {
         type: 'string',
-        description:
-          'A unique identifier used to reduce the risk of dataset name collisions, such as a UUID.',
+        description: 'A unique identifier used to reduce the risk of dataset name collisions, such as a UUID.',
       },
       name: { type: 'string', description: 'Name of the data contract.' },
       tenant: {
         type: 'string',
-        description:
-          'Indicates the property the data is primarily associated with. Value is case insensitive.',
+        description: 'Indicates the property the data is primarily associated with. Value is case insensitive.',
       },
       tags: { $ref: '#/$defs/Tags' },
       status: {
@@ -98,14 +94,12 @@ const generatedContract = (() => {
       },
       slaDefaultElement: {
         type: 'string',
-        description:
-          'DEPRECATED SINCE 3.1. WILL BE REMOVED IN ODCS 4.0. Element (using the element path notation) to do the checks on.',
+        description: 'DEPRECATED SINCE 3.1. WILL BE REMOVED IN ODCS 4.0. Element (using the element path notation) to do the checks on.',
         deprecated: true,
       },
       slaProperties: {
         type: 'array',
-        description:
-          'A list of key/value pairs for SLA specific properties. There is no limit on the type of properties (more details to come).',
+        description: 'A list of key/value pairs for SLA specific properties. There is no limit on the type of properties (more details to come).',
         items: { $ref: '#/$defs/ServiceLevelAgreementProperty' },
       },
       authoritativeDefinitions: { $ref: '#/$defs/AuthoritativeDefinitions' },
@@ -127,10 +121,8 @@ const generatedContract = (() => {
       },
       FullyQualifiedReference: {
         type: 'string',
-        description:
-          'Fully qualified notation using id fields (section/id/properties/id), optionally prefixed with external file reference',
-        pattern:
-          '^(?:(?:https?:\\/\\/)?[A-Za-z0-9._\\-\\/]+\\.yaml#)?\\/?[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+(?:\\/[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+)*$',
+        description: 'Fully qualified notation using id fields (section/id/properties/id), optionally prefixed with external file reference',
+        pattern: '^(?:(?:https?:\\/\\/)?[A-Za-z0-9._\\-\\/]+\\.yaml#)?\\/?[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+(?:\\/[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+)*$',
       },
       StableId: {
         type: 'string',
@@ -359,8 +351,7 @@ const generatedContract = (() => {
             stagingDir: {
               type: 'string',
               format: 'uri',
-              description:
-                'Amazon Athena automatically stores query results and metadata information for each query that runs in a query result location that you can specify in Amazon S3.',
+              description: 'Amazon Athena automatically stores query results and metadata information for each query that runs in a query result location that you can specify in Amazon S3.',
               examples: ['s3://my_storage_account_name/my_container/path'],
             },
             schema: {
@@ -387,12 +378,8 @@ const generatedContract = (() => {
             location: {
               type: 'string',
               format: 'uri',
-              description:
-                'Fully qualified path to Azure Blob Storage or Azure Data Lake Storage (ADLS), supports globs.',
-              examples: [
-                'az://my_storage_account_name.blob.core.windows.net/my_container/path/*.parquet',
-                'abfss://my_storage_account_name.dfs.core.windows.net/my_container_name/path/*.parquet',
-              ],
+              description: 'Fully qualified path to Azure Blob Storage or Azure Data Lake Storage (ADLS), supports globs.',
+              examples: ['az://my_storage_account_name.blob.core.windows.net/my_container/path/*.parquet', 'abfss://my_storage_account_name.dfs.core.windows.net/my_container_name/path/*.parquet'],
             },
             format: {
               type: 'string',
@@ -402,8 +389,7 @@ const generatedContract = (() => {
             delimiter: {
               type: 'string',
               examples: ['new_line', 'array'],
-              description:
-                'Only for format = json. How multiple json documents are delimited within one file',
+              description: 'Only for format = json. How multiple json documents are delimited within one file',
             },
           },
           required: ['location', 'format'],
@@ -759,8 +745,7 @@ const generatedContract = (() => {
             delimiter: {
               type: 'string',
               examples: ['new_line', 'array'],
-              description:
-                'Only for format = json. How multiple json documents are delimited within one file',
+              description: 'Only for format = json. How multiple json documents are delimited within one file',
             },
           },
           required: ['location'],
@@ -784,8 +769,7 @@ const generatedContract = (() => {
             delimiter: {
               type: 'string',
               examples: ['new_line', 'array'],
-              description:
-                'Only for format = json. How multiple json documents are delimited within one file',
+              description: 'Only for format = json. How multiple json documents are delimited within one file',
             },
           },
           required: ['location'],
@@ -801,8 +785,7 @@ const generatedContract = (() => {
             schema: { type: 'string', description: 'The name of the schema.' },
             warehouse: {
               type: 'string',
-              description:
-                'The name of the cluster of resources that is a Snowflake virtual warehouse.',
+              description: 'The name of the cluster of resources that is a Snowflake virtual warehouse.',
             },
           },
           required: ['account', 'database', 'schema'],
@@ -918,8 +901,7 @@ const generatedContract = (() => {
           },
           relationships: {
             type: 'array',
-            description:
-              "A list of relationships to other properties. Each relationship must have 'from', 'to' and optionally 'type' field.",
+            description: "A list of relationships to other properties. Each relationship must have 'from', 'to' and optionally 'type' field.",
             items: { $ref: '#/$defs/RelationshipSchemaLevel' },
           },
           quality: { $ref: '#/$defs/DataQualityChecks' },
@@ -933,8 +915,7 @@ const generatedContract = (() => {
         properties: {
           primaryKey: {
             type: 'boolean',
-            description:
-              'Boolean value specifying whether the element is primary or not. Default is false.',
+            description: 'Boolean value specifying whether the element is primary or not. Default is false.',
           },
           primaryKeyPosition: {
             type: 'integer',
@@ -945,17 +926,7 @@ const generatedContract = (() => {
           logicalType: {
             type: 'string',
             description: 'The logical element data type.',
-            enum: [
-              'string',
-              'date',
-              'timestamp',
-              'time',
-              'number',
-              'integer',
-              'object',
-              'array',
-              'boolean',
-            ],
+            enum: ['string', 'date', 'timestamp', 'time', 'number', 'integer', 'object', 'array', 'boolean'],
           },
           logicalTypeOptions: {
             type: 'object',
@@ -963,27 +934,23 @@ const generatedContract = (() => {
           },
           physicalType: {
             type: 'string',
-            description:
-              'The physical element data type in the data source. For example, VARCHAR(2), DOUBLE, INT.',
+            description: 'The physical element data type in the data source. For example, VARCHAR(2), DOUBLE, INT.',
           },
           physicalName: { type: 'string', description: 'Physical name.', examples: ['col_str_a'] },
           required: {
             type: 'boolean',
             default: false,
-            description:
-              'Indicates if the element may contain Null values; possible values are true and false. Default is false.',
+            description: 'Indicates if the element may contain Null values; possible values are true and false. Default is false.',
           },
           unique: {
             type: 'boolean',
             default: false,
-            description:
-              'Indicates if the element contains unique values; possible values are true and false. Default is false.',
+            description: 'Indicates if the element contains unique values; possible values are true and false. Default is false.',
           },
           partitioned: {
             type: 'boolean',
             default: false,
-            description:
-              'Indicates if the element is partitioned; possible values are true and false.',
+            description: 'Indicates if the element is partitioned; possible values are true and false.',
           },
           partitionKeyPosition: {
             type: 'integer',
@@ -1023,13 +990,11 @@ const generatedContract = (() => {
           criticalDataElement: {
             type: 'boolean',
             default: false,
-            description:
-              'True or false indicator; If element is considered a critical data element (CDE) then true else false.',
+            description: 'True or false indicator; If element is considered a critical data element (CDE) then true else false.',
           },
           relationships: {
             type: 'array',
-            description:
-              "A list of relationships to other properties. When defined at property level, the 'from' field is implicit and should not be specified.",
+            description: "A list of relationships to other properties. When defined at property level, the 'from' field is implicit and should not be specified.",
             items: { $ref: '#/$defs/RelationshipPropertyLevel' },
           },
           quality: { $ref: '#/$defs/DataQualityChecks' },
@@ -1056,22 +1021,11 @@ const generatedContract = (() => {
                     },
                     pattern: {
                       type: 'string',
-                      description:
-                        'Regular expression pattern to define valid value. Follows regular expression syntax from ECMA-262 (https://262.ecma-international.org/5.1/#sec-15.10.1).',
+                      description: 'Regular expression pattern to define valid value. Follows regular expression syntax from ECMA-262 (https://262.ecma-international.org/5.1/#sec-15.10.1).',
                     },
                     format: {
                       type: 'string',
-                      examples: [
-                        'password',
-                        'byte',
-                        'binary',
-                        'email',
-                        'uuid',
-                        'uri',
-                        'hostname',
-                        'ipv4',
-                        'ipv6',
-                      ],
+                      examples: ['password', 'byte', 'binary', 'email', 'uuid', 'uri', 'hostname', 'ipv4', 'ipv6'],
                       description: 'Provides extra context about what format the string follows.',
                     },
                   },
@@ -1095,23 +1049,19 @@ const generatedContract = (() => {
                     },
                     exclusiveMaximum: {
                       type: 'string',
-                      description:
-                        'All values must be strictly less than this value (values < exclusiveMaximum).',
+                      description: 'All values must be strictly less than this value (values < exclusiveMaximum).',
                     },
                     maximum: {
                       type: 'string',
-                      description:
-                        'All date values are less than or equal to this value (values <= maximum).',
+                      description: 'All date values are less than or equal to this value (values <= maximum).',
                     },
                     exclusiveMinimum: {
                       type: 'string',
-                      description:
-                        'All values must be strictly greater than this value (values > exclusiveMinimum).',
+                      description: 'All values must be strictly greater than this value (values > exclusiveMinimum).',
                     },
                     minimum: {
                       type: 'string',
-                      description:
-                        'All date values are greater than or equal to this value (values >= minimum).',
+                      description: 'All date values are greater than or equal to this value (values >= minimum).',
                     },
                   },
                 },
@@ -1120,10 +1070,7 @@ const generatedContract = (() => {
           },
           {
             if: {
-              anyOf: [
-                { properties: { logicalType: { const: 'timestamp' } } },
-                { properties: { logicalType: { const: 'time' } } },
-              ],
+              anyOf: [{ properties: { logicalType: { const: 'timestamp' } } }, { properties: { logicalType: { const: 'time' } } }],
             },
             then: {
               properties: {
@@ -1139,33 +1086,27 @@ const generatedContract = (() => {
                     },
                     exclusiveMaximum: {
                       type: 'string',
-                      description:
-                        'All values must be strictly less than this value (values < exclusiveMaximum).',
+                      description: 'All values must be strictly less than this value (values < exclusiveMaximum).',
                     },
                     maximum: {
                       type: 'string',
-                      description:
-                        'All date values are less than or equal to this value (values <= maximum).',
+                      description: 'All date values are less than or equal to this value (values <= maximum).',
                     },
                     exclusiveMinimum: {
                       type: 'string',
-                      description:
-                        'All values must be strictly greater than this value (values > exclusiveMinimum).',
+                      description: 'All values must be strictly greater than this value (values > exclusiveMinimum).',
                     },
                     minimum: {
                       type: 'string',
-                      description:
-                        'All date values are greater than or equal to this value (values >= minimum).',
+                      description: 'All date values are greater than or equal to this value (values >= minimum).',
                     },
                     timezone: {
                       type: 'boolean',
-                      description:
-                        'Whether the timestamp defines the timezone or not. If true, timezone information is included in the timestamp.',
+                      description: 'Whether the timestamp defines the timezone or not. If true, timezone information is included in the timestamp.',
                     },
                     defaultTimezone: {
                       type: 'string',
-                      description:
-                        'The default timezone of the timestamp. If timezone is not defined, the default timezone UTC is used.',
+                      description: 'The default timezone of the timestamp. If timezone is not defined, the default timezone UTC is used.',
                       default: 'Etc/UTC',
                     },
                   },
@@ -1184,34 +1125,28 @@ const generatedContract = (() => {
                     multipleOf: {
                       type: 'number',
                       exclusiveMinimum: 0,
-                      description:
-                        'Values must be multiples of this number. For example, multiple of 5 has valid values 0, 5, 10, -5.',
+                      description: 'Values must be multiples of this number. For example, multiple of 5 has valid values 0, 5, 10, -5.',
                     },
                     maximum: {
                       type: 'number',
-                      description:
-                        'All values are less than or equal to this value (values <= maximum).',
+                      description: 'All values are less than or equal to this value (values <= maximum).',
                     },
                     exclusiveMaximum: {
                       type: 'number',
-                      description:
-                        'All values must be strictly less than this value (values < exclusiveMaximum).',
+                      description: 'All values must be strictly less than this value (values < exclusiveMaximum).',
                     },
                     minimum: {
                       type: 'number',
-                      description:
-                        'All values are greater than or equal to this value (values >= minimum).',
+                      description: 'All values are greater than or equal to this value (values >= minimum).',
                     },
                     exclusiveMinimum: {
                       type: 'number',
-                      description:
-                        'All values must be strictly greater than this value (values > exclusiveMinimum).',
+                      description: 'All values must be strictly greater than this value (values > exclusiveMinimum).',
                     },
                     format: {
                       type: 'string',
                       default: 'i32',
-                      description:
-                        'Format of the value in terms of how many bits of space it can use and whether it is signed or unsigned (follows the Rust integer types).',
+                      description: 'Format of the value in terms of how many bits of space it can use and whether it is signed or unsigned (follows the Rust integer types).',
                       enum: ['i8', 'i16', 'i32', 'i64', 'i128', 'u8', 'u16', 'u32', 'u64', 'u128'],
                     },
                   },
@@ -1230,34 +1165,28 @@ const generatedContract = (() => {
                     multipleOf: {
                       type: 'number',
                       exclusiveMinimum: 0,
-                      description:
-                        'Values must be multiples of this number. For example, multiple of 5 has valid values 0, 5, 10, -5.',
+                      description: 'Values must be multiples of this number. For example, multiple of 5 has valid values 0, 5, 10, -5.',
                     },
                     maximum: {
                       type: 'number',
-                      description:
-                        'All values are less than or equal to this value (values <= maximum).',
+                      description: 'All values are less than or equal to this value (values <= maximum).',
                     },
                     exclusiveMaximum: {
                       type: 'number',
-                      description:
-                        'All values must be strictly less than this value (values < exclusiveMaximum).',
+                      description: 'All values must be strictly less than this value (values < exclusiveMaximum).',
                     },
                     minimum: {
                       type: 'number',
-                      description:
-                        'All values are greater than or equal to this value (values >= minimum).',
+                      description: 'All values are greater than or equal to this value (values >= minimum).',
                     },
                     exclusiveMinimum: {
                       type: 'number',
-                      description:
-                        'All values must be strictly greater than this value (values > exclusiveMinimum).',
+                      description: 'All values must be strictly greater than this value (values > exclusiveMinimum).',
                     },
                     format: {
                       type: 'string',
                       default: 'i32',
-                      description:
-                        'Format of the value in terms of how many bits of space it can use (follows the Rust float types).',
+                      description: 'Format of the value in terms of how many bits of space it can use (follows the Rust float types).',
                       enum: ['f32', 'f64'],
                     },
                   },
@@ -1329,8 +1258,7 @@ const generatedContract = (() => {
                 },
                 items: {
                   $ref: '#/$defs/SchemaItemProperty',
-                  description:
-                    'List of items in an array (only applicable when `logicalType: array`).',
+                  description: 'List of items in an array (only applicable when `logicalType: array`).',
                 },
               },
             },
@@ -1385,15 +1313,7 @@ const generatedContract = (() => {
           dimension: {
             type: 'string',
             description: 'The key performance indicator (KPI) or dimension for data quality.',
-            enum: [
-              'accuracy',
-              'completeness',
-              'conformity',
-              'consistency',
-              'coverage',
-              'timeliness',
-              'uniqueness',
-            ],
+            enum: ['accuracy', 'completeness', 'conformity', 'consistency', 'coverage', 'timeliness', 'uniqueness'],
           },
           method: { type: 'string', examples: ['reconciliation'] },
           name: { type: 'string', description: 'Name of the data quality check.' },
@@ -1422,8 +1342,7 @@ const generatedContract = (() => {
           },
           unit: {
             type: 'string',
-            description:
-              'Unit the rule is using, popular values are `rows` or `percent`, but any value is allowed.',
+            description: 'Unit the rule is using, popular values are `rows` or `percent`, but any value is allowed.',
             examples: ['rows', 'percent'],
           },
         },
@@ -1450,8 +1369,7 @@ const generatedContract = (() => {
       },
       DataQualityChecks: {
         type: 'array',
-        description:
-          'Data quality rules with all the relevant information for rule setup and execution.',
+        description: 'Data quality rules with all the relevant information for rule setup and execution.',
         items: { $ref: '#/$defs/DataQuality' },
       },
       DataQualityOperators: {
@@ -1461,8 +1379,7 @@ const generatedContract = (() => {
           {
             properties: {
               mustBe: {
-                description:
-                  "Must be equal to the value to be valid. When using numbers, it is equivalent to '='.",
+                description: "Must be equal to the value to be valid. When using numbers, it is equivalent to '='.",
               },
             },
             required: ['mustBe'],
@@ -1470,8 +1387,7 @@ const generatedContract = (() => {
           {
             properties: {
               mustNotBe: {
-                description:
-                  "Must not be equal to the value to be valid. When using numbers, it is equivalent to '!='.",
+                description: "Must not be equal to the value to be valid. When using numbers, it is equivalent to '!='.",
               },
             },
             required: ['mustNotBe'],
@@ -1489,8 +1405,7 @@ const generatedContract = (() => {
             properties: {
               mustBeGreaterOrEqualTo: {
                 type: 'number',
-                description:
-                  "Must be greater than or equal to the value to be valid. It is equivalent to '>='.",
+                description: "Must be greater than or equal to the value to be valid. It is equivalent to '>='.",
               },
             },
             required: ['mustBeGreaterOrEqualTo'],
@@ -1508,8 +1423,7 @@ const generatedContract = (() => {
             properties: {
               mustBeLessOrEqualTo: {
                 type: 'number',
-                description:
-                  "Must be less than or equal to the value to be valid. It is equivalent to '<='.",
+                description: "Must be less than or equal to the value to be valid. It is equivalent to '<='.",
               },
             },
             required: ['mustBeLessOrEqualTo'],
@@ -1518,8 +1432,7 @@ const generatedContract = (() => {
             properties: {
               mustBeBetween: {
                 type: 'array',
-                description:
-                  'Must be between the two numbers to be valid. Smallest number first in the array.',
+                description: 'Must be between the two numbers to be valid. Smallest number first in the array.',
                 minItems: 2,
                 maxItems: 2,
                 uniqueItems: true,
@@ -1532,8 +1445,7 @@ const generatedContract = (() => {
             properties: {
               mustNotBeBetween: {
                 type: 'array',
-                description:
-                  'Must not be between the two numbers to be valid. Smallest number first in the array.',
+                description: 'Must not be between the two numbers to be valid. Smallest number first in the array.',
                 minItems: 2,
                 maxItems: 2,
                 uniqueItems: true,
@@ -1596,15 +1508,8 @@ const generatedContract = (() => {
             url: { type: 'string', description: 'URL to the authority.' },
             type: {
               type: 'string',
-              description:
-                'Type of definition for authority: v2.3 adds standard values: `businessDefinition`, `transformationImplementation`, `videoTutorial`, `tutorial`, and `implementation`.',
-              examples: [
-                'businessDefinition',
-                'transformationImplementation',
-                'videoTutorial',
-                'tutorial',
-                'implementation',
-              ],
+              description: 'Type of definition for authority: v2.3 adds standard values: `businessDefinition`, `transformationImplementation`, `videoTutorial`, `tutorial`, and `implementation`.',
+              examples: ['businessDefinition', 'transformationImplementation', 'videoTutorial', 'tutorial', 'implementation'],
             },
             description: {
               type: 'string',
@@ -1627,14 +1532,12 @@ const generatedContract = (() => {
           channel: { type: 'string', description: 'Channel name or identifier.' },
           url: {
             type: 'string',
-            description:
-              'Access URL using normal [URL scheme](https://en.wikipedia.org/wiki/URL#Syntax) (https, mailto, etc.).',
+            description: 'Access URL using normal [URL scheme](https://en.wikipedia.org/wiki/URL#Syntax) (https, mailto, etc.).',
           },
           description: { type: 'string', description: 'Description of the channel, free text.' },
           tool: {
             type: 'string',
-            description:
-              'Name of the tool, value can be `email`, `slack`, `teams`, `discord`, `ticket`, `googlechat`, or `other`.',
+            description: 'Name of the tool, value can be `email`, `slack`, `teams`, `discord`, `ticket`, `googlechat`, or `other`.',
             examples: ['email', 'slack', 'teams', 'discord', 'ticket', 'googlechat', 'other'],
           },
           scope: {
@@ -1644,8 +1547,7 @@ const generatedContract = (() => {
           },
           invitationUrl: {
             type: 'string',
-            description:
-              'Some tools uses invitation URL for requesting or subscribing. Follows the [URL scheme](https://en.wikipedia.org/wiki/URL#Syntax).',
+            description: 'Some tools uses invitation URL for requesting or subscribing. Follows the [URL scheme](https://en.wikipedia.org/wiki/URL#Syntax).',
           },
           customProperties: { $ref: '#/$defs/CustomProperties' },
         },
@@ -1682,8 +1584,7 @@ const generatedContract = (() => {
           description: { type: 'string', description: "The user's description." },
           role: {
             type: 'string',
-            description:
-              "The user's job role; Examples might be owner, data steward. There is no limit on the role.",
+            description: "The user's job role; Examples might be owner, data steward. There is no limit on the role.",
           },
           dateIn: {
             type: 'string',
@@ -1763,38 +1664,27 @@ const generatedContract = (() => {
           id: { $ref: '#/$defs/StableId' },
           property: {
             type: 'string',
-            description:
-              'Specific property in SLA, check the periodic table. May requires units (more details to come).',
+            description: 'Specific property in SLA, check the periodic table. May requires units (more details to come).',
           },
           value: {
-            anyOf: [
-              { type: 'string' },
-              { type: 'number' },
-              { type: 'integer' },
-              { type: 'boolean' },
-              { type: 'null' },
-            ],
+            anyOf: [{ type: 'string' }, { type: 'number' }, { type: 'integer' }, { type: 'boolean' }, { type: 'null' }],
             description: 'Agreement value. The label will change based on the property itself.',
           },
           valueExt: {
             $ref: '#/$defs/AnyNonCollectionType',
-            description:
-              'Extended agreement value. The label will change based on the property itself.',
+            description: 'Extended agreement value. The label will change based on the property itself.',
           },
           unit: {
             type: 'string',
-            description:
-              '**d**, day, days for days; **y**, yr, years for years, etc. Units use the ISO standard.',
+            description: '**d**, day, days for days; **y**, yr, years for years, etc. Units use the ISO standard.',
           },
           element: {
             type: 'string',
-            description:
-              'Element(s) to check on. Multiple elements should be extremely rare and, if so, separated by commas.',
+            description: 'Element(s) to check on. Multiple elements should be extremely rare and, if so, separated by commas.',
           },
           driver: {
             type: 'string',
-            description:
-              'Describes the importance of the SLA from the list of: `regulatory`, `analytics`, or `operational`.',
+            description: 'Describes the importance of the SLA from the list of: `regulatory`, `analytics`, or `operational`.',
             examples: ['regulatory', 'analytics', 'operational'],
           },
           description: {
@@ -1804,14 +1694,12 @@ const generatedContract = (() => {
           },
           scheduler: {
             type: 'string',
-            description:
-              'Name of the scheduler, can be cron or any tool your organization support.',
+            description: 'Name of the scheduler, can be cron or any tool your organization support.',
             examples: ['cron'],
           },
           schedule: {
             type: 'string',
-            description:
-              'Configuration information for the scheduling tool, for cron a possible value is 0 20 * * *.',
+            description: 'Configuration information for the scheduling tool, for cron a possible value is 0 20 * * *.',
             examples: ['0 20 * * *'],
           },
         },
@@ -1829,8 +1717,7 @@ const generatedContract = (() => {
           id: { $ref: '#/$defs/StableId' },
           property: {
             type: 'string',
-            description:
-              'The name of the key. Names should be in camel case–the same as if they were permanent properties in the contract.',
+            description: 'The name of the key. Names should be in camel case–the same as if they were permanent properties in the contract.',
           },
           value: { $ref: '#/$defs/AnyType', description: 'The value of the key.' },
           description: { type: 'string', description: 'Description of the custom property.' },
@@ -1839,29 +1726,14 @@ const generatedContract = (() => {
         additionalProperties: false,
       },
       AnyType: {
-        anyOf: [
-          { type: 'string' },
-          { type: 'number' },
-          { type: 'integer' },
-          { type: 'boolean' },
-          { type: 'null' },
-          { type: 'array' },
-          { type: 'object' },
-        ],
+        anyOf: [{ type: 'string' }, { type: 'number' }, { type: 'integer' }, { type: 'boolean' }, { type: 'null' }, { type: 'array' }, { type: 'object' }],
       },
       AnyNonCollectionType: {
-        anyOf: [
-          { type: 'string' },
-          { type: 'number' },
-          { type: 'integer' },
-          { type: 'boolean' },
-          { type: 'null' },
-        ],
+        anyOf: [{ type: 'string' }, { type: 'number' }, { type: 'integer' }, { type: 'boolean' }, { type: 'null' }],
       },
       RelationshipBase: {
         type: 'object',
-        description:
-          'Base definition for relationships between properties, typically for foreign key constraints.',
+        description: 'Base definition for relationships between properties, typically for foreign key constraints.',
         properties: {
           type: {
             type: 'string',
@@ -1872,21 +1744,14 @@ const generatedContract = (() => {
           from: {
             oneOf: [
               {
-                anyOf: [
-                  { $ref: '#/$defs/ShorthandReference' },
-                  { $ref: '#/$defs/FullyQualifiedReference' },
-                ],
-                description:
-                  'Source property reference using fully qualified or shorthand notation.',
+                anyOf: [{ $ref: '#/$defs/ShorthandReference' }, { $ref: '#/$defs/FullyQualifiedReference' }],
+                description: 'Source property reference using fully qualified or shorthand notation.',
               },
               {
                 type: 'array',
                 description: 'Array of source properties for composite keys.',
                 items: {
-                  anyOf: [
-                    { $ref: '#/$defs/ShorthandReference' },
-                    { $ref: '#/$defs/FullyQualifiedReference' },
-                  ],
+                  anyOf: [{ $ref: '#/$defs/ShorthandReference' }, { $ref: '#/$defs/FullyQualifiedReference' }],
                 },
                 minItems: 1,
               },
@@ -1896,21 +1761,14 @@ const generatedContract = (() => {
           to: {
             oneOf: [
               {
-                anyOf: [
-                  { $ref: '#/$defs/ShorthandReference' },
-                  { $ref: '#/$defs/FullyQualifiedReference' },
-                ],
-                description:
-                  'Target property reference using fully qualified or shorthand notation.',
+                anyOf: [{ $ref: '#/$defs/ShorthandReference' }, { $ref: '#/$defs/FullyQualifiedReference' }],
+                description: 'Target property reference using fully qualified or shorthand notation.',
               },
               {
                 type: 'array',
                 description: 'Array of target properties for composite keys.',
                 items: {
-                  anyOf: [
-                    { $ref: '#/$defs/ShorthandReference' },
-                    { $ref: '#/$defs/FullyQualifiedReference' },
-                  ],
+                  anyOf: [{ $ref: '#/$defs/ShorthandReference' }, { $ref: '#/$defs/FullyQualifiedReference' }],
                 },
                 minItems: 1,
               },
@@ -1922,8 +1780,7 @@ const generatedContract = (() => {
       },
       RelationshipSchemaLevel: {
         type: 'object',
-        description:
-          "Relationship definition at schema level, requiring both 'from' and 'to' fields with matching types.",
+        description: "Relationship definition at schema level, requiring both 'from' and 'to' fields with matching types.",
         allOf: [
           { $ref: '#/$defs/RelationshipBase' },
           { required: ['from', 'to'] },
@@ -1934,8 +1791,7 @@ const generatedContract = (() => {
                 properties: { from: { type: 'string' }, to: { type: 'string' } },
               },
               {
-                description:
-                  'Composite key relationship - both fields must be arrays with matching lengths',
+                description: 'Composite key relationship - both fields must be arrays with matching lengths',
                 properties: {
                   from: { type: 'array', items: { type: 'string' }, minItems: 1 },
                   to: { type: 'array', items: { type: 'string' }, minItems: 1 },
@@ -1948,25 +1804,20 @@ const generatedContract = (() => {
       },
       RelationshipPropertyLevel: {
         type: 'object',
-        description:
-          "Relationship definition at property level, where 'from' is implicitly the current property.",
+        description: "Relationship definition at property level, where 'from' is implicitly the current property.",
         allOf: [
           { $ref: '#/$defs/RelationshipBase' },
           { type: 'object', required: ['to'] },
           {
             not: { required: ['from'] },
-            description:
-              "The 'from' field must not be specified at property level as it is implicitly derived from the property context",
+            description: "The 'from' field must not be specified at property level as it is implicitly derived from the property context",
           },
         ],
         unevaluatedProperties: false,
       },
       Relationship: {
         description: 'Compatibility wrapper for relationship definitions.',
-        oneOf: [
-          { $ref: '#/$defs/RelationshipSchemaLevel' },
-          { $ref: '#/$defs/RelationshipPropertyLevel' },
-        ],
+        oneOf: [{ $ref: '#/$defs/RelationshipSchemaLevel' }, { $ref: '#/$defs/RelationshipPropertyLevel' }],
       },
     },
   };
@@ -2198,8 +2049,7 @@ const generatedContract = (() => {
       stagingDir: {
         type: 'string',
         format: 'uri',
-        description:
-          'Amazon Athena automatically stores query results and metadata information for each query that runs in a query result location that you can specify in Amazon S3.',
+        description: 'Amazon Athena automatically stores query results and metadata information for each query that runs in a query result location that you can specify in Amazon S3.',
         examples: ['s3://my_storage_account_name/my_container/path'],
       },
       schema: {
@@ -2226,12 +2076,8 @@ const generatedContract = (() => {
       location: {
         type: 'string',
         format: 'uri',
-        description:
-          'Fully qualified path to Azure Blob Storage or Azure Data Lake Storage (ADLS), supports globs.',
-        examples: [
-          'az://my_storage_account_name.blob.core.windows.net/my_container/path/*.parquet',
-          'abfss://my_storage_account_name.dfs.core.windows.net/my_container_name/path/*.parquet',
-        ],
+        description: 'Fully qualified path to Azure Blob Storage or Azure Data Lake Storage (ADLS), supports globs.',
+        examples: ['az://my_storage_account_name.blob.core.windows.net/my_container/path/*.parquet', 'abfss://my_storage_account_name.dfs.core.windows.net/my_container_name/path/*.parquet'],
       },
       format: {
         type: 'string',
@@ -2241,8 +2087,7 @@ const generatedContract = (() => {
       delimiter: {
         type: 'string',
         examples: ['new_line', 'array'],
-        description:
-          'Only for format = json. How multiple json documents are delimited within one file',
+        description: 'Only for format = json. How multiple json documents are delimited within one file',
       },
     },
     required: ['location', 'format'],
@@ -2571,8 +2416,7 @@ const generatedContract = (() => {
       delimiter: {
         type: 'string',
         examples: ['new_line', 'array'],
-        description:
-          'Only for format = json. How multiple json documents are delimited within one file',
+        description: 'Only for format = json. How multiple json documents are delimited within one file',
       },
     },
     required: ['location'],
@@ -2596,8 +2440,7 @@ const generatedContract = (() => {
       delimiter: {
         type: 'string',
         examples: ['new_line', 'array'],
-        description:
-          'Only for format = json. How multiple json documents are delimited within one file',
+        description: 'Only for format = json. How multiple json documents are delimited within one file',
       },
     },
     required: ['location'],
@@ -2728,8 +2571,7 @@ const generatedContract = (() => {
       id: { $ref: '#/$defs/StableId' },
       property: {
         type: 'string',
-        description:
-          'The name of the key. Names should be in camel case–the same as if they were permanent properties in the contract.',
+        description: 'The name of the key. Names should be in camel case–the same as if they were permanent properties in the contract.',
       },
       value: { $ref: '#/$defs/AnyType', description: 'The value of the key.' },
       description: { type: 'string', description: 'Description of the custom property.' },
@@ -2738,27 +2580,10 @@ const generatedContract = (() => {
     additionalProperties: false,
   };
   const OdcsContractSchemaComponentSchema3 = {
-    anyOf: [
-      { type: 'string' },
-      { type: 'number' },
-      { type: 'integer' },
-      { type: 'boolean' },
-      { type: 'null' },
-      { type: 'array' },
-      { type: 'object' },
-    ],
+    anyOf: [{ type: 'string' }, { type: 'number' }, { type: 'integer' }, { type: 'boolean' }, { type: 'null' }, { type: 'array' }, { type: 'object' }],
   };
 
-  function validate22(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate22(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate22.evaluated;
@@ -3059,16 +2884,7 @@ const generatedContract = (() => {
   }
   validate22.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
 
-  function validate21(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate21(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate21.evaluated;
@@ -3114,16 +2930,7 @@ const generatedContract = (() => {
   }
   validate21.evaluated = { items: true, dynamicProps: false, dynamicItems: false };
 
-  function validate20(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate20(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate20.evaluated;
@@ -3150,17 +2957,7 @@ const generatedContract = (() => {
         errors++;
       }
       for (const key0 in data) {
-        if (
-          !(
-            key0 === 'id' ||
-            key0 === 'role' ||
-            key0 === 'description' ||
-            key0 === 'access' ||
-            key0 === 'firstLevelApprovers' ||
-            key0 === 'secondLevelApprovers' ||
-            key0 === 'customProperties'
-          )
-        ) {
+        if (!(key0 === 'id' || key0 === 'role' || key0 === 'description' || key0 === 'access' || key0 === 'firstLevelApprovers' || key0 === 'secondLevelApprovers' || key0 === 'customProperties')) {
           const err1 = {
             instancePath,
             schemaPath: '#/additionalProperties',
@@ -3329,16 +3126,7 @@ const generatedContract = (() => {
   }
   validate20.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
 
-  function validate19(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate19(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate19.evaluated;
@@ -10019,15 +9807,8 @@ const generatedContract = (() => {
         url: { type: 'string', description: 'URL to the authority.' },
         type: {
           type: 'string',
-          description:
-            'Type of definition for authority: v2.3 adds standard values: `businessDefinition`, `transformationImplementation`, `videoTutorial`, `tutorial`, and `implementation`.',
-          examples: [
-            'businessDefinition',
-            'transformationImplementation',
-            'videoTutorial',
-            'tutorial',
-            'implementation',
-          ],
+          description: 'Type of definition for authority: v2.3 adds standard values: `businessDefinition`, `transformationImplementation`, `videoTutorial`, `tutorial`, and `implementation`.',
+          examples: ['businessDefinition', 'transformationImplementation', 'videoTutorial', 'tutorial', 'implementation'],
         },
         description: {
           type: 'string',
@@ -10039,16 +9820,7 @@ const generatedContract = (() => {
     },
   };
 
-  function validate28(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate28(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate28.evaluated;
@@ -10252,8 +10024,7 @@ const generatedContract = (() => {
       },
       relationships: {
         type: 'array',
-        description:
-          "A list of relationships to other properties. Each relationship must have 'from', 'to' and optionally 'type' field.",
+        description: "A list of relationships to other properties. Each relationship must have 'from', 'to' and optionally 'type' field.",
         items: { $ref: '#/$defs/RelationshipSchemaLevel' },
       },
       quality: { $ref: '#/$defs/DataQualityChecks' },
@@ -10280,16 +10051,7 @@ const generatedContract = (() => {
     },
   };
 
-  function validate32(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate32(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate32.evaluated;
@@ -10511,8 +10273,7 @@ const generatedContract = (() => {
     properties: {
       primaryKey: {
         type: 'boolean',
-        description:
-          'Boolean value specifying whether the element is primary or not. Default is false.',
+        description: 'Boolean value specifying whether the element is primary or not. Default is false.',
       },
       primaryKeyPosition: {
         type: 'integer',
@@ -10523,17 +10284,7 @@ const generatedContract = (() => {
       logicalType: {
         type: 'string',
         description: 'The logical element data type.',
-        enum: [
-          'string',
-          'date',
-          'timestamp',
-          'time',
-          'number',
-          'integer',
-          'object',
-          'array',
-          'boolean',
-        ],
+        enum: ['string', 'date', 'timestamp', 'time', 'number', 'integer', 'object', 'array', 'boolean'],
       },
       logicalTypeOptions: {
         type: 'object',
@@ -10541,21 +10292,18 @@ const generatedContract = (() => {
       },
       physicalType: {
         type: 'string',
-        description:
-          'The physical element data type in the data source. For example, VARCHAR(2), DOUBLE, INT.',
+        description: 'The physical element data type in the data source. For example, VARCHAR(2), DOUBLE, INT.',
       },
       physicalName: { type: 'string', description: 'Physical name.', examples: ['col_str_a'] },
       required: {
         type: 'boolean',
         default: false,
-        description:
-          'Indicates if the element may contain Null values; possible values are true and false. Default is false.',
+        description: 'Indicates if the element may contain Null values; possible values are true and false. Default is false.',
       },
       unique: {
         type: 'boolean',
         default: false,
-        description:
-          'Indicates if the element contains unique values; possible values are true and false. Default is false.',
+        description: 'Indicates if the element contains unique values; possible values are true and false. Default is false.',
       },
       partitioned: {
         type: 'boolean',
@@ -10597,13 +10345,11 @@ const generatedContract = (() => {
       criticalDataElement: {
         type: 'boolean',
         default: false,
-        description:
-          'True or false indicator; If element is considered a critical data element (CDE) then true else false.',
+        description: 'True or false indicator; If element is considered a critical data element (CDE) then true else false.',
       },
       relationships: {
         type: 'array',
-        description:
-          "A list of relationships to other properties. When defined at property level, the 'from' field is implicit and should not be specified.",
+        description: "A list of relationships to other properties. When defined at property level, the 'from' field is implicit and should not be specified.",
         items: { $ref: '#/$defs/RelationshipPropertyLevel' },
       },
       quality: { $ref: '#/$defs/DataQualityChecks' },
@@ -10630,22 +10376,11 @@ const generatedContract = (() => {
                 },
                 pattern: {
                   type: 'string',
-                  description:
-                    'Regular expression pattern to define valid value. Follows regular expression syntax from ECMA-262 (https://262.ecma-international.org/5.1/#sec-15.10.1).',
+                  description: 'Regular expression pattern to define valid value. Follows regular expression syntax from ECMA-262 (https://262.ecma-international.org/5.1/#sec-15.10.1).',
                 },
                 format: {
                   type: 'string',
-                  examples: [
-                    'password',
-                    'byte',
-                    'binary',
-                    'email',
-                    'uuid',
-                    'uri',
-                    'hostname',
-                    'ipv4',
-                    'ipv6',
-                  ],
+                  examples: ['password', 'byte', 'binary', 'email', 'uuid', 'uri', 'hostname', 'ipv4', 'ipv6'],
                   description: 'Provides extra context about what format the string follows.',
                 },
               },
@@ -10669,23 +10404,19 @@ const generatedContract = (() => {
                 },
                 exclusiveMaximum: {
                   type: 'string',
-                  description:
-                    'All values must be strictly less than this value (values < exclusiveMaximum).',
+                  description: 'All values must be strictly less than this value (values < exclusiveMaximum).',
                 },
                 maximum: {
                   type: 'string',
-                  description:
-                    'All date values are less than or equal to this value (values <= maximum).',
+                  description: 'All date values are less than or equal to this value (values <= maximum).',
                 },
                 exclusiveMinimum: {
                   type: 'string',
-                  description:
-                    'All values must be strictly greater than this value (values > exclusiveMinimum).',
+                  description: 'All values must be strictly greater than this value (values > exclusiveMinimum).',
                 },
                 minimum: {
                   type: 'string',
-                  description:
-                    'All date values are greater than or equal to this value (values >= minimum).',
+                  description: 'All date values are greater than or equal to this value (values >= minimum).',
                 },
               },
             },
@@ -10694,10 +10425,7 @@ const generatedContract = (() => {
       },
       {
         if: {
-          anyOf: [
-            { properties: { logicalType: { const: 'timestamp' } } },
-            { properties: { logicalType: { const: 'time' } } },
-          ],
+          anyOf: [{ properties: { logicalType: { const: 'timestamp' } } }, { properties: { logicalType: { const: 'time' } } }],
         },
         then: {
           properties: {
@@ -10713,33 +10441,27 @@ const generatedContract = (() => {
                 },
                 exclusiveMaximum: {
                   type: 'string',
-                  description:
-                    'All values must be strictly less than this value (values < exclusiveMaximum).',
+                  description: 'All values must be strictly less than this value (values < exclusiveMaximum).',
                 },
                 maximum: {
                   type: 'string',
-                  description:
-                    'All date values are less than or equal to this value (values <= maximum).',
+                  description: 'All date values are less than or equal to this value (values <= maximum).',
                 },
                 exclusiveMinimum: {
                   type: 'string',
-                  description:
-                    'All values must be strictly greater than this value (values > exclusiveMinimum).',
+                  description: 'All values must be strictly greater than this value (values > exclusiveMinimum).',
                 },
                 minimum: {
                   type: 'string',
-                  description:
-                    'All date values are greater than or equal to this value (values >= minimum).',
+                  description: 'All date values are greater than or equal to this value (values >= minimum).',
                 },
                 timezone: {
                   type: 'boolean',
-                  description:
-                    'Whether the timestamp defines the timezone or not. If true, timezone information is included in the timestamp.',
+                  description: 'Whether the timestamp defines the timezone or not. If true, timezone information is included in the timestamp.',
                 },
                 defaultTimezone: {
                   type: 'string',
-                  description:
-                    'The default timezone of the timestamp. If timezone is not defined, the default timezone UTC is used.',
+                  description: 'The default timezone of the timestamp. If timezone is not defined, the default timezone UTC is used.',
                   default: 'Etc/UTC',
                 },
               },
@@ -10758,34 +10480,28 @@ const generatedContract = (() => {
                 multipleOf: {
                   type: 'number',
                   exclusiveMinimum: 0,
-                  description:
-                    'Values must be multiples of this number. For example, multiple of 5 has valid values 0, 5, 10, -5.',
+                  description: 'Values must be multiples of this number. For example, multiple of 5 has valid values 0, 5, 10, -5.',
                 },
                 maximum: {
                   type: 'number',
-                  description:
-                    'All values are less than or equal to this value (values <= maximum).',
+                  description: 'All values are less than or equal to this value (values <= maximum).',
                 },
                 exclusiveMaximum: {
                   type: 'number',
-                  description:
-                    'All values must be strictly less than this value (values < exclusiveMaximum).',
+                  description: 'All values must be strictly less than this value (values < exclusiveMaximum).',
                 },
                 minimum: {
                   type: 'number',
-                  description:
-                    'All values are greater than or equal to this value (values >= minimum).',
+                  description: 'All values are greater than or equal to this value (values >= minimum).',
                 },
                 exclusiveMinimum: {
                   type: 'number',
-                  description:
-                    'All values must be strictly greater than this value (values > exclusiveMinimum).',
+                  description: 'All values must be strictly greater than this value (values > exclusiveMinimum).',
                 },
                 format: {
                   type: 'string',
                   default: 'i32',
-                  description:
-                    'Format of the value in terms of how many bits of space it can use and whether it is signed or unsigned (follows the Rust integer types).',
+                  description: 'Format of the value in terms of how many bits of space it can use and whether it is signed or unsigned (follows the Rust integer types).',
                   enum: ['i8', 'i16', 'i32', 'i64', 'i128', 'u8', 'u16', 'u32', 'u64', 'u128'],
                 },
               },
@@ -10804,34 +10520,28 @@ const generatedContract = (() => {
                 multipleOf: {
                   type: 'number',
                   exclusiveMinimum: 0,
-                  description:
-                    'Values must be multiples of this number. For example, multiple of 5 has valid values 0, 5, 10, -5.',
+                  description: 'Values must be multiples of this number. For example, multiple of 5 has valid values 0, 5, 10, -5.',
                 },
                 maximum: {
                   type: 'number',
-                  description:
-                    'All values are less than or equal to this value (values <= maximum).',
+                  description: 'All values are less than or equal to this value (values <= maximum).',
                 },
                 exclusiveMaximum: {
                   type: 'number',
-                  description:
-                    'All values must be strictly less than this value (values < exclusiveMaximum).',
+                  description: 'All values must be strictly less than this value (values < exclusiveMaximum).',
                 },
                 minimum: {
                   type: 'number',
-                  description:
-                    'All values are greater than or equal to this value (values >= minimum).',
+                  description: 'All values are greater than or equal to this value (values >= minimum).',
                 },
                 exclusiveMinimum: {
                   type: 'number',
-                  description:
-                    'All values must be strictly greater than this value (values > exclusiveMinimum).',
+                  description: 'All values must be strictly greater than this value (values > exclusiveMinimum).',
                 },
                 format: {
                   type: 'string',
                   default: 'i32',
-                  description:
-                    'Format of the value in terms of how many bits of space it can use (follows the Rust float types).',
+                  description: 'Format of the value in terms of how many bits of space it can use (follows the Rust float types).',
                   enum: ['f32', 'f64'],
                 },
               },
@@ -10922,16 +10632,7 @@ const generatedContract = (() => {
   const wrapper1 = { validate: validate37 };
   const wrapper0 = { validate: validate36 };
 
-  function validate39(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate39(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate39.evaluated;
@@ -10950,8 +10651,7 @@ const generatedContract = (() => {
         dynamicAnchors,
       })
     ) {
-      vErrors =
-        vErrors === null ? wrapper1.validate.errors : vErrors.concat(wrapper1.validate.errors);
+      vErrors = vErrors === null ? wrapper1.validate.errors : vErrors.concat(wrapper1.validate.errors);
       errors = vErrors.length;
     } else {
       var props0 = wrapper1.validate.evaluated.props;
@@ -10976,10 +10676,7 @@ const generatedContract = (() => {
                 dynamicAnchors,
               })
             ) {
-              vErrors =
-                vErrors === null
-                  ? wrapper0.validate.errors
-                  : vErrors.concat(wrapper0.validate.errors);
+              vErrors = vErrors === null ? wrapper0.validate.errors : vErrors.concat(wrapper0.validate.errors);
               errors = vErrors.length;
             }
           }
@@ -11041,23 +10738,20 @@ const generatedContract = (() => {
 
   const RelationshipDefinitionAtPropertySchema = {
     type: 'object',
-    description:
-      "Relationship definition at property level, where 'from' is implicitly the current property.",
+    description: "Relationship definition at property level, where 'from' is implicitly the current property.",
     allOf: [
       { $ref: '#/$defs/RelationshipBase' },
       { type: 'object', required: ['to'] },
       {
         not: { required: ['from'] },
-        description:
-          "The 'from' field must not be specified at property level as it is implicitly derived from the property context",
+        description: "The 'from' field must not be specified at property level as it is implicitly derived from the property context",
       },
     ],
     unevaluatedProperties: false,
   };
   const BaseDefinitionRelationshipsBetweenSchema = {
     type: 'object',
-    description:
-      'Base definition for relationships between properties, typically for foreign key constraints.',
+    description: 'Base definition for relationships between properties, typically for foreign key constraints.',
     properties: {
       type: {
         type: 'string',
@@ -11068,20 +10762,14 @@ const generatedContract = (() => {
       from: {
         oneOf: [
           {
-            anyOf: [
-              { $ref: '#/$defs/ShorthandReference' },
-              { $ref: '#/$defs/FullyQualifiedReference' },
-            ],
+            anyOf: [{ $ref: '#/$defs/ShorthandReference' }, { $ref: '#/$defs/FullyQualifiedReference' }],
             description: 'Source property reference using fully qualified or shorthand notation.',
           },
           {
             type: 'array',
             description: 'Array of source properties for composite keys.',
             items: {
-              anyOf: [
-                { $ref: '#/$defs/ShorthandReference' },
-                { $ref: '#/$defs/FullyQualifiedReference' },
-              ],
+              anyOf: [{ $ref: '#/$defs/ShorthandReference' }, { $ref: '#/$defs/FullyQualifiedReference' }],
             },
             minItems: 1,
           },
@@ -11091,20 +10779,14 @@ const generatedContract = (() => {
       to: {
         oneOf: [
           {
-            anyOf: [
-              { $ref: '#/$defs/ShorthandReference' },
-              { $ref: '#/$defs/FullyQualifiedReference' },
-            ],
+            anyOf: [{ $ref: '#/$defs/ShorthandReference' }, { $ref: '#/$defs/FullyQualifiedReference' }],
             description: 'Target property reference using fully qualified or shorthand notation.',
           },
           {
             type: 'array',
             description: 'Array of target properties for composite keys.',
             items: {
-              anyOf: [
-                { $ref: '#/$defs/ShorthandReference' },
-                { $ref: '#/$defs/FullyQualifiedReference' },
-              ],
+              anyOf: [{ $ref: '#/$defs/ShorthandReference' }, { $ref: '#/$defs/FullyQualifiedReference' }],
             },
             minItems: 1,
           },
@@ -11121,27 +10803,13 @@ const generatedContract = (() => {
   };
   const FullyQualifiedNotationUsingSchema = {
     type: 'string',
-    description:
-      'Fully qualified notation using id fields (section/id/properties/id), optionally prefixed with external file reference',
-    pattern:
-      '^(?:(?:https?:\\/\\/)?[A-Za-z0-9._\\-\\/]+\\.yaml#)?\\/?[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+(?:\\/[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+)*$',
+    description: 'Fully qualified notation using id fields (section/id/properties/id), optionally prefixed with external file reference',
+    pattern: '^(?:(?:https?:\\/\\/)?[A-Za-z0-9._\\-\\/]+\\.yaml#)?\\/?[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+(?:\\/[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+)*$',
   };
   const pattern8 = new RegExp('^[A-Za-z_][A-Za-z0-9_\\-]*(\\.[A-Za-z_][A-Za-z0-9_\\-]*)+$', 'u');
-  const pattern9 = new RegExp(
-    '^(?:(?:https?:\\/\\/)?[A-Za-z0-9._\\-\\/]+\\.yaml#)?\\/?[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+(?:\\/[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+)*$',
-    'u',
-  );
+  const pattern9 = new RegExp('^(?:(?:https?:\\/\\/)?[A-Za-z0-9._\\-\\/]+\\.yaml#)?\\/?[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+(?:\\/[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+)*$', 'u');
 
-  function validate42(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate42(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate42.evaluated;
@@ -11203,10 +10871,7 @@ const generatedContract = (() => {
               schemaPath: '#/$defs/ShorthandReference/pattern',
               keyword: 'pattern',
               params: { pattern: '^[A-Za-z_][A-Za-z0-9_\\-]*(\\.[A-Za-z_][A-Za-z0-9_\\-]*)+$' },
-              message:
-                'must match pattern "' +
-                '^[A-Za-z_][A-Za-z0-9_\\-]*(\\.[A-Za-z_][A-Za-z0-9_\\-]*)+$' +
-                '"',
+              message: 'must match pattern "' + '^[A-Za-z_][A-Za-z0-9_\\-]*(\\.[A-Za-z_][A-Za-z0-9_\\-]*)+$' + '"',
             };
             if (vErrors === null) {
               vErrors = [err2];
@@ -11240,8 +10905,7 @@ const generatedContract = (() => {
               schemaPath: '#/$defs/FullyQualifiedReference/pattern',
               keyword: 'pattern',
               params: {
-                pattern:
-                  '^(?:(?:https?:\\/\\/)?[A-Za-z0-9._\\-\\/]+\\.yaml#)?\\/?[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+(?:\\/[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+)*$',
+                pattern: '^(?:(?:https?:\\/\\/)?[A-Za-z0-9._\\-\\/]+\\.yaml#)?\\/?[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+(?:\\/[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+)*$',
               },
               message:
                 'must match pattern "' +
@@ -11331,10 +10995,7 @@ const generatedContract = (() => {
                   schemaPath: '#/$defs/ShorthandReference/pattern',
                   keyword: 'pattern',
                   params: { pattern: '^[A-Za-z_][A-Za-z0-9_\\-]*(\\.[A-Za-z_][A-Za-z0-9_\\-]*)+$' },
-                  message:
-                    'must match pattern "' +
-                    '^[A-Za-z_][A-Za-z0-9_\\-]*(\\.[A-Za-z_][A-Za-z0-9_\\-]*)+$' +
-                    '"',
+                  message: 'must match pattern "' + '^[A-Za-z_][A-Za-z0-9_\\-]*(\\.[A-Za-z_][A-Za-z0-9_\\-]*)+$' + '"',
                 };
                 if (vErrors === null) {
                   vErrors = [err8];
@@ -11368,8 +11029,7 @@ const generatedContract = (() => {
                   schemaPath: '#/$defs/FullyQualifiedReference/pattern',
                   keyword: 'pattern',
                   params: {
-                    pattern:
-                      '^(?:(?:https?:\\/\\/)?[A-Za-z0-9._\\-\\/]+\\.yaml#)?\\/?[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+(?:\\/[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+)*$',
+                    pattern: '^(?:(?:https?:\\/\\/)?[A-Za-z0-9._\\-\\/]+\\.yaml#)?\\/?[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+(?:\\/[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+)*$',
                   },
                   message:
                     'must match pattern "' +
@@ -11491,10 +11151,7 @@ const generatedContract = (() => {
               schemaPath: '#/$defs/ShorthandReference/pattern',
               keyword: 'pattern',
               params: { pattern: '^[A-Za-z_][A-Za-z0-9_\\-]*(\\.[A-Za-z_][A-Za-z0-9_\\-]*)+$' },
-              message:
-                'must match pattern "' +
-                '^[A-Za-z_][A-Za-z0-9_\\-]*(\\.[A-Za-z_][A-Za-z0-9_\\-]*)+$' +
-                '"',
+              message: 'must match pattern "' + '^[A-Za-z_][A-Za-z0-9_\\-]*(\\.[A-Za-z_][A-Za-z0-9_\\-]*)+$' + '"',
             };
             if (vErrors === null) {
               vErrors = [err15];
@@ -11528,8 +11185,7 @@ const generatedContract = (() => {
               schemaPath: '#/$defs/FullyQualifiedReference/pattern',
               keyword: 'pattern',
               params: {
-                pattern:
-                  '^(?:(?:https?:\\/\\/)?[A-Za-z0-9._\\-\\/]+\\.yaml#)?\\/?[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+(?:\\/[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+)*$',
+                pattern: '^(?:(?:https?:\\/\\/)?[A-Za-z0-9._\\-\\/]+\\.yaml#)?\\/?[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+(?:\\/[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+)*$',
               },
               message:
                 'must match pattern "' +
@@ -11619,10 +11275,7 @@ const generatedContract = (() => {
                   schemaPath: '#/$defs/ShorthandReference/pattern',
                   keyword: 'pattern',
                   params: { pattern: '^[A-Za-z_][A-Za-z0-9_\\-]*(\\.[A-Za-z_][A-Za-z0-9_\\-]*)+$' },
-                  message:
-                    'must match pattern "' +
-                    '^[A-Za-z_][A-Za-z0-9_\\-]*(\\.[A-Za-z_][A-Za-z0-9_\\-]*)+$' +
-                    '"',
+                  message: 'must match pattern "' + '^[A-Za-z_][A-Za-z0-9_\\-]*(\\.[A-Za-z_][A-Za-z0-9_\\-]*)+$' + '"',
                 };
                 if (vErrors === null) {
                   vErrors = [err21];
@@ -11656,8 +11309,7 @@ const generatedContract = (() => {
                   schemaPath: '#/$defs/FullyQualifiedReference/pattern',
                   keyword: 'pattern',
                   params: {
-                    pattern:
-                      '^(?:(?:https?:\\/\\/)?[A-Za-z0-9._\\-\\/]+\\.yaml#)?\\/?[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+(?:\\/[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+)*$',
+                    pattern: '^(?:(?:https?:\\/\\/)?[A-Za-z0-9._\\-\\/]+\\.yaml#)?\\/?[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+(?:\\/[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+)*$',
                   },
                   message:
                     'must match pattern "' +
@@ -11801,16 +11453,7 @@ const generatedContract = (() => {
     dynamicItems: false,
   };
 
-  function validate41(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate41(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate41.evaluated;
@@ -11820,9 +11463,7 @@ const generatedContract = (() => {
     if (evaluated0.dynamicItems) {
       evaluated0.items = undefined;
     }
-    if (
-      !validate42(data, { instancePath, parentData, parentDataProperty, rootData, dynamicAnchors })
-    ) {
+    if (!validate42(data, { instancePath, parentData, parentDataProperty, rootData, dynamicAnchors })) {
       vErrors = vErrors === null ? validate42.errors : vErrors.concat(validate42.errors);
       errors = vErrors.length;
     }
@@ -11936,8 +11577,7 @@ const generatedContract = (() => {
 
   const DataQualityRulesAllSchema = {
     type: 'array',
-    description:
-      'Data quality rules with all the relevant information for rule setup and execution.',
+    description: 'Data quality rules with all the relevant information for rule setup and execution.',
     items: { $ref: '#/$defs/DataQuality' },
   };
   const OdcsContractSchemaComponentSchema9 = {
@@ -11959,15 +11599,7 @@ const generatedContract = (() => {
       dimension: {
         type: 'string',
         description: 'The key performance indicator (KPI) or dimension for data quality.',
-        enum: [
-          'accuracy',
-          'completeness',
-          'conformity',
-          'consistency',
-          'coverage',
-          'timeliness',
-          'uniqueness',
-        ],
+        enum: ['accuracy', 'completeness', 'conformity', 'consistency', 'coverage', 'timeliness', 'uniqueness'],
       },
       method: { type: 'string', examples: ['reconciliation'] },
       name: { type: 'string', description: 'Name of the data quality check.' },
@@ -11996,8 +11628,7 @@ const generatedContract = (() => {
       },
       unit: {
         type: 'string',
-        description:
-          'Unit the rule is using, popular values are `rows` or `percent`, but any value is allowed.',
+        description: 'Unit the rule is using, popular values are `rows` or `percent`, but any value is allowed.',
         examples: ['rows', 'percent'],
       },
     },
@@ -12055,8 +11686,7 @@ const generatedContract = (() => {
       {
         properties: {
           mustBe: {
-            description:
-              "Must be equal to the value to be valid. When using numbers, it is equivalent to '='.",
+            description: "Must be equal to the value to be valid. When using numbers, it is equivalent to '='.",
           },
         },
         required: ['mustBe'],
@@ -12064,8 +11694,7 @@ const generatedContract = (() => {
       {
         properties: {
           mustNotBe: {
-            description:
-              "Must not be equal to the value to be valid. When using numbers, it is equivalent to '!='.",
+            description: "Must not be equal to the value to be valid. When using numbers, it is equivalent to '!='.",
           },
         },
         required: ['mustNotBe'],
@@ -12083,8 +11712,7 @@ const generatedContract = (() => {
         properties: {
           mustBeGreaterOrEqualTo: {
             type: 'number',
-            description:
-              "Must be greater than or equal to the value to be valid. It is equivalent to '>='.",
+            description: "Must be greater than or equal to the value to be valid. It is equivalent to '>='.",
           },
         },
         required: ['mustBeGreaterOrEqualTo'],
@@ -12102,8 +11730,7 @@ const generatedContract = (() => {
         properties: {
           mustBeLessOrEqualTo: {
             type: 'number',
-            description:
-              "Must be less than or equal to the value to be valid. It is equivalent to '<='.",
+            description: "Must be less than or equal to the value to be valid. It is equivalent to '<='.",
           },
         },
         required: ['mustBeLessOrEqualTo'],
@@ -12112,8 +11739,7 @@ const generatedContract = (() => {
         properties: {
           mustBeBetween: {
             type: 'array',
-            description:
-              'Must be between the two numbers to be valid. Smallest number first in the array.',
+            description: 'Must be between the two numbers to be valid. Smallest number first in the array.',
             minItems: 2,
             maxItems: 2,
             uniqueItems: true,
@@ -12126,8 +11752,7 @@ const generatedContract = (() => {
         properties: {
           mustNotBeBetween: {
             type: 'array',
-            description:
-              'Must not be between the two numbers to be valid. Smallest number first in the array.',
+            description: 'Must not be between the two numbers to be valid. Smallest number first in the array.',
             minItems: 2,
             maxItems: 2,
             uniqueItems: true,
@@ -12139,16 +11764,7 @@ const generatedContract = (() => {
     ],
   };
 
-  function validate48(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate48(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate48.evaluated;
@@ -12301,8 +11917,7 @@ const generatedContract = (() => {
             if (!(typeof data.mustBeGreaterOrEqualTo == 'number')) {
               const err6 = {
                 instancePath: instancePath + '/mustBeGreaterOrEqualTo',
-                schemaPath:
-                  '#/$defs/DataQualityOperators/oneOf/3/properties/mustBeGreaterOrEqualTo/type',
+                schemaPath: '#/$defs/DataQualityOperators/oneOf/3/properties/mustBeGreaterOrEqualTo/type',
                 keyword: 'type',
                 params: { type: 'number' },
                 message: 'must be number',
@@ -12398,8 +12013,7 @@ const generatedContract = (() => {
                 if (!(typeof data.mustBeLessOrEqualTo == 'number')) {
                   const err10 = {
                     instancePath: instancePath + '/mustBeLessOrEqualTo',
-                    schemaPath:
-                      '#/$defs/DataQualityOperators/oneOf/5/properties/mustBeLessOrEqualTo/type',
+                    schemaPath: '#/$defs/DataQualityOperators/oneOf/5/properties/mustBeLessOrEqualTo/type',
                     keyword: 'type',
                     params: { type: 'number' },
                     message: 'must be number',
@@ -12449,8 +12063,7 @@ const generatedContract = (() => {
                     if (data4.length > 2) {
                       const err12 = {
                         instancePath: instancePath + '/mustBeBetween',
-                        schemaPath:
-                          '#/$defs/DataQualityOperators/oneOf/6/properties/mustBeBetween/maxItems',
+                        schemaPath: '#/$defs/DataQualityOperators/oneOf/6/properties/mustBeBetween/maxItems',
                         keyword: 'maxItems',
                         params: { limit: 2 },
                         message: 'must NOT have more than 2 items',
@@ -12465,8 +12078,7 @@ const generatedContract = (() => {
                     if (data4.length < 2) {
                       const err13 = {
                         instancePath: instancePath + '/mustBeBetween',
-                        schemaPath:
-                          '#/$defs/DataQualityOperators/oneOf/6/properties/mustBeBetween/minItems',
+                        schemaPath: '#/$defs/DataQualityOperators/oneOf/6/properties/mustBeBetween/minItems',
                         keyword: 'minItems',
                         params: { limit: 2 },
                         message: 'must NOT have fewer than 2 items',
@@ -12483,8 +12095,7 @@ const generatedContract = (() => {
                       if (!(typeof data4[i0] == 'number')) {
                         const err14 = {
                           instancePath: instancePath + '/mustBeBetween/' + i0,
-                          schemaPath:
-                            '#/$defs/DataQualityOperators/oneOf/6/properties/mustBeBetween/items/type',
+                          schemaPath: '#/$defs/DataQualityOperators/oneOf/6/properties/mustBeBetween/items/type',
                           keyword: 'type',
                           params: { type: 'number' },
                           message: 'must be number',
@@ -12510,16 +12121,10 @@ const generatedContract = (() => {
                           j0 = indices0[item0];
                           const err15 = {
                             instancePath: instancePath + '/mustBeBetween',
-                            schemaPath:
-                              '#/$defs/DataQualityOperators/oneOf/6/properties/mustBeBetween/uniqueItems',
+                            schemaPath: '#/$defs/DataQualityOperators/oneOf/6/properties/mustBeBetween/uniqueItems',
                             keyword: 'uniqueItems',
                             params: { i: i1, j: j0 },
-                            message:
-                              'must NOT have duplicate items (items ## ' +
-                              j0 +
-                              ' and ' +
-                              i1 +
-                              ' are identical)',
+                            message: 'must NOT have duplicate items (items ## ' + j0 + ' and ' + i1 + ' are identical)',
                           };
                           if (vErrors === null) {
                             vErrors = [err15];
@@ -12535,8 +12140,7 @@ const generatedContract = (() => {
                   } else {
                     const err16 = {
                       instancePath: instancePath + '/mustBeBetween',
-                      schemaPath:
-                        '#/$defs/DataQualityOperators/oneOf/6/properties/mustBeBetween/type',
+                      schemaPath: '#/$defs/DataQualityOperators/oneOf/6/properties/mustBeBetween/type',
                       keyword: 'type',
                       params: { type: 'array' },
                       message: 'must be array',
@@ -12586,8 +12190,7 @@ const generatedContract = (() => {
                       if (data6.length > 2) {
                         const err18 = {
                           instancePath: instancePath + '/mustNotBeBetween',
-                          schemaPath:
-                            '#/$defs/DataQualityOperators/oneOf/7/properties/mustNotBeBetween/maxItems',
+                          schemaPath: '#/$defs/DataQualityOperators/oneOf/7/properties/mustNotBeBetween/maxItems',
                           keyword: 'maxItems',
                           params: { limit: 2 },
                           message: 'must NOT have more than 2 items',
@@ -12602,8 +12205,7 @@ const generatedContract = (() => {
                       if (data6.length < 2) {
                         const err19 = {
                           instancePath: instancePath + '/mustNotBeBetween',
-                          schemaPath:
-                            '#/$defs/DataQualityOperators/oneOf/7/properties/mustNotBeBetween/minItems',
+                          schemaPath: '#/$defs/DataQualityOperators/oneOf/7/properties/mustNotBeBetween/minItems',
                           keyword: 'minItems',
                           params: { limit: 2 },
                           message: 'must NOT have fewer than 2 items',
@@ -12620,8 +12222,7 @@ const generatedContract = (() => {
                         if (!(typeof data6[i2] == 'number')) {
                           const err20 = {
                             instancePath: instancePath + '/mustNotBeBetween/' + i2,
-                            schemaPath:
-                              '#/$defs/DataQualityOperators/oneOf/7/properties/mustNotBeBetween/items/type',
+                            schemaPath: '#/$defs/DataQualityOperators/oneOf/7/properties/mustNotBeBetween/items/type',
                             keyword: 'type',
                             params: { type: 'number' },
                             message: 'must be number',
@@ -12647,16 +12248,10 @@ const generatedContract = (() => {
                             j1 = indices1[item1];
                             const err21 = {
                               instancePath: instancePath + '/mustNotBeBetween',
-                              schemaPath:
-                                '#/$defs/DataQualityOperators/oneOf/7/properties/mustNotBeBetween/uniqueItems',
+                              schemaPath: '#/$defs/DataQualityOperators/oneOf/7/properties/mustNotBeBetween/uniqueItems',
                               keyword: 'uniqueItems',
                               params: { i: i3, j: j1 },
-                              message:
-                                'must NOT have duplicate items (items ## ' +
-                                j1 +
-                                ' and ' +
-                                i3 +
-                                ' are identical)',
+                              message: 'must NOT have duplicate items (items ## ' + j1 + ' and ' + i3 + ' are identical)',
                             };
                             if (vErrors === null) {
                               vErrors = [err21];
@@ -12672,8 +12267,7 @@ const generatedContract = (() => {
                     } else {
                       const err22 = {
                         instancePath: instancePath + '/mustNotBeBetween',
-                        schemaPath:
-                          '#/$defs/DataQualityOperators/oneOf/7/properties/mustNotBeBetween/type',
+                        schemaPath: '#/$defs/DataQualityOperators/oneOf/7/properties/mustNotBeBetween/type',
                         keyword: 'type',
                         params: { type: 'array' },
                         message: 'must be array',
@@ -12770,15 +12364,7 @@ const generatedContract = (() => {
           }
           errors++;
         }
-        if (
-          !(
-            data8 === 'nullValues' ||
-            data8 === 'missingValues' ||
-            data8 === 'invalidValues' ||
-            data8 === 'duplicateValues' ||
-            data8 === 'rowCount'
-          )
-        ) {
+        if (!(data8 === 'nullValues' || data8 === 'missingValues' || data8 === 'invalidValues' || data8 === 'duplicateValues' || data8 === 'rowCount')) {
           const err26 = {
             instancePath: instancePath + '/metric',
             schemaPath: '#/properties/metric/enum',
@@ -12863,16 +12449,7 @@ const generatedContract = (() => {
     required: ['query'],
   };
 
-  function validate50(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate50(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate50.evaluated;
@@ -13025,8 +12602,7 @@ const generatedContract = (() => {
             if (!(typeof data.mustBeGreaterOrEqualTo == 'number')) {
               const err6 = {
                 instancePath: instancePath + '/mustBeGreaterOrEqualTo',
-                schemaPath:
-                  '#/$defs/DataQualityOperators/oneOf/3/properties/mustBeGreaterOrEqualTo/type',
+                schemaPath: '#/$defs/DataQualityOperators/oneOf/3/properties/mustBeGreaterOrEqualTo/type',
                 keyword: 'type',
                 params: { type: 'number' },
                 message: 'must be number',
@@ -13122,8 +12698,7 @@ const generatedContract = (() => {
                 if (!(typeof data.mustBeLessOrEqualTo == 'number')) {
                   const err10 = {
                     instancePath: instancePath + '/mustBeLessOrEqualTo',
-                    schemaPath:
-                      '#/$defs/DataQualityOperators/oneOf/5/properties/mustBeLessOrEqualTo/type',
+                    schemaPath: '#/$defs/DataQualityOperators/oneOf/5/properties/mustBeLessOrEqualTo/type',
                     keyword: 'type',
                     params: { type: 'number' },
                     message: 'must be number',
@@ -13173,8 +12748,7 @@ const generatedContract = (() => {
                     if (data4.length > 2) {
                       const err12 = {
                         instancePath: instancePath + '/mustBeBetween',
-                        schemaPath:
-                          '#/$defs/DataQualityOperators/oneOf/6/properties/mustBeBetween/maxItems',
+                        schemaPath: '#/$defs/DataQualityOperators/oneOf/6/properties/mustBeBetween/maxItems',
                         keyword: 'maxItems',
                         params: { limit: 2 },
                         message: 'must NOT have more than 2 items',
@@ -13189,8 +12763,7 @@ const generatedContract = (() => {
                     if (data4.length < 2) {
                       const err13 = {
                         instancePath: instancePath + '/mustBeBetween',
-                        schemaPath:
-                          '#/$defs/DataQualityOperators/oneOf/6/properties/mustBeBetween/minItems',
+                        schemaPath: '#/$defs/DataQualityOperators/oneOf/6/properties/mustBeBetween/minItems',
                         keyword: 'minItems',
                         params: { limit: 2 },
                         message: 'must NOT have fewer than 2 items',
@@ -13207,8 +12780,7 @@ const generatedContract = (() => {
                       if (!(typeof data4[i0] == 'number')) {
                         const err14 = {
                           instancePath: instancePath + '/mustBeBetween/' + i0,
-                          schemaPath:
-                            '#/$defs/DataQualityOperators/oneOf/6/properties/mustBeBetween/items/type',
+                          schemaPath: '#/$defs/DataQualityOperators/oneOf/6/properties/mustBeBetween/items/type',
                           keyword: 'type',
                           params: { type: 'number' },
                           message: 'must be number',
@@ -13234,16 +12806,10 @@ const generatedContract = (() => {
                           j0 = indices0[item0];
                           const err15 = {
                             instancePath: instancePath + '/mustBeBetween',
-                            schemaPath:
-                              '#/$defs/DataQualityOperators/oneOf/6/properties/mustBeBetween/uniqueItems',
+                            schemaPath: '#/$defs/DataQualityOperators/oneOf/6/properties/mustBeBetween/uniqueItems',
                             keyword: 'uniqueItems',
                             params: { i: i1, j: j0 },
-                            message:
-                              'must NOT have duplicate items (items ## ' +
-                              j0 +
-                              ' and ' +
-                              i1 +
-                              ' are identical)',
+                            message: 'must NOT have duplicate items (items ## ' + j0 + ' and ' + i1 + ' are identical)',
                           };
                           if (vErrors === null) {
                             vErrors = [err15];
@@ -13259,8 +12825,7 @@ const generatedContract = (() => {
                   } else {
                     const err16 = {
                       instancePath: instancePath + '/mustBeBetween',
-                      schemaPath:
-                        '#/$defs/DataQualityOperators/oneOf/6/properties/mustBeBetween/type',
+                      schemaPath: '#/$defs/DataQualityOperators/oneOf/6/properties/mustBeBetween/type',
                       keyword: 'type',
                       params: { type: 'array' },
                       message: 'must be array',
@@ -13310,8 +12875,7 @@ const generatedContract = (() => {
                       if (data6.length > 2) {
                         const err18 = {
                           instancePath: instancePath + '/mustNotBeBetween',
-                          schemaPath:
-                            '#/$defs/DataQualityOperators/oneOf/7/properties/mustNotBeBetween/maxItems',
+                          schemaPath: '#/$defs/DataQualityOperators/oneOf/7/properties/mustNotBeBetween/maxItems',
                           keyword: 'maxItems',
                           params: { limit: 2 },
                           message: 'must NOT have more than 2 items',
@@ -13326,8 +12890,7 @@ const generatedContract = (() => {
                       if (data6.length < 2) {
                         const err19 = {
                           instancePath: instancePath + '/mustNotBeBetween',
-                          schemaPath:
-                            '#/$defs/DataQualityOperators/oneOf/7/properties/mustNotBeBetween/minItems',
+                          schemaPath: '#/$defs/DataQualityOperators/oneOf/7/properties/mustNotBeBetween/minItems',
                           keyword: 'minItems',
                           params: { limit: 2 },
                           message: 'must NOT have fewer than 2 items',
@@ -13344,8 +12907,7 @@ const generatedContract = (() => {
                         if (!(typeof data6[i2] == 'number')) {
                           const err20 = {
                             instancePath: instancePath + '/mustNotBeBetween/' + i2,
-                            schemaPath:
-                              '#/$defs/DataQualityOperators/oneOf/7/properties/mustNotBeBetween/items/type',
+                            schemaPath: '#/$defs/DataQualityOperators/oneOf/7/properties/mustNotBeBetween/items/type',
                             keyword: 'type',
                             params: { type: 'number' },
                             message: 'must be number',
@@ -13371,16 +12933,10 @@ const generatedContract = (() => {
                             j1 = indices1[item1];
                             const err21 = {
                               instancePath: instancePath + '/mustNotBeBetween',
-                              schemaPath:
-                                '#/$defs/DataQualityOperators/oneOf/7/properties/mustNotBeBetween/uniqueItems',
+                              schemaPath: '#/$defs/DataQualityOperators/oneOf/7/properties/mustNotBeBetween/uniqueItems',
                               keyword: 'uniqueItems',
                               params: { i: i3, j: j1 },
-                              message:
-                                'must NOT have duplicate items (items ## ' +
-                                j1 +
-                                ' and ' +
-                                i3 +
-                                ' are identical)',
+                              message: 'must NOT have duplicate items (items ## ' + j1 + ' and ' + i3 + ' are identical)',
                             };
                             if (vErrors === null) {
                               vErrors = [err21];
@@ -13396,8 +12952,7 @@ const generatedContract = (() => {
                     } else {
                       const err22 = {
                         instancePath: instancePath + '/mustNotBeBetween',
-                        schemaPath:
-                          '#/$defs/DataQualityOperators/oneOf/7/properties/mustNotBeBetween/type',
+                        schemaPath: '#/$defs/DataQualityOperators/oneOf/7/properties/mustNotBeBetween/type',
                         keyword: 'type',
                         params: { type: 'array' },
                         message: 'must be array',
@@ -13513,16 +13068,7 @@ const generatedContract = (() => {
   }
   validate50.evaluated = { dynamicProps: true, dynamicItems: false };
 
-  function validate47(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate47(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate47.evaluated;
@@ -14118,15 +13664,7 @@ const generatedContract = (() => {
           errors++;
         }
         if (
-          !(
-            data12 === 'accuracy' ||
-            data12 === 'completeness' ||
-            data12 === 'conformity' ||
-            data12 === 'consistency' ||
-            data12 === 'coverage' ||
-            data12 === 'timeliness' ||
-            data12 === 'uniqueness'
-          )
+          !(data12 === 'accuracy' || data12 === 'completeness' || data12 === 'conformity' || data12 === 'consistency' || data12 === 'coverage' || data12 === 'timeliness' || data12 === 'uniqueness')
         ) {
           const err25 = {
             instancePath: instancePath + '/dimension',
@@ -14282,9 +13820,7 @@ const generatedContract = (() => {
           }
           errors++;
         }
-        if (
-          !(data20 === 'text' || data20 === 'library' || data20 === 'sql' || data20 === 'custom')
-        ) {
+        if (!(data20 === 'text' || data20 === 'library' || data20 === 'sql' || data20 === 'custom')) {
           const err34 = {
             instancePath: instancePath + '/type',
             schemaPath: '#/properties/type/enum',
@@ -14356,16 +13892,7 @@ const generatedContract = (() => {
   }
   validate47.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
 
-  function validate46(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate46(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate46.evaluated;
@@ -14411,16 +13938,7 @@ const generatedContract = (() => {
   }
   validate46.evaluated = { items: true, dynamicProps: false, dynamicItems: false };
 
-  function validate37(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate37(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate37.evaluated;
@@ -14430,9 +13948,7 @@ const generatedContract = (() => {
     if (evaluated0.dynamicItems) {
       evaluated0.items = undefined;
     }
-    if (
-      !validate32(data, { instancePath, parentData, parentDataProperty, rootData, dynamicAnchors })
-    ) {
+    if (!validate32(data, { instancePath, parentData, parentDataProperty, rootData, dynamicAnchors })) {
       vErrors = vErrors === null ? validate32.errors : vErrors.concat(validate32.errors);
       errors = vErrors.length;
     }
@@ -14468,14 +13984,7 @@ const generatedContract = (() => {
           let data1 = data.logicalTypeOptions;
           if (data1 && typeof data1 == 'object' && !Array.isArray(data1)) {
             for (const key0 in data1) {
-              if (
-                !(
-                  key0 === 'minLength' ||
-                  key0 === 'maxLength' ||
-                  key0 === 'pattern' ||
-                  key0 === 'format'
-                )
-              ) {
+              if (!(key0 === 'minLength' || key0 === 'maxLength' || key0 === 'pattern' || key0 === 'format')) {
                 const err1 = {
                   instancePath: instancePath + '/logicalTypeOptions',
                   schemaPath: '#/allOf/1/then/properties/logicalTypeOptions/additionalProperties',
@@ -14496,8 +14005,7 @@ const generatedContract = (() => {
               if (!(typeof data2 == 'number' && !(data2 % 1) && !isNaN(data2))) {
                 const err2 = {
                   instancePath: instancePath + '/logicalTypeOptions/minLength',
-                  schemaPath:
-                    '#/allOf/1/then/properties/logicalTypeOptions/properties/minLength/type',
+                  schemaPath: '#/allOf/1/then/properties/logicalTypeOptions/properties/minLength/type',
                   keyword: 'type',
                   params: { type: 'integer' },
                   message: 'must be integer',
@@ -14513,8 +14021,7 @@ const generatedContract = (() => {
                 if (data2 < 0 || isNaN(data2)) {
                   const err3 = {
                     instancePath: instancePath + '/logicalTypeOptions/minLength',
-                    schemaPath:
-                      '#/allOf/1/then/properties/logicalTypeOptions/properties/minLength/minimum',
+                    schemaPath: '#/allOf/1/then/properties/logicalTypeOptions/properties/minLength/minimum',
                     keyword: 'minimum',
                     params: { comparison: '>=', limit: 0 },
                     message: 'must be >= 0',
@@ -14533,8 +14040,7 @@ const generatedContract = (() => {
               if (!(typeof data3 == 'number' && !(data3 % 1) && !isNaN(data3))) {
                 const err4 = {
                   instancePath: instancePath + '/logicalTypeOptions/maxLength',
-                  schemaPath:
-                    '#/allOf/1/then/properties/logicalTypeOptions/properties/maxLength/type',
+                  schemaPath: '#/allOf/1/then/properties/logicalTypeOptions/properties/maxLength/type',
                   keyword: 'type',
                   params: { type: 'integer' },
                   message: 'must be integer',
@@ -14550,8 +14056,7 @@ const generatedContract = (() => {
                 if (data3 < 0 || isNaN(data3)) {
                   const err5 = {
                     instancePath: instancePath + '/logicalTypeOptions/maxLength',
-                    schemaPath:
-                      '#/allOf/1/then/properties/logicalTypeOptions/properties/maxLength/minimum',
+                    schemaPath: '#/allOf/1/then/properties/logicalTypeOptions/properties/maxLength/minimum',
                     keyword: 'minimum',
                     params: { comparison: '>=', limit: 0 },
                     message: 'must be >= 0',
@@ -14569,8 +14074,7 @@ const generatedContract = (() => {
               if (typeof data1.pattern !== 'string') {
                 const err6 = {
                   instancePath: instancePath + '/logicalTypeOptions/pattern',
-                  schemaPath:
-                    '#/allOf/1/then/properties/logicalTypeOptions/properties/pattern/type',
+                  schemaPath: '#/allOf/1/then/properties/logicalTypeOptions/properties/pattern/type',
                   keyword: 'type',
                   params: { type: 'string' },
                   message: 'must be string',
@@ -14683,15 +14187,7 @@ const generatedContract = (() => {
           let data7 = data.logicalTypeOptions;
           if (data7 && typeof data7 == 'object' && !Array.isArray(data7)) {
             for (const key1 in data7) {
-              if (
-                !(
-                  key1 === 'format' ||
-                  key1 === 'exclusiveMaximum' ||
-                  key1 === 'maximum' ||
-                  key1 === 'exclusiveMinimum' ||
-                  key1 === 'minimum'
-                )
-              ) {
+              if (!(key1 === 'format' || key1 === 'exclusiveMaximum' || key1 === 'maximum' || key1 === 'exclusiveMinimum' || key1 === 'minimum')) {
                 const err11 = {
                   instancePath: instancePath + '/logicalTypeOptions',
                   schemaPath: '#/allOf/2/then/properties/logicalTypeOptions/additionalProperties',
@@ -14728,8 +14224,7 @@ const generatedContract = (() => {
               if (typeof data7.exclusiveMaximum !== 'string') {
                 const err13 = {
                   instancePath: instancePath + '/logicalTypeOptions/exclusiveMaximum',
-                  schemaPath:
-                    '#/allOf/2/then/properties/logicalTypeOptions/properties/exclusiveMaximum/type',
+                  schemaPath: '#/allOf/2/then/properties/logicalTypeOptions/properties/exclusiveMaximum/type',
                   keyword: 'type',
                   params: { type: 'string' },
                   message: 'must be string',
@@ -14746,8 +14241,7 @@ const generatedContract = (() => {
               if (typeof data7.maximum !== 'string') {
                 const err14 = {
                   instancePath: instancePath + '/logicalTypeOptions/maximum',
-                  schemaPath:
-                    '#/allOf/2/then/properties/logicalTypeOptions/properties/maximum/type',
+                  schemaPath: '#/allOf/2/then/properties/logicalTypeOptions/properties/maximum/type',
                   keyword: 'type',
                   params: { type: 'string' },
                   message: 'must be string',
@@ -14764,8 +14258,7 @@ const generatedContract = (() => {
               if (typeof data7.exclusiveMinimum !== 'string') {
                 const err15 = {
                   instancePath: instancePath + '/logicalTypeOptions/exclusiveMinimum',
-                  schemaPath:
-                    '#/allOf/2/then/properties/logicalTypeOptions/properties/exclusiveMinimum/type',
+                  schemaPath: '#/allOf/2/then/properties/logicalTypeOptions/properties/exclusiveMinimum/type',
                   keyword: 'type',
                   params: { type: 'string' },
                   message: 'must be string',
@@ -14782,8 +14275,7 @@ const generatedContract = (() => {
               if (typeof data7.minimum !== 'string') {
                 const err16 = {
                   instancePath: instancePath + '/logicalTypeOptions/minimum',
-                  schemaPath:
-                    '#/allOf/2/then/properties/logicalTypeOptions/properties/minimum/type',
+                  schemaPath: '#/allOf/2/then/properties/logicalTypeOptions/properties/minimum/type',
                   keyword: 'type',
                   params: { type: 'string' },
                   message: 'must be string',
@@ -14925,17 +14417,7 @@ const generatedContract = (() => {
           let data15 = data.logicalTypeOptions;
           if (data15 && typeof data15 == 'object' && !Array.isArray(data15)) {
             for (const key2 in data15) {
-              if (
-                !(
-                  key2 === 'format' ||
-                  key2 === 'exclusiveMaximum' ||
-                  key2 === 'maximum' ||
-                  key2 === 'exclusiveMinimum' ||
-                  key2 === 'minimum' ||
-                  key2 === 'timezone' ||
-                  key2 === 'defaultTimezone'
-                )
-              ) {
+              if (!(key2 === 'format' || key2 === 'exclusiveMaximum' || key2 === 'maximum' || key2 === 'exclusiveMinimum' || key2 === 'minimum' || key2 === 'timezone' || key2 === 'defaultTimezone')) {
                 const err22 = {
                   instancePath: instancePath + '/logicalTypeOptions',
                   schemaPath: '#/allOf/3/then/properties/logicalTypeOptions/additionalProperties',
@@ -14972,8 +14454,7 @@ const generatedContract = (() => {
               if (typeof data15.exclusiveMaximum !== 'string') {
                 const err24 = {
                   instancePath: instancePath + '/logicalTypeOptions/exclusiveMaximum',
-                  schemaPath:
-                    '#/allOf/3/then/properties/logicalTypeOptions/properties/exclusiveMaximum/type',
+                  schemaPath: '#/allOf/3/then/properties/logicalTypeOptions/properties/exclusiveMaximum/type',
                   keyword: 'type',
                   params: { type: 'string' },
                   message: 'must be string',
@@ -14990,8 +14471,7 @@ const generatedContract = (() => {
               if (typeof data15.maximum !== 'string') {
                 const err25 = {
                   instancePath: instancePath + '/logicalTypeOptions/maximum',
-                  schemaPath:
-                    '#/allOf/3/then/properties/logicalTypeOptions/properties/maximum/type',
+                  schemaPath: '#/allOf/3/then/properties/logicalTypeOptions/properties/maximum/type',
                   keyword: 'type',
                   params: { type: 'string' },
                   message: 'must be string',
@@ -15008,8 +14488,7 @@ const generatedContract = (() => {
               if (typeof data15.exclusiveMinimum !== 'string') {
                 const err26 = {
                   instancePath: instancePath + '/logicalTypeOptions/exclusiveMinimum',
-                  schemaPath:
-                    '#/allOf/3/then/properties/logicalTypeOptions/properties/exclusiveMinimum/type',
+                  schemaPath: '#/allOf/3/then/properties/logicalTypeOptions/properties/exclusiveMinimum/type',
                   keyword: 'type',
                   params: { type: 'string' },
                   message: 'must be string',
@@ -15026,8 +14505,7 @@ const generatedContract = (() => {
               if (typeof data15.minimum !== 'string') {
                 const err27 = {
                   instancePath: instancePath + '/logicalTypeOptions/minimum',
-                  schemaPath:
-                    '#/allOf/3/then/properties/logicalTypeOptions/properties/minimum/type',
+                  schemaPath: '#/allOf/3/then/properties/logicalTypeOptions/properties/minimum/type',
                   keyword: 'type',
                   params: { type: 'string' },
                   message: 'must be string',
@@ -15044,8 +14522,7 @@ const generatedContract = (() => {
               if (typeof data15.timezone !== 'boolean') {
                 const err28 = {
                   instancePath: instancePath + '/logicalTypeOptions/timezone',
-                  schemaPath:
-                    '#/allOf/3/then/properties/logicalTypeOptions/properties/timezone/type',
+                  schemaPath: '#/allOf/3/then/properties/logicalTypeOptions/properties/timezone/type',
                   keyword: 'type',
                   params: { type: 'boolean' },
                   message: 'must be boolean',
@@ -15062,8 +14539,7 @@ const generatedContract = (() => {
               if (typeof data15.defaultTimezone !== 'string') {
                 const err29 = {
                   instancePath: instancePath + '/logicalTypeOptions/defaultTimezone',
-                  schemaPath:
-                    '#/allOf/3/then/properties/logicalTypeOptions/properties/defaultTimezone/type',
+                  schemaPath: '#/allOf/3/then/properties/logicalTypeOptions/properties/defaultTimezone/type',
                   keyword: 'type',
                   params: { type: 'string' },
                   message: 'must be string',
@@ -15184,16 +14660,7 @@ const generatedContract = (() => {
           let data24 = data.logicalTypeOptions;
           if (data24 && typeof data24 == 'object' && !Array.isArray(data24)) {
             for (const key3 in data24) {
-              if (
-                !(
-                  key3 === 'multipleOf' ||
-                  key3 === 'maximum' ||
-                  key3 === 'exclusiveMaximum' ||
-                  key3 === 'minimum' ||
-                  key3 === 'exclusiveMinimum' ||
-                  key3 === 'format'
-                )
-              ) {
+              if (!(key3 === 'multipleOf' || key3 === 'maximum' || key3 === 'exclusiveMaximum' || key3 === 'minimum' || key3 === 'exclusiveMinimum' || key3 === 'format')) {
                 const err34 = {
                   instancePath: instancePath + '/logicalTypeOptions',
                   schemaPath: '#/allOf/4/then/properties/logicalTypeOptions/additionalProperties',
@@ -15215,8 +14682,7 @@ const generatedContract = (() => {
                 if (data25 <= 0 || isNaN(data25)) {
                   const err35 = {
                     instancePath: instancePath + '/logicalTypeOptions/multipleOf',
-                    schemaPath:
-                      '#/allOf/4/then/properties/logicalTypeOptions/properties/multipleOf/exclusiveMinimum',
+                    schemaPath: '#/allOf/4/then/properties/logicalTypeOptions/properties/multipleOf/exclusiveMinimum',
                     keyword: 'exclusiveMinimum',
                     params: { comparison: '>', limit: 0 },
                     message: 'must be > 0',
@@ -15231,8 +14697,7 @@ const generatedContract = (() => {
               } else {
                 const err36 = {
                   instancePath: instancePath + '/logicalTypeOptions/multipleOf',
-                  schemaPath:
-                    '#/allOf/4/then/properties/logicalTypeOptions/properties/multipleOf/type',
+                  schemaPath: '#/allOf/4/then/properties/logicalTypeOptions/properties/multipleOf/type',
                   keyword: 'type',
                   params: { type: 'number' },
                   message: 'must be number',
@@ -15249,8 +14714,7 @@ const generatedContract = (() => {
               if (!(typeof data24.maximum == 'number')) {
                 const err37 = {
                   instancePath: instancePath + '/logicalTypeOptions/maximum',
-                  schemaPath:
-                    '#/allOf/4/then/properties/logicalTypeOptions/properties/maximum/type',
+                  schemaPath: '#/allOf/4/then/properties/logicalTypeOptions/properties/maximum/type',
                   keyword: 'type',
                   params: { type: 'number' },
                   message: 'must be number',
@@ -15267,8 +14731,7 @@ const generatedContract = (() => {
               if (!(typeof data24.exclusiveMaximum == 'number')) {
                 const err38 = {
                   instancePath: instancePath + '/logicalTypeOptions/exclusiveMaximum',
-                  schemaPath:
-                    '#/allOf/4/then/properties/logicalTypeOptions/properties/exclusiveMaximum/type',
+                  schemaPath: '#/allOf/4/then/properties/logicalTypeOptions/properties/exclusiveMaximum/type',
                   keyword: 'type',
                   params: { type: 'number' },
                   message: 'must be number',
@@ -15285,8 +14748,7 @@ const generatedContract = (() => {
               if (!(typeof data24.minimum == 'number')) {
                 const err39 = {
                   instancePath: instancePath + '/logicalTypeOptions/minimum',
-                  schemaPath:
-                    '#/allOf/4/then/properties/logicalTypeOptions/properties/minimum/type',
+                  schemaPath: '#/allOf/4/then/properties/logicalTypeOptions/properties/minimum/type',
                   keyword: 'type',
                   params: { type: 'number' },
                   message: 'must be number',
@@ -15303,8 +14765,7 @@ const generatedContract = (() => {
               if (!(typeof data24.exclusiveMinimum == 'number')) {
                 const err40 = {
                   instancePath: instancePath + '/logicalTypeOptions/exclusiveMinimum',
-                  schemaPath:
-                    '#/allOf/4/then/properties/logicalTypeOptions/properties/exclusiveMinimum/type',
+                  schemaPath: '#/allOf/4/then/properties/logicalTypeOptions/properties/exclusiveMinimum/type',
                   keyword: 'type',
                   params: { type: 'number' },
                   message: 'must be number',
@@ -15353,9 +14814,7 @@ const generatedContract = (() => {
                   schemaPath: '#/allOf/4/then/properties/logicalTypeOptions/properties/format/enum',
                   keyword: 'enum',
                   params: {
-                    allowedValues:
-                      OdcsContractSchemaComponentSchema7.allOf[4].then.properties.logicalTypeOptions
-                        .properties.format.enum,
+                    allowedValues: OdcsContractSchemaComponentSchema7.allOf[4].then.properties.logicalTypeOptions.properties.format.enum,
                   },
                   message: 'must be equal to one of the allowed values',
                 };
@@ -15475,16 +14934,7 @@ const generatedContract = (() => {
           let data32 = data.logicalTypeOptions;
           if (data32 && typeof data32 == 'object' && !Array.isArray(data32)) {
             for (const key4 in data32) {
-              if (
-                !(
-                  key4 === 'multipleOf' ||
-                  key4 === 'maximum' ||
-                  key4 === 'exclusiveMaximum' ||
-                  key4 === 'minimum' ||
-                  key4 === 'exclusiveMinimum' ||
-                  key4 === 'format'
-                )
-              ) {
+              if (!(key4 === 'multipleOf' || key4 === 'maximum' || key4 === 'exclusiveMaximum' || key4 === 'minimum' || key4 === 'exclusiveMinimum' || key4 === 'format')) {
                 const err47 = {
                   instancePath: instancePath + '/logicalTypeOptions',
                   schemaPath: '#/allOf/5/then/properties/logicalTypeOptions/additionalProperties',
@@ -15506,8 +14956,7 @@ const generatedContract = (() => {
                 if (data33 <= 0 || isNaN(data33)) {
                   const err48 = {
                     instancePath: instancePath + '/logicalTypeOptions/multipleOf',
-                    schemaPath:
-                      '#/allOf/5/then/properties/logicalTypeOptions/properties/multipleOf/exclusiveMinimum',
+                    schemaPath: '#/allOf/5/then/properties/logicalTypeOptions/properties/multipleOf/exclusiveMinimum',
                     keyword: 'exclusiveMinimum',
                     params: { comparison: '>', limit: 0 },
                     message: 'must be > 0',
@@ -15522,8 +14971,7 @@ const generatedContract = (() => {
               } else {
                 const err49 = {
                   instancePath: instancePath + '/logicalTypeOptions/multipleOf',
-                  schemaPath:
-                    '#/allOf/5/then/properties/logicalTypeOptions/properties/multipleOf/type',
+                  schemaPath: '#/allOf/5/then/properties/logicalTypeOptions/properties/multipleOf/type',
                   keyword: 'type',
                   params: { type: 'number' },
                   message: 'must be number',
@@ -15540,8 +14988,7 @@ const generatedContract = (() => {
               if (!(typeof data32.maximum == 'number')) {
                 const err50 = {
                   instancePath: instancePath + '/logicalTypeOptions/maximum',
-                  schemaPath:
-                    '#/allOf/5/then/properties/logicalTypeOptions/properties/maximum/type',
+                  schemaPath: '#/allOf/5/then/properties/logicalTypeOptions/properties/maximum/type',
                   keyword: 'type',
                   params: { type: 'number' },
                   message: 'must be number',
@@ -15558,8 +15005,7 @@ const generatedContract = (() => {
               if (!(typeof data32.exclusiveMaximum == 'number')) {
                 const err51 = {
                   instancePath: instancePath + '/logicalTypeOptions/exclusiveMaximum',
-                  schemaPath:
-                    '#/allOf/5/then/properties/logicalTypeOptions/properties/exclusiveMaximum/type',
+                  schemaPath: '#/allOf/5/then/properties/logicalTypeOptions/properties/exclusiveMaximum/type',
                   keyword: 'type',
                   params: { type: 'number' },
                   message: 'must be number',
@@ -15576,8 +15022,7 @@ const generatedContract = (() => {
               if (!(typeof data32.minimum == 'number')) {
                 const err52 = {
                   instancePath: instancePath + '/logicalTypeOptions/minimum',
-                  schemaPath:
-                    '#/allOf/5/then/properties/logicalTypeOptions/properties/minimum/type',
+                  schemaPath: '#/allOf/5/then/properties/logicalTypeOptions/properties/minimum/type',
                   keyword: 'type',
                   params: { type: 'number' },
                   message: 'must be number',
@@ -15594,8 +15039,7 @@ const generatedContract = (() => {
               if (!(typeof data32.exclusiveMinimum == 'number')) {
                 const err53 = {
                   instancePath: instancePath + '/logicalTypeOptions/exclusiveMinimum',
-                  schemaPath:
-                    '#/allOf/5/then/properties/logicalTypeOptions/properties/exclusiveMinimum/type',
+                  schemaPath: '#/allOf/5/then/properties/logicalTypeOptions/properties/exclusiveMinimum/type',
                   keyword: 'type',
                   params: { type: 'number' },
                   message: 'must be number',
@@ -15631,9 +15075,7 @@ const generatedContract = (() => {
                   schemaPath: '#/allOf/5/then/properties/logicalTypeOptions/properties/format/enum',
                   keyword: 'enum',
                   params: {
-                    allowedValues:
-                      OdcsContractSchemaComponentSchema7.allOf[5].then.properties.logicalTypeOptions
-                        .properties.format.enum,
+                    allowedValues: OdcsContractSchemaComponentSchema7.allOf[5].then.properties.logicalTypeOptions.properties.format.enum,
                   },
                   message: 'must be equal to one of the allowed values',
                 };
@@ -15747,8 +15189,7 @@ const generatedContract = (() => {
               if (!(typeof data41 == 'number' && !(data41 % 1) && !isNaN(data41))) {
                 const err60 = {
                   instancePath: instancePath + '/logicalTypeOptions/maxProperties',
-                  schemaPath:
-                    '#/allOf/6/then/properties/logicalTypeOptions/properties/maxProperties/type',
+                  schemaPath: '#/allOf/6/then/properties/logicalTypeOptions/properties/maxProperties/type',
                   keyword: 'type',
                   params: { type: 'integer' },
                   message: 'must be integer',
@@ -15764,8 +15205,7 @@ const generatedContract = (() => {
                 if (data41 < 0 || isNaN(data41)) {
                   const err61 = {
                     instancePath: instancePath + '/logicalTypeOptions/maxProperties',
-                    schemaPath:
-                      '#/allOf/6/then/properties/logicalTypeOptions/properties/maxProperties/minimum',
+                    schemaPath: '#/allOf/6/then/properties/logicalTypeOptions/properties/maxProperties/minimum',
                     keyword: 'minimum',
                     params: { comparison: '>=', limit: 0 },
                     message: 'must be >= 0',
@@ -15784,8 +15224,7 @@ const generatedContract = (() => {
               if (!(typeof data42 == 'number' && !(data42 % 1) && !isNaN(data42))) {
                 const err62 = {
                   instancePath: instancePath + '/logicalTypeOptions/minProperties',
-                  schemaPath:
-                    '#/allOf/6/then/properties/logicalTypeOptions/properties/minProperties/type',
+                  schemaPath: '#/allOf/6/then/properties/logicalTypeOptions/properties/minProperties/type',
                   keyword: 'type',
                   params: { type: 'integer' },
                   message: 'must be integer',
@@ -15801,8 +15240,7 @@ const generatedContract = (() => {
                 if (data42 < 0 || isNaN(data42)) {
                   const err63 = {
                     instancePath: instancePath + '/logicalTypeOptions/minProperties',
-                    schemaPath:
-                      '#/allOf/6/then/properties/logicalTypeOptions/properties/minProperties/minimum',
+                    schemaPath: '#/allOf/6/then/properties/logicalTypeOptions/properties/minProperties/minimum',
                     keyword: 'minimum',
                     params: { comparison: '>=', limit: 0 },
                     message: 'must be >= 0',
@@ -15822,8 +15260,7 @@ const generatedContract = (() => {
                 if (data43.length < 1) {
                   const err64 = {
                     instancePath: instancePath + '/logicalTypeOptions/required',
-                    schemaPath:
-                      '#/allOf/6/then/properties/logicalTypeOptions/properties/required/minItems',
+                    schemaPath: '#/allOf/6/then/properties/logicalTypeOptions/properties/required/minItems',
                     keyword: 'minItems',
                     params: { limit: 1 },
                     message: 'must NOT have fewer than 1 items',
@@ -15840,8 +15277,7 @@ const generatedContract = (() => {
                   if (typeof data43[i0] !== 'string') {
                     const err65 = {
                       instancePath: instancePath + '/logicalTypeOptions/required/' + i0,
-                      schemaPath:
-                        '#/allOf/6/then/properties/logicalTypeOptions/properties/required/items/type',
+                      schemaPath: '#/allOf/6/then/properties/logicalTypeOptions/properties/required/items/type',
                       keyword: 'type',
                       params: { type: 'string' },
                       message: 'must be string',
@@ -15867,16 +15303,10 @@ const generatedContract = (() => {
                       j0 = indices0[item0];
                       const err66 = {
                         instancePath: instancePath + '/logicalTypeOptions/required',
-                        schemaPath:
-                          '#/allOf/6/then/properties/logicalTypeOptions/properties/required/uniqueItems',
+                        schemaPath: '#/allOf/6/then/properties/logicalTypeOptions/properties/required/uniqueItems',
                         keyword: 'uniqueItems',
                         params: { i: i1, j: j0 },
-                        message:
-                          'must NOT have duplicate items (items ## ' +
-                          j0 +
-                          ' and ' +
-                          i1 +
-                          ' are identical)',
+                        message: 'must NOT have duplicate items (items ## ' + j0 + ' and ' + i1 + ' are identical)',
                       };
                       if (vErrors === null) {
                         vErrors = [err66];
@@ -15892,8 +15322,7 @@ const generatedContract = (() => {
               } else {
                 const err67 = {
                   instancePath: instancePath + '/logicalTypeOptions/required',
-                  schemaPath:
-                    '#/allOf/6/then/properties/logicalTypeOptions/properties/required/type',
+                  schemaPath: '#/allOf/6/then/properties/logicalTypeOptions/properties/required/type',
                   keyword: 'type',
                   params: { type: 'array' },
                   message: 'must be array',
@@ -15936,10 +15365,7 @@ const generatedContract = (() => {
                   dynamicAnchors,
                 })
               ) {
-                vErrors =
-                  vErrors === null
-                    ? wrapper0.validate.errors
-                    : vErrors.concat(wrapper0.validate.errors);
+                vErrors = vErrors === null ? wrapper0.validate.errors : vErrors.concat(wrapper0.validate.errors);
                 errors = vErrors.length;
               }
             }
@@ -16045,8 +15471,7 @@ const generatedContract = (() => {
               if (!(typeof data49 == 'number' && !(data49 % 1) && !isNaN(data49))) {
                 const err73 = {
                   instancePath: instancePath + '/logicalTypeOptions/maxItems',
-                  schemaPath:
-                    '#/allOf/7/then/properties/logicalTypeOptions/properties/maxItems/type',
+                  schemaPath: '#/allOf/7/then/properties/logicalTypeOptions/properties/maxItems/type',
                   keyword: 'type',
                   params: { type: 'integer' },
                   message: 'must be integer',
@@ -16062,8 +15487,7 @@ const generatedContract = (() => {
                 if (data49 < 0 || isNaN(data49)) {
                   const err74 = {
                     instancePath: instancePath + '/logicalTypeOptions/maxItems',
-                    schemaPath:
-                      '#/allOf/7/then/properties/logicalTypeOptions/properties/maxItems/minimum',
+                    schemaPath: '#/allOf/7/then/properties/logicalTypeOptions/properties/maxItems/minimum',
                     keyword: 'minimum',
                     params: { comparison: '>=', limit: 0 },
                     message: 'must be >= 0',
@@ -16082,8 +15506,7 @@ const generatedContract = (() => {
               if (!(typeof data50 == 'number' && !(data50 % 1) && !isNaN(data50))) {
                 const err75 = {
                   instancePath: instancePath + '/logicalTypeOptions/minItems',
-                  schemaPath:
-                    '#/allOf/7/then/properties/logicalTypeOptions/properties/minItems/type',
+                  schemaPath: '#/allOf/7/then/properties/logicalTypeOptions/properties/minItems/type',
                   keyword: 'type',
                   params: { type: 'integer' },
                   message: 'must be integer',
@@ -16099,8 +15522,7 @@ const generatedContract = (() => {
                 if (data50 < 0 || isNaN(data50)) {
                   const err76 = {
                     instancePath: instancePath + '/logicalTypeOptions/minItems',
-                    schemaPath:
-                      '#/allOf/7/then/properties/logicalTypeOptions/properties/minItems/minimum',
+                    schemaPath: '#/allOf/7/then/properties/logicalTypeOptions/properties/minItems/minimum',
                     keyword: 'minimum',
                     params: { comparison: '>=', limit: 0 },
                     message: 'must be >= 0',
@@ -16118,8 +15540,7 @@ const generatedContract = (() => {
               if (typeof data48.uniqueItems !== 'boolean') {
                 const err77 = {
                   instancePath: instancePath + '/logicalTypeOptions/uniqueItems',
-                  schemaPath:
-                    '#/allOf/7/then/properties/logicalTypeOptions/properties/uniqueItems/type',
+                  schemaPath: '#/allOf/7/then/properties/logicalTypeOptions/properties/uniqueItems/type',
                   keyword: 'type',
                   params: { type: 'boolean' },
                   message: 'must be boolean',
@@ -16805,16 +16226,7 @@ const generatedContract = (() => {
   }
   validate37.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
 
-  function validate36(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate36(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate36.evaluated;
@@ -16824,9 +16236,7 @@ const generatedContract = (() => {
     if (evaluated0.dynamicItems) {
       evaluated0.items = undefined;
     }
-    if (
-      !validate37(data, { instancePath, parentData, parentDataProperty, rootData, dynamicAnchors })
-    ) {
+    if (!validate37(data, { instancePath, parentData, parentDataProperty, rootData, dynamicAnchors })) {
       vErrors = vErrors === null ? validate37.errors : vErrors.concat(validate37.errors);
       errors = vErrors.length;
     }
@@ -16868,8 +16278,7 @@ const generatedContract = (() => {
 
   const RelationshipDefinitionAtSchemaSchema = {
     type: 'object',
-    description:
-      "Relationship definition at schema level, requiring both 'from' and 'to' fields with matching types.",
+    description: "Relationship definition at schema level, requiring both 'from' and 'to' fields with matching types.",
     allOf: [
       { $ref: '#/$defs/RelationshipBase' },
       { required: ['from', 'to'] },
@@ -16880,8 +16289,7 @@ const generatedContract = (() => {
             properties: { from: { type: 'string' }, to: { type: 'string' } },
           },
           {
-            description:
-              'Composite key relationship - both fields must be arrays with matching lengths',
+            description: 'Composite key relationship - both fields must be arrays with matching lengths',
             properties: {
               from: { type: 'array', items: { type: 'string' }, minItems: 1 },
               to: { type: 'array', items: { type: 'string' }, minItems: 1 },
@@ -16893,16 +16301,7 @@ const generatedContract = (() => {
     unevaluatedProperties: false,
   };
 
-  function validate58(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate58(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate58.evaluated;
@@ -16912,9 +16311,7 @@ const generatedContract = (() => {
     if (evaluated0.dynamicItems) {
       evaluated0.items = undefined;
     }
-    if (
-      !validate42(data, { instancePath, parentData, parentDataProperty, rootData, dynamicAnchors })
-    ) {
+    if (!validate42(data, { instancePath, parentData, parentDataProperty, rootData, dynamicAnchors })) {
       vErrors = vErrors === null ? validate42.errors : vErrors.concat(validate42.errors);
       errors = vErrors.length;
     }
@@ -17191,16 +16588,7 @@ const generatedContract = (() => {
   }
   validate58.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
 
-  function validate31(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate31(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate31.evaluated;
@@ -17210,9 +16598,7 @@ const generatedContract = (() => {
     if (evaluated0.dynamicItems) {
       evaluated0.items = undefined;
     }
-    if (
-      !validate32(data, { instancePath, parentData, parentDataProperty, rootData, dynamicAnchors })
-    ) {
+    if (!validate32(data, { instancePath, parentData, parentDataProperty, rootData, dynamicAnchors })) {
       vErrors = vErrors === null ? validate32.errors : vErrors.concat(validate32.errors);
       errors = vErrors.length;
     }
@@ -17447,14 +16833,12 @@ const generatedContract = (() => {
       channel: { type: 'string', description: 'Channel name or identifier.' },
       url: {
         type: 'string',
-        description:
-          'Access URL using normal [URL scheme](https://en.wikipedia.org/wiki/URL#Syntax) (https, mailto, etc.).',
+        description: 'Access URL using normal [URL scheme](https://en.wikipedia.org/wiki/URL#Syntax) (https, mailto, etc.).',
       },
       description: { type: 'string', description: 'Description of the channel, free text.' },
       tool: {
         type: 'string',
-        description:
-          'Name of the tool, value can be `email`, `slack`, `teams`, `discord`, `ticket`, `googlechat`, or `other`.',
+        description: 'Name of the tool, value can be `email`, `slack`, `teams`, `discord`, `ticket`, `googlechat`, or `other`.',
         examples: ['email', 'slack', 'teams', 'discord', 'ticket', 'googlechat', 'other'],
       },
       scope: {
@@ -17464,8 +16848,7 @@ const generatedContract = (() => {
       },
       invitationUrl: {
         type: 'string',
-        description:
-          'Some tools uses invitation URL for requesting or subscribing. Follows the [URL scheme](https://en.wikipedia.org/wiki/URL#Syntax).',
+        description: 'Some tools uses invitation URL for requesting or subscribing. Follows the [URL scheme](https://en.wikipedia.org/wiki/URL#Syntax).',
       },
       customProperties: { $ref: '#/$defs/CustomProperties' },
     },
@@ -17473,16 +16856,7 @@ const generatedContract = (() => {
     additionalProperties: false,
   };
 
-  function validate64(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate64(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate64.evaluated;
@@ -17509,18 +16883,7 @@ const generatedContract = (() => {
         errors++;
       }
       for (const key0 in data) {
-        if (
-          !(
-            key0 === 'id' ||
-            key0 === 'channel' ||
-            key0 === 'url' ||
-            key0 === 'description' ||
-            key0 === 'tool' ||
-            key0 === 'scope' ||
-            key0 === 'invitationUrl' ||
-            key0 === 'customProperties'
-          )
-        ) {
+        if (!(key0 === 'id' || key0 === 'channel' || key0 === 'url' || key0 === 'description' || key0 === 'tool' || key0 === 'scope' || key0 === 'invitationUrl' || key0 === 'customProperties')) {
           const err1 = {
             instancePath,
             schemaPath: '#/additionalProperties',
@@ -17706,16 +17069,7 @@ const generatedContract = (() => {
   }
   validate64.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
 
-  function validate63(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate63(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate63.evaluated;
@@ -17781,16 +17135,7 @@ const generatedContract = (() => {
     additionalProperties: false,
   };
 
-  function validate68(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate68(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate68.evaluated;
@@ -17802,14 +17147,7 @@ const generatedContract = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       for (const key0 in data) {
-        if (
-          !(
-            key0 === 'id' ||
-            key0 === 'priceAmount' ||
-            key0 === 'priceCurrency' ||
-            key0 === 'priceUnit'
-          )
-        ) {
+        if (!(key0 === 'id' || key0 === 'priceAmount' || key0 === 'priceCurrency' || key0 === 'priceUnit')) {
           const err0 = {
             instancePath,
             schemaPath: '#/additionalProperties',
@@ -17963,8 +17301,7 @@ const generatedContract = (() => {
       description: { type: 'string', description: "The user's description." },
       role: {
         type: 'string',
-        description:
-          "The user's job role; Examples might be owner, data steward. There is no limit on the role.",
+        description: "The user's job role; Examples might be owner, data steward. There is no limit on the role.",
       },
       dateIn: {
         type: 'string',
@@ -17992,16 +17329,7 @@ const generatedContract = (() => {
   };
   const formats18 = formats.date;
 
-  function validate71(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate71(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate71.evaluated;
@@ -18336,16 +17664,7 @@ const generatedContract = (() => {
   }
   validate71.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
 
-  function validate70(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate70(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate70.evaluated;
@@ -18357,17 +17676,7 @@ const generatedContract = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       for (const key0 in data) {
-        if (
-          !(
-            key0 === 'id' ||
-            key0 === 'name' ||
-            key0 === 'description' ||
-            key0 === 'members' ||
-            key0 === 'tags' ||
-            key0 === 'customProperties' ||
-            key0 === 'authoritativeDefinitions'
-          )
-        ) {
+        if (!(key0 === 'id' || key0 === 'name' || key0 === 'description' || key0 === 'members' || key0 === 'tags' || key0 === 'customProperties' || key0 === 'authoritativeDefinitions')) {
           const err0 = {
             instancePath,
             schemaPath: '#/additionalProperties',
@@ -18596,38 +17905,27 @@ const generatedContract = (() => {
       id: { $ref: '#/$defs/StableId' },
       property: {
         type: 'string',
-        description:
-          'Specific property in SLA, check the periodic table. May requires units (more details to come).',
+        description: 'Specific property in SLA, check the periodic table. May requires units (more details to come).',
       },
       value: {
-        anyOf: [
-          { type: 'string' },
-          { type: 'number' },
-          { type: 'integer' },
-          { type: 'boolean' },
-          { type: 'null' },
-        ],
+        anyOf: [{ type: 'string' }, { type: 'number' }, { type: 'integer' }, { type: 'boolean' }, { type: 'null' }],
         description: 'Agreement value. The label will change based on the property itself.',
       },
       valueExt: {
         $ref: '#/$defs/AnyNonCollectionType',
-        description:
-          'Extended agreement value. The label will change based on the property itself.',
+        description: 'Extended agreement value. The label will change based on the property itself.',
       },
       unit: {
         type: 'string',
-        description:
-          '**d**, day, days for days; **y**, yr, years for years, etc. Units use the ISO standard.',
+        description: '**d**, day, days for days; **y**, yr, years for years, etc. Units use the ISO standard.',
       },
       element: {
         type: 'string',
-        description:
-          'Element(s) to check on. Multiple elements should be extremely rare and, if so, separated by commas.',
+        description: 'Element(s) to check on. Multiple elements should be extremely rare and, if so, separated by commas.',
       },
       driver: {
         type: 'string',
-        description:
-          'Describes the importance of the SLA from the list of: `regulatory`, `analytics`, or `operational`.',
+        description: 'Describes the importance of the SLA from the list of: `regulatory`, `analytics`, or `operational`.',
         examples: ['regulatory', 'analytics', 'operational'],
       },
       description: {
@@ -18642,8 +17940,7 @@ const generatedContract = (() => {
       },
       schedule: {
         type: 'string',
-        description:
-          'Configuration information for the scheduling tool, for cron a possible value is 0 20 * * *.',
+        description: 'Configuration information for the scheduling tool, for cron a possible value is 0 20 * * *.',
         examples: ['0 20 * * *'],
       },
     },
@@ -18651,25 +17948,10 @@ const generatedContract = (() => {
     additionalProperties: false,
   };
   const OdcsContractSchemaComponentSchema16 = {
-    anyOf: [
-      { type: 'string' },
-      { type: 'number' },
-      { type: 'integer' },
-      { type: 'boolean' },
-      { type: 'null' },
-    ],
+    anyOf: [{ type: 'string' }, { type: 'number' }, { type: 'integer' }, { type: 'boolean' }, { type: 'null' }],
   };
 
-  function validate80(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate80(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate80.evaluated;
@@ -19140,16 +18422,7 @@ const generatedContract = (() => {
 
   const formats22 = formats['date-time'];
 
-  function validate18(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate18(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate18.evaluated;
@@ -19319,17 +18592,7 @@ const generatedContract = (() => {
           }
           errors++;
         }
-        if (
-          !(
-            data2 === 'v3.1.0' ||
-            data2 === 'v3.0.2' ||
-            data2 === 'v3.0.1' ||
-            data2 === 'v3.0.0' ||
-            data2 === 'v2.2.2' ||
-            data2 === 'v2.2.1' ||
-            data2 === 'v2.2.0'
-          )
-        ) {
+        if (!(data2 === 'v3.1.0' || data2 === 'v3.0.2' || data2 === 'v3.0.1' || data2 === 'v3.0.0' || data2 === 'v2.2.2' || data2 === 'v2.2.1' || data2 === 'v2.2.0')) {
           const err10 = {
             instancePath: instancePath + '/apiVersion',
             schemaPath: '#/properties/apiVersion/enum',
@@ -19938,9 +19201,7 @@ const generatedContract = (() => {
   return { contract: validate18 };
 })();
 const generatedSemantic = (() => {
-  const semanticRuntime0 = semanticRuntime0Module.default?.__esModule
-    ? semanticRuntime0Module.default
-    : semanticRuntime0Module;
+  const semanticRuntime0 = semanticRuntime0Module.default?.__esModule ? semanticRuntime0Module.default : semanticRuntime0Module;
 
   const ossieSemanticModelSchema = {
     $schema: 'https://json-schema.org/draft/2020-12/schema',
@@ -19967,35 +19228,12 @@ const generatedSemantic = (() => {
     $defs: {
       Dialect: {
         type: 'string',
-        enum: [
-          'ANSI_SQL',
-          'SNOWFLAKE',
-          'MDX',
-          'TABLEAU',
-          'DATABRICKS',
-          'MAQL',
-          'BIGQUERY',
-          'SIGMA',
-          'THOUGHTSPOT',
-          'DAX',
-          'HOLISTICS_AQL',
-          'OSSIE_SQL_2026',
-        ],
+        enum: ['ANSI_SQL', 'SNOWFLAKE', 'MDX', 'TABLEAU', 'DATABRICKS', 'MAQL', 'BIGQUERY', 'SIGMA', 'THOUGHTSPOT', 'DAX', 'HOLISTICS_AQL', 'OSSIE_SQL_2026'],
         description: 'Supported SQL and expression language dialects',
       },
       Vendor: {
         type: 'string',
-        examples: [
-          'COMMON',
-          'SNOWFLAKE',
-          'SALESFORCE',
-          'DBT',
-          'DATABRICKS',
-          'GOODDATA',
-          'WISDOM',
-          'POWER_BI',
-          'HEX',
-        ],
+        examples: ['COMMON', 'SNOWFLAKE', 'SALESFORCE', 'DBT', 'DATABRICKS', 'GOODDATA', 'WISDOM', 'POWER_BI', 'HEX'],
         description: 'Vendor name for custom extensions. Any string value is accepted.',
       },
       AIContext: {
@@ -20055,18 +19293,7 @@ const generatedSemantic = (() => {
       },
       DataType: {
         type: 'string',
-        enum: [
-          'String',
-          'Integer',
-          'Decimal',
-          'Float',
-          'Boolean',
-          'Date',
-          'Time',
-          'DateTime',
-          'DateTimeTz',
-          'Opaque',
-        ],
+        enum: ['String', 'Integer', 'Decimal', 'Float', 'Boolean', 'Date', 'Time', 'DateTime', 'DateTimeTz', 'Opaque'],
         description:
           'Logical data type for fields and metrics, independent of role (e.g. dimension vs fact) and physical representation. `Decimal` is exact base-10 with unspecified precision and scale; `Float` is approximate. `DateTime` has no timezone or offset, while `DateTimeTz` identifies an instant using offset or timezone context but does not guarantee preservation of a named timezone. Omit `datatype` when unknown; use `Opaque` plus `custom_extensions` for a known type outside the portable vocabulary.',
       },
@@ -20110,8 +19337,7 @@ const generatedSemantic = (() => {
           source: {
             type: 'string',
             minLength: 1,
-            description:
-              'Reference to underlying physical table/view (database.schema.table) or query',
+            description: 'Reference to underlying physical table/view (database.schema.table) or query',
           },
           primary_key: {
             type: 'array',
@@ -20327,18 +19553,7 @@ const generatedSemantic = (() => {
   };
   const LogicalDataTypeFieldsSchema = {
     type: 'string',
-    enum: [
-      'String',
-      'Integer',
-      'Decimal',
-      'Float',
-      'Boolean',
-      'Date',
-      'Time',
-      'DateTime',
-      'DateTimeTz',
-      'Opaque',
-    ],
+    enum: ['String', 'Integer', 'Decimal', 'Float', 'Boolean', 'Date', 'Time', 'DateTime', 'DateTimeTz', 'Opaque'],
     description:
       'Logical data type for fields and metrics, independent of role (e.g. dimension vs fact) and physical representation. `Decimal` is exact base-10 with unspecified precision and scale; `Float` is approximate. `DateTime` has no timezone or offset, while `DateTimeTz` identifies an instant using offset or timezone context but does not guarantee preservation of a named timezone. Omit `datatype` when unknown; use `Opaque` plus `custom_extensions` for a known type outside the portable vocabulary.',
   };
@@ -20363,33 +19578,11 @@ const generatedSemantic = (() => {
   };
   const SupportedSQLExpressionLanguageSchema = {
     type: 'string',
-    enum: [
-      'ANSI_SQL',
-      'SNOWFLAKE',
-      'MDX',
-      'TABLEAU',
-      'DATABRICKS',
-      'MAQL',
-      'BIGQUERY',
-      'SIGMA',
-      'THOUGHTSPOT',
-      'DAX',
-      'HOLISTICS_AQL',
-      'OSSIE_SQL_2026',
-    ],
+    enum: ['ANSI_SQL', 'SNOWFLAKE', 'MDX', 'TABLEAU', 'DATABRICKS', 'MAQL', 'BIGQUERY', 'SIGMA', 'THOUGHTSPOT', 'DAX', 'HOLISTICS_AQL', 'OSSIE_SQL_2026'],
     description: 'Supported SQL and expression language dialects',
   };
 
-  function validate25(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate25(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate25.evaluated;
@@ -20532,16 +19725,7 @@ const generatedSemantic = (() => {
   }
   validate25.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
 
-  function validate24(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate24(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate24.evaluated;
@@ -20665,30 +19849,11 @@ const generatedSemantic = (() => {
   };
   const VendorNameCustomExtensionsSchema = {
     type: 'string',
-    examples: [
-      'COMMON',
-      'SNOWFLAKE',
-      'SALESFORCE',
-      'DBT',
-      'DATABRICKS',
-      'GOODDATA',
-      'WISDOM',
-      'POWER_BI',
-      'HEX',
-    ],
+    examples: ['COMMON', 'SNOWFLAKE', 'SALESFORCE', 'DBT', 'DATABRICKS', 'GOODDATA', 'WISDOM', 'POWER_BI', 'HEX'],
     description: 'Vendor name for custom extensions. Any string value is accepted.',
   };
 
-  function validate28(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate28(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate28.evaluated;
@@ -20800,16 +19965,7 @@ const generatedSemantic = (() => {
   }
   validate28.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
 
-  function validate23(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate23(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate23.evaluated;
@@ -21282,16 +20438,7 @@ const generatedSemantic = (() => {
   }
   validate23.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
 
-  function validate22(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate22(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate22.evaluated;
@@ -21841,16 +20988,7 @@ const generatedSemantic = (() => {
   }
   validate22.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
 
-  function validate21(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate21(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate21.evaluated;
@@ -21950,16 +21088,7 @@ const generatedSemantic = (() => {
     additionalProperties: false,
   };
 
-  function validate35(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate35(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate35.evaluated;
@@ -22046,17 +21175,7 @@ const generatedSemantic = (() => {
         errors++;
       }
       for (const key0 in data) {
-        if (
-          !(
-            key0 === 'name' ||
-            key0 === 'from' ||
-            key0 === 'to' ||
-            key0 === 'from_columns' ||
-            key0 === 'to_columns' ||
-            key0 === 'ai_context' ||
-            key0 === 'custom_extensions'
-          )
-        ) {
+        if (!(key0 === 'name' || key0 === 'from' || key0 === 'to' || key0 === 'from_columns' || key0 === 'to_columns' || key0 === 'ai_context' || key0 === 'custom_extensions')) {
           const err5 = {
             instancePath,
             schemaPath: '#/additionalProperties',
@@ -22501,16 +21620,7 @@ const generatedSemantic = (() => {
   }
   validate35.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
 
-  function validate34(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate34(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate34.evaluated;
@@ -22579,16 +21689,7 @@ const generatedSemantic = (() => {
     additionalProperties: false,
   };
 
-  function validate40(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate40(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate40.evaluated;
@@ -22630,16 +21731,7 @@ const generatedSemantic = (() => {
         errors++;
       }
       for (const key0 in data) {
-        if (
-          !(
-            key0 === 'name' ||
-            key0 === 'expression' ||
-            key0 === 'description' ||
-            key0 === 'datatype' ||
-            key0 === 'ai_context' ||
-            key0 === 'custom_extensions'
-          )
-        ) {
+        if (!(key0 === 'name' || key0 === 'expression' || key0 === 'description' || key0 === 'datatype' || key0 === 'ai_context' || key0 === 'custom_extensions')) {
           const err2 = {
             instancePath,
             schemaPath: '#/additionalProperties',
@@ -22989,16 +22081,7 @@ const generatedSemantic = (() => {
   }
   validate40.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
 
-  function validate39(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate39(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate39.evaluated;
@@ -23049,16 +22132,7 @@ const generatedSemantic = (() => {
     items: { $ref: '#/$defs/CustomExtension' },
   };
 
-  function validate45(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate45(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate45.evaluated;
@@ -23104,16 +22178,7 @@ const generatedSemantic = (() => {
   }
   validate45.evaluated = { items: true, dynamicProps: false, dynamicItems: false };
 
-  function validate20(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate20(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     /*# sourceURL="https://github.com/apache/ossie/core-spec/ossie-schema.json" */
     let vErrors = null;
     let errors = 0;
@@ -23314,8 +22379,7 @@ const generatedSemantic = (() => {
             if (typeof data3.instructions !== 'string') {
               const err10 = {
                 instancePath: instancePath + '/ai_context/instructions',
-                schemaPath:
-                  '#/$defs/SemanticModel/properties/ai_context/oneOf/1/properties/instructions/type',
+                schemaPath: '#/$defs/SemanticModel/properties/ai_context/oneOf/1/properties/instructions/type',
                 keyword: 'type',
                 params: { type: 'string' },
                 message: 'must be string',
@@ -23336,8 +22400,7 @@ const generatedSemantic = (() => {
                 if (typeof data5[i0] !== 'string') {
                   const err11 = {
                     instancePath: instancePath + '/ai_context/synonyms/' + i0,
-                    schemaPath:
-                      '#/$defs/SemanticModel/properties/ai_context/oneOf/1/properties/synonyms/items/type',
+                    schemaPath: '#/$defs/SemanticModel/properties/ai_context/oneOf/1/properties/synonyms/items/type',
                     keyword: 'type',
                     params: { type: 'string' },
                     message: 'must be string',
@@ -23353,8 +22416,7 @@ const generatedSemantic = (() => {
             } else {
               const err12 = {
                 instancePath: instancePath + '/ai_context/synonyms',
-                schemaPath:
-                  '#/$defs/SemanticModel/properties/ai_context/oneOf/1/properties/synonyms/type',
+                schemaPath: '#/$defs/SemanticModel/properties/ai_context/oneOf/1/properties/synonyms/type',
                 keyword: 'type',
                 params: { type: 'array' },
                 message: 'must be array',
@@ -23375,8 +22437,7 @@ const generatedSemantic = (() => {
                 if (typeof data7[i1] !== 'string') {
                   const err13 = {
                     instancePath: instancePath + '/ai_context/examples/' + i1,
-                    schemaPath:
-                      '#/$defs/SemanticModel/properties/ai_context/oneOf/1/properties/examples/items/type',
+                    schemaPath: '#/$defs/SemanticModel/properties/ai_context/oneOf/1/properties/examples/items/type',
                     keyword: 'type',
                     params: { type: 'string' },
                     message: 'must be string',
@@ -23392,8 +22453,7 @@ const generatedSemantic = (() => {
             } else {
               const err14 = {
                 instancePath: instancePath + '/ai_context/examples',
-                schemaPath:
-                  '#/$defs/SemanticModel/properties/ai_context/oneOf/1/properties/examples/type',
+                schemaPath: '#/$defs/SemanticModel/properties/ai_context/oneOf/1/properties/examples/type',
                 keyword: 'type',
                 params: { type: 'array' },
                 message: 'must be array',
@@ -23535,9 +22595,7 @@ const generatedSemantic = (() => {
   return { semantic: validate20 };
 })();
 const generatedMappings = (() => {
-  const mappingsRuntime0 = mappingsRuntime0Module.default?.__esModule
-    ? mappingsRuntime0Module.default
-    : mappingsRuntime0Module;
+  const mappingsRuntime0 = mappingsRuntime0Module.default?.__esModule ? mappingsRuntime0Module.default : mappingsRuntime0Module;
 
   const ossieMappingSchema = {
     $schema: 'https://json-schema.org/draft/2020-12/schema',
@@ -23567,8 +22625,7 @@ const generatedMappings = (() => {
         items: {
           $ref: 'https://raw.githubusercontent.com/apache/ossie/main/ontology/ontology.json#/$defs/ConceptMapping',
         },
-        description:
-          'Maps logical model constructs to some concept and its relationships in the referenced ontology',
+        description: 'Maps logical model constructs to some concept and its relationships in the referenced ontology',
       },
       custom_extensions: {
         $ref: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/SemanticModel/properties/custom_extensions',
@@ -23579,20 +22636,17 @@ const generatedMappings = (() => {
     $defs: {
       DocumentReference: {
         type: 'object',
-        description:
-          'Reference to another Ossie document by its logical name, with an iri saying where to resolve it from',
+        description: 'Reference to another Ossie document by its logical name, with an iri saying where to resolve it from',
         properties: {
           name: {
             type: 'string',
             minLength: 1,
-            description:
-              "Must equal the referenced document's own 'name'; carries this reference's checkable identity regardless of location",
+            description: "Must equal the referenced document's own 'name'; carries this reference's checkable identity regardless of location",
           },
           iri: {
             type: 'string',
             minLength: 1,
-            description:
-              "Where to resolve the referenced document from: a relative reference resolved against the mapping document's own location or base IRI, or an absolute IRI",
+            description: "Where to resolve the referenced document from: a relative reference resolved against the mapping document's own location or base IRI, or an absolute IRI",
           },
         },
         required: ['name'],
@@ -23602,20 +22656,17 @@ const generatedMappings = (() => {
   };
   const ossieMappingDocumentReferenceSchema = {
     type: 'object',
-    description:
-      'Reference to another Ossie document by its logical name, with an iri saying where to resolve it from',
+    description: 'Reference to another Ossie document by its logical name, with an iri saying where to resolve it from',
     properties: {
       name: {
         type: 'string',
         minLength: 1,
-        description:
-          "Must equal the referenced document's own 'name'; carries this reference's checkable identity regardless of location",
+        description: "Must equal the referenced document's own 'name'; carries this reference's checkable identity regardless of location",
       },
       iri: {
         type: 'string',
         minLength: 1,
-        description:
-          "Where to resolve the referenced document from: a relative reference resolved against the mapping document's own location or base IRI, or an absolute IRI",
+        description: "Where to resolve the referenced document from: a relative reference resolved against the mapping document's own location or base IRI, or an absolute IRI",
       },
     },
     required: ['name'],
@@ -23634,15 +22685,13 @@ const generatedMappings = (() => {
         type: 'array',
         minItems: 1,
         items: { $ref: '#/$defs/ObjectMapping' },
-        description:
-          'Mappings from logical constructs that populate the concept in this component. Valid only when the concept is an entity type',
+        description: 'Mappings from logical constructs that populate the concept in this component. Valid only when the concept is an entity type',
       },
       link_mappings: {
         type: 'array',
         minItems: 1,
         items: { $ref: '#/$defs/LinkMapping' },
-        description:
-          'Mappings from logical model relationships to ontology relationships pertaining to the mapped concept',
+        description: 'Mappings from logical model relationships to ontology relationships pertaining to the mapped concept',
       },
     },
     required: ['concept'],
@@ -23651,8 +22700,7 @@ const generatedMappings = (() => {
   };
   const PatternLogicalLevelExpressionsSchema = {
     type: 'object',
-    description:
-      'Pattern of logical-level expressions for identifying objects of some concept using the values in one or more fields',
+    description: 'Pattern of logical-level expressions for identifying objects of some concept using the values in one or more fields',
     properties: {
       concept: {
         type: 'string',
@@ -23672,8 +22720,7 @@ const generatedMappings = (() => {
   const ossieOntologyExpressionSchema = { type: 'string', description: 'ANSI SQL expression' };
   const MappingLogicalModelConstructsSchema = {
     type: 'object',
-    description:
-      'Mapping from logical model constructs to a relationship used to references some entity type in the ontology',
+    description: 'Mapping from logical model constructs to a relationship used to references some entity type in the ontology',
     properties: {
       relationship: { type: 'string', description: 'Name of referent relationship' },
       expression: { $ref: '#/$defs/Expression' },
@@ -23685,16 +22732,7 @@ const generatedMappings = (() => {
   };
   const wrapper0 = { validate: validate58 };
 
-  function validate58(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate58(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate58.evaluated;
@@ -23866,10 +22904,7 @@ const generatedMappings = (() => {
                 dynamicAnchors,
               })
             ) {
-              vErrors =
-                vErrors === null
-                  ? wrapper0.validate.errors
-                  : vErrors.concat(wrapper0.validate.errors);
+              vErrors = vErrors === null ? wrapper0.validate.errors : vErrors.concat(wrapper0.validate.errors);
               errors = vErrors.length;
             }
           }
@@ -23909,16 +22944,7 @@ const generatedMappings = (() => {
   }
   validate58.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
 
-  function validate57(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate57(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate57.evaluated;
@@ -24135,16 +23161,7 @@ const generatedMappings = (() => {
   };
   const wrapper1 = { validate: validate61 };
 
-  function validate61(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate61(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate61.evaluated;
@@ -24232,10 +23249,7 @@ const generatedMappings = (() => {
                 dynamicAnchors,
               })
             ) {
-              vErrors =
-                vErrors === null
-                  ? wrapper1.validate.errors
-                  : vErrors.concat(wrapper1.validate.errors);
+              vErrors = vErrors === null ? wrapper1.validate.errors : vErrors.concat(wrapper1.validate.errors);
               errors = vErrors.length;
             }
           }
@@ -24275,16 +23289,7 @@ const generatedMappings = (() => {
   }
   validate61.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
 
-  function validate66(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate66(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate66.evaluated;
@@ -24541,30 +23546,11 @@ const generatedMappings = (() => {
   };
   const VendorNameCustomExtensionsSchema = {
     type: 'string',
-    examples: [
-      'COMMON',
-      'SNOWFLAKE',
-      'SALESFORCE',
-      'DBT',
-      'DATABRICKS',
-      'GOODDATA',
-      'WISDOM',
-      'POWER_BI',
-      'HEX',
-    ],
+    examples: ['COMMON', 'SNOWFLAKE', 'SALESFORCE', 'DBT', 'DATABRICKS', 'GOODDATA', 'WISDOM', 'POWER_BI', 'HEX'],
     description: 'Vendor name for custom extensions. Any string value is accepted.',
   };
 
-  function validate30(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate30(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate30.evaluated;
@@ -24676,16 +23662,7 @@ const generatedMappings = (() => {
   }
   validate30.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
 
-  function validate70(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate70(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate70.evaluated;
@@ -24731,16 +23708,7 @@ const generatedMappings = (() => {
   }
   validate70.evaluated = { items: true, dynamicProps: false, dynamicItems: false };
 
-  function validate20(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate20(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     /*# sourceURL="https://github.com/apache/ossie/ontology/mapping.json" */
     let vErrors = null;
     let errors = 0;
@@ -24829,15 +23797,7 @@ const generatedMappings = (() => {
       }
       for (const key0 in data) {
         if (
-          !(
-            key0 === 'version' ||
-            key0 === 'name' ||
-            key0 === 'description' ||
-            key0 === 'ontology_ref' ||
-            key0 === 'semantic_model_ref' ||
-            key0 === 'concept_mappings' ||
-            key0 === 'custom_extensions'
-          )
+          !(key0 === 'version' || key0 === 'name' || key0 === 'description' || key0 === 'ontology_ref' || key0 === 'semantic_model_ref' || key0 === 'concept_mappings' || key0 === 'custom_extensions')
         ) {
           const err5 = {
             instancePath,
@@ -25262,8 +24222,7 @@ const generatedMappings = (() => {
       concept_mappings: {
         type: 'array',
         items: { $ref: '#/$defs/ConceptMapping' },
-        description:
-          'Maps logical model constructs to some concept and its relationships in the ontology',
+        description: 'Maps logical model constructs to some concept and its relationships in the ontology',
       },
     },
     required: ['semantic_model', 'concept_mappings'],
@@ -25294,35 +24253,12 @@ const generatedMappings = (() => {
     $defs: {
       Dialect: {
         type: 'string',
-        enum: [
-          'ANSI_SQL',
-          'SNOWFLAKE',
-          'MDX',
-          'TABLEAU',
-          'DATABRICKS',
-          'MAQL',
-          'BIGQUERY',
-          'SIGMA',
-          'THOUGHTSPOT',
-          'DAX',
-          'HOLISTICS_AQL',
-          'OSSIE_SQL_2026',
-        ],
+        enum: ['ANSI_SQL', 'SNOWFLAKE', 'MDX', 'TABLEAU', 'DATABRICKS', 'MAQL', 'BIGQUERY', 'SIGMA', 'THOUGHTSPOT', 'DAX', 'HOLISTICS_AQL', 'OSSIE_SQL_2026'],
         description: 'Supported SQL and expression language dialects',
       },
       Vendor: {
         type: 'string',
-        examples: [
-          'COMMON',
-          'SNOWFLAKE',
-          'SALESFORCE',
-          'DBT',
-          'DATABRICKS',
-          'GOODDATA',
-          'WISDOM',
-          'POWER_BI',
-          'HEX',
-        ],
+        examples: ['COMMON', 'SNOWFLAKE', 'SALESFORCE', 'DBT', 'DATABRICKS', 'GOODDATA', 'WISDOM', 'POWER_BI', 'HEX'],
         description: 'Vendor name for custom extensions. Any string value is accepted.',
       },
       AIContext: {
@@ -25382,18 +24318,7 @@ const generatedMappings = (() => {
       },
       DataType: {
         type: 'string',
-        enum: [
-          'String',
-          'Integer',
-          'Decimal',
-          'Float',
-          'Boolean',
-          'Date',
-          'Time',
-          'DateTime',
-          'DateTimeTz',
-          'Opaque',
-        ],
+        enum: ['String', 'Integer', 'Decimal', 'Float', 'Boolean', 'Date', 'Time', 'DateTime', 'DateTimeTz', 'Opaque'],
         description:
           'Logical data type for fields and metrics, independent of role (e.g. dimension vs fact) and physical representation. `Decimal` is exact base-10 with unspecified precision and scale; `Float` is approximate. `DateTime` has no timezone or offset, while `DateTimeTz` identifies an instant using offset or timezone context but does not guarantee preservation of a named timezone. Omit `datatype` when unknown; use `Opaque` plus `custom_extensions` for a known type outside the portable vocabulary.',
       },
@@ -25437,8 +24362,7 @@ const generatedMappings = (() => {
           source: {
             type: 'string',
             minLength: 1,
-            description:
-              'Reference to underlying physical table/view (database.schema.table) or query',
+            description: 'Reference to underlying physical table/view (database.schema.table) or query',
           },
           primary_key: {
             type: 'array',
@@ -25653,18 +24577,7 @@ const generatedMappings = (() => {
   };
   const LogicalDataTypeFieldsSchema = {
     type: 'string',
-    enum: [
-      'String',
-      'Integer',
-      'Decimal',
-      'Float',
-      'Boolean',
-      'Date',
-      'Time',
-      'DateTime',
-      'DateTimeTz',
-      'Opaque',
-    ],
+    enum: ['String', 'Integer', 'Decimal', 'Float', 'Boolean', 'Date', 'Time', 'DateTime', 'DateTimeTz', 'Opaque'],
     description:
       'Logical data type for fields and metrics, independent of role (e.g. dimension vs fact) and physical representation. `Decimal` is exact base-10 with unspecified precision and scale; `Float` is approximate. `DateTime` has no timezone or offset, while `DateTimeTz` identifies an instant using offset or timezone context but does not guarantee preservation of a named timezone. Omit `datatype` when unknown; use `Opaque` plus `custom_extensions` for a known type outside the portable vocabulary.',
   };
@@ -25689,33 +24602,11 @@ const generatedMappings = (() => {
   };
   const SupportedSQLExpressionLanguageSchema = {
     type: 'string',
-    enum: [
-      'ANSI_SQL',
-      'SNOWFLAKE',
-      'MDX',
-      'TABLEAU',
-      'DATABRICKS',
-      'MAQL',
-      'BIGQUERY',
-      'SIGMA',
-      'THOUGHTSPOT',
-      'DAX',
-      'HOLISTICS_AQL',
-      'OSSIE_SQL_2026',
-    ],
+    enum: ['ANSI_SQL', 'SNOWFLAKE', 'MDX', 'TABLEAU', 'DATABRICKS', 'MAQL', 'BIGQUERY', 'SIGMA', 'THOUGHTSPOT', 'DAX', 'HOLISTICS_AQL', 'OSSIE_SQL_2026'],
     description: 'Supported SQL and expression language dialects',
   };
 
-  function validate27(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate27(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate27.evaluated;
@@ -25858,16 +24749,7 @@ const generatedMappings = (() => {
   }
   validate27.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
 
-  function validate26(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate26(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate26.evaluated;
@@ -25979,16 +24861,7 @@ const generatedMappings = (() => {
   }
   validate26.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
 
-  function validate25(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate25(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate25.evaluated;
@@ -26461,16 +25334,7 @@ const generatedMappings = (() => {
   }
   validate25.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
 
-  function validate24(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate24(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate24.evaluated;
@@ -27020,16 +25884,7 @@ const generatedMappings = (() => {
   }
   validate24.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
 
-  function validate23(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate23(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate23.evaluated;
@@ -27129,16 +25984,7 @@ const generatedMappings = (() => {
     additionalProperties: false,
   };
 
-  function validate37(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate37(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate37.evaluated;
@@ -27225,17 +26071,7 @@ const generatedMappings = (() => {
         errors++;
       }
       for (const key0 in data) {
-        if (
-          !(
-            key0 === 'name' ||
-            key0 === 'from' ||
-            key0 === 'to' ||
-            key0 === 'from_columns' ||
-            key0 === 'to_columns' ||
-            key0 === 'ai_context' ||
-            key0 === 'custom_extensions'
-          )
-        ) {
+        if (!(key0 === 'name' || key0 === 'from' || key0 === 'to' || key0 === 'from_columns' || key0 === 'to_columns' || key0 === 'ai_context' || key0 === 'custom_extensions')) {
           const err5 = {
             instancePath,
             schemaPath: '#/additionalProperties',
@@ -27680,16 +26516,7 @@ const generatedMappings = (() => {
   }
   validate37.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
 
-  function validate36(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate36(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate36.evaluated;
@@ -27758,16 +26585,7 @@ const generatedMappings = (() => {
     additionalProperties: false,
   };
 
-  function validate42(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate42(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate42.evaluated;
@@ -27809,16 +26627,7 @@ const generatedMappings = (() => {
         errors++;
       }
       for (const key0 in data) {
-        if (
-          !(
-            key0 === 'name' ||
-            key0 === 'expression' ||
-            key0 === 'description' ||
-            key0 === 'datatype' ||
-            key0 === 'ai_context' ||
-            key0 === 'custom_extensions'
-          )
-        ) {
+        if (!(key0 === 'name' || key0 === 'expression' || key0 === 'description' || key0 === 'datatype' || key0 === 'ai_context' || key0 === 'custom_extensions')) {
           const err2 = {
             instancePath,
             schemaPath: '#/additionalProperties',
@@ -28168,16 +26977,7 @@ const generatedMappings = (() => {
   }
   validate42.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
 
-  function validate41(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate41(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate41.evaluated;
@@ -28223,16 +27023,7 @@ const generatedMappings = (() => {
   }
   validate41.evaluated = { items: true, dynamicProps: false, dynamicItems: false };
 
-  function validate47(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate47(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate47.evaluated;
@@ -28278,16 +27069,7 @@ const generatedMappings = (() => {
   }
   validate47.evaluated = { items: true, dynamicProps: false, dynamicItems: false };
 
-  function validate22(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate22(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     /*# sourceURL="https://github.com/apache/ossie/core-spec/ossie-schema.json" */
     let vErrors = null;
     let errors = 0;
@@ -28488,8 +27270,7 @@ const generatedMappings = (() => {
             if (typeof data3.instructions !== 'string') {
               const err10 = {
                 instancePath: instancePath + '/ai_context/instructions',
-                schemaPath:
-                  '#/$defs/SemanticModel/properties/ai_context/oneOf/1/properties/instructions/type',
+                schemaPath: '#/$defs/SemanticModel/properties/ai_context/oneOf/1/properties/instructions/type',
                 keyword: 'type',
                 params: { type: 'string' },
                 message: 'must be string',
@@ -28510,8 +27291,7 @@ const generatedMappings = (() => {
                 if (typeof data5[i0] !== 'string') {
                   const err11 = {
                     instancePath: instancePath + '/ai_context/synonyms/' + i0,
-                    schemaPath:
-                      '#/$defs/SemanticModel/properties/ai_context/oneOf/1/properties/synonyms/items/type',
+                    schemaPath: '#/$defs/SemanticModel/properties/ai_context/oneOf/1/properties/synonyms/items/type',
                     keyword: 'type',
                     params: { type: 'string' },
                     message: 'must be string',
@@ -28527,8 +27307,7 @@ const generatedMappings = (() => {
             } else {
               const err12 = {
                 instancePath: instancePath + '/ai_context/synonyms',
-                schemaPath:
-                  '#/$defs/SemanticModel/properties/ai_context/oneOf/1/properties/synonyms/type',
+                schemaPath: '#/$defs/SemanticModel/properties/ai_context/oneOf/1/properties/synonyms/type',
                 keyword: 'type',
                 params: { type: 'array' },
                 message: 'must be array',
@@ -28549,8 +27328,7 @@ const generatedMappings = (() => {
                 if (typeof data7[i1] !== 'string') {
                   const err13 = {
                     instancePath: instancePath + '/ai_context/examples/' + i1,
-                    schemaPath:
-                      '#/$defs/SemanticModel/properties/ai_context/oneOf/1/properties/examples/items/type',
+                    schemaPath: '#/$defs/SemanticModel/properties/ai_context/oneOf/1/properties/examples/items/type',
                     keyword: 'type',
                     params: { type: 'string' },
                     message: 'must be string',
@@ -28566,8 +27344,7 @@ const generatedMappings = (() => {
             } else {
               const err14 = {
                 instancePath: instancePath + '/ai_context/examples',
-                schemaPath:
-                  '#/$defs/SemanticModel/properties/ai_context/oneOf/1/properties/examples/type',
+                schemaPath: '#/$defs/SemanticModel/properties/ai_context/oneOf/1/properties/examples/type',
                 keyword: 'type',
                 params: { type: 'array' },
                 message: 'must be array',
@@ -28706,16 +27483,7 @@ const generatedMappings = (() => {
   }
   validate22.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
 
-  function validate56(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate56(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate56.evaluated;
@@ -28959,16 +27727,7 @@ const generatedMappings = (() => {
   }
   validate56.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
 
-  function validate74(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate74(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate74.evaluated;
@@ -29010,14 +27769,7 @@ const generatedMappings = (() => {
         errors++;
       }
       for (const key0 in data) {
-        if (
-          !(
-            key0 === 'name' ||
-            key0 === 'description' ||
-            key0 === 'semantic_model' ||
-            key0 === 'concept_mappings'
-          )
-        ) {
+        if (!(key0 === 'name' || key0 === 'description' || key0 === 'semantic_model' || key0 === 'concept_mappings')) {
           const err2 = {
             instancePath,
             schemaPath: '#/additionalProperties',
@@ -29135,16 +27887,7 @@ const generatedMappings = (() => {
   }
   validate74.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
 
-  function validate73(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate73(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate73.evaluated;
@@ -29154,9 +27897,7 @@ const generatedMappings = (() => {
     if (evaluated0.dynamicItems) {
       evaluated0.items = undefined;
     }
-    if (
-      !validate74(data, { instancePath, parentData, parentDataProperty, rootData, dynamicAnchors })
-    ) {
+    if (!validate74(data, { instancePath, parentData, parentDataProperty, rootData, dynamicAnchors })) {
       vErrors = vErrors === null ? validate74.errors : vErrors.concat(validate74.errors);
       errors = vErrors.length;
     }
@@ -29202,8 +27943,7 @@ const generatedMappings = (() => {
       },
       prefixes: {
         type: 'object',
-        description:
-          "Maps namespace prefixes to the IRIs they abbreviate, enabling QName expansion (e.g., 'foaf' -> 'http://xmlns.com/foaf/0.1/').",
+        description: "Maps namespace prefixes to the IRIs they abbreviate, enabling QName expansion (e.g., 'foaf' -> 'http://xmlns.com/foaf/0.1/').",
         additionalProperties: { type: 'string', format: 'iri' },
       },
     },
@@ -29212,8 +27952,7 @@ const generatedMappings = (() => {
     $defs: {
       OntologyComponent: {
         type: 'object',
-        description:
-          'Ontology component that defines a single concept and any relationships that are keyed primarily by that concept',
+        description: 'Ontology component that defines a single concept and any relationships that are keyed primarily by that concept',
         properties: {
           concept: {
             type: 'string',
@@ -29234,8 +27973,7 @@ const generatedMappings = (() => {
           identify_by: {
             type: 'array',
             items: { type: 'string' },
-            description:
-              'Names of relationships to use as the preferred identifier of this concept',
+            description: 'Names of relationships to use as the preferred identifier of this concept',
           },
           requires: {
             type: 'array',
@@ -29245,13 +27983,11 @@ const generatedMappings = (() => {
           relationships: {
             type: 'array',
             items: { $ref: '#/$defs/Relationship' },
-            description:
-              'Defines relationships that pertain primarily to the concept defined in this component',
+            description: 'Defines relationships that pertain primarily to the concept defined in this component',
           },
           iri: {
             type: 'string',
-            description:
-              "Optional global identifier for this concept, expressed as a full IRI or as a QName (prefix:local) resolved against the ontology-level 'prefixes' map.",
+            description: "Optional global identifier for this concept, expressed as a full IRI or as a QName (prefix:local) resolved against the ontology-level 'prefixes' map.",
           },
         },
         required: ['concept', 'type'],
@@ -29290,8 +28026,7 @@ const generatedMappings = (() => {
           },
           iri: {
             type: 'string',
-            description:
-              "Optional global identifier for this relationship, expressed as a full IRI or as a QName (prefix:local) resolved against the ontology-level 'prefixes' map.",
+            description: "Optional global identifier for this relationship, expressed as a full IRI or as a QName (prefix:local) resolved against the ontology-level 'prefixes' map.",
           },
         },
         required: ['name', 'verbalizes'],
@@ -29309,15 +28044,13 @@ const generatedMappings = (() => {
             type: 'array',
             minItems: 1,
             items: { $ref: '#/$defs/ObjectMapping' },
-            description:
-              'Mappings from logical constructs that populate the concept in this component. Valid only when the concept is an entity type',
+            description: 'Mappings from logical constructs that populate the concept in this component. Valid only when the concept is an entity type',
           },
           link_mappings: {
             type: 'array',
             minItems: 1,
             items: { $ref: '#/$defs/LinkMapping' },
-            description:
-              'Mappings from logical model relationships to ontology relationships pertaining to the mapped concept',
+            description: 'Mappings from logical model relationships to ontology relationships pertaining to the mapped concept',
           },
         },
         required: ['concept'],
@@ -29331,8 +28064,7 @@ const generatedMappings = (() => {
       },
       ReferentMapping: {
         type: 'object',
-        description:
-          'Mapping from logical model constructs to a relationship used to references some entity type in the ontology',
+        description: 'Mapping from logical model constructs to a relationship used to references some entity type in the ontology',
         properties: {
           relationship: { type: 'string', description: 'Name of referent relationship' },
           expression: { $ref: '#/$defs/Expression' },
@@ -29353,8 +28085,7 @@ const generatedMappings = (() => {
           concept: { type: 'string', description: 'Name of the concept playing this role' },
           name: {
             type: 'string',
-            description:
-              'Optional name of this role, used when the same concept plays multiple roles in the same relationship',
+            description: 'Optional name of this role, used when the same concept plays multiple roles in the same relationship',
           },
         },
         required: ['concept'],
@@ -29362,8 +28093,7 @@ const generatedMappings = (() => {
       },
       ObjectMapping: {
         type: 'object',
-        description:
-          'Pattern of logical-level expressions for identifying objects of some concept using the values in one or more fields',
+        description: 'Pattern of logical-level expressions for identifying objects of some concept using the values in one or more fields',
         properties: {
           concept: {
             type: 'string',
@@ -29373,8 +28103,7 @@ const generatedMappings = (() => {
             type: 'array',
             minItems: 1,
             items: { $ref: '#/$defs/ReferentMapping' },
-            description:
-              'Maps logical-model constructs to referent relationships of this entity type',
+            description: 'Maps logical-model constructs to referent relationships of this entity type',
           },
           expression: { $ref: '#/$defs/Expression' },
         },
@@ -29419,8 +28148,7 @@ const generatedMappings = (() => {
           concept_mappings: {
             type: 'array',
             items: { $ref: '#/$defs/ConceptMapping' },
-            description:
-              'Maps logical model constructs to some concept and its relationships in the ontology',
+            description: 'Maps logical model constructs to some concept and its relationships in the ontology',
           },
         },
         required: ['semantic_model', 'concept_mappings'],
@@ -29430,8 +28158,7 @@ const generatedMappings = (() => {
   };
   const OntologyComponentDefinesSingleSchema = {
     type: 'object',
-    description:
-      'Ontology component that defines a single concept and any relationships that are keyed primarily by that concept',
+    description: 'Ontology component that defines a single concept and any relationships that are keyed primarily by that concept',
     properties: {
       concept: {
         type: 'string',
@@ -29462,13 +28189,11 @@ const generatedMappings = (() => {
       relationships: {
         type: 'array',
         items: { $ref: '#/$defs/Relationship' },
-        description:
-          'Defines relationships that pertain primarily to the concept defined in this component',
+        description: 'Defines relationships that pertain primarily to the concept defined in this component',
       },
       iri: {
         type: 'string',
-        description:
-          "Optional global identifier for this concept, expressed as a full IRI or as a QName (prefix:local) resolved against the ontology-level 'prefixes' map.",
+        description: "Optional global identifier for this concept, expressed as a full IRI or as a QName (prefix:local) resolved against the ontology-level 'prefixes' map.",
       },
     },
     required: ['concept', 'type'],
@@ -29512,8 +28237,7 @@ const generatedMappings = (() => {
       },
       iri: {
         type: 'string',
-        description:
-          "Optional global identifier for this relationship, expressed as a full IRI or as a QName (prefix:local) resolved against the ontology-level 'prefixes' map.",
+        description: "Optional global identifier for this relationship, expressed as a full IRI or as a QName (prefix:local) resolved against the ontology-level 'prefixes' map.",
       },
     },
     required: ['name', 'verbalizes'],
@@ -29526,8 +28250,7 @@ const generatedMappings = (() => {
       concept: { type: 'string', description: 'Name of the concept playing this role' },
       name: {
         type: 'string',
-        description:
-          'Optional name of this role, used when the same concept plays multiple roles in the same relationship',
+        description: 'Optional name of this role, used when the same concept plays multiple roles in the same relationship',
       },
     },
     required: ['concept'],
@@ -29539,16 +28262,7 @@ const generatedMappings = (() => {
     description: 'Relationship multiplicity',
   };
 
-  function validate51(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate51(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate51.evaluated;
@@ -29590,18 +28304,7 @@ const generatedMappings = (() => {
         errors++;
       }
       for (const key0 in data) {
-        if (
-          !(
-            key0 === 'name' ||
-            key0 === 'description' ||
-            key0 === 'roles' ||
-            key0 === 'multiplicity' ||
-            key0 === 'derived_by' ||
-            key0 === 'requires' ||
-            key0 === 'verbalizes' ||
-            key0 === 'iri'
-          )
-        ) {
+        if (!(key0 === 'name' || key0 === 'description' || key0 === 'roles' || key0 === 'multiplicity' || key0 === 'derived_by' || key0 === 'requires' || key0 === 'verbalizes' || key0 === 'iri')) {
           const err2 = {
             instancePath,
             schemaPath: '#/additionalProperties',
@@ -29937,16 +28640,7 @@ const generatedMappings = (() => {
   }
   validate51.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
 
-  function validate50(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate50(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate50.evaluated;
@@ -30290,16 +28984,7 @@ const generatedMappings = (() => {
   }
   validate50.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
 
-  function validate54(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate54(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
     let errors = 0;
     const evaluated0 = validate54.evaluated;
@@ -30341,14 +29026,7 @@ const generatedMappings = (() => {
         errors++;
       }
       for (const key0 in data) {
-        if (
-          !(
-            key0 === 'name' ||
-            key0 === 'description' ||
-            key0 === 'semantic_model' ||
-            key0 === 'concept_mappings'
-          )
-        ) {
+        if (!(key0 === 'name' || key0 === 'description' || key0 === 'semantic_model' || key0 === 'concept_mappings')) {
           const err2 = {
             instancePath,
             schemaPath: '#/additionalProperties',
@@ -30468,16 +29146,7 @@ const generatedMappings = (() => {
 
   const formats0 = /^[a-z][a-z\d+.-]*:[^\s]+$/i;
 
-  function validate21(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate21(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     /*# sourceURL="https://github.com/apache/ossie/ontology/ontology.json" */
     let vErrors = null;
     let errors = 0;
@@ -30638,8 +29307,7 @@ const generatedMappings = (() => {
         if (typeof data3 !== 'string') {
           const err8 = {
             instancePath: instancePath + '/ai_context',
-            schemaPath:
-              'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/AIContext/oneOf/0/type',
+            schemaPath: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/AIContext/oneOf/0/type',
             keyword: 'type',
             params: { type: 'string' },
             message: 'must be string',
@@ -30662,8 +29330,7 @@ const generatedMappings = (() => {
             if (typeof data3.instructions !== 'string') {
               const err9 = {
                 instancePath: instancePath + '/ai_context/instructions',
-                schemaPath:
-                  'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/AIContext/oneOf/1/properties/instructions/type',
+                schemaPath: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/AIContext/oneOf/1/properties/instructions/type',
                 keyword: 'type',
                 params: { type: 'string' },
                 message: 'must be string',
@@ -30684,8 +29351,7 @@ const generatedMappings = (() => {
                 if (typeof data5[i0] !== 'string') {
                   const err10 = {
                     instancePath: instancePath + '/ai_context/synonyms/' + i0,
-                    schemaPath:
-                      'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/AIContext/oneOf/1/properties/synonyms/items/type',
+                    schemaPath: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/AIContext/oneOf/1/properties/synonyms/items/type',
                     keyword: 'type',
                     params: { type: 'string' },
                     message: 'must be string',
@@ -30701,8 +29367,7 @@ const generatedMappings = (() => {
             } else {
               const err11 = {
                 instancePath: instancePath + '/ai_context/synonyms',
-                schemaPath:
-                  'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/AIContext/oneOf/1/properties/synonyms/type',
+                schemaPath: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/AIContext/oneOf/1/properties/synonyms/type',
                 keyword: 'type',
                 params: { type: 'array' },
                 message: 'must be array',
@@ -30723,8 +29388,7 @@ const generatedMappings = (() => {
                 if (typeof data7[i1] !== 'string') {
                   const err12 = {
                     instancePath: instancePath + '/ai_context/examples/' + i1,
-                    schemaPath:
-                      'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/AIContext/oneOf/1/properties/examples/items/type',
+                    schemaPath: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/AIContext/oneOf/1/properties/examples/items/type',
                     keyword: 'type',
                     params: { type: 'string' },
                     message: 'must be string',
@@ -30740,8 +29404,7 @@ const generatedMappings = (() => {
             } else {
               const err13 = {
                 instancePath: instancePath + '/ai_context/examples',
-                schemaPath:
-                  'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/AIContext/oneOf/1/properties/examples/type',
+                schemaPath: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/AIContext/oneOf/1/properties/examples/type',
                 keyword: 'type',
                 params: { type: 'array' },
                 message: 'must be array',
@@ -30757,8 +29420,7 @@ const generatedMappings = (() => {
         } else {
           const err14 = {
             instancePath: instancePath + '/ai_context',
-            schemaPath:
-              'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/AIContext/oneOf/1/type',
+            schemaPath: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/AIContext/oneOf/1/type',
             keyword: 'type',
             params: { type: 'object' },
             message: 'must be object',
@@ -30783,8 +29445,7 @@ const generatedMappings = (() => {
         if (!valid2) {
           const err15 = {
             instancePath: instancePath + '/ai_context',
-            schemaPath:
-              'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/AIContext/oneOf',
+            schemaPath: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/AIContext/oneOf',
             keyword: 'oneOf',
             params: { passingSchemas: passing0 },
             message: 'must match exactly one schema in oneOf',
@@ -30934,8 +29595,7 @@ const generatedMappings = (() => {
             if (typeof data16 === 'string') {
               if (!formats0.test(data16)) {
                 const err21 = {
-                  instancePath:
-                    instancePath + '/prefixes/' + key1.replace(/~/g, '~0').replace(/\//g, '~1'),
+                  instancePath: instancePath + '/prefixes/' + key1.replace(/~/g, '~0').replace(/\//g, '~1'),
                   schemaPath: '#/properties/prefixes/additionalProperties/format',
                   keyword: 'format',
                   params: { format: 'iri' },
@@ -30950,8 +29610,7 @@ const generatedMappings = (() => {
               }
             } else {
               const err22 = {
-                instancePath:
-                  instancePath + '/prefixes/' + key1.replace(/~/g, '~0').replace(/\//g, '~1'),
+                instancePath: instancePath + '/prefixes/' + key1.replace(/~/g, '~0').replace(/\//g, '~1'),
                 schemaPath: '#/properties/prefixes/additionalProperties/type',
                 keyword: 'type',
                 params: { type: 'string' },
@@ -31004,19 +29663,14 @@ const generatedMappings = (() => {
   return { standalone: validate20, embedded: validate73, ontology: validate21 };
 })();
 const generatedExtensions = (() => {
-  const extensionsRuntime0 = extensionsRuntime0Module.default?.__esModule
-    ? extensionsRuntime0Module.default
-    : extensionsRuntime0Module;
-  const extensionsRuntime1 = extensionsRuntime1Module.default?.__esModule
-    ? extensionsRuntime1Module.default
-    : extensionsRuntime1Module;
+  const extensionsRuntime0 = extensionsRuntime0Module.default?.__esModule ? extensionsRuntime0Module.default : extensionsRuntime0Module;
+  const extensionsRuntime1 = extensionsRuntime1Module.default?.__esModule ? extensionsRuntime1Module.default : extensionsRuntime1Module;
 
   const metricExtensionSchema = {
     $schema: 'https://json-schema.org/draft/2020-12/schema',
     $id: 'semantic-workbench/metric/v1',
     title: 'Semantic Workbench metric extension (application schema, not part of Apache Ossie)',
-    description:
-      "Content of the JSON string in an Ossie metric's custom_extensions entry with vendor_name SEMANTIC_WORKBENCH.",
+    description: "Content of the JSON string in an Ossie metric's custom_extensions entry with vendor_name SEMANTIC_WORKBENCH.",
     type: 'object',
     required: ['schema', 'type'],
     additionalProperties: false,
@@ -31085,19 +29739,7 @@ const generatedExtensions = (() => {
           properties: {
             field: { $ref: '#/$defs/fieldRef' },
             operator: {
-              enum: [
-                'equals',
-                'not_equals',
-                'in',
-                'not_in',
-                'gt',
-                'gte',
-                'lt',
-                'lte',
-                'between',
-                'is_null',
-                'is_not_null',
-              ],
+              enum: ['equals', 'not_equals', 'in', 'not_in', 'gt', 'gte', 'lt', 'lte', 'between', 'is_null', 'is_not_null'],
             },
             value: {},
           },
@@ -31181,16 +29823,7 @@ const generatedExtensions = (() => {
   const func0 = extensionsRuntime1.default;
   const pattern4 = new RegExp('^[^.\\s]+\\.[^.\\s]+$', 'u');
 
-  function validate20(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate20(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     /*# sourceURL="semantic-workbench/metric/v1" */
     let vErrors = null;
     let errors = 0;
@@ -31774,15 +30407,7 @@ const generatedExtensions = (() => {
       }
       if (data.type !== undefined) {
         let data8 = data.type;
-        if (
-          !(
-            data8 === 'simple' ||
-            data8 === 'ratio' ||
-            data8 === 'derived' ||
-            data8 === 'cumulative' ||
-            data8 === 'filtered'
-          )
-        ) {
+        if (!(data8 === 'simple' || data8 === 'ratio' || data8 === 'derived' || data8 === 'cumulative' || data8 === 'filtered')) {
           const err30 = {
             instancePath: instancePath + '/type',
             schemaPath: '#/properties/type/enum',
@@ -31930,12 +30555,7 @@ const generatedExtensions = (() => {
                     schemaPath: '#/properties/inputs/uniqueItems',
                     keyword: 'uniqueItems',
                     params: { i: i1, j: j0 },
-                    message:
-                      'must NOT have duplicate items (items ## ' +
-                      j0 +
-                      ' and ' +
-                      i1 +
-                      ' are identical)',
+                    message: 'must NOT have duplicate items (items ## ' + j0 + ' and ' + i1 + ' are identical)',
                   };
                   if (vErrors === null) {
                     vErrors = [err38];
@@ -32056,15 +30676,7 @@ const generatedExtensions = (() => {
           }
           if (data13.grain !== undefined) {
             let data16 = data13.grain;
-            if (
-              !(
-                data16 === 'day' ||
-                data16 === 'week' ||
-                data16 === 'month' ||
-                data16 === 'quarter' ||
-                data16 === 'year'
-              )
-            ) {
+            if (!(data16 === 'day' || data16 === 'week' || data16 === 'month' || data16 === 'quarter' || data16 === 'year')) {
               const err45 = {
                 instancePath: instancePath + '/window/grain',
                 schemaPath: '#/$defs/grain/enum',
@@ -32220,15 +30832,7 @@ const generatedExtensions = (() => {
           }
           if (data20.min_grain !== undefined) {
             let data22 = data20.min_grain;
-            if (
-              !(
-                data22 === 'day' ||
-                data22 === 'week' ||
-                data22 === 'month' ||
-                data22 === 'quarter' ||
-                data22 === 'year'
-              )
-            ) {
+            if (!(data22 === 'day' || data22 === 'week' || data22 === 'month' || data22 === 'quarter' || data22 === 'year')) {
               const err54 = {
                 instancePath: instancePath + '/time/min_grain',
                 schemaPath: '#/$defs/grain/enum',
@@ -32250,15 +30854,7 @@ const generatedExtensions = (() => {
               const len1 = data23.length;
               for (let i2 = 0; i2 < len1; i2++) {
                 let data24 = data23[i2];
-                if (
-                  !(
-                    data24 === 'day' ||
-                    data24 === 'week' ||
-                    data24 === 'month' ||
-                    data24 === 'quarter' ||
-                    data24 === 'year'
-                  )
-                ) {
+                if (!(data24 === 'day' || data24 === 'week' || data24 === 'month' || data24 === 'quarter' || data24 === 'year')) {
                   const err55 = {
                     instancePath: instancePath + '/time/allowed_grains/' + i2,
                     schemaPath: '#/$defs/grain/enum',
@@ -32285,12 +30881,7 @@ const generatedExtensions = (() => {
                         schemaPath: '#/properties/time/properties/allowed_grains/uniqueItems',
                         keyword: 'uniqueItems',
                         params: { i: i3, j: j1 },
-                        message:
-                          'must NOT have duplicate items (items ## ' +
-                          j1 +
-                          ' and ' +
-                          i3 +
-                          ' are identical)',
+                        message: 'must NOT have duplicate items (items ## ' + j1 + ' and ' + i3 + ' are identical)',
                       };
                       if (vErrors === null) {
                         vErrors = [err56];
@@ -32384,12 +30975,7 @@ const generatedExtensions = (() => {
                     schemaPath: '#/properties/dimensions/uniqueItems',
                     keyword: 'uniqueItems',
                     params: { i: i5, j: j2 },
-                    message:
-                      'must NOT have duplicate items (items ## ' +
-                      j2 +
-                      ' and ' +
-                      i5 +
-                      ' are identical)',
+                    message: 'must NOT have duplicate items (items ## ' + j2 + ' and ' + i5 + ' are identical)',
                   };
                   if (vErrors === null) {
                     vErrors = [err61];
@@ -32528,8 +31114,7 @@ const generatedExtensions = (() => {
                     schemaPath: '#/properties/filters/items/properties/operator/enum',
                     keyword: 'enum',
                     params: {
-                      allowedValues:
-                        metricExtensionSchema.properties.filters.items.properties.operator.enum,
+                      allowedValues: metricExtensionSchema.properties.filters.items.properties.operator.enum,
                     },
                     message: 'must be equal to one of the allowed values',
                   };
@@ -32630,16 +31215,7 @@ const generatedExtensions = (() => {
                 errors++;
               }
               for (const key4 in data34) {
-                if (
-                  !(
-                    key4 === 'grain' ||
-                    key4 === 'period' ||
-                    key4 === 'direction' ||
-                    key4 === 'value' ||
-                    key4 === 'range' ||
-                    key4 === 'thresholds'
-                  )
-                ) {
+                if (!(key4 === 'grain' || key4 === 'period' || key4 === 'direction' || key4 === 'value' || key4 === 'range' || key4 === 'thresholds')) {
                   const err74 = {
                     instancePath: instancePath + '/targets/' + i7,
                     schemaPath: '#/properties/targets/items/additionalProperties',
@@ -32657,15 +31233,7 @@ const generatedExtensions = (() => {
               }
               if (data34.grain !== undefined) {
                 let data35 = data34.grain;
-                if (
-                  !(
-                    data35 === 'day' ||
-                    data35 === 'week' ||
-                    data35 === 'month' ||
-                    data35 === 'quarter' ||
-                    data35 === 'year'
-                  )
-                ) {
+                if (!(data35 === 'day' || data35 === 'week' || data35 === 'month' || data35 === 'quarter' || data35 === 'year')) {
                   const err75 = {
                     instancePath: instancePath + '/targets/' + i7 + '/grain',
                     schemaPath: '#/$defs/grain/enum',
@@ -32700,20 +31268,13 @@ const generatedExtensions = (() => {
               }
               if (data34.direction !== undefined) {
                 let data37 = data34.direction;
-                if (
-                  !(
-                    data37 === 'higher_is_better' ||
-                    data37 === 'lower_is_better' ||
-                    data37 === 'in_range'
-                  )
-                ) {
+                if (!(data37 === 'higher_is_better' || data37 === 'lower_is_better' || data37 === 'in_range')) {
                   const err77 = {
                     instancePath: instancePath + '/targets/' + i7 + '/direction',
                     schemaPath: '#/properties/targets/items/properties/direction/enum',
                     keyword: 'enum',
                     params: {
-                      allowedValues:
-                        metricExtensionSchema.properties.targets.items.properties.direction.enum,
+                      allowedValues: metricExtensionSchema.properties.targets.items.properties.direction.enum,
                     },
                     message: 'must be equal to one of the allowed values',
                   };
@@ -32816,8 +31377,7 @@ const generatedExtensions = (() => {
                     if (!(key5 === 'warning' || key5 === 'critical')) {
                       const err83 = {
                         instancePath: instancePath + '/targets/' + i7 + '/thresholds',
-                        schemaPath:
-                          '#/properties/targets/items/properties/thresholds/additionalProperties',
+                        schemaPath: '#/properties/targets/items/properties/thresholds/additionalProperties',
                         keyword: 'additionalProperties',
                         params: { additionalProperty: key5 },
                         message: 'must NOT have additional properties',
@@ -32879,11 +31439,7 @@ const generatedExtensions = (() => {
                       if (data42.mustBeGreaterThan !== undefined) {
                         if (!(typeof data42.mustBeGreaterThan == 'number')) {
                           const err86 = {
-                            instancePath:
-                              instancePath +
-                              '/targets/' +
-                              i7 +
-                              '/thresholds/warning/mustBeGreaterThan',
+                            instancePath: instancePath + '/targets/' + i7 + '/thresholds/warning/mustBeGreaterThan',
                             schemaPath: '#/$defs/operatorSet/properties/mustBeGreaterThan/type',
                             keyword: 'type',
                             params: { type: 'number' },
@@ -32900,13 +31456,8 @@ const generatedExtensions = (() => {
                       if (data42.mustBeGreaterOrEqualTo !== undefined) {
                         if (!(typeof data42.mustBeGreaterOrEqualTo == 'number')) {
                           const err87 = {
-                            instancePath:
-                              instancePath +
-                              '/targets/' +
-                              i7 +
-                              '/thresholds/warning/mustBeGreaterOrEqualTo',
-                            schemaPath:
-                              '#/$defs/operatorSet/properties/mustBeGreaterOrEqualTo/type',
+                            instancePath: instancePath + '/targets/' + i7 + '/thresholds/warning/mustBeGreaterOrEqualTo',
+                            schemaPath: '#/$defs/operatorSet/properties/mustBeGreaterOrEqualTo/type',
                             keyword: 'type',
                             params: { type: 'number' },
                             message: 'must be number',
@@ -32922,11 +31473,7 @@ const generatedExtensions = (() => {
                       if (data42.mustBeLessThan !== undefined) {
                         if (!(typeof data42.mustBeLessThan == 'number')) {
                           const err88 = {
-                            instancePath:
-                              instancePath +
-                              '/targets/' +
-                              i7 +
-                              '/thresholds/warning/mustBeLessThan',
+                            instancePath: instancePath + '/targets/' + i7 + '/thresholds/warning/mustBeLessThan',
                             schemaPath: '#/$defs/operatorSet/properties/mustBeLessThan/type',
                             keyword: 'type',
                             params: { type: 'number' },
@@ -32943,11 +31490,7 @@ const generatedExtensions = (() => {
                       if (data42.mustBeLessOrEqualTo !== undefined) {
                         if (!(typeof data42.mustBeLessOrEqualTo == 'number')) {
                           const err89 = {
-                            instancePath:
-                              instancePath +
-                              '/targets/' +
-                              i7 +
-                              '/thresholds/warning/mustBeLessOrEqualTo',
+                            instancePath: instancePath + '/targets/' + i7 + '/thresholds/warning/mustBeLessOrEqualTo',
                             schemaPath: '#/$defs/operatorSet/properties/mustBeLessOrEqualTo/type',
                             keyword: 'type',
                             params: { type: 'number' },
@@ -32966,11 +31509,7 @@ const generatedExtensions = (() => {
                         if (Array.isArray(data47)) {
                           if (data47.length > 2) {
                             const err90 = {
-                              instancePath:
-                                instancePath +
-                                '/targets/' +
-                                i7 +
-                                '/thresholds/warning/mustBeBetween',
+                              instancePath: instancePath + '/targets/' + i7 + '/thresholds/warning/mustBeBetween',
                               schemaPath: '#/$defs/operatorSet/properties/mustBeBetween/maxItems',
                               keyword: 'maxItems',
                               params: { limit: 2 },
@@ -32985,11 +31524,7 @@ const generatedExtensions = (() => {
                           }
                           if (data47.length < 2) {
                             const err91 = {
-                              instancePath:
-                                instancePath +
-                                '/targets/' +
-                                i7 +
-                                '/thresholds/warning/mustBeBetween',
+                              instancePath: instancePath + '/targets/' + i7 + '/thresholds/warning/mustBeBetween',
                               schemaPath: '#/$defs/operatorSet/properties/mustBeBetween/minItems',
                               keyword: 'minItems',
                               params: { limit: 2 },
@@ -33006,14 +31541,8 @@ const generatedExtensions = (() => {
                           for (let i9 = 0; i9 < len6; i9++) {
                             if (!(typeof data47[i9] == 'number')) {
                               const err92 = {
-                                instancePath:
-                                  instancePath +
-                                  '/targets/' +
-                                  i7 +
-                                  '/thresholds/warning/mustBeBetween/' +
-                                  i9,
-                                schemaPath:
-                                  '#/$defs/operatorSet/properties/mustBeBetween/items/type',
+                                instancePath: instancePath + '/targets/' + i7 + '/thresholds/warning/mustBeBetween/' + i9,
+                                schemaPath: '#/$defs/operatorSet/properties/mustBeBetween/items/type',
                                 keyword: 'type',
                                 params: { type: 'number' },
                                 message: 'must be number',
@@ -33028,8 +31557,7 @@ const generatedExtensions = (() => {
                           }
                         } else {
                           const err93 = {
-                            instancePath:
-                              instancePath + '/targets/' + i7 + '/thresholds/warning/mustBeBetween',
+                            instancePath: instancePath + '/targets/' + i7 + '/thresholds/warning/mustBeBetween',
                             schemaPath: '#/$defs/operatorSet/properties/mustBeBetween/type',
                             keyword: 'type',
                             params: { type: 'array' },
@@ -33048,13 +31576,8 @@ const generatedExtensions = (() => {
                         if (Array.isArray(data49)) {
                           if (data49.length > 2) {
                             const err94 = {
-                              instancePath:
-                                instancePath +
-                                '/targets/' +
-                                i7 +
-                                '/thresholds/warning/mustNotBeBetween',
-                              schemaPath:
-                                '#/$defs/operatorSet/properties/mustNotBeBetween/maxItems',
+                              instancePath: instancePath + '/targets/' + i7 + '/thresholds/warning/mustNotBeBetween',
+                              schemaPath: '#/$defs/operatorSet/properties/mustNotBeBetween/maxItems',
                               keyword: 'maxItems',
                               params: { limit: 2 },
                               message: 'must NOT have more than 2 items',
@@ -33068,13 +31591,8 @@ const generatedExtensions = (() => {
                           }
                           if (data49.length < 2) {
                             const err95 = {
-                              instancePath:
-                                instancePath +
-                                '/targets/' +
-                                i7 +
-                                '/thresholds/warning/mustNotBeBetween',
-                              schemaPath:
-                                '#/$defs/operatorSet/properties/mustNotBeBetween/minItems',
+                              instancePath: instancePath + '/targets/' + i7 + '/thresholds/warning/mustNotBeBetween',
+                              schemaPath: '#/$defs/operatorSet/properties/mustNotBeBetween/minItems',
                               keyword: 'minItems',
                               params: { limit: 2 },
                               message: 'must NOT have fewer than 2 items',
@@ -33090,14 +31608,8 @@ const generatedExtensions = (() => {
                           for (let i10 = 0; i10 < len7; i10++) {
                             if (!(typeof data49[i10] == 'number')) {
                               const err96 = {
-                                instancePath:
-                                  instancePath +
-                                  '/targets/' +
-                                  i7 +
-                                  '/thresholds/warning/mustNotBeBetween/' +
-                                  i10,
-                                schemaPath:
-                                  '#/$defs/operatorSet/properties/mustNotBeBetween/items/type',
+                                instancePath: instancePath + '/targets/' + i7 + '/thresholds/warning/mustNotBeBetween/' + i10,
+                                schemaPath: '#/$defs/operatorSet/properties/mustNotBeBetween/items/type',
                                 keyword: 'type',
                                 params: { type: 'number' },
                                 message: 'must be number',
@@ -33112,11 +31624,7 @@ const generatedExtensions = (() => {
                           }
                         } else {
                           const err97 = {
-                            instancePath:
-                              instancePath +
-                              '/targets/' +
-                              i7 +
-                              '/thresholds/warning/mustNotBeBetween',
+                            instancePath: instancePath + '/targets/' + i7 + '/thresholds/warning/mustNotBeBetween',
                             schemaPath: '#/$defs/operatorSet/properties/mustNotBeBetween/type',
                             keyword: 'type',
                             params: { type: 'array' },
@@ -33195,11 +31703,7 @@ const generatedExtensions = (() => {
                       if (data51.mustBeGreaterThan !== undefined) {
                         if (!(typeof data51.mustBeGreaterThan == 'number')) {
                           const err101 = {
-                            instancePath:
-                              instancePath +
-                              '/targets/' +
-                              i7 +
-                              '/thresholds/critical/mustBeGreaterThan',
+                            instancePath: instancePath + '/targets/' + i7 + '/thresholds/critical/mustBeGreaterThan',
                             schemaPath: '#/$defs/operatorSet/properties/mustBeGreaterThan/type',
                             keyword: 'type',
                             params: { type: 'number' },
@@ -33216,13 +31720,8 @@ const generatedExtensions = (() => {
                       if (data51.mustBeGreaterOrEqualTo !== undefined) {
                         if (!(typeof data51.mustBeGreaterOrEqualTo == 'number')) {
                           const err102 = {
-                            instancePath:
-                              instancePath +
-                              '/targets/' +
-                              i7 +
-                              '/thresholds/critical/mustBeGreaterOrEqualTo',
-                            schemaPath:
-                              '#/$defs/operatorSet/properties/mustBeGreaterOrEqualTo/type',
+                            instancePath: instancePath + '/targets/' + i7 + '/thresholds/critical/mustBeGreaterOrEqualTo',
+                            schemaPath: '#/$defs/operatorSet/properties/mustBeGreaterOrEqualTo/type',
                             keyword: 'type',
                             params: { type: 'number' },
                             message: 'must be number',
@@ -33238,11 +31737,7 @@ const generatedExtensions = (() => {
                       if (data51.mustBeLessThan !== undefined) {
                         if (!(typeof data51.mustBeLessThan == 'number')) {
                           const err103 = {
-                            instancePath:
-                              instancePath +
-                              '/targets/' +
-                              i7 +
-                              '/thresholds/critical/mustBeLessThan',
+                            instancePath: instancePath + '/targets/' + i7 + '/thresholds/critical/mustBeLessThan',
                             schemaPath: '#/$defs/operatorSet/properties/mustBeLessThan/type',
                             keyword: 'type',
                             params: { type: 'number' },
@@ -33259,11 +31754,7 @@ const generatedExtensions = (() => {
                       if (data51.mustBeLessOrEqualTo !== undefined) {
                         if (!(typeof data51.mustBeLessOrEqualTo == 'number')) {
                           const err104 = {
-                            instancePath:
-                              instancePath +
-                              '/targets/' +
-                              i7 +
-                              '/thresholds/critical/mustBeLessOrEqualTo',
+                            instancePath: instancePath + '/targets/' + i7 + '/thresholds/critical/mustBeLessOrEqualTo',
                             schemaPath: '#/$defs/operatorSet/properties/mustBeLessOrEqualTo/type',
                             keyword: 'type',
                             params: { type: 'number' },
@@ -33282,11 +31773,7 @@ const generatedExtensions = (() => {
                         if (Array.isArray(data56)) {
                           if (data56.length > 2) {
                             const err105 = {
-                              instancePath:
-                                instancePath +
-                                '/targets/' +
-                                i7 +
-                                '/thresholds/critical/mustBeBetween',
+                              instancePath: instancePath + '/targets/' + i7 + '/thresholds/critical/mustBeBetween',
                               schemaPath: '#/$defs/operatorSet/properties/mustBeBetween/maxItems',
                               keyword: 'maxItems',
                               params: { limit: 2 },
@@ -33301,11 +31788,7 @@ const generatedExtensions = (() => {
                           }
                           if (data56.length < 2) {
                             const err106 = {
-                              instancePath:
-                                instancePath +
-                                '/targets/' +
-                                i7 +
-                                '/thresholds/critical/mustBeBetween',
+                              instancePath: instancePath + '/targets/' + i7 + '/thresholds/critical/mustBeBetween',
                               schemaPath: '#/$defs/operatorSet/properties/mustBeBetween/minItems',
                               keyword: 'minItems',
                               params: { limit: 2 },
@@ -33322,14 +31805,8 @@ const generatedExtensions = (() => {
                           for (let i11 = 0; i11 < len8; i11++) {
                             if (!(typeof data56[i11] == 'number')) {
                               const err107 = {
-                                instancePath:
-                                  instancePath +
-                                  '/targets/' +
-                                  i7 +
-                                  '/thresholds/critical/mustBeBetween/' +
-                                  i11,
-                                schemaPath:
-                                  '#/$defs/operatorSet/properties/mustBeBetween/items/type',
+                                instancePath: instancePath + '/targets/' + i7 + '/thresholds/critical/mustBeBetween/' + i11,
+                                schemaPath: '#/$defs/operatorSet/properties/mustBeBetween/items/type',
                                 keyword: 'type',
                                 params: { type: 'number' },
                                 message: 'must be number',
@@ -33344,11 +31821,7 @@ const generatedExtensions = (() => {
                           }
                         } else {
                           const err108 = {
-                            instancePath:
-                              instancePath +
-                              '/targets/' +
-                              i7 +
-                              '/thresholds/critical/mustBeBetween',
+                            instancePath: instancePath + '/targets/' + i7 + '/thresholds/critical/mustBeBetween',
                             schemaPath: '#/$defs/operatorSet/properties/mustBeBetween/type',
                             keyword: 'type',
                             params: { type: 'array' },
@@ -33367,13 +31840,8 @@ const generatedExtensions = (() => {
                         if (Array.isArray(data58)) {
                           if (data58.length > 2) {
                             const err109 = {
-                              instancePath:
-                                instancePath +
-                                '/targets/' +
-                                i7 +
-                                '/thresholds/critical/mustNotBeBetween',
-                              schemaPath:
-                                '#/$defs/operatorSet/properties/mustNotBeBetween/maxItems',
+                              instancePath: instancePath + '/targets/' + i7 + '/thresholds/critical/mustNotBeBetween',
+                              schemaPath: '#/$defs/operatorSet/properties/mustNotBeBetween/maxItems',
                               keyword: 'maxItems',
                               params: { limit: 2 },
                               message: 'must NOT have more than 2 items',
@@ -33387,13 +31855,8 @@ const generatedExtensions = (() => {
                           }
                           if (data58.length < 2) {
                             const err110 = {
-                              instancePath:
-                                instancePath +
-                                '/targets/' +
-                                i7 +
-                                '/thresholds/critical/mustNotBeBetween',
-                              schemaPath:
-                                '#/$defs/operatorSet/properties/mustNotBeBetween/minItems',
+                              instancePath: instancePath + '/targets/' + i7 + '/thresholds/critical/mustNotBeBetween',
+                              schemaPath: '#/$defs/operatorSet/properties/mustNotBeBetween/minItems',
                               keyword: 'minItems',
                               params: { limit: 2 },
                               message: 'must NOT have fewer than 2 items',
@@ -33409,14 +31872,8 @@ const generatedExtensions = (() => {
                           for (let i12 = 0; i12 < len9; i12++) {
                             if (!(typeof data58[i12] == 'number')) {
                               const err111 = {
-                                instancePath:
-                                  instancePath +
-                                  '/targets/' +
-                                  i7 +
-                                  '/thresholds/critical/mustNotBeBetween/' +
-                                  i12,
-                                schemaPath:
-                                  '#/$defs/operatorSet/properties/mustNotBeBetween/items/type',
+                                instancePath: instancePath + '/targets/' + i7 + '/thresholds/critical/mustNotBeBetween/' + i12,
+                                schemaPath: '#/$defs/operatorSet/properties/mustNotBeBetween/items/type',
                                 keyword: 'type',
                                 params: { type: 'number' },
                                 message: 'must be number',
@@ -33431,11 +31888,7 @@ const generatedExtensions = (() => {
                           }
                         } else {
                           const err112 = {
-                            instancePath:
-                              instancePath +
-                              '/targets/' +
-                              i7 +
-                              '/thresholds/critical/mustNotBeBetween',
+                            instancePath: instancePath + '/targets/' + i7 + '/thresholds/critical/mustNotBeBetween',
                             schemaPath: '#/$defs/operatorSet/properties/mustNotBeBetween/type',
                             keyword: 'type',
                             params: { type: 'array' },
@@ -33549,14 +32002,7 @@ const generatedExtensions = (() => {
       }
       if (data.status !== undefined) {
         let data62 = data.status;
-        if (
-          !(
-            data62 === 'draft' ||
-            data62 === 'proposed' ||
-            data62 === 'approved' ||
-            data62 === 'deprecated'
-          )
-        ) {
+        if (!(data62 === 'draft' || data62 === 'proposed' || data62 === 'approved' || data62 === 'deprecated')) {
           const err119 = {
             instancePath: instancePath + '/status',
             schemaPath: '#/properties/status/enum',
@@ -33669,8 +32115,7 @@ const generatedExtensions = (() => {
             measures: {
               type: 'string',
               minLength: 1,
-              description:
-                'Concept name, IRI or declared QName of the ontology concept the KPI measures',
+              description: 'Concept name, IRI or declared QName of the ontology concept the KPI measures',
             },
             of: {
               type: 'string',
@@ -33683,16 +32128,7 @@ const generatedExtensions = (() => {
     },
   };
 
-  function validate21(
-    data,
-    {
-      instancePath = '',
-      parentData,
-      parentDataProperty,
-      rootData = data,
-      dynamicAnchors = {},
-    } = {},
-  ) {
+  function validate21(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     /*# sourceURL="semantic-workbench/mapping/v1" */
     let vErrors = null;
     let errors = 0;

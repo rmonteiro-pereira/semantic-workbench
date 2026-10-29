@@ -13,11 +13,7 @@ export function SettingsSection() {
   const { me } = useMe();
   const local = me?.mode === 'local';
   const load = useCallback(async () => {
-    const [settings, sessions, provider] = await Promise.all([
-      adminApi.settings(),
-      adminApi.sessions(),
-      local ? Promise.resolve(null) : adminApi.provider(),
-    ]);
+    const [settings, sessions, provider] = await Promise.all([adminApi.settings(), adminApi.sessions(), local ? Promise.resolve(null) : adminApi.provider()]);
     return { version: settings.version, settings: settings.document, sessions, provider };
   }, [local]);
   const { data, error, reload } = useAdminData(load);
@@ -55,12 +51,7 @@ export function SettingsSection() {
       {data?.provider && <ProviderFacts provider={data.provider} />}
       {data && (
         <>
-          <SettingsEditor
-            key={data.version}
-            initial={data.settings}
-            version={data.version}
-            onSaved={reload}
-          />
+          <SettingsEditor key={data.version} initial={data.settings} version={data.version} onSaved={reload} />
           <section aria-label="Active sessions">
             <h3>Active sessions</h3>
             {data.sessions.length === 0 && (
@@ -72,8 +63,7 @@ export function SettingsSection() {
             {data.sessions.map((session, index) => (
               <section key={index}>
                 <p>
-                  {session.name} ({session.principal}) · created {whenLabel(session.createdAt)} ·
-                  last seen {whenLabel(session.lastSeenAt)}
+                  {session.name} ({session.principal}) · created {whenLabel(session.createdAt)} · last seen {whenLabel(session.lastSeenAt)}
                 </p>
                 <button onClick={() => setEnd(session.principal)}>End session</button>
               </section>
@@ -128,15 +118,7 @@ function ProviderFacts({ provider }: { provider: Provider }) {
   );
 }
 
-function SettingsEditor({
-  initial,
-  version,
-  onSaved,
-}: {
-  initial: Settings;
-  version: string;
-  onSaved: () => void;
-}) {
+function SettingsEditor({ initial, version, onSaved }: { initial: Settings; version: string; onSaved: () => void }) {
   const [settings, setSettings] = useState(initial);
   const [confirm, setConfirm] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -163,38 +145,20 @@ function SettingsEditor({
       <h3>Session lifetimes</h3>
       <label>
         Idle hours
-        <input
-          type="number"
-          min="1"
-          value={settings.session.idleHours}
-          onChange={event => lifetime('idleHours', event.target.value)}
-        />
+        <input type="number" min="1" value={settings.session.idleHours} onChange={event => lifetime('idleHours', event.target.value)} />
       </label>
       <label>
         Absolute hours
-        <input
-          type="number"
-          min="1"
-          value={settings.session.absoluteHours}
-          onChange={event => lifetime('absoluteHours', event.target.value)}
-        />
+        <input type="number" min="1" value={settings.session.absoluteHours} onChange={event => lifetime('absoluteHours', event.target.value)} />
       </label>
       <h3>Remote-credential policy</h3>
-      <p>
-        Allowed hosts:{' '}
-        {settings.remote.allowedHosts.join(', ') ||
-          'None configured (server mode refuses remote access).'}
-      </p>
+      <p>Allowed hosts: {settings.remote.allowedHosts.join(', ') || 'None configured (server mode refuses remote access).'}</p>
       <p>Azure DevOps on-behalf-of: {settings.remote.azureDevOpsObo ? 'On' : 'Off'}</p>
       <p>
-        GitHub: {settings.remote.github.host} ·{' '}
-        {settings.remote.github.appConfigured ? 'App configured' : 'App not configured'}
+        GitHub: {settings.remote.github.host} · {settings.remote.github.appConfigured ? 'App configured' : 'App not configured'}
       </p>
       {error && <p role="alert">{error}</p>}
-      <button
-        disabled={busy || settings.session.idleHours <= 0 || settings.session.absoluteHours <= 0}
-        onClick={() => setConfirm(true)}
-      >
+      <button disabled={busy || settings.session.idleHours <= 0 || settings.session.absoluteHours <= 0} onClick={() => setConfirm(true)}>
         Save settings
       </button>
       {confirm && (

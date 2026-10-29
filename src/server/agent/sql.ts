@@ -11,15 +11,12 @@ export function walk(ast: any, visit: (node: any) => void) {
     const node = queue[i];
     if (!node || typeof node !== 'object') continue;
     visit(node);
-    for (const value of Object.values(node))
-      if (value && typeof value === 'object')
-        queue.push(...(Array.isArray(value) ? value : [value]));
+    for (const value of Object.values(node)) if (value && typeof value === 'object') queue.push(...(Array.isArray(value) ? value : [value]));
   }
 }
 /** Parses a supported expression, optionally allowing a WHERE condition. */
 export function parseExpression(expression: string, { conditional = false } = {}) {
-  if (typeof expression !== 'string' || !expression.trim() || expression.length > 100_000)
-    throw new BadRequestError('Expected an expression of 1–100,000 characters.');
+  if (typeof expression !== 'string' || !expression.trim() || expression.length > 100_000) throw new BadRequestError('Expected an expression of 1–100,000 characters.');
   let ast: any;
   try {
     ast = parser.astify('SELECT ' + expression, { database: 'Postgresql' });
@@ -51,21 +48,10 @@ export function parseExpression(expression: string, { conditional = false } = {}
     (ast.into && Object.values(ast.into).some(v => v !== null)) ||
     (!conditional && ast.where)
   )
-    throw new BadRequestError(
-      'Expected a single scalar/aggregate expression, not a query or alias.',
-    );
+    throw new BadRequestError('Expected a single scalar/aggregate expression, not a query or alias.');
   walk([ast.columns[0].expr, ast.where], n => {
-    if (
-      n.type === 'select' ||
-      n.type === 'star' ||
-      n.type === 'param' ||
-      n.type === 'origin' ||
-      (n.type === 'column_ref' && n.column === '*') ||
-      n.over
-    )
-      throw new BadRequestError(
-        'Subqueries, wildcards, parameters and window expressions require a richer planner.',
-      );
+    if (n.type === 'select' || n.type === 'star' || n.type === 'param' || n.type === 'origin' || (n.type === 'column_ref' && n.column === '*') || n.over)
+      throw new BadRequestError('Subqueries, wildcards, parameters and window expressions require a richer planner.');
   });
   return { expression: ast.columns[0].expr, condition: ast.where ?? null };
 }
@@ -75,8 +61,7 @@ export function columnRefs(ast: any) {
   walk(ast, n => {
     if (n.type === 'column_ref') {
       const column = typeof n.column === 'string' ? n.column : n.column?.expr?.value;
-      if (typeof column !== 'string' || column === '*')
-        throw new BadRequestError('Unresolved wildcard or complex column reference.');
+      if (typeof column !== 'string' || column === '*') throw new BadRequestError('Unresolved wildcard or complex column reference.');
       refs.push({
         table: typeof n.table === 'string' ? n.table : (n.table?.value ?? null),
         column,
@@ -108,9 +93,7 @@ export function quoteIdentifier(name: string) {
 /** Quotes a simple dotted table or view name, rejecting SQL expressions. */
 export function sourceSql(source: string) {
   if (!/^[A-Za-z_][\w$]*(\.[A-Za-z_][\w$]*)*$/.test(source))
-    throw new BadRequestError(
-      `Physical source "${source}" is not a simple qualified identifier. Supply a view/table source before generating SQL.`,
-    );
+    throw new BadRequestError(`Physical source "${source}" is not a simple qualified identifier. Supply a view/table source before generating SQL.`);
   return source.split('.').map(quoteIdentifier).join('.');
 }
 /** Builds a syntax node for a table-qualified column. */

@@ -1,12 +1,6 @@
 /** The control that sets the colour theme: follow the system, light or dark. */
 import { useState } from 'react';
-import {
-  THEME_PREFERENCES,
-  applyThemePreference,
-  readThemePreference,
-  storeThemePreference,
-  type ThemePreference,
-} from '../theme/theme-preference';
+import { THEME_PREFERENCES, applyThemePreference, readThemePreference, storeThemePreference, type ThemePreference } from '../theme/theme-preference';
 import './ThemeControl.css';
 
 const LABELS: Record<ThemePreference, string> = { system: 'System', light: 'Light', dark: 'Dark' };
@@ -25,12 +19,7 @@ export function ThemeControl() {
         Theme
       </span>
       {THEME_PREFERENCES.map(preference => (
-        <button
-          key={preference}
-          type="button"
-          aria-pressed={chosen === preference}
-          onClick={() => choosePreference(preference)}
-        >
+        <button key={preference} type="button" aria-pressed={chosen === preference} onClick={() => choosePreference(preference)}>
           {LABELS[preference]}
         </button>
       ))}

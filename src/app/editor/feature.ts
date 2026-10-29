@@ -23,12 +23,7 @@ export function featureLabeler(source?: string) {
       .map(s => s.replace(/~1/g, '/').replace(/~0/g, '~'))
       .map(segment => {
         const index = /^\d+$/.test(segment) ? Number(segment) : null;
-        const child =
-          isSeq(node) && index !== null
-            ? node.items[index]
-            : isMap(node)
-              ? node.get(segment, true)
-              : undefined;
+        const child = isSeq(node) && index !== null ? node.items[index] : isMap(node) ? node.get(segment, true) : undefined;
         node = child;
         if (index === null) return segment;
         let name: string | undefined;

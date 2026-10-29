@@ -12,11 +12,8 @@ export function GitBanner({ status }: { status: WorkspaceStatus | null }) {
   const openGitSetup = useGitSetup();
   if (!status) return null;
   // Repositories whose commits have no author yet; the identity is checked live by the API.
-  const missingIdentity = (status.repositories ?? []).filter(
-    repo => !repo.identityConfigured && repo.projects.length,
-  );
-  const repositoryCount =
-    missingIdentity.length === 1 ? 'one repository' : `${missingIdentity.length} repositories`;
+  const missingIdentity = (status.repositories ?? []).filter(repo => !repo.identityConfigured && repo.projects.length);
+  const repositoryCount = missingIdentity.length === 1 ? 'one repository' : `${missingIdentity.length} repositories`;
   const notes: {
     id: string;
     tone: 'warning' | 'info';
@@ -71,11 +68,7 @@ export function GitBanner({ status }: { status: WorkspaceStatus | null }) {
   return (
     <div className="git-banners">
       {visible.map(n => (
-        <div
-          key={n.id}
-          role={n.tone === 'warning' ? 'alert' : 'status'}
-          className={`git-banner ${n.tone}`}
-        >
+        <div key={n.id} role={n.tone === 'warning' ? 'alert' : 'status'} className={`git-banner ${n.tone}`}>
           <span>{n.text}</span>
           {n.action && (
             <button className="git-banner-action" onClick={n.action.run}>

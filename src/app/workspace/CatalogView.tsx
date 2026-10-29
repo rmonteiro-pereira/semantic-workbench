@@ -20,16 +20,7 @@ function metricCountLabel(count: number) {
   return count === 1 ? '1 metric' : `${count} metrics`;
 }
 /** Renders catalog view. */
-export function CatalogView({
-  model,
-  search,
-  selectEntity,
-  kpiBadges,
-  entityTarget,
-  rdfTarget,
-  setEditing,
-  setRdfEditing,
-}: Props) {
+export function CatalogView({ model, search, selectEntity, kpiBadges, entityTarget, rdfTarget, setEditing, setRdfEditing }: Props) {
   return (
     <div className="catalog">
       {model?.entities
@@ -46,10 +37,7 @@ export function CatalogView({
                 <small>
                   {e.kind === 'Metric' ? 'Metric' : e.kind}
                   {(kpiBadges.get(e.name)?.length ?? 0) > 0 && (
-                    <span
-                      className="kpi-badge"
-                      title={`Metrics: ${kpiBadges.get(e.name)!.join(', ')}`}
-                    >
+                    <span className="kpi-badge" title={`Metrics: ${kpiBadges.get(e.name)!.join(', ')}`}>
                       <Gauge size={10} />
                       {metricCountLabel(kpiBadges.get(e.name)!.length)}
                     </span>
@@ -60,11 +48,7 @@ export function CatalogView({
                 <span className="catalog-details">View details</span>
               </button>
               {(entityTarget(e) || rdfTarget(e)) && (
-                <button
-                  className="catalog-edit"
-                  aria-label={`Edit ${e.name}`}
-                  onClick={handleCatalogEditClick}
-                >
+                <button className="catalog-edit" aria-label={`Edit ${e.name}`} onClick={handleCatalogEditClick}>
                   <Pencil size={11} />
                   Edit
                 </button>

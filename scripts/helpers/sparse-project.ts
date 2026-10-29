@@ -49,14 +49,7 @@ export function teamBareRepository() {
 export function addSparseProject(root: string) {
   const bare = teamBareRepository();
   const projects = join(root, 'projects');
-  git(projects, [
-    'clone',
-    '-q',
-    '--filter=blob:none',
-    '--no-checkout',
-    `file://${bare}`,
-    SPARSE_SLUG,
-  ]);
+  git(projects, ['clone', '-q', '--filter=blob:none', '--no-checkout', `file://${bare}`, SPARSE_SLUG]);
   const repository = join(projects, SPARSE_SLUG);
   git(repository, ['config', 'extensions.worktreeConfig', 'true']);
   git(repository, ['sparse-checkout', 'set', '--cone', '--', SPARSE_FOLDER]);

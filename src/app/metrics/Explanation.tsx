@@ -1,18 +1,7 @@
 /** Explains metric formulas, composition and rollup rules with SQL previews that are never
  * executed. */
 import React, { useState } from 'react';
-import {
-  Ban,
-  CalendarDays,
-  Check,
-  Copy,
-  Filter,
-  Layers3,
-  ShieldAlert,
-  ShieldCheck,
-  Sigma,
-  CircleSlash,
-} from 'lucide-react';
+import { Ban, CalendarDays, Check, Copy, Filter, Layers3, ShieldAlert, ShieldCheck, Sigma, CircleSlash } from 'lucide-react';
 import type { KpiExplanation, KpiSummary, TreeNode } from '../../server/agent/explain';
 import type { ExplainQuery } from '../projects/api';
 import { additivityLabel, readableFormula, typeLabel } from './format';
@@ -37,8 +26,7 @@ export function Explanation({
 }) {
   const labels = new Map(all.filter(k => k.file === e.kpi.file).map(k => [k.name, k.label]));
   const parts = readableFormula(e.formula, labels);
-  const aggregation =
-    e.inputs.length === 1 && e.inputs[0].metric === e.kpi.name ? e.inputs[0] : null;
+  const aggregation = e.inputs.length === 1 && e.inputs[0].metric === e.kpi.name ? e.inputs[0] : null;
   return (
     <section className="kpi-explanation" aria-labelledby="how-calculated">
       <h3 id="how-calculated">How this metric is calculated</h3>
@@ -114,11 +102,7 @@ export function Explanation({
             )}
           </Rule>
           <Rule icon={<Filter size={15} />} title="Filters">
-            {e.filters.length ? (
-              e.filters.map((f, i) => <span key={i}>{f.text}</span>)
-            ) : (
-              <span className="muted">No filters: every row counts.</span>
-            )}
+            {e.filters.length ? e.filters.map((f, i) => <span key={i}>{f.text}</span>) : <span className="muted">No filters: every row counts.</span>}
           </Rule>
           <Rule
             icon={<Sigma size={15} />}
@@ -128,20 +112,8 @@ export function Explanation({
             <span>{e.additivityText}</span>
           </Rule>
           <Rule
-            icon={
-              e.divisionByZero === 'unhandled' ? (
-                <ShieldAlert size={15} />
-              ) : (
-                <ShieldCheck size={15} />
-              )
-            }
-            title={
-              e.divisionByZero === 'handled'
-                ? 'Division by zero guarded'
-                : e.divisionByZero === 'unhandled'
-                  ? 'Division by zero not guarded'
-                  : 'No division'
-            }
+            icon={e.divisionByZero === 'unhandled' ? <ShieldAlert size={15} /> : <ShieldCheck size={15} />}
+            title={e.divisionByZero === 'handled' ? 'Division by zero guarded' : e.divisionByZero === 'unhandled' ? 'Division by zero not guarded' : 'No division'}
             tone={e.divisionByZero === 'unhandled' ? 'bad' : 'ok'}
           >
             <span>{e.divisionText}</span>
@@ -158,15 +130,7 @@ export function Explanation({
   );
 }
 /** A numbered step of the explanation: a heading with its content below. */
-function Step({
-  number,
-  title,
-  children,
-}: {
-  number: number;
-  title: string;
-  children: React.ReactNode;
-}) {
+function Step({ number, title, children }: { number: number; title: string; children: React.ReactNode }) {
   return (
     <div className="explain-step">
       <span className="step-number">{number}</span>
@@ -177,17 +141,7 @@ function Step({
     </div>
   );
 }
-function Rule({
-  icon,
-  title,
-  tone = 'plain',
-  children,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  tone?: 'ok' | 'warn' | 'bad' | 'muted' | 'plain';
-  children: React.ReactNode;
-}) {
+function Rule({ icon, title, tone = 'plain', children }: { icon: React.ReactNode; title: string; tone?: 'ok' | 'warn' | 'bad' | 'muted' | 'plain'; children: React.ReactNode }) {
   return (
     <div className={`rule tone-${tone}`}>
       <strong>
@@ -221,9 +175,7 @@ function Node({ node, root = false }: { node: TreeNode; root?: boolean }) {
           <>
             <strong>{node.label ?? node.name}</strong>
             {node.label !== node.name && <code className="tree-id">{node.name}</code>}
-            {node.type && (
-              <span className={`kpi-pill type-${node.type}`}>{typeLabel[node.type]}</span>
-            )}
+            {node.type && <span className={`kpi-pill type-${node.type}`}>{typeLabel[node.type]}</span>}
             {node.repeated && <small className="muted">cycle, shown once</small>}
             {node.expression && !root && <code className="tree-expr">{node.expression}</code>}
           </>
@@ -232,9 +184,7 @@ function Node({ node, root = false }: { node: TreeNode; root?: boolean }) {
             <span className="tree-field">
               {node.dataset}.<strong>{node.name}</strong>
             </span>
-            {node.expression && node.expression !== node.name && (
-              <code className="tree-expr">= {node.expression}</code>
-            )}
+            {node.expression && node.expression !== node.name && <code className="tree-expr">= {node.expression}</code>}
           </>
         )}
       </div>
@@ -248,17 +198,7 @@ function Node({ node, root = false }: { node: TreeNode; root?: boolean }) {
     </li>
   );
 }
-function Preview({
-  e,
-  query,
-  onQuery,
-  loading,
-}: {
-  e: KpiExplanation;
-  query: ExplainQuery;
-  onQuery: (q: ExplainQuery) => void;
-  loading: boolean;
-}) {
+function Preview({ e, query, onQuery, loading }: { e: KpiExplanation; query: ExplainQuery; onQuery: (q: ExplainQuery) => void; loading: boolean }) {
   const p = e.sqlPreview;
   const [copied, setCopied] = useState(false);
   const grains = e.time ? GRAINS : [];
@@ -274,17 +214,9 @@ function Preview({
         {grains.length > 0 && (
           <label>
             Time grain
-            <select
-              aria-label="Time grain"
-              value={query.grain ?? p.grain ?? ''}
-              onChange={ev => onQuery({ ...query, grain: ev.target.value })}
-            >
+            <select aria-label="Time grain" value={query.grain ?? p.grain ?? ''} onChange={ev => onQuery({ ...query, grain: ev.target.value })}>
               {grains.map(g => (
-                <option
-                  key={g}
-                  value={g}
-                  disabled={!e.time!.allowedGrains.includes(g as any) && g !== query.grain}
-                >
+                <option key={g} value={g} disabled={!e.time!.allowedGrains.includes(g as any) && g !== query.grain}>
                   {g}
                   {e.time!.allowedGrains.includes(g as any) ? '' : ' · not allowed'}
                 </option>
@@ -304,12 +236,7 @@ function Preview({
           </fieldset>
         )}
         <label className="check rollup">
-          <input
-            type="checkbox"
-            aria-label="Sum the metric values"
-            checked={query.rollup === 'sum'}
-            onChange={ev => onQuery({ ...query, rollup: ev.target.checked ? 'sum' : undefined })}
-          />
+          <input type="checkbox" aria-label="Sum the metric values" checked={query.rollup === 'sum'} onChange={ev => onQuery({ ...query, rollup: ev.target.checked ? 'sum' : undefined })} />
           Sum the metric values
         </label>
       </div>
@@ -342,10 +269,7 @@ function Preview({
               {copied ? 'Copied' : 'Copy SQL'}
             </button>
           </div>
-          <pre
-            className={`preview-sql${loading ? ' stale' : ''}`}
-            aria-label="SQL preview, not executed"
-          >
+          <pre className={`preview-sql${loading ? ' stale' : ''}`} aria-label="SQL preview, not executed">
             <code>
               <SqlCode sql={p.sql} />
             </code>

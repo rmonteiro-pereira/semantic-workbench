@@ -12,16 +12,8 @@ export async function meResponse(request: Request, options: HandlerOptions): Pro
   const principal = scope.principal;
   const view = scope.view();
   const roles = {
-    workspace: [
-      ...new Set(
-        principal.grants
-          .filter(grant => grant.scope.kind === 'workspace')
-          .map(grant => grant.roleId),
-      ),
-    ],
-    projects: Object.fromEntries(
-      [...view.readableProjects].map(project => [project, view.roles(project)]),
-    ),
+    workspace: [...new Set(principal.grants.filter(grant => grant.scope.kind === 'workspace').map(grant => grant.roleId))],
+    projects: Object.fromEntries([...view.readableProjects].map(project => [project, view.roles(project)])),
   };
   const roleNames = currentRoleNames(scope.customRoles(), options.roleNames);
   const body = {
@@ -46,9 +38,7 @@ export async function meResponse(request: Request, options: HandlerOptions): Pro
     telemetry: { browserReports: options.browserReports === true },
     ...(await remoteAccounts(request, options)),
     can: {
-      ...Object.fromEntries(
-        ACTIONS.map(action => [action, scope.authorize(action, { type: 'workspace' }).allow]),
-      ),
+      ...Object.fromEntries(ACTIONS.map(action => [action, scope.authorize(action, { type: 'workspace' }).allow])),
       admin: scope.authorize('admin', { type: 'workspace' }).allow,
       // Stewards read the audit records of their own projects, which they can always read.
       audit: auditableProjects(scope, [...view.readableProjects]).size > 0,

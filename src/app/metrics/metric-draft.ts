@@ -40,14 +40,8 @@ export type Draft = {
 };
 /** Builds the metric expression represented by the wizard draft. */
 export function expressionFor(d: Draft) {
-  if (d.type === 'simple')
-    return d.field
-      ? d.aggregation === 'COUNT DISTINCT'
-        ? `COUNT(DISTINCT ${d.field})`
-        : `${d.aggregation}(${d.field})`
-      : '';
-  if (d.type === 'ratio')
-    return d.numerator && d.denominator ? `${d.numerator} / NULLIF(${d.denominator}, 0)` : '';
+  if (d.type === 'simple') return d.field ? (d.aggregation === 'COUNT DISTINCT' ? `COUNT(DISTINCT ${d.field})` : `${d.aggregation}(${d.field})`) : '';
+  if (d.type === 'ratio') return d.numerator && d.denominator ? `${d.numerator} / NULLIF(${d.denominator}, 0)` : '';
   return d.expression.trim();
 }
 /** Splits comma-separated input into nonempty trimmed values. */
@@ -65,8 +59,7 @@ export function extensionFor(d: Draft): Record<string, any> {
     e.numerator = d.numerator;
     e.denominator = d.denominator;
   }
-  if (['derived', 'cumulative', 'filtered'].includes(d.type) && list(d.inputs).length)
-    e.inputs = list(d.inputs);
+  if (['derived', 'cumulative', 'filtered'].includes(d.type) && list(d.inputs).length) e.inputs = list(d.inputs);
   if (d.type === 'cumulative')
     e.window = {
       kind: d.window || 'to_date',
@@ -81,13 +74,7 @@ export function extensionFor(d: Draft): Record<string, any> {
         ...(['is_null', 'is_not_null'].includes(d.filterOperator) ? {} : { value: d.filterValue }),
       },
     ];
-  const additivity =
-    d.additivity ||
-    (d.type === 'ratio'
-      ? 'non_additive'
-      : d.type === 'simple' && ['SUM', 'COUNT'].includes(d.aggregation)
-        ? 'additive'
-        : '');
+  const additivity = d.additivity || (d.type === 'ratio' ? 'non_additive' : d.type === 'simple' && ['SUM', 'COUNT'].includes(d.aggregation) ? 'additive' : '');
   if (additivity) e.additivity = additivity;
   if (additivity === 'semi_additive') {
     e.non_additive_over = 'time';

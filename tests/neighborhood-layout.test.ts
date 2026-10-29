@@ -20,22 +20,17 @@ test('the center is in the middle column, incoming on the left and outgoing on t
   expect(new Set([...many.values()].map(v => `${v.x}/${v.y}`)).size).toBe(15);
   expect(Math.min(...[...many.values()].map(v => v.x))).toBe(-3 * NEIGHBOR_COLUMN);
 });
-const segments = (points: [number, number][]) =>
-  points.slice(1).map((p, i) => [points[i], p] as const);
+const segments = (points: [number, number][]) => points.slice(1).map((p, i) => [points[i], p] as const);
 function shared(a: [number, number][], b: [number, number][]) {
   // Two routes share a path when collinear segments overlap by more than a few pixels.
   for (const [p, q] of segments(a))
     for (const [r, s] of segments(b)) {
       if (p[1] === q[1] && r[1] === s[1] && p[1] === r[1]) {
-        const o =
-          Math.min(Math.max(p[0], q[0]), Math.max(r[0], s[0])) -
-          Math.max(Math.min(p[0], q[0]), Math.min(r[0], s[0]));
+        const o = Math.min(Math.max(p[0], q[0]), Math.max(r[0], s[0])) - Math.max(Math.min(p[0], q[0]), Math.min(r[0], s[0]));
         if (o > 4) return true;
       }
       if (p[0] === q[0] && r[0] === s[0] && p[0] === r[0]) {
-        const o =
-          Math.min(Math.max(p[1], q[1]), Math.max(r[1], s[1])) -
-          Math.max(Math.min(p[1], q[1]), Math.min(r[1], s[1]));
+        const o = Math.min(Math.max(p[1], q[1]), Math.max(r[1], s[1])) - Math.max(Math.min(p[1], q[1]), Math.min(r[1], s[1]));
         if (o > 4) return true;
       }
     }
@@ -46,9 +41,7 @@ test('no two edges share a path, including long and backward ones; labels sit ap
   const incoming = ['i1', 'i2', 'i3', 'i4', 'i5', 'i6', 'i7'];
   const outgoing = ['o1', 'o2', 'o3'];
   const pos = neighborhoodLayout(center, incoming, outgoing);
-  const boxes = new Map<string, Box>(
-    [...pos].map(([id, p]) => [id, { x: p.x, y: p.y, width: 250, height: 96 }]),
-  );
+  const boxes = new Map<string, Box>([...pos].map(([id, p]) => [id, { x: p.x, y: p.y, width: 250, height: 96 }]));
   const edges = [
     ...incoming.map(i => ({ id: i + '>c', source: i, target: 'c' })),
     ...outgoing.map(o => ({ id: 'c>' + o, source: 'c', target: o })),
@@ -71,9 +64,7 @@ test('no two edges share a path, including long and backward ones; labels sit ap
   });
   for (let i = 0; i < paths.length; i++)
     for (let j = i + 1; j < paths.length; j++) {
-      expect(shared(paths[i].points, paths[j].points), `${paths[i].id} / ${paths[j].id}`).toBe(
-        false,
-      );
+      expect(shared(paths[i].points, paths[j].points), `${paths[i].id} / ${paths[j].id}`).toBe(false);
     }
   expect(new Set(paths.map(p => p.label.join('/'))).size).toBe(paths.length);
   // Backward edges travel below, forward long edges above. A lane clears the boxes it passes,
@@ -112,7 +103,5 @@ test('corners turn the way the path travels: a backward route has no hooks', () 
     [0, 200],
     [20, 200],
   ]);
-  expect(path).toBe(
-    'M 300,100 L 310,100 Q 320,100 320,110 L 320,390 Q 320,400 310,400 L 10,400 Q 0,400 0,390 L 0,210 Q 0,200 10,200 L 20,200',
-  );
+  expect(path).toBe('M 300,100 L 310,100 Q 320,100 320,110 L 320,390 Q 320,400 310,400 L 10,400 Q 0,400 0,390 L 0,210 Q 0,200 10,200 L 20,200');
 });

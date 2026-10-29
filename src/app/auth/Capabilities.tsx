@@ -13,16 +13,10 @@ export type ProjectCapabilities = {
 const Projects = createContext<ProjectCapabilities[]>([]);
 
 /** Answers a UI capability question without interpreting grants or role names. */
-export function can(
-  me: Me | null,
-  projects: ProjectCapabilities[],
-  action: string,
-  project?: string,
-): boolean {
+export function can(me: Me | null, projects: ProjectCapabilities[], action: string, project?: string): boolean {
   if (!me) return false;
   if (me.mode === 'local') return true;
-  if (project)
-    return projects.find(item => item.slug === project)?.actions?.includes(action) ?? false;
+  if (project) return projects.find(item => item.slug === project)?.actions?.includes(action) ?? false;
   return me.can?.[action] ?? false;
 }
 
@@ -32,13 +26,7 @@ export function requiredRole(action: string, me: Me | null): string {
 }
 
 /** Supplies project actions to the workspace's nested controls. */
-export function Capabilities({
-  projects,
-  children,
-}: {
-  projects: ProjectCapabilities[];
-  children: ReactNode;
-}) {
+export function Capabilities({ projects, children }: { projects: ProjectCapabilities[]; children: ReactNode }) {
   return <Projects.Provider value={projects}>{children}</Projects.Provider>;
 }
 

@@ -44,9 +44,7 @@ test('all areas exempts only tiny names and preserves every other measured diagn
   expect(measured).toContain(containmentProblem);
   expect(measured).toContain('model detail text is 8.0 px on screen');
   const name = 'graph-model-all-areas';
-  expect(await screenProblems(name)).toEqual(
-    measured.filter(problem => problem !== fontProblem).map(problem => `${name}: ${problem}`),
-  );
+  expect(await screenProblems(name)).toEqual(measured.filter(problem => problem !== fontProblem).map(problem => `${name}: ${problem}`));
 });
 
 test('other model screens retain tiny-name and containment diagnostics', async () => {

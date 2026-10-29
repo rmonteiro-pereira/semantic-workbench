@@ -76,17 +76,10 @@ async function changedGroups(browser: Browser, target: SignInTarget, mock: MockO
   try {
     await signIn(page, target, 'alice');
     mock.setUserGroups('alice', []);
-    await waitUntil(
-      'group removal at refresh',
-      async () => (await page.request.get(target.url + '/api/me')).status() === 403,
-    );
+    await waitUntil('group removal at refresh', async () => (await page.request.get(target.url + '/api/me')).status() === 403);
     await page.goto(target.url);
     await expect(page.getByRole('heading', { name: 'No access' })).toBeVisible();
-    assert(
-      mock.calls.some(
-        call => call.endpoint === 'token' && call.params.grant_type === 'refresh_token',
-      ),
-    );
+    assert(mock.calls.some(call => call.endpoint === 'token' && call.params.grant_type === 'refresh_token'));
   } finally {
     mock.setUserGroups('alice', [TEST_GROUPS.salesEditors]);
     mock.setLifetimes({ accessToken: 3600 });
@@ -132,10 +125,7 @@ async function expiredSession(browser: Browser, target: SignInTarget, mock: Mock
   const page = await context.newPage();
   try {
     await signIn(page, target, 'alice');
-    await waitUntil(
-      'session expiry',
-      async () => (await page.request.get(target.url + '/api/me')).status() === 401,
-    );
+    await waitUntil('session expiry', async () => (await page.request.get(target.url + '/api/me')).status() === 401);
     // The page returns to the provider without a manual reload: either the live-update stream
     // reports the ended session first, or the next file request is answered 401 and the frontend
     // wrapper reloads.
@@ -149,18 +139,11 @@ async function expiredSession(browser: Browser, target: SignInTarget, mock: Mock
 }
 
 /** Runs mock-only directory, refresh and expiry controls plus real live-update delivery. */
-export async function mockLifecycleChecks(
-  browser: Browser,
-  target: SignInTarget,
-  mock: MockOidc,
-  root: string,
-) {
+export async function mockLifecycleChecks(browser: Browser, target: SignInTarget, mock: MockOidc, root: string) {
   const page = await browser.newPage();
   try {
     await signIn(page, target, 'alice');
-    await check('live updates and sign-out closes stream', () =>
-      liveUpdateCheck(page, target, root),
-    );
+    await check('live updates and sign-out closes stream', () => liveUpdateCheck(page, target, root));
   } finally {
     await page.close();
   }

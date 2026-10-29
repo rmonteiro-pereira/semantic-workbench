@@ -4,16 +4,7 @@
 // appear.
 
 /** The colours a group of entities can take, in the order the grouping hands them out. */
-export const GROUP_PALETTE = [
-  '#417fa8',
-  '#9165ad',
-  '#478a87',
-  '#b28546',
-  '#568866',
-  '#ab6d64',
-  '#6884ad',
-  '#9a8870',
-] as const;
+export const GROUP_PALETTE = ['#417fa8', '#9165ad', '#478a87', '#b28546', '#568866', '#ab6d64', '#6884ad', '#9a8870'] as const;
 
 /** Entities that belong to no group. */
 export const UNASSIGNED_GROUP_COLOR = '#85958e';

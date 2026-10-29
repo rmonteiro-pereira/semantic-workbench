@@ -6,13 +6,7 @@ import { sha256 } from '../src/server/projects/atomic';
 import { applyPatches } from '../src/server/projects/workspace';
 import { testWorkspace, example } from './helpers/temp-data-dir';
 import { LOCAL_READER } from '../src/server/projects/reader';
-const api = (
-  t: { handler: (r: Request) => Promise<Response> },
-  method: string,
-  path: string,
-  body?: unknown,
-  headers: Record<string, string> = {},
-) =>
+const api = (t: { handler: (r: Request) => Promise<Response> }, method: string, path: string, body?: unknown, headers: Record<string, string> = {}) =>
   t.handler(
     new Request('http://127.0.0.1:4310' + path, {
       method,
@@ -20,8 +14,7 @@ const api = (
       ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
     }),
   );
-const ontology =
-  '# keep\r\nname: Shop\r\nontology:\r\n  - concept: Customer\r\n    type: EntityType\r\n';
+const ontology = '# keep\r\nname: Shop\r\nontology:\r\n  - concept: Customer\r\n    type: EntityType\r\n';
 async function project() {
   const t = await testWorkspace();
   const r = await api(t, 'POST', '/api/import', {
@@ -56,12 +49,8 @@ test('import creates one project per batch, named after its ontology, with one c
       ['shop.yaml', 'Ossie ontology', true, 'clean'],
     ]);
     expect(readFileSync(join(t.root, 'projects/shop/shop.yaml'), 'utf8')).toBe(ontology);
-    expect(
-      (await t.ws.git.run(join(t.root, 'projects/shop'), ['log', '--format=%s'])).stdout.trim(),
-    ).toBe('Import 2 files');
-    const second = await (
-      await api(t, 'POST', '/api/import', { files: [{ path: 'other.yaml', source: ontology }] })
-    ).json();
+    expect((await t.ws.git.run(join(t.root, 'projects/shop'), ['log', '--format=%s'])).stdout.trim()).toBe('Import 2 files');
+    const second = await (await api(t, 'POST', '/api/import', { files: [{ path: 'other.yaml', source: ontology }] })).json();
     expect([second.slug, second.name]).toEqual(['shop-2', 'Shop (2)']);
     const invalid = await api(t, 'POST', '/api/import', {
       files: [
@@ -71,12 +60,7 @@ test('import creates one project per batch, named after its ontology, with one c
     });
     expect(invalid.status).toBe(400);
     expect((await invalid.json()).issues[0].message).toContain('bad.yaml');
-    for (const files of [
-      [{ path: '../x.yaml', source: ontology }],
-      [{ path: '.git/config', source: ontology }],
-      [{ path: 'a.csv', source: 'a,b' }],
-      [],
-    ])
+    for (const files of [[{ path: '../x.yaml', source: ontology }], [{ path: '.git/config', source: ontology }], [{ path: 'a.csv', source: 'a,b' }], []])
       expect((await api(t, 'POST', '/api/import', { files })).status).toBe(400);
     expect(await (await api(t, 'GET', '/api/projects')).json()).toHaveLength(2);
   } finally {
@@ -97,15 +81,8 @@ test('GET returns the exact bytes, hash and findings', async () => {
     expect((await api(t, 'GET', '/api/projects/shop/files/dir/ref.ttl')).status).toBe(200);
     expect((await api(t, 'GET', '/api/projects/shop/files/missing.yaml')).status).toBe(404);
     expect((await api(t, 'GET', '/api/projects/nope/files/shop.yaml')).status).toBe(404);
-    for (const bad of [
-      '%2E%2E%2Fescape.yaml',
-      '..%2F..%2Fstate%2Fprojects.json',
-      '.git%2Fconfig',
-      '%2Fetc%2Fpasswd',
-    ])
-      expect(
-        (await api(t, 'GET', '/api/projects/shop/files/' + bad)).status,
-      ).toBeGreaterThanOrEqual(400);
+    for (const bad of ['%2E%2E%2Fescape.yaml', '..%2F..%2Fstate%2Fprojects.json', '.git%2Fconfig', '%2Fetc%2Fpasswd'])
+      expect((await api(t, 'GET', '/api/projects/shop/files/' + bad)).status).toBeGreaterThanOrEqual(400);
   } finally {
     t.dispose();
   }
@@ -138,9 +115,7 @@ test('PUT with a stale baseHash returns 409 with the current file and writes not
       source: ontology,
     });
     expect(external.status).toBe(409);
-    expect((await external.json()).currentSource).toBe(
-      'name: External\nontology: [{concept: X}]\n',
-    );
+    expect((await external.json()).currentSource).toBe('name: External\nontology: [{concept: X}]\n');
     expect(
       (
         await api(t, 'PUT', '/api/projects/shop/files/new.yaml', {
@@ -178,9 +153,7 @@ test('patches apply to the base bytes and leave every other byte (CRLF included)
       patches: [{ from, to: from + 8, insert: 'Buyer' }],
     });
     expect(r.status).toBe(200);
-    expect(readFileSync(join(t.root, 'projects/shop/shop.yaml'), 'utf8')).toBe(
-      ontology.replace('Customer', 'Buyer'),
-    );
+    expect(readFileSync(join(t.root, 'projects/shop/shop.yaml'), 'utf8')).toBe(ontology.replace('Customer', 'Buyer'));
     expect(
       applyPatches('a\r\nb\nc\r\n', [
         { from: 0, to: 1, insert: 'x' },
@@ -232,21 +205,8 @@ test('an invalid source is rejected with issues and no write', async () => {
       { baseHash: sha256(ontology), source: ontology, extra: 1 },
     ])
       expect((await api(t, 'PUT', '/api/projects/shop/files/shop.yaml', body)).status).toBe(400);
-    expect(
-      (await api(t, 'PUT', '/api/projects/shop/files/notes.csv', { baseHash: null, source: 'a,b' }))
-        .status,
-    ).toBe(400);
-    expect(
-      (
-        await api(
-          t,
-          'PUT',
-          '/api/projects/shop/files/shop.yaml',
-          { baseHash: sha256(ontology), source: ontology },
-          { origin: 'https://evil.example' },
-        )
-      ).status,
-    ).toBe(403);
+    expect((await api(t, 'PUT', '/api/projects/shop/files/notes.csv', { baseHash: null, source: 'a,b' })).status).toBe(400);
+    expect((await api(t, 'PUT', '/api/projects/shop/files/shop.yaml', { baseHash: sha256(ontology), source: ontology }, { origin: 'https://evil.example' })).status).toBe(403);
   } finally {
     t.dispose();
   }
@@ -256,8 +216,7 @@ test('.gitignore is plain text: saved without model validation, and rescans appl
   try {
     writeFileSync(join(t.root, 'projects/shop/scratch.yaml'), ontology);
     await t.ws.rescan('shop');
-    const paths = async () =>
-      (await (await api(t, 'GET', '/api/projects')).json())[0].files.map((f: any) => f.path);
+    const paths = async () => (await (await api(t, 'GET', '/api/projects')).json())[0].files.map((f: any) => f.path);
     expect(await paths()).toEqual(['dir/ref.ttl', 'scratch.yaml', 'shop.yaml']);
     expect(
       (
@@ -285,20 +244,10 @@ test('drafts persist with their base hash', async () => {
         })
       ).status,
     ).toBe(200);
-    expect(await (await api(t, 'GET', '/api/drafts')).json()).toMatchObject([
-      { project: 'shop', path: 'shop.yaml', baseHash: sha256(ontology) },
-    ]);
-    expect((await (await api(t, 'GET', '/api/drafts/shop/shop.yaml')).json()).text).toBe(
-      'draft text',
-    );
-    expect(
-      (await api(t, 'PUT', '/api/drafts/nope/shop.yaml', { baseHash: null, text: '', patches: [] }))
-        .status,
-    ).toBe(404);
-    expect(
-      (await api(t, 'PUT', '/api/drafts/shop/..%2Fx', { baseHash: null, text: '', patches: [] }))
-        .status,
-    ).toBe(400);
+    expect(await (await api(t, 'GET', '/api/drafts')).json()).toMatchObject([{ project: 'shop', path: 'shop.yaml', baseHash: sha256(ontology) }]);
+    expect((await (await api(t, 'GET', '/api/drafts/shop/shop.yaml')).json()).text).toBe('draft text');
+    expect((await api(t, 'PUT', '/api/drafts/nope/shop.yaml', { baseHash: null, text: '', patches: [] })).status).toBe(404);
+    expect((await api(t, 'PUT', '/api/drafts/shop/..%2Fx', { baseHash: null, text: '', patches: [] })).status).toBe(400);
     await api(t, 'PUT', '/api/projects/shop/files/shop.yaml', {
       baseHash: sha256(ontology),
       source: ontology.replace('Shop', 'Saved'),
@@ -320,15 +269,9 @@ test('projects can be created empty and renamed; names stay unique', async () =>
   try {
     const created = await (await api(t, 'POST', '/api/projects', { name: 'Sales models' })).json();
     expect(created).toEqual({ slug: 'sales-models', name: 'Sales models' });
-    expect(
-      (
-        await t.ws.git.run(join(t.root, 'projects/sales-models'), ['log', '--format=%s'])
-      ).stdout.trim(),
-    ).toBe('Create project');
+    expect((await t.ws.git.run(join(t.root, 'projects/sales-models'), ['log', '--format=%s'])).stdout.trim()).toBe('Create project');
     expect((await api(t, 'POST', '/api/projects', { name: 'sales MODELS' })).status).toBe(400);
-    expect(
-      await (await api(t, 'PATCH', '/api/projects/sales-models', { name: 'Revenue' })).json(),
-    ).toEqual({ slug: 'sales-models', name: 'Revenue' });
+    expect(await (await api(t, 'PATCH', '/api/projects/sales-models', { name: 'Revenue' })).json()).toEqual({ slug: 'sales-models', name: 'Revenue' });
     expect((await api(t, 'PATCH', '/api/projects/missing', { name: 'X' })).status).toBe(404);
     expect((await api(t, 'PATCH', '/api/projects/sales-models', { name: '' })).status).toBe(400);
     expect(t.ws.state.registry().projects.map(p => p.name)).toEqual(['Revenue']);
@@ -350,9 +293,7 @@ test('example loaders create the example project once and reopen it afterwards',
       name: 'Ossie Flights',
       created: false,
     });
-    expect(readFileSync(join(t.root, 'projects/flights/flights.yaml'), 'utf8')).toBe(
-      await example('ossie', 'flights.yaml'),
-    );
+    expect(readFileSync(join(t.root, 'projects/flights/flights.yaml'), 'utf8')).toBe(await example('ossie', 'flights.yaml'));
     expect((await api(t, 'POST', '/api/examples/unknown')).status).toBe(404);
     const status = await (await api(t, 'GET', '/api/status')).json();
     expect(status).toMatchObject({
@@ -371,16 +312,7 @@ test('the legacy /api/documents facade keeps its shapes over the folder store', 
     const docs = await (await api(t, 'GET', '/api/documents')).json();
     expect(docs.map((d: any) => d.id)).toEqual(['shop/dir/ref.ttl', 'shop/shop.yaml']);
     const d = docs[1];
-    expect(Object.keys(d).sort()).toEqual([
-      'filename',
-      'hash',
-      'id',
-      'path',
-      'project',
-      'revision',
-      'source',
-      'updated',
-    ]);
+    expect(Object.keys(d).sort()).toEqual(['filename', 'hash', 'id', 'path', 'project', 'revision', 'source', 'updated']);
     expect(d).toMatchObject({ filename: 'shop.yaml', source: ontology, hash: sha256(ontology) });
     expect(Number.isSafeInteger(d.revision)).toBe(true);
     const saved = await (
@@ -421,12 +353,7 @@ test('an example loader opens a project that already holds the identical example
   const t = await testWorkspace();
   try {
     const files = await Promise.all(
-      [
-        'commerce.mapping.yaml',
-        'commerce.mapped-ontology.yaml',
-        'commerce.mapped-semantic.yaml',
-        'commerce.odcs.yaml',
-      ].map(async path => ({ path, source: await example('commerce', path) })),
+      ['commerce.mapping.yaml', 'commerce.mapped-ontology.yaml', 'commerce.mapped-semantic.yaml', 'commerce.odcs.yaml'].map(async path => ({ path, source: await example('commerce', path) })),
     );
     const imported = await t.ws.importBatch({ files }, LOCAL_READER);
     expect(await t.ws.loadExample('mapped-commerce')).toEqual({

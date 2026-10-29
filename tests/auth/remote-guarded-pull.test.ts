@@ -4,16 +4,7 @@ import { afterAll, beforeAll, expect, test } from 'bun:test';
 import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { TEST_USERS } from '../helpers/auth-identities';
-import {
-  copyOn,
-  git,
-  projectPath,
-  publishSalesBranch,
-  pushIncoming,
-  salesFile,
-  startRemoteSetup,
-  type RemoteSetup,
-} from './remote-setup';
+import { copyOn, git, projectPath, publishSalesBranch, pushIncoming, salesFile, startRemoteSetup, type RemoteSetup } from './remote-setup';
 
 let setup: RemoteSetup;
 const sales = projectPath('sales-contracts');
@@ -66,8 +57,7 @@ test('a refused pull leaves HEAD as it was, and a commit pushed after the fetch 
   const alice = await setup.signIn('alice');
   const clone = await publishSalesBranch(setup, alice, 'reclassified');
   const orders = salesFile(clone, 'orders.odcs.yaml');
-  const reclassify = (text: string) =>
-    text.replace('classification: internal', 'classification: public');
+  const reclassify = (text: string) => text.replace('classification: internal', 'classification: public');
   pushIncoming(clone, orders, reclassify);
 
   // An Editor may not bring in a classification change, so nothing changes on her side.

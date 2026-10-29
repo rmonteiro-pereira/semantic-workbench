@@ -10,9 +10,7 @@ afterEach(() => {
   globalThis.fetch = originalFetch;
 });
 function respond(body: unknown, status = 200) {
-  const request = mock(async (_input: RequestInfo | URL, _init?: RequestInit) =>
-    Response.json(body, { status }),
-  );
+  const request = mock(async (_input: RequestInfo | URL, _init?: RequestInit) => Response.json(body, { status }));
   globalThis.fetch = request as unknown as typeof fetch;
   return request;
 }
@@ -50,11 +48,7 @@ describe('administration client', () => {
     expect(JSON.parse(String(init.body)).confirmDeleteInUse).toBe(true);
   });
   test('preserves last-admin, stale-version and in-use refusals with their context', async () => {
-    for (const details of [
-      { error: 'last-admin' },
-      { error: 'stale version' },
-      { error: 'role in use', inUse: { roleId: 'r_a', people: [{ id: 'alice', name: 'Alice' }] } },
-    ]) {
+    for (const details of [{ error: 'last-admin' }, { error: 'stale version' }, { error: 'role in use', inUse: { roleId: 'r_a', people: [{ id: 'alice', name: 'Alice' }] } }]) {
       respond(details, 409);
       try {
         await adminApi.save('roles', { roles: [] }, 'old', 'review');
@@ -83,9 +77,7 @@ describe('administration client', () => {
   test('audit export retains filters and removes the pagination cursor', async () => {
     const request = respond('csv');
     await adminApi.exportAudit({ principal: 'a|b', cursor: 'page-2', decision: 'deny' }, 'csv');
-    expect(request.mock.calls[0][0]).toBe(
-      '/api/audit/export?principal=a%7Cb&decision=deny&format=csv',
-    );
+    expect(request.mock.calls[0][0]).toBe('/api/audit/export?principal=a%7Cb&decision=deny&format=csv');
   });
   test('normalizes version authors and per-file patches for the existing diff view', async () => {
     respond([
@@ -99,9 +91,7 @@ describe('administration client', () => {
     ]);
     expect((await adminApi.versions())[0].author).toBe('Dave');
     respond({ 'grants.json': '@@ -1 +1 @@\n-old\n+new' });
-    expect(await adminApi.diff('abc', 'def')).toEqual([
-      { file: 'grants.json', before: 'old', after: 'new' },
-    ]);
+    expect(await adminApi.diff('abc', 'def')).toEqual([{ file: 'grants.json', before: 'old', after: 'new' }]);
   });
 });
 
@@ -117,9 +107,7 @@ test('only the exact reviewed proposal and base version can be confirmed', () =>
 });
 
 test('patch comparison preserves context without including patch metadata', () => {
-  expect(patchDiffs({ 'a.cedar': '--- a\n+++ b\n@@ -1,2 +1,2 @@\n same\n-old\n+new' })).toEqual([
-    { file: 'a.cedar', before: 'same\nold', after: 'same\nnew' },
-  ]);
+  expect(patchDiffs({ 'a.cedar': '--- a\n+++ b\n@@ -1,2 +1,2 @@\n same\n-old\n+new' })).toEqual([{ file: 'a.cedar', before: 'same\nold', after: 'same\nnew' }]);
 });
 
 test('template parameters become the server request, including windows past midnight', () => {
@@ -188,8 +176,7 @@ test('read and command endpoints retain their contracted methods and payloads', 
     },
     {
       body: { id: 'p_a', text: 'forbid(principal, action, resource);', enabled: true },
-      run: () =>
-        adminApi.policyTemplate({ template: 'time', id: 'p_a', actions: ['push'], hours: [9] }),
+      run: () => adminApi.policyTemplate({ template: 'time', id: 'p_a', actions: ['push'], hours: [9] }),
       path: '/api/admin/policies/template',
       method: 'POST',
       sent: { template: 'time', id: 'p_a', actions: ['push'], hours: [9] },
@@ -253,8 +240,7 @@ test('read and command endpoints retain their contracted methods and payloads', 
 });
 
 test('an error answered as plain text keeps its status and text', async () => {
-  globalThis.fetch = (async () =>
-    new Response('Not found', { status: 404 })) as unknown as typeof fetch;
+  globalThis.fetch = (async () => new Response('Not found', { status: 404 })) as unknown as typeof fetch;
   const failure = await adminApi.users().catch(problem => problem);
   expect(failure).toBeInstanceOf(AdminApiError);
   expect(failure.status).toBe(404);
@@ -269,13 +255,8 @@ test('document responses hand back the version apart from the document to propos
 });
 
 test('dialogs show the refusal and the bootstrap recovery note, not the request', async () => {
-  respond(
-    { error: 'last-admin', message: 'grants: would remove the last Admin.', bootstrap: true },
-    400,
-  );
-  const failure = await adminApi
-    .save('grants', { grants: [] }, 'base', 'review')
-    .catch(error => error);
+  respond({ error: 'last-admin', message: 'grants: would remove the last Admin.', bootstrap: true }, 400);
+  const failure = await adminApi.save('grants', { grants: [] }, 'base', 'review').catch(error => error);
   expect(problemText(failure)).toStartWith('last-admin: grants: would remove the last Admin.');
   expect(problemText(failure)).toContain('bootstrap Admin');
   expect(problemText(failure)).not.toContain('/api/admin');

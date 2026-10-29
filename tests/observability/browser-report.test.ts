@@ -18,11 +18,7 @@ const operation = { kind: 'operation', operation: 'save', durationMs: 2500 } as 
 describe('what is accepted', () => {
   test('an error, a rejection and an operation', () => {
     const batch = {
-      reports: [
-        error,
-        { ...error, kind: 'unhandled-rejection' as const, frames: 'at a (b.js:1:2)' },
-        operation,
-      ],
+      reports: [error, { ...error, kind: 'unhandled-rejection' as const, frames: 'at a (b.js:1:2)' }, operation],
     };
     const checked = checkReportBatch(batch);
     expect(checked).toEqual({ ok: true, reports: batch.reports as BrowserReport[] });
@@ -92,9 +88,7 @@ describe('budgets and scrubbing', () => {
   });
 
   test('quoted text, which may be a piece of a document, is replaced', () => {
-    expect(scrubErrorMessage(`Unexpected token "salary: 90000" in JSON`)).toBe(
-      'Unexpected token "…" in JSON',
-    );
+    expect(scrubErrorMessage(`Unexpected token "salary: 90000" in JSON`)).toBe('Unexpected token "…" in JSON');
     expect(scrubErrorMessage("bad 'x' and `y`")).toBe('bad "…" and "…"');
   });
 

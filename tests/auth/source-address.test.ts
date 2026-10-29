@@ -26,9 +26,7 @@ test('a header that is too short or unparsable falls back to the peer', () => {
 
 test('a port or brackets on an entry are removed', () => {
   expect(clientAddress('10.0.0.9', '203.0.113.5:51234', 1)).toBe('203.0.113.5');
-  expect(clientAddress('10.0.0.9', '[2001:db8:1:2:3:4:5:6]:443', 1)).toBe(
-    '2001:0db8:0001:0002::/64',
-  );
+  expect(clientAddress('10.0.0.9', '[2001:db8:1:2:3:4:5:6]:443', 1)).toBe('2001:0db8:0001:0002::/64');
 });
 
 test('an IPv6 address counts as its /64 and a mapped IPv4 address as IPv4', () => {

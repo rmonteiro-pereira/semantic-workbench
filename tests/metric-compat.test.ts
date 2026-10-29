@@ -12,8 +12,7 @@ const files = ['mall/mall.semantic.yaml', 'mall/mall.mapping.yaml'].map(p => ({
   path: p,
   source: readFileSync(`public/examples/${p}`, 'utf8'),
 }));
-const errors = (source: string, name: string) =>
-  validateInput(source, name).issues.filter(i => i.severity === 'error');
+const errors = (source: string, name: string) => validateInput(source, name).issues.filter(i => i.severity === 'error');
 test('every legacy example with metric attributes validates as shipped', () => {
   for (const f of files) expect(errors(f.source, f.path.split('/')[1])).toEqual([]);
   const mapping = parse(files[1].source);
@@ -26,14 +25,7 @@ test('editing one metric attribute changes only that metric extension block; eve
   const i = data.metrics.findIndex((m: any) => extensionOf(m));
   const ext = extensionOf(data.metrics[i])!;
   const next = JSON.stringify({ ...ext.value, owner: 'Centre management' }, null, 2) + '\n';
-  const after = edit(f.source, t =>
-    valuePatches(
-      t,
-      ['metrics', i, 'custom_extensions', ext.index, 'data'],
-      next,
-      'mall.semantic.yaml',
-    ),
-  );
+  const after = edit(f.source, t => valuePatches(t, ['metrics', i, 'custom_extensions', ext.index, 'data'], next, 'mall.semantic.yaml'));
   expect(errors(after, 'mall.semantic.yaml')).toEqual([]);
   expect(extensionOf(parse(after).metrics[i])!.value.owner).toBe('Centre management');
   const a = f.source.split('\n');
@@ -48,9 +40,7 @@ test('editing one metric attribute changes only that metric extension block; eve
   expect(a.length - p - s).toBeLessThanOrEqual(3);
   // The mapping, with its kpi_bindings key, is untouched by a metric edit and still reads the same
   // bindings.
-  expect(readKpiBindings(parse(files[1].source)).value.map(b => b.metric)).toContain(
-    data.metrics[i].name,
-  );
+  expect(readKpiBindings(parse(files[1].source)).value.map(b => b.metric)).toContain(data.metrics[i].name);
 });
 test('a binding edit keeps the stored key kpi_bindings', () => {
   const f = files[1];
@@ -58,18 +48,9 @@ test('a binding edit keeps the stored key kpi_bindings', () => {
   const ext = extensionOf(data)!;
   const value = {
     ...ext.value,
-    kpi_bindings: ext.value.kpi_bindings.map((b: any, j: number) =>
-      j === 0 ? { ...b, of: 'Unit' } : b,
-    ),
+    kpi_bindings: ext.value.kpi_bindings.map((b: any, j: number) => (j === 0 ? { ...b, of: 'Unit' } : b)),
   };
-  const after = edit(f.source, t =>
-    valuePatches(
-      t,
-      ['custom_extensions', ext.index, 'data'],
-      JSON.stringify(value, null, 2) + '\n',
-      'mall.mapping.yaml',
-    ),
-  );
+  const after = edit(f.source, t => valuePatches(t, ['custom_extensions', ext.index, 'data'], JSON.stringify(value, null, 2) + '\n', 'mall.mapping.yaml'));
   expect(after).toContain('"kpi_bindings"');
   expect(after).not.toContain('"metric_bindings"');
   expect(readKpiBindings(parse(after)).value[0].of).toBe('Unit');

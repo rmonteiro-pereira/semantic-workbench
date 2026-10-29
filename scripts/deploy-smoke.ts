@@ -26,35 +26,19 @@ function authorizationRedirect(response: Response, endpoint: string): boolean {
   try {
     const location = new URL(response.headers.get('location') ?? '');
     const authorization = new URL(endpoint);
-    return (
-      location.origin === authorization.origin &&
-      location.pathname === authorization.pathname &&
-      location.searchParams.get('code_challenge_method') === 'S256'
-    );
+    return location.origin === authorization.origin && location.pathname === authorization.pathname && location.searchParams.get('code_challenge_method') === 'S256';
   } catch {
     return false;
   }
 }
 
 /** Evaluates the smoke contract without network access or clock dependencies. */
-export function smokeChecks(
-  input: SmokeInput,
-  expected: SmokeExpected,
-  endpoint: string,
-  loopback: boolean,
-  expectTelemetry = false,
-) {
+export function smokeChecks(input: SmokeInput, expected: SmokeExpected, endpoint: string, loopback: boolean, expectTelemetry = false) {
   const ready = record(input.ready.body);
   const health = record(input.health.body);
   const projects = record(input.projects.body);
   const headers = input.login.headers;
-  const cookie = headers
-    .getSetCookie()
-    .find(
-      value =>
-        value.startsWith(`${loopback ? 'sw-auth' : '__Host-sw-auth'}=`) ||
-        value.startsWith('__Host-sw-auth='),
-    );
+  const cookie = headers.getSetCookie().find(value => value.startsWith(`${loopback ? 'sw-auth' : '__Host-sw-auth'}=`) || value.startsWith('__Host-sw-auth='));
   return [
     {
       name: 'ready',
@@ -64,10 +48,7 @@ export function smokeChecks(
     { name: 'commit', ok: input.health.status === 200 && health.commit === expected.commit },
     {
       name: 'anonymous API',
-      ok:
-        input.projects.status === 401 &&
-        Object.keys(projects).length === 1 &&
-        ['sign-in required', 'Unauthorized'].includes(String(projects.error)),
+      ok: input.projects.status === 401 && Object.keys(projects).length === 1 && ['sign-in required', 'Unauthorized'].includes(String(projects.error)),
     },
     { name: 'home redirect', ok: authorizationRedirect(input.home, endpoint) },
     { name: 'login PKCE redirect', ok: authorizationRedirect(input.login, endpoint) },
@@ -79,10 +60,7 @@ export function smokeChecks(
     ...(expectTelemetry ? [{ name: 'telemetry configured', ok: telemetryEnabled(health) }] : []),
     {
       name: 'state cookie',
-      ok:
-        !!cookie &&
-        /;\s*HttpOnly(?:;|$)/i.test(cookie) &&
-        (loopback || /;\s*Secure(?:;|$)/i.test(cookie)),
+      ok: !!cookie && /;\s*HttpOnly(?:;|$)/i.test(cookie) && (loopback || /;\s*Secure(?:;|$)/i.test(cookie)),
     },
   ];
 }
@@ -104,8 +82,7 @@ export async function smoke(publicUrl: string, expected: SmokeExpected, options:
     throw Error('--loopback requires a loopback public URL');
   }
   if (!loopback && origin.protocol !== 'https:') throw Error('Smoke requires HTTPS');
-  const get = (url: string) =>
-    request(url, { redirect: 'manual', signal: AbortSignal.timeout(10_000) });
+  const get = (url: string) => request(url, { redirect: 'manual', signal: AbortSignal.timeout(10_000) });
   const json = async (path: string) => {
     const response = await get(`${origin.origin}${path}`);
     return { status: response.status, body: await response.json() };
@@ -150,9 +127,7 @@ async function main() {
     },
   });
   if (values.help) {
-    console.log(
-      'deploy:smoke <public-url> <package-version> <commit> [--loopback] [--expect-telemetry]',
-    );
+    console.log('deploy:smoke <public-url> <package-version> <commit> [--loopback] [--expect-telemetry]');
     console.log('--expect-telemetry also requires /healthz to report telemetry as enabled.');
     console.log('SW_OIDC_ISSUER supplies discovery; --loopback relaxes only HSTS and Secure.');
     return;

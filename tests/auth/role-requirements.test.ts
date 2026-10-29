@@ -44,9 +44,7 @@ test('/api/me names the needed role as the workspace calls it', async () => {
     roleNames: { viewer: 'Reader', editor: 'Author', steward: 'Domain lead', admin: 'Admin' },
     principal: () => access.principalFor(person('alice')),
   });
-  const response = await handler(
-    new Request(origin + '/api/me', { headers: { Origin: origin, 'X-SW-Request': '1' } }),
-  );
+  const response = await handler(new Request(origin + '/api/me', { headers: { Origin: origin, 'X-SW-Request': '1' } }));
   expect(response.status).toBe(200);
   const me = await response.json();
   expect(me.requires.edit).toBe('Requires Author');
@@ -71,9 +69,7 @@ test('/api/me shows a renamed custom role without a restart', async () => {
     principal: () => access.principalFor(person('hank')),
   });
   const me = async () => {
-    const response = await handler(
-      new Request(origin + '/api/me', { headers: { Origin: origin, 'X-SW-Request': '1' } }),
-    );
+    const response = await handler(new Request(origin + '/api/me', { headers: { Origin: origin, 'X-SW-Request': '1' } }));
     return (await response.json()) as { roleNames: Record<string, string> };
   };
   const config = administration.load();

@@ -11,15 +11,7 @@ type Props = {
   clampSidebarWidth: (width: number) => number;
 };
 /** Renders sidebar resize handle. */
-export const SidebarResizeHandle = React.memo(function SidebarResizeHandle({
-  compact,
-  sidebarOpen,
-  sidebarWidth,
-  sidebarDrag,
-  setResizingSidebar,
-  setSidebarWidth,
-  clampSidebarWidth,
-}: Props) {
+export const SidebarResizeHandle = React.memo(function SidebarResizeHandle({ compact, sidebarOpen, sidebarWidth, sidebarDrag, setResizingSidebar, setSidebarWidth, clampSidebarWidth }: Props) {
   function handleSidebarSeparatorPointerDown(e: React.PointerEvent<HTMLDivElement>) {
     if (e.button !== 0) return;
     e.preventDefault();
@@ -31,8 +23,7 @@ export const SidebarResizeHandle = React.memo(function SidebarResizeHandle({
 
   function handleSidebarSeparatorPointerMove(e: React.PointerEvent<HTMLDivElement>) {
     const drag = sidebarDrag.current;
-    if (drag?.pointerId === e.pointerId)
-      setSidebarWidth(clampSidebarWidth(drag.width + e.clientX - drag.x));
+    if (drag?.pointerId === e.pointerId) setSidebarWidth(clampSidebarWidth(drag.width + e.clientX - drag.x));
   }
 
   function handleSidebarSeparatorPointerUp(e: React.PointerEvent<HTMLDivElement>) {

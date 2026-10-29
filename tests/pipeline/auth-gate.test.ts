@@ -7,10 +7,7 @@ import { gateSuites, exclusions, selfServedSuites } from '../../scripts/gate-sui
 for (const name of ['keycloak', 'services', 'container', 'resource']) {
   test(`pipeline rejects the ${name} fixture`, () => {
     const input = readPipelineInput();
-    input.files['deploy/azure-devops/templates/forbidden.yml'] = readFileSync(
-      `tests/fixtures/pipeline-auth/${name}.yml`,
-      'utf8',
-    );
+    input.files['deploy/azure-devops/templates/forbidden.yml'] = readFileSync(`tests/fixtures/pipeline-auth/${name}.yml`, 'utf8');
     expect(() => lintRules(input)).toThrow(/forbidden/);
   });
 }
@@ -18,9 +15,7 @@ for (const name of ['keycloak', 'services', 'container', 'resource']) {
 test('mock sign-in belongs to the gate and compatibility remains owner-only', () => {
   expect(gateSuites).toContain('test:auth');
   expect(gateSuites).not.toContain('test:auth:keycloak');
-  expect(exclusions.find(entry => entry.script === 'test:auth:keycloak')?.reason).toContain(
-    "owner's machine",
-  );
+  expect(exclusions.find(entry => entry.script === 'test:auth:keycloak')?.reason).toContain("owner's machine");
   const template = readPipelineInput().files['deploy/azure-devops/templates/validate-jobs.yml'];
   expect(template).toContain('suite: test:auth');
   expect(template.toLowerCase()).not.toContain('keycloak');

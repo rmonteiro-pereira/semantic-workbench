@@ -9,8 +9,7 @@ import { call, ok, ontology, sh } from './helpers/scm';
 // when Git, an identity or a clean merge state is missing, the files are still written and the
 // reason is reported.
 const log = (dir: string) => sh(dir, ['log', '--format=%s']).trim().split('\n');
-const committed = (dir: string) =>
-  sh(dir, ['show', '--name-only', '--format=', 'HEAD']).trim().split('\n').filter(Boolean).sort();
+const committed = (dir: string) => sh(dir, ['show', '--name-only', '--format=', 'HEAD']).trim().split('\n').filter(Boolean).sort();
 test('import into a new project commits the batch', async () => {
   const t = await testWorkspace();
   try {
@@ -27,9 +26,7 @@ test('import into a new project commits the batch', async () => {
     const dir = join(t.root, 'projects', r.slug);
     expect(log(dir)).toEqual(['Import 2 files']);
     expect(committed(dir)).toEqual(['a.yaml', 'b.yaml']);
-    const one = await ok(
-      call(t, 'POST', '/api/import', { files: [{ path: 'solo.yaml', source: ontology('S') }] }),
-    );
+    const one = await ok(call(t, 'POST', '/api/import', { files: [{ path: 'solo.yaml', source: ontology('S') }] }));
     expect(one.commit.message).toBe('Import solo.yaml');
   } finally {
     t.dispose();
@@ -38,9 +35,7 @@ test('import into a new project commits the batch', async () => {
 test('import into an existing project commits only the imported paths', async () => {
   const t = await testWorkspace();
   try {
-    const p = await ok(
-      call(t, 'POST', '/api/import', { files: [{ path: 'shop.yaml', source: ontology('Shop') }] }),
-    );
+    const p = await ok(call(t, 'POST', '/api/import', { files: [{ path: 'shop.yaml', source: ontology('Shop') }] }));
     const dir = join(t.root, 'projects', p.slug);
     writeFileSync(join(dir, 'shop.yaml'), ontology('Edited, not committed.'));
     writeFileSync(join(dir, 'notes.yaml'), ontology('Untracked'));
@@ -54,10 +49,7 @@ test('import into an existing project commits only the imported paths', async ()
     );
     expect(r.commit).toMatchObject({ committed: true, message: 'Import 2 files' });
     expect(committed(dir)).toEqual(['x.yaml', 'y.yaml']);
-    expect(sh(dir, ['status', '--porcelain']).split('\n').filter(Boolean).sort()).toEqual([
-      ' M shop.yaml',
-      '?? notes.yaml',
-    ]);
+    expect(sh(dir, ['status', '--porcelain']).split('\n').filter(Boolean).sort()).toEqual([' M shop.yaml', '?? notes.yaml']);
     // Replace: the replaced file is committed with its new bytes.
     const re = await ok(
       call(t, 'POST', `/api/projects/${p.slug}/import`, {
@@ -96,14 +88,10 @@ test('without an identity the files are written and the reason is reported; a lo
   process.env.GIT_CONFIG_GLOBAL = empty;
   const t = await testWorkspace();
   try {
-    const r = await ok(
-      call(t, 'POST', '/api/import', { files: [{ path: 'a.yaml', source: ontology('A') }] }),
-    );
+    const r = await ok(call(t, 'POST', '/api/import', { files: [{ path: 'a.yaml', source: ontology('A') }] }));
     expect(r.commit).toEqual({ committed: false, reason: 'no-identity' });
     const dir = join(t.root, 'projects', r.slug);
-    expect((await ok(call(t, 'GET', `/api/projects/${r.slug}/files/a.yaml`))).source).toContain(
-      'A',
-    );
+    expect((await ok(call(t, 'GET', `/api/projects/${r.slug}/files/a.yaml`))).source).toContain('A');
     sh(dir, ['config', 'user.name', 'Local']);
     sh(dir, ['config', 'user.email', 'local@example.invalid']);
     const into = await ok(
@@ -122,9 +110,7 @@ test('without an identity the files are written and the reason is reported; a lo
 test('during a merge the import is written but not committed', async () => {
   const t = await testWorkspace();
   try {
-    const p = await ok(
-      call(t, 'POST', '/api/import', { files: [{ path: 'a.yaml', source: ontology('A') }] }),
-    );
+    const p = await ok(call(t, 'POST', '/api/import', { files: [{ path: 'a.yaml', source: ontology('A') }] }));
     const dir = join(t.root, 'projects', p.slug);
     sh(dir, ['switch', '-q', '-c', 'other']);
     writeFileSync(join(dir, 'a.yaml'), ontology('Other'));
@@ -147,9 +133,7 @@ test('during a merge the import is written but not committed', async () => {
 test('without Git the import is written and reported as not committed', async () => {
   const t = await testWorkspace({ gitBinary: '/nonexistent/git' });
   try {
-    const r = await ok(
-      call(t, 'POST', '/api/import', { files: [{ path: 'a.yaml', source: ontology('A') }] }),
-    );
+    const r = await ok(call(t, 'POST', '/api/import', { files: [{ path: 'a.yaml', source: ontology('A') }] }));
     expect(r.commit).toEqual({ committed: false, reason: 'no-git' });
   } finally {
     t.dispose();

@@ -37,20 +37,7 @@ test('audit lines whitelist fields and chain across writer restarts', () => {
     stored[0] = stored[0].replace('edit', 'read');
     writeFileSync(join(dir.root, '2026-10.jsonl'), stored.join('\n') + '\n');
     expect(log.entries('2026-10')[1].prev).not.toBe(sha256(stored[0]));
-    expect(Object.keys(entries[0]).sort()).toEqual(
-      [
-        'type',
-        'at',
-        'requestId',
-        'principal',
-        'action',
-        'resource',
-        'decision',
-        'rules',
-        'outcome',
-        'prev',
-      ].sort(),
-    );
+    expect(Object.keys(entries[0]).sort()).toEqual(['type', 'at', 'requestId', 'principal', 'action', 'resource', 'decision', 'rules', 'outcome', 'prev'].sort());
   } finally {
     dir.cleanup();
   }

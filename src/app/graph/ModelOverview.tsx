@@ -30,10 +30,7 @@ export function ModelOverview(props: Props) {
   const [technical, setTechnical] = useRecordedState('overview.technical', false);
   const [pair, setPair] = useRecordedState<[string, string] | null>('overview.pair', null);
   const [hover, setHover] = useState('');
-  const overview = useMemo(
-    () => modelOverview(props.entities, props.edges, props.name, technical, props.grouping),
-    [props.entities, props.edges, props.name, technical, props.grouping],
-  );
+  const overview = useMemo(() => modelOverview(props.entities, props.edges, props.name, technical, props.grouping), [props.entities, props.edges, props.name, technical, props.grouping]);
   const byId = useMemo(() => new Map(props.entities.map(e => [e.id, e])), [props.entities]);
   const focus = overview.degree.has(hover || props.selected) ? hover || props.selected : '';
   const connected = useMemo(() => {
@@ -50,19 +47,11 @@ export function ModelOverview(props: Props) {
   }, [overview, focus]);
   const connections = pair
     ? pair[1] === '*'
-      ? overview.links.filter(
-          e =>
-            overview.groupOf.get(e.source) === pair[0] &&
-            overview.groupOf.get(e.target) !== pair[0],
-        )
+      ? overview.links.filter(e => overview.groupOf.get(e.source) === pair[0] && overview.groupOf.get(e.target) !== pair[0])
       : (overview.matrix.get(JSON.stringify(pair)) ?? [])
     : [];
-  const groupName = (id: string) =>
-    id === '*' ? 'Other areas' : (overview.groups.find(g => g.id === id)?.name ?? id);
-  const matches = (e: Entity) =>
-    !props.search ||
-    e.name.toLowerCase().includes(props.search.toLowerCase()) ||
-    e.id.toLowerCase().includes(props.search.toLowerCase());
+  const groupName = (id: string) => (id === '*' ? 'Other areas' : (overview.groups.find(g => g.id === id)?.name ?? id));
+  const matches = (e: Entity) => !props.search || e.name.toLowerCase().includes(props.search.toLowerCase()) || e.id.toLowerCase().includes(props.search.toLowerCase());
   return (
     <div className="model-overview">
       <div className="overview-top">
@@ -70,9 +59,7 @@ export function ModelOverview(props: Props) {
           <div className="overview-eyebrow">FULL MODEL</div>
           <h2>One model. {overview.groups.length} groups.</h2>
           <p>
-            {overview.entities.length} entities · {overview.links.length} relationships. Counts
-            beside entity names are declared relationships. Select an entity to trace its
-            connections.
+            {overview.entities.length} entities · {overview.links.length} relationships. Counts beside entity names are declared relationships. Select an entity to trace its connections.
           </p>
         </div>
         <div className="overview-view-actions">
@@ -87,8 +74,7 @@ export function ModelOverview(props: Props) {
       <div className="overview-options">
         <div className="overview-switch">
           <button className={mode === 'areas' ? 'active' : ''} onClick={() => setMode('areas')}>
-            <Layers size={14} />{' '}
-            {overview.mode === 'example' ? 'Business areas' : overview.groupingLabel}
+            <Layers size={14} /> {overview.mode === 'example' ? 'Business areas' : overview.groupingLabel}
           </button>
           <button className={mode === 'matrix' ? 'active' : ''} onClick={() => setMode('matrix')}>
             <Grid2X2 size={14} /> Relationship matrix
@@ -101,11 +87,7 @@ export function ModelOverview(props: Props) {
             </>
           )}
           {props.entities.some(e => e.kind === 'OWL class') && (
-            <button onClick={() => setTechnical(v => !v)}>
-              {technical
-                ? 'Business classes'
-                : `Include ${overview.technicalCount} technical definitions`}
-            </button>
+            <button onClick={() => setTechnical(v => !v)}>{technical ? 'Business classes' : `Include ${overview.technicalCount} technical definitions`}</button>
           )}
         </div>
       </div>
@@ -115,19 +97,10 @@ export function ModelOverview(props: Props) {
             {overview.groups.map(group => {
               const entities = group.entities.filter(matches);
               if (!entities.length) return null;
-              const internal =
-                overview.matrix.get(JSON.stringify([group.id, group.id]))?.length ?? 0;
-              const external = overview.links.filter(
-                e =>
-                  overview.groupOf.get(e.source) === group.id &&
-                  overview.groupOf.get(e.target) !== group.id,
-              ).length;
+              const internal = overview.matrix.get(JSON.stringify([group.id, group.id]))?.length ?? 0;
+              const external = overview.links.filter(e => overview.groupOf.get(e.source) === group.id && overview.groupOf.get(e.target) !== group.id).length;
               return (
-                <section
-                  key={group.id}
-                  className="business-area"
-                  style={{ '--area-color': group.color } as any}
-                >
+                <section key={group.id} className="business-area" style={{ '--area-color': group.color } as any}>
                   <header>
                     <div>
                       <h3>
@@ -154,15 +127,9 @@ export function ModelOverview(props: Props) {
                           setHover('');
                           props.onSelectEntity(e.id);
                         }}
-                        className={[
-                          props.selected === e.id ? 'selected' : '',
-                          connected.has(e.id) ? 'connected' : '',
-                          focus && !connected.has(e.id) ? 'muted' : '',
-                        ].join(' ')}
+                        className={[props.selected === e.id ? 'selected' : '', connected.has(e.id) ? 'connected' : '', focus && !connected.has(e.id) ? 'muted' : ''].join(' ')}
                       >
-                        <span>
-                          {e.name.replace(/([a-z])([A-Z])/g, '$1 $2').replaceAll('_', ' ')}
-                        </span>
+                        <span>{e.name.replace(/([a-z])([A-Z])/g, '$1 $2').replaceAll('_', ' ')}</span>
                         <small title="Declared relationships">{overview.degree.get(e.id)}</small>
                       </button>
                     ))}
@@ -189,10 +156,7 @@ export function ModelOverview(props: Props) {
           </div>
         ) : (
           <div className="matrix-view">
-            <p className="matrix-help">
-              Rows are sources; columns are targets. Each count opens the exact directed
-              relationships, including links within an area.
-            </p>
+            <p className="matrix-help">Rows are sources; columns are targets. Each count opens the exact directed relationships, including links within an area.</p>
             <div className="matrix-scroll">
               <table>
                 <thead>
@@ -210,8 +174,7 @@ export function ModelOverview(props: Props) {
                     <tr key={from.id}>
                       <th>{from.name}</th>
                       {overview.groups.map(to => {
-                        const count =
-                          overview.matrix.get(JSON.stringify([from.id, to.id]))?.length ?? 0;
+                        const count = overview.matrix.get(JSON.stringify([from.id, to.id]))?.length ?? 0;
                         return (
                           <td key={to.id}>
                             {count ? (

@@ -24,8 +24,7 @@ export const MAX_INPUT_BYTES = 2_000_000;
 /** Rejects oversized input and unsafe filenames before parsing. */
 export function validateEnvelope(source: string, filename: string) {
   const issues: Issue[] = [];
-  const fail = (code: string, message: string) =>
-    issues.push({ severity: 'error', code, path: '/', message });
+  const fail = (code: string, message: string) => issues.push({ severity: 'error', code, path: '/', message });
   if (
     typeof filename !== 'string' ||
     !filename.trim() ||
@@ -34,13 +33,8 @@ export function validateEnvelope(source: string, filename: string) {
     // oxlint-disable-next-line no-control-regex
     /[\x00-\x1f/\\]/.test(filename)
   )
-    fail(
-      'filename',
-      'Use a filename of 1–255 characters without directory separators or control characters.',
-    );
-  if (typeof source !== 'string' || !source.trim())
-    fail('empty', 'The definition is empty. Paste or choose a supported definition.');
-  else if (new TextEncoder().encode(source).length > MAX_INPUT_BYTES)
-    fail('size', 'The definition exceeds the 2 MB UTF-8 limit. Split it into smaller documents.');
+    fail('filename', 'Use a filename of 1–255 characters without directory separators or control characters.');
+  if (typeof source !== 'string' || !source.trim()) fail('empty', 'The definition is empty. Paste or choose a supported definition.');
+  else if (new TextEncoder().encode(source).length > MAX_INPUT_BYTES) fail('size', 'The definition exceeds the 2 MB UTF-8 limit. Split it into smaller documents.');
   rejectIssues(issues);
 }

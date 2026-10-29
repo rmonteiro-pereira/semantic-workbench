@@ -75,10 +75,7 @@ test('Git history is refused while the person cannot read every path ever commit
   const refused = await exporter(fixture)(`/api/projects/${CONTRACTS}/export?history=1`);
   expect(refused.status).toBe(400);
   expect(await refused.text()).not.toContain('finance');
-  const allowed = await exporter(
-    fixture,
-    person('frank'),
-  )(`/api/projects/${CONTRACTS}/export?history=1`);
+  const allowed = await exporter(fixture, person('frank'))(`/api/projects/${CONTRACTS}/export?history=1`);
   expect(allowed.status).toBe(200);
   const stored = readZip(new Uint8Array(await allowed.arrayBuffer()));
   expect(stored.has('git-history.bundle')).toBe(true);
@@ -94,8 +91,6 @@ test('every export is recorded in the audit log with the person and the project'
   expect(entry.decision).toBe('allow');
   expect(entry.outcome).toBe('ok');
   expect(entry.resource).toEqual({ type: 'project', project: CONTRACTS });
-  expect(entry.principal.id).toBe(
-    createAccessControl(accessFixture()).principalFor(salesViewer()).id,
-  );
+  expect(entry.principal.id).toBe(createAccessControl(accessFixture()).principalFor(salesViewer()).id);
   expect(JSON.stringify(entry)).not.toContain('revenue-recognition');
 });

@@ -69,11 +69,7 @@ function noFileHeaderProblems(): string[] {
   return found;
 }
 /** Waits for the open model's name, which the title carries as its tooltip. */
-export async function expectModelName(
-  page: Page,
-  name: RegExp | string,
-  options: { timeout?: number } = {},
-) {
+export async function expectModelName(page: Page, name: RegExp | string, options: { timeout?: number } = {}) {
   await expect(headerTitle(page)).toHaveAttribute('title', name, options);
 }
 /** Opens the named item creation action through the New menu. */
@@ -94,23 +90,16 @@ export async function headerProblems(page: Page): Promise<string[]> {
     // Native dialogs render in the top layer even when their DOM belongs to the account menu.
     const belongsToHeader = (element: Element) => !element.closest('[role=menu], dialog');
     const inMetaLine = (element: Element) => !!element.closest('.header-meta');
-    const buttons = [...header.querySelectorAll<HTMLElement>('button')].filter(
-      element => belongsToHeader(element) && element.getBoundingClientRect().width > 0,
-    );
+    const buttons = [...header.querySelectorAll<HTMLElement>('button')].filter(element => belongsToHeader(element) && element.getBoundingClientRect().width > 0);
     // The save state in the meta line is text, not a control of the header's height.
     const controls = buttons.filter(element => !inMetaLine(element));
-    const describe = (element: Element) =>
-      element.getAttribute('aria-label') ?? element.textContent?.trim() ?? element.className;
+    const describe = (element: Element) => element.getAttribute('aria-label') ?? element.textContent?.trim() ?? element.className;
     for (const control of buttons) {
       const rect = control.getBoundingClientRect();
       const name = describe(control);
       const hasName = !!control.getAttribute('aria-label') || !!control.textContent?.trim();
       if (!hasName) problems.push(`a header control has no accessible name at ${rect.left}`);
-      const outside =
-        rect.left < box.left - 1 ||
-        rect.right > box.right + 1 ||
-        rect.top < box.top - 1 ||
-        rect.bottom > box.bottom + 1;
+      const outside = rect.left < box.left - 1 || rect.right > box.right + 1 || rect.top < box.top - 1 || rect.bottom > box.bottom + 1;
       if (outside) problems.push(`${name} sticks out of the header`);
     }
     for (const control of controls) {
@@ -128,12 +117,8 @@ export async function headerProblems(page: Page): Promise<string[]> {
     if (titleBlock) rectangles.push({ name: 'the title block', rect: titleBlock });
     for (const [index, first] of rectangles.entries()) {
       for (const second of rectangles.slice(index + 1)) {
-        const across =
-          Math.min(first.rect.right, second.rect.right) -
-          Math.max(first.rect.left, second.rect.left);
-        const down =
-          Math.min(first.rect.bottom, second.rect.bottom) -
-          Math.max(first.rect.top, second.rect.top);
+        const across = Math.min(first.rect.right, second.rect.right) - Math.max(first.rect.left, second.rect.left);
+        const down = Math.min(first.rect.bottom, second.rect.bottom) - Math.max(first.rect.top, second.rect.top);
         if (across > 1 && down > 1) problems.push(`${first.name} overlaps ${second.name}`);
       }
     }
@@ -141,8 +126,7 @@ export async function headerProblems(page: Page): Promise<string[]> {
     const meta = header.querySelector('.header-meta')?.getBoundingClientRect();
     if (meta && titleBlock) {
       const insideHeader = meta.left >= box.left - 1 && meta.right <= box.right + 1;
-      const insideBlock =
-        meta.right <= titleBlock.right + 1 && meta.bottom <= titleBlock.bottom + 1;
+      const insideBlock = meta.right <= titleBlock.right + 1 && meta.bottom <= titleBlock.bottom + 1;
       if (!insideHeader || meta.bottom > box.bottom + 1) {
         problems.push('the meta line sticks out of the header');
       }

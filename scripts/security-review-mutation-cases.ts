@@ -161,16 +161,10 @@ async function worktreesCase(candidate: Candidate) {
 const pathCases: Record<string, (candidate: Candidate) => unknown> = {
   'secrev-paths': pathsCase,
   'secrev-http': async candidate =>
-    httpCase(
-      candidate,
-      (await import('../src/server/request')).hiddenResponses,
-      await import('../src/server/projects/paths'),
-      await import('../src/server/projects/errors'),
-    ),
+    httpCase(candidate, (await import('../src/server/request')).hiddenResponses, await import('../src/server/projects/paths'), await import('../src/server/projects/errors')),
   'secrev-git': gitBranchNameCase,
   'secrev-hooks': hooksCase,
-  'secrev-copy-key': async candidate =>
-    existingCopyKeyCase(candidate, (await import('../src/server/projects/reader')).LOCAL_READER),
+  'secrev-copy-key': async candidate => existingCopyKeyCase(candidate, (await import('../src/server/projects/reader')).LOCAL_READER),
   'secrev-worktrees': worktreesCase,
 };
 

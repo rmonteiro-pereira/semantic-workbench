@@ -75,19 +75,12 @@ describe('read matrix', () => {
   }, 30000);
 });
 
-async function expectAllowedReadResponse(
-  method: string,
-  path: string,
-  response: Response,
-  name: TestUserName,
-) {
+async function expectAllowedReadResponse(method: string, path: string, response: Response, name: TestUserName) {
   // Server folder previews refuse the operation after checking project visibility.
   if (method === 'GET' && /^\/api\/projects\/[^/]+\/git\/folder$/.test(path)) {
     expect(response.status).toBe(400);
     expect(await response.clone().json()).toEqual({
-      error:
-        'Choosing a folder for an existing project works in local mode. ' +
-        'Clone the folder instead.',
+      error: 'Choosing a folder for an existing project works in local mode. ' + 'Clone the folder instead.',
     });
     return;
   }
@@ -97,10 +90,7 @@ async function expectAllowedReadResponse(
     expect(await response.clone().json()).toEqual({ error: 'Project not found.' });
     return;
   }
-  expect(
-    response.status,
-    `${name}: ${path}: ${response.status === 400 ? await response.clone().text() : ''}`,
-  ).not.toBe(400);
+  expect(response.status, `${name}: ${path}: ${response.status === 400 ? await response.clone().text() : ''}`).not.toBe(400);
   expect([200, 404]).toContain(response.status);
 }
 
@@ -119,12 +109,7 @@ describe('read route inventory', () => {
       .source.replace(/LEAK-[^\n]+/g, '')
       .replaceAll('gross_revenue', 'preview_metric');
     for (const project of AUTH_PROJECTS) {
-      await fixture.ws.saveFile(
-        project,
-        'preview.semantic.yaml',
-        { baseHash: null, source },
-        LOCAL_READER,
-      );
+      await fixture.ws.saveFile(project, 'preview.semantic.yaml', { baseHash: null, source }, LOCAL_READER);
     }
     const access = createAccessControl(accessFixture());
     for (const name of Object.keys(TEST_USERS) as TestUserName[]) {
@@ -139,9 +124,7 @@ describe('read route inventory', () => {
       });
       for (const project of AUTH_PROJECTS) {
         for (const example of readRouteExamples) {
-          let path = example.path
-            .replace('/missing', '/' + project)
-            .replace('example.yaml', fixtureFiles(project)[0].path);
+          let path = example.path.replace('/missing', '/' + project).replace('example.yaml', fixtureFiles(project)[0].path);
           let requestBody = example.body;
           if (path.endsWith('/preview')) requestBody = previewBody;
           if (path.includes('/explain/')) {
@@ -153,8 +136,7 @@ describe('read route inventory', () => {
             const named = readable.has(project) ? project : ([...readable][0] ?? project);
             path += `?project=${named}`;
           }
-          if (path === '/api/agent/context')
-            path += '?project=sales-contracts&mappingId=sales-contracts/sales.mapping.yaml';
+          if (path === '/api/agent/context') path += '?project=sales-contracts&mappingId=sales-contracts/sales.mapping.yaml';
           if (path === '/api/agent/plan') {
             requestBody = {
               project: 'sales-contracts',
@@ -172,10 +154,7 @@ describe('read route inventory', () => {
             url.searchParams.set('commit', 'HEAD');
           }
           const target = routeFor(example.method, url.pathname, 'server')!;
-          const decision = scope.authorize(
-            target.row.action,
-            target.row.resource(target.match, url),
-          );
+          const decision = scope.authorize(target.row.action, target.row.resource(target.match, url));
           const response = await handler(
             new Request(url, {
               method: example.method,
@@ -236,10 +215,7 @@ describe('read targets across all fixture paths', () => {
             [`/api/drafts/${project}/${file.path}`, 404],
             [`/api/documents/${id}/grouping`, 200],
             [`/api/projects/${project}/delete-impact?${query}`, 200],
-            ...['show', 'diff', 'versions', 'log'].map(
-              action =>
-                [`/api/projects/${project}/git/${action}?${query}`, 200] as [string, number],
-            ),
+            ...['show', 'diff', 'versions', 'log'].map(action => [`/api/projects/${project}/git/${action}?${query}`, 200] as [string, number]),
           ];
           for (const [path, allowedStatus] of targets) {
             const response = await handler(new Request('http://localhost' + path));
@@ -359,11 +335,7 @@ describe('guard matrix', () => {
       using fixture = await authWorkspace();
       const item = guardedSaves(fixture.ws).find(candidate => candidate.name === name)!;
       const before = dataSnapshot(fixture.root);
-      await expectGuardRefusal(
-        await sendCase(guardHandler(fixture.ws, 'alice'), item),
-        item,
-        fixture.root,
-      );
+      await expectGuardRefusal(await sendCase(guardHandler(fixture.ws, 'alice'), item), item, fixture.root);
       expect(dataSnapshot(fixture.root), item.name).toEqual(before);
       const allowed = await sendCase(guardHandler(fixture.ws, 'bob'), item);
       expect(allowed.status, `${item.name}: ${await allowed.clone().text()}`).toBe(200);
@@ -383,12 +355,9 @@ describe('guard matrix', () => {
     });
     expect(response.status).toBe(200);
     const body = await response.json();
-    expect(body.demoted).toEqual([
-      { file: 'sales.semantic.yaml', pointer: '/metrics/0', metric: 'gross_revenue' },
-    ]);
+    expect(body.demoted).toEqual([{ file: 'sales.semantic.yaml', pointer: '/metrics/0', metric: 'gross_revenue' }]);
     // The save went to Alice's own working copy, so she reads it there.
-    const stored = (await readAs(fixture.ws, 'alice', 'sales-metrics', 'sales.semantic.yaml'))
-      .source;
+    const stored = (await readAs(fixture.ws, 'alice', 'sales-metrics', 'sales.semantic.yaml')).source;
     expect(stored).toBe(edited.replace('"status": "approved"', '"status": "proposed"'));
     expect(body.source).toBe(stored);
   });
@@ -405,11 +374,7 @@ describe('guard matrix', () => {
     };
     const item = revertCase(fixture.ws, await reclassifiedCopy('alice'));
     const before = dataSnapshot(fixture.root);
-    const body = await expectGuardRefusal(
-      await sendCase(guardHandler(fixture.ws, 'alice'), item),
-      item,
-      fixture.root,
-    );
+    const body = await expectGuardRefusal(await sendCase(guardHandler(fixture.ws, 'alice'), item), item, fixture.root);
     expect(body.error).toContain('to revert this file');
     expect(dataSnapshot(fixture.root)).toEqual(before);
     const steward = guardHandler(fixture.ws, 'bob');
@@ -539,16 +504,8 @@ describe('guard matrix', () => {
     const path = 'sales.semantic.yaml';
     const aliceOwns = '"owner": "alice@example.org", "status": "proposed"';
     const original = fixture.ws.readFile('sales-metrics', path);
-    const bobOwns = original.source.replace(
-      aliceOwns,
-      '"owner": "bob@example.org", "status": "proposed"',
-    );
-    await fixture.ws.saveFile(
-      'sales-metrics',
-      path,
-      { baseHash: original.hash, source: bobOwns },
-      LOCAL_READER,
-    );
+    const bobOwns = original.source.replace(aliceOwns, '"owner": "bob@example.org", "status": "proposed"');
+    await fixture.ws.saveFile('sales-metrics', path, { baseHash: original.hash, source: bobOwns }, LOCAL_READER);
     const identity = ['-c', 'user.name=Bob', '-c', 'user.email=bob@example.org'];
     sh(repository, [...identity, 'commit', '-q', '-am', 'Bob owns order count']);
     const steward = guardHandler(fixture.ws, 'bob');
@@ -562,15 +519,9 @@ describe('guard matrix', () => {
         body: { baseHash: (await bobReads()).hash, source },
         guarded: { file: path, pointer: '/metrics/1', kind: 'metric-status' },
       });
-    const handedOver = bobOwns.replace(
-      '"owner": "bob@example.org", "status": "proposed"',
-      aliceOwns,
-    );
+    const handedOver = bobOwns.replace('"owner": "bob@example.org", "status": "proposed"', aliceOwns);
     expect((await save(handedOver)).status).toBe(200);
-    const approved = handedOver.replace(
-      aliceOwns,
-      '"owner": "alice@example.org", "status": "approved"',
-    );
+    const approved = handedOver.replace(aliceOwns, '"owner": "alice@example.org", "status": "approved"');
     const refused = await save(approved);
     const body = await refused.json();
     expect(refused.status).toBe(403);

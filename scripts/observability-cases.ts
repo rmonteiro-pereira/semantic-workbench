@@ -25,10 +25,7 @@ function redactionCase(m: any) {
   assert(!m.redactText('Authorization: Bearer abc123def456ghi').includes('abc123'));
   assert(!m.redactText('author ana.lopes@example.org pushed').includes('ana.lopes'));
   assert(!m.redactText(`failed ${JWT}`).includes('eyJ'));
-  assert.equal(
-    m.redactText('fetch https://deploy:s3cr3t@git.example.org/r.git'),
-    'fetch https://***@git.example.org/r.git',
-  );
+  assert.equal(m.redactText('fetch https://deploy:s3cr3t@git.example.org/r.git'), 'fetch https://***@git.example.org/r.git');
   assert(!m.redactText('GET https://x.example.org/cb?code=abc&state=xyz').includes('code=abc'));
   assert(!m.redactText('client_secret=hunter2').includes('hunter2'));
   assert.equal(m.redactText('ENOENT /data/projects/a/b.yaml'), 'ENOENT <path>');
@@ -57,10 +54,7 @@ function sensitiveFieldsCase(m: any) {
   assert(!nested.includes('leak'));
   const deep = m.redactFields({ a: { b: { c: { d: { e: 'too-deep' } } } } });
   assert(!JSON.stringify(deep).includes('too-deep'));
-  assert.equal(
-    (m.redactFields({ list: Array.from({ length: 50 }, (_, i) => i) }).list as []).length,
-    10,
-  );
+  assert.equal((m.redactFields({ list: Array.from({ length: 50 }, (_, i) => i) }).list as []).length, 10);
 }
 
 function telemetrySettingsCase(m: any) {
@@ -76,19 +70,9 @@ function telemetrySettingsCase(m: any) {
   assert.equal(problems.length, 0);
   const foreign = `${key};IngestionEndpoint=https://collector.example.net/`;
   assert.notEqual(m.connectionStringProblem(foreign), null);
-  assert.notEqual(
-    m.connectionStringProblem(
-      `${key};IngestionEndpoint=http://a.in.applicationinsights.azure.com/`,
-    ),
-    null,
-  );
+  assert.notEqual(m.connectionStringProblem(`${key};IngestionEndpoint=http://a.in.applicationinsights.azure.com/`), null);
   assert.notEqual(m.connectionStringProblem('InstrumentationKey=nope'), null);
-  assert.notEqual(
-    m.connectionStringProblem(
-      `${key};IngestionEndpoint=https://evilapplicationinsights.azure.com/`,
-    ),
-    null,
-  );
+  assert.notEqual(m.connectionStringProblem(`${key};IngestionEndpoint=https://evilapplicationinsights.azure.com/`), null);
   const bad: { variable: string }[] = [];
   m.readTelemetry({ ...env, SW_TRACE_SAMPLE_RATIO: '3' }, true, bad);
   assert.equal(bad[0]?.variable, 'SW_TRACE_SAMPLE_RATIO');
@@ -244,11 +228,7 @@ async function azureBackendsCase(m: any) {
   const connectionString = `InstrumentationKey=${KEY};IngestionEndpoint=https://x.in.applicationinsights.azure.com/`;
   const backends = await m.azureBackends({ enabled: true, connectionString, sampleRatio: 0.1 });
   await new Promise(resolve => setTimeout(resolve, 1200));
-  await Promise.all([
-    backends.spanExporter.shutdown(),
-    backends.metricExporter.shutdown(),
-    backends.logExporter.shutdown(),
-  ]);
+  await Promise.all([backends.spanExporter.shutdown(), backends.metricExporter.shutdown(), backends.logExporter.shutdown()]);
   await new Promise(resolve => setTimeout(resolve, 800));
   assert.deepEqual(attempts, []);
 }

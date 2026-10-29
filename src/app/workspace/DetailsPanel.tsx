@@ -150,20 +150,11 @@ export function DetailsPanel({
   return (
     <>
       {inspectorVisible && (
-        <aside
-          className="inspector"
-          aria-label="Definition details"
-          role={pageDetails ? 'dialog' : undefined}
-          aria-modal={pageDetails || undefined}
-        >
+        <aside className="inspector" aria-label="Definition details" role={pageDetails ? 'dialog' : undefined} aria-modal={pageDetails || undefined}>
           <div className="section-label">
             DEFINITION DETAILS
             {(entity || relationship) && (
-              <button
-                className="inspector-close"
-                aria-label="Close details"
-                onClick={handleInspectorCloseClick}
-              >
+              <button className="inspector-close" aria-label="Close details" onClick={handleInspectorCloseClick}>
                 ×
               </button>
             )}

@@ -20,19 +20,7 @@ test('shopping center ontology groups by its eleven module namespaces', async ()
       .filter(g => g.provenance === 'Declared prefix')
       .map(g => g.name)
       .sort(),
-  ).toEqual([
-    'asset:',
-    'core:',
-    'fin:',
-    'hr:',
-    'kpi:',
-    'lease:',
-    'legal:',
-    'ops:',
-    'party:',
-    'perf:',
-    'proc:',
-  ]);
+  ).toEqual(['asset:', 'core:', 'fin:', 'hr:', 'kpi:', 'lease:', 'legal:', 'ops:', 'party:', 'perf:', 'proc:']);
   expect(o.groups.some(g => g.id === 'no-namespace')).toBe(false);
   const doc = parse(source);
   for (const c of doc.ontology) {

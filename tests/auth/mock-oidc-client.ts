@@ -10,10 +10,7 @@ export const callback = 'http://127.0.0.1:4310/auth/callback';
 export const signedOut = 'http://127.0.0.1:4310/auth/signed-out';
 
 /** Runs a self-test with a fresh provider and guaranteed cleanup. */
-export async function withProvider(
-  run: (provider: MockOidc) => Promise<void>,
-  options: MockOidcOptions = {},
-) {
+export async function withProvider(run: (provider: MockOidc) => Promise<void>, options: MockOidcOptions = {}) {
   const provider = await startMockOidc(options);
   try {
     await run(provider);
@@ -23,13 +20,7 @@ export async function withProvider(
 }
 
 async function configuration(provider: MockOidc) {
-  return oidc.discovery(
-    new URL(provider.issuer),
-    TEST_WORKBENCH_CLIENT.clientId,
-    TEST_WORKBENCH_CLIENT.secret,
-    undefined,
-    { execute: [oidc.allowInsecureRequests] },
-  );
+  return oidc.discovery(new URL(provider.issuer), TEST_WORKBENCH_CLIENT.clientId, TEST_WORKBENCH_CLIENT.secret, undefined, { execute: [oidc.allowInsecureRequests] });
 }
 
 /** Builds and completes the browser step using an OpenID client. */
@@ -61,11 +52,7 @@ export async function signIn(provider: MockOidc, username = 'alice') {
 }
 
 /** Sends an authenticated token request for protocol edge cases. */
-export function tokenRequest(
-  provider: MockOidc,
-  values: Record<string, string>,
-  client = TEST_WORKBENCH_CLIENT,
-) {
+export function tokenRequest(provider: MockOidc, values: Record<string, string>, client = TEST_WORKBENCH_CLIENT) {
   return fetch(`${provider.issuer}/token`, {
     method: 'POST',
     body: new URLSearchParams({
@@ -87,11 +74,7 @@ export async function graphToken(provider: MockOidc) {
 }
 
 /** Checks the overage user against a requested set of group ids. */
-export function graphCheck(
-  provider: MockOidc,
-  token?: string,
-  ids = [TEST_GROUPS.salesEditors.id],
-) {
+export function graphCheck(provider: MockOidc, token?: string, ids = [TEST_GROUPS.salesEditors.id]) {
   return fetch(`${provider.graphUrl}/v1.0/users/${TEST_USERS.olga.oid}/checkMemberGroups`, {
     method: 'POST',
     headers: {

@@ -756,10 +756,7 @@
 .kpi-lineage .lineage-head,
 .kpi-lineage .lineage-row {
   display: grid;
-  grid-template-columns: minmax(150px, 1fr) minmax(150px, 1.1fr) minmax(140px, 1fr) minmax(
-      200px,
-      1.5fr
-    );
+  grid-template-columns: minmax(150px, 1fr) minmax(150px, 1.1fr) minmax(140px, 1fr) minmax(200px, 1.5fr);
   gap: 18px;
 }
 .kpi-lineage .lineage-head {

@@ -1,12 +1,6 @@
 // The stored light or dark choice and how it reaches the page.
 import { afterEach, expect, test } from 'bun:test';
-import {
-  THEME_STORAGE_KEY,
-  applyThemePreference,
-  parseThemePreference,
-  readThemePreference,
-  storeThemePreference,
-} from '../src/app/theme/theme-preference';
+import { THEME_STORAGE_KEY, applyThemePreference, parseThemePreference, readThemePreference, storeThemePreference } from '../src/app/theme/theme-preference';
 
 const realStorage = globalThis.localStorage;
 

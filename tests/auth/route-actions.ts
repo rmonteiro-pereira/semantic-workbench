@@ -133,7 +133,5 @@ export const readRouteExamples = routeExamples.filter(
     example.path.startsWith('/api/') &&
     // Administration and audit reads are Admin or Steward pages that name no project.
     !/^\/api\/(admin|audit)(\/|$)/.test(example.path) &&
-    (example.method === 'GET' ||
-      example.path.endsWith('/preview') ||
-      example.path === '/api/agent/plan'),
+    (example.method === 'GET' || example.path.endsWith('/preview') || example.path === '/api/agent/plan'),
 );

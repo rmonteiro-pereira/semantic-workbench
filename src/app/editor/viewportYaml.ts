@@ -41,9 +41,7 @@ function addMetadata(doc: Text, number: number, selected: Set<number>) {
   });
   if (child === null) return;
   const sequencePrefix = /^\s*-\s+/.exec(line.text);
-  const childIndentation = sequencePrefix
-    ? sequencePrefix[0].length
-    : yamlIndentation(doc.line(child).text);
+  const childIndentation = sequencePrefix ? sequencePrefix[0].length : yamlIndentation(doc.line(child).text);
   let from = number + 1;
   while (from < (boundary ?? doc.lines + 1)) {
     const found = findYamlLine(doc, {

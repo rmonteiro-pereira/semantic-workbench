@@ -31,9 +31,7 @@ test('a case variant of a restricted folder is refused for every route that name
   const history = await alice.call(`${PROJECT}/git/log?path=${variant}`);
   const staged = await alice.call(`${PROJECT}/git/stage`, 'POST', { paths: [created] });
 
-  expect([read, write, draft, diff, history, staged].map(reply => reply.status)).toEqual([
-    404, 404, 404, 404, 404, 404,
-  ]);
+  expect([read, write, draft, diff, history, staged].map(reply => reply.status)).toEqual([404, 404, 404, 404, 404, 404]);
   const base = join(fixture.ws.layout.projects, 'sales-contracts');
   expect(existsSync(join(base, 'FINANCE'))).toBe(false);
   const copy = copyFolder(fixture.ws, alice.principal.key, 'sales-contracts');

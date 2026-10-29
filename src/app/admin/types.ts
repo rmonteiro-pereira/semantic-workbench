@@ -116,12 +116,6 @@ export type AuditEntry = {
 /** One page of filtered audit records. */
 export type AuditPage = { entries: AuditEntry[]; next: string | null };
 /** Proposal payloads accepted by the shared dry-run route. */
-export type Proposal =
-  | { roles: Role[] }
-  | { grants: Grant[] }
-  | ProjectsConfig
-  | AgentsConfig
-  | { rules: Policy[] }
-  | { rollbackTo: string };
+export type Proposal = { roles: Role[] } | { grants: Grant[] } | ProjectsConfig | AgentsConfig | { rules: Policy[] } | { rollbackTo: string };
 /** Administration files that require review before activation. */
 export type AccessArea = 'roles' | 'grants' | 'projects' | 'agents' | 'policies';

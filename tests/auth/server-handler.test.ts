@@ -12,10 +12,7 @@ beforeAll(useDefaultBrand);
 test('server sign-in, No access, overage, cookie events and logout', async () => {
   const provider = await startMockOidc();
   const fixture = await authWorkspace();
-  const auth = await createServerAuthentication(
-    fixture.ws,
-    oidcConfig(provider.issuer, provider.graphUrl),
-  );
+  const auth = await createServerAuthentication(fixture.ws, oidcConfig(provider.issuer, provider.graphUrl));
   const handler = createHandler(fixture.ws, auth);
   const origin = 'http://127.0.0.1:4310';
   try {
@@ -33,9 +30,7 @@ test('server sign-in, No access, overage, cookie events and logout', async () =>
       const attemptCookie = first.headers.getSetCookie()[0].split(';')[0];
       const callback = await provider.authorizeAs(username, first.headers.get('location')!);
       const signedIn = await handler(new Request(callback, { headers: { Cookie: attemptCookie } }));
-      expect(signedIn.headers.get('location')).toBe(
-        allowed ? '/catalog?view=one' : '/auth/no-access',
-      );
+      expect(signedIn.headers.get('location')).toBe(allowed ? '/catalog?view=one' : '/auth/no-access');
       const cookie = signedIn.headers
         .getSetCookie()
         .find(value => value.startsWith('sw-session='))!

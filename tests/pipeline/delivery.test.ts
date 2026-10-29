@@ -7,30 +7,14 @@ for (const run of ['pr', 'main', 'tag:v0.4.0-alpha.1']) {
     const plan = buildPlan(lintRules(readPipelineInput()), readSampleVariables(), run);
     expect([...new Set(plan.map(step => step.stage))]).toEqual(['Validate', 'Image', 'Deploy']);
     const deploy = plan.filter(step => step.stage === 'Deploy');
-    expect(
-      deploy.every(
-        step =>
-          step.enabled ===
-          (run.startsWith('tag:') &&
-            !step.command.includes('playwright install') &&
-            step.command !== 'bun install --frozen-lockfile'),
-      ),
-    ).toBe(true);
-    expect(deploy.filter(step => step.kind === 'azure').map(step => step.command)).toEqual([
-      'bun run image:scan -- --ref-env IMAGE_REF',
-      'bun run deploy:azure',
-    ]);
+    expect(deploy.every(step => step.enabled === (run.startsWith('tag:') && !step.command.includes('playwright install') && step.command !== 'bun install --frozen-lockfile'))).toBe(true);
+    expect(deploy.filter(step => step.kind === 'azure').map(step => step.command)).toEqual(['bun run image:scan -- --ref-env IMAGE_REF', 'bun run deploy:azure']);
     expect(deploy.at(-1)?.env?.IMAGE_DIGEST).toMatch(/^sha256:[a-f0-9]{64}$/);
   });
 }
 
 test('manual rollback is expanded on the same protected environment', () => {
-  const plan = buildPlan(
-    lintRules(readPipelineInput()),
-    readSampleVariables(),
-    'tag:v0.4.0-alpha.1',
-    'rollback',
-  );
+  const plan = buildPlan(lintRules(readPipelineInput()), readSampleVariables(), 'tag:v0.4.0-alpha.1', 'rollback');
   expect([...new Set(plan.map(step => step.stage))]).toEqual(['Rollback']);
   expect(plan.at(-1)?.command).toBe('bun run deploy:rollback');
   expect(plan.at(-1)?.env?.ROLLBACK_TARGET).toBe('tag');
@@ -82,9 +66,7 @@ test('browser setup defaults on for validation and off for deployment', () => {
   const installs = plan.filter(step => step.command.includes('playwright install'));
   expect(installs.filter(step => step.stage === 'Validate').every(step => step.enabled)).toBe(true);
   expect(installs.find(step => step.stage === 'Deploy')?.enabled).toBe(false);
-  expect(
-    plan.filter(step => step.stage === 'Deploy' && step.command === 'checkout: self'),
-  ).toHaveLength(1);
+  expect(plan.filter(step => step.stage === 'Deploy' && step.command === 'checkout: self')).toHaveLength(1);
 });
 
 test('trial follows the delivered tag and checks previous after automatic recovery', async () => {

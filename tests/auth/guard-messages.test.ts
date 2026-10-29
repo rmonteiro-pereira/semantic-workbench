@@ -7,10 +7,7 @@ import { GuardedChangeError, type FileChange } from '../../src/server/auth/guard
 import { requestAccess, requestReader } from '../../src/server/auth/request-scope';
 import { accessFixture, person } from './access-fixture';
 
-const METRICS = readFileSync(
-  'tests/fixtures/auth-workspace/projects/sales-metrics/sales.semantic.yaml',
-  'utf8',
-);
+const METRICS = readFileSync('tests/fixtures/auth-workspace/projects/sales-metrics/sales.semantic.yaml', 'utf8');
 
 function aliceGuard() {
   const access = createAccessControl(accessFixture());
@@ -25,9 +22,7 @@ function withOrderCount(status: string, owner: string) {
   const start = METRICS.indexOf('- name: order_count');
   const end = METRICS.indexOf('- name:', start + 1);
   const block = METRICS.slice(start, end < 0 ? undefined : end);
-  const changed = block
-    .replace(/"status": "[a-z]+"/, `"status": "${status}"`)
-    .replace(/"owner": "[^"]*"/, `"owner": "${owner}"`);
+  const changed = block.replace(/"status": "[a-z]+"/, `"status": "${status}"`).replace(/"owner": "[^"]*"/, `"owner": "${owner}"`);
   return METRICS.replace(block, changed);
 }
 

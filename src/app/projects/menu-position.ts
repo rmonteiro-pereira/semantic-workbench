@@ -26,12 +26,7 @@ function chooseSide(anchor: Box, menu: Size, viewport: Size, preferred: MenuPref
 }
 
 /** Computes fixed-position coordinates for a menu of the given natural size. */
-export function placeMenu(
-  anchor: Box,
-  menu: Size,
-  viewport: Size,
-  preference: MenuPreference,
-): MenuPlacement {
+export function placeMenu(anchor: Box, menu: Size, viewport: Size, preference: MenuPreference): MenuPlacement {
   const { side, room } = chooseSide(anchor, menu, viewport, preference.side);
   const maxHeight = Math.max(0, Math.min(menu.height, room));
   const top = side === 'below' ? anchor.bottom + GAP : anchor.top - GAP - maxHeight;

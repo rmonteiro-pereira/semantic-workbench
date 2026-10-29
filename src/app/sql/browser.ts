@@ -1,11 +1,5 @@
 /** Loads SQL dialect grammars on demand inside the validation worker to keep typing responsive. */
-import {
-  lintSql,
-  lintRegion,
-  grammarsNeeded,
-  type Astify,
-  type SqlFinding,
-} from '../../shared/sql/lint';
+import { lintSql, lintRegion, grammarsNeeded, type Astify, type SqlFinding } from '../../shared/sql/lint';
 import { grammarOf, sqlRegions, type SqlRegion } from '../../shared/sql/regions';
 import type { Issue } from '../../shared/validation/diagnostics';
 // The browser's SQL lint: one node-sql-parser grammar build per dialect, imported on first need
@@ -53,12 +47,7 @@ export async function browserSqlFindings(source: string, filename: string): Prom
 }
 
 /** Lints one SQL field with findings relative to the supplied text. */
-export async function browserSqlTextFindings(
-  sql: string,
-  dialect: string | null,
-  kind: 'expression' | 'statement' = 'expression',
-  odcs = false,
-): Promise<SqlFinding[]> {
+export async function browserSqlTextFindings(sql: string, dialect: string | null, kind: 'expression' | 'statement' = 'expression', odcs = false): Promise<SqlFinding[]> {
   const grammar = grammarOf(dialect, odcs);
   if (!grammar || !sql.trim()) return [];
   const region: SqlRegion = {

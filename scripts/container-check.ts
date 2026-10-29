@@ -24,9 +24,7 @@ const port = Number(values.port);
 assert(Number.isInteger(port) && port > 0 && port < 65535, '--port must be between 1 and 65534');
 assert(!(values.image && values.build), 'Choose --image or --build');
 const localSuites = gateSuites.filter(suite => !serverSuites.includes(suite));
-const suites = ['all', 'local'].includes(values.suite!)
-  ? localSuites
-  : localSuites.filter(suite => suite === values.suite);
+const suites = ['all', 'local'].includes(values.suite!) ? localSuites : localSuites.filter(suite => suite === values.suite);
 const runServer = ['all', 'server', ...serverSuites].includes(values.suite!);
 assert(runServer || suites.length > 0, 'Unknown --suite');
 const engine = chooseEngine(['docker', 'podman'].filter(name => Bun.which(name)));
@@ -151,9 +149,7 @@ await withCleanup(
 );
 
 async function cleanup(root: string) {
-  const results = await Promise.allSettled(
-    containers.reverse().map(name => command([runtime!, 'rm', '-f', name])),
-  );
+  const results = await Promise.allSettled(containers.reverse().map(name => command([runtime!, 'rm', '-f', name])));
   await rm(root, { recursive: true, force: true });
   const failures = results.filter(result => result.status === 'rejected');
   if (failures.length) {

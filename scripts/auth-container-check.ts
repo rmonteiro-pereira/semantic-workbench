@@ -1,9 +1,5 @@
 // Verifies session persistence and single-volume handover using the built server image.
-import {
-  runCommand as command,
-  waitReady as waitAuthReady,
-  withCleanup,
-} from './helpers/processes';
+import { runCommand as command, waitReady as waitAuthReady, withCleanup } from './helpers/processes';
 import assert from 'node:assert/strict';
 import { randomBytes } from 'node:crypto';
 import { chromium, type Page } from '@playwright/test';
@@ -15,11 +11,7 @@ import { hardenedRunArguments } from './container-hardening';
 import { check, signIn, signInChecks, type SignInTarget } from './helpers/sign-in';
 
 /** Builds server container arguments with host-loopback provider access and isolated storage. */
-export function serverContainerArguments(
-  engine: Engine,
-  container: { image: string; name: string; root: string },
-  env: Record<string, string>,
-) {
+export function serverContainerArguments(engine: Engine, container: { image: string; name: string; root: string }, env: Record<string, string>) {
   const { image, name, root } = container;
   const mapping = engine === 'podman' ? ['--userns', 'keep-id:uid=1000,gid=1000'] : [];
   return [
@@ -34,9 +26,7 @@ export function serverContainerArguments(
     ...mapping,
     '-v',
     `${root}:/data${engine === 'podman' ? ':z' : ''}`,
-    ...Object.entries({ ...env, DATA_DIR: '/data', SW_CACHE_DIR: '/tmp/sw-cache' }).flatMap(
-      ([key, value]) => ['-e', `${key}=${value}`],
-    ),
+    ...Object.entries({ ...env, DATA_DIR: '/data', SW_CACHE_DIR: '/tmp/sw-cache' }).flatMap(([key, value]) => ['-e', `${key}=${value}`]),
     image,
   ];
 }
@@ -59,12 +49,7 @@ async function containerFixture(url: string) {
     fixture.dispose();
     throw error;
   }
-  const env = authEnvironment(
-    '/data',
-    url,
-    { ...mock, kind: 'entra' },
-    randomBytes(32).toString('base64'),
-  );
+  const env = authEnvironment('/data', url, { ...mock, kind: 'entra' }, randomBytes(32).toString('base64'));
   env.SW_OIDC_CLIENT_SECRET = clientSecret;
   return { fixture, mock, env };
 }
@@ -73,9 +58,7 @@ async function serverGroup(engine: Engine, image: string, url: string) {
   const { fixture, mock, env } = await containerFixture(url);
   const names: string[] = [];
   async function cleanup() {
-    const removed = await Promise.allSettled(
-      names.map(name => commandCaptured([engine, 'rm', '-f', name])),
-    );
+    const removed = await Promise.allSettled(names.map(name => commandCaptured([engine, 'rm', '-f', name])));
     try {
       await mock.stop();
     } finally {
@@ -87,13 +70,7 @@ async function serverGroup(engine: Engine, image: string, url: string) {
   async function start(suffix: string, overrides: Record<string, string> = {}) {
     const name = `workbench-auth-${process.pid}-${suffix}`;
     names.push(name);
-    await commandCaptured(
-      serverContainerArguments(
-        engine,
-        { image, name, root: fixture.root },
-        { ...env, ...overrides },
-      ),
-    );
+    await commandCaptured(serverContainerArguments(engine, { image, name, root: fixture.root }, { ...env, ...overrides }));
     return name;
   }
   // Entra's authorize and logout endpoints sit beside the issuer, under endpointBase.
@@ -113,20 +90,10 @@ export async function authContainerCheck(engine: Engine, image: string, port: nu
     assert.equal((await health.json()).ok, true);
     const inspected = JSON.parse(await commandCaptured([engine, 'image', 'inspect', image]));
     const labels = inspected[0].Config.Labels;
-    await command(
-      [
-        process.execPath,
-        'run',
-        'deploy:smoke',
-        '--',
-        url,
-        labels['org.opencontainers.image.version'],
-        labels['org.opencontainers.image.revision'],
-        '--loopback',
-      ],
-      false,
-      { ...process.env, SW_OIDC_ISSUER: group.issuer },
-    );
+    await command([process.execPath, 'run', 'deploy:smoke', '--', url, labels['org.opencontainers.image.version'], labels['org.opencontainers.image.revision'], '--loopback'], false, {
+      ...process.env,
+      SW_OIDC_ISSUER: group.issuer,
+    });
     const target: SignInTarget = { url, issuer: group.endpointBase, kind: 'entra' };
     await containerSignIn(engine, first, target, began);
     await containerHandover(engine, first, port, group.start);
@@ -141,9 +108,7 @@ async function containerSignIn(engine: Engine, first: string, target: SignInTarg
     try {
       await signIn(page, target, 'alice');
       assert(performance.now() - began < 30_000, 'Container sign-in exceeded 30 seconds');
-      await check('restart preserves session and data', () =>
-        restartPersistence(page, engine, first, url),
-      );
+      await check('restart preserves session and data', () => restartPersistence(page, engine, first, url));
     } finally {
       await page.close();
     }
@@ -153,21 +118,12 @@ async function containerSignIn(engine: Engine, first: string, target: SignInTarg
   }
 }
 
-async function containerHandover(
-  engine: Engine,
-  first: string,
-  port: number,
-  start: (suffix: string, overrides?: Record<string, string>) => Promise<string>,
-) {
+async function containerHandover(engine: Engine, first: string, port: number, start: (suffix: string, overrides?: Record<string, string>) => Promise<string>) {
   await check('same revision refused and different revision takes over', async () => {
     const secondUrl = `http://127.0.0.1:${port + 1}`;
     const second = await start('second', { SW_PORT: String(port + 1) });
     await waitAuthReady(secondUrl, 'refused', 503);
-    assert(
-      (await commandCaptured([engine, 'logs', second])).includes(
-        'Only one replica per data root is supported.',
-      ),
-    );
+    assert((await commandCaptured([engine, 'logs', second])).includes('Only one replica per data root is supported.'));
     await commandCaptured([engine, 'stop', second]);
     await start('handover', {
       SW_PORT: String(port + 1),

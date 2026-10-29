@@ -1,18 +1,7 @@
 // Tests cloning a repository as a new project from a local bare repository: address checks,
 // staging, preserved bytes, links and submodules, cancellation and recovery after a stop.
 import { test, expect } from 'bun:test';
-import {
-  chmodSync,
-  existsSync,
-  lstatSync,
-  mkdirSync,
-  mkdtempSync,
-  readFileSync,
-  readdirSync,
-  rmSync,
-  symlinkSync,
-  writeFileSync,
-} from 'node:fs';
+import { chmodSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { openWorkspace } from '../src/server/projects/workspace';
@@ -41,10 +30,7 @@ function teamRepository() {
   writeFileSync(join(work, 'windows.yaml'), CRLF_TEXT);
   writeFileSync(join(work, 'broken.yaml'), INVALID_TEXT);
   symlinkSync('/etc/hostname', join(work, 'outside.yaml'));
-  writeFileSync(
-    join(work, '.gitmodules'),
-    `[submodule "inner"]\n\tpath = inner\n\turl = ${submodule}\n`,
-  );
+  writeFileSync(join(work, '.gitmodules'), `[submodule "inner"]\n\tpath = inner\n\turl = ${submodule}\n`);
   sh(work, ['add', '.']);
   sh(work, ['update-index', '--add', '--cacheinfo', `160000,${submoduleHead},inner`]);
   sh(work, ['commit', '-qm', 'Team files']);
@@ -69,8 +55,7 @@ async function outcome(app: Workspace, op: string) {
   throw Error('The clone did not finish.');
 }
 
-const stagingFolders = (root: string) =>
-  readdirSync(join(root, 'projects')).filter(name => name.startsWith('.staging'));
+const stagingFolders = (root: string) => readdirSync(join(root, 'projects')).filter(name => name.startsWith('.staging'));
 
 test('a clone becomes a project with its bytes, without links or submodules', async () => {
   const source = teamRepository();
@@ -96,9 +81,7 @@ test('a clone becomes a project with its bytes, without links or submodules', as
 
     const project = app.ws.state.registry().projects.find(entry => entry.slug === started.slug);
     expect(project).toMatchObject({ name: 'team', origin: 'clone', remoteAddress: source.bare });
-    const listed = (await ok(call(app, 'GET', '/api/projects'))).find(
-      (entry: any) => entry.slug === started.slug,
-    );
+    const listed = (await ok(call(app, 'GET', '/api/projects'))).find((entry: any) => entry.slug === started.slug);
     expect(listed.files.find((file: any) => file.path === 'broken.yaml').valid).toBe(false);
     const status = await ok(call(app, 'GET', `/api/projects/${started.slug}/git/status`));
     expect(status.remotes).toEqual({ origin: source.bare });
@@ -153,15 +136,7 @@ test('a second clone of the same address gets a free name', async () => {
 test('helper, option-like and multi-line addresses are refused before Git runs', async () => {
   const app = await testWorkspace();
   try {
-    for (const url of [
-      'ext::sh -c touch% /tmp/pwned',
-      'fd::17',
-      '--upload-pack=touch /tmp/pwned',
-      '-u x',
-      'https://example.invalid/a.git\nhttps://example.invalid/b.git',
-      'x'.repeat(2001),
-      '',
-    ]) {
+    for (const url of ['ext::sh -c touch% /tmp/pwned', 'fd::17', '--upload-pack=touch /tmp/pwned', '-u x', 'https://example.invalid/a.git\nhttps://example.invalid/b.git', 'x'.repeat(2001), '']) {
       const response = await call(app, 'POST', '/api/clone', { url });
       expect({ url, status: response.status }).toEqual({ url, status: 400 });
     }
@@ -177,9 +152,7 @@ test('helper, option-like and multi-line addresses are refused before Git runs',
 test('a failed clone reports the error and leaves nothing behind', async () => {
   const app = await testWorkspace();
   try {
-    const started = await ok(
-      call(app, 'POST', '/api/clone', { url: '/nonexistent/workbench-repo.git' }),
-    );
+    const started = await ok(call(app, 'POST', '/api/clone', { url: '/nonexistent/workbench-repo.git' }));
     const failed = await outcome(app, started.op);
     expect(failed.phase).toBe('failed');
     expect(failed.message).toContain('does not exist');
@@ -195,10 +168,7 @@ test('Cancel stops a running clone and removes its staging folder', async () => 
   // A Git wrapper that waits before cloning, so there is time to cancel.
   const bin = mkdtempSync(join(tmpdir(), 'workbench-slow-git-'));
   const wrapper = join(bin, 'git');
-  writeFileSync(
-    wrapper,
-    '#!/bin/sh\nfor a in "$@"; do [ "$a" = clone ] && sleep 30; done\nexec git "$@"\n',
-  );
+  writeFileSync(wrapper, '#!/bin/sh\nfor a in "$@"; do [ "$a" = clone ] && sleep 30; done\nexec git "$@"\n');
   chmodSync(wrapper, 0o755);
   const app = await testWorkspace({ gitBinary: wrapper });
   try {
@@ -222,10 +192,7 @@ test('two clones started together get different names and folders', async () => 
   const source = teamRepository();
   const app = await testWorkspace();
   try {
-    const [first, second] = await Promise.all([
-      ok(call(app, 'POST', '/api/clone', { url: source.bare })),
-      ok(call(app, 'POST', '/api/clone', { url: source.bare })),
-    ]);
+    const [first, second] = await Promise.all([ok(call(app, 'POST', '/api/clone', { url: source.bare })), ok(call(app, 'POST', '/api/clone', { url: source.bare }))]);
     expect(new Set([first.name, second.name])).toEqual(new Set(['team', 'team (2)']));
     expect(first.slug).not.toBe(second.slug);
     expect(await outcome(app, first.op)).toMatchObject({ phase: 'done' });

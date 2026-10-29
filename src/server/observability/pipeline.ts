@@ -23,9 +23,7 @@ export function resourceAttributes(service: StartOptions['service']) {
 }
 
 /** Creates the three providers, registers them with the API and returns their shutdown. */
-export async function createPipeline(
-  options: Pick<StartOptions, 'service' | 'metricIntervalMs'> & { backends: TelemetryBackends },
-): Promise<{ shutdown(): Promise<void> }> {
+export async function createPipeline(options: Pick<StartOptions, 'service' | 'metricIntervalMs'> & { backends: TelemetryBackends }): Promise<{ shutdown(): Promise<void> }> {
   const { backends } = options;
   const resource = resourceFromAttributes(resourceAttributes(options.service));
   const contextManager = new AsyncLocalStorageContextManager().enable();
@@ -51,11 +49,7 @@ export async function createPipeline(
   logs.setGlobalLoggerProvider(loggerProvider);
   return {
     async shutdown() {
-      await Promise.allSettled([
-        tracerProvider.shutdown(),
-        meterProvider.shutdown(),
-        loggerProvider.shutdown(),
-      ]);
+      await Promise.allSettled([tracerProvider.shutdown(), meterProvider.shutdown(), loggerProvider.shutdown()]);
     },
   };
 }

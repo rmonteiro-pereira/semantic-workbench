@@ -18,22 +18,12 @@ const temp = await mkdtemp('/tmp/workbench-mutations-');
 // tree as the real sources, without relying on Bun caches.
 await symlink(resolve(root, 'node_modules'), resolve(temp, 'node_modules'), 'dir');
 const mutants: [string, string, string, string][] = [
-  [
-    'expansion-viewport',
-    'src/app/graph/expansion-viewport.ts',
-    'fitted.zoom >= readableZoom',
-    'true',
-  ],
+  ['expansion-viewport', 'src/app/graph/expansion-viewport.ts', 'fitted.zoom >= readableZoom', 'true'],
   ['expansion-viewport', 'src/app/graph/expansion-viewport.ts', 'pane.width / 2', '0'],
   ['expansion-viewport', 'src/app/graph/expansion-viewport.ts', 'pane.height / 2', '0'],
   ['clone-progress', 'src/app/scm/clone-progress.ts', 'state.events[operation.op]', 'undefined'],
   ['clone-progress', 'src/app/scm/clone-progress.ts', 'event.op !== state.operation?.op', 'false'],
-  [
-    'clone-progress',
-    'src/app/scm/clone-progress.ts',
-    'return { ...state, events, progress: event };',
-    'return { ...state, events, progress: state.progress };',
-  ],
+  ['clone-progress', 'src/app/scm/clone-progress.ts', 'return { ...state, events, progress: event };', 'return { ...state, events, progress: state.progress };'],
   ['deploy-smoke', 'scripts/deploy-smoke.ts', 'health.version === expected.version', 'true'],
   ['deploy-smoke', 'scripts/deploy-smoke.ts', 'input.projects.status === 401', 'true'],
   ['deploy-smoke', 'scripts/deploy-smoke.ts', "ready.state === 'serving'", 'true'],
@@ -46,26 +36,11 @@ const mutants: [string, string, string, string][] = [
     'if (!decision.allow) throw new WriteAccessError(action, resource, decision);',
     'if (false) throw new WriteAccessError(action, resource, decision);',
   ],
-  [
-    'write-targets',
-    'src/server/auth/write-access.ts',
-    'for (const resource of resources)',
-    'for (const resource of resources.slice(0, 1))',
-  ],
-  [
-    'write-drafts',
-    'src/server/auth/route-actions.ts',
-    "row('PUT', '/api/drafts/:slug/*', 'edit', file)",
-    "row('PUT', '/api/drafts/:slug/*', 'viewOwnState', file)",
-  ],
+  ['write-targets', 'src/server/auth/write-access.ts', 'for (const resource of resources)', 'for (const resource of resources.slice(0, 1))'],
+  ['write-drafts', 'src/server/auth/route-actions.ts', "row('PUT', '/api/drafts/:slug/*', 'edit', file)", "row('PUT', '/api/drafts/:slug/*', 'viewOwnState', file)"],
 
   ['write-body-flags', 'src/server/auth/route-actions.ts', "targets: 'body'", 'targets: undefined'],
-  [
-    'write-body-legacy',
-    'src/server/handler.ts',
-    "authorizeWrite(req, 'edit', [\n        {\n          type: 'file',\n          ...reference,\n        },\n      ]);",
-    'void reference;',
-  ],
+  ['write-body-legacy', 'src/server/handler.ts', "authorizeWrite(req, 'edit', [\n        {\n          type: 'file',\n          ...reference,\n        },\n      ]);", 'void reference;'],
   [
     'write-body-suggestions',
     'src/server/routes/suggestions.ts',
@@ -91,501 +66,116 @@ const mutants: [string, string, string, string][] = [
     "import { authorizeWrite as checkWrite } from '../auth/write-access';\nconst authorizeWrite: typeof checkWrite = (request, ...args) => {\n  if (new URL(request.url).pathname.endsWith('/restore')) return;\n  checkWrite(request, ...args);\n};",
   ],
 
-  [
-    'signin-sessions',
-    'src/server/auth/sessions.ts',
-    '; HttpOnly; SameSite=Lax; Path=/',
-    '; SameSite=Lax; Path=/',
-  ],
+  ['signin-sessions', 'src/server/auth/sessions.ts', '; HttpOnly; SameSite=Lax; Path=/', '; SameSite=Lax; Path=/'],
   ['signin-sessions', 'src/server/auth/sessions.ts', "? '; Secure' : ''", "? '' : ''"],
-  [
-    'signin-sessions',
-    'src/server/auth/sessions.ts',
-    'now - session.createdAt >= absolute',
-    'false',
-  ],
-  [
-    'signin-csrf',
-    'src/server/auth/csrf.ts',
-    "if (request.headers.get('X-SW-Request') === '1')",
-    'if (true)',
-  ],
-  [
-    'signin-nonce',
-    'src/server/auth/oidc.ts',
-    'expectedNonce: attempt.nonce,',
-    'expectedNonce: undefined,',
-  ],
-  [
-    'signin-tenant',
-    'src/server/auth/principal.ts',
-    'mapping.tenantId && tenant.toLowerCase() !== mapping.tenantId.toLowerCase()',
-    'false',
-  ],
-  [
-    'signin-directory',
-    'src/server/auth/directory.ts',
-    'return null;\n      }\n    },\n  };',
-    'return ids;\n      }\n    },\n  };',
-  ],
-  [
-    'signin-redirect',
-    'src/server/auth/middleware.ts',
-    'return options.authentication.login(url.pathname + url.search, request);',
-    'return run(request);',
-  ],
-  [
-    'signin-pages',
-    'src/server/routes/auth.ts',
-    "return authPage('signed-out');",
-    "return options.login('/');",
-  ],
-  [
-    'signin-pages',
-    'src/server/routes/auth.ts',
-    "'<p>An Admin must grant you access to this workbench.</p>'",
-    "'<p>An Admin must grant you access to this workbench.</p><p>workspace-data</p>'",
-  ],
-  [
-    'signin-config',
-    'src/server/config.ts',
-    "url.protocol === 'http:' && !(loopbackPublicUrl && isLoopbackHost(url.hostname))",
-    'false',
-  ],
-  [
-    'signin-config',
-    'src/server/config.ts',
-    'if (GRAPH_ENDPOINTS.includes(graphUrl)) return graphUrl;',
-    'if (true) return graphUrl;',
-  ],
+  ['signin-sessions', 'src/server/auth/sessions.ts', 'now - session.createdAt >= absolute', 'false'],
+  ['signin-csrf', 'src/server/auth/csrf.ts', "if (request.headers.get('X-SW-Request') === '1')", 'if (true)'],
+  ['signin-nonce', 'src/server/auth/oidc.ts', 'expectedNonce: attempt.nonce,', 'expectedNonce: undefined,'],
+  ['signin-tenant', 'src/server/auth/principal.ts', 'mapping.tenantId && tenant.toLowerCase() !== mapping.tenantId.toLowerCase()', 'false'],
+  ['signin-directory', 'src/server/auth/directory.ts', 'return null;\n      }\n    },\n  };', 'return ids;\n      }\n    },\n  };'],
+  ['signin-redirect', 'src/server/auth/middleware.ts', 'return options.authentication.login(url.pathname + url.search, request);', 'return run(request);'],
+  ['signin-pages', 'src/server/routes/auth.ts', "return authPage('signed-out');", "return options.login('/');"],
+  ['signin-pages', 'src/server/routes/auth.ts', "'<p>An Admin must grant you access to this workbench.</p>'", "'<p>An Admin must grant you access to this workbench.</p><p>workspace-data</p>'"],
+  ['signin-config', 'src/server/config.ts', "url.protocol === 'http:' && !(loopbackPublicUrl && isLoopbackHost(url.hostname))", 'false'],
+  ['signin-config', 'src/server/config.ts', 'if (GRAPH_ENDPOINTS.includes(graphUrl)) return graphUrl;', 'if (true) return graphUrl;'],
 
   ['pipeline-script', 'scripts/pipeline-lint.ts', '!Object.hasOwn(scripts, match[1])', 'false'],
   ['pipeline-provider', 'scripts/pipeline-lint.ts', '/keycloak/i.test(source)', 'false'],
 
-  [
-    'container-lock',
-    'src/server/projects/instance-lock.ts',
-    "current.revision === ownRevision ? 'refuse' : 'handover'",
-    "current.revision === ownRevision ? 'take' : 'handover'",
-  ],
-  [
-    'container-lock',
-    'src/server/projects/instance-lock.ts',
-    "if (decision !== 'take') {",
-    "if (decision !== 'take') { await options.open();",
-  ],
-  [
-    'container-lock',
-    'src/server/projects/instance-lock.ts',
-    'opening = options.open();',
-    "state = 'serving'; opening = options.open();",
-  ],
-  [
-    'container-health',
-    'src/server/routes/health.ts',
-    "if (state !== 'serving') {",
-    "if (state !== 'serving' && state !== 'handover') {",
-  ],
+  ['container-lock', 'src/server/projects/instance-lock.ts', "current.revision === ownRevision ? 'refuse' : 'handover'", "current.revision === ownRevision ? 'take' : 'handover'"],
+  ['container-lock', 'src/server/projects/instance-lock.ts', "if (decision !== 'take') {", "if (decision !== 'take') { await options.open();"],
+  ['container-lock', 'src/server/projects/instance-lock.ts', 'opening = options.open();', "state = 'serving'; opening = options.open();"],
+  ['container-health', 'src/server/routes/health.ts', "if (state !== 'serving') {", "if (state !== 'serving' && state !== 'handover') {"],
   ['container-health', 'src/server/routes/health.ts', 'ok: true,', 'ok: true, workspace: [],'],
 
-  [
-    'auth-grants',
-    'src/server/auth/grants.ts',
-    'project.domain && scope.domains.includes(project.domain)',
-    'project.domain',
-  ],
-  [
-    'auth-grants',
-    'src/server/auth/grants.ts',
-    'projects.filter(project => project.domain)',
-    'projects.filter(() => true)',
-  ],
-  [
-    'auth-principal',
-    'src/server/auth/principal.ts',
-    'claims.email_verified === true ? address(claims.email) : null',
-    'address(claims.email)',
-  ],
-  [
-    'auth-principal',
-    'src/server/auth/principal.ts',
-    "candidate.includes('@') && !candidate.includes('#ext#')",
-    "candidate.includes('@')",
-  ],
-  [
-    'auth-grants',
-    'src/server/auth/grants.ts',
-    'principal.verifiedEmail?.toLowerCase()',
-    'principal.verifiedEmail ?? undefined',
-  ],
-  [
-    'auth-principal',
-    'src/server/auth/principal.ts',
-    'const groupClaim = claims[mapping.groupClaim];',
-    'const groupClaim = claims.roles ?? claims[mapping.groupClaim];',
-  ],
+  ['auth-grants', 'src/server/auth/grants.ts', 'project.domain && scope.domains.includes(project.domain)', 'project.domain'],
+  ['auth-grants', 'src/server/auth/grants.ts', 'projects.filter(project => project.domain)', 'projects.filter(() => true)'],
+  ['auth-principal', 'src/server/auth/principal.ts', 'claims.email_verified === true ? address(claims.email) : null', 'address(claims.email)'],
+  ['auth-principal', 'src/server/auth/principal.ts', "candidate.includes('@') && !candidate.includes('#ext#')", "candidate.includes('@')"],
+  ['auth-grants', 'src/server/auth/grants.ts', 'principal.verifiedEmail?.toLowerCase()', 'principal.verifiedEmail ?? undefined'],
+  ['auth-principal', 'src/server/auth/principal.ts', 'const groupClaim = claims[mapping.groupClaim];', 'const groupClaim = claims.roles ?? claims[mapping.groupClaim];'],
   [
     'auth-decision',
     'src/server/auth/authorize.ts',
     'const result = active.evaluate(principal, action, resource, context);',
     'if (!principal.grants.length) return { allow: true, rules: [], status: 200 };\n  const result = active.evaluate(principal, action, resource, context);',
   ],
-  [
-    'auth-compiler',
-    'src/server/auth/role-compiler.ts',
-    '...clauses(permission.conditions ?? {}),',
-    '...clauses({}),',
-  ],
-  [
-    'auth-compiler',
-    'src/server/auth/role-compiler.ts',
-    "role.id.startsWith('r_') && (action === 'admin' || action === 'agentRead')",
-    "role.id.startsWith('r_') && action === 'agentRead'",
-  ],
-  [
-    'auth-decision',
-    'src/server/auth/authorize.ts',
-    "status: 404, reason: 'not-readable'",
-    "status: 403, reason: 'not-readable'",
-  ],
-  [
-    'auth-decision',
-    'src/server/auth/authorize.ts',
-    'adminRules: validated.adminRules,',
-    'adminRules: {},',
-  ],
-  [
-    'auth-admin-guard',
-    'src/server/auth/admin-guard.ts',
-    'if (allowed) return { ok: true };',
-    'if (true) return { ok: true };',
-  ],
-  [
-    'auth-middleware',
-    'src/server/auth/middleware.ts',
-    "const failure = auditDenial(audit, { ...input, decision: 'deny' });",
-    'const failure = null;',
-  ],
+  ['auth-compiler', 'src/server/auth/role-compiler.ts', '...clauses(permission.conditions ?? {}),', '...clauses({}),'],
+  ['auth-compiler', 'src/server/auth/role-compiler.ts', "role.id.startsWith('r_') && (action === 'admin' || action === 'agentRead')", "role.id.startsWith('r_') && action === 'agentRead'"],
+  ['auth-decision', 'src/server/auth/authorize.ts', "status: 404, reason: 'not-readable'", "status: 403, reason: 'not-readable'"],
+  ['auth-decision', 'src/server/auth/authorize.ts', 'adminRules: validated.adminRules,', 'adminRules: {},'],
+  ['auth-admin-guard', 'src/server/auth/admin-guard.ts', 'if (allowed) return { ok: true };', 'if (true) return { ok: true };'],
+  ['auth-middleware', 'src/server/auth/middleware.ts', "const failure = auditDenial(audit, { ...input, decision: 'deny' });", 'const failure = null;'],
 
-  [
-    'auth-admin-repo',
-    'src/server/auth/admin-repo.ts',
-    'if ((await version()) !== change.baseVersion) throw new AdminStaleError();',
-    '',
-  ],
+  ['auth-admin-repo', 'src/server/auth/admin-repo.ts', 'if ((await version()) !== change.baseVersion) throw new AdminStaleError();', ''],
   ['auth-admin-repo', 'src/server/auth/admin-repo.ts', ' || /[<>]/.test(value)', ''],
-  [
-    'auth-audit',
-    'src/server/auth/audit.ts',
-    'pick(input.resource, resourceKeys)',
-    'input.resource',
-  ],
-  [
-    'auth-middleware',
-    'src/server/auth/middleware.ts',
-    "if (!found) return new Response('Not found', { status: 404 });",
-    'if (!found) return run(request);',
-  ],
-  [
-    'auth-middleware',
-    'src/server/auth/middleware.ts',
-    "mode === 'server' &&\n      !(await validCsrf(",
-    'false &&\n      !(await validCsrf(',
-  ],
+  ['auth-audit', 'src/server/auth/audit.ts', 'pick(input.resource, resourceKeys)', 'input.resource'],
+  ['auth-middleware', 'src/server/auth/middleware.ts', "if (!found) return new Response('Not found', { status: 404 });", 'if (!found) return run(request);'],
+  ['auth-middleware', 'src/server/auth/middleware.ts', "mode === 'server' &&\n      !(await validCsrf(", 'false &&\n      !(await validCsrf('],
   ['auth-middleware', 'src/server/auth/middleware.ts', 'row.audited === true ||', ''],
 
-  [
-    'agent',
-    'src/server/agent/runtime.ts',
-    'physical.parentheses = true',
-    'physical.parentheses=false',
-  ],
-  [
-    'agent',
-    'src/server/agent/runtime.ts',
-    'if (!fieldMap.has(id))\n          throw',
-    'if(false)throw',
-  ],
-  [
-    'agent',
-    'src/server/agent/runtime.ts',
-    'context.bindings.filter(\n    b => names.size === 0 || names.has(b.rootConcept) || names.has(b.concept),\n  )',
-    'context.bindings.filter(()=>true)',
-  ],
-  [
-    'agent',
-    'src/server/agent/runtime.ts',
-    'if (metricDatasets.size > 1)\n    throw',
-    'if(false)throw',
-  ],
-  [
-    'agent',
-    'src/server/agent/runtime.ts',
-    'if (reachableWithout(join.name, target))\n        throw',
-    'if(false)throw',
-  ],
-  [
-    'agent',
-    'src/server/agent/runtime.ts',
-    'if (\n      !uniqueKeys.some',
-    'if(false&&!uniqueKeys.some',
-  ],
+  ['agent', 'src/server/agent/runtime.ts', 'physical.parentheses = true', 'physical.parentheses=false'],
+  ['agent', 'src/server/agent/runtime.ts', 'if (!fieldMap.has(id))\n          throw', 'if(false)throw'],
+  ['agent', 'src/server/agent/runtime.ts', 'context.bindings.filter(\n    b => names.size === 0 || names.has(b.rootConcept) || names.has(b.concept),\n  )', 'context.bindings.filter(()=>true)'],
+  ['agent', 'src/server/agent/runtime.ts', 'if (metricDatasets.size > 1)\n    throw', 'if(false)throw'],
+  ['agent', 'src/server/agent/runtime.ts', 'if (reachableWithout(join.name, target))\n        throw', 'if(false)throw'],
+  ['agent', 'src/server/agent/runtime.ts', 'if (\n      !uniqueKeys.some', 'if(false&&!uniqueKeys.some'],
   ['agent', 'src/server/agent/runtime.ts', 'const sql = `SELECT', "const sql='SELECT 1;'||`SELECT"],
-  [
-    'validation',
-    'src/shared/validation/validation.ts',
-    'if (names.has(x[key]))\n          fail',
-    'if(false)fail',
-  ],
-  [
-    'validation',
-    'src/shared/validation/validation.ts',
-    'if (cycle.length)\n      fail',
-    'if(false)fail',
-  ],
+  ['validation', 'src/shared/validation/validation.ts', 'if (names.has(x[key]))\n          fail', 'if(false)fail'],
+  ['validation', 'src/shared/validation/validation.ts', 'if (cycle.length)\n      fail', 'if(false)fail'],
   ['validation', 'src/shared/validation/validation.ts', '!names.has(role.concept)', 'false'],
-  [
-    'validation',
-    'src/shared/validation/validation.ts',
-    '!fieldNames.get(r[side])!.has(k)',
-    'false',
-  ],
-  [
-    'validation',
-    'src/shared/validation/validation.ts',
-    'if (from.length !== to.length) fail',
-    'if(false)fail',
-  ],
-  [
-    'validation',
-    'src/shared/validation/validation.ts',
-    'if (validator && !validator(data))',
-    'if(false)',
-  ],
-  [
-    'validation',
-    'src/shared/validation/validation.ts',
-    "if ('error' in r) {\n        fail(q, r.error);\n        return;\n      }",
-    '',
-  ],
-  [
-    'validation',
-    'src/shared/validation/validation.ts',
-    'if (iris.has(iri))\n            fail',
-    'if(false)fail',
-  ],
-  [
-    'odcs',
-    'src/shared/odcs/foreign-keys.ts',
-    'if (target === undefined) {\n      issues.push',
-    'if(false){issues.push',
-  ],
-  [
-    'odcs',
-    'src/shared/odcs/foreign-keys.ts',
-    'keys.push({\n      from,\n      to: target',
-    'if(false)keys.push({from,to:target',
-  ],
-  [
-    'odcs',
-    'src/shared/odcs/foreign-keys.ts',
-    'if (toColumns.length !== fromColumns.length) {',
-    'if(false){',
-  ],
-  [
-    'odcs',
-    'src/shared/odcs/foreign-keys.ts',
-    'return object === undefined ? undefined : { object, column: ref.slice(dot + 1) }',
-    'return object===undefined?undefined:{object,column:undefined};',
-  ],
+  ['validation', 'src/shared/validation/validation.ts', '!fieldNames.get(r[side])!.has(k)', 'false'],
+  ['validation', 'src/shared/validation/validation.ts', 'if (from.length !== to.length) fail', 'if(false)fail'],
+  ['validation', 'src/shared/validation/validation.ts', 'if (validator && !validator(data))', 'if(false)'],
+  ['validation', 'src/shared/validation/validation.ts', "if ('error' in r) {\n        fail(q, r.error);\n        return;\n      }", ''],
+  ['validation', 'src/shared/validation/validation.ts', 'if (iris.has(iri))\n            fail', 'if(false)fail'],
+  ['odcs', 'src/shared/odcs/foreign-keys.ts', 'if (target === undefined) {\n      issues.push', 'if(false){issues.push'],
+  ['odcs', 'src/shared/odcs/foreign-keys.ts', 'keys.push({\n      from,\n      to: target', 'if(false)keys.push({from,to:target'],
+  ['odcs', 'src/shared/odcs/foreign-keys.ts', 'if (toColumns.length !== fromColumns.length) {', 'if(false){'],
+  ['odcs', 'src/shared/odcs/foreign-keys.ts', 'return object === undefined ? undefined : { object, column: ref.slice(dot + 1) }', 'return object===undefined?undefined:{object,column:undefined};'],
   ['references', 'src/shared/core/references.ts', "if ('iri' in r) keys.push(r.iri)", ''],
-  [
-    'iri',
-    'src/shared/validation/iri.ts',
-    'if (Object.hasOwn(prefixes, prefix)) return',
-    'if(false)return',
-  ],
-  [
-    'agent',
-    'src/server/agent/runtime.ts',
-    'return Array.isArray(p.data.semantic_model)\n      ?',
-    'return false?',
-  ],
-  [
-    'overview',
-    'src/app/graph/overview.ts',
-    "if (mode === 'namespaces') return distinct(visible.map(e => e.namespace?.iri));",
-    "if (mode === 'namespaces') return 0;",
-  ],
-  [
-    'overview',
-    'src/app/graph/overview.ts',
-    "if (ns) {\n    const id = 'namespace:' + ns.iri",
-    "if(false){const id='namespace:'+ns.iri;",
-  ],
-  [
-    'diagnostics',
-    'src/shared/validation/diagnostics.ts',
-    '> MAX_INPUT_BYTES',
-    '> MAX_INPUT_BYTES * 10',
-  ],
+  ['iri', 'src/shared/validation/iri.ts', 'if (Object.hasOwn(prefixes, prefix)) return', 'if(false)return'],
+  ['agent', 'src/server/agent/runtime.ts', 'return Array.isArray(p.data.semantic_model)\n      ?', 'return false?'],
+  ['overview', 'src/app/graph/overview.ts', "if (mode === 'namespaces') return distinct(visible.map(e => e.namespace?.iri));", "if (mode === 'namespaces') return 0;"],
+  ['overview', 'src/app/graph/overview.ts', "if (ns) {\n    const id = 'namespace:' + ns.iri", "if(false){const id='namespace:'+ns.iri;"],
+  ['diagnostics', 'src/shared/validation/diagnostics.ts', '> MAX_INPUT_BYTES', '> MAX_INPUT_BYTES * 10'],
   ['diagnostics', 'src/shared/validation/diagnostics.ts', '!filename.trim()', 'false'],
-  [
-    'diagnostics',
-    'src/shared/validation/diagnostics.ts',
-    "if (issues.some(i => i.severity === 'error'))",
-    'if (false)',
-  ],
-  [
-    'rdf-validation',
-    'src/shared/validation/rdf-validation.ts',
-    'BigInt(l.value) > BigInt(h.value)',
-    'false',
-  ],
-  [
-    'rdf-validation',
-    'src/shared/validation/rdf-validation.ts',
-    'paths.length !== 1 || !path(paths[0])',
-    'false',
-  ],
-  [
-    'rdf-validation',
-    'src/shared/validation/rdf-validation.ts',
-    'on.length !== 1 || !resource(on[0])',
-    'false',
-  ],
-  [
-    'full-layout',
-    'src/app/graph/full-layout.ts',
-    "'elk.algorithm': 'sporeOverlap'",
-    "'elk.algorithm':'fixed'",
-  ],
-  [
-    'full-layout',
-    'src/app/graph/full-layout.ts',
-    'result.nodes.map((n: any) =>\n      n.group\n        ?',
-    'result.nodes.filter((n:any)=>n.group).map((n:any)=>n.group?',
-  ],
-  [
-    'overview',
-    'src/app/graph/overview.ts',
-    'group.push(edge);',
-    'if(groupOf.get(edge.source)!==groupOf.get(edge.target))group.push(edge);',
-  ],
+  ['diagnostics', 'src/shared/validation/diagnostics.ts', "if (issues.some(i => i.severity === 'error'))", 'if (false)'],
+  ['rdf-validation', 'src/shared/validation/rdf-validation.ts', 'BigInt(l.value) > BigInt(h.value)', 'false'],
+  ['rdf-validation', 'src/shared/validation/rdf-validation.ts', 'paths.length !== 1 || !path(paths[0])', 'false'],
+  ['rdf-validation', 'src/shared/validation/rdf-validation.ts', 'on.length !== 1 || !resource(on[0])', 'false'],
+  ['full-layout', 'src/app/graph/full-layout.ts', "'elk.algorithm': 'sporeOverlap'", "'elk.algorithm':'fixed'"],
+  ['full-layout', 'src/app/graph/full-layout.ts', 'result.nodes.map((n: any) =>\n      n.group\n        ?', 'result.nodes.filter((n:any)=>n.group).map((n:any)=>n.group?'],
+  ['overview', 'src/app/graph/overview.ts', 'group.push(edge);', 'if(groupOf.get(edge.source)!==groupOf.get(edge.target))group.push(edge);'],
   ['overview', 'src/app/graph/overview.ts', 'hasClasses && !technical', 'false'],
   ['overview', 'src/app/graph/overview.ts', 'if (correction) {', 'if(false){'],
-  [
-    'overview',
-    'src/app/graph/overview.ts',
-    'return context.suggested.backboneEdges',
-    'return 0 && context.suggested.backboneEdges',
-  ],
+  ['overview', 'src/app/graph/overview.ts', 'return context.suggested.backboneEdges', 'return 0 && context.suggested.backboneEdges'],
   // Auto must skip a mode that yields a single group.
   ['overview', 'src/app/graph/overview.ts', 'basisCount(mode, visible, context) >= 2', 'true'],
   // Contract communities come from foreign keys.
-  [
-    'overview',
-    'src/app/graph/overview.ts',
-    'suggestCommunities(visible, [...links,',
-    "suggestCommunities(visible, [...links.filter(e => e.data.kind !== 'Foreign key'),",
-  ],
-  [
-    'overview',
-    'src/app/graph/overview.ts',
-    'groups.get(group.id)!.entities.push(entity);',
-    'groups.get(group.id)!.entities.push(entity,entity);',
-  ],
-  [
-    'overview',
-    'src/app/graph/overview.ts',
-    'JSON.stringify([groupOf.get(edge.source), groupOf.get(edge.target)])',
-    'JSON.stringify([groupOf.get(edge.target),groupOf.get(edge.source)])',
-  ],
+  ['overview', 'src/app/graph/overview.ts', 'suggestCommunities(visible, [...links,', "suggestCommunities(visible, [...links.filter(e => e.data.kind !== 'Foreign key'),"],
+  ['overview', 'src/app/graph/overview.ts', 'groups.get(group.id)!.entities.push(entity);', 'groups.get(group.id)!.entities.push(entity,entity);'],
+  ['overview', 'src/app/graph/overview.ts', 'JSON.stringify([groupOf.get(edge.source), groupOf.get(edge.target)])', 'JSON.stringify([groupOf.get(edge.target),groupOf.get(edge.source)])'],
   ['layout', 'src/app/graph/layout.ts', '* 330', '*0'],
   ['layout', 'src/app/graph/layout.ts', 'row % maxRows', 'row'],
-  [
-    'edge-path',
-    'src/app/graph/edge-path.ts',
-    'Math.abs(coordinates[0] - sourceX) <= tolerance',
-    'true',
-  ],
-  [
-    'edge-path',
-    'src/app/graph/edge-path.ts',
-    'Math.abs(coordinates[last] - targetX) <= tolerance',
-    'true',
-  ],
+  ['edge-path', 'src/app/graph/edge-path.ts', 'Math.abs(coordinates[0] - sourceX) <= tolerance', 'true'],
+  ['edge-path', 'src/app/graph/edge-path.ts', 'Math.abs(coordinates[last] - targetX) <= tolerance', 'true'],
   ['graph', 'src/app/graph/graph-view.ts', 'limit = 8', 'limit=800'],
-  [
-    'graph',
-    'src/app/graph/graph-view.ts',
-    'JSON.stringify([edge.source, edge.target])',
-    'edge.source',
-  ],
-  [
-    'graph',
-    'src/app/graph/graph-view.ts',
-    'options.center && byId.has(options.center) ? options.center :',
-    '',
-  ],
+  ['graph', 'src/app/graph/graph-view.ts', 'JSON.stringify([edge.source, edge.target])', 'edge.source'],
+  ['graph', 'src/app/graph/graph-view.ts', 'options.center && byId.has(options.center) ? options.center :', ''],
   ['graph', 'src/app/graph/graph-view.ts', 'options.lateral !== false', 'false'],
   ['graph', 'src/app/graph/graph-view.ts', 'hidden: ranked.length - shownIds.length', 'hidden:0'],
-  [
-    'graph',
-    'src/app/graph/graph-view.ts',
-    '.some(w => w.startsWith(q))\n    )\n      return 2',
-    '.some(w=>w.startsWith(q)))return 3;',
-  ],
-  [
-    'graph',
-    'src/app/graph/graph-view.ts',
-    "if (technical || !entities.some(e => e.kind === 'OWL class'))",
-    'if(true)',
-  ],
-  [
-    'routes',
-    'src/app/graph/routes.ts',
-    'while (placed.some(shares)) y += below ? 16 : -16;',
-    'while (false) y += below ? 16 : -16;',
-  ],
+  ['graph', 'src/app/graph/graph-view.ts', '.some(w => w.startsWith(q))\n    )\n      return 2', '.some(w=>w.startsWith(q)))return 3;'],
+  ['graph', 'src/app/graph/graph-view.ts', "if (technical || !entities.some(e => e.kind === 'OWL class'))", 'if(true)'],
+  ['routes', 'src/app/graph/routes.ts', 'while (placed.some(shares)) y += below ? 16 : -16;', 'while (false) y += below ? 16 : -16;'],
   ['routes', 'src/app/graph/routes.ts', 'start + i * step', 'start'],
-  [
-    'routes',
-    'src/app/graph/routes.ts',
-    'const ax = x - Math.sign(x - px) * r',
-    'const ax=x+Math.abs(x-px)/(x-px||1)*0-r',
-  ],
+  ['routes', 'src/app/graph/routes.ts', 'const ax = x - Math.sign(x - px) * r', 'const ax=x+Math.abs(x-px)/(x-px||1)*0-r'],
   ['walk', 'src/app/graph/walk.ts', 'walk.steps.slice(0, walk.index + 1)', 'walk.steps'],
-  [
-    'layout',
-    'src/app/graph/layout.ts',
-    'x: side * (c + 1) * NEIGHBOR_COLUMN',
-    'x:(c+1)*NEIGHBOR_COLUMN',
-  ],
-  [
-    'patch',
-    'src/shared/editor/patch.ts',
-    'insert: inserted.toString().replace(/\\n/g, eol)',
-    'insert:inserted.toString()',
-  ],
-  [
-    'lint',
-    'src/app/editor/lint.ts',
-    'if (!range) {\n      documentLevel.push(issue);\n      continue;\n    }',
-    '{documentLevel.push(issue);continue;}',
-  ],
-  [
-    'json-patch',
-    'src/shared/edit/json-patch.ts',
-    'if (isMap(node) && isObject(oldV) && isObject(newV) && node.items.length)\n    return mapPatches(',
-    'if(false)return mapPatches(',
-  ],
-  [
-    'yaml-patch',
-    'src/shared/edit/yaml-patch.ts',
-    'if (isMap(node) && isObject(oldV) && isObject(newV) && node.items.length)\n    return mapDiff(',
-    'if(false)return mapDiff(',
-  ],
+  ['layout', 'src/app/graph/layout.ts', 'x: side * (c + 1) * NEIGHBOR_COLUMN', 'x:(c+1)*NEIGHBOR_COLUMN'],
+  ['patch', 'src/shared/editor/patch.ts', 'insert: inserted.toString().replace(/\\n/g, eol)', 'insert:inserted.toString()'],
+  ['lint', 'src/app/editor/lint.ts', 'if (!range) {\n      documentLevel.push(issue);\n      continue;\n    }', '{documentLevel.push(issue);continue;}'],
+  ['json-patch', 'src/shared/edit/json-patch.ts', 'if (isMap(node) && isObject(oldV) && isObject(newV) && node.items.length)\n    return mapPatches(', 'if(false)return mapPatches('],
+  ['yaml-patch', 'src/shared/edit/yaml-patch.ts', 'if (isMap(node) && isObject(oldV) && isObject(newV) && node.items.length)\n    return mapDiff(', 'if(false)return mapDiff('],
   [
     'dependents',
     'src/app/edit/references.ts',
@@ -610,98 +200,28 @@ const mutants: [string, string, string, string][] = [
     'export const sortedBindings = (list: KpiBinding[], next: KpiBinding) =>\n  [...list, next].sort(',
     'export const sortedBindings=(list:KpiBinding[],next:KpiBinding)=>[...list,next];[].sort(',
   ],
-  [
-    'status-rules',
-    'src/shared/edit/item-model.ts',
-    "return { item: writeExtension(after, { ...now, status: 'proposed' }), reopened: true }",
-    'return {item:after,reopened:true};',
-  ],
-  [
-    'save-client',
-    'src/app/projects/api.ts',
-    'patches && baseHash !== null ? { baseHash, patches } : { baseHash, source }',
-    '{baseHash,source}',
-  ],
-  [
-    'export',
-    'src/app/core/export.ts',
-    'return { filename, blob:',
-    "return {filename:'wrong.yaml',blob:",
-  ],
+  ['status-rules', 'src/shared/edit/item-model.ts', "return { item: writeExtension(after, { ...now, status: 'proposed' }), reopened: true }", 'return {item:after,reopened:true};'],
+  ['save-client', 'src/app/projects/api.ts', 'patches && baseHash !== null ? { baseHash, patches } : { baseHash, source }', '{baseHash,source}'],
+  ['export', 'src/app/core/export.ts', 'return { filename, blob:', "return {filename:'wrong.yaml',blob:"],
   ['export', 'src/app/core/export.ts', 'new Blob([source]', "new Blob(['']"],
-  [
-    'model',
-    'src/shared/core/model.ts',
-    "valuePatches(source, [...path, 'description'], description, filename)",
-    "valuePatches(source, ['unrelated'], description, filename)",
-  ],
-  [
-    'files',
-    'src/server/projects/workspace.ts',
-    'if (body.baseHash !== currentHash)\n      throw new StaleError',
-    'if(false)throw new StaleError',
-  ],
-  [
-    'files',
-    'src/server/projects/workspace.ts',
-    'if (!indexed.file.valid) throw new InputError(indexed.findings)',
-    '',
-  ],
+  ['model', 'src/shared/core/model.ts', "valuePatches(source, [...path, 'description'], description, filename)", "valuePatches(source, ['unrelated'], description, filename)"],
+  ['files', 'src/server/projects/workspace.ts', 'if (body.baseHash !== currentHash)\n      throw new StaleError', 'if(false)throw new StaleError'],
+  ['files', 'src/server/projects/workspace.ts', 'if (!indexed.file.valid) throw new InputError(indexed.findings)', ''],
   ['atomic', 'src/server/projects/atomic.ts', 'const temp = tempPath(path)', 'const temp=path;'],
-  [
-    'atomic',
-    'src/server/projects/atomic.ts',
-    "environment.platform === 'win32' && TRANSIENT_RENAME_CODES.has(code)",
-    'TRANSIENT_RENAME_CODES.has(code)',
-  ],
-  [
-    'atomic',
-    'src/server/projects/atomic.ts',
-    'if (!retryable || waited >= RENAME_RETRY_BUDGET_MS) throw error;',
-    'if (!retryable) throw error;',
-  ],
-  [
-    'atomic',
-    'src/server/projects/atomic.ts',
-    "environment.platform === 'win32' && TRANSIENT_RENAME_CODES.has(code)",
-    "environment.platform === 'win32'",
-  ],
-  [
-    'migration',
-    'src/server/projects/migration.ts',
-    'if (sha256(readFileSync(file)) !== expected)\n          throw',
-    'if(false)throw',
-  ],
-  [
-    'paths',
-    'src/server/projects/paths.ts',
-    "if (parts.some(p => p === '' || p === '.' || p === '..'))\n    throw",
-    'if(false)throw',
-  ],
-  [
-    'paths',
-    'src/server/projects/paths.ts',
-    "if (parts.some(p => p.toLowerCase() === '.git'))\n    throw",
-    'if(false)throw',
-  ],
+  ['atomic', 'src/server/projects/atomic.ts', "environment.platform === 'win32' && TRANSIENT_RENAME_CODES.has(code)", 'TRANSIENT_RENAME_CODES.has(code)'],
+  ['atomic', 'src/server/projects/atomic.ts', 'if (!retryable || waited >= RENAME_RETRY_BUDGET_MS) throw error;', 'if (!retryable) throw error;'],
+  ['atomic', 'src/server/projects/atomic.ts', "environment.platform === 'win32' && TRANSIENT_RENAME_CODES.has(code)", "environment.platform === 'win32'"],
+  ['migration', 'src/server/projects/migration.ts', 'if (sha256(readFileSync(file)) !== expected)\n          throw', 'if(false)throw'],
+  ['paths', 'src/server/projects/paths.ts', "if (parts.some(p => p === '' || p === '.' || p === '..'))\n    throw", 'if(false)throw'],
+  ['paths', 'src/server/projects/paths.ts', "if (parts.some(p => p.toLowerCase() === '.git'))\n    throw", 'if(false)throw'],
   [
     'events-origin',
     'src/server/handler.ts',
     'if (origin && !allowedOrigins(options.port ?? 4310).includes(origin))\n      return',
     "if(origin&&!allowedOrigins(options.port??4310).includes(origin)&&new URL(req.url).pathname!=='/api/events')return",
   ],
-  [
-    'journal',
-    'src/server/projects/journal.ts',
-    'const forward = remaining.every(',
-    'const forward=true||remaining.every(',
-  ],
-  [
-    'trash',
-    'src/server/projects/trash.ts',
-    'if (undo && now() > Date.parse(e.undoUntil))\n      throw new GoneError',
-    'if(false)throw new GoneError',
-  ],
+  ['journal', 'src/server/projects/journal.ts', 'const forward = remaining.every(', 'const forward=true||remaining.every('],
+  ['trash', 'src/server/projects/trash.ts', 'if (undo && now() > Date.parse(e.undoUntil))\n      throw new GoneError', 'if(false)throw new GoneError'],
   ['trash', 'src/server/projects/trash.ts', 'if (existsSync(dest)) {', 'if(false){'],
   [
     'suggestions',
@@ -709,96 +229,26 @@ const mutants: [string, string, string, string][] = [
     'export const sameName = (a: string, b: string) => a === b',
     'export const sameName=(a:string,b:string)=>a.slice(0,4).toLowerCase()===b.slice(0,4).toLowerCase();',
   ],
-  [
-    'confirm',
-    'src/server/routes/trash.ts',
-    'if (!body || body.confirm !== true)\n    throw',
-    'if(false)throw',
-  ],
-  [
-    'explain',
-    'src/server/agent/explain.ts',
-    "if (rollup === 'sum' && kpi.additivity === 'non_additive')\n    return refuse(",
-    'if(false)return refuse(',
-  ],
-  [
-    'explain',
-    'src/server/agent/explain.ts',
-    'columns.includes(p?.physicalName ?? p?.name)',
-    'columns.some(c=>String(p?.physicalName??p?.name).includes(c))',
-  ],
-  [
-    'explain',
-    'src/server/agent/explain.ts',
-    'semanticModelPaths(data).map(path',
-    "semanticModelPaths(data).filter(path=>path[0]!=='ontology_mappings').map(path",
-  ],
-  [
-    'metric-extension',
-    'src/shared/metrics/extension.ts',
-    'if (!validate(value))\n    for (',
-    'if(false)for(',
-  ],
-  [
-    'model-layout',
-    'src/shared/core/model.ts',
-    '(Array.isArray(data.ontology_mappings) ? data.ontology_mappings : []).forEach(',
-    '([] as any[]).forEach(',
-  ],
-  [
-    'rdf-gate',
-    'src/app/edit/rdf-patch/isomorphism.ts',
-    'if (!isomorphic(restBefore, restAfter))\n    return',
-    'if(false)return',
-  ],
-  [
-    'fullscreen',
-    'src/app/graph/fullscreen.ts',
-    'exit(): Viewport | null {\n      const v = saved;\n      saved = null;\n      return v;\n    }',
-    'exit():Viewport|null{saved=null;return null;}',
-  ],
-  [
-    'odcs-diff',
-    'src/app/odcs/odcs-diff.ts',
-    '.filter(k => !skip.includes(k))\n    .sort()',
-    '.filter(k=>!skip.includes(k)&&!/Type$/.test(k)).sort();',
-  ],
-  [
-    'scm-block',
-    'src/server/projects/scm.ts',
-    "if (drafts.length) return new BlockedError('drafts', drafts)",
-    '',
-  ],
-  [
-    'autosave',
-    'src/app/projects/autosave.ts',
-    'if (event.errors > 0) return keep(',
-    'if(false)return keep(',
-  ],
-  [
-    'autosave',
-    'src/app/projects/autosave.ts',
-    "if (state.status === 'stale') return keep(state)",
-    '',
-  ],
+  ['confirm', 'src/server/routes/trash.ts', 'if (!body || body.confirm !== true)\n    throw', 'if(false)throw'],
+  ['explain', 'src/server/agent/explain.ts', "if (rollup === 'sum' && kpi.additivity === 'non_additive')\n    return refuse(", 'if(false)return refuse('],
+  ['explain', 'src/server/agent/explain.ts', 'columns.includes(p?.physicalName ?? p?.name)', 'columns.some(c=>String(p?.physicalName??p?.name).includes(c))'],
+  ['explain', 'src/server/agent/explain.ts', 'semanticModelPaths(data).map(path', "semanticModelPaths(data).filter(path=>path[0]!=='ontology_mappings').map(path"],
+  ['metric-extension', 'src/shared/metrics/extension.ts', 'if (!validate(value))\n    for (', 'if(false)for('],
+  ['model-layout', 'src/shared/core/model.ts', '(Array.isArray(data.ontology_mappings) ? data.ontology_mappings : []).forEach(', '([] as any[]).forEach('],
+  ['rdf-gate', 'src/app/edit/rdf-patch/isomorphism.ts', 'if (!isomorphic(restBefore, restAfter))\n    return', 'if(false)return'],
+  ['fullscreen', 'src/app/graph/fullscreen.ts', 'exit(): Viewport | null {\n      const v = saved;\n      saved = null;\n      return v;\n    }', 'exit():Viewport|null{saved=null;return null;}'],
+  ['odcs-diff', 'src/app/odcs/odcs-diff.ts', '.filter(k => !skip.includes(k))\n    .sort()', '.filter(k=>!skip.includes(k)&&!/Type$/.test(k)).sort();'],
+  ['scm-block', 'src/server/projects/scm.ts', "if (drafts.length) return new BlockedError('drafts', drafts)", ''],
+  ['autosave', 'src/app/projects/autosave.ts', 'if (event.errors > 0) return keep(', 'if(false)return keep('],
+  ['autosave', 'src/app/projects/autosave.ts', "if (state.status === 'stale') return keep(state)", ''],
   [
     'lineage',
     'src/app/odcs/lineage.ts',
     "edge({\n        from: columnId(parent, k.toColumns[i]),\n        to: columnId(child, c),\n        kind: 'foreign-key'",
     "edge({to:columnId(parent,k.toColumns[i]),from:columnId(child,c),kind:'foreign-key'",
   ],
-  [
-    'lineage',
-    'src/app/odcs/lineage.ts',
-    "if (direction !== 'up') walk('down');\n  if (direction !== 'down') walk('up')",
-    "walk('down');walk('up');",
-  ],
-  [
-    'lineage',
-    'src/app/odcs/lineage.ts',
-    'port: (id: string) => (shown.has(id) || !all.some(c => c.id === id) ? id : moreRowId(card.id)),',
-    'port:(id:string)=>id,',
-  ],
+  ['lineage', 'src/app/odcs/lineage.ts', "if (direction !== 'up') walk('down');\n  if (direction !== 'down') walk('up')", "walk('down');walk('up');"],
+  ['lineage', 'src/app/odcs/lineage.ts', 'port: (id: string) => (shown.has(id) || !all.some(c => c.id === id) ? id : moreRowId(card.id)),', 'port:(id:string)=>id,'],
   [
     'lineage',
     'src/app/odcs/lineage.ts',
@@ -811,42 +261,12 @@ const mutants: [string, string, string, string][] = [
     "for (const s of sets) {\n    if (s.kind === 'collapse') active = active.filter(a => a.id !== s.target);\n    else active.push(s);\n  }",
     "for(const s of sets){if(s.kind==='collapse'){const t=active.find(a=>a.id===s.target);active=active.filter(a=>a.id!==s.target).map(a=>t?{...a,nodes:a.nodes.filter(n=>!t.nodes.includes(n))}:a);}else active.push(s);}",
   ],
-  [
-    'incremental',
-    'src/app/graph/incremental-layout.ts',
-    'for (const it of items) {\n    if (out.has(it.id)) continue',
-    'for(const it of items){',
-  ],
-  [
-    'pierce',
-    'src/app/graph/pierce.ts',
-    'const budget = Math.max(1, Math.min(o.budget, PIERCE_MAX))',
-    'const budget=order.length',
-  ],
-  [
-    'pierce',
-    'src/app/graph/pierce.ts',
-    "if (o.direction !== 'in') add(e.source, e.target, e.label, e.id)",
-    "if(o.direction!=='in')add(e.target,e.source,e.label,e.id);",
-  ],
-  [
-    'mapping-graph',
-    'src/app/mappings/mapping-graph.ts',
-    'for (const p of joinPartners(id)) if (!via.includes(p)) via.push(p)',
-    '',
-  ],
-  [
-    'mapping-graph',
-    'src/app/mappings/mapping-graph.ts',
-    "if (!used.has(col.id)) col.badges.push(badge('unmapped'))",
-    "if(used.has(col.id))col.badges.push(badge('unmapped'));",
-  ],
-  [
-    'mapping-graph',
-    'src/app/mappings/mapping-graph.ts',
-    'const i = f.evidence ? cmIndex(f.evidence.path) : -1;',
-    'const i = f.evidence ? cmIndex(f.evidence.path) + 1 : -1;',
-  ],
+  ['incremental', 'src/app/graph/incremental-layout.ts', 'for (const it of items) {\n    if (out.has(it.id)) continue', 'for(const it of items){'],
+  ['pierce', 'src/app/graph/pierce.ts', 'const budget = Math.max(1, Math.min(o.budget, PIERCE_MAX))', 'const budget=order.length'],
+  ['pierce', 'src/app/graph/pierce.ts', "if (o.direction !== 'in') add(e.source, e.target, e.label, e.id)", "if(o.direction!=='in')add(e.target,e.source,e.label,e.id);"],
+  ['mapping-graph', 'src/app/mappings/mapping-graph.ts', 'for (const p of joinPartners(id)) if (!via.includes(p)) via.push(p)', ''],
+  ['mapping-graph', 'src/app/mappings/mapping-graph.ts', "if (!used.has(col.id)) col.badges.push(badge('unmapped'))", "if(used.has(col.id))col.badges.push(badge('unmapped'));"],
+  ['mapping-graph', 'src/app/mappings/mapping-graph.ts', 'const i = f.evidence ? cmIndex(f.evidence.path) : -1;', 'const i = f.evidence ? cmIndex(f.evidence.path) + 1 : -1;'],
   [
     'mapping-graph',
     'src/app/mappings/mapping-graph.ts',
@@ -865,24 +285,9 @@ const mutants: [string, string, string, string][] = [
     'const r = await git.commitPaths(\n      repo,\n      paths.map(p => prefix + p),\n      message,\n      author,\n    )',
     'const r=await git.commitPaths(repo,await git.lsFiles(repo),message,author);',
   ],
-  [
-    'trash',
-    'src/server/projects/trash.ts',
-    "steps.push({ from: file, to: join(entryDir, 'payload', posix.basename(p)) })",
-    '',
-  ],
-  [
-    'git-exec',
-    'src/server/projects/git.ts',
-    'Bun.spawn([binary, ...args],',
-    "Bun.spawn(['sh','-c',[binary,...args].join(' ')],",
-  ],
-  [
-    'git-exec',
-    'src/server/projects/git.ts',
-    'if (REMOTE_COMMANDS.has(subcommandOf(args)) && !opts.remote)\n      throw',
-    'if(false)throw',
-  ],
+  ['trash', 'src/server/projects/trash.ts', "steps.push({ from: file, to: join(entryDir, 'payload', posix.basename(p)) })", ''],
+  ['git-exec', 'src/server/projects/git.ts', 'Bun.spawn([binary, ...args],', "Bun.spawn(['sh','-c',[binary,...args].join(' ')],"],
+  ['git-exec', 'src/server/projects/git.ts', 'if (REMOTE_COMMANDS.has(subcommandOf(args)) && !opts.remote)\n      throw', 'if(false)throw'],
   [
     'git-exec',
     'src/server/projects/git.ts',
@@ -897,66 +302,26 @@ const mutants: [string, string, string, string][] = [
     'else if(l.triple)patches.push({from:l.start,to:l.start+l.text.length,insert:replaced.get(i)??ntLine(l.triple.s.value,l.triple.p.value,l.triple.o)});',
   ],
   // SQL regions and lint.
-  [
-    'sql-regions',
-    'src/shared/sql/regions.ts',
-    "if (quote === '\"' && c === '\\\\') {",
-    'if(false){',
-  ],
-  [
-    'sql-regions',
-    'src/shared/sql/regions.ts',
-    "dialect = typeof d === 'string' ? d : null;\n        grammar = grammarOf(dialect)",
-    "dialect=typeof d==='string'?d:null;grammar=grammarOf(null);",
-  ],
-  [
-    'sql-regions',
-    'src/shared/sql/regions.ts',
-    '|ontology_mappings/\\\\*/semantic_model(?:/\\\\*)?/)?${MODEL}$`',
-    '|nothing)?${MODEL}$`',
-  ],
-  [
-    'sql-lint',
-    'src/shared/sql/lint.ts',
-    "return [\n      {\n        severity: 'warning',\n        code: 'sql'",
-    "return [{severity:'error',code:'sql'",
-  ],
+  ['sql-regions', 'src/shared/sql/regions.ts', "if (quote === '\"' && c === '\\\\') {", 'if(false){'],
+  ['sql-regions', 'src/shared/sql/regions.ts', "dialect = typeof d === 'string' ? d : null;\n        grammar = grammarOf(dialect)", "dialect=typeof d==='string'?d:null;grammar=grammarOf(null);"],
+  ['sql-regions', 'src/shared/sql/regions.ts', '|ontology_mappings/\\\\*/semantic_model(?:/\\\\*)?/)?${MODEL}$`', '|nothing)?${MODEL}$`'],
+  ['sql-lint', 'src/shared/sql/lint.ts', "return [\n      {\n        severity: 'warning',\n        code: 'sql'", "return [{severity:'error',code:'sql'"],
   // Git setup: identity stays repository-local; clones are explicit, staged under data/projects/
   // and never create symbolic links.
-  [
-    'git-setup',
-    'src/server/projects/git.ts',
-    "['config', '--local', 'user.name', name]",
-    "['config', '--global', 'user.name', name]",
-  ],
+  ['git-setup', 'src/server/projects/git.ts', "['config', '--local', 'user.name', name]", "['config', '--global', 'user.name', name]"],
   ['git-setup', 'src/server/projects/git.ts', '{ remote: true, credential },', '{ credential },'],
   ['git-setup', 'src/server/projects/git.ts', "'core.symlinks=false',", "'core.symlinks=true',"],
-  [
-    'clone',
-    'src/server/projects/clone.ts',
-    'const staging = join(layout.projects, CLONE_STAGING + op);',
-    'const staging = join(layout.root, CLONE_STAGING + op);',
-  ],
+  ['clone', 'src/server/projects/clone.ts', 'const staging = join(layout.projects, CLONE_STAGING + op);', 'const staging = join(layout.root, CLONE_STAGING + op);'],
   // Several projects in one repository: manifest folders stay inside the repository, deleting
   // one subproject leaves its siblings alone, and Git actions rescan every project.
-  [
-    'manifest',
-    'src/server/projects/repositories.ts',
-    "path === '' ? '' : projectPath(path)",
-    'String(path)',
-  ],
+  ['manifest', 'src/server/projects/repositories.ts', "path === '' ? '' : projectPath(path)", 'String(path)'],
   [
     'subproject-trash',
     'src/server/projects/trash.ts',
     "steps.push({ from: projectDir(layout, slug), to: join(dir, 'payload', slug) });",
     "steps.push({ from: join(layout.projects, locationOf(unit.project).repo), to: join(dir, 'payload', slug) });",
   ],
-  [
-    'subproject-rescan',
-    'src/server/projects/scm.ts',
-    'for (const project of projects) await deps.rescan(project);',
-    'await deps.rescan(slug);',
-  ],
+  ['subproject-rescan', 'src/server/projects/scm.ts', 'for (const project of projects) await deps.rescan(project);', 'await deps.rescan(slug);'],
   // Admin panel: a save is confirmed only for the reviewed proposal and never without a dry run.
   ['admin-review', 'src/app/admin/change-review.ts', 'review.key === key', 'true'],
   ['admin-review', 'src/app/admin/change-review.ts', 'Boolean(review.result.dryRunId)', 'true'],
@@ -964,129 +329,29 @@ const mutants: [string, string, string, string][] = [
 ];
 // Governance guards: approval, demotion, classification, and the write paths that apply them.
 mutants.push(
-  [
-    'guard-decisions',
-    'src/server/auth/guards.ts',
-    'metric: { name: metric.name, status: metric.status, owner },',
-    'metric: { name: metric.name, status: metric.status, owner: undefined },',
-  ],
-  [
-    'guard-decisions',
-    'src/server/auth/guards.ts',
-    "return binding.scope.authorize('editGuarded', resource, context);",
-    "return binding.scope.authorize('edit', resource, context);",
-  ],
+  ['guard-decisions', 'src/server/auth/guards.ts', 'metric: { name: metric.name, status: metric.status, owner },', 'metric: { name: metric.name, status: metric.status, owner: undefined },'],
+  ['guard-decisions', 'src/server/auth/guards.ts', "return binding.scope.authorize('editGuarded', resource, context);", "return binding.scope.authorize('edit', resource, context);"],
   ['guard-engine', 'src/shared/governance/guards.ts', "status === 'approved' &&", 'false &&'],
-  [
-    'guard-engine',
-    'src/shared/governance/guards.ts',
-    'if (options.demote && guarded.demotable) demoted.push(guarded);',
-    'if (false) demoted.push(guarded);',
-  ],
-  [
-    'guard-engine',
-    'src/shared/governance/guards.ts',
-    'if (!deepEqual(old?.classification, current.classification)) {',
-    'if (false) {',
-  ],
-  [
-    'guard-save-batch',
-    'src/server/routes/kpis.ts',
-    "ws.saveFiles(slug, body.files, reader, 'save-batch')",
-    "ws.saveFiles(slug, body.files, { ...reader, guard: undefined }, 'save-batch')",
-  ],
-  [
-    'guard-pull',
-    'src/server/routes/git.ts',
-    'scm!.pull(slug, reader, credentialFor)',
-    'scm!.pull(slug, { ...reader, guard: undefined }, credentialFor)',
-  ],
-  [
-    'guard-revert',
-    'src/server/routes/git.ts',
-    'ws.revertFile(slug, b.path, baseHash, reader)',
-    'ws.revertFile(slug, b.path, baseHash, { ...reader, guard: undefined })',
-  ],
-  [
-    'guard-delete',
-    'src/server/routes/trash.ts',
-    'decodePath(file[2]), reader)',
-    'decodePath(file[2]), { ...reader, guard: undefined })',
-  ],
-  [
-    'guard-restore',
-    'src/server/routes/trash.ts',
-    'ws.trash.undo(id, reader)',
-    'ws.trash.undo(id, { ...reader, guard: undefined })',
-  ],
-  [
-    'guard-restore',
-    'src/server/routes/trash.ts',
-    'ws.trash.restore(id, body, reader)',
-    'ws.trash.restore(id, body, { ...reader, guard: undefined })',
-  ],
-  [
-    'guard-import',
-    'src/server/routes/projects.ts',
-    'body.onConflict, reader, authorizePaths',
-    'body.onConflict, { ...reader, guard: undefined }, authorizePaths',
-  ],
-  [
-    'guard-new-project',
-    'src/server/projects/workspace.ts',
-    'guardedNewProject(preflight(body.files), reader.guard, creating.domain)',
-    'preflight(body.files)',
-  ],
-  [
-    'guard-people',
-    'src/server/auth/route-actions.ts',
-    "row('GET', '/api/projects/:slug/people', 'edit', project)",
-    "row('GET', '/api/projects/:slug/people', 'read', project)",
-  ],
+  ['guard-engine', 'src/shared/governance/guards.ts', 'if (options.demote && guarded.demotable) demoted.push(guarded);', 'if (false) demoted.push(guarded);'],
+  ['guard-engine', 'src/shared/governance/guards.ts', 'if (!deepEqual(old?.classification, current.classification)) {', 'if (false) {'],
+  ['guard-save-batch', 'src/server/routes/kpis.ts', "ws.saveFiles(slug, body.files, reader, 'save-batch')", "ws.saveFiles(slug, body.files, { ...reader, guard: undefined }, 'save-batch')"],
+  ['guard-pull', 'src/server/routes/git.ts', 'scm!.pull(slug, reader, credentialFor)', 'scm!.pull(slug, { ...reader, guard: undefined }, credentialFor)'],
+  ['guard-revert', 'src/server/routes/git.ts', 'ws.revertFile(slug, b.path, baseHash, reader)', 'ws.revertFile(slug, b.path, baseHash, { ...reader, guard: undefined })'],
+  ['guard-delete', 'src/server/routes/trash.ts', 'decodePath(file[2]), reader)', 'decodePath(file[2]), { ...reader, guard: undefined })'],
+  ['guard-restore', 'src/server/routes/trash.ts', 'ws.trash.undo(id, reader)', 'ws.trash.undo(id, { ...reader, guard: undefined })'],
+  ['guard-restore', 'src/server/routes/trash.ts', 'ws.trash.restore(id, body, reader)', 'ws.trash.restore(id, body, { ...reader, guard: undefined })'],
+  ['guard-import', 'src/server/routes/projects.ts', 'body.onConflict, reader, authorizePaths', 'body.onConflict, { ...reader, guard: undefined }, authorizePaths'],
+  ['guard-new-project', 'src/server/projects/workspace.ts', 'guardedNewProject(preflight(body.files), reader.guard, creating.domain)', 'preflight(body.files)'],
+  ['guard-people', 'src/server/auth/route-actions.ts', "row('GET', '/api/projects/:slug/people', 'edit', project)", "row('GET', '/api/projects/:slug/people', 'read', project)"],
 );
 mutants.push(
-  [
-    'read-workspace',
-    'src/server/projects/workspace.ts',
-    '.filter(f => f.visible && (!view || view.canRead(p.slug, f.path)))',
-    '.filter(f => f.visible)',
-  ],
-  [
-    'read-events',
-    'src/server/projects/events.ts',
-    'const visible = access ? readableEvent(e, access) : e;\n        if (visible)',
-    'const visible = e;\n        if (visible)',
-  ],
-  [
-    'read-events',
-    'src/server/projects/events.ts',
-    "if (event.event !== 'suggestions') return access ? readableEvent(event, access) : event;",
-    "if (event.event !== 'suggestions') return event;",
-  ],
-  [
-    'read-drafts',
-    'src/server/routes/drafts.ts',
-    'owner ? ws.state.forOwner(owner) : ws.state',
-    'ws.state',
-  ],
-  [
-    'read-trash',
-    'src/server/projects/trash.ts',
-    "scope.authorize(action, { type: 'file', project: file.project, path: file.path }).allow",
-    'true',
-  ],
-  [
-    'read-git',
-    'src/server/routes/git.ts',
-    'scm.show(slug, commit, path, reader)',
-    'scm.show(slug, commit, path, { view: undefined, owner: undefined })',
-  ],
-  [
-    'read-agent',
-    'src/server/handler.ts',
-    'documentsOfProject(ws.documentsFor(requestReader(request)), project)',
-    'documentsOfProject(ws.documents(), project)',
-  ],
+  ['read-workspace', 'src/server/projects/workspace.ts', '.filter(f => f.visible && (!view || view.canRead(p.slug, f.path)))', '.filter(f => f.visible)'],
+  ['read-events', 'src/server/projects/events.ts', 'const visible = access ? readableEvent(e, access) : e;\n        if (visible)', 'const visible = e;\n        if (visible)'],
+  ['read-events', 'src/server/projects/events.ts', "if (event.event !== 'suggestions') return access ? readableEvent(event, access) : event;", "if (event.event !== 'suggestions') return event;"],
+  ['read-drafts', 'src/server/routes/drafts.ts', 'owner ? ws.state.forOwner(owner) : ws.state', 'ws.state'],
+  ['read-trash', 'src/server/projects/trash.ts', "scope.authorize(action, { type: 'file', project: file.project, path: file.path }).allow", 'true'],
+  ['read-git', 'src/server/routes/git.ts', 'scm.show(slug, commit, path, reader)', 'scm.show(slug, commit, path, { view: undefined, owner: undefined })'],
+  ['read-agent', 'src/server/handler.ts', 'documentsOfProject(ws.documentsFor(requestReader(request)), project)', 'documentsOfProject(ws.documents(), project)'],
 );
 
 // Agent clients: a bearer token outside the agent API, an unchecked audience, an ignored grant,
@@ -1095,12 +360,7 @@ mutants.push(
   ['bearer-scope', 'src/server/auth/bearer.ts', "pathname.startsWith('/api/agent/')", 'true'],
   ['bearer-audience', 'src/server/auth/bearer.ts', '        audience,\n', ''],
   ['bearer-grants', 'src/server/auth/cedar.ts', 'client?.projects.includes(slug) ||', 'true ||'],
-  [
-    'bearer-cookie',
-    'src/server/auth/middleware.ts',
-    'client ?? (await resolve(request))',
-    '(await resolve(request)) ?? client',
-  ],
+  ['bearer-cookie', 'src/server/auth/middleware.ts', 'client ?? (await resolve(request))', '(await resolve(request)) ?? client'],
   ['bearer-delegated', 'src/server/auth/principal.ts', ' || claims.scp !== undefined', ''],
 );
 
@@ -1115,80 +375,20 @@ mutants.push(
       "    if (opts.credential?.kind === 'token')\n" +
       "      await spawnGit(dir, ['config', 'sw.token', opts.credential.token]);",
   ],
-  [
-    'remote-credential',
-    'src/server/projects/git.ts',
-    "const args = ['-c', 'credential.helper='];",
-    'const args: string[] = [];',
-  ],
-  [
-    'remote-credential',
-    'src/server/projects/git.ts',
-    'stderr: maskToken(redactCredentials(stderr), credential),',
-    'stderr: redactCredentials(stderr),',
-  ],
-  [
-    'remote-explicit',
-    'src/server/projects/git.ts',
-    "new Set(['fetch', 'pull', 'push', 'ls-remote', 'clone', 'remote-update'])",
-    "new Set(['ls-remote', 'remote-update'])",
-  ],
-  [
-    'remote-admin',
-    'src/server/auth/route-actions.ts',
-    "row('PUT', '/api/projects/:slug/git/remote', 'setRemote', project)",
-    "row('PUT', '/api/projects/:slug/git/remote', 'edit', project)",
-  ],
-  [
-    'remote-admin',
-    'src/server/auth/route-actions.ts',
-    "row('POST', '/api/clone', 'clone', workspace)",
-    "row('POST', '/api/clone', 'createProject', workspace)",
-  ],
-  [
-    'remote-hosts',
-    'src/server/auth/remote-hosts.ts',
-    'if (!allowedHosts.some(allowed => allowed.toLowerCase() === host)) {',
-    'if (false) {',
-  ],
-  [
-    'remote-hosts',
-    'src/server/auth/remote-hosts.ts',
-    "const secure = url?.protocol === 'https:' || (url !== null && isLoopbackHost(url.hostname));",
-    'const secure = url !== null;',
-  ],
-  [
-    'remote-hosts',
-    'src/server/auth/remote-hosts.ts',
-    'if (pushHost !== fetchHost) {',
-    'if (false) {',
-  ],
-  [
-    'remote-hosts',
-    'src/server/auth/remote-hosts.ts',
-    "return rest.includes('@') || authority.split('@').length > 2;",
-    'return false;',
-  ],
-  [
-    'remote-consent',
-    'src/server/auth/remote-credentials.ts',
-    "sameText(attempt.state, params.get('state') ?? '')",
-    'true',
-  ],
+  ['remote-credential', 'src/server/projects/git.ts', "const args = ['-c', 'credential.helper='];", 'const args: string[] = [];'],
+  ['remote-credential', 'src/server/projects/git.ts', 'stderr: maskToken(redactCredentials(stderr), credential),', 'stderr: redactCredentials(stderr),'],
+  ['remote-explicit', 'src/server/projects/git.ts', "new Set(['fetch', 'pull', 'push', 'ls-remote', 'clone', 'remote-update'])", "new Set(['ls-remote', 'remote-update'])"],
+  ['remote-admin', 'src/server/auth/route-actions.ts', "row('PUT', '/api/projects/:slug/git/remote', 'setRemote', project)", "row('PUT', '/api/projects/:slug/git/remote', 'edit', project)"],
+  ['remote-admin', 'src/server/auth/route-actions.ts', "row('POST', '/api/clone', 'clone', workspace)", "row('POST', '/api/clone', 'createProject', workspace)"],
+  ['remote-hosts', 'src/server/auth/remote-hosts.ts', 'if (!allowedHosts.some(allowed => allowed.toLowerCase() === host)) {', 'if (false) {'],
+  ['remote-hosts', 'src/server/auth/remote-hosts.ts', "const secure = url?.protocol === 'https:' || (url !== null && isLoopbackHost(url.hostname));", 'const secure = url !== null;'],
+  ['remote-hosts', 'src/server/auth/remote-hosts.ts', 'if (pushHost !== fetchHost) {', 'if (false) {'],
+  ['remote-hosts', 'src/server/auth/remote-hosts.ts', "return rest.includes('@') || authority.split('@').length > 2;", 'return false;'],
+  ['remote-consent', 'src/server/auth/remote-credentials.ts', "sameText(attempt.state, params.get('state') ?? '')", 'true'],
   ['remote-consent', 'src/server/auth/remote-credentials.ts', 'attempt.expiresAt > now() &&', ''],
   ['remote-consent', 'src/server/auth/remote-credentials.ts', 'if (!enabled()) {', 'if (false) {'],
-  [
-    'remote-guarded-fetch',
-    'src/server/projects/scm.ts',
-    '      credential: source.credential,\n',
-    '',
-  ],
-  [
-    'remote-redirect',
-    'src/server/projects/git.ts',
-    "args.push('-c', 'http.followRedirects=false');",
-    "args.push('-c', 'http.followRedirects=initial');",
-  ],
+  ['remote-guarded-fetch', 'src/server/projects/scm.ts', '      credential: source.credential,\n', ''],
+  ['remote-redirect', 'src/server/projects/git.ts', "args.push('-c', 'http.followRedirects=false');", "args.push('-c', 'http.followRedirects=initial');"],
 );
 
 // Per-person working copies in server mode: commits name their author, publishing only
@@ -1196,104 +396,34 @@ mutants.push(
 // published state is never edited, and protected branches need the publish right.
 mutants.push(
   ['copy-author', 'src/server/routes/git.ts', 'author: reader.copy?.author,', 'author: undefined,'],
-  [
-    'copy-worktrees',
-    'src/server/projects/worktrees.ts',
-    'if (ancestor.code !== 0) throw new NotFastForwardError(branch);',
-    'if (false) throw new NotFastForwardError(branch);',
-  ],
-  [
-    'copy-worktrees',
-    'src/server/projects/worktrees.ts',
-    'if (holder && holder.key !== key) throw new BranchInUseError(branch, holder.name);\n}',
-    'void holder;\n}',
-  ],
-  [
-    'copy-publish',
-    'src/server/projects/worktrees.ts',
-    "const swap = ['update-ref', 'refs/heads/' + branch, next, previous ?? ''];",
-    "const swap = ['update-ref', 'refs/heads/' + branch, next];",
-  ],
+  ['copy-worktrees', 'src/server/projects/worktrees.ts', 'if (ancestor.code !== 0) throw new NotFastForwardError(branch);', 'if (false) throw new NotFastForwardError(branch);'],
+  ['copy-worktrees', 'src/server/projects/worktrees.ts', 'if (holder && holder.key !== key) throw new BranchInUseError(branch, holder.name);\n}', 'void holder;\n}'],
+  ['copy-publish', 'src/server/projects/worktrees.ts', "const swap = ['update-ref', 'refs/heads/' + branch, next, previous ?? ''];", "const swap = ['update-ref', 'refs/heads/' + branch, next];"],
   ['copy-publish', 'src/server/projects/worktrees.ts', '  await check(previous, next);\n', ''],
-  [
-    'copy-publish',
-    'src/server/projects/worktrees.ts',
-    'if (changed.stdout.trim()) throw new BaseChangedError(repo);',
-    'void changed;',
-  ],
+  ['copy-publish', 'src/server/projects/worktrees.ts', 'if (changed.stdout.trim()) throw new BaseChangedError(repo);', 'void changed;'],
   [
     'copy-publish',
     'src/server/projects/worktrees.ts',
     "git.run(base, ['status', '--porcelain'], { readOnly: true })",
     "git.run(base, ['status', '--porcelain', '--untracked-files=no'], { readOnly: true })",
   ],
-  [
-    'copy-publish',
-    'src/server/projects/worktrees.ts',
-    "  await git.run(dir, ['checkout', '-q', '--force', '--detach', 'refs/heads/' + remembered]);\n",
-    '',
-  ],
-  [
-    'copy-publish',
-    'src/server/projects/worktrees.ts',
-    'return await moveDefault(context, repo, move, check);',
-    'return await moveDefault(context, repo, move, async () => {});',
-  ],
-  [
-    'copy-publish',
-    'src/server/projects/worktrees.ts',
-    'if (named && (await isBranchName(git, dir, named))) return named;',
-    'if (named) return named;',
-  ],
-  [
-    'copy-drafts',
-    'src/server/projects/state.ts',
-    "ownerState('u' + sha256(owner).slice(0, 20))",
-    "ownerState('u' + sha256('').slice(0, 20))",
-  ],
-  [
-    'copy-save',
-    'src/server/projects/workspace.ts',
-    'clearPersonalDrafts(state, slug, [p], staging, place.copy ?? undefined)',
-    'clearPersonalDrafts(state, slug, [p], staging)',
-  ],
+  ['copy-publish', 'src/server/projects/worktrees.ts', "  await git.run(dir, ['checkout', '-q', '--force', '--detach', 'refs/heads/' + remembered]);\n", ''],
+  ['copy-publish', 'src/server/projects/worktrees.ts', 'return await moveDefault(context, repo, move, check);', 'return await moveDefault(context, repo, move, async () => {});'],
+  ['copy-publish', 'src/server/projects/worktrees.ts', 'if (named && (await isBranchName(git, dir, named))) return named;', 'if (named) return named;'],
+  ['copy-drafts', 'src/server/projects/state.ts', "ownerState('u' + sha256(owner).slice(0, 20))", "ownerState('u' + sha256('').slice(0, 20))"],
+  ['copy-save', 'src/server/projects/workspace.ts', 'clearPersonalDrafts(state, slug, [p], staging, place.copy ?? undefined)', 'clearPersonalDrafts(state, slug, [p], staging)'],
   [
     'copy-save',
     'src/server/projects/workspace.ts',
     'const place = await copies.writePlace(reader, slug, check);\n    const file = projectFile(place.layout, slug, p);',
     'const place = published;\n    const file = projectFile(place.layout, slug, p);',
   ],
-  [
-    'copy-protected',
-    'src/server/auth/git-access.ts',
-    "authorizeRepository(target, 'publish', { branch: published });",
-    'void published;',
-  ],
+  ['copy-protected', 'src/server/auth/git-access.ts', "authorizeRepository(target, 'publish', { branch: published });", 'void published;'],
   ['copy-protected', 'src/server/auth/git-access.ts', 'if (push.allow) return;', 'return;'],
-  [
-    'guard-pull-default',
-    'src/server/routes/git.ts',
-    'scm.pullDefault(slug, reader)',
-    'scm.pullDefault(slug, { ...reader, guard: undefined })',
-  ],
-  [
-    'guard-publish',
-    'src/server/routes/git.ts',
-    'ws.publish(slug, reader)',
-    'ws.publish(slug, { ...reader, guard: undefined })',
-  ],
-  [
-    'copy-subproject',
-    'src/server/projects/workspace.ts',
-    'removeCopies: entryDir => unpublished.removeCopies(entryDir),',
-    'removeCopies: () => undefined,',
-  ],
-  [
-    'copy-suggestions',
-    'src/server/projects/workspace.ts',
-    'if (!reader.copy) return shared;',
-    'return shared;',
-  ],
+  ['guard-pull-default', 'src/server/routes/git.ts', 'scm.pullDefault(slug, reader)', 'scm.pullDefault(slug, { ...reader, guard: undefined })'],
+  ['guard-publish', 'src/server/routes/git.ts', 'ws.publish(slug, reader)', 'ws.publish(slug, { ...reader, guard: undefined })'],
+  ['copy-subproject', 'src/server/projects/workspace.ts', 'removeCopies: entryDir => unpublished.removeCopies(entryDir),', 'removeCopies: () => undefined,'],
+  ['copy-suggestions', 'src/server/projects/workspace.ts', 'if (!reader.copy) return shared;', 'return shared;'],
 );
 
 // Entra sign-in through MSAL. Each mutant undoes one guard: the library choice, the cache kept in
@@ -1301,287 +431,71 @@ mutants.push(
 // certificate credential, group overage, the loopback issuer rule, the sign-in host list, and the
 // front-channel issuer.
 mutants.push(
-  [
-    'msal-choice',
-    'src/server/auth/sign-in-provider.ts',
-    "return provider === 'entra' ? 'msal' : 'openid-client';",
-    "return 'openid-client';",
-  ],
+  ['msal-choice', 'src/server/auth/sign-in-provider.ts', "return provider === 'entra' ? 'msal' : 'openid-client';", "return 'openid-client';"],
   [
     'msal-cache',
     'src/server/auth/msal-provider.ts',
     'if (context.cacheHasChanged) cache.serialized = context.tokenCache.serialize();',
-    'if (context.cacheHasChanged) cache.serialized = context.tokenCache.serialize();\n' +
-      "      void Bun.write('/tmp/msal-token-cache.json', context.tokenCache.serialize());",
+    'if (context.cacheHasChanged) cache.serialized = context.tokenCache.serialize();\n' + "      void Bun.write('/tmp/msal-token-cache.json', context.tokenCache.serialize());",
   ],
   ['msal-pkce', 'src/server/auth/msal-provider.ts', '    codeVerifier: attempt.verifier,\n', ''],
-  [
-    'msal-state',
-    'src/server/auth/msal-provider.ts',
-    '    codeVerifier: attempt.verifier,\n    state: attempt.state,\n',
-    '    codeVerifier: attempt.verifier,\n',
-  ],
+  ['msal-state', 'src/server/auth/msal-provider.ts', '    codeVerifier: attempt.verifier,\n    state: attempt.state,\n', '    codeVerifier: attempt.verifier,\n'],
   ['msal-refresh', 'src/server/auth/msal-provider.ts', '    tokenCache: cache.serialized,\n', ''],
-  [
-    'msal-refresh',
-    'src/server/auth/msal-provider.ts',
-    "  if (result.idToken === tokens.idToken) throw new SignInError('token-invalid');\n",
-    '',
-  ],
-  [
-    'msal-certificate',
-    'src/server/auth/msal-provider.ts',
-    'return { clientCertificate: { ...certificate, thumbprintSha256: auth.thumbprint } };',
-    'return { clientSecret: auth.thumbprint };',
-  ],
-  [
-    'msal-certificate',
-    'src/server/auth/msal-provider.ts',
-    'return { clientCertificate: { ...certificate, thumbprint: auth.thumbprint } };',
-    'return { clientSecret: auth.thumbprint };',
-  ],
-  [
-    'msal-overage',
-    'src/server/auth/authentication.ts',
-    'if (identity.groupOverage) {',
-    'if (false) {',
-  ],
-  [
-    'msal-authority',
-    'src/server/config.ts',
-    'const developerMock = isLoopbackHost(url.hostname) && loopbackPublicUrl;',
-    'const developerMock = isLoopbackHost(url.hostname);',
-  ],
-  [
-    'msal-host',
-    'src/server/auth/msal-provider.ts',
-    "url.protocol === 'https:' && ENTRA_LOGIN_HOSTS.includes(url.hostname) && !url.port;",
-    "url.protocol === 'https:' && !url.port;",
-  ],
-  [
-    'front-channel-issuer',
-    'src/server/auth/authentication.ts',
-    "sid !== '' && (issuer === null || issuer === config.oidc.issuer);",
-    "sid !== '';",
-  ],
+  ['msal-refresh', 'src/server/auth/msal-provider.ts', "  if (result.idToken === tokens.idToken) throw new SignInError('token-invalid');\n", ''],
+  ['msal-certificate', 'src/server/auth/msal-provider.ts', 'return { clientCertificate: { ...certificate, thumbprintSha256: auth.thumbprint } };', 'return { clientSecret: auth.thumbprint };'],
+  ['msal-certificate', 'src/server/auth/msal-provider.ts', 'return { clientCertificate: { ...certificate, thumbprint: auth.thumbprint } };', 'return { clientSecret: auth.thumbprint };'],
+  ['msal-overage', 'src/server/auth/authentication.ts', 'if (identity.groupOverage) {', 'if (false) {'],
+  ['msal-authority', 'src/server/config.ts', 'const developerMock = isLoopbackHost(url.hostname) && loopbackPublicUrl;', 'const developerMock = isLoopbackHost(url.hostname);'],
+  ['msal-host', 'src/server/auth/msal-provider.ts', "url.protocol === 'https:' && ENTRA_LOGIN_HOSTS.includes(url.hostname) && !url.port;", "url.protocol === 'https:' && !url.port;"],
+  ['front-channel-issuer', 'src/server/auth/authentication.ts', "sid !== '' && (issuer === null || issuer === config.oidc.issuer);", "sid !== '';"],
 );
 
 // Delivery hardening. Each mutant undoes one decision: the ingress exposure checks, the lock on
 // promoted tags, the refusal to overwrite a commit tag, the main-branch ancestry of a release
 // commit, the service-connection gates of the pipeline files and the read-only container flags.
 mutants.push(
-  [
-    'deploy-ingress',
-    'scripts/deploy.ts',
-    "['ingress external', app.ingress.external],",
-    "['ingress external', true],",
-  ],
-  [
-    'deploy-ingress',
-    'scripts/deploy.ts',
-    "['ingress HTTPS only', !app.ingress.allowInsecure],",
-    "['ingress HTTPS only', true],",
-  ],
-  [
-    'deploy-ingress',
-    'scripts/deploy.ts',
-    "['ingress transport', ['auto', 'http', 'http2'].includes(app.ingress.transport)],",
-    "['ingress transport', true],",
-  ],
-  [
-    'deploy-ingress',
-    'scripts/deploy.ts',
-    "['ingress CORS', app.ingress.corsOrigins.every(origin => origin === target.SW_PUBLIC_URL)],",
-    "['ingress CORS', true],",
-  ],
-  [
-    'deploy-ingress',
-    'scripts/deploy.ts',
-    "['SW_PUBLIC_URL', app.env.SW_PUBLIC_URL === target.SW_PUBLIC_URL],",
-    "['SW_PUBLIC_URL', true],",
-  ],
-  [
-    'deploy-ingress-read',
-    'scripts/deploy-azure.ts',
-    'allowInsecure: ingress?.allowInsecure !== false,',
-    'allowInsecure: ingress?.allowInsecure === true,',
-  ],
-  [
-    'deploy-ingress-read',
-    'scripts/deploy-azure.ts',
-    'external: ingress?.external === true,',
-    'external: true,',
-  ],
-  [
-    'deploy-ingress-read',
-    'scripts/deploy-azure.ts',
-    "if (!Array.isArray(policy.allowedOrigins)) return ['*'];",
-    'if (!Array.isArray(policy.allowedOrigins)) return [];',
-  ],
+  ['deploy-ingress', 'scripts/deploy.ts', "['ingress external', app.ingress.external],", "['ingress external', true],"],
+  ['deploy-ingress', 'scripts/deploy.ts', "['ingress HTTPS only', !app.ingress.allowInsecure],", "['ingress HTTPS only', true],"],
+  ['deploy-ingress', 'scripts/deploy.ts', "['ingress transport', ['auto', 'http', 'http2'].includes(app.ingress.transport)],", "['ingress transport', true],"],
+  ['deploy-ingress', 'scripts/deploy.ts', "['ingress CORS', app.ingress.corsOrigins.every(origin => origin === target.SW_PUBLIC_URL)],", "['ingress CORS', true],"],
+  ['deploy-ingress', 'scripts/deploy.ts', "['SW_PUBLIC_URL', app.env.SW_PUBLIC_URL === target.SW_PUBLIC_URL],", "['SW_PUBLIC_URL', true],"],
+  ['deploy-ingress-read', 'scripts/deploy-azure.ts', 'allowInsecure: ingress?.allowInsecure !== false,', 'allowInsecure: ingress?.allowInsecure === true,'],
+  ['deploy-ingress-read', 'scripts/deploy-azure.ts', 'external: ingress?.external === true,', 'external: true,'],
+  ['deploy-ingress-read', 'scripts/deploy-azure.ts', "if (!Array.isArray(policy.allowedOrigins)) return ['*'];", 'if (!Array.isArray(policy.allowedOrigins)) return [];'],
   ['deploy-lock', 'scripts/deploy.ts', '  await client.lock(release);\n', ''],
-  [
-    'image-lock',
-    'scripts/image.ts',
-    "    '--write-enabled',\n    'false',",
-    "    '--write-enabled',\n    'true',",
-  ],
-  [
-    'image-lock',
-    'scripts/image.ts',
-    'return [`sha-${release.commit}`, release.tag];',
-    'return [release.tag, `sha-${release.commit}`];',
-  ],
-  [
-    'deploy-lock-client',
-    'scripts/deploy-azure.ts',
-    'for (const tag of releaseTags(release)) await command(',
-    'for (const tag of releaseTags(release).slice(0, 1)) await command(',
-  ],
+  ['image-lock', 'scripts/image.ts', "    '--write-enabled',\n    'false',", "    '--write-enabled',\n    'true',"],
+  ['image-lock', 'scripts/image.ts', 'return [`sha-${release.commit}`, release.tag];', 'return [release.tag, `sha-${release.commit}`];'],
+  ['deploy-lock-client', 'scripts/deploy-azure.ts', 'for (const tag of releaseTags(release)) await command(', 'for (const tag of releaseTags(release).slice(0, 1)) await command('],
   ['image-push-guard', 'scripts/image.ts', 'if (existing !== null) {', 'if (false) {'],
-  [
-    'image-push-guard',
-    'scripts/image.ts',
-    'if (/NAME_UNKNOWN|MANIFEST_UNKNOWN|not found/i.test((error as Error).message)) return null;',
-    'return null;',
-  ],
-  [
-    'image-push-guard',
-    'scripts/image.ts',
-    'if (!existing.locked) throw Error(',
-    'if (false) throw Error(',
-  ],
+  ['image-push-guard', 'scripts/image.ts', 'if (/NAME_UNKNOWN|MANIFEST_UNKNOWN|not found/i.test((error as Error).message)) return null;', 'return null;'],
+  ['image-push-guard', 'scripts/image.ts', 'if (!existing.locked) throw Error(', 'if (false) throw Error('],
   ['image-push-guard', 'scripts/image.ts', '    assertImageLabels(labels, context);\n', ''],
-  [
-    'image-push-guard',
-    'scripts/image.ts',
-    'if (revision !== context.commit || version !== context.version) {',
-    'if (revision !== context.commit) {',
-  ],
-  [
-    'image-push-guard',
-    'scripts/image.ts',
-    '  await runCommand(lockArguments(target, tag), false);\n',
-    '',
-  ],
-  [
-    'image-push-guard',
-    'scripts/image.ts',
-    'if (after?.digest !== digest) throw Error(',
-    'if (false) throw Error(',
-  ],
-  [
-    'image-push-guard',
-    'scripts/image.ts',
-    "if (!match) throw Error('The push did not report an image digest');",
-    "if (!match) return Promise.resolve('sha256:' + 'e'.repeat(64));",
-  ],
+  ['image-push-guard', 'scripts/image.ts', 'if (revision !== context.commit || version !== context.version) {', 'if (revision !== context.commit) {'],
+  ['image-push-guard', 'scripts/image.ts', '  await runCommand(lockArguments(target, tag), false);\n', ''],
+  ['image-push-guard', 'scripts/image.ts', 'if (after?.digest !== digest) throw Error(', 'if (false) throw Error('],
+  ['image-push-guard', 'scripts/image.ts', "if (!match) throw Error('The push did not report an image digest');", "if (!match) return Promise.resolve('sha256:' + 'e'.repeat(64));"],
   ['image-push-guard', 'scripts/image.ts', 'locked: value.writeEnabled === false', 'locked: true'],
-  [
-    'deploy-promote-rerun',
-    'scripts/deploy-azure.ts',
-    '      if (current?.digest === release.digest) return;\n',
-    '',
-  ],
-  [
-    'deploy-promote-rerun',
-    'scripts/deploy-azure.ts',
-    'if (current) throw Error(',
-    'if (false) throw Error(',
-  ],
-  [
-    'deploy-ancestry',
-    'scripts/deploy-version.ts',
-    'if (code === 1) throw Error(',
-    'if (false) throw Error(',
-  ],
-  [
-    'deploy-ancestry',
-    'scripts/deploy-version.ts',
-    'if (code !== 0) {\n    throw Error(`Could not compare',
-    'if (false) {\n    throw Error(`Could not compare',
-  ],
+  ['deploy-promote-rerun', 'scripts/deploy-azure.ts', '      if (current?.digest === release.digest) return;\n', ''],
+  ['deploy-promote-rerun', 'scripts/deploy-azure.ts', 'if (current) throw Error(', 'if (false) throw Error('],
+  ['deploy-ancestry', 'scripts/deploy-version.ts', 'if (code === 1) throw Error(', 'if (false) throw Error('],
+  ['deploy-ancestry', 'scripts/deploy-version.ts', 'if (code !== 0) {\n    throw Error(`Could not compare', 'if (false) {\n    throw Error(`Could not compare'],
   ['deploy-ancestry', 'scripts/deploy-version.ts', '!/^[a-f0-9]{40}$/.test(commit)', 'false'],
   ['deploy-ancestry', 'scripts/deploy-version.ts', "commit, 'origin/main']", "commit, 'HEAD']"],
-  [
-    'deploy-ancestry-cli',
-    'scripts/deploy-version.ts',
-    '  await assertCommitOnMain(process.env.SOURCE_VERSION || (await currentCommit()));\n',
-    '',
-  ],
-  [
-    'pipeline-gates',
-    'scripts/pipeline-lint.ts',
-    'if (node.azureSubscription && !connectionFiles.includes(file)) {',
-    'if (false) {',
-  ],
-  [
-    'pipeline-gates',
-    'scripts/pipeline-lint.ts',
-    '      if (job.deployment) continue;\n',
-    '      continue;\n',
-  ],
-  [
-    'pipeline-gates',
-    'scripts/pipeline-lint.ts',
-    'if (step.inputs?.azureSubscription && !gates.some(isReleaseGate)) {',
-    'if (false) {',
-  ],
-  [
-    'pipeline-gates',
-    'scripts/pipeline-lint.ts',
-    'return condition === tagCondition || condition === pushCondition;',
-    'return true;',
-  ],
-  [
-    'pipeline-gates',
-    'scripts/pipeline-lint.ts',
-    "check.inputs?.azureSubscription !== '${{ parameters.acrPullServiceConnection }}' ||",
-    'false ||',
-  ],
-  [
-    'pipeline-gates',
-    'scripts/pipeline-lint.ts',
-    "push.inputs.azureSubscription !== '${{ parameters.acrServiceConnection }}' ||",
-    'false ||',
-  ],
+  ['deploy-ancestry-cli', 'scripts/deploy-version.ts', '  await assertCommitOnMain(process.env.SOURCE_VERSION || (await currentCommit()));\n', ''],
+  ['pipeline-gates', 'scripts/pipeline-lint.ts', 'if (node.azureSubscription && !connectionFiles.includes(file)) {', 'if (false) {'],
+  ['pipeline-gates', 'scripts/pipeline-lint.ts', '      if (job.deployment) continue;\n', '      continue;\n'],
+  ['pipeline-gates', 'scripts/pipeline-lint.ts', 'if (step.inputs?.azureSubscription && !gates.some(isReleaseGate)) {', 'if (false) {'],
+  ['pipeline-gates', 'scripts/pipeline-lint.ts', 'return condition === tagCondition || condition === pushCondition;', 'return true;'],
+  ['pipeline-gates', 'scripts/pipeline-lint.ts', "check.inputs?.azureSubscription !== '${{ parameters.acrPullServiceConnection }}' ||", 'false ||'],
+  ['pipeline-gates', 'scripts/pipeline-lint.ts', "push.inputs.azureSubscription !== '${{ parameters.acrServiceConnection }}' ||", 'false ||'],
   ['pipeline-gates', 'scripts/pipeline-lint.ts', 'setup?.parameters?.fetchDepth !== 0', 'false'],
-  [
-    'pipeline-gates',
-    'scripts/pipeline-lint.ts',
-    'if (setup?.parameters?.production !== true) {',
-    'if (false) {',
-  ],
-  [
-    'pipeline-gates',
-    'scripts/pipeline-lint.ts',
-    'if (connectionSteps(jobs[0]).length !== 1 || connectionSteps(jobs[1]).length !== 1) {',
-    'if (false) {',
-  ],
-  [
-    'pipeline-gates',
-    'scripts/pipeline-lint.ts',
-    "bash: 'bun install --frozen-lockfile --production',",
-    "bash: 'bun install --frozen-lockfile',",
-  ],
-  [
-    'pipeline-pr-azure',
-    'scripts/pipeline-dry-run.ts',
-    "if (!branch.startsWith('refs/pull/')) return;",
-    'return;',
-  ],
+  ['pipeline-gates', 'scripts/pipeline-lint.ts', 'if (setup?.parameters?.production !== true) {', 'if (false) {'],
+  ['pipeline-gates', 'scripts/pipeline-lint.ts', 'if (connectionSteps(jobs[0]).length !== 1 || connectionSteps(jobs[1]).length !== 1) {', 'if (false) {'],
+  ['pipeline-gates', 'scripts/pipeline-lint.ts', "bash: 'bun install --frozen-lockfile --production',", "bash: 'bun install --frozen-lockfile',"],
+  ['pipeline-pr-azure', 'scripts/pipeline-dry-run.ts', "if (!branch.startsWith('refs/pull/')) return;", 'return;'],
   ['container-hardening', 'scripts/container-hardening.ts', "    '--read-only',\n", ''],
-  [
-    'container-hardening',
-    'scripts/container-hardening.ts',
-    "capabilitiesDropped: 'ALL'",
-    "capabilitiesDropped: 'NET_RAW'",
-  ],
-  [
-    'container-hardening',
-    'scripts/container-hardening.ts',
-    "securityOption: 'no-new-privileges'",
-    "securityOption: 'seccomp=unconfined'",
-  ],
+  ['container-hardening', 'scripts/container-hardening.ts', "capabilitiesDropped: 'ALL'", "capabilitiesDropped: 'NET_RAW'"],
+  ['container-hardening', 'scripts/container-hardening.ts', "securityOption: 'no-new-privileges'", "securityOption: 'seccomp=unconfined'"],
   ['container-hardening', 'scripts/container-hardening.ts', "tmpfs: '/tmp'", "tmpfs: '/data'"],
 );
 
@@ -1595,10 +509,7 @@ const askpassMutants: [string, string][] = [
   [`"" | */* | *@* | *\\'*) ;;`, `"") ;;`],
   [`[ -n "$host" ] || { printf '\\n'; exit 0; }`, 'true'],
   // The password branch answers any prompt, so only the redirect setting would stop a leak.
-  [
-    `"Password for 'https://"*"@$host': " | "Password for 'http://"*"@$host': ")`,
-    `"Password for "*)\n    printf '%s\\n' "\${SW_GIT_TOKEN-}"\n    exit 0\n    ;;\n  "never")`,
-  ],
+  [`"Password for 'https://"*"@$host': " | "Password for 'http://"*"@$host': ")`, `"Password for "*)\n    printf '%s\\n' "\${SW_GIT_TOKEN-}"\n    exit 0\n    ;;\n  "never")`],
 ];
 // Administration cases extend the existing inventory without changing its categories.
 mutants.push(...adminMutants);
@@ -1621,29 +532,17 @@ mutants.push(...brandMutants);
 // Logging, telemetry and browser report faults.
 mutants.push(...observabilityMutants);
 
-async function run(
-  category: string,
-  file: string,
-  source: string,
-  index: string,
-  env: Record<string, string> = {},
-) {
+async function run(category: string, file: string, source: string, index: string, env: Record<string, string> = {}) {
   if (category.startsWith('admin-')) {
     source = source.replaceAll("new URL('../../policies/", `new URL('${root}/policies/`);
   }
   const absolute = (path: string) => resolve(dirname(resolve(root, file)), path);
   const rewritten = source
     .replace(/\bfrom\s*(['"])(\.[^'"]+)\1/g, (_all, q, path) => `from ${q}${absolute(path)}${q}`)
-    .replace(
-      /\bimport\(\s*(['"])(\.[^'"]+)\1\s*\)/g,
-      (_all, q, path) => `import(${q}${absolute(path)}${q})`,
-    );
+    .replace(/\bimport\(\s*(['"])(\.[^'"]+)\1\s*\)/g, (_all, q, path) => `import(${q}${absolute(path)}${q})`);
   const target = resolve(temp, index + '.ts');
   await Bun.write(target, rewritten);
-  const child = Bun.spawn(
-    [process.execPath, resolve(root, 'scripts/mutation-case.ts'), target, category],
-    { stdout: 'pipe', stderr: 'pipe', env: { ...process.env, ...env } },
-  );
+  const child = Bun.spawn([process.execPath, resolve(root, 'scripts/mutation-case.ts'), target, category], { stdout: 'pipe', stderr: 'pipe', env: { ...process.env, ...env } });
   const timer = setTimeout(() => child.kill(), 10000);
   const code = await child.exited;
   clearTimeout(timer);
@@ -1664,13 +563,7 @@ async function askpassCases() {
     await Bun.write(path, text);
     await chmod(path, 0o755);
     const env = { ASKPASS_UNDER_TEST: path };
-    const result = await run(
-      'askpass',
-      'src/server/projects/git.ts',
-      gitSource,
-      'askpass-git',
-      env,
-    );
+    const result = await run('askpass', 'src/server/projects/git.ts', gitSource, 'askpass-git', env);
     if (label === 'baseline') {
       if (result.code !== 0) throw Error(`Baseline failed (askpass): ${result.error}`);
       continue;
@@ -1683,8 +576,7 @@ async function askpassCases() {
 // The baseline includes formatting and lint: unformatted or lint-failing code fails the gate.
 for (const script of ['fmt:check', 'lint']) {
   const child = Bun.spawn([process.execPath, 'run', script], { stdout: 'pipe', stderr: 'pipe' });
-  if ((await child.exited) !== 0)
-    throw Error(`Baseline failed (${script}): ${await new Response(child.stdout).text()}`);
+  if ((await child.exited) !== 0) throw Error(`Baseline failed (${script}): ${await new Response(child.stdout).text()}`);
 }
 // Every anchor is checked before the slow runs, so one pass lists all mutants a refactor orphaned.
 async function assertAnchorsPresent() {
@@ -1707,8 +599,7 @@ try {
     if (!source.includes(before)) throw Error(`Mutation anchor missing: ${before}`);
     const result = await run(category, file, source.replaceAll(before, after), 'mutant-' + i);
     if (result.code === 0) throw Error(`Surviving mutant ${i}: ${before} → ${after}`);
-    if (/Cannot find|SyntaxError|ModuleNotFound/.test(result.error))
-      throw Error(`Invalid mutation ${i}: ${result.error}`);
+    if (/Cannot find|SyntaxError|ModuleNotFound/.test(result.error)) throw Error(`Invalid mutation ${i}: ${result.error}`);
     killed++;
     console.log(`KILLED ${category}: ${before} → ${after}`);
   }
@@ -1722,8 +613,7 @@ try {
   const output = await new Response(ui.stdout).text();
   const error = await new Response(ui.stderr).text();
   if (code === 0) throw Error('Surviving UI mutant: empty neighborhood node projection');
-  if (!output.includes('INJECTED_CLEAR_NODES_MUTATION') || !error.includes('react-flow__node'))
-    throw Error('Invalid UI mutant: ' + output + error);
+  if (!output.includes('INJECTED_CLEAR_NODES_MUTATION') || !error.includes('react-flow__node')) throw Error('Invalid UI mutant: ' + output + error);
   killed++;
   console.log('KILLED UI: empty neighborhood node projection');
   // Layout mutants: each must fail the responsive checks that guard it.
@@ -1740,11 +630,7 @@ try {
   // The empty neighborhood projection counts with them.
   const layoutMutantCount = 1 + Object.keys(layoutMutationMarkers).length;
   for (const [mutation, only, label] of [
-    [
-      'overlay',
-      'overlaps: the graph bundle',
-      'status line drawn over the mini-map and zoom controls',
-    ],
+    ['overlay', 'overlaps: the graph bundle', 'status line drawn over the mini-map and zoom controls'],
     ['status-stays', 'status messages', 'status messages never dismiss'],
     ['small-text', 'screens', 'sidebar label drawn below the minimum text size'],
     ['save-state-cut', 'shell:', 'save state cut with an ellipsis in a wide header'],
@@ -1762,19 +648,12 @@ try {
     const output = await new Response(child.stdout).text();
     const error = await new Response(child.stderr).text();
     if (code === 0) throw Error('Surviving UI mutant: ' + label);
-    if (
-      !output.includes(layoutMutationMarkers[mutation]) ||
-      !/expect|Expected|toHaveCount/.test(error)
-    )
-      throw Error('Invalid UI mutant: ' + label + '\n' + output + error);
+    if (!output.includes(layoutMutationMarkers[mutation]) || !/expect|Expected|toHaveCount/.test(error)) throw Error('Invalid UI mutant: ' + label + '\n' + output + error);
     killed++;
     console.log('KILLED UI: ' + label);
   }
   const total = mutants.length + askpassMutants.length + layoutMutantCount;
-  console.log(
-    `${killed}/${total} targeted mutants killed; all unmodified module baselines passed. ` +
-      'Run test:ui for the full browser baseline.',
-  );
+  console.log(`${killed}/${total} targeted mutants killed; all unmodified module baselines passed. ` + 'Run test:ui for the full browser baseline.');
 } finally {
   await rm(temp, { recursive: true, force: true });
 }

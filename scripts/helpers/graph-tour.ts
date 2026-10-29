@@ -9,9 +9,7 @@ import { graphControlsProblems } from './graph-paint-geometry';
 async function reachableEdgePoints(page: Page) {
   return page.evaluate(() => {
     const points: { x: number; y: number }[] = [];
-    for (const path of document.querySelectorAll<SVGPathElement>(
-      '.neighborhood-graph .react-flow__edge-path',
-    )) {
+    for (const path of document.querySelectorAll<SVGPathElement>('.neighborhood-graph .react-flow__edge-path')) {
       const matrix = path.getScreenCTM();
       if (!matrix) continue;
       for (const fraction of [0.5, 0.25, 0.75, 0.1, 0.9]) {
@@ -29,9 +27,7 @@ async function reachableEdgePoints(page: Page) {
 // over the edge of a panned view shows none; the pointer tries lines until one shows its label.
 async function hoverRelationship(page: Page) {
   const points = await reachableEdgePoints(page);
-  expect(points.length, 'a neighborhood relationship has a reachable hover target').toBeGreaterThan(
-    0,
-  );
+  expect(points.length, 'a neighborhood relationship has a reachable hover target').toBeGreaterThan(0);
   const label = page.locator('.neighborhood-graph .relationship-label').first();
   for (const point of points) {
     await page.mouse.move(point.x, point.y);
@@ -75,10 +71,7 @@ export function graphScreens(ontology: string): Screen[] {
       show: async page => {
         await fileTab(ontology, 'Neighborhood')(page);
         await revealGraphControls(page);
-        const zoom = () =>
-          page
-            .locator('.neighborhood-graph .react-flow__viewport')
-            .evaluate(element => new DOMMatrix(getComputedStyle(element).transform).a);
+        const zoom = () => page.locator('.neighborhood-graph .react-flow__viewport').evaluate(element => new DOMMatrix(getComputedStyle(element).transform).a);
         while ((await zoom()) < 1) {
           const previous = await zoom();
           await page.getByRole('button', { name: 'Zoom in', exact: true }).click();
@@ -127,8 +120,6 @@ export async function graphScreenProblems(page: Page, screen: Screen): Promise<s
   }
   // With every area open the model zooms out, so only the first view must keep names readable.
   const allOpen = screen.name === 'graph-model-all-areas';
-  const problems = (await graphCanvasProblems(page, which)).filter(
-    problem => !(allOpen && /^name "[\s\S]*" is \d+\.\d px on screen$/.test(problem)),
-  );
+  const problems = (await graphCanvasProblems(page, which)).filter(problem => !(allOpen && /^name "[\s\S]*" is \d+\.\d px on screen$/.test(problem)));
   return problems.map(problem => `${screen.name}: ${problem}`);
 }

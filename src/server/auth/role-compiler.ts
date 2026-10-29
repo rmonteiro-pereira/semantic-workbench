@@ -1,11 +1,5 @@
 // Compiles role permissions into Cedar text without loading the engine or reading files.
-import {
-  BUILTIN_ROLE_IDS,
-  BRANCH_ACTIONS,
-  FILE_ACTIONS,
-  isAction,
-  LEVELS,
-} from '../../shared/auth/actions';
+import { BUILTIN_ROLE_IDS, BRANCH_ACTIONS, FILE_ACTIONS, isAction, LEVELS } from '../../shared/auth/actions';
 import type { Conditions, Role } from './access-config';
 
 /** A role that cannot safely compile against the access schema. */
@@ -20,27 +14,18 @@ function validatePermission(role: Role, permission: Role['permissions'][number])
     }
   }
   const conditions = permission.conditions ?? {};
-  const fileCondition =
-    conditions.path !== undefined ||
-    conditions.docType !== undefined ||
-    conditions.maxLevel !== undefined;
+  const fileCondition = conditions.path !== undefined || conditions.docType !== undefined || conditions.maxLevel !== undefined;
   if (fileCondition && !permission.actions.every(action => FILE_ACTIONS.includes(action))) {
     throw new RoleError(`${role.id}: file conditions require file actions.`);
   }
-  if (
-    conditions.branch !== undefined &&
-    !permission.actions.every(action => BRANCH_ACTIONS.includes(action))
-  ) {
+  if (conditions.branch !== undefined && !permission.actions.every(action => BRANCH_ACTIONS.includes(action))) {
     throw new RoleError(`${role.id}: branch conditions require branch actions.`);
   }
   if (conditions.maxLevel !== undefined && !LEVELS.includes(conditions.maxLevel)) {
     throw new RoleError(`${role.id}: unknown classification level.`);
   }
   for (const glob of [conditions.path, conditions.branch]) {
-    if (
-      glob !== undefined &&
-      (!glob || /[?\\]/.test(glob) || glob.startsWith('/') || glob.split('/').includes('..'))
-    ) {
+    if (glob !== undefined && (!glob || /[?\\]/.test(glob) || glob.startsWith('/') || glob.split('/').includes('..'))) {
       throw new RoleError(`${role.id}: invalid relative glob ${glob}.`);
     }
   }
@@ -61,10 +46,7 @@ function clauses(conditions: Conditions): string[] {
     result.push(`resource.path like ${JSON.stringify(conditions.path.replace(/\*+/g, '*'))}`);
   }
   if (conditions.docType !== undefined) {
-    result.push(
-      `[${conditions.docType.map(value => JSON.stringify(value)).join(', ')}]` +
-        '.contains(resource.docType)',
-    );
+    result.push(`[${conditions.docType.map(value => JSON.stringify(value)).join(', ')}]` + '.contains(resource.docType)');
   }
   if (conditions.maxLevel !== undefined) {
     result.push(`context.level <= ${LEVELS.indexOf(conditions.maxLevel)}`);
@@ -81,21 +63,14 @@ export function compileRoles(roles: Role[]) {
   const pathGlobs = new Set<string>();
   for (const role of roles) {
     if (role.id === 'admin') {
-      policies['role:admin:1'] =
-        '@id("role:admin:1")\n' +
-        'permit (principal in SW::RoleHolder::"admin@workspace", action, resource);';
+      policies['role:admin:1'] = '@id("role:admin:1")\n' + 'permit (principal in SW::RoleHolder::"admin@workspace", action, resource);';
       continue;
     }
     role.permissions.forEach((permission, index) => {
       const id = `role:${role.id}:${index + 1}`;
       const actions = permission.actions.map(action => `SW::Action::"${action}"`).join(', ');
-      const conditions = [
-        `principal in resource.holders.${role.id}`,
-        ...clauses(permission.conditions ?? {}),
-      ];
-      policies[id] =
-        `@id("${id}")\npermit (principal, action in [${actions}], resource)\n` +
-        `when { ${conditions.join(' && ')} };`;
+      const conditions = [`principal in resource.holders.${role.id}`, ...clauses(permission.conditions ?? {})];
+      policies[id] = `@id("${id}")\npermit (principal, action in [${actions}], resource)\n` + `when { ${conditions.join(' && ')} };`;
       if (permission.conditions?.path) pathGlobs.add(permission.conditions.path);
     });
   }

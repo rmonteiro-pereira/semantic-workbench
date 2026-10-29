@@ -40,9 +40,7 @@ test('API sends structured errors and valid save/read round-trip preserves bytes
     expect(r.status).toBe(200);
     const d = await r.json();
     expect(d.source).toBe(source);
-    const failed = await handler(
-      request({ filename: 'x.yaml', source: 'ontology: []', id: d.id, revision: d.revision }),
-    );
+    const failed = await handler(request({ filename: 'x.yaml', source: 'ontology: []', id: d.id, revision: d.revision }));
     expect(failed.status).toBe(400);
     expect(t.ws.documents()[0]).toEqual(d);
     expect(t.ws.cache.entities('ungrouped', 'x.yaml')).toHaveLength(1);
@@ -58,10 +56,7 @@ test('API rejects malformed JSON, oversized requests, and untrusted origins', as
   const t = await testWorkspace();
   try {
     const h = t.handler;
-    expect(
-      (await h(new Request('http://localhost/api/documents', { method: 'POST', body: '{' })))
-        .status,
-    ).toBe(400);
+    expect((await h(new Request('http://localhost/api/documents', { method: 'POST', body: '{' }))).status).toBe(400);
     expect(
       (
         await h(

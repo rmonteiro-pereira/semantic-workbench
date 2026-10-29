@@ -1,12 +1,5 @@
 import { expect, test } from 'bun:test';
-import {
-  deploy,
-  rollback,
-  preflight,
-  deploymentFailure,
-  targetIssuer,
-  previousPromotion,
-} from '../../scripts/deploy';
+import { deploy, rollback, preflight, deploymentFailure, targetIssuer, previousPromotion } from '../../scripts/deploy';
 import { promotionArguments, validateTarget } from '../../scripts/image';
 import { fakeAzure, fakeTarget, fakeApp, fakeRelease } from '../../scripts/deploy-fake';
 
@@ -16,9 +9,7 @@ for (const [version, tags] of [
 ] as const) {
   test(`version guard refuses ${version} / ${tags} before writes`, async () => {
     const client = fakeAzure({ tags: [...tags] });
-    await expect(
-      deploy(fakeTarget, { ...fakeRelease, packageVersion: version }, client),
-    ).rejects.toThrow();
+    await expect(deploy(fakeTarget, { ...fakeRelease, packageVersion: version }, client)).rejects.toThrow();
     expect(client.calls.every(call => !['promote', 'update', 'copy'].includes(call[0]))).toBe(true);
   });
 }
@@ -120,16 +111,7 @@ for (const [setting, change] of wrongSettings) {
 test('smoke passes before promotion and updates the scanned digest', async () => {
   const client = fakeAzure();
   await deploy(fakeTarget, fakeRelease, client);
-  expect(client.calls.map(call => call[0])).toEqual([
-    'tags',
-    'inspect',
-    'active',
-    'update',
-    'wait',
-    'smoke',
-    'promote',
-    'lock',
-  ]);
+  expect(client.calls.map(call => call[0])).toEqual(['tags', 'inspect', 'active', 'update', 'wait', 'smoke', 'promote', 'lock']);
   expect(client.calls[3][1]).toBe(fakeRelease.digest);
   const command = promotionArguments(fakeTarget, fakeRelease);
   expect(command.slice(0, 4)).toEqual(['docker', 'buildx', 'imagetools', 'create']);
@@ -149,9 +131,7 @@ test('failed smoke copies recorded revision, checks restored labels and still fa
 for (const target of ['previous', 'tag']) {
   test(`manual rollback resolves ${target} and refuses branch refs`, async () => {
     const client = fakeAzure();
-    await expect(rollback(fakeTarget, target, 'refs/heads/main', client)).rejects.toThrow(
-      'tag ref',
-    );
+    await expect(rollback(fakeTarget, target, 'refs/heads/main', client)).rejects.toThrow('tag ref');
     expect(client.calls).toEqual([]);
     await rollback(fakeTarget, target, 'refs/tags/v0.4.0-alpha.1', client);
     expect(client.calls.some(call => call[0] === 'promote')).toBe(false);
@@ -175,9 +155,7 @@ test('failed restoration reports both deployment and recovery errors', async () 
   client.copy = async () => {
     throw Error('copy unavailable');
   };
-  await expect(deploy(fakeTarget, fakeRelease, client)).rejects.toThrow(
-    'Deployment and rollback failed',
-  );
+  await expect(deploy(fakeTarget, fakeRelease, client)).rejects.toThrow('Deployment and rollback failed');
 });
 
 test('fake CLI works offline and injected smoke failure exits nonzero after recovery', () => {
@@ -199,22 +177,8 @@ test('issuer comes from the target and preflight names a wrong issuer', () => {
 
 test('tag rollback verifies commit identity, scans, then updates with recovery', async () => {
   const client = fakeAzure({ failSmoke: true });
-  await expect(rollback(fakeTarget, 'tag', 'refs/tags/v0.4.0', client)).rejects.toThrow(
-    'rolled back',
-  );
-  expect(client.calls.map(call => call[0])).toEqual([
-    'inspect',
-    'resolve',
-    'resolve',
-    'scan',
-    'active',
-    'update',
-    'wait',
-    'smoke',
-    'copy',
-    'wait',
-    'smoke',
-  ]);
+  await expect(rollback(fakeTarget, 'tag', 'refs/tags/v0.4.0', client)).rejects.toThrow('rolled back');
+  expect(client.calls.map(call => call[0])).toEqual(['inspect', 'resolve', 'resolve', 'scan', 'active', 'update', 'wait', 'smoke', 'copy', 'wait', 'smoke']);
 });
 
 test('mutable tag mismatch and failed rescan prevent updates', async () => {
@@ -224,33 +188,21 @@ test('mutable tag mismatch and failed rescan prevent updates', async () => {
     name: tag,
     digest: tag.startsWith('sha-') ? 'different' : fakeRelease.digest,
   });
-  await expect(rollback(fakeTarget, 'tag', 'refs/tags/v0.4.0', client)).rejects.toThrow(
-    'digest differs',
-  );
+  await expect(rollback(fakeTarget, 'tag', 'refs/tags/v0.4.0', client)).rejects.toThrow('digest differs');
   expect(client.calls.some(call => call[0] === 'update')).toBe(false);
   const scanning = fakeAzure();
   scanning.scan = async () => {
     throw Error('scan failed');
   };
-  await expect(rollback(fakeTarget, 'tag', 'refs/tags/v0.4.0', scanning)).rejects.toThrow(
-    'scan failed',
-  );
+  await expect(rollback(fakeTarget, 'tag', 'refs/tags/v0.4.0', scanning)).rejects.toThrow('scan failed');
   expect(scanning.calls.some(call => call[0] === 'update')).toBe(false);
 });
 
 test('structured diagnostics preserve aggregate errors and nested causes', () => {
-  const failure = deploymentFailure(
-    new AggregateError(
-      [new Error('update', { cause: Error('network') }), Error('restore')],
-      'both failed',
-    ),
-  );
+  const failure = deploymentFailure(new AggregateError([new Error('update', { cause: Error('network') }), Error('restore')], 'both failed'));
   expect(JSON.stringify(failure)).toContain('network');
   expect(JSON.stringify(failure)).toContain('restore');
-  const result = Bun.spawnSync(
-    [process.execPath, 'scripts/deploy.ts', 'deploy', '--fake', '--fail-smoke'],
-    { env: { ...process.env, ...fakeTarget } },
-  );
+  const result = Bun.spawnSync([process.execPath, 'scripts/deploy.ts', 'deploy', '--fake', '--fail-smoke'], { env: { ...process.env, ...fakeTarget } });
   expect(JSON.parse(result.stderr.toString())).toMatchObject({
     ok: false,
     cause: { error: 'Injected smoke failure' },
@@ -260,15 +212,11 @@ test('structured diagnostics preserve aggregate errors and nested causes', () =>
 
 test('previous refuses when no older successful promoted digest exists', () => {
   const revision = { ...fakeRelease, name: 'active' };
-  expect(() => previousPromotion(revision, [{ tag: 'v0.4.0', revision }], new Set())).toThrow(
-    'No previous promoted',
-  );
+  expect(() => previousPromotion(revision, [{ tag: 'v0.4.0', revision }], new Set())).toThrow('No previous promoted');
 });
 
 test('validated target has all required fields and discards unrelated environment values', () => {
-  expect(validateTarget({ ...fakeTarget, UNRELATED_SECRET: 'not a target setting' })).toEqual(
-    fakeTarget,
-  );
+  expect(validateTarget({ ...fakeTarget, UNRELATED_SECRET: 'not a target setting' })).toEqual(fakeTarget);
 });
 
 test('rollback update failure restores the recorded revision', async () => {
@@ -276,9 +224,7 @@ test('rollback update failure restores the recorded revision', async () => {
   client.update = async () => {
     throw Error('update failed');
   };
-  await expect(rollback(fakeTarget, 'tag', 'refs/tags/v0.4.0', client)).rejects.toThrow(
-    'rolled back',
-  );
+  await expect(rollback(fakeTarget, 'tag', 'refs/tags/v0.4.0', client)).rejects.toThrow('rolled back');
   expect(client.calls.slice(-3).map(call => call[0])).toEqual(['copy', 'wait', 'smoke']);
 });
 
@@ -300,10 +246,7 @@ test('production CLI validates its target without loading fake fixtures', async 
   `,
   );
   try {
-    const result = Bun.spawnSync(
-      [process.execPath, '--preload', preload, 'scripts/deploy.ts', 'deploy'],
-      { env: {} },
-    );
+    const result = Bun.spawnSync([process.execPath, '--preload', preload, 'scripts/deploy.ts', 'deploy'], { env: {} });
     expect(result.exitCode).toBe(1);
     expect(JSON.parse(result.stderr.toString()).error).toContain('Missing target variables');
     expect(result.stderr.toString()).not.toContain('Production loaded fake fixtures');

@@ -11,14 +11,7 @@ import { createScanner, type Scanner } from './scanner';
 import type { FollowRequest, FollowResult, Scm, ScmDeps } from './scm';
 import type { State } from './state';
 import { createWatcher } from './watcher';
-import {
-  isPersonalBranch,
-  sameBranchName,
-  personalBranch,
-  type BranchHolder,
-  type CopyOwner,
-  type Worktrees,
-} from './worktrees';
+import { isPersonalBranch, sameBranchName, personalBranch, type BranchHolder, type CopyOwner, type Worktrees } from './worktrees';
 import { PersonalBranchError } from './errors';
 import type { Git } from './git';
 import { log } from '../observability/log';
@@ -69,8 +62,7 @@ type Personal = {
  * The lock a file change takes: per project and per working copy, as copies never share files,
  * while every change to the published state of a project waits for the others.
  */
-export const projectLockKey = (slug: string, copy: string | null) =>
-  'project:' + slug + (copy ? '@' + copy : '');
+export const projectLockKey = (slug: string, copy: string | null) => 'project:' + slug + (copy ? '@' + copy : '');
 
 /**
  * What Source Control does differently in a person's copy: a branch another copy holds is
@@ -84,11 +76,7 @@ export function copyScmHooks(
     worktrees: Worktrees;
     repoOf: (slug: string) => string;
     owners: () => CopyOwner[];
-    followRemote: (
-      slug: string,
-      remote: string,
-      follow: FollowRequest,
-    ) => Promise<FollowResult | null>;
+    followRemote: (slug: string, remote: string, follow: FollowRequest) => Promise<FollowResult | null>;
   },
 ): Partial<ScmDeps> {
   const { worktrees, repoOf } = deps;
@@ -101,8 +89,7 @@ export function copyScmHooks(
     assertBranchFree: async (slug, branch) => {
       await worktrees.assertFree(repoOf(slug), own, branch);
       const mine = ownBranch();
-      if (isPersonalBranch(branch) && !(mine !== null && sameBranchName(branch, mine)))
-        throw new PersonalBranchError(branch);
+      if (isPersonalBranch(branch) && !(mine !== null && sameBranchName(branch, mine))) throw new PersonalBranchError(branch);
     },
     ownBranch,
     untrackedPull: async (slug, branch) => {
@@ -148,10 +135,7 @@ export function writeKeyFor(reader: Reader): string | null {
 }
 
 /** What one project listing learns once per repository: the default branch and who holds what. */
-export type RepositoryFacts = Map<
-  string,
-  Promise<{ defaultBranch: string; holders: Map<string, BranchHolder> }>
->;
+export type RepositoryFacts = Map<string, Promise<{ defaultBranch: string; holders: Map<string, BranchHolder> }>>;
 
 /** Everyone who may own a copy: recorded people, then people seen only in this process. */
 function copyOwners(state: State, seen: Map<string, string>): CopyOwner[] {
@@ -160,9 +144,7 @@ function copyOwners(state: State, seen: Map<string, string>): CopyOwner[] {
     handle: user.handle,
     name: user.name,
   }));
-  const unrecorded = [...seen]
-    .filter(([key]) => !recorded.some(user => user.key === key))
-    .map(([key, name]) => ({ key, handle: key, name }));
+  const unrecorded = [...seen].filter(([key]) => !recorded.some(user => user.key === key)).map(([key, name]) => ({ key, handle: key, name }));
   return [...recorded, ...unrecorded];
 }
 
@@ -268,11 +250,7 @@ export function createWorkingCopies(deps: WorkingCopyDeps) {
    * A new copy starts as the published state, so `precheck` judges the write there first: a
    * refused write leaves no copy behind.
    */
-  async function writePlace(
-    reader: Reader,
-    slug: string,
-    precheck?: (published: Place) => unknown,
-  ): Promise<Place> {
+  async function writePlace(reader: Reader, slug: string, precheck?: (published: Place) => unknown): Promise<Place> {
     const key = writeKeyFor(reader);
     if (!key || !reader.copy) return deps.published;
     const repo = deps.repoOf(slug);
@@ -307,9 +285,7 @@ export function createWorkingCopies(deps: WorkingCopyDeps) {
     const repo = deps.repoOf(slug);
     if (!facts.has(repo)) facts.set(repo, repositoryFacts(repo));
     const { defaultBranch, holders } = await facts.get(repo)!;
-    const inUseBranches = [...holders]
-      .filter(([, holder]) => holder.key !== key)
-      .map(([held, holder]) => ({ branch: held, inUseBy: holder.name }));
+    const inUseBranches = [...holders].filter(([, holder]) => holder.key !== key).map(([held, holder]) => ({ branch: held, inUseBy: holder.name }));
     if (deps.worktrees.exists(key, repo)) return { branch, defaultBranch, inUseBranches };
     const owner = owners().find(person => person.key === key);
     return { branch: personalBranch(owner?.handle ?? key), defaultBranch, inUseBranches };
@@ -344,8 +320,7 @@ export function createWorkingCopies(deps: WorkingCopyDeps) {
     releaseIdle,
     release,
     /** The keys of the copies in use now, each with its watched repository folders. */
-    active: () =>
-      [...personal].map(([key, entry]) => ({ key, watching: entry.watcher?.watching() ?? [] })),
+    active: () => [...personal].map(([key, entry]) => ({ key, watching: entry.watcher?.watching() ?? [] })),
     close() {
       clearInterval(interval);
       for (const entry of personal.values()) entry.watcher?.close();

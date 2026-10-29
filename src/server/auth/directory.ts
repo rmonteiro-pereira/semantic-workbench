@@ -53,12 +53,8 @@ export function createGroupNameCache(lookup: GroupLookup, options: GroupNameCach
 
 /** Collects group identifiers mentioned by grants or restricted paths. */
 export function directoryGroupIds(config: AccessConfig): string[] {
-  const grants = config.grants.flatMap(grant =>
-    grant.member.kind === 'group' ? [grant.member.groupId] : [],
-  );
-  const restricted = Object.values(config.projects.projects).flatMap(project =>
-    project.restricted.flatMap(rule => rule.groups),
-  );
+  const grants = config.grants.flatMap(grant => (grant.member.kind === 'group' ? [grant.member.groupId] : []));
+  const restricted = Object.values(config.projects.projects).flatMap(project => project.restricted.flatMap(rule => rule.groups));
   return [...new Set([...grants, ...restricted].map(id => id.toLowerCase()))];
 }
 

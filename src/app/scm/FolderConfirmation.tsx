@@ -33,9 +33,7 @@ function ChangeSummary({ preview }: { preview: FolderPreview }) {
     <>
       <p>{`Only ${preview.folder} is checked out from now on.`}</p>
       <p>{`${preview.current} is removed from your disk. Commits you have not pushed stay in the repository.`}</p>
-      {!preview.existsOnBranch && (
-        <p>{`${preview.folder} does not exist on this branch yet. The first push creates it.`}</p>
-      )}
+      {!preview.existsOnBranch && <p>{`${preview.folder} does not exist on this branch yet. The first push creates it.`}</p>}
     </>
   );
 }
@@ -44,11 +42,7 @@ function ChangeSummary({ preview }: { preview: FolderPreview }) {
 export function FolderConfirmation({ preview }: { preview: FolderPreview }) {
   return (
     <div className="folder-confirmation" aria-label="Folder change">
-      {preview.kind === 'move' ? (
-        <MoveSummary preview={preview} />
-      ) : (
-        <ChangeSummary preview={preview} />
-      )}
+      {preview.kind === 'move' ? <MoveSummary preview={preview} /> : <ChangeSummary preview={preview} />}
       {preview.blocked && (
         <p role="alert" className="dialog-error">
           {blockedText(preview.blocked)}

@@ -42,8 +42,7 @@ export type MetricExtension = {
 };
 /** Links a metric to the concept it measures and an optional subject concept. */
 export type KpiBinding = { metric: string; measures: string; of?: string };
-const object = (v: unknown): v is Record<string, any> =>
-  !!v && typeof v === 'object' && !Array.isArray(v);
+const object = (v: unknown): v is Record<string, any> => !!v && typeof v === 'object' && !Array.isArray(v);
 
 /** Finds the workbench extension and its index for validation paths. */
 export function workbenchEntry(owner: any): { index: number; data: unknown } | null {
@@ -84,21 +83,13 @@ function parseData(data: unknown, path: string): { value?: any; issues: Issue[] 
 function metricRules(v: any): { inner: string; message: string }[] {
   const out: { inner: string; message: string }[] = [];
   if (!object(v)) return out;
-  if (v.type === 'ratio' && (v.numerator === undefined || v.denominator === undefined))
-    out.push({ inner: '/type', message: 'A ratio metric requires numerator and denominator.' });
-  if (
-    v.additivity === 'semi_additive' &&
-    (v.non_additive_over === undefined || v.period_aggregation === undefined)
-  )
+  if (v.type === 'ratio' && (v.numerator === undefined || v.denominator === undefined)) out.push({ inner: '/type', message: 'A ratio metric requires numerator and denominator.' });
+  if (v.additivity === 'semi_additive' && (v.non_additive_over === undefined || v.period_aggregation === undefined))
     out.push({
       inner: '/additivity',
       message: 'A semi_additive metric requires non_additive_over and period_aggregation.',
     });
-  if (
-    v.status === 'deprecated' &&
-    v.replaced_by === undefined &&
-    v.deprecation_reason === undefined
-  )
+  if (v.status === 'deprecated' && v.replaced_by === undefined && v.deprecation_reason === undefined)
     out.push({
       inner: '/status',
       message: 'A deprecated metric requires replaced_by or deprecation_reason.',
@@ -110,12 +101,7 @@ function metricRules(v: any): { inner: string; message: string }[] {
     });
   return out;
 }
-function schemaIssues(
-  validate: ValidateFunction,
-  value: unknown,
-  path: string,
-  rules: { inner: string; message: string }[],
-): Issue[] {
+function schemaIssues(validate: ValidateFunction, value: unknown, path: string, rules: { inner: string; message: string }[]): Issue[] {
   const issues: Issue[] = rules.map(r => ({
     severity: 'error',
     code: 'extension',
@@ -126,13 +112,7 @@ function schemaIssues(
   if (!validate(value))
     for (const e of validate.errors ?? []) {
       if (e.keyword === 'if' || (e.schemaPath.includes('/allOf/') && rules.length)) continue;
-      const inner =
-        (e.instancePath || '') +
-        (e.keyword === 'required'
-          ? '/' + e.params.missingProperty
-          : e.keyword === 'additionalProperties'
-            ? '/' + e.params.additionalProperty
-            : '');
+      const inner = (e.instancePath || '') + (e.keyword === 'required' ? '/' + e.params.missingProperty : e.keyword === 'additionalProperties' ? '/' + e.params.additionalProperty : '');
       issues.push({
         severity: 'error',
         code: 'extension',
@@ -145,10 +125,7 @@ function schemaIssues(
 }
 
 /** Parses and validates a metric extension using the metric's JSON pointer for findings. */
-export function readMetricExtension(
-  metric: any,
-  path = '',
-): { value: MetricExtension | null; issues: Issue[] } {
+export function readMetricExtension(metric: any, path = ''): { value: MetricExtension | null; issues: Issue[] } {
   const entry = workbenchEntry(metric);
   if (!entry) return { value: null, issues: [] };
   const dataPath = `${path}/custom_extensions/${entry.index}/data`;
@@ -159,36 +136,29 @@ export function readMetricExtension(
 }
 
 /** Parses and validates metric bindings from a mapping or embedded model root. */
-export function readKpiBindings(
-  owner: any,
-  path = '',
-  mappingDocument = true,
-): { value: KpiBinding[]; issues: Issue[] } {
+export function readKpiBindings(owner: any, path = '', mappingDocument = true): { value: KpiBinding[]; issues: Issue[] } {
   const entry = workbenchEntry(owner);
   if (!entry) return { value: [], issues: [] };
   const dataPath = `${path}/custom_extensions/${entry.index}/data`;
   const parsed = parseData(entry.data, dataPath);
   if (parsed.issues.length) return { value: [], issues: parsed.issues };
   // On a semantic model root the entry may hold model defaults instead of metric bindings.
-  if (!mappingDocument && !(object(parsed.value) && parsed.value.schema === MAPPING_SCHEMA))
-    return { value: [], issues: [] };
+  if (!mappingDocument && !(object(parsed.value) && parsed.value.schema === MAPPING_SCHEMA)) return { value: [], issues: [] };
   const issues = schemaIssues(checkMapping, parsed.value, dataPath, []);
   const seen = new Set<string>();
-  (Array.isArray(parsed.value?.kpi_bindings) ? parsed.value.kpi_bindings : []).forEach(
-    (b: any, i: number) => {
-      if (typeof b?.metric === 'string') {
-        if (seen.has(b.metric))
-          issues.push({
-            severity: 'error',
-            code: 'extension',
-            path: dataPath,
-            innerPath: `/kpi_bindings/${i}/metric`,
-            message: `Metric "${b.metric}" is bound more than once; keep one binding per metric.`,
-          });
-        seen.add(b.metric);
-      }
-    },
-  );
+  (Array.isArray(parsed.value?.kpi_bindings) ? parsed.value.kpi_bindings : []).forEach((b: any, i: number) => {
+    if (typeof b?.metric === 'string') {
+      if (seen.has(b.metric))
+        issues.push({
+          severity: 'error',
+          code: 'extension',
+          path: dataPath,
+          innerPath: `/kpi_bindings/${i}/metric`,
+          message: `Metric "${b.metric}" is bound more than once; keep one binding per metric.`,
+        });
+      seen.add(b.metric);
+    }
+  });
   return { value: issues.length ? [] : parsed.value.kpi_bindings, issues };
 }
 
@@ -213,10 +183,7 @@ export function locateInner(source: string, start: number, end: number, innerPat
 const NAME = String.raw`"?([A-Za-z_][\w$]*)"?`;
 const NUMERATOR = String.raw`^\(?\s*${NAME}\s*\)?`;
 const GUARDED_DENOMINATOR = String.raw`NULLIF\s*\(\s*${NAME}\s*,\s*0(?:\.0+)?\s*\)`;
-const RATIO_PATTERN = new RegExp(
-  String.raw`${NUMERATOR}\s*\/\s*(?:${GUARDED_DENOMINATOR}|${NAME})$`,
-  'i',
-);
+const RATIO_PATTERN = new RegExp(String.raw`${NUMERATOR}\s*\/\s*(?:${GUARDED_DENOMINATOR}|${NAME})$`, 'i');
 
 /** The metric names along the cycle that closes when the search reaches `next` again. */
 function cycleNames(stack: [string, number][], next: string): string[] {
@@ -224,25 +191,17 @@ function cycleNames(stack: [string, number][], next: string): string[] {
   return [...stack.slice(cycleStart).map(entry => entry[0]), next];
 }
 
-export function ratioParts(
-  sql: string,
-  metricNames: Set<string>,
-): { numerator: string; denominator: string; guarded: boolean } | null {
+export function ratioParts(sql: string, metricNames: Set<string>): { numerator: string; denominator: string; guarded: boolean } | null {
   const compact = sql.replace(/\s+/g, ' ').trim();
   const m = compact.match(RATIO_PATTERN);
   if (!m) return null;
   const numerator = m[1];
   const denominator = m[2] ?? m[3];
-  return metricNames.has(numerator) && metricNames.has(denominator)
-    ? { numerator, denominator, guarded: !!m[2] }
-    : null;
+  return metricNames.has(numerator) && metricNames.has(denominator) ? { numerator, denominator, guarded: !!m[2] } : null;
 }
 
 /** Infers a metric calculation type from its expression. */
-export function inferredType(
-  sql: string | undefined,
-  metricNames: Set<string>,
-): { type: KpiType; numerator?: string; denominator?: string; inputs?: string[] } {
+export function inferredType(sql: string | undefined, metricNames: Set<string>): { type: KpiType; numerator?: string; denominator?: string; inputs?: string[] } {
   if (!sql) return { type: 'simple' };
   const ratio = ratioParts(sql, metricNames);
   if (ratio) return { type: 'ratio', numerator: ratio.numerator, denominator: ratio.denominator };
@@ -252,20 +211,11 @@ export function inferredType(
 // Additivity an expression implies when none is declared: SUM/COUNT of fields add up; ratios,
 // distinct counts, averages, minima and maxima do not. Null when it cannot be told.
 /** Infers whether an expression can be summed, or returns null when unknown. */
-export function inferredAdditivity(
-  sql: string | undefined,
-  kind: KpiType,
-  inputAdditivity: (name: string) => Additivity | null,
-  inputs: string[] = [],
-): Additivity | null {
+export function inferredAdditivity(sql: string | undefined, kind: KpiType, inputAdditivity: (name: string) => Additivity | null, inputs: string[] = []): Additivity | null {
   if (!sql) return null;
   if (kind === 'ratio') return 'non_additive';
   const upper = sql.toUpperCase();
-  if (
-    /COUNT\s*\(\s*DISTINCT/.test(upper) ||
-    /\b(AVG|MIN|MAX|MEDIAN|PERCENTILE\w*)\s*\(/.test(upper)
-  )
-    return 'non_additive';
+  if (/COUNT\s*\(\s*DISTINCT/.test(upper) || /\b(AVG|MIN|MAX|MEDIAN|PERCENTILE\w*)\s*\(/.test(upper)) return 'non_additive';
   if (kind === 'derived') {
     if (/[*/]/.test(sql.replace(/'[^']*'/g, ''))) return 'non_additive';
     const all = inputs.map(inputAdditivity);
@@ -279,11 +229,7 @@ const GRAIN_ORDER = new Map(GRAINS.map((g, i) => [g, i]));
 // Cross-references within one semantic model: inputs exist, no cycles, grains and fields exist,
 // and the declared type agrees with the expression.
 /** Checks metric dependencies, cycles, fields, grains and declared calculation types. */
-export function metricLayerIssues(
-  model: any,
-  prefix: string,
-  fieldNames: Map<string, Set<string>>,
-): Issue[] {
+export function metricLayerIssues(model: any, prefix: string, fieldNames: Map<string, Set<string>>): Issue[] {
   const issues: Issue[] = [];
   const metrics: any[] = Array.isArray(model?.metrics) ? model.metrics.filter(object) : [];
   const names = new Set(metrics.map(m => m.name).filter((n: unknown) => typeof n === 'string'));
@@ -296,34 +242,25 @@ export function metricLayerIssues(
     issues.push(...own);
     if (!value) return;
     const dataPath = `${path}/custom_extensions/${workbenchEntry(m)!.index}/data`;
-    const err = (inner: string, message: string, code = 'kpi-reference') =>
-      issues.push({ severity: 'error', code, path: dataPath, innerPath: inner, message });
+    const err = (inner: string, message: string, code = 'kpi-reference') => issues.push({ severity: 'error', code, path: dataPath, innerPath: inner, message });
     for (const [key, ref] of [
       ['numerator', value.numerator],
       ['denominator', value.denominator],
       ['replaced_by', value.replaced_by],
     ] as const)
-      if (ref !== undefined && !names.has(ref))
-        err('/' + key, `${key} "${ref}" is not a metric of this semantic model.`);
+      if (ref !== undefined && !names.has(ref)) err('/' + key, `${key} "${ref}" is not a metric of this semantic model.`);
     (value.inputs ?? []).forEach((ref, j) => {
-      if (!names.has(ref))
-        err(`/inputs/${j}`, `Input "${ref}" is not a metric of this semantic model.`);
+      if (!names.has(ref)) err(`/inputs/${j}`, `Input "${ref}" is not a metric of this semantic model.`);
     });
     const field = (ref: string, inner: string) => {
       const [d, f] = ref.split('.');
-      if (!fieldNames.get(d)?.has(f))
-        err(inner, `Field ${ref} does not exist in this semantic model.`);
+      if (!fieldNames.get(d)?.has(f)) err(inner, `Field ${ref} does not exist in this semantic model.`);
     };
     if (value.time) {
       field(value.time.dimension, '/time/dimension');
       const min = value.time.min_grain;
       for (const [j, g] of (value.time.allowed_grains ?? []).entries())
-        if (min && GRAIN_ORDER.get(g)! < GRAIN_ORDER.get(min)!)
-          err(
-            `/time/allowed_grains/${j}`,
-            `Grain ${g} is finer than the minimum grain ${min}.`,
-            'kpi-grain',
-          );
+        if (min && GRAIN_ORDER.get(g)! < GRAIN_ORDER.get(min)!) err(`/time/allowed_grains/${j}`, `Grain ${g} is finer than the minimum grain ${min}.`, 'kpi-grain');
     }
     (value.dimensions ?? []).forEach((d, j) => field(d, `/dimensions/${j}`));
     (value.filters ?? []).forEach((f, j) => field(f.field, `/filters/${j}/field`));
@@ -337,35 +274,19 @@ export function metricLayerIssues(
         innerPath: '/type',
         message,
       });
-    if (
-      value.type === 'ratio' &&
-      (shown.type !== 'ratio' ||
-        shown.numerator !== value.numerator ||
-        shown.denominator !== value.denominator)
-    )
+    if (value.type === 'ratio' && (shown.type !== 'ratio' || shown.numerator !== value.numerator || shown.denominator !== value.denominator))
       warn(
         shown.type === 'ratio'
-          ? `Declared ratio ${value.numerator} / ${value.denominator}, ` +
-              `but the expression divides ${shown.numerator} by ${shown.denominator}.`
-          : `Declared ratio ${value.numerator} / ${value.denominator}, ` +
-              'but the expression is not a division of these metrics.',
+          ? `Declared ratio ${value.numerator} / ${value.denominator}, ` + `but the expression divides ${shown.numerator} by ${shown.denominator}.`
+          : `Declared ratio ${value.numerator} / ${value.denominator}, ` + 'but the expression is not a division of these metrics.',
       );
-    if (value.type === 'simple' && shown.type !== 'simple')
-      warn(
-        'Declared simple, but the expression uses other metrics ' +
-          `(${(shown.inputs ?? [shown.numerator, shown.denominator]).join(', ')}).`,
-      );
-    if (
-      (value.type === 'derived' || value.type === 'filtered' || value.type === 'cumulative') &&
-      value.inputs
-    ) {
+    if (value.type === 'simple' && shown.type !== 'simple') warn('Declared simple, but the expression uses other metrics ' + `(${(shown.inputs ?? [shown.numerator, shown.denominator]).join(', ')}).`);
+    if ((value.type === 'derived' || value.type === 'filtered' || value.type === 'cumulative') && value.inputs) {
       const used = new Set(metricDependencies(sql ?? '', names));
       const missing = value.inputs.filter(x => !used.has(x));
-      if (missing.length)
-        warn(`Declared inputs ${missing.join(', ')} do not appear in the expression.`);
+      if (missing.length) warn(`Declared inputs ${missing.join(', ')} do not appear in the expression.`);
     }
-    if (value.type === 'derived' && shown.type === 'simple')
-      warn('Declared derived, but the expression uses no other metric.');
+    if (value.type === 'derived' && shown.type === 'simple') warn('Declared derived, but the expression uses no other metric.');
   });
   // Dependency cycles among metrics (iterative depth-first search). A warning here: the planner
   // refuses cyclic metrics, and the file stays importable so the cycle can be repaired.

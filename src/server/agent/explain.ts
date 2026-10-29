@@ -19,11 +19,7 @@ import {
   type KpiType,
   type MetricExtension,
 } from '../../shared/metrics/extension';
-import {
-  mappingExpressionBindings,
-  resolveBindings,
-  type ResolvedBinding,
-} from '../../shared/metrics/bindings';
+import { mappingExpressionBindings, resolveBindings, type ResolvedBinding } from '../../shared/metrics/bindings';
 import { documentsOfProject } from '../../shared/core/project-scope';
 import { modelContext, planQuery, type StoredDocument } from './runtime';
 import { BadRequestError } from '../projects/errors';
@@ -155,8 +151,7 @@ export type KpiExplanation = {
   sqlPreview: SqlPreview;
   policy: string;
 };
-const object = (v: unknown): v is Record<string, any> =>
-  !!v && typeof v === 'object' && !Array.isArray(v);
+const object = (v: unknown): v is Record<string, any> => !!v && typeof v === 'object' && !Array.isArray(v);
 const list = (v: unknown): any[] => (Array.isArray(v) ? v : []);
 function parseProject(documents: StoredDocument[], slug: string): Parsed[] {
   return (documents as ProjectDocument[])
@@ -190,17 +185,12 @@ const fieldNamesOf = (model: any) =>
       .map((d: any) => [d.name, new Set(list(d.fields).map((f: any) => f?.name))]),
   );
 // Standard mappings also provide evidence when the extension does not bind a metric.
-function conceptLinks(
-  parsed: Parsed[],
-  ref: ModelRef,
-  names: Set<string>,
-): Map<string, ConceptLink[]> {
+function conceptLinks(parsed: Parsed[], ref: ModelRef, names: Set<string>): Map<string, ConceptLink[]> {
   const out = new Map<string, ConceptLink[]>();
   const add = (bindings: ResolvedBinding[], file: string) => {
     for (const b of bindings) {
       const links = out.get(b.metric) ?? [];
-      if (b.source === 'mapping-expression' && links.some(l => l.source === 'kpi-binding'))
-        continue;
+      if (b.source === 'mapping-expression' && links.some(l => l.source === 'kpi-binding')) continue;
       links.push({ ...b.measures, role: 'measures', source: b.source, file, problems: b.problems });
       if (b.of) links.push({ ...b.of, role: 'of', source: b.source, file, problems: b.problems });
       out.set(b.metric, links);
@@ -224,9 +214,7 @@ function conceptLinks(
   else
     for (const p of parsed)
       if (isMapping(p.data) && p.data.semantic_model_ref?.name === ref.model.name) {
-        const ontology = parsed.find(
-          o => Array.isArray(o.data.ontology) && o.data.name === p.data.ontology_ref?.name,
-        )?.data;
+        const ontology = parsed.find(o => Array.isArray(o.data.ontology) && o.data.name === p.data.ontology_ref?.name)?.data;
         sources.push({
           owner: p.data,
           mapping: p.data,
@@ -236,25 +224,18 @@ function conceptLinks(
         });
       }
   for (const s of sources) {
-    add(
-      resolveBindings(readKpiBindings(s.owner, '', s.mappingDocument).value, s.ontology, names),
-      s.file,
-    );
+    add(resolveBindings(readKpiBindings(s.owner, '', s.mappingDocument).value, s.ontology, names), s.file);
   }
   for (const s of sources) add(mappingExpressionBindings(s.mapping, names), s.file);
   return out;
 }
 function summaries(parsed: Parsed[], ref: ModelRef): KpiSummary[] {
   const metrics = list(ref.model.metrics).filter(object);
-  const names = new Set<string>(
-    metrics.map((m: any) => m.name).filter((n: unknown) => typeof n === 'string'),
-  );
+  const names = new Set<string>(metrics.map((m: any) => m.name).filter((n: unknown) => typeof n === 'string'));
   const prefix = pointerOf(ref.path);
   const issues = metricLayerIssues(ref.model, prefix, fieldNamesOf(ref.model));
   const links = conceptLinks(parsed, ref, names);
-  const declared = new Map<string, MetricExtension | null>(
-    metrics.map((m: any) => [m.name, readMetricExtension(m).value]),
-  );
+  const declared = new Map<string, MetricExtension | null>(metrics.map((m: any) => [m.name, readMetricExtension(m).value]));
   const additivity = (name: string, seen = new Set<string>()): Additivity | null => {
     const ext = declared.get(name);
     if (ext?.additivity) return ext.additivity;
@@ -263,21 +244,14 @@ function summaries(parsed: Parsed[], ref: ModelRef): KpiSummary[] {
     const m = metrics.find((x: any) => x.name === name);
     const sql = ansiExpression(m);
     const shape = inferredType(sql, names);
-    return inferredAdditivity(
-      sql,
-      ext?.type ?? shape.type,
-      n => additivity(n, seen),
-      shape.inputs ?? ([shape.numerator, shape.denominator].filter(Boolean) as string[]),
-    );
+    return inferredAdditivity(sql, ext?.type ?? shape.type, n => additivity(n, seen), shape.inputs ?? ([shape.numerator, shape.denominator].filter(Boolean) as string[]));
   };
   const layout = ref.embeddedMapping ? 'embedded (deprecated)' : 'split';
   return metrics.map((m: any, i: number) => {
     const ext = declared.get(m.name) ?? null;
     const sql = ansiExpression(m);
     const shape = inferredType(sql, names);
-    const own = issues.filter(
-      x => x.path === `${prefix}/metrics/${i}` || x.path.startsWith(`${prefix}/metrics/${i}/`),
-    );
+    const own = issues.filter(x => x.path === `${prefix}/metrics/${i}` || x.path.startsWith(`${prefix}/metrics/${i}/`));
     return {
       file: ref.doc.path,
       modelPath: ref.path,
@@ -309,24 +283,19 @@ export function projectMetrics(documents: StoredDocument[], slug: string): KpiSu
   const parsed = parseProject(documents, slug);
   return semanticModels(parsed).flatMap(ref => summaries(parsed, ref));
 }
-const aggregationOf = (sql: string) =>
-  sql.match(/^\s*([A-Za-z_]+)\s*\(/)?.[1].toUpperCase() ?? null;
+const aggregationOf = (sql: string) => sql.match(/^\s*([A-Za-z_]+)\s*\(/)?.[1].toUpperCase() ?? null;
 const additivityText: Record<Additivity | 'unknown', string> = {
   additive: 'Values can be summed across every dimension and across time.',
-  semi_additive:
-    'Values can be summed across dimensions but not across time. Over several periods, take the period value named by the period aggregation.',
+  semi_additive: 'Values can be summed across dimensions but not across time. Over several periods, take the period value named by the period aggregation.',
   non_additive: 'Never sum this value. At a coarser grain it is recomputed from its inputs.',
-  unknown:
-    'Additivity is not declared and cannot be inferred from the expression, so no rollup is offered.',
+  unknown: 'Additivity is not declared and cannot be inferred from the expression, so no rollup is offered.',
 };
 // Division safety by inspection of the expression text: each `/` must divide by NULLIF(…, 0).
 function divisionSafety(sql: string): 'handled' | 'unhandled' | 'n/a' {
   const bare = sql.replace(/'(?:[^']|'')*'/g, "''").replace(/--[^\n]*/g, '');
   const slashes = [...bare.matchAll(/\//g)];
   if (!slashes.length) return 'n/a';
-  return slashes.every(s => /^\s*\(?\s*NULLIF\s*\(/i.test(bare.slice(s.index! + 1)))
-    ? 'handled'
-    : 'unhandled';
+  return slashes.every(s => /^\s*\(?\s*NULLIF\s*\(/i.test(bare.slice(s.index! + 1))) ? 'handled' : 'unhandled';
 }
 const operatorText: Record<string, string> = {
   equals: 'is',
@@ -362,11 +331,7 @@ const qualityOf = (owner: any): Trust[] =>
       name: q.name,
       dimension: q.dimension,
       severity: q.severity,
-      description:
-        q.description ??
-        (q.metric
-          ? `${q.metric}${q.mustBe !== undefined ? ` must be ${q.mustBe}` : ''}`
-          : undefined),
+      description: q.description ?? (q.metric ? `${q.metric}${q.mustBe !== undefined ? ` must be ${q.mustBe}` : ''}` : undefined),
     }));
 /** Explains a project metric and previews SQL for the requested grain and dimensions. */
 export function explainMetric(
@@ -412,8 +377,7 @@ export function explainMetric(
   };
   const tree = (name: string, role?: TreeNode['role'], path = new Set<string>()): TreeNode => {
     const k = byName.get(name)!;
-    if (path.has(name))
-      return { kind: 'metric', name, label: k.label, role, children: [], repeated: true };
+    if (path.has(name)) return { kind: 'metric', name, label: k.label, role, children: [], repeated: true };
     const next = new Set(path).add(name);
     const sql = k.expression ?? '';
     const ratio =
@@ -454,15 +418,9 @@ export function explainMetric(
     const used = [...new Set(leaves.map(l => l.dataset!))];
     const fields = leaves.map(l => {
       const d = datasets.get(l.dataset!);
-      const columns = l.expression
-        ? [...new Set(expressionRefs(l.expression).map(r => r.column))]
-        : [l.name];
-      const odcs: OdcsLink[] = (
-        typeof d?.source === 'string' ? (index.get(d.source) ?? []) : []
-      ).flatMap((o): OdcsLink[] => {
-        const props = list(o.object.properties).filter((p: any) =>
-          columns.includes(p?.physicalName ?? p?.name),
-        );
+      const columns = l.expression ? [...new Set(expressionRefs(l.expression).map(r => r.column))] : [l.name];
+      const odcs: OdcsLink[] = (typeof d?.source === 'string' ? (index.get(d.source) ?? []) : []).flatMap((o): OdcsLink[] => {
+        const props = list(o.object.properties).filter((p: any) => columns.includes(p?.physicalName ?? p?.name));
         const base = {
           file: o.file,
           contract: o.contract.name ?? o.contract.id,
@@ -490,11 +448,7 @@ export function explainMetric(
       const d = datasets.get(n);
       return (index.get(d?.source) ?? []).flatMap(o =>
         list(o.contract.slaProperties)
-          .filter(
-            (s: any) =>
-              object(s) &&
-              (!s.element || String(s.element).startsWith(o.object.physicalName ?? o.object.name)),
-          )
+          .filter((s: any) => object(s) && (!s.element || String(s.element).startsWith(o.object.physicalName ?? o.object.name)))
           .map((s: any) => ({
             kind: 'sla' as const,
             property: s.property,
@@ -520,10 +474,7 @@ export function explainMetric(
     ? {
         dimension: ext.time.dimension,
         minGrain: ext.time.min_grain,
-        allowedGrains: (ext.time.allowed_grains ??
-          GRAINS.filter(
-            g => !ext.time!.min_grain || GRAINS.indexOf(g) >= GRAINS.indexOf(ext.time!.min_grain),
-          )) as Grain[],
+        allowedGrains: (ext.time.allowed_grains ?? GRAINS.filter(g => !ext.time!.min_grain || GRAINS.indexOf(g) >= GRAINS.indexOf(ext.time!.min_grain))) as Grain[],
       }
     : null;
   const division = divisionSafety(kpi.expression ?? '');
@@ -542,9 +493,7 @@ export function explainMetric(
     additivityText:
       additivityText[kpi.additivity ?? 'unknown'] +
       (kpi.additivity && !kpi.additivityDeclared ? ' (inferred from the expression)' : '') +
-      (kpi.additivity === 'semi_additive' && ext?.period_aggregation
-        ? ` Period aggregation: ${ext.period_aggregation}.`
-        : ''),
+      (kpi.additivity === 'semi_additive' && ext?.period_aggregation ? ` Period aggregation: ${ext.period_aggregation}.` : ''),
     divisionByZero: division,
     divisionText:
       division === 'handled'
@@ -554,12 +503,8 @@ export function explainMetric(
           : 'The expression divides by nothing.',
     missingValues:
       'SUM and COUNT skip NULL values; rows without a value do not count' +
-      (division === 'handled'
-        ? '. An empty result means the denominator was zero or missing.'
-        : '.') +
-      (stocks.length && stocks.length < bases.length
-        ? ` ${stocks.join(', ')} ${stocks.length > 1 ? 'are' : 'is a'} point-in-time stock${stocks.length > 1 ? 's' : ''}.`
-        : ''),
+      (division === 'handled' ? '. An empty result means the denominator was zero or missing.' : '.') +
+      (stocks.length && stocks.length < bases.length ? ` ${stocks.join(', ')} ${stocks.length > 1 ? 'are' : 'is a'} point-in-time stock${stocks.length > 1 ? 's' : ''}.` : ''),
     concepts: kpi.concepts,
     targets: ext?.targets ?? [],
     sqlPreview: preview(projectDocuments, ref, kpi, byName, time, options),
@@ -579,21 +524,15 @@ function preview(
   const requested = options.grain ?? null;
   const grain = (requested ?? time?.minGrain ?? null) as Grain | null;
   const refuse = (refused: string): SqlPreview => ({ refused, grain, dimensions, rollup });
-  if (requested !== null && !(GRAINS as readonly string[]).includes(requested))
-    return refuse(`Grain "${requested}" is not one of ${GRAINS.join(', ')}.`);
-  if (grain && !time)
-    return refuse(`${kpi.label} declares no time dimension, so it has no time grain.`);
+  if (requested !== null && !(GRAINS as readonly string[]).includes(requested)) return refuse(`Grain "${requested}" is not one of ${GRAINS.join(', ')}.`);
+  if (grain && !time) return refuse(`${kpi.label} declares no time dimension, so it has no time grain.`);
   if (grain && time && !time.allowedGrains.includes(grain))
     return refuse(
       `${kpi.label} is defined at ${time.allowedGrains.join(', ')} grain${time.allowedGrains.length > 1 ? 's' : ''}; ${grain} is not allowed${time.minGrain && GRAINS.indexOf(grain) < GRAINS.indexOf(time.minGrain) ? ` (finer than the minimum grain ${time.minGrain})` : ''}.`,
     );
-  if (rollup !== null && rollup !== 'sum')
-    return refuse(`Rollup "${rollup}" is not supported; the only rollup is sum.`);
+  if (rollup !== null && rollup !== 'sum') return refuse(`Rollup "${rollup}" is not supported; the only rollup is sum.`);
   // Additivity determines which rollups preserve the meaning of a metric.
-  if (rollup === 'sum' && kpi.additivity === null)
-    return refuse(
-      `${kpi.label} has no declared additivity and none can be inferred, so summing it is refused.`,
-    );
+  if (rollup === 'sum' && kpi.additivity === null) return refuse(`${kpi.label} has no declared additivity and none can be inferred, so summing it is refused.`);
   if (rollup === 'sum' && kpi.additivity === 'non_additive')
     return refuse(
       kpi.type === 'ratio'
@@ -610,17 +549,12 @@ function preview(
     })(kpi.name),
   ].filter((n, i, a) => a.indexOf(n) === i && byName.get(n)?.additivity === 'semi_additive');
   const stockGrain = (n: string) => byName.get(n)!.extension?.time?.min_grain ?? time?.minGrain;
-  const over = stocks.filter(
-    n => grain && stockGrain(n) && GRAINS.indexOf(grain) > GRAINS.indexOf(stockGrain(n)!),
-  );
+  const over = stocks.filter(n => grain && stockGrain(n) && GRAINS.indexOf(grain) > GRAINS.indexOf(stockGrain(n)!));
   if (over.length)
     return refuse(
       `${over.map(n => byName.get(n)!.label).join(', ')} ${over.length > 1 ? 'are stocks' : 'is a stock'} measured per ${stockGrain(over[0])}. Summing ${over.length > 1 ? 'them' : 'it'} over the ${stockGrain(over[0])}s of a ${grain} counts the same quantity once per ${stockGrain(over[0])}; take the ${byName.get(over[0])!.extension?.period_aggregation ?? 'last'} ${stockGrain(over[0])} of each ${grain} instead. Preview available at ${stockGrain(over[0])} grain.`,
     );
-  if (rollup === 'sum' && kpi.additivity === 'semi_additive' && !grain)
-    return refuse(
-      `${kpi.label} is semi-additive: it can be summed across dimensions but not across time. Choose a time grain.`,
-    );
+  if (rollup === 'sum' && kpi.additivity === 'semi_additive' && !grain) return refuse(`${kpi.label} is semi-additive: it can be summed across dimensions but not across time. Choose a time grain.`);
   try {
     const context = modelContext(documents, ref.doc.id, ref.path);
     const key = (ref: string) => {

@@ -19,17 +19,12 @@ test('sign-ins retain only identity fields and atomically update a stable unique
     };
     state.recordUser(first, '2026-10-21T00:00:00Z');
     state.recordUser({ ...first, id: 'second', key: 'second' }, '2026-10-21T01:00:00Z');
-    state.recordUser(
-      { ...first, username: 'renamed', grants: [], deactivated: true },
-      '2026-10-21T02:00:00Z',
-    );
+    state.recordUser({ ...first, username: 'renamed', grants: [], deactivated: true }, '2026-10-21T02:00:00Z');
     const records = state.users().users;
     expect(records.map(record => record.handle)).toEqual(['alice-smith', 'alice-smith-2']);
     expect(records[0].access).toBe('none');
     expect(records[0].lastSignInAt).toBe('2026-10-21T02:00:00Z');
-    expect(readFileSync(join(directory.root, 'state/users.json'), 'utf8')).not.toContain(
-      'never-store-me',
-    );
+    expect(readFileSync(join(directory.root, 'state/users.json'), 'utf8')).not.toContain('never-store-me');
     expect(createState(dataLayout(directory.root)).users()).toEqual(state.users());
   } finally {
     directory.cleanup();

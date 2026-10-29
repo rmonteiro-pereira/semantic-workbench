@@ -39,19 +39,10 @@ export function factsOf(source: string, path: string): FileFacts {
   const model = validateInput(source, posix.basename(path)).model;
   if (!model) return facts;
   const doc: any = 'document' in model ? model.document : null;
-  if (doc && isMapping(doc))
-    facts.refs.push(...[doc.ontology_ref?.name, doc.semantic_model_ref?.name].filter(text));
-  if (
-    doc &&
-    !isMapping(doc) &&
-    (model.kind === 'Ossie ontology' || model.kind === 'Ossie semantic')
-  ) {
+  if (doc && isMapping(doc)) facts.refs.push(...[doc.ontology_ref?.name, doc.semantic_model_ref?.name].filter(text));
+  if (doc && !isMapping(doc) && (model.kind === 'Ossie ontology' || model.kind === 'Ossie semantic')) {
     if (text(doc.name)) facts.names.push(doc.name);
-    const embedded = Array.isArray(doc.semantic_model)
-      ? doc.semantic_model
-      : doc.semantic_model
-        ? [doc.semantic_model]
-        : [];
+    const embedded = Array.isArray(doc.semantic_model) ? doc.semantic_model : doc.semantic_model ? [doc.semantic_model] : [];
     for (const m of embedded) if (text(m?.name)) facts.names.push(m.name);
   }
   for (const key of documentKeys(model)) if (/^[a-z][a-z\d+.-]*:/i.test(key)) facts.iris.push(key);
@@ -88,10 +79,7 @@ export function evidenceBetween(a: IndexedFile, b: IndexedFile): Evidence[] {
       detail: `${shared.length} IRI${shared.length === 1 ? '' : 's'} shared with ${b.path}, for example ${shared[0]}`,
       otherFile: other,
     });
-  for (const name of [
-    ...match(a.facts.physical, b.facts.sources),
-    ...match(a.facts.sources, b.facts.physical),
-  ])
+  for (const name of [...match(a.facts.physical, b.facts.sources), ...match(a.facts.sources, b.facts.physical)])
     out.push({
       kind: 'odcs-physical-name',
       detail: `physical name ${name} appears in ${a.path} and ${b.path}`,
@@ -100,17 +88,12 @@ export function evidenceBetween(a: IndexedFile, b: IndexedFile): Evidence[] {
   return out;
 }
 /** Derives a stable suggestion identifier from the source file and target project. */
-export const suggestionId = (project: string, path: string, target: string) =>
-  sha256(`${project}/${path}\u0000${target}`).slice(0, 20);
+export const suggestionId = (project: string, path: string, target: string) => sha256(`${project}/${path}\u0000${target}`).slice(0, 20);
 // Suggest moves only when evidence links to another project and none links within the source.
 // Move from the smaller project, breaking ties by later registration, so isolated imports join
 // the project they reference rather than pulling that project apart.
 /** Suggests moves supported by cross-project evidence, excluding remembered rejections. */
-export function inferSuggestions(
-  files: IndexedFile[],
-  rejected: Set<string>,
-  order: string[] = [],
-): Suggestion[] {
+export function inferSuggestions(files: IndexedFile[], rejected: Set<string>, order: string[] = []): Suggestion[] {
   const out: Suggestion[] = [];
   const size = new Map<string, number>();
   const rank = (p: string) => {
@@ -118,8 +101,7 @@ export function inferSuggestions(
     return i < 0 ? order.length : i;
   };
   for (const f of files) size.set(f.project, (size.get(f.project) ?? 0) + 1);
-  const smaller = (a: string, b: string) =>
-    size.get(a)! < size.get(b)! || (size.get(a) === size.get(b) && rank(a) > rank(b));
+  const smaller = (a: string, b: string) => size.get(a)! < size.get(b)! || (size.get(a) === size.get(b) && rank(a) > rank(b));
   for (const f of files) {
     const own = files.filter(o => o.project === f.project && o.path !== f.path);
     if (own.some(o => evidenceBetween(f, o).length)) continue;

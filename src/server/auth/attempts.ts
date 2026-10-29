@@ -18,9 +18,7 @@ export type SignInAttempt = {
 export function safeReturnTo(value: string | null | undefined): string {
   if (!value?.startsWith('/') || value.startsWith('//') || /[\\\r\n]/.test(value)) return '/';
   const parsed = new URL(value, 'https://workbench.invalid');
-  return parsed.origin === 'https://workbench.invalid' && !parsed.pathname.startsWith('//')
-    ? parsed.pathname + parsed.search + parsed.hash
-    : '/';
+  return parsed.origin === 'https://workbench.invalid' && !parsed.pathname.startsWith('//') ? parsed.pathname + parsed.search + parsed.hash : '/';
 }
 
 /** Lifetime shared by the signed attempt, replay ledger and browser cookie. */
@@ -50,9 +48,7 @@ export function createAttemptStore(key: Uint8Array, dir: string, now = Date.now)
         throw new SignInError('attempt-invalid');
       }
       if (
-        !['state', 'nonce', 'verifier', 'returnTo'].every(
-          field => typeof attempt[field as keyof SignInAttempt] === 'string',
-        ) ||
+        !['state', 'nonce', 'verifier', 'returnTo'].every(field => typeof attempt[field as keyof SignInAttempt] === 'string') ||
         !Number.isFinite(attempt.issuedAt) ||
         attempt.issuedAt > now() ||
         now() - attempt.issuedAt >= ATTEMPT_TTL_SECONDS * 1000
@@ -79,11 +75,7 @@ export function createAttemptStore(key: Uint8Array, dir: string, now = Date.now)
     prune() {
       if (!existsSync(dir)) return;
       for (const filename of readdirSync(dir)) {
-        if (
-          /^\d+-[a-f0-9]{64}$/.test(filename) &&
-          Number(filename.split('-')[0]) + ATTEMPT_TTL_SECONDS * 1000 <= now()
-        )
-          unlinkSync(join(dir, filename));
+        if (/^\d+-[a-f0-9]{64}$/.test(filename) && Number(filename.split('-')[0]) + ATTEMPT_TTL_SECONDS * 1000 <= now()) unlinkSync(join(dir, filename));
       }
     },
   };

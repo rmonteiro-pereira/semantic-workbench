@@ -95,14 +95,7 @@ export function RdfItemDialogs({
           onOpenSource={handleRdfItemEditorOpenSource}
         />
       )}
-      {rdfAdding && docsRef.current.get(rdfAdding) && (
-        <RdfAddItem
-          doc={docsRef.current.get(rdfAdding)!}
-          base={docText(rdfAdding)}
-          onClose={() => setRdfAdding(null)}
-          onSaved={handleRdfAddItemSaved}
-        />
-      )}
+      {rdfAdding && docsRef.current.get(rdfAdding) && <RdfAddItem doc={docsRef.current.get(rdfAdding)!} base={docText(rdfAdding)} onClose={() => setRdfAdding(null)} onSaved={handleRdfAddItemSaved} />}
       {rdfDeleting && docsRef.current.get(rdfDeleting.docId) && (
         <RdfDeleteItem
           doc={docsRef.current.get(rdfDeleting.docId)!}

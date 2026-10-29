@@ -1,29 +1,12 @@
 // Exercises the mock provider through HTTP and checks the portable Keycloak directory fixture.
 import { expect, test } from 'bun:test';
 import { createRemoteJWKSet, decodeJwt, decodeProtectedHeader, jwtVerify } from 'jose';
-import {
-  TEST_CLIENTS,
-  TEST_GROUPS,
-  TEST_TENANT_ID,
-  TEST_USERS,
-  TEST_WORKBENCH_CLIENT,
-} from '../helpers/auth-identities';
-import {
-  authorization,
-  callback,
-  graphCheck,
-  graphToken,
-  signedOut,
-  signIn,
-  tokenRequest,
-  withProvider,
-} from './mock-oidc-client';
+import { TEST_CLIENTS, TEST_GROUPS, TEST_TENANT_ID, TEST_USERS, TEST_WORKBENCH_CLIENT } from '../helpers/auth-identities';
+import { authorization, callback, graphCheck, graphToken, signedOut, signIn, tokenRequest, withProvider } from './mock-oidc-client';
 
 test('Discovery advertises the issuer endpoints and supported protocol features', () =>
   withProvider(async provider => {
-    const document = await (
-      await fetch(`${provider.issuer}/.well-known/openid-configuration`)
-    ).json();
+    const document = await (await fetch(`${provider.issuer}/.well-known/openid-configuration`)).json();
     expect(document).toMatchObject({
       issuer: provider.issuer,
       authorization_endpoint: `${provider.issuer}/authorize`,
@@ -35,12 +18,7 @@ test('Discovery advertises the issuer endpoints and supported protocol features'
       code_challenge_methods_supported: ['S256'],
       id_token_signing_alg_values_supported: ['RS256'],
       token_endpoint_auth_methods_supported: ['client_secret_basic', 'client_secret_post'],
-      grant_types_supported: [
-        'authorization_code',
-        'refresh_token',
-        'client_credentials',
-        'urn:ietf:params:oauth:grant-type:jwt-bearer',
-      ],
+      grant_types_supported: ['authorization_code', 'refresh_token', 'client_credentials', 'urn:ietf:params:oauth:grant-type:jwt-bearer'],
     });
   }));
 
@@ -70,9 +48,7 @@ test('The browser chooser preserves authorization parameters and submits the cho
     const page = await (await fetch(url)).text();
     expect(page).toContain('<h1>Mock sign-in</h1>');
     for (const user of Object.values(TEST_USERS)) {
-      expect(page).toContain(
-        `<button name="username" value="${user.username}">${user.name}</button>`,
-      );
+      expect(page).toContain(`<button name="username" value="${user.username}">${user.name}</button>`);
     }
     const params = new URLSearchParams(url.search);
     params.set('username', 'bob');
@@ -82,9 +58,7 @@ test('The browser chooser preserves authorization parameters and submits the cho
       redirect: 'manual',
     });
     expect(response.status).toBe(302);
-    expect(new URL(response.headers.get('location')!).searchParams.get('state')).toBe(
-      params.get('state'),
-    );
+    expect(new URL(response.headers.get('location')!).searchParams.get('state')).toBe(params.get('state'));
   }));
 
 test('A complete OpenID client flow verifies Alice and her Entra group claims', () =>
@@ -281,9 +255,7 @@ test('On behalf of exchange and userinfo retain the user while rejecting unsuita
       name: TEST_USERS.alice.name,
       upn: TEST_USERS.alice.upn,
     });
-    expect((await tokenRequest(provider, { ...params, assertion: user.id_token! })).status).toBe(
-      400,
-    );
+    expect((await tokenRequest(provider, { ...params, assertion: user.id_token! })).status).toBe(400);
     provider.setUserEmail('alice', { email: 'new@example.org' });
     const info = await fetch(`${provider.issuer}/userinfo`, {
       headers: { authorization: `Bearer ${user.access_token}` },
@@ -350,21 +322,15 @@ test('The Keycloak realm matches the shared directory and clients without roles'
       .sort(),
   );
   const people = Object.values(TEST_USERS).filter(user => user.username !== 'olga');
-  expect(realm.users.map((user: { username: string }) => user.username).sort()).toEqual(
-    people.map(user => user.username).sort(),
-  );
+  expect(realm.users.map((user: { username: string }) => user.username).sort()).toEqual(people.map(user => user.username).sort());
   for (const person of people) {
-    const user = realm.users.find(
-      (entry: { username: string }) => entry.username === person.username,
-    );
+    const user = realm.users.find((entry: { username: string }) => entry.username === person.username);
     expect(`${user.firstName} ${user.lastName}`).toBe(person.name);
     expect(user.enabled).toBe(true);
     expect(user.email).toBe(person.email);
     expect(user.emailVerified).toBe(person.emailVerified);
     expect(user.groups).toEqual(person.groups.map(group => `/${group.name}`));
-    expect(user.credentials).toEqual([
-      { type: 'password', value: `test-${person.username}`, temporary: false },
-    ]);
+    expect(user.credentials).toEqual([{ type: 'password', value: `test-${person.username}`, temporary: false }]);
     expect(user).not.toHaveProperty('clientRoles');
     // Offline access only lets Keycloak issue the refresh token the workbench asks for; it is not
     // a workbench role, which comes from grants alone.
@@ -373,9 +339,7 @@ test('The Keycloak realm matches the shared directory and clients without roles'
   expect(realm).not.toHaveProperty('roles');
   expect(realm.clients).toHaveLength(3);
   for (const client of [TEST_WORKBENCH_CLIENT, ...Object.values(TEST_CLIENTS)]) {
-    const entry = realm.clients.find(
-      (item: { clientId: string }) => item.clientId === client.clientId,
-    );
+    const entry = realm.clients.find((item: { clientId: string }) => item.clientId === client.clientId);
     expect(entry).toMatchObject({
       secret: client.secret,
       publicClient: false,
@@ -383,10 +347,6 @@ test('The Keycloak realm matches the shared directory and clients without roles'
       directAccessGrantsEnabled: false,
     });
     expect(entry).not.toHaveProperty('roles');
-    expect(
-      entry.protocolMappers.some(
-        (mapper: { protocolMapper: string }) => mapper.protocolMapper === 'oidc-audience-mapper',
-      ),
-    ).toBe(true);
+    expect(entry.protocolMappers.some((mapper: { protocolMapper: string }) => mapper.protocolMapper === 'oidc-audience-mapper')).toBe(true);
   }
 });

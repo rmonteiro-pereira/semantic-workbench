@@ -1,12 +1,5 @@
 /** Shared visual and keyboard extensions for the source editor. */
-import {
-  keymap,
-  lineNumbers,
-  highlightActiveLine,
-  highlightActiveLineGutter,
-  drawSelection,
-  highlightSpecialChars,
-} from '@codemirror/view';
+import { keymap, lineNumbers, highlightActiveLine, highlightActiveLineGutter, drawSelection, highlightSpecialChars } from '@codemirror/view';
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
 import { search, searchKeymap } from '@codemirror/search';
 import { lintGutter, lintKeymap } from '@codemirror/lint';
@@ -33,12 +26,5 @@ export function baseEditorExtensions() {
 
 /** Gives Go to line priority over the search keymap's Mod-g binding. */
 export function editorKeymap(focusLineInput: () => boolean) {
-  return keymap.of([
-    { key: 'Mod-g', run: focusLineInput, preventDefault: true },
-    ...defaultKeymap,
-    ...historyKeymap,
-    ...searchKeymap,
-    ...lintKeymap,
-    ...foldKeymap,
-  ]);
+  return keymap.of([{ key: 'Mod-g', run: focusLineInput, preventDefault: true }, ...defaultKeymap, ...historyKeymap, ...searchKeymap, ...lintKeymap, ...foldKeymap]);
 }

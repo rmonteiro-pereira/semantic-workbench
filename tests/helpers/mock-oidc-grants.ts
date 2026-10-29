@@ -2,16 +2,7 @@
 import { createPublicKey } from 'node:crypto';
 import { jwtVerify } from 'jose';
 import { TEST_CLIENTS, TEST_TENANT_ID, TEST_WORKBENCH_CLIENT } from './auth-identities';
-import {
-  readAccessToken,
-  sha256,
-  signToken,
-  stableUuid,
-  userClaims,
-  type Authorization,
-  type RefreshIdToken,
-  type ProviderState,
-} from './mock-oidc-state';
+import { readAccessToken, sha256, signToken, stableUuid, userClaims, type Authorization, type RefreshIdToken, type ProviderState } from './mock-oidc-state';
 
 /** Formats a protocol error without exposing request credentials. */
 export function oauthError(error: string, description: string, status = 400): Response {
@@ -35,18 +26,14 @@ async function assertedClient(state: ProviderState, request: Request, params: UR
   if (federatedAssertion && assertion === federatedAssertion) return TEST_WORKBENCH_CLIENT;
   if (!clientCertificate) return undefined;
   try {
-    const { payload, protectedHeader } = await jwtVerify(
-      assertion,
-      createPublicKey(clientCertificate.publicKey),
-      {
-        algorithms: ['RS256', 'PS256'],
-        audience: new URL(request.url).origin + new URL(request.url).pathname,
-        issuer: TEST_WORKBENCH_CLIENT.clientId,
-        subject: TEST_WORKBENCH_CLIENT.clientId,
-        // MSAL rounds the assertion's start time up; Entra allows the same clock skew.
-        clockTolerance: 300,
-      },
-    );
+    const { payload, protectedHeader } = await jwtVerify(assertion, createPublicKey(clientCertificate.publicKey), {
+      algorithms: ['RS256', 'PS256'],
+      audience: new URL(request.url).origin + new URL(request.url).pathname,
+      issuer: TEST_WORKBENCH_CLIENT.clientId,
+      subject: TEST_WORKBENCH_CLIENT.clientId,
+      // MSAL rounds the assertion's start time up; Entra allows the same clock skew.
+      clockTolerance: 300,
+    });
     const named = protectedHeader['x5t#S256'] ?? protectedHeader.x5t;
     if (named !== thumbprintHeader(clientCertificate.thumbprint) || !payload.exp) return undefined;
     return TEST_WORKBENCH_CLIENT;
@@ -71,10 +58,7 @@ function secretClient(state: ProviderState, request: Request, params: URLSearchP
       return undefined;
     }
   }
-  const clients = [
-    { ...TEST_WORKBENCH_CLIENT, secret: state.options.clientSecret },
-    ...Object.values(TEST_CLIENTS),
-  ];
+  const clients = [{ ...TEST_WORKBENCH_CLIENT, secret: state.options.clientSecret }, ...Object.values(TEST_CLIENTS)];
   return clients.find(client => client.clientId === clientId && client.secret === secret);
 }
 
@@ -92,11 +76,7 @@ function clientInfo(state: ProviderState, username: string): string {
   return Buffer.from(JSON.stringify({ uid: user.oid, utid: TEST_TENANT_ID })).toString('base64url');
 }
 
-async function userTokens(
-  state: ProviderState,
-  authorization: Authorization,
-  options: { nonce?: string; idToken?: RefreshIdToken } = {},
-) {
+async function userTokens(state: ProviderState, authorization: Authorization, options: { nonce?: string; idToken?: RefreshIdToken } = {}) {
   const { username, clientId, scope, sid } = authorization;
   const claims = userClaims(state, username, clientId);
   const idClaims = { ...claims };
@@ -106,12 +86,7 @@ async function userTokens(
   const idToken = options.idToken === 'repeat' ? (authorization.idToken ?? fresh) : fresh;
   const entra = state.options.shape === 'entra';
   const accessClaims = entra ? { ...claims, scp: scope, idtyp: 'user' } : { ...claims, scp: scope };
-  const accessToken = await signToken(
-    state,
-    accessClaims,
-    state.apiAudience,
-    state.lifetimes.accessToken,
-  );
+  const accessToken = await signToken(state, accessClaims, state.apiAudience, state.lifetimes.accessToken);
   state.accessTokens.set(accessToken, { username, clientId });
   const refreshToken = crypto.randomUUID();
   state.refreshTokens.set(refreshToken, {
@@ -155,11 +130,7 @@ function authorizationCodeGrant(state: ProviderState, params: URLSearchParams, c
 function refreshTokenGrant(state: ProviderState, params: URLSearchParams, clientId: string) {
   const token = params.get('refresh_token') ?? '';
   const authorization = state.refreshTokens.get(token);
-  if (
-    !authorization ||
-    authorization.clientId !== clientId ||
-    authorization.expiresAt <= Date.now()
-  ) {
+  if (!authorization || authorization.clientId !== clientId || authorization.expiresAt <= Date.now()) {
     return oauthError('invalid_grant', 'Invalid or expired refresh token');
   }
   state.refreshTokens.delete(token);
@@ -182,11 +153,7 @@ function scopeAudience(scope: string): string | undefined {
   return audience;
 }
 
-async function clientCredentialsGrant(
-  state: ProviderState,
-  params: URLSearchParams,
-  clientId: string,
-) {
+async function clientCredentialsGrant(state: ProviderState, params: URLSearchParams, clientId: string) {
   const scope = params.get('scope') ?? '';
   if (!scope.endsWith('/.default') || /\s/.test(scope)) {
     return oauthError('invalid_scope', 'Client credentials require one /.default scope');
@@ -214,10 +181,7 @@ async function clientCredentialsGrant(
 }
 
 async function onBehalfOfGrant(state: ProviderState, params: URLSearchParams, clientId: string) {
-  if (
-    clientId !== TEST_WORKBENCH_CLIENT.clientId ||
-    params.get('requested_token_use') !== 'on_behalf_of'
-  ) {
+  if (clientId !== TEST_WORKBENCH_CLIENT.clientId || params.get('requested_token_use') !== 'on_behalf_of') {
     return oauthError('invalid_grant', 'Expected the workbench on-behalf-of request');
   }
   const identity = await readAccessToken(state, params.get('assertion') ?? '', state.apiAudience);
@@ -226,12 +190,7 @@ async function onBehalfOfGrant(state: ProviderState, params: URLSearchParams, cl
   const audience = scopeAudience(scope);
   if (!audience) return oauthError('invalid_scope', 'Expected scopes for one audience');
   const claims = userClaims(state, identity.username, clientId);
-  const accessToken = await signToken(
-    state,
-    { ...claims, scp: scope },
-    audience,
-    state.lifetimes.accessToken,
-  );
+  const accessToken = await signToken(state, { ...claims, scp: scope }, audience, state.lifetimes.accessToken);
   state.accessTokens.set(accessToken, { username: identity.username, clientId });
   return Response.json({
     token_type: 'Bearer',
@@ -242,11 +201,7 @@ async function onBehalfOfGrant(state: ProviderState, params: URLSearchParams, cl
 }
 
 /** Authenticates a client and dispatches its requested token grant. */
-export async function tokenEndpoint(
-  state: ProviderState,
-  request: Request,
-  params: URLSearchParams,
-) {
+export async function tokenEndpoint(state: ProviderState, request: Request, params: URLSearchParams) {
   const client = await authenticateClient(state, request, params);
   if (!client) return oauthError('invalid_client', 'Invalid client credentials', 401);
   switch (params.get('grant_type')) {

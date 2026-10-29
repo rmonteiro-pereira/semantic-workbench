@@ -31,9 +31,7 @@ async function domainFieldsAlign(page: Page) {
   const projects = await adminArea(page, 'Projects access');
   const fields = projects.getByLabel(/^Domain name /);
   await expect(fields.first()).toBeVisible();
-  const rightEdges = await fields.evaluateAll(elements =>
-    elements.map(element => Math.round(element.getBoundingClientRect().right)),
-  );
+  const rightEdges = await fields.evaluateAll(elements => elements.map(element => Math.round(element.getBoundingClientRect().right)));
   expect(rightEdges.length).toBeGreaterThan(1);
   expect(new Set(rightEdges).size, `Domain field edges: ${rightEdges}`).toBe(1);
 }

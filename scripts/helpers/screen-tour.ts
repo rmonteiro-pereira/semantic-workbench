@@ -37,10 +37,7 @@ export async function openFile(page: Page, path: string) {
   await showSidebar(page);
   await page.getByRole('button', { name: path, exact: true }).first().click();
   await page.waitForTimeout(600);
-  await expect(page.locator('.workspace-sidebar .document.chosen')).toHaveAttribute(
-    'aria-label',
-    path,
-  );
+  await expect(page.locator('.workspace-sidebar .document.chosen')).toHaveAttribute('aria-label', path);
 }
 
 async function openTab(page: Page, name: string) {
@@ -66,10 +63,7 @@ export function fileTab(file: string, tab: string): Screen['show'] {
     await page.getByRole('button', { name: 'Model explorer', exact: true }).click();
     await openFile(page, file);
     await openTab(page, tab);
-    await expect(page.locator('.workspace-sidebar .document.chosen')).toHaveAttribute(
-      'aria-label',
-      file,
-    );
+    await expect(page.locator('.workspace-sidebar .document.chosen')).toHaveAttribute('aria-label', file);
   };
 }
 
@@ -80,24 +74,14 @@ export function fileTab(file: string, tab: string): Screen['show'] {
 function resolvedMappings(file: string): Screen['show'] {
   return async page => {
     await fileTab(file, 'Mappings')(page);
-    const resolved = page.locator(
-      '.mapping-detail .mapping-binding, .mapping-detail .empty-state, .mapping-explorer > .empty-state',
-    );
+    const resolved = page.locator('.mapping-detail .mapping-binding, .mapping-detail .empty-state, .mapping-explorer > .empty-state');
     await resolved.first().waitFor({ state: 'attached', timeout: 30000 });
   };
 }
 
 /** Lists every screen of the tour for the two files it opens. */
 export function tourScreens({ ontology, contract }: TourFiles): Screen[] {
-  const modelTabs = [
-    'Overview',
-    'Graph',
-    'Neighborhood',
-    'Catalog',
-    'Source',
-    'Mappings',
-    'Metrics',
-  ];
+  const modelTabs = ['Overview', 'Graph', 'Neighborhood', 'Catalog', 'Source', 'Mappings', 'Metrics'];
   const screens: Screen[] = [{ name: 'sidebar-projects', show: showSidebar }];
   for (const tab of modelTabs) {
     const show = tab === 'Mappings' ? resolvedMappings(ontology) : fileTab(ontology, tab);
@@ -138,11 +122,7 @@ export async function showScreen(page: Page, screen: Screen) {
 
 /** Returns control, text size and text collision problems inside the `within` element. */
 export async function geometryProblems(page: Page, within = 'body'): Promise<string[]> {
-  return [
-    ...(await layoutProblems(page)),
-    ...(await smallTextProblems(page, within)),
-    ...(await textCollisionProblems(page, within)),
-  ];
+  return [...(await layoutProblems(page)), ...(await smallTextProblems(page, within)), ...(await textCollisionProblems(page, within))];
 }
 
 /** Returns control, text size and text collision problems of the screen now shown. */
@@ -152,10 +132,7 @@ export async function screenProblems(page: Page, screen: Screen): Promise<string
     within = '.canvas-row.is-fullscreen';
   }
   const problems = await geometryProblems(page, within);
-  if (
-    screen.name.startsWith('ontology-neighborhood') &&
-    !(await page.locator('.neighborhood-graph').isVisible())
-  ) {
+  if (screen.name.startsWith('ontology-neighborhood') && !(await page.locator('.neighborhood-graph').isVisible())) {
     problems.push('the intended Neighborhood canvas is not visible');
   }
   if (screen.name.endsWith('hover-label')) {

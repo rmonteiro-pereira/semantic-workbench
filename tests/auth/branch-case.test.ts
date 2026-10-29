@@ -1,11 +1,7 @@
 // A branch spelled in another letter case is the same branch on a volume that ignores case, so
 // it is refused, and personal branches are recognized whatever their case.
 import { expect, test } from 'bun:test';
-import {
-  branchShownTo,
-  branchSpelledDifferently,
-  isPersonalBranch,
-} from '../../src/server/projects/worktrees';
+import { branchShownTo, branchSpelledDifferently, isPersonalBranch } from '../../src/server/projects/worktrees';
 import { authWorkspace } from '../helpers/auth-workspace';
 import { person } from './access-fixture';
 import { gitOutput, copyFolder, openCopy, signedIn } from './working-copy-fixture';
@@ -35,8 +31,7 @@ test('a branch cannot be created or switched to under another spelling of an exi
   const frank = as(person('frank'));
   expect((await openCopy(alice.call, 'sales-contracts')).status).toBe(200);
   expect((await openCopy(frank.call, 'sales-contracts')).status).toBe(200);
-  const switchTo = (branch: string, create: boolean) =>
-    frank.call('/api/projects/sales-contracts/git/switch', 'POST', { branch, create });
+  const switchTo = (branch: string, create: boolean) => frank.call('/api/projects/sales-contracts/git/switch', 'POST', { branch, create });
   const refused = await switchTo('Work/alice', true);
   expect(refused.status).toBe(400);
   expect(refused.body.error).toContain('differs only in letter case');

@@ -86,11 +86,7 @@ function gitService(url: URL) {
 }
 
 /** Starts the server on a free loopback port; repositories live under `root`. */
-export function startCredentialGitServer(
-  root: string,
-  check: CredentialCheck,
-  github?: { clientId: string; clientSecret: string; redirectUri: string },
-): CredentialGitServer {
+export function startCredentialGitServer(root: string, check: CredentialCheck, github?: { clientId: string; clientSecret: string; redirectUri: string }): CredentialGitServer {
   mkdirSync(root, { recursive: true });
   const requests: GitRequest[] = [];
   const passwords = new Set<string>();
@@ -115,10 +111,7 @@ export function startCredentialGitServer(
     const form = new URLSearchParams(await request.text());
     const token = codes.get(form.get('code') ?? '');
     codes.delete(form.get('code') ?? '');
-    const client =
-      form.get('client_id') === github?.clientId &&
-      form.get('client_secret') === github?.clientSecret &&
-      form.get('redirect_uri') === github?.redirectUri;
+    const client = form.get('client_id') === github?.clientId && form.get('client_secret') === github?.clientSecret && form.get('redirect_uri') === github?.redirectUri;
     if (!token || !client || request.headers.get('accept') !== 'application/json') {
       return Response.json({ error: 'bad_verification_code' });
     }

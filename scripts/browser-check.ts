@@ -29,14 +29,11 @@ await page.getByRole('button', { name: 'Auto align', exact: true }).waitFor({ ti
 await page.getByText(`${count} entities · ${count * 3} relationships`, { exact: true }).waitFor();
 const loaded = performance.now();
 await page.getByRole('button', { name: 'Auto align', exact: true }).click();
-await page
-  .getByRole('button', { name: 'Auto align', exact: true })
-  .waitFor({ state: 'visible', timeout: 60000 });
+await page.getByRole('button', { name: 'Auto align', exact: true }).waitFor({ state: 'visible', timeout: 60000 });
 await page.waitForTimeout(1000);
 const button = page.getByRole('button', { name: 'Auto align', exact: true });
 if (!(await button.isEnabled())) throw Error('Layout did not complete');
-if (!(await button.evaluate(el => !!el.closest('.canvas'))))
-  throw Error('Auto align is outside canvas');
+if (!(await button.evaluate(el => !!el.closest('.canvas')))) throw Error('Auto align is outside canvas');
 const handles = await page.locator('.react-flow__handle-right').count();
 if (!handles) throw Error('Missing right-facing handles');
 const aligned = performance.now();
@@ -50,8 +47,7 @@ await page.getByRole('button', { name: 'Catalog', exact: true }).click();
 await page.getByRole('button', { name: /Entity_2999/ }).click();
 await page.getByRole('heading', { name: 'Entity_2999', exact: true }).waitFor();
 await page.getByRole('button', { name: 'Source', exact: true }).click();
-if (await page.getByRole('button', { name: 'Auto align', exact: true }).count())
-  throw Error('Auto align leaked into YAML view');
+if (await page.getByRole('button', { name: 'Auto align', exact: true }).count()) throw Error('Auto align leaked into YAML view');
 
 console.log(
   JSON.stringify({

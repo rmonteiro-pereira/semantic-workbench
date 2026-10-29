@@ -43,9 +43,7 @@ const telemetry = await startTelemetry({
 probeDataRoot(config.dataDir, process.pid, process.getuid?.());
 if (config.inContainer && config.mode === 'local') {
   log.warn('startup.local-container-networking', {
-    detail:
-      'Local containers must use host networking (Compose profile local). ' +
-      'Docker Desktop: Settings → Resources → Network → Enable host networking.',
+    detail: 'Local containers must use host networking (Compose profile local). ' + 'Docker Desktop: Settings → Resources → Network → Enable host networking.',
   });
 }
 let workspace: Workspace | undefined;
@@ -78,12 +76,7 @@ async function initializeWorkspace() {
     port: config.port,
     ...authentication,
     sourceIp: request => server.requestIP(request)?.address,
-    clientAddress: request =>
-      clientAddress(
-        server.requestIP(request)?.address,
-        request.headers.get('x-forwarded-for'),
-        config.mode === 'server' ? config.trustedProxyHops : 0,
-      ),
+    clientAddress: request => clientAddress(server.requestIP(request)?.address, request.headers.get('x-forwarded-for'), config.mode === 'server' ? config.trustedProxyHops : 0),
     keepOpen: request => server.timeout(request, 0),
     browserReports: telemetry.status.enabled,
   });

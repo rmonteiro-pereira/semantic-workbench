@@ -17,35 +17,19 @@ test('facade save indexes into the cache and rejects stale updates', async () =>
     const d = await t.ws.saveDocument('a.yaml', yaml, LOCAL_READER);
     expect(d.id).toBe('ungrouped/a.yaml');
     expect(t.ws.cache.entities('ungrouped', 'a.yaml')).toHaveLength(1);
-    await expect(
-      t.ws.saveDocument('a.yaml', 'name: invalid', LOCAL_READER, d.id, { revision: d.revision }),
-    ).rejects.toThrow();
+    await expect(t.ws.saveDocument('a.yaml', 'name: invalid', LOCAL_READER, d.id, { revision: d.revision })).rejects.toThrow();
     expect(t.ws.documents()[0].source).toBe(yaml);
-    await t.ws.saveDocument(
-      'a.yaml',
-      editEntity(yaml, ['ontology', 0], 'Updated'),
-      LOCAL_READER,
-      d.id,
-      {
-        revision: d.revision,
-      },
-    );
-    await expect(
-      t.ws.saveDocument('a.yaml', yaml, LOCAL_READER, d.id, { revision: d.revision }),
-    ).rejects.toThrow('changed');
-    await expect(
-      t.ws.saveDocument('a.yaml', yaml, LOCAL_READER, d.id, { baseHash: d.hash }),
-    ).rejects.toThrow('changed');
+    await t.ws.saveDocument('a.yaml', editEntity(yaml, ['ontology', 0], 'Updated'), LOCAL_READER, d.id, {
+      revision: d.revision,
+    });
+    await expect(t.ws.saveDocument('a.yaml', yaml, LOCAL_READER, d.id, { revision: d.revision })).rejects.toThrow('changed');
+    await expect(t.ws.saveDocument('a.yaml', yaml, LOCAL_READER, d.id, { baseHash: d.hash })).rejects.toThrow('changed');
   } finally {
     t.dispose();
   }
 });
 test('rejects unresolved semantic joins', () => {
-  expect(() =>
-    inspect(
-      'name: Sales\ndatasets: [{name: orders, source: db.orders}]\nrelationships: [{name: bad, from: orders, to: missing}]',
-    ),
-  ).toThrow('unknown dataset');
+  expect(() => inspect('name: Sales\ndatasets: [{name: orders, source: db.orders}]\nrelationships: [{name: bad, from: orders, to: missing}]')).toThrow('unknown dataset');
 });
 test('folder store retains RDF/XML and SHACL sources byte for byte', async () => {
   const t = await testWorkspace();

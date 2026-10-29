@@ -77,14 +77,7 @@ function collect(data: any) {
   const keys: OdcsForeignKey[] = [];
   const external: OdcsExternalForeignKey[] = [];
   const issues: OdcsReferenceIssue[] = [];
-  const add = (
-    from: number,
-    fromColumns: (string | undefined)[],
-    toRef: unknown,
-    label: string,
-    path: (string | number)[],
-    definition: any,
-  ) => {
+  const add = (from: number, fromColumns: (string | undefined)[], toRef: unknown, label: string, path: (string | number)[], definition: any) => {
     const targets = list(toRef);
     const first = targets[0];
     const target = resolve(first);
@@ -112,9 +105,7 @@ function collect(data: any) {
     if (toColumns.length !== fromColumns.length) {
       issues.push({
         path: '/' + [...path, 'to'].join('/'),
-        message:
-          `Composite foreign key pairs ${columnCount(fromColumns.length, 'source')} with ` +
-          `${columnCount(toColumns.length, 'target')}; both lists must have the same length.`,
+        message: `Composite foreign key pairs ${columnCount(fromColumns.length, 'source')} with ` + `${columnCount(toColumns.length, 'target')}; both lists must have the same length.`,
       });
       pairedFrom = [];
       toColumns = [];
@@ -134,15 +125,7 @@ function collect(data: any) {
     if (!x || typeof x !== 'object') return;
     (Array.isArray(x.properties) ? x.properties : []).forEach((p: any, j: number) =>
       (Array.isArray(p?.relationships) ? p.relationships : []).forEach((r: any, k: number) => {
-        if (r && typeof r === 'object')
-          add(
-            i,
-            [String(p.name)],
-            r.to,
-            String(p.name),
-            ['schema', i, 'properties', j, 'relationships', k],
-            { from: `${x.name}.${p.name}`, ...r },
-          );
+        if (r && typeof r === 'object') add(i, [String(p.name)], r.to, String(p.name), ['schema', i, 'properties', j, 'relationships', k], { from: `${x.name}.${p.name}`, ...r });
       }),
     );
     (Array.isArray(x.relationships) ? x.relationships : []).forEach((r: any, k: number) => {
@@ -160,9 +143,7 @@ function collect(data: any) {
       }
       add(
         from.object,
-        sources.map(s =>
-          s && s !== 'external' && s.object === from.object ? s.column : undefined,
-        ),
+        sources.map(s => (s && s !== 'external' && s.object === from.object ? s.column : undefined)),
         r.to,
         list(r.from)
           .map(f => String(f).split('.').pop())

@@ -45,9 +45,7 @@ test('private-key and managed-identity assertions authenticate the token exchang
         fetch: async (url, init) => {
           if (!url.toString().endsWith('/token')) return transport.fetch(url, init);
           const parameters = new URLSearchParams(String(init.body));
-          expect(parameters.get('client_assertion_type')).toBe(
-            'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-          );
+          expect(parameters.get('client_assertion_type')).toBe('urn:ietf:params:oauth:client-assertion-type:jwt-bearer');
           const assertion = parameters.get('client_assertion')!;
           if (kind === 'private-key') {
             const verified = await jwtVerify(assertion, keys.publicKey);

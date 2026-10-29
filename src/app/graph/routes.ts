@@ -11,9 +11,7 @@ export type EdgeRoute = (
 ) & { dyOut?: number; dyIn?: number };
 /** Builds a rounded SVG path through orthogonal points. */
 export function orthogonalPath(points: [number, number][], radius = 10) {
-  const p = points.filter(
-    (pt, i) => i === 0 || pt[0] !== points[i - 1][0] || pt[1] !== points[i - 1][1],
-  );
+  const p = points.filter((pt, i) => i === 0 || pt[0] !== points[i - 1][0] || pt[1] !== points[i - 1][1]);
   let d = `M ${p[0][0]},${p[0][1]}`;
   for (let i = 1; i < p.length; i++) {
     const [x, y] = p[i];
@@ -33,13 +31,7 @@ export function orthogonalPath(points: [number, number][], radius = 10) {
   return d;
 }
 /** Returns route vertices and an initial label position for the current endpoints. */
-export function routePoints(
-  sx: number,
-  sy0: number,
-  tx: number,
-  ty0: number,
-  r: EdgeRoute,
-): { points: [number, number][]; label: [number, number] } {
+export function routePoints(sx: number, sy0: number, tx: number, ty0: number, r: EdgeRoute): { points: [number, number][]; label: [number, number] } {
   const sy = sy0 + (r.dyOut ?? 0);
   const ty = ty0 + (r.dyIn ?? 0);
   // Between two nodes of one column: out of the source's right side, along the column, into the
@@ -93,8 +85,7 @@ const loopTop = (box: Box, index: number) => box.y - 14 - index * 10;
  */
 function createLanePlacer(boxes: Map<string, Box>, edges: { source: string; target: string }[]) {
   const loopCount = new Map<string, number>();
-  for (const e of edges)
-    if (e.source === e.target) loopCount.set(e.source, (loopCount.get(e.source) ?? 0) + 1);
+  for (const e of edges) if (e.source === e.target) loopCount.set(e.source, (loopCount.get(e.source) ?? 0) + 1);
   const entries = [...boxes];
   const clearanceAbove = ([id, box]: [string, Box]) => {
     const loops = loopCount.get(id) ?? 0;
@@ -104,11 +95,8 @@ function createLanePlacer(boxes: Map<string, Box>, edges: { source: string; targ
   return (left: number, right: number, below: boolean) => {
     const passed = entries.filter(([, b]) => b.x + b.width > left && b.x < right);
     const reach = passed.length ? passed : entries;
-    let y = below
-      ? Math.max(...reach.map(([, b]) => b.y + b.height)) + 22
-      : Math.min(...reach.map(clearanceAbove)) - 22;
-    const shares = (lane: (typeof placed)[number]) =>
-      lane.below === below && lane.left < right && left < lane.right && Math.abs(lane.y - y) < 16;
+    let y = below ? Math.max(...reach.map(([, b]) => b.y + b.height)) + 22 : Math.min(...reach.map(clearanceAbove)) - 22;
+    const shares = (lane: (typeof placed)[number]) => lane.below === below && lane.left < right && left < lane.right && Math.abs(lane.y - y) < 16;
     while (placed.some(shares)) y += below ? 16 : -16;
     placed.push({ y, left, right, below });
     return y;
@@ -116,10 +104,7 @@ function createLanePlacer(boxes: Map<string, Box>, edges: { source: string; targ
 }
 
 /** Assigns edge lanes and handle offsets between positioned node rectangles. */
-export function assignRoutes(
-  edges: (Link & { id: string })[],
-  boxes: Map<string, Box>,
-): Map<string, EdgeRoute> {
+export function assignRoutes(edges: (Link & { id: string })[], boxes: Map<string, Box>): Map<string, EdgeRoute> {
   const routes = new Map<string, EdgeRoute>();
   const all = [...boxes.values()];
   if (!all.length) return routes;
@@ -225,9 +210,7 @@ export function assignRoutes(
     const r = routes.get(e.id)!;
     outs.set(e.source, [...(outs.get(e.source) ?? []), { id: e.id, other: t.y }]);
     (r.route === 'side' ? outs : ins).set(r.route === 'side' ? e.target + '#right' : e.target, [
-      ...((r.route === 'side' ? outs : ins).get(
-        r.route === 'side' ? e.target + '#right' : e.target,
-      ) ?? []),
+      ...((r.route === 'side' ? outs : ins).get(r.route === 'side' ? e.target + '#right' : e.target) ?? []),
       { id: e.id, other: s.y },
     ]);
   }
@@ -286,22 +269,11 @@ function labelCandidates(points: [number, number][]) {
 }
 
 function rectanglesOverlap(first: Box, second: Box) {
-  return (
-    first.x < second.x + second.width &&
-    second.x < first.x + first.width &&
-    first.y < second.y + second.height &&
-    second.y < first.y + first.height
-  );
+  return first.x < second.x + second.width && second.x < first.x + first.width && first.y < second.y + second.height && second.y < first.y + first.height;
 }
 
-function clearLabelPosition(
-  text: string,
-  candidates: [number, number][],
-  obstacles: Box[],
-  labelScale: number,
-): [number, number] {
-  const clear = (position: [number, number]) =>
-    !obstacles.some(obstacle => rectanglesOverlap(obstacle, labelBox(text, position, labelScale)));
+function clearLabelPosition(text: string, candidates: [number, number][], obstacles: Box[], labelScale: number): [number, number] {
+  const clear = (position: [number, number]) => !obstacles.some(obstacle => rectanglesOverlap(obstacle, labelBox(text, position, labelScale)));
   const onRoute = candidates.find(clear);
   if (onRoute) return onRoute;
   // Dense routes need more than a fixed number of lanes to keep enlarged labels off cards.
@@ -316,11 +288,7 @@ function clearLabelPosition(
 }
 
 /** Puts each label clear of other labels and nodes, adding lanes when routes are crowded. */
-export function placeLabels(
-  items: { id: string; text: string; points: [number, number][] }[],
-  boxes: Box[],
-  labelScale = 1,
-) {
+export function placeLabels(items: { id: string; text: string; points: [number, number][] }[], boxes: Box[], labelScale = 1) {
   const obstacles = [...boxes];
   const positions = new Map<string, [number, number]>();
   for (const item of items) {
@@ -353,17 +321,7 @@ export function nearestRoutePoint(points: [number, number][], center: [number, n
 }
 
 /** Keeps an entire label inside the visible canvas instead of showing clipped fragments. */
-export function labelInViewport(
-  box: Box,
-  transform: [number, number, number],
-  width: number,
-  height: number,
-) {
+export function labelInViewport(box: Box, transform: [number, number, number], width: number, height: number) {
   const [offsetX, offsetY, zoom] = transform;
-  return (
-    box.x * zoom + offsetX >= 2 &&
-    box.y * zoom + offsetY >= 2 &&
-    (box.x + box.width) * zoom + offsetX <= width - 2 &&
-    (box.y + box.height) * zoom + offsetY <= height - 2
-  );
+  return box.x * zoom + offsetX >= 2 && box.y * zoom + offsetY >= 2 && (box.x + box.width) * zoom + offsetX <= width - 2 && (box.y + box.height) * zoom + offsetY <= height - 2;
 }

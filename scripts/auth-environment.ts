@@ -12,12 +12,7 @@ export const freeAuthPort = () => freeLoopbackPort([5173, 5180, 4310]);
 export type AuthProvider = { issuer: string; graphUrl?: string; kind: 'entra' | 'keycloak' };
 
 /** Builds an isolated server environment with explicitly supplied development secrets. */
-export function authEnvironment(
-  root: string,
-  url: string,
-  provider: AuthProvider,
-  sessionKey: string,
-): Record<string, string> {
+export function authEnvironment(root: string, url: string, provider: AuthProvider, sessionKey: string): Record<string, string> {
   return {
     SW_MODE: 'server',
     SW_HOST: '127.0.0.1',
@@ -39,16 +34,8 @@ export function authEnvironment(
 }
 
 /** Keeps host identity configuration out of disposable API processes. */
-export function authProcessEnvironment(
-  inherited: NodeJS.ProcessEnv,
-  settings: Record<string, string>,
-) {
-  const base = Object.fromEntries(
-    Object.entries(inherited).filter(
-      ([name]) =>
-        !name.startsWith('SW_') && name !== 'DATA_DIR' && name !== 'CONTAINER_APP_REVISION',
-    ),
-  );
+export function authProcessEnvironment(inherited: NodeJS.ProcessEnv, settings: Record<string, string>) {
+  const base = Object.fromEntries(Object.entries(inherited).filter(([name]) => !name.startsWith('SW_') && name !== 'DATA_DIR' && name !== 'CONTAINER_APP_REVISION'));
   return { ...base, ...settings };
 }
 
@@ -59,15 +46,9 @@ export type AuthApiOptions = {
 };
 
 /** Starts the built application with fixture grants and removes it even after startup failure. */
-export async function startAuthApi(
-  url: string,
-  provider: AuthProvider | { mode: 'local' },
-  options: AuthApiOptions = {},
-) {
+export async function startAuthApi(url: string, provider: AuthProvider | { mode: 'local' }, options: AuthApiOptions = {}) {
   const local = 'mode' in provider;
-  const fixture = local
-    ? localFixture()
-    : await authWorkspace({ keycloak: provider.kind === 'keycloak' });
+  const fixture = local ? localFixture() : await authWorkspace({ keycloak: provider.kind === 'keycloak' });
   let child: ReturnType<typeof Bun.spawn> | undefined;
   async function stop() {
     try {

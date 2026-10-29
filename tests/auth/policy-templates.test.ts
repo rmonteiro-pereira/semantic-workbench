@@ -1,11 +1,6 @@
 // Tests complete-set validation and baseline precedence for administrator-authored policies.
 import { expect, test } from 'bun:test';
-import {
-  validatePolicies,
-  policyTemplate,
-  policyTemplateFrom,
-  policyTexts,
-} from '../../src/server/auth/policies';
+import { validatePolicies, policyTemplate, policyTemplateFrom, policyTexts } from '../../src/server/auth/policies';
 import { accessFixture, person } from './access-fixture';
 import { createAccessControl } from '../../src/server/auth/authorize';
 import { clientPrincipal } from '../../src/server/auth/principal';
@@ -32,9 +27,7 @@ test('Git action template validates and unrestricted Admin forbids are refused',
       config.roles,
     ).ok,
   ).toBe(false);
-  expect(
-    validatePolicies([{ id: 'bad', text: 'not cedar', enabled: false }], config.roles).ok,
-  ).toBe(false);
+  expect(validatePolicies([{ id: 'bad', text: 'not cedar', enabled: false }], config.roles).ok).toBe(false);
 });
 
 test('an Admin permit cannot override baseline deactivation', () => {
@@ -113,11 +106,7 @@ test('an Admin permit cannot override self-approval or bearer-scope baseline for
     path: 'metric.yaml',
     metric: { name: 'Revenue', status: 'proposed', owner: 'bob@example.org' },
   };
-  const selfApproval = access.authorize(
-    access.principalFor(person('bob')),
-    'approveMetric',
-    ownMetric,
-  );
+  const selfApproval = access.authorize(access.principalFor(person('bob')), 'approveMetric', ownMetric);
   expect(selfApproval.allow).toBe(false);
   expect(selfApproval.rules).toContain('F1-no-self-approval');
   const agent = access.principalFor(clientPrincipal('sw-agent', 'Sales agent'));
@@ -159,9 +148,7 @@ test('time windows accept hours across midnight and refuse hours outside zero to
   expect(midday.allow).toBe(false);
   expect(midday.rules).toContain('night');
   for (const hours of [[], [24], [-1], [1.5]]) {
-    expect(() => policyTemplate({ template: 'time', id: 't', actions: ['push'], hours })).toThrow(
-      'UTC hours',
-    );
+    expect(() => policyTemplate({ template: 'time', id: 't', actions: ['push'], hours })).toThrow('UTC hours');
   }
 });
 
@@ -178,22 +165,14 @@ test('network ranges compare the ipaddr source directly and refuse malformed ran
   expect(pushDecision(office, { sourceIp: '2001:db8::1' }).allow).toBe(true);
   expect(pushDecision(office, { sourceIp: '192.168.1.1' }).allow).toBe(false);
   for (const ranges of [[], ['10.0.0.0/33'], ['not-an-address'], ['10.0.0.0/8/1']]) {
-    expect(() =>
-      policyTemplate({ template: 'network', id: 'n', actions: ['push'], ranges }),
-    ).toThrow();
+    expect(() => policyTemplate({ template: 'network', id: 'n', actions: ['push'], ranges })).toThrow();
   }
 });
 
 test('templates need approver groups and never restrict the admin action', () => {
-  expect(() =>
-    policyTemplate({ template: 'metric-ownership', id: 'o', domain: 'sales', groups: [] }),
-  ).toThrow('approver group');
-  expect(() =>
-    policyTemplate({ template: 'time', id: 't', actions: ['edit', 'admin'], hours: [9] }),
-  ).toThrow('admin');
-  expect(() => policyTemplateFrom({ template: 'time', id: 't', actions: [], hours: [9] })).toThrow(
-    'at least one action',
-  );
+  expect(() => policyTemplate({ template: 'metric-ownership', id: 'o', domain: 'sales', groups: [] })).toThrow('approver group');
+  expect(() => policyTemplate({ template: 'time', id: 't', actions: ['edit', 'admin'], hours: [9] })).toThrow('admin');
+  expect(() => policyTemplateFrom({ template: 'time', id: 't', actions: [], hours: [9] })).toThrow('at least one action');
   expect(policyTemplateFrom({ template: 'time', id: 't', actions: ['push'], hours: [9] })).toEqual({
     template: 'time',
     id: 't',

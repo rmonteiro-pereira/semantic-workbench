@@ -12,15 +12,7 @@
 // fitting token is left in place and printed, so the next step is to add a token for it. The
 // run changes nothing once no literals are left, so it can be repeated after other branches merge.
 import { readFileSync, writeFileSync } from 'node:fs';
-import {
-  colorDistance,
-  luminance,
-  findColorLiterals,
-  parseColor,
-  type ColorLiteral,
-  type Rgba,
-  type SourceLanguage,
-} from './helpers/color-literals';
+import { colorDistance, luminance, findColorLiterals, parseColor, type ColorLiteral, type Rgba, type SourceLanguage } from './helpers/color-literals';
 import { languageOf, themedFiles } from './helpers/theme-files';
 
 type TokenRole = 'surface' | 'border' | 'text' | 'solid' | 'graphic' | 'shadow' | 'mask' | 'named';
@@ -30,9 +22,7 @@ type UseClass = 'background' | 'border' | 'text' | 'shadow' | 'mask' | 'any';
 export type Token = { name: string; value: Rgba; role: TokenRole };
 
 /** The result of mapping one literal. */
-export type Mapping =
-  | { ok: true; replacement: string; token: string; distance: number }
-  | { ok: false; reason: string; nearest?: string; distance?: number };
+export type Mapping = { ok: true; replacement: string; token: string; distance: number } | { ok: false; reason: string; nearest?: string; distance?: number };
 
 /**
  * The largest colour distance (CIE76) between a literal and the token that replaces it. Tinted
@@ -144,9 +134,7 @@ export function mapLiteral(literal: string, property: string, tokens: Token[]): 
     return { ok: true, replacement, token: best.token.name, distance: best.distance };
   }
   const suggestions = tokens.filter(token => token.role !== 'named');
-  const any = suggestions.sort(
-    (first, second) => colorDistance(color, first.value) - colorDistance(color, second.value),
-  )[0];
+  const any = suggestions.sort((first, second) => colorDistance(color, first.value) - colorDistance(color, second.value))[0];
   return {
     ok: false,
     reason: 'no token is close enough',
@@ -159,10 +147,7 @@ export function mapLiteral(literal: string, property: string, tokens: Token[]): 
 export type Change = { file: string; literal: ColorLiteral; mapping: Mapping };
 
 /** Rewrites one file's text; returns the new text and what happened to each literal. */
-export function rewriteText(
-  source: { text: string; language: SourceLanguage; file: string },
-  tokens: Token[],
-): { text: string; changes: Change[] } {
+export function rewriteText(source: { text: string; language: SourceLanguage; file: string }, tokens: Token[]): { text: string; changes: Change[] } {
   const { text, language, file } = source;
   const changes = findColorLiterals(text, language).map(literal => ({
     file,
@@ -173,10 +158,7 @@ export function rewriteText(
   for (const change of [...changes].reverse()) {
     if (!change.mapping.ok) continue;
     const { index, text: original } = change.literal;
-    rewritten =
-      rewritten.slice(0, index) +
-      change.mapping.replacement +
-      rewritten.slice(index + original.length);
+    rewritten = rewritten.slice(0, index) + change.mapping.replacement + rewritten.slice(index + original.length);
   }
   return { text: rewritten, changes };
 }
@@ -230,12 +212,8 @@ function printUnmapped(left: Change[]) {
   console.log(`${left.length} literals could not be mapped; add or adjust a token for each:`);
   for (const { file, literal, mapping } of left) {
     if (mapping.ok) continue;
-    const near = mapping.nearest
-      ? ` (nearest ${mapping.nearest}, ${mapping.distance?.toFixed(1)})`
-      : '';
-    console.log(
-      `  ${file}:${literal.line}  ${literal.property} ${literal.text}: ${mapping.reason}${near}`,
-    );
+    const near = mapping.nearest ? ` (nearest ${mapping.nearest}, ${mapping.distance?.toFixed(1)})` : '';
+    console.log(`  ${file}:${literal.line}  ${literal.property} ${literal.text}: ${mapping.reason}${near}`);
   }
 }
 

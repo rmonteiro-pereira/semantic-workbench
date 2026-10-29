@@ -11,14 +11,7 @@ export type EdgeKind = LineageEdgeKind | MappingEdgeKind;
 /** Defines an edge's label, legend category, color and optional dash pattern. */
 export type EdgeStyle = { label: string; legend: LegendLine; stroke: string; dash?: string };
 /** Groups edge kinds under the line styles displayed in the legend. */
-export type LegendLine =
-  | 'foreign-key'
-  | 'feeds'
-  | 'object'
-  | 'referent'
-  | 'link'
-  | 'measures'
-  | 'of';
+export type LegendLine = 'foreign-key' | 'feeds' | 'object' | 'referent' | 'link' | 'measures' | 'of';
 export const FOREIGN_KEY_STROKE = 'var(--color-edge-foreign-key)';
 export const FEEDS_STROKE = 'var(--color-edge-feeds)';
 export const EDGE_STYLES: Record<EdgeKind, EdgeStyle> = {

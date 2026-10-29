@@ -32,9 +32,7 @@ export function projectRoutes(administration: AdminRepository): Route {
       return Response.json(
         projects.map(project => ({
           ...project,
-          actions: ACTIONS.filter(
-            action => scope.authorize(action, { type: 'project', project: project.slug }).allow,
-          ),
+          actions: ACTIONS.filter(action => scope.authorize(action, { type: 'project', project: project.slug }).allow),
           classification: scope.classification(project.slug),
         })),
       );
@@ -49,18 +47,12 @@ export function projectRoutes(administration: AdminRepository): Route {
     const one = p.match(/^\/api\/projects\/([^/]+)$/);
     if (one && req.method === 'PATCH') {
       const body = await readJson(req, 16_000);
-      if (!body || typeof body !== 'object' || Object.keys(body).some(k => k !== 'name'))
-        throw new BadRequestError('Expected {name}.');
+      if (!body || typeof body !== 'object' || Object.keys(body).some(k => k !== 'name')) throw new BadRequestError('Expected {name}.');
       return Response.json(await ws.renameProject(decodeSegment(one[1]), body.name));
     }
     if (p === '/api/import' && req.method === 'POST') {
       const body = await readJson(req, IMPORT_LIMIT);
-      if (
-        !body ||
-        typeof body !== 'object' ||
-        Array.isArray(body) ||
-        Object.keys(body).some(k => !['name', 'files', 'domain'].includes(k))
-      )
+      if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).some(k => !['name', 'files', 'domain'].includes(k)))
         throw new BadRequestError('Expected {name?, files: [{path, source}]}.');
       const domain = creationDomain(req, body.domain);
       const result = await ws.importBatch(body, requestReader(req), { domain });
@@ -83,26 +75,12 @@ export function projectRoutes(administration: AdminRepository): Route {
         { type: 'file', project: decodeSegment(move[1]), path: body.path },
         { type: 'file', project: body.toProject, path: body.toPath ?? body.path },
       ]);
-      return Response.json(
-        await ws.moveFile(
-          decodeSegment(move[1]),
-          body.path,
-          body.toProject,
-          body.toPath,
-          false,
-          requestReader(req),
-        ),
-      );
+      return Response.json(await ws.moveFile(decodeSegment(move[1]), body.path, body.toProject, body.toPath, false, requestReader(req)));
     }
     const into = p.match(/^\/api\/projects\/([^/]+)\/import$/);
     if (into && req.method === 'POST') {
       const body = await readJson(req, IMPORT_LIMIT);
-      if (
-        !body ||
-        typeof body !== 'object' ||
-        Array.isArray(body) ||
-        Object.keys(body).some(k => !['files', 'onConflict'].includes(k))
-      )
+      if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).some(k => !['files', 'onConflict'].includes(k)))
         throw new BadRequestError('Expected {files: [{path, source}], onConflict?}.');
       if (!Array.isArray(body.files)) throw new BadRequestError('files must be an array.');
       const project = decodeSegment(into[1]);
@@ -114,9 +92,7 @@ export function projectRoutes(administration: AdminRepository): Route {
         );
       };
       const reader = requestReader(req);
-      return Response.json(
-        await ws.importInto(project, body.files, body.onConflict, reader, authorizePaths),
-      );
+      return Response.json(await ws.importInto(project, body.files, body.onConflict, reader, authorizePaths));
     }
     const example = p.match(/^\/api\/examples\/([a-z0-9-]+)$/);
     if (example && req.method === 'POST') {

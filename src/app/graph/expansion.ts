@@ -35,10 +35,7 @@ export const setsOf = (ids: string[]) => ids.map(getSet).filter((s): s is Expans
 // The canvas: base nodes (the centre's view, never removed) and every node of the sets still in
 // force. A set whose origin is no longer on the canvas (its expansion was collapsed) goes with it.
 /** Replays expansions and collapses while retaining base and shared reachable nodes. */
-export function canvasOf(
-  base: string[],
-  sets: ExpansionSet[],
-): { nodes: string[]; active: ExpansionSet[]; expandedBy: Map<string, string> } {
+export function canvasOf(base: string[], sets: ExpansionSet[]): { nodes: string[]; active: ExpansionSet[]; expandedBy: Map<string, string> } {
   let active: ExpansionSet[] = [];
   for (const s of sets) {
     if (s.kind === 'collapse') active = active.filter(a => a.id !== s.target);
@@ -48,8 +45,7 @@ export function canvasOf(
   for (let changed = true; changed;) {
     changed = false;
     for (const s of active) {
-      const reachable =
-        baseSet.has(s.from) || active.some(o => o !== s && o.nodes.includes(s.from));
+      const reachable = baseSet.has(s.from) || active.some(o => o !== s && o.nodes.includes(s.from));
       if (!reachable) {
         active = active.filter(a => a !== s);
         changed = true;
@@ -80,22 +76,11 @@ export const addedBy = (current: Iterable<string>, set: ExpansionSet) => {
 /** Identifies the source and target nodes of an edge. */
 export type Link = { id: string; source: string; target: string; label: string };
 /** Returns one-hop neighbors ordered by relationship label, name and identifier. */
-export function neighbours(
-  edges: Link[],
-  node: string,
-  direction: Direction,
-  name: (id: string) => string = id => id,
-  relationship?: string,
-) {
+export function neighbours(edges: Link[], node: string, direction: Direction, name: (id: string) => string = id => id, relationship?: string) {
   const found = new Map<string, { label: string; edges: string[] }>();
   for (const e of edges) {
     if (relationship && e.label !== relationship) continue;
-    const other =
-      direction !== 'in' && e.source === node
-        ? e.target
-        : direction !== 'out' && e.target === node
-          ? e.source
-          : null;
+    const other = direction !== 'in' && e.source === node ? e.target : direction !== 'out' && e.target === node ? e.source : null;
     if (other === null || other === node) continue;
     const f = found.get(other);
     if (f) {
@@ -103,11 +88,6 @@ export function neighbours(
       if (e.label < f.label) f.label = e.label;
     } else found.set(other, { label: e.label, edges: [e.id] });
   }
-  const nodes = [...found].sort(
-    (a, b) =>
-      a[1].label.localeCompare(b[1].label) ||
-      name(a[0]).localeCompare(name(b[0])) ||
-      a[0].localeCompare(b[0]),
-  );
+  const nodes = [...found].sort((a, b) => a[1].label.localeCompare(b[1].label) || name(a[0]).localeCompare(name(b[0])) || a[0].localeCompare(b[0]));
   return { nodes: nodes.map(([id]) => id), edges: nodes.flatMap(([, f]) => f.edges) };
 }

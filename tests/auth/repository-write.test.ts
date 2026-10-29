@@ -135,9 +135,7 @@ test('changing a shared remote needs setRemote on every project of the repositor
     }
     // Even an Admin may not change remotes of HR projects under this workspace rule.
     options.config.adminRules = {
-      'hr-remotes':
-        '@id("hr-remotes")\nforbid (principal, action == SW::Action::"setRemote", resource) ' +
-        'when { resource.domain == "hr" };',
+      'hr-remotes': '@id("hr-remotes")\nforbid (principal, action == SW::Action::"setRemote", resource) ' + 'when { resource.domain == "hr" };',
     };
     const access = createAccessControl({
       ...options,

@@ -8,9 +8,7 @@ import type { Page } from '@playwright/test';
 export async function tabStripProblems(page: Page): Promise<string[]> {
   return page.evaluate(() => {
     const found: string[] = [];
-    for (const strip of document.querySelectorAll<HTMLElement>(
-      '.tabs, .odcs-tabs, .admin-nav-list',
-    )) {
+    for (const strip of document.querySelectorAll<HTMLElement>('.tabs, .odcs-tabs, .admin-nav-list')) {
       const box = strip.getBoundingClientRect();
       const scrolls = strip.scrollWidth > strip.clientWidth + 1;
       const more = (side: 'start' | 'end') => {
@@ -21,8 +19,7 @@ export async function tabStripProblems(page: Page): Promise<string[]> {
         const sibling = side === 'start' ? strip.previousElementSibling : strip.nextElementSibling;
         const cue = sibling instanceof HTMLElement ? sibling : null;
         const shown = !!cue && !cue.hidden;
-        if (shown !== (scrolls && more(side)))
-          found.push(`the ${side} cue disagrees with the strip`);
+        if (shown !== (scrolls && more(side))) found.push(`the ${side} cue disagrees with the strip`);
         if (!cue || !shown) continue;
         const cueBox = cue.getBoundingClientRect();
         const overlaps = cueBox.right > box.left + 1 && cueBox.left < box.right - 1;
@@ -36,11 +33,7 @@ export async function tabStripProblems(page: Page): Promise<string[]> {
         }
       }
       const selected = strip.querySelector<HTMLElement>('.selected');
-      if (
-        selected &&
-        (getComputedStyle(selected).opacity !== '1' ||
-          getComputedStyle(selected).clipPath !== 'none')
-      ) {
+      if (selected && (getComputedStyle(selected).opacity !== '1' || getComputedStyle(selected).clipPath !== 'none')) {
         found.push('the active tab is hidden');
       }
       if (selected && scrolls) {

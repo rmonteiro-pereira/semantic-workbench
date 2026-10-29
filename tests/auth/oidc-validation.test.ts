@@ -43,8 +43,7 @@ test('checks signature, state, PKCE and the ten-minute attempt lifetime', async 
     const directory = mkdtempSync('/tmp/oidc-attempt-');
     try {
       const attempts = createAttemptStore(new Uint8Array(32), directory);
-      const complete = async () =>
-        client.callback(callback, attempts.consume(attempts.encode(login.attempt)));
+      const complete = async () => client.callback(callback, attempts.consume(attempts.encode(login.attempt)));
       const completion = complete();
       await expect(completion).rejects.toThrow();
       await expect(completion).rejects.toMatchObject({

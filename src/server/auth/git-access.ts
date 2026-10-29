@@ -23,11 +23,7 @@ export interface GitPaths {
 }
 
 /** Checks explicit paths, or every changed path for operations on the whole index. */
-export async function authorizeGitPaths(
-  target: GitTarget,
-  action: Action,
-  { paths, repository = false }: GitPaths = {},
-): Promise<void> {
+export async function authorizeGitPaths(target: GitTarget, action: Action, { paths, repository = false }: GitPaths = {}): Promise<void> {
   const { ws, request, slug } = target;
   // Authorization must see every changed path, including ones hidden from the caller, in the
   // place the command runs in.
@@ -43,8 +39,7 @@ export async function authorizeGitPaths(
     .sort((left, right) => right.prefix.length - left.prefix.length);
   const resources: ResourceRef[] = selected.map(path => {
     const relative = projectPath(path);
-    const full =
-      repository || paths === undefined ? relative : projectPrefix(ws.layout, slug) + relative;
+    const full = repository || paths === undefined ? relative : projectPrefix(ws.layout, slug) + relative;
     const owner = owners.find(project => full.startsWith(project.prefix));
     if (!owner) return { type: 'workspace' };
     return { type: 'file', project: owner.slug, path: full.slice(owner.prefix.length) };
@@ -81,26 +76,19 @@ export async function mayPublish(target: GitTarget): Promise<boolean> {
   if (scope.principal.kind === 'local') return true;
   const { ws, slug } = target;
   const branch = await ws.worktrees.defaultBranch(ws.repoOf(slug));
-  return repositoryProjects(target).every(
-    resource => scope.authorize('publish', resource, { branch }).allow,
-  );
+  return repositoryProjects(target).every(resource => scope.authorize('publish', resource, { branch }).allow);
 }
 
 /** Publishing moves the default branch, so it needs `publish` there on every sharing project. */
 export async function authorizePublish(target: GitTarget, branch: unknown): Promise<void> {
   const { ws, slug } = target;
   const published = await ws.worktrees.defaultBranch(ws.repoOf(slug));
-  if (branch !== undefined && branch !== published)
-    throw new BadRequestError(`Publishing goes to the default branch, ${published}.`);
+  if (branch !== undefined && branch !== published) throw new BadRequestError(`Publishing goes to the default branch, ${published}.`);
   authorizeRepository(target, 'publish', { branch: published });
 }
 
 /** Checks every project affected by a command on the shared repository. */
-export function authorizeRepository(
-  target: GitTarget,
-  action: Action,
-  context: Partial<DecisionContext> = {},
-): void {
+export function authorizeRepository(target: GitTarget, action: Action, context: Partial<DecisionContext> = {}): void {
   authorizeWrite(target.request, action, repositoryProjects(target), context);
 }
 

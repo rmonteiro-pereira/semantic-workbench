@@ -12,8 +12,7 @@ function claims(extra: Record<string, unknown>) {
   return { iss: homeIssuer, oid: 'a1100000-0000-4000-8000-000000000001', tid: tenant, ...extra };
 }
 
-const verifiedEmail = (extra: Record<string, unknown>) =>
-  normalizeClaims(claims(extra), entra).verifiedEmail;
+const verifiedEmail = (extra: Record<string, unknown>) => normalizeClaims(claims(extra), entra).verifiedEmail;
 
 test('a user from another directory has no verified address from its editable user name', () => {
   const visiting = { idp: otherDirectory, preferred_username: 'ceo@example.org' };
@@ -22,9 +21,7 @@ test('a user from another directory has no verified address from its editable us
 });
 
 test('a guest user name is not an address, even when it looks like one', () => {
-  expect(verifiedEmail({ preferred_username: 'ceo_example.org#EXT#@tenant.onmicrosoft.com' })).toBe(
-    null,
-  );
+  expect(verifiedEmail({ preferred_username: 'ceo_example.org#EXT#@tenant.onmicrosoft.com' })).toBe(null);
   expect(verifiedEmail({ upn: 'ceo@example.org#EXT#@tenant.onmicrosoft.com' })).toBeNull();
 });
 
@@ -43,10 +40,6 @@ test('an e-mail claim the tenant did not verify is never an address', () => {
 
 test('a member of the home directory is identified by their user name', () => {
   expect(verifiedEmail({ preferred_username: 'Alice@Example.org' })).toBe('alice@example.org');
-  expect(verifiedEmail({ upn: 'bob@example.org', preferred_username: 'x@y.example' })).toBe(
-    'bob@example.org',
-  );
-  expect(verifiedEmail({ idp: homeIssuer, preferred_username: 'carol@example.org' })).toBe(
-    'carol@example.org',
-  );
+  expect(verifiedEmail({ upn: 'bob@example.org', preferred_username: 'x@y.example' })).toBe('bob@example.org');
+  expect(verifiedEmail({ idp: homeIssuer, preferred_username: 'carol@example.org' })).toBe('carol@example.org');
 });

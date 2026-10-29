@@ -61,8 +61,7 @@ export function requestReader(request: Request): Reader {
       email: principal.verifiedEmail ?? principal.username,
       id: principal.id,
     },
-    editable: project =>
-      COPY_ACTIONS.some(action => scope.authorize(action, { type: 'project', project }).allow),
+    editable: project => COPY_ACTIONS.some(action => scope.authorize(action, { type: 'project', project }).allow),
   };
   return { ...reader, copy };
 }

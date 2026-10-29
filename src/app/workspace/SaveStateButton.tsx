@@ -27,14 +27,7 @@ export function SaveStateButton(props: Props) {
   // The dot on a phone has no text to shorten.
   const hasShortForm = variant === 'inline' && hasFile && !!shortLabel && shortLabel !== label;
   return (
-    <button
-      className={buttonClassName(props)}
-      role="status"
-      aria-label="Save state"
-      disabled={!hasFile}
-      title={title}
-      onClick={onClick}
-    >
+    <button className={buttonClassName(props)} role="status" aria-label="Save state" disabled={!hasFile} title={title} onClick={onClick}>
       <span className="save-state-text" data-short={hasShortForm ? shortLabel : undefined}>
         {label}
       </span>

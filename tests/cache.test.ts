@@ -11,9 +11,7 @@ const snapshot = (ws: Awaited<ReturnType<typeof testWorkspace>>['ws']) =>
   ws.cache.files().map(f => ({
     ...f,
     indexedAt: '',
-    entities: ws.cache
-      .entities(f.project, f.path)
-      .map(e => (e.kind === 'Blank node' ? { ...e, id: '_:b', name: '_:b' } : e)),
+    entities: ws.cache.entities(f.project, f.path).map(e => (e.kind === 'Blank node' ? { ...e, id: '_:b', name: '_:b' } : e)),
     findings: ws.cache.findings(f.project, f.path),
   }));
 test('deleting cache.sqlite and reopening rebuilds identical files, entities and findings', async () => {

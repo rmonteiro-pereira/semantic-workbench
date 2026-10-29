@@ -19,15 +19,7 @@ function marksFor(source: string, from = 0, to = source.length) {
 }
 
 test('Multiline SQL retains comments and uses the existing keyword classes', () => {
-  const source = [
-    'quality:',
-    '  - type: sql',
-    '    query: |',
-    '      SELECT /* start',
-    '',
-    '        still a comment */ amount',
-    '      FROM orders',
-  ].join('\n');
+  const source = ['quality:', '  - type: sql', '    query: |', '      SELECT /* start', '', '        still a comment */ amount', '      FROM orders'].join('\n');
   const marks = marksFor(source);
   expect(marks).toContainEqual({
     text: 'SELECT',
@@ -40,12 +32,7 @@ test('Multiline SQL retains comments and uses the existing keyword classes', () 
 });
 
 test('Extension JSON is colored with JSON tokens and decorations stay inside the viewport', () => {
-  const source = [
-    'custom_extensions:',
-    '  - data: |',
-    '      {"enabled": true}',
-    '    vendor_name: SEMANTIC_WORKBENCH',
-  ].join('\n');
+  const source = ['custom_extensions:', '  - data: |', '      {"enabled": true}', '    vendor_name: SEMANTIC_WORKBENCH'].join('\n');
   const from = source.indexOf('{');
   const to = source.indexOf('}') + 1;
   expect(marksFor(source, from, to)).toContainEqual({

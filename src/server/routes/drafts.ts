@@ -16,18 +16,10 @@ export const MAX_DRAFTS_PER_OWNER = 1000;
 const MAX_DRAFT_BODY_BYTES = MAX_INPUT_BYTES * 2 + 4096;
 
 // A new draft is refused once the person holds the most drafts allowed; replacing one is not new.
-export function assertRoomForDraft(
-  drafts: { project: string; path: string }[],
-  slug: string,
-  path: string,
-) {
+export function assertRoomForDraft(drafts: { project: string; path: string }[], slug: string, path: string) {
   if (drafts.some(draft => draft.project === slug && draft.path === path)) return;
-  if (drafts.length >= MAX_DRAFTS_PER_OWNER)
-    throw new BadRequestError('Too many unsaved edits. Save or discard some first.');
-  if (drafts.filter(draft => draft.project === slug).length >= MAX_DRAFTS_PER_PROJECT)
-    throw new BadRequestError(
-      'Too many unsaved edits in this project. Save or discard some first.',
-    );
+  if (drafts.length >= MAX_DRAFTS_PER_OWNER) throw new BadRequestError('Too many unsaved edits. Save or discard some first.');
+  if (drafts.filter(draft => draft.project === slug).length >= MAX_DRAFTS_PER_PROJECT) throw new BadRequestError('Too many unsaved edits in this project. Save or discard some first.');
 }
 type DraftTarget = {
   ws: Workspace;
@@ -39,18 +31,12 @@ type DraftTarget = {
 // Stores the text of one draft, if the person has the file and keeps room for another draft.
 async function saveDraft({ ws, req, reader, state }: DraftTarget, slug: string, path: string) {
   const body = await readJson(req, MAX_DRAFT_BODY_BYTES);
-  if (
-    !body ||
-    typeof body !== 'object' ||
-    (body.baseHash !== null && typeof body.baseHash !== 'string') ||
-    typeof body.text !== 'string'
-  )
+  if (!body || typeof body !== 'object' || (body.baseHash !== null && typeof body.baseHash !== 'string') || typeof body.text !== 'string')
     throw new BadRequestError('Expected {baseHash, text, patches}.');
   const patches = body.patches ?? [];
   if (!Array.isArray(patches)) throw new BadRequestError('patches must be an array.');
   // A draft belongs to a file the person has; anything else would only fill the disk.
-  if (!ws.hasFile(slug, path, reader))
-    return Response.json({ error: 'File not found.' }, { status: 404 });
+  if (!ws.hasFile(slug, path, reader)) return Response.json({ error: 'File not found.' }, { status: 404 });
   assertRoomForDraft(state.drafts(), slug, path);
   const saved = state.writeDraft(slug, path, { baseHash: body.baseHash, text: body.text, patches });
   return Response.json({ updatedAt: saved.updatedAt });
@@ -77,8 +63,7 @@ export const draftRoutes: Route = async (ws, req, url) => {
   if (!m) return null;
   const slug = assertSlug(decodeSegment(m[1]));
   const path = projectPath(decodePath(m[2]));
-  if (!ws.state.registry().projects.some(p => p.slug === slug))
-    return Response.json({ error: 'Project not found.' }, { status: 404 });
+  if (!ws.state.registry().projects.some(p => p.slug === slug)) return Response.json({ error: 'Project not found.' }, { status: 404 });
   if (req.method === 'GET') {
     const d = state.draft(slug, path);
     return d ? Response.json(d) : Response.json({ error: 'No draft.' }, { status: 404 });

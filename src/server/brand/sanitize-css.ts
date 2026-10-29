@@ -10,13 +10,7 @@ export type SanitizedCss = { css: string; dropped: string[] };
 type Block = { prelude: string; body: string };
 
 // The selectors src/shared/theme/theme.css uses for its light, dark and system-dark token sets.
-const THEME_SELECTORS = new Set([
-  ':root',
-  ":root[data-theme='dark']",
-  ":root[data-theme='light']",
-  ":root:not([data-theme='light'])",
-  ":root:not([data-theme='dark'])",
-]);
+const THEME_SELECTORS = new Set([':root', ":root[data-theme='dark']", ":root[data-theme='light']", ":root:not([data-theme='light'])", ":root:not([data-theme='dark'])"]);
 
 const COLOR_SCHEME_QUERY = /^@media\s*\(\s*prefers-color-scheme\s*:\s*(dark|light)\s*\)$/i;
 const TOKEN_NAME = /^--[a-z0-9_-]+$/i;
@@ -98,8 +92,7 @@ function cleanDeclarations(body: string, dropped: string[]): string[] {
     const name = colon < 0 ? text : text.slice(0, colon).trim();
     const value = colon < 0 ? '' : text.slice(colon + 1).trim();
     const valid = TOKEN_NAME.test(name) && value && TOKEN_VALUE.test(value);
-    if (valid && !hasForbiddenValue(value) && hasBalancedDelimiters(value))
-      kept.push(`${name}: ${value};`);
+    if (valid && !hasForbiddenValue(value) && hasBalancedDelimiters(value)) kept.push(`${name}: ${value};`);
     else dropped.push(`the declaration "${name}" is not a plain theme token.`);
   }
   return kept;

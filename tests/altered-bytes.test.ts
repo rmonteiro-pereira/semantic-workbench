@@ -33,9 +33,7 @@ test('a clean filter from .gitattributes: committed bytes differ from the saved 
     // A plain commit without filters reports nothing.
     p.write('shop.yaml', ontology('Plain.'));
     await ok(call(p.t, 'POST', p.base + '/git/stage', { paths: ['shop.yaml'] }));
-    expect(
-      (await ok(call(p.t, 'POST', p.base + '/git/commit', { message: 'Plain' }))).altered,
-    ).toEqual([]);
+    expect((await ok(call(p.t, 'POST', p.base + '/git/commit', { message: 'Plain' }))).altered).toEqual([]);
   } finally {
     p.dispose();
   }

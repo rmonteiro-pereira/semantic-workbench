@@ -7,14 +7,7 @@ import { exampleForFilename } from '../../shared/projects/examples';
 import { atomicWrite, atomicWriteJson, sha256 } from './atomic';
 import type { Git } from './git';
 import type { Journal } from './journal';
-import {
-  disambiguate,
-  projectDir,
-  projectPath,
-  slugify,
-  uniqueName,
-  type DataLayout,
-} from './paths';
+import { disambiguate, projectDir, projectPath, slugify, uniqueName, type DataLayout } from './paths';
 import type { State, ProjectEntry } from './state';
 // Never open or modify the original database; read a backup copy instead.
 /** Summarizes migration status, backup location, exported files, and verification counts. */
@@ -39,10 +32,7 @@ type Context = {
 /** Commit message used for files imported from the legacy database. */
 export const MIGRATION_COMMIT = 'Import from Semantic Workbench v0.1.0';
 /** Migrates a legacy database once, returning null when no migration is needed. */
-export async function migrateLegacy(
-  ctx: Context,
-  hooks: MigrationHooks = {},
-): Promise<MigrationReport | null> {
+export async function migrateLegacy(ctx: Context, hooks: MigrationHooks = {}): Promise<MigrationReport | null> {
   const { layout, state, journal, git } = ctx;
   // legacy-ids.json marks a finished migration; projects created meanwhile are kept and merged.
   if (!existsSync(layout.legacyDb) || existsSync(layout.legacyIds)) return null;
@@ -50,15 +40,13 @@ export async function migrateLegacy(
   if (!ctx.gitAvailable)
     return {
       status: 'postponed',
-      reason:
-        'Git 2.40 or newer is required to create project repositories. Install Git and restart; the v0.1.0 database is untouched.',
+      reason: 'Git 2.40 or newer is required to create project repositories. Install Git and restart; the v0.1.0 database is untouched.',
       ...empty,
     };
   if (!ctx.identityConfigured)
     return {
       status: 'postponed',
-      reason:
-        'Git user.name and user.email are not configured, so the initial commits cannot be made. Configure them and restart; the v0.1.0 database is untouched.',
+      reason: 'Git user.name and user.email are not configured, so the initial commits cannot be made. Configure them and restart; the v0.1.0 database is untouched.',
       ...empty,
     };
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
@@ -89,28 +77,18 @@ export async function migrateLegacy(
     let views: { document_id: string; grouping: string }[] = [];
     try {
       // Read the stored bytes themselves (CAST AS BLOB), not a decoded and re-encoded string.
-      docs = (
-        db
-          .query(
-            'SELECT id,filename,CAST(source AS BLOB) AS bytes FROM documents ORDER BY updated,rowid',
-          )
-          .all() as any[]
-      ).map(r => ({ id: r.id, filename: r.filename, bytes: new Uint8Array(r.bytes) }));
-      if (
-        db
-          .query("SELECT name FROM sqlite_master WHERE type='table' AND name='document_views'")
-          .get()
-      )
-        views = db.query('SELECT document_id,grouping FROM document_views').all() as any;
+      docs = (db.query('SELECT id,filename,CAST(source AS BLOB) AS bytes FROM documents ORDER BY updated,rowid').all() as any[]).map(r => ({
+        id: r.id,
+        filename: r.filename,
+        bytes: new Uint8Array(r.bytes),
+      }));
+      if (db.query("SELECT name FROM sqlite_master WHERE type='table' AND name='document_views'").get()) views = db.query('SELECT document_id,grouping FROM document_views').all() as any;
     } finally {
       db.close();
     }
     // Group: known example sets into their own projects, everything else into "Ungrouped".
     const names = state.registry().projects.map(p => p.name);
-    const groups = new Map<
-      string,
-      { name: string; origin: string; preferred: string; docs: typeof docs }
-    >();
+    const groups = new Map<string, { name: string; origin: string; preferred: string; docs: typeof docs }>();
     for (const d of docs) {
       const set = exampleForFilename(d.filename);
       const key = set ? set.id : 'ungrouped';
@@ -133,10 +111,7 @@ export async function migrateLegacy(
         );
       groups.get(key)!.docs.push(d);
     }
-    const taken = new Set<string>([
-      ...readdirSync(layout.projects),
-      ...state.registry().projects.map(p => p.slug),
-    ]);
+    const taken = new Set<string>([...readdirSync(layout.projects), ...state.registry().projects.map(p => p.slug)]);
     const registry: ProjectEntry[] = [];
     const ids: Record<string, { project: string; path: string }> = {};
     const viewFiles = new Map<string, Record<string, unknown>>();
@@ -169,10 +144,7 @@ export async function migrateLegacy(
         atomicWrite(file, bytes);
         hooks.afterWrite?.(file);
         report.files++;
-        if (sha256(readFileSync(file)) !== expected)
-          throw Error(
-            `Verification failed for ${d.filename} (${d.id}): written bytes differ from the stored source.`,
-          );
+        if (sha256(readFileSync(file)) !== expected) throw Error(`Verification failed for ${d.filename} (${d.id}): written bytes differ from the stored source.`);
         report.verified++;
         ids[d.id] = { project: slug, path };
         const g = grouping.get(d.id);
@@ -213,8 +185,7 @@ export async function migrateLegacy(
       formatVersion: 1,
       projects: [...existing, ...registry],
     });
-    if (existsSync(layout.registry))
-      steps.push({ from: layout.registry, to: join(stateStaging, 'projects.previous.json') });
+    if (existsSync(layout.registry)) steps.push({ from: layout.registry, to: join(stateStaging, 'projects.previous.json') });
     steps.push({ from: join(stateStaging, 'projects.json'), to: layout.registry });
     rmSync(readCopy, { force: true });
     rmSync(readCopy + '-wal', { force: true });

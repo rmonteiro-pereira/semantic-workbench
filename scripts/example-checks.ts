@@ -7,12 +7,7 @@ import { parse } from 'yaml';
 import { testWorkspace } from '../tests/helpers/temp-data-dir';
 import { validateInput } from '../src/shared/validation/input';
 import { exportDocument } from '../src/app/core/export';
-import {
-  agentCatalog,
-  buildContext,
-  planQuery,
-  type StoredDocument,
-} from '../src/server/agent/runtime';
+import { agentCatalog, buildContext, planQuery, type StoredDocument } from '../src/server/agent/runtime';
 import manifest from '../tests/fixtures/ossie-mapping/manifest.json';
 import { checkMall } from './mall-checks';
 /** Validates example models and checks governed query results against fixture expectations. */
@@ -26,11 +21,7 @@ export async function checkExamples() {
     const handler = t.handler;
     for (const file of manifest.files) {
       const source = await Bun.file('tests/fixtures/ossie-mapping/' + file.filename).text();
-      assert.equal(
-        createHash('sha256').update(source).digest('hex'),
-        file.sha256,
-        'Upstream fixture was edited: ' + file.filename,
-      );
+      assert.equal(createHash('sha256').update(source).digest('hex'), file.sha256, 'Upstream fixture was edited: ' + file.filename);
       const validation = validateInput(source, file.filename);
       assert(validation.valid, JSON.stringify(validation.issues));
       const response = await handler(
@@ -61,9 +52,7 @@ export async function checkExamples() {
     assert.equal(catalog.mappings.length, 2);
     const flightDb = new Database(':memory:');
     try {
-      flightDb.exec(
-        "ATTACH ':memory:' AS flights; CREATE TABLE flights.AIRPORTS(name TEXT); INSERT INTO flights.AIRPORTS VALUES('Seattle'),('Denver'),('Boston');",
-      );
+      flightDb.exec("ATTACH ':memory:' AS flights; CREATE TABLE flights.AIRPORTS(name TEXT); INSERT INTO flights.AIRPORTS VALUES('Seattle'),('Denver'),('Boston');");
       for (const mapping of catalog.mappings) {
         const context = buildContext(upstream, mapping.id);
         assert.deepEqual(context.findings, []);
@@ -101,14 +90,12 @@ export async function checkExamples() {
       flightDb.close();
     }
     const billing: StoredDocument[] = await Promise.all(
-      ['billing.mapping.yaml', 'billing.ontology.yaml', 'billing.semantic.yaml'].map(
-        async (filename, i) => ({
-          id: 'billing-' + i,
-          filename,
-          revision: 1,
-          source: await Bun.file('public/examples/billing/' + filename).text(),
-        }),
-      ),
+      ['billing.mapping.yaml', 'billing.ontology.yaml', 'billing.semantic.yaml'].map(async (filename, i) => ({
+        id: 'billing-' + i,
+        filename,
+        revision: 1,
+        source: await Bun.file('public/examples/billing/' + filename).text(),
+      })),
     );
     for (const d of billing) {
       assert(validateInput(d.source, d.filename).valid);
@@ -123,10 +110,7 @@ export async function checkExamples() {
     assert.equal(context.bindings.length, 119);
     for (const join of context.joins)
       assert(
-        context.bindings.some(
-          b =>
-            b.expression === `${join.from}.${join.from_columns[0]}` && b.relationships.length >= 2,
-        ),
+        context.bindings.some(b => b.expression === `${join.from}.${join.from_columns[0]}` && b.relationships.length >= 2),
         `Business relationship ${join.name} lacks a link mapping`,
       );
     const ontology = parse(billing[1].source);
@@ -149,27 +133,15 @@ export async function checkExamples() {
         product_families: { Platform: 5, Usage: 2, unmatched: 1 },
         currencies: { USD: 6 },
       };
-      for (const metric of [
-        'net_revenue',
-        'recurring_revenue',
-        'invoice_count',
-        'revenue_per_invoice',
-      ])
-        for (const dimension of [
-          null,
-          ['plans', 'tier'],
-          ['product_families', 'name'],
-          ['currencies', 'code'],
-        ] as const) {
+      for (const metric of ['net_revenue', 'recurring_revenue', 'invoice_count', 'revenue_per_invoice'])
+        for (const dimension of [null, ['plans', 'tier'], ['product_families', 'name'], ['currencies', 'code']] as const) {
           const p = planQuery(context, {
             mappingId: context.mappingId,
             metrics: [metric],
             dimensions: dimension ? [JSON.stringify(dimension)] : [],
           });
           const rows = db.query(p.sql).all() as any[];
-          const actual = Object.fromEntries(
-            rows.map(r => [dimension ? (r.dimension_1 ?? 'unmatched') : 'total', r.metric_1]),
-          );
+          const actual = Object.fromEntries(rows.map(r => [dimension ? (r.dimension_1 ?? 'unmatched') : 'total', r.metric_1]));
           const expected = dimension
             ? metric === 'net_revenue'
               ? amounts[dimension[0]]
@@ -177,28 +149,12 @@ export async function checkExamples() {
                 ? recurring[dimension[0]]
                 : metric === 'invoice_count'
                   ? counts[dimension[0]]
-                  : Object.fromEntries(
-                      Object.entries(amounts[dimension[0]]).map(([k, n]) => [
-                        k,
-                        n / counts[dimension[0]][k],
-                      ]),
-                    )
+                  : Object.fromEntries(Object.entries(amounts[dimension[0]]).map(([k, n]) => [k, n / counts[dimension[0]][k]]))
             : {
-                total:
-                  metric === 'net_revenue'
-                    ? 2090
-                    : metric === 'recurring_revenue'
-                      ? 1990
-                      : metric === 'invoice_count'
-                        ? 6
-                        : 2090 / 6,
+                total: metric === 'net_revenue' ? 2090 : metric === 'recurring_revenue' ? 1990 : metric === 'invoice_count' ? 6 : 2090 / 6,
               };
           assert.deepEqual(Object.keys(actual).sort(), Object.keys(expected).sort());
-          for (const key of Object.keys(expected))
-            assert(
-              Math.abs(actual[key] - expected[key]) < 1e-8,
-              `${metric}/${dimension}: ${actual[key]} != ${expected[key]}`,
-            );
+          for (const key of Object.keys(expected)) assert(Math.abs(actual[key] - expected[key]) < 1e-8, `${metric}/${dimension}: ${actual[key]} != ${expected[key]}`);
           plans.push(p);
           sqlExecutions.push({
             example: 'generated subscription billing',
@@ -302,10 +258,7 @@ export async function checkExamples() {
         blockedCases: mall.blockedCases,
       },
       sqlExecutions,
-      blockedCases: [
-        'Flights conditional population mapping needs explicit interpretation',
-        'BillingCycle has billed-cycle and subscribed-cycle paths; no role was guessed',
-      ],
+      blockedCases: ['Flights conditional population mapping needs explicit interpretation', 'BillingCycle has billed-cycle and subscribed-cycle paths; no role was guessed'],
       governedDefinitionsUnchanged: true,
       plans: plans.map(p => ({
         sql: p.sql,

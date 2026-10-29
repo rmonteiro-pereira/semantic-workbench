@@ -50,10 +50,7 @@ function conditionArguments(source: string): string[] {
 }
 
 /** Evaluates the supported Azure condition language and rejects unknown expressions. */
-export function evaluateCondition(
-  source: string,
-  variables: Record<string, string>,
-): boolean | string {
+export function evaluateCondition(source: string, variables: Record<string, string>): boolean | string {
   const expression = source.trim();
   if (expression === 'true') return true;
   if (expression === 'false') return false;
@@ -93,11 +90,7 @@ export function evaluateCondition(
   }
 }
 
-function expand(
-  source: string,
-  parameters: PipelineNode,
-  variables: Record<string, string>,
-): string {
+function expand(source: string, parameters: PipelineNode, variables: Record<string, string>): string {
   return source
     .replace(/\$\{\{\s*parameters\.(\w+)\s*\}\}/g, (_match, name) => {
       if (!(name in parameters)) throw Error(`Unknown parameter: ${name}`);
@@ -125,23 +118,12 @@ type Expansion = {
 type StepSource = { file: string; setup?: boolean };
 
 /** Names a checkout step, adding its history depth when it differs from the shallow default. */
-function checkoutCommand(
-  step: PipelineNode,
-  parameters: PipelineNode,
-  variables: Record<string, string>,
-): string {
+function checkoutCommand(step: PipelineNode, parameters: PipelineNode, variables: Record<string, string>): string {
   const depth = expand(String(step.fetchDepth ?? '1'), parameters, variables);
-  return depth === '1'
-    ? `checkout: ${step.checkout}`
-    : `checkout: ${step.checkout} (fetchDepth: ${depth})`;
+  return depth === '1' ? `checkout: ${step.checkout}` : `checkout: ${step.checkout} (fetchDepth: ${depth})`;
 }
 
-function expandSteps(
-  steps: PipelineNode[],
-  source: StepSource,
-  expansion: Expansion,
-  context: Omit<PlanStep, 'command' | 'kind'>,
-): PlanStep[] {
+function expandSteps(steps: PipelineNode[], source: StepSource, expansion: Expansion, context: Omit<PlanStep, 'command' | 'kind'>): PlanStep[] {
   const { documents, parameters, variables } = expansion;
   const setup = source.setup ?? false;
   return steps.flatMap(step => {
@@ -149,19 +131,9 @@ function expandSteps(
       const path = templatePath(source.file, step.template);
       if (!documents[path]) throw Error(`Missing template: ${path}`);
       // A step template's own parameter defaults apply, overridden by the values it is given.
-      const templateDefaults = Object.fromEntries(
-        (documents[path].parameters ?? []).map((parameter: PipelineNode) => [
-          parameter.name,
-          parameter.default,
-        ]),
-      );
+      const templateDefaults = Object.fromEntries((documents[path].parameters ?? []).map((parameter: PipelineNode) => [parameter.name, parameter.default]));
       // Values handed to the template are expressions of the caller, so they resolve first.
-      const supplied = Object.fromEntries(
-        Object.entries(step.parameters ?? {}).map(([key, value]) => [
-          key,
-          typeof value === 'string' ? expand(value, parameters, variables) : value,
-        ]),
-      );
+      const supplied = Object.fromEntries(Object.entries(step.parameters ?? {}).map(([key, value]) => [key, typeof value === 'string' ? expand(value, parameters, variables) : value]));
       const nested = { file: path, setup: path.endsWith('/setup-steps.yml') };
       const nestedExpansion = {
         ...expansion,
@@ -172,12 +144,7 @@ function expandSteps(
     const stepCondition = expand(step.condition ?? 'succeeded()', parameters, variables);
     const condition = `and(${context.condition}, ${stepCondition})`;
     const enabled = evaluateCondition(condition, variables) === true && context.enabled;
-    const command =
-      step.bash ??
-      step.script ??
-      step.inputs?.inlineScript ??
-      step.task ??
-      checkoutCommand(step, parameters, variables);
+    const command = step.bash ?? step.script ?? step.inputs?.inlineScript ?? step.task ?? checkoutCommand(step, parameters, variables);
     let kind: PlanStep['kind'] = 'local';
     if (setup || step.checkout) kind = 'setup';
     else if (step.task === 'AzureCLI@2') kind = 'azure';
@@ -190,12 +157,7 @@ function expandSteps(
         condition,
         enabled,
         command: setup ? command : expand(command, parameters, variables),
-        env: Object.fromEntries(
-          Object.entries(step.env ?? {}).map(([name, value]) => [
-            name,
-            expand(String(value), parameters, variables),
-          ]),
-        ),
+        env: Object.fromEntries(Object.entries(step.env ?? {}).map(([name, value]) => [name, expand(String(value), parameters, variables)])),
         ...(step.inputs?.azureSubscription
           ? {
               serviceConnection: expand(step.inputs.azureSubscription, parameters, variables),
@@ -206,22 +168,13 @@ function expandSteps(
   });
 }
 
-function expandJobs(
-  jobs: PipelineNode[],
-  file: string,
-  expansion: Expansion,
-): { job: PipelineNode; file: string; parameters: PipelineNode }[] {
+function expandJobs(jobs: PipelineNode[], file: string, expansion: Expansion): { job: PipelineNode; file: string; parameters: PipelineNode }[] {
   const { documents, parameters, variables } = expansion;
   return jobs.flatMap(job => {
     if (!job.template) return [{ job, file, parameters }];
     const path = templatePath(file, job.template);
     if (!documents[path]) throw Error(`Missing template: ${path}`);
-    const supplied = Object.fromEntries(
-      Object.entries(job.parameters ?? {}).map(([key, value]) => [
-        key,
-        expand(String(value), parameters, variables),
-      ]),
-    );
+    const supplied = Object.fromEntries(Object.entries(job.parameters ?? {}).map(([key, value]) => [key, expand(String(value), parameters, variables)]));
     return expandJobs(documents[path].jobs, path, {
       ...expansion,
       parameters: { ...parameters, ...supplied },
@@ -249,11 +202,7 @@ function checkDependencies(nodes: PipelineNode[], kind: 'stage' | 'job') {
 /** Where a stage is declared and whether its own condition let it run. */
 type StagePlacement = { file: string; enabled: boolean };
 
-function planJobs(
-  stage: PipelineNode,
-  expansion: Expansion,
-  placement: StagePlacement,
-): PlanStep[] {
+function planJobs(stage: PipelineNode, expansion: Expansion, placement: StagePlacement): PlanStep[] {
   const { variables } = expansion;
   const stageEnabled = placement.enabled;
   const expanded = expandJobs(stage.jobs, placement.file, expansion);
@@ -312,9 +261,7 @@ export function validatePlan(plan: PlanStep[], rollbackConnection?: string): voi
       !['tag', 'previous'].includes(step.env?.ROLLBACK_TARGET ?? '') ||
       !plan.some(entry => entry.kind === 'setup' && entry.command === 'checkout: self')
     ) {
-      throw Error(
-        'Rollback requires setup and exactly one tag-only step with the deploy connection',
-      );
+      throw Error('Rollback requires setup and exactly one tag-only step with the deploy connection');
     }
     return;
   }
@@ -331,18 +278,11 @@ export function validatePlan(plan: PlanStep[], rollbackConnection?: string): voi
 }
 
 /** Expands actual templates, matrix legs and sample values into a success-path plan. */
-export function buildPlan(
-  documents: Record<string, PipelineNode>,
-  sample: PipelineNode,
-  run: string,
-  pipelineName = 'main',
-) {
+export function buildPlan(documents: Record<string, PipelineNode>, sample: PipelineNode, run: string, pipelineName = 'main') {
   const kind = parseRunKind(run);
   const file = pipelineName === 'rollback' ? 'azure-pipelines-rollback.yml' : 'azure-pipelines.yml';
   const pipeline = documents[file];
-  const defaults = Object.fromEntries(
-    pipeline.parameters.map((parameter: PipelineNode) => [parameter.name, parameter.default]),
-  );
+  const defaults = Object.fromEntries(pipeline.parameters.map((parameter: PipelineNode) => [parameter.name, parameter.default]));
   const parameters = { ...defaults, ...sample.parameters };
   const variables = {
     ...sample.variables,
@@ -355,15 +295,9 @@ export function buildPlan(
   checkDependencies(pipeline.stages, 'stage');
   const stageResults: Record<string, string> = {};
   const plan = pipeline.stages.flatMap((stage: PipelineNode) => {
-    const enabled =
-      evaluateCondition(stage.condition ?? 'succeeded()', { ...variables, ...stageResults }) ===
-      true;
+    const enabled = evaluateCondition(stage.condition ?? 'succeeded()', { ...variables, ...stageResults }) === true;
     stageResults[`dependencies.${stage.stage}.result`] = enabled ? 'Succeeded' : 'Skipped';
-    return planJobs(
-      stage,
-      { documents, parameters, variables: { ...variables } },
-      { file, enabled },
-    );
+    return planJobs(stage, { documents, parameters, variables: { ...variables } }, { file, enabled });
   });
   validatePlan(plan, pipelineName === 'rollback' ? parameters.deployServiceConnection : undefined);
   assertNoAzureStepsOnPullRequest(plan, kind.branch);
@@ -403,10 +337,7 @@ async function main() {
     return;
   }
   if (!['main', 'rollback'].includes(values.pipeline!)) throw Error('Unknown pipeline');
-  const documents = lintPipeline(
-    readPipelineInput(),
-    JSON.parse(readFileSync('deploy/azure-devops/schema/service-schema.json', 'utf8')),
-  );
+  const documents = lintPipeline(readPipelineInput(), JSON.parse(readFileSync('deploy/azure-devops/schema/service-schema.json', 'utf8')));
   const plan = buildPlan(documents, readSampleVariables(), values.run!, values.pipeline!);
   if (values.execute && values.run!.startsWith('tag:')) await exerciseFakeDelivery();
   for (const step of plan) {

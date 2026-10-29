@@ -22,21 +22,14 @@ export function DryRunResult({ result }: { result: DryRun }) {
         <p key={index}>
           <strong title={person.principal}>{person.name}</strong>
           <span className="admin-review-detail">
-            {person.project}: access {person.access}; gained {person.gained.join(', ') || 'none'};
-            lost {person.lost.join(', ') || 'none'}
+            {person.project}: access {person.access}; gained {person.gained.join(', ') || 'none'}; lost {person.lost.join(', ') || 'none'}
           </span>
         </p>
       ))}
       {result.changed.map((change, index) => (
         <details key={index}>
           <summary>{change.case}</summary>
-          <pre>
-            {JSON.stringify(
-              { before: change.before, after: change.after, rules: change.rules },
-              null,
-              2,
-            )}
-          </pre>
+          <pre>{JSON.stringify({ before: change.before, after: change.after, rules: change.rules }, null, 2)}</pre>
         </details>
       ))}
     </section>
@@ -142,12 +135,7 @@ export function ReviewChange({
         {inline && ready && review && confirmButtons}
       </div>
       {!inline && ready && review && (
-        <AdminConfirmation
-          title={changeLabel ?? description}
-          onCancel={() => setReview(null)}
-          cancelLabel="Cancel changes"
-          actions={confirmButtons}
-        >
+        <AdminConfirmation title={changeLabel ?? description} onCancel={() => setReview(null)} cancelLabel="Cancel changes" actions={confirmButtons}>
           <DryRunResult result={review.result} />
         </AdminConfirmation>
       )}

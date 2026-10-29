@@ -32,17 +32,10 @@ const VALUE_KINDS = new Set(['ValueType', 'Built-in concept']);
 // everything that is not a class.
 /** Identifies non-class resources when the model contains OWL classes. */
 export function technicalIds(nodes: PierceNode[]) {
-  return nodes.some(n => n.kind === 'OWL class')
-    ? new Set(nodes.filter(n => n.kind !== 'OWL class').map(n => n.id))
-    : new Set<string>();
+  return nodes.some(n => n.kind === 'OWL class') ? new Set(nodes.filter(n => n.kind !== 'OWL class').map(n => n.id)) : new Set<string>();
 }
 /** Traverses filtered relationships deterministically and limits visible nodes to the budget. */
-export function boundedClosure(
-  nodes: PierceNode[],
-  edges: Link[],
-  start: string[],
-  o: PierceOptions,
-): PierceResult {
+export function boundedClosure(nodes: PierceNode[], edges: Link[], start: string[], o: PierceOptions): PierceResult {
   const byId = new Map(nodes.map(n => [n.id, n]));
   const technical = o.technical ? new Set<string>() : technicalIds(nodes);
   const allowed = (id: string) => {
@@ -63,20 +56,12 @@ export function boundedClosure(
     if (o.direction !== 'out') add(e.target, e.source, e.label, e.id);
   }
   const name = (id: string) => byId.get(id)?.name ?? id;
-  for (const list of adj.values())
-    list.sort(
-      (a, b) =>
-        a.label.localeCompare(b.label) ||
-        name(a.to).localeCompare(name(b.to)) ||
-        a.to.localeCompare(b.to),
-    );
+  for (const list of adj.values()) list.sort((a, b) => a.label.localeCompare(b.label) || name(a.to).localeCompare(name(b.to)) || a.to.localeCompare(b.to));
   // Full closure, in order.
   const steps: Record<string, number> = {};
   const order: string[] = [];
   const via: Record<string, string> = {};
-  let layer = [...new Set(start)]
-    .filter(id => byId.has(id))
-    .sort((a, b) => name(a).localeCompare(name(b)) || a.localeCompare(b));
+  let layer = [...new Set(start)].filter(id => byId.has(id)).sort((a, b) => name(a).localeCompare(name(b)) || a.localeCompare(b));
   for (const id of layer) {
     steps[id] = 0;
     order.push(id);
@@ -92,12 +77,7 @@ export function boundedClosure(
           via[n.to] = n.edge;
           next.push({ id: n.to, label: n.label });
         }
-    next.sort(
-      (a, b) =>
-        a.label.localeCompare(b.label) ||
-        name(a.id).localeCompare(name(b.id)) ||
-        a.id.localeCompare(b.id),
-    );
+    next.sort((a, b) => a.label.localeCompare(b.label) || name(a.id).localeCompare(name(b.id)) || a.id.localeCompare(b.id));
     layer = next.map(n => n.id);
     order.push(...layer);
   }

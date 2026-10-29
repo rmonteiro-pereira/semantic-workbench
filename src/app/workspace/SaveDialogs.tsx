@@ -61,20 +61,12 @@ export function SaveDialogs({
   setSource,
 }: Props) {
   const openGitSetup = useGitSetup();
-  function handleMetricWizardSaved(
-    file: string,
-    modelPath: import('../../shared/edit/item-model').Path,
-    name: string,
-  ) {
+  function handleMetricWizardSaved(file: string, modelPath: import('../../shared/edit/item-model').Path, name: string) {
     const added = typeof wizard === 'object';
     setWizard(false);
     setSelectedKpi(`${file}#${modelPath.join('/')}#${name}`);
     setTab('metrics');
-    setMessage(
-      added
-        ? `Added attributes to metric ${name} in ${file}.`
-        : `Created metric ${name} in ${file}.`,
-    );
+    setMessage(added ? `Added attributes to metric ${name} in ${file}.` : `Created metric ${name} in ${file}.`);
     void refresh().catch(() => {});
   }
 
@@ -84,9 +76,7 @@ export function SaveDialogs({
         if (r.pushed.ok) {
           return ' and pushed.';
         }
-        const guide = looksLikeAuthFailure(r.pushed.message)
-          ? ' Source control offers a Credential setup guide.'
-          : '';
+        const guide = looksLikeAuthFailure(r.pushed.message) ? ' Source control offers a Credential setup guide.' : '';
         return `; push failed: ${r.pushed.message}${guide}`;
       }
       return '.';
@@ -98,9 +88,7 @@ export function SaveDialogs({
     itemHints.current[current.project] = {};
     const commit = r.commit.slice(0, 7);
     const fileCount = r.files.length;
-    setMessage(
-      `Committed ${commit} (${fileCount} file${fileCount === 1 ? '' : 's'})${getPushOutcome()}`,
-    );
+    setMessage(`Committed ${commit} (${fileCount} file${fileCount === 1 ? '' : 's'})${getPushOutcome()}`);
     setGitVersion(v => v + 1);
     void refresh().catch(() => {});
   }
@@ -108,20 +96,12 @@ export function SaveDialogs({
   function handleCommitDialogReverted(path: string, hash: string | null) {
     if (current == null) return;
 
-    setMessage(
-      hash
-        ? `Reverted ${path} to the last commit; the replaced version is in the trash.`
-        : `Moved ${path} to the trash.`,
-    );
+    setMessage(hash ? `Reverted ${path} to the last commit; the replaced version is in the trash.` : `Moved ${path} to the trash.`);
     setTrashVersion(v => v + 1);
     void refresh()
       .then(d => {
         const doc = d.find(x => x.project === current.project && x.path === path);
-        if (
-          doc &&
-          currentRef.current?.project === current.project &&
-          currentRef.current.path === path
-        ) {
+        if (doc && currentRef.current?.project === current.project && currentRef.current.path === path) {
           autosave.resolved(doc.hash, doc.source);
           setCurrent(doc);
           setSource(doc.source);

@@ -14,10 +14,7 @@ import { accessFixture, person } from './access-fixture';
 
 beforeAll(useDefaultBrand);
 
-const CONTRACT = readFileSync(
-  'tests/fixtures/auth-workspace/projects/sales-contracts/orders.odcs.yaml',
-  'utf8',
-);
+const CONTRACT = readFileSync('tests/fixtures/auth-workspace/projects/sales-contracts/orders.odcs.yaml', 'utf8');
 
 function editorRefusal(): GuardedChangeError {
   const access = createAccessControl(accessFixture());
@@ -50,14 +47,7 @@ test('the save label does not repeat the refusal prefix', () => {
 });
 
 test('every sign-in failure page ends its reason with a full stop', async () => {
-  const reasons: SignInReason[] = [
-    'tenant-mismatch',
-    'attempt-invalid',
-    'token-invalid',
-    'provider-unreachable',
-    'provider-unsupported',
-    'session-upgraded',
-  ];
+  const reasons: SignInReason[] = ['tenant-mismatch', 'attempt-invalid', 'token-invalid', 'provider-unreachable', 'provider-unsupported', 'session-upgraded'];
   for (const reason of reasons) {
     const html = await signInErrorResponse(new SignInError(reason)).text();
     expect(html).toMatch(/[a-z]\.<\/p>/);

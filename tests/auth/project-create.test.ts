@@ -120,9 +120,7 @@ test('imported projects receive the Steward domain and local creation stays unre
   );
   expect(response.status).toBe(200);
   const project = await response.json();
-  expect(
-    openAdminRepository({ root: fixture.root }).load().projects.projects[project.slug].domain,
-  ).toBe('sales');
+  expect(openAdminRepository({ root: fixture.root }).load().projects.projects[project.slug].domain).toBe('sales');
   const local = createHandler(fixture.ws);
   const created = await local(
     new Request(origin + '/api/projects', {

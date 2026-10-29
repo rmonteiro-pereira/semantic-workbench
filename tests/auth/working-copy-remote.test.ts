@@ -138,12 +138,7 @@ test('a Steward’s fetch does not bring in a remote commit the guards refuse', 
   expect((await openCopy(bob.call, metrics)).status).toBe(200);
   const before = gitOutput(base, ['rev-parse', 'refs/heads/main']).text;
   // Someone made Bob the owner of a metric and approved it; Bob may not approve his own.
-  remote.pushEdit('sales.semantic.yaml', text =>
-    text.replace(
-      '"owner": "alice@example.org", "status": "proposed"',
-      '"owner": "bob@example.org", "status": "approved"',
-    ),
-  );
+  remote.pushEdit('sales.semantic.yaml', text => text.replace('"owner": "alice@example.org", "status": "proposed"', '"owner": "bob@example.org", "status": "approved"'));
   const fetched = await bob.call(`/api/projects/${metrics}/git/fetch`, 'POST', {});
   expect(fetched.body.ok).toBe(true);
   expect(fetched.body.follow.followed).toBe(false);

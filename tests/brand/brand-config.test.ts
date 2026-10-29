@@ -30,9 +30,7 @@ test('a missing folder or a file stops the start and names the variable', () => 
         throw new Error('start-up should have been refused');
       } catch (error) {
         expect(error).toBeInstanceOf(ConfigError);
-        expect((error as ConfigError).problems.map(problem => problem.variable)).toEqual([
-          'SW_BRAND_DIR',
-        ]);
+        expect((error as ConfigError).problems.map(problem => problem.variable)).toEqual(['SW_BRAND_DIR']);
       }
     }
   } finally {

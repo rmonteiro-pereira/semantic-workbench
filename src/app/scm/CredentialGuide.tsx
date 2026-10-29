@@ -84,47 +84,30 @@ export function CredentialGuide({
     <Modal title="Credential setup guide" onCancel={onClose} footer={footer}>
       <div className="credential-guide">
         <p className="dialog-intro">
-          The workbench never asks for, stores or sends your credentials. Git uses a credential
-          helper or an SSH key that you set up once in a terminal; after that, Fetch, Pull and Push
-          work from the app.
+          The workbench never asks for, stores or sends your credentials. Git uses a credential helper or an SSH key that you set up once in a terminal; after that, Fetch, Pull and Push work from the
+          app.
         </p>
         <p role="status" className="credential-helper">
           {helperMessage(helper)}
         </p>
         <div className="segmented" role="tablist" aria-label="Operating system">
           {(Object.keys(HELPERS) as System[]).map(option => (
-            <button
-              key={option}
-              role="tab"
-              aria-selected={system === option}
-              className={system === option ? 'selected' : ''}
-              onClick={() => setSystem(option)}
-            >
+            <button key={option} role="tab" aria-selected={system === option} className={system === option ? 'selected' : ''} onClick={() => setSystem(option)}>
               {option}
             </button>
           ))}
         </div>
         <h3>Sign in once from a terminal</h3>
-        <p>
-          The app cannot answer a terminal prompt for a username or token. Run this command in a
-          terminal, sign in when Git asks, then return here and retry the action that failed.
-        </p>
+        <p>The app cannot answer a terminal prompt for a username or token. Run this command in a terminal, sign in when Git asks, then return here and retry the action that failed.</p>
         <CopyableCommand command={terminalSignInCommand(remote)} />
         <h3>HTTPS: a credential helper</h3>
         <p>{HELPERS[system].text}</p>
         <CopyableCommand command={HELPERS[system].command} />
-        {system === 'Linux' && (
-          <CopyableCommand command="git config --global credential.helper 'cache --timeout=3600'" />
-        )}
-        <p>
-          Use a personal access token from your Git host instead of your account password; the
-          helper asks for it on the next push.
-        </p>
+        {system === 'Linux' && <CopyableCommand command="git config --global credential.helper 'cache --timeout=3600'" />}
+        <p>Use a personal access token from your Git host instead of your account password; the helper asks for it on the next push.</p>
         <h3>SSH: a key</h3>
         <p>
-          Create a key, add the public key (the <code>.pub</code> file) to your Git host’s SSH
-          settings, test the connection, then use the SSH address (<code>git@…</code>) as the
-          remote.
+          Create a key, add the public key (the <code>.pub</code> file) to your Git host’s SSH settings, test the connection, then use the SSH address (<code>git@…</code>) as the remote.
         </p>
         {SSH_COMMANDS.map(command => (
           <CopyableCommand key={command} command={command} />

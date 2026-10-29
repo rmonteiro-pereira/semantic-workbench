@@ -5,21 +5,16 @@ import { ArrowRight, Database, FileCheck2, Gauge, Table2 } from 'lucide-react';
 import type { KpiExplanation, Trust } from '../../server/agent/explain';
 // Physical names link metric input fields to contract objects and properties. Quality rules and
 // service levels are displayed as declared, never checked here.
-const slaText = (s: Trust) =>
-  `${s.property}${s.value !== undefined ? ` ${s.value}` : ''}${s.unit ? ` ${s.unit}` : ''}`;
+const slaText = (s: Trust) => `${s.property}${s.value !== undefined ? ` ${s.value}` : ''}${s.unit ? ` ${s.unit}` : ''}`;
 /** Displays metric inputs and their declared dataset and contract sources. */
 export function Lineage({ explanation: e }: { explanation: KpiExplanation }) {
-  const declared = e.inputs.some(
-    i => i.sla.length || i.fields.some(f => f.odcs.some(o => o.quality.length)),
-  );
+  const declared = e.inputs.some(i => i.sla.length || i.fields.some(f => f.odcs.some(o => o.quality.length)));
   return (
     <section className="kpi-lineage" aria-labelledby="kpi-lineage">
       <h3 id="kpi-lineage">Where the data comes from</h3>
       <p className="lineage-intro">
-        From each input metric to the fields it reads, the dataset behind them and the data contract
-        that governs that table.
-        {declared &&
-          ' Quality rules and service levels are as declared in the contract; the workbench does not run them.'}
+        From each input metric to the fields it reads, the dataset behind them and the data contract that governs that table.
+        {declared && ' Quality rules and service levels are as declared in the contract; the workbench does not run them.'}
       </p>
       <div className="lineage-head" aria-hidden="true">
         <span>Input metric</span>
@@ -28,12 +23,7 @@ export function Lineage({ explanation: e }: { explanation: KpiExplanation }) {
         <span>Data contract (ODCS)</span>
       </div>
       {e.inputs.map(input => (
-        <div
-          className="lineage-row"
-          key={input.metric}
-          role="group"
-          aria-label={`Lineage of ${input.label}`}
-        >
+        <div className="lineage-row" key={input.metric} role="group" aria-label={`Lineage of ${input.label}`}>
           <div className="lineage-cell metric" data-step="Input metric">
             <Gauge size={15} />
             <div>
@@ -86,9 +76,7 @@ export function Lineage({ explanation: e }: { explanation: KpiExplanation }) {
               }
               return [...byObject.values()].map(group => {
                 const first = group[0];
-                const objectQuality = group
-                  .flatMap(l => l.quality)
-                  .filter((q, i, a) => a.findIndex(x => x.name === q.name) === i);
+                const objectQuality = group.flatMap(l => l.quality).filter((q, i, a) => a.findIndex(x => x.name === q.name) === i);
                 return (
                   <div key={first.file + first.object} className="odcs-object">
                     <div className="odcs-title">
@@ -111,11 +99,7 @@ export function Lineage({ explanation: e }: { explanation: KpiExplanation }) {
                     {objectQuality.length > 0 && (
                       <ul className="trust-list">
                         {objectQuality.map(q => (
-                          <li
-                            key={q.name}
-                            className={`trust quality severity-${q.severity ?? 'info'}`}
-                            title={q.description}
-                          >
+                          <li key={q.name} className={`trust quality severity-${q.severity ?? 'info'}`} title={q.description}>
                             <span>{q.dimension ?? 'quality'}</span>
                             {q.description ?? q.name}
                           </li>
@@ -129,11 +113,7 @@ export function Lineage({ explanation: e }: { explanation: KpiExplanation }) {
             {input.sla.length > 0 && (
               <div className="chip-row sla">
                 {input.sla.map(s => (
-                  <span
-                    key={slaText(s)}
-                    className="trust sla"
-                    title={s.element ? `Applies to ${s.element}` : 'Applies to the whole contract'}
-                  >
+                  <span key={slaText(s)} className="trust sla" title={s.element ? `Applies to ${s.element}` : 'Applies to the whole contract'}>
                     SLA · {slaText(s)}
                   </span>
                 ))}

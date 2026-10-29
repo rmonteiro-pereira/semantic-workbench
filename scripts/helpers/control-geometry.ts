@@ -27,24 +27,20 @@ export async function controlThemeProblems(page: Page, within = 'body'): Promise
       for (const rule of sheet.cssRules) {
         if (!(rule instanceof CSSStyleRule) || rule.selectorText !== ':root') continue;
         for (const name of rule.style) {
-          if (name.startsWith('--color-'))
-            themeColors.add(toRgba(rootStyle.getPropertyValue(name)));
+          if (name.startsWith('--color-')) themeColors.add(toRgba(rootStyle.getPropertyValue(name)));
         }
       }
     }
     const scope = document.querySelector(root) ?? document.body;
     const problems = new Set<string>();
-    const fields =
-      'input:not([type=checkbox],[type=radio],[type=range],[type=file],[type=hidden]),textarea,select';
+    const fields = 'input:not([type=checkbox],[type=radio],[type=range],[type=file],[type=hidden]),textarea,select';
     for (const field of scope.querySelectorAll(fields)) {
       const box = field.getBoundingClientRect();
       if (box.width < 1 || box.height < 1) continue;
       const fill = toRgba(getComputedStyle(field).backgroundColor);
       if (fill.endsWith(',0') || themeColors.has(fill)) continue;
       const name = field.getAttribute('aria-label') ?? field.getAttribute('placeholder') ?? '';
-      problems.add(
-        `${field.tagName.toLowerCase()} "${name}" is filled with rgba(${fill}), not a theme colour`,
-      );
+      problems.add(`${field.tagName.toLowerCase()} "${name}" is filled with rgba(${fill}), not a theme colour`);
     }
     for (const choice of scope.querySelectorAll('input[type=checkbox],input[type=radio]')) {
       const box = choice.getBoundingClientRect();

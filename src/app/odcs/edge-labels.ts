@@ -34,15 +34,10 @@ export function labelSize(lines: readonly string[]): { w: number; h: number } {
   return { w: longest * CHAR_WIDTH + 2 * PAD_X, h: lines.length * LINE_HEIGHT + 2 * PAD_Y };
 }
 
-const touches = (a: Rect, b: Rect, gap = 0) =>
-  a.x < b.x + b.w + gap && b.x < a.x + a.w + gap && a.y < b.y + b.h + gap && b.y < a.y + a.h + gap;
+const touches = (a: Rect, b: Rect, gap = 0) => a.x < b.x + b.w + gap && b.x < a.x + a.w + gap && a.y < b.y + b.h + gap && b.y < a.y + a.h + gap;
 
 /** Chooses a place for as many labels as fit; the rest are left out, in request order. */
-export function placeEdgeLabels(
-  requests: readonly LabelRequest[],
-  obstacles: readonly Rect[],
-  bounds?: Rect,
-): Map<string, Rect> {
+export function placeEdgeLabels(requests: readonly LabelRequest[], obstacles: readonly Rect[], bounds?: Rect): Map<string, Rect> {
   const placed = new Map<string, Rect>();
   const ordered = [...requests].sort((a, b) => a.priority - b.priority || a.at.y - b.at.y);
   for (const request of ordered) {
@@ -54,16 +49,9 @@ export function placeEdgeLabels(
     const clear = h / 2 + LINE_CLEARANCE;
     for (const shift of [-clear, clear, 0, h + GAP_AROUND, -(h + GAP_AROUND)]) {
       const spot = { x: centre.x - w / 2, y: centre.y + shift - h / 2, w, h };
-      const outside =
-        bounds &&
-        (spot.x < bounds.x ||
-          spot.y < bounds.y ||
-          spot.x + spot.w > bounds.x + bounds.w ||
-          spot.y + spot.h > bounds.y + bounds.h);
+      const outside = bounds && (spot.x < bounds.x || spot.y < bounds.y || spot.x + spot.w > bounds.x + bounds.w || spot.y + spot.h > bounds.y + bounds.h);
       if (outside) continue;
-      const blocked =
-        obstacles.some(o => touches(spot, o)) ||
-        [...placed.values()].some(o => touches(spot, o, GAP_AROUND));
+      const blocked = obstacles.some(o => touches(spot, o)) || [...placed.values()].some(o => touches(spot, o, GAP_AROUND));
       if (blocked) continue;
       placed.set(request.id, spot);
       break;
@@ -115,10 +103,7 @@ function lineEnds(context: LabelContext, line: LabelledLine) {
 }
 /** Gives every foreign key its sentence and every bundle its count. A label that finds room is
  * drawn on its line; the others show when the line is hovered. */
-export function buildLineLabels(
-  context: LabelContext,
-  lines: readonly LabelledLine[],
-): Map<string, LineLabel> {
+export function buildLineLabels(context: LabelContext, lines: readonly LabelledLine[]): Map<string, LineLabel> {
   const texts = new Map<string, string[]>();
   const requests: LabelRequest[] = [];
   for (const line of lines) {

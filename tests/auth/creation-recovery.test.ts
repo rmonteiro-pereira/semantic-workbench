@@ -24,51 +24,39 @@ function adminRequest(): AccessRequest {
 }
 
 for (const failures of [1, 2]) {
-  test(
-    'domain assignment retries a stale version and compensates after ' + failures + ' failures',
-    async () => {
-      using fixture = await authWorkspace();
-      const repository = administration.openAdminRepository({ root: fixture.root });
-      await repository.ensure();
-      const originalWrite = repository.write;
-      const request = adminRequest();
-      const project = await fixture.ws.createProject('Recovery');
-      let attempts = 0;
-      const write = spyOn(repository, 'write').mockImplementation(async (...args) => {
-        attempts++;
-        if (attempts <= failures) throw new administration.AdminStaleError();
-        return originalWrite(...args);
-      });
-      const load = spyOn(repository, 'load');
-      try {
-        const result = assignProjectDomain(
-          { ws: fixture.ws, administration: repository },
-          request,
-          project.slug,
-          'sales',
-        );
-        if (failures === 1) {
-          await result;
-          expect(repository.load().projects.projects[project.slug].domain).toBe('sales');
-          expect(
-            fixture.ws.state.registry().projects.some(item => item.slug === project.slug),
-          ).toBe(true);
-        } else {
-          await expect(result).rejects.toBeInstanceOf(administration.AdminStaleError);
-          expect(
-            fixture.ws.state.registry().projects.some(item => item.slug === project.slug),
-          ).toBe(false);
-          expect(fixture.ws.trash.list().some(entry => entry.project === project.slug)).toBe(true);
-          expect(repository.load().projects.projects[project.slug]).toBeUndefined();
-        }
-        expect(attempts).toBe(2);
-        expect(load.mock.calls.length).toBeGreaterThanOrEqual(2);
-      } finally {
-        load.mockRestore();
-        write.mockRestore();
+  test('domain assignment retries a stale version and compensates after ' + failures + ' failures', async () => {
+    using fixture = await authWorkspace();
+    const repository = administration.openAdminRepository({ root: fixture.root });
+    await repository.ensure();
+    const originalWrite = repository.write;
+    const request = adminRequest();
+    const project = await fixture.ws.createProject('Recovery');
+    let attempts = 0;
+    const write = spyOn(repository, 'write').mockImplementation(async (...args) => {
+      attempts++;
+      if (attempts <= failures) throw new administration.AdminStaleError();
+      return originalWrite(...args);
+    });
+    const load = spyOn(repository, 'load');
+    try {
+      const result = assignProjectDomain({ ws: fixture.ws, administration: repository }, request, project.slug, 'sales');
+      if (failures === 1) {
+        await result;
+        expect(repository.load().projects.projects[project.slug].domain).toBe('sales');
+        expect(fixture.ws.state.registry().projects.some(item => item.slug === project.slug)).toBe(true);
+      } else {
+        await expect(result).rejects.toBeInstanceOf(administration.AdminStaleError);
+        expect(fixture.ws.state.registry().projects.some(item => item.slug === project.slug)).toBe(false);
+        expect(fixture.ws.trash.list().some(entry => entry.project === project.slug)).toBe(true);
+        expect(repository.load().projects.projects[project.slug]).toBeUndefined();
       }
-    },
-  );
+      expect(attempts).toBe(2);
+      expect(load.mock.calls.length).toBeGreaterThanOrEqual(2);
+    } finally {
+      load.mockRestore();
+      write.mockRestore();
+    }
+  });
 }
 
 test('creation without a domain removes stale metadata for a reused slug', async () => {
@@ -91,12 +79,7 @@ test('creation without a domain removes stale metadata for a reused slug', async
       message: 'projects: old assignment',
     },
   );
-  await assignProjectDomain(
-    { ws: fixture.ws, administration: repository },
-    adminRequest(),
-    project.slug,
-    undefined,
-  );
+  await assignProjectDomain({ ws: fixture.ws, administration: repository }, adminRequest(), project.slug, undefined);
   expect(repository.load().projects.projects[project.slug]).toBeUndefined();
 });
 
@@ -133,9 +116,7 @@ test('a failed local clone never assigns a domain', async () => {
     if (!failed) await Bun.sleep(10);
   }
   expect(failed).toBe(true);
-  expect(
-    administration.openAdminRepository({ root: fixture.root }).load().projects.projects[slug],
-  ).toBeUndefined();
+  expect(administration.openAdminRepository({ root: fixture.root }).load().projects.projects[slug]).toBeUndefined();
 });
 
 test('creation decisions never recompile the policy and follow a policy reload', () => {
@@ -161,10 +142,7 @@ test('creation decisions never recompile the policy and follow a policy reload',
 
 const origin = 'http://127.0.0.1:4310';
 
-async function cloneOutcome(
-  fixture: { ws: { events: { replay(from: number): unknown } } },
-  op: string,
-) {
+async function cloneOutcome(fixture: { ws: { events: { replay(from: number): unknown } } }, op: string) {
   for (let attempt = 0; attempt < 400; attempt++) {
     const events = fixture.ws.events.replay(0) as { event: string; data: unknown }[];
     const finished = events.find(event => {
@@ -289,12 +267,7 @@ test('every project of a clone gets its domain in one administration commit', as
   const first = await fixture.ws.createProject('First of two');
   const second = await fixture.ws.createProject('Second of two');
   const before = (await repository.history()).length;
-  await assignProjectDomains(
-    { ws: fixture.ws, administration: repository },
-    adminRequest(),
-    [first.slug, second.slug],
-    'sales',
-  );
+  await assignProjectDomains({ ws: fixture.ws, administration: repository }, adminRequest(), [first.slug, second.slug], 'sales');
   const history = await repository.history();
   expect(history).toHaveLength(before + 1);
   const projects = repository.load().projects.projects;
@@ -313,14 +286,7 @@ test('a clone whose domain commit fails trashes all of its projects and reports 
     });
     const before = fixture.ws.state.registry().projects.map(project => project.slug);
     try {
-      const started = fixture.ws.clone(remote.bare, undefined, LOCAL_READER, slugs =>
-        assignProjectDomains(
-          { ws: fixture.ws, administration: repository },
-          adminRequest(),
-          slugs,
-          'sales',
-        ),
-      );
+      const started = fixture.ws.clone(remote.bare, undefined, LOCAL_READER, slugs => assignProjectDomains({ ws: fixture.ws, administration: repository }, adminRequest(), slugs, 'sales'));
       expect(await cloneOutcome(fixture, started.op)).toBe('failed');
       expect(write).toHaveBeenCalledTimes(1);
     } finally {
@@ -343,12 +309,7 @@ test('creating a project without a domain makes no administration commit', async
   const before = await repository.version();
   const write = spyOn(repository, 'write');
   try {
-    await assignProjectDomain(
-      { ws: fixture.ws, administration: repository },
-      adminRequest(),
-      project.slug,
-      undefined,
-    );
+    await assignProjectDomain({ ws: fixture.ws, administration: repository }, adminRequest(), project.slug, undefined);
     expect(write).not.toHaveBeenCalled();
     expect(await repository.version()).toBe(before);
   } finally {

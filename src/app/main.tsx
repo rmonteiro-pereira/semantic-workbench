@@ -121,17 +121,8 @@ function App() {
   const flushSave = useStableHandler(saving.autosave.flush);
   const openStale = useStableHandler(saving.openStale);
   const changeGrouping = useStableHandler(grouping.change);
-  const toolbarGrouping = useMemo(
-    () => ({ value: grouping.value, error: grouping.error, change: changeGrouping }),
-    [grouping.value, grouping.error, changeGrouping],
-  );
-  const shellClassName = [
-    'shell',
-    sidebar.sidebarOpen ? 'workspace-open' : 'workspace-closed',
-    sidebar.resizingSidebar && 'sidebar-resizing',
-  ]
-    .filter(Boolean)
-    .join(' ');
+  const toolbarGrouping = useMemo(() => ({ value: grouping.value, error: grouping.error, change: changeGrouping }), [grouping.value, grouping.error, changeGrouping]);
+  const shellClassName = ['shell', sidebar.sidebarOpen ? 'workspace-open' : 'workspace-closed', sidebar.resizingSidebar && 'sidebar-resizing'].filter(Boolean).join(' ');
   const canvasClassName = [
     'canvas-row',
     inspector.inspectorVisible && 'has-inspector',
@@ -141,12 +132,7 @@ function App() {
   ]
     .filter(Boolean)
     .join(' ');
-  const emptyProject = current
-    ? undefined
-    : projects.find(
-        item =>
-          item.slug === fileNavigation.emptyProjectSlug && !docs.some(d => d.project === item.slug),
-      );
+  const emptyProject = current ? undefined : projects.find(item => item.slug === fileNavigation.emptyProjectSlug && !docs.some(d => d.project === item.slug));
   // After a clone or a change to a repository's projects, show the project's first file, or its
   // empty state.
   async function openProject(slug: string) {
@@ -156,10 +142,7 @@ function App() {
 
   const content = (
     <GitSetupProvider onOpenProject={slug => void openProject(slug)}>
-      <div
-        className={shellClassName}
-        style={{ '--sidebar-width': `${sidebar.sidebarWidth}px` } as React.CSSProperties}
-      >
+      <div className={shellClassName} style={{ '--sidebar-width': `${sidebar.sidebarWidth}px` } as React.CSSProperties}>
         {imports.domainDialog}
         {examples.domainDialog}
         <AppDialogs

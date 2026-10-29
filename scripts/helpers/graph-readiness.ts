@@ -12,11 +12,7 @@ export async function graphBoundsProblems(page: Page): Promise<string[]> {
       bounds: node.getBoundingClientRect(),
     }));
     for (const { id, bounds } of cards) {
-      const outside =
-        bounds.left < pane.left - 1 ||
-        bounds.right > pane.right + 1 ||
-        bounds.top < pane.top - 1 ||
-        bounds.bottom > pane.bottom + 1;
+      const outside = bounds.left < pane.left - 1 || bounds.right > pane.right + 1 || bounds.top < pane.top - 1 || bounds.bottom > pane.bottom + 1;
       if (outside) problems.push(`graph card ${id} leaves its pane`);
     }
     if (cards.length) {
@@ -36,12 +32,8 @@ async function graphGeometrySignature(page: Page): Promise<string> {
   return page.evaluate(() => {
     const root = document.querySelector('.full-graph')!;
     const viewport = root.querySelector('.react-flow__viewport');
-    const nodes = [...root.querySelectorAll('.react-flow__node')].map(node =>
-      node.getBoundingClientRect().toJSON(),
-    );
-    const paths = [...root.querySelectorAll('.react-flow__edge-path')].map(path =>
-      path.getAttribute('d'),
-    );
+    const nodes = [...root.querySelectorAll('.react-flow__node')].map(node => node.getBoundingClientRect().toJSON());
+    const paths = [...root.querySelectorAll('.react-flow__edge-path')].map(path => path.getAttribute('d'));
     return JSON.stringify({ viewport: viewport?.getAttribute('style'), nodes, paths });
   });
 }

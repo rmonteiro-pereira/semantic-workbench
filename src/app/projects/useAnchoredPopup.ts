@@ -22,12 +22,7 @@ export type PlacePopup = (popup: HTMLElement, anchor: DOMRect, viewport: Size) =
  * Places the popup before the browser paints, then again whenever the popup, the window or a
  * scrolling ancestor changes size or position, so it follows its anchor.
  */
-export function useAnchoredPopup(
-  open: boolean,
-  elements: PopupElements,
-  placePopup: PlacePopup,
-  dependencies: DependencyList,
-) {
+export function useAnchoredPopup(open: boolean, elements: PopupElements, placePopup: PlacePopup, dependencies: DependencyList) {
   const { popup, anchor } = elements;
   useLayoutEffect(() => {
     if (!open) return;
@@ -69,12 +64,7 @@ export type PopupFocus = { firstControl: string } | 'popup';
  * Moves focus into the popup when it opens, as `focus` says. A mousedown outside the popup and
  * its anchor dismisses it without moving focus, so the click lands where it was aimed.
  */
-export function usePopupDismiss(
-  open: boolean,
-  elements: PopupElements,
-  focus: PopupFocus,
-  onDismiss: () => void,
-) {
+export function usePopupDismiss(open: boolean, elements: PopupElements, focus: PopupFocus, onDismiss: () => void) {
   const { popup, anchor, related } = elements;
   useEffect(() => {
     if (!open) return;

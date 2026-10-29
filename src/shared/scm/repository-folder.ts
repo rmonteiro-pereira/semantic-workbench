@@ -38,10 +38,8 @@ export function checkRepositoryFolder(input: unknown): RepositoryFolderCheck {
   if (trimmed.length > MAX_FOLDER_LENGTH) return refuse('The folder path is too long.');
   if (hasControlCharacter(trimmed)) return refuse('The folder may not contain control characters.');
   if (trimmed.includes('\\')) return refuse('Write the folder with forward slashes (a/b).');
-  if (trimmed.startsWith('/') || /^[A-Za-z]:/.test(trimmed))
-    return refuse('The folder must be relative to the repository, not an absolute path.');
-  if (PATTERN_CHARACTERS.test(trimmed))
-    return refuse('The folder may not contain * ? [ ] characters.');
+  if (trimmed.startsWith('/') || /^[A-Za-z]:/.test(trimmed)) return refuse('The folder must be relative to the repository, not an absolute path.');
+  if (PATTERN_CHARACTERS.test(trimmed)) return refuse('The folder may not contain * ? [ ] characters.');
   const folder = trimmed.endsWith('/') ? trimmed.slice(0, -1) : trimmed;
   for (const segment of folder.split('/')) {
     const problem = checkSegment(segment);

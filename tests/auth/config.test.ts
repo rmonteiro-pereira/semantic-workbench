@@ -43,16 +43,13 @@ describe('local mode', () => {
   });
 
   test('local mode accepts the loopback names and refuses any other host', () => {
-    for (const host of ['127.0.0.1', 'localhost', '::1'])
-      expect(readConfig({ SW_HOST: host }).host).toBe(host);
-    for (const host of ['0.0.0.0', '192.168.1.10', 'workbench.example.org'])
-      expect(failingVariables({ SW_HOST: host })).toEqual(['SW_HOST']);
+    for (const host of ['127.0.0.1', 'localhost', '::1']) expect(readConfig({ SW_HOST: host }).host).toBe(host);
+    for (const host of ['0.0.0.0', '192.168.1.10', 'workbench.example.org']) expect(failingVariables({ SW_HOST: host })).toEqual(['SW_HOST']);
   });
 
   test('ports must be whole numbers from 1 to 65535', () => {
     expect(readConfig({ SW_PORT: '4311' }).port).toBe(4311);
-    for (const port of ['0', '70000', 'abc', '43.5'])
-      expect(failingVariables({ SW_PORT: port })).toEqual(['SW_PORT']);
+    for (const port of ['0', '70000', 'abc', '43.5']) expect(failingVariables({ SW_PORT: port })).toEqual(['SW_PORT']);
   });
 
   test('an unknown mode is refused', () => {
@@ -85,9 +82,7 @@ describe('server mode', () => {
     expect(config.mode).toBe('server');
     expect(config.publicUrl).toBe('https://workbench.example.org');
     expect(config.oidc.provider).toBe('entra');
-    expect(config.oidc.scopes).toBe(
-      'openid profile email offline_access api://semantic-workbench/access_as_user',
-    );
+    expect(config.oidc.scopes).toBe('openid profile email offline_access api://semantic-workbench/access_as_user');
     expect(config.oidc.clientAuth).toEqual({ kind: 'secret', secret: 'client-secret' });
     expect(config.directory.groupClaim).toBe('groups');
     expect(config.directory.overage).toBe('directory');
@@ -107,14 +102,7 @@ describe('server mode', () => {
 
   test('every missing required variable is named in one error', () => {
     const variables = failingVariables({ SW_MODE: 'server' });
-    expect(variables).toEqual([
-      'SW_PUBLIC_URL',
-      'SW_OIDC_ISSUER',
-      'SW_OIDC_CLIENT_ID',
-      'SW_OIDC_CLIENT_SECRET or SW_OIDC_CLIENT_ASSERTION',
-      'SW_SESSION_KEY',
-      'SW_BOOTSTRAP_ADMINS',
-    ]);
+    expect(variables).toEqual(['SW_PUBLIC_URL', 'SW_OIDC_ISSUER', 'SW_OIDC_CLIENT_ID', 'SW_OIDC_CLIENT_SECRET or SW_OIDC_CLIENT_ASSERTION', 'SW_SESSION_KEY', 'SW_BOOTSTRAP_ADMINS']);
   });
 
   test('a client secret or a client assertion is required, never both', () => {
@@ -134,28 +122,19 @@ describe('server mode address and secret checks', () => {
   test('the session key must be 32 bytes of base64', () => {
     const short = { ...entraEnvironment(), SW_SESSION_KEY: Buffer.alloc(16).toString('base64') };
     expect(failingVariables(short)).toEqual(['SW_SESSION_KEY']);
-    expect(failingVariables({ ...entraEnvironment(), SW_SESSION_KEY: 'not base64!' })).toEqual([
-      'SW_SESSION_KEY',
-    ]);
+    expect(failingVariables({ ...entraEnvironment(), SW_SESSION_KEY: 'not base64!' })).toEqual(['SW_SESSION_KEY']);
   });
 
   test('the public URL must be an origin, and plain http only on loopback', () => {
-    for (const url of ['https://workbench.example.org/app', 'ftp://workbench.example.org'])
-      expect(failingVariables({ ...entraEnvironment(), SW_PUBLIC_URL: url })).toEqual([
-        'SW_PUBLIC_URL',
-      ]);
-    expect(
-      failingVariables({ ...entraEnvironment(), SW_PUBLIC_URL: 'http://workbench.example.org' }),
-    ).toEqual(['SW_PUBLIC_URL']);
+    for (const url of ['https://workbench.example.org/app', 'ftp://workbench.example.org']) expect(failingVariables({ ...entraEnvironment(), SW_PUBLIC_URL: url })).toEqual(['SW_PUBLIC_URL']);
+    expect(failingVariables({ ...entraEnvironment(), SW_PUBLIC_URL: 'http://workbench.example.org' })).toEqual(['SW_PUBLIC_URL']);
     const loopback = { ...entraEnvironment(), SW_PUBLIC_URL: 'http://127.0.0.1:4310/' };
     expect((readConfig(loopback) as ServerConfig).publicUrl).toBe('http://127.0.0.1:4310');
   });
 
   test('an http issuer is refused unless the public URL is loopback', () => {
     const issuer = 'http://127.0.0.1:4400/4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f/v2.0';
-    expect(failingVariables({ ...entraEnvironment(), SW_OIDC_ISSUER: issuer })).toEqual([
-      'SW_OIDC_ISSUER',
-    ]);
+    expect(failingVariables({ ...entraEnvironment(), SW_OIDC_ISSUER: issuer })).toEqual(['SW_OIDC_ISSUER']);
     const local = {
       ...entraEnvironment(),
       SW_OIDC_ISSUER: issuer,
@@ -165,20 +144,9 @@ describe('server mode address and secret checks', () => {
   });
 
   test('the directory URL is limited to the Microsoft Graph endpoints', () => {
-    for (const url of [
-      'https://graph.microsoft.com',
-      'https://graph.microsoft.us',
-      'https://dod-graph.microsoft.us',
-      'https://microsoftgraph.chinacloudapi.cn',
-    ])
-      expect(
-        (readConfig({ ...entraEnvironment(), SW_GRAPH_URL: url }) as ServerConfig).directory
-          .graphUrl,
-      ).toBe(url);
-    for (const url of ['https://graph.example.org', 'http://127.0.0.1:4400/graph'])
-      expect(failingVariables({ ...entraEnvironment(), SW_GRAPH_URL: url })).toEqual([
-        'SW_GRAPH_URL',
-      ]);
+    for (const url of ['https://graph.microsoft.com', 'https://graph.microsoft.us', 'https://dod-graph.microsoft.us', 'https://microsoftgraph.chinacloudapi.cn'])
+      expect((readConfig({ ...entraEnvironment(), SW_GRAPH_URL: url }) as ServerConfig).directory.graphUrl).toBe(url);
+    for (const url of ['https://graph.example.org', 'http://127.0.0.1:4400/graph']) expect(failingVariables({ ...entraEnvironment(), SW_GRAPH_URL: url })).toEqual(['SW_GRAPH_URL']);
   });
 
   test('a loopback directory URL is accepted only with a loopback public URL', () => {
@@ -187,9 +155,7 @@ describe('server mode address and secret checks', () => {
       SW_PUBLIC_URL: 'http://127.0.0.1:4310',
       SW_GRAPH_URL: 'http://127.0.0.1:4400/graph',
     };
-    expect((readConfig(local) as ServerConfig).directory.graphUrl).toBe(
-      'http://127.0.0.1:4400/graph',
-    );
+    expect((readConfig(local) as ServerConfig).directory.graphUrl).toBe('http://127.0.0.1:4400/graph');
   });
 });
 
@@ -233,9 +199,7 @@ describe('server mode providers and options', () => {
 
 test('empty and repeated-byte session keys fail with generation instructions', () => {
   for (const key of ['', ...[0, 7, 255].map(byte => Buffer.alloc(32, byte).toString('base64'))]) {
-    expect(() => readConfig({ ...entraEnvironment(), SW_SESSION_KEY: key })).toThrow(
-      'openssl rand -base64 32',
-    );
+    expect(() => readConfig({ ...entraEnvironment(), SW_SESSION_KEY: key })).toThrow('openssl rand -base64 32');
   }
 });
 
@@ -249,10 +213,7 @@ test('agent token audiences are a comma-separated list, empty when unset', () =>
   expect(unset.apiAudience).toEqual([]);
   const audiences = 'a1b2c3d4-0000-4000-8000-000000000001, api://semantic-workbench';
   const config = readConfig({ ...entraEnvironment(), SW_API_AUDIENCE: audiences }) as ServerConfig;
-  expect(config.apiAudience).toEqual([
-    'a1b2c3d4-0000-4000-8000-000000000001',
-    'api://semantic-workbench',
-  ]);
+  expect(config.apiAudience).toEqual(['a1b2c3d4-0000-4000-8000-000000000001', 'api://semantic-workbench']);
 });
 
 test('Azure DevOps on-behalf-of is an Entra grant and can be turned off', () => {
@@ -330,31 +291,19 @@ describe('Entra issuer host', () => {
   const tenant = '4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f';
 
   test('Entra accepts the sign-in hosts of the public and national clouds, without a port', () => {
-    for (const host of [
-      'login.microsoftonline.com',
-      'login.microsoftonline.us',
-      'login.chinacloudapi.cn',
-      'login.partner.microsoftonline.cn',
-    ]) {
+    for (const host of ['login.microsoftonline.com', 'login.microsoftonline.us', 'login.chinacloudapi.cn', 'login.partner.microsoftonline.cn']) {
       const issuer = `https://${host}/${tenant}/v2.0`;
       const config = readConfig({ ...entraEnvironment(), SW_OIDC_ISSUER: issuer }) as ServerConfig;
       expect(config.oidc.issuer).toBe(issuer);
     }
-    for (const issuer of [
-      `https://login.microsoftonline.com:8443/${tenant}/v2.0`,
-      `https://login.example.org/${tenant}/v2.0`,
-    ]) {
-      expect(failingVariables({ ...entraEnvironment(), SW_OIDC_ISSUER: issuer })).toEqual([
-        'SW_OIDC_ISSUER',
-      ]);
+    for (const issuer of [`https://login.microsoftonline.com:8443/${tenant}/v2.0`, `https://login.example.org/${tenant}/v2.0`]) {
+      expect(failingVariables({ ...entraEnvironment(), SW_OIDC_ISSUER: issuer })).toEqual(['SW_OIDC_ISSUER']);
     }
   });
 
   test('a loopback Entra issuer needs a loopback public URL, even over https', () => {
     const issuer = `https://127.0.0.1:4400/${tenant}/v2.0`;
-    expect(failingVariables({ ...entraEnvironment(), SW_OIDC_ISSUER: issuer })).toEqual([
-      'SW_OIDC_ISSUER',
-    ]);
+    expect(failingVariables({ ...entraEnvironment(), SW_OIDC_ISSUER: issuer })).toEqual(['SW_OIDC_ISSUER']);
     const local = {
       ...entraEnvironment(),
       SW_OIDC_ISSUER: issuer,

@@ -76,9 +76,7 @@ function post(message: Record<string, unknown>): Promise<Issue[]> {
   });
 }
 /** Requests document validation from the shared worker. */
-export const validateInWorker = (source: string, filename: string) =>
-  timeOperation('validation', post({ source, filename }));
+export const validateInWorker = (source: string, filename: string) => timeOperation('validation', post({ source, filename }));
 
 /** Requests SQL field warnings with positions relative to the supplied text. */
-export const lintSqlInWorker = (sql: string, dialect: string | null) =>
-  post({ sql, dialect, source: '', filename: '' });
+export const lintSqlInWorker = (sql: string, dialect: string | null) => post({ sql, dialect, source: '', filename: '' });

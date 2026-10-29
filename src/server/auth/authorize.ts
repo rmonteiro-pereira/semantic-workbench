@@ -1,23 +1,11 @@
 // The access-decision boundary combines validated configuration with Cedar.
 // Request caches share decisions only for resources no compiled condition can distinguish.
-import {
-  NEW_PROJECT,
-  newProjectIn,
-  normalizeResource,
-  type ResourceRef,
-  type Decision,
-  type DecisionContext,
-} from './resource';
+import { NEW_PROJECT, newProjectIn, normalizeResource, type ResourceRef, type Decision, type DecisionContext } from './resource';
 import builtin from '../../../policies/builtin-roles.json';
 import { loadPolicySet, createPolicyEvaluator, PolicyLoadError } from './cedar';
 import { validateAccessConfig, type AccessConfig, type Role } from './access-config';
 import { holdersOfGrant, resolveGrants, type Bootstrap, type GrantOptions } from './grants';
-import {
-  clientPrincipal,
-  localPrincipal,
-  type NormalizedPrincipal,
-  type Principal,
-} from './principal';
+import { clientPrincipal, localPrincipal, type NormalizedPrincipal, type Principal } from './principal';
 import { ACTIONS, levelNumber, type Action } from '../../shared/auth/actions';
 import { matchesSegmentGlob, matchesCedarLike } from './path-rules';
 import type { ClassificationSettings } from './guards';
@@ -65,26 +53,16 @@ function prepare(config: AccessConfig, projects: string[], groupMatch: GrantOpti
 }
 type ActiveAccess = ReturnType<typeof prepare>;
 
-function requestContext(
-  active: ActiveAccess,
-  mode: AccessOptions['mode'],
-  resource: ResourceRef,
-  supplied: Partial<DecisionContext>,
-): DecisionContext {
+function requestContext(active: ActiveAccess, mode: AccessOptions['mode'], resource: ResourceRef, supplied: Partial<DecisionContext>): DecisionContext {
   const branch = supplied.branch ?? '';
-  const project =
-    resource.type === 'workspace' ? undefined : active.config.projects.projects[resource.project];
+  const project = resource.type === 'workspace' ? undefined : active.config.projects.projects[resource.project];
   return {
     mode,
     hour: supplied.hour ?? -1,
     sourceIp: supplied.sourceIp ?? '0.0.0.0',
     branch,
-    protectedBranch:
-      Boolean(supplied.protectedBranch) ||
-      Boolean(project?.protectedBranches.some(pattern => matchesSegmentGlob(branch, pattern))),
-    level:
-      supplied.level ??
-      levelNumber(resource.type === 'file' ? (resource.level ?? 'public') : 'public'),
+    protectedBranch: Boolean(supplied.protectedBranch) || Boolean(project?.protectedBranches.some(pattern => matchesSegmentGlob(branch, pattern))),
+    level: supplied.level ?? levelNumber(resource.type === 'file' ? (resource.level ?? 'public') : 'public'),
     guardKind: supplied.guardKind ?? '',
   };
 }
@@ -92,12 +70,8 @@ function requestContext(
 function ruleClass(active: ActiveAccess, resource: ResourceRef): unknown[] {
   if (resource.type !== 'file') return [resource.type];
   const rules = active.config.projects.projects[resource.project]?.restricted ?? [];
-  const restricted = rules.flatMap((rule, index) =>
-    matchesSegmentGlob(resource.path, rule.pattern) ? [index] : [],
-  );
-  const paths = active.policy.pathGlobs.flatMap((glob, index) =>
-    matchesCedarLike(resource.path, glob) ? [index] : [],
-  );
+  const restricted = rules.flatMap((rule, index) => (matchesSegmentGlob(resource.path, rule.pattern) ? [index] : []));
+  const paths = active.policy.pathGlobs.flatMap((glob, index) => (matchesCedarLike(resource.path, glob) ? [index] : []));
   return [
     resource.metric ? 'metric' : 'file',
     restricted,
@@ -124,10 +98,8 @@ function decisionFor(active: ActiveAccess, request: DecisionRequest): Decision {
   const result = active.evaluate(principal, action, resource, context);
   if (result.allow) return { allow: true, rules: result.rules, status: 200 };
   if (resource.type !== 'workspace') {
-    const readable =
-      action !== 'read' && active.evaluate(principal, 'read', resource, context).allow;
-    if (!readable)
-      return { allow: false, rules: result.rules, status: 404, reason: 'not-readable' };
+    const readable = action !== 'read' && active.evaluate(principal, 'read', resource, context).allow;
+    if (!readable) return { allow: false, rules: result.rules, status: 404, reason: 'not-readable' };
   }
   return { allow: false, rules: result.rules, status: 403, reason: result.reason };
 }
@@ -136,12 +108,7 @@ function decisionFor(active: ActiveAccess, request: DecisionRequest): Decision {
  * Decides whether a person may create a project. A request naming a domain is judged as the new
  * project in that domain. A request without one passes when some configured domain would allow it.
  */
-function creationDecision(
-  active: ActiveAccess,
-  principal: Principal,
-  resource: ResourceRef,
-  supplied: Partial<DecisionContext>,
-): Decision {
+function creationDecision(active: ActiveAccess, principal: Principal, resource: ResourceRef, supplied: Partial<DecisionContext>): Decision {
   if (resource.type === 'project') return newProjectDecision(active, principal, resource, supplied);
   const decision = decisionFor(active, {
     principal,
@@ -157,12 +124,7 @@ function creationDecision(
   return decision;
 }
 
-function newProjectDecision(
-  active: ActiveAccess,
-  principal: Principal,
-  resource: Extract<ResourceRef, { type: 'project' }>,
-  supplied: Partial<DecisionContext>,
-): Decision {
+function newProjectDecision(active: ActiveAccess, principal: Principal, resource: Extract<ResourceRef, { type: 'project' }>, supplied: Partial<DecisionContext>): Decision {
   // A domain that does not exist answers like one the person cannot see, so the status never
   // tells which domains exist.
   if (!active.config.projects.domains.some(domain => domain.id === resource.domain)) {
@@ -207,9 +169,7 @@ export function createAccessControl(options: AccessOptions) {
     // F4-bearer-scope forbids every other action and F6-restricted hides restricted files, so
     // accessView lists what agentRead allows. The entry's name is shown and audited for it.
     if (normalized.kind === 'client') {
-      const entry = active.config.agents.clients.find(
-        client => client.clientId === normalized.clientId,
-      );
+      const entry = active.config.agents.clients.find(client => client.clientId === normalized.clientId);
       const name = entry?.name ?? normalized.name;
       return { ...normalized, name, deactivated: isDeactivated, grants: [] };
     }
@@ -238,11 +198,7 @@ export function createAccessControl(options: AccessOptions) {
       decisions.clear();
     }
 
-    function authorize(
-      action: Action,
-      input: ResourceRef,
-      supplied: Partial<DecisionContext> = {},
-    ): Decision {
+    function authorize(action: Action, input: ResourceRef, supplied: Partial<DecisionContext> = {}): Decision {
       synchronize();
       const resource = normalizeResource(input);
       const context = requestContext(snapshot, options.mode, resource, {
@@ -251,21 +207,10 @@ export function createAccessControl(options: AccessOptions) {
         ...supplied,
       });
       const project = resource.type === 'workspace' ? '' : resource.project;
-      const key = JSON.stringify([
-        action,
-        project,
-        ruleClass(snapshot, resource),
-        context,
-        resource.type === 'workspace' ? undefined : resource.domain,
-      ]);
+      const key = JSON.stringify([action, project, ruleClass(snapshot, resource), context, resource.type === 'workspace' ? undefined : resource.domain]);
       const previous = decisions.get(key);
       if (previous) return previous;
-      if (
-        action === 'createProject' &&
-        options.mode === 'server' &&
-        (resource.type === 'workspace' ||
-          (resource.type === 'project' && resource.project === NEW_PROJECT))
-      ) {
+      if (action === 'createProject' && options.mode === 'server' && (resource.type === 'workspace' || (resource.type === 'project' && resource.project === NEW_PROJECT))) {
         const decision = creationDecision(snapshot, principal, resource, supplied);
         decisions.set(key, decision);
         return decision;
@@ -306,30 +251,18 @@ export function createAccessControl(options: AccessOptions) {
       },
       creationDomains: () => {
         synchronize();
-        return snapshot.config.projects.domains.filter(
-          domain => authorize('createProject', newProjectIn(domain.id)).allow,
-        );
+        return snapshot.config.projects.domains.filter(domain => authorize('createProject', newProjectIn(domain.id)).allow);
       },
       filter,
       view,
     };
   }
 
-  function authorize(
-    principal: Principal,
-    action: Action,
-    resource: ResourceRef,
-    context: Partial<DecisionContext> = {},
-  ): Decision {
+  function authorize(principal: Principal, action: Action, resource: ResourceRef, context: Partial<DecisionContext> = {}): Decision {
     return forRequest(principal).authorize(action, resource, context);
   }
 
-  function filter<T>(
-    principal: Principal,
-    action: Action,
-    items: T[],
-    toResource: (item: T) => ResourceRef,
-  ): T[] {
+  function filter<T>(principal: Principal, action: Action, items: T[], toResource: (item: T) => ResourceRef): T[] {
     return forRequest(principal).filter(action, items, toResource);
   }
 
@@ -344,12 +277,7 @@ export function createAccessControl(options: AccessOptions) {
       listeners.delete(listener);
     };
   }
-  function explain(
-    identity: NormalizedPrincipal,
-    action: Action,
-    resource: ResourceRef,
-    context: Partial<DecisionContext> = {},
-  ) {
+  function explain(identity: NormalizedPrincipal, action: Action, resource: ResourceRef, context: Partial<DecisionContext> = {}) {
     const principal = principalFor(identity);
     const decision = authorize(principal, action, resource, context);
     return {
@@ -371,10 +299,7 @@ export function createAccessControl(options: AccessOptions) {
     const candidates = users.map(principal => ({ principal: principal.id, identity: principal }));
     const members = active.config.grants.map(grant => {
       const member = grant.member;
-      const identity = hypotheticalPrincipal(
-        member.kind === 'group' ? [member.groupId] : [],
-        member.kind === 'email' ? member.email : null,
-      );
+      const identity = hypotheticalPrincipal(member.kind === 'group' ? [member.groupId] : [], member.kind === 'email' ? member.email : null);
       return {
         ...(member.kind === 'group' ? { group: member.groupId } : { email: member.email }),
         via: grant.id,
@@ -414,11 +339,7 @@ export type AccessControl = ReturnType<typeof createAccessControl>;
 /** One principal's decisions and readable view, resolved once per request or event stream. */
 export type AccessScope = ReturnType<AccessControl['forRequest']>;
 
-function accessView(
-  active: ActiveAccess,
-  principal: Principal,
-  authorize: (action: Action, resource: ResourceRef) => Decision,
-): AccessView {
+function accessView(active: ActiveAccess, principal: Principal, authorize: (action: Action, resource: ResourceRef) => Decision): AccessView {
   const projects = active.projects.map(slug => ({
     slug,
     domain: active.config.projects.projects[slug]?.domain ?? null,
@@ -426,18 +347,14 @@ function accessView(
   const grants = principal.grants;
   const readAction = principal.kind === 'client' ? 'agentRead' : 'read';
   return {
-    readableProjects: new Set(
-      active.projects.filter(project => authorize(readAction, { type: 'project', project }).allow),
-    ),
+    readableProjects: new Set(active.projects.filter(project => authorize(readAction, { type: 'project', project }).allow)),
     canRead: (project, path) => authorize(readAction, { type: 'file', project, path }).allow,
     roles: project => [
       ...new Set(
         grants
           .filter(grant => {
             const holders = holdersOfGrant(grant, projects);
-            return (
-              holders.includes('admin@workspace') || holders.includes(`${grant.roleId}@${project}`)
-            );
+            return holders.includes('admin@workspace') || holders.includes(`${grant.roleId}@${project}`);
           })
           .map(grant => grant.roleId),
       ),

@@ -6,19 +6,11 @@ import type { State, PersonalState, Draft } from './state';
 
 type Step = { from: string; to: string };
 
-function replaceView(
-  state: PersonalState,
-  project: string,
-  files: Record<string, unknown>,
-  staging: string,
-): Step[] {
+function replaceView(state: PersonalState, project: string, files: Record<string, unknown>, staging: string): Step[] {
   const destination = state.viewFile(project);
   const staged = join(staging, project + '.json');
   atomicWriteJson(staged, { formatVersion: 1, files });
-  return [
-    ...(existsSync(destination) ? [{ from: destination, to: staged + '.previous' }] : []),
-    { from: staged, to: destination },
-  ];
+  return [...(existsSync(destination) ? [{ from: destination, to: staged + '.previous' }] : []), { from: staged, to: destination }];
 }
 
 /** A file's source and destination when its personal state follows a move or restore. */
@@ -28,12 +20,7 @@ export type PersonalMove = { project: string; path: string; target: string; targ
  * Moves every owner's draft and grouping using the same journal as the source file. A move inside
  * one person's working copy moves only that person's state (`only` is their key).
  */
-export function movePersonalState(
-  state: State,
-  move: PersonalMove,
-  staging: string,
-  only?: string,
-): Step[] {
+export function movePersonalState(state: State, move: PersonalMove, staging: string, only?: string): Step[] {
   const { project, path, target, targetPath } = move;
   const owners = state.personalStates().filter(({ key }) => !only || key === only);
   return owners.flatMap(({ key, state: personal }) => {
@@ -59,14 +46,7 @@ export function movePersonalState(
       if (project === target) sourceFiles[targetPath] = grouping;
       steps.push(...replaceView(personal, project, sourceFiles, root));
       if (project !== target) {
-        steps.push(
-          ...replaceView(
-            personal,
-            target,
-            { ...personal.view(target).files, [targetPath]: grouping },
-            root,
-          ),
-        );
+        steps.push(...replaceView(personal, target, { ...personal.view(target).files, [targetPath]: grouping }, root));
       }
     }
     return steps;
@@ -74,17 +54,11 @@ export function movePersonalState(
 }
 
 /** Archives all personal state for a deleted path or project without exposing it in trash metadata. */
-export function archivePersonalState(
-  state: State,
-  project: string,
-  path: string | undefined,
-  archive: string,
-): Step[] {
+export function archivePersonalState(state: State, project: string, path: string | undefined, archive: string): Step[] {
   return state.personalStates().flatMap(({ key, state: personal }) => {
     const root = join(archive, key, project);
     const steps: Step[] = [];
-    const draft =
-      path === undefined ? personal.draftDir(project) : personal.draftFile(project, path);
+    const draft = path === undefined ? personal.draftDir(project) : personal.draftFile(project, path);
     if (existsSync(draft)) steps.push({ from: draft, to: join(root, 'drafts') });
     if (path === undefined) {
       if (existsSync(personal.viewFile(project))) {
@@ -114,11 +88,7 @@ export type PersonalRestore = {
 };
 
 /** Restores each owner's archived state into that owner's namespace. */
-export function restorePersonalState(
-  state: State,
-  restore: PersonalRestore,
-  archive: string,
-): Step[] {
+export function restorePersonalState(state: State, restore: PersonalRestore, archive: string): Step[] {
   const { project, path, target, targetPath } = restore;
   if (!existsSync(archive)) return [];
   return readdirSync(archive).flatMap(key => {
@@ -126,8 +96,7 @@ export function restorePersonalState(
     const root = join(archive, key, project);
     const steps: Step[] = [];
     const draft = join(root, 'drafts');
-    const destination =
-      targetPath === undefined ? personal.draftDir(target) : personal.draftFile(target, targetPath);
+    const destination = targetPath === undefined ? personal.draftDir(target) : personal.draftFile(target, targetPath);
     if (existsSync(draft) && !existsSync(destination)) {
       if (targetPath !== undefined) {
         const savedDraft = readJsonFile<Draft>(draft)!;
@@ -158,22 +127,12 @@ export function restorePersonalState(
  * Removes drafts in the file transaction, including owners without an active session. A save in
  * one person's working copy outdates only that person's drafts (`only` is their key).
  */
-export function clearPersonalDrafts(
-  state: State,
-  project: string,
-  paths: string[],
-  staging: string,
-  only?: string,
-): Step[] {
-  const owners = only
-    ? state.personalStates().filter(({ key }) => key === only)
-    : [{ key: 'shared', state }, ...state.personalStates()];
+export function clearPersonalDrafts(state: State, project: string, paths: string[], staging: string, only?: string): Step[] {
+  const owners = only ? state.personalStates().filter(({ key }) => key === only) : [{ key: 'shared', state }, ...state.personalStates()];
   return owners.flatMap(personal =>
     paths.flatMap((path, index) => {
       const draft = personal.state.draftFile(project, path);
-      return existsSync(draft)
-        ? [{ from: draft, to: join(staging, 'drafts', personal.key, String(index)) }]
-        : [];
+      return existsSync(draft) ? [{ from: draft, to: join(staging, 'drafts', personal.key, String(index)) }] : [];
     }),
   );
 }

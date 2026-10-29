@@ -26,18 +26,7 @@ type Props = {
   onFindings?: (f: Issue[]) => void;
 };
 /** Edits a SQL expression with nonblocking syntax warnings. */
-export function SqlField({
-  value,
-  onChange,
-  ariaLabel,
-  labelledBy,
-  id,
-  dialect = null,
-  rows = 2,
-  placeholder,
-  disabled = false,
-  onFindings,
-}: Props) {
+export function SqlField({ value, onChange, ariaLabel, labelledBy, id, dialect = null, rows = 2, placeholder, disabled = false, onFindings }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const view = useRef<EditorView | null>(null);
   const props = useRef({ onChange, dialect, onFindings });
@@ -69,10 +58,7 @@ export function SqlField({
           language.current.of(sql ? StandardSQL : []),
           lint,
           EditorView.lineWrapping,
-          editable.current.of([
-            EditorView.editable.of(!disabled),
-            EditorState.readOnly.of(disabled),
-          ]),
+          editable.current.of([EditorView.editable.of(!disabled), EditorState.readOnly.of(disabled)]),
           placeholder ? placeholderExt(placeholder) : [],
           keymap.of([...defaultKeymap, ...historyKeymap, ...lintKeymap]),
           EditorView.contentAttributes.of({
@@ -87,8 +73,7 @@ export function SqlField({
           }),
           EditorView.theme({ '.cm-content': { minHeight: `${rows * 1.5}em` } }),
           EditorView.updateListener.of(u => {
-            if (u.docChanged && !u.transactions.some(t => t.annotation(fromProps)))
-              props.current.onChange(u.state.doc.toString());
+            if (u.docChanged && !u.transactions.some(t => t.annotation(fromProps))) props.current.onChange(u.state.doc.toString());
           }),
         ],
       }),
@@ -120,29 +105,18 @@ export function SqlField({
   }, [sql, dialect]);
   useEffect(() => {
     view.current?.dispatch({
-      effects: editable.current.reconfigure([
-        EditorView.editable.of(!disabled),
-        EditorState.readOnly.of(disabled),
-      ]),
+      effects: editable.current.reconfigure([EditorView.editable.of(!disabled), EditorState.readOnly.of(disabled)]),
     });
   }, [disabled]);
   return (
     <div className={`sql-field${disabled ? ' disabled' : ''}`}>
       <div ref={host} className="sql-field-editor" />
-      {!sql && dialect && (
-        <small className="sql-field-note">
-          {dialect} is not SQL: shown as written, not checked.
-        </small>
-      )}
+      {!sql && dialect && <small className="sql-field-note">{dialect} is not SQL: shown as written, not checked.</small>}
       {findings.length > 0 && (
         <ul className="sql-field-findings" aria-label="SQL findings">
           {findings.map((f, i) => (
             <li key={i}>
-              {f.line && f.line > 1
-                ? `Line ${f.line}, column ${f.column}: `
-                : f.column
-                  ? `Column ${f.column}: `
-                  : ''}
+              {f.line && f.line > 1 ? `Line ${f.line}, column ${f.column}: ` : f.column ? `Column ${f.column}: ` : ''}
               {f.message}
             </li>
           ))}

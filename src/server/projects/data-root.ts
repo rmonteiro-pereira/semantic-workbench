@@ -27,9 +27,7 @@ export function probeDataRoot(
     files.remove(path);
   } catch (cause) {
     const error = cause as NodeJS.ErrnoException;
-    const reason = ['EACCES', 'EROFS', 'EPERM'].includes(error.code ?? '')
-      ? 'is not writable'
-      : `probe failed: ${error.message}`;
+    const reason = ['EACCES', 'EROFS', 'EPERM'].includes(error.code ?? '') ? 'is not writable' : `probe failed: ${error.message}`;
     throw new Error(`Data root ${root} ${reason} by uid ${uid ?? 'unknown'} (${path}).`, { cause });
   }
 }

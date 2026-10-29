@@ -42,21 +42,16 @@ export function record(history: ActionHistory, step: ActionStep): ActionHistory 
 
 export const canBack = (history: ActionHistory): boolean => history.cursor > 0;
 
-export const canForward = (history: ActionHistory): boolean =>
-  history.cursor < history.steps.length;
+export const canForward = (history: ActionHistory): boolean => history.cursor < history.steps.length;
 
 /** Whether a position is older than the oldest step still kept, so it can no longer be reached. */
-export const isForgotten = (history: ActionHistory, position: number): boolean =>
-  position < history.dropped;
+export const isForgotten = (history: ActionHistory, position: number): boolean => position < history.dropped;
 
 /**
  * Moves the cursor to an absolute position, clamped to the steps that are still known, and lists
  * the steps to undo (newest first) or redo (oldest first) on the way.
  */
-export function travel(
-  history: ActionHistory,
-  position: number,
-): { history: ActionHistory; moves: ActionMove[] } {
+export function travel(history: ActionHistory, position: number): { history: ActionHistory; moves: ActionMove[] } {
   const target = Math.min(Math.max(position - history.dropped, 0), history.steps.length);
   const moves: ActionMove[] = [];
   for (let index = history.cursor - 1; index >= target; index--) {

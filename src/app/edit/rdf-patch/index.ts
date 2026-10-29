@@ -2,39 +2,10 @@
 import { applyPatches, dominantLineBreak, type Patch } from '../../../shared/editor/patch';
 import { lineStart } from '../../../shared/edit/source-text';
 import { gate, type Gate } from './isomorphism';
-import {
-  BASE,
-  RDF,
-  WELL_KNOWN,
-  formatOf,
-  parseGraph,
-  parseObject,
-  parsePredicate,
-  shortIri,
-  termKey,
-  turtleTerm,
-  isBlank,
-  type RdfFormat,
-  type Term,
-  type Triple,
-} from './terms';
+import { BASE, RDF, WELL_KNOWN, formatOf, parseGraph, parseObject, parsePredicate, shortIri, termKey, turtleTerm, isBlank, type RdfFormat, type Term, type Triple } from './terms';
 import { readDocument, turtlePatches, prefixPatches, type Document } from './turtle';
 import { readLines, ntLine, ntPatches, type Line } from './ntriples';
-import {
-  scanXml,
-  rdfRoot,
-  nodeElements,
-  elementPairs,
-  isolatedTriples,
-  propertyElement,
-  addPatch,
-  lineRange,
-  childIndent,
-  qname,
-  escapeXml,
-  scope,
-  type El,
-} from './rdfxml';
+import { scanXml, rdfRoot, nodeElements, elementPairs, isolatedTriples, propertyElement, addPatch, lineRange, childIndent, qname, escapeXml, scope, type El } from './rdfxml';
 // The serialization determines the smallest supported text change. The result must parse as
 // exactly the original graph minus removed triples plus added triples.
 /** Describes an editable predicate-object pair and its source identity. */
@@ -65,24 +36,12 @@ export type RdfItem = {
 /** Supplies the requested predicate and object text for an RDF statement. */
 export type DesiredPair = { id?: string; predicateText: string; objectText: string };
 /** Reports an accepted RDF edit or the reason it cannot be applied safely. */
-export type RdfResult =
-  | { ok: true; text: string; patches: Patch[]; warnings: string[]; removed: number; added: number }
-  | { ok: false; error: string; line?: number };
+export type RdfResult = { ok: true; text: string; patches: Patch[]; warnings: string[]; removed: number; added: number } | { ok: false; error: string; line?: number };
 const lineOf = (src: string, pos: number) => src.slice(0, pos).split(/\r\n|\r|\n/).length;
 const S = 'urn:workbench:s';
-const resubject = (triples: Triple[], subject: string) =>
-  triples.map(t =>
-    t.s.value === S && t.s.termType === 'NamedNode'
-      ? { ...t, s: { termType: 'NamedNode' as const, value: subject } }
-      : t,
-  );
+const resubject = (triples: Triple[], subject: string) => triples.map(t => (t.s.value === S && t.s.termType === 'NamedNode' ? { ...t, s: { termType: 'NamedNode' as const, value: subject } } : t));
 // A blank-node subtree as Turtle `[... ]`, for showing nested RDF/XML descriptions.
-function nestedText(
-  o: Term,
-  triples: Triple[],
-  prefixes: Record<string, string>,
-  depth = 0,
-): string {
+function nestedText(o: Term, triples: Triple[], prefixes: Record<string, string>, depth = 0): string {
   if (!isBlank(o) || depth > 8) return turtleTerm(o, prefixes);
   const own = triples.filter(t => termKey(t.s) === termKey(o));
   const statements = own.map(t => {
@@ -129,9 +88,7 @@ function xmlPairs(src: string, p: Parsed, subject: string) {
   const mine = p.xml!.nodes.filter(n => n.subject === subject);
   return {
     mine,
-    pairs: mine
-      .filter(n => n.top)
-      .flatMap((n, e) => elementPairs(src, n.el).map((x, k) => ({ x, id: `${e}:${k}` }))),
+    pairs: mine.filter(n => n.top).flatMap((n, e) => elementPairs(src, n.el).map((x, k) => ({ x, id: `${e}:${k}` }))),
   };
 }
 /** Reads a resource's statements for editing in its original serialization. */
@@ -140,9 +97,7 @@ export function readRdfItem(src: string, filename: string, subject: string): Rdf
   const p = parsed(src, format);
   if (format === 'ntriples') {
     const lines = p.lines!;
-    const mine = [...lines.keys()].filter(
-      i => lines[i].triple?.s.termType === 'NamedNode' && lines[i].triple!.s.value === subject,
-    );
+    const mine = [...lines.keys()].filter(i => lines[i].triple?.s.termType === 'NamedNode' && lines[i].triple!.s.value === subject);
     const prefixes = WELL_KNOWN;
     // Labelled blank nodes keep their labels (one parse per line), so a statement's blank-node
     // object brings the lines that describe it.
@@ -169,9 +124,7 @@ export function readRdfItem(src: string, filename: string, subject: string): Rdf
       prefixes,
       base: BASE,
       line: pairs[0]?.line ?? 0,
-      fragment: mine.length
-        ? { from: lines[mine[0]].start, to: lines[end].start + lines[end].text.length }
-        : null,
+      fragment: mine.length ? { from: lines[mine[0]].start, to: lines[end].start + lines[end].text.length } : null,
       subjectText: `<${subject}>`,
       ranges: mine.map(i => ({ from: lines[i].start, to: lines[i].end })),
     };
@@ -184,9 +137,7 @@ export function readRdfItem(src: string, filename: string, subject: string): Rdf
     const refused = raw.find(r => r.x.refuse);
     const refusal = nested
       ? {
-          reason:
-            'This resource is also described inside another element ' +
-            `(line ${lineOf(src, nested.el.start)}); edit it in Source.`,
+          reason: 'This resource is also described inside another element ' + `(line ${lineOf(src, nested.el.start)}); edit it in Source.`,
           line: lineOf(src, nested.el.start),
         }
       : refused
@@ -210,17 +161,9 @@ export function readRdfItem(src: string, filename: string, subject: string): Rdf
       return {
         id,
         predicate: x.predicate,
-        predicateText:
-          x.predicate === RDF + 'type'
-            ? 'a'
-            : shortIri(x.predicate, { ...WELL_KNOWN, ...prefixes }),
+        predicateText: x.predicate === RDF + 'type' ? 'a' : shortIri(x.predicate, { ...WELL_KNOWN, ...prefixes }),
         object: top?.o ?? x.object ?? null,
-        objectText:
-          x.nested && top
-            ? nestedText(top.o, triples, { ...WELL_KNOWN, ...prefixes })
-            : x.object
-              ? turtleTerm(x.object, { ...WELL_KNOWN, ...prefixes })
-              : '',
+        objectText: x.nested && top ? nestedText(top.o, triples, { ...WELL_KNOWN, ...prefixes }) : x.object ? turtleTerm(x.object, { ...WELL_KNOWN, ...prefixes }) : '',
         nested: x.nested,
         locked: x.locked,
         line: lineOf(src, x.child?.start ?? x.attr?.start ?? x.el.start),
@@ -242,33 +185,23 @@ export function readRdfItem(src: string, filename: string, subject: string): Rdf
     };
   }
   const doc = p.turtle!;
-  const mine = doc.statements
-    .map((s, i) => ({ s, i }))
-    .filter(x => !x.s.directive && x.s.subject === subject);
+  const mine = doc.statements.map((s, i) => ({ s, i })).filter(x => !x.s.directive && x.s.subject === subject);
   const short = shortIri(subject, doc.prefixes);
   const n3 = doc.statements.find(
     s =>
       s.n3 &&
       (src.slice(s.start, s.end).includes(`<${subject}>`) ||
-        (short.startsWith('<')
-          ? false
-          : new RegExp(`(^|[^\\w:])${short.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\w-])`).test(
-              src.slice(s.start, s.end),
-            ))),
+        (short.startsWith('<') ? false : new RegExp(`(^|[^\\w:])${short.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\w-])`).test(src.slice(s.start, s.end)))),
   );
   const broken = mine.find(x => !x.s.parsed);
   const refusal = n3
     ? {
-        reason:
-          `This resource appears in an N3 formula or rule (line ${lineOf(src, n3.start)}); ` +
-          'N3 formulae and rules are edited in Source.',
+        reason: `This resource appears in an N3 formula or rule (line ${lineOf(src, n3.start)}); ` + 'N3 formulae and rules are edited in Source.',
         line: lineOf(src, n3.start),
       }
     : broken
       ? {
-          reason:
-            `The statement at line ${lineOf(src, broken.s.start)} uses a form the item editor ` +
-            'does not rewrite; edit it in Source.',
+          reason: `The statement at line ${lineOf(src, broken.s.start)} uses a form the item editor ` + 'does not rewrite; edit it in Source.',
           line: lineOf(src, broken.s.start),
         }
       : undefined;
@@ -298,9 +231,7 @@ export function readRdfItem(src: string, filename: string, subject: string): Rdf
             if (o.text.startsWith('_:')) {
               const label = o.text.slice(2);
               const g = graphOf();
-              const node = g.find(
-                t => isBlank(t.s) && (t.s.value === label || t.s.value.endsWith('_' + label)),
-              )?.s;
+              const node = g.find(t => isBlank(t.s) && (t.s.value === label || t.s.value.endsWith('_' + label)))?.s;
               if (node) {
                 object = node;
                 triples = [{ ...triples[0], o: node }, ...subtree(node, g)];
@@ -358,14 +289,11 @@ function plan(item: RdfItem, desired: DesiredPair[], deleting = false): Plan {
   const out: Plan = { removed: [], replaced: [], added: [], intended: [] };
   const kept = new Set<string>();
   const read = (d: DesiredPair) => {
-    if (!d.predicateText.trim() || !d.objectText.trim())
-      throw Error('Each statement needs a predicate and an object.');
+    if (!d.predicateText.trim() || !d.objectText.trim()) throw Error('Each statement needs a predicate and an object.');
     const predicate = parsePredicate(d.predicateText, prefixes, item.base);
     const po = parseObject(d.objectText, prefixes, item.base);
     if (po.nested && item.format !== 'turtle' && item.format !== 'n3')
-      throw Error(
-        `Nested descriptions ("${d.objectText.slice(0, 40)}") are edited in Source in ${item.format === 'ntriples' ? 'N-Triples' : 'RDF/XML'}.`,
-      );
+      throw Error(`Nested descriptions ("${d.objectText.slice(0, 40)}") are edited in Source in ${item.format === 'ntriples' ? 'N-Triples' : 'RDF/XML'}.`);
     return {
       predicate,
       object: po.term,
@@ -411,20 +339,13 @@ function plan(item: RdfItem, desired: DesiredPair[], deleting = false): Plan {
   }
   for (const p of item.pairs)
     if (!kept.has(p.id)) {
-      if (p.locked && !p.nested && !deleting)
-        throw Error(`${p.predicateText} ${p.objectText}: ${p.locked}`);
+      if (p.locked && !p.nested && !deleting) throw Error(`${p.predicateText} ${p.objectText}: ${p.locked}`);
       out.removed.push(p);
     }
   return out;
 }
 // The patches for one resource (no gate).
-function patchesFor(
-  src: string,
-  filename: string,
-  item: RdfItem,
-  pl: Plan,
-  p: Parsed,
-): { patches: Patch[]; warnings: string[] } {
+function patchesFor(src: string, filename: string, item: RdfItem, pl: Plan, p: Parsed): { patches: Patch[]; warnings: string[] } {
   const eol = dominantLineBreak(src);
   if (item.format === 'ntriples') {
     const rendered = (predicate: string, o: Term) => ntLine(item.subject, predicate, o);
@@ -432,10 +353,7 @@ function patchesFor(
     // describe that node (when nothing else refers to it).
     const lines = p.lines!;
     const gone = new Set(pl.removed.map(r => Number(r.id)));
-    const dropped = [
-      ...pl.removed.map(r => r.object),
-      ...pl.replaced.map(r => r.pair.object),
-    ].filter((o): o is Term => !!o && isBlank(o));
+    const dropped = [...pl.removed.map(r => r.object), ...pl.replaced.map(r => r.pair.object)].filter((o): o is Term => !!o && isBlank(o));
     for (const o of dropped) {
       const tree = new Set([
         termKey(o),
@@ -444,14 +362,7 @@ function patchesFor(
           lines.flatMap(l => (l.triple ? [l.triple] : [])),
         ).map(t => termKey(t.s)),
       ]);
-      const others = lines.some(
-        (l, i) =>
-          l.triple &&
-          !gone.has(i) &&
-          !tree.has(termKey(l.triple.s)) &&
-          termKey(l.triple.o) === termKey(o) &&
-          !pl.replaced.some(r => Number(r.pair.id) === i),
-      );
+      const others = lines.some((l, i) => l.triple && !gone.has(i) && !tree.has(termKey(l.triple.s)) && termKey(l.triple.o) === termKey(o) && !pl.replaced.some(r => Number(r.pair.id) === i));
       if (!others)
         lines.forEach((l, i) => {
           if (l.triple && tree.has(termKey(l.triple.s))) gone.add(i);
@@ -477,12 +388,7 @@ function patchesFor(
     const patches: Patch[] = [];
     const top = mine.filter(n => n.top);
     // Every statement removed: the node elements go.
-    if (
-      !pl.added.length &&
-      !pl.replaced.length &&
-      pl.removed.length === item.pairs.length &&
-      top.length
-    ) {
+    if (!pl.added.length && !pl.replaced.length && pl.removed.length === item.pairs.length && top.length) {
       for (const n of top) {
         const r = lineRange(src, n.el.start, n.el.end);
         patches.push({ ...r, insert: '' });
@@ -508,12 +414,7 @@ function patchesFor(
           to: x.child!.end,
           insert: propertyElement(r.predicate, r.object, ns, scope(x.child!.parent).lang),
         });
-      else if (
-        r.object.termType === 'Literal' &&
-        !r.object.language &&
-        (!r.object.datatype || r.object.datatype.endsWith('#string')) &&
-        !lang
-      )
+      else if (r.object.termType === 'Literal' && !r.object.language && (!r.object.datatype || r.object.datatype.endsWith('#string')) && !lang)
         patches.push({
           from: x.attr!.start,
           to: x.attr!.end,
@@ -528,17 +429,12 @@ function patchesFor(
     const target = top[0]?.el;
     if (target) {
       const { ns, lang } = scope(target);
-      const els = [
-        ...extra,
-        ...pl.added.map(a => propertyElement(a.predicate, a.object, ns, lang)),
-      ];
+      const els = [...extra, ...pl.added.map(a => propertyElement(a.predicate, a.object, ns, lang))];
       if (els.length) patches.push(addPatch(src, target, root, els, eol));
     } else if (pl.added.length) {
       // A new node element before </rdf:RDF>, typed when its type has a declared prefix.
       const { ns } = scope(root);
-      const type = pl.added.find(
-        a => a.predicate === RDF + 'type' && a.object.termType === 'NamedNode',
-      );
+      const type = pl.added.find(a => a.predicate === RDF + 'type' && a.object.termType === 'NamedNode');
       let tag = 'rdf:Description';
       let rest = pl.added;
       if (type) {
@@ -580,32 +476,13 @@ function patchesFor(
     item.subjectText,
   );
   return {
-    patches: [
-      ...prefixPatches(
-        src,
-        doc,
-        [
-          ...pl.added.flatMap(a => [a.predicateText, a.objectText]),
-          ...pl.replaced.map(x => x.objectText),
-        ],
-        eol,
-      ),
-      ...r.patches,
-    ],
+    patches: [...prefixPatches(src, doc, [...pl.added.flatMap(a => [a.predicateText, a.objectText]), ...pl.replaced.map(x => x.objectText)], eol), ...r.patches],
     warnings: r.warnings,
   };
 }
-const order = (ps: Patch[]) =>
-  [...ps].sort((a, b) => a.from - b.from || a.to - a.from - (b.to - b.from));
+const order = (ps: Patch[]) => [...ps].sort((a, b) => a.from - b.from || a.to - a.from - (b.to - b.from));
 // Apply, re-read and check: the text is accepted only when the gate passes.
-function finish(
-  src: string,
-  format: RdfFormat,
-  patches: Patch[],
-  warnings: string[],
-  subjects: string[],
-  intended: Triple[],
-): RdfResult {
+function finish(src: string, format: RdfFormat, patches: Patch[], warnings: string[], subjects: string[], intended: Triple[]): RdfResult {
   let text: string;
   try {
     text = applyPatches(src, order(patches));
@@ -625,17 +502,10 @@ function finish(
     return { ok: false, error: `The edit would not parse: ${(e as Error).message}` };
   }
   const g: Gate = gate(before, after, subjects, intended);
-  return g.ok
-    ? { ok: true, text, patches: order(patches), warnings, removed: g.removed, added: g.added }
-    : { ok: false, error: g.reason };
+  return g.ok ? { ok: true, text, patches: order(patches), warnings, removed: g.removed, added: g.added } : { ok: false, error: g.reason };
 }
 /** Applies requested pairs and rejects unintended changes to the parsed RDF graph. */
-export function editRdfItem(
-  src: string,
-  filename: string,
-  subject: string,
-  desired: DesiredPair[],
-): RdfResult {
+export function editRdfItem(src: string, filename: string, subject: string, desired: DesiredPair[]): RdfResult {
   const format = formatOf(filename, src);
   try {
     const item = readRdfItem(src, filename, subject);
@@ -667,21 +537,12 @@ export function rdfReferences(src: string, filename: string, subject: string) {
     return (bySubject.get(termKey(t)) ?? []).some(x => reaches(x.o, seen));
   };
   const blankOwners: string[] = [];
-  for (const t of triples)
-    if (t.s.termType === 'NamedNode' && t.s.value !== subject && reaches(t.o))
-      owners.add(t.s.value);
-  for (const t of triples)
-    if (isBlank(t.s) && termKey(t.o) === key && !triples.some(x => termKey(x.o) === termKey(t.s)))
-      blankOwners.push(termKey(t.s));
+  for (const t of triples) if (t.s.termType === 'NamedNode' && t.s.value !== subject && reaches(t.o)) owners.add(t.s.value);
+  for (const t of triples) if (isBlank(t.s) && termKey(t.o) === key && !triples.some(x => termKey(x.o) === termKey(t.s))) blankOwners.push(termKey(t.s));
   return { owners: [...owners], unowned: blankOwners.length };
 }
 /** Deletes a resource and selected references behind the RDF graph check. */
-export function deleteRdfItem(
-  src: string,
-  filename: string,
-  subject: string,
-  withReferences = true,
-): RdfResult & { dependents?: { subject: string; pairs: string[] }[] } {
+export function deleteRdfItem(src: string, filename: string, subject: string, withReferences = true): RdfResult & { dependents?: { subject: string; pairs: string[] }[] } {
   const format = formatOf(filename, src);
   try {
     const p = parsed(src, format);
@@ -704,9 +565,7 @@ export function deleteRdfItem(
             error: `${o.subjectText} refers to this resource: ${o.refusal.reason}`,
             line: o.refusal.line,
           };
-        const keep = o.pairs.filter(
-          x => !x.triples.some(t => t.o.termType === 'NamedNode' && t.o.value === subject),
-        );
+        const keep = o.pairs.filter(x => !x.triples.some(t => t.o.termType === 'NamedNode' && t.o.value === subject));
         const drop = o.pairs.filter(x => !keep.includes(x));
         const pl = plan(
           o,
@@ -719,10 +578,7 @@ export function deleteRdfItem(
         subjects.push(owner);
         dependents.push({
           subject: o.subjectText,
-          pairs: drop.map(
-            x =>
-              `${x.predicateText} ${x.objectText.length > 80 ? x.objectText.slice(0, 77) + '…' : x.objectText}`,
-          ),
+          pairs: drop.map(x => `${x.predicateText} ${x.objectText.length > 80 ? x.objectText.slice(0, 77) + '…' : x.objectText}`),
         });
       }
     return { ...finish(src, format, patches, warnings, subjects, intended), dependents };
@@ -732,12 +588,7 @@ export function deleteRdfItem(
 }
 // Source edits may change only this resource’s statements; unrelated triples must stay equal.
 /** Accepts a source edit only if statements outside the resource stay unchanged. */
-export function checkRdfSource(
-  before: string,
-  after: string,
-  filename: string,
-  subject: string,
-): Gate {
+export function checkRdfSource(before: string, after: string, filename: string, subject: string): Gate {
   const format = formatOf(filename, before);
   let a: Triple[];
   let b: Triple[];
@@ -757,12 +608,7 @@ export function checkRdfSource(
 export { formatOf };
 // A new resource: its statements in the file's own layout (refused when it already has some).
 /** Adds a new resource in the file's layout, refusing subjects already described. */
-export function addRdfItem(
-  src: string,
-  filename: string,
-  subject: string,
-  desired: DesiredPair[],
-): RdfResult {
+export function addRdfItem(src: string, filename: string, subject: string, desired: DesiredPair[]): RdfResult {
   try {
     if (readRdfItem(src, filename, subject).pairs.length)
       return {
@@ -784,8 +630,7 @@ export function addRdfItem(
 export function rdfPrefixes(src: string, filename: string): Record<string, string> {
   const format = formatOf(filename, src);
   try {
-    if (format === 'turtle' || format === 'n3')
-      return { ...WELL_KNOWN, ...readDocument(src).prefixes };
+    if (format === 'turtle' || format === 'n3') return { ...WELL_KNOWN, ...readDocument(src).prefixes };
     if (format === 'rdfxml') {
       const root = rdfRoot(scanXml(src));
       return {

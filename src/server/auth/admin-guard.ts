@@ -6,24 +6,10 @@ import type { Bootstrap, GrantOptions } from './grants';
 import type { NormalizedPrincipal } from './principal';
 
 /** A recorded human identity with the last successful sign-in time. */
-export type RecordedUser = Pick<
-  NormalizedPrincipal,
-  'id' | 'kind' | 'groups' | 'groupsResolved' | 'verifiedEmail'
-> & { lastSignInAt: string };
+export type RecordedUser = Pick<NormalizedPrincipal, 'id' | 'kind' | 'groups' | 'groupsResolved' | 'verifiedEmail'> & { lastSignInAt: string };
 /** Matches emergency identities without trusting an unverified address or display name. */
-export function isBootstrapAdmin(
-  principal: Pick<NormalizedPrincipal, 'id' | 'verifiedEmail'>,
-  bootstrap: Bootstrap,
-): boolean {
-  return (
-    bootstrap.ids.includes(principal.id) ||
-    Boolean(
-      principal.verifiedEmail &&
-      bootstrap.emails.some(
-        email => email.toLowerCase() === principal.verifiedEmail!.toLowerCase(),
-      ),
-    )
-  );
+export function isBootstrapAdmin(principal: Pick<NormalizedPrincipal, 'id' | 'verifiedEmail'>, bootstrap: Bootstrap): boolean {
+  return bootstrap.ids.includes(principal.id) || Boolean(principal.verifiedEmail && bootstrap.emails.some(email => email.toLowerCase() === principal.verifiedEmail!.toLowerCase()));
 }
 
 /** Settings of the last-Admin check: who signed in, the recovery identities and the clock. */
@@ -54,13 +40,7 @@ function recentPeople(next: AccessConfig, options: LastAdminOptions): Normalized
   const cutoff = options.now.getTime() - options.sessionLifetimeHours * 3_600_000;
   const disabled = new Set(next.deactivated.principals.map(principal => principal.id));
   return options.users
-    .filter(
-      user =>
-        user.kind === 'person' &&
-        !disabled.has(user.id) &&
-        Date.parse(user.lastSignInAt) >= cutoff &&
-        Date.parse(user.lastSignInAt) <= options.now.getTime(),
-    )
+    .filter(user => user.kind === 'person' && !disabled.has(user.id) && Date.parse(user.lastSignInAt) >= cutoff && Date.parse(user.lastSignInAt) <= options.now.getTime())
     .map(signInIdentity);
 }
 
@@ -111,19 +91,13 @@ function proposedAccess(next: AccessConfig, options: LastAdminOptions) {
  * would be allowed the `admin` action. The proposed grants, roles and rules are evaluated by a
  * separate access boundary, so a policy that forbids Admins counts as removing them.
  */
-export function checkLastAdmin(
-  next: AccessConfig,
-  options: LastAdminOptions,
-): { ok: true } | { ok: false; reason: 'last-admin' } {
+export function checkLastAdmin(next: AccessConfig, options: LastAdminOptions): { ok: true } | { ok: false; reason: 'last-admin' } {
   const proposed = proposedAccess(next, options);
   const bootstrap = bootstrapIdentities(options.bootstrap);
   // Proposals are validated before this check. A configuration that still cannot be loaded leaves
   // only the bootstrap identities, which the server recognizes from its own settings.
   if (!proposed) return bootstrap.length > 0 ? { ok: true } : { ok: false, reason: 'last-admin' };
-  const allowed = [...recentPeople(next, options), ...bootstrap].some(
-    identity =>
-      proposed.authorize(proposed.principalFor(identity), 'admin', { type: 'workspace' }).allow,
-  );
+  const allowed = [...recentPeople(next, options), ...bootstrap].some(identity => proposed.authorize(proposed.principalFor(identity), 'admin', { type: 'workspace' }).allow);
   if (allowed) return { ok: true };
   return { ok: false, reason: 'last-admin' };
 }

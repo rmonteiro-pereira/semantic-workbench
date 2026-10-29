@@ -3,15 +3,7 @@
  * component state that unmounts, so undo and redo can bring a screen back exactly as it was.
  * It touches no DOM: the environment supplies scheduling, rendering and the browser mirror.
  */
-import {
-  emptyActionHistory,
-  isForgotten,
-  positionOf,
-  record,
-  travel,
-  type ActionHistory,
-  type ActionStep,
-} from './action-history';
+import { emptyActionHistory, isForgotten, positionOf, record, travel, type ActionHistory, type ActionStep } from './action-history';
 
 export type RecorderEnvironment = {
   /** Runs a function after the current event and the renders it caused have finished. */

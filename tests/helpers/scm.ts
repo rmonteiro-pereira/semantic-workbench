@@ -7,12 +7,7 @@ import { testWorkspace } from './temp-data-dir';
 // Source Control fixtures: an isolated workspace with one project, a local bare remote and a
 // second clone standing for "someone else" — never a network remote or the owner's repositories.
 /** Calls the workspace HTTP handler and returns the status and decoded JSON body. */
-export const call = async (
-  t: { handler: (r: Request) => Promise<Response> },
-  method: string,
-  path: string,
-  body?: unknown,
-) => {
+export const call = async (t: { handler: (r: Request) => Promise<Response> }, method: string, path: string, body?: unknown) => {
   const r = await t.handler(
     new Request('http://127.0.0.1:4310' + path, {
       method,
@@ -38,14 +33,11 @@ export function sh(cwd: string, args: string[]) {
   return r.stdout.toString();
 }
 /** Builds a minimal shop ontology with the supplied customer description. */
-export const ontology = (desc: string) =>
-  `name: Shop\nontology:\n  - concept: Customer\n    type: EntityType\n    description: ${desc}\n  - concept: Order\n    type: EntityType\n`;
+export const ontology = (desc: string) => `name: Shop\nontology:\n  - concept: Customer\n    type: EntityType\n    description: ${desc}\n  - concept: Order\n    type: EntityType\n`;
 /** Creates a disposable project with optional local remote and second clone. */
 export async function scmProject(options: { remote?: boolean } = {}) {
   const t = await testWorkspace();
-  const created = await ok(
-    call(t, 'POST', '/api/import', { files: [{ path: 'shop.yaml', source: ontology('Buys.') }] }),
-  );
+  const created = await ok(call(t, 'POST', '/api/import', { files: [{ path: 'shop.yaml', source: ontology('Buys.') }] }));
   const slug = created.slug;
   const dir = join(t.root, 'projects', slug);
   const base = `/api/projects/${slug}`;

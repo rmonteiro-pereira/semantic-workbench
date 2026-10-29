@@ -77,15 +77,7 @@ export function LineageLegend({
         return (
           <li key={l} className={`line l-${l}`}>
             <svg width="18" height="6" aria-hidden="true">
-              <line
-                x1="0"
-                y1="3"
-                x2="18"
-                y2="3"
-                stroke={s.stroke}
-                strokeWidth="2"
-                strokeDasharray={s.dash}
-              />
+              <line x1="0" y1="3" x2="18" y2="3" stroke={s.stroke} strokeWidth="2" strokeDasharray={s.dash} />
             </svg>
             {s.label}
           </li>

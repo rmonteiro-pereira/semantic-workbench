@@ -2,13 +2,7 @@
 import { test, expect } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { parse } from 'yaml';
-import {
-  canonical,
-  diffContracts,
-  diffObject,
-  flattenProperties,
-  lastChange,
-} from '../src/app/odcs/odcs-diff';
+import { canonical, diffContracts, diffObject, flattenProperties, lastChange } from '../src/app/odcs/odcs-diff';
 const base = parse(readFileSync('public/examples/commerce/commerce.odcs.yaml', 'utf8'));
 const clone = () => structuredClone(base);
 const orders = (c: any) => c.schema.find((o: any) => o.name === 'orders');
@@ -58,12 +52,7 @@ test('physical type, keys, relationships and classification changes are all repo
   p.primaryKey = true;
   p.classification = 'internal';
   p.relationships[0].to = 'customers.name';
-  expect(diffObject(base, next, 'orders')!.properties[0].changes.map(c => c.attribute)).toEqual([
-    'classification',
-    'physicalType',
-    'primaryKey',
-    'relationships',
-  ]);
+  expect(diffObject(base, next, 'orders')!.properties[0].changes.map(c => c.attribute)).toEqual(['classification', 'physicalType', 'primaryKey', 'relationships']);
 });
 test('objects added and removed, contract-level attributes, nested properties by dotted path, matching by id', () => {
   const next = clone();
@@ -80,20 +69,10 @@ test('objects added and removed, contract-level attributes, nested properties by
     { name: 'address', logicalType: 'object', properties: [{ name: 'street' }] },
     { name: 'tags', logicalType: 'array', items: { logicalType: 'string' } },
   ];
-  expect(flattenProperties(tree).map(x => x.path)).toEqual([
-    'address',
-    'address.street',
-    'tags',
-    'tags[]',
-  ]);
+  expect(flattenProperties(tree).map(x => x.path)).toEqual(['address', 'address.street', 'tags', 'tags[]']);
   const changed = structuredClone(tree);
   changed[0].properties![0] = { name: 'street', logicalType: 'string' } as any;
-  expect(
-    diffContracts(
-      { schema: [{ name: 'o', properties: tree }] },
-      { schema: [{ name: 'o', properties: changed }] },
-    ).objects[0].properties,
-  ).toEqual([
+  expect(diffContracts({ schema: [{ name: 'o', properties: tree }] }, { schema: [{ name: 'o', properties: changed }] }).objects[0].properties).toEqual([
     {
       path: 'address.street',
       kind: 'changed',

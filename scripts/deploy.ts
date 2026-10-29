@@ -48,21 +48,10 @@ export type AzureClient = {
 };
 
 /** Selects an older promoted digest independently of revision creation order. */
-export function previousPromotion(
-  active: Revision,
-  promoted: { tag: string; revision: Revision }[],
-  failed: Set<string>,
-): Revision {
+export function previousPromotion(active: Revision, promoted: { tag: string; revision: Revision }[], failed: Set<string>): Revision {
   const activeTags = promoted.filter(entry => entry.revision.digest === active.digest);
-  const activeTag =
-    activeTags.sort((left, right) => compareReleases(right.tag, left.tag))[0]?.tag ??
-    `v${active.version}`;
-  const candidates = promoted.filter(
-    entry =>
-      compareReleases(entry.tag, activeTag) < 0 &&
-      entry.revision.digest !== active.digest &&
-      !failed.has(entry.revision.digest),
-  );
+  const activeTag = activeTags.sort((left, right) => compareReleases(right.tag, left.tag))[0]?.tag ?? `v${active.version}`;
+  const candidates = promoted.filter(entry => compareReleases(entry.tag, activeTag) < 0 && entry.revision.digest !== active.digest && !failed.has(entry.revision.digest));
   candidates.sort((left, right) => compareReleases(right.tag, left.tag));
   if (!candidates[0]) throw Error('No previous promoted version available');
   return candidates[0].revision;
@@ -76,9 +65,7 @@ export function targetIssuer(target: Target): string {
 /** Refuses target drift by naming the setting that the operator must correct. */
 export function preflight(app: AppSettings, target: Target) {
   const identity =
-    `/subscriptions/${target.AZURE_SUBSCRIPTION_ID}/resourceGroups/` +
-    `${target.ACA_RESOURCE_GROUP}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/` +
-    target.APP_IDENTITY_NAME;
+    `/subscriptions/${target.AZURE_SUBSCRIPTION_ID}/resourceGroups/` + `${target.ACA_RESOURCE_GROUP}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/` + target.APP_IDENTITY_NAME;
   const checks: [string, boolean][] = [
     ['revision mode', app.mode === 'Single'],
     ['replicas', app.minReplicas === 1 && app.maxReplicas === 1],
@@ -102,11 +89,7 @@ export function preflight(app: AppSettings, target: Target) {
     [
       'Key Vault references',
       app.secrets.length > 0 &&
-        app.secrets.every(
-          secret =>
-            secret.url.startsWith(`https://${target.KEY_VAULT_NAME}.vault.azure.net/secrets/`) &&
-            secret.identity.toLowerCase() === identity.toLowerCase(),
-        ) &&
+        app.secrets.every(secret => secret.url.startsWith(`https://${target.KEY_VAULT_NAME}.vault.azure.net/secrets/`) && secret.identity.toLowerCase() === identity.toLowerCase()) &&
         app.secrets.some(secret => app.env.SW_SESSION_KEY === `secretref:${secret.name}`),
     ],
   ];
@@ -120,10 +103,7 @@ export function preflight(app: AppSettings, target: Target) {
   ];
   for (const name of secretSettings) {
     if (!app.env[name]) continue;
-    checks.push([
-      `Key Vault ${name}`,
-      app.secrets.some(secret => app.env[name] === `secretref:${secret.name}`),
-    ]);
+    checks.push([`Key Vault ${name}`, app.secrets.some(secret => app.env[name] === `secretref:${secret.name}`)]);
   }
   const wrong = checks.filter(([, valid]) => !valid).map(([name]) => name);
   if (wrong.length) throw Error(`Preflight failed: ${wrong.join(', ')}`);
@@ -157,12 +137,7 @@ export async function deploy(target: Target, release: Release, client: AzureClie
 }
 
 /** Records the active revision and restores it if an update or smoke check fails. */
-export async function updateWithRecovery(
-  client: AzureClient,
-  before: Revision,
-  digest: string,
-  expected: SmokeExpected,
-) {
+export async function updateWithRecovery(client: AzureClient, before: Revision, digest: string, expected: SmokeExpected) {
   console.log(JSON.stringify({ event: 'record', before }));
   try {
     const name = await client.update(digest);
@@ -185,8 +160,7 @@ export async function updateWithRecovery(
 export async function rollback(target: Target, to: string, sourceRef: string, client: AzureClient) {
   if (!sourceRef.startsWith('refs/tags/')) throw Error('Rollback requires a tag ref');
   const tag = releaseTag(undefined, sourceRef);
-  if (!['previous', 'tag', tag].includes(to))
-    throw Error('Rollback version must match the tag ref');
+  if (!['previous', 'tag', tag].includes(to)) throw Error('Rollback version must match the tag ref');
   preflight(await client.inspect(), target);
   const revision = to === 'previous' ? await client.previous() : await client.resolve(tag);
   const commitRevision = await client.resolve(`sha-${revision.commit}`);
@@ -214,16 +188,10 @@ async function main() {
     },
   });
   if (values.help) {
-    console.log(
-      'deploy:azure [--digest sha256:… --version <package-version> --commit <sha>] [--fake]',
-    );
+    console.log('deploy:azure [--digest sha256:… --version <package-version> --commit <sha>] [--fake]');
     console.log('deploy:rollback --to previous|tag|<vX.Y.Z> [--fake]');
-    console.log(
-      'SOURCE_REF must name a release tag; IMAGE_DIGEST and BUILD_COMMIT supply defaults.',
-    );
-    console.log(
-      '--fake uses local fixtures; --fail-smoke exercises automatic rollback with --fake.',
-    );
+    console.log('SOURCE_REF must name a release tag; IMAGE_DIGEST and BUILD_COMMIT supply defaults.');
+    console.log('--fake uses local fixtures; --fail-smoke exercises automatic rollback with --fake.');
     return;
   }
   if (values['fail-smoke'] && !values.fake) throw Error('--fail-smoke requires --fake');
@@ -246,8 +214,7 @@ async function main() {
   }
   if (positionals[0] !== 'deploy') throw Error('Expected deploy or rollback');
   const manifest = JSON.parse(readFileSync('package.json', 'utf8'));
-  const packageVersion =
-    manifest.version ?? (values.fake ? fakeRelease?.packageVersion : undefined);
+  const packageVersion = manifest.version ?? (values.fake ? fakeRelease?.packageVersion : undefined);
   const version = values.version ?? packageVersion;
   await deploy(
     target,

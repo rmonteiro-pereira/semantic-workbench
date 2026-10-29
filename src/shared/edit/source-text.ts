@@ -6,8 +6,7 @@ import { dominantLineBreak, type Patch } from '../editor/patch';
 /** Exports the source replacement type used by item patchers. */
 export type { Patch };
 /** Checks for a non-null mapping value rather than an array. */
-export const isObject = (v: unknown): v is Record<string, any> =>
-  !!v && typeof v === 'object' && !Array.isArray(v);
+export const isObject = (v: unknown): v is Record<string, any> => !!v && typeof v === 'object' && !Array.isArray(v);
 /** Compares structured values recursively without depending on object key order. */
 export function deepEqual(a: any, b: any): boolean {
   if (a === b) return true;
@@ -32,8 +31,7 @@ export const lineStart = (src: string, pos: number) => {
 
 /** Returns the offset after the containing line's break, or the end of the text. */
 export function lineEndAfter(src: string, pos: number) {
-  if (pos > 0 && (src[pos - 1] === '\n' || (src[pos - 1] === '\r' && src[pos] !== '\n')))
-    return pos;
+  if (pos > 0 && (src[pos - 1] === '\n' || (src[pos - 1] === '\r' && src[pos] !== '\n'))) return pos;
   for (let i = pos; i < src.length; i++) {
     if (src[i] === '\n') return i + 1;
     if (src[i] === '\r') return src[i + 1] === '\n' ? i + 2 : i + 1;
@@ -57,8 +55,7 @@ export function textStyle(src: string, json: boolean): TextStyle {
   return { eol: dominantLineBreak(src), unit: m ? m[1] : json ? '  ' : '  ', json };
 }
 /** Converts line endings to the requested source style. */
-export const withEol = (text: string, eol: string) =>
-  eol === '\n' ? text : text.replace(/\n/g, eol);
+export const withEol = (text: string, eol: string) => (eol === '\n' ? text : text.replace(/\n/g, eol));
 const splitLines = (text: string) => text.split(/(\r\n|\r|\n)/);
 // Item fragment: the item's lines without their common indentation. `reindent(dedent(x))===x`
 // whenever every line with content starts with the prefix; otherwise nothing is removed.
@@ -83,11 +80,7 @@ export const reindent = (text: string, prefix: string) =>
 // included) up to the end of its last line, without the final line break.
 /** Returns an item's full-line span without the final line break. */
 export function itemSpan(src: string, from: number, to: number) {
-  const start =
-    leadingSpace(src, from) !== null ||
-    /^[ \t]*-[ \t]+$/.test(src.slice(lineStart(src, from), from))
-      ? lineStart(src, from)
-      : from;
+  const start = leadingSpace(src, from) !== null || /^[ \t]*-[ \t]+$/.test(src.slice(lineStart(src, from), from)) ? lineStart(src, from) : from;
   let end = to;
   while (end > start && (src[end - 1] === '\n' || src[end - 1] === '\r')) end--;
   const prefix = start === from ? '' : /^[ \t]*/.exec(src.slice(start, from))![0];

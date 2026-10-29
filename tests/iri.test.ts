@@ -16,11 +16,7 @@ const edit = (source: string, change: (d: any) => void) => {
 test('issue 2: uri is rejected with a rename hint, iri with prefixes is accepted', () => {
   const bad = validateInput(uriSource, 'uri.ontology.yaml');
   expect(bad.valid).toBe(false);
-  expect(bad.issues.map(i => i.path)).toEqual([
-    '/ontology/0/uri',
-    '/ontology/1/uri',
-    '/ontology/1/relationships/0/uri',
-  ]);
+  expect(bad.issues.map(i => i.path)).toEqual(['/ontology/0/uri', '/ontology/1/uri', '/ontology/1/relationships/0/uri']);
   expect(bad.issues.every(i => i.message.includes('rename uri to iri'))).toBe(true);
   expect(bad.issues.some(i => i.path === '/prefixes')).toBe(false);
   const good = validateInput(iriSource, 'iri.ontology.yaml');
@@ -31,9 +27,7 @@ test('issue 2: uri is rejected with a rename hint, iri with prefixes is accepted
     'u.yaml',
   );
   expect(unversioned.valid).toBe(true);
-  expect(
-    unversioned.issues.filter(i => i.path.endsWith('/uri')).every(i => i.severity === 'warning'),
-  ).toBe(true);
+  expect(unversioned.issues.filter(i => i.path.endsWith('/uri')).every(i => i.severity === 'warning')).toBe(true);
 });
 test('QName IRIs require a declared prefix; full IRIs and duplicate expansions are checked', () => {
   const undeclared = validateInput(
@@ -104,9 +98,7 @@ test('issue 2 request: modular ontologies group by declared namespace prefix', (
   const m = inspect(modular, 'm.yaml');
   const o = modelOverview(m.entities, m.edges, m.name);
   expect(o.mode).toBe('namespaces');
-  expect(
-    Object.fromEntries(o.groups.map(g => [g.name, g.entities.map(e => e.name).sort()])),
-  ).toEqual({
+  expect(Object.fromEntries(o.groups.map(g => [g.name, g.entities.map(e => e.name).sort()]))).toEqual({
     'ex:': ['Code', 'Thing'],
     'lease:': ['Lease'],
     'No IRI': ['Note'],
@@ -132,19 +124,11 @@ test('issue 3: a legacy semantic_model wrapper resolves by its inner model name'
   expect(b.rootConcept).toBe('Order');
   expect(b.fields).toEqual(['["orders","order_id"]']);
   expect(c.fields[0].evidence.path).toEqual(['semantic_model', 0, 'datasets', 0, 'fields', 0]);
-  const flat = docs.map(d =>
-    d.id === '2'
-      ? { ...d, source: stringify({ version: '0.2.0.dev0', ...parse(d.source).semantic_model[0] }) }
-      : d,
-  );
+  const flat = docs.map(d => (d.id === '2' ? { ...d, source: stringify({ version: '0.2.0.dev0', ...parse(d.source).semantic_model[0] }) } : d));
   expect(buildContext(flat, '0').findings).toEqual([]);
-  const renamed = docs.map(d =>
-    d.id === '2' ? { ...d, source: d.source.replace('name: sales', 'name: retail') } : d,
-  );
+  const renamed = docs.map(d => (d.id === '2' ? { ...d, source: d.source.replace('name: sales', 'name: retail') } : d));
   const message = buildContext(renamed, '0').findings[0].message;
   expect(message).toContain('resolves to 0 local documents');
   expect(message).toContain('"retail" in sales.semantic_model.yaml#/semantic_model/0');
-  expect(buildContext(docs.slice(0, 2), '0').findings[0].message).toContain(
-    'No semantic model documents are loaded',
-  );
+  expect(buildContext(docs.slice(0, 2), '0').findings[0].message).toContain('No semantic model documents are loaded');
 });

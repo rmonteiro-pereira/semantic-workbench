@@ -12,14 +12,7 @@ import { FlagCheckbox, LogicalTypeSelect } from './PropertyInlineControls';
 import './odcs.css';
 import './contract.css';
 const list = (v: unknown): any[] => (Array.isArray(v) ? v : []);
-const text = (v: unknown) =>
-  v === undefined || v === null
-    ? ''
-    : typeof v === 'string'
-      ? v
-      : typeof v === 'number' || typeof v === 'boolean'
-        ? String(v)
-        : JSON.stringify(v);
+const text = (v: unknown) => (v === undefined || v === null ? '' : typeof v === 'string' ? v : typeof v === 'number' || typeof v === 'boolean' ? String(v) : JSON.stringify(v));
 type Property = Record<string, any>;
 type Row = { path: string; property: Property };
 /** A property attribute the rows can be sorted and filtered by. */
@@ -62,10 +55,7 @@ function foreignKeySentences(data: any, objectIndex: number) {
     if (k.from === objectIndex)
       k.fromColumns.forEach((column, i) => {
         const parent = `${String(schema[k.to]?.name)}.${k.toColumns[i]}`;
-        out.set(
-          `${column}>${String(schema[k.to]?.name)}`,
-          hopSentence({ child: `${own}.${column}`, parent }),
-        );
+        out.set(`${column}>${String(schema[k.to]?.name)}`, hopSentence({ child: `${own}.${column}`, parent }));
       });
   return out;
 }
@@ -78,18 +68,9 @@ function fieldText(row: Row, key: string, targets: Map<string, string[]>) {
 }
 
 /** Filters rows by any attribute and orders them by the chosen one. */
-function visibleRows(
-  rows: Row[],
-  filter: string,
-  sort: Sort | null,
-  targets: Map<string, string[]>,
-) {
+function visibleRows(rows: Row[], filter: string, sort: Sort | null, targets: Map<string, string[]>) {
   const query = filter.trim().toLowerCase();
-  const matching = query
-    ? rows.filter(row =>
-        SORT_FIELDS.some(f => fieldText(row, f.key, targets).toLowerCase().includes(query)),
-      )
-    : rows;
+  const matching = query ? rows.filter(row => SORT_FIELDS.some(f => fieldText(row, f.key, targets).toLowerCase().includes(query))) : rows;
   if (!sort) return matching;
   const compare = (a: Row, b: Row) =>
     fieldText(a, sort.key, targets).localeCompare(fieldText(b, sort.key, targets), undefined, {
@@ -131,10 +112,7 @@ export function PropertiesTab({ data, objectIndex, onOpenObject, editor }: TabPr
   const [sort, setSort] = useRecordedState<Sort | null>('dataset.sort', null);
   const [editing, setEditing] = useState<Row | null>(null);
   const [saveError, setSaveError] = useState('');
-  const shown = useMemo(
-    () => visibleRows(rows, filter, sort, targets),
-    [rows, filter, sort, targets],
-  );
+  const shown = useMemo(() => visibleRows(rows, filter, sort, targets), [rows, filter, sort, targets]);
   const columns = usedColumns(rows, targets, editor);
   async function saveInRow(row: Row, change: PropertyChange) {
     const failure = await editor?.saveChange(objectIndex, row.path, change);
@@ -145,20 +123,10 @@ export function PropertiesTab({ data, objectIndex, onOpenObject, editor }: TabPr
       <div className="odcs-toolbar">
         <label className="odcs-search">
           <Search size={14} />
-          <input
-            type="search"
-            aria-label="Filter properties"
-            placeholder="Filter properties…"
-            value={filter}
-            onChange={e => setFilter(e.target.value)}
-          />
+          <input type="search" aria-label="Filter properties" placeholder="Filter properties…" value={filter} onChange={e => setFilter(e.target.value)} />
         </label>
         <SortControl sort={sort} onChange={setSort} />
-        <small>
-          {shown.length === rows.length
-            ? `${rows.length} properties`
-            : `${shown.length} of ${rows.length} properties`}
-        </small>
+        <small>{shown.length === rows.length ? `${rows.length} properties` : `${shown.length} of ${rows.length} properties`}</small>
       </div>
       <div className="odcs-table-wrap">
         <table className="odcs-table odcs-properties stack" aria-label="Properties">
@@ -197,13 +165,7 @@ export function PropertiesTab({ data, objectIndex, onOpenObject, editor }: TabPr
   );
 }
 
-function SortControl({
-  sort,
-  onChange,
-}: {
-  sort: Sort | null;
-  onChange: (s: Sort | null) => void;
-}) {
+function SortControl({ sort, onChange }: { sort: Sort | null; onChange: (s: Sort | null) => void }) {
   function chooseField(key: string) {
     onChange(key ? { key, direction: sort?.direction ?? 1 } : null);
   }
@@ -214,11 +176,7 @@ function SortControl({
     <div className="odcs-sort-control">
       <label>
         <span>Sort by</span>
-        <select
-          aria-label="Sort properties by"
-          value={sort?.key ?? ''}
-          onChange={e => chooseField(e.target.value)}
-        >
+        <select aria-label="Sort properties by" value={sort?.key ?? ''} onChange={e => chooseField(e.target.value)}>
           <option value="">File order</option>
           {SORT_FIELDS.map(field => (
             <option key={field.key} value={field.key}>
@@ -228,14 +186,7 @@ function SortControl({
         </select>
       </label>
       {sort && (
-        <button
-          type="button"
-          aria-label={
-            sort.direction === 1 ? 'Sorted ascending, reverse' : 'Sorted descending, reverse'
-          }
-          title="Reverse the sort order"
-          onClick={reverse}
-        >
+        <button type="button" aria-label={sort.direction === 1 ? 'Sorted ascending, reverse' : 'Sorted descending, reverse'} title="Reverse the sort order" onClick={reverse}>
           {sort.direction === 1 ? <ArrowUp size={13} /> : <ArrowDown size={13} />}
         </button>
       )}
@@ -288,25 +239,11 @@ function ConstraintBadges({ property }: { property: Property }) {
   );
 }
 
-function ForeignKeyChips({
-  targets,
-  sentenceOf,
-  onOpen,
-}: {
-  targets: string[];
-  sentenceOf: (target: string) => string | undefined;
-  onOpen: (n: string) => void;
-}) {
+function ForeignKeyChips({ targets, sentenceOf, onOpen }: { targets: string[]; sentenceOf: (target: string) => string | undefined; onOpen: (n: string) => void }) {
   return (
     <>
       {targets.map(target => (
-        <button
-          key={target}
-          className="odcs-link fk"
-          aria-label={`Open ${target}`}
-          title={sentenceOf(target) ?? `Foreign key to ${target}`}
-          onClick={() => onOpen(target)}
-        >
+        <button key={target} className="odcs-link fk" aria-label={`Open ${target}`} title={sentenceOf(target) ?? `Foreign key to ${target}`} onClick={() => onOpen(target)}>
           <Badge kind="fk" />
           {target}
         </button>
@@ -345,25 +282,12 @@ const FLAG_COLUMNS = [
   { key: 'primaryKey', label: 'Primary key' },
 ] as const;
 
-function FlagCells({
-  row,
-  canEdit,
-  onChange,
-}: {
-  row: Row;
-  canEdit: boolean;
-  onChange: (change: PropertyChange) => Promise<void>;
-}) {
+function FlagCells({ row, canEdit, onChange }: { row: Row; canEdit: boolean; onChange: (change: PropertyChange) => Promise<void> }) {
   return (
     <>
       {FLAG_COLUMNS.map(({ key, label }) => (
         <td key={key} data-label={label}>
-          <FlagCheckbox
-            label={`${label} of ${row.path}`}
-            checked={row.property[key] === true}
-            disabled={!canEdit}
-            onChange={checked => onChange({ key, value: checked ? true : undefined })}
-          />
+          <FlagCheckbox label={`${label} of ${row.path}`} checked={row.property[key] === true} disabled={!canEdit} onChange={checked => onChange({ key, value: checked ? true : undefined })} />
         </td>
       ))}
     </>
@@ -386,20 +310,12 @@ function PropertyRow(props: RowProps) {
   const classification = text(property.classification);
   return (
     <tr>
-      <td
-        className="col-name"
-        data-label="Name"
-        style={depth ? { paddingLeft: 10 + depth * 14 } : undefined}
-      >
+      <td className="col-name" data-label="Name" style={depth ? { paddingLeft: 10 + depth * 14 } : undefined}>
         <code>{path}</code>
       </td>
       <td data-label="Logical type">
         {onEdit ? (
-          <LogicalTypeSelect
-            label={`Logical type of ${path}`}
-            value={text(property.logicalType)}
-            onChange={value => onChange({ key: 'logicalType', value: value || undefined })}
-          />
+          <LogicalTypeSelect label={`Logical type of ${path}`} value={text(property.logicalType)} onChange={value => onChange({ key: 'logicalType', value: value || undefined })} />
         ) : (
           text(property.logicalType) || '—'
         )}
@@ -432,22 +348,13 @@ function PropertyRow(props: RowProps) {
       )}
       {columns.foreignKeys && (
         <td data-label="Foreign keys">
-          <ForeignKeyChips
-            targets={targets}
-            sentenceOf={target => sentences.get(`${row.path}>${target}`)}
-            onOpen={onOpenObject}
-          />
+          <ForeignKeyChips targets={targets} sentenceOf={target => sentences.get(`${row.path}>${target}`)} onOpen={onOpenObject} />
         </td>
       )}
       {columns.actions && (
         <td className="col-actions" data-label="Edit">
           {onEdit && (
-            <button
-              type="button"
-              className="odcs-row-edit"
-              aria-label={`Edit ${path}`}
-              onClick={() => onEdit(row)}
-            >
+            <button type="button" className="odcs-row-edit" aria-label={`Edit ${path}`} onClick={() => onEdit(row)}>
               <Pencil size={13} />
               Edit
             </button>

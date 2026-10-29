@@ -11,12 +11,7 @@ const tokens = readTokens(readFileSync('src/shared/theme/theme.css', 'utf8'));
 
 test('the check reports each literal of a stylesheet with its line and ignores comments', () => {
   const found = violationsIn('src/fixture.css', fixture('leaky.css'));
-  expect(found.map(item => `${item.line}:${item.literal}`)).toEqual([
-    '4:#ffffff',
-    '5:rgba(23, 50, 58, 0.2)',
-    '6:red',
-    '9:#17323a14',
-  ]);
+  expect(found.map(item => `${item.line}:${item.literal}`)).toEqual(['4:#ffffff', '5:rgba(23, 50, 58, 0.2)', '6:red', '9:#17323a14']);
 });
 
 test('the check accepts tokens, currentColor, transparent, gradients and id selectors', () => {
@@ -25,12 +20,7 @@ test('the check accepts tokens, currentColor, transparent, gradients and id sele
 
 test('the check finds literals in script strings and not in prose or comments', () => {
   const found = violationsIn('src/fixture.tsx', fixture('leaky.tsx'));
-  expect(found.map(item => `${item.line}:${item.literal}`)).toEqual([
-    '2:#2a6c95',
-    '4:rgba(36,124,102,0.2)',
-    '6:#243936',
-    '6:white',
-  ]);
+  expect(found.map(item => `${item.line}:${item.literal}`)).toEqual(['2:#2a6c95', '4:rgba(36,124,102,0.2)', '6:#243936', '6:white']);
 });
 
 test('the check skips the theme files and generated code', () => {
@@ -51,9 +41,7 @@ test('the codemod maps a literal to the token of its job', () => {
 
 test('the codemod keeps transparency as color-mix and leaves far colours alone', () => {
   const shadow = mapLiteral('#17323a14', 'box-shadow', tokens);
-  expect(shadow.ok && shadow.replacement).toBe(
-    'color-mix(in srgb, var(--color-shadow) 8%, transparent)',
-  );
+  expect(shadow.ok && shadow.replacement).toBe('color-mix(in srgb, var(--color-shadow) 8%, transparent)');
   expect(mapLiteral('#ff00ff', 'color', tokens).ok).toBe(false);
 });
 
@@ -87,10 +75,7 @@ function tokenValues(block: string): Map<string, string> {
 }
 
 const lightBlock = themeCss.slice(themeCss.indexOf(':root {'), themeCss.indexOf('@media'));
-const mediaBlock = themeCss.slice(
-  themeCss.indexOf('@media'),
-  themeCss.indexOf(":root[data-theme='dark']"),
-);
+const mediaBlock = themeCss.slice(themeCss.indexOf('@media'), themeCss.indexOf(":root[data-theme='dark']"));
 const dataThemeBlock = themeCss.slice(themeCss.indexOf(":root[data-theme='dark']"));
 const light = tokenValues(lightBlock);
 const dark = tokenValues(dataThemeBlock);
@@ -116,20 +101,13 @@ test('every token a stylesheet or component refers to is defined in the theme', 
   expect(undefinedTokens).toEqual([]);
 });
 
-const SURFACES = [
-  '--color-surface',
-  '--color-surface-page',
-  '--color-surface-sunken',
-  '--color-surface-hover',
-  '--color-accent-soft',
-];
+const SURFACES = ['--color-surface', '--color-surface-page', '--color-surface-sunken', '--color-surface-hover', '--color-accent-soft'];
 
 for (const [name, values] of [
   ['light', light],
   ['dark', dark],
 ] as const) {
-  const ratio = (text: string, surface: string) =>
-    contrastRatio(parseColor(values.get(text)!)!, parseColor(values.get(surface)!)!);
+  const ratio = (text: string, surface: string) => contrastRatio(parseColor(values.get(text)!)!, parseColor(values.get(surface)!)!);
 
   test(`muted text keeps 4.5:1 on every surface in the ${name} theme`, () => {
     for (const surface of SURFACES) {

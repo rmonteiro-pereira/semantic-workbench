@@ -18,9 +18,7 @@ test('project and file filtering stay within the request latency budget', () => 
   const options = accessFixture();
   const projects = Array.from({ length: 20 }, (_, index) => `project-${index}`);
   const projectAccess = options.config.projects.projects['sales-contracts'];
-  options.config.projects.projects = Object.fromEntries(
-    projects.map(project => [project, structuredClone(projectAccess)]),
-  );
+  options.config.projects.projects = Object.fromEntries(projects.map(project => [project, structuredClone(projectAccess)]));
   options.config.grants = [
     {
       id: 'viewer',
@@ -44,9 +42,7 @@ test('project and file filtering stay within the request latency budget', () => 
   const listing = projects.map(project => ({ type: 'project' as const, project }));
   const identity = person('alice');
   const serverRun = () => {
-    expect(server.filter(server.principalFor(identity), 'read', files, item => item)).toHaveLength(
-      4500,
-    );
+    expect(server.filter(server.principalFor(identity), 'read', files, item => item)).toHaveLength(4500);
   };
   const localRun = () => {
     expect(local.filter(localPrincipal(), 'read', files, item => item)).toHaveLength(5000);
@@ -54,16 +50,11 @@ test('project and file filtering stay within the request latency budget', () => 
   serverRun();
   localRun();
   const projectsMs = measuredMedian(() => {
-    expect(
-      server.filter(server.principalFor(identity), 'read', listing, item => item),
-    ).toHaveLength(20);
+    expect(server.filter(server.principalFor(identity), 'read', listing, item => item)).toHaveLength(20);
   });
   const localMs = measuredMedian(localRun);
   const serverMs = measuredMedian(serverRun);
-  console.info(
-    `Access filtering median: projects ${projectsMs.toFixed(1)} ms, ` +
-      `server files ${serverMs.toFixed(1)} ms, local files ${localMs.toFixed(1)} ms`,
-  );
+  console.info(`Access filtering median: projects ${projectsMs.toFixed(1)} ms, ` + `server files ${serverMs.toFixed(1)} ms, local files ${localMs.toFixed(1)} ms`);
   expect(projectsMs).toBeLessThanOrEqual(150);
   expect(serverMs).toBeLessThanOrEqual(localMs * 1.1 + 50);
 });

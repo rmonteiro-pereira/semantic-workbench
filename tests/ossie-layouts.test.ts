@@ -21,11 +21,7 @@ const docs = async (files: string[]) =>
     })),
   );
 test('split and consolidated Flights give the same concepts, datasets, joins, metrics and 60 bindings', async () => {
-  const split = await docs([
-    'flights.ontology.yaml',
-    'flights.semantic_model.yaml',
-    'flights.mapping.yaml',
-  ]);
+  const split = await docs(['flights.ontology.yaml', 'flights.semantic_model.yaml', 'flights.mapping.yaml']);
   const consolidated = await docs(['flights.yaml']);
   const splitModel = inspect(split[1].source, split[1].filename) as any;
   const whole = inspect(consolidated[0].source, consolidated[0].filename) as any;
@@ -33,34 +29,24 @@ test('split and consolidated Flights give the same concepts, datasets, joins, me
   const count = (m: any, kind: string) => m.entities.filter((e: any) => e.kind === kind).length;
   expect(count(whole, 'Dataset')).toBe(count(splitModel, 'Dataset'));
   expect(count(whole, 'Dataset')).toBeGreaterThan(0);
-  expect(whole.edges.filter((e: any) => e.data.kind === 'Dataset relationship').length).toBe(
-    splitModel.edges.filter((e: any) => e.data.kind === 'Dataset relationship').length,
-  );
+  expect(whole.edges.filter((e: any) => e.data.kind === 'Dataset relationship').length).toBe(splitModel.edges.filter((e: any) => e.data.kind === 'Dataset relationship').length);
   expect(count(whole, 'Metric')).toBe(count(splitModel, 'Metric'));
   expect(whole.document.ontology.length).toBe(ontology.document.ontology.length);
   const a = buildContext(split, 'flights/flights.mapping.yaml');
   const b = buildContext(consolidated, agentCatalog(consolidated).mappings[0].id);
   expect(a.bindings).toHaveLength(60);
   expect(b.bindings).toHaveLength(60);
-  for (const k of ['concepts', 'datasets', 'joins', 'metrics', 'fields'] as const)
-    expect((b as any)[k].length).toBe((a as any)[k].length);
+  for (const k of ['concepts', 'datasets', 'joins', 'metrics', 'fields'] as const) expect((b as any)[k].length).toBe((a as any)[k].length);
   expect(b.findings.filter(f => f.severity === 'error')).toEqual([]);
 });
 test('layouts are labelled: split files, and the consolidated form as deprecated upstream', async () => {
-  for (const f of ['flights.ontology.yaml', 'flights.semantic_model.yaml', 'flights.mapping.yaml'])
-    expect((inspect(await read(f), f) as any).layout).toBe('split');
+  for (const f of ['flights.ontology.yaml', 'flights.semantic_model.yaml', 'flights.mapping.yaml']) expect((inspect(await read(f), f) as any).layout).toBe('split');
   const whole = inspect(await read('flights.yaml'), 'flights.yaml') as any;
   expect(whole.layout).toBe('embedded (deprecated)');
   // The embedded semantic model is not treated as ontology-only: its datasets are entities of the
   // file.
-  expect(
-    whole.entities.some((e: any) => e.kind === 'Dataset' && e.path[0] === 'ontology_mappings'),
-  ).toBe(true);
-  expect(
-    projectMetrics(await docs(['flights.yaml']), 'flights').every(
-      m => m.layout === 'embedded (deprecated)',
-    ),
-  ).toBe(true);
+  expect(whole.entities.some((e: any) => e.kind === 'Dataset' && e.path[0] === 'ontology_mappings')).toBe(true);
+  expect(projectMetrics(await docs(['flights.yaml']), 'flights').every(m => m.layout === 'embedded (deprecated)')).toBe(true);
 });
 test('other single-file layouts are rejected with the two official layouts named', async () => {
   const ontology = await read('flights.ontology.yaml');
@@ -70,10 +56,7 @@ test('other single-file layouts are rejected with the two official layouts named
   expect(r.valid).toBe(false);
   expect(r.issues.map(i => i.message).join(' ')).toContain('two official Ossie layouts');
   const mapping = await read('flights.mapping.yaml');
-  const r2 = validateInput(
-    mapping.replace(/^concept_mappings:/m, 'ontology: []\nconcept_mappings:'),
-    'm.yaml',
-  );
+  const r2 = validateInput(mapping.replace(/^concept_mappings:/m, 'ontology: []\nconcept_mappings:'), 'm.yaml');
   expect(r2.valid).toBe(false);
   expect(r2.issues.map(i => i.message).join(' ')).toContain('official Ossie layouts');
 });

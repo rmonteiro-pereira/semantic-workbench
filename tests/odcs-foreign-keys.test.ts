@@ -2,21 +2,14 @@
 import { test, expect } from 'bun:test';
 import { parse } from 'yaml';
 import { readFileSync } from 'node:fs';
-import {
-  odcsForeignKeys,
-  odcsExternalForeignKeys,
-  odcsReferenceIssues,
-} from '../src/shared/odcs/foreign-keys';
+import { odcsForeignKeys, odcsExternalForeignKeys, odcsReferenceIssues } from '../src/shared/odcs/foreign-keys';
 // Foreign keys column to column: fromColumns/toColumns are property paths of the referencing and
 // referenced objects, paired by position.
 const table = (name: string, properties: any[], extra: any = {}) => ({
   name,
   id: name + '_obj',
   logicalType: 'object',
-  properties: [
-    { name: 'id', id: name + '_id', logicalType: 'integer', primaryKey: true },
-    ...properties,
-  ],
+  properties: [{ name: 'id', id: name + '_id', logicalType: 'integer', primaryKey: true }, ...properties],
   ...extra,
 });
 const pairs = (data: any) =>
@@ -28,16 +21,9 @@ const pairs = (data: any) =>
   }));
 test('property-level key: from is the property, to the referenced object.property', () => {
   const data = {
-    schema: [
-      table('customers', []),
-      table('orders', [
-        { name: 'customer_id', relationships: [{ type: 'foreignKey', to: 'customers.id' }] },
-      ]),
-    ],
+    schema: [table('customers', []), table('orders', [{ name: 'customer_id', relationships: [{ type: 'foreignKey', to: 'customers.id' }] }])],
   };
-  expect(pairs(data)).toEqual([
-    { from: 1, to: 0, fromColumns: ['customer_id'], toColumns: ['id'] },
-  ]);
+  expect(pairs(data)).toEqual([{ from: 1, to: 0, fromColumns: ['customer_id'], toColumns: ['id'] }]);
   // Existing fields keep their values.
   expect(odcsForeignKeys(data)[0]).toMatchObject({
     label: 'customer_id',
@@ -79,25 +65,15 @@ test('fully qualified references resolve object and property ids', () => {
   };
   expect(pairs(data)).toEqual([{ from: 1, to: 0, fromColumns: ['id'], toColumns: ['code'] }]);
   const byName = {
-    schema: [
-      table('customers', [{ name: 'code' }]),
-      table('orders', [
-        { name: 'cc', relationships: [{ to: 'schema/customers/properties/code' }] },
-      ]),
-    ],
+    schema: [table('customers', [{ name: 'code' }]), table('orders', [{ name: 'cc', relationships: [{ to: 'schema/customers/properties/code' }] }])],
   };
   expect(pairs(byName)).toEqual([{ from: 1, to: 0, fromColumns: ['cc'], toColumns: ['code'] }]);
 });
 test('nested target paths keep parent.child', () => {
   const data = {
-    schema: [
-      table('people', [{ name: 'address', logicalType: 'object', properties: [{ name: 'zip' }] }]),
-      table('visits', [{ name: 'zip', relationships: [{ to: 'people.address.zip' }] }]),
-    ],
+    schema: [table('people', [{ name: 'address', logicalType: 'object', properties: [{ name: 'zip' }] }]), table('visits', [{ name: 'zip', relationships: [{ to: 'people.address.zip' }] }])],
   };
-  expect(pairs(data)).toEqual([
-    { from: 1, to: 0, fromColumns: ['zip'], toColumns: ['address.zip'] },
-  ]);
+  expect(pairs(data)).toEqual([{ from: 1, to: 0, fromColumns: ['zip'], toColumns: ['address.zip'] }]);
 });
 test('unequal composite arity keeps the key but pairs no columns and reports a finding', () => {
   const data = {
@@ -112,8 +88,7 @@ test('unequal composite arity keeps the key but pairs no columns and reports a f
   expect(odcsReferenceIssues(data)).toEqual([
     {
       path: '/schema/1/relationships/0/to',
-      message:
-        'Composite foreign key pairs 1 source column with 2 target columns; both lists must have the same length.',
+      message: 'Composite foreign key pairs 1 source column with 2 target columns; both lists must have the same length.',
     },
   ]);
 });

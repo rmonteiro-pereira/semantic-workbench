@@ -6,10 +6,7 @@ import { oidcConfig } from './server-auth';
 import type { TestUserName } from './auth-identities';
 
 /** Starts an Entra-shaped mock provider for one test and always stops it. */
-export async function withEntraProvider(
-  run: (provider: MockOidc) => Promise<void>,
-  options: MockOidcOptions = {},
-) {
+export async function withEntraProvider(run: (provider: MockOidc) => Promise<void>, options: MockOidcOptions = {}) {
   const provider = await startMockOidc({ ...options, shape: 'entra', layout: 'entra' });
   try {
     await run(provider);
@@ -26,11 +23,7 @@ export function entraConfig(provider: MockOidc, clientAuth?: ClientAuth): Server
 }
 
 /** Signs a person in through a sign-in provider and the mock's authorization page. */
-export async function signInWith(
-  client: SignInProvider,
-  provider: MockOidc,
-  username: TestUserName = 'alice',
-) {
+export async function signInWith(client: SignInProvider, provider: MockOidc, username: TestUserName = 'alice') {
   const started = await client.login('/');
   const callback = new URL(await provider.authorizeAs(username, started.url));
   return client.callback(callback, started.attempt);

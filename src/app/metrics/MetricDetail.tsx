@@ -10,19 +10,7 @@ import { MetricApproval } from './MetricApproval';
 import { additivityLabel, targetText, typeLabel } from './format';
 // The explanation comes from the server and never requires executing SQL.
 /** Displays a metric's metadata and server-generated explanation. */
-export function MetricDetail({
-  project,
-  kpi,
-  all,
-  onEdit,
-  onAddAttributes,
-}: {
-  project: string;
-  kpi: KpiSummary;
-  all: KpiSummary[];
-  onEdit?: () => void;
-  onAddAttributes?: () => void;
-}) {
+export function MetricDetail({ project, kpi, all, onEdit, onAddAttributes }: { project: string; kpi: KpiSummary; all: KpiSummary[]; onEdit?: () => void; onAddAttributes?: () => void }) {
   const [query, setQuery] = useRecordedState<ExplainQuery>('metrics.explain', {});
   const [explanation, setExplanation] = useState<KpiExplanation | null>(null);
   const [error, setError] = useState('');
@@ -44,14 +32,7 @@ export function MetricDetail({
         }
       });
     return () => abort.abort();
-  }, [
-    project,
-    kpi.file,
-    kpi.name,
-    kpi.expression,
-    JSON.stringify(kpi.extension),
-    JSON.stringify(query),
-  ]);
+  }, [project, kpi.file, kpi.name, kpi.expression, JSON.stringify(kpi.extension), JSON.stringify(query)]);
   const measures = kpi.concepts.filter(c => c.role === 'measures');
   const of = kpi.concepts.filter(c => c.role === 'of');
   const problems = [...new Set(kpi.concepts.flatMap(c => c.problems))];
@@ -81,18 +62,12 @@ export function MetricDetail({
         <MetricApproval project={project} kpi={kpi} />
         {kpi.description && <p className="kpi-description">{kpi.description}</p>}
         <div className="kpi-badges">
-          <span
-            className={`kpi-pill type-${kpi.type}`}
-            title={kpi.typeDeclared ? 'Declared type' : 'Read from the expression'}
-          >
+          <span className={`kpi-pill type-${kpi.type}`} title={kpi.typeDeclared ? 'Declared type' : 'Read from the expression'}>
             {typeLabel[kpi.type]}
             {!kpi.typeDeclared && ' · inferred'}
           </span>
           {kpi.additivity && (
-            <span
-              className={`kpi-pill additivity-${kpi.additivity}`}
-              title={kpi.additivityDeclared ? 'Declared additivity' : 'Read from the expression'}
-            >
+            <span className={`kpi-pill additivity-${kpi.additivity}`} title={kpi.additivityDeclared ? 'Declared additivity' : 'Read from the expression'}>
               {additivityLabel[kpi.additivity]}
               {!kpi.additivityDeclared && ' · inferred'}
             </span>
@@ -109,11 +84,7 @@ export function MetricDetail({
                   <span
                     key={i}
                     className="concept-chip"
-                    title={
-                      c.source === 'mapping-expression'
-                        ? `From a concept mapping in ${c.file} whose expression is this metric’s name`
-                        : `Metric binding in ${c.file}`
-                    }
+                    title={c.source === 'mapping-expression' ? `From a concept mapping in ${c.file} whose expression is this metric’s name` : `Metric binding in ${c.file}`}
                   >
                     {c.concept ?? c.input}
                     {c.source === 'mapping-expression' && <small>mapping</small>}
@@ -146,10 +117,7 @@ export function MetricDetail({
             <dd>
               {kpi.owner ?? <span className="muted">—</span>}
               {kpi.ownerVerified === false && (
-                <span
-                  className="kpi-unverified"
-                  title="This owner names nobody who has signed in, so approval treats the metric as having no owner"
-                >
+                <span className="kpi-unverified" title="This owner names nobody who has signed in, so approval treats the metric as having no owner">
                   unverified owner
                 </span>
               )}
@@ -164,10 +132,7 @@ export function MetricDetail({
             <dd>
               <code>{kpi.file}</code>
               {kpi.layout === 'embedded (deprecated)' && (
-                <small
-                  className="layout-note"
-                  title="The consolidated Ossie layout embeds the semantic model in the ontology file; deprecated upstream"
-                >
+                <small className="layout-note" title="The consolidated Ossie layout embeds the semantic model in the ontology file; deprecated upstream">
                   consolidated layout
                 </small>
               )}
@@ -181,13 +146,7 @@ export function MetricDetail({
             {explanation!.targets.map((t, i) => (
               <span key={i}>
                 {targetText(t, kpi.unit)}
-                {t.direction !== 'in_range' && (
-                  <small>
-                    {t.direction === 'higher_is_better'
-                      ? ' · higher is better'
-                      : ' · lower is better'}
-                  </small>
-                )}
+                {t.direction !== 'in_range' && <small>{t.direction === 'higher_is_better' ? ' · higher is better' : ' · lower is better'}</small>}
               </span>
             ))}
           </p>
@@ -219,13 +178,7 @@ export function MetricDetail({
         </p>
       ) : (
         <>
-          <Explanation
-            explanation={explanation}
-            all={all}
-            query={query}
-            onQuery={setQuery}
-            loading={loading}
-          />
+          <Explanation explanation={explanation} all={all} query={query} onQuery={setQuery} loading={loading} />
           <Lineage explanation={explanation} />
         </>
       )}

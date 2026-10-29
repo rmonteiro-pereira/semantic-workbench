@@ -41,15 +41,7 @@ export function PoliciesSection() {
     });
   }
   if (edit && data) {
-    return (
-      <PolicyEditor
-        initial={edit}
-        rules={data.rules}
-        version={data.version}
-        onBack={() => setEdit(null)}
-        onSaved={saved}
-      />
-    );
+    return <PolicyEditor initial={edit} rules={data.rules} version={data.version} onBack={() => setEdit(null)} onSaved={saved} />;
   }
   if (history) {
     return (
@@ -106,14 +98,7 @@ export function PoliciesSection() {
       </details>
       {change && data && (
         <AdminConfirmation title={change.description} onCancel={() => setChange(null)}>
-          <ReviewChange
-            area="policies"
-            proposal={{ rules: change.rules }}
-            baseVersion={data.version}
-            onSaved={saved}
-            description={change.description}
-            inline
-          />
+          <ReviewChange area="policies" proposal={{ rules: change.rules }} baseVersion={data.version} onSaved={saved} description={change.description} inline />
         </AdminConfirmation>
       )}
     </>

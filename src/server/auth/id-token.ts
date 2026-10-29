@@ -14,11 +14,7 @@ export type ProviderKeys = {
 };
 
 /** Loads the signing keys of a sign-in provider from its discovered key endpoint. */
-export function createProviderKeys(
-  jwksUri: string,
-  request: ProviderFetch | undefined,
-  now: () => number,
-): ProviderKeys {
+export function createProviderKeys(jwksUri: string, request: ProviderFetch | undefined, now: () => number): ProviderKeys {
   let refreshedAt: string | null = null;
   // Reload an unknown key immediately so provider rotation does not end active sessions.
   const keys = createRemoteJWKSet(new URL(jwksUri), {
@@ -38,11 +34,7 @@ export function createProviderKeys(
 }
 
 /** Verifies an ID token's signature, issuer, audience and lifetime and returns its claims. */
-export async function verifyIdToken(
-  idToken: string,
-  keys: ProviderKeys,
-  config: ServerConfig,
-): Promise<JWTPayload> {
+export async function verifyIdToken(idToken: string, keys: ProviderKeys, config: ServerConfig): Promise<JWTPayload> {
   const verified = await jwtVerify(idToken, keys.keys, {
     issuer: config.oidc.issuer,
     audience: config.oidc.clientId,
@@ -57,14 +49,9 @@ export async function verifyIdToken(
  * front-channel logout names, and Entra's `login_hint`, sent back as `logout_hint`. A refresh
  * that does not repeat them keeps the values from sign-in.
  */
-export function sessionClaims(
-  claims: Record<string, unknown>,
-  issuer: string,
-  previous?: Pick<SessionTokens, 'providerSession' | 'loginHint'>,
-): Pick<SessionTokens, 'providerSession' | 'loginHint'> {
+export function sessionClaims(claims: Record<string, unknown>, issuer: string, previous?: Pick<SessionTokens, 'providerSession' | 'loginHint'>): Pick<SessionTokens, 'providerSession' | 'loginHint'> {
   const sid = typeof claims.sid === 'string' && claims.sid ? claims.sid : undefined;
-  const hint =
-    typeof claims.login_hint === 'string' && claims.login_hint ? claims.login_hint : undefined;
+  const hint = typeof claims.login_hint === 'string' && claims.login_hint ? claims.login_hint : undefined;
   const providerSession = sid ? { issuer, sid } : previous?.providerSession;
   const loginHint = hint ?? previous?.loginHint;
   return {

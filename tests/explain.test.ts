@@ -4,12 +4,7 @@ import { stringify } from 'yaml';
 import { testWorkspace } from './helpers/temp-data-dir';
 // KPI explanation: composition, lineage to ODCS, additivity refusals, division by zero; the
 // workbench explains and previews SQL but never executes it.
-const mallFiles = [
-  'mall.ontology.yaml',
-  'mall.semantic.yaml',
-  'mall.mapping.yaml',
-  'mall.odcs.yaml',
-];
+const mallFiles = ['mall.ontology.yaml', 'mall.semantic.yaml', 'mall.mapping.yaml', 'mall.odcs.yaml'];
 async function mall() {
   const t = await testWorkspace();
   const files = await Promise.all(
@@ -25,8 +20,7 @@ const get = async (t: { handler: (r: Request) => Promise<Response> }, path: stri
   const r = await t.handler(new Request('http://localhost' + path));
   return { status: r.status, body: await r.json() };
 };
-const explain = (t: any, metric: string, query = '') =>
-  get(t, `/api/projects/${t.slug}/files/mall.semantic.yaml/explain/${metric}${query}`);
+const explain = (t: any, metric: string, query = '') => get(t, `/api/projects/${t.slug}/files/mall.semantic.yaml/explain/${metric}${query}`);
 test('metrics list: label, type, unit, status, owner and concepts of every KPI', async () => {
   const t = await mall();
   try {
@@ -43,11 +37,7 @@ test('metrics list: label, type, unit, status, owner and concepts of every KPI',
       file: 'mall.semantic.yaml',
       layout: 'split',
     });
-    expect(
-      body
-        .find((k: any) => k.name === 'occupancy_rate')
-        .concepts.map((c: any) => `${c.role}:${c.concept}`),
-    ).toEqual(['measures:OccupancyRate', 'of:Property']);
+    expect(body.find((k: any) => k.name === 'occupancy_rate').concepts.map((c: any) => `${c.role}:${c.concept}`)).toEqual(['measures:OccupancyRate', 'of:Property']);
     expect(body.every((k: any) => k.findings.length === 0)).toBe(true);
     expect((await get(t, '/api/projects/missing/metrics')).status).toBe(404);
   } finally {
@@ -77,35 +67,19 @@ test('composition trees for simple, ratio and derived KPIs, down to ODCS propert
       dimension: 'completeness',
       name: 'amount_not_null',
     });
-    expect(simple.inputs[0].sla.map((s: any) => s.property)).toEqual([
-      'latency',
-      'frequency',
-      'retention',
-    ]);
+    expect(simple.inputs[0].sla.map((s: any) => s.property)).toEqual(['latency', 'frequency', 'retention']);
     const ratio = (await explain(t, 'occupancy_rate')).body;
-    expect(ratio.tree.children.map((c: any) => `${c.role}:${c.name}`)).toEqual([
-      'numerator:occupied_gla',
-      'denominator:total_gla',
-    ]);
+    expect(ratio.tree.children.map((c: any) => `${c.role}:${c.name}`)).toEqual(['numerator:occupied_gla', 'denominator:total_gla']);
     expect(ratio.inputs.map((i: any) => i.metric)).toEqual(['occupied_gla', 'total_gla']);
-    expect(ratio.inputs[0].fields[0].odcs[0].quality.map((q: any) => q.name)).toEqual([
-      'one_snapshot_per_unit_month',
-      'occupied_within_gla',
-    ]);
+    expect(ratio.inputs[0].fields[0].odcs[0].quality.map((q: any) => q.name)).toEqual(['one_snapshot_per_unit_month', 'occupied_within_gla']);
     const derived = (await explain(t, 'noi_margin')).body;
     expect(derived.tree.children[0]).toMatchObject({
       role: 'numerator',
       name: 'net_operating_income',
       type: 'derived',
     });
-    expect(derived.tree.children[0].children.map((c: any) => c.name)).toEqual([
-      'operating_revenue',
-      'operating_expense_total',
-    ]);
-    expect(derived.inputs.map((i: any) => i.metric)).toEqual([
-      'operating_revenue',
-      'operating_expense_total',
-    ]);
+    expect(derived.tree.children[0].children.map((c: any) => c.name)).toEqual(['operating_revenue', 'operating_expense_total']);
+    expect(derived.inputs.map((i: any) => i.metric)).toEqual(['operating_revenue', 'operating_expense_total']);
     // A computed field resolves to every physical column it reads.
     const vacant = (await explain(t, 'vacant_gla')).body.inputs[0].fields[0];
     expect(vacant.columns).toEqual(['gla_m2', 'occupied_gla_m2']);
@@ -128,24 +102,12 @@ test('additivity refusals: sum of a ratio, a stock summed over time, unknown gra
     expect(ratio.sql).toBeUndefined();
     const stock = (await explain(t, 'total_gla', '?grain=quarter')).body.sqlPreview;
     expect(stock.refused).toContain('take the last month of each quarter');
-    expect((await explain(t, 'occupancy_rate', '?grain=year')).body.sqlPreview.refused).toContain(
-      'Occupied GLA, Total GLA are stocks',
-    );
-    expect(
-      (await explain(t, 'total_gla', '?grain=month&dimension=properties.name')).body.sqlPreview.sql,
-    ).toContain('GROUP BY');
-    expect(
-      (await explain(t, 'billed_amount', '?grain=quarter&rollup=sum')).body.sqlPreview.sql,
-    ).toContain("DATE_TRUNC('quarter'");
-    expect((await explain(t, 'headcount', '?rollup=sum')).body.sqlPreview.refused).toContain(
-      'non-additive',
-    );
-    expect((await explain(t, 'visitors', '?grain=day')).body.sqlPreview.refused).toContain(
-      'finer than the minimum grain month',
-    );
-    expect((await explain(t, 'visitors', '?grain=hour')).body.sqlPreview.refused).toContain(
-      'not one of',
-    );
+    expect((await explain(t, 'occupancy_rate', '?grain=year')).body.sqlPreview.refused).toContain('Occupied GLA, Total GLA are stocks');
+    expect((await explain(t, 'total_gla', '?grain=month&dimension=properties.name')).body.sqlPreview.sql).toContain('GROUP BY');
+    expect((await explain(t, 'billed_amount', '?grain=quarter&rollup=sum')).body.sqlPreview.sql).toContain("DATE_TRUNC('quarter'");
+    expect((await explain(t, 'headcount', '?rollup=sum')).body.sqlPreview.refused).toContain('non-additive');
+    expect((await explain(t, 'visitors', '?grain=day')).body.sqlPreview.refused).toContain('finer than the minimum grain month');
+    expect((await explain(t, 'visitors', '?grain=hour')).body.sqlPreview.refused).toContain('not one of');
     expect((await explain(t, 'visitors', '?dimension=bad')).status).toBe(400);
     expect((await explain(t, 'nothing')).status).toBe(400);
   } finally {
@@ -191,9 +153,7 @@ test('division by zero and unknown additivity are explained; no SQL is ever exec
     });
     expect((await x('safe_price')).body.divisionByZero).toBe('handled');
     expect((await x('revenue')).body.divisionByZero).toBe('n/a');
-    expect((await x('opaque', '?rollup=sum')).body.sqlPreview.refused).toContain(
-      'no declared additivity',
-    );
+    expect((await x('opaque', '?rollup=sum')).body.sqlPreview.refused).toContain('no declared additivity');
     const preview = (await x('safe_price')).body.sqlPreview;
     expect(preview.notExecuted).toBe(true);
     expect(preview.sql).toContain('NULLIF');
@@ -216,8 +176,7 @@ test('division by zero and unknown additivity are explained; no SQL is ever exec
       expect(text).not.toMatch(/\bfetch\(|Bun\.spawn|Bun\.\$|\bexecSync\(|\bspawnSync\(/);
       if (spec.startsWith('.')) {
         const base = new URL(spec, 'file:///' + file).pathname.slice(1);
-        for (const ext of ['.ts', '.tsx'])
-          if (await Bun.file(base + ext).exists()) pending.push(base + ext);
+        for (const ext of ['.ts', '.tsx']) if (await Bun.file(base + ext).exists()) pending.push(base + ext);
       }
     }
   }

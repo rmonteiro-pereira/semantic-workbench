@@ -43,16 +43,7 @@ const g = buildLineage(files, 'c.odcs.yaml');
 const o = (n: string) => `object:c.odcs.yaml#${n}`;
 test('default reach: one foreign-key step each way plus everything downstream to metrics; hidden counts', () => {
   const a = around(g, o('c1'));
-  expect([...a.cards].sort()).toEqual(
-    [
-      o('c0'),
-      o('c1'),
-      o('c2'),
-      'dataset:s.yaml#/d1',
-      'metric:s.yaml#/m1',
-      'metric:s.yaml#/m2',
-    ].sort(),
-  );
+  expect([...a.cards].sort()).toEqual([o('c0'), o('c1'), o('c2'), 'dataset:s.yaml#/d1', 'metric:s.yaml#/m1', 'metric:s.yaml#/m2'].sort());
   expect(a.hidden.get(o('c2'))).toBe(1);
   expect(a.hidden.get(o('c0'))).toBeUndefined();
   const two = around(g, o('c1'), 2);
@@ -60,16 +51,7 @@ test('default reach: one foreign-key step each way plus everything downstream to
   expect(two.hidden.size).toBe(0);
   // Centring on a metric shows what feeds it and the objects one key away from its sources.
   const m = around(g, 'metric:s.yaml#/m2');
-  expect([...m.cards].sort()).toEqual(
-    [
-      o('c0'),
-      o('c1'),
-      o('c2'),
-      'dataset:s.yaml#/d1',
-      'metric:s.yaml#/m1',
-      'metric:s.yaml#/m2',
-    ].sort(),
-  );
+  expect([...m.cards].sort()).toEqual([o('c0'), o('c1'), o('c2'), 'dataset:s.yaml#/d1', 'metric:s.yaml#/m1', 'metric:s.yaml#/m2'].sort());
 });
 test('closure follows direction: up = ancestors, down = descendants, both = union, never siblings', () => {
   const start = 'dataset:s.yaml#/d1/k';
@@ -88,13 +70,10 @@ test('closure follows direction: up = ancestors, down = descendants, both = unio
   expect(fk.nodes.has(`${o('c2')}/p`)).toBe(true);
   expect(fk.nodes.has(`${o('c3')}/p`)).toBe(false);
   // Edges in the closure are those between its nodes.
-  for (const i of both.edges)
-    expect(both.nodes.has(g.edges[i].from) && both.nodes.has(g.edges[i].to)).toBe(true);
+  for (const i of both.edges) expect(both.nodes.has(g.edges[i].from) && both.nodes.has(g.edges[i].to)).toBe(true);
 });
 test('a card selection stands for all its columns', () => {
-  expect(selectionNodes(g, o('c1')).sort()).toEqual(
-    [o('c1'), `${o('c1')}/k`, `${o('c1')}/p`].sort(),
-  );
+  expect(selectionNodes(g, o('c1')).sort()).toEqual([o('c1'), `${o('c1')}/k`, `${o('c1')}/p`].sort());
   const c = closure(g, selectionNodes(g, o('c1')));
   expect(c.nodes.has(`${o('c0')}/k`)).toBe(true);
   expect(c.nodes.has('metric:s.yaml#/m2')).toBe(true);

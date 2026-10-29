@@ -12,8 +12,7 @@ const hash = (s: string) => {
   }
   return (h1 >>> 0).toString(36) + (h2 >>> 0).toString(36);
 };
-const key = (t: Triple) =>
-  `${termKey(t.s)} ${termKey(t.p)} ${termKey(t.o)}${t.g ? ' ' + termKey(t.g) : ''}`;
+const key = (t: Triple) => `${termKey(t.s)} ${termKey(t.p)} ${termKey(t.o)}${t.g ? ' ' + termKey(t.g) : ''}`;
 const blanks = (t: Triple) => [t.s, t.p, t.o, ...(t.g ? [t.g] : [])].filter(isBlank);
 /** Removes duplicate triples using their term identities. */
 export function dedupe(triples: Triple[]) {
@@ -31,8 +30,7 @@ function colours(triples: Triple[]) {
       const k = termKey(b);
       touching.set(k, [...(touching.get(k) ?? []), t]);
     }
-  const name = (term: Term, self: string, c: Map<string, string>) =>
-    isBlank(term) ? (termKey(term) === self ? '@' : '#' + c.get(termKey(term))) : termKey(term);
+  const name = (term: Term, self: string, c: Map<string, string>) => (isBlank(term) ? (termKey(term) === self ? '@' : '#' + c.get(termKey(term))) : termKey(term));
   let current = nodes;
   let classes = 1;
   for (let round = 0; round < 64; round++) {
@@ -99,9 +97,7 @@ export function isomorphic(a: Triple[], b: Triple[]): boolean {
   const set = new Set(bb.map(t => key(t)));
   const map = new Map<string, string>();
   for (const [c, xs] of qa) if (xs.length === 1) map.set(xs[0], qb.get(c)![0]);
-  const ambiguous = [...qa.entries()]
-    .filter(([, xs]) => xs.length > 1)
-    .flatMap(([c, xs]) => xs.map(x => ({ x, options: qb.get(c)! })));
+  const ambiguous = [...qa.entries()].filter(([, xs]) => xs.length > 1).flatMap(([c, xs]) => xs.map(x => ({ x, options: qb.get(c)! })));
   // Hashes already agree; beyond this many interchangeable blank nodes the search is not run.
   if (ambiguous.length > 200) return true;
   // Blank nodes of the second graph are renamed to their candidate match in the first.
@@ -153,12 +149,7 @@ export type Gate = { ok: true; removed: number; added: number } | { ok: false; r
 // After an edit of `subjects`: everything else is unchanged, and (when given) their description is
 // exactly the intended one. Returns the removed and added triple counts for the summary.
 /** Verifies that only intended resource descriptions changed and reports triple counts. */
-export function gate(
-  before: Triple[],
-  after: Triple[],
-  subjects: string[],
-  intended?: Triple[],
-): Gate {
+export function gate(before: Triple[], after: Triple[], subjects: string[], intended?: Triple[]): Gate {
   const keys = new Set(subjects.map(s => termKey({ termType: 'NamedNode', value: s })));
   const db = description(before, keys);
   const da = description(after, keys);
@@ -167,14 +158,12 @@ export function gate(
   if (!isomorphic(restBefore, restAfter))
     return {
       ok: false,
-      reason:
-        'The edit would change statements of other resources. Edit those in Source, or change only this item.',
+      reason: 'The edit would change statements of other resources. Edit those in Source, or change only this item.',
     };
   if (intended && !isomorphic([...da], intended))
     return {
       ok: false,
-      reason:
-        'The saved text would not read back as the intended statements, so it was not applied.',
+      reason: 'The saved text would not read back as the intended statements, so it was not applied.',
     };
   const kb = new Set([...db].filter(t => !blanks(t).length).map(key));
   const ka = new Set([...da].filter(t => !blanks(t).length).map(key));

@@ -5,9 +5,7 @@ export function BootstrapNotice() {
   const { me } = useMe();
   const bootstrap = me?.roleSources?.some(source => source.via === 'bootstrap');
   if (!bootstrap) return null;
-  return (
-    <p className="admin-notice">Bootstrap Admin — emergency access from server configuration.</p>
-  );
+  return <p className="admin-notice">Bootstrap Admin — emergency access from server configuration.</p>;
 }
 
 /** Warns on the screens where a change could remove the last active Admin. */

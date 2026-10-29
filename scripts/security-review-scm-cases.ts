@@ -104,19 +104,11 @@ async function scmCaseVariantCase(candidate: Candidate) {
   try {
     await assert.rejects(() => scm.stage(slug, ['SECRET/plan.ontology.yaml']), refused);
     await assert.rejects(() => scm.unstage(slug, ['secret/PLAN.ontology.yaml']), refused);
-    const diff = () =>
-      scm.diff(slug, 'SECRET/plan.ontology.yaml', 'HEAD', 'worktree', 'project', {});
+    const diff = () => scm.diff(slug, 'SECRET/plan.ontology.yaml', 'HEAD', 'worktree', 'project', {});
     await assert.rejects(diff, refused);
     await assert.rejects(() => scm.log(slug, 'SECRET/plan.ontology.yaml', 5, {}), refused);
     await assert.rejects(() => scm.versions(slug, 'Secret/plan.ontology.yaml', 5, {}), refused);
-    const exact = await scm.diff(
-      slug,
-      'secret/plan.ontology.yaml',
-      'HEAD',
-      'worktree',
-      'project',
-      {},
-    );
+    const exact = await scm.diff(slug, 'secret/plan.ontology.yaml', 'HEAD', 'worktree', 'project', {});
     assert.equal(exact.afterExists, true);
   } finally {
     fixture.dispose();
@@ -153,11 +145,7 @@ async function scmSwitchCase(candidate: Candidate) {
   const deps = {
     assertBranchFree: async (_slug: string, branch: string) => void freed.push(branch),
   };
-  const { scm, slug, dir, root, fixture } = await scmFixture(
-    candidate,
-    real => recordingGit(real, calls),
-    deps,
-  );
+  const { scm, slug, dir, root, fixture } = await scmFixture(candidate, real => recordingGit(real, calls), deps);
   try {
     const bare = addRemote(dir, root);
     git(dir, 'branch', 'feature');
@@ -168,8 +156,7 @@ async function scmSwitchCase(candidate: Candidate) {
     assert(bare);
     const reader = readerWithoutSecrets(slug);
     const record = (local: string) => void authorized.push(local);
-    const refuse = async (name: string, pattern: RegExp) =>
-      assert.rejects(() => scm.switchBranch(slug, name, false, reader, record), pattern);
+    const refuse = async (name: string, pattern: RegExp) => assert.rejects(() => scm.switchBranch(slug, name, false, reader, record), pattern);
     git(dir, 'switch', '-q', '-c', 'other');
     git(dir, 'switch', '-q', 'main');
     // `@{-1}` names the previous checkout, not a branch the person was authorized for.
@@ -187,11 +174,7 @@ async function scmSwitchCase(candidate: Candidate) {
     const switchCall = calls.find(args => args[0] === 'switch')!;
     assert.deepEqual(switchCall, ['switch', '--end-of-options', 'feature']);
     await scm.switchBranch(slug, 'brand-new', true, reader, record);
-    assert.deepEqual(calls.filter(args => args[0] === 'switch').at(-1), [
-      'switch',
-      '-c',
-      'brand-new',
-    ]);
+    assert.deepEqual(calls.filter(args => args[0] === 'switch').at(-1), ['switch', '-c', 'brand-new']);
     await assert.rejects(() => scm.switchBranch(slug, '-bad', true, reader, record));
     const create = (name: string) => scm.switchBranch(slug, name, true, reader, record);
     // Our own message, not Git's: the name is refused before Git sees it.
@@ -208,9 +191,7 @@ export const allowAll = (changes: unknown) => ({ changes, refused: [], demoted: 
 
 async function scmRemoteArgumentsCase(candidate: Candidate) {
   const calls: string[][] = [];
-  const { scm, slug, dir, root, fixture } = await scmFixture(candidate, real =>
-    recordingGit(real, calls),
-  );
+  const { scm, slug, dir, root, fixture } = await scmFixture(candidate, real => recordingGit(real, calls));
   try {
     addRemote(dir, root);
     const reader = { ...readerWithoutSecrets(slug), guard: allowAll };

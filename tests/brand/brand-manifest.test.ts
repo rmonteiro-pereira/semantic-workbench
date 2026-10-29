@@ -10,9 +10,7 @@ function parse(value: unknown) {
 
 test('a valid manifest keeps its names and drops unknown keys', () => {
   expect(parse({ ...valid, extra: 1 })).toEqual(valid);
-  expect(parse({ ...valid, supportUrl: 'https://help.example.org/x' }).supportUrl).toBe(
-    'https://help.example.org/x',
-  );
+  expect(parse({ ...valid, supportUrl: 'https://help.example.org/x' }).supportUrl).toBe('https://help.example.org/x');
 });
 
 test('names are required and bounded', () => {

@@ -8,8 +8,7 @@ import type { AccessExplanation } from './types';
 
 /** Names the decision in words when the server sends `{allow}`, and shows any other shape as is. */
 export function decisionLabel(decision: unknown): string {
-  if (decision === 'allow' || decision === 'deny')
-    return decision === 'allow' ? 'Allowed' : 'Denied';
+  if (decision === 'allow' || decision === 'deny') return decision === 'allow' ? 'Allowed' : 'Denied';
   const allow = (decision as { allow?: unknown } | null)?.allow;
   if (typeof allow === 'boolean') return allow ? 'Allowed' : 'Denied';
   return JSON.stringify(decision);
@@ -36,16 +35,12 @@ export function AccessCheckSection({ principal = '' }: { principal?: string }) {
     const type = path ? 'file' : 'project';
     try {
       setResult(
-        await adminApi.check(
-          hypothetical ? { groups: commaList(groups), email: email.trim().toLowerCase() } : person,
-          action,
-          {
-            type: project ? type : 'workspace',
-            ...(project ? { project } : {}),
-            ...(path ? { path } : {}),
-            ...(branch ? { branch } : {}),
-          },
-        ),
+        await adminApi.check(hypothetical ? { groups: commaList(groups), email: email.trim().toLowerCase() } : person, action, {
+          type: project ? type : 'workspace',
+          ...(project ? { project } : {}),
+          ...(path ? { path } : {}),
+          ...(branch ? { branch } : {}),
+        }),
       );
     } catch (problem) {
       setError(problemText(problem));
@@ -69,23 +64,14 @@ export function AccessCheckSection({ principal = '' }: { principal?: string }) {
     <>
       {(error || loadError) && <p role="alert">{error || loadError}</p>}
       <label>
-        <input
-          type="checkbox"
-          checked={hypothetical}
-          onChange={event => setHypothetical(event.target.checked)}
-        />
+        <input type="checkbox" checked={hypothetical} onChange={event => setHypothetical(event.target.checked)} />
         Hypothetical person
       </label>
       {!hypothetical && (
         <>
           <label>
             Person ID
-            <input
-              list="admin-principals"
-              aria-describedby="access-person-guidance"
-              value={person}
-              onChange={event => setPerson(event.target.value)}
-            />
+            <input list="admin-principals" aria-describedby="access-person-guidance" value={person} onChange={event => setPerson(event.target.value)} />
             <datalist id="admin-principals">
               {users?.map(user => (
                 <option key={user.id} value={user.id}>
@@ -129,8 +115,7 @@ export function AccessCheckSection({ principal = '' }: { principal?: string }) {
         <input value={branch} onChange={event => setBranch(event.target.value)} />
       </label>
       <p className="admin-section-intro" id="access-check-guidance">
-        Choose a person or enable Hypothetical person for Check access. Leave Project blank to check
-        workspace access. Enter a project for Who can access.
+        Choose a person or enable Hypothetical person for Check access. Leave Project blank to check workspace access. Enter a project for Who can access.
       </p>
       <div className="admin-actions">
         <button disabled={busy || (!hypothetical && !person)} onClick={check}>
@@ -162,8 +147,7 @@ export function AccessCheckSection({ principal = '' }: { principal?: string }) {
         <section aria-label="Who can access results">
           {who.map((entry, index) => (
             <p key={index}>
-              {entry.group ?? entry.email ?? entry.principal ?? entry.client} ·{' '}
-              {entry.actions.join(', ')} · {entry.via}
+              {entry.group ?? entry.email ?? entry.principal ?? entry.client} · {entry.actions.join(', ')} · {entry.via}
             </p>
           ))}
         </section>

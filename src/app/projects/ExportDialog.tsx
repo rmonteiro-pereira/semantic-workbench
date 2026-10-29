@@ -43,9 +43,7 @@ function downloadBlob(blob: Blob, fileName: string) {
 function doneMessage(name: string, files: number, omitted: number) {
   const count = `${files} file${files === 1 ? '' : 's'}`;
   const left = omitted === 1 ? '1 file you cannot read' : `${omitted} files you cannot read`;
-  return omitted
-    ? `Exported ${count} of ${name}. Left out: ${left}.`
-    : `Exported ${count} of ${name}.`;
+  return omitted ? `Exported ${count} of ${name}. Left out: ${left}.` : `Exported ${count} of ${name}.`;
 }
 
 function exportLabel(busy: boolean, savesFirst: boolean) {
@@ -98,12 +96,7 @@ export function ExportDialog({ project, dirty, saveOpenFile, onClose, onDone }: 
           Export without them
         </button>
       )}
-      <button
-        type="button"
-        className="primary"
-        disabled={busy}
-        onClick={() => void exportNow(openFileIsUnsaved)}
-      >
+      <button type="button" className="primary" disabled={busy} onClick={() => void exportNow(openFileIsUnsaved)}>
         {exportLabel(busy, openFileIsUnsaved)}
       </button>
     </>
@@ -111,22 +104,13 @@ export function ExportDialog({ project, dirty, saveOpenFile, onClose, onDone }: 
 
   return (
     <Modal title={`Export ${project.name}`} onCancel={onClose} footer={footer} size="narrow">
-      <p className="dialog-intro">
-        Downloads a .zip of the project's files in their folders. Files that Git ignores are left
-        out. You can include the full change history.
-      </p>
+      <p className="dialog-intro">Downloads a .zip of the project's files in their folders. Files that Git ignores are left out. You can include the full change history.</p>
       <fieldset className="export-choice">
         <label className="check-row">
-          <input
-            type="checkbox"
-            checked={includeHistory}
-            onChange={event => setIncludeHistory(event.target.checked)}
-          />
+          <input type="checkbox" checked={includeHistory} onChange={event => setIncludeHistory(event.target.checked)} />
           <span className="choice-text">
             <span className="choice-title">Include Git history</span>
-            <span className="choice-hint">
-              Includes the full change history in a file you can reopen with Git.
-            </span>
+            <span className="choice-hint">Includes the full change history in a file you can reopen with Git.</span>
           </span>
         </label>
       </fieldset>

@@ -13,9 +13,7 @@ function disableExporterUsageReporting(): void {
 }
 
 /** Exporters for traces, metrics and logs, and the Application Insights trace sampler. */
-export async function azureBackends(
-  settings: Extract<TelemetrySettings, { enabled: true }>,
-): Promise<TelemetryBackends> {
+export async function azureBackends(settings: Extract<TelemetrySettings, { enabled: true }>): Promise<TelemetryBackends> {
   disableExporterUsageReporting();
   const azure = await import('@azure/monitor-opentelemetry-exporter');
   const options = { connectionString: settings.connectionString };

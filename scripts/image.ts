@@ -5,8 +5,7 @@ import { tmpdir } from 'node:os';
 import { parseArgs } from 'node:util';
 
 /** Scanner image pinned independently of the application's base image. */
-export const trivyImage =
-  'docker.io/aquasec/trivy:0.67.2@sha256:ac2f9d0197456a8ce460884b113e49d65b667f506c31d014c9955869a7a5d682';
+export const trivyImage = 'docker.io/aquasec/trivy:0.67.2@sha256:ac2f9d0197456a8ce460884b113e49d65b667f506c31d014c9955869a7a5d682';
 /** Azure target settings checked before using an authenticated session. */
 export const targetVariables = [
   'AZURE_SUBSCRIPTION_ID',
@@ -79,9 +78,7 @@ export function buildArguments(context: ImageContext, tags: string[] = []): stri
     'build',
     ...format,
     ...Object.entries(labels).flatMap(([name, value]) => ['--build-arg', `${name}=${value}`]),
-    ...[`semantic-workbench:sha-${context.commit}`, 'semantic-workbench:dev', ...tags].flatMap(
-      tag => ['--tag', tag],
-    ),
+    ...[`semantic-workbench:sha-${context.commit}`, 'semantic-workbench:dev', ...tags].flatMap(tag => ['--tag', tag]),
     '.',
   ];
 }
@@ -103,21 +100,9 @@ export function pushArguments(context: ImageContext, registry: string): string[]
 }
 
 /** Creates a version tag on the existing scanned manifest without rebuilding or importing. */
-export function promotionArguments(
-  target: Target,
-  release: { tag: string; digest: string },
-): string[] {
+export function promotionArguments(target: Target, release: { tag: string; digest: string }): string[] {
   const repository = `${target.ACR_NAME}.azurecr.io/semantic-workbench`;
-  return [
-    'docker',
-    'buildx',
-    'imagetools',
-    'create',
-    '--prefer-index=false',
-    '--tag',
-    `${repository}:${release.tag}`,
-    `${repository}@${release.digest}`,
-  ];
+  return ['docker', 'buildx', 'imagetools', 'create', '--prefer-index=false', '--tag', `${repository}:${release.tag}`, `${repository}@${release.digest}`];
 }
 
 /** Names the registry tags of one release, commit tag first so a rerun can finish the locking. */
@@ -127,20 +112,7 @@ export function releaseTags(release: { tag: string; commit: string }): string[] 
 
 /** Makes one registry tag read-only so a holder of push rights cannot repoint it later. */
 export function lockArguments(target: Target, tag: string): string[] {
-  return [
-    'az',
-    'acr',
-    'repository',
-    'update',
-    '--name',
-    target.ACR_NAME,
-    '--subscription',
-    target.AZURE_SUBSCRIPTION_ID,
-    '--image',
-    `semantic-workbench:${tag}`,
-    '--write-enabled',
-    'false',
-  ];
+  return ['az', 'acr', 'repository', 'update', '--name', target.ACR_NAME, '--subscription', target.AZURE_SUBSCRIPTION_ID, '--image', `semantic-workbench:${tag}`, '--write-enabled', 'false'];
 }
 
 /** Builds scanner flags for an archive or authenticated registry digest. */
@@ -182,13 +154,7 @@ export function scanPreparation(context: ImageContext, ref?: string): string[] {
     scanArguments('scan', ref);
     return registryLogin(ref.split('/')[0]);
   }
-  return [
-    context.engine,
-    'save',
-    '-o',
-    'out/image/image.tar',
-    `semantic-workbench:sha-${context.commit}`,
-  ];
+  return [context.engine, 'save', '-o', 'out/image/image.tar', `semantic-workbench:sha-${context.commit}`];
 }
 
 /** Isolates registry credentials and makes Azure CLI use the chosen runtime. */
@@ -200,12 +166,7 @@ export function registryEnvironment(engine: Engine, directory: string) {
   };
 }
 
-async function withRegistry<T>(
-  context: ImageContext,
-  registry: string,
-  run: (env: NodeJS.ProcessEnv) => Promise<T>,
-  runCommand = command,
-): Promise<T> {
+async function withRegistry<T>(context: ImageContext, registry: string, run: (env: NodeJS.ProcessEnv) => Promise<T>, runCommand = command): Promise<T> {
   validateTarget(process.env);
   const directory = await mkdtemp(join(tmpdir(), 'sw-registry-'));
   const env = { ...process.env, ...registryEnvironment(context.engine, directory) };
@@ -217,27 +178,10 @@ async function withRegistry<T>(
   }
 }
 
-async function runScanner(
-  commands: string[][],
-  context: ImageContext,
-  env = process.env,
-  authenticated = false,
-) {
+async function runScanner(commands: string[][], context: ImageContext, env = process.env, authenticated = false) {
   const scanner = Bun.which('trivy');
   const authMount = authenticated ? ['-v', `${env.DOCKER_CONFIG}:/root/.docker:ro`] : [];
-  const prefix = scanner
-    ? [scanner]
-    : [
-        context.engine,
-        'run',
-        '--rm',
-        '-v',
-        `${process.cwd()}:/work`,
-        '-w',
-        '/work',
-        ...authMount,
-        trivyImage,
-      ];
+  const prefix = scanner ? [scanner] : [context.engine, 'run', '--rm', '-v', `${process.cwd()}:/work`, '-w', '/work', ...authMount, trivyImage];
   const failures: string[] = [];
   for (const args of commands) {
     try {
@@ -268,11 +212,7 @@ async function scan(kind: 'scan' | 'sbom', context: ImageContext, ref?: string) 
 export type RegistryTag = { digest: string; locked: boolean };
 
 /** Reads a registry tag, or null when the registry has no such tag. */
-export async function registryTag(
-  acrName: string,
-  tag: string,
-  runCommand = command,
-): Promise<RegistryTag | null> {
+export async function registryTag(acrName: string, tag: string, runCommand = command): Promise<RegistryTag | null> {
   const args = [
     'az',
     'acr',
@@ -295,26 +235,18 @@ export async function registryTag(
     throw error;
   }
   const value = JSON.parse(output);
-  if (
-    !/^sha256:[a-f0-9]{64}$/.test(value?.digest ?? '') ||
-    typeof value.writeEnabled !== 'boolean'
-  ) {
+  if (!/^sha256:[a-f0-9]{64}$/.test(value?.digest ?? '') || typeof value.writeEnabled !== 'boolean') {
     throw Error(`Invalid registry response for ${tag}`);
   }
   return { digest: value.digest, locked: value.writeEnabled === false };
 }
 
 /** Requires an image's recorded commit and version to be the ones being published. */
-export function assertImageLabels(
-  labels: Record<string, string> | undefined,
-  context: ImageContext,
-) {
+export function assertImageLabels(labels: Record<string, string> | undefined, context: ImageContext) {
   const revision = labels?.['org.opencontainers.image.revision'];
   const version = labels?.['org.opencontainers.image.version'];
   if (revision !== context.commit || version !== context.version) {
-    throw Error(
-      `Existing image is labelled ${revision}/${version}, not ${context.commit}/${context.version}`,
-    );
+    throw Error(`Existing image is labelled ${revision}/${version}, not ${context.commit}/${context.version}`);
   }
 }
 
@@ -337,12 +269,7 @@ export type CommitPush = { digest: string; kept: boolean };
  * Pushes the commit image once and locks its tag. An existing commit tag is never overwritten: it
  * is kept only if it is locked and its labels name this commit and version.
  */
-export async function pushCommitImage(
-  context: ImageContext,
-  registry: string,
-  target: Target,
-  runCommand = command,
-): Promise<CommitPush> {
+export async function pushCommitImage(context: ImageContext, registry: string, target: Target, runCommand = command): Promise<CommitPush> {
   const commands = pushArguments(context, registry);
   const acrName = registry.split('.')[0];
   const tag = `sha-${context.commit}`;
@@ -350,12 +277,7 @@ export async function pushCommitImage(
   if (existing !== null) {
     if (!existing.locked) throw Error(`${tag} exists but is not locked; refusing to trust it`);
     const ref = `${registry}/semantic-workbench@${existing.digest}`;
-    const labels = await withRegistry(
-      context,
-      registry,
-      env => readImageLabels(ref, env, runCommand),
-      runCommand,
-    );
+    const labels = await withRegistry(context, registry, env => readImageLabels(ref, env, runCommand), runCommand);
     assertImageLabels(labels, context);
     console.error(`${tag} already exists in ${registry}; keeping its digest.`);
     return { digest: existing.digest, kept: true };
@@ -366,8 +288,7 @@ export async function pushCommitImage(
     async env => {
       await runCommand(commands[1], false, env);
       const digestFile = join(env.DOCKER_CONFIG!, 'digest');
-      const pushCommand =
-        context.engine === 'podman' ? [...commands[2], '--digestfile', digestFile] : commands[2];
+      const pushCommand = context.engine === 'podman' ? [...commands[2], '--digestfile', digestFile] : commands[2];
       const output = await runCommand(pushCommand, true, env);
       return pushedDigest(context.engine, output, digestFile);
     },
@@ -381,8 +302,7 @@ export async function pushCommitImage(
 
 async function push(context: ImageContext, registry: string) {
   const target = validateTarget(process.env);
-  if (registry !== `${process.env.ACR_NAME}.azurecr.io`)
-    throw Error('Registry differs from ACR_NAME');
+  if (registry !== `${process.env.ACR_NAME}.azurecr.io`) throw Error('Registry differs from ACR_NAME');
   const { digest, kept } = await pushCommitImage(context, registry, target);
   if (!/^sha256:[a-f0-9]{64}$/.test(digest)) throw Error(`Invalid pushed digest: ${digest}`);
   if (kept) {
@@ -391,8 +311,7 @@ async function push(context: ImageContext, registry: string) {
     await scan('sbom', context, ref);
   }
   console.log(digest);
-  if (process.env.TF_BUILD)
-    console.log(`##vso[task.setvariable variable=digest;isOutput=true]${digest}`);
+  if (process.env.TF_BUILD) console.log(`##vso[task.setvariable variable=digest;isOutput=true]${digest}`);
 }
 
 /** Reads local build metadata consistently for all image consumers. */
@@ -424,9 +343,7 @@ async function main() {
   });
   if (values.help) {
     console.log('image:build|scan|sbom|push [--engine docker|podman] [--tag tag]');
-    console.log(
-      'scan: --ref <digest-ref> or --ref-env IMAGE_REF; push: --registry <name>.azurecr.io',
-    );
+    console.log('scan: --ref <digest-ref> or --ref-env IMAGE_REF; push: --registry <name>.azurecr.io');
     return;
   }
   if (values['ref-env'] && values['ref-env'] !== 'IMAGE_REF') {

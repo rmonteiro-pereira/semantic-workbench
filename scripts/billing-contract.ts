@@ -3,15 +3,7 @@
 
 // Tables the governed metrics read or break down by; the contract does not cover the other
 // billing tables.
-const CONTRACT_TABLES = [
-  'invoice_lines',
-  'invoices',
-  'subscription_items',
-  'plans',
-  'products',
-  'product_families',
-  'currencies',
-];
+const CONTRACT_TABLES = ['invoice_lines', 'invoices', 'subscription_items', 'plans', 'products', 'product_families', 'currencies'];
 const NUMERIC_COLUMNS = new Set(['quantity', 'unit_price', 'discount_amount', 'tax_amount']);
 const TEXT_COLUMNS = new Set(['name', 'tier', 'code']);
 
@@ -46,8 +38,7 @@ function propertyOf(dataset: SemanticDataset, column: string, joins: SemanticJoi
     description: columnDescriptions[column] ?? `${dataset.name} ${column.replaceAll('_', ' ')}.`,
   };
   if (column === 'id') Object.assign(property, { primaryKey: true, unique: true });
-  if (join)
-    property.relationships = [{ type: 'foreignKey', to: `${join.to}.${join.to_columns[0]}` }];
+  if (join) property.relationships = [{ type: 'foreignKey', to: `${join.to}.${join.to_columns[0]}` }];
   return property;
 }
 
@@ -85,8 +76,7 @@ function withInvoiceLineRules(contractObject: ReturnType<typeof objectOf>) {
       },
     ],
   };
-  for (const property of contractObject.properties)
-    if (rules[property.name as string]) property.quality = rules[property.name as string];
+  for (const property of contractObject.properties) if (rules[property.name as string]) property.quality = rules[property.name as string];
   return {
     ...contractObject,
     quality: [
@@ -105,9 +95,7 @@ function withInvoiceLineRules(contractObject: ReturnType<typeof objectOf>) {
 export function billingContract(semantic: SemanticModel) {
   const datasets = CONTRACT_TABLES.map(name => semantic.datasets.find(d => d.name === name)!);
   // A foreign key must point at an object of the same contract.
-  const joins = semantic.relationships.filter(
-    j => CONTRACT_TABLES.includes(j.from) && CONTRACT_TABLES.includes(j.to),
-  );
+  const joins = semantic.relationships.filter(j => CONTRACT_TABLES.includes(j.from) && CONTRACT_TABLES.includes(j.to));
   const schema = datasets.map(dataset => {
     const contractObject = objectOf(dataset, joins);
     return dataset.name === 'invoice_lines' ? withInvoiceLineRules(contractObject) : contractObject;
@@ -123,8 +111,7 @@ export function billingContract(semantic: SemanticModel) {
     dataProduct: 'Revenue analytics',
     description: {
       purpose: 'Invoice, plan and currency tables that the governed billing metrics read.',
-      limitations:
-        'Synthetic demonstration data. USD only. Covers the tables behind the metrics, not the whole billing model.',
+      limitations: 'Synthetic demonstration data. USD only. Covers the tables behind the metrics, not the whole billing model.',
     },
     schema,
     slaProperties: [

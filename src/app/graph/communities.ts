@@ -3,21 +3,12 @@ import type { Entity, Relationship } from '../../shared/core/model';
 // The main definitions of each document kind: ontology concepts and classes, contract objects,
 // semantic datasets and metrics, and concept mappings. Value types and primitives stay out, so
 // they cannot turn into hubs that pull every community together.
-const BUSINESS_KINDS = new Set([
-  'EntityType',
-  'OWL class',
-  'Object',
-  'Dataset',
-  'Metric',
-  'Concept mapping',
-]);
+const BUSINESS_KINDS = new Set(['EntityType', 'OWL class', 'Object', 'Dataset', 'Metric', 'Concept mapping']);
 
 /** Checks whether an entity belongs in the business graph used for grouping. */
 export const isBusinessEntity = (entity: Entity) => BUSINESS_KINDS.has(entity.kind);
 /** Checks whether a relationship expresses inheritance. */
-export const isInheritance = (edge: Relationship) =>
-  /inheritance|subclass/i.test(edge.data.kind) ||
-  /^(extends|subClassOf|rdfs:subClassOf)$/i.test(edge.label);
+export const isInheritance = (edge: Relationship) => /inheritance|subclass/i.test(edge.data.kind) || /^(extends|subClassOf|rdfs:subClassOf)$/i.test(edge.label);
 // Each node's links to other nodes with their weights. A self link holds the links inside a node
 // once it stands for a whole community, counted from both ends.
 type WeightedGraph = Map<string, Map<string, number>>;
@@ -52,17 +43,13 @@ function moveNodes(graph: WeightedGraph, twiceWeight: number) {
       if (!nodeDegree) continue;
       const current = membership.get(node)!;
       const linkWeights = new Map<string, number>();
-      for (const [neighbor, weight] of [...graph.get(node)!].sort(([a], [b]) =>
-        a.localeCompare(b),
-      )) {
+      for (const [neighbor, weight] of [...graph.get(node)!].sort(([a], [b]) => a.localeCompare(b))) {
         if (neighbor === node) continue;
         const community = membership.get(neighbor)!;
         linkWeights.set(community, (linkWeights.get(community) ?? 0) + weight);
       }
       totals.set(current, totals.get(current)! - nodeDegree);
-      const gain = (community: string) =>
-        (linkWeights.get(community) ?? 0) -
-        (nodeDegree * (totals.get(community) ?? 0)) / twiceWeight;
+      const gain = (community: string) => (linkWeights.get(community) ?? 0) - (nodeDegree * (totals.get(community) ?? 0)) / twiceWeight;
       let best = current;
       let bestGain = gain(current);
       for (const candidate of [...linkWeights.keys()].sort()) {
@@ -100,12 +87,7 @@ export function suggestCommunities(entities: Entity[], edges: Relationship[]) {
   const business = entities.filter(isBusinessEntity).sort((a, b) => a.id.localeCompare(b.id));
   const adjacent = new Map(business.map(e => [e.id, new Set<string>()]));
   for (const edge of edges)
-    if (
-      !isInheritance(edge) &&
-      edge.source !== edge.target &&
-      adjacent.has(edge.source) &&
-      adjacent.has(edge.target)
-    ) {
+    if (!isInheritance(edge) && edge.source !== edge.target && adjacent.has(edge.source) && adjacent.has(edge.target)) {
       adjacent.get(edge.source)!.add(edge.target);
       adjacent.get(edge.target)!.add(edge.source);
     }
@@ -114,9 +96,7 @@ export function suggestCommunities(entities: Entity[], edges: Relationship[]) {
 
   // Local moving alone stops at pairs and triples on sparse models, so the communities found at
   // one level become the nodes of the next, as in the Louvain method, until nothing moves.
-  let graph: WeightedGraph = new Map(
-    [...adjacent].map(([id, next]) => [id, new Map([...next].map(other => [other, 1]))]),
-  );
+  let graph: WeightedGraph = new Map([...adjacent].map(([id, next]) => [id, new Map([...next].map(other => [other, 1]))]));
   const membership = new Map(business.map(e => [e.id, e.id]));
   let levels = 0;
   if (twiceEdges)
@@ -138,9 +118,7 @@ export function suggestCommunities(entities: Entity[], edges: Relationship[]) {
   }
   const anchors = new Map<string, string>();
   for (const ids of clusters.values()) {
-    const anchor = ids
-      .slice()
-      .sort((a, b) => degree.get(b)! - degree.get(a)! || a.localeCompare(b))[0];
+    const anchor = ids.slice().sort((a, b) => degree.get(b)! - degree.get(a)! || a.localeCompare(b))[0];
     for (const id of ids) anchors.set(id, anchor);
   }
   return { membership: anchors, degree, levels, backboneEdges: twiceEdges / 2 };

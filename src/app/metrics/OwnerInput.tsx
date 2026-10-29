@@ -37,12 +37,7 @@ export function OwnerInput({
   }, [project]);
   return (
     <>
-      <input
-        aria-label="Owner"
-        list="metric-owner-people"
-        value={value}
-        onChange={event => onChange(event.target.value)}
-      />
+      <input aria-label="Owner" list="metric-owner-people" value={value} onChange={event => onChange(event.target.value)} />
       <datalist id="metric-owner-people">
         {people.map(person => (
           <option key={person.owner} value={person.owner}>
@@ -50,14 +45,8 @@ export function OwnerInput({
           </option>
         ))}
       </datalist>
-      {people.length > 0 && verified !== false && (
-        <small>Suggestions are people who can read this project and have signed in.</small>
-      )}
-      {verified === false && (
-        <small className="owner-unverified">
-          Unverified owner: this names nobody who has signed in with a verified address or username.
-        </small>
-      )}
+      {people.length > 0 && verified !== false && <small>Suggestions are people who can read this project and have signed in.</small>}
+      {verified === false && <small className="owner-unverified">Unverified owner: this names nobody who has signed in with a verified address or username.</small>}
       {unavailable && <small className="owner-unverified">{unavailable}</small>}
     </>
   );

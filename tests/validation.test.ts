@@ -7,10 +7,7 @@ import { inheritanceCycle } from '../src/shared/validation/validation';
 import { readdir } from 'node:fs/promises';
 const ontology = {
   name: 'Test',
-  ontology: [
-    { concept: 'Customer', relationships: [{ name: 'orders', roles: [{ concept: 'Order' }] }] },
-    { concept: 'Order' },
-  ],
+  ontology: [{ concept: 'Customer', relationships: [{ name: 'orders', roles: [{ concept: 'Order' }] }] }, { concept: 'Order' }],
 };
 const semantic = {
   name: 'Sales',
@@ -19,22 +16,16 @@ const semantic = {
     {
       name: 'orders',
       source: 'db.orders',
-      fields: [
-        { name: 'id', expression: { dialects: [{ dialect: 'ANSI_SQL', expression: 'id' }] } },
-      ],
+      fields: [{ name: 'id', expression: { dialects: [{ dialect: 'ANSI_SQL', expression: 'id' }] } }],
       primary_key: ['id'],
     },
     {
       name: 'customers',
       source: 'db.customers',
-      fields: [
-        { name: 'id', expression: { dialects: [{ dialect: 'ANSI_SQL', expression: 'id' }] } },
-      ],
+      fields: [{ name: 'id', expression: { dialects: [{ dialect: 'ANSI_SQL', expression: 'id' }] } }],
     },
   ],
-  relationships: [
-    { name: 'customer', from: 'orders', to: 'customers', from_columns: ['id'], to_columns: ['id'] },
-  ],
+  relationships: [{ name: 'customer', from: 'orders', to: 'customers', from_columns: ['id'], to_columns: ['id'] }],
   metrics: [
     {
       name: 'count',
@@ -62,12 +53,7 @@ for (const [name, source, filename, code] of [
   ['duplicate YAML keys', 'ontology: []\nontology: []', 'x.yaml', 'syntax'],
   ['custom tag', 'ontology: !unexpected []', 'x.yaml', 'yaml-tag'],
   ['multi document', '---\nontology: []\n---\nontology: []', 'x.yaml', 'syntax'],
-  [
-    'cyclic alias',
-    'name: X\nontology: &x [{concept: A, properties: *x}]',
-    'x.yaml',
-    'serialization',
-  ],
+  ['cyclic alias', 'name: X\nontology: &x [{concept: A, properties: *x}]', 'x.yaml', 'serialization'],
   ['JSON comments', '{"ontology":[]} // comment', 'x.json', 'json'],
   ['JSON trailing comma', '{"ontology":[],}', 'x.json', 'json'],
   ['YAML with JSON filename', 'name: X\nontology: [{concept: A}]', 'x.json', 'json'],
@@ -97,26 +83,14 @@ for (const [name, mutate, code] of [
   ['relative IRI', (d: any) => (d.ontology[0].iri = 'relative'), 'structure'],
   ['non-string description', (d: any) => (d.ontology[0].description = { x: 1 }), 'structure'],
   ['invalid properties', (d: any) => (d.ontology[0].properties = {}), 'structure'],
-  [
-    'duplicate properties',
-    (d: any) => (d.ontology[0].properties = [{ name: 'id' }, { name: 'id' }]),
-    'duplicate',
-  ],
+  ['duplicate properties', (d: any) => (d.ontology[0].properties = [{ name: 'id' }, { name: 'id' }]), 'duplicate'],
   ['non-array relationships', (d: any) => (d.ontology[0].relationships = {}), 'structure'],
   ['null relationship', (d: any) => (d.ontology[0].relationships = [null]), 'structure'],
   ['unnamed relationship', (d: any) => delete d.ontology[0].relationships[0].name, 'structure'],
   ['empty roles', (d: any) => (d.ontology[0].relationships[0].roles = []), 'structure'],
   ['null role', (d: any) => (d.ontology[0].relationships[0].roles = [null]), 'structure'],
-  [
-    'missing role target',
-    (d: any) => (d.ontology[0].relationships[0].roles[0].concept = 'Missing'),
-    'reference',
-  ],
-  [
-    'invalid verbalizations',
-    (d: any) => (d.ontology[0].relationships[0].verbalizes = [4]),
-    'structure',
-  ],
+  ['missing role target', (d: any) => (d.ontology[0].relationships[0].roles[0].concept = 'Missing'), 'reference'],
+  ['invalid verbalizations', (d: any) => (d.ontology[0].relationships[0].verbalizes = [4]), 'structure'],
   ['unknown parent', (d: any) => (d.ontology[0].extends = ['Unknown']), 'reference'],
   ['invalid extends', (d: any) => (d.ontology[0].extends = 'Order'), 'structure'],
   ['self inheritance', (d: any) => (d.ontology[0].extends = ['Customer']), 'inheritance-cycle'],
@@ -142,32 +116,16 @@ for (const [name, mutate, code] of [
   ['invalid fields', (d: any) => (d.datasets[0].fields = {}), 'structure'],
   ['duplicate field', (d: any) => d.datasets[0].fields.push(d.datasets[0].fields[0]), 'duplicate'],
   ['unknown dataset', (d: any) => (d.relationships[0].to = 'missing'), 'reference'],
-  [
-    'unknown source join field',
-    (d: any) => (d.relationships[0].from_columns = ['missing']),
-    'reference',
-  ],
-  [
-    'unknown target join field',
-    (d: any) => (d.relationships[0].to_columns = ['missing']),
-    'reference',
-  ],
-  [
-    'mismatched composite join',
-    (d: any) => (d.relationships[0].from_columns = ['id', 'id']),
-    'join',
-  ],
+  ['unknown source join field', (d: any) => (d.relationships[0].from_columns = ['missing']), 'reference'],
+  ['unknown target join field', (d: any) => (d.relationships[0].to_columns = ['missing']), 'reference'],
+  ['mismatched composite join', (d: any) => (d.relationships[0].from_columns = ['id', 'id']), 'join'],
   ['empty join keys', (d: any) => (d.relationships[0].from_columns = []), 'structure'],
   ['duplicate relationship', (d: any) => d.relationships.push(d.relationships[0]), 'duplicate'],
   ['duplicate metric', (d: any) => d.metrics.push(d.metrics[0]), 'duplicate'],
   ['metric dataset collision', (d: any) => (d.metrics[0].name = 'orders'), 'duplicate'],
   ['missing metric expression', (d: any) => delete d.metrics[0].expression, 'structure'],
   ['malformed dialects', (d: any) => (d.metrics[0].expression.dialects = 'SQL'), 'structure'],
-  [
-    'empty expression',
-    (d: any) => (d.metrics[0].expression.dialects[0].expression = ''),
-    'structure',
-  ],
+  ['empty expression', (d: any) => (d.metrics[0].expression.dialects[0].expression = ''), 'structure'],
   ['official schema extra property', (d: any) => (d.unrecognized = true), 'schema'],
 ] as [string, (d: any) => void, string][])
   test(`semantic: ${name}`, () => {
@@ -208,9 +166,7 @@ test('size limit uses UTF-8 bytes including multibyte input', () => {
   expect(validateInput(prefix + 'a'.repeat(MAX_INPUT_BYTES - prefix.length)).valid).toBe(true);
 });
 test('unknown versions and undeclared external fields are honest warnings', () => {
-  const r = validateInput(
-    'kind: DataContract\napiVersion: v99\nid: x\nversion: "1"\nschema: [{name: X}]',
-  );
+  const r = validateInput('kind: DataContract\napiVersion: v99\nid: x\nversion: "1"\nschema: [{name: X}]');
   expect(r.valid).toBe(true);
   expect(r.issues.some(i => i.severity === 'warning' && i.path === '/apiVersion')).toBe(true);
   const s = validateInput('name: external\ndatasets: [{name: x, source: db.x, primary_key: [id]}]');
@@ -229,8 +185,7 @@ test('all shipped imports including benchmarks continue to validate', async () =
       expect(r.valid).toBe(true);
     }
 });
-const pre =
-  '@prefix ex: <https://example.org/> .\n@prefix sh: <http://www.w3.org/ns/shacl#> .\n@prefix owl: <http://www.w3.org/2002/07/owl#> .\n@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n';
+const pre = '@prefix ex: <https://example.org/> .\n@prefix sh: <http://www.w3.org/ns/shacl#> .\n@prefix owl: <http://www.w3.org/2002/07/owl#> .\n@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n';
 for (const [name, body] of [
   ['missing path', 'ex:S a sh:PropertyShape .'],
   ['literal path', 'ex:S sh:path "name" .'],
@@ -249,16 +204,10 @@ for (const [name, body] of [
   ['node with path', 'ex:S a sh:NodeShape; sh:path ex:p .'],
   ['literal property', 'ex:S sh:property "p" .'],
   ['missing restriction property', 'ex:R a owl:Restriction; owl:someValuesFrom ex:C .'],
-  [
-    'multiple restriction constraints',
-    'ex:R a owl:Restriction; owl:onProperty ex:p; owl:someValuesFrom ex:C; owl:allValuesFrom ex:C .',
-  ],
+  ['multiple restriction constraints', 'ex:R a owl:Restriction; owl:onProperty ex:p; owl:someValuesFrom ex:C; owl:allValuesFrom ex:C .'],
   ['negative cardinality', 'ex:R a owl:Restriction; owl:onProperty ex:p; owl:minCardinality -1 .'],
   ['literal range', 'ex:R a owl:Restriction; owl:onProperty ex:p; owl:someValuesFrom "class" .'],
-  [
-    'qualified restriction without class',
-    'ex:R a owl:Restriction; owl:onProperty ex:p; owl:minQualifiedCardinality 1 .',
-  ],
+  ['qualified restriction without class', 'ex:R a owl:Restriction; owl:onProperty ex:p; owl:minQualifiedCardinality 1 .'],
 ])
   test(`RDF definitions: ${name}`, () => {
     bad(pre + body, 'shapes.ttl', 'rdf-structure');
@@ -271,11 +220,7 @@ for (const [name, source, file] of [
   ['SHACL', pre + 'ex:S sh:path [sh:inversePath ex:p]; sh:minCount 0; sh:maxCount 2 .', 'x.shacl'],
   ['SHACL sequence', pre + 'ex:S sh:path (ex:a ex:b) .', 'x.ttl'],
   ['SHACL alternative', pre + 'ex:S sh:path [sh:alternativePath (ex:a ex:b)] .', 'x.ttl'],
-  [
-    'OWL external classes',
-    pre + 'ex:R a owl:Restriction; owl:onProperty ex:p; owl:someValuesFrom ex:External .',
-    'x.owl',
-  ],
+  ['OWL external classes', pre + 'ex:R a owl:Restriction; owl:onProperty ex:p; owl:someValuesFrom ex:External .', 'x.owl'],
   [
     'RDF XML',
     '<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:e="https://example.org/"><rdf:Description rdf:about="https://example.org/a"><e:p>value</e:p></rdf:Description></rdf:RDF>',
@@ -301,35 +246,17 @@ test('error is structured at the lower-level inspector boundary', () => {
     expect((e as InputError).issues[0].path).toBe('/ontology');
   }
 });
-const odcsFixture = JSON.parse(
-  JSON.stringify(
-    (await import('yaml')).parse(
-      await Bun.file('public/examples/commerce/commerce.odcs.yaml').text(),
-    ),
-  ),
-);
+const odcsFixture = JSON.parse(JSON.stringify((await import('yaml')).parse(await Bun.file('public/examples/commerce/commerce.odcs.yaml').text())));
 for (const [name, mutate, code] of [
   ['wrong kind', (d: any) => (d.kind = 'Contract'), 'structure'],
   ['missing id', (d: any) => delete d.id, 'structure'],
   ['wrong version type', (d: any) => (d.version = 1), 'structure'],
   ['empty schema', (d: any) => (d.schema = []), 'structure'],
   ['duplicate table', (d: any) => d.schema.push(d.schema[0]), 'duplicate'],
-  [
-    'duplicate nested property',
-    (d: any) => d.schema[0].properties.push(d.schema[0].properties[0]),
-    'duplicate',
-  ],
-  [
-    'invalid nested properties',
-    (d: any) => (d.schema[0].properties[0].properties = {}),
-    'structure',
-  ],
+  ['duplicate nested property', (d: any) => d.schema[0].properties.push(d.schema[0].properties[0]), 'duplicate'],
+  ['invalid nested properties', (d: any) => (d.schema[0].properties[0].properties = {}), 'structure'],
   ['invalid status', (d: any) => (d.status = { invalid: true }), 'schema'],
-  [
-    'unknown logical type',
-    (d: any) => (d.schema[0].properties[0].logicalType = 'imaginary'),
-    'schema',
-  ],
+  ['unknown logical type', (d: any) => (d.schema[0].properties[0].logicalType = 'imaginary'), 'schema'],
   ['missing required status', (d: any) => delete d.status, 'schema'],
   ['invalid boolean', (d: any) => (d.schema[0].properties[0].required = 'yes'), 'schema'],
   ['invalid URL', (d: any) => (d.schema[0].authoritativeDefinitions[0].url = 42), 'schema'],
@@ -350,35 +277,17 @@ test('recoverable XML errors are rejected instead of silently repaired', () => {
   );
 });
 test('source diagnostics include the offending line and column', () => {
-  const r = bad(
-    'name: Test\nontology:\n - concept: A\n   extends: [Missing]',
-    'test.yaml',
-    'reference',
-  );
+  const r = bad('name: Test\nontology:\n - concept: A\n   extends: [Missing]', 'test.yaml', 'reference');
   const issue = r.issues.find(i => i.code === 'reference')!;
   expect(issue.line).toBe(4);
   expect(issue.column).toBeGreaterThan(1);
 });
 test('SHACL allows multiple class constraints and valid signed nonnegative integers', () => {
-  expect(
-    validateInput(
-      pre + 'ex:S sh:path ex:p; sh:class ex:A, ex:B; sh:minCount "-0"^^xsd:integer .',
-      'shape.ttl',
-    ).valid,
-  ).toBe(true);
+  expect(validateInput(pre + 'ex:S sh:path ex:p; sh:class ex:A, ex:B; sh:minCount "-0"^^xsd:integer .', 'shape.ttl').valid).toBe(true);
 });
 test('OWL hasSelf requires boolean true', () => {
-  bad(
-    pre + 'ex:R a owl:Restriction; owl:onProperty ex:p; owl:hasSelf "yes" .',
-    'bad.owl',
-    'rdf-structure',
-  );
-  expect(
-    validateInput(
-      pre + 'ex:R a owl:Restriction; owl:onProperty ex:p; owl:hasSelf true .',
-      'good.owl',
-    ).valid,
-  ).toBe(true);
+  bad(pre + 'ex:R a owl:Restriction; owl:onProperty ex:p; owl:hasSelf "yes" .', 'bad.owl', 'rdf-structure');
+  expect(validateInput(pre + 'ex:R a owl:Restriction; owl:onProperty ex:p; owl:hasSelf true .', 'good.owl').valid).toBe(true);
 });
 
 test('empty filenames and object-valued model names cannot bypass shared validation', () => {
@@ -391,7 +300,5 @@ test('primary-key columns need not all be exposed as logical fields', () => {
   d.datasets[0].primary_key = ['id', 'physical_ticket'];
   const r = validateInput(asJson(d), 'model.json');
   expect(r.valid).toBe(true);
-  expect(
-    r.issues.some(i => i.severity === 'warning' && i.path === '/datasets/0/primary_key/1'),
-  ).toBe(true);
+  expect(r.issues.some(i => i.severity === 'warning' && i.path === '/datasets/0/primary_key/1')).toBe(true);
 });

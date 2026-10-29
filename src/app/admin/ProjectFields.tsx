@@ -6,24 +6,12 @@ import { commaList } from './change-review';
 
 type Project = ProjectsConfig['projects'][string];
 /** Edits one project's access properties, with informational contacts kept separate from grants. */
-export function ProjectFields({
-  slug,
-  project,
-  domains,
-  onChange,
-}: {
-  slug: string;
-  project: Project;
-  domains: ProjectsConfig['domains'];
-  onChange: (project: Project) => void;
-}) {
+export function ProjectFields({ slug, project, domains, onChange }: { slug: string; project: Project; domains: ProjectsConfig['domains']; onChange: (project: Project) => void }) {
   function changeRule(index: number, field: 'pattern' | 'groups' | 'emails', text: string) {
     const value = field === 'pattern' ? text : commaList(text);
     onChange({
       ...project,
-      restricted: project.restricted.map((rule, position) =>
-        position === index ? { ...rule, [field]: value } : rule,
-      ),
+      restricted: project.restricted.map((rule, position) => (position === index ? { ...rule, [field]: value } : rule)),
     });
   }
   function removeRestriction(index: number) {
@@ -44,11 +32,7 @@ export function ProjectFields({
   return (
     <fieldset>
       <legend>{slug}</legend>
-      <SelectField
-        label={`Domain for ${slug}`}
-        value={project.domain ?? ''}
-        onChange={event => onChange({ ...project, domain: event.target.value || undefined })}
-      >
+      <SelectField label={`Domain for ${slug}`} value={project.domain ?? ''} onChange={event => onChange({ ...project, domain: event.target.value || undefined })}>
         <option value="">No domain</option>
         {domains.map(domain => (
           <option key={domain.id} value={domain.id}>
@@ -57,33 +41,19 @@ export function ProjectFields({
         ))}
       </SelectField>
       <label>
-        <input
-          type="checkbox"
-          checked={project.everyoneCanRead ?? false}
-          onChange={event => onChange({ ...project, everyoneCanRead: event.target.checked })}
-        />
+        <input type="checkbox" checked={project.everyoneCanRead ?? false} onChange={event => onChange({ ...project, everyoneCanRead: event.target.checked })} />
         Everyone with access can read
       </label>
       <label>
         Listed Stewards (informational)
-        <ListInput
-          value={project.stewards}
-          onChange={stewards => onChange({ ...project, stewards })}
-        />
+        <ListInput value={project.stewards} onChange={stewards => onChange({ ...project, stewards })} />
       </label>
       <p>These contacts grant no permissions. Assign roles in Access grants.</p>
       <label>
         Protected branches
-        <ListInput
-          value={project.protectedBranches}
-          onChange={protectedBranches => onChange({ ...project, protectedBranches })}
-        />
+        <ListInput value={project.protectedBranches} onChange={protectedBranches => onChange({ ...project, protectedBranches })} />
       </label>
-      <SelectField
-        label="Protected classification level"
-        value={project.protectedLevel ?? ''}
-        onChange={event => changeLevel(event.target.value)}
-      >
+      <SelectField label="Protected classification level" value={project.protectedLevel ?? ''} onChange={event => changeLevel(event.target.value)}>
         <option value="">Workspace default</option>
         {LEVELS.map(level => (
           <option key={level}>{level}</option>
@@ -95,24 +65,15 @@ export function ProjectFields({
           <legend>Restriction {index + 1}</legend>
           <label>
             Pattern
-            <input
-              value={rule.pattern}
-              onChange={event => changeRule(index, 'pattern', event.target.value)}
-            />
+            <input value={rule.pattern} onChange={event => changeRule(index, 'pattern', event.target.value)} />
           </label>
           <label>
             Groups
-            <ListInput
-              value={rule.groups}
-              onChange={values => changeRule(index, 'groups', values.join(', '))}
-            />
+            <ListInput value={rule.groups} onChange={values => changeRule(index, 'groups', values.join(', '))} />
           </label>
           <label>
             E-mail addresses
-            <ListInput
-              value={rule.emails}
-              onChange={values => changeRule(index, 'emails', values.join(', '))}
-            />
+            <ListInput value={rule.emails} onChange={values => changeRule(index, 'emails', values.join(', '))} />
           </label>
           <button onClick={() => removeRestriction(index)}>Remove restriction</button>
         </fieldset>

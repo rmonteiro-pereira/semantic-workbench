@@ -4,10 +4,7 @@ import { agentCatalogPath, agentContextPath } from '../src/app/mappings/agent-pa
 
 test('the catalog and context addresses carry the project', () => {
   expect(agentCatalogPath('sales team')).toBe('/api/agent/catalog?project=sales%20team');
-  const address = new URL(
-    agentContextPath('sales', 'sales/a.mapping.yaml#ontology_mappings/0'),
-    'http://x',
-  );
+  const address = new URL(agentContextPath('sales', 'sales/a.mapping.yaml#ontology_mappings/0'), 'http://x');
   expect(address.searchParams.get('project')).toBe('sales');
   expect(address.searchParams.get('mappingId')).toBe('sales/a.mapping.yaml#ontology_mappings/0');
 });

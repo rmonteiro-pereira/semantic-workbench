@@ -872,11 +872,7 @@ button.odcs-link.fk:hover {
 }
 .lineage-card[style*='--card-tint'] {
   background:
-    linear-gradient(
-        color-mix(in srgb, var(--card-tint) 14%, var(--color-surface)),
-        color-mix(in srgb, var(--card-tint) 14%, var(--color-surface))
-      )
-      top/100% 64px no-repeat,
+    linear-gradient(color-mix(in srgb, var(--card-tint) 14%, var(--color-surface)), color-mix(in srgb, var(--card-tint) 14%, var(--color-surface))) top/100% 64px no-repeat,
     var(--color-surface);
 }
 .lineage-card.center {

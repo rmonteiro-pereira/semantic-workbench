@@ -1,16 +1,6 @@
 // Appends whitelisted decision records to durable monthly files that form one hash chain, and
 // checks that chain.
-import {
-  mkdirSync,
-  readdirSync,
-  readFileSync,
-  existsSync,
-  openSync,
-  writeSync,
-  fsyncSync,
-  closeSync,
-  unlinkSync,
-} from 'node:fs';
+import { mkdirSync, readdirSync, readFileSync, existsSync, openSync, writeSync, fsyncSync, closeSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { sha256 } from '../projects/atomic';
 import type { ResourceRef } from './resource';
@@ -48,21 +38,9 @@ export type AuditAnchor = { type: 'audit-anchor'; month: string; tail: string };
 export type AuditLog = ReturnType<typeof createAuditLog>;
 
 function pick(value: Record<string, unknown>, keys: string[]) {
-  return Object.fromEntries(
-    keys.filter(key => value[key] !== undefined).map(key => [key, value[key]]),
-  );
+  return Object.fromEntries(keys.filter(key => value[key] !== undefined).map(key => [key, value[key]]));
 }
-const resourceKeys = [
-  'type',
-  'project',
-  'path',
-  'branch',
-  'metric',
-  'entry',
-  'area',
-  'role',
-  'grant',
-];
+const resourceKeys = ['type', 'project', 'path', 'branch', 'metric', 'entry', 'area', 'role', 'grant'];
 function record(input: AuditInput, at: string, prev: string): AuditEntry {
   const entry = {
     ...pick(input, ['requestId', 'action', 'decision', 'rules', 'reason', 'outcome', 'version']),
@@ -79,26 +57,14 @@ function record(input: AuditInput, at: string, prev: string): AuditEntry {
       roles: [...input.snapshot.roles],
       groups: [...input.snapshot.groups],
       emailMatched: input.snapshot.emailMatched,
-      resourceAttrs: pick(input.snapshot.resourceAttrs, [
-        ...resourceKeys,
-        'domain',
-        'docType',
-        'level',
-        'protectedLevel',
-        'protectedBranch',
-      ]),
+      resourceAttrs: pick(input.snapshot.resourceAttrs, [...resourceKeys, 'domain', 'docType', 'level', 'protectedLevel', 'protectedBranch']),
     };
   }
   return entry;
 }
 
 /** Opens an audit directory, pruning only months entirely beyond the retention window. */
-export function createAuditLog(options: {
-  dir: string;
-  mirror?: (line: string) => void;
-  retentionDays?: number;
-  now?: () => Date;
-}) {
+export function createAuditLog(options: { dir: string; mirror?: (line: string) => void; retentionDays?: number; now?: () => Date }) {
   const now = options.now ?? (() => new Date());
   mkdirSync(options.dir, { recursive: true });
   function lines(month: string): string[] {
@@ -205,18 +171,11 @@ export type ChainBreak = {
   month: string;
   /** The 1-based line of the month's file; 0 when the whole month is the problem. */
   line: number;
-  reason:
-    | 'unreadable'
-    | 'broken-link'
-    | 'anchor-mismatch'
-    | 'anchor-month-missing'
-    | 'mirror-line-missing';
+  reason: 'unreadable' | 'broken-link' | 'anchor-mismatch' | 'anchor-month-missing' | 'mirror-line-missing';
 };
 
 /** The outcome of checking a stored audit chain. */
-export type ChainCheck =
-  | { ok: true; records: number; months: number }
-  | ({ ok: false } & ChainBreak);
+export type ChainCheck = { ok: true; records: number; months: number } | ({ ok: false } & ChainBreak);
 
 /** Whether a line has the `prev` of the line before it; the first line of all is not checked. */
 function linkBroken(line: string, previous: string | undefined): boolean {
@@ -278,11 +237,7 @@ function mirrorBreak(stored: StoredMonth[], mirrored: string[], oldest: string):
  * when retention keeps it; and that every record the mirror saw is still stored. The first record
  * that retention left names a record that was pruned, so it cannot be checked.
  */
-export function verifyAuditChain(
-  stored: StoredMonth[],
-  anchors: AuditAnchor[] = [],
-  checks: ChainChecks = {},
-): ChainCheck {
+export function verifyAuditChain(stored: StoredMonth[], anchors: AuditAnchor[] = [], checks: ChainChecks = {}): ChainCheck {
   const filled = stored.filter(item => item.lines.length > 0);
   let previous: string | undefined;
   let records = 0;
@@ -356,9 +311,7 @@ type AuditScope = {
 };
 /** Projects whose audit records the request may read: a Steward's domains, or every project. */
 export function auditableProjects(scope: AuditScope, projects: string[]): Set<string> {
-  return new Set(
-    projects.filter(project => scope.authorize('readAudit', { type: 'project', project }).allow),
-  );
+  return new Set(projects.filter(project => scope.authorize('readAudit', { type: 'project', project }).allow));
 }
 
 /**
@@ -375,11 +328,7 @@ function readableResource(entry: AuditEntry, scope: AuditScope): boolean {
  * Selects audit entries the caller may read. `projects` is null for an Admin, who reads every
  * project's records; anyone else reads only the projects listed.
  */
-export function queryAudit(
-  entries: AuditEntry[],
-  filters: Record<string, string>,
-  access: { scope: AuditScope; projects: Set<string> | null },
-) {
+export function queryAudit(entries: AuditEntry[], filters: Record<string, string>, access: { scope: AuditScope; projects: Set<string> | null }) {
   const { scope, projects } = access;
   return entries.filter(entry => {
     if (projects && !projects.has(String(entry.resource.project ?? ''))) return false;
@@ -397,24 +346,11 @@ export function queryAudit(
 /** Encodes filtered records for download without allowing spreadsheet formula execution. */
 export function exportAudit(entries: AuditEntry[], format: 'csv' | 'jsonl'): string {
   if (format === 'jsonl') return entries.map(entry => JSON.stringify(entry) + '\n').join('');
-  const keys = [
-    'at',
-    'requestId',
-    'principal',
-    'action',
-    'resource',
-    'decision',
-    'outcome',
-    'rules',
-  ];
+  const keys = ['at', 'requestId', 'principal', 'action', 'resource', 'decision', 'outcome', 'rules'];
   const cell = (value: unknown) => {
     let text = typeof value === 'string' ? value : JSON.stringify(value ?? '');
     if (/^[=+@\-\t\r]/.test(text)) text = "'" + text;
     return '"' + text.replaceAll('"', '""') + '"';
   };
-  return (
-    [keys.join(','), ...entries.map(entry => keys.map(key => cell(entry[key])).join(','))].join(
-      '\r\n',
-    ) + '\r\n'
-  );
+  return [keys.join(','), ...entries.map(entry => keys.map(key => cell(entry[key])).join(','))].join('\r\n') + '\r\n';
 }

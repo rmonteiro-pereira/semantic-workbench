@@ -1,11 +1,6 @@
 // Token buckets per source address, and the once-a-minute gate for anonymous audit records.
 import { expect, test } from 'bun:test';
-import {
-  ANONYMOUS_AUDIT_BURST,
-  createAnonymousAuditGate,
-  createRateLimitReport,
-  createRateLimiter,
-} from '../../src/server/auth/rate-limit';
+import { ANONYMOUS_AUDIT_BURST, createAnonymousAuditGate, createRateLimitReport, createRateLimiter } from '../../src/server/auth/rate-limit';
 
 function clock() {
   let milliseconds = 1_000_000;
@@ -100,9 +95,7 @@ test('the next admitted record says how many refusals were left out', () => {
 test('rate-limited sources are reported once a minute with their count', () => {
   const time = clock();
   const lines: string[] = [];
-  const report = createRateLimitReport(time.now, (source, refused) =>
-    lines.push(`${source} ${refused}`),
-  );
+  const report = createRateLimitReport(time.now, (source, refused) => lines.push(`${source} ${refused}`));
   for (let refusal = 0; refusal < 50; refusal++) report('10.0.0.1');
   report('10.0.0.2');
   expect(lines).toEqual(['10.0.0.1 1', '10.0.0.2 1']);

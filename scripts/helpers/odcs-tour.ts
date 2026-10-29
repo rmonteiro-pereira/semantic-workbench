@@ -88,10 +88,7 @@ const contractIdProblems: OdcsMeasure = page =>
         const lineHeight = Number.parseFloat(getComputedStyle(chip).lineHeight) || 16;
         const wrapped = box.height > lineHeight * 1.8;
         const cut = chip.scrollWidth > chip.clientWidth + 1;
-        return [
-          ...(wrapped ? [`contract id wraps onto ${Math.round(box.height)} px of height`] : []),
-          ...(cut ? ['contract id is cut off'] : []),
-        ];
+        return [...(wrapped ? [`contract id wraps onto ${Math.round(box.height)} px of height`] : []), ...(cut ? ['contract id is cut off'] : [])];
       }),
   );
 
@@ -100,11 +97,7 @@ const descriptionProblems: OdcsMeasure = page =>
   page.evaluate(() =>
     [...document.querySelectorAll<HTMLElement>('.odcs-objects-table td.odcs-desc')]
       .filter(cell => cell.getClientRects().length > 0)
-      .filter(
-        cell =>
-          cell.scrollWidth > cell.clientWidth + 1 ||
-          /ellipsis/.test(getComputedStyle(cell).textOverflow),
-      )
+      .filter(cell => cell.scrollWidth > cell.clientWidth + 1 || /ellipsis/.test(getComputedStyle(cell).textOverflow))
       .map(cell => `description is cut: "${cell.innerText.slice(0, 30)}"`),
   );
 
@@ -127,9 +120,7 @@ const datasetHeaderProblems: OdcsMeasure = page =>
 // The dataset tabs fit on one row, however narrow the window is.
 const tabRowProblems: OdcsMeasure = page =>
   page.evaluate(() => {
-    const tops = [...document.querySelectorAll<HTMLElement>('.odcs-tabs [role=tab]')]
-      .filter(tab => tab.getClientRects().length > 0)
-      .map(tab => Math.round(tab.getBoundingClientRect().top));
+    const tops = [...document.querySelectorAll<HTMLElement>('.odcs-tabs [role=tab]')].filter(tab => tab.getClientRects().length > 0).map(tab => Math.round(tab.getBoundingClientRect().top));
     return new Set(tops).size > 1 ? [`dataset tabs wrap onto ${new Set(tops).size} rows`] : [];
   });
 
@@ -146,12 +137,8 @@ const propertyRowProblems: OdcsMeasure = page =>
         if (!name || !edit) return [];
         const nameBox = name.getBoundingClientRect();
         const editBox = edit.getBoundingClientRect();
-        const offset = Math.abs(
-          nameBox.top + nameBox.height / 2 - (editBox.top + editBox.height / 2),
-        );
-        return offset > 2
-          ? [`${name.innerText} is ${Math.round(offset)} px off its Edit button`]
-          : [];
+        const offset = Math.abs(nameBox.top + nameBox.height / 2 - (editBox.top + editBox.height / 2));
+        return offset > 2 ? [`${name.innerText} is ${Math.round(offset)} px off its Edit button`] : [];
       }),
   );
 
@@ -159,20 +146,18 @@ const propertyRowProblems: OdcsMeasure = page =>
 const propertyActionProblems: OdcsMeasure = page =>
   page.evaluate(() => {
     if (innerWidth > 700) return [];
-    return [...document.querySelectorAll<HTMLElement>('.odcs-properties .col-actions')].flatMap(
-      cell => {
-        const button = cell.querySelector('button');
-        if (!button) return [];
-        const problems: string[] = [];
-        if (getComputedStyle(cell, '::before').content !== 'none') {
-          problems.push('property action repeats its Edit label');
-        }
-        if (button.getBoundingClientRect().width > 100) {
-          problems.push('property Edit button stretches across its card');
-        }
-        return problems;
-      },
-    );
+    return [...document.querySelectorAll<HTMLElement>('.odcs-properties .col-actions')].flatMap(cell => {
+      const button = cell.querySelector('button');
+      if (!button) return [];
+      const problems: string[] = [];
+      if (getComputedStyle(cell, '::before').content !== 'none') {
+        problems.push('property action repeats its Edit label');
+      }
+      if (button.getBoundingClientRect().width > 100) {
+        problems.push('property Edit button stretches across its card');
+      }
+      return problems;
+    });
   });
 
 // Tables keep a readable width on a wide screen instead of stretching across it.
@@ -216,9 +201,7 @@ const dialogTitleProblems: OdcsMeasure = page =>
     const body = dialog.querySelector<HTMLElement>('.dialog-body');
     if (!title || !body) return [];
     const first = body.firstElementChild;
-    const gap = first
-      ? first.getBoundingClientRect().top - title.getBoundingClientRect().bottom
-      : 99;
+    const gap = first ? first.getBoundingClientRect().top - title.getBoundingClientRect().bottom : 99;
     return gap < 10 ? [`the first field is ${Math.round(gap)} px under the dialog title`] : [];
   });
 

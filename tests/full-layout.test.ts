@@ -33,11 +33,7 @@ function checkGeometry(result: any, count: number) {
     for (let j = i + 1; j < absolute.length; j++) {
       const a = absolute[i];
       const b = absolute[j];
-      const overlap =
-        a.x < b.x + b.width - 0.01 &&
-        a.x + a.width > b.x + 0.01 &&
-        a.y < b.y + b.height - 0.01 &&
-        a.y + a.height > b.y + 0.01;
+      const overlap = a.x < b.x + b.width - 0.01 && a.x + a.width > b.x + 0.01 && a.y < b.y + b.height - 0.01 && a.y + a.height > b.y + 0.01;
       expect(overlap).toBe(false);
     }
 }

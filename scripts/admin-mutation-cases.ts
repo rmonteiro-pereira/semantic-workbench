@@ -50,14 +50,8 @@ async function proposals(candidate: any) {
       /dry run/,
     );
     const deletion = await service.dryRun({ roles: [] });
-    await assert.rejects(
-      service.save('roles', { roles: [], baseVersion, dryRunId: deletion.dryRunId }, actor),
-    );
-    await service.save(
-      'roles',
-      { roles: [], baseVersion, dryRunId: deletion.dryRunId, confirmDeleteInUse: true },
-      actor,
-    );
+    await assert.rejects(service.save('roles', { roles: [], baseVersion, dryRunId: deletion.dryRunId }, actor));
+    await service.save('roles', { roles: [], baseVersion, dryRunId: deletion.dryRunId, confirmDeleteInUse: true }, actor);
     assert(!repository.load().grants.some(grant => grant.roleId === 'r_metric_reviewer'));
   } finally {
     dir.cleanup();
@@ -68,10 +62,7 @@ async function proposals(candidate: any) {
 export async function adminMutationCase(candidate: any, category: string) {
   if (category === 'admin-proposals') return proposals(candidate);
   if (category === 'admin-policy-validation') {
-    assert.equal(
-      candidate.validatePolicies([{ id: 'invalid', enabled: true, text: 'not cedar' }], []).ok,
-      false,
-    );
+    assert.equal(candidate.validatePolicies([{ id: 'invalid', enabled: true, text: 'not cedar' }], []).ok, false);
   }
   if (category === 'admin-builtins') {
     assert.throws(() => candidate.validateCustomRole(builtin.roles[0]));
@@ -108,15 +99,7 @@ export async function adminMutationCase(candidate: any, category: string) {
     });
     const principal = access.principalFor(person('bob'));
     const context = { mode: 'server', branch: '', protectedBranch: false, level: 0, guardKind: '' };
-    assert.equal(
-      evaluate(
-        { ...principal, deactivated: true },
-        'read',
-        { type: 'project', project: 'sales-metrics' },
-        context,
-      ).allow,
-      false,
-    );
+    assert.equal(evaluate({ ...principal, deactivated: true }, 'read', { type: 'project', project: 'sales-metrics' }, context).allow, false);
     assert.equal(
       evaluate(
         principal,

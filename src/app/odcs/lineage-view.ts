@@ -59,12 +59,7 @@ function reachFromCentre({ centre, heights, lines, rank }: Plan): Reached[] {
     column: column.get(card)!,
     distance: distance.get(card)!,
   }));
-  return reached.sort(
-    (a, b) =>
-      a.distance - b.distance ||
-      rank(a.card) - rank(b.card) ||
-      heights.get(a.card)! - heights.get(b.card)!,
-  );
+  return reached.sort((a, b) => a.distance - b.distance || rank(a.card) - rank(b.card) || heights.get(a.card)! - heights.get(b.card)!);
 }
 /** Picks the cards that fit whole, with the margin, into the view at the readable zoom. The
  * centre is always in, even when it alone is larger than the view. */
@@ -78,9 +73,7 @@ export function planFirstView(plan: Plan): Set<string> {
     const columns = [...stacks.keys()];
     const span = Math.max(...columns) - Math.min(...columns) + 1;
     const wide = span * cardWidth + (span - 1) * columnGap;
-    const tall = Math.max(
-      ...[...stacks.values()].map(s => s.reduce((a, b) => a + b, 0) + (s.length - 1) * rowGap),
-    );
+    const tall = Math.max(...[...stacks.values()].map(s => s.reduce((a, b) => a + b, 0) + (s.length - 1) * rowGap));
     return wide <= room.width && tall <= room.height;
   };
   for (const { card, column } of reachFromCentre(plan)) {

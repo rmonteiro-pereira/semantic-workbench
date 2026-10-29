@@ -19,14 +19,10 @@ const finance = {
 test('fixture people receive the union of group and verified address grants', () => {
   const alice = boundary.principalFor(person('alice'));
   expect(boundary.authorize(alice, 'edit', project).allow).toBe(true);
-  expect(boundary.authorize(alice, 'read', { type: 'project', project: 'hr-people' }).status).toBe(
-    404,
-  );
+  expect(boundary.authorize(alice, 'read', { type: 'project', project: 'hr-people' }).status).toBe(404);
   expect(boundary.authorize(alice, 'read', finance).status).toBe(404);
   for (const name of ['bob', 'frank'] as const) {
-    expect(boundary.authorize(boundary.principalFor(person(name)), 'read', finance).allow).toBe(
-      true,
-    );
+    expect(boundary.authorize(boundary.principalFor(person(name)), 'read', finance).allow).toBe(true);
   }
   const both = boundary.principalFor({ ...person('alice'), verifiedEmail: 'bob@example.org' });
   expect(both.grants).toHaveLength(2);
@@ -43,9 +39,7 @@ test('unverified guests and people with only provider roles receive no access', 
 
 test('project grants reach domainless projects and shared reading does not grant writing', () => {
   const carol = boundary.principalFor(person('carol'));
-  expect(boundary.authorize(carol, 'read', { type: 'project', project: 'lab-notes' }).allow).toBe(
-    true,
-  );
+  expect(boundary.authorize(carol, 'read', { type: 'project', project: 'lab-notes' }).allow).toBe(true);
   const shared = { type: 'project', project: 'shared-reference' } as const;
   expect(boundary.authorize(carol, 'read', shared).allow).toBe(true);
   expect(boundary.authorize(carol, 'edit', shared).status).toBe(403);
@@ -61,42 +55,13 @@ test('custom reviewers approve metrics but cannot edit and owners cannot approve
   const hank = boundary.principalFor(person('hank'));
   expect(boundary.authorize(hank, 'approveMetric', metric).allow).toBe(true);
   expect(boundary.authorize(hank, 'edit', metric).allow).toBe(false);
-  const decision = boundary.authorize(
-    boundary.principalFor(person('bob')),
-    'approveMetric',
-    metric,
-  );
+  const decision = boundary.authorize(boundary.principalFor(person('bob')), 'approveMetric', metric);
   expect(decision.reason).toBe('F1-no-self-approval');
 });
 
 const viewerActions: Action[] = ['read', 'export', 'history', 'viewOwnState'];
-const editorActions: Action[] = [
-  ...viewerActions,
-  'edit',
-  'createMetric',
-  'import',
-  'move',
-  'delete',
-  'revert',
-  'restoreOwn',
-  'stage',
-  'commit',
-  'branch',
-  'fetch',
-  'pull',
-  'push',
-  'cancelOwn',
-];
-const stewardActions: Action[] = [
-  ...editorActions,
-  'approveMetric',
-  'editGuarded',
-  'restoreOthers',
-  'publish',
-  'createProject',
-  'renameProject',
-  'readAudit',
-];
+const editorActions: Action[] = [...viewerActions, 'edit', 'createMetric', 'import', 'move', 'delete', 'revert', 'restoreOwn', 'stage', 'commit', 'branch', 'fetch', 'pull', 'push', 'cancelOwn'];
+const stewardActions: Action[] = [...editorActions, 'approveMetric', 'editGuarded', 'restoreOthers', 'publish', 'createProject', 'renameProject', 'readAudit'];
 const roleMatrix: Record<string, Action[]> = {
   viewer: viewerActions,
   editor: editorActions,
@@ -107,11 +72,7 @@ const roleMatrix: Record<string, Action[]> = {
 test('every role matrix action holds for workspace domain and project scoped grants', () => {
   for (const role of builtin.roles as Role[]) {
     const expected = new Set(roleMatrix[role.id]);
-    for (const scope of [
-      { kind: 'workspace' },
-      { kind: 'domains', domains: ['sales'] },
-      { kind: 'projects', projects: ['sales-contracts'] },
-    ] as GrantScope[]) {
+    for (const scope of [{ kind: 'workspace' }, { kind: 'domains', domains: ['sales'] }, { kind: 'projects', projects: ['sales-contracts'] }] as GrantScope[]) {
       if (role.id === 'admin' && scope.kind !== 'workspace') continue;
       const options = accessFixture();
       options.config.grants = [
@@ -127,26 +88,18 @@ test('every role matrix action holds for workspace domain and project scoped gra
       const access = createAccessControl(options);
       const principal = access.principalFor(person('alice'));
       for (const action of ACTIONS) {
-        expect(access.authorize(principal, action, project).allow).toBe(
-          role.id === 'admin' || expected.has(action),
-        );
+        expect(access.authorize(principal, action, project).allow).toBe(role.id === 'admin' || expected.has(action));
       }
-      expect(
-        access.authorize(principal, 'read', { type: 'project', project: 'lab-notes' }).allow,
-      ).toBe(role.id === 'admin');
+      expect(access.authorize(principal, 'read', { type: 'project', project: 'lab-notes' }).allow).toBe(role.id === 'admin');
     }
   }
 });
 
 test('clients only read their assigned projects through the agent action', () => {
-  const client = boundary.principalFor(
-    clientFromToken({ tid: 'tenant', idtyp: 'app', azp: 'sw-agent' }, 'tenant'),
-  );
+  const client = boundary.principalFor(clientFromToken({ tid: 'tenant', idtyp: 'app', azp: 'sw-agent' }, 'tenant'));
   expect(boundary.authorize(client, 'agentRead', project).allow).toBe(true);
   expect(boundary.authorize(client, 'read', project).allow).toBe(false);
-  expect(
-    boundary.authorize(client, 'agentRead', { type: 'project', project: 'hr-people' }).allow,
-  ).toBe(false);
+  expect(boundary.authorize(client, 'agentRead', { type: 'project', project: 'hr-people' }).allow).toBe(false);
 });
 
 test('memoisation shares indistinguishable files and separates restricted files', () => {
@@ -164,9 +117,7 @@ test('deactivation wins and a failed reload preserves the active policy set', ()
   const options = accessFixture();
   const access = createAccessControl(options);
   const alice = access.principalFor(person('alice'));
-  expect(() => access.reload({ ...options.config, roles: builtin.roles as Role[] })).toThrow(
-    PolicyLoadError,
-  );
+  expect(() => access.reload({ ...options.config, roles: builtin.roles as Role[] })).toThrow(PolicyLoadError);
   expect(access.authorize(alice, 'read', project).allow).toBe(true);
   expect(access.authorize({ ...alice, deactivated: true }, 'read', project).allow).toBe(false);
   access.reload({
@@ -235,9 +186,7 @@ test('custom conditions distinguish resource attributes and request context', ()
     level: 'internal',
   } as const;
   expect(access.authorize(alice, 'edit', file).allow).toBe(true);
-  expect(access.authorize(alice, 'edit', { ...file, path: 'other/revenue.yaml' }).allow).toBe(
-    false,
-  );
+  expect(access.authorize(alice, 'edit', { ...file, path: 'other/revenue.yaml' }).allow).toBe(false);
   expect(access.authorize(alice, 'edit', { ...file, docType: 'contract' }).allow).toBe(false);
   expect(access.authorize(alice, 'edit', { ...file, level: 'restricted' }).allow).toBe(false);
   expect(access.authorize(alice, 'commit', file, { branch: 'review/alice' }).allow).toBe(true);
@@ -246,9 +195,7 @@ test('custom conditions distinguish resource attributes and request context', ()
 
 test('filter and view expose only readable resources and effective project roles', () => {
   const alice = boundary.principalFor(person('alice'));
-  expect(boundary.filter(alice, 'read', [project, finance], resource => resource)).toEqual([
-    project,
-  ]);
+  expect(boundary.filter(alice, 'read', [project, finance], resource => resource)).toEqual([project]);
   const view = boundary.view(alice);
   expect(view.readableProjects.has('sales-contracts')).toBe(true);
   expect(view.readableProjects.has('hr-people')).toBe(false);

@@ -37,27 +37,9 @@ export function suggestedMessage(paths: string[], itemHints: Record<string, stri
   }
   return `Update ${paths.length} files`;
 }
-const describe = (c: GitChange) =>
-  c.conflicted
-    ? 'conflicted'
-    : c.untracked
-      ? 'new'
-      : c.worktree === 'D' || c.index === 'D'
-        ? 'deleted'
-        : c.index === 'A'
-          ? 'added'
-          : 'modified';
+const describe = (c: GitChange) => (c.conflicted ? 'conflicted' : c.untracked ? 'new' : c.worktree === 'D' || c.index === 'D' ? 'deleted' : c.index === 'A' ? 'added' : 'modified');
 /** Reviews selected changes before committing, pushing or confirmed reversion. */
-export function CommitDialog({
-  project,
-  projectName,
-  itemHints = {},
-  unsaved = [],
-  onClose,
-  onCommitted,
-  onReverted,
-  onSetIdentity,
-}: Props) {
+export function CommitDialog({ project, projectName, itemHints = {}, unsaved = [], onClose, onCommitted, onReverted, onSetIdentity }: Props) {
   const access = useCapabilities(project);
   const [status, setStatus] = useState<GitStatus | null>(null);
   const [error, setError] = useState('');
@@ -80,11 +62,7 @@ export function CommitDialog({
         // Files are named from the repository root: projects sharing it may hold the same path.
         const paths = s.changes.filter(c => !c.conflicted).map(c => c.repoPath);
         setTicked(new Set(paths));
-        setSelected(current =>
-          current && s.changes.some(c => c.repoPath === current)
-            ? current
-            : (s.changes[0]?.repoPath ?? ''),
-        );
+        setSelected(current => (current && s.changes.some(c => c.repoPath === current) ? current : (s.changes[0]?.repoPath ?? '')));
       })
       .catch(e => {
         if (live) setError(e.message);
@@ -98,20 +76,13 @@ export function CommitDialog({
     if (type !== 'identity') return;
     scm
       .status(project)
-      .then(next =>
-        setStatus(previous =>
-          previous ? { ...previous, identityConfigured: next.identityConfigured } : next,
-        ),
-      )
+      .then(next => setStatus(previous => (previous ? { ...previous, identityConfigured: next.identityConfigured } : next)))
       .catch(() => {});
   });
   const changes = status?.changes ?? [];
   const conflicts = changes.filter(c => c.conflicted);
   const merging = !!status?.merging;
-  const tickedPaths = useMemo(
-    () => changes.map(c => c.repoPath).filter(path => ticked.has(path)),
-    [changes, ticked],
-  );
+  const tickedPaths = useMemo(() => changes.map(c => c.repoPath).filter(path => ticked.has(path)), [changes, ticked]);
   useEffect(() => {
     if (!edited) setMessage(merging ? '' : suggestedMessage(tickedPaths, itemHints));
   }, [tickedPaths.join('\0'), merging, edited]);
@@ -149,21 +120,12 @@ export function CommitDialog({
   }, [project, change?.repoPath, status]);
   // In server mode commits are written for the signed-in person, so no Git identity is asked for.
   const identity = !access.local || status?.identityConfigured !== false;
-  const canCommit =
-    access.can('commit') &&
-    !!message.trim() &&
-    !busy &&
-    identity &&
-    (merging ? !conflicts.length : tickedPaths.length > 0);
+  const canCommit = access.can('commit') && !!message.trim() && !busy && identity && (merging ? !conflicts.length : tickedPaths.length > 0);
   async function commit(push: boolean) {
     setBusy(true);
     setError('');
     try {
-      const r = await scm.commit(
-        project,
-        message.trim(),
-        merging ? {} : { repoPaths: tickedPaths, push },
-      );
+      const r = await scm.commit(project, message.trim(), merging ? {} : { repoPaths: tickedPaths, push });
       if (merging && push) {
         const p = await scm.remote(project, 'push');
         onCommitted({ ...r, pushed: { ok: p.ok, message: p.stderr }, files: tickedPaths });
@@ -209,22 +171,13 @@ export function CommitDialog({
             <button onClick={() => setConfirmRevert(false)} disabled={busy}>
               Keep it
             </button>
-            <button
-              className="danger"
-              onClick={() => void revert()}
-              disabled={busy || diskHash === undefined}
-            >
+            <button className="danger" onClick={() => void revert()} disabled={busy || diskHash === undefined}>
               <RotateCcw size={13} />
               Revert
             </button>
           </span>
         ) : (
-          <button
-            className="commit-revert"
-            onClick={() => setConfirmRevert(true)}
-            disabled={busy || change.conflicted}
-            aria-label={`Revert ${change.path} to last commit`}
-          >
+          <button className="commit-revert" onClick={() => setConfirmRevert(true)} disabled={busy || change.conflicted} aria-label={`Revert ${change.path} to last commit`}>
             <RotateCcw size={13} />
             Revert to last commit
           </button>
@@ -236,20 +189,13 @@ export function CommitDialog({
         disabled={!canCommit || !access.can('push')}
         title={
           access.control('commit').title ??
-          (Object.keys(status?.remotes ?? {}).length
-            ? 'Commit, then push to the remote'
-            : 'This project has no remote yet; the commit is made and the push explains how to add one')
+          (Object.keys(status?.remotes ?? {}).length ? 'Commit, then push to the remote' : 'This project has no remote yet; the commit is made and the push explains how to add one')
         }
       >
         <Upload size={13} />
         Commit &amp; push
       </button>
-      <button
-        className="primary"
-        onClick={() => void commit(false)}
-        disabled={!canCommit}
-        title={access.control('commit').title}
-      >
+      <button className="primary" onClick={() => void commit(false)} disabled={!canCommit} title={access.control('commit').title}>
         <GitCommit size={13} />
         {merging ? 'Commit merge' : 'Commit'}
       </button>
@@ -277,12 +223,8 @@ export function CommitDialog({
       {status && !identity && (
         <div role="alert" className="scm-note warning">
           <AlertTriangle size={14} />
-          <span>
-            Not committed: set your Git identity (user.name and user.email) for this repository.
-          </span>
-          {access.local && onSetIdentity && (
-            <button onClick={onSetIdentity}>Set Git identity…</button>
-          )}
+          <span>Not committed: set your Git identity (user.name and user.email) for this repository.</span>
+          {access.local && onSetIdentity && <button onClick={onSetIdentity}>Set Git identity…</button>}
         </div>
       )}
       {unsaved.length > 0 && (
@@ -309,27 +251,14 @@ export function CommitDialog({
           )}
         </div>
       )}
-      {status && !changes.length && (
-        <p className="scm-empty">No changes. The files match the last commit.</p>
-      )}
+      {status && !changes.length && <p className="scm-empty">No changes. The files match the last commit.</p>}
       {changes.length > 0 && (
         <div className="commit-body">
           <ul className="commit-files" aria-label="Changed files">
             {changes.map(c => (
               <li key={c.repoPath} className={c.repoPath === selected ? 'selected' : ''}>
-                <input
-                  type="checkbox"
-                  aria-label={c.path}
-                  checked={ticked.has(c.repoPath)}
-                  disabled={merging || c.conflicted}
-                  onChange={() => toggle(c.repoPath)}
-                />
-                <button
-                  className="commit-file"
-                  aria-pressed={c.repoPath === selected}
-                  onClick={() => setSelected(c.repoPath)}
-                  title={c.path}
-                >
+                <input type="checkbox" aria-label={c.path} checked={ticked.has(c.repoPath)} disabled={merging || c.conflicted} onChange={() => toggle(c.repoPath)} />
+                <button className="commit-file" aria-pressed={c.repoPath === selected} onClick={() => setSelected(c.repoPath)} title={c.path}>
                   <span className="commit-path">{c.path}</span>
                   <small className={`commit-kind k-${describe(c)}`}>{describe(c)}</small>
                 </button>

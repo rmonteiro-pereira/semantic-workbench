@@ -92,12 +92,7 @@ test('every URL-addressed project write refuses an Editor aimed at HR with one a
 test('each body target row refuses hidden files before mutation and audits exactly once', async () => {
   using fixture = await authWorkspace();
   const handler = server(fixture.ws);
-  const deleted = await fixture.ws.trash.deleteFile(
-    'hr-people',
-    'people.odcs.yaml',
-    undefined,
-    LOCAL_READER,
-  );
+  const deleted = await fixture.ws.trash.deleteFile('hr-people', 'people.odcs.yaml', undefined, LOCAL_READER);
   const suggestion = {
     id: '00000000000000000000',
     file: { project: 'hr-people', path: 'people.odcs.yaml', hash: 'hidden' },
@@ -177,9 +172,7 @@ test('deletion records its principal; only a Steward can restore other or legacy
   ] as const;
   const entries = [];
   for (const [deletedBy, file] of legacy) {
-    entries.push(
-      await fixture.ws.trash.deleteFile('sales-contracts', file, deletedBy, LOCAL_READER),
-    );
+    entries.push(await fixture.ws.trash.deleteFile('sales-contracts', file, deletedBy, LOCAL_READER));
     git('add', '-A');
     git('commit', '-q', '-m', `Remove ${file}`);
     git('update-ref', 'refs/heads/main', 'HEAD');
@@ -215,9 +208,7 @@ test('creation and clone refuse a hidden domain even when the caller has the rou
     scope: { kind: 'workspace' },
   });
   options.config.adminRules = {
-    'creation-domain':
-      'forbid (principal, action in [SW::Action::"createProject", SW::Action::"read"], resource) ' +
-      'when { resource is SW::Project && resource.domain == "hr" };',
+    'creation-domain': 'forbid (principal, action in [SW::Action::"createProject", SW::Action::"read"], resource) ' + 'when { resource is SW::Project && resource.domain == "hr" };',
   };
   const access = createAccessControl(options);
   const handler = createHandler(fixture.ws, {
@@ -283,9 +274,7 @@ test('a legacy save without an id is judged under the name it is finally written
   };
   // Alice may edit the requested name but not the name a clash gives the new document.
   options.config.adminRules = {
-    'second-copies':
-      '@id("second-copies")\nforbid (principal, action == SW::Action::"edit", resource) ' +
-      'when { resource is SW::File && resource.path like "* (2)*" };',
+    'second-copies': '@id("second-copies")\nforbid (principal, action == SW::Action::"edit", resource) ' + 'when { resource is SW::File && resource.path like "* (2)*" };',
   };
   const access = createAccessControl({
     ...options,
@@ -298,13 +287,9 @@ test('a legacy save without an id is judged under the name it is finally written
     access,
     principal: () => access.principalFor(person('alice')),
   });
-  const response = await handler(
-    request('/api/documents', 'POST', { filename: 'orders.odcs.yaml', source }),
-  );
+  const response = await handler(request('/api/documents', 'POST', { filename: 'orders.odcs.yaml', source }));
   expect(response.status).toBe(403);
-  expect(existsSync(projectFile(fixture.ws.layout, 'ungrouped', 'orders.odcs (2).yaml'))).toBe(
-    false,
-  );
+  expect(existsSync(projectFile(fixture.ws.layout, 'ungrouped', 'orders.odcs (2).yaml'))).toBe(false);
   const [audit] = auditLines(fixture.root, response);
   expect(audit.resource).toMatchObject({ project: 'ungrouped', path: 'orders.odcs (2).yaml' });
 });
@@ -320,19 +305,10 @@ test('a legacy save is authorized in the project it creates, even when a folder 
   };
   const checked: { project: string; path: string }[] = [];
   const before = fixture.ws.state.registry().projects.length;
-  await expect(
-    fixture.ws.saveDocument('orders.odcs.yaml', source, LOCAL_READER, undefined, undefined, refuse),
-  ).rejects.toThrow('refused');
+  await expect(fixture.ws.saveDocument('orders.odcs.yaml', source, LOCAL_READER, undefined, undefined, refuse)).rejects.toThrow('refused');
   expect(fixture.ws.state.registry().projects).toHaveLength(before);
   const allowed: { project: string; path: string }[] = [];
-  const saved = await fixture.ws.saveDocument(
-    'orders.odcs.yaml',
-    source,
-    LOCAL_READER,
-    undefined,
-    undefined,
-    targets => allowed.push(...targets),
-  );
+  const saved = await fixture.ws.saveDocument('orders.odcs.yaml', source, LOCAL_READER, undefined, undefined, targets => allowed.push(...targets));
   expect(saved.project).not.toBe('ungrouped');
   expect(allowed).toEqual([{ project: saved.project, path: saved.path }]);
   expect(checked).toEqual(allowed);
@@ -343,9 +319,7 @@ test('a missing creation domain answers exactly like a hidden one', async () => 
   const handler = server(fixture.ws, 'bob');
   const statuses: number[] = [];
   for (const domain of ['hr', 'no-such-domain']) {
-    const response = await handler(
-      request('/api/projects', 'POST', { name: 'Probe ' + domain, domain }),
-    );
+    const response = await handler(request('/api/projects', 'POST', { name: 'Probe ' + domain, domain }));
     statuses.push(response.status);
     expect(await response.json()).toEqual({ error: 'Not found.' });
   }

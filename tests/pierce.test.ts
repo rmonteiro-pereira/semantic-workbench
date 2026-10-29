@@ -30,25 +30,14 @@ const opts = (o: Partial<PierceOptions> = {}): PierceOptions => ({
   ...o,
 });
 // Independent reference: plain BFS reachability.
-function reach(
-  m: any,
-  start: string,
-  dir: 'out' | 'in' | 'both',
-  ok: (id: string) => boolean = () => true,
-  label?: string,
-) {
+function reach(m: any, start: string, dir: 'out' | 'in' | 'both', ok: (id: string) => boolean = () => true, label?: string) {
   const seen = new Set([start]);
   const q = [start];
   while (q.length) {
     const n = q.shift()!;
     for (const e of m.edges) {
       if (label && e.label !== label) continue;
-      const o =
-        dir !== 'in' && e.source === n
-          ? e.target
-          : dir !== 'out' && e.target === n
-            ? e.source
-            : null;
+      const o = dir !== 'in' && e.source === n ? e.target : dir !== 'out' && e.target === n ? e.source : null;
       if (o && o !== n && !seen.has(o) && ok(o)) {
         seen.add(o);
         q.push(o);
@@ -70,23 +59,16 @@ for (const [name, m, start] of [
       expect(r.total).toBe(r.nodes.length);
       expect(r.hidden).toBe(0);
       expect(r.steps[s]).toBe(0);
-      for (const n of r.nodes)
-        if (n !== s) expect(r.nodes.some(p => r.steps[p] === r.steps[n] - 1)).toBe(true);
+      for (const n of r.nodes) if (n !== s) expect(r.nodes.some(p => r.steps[p] === r.steps[n] - 1)).toBe(true);
     });
 test('UBL Both from Invoice: budget 150 keeps the first 150 in breadth-first order, frontier counts, totals equal the full closure', () => {
   const s = id(ubl, 'Invoice');
   const full = boundedClosure(ubl.entities, ubl.edges, [s], opts({ direction: 'both' }));
-  const r = boundedClosure(
-    ubl.entities,
-    ubl.edges,
-    [s],
-    opts({ direction: 'both', budget: PIERCE_BUDGET }),
-  );
+  const r = boundedClosure(ubl.entities, ubl.edges, [s], opts({ direction: 'both', budget: PIERCE_BUDGET }));
   expect(r.nodes).toEqual(full.nodes.slice(0, Math.min(150, full.total)));
   expect(r.total).toBe(full.total);
   expect(r.hidden).toBe(full.total - r.nodes.length);
-  for (let i = 1; i < r.nodes.length; i++)
-    expect(r.steps[r.nodes[i]]).toBeGreaterThanOrEqual(r.steps[r.nodes[i - 1]]);
+  for (let i = 1; i < r.nodes.length; i++) expect(r.steps[r.nodes[i]]).toBeGreaterThanOrEqual(r.steps[r.nodes[i - 1]]);
   if (r.hidden > 0) expect(Object.values(r.frontier).reduce((a, b) => a + b, 0)).toBeGreaterThan(0);
   for (const [n, h] of Object.entries(r.frontier)) {
     expect(r.nodes).toContain(n);
@@ -100,20 +82,13 @@ test('value types, metrics and a relationship filter limit the closure', () => {
   const kinds = new Map(mall.entities.map(e => [e.id, e.kind]));
   expect(noValues.nodes.some(n => kinds.get(n) === 'ValueType')).toBe(false);
   expect(noValues.nodes.length).toBeLessThan(all.nodes.length);
-  expect(new Set(noValues.nodes)).toEqual(
-    reach(mall, s, 'out', n => !['ValueType', 'Built-in concept'].includes(kinds.get(n)!)),
-  );
+  expect(new Set(noValues.nodes)).toEqual(reach(mall, s, 'out', n => !['ValueType', 'Built-in concept'].includes(kinds.get(n)!)));
   const label = mall.edges.find(e => e.source === s)!.label;
   const one = boundedClosure(mall.entities, mall.edges, [s], opts({ relationship: label }));
   expect(new Set(one.nodes)).toEqual(reach(mall, s, 'out', () => true, label));
-  const withMetric = [
-    ...mall.entities,
-    { ...mall.entities[0], id: 'm1', name: 'm1', kind: 'Metric' },
-  ];
+  const withMetric = [...mall.entities, { ...mall.entities[0], id: 'm1', name: 'm1', kind: 'Metric' }];
   const edges = [...mall.edges, { ...mall.edges[0], id: 'mm', source: s, target: 'm1' }];
-  expect(boundedClosure(withMetric, edges, [s], opts({ metrics: false })).nodes).not.toContain(
-    'm1',
-  );
+  expect(boundedClosure(withMetric, edges, [s], opts({ metrics: false })).nodes).not.toContain('m1');
   expect(boundedClosure(withMetric, edges, [s], opts()).nodes).toContain('m1');
 });
 test('technical resources follow the switch in models with OWL classes', () => {
@@ -128,11 +103,7 @@ test('technical resources follow the switch in models with OWL classes', () => {
     { id: '3', source: 'a', target: 'b', label: 'y' },
   ];
   expect(boundedClosure(nodes, edges, ['a'], opts({ technical: false })).nodes).toEqual(['a', 'b']);
-  expect(boundedClosure(nodes, edges, ['a'], opts({ technical: true })).nodes.sort()).toEqual([
-    'a',
-    'b',
-    'p',
-  ]);
+  expect(boundedClosure(nodes, edges, ['a'], opts({ technical: true })).nodes.sort()).toEqual(['a', 'b', 'p']);
 });
 test('5,000 entities: budgets 150 and 500, the total is the whole cycle-connected closure, cycles terminate, and it is fast and deterministic', () => {
   const t = performance.now();
@@ -145,12 +116,8 @@ test('5,000 entities: budgets 150 and 500, the total is the whole cycle-connecte
   const r500 = boundedClosure(big.entities, big.edges, [id(big, 'E0')], opts({ budget: 500 }));
   expect(r500.nodes.slice(0, 150)).toEqual(r.nodes);
   expect(r500.nodes).toHaveLength(500);
-  expect(
-    boundedClosure(big.entities, big.edges, [id(big, 'E0')], opts({ budget: 9999 })).nodes,
-  ).toHaveLength(500);
-  expect(boundedClosure(big.entities, big.edges, [id(big, 'E0')], opts({ budget: 150 }))).toEqual(
-    r,
-  );
+  expect(boundedClosure(big.entities, big.edges, [id(big, 'E0')], opts({ budget: 9999 })).nodes).toHaveLength(500);
+  expect(boundedClosure(big.entities, big.edges, [id(big, 'E0')], opts({ budget: 150 }))).toEqual(r);
 });
 test('the lines of a pierce form a tree: one line reaching each shown node except the start', () => {
   const s = id(ubl, 'Invoice');

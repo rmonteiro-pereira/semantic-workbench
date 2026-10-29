@@ -24,9 +24,7 @@ test('resize-loop reports are recorded without cancelling the original error eve
       window.dispatchEvent(event);
       return event.defaultPrevented;
     });
-    await browserExpect
-      .poll(() => errors)
-      .toEqual(['ResizeObserver loop completed with undelivered notifications.']);
+    await browserExpect.poll(() => errors).toEqual(['ResizeObserver loop completed with undelivered notifications.']);
     expect(prevented).toBe(false);
   } finally {
     await page.close();

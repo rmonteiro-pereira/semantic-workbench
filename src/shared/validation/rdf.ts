@@ -13,19 +13,8 @@ const SH = 'http://www.w3.org/ns/shacl#';
 /** Detects a supported RDF serialization from its filename and source. */
 export function rdfSyntax(source: string, filename = '') {
   const ext = filename.split('.').pop()?.toLowerCase();
-  if (
-    /^\s*(<\?xml|<rdf:RDF|<RDF\b)/.test(source) ||
-    (['rdf', 'xml', 'owl'].includes(ext ?? '') &&
-      /^\s*</.test(source) &&
-      !/^\s*<https?:/.test(source))
-  )
-    return 'application/rdf+xml';
-  if (
-    ['ttl', 'nt', 'n3', 'owl', 'rdf', 'shacl'].includes(ext ?? '') ||
-    /^\s*(@prefix|@base|PREFIX|BASE)\b/i.test(source) ||
-    /^\s*<[^>]+>\s+<[^>]+>/.test(source)
-  )
-    return 'text/turtle';
+  if (/^\s*(<\?xml|<rdf:RDF|<RDF\b)/.test(source) || (['rdf', 'xml', 'owl'].includes(ext ?? '') && /^\s*</.test(source) && !/^\s*<https?:/.test(source))) return 'application/rdf+xml';
+  if (['ttl', 'nt', 'n3', 'owl', 'rdf', 'shacl'].includes(ext ?? '') || /^\s*(@prefix|@base|PREFIX|BASE)\b/i.test(source) || /^\s*<[^>]+>\s+<[^>]+>/.test(source)) return 'text/turtle';
   return null;
 }
 /** Parses RDF into entities, relationships and findings for the workbench. */
@@ -37,8 +26,7 @@ export function inspectRdf(source: string, filename: string, syntax: string) {
         severity: 'error',
         code: 'xml-entity',
         path: '/',
-        message:
-          'RDF/XML DTDs and entity declarations are unsupported. Use explicit IRIs and literals.',
+        message: 'RDF/XML DTDs and entity declarations are unsupported. Use explicit IRIs and literals.',
       },
     ]);
   try {
@@ -51,9 +39,7 @@ export function inspectRdf(source: string, filename: string, syntax: string) {
     if (filename.toLowerCase().endsWith('.nt')) new Parser({ format: 'N-Triples' }).parse(source);
     parse(source, store, 'https://workbench.local/import/', syntax);
   } catch (e) {
-    throw new InputError([
-      { severity: 'error', code: 'rdf-syntax', path: '/', message: (e as Error).message },
-    ]);
+    throw new InputError([{ severity: 'error', code: 'rdf-syntax', path: '/', message: (e as Error).message }]);
   }
   const issues = validateRdf(store);
   if (!store.statements.length) throw Error('RDF document contains no triples');
@@ -72,8 +58,7 @@ export function inspectRdf(source: string, filename: string, syntax: string) {
       return s;
     }
   };
-  const short = (s: string) =>
-    s.startsWith('n') && !s.includes(':') ? `_:${s}` : safeDecode(s.split(/[#/]/).pop() || s);
+  const short = (s: string) => (s.startsWith('n') && !s.includes(':') ? `_:${s}` : safeDecode(s.split(/[#/]/).pop() || s));
   const get = (id: string, p: string) =>
     statements
       .get(id)
@@ -99,9 +84,7 @@ export function inspectRdf(source: string, filename: string, syntax: string) {
         name:
           get(id, RDFS + 'label')[0]?.value ??
           get(id, SH + 'name')[0]?.value ??
-          (types(id).includes(OWL + 'Restriction')
-            ? 'Restriction: ' + short(get(id, OWL + 'onProperty')[0]?.value ?? id)
-            : short(id)),
+          (types(id).includes(OWL + 'Restriction') ? 'Restriction: ' + short(get(id, OWL + 'onProperty')[0]?.value ?? id) : short(id)),
         kind:
           ts.includes(OWL + 'Class') || ts.includes(RDFS + 'Class')
             ? 'OWL class'
@@ -118,19 +101,15 @@ export function inspectRdf(source: string, filename: string, syntax: string) {
                       : ts.length
                         ? short(ts[0])
                         : 'RDF resource',
-        description:
-          get(id, RDFS + 'comment')[0]?.value ?? get(id, SH + 'description')[0]?.value ?? '',
+        description: get(id, RDFS + 'comment')[0]?.value ?? get(id, SH + 'description')[0]?.value ?? '',
         path: [],
-        fields: (statements.get(id) ?? [])
-          .filter(s => s.object.termType === 'Literal')
-          .map(s => `${short(s.predicate.value)}: ${s.object.value}`),
+        fields: (statements.get(id) ?? []).filter(s => s.object.termType === 'Literal').map(s => `${short(s.predicate.value)}: ${s.object.value}`),
         definition: def,
         readOnlyForm: true,
       };
     });
   const prefixes = prefixMap((store as any).namespaces);
-  for (const e of entities)
-    if (subjects.get(e.id)?.termType === 'NamedNode') e.namespace = namespaceOf(e.id, prefixes);
+  for (const e of entities) if (subjects.get(e.id)?.termType === 'NamedNode') e.namespace = namespaceOf(e.id, prefixes);
   const ids = new Set(entities.map(e => e.id));
   const edges: Relationship[] = [];
   for (const st of store.statements)
@@ -167,26 +146,18 @@ export function inspectRdf(source: string, filename: string, syntax: string) {
                 path: [],
                 definition: {
                   iri: id,
-                  ...Object.fromEntries(
-                    (statements.get(id) ?? []).map(s => [s.predicate.value, s.object.value]),
-                  ),
+                  ...Object.fromEntries((statements.get(id) ?? []).map(s => [s.predicate.value, s.object.value])),
                 },
                 kind: 'OWL object property',
                 readOnlyForm: true,
               },
             });
-  const isShacl = store.statements.some(
-    s => s.predicate.value.startsWith(SH) || s.object.value.startsWith(SH),
-  );
-  const isOwl = store.statements.some(
-    s => s.predicate.value.startsWith(OWL) || s.object.value.startsWith(OWL),
-  );
+  const isShacl = store.statements.some(s => s.predicate.value.startsWith(SH) || s.object.value.startsWith(SH));
+  const isOwl = store.statements.some(s => s.predicate.value.startsWith(OWL) || s.object.value.startsWith(OWL));
   const ontology = Array.from(subjects.keys()).find(id => types(id).includes(OWL + 'Ontology'));
   return {
     kind: isShacl ? 'SHACL' : isOwl ? 'OWL' : 'RDF',
-    name: ontology
-      ? (get(ontology, RDFS + 'label')[0]?.value ?? short(ontology))
-      : filename || 'RDF graph',
+    name: ontology ? (get(ontology, RDFS + 'label')[0]?.value ?? short(ontology)) : filename || 'RDF graph',
     entities,
     edges,
     issues,

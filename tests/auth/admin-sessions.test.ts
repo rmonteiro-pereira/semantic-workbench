@@ -41,16 +41,10 @@ test('deactivation closes streams and sessions; reactivation restores the next s
     expect(provider.jwksRefreshedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     const users = await (await request('/api/admin/users')).json();
     const aliceId = users.find((user: any) => user.name === person('alice').name).id;
-    const stream = await handler(
-      new Request(origin + '/api/events', { headers: { Cookie: alice } }),
-    );
+    const stream = await handler(new Request(origin + '/api/events', { headers: { Cookie: alice } }));
     const reader = stream.body!.getReader();
     await reader.read();
-    const disabled = await request(
-      '/api/admin/users/' + encodeURIComponent(aliceId) + '/deactivate',
-      'POST',
-      { reason: 'Leave' },
-    );
+    const disabled = await request('/api/admin/users/' + encodeURIComponent(aliceId) + '/deactivate', 'POST', { reason: 'Leave' });
     expect(disabled.status).toBe(200);
     let frames = '';
     while (true) {
@@ -59,14 +53,8 @@ test('deactivation closes streams and sessions; reactivation restores the next s
       frames += new TextDecoder().decode(chunk.value);
     }
     expect(frames).toContain('event: access');
-    expect(
-      (await handler(new Request(origin + '/api/me', { headers: { Cookie: alice } }))).status,
-    ).toBe(401);
-    expect(
-      (await (await request('/api/admin/sessions')).json()).some(
-        (session: any) => session.principal === aliceId,
-      ),
-    ).toBe(false);
+    expect((await handler(new Request(origin + '/api/me', { headers: { Cookie: alice } }))).status).toBe(401);
+    expect((await (await request('/api/admin/sessions')).json()).some((session: any) => session.principal === aliceId)).toBe(false);
     expect(
       (
         await request('/api/admin/users/' + encodeURIComponent(aliceId) + '/reactivate', 'POST', {
@@ -75,12 +63,8 @@ test('deactivation closes streams and sessions; reactivation restores the next s
       ).status,
     ).toBe(200);
     const renewed = await signIn('alice');
-    expect(
-      (await handler(new Request(origin + '/api/me', { headers: { Cookie: renewed } }))).status,
-    ).toBe(200);
-    expect(
-      await (await request('/api/admin/groups/' + encodeURIComponent('/Sales Editors'))).json(),
-    ).toEqual({
+    expect((await handler(new Request(origin + '/api/me', { headers: { Cookie: renewed } }))).status).toBe(200);
+    expect(await (await request('/api/admin/groups/' + encodeURIComponent('/Sales Editors'))).json()).toEqual({
       id: '/Sales Editors',
       displayName: '/Sales Editors',
       resolved: true,
@@ -110,9 +94,7 @@ test('an access change ends only the live-update streams of the people it affect
       .split(';')[0];
   }
   async function openStream(cookie: string) {
-    const stream = await handler(
-      new Request(origin + '/api/events', { headers: { Cookie: cookie } }),
-    );
+    const stream = await handler(new Request(origin + '/api/events', { headers: { Cookie: cookie } }));
     const reader = stream.body!.getReader();
     await reader.read();
     return reader;
@@ -131,9 +113,7 @@ test('an access change ends only the live-update streams of the people it affect
       );
     const current = await (await request('/api/admin/grants')).json();
     const grants = current.grants.filter((grant: any) => grant.id !== 'g-bob');
-    const { dryRunId } = await (
-      await request('/api/admin/policies/dry-run', 'POST', { grants })
-    ).json();
+    const { dryRunId } = await (await request('/api/admin/policies/dry-run', 'POST', { grants })).json();
     const saved = await request('/api/admin/grants', 'PUT', {
       grants,
       dryRunId,
@@ -152,10 +132,7 @@ test('an access change ends only the live-update streams of the people it affect
     let aliceFrames = '';
     let aliceOpen = true;
     while (aliceOpen) {
-      const next = await Promise.race([
-        aliceStream.read(),
-        new Promise<null>(resolve => setTimeout(() => resolve(null), 200)),
-      ]);
+      const next = await Promise.race([aliceStream.read(), new Promise<null>(resolve => setTimeout(() => resolve(null), 200))]);
       if (next === null) break;
       if (next.done) aliceOpen = false;
       else aliceFrames += new TextDecoder().decode(next.value);
@@ -190,15 +167,11 @@ test('a project created into a domain reaches the open stream of the domain Stew
   try {
     const admin = await signIn('dave');
     const steward = await signIn('bob');
-    const stream = await handler(
-      new Request(origin + '/api/events', { headers: { Cookie: steward } }),
-    );
+    const stream = await handler(new Request(origin + '/api/events', { headers: { Cookie: steward } }));
     const reader = stream.body!.getReader();
     await reader.read();
     // Carol views only HR, so she has no grant on the new project's domain.
-    const outsider = await handler(
-      new Request(origin + '/api/events', { headers: { Cookie: await signIn('carol') } }),
-    );
+    const outsider = await handler(new Request(origin + '/api/events', { headers: { Cookie: await signIn('carol') } }));
     const outsiderReader = outsider.body!.getReader();
     await outsiderReader.read();
     const created = await handler(
@@ -214,10 +187,7 @@ test('a project created into a domain reaches the open stream of the domain Stew
     let frames = '';
     const deadline = Date.now() + 5000;
     while (!frames.includes(announcement) && Date.now() < deadline) {
-      const next = await Promise.race([
-        reader.read(),
-        new Promise<null>(resolve => setTimeout(() => resolve(null), 500)),
-      ]);
+      const next = await Promise.race([reader.read(), new Promise<null>(resolve => setTimeout(() => resolve(null), 500))]);
       if (next === null) continue;
       if (next.done) break;
       frames += new TextDecoder().decode(next.value);
@@ -227,10 +197,7 @@ test('a project created into a domain reaches the open stream of the domain Stew
     await reader.cancel();
     let outsiderFrames = '';
     while (true) {
-      const next = await Promise.race([
-        outsiderReader.read(),
-        new Promise<null>(resolve => setTimeout(() => resolve(null), 500)),
-      ]);
+      const next = await Promise.race([outsiderReader.read(), new Promise<null>(resolve => setTimeout(() => resolve(null), 500))]);
       if (next === null || next.done) break;
       outsiderFrames += new TextDecoder().decode(next.value);
     }

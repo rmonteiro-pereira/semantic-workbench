@@ -7,12 +7,7 @@ import { sha256 } from '../src/server/projects/atomic';
 import { UNDO_MS, ulid } from '../src/server/projects/trash';
 import { testWorkspace } from './helpers/temp-data-dir';
 const ont = (name: string) => `name: ${name}\nontology: [{concept: ${name}}]\n`;
-const api = (
-  t: { handler: (r: Request) => Promise<Response> },
-  method: string,
-  path: string,
-  body?: unknown,
-) =>
+const api = (t: { handler: (r: Request) => Promise<Response> }, method: string, path: string, body?: unknown) =>
   t.handler(
     new Request('http://127.0.0.1:4310' + path, {
       method,
@@ -32,10 +27,7 @@ async function setup() {
     },
     LOCAL_READER,
   );
-  await t.ws.importBatch(
-    { name: 'Beta', files: [{ path: 'c.yaml', source: ont('C') }] },
-    LOCAL_READER,
-  );
+  await t.ws.importBatch({ name: 'Beta', files: [{ path: 'c.yaml', source: ont('C') }] }, LOCAL_READER);
   return {
     t,
     tick: (ms: number) => {
@@ -54,9 +46,7 @@ test('deleting a file needs confirmation, moves it to the trash and undo restore
   const { t, tick, file } = await setup();
   try {
     expect((await api(t, 'DELETE', '/api/projects/alpha/files/a.yaml')).status).toBe(400);
-    expect(
-      (await api(t, 'DELETE', '/api/projects/alpha/files/a.yaml', { confirm: false })).status,
-    ).toBe(400);
+    expect((await api(t, 'DELETE', '/api/projects/alpha/files/a.yaml', { confirm: false })).status).toBe(400);
     expect(existsSync(file('alpha', 'a.yaml'))).toBe(true);
     t.ws.state.writeView('alpha', { 'a.yaml': { mode: 'types' } });
     t.ws.state.writeDraft('alpha', 'a.yaml', {
@@ -69,12 +59,8 @@ test('deleting a file needs confirmation, moves it to the trash and undo restore
     const { entryId, undoUntil } = await r.json();
     expect(Date.parse(undoUntil) - Date.parse('2026-10-21T10:00:00Z')).toBe(UNDO_MS);
     expect(existsSync(file('alpha', 'a.yaml'))).toBe(false);
-    expect(readFileSync(join(t.root, 'trash', entryId, 'payload', 'a.yaml'), 'utf8')).toBe(
-      ont('A'),
-    );
-    expect(
-      JSON.parse(readFileSync(join(t.root, 'trash', entryId, 'entry.json'), 'utf8')),
-    ).toMatchObject({
+    expect(readFileSync(join(t.root, 'trash', entryId, 'payload', 'a.yaml'), 'utf8')).toBe(ont('A'));
+    expect(JSON.parse(readFileSync(join(t.root, 'trash', entryId, 'entry.json'), 'utf8'))).toMatchObject({
       entryId,
       kind: 'file',
       project: 'alpha',
@@ -86,9 +72,7 @@ test('deleting a file needs confirmation, moves it to the trash and undo restore
     expect(t.ws.cache.file('alpha', 'a.yaml')).toBeNull();
     expect(t.ws.state.draft('alpha', 'a.yaml')).toBeNull();
     expect(t.ws.grouping('alpha/a.yaml', LOCAL_READER)).toEqual({});
-    expect((await t.ws.git.status(join(t.root, 'projects/alpha'))).files.get('a.yaml')).toBe(
-      'deleted',
-    );
+    expect((await t.ws.git.status(join(t.root, 'projects/alpha'))).files.get('a.yaml')).toBe('deleted');
     tick(UNDO_MS);
     expect((await api(t, 'POST', `/api/trash/${entryId}/undo`)).status).toBe(200);
     expect(readFileSync(file('alpha', 'a.yaml'), 'utf8')).toBe(ont('A'));
@@ -108,13 +92,7 @@ test('after 10 s undo is refused with 410 and restore from the trash still works
     const late = await api(t, 'POST', `/api/trash/${entryId}/undo`);
     expect(late.status).toBe(410);
     expect(existsSync(file('alpha', 'dir/b.yaml'))).toBe(false);
-    expect(
-      (await (await api(t, 'GET', '/api/trash')).json()).map((e: any) => [
-        e.entryId,
-        e.kind,
-        e.path,
-      ]),
-    ).toEqual([[entryId, 'file', 'dir/b.yaml']]);
+    expect((await (await api(t, 'GET', '/api/trash')).json()).map((e: any) => [e.entryId, e.kind, e.path])).toEqual([[entryId, 'file', 'dir/b.yaml']]);
     expect((await api(t, 'POST', `/api/trash/${entryId}/restore`)).status).toBe(200);
     expect(readFileSync(file('alpha', 'dir/b.yaml'), 'utf8')).toBe(ont('B'));
     expect((await api(t, 'POST', '/api/trash/NOTANID/undo')).status).toBe(404);
@@ -154,9 +132,7 @@ test('deleting a project moves its folder with .git and registry entry; restore 
   try {
     t.ws.state.writeView('beta', { 'c.yaml': { mode: 'types' } });
     expect((await api(t, 'DELETE', '/api/projects/beta', {})).status).toBe(400);
-    const { entryId } = await (
-      await api(t, 'DELETE', '/api/projects/beta', { confirm: true })
-    ).json();
+    const { entryId } = await (await api(t, 'DELETE', '/api/projects/beta', { confirm: true })).json();
     expect(t.ws.state.registry().projects.map(p => p.slug)).toEqual(['alpha']);
     expect(existsSync(join(t.root, 'projects/beta'))).toBe(false);
     expect(existsSync(join(t.root, 'trash', entryId, 'payload/beta/.git/HEAD'))).toBe(true);
@@ -167,9 +143,7 @@ test('deleting a project moves its folder with .git and registry entry; restore 
       ['beta', 'Beta'],
     ]);
     expect(t.ws.grouping('beta/c.yaml', LOCAL_READER)).toEqual({ mode: 'types' });
-    expect(
-      (await t.ws.git.run(join(t.root, 'projects/beta'), ['log', '--format=%s'])).stdout.trim(),
-    ).toBe('Import c.yaml');
+    expect((await t.ws.git.run(join(t.root, 'projects/beta'), ['log', '--format=%s'])).stdout.trim()).toBe('Import c.yaml');
     expect(t.ws.cache.files('beta').map(f => f.path)).toEqual(['c.yaml']);
   } finally {
     t.dispose();
@@ -180,24 +154,17 @@ test('a deleted file whose project is gone is restored into a new project; a tak
   try {
     const file = await t.ws.trash.deleteFile('beta', 'c.yaml', undefined, LOCAL_READER);
     const project = await t.ws.trash.deleteProject('beta');
-    await t.ws.importBatch(
-      { name: 'Beta', files: [{ path: 'x.yaml', source: ont('X') }] },
-      LOCAL_READER,
-    );
+    await t.ws.importBatch({ name: 'Beta', files: [{ path: 'x.yaml', source: ont('X') }] }, LOCAL_READER);
     const occupied = await api(t, 'POST', `/api/trash/${project.entryId}/restore`);
     expect(occupied.status).toBe(409);
     const { suggestion } = await occupied.json();
     expect(suggestion).toEqual({ toProject: 'beta-2' });
-    expect(
-      await (await api(t, 'POST', `/api/trash/${project.entryId}/restore`, suggestion)).json(),
-    ).toEqual({ kind: 'project', project: 'beta-2', name: 'Beta (2)' });
+    expect(await (await api(t, 'POST', `/api/trash/${project.entryId}/restore`, suggestion)).json()).toEqual({ kind: 'project', project: 'beta-2', name: 'Beta (2)' });
     await t.ws.trash.deleteProject('beta');
     await t.ws.trash.deleteProject('beta-2');
     const restored = await t.ws.trash.restore(file.entryId, {}, LOCAL_READER);
     expect(restored.kind).toBe('file');
-    expect(t.ws.state.registry().projects.find(p => p.slug === restored.project)!.name).toBe(
-      'Beta',
-    );
+    expect(t.ws.state.registry().projects.find(p => p.slug === restored.project)!.name).toBe('Beta');
   } finally {
     t.dispose();
   }
@@ -213,8 +180,7 @@ test('Clear moves every project to the trash as entries sharing a batch id; purg
     const entries = await (await api(t, 'GET', '/api/trash')).json();
     expect(entries.map((e: any) => e.batchId)).toEqual([clear.batchId, clear.batchId]);
     expect(entries.map((e: any) => e.kind)).toEqual(['project', 'project']);
-    for (const id of clear.entries)
-      expect((await api(t, 'POST', `/api/trash/${id}/undo`)).status).toBe(200);
+    for (const id of clear.entries) expect((await api(t, 'POST', `/api/trash/${id}/undo`)).status).toBe(200);
     expect(
       t.ws.state
         .registry()

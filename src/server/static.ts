@@ -30,12 +30,7 @@ async function staticFile(root: string, path: string) {
 }
 
 /** Serves non-API files with security headers; HTTPS deployments alone receive HSTS. */
-export async function serveStatic(
-  request: Request,
-  root = 'dist',
-  publicUrl?: string,
-  mode: 'local' | 'server' = 'local',
-) {
+export async function serveStatic(request: Request, root = 'dist', publicUrl?: string, mode: 'local' | 'server' = 'local') {
   let path: string;
   try {
     path = decodeURIComponent(new URL(request.url).pathname);
@@ -59,20 +54,12 @@ export async function serveStatic(
   }
   if (!file) return new Response('Not found', { status: 404, headers });
   headers.set('Content-Type', file.type);
-  if (path.startsWith('/assets/'))
-    headers.set(
-      'Cache-Control',
-      `${mode === 'server' ? 'private' : 'public'}, max-age=31536000, immutable`,
-    );
+  if (path.startsWith('/assets/')) headers.set('Cache-Control', `${mode === 'server' ? 'private' : 'public'}, max-age=31536000, immutable`);
   return new Response(request.method === 'HEAD' ? null : file, { headers });
 }
 
 /** Supplies the shared browser policy for HTML, API and static responses. */
-export function securityHeaders(
-  publicUrl?: string,
-  providerOrigin?: string,
-  frameAncestors?: string,
-): Headers {
+export function securityHeaders(publicUrl?: string, providerOrigin?: string, frameAncestors?: string): Headers {
   const headers = new Headers({
     'Content-Security-Policy': contentSecurityPolicy(providerOrigin, frameAncestors),
     'X-Content-Type-Options': 'nosniff',

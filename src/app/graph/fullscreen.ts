@@ -55,8 +55,7 @@ export function useFullscreen(target: RefObject<HTMLElement | null>, enabled = t
       .catch(fill);
   }, [target, enabled]);
   const exit = useCallback(() => {
-    if (document.fullscreenElement && document.fullscreenElement === target.current)
-      void document.exitFullscreen().catch(() => {});
+    if (document.fullscreenElement && document.fullscreenElement === target.current) void document.exitFullscreen().catch(() => {});
     setActive(false);
     setFallback(false);
   }, [target]);
@@ -65,8 +64,7 @@ export function useFullscreen(target: RefObject<HTMLElement | null>, enabled = t
   // The browser ends native full screen on Escape by itself; follow it.
   useEffect(() => {
     const change = () => {
-      if (!document.fullscreenElement && state.current.active && !state.current.fallback)
-        setActive(false);
+      if (!document.fullscreenElement && state.current.active && !state.current.fallback) setActive(false);
     };
     document.addEventListener('fullscreenchange', change);
     return () => document.removeEventListener('fullscreenchange', change);
@@ -90,11 +88,7 @@ export function useFullscreen(target: RefObject<HTMLElement | null>, enabled = t
 // For a React Flow canvas: save the viewport when full screen starts; when it ends, ignore the
 // resize refit for a moment and put the saved viewport back.
 /** Restores the entry viewport after exit and briefly suppresses resize refits. */
-export function useViewRestore(
-  active: boolean,
-  getViewport: () => Viewport | undefined,
-  setViewport: (v: Viewport) => void,
-) {
+export function useViewRestore(active: boolean, getViewport: () => Viewport | undefined, setViewport: (v: Viewport) => void) {
   const memory = useRef(createViewMemory());
   const holdUntil = useRef(0);
   const was = useRef(active);

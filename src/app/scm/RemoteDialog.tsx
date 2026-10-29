@@ -42,12 +42,7 @@ function RemoteFooter(props: FooterProps) {
         <button type="button" onClick={props.onCancel}>
           Cancel
         </button>
-        <button
-          type="button"
-          className="primary"
-          disabled={busy || !!confirming.blocked}
-          onClick={props.onConfirm}
-        >
+        <button type="button" className="primary" disabled={busy || !!confirming.blocked} onClick={props.onConfirm}>
           {confirmLabel(confirming)}
         </button>
       </>
@@ -190,10 +185,7 @@ export function RemoteDialog({ project, onClose }: Props) {
         </>
       ) : (
         <form className="remote-form" onSubmit={saveRemote}>
-          <p className="dialog-intro">
-            The repository this project pushes to and pulls from. Use a URL, an SSH address or a
-            folder path.
-          </p>
+          <p className="dialog-intro">The repository this project pushes to and pulls from. Use a URL, an SSH address or a folder path.</p>
           <label>
             <span>Remote name</span>
             <input

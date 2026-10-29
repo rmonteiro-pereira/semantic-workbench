@@ -3,12 +3,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, lstatSync
 import { join, dirname } from 'node:path';
 import { createGit, hasControlCharacters } from '../projects/git';
 import { atomicWrite, encode } from '../projects/atomic';
-import {
-  emptyAccessConfig,
-  validateAccessConfig,
-  validateAccessDocument,
-  type AccessConfig,
-} from './access-config';
+import { emptyAccessConfig, validateAccessConfig, validateAccessDocument, type AccessConfig } from './access-config';
 import { loadPolicySet } from './cedar';
 import builtin from '../../../policies/builtin-roles.json';
 import type { Role } from './access-config';
@@ -68,10 +63,7 @@ export type AdminWrite = { author: AdminAuthor; message: string; baseVersion: st
 const documents = ['roles', 'grants', 'projects', 'agents', 'deactivated', 'settings'];
 const committer = ['-c', 'user.name=Semantic Workbench', '-c', 'user.email=workbench@localhost'];
 function validName(name: string): boolean {
-  return (
-    documents.some(area => name === `${area}.json`) ||
-    /^policies\/[a-zA-Z0-9_-]+\.cedar$/.test(name)
-  );
+  return documents.some(area => name === `${area}.json`) || /^policies\/[a-zA-Z0-9_-]+\.cedar$/.test(name);
 }
 function defaultFiles(): Record<string, string> {
   const config = emptyAccessConfig();
@@ -83,12 +75,7 @@ function defaultFiles(): Record<string, string> {
     deactivated: config.deactivated,
     settings: SETTINGS_DEFAULTS,
   };
-  return Object.fromEntries(
-    Object.entries(values).map(([name, value]) => [
-      `${name}.json`,
-      JSON.stringify(value, null, 2) + '\n',
-    ]),
-  );
+  return Object.fromEntries(Object.entries(values).map(([name, value]) => [`${name}.json`, JSON.stringify(value, null, 2) + '\n']));
 }
 function decodeFiles(files: Record<string, string>): AccessConfig {
   const parsed: Record<string, any> = {};
@@ -162,14 +149,12 @@ export function openAdminRepository(options: {
     }
     const policies = join(root, 'policies');
     if (entries.includes('policies')) {
-      if (!lstatSync(policies).isDirectory() || lstatSync(policies).isSymbolicLink())
-        throw new AdminConfigError('policies: expected a directory');
+      if (!lstatSync(policies).isDirectory() || lstatSync(policies).isSymbolicLink()) throw new AdminConfigError('policies: expected a directory');
       names.push(...readdirSync(policies).map(name => `policies/${name}`));
     }
     return Object.fromEntries(
       names.map(name => {
-        if (!lstatSync(join(root, name)).isFile())
-          throw new AdminConfigError(`${name}: expected a regular file`);
+        if (!lstatSync(join(root, name)).isFile()) throw new AdminConfigError(`${name}: expected a regular file`);
         return [name, readFileSync(join(root, name), 'utf8')];
       }),
     );
@@ -191,15 +176,7 @@ export function openAdminRepository(options: {
   const version = async () => (await git.run(root, ['rev-parse', 'HEAD'])).stdout.trim();
   async function commit(author: AdminAuthor, message: string): Promise<string> {
     await git.run(root, ['add', '--all', '--', '.']);
-    await git.run(root, [
-      ...committer,
-      'commit',
-      '--allow-empty',
-      '--author',
-      `${author.name} <${author.email}>`,
-      '-m',
-      message,
-    ]);
+    await git.run(root, [...committer, 'commit', '--allow-empty', '--author', `${author.name} <${author.email}>`, '-m', message]);
     return version();
   }
   async function restoreCommittedFiles(): Promise<void> {
@@ -219,18 +196,14 @@ export function openAdminRepository(options: {
       try {
         await restoreCommittedFiles();
       } catch (rollbackError) {
-        throw new AggregateError(
-          [error, rollbackError],
-          'Administration write and rollback failed',
-        );
+        throw new AggregateError([error, rollbackError], 'Administration write and rollback failed');
       }
       throw error;
     }
   }
   async function ensure(): Promise<void> {
     return serialized(async () => {
-      if (existsSync(root) && lstatSync(root).isSymbolicLink())
-        throw new AdminConfigError('admin: symbolic link');
+      if (existsSync(root) && lstatSync(root).isSymbolicLink()) throw new AdminConfigError('admin: symbolic link');
       mkdirSync(root, { recursive: true });
       if (!existsSync(join(root, '.git'))) await git.init(root);
       const head = await git.run(root, ['rev-parse', '--verify', 'HEAD'], { allowFailure: true });
@@ -238,19 +211,14 @@ export function openAdminRepository(options: {
       const files = { ...defaultFiles(), ...readFiles() };
       validate(files);
       await withRollback(async () => {
-        for (const [name, text] of Object.entries(files))
-          atomicWrite(join(root, name), encode(text));
-        await commit(
-          { name: 'Semantic Workbench', email: 'workbench@localhost' },
-          'access: Initialize',
-        );
+        for (const [name, text] of Object.entries(files)) atomicWrite(join(root, name), encode(text));
+        await commit({ name: 'Semantic Workbench', email: 'workbench@localhost' }, 'access: Initialize');
       });
     });
   }
   async function replace(files: Record<string, string>, change: AdminWrite): Promise<string> {
     checkAuthor(change.author);
-    if (!/^[a-z][a-z-]*: \S[^\r\n]*$/.test(change.message))
-      throw new AdminConfigError('Expected area: summary.');
+    if (!/^[a-z][a-z-]*: \S[^\r\n]*$/.test(change.message)) throw new AdminConfigError('Expected area: summary.');
     if ((await version()) !== change.baseVersion) throw new AdminStaleError();
     const config = validate(files);
     const previous = readFiles();
@@ -272,11 +240,7 @@ export function openAdminRepository(options: {
   // next commit or restart reloads it.
   function notifyCommitted(config: AccessConfig, committedVersion: string): void {
     try {
-      withSpanSync(
-        'admin.policy.reload',
-        { attributes: { 'sw.admin.version': committedVersion } },
-        () => options.committed?.(config),
-      );
+      withSpanSync('admin.policy.reload', { attributes: { 'sw.admin.version': committedVersion } }, () => options.committed?.(config));
     } catch (error) {
       const reason = error instanceof Error ? error.message : String(error);
       log.error('admin.policy-reload-failed', { version: committedVersion, reason });
@@ -288,9 +252,7 @@ export function openAdminRepository(options: {
   }
   async function versionFiles(target: string): Promise<Record<string, string>> {
     checkVersion(target);
-    const names = (await git.run(root, ['ls-tree', '-r', '--name-only', target])).stdout
-      .trim()
-      .split('\n');
+    const names = (await git.run(root, ['ls-tree', '-r', '--name-only', target])).stdout.trim().split('\n');
     const files: Record<string, string> = {};
     for (const name of names) {
       if (!validName(name)) throw new AdminConfigError(`${name}: unsupported administration file`);
@@ -300,8 +262,7 @@ export function openAdminRepository(options: {
   }
   async function history(area?: string) {
     // The policies folder names every rule file; other areas name one document.
-    if (area && area !== 'policies' && !validName(area))
-      throw new AdminConfigError(`${area}: unknown area`);
+    if (area && area !== 'policies' && !validName(area)) throw new AdminConfigError(`${area}: unknown area`);
     const args = ['log', '--format=%H%x00%an%x00%ae%x00%aI%x00%s', '--name-only'];
     if (area) args.push('--', area);
     const output = (await git.run(root, args)).stdout.trim();
@@ -317,14 +278,10 @@ export function openAdminRepository(options: {
     if (against) checkVersion(against);
     const revisions = against ? [against, target] : [target];
     const command = against ? ['diff'] : ['diff-tree', '--root', '--no-commit-id', '-r'];
-    const names = (
-      await git.run(root, [...command, '--name-only', ...revisions, '--'])
-    ).stdout.trim();
+    const names = (await git.run(root, [...command, '--name-only', ...revisions, '--'])).stdout.trim();
     const result: Record<string, string> = {};
     for (const name of names.split('\n').filter(Boolean)) {
-      result[name] = (
-        await git.run(root, [...command, '-p', '--no-ext-diff', ...revisions, '--', name])
-      ).stdout;
+      result[name] = (await git.run(root, [...command, '-p', '--no-ext-diff', ...revisions, '--', name])).stdout;
     }
     return result;
   }

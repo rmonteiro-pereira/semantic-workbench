@@ -2,17 +2,11 @@
 import { test, expect } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { applyPatches } from '../src/shared/editor/patch';
-import {
-  valuePatches,
-  insertPatches,
-  removePatches,
-  itemValue,
-} from '../src/shared/edit/yaml-patch';
+import { valuePatches, insertPatches, removePatches, itemValue } from '../src/shared/edit/yaml-patch';
 import { validateInput } from '../src/shared/validation/input';
 // YAML item edits change only the edited node's text: comments, anchors, key order, quoting and
 // indentation elsewhere keep their bytes.
-const set = (src: string, path: (string | number)[], value: any) =>
-  applyPatches(src, valuePatches(src, path, value));
+const set = (src: string, path: (string | number)[], value: any) => applyPatches(src, valuePatches(src, path, value));
 const src = `# Commerce ontology
 name: Commerce # inline comment
 defaults: &base {owner: Sales}
@@ -39,32 +33,17 @@ extra: *base
 test('changing one scalar keeps comments, anchors, quoting and every other byte', () => {
   const out = set(src, ['ontology', 0, 'description'], 'A person or company who buys.');
   expect(out).toBe(src.replace('"A person who buys."', '"A person or company who buys."'));
-  expect(set(src, ['ontology', 1, 'description'], "Customer's order")).toBe(
-    src.replace("'An order'", "'Customer''s order'"),
-  );
-  expect(set(src, ['ontology', 0, 'concept'], 'Client')).toBe(
-    src.replace('concept: Customer   # who buys', 'concept: Client   # who buys'),
-  );
+  expect(set(src, ['ontology', 1, 'description'], "Customer's order")).toBe(src.replace("'An order'", "'Customer''s order'"));
+  expect(set(src, ['ontology', 0, 'concept'], 'Client')).toBe(src.replace('concept: Customer   # who buys', 'concept: Client   # who buys'));
 });
 test('a plain value that needs quoting is quoted; a block literal stays a block literal', () => {
-  expect(set(src, ['ontology', 2, 'type'], 'a: b')).toBe(
-    src.replace('  - concept: Party\n    type: EntityType', '  - concept: Party\n    type: "a: b"'),
-  );
-  expect(set(src, ['ontology', 1, 'notes'], 'first line\nchanged line\n')).toBe(
-    src.replace('      second line', '      changed line'),
-  );
+  expect(set(src, ['ontology', 2, 'type'], 'a: b')).toBe(src.replace('  - concept: Party\n    type: EntityType', '  - concept: Party\n    type: "a: b"'));
+  expect(set(src, ['ontology', 1, 'notes'], 'first line\nchanged line\n')).toBe(src.replace('      second line', '      changed line'));
 });
 test('editing a whole item diffs it: unchanged keys, comments and order stay; new keys follow the item', () => {
   const item = itemValue(src, ['ontology', 0]);
   const out = set(src, ['ontology', 0], { ...item, description: 'Buyer', iri: 'ex:Customer' });
-  expect(out).toBe(
-    src
-      .replace('"A person who buys."', '"Buyer"')
-      .replace(
-        '          - concept: Order\n  # Orders',
-        '          - concept: Order\n    iri: ex:Customer\n  # Orders',
-      ),
-  );
+  expect(out).toBe(src.replace('"A person who buys."', '"Buyer"').replace('          - concept: Order\n  # Orders', '          - concept: Order\n    iri: ex:Customer\n  # Orders'));
   const removed = set(src, ['ontology', 0], {
     concept: 'Customer',
     type: 'EntityType',
@@ -76,25 +55,12 @@ test('editing a whole item diffs it: unchanged keys, comments and order stay; ne
 test('removing the first key of a list item keeps the "- " on the next key', () => {
   const item = itemValue(src, ['ontology', 2]);
   const { concept, ...rest } = item;
-  expect(set(src, ['ontology', 2], rest)).toBe(
-    src.replace('  - concept: Party\n    type: EntityType', '  - type: EntityType'),
-  );
+  expect(set(src, ['ontology', 2], rest)).toBe(src.replace('  - concept: Party\n    type: EntityType', '  - type: EntityType'));
 });
 test('flow lists stay flow; block lists get one line per entry', () => {
-  expect(set(src, ['ontology', 0, 'extends'], ['Party', 'Agent'])).toBe(
-    src.replace('extends: [Party]', 'extends: [Party, Agent]'),
-  );
-  expect(
-    set(
-      src,
-      ['ontology', 0, 'relationships', 0, 'roles'],
-      [{ concept: 'Order' }, { concept: 'Party', name: 'seller' }],
-    ),
-  ).toBe(
-    src.replace(
-      '          - concept: Order\n',
-      '          - concept: Order\n          - concept: Party\n            name: seller\n',
-    ),
+  expect(set(src, ['ontology', 0, 'extends'], ['Party', 'Agent'])).toBe(src.replace('extends: [Party]', 'extends: [Party, Agent]'));
+  expect(set(src, ['ontology', 0, 'relationships', 0, 'roles'], [{ concept: 'Order' }, { concept: 'Party', name: 'seller' }])).toBe(
+    src.replace('          - concept: Order\n', '          - concept: Order\n          - concept: Party\n            name: seller\n'),
   );
 });
 test('insert and remove list items in the document style; add then remove restores the original', () => {
@@ -107,30 +73,16 @@ test('insert and remove list items in the document style; add then remove restor
       extends: ['Thing'],
     }),
   );
-  expect(added).toBe(
-    src.replace(
-      'extra: *base',
-      '  - concept: Product\n    type: EntityType\n    description: Sold item\n    extends: [Thing]\nextra: *base',
-    ),
-  );
+  expect(added).toBe(src.replace('extra: *base', '  - concept: Product\n    type: EntityType\n    description: Sold item\n    extends: [Thing]\nextra: *base'));
   expect(applyPatches(added, removePatches(added, ['ontology', 3]))).toBe(src);
   // Removing a middle item removes exactly its lines (the comment before the next item stays).
-  expect(applyPatches(src, removePatches(src, ['ontology', 1]))).toBe(
-    src.replace(/\n  - concept: Order\n[\s\S]*?second line\n/, '\n'),
-  );
+  expect(applyPatches(src, removePatches(src, ['ontology', 1]))).toBe(src.replace(/\n  - concept: Order\n[\s\S]*?second line\n/, '\n'));
 });
 test('CRLF files keep CRLF in new and changed lines', () => {
   const crlf = src.replace(/\n/g, '\r\n');
-  const out = applyPatches(
-    crlf,
-    insertPatches(crlf, ['ontology'], { concept: 'Product', type: 'EntityType' }),
-  );
-  expect(out).toBe(
-    crlf.replace('extra: *base', '  - concept: Product\r\n    type: EntityType\r\nextra: *base'),
-  );
-  expect(set(crlf, ['ontology', 1, 'notes'], 'one\ntwo\n')).toBe(
-    crlf.replace('      first line\r\n      second line', '      one\r\n      two'),
-  );
+  const out = applyPatches(crlf, insertPatches(crlf, ['ontology'], { concept: 'Product', type: 'EntityType' }));
+  expect(out).toBe(crlf.replace('extra: *base', '  - concept: Product\r\n    type: EntityType\r\nextra: *base'));
+  expect(set(crlf, ['ontology', 1, 'notes'], 'one\ntwo\n')).toBe(crlf.replace('      first line\r\n      second line', '      one\r\n      two'));
 });
 test('the JSON inside an extension block is patched line by line', () => {
   const sem = readFileSync('public/examples/mall/mall.semantic.yaml', 'utf8');
@@ -168,13 +120,7 @@ test('the JSON inside an extension block is patched line by line', () => {
   });
   expect(validateInput(out, 'mall.semantic.yaml').valid).toBe(true);
 });
-import {
-  openFragment,
-  splice,
-  setField,
-  fragmentIssues,
-  fragmentValue,
-} from '../src/app/edit/fragment';
+import { openFragment, splice, setField, fragmentIssues, fragmentValue } from '../src/app/edit/fragment';
 import { fieldsFor } from '../src/shared/edit/item-model';
 test('the item editor edits the item fragment and puts it back in place', () => {
   const sem = readFileSync('public/examples/mall/mall.semantic.yaml', 'utf8');
@@ -189,24 +135,13 @@ test('the item editor edits the item fragment and puts it back in place', () => 
   const expression = fields.find(x => x.key === 'expression')!;
   const owner = fields.find(x => x.key === 'ext.owner')!;
   // Changing the formula of an approved KPI: two lines change (expression, status → proposed).
-  const a = setField(
-    f.text,
-    f,
-    'mall.semantic.yaml',
-    'metric',
-    expression,
-    'occupied_gla / total_gla',
-    original,
-  );
+  const a = setField(f.text, f, 'mall.semantic.yaml', 'metric', expression, 'occupied_gla / total_gla', original);
   expect(a.reopened).toBe(true);
   const draft = splice(sem, f, a.text);
   const x = sem.split('\n');
   const y = draft.split('\n');
   expect(y.length).toBe(x.length);
-  expect(y.filter((l, n) => l !== x[n])).toEqual([
-    '          expression: occupied_gla / total_gla',
-    '            "status": "proposed",',
-  ]);
+  expect(y.filter((l, n) => l !== x[n])).toEqual(['          expression: occupied_gla / total_gla', '            "status": "proposed",']);
   // Changing the owner only: one line, status unchanged.
   const b = setField(f.text, f, 'mall.semantic.yaml', 'metric', owner, 'Finance', original);
   expect(b.reopened).toBe(false);

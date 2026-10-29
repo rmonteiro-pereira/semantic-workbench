@@ -17,8 +17,7 @@ export type SqlFinding = Issue & {
 const PREFIX = 'SELECT ';
 // `${name}` placeholders (ODCS quality rules) become same-length identifiers.
 /** Replaces quality-rule placeholders with identifiers of equal length. */
-export const fillPlaceholders = (sql: string) =>
-  sql.replace(/\$\{[^}\n]*\}/g, m => 'p' + '_'.repeat(m.length - 1));
+export const fillPlaceholders = (sql: string) => sql.replace(/\$\{[^}\n]*\}/g, m => 'p' + '_'.repeat(m.length - 1));
 /** Parses one SQL region and maps syntax warnings back to file positions. */
 export function lintRegion(source: string, region: SqlRegion, astify: Astify): SqlFinding[] {
   if (!region.grammar || !region.value.trim()) return [];
@@ -46,13 +45,8 @@ export function lintRegion(source: string, region: SqlRegion, astify: Astify): S
     };
     const at = error.location?.start?.offset;
     // The value index the parser points at; outside the value (or none) → the first character.
-    const index =
-      typeof at === 'number' && at - shift >= 0 && at - shift <= region.value.length
-        ? at - shift
-        : 0;
-    const offset = region.exact
-      ? region.offsets[Math.min(index, region.offsets.length - 1)]
-      : region.offsets[0];
+    const index = typeof at === 'number' && at - shift >= 0 && at - shift <= region.value.length ? at - shift : 0;
+    const offset = region.exact ? region.offsets[Math.min(index, region.offsets.length - 1)] : region.offsets[0];
     const { line, column } = lineColumn(source, offset);
     const token = region.value.slice(index).match(/^[A-Za-z_][\w$]*|^\S/)?.[0];
     const found = token ? `"${token}"` : 'the end';
@@ -91,19 +85,8 @@ export function dialectNotes(source: string, regions: SqlRegion[]): Issue[] {
   });
 }
 /** Lints embedded SQL regions without executing SQL or producing save-blocking errors. */
-export function lintSql(
-  source: string,
-  filename: string,
-  astify: Astify,
-  regions = sqlRegions(source, filename),
-): Issue[] {
+export function lintSql(source: string, filename: string, astify: Astify, regions = sqlRegions(source, filename)): Issue[] {
   return [...regions.flatMap(r => lintRegion(source, r, astify)), ...dialectNotes(source, regions)];
 }
 /** Lists the distinct parser grammars required by SQL regions. */
-export const grammarsNeeded = (regions: SqlRegion[]) => [
-  ...new Set(
-    regions.flatMap(r =>
-      r.grammar === 'postgresql' ? ['postgresql', 'sqlite'] : r.grammar ? [r.grammar] : [],
-    ),
-  ),
-];
+export const grammarsNeeded = (regions: SqlRegion[]) => [...new Set(regions.flatMap(r => (r.grammar === 'postgresql' ? ['postgresql', 'sqlite'] : r.grammar ? [r.grammar] : [])))];

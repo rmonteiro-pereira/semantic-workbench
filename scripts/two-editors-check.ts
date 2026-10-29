@@ -6,22 +6,12 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { chromium, expect, type Browser, type Page } from '@playwright/test';
 import { principalKey } from '../src/server/auth/principal';
-import {
-  TEST_GROUPS,
-  TEST_TENANT_ID,
-  TEST_USERS,
-  type TestUserName,
-} from '../tests/helpers/auth-identities';
+import { TEST_GROUPS, TEST_TENANT_ID, TEST_USERS, type TestUserName } from '../tests/helpers/auth-identities';
 import { startMockOidc } from '../tests/helpers/mock-oidc';
 import { freeAuthPort, startAuthApi } from './auth-environment';
 import { authGeometry, check, signIn, type SignInTarget } from './helpers/sign-in';
 import { closeSyncDialog, openSyncDialog, remoteButton } from './helpers/sync-dialog';
-import {
-  SPARSE_FOLDER,
-  SPARSE_OTHER_FOLDER,
-  SPARSE_SLUG,
-  addSparseProject,
-} from './helpers/sparse-project';
+import { SPARSE_FOLDER, SPARSE_OTHER_FOLDER, SPARSE_SLUG, addSparseProject } from './helpers/sparse-project';
 
 const PROJECT = 'sales-contracts';
 const ORDERS = 'orders.odcs.yaml';
@@ -86,11 +76,7 @@ const branchOf = async (person: Person) => (await person.call(projectApi('git/st
 async function chooseProjectInSidebar(person: Person, project: string) {
   const tree = person.page.getByRole('tree', { name: 'Projects' });
   const row = tree.getByRole('treeitem', { name: project, exact: true });
-  if (
-    (await row.getByRole('button', { name: project, exact: true }).getAttribute('aria-current')) ===
-    'true'
-  )
-    return;
+  if ((await row.getByRole('button', { name: project, exact: true }).getAttribute('aria-current')) === 'true') return;
   await row.getByRole('button', { name: project, exact: true }).click();
 }
 
@@ -254,16 +240,7 @@ async function sparseProjectStaysInItsFolder(root: string, alice: Person, frank:
   const touched = Bun.spawnSync(['git', 'show', '--name-only', '--format=', 'HEAD'], { cwd: copy });
   assert.equal(touched.stdout.toString().trim(), `${SPARSE_FOLDER}/shop.yaml`);
   // Frank has not changed anything there, so he reads the published state and has no copy.
-  assert(
-    !existsSync(
-      join(
-        root,
-        'worktrees',
-        principalKey(`${TEST_TENANT_ID}:${TEST_USERS.frank.oid}`),
-        SPARSE_SLUG,
-      ),
-    ),
-  );
+  assert(!existsSync(join(root, 'worktrees', principalKey(`${TEST_TENANT_ID}:${TEST_USERS.frank.oid}`), SPARSE_SLUG)));
   assert.equal((await frank.call(sparseApi('git/status'))).body.folder, SPARSE_FOLDER);
   await chooseProjectInSidebar(alice, 'Sparse team');
   await alice.page.getByRole('button', { name: 'Source control', exact: false }).click();
@@ -284,31 +261,19 @@ export async function twoEditorsCheck() {
   });
   mock.setUserGroups('carol', [TEST_GROUPS.salesViewers]);
   try {
-    const api = await startAuthApi(
-      url,
-      { ...mock, kind: 'entra' },
-      { prepare: root => void addSparseProject(root) },
-    );
+    const api = await startAuthApi(url, { ...mock, kind: 'entra' }, { prepare: root => void addSparseProject(root) });
     try {
       const browser = await chromium.launch({ headless: true });
       try {
         // Entra's authorize endpoint sits beside the issuer, under endpointBase.
         const target: SignInTarget = { url, issuer: mock.endpointBase, kind: 'entra' };
-        const [alice, frank, bob, carol] = await Promise.all(
-          (['alice', 'frank', 'bob', 'carol'] as const).map(name =>
-            signedIn(browser, target, name),
-          ),
-        );
+        const [alice, frank, bob, carol] = await Promise.all((['alice', 'frank', 'bob', 'carol'] as const).map(name => signedIn(browser, target, name)));
         await check('edits and drafts stay personal', () => editsStayPersonal(alice, frank));
         await check('branches stay personal', () => branchesStayPersonal(alice, frank));
-        await check('commits carry their authors', () =>
-          commitsCarryTheirAuthors(api.root, alice, frank),
-        );
+        await check('commits carry their authors', () => commitsCarryTheirAuthors(api.root, alice, frank));
         await check('a publish reaches the Viewer', () => publishReachesTheViewer(bob, carol));
         await check('pulls stay personal', () => pullsStayPersonal(alice, frank));
-        await check('a sparse project stays in its folder', () =>
-          sparseProjectStaysInItsFolder(api.root, alice, frank),
-        );
+        await check('a sparse project stays in its folder', () => sparseProjectStaysInItsFolder(api.root, alice, frank));
       } finally {
         await browser.close();
       }

@@ -10,11 +10,7 @@ import { useAdminData } from './useAdminData';
 import type { Grant, Role, ProjectsConfig } from './types';
 
 async function loadGrantForm() {
-  const [roles, grants, projects] = await Promise.all([
-    adminApi.roles(),
-    adminApi.grants(),
-    adminApi.projects(),
-  ]);
+  const [roles, grants, projects] = await Promise.all([adminApi.roles(), adminApi.grants(), adminApi.projects()]);
   return {
     version: grants.version,
     roles: [...roles.document.builtIn, ...roles.document.custom],
@@ -29,13 +25,7 @@ export function scopeLabel(scope: Grant['scope']): string {
   return 'Projects: ' + scope.projects.join(', ');
 }
 /** Resolves group names whenever a grant is displayed, retaining the ID on lookup failure. */
-export function GroupName({
-  id,
-  onResolved,
-}: {
-  id: string;
-  onResolved?: (group: Awaited<ReturnType<typeof adminApi.group>>) => void;
-}) {
+export function GroupName({ id, onResolved }: { id: string; onResolved?: (group: Awaited<ReturnType<typeof adminApi.group>>) => void }) {
   const [name, setName] = useState('looking up name…');
   useEffect(() => {
     let active = true;
@@ -74,17 +64,10 @@ export function GrantForm({
 }) {
   const { data, error } = useAdminData(loadGrantForm);
   return (
-    <AdminPane
-      title={initial ? 'Change grant' : 'Add grant'}
-      backLabel={backLabel}
-      onBack={onBack}
-      lastAdminNotice={Boolean(initial)}
-    >
+    <AdminPane title={initial ? 'Change grant' : 'Add grant'} backLabel={backLabel} onBack={onBack} lastAdminNotice={Boolean(initial)}>
       {error && <p role="alert">{error}</p>}
       {!data && !error && <p>Loading grants…</p>}
-      {data && (
-        <GrantFields {...data} initial={initial} email={email} roleId={roleId} onSaved={onSaved} />
-      )}
+      {data && <GrantFields {...data} initial={initial} email={email} roleId={roleId} onSaved={onSaved} />}
     </AdminPane>
   );
 }
@@ -110,24 +93,12 @@ function GrantFields({
 }) {
   const { me } = useMe();
   const [lookup, setLookup] = useState<Awaited<ReturnType<typeof adminApi.group>> | null>(null);
-  const [kind, setKind] = useState<'group' | 'email'>(
-    initial?.member.kind ?? (email ? 'email' : 'group'),
-  );
-  const [member, setMember] = useState(
-    initial
-      ? initial.member.kind === 'email'
-        ? initial.member.email
-        : initial.member.groupId
-      : email,
-  );
+  const [kind, setKind] = useState<'group' | 'email'>(initial?.member.kind ?? (email ? 'email' : 'group'));
+  const [member, setMember] = useState(initial ? (initial.member.kind === 'email' ? initial.member.email : initial.member.groupId) : email);
   const [role, setRole] = useState(initial?.roleId ?? roleId);
   const [scope, setScope] = useState<Grant['scope']['kind']>(initial?.scope.kind ?? 'workspace');
-  const [targets, setTargets] = useState(
-    initial?.scope.kind === 'domains' ? initial.scope.domains.join(', ') : '',
-  );
-  const [projectTargets, setProjectTargets] = useState(
-    initial?.scope.kind === 'projects' ? initial.scope.projects.join(', ') : '',
-  );
+  const [targets, setTargets] = useState(initial?.scope.kind === 'domains' ? initial.scope.domains.join(', ') : '');
+  const [projectTargets, setProjectTargets] = useState(initial?.scope.kind === 'projects' ? initial.scope.projects.join(', ') : '');
   const [id] = useState(() => initial?.id ?? newIdentifier('g_'));
   const [addedAt] = useState(() => initial?.addedAt ?? new Date().toISOString());
   const selectedScope = grantScope(role, scope, targets, projectTargets);
@@ -140,37 +111,24 @@ function GrantFields({
         : {
             kind,
             groupId: member.trim(),
-            ...(lookup?.id === member.trim() && lookup.resolved && lookup.displayName
-              ? { displayName: lookup.displayName }
-              : {}),
+            ...(lookup?.id === member.trim() && lookup.resolved && lookup.displayName ? { displayName: lookup.displayName } : {}),
           },
     scope: selectedScope,
     addedBy: initial?.addedBy ?? me?.id ?? me?.name ?? '',
     addedAt,
   };
-  const changeLabel =
-    `${initial ? 'Change' : 'Add'} ${role} grant for ${member}` + `: ${scopeLabel(selectedScope)}`;
+  const changeLabel = `${initial ? 'Change' : 'Add'} ${role} grant for ${member}` + `: ${scopeLabel(selectedScope)}`;
   const proposal = { grants: [...grants.filter(grant => grant.id !== initial?.id), proposed] };
-  const emptyScope =
-    selectedScope.kind !== 'workspace' &&
-    !commaList(scope === 'domains' ? targets : projectTargets).length;
+  const emptyScope = selectedScope.kind !== 'workspace' && !commaList(scope === 'domains' ? targets : projectTargets).length;
   return (
     <>
-      <SelectField
-        label="Member kind"
-        value={kind}
-        onChange={event => setKind(event.target.value as typeof kind)}
-      >
+      <SelectField label="Member kind" value={kind} onChange={event => setKind(event.target.value as typeof kind)}>
         <option value="group">Entra group</option>
         <option value="email">E-mail</option>
       </SelectField>
       <label>
         {kind === 'group' ? 'Group object ID' : 'E-mail address'}
-        <input
-          value={member}
-          type={kind === 'email' ? 'email' : 'text'}
-          onChange={event => setMember(event.target.value)}
-        />
+        <input value={member} type={kind === 'email' ? 'email' : 'text'} onChange={event => setMember(event.target.value)} />
       </label>
       {kind === 'group' && member.trim() && (
         <p>
@@ -184,12 +142,7 @@ function GrantFields({
           </option>
         ))}
       </SelectField>
-      <SelectField
-        label="Scope"
-        value={role === 'admin' ? 'workspace' : scope}
-        disabled={role === 'admin'}
-        onChange={event => setScope(event.target.value as typeof scope)}
-      >
+      <SelectField label="Scope" value={role === 'admin' ? 'workspace' : scope} disabled={role === 'admin'} onChange={event => setScope(event.target.value as typeof scope)}>
         <option value="workspace">Whole workspace</option>
         <option value="domains">Domains</option>
         <option value="projects">Projects</option>
@@ -199,9 +152,7 @@ function GrantFields({
         <label>
           Domain IDs (comma separated)
           <input value={targets} onChange={event => setTargets(event.target.value)} />
-          <small>
-            Available: {projects.domains.map(domain => `${domain.id} (${domain.name})`).join(', ')}
-          </small>
+          <small>Available: {projects.domains.map(domain => `${domain.id} (${domain.name})`).join(', ')}</small>
         </label>
       )}
       {role !== 'admin' && scope === 'projects' && (
@@ -211,25 +162,13 @@ function GrantFields({
           <small>Available: {Object.keys(projects.projects).join(', ')}</small>
         </label>
       )}
-      <ReviewChange
-        area="grants"
-        changeLabel={changeLabel}
-        proposal={proposal}
-        baseVersion={version}
-        onSaved={onSaved}
-        disabled={!member.trim() || emptyScope || !proposed.addedBy}
-      />
+      <ReviewChange area="grants" changeLabel={changeLabel} proposal={proposal} baseVersion={version} onSaved={onSaved} disabled={!member.trim() || emptyScope || !proposed.addedBy} />
     </>
   );
 }
 
 /** Keeps Admin grants workspace-wide and parses other scope members. */
-export function grantScope(
-  role: string,
-  scope: Grant['scope']['kind'],
-  domains: string,
-  projects: string,
-): Grant['scope'] {
+export function grantScope(role: string, scope: Grant['scope']['kind'], domains: string, projects: string): Grant['scope'] {
   if (role === 'admin' || scope === 'workspace') return { kind: 'workspace' };
   if (scope === 'domains') return { kind: 'domains', domains: commaList(domains) };
   return { kind: 'projects', projects: commaList(projects) };

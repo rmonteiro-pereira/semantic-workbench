@@ -20,10 +20,7 @@ try {
   await page.goto(appUrl());
   await page.locator('.tabs').getByRole('button', { name: 'Graph', exact: true }).click();
   await expect(page.locator('.full-graph-status')).toHaveAttribute('data-entity-count', '1000');
-  await expect(page.locator('.full-graph-status')).toHaveAttribute(
-    'data-relationship-count',
-    '5000',
-  );
+  await expect(page.locator('.full-graph-status')).toHaveAttribute('data-relationship-count', '5000');
   await openGraphOverview(page);
   await expect(page.locator('.area-entities button')).toHaveCount(1000, { timeout: 10000 });
   const start = performance.now();
@@ -62,18 +59,11 @@ try {
     await expect(page.locator('.react-flow__node-entity')).toHaveCount(1000, { timeout: 20000 });
     await page.getByPlaceholder('Find an entity…').fill('customer_0');
     await page.waitForTimeout(600);
-    await page
-      .locator('.react-flow__node[data-id="https://example.org/commerce#customer_0"] .full-entity')
-      .click();
+    await page.locator('.react-flow__node[data-id="https://example.org/commerce#customer_0"] .full-entity').click();
     await expect(page.locator('.full-graph-status')).toHaveAttribute('data-routing', 'worker', {
       timeout: 30000,
     });
-    console.log(
-      'EXPANDED_ALL',
-      Math.round(performance.now() - allStart),
-      'ms',
-      await page.locator('.full-graph-status').innerText(),
-    );
+    console.log('EXPANDED_ALL', Math.round(performance.now() - allStart), 'ms', await page.locator('.full-graph-status').innerText());
     await page.screenshot({ path: '/tmp/real-graph-1000-expanded.png' });
   }
   console.log(

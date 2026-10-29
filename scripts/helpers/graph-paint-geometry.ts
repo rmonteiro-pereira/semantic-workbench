@@ -35,9 +35,7 @@ export async function graphEdgeClearanceProblems(page: Page): Promise<string[]> 
   return page.evaluate(() => {
     const root = document.querySelector('.full-graph[data-layout="layered"]');
     if (!root) return [];
-    const cards = [...root.querySelectorAll('.full-entity')].map(card =>
-      card.getBoundingClientRect(),
-    );
+    const cards = [...root.querySelectorAll('.full-entity')].map(card => card.getBoundingClientRect());
     for (const path of root.querySelectorAll<SVGPathElement>('.react-flow__edge-path')) {
       const matrix = path.getScreenCTM();
       if (!matrix) continue;
@@ -46,11 +44,7 @@ export async function graphEdgeClearanceProblems(page: Page): Promise<string[]> 
         const point = path.getPointAtLength(distance);
         return new DOMPoint(point.x, point.y).matrixTransform(matrix);
       };
-      const inside = (point: DOMPoint, card: DOMRect, margin: number) =>
-        point.x > card.left + margin &&
-        point.x < card.right - margin &&
-        point.y > card.top + margin &&
-        point.y < card.bottom - margin;
+      const inside = (point: DOMPoint, card: DOMRect, margin: number) => point.x > card.left + margin && point.x < card.right - margin && point.y > card.top + margin && point.y < card.bottom - margin;
       const start = pointAt(0);
       const end = pointAt(length);
       const unrelated = cards.filter(card => !inside(start, card, -3) && !inside(end, card, -3));
@@ -70,17 +64,11 @@ export async function graphHeadingProblems(page: Page): Promise<string[]> {
   return page.evaluate(() => {
     const root = document.querySelector('.full-graph');
     if (!root) return [];
-    const cards = [...root.querySelectorAll('.full-entity')].map(card =>
-      card.getBoundingClientRect(),
-    );
+    const cards = [...root.querySelectorAll('.full-entity')].map(card => card.getBoundingClientRect());
     const problems: string[] = [];
     for (const heading of root.querySelectorAll('.full-area-title')) {
       const title = heading.getBoundingClientRect();
-      const overlaps = cards.some(
-        card =>
-          Math.min(title.right, card.right) - Math.max(title.left, card.left) > 1 &&
-          Math.min(title.bottom, card.bottom) - Math.max(title.top, card.top) > 1,
-      );
+      const overlaps = cards.some(card => Math.min(title.right, card.right) - Math.max(title.left, card.left) > 1 && Math.min(title.bottom, card.bottom) - Math.max(title.top, card.top) > 1);
       if (overlaps) problems.push(`area heading "${heading.textContent}" overlaps a card`);
     }
     return problems;
@@ -91,9 +79,7 @@ async function graphPaint(page: Page) {
   return page.evaluate(() => {
     const root = document.querySelector('.full-graph');
     if (!root || root.querySelector('.full-entity.focused')) return [];
-    const background = getComputedStyle(document.documentElement)
-      .getPropertyValue('--color-surface-page')
-      .trim();
+    const background = getComputedStyle(document.documentElement).getPropertyValue('--color-surface-page').trim();
     const viewport = root.querySelector('.react-flow__viewport');
     const scale = viewport ? new DOMMatrix(getComputedStyle(viewport).transform).a : 1;
     return [...root.querySelectorAll('.react-flow__edge-path')].map(edge => {
@@ -172,14 +158,11 @@ export async function graphRelationshipLabelProblems(page: Page): Promise<string
     const pane = root.querySelector('.react-flow')!.getBoundingClientRect();
     const viewport = root.querySelector('.react-flow__viewport')!;
     const zoom = new DOMMatrix(getComputedStyle(viewport).transform).a;
-    const cards = [...root.querySelectorAll('.neighborhood-node .node')].map(card =>
-      card.getBoundingClientRect(),
-    );
+    const cards = [...root.querySelectorAll('.neighborhood-node .node')].map(card => card.getBoundingClientRect());
     const labels: DOMRect[] = [];
     const problems: string[] = [];
     const overlaps = (first: DOMRect, second: DOMRect) =>
-      Math.min(first.right, second.right) - Math.max(first.left, second.left) > 1 &&
-      Math.min(first.bottom, second.bottom) - Math.max(first.top, second.top) > 1;
+      Math.min(first.right, second.right) - Math.max(first.left, second.left) > 1 && Math.min(first.bottom, second.bottom) - Math.max(first.top, second.top) > 1;
     for (const text of root.querySelectorAll<HTMLElement>('.relationship-label')) {
       const bounds = text.getBoundingClientRect();
       if (!overlaps(bounds, pane)) continue;
@@ -188,12 +171,7 @@ export async function graphRelationshipLabelProblems(page: Page): Promise<string
       const pixels = Number.parseFloat(style.fontSize) * zoom * localScale;
       if (pixels < 12) problems.push(`relationship label is ${pixels.toFixed(1)} screen pixels`);
       const painted = bounds;
-      if (
-        bounds.left < pane.left ||
-        bounds.right > pane.right ||
-        bounds.top < pane.top ||
-        bounds.bottom > pane.bottom
-      ) {
+      if (bounds.left < pane.left || bounds.right > pane.right || bounds.top < pane.top || bounds.bottom > pane.bottom) {
         problems.push('a relationship label is clipped at the canvas boundary');
       }
       if (cards.some(card => overlaps(painted, card))) {
@@ -220,12 +198,7 @@ export async function graphRelationshipContrastProblems(page: Page): Promise<str
   for (const paint of paints) {
     const foreground = parseColor(paint.foreground);
     const background = parseColor(paint.background);
-    if (
-      !foreground ||
-      !background ||
-      background.alpha !== 1 ||
-      contrastRatio(foreground, background) < 4.5
-    ) {
+    if (!foreground || !background || background.alpha !== 1 || contrastRatio(foreground, background) < 4.5) {
       return ['a neighborhood relationship label has less than 4.5:1 contrast'];
     }
   }
@@ -248,41 +221,20 @@ async function graphRelationshipLeaderProblems(page: Page): Promise<string[]> {
         for (let length = 0; length <= path.getTotalLength(); length += 4) {
           const point = path.getPointAtLength(length);
           const screen = new DOMPoint(point.x, point.y).matrixTransform(matrix);
-          distance = Math.min(
-            distance,
-            Math.hypot(
-              screen.x - (bounds.left + bounds.right) / 2,
-              screen.y - (bounds.top + bounds.bottom) / 2,
-            ),
-          );
+          distance = Math.min(distance, Math.hypot(screen.x - (bounds.left + bounds.right) / 2, screen.y - (bounds.top + bounds.bottom) / 2));
         }
         if (distance > 8 && !leader) problems.push('a displaced label has no route leader');
       }
       if (leader) {
         const paint = getComputedStyle(leader);
         const scale = Math.hypot(leader.getScreenCTM()!.a, leader.getScreenCTM()!.b);
-        const width =
-          Number.parseFloat(paint.strokeWidth) *
-          (paint.vectorEffect === 'non-scaling-stroke' ? 1 : scale);
+        const width = Number.parseFloat(paint.strokeWidth) * (paint.vectorEffect === 'non-scaling-stroke' ? 1 : scale);
         if (width < 1.2) problems.push('a label leader is thinner than 1.2 screen pixels');
-        if (
-          paint.strokeDasharray !== 'none' &&
-          paint.strokeDasharray
-            .split(/[ ,]+/)
-            .some(segment => Number.parseFloat(segment) * scale < 2)
-        ) {
+        if (paint.strokeDasharray !== 'none' && paint.strokeDasharray.split(/[ ,]+/).some(segment => Number.parseFloat(segment) * scale < 2)) {
           problems.push('a label leader has dashes smaller than two screen pixels');
         }
-        const endpoint = new DOMPoint(
-          leader.x2.baseVal.value,
-          leader.y2.baseVal.value,
-        ).matrixTransform(leader.getScreenCTM()!);
-        if (
-          endpoint.x < bounds.left ||
-          endpoint.x > bounds.right ||
-          endpoint.y < bounds.top ||
-          endpoint.y > bounds.bottom
-        ) {
+        const endpoint = new DOMPoint(leader.x2.baseVal.value, leader.y2.baseVal.value).matrixTransform(leader.getScreenCTM()!);
+        if (endpoint.x < bounds.left || endpoint.x > bounds.right || endpoint.y < bounds.top || endpoint.y > bounds.bottom) {
           problems.push('a label leader does not reach its label');
         }
       }

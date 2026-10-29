@@ -1,21 +1,12 @@
 // Coordinates validated proposals, dry-run receipts and atomic administration commits.
 import { randomUUID, createHash } from 'node:crypto';
 import { AdminConfigError, AdminStaleError, type AdminRepository } from './admin-repo';
-import {
-  validateAccessDocument,
-  validateAgentReferences,
-  type AccessConfig,
-} from './access-config';
+import { validateAccessDocument, validateAgentReferences, type AccessConfig } from './access-config';
 import { BUILTIN_ROLE_IDS } from '../../shared/auth/actions';
 import { checkLastAdmin, isBootstrapAdmin } from './admin-guard';
 import { commitMessage, describeChange } from './change-summary';
 import { compareAccess, isReplayable, MAX_AUDIT_SNAPSHOTS } from './dry-run';
-import {
-  createGroupNameCache,
-  unresolvedGroupName,
-  type GroupLookup,
-  type GroupName,
-} from './directory';
+import { createGroupNameCache, unresolvedGroupName, type GroupLookup, type GroupName } from './directory';
 import { listPolicies, policyTexts, validatePolicies } from './policies';
 import type { AccessControl } from './middleware';
 import type { UserRecord } from '../projects/state';
@@ -81,8 +72,7 @@ function documentFields(body: Record<string, unknown>): Record<string, unknown> 
 function lowerCaseEmails(document: Record<string, unknown>) {
   if (!Array.isArray(document.grants)) return;
   for (const grant of document.grants as AccessConfig['grants']) {
-    if (grant?.member?.kind === 'email' && typeof grant.member.email === 'string')
-      grant.member.email = grant.member.email.trim().toLowerCase();
+    if (grant?.member?.kind === 'email' && typeof grant.member.email === 'string') grant.member.email = grant.member.email.trim().toLowerCase();
   }
 }
 /** Directory groups named by the group grants of a proposed grants document. */
@@ -129,15 +119,9 @@ export function createAccessAdmin(options: AccessAdminOptions) {
     const result = validatePolicies(rules, config.roles);
     if (!result.ok) throw new AdminRefusal(400, { error: 'Invalid policies.', ...result });
     for (const name of Object.keys(files)) if (name.startsWith('policies/')) delete files[name];
-    for (const [id, text] of Object.entries(policyTexts(rules)))
-      files[`policies/${id}.cedar`] = text;
+    for (const [id, text] of Object.entries(policyTexts(rules))) files[`policies/${id}.cedar`] = text;
   }
-  function documentFiles(
-    area: string,
-    body: Record<string, unknown>,
-    files: Record<string, string>,
-    config: AccessConfig,
-  ) {
+  function documentFiles(area: string, body: Record<string, unknown>, files: Record<string, string>, config: AccessConfig) {
     const document = documentFields(body);
     if (area === 'grants') lowerCaseEmails(document);
     validateAccessDocument(`${area}File`, document);
@@ -145,9 +129,7 @@ export function createAccessAdmin(options: AccessAdminOptions) {
     if (area !== 'roles') return;
     // A deleted custom role takes its grants with it, in the same commit.
     const ids = new Set((document.roles as AccessConfig['roles']).map(role => role.id));
-    const grants = config.grants.filter(
-      grant => ids.has(grant.roleId) || BUILTIN_ROLE_IDS.includes(grant.roleId),
-    );
+    const grants = config.grants.filter(grant => ids.has(grant.roleId) || BUILTIN_ROLE_IDS.includes(grant.roleId));
     files['grants.json'] = encode({ grants });
   }
   function proposal(area: string, body: Record<string, unknown>): Proposal {
@@ -205,11 +187,7 @@ export function createAccessAdmin(options: AccessAdminOptions) {
   }
   function matchingReceipt(body: Record<string, unknown>, version: string, next: Proposal) {
     const receipt = receipts.get(String(body.dryRunId));
-    const matches =
-      receipt !== undefined &&
-      receipt.version === version &&
-      receipt.hash === digest(next) &&
-      receipt.expires > now().getTime();
+    const matches = receipt !== undefined && receipt.version === version && receipt.hash === digest(next) && receipt.expires > now().getTime();
     if (!matches) throw new AdminConfigError('A matching dry run is required.');
     return receipt;
   }
@@ -222,9 +200,7 @@ export function createAccessAdmin(options: AccessAdminOptions) {
   function checkBootstrapStaysActive(next: Proposal) {
     const bootstrap = access.snapshot().bootstrap;
     const disabled = new Set(next.config.deactivated.principals.map(principal => principal.id));
-    const refused = users().some(
-      user => disabled.has(user.id) && isBootstrapAdmin(user, bootstrap),
-    );
+    const refused = users().some(user => disabled.has(user.id) && isBootstrapAdmin(user, bootstrap));
     if (refused) {
       throw new AdminRefusal(400, {
         error: 'bootstrap-admin',
@@ -260,8 +236,7 @@ export function createAccessAdmin(options: AccessAdminOptions) {
   /** Display names of recorded people and agent clients, plus any clients a proposal adds. */
   function identityNames(proposedClients: AccessConfig['agents']['clients'] = []) {
     const names = new Map(users().map(user => [user.id, user.name]));
-    for (const client of [...repository.load().agents.clients, ...proposedClients])
-      names.set(`client:${client.clientId}`, client.name);
+    for (const client of [...repository.load().agents.clients, ...proposedClients]) names.set(`client:${client.clientId}`, client.name);
     return names;
   }
   function deletionGuard(next: Proposal, confirm: unknown, affected: string[]) {
@@ -324,11 +299,7 @@ export function createAccessAdmin(options: AccessAdminOptions) {
       await options.sessions.endPrincipal(principal.id);
     }
   }
-  async function activate(
-    next: Proposal,
-    effect: ChangeEffect,
-    names: Map<string, GroupName> | null = null,
-  ) {
+  async function activate(next: Proposal, effect: ChangeEffect, names: Map<string, GroupName> | null = null) {
     guard(next);
     storeGroupNames(next, names);
     const actor = effect.principal;
@@ -361,11 +332,7 @@ export function createAccessAdmin(options: AccessAdminOptions) {
     });
   }
   /** Deactivates or reactivates one recorded person; `reason` is kept in the version. */
-  async function setDeactivated(
-    id: string,
-    change: { disabled: boolean; reason: string },
-    actor: AdminActor,
-  ) {
+  async function setDeactivated(id: string, change: { disabled: boolean; reason: string }, actor: AdminActor) {
     return serialized(async () => {
       await repository.ensure();
       const user = users().find(candidate => candidate.id === id);

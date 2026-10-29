@@ -415,17 +415,9 @@ p {
 /* React Flow draws its own minimap, controls, labels and attribution in light colours; these
    variables hand it the theme instead. */
 .react-flow {
-  --xy-attribution-background-color-default: color-mix(
-    in srgb,
-    var(--color-surface) 80%,
-    transparent
-  );
+  --xy-attribution-background-color-default: color-mix(in srgb, var(--color-surface) 80%, transparent);
   --xy-minimap-background-color-default: var(--color-surface);
-  --xy-minimap-mask-background-color-default: color-mix(
-    in srgb,
-    var(--color-surface-sunken) 70%,
-    transparent
-  );
+  --xy-minimap-mask-background-color-default: color-mix(in srgb, var(--color-surface-sunken) 70%, transparent);
   --xy-edge-label-background-color-default: var(--color-surface-page);
   --xy-edge-label-color-default: var(--color-text-secondary);
   --xy-controls-button-background-color-default: var(--color-surface);

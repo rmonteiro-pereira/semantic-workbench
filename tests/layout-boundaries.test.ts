@@ -22,8 +22,7 @@ function importsOf(folder: string): SourceImport[] {
   const found: SourceImport[] = [];
   for (const importer of filesUnder(folder)) {
     const source = readFileSync(importer, 'utf8');
-    const areaOf = (specifier: string) =>
-      relative('src', resolve(dirname(importer), specifier)).split('/')[0];
+    const areaOf = (specifier: string) => relative('src', resolve(dirname(importer), specifier)).split('/')[0];
     for (const match of source.matchAll(RELATIVE_IMPORT)) {
       found.push({ importer, area: areaOf(match[3]), typeOnly: Boolean(match[2]) });
     }
@@ -39,9 +38,7 @@ function importLines(imports: SourceImport[]): string[] {
 }
 
 test('shared code imports only shared and generated code', () => {
-  const outside = importsOf('src/shared').filter(
-    item => item.area !== 'shared' && item.area !== 'generated',
-  );
+  const outside = importsOf('src/shared').filter(item => item.area !== 'shared' && item.area !== 'generated');
   expect(importLines(outside)).toEqual([]);
 });
 

@@ -1,15 +1,7 @@
 // Collects error and timing reports in the browser and hands them to a sender in small batches.
 // It holds nothing back for later: reports wait in memory only until the server says whether
 // reporting is on, and a failed send drops its batch instead of retrying.
-import {
-  MAX_FRAMES_LENGTH,
-  MAX_NAME_LENGTH,
-  MAX_REPORTS_PER_REQUEST,
-  isOverBudget,
-  scrubErrorMessage,
-  type BrowserReport,
-  type ReportedOperation,
-} from '../../shared/observability/browser-report';
+import { MAX_FRAMES_LENGTH, MAX_NAME_LENGTH, MAX_REPORTS_PER_REQUEST, isOverBudget, scrubErrorMessage, type BrowserReport, type ReportedOperation } from '../../shared/observability/browser-report';
 
 /** Sends one batch; resolves with the HTTP status, or rejects when the network failed. */
 export type ReportSender = (reports: BrowserReport[]) => Promise<number>;

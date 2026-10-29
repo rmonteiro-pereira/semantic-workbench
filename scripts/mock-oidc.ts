@@ -13,8 +13,7 @@ function parseOptions(args: string[]): MockOidcOptions {
         options.port = Number(value);
         break;
       case '--shape':
-        if (!['entra', 'keycloak', 'generic'].includes(value))
-          throw new Error('Invalid claim shape');
+        if (!['entra', 'keycloak', 'generic'].includes(value)) throw new Error('Invalid claim shape');
         options.shape = value as ClaimShape;
         break;
       case '--layout':

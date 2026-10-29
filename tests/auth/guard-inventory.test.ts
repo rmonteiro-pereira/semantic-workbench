@@ -4,13 +4,7 @@ import { expect, test } from 'bun:test';
 import { authWorkspace } from '../helpers/auth-workspace';
 import { READ_ACTIONS } from '../../src/shared/auth/actions';
 import { ROUTE_ACTIONS, type RouteAction } from '../../src/server/auth/route-actions';
-import {
-  ADMIN_EXEMPTION,
-  type BuiltCase,
-  GUARD_CASES,
-  GUARD_EXEMPTIONS,
-  GUARDED_ROUTES,
-} from './guard-cases';
+import { ADMIN_EXEMPTION, type BuiltCase, GUARD_CASES, GUARD_EXEMPTIONS, GUARDED_ROUTES } from './guard-cases';
 
 /** A plain read: a read action answered only to GET or HEAD. */
 function plainRead(row: RouteAction) {
@@ -30,17 +24,13 @@ test('every route beyond a plain read is guarded by a matrix case or exempt with
     const guarded = row.path in GUARDED_ROUTES;
     const reason = exemption(row);
     const exempt = reason !== undefined;
-    expect(guarded !== exempt, `${row.path} must be guarded or exempt, not both or neither`).toBe(
-      true,
-    );
+    expect(guarded !== exempt, `${row.path} must be guarded or exempt, not both or neither`).toBe(true);
     if (exempt) expect(reason.length).toBeGreaterThan(10);
   }
   const listed = [...Object.keys(GUARDED_ROUTES), ...Object.keys(GUARD_EXEMPTIONS)];
   const paths = new Set(rows.map(row => row.path));
-  for (const path of listed)
-    expect(paths.has(path), `${path} is a plain read or unknown`).toBe(true);
-  for (const name of Object.values(GUARDED_ROUTES))
-    expect(Object.keys(GUARD_CASES)).toContain(name);
+  for (const path of listed) expect(paths.has(path), `${path} is a plain read or unknown`).toBe(true);
+  for (const name of Object.values(GUARDED_ROUTES)) expect(Object.keys(GUARD_CASES)).toContain(name);
 });
 
 test('agent clients are admitted only on rows whose action is a read', () => {

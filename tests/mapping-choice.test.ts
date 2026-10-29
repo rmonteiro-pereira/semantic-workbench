@@ -10,9 +10,7 @@ const mappings = [
 
 describe('chooseMapping', () => {
   test('prefers a mapping defined in the open file', () => {
-    expect(chooseMapping(mappings, 'mall.ontology', 'mall', '')).toBe(
-      'mall.ontology#ontology_mappings/0',
-    );
+    expect(chooseMapping(mappings, 'mall.ontology', 'mall', '')).toBe('mall.ontology#ontology_mappings/0');
   });
 
   test('defaults to a mapping of the open file project, not another project', () => {
@@ -24,9 +22,7 @@ describe('chooseMapping', () => {
   });
 
   test('keeps a previous choice from the same project', () => {
-    expect(
-      chooseMapping(mappings, 'mall.semantic', 'mall', 'mall.ontology#ontology_mappings/0'),
-    ).toBe('mall.ontology#ontology_mappings/0');
+    expect(chooseMapping(mappings, 'mall.semantic', 'mall', 'mall.ontology#ontology_mappings/0')).toBe('mall.ontology#ontology_mappings/0');
   });
 
   test('keeps but never shows another project mapping when the open project has none', () => {
@@ -44,10 +40,7 @@ describe('chooseMapping', () => {
   });
 
   test('lists only the open project mappings', () => {
-    expect(mappingsOfProject(mappings, 'mall').map(mapping => mapping.id)).toEqual([
-      'mall.mapping',
-      'mall.ontology#ontology_mappings/0',
-    ]);
+    expect(mappingsOfProject(mappings, 'mall').map(mapping => mapping.id)).toEqual(['mall.mapping', 'mall.ontology#ontology_mappings/0']);
   });
 });
 

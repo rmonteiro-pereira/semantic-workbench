@@ -10,10 +10,7 @@ import { demoteMetric } from '../../src/shared/governance/guards';
 import { payloadChanges } from '../../src/server/projects/trash';
 import { accessFixture, person } from './access-fixture';
 
-const METRICS = readFileSync(
-  'tests/fixtures/auth-workspace/projects/sales-metrics/sales.semantic.yaml',
-  'utf8',
-);
+const METRICS = readFileSync('tests/fixtures/auth-workspace/projects/sales-metrics/sales.semantic.yaml', 'utf8');
 
 function steward() {
   const access = createAccessControl(accessFixture());
@@ -21,11 +18,7 @@ function steward() {
 }
 
 test('the committed owner counts for self-approval', () => {
-  const owned = (owner: string, status: string) =>
-    METRICS.replace(
-      '"owner": "alice@example.org", "status": "proposed"',
-      `"owner": "${owner}", "status": "${status}"`,
-    );
+  const owned = (owner: string, status: string) => METRICS.replace('"owner": "alice@example.org", "status": "proposed"', `"owner": "${owner}", "status": "${status}"`);
   const change = {
     project: 'sales-metrics',
     path: 'sales.semantic.yaml',
@@ -62,10 +55,7 @@ test('a demotion inside a multi-line attribute block changes only the status byt
 test('a restored repository re-creates each file in the project it belongs to', () => {
   const dir = mkdtempSync(join(tmpdir(), 'workbench-trash-entry-'));
   try {
-    const contract = readFileSync(
-      'tests/fixtures/auth-workspace/projects/hr-people/people.odcs.yaml',
-      'utf8',
-    );
+    const contract = readFileSync('tests/fixtures/auth-workspace/projects/hr-people/people.odcs.yaml', 'utf8');
     mkdirSync(join(dir, 'payload', 'mono', 'hr'), { recursive: true });
     mkdirSync(join(dir, 'payload', 'mono', 'sales'), { recursive: true });
     writeFileSync(join(dir, 'payload', 'mono', 'hr', 'people.odcs.yaml'), contract);

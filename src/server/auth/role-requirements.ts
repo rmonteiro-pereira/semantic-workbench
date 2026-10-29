@@ -34,11 +34,7 @@ function grantsAction(role: Role, action: Action): boolean {
  * Names, for each action, the lowest built-in role that allows it. When only the person's own
  * custom roles allow it, those roles are named instead, because they are what the person holds.
  */
-export function roleRequirements(
-  customRoles: Role[],
-  heldRoleIds: string[],
-  roleNames: RoleNames,
-): Record<Action, string> {
+export function roleRequirements(customRoles: Role[], heldRoleIds: string[], roleNames: RoleNames): Record<Action, string> {
   const held = new Set(heldRoleIds);
   const builtinRoles = builtin.roles as Role[];
   const roles = [...builtinRoles, ...customRoles];

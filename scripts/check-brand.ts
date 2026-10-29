@@ -74,9 +74,7 @@ const TEXT_FILE = /\.(?:ts|tsx|js|mjs|css|html|json|svg|webmanifest)$/;
 
 function isSkipped(path: string): boolean {
   const normalized = path.replaceAll('\\', '/');
-  return SKIPPED_PATHS.some(
-    skipped => normalized === skipped || normalized.startsWith(skipped + '/'),
-  );
+  return SKIPPED_PATHS.some(skipped => normalized === skipped || normalized.startsWith(skipped + '/'));
 }
 
 function isAllowed(file: string, rule: BrandRule): boolean {
@@ -115,10 +113,7 @@ export function runBrandCheck(paths?: string[]): number {
   for (const { file, line, rule } of violations) {
     console.error(`${file}:${line}  hard-coded brand (${rule}); read it from the brand bundle`);
   }
-  console.error(
-    `${violations.length} hard-coded brand uses. Take the name from useBrand() or the active ` +
-      'brand on the server, and the logo from /brand/logo.svg.',
-  );
+  console.error(`${violations.length} hard-coded brand uses. Take the name from useBrand() or the active ` + 'brand on the server, and the logo from /brand/logo.svg.');
   return 1;
 }
 

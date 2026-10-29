@@ -45,12 +45,7 @@ export function originalOffset(doc: Text, starts: number[], pos: number) {
   return starts[line.number - 1] + (pos - line.from);
 }
 /** Maps editor changes to original bytes and uses the file's line endings for inserts. */
-export function changesToPatches(
-  original: string,
-  doc: Text,
-  changes: ChangeSet,
-  starts = lineStarts(original),
-): Patch[] {
+export function changesToPatches(original: string, doc: Text, changes: ChangeSet, starts = lineStarts(original)): Patch[] {
   const eol = dominantLineBreak(original);
   const patches: Patch[] = [];
   changes.iterChanges((fromA, toA, _fromB, _toB, inserted) => {
@@ -67,8 +62,7 @@ export function applyPatches(text: string, patches: Patch[]) {
   let out = '';
   let at = 0;
   for (const p of [...patches].sort((a, b) => a.from - b.from)) {
-    if (p.from < at || p.to < p.from || p.to > text.length)
-      throw Error('Patches must be ordered, non-overlapping and inside the text.');
+    if (p.from < at || p.to < p.from || p.to > text.length) throw Error('Patches must be ordered, non-overlapping and inside the text.');
     out += text.slice(at, p.from) + p.insert;
     at = p.to;
   }
@@ -82,17 +76,9 @@ export function diffPatches(base: string, next: string): Patch[] {
   const max = Math.min(base.length, next.length);
   while (start < max && base.charCodeAt(start) === next.charCodeAt(start)) start++;
   let end = 0;
-  while (
-    end < max - start &&
-    base.charCodeAt(base.length - 1 - end) === next.charCodeAt(next.length - 1 - end)
-  )
-    end++;
+  while (end < max - start && base.charCodeAt(base.length - 1 - end) === next.charCodeAt(next.length - 1 - end)) end++;
   // Never split a \r\n pair or a surrogate pair between the kept and replaced parts.
-  const splits = (s: string, i: number) =>
-    i > 0 &&
-    i < s.length &&
-    ((s.charCodeAt(i - 1) === 13 && s.charCodeAt(i) === 10) ||
-      (s.charCodeAt(i - 1) >= 0xd800 && s.charCodeAt(i - 1) <= 0xdbff));
+  const splits = (s: string, i: number) => i > 0 && i < s.length && ((s.charCodeAt(i - 1) === 13 && s.charCodeAt(i) === 10) || (s.charCodeAt(i - 1) >= 0xd800 && s.charCodeAt(i - 1) <= 0xdbff));
   while (start > 0 && (splits(base, start) || splits(next, start))) start--;
   while (end > 0 && (splits(base, base.length - end) || splits(next, next.length - end))) end--;
   return [{ from: start, to: base.length - end, insert: next.slice(start, next.length - end) }];

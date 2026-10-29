@@ -24,12 +24,8 @@ export type El = {
 const decode = (s: string) =>
   s.replace(/&(lt|gt|amp|quot|apos|#\d+|#x[0-9a-f]+);/gi, (_, e: string) =>
     e[0] === '#'
-      ? String.fromCodePoint(
-          e[1].toLowerCase() === 'x' ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10),
-        )
-      : ({ lt: '<', gt: '>', amp: '&', quot: '"', apos: "'" } as Record<string, string>)[
-          e.toLowerCase()
-        ],
+      ? String.fromCodePoint(e[1].toLowerCase() === 'x' ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10))
+      : ({ lt: '<', gt: '>', amp: '&', quot: '"', apos: "'" } as Record<string, string>)[e.toLowerCase()],
   );
 /** Escapes XML text or attribute content. */
 export const escapeXml = (s: string, attr = false) =>
@@ -75,8 +71,7 @@ export function scanXml(src: string): El {
       i = e + 3;
       continue;
     }
-    if (src.startsWith('<!', lt))
-      throw Error('RDF/XML DTDs and entity declarations are unsupported.');
+    if (src.startsWith('<!', lt)) throw Error('RDF/XML DTDs and entity declarations are unsupported.');
     const gt = (() => {
       let q = '';
       let k = lt + 1;
@@ -153,17 +148,7 @@ export const expandName = (name: string, ns: Record<string, string>) => {
   return k < 0 ? (ns[''] ?? '') + name : (ns[name.slice(0, k)] ?? '') + name.slice(k + 1);
 };
 const attr = (el: El, name: string) => el.attrs.find(a => a.name === name);
-const SYNTAX = new Set([
-  'rdf:about',
-  'rdf:ID',
-  'rdf:nodeID',
-  'rdf:resource',
-  'rdf:datatype',
-  'rdf:parseType',
-  'xml:lang',
-  'xml:base',
-  'xml:space',
-]);
+const SYNTAX = new Set(['rdf:about', 'rdf:ID', 'rdf:nodeID', 'rdf:resource', 'rdf:datatype', 'rdf:parseType', 'xml:lang', 'xml:base', 'xml:space']);
 /** Resolves the RDF subject named by an XML node element. */
 export function subjectOf(el: El): string | null {
   const { base } = scope(el);
@@ -181,10 +166,7 @@ export function nodeElements(root: El) {
   const out: { el: El; subject: string | null; top: boolean }[] = [];
   const visitNode = (el: El, top: boolean) => {
     out.push({ el, subject: subjectOf(el), top });
-    for (const p of el.children)
-      for (const n of p.children)
-        if (!attr(p, 'rdf:parseType') || attr(p, 'rdf:parseType')!.value !== 'Literal')
-          visitNode(n, false);
+    for (const p of el.children) for (const n of p.children) if (!attr(p, 'rdf:parseType') || attr(p, 'rdf:parseType')!.value !== 'Literal') visitNode(n, false);
   };
   for (const c of root.children) visitNode(c, true);
   return out;
@@ -261,13 +243,8 @@ export function elementPairs(src: string, el: El): XmlPair[] {
         nested: true,
         refuse: `The parse-type collection at line ${line} is edited in Source.`,
       });
-    else if (pt === 'Literal')
-      out.push({ ...base, nested: true, locked: 'XML literal; edit it in Source.' });
-    else if (
-      pt === 'Resource' ||
-      c.children.length ||
-      c.attrs.some(a => !a.name.startsWith('xmlns') && !SYNTAX.has(a.name))
-    ) {
+    else if (pt === 'Literal') out.push({ ...base, nested: true, locked: 'XML literal; edit it in Source.' });
+    else if (pt === 'Resource' || c.children.length || c.attrs.some(a => !a.name.startsWith('xmlns') && !SYNTAX.has(a.name))) {
       if (c.children.some(n => subjectOf(n) !== null))
         out.push({
           ...base,
@@ -305,11 +282,7 @@ export function elementPairs(src: string, el: El): XmlPair[] {
           termType: 'Literal',
           value: c.text,
           language: dt ? undefined : l || undefined,
-          datatype: dt
-            ? new URL(dt, cs.base).href
-            : l
-              ? undefined
-              : 'http://www.w3.org/2001/XMLSchema#string',
+          datatype: dt ? new URL(dt, cs.base).href : l ? undefined : 'http://www.w3.org/2001/XMLSchema#string',
         },
         nested: false,
       });
@@ -329,21 +302,14 @@ export function isolatedTriples(src: string, c: El, subject: string): Triple[] {
   const langAttribute = lang ? ` xml:lang="${escapeXml(lang, true)}"` : '';
   const root = `<rdf:RDF${decl}${rdfNamespace} xml:base="${escapeXml(base, true)}">`;
   const description = `<rdf:Description rdf:about="${escapeXml(subject, true)}"${langAttribute}>`;
-  parse(
-    `${root}${description}${src.slice(c.start, c.end)}</rdf:Description></rdf:RDF>`,
-    store,
-    BASE,
-    'application/rdf+xml',
-  );
+  parse(`${root}${description}${src.slice(c.start, c.end)}</rdf:Description></rdf:RDF>`, store, BASE, 'application/rdf+xml');
   const plain = (t: any): Term =>
     t.termType === 'Literal'
       ? {
           termType: 'Literal',
           value: t.value,
           language: t.language || undefined,
-          datatype: t.language
-            ? undefined
-            : (t.datatype?.value ?? 'http://www.w3.org/2001/XMLSchema#string'),
+          datatype: t.language ? undefined : (t.datatype?.value ?? 'http://www.w3.org/2001/XMLSchema#string'),
         }
       : { termType: t.termType, value: t.value };
   return store.statements.map((s: any) => ({
@@ -359,36 +325,17 @@ export function qname(iri: string, ns: Record<string, string>): { name: string; 
   const k = Math.max(iri.lastIndexOf('#'), iri.lastIndexOf('/')) + 1;
   const space = iri.slice(0, k);
   const local = iri.slice(k);
-  if (!NCNAME.test(local))
-    throw Error(`<${iri}> cannot be written as an RDF/XML element name; edit it in Source.`);
+  if (!NCNAME.test(local)) throw Error(`<${iri}> cannot be written as an RDF/XML element name; edit it in Source.`);
   const prefix = Object.entries(ns).find(([p, v]) => p && v === space)?.[0];
-  return prefix
-    ? { name: `${prefix}:${local}`, decl: '' }
-    : { name: `ns1:${local}`, decl: ` xmlns:ns1="${escapeXml(space, true)}"` };
+  return prefix ? { name: `${prefix}:${local}`, decl: '' } : { name: `ns1:${local}`, decl: ` xmlns:ns1="${escapeXml(space, true)}"` };
 }
 /** Serializes an RDF property as an XML element in the supplied scope. */
-export function propertyElement(
-  predicate: string,
-  object: Term,
-  ns: Record<string, string>,
-  inheritedLang: string,
-) {
+export function propertyElement(predicate: string, object: Term, ns: Record<string, string>, inheritedLang: string) {
   const { name, decl } = qname(predicate, ns);
-  if (object.termType === 'NamedNode')
-    return `<${name}${decl} rdf:resource="${escapeXml(object.value, true)}"/>`;
-  if (object.termType !== 'Literal')
-    throw Error('Blank nodes and nested descriptions in RDF/XML are edited in Source.');
-  const lang = object.language
-    ? ` xml:lang="${escapeXml(object.language, true)}"`
-    : inheritedLang
-      ? ' xml:lang=""'
-      : '';
-  const dt =
-    !object.language &&
-    object.datatype &&
-    object.datatype !== 'http://www.w3.org/2001/XMLSchema#string'
-      ? ` rdf:datatype="${escapeXml(object.datatype, true)}"`
-      : '';
+  if (object.termType === 'NamedNode') return `<${name}${decl} rdf:resource="${escapeXml(object.value, true)}"/>`;
+  if (object.termType !== 'Literal') throw Error('Blank nodes and nested descriptions in RDF/XML are edited in Source.');
+  const lang = object.language ? ` xml:lang="${escapeXml(object.language, true)}"` : inheritedLang ? ' xml:lang=""' : '';
+  const dt = !object.language && object.datatype && object.datatype !== 'http://www.w3.org/2001/XMLSchema#string' ? ` rdf:datatype="${escapeXml(object.datatype, true)}"` : '';
   return `<${name}${decl}${lang}${dt}>${escapeXml(object.value)}</${name}>`;
 }
 const only = (src: string, from: number, to: number) => /^[ \t]*$/.test(src.slice(from, to));
@@ -397,21 +344,16 @@ const only = (src: string, from: number, to: number) => /^[ \t]*$/.test(src.slic
 export function lineRange(src: string, from: number, to: number) {
   const a = lineStart(src, from);
   const b = lineEndAfter(src, to);
-  return only(src, a, from) && /^[ \t]*(\r\n|\r|\n)?$/.test(src.slice(to, b))
-    ? { from: a, to: b }
-    : { from, to };
+  return only(src, a, from) && /^[ \t]*(\r\n|\r|\n)?$/.test(src.slice(to, b)) ? { from: a, to: b } : { from, to };
 }
 const indentOf = (src: string, pos: number) => /^[ \t]*/.exec(src.slice(lineStart(src, pos)))![0];
 
 /** Infers child indentation from siblings or the file's indentation unit. */
 export function childIndent(src: string, el: El, root: El) {
   const first = el.children[0];
-  if (first && only(src, lineStart(src, first.start), first.start))
-    return indentOf(src, first.start);
+  if (first && only(src, lineStart(src, first.start), first.start)) return indentOf(src, first.start);
   const top = root.children[0];
-  const step = top
-    ? indentOf(src, top.start).slice(indentOf(src, root.start).length) || '    '
-    : '    ';
+  const step = top ? indentOf(src, top.start).slice(indentOf(src, root.start).length) || '    ' : '    ';
   return indentOf(src, el.start) + step;
 }
 /** Inserts property elements using the parent element's layout and line endings. */

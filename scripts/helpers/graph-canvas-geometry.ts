@@ -28,24 +28,16 @@ export async function graphCanvasProblems(page: Page, which: Which): Promise<str
   const problems = await page.evaluate(
     ({ which, minName, minDetail, minShare, largestModelNamePx, neighborhoodNamePx }) => {
       const out: string[] = [];
-      const root = document.querySelector(
-        which === 'model' ? '.full-graph' : '.neighborhood-graph',
-      );
+      const root = document.querySelector(which === 'model' ? '.full-graph' : '.neighborhood-graph');
       const flow = root?.querySelector('.react-flow');
       if (!root || !flow) return ['no graph on screen'];
       const pane = flow.getBoundingClientRect();
       const viewport = flow.querySelector('.react-flow__viewport');
       const scale = viewport ? new DOMMatrix(getComputedStyle(viewport).transform).a : 1;
-      const onScreen = (rect: DOMRect) =>
-        rect.width > 0 &&
-        rect.right > pane.left &&
-        rect.left < pane.right &&
-        rect.bottom > pane.top &&
-        rect.top < pane.bottom;
+      const onScreen = (rect: DOMRect) => rect.width > 0 && rect.right > pane.left && rect.left < pane.right && rect.bottom > pane.top && rect.top < pane.bottom;
       const cardSelector = which === 'model' ? '.full-entity' : '.neighborhood-node .node';
       const nameSelector = which === 'model' ? '.full-entity strong' : '.node strong';
-      const sizeOnScreen = (element: Element) =>
-        parseFloat(getComputedStyle(element).fontSize) * scale;
+      const sizeOnScreen = (element: Element) => parseFloat(getComputedStyle(element).fontSize) * scale;
       for (const name of root.querySelectorAll(nameSelector)) {
         if (!onScreen(name.getBoundingClientRect())) continue;
         const px = sizeOnScreen(name);
@@ -85,8 +77,7 @@ export async function graphCanvasProblems(page: Page, which: Which): Promise<str
           }
         }
         for (const name of root.querySelectorAll<HTMLElement>('.node strong')) {
-          const clipped =
-            name.scrollWidth > name.clientWidth || name.scrollHeight > name.clientHeight;
+          const clipped = name.scrollWidth > name.clientWidth || name.scrollHeight > name.clientHeight;
           if (clipped && name.title !== name.textContent) {
             out.push('a truncated neighbor name has no full-name tooltip');
           }
@@ -98,15 +89,9 @@ export async function graphCanvasProblems(page: Page, which: Which): Promise<str
           if (px < minDetail) out.push(`detail text is ${px.toFixed(1)} px`);
         }
       }
-      const cards = [...root.querySelectorAll(cardSelector)]
-        .map(element => ({ element, rect: element.getBoundingClientRect() }))
-        .filter(card => onScreen(card.rect));
-      const overlap = (a: DOMRect, b: DOMRect) =>
-        Math.min(a.right, b.right) - Math.max(a.left, b.left) > 1 &&
-        Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 1;
-      const frames = [...root.querySelectorAll('.react-flow__node-businessArea')].map(frame =>
-        frame.getBoundingClientRect(),
-      );
+      const cards = [...root.querySelectorAll(cardSelector)].map(element => ({ element, rect: element.getBoundingClientRect() })).filter(card => onScreen(card.rect));
+      const overlap = (a: DOMRect, b: DOMRect) => Math.min(a.right, b.right) - Math.max(a.left, b.left) > 1 && Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 1;
+      const frames = [...root.querySelectorAll('.react-flow__node-businessArea')].map(frame => frame.getBoundingClientRect());
       frames.forEach((first, index) => {
         if (frames.slice(index + 1).some(second => overlap(first, second))) {
           out.push('two business-area frames overlap');
@@ -116,13 +101,8 @@ export async function graphCanvasProblems(page: Page, which: Which): Promise<str
         cards.slice(index + 1).forEach(second => {
           if (overlap(first.rect, second.rect)) out.push('two cards overlap');
           if (which === 'neighborhood') {
-            const horizontal =
-              Math.min(first.rect.right, second.rect.right) -
-              Math.max(first.rect.left, second.rect.left);
-            const gap = Math.max(
-              first.rect.top - second.rect.bottom,
-              second.rect.top - first.rect.bottom,
-            );
+            const horizontal = Math.min(first.rect.right, second.rect.right) - Math.max(first.rect.left, second.rect.left);
+            const gap = Math.max(first.rect.top - second.rect.bottom, second.rect.top - first.rect.bottom);
             if (horizontal > 1 && gap >= -1 && gap < 8 * scale) {
               out.push('neighbor cards have less than eight canvas pixels between them');
             }
@@ -130,13 +110,9 @@ export async function graphCanvasProblems(page: Page, which: Which): Promise<str
         }),
       );
       const toolbar = root.querySelector('.full-graph-tools, .neighborhood-tools');
-      if (toolbar && toolbar.scrollWidth > toolbar.clientWidth + 1)
-        out.push('the toolbar is wider than its row');
+      if (toolbar && toolbar.scrollWidth > toolbar.clientWidth + 1) out.push('the toolbar is wider than its row');
       const phone = window.innerWidth <= 650;
-      if (phone && pane.height < minShare * window.innerHeight)
-        out.push(
-          `the canvas is ${Math.round((100 * pane.height) / window.innerHeight)}% of the screen`,
-        );
+      if (phone && pane.height < minShare * window.innerHeight) out.push(`the canvas is ${Math.round((100 * pane.height) / window.innerHeight)}% of the screen`);
       return out;
     },
     {
@@ -150,18 +126,10 @@ export async function graphCanvasProblems(page: Page, which: Which): Promise<str
   );
   problems.push(...(await graphControlsProblems(page)));
   if (which === 'neighborhood') {
-    problems.push(
-      ...(await graphRelationshipLabelProblems(page)),
-      ...(await graphRelationshipContrastProblems(page)),
-    );
+    problems.push(...(await graphRelationshipLabelProblems(page)), ...(await graphRelationshipContrastProblems(page)));
   }
   if (which === 'model') {
-    problems.push(
-      ...(await graphHeadingProblems(page)),
-      ...(await graphEdgeContrastProblems(page)),
-      ...(await graphNameContainmentProblems(page)),
-      ...(await graphEdgeClearanceProblems(page)),
-    );
+    problems.push(...(await graphHeadingProblems(page)), ...(await graphEdgeContrastProblems(page)), ...(await graphNameContainmentProblems(page)), ...(await graphEdgeClearanceProblems(page)));
   }
   return problems;
 }

@@ -1,12 +1,6 @@
 // Checks browser Source Control actions using isolated workspaces and local Git remotes.
 import { smallTextProblems, textCollisionProblems } from './helpers/text-geometry';
-import {
-  openRemoteDialog,
-  remoteActions,
-  remoteButton,
-  remoteDialog,
-  runSyncAction,
-} from './helpers/sync-dialog';
+import { openRemoteDialog, remoteActions, remoteButton, remoteDialog, runSyncAction } from './helpers/sync-dialog';
 import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Page } from '@playwright/test';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -35,8 +29,7 @@ const sh = (cwd: string, args: string[]) => {
   return r.stdout.toString();
 };
 sh(extra, ['init', '-q', '--bare', '-b', 'main', bare]);
-const read = (path: string) =>
-  readFileSync(projectFile(api.ws.layout, commerce.slug, path), 'utf8');
+const read = (path: string) => readFileSync(projectFile(api.ws.layout, commerce.slug, path), 'utf8');
 const browser = await chromium.launch();
 const errors: string[] = [];
 async function newPage(target: IsolatedApi) {
@@ -111,324 +104,233 @@ async function saveSource() {
   });
 }
 try {
-  await check(
-    'commit from the panel: the diff shows exactly the changed line; staged, committed with a message',
-    async () => {
-      await editInSource(file, t =>
-        t.replace(
-          'description: Customer in the order-to-cash process.',
-          'description: Person or company that buys from us.',
-        ),
-      );
-      await saveSource();
-      await openScm();
-      await expect(
-        page.getByRole('button', { name: /^Source control/ }).locator('.nav-count'),
-      ).toHaveText('1');
-      await rowButton(file).click();
-      const diff = panel().getByRole('group', { name: `Changes in ${file}` });
-      await expect(diff).toBeVisible();
-      const sides = diff.locator('.cm-mergeView .cm-editor');
-      await expect(sides).toHaveCount(2);
-      await expect(sides.nth(0).locator('.cm-changedLine')).toHaveCount(1);
-      await expect(sides.nth(1).locator('.cm-changedLine')).toHaveCount(1);
-      await expect(sides.nth(0).locator('.cm-changedLine')).toContainText(
-        'Customer in the order-to-cash process.',
-      );
-      await expect(sides.nth(1).locator('.cm-changedLine')).toContainText(
-        'Person or company that buys from us.',
-      );
-      await page.screenshot({ path: '/tmp/workbench-scm-diff.png' });
-      await expect(panel().getByRole('button', { name: 'Commit' })).toBeDisabled();
-      await commitAll('Describe customers');
-      await expect(
-        panel().getByText('No changes. The working tree matches the last commit.'),
-      ).toBeVisible();
-      expect(sh(dir, ['log', '-1', '--format=%s']).trim()).toBe('Describe customers');
-      expect(sh(dir, ['status', '--porcelain'])).toBe('');
-    },
-  );
-  await check(
-    'Source control keeps the model tabs and Find an entity, and a tab leaves the panel',
-    async () => {
-      await openScm();
-      const tabs = page.locator('.tabs');
-      for (const name of ['Overview', 'Graph', 'Source', 'Metrics']) {
-        await expect(tabs.getByRole('button', { name: new RegExp(`^${name}`) })).toBeVisible();
-      }
-      await expect(page.getByPlaceholder('Find an entity…')).toBeVisible();
-      await tabs.getByRole('button', { name: /^Graph/ }).click();
-      await expect(panel()).toHaveCount(0);
-      await openScm();
-    },
-  );
-  await check(
-    'a hidden-type file is listed read-only and labelled; Add to .gitignore hides another one and .gitignore is editable',
-    async () => {
-      writeFileSync(join(dir, 'notes.csv'), 'a,b\n');
-      writeFileSync(join(dir, 'debug.log'), 'noise\n');
-      const notes = rowButton('notes.csv');
-      await expect(notes).toBeVisible({ timeout: 5000 });
-      await expect(notes).toContainText('not shown in workspace');
-      await expect(panel().getByRole('button', { name: 'Open notes.csv' })).toHaveCount(0);
-      await notes.click();
-      await expect(panel().getByRole('group', { name: 'Changes in notes.csv' })).toContainText(
-        'a,b',
-      );
-      await panel().getByRole('button', { name: 'Add debug.log to .gitignore' }).click();
-      const chooser = panel().getByRole('group', { name: 'Add debug.log to .gitignore' });
-      await chooser.getByLabel('All .log files').check();
-      await page.screenshot({ path: '/tmp/workbench-scm-ignore.png' });
-      await chooser.getByRole('button', { name: 'Add to .gitignore' }).click();
-      await expect(rowButton('debug.log')).toHaveCount(0);
-      await expect(rowButton('.gitignore')).toBeVisible();
-      expect(read('.gitignore')).toBe('*.log\n');
-      await expect(tree().getByRole('button', { name: '.gitignore', exact: true })).toBeVisible();
-      await commitAll('Notes and ignore rules');
-      // Edit .gitignore from the project menu: plain text in Source, saved with the base hash.
-      await tree()
-        .getByRole('button', { name: `Actions for ${commerce.name}` })
-        .click();
-      await page.getByRole('menuitem', { name: 'Edit .gitignore' }).click();
-      const editor = page.getByRole('textbox', { name: 'Definition source' });
-      await expect.poll(() => editorValue(editor)).toBe('*.log\n');
-      await fillEditor(editor, '*.log\n*.tmp\n');
-      await saveSource();
-      expect(read('.gitignore')).toBe('*.log\n*.tmp\n');
-      await openScm();
-      await commitAll('Ignore temporary files');
-    },
-  );
-  await check(
-    'branch: create, commit on it, switch back; every view shows the branch content',
-    async () => {
-      await panel().getByRole('button', { name: 'New branch' }).click();
-      await panel().getByLabel('New branch name').fill('feature/notes');
-      await panel().getByRole('button', { name: 'Create' }).click();
-      await expect(panel().getByLabel('Branch')).toHaveValue('feature/notes');
-      await editInSource(file, t =>
-        t.replace(
-          'description: Person or company that buys from us.',
-          'description: On the feature branch.',
-        ),
-      );
-      await saveSource();
-      await openScm();
-      await commitAll('Feature wording');
-      await panel().getByLabel('Branch').selectOption('main');
-      await expect(
-        panel().getByRole('status').filter({ hasText: 'Switched to main' }),
-      ).toBeVisible();
-      await expect.poll(() => read(file)).toContain('Person or company that buys from us.');
-      await openFile(file);
-      await showSourceEditor(page);
-      await expect
-        .poll(() => editorValue(page.getByRole('textbox', { name: 'Definition source' })))
-        .toContain('Person or company that buys from us.');
-      await openScm();
-      await page.screenshot({ path: '/tmp/workbench-scm-branch.png' });
-    },
-  );
-  await check(
-    'remote: save a local bare remote and push; pull a commit made elsewhere',
-    async () => {
-      await setRemote(bare);
-      // The branch has never been pushed: no counters, a tracking note and a Publish action.
-      await expect(panel().getByLabel('Not published')).toBeVisible();
-      await expect(panel().getByLabel(/commits to push/)).toHaveCount(0);
-      await expect(panel().getByText('Not tracking a remote branch')).toBeVisible();
-      await expect(remoteActions(page).getByRole('button', { name: 'Push' })).toHaveCount(0);
-      await runSyncAction(page, 'Publish branch');
-      await expect(panel().getByRole('status').filter({ hasText: 'Push finished' })).toBeVisible({
-        timeout: 20000,
-      });
-      await expect(panel().getByText('Tracking origin/main')).toBeVisible();
-      await expect(panel().getByLabel('0 commits to push, 0 to pull')).toBeVisible();
-      await expect(remoteActions(page).getByRole('button', { name: 'Publish branch' })).toHaveCount(
-        0,
-      );
-      expect(sh(bare, ['log', '-1', '--format=%s', 'main']).trim()).toBe('Ignore temporary files');
-      sh(extra, ['clone', '-q', bare, other]);
-      writeFileSync(
-        join(other, file),
-        readFileSync(join(other, file), 'utf8').replace(
-          'Order in the order-to-cash process.',
-          'Order placed elsewhere.',
-        ),
-      );
-      sh(other, ['commit', '-qam', 'Elsewhere']);
-      sh(other, ['push', '-q']);
-      await runSyncAction(page, 'Fetch');
-      await expect(panel().getByLabel('0 commits to push, 1 to pull')).toBeVisible({
-        timeout: 20000,
-      });
-      await runSyncAction(page, 'Pull');
-      await expect(panel().getByRole('status').filter({ hasText: 'Pull finished' })).toBeVisible({
-        timeout: 20000,
-      });
-      expect(read(file)).toContain('Order placed elsewhere.');
-      await page.screenshot({ path: '/tmp/workbench-scm-pulled.png' });
-    },
-  );
+  await check('commit from the panel: the diff shows exactly the changed line; staged, committed with a message', async () => {
+    await editInSource(file, t => t.replace('description: Customer in the order-to-cash process.', 'description: Person or company that buys from us.'));
+    await saveSource();
+    await openScm();
+    await expect(page.getByRole('button', { name: /^Source control/ }).locator('.nav-count')).toHaveText('1');
+    await rowButton(file).click();
+    const diff = panel().getByRole('group', { name: `Changes in ${file}` });
+    await expect(diff).toBeVisible();
+    const sides = diff.locator('.cm-mergeView .cm-editor');
+    await expect(sides).toHaveCount(2);
+    await expect(sides.nth(0).locator('.cm-changedLine')).toHaveCount(1);
+    await expect(sides.nth(1).locator('.cm-changedLine')).toHaveCount(1);
+    await expect(sides.nth(0).locator('.cm-changedLine')).toContainText('Customer in the order-to-cash process.');
+    await expect(sides.nth(1).locator('.cm-changedLine')).toContainText('Person or company that buys from us.');
+    await page.screenshot({ path: '/tmp/workbench-scm-diff.png' });
+    await expect(panel().getByRole('button', { name: 'Commit' })).toBeDisabled();
+    await commitAll('Describe customers');
+    await expect(panel().getByText('No changes. The working tree matches the last commit.')).toBeVisible();
+    expect(sh(dir, ['log', '-1', '--format=%s']).trim()).toBe('Describe customers');
+    expect(sh(dir, ['status', '--porcelain'])).toBe('');
+  });
+  await check('Source control keeps the model tabs and Find an entity, and a tab leaves the panel', async () => {
+    await openScm();
+    const tabs = page.locator('.tabs');
+    for (const name of ['Overview', 'Graph', 'Source', 'Metrics']) {
+      await expect(tabs.getByRole('button', { name: new RegExp(`^${name}`) })).toBeVisible();
+    }
+    await expect(page.getByPlaceholder('Find an entity…')).toBeVisible();
+    await tabs.getByRole('button', { name: /^Graph/ }).click();
+    await expect(panel()).toHaveCount(0);
+    await openScm();
+  });
+  await check('a hidden-type file is listed read-only and labelled; Add to .gitignore hides another one and .gitignore is editable', async () => {
+    writeFileSync(join(dir, 'notes.csv'), 'a,b\n');
+    writeFileSync(join(dir, 'debug.log'), 'noise\n');
+    const notes = rowButton('notes.csv');
+    await expect(notes).toBeVisible({ timeout: 5000 });
+    await expect(notes).toContainText('not shown in workspace');
+    await expect(panel().getByRole('button', { name: 'Open notes.csv' })).toHaveCount(0);
+    await notes.click();
+    await expect(panel().getByRole('group', { name: 'Changes in notes.csv' })).toContainText('a,b');
+    await panel().getByRole('button', { name: 'Add debug.log to .gitignore' }).click();
+    const chooser = panel().getByRole('group', { name: 'Add debug.log to .gitignore' });
+    await chooser.getByLabel('All .log files').check();
+    await page.screenshot({ path: '/tmp/workbench-scm-ignore.png' });
+    await chooser.getByRole('button', { name: 'Add to .gitignore' }).click();
+    await expect(rowButton('debug.log')).toHaveCount(0);
+    await expect(rowButton('.gitignore')).toBeVisible();
+    expect(read('.gitignore')).toBe('*.log\n');
+    await expect(tree().getByRole('button', { name: '.gitignore', exact: true })).toBeVisible();
+    await commitAll('Notes and ignore rules');
+    // Edit .gitignore from the project menu: plain text in Source, saved with the base hash.
+    await tree()
+      .getByRole('button', { name: `Actions for ${commerce.name}` })
+      .click();
+    await page.getByRole('menuitem', { name: 'Edit .gitignore' }).click();
+    const editor = page.getByRole('textbox', { name: 'Definition source' });
+    await expect.poll(() => editorValue(editor)).toBe('*.log\n');
+    await fillEditor(editor, '*.log\n*.tmp\n');
+    await saveSource();
+    expect(read('.gitignore')).toBe('*.log\n*.tmp\n');
+    await openScm();
+    await commitAll('Ignore temporary files');
+  });
+  await check('branch: create, commit on it, switch back; every view shows the branch content', async () => {
+    await panel().getByRole('button', { name: 'New branch' }).click();
+    await panel().getByLabel('New branch name').fill('feature/notes');
+    await panel().getByRole('button', { name: 'Create' }).click();
+    await expect(panel().getByLabel('Branch')).toHaveValue('feature/notes');
+    await editInSource(file, t => t.replace('description: Person or company that buys from us.', 'description: On the feature branch.'));
+    await saveSource();
+    await openScm();
+    await commitAll('Feature wording');
+    await panel().getByLabel('Branch').selectOption('main');
+    await expect(panel().getByRole('status').filter({ hasText: 'Switched to main' })).toBeVisible();
+    await expect.poll(() => read(file)).toContain('Person or company that buys from us.');
+    await openFile(file);
+    await showSourceEditor(page);
+    await expect.poll(() => editorValue(page.getByRole('textbox', { name: 'Definition source' }))).toContain('Person or company that buys from us.');
+    await openScm();
+    await page.screenshot({ path: '/tmp/workbench-scm-branch.png' });
+  });
+  await check('remote: save a local bare remote and push; pull a commit made elsewhere', async () => {
+    await setRemote(bare);
+    // The branch has never been pushed: no counters, a tracking note and a Publish action.
+    await expect(panel().getByLabel('Not published')).toBeVisible();
+    await expect(panel().getByLabel(/commits to push/)).toHaveCount(0);
+    await expect(panel().getByText('Not tracking a remote branch')).toBeVisible();
+    await expect(remoteActions(page).getByRole('button', { name: 'Push' })).toHaveCount(0);
+    await runSyncAction(page, 'Publish branch');
+    await expect(panel().getByRole('status').filter({ hasText: 'Push finished' })).toBeVisible({
+      timeout: 20000,
+    });
+    await expect(panel().getByText('Tracking origin/main')).toBeVisible();
+    await expect(panel().getByLabel('0 commits to push, 0 to pull')).toBeVisible();
+    await expect(remoteActions(page).getByRole('button', { name: 'Publish branch' })).toHaveCount(0);
+    expect(sh(bare, ['log', '-1', '--format=%s', 'main']).trim()).toBe('Ignore temporary files');
+    sh(extra, ['clone', '-q', bare, other]);
+    writeFileSync(join(other, file), readFileSync(join(other, file), 'utf8').replace('Order in the order-to-cash process.', 'Order placed elsewhere.'));
+    sh(other, ['commit', '-qam', 'Elsewhere']);
+    sh(other, ['push', '-q']);
+    await runSyncAction(page, 'Fetch');
+    await expect(panel().getByLabel('0 commits to push, 1 to pull')).toBeVisible({
+      timeout: 20000,
+    });
+    await runSyncAction(page, 'Pull');
+    await expect(panel().getByRole('status').filter({ hasText: 'Pull finished' })).toBeVisible({
+      timeout: 20000,
+    });
+    expect(read(file)).toContain('Order placed elsewhere.');
+    await page.screenshot({ path: '/tmp/workbench-scm-pulled.png' });
+  });
   // Valid edits are saved automatically, so the edit that stays unsaved is an invalid one (a
   // server draft); the refusal lists it and offers Commit….
-  await check(
-    'pull is refused while the open file has edits not saved to file; nothing is stashed; Commit… is offered',
-    async () => {
-      let original = '';
-      await editInSource(file, t => {
-        original = t;
-        return t.replace('Order placed elsewhere.', '"Unsaved wording.');
-      });
-      await expect(page.getByRole('status', { name: 'Save state' })).toHaveText(
-        /^Not saved: \d+ errors?$/,
-        { timeout: 5000 },
-      );
-      await openScm();
-      await runSyncAction(page, 'Pull');
-      const refusal = panel().getByRole('alert').filter({ hasText: 'not saved to file yet' });
-      await expect(refusal).toContainText(file);
-      await expect(refusal.getByRole('button', { name: 'Commit…' })).toBeVisible();
-      // The server refuses too, from the stored draft.
-      await expect.poll(() => api.ws.state.drafts().map(d => d.path)).toEqual([file]);
-      const r = await api.handler(
-        new Request(`http://127.0.0.1/api/projects/${commerce.slug}/git/pull`, { method: 'POST' }),
-      );
-      expect(r.status).toBe(409);
-      expect((await r.json()).error).toBe('drafts');
-      expect(sh(dir, ['stash', 'list'])).toBe('');
-      await refusal.getByRole('button', { name: 'Commit…' }).click();
-      await expect(page.getByRole('dialog', { name: 'Commit' })).toBeVisible();
-      await page.keyboard.press('Escape');
-      await expect(page.getByRole('dialog', { name: 'Commit' })).toHaveCount(0);
-      await editInSource(file, () => original);
-      await expect.poll(() => api.ws.state.drafts().length, { timeout: 5000 }).toBe(0);
-    },
-  );
-  await check(
-    'conflict: the pull stops, the file is listed and repaired in Source, staged and committed',
-    async () => {
-      writeFileSync(
-        join(other, file),
-        readFileSync(join(other, file), 'utf8').replace(
-          'Order placed elsewhere.',
-          'Their wording.',
-        ),
-      );
-      sh(other, ['commit', '-qam', 'Theirs']);
-      sh(other, ['push', '-q']);
-      await editInSource(file, t => t.replace('Order placed elsewhere.', 'Our wording.'));
-      await saveSource();
-      await openScm();
-      await commitAll('Ours');
-      await runSyncAction(page, 'Pull');
-      await expect(
-        panel().getByRole('alert').filter({ hasText: 'stopped on conflicts' }),
-      ).toContainText(file, { timeout: 20000 });
-      const conflicts = group('Merge conflicts');
-      await expect(conflicts).toBeVisible();
-      await expect(panel().getByRole('button', { name: 'Commit' })).toBeDisabled();
-      await page.screenshot({ path: '/tmp/workbench-scm-conflict.png' });
-      await conflicts.getByRole('button', { name: `Open ${file}` }).click();
-      const editor = page.getByRole('textbox', { name: 'Definition source' });
-      await expect.poll(() => editorValue(editor)).toContain('<<<<<<<');
-      const text = await editorValue(editor);
-      await fillEditor(
-        editor,
-        text
-          .replace(/<<<<<<< [^\n]*\n([\s\S]*?)=======\n[\s\S]*?>>>>>>> [^\n]*\n/, '$1')
-          .replace('Our wording.', 'Our and their wording.'),
-      );
-      await saveSource();
-      await openScm();
-      await group('Merge conflicts')
-        .getByRole('button', { name: `Stage ${file}` })
-        .click();
-      await expect(group('Merge conflicts')).toHaveCount(0);
-      await panel().getByLabel('Commit message').fill('Merge their wording');
-      await panel().getByRole('button', { name: 'Commit' }).click();
-      await expect(
-        panel()
-          .getByRole('status')
-          .filter({ hasText: /^Committed/ }),
-      ).toBeVisible();
-      expect(sh(dir, ['log', '-1', '--format=%P']).trim().split(' ')).toHaveLength(2);
-      expect(read(file)).toContain('Our and their wording.');
-      await runSyncAction(page, 'Sync');
-      await expect(panel().getByRole('status').filter({ hasText: 'Sync finished' })).toBeVisible({
-        timeout: 20000,
-      });
-      expect(sh(bare, ['log', '-1', '--format=%s', 'main']).trim()).toBe('Merge their wording');
-    },
-  );
-  await check(
-    'a rejected push leads with a plain summary and Pull remote changes; Git output is under Show details',
-    async () => {
-      sh(other, ['pull', '-q', '--no-rebase']);
-      const otherFile = join(other, file);
-      writeFileSync(
-        otherFile,
-        readFileSync(otherFile, 'utf8').replace(
-          'Product in the order-to-cash process.',
-          'Product edited elsewhere.',
-        ),
-      );
-      sh(other, ['commit', '-qam', 'Product elsewhere']);
-      sh(other, ['push', '-q']);
-      await editInSource(file, t =>
-        t.replace('Warehouse in the order-to-cash process.', 'Warehouse edited here.'),
-      );
-      await saveSource();
-      await openScm();
-      await commitAll('Warehouse here');
-      await runSyncAction(page, 'Push');
-      const rejection = panel().getByRole('alert').filter({ hasText: 'Push rejected' });
-      await expect(rejection).toContainText(
-        'Push rejected: the remote has commits you have not integrated.',
-        { timeout: 20000 },
-      );
-      await expect(rejection.getByText('[rejected]')).toBeHidden();
-      await rejection.getByText('Show details').click();
-      await expect(rejection.getByText('[rejected]')).toBeVisible();
-      await rejection.getByRole('button', { name: 'Pull remote changes' }).click();
-      await expect(panel().getByRole('status').filter({ hasText: 'Pull finished' })).toBeVisible({
-        timeout: 20000,
-      });
-      await runSyncAction(page, 'Push');
-      await expect(panel().getByRole('status').filter({ hasText: 'Push finished' })).toBeVisible({
-        timeout: 20000,
-      });
-      expect(sh(bare, ['log', '-1', '--format=%P', 'main']).trim().split(' ')).toHaveLength(2);
-    },
-  );
-  await check(
-    'New branch form: Escape and Cancel return focus to the New branch button',
-    async () => {
-      const newBranch = panel().getByRole('button', { name: 'New branch' });
-      await newBranch.click();
-      await panel().getByLabel('New branch name').fill('feature/unfinished');
-      await page.keyboard.press('Escape');
-      await expect(panel().getByLabel('New branch name')).toHaveCount(0);
-      await expect(newBranch).toBeFocused();
-      await newBranch.click();
-      await panel().getByRole('button', { name: 'Cancel', exact: true }).click();
-      await expect(newBranch).toBeFocused();
-      expect(sh(dir, ['branch', '--list', 'feature/unfinished']).trim()).toBe('');
-    },
-  );
-  await check(
-    'the Remote dialog starts on the address field; Escape returns to Remote…',
-    async () => {
-      const trigger = remoteButton(page);
-      await trigger.click();
-      const dialog = remoteDialog(page);
-      await expect(dialog.getByLabel('Remote URL')).toHaveValue(bare);
-      await expect(dialog.getByLabel('Remote URL')).toBeFocused();
-      await page.keyboard.press('Escape');
-      await expect(dialog).toHaveCount(0);
-      await expect(trigger).toBeFocused();
-    },
-  );
+  await check('pull is refused while the open file has edits not saved to file; nothing is stashed; Commit… is offered', async () => {
+    let original = '';
+    await editInSource(file, t => {
+      original = t;
+      return t.replace('Order placed elsewhere.', '"Unsaved wording.');
+    });
+    await expect(page.getByRole('status', { name: 'Save state' })).toHaveText(/^Not saved: \d+ errors?$/, { timeout: 5000 });
+    await openScm();
+    await runSyncAction(page, 'Pull');
+    const refusal = panel().getByRole('alert').filter({ hasText: 'not saved to file yet' });
+    await expect(refusal).toContainText(file);
+    await expect(refusal.getByRole('button', { name: 'Commit…' })).toBeVisible();
+    // The server refuses too, from the stored draft.
+    await expect.poll(() => api.ws.state.drafts().map(d => d.path)).toEqual([file]);
+    const r = await api.handler(new Request(`http://127.0.0.1/api/projects/${commerce.slug}/git/pull`, { method: 'POST' }));
+    expect(r.status).toBe(409);
+    expect((await r.json()).error).toBe('drafts');
+    expect(sh(dir, ['stash', 'list'])).toBe('');
+    await refusal.getByRole('button', { name: 'Commit…' }).click();
+    await expect(page.getByRole('dialog', { name: 'Commit' })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog', { name: 'Commit' })).toHaveCount(0);
+    await editInSource(file, () => original);
+    await expect.poll(() => api.ws.state.drafts().length, { timeout: 5000 }).toBe(0);
+  });
+  await check('conflict: the pull stops, the file is listed and repaired in Source, staged and committed', async () => {
+    writeFileSync(join(other, file), readFileSync(join(other, file), 'utf8').replace('Order placed elsewhere.', 'Their wording.'));
+    sh(other, ['commit', '-qam', 'Theirs']);
+    sh(other, ['push', '-q']);
+    await editInSource(file, t => t.replace('Order placed elsewhere.', 'Our wording.'));
+    await saveSource();
+    await openScm();
+    await commitAll('Ours');
+    await runSyncAction(page, 'Pull');
+    await expect(panel().getByRole('alert').filter({ hasText: 'stopped on conflicts' })).toContainText(file, { timeout: 20000 });
+    const conflicts = group('Merge conflicts');
+    await expect(conflicts).toBeVisible();
+    await expect(panel().getByRole('button', { name: 'Commit' })).toBeDisabled();
+    await page.screenshot({ path: '/tmp/workbench-scm-conflict.png' });
+    await conflicts.getByRole('button', { name: `Open ${file}` }).click();
+    const editor = page.getByRole('textbox', { name: 'Definition source' });
+    await expect.poll(() => editorValue(editor)).toContain('<<<<<<<');
+    const text = await editorValue(editor);
+    await fillEditor(editor, text.replace(/<<<<<<< [^\n]*\n([\s\S]*?)=======\n[\s\S]*?>>>>>>> [^\n]*\n/, '$1').replace('Our wording.', 'Our and their wording.'));
+    await saveSource();
+    await openScm();
+    await group('Merge conflicts')
+      .getByRole('button', { name: `Stage ${file}` })
+      .click();
+    await expect(group('Merge conflicts')).toHaveCount(0);
+    await panel().getByLabel('Commit message').fill('Merge their wording');
+    await panel().getByRole('button', { name: 'Commit' }).click();
+    await expect(
+      panel()
+        .getByRole('status')
+        .filter({ hasText: /^Committed/ }),
+    ).toBeVisible();
+    expect(sh(dir, ['log', '-1', '--format=%P']).trim().split(' ')).toHaveLength(2);
+    expect(read(file)).toContain('Our and their wording.');
+    await runSyncAction(page, 'Sync');
+    await expect(panel().getByRole('status').filter({ hasText: 'Sync finished' })).toBeVisible({
+      timeout: 20000,
+    });
+    expect(sh(bare, ['log', '-1', '--format=%s', 'main']).trim()).toBe('Merge their wording');
+  });
+  await check('a rejected push leads with a plain summary and Pull remote changes; Git output is under Show details', async () => {
+    sh(other, ['pull', '-q', '--no-rebase']);
+    const otherFile = join(other, file);
+    writeFileSync(otherFile, readFileSync(otherFile, 'utf8').replace('Product in the order-to-cash process.', 'Product edited elsewhere.'));
+    sh(other, ['commit', '-qam', 'Product elsewhere']);
+    sh(other, ['push', '-q']);
+    await editInSource(file, t => t.replace('Warehouse in the order-to-cash process.', 'Warehouse edited here.'));
+    await saveSource();
+    await openScm();
+    await commitAll('Warehouse here');
+    await runSyncAction(page, 'Push');
+    const rejection = panel().getByRole('alert').filter({ hasText: 'Push rejected' });
+    await expect(rejection).toContainText('Push rejected: the remote has commits you have not integrated.', { timeout: 20000 });
+    await expect(rejection.getByText('[rejected]')).toBeHidden();
+    await rejection.getByText('Show details').click();
+    await expect(rejection.getByText('[rejected]')).toBeVisible();
+    await rejection.getByRole('button', { name: 'Pull remote changes' }).click();
+    await expect(panel().getByRole('status').filter({ hasText: 'Pull finished' })).toBeVisible({
+      timeout: 20000,
+    });
+    await runSyncAction(page, 'Push');
+    await expect(panel().getByRole('status').filter({ hasText: 'Push finished' })).toBeVisible({
+      timeout: 20000,
+    });
+    expect(sh(bare, ['log', '-1', '--format=%P', 'main']).trim().split(' ')).toHaveLength(2);
+  });
+  await check('New branch form: Escape and Cancel return focus to the New branch button', async () => {
+    const newBranch = panel().getByRole('button', { name: 'New branch' });
+    await newBranch.click();
+    await panel().getByLabel('New branch name').fill('feature/unfinished');
+    await page.keyboard.press('Escape');
+    await expect(panel().getByLabel('New branch name')).toHaveCount(0);
+    await expect(newBranch).toBeFocused();
+    await newBranch.click();
+    await panel().getByRole('button', { name: 'Cancel', exact: true }).click();
+    await expect(newBranch).toBeFocused();
+    expect(sh(dir, ['branch', '--list', 'feature/unfinished']).trim()).toBe('');
+  });
+  await check('the Remote dialog starts on the address field; Escape returns to Remote…', async () => {
+    const trigger = remoteButton(page);
+    await trigger.click();
+    const dialog = remoteDialog(page);
+    await expect(dialog.getByLabel('Remote URL')).toHaveValue(bare);
+    await expect(dialog.getByLabel('Remote URL')).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(dialog).toHaveCount(0);
+    await expect(trigger).toBeFocused();
+  });
   await check('file history: compare two versions of a file', async () => {
     await tree()
       .getByRole('button', { name: `Actions for ${file} in ${commerce.name}` })
@@ -449,33 +351,26 @@ try {
     await panel()
       .getByLabel('To version')
       .selectOption(log.find(l => l.message === 'Elsewhere')!.commit);
-    await expect(
-      versions.locator('.cm-mergeView .cm-editor').nth(1).locator('.cm-changedLine'),
-    ).toContainText(['Order placed elsewhere.']);
+    await expect(versions.locator('.cm-mergeView .cm-editor').nth(1).locator('.cm-changedLine')).toContainText(['Order placed elsewhere.']);
     await page.screenshot({ path: '/tmp/workbench-scm-history.png' });
   });
-  await check(
-    'waiting for credentials: the panel says so and Cancel stops the operation',
-    async () => {
-      await setRemote('ssh://example.invalid/repo.git');
-      process.env.GIT_SSH_COMMAND = 'sleep 30 #';
-      try {
-        await runSyncAction(page, 'Fetch');
-        const waiting = panel().getByRole('status').filter({
-          hasText: 'Waiting for Git (credentials may be requested in a separate window)',
-        });
-        await expect(waiting).toBeVisible();
-        await page.screenshot({ path: '/tmp/workbench-scm-waiting.png' });
-        await waiting.getByRole('button', { name: 'Cancel' }).click();
-        await expect(
-          panel().getByRole('status').filter({ hasText: 'Fetch cancelled.' }),
-        ).toBeVisible({ timeout: 5000 });
-        await expect(waiting).toHaveCount(0);
-      } finally {
-        delete process.env.GIT_SSH_COMMAND;
-      }
-    },
-  );
+  await check('waiting for credentials: the panel says so and Cancel stops the operation', async () => {
+    await setRemote('ssh://example.invalid/repo.git');
+    process.env.GIT_SSH_COMMAND = 'sleep 30 #';
+    try {
+      await runSyncAction(page, 'Fetch');
+      const waiting = panel().getByRole('status').filter({
+        hasText: 'Waiting for Git (credentials may be requested in a separate window)',
+      });
+      await expect(waiting).toBeVisible();
+      await page.screenshot({ path: '/tmp/workbench-scm-waiting.png' });
+      await waiting.getByRole('button', { name: 'Cancel' }).click();
+      await expect(panel().getByRole('status').filter({ hasText: 'Fetch cancelled.' })).toBeVisible({ timeout: 5000 });
+      await expect(waiting).toHaveCount(0);
+    } finally {
+      delete process.env.GIT_SSH_COMMAND;
+    }
+  });
   await check('Admin → Git remotes sets and removes a local bare remote', async () => {
     const adminBare = join(extra, 'admin-remote.git');
     sh(extra, ['init', '-q', '--bare', '-b', 'main', adminBare]);
@@ -518,63 +413,43 @@ try {
     await runSyncAction(page, 'Publish branch');
     await expect(panel().getByText('Tracking origin/main')).toBeVisible({ timeout: 20000 });
   });
-  await check(
-    'Admin → Git remotes explains an empty workspace and leads back to Add project',
-    async () => {
-      const empty = await startIsolatedApi();
-      try {
-        const p = await newPage(empty);
-        const remotes = await adminArea(p, 'Git remotes');
-        await expect(remotes).toContainText(
-          'No projects yet. Add or clone a project to configure its remote.',
-        );
-        await expect(remotes.getByRole('table')).toHaveCount(0);
-        await remotes.getByRole('button', { name: 'Back to workspace' }).click();
-        await expect(p.locator('.admin-page')).toHaveCount(0);
-        await expect(p.getByRole('button', { name: 'Add project' })).toBeVisible();
-        await p.close();
-      } finally {
-        await empty.stop();
-      }
-    },
-  );
-  await check(
-    'missing Git: the banner explains it, the panel says so, editing and saving still work',
-    async () => {
-      const noGit = await startIsolatedApi({ gitBinary: join(extra, 'no-such-git') });
-      try {
-        const p = await newPage(noGit);
-        await (await example(p, /Commerce workspace/)).click();
-        await expect(tree(p).getByRole('button', { name: file, exact: true })).toBeVisible({
-          timeout: 10000,
-        });
-        await expect(
-          p.getByRole('alert').filter({ hasText: 'Git 2.40 or newer was not found' }),
-        ).toBeVisible();
-        await p.getByRole('button', { name: /^Source control/ }).click();
-        await expect(p.getByRole('region', { name: 'Source Control' })).toContainText(
-          'Git was not found on this machine',
-        );
-        await p.screenshot({ path: '/tmp/workbench-scm-no-git.png' });
-        await openFile(file, p);
-        await showSourceEditor(p);
-        const editor = p.getByRole('textbox', { name: 'Definition source' });
-        await fillEditor(
-          editor,
-          (await editorValue(editor)).replace(
-            'Customer in the order-to-cash process.',
-            'Saved without Git.',
-          ),
-        );
-        await expect
-          .poll(() => readFileSync(projectFile(noGit.ws.layout, 'commerce', file), 'utf8'))
-          .toContain('Saved without Git.');
-        await p.close();
-      } finally {
-        await noGit.stop();
-      }
-    },
-  );
+  await check('Admin → Git remotes explains an empty workspace and leads back to Add project', async () => {
+    const empty = await startIsolatedApi();
+    try {
+      const p = await newPage(empty);
+      const remotes = await adminArea(p, 'Git remotes');
+      await expect(remotes).toContainText('No projects yet. Add or clone a project to configure its remote.');
+      await expect(remotes.getByRole('table')).toHaveCount(0);
+      await remotes.getByRole('button', { name: 'Back to workspace' }).click();
+      await expect(p.locator('.admin-page')).toHaveCount(0);
+      await expect(p.getByRole('button', { name: 'Add project' })).toBeVisible();
+      await p.close();
+    } finally {
+      await empty.stop();
+    }
+  });
+  await check('missing Git: the banner explains it, the panel says so, editing and saving still work', async () => {
+    const noGit = await startIsolatedApi({ gitBinary: join(extra, 'no-such-git') });
+    try {
+      const p = await newPage(noGit);
+      await (await example(p, /Commerce workspace/)).click();
+      await expect(tree(p).getByRole('button', { name: file, exact: true })).toBeVisible({
+        timeout: 10000,
+      });
+      await expect(p.getByRole('alert').filter({ hasText: 'Git 2.40 or newer was not found' })).toBeVisible();
+      await p.getByRole('button', { name: /^Source control/ }).click();
+      await expect(p.getByRole('region', { name: 'Source Control' })).toContainText('Git was not found on this machine');
+      await p.screenshot({ path: '/tmp/workbench-scm-no-git.png' });
+      await openFile(file, p);
+      await showSourceEditor(p);
+      const editor = p.getByRole('textbox', { name: 'Definition source' });
+      await fillEditor(editor, (await editorValue(editor)).replace('Customer in the order-to-cash process.', 'Saved without Git.'));
+      await expect.poll(() => readFileSync(projectFile(noGit.ws.layout, 'commerce', file), 'utf8')).toContain('Saved without Git.');
+      await p.close();
+    } finally {
+      await noGit.stop();
+    }
+  });
   await check('the panel and its remote actions fit at 390, 1280, 1440 and 2560 px', async () => {
     await openScm();
     for (const [width, height] of [

@@ -2,26 +2,14 @@
 // stands in for Azure DevOps, one for GitHub, and one redirects to a host that must never see a
 // token. Requests, responses and console output are kept for leak scans.
 import { expect, spyOn, type Mock } from 'bun:test';
-import {
-  existsSync,
-  lstatSync,
-  mkdtempSync,
-  readdirSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-} from 'node:fs';
+import { existsSync, lstatSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createRemoteJWKSet, jwtVerify } from 'jose';
 import { startMockOidc, type MockOidc } from '../helpers/mock-oidc';
 import { authWorkspace } from '../helpers/auth-workspace';
 import { oidcConfig } from '../helpers/server-auth';
-import {
-  startCredentialGitServer,
-  startRedirectingServer,
-  type CredentialGitServer,
-} from './credential-git-server';
+import { startCredentialGitServer, startRedirectingServer, type CredentialGitServer } from './credential-git-server';
 import { createServerAuthentication } from '../../src/server/auth/authentication';
 import { createHandler } from '../../src/server/handler';
 import { repoDir } from '../../src/server/projects/paths';
@@ -36,8 +24,7 @@ export const GITHUB_APP = { clientId: 'sw-github-test', clientSecret: 'github-ap
 /** The machine's own credential, which only local mode may use. */
 export const MACHINE_SECRET = 'machine-credential-secret';
 /** A credential helper answering with the machine's own credential. */
-export const MACHINE_HELPER =
-  '!f() { test "$1" = get && printf "username=machine\\npassword=' + MACHINE_SECRET + '\\n"; }; f';
+export const MACHINE_HELPER = '!f() { test "$1" = get && printf "username=machine\\npassword=' + MACHINE_SECRET + '\\n"; }; f';
 
 /** Runs Git directly, outside the workbench, and returns its output. */
 export function git(dir: string, args: string[]) {
@@ -87,11 +74,7 @@ async function startServers(gitRoot: string, provider: MockOidc) {
     }
   });
   const githubTokens = new Map<string, string>();
-  const github = startCredentialGitServer(
-    join(gitRoot, 'github'),
-    async (_user, password) => githubTokens.get(password) ?? null,
-    { ...GITHUB_APP, redirectUri: origin + '/auth/github/callback' },
-  );
+  const github = startCredentialGitServer(join(gitRoot, 'github'), async (_user, password) => githubTokens.get(password) ?? null, { ...GITHUB_APP, redirectUri: origin + '/auth/github/callback' });
   // The redirect target accepts nobody; it only records what reaches it.
   const elsewhere = startCredentialGitServer(join(gitRoot, 'elsewhere'), async () => null);
   const redirecting = startRedirectingServer(elsewhere.origin);
@@ -108,11 +91,7 @@ function captureLogs(logs: string[]) {
 }
 
 // Signs people in through the provider and sends their requests, keeping each response text.
-function personRequests(
-  handler: ReturnType<typeof createHandler>,
-  provider: MockOidc,
-  responses: string[],
-) {
+function personRequests(handler: ReturnType<typeof createHandler>, provider: MockOidc, responses: string[]) {
   async function signIn(username: string) {
     const first = await handler(new Request(origin + '/'));
     const attempt = first.headers.getSetCookie()[0].split(';')[0];
@@ -223,15 +202,10 @@ export function salesRepositories(setup: RemoteSetup) {
  * returns a clone of it in which a test prepares incoming commits.
  */
 export async function publishSalesBranch(setup: RemoteSetup, cookie: string, branch: string) {
-  const switched = await setup.call(
-    cookie,
-    'POST',
-    projectPath('sales-contracts') + '/git/switch',
-    {
-      branch,
-      create: true,
-    },
-  );
+  const switched = await setup.call(cookie, 'POST', projectPath('sales-contracts') + '/git/switch', {
+    branch,
+    create: true,
+  });
   expect(switched.status).toBe(200);
   const { local, remote } = salesRepositories(setup);
   git(local, ['push', '-q', remote, `${branch}:${branch}`]);

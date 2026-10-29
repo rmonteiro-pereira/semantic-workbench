@@ -15,21 +15,12 @@ export const fileRoutes: Route = async (ws, req, url) => {
   if (req.method === 'GET') return Response.json(ws.readFile(slug, path, reader));
   if (req.method === 'PUT') {
     const body = await readJson(req, MAX_INPUT_BYTES * 6 + 4096);
-    if (
-      !body ||
-      typeof body !== 'object' ||
-      Array.isArray(body) ||
-      Object.keys(body).some(k => !['baseHash', 'source', 'patches'].includes(k))
-    )
+    if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).some(k => !['baseHash', 'source', 'patches'].includes(k)))
       throw new BadRequestError('Expected {baseHash, source} or {baseHash, patches}.');
     if (body.baseHash !== null && (typeof body.baseHash !== 'string' || !HASH.test(body.baseHash)))
-      throw new BadRequestError(
-        'baseHash must be the SHA-256 of the file version the edit started from, or null for a new file.',
-      );
-    if ((body.source === undefined) === (body.patches === undefined))
-      throw new BadRequestError('Send either source or patches.');
-    if (body.source !== undefined && typeof body.source !== 'string')
-      throw new BadRequestError('source must be text.');
+      throw new BadRequestError('baseHash must be the SHA-256 of the file version the edit started from, or null for a new file.');
+    if ((body.source === undefined) === (body.patches === undefined)) throw new BadRequestError('Send either source or patches.');
+    if (body.source !== undefined && typeof body.source !== 'string') throw new BadRequestError('source must be text.');
     return Response.json(await ws.saveFile(slug, path, body, reader));
   }
   return null;

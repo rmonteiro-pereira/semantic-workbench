@@ -3,11 +3,9 @@ import { expect, test } from 'bun:test';
 import { ConfigError } from '../../src/server/config';
 import { oidcConfig } from '../helpers/server-auth';
 
-const configured = (extra: Record<string, string>) =>
-  oidcConfig('http://127.0.0.1:4444/issuer', 'http://127.0.0.1:4444/graph', 'entra', extra);
+const configured = (extra: Record<string, string>) => oidcConfig('http://127.0.0.1:4444/issuer', 'http://127.0.0.1:4444/graph', 'entra', extra);
 
-const hops = (value?: string) =>
-  configured(value === undefined ? {} : { SW_TRUSTED_PROXY_HOPS: value }).trustedProxyHops;
+const hops = (value?: string) => configured(value === undefined ? {} : { SW_TRUSTED_PROXY_HOPS: value }).trustedProxyHops;
 
 test('no proxy is trusted unless the setting says so', () => {
   expect(hops()).toBe(0);
@@ -27,9 +25,7 @@ test('anything else refuses start-up and names the variable', () => {
     try {
       hops(value);
     } catch (error) {
-      expect((error as ConfigError).problems.map(problem => problem.variable)).toEqual([
-        'SW_TRUSTED_PROXY_HOPS',
-      ]);
+      expect((error as ConfigError).problems.map(problem => problem.variable)).toEqual(['SW_TRUSTED_PROXY_HOPS']);
     }
   }
 });

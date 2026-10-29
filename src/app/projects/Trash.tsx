@@ -16,17 +16,7 @@ function entryLabel(item: TrashItem) {
   return `Project ${item.projectName}`;
 }
 /** Reviews trash entries and offers restore or confirmed permanent deletion. */
-export function TrashDialog({
-  onClose,
-  version,
-  selectedProject,
-  selectedProjectName,
-}: {
-  onClose: () => void;
-  version: number;
-  selectedProject: string;
-  selectedProjectName: string;
-}) {
+export function TrashDialog({ onClose, version, selectedProject, selectedProjectName }: { onClose: () => void; version: number; selectedProject: string; selectedProjectName: string }) {
   const access = useCapabilities();
   const [items, setItems] = useState<TrashItem[] | null>(null);
   const [error, setError] = useState('');
@@ -60,8 +50,7 @@ export function TrashDialog({
       await api.restore(id, target);
       await load();
     } catch (e: any) {
-      if (e.status === 409 && e.body?.suggestion)
-        setOccupied({ id, message: e.body.message, suggestion: e.body.suggestion });
+      if (e.status === 409 && e.body?.suggestion) setOccupied({ id, message: e.body.message, suggestion: e.body.suggestion });
       else setError(e.message);
     }
   }
@@ -85,10 +74,7 @@ export function TrashDialog({
           </span>
         ) : (
           <span>
-            <button
-              hidden={!access.can('restoreOwn', t.project)}
-              onClick={() => restore(t.entryId)}
-            >
+            <button hidden={!access.can('restoreOwn', t.project)} onClick={() => restore(t.entryId)}>
               Restore
             </button>
             <button hidden={!access.can('purge')} onClick={() => setConfirming(t.entryId)}>
@@ -101,11 +87,7 @@ export function TrashDialog({
   }
   const sections = trashSections(items ?? [], selectedProject);
   const count = items?.length ?? 0;
-  const emptyingNote =
-    confirming === '*'
-      ? `Permanently delete all ${count} item${count === 1 ? '' : 's'} in the trash, from every ` +
-        'project? This cannot be undone.'
-      : undefined;
+  const emptyingNote = confirming === '*' ? `Permanently delete all ${count} item${count === 1 ? '' : 's'} in the trash, from every ` + 'project? This cannot be undone.' : undefined;
   const footer =
     confirming === '*' ? (
       <>
@@ -122,31 +104,19 @@ export function TrashDialog({
       </>
     ) : (
       <>
-        {access.can('purge') && !!items?.length && (
-          <button onClick={() => setConfirming('*')}>Empty trash</button>
-        )}
+        {access.can('purge') && !!items?.length && <button onClick={() => setConfirming('*')}>Empty trash</button>}
         <button onClick={onClose}>Close</button>
       </>
     );
   return (
-    <Modal
-      title="Trash"
-      onCancel={onClose}
-      className="trash-dialog"
-      footer={footer}
-      footerNote={emptyingNote}
-    >
+    <Modal title="Trash" onCancel={onClose} className="trash-dialog" footer={footer} footerNote={emptyingNote}>
       {items === null ? (
         <p>Loading…</p>
       ) : items.length === 0 ? (
-        <EmptyState title="Nothing here yet">
-          Deleted projects and files stay here until you empty the trash.
-        </EmptyState>
+        <EmptyState title="Nothing here yet">Deleted projects and files stay here until you empty the trash.</EmptyState>
       ) : (
         <>
-          {sections.otherProjectFiles > 0 && (
-            <p className="trash-elsewhere">{otherProjectFilesLine(sections.otherProjectFiles)}</p>
-          )}
+          {sections.otherProjectFiles > 0 && <p className="trash-elsewhere">{otherProjectFilesLine(sections.otherProjectFiles)}</p>}
           {sections.files.length > 0 && (
             <section aria-label="Deleted files">
               <h3>Deleted files in {selectedProjectName}</h3>
@@ -164,9 +134,7 @@ export function TrashDialog({
       {occupied && (
         <div role="alert" className="delete-warning">
           <p>{occupied.message}</p>
-          <button onClick={() => restore(occupied.id, occupied.suggestion)}>
-            Restore as {occupied.suggestion.toPath ?? occupied.suggestion.toProject}
-          </button>
+          <button onClick={() => restore(occupied.id, occupied.suggestion)}>Restore as {occupied.suggestion.toPath ?? occupied.suggestion.toProject}</button>
         </div>
       )}
       {error && (

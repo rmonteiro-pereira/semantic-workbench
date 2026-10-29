@@ -36,8 +36,7 @@ export type JournalHooks = { crashAfter?: (kind: string, step: number) => boolea
 export function createJournal(layout: DataLayout, hooks: JournalHooks = {}) {
   const abs = (path: string) => {
     const p = resolve(layout.root, path);
-    if (p !== layout.root && !p.startsWith(layout.root + sep))
-      throw Error('Journal path escapes the data root.');
+    if (p !== layout.root && !p.startsWith(layout.root + sep)) throw Error('Journal path escapes the data root.');
     return p;
   };
   const newId = () => `${Date.now().toString(36)}-${randomBytes(4).toString('hex')}`;
@@ -69,19 +68,13 @@ export function createJournal(layout: DataLayout, hooks: JournalHooks = {}) {
   }
   // A rename can happen just before its `done` flag is written; detect it from the file system.
   function settle(j: JournalFile) {
-    for (const step of j.steps)
-      if (!step.done && !existsSync(abs(step.from)) && existsSync(abs(step.to))) step.done = true;
+    for (const step of j.steps) if (!step.done && !existsSync(abs(step.from)) && existsSync(abs(step.to))) step.done = true;
   }
   return {
     newId,
     rel,
     // Runs every step; on failure the completed steps are moved back before the error is rethrown.
-    run(
-      kind: string,
-      steps: { from: string; to: string }[],
-      cleanup: string[] = [],
-      opId = newId(),
-    ) {
+    run(kind: string, steps: { from: string; to: string }[], cleanup: string[] = [], opId = newId()) {
       const j: JournalFile = {
         formatVersion: 1,
         opId,

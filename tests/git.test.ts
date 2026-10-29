@@ -32,12 +32,8 @@ test('Git runs only with argument arrays and inside data/projects/', async () =>
   try {
     await expect(git.run(d.root, ['status'])).rejects.toThrow('inside data/projects');
     await expect(git.run('/tmp', ['status'])).rejects.toThrow('inside data/projects');
-    await expect(git.run(join(layout.projects, 'p'), 'status --short' as any)).rejects.toThrow(
-      'array',
-    );
-    await expect(git.run(join(layout.projects, 'p'), ['status', 42 as any])).rejects.toThrow(
-      'array',
-    );
+    await expect(git.run(join(layout.projects, 'p'), 'status --short' as any)).rejects.toThrow('array');
+    await expect(git.run(join(layout.projects, 'p'), ['status', 42 as any])).rejects.toThrow('array');
   } finally {
     d.cleanup();
   }
@@ -53,9 +49,7 @@ test('init configures managed repositories so committed bytes equal saved bytes'
     writeFileSync(join(dir, 'crlf.yaml'), 'a: 1\r\nb: 2\r\n');
     await git.addAll(dir);
     await git.commit(dir, 'Message with ; rm -rf / and "quotes"');
-    expect((await git.run(dir, ['log', '-1', '--format=%s'])).stdout.trim()).toBe(
-      'Message with ; rm -rf / and "quotes"',
-    );
+    expect((await git.run(dir, ['log', '-1', '--format=%s'])).stdout.trim()).toBe('Message with ; rm -rf / and "quotes"');
     expect((await git.run(dir, ['show', 'HEAD:crlf.yaml'])).stdout).toBe('a: 1\r\nb: 2\r\n');
     await expect(git.commit(dir, '  ')).rejects.toThrow('message');
   } finally {
@@ -69,11 +63,7 @@ test('operations on one repository are serialized', async () => {
     mkdirSync(dir);
     await git.init(dir);
     const order: string[] = [];
-    await Promise.all(
-      Array.from({ length: 6 }, (_, i) =>
-        git.run(dir, ['config', `test.k${i}`, String(i)]).then(() => order.push(String(i))),
-      ),
-    );
+    await Promise.all(Array.from({ length: 6 }, (_, i) => git.run(dir, ['config', `test.k${i}`, String(i)]).then(() => order.push(String(i)))));
     expect(order).toEqual(['0', '1', '2', '3', '4', '5']);
     const failing = git.run(dir, ['not-a-command']);
     const after = git.run(dir, ['config', '--get', 'test.k5']);

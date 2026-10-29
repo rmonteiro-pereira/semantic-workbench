@@ -12,11 +12,7 @@ type Env = Record<string, string | undefined>;
 export type ProviderKind = 'entra' | 'keycloak' | 'generic';
 
 /** How the workbench proves its identity to the provider's token endpoint. */
-export type ClientAuth =
-  | { kind: 'secret'; secret: string }
-  | { kind: 'managed-identity' }
-  | { kind: 'private-key'; keyPath: string }
-  | CertificateCredential;
+export type ClientAuth = { kind: 'secret'; secret: string } | { kind: 'managed-identity' } | { kind: 'private-key'; keyPath: string } | CertificateCredential;
 
 /**
  * An Entra certificate credential: the PEM private key and the certificate's thumbprint in hex,
@@ -89,10 +85,7 @@ export type ConfigProblem = { variable: string; message: string };
 /** Refuses start-up, naming every variable at fault and never its value. */
 export class ConfigError extends Error {
   constructor(readonly problems: ConfigProblem[]) {
-    super(
-      'The workbench cannot start:\n' +
-        problems.map(problem => `- ${problem.variable}: ${problem.message}`).join('\n'),
-    );
+    super('The workbench cannot start:\n' + problems.map(problem => `- ${problem.variable}: ${problem.message}`).join('\n'));
     this.name = 'ConfigError';
   }
 }
@@ -101,12 +94,7 @@ const LOOPBACK_HOSTS = ['127.0.0.1', 'localhost', '::1', '[::1]'];
 
 // The directory receives an app-only token, so only Microsoft's own Graph endpoints (public and
 // national clouds) may receive it.
-const GRAPH_ENDPOINTS = [
-  'https://graph.microsoft.com',
-  'https://graph.microsoft.us',
-  'https://dod-graph.microsoft.us',
-  'https://microsoftgraph.chinacloudapi.cn',
-];
+const GRAPH_ENDPOINTS = ['https://graph.microsoft.com', 'https://graph.microsoft.us', 'https://dod-graph.microsoft.us', 'https://microsoftgraph.chinacloudapi.cn'];
 
 const DEFAULT_SCOPES = 'openid profile email offline_access';
 
@@ -114,12 +102,7 @@ const DEFAULT_SCOPES = 'openid profile email offline_access';
  * Microsoft's sign-in hosts of the public and national clouds. An Entra issuer must be one of
  * them, so the workbench's credential and people's refresh tokens go nowhere else.
  */
-export const ENTRA_LOGIN_HOSTS = [
-  'login.microsoftonline.com',
-  'login.microsoftonline.us',
-  'login.chinacloudapi.cn',
-  'login.partner.microsoftonline.cn',
-];
+export const ENTRA_LOGIN_HOSTS = ['login.microsoftonline.com', 'login.microsoftonline.us', 'login.chinacloudapi.cn', 'login.partner.microsoftonline.cn'];
 
 /** True when a host name or URL host is a loopback name. */
 export function isLoopbackHost(host: string) {
@@ -148,9 +131,7 @@ function readCommon(env: Env, serverMode: boolean, problems: ConfigProblem[]): C
   if (!serverMode && !isLoopbackHost(host)) {
     problems.push({
       variable: 'SW_HOST',
-      message:
-        'local mode listens on loopback only (127.0.0.1, localhost or ::1); ' +
-        'a non-loopback address requires server mode with sign-in.',
+      message: 'local mode listens on loopback only (127.0.0.1, localhost or ::1); ' + 'a non-loopback address requires server mode with sign-in.',
     });
   }
   const portText = env.SW_PORT || '4310';
@@ -291,15 +272,12 @@ function readIssuer(value: string, loopbackPublicUrl: boolean, problems: ConfigP
 function checkEntraIssuer(issuer: string, loopbackPublicUrl: boolean, problems: ConfigProblem[]) {
   if (!issuer) return;
   const url = new URL(issuer);
-  const microsoftHost =
-    url.protocol === 'https:' && ENTRA_LOGIN_HOSTS.includes(url.hostname) && !url.port;
+  const microsoftHost = url.protocol === 'https:' && ENTRA_LOGIN_HOSTS.includes(url.hostname) && !url.port;
   const developerMock = isLoopbackHost(url.hostname) && loopbackPublicUrl;
   if (microsoftHost || developerMock) return;
   problems.push({
     variable: 'SW_OIDC_ISSUER',
-    message:
-      'with SW_OIDC_PROVIDER=entra must be https://<login host>/<tenant>/v2.0 without a port, ' +
-      `on ${ENTRA_LOGIN_HOSTS.join(', ')}.`,
+    message: 'with SW_OIDC_PROVIDER=entra must be https://<login host>/<tenant>/v2.0 without a port, ' + `on ${ENTRA_LOGIN_HOSTS.join(', ')}.`,
   });
 }
 
@@ -322,9 +300,7 @@ function readClientAuth(env: Env, provider: ProviderKind, problems: ConfigProble
   if (!secret && !assertion && certificate === undefined) {
     problems.push({
       variable: 'SW_OIDC_CLIENT_SECRET or SW_OIDC_CLIENT_ASSERTION',
-      message:
-        'one of them, or SW_OIDC_CLIENT_CERTIFICATE_KEY with ' +
-        'SW_OIDC_CLIENT_CERTIFICATE_THUMBPRINT (Entra only), is required in server mode.',
+      message: 'one of them, or SW_OIDC_CLIENT_CERTIFICATE_KEY with ' + 'SW_OIDC_CLIENT_CERTIFICATE_THUMBPRINT (Entra only), is required in server mode.',
     });
   }
   if (certificate) return certificate;
@@ -335,17 +311,11 @@ function readClientAuth(env: Env, provider: ProviderKind, problems: ConfigProble
 
 // Entra accepts a signed client assertion only when its header names the certificate, which a
 // bare key file cannot do, so Entra takes the certificate pair instead.
-function readPrivateKeyPath(
-  keyPath: string,
-  provider: ProviderKind,
-  problems: ConfigProblem[],
-): ClientAuth {
+function readPrivateKeyPath(keyPath: string, provider: ProviderKind, problems: ConfigProblem[]): ClientAuth {
   if (provider === 'entra') {
     problems.push({
       variable: 'SW_OIDC_CLIENT_ASSERTION',
-      message:
-        'with Entra use "managed-identity", or a certificate through ' +
-        'SW_OIDC_CLIENT_CERTIFICATE_KEY and SW_OIDC_CLIENT_CERTIFICATE_THUMBPRINT.',
+      message: 'with Entra use "managed-identity", or a certificate through ' + 'SW_OIDC_CLIENT_CERTIFICATE_KEY and SW_OIDC_CLIENT_CERTIFICATE_THUMBPRINT.',
     });
   }
   return { kind: 'private-key', keyPath };
@@ -355,11 +325,7 @@ function readPrivateKeyPath(
  * Reads the certificate pair. Returns undefined when neither variable is set and null when the
  * pair is present but unusable, so the caller does not report a missing credential twice.
  */
-function readCertificate(
-  env: Env,
-  provider: ProviderKind,
-  problems: ConfigProblem[],
-): CertificateCredential | null | undefined {
+function readCertificate(env: Env, provider: ProviderKind, problems: ConfigProblem[]): CertificateCredential | null | undefined {
   const privateKey = env.SW_OIDC_CLIENT_CERTIFICATE_KEY?.trim();
   const thumbprint = env.SW_OIDC_CLIENT_CERTIFICATE_THUMBPRINT?.replaceAll(':', '').trim();
   if (!privateKey && !thumbprint) return undefined;
@@ -450,11 +416,7 @@ function readTrustedProxyHops(value: string | undefined, problems: ConfigProblem
   return hops;
 }
 
-function readGraphUrl(
-  value: string | undefined,
-  loopbackPublicUrl: boolean,
-  problems: ConfigProblem[],
-) {
+function readGraphUrl(value: string | undefined, loopbackPublicUrl: boolean, problems: ConfigProblem[]) {
   const graphUrl = (value || GRAPH_ENDPOINTS[0]).replace(/\/+$/, '');
   if (GRAPH_ENDPOINTS.includes(graphUrl)) return graphUrl;
   // The mock provider's Graph stand-in, only on a developer's machine.

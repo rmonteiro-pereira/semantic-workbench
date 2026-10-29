@@ -57,17 +57,7 @@ const SUGGESTED = [
   'sh:pattern',
 ];
 /** Edits RDF statements while rejecting unintended graph changes. */
-export function RdfItemEditor({
-  doc,
-  base,
-  subject,
-  label,
-  kind,
-  onClose,
-  onSaved,
-  onDelete,
-  onOpenSource,
-}: Props) {
+export function RdfItemEditor({ doc, base, subject, label, kind, onClose, onSaved, onDelete, onOpenSource }: Props) {
   const access = useCapabilities(doc.project);
   const item = useMemo(() => {
     try {
@@ -103,9 +93,7 @@ export function RdfItemEditor({
     return { from, to, prefix: d.prefix, text: d.text, path: [], line: ok.line };
   }, []);
   const [text, setText] = useState(fragment?.text ?? '');
-  const rowsChanged =
-    JSON.stringify(rows.map(({ key, line, ...r }) => r)) !==
-    JSON.stringify(initial.map(({ key, line, ...r }) => r));
+  const rowsChanged = JSON.stringify(rows.map(({ key, line, ...r }) => r)) !== JSON.stringify(initial.map(({ key, line, ...r }) => r));
   const textChanged = !!fragment && text !== fragment.text;
   const [result, setResult] = useState<RdfResult | null>(null);
   const [check, setCheck] = useState<{ text: string; issues: Issue[] } | null>(null);
@@ -120,8 +108,7 @@ export function RdfItemEditor({
     }
     const t = setTimeout(() => {
       if (textChanged && fragment) {
-        const draft =
-          base.slice(0, fragment.from) + reindent(text, fragment.prefix) + base.slice(fragment.to);
+        const draft = base.slice(0, fragment.from) + reindent(text, fragment.prefix) + base.slice(fragment.to);
         const g = checkRdfSource(base, draft, doc.filename, subject);
         setResult(
           g.ok
@@ -157,50 +144,26 @@ export function RdfItemEditor({
       .catch(() => {});
   }, [draft]);
   const pending = (rowsChanged || textChanged) && (!result || (!!draft && check?.text !== draft));
-  const errors =
-    draft && check?.text === draft ? check.issues.filter(i => i.severity === 'error') : [];
+  const errors = draft && check?.text === draft ? check.issues.filter(i => i.severity === 'error') : [];
   const warnings = result?.ok ? result.warnings : [];
-  const canSave =
-    !!draft &&
-    !pending &&
-    !errors.length &&
-    (!warnings.length || accept) &&
-    !saving &&
-    draft !== base;
+  const canSave = !!draft && !pending && !errors.length && (!warnings.length || accept) && !saving && draft !== base;
   async function save() {
     if (!draft) return;
     setSaving(true);
     setError('');
     try {
-      const r = await api.save(
-        doc.project,
-        doc.path,
-        doc.hash,
-        draft,
-        diffPatches(doc.source, draft),
-      );
+      const r = await api.save(doc.project, doc.path, doc.hash, draft, diffPatches(doc.source, draft));
       onSaved([{ docId: doc.id, source: draft, hash: r.hash }]);
     } catch (e) {
-      setError(
-        e instanceof StaleSave
-          ? 'Not saved: the file changed since this editor opened. Close it and open the item again.'
-          : (e as Error).message,
-      );
+      setError(e instanceof StaleSave ? 'Not saved: the file changed since this editor opened. Close it and open the item again.' : (e as Error).message);
       setSaving(false);
     }
   }
-  const set = (key: string, patch: Partial<Row>) =>
-    setRows(rs => rs.map(r => (r.key === key ? { ...r, ...patch } : r)));
+  const set = (key: string, patch: Partial<Row>) => setRows(rs => rs.map(r => (r.key === key ? { ...r, ...patch } : r)));
   const refusal = ok?.refusal;
   const footer = (
     <>
-      <button
-        type="button"
-        className="item-delete"
-        hidden={!access.can('edit')}
-        onClick={onDelete}
-        disabled={saving || !!refusal}
-      >
+      <button type="button" className="item-delete" hidden={!access.can('edit')} onClick={onDelete} disabled={saving || !!refusal}>
         <Trash2 size={13} />
         Delete…
       </button>
@@ -218,13 +181,7 @@ export function RdfItemEditor({
       <button type="button" onClick={onClose} disabled={saving}>
         Cancel
       </button>
-      <button
-        type="button"
-        className="primary"
-        onClick={save}
-        title={access.control('edit').title}
-        disabled={!canSave || !access.can('edit')}
-      >
+      <button type="button" className="primary" onClick={save} title={access.control('edit').title} disabled={!canSave || !access.can('edit')}>
         {saving ? 'Saving…' : 'Save to file'}
       </button>
     </>
@@ -237,11 +194,7 @@ export function RdfItemEditor({
           {doc.path}
           {ok?.line ? ` · line ${ok.line}` : ''}
         </span>
-        <button
-          type="button"
-          className="link"
-          onClick={() => onOpenSource(refusal?.line ?? ok?.line ?? 1)}
-        >
+        <button type="button" className="link" onClick={() => onOpenSource(refusal?.line ?? ok?.line ?? 1)}>
           <FileCode size={13} />
           Open in Source
         </button>
@@ -294,13 +247,7 @@ export function RdfItemEditor({
           </div>
           {rows.map((r, i) => (
             <div key={r.key} className={`rdf-row${r.locked ? ' locked' : ''}`}>
-              <input
-                aria-label={`Predicate ${i + 1}`}
-                list="rdf-predicates"
-                value={r.predicateText}
-                disabled={!!r.locked}
-                onChange={e => set(r.key, { predicateText: e.target.value })}
-              />
+              <input aria-label={`Predicate ${i + 1}`} list="rdf-predicates" value={r.predicateText} disabled={!!r.locked} onChange={e => set(r.key, { predicateText: e.target.value })} />
               {r.nested || r.objectText.length > 60 ? (
                 <textarea
                   aria-label={`Object ${i + 1}`}
@@ -311,13 +258,7 @@ export function RdfItemEditor({
                   onChange={e => set(r.key, { objectText: e.target.value })}
                 />
               ) : (
-                <input
-                  aria-label={`Object ${i + 1}`}
-                  className="code-field"
-                  value={r.objectText}
-                  disabled={!!r.locked}
-                  onChange={e => set(r.key, { objectText: e.target.value })}
-                />
+                <input aria-label={`Object ${i + 1}`} className="code-field" value={r.objectText} disabled={!!r.locked} onChange={e => set(r.key, { objectText: e.target.value })} />
               )}
               <button
                 type="button"
@@ -328,9 +269,7 @@ export function RdfItemEditor({
               >
                 <X size={13} />
               </button>
-              {r.locked && r.locked !== refusal?.reason && (
-                <small className="rdf-lock">{r.locked}</small>
-              )}
+              {r.locked && r.locked !== refusal?.reason && <small className="rdf-lock">{r.locked}</small>}
             </div>
           ))}
           <datalist id="rdf-predicates">
@@ -338,17 +277,7 @@ export function RdfItemEditor({
               <option key={p} value={p} />
             ))}
           </datalist>
-          <button
-            type="button"
-            className="rdf-add"
-            disabled={!!refusal}
-            onClick={() =>
-              setRows(rs => [
-                ...rs,
-                { key: 'new-' + Date.now(), predicateText: '', objectText: '', nested: false },
-              ])
-            }
-          >
+          <button type="button" className="rdf-add" disabled={!!refusal} onClick={() => setRows(rs => [...rs, { key: 'new-' + Date.now(), predicateText: '', objectText: '', nested: false }])}>
             <Plus size={13} />
             Add statement
           </button>
@@ -362,10 +291,7 @@ export function RdfItemEditor({
               value={text}
               onChange={setText}
               validate={async t => {
-                const d =
-                  base.slice(0, fragment.from) +
-                  reindent(t, fragment.prefix) +
-                  base.slice(fragment.to);
+                const d = base.slice(0, fragment.from) + reindent(t, fragment.prefix) + base.slice(fragment.to);
                 const g = checkRdfSource(base, d, doc.filename, subject);
                 return [
                   ...(g.ok
@@ -393,8 +319,7 @@ export function RdfItemEditor({
       )}
       {result?.ok && result.removed + result.added > 0 && (
         <p role="status" className="item-gate">
-          Graph check passed: {result.removed} triple{result.removed === 1 ? '' : 's'} removed,{' '}
-          {result.added} added; nothing else in the file changes.
+          Graph check passed: {result.removed} triple{result.removed === 1 ? '' : 's'} removed, {result.added} added; nothing else in the file changes.
         </p>
       )}
       {warnings.length > 0 && (

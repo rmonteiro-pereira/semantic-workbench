@@ -7,19 +7,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { TEST_USERS } from '../helpers/auth-identities';
 import { oidcConfig } from '../helpers/server-auth';
-import {
-  copyOn,
-  MACHINE_SECRET,
-  filesUnder,
-  git,
-  lastPush,
-  projectPath,
-  publishSalesBranch,
-  pushIncoming,
-  salesRepositories,
-  startRemoteSetup,
-  type RemoteSetup,
-} from './remote-setup';
+import { copyOn, MACHINE_SECRET, filesUnder, git, lastPush, projectPath, publishSalesBranch, pushIncoming, salesRepositories, startRemoteSetup, type RemoteSetup } from './remote-setup';
 import { repoDir } from '../../src/server/projects/paths';
 import { createSessionStore } from '../../src/server/auth/sessions';
 import { createRemoteCredentials } from '../../src/server/auth/remote-credentials';
@@ -38,9 +26,7 @@ afterAll(() => setup.stop());
 // Pushes a new branch of a project as one person and returns the response.
 async function pushBranch(cookie: string, slug: string) {
   const branch = { branch: 'scan-' + crypto.randomUUID().slice(0, 8), create: true };
-  expect((await setup.call(cookie, 'POST', projectPath(slug) + '/git/switch', branch)).status).toBe(
-    200,
-  );
+  expect((await setup.call(cookie, 'POST', projectPath(slug) + '/git/switch', branch)).status).toBe(200);
   return setup.call(cookie, 'POST', projectPath(slug) + '/git/push');
 }
 
@@ -67,22 +53,14 @@ test('no token reaches Git configuration, data files, logs, audit or responses',
   expect(githubPush.body.ok).toBe(true);
   expect(lastPush(setup.github)?.identity).toBe('bob');
 
-  const tokens = [...setup.azureDevOps.passwords, ...setup.github.passwords, githubToken].filter(
-    token => token !== MACHINE_SECRET,
-  );
+  const tokens = [...setup.azureDevOps.passwords, ...setup.github.passwords, githubToken].filter(token => token !== MACHINE_SECRET);
   expect(tokens).toContain(githubToken);
   expect(tokens.length).toBeGreaterThanOrEqual(2);
   expect(existsSync(join(setup.fixture.root, 'state', 'stored-credentials'))).toBe(false);
   const layout = setup.fixture.ws.layout;
-  const configs = ['sales-contracts', 'sales-metrics'].map(slug =>
-    readFileSync(join(repoDir(layout, slug), '.git', 'config'), 'utf8'),
-  );
+  const configs = ['sales-contracts', 'sales-metrics'].map(slug => readFileSync(join(repoDir(layout, slug), '.git', 'config'), 'utf8'));
   const files = filesUnder(setup.fixture.root).map(path => readFileSync(path).toString('latin1'));
-  const record = [
-    setup.logs.join('\n'),
-    setup.responses.join('\n'),
-    JSON.stringify(setup.auditEntries()),
-  ];
+  const record = [setup.logs.join('\n'), setup.responses.join('\n'), JSON.stringify(setup.auditEntries())];
   for (const token of tokens) {
     for (const config of configs) expect(config.includes(token)).toBe(false);
     expect(files.some(text => text.includes(token))).toBe(false);
@@ -167,8 +145,7 @@ test('two requests of one session that obtain tokens at once keep both tokens', 
         return Response.json({ access_token: 'gh-new', expires_in: 3600, refresh_token: 'r2' });
       }) as unknown as typeof fetch,
     });
-    const request = (copy: number) =>
-      new Request('http://127.0.0.1:4310/', { headers: { 'x-copy': String(copy) } });
+    const request = (copy: number) => new Request('http://127.0.0.1:4310/', { headers: { 'x-copy': String(copy) } });
     const [azure, github, again] = await Promise.all([
       credentials.credentialFor(request(0), 'dev.azure.com'),
       credentials.credentialFor(request(1), 'github.example'),
@@ -196,12 +173,7 @@ test('two callbacks with the same consent state connect at most once', async () 
     setup.githubTokens.set(token, 'hank');
     setup.github.issueGitHubCode(code, token);
   }
-  const callback = (code: string) =>
-    setup.call(
-      hank,
-      'GET',
-      `/auth/github/callback?code=${code}&state=${encodeURIComponent(state)}`,
-    );
+  const callback = (code: string) => setup.call(hank, 'GET', `/auth/github/callback?code=${code}&state=${encodeURIComponent(state)}`);
   const answers = await Promise.all([callback('race-one'), callback('race-two')]);
   expect(answers.map(answer => answer.status).sort()).toEqual([200, 302]);
 });

@@ -8,12 +8,7 @@ import { layoutProblems } from './layout-geometry';
 import { menuSurfaceProblems } from './menu-geometry';
 import { remoteButton } from './sync-dialog';
 import { lowContrastProblems, smallTextProblems, textCollisionProblems } from './text-geometry';
-import {
-  assertAuthBrandLoaded,
-  assertAuthContentSettled,
-  assertAuthHeaderGeometry,
-  authPageErrors,
-} from './auth-page-geometry';
+import { assertAuthBrandLoaded, assertAuthContentSettled, assertAuthHeaderGeometry, authPageErrors } from './auth-page-geometry';
 
 /** Supported authentication viewports, including the narrow phone layout. */
 export const authViewports = [
@@ -35,10 +30,7 @@ export async function check(name: string, run: () => Promise<void>) {
 export function assertNoCredentials(value: unknown) {
   const text = JSON.stringify(value);
   assert(!/eyJ[\w-]+\.eyJ[\w-]+\.[\w-]+/.test(text), 'JWT exposed to the browser');
-  assert(
-    !/"(?:access_token|refresh_token|id_token|accessToken|refreshToken|idToken)"/.test(text),
-    'Provider credential field exposed to the browser',
-  );
+  assert(!/"(?:access_token|refresh_token|id_token|accessToken|refreshToken|idToken)"/.test(text), 'Provider credential field exposed to the browser');
 }
 
 /** A role a person is expected to hold, how the person menu names it and where it comes from. */
@@ -67,28 +59,17 @@ const DEFAULT_ROLES: Partial<Record<TestUserName, ExpectedRole>> = {
 };
 
 /** Checks effective roles and their grant provenance from parsed API data. */
-export function assertPerson(
-  value: any,
-  username: TestUserName,
-  expected: ExpectedRole | undefined = DEFAULT_ROLES[username],
-) {
+export function assertPerson(value: any, username: TestUserName, expected: ExpectedRole | undefined = DEFAULT_ROLES[username]) {
   assert.equal(value.name, TEST_USERS[username].name);
   if (expected) {
-    const held = value.roleSources.some(
-      (source: any) => source.roleId === expected.roleId && source.via === expected.via,
-    );
+    const held = value.roleSources.some((source: any) => source.roleId === expected.roleId && source.via === expected.via);
     assert(held, expected.reason);
   }
   assertNoCredentials(value);
 }
 
 /** Navigates directly to the provider and signs in, preserving the requested workspace path. */
-export async function signIn(
-  page: Page,
-  target: SignInTarget,
-  username: TestUserName,
-  expected: ExpectedRole | undefined = DEFAULT_ROLES[username],
-) {
+export async function signIn(page: Page, target: SignInTarget, username: TestUserName, expected: ExpectedRole | undefined = DEFAULT_ROLES[username]) {
   authPageErrors(page);
   const start = performance.now();
   const path = '/?auth-check=return';
@@ -128,11 +109,7 @@ async function deniedPerson(page: Page, target: SignInTarget, username: 'erin' |
   assert.deepEqual(await projects.json(), { error: 'no access' });
 }
 
-async function signedInPerson(
-  page: Page,
-  target: SignInTarget,
-  person: { username: TestUserName; start: number; expected?: ExpectedRole },
-) {
+async function signedInPerson(page: Page, target: SignInTarget, person: { username: TestUserName; start: number; expected?: ExpectedRole }) {
   const { username, start, expected } = person;
   await expect(page.getByRole('button', { name: 'Person menu', exact: true })).toBeVisible();
   await expect(page.getByRole('tree', { name: 'Projects' })).toBeVisible();
@@ -149,19 +126,12 @@ async function signedInPerson(
 }
 
 /** Captures a page at every supported viewport after checking control geometry. */
-export async function authGeometry(
-  page: Page,
-  name: string,
-  scope?: string,
-  reopen?: (page: Page) => Promise<void>,
-) {
+export async function authGeometry(page: Page, name: string, scope?: string, reopen?: (page: Page) => Promise<void>) {
   const original = page.viewportSize();
   const errors = authPageErrors(page);
   const captureTheme = process.env.SW_THEME === 'dark' ? 'dark' : 'light';
   await page.emulateMedia({ colorScheme: captureTheme });
-  await expect
-    .poll(() => page.evaluate(() => getComputedStyle(document.documentElement).colorScheme))
-    .toBe(captureTheme);
+  await expect.poll(() => page.evaluate(() => getComputedStyle(document.documentElement).colorScheme)).toBe(captureTheme);
   for (const [width, height] of authViewports) {
     await page.setViewportSize({ width, height });
     if (scope) await closeWorkspaceDrawer(page, reopen);
@@ -185,15 +155,10 @@ export async function authGeometry(
         const cut = await text.evaluate(el => el.scrollWidth > el.clientWidth + 1);
         assert(!cut, `the save state is cut at ${width}×${height}`);
       }
-      const trigger = await page
-        .getByRole('button', { name: 'Person menu', exact: true })
-        .boundingBox();
+      const trigger = await page.getByRole('button', { name: 'Person menu', exact: true }).boundingBox();
       const title = await page.locator('.workspace-title').boundingBox();
       assert(trigger && title);
-      assert(
-        trigger.y < title.y + title.height && title.y < trigger.y + trigger.height,
-        'Person menu must stay on the first header row',
-      );
+      assert(trigger.y < title.y + title.height && title.y < trigger.y + trigger.height, 'Person menu must stay on the first header row');
       assert.deepEqual(await menuSurfaceProblems(page), [], `person menu surface at ${width}`);
       const summary = page.locator('.person-summary');
       await expect(summary).toBeVisible();
@@ -221,9 +186,7 @@ export async function signOut(page: Page, target: SignInTarget) {
     await page.getByRole('button', { name: 'Sign out', exact: true }).click();
   }
   if (target.kind === 'keycloak') {
-    await page.waitForURL(
-      url => url.href.startsWith(target.issuer) || url.pathname === '/auth/signed-out',
-    );
+    await page.waitForURL(url => url.href.startsWith(target.issuer) || url.pathname === '/auth/signed-out');
     if (page.url().startsWith(target.issuer)) await page.locator('#kc-logout').click();
   }
   await expect(page.getByRole('heading', { name: 'Signed out', exact: true })).toBeVisible();
@@ -234,9 +197,7 @@ export async function signOut(page: Page, target: SignInTarget) {
 
 /** Runs the shared identity, native sign-out, storage and responsive-page checks. */
 export async function signInChecks(browser: Browser, target: SignInTarget) {
-  const users = (Object.keys(TEST_USERS) as TestUserName[]).filter(
-    username => target.kind !== 'keycloak' || username !== 'olga',
-  );
+  const users = (Object.keys(TEST_USERS) as TestUserName[]).filter(username => target.kind !== 'keycloak' || username !== 'olga');
   for (const username of users) await checkPerson(browser, target, username);
   const page = await browser.newPage();
   try {
@@ -252,11 +213,7 @@ export async function signInChecks(browser: Browser, target: SignInTarget) {
 // page side waits forever on responses the app never consumes. The live-update stream is left
 // alone because it never ends.
 function isInspectedApi(url: URL, target: SignInTarget) {
-  return (
-    url.origin === new URL(target.url).origin &&
-    url.pathname.startsWith('/api/') &&
-    url.pathname !== '/api/events'
-  );
+  return url.origin === new URL(target.url).origin && url.pathname.startsWith('/api/') && url.pathname !== '/api/events';
 }
 
 async function forwardInspected(route: Route, findings: string[]) {
@@ -318,9 +275,7 @@ async function checkPerson(browser: Browser, target: SignInTarget, username: Tes
  * the footer says the folders are on the server instead of on this machine.
  */
 async function sidebarNotesChecks(page: Page) {
-  const size = await page
-    .locator('.hidden-files')
-    .evaluate(element => parseFloat(getComputedStyle(element).fontSize));
+  const size = await page.locator('.hidden-files').evaluate(element => parseFloat(getComputedStyle(element).fontSize));
   assert(size <= 13, `The hidden-files line is drawn at ${size}px, larger than the file rows`);
   const location = page.locator('.workspace-sidebar .local');
   await expect(location).toContainText('on the server');
@@ -332,12 +287,7 @@ async function sidebarNotesChecks(page: Page) {
 export async function readVisibilityChecks(browser: Browser, target: SignInTarget) {
   const context = await browser.newContext();
   const page = await context.newPage();
-  const forbidden = [
-    'LEAK-hr-',
-    'LEAK-sales-contracts-finance/',
-    'hr-people',
-    'finance/revenue-recognition.odcs.yaml',
-  ];
+  const forbidden = ['LEAK-hr-', 'LEAK-sales-contracts-finance/', 'hr-people', 'finance/revenue-recognition.odcs.yaml'];
   const assertReadable = (text: string) => {
     for (const marker of forbidden) assert(!text.includes(marker), `Unreadable data: ${marker}`);
   };
@@ -423,13 +373,10 @@ async function checkRoleControls(page: Page, target: SignInTarget, username: Tes
     const commit = page.getByRole('button', { name: /^Commit to / });
     await expect(commit).toBeDisabled();
     await expect(commit).toHaveAttribute('title', /Editor/);
-    const denied = await context.request.put(
-      target.url + `/api/drafts/${slug}/${project.files[0].path}`,
-      {
-        headers: { Origin: target.url, 'X-SW-Request': '1' },
-        data: { baseHash: null, text: 'forged draft', patches: [] },
-      },
-    );
+    const denied = await context.request.put(target.url + `/api/drafts/${slug}/${project.files[0].path}`, {
+      headers: { Origin: target.url, 'X-SW-Request': '1' },
+      data: { baseHash: null, text: 'forged draft', patches: [] },
+    });
     assert.equal(denied.status(), 403);
   }
   await page.getByRole('button', { name: 'Person menu' }).click();
@@ -477,10 +424,7 @@ export async function agentBearerChecks(browser: Browser, target: SignInTarget) 
     await check('agent client sees only granted projects', async () => {
       const token = await agentToken(page, target, TEST_CLIENTS.granted);
       const headers = { Authorization: 'Bearer ' + token };
-      const catalog = await context.request.get(
-        target.url + '/api/agent/catalog?project=sales-contracts',
-        { headers },
-      );
+      const catalog = await context.request.get(target.url + '/api/agent/catalog?project=sales-contracts', { headers });
       assert.equal(catalog.status(), 200);
       const text = await catalog.text();
       assert(text.includes('sales-contracts/'));
@@ -521,9 +465,7 @@ async function assertReadableInDark(page: Page, name: string, scope: string) {
     assert.deepEqual(await smallTextProblems(page, scope), [], `${name} text size in dark`);
     assert.deepEqual(await textCollisionProblems(page, scope), [], `${name} collisions in dark`);
     assert.deepEqual(await lowContrastProblems(page, scope), [], `${name} contrast in dark`);
-    const background = await page.evaluate(
-      () => getComputedStyle(document.documentElement).backgroundColor,
-    );
+    const background = await page.evaluate(() => getComputedStyle(document.documentElement).backgroundColor);
     assert.notEqual(background, 'rgb(247, 249, 249)', `${name} stays light in dark`);
   } finally {
     await page.emulateMedia({ colorScheme: null });

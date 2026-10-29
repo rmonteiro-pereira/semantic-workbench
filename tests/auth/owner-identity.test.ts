@@ -11,10 +11,7 @@ const entraClaims = { tid: TEST_TENANT_ID, oid: 'a1100000-0000-4000-8000-0000000
 test('only an Entra member user principal name is a verified username', () => {
   const member = normalizeClaims({ ...entraClaims, preferred_username: 'Ann@Example.org' }, entra);
   expect(member.usernameVerified).toBe(true);
-  const guest = normalizeClaims(
-    { ...entraClaims, preferred_username: 'ann_partner#EXT#@tenant.onmicrosoft.com' },
-    entra,
-  );
+  const guest = normalizeClaims({ ...entraClaims, preferred_username: 'ann_partner#EXT#@tenant.onmicrosoft.com' }, entra);
   expect(guest.usernameVerified).toBe(false);
   const otherTenant = normalizeClaims(
     {
@@ -27,18 +24,12 @@ test('only an Entra member user principal name is a verified username', () => {
   );
   expect(otherTenant.usernameVerified).toBe(false);
   const homeIssuer = `https://login.microsoftonline.com/${TEST_TENANT_ID}/v2.0`;
-  const sameIdp = normalizeClaims(
-    { ...entraClaims, iss: homeIssuer, idp: homeIssuer, preferred_username: 'ann@example.org' },
-    entra,
-  );
+  const sameIdp = normalizeClaims({ ...entraClaims, iss: homeIssuer, idp: homeIssuer, preferred_username: 'ann@example.org' }, entra);
   expect(sameIdp.usernameVerified).toBe(true);
   const fromEmail = normalizeClaims({ ...entraClaims, email: 'ann@example.org' }, entra);
   expect(fromEmail.username).toBe('ann@example.org');
   expect(fromEmail.usernameVerified).toBe(false);
-  const editable = normalizeClaims(
-    { iss: 'https://idp.example', sub: 's1', preferred_username: 'ann' },
-    keycloak,
-  );
+  const editable = normalizeClaims({ iss: 'https://idp.example', sub: 's1', preferred_username: 'ann' }, keycloak);
   expect(editable.usernameVerified).toBe(false);
 });
 

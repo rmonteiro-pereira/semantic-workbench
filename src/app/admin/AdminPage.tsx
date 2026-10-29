@@ -33,12 +33,7 @@ function AdminNav({ current }: { current: AdminSectionId }) {
     <nav className="admin-nav" aria-label="Admin sections">
       <ScrollStrip className="admin-nav-list" selection={current}>
         {ADMIN_SECTIONS.map(section => (
-          <a
-            key={section.id}
-            href={adminHash(section.id)}
-            className={section.id === current ? 'selected' : ''}
-            aria-current={section.id === current ? 'page' : undefined}
-          >
+          <a key={section.id} href={adminHash(section.id)} className={section.id === current ? 'selected' : ''} aria-current={section.id === current ? 'page' : undefined}>
             {section.label}
           </a>
         ))}
@@ -48,13 +43,7 @@ function AdminNav({ current }: { current: AdminSectionId }) {
 }
 
 /** The Admin workspace: a section navigation and the full-width content of one section. */
-export function AdminPage({
-  section,
-  onBackToWorkspace,
-}: {
-  section: AdminSectionId;
-  onBackToWorkspace: () => void;
-}) {
+export function AdminPage({ section, onBackToWorkspace }: { section: AdminSectionId; onBackToWorkspace: () => void }) {
   const View = sectionViews[section];
   const { label, description } = adminSection(section);
   return (

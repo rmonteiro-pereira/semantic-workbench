@@ -8,10 +8,7 @@ export async function expectDialogGeometry(page: Page, name: string) {
   const box = (await page.locator('dialog[open] .workbench-dialog').last().boundingBox())!;
   expect(box.x, `${name}: dialog starts inside the window`).toBeGreaterThanOrEqual(0);
   expect(box.x + box.width, `${name}: dialog ends inside the window`).toBeLessThanOrEqual(width);
-  expect(
-    await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
-    `${name}: the page does not scroll sideways`,
-  ).toBe(true);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `${name}: the page does not scroll sideways`).toBe(true);
   expect(await geometryProblems(page, 'dialog[open]'), `${name}: geometry`).toEqual([]);
 }
 
@@ -71,9 +68,7 @@ export async function dialogStandardProblems(page: Page): Promise<string[]> {
       const titleInset = getComputedStyle(title).paddingLeft;
       const footerInset = getComputedStyle(footer).paddingLeft;
       if (titleInset !== footerInset) problems.push('the footer padding differs from the title');
-      const buttons = [...footer.querySelectorAll<HTMLButtonElement>('button')].filter(
-        button => button.getClientRects().length > 0,
-      );
+      const buttons = [...footer.querySelectorAll<HTMLButtonElement>('button')].filter(button => button.getClientRects().length > 0);
       const main = buttons.findIndex(button => button.matches('.primary'));
       const lastMain = buttons.findLastIndex(button => button.matches('.primary, .danger'));
       if (main >= 0 && lastMain !== buttons.length - 1) {
@@ -84,10 +79,7 @@ export async function dialogStandardProblems(page: Page): Promise<string[]> {
         if (style.borderTopStyle !== 'dashed') {
           problems.push(`the disabled "${button.textContent}" action has no distinct border`);
         }
-        const readable =
-          style.opacity === '1' &&
-          style.color === mutedText &&
-          style.backgroundColor === sunkenBackground;
+        const readable = style.opacity === '1' && style.color === mutedText && style.backgroundColor === sunkenBackground;
         if (!readable) problems.push(`the disabled "${button.textContent}" button is faint`);
       }
       return problems;

@@ -5,13 +5,7 @@ import { levelNumber, type Action } from '../../shared/auth/actions';
 import { NEW_PROJECT, type Decision, type ResourceRef } from './resource';
 import type { AccessScope } from './authorize';
 import { WriteAccessError } from './write-access-error';
-import {
-  applyGuards,
-  type ContentGuard,
-  type GuardedChange,
-  type GuardKind,
-  type GuardOperation,
-} from '../../shared/governance/guards';
+import { applyGuards, type ContentGuard, type GuardedChange, type GuardKind, type GuardOperation } from '../../shared/governance/guards';
 
 export * from '../../shared/governance/guards';
 
@@ -64,12 +58,7 @@ function refusalText(change: GuardedChange, decision: Decision, operation?: Guar
 export class GuardedChangeError extends WriteAccessError {
   public guarded: GuardedItem[];
 
-  constructor(
-    action: Action,
-    resource: ResourceRef,
-    decision: Decision,
-    refused: { guarded: GuardedItem[]; message: string },
-  ) {
+  constructor(action: Action, resource: ResourceRef, decision: Decision, refused: { guarded: GuardedItem[]; message: string }) {
     super(action, resource, decision);
     this.name = 'GuardedChangeError';
     this.message = refused.message;
@@ -118,21 +107,13 @@ function guardDecision(binding: GuardBinding, change: GuardedChange): Decision {
   return binding.scope.authorize('editGuarded', resource, context);
 }
 
-function guardRefusal(
-  scope: AccessScope,
-  refused: GuardedChange[],
-  decisions: Map<GuardedChange, Decision>,
-  operation?: GuardOperation,
-): GuardedChangeError {
+function guardRefusal(scope: AccessScope, refused: GuardedChange[], decisions: Map<GuardedChange, Decision>, operation?: GuardOperation): GuardedChangeError {
   const first = refused[0];
   const decision = decisions.get(first)!;
   const view = scope.view();
   // Pointers inside files the person cannot read stay unnamed; files they are creating are theirs.
-  const readable = (change: GuardedChange) =>
-    change.project === NEW_PROJECT || view.canRead(change.project, change.file);
-  const guarded = refused
-    .filter(readable)
-    .map(change => ({ file: change.file, pointer: change.pointer, kind: change.kind }));
+  const readable = (change: GuardedChange) => change.project === NEW_PROJECT || view.canRead(change.project, change.file);
+  const guarded = refused.filter(readable).map(change => ({ file: change.file, pointer: change.pointer, kind: change.kind }));
   const action: Action = first.metric ? 'approveMetric' : 'editGuarded';
   const resource: ResourceRef = { type: 'file', project: first.project, path: first.file };
   const denied: Decision = {
@@ -144,9 +125,7 @@ function guardRefusal(
   // The message names the first refused change the person can read, never a hidden one; the audit
   // above keeps the first refused change whatever it is.
   const shown = refused.find(readable);
-  const message = shown
-    ? refusalText(shown, decisions.get(shown)!, operation)
-    : genericRefusalText(operation);
+  const message = shown ? refusalText(shown, decisions.get(shown)!, operation) : genericRefusalText(operation);
   return new GuardedChangeError(action, resource, denied, { guarded, message });
 }
 

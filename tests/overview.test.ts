@@ -24,9 +24,7 @@ test('directed matrix preserves all 277 relationship identities, including inter
   expect(o.matrix.get(JSON.stringify(['documents', 'parties']))?.length).toBeGreaterThan(0);
   for (const [key, links] of o.matrix) {
     const [from, to] = JSON.parse(key);
-    expect(
-      links.every(e => o.groupOf.get(e.source) === from && o.groupOf.get(e.target) === to),
-    ).toBe(true);
+    expect(links.every(e => o.groupOf.get(e.source) === from && o.groupOf.get(e.target) === to)).toBe(true);
   }
 });
 test('OWL overview distinguishes business classes from technical definitions without losing access', async () => {
@@ -40,9 +38,7 @@ test('OWL overview distinguishes business classes from technical definitions wit
   expect(technical.links.length).toBe(m.edges.length);
 });
 test('unknown models fall back to definition types rather than invented business semantics', () => {
-  const entities = [
-    { id: 'a', name: 'Unknown', kind: 'Concept', path: [], fields: [], description: '' },
-  ];
+  const entities = [{ id: 'a', name: 'Unknown', kind: 'Concept', path: [], fields: [], description: '' }];
   const o = modelOverview(entities, [], 'A custom model');
   expect(o.groups[0].name).toBe('Concept');
   expect(o.entities).toHaveLength(1);

@@ -2,13 +2,7 @@
 // resource or reach outside the image is removed, and the result is built again from the parsed
 // tree instead of being edited as text. The route also serves SVGs under a strict policy, so
 // this is the second of two layers.
-import {
-  DOMParser,
-  XMLSerializer,
-  type Attr as XmlAttribute,
-  type Document as XmlDocument,
-  type Element as XmlElement,
-} from '@xmldom/xmldom';
+import { DOMParser, XMLSerializer, type Attr as XmlAttribute, type Document as XmlDocument, type Element as XmlElement } from '@xmldom/xmldom';
 import { hasForbiddenValue } from './css-values';
 import { BrandFileError } from './files';
 

@@ -12,8 +12,7 @@ import { BadRequestError } from '../projects/errors';
 export function creationDomain(request: Request, value: unknown): string | undefined {
   const scope = requestScope(request);
   if (scope.principal.kind === 'local') return undefined;
-  if (value !== undefined && typeof value !== 'string')
-    throw new BadRequestError('domain must be text.');
+  if (value !== undefined && typeof value !== 'string') throw new BadRequestError('domain must be text.');
   const domains = scope.creationDomains();
   const admin = scope.authorize('admin', { type: 'workspace' }).allow;
   const domain = value ?? (!admin && domains.length === 1 ? domains[0].id : undefined);
@@ -39,12 +38,7 @@ export function creationDomain(request: Request, value: unknown): string | undef
 export type AssignmentDeps = { ws: Workspace; administration: AdminRepository };
 
 /** Persists the domain of one newly created project; see assignProjectDomains. */
-export function assignProjectDomain(
-  deps: AssignmentDeps,
-  request: Request,
-  slug: string,
-  domain: string | undefined,
-): Promise<void> {
+export function assignProjectDomain(deps: AssignmentDeps, request: Request, slug: string, domain: string | undefined): Promise<void> {
   return assignProjectDomains(deps, request, [slug], domain);
 }
 
@@ -53,12 +47,7 @@ export function assignProjectDomain(
  * When the commit fails, all of those projects move to the trash, so none stays without the
  * access metadata its creator chose.
  */
-export async function assignProjectDomains(
-  deps: AssignmentDeps,
-  request: Request,
-  slugs: string[],
-  domain: string | undefined,
-): Promise<void> {
+export async function assignProjectDomains(deps: AssignmentDeps, request: Request, slugs: string[], domain: string | undefined): Promise<void> {
   const scope = requestScope(request);
   if (scope.principal.kind === 'local') return;
   const { ws, administration } = deps;
@@ -77,11 +66,7 @@ export async function assignProjectDomains(
 }
 
 /** The projects document with each slug given the domain, or null when nothing would change. */
-function assignedProjects(
-  config: AccessConfig,
-  slugs: string[],
-  domain: string | undefined,
-): AccessConfig['projects'] | null {
+function assignedProjects(config: AccessConfig, slugs: string[], domain: string | undefined): AccessConfig['projects'] | null {
   const projects = structuredClone(config.projects);
   if (domain === undefined) {
     // A reused slug can still carry the metadata of a deleted project; it is removed.
@@ -97,12 +82,7 @@ function assignedProjects(
   return projects;
 }
 
-async function writeAssignments(
-  { ws, administration }: AssignmentDeps,
-  request: Request,
-  slugs: string[],
-  domain: string | undefined,
-): Promise<void> {
+async function writeAssignments({ ws, administration }: AssignmentDeps, request: Request, slugs: string[], domain: string | undefined): Promise<void> {
   const scope = requestScope(request);
   const baseVersion = await administration.version();
   const projects = assignedProjects(administration.load(), slugs, domain);

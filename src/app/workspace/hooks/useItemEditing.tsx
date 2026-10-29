@@ -3,12 +3,7 @@ import React, { useRef, useState } from 'react';
 import type { KpiSummary } from '../../../server/agent/explain';
 import type { Issue } from '../../../shared/validation/diagnostics';
 import { openFragment } from '../../edit/fragment';
-import {
-  itemKindAt,
-  type Choices,
-  type ItemKind,
-  type Path,
-} from '../../../shared/edit/item-model';
+import { itemKindAt, type Choices, type ItemKind, type Path } from '../../../shared/edit/item-model';
 import { type Saved } from '../../edit/ItemEditor';
 import { isIri } from '../../edit/rdf-patch/index';
 import { itemValue } from '../../../shared/edit/yaml-patch';
@@ -99,22 +94,16 @@ export function useItemEditing({
   const [rdfDeleting, setRdfDeleting] = useState<RdfTarget | null>(null);
   const currentIsRdf = !!current && !!rdfSyntax(source, current.filename);
   function rdfTarget(e: Entity): RdfTarget | null {
-    return current && currentIsRdf && e.readOnlyForm && isIri(e.id) && e.kind !== 'Built-in concept'
-      ? { docId: current.id, subject: e.id, label: e.name, kind: e.kind }
-      : null;
+    return current && currentIsRdf && e.readOnlyForm && isIri(e.id) && e.kind !== 'Built-in concept' ? { docId: current.id, subject: e.id, label: e.name, kind: e.kind } : null;
   }
   function rdfEdgeTarget(r: Relationship): RdfTarget | null {
     if (!current || !currentIsRdf) return null;
     const definitionValue = r.data.definition;
-    const subject =
-      r.data.kind === 'OWL object property' ? definitionValue?.iri : definitionValue?.subject;
+    const subject = r.data.kind === 'OWL object property' ? definitionValue?.iri : definitionValue?.subject;
     const e = model?.entities.find(x => x.id === subject);
-    return subject && isIri(subject)
-      ? { docId: current.id, subject, label: e?.name ?? subject, kind: e?.kind ?? 'RDF resource' }
-      : null;
+    return subject && isIri(subject) ? { docId: current.id, subject, label: e?.name ?? subject, kind: e?.kind ?? 'RDF resource' } : null;
   }
-  const docText = (id: string) =>
-    id === current?.id ? source : (docsRef.current.get(id)?.source ?? '');
+  const docText = (id: string) => (id === current?.id ? source : (docsRef.current.get(id)?.source ?? ''));
   const modelOf = (id: string) =>
     id === current?.id
       ? model
@@ -141,18 +130,14 @@ export function useItemEditing({
       .filter(d => d.project === project)
       .map(d => modelOf(d.id))
       .filter(Boolean) as NonNullable<typeof model>[];
-    const names = (m: typeof model, kinds: string[]) =>
-      (m?.entities ?? []).filter(e => kinds.includes(e.kind)).map(e => e.name);
+    const names = (m: typeof model, kinds: string[]) => (m?.entities ?? []).filter(e => kinds.includes(e.kind)).map(e => e.name);
     return {
-      concepts: [
-        ...new Set(models.flatMap(m => names(m, ['EntityType', 'ValueType', 'Concept']))),
-      ].sort(),
+      concepts: [...new Set(models.flatMap(m => names(m, ['EntityType', 'ValueType', 'Concept'])))].sort(),
       datasets: names(own, ['Dataset']),
       metrics: names(own, ['Metric']),
     };
   }
-  const projectDocsOf = (id: string) =>
-    docs.filter(d => d.project === docsRef.current.get(id)?.project);
+  const projectDocsOf = (id: string) => docs.filter(d => d.project === docsRef.current.get(id)?.project);
   // Saved item changes: every view follows the new bytes at once, then the folder scan confirms.
   function applySaved(saved: Saved[], label: string) {
     for (const savedItem of saved) {
@@ -205,8 +190,7 @@ export function useItemEditing({
     if (!documentValue) return;
     const metrics = itemValue(docText(id), [...k.modelPath, 'metrics']);
     const index = Array.isArray(metrics) ? metrics.findIndex((m: any) => m?.name === k.name) : -1;
-    if (index >= 0)
-      setEditing({ docId: id, path: [...k.modelPath, 'metrics', index], kind: 'metric' });
+    if (index >= 0) setEditing({ docId: id, path: [...k.modelPath, 'metrics', index], kind: 'metric' });
   }
   const latest = useRef<() => void>(() => {});
   latest.current = () => {

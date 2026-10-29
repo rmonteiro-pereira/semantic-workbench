@@ -134,9 +134,7 @@ function assertExplained(documents: ProjectDocument[], metrics: KpiSummary[]) {
         input.fields.some(field => field.odcs.length > 0),
         `${metric.name}: input ${input.metric} reaches no contract column`,
       );
-    contractLinks[metric.name] = explanation.inputs.flatMap(i =>
-      i.fields.flatMap(f => f.odcs),
-    ).length;
+    contractLinks[metric.name] = explanation.inputs.flatMap(i => i.fields.flatMap(f => f.odcs)).length;
   }
   return contractLinks;
 }
@@ -144,10 +142,7 @@ function assertExplained(documents: ProjectDocument[], metrics: KpiSummary[]) {
 function assertPathMetric(documents: ProjectDocument[], expected: ExpectedExampleMetrics) {
   const { name, dimension, joins } = expected.path;
   const metric = projectMetrics(documents, PROJECT).find(m => m.name === name)!;
-  assert(
-    metric.extension?.dimensions?.includes(dimension),
-    `${name} does not declare ${dimension}`,
-  );
+  assert(metric.extension?.dimensions?.includes(dimension), `${name} does not declare ${dimension}`);
   const preview = explainMetric(documents, PROJECT, metric.file, name, {
     dimensions: [dimension],
   }).sqlPreview;
@@ -159,11 +154,7 @@ function assertPathMetric(documents: ProjectDocument[], expected: ExpectedExampl
 function assertKinds(set: ExampleSet, metrics: KpiSummary[], expected: ExpectedExampleMetrics) {
   const byName = new Map(metrics.map(metric => [metric.name, metric]));
   assert.equal(byName.get(expected.simple)?.type, 'simple', `${set.id} simple metric`);
-  assert.equal(
-    byName.get(expected.composed.name)?.type,
-    expected.composed.type,
-    `${set.id} composed metric`,
-  );
+  assert.equal(byName.get(expected.composed.name)?.type, expected.composed.type, `${set.id} composed metric`);
   const composed = byName.get(expected.composed.name)!;
   assert(composed.inputs.length > 0, `${composed.name} builds on no other metric`);
 }
@@ -173,11 +164,7 @@ function assertKinds(set: ExampleSet, metrics: KpiSummary[], expected: ExpectedE
  * harness has a time limit per case, so it explains one metric of each kind instead of all of
  * them; the delivery gate explains every metric.
  */
-export async function checkExampleSetMetrics(
-  setId: string,
-  sets: ExampleSet[] = EXAMPLE_SETS,
-  explain: 'all' | 'one of each kind' = 'all',
-) {
+export async function checkExampleSetMetrics(setId: string, sets: ExampleSet[] = EXAMPLE_SETS, explain: 'all' | 'one of each kind' = 'all') {
   const set = sets.find(candidate => candidate.id === setId)!;
   const expected = EXPECTED_EXAMPLE_METRICS[setId];
   const documents = await readSet(set);
@@ -186,10 +173,7 @@ export async function checkExampleSetMetrics(
   assert.equal(metrics.length, expected.count, `${setId} metric count`);
   assertGoverned(set, metrics);
   assertKinds(set, metrics, expected);
-  const explained =
-    explain === 'all'
-      ? metrics
-      : metrics.filter(metric => [expected.simple, expected.composed.name].includes(metric.name));
+  const explained = explain === 'all' ? metrics : metrics.filter(metric => [expected.simple, expected.composed.name].includes(metric.name));
   const contractLinks = assertExplained(documents, explained);
   const joins = assertPathMetric(documents, expected);
   return { set: setId, metrics: metrics.length, joins, contractLinks };
@@ -214,7 +198,6 @@ async function assertUpstreamUntouched() {
 export async function checkExampleMetrics() {
   await assertUpstreamUntouched();
   const sets = [];
-  for (const setId of Object.keys(EXPECTED_EXAMPLE_METRICS))
-    sets.push(await checkExampleSetMetrics(setId));
+  for (const setId of Object.keys(EXPECTED_EXAMPLE_METRICS)) sets.push(await checkExampleSetMetrics(setId));
   return sets;
 }

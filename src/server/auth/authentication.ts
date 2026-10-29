@@ -12,14 +12,7 @@ import { createSignInProvider, type SignInProvider } from './sign-in-provider';
 import { createAttemptStore, ATTEMPT_TTL_SECONDS } from './attempts';
 import { createDirectoryClient, directoryGroupIds } from './directory';
 import { resolvePrincipalGroups, type NormalizedPrincipal, type Principal } from './principal';
-import {
-  createSessionStore,
-  cookieName,
-  readCookie,
-  sessionCookie,
-  type Session,
-  type SessionStore,
-} from './sessions';
+import { createSessionStore, cookieName, readCookie, sessionCookie, type Session, type SessionStore } from './sessions';
 import { requestAuditId, requestSourceIp, type AuditRequest } from '../request';
 import { createAnonymousAuditGate } from './rate-limit';
 import { createRemoteCredentials, type RemoteCredentialOptions } from './remote-credentials';
@@ -61,12 +54,7 @@ type SignInEvent = {
   suppressed?: number;
 };
 
-export async function createServerAuthentication(
-  ws: Workspace,
-  config: ServerConfig,
-  suppliedClient?: SignInProvider,
-  remoteOptions: RemoteCredentialOptions = {},
-) {
+export async function createServerAuthentication(ws: Workspace, config: ServerConfig, suppliedClient?: SignInProvider, remoteOptions: RemoteCredentialOptions = {}) {
   const client = suppliedClient ?? (await createSignInProvider(config));
   // The process keeps one administration repository: its writes are serialized only within one
   // instance, and each commit replaces the policy every request decides with.
@@ -104,14 +92,10 @@ export async function createServerAuthentication(
     key: new Uint8Array(hkdfSync('sha256', config.sessionKey, '', 'sw-session', 32)),
     idleHours: settings.session.idleHours,
     absoluteHours: settings.session.absoluteHours,
-    ended: (session, reason) =>
-      record({ action: 'sessionEnded', principal: session.principal, outcome: 'ok', reason }),
+    ended: (session, reason) => record({ action: 'sessionEnded', principal: session.principal, outcome: 'ok', reason }),
   });
   await sessions.indexStored();
-  const attempts = createAttemptStore(
-    new Uint8Array(hkdfSync('sha256', config.sessionKey, '', 'sw-attempt', 32)),
-    join(ws.layout.state, 'auth-attempts'),
-  );
+  const attempts = createAttemptStore(new Uint8Array(hkdfSync('sha256', config.sessionKey, '', 'sw-attempt', 32)), join(ws.layout.state, 'auth-attempts'));
   function logFailure(request: Request | undefined, error: Error) {
     const requestId = (request as AuditRequest | undefined)?.[requestAuditId] ?? 'startup';
     log.error('auth.failure', {
@@ -145,11 +129,7 @@ export async function createServerAuthentication(
         token: () => client.directoryToken(),
         failure: reason => logFailure(request, new Error(reason)),
       });
-      identity = await resolvePrincipalGroups(identity, oid =>
-        config.directory.overage === 'directory'
-          ? directory.groups(oid, directoryGroupIds(access.snapshot().config))
-          : Promise.resolve(null),
-      );
+      identity = await resolvePrincipalGroups(identity, oid => (config.directory.overage === 'directory' ? directory.groups(oid, directoryGroupIds(access.snapshot().config)) : Promise.resolve(null)));
       if (identity.groupsResolved === 'failed') {
         record({
           action: 'directoryLookup',
@@ -226,12 +206,7 @@ export async function createServerAuthentication(
         status: 302,
         headers: {
           Location: started.url,
-          'Set-Cookie': sessionCookie(
-            attempts.encode(started.attempt),
-            config.publicUrl,
-            'auth',
-            ATTEMPT_TTL_SECONDS,
-          ),
+          'Set-Cookie': sessionCookie(attempts.encode(started.attempt), config.publicUrl, 'auth', ATTEMPT_TTL_SECONDS),
         },
       });
     } catch (error) {
@@ -257,12 +232,8 @@ export async function createServerAuthentication(
       returnTo = safeReturnTo(attempt.returnTo);
       const url = new URL(request.url);
       const callbackUrl = new URL('/auth/callback' + url.search, config.publicUrl);
-      const identity = await withSpan('auth.callback.token-exchange', {}, () =>
-        client.callback(callbackUrl, attempt),
-      );
-      const principal = await withSpan('auth.callback.resolve-principal', {}, () =>
-        principalFor(identity.principal, request),
-      );
+      const identity = await withSpan('auth.callback.token-exchange', {}, () => client.callback(callbackUrl, attempt));
+      const principal = await withSpan('auth.callback.resolve-principal', {}, () => principalFor(identity.principal, request));
       const denied = principal.deactivated || !principal.grants.length;
       const refused = recordOrRefuse({
         action: 'signIn',
@@ -274,9 +245,7 @@ export async function createServerAuthentication(
       if (refused) return refused;
       const existing = readCookie(request, cookieName(config.publicUrl));
       if (existing) await sessions.end(existing, 'replaced');
-      const created = await withSpan('auth.callback.create-session', {}, () =>
-        sessions.create({ principal, tokens: identity.tokens }),
-      );
+      const created = await withSpan('auth.callback.create-session', {}, () => sessions.create({ principal, tokens: identity.tokens }));
       response = new Response(null, {
         status: 302,
         headers: {
@@ -313,10 +282,7 @@ export async function createServerAuthentication(
       await withSpan('auth.logout', {}, () => sessions.end(current.id));
     }
     const redirect = client.logout(current?.tokens);
-    const response =
-      request.headers.get('X-SW-Request') === '1'
-        ? Response.json({ redirect })
-        : new Response(null, { status: 303, headers: { Location: redirect } });
+    const response = request.headers.get('X-SW-Request') === '1' ? Response.json({ redirect }) : new Response(null, { status: 303, headers: { Location: redirect } });
     response.headers.set('Set-Cookie', sessionCookie('', config.publicUrl, 'session', 0));
     return response;
   }

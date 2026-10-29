@@ -38,30 +38,19 @@ export function signInError(error: unknown): SignInError {
   if (error instanceof oidc.ClientError) {
     const detail = error.cause instanceof Error ? error.cause.cause : undefined;
     if (detail && typeof detail === 'object') {
-      if ('claim' in detail && detail.claim === 'nonce')
-        return new SignInError('attempt-invalid', '/', error);
+      if ('claim' in detail && detail.claim === 'nonce') return new SignInError('attempt-invalid', '/', error);
       if ('parameters' in detail && detail.parameters instanceof URLSearchParams) {
         return new SignInError('attempt-invalid', '/', error);
       }
     }
-    if (
-      [
-        'OAUTH_JWT_CLAIM_COMPARISON_FAILED',
-        'OAUTH_JWT_TIMESTAMP_CHECK_FAILED',
-        'OAUTH_INVALID_RESPONSE',
-        'OAUTH_KEY_SELECTION_FAILED',
-      ].includes(error.code ?? '')
-    ) {
+    if (['OAUTH_JWT_CLAIM_COMPARISON_FAILED', 'OAUTH_JWT_TIMESTAMP_CHECK_FAILED', 'OAUTH_INVALID_RESPONSE', 'OAUTH_KEY_SELECTION_FAILED'].includes(error.code ?? '')) {
       return new SignInError('token-invalid', '/', error);
     }
   }
   return new SignInError('provider-unreachable', '/', error);
 }
 
-async function authentication(
-  config: ServerConfig,
-  assertion: () => Promise<string>,
-): Promise<oidc.ClientAuth> {
+async function authentication(config: ServerConfig, assertion: () => Promise<string>): Promise<oidc.ClientAuth> {
   const credential = config.oidc.clientAuth;
   if (credential.kind === 'secret') return oidc.ClientSecretPost(credential.secret);
   if (credential.kind === 'private-key') {
@@ -85,10 +74,7 @@ function openidFetch(request: ProviderFetch): oidc.CustomFetch {
 }
 
 /** Discovers the issuer and constructs a confidential client with explicit signature checks. */
-export async function createOidcClient(
-  config: ServerConfig,
-  dependencies: SignInDependencies = {},
-): Promise<SignInProvider> {
+export async function createOidcClient(config: ServerConfig, dependencies: SignInDependencies = {}): Promise<SignInProvider> {
   const now = dependencies.now ?? Date.now;
   const request = dependencies.fetch;
   const customFetch = request && openidFetch(request);
@@ -120,19 +106,14 @@ export async function createOidcClient(
   };
   const redirectUri = config.publicUrl + '/auth/callback';
 
-  async function identity(
-    response: Awaited<ReturnType<typeof oidc.authorizationCodeGrant>>,
-    previous?: SessionTokens,
-  ) {
+  async function identity(response: Awaited<ReturnType<typeof oidc.authorizationCodeGrant>>, previous?: SessionTokens) {
     let claims: Record<string, unknown> | undefined;
     if (response.id_token) {
       claims = await verifyIdToken(response.id_token, keys, config);
     }
     if (!claims && previous?.idToken) {
       // Refresh must return current identity claims; retaining the old groups would preserve access.
-      const subject = JSON.parse(
-        Buffer.from(previous.idToken.split('.')[1], 'base64url').toString(),
-      ).sub;
+      const subject = JSON.parse(Buffer.from(previous.idToken.split('.')[1], 'base64url').toString()).sub;
       claims = await oidc.fetchUserInfo(client, response.access_token, subject);
       claims = { ...claims, iss: config.oidc.issuer };
     }
@@ -208,11 +189,7 @@ export async function createOidcClient(
     },
     /** Exchanges the person's workbench API token for one another API accepts on their behalf. */
     async onBehalfOf(userToken: string, scopes: string[]) {
-      const response = await oidc.genericGrantRequest(
-        client,
-        'urn:ietf:params:oauth:grant-type:jwt-bearer',
-        { assertion: userToken, scope: scopes.join(' '), requested_token_use: 'on_behalf_of' },
-      );
+      const response = await oidc.genericGrantRequest(client, 'urn:ietf:params:oauth:grant-type:jwt-bearer', { assertion: userToken, scope: scopes.join(' '), requested_token_use: 'on_behalf_of' });
       const lifetime = response.expires_in;
       if (typeof lifetime !== 'number' || !Number.isFinite(lifetime) || lifetime <= 0) {
         throw new Error('The on-behalf-of token has no lifetime.');

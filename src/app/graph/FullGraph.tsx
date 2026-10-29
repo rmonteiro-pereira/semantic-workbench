@@ -53,10 +53,7 @@ const sides = [
   ['w', Position.Left],
 ] as const;
 const EntityNode = memo(({ data }: NodeProps) => (
-  <div
-    className={`full-entity ${data.focused ? 'focused' : ''} ${data.collapsedArea ? 'collapsed' : ''} ${data.kind === 'Metric' ? 'kpi-node' : ''}`}
-    style={{ '--entity-color': data.color } as any}
-  >
+  <div className={`full-entity ${data.focused ? 'focused' : ''} ${data.collapsedArea ? 'collapsed' : ''} ${data.kind === 'Metric' ? 'kpi-node' : ''}`} style={{ '--entity-color': data.color } as any}>
     <NodeToolbar isVisible={!!data.tooltip} position={Position.Top}>
       <div className="entity-tooltip">{String(data.name)}</div>
     </NodeToolbar>
@@ -101,23 +98,12 @@ const GraphEdge = memo((props: EdgeProps) => {
   const appearance = edgeAppearance(props);
   const points = props.data?.layoutRoute as Point[] | undefined;
   const path = points && roundedPath(points, 8);
-  if (
-    path &&
-    pathMatchesEndpoints(path, props.sourceX, props.sourceY, props.targetX, props.targetY, 1.1)
-  ) {
+  if (path && pathMatchesEndpoints(path, props.sourceX, props.sourceY, props.targetX, props.targetY, 1.1)) {
     const anchored = [...points!];
     anchored[0] = { x: props.sourceX, y: props.sourceY };
     anchored[anchored.length - 1] = { x: props.targetX, y: props.targetY };
     const label = pointAtHalf(anchored);
-    return (
-      <BaseEdge
-        {...appearance}
-        path={roundedPath(anchored, 8)}
-        labelX={label.x}
-        labelY={label.y}
-        interactionWidth={24}
-      />
-    );
+    return <BaseEdge {...appearance} path={roundedPath(anchored, 8)} labelX={label.x} labelY={label.y} interactionWidth={24} />;
   }
   if (props.source === props.target) {
     const { sourceX: x, sourceY: y, targetX: tx, targetY: ty } = props;
@@ -189,10 +175,7 @@ export function FullGraph(props: Props) {
   const [size, setSize] = useState({ width: 1200, height: 650 });
   const flow = useRef<ReactFlowInstance<any, any> | null>(null);
   const [nodes, setNodes, onNodesChange] = useNodesState<any>([]);
-  const [algorithm, setAlgorithm] = useRecordedState<'network' | 'layered'>(
-    'graph.algorithm',
-    'network',
-  );
+  const [algorithm, setAlgorithm] = useRecordedState<'network' | 'layered'>('graph.algorithm', 'network');
   const [layoutRoutes, setLayoutRoutes] = useState<LayoutResult['routes']>({});
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState('');
@@ -206,68 +189,29 @@ export function FullGraph(props: Props) {
   const [routeMetrics, setRouteMetrics] = useState<SmartEdgeMetrics | null>(null);
   // Value types (including built-ins) can be hidden with their edges; the choice is remembered per
   // model in this browser.
-  const valueIds = useMemo(
-    () => new Set(props.entities.filter(e => VALUE_KINDS.has(e.kind)).map(e => e.id)),
-    [props.entities],
-  );
-  const [hideValues, setHideValues] = useRecordedState('graph.hideValues', () =>
-    readHideValues(props.name),
-  );
+  const valueIds = useMemo(() => new Set(props.entities.filter(e => VALUE_KINDS.has(e.kind)).map(e => e.id)), [props.entities]);
+  const [hideValues, setHideValues] = useRecordedState('graph.hideValues', () => readHideValues(props.name));
   useEffect(() => writeHideValues(props.name, hideValues), [props.name, hideValues]);
   const toggleValues = () => setHideValues(hidden => !hidden);
   // Metric nodes (governed metrics) can be hidden the same way.
-  const kpiIds = useMemo(
-    () => new Set(props.entities.filter(e => e.kind === 'Metric').map(e => e.id)),
-    [props.entities],
-  );
-  const [hideKpis, setHideKpis] = useRecordedState('graph.hideKpis', () =>
-    readFlag(kpisKey(props.name)),
-  );
+  const kpiIds = useMemo(() => new Set(props.entities.filter(e => e.kind === 'Metric').map(e => e.id)), [props.entities]);
+  const [hideKpis, setHideKpis] = useRecordedState('graph.hideKpis', () => readFlag(kpisKey(props.name)));
   useEffect(() => writeFlag(kpisKey(props.name), hideKpis), [props.name, hideKpis]);
   const toggleKpis = () => setHideKpis(hidden => !hidden);
-  const hidden = useMemo(
-    () => new Set([...(hideValues ? valueIds : []), ...(hideKpis ? kpiIds : [])]),
-    [hideValues, hideKpis, valueIds, kpiIds],
-  );
-  const graphEntities = useMemo(
-    () => (hidden.size ? props.entities.filter(e => !hidden.has(e.id)) : props.entities),
-    [hidden, props.entities],
-  );
-  const graphEdges = useMemo(
-    () =>
-      hidden.size
-        ? props.edges.filter(e => !hidden.has(e.source) && !hidden.has(e.target))
-        : props.edges,
-    [hidden, props.edges],
-  );
-  const overview = useMemo(
-    () => modelOverview(graphEntities, graphEdges, props.name, false, props.grouping),
-    [graphEntities, graphEdges, props.name, props.grouping],
-  );
+  const hidden = useMemo(() => new Set([...(hideValues ? valueIds : []), ...(hideKpis ? kpiIds : [])]), [hideValues, hideKpis, valueIds, kpiIds]);
+  const graphEntities = useMemo(() => (hidden.size ? props.entities.filter(e => !hidden.has(e.id)) : props.entities), [hidden, props.entities]);
+  const graphEdges = useMemo(() => (hidden.size ? props.edges.filter(e => !hidden.has(e.source) && !hidden.has(e.target)) : props.edges), [hidden, props.edges]);
+  const overview = useMemo(() => modelOverview(graphEntities, graphEdges, props.name, false, props.grouping), [graphEntities, graphEdges, props.name, props.grouping]);
   // Until a person collapses or expands areas, only a very large model starts as one card per area.
-  const [collapseChoice, setCollapseChoice] = useRecordedState<Set<string> | null>(
-    'graph.collapsedAreas',
-    null,
-  );
-  const autoCollapsed = useMemo(
-    () =>
-      startsCollapsed(overview.entities.length)
-        ? new Set(overview.groups.map(g => g.id))
-        : new Set<string>(),
-    [overview],
-  );
+  const [collapseChoice, setCollapseChoice] = useRecordedState<Set<string> | null>('graph.collapsedAreas', null);
+  const autoCollapsed = useMemo(() => (startsCollapsed(overview.entities.length) ? new Set(overview.groups.map(g => g.id)) : new Set<string>()), [overview]);
   const collapsed = collapseChoice ?? autoCollapsed;
   const setCollapsed = (next: Set<string>) => setCollapseChoice(next);
   const display = useMemo(() => collapseAreas(overview, collapsed), [overview, collapsed]);
   const layoutGrouping = useMemo<GroupingOptions>(
     () => ({
       mode: 'types',
-      assignments: Object.fromEntries(
-        display.entities.map(e => [
-          e.id,
-          e.definition?.collapsedArea ?? overview.groupOf.get(e.id)!,
-        ]),
-      ),
+      assignments: Object.fromEntries(display.entities.map(e => [e.id, e.definition?.collapsedArea ?? overview.groupOf.get(e.id)!])),
       names: Object.fromEntries(overview.groups.map(g => [g.id, g.name])),
     }),
     [display, overview],
@@ -304,9 +248,7 @@ export function FullGraph(props: Props) {
       resizeFrame = requestAnimationFrame(() => {
         // Commit before the next layout pass instead of leaving a batched update for an observer.
         flushSync(() => {
-          setSize(previous =>
-            previous.width === pane.width && previous.height === pane.height ? previous : pane,
-          );
+          setSize(previous => (previous.width === pane.width && previous.height === pane.height ? previous : pane));
         });
       });
     });
@@ -353,23 +295,14 @@ export function FullGraph(props: Props) {
     const rect = canvas.getBoundingClientRect();
     if (!rect.width || !rect.height) return;
     const startsValid = Number.isFinite(instance.getViewport().zoom);
-    void instance.setViewport(
-      getViewportForBounds({ x, y, width, height }, rect.width, rect.height, 0.001, 1, 0.12),
-      { duration: startsValid ? duration : 0 },
-    );
+    void instance.setViewport(getViewportForBounds({ x, y, width, height }, rect.width, rect.height, 0.001, 1, 0.12), { duration: startsValid ? duration : 0 });
   }, []);
   const fit = useCallback(() => fitWithin(250), [fitWithin]);
   useEffect(() => {
     let cancelled = false;
     let worker: Worker | undefined;
     let elk: { layout: (g: any) => Promise<any>; terminateWorker: () => void } | undefined;
-    const key = JSON.stringify([
-      algorithm,
-      layoutGrouping,
-      props.name,
-      display.entities.map(e => [e.id, e.name, e.kind]),
-      display.edges.map(e => [e.source, e.target]),
-    ]);
+    const key = JSON.stringify([algorithm, layoutGrouping, props.name, display.entities.map(e => [e.id, e.name, e.kind]), display.edges.map(e => [e.source, e.target])]);
     setBusy(true);
     setError('');
     setRouteMetrics(null);
@@ -381,15 +314,10 @@ export function FullGraph(props: Props) {
       setNodes(previous => {
         const previousById = new Map(previous.map(node => [node.id, node]));
         return result.nodes.map(n => {
-          const group = n.group
-            ? groupById.get(n.group)
-            : groupById.get(overview.groupOf.get(n.id)!);
+          const group = n.group ? groupById.get(n.group) : groupById.get(overview.groupOf.get(n.id)!);
           const type = n.group ? 'businessArea' : 'entity';
           const prior = previousById.get(n.id);
-          const sameSize =
-            prior?.type === type &&
-            prior.style?.width === n.width &&
-            prior.style?.height === n.height;
+          const sameSize = prior?.type === type && prior.style?.width === n.width && prior.style?.height === n.height;
           return {
             id: n.id,
             type,
@@ -416,9 +344,7 @@ export function FullGraph(props: Props) {
               : {
                   name: entityById.get(n.id)?.name,
                   collapsedArea: entityById.get(n.id)?.definition?.collapsedArea,
-                  internalCount:
-                    display.internal.get(entityById.get(n.id)?.definition?.collapsedArea)?.length ??
-                    0,
+                  internalCount: display.internal.get(entityById.get(n.id)?.definition?.collapsedArea)?.length ?? 0,
                   color: group?.color ?? FALLBACK_GROUP_COLOR,
                 },
           };
@@ -473,10 +399,7 @@ export function FullGraph(props: Props) {
         algorithms: ['layered', 'sporeOverlap', 'box'],
         workerFactory: () => new Worker(elkWorkerUrl),
       });
-      timeOperation(
-        'graph-layout',
-        layoutFullGraph(display.entities, display.edges, props.name, elk, layoutGrouping),
-      )
+      timeOperation('graph-layout', layoutFullGraph(display.entities, display.edges, props.name, elk, layoutGrouping))
         .then(apply)
         .catch(e => {
           if (!cancelled) {
@@ -524,9 +447,7 @@ export function FullGraph(props: Props) {
     setCollapseChoice(choice => (choice?.size === 0 ? choice : null));
   }, [props.grouping]);
   const selectedGroup = overview.groupOf.get(props.selected);
-  const focus =
-    hover ||
-    (selectedGroup && collapsed.has(selectedGroup) ? 'collapsed:' + selectedGroup : props.selected);
+  const focus = hover || (selectedGroup && collapsed.has(selectedGroup) ? 'collapsed:' + selectedGroup : props.selected);
   const connected = useMemo(() => {
     const ids = new Set<string>();
     if (focus) {
@@ -613,10 +534,7 @@ export function FullGraph(props: Props) {
           p.x * viewport.zoom + viewport.x < size.width + 30 &&
           p.y * viewport.zoom + viewport.y > -90 * viewport.zoom &&
           p.y * viewport.zoom + viewport.y < size.height + 30;
-        const routeDetailed =
-          !dragging &&
-          e.source !== e.target &&
-          (active || adjacent || (viewport.zoom >= 0.35 && visible(a) && visible(b)));
+        const routeDetailed = !dragging && e.source !== e.target && (active || adjacent || (viewport.zoom >= 0.35 && visible(a) && visible(b)));
         return {
           ...e,
           data: {
@@ -629,12 +547,7 @@ export function FullGraph(props: Props) {
           sourceHandle: 'source-' + source,
           targetHandle: 'target-' + target,
           selected: active,
-          label:
-            labels || active || hoverEdge === e.id
-              ? e.data.relationships.length > 1
-                ? `${e.data.relationships.length} relationships`
-                : e.label
-              : undefined,
+          label: labels || active || hoverEdge === e.id ? (e.data.relationships.length > 1 ? `${e.data.relationships.length} relationships` : e.label) : undefined,
           markerEnd: {
             type: MarkerType.ArrowClosed,
             color: active || adjacent ? 'var(--color-edge-active)' : 'var(--color-edge-idle)',
@@ -650,27 +563,11 @@ export function FullGraph(props: Props) {
           },
         };
       }),
-    [
-      connections,
-      positions,
-      props.selectedEdge,
-      focus,
-      labels,
-      hoverEdge,
-      algorithm,
-      layoutRoutes,
-      viewport,
-      size,
-      dragging,
-    ],
+    [connections, positions, props.selectedEdge, focus, labels, hoverEdge, algorithm, layoutRoutes, viewport, size, dragging],
   );
   useEffect(() => {
     if (!props.search || busy) return;
-    const match = overview.entities.find(
-      e =>
-        e.name.toLowerCase().includes(props.search.toLowerCase()) ||
-        e.id.toLowerCase().includes(props.search.toLowerCase()),
-    );
+    const match = overview.entities.find(e => e.name.toLowerCase().includes(props.search.toLowerCase()) || e.id.toLowerCase().includes(props.search.toLowerCase()));
     if (!match) return;
     const timer = setTimeout(() => {
       void flow.current?.fitView({
@@ -682,14 +579,9 @@ export function FullGraph(props: Props) {
     }, 250);
     return () => clearTimeout(timer);
   }, [props.search, busy, overview]);
-  const selectedConnection = collapsed.size
-    ? connections.find(e => e.data.relationships.some(r => r.id === props.selectedEdge))
-    : undefined;
+  const selectedConnection = collapsed.size ? connections.find(e => e.data.relationships.some(r => r.id === props.selectedEdge)) : undefined;
   const originalById = useMemo(() => new Map(props.edges.map(e => [e.id, e])), [props.edges]);
-  const originalEntities = useMemo(
-    () => new Map(props.entities.map(e => [e.id, e])),
-    [props.entities],
-  );
+  const originalEntities = useMemo(() => new Map(props.entities.map(e => [e.id, e])), [props.entities]);
   const sizes = textSizesAt(zoomStep);
   const textStyle = {
     '--entity-name-size': `${sizes.entityName}px`,
@@ -708,10 +600,7 @@ export function FullGraph(props: Props) {
           Fit model
         </button>
         <CompactControls>
-          <ZoomButtons
-            onZoomIn={() => void flow.current?.zoomIn({ duration: 150 })}
-            onZoomOut={() => void flow.current?.zoomOut({ duration: 150 })}
-          />
+          <ZoomButtons onZoomIn={() => void flow.current?.zoomIn({ duration: 150 })} onZoomOut={() => void flow.current?.zoomOut({ duration: 150 })} />
           <GraphOptions>
             <OptionGroup title="Layout">
               <Segmented
@@ -728,12 +617,7 @@ export function FullGraph(props: Props) {
               </button>
               <label className="zoom-to-group">
                 <Crosshair size={13} aria-hidden="true" />
-                <select
-                  aria-label="Zoom to group"
-                  title={overview.groupingLabel}
-                  defaultValue=""
-                  onChange={e => zoomToGroup(e.target.value)}
-                >
+                <select aria-label="Zoom to group" title={overview.groupingLabel} defaultValue="" onChange={e => zoomToGroup(e.target.value)}>
                   <option value="">Whole model</option>
                   {overview.groups.map(g => (
                     <option key={g.id} value={g.id}>
@@ -744,10 +628,7 @@ export function FullGraph(props: Props) {
               </label>
             </OptionGroup>
             <OptionGroup title="Areas">
-              <button
-                onClick={() => setCollapsed(new Set(overview.groups.map(g => g.id)))}
-                disabled={collapsed.size === overview.groups.length}
-              >
+              <button onClick={() => setCollapsed(new Set(overview.groups.map(g => g.id)))} disabled={collapsed.size === overview.groups.length}>
                 Collapse areas
               </button>
               <button onClick={() => setCollapsed(new Set())} disabled={!collapsed.size}>
@@ -759,20 +640,12 @@ export function FullGraph(props: Props) {
                 Labels
               </ShowToggle>
               {valueIds.size > 0 && (
-                <ShowToggle
-                  on={!hideValues}
-                  onToggle={toggleValues}
-                  title={`${valueIds.size} value types and their relationships`}
-                >
+                <ShowToggle on={!hideValues} onToggle={toggleValues} title={`${valueIds.size} value types and their relationships`}>
                   Value types
                 </ShowToggle>
               )}
               {kpiIds.size > 0 && (
-                <ShowToggle
-                  on={!hideKpis}
-                  onToggle={toggleKpis}
-                  title={`${kpiIds.size} metric nodes and their relationships`}
-                >
+                <ShowToggle on={!hideKpis} onToggle={toggleKpis} title={`${kpiIds.size} metric nodes and their relationships`}>
                   Metrics
                 </ShowToggle>
               )}
@@ -829,30 +702,19 @@ export function FullGraph(props: Props) {
             onlyRenderVisibleElements
           >
             <Background gap={24} color="var(--color-border)" />
-            {miniMap && (
-              <MiniMap
-                pannable
-                zoomable
-                nodeColor={n => String(n.data.color ?? 'var(--color-neutral)')}
-              />
-            )}
+            {miniMap && <MiniMap pannable zoomable nodeColor={n => String(n.data.color ?? 'var(--color-neutral)')} />}
           </ReactFlow>
         </SmartEdgeProvider>
       )}
       {selectedConnection && selectedConnection.data.relationships.length > 1 && (
         <label className="graph-bundle-choice">
           {selectedConnection.data.relationships.length} relationships in this bundle
-          <select
-            aria-label="Graph bundle relationship"
-            value={props.selectedEdge}
-            onChange={e => props.onSelectEdge(e.target.value)}
-          >
+          <select aria-label="Graph bundle relationship" value={props.selectedEdge} onChange={e => props.onSelectEdge(e.target.value)}>
             {selectedConnection.data.relationships.map(r => {
               const original = originalById.get(r.id)!;
               return (
                 <option key={r.id} value={r.id}>
-                  {originalEntities.get(original.source)?.name} · {r.label} →{' '}
-                  {originalEntities.get(original.target)?.name}
+                  {originalEntities.get(original.source)?.name} · {r.label} → {originalEntities.get(original.target)?.name}
                 </option>
               );
             })}
@@ -864,17 +726,10 @@ export function FullGraph(props: Props) {
           Arranging {display.entities.length} graph nodes…
         </div>
       )}
-      <div
-        className="full-graph-status"
-        data-entity-count={overview.entities.length}
-        data-relationship-count={overview.links.length}
-        data-routing={routeMetrics?.executedOn ?? 'pending'}
-      >
+      <div className="full-graph-status" data-entity-count={overview.entities.length} data-relationship-count={overview.links.length} data-routing={routeMetrics?.executedOn ?? 'pending'}>
         {hideValues && <span>{valueIds.size} value types hidden</span>}
         {hideKpis && <span>{kpiIds.size} metrics hidden</span>}
-        {collapsed.size > 0 && (
-          <strong>{collapsed.size} area cards · Select an area to open it</strong>
-        )}
+        {collapsed.size > 0 && <strong>{collapsed.size} area cards · Select an area to open it</strong>}
         <span title="Double-click a group to zoom in">Color = area · Line = relationship</span>
       </div>
     </div>

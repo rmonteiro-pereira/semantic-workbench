@@ -7,23 +7,8 @@ import { join, posix } from 'node:path';
 import { atomicWrite, decode, sha256 } from './atomic';
 import { BadRequestError, StaleError, NotFoundError } from './errors';
 import type { Git } from './git';
-import {
-  PathError,
-  assertNoLinks,
-  assertSlug,
-  locationOf,
-  slugify,
-  uniqueName,
-  type DataLayout,
-} from './paths';
-import {
-  MANIFEST_FILE,
-  MANIFEST_SCHEMA,
-  checkProjectFolders,
-  detectProjectFolders,
-  parseManifest,
-  type RepositoryProject,
-} from './repositories';
+import { PathError, assertNoLinks, assertSlug, locationOf, slugify, uniqueName, type DataLayout } from './paths';
+import { MANIFEST_FILE, MANIFEST_SCHEMA, checkProjectFolders, detectProjectFolders, parseManifest, type RepositoryProject } from './repositories';
 import type { ProjectEntry, createState } from './state';
 import { LOCAL_READER, type Reader } from './reader';
 
@@ -78,19 +63,13 @@ function checkFolderExists(dir: string, path: string) {
   if (!path) return;
   assertNoLinks(dir, path);
   const folder = join(dir, path);
-  if (!existsSync(folder) || !lstatSync(folder).isDirectory())
-    throw new PathError(`The folder ${path} does not exist in this repository.`);
+  if (!existsSync(folder) || !lstatSync(folder).isDirectory()) throw new PathError(`The folder ${path} does not exist in this repository.`);
 }
 
 // Decides the repository's projects after the user's choice: a folder that already has a
 // project keeps it (renamed when a name is given); a new folder gets a new project with a free
 // name and slug; a project whose folder is not chosen is removed from the workspace.
-function planProjects(
-  repo: string,
-  folders: RepositoryProject[],
-  current: ProjectEntry[],
-  before: ProjectEntry[],
-) {
+function planProjects(repo: string, folders: RepositoryProject[], current: ProjectEntry[], before: ProjectEntry[]) {
   const kept = new Map(before.map(project => [pathInRepo(project, repo), project]));
   const names = current.filter(project => !before.includes(project)).map(project => project.name);
   const taken = new Set(current.map(project => project.slug));
@@ -126,8 +105,7 @@ export function pathInRepo(project: ProjectEntry, repo: string) {
 export function createRepositoryProjects(deps: RepositoryProjectDeps) {
   const { layout, state } = deps;
   const repoPath = (repo: string) => join(layout.projects, assertSlug(repo));
-  const inRepo = (repo: string, projects = deps.projects()) =>
-    projects.filter(project => locationOf(project).repo === repo);
+  const inRepo = (repo: string, projects = deps.projects()) => projects.filter(project => locationOf(project).repo === repo);
 
   function checkRepository(repo: string) {
     if (!deps.gitAvailable) throw new BadRequestError('Git is not available on this machine.');
@@ -171,17 +149,11 @@ export function createRepositoryProjects(deps: RepositoryProjectDeps) {
   /** Makes exactly these folders the repository's projects. Folders already registered keep
    * their project; projects whose folder is left out are removed from the workspace, and no file
    * is deleted. */
-  async function register(
-    repo: string,
-    requested: unknown,
-    options: { saveManifest?: boolean; manifestBaseHash?: unknown } = {},
-    reader: Reader = LOCAL_READER,
-  ) {
+  async function register(repo: string, requested: unknown, options: { saveManifest?: boolean; manifestBaseHash?: unknown } = {}, reader: Reader = LOCAL_READER) {
     const dir = checkRepository(repo);
     const folders = checkProjectFolders(requested);
     for (const folder of folders) checkFolderExists(dir, folder.path);
-    if (options.saveManifest && folders.some(folder => folder.path === ''))
-      throw new PathError('A manifest lists folders below the root.');
+    if (options.saveManifest && folders.some(folder => folder.path === '')) throw new PathError('A manifest lists folders below the root.');
     // In server mode the manifest is a change like any other: it goes into the person's copy,
     // committed there, and reaches the published state when they publish.
     const target = options.saveManifest ? await manifestDir(repo, reader, true) : dir;
@@ -233,10 +205,7 @@ export function createRepositoryProjects(deps: RepositoryProjectDeps) {
       const project = current.find(entry => entry.slug === assertSlug(slug));
       if (!project) throw new NotFoundError('Project not found.');
       const { repo } = locationOf(project);
-      if (inRepo(repo, current).length < 2)
-        throw new PathError(
-          'This is the only project of its repository. Delete it instead, or choose its folders in Projects in this repository….',
-        );
+      if (inRepo(repo, current).length < 2) throw new PathError('This is the only project of its repository. Delete it instead, or choose its folders in Projects in this repository….');
       const tags = deps.withCurrentReaders('projects', { projects: [slug] });
       forget(
         current.filter(entry => entry !== project),

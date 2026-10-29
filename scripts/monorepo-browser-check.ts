@@ -35,11 +35,9 @@ async function check(name: string, run: () => Promise<void>) {
   console.log('PASS', name);
 }
 const tree = () => page.getByRole('tree', { name: 'Projects' });
-const repositoryRow = (name: string) =>
-  tree().getByRole('treeitem', { name: `Repository ${name}`, exact: true });
+const repositoryRow = (name: string) => tree().getByRole('treeitem', { name: `Repository ${name}`, exact: true });
 const panel = () => page.getByRole('region', { name: 'Source Control' });
-const slugOf = (name: string) =>
-  api.ws.state.registry().projects.find(entry => entry.name === name)?.slug;
+const slugOf = (name: string) => api.ws.state.registry().projects.find(entry => entry.name === name)?.slug;
 
 async function clone(target: Page, address: string) {
   await (await addProjectItem(target, 'Clone a repository')).click();
@@ -74,9 +72,7 @@ async function expectFits(dialog: ReturnType<Page['getByRole']>, width: number) 
   const box = (await dialog.locator('.workbench-dialog').boundingBox())!;
   expect(box.x).toBeGreaterThanOrEqual(0);
   expect(box.x + box.width).toBeLessThanOrEqual(width);
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
-    true,
-  );
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 }
 
 try {
@@ -94,55 +90,40 @@ try {
     await expect(group.getByRole('treeitem', { name: 'Finance', exact: true })).toBeVisible();
     await expect(tree().getByRole('treeitem', { name: 'monorepo', exact: true })).toHaveCount(0);
   });
-  await check(
-    "Source Control lists the selected project's changes and counts the other projects'",
-    async () => {
-      writeFileSync(financeFile, ontologyText('Finance', ['Invoice']));
-      await expect(
-        tree().getByRole('treeitem', { name: 'finance.ontology.yaml' }).locator('.file-meta'),
-      ).toContainText('modified', { timeout: 10_000 });
-      await page.getByRole('button', { name: /^Source control/ }).click();
-      await expect(panel()).toBeVisible();
-      const row = panel().locator('.scm-row').filter({ hasText: 'finance.ontology.yaml' });
-      const projectRow = (name: string) =>
-        repositoryRow('monorepo').getByRole('button', { name, exact: true });
-      // Selecting Sales hides the Finance change and says that it is there.
-      await projectRow('Sales').click();
-      await expect(panel().locator('.scm-elsewhere')).toContainText(
-        '1 change in other projects of this repository is not listed',
-      );
-      await expect(row).toHaveCount(0);
-      await projectRow('Finance').click();
-      await expect(row).toBeVisible();
-      await expect(panel().locator('.scm-elsewhere')).toHaveCount(0);
-      await page.screenshot({ path: '/tmp/workbench-monorepo-scm.png' });
-      await row.getByRole('button', { name: /^Stage / }).click();
-      await expect
-        .poll(() => sh(repo, ['diff', '--cached', '--name-only']).trim())
-        .toBe('domains/finance/finance.ontology.yaml');
-      await page.getByRole('button', { name: 'Commit…' }).click();
-      const commit = page.getByRole('dialog', { name: 'Commit' });
-      await expect(commit.getByRole('list', { name: 'Changed files' })).toContainText(
-        'finance.ontology.yaml',
-      );
-      await commit.getByRole('button', { name: 'Commit', exact: true }).click();
-      await expect(commit).toHaveCount(0);
-      expect(sh(repo, ['status', '--porcelain'])).toBe('');
-    },
-  );
-  await check(
-    'Remove from workspace is the default for a subfolder and deletes nothing',
-    async () => {
-      const dialog = await openDelete('Sales');
-      await expect(dialog.getByRole('radio', { name: /Remove from workspace/ })).toBeChecked();
-      await page.screenshot({ path: '/tmp/workbench-monorepo-remove.png' });
-      await dialog.getByRole('button', { name: 'Remove from workspace' }).click();
-      await expect(dialog).toHaveCount(0);
-      await expect(tree().getByRole('treeitem', { name: 'Sales', exact: true })).toHaveCount(0);
-      expect(existsSync(join(repo, 'domains/sales/sales.ontology.yaml'))).toBe(true);
-      expect(sh(repo, ['status', '--porcelain'])).toBe('');
-    },
-  );
+  await check("Source Control lists the selected project's changes and counts the other projects'", async () => {
+    writeFileSync(financeFile, ontologyText('Finance', ['Invoice']));
+    await expect(tree().getByRole('treeitem', { name: 'finance.ontology.yaml' }).locator('.file-meta')).toContainText('modified', { timeout: 10_000 });
+    await page.getByRole('button', { name: /^Source control/ }).click();
+    await expect(panel()).toBeVisible();
+    const row = panel().locator('.scm-row').filter({ hasText: 'finance.ontology.yaml' });
+    const projectRow = (name: string) => repositoryRow('monorepo').getByRole('button', { name, exact: true });
+    // Selecting Sales hides the Finance change and says that it is there.
+    await projectRow('Sales').click();
+    await expect(panel().locator('.scm-elsewhere')).toContainText('1 change in other projects of this repository is not listed');
+    await expect(row).toHaveCount(0);
+    await projectRow('Finance').click();
+    await expect(row).toBeVisible();
+    await expect(panel().locator('.scm-elsewhere')).toHaveCount(0);
+    await page.screenshot({ path: '/tmp/workbench-monorepo-scm.png' });
+    await row.getByRole('button', { name: /^Stage / }).click();
+    await expect.poll(() => sh(repo, ['diff', '--cached', '--name-only']).trim()).toBe('domains/finance/finance.ontology.yaml');
+    await page.getByRole('button', { name: 'Commit…' }).click();
+    const commit = page.getByRole('dialog', { name: 'Commit' });
+    await expect(commit.getByRole('list', { name: 'Changed files' })).toContainText('finance.ontology.yaml');
+    await commit.getByRole('button', { name: 'Commit', exact: true }).click();
+    await expect(commit).toHaveCount(0);
+    expect(sh(repo, ['status', '--porcelain'])).toBe('');
+  });
+  await check('Remove from workspace is the default for a subfolder and deletes nothing', async () => {
+    const dialog = await openDelete('Sales');
+    await expect(dialog.getByRole('radio', { name: /Remove from workspace/ })).toBeChecked();
+    await page.screenshot({ path: '/tmp/workbench-monorepo-remove.png' });
+    await dialog.getByRole('button', { name: 'Remove from workspace' }).click();
+    await expect(dialog).toHaveCount(0);
+    await expect(tree().getByRole('treeitem', { name: 'Sales', exact: true })).toHaveCount(0);
+    expect(existsSync(join(repo, 'domains/sales/sales.ontology.yaml'))).toBe(true);
+    expect(sh(repo, ['status', '--porcelain'])).toBe('');
+  });
   await check('Projects in this repository brings a folder back as a project', async () => {
     const dialog = await openRepositoryProjects('monorepo');
     const sales = dialog.getByRole('checkbox', { name: 'domains/sales' });
@@ -152,9 +133,7 @@ try {
     await page.screenshot({ path: '/tmp/workbench-monorepo-projects.png' });
     await dialog.getByRole('button', { name: 'Save projects' }).click();
     await expect(dialog).toHaveCount(0);
-    await expect(
-      repositoryRow('monorepo').getByRole('treeitem', { name: 'Sales', exact: true }),
-    ).toBeVisible();
+    await expect(repositoryRow('monorepo').getByRole('treeitem', { name: 'Sales', exact: true })).toBeVisible();
   });
   await check('Delete folder moves only that subfolder to the trash', async () => {
     const dialog = await openDelete('Finance');
@@ -163,16 +142,10 @@ try {
     await dialog.getByRole('button', { name: 'Delete', exact: true }).click();
     await expect(dialog).toHaveCount(0);
     expect(existsSync(join(repo, 'domains/finance'))).toBe(false);
-    expect(readFileSync(join(repo, 'domains/sales/sales.ontology.yaml'), 'utf8')).toContain(
-      'Customer',
-    );
-    expect(sh(repo, ['status', '--porcelain']).trim()).toBe(
-      'D domains/finance/finance.ontology.yaml',
-    );
+    expect(readFileSync(join(repo, 'domains/sales/sales.ontology.yaml'), 'utf8')).toContain('Customer');
+    expect(sh(repo, ['status', '--porcelain']).trim()).toBe('D domains/finance/finance.ontology.yaml');
     await page.getByRole('button', { name: 'Undo' }).click();
-    await expect(
-      repositoryRow('monorepo').getByRole('treeitem', { name: 'Finance', exact: true }),
-    ).toBeVisible();
+    await expect(repositoryRow('monorepo').getByRole('treeitem', { name: 'Finance', exact: true })).toBeVisible();
     expect(sh(repo, ['status', '--porcelain'])).toBe('');
   });
   await check('without a manifest, Choose projects proposes the definition folders', async () => {
@@ -182,9 +155,7 @@ try {
     const chooser = page.getByRole('dialog', { name: 'Projects in monorepo-no-manifest' });
     await expect(chooser.getByRole('checkbox', { name: 'domains/finance' })).toBeChecked();
     await expect(chooser.getByRole('checkbox', { name: 'domains/sales' })).toBeChecked();
-    await expect(
-      chooser.getByRole('checkbox', { name: 'The whole repository as one project' }),
-    ).not.toBeChecked();
+    await expect(chooser.getByRole('checkbox', { name: 'The whole repository as one project' })).not.toBeChecked();
     await chooser.getByRole('button', { name: 'Save projects' }).click();
     await expect(chooser).toHaveCount(0);
     const group = repositoryRow('monorepo-no-manifest');
@@ -197,16 +168,14 @@ try {
     for (const [width, height] of VIEWPORTS) {
       await page.setViewportSize({ width, height });
       await page.goto(appUrl());
-      if (width < 1100)
-        await page.getByRole('button', { name: 'Open workspace', exact: true }).click();
+      if (width < 1100) await page.getByRole('button', { name: 'Open workspace', exact: true }).click();
       const chooser = await openRepositoryProjects('monorepo');
       await expectFits(chooser, width);
       await expectDialogGeometry(page, 'projects-in-repository');
       await page.screenshot({ path: `/tmp/workbench-monorepo-projects-${width}.png` });
       await chooser.getByRole('button', { name: 'Cancel' }).click();
       // Opening a dialog closes the phone drawer; the delete button lives in the tree.
-      if (width < 1100)
-        await page.getByRole('button', { name: 'Open workspace', exact: true }).click();
+      if (width < 1100) await page.getByRole('button', { name: 'Open workspace', exact: true }).click();
       const remove = await openDelete('Sales');
       await expectFits(remove, width);
       await expectDialogGeometry(page, 'remove-project');

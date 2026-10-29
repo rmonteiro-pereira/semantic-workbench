@@ -4,21 +4,8 @@ import { readFileSync } from 'node:fs';
 import { Writer } from 'n3';
 import { applyPatches } from '../src/shared/editor/patch';
 import { isomorphic, gate, description } from '../src/app/edit/rdf-patch/isomorphism';
-import {
-  parseGraph,
-  termKey,
-  formatOf,
-  RDFS,
-  SH,
-  type Triple,
-} from '../src/app/edit/rdf-patch/terms';
-import {
-  readRdfItem,
-  editRdfItem,
-  deleteRdfItem,
-  addRdfItem,
-  checkRdfSource,
-} from '../src/app/edit/rdf-patch/index';
+import { parseGraph, termKey, formatOf, RDFS, SH, type Triple } from '../src/app/edit/rdf-patch/terms';
+import { readRdfItem, editRdfItem, deleteRdfItem, addRdfItem, checkRdfSource } from '../src/app/edit/rdf-patch/index';
 // Round trips must preserve the RDF graph, while a label edit changes exactly one triple belonging
 // to the selected resource.
 const bn = (v: string) => ({ termType: 'BlankNode' as const, value: v });
@@ -61,18 +48,8 @@ test('graphs compare up to blank-node renaming, and differ on any changed triple
 });
 test('the gate refuses a change to another resource and reports removed and added triples', () => {
   const before = parseGraph('@prefix e: <https://e/> . e:a e:p "1" . e:b e:p "2" .', 'turtle');
-  expect(
-    gate(
-      before,
-      parseGraph('@prefix e: <https://e/> . e:a e:p "1", "3" . e:b e:p "2" .', 'turtle'),
-      ['https://e/a'],
-    ),
-  ).toEqual({ ok: true, removed: 0, added: 1 });
-  expect(
-    gate(before, parseGraph('@prefix e: <https://e/> . e:a e:p "1" . e:b e:p "9" .', 'turtle'), [
-      'https://e/a',
-    ]).ok,
-  ).toBe(false);
+  expect(gate(before, parseGraph('@prefix e: <https://e/> . e:a e:p "1", "3" . e:b e:p "2" .', 'turtle'), ['https://e/a'])).toEqual({ ok: true, removed: 0, added: 1 });
+  expect(gate(before, parseGraph('@prefix e: <https://e/> . e:a e:p "1" . e:b e:p "9" .', 'turtle'), ['https://e/a']).ok).toBe(false);
   expect(
     checkRdfSource(
       '<https://e/a> <https://e/p> "1" .\n<https://e/b> <https://e/p> "2" .\n',
@@ -106,9 +83,7 @@ const extra = (() => {
     { name: 'commerce.owl.nt', source: nt },
     {
       name: 'commerce.n3',
-      source:
-        src +
-        '\n{ ?x a <https://example.org/commerce#PaidOrder> } => { ?x a <https://example.org/commerce#Order> } .\n',
+      source: src + '\n{ ?x a <https://example.org/commerce#PaidOrder> } => { ?x a <https://example.org/commerce#Order> } .\n',
     },
   ];
 })();
@@ -137,9 +112,7 @@ for (const { name, source } of [
     seed = [...name].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 2147483647, 7);
     const format = formatOf(name, source);
     const graph = parseGraph(source, format);
-    const subjects = [
-      ...new Set(graph.filter(t => t.s.termType === 'NamedNode').map(t => t.s.value)),
-    ];
+    const subjects = [...new Set(graph.filter(t => t.s.termType === 'NamedNode').map(t => t.s.value))];
     let checked = 0;
     for (const subject of sample(subjects, format === 'rdfxml' ? 10 : 8)) {
       const item = readRdfItem(source, name, subject);
@@ -157,32 +130,16 @@ for (const { name, source } of [
       const none = editRdfItem(source, name, subject, same);
       expect(none.ok && none.text).toBe(source);
       // A label change: one triple out, one in, and only inside this resource's statements.
-      const label = item.pairs.find(
-        p => LABEL.includes(p.predicate) && p.object?.termType === 'Literal' && !p.object.language,
-      );
+      const label = item.pairs.find(p => LABEL.includes(p.predicate) && p.object?.termType === 'Literal' && !p.object.language);
       const desired = label
-        ? same.map(d =>
-            d.id === label.id ? { ...d, objectText: '"Changed by the round trip"' } : d,
-          )
+        ? same.map(d => (d.id === label.id ? { ...d, objectText: '"Changed by the round trip"' } : d))
         : [...same, { predicateText: 'rdfs:label', objectText: '"Changed by the round trip"' }];
       const r = editRdfItem(source, name, subject, desired);
       if (!r.ok) throw Error(`${name} ${subject}: ${r.error}`);
       expect([r.removed, r.added]).toEqual([label ? 1 : 0, 1]);
-      for (const p of r.patches)
-        expect(
-          item.ranges.some(x => p.from >= x.from && p.to <= x.to) ||
-            (p.from === p.to && p.from === source.length),
-        ).toBe(true);
+      for (const p of r.patches) expect(item.ranges.some(x => p.from >= x.from && p.to <= x.to) || (p.from === p.to && p.from === source.length)).toBe(true);
       const expected = graph
-        .filter(
-          t =>
-            !(
-              label &&
-              t.s.value === subject &&
-              t.p.value === label.predicate &&
-              t.o.value === label.object!.value
-            ),
-        )
+        .filter(t => !(label && t.s.value === subject && t.p.value === label.predicate && t.o.value === label.object!.value))
         .concat([
           {
             s: { termType: 'NamedNode', value: subject },
@@ -219,19 +176,10 @@ for (const { name, source } of [
       }
       // Labelled blank nodes omit their own statements from pair text, so they cannot
       // be restored by re-adding those pairs.
-      if (
-        !item.pairs.some(
-          p =>
-            (p.locked && format === 'rdfxml' && p.nested) ||
-            (p.object?.termType === 'BlankNode' && !p.nested),
-        )
-      ) {
+      if (!item.pairs.some(p => (p.locked && format === 'rdfxml' && p.nested) || (p.object?.termType === 'BlankNode' && !p.nested))) {
         const d = deleteRdfItem(source, name, subject, false);
         if (!d.ok) throw Error(`${name} ${subject} delete: ${d.error}`);
-        const own = description(
-          graph,
-          new Set([termKey({ termType: 'NamedNode', value: subject })]),
-        );
+        const own = description(graph, new Set([termKey({ termType: 'NamedNode', value: subject })]));
         const rest = graph.filter(t => !own.has(t));
         expect(isomorphic(parseGraph(d.text, format), rest)).toBe(true);
         const again = addRdfItem(

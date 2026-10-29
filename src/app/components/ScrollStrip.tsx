@@ -112,29 +112,13 @@ export function ScrollStrip({
   const cue = { positionAnchor: anchorName } as CSSProperties;
   return (
     <>
-      <span
-        ref={startCue}
-        className="scroll-cue scroll-cue-start"
-        style={cue}
-        aria-hidden="true"
-        title="Show earlier items"
-        hidden
-        onClick={scrollTowards(-1)}
-      >
+      <span ref={startCue} className="scroll-cue scroll-cue-start" style={cue} aria-hidden="true" title="Show earlier items" hidden onClick={scrollTowards(-1)}>
         <ChevronLeft size={16} />
       </span>
       <div ref={ref} className={className} style={strip} role={role} aria-label={label}>
         {children}
       </div>
-      <span
-        ref={endCue}
-        className="scroll-cue scroll-cue-end"
-        style={cue}
-        aria-hidden="true"
-        title="Show more items"
-        hidden
-        onClick={scrollTowards(1)}
-      >
+      <span ref={endCue} className="scroll-cue scroll-cue-end" style={cue} aria-hidden="true" title="Show more items" hidden onClick={scrollTowards(1)}>
         <ChevronRight size={16} />
       </span>
     </>

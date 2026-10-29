@@ -112,18 +112,13 @@ test('Admin group lookup uses the Graph stand-in, degrades to the ID and refresh
   const { TEST_GROUPS } = await import('../helpers/auth-identities');
   const provider = await startMockOidc();
   using fixture = await authWorkspace();
-  const auth = await createServerAuthentication(
-    fixture.ws,
-    oidcConfig(provider.issuer, provider.graphUrl),
-  );
+  const auth = await createServerAuthentication(fixture.ws, oidcConfig(provider.issuer, provider.graphUrl));
   const handler = createHandler(fixture.ws, auth);
   const origin = 'http://127.0.0.1:4310';
   try {
     const start = await handler(new Request(origin + '/auth/login'));
     const callback = await provider.authorizeAs('dave', start.headers.get('location')!);
-    const signedIn = await handler(
-      new Request(callback, { headers: { Cookie: start.headers.getSetCookie()[0].split(';')[0] } }),
-    );
+    const signedIn = await handler(new Request(callback, { headers: { Cookie: start.headers.getSetCookie()[0].split(';')[0] } }));
     const cookie = signedIn.headers
       .getSetCookie()
       .find(value => value.startsWith('sw-session='))!
@@ -175,9 +170,7 @@ test('Admin group lookup uses the Graph stand-in, degrades to the ID and refresh
         addedAt: new Date().toISOString(),
       },
     ];
-    const { dryRunId } = await (
-      await request('/api/admin/policies/dry-run', 'POST', { grants })
-    ).json();
+    const { dryRunId } = await (await request('/api/admin/policies/dry-run', 'POST', { grants })).json();
     const saved = await request('/api/admin/grants', 'PUT', {
       grants,
       dryRunId,
@@ -189,9 +182,7 @@ test('Admin group lookup uses the Graph stand-in, degrades to the ID and refresh
       kind: 'group',
       groupId: 'f0000000-0000-4000-8000-000000000001',
     });
-    const tokenRequests = provider.calls.filter(
-      call => call.params.grant_type === 'client_credentials',
-    );
+    const tokenRequests = provider.calls.filter(call => call.params.grant_type === 'client_credentials');
     expect(tokenRequests.length).toBeGreaterThan(0);
     const graphCalls = provider.calls.filter(call => call.endpoint.startsWith('graph-'));
     expect(new Set(graphCalls.map(call => call.endpoint))).toEqual(new Set(['graph-group']));
@@ -234,7 +225,5 @@ test('a failing group lookup is reported as unresolved instead of failing the ca
   const cache = createGroupNameCache(async () => {
     throw new Error('directory down');
   });
-  expect(await cache.names(['group'])).toEqual(
-    new Map([['group', { id: 'group', displayName: null, resolved: false }]]),
-  );
+  expect(await cache.names(['group'])).toEqual(new Map([['group', { id: 'group', displayName: null, resolved: false }]]));
 });

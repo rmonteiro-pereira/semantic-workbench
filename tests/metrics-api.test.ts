@@ -9,12 +9,7 @@ import { LOCAL_READER } from '../src/server/projects/reader';
 import { testWorkspace } from './helpers/temp-data-dir';
 // Metrics endpoints: GET lists every metric with `governed`; POST `metrics` and `metrics/preview`
 // behave exactly like the `kpis` aliases.
-const api = (
-  t: { handler: (r: Request) => Promise<Response> },
-  method: string,
-  path: string,
-  body?: unknown,
-) =>
+const api = (t: { handler: (r: Request) => Promise<Response> }, method: string, path: string, body?: unknown) =>
   t.handler(
     new Request('http://127.0.0.1:4310' + path, {
       method,
@@ -68,16 +63,9 @@ test('POST metrics and metrics/preview equal the kpis aliases byte for byte', as
   const a = await mall();
   const b = await mall();
   try {
-    const hashes = (m: typeof a) =>
-      Object.fromEntries(
-        ['mall.semantic.yaml', 'mall.mapping.yaml'].map(p => [p, sha256(m.read(p))]),
-      );
-    const pa = await (
-      await api(a.t, 'POST', `/api/projects/${a.slug}/metrics/preview`, body(hashes(a)))
-    ).json();
-    const pb = await (
-      await api(b.t, 'POST', `/api/projects/${b.slug}/kpis/preview`, body(hashes(b)))
-    ).json();
+    const hashes = (m: typeof a) => Object.fromEntries(['mall.semantic.yaml', 'mall.mapping.yaml'].map(p => [p, sha256(m.read(p))]));
+    const pa = await (await api(a.t, 'POST', `/api/projects/${a.slug}/metrics/preview`, body(hashes(a)))).json();
+    const pb = await (await api(b.t, 'POST', `/api/projects/${b.slug}/kpis/preview`, body(hashes(b)))).json();
     expect(pa).toEqual(pb);
     const ra = await api(a.t, 'POST', `/api/projects/${a.slug}/metrics`, body(hashes(a)));
     const rb = await api(b.t, 'POST', `/api/projects/${b.slug}/kpis`, body(hashes(b)));
@@ -130,14 +118,8 @@ test('Add attributes: an existing metric without attributes gains only its exten
     expect(a.length - p - s).toBe(0); // Only added lines.
     const metric = parse(after).metrics.find((m: any) => m.name === target.name);
     expect(extensionOf(metric)!.value.owner).toBe('Sales');
-    expect(parse(after).metrics.find((m: any) => m.name === target.name).expression).toEqual(
-      parse(before).metrics.find((m: any) => m.name === target.name).expression,
-    );
-    expect(
-      (await (await api(t, 'GET', `/api/projects/${slug}/metrics`)).json()).find(
-        (m: any) => m.name === target.name,
-      ).governed,
-    ).toBe(true);
+    expect(parse(after).metrics.find((m: any) => m.name === target.name).expression).toEqual(parse(before).metrics.find((m: any) => m.name === target.name).expression);
+    expect((await (await api(t, 'GET', `/api/projects/${slug}/metrics`)).json()).find((m: any) => m.name === target.name).governed).toBe(true);
     // A second Add attributes is refused.
     const again = await api(t, 'POST', `/api/projects/${slug}/metrics`, {
       semanticPath: 'sales.ossie.yaml',

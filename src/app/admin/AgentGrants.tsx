@@ -5,23 +5,13 @@ import { commaList } from './change-review';
 import type { AgentsConfig } from './types';
 
 /** Edits agent client scopes and reviews their effects before activation. */
-export function AgentGrants({
-  initial,
-  version,
-  onSaved,
-}: {
-  initial: AgentsConfig;
-  version: string;
-  onSaved: () => void;
-}) {
+export function AgentGrants({ initial, version, onSaved }: { initial: AgentsConfig; version: string; onSaved: () => void }) {
   const [config, setConfig] = useState(initial);
   function update(index: number, field: string, text: string) {
     const value = field === 'projects' || field === 'domains' ? commaList(text) : text;
     setConfig({
       ...config,
-      clients: config.clients.map((client, position) =>
-        position === index ? { ...client, [field]: value } : client,
-      ),
+      clients: config.clients.map((client, position) => (position === index ? { ...client, [field]: value } : client)),
     });
   }
   function addClient() {
@@ -43,15 +33,9 @@ export function AgentGrants({
             <label key={field}>
               {field}
               {field === 'projects' || field === 'domains' ? (
-                <ListInput
-                  value={client[field]}
-                  onChange={value => update(index, field, value.join(', '))}
-                />
+                <ListInput value={client[field]} onChange={value => update(index, field, value.join(', '))} />
               ) : (
-                <input
-                  value={client[field]}
-                  onChange={event => update(index, field, event.target.value)}
-                />
+                <input value={client[field]} onChange={event => update(index, field, event.target.value)} />
               )}
             </label>
           ))}
@@ -60,13 +44,7 @@ export function AgentGrants({
       ))}
       <button onClick={addClient}>Add client</button>
       <p>Preview client access before saving these grants.</p>
-      <ReviewChange
-        area="agents"
-        proposal={config}
-        baseVersion={version}
-        onSaved={onSaved}
-        description="Save agent grants"
-      />
+      <ReviewChange area="agents" proposal={config} baseVersion={version} onSaved={onSaved} description="Save agent grants" />
     </section>
   );
 }

@@ -45,11 +45,8 @@ CREATE TABLE suggestions(
 function open(path: string) {
   const db = new Database(path, { create: true });
   try {
-    const version = (db.query('PRAGMA user_version').get() as { user_version: number })
-      .user_version;
-    const tables = (
-      db.query("SELECT count(*) n FROM sqlite_master WHERE type='table'").get() as { n: number }
-    ).n;
+    const version = (db.query('PRAGMA user_version').get() as { user_version: number }).user_version;
+    const tables = (db.query("SELECT count(*) n FROM sqlite_master WHERE type='table'").get() as { n: number }).n;
     if (version === CACHE_VERSION) return { db, rebuilt: false };
     if (version !== 0 || tables) {
       db.close();
@@ -87,31 +84,17 @@ const finding = (f: any): Issue => ({
 const blobName = (path: string) => path.slice(path.lastIndexOf('/') + 1);
 // A blob's entities are dropped once no file of any copy holds that blob any more.
 function forgetUnusedEntities(db: Database, hashes: string[]) {
-  const unused = db.query(
-    'DELETE FROM entities WHERE hash=? AND NOT EXISTS (SELECT 1 FROM files WHERE hash=?)',
-  );
+  const unused = db.query('DELETE FROM entities WHERE hash=? AND NOT EXISTS (SELECT 1 FROM files WHERE hash=?)');
   for (const hash of new Set(hashes)) unused.run(hash, hash);
 }
-const hashesOf = (db: Database, where: string, values: string[]) =>
-  (db.query(`SELECT DISTINCT hash FROM files WHERE ${where}`).all(...values) as any[]).map(
-    r => r.hash as string,
-  );
+const hashesOf = (db: Database, where: string, values: string[]) => (db.query(`SELECT DISTINCT hash FROM files WHERE ${where}`).all(...values) as any[]).map(r => r.hash as string);
 /** The index of one working copy: the same operations for every copy, keyed by its id. */
 function copyIndex(db: Database, copy: string) {
-  const entitiesOf = (hash: string, path: string) =>
-    db
-      .query('SELECT id,entity_name name,kind FROM entities WHERE hash=? AND name=? ORDER BY rowid')
-      .all(hash, blobName(path)) as CachedEntity[];
+  const entitiesOf = (hash: string, path: string) => db.query('SELECT id,entity_name name,kind FROM entities WHERE hash=? AND name=? ORDER BY rowid').all(hash, blobName(path)) as CachedEntity[];
   const findingsOf = (project: string, path: string): Issue[] =>
-    (
-      db
-        .query('SELECT * FROM findings WHERE copy=? AND project=? AND path=? ORDER BY rowid')
-        .all(copy, project, path) as any[]
-    ).map(finding);
+    (db.query('SELECT * FROM findings WHERE copy=? AND project=? AND path=? ORDER BY rowid').all(copy, project, path) as any[]).map(finding);
   const file = (project: string, path: string) => {
-    const r = db
-      .query('SELECT * FROM files WHERE copy=? AND project=? AND path=?')
-      .get(copy, project, path);
+    const r = db.query('SELECT * FROM files WHERE copy=? AND project=? AND path=?').get(copy, project, path);
     return r ? row(r) : null;
   };
   return {
@@ -120,9 +103,7 @@ function copyIndex(db: Database, copy: string) {
     files: (project?: string) =>
       (project === undefined
         ? db.query('SELECT * FROM files WHERE copy=? ORDER BY project,path').all(copy)
-        : db
-            .query('SELECT * FROM files WHERE copy=? AND project=? ORDER BY path')
-            .all(copy, project)
+        : db.query('SELECT * FROM files WHERE copy=? AND project=? ORDER BY path').all(copy, project)
       ).map(row),
     entities: (project: string, path: string) => {
       const indexed = file(project, path);
@@ -132,23 +113,13 @@ function copyIndex(db: Database, copy: string) {
     findings: findingsOf,
     /** The same blob already parsed under this path in another copy, so it is not parsed again. */
     parsedElsewhere: (project: string, path: string, hash: string) => {
-      const r = db
-        .query('SELECT * FROM files WHERE project=? AND path=? AND hash=? AND copy<>? LIMIT 1')
-        .get(project, path, hash, copy) as any;
+      const r = db.query('SELECT * FROM files WHERE project=? AND path=? AND hash=? AND copy<>? LIMIT 1').get(project, path, hash, copy) as any;
       if (!r) return null;
-      const findings = (
-        db
-          .query('SELECT * FROM findings WHERE copy=? AND project=? AND path=? ORDER BY rowid')
-          .all(r.copy, project, path) as any[]
-      ).map(finding);
+      const findings = (db.query('SELECT * FROM findings WHERE copy=? AND project=? AND path=? ORDER BY rowid').all(r.copy, project, path) as any[]).map(finding);
       return { file: row(r), findings };
     },
     put: db.transaction((file: CachedFile, entities: CachedEntity[], findings: Issue[]) => {
-      const replaced = hashesOf(db, 'copy=? AND project=? AND path=?', [
-        copy,
-        file.project,
-        file.path,
-      ]);
+      const replaced = hashesOf(db, 'copy=? AND project=? AND path=?', [copy, file.project, file.path]);
       db.query('INSERT OR REPLACE INTO files VALUES(?,?,?,?,?,?,?,?,?,?,?)').run(
         copy,
         file.project,
@@ -162,42 +133,24 @@ function copyIndex(db: Database, copy: string) {
         file.gitState,
         file.indexedAt,
       );
-      db.query('DELETE FROM findings WHERE copy=? AND project=? AND path=?').run(
-        copy,
-        file.project,
-        file.path,
-      );
+      db.query('DELETE FROM findings WHERE copy=? AND project=? AND path=?').run(copy, file.project, file.path);
       const name = blobName(file.path);
       db.query('DELETE FROM entities WHERE hash=? AND name=?').run(file.hash, name);
       const entity = db.query('INSERT OR IGNORE INTO entities VALUES(?,?,?,?,?)');
       for (const e of entities) entity.run(file.hash, name, e.id, e.name, e.kind);
       const insert = db.query('INSERT INTO findings VALUES(?,?,?,?,?,?,?,?,?)');
-      for (const f of findings)
-        insert.run(
-          copy,
-          file.project,
-          file.path,
-          f.severity,
-          f.code,
-          f.path,
-          f.line ?? null,
-          f.column ?? null,
-          f.message,
-        );
+      for (const f of findings) insert.run(copy, file.project, file.path, f.severity, f.code, f.path, f.line ?? null, f.column ?? null, f.message);
       forgetUnusedEntities(db, replaced);
     }),
     remove: db.transaction((project: string, path: string) => {
       const removed = hashesOf(db, 'copy=? AND project=? AND path=?', [copy, project, path]);
-      for (const t of ['files', 'findings'])
-        db.query(`DELETE FROM ${t} WHERE copy=? AND project=? AND path=?`).run(copy, project, path);
+      for (const t of ['files', 'findings']) db.query(`DELETE FROM ${t} WHERE copy=? AND project=? AND path=?`).run(copy, project, path);
       forgetUnusedEntities(db, removed);
     }),
     removeProject: db.transaction((project: string) => {
       const removed = hashesOf(db, 'copy=? AND project=?', [copy, project]);
-      for (const t of ['files', 'findings'])
-        db.query(`DELETE FROM ${t} WHERE copy=? AND project=?`).run(copy, project);
-      if (copy === PUBLISHED_COPY)
-        db.query('DELETE FROM suggestions WHERE file_project=?').run(project);
+      for (const t of ['files', 'findings']) db.query(`DELETE FROM ${t} WHERE copy=? AND project=?`).run(copy, project);
+      if (copy === PUBLISHED_COPY) db.query('DELETE FROM suggestions WHERE file_project=?').run(project);
       forgetUnusedEntities(db, removed);
     }),
   };
@@ -230,8 +183,7 @@ export function createCache(path: string) {
     /** Drops one project from every person's working copy, for a project leaving the workspace. */
     removeProjectFromCopies: db.transaction((project: string) => {
       const removed = hashesOf(db, 'copy<>? AND project=?', [PUBLISHED_COPY, project]);
-      for (const t of ['files', 'findings'])
-        db.query(`DELETE FROM ${t} WHERE copy<>? AND project=?`).run(PUBLISHED_COPY, project);
+      for (const t of ['files', 'findings']) db.query(`DELETE FROM ${t} WHERE copy<>? AND project=?`).run(PUBLISHED_COPY, project);
       forgetUnusedEntities(db, removed);
     }),
     close: () => db.close(),

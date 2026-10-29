@@ -30,11 +30,7 @@ function titleBlockProblems(expected: OpenFileHeader): string[] {
   if (!meta) return [...found, 'the meta line is missing'];
   const metaBox = meta.getBoundingClientRect();
   const blockBox = block.getBoundingClientRect();
-  const inside =
-    metaBox.left >= headerBox.left - 1 &&
-    metaBox.right <= headerBox.right + 1 &&
-    metaBox.bottom <= headerBox.bottom + 1 &&
-    metaBox.right <= blockBox.right + 1;
+  const inside = metaBox.left >= headerBox.left - 1 && metaBox.right <= headerBox.right + 1 && metaBox.bottom <= headerBox.bottom + 1 && metaBox.right <= blockBox.right + 1;
   if (!inside) found.push('the meta line sticks out of the header or the title block');
   if (metaBox.top < title.getBoundingClientRect().bottom - 1) {
     found.push('the meta line is not under the title');
@@ -45,8 +41,7 @@ function titleBlockProblems(expected: OpenFileHeader): string[] {
   const wanted = `${expected.projectName} · ${expected.kind} · ${saveState}`;
   if (!saveState || text !== wanted) found.push(`the meta line reads "${text}", not "${wanted}"`);
   const stateStyle = getComputedStyle(meta.querySelector('.save-state')!);
-  const isPill =
-    parseFloat(stateStyle.borderTopWidth) > 0 || stateStyle.backgroundColor !== 'rgba(0, 0, 0, 0)';
+  const isPill = parseFloat(stateStyle.borderTopWidth) > 0 || stateStyle.backgroundColor !== 'rgba(0, 0, 0, 0)';
   if (isPill) found.push('the save state is still drawn as a pill');
   return found;
 }
@@ -55,9 +50,7 @@ function titleBlockProblems(expected: OpenFileHeader): string[] {
 function headerButtonProblems(): string[] {
   const found: string[] = [];
   const header = document.querySelector('.workspace-header')!;
-  const names = [...header.querySelectorAll('button')].map(
-    button => button.getAttribute('aria-label') ?? button.textContent?.trim() ?? '',
-  );
+  const names = [...header.querySelectorAll('button')].map(button => button.getAttribute('aria-label') ?? button.textContent?.trim() ?? '');
   for (const name of ['New', 'Export']) {
     if (names.includes(name)) found.push(`${name} is a header button, not in More actions`);
   }
@@ -71,16 +64,12 @@ function headerButtonProblems(): string[] {
   const dotWidth = parseFloat(getComputedStyle(icon!).strokeWidth);
   if (dotWidth < 3) found.push(`the More actions dots are drawn with a ${dotWidth}px stroke`);
   const commit = header.querySelector('button[aria-label="Commit…"]');
-  if (commit && !commit.classList.contains('primary'))
-    found.push('Commit is not the primary button');
+  if (commit && !commit.classList.contains('primary')) found.push('Commit is not the primary button');
   return found;
 }
 
 /** Returns what is wrong with the header's title block and buttons for the open file. */
-export async function headerContentProblems(
-  page: Page,
-  expected: OpenFileHeader,
-): Promise<string[]> {
+export async function headerContentProblems(page: Page, expected: OpenFileHeader): Promise<string[]> {
   const title = await page.evaluate(titleBlockProblems, expected);
   const buttons = await page.evaluate(headerButtonProblems);
   return [...title, ...buttons];

@@ -5,12 +5,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { testWorkspace } from './helpers/temp-data-dir';
 const ont = (name: string) => `name: ${name}\nontology: [{concept: ${name}}]\n`;
-const api = (
-  t: { handler: (r: Request) => Promise<Response> },
-  method: string,
-  path: string,
-  body?: unknown,
-) =>
+const api = (t: { handler: (r: Request) => Promise<Response> }, method: string, path: string, body?: unknown) =>
   t.handler(
     new Request('http://127.0.0.1:4310' + path, {
       method,
@@ -19,10 +14,7 @@ const api = (
   );
 async function setup() {
   const t = await testWorkspace();
-  await t.ws.importBatch(
-    { name: 'Alpha', files: [{ path: 'a.yaml', source: ont('A') }] },
-    LOCAL_READER,
-  );
+  await t.ws.importBatch({ name: 'Alpha', files: [{ path: 'a.yaml', source: ont('A') }] }, LOCAL_READER);
   await t.ws.importBatch(
     {
       name: 'Beta',
@@ -39,11 +31,7 @@ test('a file moves between projects with its view settings; an occupied target i
   const t = await setup();
   try {
     t.ws.state.writeView('beta', { 'b.yaml': { mode: 'types' } });
-    expect(
-      await (
-        await api(t, 'POST', '/api/projects/beta/move', { path: 'b.yaml', toProject: 'alpha' })
-      ).json(),
-    ).toEqual({ project: 'alpha', path: 'b.yaml' });
+    expect(await (await api(t, 'POST', '/api/projects/beta/move', { path: 'b.yaml', toProject: 'alpha' })).json()).toEqual({ project: 'alpha', path: 'b.yaml' });
     expect(readFileSync(join(t.root, 'projects/alpha/b.yaml'), 'utf8')).toBe(ont('B2'));
     expect(existsSync(join(t.root, 'projects/beta/b.yaml'))).toBe(false);
     expect(t.ws.grouping('alpha/b.yaml', LOCAL_READER)).toEqual({ mode: 'types' });
@@ -67,15 +55,8 @@ test('a file moves between projects with its view settings; an occupied target i
         })
       ).json(),
     ).toEqual({ project: 'alpha', path: 'nested/a.yaml' });
-    for (const body of [
-      { path: '../x', toProject: 'alpha' },
-      { path: 'a.yaml', toProject: '../x' },
-      { path: 'missing.yaml', toProject: 'alpha' },
-      { path: 'a.yaml' },
-    ])
-      expect((await api(t, 'POST', '/api/projects/beta/move', body)).status).toBeGreaterThanOrEqual(
-        400,
-      );
+    for (const body of [{ path: '../x', toProject: 'alpha' }, { path: 'a.yaml', toProject: '../x' }, { path: 'missing.yaml', toProject: 'alpha' }, { path: 'a.yaml' }])
+      expect((await api(t, 'POST', '/api/projects/beta/move', body)).status).toBeGreaterThanOrEqual(400);
   } finally {
     t.dispose();
   }
@@ -91,9 +72,7 @@ test('re-import into a project asks about existing names: 409 conflicts, then re
     expect(conflict.status).toBe(409);
     expect(await conflict.json()).toMatchObject({ error: 'conflict', conflicts: ['a.yaml'] });
     expect(existsSync(join(t.root, 'projects/alpha/new.yaml'))).toBe(false);
-    const both = await (
-      await api(t, 'POST', '/api/projects/alpha/import', { files, onConflict: 'keep-both' })
-    ).json();
+    const both = await (await api(t, 'POST', '/api/projects/alpha/import', { files, onConflict: 'keep-both' })).json();
     expect(both.written.map((w: any) => w.path)).toEqual(['a (2).yaml', 'new.yaml']);
     expect(readFileSync(join(t.root, 'projects/alpha/a.yaml'), 'utf8')).toBe(ont('A'));
     expect(readFileSync(join(t.root, 'projects/alpha/a (2).yaml'), 'utf8')).toBe(ont('Replaced'));
@@ -102,9 +81,7 @@ test('re-import into a project asks about existing names: 409 conflicts, then re
       onConflict: 'replace',
     });
     expect(readFileSync(join(t.root, 'projects/alpha/a.yaml'), 'utf8')).toBe(ont('Replaced'));
-    expect(
-      (await api(t, 'POST', '/api/projects/alpha/import', { files, onConflict: 'merge' })).status,
-    ).toBe(400);
+    expect((await api(t, 'POST', '/api/projects/alpha/import', { files, onConflict: 'merge' })).status).toBe(400);
     expect(
       (
         await api(t, 'POST', '/api/projects/alpha/import', {

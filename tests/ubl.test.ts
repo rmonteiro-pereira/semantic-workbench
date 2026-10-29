@@ -27,12 +27,8 @@ test('UBL ODCS and semantic schema validation; bridge-table joins refer to actua
   const byName = new Map(semantic.entities.map(e => [e.name, e]));
   for (const edge of semantic.edges.filter(e => e.data.kind === 'Dataset relationship')) {
     const def = edge.data.definition;
-    expect(
-      def.from_columns.every((col: string) => byName.get(def.from)?.fields.includes(col)),
-    ).toBe(true);
-    expect(def.to_columns.every((col: string) => byName.get(def.to)?.fields.includes(col))).toBe(
-      true,
-    );
+    expect(def.from_columns.every((col: string) => byName.get(def.from)?.fields.includes(col))).toBe(true);
+    expect(def.to_columns.every((col: string) => byName.get(def.to)?.fields.includes(col))).toBe(true);
   }
   for (const table of contract.entities) {
     expect(byName.get(table.name)?.definition.source).toBe(table.definition.physicalName);
@@ -65,11 +61,7 @@ test('the UBL ontology declares its Ossie version, so it gets full schema checks
 });
 
 test('the UBL mapping maps every component and role to its dataset, key or bridge', async () => {
-  const documents = await exampleProject('ubl', [
-    'ubl.ontology.yaml',
-    'ubl.semantic.yaml',
-    'ubl.semantic-mapping.yaml',
-  ]);
+  const documents = await exampleProject('ubl', ['ubl.ontology.yaml', 'ubl.semantic.yaml', 'ubl.semantic-mapping.yaml']);
   const context = buildContext(documents, 'ubl/ubl.semantic-mapping.yaml');
   expect(context.findings).toEqual([]);
   const mapped = new Set(context.bindings.map(binding => binding.rootConcept));
@@ -81,11 +73,7 @@ test('the UBL mapping maps every component and role to its dataset, key or bridg
 });
 
 test('the commerce sales mapping maps each concept that has a sales table', async () => {
-  const documents = await exampleProject('commerce', [
-    'commerce-business.ossie.yaml',
-    'sales.ossie.yaml',
-    'sales.mapping.yaml',
-  ]);
+  const documents = await exampleProject('commerce', ['commerce-business.ossie.yaml', 'sales.ossie.yaml', 'sales.mapping.yaml']);
   const context = buildContext(documents, 'commerce/sales.mapping.yaml');
   expect(context.findings).toEqual([]);
   const mapped = [...new Set(context.bindings.map(binding => binding.rootConcept))].sort();

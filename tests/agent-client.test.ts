@@ -1,11 +1,7 @@
 // Runs the example agent client against the mock provider's Entra endpoints and checks that the
 // server's bearer validation accepts the token MSAL obtained.
 import { expect, test } from 'bun:test';
-import {
-  readAgentSettings,
-  requestAgentToken,
-  type AgentSettings,
-} from '../scripts/examples/agent-client';
+import { readAgentSettings, requestAgentToken, type AgentSettings } from '../scripts/examples/agent-client';
 import { createBearerValidator } from '../src/server/auth/bearer';
 import { providerNetwork } from '../src/server/auth/msal-provider';
 import { TEST_CLIENTS, TEST_TENANT_ID } from './helpers/auth-identities';
@@ -34,9 +30,7 @@ test('the example reads one credential and names missing settings', () => {
   const managed = readAgentSettings({ ...base, AGENT_CLIENT_ID: '', AGENT_MANAGED_IDENTITY: '1' });
   expect(managed.credential).toEqual({ kind: 'managed-identity' });
   expect(() => readAgentSettings(base)).toThrow('AGENT_CLIENT_SECRET');
-  expect(() => readAgentSettings({ AGENT_CLIENT_SECRET: 'value' })).toThrow(
-    'Missing SW_URL, AGENT_TENANT_ID, AGENT_RESOURCE, AGENT_CLIENT_ID.',
-  );
+  expect(() => readAgentSettings({ AGENT_CLIENT_SECRET: 'value' })).toThrow('Missing SW_URL, AGENT_TENANT_ID, AGENT_RESOURCE, AGENT_CLIENT_ID.');
 });
 
 test('the token the example gets with MSAL passes the server bearer validation', () =>

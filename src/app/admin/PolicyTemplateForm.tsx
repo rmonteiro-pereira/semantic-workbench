@@ -3,15 +3,7 @@ import { useState } from 'react';
 import { templateRequest, type PolicyParameters } from './policy-templates';
 
 /** Collects structured rule parameters; the server generates the rule text for validation. */
-export function PolicyTemplateForm({
-  id,
-  template,
-  onApply,
-}: {
-  id: string;
-  template: string;
-  onApply: (text: string) => void;
-}) {
+export function PolicyTemplateForm({ id, template, onApply }: { id: string; template: string; onApply: (text: string) => void }) {
   const [parameters, setParameters] = useState<PolicyParameters>({
     template,
     domain: '',
@@ -53,10 +45,7 @@ export function PolicyTemplateForm({
       {fields.map(field => (
         <label key={field}>
           {field}
-          <input
-            value={parameters[field as keyof PolicyParameters]}
-            onChange={event => change(field, event.target.value)}
-          />
+          <input value={parameters[field as keyof PolicyParameters]} onChange={event => change(field, event.target.value)} />
         </label>
       ))}
       {error && <p role="alert">{error}</p>}

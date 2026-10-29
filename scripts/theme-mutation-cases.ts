@@ -37,10 +37,7 @@ function themeCheckCase(candidate: any) {
   assert.deepEqual(leaks, [{ file: 'src/panel.css', line: 2, literal: '#fff' }]);
   assert.deepEqual(candidate.violationsIn('src/panel.css', '.a { color: var(--color-text); }'), []);
   assert.deepEqual(candidate.violationsIn('src/shared/theme/theme.css', '.a { color: #fff; }'), []);
-  assert.deepEqual(
-    candidate.violationsIn('src/app/theme/theme-palette.ts', "const a = '#fff';"),
-    [],
-  );
+  assert.deepEqual(candidate.violationsIn('src/app/theme/theme-palette.ts', "const a = '#fff';"), []);
   assert.deepEqual(candidate.violationsIn('src/data.json', '{"color": "#fff"}'), []);
   assert.equal(candidate.runThemeCheck(['tests/fixtures/theme/leaky.css']), 1);
   assert.equal(candidate.runThemeCheck(['tests/fixtures/theme/clean.css']), 0);
@@ -56,11 +53,7 @@ function themeFilesCase(candidate: any) {
   assert.equal(candidate.isThemeFile('src/app/theme/theme-palette.ts'), true);
   assert.equal(candidate.isThemeFile('src/app/style.css'), false);
   const files = candidate.themedFiles(['tests/fixtures/theme']);
-  assert.deepEqual(files.sort(), [
-    'tests/fixtures/theme/clean.css',
-    'tests/fixtures/theme/leaky.css',
-    'tests/fixtures/theme/leaky.tsx',
-  ]);
+  assert.deepEqual(files.sort(), ['tests/fixtures/theme/clean.css', 'tests/fixtures/theme/leaky.css', 'tests/fixtures/theme/leaky.tsx']);
 }
 
 function codemodCase(candidate: any) {

@@ -14,8 +14,7 @@ type GroupLook = { name: string; color: string };
 // Each entity's group name and colour under the current Group by choice.
 function groupLooks(overview: ReturnType<typeof modelOverview> | null) {
   const looks = new Map<string, GroupLook>();
-  for (const group of overview?.groups ?? [])
-    for (const entity of group.entities) looks.set(entity.id, group);
+  for (const group of overview?.groups ?? []) for (const entity of group.entities) looks.set(entity.id, group);
   return looks;
 }
 
@@ -76,9 +75,7 @@ type Props = {
   handleNeighborhoodGraphSelectEntity: (id: string) => void;
   setSelectedEdge: React.Dispatch<React.SetStateAction<string>>;
   handleNeighborhoodGraphOpenKpis: (concept: string) => void;
-  crossFile: (
-    e: import('../../shared/core/model').Entity,
-  ) => import('../graph/NeighborhoodGraph').CrossFileTarget[];
+  crossFile: (e: import('../../shared/core/model').Entity) => import('../graph/NeighborhoodGraph').CrossFileTarget[];
   crossTo: (t: import('../graph/NeighborhoodGraph').CrossFileTarget) => void;
 };
 /** Renders graph views. */
@@ -145,10 +142,7 @@ export function GraphViews({
         return look ? [[e.name, look] as const] : [];
       }),
     );
-    const contractGroupOf = (card: LineageCard) =>
-      card.kind === 'object' && card.file === current?.path
-        ? objectLooks.get(card.label)
-        : undefined;
+    const contractGroupOf = (card: LineageCard) => (card.kind === 'object' && card.file === current?.path ? objectLooks.get(card.label) : undefined);
     return (
       <LineageCanvas
         key={current?.id}

@@ -48,18 +48,7 @@ const ODCS: Record<string, string> = {
   athena: 'athena',
   db2: 'db2',
 };
-export const GRAMMARS = [
-  'postgresql',
-  'snowflake',
-  'bigquery',
-  'hive',
-  'mysql',
-  'transactsql',
-  'trino',
-  'redshift',
-  'athena',
-  'db2',
-] as const;
+export const GRAMMARS = ['postgresql', 'snowflake', 'bigquery', 'hive', 'mysql', 'transactsql', 'trino', 'redshift', 'athena', 'db2'] as const;
 /** Selects the parser grammar for a dialect, or null when it should remain unchecked. */
 export function grammarOf(dialect: string | null, odcs = false): string | null {
   if (dialect === null || dialect === '') return 'postgresql';
@@ -67,25 +56,16 @@ export function grammarOf(dialect: string | null, odcs = false): string | null {
   const key = dialect.toUpperCase();
   return key in OSSIE ? OSSIE[key] : null;
 }
-const pointerOf = (path: (string | number)[]) =>
-  '/' + path.map(p => String(p).replace(/~/g, '~0').replace(/\//g, '~1')).join('/');
-const pattern = (path: (string | number)[]) =>
-  path.map(p => (typeof p === 'number' ? '*' : p)).join('/');
+const pointerOf = (path: (string | number)[]) => '/' + path.map(p => String(p).replace(/~/g, '~0').replace(/\//g, '~1')).join('/');
+const pattern = (path: (string | number)[]) => path.map(p => (typeof p === 'number' ? '*' : p)).join('/');
 // Key paths that can contain SQL expressions or statements.
 const MODEL = '(?:datasets/\\*/fields/\\*|metrics/\\*)/expression/dialects/\\*/expression';
-const OSSIE_MODEL = new RegExp(
-  `^(?:semantic_model(?:/\\*)?/|ontology_mappings/\\*/semantic_model(?:/\\*)?/)?${MODEL}$`,
-);
-const OSSIE_MAPPING =
-  /(?:^|\/)concept_mappings\/.*(?:object_mappings|referent_mappings|link_mappings)\/\*\/expression$/;
+const OSSIE_MODEL = new RegExp(`^(?:semantic_model(?:/\\*)?/|ontology_mappings/\\*/semantic_model(?:/\\*)?/)?${MODEL}$`);
+const OSSIE_MAPPING = /(?:^|\/)concept_mappings\/.*(?:object_mappings|referent_mappings|link_mappings)\/\*\/expression$/;
 const PROPS = 'properties/\\*(?:/(?:items/)?properties/\\*)*';
 const ODCS_QUERY = new RegExp(`^(?:schema/\\*/(?:${PROPS}/)?)?quality/\\*/query$`);
 const ODCS_TRANSFORM = new RegExp(`^schema/\\*/${PROPS}/transformLogic$`);
-const isOdcs = (root: any) =>
-  !!root &&
-  typeof root === 'object' &&
-  root.kind === 'DataContract' &&
-  typeof root.apiVersion === 'string';
+const isOdcs = (root: any) => !!root && typeof root === 'object' && root.kind === 'DataContract' && typeof root.apiVersion === 'string';
 /** Extracts embedded SQL and exact source mappings from a structured definition. */
 export function sqlRegions(source: string, filename = ''): SqlRegion[] {
   if (!/\.(ya?ml|json)$/i.test(filename) && filename) return [];
@@ -103,15 +83,10 @@ export function sqlRegions(source: string, filename = ''): SqlRegion[] {
     if (doc.errors?.length) continue;
     const root = doc.toJS({ maxAliasCount: -1 });
     const odcs = isOdcs(root);
-    const server =
-      odcs && Array.isArray(root.servers)
-        ? (root.servers.find((s: any) => s && typeof s.type === 'string')?.type ?? null)
-        : null;
+    const server = odcs && Array.isArray(root.servers) ? (root.servers.find((s: any) => s && typeof s.type === 'string')?.type ?? null) : null;
     const visit = (node: any, path: (string | number)[], parent: any) => {
       if (isMap(node)) {
-        for (const pair of node.items)
-          if (isPair(pair) && isScalar(pair.key))
-            visit(pair.value, [...path, String(pair.key.value)], node);
+        for (const pair of node.items) if (isPair(pair) && isScalar(pair.key)) visit(pair.value, [...path, String(pair.key.value)], node);
         return;
       }
       if (isSeq(node)) {
@@ -201,12 +176,7 @@ function lines(src: string, from: number, to: number) {
 // Continuation lines lose leading whitespace; one break folds to a space and blank lines to
 // breaks. An escaped break joins lines. Each decoded character retains its original offset,
 // including folded whitespace.
-function flow(
-  src: string,
-  from: number,
-  to: number,
-  quote: '"' | "'" | null,
-): { chars: string[]; offsets: number[] } {
+function flow(src: string, from: number, to: number, quote: '"' | "'" | null): { chars: string[]; offsets: number[] } {
   const chars: string[] = [];
   const offsets: number[] = [];
   const ls = lines(src, from, to);
@@ -260,9 +230,7 @@ function flow(
         }
         if (n === 'x' || n === 'u' || n === 'U') {
           const len = n === 'x' ? 2 : n === 'u' ? 4 : 8;
-          for (const ch of String.fromCodePoint(parseInt(body.slice(i + 2, i + 2 + len), 16)).split(
-            '',
-          )) {
+          for (const ch of String.fromCodePoint(parseInt(body.slice(i + 2, i + 2 + len), 16)).split('')) {
             chars.push(ch);
             offsets.push(at);
           }
@@ -298,8 +266,7 @@ function block(src: string, node: Scalar<string>): { chars: string[]; offsets: n
   const indicator = /[1-9]/.exec(header)?.[0];
   const chomp = header.includes('-') ? 'strip' : header.includes('+') ? 'keep' : 'clip';
   let ls = lines(src, headerEnd + 1, end);
-  if (ls.length && ls[ls.length - 1].at === end && ls[ls.length - 1].text === '')
-    ls = ls.slice(0, -1);
+  if (ls.length && ls[ls.length - 1].at === end && ls[ls.length - 1].text === '') ls = ls.slice(0, -1);
   let indent: number;
   if (indicator) {
     const lineStart = src.lastIndexOf('\n', start - 1) + 1;
@@ -385,19 +352,13 @@ export function offsetMap(src: string, node: Scalar<string>): Map_ {
   } catch {
     r = { chars: [], offsets: [] };
   }
-  if (r.chars.join('') === value && r.offsets.length === value.length)
-    return { offsets: [...r.offsets, valueEnd], exact: true };
+  if (r.chars.join('') === value && r.offsets.length === value.length) return { offsets: [...r.offsets, valueEnd], exact: true };
   // Not reliably mappable: every character goes to the expression's first character.
   const first =
     node.type === 'QUOTE_DOUBLE' || node.type === 'QUOTE_SINGLE'
       ? start + 1
       : node.type?.startsWith('BLOCK')
-        ? Math.min(
-            valueEnd,
-            src.indexOf('\n', start) +
-              1 +
-              (/^[ \t]*/.exec(src.slice(src.indexOf('\n', start) + 1))?.[0].length ?? 0),
-          )
+        ? Math.min(valueEnd, src.indexOf('\n', start) + 1 + (/^[ \t]*/.exec(src.slice(src.indexOf('\n', start) + 1))?.[0].length ?? 0))
         : start;
   return { offsets: Array.from({ length: value.length + 1 }, () => first), exact: false };
 }

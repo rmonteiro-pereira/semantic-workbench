@@ -53,16 +53,12 @@ test('a conflicting pull merges with --no-rebase, lists conflicted files, blocks
     const text = readFileSync(join(p.dir, 'shop.yaml'), 'utf8');
     expect(text).toContain('<<<<<<<');
     // The conflicted file is listed in the workspace as invalid, for repair in Source.
-    const file = (await ok(call(p.t, 'GET', '/api/projects')))[0].files.find(
-      (f: any) => f.path === 'shop.yaml',
-    );
+    const file = (await ok(call(p.t, 'GET', '/api/projects')))[0].files.find((f: any) => f.path === 'shop.yaml');
     expect(file).toMatchObject({ valid: false, gitState: 'conflicted' });
     const s = await ok(call(p.t, 'GET', p.base + '/git/status'));
     expect(s.merging).toBe(true);
     expect(s.changes[0]).toMatchObject({ path: 'shop.yaml', conflicted: true });
-    expect(
-      (await call(p.t, 'POST', p.base + '/git/commit', { message: 'Merge' })).body.error,
-    ).toContain('Resolve the conflicted files');
+    expect((await call(p.t, 'POST', p.base + '/git/commit', { message: 'Merge' })).body.error).toContain('Resolve the conflicted files');
     const current = p.t.ws.readFile(p.slug, 'shop.yaml');
     await p.t.ws.saveFile(
       p.slug,
@@ -86,17 +82,9 @@ test('remote commands run only from the explicit actions; nothing else contacts 
     expect(subcommandOf(['-c', 'a=b', 'fetch', 'x'])).toBe('fetch');
     expect(subcommandOf(['remote', 'update'])).toBe('remote-update');
     expect(subcommandOf(['remote', '-v'])).toBe('remote');
-    for (const args of [
-      ['fetch'],
-      ['pull'],
-      ['push'],
-      ['-c', 'x=y', 'ls-remote', 'origin'],
-      ['remote', 'update'],
-    ])
-      await expect(p.t.ws.git.run(p.dir, args)).rejects.toThrow('explicit');
+    for (const args of [['fetch'], ['pull'], ['push'], ['-c', 'x=y', 'ls-remote', 'origin'], ['remote', 'update']]) await expect(p.t.ws.git.run(p.dir, args)).rejects.toThrow('explicit');
     rmFetchHead(p.dir);
-    for (const path of ['/git/status', '/git/branches', '/git/log', '/git/diff?path=shop.yaml'])
-      await ok(call(p.t, 'GET', p.base + path));
+    for (const path of ['/git/status', '/git/branches', '/git/log', '/git/diff?path=shop.yaml']) await ok(call(p.t, 'GET', p.base + path));
     await ok(call(p.t, 'GET', '/api/projects'));
     expect(existsSync(join(p.dir, '.git/FETCH_HEAD'))).toBe(false);
   } finally {
@@ -161,9 +149,7 @@ test('a waiting remote operation is cancelled from the UI, and stops at its time
   try {
     await t.git.init(t.dir);
     await t.git.run(t.dir, ['remote', 'add', 'origin', 'ssh://example.invalid/repo.git']);
-    await expect(t.git.run(t.dir, ['fetch', 'origin'], { remote: true })).rejects.toThrow(
-      'timed out',
-    );
+    await expect(t.git.run(t.dir, ['fetch', 'origin'], { remote: true })).rejects.toThrow('timed out');
   } finally {
     t.d.cleanup();
   }

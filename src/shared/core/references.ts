@@ -10,14 +10,7 @@ const usable = (key: unknown): key is string => typeof key === 'string' && key.l
 /** Returns comparable entity identities with declared prefixes expanded. */
 export function entityKeys(entity: Entity, model: ModelLike): string[] {
   const d = entity.definition ?? {};
-  const keys = [
-    d.iri,
-    d.source,
-    d.physicalName,
-    ...(Array.isArray(d.authoritativeDefinitions)
-      ? d.authoritativeDefinitions.map((a: any) => a?.url)
-      : []),
-  ];
+  const keys = [d.iri, d.source, d.physicalName, ...(Array.isArray(d.authoritativeDefinitions) ? d.authoritativeDefinitions.map((a: any) => a?.url) : [])];
   if (typeof d.iri === 'string') {
     const r = expandIri(d.iri, prefixMap(model?.document?.prefixes));
     if ('iri' in r) keys.push(r.iri);
@@ -26,8 +19,7 @@ export function entityKeys(entity: Entity, model: ModelLike): string[] {
   return [...new Set(keys.filter(usable))];
 }
 /** Collects shared identity keys for a model's entities. */
-export const documentKeys = (model: ModelLike) =>
-  new Set((model?.entities ?? []).flatMap(e => entityKeys(e, model)));
+export const documentKeys = (model: ModelLike) => new Set((model?.entities ?? []).flatMap(e => entityKeys(e, model)));
 
 /**
  * The other documents of the open file's project that define one of the given identities, either
@@ -39,10 +31,5 @@ export function relatedDocumentsOf<Related extends { id: string; project: string
   keys: string[],
   identitiesOf: (documentId: string) => Set<string> | undefined,
 ) {
-  return documents.filter(
-    candidate =>
-      candidate.project === open.project &&
-      candidate.id !== open.id &&
-      keys.some(key => identitiesOf(candidate.id)?.has(key) || candidate.source.includes(key)),
-  );
+  return documents.filter(candidate => candidate.project === open.project && candidate.id !== open.id && keys.some(key => identitiesOf(candidate.id)?.has(key) || candidate.source.includes(key)));
 }

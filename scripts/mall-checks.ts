@@ -7,15 +7,7 @@ import { buildContext, planQuery, type StoredDocument } from '../src/server/agen
 // expected.json, which the generator computes from rows, not from SQL.
 const dir = 'public/examples/mall/';
 /** Lists the shopping center files loaded together by example checks. */
-export const mallFiles = [
-  'mall.mapping.yaml',
-  'mall.ontology.yaml',
-  'mall.semantic.yaml',
-  'mall.odcs.yaml',
-  'mall.owl.ttl',
-  'mall.shacl.ttl',
-  'mall-data.ttl',
-];
+export const mallFiles = ['mall.mapping.yaml', 'mall.ontology.yaml', 'mall.semantic.yaml', 'mall.odcs.yaml', 'mall.owl.ttl', 'mall.shacl.ttl', 'mall-data.ttl'];
 /** Checks shopping center query results against independently calculated fixture values. */
 export async function checkMall() {
   const docs: StoredDocument[] = await Promise.all(
@@ -63,80 +55,31 @@ export async function checkMall() {
         dimensions: dimensions.map(d => JSON.stringify(d)),
       });
       const rows = db.query(p.sql).all() as any[];
-      const result = Object.fromEntries(
-        rows.map(r => [
-          dimensions.map((_, i) => r[`dimension_${i + 1}`]).join('|') || 'total',
-          r.metric_1,
-        ]),
-      );
+      const result = Object.fromEntries(rows.map(r => [dimensions.map((_, i) => r[`dimension_${i + 1}`]).join('|') || 'total', r.metric_1]));
       executions.push({ metric, dimensions, joins: p.joins.map((j: any) => j.name), result });
       return result;
     };
-    const same = (
-      actual: Record<string, number>,
-      wanted: Record<string, number>,
-      label: string,
-    ) => {
+    const same = (actual: Record<string, number>, wanted: Record<string, number>, label: string) => {
       assert.deepEqual(Object.keys(actual).sort(), Object.keys(wanted).sort(), label);
-      for (const k of Object.keys(wanted))
-        assert(
-          Math.abs(actual[k] - wanted[k]) < 1e-9,
-          `${label} ${k}: ${actual[k]} != ${wanted[k]}`,
-        );
+      for (const k of Object.keys(wanted)) assert(Math.abs(actual[k] - wanted[k]) < 1e-9, `${label} ${k}: ${actual[k]} != ${wanted[k]}`);
     };
     const month: [string, string] = ['calendar_months', 'year_month'];
     const property: [string, string] = ['properties', 'name'];
-    same(
-      run('occupancy_rate', [month, property]),
-      expected.occupancyRateByMonthProperty,
-      'occupancy rate',
-    );
+    same(run('occupancy_rate', [month, property]), expected.occupancyRateByMonthProperty, 'occupancy rate');
     same(run('vacant_gla', [month]), expected.vacantGlaByMonth, 'vacant GLA');
-    same(
-      run('minimum_rent_per_m2', [month]),
-      expected.minimumRentPerM2ByMonth,
-      'minimum rent per m²',
-    );
-    same(
-      run('billed_amount', [['charge_types', 'name']]),
-      expected.billedByChargeType,
-      'billed by charge type',
-    );
+    same(run('minimum_rent_per_m2', [month]), expected.minimumRentPerM2ByMonth, 'minimum rent per m²');
+    same(run('billed_amount', [['charge_types', 'name']]), expected.billedByChargeType, 'billed by charge type');
     same(run('delinquency_rate', [month]), expected.delinquencyRateByMonth, 'delinquency rate');
     same(run('open_amount', [month]), expected.openAmountByMonth, 'open amount');
-    same(
-      run('sales_per_m2', [month, ['merchandise_categories', 'name']]),
-      expected.salesPerM2ByMonthCategory,
-      'sales per m²',
-    );
-    same(
-      run('occupancy_cost_ratio', [property]),
-      expected.occupancyCostRatioByProperty,
-      'occupancy cost ratio',
-    );
+    same(run('sales_per_m2', [month, ['merchandise_categories', 'name']]), expected.salesPerM2ByMonthCategory, 'sales per m²');
+    same(run('occupancy_cost_ratio', [property]), expected.occupancyCostRatioByProperty, 'occupancy cost ratio');
     same(run('visitors', [month, property]), expected.visitorsByMonthProperty, 'visitors');
-    same(
-      run('net_operating_income', [month, property]),
-      expected.netOperatingIncomeByMonthProperty,
-      'NOI',
-    );
+    same(run('net_operating_income', [month, property]), expected.netOperatingIncomeByMonthProperty, 'NOI');
     same(run('noi_margin', [property]), expected.noiMarginByProperty, 'NOI margin');
-    same(
-      run('payroll_cost', [month, ['departments', 'name']]),
-      expected.payrollCostByMonthDepartment,
-      'payroll cost',
-    );
+    same(run('payroll_cost', [month, ['departments', 'name']]), expected.payrollCostByMonthDepartment, 'payroll cost');
     same(run('headcount', [month]), expected.headcountByMonth, 'headcount');
-    same(
-      run('purchase_spend', [['expense_categories', 'name']]),
-      expected.purchaseSpendByCategory,
-      'purchase spend',
-    );
-    same(
-      run('payables_outstanding', [month]),
-      expected.payablesOutstandingByMonth,
-      'payables outstanding',
-    );
+    same(run('purchase_spend', [['expense_categories', 'name']]), expected.purchaseSpendByCategory, 'purchase spend');
+    same(run('payables_outstanding', [month]), expected.payablesOutstandingByMonth, 'payables outstanding');
     // Contracted tenant (charge → lease → tenant) and billed tenant (charge → invoice → tenant)
     // are distinct roles.
     assert.throws(

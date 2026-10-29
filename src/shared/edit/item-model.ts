@@ -5,17 +5,7 @@ import { isObject } from './source-text';
 // Field paths address either the item or its workbench metric extension. Child lists and insertion
 // locations depend on the document format.
 /** Names a document item that supports structured editing. */
-export type ItemKind =
-  | 'concept'
-  | 'ontology-relationship'
-  | 'dataset'
-  | 'field'
-  | 'join'
-  | 'metric'
-  | 'odcs-object'
-  | 'odcs-property'
-  | 'odcs-foreign-key'
-  | 'concept-mapping';
+export type ItemKind = 'concept' | 'ontology-relationship' | 'dataset' | 'field' | 'join' | 'metric' | 'odcs-object' | 'odcs-property' | 'odcs-foreign-key' | 'concept-mapping';
 /** Locates a value by mapping keys and list indexes. */
 export type Path = (string | number)[];
 /** Describes an editable field's path, input type and available choices. */
@@ -49,12 +39,7 @@ export function itemKindAt(document: any, path: Path): ItemKind | null {
   const list = path[at];
   if (typeof path.at(-1) !== 'number') return null;
   if (list === 'ontology') return 'concept';
-  if (list === 'relationships')
-    return path[at - 2] === 'ontology'
-      ? 'ontology-relationship'
-      : document?.kind === 'DataContract'
-        ? 'odcs-foreign-key'
-        : 'join';
+  if (list === 'relationships') return path[at - 2] === 'ontology' ? 'ontology-relationship' : document?.kind === 'DataContract' ? 'odcs-foreign-key' : 'join';
   if (list === 'datasets') return 'dataset';
   if (list === 'fields' && path[at - 2] === 'datasets') return 'field';
   if (list === 'metrics') return 'metric';
@@ -64,12 +49,7 @@ export function itemKindAt(document: any, path: Path): ItemKind | null {
   return null;
 }
 /** Returns the field used as the name for an item kind. */
-export const nameKey = (kind: ItemKind) =>
-  kind === 'concept' || kind === 'concept-mapping'
-    ? 'concept'
-    : kind === 'odcs-foreign-key'
-      ? 'to'
-      : 'name';
+export const nameKey = (kind: ItemKind) => (kind === 'concept' || kind === 'concept-mapping' ? 'concept' : kind === 'odcs-foreign-key' ? 'to' : 'name');
 /** Reads the identifying name of an item. */
 export function itemName(kind: ItemKind, item: any) {
   const v = item?.[nameKey(kind)];
@@ -90,19 +70,8 @@ export type Choices = { concepts: string[]; datasets: string[]; metrics: string[
 const ansi: Path = ['expression', 'dialects', 0, 'expression'];
 /** Returns the form fields supported by an item kind. */
 export function fieldsFor(kind: ItemKind, choices: Choices): FieldSpec[] {
-  const f = (
-    key: string,
-    label: string,
-    input: FieldSpec['input'],
-    extra: Partial<FieldSpec> = {},
-  ): FieldSpec => ({ key, label, input, at: extra.at ?? [key], ...extra });
-  const ext = (
-    key: string,
-    label: string,
-    input: FieldSpec['input'],
-    extra: Partial<FieldSpec> = {},
-  ): FieldSpec =>
-    f('ext.' + key, label, input, { at: extra.at ?? [key], extension: true, ...extra });
+  const f = (key: string, label: string, input: FieldSpec['input'], extra: Partial<FieldSpec> = {}): FieldSpec => ({ key, label, input, at: extra.at ?? [key], ...extra });
+  const ext = (key: string, label: string, input: FieldSpec['input'], extra: Partial<FieldSpec> = {}): FieldSpec => f('ext.' + key, label, input, { at: extra.at ?? [key], extension: true, ...extra });
   switch (kind) {
     case 'concept':
       return [
@@ -145,19 +114,7 @@ export function fieldsFor(kind: ItemKind, choices: Choices): FieldSpec[] {
         f('name', 'Name', 'text', { required: true }),
         f('expression', 'Expression (ANSI SQL)', 'code', { at: ansi, required: true }),
         f('datatype', 'Data type', 'select', {
-          options: [
-            '',
-            'String',
-            'Integer',
-            'Decimal',
-            'Float',
-            'Boolean',
-            'Date',
-            'Time',
-            'DateTime',
-            'DateTimeTz',
-            'Opaque',
-          ],
+          options: ['', 'String', 'Integer', 'Decimal', 'Float', 'Boolean', 'Date', 'Time', 'DateTime', 'DateTimeTz', 'Opaque'],
         }),
         f('description', 'Description', 'textarea'),
       ];
@@ -230,18 +187,7 @@ export function fieldsFor(kind: ItemKind, choices: Choices): FieldSpec[] {
       return [
         f('name', 'Name', 'text', { required: true }),
         f('logicalType', 'Logical type', 'select', {
-          options: [
-            '',
-            'string',
-            'date',
-            'timestamp',
-            'time',
-            'number',
-            'integer',
-            'object',
-            'array',
-            'boolean',
-          ],
+          options: ['', 'string', 'date', 'timestamp', 'time', 'number', 'integer', 'object', 'array', 'boolean'],
         }),
         f('physicalType', 'Physical type', 'text'),
         f('required', 'Required', 'boolean'),
@@ -251,18 +197,13 @@ export function fieldsFor(kind: ItemKind, choices: Choices): FieldSpec[] {
         f('description', 'Description', 'textarea'),
       ];
     case 'odcs-foreign-key':
-      return [
-        f('to', 'References', 'text', { required: true, hint: 'object.property' }),
-        f('type', 'Type', 'select', { options: ['foreignKey'] }),
-      ];
+      return [f('to', 'References', 'text', { required: true, hint: 'object.property' }), f('type', 'Type', 'select', { options: ['foreignKey'] })];
     case 'concept-mapping':
       return [f('concept', 'Concept', 'select', { options: choices.concepts, required: true })];
   }
 }
 // Child lists shown in an item's editor, each opening its own item editor.
-export const childLists: Partial<
-  Record<ItemKind, { key: string; kind: ItemKind; label: string }[]>
-> = {
+export const childLists: Partial<Record<ItemKind, { key: string; kind: ItemKind; label: string }[]>> = {
   concept: [{ key: 'relationships', kind: 'ontology-relationship', label: 'Relationships' }],
   dataset: [{ key: 'fields', kind: 'field', label: 'Fields' }],
   'odcs-object': [
@@ -288,19 +229,12 @@ export function extensionOf(item: any): { index: number; value: any } | null {
 const getAt = (v: any, path: Path) => path.reduce((x, k) => x?.[k], v);
 function setAt(v: any, path: Path, value: any): any {
   const [k, ...rest] = path;
-  const base: any = Array.isArray(v)
-    ? [...v]
-    : isObject(v)
-      ? { ...v }
-      : typeof k === 'number'
-        ? []
-        : {};
+  const base: any = Array.isArray(v) ? [...v] : isObject(v) ? { ...v } : typeof k === 'number' ? [] : {};
   const next = rest.length ? setAt(base[k as any], rest, value) : value;
   if (next === undefined && !Array.isArray(base)) delete base[k as any];
   else base[k as any] = next;
   // An object left empty by a removal disappears with it.
-  if (rest.length && isObject(base[k as any]) && !Object.keys(base[k as any]).length)
-    delete base[k as any];
+  if (rest.length && isObject(base[k as any]) && !Object.keys(base[k as any]).length) delete base[k as any];
   return base;
 }
 /** Reads a field from the item or its metric extension. */
@@ -338,14 +272,7 @@ export function writeExtension(item: any, data: any) {
   return { ...item, custom_extensions: list };
 }
 
-const GOVERNANCE = new Set([
-  'status',
-  'replaced_by',
-  'deprecation_reason',
-  'owner',
-  'steward',
-  'label',
-]);
+const GOVERNANCE = new Set(['status', 'replaced_by', 'deprecation_reason', 'owner', 'steward', 'label']);
 const definition = (item: any) => {
   const ext = extensionOf(item)?.value ?? {};
   return JSON.stringify([
@@ -363,18 +290,12 @@ const definition = (item: any) => {
 export function applyStatusRules(before: any, after: any): { item: any; reopened: boolean } {
   const was = extensionOf(before)?.value?.status;
   const now = extensionOf(after)?.value;
-  if (was !== 'approved' || now?.status !== 'approved' || definition(before) === definition(after))
-    return { item: after, reopened: false };
+  if (was !== 'approved' || now?.status !== 'approved' || definition(before) === definition(after)) return { item: after, reopened: false };
   return { item: writeExtension(after, { ...now, status: 'proposed' }), reopened: true };
 }
 
 /** Locates the list where a new item belongs, optionally under an owner. */
-export function listPathFor(
-  kind: ItemKind,
-  document: any,
-  owner?: Path,
-  modelPrefix: Path = [],
-): Path | null {
+export function listPathFor(kind: ItemKind, document: any, owner?: Path, modelPrefix: Path = []): Path | null {
   switch (kind) {
     case 'concept':
       return Array.isArray(document?.ontology) ? ['ontology'] : null;
@@ -406,8 +327,7 @@ export function addableKinds(document: any): ItemKind[] {
   if (Array.isArray(document.concept_mappings)) return ['concept-mapping'];
   const out: ItemKind[] = [];
   if (Array.isArray(document.ontology)) out.push('concept');
-  if (Array.isArray(document.datasets) || Array.isArray(document.semantic_model))
-    out.push('dataset', 'join', 'metric');
+  if (Array.isArray(document.datasets) || Array.isArray(document.semantic_model)) out.push('dataset', 'join', 'metric');
   return out;
 }
 
@@ -415,9 +335,7 @@ export function addableKinds(document: any): ItemKind[] {
 export function semanticModelPrefix(document: any): Path | null {
   if (Array.isArray(document?.datasets)) return [];
   if (Array.isArray(document?.semantic_model)) return ['semantic_model', 0];
-  const i = Array.isArray(document?.ontology_mappings)
-    ? document.ontology_mappings.findIndex((m: any) => isObject(m?.semantic_model))
-    : -1;
+  const i = Array.isArray(document?.ontology_mappings) ? document.ontology_mappings.findIndex((m: any) => isObject(m?.semantic_model)) : -1;
   return i >= 0 ? ['ontology_mappings', i, 'semantic_model'] : null;
 }
 
@@ -429,25 +347,16 @@ export function semanticModelPaths(document: any): Path[] {
   if (!isObject(document) || isMapping(document) || document.kind === 'DataContract') return [];
   if (Array.isArray(document.ontology)) {
     const mappings = Array.isArray(document.ontology_mappings) ? document.ontology_mappings : [];
-    return mappings.flatMap((mapping: any, index: number) =>
-      isObject(mapping?.semantic_model) ? [['ontology_mappings', index, 'semantic_model']] : [],
-    );
+    return mappings.flatMap((mapping: any, index: number) => (isObject(mapping?.semantic_model) ? [['ontology_mappings', index, 'semantic_model']] : []));
   }
   if (Array.isArray(document.datasets)) return [[]];
   const models = Array.isArray(document.semantic_model) ? document.semantic_model : [];
-  return models.flatMap((model: any, index: number) =>
-    isObject(model) && Array.isArray(model.datasets) ? [['semantic_model', index]] : [],
-  );
+  return models.flatMap((model: any, index: number) => (isObject(model) && Array.isArray(model.datasets) ? [['semantic_model', index]] : []));
 }
 
 /** Builds a new item with fields ordered like the format's examples. */
 export function newItem(kind: ItemKind, values: Record<string, any>): any {
-  const clean = (o: Record<string, any>) =>
-    Object.fromEntries(
-      Object.entries(o).filter(
-        ([, v]) => v !== undefined && v !== '' && !(Array.isArray(v) && !v.length),
-      ),
-    );
+  const clean = (o: Record<string, any>) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined && v !== '' && !(Array.isArray(v) && !v.length)));
   switch (kind) {
     case 'concept':
       return clean({
@@ -501,9 +410,7 @@ export function newItem(kind: ItemKind, values: Record<string, any>): any {
         physicalType: values.physicalType || 'table',
         logicalType: 'object',
         description: values.description,
-        properties: [
-          clean({ name: values.property || 'id', logicalType: values.propertyType || 'string' }),
-        ],
+        properties: [clean({ name: values.property || 'id', logicalType: values.propertyType || 'string' })],
       });
     case 'odcs-property':
       return clean({

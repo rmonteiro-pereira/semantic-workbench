@@ -7,17 +7,7 @@ import { BASE, WELL_KNOWN, usedPrefixes } from './terms';
 // formulae or rules must be edited in Source.
 /** Records a Turtle token's kind, text and source offsets. */
 export type Tok = {
-  t:
-    | 'iri'
-    | 'pname'
-    | 'bnode'
-    | 'literal'
-    | 'number'
-    | 'word'
-    | 'punct'
-    | 'comment'
-    | 'directive'
-    | 'n3';
+  t: 'iri' | 'pname' | 'bnode' | 'literal' | 'number' | 'word' | 'punct' | 'comment' | 'directive' | 'n3';
   text: string;
   start: number;
   end: number;
@@ -58,8 +48,7 @@ export function tokenize(src: string): Tok[] {
       let e: number;
       if (rest === c.repeat(3)) {
         e = i + 3;
-        while (e < src.length && !(src.startsWith(c.repeat(3), e) && src[e - 1] !== '\\'))
-          e += src[e] === '\\' ? 2 : 1;
+        while (e < src.length && !(src.startsWith(c.repeat(3), e) && src[e - 1] !== '\\')) e += src[e] === '\\' ? 2 : 1;
         e += 3;
       } else {
         e = i + 1;
@@ -114,9 +103,7 @@ export function tokenize(src: string): Tok[] {
       push('bnode', i + (m ? m[0].length : 2));
       continue;
     }
-    const num = /^[+-]?(?:\d+(?:\.\d+)?(?:[eE][+-]?\d+)?|\.\d+(?:[eE][+-]?\d+)?)/.exec(
-      src.slice(i),
-    );
+    const num = /^[+-]?(?:\d+(?:\.\d+)?(?:[eE][+-]?\d+)?|\.\d+(?:[eE][+-]?\d+)?)/.exec(src.slice(i));
     if (num) {
       push('number', i + num[0].length);
       continue;
@@ -128,14 +115,7 @@ export function tokenize(src: string): Tok[] {
     }
     const w = /^[A-Za-z][\w-]*/.exec(src.slice(i));
     if (w) {
-      push(
-        /^(PREFIX|BASE)$/i.test(w[0])
-          ? 'directive'
-          : ['is', 'of', 'has'].includes(w[0])
-            ? 'n3'
-            : 'word',
-        i + w[0].length,
-      );
+      push(/^(PREFIX|BASE)$/i.test(w[0]) ? 'directive' : ['is', 'of', 'has'].includes(w[0]) ? 'n3' : 'word', i + w[0].length);
       continue;
     }
     throw Error(`Unexpected character "${c}".`);
@@ -285,10 +265,7 @@ export function readDocument(src: string): Document {
         k = e + 1;
         return span;
       }
-      if (
-        ['iri', 'pname', 'bnode', 'literal', 'number'].includes(t.t) ||
-        (t.t === 'word' && (t.text === 'true' || t.text === 'false'))
-      ) {
+      if (['iri', 'pname', 'bnode', 'literal', 'number'].includes(t.t) || (t.t === 'word' && (t.text === 'true' || t.text === 'false'))) {
         k++;
         return { start: t.start, end: t.end, text: t.text };
       }
@@ -363,22 +340,14 @@ export function turtlePatches(
 ): { patches: Patch[]; warnings: string[] } {
   const patches: Patch[] = [];
   const warnings: string[] = [];
-  const mine = doc.statements
-    .map((s, i) => ({ s, i }))
-    .filter(x => !x.s.directive && x.s.subject === subject);
+  const mine = doc.statements.map((s, i) => ({ s, i })).filter(x => !x.s.directive && x.s.subject === subject);
   const id = (st: number, sg: number, ob: number) => `${st}:${sg}:${ob}`;
   const warnComments = (from: number, to: number, st: Statement) => {
-    for (const c of st.comments)
-      if (c.start >= from && c.end <= to)
-        warnings.push(
-          `The comment "${c.text.slice(0, 80)}" is inside a removed statement and is removed with it.`,
-        );
+    for (const c of st.comments) if (c.start >= from && c.end <= to) warnings.push(`The comment "${c.text.slice(0, 80)}" is inside a removed statement and is removed with it.`);
   };
   let pending = [...added];
   mine.forEach(({ s: st, i }, n) => {
-    const keptSeg = st.segments.map((sg, g) =>
-      sg.objects.some((_, o) => !removed.has(id(i, g, o))),
-    );
+    const keptSeg = st.segments.map((sg, g) => sg.objects.some((_, o) => !removed.has(id(i, g, o))));
     const additions = n === 0 ? pending : [];
     if (n === 0) pending = [];
     // Additions to a predicate the block already has go after its last remaining object.
@@ -399,10 +368,7 @@ export function turtlePatches(
     }
     const grouped = new Map<string, TurtleAdd[]>();
     for (const a of rest) grouped.set(a.verbIri, [...(grouped.get(a.verbIri) ?? []), a]);
-    const newText = (sep: string) =>
-      [...grouped.values()]
-        .map(g => `${g[0].verbText} ${g.map(a => a.objectText).join(', ')}`)
-        .join(' ;' + sep);
+    const newText = (sep: string) => [...grouped.values()].map(g => `${g[0].verbText} ${g.map(a => a.objectText).join(', ')}`).join(' ;' + sep);
     if (!keptSeg.some(Boolean)) {
       if (grouped.size) {
         const sep = separator(src, st, eol);
@@ -413,14 +379,8 @@ export function turtlePatches(
         });
         warnComments(st.segments[0].start, st.segments.at(-1)!.end, st);
       } else {
-        const from = only(src, lineStart(src, st.start), st.start)
-          ? lineStart(src, st.start)
-          : st.start;
-        const to =
-          only(src, st.end, lineEndAfter(src, st.end)) ||
-          /^[ \t]*\r?\n?$/.test(src.slice(st.end, lineEndAfter(src, st.end)))
-            ? lineEndAfter(src, st.end)
-            : st.end;
+        const from = only(src, lineStart(src, st.start), st.start) ? lineStart(src, st.start) : st.start;
+        const to = only(src, st.end, lineEndAfter(src, st.end)) || /^[ \t]*\r?\n?$/.test(src.slice(st.end, lineEndAfter(src, st.end))) ? lineEndAfter(src, st.end) : st.end;
         patches.push({ from, to, insert: '' });
         warnComments(from, to, st);
       }
@@ -447,8 +407,7 @@ export function turtlePatches(
       for (let o = 0; o < sg.objects.length;) {
         if (keptObj[o]) {
           const r = replaced.get(id(i, g, o));
-          if (r !== undefined)
-            patches.push({ from: sg.objects[o].start, to: sg.objects[o].end, insert: r });
+          if (r !== undefined) patches.push({ from: sg.objects[o].start, to: sg.objects[o].end, insert: r });
           o++;
           continue;
         }
@@ -473,18 +432,12 @@ export function turtlePatches(
   if (pending.length) {
     const grouped = new Map<string, TurtleAdd[]>();
     for (const a of pending) grouped.set(a.verbIri, [...(grouped.get(a.verbIri) ?? []), a]);
-    const multi = doc.statements.some(
-      s => !s.directive && s.segments.length > 1 && separator(src, s, eol) !== ' ',
-    );
+    const multi = doc.statements.some(s => !s.directive && s.segments.length > 1 && separator(src, s, eol) !== ' ');
     const indent = (() => {
-      const s = doc.statements.find(
-        s => !s.directive && s.segments.length > 1 && separator(src, s, eol) !== ' ',
-      );
+      const s = doc.statements.find(s => !s.directive && s.segments.length > 1 && separator(src, s, eol) !== ' ');
       return s ? separator(src, s, eol).slice(eol.length) : '    ';
     })();
-    const body = [...grouped.values()]
-      .map(g => `${g[0].verbText} ${g.map(a => a.objectText).join(', ')}`)
-      .join(multi ? ` ;${eol}${indent}` : ' ; ');
+    const body = [...grouped.values()].map(g => `${g[0].verbText} ${g.map(a => a.objectText).join(', ')}`).join(multi ? ` ;${eol}${indent}` : ' ; ');
     const at = src.length;
     const needsBreak = at > 0 && !/[\r\n]$/.test(src);
     patches.push({
@@ -498,23 +451,14 @@ export function turtlePatches(
 
 /** Adds declarations for well-known prefixes used by new text but absent from the file. */
 export function prefixPatches(src: string, doc: Document, texts: string[], eol: string): Patch[] {
-  const missing = [...new Set(texts.flatMap(usedPrefixes))].filter(
-    p => !(p in doc.prefixes) && p in WELL_KNOWN,
-  );
+  const missing = [...new Set(texts.flatMap(usedPrefixes))].filter(p => !(p in doc.prefixes) && p in WELL_KNOWN);
   if (!missing.length) return [];
   const at = doc.directiveEnd ? lineEndAfter(src, doc.directiveEnd) : 0;
   return [
     {
       from: at,
       to: at,
-      insert:
-        missing
-          .map(p =>
-            doc.sparqlStyle
-              ? `PREFIX ${p}: <${WELL_KNOWN[p]}>`
-              : `@prefix ${p}: <${WELL_KNOWN[p]}> .`,
-          )
-          .join(eol) + eol,
+      insert: missing.map(p => (doc.sparqlStyle ? `PREFIX ${p}: <${WELL_KNOWN[p]}>` : `@prefix ${p}: <${WELL_KNOWN[p]}> .`)).join(eol) + eol,
     },
   ];
 }

@@ -8,13 +8,7 @@ import addFormats from 'ajv-formats';
 import accessSchema from '../../schemas/semantic-workbench-access-v1.json';
 import { documentsOfProject } from '../../src/shared/core/project-scope';
 import { buildContext } from '../../src/server/agent/runtime';
-import {
-  AUTH_FIXTURE,
-  AUTH_PROJECTS,
-  authWorkspace,
-  fixtureFiles,
-  leakMarker,
-} from '../helpers/auth-workspace';
+import { AUTH_FIXTURE, AUTH_PROJECTS, authWorkspace, fixtureFiles, leakMarker } from '../helpers/auth-workspace';
 import { TEST_GROUPS } from '../helpers/auth-identities';
 
 const ajv = new Ajv2020({ strict: false, allErrors: true });
@@ -44,9 +38,7 @@ test('every access file of the fixture matches the pinned access schema', () => 
 });
 
 test('every fixture file carries its own leak marker', () => {
-  for (const project of AUTH_PROJECTS)
-    for (const file of fixtureFiles(project))
-      expect(file.source).toContain(leakMarker(project, file.path));
+  for (const project of AUTH_PROJECTS) for (const file of fixtureFiles(project)) expect(file.source).toContain(leakMarker(project, file.path));
 });
 
 test('the fixture imports into a workspace with every project under its own slug', async () => {
@@ -62,9 +54,7 @@ test('every fixture file is valid and has a document type', async () => {
     slug: string;
     files: { path: string; valid: boolean; docType: string }[];
   }[];
-  const files = listed.flatMap(project =>
-    project.files.map(file => ({ ...file, project: project.slug })),
-  );
+  const files = listed.flatMap(project => project.files.map(file => ({ ...file, project: project.slug })));
   expect(files.length).toBe(12);
   for (const file of files)
     expect({ path: `${file.project}/${file.path}`, valid: file.valid }).toEqual({
@@ -91,9 +81,7 @@ test('the Keycloak grants name groups where the Entra grants hold object ids', (
   const read = (file: string) => JSON.parse(readFileSync(join(AUTH_FIXTURE, file), 'utf8'));
   const entra = read('admin/grants.json').grants;
   const keycloak = read('admin-keycloak/grants.json').grants;
-  expect(keycloak.map((grant: { id: string }) => grant.id)).toEqual(
-    entra.map((grant: { id: string }) => grant.id),
-  );
+  expect(keycloak.map((grant: { id: string }) => grant.id)).toEqual(entra.map((grant: { id: string }) => grant.id));
   const salesEditors = keycloak.find((grant: { id: string }) => grant.id === 'g-sales-editors');
   expect(salesEditors.member.groupId).toBe(TEST_GROUPS.salesEditors.name);
 });

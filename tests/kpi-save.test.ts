@@ -5,23 +5,13 @@ import { join } from 'node:path';
 import { sha256 } from '../src/server/projects/atomic';
 import { projectMetrics } from '../src/server/agent/explain';
 import { testWorkspace, example } from './helpers/temp-data-dir';
-import {
-  applyStatusRules,
-  allowedStatuses,
-  writeExtension,
-  extensionOf,
-} from '../src/shared/edit/item-model';
+import { applyStatusRules, allowedStatuses, writeExtension, extensionOf } from '../src/shared/edit/item-model';
 import { findReferences } from '../src/app/edit/references';
 import { readMetricExtension, VENDOR } from '../src/shared/metrics/extension';
 import { itemValue } from '../src/shared/edit/yaml-patch';
 // A metric save updates the semantic model and inserts one sorted mapping binding in a single
 // journaled operation.
-const api = (
-  t: { handler: (r: Request) => Promise<Response> },
-  method: string,
-  path: string,
-  body?: unknown,
-) =>
+const api = (t: { handler: (r: Request) => Promise<Response> }, method: string, path: string, body?: unknown) =>
   t.handler(
     new Request('http://127.0.0.1:4310' + path, {
       method,
@@ -69,10 +59,7 @@ async function mall() {
     t,
     slug,
     read,
-    hashes: () =>
-      Object.fromEntries(
-        ['mall.semantic.yaml', 'mall.mapping.yaml'].map(p => [p, sha256(read(p))]),
-      ),
+    hashes: () => Object.fromEntries(['mall.semantic.yaml', 'mall.mapping.yaml'].map(p => [p, sha256(read(p))])),
   };
 }
 test('a ratio KPI writes the metric with its extension and one sorted binding line, journaled', async () => {
@@ -83,10 +70,7 @@ test('a ratio KPI writes the metric with its extension and one sorted binding li
     const r = await api(t, 'POST', `/api/projects/${slug}/kpis`, request(hashes()));
     expect(r.status).toBe(200);
     const body = await r.json();
-    expect(body.written.map((w: any) => w.path)).toEqual([
-      'mall.semantic.yaml',
-      'mall.mapping.yaml',
-    ]);
+    expect(body.written.map((w: any) => w.path)).toEqual(['mall.semantic.yaml', 'mall.mapping.yaml']);
     // Semantic model: only added lines, at the end of the metrics list.
     const s = diff(semantic, read('mall.semantic.yaml'));
     expect(s.removed).toEqual([]);
@@ -116,9 +100,7 @@ test('a ratio KPI writes the metric with its extension and one sorted binding li
     expect(readdirSync(t.ws.layout.journal).filter(f => f.endsWith('.json'))).toEqual([]);
     expect(readdirSync(join(t.root, 'projects')).some(f => f.startsWith('.staging-'))).toBe(false);
     // The same name again is refused.
-    expect((await api(t, 'POST', `/api/projects/${slug}/kpis`, request(hashes()))).status).toBe(
-      400,
-    );
+    expect((await api(t, 'POST', `/api/projects/${slug}/kpis`, request(hashes()))).status).toBe(400);
   } finally {
     t.dispose();
   }
@@ -127,12 +109,7 @@ test('any stale base hash is a 409 and nothing is written', async () => {
   const { t, slug, read, hashes } = await mall();
   try {
     const before = ['mall.semantic.yaml', 'mall.mapping.yaml'].map(read);
-    const r = await api(
-      t,
-      'POST',
-      `/api/projects/${slug}/kpis`,
-      request({ ...hashes(), 'mall.mapping.yaml': '0'.repeat(64) }),
-    );
+    const r = await api(t, 'POST', `/api/projects/${slug}/kpis`, request({ ...hashes(), 'mall.mapping.yaml': '0'.repeat(64) }));
     expect(r.status).toBe(409);
     expect((await r.json()).error).toBe('stale');
     expect(['mall.semantic.yaml', 'mall.mapping.yaml'].map(read)).toEqual(before);
@@ -147,10 +124,7 @@ test('the preview explains the KPI and lists the changes without writing', async
     const r = await api(t, 'POST', `/api/projects/${slug}/kpis/preview`, request(hashes()));
     expect(r.status).toBe(200);
     const body = await r.json();
-    expect(body.explanation.tree.children.map((c: any) => c.name)).toEqual([
-      'vacant_gla',
-      'total_gla',
-    ]);
+    expect(body.explanation.tree.children.map((c: any) => c.name)).toEqual(['vacant_gla', 'total_gla']);
     expect(body.explanation.sqlPreview.notExecuted).toBe(true);
     expect(body.changes.map((c: any) => [c.path, c.added.length > 0])).toEqual([
       ['mall.semantic.yaml', true],
@@ -217,9 +191,7 @@ test('a consolidated file keeps the binding in its embedded semantic model root'
     const d = diff(source, after);
     expect(d.removed).toEqual([]);
     expect(after).toContain('"kpi_bindings"');
-    expect(
-      projectMetrics(t.ws.documents(), slug).find(k => k.name === 'runway_count')!.concepts[0],
-    ).toMatchObject({ concept: 'Airport', role: 'measures' });
+    expect(projectMetrics(t.ws.documents(), slug).find(k => k.name === 'runway_count')!.concepts[0]).toMatchObject({ concept: 'Airport', role: 'measures' });
   } finally {
     t.dispose();
   }
@@ -253,9 +225,7 @@ test('status rules: an edited approved KPI returns to proposed; deprecation need
     ...extensionOf(approved)!.value,
     status: 'deprecated',
   });
-  expect(readMetricExtension(deprecated).issues.map(i => i.message)).toEqual([
-    'A deprecated metric requires replaced_by or deprecation_reason.',
-  ]);
+  expect(readMetricExtension(deprecated).issues.map(i => i.message)).toEqual(['A deprecated metric requires replaced_by or deprecation_reason.']);
   expect(
     readMetricExtension(
       writeExtension(approved, {
@@ -276,10 +246,7 @@ test('dependents of a KPI are listed: metrics that use it and its binding', () =
   }));
   const metrics = itemValue(docs[0].source, ['metrics']) as any[];
   const i = metrics.findIndex(m => m.name === 'total_gla');
-  const refs = findReferences(
-    { kind: 'metric', name: 'total_gla', docId: docs[0].id, path: ['metrics', i] },
-    docs,
-  );
+  const refs = findReferences({ kind: 'metric', name: 'total_gla', docId: docs[0].id, path: ['metrics', i] }, docs);
   const labels = [...new Set(refs.map(r => r.dependent?.label))];
   expect(labels).toContain('metric occupancy_rate');
   expect(labels).toContain('metric binding of total_gla');
@@ -361,7 +328,5 @@ test('the wizard writes the formula once, as the expression; the extension names
       ],
     }).issues,
   ).toEqual([]);
-  expect(
-    expressionFor({ ...d, type: 'simple', aggregation: 'COUNT DISTINCT', field: 'leases.id' }),
-  ).toBe('COUNT(DISTINCT leases.id)');
+  expect(expressionFor({ ...d, type: 'simple', aggregation: 'COUNT DISTINCT', field: 'leases.id' })).toBe('COUNT(DISTINCT leases.id)');
 });

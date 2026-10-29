@@ -39,14 +39,8 @@ test('invalid RDF is rejected, not silently treated as YAML', () => {
 });
 
 test('OWL Turtle and RDF/XML examples preserve the same named IRIs and restriction', async () => {
-  const ttl = inspect(
-    await Bun.file('public/examples/commerce/commerce.owl.ttl').text(),
-    'commerce.owl.ttl',
-  );
-  const xml = inspect(
-    await Bun.file('public/examples/commerce/commerce.owl').text(),
-    'commerce.owl',
-  );
+  const ttl = inspect(await Bun.file('public/examples/commerce/commerce.owl.ttl').text(), 'commerce.owl.ttl');
+  const xml = inspect(await Bun.file('public/examples/commerce/commerce.owl').text(), 'commerce.owl');
   expect(
     xml.entities
       .filter(e => e.id.startsWith('https://example.org/'))
@@ -63,8 +57,6 @@ test('OWL Turtle and RDF/XML examples preserve the same named IRIs and restricti
   expect(JSON.stringify(xml.entities)).toContain('someValuesFrom');
 });
 test('official schemas reject malformed versioned contracts and semantic models', () => {
-  expect(() =>
-    inspect('apiVersion: v3.1.0\nkind: DataContract\nid: test\nversion: 1.0.0\nschema: []'),
-  ).toThrow();
+  expect(() => inspect('apiVersion: v3.1.0\nkind: DataContract\nid: test\nversion: 1.0.0\nschema: []')).toThrow();
   expect(() => inspect('version: 0.2.0.dev0\nname: Invalid\ndatasets: [{name: orders}]')).toThrow();
 });

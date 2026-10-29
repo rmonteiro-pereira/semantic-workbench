@@ -24,11 +24,7 @@ function startOptions(options: SpanOptions) {
  * Runs work inside a span that ends when the work does. A thrown error marks the span failed
  * with its name and redacted message, and is thrown again unchanged.
  */
-export async function withSpan<T>(
-  name: string,
-  options: SpanOptions,
-  work: (span: Span) => Promise<T> | T,
-): Promise<T> {
+export async function withSpan<T>(name: string, options: SpanOptions, work: (span: Span) => Promise<T> | T): Promise<T> {
   const tracer = trace.getTracer(TRACER_NAME);
   return tracer.startActiveSpan(name, startOptions(options), async span => {
     try {

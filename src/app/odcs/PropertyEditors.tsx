@@ -11,17 +11,7 @@ import { isProtected } from '../auth/guards-client';
 import type { ClassificationSettings } from '../../shared/governance/guards';
 // Shared patchers change only the edited value. Validation uses the pinned ODCS schema, and the
 // base hash prevents overwriting a newer file.
-export const LOGICAL_TYPES = [
-  'string',
-  'date',
-  'timestamp',
-  'time',
-  'number',
-  'integer',
-  'object',
-  'array',
-  'boolean',
-];
+export const LOGICAL_TYPES = ['string', 'date', 'timestamp', 'time', 'number', 'integer', 'object', 'array', 'boolean'];
 const FLAG_FIELDS = [
   { key: 'required', label: 'Required' },
   { key: 'unique', label: 'Unique' },
@@ -29,14 +19,7 @@ const FLAG_FIELDS = [
 ] as const;
 
 /** Patches one top-level property attribute, removing the key when undefined. */
-export function propertyEdit(
-  source: string,
-  filename: string,
-  objectIndex: number,
-  propertyIndex: number,
-  key: string,
-  value: unknown,
-) {
+export function propertyEdit(source: string, filename: string, objectIndex: number, propertyIndex: number, key: string, value: unknown) {
   const path = ['schema', objectIndex, 'properties', propertyIndex, key];
   return applyPatches(source, valuePatches(source, path, value, filename));
 }
@@ -69,19 +52,12 @@ export function draftOf(property: Record<string, any>): PropertyDraft {
 
 /** Lists the attributes that differ from the file; classification is skipped for people who may
  * not classify. */
-export function changesOf(
-  property: Record<string, any>,
-  draft: PropertyDraft,
-  canClassify: boolean,
-): PropertyChange[] {
+export function changesOf(property: Record<string, any>, draft: PropertyDraft, canClassify: boolean): PropertyChange[] {
   const before = draftOf(property);
   const changes: PropertyChange[] = [];
-  if (draft.logicalType !== before.logicalType)
-    changes.push({ key: 'logicalType', value: draft.logicalType || undefined });
-  for (const { key } of FLAG_FIELDS)
-    if (draft[key] !== before[key]) changes.push({ key, value: draft[key] ? true : undefined });
-  if (canClassify && draft.classification.trim() !== before.classification)
-    changes.push({ key: 'classification', value: draft.classification.trim() || undefined });
+  if (draft.logicalType !== before.logicalType) changes.push({ key: 'logicalType', value: draft.logicalType || undefined });
+  for (const { key } of FLAG_FIELDS) if (draft[key] !== before[key]) changes.push({ key, value: draft[key] ? true : undefined });
+  if (canClassify && draft.classification.trim() !== before.classification) changes.push({ key: 'classification', value: draft.classification.trim() || undefined });
   if (draft.description.trim() !== before.description.trim())
     changes.push({
       key: 'description',
@@ -128,28 +104,18 @@ export function propertyEditor(options: Options): PropertyEditor {
       return canEdit && !locked && !/[.[]/.test(path);
     },
     saveChange: (objectIndex, path, change) => saveChanges(options, objectIndex, path, [change]),
-    renderDialog: request => (
-      <PropertyEditDialog key={request.path} {...request} options={options} />
-    ),
+    renderDialog: request => <PropertyEditDialog key={request.path} {...request} options={options} />,
   };
 }
 
 /** Applies the changes to the file text and checks the result against the ODCS schema. */
-function patchedSource(
-  options: Options,
-  objectIndex: number,
-  path: string,
-  changes: PropertyChange[],
-): string {
+function patchedSource(options: Options, objectIndex: number, path: string, changes: PropertyChange[]): string {
   const { doc, base } = options;
-  const properties = (validateInput(base, doc.filename).model as any)?.document?.schema?.[
-    objectIndex
-  ]?.properties;
+  const properties = (validateInput(base, doc.filename).model as any)?.document?.schema?.[objectIndex]?.properties;
   const index = Array.isArray(properties) ? properties.findIndex((p: any) => p?.name === path) : -1;
   if (index < 0) throw new Error(`${path} is no longer in the file.`);
   let next = base;
-  for (const change of changes)
-    next = propertyEdit(next, doc.filename, objectIndex, index, change.key, change.value);
+  for (const change of changes) next = propertyEdit(next, doc.filename, objectIndex, index, change.key, change.value);
   const check = validateInput(next, doc.filename);
   if (!check.valid) {
     const problems = check.issues.filter(i => i.severity === 'error').map(i => i.message);
@@ -159,44 +125,21 @@ function patchedSource(
 }
 
 /** Saves the changes and returns the reason when the file was not written. */
-async function saveChanges(
-  options: Options,
-  objectIndex: number,
-  path: string,
-  changes: PropertyChange[],
-): Promise<string | null> {
+async function saveChanges(options: Options, objectIndex: number, path: string, changes: PropertyChange[]): Promise<string | null> {
   const { doc } = options;
   try {
     const next = patchedSource(options, objectIndex, path, changes);
-    const result = await api.save(
-      doc.project,
-      doc.path,
-      doc.hash,
-      next,
-      diffPatches(doc.source, next),
-    );
+    const result = await api.save(doc.project, doc.path, doc.hash, next, diffPatches(doc.source, next));
     const keys = changes.map(change => change.key).join(', ');
-    options.onSaved(
-      [{ docId: doc.id, source: next, hash: result.hash }],
-      `Saved ${keys} of ${path}.`,
-    );
+    options.onSaved([{ docId: doc.id, source: next, hash: result.hash }], `Saved ${keys} of ${path}.`);
     return null;
   } catch (error) {
-    if (error instanceof StaleSave)
-      return 'Not saved: the file changed since it was opened. Reopen it and try again.';
+    if (error instanceof StaleSave) return 'Not saved: the file changed since it was opened. Reopen it and try again.';
     return (error as Error).message;
   }
 }
 
-function FlagField({
-  label,
-  checked,
-  onChange,
-}: {
-  label: string;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-}) {
+function FlagField({ label, checked, onChange }: { label: string; checked: boolean; onChange: (checked: boolean) => void }) {
   return (
     <label className="odcs-form-flag">
       <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} />
@@ -205,15 +148,7 @@ function FlagField({
   );
 }
 
-function LogicalTypeField({
-  value,
-  original,
-  onChange,
-}: {
-  value: string;
-  original: string;
-  onChange: (value: string) => void;
-}) {
+function LogicalTypeField({ value, original, onChange }: { value: string; original: string; onChange: (value: string) => void }) {
   const isStandard = LOGICAL_TYPES.includes(original);
   return (
     <label className="odcs-form-field">
@@ -230,14 +165,7 @@ function LogicalTypeField({
   );
 }
 
-function PropertyEditDialog({
-  objectIndex,
-  tableName,
-  path,
-  property,
-  onClose,
-  options,
-}: PropertyEditRequest & { options: Options }) {
+function PropertyEditDialog({ objectIndex, tableName, path, property, onClose, options }: PropertyEditRequest & { options: Options }) {
   const canClassify = options.canClassify ?? true;
   const [draft, setDraft] = useState(() => draftOf(property));
   const [error, setError] = useState('');
@@ -258,60 +186,28 @@ function PropertyEditDialog({
       <button type="button" onClick={onClose}>
         Cancel
       </button>
-      <button
-        type="submit"
-        form="property-edit-form"
-        className="primary"
-        disabled={!changes.length || saving}
-      >
+      <button type="submit" form="property-edit-form" className="primary" disabled={!changes.length || saving}>
         {saving ? 'Saving…' : 'Save to file'}
       </button>
     </>
   );
   return (
-    <Modal
-      title={`Edit ${tableName}.${path}`}
-      onCancel={onClose}
-      footer={footer}
-      footerNote={changes.length ? undefined : 'No changes yet.'}
-      className="odcs-edit-dialog"
-    >
+    <Modal title={`Edit ${tableName}.${path}`} onCancel={onClose} footer={footer} footerNote={changes.length ? undefined : 'No changes yet.'} className="odcs-edit-dialog">
       <form id="property-edit-form" className="odcs-form" onSubmit={save}>
-        <LogicalTypeField
-          value={draft.logicalType}
-          original={textOf(property.logicalType)}
-          onChange={logicalType => set({ logicalType })}
-        />
+        <LogicalTypeField value={draft.logicalType} original={textOf(property.logicalType)} onChange={logicalType => set({ logicalType })} />
         <div className="odcs-form-flags" role="group" aria-label="Constraints">
           {FLAG_FIELDS.map(({ key, label }) => (
-            <FlagField
-              key={key}
-              label={label}
-              checked={draft[key]}
-              onChange={checked => set({ [key]: checked })}
-            />
+            <FlagField key={key} label={label} checked={draft[key]} onChange={checked => set({ [key]: checked })} />
           ))}
         </div>
         <label className="odcs-form-field">
           <span>Classification</span>
-          <input
-            value={draft.classification}
-            disabled={!canClassify}
-            onChange={e => set({ classification: e.target.value })}
-          />
-          <small className="odcs-form-hint">
-            {canClassify
-              ? 'The sensitivity label of this column, such as public or restricted.'
-              : 'Only a Steward or Admin changes a classification.'}
-          </small>
+          <input value={draft.classification} disabled={!canClassify} onChange={e => set({ classification: e.target.value })} />
+          <small className="odcs-form-hint">{canClassify ? 'The sensitivity label of this column, such as public or restricted.' : 'Only a Steward or Admin changes a classification.'}</small>
         </label>
         <label className="odcs-form-field">
           <span>Description</span>
-          <textarea
-            rows={4}
-            value={draft.description}
-            onChange={e => set({ description: e.target.value })}
-          />
+          <textarea rows={4} value={draft.description} onChange={e => set({ description: e.target.value })} />
         </label>
         {error && (
           <p role="alert" className="dialog-error">

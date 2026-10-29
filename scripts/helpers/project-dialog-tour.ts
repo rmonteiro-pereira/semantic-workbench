@@ -33,9 +33,7 @@ export async function openProjectMenuItem(page: Page, file: string, item: string
   await page.getByRole('button', { name: /Model explorer/ }).click();
   await openFile(page, file);
   await showSidebar(page);
-  const project = page
-    .locator('li.project')
-    .filter({ has: page.getByRole('button', { name: file, exact: true }) });
+  const project = page.locator('li.project').filter({ has: page.getByRole('button', { name: file, exact: true }) });
   await project
     .getByRole('button', { name: /^Actions for / })
     .first()

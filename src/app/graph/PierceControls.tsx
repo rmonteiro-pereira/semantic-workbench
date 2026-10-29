@@ -18,40 +18,32 @@ export function usePierce() {
     setRunning(false);
   }, []);
   useEffect(() => () => worker.current?.terminate(), []);
-  const run = useCallback(
-    (
-      nodes: PierceNode[],
-      edges: Link[],
-      start: string[],
-      options: PierceOptions,
-    ): Promise<PierceResult | null> => {
-      worker.current?.terminate();
-      const id = ++seq.current;
-      const w = new Worker(new URL('./pierce.worker.ts', import.meta.url), { type: 'module' });
-      worker.current = w;
-      setRunning(true);
-      return new Promise(resolve => {
-        w.onmessage = (e: MessageEvent<{ id: number; result: PierceResult }>) => {
-          if (e.data.id !== seq.current) {
-            resolve(null);
-            return;
-          }
-          w.terminate();
-          if (worker.current === w) worker.current = null;
-          setRunning(false);
-          resolve(e.data.result);
-        };
-        w.onerror = () => {
-          w.terminate();
-          if (worker.current === w) worker.current = null;
-          setRunning(false);
+  const run = useCallback((nodes: PierceNode[], edges: Link[], start: string[], options: PierceOptions): Promise<PierceResult | null> => {
+    worker.current?.terminate();
+    const id = ++seq.current;
+    const w = new Worker(new URL('./pierce.worker.ts', import.meta.url), { type: 'module' });
+    worker.current = w;
+    setRunning(true);
+    return new Promise(resolve => {
+      w.onmessage = (e: MessageEvent<{ id: number; result: PierceResult }>) => {
+        if (e.data.id !== seq.current) {
           resolve(null);
-        };
-        w.postMessage({ id, nodes, edges, start, options });
-      });
-    },
-    [],
-  );
+          return;
+        }
+        w.terminate();
+        if (worker.current === w) worker.current = null;
+        setRunning(false);
+        resolve(e.data.result);
+      };
+      w.onerror = () => {
+        w.terminate();
+        if (worker.current === w) worker.current = null;
+        setRunning(false);
+        resolve(null);
+      };
+      w.postMessage({ id, nodes, edges, start, options });
+    });
+  }, []);
   return { run, stop, running };
 }
 const LABELS: Record<Direction, [string, string]> = {
@@ -81,11 +73,7 @@ export function PierceControls({
 }) {
   return (
     <span className="pierce-controls">
-      <button
-        onClick={onPierce}
-        disabled={running}
-        title={title ?? 'Expand everything reachable in the chosen direction'}
-      >
+      <button onClick={onPierce} disabled={running} title={title ?? 'Expand everything reachable in the chosen direction'}>
         <Network size={13} />
         Show all connected
       </button>
@@ -110,12 +98,7 @@ export function PierceControls({
           Stop
         </button>
       )}
-      <button
-        onClick={onUndo}
-        disabled={!canUndo}
-        aria-label="Undo expansion"
-        title="Undo expansion: remove the last expansion"
-      >
+      <button onClick={onUndo} disabled={!canUndo} aria-label="Undo expansion" title="Undo expansion: remove the last expansion">
         <Undo2 size={13} />
       </button>
     </span>
@@ -144,8 +127,7 @@ export function PierceBanner({
   return (
     <div className="pierce-banner" role="status">
       <span>
-        {result.shown} {result.shown === 1 ? noun[0] : noun[1]} shown in {result.maxStep}{' '}
-        {result.maxStep === 1 ? 'step' : 'steps'}
+        {result.shown} {result.shown === 1 ? noun[0] : noun[1]} shown in {result.maxStep} {result.maxStep === 1 ? 'step' : 'steps'}
         {more > 0 && (
           <>
             {' '}

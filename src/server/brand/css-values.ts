@@ -3,8 +3,7 @@
 
 // Escapes can spell any other word, so none are allowed. The functions load a resource, and the
 // rest run script or bind behaviour.
-const FORBIDDEN_VALUE =
-  /\\|url\s*\(|image(-set)?\s*\(|cross-fade\s*\(|src\s*\(|@import|expression\s*\(|javascript:|behavior\s*:|-moz-binding/i;
+const FORBIDDEN_VALUE = /\\|url\s*\(|image(-set)?\s*\(|cross-fade\s*\(|src\s*\(|@import|expression\s*\(|javascript:|behavior\s*:|-moz-binding/i;
 
 // A drawing may point at another element of itself, such as a gradient, with url(#id).
 const LOCAL_URL = /url\(\s*(['"]?)#[^'")]*\1\s*\)/gi;

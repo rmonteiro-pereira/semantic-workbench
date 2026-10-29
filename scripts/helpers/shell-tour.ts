@@ -23,11 +23,7 @@ export async function headerTitleProblems(page: Page, width: number): Promise<st
     if (!title?.getAttribute('title')) found.push('the file title has no tooltip');
     // The phone header cuts a long title with an ellipsis and keeps the full text in the tooltip.
     const cutByEllipsis = !!title && getComputedStyle(title).textOverflow === 'ellipsis';
-    if (
-      title &&
-      !cutByEllipsis &&
-      (title.scrollWidth > title.clientWidth + 1 || title.scrollHeight > title.clientHeight + 1)
-    ) {
+    if (title && !cutByEllipsis && (title.scrollWidth > title.clientWidth + 1 || title.scrollHeight > title.clientHeight + 1)) {
       found.push('the file title is clipped');
     }
     for (const button of document.querySelectorAll<HTMLElement>('.header-actions button')) {
@@ -42,8 +38,7 @@ export async function headerTitleProblems(page: Page, width: number): Promise<st
       const short = getComputedStyle(pill, '::after').content;
       const drawsShort = short !== 'none' && short !== 'normal';
       if (viewport < 1500 && !drawsShort) found.push('the save state is not shortened');
-      if (viewport >= 1500 && drawsShort)
-        found.push('the save state is shortened on a wide window');
+      if (viewport >= 1500 && drawsShort) found.push('the save state is shortened on a wide window');
     }
     return found;
   }, width);
@@ -77,12 +72,8 @@ export async function contentWidthProblems(page: Page, width: number): Promise<s
   if (width < 1920) return [];
   return page.evaluate(() => {
     const found: string[] = [];
-    const limit = parseFloat(
-      getComputedStyle(document.documentElement).getPropertyValue('--content-max-width'),
-    );
-    const textPage = document.querySelector<HTMLElement>(
-      '.odcs-page, .mapping-explorer, .catalog, .metrics-view .metrics-list',
-    );
+    const limit = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--content-max-width'));
+    const textPage = document.querySelector<HTMLElement>('.odcs-page, .mapping-explorer, .catalog, .metrics-view .metrics-list');
     if (!textPage) return found;
     const box = textPage.getBoundingClientRect();
     const canvas = textPage.parentElement!.getBoundingClientRect();
@@ -101,9 +92,7 @@ export async function expectKeyboardTabReveal(page: Page): Promise<void> {
   if (await strip.evaluate(element => !!element.closest('[inert]'))) return;
   const candidate = await strip.evaluate(element => {
     const frame = element.getBoundingClientRect();
-    return [...element.querySelectorAll('button')].findIndex(
-      button => button.getBoundingClientRect().right > frame.right + 1,
-    );
+    return [...element.querySelectorAll('button')].findIndex(button => button.getBoundingClientRect().right > frame.right + 1);
   });
   if (candidate < 1) return;
   const buttons = strip.locator(':scope > button');

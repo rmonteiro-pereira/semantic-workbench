@@ -9,9 +9,7 @@ test('accepts routed curves only at their actual current handle coordinates', ()
   expect(pathMatchesEndpoints(route, 10, 21, 71, 80)).toBe(false);
 });
 test('accepts orthogonal absolute routes and decimal endpoint tolerance', () => {
-  expect(
-    pathMatchesEndpoints('M -5.5, .25 L 5, .25 Q 10, .25 10, 5 L 10, 30', -5.5, 0.25, 10, 30),
-  ).toBe(true);
+  expect(pathMatchesEndpoints('M -5.5, .25 L 5, .25 Q 10, .25 10, 5 L 10, 30', -5.5, 0.25, 10, 30)).toBe(true);
   expect(pathMatchesEndpoints('M 0 0 L 100 200', 0.009, -0.009, 100.009, 199.991)).toBe(true);
   expect(pathMatchesEndpoints('M 0 0 L 100 200', 0.011, 0, 100, 200)).toBe(false);
   expect(pathMatchesEndpoints('M 0 0 L 100 200', 0, 0, 100, 200.011)).toBe(false);
@@ -21,15 +19,7 @@ test('supports SVG scientific notation and signs without separators', () => {
   expect(pathMatchesEndpoints('M 1-2 L 3-4', 1, -2, 3, -4)).toBe(true);
 });
 test('rejects missing paths, relative commands, nonfinite inputs and missing endpoint pairs', () => {
-  for (const path of [
-    '',
-    'M 10,20',
-    'm 10 20 l 30 40',
-    'M 10 20 l 30 40',
-    'M 10 20 L Infinity NaN',
-    'M 10 20 L 30 40 Z',
-    'M 10 20 H 30 V 40',
-  ])
+  for (const path of ['', 'M 10,20', 'm 10 20 l 30 40', 'M 10 20 l 30 40', 'M 10 20 L Infinity NaN', 'M 10 20 L 30 40 Z', 'M 10 20 H 30 V 40'])
     expect(pathMatchesEndpoints(path, 10, 20, 30, 40)).toBe(false);
   expect(pathMatchesEndpoints('M 0 0 L 1 1', NaN, 0, 1, 1)).toBe(false);
   expect(pathMatchesEndpoints('M 0 0 L 1 1', 0, 0, 1, Infinity)).toBe(false);

@@ -13,18 +13,10 @@
 // Instead of the certificate pair, set AGENT_CLIENT_SECRET, or AGENT_MANAGED_IDENTITY=1 on an
 // Azure resource (AGENT_CLIENT_ID then names a user-assigned identity; omit it for the
 // system-assigned one).
-import {
-  ConfidentialClientApplication,
-  ManagedIdentityApplication,
-  type NodeAuthOptions,
-  type NodeSystemOptions,
-} from '@azure/msal-node';
+import { ConfidentialClientApplication, ManagedIdentityApplication, type NodeAuthOptions, type NodeSystemOptions } from '@azure/msal-node';
 
 /** How the agent proves its identity to Entra. */
-export type AgentCredential =
-  | { kind: 'certificate'; privateKey: string; thumbprint: string }
-  | { kind: 'secret'; secret: string }
-  | { kind: 'managed-identity' };
+export type AgentCredential = { kind: 'certificate'; privateKey: string; thumbprint: string } | { kind: 'secret'; secret: string } | { kind: 'managed-identity' };
 
 /** Everything the example needs, read once from the environment. */
 export type AgentSettings = {
@@ -46,10 +38,7 @@ function readCredential(env: Env): AgentCredential {
   if (privateKey && thumbprint) return { kind: 'certificate', privateKey, thumbprint };
   const secret = env.AGENT_CLIENT_SECRET?.trim();
   if (secret) return { kind: 'secret', secret };
-  throw new Error(
-    'Set AGENT_CERTIFICATE_KEY and AGENT_CERTIFICATE_THUMBPRINT, AGENT_CLIENT_SECRET, ' +
-      'or AGENT_MANAGED_IDENTITY=1.',
-  );
+  throw new Error('Set AGENT_CERTIFICATE_KEY and AGENT_CERTIFICATE_THUMBPRINT, AGENT_CLIENT_SECRET, ' + 'or AGENT_MANAGED_IDENTITY=1.');
 }
 
 /** Reads the example's settings and names every missing variable. */
@@ -84,15 +73,10 @@ function clientCredential(credential: AgentCredential): Partial<NodeAuthOptions>
 }
 
 /** Gets an application token for the workbench API with MSAL. */
-export async function requestAgentToken(
-  settings: AgentSettings,
-  overrides: MsalOverrides = {},
-): Promise<string> {
+export async function requestAgentToken(settings: AgentSettings, overrides: MsalOverrides = {}): Promise<string> {
   if (settings.credential.kind === 'managed-identity') {
     const identity = new ManagedIdentityApplication({
-      managedIdentityIdParams: settings.clientId
-        ? { userAssignedClientId: settings.clientId }
-        : undefined,
+      managedIdentityIdParams: settings.clientId ? { userAssignedClientId: settings.clientId } : undefined,
       system: overrides.system,
     });
     return (await identity.acquireToken({ resource: settings.resource })).accessToken;
@@ -125,12 +109,7 @@ export async function fetchAgentProjects(settings: AgentSettings, token: string,
 }
 
 /** Reads the agent catalog of one project: the definitions this client was granted in it. */
-export async function fetchAgentCatalog(
-  settings: AgentSettings,
-  token: string,
-  project: string,
-  request = fetch,
-) {
+export async function fetchAgentCatalog(settings: AgentSettings, token: string, project: string, request = fetch) {
   const url = `${settings.workbenchUrl}/api/agent/catalog?project=${encodeURIComponent(project)}`;
   const response = await request(url, {
     headers: { Authorization: 'Bearer ' + token },
@@ -147,9 +126,7 @@ if (import.meta.main) {
   const project = process.argv[2] ?? (projects.length === 1 ? projects[0]!.slug : undefined);
   if (!project) {
     const slugs = projects.map(item => item.slug).join(', ') || 'none';
-    throw new Error(
-      `Name the project: bun scripts/examples/agent-client.ts <slug>. Readable: ${slugs}.`,
-    );
+    throw new Error(`Name the project: bun scripts/examples/agent-client.ts <slug>. Readable: ${slugs}.`);
   }
   console.log(JSON.stringify(await fetchAgentCatalog(settings, token, project), null, 2));
 }

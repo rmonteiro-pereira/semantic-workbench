@@ -3,14 +3,7 @@
 // cancelled or interrupted clone leaves nothing behind.
 import { existsSync, mkdirSync, readdirSync, rmSync } from 'node:fs';
 import { join, posix } from 'node:path';
-import {
-  GitError,
-  hasControlCharacters,
-  redactCredentials,
-  remoteAddress,
-  type Git,
-  type RemoteCredential,
-} from './git';
+import { GitError, hasControlCharacters, redactCredentials, remoteAddress, type Git, type RemoteCredential } from './git';
 import type { Journal, RecoveryOutcome } from './journal';
 import { projectDir, slugify, uniqueName, type DataLayout } from './paths';
 import type { ProjectEntry } from './state';
@@ -78,9 +71,7 @@ export type CloneDeps = {
   definitionCount: (slug: string) => number;
   added: (slug: string) => void;
   /** Reads the repository's manifest or proposes folders, and registers declared projects. */
-  afterClone: (
-    slug: string,
-  ) => Promise<Pick<CloneEvent, 'candidates' | 'manifest' | 'manifestError' | 'projects'>>;
+  afterClone: (slug: string) => Promise<Pick<CloneEvent, 'candidates' | 'manifest' | 'manifestError' | 'projects'>>;
   emit: (event: CloneEvent, owner?: string) => void;
 };
 
@@ -100,8 +91,7 @@ function nameFromSource(address: string, folder: string) {
 
 function checkName(name: unknown) {
   if (name === undefined || name === null || name === '') return undefined;
-  if (typeof name !== 'string' || name.length > 120 || hasControlCharacters(name))
-    throw new BadRequestError('A project name is 1–120 characters without control characters.');
+  if (typeof name !== 'string' || name.length > 120 || hasControlCharacters(name)) throw new BadRequestError('A project name is 1–120 characters without control characters.');
   return name.trim() || undefined;
 }
 
@@ -158,15 +148,11 @@ export function createCloner(deps: CloneDeps) {
       deps.emit({ op, phase: 'cloning', name }, owner);
       mkdirSync(staging, { recursive: true });
       await git.clone(staging, address, slug, credential, { partial: folder !== '' });
-      if (folder)
-        await checkOutFolder(git, join(staging, slug), folder, { createFolder, credential });
+      if (folder) await checkOutFolder(git, join(staging, slug), folder, { createFolder, credential });
       deps.emit({ op, phase: 'scanning', name }, owner);
       await deps.lock('registry', async () => {
         const current = deps.projects();
-        if (current.some(project => project.slug === slug) || existsSync(projectDir(layout, slug)))
-          throw new BadRequestError(
-            `A project folder named ${slug} appeared meanwhile; clone again.`,
-          );
+        if (current.some(project => project.slug === slug) || existsSync(projectDir(layout, slug))) throw new BadRequestError(`A project folder named ${slug} appeared meanwhile; clone again.`);
         const project: ProjectEntry = {
           slug,
           name,
@@ -175,15 +161,7 @@ export function createCloner(deps: CloneDeps) {
           remoteAddress: redactCredentials(address),
           ...(folder ? { folder: `${slug}/${folder}`, repo: slug } : {}),
         };
-        journal.run(
-          'clone',
-          [
-            { from: join(staging, slug), to: projectDir(layout, slug) },
-            ...deps.registrySteps(stateStaging, [...current, project]),
-          ],
-          [staging, stateStaging],
-          op,
-        );
+        journal.run('clone', [{ from: join(staging, slug), to: projectDir(layout, slug) }, ...deps.registrySteps(stateStaging, [...current, project])], [staging, stateStaging], op);
       });
       await deps.scan(slug);
       deps.added(slug);
@@ -230,14 +208,8 @@ export function createCloner(deps: CloneDeps) {
       const folder = repositoryFolder(options.folder);
       const current = deps.projects();
       const pending = [...running.values()];
-      const name = uniqueName(checkName(requestedName) ?? nameFromSource(address, folder), [
-        ...current.map(project => project.name),
-        ...pending.map(clone => clone.name),
-      ]);
-      const taken = new Set([
-        ...current.map(project => project.slug),
-        ...pending.map(clone => clone.slug),
-      ]);
+      const name = uniqueName(checkName(requestedName) ?? nameFromSource(address, folder), [...current.map(project => project.name), ...pending.map(clone => clone.name)]);
+      const taken = new Set([...current.map(project => project.slug), ...pending.map(clone => clone.slug)]);
       for (const folder of readdirSync(layout.projects)) taken.add(folder);
       const slug = slugify(name, taken);
       const op = journal.newId();

@@ -1,23 +1,12 @@
 // Holds isolated provider state and builds signed claims for each directory shape.
 import { createHash } from 'node:crypto';
 import { exportJWK, generateKeyPair, jwtVerify, SignJWT, type JWTPayload } from 'jose';
-import {
-  TEST_TENANT_ID,
-  TEST_USERS,
-  TEST_WORKBENCH_CLIENT,
-  type TestUser,
-} from './auth-identities';
+import { TEST_TENANT_ID, TEST_USERS, TEST_WORKBENCH_CLIENT, type TestUser } from './auth-identities';
 
 /** Directory conventions used in identity claims. */
 export type ClaimShape = 'entra' | 'keycloak' | 'generic';
 /** Endpoints with controllable failures. */
-export type MockEndpoint =
-  | 'discovery'
-  | 'jwks'
-  | 'authorize'
-  | 'token'
-  | 'graph-check'
-  | 'graph-group';
+export type MockEndpoint = 'discovery' | 'jwks' | 'authorize' | 'token' | 'graph-check' | 'graph-group';
 /** Loopback provider configuration. */
 export type MockOidcOptions = {
   port?: number;
@@ -76,8 +65,7 @@ export type ProviderState = {
   apiAudience: string;
   /** Prefix of the authorize, token and logout endpoints for the configured layout. */
   endpointBase: string;
-  options: Required<Omit<MockOidcOptions, OptionalSetting>> &
-    Pick<MockOidcOptions, OptionalSetting>;
+  options: Required<Omit<MockOidcOptions, OptionalSetting>> & Pick<MockOidcOptions, OptionalSetting>;
   /** The user each provider session (`sid`) belongs to, until the provider signs it out. */
   providerSessions: Map<string, string>;
   users: Record<string, TestUser>;
@@ -113,9 +101,7 @@ export async function createProviderState(options: MockOidcOptions): Promise<Pro
       clientSecret: options.clientSecret ?? TEST_WORKBENCH_CLIENT.secret,
       shape: options.shape ?? 'entra',
       redirectUris: options.redirectUris ?? ['http://127.0.0.1:4310/auth/callback'],
-      postLogoutRedirectUris: options.postLogoutRedirectUris ?? [
-        'http://127.0.0.1:4310/auth/signed-out',
-      ],
+      postLogoutRedirectUris: options.postLogoutRedirectUris ?? ['http://127.0.0.1:4310/auth/signed-out'],
       overageStyle: options.overageStyle ?? 'claim-sources',
       layout: options.layout ?? 'issuer',
       clientCertificate: options.clientCertificate,
@@ -147,10 +133,7 @@ export function sha256(value: string): string {
 /** Derives a repeatable UUID for a mock directory object. */
 export function stableUuid(value: string): string {
   const hash = createHash('sha256').update(value).digest('hex');
-  return (
-    `${hash.slice(0, 8)}-${hash.slice(8, 12)}-4${hash.slice(13, 16)}` +
-    `-8${hash.slice(17, 20)}-${hash.slice(20, 32)}`
-  );
+  return `${hash.slice(0, 8)}-${hash.slice(8, 12)}-4${hash.slice(13, 16)}` + `-8${hash.slice(17, 20)}-${hash.slice(20, 32)}`;
 }
 
 function entraClaims(state: ProviderState, user: TestUser, clientId: string): JWTPayload {
@@ -212,12 +195,7 @@ export function userClaims(state: ProviderState, username: string, clientId: str
 }
 
 /** Signs a token with the active key and the configured clock offset. */
-export function signToken(
-  state: ProviderState,
-  claims: JWTPayload,
-  audience: string,
-  lifetime: number,
-): Promise<string> {
+export function signToken(state: ProviderState, claims: JWTPayload, audience: string, lifetime: number): Promise<string> {
   const now = Math.floor(Date.now() / 1000) + state.clockOffset;
   const key = state.keys[state.activeKey];
   return new SignJWT(claims)

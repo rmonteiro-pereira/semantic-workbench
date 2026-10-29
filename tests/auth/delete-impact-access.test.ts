@@ -14,9 +14,7 @@ test('unpublished work appears in the delete impact only for someone who may del
   const frank = as(person('frank'));
   const dave = as(person('dave'));
   const edit = (text: string) => text + '# alice was here\n';
-  expect((await saveText(alice.call, 'sales-contracts', 'orders.odcs.yaml', edit)).status).toBe(
-    200,
-  );
+  expect((await saveText(alice.call, 'sales-contracts', 'orders.odcs.yaml', edit)).status).toBe(200);
 
   const admin = await dave.call(IMPACT);
   expect(admin.body.unpublished).toEqual([{ name: 'Alice Andrade', changes: 1 }]);

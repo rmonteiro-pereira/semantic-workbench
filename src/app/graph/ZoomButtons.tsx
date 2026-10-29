@@ -2,13 +2,7 @@
 import { Minus, Plus } from 'lucide-react';
 
 /** Renders the two zoom buttons; the graph supplies what zooming does. */
-export function ZoomButtons({
-  onZoomIn,
-  onZoomOut,
-}: {
-  onZoomIn: () => void;
-  onZoomOut: () => void;
-}) {
+export function ZoomButtons({ onZoomIn, onZoomOut }: { onZoomIn: () => void; onZoomOut: () => void }) {
   return (
     <span className="zoom-buttons">
       <button onClick={onZoomOut} aria-label="Zoom out" title="Zoom out">

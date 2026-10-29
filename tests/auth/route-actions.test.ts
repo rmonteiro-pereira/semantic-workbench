@@ -31,11 +31,7 @@ function assertRouteCoverage(text: string, file = 'synthetic.ts'): void {
     if (ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression)) {
       const method = node.expression.name.text;
       const literal = method === 'match' ? node.arguments[0] : node.expression.expression;
-      if (
-        ['match', 'exec', 'test'].includes(method) &&
-        literal &&
-        literal.kind === ts.SyntaxKind.RegularExpressionLiteral
-      ) {
+      if (['match', 'exec', 'test'].includes(method) && literal && literal.kind === ts.SyntaxKind.RegularExpressionLiteral) {
         const text = literal.getText(source);
         const pattern = text.slice(1, text.lastIndexOf('/'));
         if (pattern.startsWith('^\\/api') && pattern.endsWith('$')) {
@@ -65,20 +61,13 @@ test('route scan ignores formatting prefixes but refuses unmapped routes', () =>
   assertRouteCoverage("url.pathname.startsWith('/api/agent/')");
   assertRouteCoverage(String.raw`/^\/api\/agent\//.test(url.pathname)`);
   expect(() => assertRouteCoverage("url.pathname === '/api/unmapped'")).toThrow();
-  for (const source of [
-    String.raw`url.pathname.match(/^\/api\/unmapped$/)`,
-    String.raw`/^\/api\/unmapped$/.test(url.pathname)`,
-    String.raw`/^\/api\/unmapped$/.exec(url.pathname)`,
-  ])
+  for (const source of [String.raw`url.pathname.match(/^\/api\/unmapped$/)`, String.raw`/^\/api\/unmapped$/.test(url.pathname)`, String.raw`/^\/api\/unmapped$/.exec(url.pathname)`])
     expect(() => assertRouteCoverage(source)).toThrow();
 });
 
 test('handler retains the DNS rebinding explanation', () => {
   const source = readFileSync('src/server/handler.ts', 'utf8').replace(/\n\s*\/\/ /g, ' ');
-  expect(source).toContain(
-    'DNS rebinding: a page on another name resolved to 127.0.0.1 sends its own name as Host, and a ' +
-      'same-origin GET carries no Origin. Only loopback names are served.',
-  );
+  expect(source).toContain('DNS rebinding: a page on another name resolved to 127.0.0.1 sends its own name as Host, and a ' + 'same-origin GET carries no Origin. Only loopback names are served.');
 });
 test('every implemented inventory example reaches a route in local mode', async () => {
   using workspace = await testWorkspace();

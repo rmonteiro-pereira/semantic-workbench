@@ -10,19 +10,7 @@ import { diffPatches } from '../../shared/editor/patch';
 import { validateInWorker } from '../editor/lint';
 import { itemValue } from '../../shared/edit/yaml-patch';
 import { openFragment, splice, fragmentValue, fragmentIssues, setField } from './fragment';
-import {
-  allowedStatuses,
-  childLists,
-  extensionOf,
-  fieldsFor,
-  itemName,
-  kindLabel,
-  readField,
-  type Choices,
-  type FieldSpec,
-  type ItemKind,
-  type Path,
-} from '../../shared/edit/item-model';
+import { allowedStatuses, childLists, extensionOf, fieldsFor, itemName, kindLabel, readField, type Choices, type FieldSpec, type ItemKind, type Path } from '../../shared/edit/item-model';
 import { findReferences, rewriteReferences, type Reference } from './references';
 import './edit.css';
 import { SqlField } from '../editor/SqlField';
@@ -45,29 +33,9 @@ type Props = {
   onDelete: () => void;
   onOpenSource: (line: number) => void;
 };
-const display = (spec: FieldSpec, v: any) =>
-  spec.input === 'list'
-    ? Array.isArray(v)
-      ? v.join(', ')
-      : (v ?? '')
-    : v === undefined || v === null
-      ? ''
-      : String(v);
+const display = (spec: FieldSpec, v: any) => (spec.input === 'list' ? (Array.isArray(v) ? v.join(', ') : (v ?? '')) : v === undefined || v === null ? '' : String(v));
 /** Edits an item's fields or source and validates the draft before saving. */
-export function ItemEditor({
-  doc,
-  base,
-  path,
-  kind,
-  projectDocs,
-  choices,
-  onClose,
-  onSaved,
-  onOpenItem,
-  onAddChild,
-  onDelete,
-  onOpenSource,
-}: Props) {
+export function ItemEditor({ doc, base, path, kind, projectDocs, choices, onClose, onSaved, onOpenItem, onAddChild, onDelete, onOpenSource }: Props) {
   const access = useCapabilities(doc.project);
   const fragment = useMemo(() => openFragment(base, path), []);
   const [text, setText] = useState(fragment.text);
@@ -84,25 +52,11 @@ export function ItemEditor({
   const draft = useMemo(() => splice(base, fragment, text), [text]);
   const oldName = itemName(kind, original);
   const newName = parsed.value ? itemName(kind, parsed.value) : oldName;
-  const ownerName = useMemo(
-    () =>
-      kind === 'field' || kind === 'odcs-property'
-        ? String(itemValue(base, path.slice(0, -2))?.name ?? '')
-        : undefined,
-    [],
-  );
+  const ownerName = useMemo(() => (kind === 'field' || kind === 'odcs-property' ? String(itemValue(base, path.slice(0, -2))?.name ?? '') : undefined), []);
   // A metric's dependents are listed before any change is saved; found after the first paint.
   useEffect(() => {
     if (kind !== 'metric') return;
-    const t = setTimeout(
-      () =>
-        setDependents(
-          findReferences({ kind, name: oldName, docId: doc.id, path }, projectDocs).filter(
-            r => r.dependent,
-          ),
-        ),
-      30,
-    );
+    const t = setTimeout(() => setDependents(findReferences({ kind, name: oldName, docId: doc.id, path }, projectDocs).filter(r => r.dependent)), 30);
     return () => clearTimeout(t);
   }, []);
   // A rename: what still names the old name (rewritten only where ticked).
@@ -167,19 +121,10 @@ export function ItemEditor({
       );
       const written: Saved[] = [];
       if (!others.length) {
-        const r = await api.save(
-          doc.project,
-          doc.path,
-          doc.hash,
-          main,
-          diffPatches(doc.source, main),
-        );
+        const r = await api.save(doc.project, doc.path, doc.hash, main, diffPatches(doc.source, main));
         written.push({ docId: doc.id, source: r.source ?? main, hash: r.hash });
       } else {
-        const files = [
-          { doc, source: main },
-          ...others.map(o => ({ doc: projectDocs.find(d => d.id === o.docId)!, source: o.source })),
-        ];
+        const files = [{ doc, source: main }, ...others.map(o => ({ doc: projectDocs.find(d => d.id === o.docId)!, source: o.source }))];
         const r = await api.saveBatch(
           doc.project,
           files.map(f => ({
@@ -198,16 +143,11 @@ export function ItemEditor({
       }
       onSaved(written);
     } catch (e) {
-      setError(
-        e instanceof StaleSave
-          ? 'Not saved: the file changed since this editor opened. Close it and open the item again.'
-          : (e as Error).message,
-      );
+      setError(e instanceof StaleSave ? 'Not saved: the file changed since this editor opened. Close it and open the item again.' : (e as Error).message);
       setSaving(false);
     }
   }
-  const shown = (spec: FieldSpec) =>
-    !spec.when || spec.when(spec.extension ? extension : parsed.value);
+  const shown = (spec: FieldSpec) => !spec.when || spec.when(spec.extension ? extension : parsed.value);
   const children = (childLists[kind] ?? []).map(c => ({
     ...c,
     items: Array.isArray(parsed.value?.[c.key]) ? (parsed.value[c.key] as any[]) : [],
@@ -220,13 +160,7 @@ export function ItemEditor({
   }, []);
   const footer = (
     <>
-      <button
-        type="button"
-        className="item-delete"
-        hidden={!access.can('edit')}
-        onClick={onDelete}
-        disabled={saving}
-      >
+      <button type="button" className="item-delete" hidden={!access.can('edit')} onClick={onDelete} disabled={saving}>
         <Trash2 size={13} />
         Delete…
       </button>
@@ -244,13 +178,7 @@ export function ItemEditor({
       <button type="button" onClick={onClose} disabled={saving}>
         Cancel
       </button>
-      <button
-        type="button"
-        className="primary"
-        onClick={save}
-        title={access.control('edit').title}
-        disabled={!canSave || !access.can('edit')}
-      >
+      <button type="button" className="primary" onClick={save} title={access.control('edit').title} disabled={!canSave || !access.can('edit')}>
         {saving ? 'Saving…' : 'Save to file'}
       </button>
     </>
@@ -275,9 +203,7 @@ export function ItemEditor({
       )}
       {kind === 'metric' && dependents && dependents.length > 0 && (
         <p className="item-dependents">
-          <strong>Used by</strong>{' '}
-          {[...new Set(dependents.map(d => `${d.dependent!.label} (${d.file})`))].join(' · ')}.
-          Saving changes what these show.
+          <strong>Used by</strong> {[...new Set(dependents.map(d => `${d.dependent!.label} (${d.file})`))].join(' · ')}. Saving changes what these show.
         </p>
       )}
       {issues.length > 0 && (
@@ -304,12 +230,7 @@ export function ItemEditor({
         >
           Fields
         </button>
-        <button
-          role="tab"
-          aria-selected={tab === 'source'}
-          className={tab === 'source' ? 'selected' : ''}
-          onClick={() => setTab('source')}
-        >
+        <button role="tab" aria-selected={tab === 'source'} className={tab === 'source' ? 'selected' : ''} onClick={() => setTab('source')}>
           Source
         </button>
       </div>
@@ -332,30 +253,13 @@ export function ItemEditor({
                 'aria-describedby': spec.hint ? id + '-hint' : undefined,
               };
               let input: React.ReactNode;
-              if (spec.input === 'boolean')
-                input = (
-                  <input
-                    ref={ref as any}
-                    {...common}
-                    type="checkbox"
-                    checked={!!value}
-                    onChange={e => edit(spec, e.target.checked)}
-                  />
-                );
+              if (spec.input === 'boolean') input = <input ref={ref as any} {...common} type="checkbox" checked={!!value} onChange={e => edit(spec, e.target.checked)} />;
               else if (spec.input === 'select') {
-                const options =
-                  spec.key === 'ext.status' ? allowedStatuses(status) : (spec.options ?? []);
+                const options = spec.key === 'ext.status' ? allowedStatuses(status) : (spec.options ?? []);
                 const current = display(spec, value);
                 input = (
-                  <select
-                    ref={ref as any}
-                    {...common}
-                    value={current}
-                    onChange={e => edit(spec, e.target.value)}
-                  >
-                    {!options.includes(current) && (
-                      <option value={current}>{current || '—'}</option>
-                    )}
+                  <select ref={ref as any} {...common} value={current} onChange={e => edit(spec, e.target.value)}>
+                    {!options.includes(current) && <option value={current}>{current || '—'}</option>}
                     {options.map(o => (
                       <option key={o} value={o}>
                         {o || '—'}
@@ -364,27 +268,9 @@ export function ItemEditor({
                   </select>
                 );
               } else if (spec.input === 'code')
-                input = (
-                  <SqlField
-                    id={id}
-                    labelledBy={id + '-label'}
-                    dialect="ANSI_SQL"
-                    rows={3}
-                    value={texts[spec.key] ?? display(spec, value)}
-                    onChange={v => edit(spec, v)}
-                  />
-                );
+                input = <SqlField id={id} labelledBy={id + '-label'} dialect="ANSI_SQL" rows={3} value={texts[spec.key] ?? display(spec, value)} onChange={v => edit(spec, v)} />;
               else if (spec.input === 'textarea')
-                input = (
-                  <textarea
-                    ref={ref as any}
-                    {...common}
-                    rows={2}
-                    value={texts[spec.key] ?? display(spec, value)}
-                    onChange={e => edit(spec, e.target.value)}
-                    spellCheck
-                  />
-                );
+                input = <textarea ref={ref as any} {...common} rows={2} value={texts[spec.key] ?? display(spec, value)} onChange={e => edit(spec, e.target.value)} spellCheck />;
               else
                 input = (
                   <input
@@ -397,11 +283,7 @@ export function ItemEditor({
                   />
                 );
               return (
-                <label
-                  key={spec.key}
-                  className={spec.input === 'boolean' ? 'item-check' : ''}
-                  htmlFor={id}
-                >
+                <label key={spec.key} className={spec.input === 'boolean' ? 'item-check' : ''} htmlFor={id}>
                   <span id={id + '-label'}>
                     {spec.label}
                     {spec.required && <em aria-hidden> *</em>}
@@ -427,13 +309,7 @@ export function ItemEditor({
             filename={doc.filename}
             value={text}
             onChange={setText}
-            validate={async t =>
-              fragmentIssues(
-                await validateInWorker(splice(base, fragment, t), doc.filename),
-                fragment,
-                t,
-              )
-            }
+            validate={async t => fragmentIssues(await validateInWorker(splice(base, fragment, t), doc.filename), fragment, t)}
           />
         </div>
       )}
@@ -441,12 +317,7 @@ export function ItemEditor({
         <section key={c.key} className="item-children" aria-label={c.label}>
           <h3>
             {c.label} <span>{c.items.length}</span>
-            <button
-              type="button"
-              onClick={() => onAddChild(c.kind, path)}
-              disabled={changed}
-              title={changed ? 'Save or cancel this edit first' : undefined}
-            >
+            <button type="button" onClick={() => onAddChild(c.kind, path)} disabled={changed} title={changed ? 'Save or cancel this edit first' : undefined}>
               <Plus size={12} />
               Add
             </button>
@@ -456,12 +327,7 @@ export function ItemEditor({
               {c.items.map((item, i) => (
                 <li key={i}>
                   <span>{itemName(c.kind, item) || `#${i + 1}`}</span>
-                  <button
-                    type="button"
-                    onClick={() => onOpenItem([...path, c.key, i], c.kind)}
-                    disabled={changed}
-                    aria-label={`Edit ${itemName(c.kind, item) || c.label + ' ' + (i + 1)}`}
-                  >
+                  <button type="button" onClick={() => onOpenItem([...path, c.key, i], c.kind)} disabled={changed} aria-label={`Edit ${itemName(c.kind, item) || c.label + ' ' + (i + 1)}`}>
                     <Pencil size={12} />
                     Edit
                   </button>
@@ -473,11 +339,7 @@ export function ItemEditor({
       ))}
       {renamed && (
         <section className="item-references" aria-label="References to the old name">
-          <strong>
-            {references.length
-              ? `${references.length} reference${references.length === 1 ? '' : 's'} still name "${oldName}"`
-              : `Nothing else in the project names "${oldName}".`}
-          </strong>
+          <strong>{references.length ? `${references.length} reference${references.length === 1 ? '' : 's'} still name "${oldName}"` : `Nothing else in the project names "${oldName}".`}</strong>
           {references.length > 0 && (
             <>
               <p>Tick the ones to rewrite to "{newName}". Unticked references keep the old name.</p>

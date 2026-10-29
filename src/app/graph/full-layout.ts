@@ -8,17 +8,10 @@ import { modelCardHeight } from './overview-capacity';
 const GROUP_HEADER_HEIGHT = 136;
 
 /** Lays out nodes and edges within their model groups. */
-export async function layoutFullGraph(
-  entities: Entity[],
-  edges: Relationship[],
-  name: string,
-  elk: { layout: (g: any) => Promise<any> },
-  grouping?: GroupingOptions,
-) {
+export async function layoutFullGraph(entities: Entity[], edges: Relationship[], name: string, elk: { layout: (g: any) => Promise<any> }, grouping?: GroupingOptions) {
   const overview = modelOverview(entities, edges, name, false, grouping);
   const connections = groupRelationships(overview.links);
-  const allAreasCollapsed =
-    entities.length > 0 && entities.every(entity => entity.definition?.collapsedArea);
+  const allAreasCollapsed = entities.length > 0 && entities.every(entity => entity.definition?.collapsedArea);
   const graph: any = {
     id: 'root',
     layoutOptions: {
@@ -87,8 +80,7 @@ export async function layoutFullGraph(
     for (const edge of node.edges ?? []) {
       routedEdges.push({ edge, container: edge.container ?? node.id });
     }
-    for (const child of node.children ?? [])
-      visit(child, x, y, node.id === 'root' ? undefined : node.id);
+    for (const child of node.children ?? []) visit(child, x, y, node.id === 'root' ? undefined : node.id);
   }
   visit(result);
   // ELK can store an edge on the root while expressing its points in a compound container.
@@ -113,11 +105,7 @@ export async function layoutFullGraph(
 // Keep fCoSE's internal compound layout, then pack the area rectangles with ELK's box packer to
 // remove empty space without stretching individual nodes.
 /** Packs group rectangles while preserving their internal network layouts. */
-export async function packNetwork(
-  result: any,
-  elk: { layout: (g: any) => Promise<any> },
-  _grouping?: GroupingOptions,
-) {
+export async function packNetwork(result: any, elk: { layout: (g: any) => Promise<any> }, _grouping?: GroupingOptions) {
   const groups = result.nodes.filter((n: any) => n.group);
   const interiors = await Promise.all(
     groups.map((g: any) =>
@@ -128,9 +116,7 @@ export async function packNetwork(
           'elk.spacing.nodeNode': '24',
           'elk.padding': `[top=${GROUP_HEADER_HEIGHT},left=28,bottom=28,right=28]`,
         },
-        children: result.nodes
-          .filter((n: any) => n.parentId === g.id)
-          .map((n: any) => ({ id: n.id, x: n.x, y: n.y, width: n.width, height: n.height })),
+        children: result.nodes.filter((n: any) => n.parentId === g.id).map((n: any) => ({ id: n.id, x: n.x, y: n.y, width: n.width, height: n.height })),
       }),
     ),
   );
@@ -155,10 +141,6 @@ export async function packNetwork(
     ...result,
     width: packed.width,
     height: packed.height,
-    nodes: result.nodes.map((n: any) =>
-      n.group
-        ? { ...n, ...(positions.get(n.id) as any) }
-        : { ...n, x: (children.get(n.id) as any).x, y: (children.get(n.id) as any).y },
-    ),
+    nodes: result.nodes.map((n: any) => (n.group ? { ...n, ...(positions.get(n.id) as any) } : { ...n, x: (children.get(n.id) as any).x, y: (children.get(n.id) as any).y })),
   };
 }

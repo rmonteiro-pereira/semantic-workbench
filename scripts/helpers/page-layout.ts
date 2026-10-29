@@ -14,9 +14,7 @@ export async function pageLayoutProblems(page: Page, screenName: string) {
       for (const count of document.querySelectorAll('.area-count')) {
         if (!count.textContent?.includes('entities')) problems.push('an area count has no unit');
       }
-      if (
-        !document.querySelector('.overview-top p')?.textContent?.includes('declared relationships')
-      ) {
+      if (!document.querySelector('.overview-top p')?.textContent?.includes('declared relationships')) {
         problems.push('the overview does not explain entity counts');
       }
       const first = rows('.business-area');
@@ -69,11 +67,7 @@ export async function pageLayoutProblems(page: Page, screenName: string) {
     if (name === 'source-control') {
       const sourceControl = document.querySelector('.scm');
       const header = document.querySelector('.workspace-header');
-      if (
-        sourceControl &&
-        header &&
-        sourceControl.getBoundingClientRect().top - header.getBoundingClientRect().bottom < 10
-      ) {
+      if (sourceControl && header && sourceControl.getBoundingClientRect().top - header.getBoundingClientRect().bottom < 10) {
         problems.push('Source control has no gap below the header');
       }
       const counts = document.querySelector('.scm-sync');

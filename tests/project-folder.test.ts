@@ -8,13 +8,7 @@ import { plannedMoves } from '../src/server/projects/project-folder';
 import { bareRepository } from './helpers/git-fixtures';
 import { testWorkspace } from './helpers/temp-data-dir';
 import { call, ok, ontology, scmProject, sh } from './helpers/scm';
-import {
-  OTHER_FOLDER,
-  PROJECT_FOLDER,
-  cloneFolder,
-  cloneOutcome,
-  teamRepository,
-} from './helpers/sparse-fixtures';
+import { OTHER_FOLDER, PROJECT_FOLDER, cloneFolder, cloneOutcome, teamRepository } from './helpers/sparse-fixtures';
 
 test('the planned moves put every file under the folder', () => {
   expect(plannedMoves(['a.yaml', 'sub/b.yaml'], 'semantic/ubl')).toEqual([
@@ -26,9 +20,7 @@ test('the planned moves put every file under the folder', () => {
 test('a preview lists which files move where and changes nothing', async () => {
   const fixture = await scmProject({ remote: false });
   try {
-    const shown = await ok(
-      call(fixture.t, 'GET', `${fixture.base}/git/folder?folder=semantic%2Fubl`),
-    );
+    const shown = await ok(call(fixture.t, 'GET', `${fixture.base}/git/folder?folder=semantic%2Fubl`));
     expect(shown).toMatchObject({
       kind: 'move',
       current: '',
@@ -49,9 +41,7 @@ test('confirming moves the files under the folder in a new commit and keeps the 
   try {
     const firstCommit = sh(fixture.dir, ['rev-parse', 'HEAD']).trim();
     writeFileSync(join(fixture.dir, 'notes.txt'), 'Not committed yet.\n');
-    const applied = await ok(
-      call(fixture.t, 'PUT', `${fixture.base}/git/folder`, { folder: 'semantic/ubl' }),
-    );
+    const applied = await ok(call(fixture.t, 'PUT', `${fixture.base}/git/folder`, { folder: 'semantic/ubl' }));
     expect(applied).toMatchObject({ kind: 'move', moveCount: 2 });
 
     expect(readdirSync(fixture.dir).filter(name => name !== '.git')).toEqual(['semantic']);
@@ -59,20 +49,14 @@ test('confirming moves the files under the folder in a new commit and keeps the 
     expect(existsSync(join(fixture.dir, 'semantic/ubl/notes.txt'))).toBe(true);
     // The old commit is still the root of the history, and one new commit records the move.
     expect(sh(fixture.dir, ['rev-list', '--max-parents=0', 'HEAD']).trim()).toBe(firstCommit);
-    expect(sh(fixture.dir, ['log', '--format=%s', '-1']).trim()).toBe(
-      'Move the project into semantic/ubl',
-    );
-    expect(sh(fixture.dir, ['show', '--name-status', '--format=', 'HEAD']).trim()).toMatch(
-      /^R\d*\s+shop\.yaml\s+semantic\/ubl\/shop\.yaml$/m,
-    );
+    expect(sh(fixture.dir, ['log', '--format=%s', '-1']).trim()).toBe('Move the project into semantic/ubl');
+    expect(sh(fixture.dir, ['show', '--name-status', '--format=', 'HEAD']).trim()).toMatch(/^R\d*\s+shop\.yaml\s+semantic\/ubl\/shop\.yaml$/m);
     expect(sh(fixture.dir, ['status', '--porcelain']).trim()).toBe('?? semantic/ubl/notes.txt');
     expect(sh(fixture.dir, ['sparse-checkout', 'list']).trim()).toBe('semantic/ubl');
 
     const entry = fixture.t.ws.state.registry().projects.find(p => p.slug === fixture.slug);
     expect(entry).toMatchObject({ folder: `${fixture.slug}/semantic/ubl`, repo: fixture.slug });
-    const listed = (await ok(call(fixture.t, 'GET', '/api/projects'))).find(
-      (project: any) => project.slug === fixture.slug,
-    );
+    const listed = (await ok(call(fixture.t, 'GET', '/api/projects'))).find((project: any) => project.slug === fixture.slug);
     expect(listed.files.map((file: any) => file.path)).toEqual(['shop.yaml']);
     const status = await ok(call(fixture.t, 'GET', `${fixture.base}/git/status`));
     expect(status).toMatchObject({ folder: 'semantic/ubl' });
@@ -91,9 +75,7 @@ test('a move waits for uncommitted changes and unsaved edits', async () => {
     expect(blocked.status).toBe(409);
     expect(blocked.body.error).toBe('dirty');
     expect(existsSync(join(fixture.dir, 'shop.yaml'))).toBe(true);
-    const shown = await ok(
-      call(fixture.t, 'GET', `${fixture.base}/git/folder?folder=semantic%2Fubl`),
-    );
+    const shown = await ok(call(fixture.t, 'GET', `${fixture.base}/git/folder?folder=semantic%2Fubl`));
     expect(shown.blocked).toMatchObject({ reason: 'dirty', paths: ['shop.yaml'] });
   } finally {
     fixture.dispose();
@@ -105,9 +87,7 @@ test('a moved project joins a team repository: its first pull merges, its push a
   const fixture = await scmProject({ remote: false });
   try {
     await ok(call(fixture.t, 'PUT', `${fixture.base}/git/folder`, { folder: 'semantic/shop' }));
-    await ok(
-      call(fixture.t, 'PUT', `${fixture.base}/git/remote`, { name: 'origin', url: team.address }),
-    );
+    await ok(call(fixture.t, 'PUT', `${fixture.base}/git/remote`, { name: 'origin', url: team.address }));
     const pulled = await ok(call(fixture.t, 'POST', `${fixture.base}/git/pull`));
     expect(pulled.ok).toBe(true);
     // The team's folders are in the history but not on the disk.
@@ -115,17 +95,8 @@ test('a moved project joins a team repository: its first pull merges, its push a
     expect(existsSync(join(fixture.dir, PROJECT_FOLDER))).toBe(false);
     const pushed = await ok(call(fixture.t, 'POST', `${fixture.base}/git/push`));
     expect(pushed.ok).toBe(true);
-    const tree = sh(team.bare, ['ls-tree', '-r', '--name-only', 'main'])
-      .split('\n')
-      .filter(Boolean);
-    expect(tree).toEqual(
-      expect.arrayContaining([
-        'README.md',
-        `${PROJECT_FOLDER}/shop.yaml`,
-        `${OTHER_FOLDER}/crm.yaml`,
-        'semantic/shop/shop.yaml',
-      ]),
-    );
+    const tree = sh(team.bare, ['ls-tree', '-r', '--name-only', 'main']).split('\n').filter(Boolean);
+    expect(tree).toEqual(expect.arrayContaining(['README.md', `${PROJECT_FOLDER}/shop.yaml`, `${OTHER_FOLDER}/crm.yaml`, 'semantic/shop/shop.yaml']));
   } finally {
     fixture.dispose();
     team.dispose();
@@ -164,14 +135,11 @@ test('an interrupted move is completed on the next start, leaving the move to co
   const crash = { on: false };
   const t = await testWorkspace({
     journalHooks: {
-      crashAfter: (kind: string, step: number) =>
-        crash.on && kind === 'project-folder' && step === 0,
+      crashAfter: (kind: string, step: number) => crash.on && kind === 'project-folder' && step === 0,
     },
   });
   const root = t.root;
-  const created = await ok(
-    call(t, 'POST', '/api/import', { files: [{ path: 'shop.yaml', source: ontology('Buys.') }] }),
-  );
+  const created = await ok(call(t, 'POST', '/api/import', { files: [{ path: 'shop.yaml', source: ontology('Buys.') }] }));
   const dir = join(root, 'projects', created.slug);
   crash.on = true;
   const interrupted = await call(t, 'PUT', `/api/projects/${created.slug}/git/folder`, {
@@ -181,29 +149,20 @@ test('an interrupted move is completed on the next start, leaving the move to co
   t.ws.close();
   const again = await testWorkspace({ root });
   try {
-    expect(again.ws.recovery.map(entry => [entry.kind, entry.outcome])).toEqual([
-      ['project-folder', 'completed'],
-    ]);
+    expect(again.ws.recovery.map(entry => [entry.kind, entry.outcome])).toEqual([['project-folder', 'completed']]);
     expect(readFileSync(join(dir, 'semantic/ubl/shop.yaml'), 'utf8')).toContain('Buys.');
     expect(existsSync(join(dir, 'shop.yaml'))).toBe(false);
     const entry = again.ws.state.registry().projects.find(project => project.slug === created.slug);
     expect(entry).toMatchObject({ folder: `${created.slug}/semantic/ubl`, repo: created.slug });
     const status = await ok(call(again, 'GET', `/api/projects/${created.slug}/git/status`));
-    expect(status.changes.map((change: any) => change.repoPath).sort()).toEqual([
-      'semantic/ubl/shop.yaml',
-      'shop.yaml',
-    ]);
+    expect(status.changes.map((change: any) => change.repoPath).sort()).toEqual(['semantic/ubl/shop.yaml', 'shop.yaml']);
     // Confirming again records the move and limits the checkout, as the first try would have.
-    const finish = await ok(
-      call(again, 'PUT', `/api/projects/${created.slug}/git/folder`, { folder: 'semantic/ubl' }),
-    );
+    const finish = await ok(call(again, 'PUT', `/api/projects/${created.slug}/git/folder`, { folder: 'semantic/ubl' }));
     expect(finish.kind).toBe('finish');
     expect(sh(dir, ['log', '--format=%s', '-1']).trim()).toBe('Move the project into semantic/ubl');
     expect(sh(dir, ['status', '--porcelain']).trim()).toBe('');
     expect(sh(dir, ['sparse-checkout', 'list']).trim()).toBe('semantic/ubl');
-    const done = await ok(
-      call(again, 'GET', `/api/projects/${created.slug}/git/folder?folder=semantic%2Fubl`),
-    );
+    const done = await ok(call(again, 'GET', `/api/projects/${created.slug}/git/folder?folder=semantic%2Fubl`));
     expect(done.kind).toBe('none');
   } finally {
     again.dispose();
@@ -221,13 +180,9 @@ test('a move that fails to commit is finished by confirming again', async () => 
     expect(failed.status).toBeGreaterThanOrEqual(400);
     expect(existsSync(join(fixture.dir, 'semantic/ubl/shop.yaml'))).toBe(true);
     rmSync(hook);
-    const again = await ok(
-      call(fixture.t, 'PUT', `${fixture.base}/git/folder`, { folder: 'semantic/ubl' }),
-    );
+    const again = await ok(call(fixture.t, 'PUT', `${fixture.base}/git/folder`, { folder: 'semantic/ubl' }));
     expect(again.kind).toBe('finish');
-    expect(sh(fixture.dir, ['log', '--format=%s', '-1']).trim()).toBe(
-      'Move the project into semantic/ubl',
-    );
+    expect(sh(fixture.dir, ['log', '--format=%s', '-1']).trim()).toBe('Move the project into semantic/ubl');
     expect(sh(fixture.dir, ['sparse-checkout', 'list']).trim()).toBe('semantic/ubl');
   } finally {
     fixture.dispose();
@@ -293,11 +248,7 @@ test('server mode and shared repositories refuse a folder change with a reason',
     const started = fixture.t.ws.clone(monorepo.bare, undefined, LOCAL_READER);
     await cloneOutcome(fixture.t, started.op);
     const sales = fixture.t.ws.state.registry().projects.find(project => project.name === 'Sales')!;
-    const shared = await call(
-      fixture.t,
-      'GET',
-      `/api/projects/${sales.slug}/git/folder?folder=other%2Ffolder`,
-    );
+    const shared = await call(fixture.t, 'GET', `/api/projects/${sales.slug}/git/folder?folder=other%2Ffolder`);
     expect(shared.status).toBe(400);
     expect(shared.body.error).toContain('shares its repository');
     monorepo.dispose();

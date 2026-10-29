@@ -69,14 +69,7 @@ test('ODCS references to other contract files are external; unknown local target
   );
   expect(external.valid).toBe(true);
   expect(external.model!.edges).toEqual([]);
-  const dangling = validateInput(
-    contract([
-      table('orders', [
-        { name: 'customer_id', logicalType: 'integer', relationships: [{ to: 'customers.id' }] },
-      ]),
-    ]),
-    'c.odcs.yaml',
-  );
+  const dangling = validateInput(contract([table('orders', [{ name: 'customer_id', logicalType: 'integer', relationships: [{ to: 'customers.id' }] }])]), 'c.odcs.yaml');
   expect(dangling.valid).toBe(false);
   expect(dangling.issues[0]).toMatchObject({
     code: 'reference',
@@ -96,17 +89,13 @@ test('shared references match a QName IRI with the expanded IRI used by another 
   const odcs = inspect(
     contract([
       table('parties', [], {
-        authoritativeDefinitions: [
-          { type: 'businessDefinition', url: 'https://example.org/core#Party' },
-        ],
+        authoritativeDefinitions: [{ type: 'businessDefinition', url: 'https://example.org/core#Party' }],
       }),
     ]),
     'c.odcs.yaml',
   );
   expect(entityKeys(ontology.entities[0], ontology)).toContain('https://example.org/core#Party');
-  expect(entityKeys(ontology.entities[0], ontology).some(k => documentKeys(odcs).has(k))).toBe(
-    true,
-  );
+  expect(entityKeys(ontology.entities[0], ontology).some(k => documentKeys(odcs).has(k))).toBe(true);
   expect(entityKeys(odcs.entities[0], odcs).some(k => documentKeys(ontology).has(k))).toBe(true);
 });
 

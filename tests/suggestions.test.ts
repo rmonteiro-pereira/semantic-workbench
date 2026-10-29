@@ -7,23 +7,14 @@ import { testWorkspace, example } from './helpers/temp-data-dir';
 import { createAccessControl } from '../src/server/auth/authorize';
 import { accessFixture, person } from './auth/access-fixture';
 import { LOCAL_READER } from '../src/server/projects/reader';
-const api = (t: { handler: (r: Request) => Promise<Response> }, method: string, path: string) =>
-  t.handler(new Request('http://127.0.0.1:4310' + path, { method }));
+const api = (t: { handler: (r: Request) => Promise<Response> }, method: string, path: string) => t.handler(new Request('http://127.0.0.1:4310' + path, { method }));
 test('facts come from declared names, references, IRIs and physical names only', async () => {
   const mapping = factsOf(await example('ossie', 'flights.mapping.yaml'), 'flights.mapping.yaml');
   expect(mapping.refs.sort()).toEqual(['Flights', 'Flights semantic model']);
-  expect(
-    factsOf(await example('ossie', 'flights.ontology.yaml'), 'flights.ontology.yaml').names,
-  ).toEqual(['Flights']);
-  expect(
-    factsOf(await example('commerce', 'commerce.odcs.yaml'), 'commerce.odcs.yaml').physical,
-  ).toContain('analytics.commerce.orders');
-  expect(
-    factsOf(await example('commerce', 'sales.ossie.yaml'), 'sales.ossie.yaml').sources,
-  ).toContain('analytics.commerce.orders');
-  expect(
-    factsOf(await example('commerce', 'commerce.owl.ttl'), 'commerce.owl.ttl').iris.length,
-  ).toBeGreaterThan(5);
+  expect(factsOf(await example('ossie', 'flights.ontology.yaml'), 'flights.ontology.yaml').names).toEqual(['Flights']);
+  expect(factsOf(await example('commerce', 'commerce.odcs.yaml'), 'commerce.odcs.yaml').physical).toContain('analytics.commerce.orders');
+  expect(factsOf(await example('commerce', 'sales.ossie.yaml'), 'sales.ossie.yaml').sources).toContain('analytics.commerce.orders');
+  expect(factsOf(await example('commerce', 'commerce.owl.ttl'), 'commerce.owl.ttl').iris.length).toBeGreaterThan(5);
   expect(factsOf('not: [valid', 'x.yaml')).toEqual({
     names: [],
     refs: [],
@@ -46,22 +37,10 @@ test('evidence kinds: ossie-ref-name, shared-iri, odcs-physical-name; never simi
   expect(evidenceBetween(f('p', 'x', { refs: ['Flight'] }), b)).toEqual([]);
   expect(evidenceBetween(f('p', 'x', { refs: ['flights'] }), b)).toEqual([]);
   expect(evidenceBetween(f('p', 'x', { names: ['Flights semantic'] }), b)).toEqual([]);
-  expect(
-    evidenceBetween(
-      f('p', 'x', { iris: ['https://e/A'] }),
-      f('q', 'y', { iris: ['https://e/A', 'https://e/B'] }),
-    )[0].kind,
-  ).toBe('shared-iri');
-  expect(
-    evidenceBetween(
-      f('p', 'x', { physical: ['db.orders'] }),
-      f('q', 'y', { sources: ['db.orders'] }),
-    )[0].kind,
-  ).toBe('odcs-physical-name');
+  expect(evidenceBetween(f('p', 'x', { iris: ['https://e/A'] }), f('q', 'y', { iris: ['https://e/A', 'https://e/B'] }))[0].kind).toBe('shared-iri');
+  expect(evidenceBetween(f('p', 'x', { physical: ['db.orders'] }), f('q', 'y', { sources: ['db.orders'] }))[0].kind).toBe('odcs-physical-name');
   // The isolated q/o.yaml joins p, which already holds a related file; never the reverse.
-  expect(
-    inferSuggestions([a, b, f('p', 'sibling.yaml', { names: ['Flights'] })], new Set()),
-  ).toEqual([
+  expect(inferSuggestions([a, b, f('p', 'sibling.yaml', { names: ['Flights'] })], new Set())).toEqual([
     {
       id: expect.any(String),
       file: { project: 'q', path: 'o.yaml', hash: 'o.yaml' },
@@ -101,9 +80,7 @@ test('a file imported alone is offered to the project it references; accept move
     expect(await (await api(t, 'GET', '/api/suggestions')).json()).toEqual([]);
     const mapping = await t.ws.importBatch(
       {
-        files: [
-          { path: 'flights.mapping.yaml', source: await example('ossie', 'flights.mapping.yaml') },
-        ],
+        files: [{ path: 'flights.mapping.yaml', source: await example('ossie', 'flights.mapping.yaml') }],
       },
       LOCAL_READER,
     );
@@ -132,14 +109,10 @@ test('a file imported alone is offered to the project it references; accept move
       },
       LOCAL_READER,
     );
-    const offer = (await (await api(t, 'GET', '/api/suggestions')).json()).find(
-      (s: any) => s.file.project === again.slug,
-    );
+    const offer = (await (await api(t, 'GET', '/api/suggestions')).json()).find((s: any) => s.file.project === again.slug);
     expect(offer.targetProject).toBe('flights');
     expect((await api(t, 'POST', `/api/suggestions/${offer.id}/reject`)).status).toBe(200);
-    expect(t.ws.state.suggestions().rejected).toMatchObject([
-      { target: 'flights', project: again.slug, path: 'flights.semantic_model.yaml' },
-    ]);
+    expect(t.ws.state.suggestions().rejected).toMatchObject([{ target: 'flights', project: again.slug, path: 'flights.semantic_model.yaml' }]);
     await t.ws.trash.deleteProject(again.slug);
     await t.ws.importBatch(
       {
@@ -172,12 +145,7 @@ test('local mode announces the suggestion count only when it changes', async () 
   await Bun.sleep(120);
   expect(counts()).toEqual([{ open: 0 }]);
   const { hash } = t.ws.readFile('local', 'a.yaml');
-  await t.ws.saveFile(
-    'local',
-    'a.yaml',
-    { baseHash: hash, source: source + '# edited\n' },
-    LOCAL_READER,
-  );
+  await t.ws.saveFile('local', 'a.yaml', { baseHash: hash, source: source + '# edited\n' }, LOCAL_READER);
   await Bun.sleep(120);
   expect(counts()).toEqual([{ open: 0 }]);
 });
@@ -189,9 +157,7 @@ async function untilSuggestionCount(response: Response) {
   const stop = Date.now() + 2000;
   let text = '';
   while (!text.includes('event: suggestions') && Date.now() < stop) {
-    const timeout = new Promise<{ done: true }>(resolve =>
-      setTimeout(() => resolve({ done: true }), stop - Date.now()),
-    );
+    const timeout = new Promise<{ done: true }>(resolve => setTimeout(() => resolve({ done: true }), stop - Date.now()));
     const chunk = await Promise.race([reader.read(), timeout]);
     if (chunk.done) break;
     text += decoder.decode(chunk.value);
@@ -212,10 +178,7 @@ test('each person hears their own suggestion count while local clients share one
   });
   const local = t.ws.events.stream(request());
   await t.seed([{ path: 'a.yaml', source: 'name: Shared\nontology: [{concept: A}]\n' }], 'team');
-  const [personalText, localText] = await Promise.all([
-    untilSuggestionCount(personal),
-    untilSuggestionCount(local),
-  ]);
+  const [personalText, localText] = await Promise.all([untilSuggestionCount(personal), untilSuggestionCount(local)]);
   expect(personalText).toContain('"open":5');
   expect(localText).toContain('event: suggestions\ndata: {"open":0}');
   const recorded = t.ws.events.replay(0)!.filter(event => event.event === 'suggestions');

@@ -1,12 +1,5 @@
 // Validates agent clients' bearer tokens, separately from browser sessions and their key cache.
-import {
-  createRemoteJWKSet,
-  customFetch,
-  errors,
-  jwtVerify,
-  type JWTVerifyGetKey,
-  type RemoteJWKSetOptions,
-} from 'jose';
+import { createRemoteJWKSet, customFetch, errors, jwtVerify, type JWTVerifyGetKey, type RemoteJWKSetOptions } from 'jose';
 import { ClaimError, clientFromToken, type Principal } from './principal';
 import type { ServerConfig } from '../config';
 
@@ -40,11 +33,7 @@ export function acceptsBearer(pathname: string): boolean {
 
 /** True for a key lookup that failed because of the token, not because of the provider. */
 function tokenKeyProblem(error: unknown): boolean {
-  return (
-    error instanceof errors.JWKSNoMatchingKey ||
-    error instanceof errors.JWKSMultipleMatchingKeys ||
-    error instanceof errors.JOSENotSupported
-  );
+  return error instanceof errors.JWKSNoMatchingKey || error instanceof errors.JWKSMultipleMatchingKeys || error instanceof errors.JOSENotSupported;
 }
 
 /**
@@ -72,11 +61,7 @@ function asBearerError(error: unknown): BearerError {
  * Builds the validator for agent tokens from the provider's discovered key endpoint. Without a
  * configured API audience, every bearer token is refused.
  */
-export function createBearerValidator(
-  config: ServerConfig,
-  jwksUri: string,
-  fetchKeys?: RemoteJWKSetOptions[typeof customFetch],
-): BearerValidator {
+export function createBearerValidator(config: ServerConfig, jwksUri: string, fetchKeys?: RemoteJWKSetOptions[typeof customFetch]): BearerValidator {
   const remote = createRemoteJWKSet(new URL(jwksUri), {
     cooldownDuration: UNKNOWN_KEY_COOLDOWN_MS,
     timeoutDuration: KEY_FETCH_TIMEOUT_MS,

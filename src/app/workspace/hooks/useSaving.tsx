@@ -5,12 +5,7 @@ import { validateInWorker } from '../../editor/lint';
 import { diffPatches, normalize } from '../../../shared/editor/patch';
 import type { Doc, ProjectInfo } from '../../projects/api';
 import { api, scm as scmApi, StaleSave } from '../../projects/api';
-import {
-  failureReason,
-  saveStateLabel,
-  saveStateShortLabel,
-  useAutosave,
-} from '../../projects/autosave';
+import { failureReason, saveStateLabel, saveStateShortLabel, useAutosave } from '../../projects/autosave';
 import { isGitignore } from '../../../shared/scm/gitignore';
 import { applyDemotions, type Demotion } from '../../../shared/governance/guards';
 
@@ -26,9 +21,7 @@ type Options = {
   docsRef: React.RefObject<Map<string, Doc>>;
   setDocs: React.Dispatch<React.SetStateAction<Doc[]>>;
   setCurrentState: React.Dispatch<React.SetStateAction<Doc | null>>;
-  setStale: React.Dispatch<
-    React.SetStateAction<{ current: string | null; currentHash: string | null } | null>
-  >;
+  setStale: React.Dispatch<React.SetStateAction<{ current: string | null; currentHash: string | null } | null>>;
   setMessage: React.Dispatch<React.SetStateAction<string>>;
   projects: ProjectInfo[];
   sourceRef: React.RefObject<string>;
@@ -36,21 +29,7 @@ type Options = {
   draftOf: React.RefObject<{ project: string; path: string } | null>;
 };
 /** Manages saving. */
-export function useSaving({
-  current,
-  source,
-  currentRef,
-  editorIssuesRef,
-  docsRef,
-  setDocs,
-  setCurrentState,
-  setStale,
-  setMessage,
-  projects,
-  sourceRef,
-  setSource,
-  draftOf,
-}: Options) {
+export function useSaving({ current, source, currentRef, editorIssuesRef, docsRef, setDocs, setCurrentState, setStale, setMessage, projects, sourceRef, setSource, draftOf }: Options) {
   // Automatic saving of valid edits: 1 s after the last edit, through the usual
   // hash-checked save with only the changed range; invalid text stays a server draft.
   const [gitBusy, setGitBusy] = useState(false);
@@ -67,25 +46,13 @@ export function useSaving({
       if (!document || isGitignore(document.filename)) return 0;
       const editorResult = editorIssuesRef.current;
       const errors = (issues: Issue[]) => issues.filter(i => i.severity === 'error').length;
-      if (
-        editorResult &&
-        editorResult.id === document.id &&
-        editorResult.text !== undefined &&
-        editorResult.text === normalize(text)
-      )
-        return errors(editorResult.issues);
+      if (editorResult && editorResult.id === document.id && editorResult.text !== undefined && editorResult.text === normalize(text)) return errors(editorResult.issues);
       return errors(await validateInWorker(text, document.filename));
     },
     save: r => {
       const documentValue = docsRef.current.get(r.file);
       if (!documentValue) return Promise.reject(Error('The file is no longer in the workspace.'));
-      return api.save(
-        documentValue.project,
-        documentValue.path,
-        r.baseHash,
-        r.to,
-        diffPatches(r.from, r.to),
-      );
+      return api.save(documentValue.project, documentValue.path, r.baseHash, r.to, diffPatches(r.from, r.to));
     },
     onSaved: (file, text, hash, sent) => {
       const documentValue = docsRef.current.get(file);
@@ -93,25 +60,19 @@ export function useSaving({
       const next = { ...documentValue, source: text, hash };
       docsRef.current.set(file, next);
       setDocs(old => old.map(x => (x.id === file ? next : x)));
-      if (currentRef.current?.id === file)
-        setCurrentState(next); /* the server's file event refreshes the tree and counts */
+      if (currentRef.current?.id === file) setCurrentState(next); /* the server's file event refreshes the tree and counts */
       if (text !== sent.text) followStoredText(file, text, sent);
     },
     isStale: e => e instanceof StaleSave,
     onStale: (file, e) => {
-      if (currentRef.current?.id === file && e instanceof StaleSave)
-        setStale({ current: e.currentSource, currentHash: e.currentHash });
+      if (currentRef.current?.id === file && e instanceof StaleSave) setStale({ current: e.currentSource, currentHash: e.currentHash });
     },
     onFailed: (_file, m) => setMessage(`Not saved: ${failureReason(m)}`),
   });
   // The server stored other text than sent: an approved metric the person changed went back to
   // proposed. The editor shows the stored text, or applies the same demotion to what was typed
   // since, so the next save does not set the metric approved again.
-  function followStoredText(
-    file: string,
-    text: string,
-    sent: { text: string; demoted?: Demotion[] },
-  ) {
+  function followStoredText(file: string, text: string, sent: { text: string; demoted?: Demotion[] }) {
     if (currentRef.current?.id === file) {
       const typed = sourceRef.current;
       if (typed === sent.text) setSource(text);

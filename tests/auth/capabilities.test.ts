@@ -16,9 +16,7 @@ const me: Me = {
 test('role labels never grant browser capabilities', () => {
   expect(can(me, [], 'edit', 'sales')).toBe(false);
   expect(can(me, [], 'admin')).toBe(false);
-  expect(can(me, [{ slug: 'sales', actions: ['approveMetric'] }], 'approveMetric', 'sales')).toBe(
-    true,
-  );
+  expect(can(me, [{ slug: 'sales', actions: ['approveMetric'] }], 'approveMetric', 'sales')).toBe(true);
   expect(can(me, [{ slug: 'sales', actions: ['approveMetric'] }], 'edit', 'sales')).toBe(false);
   expect(can(null, [], 'edit')).toBe(false);
 });

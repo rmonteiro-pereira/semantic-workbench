@@ -25,21 +25,10 @@ export function WizardStepper({ steps, current, reachable, onGo }: Props) {
         <h3 className="wizard-stepper-title">
           Step {current + 1} of {steps.length}
         </h3>
-        <div
-          className="wizard-stepper-bar"
-          role="progressbar"
-          aria-label="Progress"
-          aria-valuemin={1}
-          aria-valuemax={steps.length}
-          aria-valuenow={current + 1}
-        >
+        <div className="wizard-stepper-bar" role="progressbar" aria-label="Progress" aria-valuemin={1} aria-valuemax={steps.length} aria-valuenow={current + 1}>
           <span style={{ width: `${share}%` }} />
         </div>
-        <select
-          aria-label="Go to step"
-          value={current}
-          onChange={event => onGo(Number(event.target.value))}
-        >
+        <select aria-label="Go to step" value={current} onChange={event => onGo(Number(event.target.value))}>
           {steps.map((name, index) => (
             <option key={name} value={index} disabled={index > reachable}>
               {index + 1}. {name}
@@ -52,12 +41,7 @@ export function WizardStepper({ steps, current, reachable, onGo }: Props) {
           const state = index < current ? 'done' : index === current ? 'current' : 'pending';
           return (
             <li key={name} data-state={state}>
-              <button
-                type="button"
-                aria-current={index === current ? 'step' : undefined}
-                disabled={index > reachable}
-                onClick={() => onGo(index)}
-              >
+              <button type="button" aria-current={index === current ? 'step' : undefined} disabled={index > reachable} onClick={() => onGo(index)}>
                 <span className="wizard-stepper-mark" aria-hidden="true">
                   {state === 'done' ? <Check size={12} /> : index + 1}
                 </span>

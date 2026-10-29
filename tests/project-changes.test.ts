@@ -6,11 +6,7 @@ import { changesOfProject, elsewhereLine } from '../src/app/scm/project-changes'
 const change = (path: string, outside = false) => ({ path, repoPath: path, outside }) as GitChange;
 
 test('changes of other projects and of no project are counted, not listed', () => {
-  const changes = [
-    change('finance.ontology.yaml'),
-    change('domains/sales/sales.ontology.yaml', true),
-    change('README.md', true),
-  ];
+  const changes = [change('finance.ontology.yaml'), change('domains/sales/sales.ontology.yaml', true), change('README.md', true)];
   const { inProject, elsewhere } = changesOfProject(changes);
   expect(inProject.map(c => c.path)).toEqual(['finance.ontology.yaml']);
   expect(elsewhere).toBe(2);

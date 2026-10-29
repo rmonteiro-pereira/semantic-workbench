@@ -7,10 +7,8 @@ import { readMetricExtension } from '../../shared/metrics/extension';
 // names of objects and columns. Matching is by declared names and parsed expressions only.
 /** Pairs a project path with its parsed definition for lineage construction. */
 export type ProjectFile = { path: string; data: any };
-const list = (v: unknown): any[] =>
-  Array.isArray(v) ? v : v === undefined || v === null ? [] : [v];
-const isObject = (v: unknown): v is Record<string, any> =>
-  !!v && typeof v === 'object' && !Array.isArray(v);
+const list = (v: unknown): any[] => (Array.isArray(v) ? v : v === undefined || v === null ? [] : [v]);
+const isObject = (v: unknown): v is Record<string, any> => !!v && typeof v === 'object' && !Array.isArray(v);
 /** Builds an identifier for a contract object within a project file. */
 export const objectId = (file: string, name: string) => `object:${file}#${name}`;
 // Semantic models in a file: flat, legacy `semantic_model` lists, and models embedded in a
@@ -19,22 +17,12 @@ function models(f: ProjectFile): { file: string; key: string; model: any }[] {
   const d = f.data;
   if (!isObject(d) || d.kind === 'DataContract') return [];
   if (Array.isArray(d.ontology))
-    return list(d.ontology_mappings).flatMap((om: any, i: number) =>
-      isObject(om?.semantic_model)
-        ? [{ file: f.path, key: `ontology_mappings/${i}`, model: om.semantic_model }]
-        : [],
-    );
+    return list(d.ontology_mappings).flatMap((om: any, i: number) => (isObject(om?.semantic_model) ? [{ file: f.path, key: `ontology_mappings/${i}`, model: om.semantic_model }] : []));
   if (Array.isArray(d.datasets)) return [{ file: f.path, key: '', model: d }];
-  return list(d.semantic_model).flatMap((m: any, i: number) =>
-    isObject(m) && Array.isArray(m.datasets)
-      ? [{ file: f.path, key: `semantic_model/${i}`, model: m }]
-      : [],
-  );
+  return list(d.semantic_model).flatMap((m: any, i: number) => (isObject(m) && Array.isArray(m.datasets) ? [{ file: f.path, key: `semantic_model/${i}`, model: m }] : []));
 }
-const physical = (o: any) =>
-  typeof o?.physicalName === 'string' ? o.physicalName : String(o?.name);
-const columnOf = (p: any) =>
-  typeof p?.physicalName === 'string' ? p.physicalName : String(p?.name);
+const physical = (o: any) => (typeof o?.physicalName === 'string' ? o.physicalName : String(o?.name));
+const columnOf = (p: any) => (typeof p?.physicalName === 'string' ? p.physicalName : String(p?.name));
 
 // Edges follow referenced key → foreign key → semantic field → metric → dependent metric. Cards
 // include contract objects, semantic datasets, metrics and external stubs. Matching uses declared
@@ -90,8 +78,7 @@ export type ColumnEdge = {
 // the dataset renames, computes or adds anything.
 function copiedColumns(dataset: any, table: any): Map<string, string> | null {
   const sameName = String(dataset.name).toLowerCase();
-  if (sameName !== String(table.name).toLowerCase() && sameName !== physical(table).toLowerCase())
-    return null;
+  if (sameName !== String(table.name).toLowerCase() && sameName !== physical(table).toLowerCase()) return null;
   const properties = new Map(
     list(table.properties)
       .filter(isObject)
@@ -112,8 +99,7 @@ function copiedColumns(dataset: any, table: any): Map<string, string> | null {
 // The table card stands for the copying dataset: one badge, and the copied columns so the
 // property lineage can still name the dataset's fields.
 function markCopy(table: LineageCard, dataset: string, columns: string[]) {
-  if (!table.badges?.some(existing => existing.kind === 'semantic'))
-    table.badges = [...(table.badges ?? []), badge('semantic')];
+  if (!table.badges?.some(existing => existing.kind === 'semantic')) table.badges = [...(table.badges ?? []), badge('semantic')];
   table.copies = [...(table.copies ?? []), { dataset, columns }];
 }
 /** Collects asset cards, column edges and adjacency indexes for traversal. */
@@ -162,11 +148,7 @@ export function foreignKeyHop(graph: LineageGraph, edge: ColumnEdge): ForeignKey
 /** Writes a hop as one plain sentence, such as `orders.customer_id → customers.id`. */
 export const hopSentence = (hop: ForeignKeyHop) => `${hop.child} → ${hop.parent}`;
 /** Builds column dependencies from declared contract references and parsed model expressions. */
-export function buildLineage(
-  files: ProjectFile[],
-  contractPath: string,
-  revision = '',
-): LineageGraph {
+export function buildLineage(files: ProjectFile[], contractPath: string, revision = ''): LineageGraph {
   const contract = files.find(f => f.path === contractPath)?.data;
   const schema = list(contract?.schema);
   const cards = new Map<string, LineageCard>();
@@ -196,12 +178,7 @@ export function buildLineage(
       return {
         id: cid,
         path: p.path,
-        type:
-          typeof p.property.logicalType === 'string'
-            ? p.property.logicalType
-            : typeof p.property.physicalType === 'string'
-              ? p.property.physicalType
-              : undefined,
+        type: typeof p.property.logicalType === 'string' ? p.property.logicalType : typeof p.property.physicalType === 'string' ? p.property.physicalType : undefined,
         badges: propertyBadges(p.property, fk),
         ...(fk ? { fk } : {}),
       };
@@ -258,12 +235,8 @@ export function buildLineage(
         if (!isObject(p)) return;
         const at = prefix + String(p.name);
         const pp = [...path, 'properties', j];
-        for (const src of list(p.transformSourceObjects).filter(
-          (s: unknown): s is string => typeof s === 'string',
-        )) {
-          const match = schema.find(
-            (x: any) => isObject(x) && (x.name === src || physical(x) === src),
-          );
+        for (const src of list(p.transformSourceObjects).filter((s: unknown): s is string => typeof s === 'string')) {
+          const match = schema.find((x: any) => isObject(x) && (x.name === src || physical(x) === src));
           let from: string;
           if (match) from = objectId(contractPath, String(match.name));
           else {
@@ -301,9 +274,7 @@ export function buildLineage(
     for (const { file, key, model } of models(f)) {
       const datasets = list(model.datasets).filter(isObject);
       const metrics = list(model.metrics).filter(isObject);
-      const names = new Set<string>(
-        metrics.map((m: any) => m.name).filter((n: unknown) => typeof n === 'string'),
-      );
+      const names = new Set<string>(metrics.map((m: any) => m.name).filter((n: unknown) => typeof n === 'string'));
       const base = key ? key.split('/').map(s => (/^\d+$/.test(s) ? Number(s) : s)) : [];
       const metricCard = (m: any) => {
         const id = metricCardId(file, key, String(m.name));
@@ -324,9 +295,7 @@ export function buildLineage(
       const fieldColumns = new Map<string, string>();
       datasets.forEach((d: any, di: number) => {
         const source = list(d.source)[0];
-        const readers = schema.filter(
-          (o: any) => isObject(o) && (physical(o) === source || o.name === source),
-        );
+        const readers = schema.filter((o: any) => isObject(o) && (physical(o) === source || o.name === source));
         if (!readers.length) {
           unmatched++;
           return;
@@ -336,8 +305,7 @@ export function buildLineage(
           const objId = objectId(contractPath, String(readers[0].name));
           const table = cards.get(objId);
           if (table) markCopy(table, String(d.name), [...copied.values()]);
-          for (const [field, property] of copied)
-            fieldColumns.set(`${d.name}.${field}`, columnId(objId, property));
+          for (const [field, property] of copied) fieldColumns.set(`${d.name}.${field}`, columnId(objId, property));
           return;
         }
         const id = datasetCardId(file, key, String(d.name));
@@ -366,9 +334,7 @@ export function buildLineage(
           );
           fields.forEach((fd: any, fi: number) => {
             const sql = ansiExpression(fd);
-            const cols = sql
-              ? [...new Set(expressionRefs(sql).map(r => r.column))]
-              : [String(fd.name)];
+            const cols = sql ? [...new Set(expressionRefs(sql).map(r => r.column))] : [String(fd.name)];
             for (const c of cols) {
               const p = props.get(c);
               if (p)
@@ -382,21 +348,14 @@ export function buildLineage(
             }
           });
         }
-        fields.forEach((fd: any) =>
-          fieldColumns.set(`${d.name}.${fd.name}`, columnId(id, String(fd.name))),
-        );
+        fields.forEach((fd: any) => fieldColumns.set(`${d.name}.${fd.name}`, columnId(id, String(fd.name))));
       });
       // Field → metric (aggregates); metric → metric (uses).
       metrics.forEach((m: any, mi: number) => {
         const sql = ansiExpression(m) ?? '';
         const refs = expressionRefs(sql);
         for (const r of refs) {
-          const col =
-            r.table !== null
-              ? fieldColumns.get(`${r.table}.${r.column}`)
-              : datasets.length === 1 && !names.has(r.column)
-                ? fieldColumns.get(`${datasets[0].name}.${r.column}`)
-                : undefined;
+          const col = r.table !== null ? fieldColumns.get(`${r.table}.${r.column}`) : datasets.length === 1 && !names.has(r.column) ? fieldColumns.get(`${datasets[0].name}.${r.column}`) : undefined;
           if (col)
             edge({
               from: col,
@@ -440,10 +399,7 @@ export function buildLineage(
   return g;
 }
 // Adjacency over node ids (columns and column-less cards).
-const adjacency = new WeakMap<
-  LineageGraph,
-  { out: Map<string, number[]>; in: Map<string, number[]> }
->();
+const adjacency = new WeakMap<LineageGraph, { out: Map<string, number[]>; in: Map<string, number[]> }>();
 function adj(g: LineageGraph) {
   let a = adjacency.get(g);
   if (!a) {
@@ -465,11 +421,7 @@ export function selectionNodes(g: LineageGraph, id: string) {
 // Path highlight: every node and edge upstream ('up'), downstream ('down') or both of the given
 // nodes. 'both' is ancestors plus descendants, never siblings. Cycles terminate.
 /** Finds ancestors, descendants or both without including siblings; cycles terminate. */
-export function closure(
-  g: LineageGraph,
-  ids: string[],
-  direction: 'up' | 'down' | 'both' = 'both',
-) {
+export function closure(g: LineageGraph, ids: string[], direction: 'up' | 'down' | 'both' = 'both') {
   const a = adj(g);
   const nodes = new Set<string>(ids);
   const edgeSet = new Set<number>();
@@ -529,9 +481,7 @@ export function around(g: LineageGraph, center: string, steps = 1) {
   };
   for (const c of flowOnly(nodes)) shown.add(c);
   // Foreign-key reach from the objects among the shown cards that the centre itself reads from.
-  const objects = [...shown].filter(
-    c => g.cards.get(c)?.kind === 'object' || g.cards.get(c)?.kind === 'external',
-  );
+  const objects = [...shown].filter(c => g.cards.get(c)?.kind === 'object' || g.cards.get(c)?.kind === 'external');
   const fkNeighbours = (c: string) => {
     const out = new Set<string>();
     for (const col of selectionNodes(g, c)) {
@@ -564,8 +514,7 @@ export function around(g: LineageGraph, center: string, steps = 1) {
   const hidden = new Map<string, number>();
   for (const c of shown) {
     let n = 0;
-    if (g.cards.get(c)?.kind === 'object' || g.cards.get(c)?.kind === 'external')
-      for (const x of fkNeighbours(c)) if (!shown.has(x)) n++;
+    if (g.cards.get(c)?.kind === 'object' || g.cards.get(c)?.kind === 'external') for (const x of fkNeighbours(c)) if (!shown.has(x)) n++;
     if (n) hidden.set(c, n);
   }
   return { cards: shown, hidden, hops };
@@ -606,9 +555,7 @@ export function aroundHops(g: LineageGraph, center: string, steps = 1) {
     }
     for (const d of datasets) shown.add(d);
   }
-  for (const e of g.edges)
-    if (e.via && shown.has(card(e.from)) && shown.has(card(e.to)))
-      for (const v of e.via) shown.add(card(v));
+  for (const e of g.edges) if (e.via && shown.has(card(e.from)) && shown.has(card(e.to))) for (const v of e.via) shown.add(card(v));
   const hidden = new Map<string, number>();
   for (const c of shown) {
     let n = 0;
@@ -631,29 +578,20 @@ export const FILTER_AT = 30;
 export const moreRowId = (card: string) => `${card}/#more`;
 /** Says why a column is worth a row; lower ranks win a place first. */
 export type ColumnWhy = { focus: ReadonlySet<string>; connected: ReadonlySet<string> };
-const isKey = (column: LineageColumn) =>
-  column.badges.some(b => b.kind === 'pk' || b.kind === 'fk') || !!column.fk?.length;
+const isKey = (column: LineageColumn) => column.badges.some(b => b.kind === 'pk' || b.kind === 'fk') || !!column.fk?.length;
 function columnRank(column: LineageColumn, why: ColumnWhy) {
   if (why.focus.has(column.id)) return 0;
   if (why.connected.has(column.id)) return 1;
   return isKey(column) ? 2 : 3;
 }
 /** Chooses the rows of a card and the row an edge to each column attaches to. */
-export function cardRows(
-  card: LineageCard,
-  why: ColumnWhy,
-  options: { open?: boolean; uncapped?: boolean; maxRows?: number } = {},
-) {
+export function cardRows(card: LineageCard, why: ColumnWhy, options: { open?: boolean; uncapped?: boolean; maxRows?: number } = {}) {
   const all = card.columns;
   let rows = all;
   if (!options.open && all.length > SMALL_CARD) {
     const ranked = all.map((column, index) => ({ column, index, rank: columnRank(column, why) }));
     const wanted = ranked.filter(x => x.rank < 3);
-    const chosen = options.uncapped
-      ? wanted
-      : [...wanted]
-          .sort((a, b) => a.rank - b.rank || a.index - b.index)
-          .slice(0, options.maxRows ?? COLLAPSED_MAX);
+    const chosen = options.uncapped ? wanted : [...wanted].sort((a, b) => a.rank - b.rank || a.index - b.index).slice(0, options.maxRows ?? COLLAPSED_MAX);
     rows = chosen.sort((a, b) => a.index - b.index).map(x => x.column);
   }
   const shown = new Set(rows.map(r => r.id));
@@ -679,8 +617,7 @@ export function findAssets(g: LineageGraph, query: string, limit = 20) {
   };
   for (const c of g.cards.values()) {
     const best = [c.label, c.detail ?? ''].map(rank).filter(x => x >= 0);
-    if (best.length)
-      hits.push({ id: c.id, card: c.id, label: c.label, kind: c.kind, rank: Math.min(...best) });
+    if (best.length) hits.push({ id: c.id, card: c.id, label: c.label, kind: c.kind, rank: Math.min(...best) });
     for (const col of c.columns) {
       const x = rank(col.path);
       if (x >= 0)
@@ -693,12 +630,7 @@ export function findAssets(g: LineageGraph, query: string, limit = 20) {
         });
     }
   }
-  return hits
-    .sort(
-      (a, b) =>
-        a.rank - b.rank || a.label.length - b.label.length || a.label.localeCompare(b.label),
-    )
-    .slice(0, limit);
+  return hits.sort((a, b) => a.rank - b.rank || a.label.length - b.label.length || a.label.localeCompare(b.label)).slice(0, limit);
 }
 
 /** Chooses the contract object with the most lineage connections. */
@@ -710,12 +642,7 @@ export function defaultCenter(g: LineageGraph) {
       if (g.cards.get(c)?.kind === 'object') count.set(c, (count.get(c) ?? 0) + 1);
     }
   const objects = [...g.cards.values()].filter(c => c.kind === 'object');
-  return (
-    objects.reduce(
-      (best, c) => ((count.get(c.id) ?? 0) > (count.get(best?.id ?? '') ?? -1) ? c : best),
-      objects[0] as LineageCard | undefined,
-    )?.id ?? ''
-  );
+  return objects.reduce((best, c) => ((count.get(c.id) ?? 0) > (count.get(best?.id ?? '') ?? -1) ? c : best), objects[0] as LineageCard | undefined)?.id ?? '';
 }
 
 /** One foreign key the view follows: the hop it belongs to and the sentence that names it. */

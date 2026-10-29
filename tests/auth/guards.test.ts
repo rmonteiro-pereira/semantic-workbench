@@ -5,12 +5,7 @@ import { readFileSync } from 'node:fs';
 import { createAccessControl } from '../../src/server/auth/authorize';
 import { requestAccess, requestReader } from '../../src/server/auth/request-scope';
 import { GuardedChangeError } from '../../src/server/auth/guards';
-import {
-  classificationLevel,
-  guardedChanges,
-  type ClassificationSettings,
-  type FileChange,
-} from '../../src/server/auth/guards';
+import { classificationLevel, guardedChanges, type ClassificationSettings, type FileChange } from '../../src/server/auth/guards';
 import { clientPrincipal, type NormalizedPrincipal } from '../../src/server/auth/principal';
 import type { TestUserName } from '../helpers/auth-identities';
 import { accessFixture, person } from './access-fixture';
@@ -67,14 +62,9 @@ describe('metric approval', () => {
     const proposed = withMetric('average_order_value', 'proposed');
     expect(guard([metricChange(proposed)]).changes[0].after).toBe(proposed);
     const approved = refusal(() => guard([metricChange(withMetric('order_count', 'approved'))]));
-    expect(approved?.guarded).toEqual([
-      { file: 'sales.semantic.yaml', pointer: '/metrics/1', kind: 'metric-status' },
-    ]);
+    expect(approved?.guarded).toEqual([{ file: 'sales.semantic.yaml', pointer: '/metrics/1', kind: 'metric-status' }]);
     expect(approved?.decision.status).toBe(403);
-    const deprecated = withMetric('gross_revenue', 'deprecated').replace(
-      '"status": "deprecated"',
-      '"status": "deprecated", "deprecation_reason": "Replaced"',
-    );
+    const deprecated = withMetric('gross_revenue', 'deprecated').replace('"status": "deprecated"', '"status": "deprecated", "deprecation_reason": "Replaced"');
     expect(refusal(() => guard([metricChange(deprecated)]))?.guarded[0].kind).toBe('metric-status');
   });
 
@@ -130,12 +120,7 @@ describe('approved metric changes', () => {
       const outcome = personGuard(name)([metricChange(edited)]);
       expect(outcome.demoted.map(change => change.pointer)).toEqual(['/metrics/0']);
       const stored = outcome.changes[0].after!;
-      expect(stored).toBe(
-        edited.replace(
-          '"owner": "bob@example.org", "status": "approved"',
-          '"owner": "bob@example.org", "status": "proposed"',
-        ),
-      );
+      expect(stored).toBe(edited.replace('"owner": "bob@example.org", "status": "approved"', '"owner": "bob@example.org", "status": "proposed"'));
       expect(stored.length).toBe(edited.length);
     }
     const admin = personGuard('dave')([metricChange(edited)]);
@@ -144,10 +129,7 @@ describe('approved metric changes', () => {
   });
 
   test('a description-only change keeps the metric approved', () => {
-    const edited = METRICS.replace(
-      'Approved revenue metric owned by Bob.',
-      'Revenue after discounts.',
-    );
+    const edited = METRICS.replace('Approved revenue metric owned by Bob.', 'Revenue after discounts.');
     const outcome = personGuard('alice')([metricChange(edited)]);
     expect(outcome.demoted).toEqual([]);
     expect(outcome.changes[0].after).toBe(edited);
@@ -157,9 +139,7 @@ describe('approved metric changes', () => {
     const start = METRICS.indexOf('  - name: gross_revenue');
     const end = METRICS.indexOf('  - name: order_count');
     const removed = METRICS.slice(0, start) + METRICS.slice(end);
-    expect(refusal(() => personGuard('alice')([metricChange(removed)]))?.guarded[0].kind).toBe(
-      'metric-body',
-    );
+    expect(refusal(() => personGuard('alice')([metricChange(removed)]))?.guarded[0].kind).toBe('metric-body');
     expect(refusal(() => personGuard('dave')([metricChange(removed)]))).toBeNull();
   });
 
@@ -190,9 +170,7 @@ describe('classification guards', () => {
   test('any part of a property at or above the protected level needs a Steward', () => {
     const protectedEdit = CONTRACT.replace('Customer e-mail address.', 'Contact address.');
     const refused = refusal(() => personGuard('alice')([contractChange(protectedEdit)]));
-    expect(refused?.guarded).toEqual([
-      { file: 'orders.odcs.yaml', pointer: '/schema/0/properties/1', kind: 'protected-property' },
-    ]);
+    expect(refused?.guarded).toEqual([{ file: 'orders.odcs.yaml', pointer: '/schema/0/properties/1', kind: 'protected-property' }]);
     expect(refusal(() => personGuard('bob')([contractChange(protectedEdit)]))).toBeNull();
     const internalEdit = CONTRACT.replace('Order amount in USD.', 'Order amount.');
     expect(refusal(() => personGuard('alice')([contractChange(internalEdit)]))).toBeNull();
@@ -215,9 +193,7 @@ describe('classification guards', () => {
     expect(classificationLevel(undefined, SETTINGS.aliases)).toBe('internal');
     const aliased = CONTRACT.replace('classification: internal', 'classification: sensitive');
     const edited = aliased.replace('Order amount in USD.', 'Order amount.');
-    const kindsOf = guardedChanges(contractChange(edited, aliased), SETTINGS).map(
-      item => item.kind,
-    );
+    const kindsOf = guardedChanges(contractChange(edited, aliased), SETTINGS).map(item => item.kind);
     expect(kindsOf).toEqual(['protected-property']);
   });
 
@@ -225,12 +201,7 @@ describe('classification guards', () => {
     const lines = CONTRACT.split('\n');
     const email = lines.findIndex(line => line.includes('- name: customer_email'));
     const amount = lines.findIndex(line => line.includes('- name: amount'));
-    const reordered = [
-      ...lines.slice(0, email),
-      ...lines.slice(amount, amount + 4),
-      ...lines.slice(email, amount),
-      ...lines.slice(amount + 4),
-    ].join('\n');
+    const reordered = [...lines.slice(0, email), ...lines.slice(amount, amount + 4), ...lines.slice(email, amount), ...lines.slice(amount + 4)].join('\n');
     expect(guardedChanges(contractChange(reordered), SETTINGS)).toEqual([]);
   });
 

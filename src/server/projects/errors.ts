@@ -46,9 +46,7 @@ export class OccupiedError extends Error {
 /** Rejects selected-file commits during a merge and identifies unresolved conflicts. */
 export class MergingError extends Error {
   constructor(public conflicts: string[]) {
-    super(
-      'A merge is in progress: commit the merge (with every conflict resolved) before committing chosen files.',
-    );
+    super('A merge is in progress: commit the merge (with every conflict resolved) before committing chosen files.');
     this.name = 'MergingError';
   }
 }
@@ -120,10 +118,7 @@ export class MissingFolderError extends Error {
     public folder: string,
     public branch: string,
   ) {
-    super(
-      `The folder ${folder} does not exist on the remote branch ${branch}. ` +
-        'Create it with the first push, or check the spelling.',
-    );
+    super(`The folder ${folder} does not exist on the remote branch ${branch}. ` + 'Create it with the first push, or check the spelling.');
     this.name = 'MissingFolderError';
   }
 }

@@ -2,10 +2,7 @@
 // which either sign-in library sends as the workbench's client credential.
 
 /** Gets a federated assertion from the platform, without exposing its response to callers. */
-export async function managedIdentityAssertion(
-  env: Record<string, string | undefined> = process.env,
-  request: typeof fetch = fetch,
-): Promise<string> {
+export async function managedIdentityAssertion(env: Record<string, string | undefined> = process.env, request: typeof fetch = fetch): Promise<string> {
   if (!env.IDENTITY_ENDPOINT || !env.IDENTITY_HEADER) {
     throw new Error('Managed identity endpoint configuration is missing.');
   }

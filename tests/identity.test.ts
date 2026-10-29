@@ -52,9 +52,7 @@ test('the identity is read per repository and reports which configuration sets i
     });
     const status = await ok(call(app, 'GET', '/api/status'));
     expect(status.identityConfigured).toBe(true);
-    expect(status.repositories).toEqual([
-      { repo: slugs[0], identityConfigured: true, projects: [slugs[0]] },
-    ]);
+    expect(status.repositories).toEqual([{ repo: slugs[0], identityConfigured: true, projects: [slugs[0]] }]);
   } finally {
     app.dispose();
   }
@@ -72,9 +70,7 @@ test('setting the identity writes the repository configuration only and counts a
     expect(missing.repositories[0].identityConfigured).toBe(false);
     expect((await ok(call(app, 'GET', base + '/git/status'))).identityConfigured).toBe(false);
 
-    const result = await ok(
-      call(app, 'PUT', base + '/git/identity', { name: 'Ana Lima', email: 'ana@example.org' }),
-    );
+    const result = await ok(call(app, 'PUT', base + '/git/identity', { name: 'Ana Lima', email: 'ana@example.org' }));
     expect(result).toEqual({ repositories: [slugs[0]] });
     const repo = join(app.root, 'projects', slugs[0]);
     expect(sh(repo, ['config', '--local', 'user.name']).trim()).toBe('Ana Lima');
@@ -111,10 +107,7 @@ test('the identity can be set in every repository at once', async () => {
       }),
     );
     expect(result.repositories.sort()).toEqual([...slugs].sort());
-    for (const slug of slugs)
-      expect(sh(join(app.root, 'projects', slug), ['config', '--local', 'user.name']).trim()).toBe(
-        'Ana Lima',
-      );
+    for (const slug of slugs) expect(sh(join(app.root, 'projects', slug), ['config', '--local', 'user.name']).trim()).toBe('Ana Lima');
     expect((await ok(call(app, 'GET', '/api/status'))).identityConfigured).toBe(true);
   } finally {
     app.dispose();

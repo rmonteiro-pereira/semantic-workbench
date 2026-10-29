@@ -1,26 +1,10 @@
 // Tests graph navigation history and restoration of expansion steps.
 import { test, expect } from 'bun:test';
-import {
-  walkReducer,
-  emptyWalk,
-  currentStep,
-  canBack,
-  canForward,
-  MAX_STEPS,
-  reconcileWalk,
-  walkWithinProject,
-  type Walk,
-  type WalkAction,
-} from '../src/app/graph/walk';
+import { walkReducer, emptyWalk, currentStep, canBack, canForward, MAX_STEPS, reconcileWalk, walkWithinProject, type Walk, type WalkAction } from '../src/app/graph/walk';
 const step = (center: string, doc = 'd') => ({ doc, center, name: center });
 const run = (walk: Walk, ...actions: WalkAction[]): Walk => actions.reduce(walkReducer, walk);
 test('push, back and forward move through the trail', () => {
-  let w = run(
-    emptyWalk,
-    { type: 'push', step: step('a') },
-    { type: 'push', step: step('b') },
-    { type: 'push', step: step('c') },
-  );
+  let w = run(emptyWalk, { type: 'push', step: step('a') }, { type: 'push', step: step('b') }, { type: 'push', step: step('c') });
   expect(w.steps.map(s => s.center)).toEqual(['a', 'b', 'c']);
   expect(currentStep(w).center).toBe('c');
   w = run(w, { type: 'back' }, { type: 'back' });
@@ -50,18 +34,12 @@ test('pushing after going back truncates forward history; the same center is not
   expect(run(w, { type: 'push', step: step('x', 'other') }).steps).toHaveLength(3);
 });
 test('jump and reset; the trail is bounded', () => {
-  let w = run(
-    emptyWalk,
-    { type: 'push', step: step('a') },
-    { type: 'push', step: step('b') },
-    { type: 'jump', index: 0 },
-  );
+  let w = run(emptyWalk, { type: 'push', step: step('a') }, { type: 'push', step: step('b') }, { type: 'jump', index: 0 });
   expect(currentStep(w).center).toBe('a');
   expect(run(w, { type: 'jump', index: 9 })).toBe(w);
   expect(run(w, { type: 'reset', step: step('z') }).steps.map(s => s.center)).toEqual(['z']);
   expect(run(w, { type: 'reset' })).toEqual(emptyWalk);
-  for (let i = 0; i < MAX_STEPS + 20; i++)
-    w = walkReducer(w, { type: 'push', step: step('s' + i) });
+  for (let i = 0; i < MAX_STEPS + 20; i++) w = walkReducer(w, { type: 'push', step: step('s' + i) });
   expect(w.steps).toHaveLength(MAX_STEPS);
   expect(w.index).toBe(MAX_STEPS - 1);
 });
@@ -75,12 +53,7 @@ const expand = (center: string, set: string, name = set) => ({
   set,
 });
 test('expansion steps keep the center and are pushed even when the center repeats', () => {
-  let w = run(
-    emptyWalk,
-    { type: 'push', step: step('a') },
-    { type: 'push', step: expand('a', 's1', 'b') },
-    { type: 'push', step: expand('a', 's2', 'c') },
-  );
+  let w = run(emptyWalk, { type: 'push', step: step('a') }, { type: 'push', step: expand('a', 's1', 'b') }, { type: 'push', step: expand('a', 's2', 'c') });
   expect(w.steps.map(s => s.kind ?? 'center')).toEqual(['center', 'expand', 'expand']);
   expect(canvasAt(w)).toEqual({ center: step('a'), sets: ['s1', 's2'] });
   expect(run(w, { type: 'push', step: expand('a', 's2', 'c') })).toBe(w);
@@ -92,12 +65,7 @@ test('expansion steps keep the center and are pushed even when the center repeat
   expect(canvasAt(w).sets).toEqual(['s1', 's2']);
 });
 test('re-centering starts a new canvas; legacy steps without kind still dedupe', () => {
-  let w = run(
-    emptyWalk,
-    { type: 'push', step: step('a') },
-    { type: 'push', step: expand('a', 's1') },
-    { type: 'push', step: step('b') },
-  );
+  let w = run(emptyWalk, { type: 'push', step: step('a') }, { type: 'push', step: expand('a', 's1') }, { type: 'push', step: step('b') });
   expect(canvasAt(w)).toEqual({ center: step('b'), sets: [] });
   expect(run(w, { type: 'push', step: step('b') })).toBe(w);
   w = run(w, { type: 'back' });
@@ -116,22 +84,13 @@ test('reconcileWalk keeps the steps ahead when Back moves within one branch', ()
 
 test('reconcileWalk restores a different branch as it was', () => {
   const left = run(emptyWalk, { type: 'push', step: step('a') }, { type: 'push', step: step('b') });
-  const right = run(
-    emptyWalk,
-    { type: 'push', step: step('a') },
-    { type: 'push', step: step('c') },
-  );
+  const right = run(emptyWalk, { type: 'push', step: step('a') }, { type: 'push', step: step('c') });
   expect(reconcileWalk(left, right)).toBe(right);
 });
 
 test('the trail stops at the project boundary', () => {
   const projectOf = (id: string) => id.split('/')[0];
-  const walk = run(
-    emptyWalk,
-    { type: 'push', step: step('a', 'sales/a.yaml') },
-    { type: 'push', step: step('b', 'billing/b.yaml') },
-    { type: 'push', step: step('c', 'billing/c.yaml') },
-  );
+  const walk = run(emptyWalk, { type: 'push', step: step('a', 'sales/a.yaml') }, { type: 'push', step: step('b', 'billing/b.yaml') }, { type: 'push', step: step('c', 'billing/c.yaml') });
   const inBilling = walkWithinProject(walk, 'billing', projectOf);
   expect(inBilling.steps.map(s => s.center)).toEqual(['b', 'c']);
   expect(currentStep(inBilling).center).toBe('c');

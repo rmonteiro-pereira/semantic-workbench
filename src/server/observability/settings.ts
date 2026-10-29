@@ -14,9 +14,7 @@ export type LogLevel = (typeof LOG_LEVELS)[number];
 export type TelemetryOffReason = 'local-mode' | 'no-connection-string';
 
 /** Exported telemetry is either off, with the reason, or fully described. */
-export type TelemetrySettings =
-  | { enabled: false; reason: TelemetryOffReason }
-  | { enabled: true; connectionString: string; sampleRatio: number };
+export type TelemetrySettings = { enabled: false; reason: TelemetryOffReason } | { enabled: true; connectionString: string; sampleRatio: number };
 
 /** What the logger and the telemetry pipeline need from the environment. */
 export type ObservabilitySettings = {
@@ -33,21 +31,12 @@ export const DEFAULT_SAMPLE_RATIO = 0.1;
 
 // The connection string names where data is sent, so only Microsoft's own ingestion hosts are
 // accepted. A typo or a swapped value then cannot send operational data to another party.
-const INGESTION_HOST_SUFFIXES = [
-  '.applicationinsights.azure.com',
-  '.applicationinsights.azure.cn',
-  '.applicationinsights.azure.us',
-  '.in.ai.monitor.azure.com',
-];
+const INGESTION_HOST_SUFFIXES = ['.applicationinsights.azure.com', '.applicationinsights.azure.cn', '.applicationinsights.azure.us', '.in.ai.monitor.azure.com'];
 const GLOBAL_INGESTION_HOST = 'dc.services.visualstudio.com';
 const INSTRUMENTATION_KEY = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** Reads every logging and telemetry variable, adding one problem per invalid value. */
-export function readObservability(
-  env: Env,
-  serverMode: boolean,
-  problems: Problem[],
-): ObservabilitySettings {
+export function readObservability(env: Env, serverMode: boolean, problems: Problem[]): ObservabilitySettings {
   return {
     logLevel: readLogLevel(env.SW_LOG_LEVEL, problems),
     logFormat: serverMode ? 'json' : 'text',
@@ -71,11 +60,7 @@ function readLogLevel(value: string | undefined, problems: Problem[]): LogLevel 
  * Local mode never exports, whatever the environment holds, because it must make no network
  * call. Server mode exports only when a connection string is set.
  */
-export function readTelemetry(
-  env: Env,
-  serverMode: boolean,
-  problems: Problem[],
-): TelemetrySettings {
+export function readTelemetry(env: Env, serverMode: boolean, problems: Problem[]): TelemetrySettings {
   if (!serverMode) return { enabled: false, reason: 'local-mode' };
   const connectionString = env.APPLICATIONINSIGHTS_CONNECTION_STRING?.trim() ?? '';
   if (connectionString === '') return { enabled: false, reason: 'no-connection-string' };
@@ -124,8 +109,7 @@ function ingestionEndpointProblem(endpoint: string): string | null {
     return 'IngestionEndpoint must be a valid https:// address.';
   }
   const host = url.hostname.toLowerCase();
-  const known =
-    host === GLOBAL_INGESTION_HOST || INGESTION_HOST_SUFFIXES.some(s => host.endsWith(s));
+  const known = host === GLOBAL_INGESTION_HOST || INGESTION_HOST_SUFFIXES.some(s => host.endsWith(s));
   if (url.protocol !== 'https:' || !known) {
     return 'IngestionEndpoint must be an https:// Application Insights ingestion address.';
   }

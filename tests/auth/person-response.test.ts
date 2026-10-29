@@ -83,9 +83,7 @@ test('permission explanations come from server role definitions, including custo
       continue;
     }
     for (const action of ACTIONS) {
-      const lowest = builtin.roles.find(role =>
-        role.permissions.some(permission => permission.actions.includes(action)),
-      );
+      const lowest = builtin.roles.find(role => role.permissions.some(permission => permission.actions.includes(action)));
       expect(body.requires[action]).toBe('Requires ' + (lowest?.name ?? 'permission'));
     }
   }

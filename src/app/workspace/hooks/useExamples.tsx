@@ -45,9 +45,7 @@ export function useExamples({
       const domain = await domainChoice.choose();
       const { slug } = await api.example(id, domain);
       const loaded = await refresh();
-      const first =
-        loaded.find(d => d.project === slug && d.path === set.files[0]) ??
-        loaded.find(d => d.project === slug);
+      const first = loaded.find(d => d.project === slug && d.path === set.files[0]) ?? loaded.find(d => d.project === slug);
       if (first) {
         setCurrent(first);
         setSource(first.source);

@@ -72,20 +72,13 @@ function memberAddress(claims: Record<string, unknown>, name: unknown): string |
 function verifiedAddress(claims: Record<string, unknown>, entra: boolean): string | null {
   if (!entra) return claims.email_verified === true ? address(claims.email) : null;
   const verified = claims.xms_edov === true || claims.xms_edov === 'true';
-  return (
-    (verified ? address(claims.email) : null) ??
-    memberAddress(claims, claims.upn) ??
-    memberAddress(claims, claims.preferred_username)
-  );
+  return (verified ? address(claims.email) : null) ?? memberAddress(claims, claims.upn) ?? memberAddress(claims, claims.preferred_username);
 }
 
 /** Refuses an Entra tenant other than the configured one. */
 function refuseOtherTenant(tenant: string, mapping: Pick<ClaimMapping, 'tenantId'>): void {
   if (mapping.tenantId && tenant.toLowerCase() !== mapping.tenantId.toLowerCase()) {
-    throw new ClaimError(
-      'Identity tenant does not match the configured tenant.',
-      'tenant-mismatch',
-    );
+    throw new ClaimError('Identity tenant does not match the configured tenant.', 'tenant-mismatch');
   }
 }
 
@@ -113,27 +106,16 @@ function memberUserName(claims: Record<string, unknown>, userName: string): bool
 }
 
 /** Converts validated provider claims into the identity used by access grants. */
-export function normalizeClaims(
-  claims: Record<string, unknown>,
-  mapping: ClaimMapping,
-): NormalizedPrincipal {
+export function normalizeClaims(claims: Record<string, unknown>, mapping: ClaimMapping): NormalizedPrincipal {
   const identified = identity(claims, mapping);
   const entra = mapping.provider === 'entra';
   const sources = claims._claim_names;
-  const groupOverage =
-    entra &&
-    (claims.hasgroups === true ||
-      Boolean(
-        sources && typeof sources === 'object' && 'groups' in sources && string(sources.groups),
-      ));
+  const groupOverage = entra && (claims.hasgroups === true || Boolean(sources && typeof sources === 'object' && 'groups' in sources && string(sources.groups)));
   const groupClaim = claims[mapping.groupClaim];
-  const groups = Array.isArray(groupClaim)
-    ? groupClaim.filter((group): group is string => typeof group === 'string')
-    : [];
+  const groups = Array.isArray(groupClaim) ? groupClaim.filter((group): group is string => typeof group === 'string') : [];
   const providerUsername = string(claims.preferred_username);
   const username = providerUsername || string(claims.email) || string(claims.sub) || identified.id;
-  const usernameVerified =
-    entra && providerUsername !== '' && memberUserName(claims, providerUsername);
+  const usernameVerified = entra && providerUsername !== '' && memberUserName(claims, providerUsername);
   return {
     ...identified,
     key: principalKey(identified.id),
@@ -149,10 +131,7 @@ export function normalizeClaims(
 }
 
 /** Applies a directory lookup without retaining stale groups after a failed lookup. */
-export function withDirectoryGroups<T extends NormalizedPrincipal>(
-  principal: T,
-  groups: string[] | null,
-): T {
+export function withDirectoryGroups<T extends NormalizedPrincipal>(principal: T, groups: string[] | null): T {
   return {
     ...principal,
     groups: groups?.map(group => group.toLowerCase()) ?? [],
@@ -178,10 +157,7 @@ export function localPrincipal(): Principal {
 }
 
 /** Resolves overage through the supplied directory edge before grants are matched. */
-export async function resolvePrincipalGroups(
-  principal: NormalizedPrincipal,
-  lookup: (oid: string) => Promise<string[] | null>,
-): Promise<NormalizedPrincipal> {
+export async function resolvePrincipalGroups(principal: NormalizedPrincipal, lookup: (oid: string) => Promise<string[] | null>): Promise<NormalizedPrincipal> {
   if (!principal.groupOverage) return principal;
   return withDirectoryGroups(principal, await lookup(principal.id.split(':')[1]));
 }
@@ -213,10 +189,7 @@ export function clientPrincipal(clientId: string, name: string = clientId): Prin
  * Turns a validated application token into its client. App roles, groups and addresses in the
  * token are never read.
  */
-export function clientFromToken(
-  claims: Record<string, unknown>,
-  tenantId: string | null,
-): Principal {
+export function clientFromToken(claims: Record<string, unknown>, tenantId: string | null): Principal {
   // Delegated tokens carry `scp`; a person's token must never act as an agent client.
   if (claims.idtyp !== 'app' || claims.scp !== undefined) {
     throw new ClaimError('Expected an application token.');

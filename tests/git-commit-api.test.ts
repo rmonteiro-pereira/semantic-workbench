@@ -24,9 +24,7 @@ test('commit with paths commits exactly those paths; push reports its outcome', 
     );
     expect(r.commit).toMatch(/^[0-9a-f]{40}$/);
     expect(r.pushed).toMatchObject({ ok: true });
-    expect(
-      sh(p.dir, ['show', '--name-only', '--format=', 'HEAD']).trim().split('\n').sort(),
-    ).toEqual(['extra.yaml', 'shop.yaml']);
+    expect(sh(p.dir, ['show', '--name-only', '--format=', 'HEAD']).trim().split('\n').sort()).toEqual(['extra.yaml', 'shop.yaml']);
     expect(sh(p.dir, ['status', '--porcelain']).trim()).toBe('A  other.yaml');
     expect(sh(p.bare, ['log', '-1', '--format=%s', 'main']).trim()).toBe('Update shop.yaml');
     // Without explicit paths, the commit uses the staged index.
@@ -58,13 +56,8 @@ test('commit with push and no remote commits and explains the push failure', asy
 test('empty message and path escapes are refused; commit with paths is refused during a merge', async () => {
   const p = await scmProject({ remote: false });
   try {
-    expect(
-      (await call(p.t, 'POST', p.base + '/git/commit', { message: ' ', paths: ['shop.yaml'] }))
-        .status,
-    ).toBe(500);
-    expect(
-      (await call(p.t, 'POST', p.base + '/git/commit', { message: 'x', paths: ['../x'] })).status,
-    ).toBe(400);
+    expect((await call(p.t, 'POST', p.base + '/git/commit', { message: ' ', paths: ['shop.yaml'] })).status).toBe(500);
+    expect((await call(p.t, 'POST', p.base + '/git/commit', { message: 'x', paths: ['../x'] })).status).toBe(400);
     sh(p.dir, ['switch', '-q', '-c', 'other']);
     p.write('shop.yaml', ontology('Other'));
     sh(p.dir, ['commit', '-qam', 'other']);
@@ -98,9 +91,7 @@ test('revert restores the last committed bytes and keeps the replaced version in
         })
       ).status,
     ).toBe(409);
-    const r = await ok(
-      call(p.t, 'POST', p.base + '/git/revert', { path: 'shop.yaml', baseHash: hash(mine) }),
-    );
+    const r = await ok(call(p.t, 'POST', p.base + '/git/revert', { path: 'shop.yaml', baseHash: hash(mine) }));
     expect(readFileSync(join(p.dir, 'shop.yaml'), 'utf8')).toBe(committed);
     expect(r.hash).toBe(hash(committed));
     expect(sh(p.dir, ['status', '--porcelain']).trim()).toBe('');

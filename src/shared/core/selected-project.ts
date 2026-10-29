@@ -18,10 +18,7 @@ export function resolveSelectedProject(projects: ProjectChoice[], chosen: string
 }
 
 /** Changes whenever a document of the project changes, so a view of the project reloads. */
-export function projectRevisionKey<Document extends { id: string; project?: string; hash: string }>(
-  documents: Document[],
-  project: string,
-) {
+export function projectRevisionKey<Document extends { id: string; project?: string; hash: string }>(documents: Document[], project: string) {
   return documentsOfProject(documents, project)
     .map(document => document.id + ':' + document.hash)
     .join('|');

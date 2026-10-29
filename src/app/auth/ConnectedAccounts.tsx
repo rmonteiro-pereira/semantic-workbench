@@ -55,11 +55,7 @@ export function ConnectedAccountsDialog({ me, onClose }: { me: Me; onClose: () =
         <dt>GitHub</dt>
         <dd>{githubStatus(me)}</dd>
         <dt>Azure DevOps</dt>
-        <dd>
-          {me.azureDevOpsAvailable
-            ? 'Uses your workbench sign-in; nothing to connect.'
-            : 'Not available on this server.'}
-        </dd>
+        <dd>{me.azureDevOpsAvailable ? 'Uses your workbench sign-in; nothing to connect.' : 'Not available on this server.'}</dd>
       </dl>
       <p>Pushes and pulls use your own account. Connections end when you sign out.</p>
     </Modal>

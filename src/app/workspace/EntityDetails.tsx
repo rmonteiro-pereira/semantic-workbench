@@ -83,12 +83,7 @@ export function EntityDetails({
         if (rdfItem)
           return (
             <div className="inspector-actions">
-              <button
-                className="primary"
-                onClick={() => setRdfEditing(rdfItem)}
-                aria-label={`Edit ${entity.name}`}
-                title="Edit (E)"
-              >
+              <button className="primary" onClick={() => setRdfEditing(rdfItem)} aria-label={`Edit ${entity.name}`} title="Edit (E)">
                 <Pencil size={13} />
                 Edit
               </button>
@@ -143,12 +138,7 @@ export function EntityDetails({
         const add = getChildCreationAction();
         return (
           <div className="inspector-actions">
-            <button
-              className="primary"
-              onClick={() => setEditing(targetValue)}
-              aria-label={`Edit ${entity.name}`}
-              title="Edit (E)"
-            >
+            <button className="primary" onClick={() => setEditing(targetValue)} aria-label={`Edit ${entity.name}`} title="Edit (E)">
               <Pencil size={13} />
               Edit
             </button>
@@ -167,10 +157,7 @@ export function EntityDetails({
       })()}
       {entity.readOnlyForm ? (
         <p className="hint">
-          {entity.description ||
-            (rdfTarget(entity)
-              ? 'Edit its statements with Edit; the file keeps its serialization and layout.'
-              : 'A blank node is edited with the resource that contains it.')}
+          {entity.description || (rdfTarget(entity) ? 'Edit its statements with Edit; the file keeps its serialization and layout.' : 'A blank node is edited with the resource that contains it.')}
         </p>
       ) : (
         <label>
@@ -201,13 +188,7 @@ export function EntityDetails({
             return (
               <button key={e.id} onClick={handleAddChildClick2}>
                 <span>{e.label}</span>
-                <small>
-                  {
-                    model.entities.find(
-                      n => n.id === (e.source === entity.id ? e.target : e.source),
-                    )?.name
-                  }
-                </small>
+                <small>{model.entities.find(n => n.id === (e.source === entity.id ? e.target : e.source))?.name}</small>
               </button>
             );
           })}
@@ -228,9 +209,7 @@ export function EntityDetails({
           ))}
         </>
       )}
-      <p className="hint">
-        Edit all properties and relationships in the Source tab. Save to persist changes.
-      </p>
+      <p className="hint">Edit all properties and relationships in the Source tab. Save to persist changes.</p>
     </>
   );
 }

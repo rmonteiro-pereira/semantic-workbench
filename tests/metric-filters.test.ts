@@ -1,14 +1,7 @@
 // Tests the pure rules of the metrics list: filters, grouping, optional columns.
 import { expect, test } from 'bun:test';
 import type { KpiSummary } from '../src/server/agent/explain';
-import {
-  filterMetrics,
-  groupMetrics,
-  isNarrowed,
-  metricKey,
-  noFilters,
-  visibleColumns,
-} from '../src/app/metrics/metric-filters';
+import { filterMetrics, groupMetrics, isNarrowed, metricKey, noFilters, visibleColumns } from '../src/app/metrics/metric-filters';
 
 function metric(overrides: Partial<KpiSummary>): KpiSummary {
   return {

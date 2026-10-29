@@ -74,11 +74,7 @@ export function RelationshipDetails({
       {activeGroup && activeGroup.data.relationships.length > 1 && (
         <label>
           Relationships on this connection
-          <select
-            aria-label="Connection relationship"
-            value={selectedEdge}
-            onChange={e => setSelectedEdge(e.target.value)}
-          >
+          <select aria-label="Connection relationship" value={selectedEdge} onChange={e => setSelectedEdge(e.target.value)}>
             {activeGroup.data.relationships.map(r => (
               <option key={r.id} value={r.id}>
                 {r.label}
@@ -95,38 +91,23 @@ export function RelationshipDetails({
         if (rdfItem)
           return (
             <div className="inspector-actions">
-              <button
-                className="primary"
-                onClick={() => setRdfEditing(rdfItem)}
-                aria-label={`Edit ${rdfItem.label}`}
-              >
+              <button className="primary" onClick={() => setRdfEditing(rdfItem)} aria-label={`Edit ${rdfItem.label}`}>
                 <Pencil size={13} />
                 Edit {rdfItem.label}
               </button>
             </div>
           );
         if (!targetValue) return <p className="hint">Edit this relationship in Source.</p>;
-        const whole =
-          relationship.data.kind === 'Inheritance' ||
-          relationship.data.kind === 'Metric expression reference';
-        const owner = whole
-          ? itemName(targetValue.kind, itemValue(source, targetValue.path))
-          : relationship.label;
+        const whole = relationship.data.kind === 'Inheritance' || relationship.data.kind === 'Metric expression reference';
+        const owner = whole ? itemName(targetValue.kind, itemValue(source, targetValue.path)) : relationship.label;
         return (
           <div className="inspector-actions">
-            <button
-              className="primary"
-              onClick={() => setEditing(targetValue)}
-              aria-label={`Edit ${owner}`}
-            >
+            <button className="primary" onClick={() => setEditing(targetValue)} aria-label={`Edit ${owner}`}>
               <Pencil size={13} />
               {whole ? `Edit ${owner}` : 'Edit'}
             </button>
             {!whole && (
-              <button
-                onClick={() => setDeleting(targetValue)}
-                aria-label={`Delete ${relationship.label}`}
-              >
+              <button onClick={() => setDeleting(targetValue)} aria-label={`Delete ${relationship.label}`}>
                 <Trash2 size={13} />
                 Delete
               </button>
@@ -180,20 +161,14 @@ export function RelationshipDetails({
       {relationship.data.kind !== 'Inheritance' && !relationship.data.readOnlyForm && (
         <label>
           Description
-          <textarea
-            aria-label="Relationship description"
-            value={relationship.data.definition.description ?? ''}
-            onChange={handleTextareaChange}
-          />
+          <textarea aria-label="Relationship description" value={relationship.data.definition.description ?? ''} onChange={handleTextareaChange} />
         </label>
       )}
       <button className="view-definition" onClick={handleViewDefinitionClick}>
         <Braces size={13} />
         View definition
       </button>
-      <p className="hint">
-        Edit the description here or the full definition in Source. Save to persist changes.
-      </p>
+      <p className="hint">Edit the description here or the full definition in Source. Save to persist changes.</p>
     </>
   );
 }

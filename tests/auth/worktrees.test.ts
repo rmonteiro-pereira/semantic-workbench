@@ -16,15 +16,7 @@ import { requestAccess, requestReader } from '../../src/server/auth/request-scop
 import { authWorkspace } from '../helpers/auth-workspace';
 import { tempDataDir } from '../helpers/temp-data-dir';
 import { person } from './access-fixture';
-import {
-  copyFolder,
-  gitOutput,
-  openCopy,
-  salesViewer,
-  saveText,
-  signedIn,
-  textAt,
-} from './working-copy-fixture';
+import { copyFolder, gitOutput, openCopy, salesViewer, saveText, signedIn, textAt } from './working-copy-fixture';
 
 const ORDERS = 'orders.odcs.yaml';
 const FILE = `/api/projects/sales-contracts/files/${ORDERS}`;
@@ -47,18 +39,13 @@ test('a first write creates a locked copy on work/<handle>; the base stays detac
   expect(gitOutput(aliceCopy, ['branch', '--show-current']).text).toBe('work/alice');
   expect(gitOutput(frankCopy, ['branch', '--show-current']).text).toBe('work/alice-2');
   const listed = parseWorktreeList(gitOutput(base, ['worktree', 'list', '--porcelain']).text);
-  expect(listed.filter(entry => entry.locked).map(entry => entry.branch)).toEqual([
-    'work/alice',
-    'work/alice-2',
-  ]);
+  expect(listed.filter(entry => entry.locked).map(entry => entry.branch)).toEqual(['work/alice', 'work/alice-2']);
   expect(textAt(aliceCopy, ORDERS)).toContain('# alice was here');
   expect(textAt(aliceCopy, ORDERS)).not.toContain('frank');
   expect(textAt(frankCopy, ORDERS)).not.toContain('alice was');
   // The base checkout is detached at main and its files are untouched.
   expect(gitOutput(base, ['symbolic-ref', '-q', 'HEAD']).code).not.toBe(0);
-  expect(gitOutput(base, ['rev-parse', 'HEAD']).text).toBe(
-    gitOutput(base, ['rev-parse', 'refs/heads/main']).text,
-  );
+  expect(gitOutput(base, ['rev-parse', 'HEAD']).text).toBe(gitOutput(base, ['rev-parse', 'refs/heads/main']).text);
   expect(textAt(base, ORDERS)).toBe(published);
   expect(gitOutput(base, ['status', '--porcelain']).text).toBe('');
   // Each person reads their own copy; a Viewer reads the published state and gets no copy.
@@ -71,10 +58,7 @@ test('a first write creates a locked copy on work/<handle>; the base stays detac
 test('two first writes at once create one copy and both land in it', async () => {
   using fixture = await authWorkspace();
   const alice = signedIn(fixture.ws)(person('alice'));
-  const saves = await Promise.all([
-    saveText(alice.call, 'sales-contracts', ORDERS, note('orders')),
-    saveText(alice.call, 'sales-contracts', 'sales.mapping.yaml', note('mapping')),
-  ]);
+  const saves = await Promise.all([saveText(alice.call, 'sales-contracts', ORDERS, note('orders')), saveText(alice.call, 'sales-contracts', 'sales.mapping.yaml', note('mapping'))]);
   expect(saves.map(save => save.status)).toEqual([200, 200]);
   const copy = copyFolder(fixture.ws, alice.principal.key, 'sales-contracts');
   expect(textAt(copy, ORDERS)).toContain('# orders was here');
@@ -86,8 +70,7 @@ test('a branch checked out in another copy is refused with the name of who holds
   const as = signedIn(fixture.ws);
   const alice = as(person('alice'));
   const frank = as(person('frank'));
-  const switchTo = (branch: string) =>
-    ['/api/projects/sales-contracts/git/switch', 'POST', { branch }] as const;
+  const switchTo = (branch: string) => ['/api/projects/sales-contracts/git/switch', 'POST', { branch }] as const;
   expect((await openCopy(alice.call, 'sales-contracts')).status).toBe(200);
   expect((await openCopy(frank.call, 'sales-contracts')).status).toBe(200);
   const taken = await frank.call(...switchTo('work/alice'));
@@ -103,9 +86,7 @@ test('a branch checked out in another copy is refused with the name of who holds
   expect(gitOutput(frankCopy, ['branch', '--show-current']).text).toBe('work/frank');
   // The project listing tells each person which branches the others hold.
   const projects = (await frank.call('/api/projects')).body;
-  const copy = projects.find(
-    (project: { slug: string }) => project.slug === 'sales-contracts',
-  ).copy;
+  const copy = projects.find((project: { slug: string }) => project.slug === 'sales-contracts').copy;
   expect(copy.branch).toBe('work/frank');
   expect(copy.inUseBranches).toContainEqual({ branch: 'work/alice', inUseBy: 'Alice Andrade' });
 });
@@ -137,9 +118,7 @@ test('publish fast-forwards main with a compare-and-swap and refreshes what ever
   run.mockRestore();
   expect(published.status).toBe(200);
   expect(published.body).toEqual({ published: 'main', commit: committed.body.commit });
-  expect(updates.map(([, args]) => args)).toEqual([
-    ['update-ref', 'refs/heads/main', committed.body.commit, previous],
-  ]);
+  expect(updates.map(([, args]) => args)).toEqual([['update-ref', 'refs/heads/main', committed.body.commit, previous]]);
   expect(gitOutput(base, ['rev-parse', 'HEAD']).text).toBe(committed.body.commit);
   expect(gitOutput(base, ['symbolic-ref', '-q', 'HEAD']).code).not.toBe(0);
   expect((await viewer.call(FILE)).body.source).toContain('# bob was here');
@@ -192,10 +171,7 @@ test('every working copy of a repository waits in the base repository Git queue'
     const fake = join(data.root, 'fake-git');
     writeFileSync(log, '');
     // A stand-in for Git that records when each command starts and ends.
-    writeFileSync(
-      fake,
-      `#!/bin/sh\necho "start $(basename "$PWD")" >> ${log}\nsleep 0.2\necho "end" >> ${log}\n`,
-    );
+    writeFileSync(fake, `#!/bin/sh\necho "start $(basename "$PWD")" >> ${log}\nsleep 0.2\necho "end" >> ${log}\n`);
     chmodSync(fake, 0o755);
     const base = join(projects, 'sales');
     const copy = join(worktrees, 'u0123456789abcdef0123', 'sales');
@@ -203,19 +179,11 @@ test('every working copy of a repository waits in the base repository Git queue'
     for (const dir of [base, copy, other]) mkdirSync(dir, { recursive: true });
     const git = createGit({ projectsRoot: projects, worktreesRoot: worktrees, binary: fake });
     await Promise.all([git.run(base, ['commit']), git.run(copy, ['commit'])]);
-    expect(readFileSync(log, 'utf8').trim().split('\n')).toEqual([
-      'start sales',
-      'end',
-      'start sales',
-      'end',
-    ]);
+    expect(readFileSync(log, 'utf8').trim().split('\n')).toEqual(['start sales', 'end', 'start sales', 'end']);
     writeFileSync(log, '');
     await Promise.all([git.run(copy, ['commit']), git.run(other, ['commit'])]);
     // Another repository has its own queue, so its command does not wait.
-    expect(readFileSync(log, 'utf8').trim().split('\n').slice(0, 2).sort()).toEqual([
-      'start finance',
-      'start sales',
-    ]);
+    expect(readFileSync(log, 'utf8').trim().split('\n').slice(0, 2).sort()).toEqual(['start finance', 'start sales']);
     expect(() => git.run(join(data.root, 'elsewhere'), ['status'])).toThrow('data/worktrees');
   } finally {
     data.cleanup();
@@ -237,9 +205,7 @@ test('an idle copy releases its watcher and keeps its files and drafts', async (
     await saveText(alice.call, 'sales-contracts', ORDERS, note('alice'));
     const draft = `/api/drafts/sales-contracts/${ORDERS}`;
     await alice.call(draft, 'PUT', { baseHash: null, text: 'unsaved words', patches: [] });
-    expect(ws.activeCopies()).toEqual([
-      { key: alice.principal.key, watching: ['sales-contracts'] },
-    ]);
+    expect(ws.activeCopies()).toEqual([{ key: alice.principal.key, watching: ['sales-contracts'] }]);
     now += 29 * 60_000;
     expect(ws.releaseIdleCopies()).toEqual([]);
     now += 2 * 60_000;
@@ -276,9 +242,7 @@ test('deleting a project keeps each person’s unpublished work in its trash ent
   expect(deleted.status).toBe(200);
   const entry = fixture.ws.trash.entry(deleted.body.entryId);
   const key = alice.principal.key;
-  expect(entry.unpublished).toEqual([
-    { userKey: key, name: 'Alice Andrade', patch: `unpublished/${key}.patch`, drafts: 1 },
-  ]);
+  expect(entry.unpublished).toEqual([{ userKey: key, name: 'Alice Andrade', patch: `unpublished/${key}.patch`, drafts: 1 }]);
   const saved = join(fixture.ws.layout.trash, entry.entryId, `unpublished/${key}.patch`);
   expect(readFileSync(saved, 'utf8')).toContain('+# alice was here');
   expect(existsSync(copyFolder(fixture.ws, key, 'sales-contracts'))).toBe(false);
@@ -322,9 +286,7 @@ test('an entry deleted from a copy is its owner’s alone, even for a Steward', 
   expect(listed).not.toContain(deleted.body.entryId);
   const restore = `/api/trash/${deleted.body.entryId}/restore`;
   expect((await bob.call(restore, 'POST', {})).status).toBe(404);
-  expect((await alice.call('/api/trash')).body.map((entry: any) => entry.entryId)).toContain(
-    deleted.body.entryId,
-  );
+  expect((await alice.call('/api/trash')).body.map((entry: any) => entry.entryId)).toContain(deleted.body.entryId);
   expect((await alice.call(restore, 'POST', {})).status).toBe(200);
   const copy = copyFolder(fixture.ws, alice.principal.key, 'sales-contracts');
   expect(textAt(copy, mapping)).toContain('# alice was here');
@@ -367,13 +329,8 @@ test('changes always go to the person’s copy; agent clients and local mode hav
 
 test('local mode saves, commits and switches without creating any working copy', async () => {
   using workspace = await testWorkspace();
-  const project = await workspace.seed([
-    { path: 'a.yaml', source: ontologyText('A', ['Customer']) },
-  ]);
-  const call = (path: string, method: string, body: unknown) =>
-    workspace.handler(
-      new Request('http://localhost' + path, { method, body: JSON.stringify(body) }),
-    );
+  const project = await workspace.seed([{ path: 'a.yaml', source: ontologyText('A', ['Customer']) }]);
+  const call = (path: string, method: string, body: unknown) => workspace.handler(new Request('http://localhost' + path, { method, body: JSON.stringify(body) }));
   const base = `/api/projects/${project.slug}`;
   const file = workspace.ws.readFile(project.slug, 'a.yaml');
   const responses = [
@@ -434,9 +391,7 @@ test('deleting a subproject keeps each person’s work on it and takes it out of
     const entry = fixture.ws.trash.entry(deleted.body.entryId);
     expect(entry.kind).toBe('subproject');
     const key = alice.principal.key;
-    expect(entry.unpublished).toEqual([
-      { userKey: key, name: 'Alice Andrade', patch: `unpublished/${key}.patch`, drafts: 0 },
-    ]);
+    expect(entry.unpublished).toEqual([{ userKey: key, name: 'Alice Andrade', patch: `unpublished/${key}.patch`, drafts: 0 }]);
     const saved = join(fixture.ws.layout.trash, entry.entryId, `unpublished/${key}.patch`);
     const patch = readFileSync(saved, 'utf8');
     expect(patch).toContain('+# alice was here');
@@ -460,16 +415,13 @@ test('grouping suggestions follow reads: a person’s own copy, the published st
   // A second semantic model whose dataset source names a contract of sales-contracts.
   const model = fixture.ws.readFile('sales-metrics', 'sales.semantic.yaml').source;
   // Proposed, not approved: an Editor may create a model but not approve its metrics.
-  const extra = model
-    .replace('name: Sales semantic model', 'name: Extra semantic model')
-    .replace('"status": "approved"', '"status": "proposed"');
+  const extra = model.replace('name: Sales semantic model', 'name: Extra semantic model').replace('"status": "approved"', '"status": "proposed"');
   const saved = await alice.call('/api/projects/sales-metrics/files/extra.semantic.yaml', 'PUT', {
     baseHash: null,
     source: extra,
   });
   expect(saved.status).toBe(200);
-  const suggested = async (who: typeof alice) =>
-    (await who.call('/api/suggestions')).body.map((item: any) => item.file.path);
+  const suggested = async (who: typeof alice) => (await who.call('/api/suggestions')).body.map((item: any) => item.file.path);
   expect(await suggested(alice)).toContain('extra.semantic.yaml');
   expect(await suggested(frank)).not.toContain('extra.semantic.yaml');
   expect(await suggested(viewer)).not.toContain('extra.semantic.yaml');

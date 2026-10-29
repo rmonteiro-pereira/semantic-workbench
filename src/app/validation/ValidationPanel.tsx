@@ -6,15 +6,7 @@ import { featureLabeler } from '../editor/feature';
 import { CodeEditor, type CodeEditorHandle } from '../editor/CodeEditor';
 import './validation-editor.css';
 /** Displays document findings and links to their source locations. */
-export function ValidationPanel({
-  issues,
-  onLocate,
-  source,
-}: {
-  issues: Issue[];
-  onLocate?: (issue: Issue) => void;
-  source?: string;
-}) {
+export function ValidationPanel({ issues, onLocate, source }: { issues: Issue[]; onLocate?: (issue: Issue) => void; source?: string }) {
   const feature = useMemo(() => featureLabeler(source), [source]);
   const lines = useMemo(() => source?.split('\n'), [source]);
   const errorCount = issues.filter(issue => issue.severity === 'error').length;
@@ -22,8 +14,7 @@ export function ValidationPanel({
   const fixes: Record<string, string> = {
     reference: 'Choose an existing definition identifier, or add the referenced definition.',
     duplicate: 'Give each definition a unique identifier; update references if you rename it.',
-    'inheritance-cycle':
-      'Remove or redirect an inheritance link so that no definition inherits from itself through a chain.',
+    'inheritance-cycle': 'Remove or redirect an inheritance link so that no definition inherits from itself through a chain.',
     required: 'Add the required property at the affected feature shown below.',
     empty: 'Provide a definition before continuing.',
     filename: 'Use a filename without directory separators or control characters.',
@@ -32,8 +23,7 @@ export function ValidationPanel({
   return (
     <div className="validation-report" aria-label="Validation report">
       <p>
-        {errorCount} {errorCount === 1 ? 'error' : 'errors'} · {warningCount}{' '}
-        {warningCount === 1 ? 'warning' : 'warnings'}
+        {errorCount} {errorCount === 1 ? 'error' : 'errors'} · {warningCount} {warningCount === 1 ? 'warning' : 'warnings'}
       </p>
       <ul>
         {issues.map((issue, i) => (
@@ -51,14 +41,10 @@ export function ValidationPanel({
             )}
             <span className="validation-location">
               {issue.path}
-              {issue.line
-                ? ` · Line ${issue.line}, column ${issue.column ?? 1}`
-                : ' · Document-level finding; no exact source line was reported.'}
+              {issue.line ? ` · Line ${issue.line}, column ${issue.column ?? 1}` : ' · Document-level finding; no exact source line was reported.'}
             </span>
             {fixes[issue.code] && <p className="validation-fix">How to fix: {fixes[issue.code]}</p>}
-            {onLocate && issue.line && (
-              <button onClick={() => onLocate(issue)}>Go to line {issue.line}</button>
-            )}
+            {onLocate && issue.line && <button onClick={() => onLocate(issue)}>Go to line {issue.line}</button>}
           </li>
         ))}
       </ul>
@@ -69,15 +55,7 @@ export function ValidationPanel({
 /** Holds a filename and source text awaiting import validation. */
 export type ImportDraft = { filename: string; source: string };
 /** Edits and validates an import draft before it is accepted. */
-export function ImportRepair({
-  initial,
-  onCancel,
-  onImport,
-}: {
-  initial: ImportDraft[];
-  onCancel: () => void;
-  onImport: (drafts: ImportDraft[]) => Promise<void>;
-}) {
+export function ImportRepair({ initial, onCancel, onImport }: { initial: ImportDraft[]; onCancel: () => void; onImport: (drafts: ImportDraft[]) => Promise<void> }) {
   const [drafts, setDrafts] = useState(initial);
   const [active, setActive] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -108,18 +86,11 @@ export function ImportRepair({
       <section className="import-repair">
         <h2 id="repair-title">Review import</h2>
         <p>
-          {invalid} of {drafts.length} files need repair. Your open document is preserved. Nothing
-          is saved until you import.
+          {invalid} of {drafts.length} files need repair. Your open document is preserved. Nothing is saved until you import.
         </p>
         <label>
           File to review
-          <select
-            autoFocus
-            aria-label="File to review"
-            disabled={busy}
-            value={active}
-            onChange={e => setActive(Number(e.target.value))}
-          >
+          <select autoFocus aria-label="File to review" disabled={busy} value={active} onChange={e => setActive(Number(e.target.value))}>
             {drafts.map((d, i) => (
               <option key={i} value={i}>
                 {d.filename} · {reports[i].valid ? 'Ready' : 'Needs repair'}
@@ -129,16 +100,7 @@ export function ImportRepair({
         </label>
         <label>
           Import filename
-          <input
-            aria-label="Import filename"
-            value={current.filename}
-            disabled={busy}
-            onChange={e =>
-              setDrafts(old =>
-                old.map((d, i) => (i === active ? { ...d, filename: e.target.value } : d)),
-              )
-            }
-          />
+          <input aria-label="Import filename" value={current.filename} disabled={busy} onChange={e => setDrafts(old => old.map((d, i) => (i === active ? { ...d, filename: e.target.value } : d)))} />
         </label>
         <div className="repair-columns">
           <div className="repair-editor">
@@ -150,16 +112,10 @@ export function ImportRepair({
               filename={current.filename}
               disabled={busy}
               value={current.source}
-              onChange={next =>
-                setDrafts(old => old.map((d, i) => (i === active ? { ...d, source: next } : d)))
-              }
+              onChange={next => setDrafts(old => old.map((d, i) => (i === active ? { ...d, source: next } : d)))}
             />
           </div>
-          <ValidationPanel
-            issues={reports[active].issues}
-            source={current.source}
-            onLocate={issue => editor.current?.locate(issue)}
-          />
+          <ValidationPanel issues={reports[active].issues} source={current.source} onLocate={issue => editor.current?.locate(issue)} />
         </div>
         {error && <p role="alert">{error}</p>}
         <div className="repair-actions">

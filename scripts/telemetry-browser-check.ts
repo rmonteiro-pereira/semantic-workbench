@@ -90,10 +90,7 @@ async function reportsWhenEnabled(api: IsolatedApi) {
   check('the page load timing is reported');
   for (const report of sent) {
     const keys = Object.keys(report).sort().join(',');
-    assert(
-      ['frames,kind,message,name', 'kind,message,name', 'durationMs,kind,operation'].includes(keys),
-      `unexpected report fields: ${keys}`,
-    );
+    assert(['frames,kind,message,name', 'kind,message,name', 'durationMs,kind,operation'].includes(keys), `unexpected report fields: ${keys}`);
   }
   check('reports carry only the documented fields');
   const outside = [...hosts].filter(host => host !== new URL(BASE_URL).host);

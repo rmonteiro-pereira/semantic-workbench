@@ -39,11 +39,7 @@ export function addressKey(address: string): string {
  * appends the address it saw and anything to the left of those entries was written by the client.
  * A header that is too short or unparsable falls back to the peer.
  */
-export function clientAddress(
-  peer: string | undefined,
-  forwardedFor: string | null,
-  trustedProxyHops: number,
-): string | undefined {
+export function clientAddress(peer: string | undefined, forwardedFor: string | null, trustedProxyHops: number): string | undefined {
   if (trustedProxyHops > 0 && forwardedFor) {
     const entries = forwardedFor.split(',');
     const entry = entries[entries.length - trustedProxyHops];

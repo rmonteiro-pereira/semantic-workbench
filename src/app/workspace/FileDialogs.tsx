@@ -14,9 +14,7 @@ type Props = {
   stale: { current: string | null; currentHash: string | null } | null;
   current: Doc | null;
   source: string;
-  setStale: React.Dispatch<
-    React.SetStateAction<{ current: string | null; currentHash: string | null } | null>
-  >;
+  setStale: React.Dispatch<React.SetStateAction<{ current: string | null; currentHash: string | null } | null>>;
   autosave: {
     state: AutosaveState;
     flush(): Promise<void>;
@@ -56,11 +54,7 @@ type Props = {
       conflicts: string[];
     } | null>
   >;
-  importIntoProject: (
-    files: { path: string; source: string }[],
-    onConflict?: 'replace' | 'keep-both' | undefined,
-    slug?: string | undefined,
-  ) => Promise<void>;
+  importIntoProject: (files: { path: string; source: string }[], onConflict?: 'replace' | 'keep-both' | undefined, slug?: string | undefined) => Promise<void>;
   deleted: Deleted | null;
   undoDelete: () => Promise<void>;
 };
@@ -123,12 +117,7 @@ export function FileDialogs({
 
     // The user confirmed losing unsaved edits of a removed file: drop them before refreshing.
     const target = deleteTarget;
-    if (
-      current &&
-      (target.kind === 'clear' ||
-        (current.project === target.project &&
-          (target.kind === 'project' || current.path === target.path)))
-    ) {
+    if (current && (target.kind === 'clear' || (current.project === target.project && (target.kind === 'project' || current.path === target.path)))) {
       autosave.cancel();
       if (source !== current.source) setSource(current.source);
     }
@@ -141,8 +130,7 @@ export function FileDialogs({
   // Removing a subfolder project only unregisters it; its files stay on disk, so there is
   // nothing to undo and its unsaved edits stay as drafts.
   function handleProjectRemoved(label: string) {
-    if (deleteTarget?.kind === 'project' && current?.project === deleteTarget.project)
-      autosave.cancel();
+    if (deleteTarget?.kind === 'project' && current?.project === deleteTarget.project) autosave.cancel();
     setDeleteTarget(null);
     setMessage(`Removed ${label} from the workspace. Its folder is unchanged.`);
     void refresh();
@@ -162,17 +150,12 @@ export function FileDialogs({
   function handleMoveDialogDone(to: { project: string; path: string }) {
     if (moving == null) return;
 
-    if (currentRef.current?.project === moving.project && currentRef.current.path === moving.path)
-      autosave.cancel();
+    if (currentRef.current?.project === moving.project && currentRef.current.path === moving.path) autosave.cancel();
     setMoving(null);
     setMessage(`Moved ${moving.path} to ${projects.find(p => p.slug === to.project)?.name}.`);
     void refresh().then(d => {
       const doc = d.find(x => x.project === to.project && x.path === to.path);
-      if (
-        doc &&
-        currentRef.current?.project === moving.project &&
-        currentRef.current.path === moving.path
-      ) {
+      if (doc && currentRef.current?.project === moving.project && currentRef.current.path === moving.path) {
         setCurrent(doc);
         setSource(doc.source);
       }
@@ -195,11 +178,7 @@ export function FileDialogs({
         <DeleteDialog
           target={deleteTarget}
           projects={projects}
-          dirty={
-            current && source !== current.source
-              ? { project: current.project, path: current.path }
-              : null
-          }
+          dirty={current && source !== current.source ? { project: current.project, path: current.path } : null}
           onCancel={() => setDeleteTarget(null)}
           onDeleted={handleDeleteDialogDeleted}
           onRemoved={handleProjectRemoved}
@@ -209,44 +188,24 @@ export function FileDialogs({
         <TrashDialog
           version={trashVersion}
           selectedProject={selectedProject}
-          selectedProjectName={
-            projects.find(project => project.slug === selectedProject)?.name ?? selectedProject
-          }
+          selectedProjectName={projects.find(project => project.slug === selectedProject)?.name ?? selectedProject}
           onClose={() => {
             setTrashOpen(false);
             void refresh();
           }}
         />
       )}
-      {renaming && (
-        <RenameDialog
-          project={renaming}
-          onClose={() => setRenaming(null)}
-          onDone={handleRenameDialogDone}
-        />
-      )}
+      {renaming && <RenameDialog project={renaming} onClose={() => setRenaming(null)} onDone={handleRenameDialogDone} />}
       {exporting && (
         <ExportDialog
           project={exporting}
-          dirty={
-            current && source !== current.source
-              ? { project: current.project, path: current.path }
-              : null
-          }
+          dirty={current && source !== current.source ? { project: current.project, path: current.path } : null}
           saveOpenFile={autosave.flush}
           onClose={() => setExporting(null)}
           onDone={handleExportDialogDone}
         />
       )}
-      {moving && (
-        <MoveDialog
-          project={moving.project}
-          path={moving.path}
-          projects={projects}
-          onClose={() => setMoving(null)}
-          onDone={handleMoveDialogDone}
-        />
-      )}
+      {moving && <MoveDialog project={moving.project} path={moving.path} projects={projects} onClose={() => setMoving(null)} onDone={handleMoveDialogDone} />}
       {importConflict && (
         <ImportConflictDialog
           project={importConflict.project}
@@ -255,13 +214,7 @@ export function FileDialogs({
           onChoose={choice => void importIntoProject(importConflict.files, choice)}
         />
       )}
-      {deleted && (
-        <UndoToast
-          deleted={deleted}
-          onUndo={() => void undoDelete()}
-          onExpire={() => setDeleted(null)}
-        />
-      )}
+      {deleted && <UndoToast deleted={deleted} onUndo={() => void undoDelete()} onExpire={() => setDeleted(null)} />}
     </>
   );
 }

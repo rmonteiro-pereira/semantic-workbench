@@ -67,9 +67,7 @@ describe('format', () => {
   test('text mode writes a readable line', () => {
     const { logger, lines } = capture('info', 'text');
     logger.warn('git.slow', { subcommand: 'fetch', durationMs: 4200, note: 'two words' });
-    expect(lines[0].line).toBe(
-      '12:30:45 WARN  git.slow subcommand=fetch durationMs=4200 note="two words"',
-    );
+    expect(lines[0].line).toBe('12:30:45 WARN  git.slow subcommand=fetch durationMs=4200 note="two words"');
   });
 
   test('formatRecord is a pure function of the record', () => {

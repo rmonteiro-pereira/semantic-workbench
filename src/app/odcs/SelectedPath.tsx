@@ -29,8 +29,7 @@ export function SelectedPath({
   onNeighborhood?: (card: LineageCard) => void;
   extra?: React.ReactNode;
 }) {
-  const canContinue =
-    selectedCard && (selectedCard.kind === 'dataset' || selectedCard.kind === 'metric');
+  const canContinue = selectedCard && (selectedCard.kind === 'dataset' || selectedCard.kind === 'metric');
   return (
     <>
       <ol className="selected-path">

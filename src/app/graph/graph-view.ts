@@ -32,8 +32,7 @@ const byName = (a: Entity, b: Entity) => a.name.localeCompare(b.name) || a.id.lo
 // Entities and edges of the default projection; `technical` includes everything.
 /** Filters technical resources unless the caller explicitly includes them. */
 export function projectModel(entities: Entity[], edges: Relationship[], technical = false) {
-  if (technical || !entities.some(e => e.kind === 'OWL class'))
-    return { entities, edges, technicalHidden: 0 };
+  if (technical || !entities.some(e => e.kind === 'OWL class')) return { entities, edges, technicalHidden: 0 };
   const classes = entities.filter(e => e.kind === 'OWL class');
   const ids = new Set(classes.map(e => e.id));
   return {
@@ -75,9 +74,7 @@ export function searchEntities(entities: Entity[], query: string, limit = 50): E
 const VALUE_KINDS = new Set(['ValueType', 'Built-in concept']);
 /** Chooses the most connected business entity, breaking ties by name. */
 export function defaultCenter(entities: Entity[], edges: Relationship[]) {
-  const candidates = entities.some(e => !VALUE_KINDS.has(e.kind))
-    ? entities.filter(e => !VALUE_KINDS.has(e.kind))
-    : entities;
+  const candidates = entities.some(e => !VALUE_KINDS.has(e.kind)) ? entities.filter(e => !VALUE_KINDS.has(e.kind)) : entities;
   const ids = new Set(candidates.map(e => e.id));
   const degree = new Map<string, number>();
   for (const e of edges)
@@ -85,24 +82,13 @@ export function defaultCenter(entities: Entity[], edges: Relationship[]) {
       degree.set(e.source, (degree.get(e.source) ?? 0) + 1);
       degree.set(e.target, (degree.get(e.target) ?? 0) + 1);
     }
-  return [...candidates].sort(
-    (a, b) => (degree.get(b.id) ?? 0) - (degree.get(a.id) ?? 0) || byName(a, b),
-  )[0]?.id;
+  return [...candidates].sort((a, b) => (degree.get(b.id) ?? 0) - (degree.get(a.id) ?? 0) || byName(a, b))[0]?.id;
 }
 /** Builds a paged neighborhood with directional relationships and hidden counts. */
-export function neighborhood(
-  allEntities: Entity[],
-  allEdges: Relationship[],
-  options: NeighborhoodOptions = {},
-): Neighborhood {
-  const { entities, edges, technicalHidden } = projectModel(
-    allEntities,
-    allEdges,
-    options.technical,
-  );
+export function neighborhood(allEntities: Entity[], allEdges: Relationship[], options: NeighborhoodOptions = {}): Neighborhood {
+  const { entities, edges, technicalHidden } = projectModel(allEntities, allEdges, options.technical);
   const byId = new Map(entities.map(e => [e.id, e]));
-  const center =
-    options.center && byId.has(options.center) ? options.center : defaultCenter(entities, edges);
+  const center = options.center && byId.has(options.center) ? options.center : defaultCenter(entities, edges);
   const empty = {
     center,
     entities: center ? [byId.get(center)!] : [],
@@ -123,9 +109,7 @@ export function neighborhood(
   const touching = edges.filter(e => e.source === center || e.target === center);
   const relationships = new Map<string, number>();
   for (const e of touching) relationships.set(e.label, (relationships.get(e.label) ?? 0) + 1);
-  const filtered = options.relationship
-    ? touching.filter(e => e.label === options.relationship)
-    : touching;
+  const filtered = options.relationship ? touching.filter(e => e.label === options.relationship) : touching;
   const info = new Map<string, { incoming: boolean; outgoing: boolean; kind: string }>();
   for (const e of filtered) {
     const other = e.source === center ? e.target : e.source;
@@ -136,34 +120,19 @@ export function neighborhood(
     if (e.data.kind < i.kind) i.kind = e.data.kind;
     info.set(other, i);
   }
-  const ranked = [...info.keys()]
-    .filter(id => byId.has(id))
-    .sort(
-      (a, b) =>
-        info.get(a)!.kind.localeCompare(info.get(b)!.kind) || byName(byId.get(a)!, byId.get(b)!),
-    );
+  const ranked = [...info.keys()].filter(id => byId.has(id)).sort((a, b) => info.get(a)!.kind.localeCompare(info.get(b)!.kind) || byName(byId.get(a)!, byId.get(b)!));
   const limit = Math.max(1, options.limit ?? NEIGHBOR_PAGE);
   const keep = new Set((options.keep ?? []).filter(id => info.has(id)));
-  const shownIds = [
-    ...new Set([...ranked.filter(id => keep.has(id)), ...ranked.slice(0, limit)]),
-  ].sort((a, b) => ranked.indexOf(a) - ranked.indexOf(b));
+  const shownIds = [...new Set([...ranked.filter(id => keep.has(id)), ...ranked.slice(0, limit)])].sort((a, b) => ranked.indexOf(a) - ranked.indexOf(b));
   const included = new Set([center, ...shownIds]);
   const visibleEdges = edges.filter(
     e =>
       included.has(e.source) &&
       included.has(e.target) &&
-      (e.source === center || e.target === center
-        ? !options.relationship || e.label === options.relationship || e.source === e.target
-        : options.lateral !== false),
+      (e.source === center || e.target === center ? !options.relationship || e.label === options.relationship || e.source === e.target : options.lateral !== false),
   );
   const dir = (id: string) => info.get(id)!;
-  const lateral = edges.filter(
-    e =>
-      e.source !== center &&
-      e.target !== center &&
-      included.has(e.source) &&
-      included.has(e.target),
-  ).length;
+  const lateral = edges.filter(e => e.source !== center && e.target !== center && included.has(e.source) && included.has(e.target)).length;
   return {
     center,
     entities: [byId.get(center)!, ...shownIds.map(id => byId.get(id)!)],
@@ -175,23 +144,14 @@ export function neighborhood(
     shown: shownIds.length,
     hidden: ranked.length - shownIds.length,
     lateral,
-    relationships: [...relationships.entries()]
-      .map(([label, count]) => ({ label, count }))
-      .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label)),
+    relationships: [...relationships.entries()].map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count || a.label.localeCompare(b.label)),
     technicalHidden,
   };
 }
 // Compatibility wrapper used by tests and imports: a bounded neighborhood, a search result as
 // center, or every projected entity with `all`.
 /** Returns a bounded neighborhood or the full projected graph when requested. */
-export function graphView(
-  entities: Entity[],
-  edges: Relationship[],
-  query: string,
-  all = false,
-  limit = 8,
-  focusId = '',
-) {
+export function graphView(entities: Entity[], edges: Relationship[], query: string, all = false, limit = 8, focusId = '') {
   if (all && !query) {
     const p = projectModel(entities, edges, true);
     return { entities: p.entities, edges: p.edges, focus: focusId || p.entities[0]?.id };

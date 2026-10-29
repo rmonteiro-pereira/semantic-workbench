@@ -36,17 +36,7 @@ export function OptionGroup({ title, children }: { title: string; children: Reac
 // "Labels off" read as either a state or an action. The label now names what the switch shows
 // and never changes; the check mark and the pressed style say whether it is on.
 /** A toolbar switch that shows or hides one kind of graph content. */
-export function ShowToggle({
-  on,
-  onToggle,
-  title,
-  children,
-}: {
-  on: boolean;
-  onToggle: () => void;
-  title?: string;
-  children: React.ReactNode;
-}) {
+export function ShowToggle({ on, onToggle, title, children }: { on: boolean; onToggle: () => void; title?: string; children: React.ReactNode }) {
   return (
     <button className="show-toggle" aria-pressed={on} onClick={onToggle} title={title}>
       <Check size={13} aria-hidden="true" className="show-toggle-check" />
@@ -70,13 +60,7 @@ export function Segmented<Value extends string>({
   return (
     <span className="segmented" role="radiogroup" aria-label={label}>
       {options.map(option => (
-        <button
-          key={option.value}
-          role="radio"
-          aria-checked={option.value === value}
-          title={option.title}
-          onClick={() => onChange(option.value)}
-        >
+        <button key={option.value} role="radio" aria-checked={option.value === value} title={option.title} onClick={() => onChange(option.value)}>
           {option.label}
         </button>
       ))}

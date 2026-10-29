@@ -115,12 +115,9 @@ export const WorkspaceHeader = React.memo(function WorkspaceHeader({
     return 'Commit changed files of this project';
   }
 
-  const projectName =
-    projects.find(project => project.slug === current?.project)?.name ?? current?.project ?? '';
+  const projectName = projects.find(project => project.slug === current?.project)?.name ?? current?.project ?? '';
   const canCreate = access.can('edit');
-  const exportTitle = hasSource
-    ? 'Download the file exactly as it is'
-    : 'Open a file to export it.';
+  const exportTitle = hasSource ? 'Download the file exactly as it is' : 'Open a file to export it.';
   const saveStateLabel = current ? saveState : 'No file open';
   const saveStateTitle = `${saveStateLabel} — ${getSaveStateAction()}`;
   const commitDisabled = !current || status?.gitAvailable === false || !access.can('commit');

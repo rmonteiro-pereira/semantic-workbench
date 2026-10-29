@@ -15,9 +15,7 @@ function RejectedPush({ message, busy, onPull }: Pick<Props, 'message' | 'busy' 
   return (
     <>
       <p>{PUSH_REJECTED_SUMMARY}</p>
-      <p>
-        Pull their changes first. If both sides edited the same lines, you will resolve a merge.
-      </p>
+      <p>Pull their changes first. If both sides edited the same lines, you will resolve a merge.</p>
       <button disabled={busy} onClick={onPull}>
         Pull remote changes
       </button>
@@ -34,11 +32,7 @@ export function ScmError(props: Props) {
   const { message, canOpenGuide, busy, onOpenGuide, onPull } = props;
   return (
     <div role="alert" className="scm-error">
-      {isRejectedPush(message) ? (
-        <RejectedPush message={message} busy={busy} onPull={onPull} />
-      ) : (
-        <pre>{message}</pre>
-      )}
+      {isRejectedPush(message) ? <RejectedPush message={message} busy={busy} onPull={onPull} /> : <pre>{message}</pre>}
       {looksLikeAuthFailure(message) && (
         <button hidden={!canOpenGuide} onClick={onOpenGuide}>
           Credential setup guide

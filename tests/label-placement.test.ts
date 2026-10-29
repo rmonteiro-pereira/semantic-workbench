@@ -1,11 +1,5 @@
 import { expect, test } from 'bun:test';
-import {
-  labelBox,
-  placeLabels,
-  labelInViewport,
-  nearestRoutePoint,
-  type Box,
-} from '../src/app/graph/routes';
+import { labelBox, placeLabels, labelInViewport, nearestRoutePoint, type Box } from '../src/app/graph/routes';
 
 const line: [number, number][] = [
   [0, 100],
@@ -21,9 +15,7 @@ function overlapArea(a: Box, b: Box) {
 function totalOverlap(items: { text: string }[], placed: Map<string, [number, number]>) {
   let total = 0;
   const boxes = items.map((item, index) => labelBox(item.text, placed.get(String(index))!));
-  for (let first = 0; first < boxes.length; first++)
-    for (let second = first + 1; second < boxes.length; second++)
-      total += overlapArea(boxes[first], boxes[second]);
+  for (let first = 0; first < boxes.length; first++) for (let second = first + 1; second < boxes.length; second++) total += overlapArea(boxes[first], boxes[second]);
   return total;
 }
 

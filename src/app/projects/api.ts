@@ -80,9 +80,7 @@ export type Suggestion = {
   evidence: { kind: string; detail: string; otherFile: { project: string; path: string } }[];
 };
 /** Reports whether imported files were committed or why no commit was created. */
-export type ImportCommit =
-  | { committed: true; commit: string; message: string }
-  | { committed: false; reason: 'no-git' | 'no-identity' | 'merging' | 'nothing' };
+export type ImportCommit = { committed: true; commit: string; message: string } | { committed: false; reason: 'no-git' | 'no-identity' | 'merging' | 'nothing' };
 /** Identifies a completed deletion batch and its undo deadline. */
 export type Deleted = { entryIds: string[]; undoUntil: string; label: string };
 /** Holds an open document's identity, source and saved content hash. */
@@ -221,8 +219,7 @@ export class StaleSave extends Error {
 /** Builds an open-document identifier from project and file path. */
 export const docId = (project: string, path: string) => `${project}/${path}`;
 /** Builds the file API URL with each path segment encoded. */
-export const fileUrl = (project: string, path: string) =>
-  `/api/projects/${encodeURIComponent(project)}/files/${path.split('/').map(encodeURIComponent).join('/')}`;
+export const fileUrl = (project: string, path: string) => `/api/projects/${encodeURIComponent(project)}/files/${path.split('/').map(encodeURIComponent).join('/')}`;
 let leavingPage = false;
 
 /**
@@ -251,9 +248,7 @@ export async function apiFetch(input: string, options: RequestInit = {}): Promis
 }
 
 async function json<T>(response: Response): Promise<T> {
-  const body = await response
-    .json()
-    .catch(() => ({ error: `Request failed (${response.status}).` }));
+  const body = await response.json().catch(() => ({ error: `Request failed (${response.status}).` }));
   if (!response.ok) {
     const error = Object.assign(Error(body.error ?? `Request failed (${response.status}).`), {
       status: response.status,
@@ -289,43 +284,19 @@ const explainQuery = (q: ExplainQuery) => {
 };
 /** Provides browser operations for projects, documents, imports and metrics. */
 export const api = {
-  metrics: (project: string) =>
-    apiFetch(`/api/projects/${encodeURIComponent(project)}/metrics`).then(r =>
-      json<KpiSummary[]>(r),
-    ),
-  explain: (
-    project: string,
-    path: string,
-    metric: string,
-    q: ExplainQuery = {},
-    signal?: AbortSignal,
-  ) =>
+  metrics: (project: string) => apiFetch(`/api/projects/${encodeURIComponent(project)}/metrics`).then(r => json<KpiSummary[]>(r)),
+  explain: (project: string, path: string, metric: string, q: ExplainQuery = {}, signal?: AbortSignal) =>
     apiFetch(`${fileUrl(project, path)}/explain/${encodeURIComponent(metric)}${explainQuery(q)}`, {
       signal,
     }).then(r => json<KpiExplanation>(r)),
   status: () => apiFetch('/api/status').then(r => json<WorkspaceStatus>(r)),
   projects: () => apiFetch('/api/projects').then(r => json<ProjectInfo[]>(r)),
   /** People a metric owner in this project can be chosen from; empty in local mode. */
-  people: (project: string) =>
-    apiFetch(`/api/projects/${encodeURIComponent(project)}/people`).then(response =>
-      json<Person[]>(response),
-    ),
-  file: (project: string, path: string) =>
-    apiFetch(fileUrl(project, path)).then(r =>
-      json<{ path: string; source: string; hash: string; docType: string }>(r),
-    ),
+  people: (project: string) => apiFetch(`/api/projects/${encodeURIComponent(project)}/people`).then(response => json<Person[]>(response)),
+  file: (project: string, path: string) => apiFetch(fileUrl(project, path)).then(r => json<{ path: string; source: string; hash: string; docType: string }>(r)),
   // A save sends patches against the version it started from when it has them, else the text.
-  async save(
-    project: string,
-    path: string,
-    baseHash: string | null,
-    source: string,
-    patches?: { from: number; to: number; insert: string }[],
-  ) {
-    const response = await apiFetch(
-      fileUrl(project, path),
-      send('PUT', patches && baseHash !== null ? { baseHash, patches } : { baseHash, source }),
-    );
+  async save(project: string, path: string, baseHash: string | null, source: string, patches?: { from: number; to: number; insert: string }[]) {
+    const response = await apiFetch(fileUrl(project, path), send('PUT', patches && baseHash !== null ? { baseHash, patches } : { baseHash, source }));
     if (response.status === 409) {
       const body = await response.json();
       throw new StaleSave(body.currentHash, body.currentSource);
@@ -342,10 +313,7 @@ export const api = {
       patches?: { from: number; to: number; insert: string }[];
     }[],
   ) {
-    const response = await apiFetch(
-      `/api/projects/${encodeURIComponent(project)}/save-batch`,
-      send('POST', { files }),
-    );
+    const response = await apiFetch(`/api/projects/${encodeURIComponent(project)}/save-batch`, send('POST', { files }));
     if (response.status === 409) {
       const body = await response.json();
       throw new StaleSave(body.currentHash, body.currentSource);
@@ -356,20 +324,14 @@ export const api = {
     }>(response);
   },
   previewKpi: (project: string, body: KpiSaveRequest) =>
-    apiFetch(
-      `/api/projects/${encodeURIComponent(project)}/metrics/preview`,
-      send('POST', body),
-    ).then(r =>
+    apiFetch(`/api/projects/${encodeURIComponent(project)}/metrics/preview`, send('POST', body)).then(r =>
       json<{
         changes: { path: string; created: boolean; added: string[]; removed: string[] }[];
         explanation: KpiExplanation;
       }>(r),
     ),
   async saveKpi(project: string, body: KpiSaveRequest & { baseHashes: Record<string, string> }) {
-    const response = await apiFetch(
-      `/api/projects/${encodeURIComponent(project)}/metrics`,
-      send('POST', body),
-    );
+    const response = await apiFetch(`/api/projects/${encodeURIComponent(project)}/metrics`, send('POST', body));
     if (response.status === 409) {
       const b = await response.json();
       throw new StaleSave(b.currentHash, b.currentSource);
@@ -387,34 +349,15 @@ export const api = {
     ),
   deleteImpact: (project: string, path?: string) => {
     const query = path !== undefined ? '?path=' + encodeURIComponent(path) : '';
-    return apiFetch(`/api/projects/${encodeURIComponent(project)}/delete-impact${query}`).then(r =>
-      json<Impact>(r),
-    );
+    return apiFetch(`/api/projects/${encodeURIComponent(project)}/delete-impact${query}`).then(r => json<Impact>(r));
   },
-  deleteFile: (project: string, path: string) =>
-    apiFetch(fileUrl(project, path), send('DELETE', { confirm: true })).then(r =>
-      json<{ entryId: string; undoUntil: string }>(r),
-    ),
+  deleteFile: (project: string, path: string) => apiFetch(fileUrl(project, path), send('DELETE', { confirm: true })).then(r => json<{ entryId: string; undoUntil: string }>(r)),
   deleteProject: (project: string) =>
-    apiFetch(
-      `/api/projects/${encodeURIComponent(project)}`,
-      send('DELETE', { mode: 'delete', confirm: true }),
-    ).then(r => json<{ entryId: string; undoUntil: string }>(r)),
+    apiFetch(`/api/projects/${encodeURIComponent(project)}`, send('DELETE', { mode: 'delete', confirm: true })).then(r => json<{ entryId: string; undoUntil: string }>(r)),
   /** Takes a project out of the workspace; its folder and history stay on disk. */
-  removeProject: (project: string) =>
-    apiFetch(
-      `/api/projects/${encodeURIComponent(project)}`,
-      send('DELETE', { mode: 'remove' }),
-    ).then(r => json<{ removed: string }>(r)),
-  projectCandidates: (repo: string) =>
-    apiFetch(`/api/repos/${encodeURIComponent(repo)}/project-candidates`).then(r =>
-      json<ProjectCandidates>(r),
-    ),
-  setRepositoryProjects: (
-    repo: string,
-    projects: RepositoryProject[],
-    manifest?: { baseHash: string | null },
-  ) =>
+  removeProject: (project: string) => apiFetch(`/api/projects/${encodeURIComponent(project)}`, send('DELETE', { mode: 'remove' })).then(r => json<{ removed: string }>(r)),
+  projectCandidates: (repo: string) => apiFetch(`/api/repos/${encodeURIComponent(repo)}/project-candidates`).then(r => json<ProjectCandidates>(r)),
+  setRepositoryProjects: (repo: string, projects: RepositoryProject[], manifest?: { baseHash: string | null }) =>
     apiFetch(
       `/api/repos/${encodeURIComponent(repo)}/projects`,
       send('PUT', {
@@ -422,14 +365,10 @@ export const api = {
         ...(manifest ? { saveManifest: true, manifestBaseHash: manifest.baseHash } : {}),
       }),
     ).then(r => json<{ projects: { slug: string; name: string; folder: string }[] }>(r)),
-  clear: () =>
-    apiFetch('/api/clear', send('POST', { confirm: true })).then(r =>
-      json<{ batchId: string | null; entries: string[]; undoUntil: string | null }>(r),
-    ),
+  clear: () => apiFetch('/api/clear', send('POST', { confirm: true })).then(r => json<{ batchId: string | null; entries: string[]; undoUntil: string | null }>(r)),
   trash: () => apiFetch('/api/trash').then(r => json<TrashItem[]>(r)),
   undo: (id: string) => apiFetch(`/api/trash/${id}/undo`, send('POST')).then(r => json<any>(r)),
-  restore: (id: string, target: { toProject?: string; toPath?: string } = {}) =>
-    apiFetch(`/api/trash/${id}/restore`, send('POST', target)).then(r => json<any>(r)),
+  restore: (id: string, target: { toProject?: string; toPath?: string } = {}) => apiFetch(`/api/trash/${id}/restore`, send('POST', target)).then(r => json<any>(r)),
   purge: (id: string) =>
     apiFetch(`/api/trash/${id}`, send('DELETE', { confirm: true })).then(r => {
       if (!r.ok) return json(r);
@@ -439,24 +378,13 @@ export const api = {
       if (!r.ok) return json(r);
     }),
   drafts: () => apiFetch('/api/drafts').then(r => json<{ project: string; path: string }[]>(r)),
-  rename: (project: string, name: string) =>
-    apiFetch(`/api/projects/${encodeURIComponent(project)}`, send('PATCH', { name })).then(r =>
-      json<{ slug: string; name: string }>(r),
-    ),
+  rename: (project: string, name: string) => apiFetch(`/api/projects/${encodeURIComponent(project)}`, send('PATCH', { name })).then(r => json<{ slug: string; name: string }>(r)),
   move: (project: string, path: string, toProject: string, toPath?: string) =>
-    apiFetch(
-      `/api/projects/${encodeURIComponent(project)}/move`,
-      send('POST', { path, toProject, ...(toPath ? { toPath } : {}) }),
-    ).then(r => json<{ project: string; path: string }>(r)),
-  importInto: (
-    project: string,
-    files: { path: string; source: string }[],
-    onConflict?: 'replace' | 'keep-both',
-  ) =>
-    apiFetch(
-      `/api/projects/${encodeURIComponent(project)}/import`,
-      send('POST', { files, ...(onConflict ? { onConflict } : {}) }),
-    ).then(r => json<{ written: { path: string; hash: string }[]; commit?: ImportCommit }>(r)),
+    apiFetch(`/api/projects/${encodeURIComponent(project)}/move`, send('POST', { path, toProject, ...(toPath ? { toPath } : {}) })).then(r => json<{ project: string; path: string }>(r)),
+  importInto: (project: string, files: { path: string; source: string }[], onConflict?: 'replace' | 'keep-both') =>
+    apiFetch(`/api/projects/${encodeURIComponent(project)}/import`, send('POST', { files, ...(onConflict ? { onConflict } : {}) })).then(r =>
+      json<{ written: { path: string; hash: string }[]; commit?: ImportCommit }>(r),
+    ),
   /**
    * Downloads a project's files as a zip. `omitted` counts the files the person may not read,
    * which the server leaves out and never names.
@@ -474,19 +402,12 @@ export const api = {
     };
   },
   suggestions: () => apiFetch('/api/suggestions').then(r => json<Suggestion[]>(r)),
-  acceptSuggestion: (id: string) =>
-    apiFetch(`/api/suggestions/${id}/accept`, send('POST')).then(r =>
-      json<{ project: string; path: string }>(r),
-    ),
-  rejectSuggestion: (id: string) =>
-    apiFetch(`/api/suggestions/${id}/reject`, send('POST')).then(r => json<unknown>(r)),
+  acceptSuggestion: (id: string) => apiFetch(`/api/suggestions/${id}/accept`, send('POST')).then(r => json<{ project: string; path: string }>(r)),
+  rejectSuggestion: (id: string) => apiFetch(`/api/suggestions/${id}/reject`, send('POST')).then(r => json<unknown>(r)),
   example: async (id: string, domain?: string) =>
-    apiFetch(`/api/examples/${encodeURIComponent(id)}`, send('POST', { domain })).then(r =>
-      json<{ slug: string; name: string; created: boolean; commit?: ImportCommit }>(r),
-    ),
+    apiFetch(`/api/examples/${encodeURIComponent(id)}`, send('POST', { domain })).then(r => json<{ slug: string; name: string; created: boolean; commit?: ImportCommit }>(r)),
 };
-const gitUrl = (project: string, action: string) =>
-  `/api/projects/${encodeURIComponent(project)}/${action}`;
+const gitUrl = (project: string, action: string) => `/api/projects/${encodeURIComponent(project)}/${action}`;
 async function gitPost<T>(project: string, action: string, body?: unknown): Promise<T> {
   const response = await apiFetch(gitUrl(project, action), send('POST', body));
   if (response.status === 409) {
@@ -501,38 +422,23 @@ async function gitPost<T>(project: string, action: string, body?: unknown): Prom
 export const scm = {
   status: (p: string) => apiFetch(gitUrl(p, 'git/status')).then(r => json<GitStatus>(r)),
   diff: (p: string, path: string, from = 'HEAD', to = 'worktree') =>
-    apiFetch(
-      gitUrl(p, 'git/diff') +
-        `?path=${encodeURIComponent(path)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
-    ).then(r => json<GitDiff>(r)),
+    apiFetch(gitUrl(p, 'git/diff') + `?path=${encodeURIComponent(path)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`).then(r => json<GitDiff>(r)),
   /** The diff of a changed file named by its path from the repository root. */
   changeDiff: (p: string, repoPath: string, from: string, to: string) =>
-    apiFetch(
-      gitUrl(p, 'git/diff') +
-        `?repoPath=${encodeURIComponent(repoPath)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
-    ).then(r => json<GitDiff>(r)),
-  stage: (p: string, paths: string[] | 'all') =>
-    gitPost<GitStatus>(p, 'git/stage', paths === 'all' ? { all: true } : { paths }),
-  unstage: (p: string, paths: string[] | 'all') =>
-    gitPost<GitStatus>(p, 'git/unstage', paths === 'all' ? { all: true } : { paths }),
+    apiFetch(gitUrl(p, 'git/diff') + `?repoPath=${encodeURIComponent(repoPath)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`).then(r => json<GitDiff>(r)),
+  stage: (p: string, paths: string[] | 'all') => gitPost<GitStatus>(p, 'git/stage', paths === 'all' ? { all: true } : { paths }),
+  unstage: (p: string, paths: string[] | 'all') => gitPost<GitStatus>(p, 'git/unstage', paths === 'all' ? { all: true } : { paths }),
   /** Stages or unstages changed files named by their paths from the repository root. */
-  stageChanges: (p: string, repoPaths: string[], stage: boolean) =>
-    gitPost<GitStatus>(p, stage ? 'git/stage' : 'git/unstage', { repoPaths }),
+  stageChanges: (p: string, repoPaths: string[], stage: boolean) => gitPost<GitStatus>(p, stage ? 'git/stage' : 'git/unstage', { repoPaths }),
   // `paths`: commit exactly these files (git commit --only); `push`: then push and report the
   // outcome.
-  async commit(
-    p: string,
-    message: string,
-    options: { paths?: string[]; repoPaths?: string[]; push?: boolean } = {},
-  ) {
+  async commit(p: string, message: string, options: { paths?: string[]; repoPaths?: string[]; push?: boolean } = {}) {
     const response = await apiFetch(gitUrl(p, 'git/commit'), send('POST', { message, ...options }));
     if (response.status === 409) {
       const b = await response.json();
       throw Object.assign(Error(b.message ?? b.error), { status: 409, body: b });
     }
-    return json<{ commit: string; altered: string[]; pushed?: { ok: boolean; message: string } }>(
-      response,
-    );
+    return json<{ commit: string; altered: string[]; pushed?: { ok: boolean; message: string } }>(response);
   },
   // Revert to last commit: `baseHash` is the hash of the file now on disk (null if absent).
   async revert(p: string, path: string, baseHash: string | null) {
@@ -543,43 +449,19 @@ export const scm = {
     }
     return json<{ hash: string | null; trashEntry: string | null }>(response);
   },
-  branches: (p: string) =>
-    apiFetch(gitUrl(p, 'git/branches')).then(r =>
-      json<{ current: string; local: string[]; remote: string[] }>(r),
-    ),
-  switch: (p: string, branch: string, create = false) =>
-    gitPost<{ branch: string; altered: string[] }>(p, 'git/switch', { branch, create }),
+  branches: (p: string) => apiFetch(gitUrl(p, 'git/branches')).then(r => json<{ current: string; local: string[]; remote: string[] }>(r)),
+  switch: (p: string, branch: string, create = false) => gitPost<{ branch: string; altered: string[] }>(p, 'git/switch', { branch, create }),
   /** What moving the project into this folder of its repository would do. */
-  folderPreview: (p: string, folder: string) =>
-    apiFetch(gitUrl(p, 'git/folder') + `?folder=${encodeURIComponent(folder)}`).then(r =>
-      json<FolderPreview>(r),
-    ),
+  folderPreview: (p: string, folder: string) => apiFetch(gitUrl(p, 'git/folder') + `?folder=${encodeURIComponent(folder)}`).then(r => json<FolderPreview>(r)),
   /** Moves the project into the folder, or checks out another folder, as previewed. */
-  setFolder: (p: string, folder: string, createFolder = false) =>
-    apiFetch(gitUrl(p, 'git/folder'), send('PUT', { folder, createFolder })).then(r =>
-      json<FolderPreview>(r),
-    ),
-  setRemote: (p: string, name: string, url: string) =>
-    apiFetch(gitUrl(p, 'git/remote'), send('PUT', { name, url })).then(r =>
-      json<{ name: string; url: string }>(r),
-    ),
-  removeRemote: (p: string, name: string) =>
-    apiFetch(gitUrl(p, 'git/remote'), send('DELETE', { name })).then(r =>
-      json<{ removed: string }>(r),
-    ),
+  setFolder: (p: string, folder: string, createFolder = false) => apiFetch(gitUrl(p, 'git/folder'), send('PUT', { folder, createFolder })).then(r => json<FolderPreview>(r)),
+  setRemote: (p: string, name: string, url: string) => apiFetch(gitUrl(p, 'git/remote'), send('PUT', { name, url })).then(r => json<{ name: string; url: string }>(r)),
+  removeRemote: (p: string, name: string) => apiFetch(gitUrl(p, 'git/remote'), send('DELETE', { name })).then(r => json<{ removed: string }>(r)),
   identity: (p: string) => apiFetch(gitUrl(p, 'git/identity')).then(r => json<GitIdentity>(r)),
   setIdentity: (p: string, name: string, email: string, allRepositories = false) =>
-    apiFetch(gitUrl(p, 'git/identity'), send('PUT', { name, email, allRepositories })).then(r =>
-      json<{ repositories: string[] }>(r),
-    ),
-  credentialHelper: () =>
-    apiFetch('/api/git/credential-helper').then(r => json<{ helper: string | null }>(r)),
-  clone: async (
-    url: string,
-    name?: string,
-    domain?: string,
-    sparse: { folder?: string; createFolder?: boolean } = {},
-  ) =>
+    apiFetch(gitUrl(p, 'git/identity'), send('PUT', { name, email, allRepositories })).then(r => json<{ repositories: string[] }>(r)),
+  credentialHelper: () => apiFetch('/api/git/credential-helper').then(r => json<{ helper: string | null }>(r)),
+  clone: async (url: string, name?: string, domain?: string, sparse: { folder?: string; createFolder?: boolean } = {}) =>
     apiFetch(
       '/api/clone',
       send('POST', {
@@ -589,12 +471,8 @@ export const scm = {
         ...(sparse.folder ? { folder: sparse.folder, createFolder: !!sparse.createFolder } : {}),
       }),
     ).then(r => json<{ op: string; name: string; slug: string }>(r)),
-  cancelClone: (op: string) =>
-    apiFetch(`/api/clone/${encodeURIComponent(op)}/cancel`, send('POST')).then(r =>
-      json<{ cancelled: boolean }>(r),
-    ),
-  remote: (p: string, action: 'fetch' | 'pull' | 'push' | 'sync') =>
-    gitPost<RemoteResult>(p, 'git/' + action),
+  cancelClone: (op: string) => apiFetch(`/api/clone/${encodeURIComponent(op)}/cancel`, send('POST')).then(r => json<{ cancelled: boolean }>(r)),
+  remote: (p: string, action: 'fetch' | 'pull' | 'push' | 'sync') => gitPost<RemoteResult>(p, 'git/' + action),
   cancel: (p: string) => gitPost<{ cancelled: boolean }>(p, 'git/cancel'),
   /** Server mode: fast-forwards the default branch to the person's copy. */
   publish: (p: string) => gitPost<{ published: string; commit: string }>(p, 'git/publish', {}),
@@ -603,27 +481,14 @@ export const scm = {
   /** Server mode: pushes the default branch to the remote; Stewards and Admins only. */
   pushDefault: (p: string) => gitPost<RemoteResult>(p, 'git/push-default', {}),
   log: (p: string, path?: string, limit = 50) =>
-    apiFetch(
-      gitUrl(p, 'git/log') + `?limit=${limit}${path ? '&path=' + encodeURIComponent(path) : ''}`,
-    )
+    apiFetch(gitUrl(p, 'git/log') + `?limit=${limit}${path ? '&path=' + encodeURIComponent(path) : ''}`)
       .then(r => json<GitCommit[] | { commits: GitCommit[]; hiddenCommits: number }>(r))
       .then(history => (Array.isArray(history) ? { commits: history, hiddenCommits: 0 } : history)),
-  versions: (p: string, path: string, limit = 20) =>
-    apiFetch(gitUrl(p, 'git/versions') + `?path=${encodeURIComponent(path)}&limit=${limit}`).then(
-      r => json<(GitCommit & { source: string })[]>(r),
-    ),
-  ignore: (p: string, pattern: string) =>
-    gitPost<{ hash: string; added: boolean; tracked: string[] }>(p, 'gitignore', { pattern }),
+  versions: (p: string, path: string, limit = 20) => apiFetch(gitUrl(p, 'git/versions') + `?path=${encodeURIComponent(path)}&limit=${limit}`).then(r => json<(GitCommit & { source: string })[]>(r)),
+  ignore: (p: string, pattern: string) => gitPost<{ hash: string; added: boolean; tracked: string[] }>(p, 'gitignore', { pattern }),
   saveDraft: (p: string, path: string, baseHash: string | null, text: string) =>
-    apiFetch(
-      `/api/drafts/${encodeURIComponent(p)}/${path.split('/').map(encodeURIComponent).join('/')}`,
-      send('PUT', { baseHash, text, patches: [] }),
-    ),
-  deleteDraft: (p: string, path: string) =>
-    apiFetch(
-      `/api/drafts/${encodeURIComponent(p)}/${path.split('/').map(encodeURIComponent).join('/')}`,
-      { method: 'DELETE' },
-    ),
+    apiFetch(`/api/drafts/${encodeURIComponent(p)}/${path.split('/').map(encodeURIComponent).join('/')}`, send('PUT', { baseHash, text, patches: [] })),
+  deleteDraft: (p: string, path: string) => apiFetch(`/api/drafts/${encodeURIComponent(p)}/${path.split('/').map(encodeURIComponent).join('/')}`, { method: 'DELETE' }),
 };
 
 /** Loads visible project files while reusing sources whose hashes are unchanged. */

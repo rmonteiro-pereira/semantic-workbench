@@ -4,8 +4,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 
 const root = resolve(import.meta.dir, '../..');
-const FORBIDDEN_AT_START =
-  /^(@opentelemetry\/(sdk-|resources|context-async-hooks)|@azure\/monitor-opentelemetry-exporter)/;
+const FORBIDDEN_AT_START = /^(@opentelemetry\/(sdk-|resources|context-async-hooks)|@azure\/monitor-opentelemetry-exporter)/;
 
 async function runProbe(control: boolean) {
   const probe = resolve(root, 'tests/observability/telemetry-off-probe.ts');
@@ -44,9 +43,7 @@ test('nothing the server imports at start reaches the SDK except through the tel
       if (entry.kind === 'dynamic-import') continue;
       if (entry.path.startsWith('.')) {
         const base = resolve(dirname(file), entry.path);
-        const target = [base, `${base}.ts`, `${base}/index.ts`].find(
-          path => existsSync(path) && path.endsWith('.ts'),
-        );
+        const target = [base, `${base}.ts`, `${base}/index.ts`].find(path => existsSync(path) && path.endsWith('.ts'));
         if (target) visit(target);
       } else if (FORBIDDEN_AT_START.test(entry.path)) {
         reached.push(`${file.replace(root, '')} -> ${entry.path}`);

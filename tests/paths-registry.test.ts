@@ -2,14 +2,7 @@
 import { test, expect } from 'bun:test';
 import { join } from 'node:path';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
-import {
-  dataLayout,
-  locationOf,
-  projectDir,
-  repoDir,
-  projectPrefix,
-  PathError,
-} from '../src/server/projects/paths';
+import { dataLayout, locationOf, projectDir, repoDir, projectPrefix, PathError } from '../src/server/projects/paths';
 import { testWorkspace } from './helpers/temp-data-dir';
 import { call, ok } from './helpers/scm';
 // Project and repository folders come from the registry. Entries without `folder` or `repo` use
@@ -40,8 +33,7 @@ test('subfolder entries resolve inside their repository; invalid ones are refuse
     expect(() => locationOf({ slug: 's', ...bad })).toThrow(PathError);
   const layout = {
     ...dataLayout('/tmp/x'),
-    locate: (slug: string) =>
-      slug === 'sales' ? { folder: 'team/domains/sales', repo: 'team' } : undefined,
+    locate: (slug: string) => (slug === 'sales' ? { folder: 'team/domains/sales', repo: 'team' } : undefined),
   };
   expect(projectDir(layout, 'sales')).toBe(join(layout.projects, 'team/domains/sales'));
   expect(repoDir(layout, 'sales')).toBe(join(layout.projects, 'team'));
@@ -81,10 +73,7 @@ test('the workspace resolves a registered subfolder project through the registry
     const sub = join(repo, 'domains', 'sales');
     mkdirSync(sub, { recursive: true });
     await t.ws.git.init(repo);
-    writeFileSync(
-      join(sub, 'sales.yaml'),
-      'name: Sales\nontology:\n  - concept: Customer\n    type: EntityType\n',
-    );
+    writeFileSync(join(sub, 'sales.yaml'), 'name: Sales\nontology:\n  - concept: Customer\n    type: EntityType\n');
     t.ws.state.writeRegistry([
       {
         slug: 'sales',

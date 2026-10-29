@@ -5,10 +5,7 @@ export type MappingChoice = { id: string; project?: string };
  * Keeps the mappings of the open file's project. The app works on one project at a time, so
  * another project's mapping is never offered, and with no project open there is none.
  */
-export function mappingsOfProject<Mapping extends MappingChoice>(
-  mappings: Mapping[],
-  openProject: string | undefined,
-) {
+export function mappingsOfProject<Mapping extends MappingChoice>(mappings: Mapping[], openProject: string | undefined) {
   return mappings.filter(mapping => openProject !== undefined && mapping.project === openProject);
 }
 
@@ -18,15 +15,8 @@ export function mappingsOfProject<Mapping extends MappingChoice>(
  * project. A project with no mapping keeps the previous choice, which it does not show: stepping
  * Back through it to the previous project then finds that project's concept and Show more intact.
  */
-export function chooseMapping(
-  mappings: MappingChoice[],
-  openFileId: string | undefined,
-  openProject: string | undefined,
-  previousId: string,
-) {
-  const ofOpenFile = mappings.find(
-    mapping => mapping.id === openFileId || mapping.id.startsWith(openFileId + '#'),
-  );
+export function chooseMapping(mappings: MappingChoice[], openFileId: string | undefined, openProject: string | undefined, previousId: string) {
+  const ofOpenFile = mappings.find(mapping => mapping.id === openFileId || mapping.id.startsWith(openFileId + '#'));
   if (ofOpenFile) return ofOpenFile.id;
   const inProject = mappingsOfProject(mappings, openProject);
   if (!inProject.length) return previousId;

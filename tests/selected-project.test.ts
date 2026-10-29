@@ -21,10 +21,7 @@ test('a missing or unset project falls back to the first project, and none to no
 });
 
 test('only the selected project documents are offered, never another project first file', () => {
-  expect(documentsOfProject(documents, 'billing').map(d => d.id)).toEqual([
-    'billing/b.yaml',
-    'billing/c.yaml',
-  ]);
+  expect(documentsOfProject(documents, 'billing').map(d => d.id)).toEqual(['billing/b.yaml', 'billing/c.yaml']);
   expect(firstDocumentOfProject(documents, 'billing')?.id).toBe('billing/b.yaml');
   expect(firstDocumentOfProject(documents, 'empty')).toBeNull();
 });

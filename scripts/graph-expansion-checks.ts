@@ -5,9 +5,7 @@ import { routeApi, type IsolatedApi } from './helpers/isolated-api';
 
 async function recordViewportChanges(page: Page) {
   await page.evaluate(() => {
-    const viewport = document.querySelector<HTMLElement>(
-      '.neighborhood-canvas .react-flow__viewport',
-    );
+    const viewport = document.querySelector<HTMLElement>('.neighborhood-canvas .react-flow__viewport');
     if (!viewport) throw new Error('Neighborhood viewport is missing.');
     const canvas = viewport.closest<HTMLElement>('.neighborhood-canvas')!;
     const initialCount = Number(canvas.dataset.canvasNodes);
@@ -28,18 +26,12 @@ async function openExpansionModel(page: Page, api: IsolatedApi) {
   await page.goto(appUrl());
   const workspace = page.getByRole('button', { name: 'Open workspace', exact: true });
   if ((page.viewportSize()?.width ?? 0) < 1100) await workspace.click();
-  await page
-    .getByRole('tree', { name: 'Projects' })
-    .getByRole('button', { name: 'commerce-scale.ttl', exact: true })
-    .click();
+  await page.getByRole('tree', { name: 'Projects' }).getByRole('button', { name: 'commerce-scale.ttl', exact: true }).click();
   await page.locator('.tabs').getByRole('button', { name: 'Neighborhood', exact: true }).click();
   await expect(page.locator('.neighborhood-canvas .react-flow__node.center')).toBeVisible();
   await expect(page.locator('.neighborhood-canvas')).toHaveAttribute('data-viewport-ready', 'true');
   await revealGraphControls(page);
-  await page
-    .getByRole('radiogroup', { name: 'Pierce direction' })
-    .getByRole('radio', { name: 'Both' })
-    .click();
+  await page.getByRole('radiogroup', { name: 'Pierce direction' }).getByRole('radio', { name: 'Both' }).click();
 }
 
 async function checkExpansion(page: Page, api: IsolatedApi) {

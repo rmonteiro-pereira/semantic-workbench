@@ -3,17 +3,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { screenshotPath } from '../../scripts/helpers/screenshots';
 import { describe, expect, test } from 'bun:test';
-import {
-  gateSteps,
-  stopVite,
-  collectScreenshots,
-  parseGateOptions,
-  renderJUnit,
-  runGate,
-  selectSteps,
-  stepCommands,
-  summarize,
-} from '../../scripts/ci-validate';
+import { gateSteps, stopVite, collectScreenshots, parseGateOptions, renderJUnit, runGate, selectSteps, stepCommands, summarize } from '../../scripts/ci-validate';
 
 describe('local quality gate', () => {
   test('selects in canonical order and rejects invalid selectors', () => {
@@ -22,9 +12,7 @@ describe('local quality gate', () => {
     expect(() => selectSteps(['unknown'])).toThrow('Unknown gate step');
     expect(() => selectSteps(['image'], 'test:ui')).toThrow('--suite');
     expect(() => selectSteps([], 'test:auth:keycloak')).toThrow('Unknown gate suite');
-    expect(
-      parseGateOptions(['--', '--step', 'browser', '--suite', 'test:ui', '--keep-going']),
-    ).toEqual({ steps: ['browser'], suite: 'test:ui', keepGoing: true });
+    expect(parseGateOptions(['--', '--step', 'browser', '--suite', 'test:ui', '--keep-going'])).toEqual({ steps: ['browser'], suite: 'test:ui', keepGoing: true });
   });
   test('commands cover verify, separate image steps and all dry-run kinds', () => {
     expect(stepCommands('verify')).toEqual([
@@ -79,11 +67,7 @@ test('a failed step is reported on the console with the command output', async (
 
 test('Vite stop signals its whole group and escalates after the grace period', async () => {
   const signals: [number, string][] = [];
-  await stopVite(
-    { pid: 123, exited: Promise.resolve(0) },
-    (pid, signal) => signals.push([pid, signal]),
-    1,
-  );
+  await stopVite({ pid: 123, exited: Promise.resolve(0) }, (pid, signal) => signals.push([pid, signal]), 1);
   expect(signals).toEqual([
     [-123, 'SIGTERM'],
     [-123, 'SIGKILL'],
@@ -173,19 +157,11 @@ for (const [signal, exitCode] of [
       setInterval(() => {}, 1000);
     `,
     );
-    const child = Bun.spawn(
-      [
-        process.execPath,
-        '--preload',
-        preload,
-        'scripts/ci-validate.ts',
-        '--step',
-        'browser',
-        '--suite',
-        'test:ui',
-      ],
-      { stdout: 'pipe', stderr: 'pipe', env: { ...process.env, TMPDIR: root } },
-    );
+    const child = Bun.spawn([process.execPath, '--preload', preload, 'scripts/ci-validate.ts', '--step', 'browser', '--suite', 'test:ui'], {
+      stdout: 'pipe',
+      stderr: 'pipe',
+      env: { ...process.env, TMPDIR: root },
+    });
     try {
       const reader = child.stdout.getReader();
       expect(new TextDecoder().decode((await reader.read()).value)).toContain('ready');
@@ -196,11 +172,7 @@ for (const [signal, exitCode] of [
         .trim()
         .split('\n')
         .map(line => JSON.parse(line));
-      expect(events).toEqual([
-        { detached: true },
-        { pid: -123, signal: 'SIGTERM' },
-        { pid: -123, signal: 'SIGKILL' },
-      ]);
+      expect(events).toEqual([{ detached: true }, { pid: -123, signal: 'SIGTERM' }, { pid: -123, signal: 'SIGKILL' }]);
     } finally {
       child.kill();
       await child.exited;

@@ -29,8 +29,7 @@ async function cloned(app: Workspace, url: string) {
   throw Error('The clone did not finish.');
 }
 
-const byName = (app: Workspace) =>
-  new Map(app.ws.state.registry().projects.map(project => [project.name, project]));
+const byName = (app: Workspace) => new Map(app.ws.state.registry().projects.map(project => [project.name, project]));
 
 // A workspace holding a clone of the team repository whose manifest declares Sales and Finance.
 async function teamWorkspace(options: { watch?: boolean } = {}) {
@@ -80,9 +79,7 @@ test('both projects share one Source Control and each change names its project',
     // Paths inside the viewing project are relative to it; the others keep repository paths.
     const changesSeenFrom = async (slug: string) => {
       const status = await ok(call(team.app, 'GET', `/api/projects/${slug}/git/status`));
-      return status.changes
-        .map((change: any) => [change.path, change.project, change.outside === true])
-        .sort();
+      return status.changes.map((change: any) => [change.path, change.project, change.outside === true]).sort();
     };
     expect(await changesSeenFrom(team.sales)).toEqual([
       [`domains/finance/${FINANCE_FILE}`, team.finance, true],
@@ -175,9 +172,7 @@ test('Delete folder moves only that subfolder to the trash and restore never ove
   try {
     const unconfirmed = await call(team.app, 'DELETE', salesPath, { mode: 'delete' });
     expect(unconfirmed.status).toBe(400);
-    const deleted = await ok(
-      call(team.app, 'DELETE', salesPath, { mode: 'delete', confirm: true }),
-    );
+    const deleted = await ok(call(team.app, 'DELETE', salesPath, { mode: 'delete', confirm: true }));
     expect(existsSync(join(team.repo, 'domains/sales'))).toBe(false);
     const financeFile = join(team.repo, 'domains/finance', FINANCE_FILE);
     expect(readFileSync(financeFile, 'utf8')).toBe(FINANCE_TEXT);
@@ -235,11 +230,7 @@ test('without a manifest the folders are proposed, confirmed and optionally save
       manifestBaseHash: 'f'.repeat(64),
     });
     expect(stale.status).toBe(409);
-    const refusedLists = [
-      [{ path: '../x' }],
-      [{ path: 'domains/missing' }],
-      [{ path: 'domains' }, { path: 'domains/sales' }],
-    ];
+    const refusedLists = [[{ path: '../x' }], [{ path: 'domains/missing' }], [{ path: 'domains' }, { path: 'domains/sales' }]];
     for (const projects of refusedLists) {
       const refused = await call(app, 'PUT', route + '/projects', { projects });
       expect({ projects, status: refused.status }).toEqual({ projects, status: 400 });
@@ -252,10 +243,7 @@ test('without a manifest the folders are proposed, confirmed and optionally save
         manifestBaseHash: null,
       }),
     );
-    expect(registered.projects.map((project: any) => project.folder)).toEqual([
-      `${repoName}/domains/sales`,
-      `${repoName}/domains/finance`,
-    ]);
+    expect(registered.projects.map((project: any) => project.folder)).toEqual([`${repoName}/domains/sales`, `${repoName}/domains/finance`]);
     const slugs = app.ws.state.registry().projects.map(project => project.slug);
     expect(slugs).not.toContain(repoName);
     const repo = join(app.root, 'projects', repoName);
@@ -322,9 +310,7 @@ test('the last project of a repository cannot be removed, and deleting it moves 
     expect(byName(team.app).has('Finance')).toBe(true);
     const impact = await ok(call(team.app, 'GET', `/api/projects/${team.finance}/delete-impact`));
     expect(impact).toMatchObject({ subproject: true, repo: 'monorepo', sharedWith: [] });
-    await ok(
-      call(team.app, 'DELETE', `/api/projects/${team.finance}`, { mode: 'delete', confirm: true }),
-    );
+    await ok(call(team.app, 'DELETE', `/api/projects/${team.finance}`, { mode: 'delete', confirm: true }));
     expect(existsSync(team.repo)).toBe(false);
     expect(team.app.ws.trash.list()[0]).toMatchObject({ kind: 'repository' });
   } finally {

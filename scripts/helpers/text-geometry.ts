@@ -15,10 +15,7 @@ export async function smallTextProblems(page: Page, within = 'body'): Promise<st
   return page.evaluate(
     ({ minimum, skip, root }) => {
       const problems = new Map<string, number>();
-      const walker = document.createTreeWalker(
-        document.querySelector(root) ?? document.body,
-        NodeFilter.SHOW_TEXT,
-      );
+      const walker = document.createTreeWalker(document.querySelector(root) ?? document.body, NodeFilter.SHOW_TEXT);
       for (let node = walker.nextNode(); node; node = walker.nextNode()) {
         if (!node.textContent?.trim()) continue;
         const element = node.parentElement;
@@ -44,10 +41,7 @@ export async function textCollisionProblems(page: Page, within = 'body'): Promis
     ({ skip, root }) => {
       type Run = { element: Element; rect: DOMRect; label: string };
       const runs: Run[] = [];
-      const walker = document.createTreeWalker(
-        document.querySelector(root) ?? document.body,
-        NodeFilter.SHOW_TEXT,
-      );
+      const walker = document.createTreeWalker(document.querySelector(root) ?? document.body, NodeFilter.SHOW_TEXT);
       for (let node = walker.nextNode(); node; node = walker.nextNode()) {
         const label = node.textContent?.trim();
         const element = node.parentElement;
@@ -59,8 +53,7 @@ export async function textCollisionProblems(page: Page, within = 'body'): Promis
         range.selectNodeContents(node);
         const rect = range.getBoundingClientRect();
         if (rect.width < 2 || rect.height < 2) continue;
-        if (rect.right < 0 || rect.bottom < 0 || rect.left > innerWidth || rect.top > innerHeight)
-          continue;
+        if (rect.right < 0 || rect.bottom < 0 || rect.left > innerWidth || rect.top > innerHeight) continue;
         runs.push({ element, rect, label: label.slice(0, 30) });
       }
       // The area of a text run that its scrolling or clipping ancestors actually show.
@@ -88,15 +81,8 @@ export async function textCollisionProblems(page: Page, within = 'body'): Promis
         const y = (area.top + area.bottom) / 2;
         const top = document.elementFromPoint(x, y);
         // An open Controls panel is a menu laid over the graph on purpose; its own text is checked.
-        if (
-          top?.closest('.compact-controls-panel') &&
-          !run.element.closest('.compact-controls-panel')
-        )
-          continue;
-        if (top && !run.element.contains(top) && !top.contains(run.element))
-          found.add(
-            `"${run.label}" is covered by ${top.tagName.toLowerCase()}.${String(top.className).split(/\s+/)[0]}`,
-          );
+        if (top?.closest('.compact-controls-panel') && !run.element.closest('.compact-controls-panel')) continue;
+        if (top && !run.element.contains(top) && !top.contains(run.element)) found.add(`"${run.label}" is covered by ${top.tagName.toLowerCase()}.${String(top.className).split(/\s+/)[0]}`);
       }
       for (let i = 0; i < shown.length; i++)
         for (let j = i + 1; j < shown.length; j++) {
@@ -105,8 +91,7 @@ export async function textCollisionProblems(page: Page, within = 'body'): Promis
           if (a.run.element === b.run.element) continue;
           const inPanel = (run: Run) => !!run.element.closest('.compact-controls-panel');
           if (inPanel(a.run) !== inPanel(b.run)) continue;
-          if (a.run.element.contains(b.run.element) && a.run.element.children.length === 0)
-            continue;
+          if (a.run.element.contains(b.run.element) && a.run.element.children.length === 0) continue;
           const width = Math.min(a.area.right, b.area.right) - Math.max(a.area.left, b.area.left);
           const height = Math.min(a.area.bottom, b.area.bottom) - Math.max(a.area.top, b.area.top);
           if (width > 2 && height > 3) found.add(`"${a.run.label}" overlaps "${b.run.label}"`);
@@ -131,11 +116,7 @@ type TextColorSample = {
 };
 
 /** Reads the colour, the colour behind it and the size class of every visible text run. */
-async function sampleTextColors(
-  page: Page,
-  within: string,
-  disabledOnly = false,
-): Promise<TextColorSample[]> {
+async function sampleTextColors(page: Page, within: string, disabledOnly = false): Promise<TextColorSample[]> {
   return page.evaluate(
     ({ skip, root, disabledOnly }) => {
       const scratch = document.createElement('canvas');
@@ -181,19 +162,14 @@ async function sampleTextColors(
         return opacity;
       };
       const samples: TextColorSample[] = [];
-      const walker = document.createTreeWalker(
-        document.querySelector(root) ?? document.body,
-        NodeFilter.SHOW_TEXT,
-      );
+      const walker = document.createTreeWalker(document.querySelector(root) ?? document.body, NodeFilter.SHOW_TEXT);
       for (let node = walker.nextNode(); node; node = walker.nextNode()) {
         const label = node.textContent?.trim();
         const element = node.parentElement;
         if (!label || !element || element.matches(skip)) continue;
         // WCAG exempts disabled controls from contrast rules, so the normal check skips them and
         // the disabled check reads only them.
-        const disabled = element.closest(
-          'button:disabled,[aria-disabled="true"],fieldset:disabled',
-        );
+        const disabled = element.closest('button:disabled,[aria-disabled="true"],fieldset:disabled');
         if (!!disabled !== disabledOnly) continue;
         const style = getComputedStyle(element);
         if (style.visibility === 'hidden' || style.display === 'none') continue;

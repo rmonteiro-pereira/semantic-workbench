@@ -24,13 +24,6 @@ export function useProjectDomain() {
     pending?.reject(new Error('Project creation cancelled.'));
     setPending(null);
   }
-  const dialog = pending && (
-    <ProjectDomainDialog
-      domains={me?.creationDomains ?? []}
-      allowUnassigned={me?.can?.admin ?? false}
-      onChoose={accept}
-      onClose={cancel}
-    />
-  );
+  const dialog = pending && <ProjectDomainDialog domains={me?.creationDomains ?? []} allowUnassigned={me?.can?.admin ?? false} onChoose={accept} onClose={cancel} />;
   return { choose, dialog };
 }

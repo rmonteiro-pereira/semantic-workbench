@@ -5,12 +5,7 @@
 // must still be stored. With --anchors the log must hold at least one anchor.
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import {
-  parseMirror,
-  readStoredMonths,
-  verifyAuditChain,
-  type ChainBreak,
-} from '../src/server/auth/audit';
+import { parseMirror, readStoredMonths, verifyAuditChain, type ChainBreak } from '../src/server/auth/audit';
 import { dataLayout } from '../src/server/projects/paths';
 
 const REASONS: Record<ChainBreak['reason'], string> = {

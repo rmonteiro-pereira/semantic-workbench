@@ -19,8 +19,7 @@ export function repositoryMember(members: RepositoryMembers, selectedProject?: s
  */
 export function treeEntries(projects: ProjectInfo[]) {
   const byRepo = new Map<string, ProjectInfo[]>();
-  for (const project of projects)
-    byRepo.set(project.repo, [...(byRepo.get(project.repo) ?? []), project]);
+  for (const project of projects) byRepo.set(project.repo, [...(byRepo.get(project.repo) ?? []), project]);
   const entries: TreeEntry[] = [];
   const placed = new Set<string>();
   for (const project of projects) {

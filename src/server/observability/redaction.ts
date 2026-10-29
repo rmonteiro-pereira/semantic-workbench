@@ -7,8 +7,7 @@ export const REDACTED = '[redacted]';
 
 // A field with one of these names is dropped whole, whatever it holds.
 const SECRET_KEY = /token|secret|password|passwd|cookie|authorization|credential|assertion|csrf/i;
-const SECRET_KEY_WORDS =
-  /api[-_]?key|private[-_]?key|connection[-_]?string|instrumentation[-_]?key/i;
+const SECRET_KEY_WORDS = /api[-_]?key|private[-_]?key|connection[-_]?string|instrumentation[-_]?key/i;
 const SESSION_KEY = /^(session|sid|code|state|nonce|sig|signature)$/i;
 // Names that carry what a person wrote or where it lives.
 const CONTENT_KEY = /content|source|body|text|diff|payload|stack/i;
@@ -25,12 +24,8 @@ const AUTH_SCHEME = /\b(Bearer|Basic|Negotiate)\s+[\w.~+/=-]{6,}/gi;
 const URL_USERINFO = /([A-Za-z][A-Za-z0-9+.-]*:\/\/)[^@/\s]+@/g;
 const URL_QUERY = /(\b[A-Za-z][A-Za-z0-9+.-]*:\/\/[^\s?#"']*)\?[^\s#"']*/g;
 // A name=value or name: value pair whose name ends in a secret-like word, such as `sw_session`.
-const SECRET_NAME =
-  '[\\w-]*(?:token|secret|password|cookie|key|session|signature|assertion)|sig|sas|sid';
-const SENSITIVE_ASSIGNMENT = new RegExp(
-  `(\\b(?:${SECRET_NAME})\\s*[=:]\\s*)("[^"]*"|'[^']*'|[^\\s&;,"']+)`,
-  'gi',
-);
+const SECRET_NAME = '[\\w-]*(?:token|secret|password|cookie|key|session|signature|assertion)|sig|sas|sid';
+const SENSITIVE_ASSIGNMENT = new RegExp(`(\\b(?:${SECRET_NAME})\\s*[=:]\\s*)("[^"]*"|'[^']*'|[^\\s&;,"']+)`, 'gi');
 const EMAIL_ADDRESS = /[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g;
 const WINDOWS_PATH = /\b[A-Za-z]:\\[^\s"'<>|]+/g;
 const POSIX_PATH = /(?<![\w:/.-])\/(?:[\w.@%+~-]+\/)+[\w.@%+~-]*/g;
@@ -58,29 +53,14 @@ export function redactText(text: string, options: RedactTextOptions = {}): strin
 
 /** True when a field of this name is dropped without looking at its value. */
 export function isSensitiveKey(key: string): boolean {
-  return (
-    SECRET_KEY.test(key) ||
-    SECRET_KEY_WORDS.test(key) ||
-    SESSION_KEY.test(key) ||
-    CONTENT_KEY.test(key) ||
-    LOCATION_KEY.test(key)
-  );
+  return SECRET_KEY.test(key) || SECRET_KEY_WORDS.test(key) || SESSION_KEY.test(key) || CONTENT_KEY.test(key) || LOCATION_KEY.test(key);
 }
 
 /** A structured log field value after redaction. */
-export type SafeValue =
-  | string
-  | number
-  | boolean
-  | null
-  | SafeValue[]
-  | { [key: string]: SafeValue };
+export type SafeValue = string | number | boolean | null | SafeValue[] | { [key: string]: SafeValue };
 
 /** Redacts a record of log fields: sensitive names are dropped, every other value is scanned. */
-export function redactFields(
-  fields: Record<string, unknown>,
-  depth = 0,
-): Record<string, SafeValue> {
+export function redactFields(fields: Record<string, unknown>, depth = 0): Record<string, SafeValue> {
   const safe: Record<string, SafeValue> = {};
   for (const [key, value] of Object.entries(fields)) {
     if (value === undefined) continue;

@@ -7,17 +7,7 @@ import { Modal } from './Modal';
 import type { ProjectInfo, Suggestion } from './api';
 // Suggestions show their evidence before anything moves to a project.
 /** Displays grouping evidence before moving files into suggested projects. */
-export function Suggestions({
-  items,
-  projects,
-  onAccept,
-  onReject,
-}: {
-  items: Suggestion[];
-  projects: ProjectInfo[];
-  onAccept: (id: string) => void;
-  onReject: (id: string) => void;
-}) {
+export function Suggestions({ items, projects, onAccept, onReject }: { items: Suggestion[]; projects: ProjectInfo[]; onAccept: (id: string) => void; onReject: (id: string) => void }) {
   const access = useCapabilities();
   const [open, setOpen] = useState(false);
   if (!items.length) return null;
@@ -42,15 +32,11 @@ export function Suggestions({
               </button>
             }
           >
-            <p className="dialog-lead">
-              Files that may belong in another project, with the evidence. Nothing moves until you
-              choose Add to project.
-            </p>
+            <p className="dialog-lead">Files that may belong in another project, with the evidence. Nothing moves until you choose Add to project.</p>
             {items.map(s => (
               <div key={s.id} className="suggestion">
                 <p>
-                  <strong>{s.file.path}</strong> ({name(s.file.project)}) may belong in{' '}
-                  <strong>{name(s.targetProject)}</strong>.
+                  <strong>{s.file.path}</strong> ({name(s.file.project)}) may belong in <strong>{name(s.targetProject)}</strong>.
                 </p>
                 <ul>
                   {s.evidence.slice(0, 3).map((e, i) => (
@@ -62,9 +48,7 @@ export function Suggestions({
                 </ul>
                 <span>
                   <button
-                    hidden={
-                      !access.can('move', s.file.project) || !access.can('move', s.targetProject)
-                    }
+                    hidden={!access.can('move', s.file.project) || !access.can('move', s.targetProject)}
                     onClick={() => {
                       onAccept(s.id);
                       if (items.length === 1) setOpen(false);

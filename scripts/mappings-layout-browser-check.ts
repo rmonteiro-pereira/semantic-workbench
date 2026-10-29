@@ -18,15 +18,12 @@ const VIEWPORTS: [number, number][] = [
 ];
 
 const read = (path: string) => readFileSync('public/examples/' + path, 'utf8');
-const files = (folder: string, names: string[]) =>
-  names.map(name => ({ path: name, source: read(`${folder}/${name}`) }));
+const files = (folder: string, names: string[]) => names.map(name => ({ path: name, source: read(`${folder}/${name}`) }));
 
 // Long names without separators, and long dotted paths, in place of the commerce names.
-const LONG_DATASET =
-  'customeraccountswithverifiedidentityandregionalbillingpreferencesnorthamerica';
+const LONG_DATASET = 'customeraccountswithverifiedidentityandregionalbillingpreferencesnorthamerica';
 const LONG_FIELD = 'customer_identifier_assigned_by_the_upstream_customer_master_data_management';
-const LONG_SOURCE =
-  'enterprise_analytics_warehouse.commerce_customer_master_data.customers_current_snapshot_version_two';
+const LONG_SOURCE = 'enterprise_analytics_warehouse.commerce_customer_master_data.customers_current_snapshot_version_two';
 const LONG_CONCEPT = 'CustomerAccountHolderWithVerifiedIdentityAndRegionalBillingPreferenceRecords';
 
 function longNames(text: string) {
@@ -37,29 +34,16 @@ function longNames(text: string) {
     .replace(/\bCustomer\b/g, LONG_CONCEPT);
 }
 
-const commerceTrio = [
-  'commerce.mapped-ontology.yaml',
-  'commerce.mapped-semantic.yaml',
-  'commerce.mapping.yaml',
-];
+const commerceTrio = ['commerce.mapped-ontology.yaml', 'commerce.mapped-semantic.yaml', 'commerce.mapping.yaml'];
 const projects = [
   { name: 'Commerce', files: files('commerce', commerceTrio) },
   {
     name: 'Billing',
-    files: files('billing', [
-      'billing.ontology.yaml',
-      'billing.semantic.yaml',
-      'billing.mapping.yaml',
-    ]),
+    files: files('billing', ['billing.ontology.yaml', 'billing.semantic.yaml', 'billing.mapping.yaml']),
   },
   {
     name: 'Flights',
-    files: files('ossie', [
-      'flights.ontology.yaml',
-      'flights.semantic_model.yaml',
-      'flights.mapping.yaml',
-      'flights.yaml',
-    ]),
+    files: files('ossie', ['flights.ontology.yaml', 'flights.semantic_model.yaml', 'flights.mapping.yaml', 'flights.yaml']),
   },
   {
     name: 'Mall',
@@ -108,11 +92,7 @@ async function openProjectMappings(target: Page, project: string, file: string) 
 async function listedMappings(target: Page) {
   const chooser = target.getByLabel('Mapping document');
   await expect(chooser.locator('option').nth(1)).toBeAttached();
-  return chooser
-    .locator('option')
-    .evaluateAll(options =>
-      options.map(option => (option as HTMLOptionElement).value).filter(Boolean),
-    );
+  return chooser.locator('option').evaluateAll(options => options.map(option => (option as HTMLOptionElement).value).filter(Boolean));
 }
 
 async function check(name: string, run: () => Promise<void>) {
@@ -126,12 +106,8 @@ async function check(name: string, run: () => Promise<void>) {
 async function bindingLayoutProblems(target: Page) {
   return target.evaluate(() => {
     const found: string[] = [];
-    const overlaps = (first: DOMRect, second: DOMRect) =>
-      first.bottom > second.top + 1 && first.top < second.bottom - 1;
-    for (const details of document.querySelectorAll<HTMLDetailsElement>(
-      '.mapping-bindings, .mapping-group',
-    ))
-      details.open = true;
+    const overlaps = (first: DOMRect, second: DOMRect) => first.bottom > second.top + 1 && first.top < second.bottom - 1;
+    for (const details of document.querySelectorAll<HTMLDetailsElement>('.mapping-bindings, .mapping-group')) details.open = true;
     for (const card of document.querySelectorAll<HTMLElement>('.mapping-binding')) {
       const box = card.getBoundingClientRect();
       const label = card.getAttribute('aria-label');
@@ -139,14 +115,10 @@ async function bindingLayoutProblems(target: Page) {
         if (element.closest('details:not([open]) > :not(summary)')) continue;
         const rect = element.getBoundingClientRect();
         if (!rect.width || !rect.height) continue;
-        if (rect.left < box.left - 1 || rect.right > box.right + 1)
-          found.push(
-            `${label}: <${element.tagName.toLowerCase()}> ${element.className} leaves its card`,
-          );
+        if (rect.left < box.left - 1 || rect.right > box.right + 1) found.push(`${label}: <${element.tagName.toLowerCase()}> ${element.className} leaves its card`);
         const style = getComputedStyle(element);
         const clips = ['auto', 'scroll', 'hidden'].includes(style.overflowX);
-        if (!clips && element.scrollWidth > element.clientWidth + 1 && element.clientWidth > 0)
-          found.push(`${label}: <${element.tagName.toLowerCase()}> text overflows its box`);
+        if (!clips && element.scrollWidth > element.clientWidth + 1 && element.clientWidth > 0) found.push(`${label}: <${element.tagName.toLowerCase()}> text overflows its box`);
       }
       const steps = [...card.querySelectorAll<HTMLElement>('.mapping-binding-chain [data-step]')];
       // The arrow is drawn before each step after the first; it must share a line with the
@@ -162,8 +134,7 @@ async function bindingLayoutProblems(target: Page) {
         const top = arrow.position === 'absolute' ? box.top + parseFloat(arrow.top) : box.top;
         const height = parseFloat(arrow.lineHeight) || parseFloat(arrow.fontSize) * 1.2;
         const arrowBox = { top, bottom: top + height } as DOMRect;
-        if (first && !overlaps(arrowBox, first))
-          found.push(`${label}: the arrow before ${step.textContent} sits on another line`);
+        if (first && !overlaps(arrowBox, first)) found.push(`${label}: the arrow before ${step.textContent} sits on another line`);
       });
     }
     return found;
@@ -176,8 +147,7 @@ async function boundedLayoutProblems(target: Page, viewportHeight: number) {
   return target.evaluate(viewport => {
     const found: string[] = [];
     const explorer = document.querySelector<HTMLElement>('.mapping-explorer')!;
-    if (explorer.scrollHeight > viewport * 3)
-      found.push(`the tab is ${explorer.scrollHeight}px tall`);
+    if (explorer.scrollHeight > viewport * 3) found.push(`the tab is ${explorer.scrollHeight}px tall`);
     for (const selector of ['.mapping-concept-list', '.mapping-detail']) {
       const column = document.querySelector<HTMLElement>(selector)!;
       const box = column.getBoundingClientRect();
@@ -186,12 +156,9 @@ async function boundedLayoutProblems(target: Page, viewportHeight: number) {
     const groups = document.querySelectorAll<HTMLElement>('.mapping-group');
     for (const group of groups) {
       const groupBox = group.getBoundingClientRect();
-      for (const button of group.querySelectorAll<HTMLElement>(
-        '.mapping-show-more, .mapping-show-more button',
-      )) {
+      for (const button of group.querySelectorAll<HTMLElement>('.mapping-show-more, .mapping-show-more button')) {
         const box = button.getBoundingClientRect();
-        if (box.left < groupBox.left - 1 || box.right > groupBox.right + 1)
-          found.push(`a show-more control leaves its group sideways`);
+        if (box.left < groupBox.left - 1 || box.right > groupBox.right + 1) found.push(`a show-more control leaves its group sideways`);
         if (box.bottom > groupBox.bottom + 1) found.push(`a show-more control leaves its group`);
       }
     }
@@ -233,58 +200,42 @@ try {
         for (const id of documentsByProject.get(project)!) {
           await chooser.selectOption(id);
           await expect(page.locator('.mapping-binding').first()).toBeAttached();
-          for (const problem of await bindingLayoutProblems(page))
-            found.push(`${width}×${height} ${id}: ${problem}`);
+          for (const problem of await bindingLayoutProblems(page)) found.push(`${width}×${height} ${id}: ${problem}`);
         }
       }
       await page.screenshot({ path: `/tmp/workbench-mappings-${width}.png`, fullPage: false });
     }
     expect(found.slice(0, 20)).toEqual([]);
   });
-  await check(
-    'empty mapping actions open the selected mapping source at every viewport',
-    async () => {
-      const emptyMapping =
-        read('commerce/commerce.mapping.yaml')
-          .split('concept_mappings:')[0]
-          .replace('name: Commerce ontology mapping', 'name: Unbound mapping regression') +
-        'concept_mappings: []\n';
-      await api.ws.importBatch(
-        {
-          name: 'Unbound commerce',
-          files: files('commerce', commerceTrio).map(file => ({
-            ...file,
-            source: file.path === 'commerce.mapping.yaml' ? emptyMapping : file.source,
-          })),
-        },
-        LOCAL_READER,
-      );
-      const document = api.ws
-        .documentsFor(LOCAL_READER)
-        .find(
-          candidate =>
-            candidate.project === 'unbound-commerce' &&
-            candidate.filename === 'commerce.mapping.yaml',
-        )!;
-      for (const [width, height] of VIEWPORTS) {
-        await page.setViewportSize({ width, height });
-        await openProjectMappings(page, 'Unbound commerce', 'commerce.mapped-ontology.yaml');
-        await chooser.selectOption(document.id);
-        await expect(page.getByText('No bindings in this mapping', { exact: true })).toBeVisible();
-        await expect(page.locator('.mapping-concept-list > button')).toHaveCount(1);
-        await page.getByRole('button', { name: 'Compose a query…', exact: true }).click();
-        await page
-          .getByRole('button', { name: 'Open Source to add bindings', exact: true })
-          .click();
-        await expect(page.locator('.tabs .selected')).toHaveText('Source');
-        // The title is the file name; the model's own name moves to its tooltip.
-        const title = page.locator('.workspace-title h1');
-        await expect(title).toHaveText(document.filename);
-        await expect(title).toHaveAttribute('title', 'Unbound mapping regression');
-        await expect(page.getByLabel('Definition source')).toContainText('concept_mappings: []');
-      }
-    },
-  );
+  await check('empty mapping actions open the selected mapping source at every viewport', async () => {
+    const emptyMapping = read('commerce/commerce.mapping.yaml').split('concept_mappings:')[0].replace('name: Commerce ontology mapping', 'name: Unbound mapping regression') + 'concept_mappings: []\n';
+    await api.ws.importBatch(
+      {
+        name: 'Unbound commerce',
+        files: files('commerce', commerceTrio).map(file => ({
+          ...file,
+          source: file.path === 'commerce.mapping.yaml' ? emptyMapping : file.source,
+        })),
+      },
+      LOCAL_READER,
+    );
+    const document = api.ws.documentsFor(LOCAL_READER).find(candidate => candidate.project === 'unbound-commerce' && candidate.filename === 'commerce.mapping.yaml')!;
+    for (const [width, height] of VIEWPORTS) {
+      await page.setViewportSize({ width, height });
+      await openProjectMappings(page, 'Unbound commerce', 'commerce.mapped-ontology.yaml');
+      await chooser.selectOption(document.id);
+      await expect(page.getByText('No bindings in this mapping', { exact: true })).toBeVisible();
+      await expect(page.locator('.mapping-concept-list > button')).toHaveCount(1);
+      await page.getByRole('button', { name: 'Compose a query…', exact: true }).click();
+      await page.getByRole('button', { name: 'Open Source to add bindings', exact: true }).click();
+      await expect(page.locator('.tabs .selected')).toHaveText('Source');
+      // The title is the file name; the model's own name moves to its tooltip.
+      const title = page.locator('.workspace-title h1');
+      await expect(title).toHaveText(document.filename);
+      await expect(title).toHaveAttribute('title', 'Unbound mapping regression');
+      await expect(page.getByLabel('Definition source')).toContainText('concept_mappings: []');
+    }
+  });
   await check('opening a file selects a mapping of its own project', async () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await showSidebar(page);
@@ -314,11 +265,7 @@ try {
       await more.click();
       const second = await boundedLayoutProblems(page, height);
       found.push(...second.map(problem => `${width} after show more: ${problem}`));
-      await page
-        .locator('.mapping-group')
-        .first()
-        .getByRole('button', { name: 'Show fewer' })
-        .click();
+      await page.locator('.mapping-group').first().getByRole('button', { name: 'Show fewer' }).click();
     }
     expect(found).toEqual([]);
   });

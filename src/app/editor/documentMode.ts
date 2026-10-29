@@ -9,17 +9,7 @@ export function initialDocumentMode(length: number): boolean {
 }
 
 /** Keeps the current mode or override until a different document opens. */
-export function resolveDocumentMode({
-  length,
-  previous,
-  override,
-  newDocument,
-}: {
-  length: number;
-  previous: boolean;
-  override: boolean | undefined;
-  newDocument: boolean;
-}): boolean {
+export function resolveDocumentMode({ length, previous, override, newDocument }: { length: number; previous: boolean; override: boolean | undefined; newDocument: boolean }): boolean {
   if (newDocument) return initialDocumentMode(length);
   return override ?? previous;
 }

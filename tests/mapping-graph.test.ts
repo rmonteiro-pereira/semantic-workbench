@@ -1,20 +1,8 @@
 // Tests concept mapping graphs derived from resolved bindings.
 import { test, expect } from 'bun:test';
 import { readFileSync } from 'node:fs';
-import {
-  buildContext,
-  agentCatalog,
-  type StoredDocument,
-  type RuntimeContext,
-} from '../src/server/agent/runtime';
-import {
-  buildMappingGraph,
-  conceptId,
-  datasetId,
-  fieldId,
-  metricId,
-  type MappingGraph,
-} from '../src/app/mappings/mapping-graph';
+import { buildContext, agentCatalog, type StoredDocument, type RuntimeContext } from '../src/server/agent/runtime';
+import { buildMappingGraph, conceptId, datasetId, fieldId, metricId, type MappingGraph } from '../src/app/mappings/mapping-graph';
 import { aroundHops } from '../src/app/odcs/lineage';
 // The concept-mapping graph: built from the resolver's context, so every drawn line is a binding
 // the Mappings tab and the agent context also see.
@@ -27,48 +15,21 @@ const docs = (folder: string, files: string[]): StoredDocument[] =>
     project: 'p',
   }));
 const sets: Record<string, StoredDocument[]> = {
-  commerce: docs('commerce', [
-    'commerce.mapping.yaml',
-    'commerce.mapped-ontology.yaml',
-    'commerce.mapped-semantic.yaml',
-  ]),
-  flights: docs('ossie', [
-    'flights.ontology.yaml',
-    'flights.semantic_model.yaml',
-    'flights.mapping.yaml',
-    'flights.yaml',
-  ]),
-  billing: docs('billing', [
-    'billing.mapping.yaml',
-    'billing.ontology.yaml',
-    'billing.semantic.yaml',
-  ]),
+  commerce: docs('commerce', ['commerce.mapping.yaml', 'commerce.mapped-ontology.yaml', 'commerce.mapped-semantic.yaml']),
+  flights: docs('ossie', ['flights.ontology.yaml', 'flights.semantic_model.yaml', 'flights.mapping.yaml', 'flights.yaml']),
+  billing: docs('billing', ['billing.mapping.yaml', 'billing.ontology.yaml', 'billing.semantic.yaml']),
   mall: docs('mall', ['mall.ontology.yaml', 'mall.semantic.yaml', 'mall.mapping.yaml']),
 };
-const contexts: [string, RuntimeContext][] = Object.entries(sets).flatMap(([name, d]) =>
-  agentCatalog(d).mappings.map(
-    m => [`${name}:${m.id}`, buildContext(d, m.id)] as [string, RuntimeContext],
-  ),
-);
-const edgesOf = (g: MappingGraph, binding: string) =>
-  g.edges.filter(e => e.bindings?.includes(binding));
+const contexts: [string, RuntimeContext][] = Object.entries(sets).flatMap(([name, d]) => agentCatalog(d).mappings.map(m => [`${name}:${m.id}`, buildContext(d, m.id)] as [string, RuntimeContext]));
+const edgesOf = (g: MappingGraph, binding: string) => g.edges.filter(e => e.bindings?.includes(binding));
 test('five mappings are covered: Flights standalone and consolidated, mapped commerce, billing, mall', () => {
-  expect(contexts.map(([n]) => n.split(':')[0]).sort()).toEqual([
-    'billing',
-    'commerce',
-    'flights',
-    'flights',
-    'mall',
-  ]);
+  expect(contexts.map(([n]) => n.split(':')[0]).sort()).toEqual(['billing', 'commerce', 'flights', 'flights', 'mall']);
   for (const [, c] of contexts) expect(c.findings.filter(f => f.severity === 'error')).toEqual([]);
 });
 for (const [name, context] of contexts)
   test(`${name}: every binding is drawn as its own kind of line, ends on known rows and cards`, () => {
     const g = buildMappingGraph(context);
-    const nodes = new Set([
-      ...g.cards.keys(),
-      ...[...g.cards.values()].flatMap(c => c.columns.map(x => x.id)),
-    ]);
+    const nodes = new Set([...g.cards.keys(), ...[...g.cards.values()].flatMap(c => c.columns.map(x => x.id))]);
     for (const e of g.edges) {
       expect(nodes.has(e.from)).toBe(true);
       expect(nodes.has(e.to)).toBe(true);
@@ -84,8 +45,7 @@ for (const [name, context] of contexts)
           expect(own.filter(e => e.to === fieldId(field[0], field[1])).length).toBe(1);
         }
         for (const m of b.metrics) expect(own.filter(e => e.to === metricId(m)).length).toBe(1);
-        for (const e of own)
-          expect(e.from).toBe(`${conceptId(b.rootConcept)}/${b.relationships.join('.')}`);
+        for (const e of own) expect(e.from).toBe(`${conceptId(b.rootConcept)}/${b.relationships.join('.')}`);
       }
       // A link child's fields are the rows its line passes through (the link's anchor only
       // identifies the subject).
@@ -99,24 +59,8 @@ for (const [name, context] of contexts)
     }
     // Metric bindings: measures solid, of dashed.
     for (const m of context.metricBindings) {
-      if (m.measures.concept)
-        expect(
-          g.edges.filter(
-            e =>
-              e.kind === 'measures' &&
-              e.from === conceptId(m.measures.concept!) &&
-              e.to === metricId(m.metric),
-          ).length,
-        ).toBe(1);
-      if (m.of?.concept)
-        expect(
-          g.edges.filter(
-            e =>
-              e.kind === 'of' &&
-              e.from === conceptId(m.of!.concept!) &&
-              e.to === metricId(m.metric),
-          ).length,
-        ).toBe(1);
+      if (m.measures.concept) expect(g.edges.filter(e => e.kind === 'measures' && e.from === conceptId(m.measures.concept!) && e.to === metricId(m.metric)).length).toBe(1);
+      if (m.of?.concept) expect(g.edges.filter(e => e.kind === 'of' && e.from === conceptId(m.of!.concept!) && e.to === metricId(m.metric)).length).toBe(1);
     }
     expect(g.edges.length).toBeGreaterThan(0);
   });
@@ -125,33 +69,13 @@ test('commerce: object mapping Customer → customers with customer_id identifyi
   const g = commerce();
   expect(g.cards.get(conceptId('Customer'))!.kind).toBe('concept');
   expect(g.cards.get(datasetId('customers'))!.kind).toBe('dataset');
-  expect(
-    g.edges.filter(
-      e =>
-        e.kind === 'object' && e.from === conceptId('Customer') && e.to === datasetId('customers'),
-    ),
-  ).toHaveLength(1);
+  expect(g.edges.filter(e => e.kind === 'object' && e.from === conceptId('Customer') && e.to === datasetId('customers'))).toHaveLength(1);
   const customers = g.cards.get(datasetId('customers'))!;
-  expect(customers.columns.find(c => c.path === 'customer_id')!.badges.map(b => b.label)).toContain(
-    'Identifying',
-  );
-  expect(customers.columns.find(c => c.path === 'region')!.badges.map(b => b.label)).not.toContain(
-    'Identifying',
-  );
-  expect(
-    g.edges.some(
-      e =>
-        e.kind === 'referent' &&
-        e.from === `${conceptId('Customer')}/id` &&
-        e.to === fieldId('customers', 'customer_id'),
-    ),
-  ).toBe(true);
+  expect(customers.columns.find(c => c.path === 'customer_id')!.badges.map(b => b.label)).toContain('Identifying');
+  expect(customers.columns.find(c => c.path === 'region')!.badges.map(b => b.label)).not.toContain('Identifying');
+  expect(g.edges.some(e => e.kind === 'referent' && e.from === `${conceptId('Customer')}/id` && e.to === fieldId('customers', 'customer_id'))).toBe(true);
   // Concept rows are its relationships, in declared order.
-  expect(g.cards.get(conceptId('Order'))!.columns.map(c => c.path)).toEqual([
-    'id',
-    'customer',
-    'amount',
-  ]);
+  expect(g.cards.get(conceptId('Order'))!.columns.map(c => c.path)).toEqual(['id', 'customer', 'amount']);
 });
 test('commerce: link Order.customer → Customer through the join fields orders.customer_id → customers.customer_id, labelled', () => {
   const g = commerce();
@@ -159,22 +83,13 @@ test('commerce: link Order.customer → Customer through the join fields orders.
   expect(link.to).toBe(conceptId('Customer'));
   expect(link.label).toBe('customer');
   expect(link.via).toEqual([fieldId('orders', 'customer_id'), fieldId('customers', 'customer_id')]);
-  const region = g.edges.find(
-    e => e.kind === 'link' && e.from === `${conceptId('Customer')}/region`,
-  )!;
+  const region = g.edges.find(e => e.kind === 'link' && e.from === `${conceptId('Customer')}/region`)!;
   expect(region.to).toBe(conceptId('Region'));
   expect(region.via).toEqual([fieldId('customers', 'region')]);
 });
 test('commerce: an object mapping whose expression is a governed metric draws concept → metric', () => {
   const g = commerce();
-  expect(
-    g.edges.some(
-      e =>
-        e.kind === 'object' &&
-        e.from === conceptId('Revenue') &&
-        e.to === metricId('gross_revenue'),
-    ),
-  ).toBe(true);
+  expect(g.edges.some(e => e.kind === 'object' && e.from === conceptId('Revenue') && e.to === metricId('gross_revenue'))).toBe(true);
   expect(g.cards.get(metricId('gross_revenue'))!.kind).toBe('metric');
 });
 test('mall: KPI bindings: billed_amount measures kpi:BilledAmount (solid) and is of Lease (dashed)', () => {
@@ -214,8 +129,7 @@ test('unmapped: a concept with no mapping and a field nothing reads carry the Un
     );
   });
   const g = buildMappingGraph(c);
-  const labels = (x: { badges?: { label: string }[] } | undefined) =>
-    (x?.badges ?? []).map(b => b.label);
+  const labels = (x: { badges?: { label: string }[] } | undefined) => (x?.badges ?? []).map(b => b.label);
   expect(labels(g.cards.get(conceptId('Shipment')))).toContain('Unmapped');
   expect(labels(g.cards.get(conceptId('Customer')))).not.toContain('Unmapped');
   const customers = g.cards.get(datasetId('customers'))!;
@@ -225,19 +139,11 @@ test('unmapped: a concept with no mapping and a field nothing reads carry the Un
 test('findings sit on the affected card: unknown concept, missing field, ambiguous relationship; an unresolved KPI binding on its metric card', () => {
   const c = changed(f => {
     f['commerce.mapping.yaml'] = f['commerce.mapping.yaml']
-      .replace(
-        '  - concept: OrderCount',
-        '  - concept: Ghost\n    object_mappings:\n      - expression: customers.region\n  - concept: OrderCount',
-      )
-      .replace(
-        '            - relationship: id\n              expression: orders.order_id',
-        '            - relationship: id\n              expression: orders.no_such_field',
-      );
+      .replace('  - concept: OrderCount', '  - concept: Ghost\n    object_mappings:\n      - expression: customers.region\n  - concept: OrderCount')
+      .replace('            - relationship: id\n              expression: orders.order_id', '            - relationship: id\n              expression: orders.no_such_field');
   });
   const g = buildMappingGraph(c);
-  expect(g.cards.get(conceptId('Ghost'))!.findings!.join(' ')).toContain(
-    'Unknown ontology concept Ghost',
-  );
+  expect(g.cards.get(conceptId('Ghost'))!.findings!.join(' ')).toContain('Unknown ontology concept Ghost');
   expect(g.cards.get(conceptId('Order'))!.findings!.join(' ')).toContain('no_such_field');
   // A finding is never attached to an unrelated card.
   expect(g.cards.get(conceptId('Customer'))!.findings ?? []).toEqual([]);
@@ -247,14 +153,9 @@ test('findings sit on the affected card: unknown concept, missing field, ambiguo
       '      - referent_mappings:\n          - relationship: nope\n            expression: customers.customer_id',
     );
   });
-  expect(buildMappingGraph(r).cards.get(conceptId('Customer'))!.findings!.join(' ')).toContain(
-    'Customer.nope resolves to 0 definitions',
-  );
+  expect(buildMappingGraph(r).cards.get(conceptId('Customer'))!.findings!.join(' ')).toContain('Customer.nope resolves to 0 definitions');
   const k = changed(f => {
-    f['commerce.mapping.yaml'] = f['commerce.mapping.yaml'].replace(
-      '{"metric":"gross_revenue","measures":"Revenue","of":"Customer"}',
-      '{"metric":"gross_revenue","measures":"Nope"}',
-    );
+    f['commerce.mapping.yaml'] = f['commerce.mapping.yaml'].replace('{"metric":"gross_revenue","measures":"Revenue","of":"Customer"}', '{"metric":"gross_revenue","measures":"Nope"}');
   });
   const gk = buildMappingGraph(k);
   expect(gk.cards.get(metricId('gross_revenue'))!.findings!.join(' ')).toContain('Nope');

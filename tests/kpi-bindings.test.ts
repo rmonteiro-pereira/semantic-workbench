@@ -2,17 +2,11 @@
 import { test, expect } from 'bun:test';
 import { parseDocument } from 'yaml';
 import { validateInput } from '../src/shared/validation/input';
-import {
-  readKpiBindings,
-  resolveBindings,
-  resolveConcept,
-  mappingExpressionBindings,
-} from '../src/shared/metrics/bindings';
+import { readKpiBindings, resolveBindings, resolveConcept, mappingExpressionBindings } from '../src/shared/metrics/bindings';
 import { projectMetrics } from '../src/server/agent/explain';
 
 const mall = async (f: string) => Bun.file('public/examples/mall/' + f).text();
-const bindingsData = (list: any[]) =>
-  JSON.stringify({ schema: 'semantic-workbench/mapping/v1', kpi_bindings: list });
+const bindingsData = (list: any[]) => JSON.stringify({ schema: 'semantic-workbench/mapping/v1', kpi_bindings: list });
 const withBindings = (source: string, data: string) => {
   const doc = parseDocument(source);
   doc.set('custom_extensions', doc.createNode([{ vendor_name: 'SEMANTIC_WORKBENCH', data }]));
@@ -26,11 +20,7 @@ test('the shopping center mapping binds all 25 KPIs; every concept resolves', as
   expect(issues).toEqual([]);
   expect(value).toHaveLength(25);
   expect(value.map(b => b.metric)).toEqual(value.map(b => b.metric).sort());
-  const resolved = resolveBindings(
-    value,
-    ontology,
-    new Set(semantic.metrics.map((m: any) => m.name)),
-  );
+  const resolved = resolveBindings(value, ontology, new Set(semantic.metrics.map((m: any) => m.name)));
   expect(resolved.flatMap(r => r.problems)).toEqual([]);
   expect(resolved.find(r => r.metric === 'occupancy_rate')).toMatchObject({
     measures: { input: 'kpi:OccupancyRate', concept: 'OccupancyRate' },
@@ -39,8 +29,7 @@ test('the shopping center mapping binds all 25 KPIs; every concept resolves', as
   });
   // Concept name, QName and full IRI resolve to the same concept; unknown ones do not.
   const iri = ontology.prefixes.kpi + 'OccupancyRate';
-  for (const input of ['OccupancyRate', 'kpi:OccupancyRate', iri])
-    expect(resolveConcept(input, ontology)).toBe('OccupancyRate');
+  for (const input of ['OccupancyRate', 'kpi:OccupancyRate', iri]) expect(resolveConcept(input, ontology)).toBe('OccupancyRate');
   expect(resolveConcept('kpi:Nothing', ontology)).toBe(null);
   expect(resolveConcept('nope:OccupancyRate', ontology)).toBe(null);
   // Standard mappings whose expression is a metric name stay readable as evidence.
@@ -60,11 +49,7 @@ test('bindings are validated: schema, measures required, metric unique, metric a
       .issues.filter(i => i.severity === 'error')
       .map(i => i.message);
   expect(errors(bindingsData([{ metric: 'visitors' }])).join(' ')).toContain('measures');
-  expect(
-    errors(bindingsData([{ metric: 'visitors', measures: 'kpi:Visitors', colour: 'red' }])).join(
-      ' ',
-    ),
-  ).toContain('colour');
+  expect(errors(bindingsData([{ metric: 'visitors', measures: 'kpi:Visitors', colour: 'red' }])).join(' ')).toContain('colour');
   expect(
     errors(
       bindingsData([
@@ -74,27 +59,15 @@ test('bindings are validated: schema, measures required, metric unique, metric a
     ),
   ).toContain('Metric "visitors" is bound more than once; keep one binding per metric.');
   expect(errors(bindingsData([{ metric: 'visitors', measures: 'kpi:Visitors' }]))).toEqual([]);
-  expect(errors('{"schema":"semantic-workbench/mapping/v1",').join(' ')).toContain(
-    'not valid JSON',
-  );
-  const problems = resolveBindings(
-    [{ metric: 'ghost', measures: 'kpi:Nothing', of: 'Nowhere' }],
-    parseDocument(await mall('mall.ontology.yaml')).toJS(),
-    new Set(['visitors']),
-  )[0].problems;
+  expect(errors('{"schema":"semantic-workbench/mapping/v1",').join(' ')).toContain('not valid JSON');
+  const problems = resolveBindings([{ metric: 'ghost', measures: 'kpi:Nothing', of: 'Nowhere' }], parseDocument(await mall('mall.ontology.yaml')).toJS(), new Set(['visitors']))[0].problems;
   expect(problems).toEqual([
     'Metric "ghost" is not in the referenced semantic model.',
     'Concept "kpi:Nothing" is not in the referenced ontology.',
     'Concept "Nowhere" is not in the referenced ontology.',
   ]);
   // A semantic model root extension that is not a binding block is left alone.
-  expect(
-    readKpiBindings(
-      { custom_extensions: [{ vendor_name: 'SEMANTIC_WORKBENCH', data: '{"defaults":1}' }] },
-      '',
-      false,
-    ),
-  ).toEqual({ value: [], issues: [] });
+  expect(readKpiBindings({ custom_extensions: [{ vendor_name: 'SEMANTIC_WORKBENCH', data: '{"defaults":1}' }] }, '', false)).toEqual({ value: [], issues: [] });
 });
 test('a consolidated file keeps its bindings in the embedded semantic model root', async () => {
   const doc = parseDocument(await Bun.file('public/examples/ossie/flights.yaml').text());
@@ -122,9 +95,7 @@ test('a consolidated file keeps its bindings in the embedded semantic model root
     ]),
   );
   const source = doc.toString({ lineWidth: 0 });
-  expect(validateInput(source, 'flights.yaml').issues.filter(i => i.severity === 'error')).toEqual(
-    [],
-  );
+  expect(validateInput(source, 'flights.yaml').issues.filter(i => i.severity === 'error')).toEqual([]);
   const kpis = projectMetrics(
     [
       {

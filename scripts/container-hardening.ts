@@ -10,13 +10,5 @@ export const containerHardening = {
  * are set in compose.yaml for the Compose service.
  */
 export function hardenedRunArguments(): string[] {
-  return [
-    '--read-only',
-    '--tmpfs',
-    containerHardening.tmpfs,
-    '--cap-drop',
-    containerHardening.capabilitiesDropped,
-    '--security-opt',
-    containerHardening.securityOption,
-  ];
+  return ['--read-only', '--tmpfs', containerHardening.tmpfs, '--cap-drop', containerHardening.capabilitiesDropped, '--security-opt', containerHardening.securityOption];
 }

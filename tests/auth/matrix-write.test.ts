@@ -53,9 +53,7 @@ test('write route matrix refuses Viewers without changing durable bytes and audi
       expect(snapshot(fixture.root)).toEqual(before);
       const auditDir = join(fixture.root, 'state/audit');
       const records = readdirSync(auditDir).filter(name => name.endsWith('.jsonl'));
-      const lines = records.flatMap(name =>
-        readFileSync(join(auditDir, name), 'utf8').trim().split('\n'),
-      );
+      const lines = records.flatMap(name => readFileSync(join(auditDir, name), 'utf8').trim().split('\n'));
       expect(lines.some(line => line.includes(response.headers.get('X-Request-Id')!))).toBe(true);
     }
   }
@@ -116,9 +114,7 @@ test('batch writes and Git staging cannot bypass restricted file access', async 
     { route: 'git/revert', body: { path, baseHash: null } },
   ];
   for (const operation of operations) {
-    const response = await handler(
-      request('/api/projects/sales-contracts/' + operation.route, 'POST', operation.body),
-    );
+    const response = await handler(request('/api/projects/sales-contracts/' + operation.route, 'POST', operation.body));
     expect(response.status).toBe(404);
     expect(snapshot(fixture.root)).toEqual(before);
   }
@@ -277,9 +273,7 @@ test('an Editor can move a file when both projects are in its domain', async () 
     }),
   );
   expect(response.status).toBe(200);
-  const moved = await handler(
-    request('/api/projects/sales-metrics/files/sales.mapping.yaml', 'GET'),
-  );
+  const moved = await handler(request('/api/projects/sales-metrics/files/sales.mapping.yaml', 'GET'));
   // The move happened in Alice's own working copy, so she reads the result there.
   expect((await moved.json()).source).toContain('Sales');
 });
@@ -294,18 +288,8 @@ test('restore and undo authorize original paths and cross-project destinations',
     access,
     principal: () => access.principalFor(person('alice')),
   });
-  const hidden = await fixture.ws.trash.deleteFile(
-    'sales-contracts',
-    'finance/revenue-recognition.odcs.yaml',
-    undefined,
-    LOCAL_READER,
-  );
-  const visible = await fixture.ws.trash.deleteFile(
-    'sales-contracts',
-    'orders.odcs.yaml',
-    person('alice').id,
-    LOCAL_READER,
-  );
+  const hidden = await fixture.ws.trash.deleteFile('sales-contracts', 'finance/revenue-recognition.odcs.yaml', undefined, LOCAL_READER);
+  const visible = await fixture.ws.trash.deleteFile('sales-contracts', 'orders.odcs.yaml', person('alice').id, LOCAL_READER);
   const before = snapshot(fixture.root);
   const undo = await handler(request(`/api/trash/${hidden.entryId}/undo`, 'POST'));
   expect(undo.status).toBe(404);

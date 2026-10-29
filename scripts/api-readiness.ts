@@ -35,9 +35,7 @@ async function answersReady(fetchUrl: (url: string) => Promise<Response>, url: s
 /** Polls the readiness URL until it answers 200, the API exits or the timeout passes. */
 export async function waitForApi(probe: ReadinessProbe): Promise<ReadinessResult> {
   // A per-attempt timeout keeps one hung connection from stalling the whole wait.
-  const fetchUrl =
-    probe.fetch ??
-    ((url: string) => fetch(url, { signal: AbortSignal.timeout(probe.intervalMs * 8) }));
+  const fetchUrl = probe.fetch ?? ((url: string) => fetch(url, { signal: AbortSignal.timeout(probe.intervalMs * 8) }));
   const sleep = probe.sleep ?? defaultSleep;
   const now = probe.now ?? Date.now;
   const deadline = now() + probe.timeoutMs;

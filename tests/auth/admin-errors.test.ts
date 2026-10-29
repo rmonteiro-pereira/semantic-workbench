@@ -11,10 +11,7 @@ test('stale administration versions return a conflict', async () => {
 });
 
 test('invalid administration and access configurations return input errors', async () => {
-  for (const error of [
-    new AdminConfigError('roles.json: invalid'),
-    new AccessConfigError('grants.json: duplicate'),
-  ]) {
+  for (const error of [new AdminConfigError('roles.json: invalid'), new AccessConfigError('grants.json: duplicate')]) {
     const response = errorResponse(error);
     expect(response.status).toBe(400);
     expect(await response.json()).toEqual({ error: error.message });

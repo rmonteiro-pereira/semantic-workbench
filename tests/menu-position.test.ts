@@ -1,10 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import {
-  placeFlyout,
-  placeMenu,
-  placeSubmenu,
-  submenuFits,
-} from '../src/app/projects/menu-position';
+import { placeFlyout, placeMenu, placeSubmenu, submenuFits } from '../src/app/projects/menu-position';
 
 const viewport = { width: 1000, height: 800 };
 const menu = { width: 200, height: 300 };

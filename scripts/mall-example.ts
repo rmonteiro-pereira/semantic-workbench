@@ -39,11 +39,7 @@ const valueTypes: [string, string, string][] = [
   ['Name', 'String', 'Human-readable name.'],
   ['Code', 'String', 'Business code or controlled-vocabulary value.'],
   ['Text', 'String', 'Free text.'],
-  [
-    'TaxId',
-    'String',
-    'Tax registration number, such as a Brazilian CNPJ for companies or CPF for individuals.',
-  ],
+  ['TaxId', 'String', 'Tax registration number, such as a Brazilian CNPJ for companies or CPF for individuals.'],
   ['EmailAddress', 'String', 'Email address.'],
   ['PhoneNumber', 'String', 'Telephone number in international format.'],
   ['CalendarDate', 'Date', 'Calendar date.'],
@@ -81,8 +77,7 @@ const defs: Def[] = [
     module: 'core',
     table: 'organizations',
     extends: ['Party'],
-    description:
-      'Legal entity such as a company, fund, bank, insurer, public authority, court, law firm or condominium association.',
+    description: 'Legal entity such as a company, fund, bank, insurer, public authority, court, law firm or condominium association.',
     attrs: [
       'organization_type|Code||Kind of organization, for example company, fund, bank, insurer, authority, court or law firm.',
       'legal_form|Code||Legal form, for example limited company, corporation, investment fund or association.',
@@ -94,8 +89,7 @@ const defs: Def[] = [
     module: 'core',
     table: 'people',
     extends: ['Party'],
-    description:
-      'Natural person: employee, tenant contact, attorney, candidate, guarantor or individual investor. Personal data is subject to data-protection law.',
+    description: 'Natural person: employee, tenant contact, attorney, candidate, guarantor or individual investor. Personal data is subject to data-protection law.',
     attrs: ['birth_date|CalendarDate||Date of birth.', 'nationality|Code||Nationality.'],
   },
   {
@@ -146,8 +140,7 @@ const defs: Def[] = [
     concept: 'CalendarMonth',
     module: 'core',
     table: 'calendar_months',
-    description:
-      'Reporting and billing period. Charges, sales reports, occupancy snapshots and ledger entries are stated per month.',
+    description: 'Reporting and billing period. Charges, sales reports, occupancy snapshots and ledger entries are stated per month.',
     attrs: [
       'year_month|YearMonth|!|Month in YYYY-MM form.',
       'year|Year|!|Calendar year.',
@@ -160,27 +153,16 @@ const defs: Def[] = [
     concept: 'PriceIndex',
     module: 'core',
     table: 'price_indices',
-    description:
-      'Inflation index used to adjust rents, such as IGP-M or IPCA in Brazil or a consumer price index elsewhere.',
-    attrs: [
-      'name|Name|!|Index name.',
-      'code|Code|!|Index code.',
-      'publisher|Name||Publishing institution.',
-    ],
+    description: 'Inflation index used to adjust rents, such as IGP-M or IPCA in Brazil or a consumer price index elsewhere.',
+    attrs: ['name|Name|!|Index name.', 'code|Code|!|Index code.', 'publisher|Name||Publishing institution.'],
   },
   {
     concept: 'PriceIndexValue',
     module: 'core',
     table: 'price_index_values',
     description: 'Published level and monthly change of a price index.',
-    attrs: [
-      'index_level|IndexNumber|!+|Index level for the month.',
-      'monthly_change|Rate||Change against the previous month as a fraction.',
-    ],
-    links: [
-      'price_index>PriceIndex|!|is a value of|Index being published.',
-      'month>CalendarMonth|!|is published for|Reference month.',
-    ],
+    attrs: ['index_level|IndexNumber|!+|Index level for the month.', 'monthly_change|Rate||Change against the previous month as a fraction.'],
+    links: ['price_index>PriceIndex|!|is a value of|Index being published.', 'month>CalendarMonth|!|is published for|Reference month.'],
   },
   // Asset.
   {
@@ -189,16 +171,13 @@ const defs: Def[] = [
     table: 'portfolios',
     description: 'Group of properties managed under one strategy or fund.',
     attrs: ['name|Name|!|Portfolio name.', 'strategy|Text||Investment or management strategy.'],
-    links: [
-      'asset_manager>Organization||is managed by|Asset manager responsible for the portfolio.',
-    ],
+    links: ['asset_manager>Organization||is managed by|Asset manager responsible for the portfolio.'],
   },
   {
     concept: 'Property',
     module: 'asset',
     table: 'properties',
-    description:
-      'Shopping center or other managed real-estate asset. Gross leasable area (GLA, in Portuguese ABL) is the area available for lease to tenants.',
+    description: 'Shopping center or other managed real-estate asset. Gross leasable area (GLA, in Portuguese ABL) is the area available for lease to tenants.',
     attrs: [
       'code|Code|!|Property code.',
       'name|Name|!|Property name.',
@@ -220,13 +199,8 @@ const defs: Def[] = [
     concept: 'Building',
     module: 'asset',
     table: 'buildings',
-    description:
-      'Structure within a property, such as the mall, an office tower or a parking building.',
-    attrs: [
-      'code|Code|!|Building code.',
-      'name|Name||Building name.',
-      'built_year|Year||Year of completion.',
-    ],
+    description: 'Structure within a property, such as the mall, an office tower or a parking building.',
+    attrs: ['code|Code|!|Building code.', 'name|Name||Building name.', 'built_year|Year||Year of completion.'],
     links: ['property>Property|!|is part of|Property containing the building.'],
   },
   {
@@ -234,68 +208,45 @@ const defs: Def[] = [
     module: 'asset',
     table: 'floors',
     description: 'Floor or level of a building.',
-    attrs: [
-      'code|Code|!|Floor code, for example L1.',
-      'name|Name||Floor name.',
-      'level_number|LevelNumber||Level number; negative below ground.',
-    ],
+    attrs: ['code|Code|!|Floor code, for example L1.', 'name|Name||Floor name.', 'level_number|LevelNumber||Level number; negative below ground.'],
     links: ['building>Building|!|is in|Building of the floor.'],
   },
   {
     concept: 'Zone',
     module: 'asset',
     table: 'zones',
-    description:
-      'Wing, corridor or sector of a floor used to locate units and plan the tenant mix.',
+    description: 'Wing, corridor or sector of a floor used to locate units and plan the tenant mix.',
     attrs: ['code|Code|!|Zone code.', 'name|Name||Zone name.'],
     links: ['floor>Floor|!|is on|Floor of the zone.'],
   },
   {
     concept: 'Space',
     module: 'asset',
-    description:
-      'Abstract measured area of a property: leasable units, common areas or parking facilities.',
-    attrs: [
-      'code|Code|!|Space code, for example a store number.',
-      'name|Name||Space name.',
-      'area_m2|AreaM2|!+|Measured area.',
-    ],
+    description: 'Abstract measured area of a property: leasable units, common areas or parking facilities.',
+    attrs: ['code|Code|!|Space code, for example a store number.', 'name|Name||Space name.', 'area_m2|AreaM2|!+|Measured area.'],
   },
   {
     concept: 'LeasableUnit',
     module: 'asset',
     table: 'units',
     extends: ['Space'],
-    description:
-      'Store, kiosk or other unit that counts towards gross leasable area and can be leased to a tenant.',
-    attrs: [
-      'frontage_m|LengthM|+|Shop-front length.',
-      'has_mezzanine|Flag||Whether the unit has a mezzanine.',
-    ],
-    links: [
-      'zone>Zone|!|is located in|Zone of the unit.',
-      'unit_type>UnitType|!|is classified as|Unit type.',
-    ],
+    description: 'Store, kiosk or other unit that counts towards gross leasable area and can be leased to a tenant.',
+    attrs: ['frontage_m|LengthM|+|Shop-front length.', 'has_mezzanine|Flag||Whether the unit has a mezzanine.'],
+    links: ['zone>Zone|!|is located in|Zone of the unit.', 'unit_type>UnitType|!|is classified as|Unit type.'],
   },
   {
     concept: 'UnitType',
     module: 'asset',
     table: 'unit_types',
-    description:
-      'Classification of units: anchor, mega-store, inline store, kiosk, food court, restaurant, entertainment, services, office or storage.',
-    attrs: [
-      'code|Code|!|Unit type code.',
-      'name|Name|!|Unit type name.',
-      'counts_as_gla|Flag|!|Whether units of this type count towards gross leasable area.',
-    ],
+    description: 'Classification of units: anchor, mega-store, inline store, kiosk, food court, restaurant, entertainment, services, office or storage.',
+    attrs: ['code|Code|!|Unit type code.', 'name|Name|!|Unit type name.', 'counts_as_gla|Flag|!|Whether units of this type count towards gross leasable area.'],
   },
   {
     concept: 'CommonArea',
     module: 'asset',
     table: 'common_areas',
     extends: ['Space'],
-    description:
-      'Shared area operated by the property: corridors, food-court seating, restrooms, loading docks and technical areas. Its costs are recovered through service charges.',
+    description: 'Shared area operated by the property: corridors, food-court seating, restrooms, loading docks and technical areas. Its costs are recovered through service charges.',
     attrs: ['area_kind|Code||Kind of common area.'],
     links: ['floor>Floor|!|is on|Floor of the common area.'],
   },
@@ -305,10 +256,7 @@ const defs: Def[] = [
     table: 'parking_facilities',
     extends: ['Space'],
     description: 'Parking area of a property.',
-    attrs: [
-      'capacity|Count|!+|Number of parking spaces.',
-      'is_paid|Flag||Whether visitors pay for parking.',
-    ],
+    attrs: ['capacity|Count|!+|Number of parking spaces.', 'is_paid|Flag||Whether visitors pay for parking.'],
     links: ['property>Property|!|serves|Property served by the facility.'],
   },
   {
@@ -316,11 +264,7 @@ const defs: Def[] = [
     module: 'asset',
     table: 'entrances',
     description: 'Visitor entrance where footfall is counted.',
-    attrs: [
-      'code|Code|!|Entrance code.',
-      'name|Name||Entrance name.',
-      'entrance_kind|Code||Pedestrian, parking, public transport or service.',
-    ],
+    attrs: ['code|Code|!|Entrance code.', 'name|Name||Entrance name.', 'entrance_kind|Code||Pedestrian, parking, public transport or service.'],
     links: ['property>Property|!|gives access to|Property of the entrance.'],
   },
   {
@@ -328,31 +272,16 @@ const defs: Def[] = [
     module: 'asset',
     table: 'area_measurements',
     description: 'Certified measurement of a unit area under a stated method.',
-    attrs: [
-      'measurement_date|CalendarDate|!|Measurement date.',
-      'measured_area_m2|AreaM2|!+|Measured area.',
-      'method|Code||Measurement standard.',
-    ],
-    links: [
-      'unit>LeasableUnit|!|measures|Unit measured.',
-      'surveyor>Organization||is certified by|Surveyor.',
-    ],
+    attrs: ['measurement_date|CalendarDate|!|Measurement date.', 'measured_area_m2|AreaM2|!+|Measured area.', 'method|Code||Measurement standard.'],
+    links: ['unit>LeasableUnit|!|measures|Unit measured.', 'surveyor>Organization||is certified by|Surveyor.'],
   },
   {
     concept: 'OwnershipStake',
     module: 'asset',
     table: 'ownership_stakes',
-    description:
-      'Fractional ownership of a property by an investor. Shopping centers are often held in undivided shares by several investors.',
-    attrs: [
-      'share|Rate|!%|Ownership fraction.',
-      'start_date|CalendarDate|!|Start of ownership.',
-      'end_date|CalendarDate||End of ownership.',
-    ],
-    links: [
-      'investor>Investor|!|is held by|Owner of the stake.',
-      'property>Property|!|is a share of|Property owned.',
-    ],
+    description: 'Fractional ownership of a property by an investor. Shopping centers are often held in undivided shares by several investors.',
+    attrs: ['share|Rate|!%|Ownership fraction.', 'start_date|CalendarDate|!|Start of ownership.', 'end_date|CalendarDate||End of ownership.'],
+    links: ['investor>Investor|!|is held by|Owner of the stake.', 'property>Property|!|is a share of|Property owned.'],
   },
   {
     concept: 'Valuation',
@@ -365,80 +294,47 @@ const defs: Def[] = [
       'capitalization_rate|Rate|%|Capitalization rate applied.',
       'discount_rate|Rate|%|Discount rate applied.',
     ],
-    links: [
-      'property>Property|!|values|Property valued.',
-      'appraiser>Organization||is prepared by|Appraiser.',
-    ],
+    links: ['property>Property|!|values|Property valued.', 'appraiser>Organization||is prepared by|Appraiser.'],
   },
   {
     concept: 'Permit',
     module: 'asset',
     table: 'permits',
-    description:
-      'Licence or certificate required to operate the property, such as an occupancy certificate, fire safety certificate or operating licence.',
-    attrs: [
-      'permit_number|Code|!|Permit number.',
-      'permit_type|Code|!|Permit type.',
-      'issue_date|CalendarDate||Issue date.',
-      'expiry_date|CalendarDate||Expiry date.',
-    ],
-    links: [
-      'property>Property|!|authorises|Property covered.',
-      'issuer>Organization||is issued by|Issuing authority.',
-    ],
+    description: 'Licence or certificate required to operate the property, such as an occupancy certificate, fire safety certificate or operating licence.',
+    attrs: ['permit_number|Code|!|Permit number.', 'permit_type|Code|!|Permit type.', 'issue_date|CalendarDate||Issue date.', 'expiry_date|CalendarDate||Expiry date.'],
+    links: ['property>Property|!|authorises|Property covered.', 'issuer>Organization||is issued by|Issuing authority.'],
   },
   {
     concept: 'Equipment',
     module: 'asset',
     table: 'equipment',
-    description:
-      'Maintained building equipment such as escalators, elevators, chillers, generators and fire pumps.',
-    attrs: [
-      'tag|Code|!|Asset tag.',
-      'name|Name|!|Equipment name.',
-      'equipment_type|Code|!|Equipment type.',
-      'install_date|CalendarDate||Installation date.',
-      'manufacturer|Name||Manufacturer.',
-    ],
-    links: [
-      'property>Property|!|is installed at|Property of the equipment.',
-      'fixed_asset>FixedAsset||is capitalised as|Fixed-asset record.',
-    ],
+    description: 'Maintained building equipment such as escalators, elevators, chillers, generators and fire pumps.',
+    attrs: ['tag|Code|!|Asset tag.', 'name|Name|!|Equipment name.', 'equipment_type|Code|!|Equipment type.', 'install_date|CalendarDate||Installation date.', 'manufacturer|Name||Manufacturer.'],
+    links: ['property>Property|!|is installed at|Property of the equipment.', 'fixed_asset>FixedAsset||is capitalised as|Fixed-asset record.'],
   },
   // Party.
   {
     concept: 'Tenant',
     module: 'party',
     table: 'tenants',
-    description:
-      'Role of an organization that leases space in a property: retailer, restaurant or service operator.',
-    attrs: [
-      'trade_name|Name|!|Trading name used at the store.',
-      'since_date|CalendarDate||First lease start in the portfolio.',
-    ],
+    description: 'Role of an organization that leases space in a property: retailer, restaurant or service operator.',
+    attrs: ['trade_name|Name|!|Trading name used at the store.', 'since_date|CalendarDate||First lease start in the portfolio.'],
     links: ['organization>Organization|!|is a role of|Organization acting as tenant.'],
   },
   {
     concept: 'Investor',
     module: 'party',
     table: 'investors',
-    description:
-      'Role of an organization or person that owns ownership stakes, such as a pension fund, real-estate fund, developer or individual.',
+    description: 'Role of an organization or person that owns ownership stakes, such as a pension fund, real-estate fund, developer or individual.',
     attrs: ['investor_type|Code||Pension fund, real-estate fund, developer or private investor.'],
-    links: [
-      'organization>Organization||is a role of|Investing organization.',
-      'person>Person||is a role of|Individual investor.',
-    ],
+    links: ['organization>Organization||is a role of|Investing organization.', 'person>Person||is a role of|Individual investor.'],
   },
   {
     concept: 'Broker',
     module: 'party',
     table: 'brokers',
     description: 'Role of a leasing broker or agency that introduces tenants.',
-    attrs: [
-      'license_number|Code||Broker licence number.',
-      'commission_rate|Rate|%|Standard commission as a fraction of the first-year rent.',
-    ],
+    attrs: ['license_number|Code||Broker licence number.', 'commission_rate|Rate|%|Standard commission as a fraction of the first-year rent.'],
     links: ['organization>Organization|!|is a role of|Brokerage organization.'],
   },
   {
@@ -453,8 +349,7 @@ const defs: Def[] = [
     concept: 'MerchandiseCategory',
     module: 'party',
     table: 'merchandise_categories',
-    description:
-      'Tenant-mix category, such as apparel, footwear, food court, services or entertainment. Categories form a hierarchy.',
+    description: 'Tenant-mix category, such as apparel, footwear, food court, services or entertainment. Categories form a hierarchy.',
     attrs: ['code|Code|!|Category code.', 'name|Name|!|Category name.'],
     links: ['parent_category>MerchandiseCategory||is a subcategory of|Broader category.'],
   },
@@ -462,13 +357,9 @@ const defs: Def[] = [
     concept: 'TenantContact',
     module: 'party',
     table: 'tenant_contacts',
-    description:
-      'Person a tenant designates for a responsibility, such as store manager, finance or legal.',
+    description: 'Person a tenant designates for a responsibility, such as store manager, finance or legal.',
     attrs: ['role|Code|!|Responsibility.', 'is_primary|Flag||Whether this is the primary contact.'],
-    links: [
-      'person>Person|!|is filled by|Contact person.',
-      'tenant>Tenant|!|is a contact of|Tenant represented.',
-    ],
+    links: ['person>Person|!|is filled by|Contact person.', 'tenant>Tenant|!|is a contact of|Tenant represented.'],
   },
   // Lease.
   {
@@ -477,11 +368,7 @@ const defs: Def[] = [
     table: 'leasing_prospects',
     description: 'Potential tenant in the leasing pipeline.',
     attrs: ['name|Name|!|Prospect name.', 'first_contact_date|CalendarDate||First contact.'],
-    links: [
-      'brand>Brand||intends to operate|Brand proposed.',
-      'category>MerchandiseCategory||is classified as|Intended category.',
-      'broker>Broker||is introduced by|Introducing broker.',
-    ],
+    links: ['brand>Brand||intends to operate|Brand proposed.', 'category>MerchandiseCategory||is classified as|Intended category.', 'broker>Broker||is introduced by|Introducing broker.'],
   },
   {
     concept: 'LeasingProposal',
@@ -495,18 +382,13 @@ const defs: Def[] = [
       'proposed_term_months|Count|+|Lease term offered.',
       'status|Code||Draft, sent, accepted, rejected or withdrawn.',
     ],
-    links: [
-      'prospect>LeasingProspect|!|is made to|Prospect.',
-      'unit>LeasableUnit|!|offers|Unit offered.',
-      'resulting_lease>Lease||results in|Lease signed after the proposal was accepted.',
-    ],
+    links: ['prospect>LeasingProspect|!|is made to|Prospect.', 'unit>LeasableUnit|!|offers|Unit offered.', 'resulting_lease>Lease||results in|Lease signed after the proposal was accepted.'],
   },
   {
     concept: 'LeaseStatus',
     module: 'lease',
     table: 'lease_statuses',
-    description:
-      'Lifecycle state of a lease: pending signature, fit-out, active, holdover, in renewal proceedings, terminated or expired.',
+    description: 'Lifecycle state of a lease: pending signature, fit-out, active, holdover, in renewal proceedings, terminated or expired.',
     attrs: ['code|Code|!|Status code.', 'name|Name|!|Status name.'],
   },
   {
@@ -534,38 +416,23 @@ const defs: Def[] = [
     concept: 'LeasedUnit',
     module: 'lease',
     table: 'leased_units',
-    description:
-      'Unit covered by a lease for a period. A lease can cover several units and a unit is leased successively.',
-    attrs: [
-      'start_date|CalendarDate|!|Start of coverage.',
-      'end_date|CalendarDate||End of coverage.',
-      'leased_area_m2|AreaM2|+|Area leased.',
-    ],
+    description: 'Unit covered by a lease for a period. A lease can cover several units and a unit is leased successively.',
+    attrs: ['start_date|CalendarDate|!|Start of coverage.', 'end_date|CalendarDate||End of coverage.', 'leased_area_m2|AreaM2|+|Area leased.'],
     links: ['lease>Lease|!|is covered by|Lease.', 'unit>LeasableUnit|!|covers|Unit.'],
   },
   {
     concept: 'RentStep',
     module: 'lease',
     table: 'rent_steps',
-    description:
-      'Step of the minimum-rent schedule, such as a discounted first year followed by full rent.',
-    attrs: [
-      'effective_from|CalendarDate|!|First day of the step.',
-      'effective_to|CalendarDate||Last day of the step.',
-      'monthly_amount|MoneyAmount|!+|Monthly minimum rent during the step.',
-    ],
+    description: 'Step of the minimum-rent schedule, such as a discounted first year followed by full rent.',
+    attrs: ['effective_from|CalendarDate|!|First day of the step.', 'effective_to|CalendarDate||Last day of the step.', 'monthly_amount|MoneyAmount|!+|Monthly minimum rent during the step.'],
     links: ['lease>Lease|!|schedules rent of|Lease.'],
   },
   {
     concept: 'LeaseClause',
     module: 'lease',
     description: 'Abstract contractual clause of a lease.',
-    attrs: [
-      'clause_reference|Code||Clause number in the signed lease.',
-      'effective_from|CalendarDate||Start of effect.',
-      'effective_to|CalendarDate||End of effect.',
-      'notes|Text||Clause notes.',
-    ],
+    attrs: ['clause_reference|Code||Clause number in the signed lease.', 'effective_from|CalendarDate||Start of effect.', 'effective_to|CalendarDate||End of effect.', 'notes|Text||Clause notes.'],
     links: ['lease>Lease|!|is a clause of|Lease containing the clause.'],
   },
   {
@@ -573,12 +440,8 @@ const defs: Def[] = [
     module: 'lease',
     table: 'percentage_rent_clauses',
     extends: ['LeaseClause'],
-    description:
-      'Percentage rent: when the rate times monthly gross sales exceeds the minimum rent, the tenant pays the difference as overage rent.',
-    attrs: [
-      'rate|Rate|!%|Percentage of gross sales.',
-      'excludes_thirteenth_rent|Flag||Whether the December thirteenth rent is excluded from the comparison.',
-    ],
+    description: 'Percentage rent: when the rate times monthly gross sales exceeds the minimum rent, the tenant pays the difference as overage rent.',
+    attrs: ['rate|Rate|!%|Percentage of gross sales.', 'excludes_thirteenth_rent|Flag||Whether the December thirteenth rent is excluded from the comparison.'],
   },
   {
     concept: 'IndexationClause',
@@ -586,10 +449,7 @@ const defs: Def[] = [
     table: 'indexation_clauses',
     extends: ['LeaseClause'],
     description: 'Periodic adjustment of rent by a price index.',
-    attrs: [
-      'anniversary_month|Count||Month of the year in which the adjustment applies.',
-      'frequency_months|Count|+|Months between adjustments.',
-    ],
+    attrs: ['anniversary_month|Count||Month of the year in which the adjustment applies.', 'frequency_months|Count|+|Months between adjustments.'],
     links: ['price_index>PriceIndex|!|is adjusted by|Index applied.'],
   },
   {
@@ -614,10 +474,7 @@ const defs: Def[] = [
     table: 'co_tenancy_clauses',
     extends: ['LeaseClause'],
     description: 'Rent relief if required anchors close or occupancy falls below a threshold.',
-    attrs: [
-      'required_occupancy_rate|Rate|%|Occupancy threshold.',
-      'remedy_rent_rate|Rate|%|Fraction of rent payable while the condition is unmet.',
-    ],
+    attrs: ['required_occupancy_rate|Rate|%|Occupancy threshold.', 'remedy_rent_rate|Rate|%|Fraction of rent payable while the condition is unmet.'],
   },
   {
     concept: 'RenewalOption',
@@ -625,10 +482,7 @@ const defs: Def[] = [
     table: 'renewal_options',
     extends: ['LeaseClause'],
     description: 'Tenant option to renew the lease.',
-    attrs: [
-      'notice_months|Count|+|Notice required before exercise.',
-      'renewal_term_months|Count|!+|Term of the renewal.',
-    ],
+    attrs: ['notice_months|Count|+|Notice required before exercise.', 'renewal_term_months|Count|!+|Term of the renewal.'],
   },
   {
     concept: 'EarlyTerminationOption',
@@ -636,17 +490,13 @@ const defs: Def[] = [
     table: 'early_termination_options',
     extends: ['LeaseClause'],
     description: 'Right to end the lease early against a penalty.',
-    attrs: [
-      'earliest_exercise_date|CalendarDate||First date the option can be exercised.',
-      'penalty_months_of_rent|Quantity|+|Penalty in months of minimum rent.',
-    ],
+    attrs: ['earliest_exercise_date|CalendarDate||First date the option can be exercised.', 'penalty_months_of_rent|Quantity|+|Penalty in months of minimum rent.'],
   },
   {
     concept: 'GuaranteeType',
     module: 'lease',
     table: 'guarantee_types',
-    description:
-      'Kind of lease guarantee: surety bond, bank guarantee, security deposit, personal guarantor or rent-guarantee insurance.',
+    description: 'Kind of lease guarantee: surety bond, bank guarantee, security deposit, personal guarantor or rent-guarantee insurance.',
     attrs: ['code|Code|!|Type code.', 'name|Name|!|Type name.'],
   },
   {
@@ -654,28 +504,15 @@ const defs: Def[] = [
     module: 'lease',
     table: 'guarantees',
     description: 'Security provided for the obligations of a lease.',
-    attrs: [
-      'amount|MoneyAmount|+|Guaranteed amount.',
-      'start_date|CalendarDate||Start of cover.',
-      'end_date|CalendarDate||End of cover.',
-    ],
-    links: [
-      'lease>Lease|!|secures|Lease secured.',
-      'guarantee_type>GuaranteeType|!|is of type|Guarantee type.',
-      'guarantor>Organization||is provided by|Bank, insurer or guarantor company.',
-    ],
+    attrs: ['amount|MoneyAmount|+|Guaranteed amount.', 'start_date|CalendarDate||Start of cover.', 'end_date|CalendarDate||End of cover.'],
+    links: ['lease>Lease|!|secures|Lease secured.', 'guarantee_type>GuaranteeType|!|is of type|Guarantee type.', 'guarantor>Organization||is provided by|Bank, insurer or guarantor company.'],
   },
   {
     concept: 'KeyMoneyAgreement',
     module: 'lease',
     table: 'key_money_agreements',
-    description:
-      'One-off fee for the right to use a location: a right-of-use fee (res sperata) in a new development or key money (luvas) for an existing location. It is not rent.',
-    attrs: [
-      'total_amount|MoneyAmount|!+|Total fee.',
-      'installments|Count|+|Number of instalments.',
-      'agreement_date|CalendarDate||Agreement date.',
-    ],
+    description: 'One-off fee for the right to use a location: a right-of-use fee (res sperata) in a new development or key money (luvas) for an existing location. It is not rent.',
+    attrs: ['total_amount|MoneyAmount|!+|Total fee.', 'installments|Count|+|Number of instalments.', 'agreement_date|CalendarDate||Agreement date.'],
     links: ['lease>Lease|!|is agreed for|Lease.'],
   },
   {
@@ -704,8 +541,7 @@ const defs: Def[] = [
     concept: 'FitOutProject',
     module: 'lease',
     table: 'fit_out_projects',
-    description:
-      'Construction of the store by the tenant between handover and opening, subject to the landlord design approval.',
+    description: 'Construction of the store by the tenant between handover and opening, subject to the landlord design approval.',
     attrs: [
       'handover_date|CalendarDate||Unit handover date.',
       'planned_opening_date|CalendarDate||Planned opening.',
@@ -732,29 +568,21 @@ const defs: Def[] = [
     concept: 'LegalEntity',
     module: 'legal',
     table: 'legal_entities',
-    description:
-      'Role of an organization in the group that signs contracts, keeps books and employs staff: property-owning special-purpose company, fund, administrator or condominium.',
+    description: 'Role of an organization in the group that signs contracts, keeps books and employs staff: property-owning special-purpose company, fund, administrator or condominium.',
     attrs: [
       'registration_number|Code|!|Company registration number.',
       'entity_type|Code|!|Special-purpose company, fund, administrator, holding or condominium.',
       'incorporation_date|CalendarDate||Incorporation date.',
       'fiscal_regime|Code||Tax regime, for example actual profit or presumed profit.',
     ],
-    links: [
-      'organization>Organization|!|is a role of|Organization registered as the legal entity.',
-    ],
+    links: ['organization>Organization|!|is a role of|Organization registered as the legal entity.'],
   },
   {
     concept: 'ContractType',
     module: 'legal',
     table: 'contract_types',
-    description:
-      'Kind of contract in the register: lease, service, supply framework, employment, loan, construction, insurance, brokerage, confidentiality or other.',
-    attrs: [
-      'code|Code|!|Type code.',
-      'name|Name|!|Type name.',
-      'requires_legal_review|Flag||Whether legal review is mandatory before signature.',
-    ],
+    description: 'Kind of contract in the register: lease, service, supply framework, employment, loan, construction, insurance, brokerage, confidentiality or other.',
+    attrs: ['code|Code|!|Type code.', 'name|Name|!|Type name.', 'requires_legal_review|Flag||Whether legal review is mandatory before signature.'],
   },
   {
     concept: 'Contract',
@@ -784,8 +612,7 @@ const defs: Def[] = [
     concept: 'ContractParty',
     module: 'legal',
     table: 'contract_parties',
-    description:
-      'Party to a contract other than the contracting entity: counterparty, guarantor, intervening party or witness.',
+    description: 'Party to a contract other than the contracting entity: counterparty, guarantor, intervening party or witness.',
     attrs: ['party_role|Code|!|Counterparty, guarantor, intervening party or witness.'],
     links: [
       'contract>Contract|!|is a party to|Contract.',
@@ -810,8 +637,7 @@ const defs: Def[] = [
     concept: 'ContractAmendment',
     module: 'legal',
     table: 'contract_amendments',
-    description:
-      'Signed change to a contract: price revision, extension, scope change, assignment or party change.',
+    description: 'Signed change to a contract: price revision, extension, scope change, assignment or party change.',
     attrs: [
       'amendment_number|Code|!|Amendment number.',
       'effective_date|CalendarDate|!|Effective date.',
@@ -825,8 +651,7 @@ const defs: Def[] = [
     concept: 'ContractObligation',
     module: 'legal',
     table: 'contract_obligations',
-    description:
-      'Obligation to monitor under a contract, such as payments, sales reporting, insurance certificates, opening hours, maintenance or renewal notices.',
+    description: 'Obligation to monitor under a contract, such as payments, sales reporting, insurance certificates, opening hours, maintenance or renewal notices.',
     attrs: [
       'summary|Text|!|Obligation.',
       'obligation_type|Code||Payment, reporting, insurance, operation, maintenance or notice.',
@@ -834,47 +659,29 @@ const defs: Def[] = [
       'frequency|Code||One-off, monthly, quarterly or annual.',
       'status|Code||Pending, fulfilled, overdue or waived.',
     ],
-    links: [
-      'contract>Contract|!|is imposed by|Contract.',
-      'responsible>Employee||is monitored by|Employee responsible.',
-    ],
+    links: ['contract>Contract|!|is imposed by|Contract.', 'responsible>Employee||is monitored by|Employee responsible.'],
   },
   {
     concept: 'ContractApproval',
     module: 'legal',
     table: 'contract_approvals',
     description: 'Approval step of a contract under the delegation-of-authority matrix.',
-    attrs: [
-      'approval_level|Code|!|Approval level, for example manager, director, legal or board.',
-      'decision|Code||Approved, rejected or returned.',
-      'decision_date|CalendarDate||Decision date.',
-    ],
-    links: [
-      'contract>Contract|!|is approved through|Contract.',
-      'approver>Employee|!|is decided by|Approver.',
-    ],
+    attrs: ['approval_level|Code|!|Approval level, for example manager, director, legal or board.', 'decision|Code||Approved, rejected or returned.', 'decision_date|CalendarDate||Decision date.'],
+    links: ['contract>Contract|!|is approved through|Contract.', 'approver>Employee|!|is decided by|Approver.'],
   },
   {
     concept: 'PowerOfAttorney',
     module: 'legal',
     table: 'powers_of_attorney',
     description: 'Authority granted by a legal entity to a person to sign or act on its behalf.',
-    attrs: [
-      'scope|Text|!|Powers granted.',
-      'granted_date|CalendarDate|!|Grant date.',
-      'valid_until|CalendarDate||Expiry date.',
-    ],
-    links: [
-      'grantor>LegalEntity|!|is granted by|Granting legal entity.',
-      'attorney>Person|!|is granted to|Attorney-in-fact.',
-    ],
+    attrs: ['scope|Text|!|Powers granted.', 'granted_date|CalendarDate|!|Grant date.', 'valid_until|CalendarDate||Expiry date.'],
+    links: ['grantor>LegalEntity|!|is granted by|Granting legal entity.', 'attorney>Person|!|is granted to|Attorney-in-fact.'],
   },
   {
     concept: 'GovernanceMeeting',
     module: 'legal',
     table: 'governance_meetings',
-    description:
-      'Meeting of shareholders, board, investors, condominium assembly or tenants association.',
+    description: 'Meeting of shareholders, board, investors, condominium assembly or tenants association.',
     attrs: [
       'meeting_type|Code|!|Shareholders, board, investors, condominium assembly or tenants association.',
       'meeting_date|CalendarDate|!|Meeting date.',
@@ -886,21 +693,15 @@ const defs: Def[] = [
     concept: 'Resolution',
     module: 'legal',
     table: 'resolutions',
-    description:
-      'Decision taken at a governance meeting, for example approving a budget, a capital project or a distribution.',
-    attrs: [
-      'summary|Text|!|Decision.',
-      'outcome|Code||Approved, rejected or deferred.',
-      'votes_in_favour|Rate|%|Fraction of votes in favour.',
-    ],
+    description: 'Decision taken at a governance meeting, for example approving a budget, a capital project or a distribution.',
+    attrs: ['summary|Text|!|Decision.', 'outcome|Code||Approved, rejected or deferred.', 'votes_in_favour|Rate|%|Fraction of votes in favour.'],
     links: ['meeting>GovernanceMeeting|!|is passed at|Meeting.'],
   },
   {
     concept: 'LegalProceeding',
     module: 'legal',
     table: 'legal_proceedings',
-    description:
-      'Lawsuit or administrative proceeding: eviction, lease renewal, rent review, collection, labour, tax or civil liability.',
+    description: 'Lawsuit or administrative proceeding: eviction, lease renewal, rent review, collection, labour, tax or civil liability.',
     attrs: [
       'case_number|Code|!|Case number.',
       'proceeding_type|Code|!|Eviction, renewal, rent review, collection, labour, tax or civil liability.',
@@ -923,8 +724,7 @@ const defs: Def[] = [
     concept: 'LitigationProvision',
     module: 'legal',
     table: 'litigation_provisions',
-    description:
-      'Assessment of the loss probability of a proceeding and the amount provisioned in the accounts.',
+    description: 'Assessment of the loss probability of a proceeding and the amount provisioned in the accounts.',
     attrs: [
       'assessment_date|CalendarDate|!|Assessment date.',
       'loss_probability|Code|!|Probable, possible or remote.',
@@ -937,13 +737,8 @@ const defs: Def[] = [
     concept: 'ComplianceRequirement',
     module: 'legal',
     table: 'compliance_requirements',
-    description:
-      'Recurring legal or regulatory requirement: fire safety, accessibility, environmental, sanitary, data protection or labour safety.',
-    attrs: [
-      'name|Name|!|Requirement.',
-      'regulation|Text||Regulation or standard.',
-      'frequency|Code||Check frequency.',
-    ],
+    description: 'Recurring legal or regulatory requirement: fire safety, accessibility, environmental, sanitary, data protection or labour safety.',
+    attrs: ['name|Name|!|Requirement.', 'regulation|Text||Regulation or standard.', 'frequency|Code||Check frequency.'],
     links: [],
   },
   {
@@ -957,18 +752,13 @@ const defs: Def[] = [
       'findings|Text||Findings.',
       'remediation_due|CalendarDate||Deadline for remediation.',
     ],
-    links: [
-      'requirement>ComplianceRequirement|!|verifies|Requirement.',
-      'property>Property|!|is performed at|Property.',
-      'inspector>Employee||is performed by|Employee responsible.',
-    ],
+    links: ['requirement>ComplianceRequirement|!|verifies|Requirement.', 'property>Property|!|is performed at|Property.', 'inspector>Employee||is performed by|Employee responsible.'],
   },
   {
     concept: 'DataSubjectRequest',
     module: 'legal',
     table: 'data_subject_requests',
-    description:
-      'Request by a person to access, correct, delete or port their personal data under data-protection law.',
+    description: 'Request by a person to access, correct, delete or port their personal data under data-protection law.',
     attrs: [
       'request_date|CalendarDate|!|Request date.',
       'request_type|Code|!|Access, correction, deletion, portability or objection.',
@@ -976,18 +766,14 @@ const defs: Def[] = [
       'completed_date|CalendarDate||Completion date.',
       'status|Code||Open, completed or rejected.',
     ],
-    links: [
-      'data_subject>Person|!|is made by|Person exercising the right.',
-      'controller>LegalEntity|!|is addressed to|Controller.',
-    ],
+    links: ['data_subject>Person|!|is made by|Person exercising the right.', 'controller>LegalEntity|!|is addressed to|Controller.'],
   },
   // Human resources.
   {
     concept: 'Department',
     module: 'hr',
     table: 'departments',
-    description:
-      'Organizational unit such as property operations, leasing, marketing, finance, legal or human resources.',
+    description: 'Organizational unit such as property operations, leasing, marketing, finance, legal or human resources.',
     attrs: ['code|Code|!|Department code.', 'name|Name|!|Department name.'],
     links: [
       'parent_department>Department||reports to|Parent department.',
@@ -999,14 +785,8 @@ const defs: Def[] = [
     concept: 'Position',
     module: 'hr',
     table: 'positions',
-    description:
-      'Job position, such as general manager, leasing manager, maintenance technician or accounts payable analyst.',
-    attrs: [
-      'code|Code|!|Position code.',
-      'title|Text|!|Job title.',
-      'grade|Code||Salary grade.',
-      'occupation_code|Code||Official occupation classification code.',
-    ],
+    description: 'Job position, such as general manager, leasing manager, maintenance technician or accounts payable analyst.',
+    attrs: ['code|Code|!|Position code.', 'title|Text|!|Job title.', 'grade|Code||Salary grade.', 'occupation_code|Code||Official occupation classification code.'],
     links: ['department>Department|!|belongs to|Department.'],
   },
   {
@@ -1034,26 +814,15 @@ const defs: Def[] = [
     module: 'hr',
     table: 'employment_contracts',
     description: 'Employment terms of an employee, registered as a contract.',
-    attrs: [
-      'base_salary|MoneyAmount|!+|Monthly base salary.',
-      'weekly_hours|Quantity|+|Contracted weekly hours.',
-      'probation_end_date|CalendarDate||End of probation.',
-    ],
-    links: [
-      'employee>Employee|!|employs|Employee.',
-      'contract>Contract|!|is registered as|Contract register entry.',
-    ],
+    attrs: ['base_salary|MoneyAmount|!+|Monthly base salary.', 'weekly_hours|Quantity|+|Contracted weekly hours.', 'probation_end_date|CalendarDate||End of probation.'],
+    links: ['employee>Employee|!|employs|Employee.', 'contract>Contract|!|is registered as|Contract register entry.'],
   },
   {
     concept: 'CompensationChange',
     module: 'hr',
     table: 'compensation_changes',
     description: 'Change of base salary by promotion, merit, collective agreement or correction.',
-    attrs: [
-      'effective_date|CalendarDate|!|Effective date.',
-      'new_base_salary|MoneyAmount|!+|New monthly base salary.',
-      'reason|Code||Promotion, merit, collective agreement or correction.',
-    ],
+    attrs: ['effective_date|CalendarDate|!|Effective date.', 'new_base_salary|MoneyAmount|!+|New monthly base salary.', 'reason|Code||Promotion, merit, collective agreement or correction.'],
     links: ['employee>Employee|!|changes pay of|Employee.'],
   },
   {
@@ -1061,14 +830,8 @@ const defs: Def[] = [
     module: 'hr',
     table: 'payroll_runs',
     description: 'Monthly payroll of a legal entity, including the thirteenth salary when due.',
-    attrs: [
-      'payment_date|CalendarDate||Payment date.',
-      'status|Code||Calculated, approved or paid.',
-    ],
-    links: [
-      'legal_entity>LegalEntity|!|pays|Employer.',
-      'month>CalendarMonth|!|pays work of|Payroll month.',
-    ],
+    attrs: ['payment_date|CalendarDate||Payment date.', 'status|Code||Calculated, approved or paid.'],
+    links: ['legal_entity>LegalEntity|!|pays|Employer.', 'month>CalendarMonth|!|pays work of|Payroll month.'],
   },
   {
     concept: 'PayrollLine',
@@ -1081,23 +844,14 @@ const defs: Def[] = [
       'amount|MoneyAmount|!|Amount.',
       'employer_cost|Flag|!|Whether the amount is a cost to the employer.',
     ],
-    links: [
-      'payroll_run>PayrollRun|!|is part of|Payroll run.',
-      'employee>Employee|!|pays|Employee.',
-      'cost_center>CostCenter||is charged to|Cost center charged.',
-    ],
+    links: ['payroll_run>PayrollRun|!|is part of|Payroll run.', 'employee>Employee|!|pays|Employee.', 'cost_center>CostCenter||is charged to|Cost center charged.'],
   },
   {
     concept: 'TimeEntry',
     module: 'hr',
     table: 'time_entries',
     description: 'Hours recorded by an employee on a working day.',
-    attrs: [
-      'work_date|CalendarDate|!|Working day.',
-      'hours_worked|Quantity|!+|Hours worked.',
-      'overtime_hours|Quantity|+|Overtime hours.',
-      'night_hours|Quantity|+|Night-shift hours.',
-    ],
+    attrs: ['work_date|CalendarDate|!|Working day.', 'hours_worked|Quantity|!+|Hours worked.', 'overtime_hours|Quantity|+|Overtime hours.', 'night_hours|Quantity|+|Night-shift hours.'],
     links: ['employee>Employee|!|is recorded by|Employee.'],
   },
   {
@@ -1111,22 +865,14 @@ const defs: Def[] = [
       'end_date|CalendarDate|!|Last day.',
       'status|Code||Requested, approved or rejected.',
     ],
-    links: [
-      'employee>Employee|!|is requested by|Employee.',
-      'approver>Employee||is approved by|Approver.',
-    ],
+    links: ['employee>Employee|!|is requested by|Employee.', 'approver>Employee||is approved by|Approver.'],
   },
   {
     concept: 'Benefit',
     module: 'hr',
     table: 'benefits',
-    description:
-      'Employee benefit such as health plan, dental plan, meal voucher, transport voucher or life insurance.',
-    attrs: [
-      'name|Name|!|Benefit name.',
-      'benefit_type|Code|!|Benefit type.',
-      'monthly_cost|MoneyAmount|+|Employer cost per enrolled employee.',
-    ],
+    description: 'Employee benefit such as health plan, dental plan, meal voucher, transport voucher or life insurance.',
+    attrs: ['name|Name|!|Benefit name.', 'benefit_type|Code|!|Benefit type.', 'monthly_cost|MoneyAmount|+|Employer cost per enrolled employee.'],
     links: ['provider>Supplier||is provided by|Benefit supplier.'],
   },
   {
@@ -1134,147 +880,80 @@ const defs: Def[] = [
     module: 'hr',
     table: 'benefit_enrollments',
     description: 'Enrollment of an employee in a benefit.',
-    attrs: [
-      'start_date|CalendarDate|!|Start.',
-      'end_date|CalendarDate||End.',
-      'employee_contribution|MoneyAmount|+|Monthly employee contribution.',
-    ],
-    links: [
-      'employee>Employee|!|is enrolled by|Employee.',
-      'benefit>Benefit|!|enrolls in|Benefit.',
-    ],
+    attrs: ['start_date|CalendarDate|!|Start.', 'end_date|CalendarDate||End.', 'employee_contribution|MoneyAmount|+|Monthly employee contribution.'],
+    links: ['employee>Employee|!|is enrolled by|Employee.', 'benefit>Benefit|!|enrolls in|Benefit.'],
   },
   {
     concept: 'TrainingCourse',
     module: 'hr',
     table: 'training_courses',
-    description:
-      'Training course, including mandatory safety training such as work at height, fire brigade or electrical safety.',
-    attrs: [
-      'name|Name|!|Course name.',
-      'is_mandatory|Flag||Whether the course is legally mandatory for some positions.',
-      'validity_months|Count|+|Months before recertification.',
-    ],
+    description: 'Training course, including mandatory safety training such as work at height, fire brigade or electrical safety.',
+    attrs: ['name|Name|!|Course name.', 'is_mandatory|Flag||Whether the course is legally mandatory for some positions.', 'validity_months|Count|+|Months before recertification.'],
   },
   {
     concept: 'TrainingRecord',
     module: 'hr',
     table: 'training_records',
     description: 'Completion of a course by an employee.',
-    attrs: [
-      'completion_date|CalendarDate|!|Completion date.',
-      'expiry_date|CalendarDate||Certification expiry.',
-      'passed|Flag||Whether the employee passed.',
-    ],
-    links: [
-      'employee>Employee|!|is completed by|Employee.',
-      'course>TrainingCourse|!|completes|Course.',
-    ],
+    attrs: ['completion_date|CalendarDate|!|Completion date.', 'expiry_date|CalendarDate||Certification expiry.', 'passed|Flag||Whether the employee passed.'],
+    links: ['employee>Employee|!|is completed by|Employee.', 'course>TrainingCourse|!|completes|Course.'],
   },
   {
     concept: 'PerformanceReview',
     module: 'hr',
     table: 'performance_reviews',
     description: 'Periodic performance evaluation.',
-    attrs: [
-      'review_date|CalendarDate|!|Review date.',
-      'rating|Code||Rating.',
-      'summary|Text||Summary.',
-    ],
-    links: [
-      'employee>Employee|!|evaluates|Employee reviewed.',
-      'reviewer>Employee||is conducted by|Reviewer.',
-    ],
+    attrs: ['review_date|CalendarDate|!|Review date.', 'rating|Code||Rating.', 'summary|Text||Summary.'],
+    links: ['employee>Employee|!|evaluates|Employee reviewed.', 'reviewer>Employee||is conducted by|Reviewer.'],
   },
   {
     concept: 'JobOpening',
     module: 'hr',
     table: 'job_openings',
     description: 'Vacancy being recruited for a position.',
-    attrs: [
-      'opened_date|CalendarDate|!|Opened.',
-      'closed_date|CalendarDate||Closed.',
-      'status|Code||Open, filled or cancelled.',
-    ],
-    links: [
-      'position>Position|!|recruits for|Position.',
-      'hiring_manager>Employee||is managed by|Hiring manager.',
-    ],
+    attrs: ['opened_date|CalendarDate|!|Opened.', 'closed_date|CalendarDate||Closed.', 'status|Code||Open, filled or cancelled.'],
+    links: ['position>Position|!|recruits for|Position.', 'hiring_manager>Employee||is managed by|Hiring manager.'],
   },
   {
     concept: 'JobApplication',
     module: 'hr',
     table: 'job_applications',
     description: 'Application of a candidate to an opening.',
-    attrs: [
-      'applied_date|CalendarDate|!|Application date.',
-      'stage|Code||Screening, interview, offer, hired or rejected.',
-    ],
-    links: [
-      'job_opening>JobOpening|!|applies to|Opening.',
-      'candidate>Person|!|is submitted by|Candidate.',
-    ],
+    attrs: ['applied_date|CalendarDate|!|Application date.', 'stage|Code||Screening, interview, offer, hired or rejected.'],
+    links: ['job_opening>JobOpening|!|applies to|Opening.', 'candidate>Person|!|is submitted by|Candidate.'],
   },
   // Procurement.
   {
     concept: 'Supplier',
     module: 'proc',
     table: 'suppliers',
-    description:
-      'Role of an organization that supplies goods or services: cleaning, security, maintenance, utilities, marketing, construction or professional services.',
-    attrs: [
-      'supplier_category|Code||Main category supplied.',
-      'payment_terms_days|Count|+|Standard payment term in days.',
-      'is_approved|Flag||Whether the supplier is approved for purchasing.',
-    ],
+    description: 'Role of an organization that supplies goods or services: cleaning, security, maintenance, utilities, marketing, construction or professional services.',
+    attrs: ['supplier_category|Code||Main category supplied.', 'payment_terms_days|Count|+|Standard payment term in days.', 'is_approved|Flag||Whether the supplier is approved for purchasing.'],
     links: ['organization>Organization|!|is a role of|Supplying organization.'],
   },
   {
     concept: 'SupplierQualification',
     module: 'proc',
     table: 'supplier_qualifications',
-    description:
-      'Onboarding check of a supplier: tax and labour certificates, insurance, references and compliance declarations.',
-    attrs: [
-      'qualification_date|CalendarDate|!|Qualification date.',
-      'status|Code|!|Approved, conditional or rejected.',
-      'valid_until|CalendarDate||Expiry of the qualification.',
-    ],
-    links: [
-      'supplier>Supplier|!|qualifies|Supplier.',
-      'reviewer>Employee||is reviewed by|Reviewer.',
-    ],
+    description: 'Onboarding check of a supplier: tax and labour certificates, insurance, references and compliance declarations.',
+    attrs: ['qualification_date|CalendarDate|!|Qualification date.', 'status|Code|!|Approved, conditional or rejected.', 'valid_until|CalendarDate||Expiry of the qualification.'],
+    links: ['supplier>Supplier|!|qualifies|Supplier.', 'reviewer>Employee||is reviewed by|Reviewer.'],
   },
   {
     concept: 'SupplierEvaluation',
     module: 'proc',
     table: 'supplier_evaluations',
     description: 'Periodic evaluation of supplier quality, timeliness and compliance.',
-    attrs: [
-      'evaluation_date|CalendarDate|!|Evaluation date.',
-      'score|Rate|!%|Score as a fraction of the maximum.',
-      'comments|Text||Comments.',
-    ],
-    links: [
-      'supplier>Supplier|!|evaluates|Supplier.',
-      'evaluator>Employee||is performed by|Evaluator.',
-    ],
+    attrs: ['evaluation_date|CalendarDate|!|Evaluation date.', 'score|Rate|!%|Score as a fraction of the maximum.', 'comments|Text||Comments.'],
+    links: ['supplier>Supplier|!|evaluates|Supplier.', 'evaluator>Employee||is performed by|Evaluator.'],
   },
   {
     concept: 'SupplierAgreement',
     module: 'proc',
     table: 'supplier_agreements',
-    description:
-      'Framework supply agreement with agreed prices and conditions, registered as a contract.',
-    attrs: [
-      'price_adjustment_month|Count||Month of the year in which prices are adjusted.',
-      'spend_cap|MoneyAmount|+|Maximum spend under the agreement.',
-    ],
-    links: [
-      'contract>Contract|!|is registered as|Contract register entry.',
-      'supplier>Supplier|!|is agreed with|Supplier.',
-      'price_index>PriceIndex||is adjusted by|Price index applied.',
-    ],
+    description: 'Framework supply agreement with agreed prices and conditions, registered as a contract.',
+    attrs: ['price_adjustment_month|Count||Month of the year in which prices are adjusted.', 'spend_cap|MoneyAmount|+|Maximum spend under the agreement.'],
+    links: ['contract>Contract|!|is registered as|Contract register entry.', 'supplier>Supplier|!|is agreed with|Supplier.', 'price_index>PriceIndex||is adjusted by|Price index applied.'],
   },
   {
     concept: 'PurchaseRequisition',
@@ -1288,21 +967,14 @@ const defs: Def[] = [
       'estimated_amount|MoneyAmount|+|Estimated amount.',
       'status|Code||Draft, approved, rejected or ordered.',
     ],
-    links: [
-      'requester>Employee|!|is requested by|Requesting employee.',
-      'property>Property||is requested for|Property concerned.',
-    ],
+    links: ['requester>Employee|!|is requested by|Requesting employee.', 'property>Property||is requested for|Property concerned.'],
   },
   {
     concept: 'RequestForQuotation',
     module: 'proc',
     table: 'requests_for_quotation',
     description: 'Invitation to suppliers to quote for a requisition.',
-    attrs: [
-      'rfq_number|Code|!|Request number.',
-      'issue_date|CalendarDate|!|Issue date.',
-      'closing_date|CalendarDate||Deadline for quotes.',
-    ],
+    attrs: ['rfq_number|Code|!|Request number.', 'issue_date|CalendarDate|!|Issue date.', 'closing_date|CalendarDate||Deadline for quotes.'],
     links: ['requisition>PurchaseRequisition|!|sources|Requisition.'],
   },
   {
@@ -1316,21 +988,14 @@ const defs: Def[] = [
       'delivery_days|Count|+|Delivery or mobilisation time in days.',
       'is_selected|Flag||Whether the quote was selected.',
     ],
-    links: [
-      'rfq>RequestForQuotation|!|answers|Request for quotation.',
-      'supplier>Supplier|!|is submitted by|Supplier.',
-    ],
+    links: ['rfq>RequestForQuotation|!|answers|Request for quotation.', 'supplier>Supplier|!|is submitted by|Supplier.'],
   },
   {
     concept: 'PurchaseOrder',
     module: 'proc',
     table: 'purchase_orders',
     description: 'Order placed with a supplier.',
-    attrs: [
-      'po_number|Code|!|Order number.',
-      'order_date|CalendarDate|!|Order date.',
-      'status|Code||Open, received, invoiced, closed or cancelled.',
-    ],
+    attrs: ['po_number|Code|!|Order number.', 'order_date|CalendarDate|!|Order date.', 'status|Code||Open, received, invoiced, closed or cancelled.'],
     links: [
       'supplier>Supplier|!|is placed with|Supplier.',
       'property>Property||is delivered to|Delivery property.',
@@ -1344,37 +1009,22 @@ const defs: Def[] = [
     module: 'proc',
     table: 'purchase_order_lines',
     description: 'Item or service ordered.',
-    attrs: [
-      'summary|Text|!|Item or service.',
-      'quantity|Quantity|!+|Quantity ordered.',
-      'unit_price|MoneyAmount|!+|Unit price.',
-    ],
-    links: [
-      'purchase_order>PurchaseOrder|!|is a line of|Purchase order.',
-      'category>ExpenseCategory|!|is classified as|Expense category.',
-    ],
+    attrs: ['summary|Text|!|Item or service.', 'quantity|Quantity|!+|Quantity ordered.', 'unit_price|MoneyAmount|!+|Unit price.'],
+    links: ['purchase_order>PurchaseOrder|!|is a line of|Purchase order.', 'category>ExpenseCategory|!|is classified as|Expense category.'],
   },
   {
     concept: 'GoodsReceipt',
     module: 'proc',
     table: 'goods_receipts',
     description: 'Receipt of goods or acceptance of services delivered under an order.',
-    attrs: [
-      'receipt_date|CalendarDate|!|Receipt date.',
-      'is_accepted|Flag||Whether the delivery was accepted.',
-      'notes|Text||Notes.',
-    ],
-    links: [
-      'purchase_order>PurchaseOrder|!|receives|Purchase order.',
-      'received_by>Employee||is accepted by|Receiving employee.',
-    ],
+    attrs: ['receipt_date|CalendarDate|!|Receipt date.', 'is_accepted|Flag||Whether the delivery was accepted.', 'notes|Text||Notes.'],
+    links: ['purchase_order>PurchaseOrder|!|receives|Purchase order.', 'received_by>Employee||is accepted by|Receiving employee.'],
   },
   {
     concept: 'SupplierInvoice',
     module: 'proc',
     table: 'supplier_invoices',
-    description:
-      'Supplier invoice payable, in Brazil an electronic fiscal document (NF-e or NFS-e). paid_amount holds payments at the reporting date.',
+    description: 'Supplier invoice payable, in Brazil an electronic fiscal document (NF-e or NFS-e). paid_amount holds payments at the reporting date.',
     attrs: [
       'invoice_number|Code|!|Invoice number.',
       'fiscal_document_key|Code||Electronic fiscal document access key.',
@@ -1397,41 +1047,24 @@ const defs: Def[] = [
     module: 'proc',
     table: 'supplier_payments',
     description: 'Payment of a supplier invoice.',
-    attrs: [
-      'payment_date|CalendarDate|!|Payment date.',
-      'amount|MoneyAmount|!+|Amount paid.',
-      'payment_method|Code||Transfer, bank slip or instant payment.',
-    ],
-    links: [
-      'supplier_invoice>SupplierInvoice|!|pays|Supplier invoice.',
-      'bank_account>BankAccount||is paid from|Paying account.',
-    ],
+    attrs: ['payment_date|CalendarDate|!|Payment date.', 'amount|MoneyAmount|!+|Amount paid.', 'payment_method|Code||Transfer, bank slip or instant payment.'],
+    links: ['supplier_invoice>SupplierInvoice|!|pays|Supplier invoice.', 'bank_account>BankAccount||is paid from|Paying account.'],
   },
   // Operations.
   {
     concept: 'ExpenseCategory',
     module: 'ops',
     table: 'expense_categories',
-    description:
-      'Category of operating cost, such as cleaning, security, maintenance, utilities, insurance or administration fees.',
-    attrs: [
-      'code|Code|!|Category code.',
-      'name|Name|!|Category name.',
-      'recoverable|Flag||Whether the cost is recoverable from tenants through service charges.',
-    ],
+    description: 'Category of operating cost, such as cleaning, security, maintenance, utilities, insurance or administration fees.',
+    attrs: ['code|Code|!|Category code.', 'name|Name|!|Category name.', 'recoverable|Flag||Whether the cost is recoverable from tenants through service charges.'],
     links: ['parent_category>ExpenseCategory||is a subcategory of|Broader category.'],
   },
   {
     concept: 'ServiceChargeBudget',
     module: 'ops',
     table: 'service_charge_budgets',
-    description:
-      'Annual budget of shared operating costs recovered from tenants (in Brazil, the condominium budget).',
-    attrs: [
-      'year|Year|!|Budget year.',
-      'approved_date|CalendarDate||Approval date.',
-      'total_amount|MoneyAmount|+|Budget total.',
-    ],
+    description: 'Annual budget of shared operating costs recovered from tenants (in Brazil, the condominium budget).',
+    attrs: ['year|Year|!|Budget year.', 'approved_date|CalendarDate||Approval date.', 'total_amount|MoneyAmount|+|Budget total.'],
     links: ['property>Property|!|budgets costs of|Property.'],
   },
   {
@@ -1440,22 +1073,14 @@ const defs: Def[] = [
     table: 'service_charge_budget_lines',
     description: 'Budgeted amount for one expense category.',
     attrs: ['amount|MoneyAmount|!+|Budgeted amount.'],
-    links: [
-      'budget>ServiceChargeBudget|!|is a line of|Budget.',
-      'category>ExpenseCategory|!|budgets|Expense category.',
-    ],
+    links: ['budget>ServiceChargeBudget|!|is a line of|Budget.', 'category>ExpenseCategory|!|budgets|Expense category.'],
   },
   {
     concept: 'AllocationKey',
     module: 'ops',
     table: 'allocation_keys',
-    description:
-      'Rule to apportion recoverable costs among units, by area, ideal fraction, metered consumption or fixed share.',
-    attrs: [
-      'code|Code|!|Key code.',
-      'name|Name|!|Key name.',
-      'basis|Code|!|Area, ideal fraction, metered or fixed.',
-    ],
+    description: 'Rule to apportion recoverable costs among units, by area, ideal fraction, metered consumption or fixed share.',
+    attrs: ['code|Code|!|Key code.', 'name|Name|!|Key name.', 'basis|Code|!|Area, ideal fraction, metered or fixed.'],
     links: ['property>Property|!|apportions costs of|Property.'],
   },
   {
@@ -1464,22 +1089,14 @@ const defs: Def[] = [
     table: 'allocation_shares',
     description: 'Share of a unit under an allocation key.',
     attrs: ['share|Rate|!%|Fraction allocated to the unit.'],
-    links: [
-      'allocation_key>AllocationKey|!|is a share under|Allocation key.',
-      'unit>LeasableUnit|!|is allocated to|Unit.',
-    ],
+    links: ['allocation_key>AllocationKey|!|is a share under|Allocation key.', 'unit>LeasableUnit|!|is allocated to|Unit.'],
   },
   {
     concept: 'ServiceContract',
     module: 'ops',
     table: 'service_contracts',
-    description:
-      'Recurring service contract at a property, such as cleaning, security, maintenance, parking operation or landscaping, registered as a contract.',
-    attrs: [
-      'scope|Text||Scope of services.',
-      'monthly_amount|MoneyAmount|+|Monthly fee.',
-      'service_level|Text||Agreed service levels.',
-    ],
+    description: 'Recurring service contract at a property, such as cleaning, security, maintenance, parking operation or landscaping, registered as a contract.',
+    attrs: ['scope|Text||Scope of services.', 'monthly_amount|MoneyAmount|+|Monthly fee.', 'service_level|Text||Agreed service levels.'],
     links: [
       'contract>Contract|!|is registered as|Contract register entry.',
       'supplier>Supplier|!|is supplied by|Supplier.',
@@ -1492,11 +1109,7 @@ const defs: Def[] = [
     module: 'ops',
     table: 'operating_expenses',
     description: 'Actual operating cost incurred by a property in a month.',
-    attrs: [
-      'summary|Text||Expense description.',
-      'amount|MoneyAmount|!+|Amount incurred.',
-      'recoverable|Flag||Whether the expense is recoverable from tenants.',
-    ],
+    attrs: ['summary|Text||Expense description.', 'amount|MoneyAmount|!+|Amount incurred.', 'recoverable|Flag||Whether the expense is recoverable from tenants.'],
     links: [
       'property>Property|!|is incurred by|Property.',
       'category>ExpenseCategory|!|is classified as|Expense category.',
@@ -1530,11 +1143,7 @@ const defs: Def[] = [
     module: 'ops',
     table: 'utility_types',
     description: 'Metered utility: electricity, water, gas or chilled water.',
-    attrs: [
-      'code|Code|!|Utility code.',
-      'name|Name|!|Utility name.',
-      'unit_of_measure|Code||Unit of measure.',
-    ],
+    attrs: ['code|Code|!|Utility code.', 'name|Name|!|Utility name.', 'unit_of_measure|Code||Unit of measure.'],
   },
   {
     concept: 'UtilityMeter',
@@ -1553,22 +1162,14 @@ const defs: Def[] = [
     module: 'ops',
     table: 'meter_readings',
     description: 'Reading of a meter, the basis for recharging consumption to tenants.',
-    attrs: [
-      'reading_date|CalendarDate|!|Reading date.',
-      'reading_value|Quantity|!+|Cumulative reading.',
-      'consumption|Quantity|+|Consumption since the previous reading.',
-    ],
-    links: [
-      'meter>UtilityMeter|!|is read from|Meter.',
-      'month>CalendarMonth|!|is billed in|Billing month.',
-    ],
+    attrs: ['reading_date|CalendarDate|!|Reading date.', 'reading_value|Quantity|!+|Cumulative reading.', 'consumption|Quantity|+|Consumption since the previous reading.'],
+    links: ['meter>UtilityMeter|!|is read from|Meter.', 'month>CalendarMonth|!|is billed in|Billing month.'],
   },
   {
     concept: 'InsurancePolicy',
     module: 'ops',
     table: 'insurance_policies',
-    description:
-      'Insurance covering the property, such as property damage, loss of rent or civil liability.',
+    description: 'Insurance covering the property, such as property damage, loss of rent or civil liability.',
     attrs: [
       'policy_number|Code|!|Policy number.',
       'coverage_type|Code||Coverage.',
@@ -1577,36 +1178,22 @@ const defs: Def[] = [
       'start_date|CalendarDate|!|Start.',
       'end_date|CalendarDate||End.',
     ],
-    links: [
-      'property>Property|!|insures|Property.',
-      'insurer>Organization|!|is underwritten by|Insurer.',
-      'contract>Contract||is registered as|Contract register entry.',
-    ],
+    links: ['property>Property|!|insures|Property.', 'insurer>Organization|!|is underwritten by|Insurer.', 'contract>Contract||is registered as|Contract register entry.'],
   },
   {
     concept: 'Incident',
     module: 'ops',
     table: 'incidents',
     description: 'Safety, security or operational incident at a property.',
-    attrs: [
-      'occurred_on|CalendarDate|!|Date of the incident.',
-      'incident_type|Code||Incident type.',
-      'severity|Code||Severity.',
-      'summary|Text||Summary.',
-    ],
+    attrs: ['occurred_on|CalendarDate|!|Date of the incident.', 'incident_type|Code||Incident type.', 'severity|Code||Severity.', 'summary|Text||Summary.'],
     links: ['property>Property|!|occurred at|Property.'],
   },
   {
     concept: 'MarketingFund',
     module: 'ops',
     table: 'marketing_funds',
-    description:
-      'Annual promotion and advertising fund financed by tenant contributions, usually a fraction of minimum rent.',
-    attrs: [
-      'year|Year|!|Fund year.',
-      'contribution_rate|Rate|%|Contribution as a fraction of minimum rent.',
-      'budget_amount|MoneyAmount|+|Budget.',
-    ],
+    description: 'Annual promotion and advertising fund financed by tenant contributions, usually a fraction of minimum rent.',
+    attrs: ['year|Year|!|Fund year.', 'contribution_rate|Rate|%|Contribution as a fraction of minimum rent.', 'budget_amount|MoneyAmount|+|Budget.'],
     links: ['property>Property|!|promotes|Property.'],
   },
   {
@@ -1614,12 +1201,7 @@ const defs: Def[] = [
     module: 'ops',
     table: 'marketing_campaigns',
     description: 'Campaign financed by the marketing fund.',
-    attrs: [
-      'name|Name|!|Campaign name.',
-      'start_date|CalendarDate|!|Start.',
-      'end_date|CalendarDate||End.',
-      'budget|MoneyAmount|+|Budget.',
-    ],
+    attrs: ['name|Name|!|Campaign name.', 'start_date|CalendarDate|!|Start.', 'end_date|CalendarDate||End.', 'budget|MoneyAmount|+|Budget.'],
     links: ['fund>MarketingFund|!|is financed by|Marketing fund.'],
   },
   {
@@ -1627,52 +1209,30 @@ const defs: Def[] = [
     module: 'ops',
     table: 'mall_events',
     description: 'Event held at a property to attract visitors.',
-    attrs: [
-      'name|Name|!|Event name.',
-      'event_date|CalendarDate|!|Event date.',
-      'expected_visitors|Count|+|Expected visitors.',
-    ],
-    links: [
-      'property>Property|!|is held at|Property.',
-      'campaign>MarketingCampaign||is part of|Campaign.',
-    ],
+    attrs: ['name|Name|!|Event name.', 'event_date|CalendarDate|!|Event date.', 'expected_visitors|Count|+|Expected visitors.'],
+    links: ['property>Property|!|is held at|Property.', 'campaign>MarketingCampaign||is part of|Campaign.'],
   },
   // Finance.
   {
     concept: 'ChargeType',
     module: 'fin',
     table: 'charge_types',
-    description:
-      'Kind of billed item: minimum rent, percentage (overage) rent, thirteenth rent, service charge, marketing fund, utility recharge, key-money instalment or late fee.',
-    attrs: [
-      'code|Code|!|Charge code.',
-      'name|Name|!|Charge name.',
-      'revenue_class|Code|!|Rent, recoveries, marketing or other.',
-    ],
+    description: 'Kind of billed item: minimum rent, percentage (overage) rent, thirteenth rent, service charge, marketing fund, utility recharge, key-money instalment or late fee.',
+    attrs: ['code|Code|!|Charge code.', 'name|Name|!|Charge name.', 'revenue_class|Code|!|Rent, recoveries, marketing or other.'],
   },
   {
     concept: 'Invoice',
     module: 'fin',
     table: 'invoices',
-    description:
-      'Billing document issued by a property to a tenant, payable by bank slip, transfer or instant payment.',
-    attrs: [
-      'invoice_number|Code|!|Invoice number.',
-      'issue_date|CalendarDate|!|Issue date.',
-      'due_date|CalendarDate|!|Due date.',
-      'status|Code||Open, paid, partially paid or cancelled.',
-    ],
-    links: [
-      'property>Property|!|is issued by|Issuing property.',
-      'billed_tenant>Tenant|!|is billed to|Tenant billed.',
-    ],
+    description: 'Billing document issued by a property to a tenant, payable by bank slip, transfer or instant payment.',
+    attrs: ['invoice_number|Code|!|Invoice number.', 'issue_date|CalendarDate|!|Issue date.', 'due_date|CalendarDate|!|Due date.', 'status|Code||Open, paid, partially paid or cancelled.'],
+    links: ['property>Property|!|is issued by|Issuing property.', 'billed_tenant>Tenant|!|is billed to|Tenant billed.'],
   },
   {
     concept: 'Charge',
     module: 'fin',
     table: 'charges',
-    description:
-      'Billed amount of one charge type for a lease and competence month. paid_amount holds the allocated payments at the reporting date.',
+    description: 'Billed amount of one charge type for a lease and competence month. paid_amount holds the allocated payments at the reporting date.',
     attrs: [
       'summary|Text||Charge description.',
       'amount|MoneyAmount|!|Billed amount; negative for credits.',
@@ -1691,30 +1251,16 @@ const defs: Def[] = [
     module: 'fin',
     table: 'bank_accounts',
     description: 'Bank account used for collections, supplier payments, payroll and distributions.',
-    attrs: [
-      'bank_name|Name|!|Bank.',
-      'branch_code|Code||Branch.',
-      'account_number|Code|!|Account number.',
-    ],
-    links: [
-      'holder>LegalEntity|!|is held by|Account holder.',
-      'bank>Organization||is kept at|Bank.',
-    ],
+    attrs: ['bank_name|Name|!|Bank.', 'branch_code|Code||Branch.', 'account_number|Code|!|Account number.'],
+    links: ['holder>LegalEntity|!|is held by|Account holder.', 'bank>Organization||is kept at|Bank.'],
   },
   {
     concept: 'Payment',
     module: 'fin',
     table: 'payments',
     description: 'Payment received from a tenant.',
-    attrs: [
-      'payment_date|CalendarDate|!|Payment date.',
-      'amount|MoneyAmount|!+|Amount received.',
-      'payment_method|Code||Bank slip, transfer or instant payment.',
-    ],
-    links: [
-      'payer>Tenant|!|is paid by|Paying tenant.',
-      'bank_account>BankAccount||is received into|Receiving account.',
-    ],
+    attrs: ['payment_date|CalendarDate|!|Payment date.', 'amount|MoneyAmount|!+|Amount received.', 'payment_method|Code||Bank slip, transfer or instant payment.'],
+    links: ['payer>Tenant|!|is paid by|Paying tenant.', 'bank_account>BankAccount||is received into|Receiving account.'],
   },
   {
     concept: 'PaymentAllocation',
@@ -1741,13 +1287,8 @@ const defs: Def[] = [
     concept: 'CollectionAction',
     module: 'fin',
     table: 'collection_actions',
-    description:
-      'Step taken to collect overdue amounts: reminder, formal notice, protest, agreement or lawsuit.',
-    attrs: [
-      'action_date|CalendarDate|!|Action date.',
-      'action_type|Code|!|Action type.',
-      'outcome|Text||Outcome.',
-    ],
+    description: 'Step taken to collect overdue amounts: reminder, formal notice, protest, agreement or lawsuit.',
+    attrs: ['action_date|CalendarDate|!|Action date.', 'action_type|Code|!|Action type.', 'outcome|Text||Outcome.'],
     links: ['arrears_case>ArrearsCase|!|is taken in|Arrears case.'],
   },
   {
@@ -1755,11 +1296,7 @@ const defs: Def[] = [
     module: 'fin',
     table: 'payment_agreements',
     description: 'Agreement to settle overdue amounts in instalments.',
-    attrs: [
-      'agreement_date|CalendarDate|!|Agreement date.',
-      'total_amount|MoneyAmount|!+|Amount agreed.',
-      'installments|Count|+|Number of instalments.',
-    ],
+    attrs: ['agreement_date|CalendarDate|!|Agreement date.', 'total_amount|MoneyAmount|!+|Amount agreed.', 'installments|Count|+|Number of instalments.'],
     links: ['arrears_case>ArrearsCase|!|settles|Arrears case.'],
   },
   {
@@ -1767,11 +1304,7 @@ const defs: Def[] = [
     module: 'fin',
     table: 'ledger_accounts',
     description: 'Account of the property chart of accounts.',
-    attrs: [
-      'code|Code|!|Account code.',
-      'name|Name|!|Account name.',
-      'account_class|Code|!|Revenue, operating expense, non-operating, asset, liability or equity.',
-    ],
+    attrs: ['code|Code|!|Account code.', 'name|Name|!|Account name.', 'account_class|Code|!|Revenue, operating expense, non-operating, asset, liability or equity.'],
     links: ['parent_account>LedgerAccount||rolls up to|Parent account.'],
   },
   {
@@ -1779,27 +1312,15 @@ const defs: Def[] = [
     module: 'fin',
     table: 'journal_entries',
     description: 'Accounting entry of a legal entity for a month.',
-    attrs: [
-      'entry_date|CalendarDate|!|Posting date.',
-      'summary|Text||Entry description.',
-      'source_system|Code||Originating process: billing, payables, payroll, depreciation or manual.',
-    ],
-    links: [
-      'legal_entity>LegalEntity|!|is posted by|Legal entity keeping the books.',
-      'month>CalendarMonth|!|is posted in|Accounting month.',
-    ],
+    attrs: ['entry_date|CalendarDate|!|Posting date.', 'summary|Text||Entry description.', 'source_system|Code||Originating process: billing, payables, payroll, depreciation or manual.'],
+    links: ['legal_entity>LegalEntity|!|is posted by|Legal entity keeping the books.', 'month>CalendarMonth|!|is posted in|Accounting month.'],
   },
   {
     concept: 'JournalLine',
     module: 'fin',
     table: 'journal_lines',
-    description:
-      'Signed amount posted to a ledger account and cost center: income is positive and expense negative. noi_class is fixed at posting from the account: revenue, opex or excluded.',
-    attrs: [
-      'amount|MoneyAmount|!|Signed amount.',
-      'noi_class|Code|!|Contribution to net operating income: revenue, opex or excluded.',
-      'memo|Text||Line memo.',
-    ],
+    description: 'Signed amount posted to a ledger account and cost center: income is positive and expense negative. noi_class is fixed at posting from the account: revenue, opex or excluded.',
+    attrs: ['amount|MoneyAmount|!|Signed amount.', 'noi_class|Code|!|Contribution to net operating income: revenue, opex or excluded.', 'memo|Text||Line memo.'],
     links: [
       'entry>JournalEntry|!|is a line of|Journal entry.',
       'account>LedgerAccount|!|is posted to|Ledger account.',
@@ -1811,21 +1332,14 @@ const defs: Def[] = [
     module: 'fin',
     table: 'owner_distributions',
     description: 'Cash distributed to an investor for its ownership stake.',
-    attrs: [
-      'distribution_date|CalendarDate|!|Distribution date.',
-      'amount|MoneyAmount|!+|Amount distributed.',
-    ],
-    links: [
-      'stake>OwnershipStake|!|is paid on|Ownership stake.',
-      'month>CalendarMonth|!|distributes results of|Result month.',
-    ],
+    attrs: ['distribution_date|CalendarDate|!|Distribution date.', 'amount|MoneyAmount|!+|Amount distributed.'],
+    links: ['stake>OwnershipStake|!|is paid on|Ownership stake.', 'month>CalendarMonth|!|distributes results of|Result month.'],
   },
   {
     concept: 'CapitalProject',
     module: 'fin',
     table: 'capital_projects',
-    description:
-      'Capital expenditure on a property: expansion, renovation, retrofit or sustainability works.',
+    description: 'Capital expenditure on a property: expansion, renovation, retrofit or sustainability works.',
     attrs: [
       'name|Name|!|Project name.',
       'project_type|Code||Project type.',
@@ -1834,37 +1348,23 @@ const defs: Def[] = [
       'completion_date|CalendarDate||Completion.',
       'added_gla_m2|AreaM2|+|Gross leasable area added.',
     ],
-    links: [
-      'property>Property|!|invests in|Property.',
-      'construction_contract>Contract||is executed under|Construction contract.',
-    ],
+    links: ['property>Property|!|invests in|Property.', 'construction_contract>Contract||is executed under|Construction contract.'],
   },
   {
     concept: 'CostCenter',
     module: 'fin',
     table: 'cost_centers',
-    description:
-      'Unit of cost and result responsibility: a property, a department or a corporate function.',
+    description: 'Unit of cost and result responsibility: a property, a department or a corporate function.',
     attrs: ['code|Code|!|Cost center code.', 'name|Name|!|Cost center name.'],
-    links: [
-      'property>Property||accounts for|Property whose results the cost center carries.',
-      'parent_cost_center>CostCenter||rolls up to|Parent cost center.',
-    ],
+    links: ['property>Property||accounts for|Property whose results the cost center carries.', 'parent_cost_center>CostCenter||rolls up to|Parent cost center.'],
   },
   {
     concept: 'OperatingBudget',
     module: 'fin',
     table: 'operating_budgets',
     description: 'Approved annual budget of a legal entity, by version.',
-    attrs: [
-      'year|Year|!|Budget year.',
-      'version|Code|!|Original, reforecast or final.',
-      'approved_date|CalendarDate||Approval date.',
-    ],
-    links: [
-      'legal_entity>LegalEntity|!|budgets|Legal entity.',
-      'approval>Resolution||is approved by|Resolution approving the budget.',
-    ],
+    attrs: ['year|Year|!|Budget year.', 'version|Code|!|Original, reforecast or final.', 'approved_date|CalendarDate||Approval date.'],
+    links: ['legal_entity>LegalEntity|!|budgets|Legal entity.', 'approval>Resolution||is approved by|Resolution approving the budget.'],
   },
   {
     concept: 'BudgetLine',
@@ -1883,20 +1383,14 @@ const defs: Def[] = [
     concept: 'TaxType',
     module: 'fin',
     table: 'tax_types',
-    description:
-      'Tax or levy, such as property tax (IPTU), services tax (ISS), PIS, COFINS, income taxes or social security.',
-    attrs: [
-      'code|Code|!|Tax code.',
-      'name|Name|!|Tax name.',
-      'jurisdiction_level|Code||Federal, state or municipal.',
-    ],
+    description: 'Tax or levy, such as property tax (IPTU), services tax (ISS), PIS, COFINS, income taxes or social security.',
+    attrs: ['code|Code|!|Tax code.', 'name|Name|!|Tax name.', 'jurisdiction_level|Code||Federal, state or municipal.'],
   },
   {
     concept: 'TaxObligation',
     module: 'fin',
     table: 'tax_obligations',
-    description:
-      'Tax assessed or declared for a period, such as annual property tax instalments or monthly taxes on revenue.',
+    description: 'Tax assessed or declared for a period, such as annual property tax instalments or monthly taxes on revenue.',
     attrs: [
       'amount|MoneyAmount|!+|Amount due.',
       'due_date|CalendarDate|!|Due date.',
@@ -1914,13 +1408,9 @@ const defs: Def[] = [
     concept: 'TaxWithholding',
     module: 'fin',
     table: 'tax_withholdings',
-    description:
-      'Tax withheld from a supplier invoice and paid to the authority on the supplier behalf.',
+    description: 'Tax withheld from a supplier invoice and paid to the authority on the supplier behalf.',
     attrs: ['rate|Rate|!%|Withholding rate.', 'amount|MoneyAmount|!+|Amount withheld.'],
-    links: [
-      'supplier_invoice>SupplierInvoice|!|is withheld from|Supplier invoice.',
-      'tax_type>TaxType|!|withholds|Tax.',
-    ],
+    links: ['supplier_invoice>SupplierInvoice|!|is withheld from|Supplier invoice.', 'tax_type>TaxType|!|withholds|Tax.'],
   },
   {
     concept: 'FixedAsset',
@@ -1934,11 +1424,7 @@ const defs: Def[] = [
       'acquisition_cost|MoneyAmount|!+|Cost capitalised.',
       'useful_life_months|Count|+|Useful life.',
     ],
-    links: [
-      'property>Property|!|is located at|Property.',
-      'ledger_account>LedgerAccount||is recorded in|Asset account.',
-      'capital_project>CapitalProject||results from|Capital project.',
-    ],
+    links: ['property>Property|!|is located at|Property.', 'ledger_account>LedgerAccount||is recorded in|Asset account.', 'capital_project>CapitalProject||results from|Capital project.'],
   },
   {
     concept: 'DepreciationEntry',
@@ -1946,22 +1432,14 @@ const defs: Def[] = [
     table: 'depreciation_entries',
     description: 'Monthly depreciation of a fixed asset.',
     attrs: ['amount|MoneyAmount|!+|Depreciation for the month.'],
-    links: [
-      'fixed_asset>FixedAsset|!|depreciates|Asset.',
-      'month>CalendarMonth|!|is recorded in|Month.',
-    ],
+    links: ['fixed_asset>FixedAsset|!|depreciates|Asset.', 'month>CalendarMonth|!|is recorded in|Month.'],
   },
   {
     concept: 'LoanAgreement',
     module: 'fin',
     table: 'loan_agreements',
-    description:
-      'Debt financing, such as a bank loan or real-estate receivables securitisation, registered as a contract.',
-    attrs: [
-      'principal|MoneyAmount|!+|Principal.',
-      'interest_rate|Rate|%|Annual interest rate or spread.',
-      'maturity_date|CalendarDate||Maturity.',
-    ],
+    description: 'Debt financing, such as a bank loan or real-estate receivables securitisation, registered as a contract.',
+    attrs: ['principal|MoneyAmount|!+|Principal.', 'interest_rate|Rate|%|Annual interest rate or spread.', 'maturity_date|CalendarDate||Maturity.'],
     links: [
       'contract>Contract|!|is registered as|Contract register entry.',
       'lender>Organization|!|is lent by|Lender.',
@@ -1975,11 +1453,7 @@ const defs: Def[] = [
     module: 'fin',
     table: 'debt_service_payments',
     description: 'Scheduled or paid instalment of principal and interest.',
-    attrs: [
-      'payment_date|CalendarDate|!|Payment date.',
-      'principal_amount|MoneyAmount|+|Principal repaid.',
-      'interest_amount|MoneyAmount|+|Interest paid.',
-    ],
+    attrs: ['payment_date|CalendarDate|!|Payment date.', 'principal_amount|MoneyAmount|+|Principal repaid.', 'interest_amount|MoneyAmount|+|Interest paid.'],
     links: ['loan>LoanAgreement|!|services|Loan.'],
   },
   {
@@ -1987,12 +1461,7 @@ const defs: Def[] = [
     module: 'fin',
     table: 'bank_transactions',
     description: 'Statement line of a bank account, reconciled against receipts and payments.',
-    attrs: [
-      'transaction_date|CalendarDate|!|Value date.',
-      'amount|MoneyAmount|!|Signed amount.',
-      'summary|Text||Statement description.',
-      'is_reconciled|Flag||Whether the line is reconciled.',
-    ],
+    attrs: ['transaction_date|CalendarDate|!|Value date.', 'amount|MoneyAmount|!|Signed amount.', 'summary|Text||Statement description.', 'is_reconciled|Flag||Whether the line is reconciled.'],
     links: ['bank_account>BankAccount|!|appears on|Bank account.'],
   },
   {
@@ -2006,35 +1475,26 @@ const defs: Def[] = [
       'amount_paid|MoneyAmount|+|Amount paid by the insurer.',
       'status|Code||Open, accepted, rejected or paid.',
     ],
-    links: [
-      'policy>InsurancePolicy|!|is made under|Policy.',
-      'incident>Incident||results from|Incident.',
-    ],
+    links: ['policy>InsurancePolicy|!|is made under|Policy.', 'incident>Incident||results from|Incident.'],
   },
   // Performance.
   {
     concept: 'OccupancySnapshot',
     module: 'perf',
     table: 'occupancy_snapshots',
-    description:
-      'State of a unit at month end: its gross leasable area, the area occupied under a lease and the contracted minimum rent. One row per unit and month.',
+    description: 'State of a unit at month end: its gross leasable area, the area occupied under a lease and the contracted minimum rent. One row per unit and month.',
     attrs: [
       'gla_m2|AreaM2|!+|Gross leasable area of the unit.',
       'occupied_gla_m2|AreaM2|!+|Area under an active lease at month end.',
       'contracted_minimum_rent|MoneyAmount|+|Monthly minimum rent in force at month end.',
     ],
-    links: [
-      'unit>LeasableUnit|!|describes|Unit.',
-      'month>CalendarMonth|!|is taken at the end of|Month.',
-      'lease>Lease||is occupied under|Lease in force; empty when vacant.',
-    ],
+    links: ['unit>LeasableUnit|!|describes|Unit.', 'month>CalendarMonth|!|is taken at the end of|Month.', 'lease>Lease||is occupied under|Lease in force; empty when vacant.'],
   },
   {
     concept: 'SalesReport',
     module: 'perf',
     table: 'sales_reports',
-    description:
-      'Monthly gross sales declared by a tenant, the basis for percentage rent. occupancy_cost is the rent, service charge and marketing fund billed for the same month.',
+    description: 'Monthly gross sales declared by a tenant, the basis for percentage rent. occupancy_cost is the rent, service charge and marketing fund billed for the same month.',
     attrs: [
       'gross_sales|MoneyAmount|!+|Declared gross sales.',
       'reported_gla_m2|AreaM2|!+|Area of the leased units.',
@@ -2042,41 +1502,23 @@ const defs: Def[] = [
       'submitted_date|CalendarDate||Submission date.',
       'is_audited|Flag||Whether the report was audited.',
     ],
-    links: [
-      'lease>Lease|!|is declared under|Lease.',
-      'property>Property|!|is reported at|Property.',
-      'month>CalendarMonth|!|reports sales of|Sales month.',
-    ],
+    links: ['lease>Lease|!|is declared under|Lease.', 'property>Property|!|is reported at|Property.', 'month>CalendarMonth|!|reports sales of|Sales month.'],
   },
   {
     concept: 'SalesAudit',
     module: 'perf',
     table: 'sales_audits',
     description: 'Audit of declared sales against tenant records.',
-    attrs: [
-      'audit_date|CalendarDate|!|Audit date.',
-      'audited_sales|MoneyAmount|+|Sales established by the audit.',
-      'variance_amount|MoneyAmount||Audited minus declared sales.',
-    ],
-    links: [
-      'sales_report>SalesReport|!|audits|Sales report.',
-      'auditor>Organization||is performed by|Auditor.',
-    ],
+    attrs: ['audit_date|CalendarDate|!|Audit date.', 'audited_sales|MoneyAmount|+|Sales established by the audit.', 'variance_amount|MoneyAmount||Audited minus declared sales.'],
+    links: ['sales_report>SalesReport|!|audits|Sales report.', 'auditor>Organization||is performed by|Auditor.'],
   },
   {
     concept: 'FootfallCount',
     module: 'perf',
     table: 'footfall_counts',
     description: 'Visitors counted at an entrance over a counting period.',
-    attrs: [
-      'period_start|CalendarDate|!|First day counted.',
-      'period_end|CalendarDate|!|Last day counted.',
-      'visitors|Count|!+|Visitors counted.',
-    ],
-    links: [
-      'entrance>Entrance|!|is counted at|Entrance.',
-      'month>CalendarMonth|!|is reported in|Reporting month.',
-    ],
+    attrs: ['period_start|CalendarDate|!|First day counted.', 'period_end|CalendarDate|!|Last day counted.', 'visitors|Count|!+|Visitors counted.'],
+    links: ['entrance>Entrance|!|is counted at|Entrance.', 'month>CalendarMonth|!|is reported in|Reporting month.'],
   },
   {
     concept: 'ParkingActivity',
@@ -2084,18 +1526,14 @@ const defs: Def[] = [
     table: 'parking_activity',
     description: 'Tickets and revenue of a parking facility in a month.',
     attrs: ['tickets|Count|!+|Tickets issued.', 'revenue|MoneyAmount|!+|Parking revenue.'],
-    links: [
-      'facility>ParkingFacility|!|is recorded at|Parking facility.',
-      'month>CalendarMonth|!|is recorded in|Month.',
-    ],
+    links: ['facility>ParkingFacility|!|is recorded at|Parking facility.', 'month>CalendarMonth|!|is recorded in|Month.'],
   },
 ];
 const metrics: { name: string; concept: string; description: string; expression: string }[] = [
   {
     name: 'total_gla',
     concept: 'TotalGla',
-    description:
-      'Gross leasable area of the selected units (m²). Sum over one month only; summing months multiplies area.',
+    description: 'Gross leasable area of the selected units (m²). Sum over one month only; summing months multiplies area.',
     expression: 'SUM(occupancy_snapshots.gla_m2)',
   },
   {
@@ -2192,21 +1630,18 @@ const metrics: { name: string; concept: string; description: string; expression:
     name: 'operating_revenue',
     concept: 'OperatingRevenue',
     description: 'Ledger income classified as operating revenue.',
-    expression:
-      "SUM(CASE WHEN journal_lines.noi_class = 'revenue' THEN journal_lines.amount ELSE 0 END)",
+    expression: "SUM(CASE WHEN journal_lines.noi_class = 'revenue' THEN journal_lines.amount ELSE 0 END)",
   },
   {
     name: 'operating_expense_total',
     concept: 'OperatingExpenseTotal',
     description: 'Ledger operating expenses as a positive amount.',
-    expression:
-      "SUM(CASE WHEN journal_lines.noi_class = 'opex' THEN -journal_lines.amount ELSE 0 END)",
+    expression: "SUM(CASE WHEN journal_lines.noi_class = 'opex' THEN -journal_lines.amount ELSE 0 END)",
   },
   {
     name: 'net_operating_income',
     concept: 'NetOperatingIncome',
-    description:
-      'Operating revenue minus operating expenses. Depreciation, financing and other excluded lines do not count.',
+    description: 'Operating revenue minus operating expenses. Depreciation, financing and other excluded lines do not count.',
     expression: 'operating_revenue - operating_expense_total',
   },
   {
@@ -2224,16 +1659,13 @@ const metrics: { name: string; concept: string; description: string; expression:
   {
     name: 'payroll_cost',
     concept: 'PayrollCost',
-    description:
-      'Payroll amounts borne by the employer: salary, overtime, benefits and employer social charges. Employee deductions are excluded.',
-    expression:
-      'SUM(CASE WHEN payroll_lines.employer_cost = 1 THEN payroll_lines.amount ELSE 0 END)',
+    description: 'Payroll amounts borne by the employer: salary, overtime, benefits and employer social charges. Employee deductions are excluded.',
+    expression: 'SUM(CASE WHEN payroll_lines.employer_cost = 1 THEN payroll_lines.amount ELSE 0 END)',
   },
   {
     name: 'headcount',
     concept: 'Headcount',
-    description:
-      'Distinct employees paid. Not additive across months or departments that share employees.',
+    description: 'Distinct employees paid. Not additive across months or departments that share employees.',
     expression: 'COUNT(DISTINCT payroll_lines.employee_id)',
   },
   {
@@ -2245,8 +1677,7 @@ const metrics: { name: string; concept: string; description: string; expression:
   {
     name: 'payables_outstanding',
     concept: 'PayablesOutstanding',
-    description:
-      'Supplier invoice amounts not yet paid at the reporting date, net of withheld taxes.',
+    description: 'Supplier invoice amounts not yet paid at the reporting date, net of withheld taxes.',
     expression: 'SUM(supplier_invoices.open_amount)',
   },
 ];
@@ -2640,21 +2071,12 @@ const keyPerLine = (data: Record<string, unknown>) =>
   `{\n${Object.entries(data)
     .map(([k, v]) => `  ${JSON.stringify(k)}: ${JSON.stringify(v)}`)
     .join(',\n')}\n}`;
-const bindingsJson = (schema: string, list: any[]) =>
-  `{"schema": ${JSON.stringify(schema)}, "kpi_bindings": [\n${list.map(b => '  ' + JSON.stringify(b)).join(',\n')}\n]}`;
+const bindingsJson = (schema: string, list: any[]) => `{"schema": ${JSON.stringify(schema)}, "kpi_bindings": [\n${list.map(b => '  ' + JSON.stringify(b)).join(',\n')}\n]}`;
 const computed: Record<string, [string, string, string]> = {
-  occupancy_snapshots: [
-    'vacant_gla_m2',
-    'gla_m2 - occupied_gla_m2',
-    'Gross leasable area without an active lease.',
-  ],
+  occupancy_snapshots: ['vacant_gla_m2', 'gla_m2 - occupied_gla_m2', 'Gross leasable area without an active lease.'],
   charges: ['open_amount', 'amount - paid_amount', 'Billed amount not yet collected.'],
   purchase_order_lines: ['line_amount', 'quantity * unit_price', 'Ordered amount.'],
-  supplier_invoices: [
-    'open_amount',
-    'gross_amount - withheld_taxes - paid_amount',
-    'Amount still payable to the supplier.',
-  ],
+  supplier_invoices: ['open_amount', 'gross_amount - withheld_taxes - paid_amount', 'Amount still payable to the supplier.'],
 };
 
 // Shared definitions keep the generated formats consistent.
@@ -2688,20 +2110,17 @@ const allAttrs = (d: Def) => [...ancestors(d), d].flatMap(attrsOf);
 const allLinks = (d: Def) => [...ancestors(d), d].flatMap(linksOf);
 const camel = (s: string) => s.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
 const lowerFirst = (s: string) => s[0].toLowerCase() + s.slice(1);
-const relIri = (owner: string, name: string) =>
-  `${byConcept.get(owner)!.module}:${lowerFirst(owner)}${name[0].toUpperCase()}${camel(name).slice(1)}`;
+const relIri = (owner: string, name: string) => `${byConcept.get(owner)!.module}:${lowerFirst(owner)}${name[0].toUpperCase()}${camel(name).slice(1)}`;
 const words = (s: string) => s.replace(/_/g, ' ');
 const valueBase = new Map(valueTypes.map(([n, b]) => [n, b]));
 const concrete = defs.filter(d => d.table);
 for (const d of defs) {
-  for (const p of d.extends ?? [])
-    if (!byConcept.has(p)) throw Error(`${d.concept} extends unknown ${p}`);
+  for (const p of d.extends ?? []) if (!byConcept.has(p)) throw Error(`${d.concept} extends unknown ${p}`);
   for (const l of linksOf(d)) {
     const t = byConcept.get(l.target);
     if (!t?.table) throw Error(`${d.concept}.${l.name} targets ${l.target}, which has no table`);
   }
-  for (const a of attrsOf(d))
-    if (!valueBase.has(a.type)) throw Error(`${d.concept}.${a.name}: unknown value type ${a.type}`);
+  for (const a of attrsOf(d)) if (!valueBase.has(a.type)) throw Error(`${d.concept}.${a.name}: unknown value type ${a.type}`);
 }
 
 const ontology: any = {
@@ -2712,15 +2131,7 @@ const ontology: any = {
   ai_context: {
     instructions:
       'Gross leasable area (GLA, Portuguese ABL) counts only leasable units. Occupancy is measured on area, not unit count, from month-end snapshots; never sum area across months. Minimum rent and percentage rent are separate charges; percentage rent is billed only when rate × gross sales exceeds minimum rent. A thirteenth minimum rent may be billed in December. Service charges recover shared operating costs; the marketing fund is a separate tenant contribution. Key money or right-of-use fees are not rent. A charge has a contracted tenant (through its lease) and a billed tenant (through its invoice); do not treat these roles as interchangeable. Lease permitted use is the tenant-mix category of record. All fixture amounts are in Brazilian reais (BRL).',
-    synonyms: [
-      'shopping mall',
-      'shopping center administration',
-      'retail real estate',
-      'property management',
-      'ABL',
-      'condomínio',
-      'fundo de promoção',
-    ],
+    synonyms: ['shopping mall', 'shopping center administration', 'retail real estate', 'property management', 'ABL', 'condomínio', 'fundo de promoção'],
   },
   prefixes,
   ontology: [],
@@ -2762,11 +2173,7 @@ for (const d of defs) {
       description: l.description,
       roles: [{ concept: l.target }],
       multiplicity: 'ManyToOne',
-      verbalizes: [
-        l.target === d.concept
-          ? `{${d.concept}} ${l.phrase} another {${l.target}}`
-          : `{${d.concept}} ${l.phrase} {${l.target}}`,
-      ],
+      verbalizes: [l.target === d.concept ? `{${d.concept}} ${l.phrase} another {${l.target}}` : `{${d.concept}} ${l.phrase} {${l.target}}`],
     });
   component.relationships = relationships;
   ontology.ontology.push(component);
@@ -2789,11 +2196,7 @@ for (const m of metrics)
   });
 
 const expr = (expression: string) => ({ dialects: [{ dialect: 'ANSI_SQL', expression }] });
-const columnsOf = (d: Def) => [
-  'id',
-  ...allAttrs(d).map(a => a.name),
-  ...allLinks(d).map(l => l.name + '_id'),
-];
+const columnsOf = (d: Def) => ['id', ...allAttrs(d).map(a => a.name), ...allLinks(d).map(l => l.name + '_id')];
 const semantic: any = {
   version: '0.2.0.dev0',
   name: 'Shopping center administration semantic model',
@@ -2809,9 +2212,7 @@ const semantic: any = {
     name: m.name,
     description: m.description,
     expression: expr(m.expression),
-    custom_extensions: extension(
-      keyPerLine({ schema: 'semantic-workbench/metric/v1', ...kpis[m.name].ext }),
-    ),
+    custom_extensions: extension(keyPerLine({ schema: 'semantic-workbench/metric/v1', ...kpis[m.name].ext })),
   })),
 };
 for (const d of concrete) {
@@ -2838,8 +2239,7 @@ for (const d of concrete) {
 const mapping: any = {
   version: '0.2.0.dev0',
   name: 'Shopping center administration mappings',
-  description:
-    'Maps every concrete concept, attribute and link to its dataset and every KPI concept to its governed metric.',
+  description: 'Maps every concrete concept, attribute and link to its dataset and every KPI concept to its governed metric.',
   ontology_ref: { name: ontology.name, iri: './mall.ontology.yaml' },
   semantic_model_ref: { name: semantic.name, iri: './mall.semantic.yaml' },
   concept_mappings: [],
@@ -2870,14 +2270,11 @@ for (const d of concrete) {
     ],
   });
 }
-for (const m of metrics)
-  mapping.concept_mappings.push({ concept: m.concept, object_mappings: [{ expression: m.name }] });
+for (const m of metrics) mapping.concept_mappings.push({ concept: m.concept, object_mappings: [{ expression: m.name }] });
 mapping.custom_extensions = extension(
   bindingsJson(
     'semantic-workbench/mapping/v1',
-    [...metrics]
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .map(m => ({ metric: m.name, measures: `kpi:${m.concept}`, of: kpis[m.name].of })),
+    [...metrics].sort((a, b) => a.name.localeCompare(b.name)).map(m => ({ metric: m.name, measures: `kpi:${m.concept}`, of: kpis[m.name].of })),
   ),
 );
 
@@ -3231,8 +2628,7 @@ const sales: Record<number, [number, number]> = {
 };
 // Paid fraction of each lease's charges at the reporting date: lease 3 has not paid September;
 // lease 5 paid half of September.
-const paidFraction = (lease: number, month: number) =>
-  month === 2 && lease === 3 ? 0 : month === 2 && lease === 5 ? 0.5 : 1;
+const paidFraction = (lease: number, month: number) => (month === 2 && lease === 3 ? 0 : month === 2 && lease === 5 ? 0.5 : 1);
 const serviceChargePerM2 = 30;
 const marketingRate = 0.1;
 rows.occupancy_snapshots = [];
@@ -3336,17 +2732,8 @@ for (const m of months)
       month_id: m.id,
     };
     rows.journal_entries.push(entry);
-    const rent = rows.charges
-      .filter(
-        c =>
-          c.month_id === m.id &&
-          [1, 2].includes(c.charge_type_id) &&
-          rows.invoices[c.invoice_id - 1].property_id === property,
-      )
-      .reduce((s, c) => s + c.amount, 0);
-    const parking = rows.parking_activity
-      .filter(p => p.month_id === m.id && p.facility_id === property)
-      .reduce((s, p) => s + p.revenue, 0);
+    const rent = rows.charges.filter(c => c.month_id === m.id && [1, 2].includes(c.charge_type_id) && rows.invoices[c.invoice_id - 1].property_id === property).reduce((s, c) => s + c.amount, 0);
+    const parking = rows.parking_activity.filter(p => p.month_id === m.id && p.facility_id === property).reduce((s, p) => s + p.revenue, 0);
     for (const [account, amount, noi_class] of [
       [1, rent, 'revenue'],
       [2, parking, 'revenue'],
@@ -3456,9 +2843,7 @@ rows.purchase_order_lines = [
   },
 ];
 rows.supplier_invoices = rows.purchase_orders.map(po => {
-  const gross = rows.purchase_order_lines
-    .filter(l => l.purchase_order_id === po.id)
-    .reduce((s, l) => s + l.quantity * l.unit_price, 0);
+  const gross = rows.purchase_order_lines.filter(l => l.purchase_order_id === po.id).reduce((s, l) => s + l.quantity * l.unit_price, 0);
   const withheld = Math.round(gross * 0.11 * 100) / 100;
   return {
     id: po.id,
@@ -3479,20 +2864,8 @@ rows.supplier_invoices = rows.purchase_orders.map(po => {
 // Expected metric values come directly from rows to provide an independent check of SQL.
 const sum = <T>(xs: T[], f: (x: T) => number) => xs.reduce((s, x) => s + f(x), 0);
 const propertyOfUnit = (unit: number) => unitProperty(unit);
-const byMonthProperty = <T>(
-  xs: T[],
-  month: (x: T) => number,
-  property: (x: T) => number,
-  f: (xs: T[]) => number,
-) =>
-  Object.fromEntries(
-    months.flatMap(m =>
-      [1, 2].map(p => [
-        `${m.year_month}|${rows.properties[p - 1].name}`,
-        f(xs.filter(x => month(x) === m.id && property(x) === p)),
-      ]),
-    ),
-  );
+const byMonthProperty = <T>(xs: T[], month: (x: T) => number, property: (x: T) => number, f: (xs: T[]) => number) =>
+  Object.fromEntries(months.flatMap(m => [1, 2].map(p => [`${m.year_month}|${rows.properties[p - 1].name}`, f(xs.filter(x => month(x) === m.id && property(x) === p))])));
 const snap = rows.occupancy_snapshots;
 const chg = rows.charges;
 const rep = rows.sales_reports;
@@ -3529,10 +2902,7 @@ const expected = {
   minimumRentPerM2ByMonth: Object.fromEntries(
     months.map(m => {
       const xs = snap.filter(s => s.month_id === m.id);
-      return [
-        m.year_month,
-        sum(xs, s => s.contracted_minimum_rent) / sum(xs, s => s.occupied_gla_m2),
-      ];
+      return [m.year_month, sum(xs, s => s.contracted_minimum_rent) / sum(xs, s => s.occupied_gla_m2)];
     }),
   ),
   billedByChargeType: Object.fromEntries(
@@ -3563,17 +2933,8 @@ const expected = {
     months.flatMap(m =>
       rows.merchandise_categories
         .map(c => {
-          const xs = rep.filter(
-            r => r.month_id === m.id && rows.leases[r.lease_id - 1].permitted_use_id === c.id,
-          );
-          return xs.length
-            ? [
-                [
-                  `${m.year_month}|${c.name}`,
-                  sum(xs, r => r.gross_sales) / sum(xs, r => r.reported_gla_m2),
-                ],
-              ]
-            : [];
+          const xs = rep.filter(r => r.month_id === m.id && rows.leases[r.lease_id - 1].permitted_use_id === c.id);
+          return xs.length ? [[`${m.year_month}|${c.name}`, sum(xs, r => r.gross_sales) / sum(xs, r => r.reported_gla_m2)]] : [];
         })
         .flat(),
     ),
@@ -3581,10 +2942,7 @@ const expected = {
   occupancyCostRatioByProperty: Object.fromEntries(
     [1, 2].map(p => {
       const xs = rep.filter(r => r.property_id === p);
-      return [
-        rows.properties[p - 1].name,
-        sum(xs, r => r.occupancy_cost) / sum(xs, r => r.gross_sales),
-      ];
+      return [rows.properties[p - 1].name, sum(xs, r => r.occupancy_cost) / sum(xs, r => r.gross_sales)];
     }),
   ),
   visitorsByMonthProperty: byMonthProperty(
@@ -3623,25 +2981,13 @@ const expected = {
     months.flatMap(m =>
       rows.departments
         .map(d => {
-          const xs = rows.payroll_lines.filter(
-            l =>
-              l.payroll_run_id === m.id &&
-              rows.positions[rows.employees[l.employee_id - 1].position_id - 1].department_id ===
-                d.id &&
-              l.employer_cost,
-          );
+          const xs = rows.payroll_lines.filter(l => l.payroll_run_id === m.id && rows.positions[rows.employees[l.employee_id - 1].position_id - 1].department_id === d.id && l.employer_cost);
           return [`${m.year_month}|${d.name}`, sum(xs, l => l.amount)];
         })
         .filter(([, v]) => v),
     ),
   ),
-  headcountByMonth: Object.fromEntries(
-    months.map(m => [
-      m.year_month,
-      new Set(rows.payroll_lines.filter(l => l.payroll_run_id === m.id).map(l => l.employee_id))
-        .size,
-    ]),
-  ),
+  headcountByMonth: Object.fromEntries(months.map(m => [m.year_month, new Set(rows.payroll_lines.filter(l => l.payroll_run_id === m.id).map(l => l.employee_id)).size])),
   purchaseSpendByCategory: Object.fromEntries(
     rows.expense_categories.map(c => [
       c.name,
@@ -3669,8 +3015,7 @@ const xsd: Record<string, string> = {
   Date: 'xsd:date',
   Boolean: 'xsd:boolean',
 };
-const datatype = (type: string) =>
-  type === 'YearMonth' ? 'xsd:gYearMonth' : xsd[valueBase.get(type)!];
+const datatype = (type: string) => (type === 'YearMonth' ? 'xsd:gYearMonth' : xsd[valueBase.get(type)!]);
 const q = (s: string) => JSON.stringify(s);
 const header = (extra: string[] = []) =>
   [
@@ -3701,10 +3046,7 @@ const schemaMatches: Record<string, string> = {
   MallEvent: 'schema:Event',
   Lease: 'schema:RentAction',
 };
-let owl = header([
-  '@prefix skos: <http://www.w3.org/2004/02/skos/core#> .',
-  '@prefix schema: <https://schema.org/> .',
-]);
+let owl = header(['@prefix skos: <http://www.w3.org/2004/02/skos/core#> .', '@prefix schema: <https://schema.org/> .']);
 owl += `<${base}ontology> a owl:Ontology ; rdfs:label ${q('Shopping center administration OWL ontology')} ; rdfs:comment ${q(ontology.description)} ; owl:versionInfo "1.0.0" .\n\n`;
 for (const [m, comment] of Object.entries(modules)) owl += `# ${m}: ${comment}\n`;
 owl += '\n';
@@ -3712,24 +3054,13 @@ for (const d of defs) {
   const supers = (d.extends ?? []).map(p => `${byConcept.get(p)!.module}:${p}`);
   const required = linksOf(d)
     .filter(l => l.flags.includes('!'))
-    .map(
-      l =>
-        `[ a owl:Restriction ; owl:onProperty ${relIri(d.concept, l.name)} ; owl:someValuesFrom ${byConcept.get(l.target)!.module}:${l.target} ]`,
-    );
+    .map(l => `[ a owl:Restriction ; owl:onProperty ${relIri(d.concept, l.name)} ; owl:someValuesFrom ${byConcept.get(l.target)!.module}:${l.target} ]`);
   owl += `${d.module}:${d.concept} a owl:Class ; rdfs:label ${q(label(d.concept))} ; rdfs:comment ${q(d.description)}${[...supers, ...required].length ? ` ;\n  rdfs:subClassOf ${[...supers, ...required].join(' ,\n    ')}` : ''}${schemaMatches[d.concept] ? ` ;\n  skos:closeMatch ${schemaMatches[d.concept]}` : ''} .\n`;
 }
 for (const group of [
   ['Organization', 'Person'],
   ['LeasableUnit', 'CommonArea', 'ParkingFacility'],
-  [
-    'PercentageRentClause',
-    'IndexationClause',
-    'ExclusivityClause',
-    'RadiusClause',
-    'CoTenancyClause',
-    'RenewalOption',
-    'EarlyTerminationOption',
-  ],
+  ['PercentageRentClause', 'IndexationClause', 'ExclusivityClause', 'RadiusClause', 'CoTenancyClause', 'RenewalOption', 'EarlyTerminationOption'],
 ])
   owl += `[] a owl:AllDisjointClasses ; owl:members ( ${group.map(c => `${byConcept.get(c)!.module}:${c}`).join(' ')} ) .\n`;
 owl += '\n';
@@ -3751,19 +3082,13 @@ const dateOrder: [string, string][] = [
 for (const d of defs) {
   const props: [string, string][] = [];
   for (const a of attrsOf(d)) {
-    const c = [
-      `sh:path ${relIri(d.concept, a.name)}`,
-      `sh:name ${q(words(a.name))}`,
-      `sh:datatype ${datatype(a.type)}`,
-      'sh:maxCount 1',
-    ];
+    const c = [`sh:path ${relIri(d.concept, a.name)}`, `sh:name ${q(words(a.name))}`, `sh:datatype ${datatype(a.type)}`, 'sh:maxCount 1'];
     if (a.flags.includes('!')) c.push('sh:minCount 1');
     if (a.flags.includes('+')) c.push('sh:minInclusive 0');
     if (a.flags.includes('%')) c.push('sh:minInclusive 0', 'sh:maxInclusive 1');
     if (['Name', 'Code'].includes(a.type)) c.push('sh:minLength 1');
     const later = dateOrder.find(([from]) => from === a.name)?.[1];
-    if (later && attrsOf(d).some(x => x.name === later))
-      c.push(`sh:lessThanOrEquals ${relIri(d.concept, later)}`);
+    if (later && attrsOf(d).some(x => x.name === later)) c.push(`sh:lessThanOrEquals ${relIri(d.concept, later)}`);
     props.push([a.name, c.join(' ; ')]);
   }
   for (const l of linksOf(d))
@@ -3776,41 +3101,19 @@ for (const d of defs) {
   if (props.length)
     shacl +=
       `${d.module}:${d.concept}Shape a sh:NodeShape ; rdfs:label ${q(label(d.concept) + ' requirements')} ; sh:targetClass ${d.module}:${d.concept} ;\n  sh:property ${props.map(([name]) => shapeIri(name)).join(' ,\n    ')} .\n` +
-      props
-        .map(
-          ([name, body]) =>
-            `${shapeIri(name)} a sh:PropertyShape ; rdfs:label ${q(`${label(d.concept)}: ${words(name)}`)} ; ${body} .\n`,
-        )
-        .join('');
+      props.map(([name, body]) => `${shapeIri(name)} a sh:PropertyShape ; rdfs:label ${q(`${label(d.concept)}: ${words(name)}`)} ; ${body} .\n`).join('');
 }
 const literal = (type: string, value: any) => {
   const dt = datatype(type);
-  return dt === 'xsd:boolean'
-    ? value
-      ? 'true'
-      : 'false'
-    : dt === 'xsd:string'
-      ? q(String(value))
-      : `${q(String(value))}^^${dt}`;
+  return dt === 'xsd:boolean' ? (value ? 'true' : 'false') : dt === 'xsd:string' ? q(String(value)) : `${q(String(value))}^^${dt}`;
 };
 let data = header(['@prefix data: <https://example.org/mall/data/> .']);
 for (const d of concrete)
   for (const row of rows[d.table!] ?? []) {
-    const labelAttr = allAttrs(d).find(
-      a => ['Name', 'Code'].includes(a.type) && row[a.name] != null,
-    );
-    const parts = [
-      `a ${d.module}:${d.concept}`,
-      `rdfs:label ${q(labelAttr ? String(row[labelAttr.name]) : `${label(d.concept)} ${row.id}`)}`,
-    ];
-    for (const a of allAttrs(d))
-      if (row[a.name] != null)
-        parts.push(`${relIri(a.owner, a.name)} ${literal(a.type, row[a.name])}`);
-    for (const l of allLinks(d))
-      if (row[l.name + '_id'] != null)
-        parts.push(
-          `${relIri(l.owner, l.name)} data:${byConcept.get(l.target)!.table}-${row[l.name + '_id']}`,
-        );
+    const labelAttr = allAttrs(d).find(a => ['Name', 'Code'].includes(a.type) && row[a.name] != null);
+    const parts = [`a ${d.module}:${d.concept}`, `rdfs:label ${q(labelAttr ? String(row[labelAttr.name]) : `${label(d.concept)} ${row.id}`)}`];
+    for (const a of allAttrs(d)) if (row[a.name] != null) parts.push(`${relIri(a.owner, a.name)} ${literal(a.type, row[a.name])}`);
+    for (const l of allLinks(d)) if (row[l.name + '_id'] != null) parts.push(`${relIri(l.owner, l.name)} data:${byConcept.get(l.target)!.table}-${row[l.name + '_id']}`);
     data += `data:${d.table}-${row.id} ${parts.join(' ;\n  ')} .\n`;
   }
 
@@ -3822,9 +3125,7 @@ const logical: Record<string, string> = {
   Boolean: 'boolean',
 };
 const fieldType = (d: Def, column: string) =>
-  column === 'id' || (column.endsWith('_id') && allLinks(d).some(l => l.name + '_id' === column))
-    ? 'Integer'
-    : valueBase.get(allAttrs(d).find(a => a.name === column)!.type)!;
+  column === 'id' || (column.endsWith('_id') && allLinks(d).some(l => l.name + '_id' === column)) ? 'Integer' : valueBase.get(allAttrs(d).find(a => a.name === column)!.type)!;
 const contract: any = {
   apiVersion: 'v3.1.0',
   kind: 'DataContract',
@@ -3835,8 +3136,7 @@ const contract: any = {
   domain: 'Shopping center administration',
   dataProduct: 'Retail real estate operations',
   description: {
-    purpose:
-      'Governed tables for leasing, billing, operations and performance reporting of shopping centers.',
+    purpose: 'Governed tables for leasing, billing, operations and performance reporting of shopping centers.',
     limitations: 'Fictional demonstration data in BRL. No real tenants, people or properties.',
   },
   schema: concrete.map(d => ({
@@ -3845,9 +3145,7 @@ const contract: any = {
     physicalType: 'table',
     logicalType: 'object',
     description: d.description,
-    authoritativeDefinitions: [
-      { type: 'businessDefinition', url: `${prefixes[d.module]}${d.concept}` },
-    ],
+    authoritativeDefinitions: [{ type: 'businessDefinition', url: `${prefixes[d.module]}${d.concept}` }],
     properties: columnsOf(d).map(column => {
       const attr = allAttrs(d).find(a => a.name === column);
       const link = allLinks(d).find(l => l.name + '_id' === column);
@@ -3856,17 +3154,10 @@ const contract: any = {
         logicalType: logical[fieldType(d, column)],
         required: column === 'id' || !!(attr ?? link)?.flags.includes('!'),
         ...(column === 'id' ? { primaryKey: true, unique: true } : {}),
-        description:
-          column === 'id'
-            ? `Identifier of the ${words(d.concept)}.`
-            : attr
-              ? attr.description
-              : `Reference to ${words(link!.target)}: ${link!.description}`,
+        description: column === 'id' ? `Identifier of the ${words(d.concept)}.` : attr ? attr.description : `Reference to ${words(link!.target)}: ${link!.description}`,
         ...(link
           ? {
-              relationships: [
-                { type: 'foreignKey', to: `${byConcept.get(link.target)!.table}.id` },
-              ],
+              relationships: [{ type: 'foreignKey', to: `${byConcept.get(link.target)!.table}.id` }],
             }
           : {}),
       };
@@ -3924,29 +3215,16 @@ quality('sales_reports', 'gross_sales', [
   },
 ]);
 
-const sqlLiteral = (value: any) =>
-  value == null
-    ? 'NULL'
-    : typeof value === 'number'
-      ? String(value)
-      : "'" + String(value).replaceAll("'", "''") + "'";
-const sqlType = (t: string) =>
-  t === 'Integer' || t === 'Boolean' ? 'INTEGER' : t === 'Decimal' ? 'REAL' : 'TEXT';
-let sql =
-  "-- Synthetic BRL fixture for isolated tests. Not a warehouse migration.\nATTACH ':memory:' AS mall;\n";
+const sqlLiteral = (value: any) => (value == null ? 'NULL' : typeof value === 'number' ? String(value) : "'" + String(value).replaceAll("'", "''") + "'");
+const sqlType = (t: string) => (t === 'Integer' || t === 'Boolean' ? 'INTEGER' : t === 'Decimal' ? 'REAL' : 'TEXT');
+let sql = "-- Synthetic BRL fixture for isolated tests. Not a warehouse migration.\nATTACH ':memory:' AS mall;\n";
 for (const d of concrete) {
   const columns = columnsOf(d);
   sql += `CREATE TABLE mall.${d.table} (${columns.map(c => c + ' ' + (c === 'id' ? 'INTEGER PRIMARY KEY' : sqlType(fieldType(d, c)))).join(', ')});\n`;
-  for (const row of rows[d.table!] ?? [])
-    sql += `INSERT INTO mall.${d.table} (${columns.join(', ')}) VALUES (${columns.map(c => sqlLiteral(row[c])).join(', ')});\n`;
+  for (const row of rows[d.table!] ?? []) sql += `INSERT INTO mall.${d.table} (${columns.join(', ')}) VALUES (${columns.map(c => sqlLiteral(row[c])).join(', ')});\n`;
 }
-for (const table of Object.keys(rows))
-  if (!concrete.some(d => d.table === table))
-    throw Error(`Fixture rows for unknown table ${table}`);
-for (const d of concrete)
-  for (const row of rows[d.table!] ?? [])
-    for (const key of Object.keys(row))
-      if (!columnsOf(d).includes(key)) throw Error(`${d.table}.${key} is not a column`);
+for (const table of Object.keys(rows)) if (!concrete.some(d => d.table === table)) throw Error(`Fixture rows for unknown table ${table}`);
+for (const d of concrete) for (const row of rows[d.table!] ?? []) for (const key of Object.keys(row)) if (!columnsOf(d).includes(key)) throw Error(`${d.table}.${key} is not a column`);
 
 const dir = 'public/examples/mall';
 await mkdir(dir, { recursive: true });
@@ -3966,25 +3244,15 @@ for (const [filename, source] of outputs) {
   await Bun.write(`${dir}/${filename}`, source);
 }
 await Bun.write(`${dir}/fixture.sql`, sql);
-const docs = ['mall.mapping.yaml', 'mall.ontology.yaml', 'mall.semantic.yaml'].map(
-  (filename, i) => ({
-    id: 'mall-' + i,
-    filename,
-    revision: 1,
-    source: outputs.find(o => o[0] === filename)![1],
-  }),
-);
+const docs = ['mall.mapping.yaml', 'mall.ontology.yaml', 'mall.semantic.yaml'].map((filename, i) => ({
+  id: 'mall-' + i,
+  filename,
+  revision: 1,
+  source: outputs.find(o => o[0] === filename)![1],
+}));
 const context = buildContext(docs, 'mall-0');
-if (context.findings.some(f => f.severity === 'error'))
-  throw Error(JSON.stringify(context.findings.slice(0, 5)));
-await Bun.write(
-  `${dir}/expected.json`,
-  JSON.stringify(
-    { ...expected, counts: { ...expected.counts, bindings: context.bindings.length } },
-    null,
-    2,
-  ) + '\n',
-);
+if (context.findings.some(f => f.severity === 'error')) throw Error(JSON.stringify(context.findings.slice(0, 5)));
+await Bun.write(`${dir}/expected.json`, JSON.stringify({ ...expected, counts: { ...expected.counts, bindings: context.bindings.length } }, null, 2) + '\n');
 console.log(
   `Generated ${defs.length} entity types (${concrete.length} concrete) in ${Object.keys(modules).length} modules, ${valueTypes.length} value types, ${metrics.length} KPIs, ${semantic.relationships.length} joins and ${context.bindings.length} resolved bindings.`,
 );

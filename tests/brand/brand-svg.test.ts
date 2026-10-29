@@ -17,11 +17,7 @@ test('a plain drawing keeps its shapes and styles', () => {
 
 test('scripts and foreign content are removed with everything inside them', () => {
   const clean = sanitizeSvg(
-    svg(
-      '<script>alert(1)</script><foreignObject><div>x</div></foreignObject>' +
-        '<animate attributeName="href" to="javascript:alert(1)"/><a href="https://evil.example"/>' +
-        '<circle r="1"/>',
-    ),
+    svg('<script>alert(1)</script><foreignObject><div>x</div></foreignObject>' + '<animate attributeName="href" to="javascript:alert(1)"/><a href="https://evil.example"/>' + '<circle r="1"/>'),
   );
   for (const forbidden of ['script', 'foreignObject', 'animate', 'evil']) {
     expect(clean).not.toContain(forbidden);
@@ -36,13 +32,7 @@ test('event handlers are removed from the root and from shapes', () => {
 });
 
 test('links may only point inside the drawing', () => {
-  const clean = sanitizeSvg(
-    svg(
-      '<use href="https://evil.example/x.svg#a"/><use xlink:href="#shape" ' +
-        'xmlns:xlink="http://www.w3.org/1999/xlink"/>' +
-        '<image href="https://evil.example/p.png"/>',
-    ),
-  );
+  const clean = sanitizeSvg(svg('<use href="https://evil.example/x.svg#a"/><use xlink:href="#shape" ' + 'xmlns:xlink="http://www.w3.org/1999/xlink"/>' + '<image href="https://evil.example/p.png"/>'));
   expect(clean).not.toContain('evil');
   expect(clean).toContain('xlink:href="#shape"');
 });
@@ -76,9 +66,7 @@ test('a document type or entity declaration is refused', () => {
 test('input that is not an SVG image is refused', () => {
   expect(() => sanitizeSvg('<html><body>x</body></html>')).toThrow('not an SVG');
   expect(() => sanitizeSvg('<svg xmlns="http://example.org/x"/>')).toThrow('xmlns');
-  expect(() => sanitizeSvg('<svg xmlns="http://www.w3.org/2000/svg"><g></svg>')).toThrow(
-    'well-formed',
-  );
+  expect(() => sanitizeSvg('<svg xmlns="http://www.w3.org/2000/svg"><g></svg>')).toThrow('well-formed');
   expect(() => sanitizeSvg('')).toThrow();
 });
 
@@ -95,34 +83,21 @@ test('a link is decided by its local name, whatever namespace the prefix is boun
 });
 
 test('other namespaced attributes are removed, xmlns and xml:space stay', () => {
-  const clean = sanitizeSvg(
-    svg('<text xmlns:q="http://example.org/q" q:action="run" xml:space="preserve">a</text>'),
-  );
+  const clean = sanitizeSvg(svg('<text xmlns:q="http://example.org/q" q:action="run" xml:space="preserve">a</text>'));
   expect(clean).not.toContain('q:action');
   expect(clean).toContain('xmlns:q=');
   expect(clean).toContain('xml:space="preserve"');
 });
 
 test('only the root element is written out, without prolog nodes or comments', () => {
-  const clean = sanitizeSvg(
-    '<?xml version="1.0"?><?xml-stylesheet href="https://evil.example/x.css"?><!-- note -->' +
-      svg('<!-- inner --><g/>'),
-  );
+  const clean = sanitizeSvg('<?xml version="1.0"?><?xml-stylesheet href="https://evil.example/x.css"?><!-- note -->' + svg('<!-- inner --><g/>'));
   expect(clean.startsWith('<svg')).toBe(true);
   expect(clean).not.toMatch(/evil|xml-stylesheet|note|inner/);
 });
 
 test('styles cannot use escapes or resource functions', () => {
-  for (const value of [
-    'u\\72l(https://evil.example)',
-    'image(https://evil.example)',
-    "image-set('https://evil.example' 1x)",
-    'cross-fade(red, blue)',
-    "src('https://evil.example')",
-  ]) {
-    const clean = sanitizeSvg(
-      svg(`<style>.a{background:${value}}</style><rect style="background:${value}" width="1"/>`),
-    );
+  for (const value of ['u\\72l(https://evil.example)', 'image(https://evil.example)', "image-set('https://evil.example' 1x)", 'cross-fade(red, blue)', "src('https://evil.example')"]) {
+    const clean = sanitizeSvg(svg(`<style>.a{background:${value}}</style><rect style="background:${value}" width="1"/>`));
     expect(clean).not.toContain('evil');
     expect(clean).not.toContain('<style');
     expect(clean).not.toContain('style=');

@@ -27,19 +27,7 @@ function protectedPropertiesNote(protectedLevel = 'confidential') {
   return `Only a Steward or Admin changes a classification, or a property classified ${protectedLevel} or above.`;
 }
 /** Renders contract view. */
-export function ContractView({
-  contractObject,
-  current,
-  model,
-  docs,
-  setContractObject,
-  openInLineage,
-  continueInNeighborhood,
-  gitVersion,
-  docText,
-  applySaved,
-  onOpenSource,
-}: Props) {
+export function ContractView({ contractObject, current, model, docs, setContractObject, openInLineage, continueInNeighborhood, gitVersion, docText, applySaved, onOpenSource }: Props) {
   const access = useCapabilities(current.project);
   const lockedForPerson = !access.local && !access.can('editGuarded');
   return contractObject ? (
@@ -63,15 +51,9 @@ export function ContractView({
         base: docText(current.id),
         onSaved: applySaved,
       })}
-      propertiesNote={
-        lockedForPerson ? protectedPropertiesNote(access.classification?.protectedLevel) : undefined
-      }
+      propertiesNote={lockedForPerson ? protectedPropertiesNote(access.classification?.protectedLevel) : undefined}
     />
   ) : (
-    <ContractOverview
-      data={(model as any).document}
-      onOpen={setContractObject}
-      onOpenInLineage={openInLineage}
-    />
+    <ContractOverview data={(model as any).document} onOpen={setContractObject} onOpenInLineage={openInLineage} />
   );
 }

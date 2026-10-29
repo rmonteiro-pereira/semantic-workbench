@@ -20,25 +20,16 @@ export function useValidation({ current, source, tab }: Options) {
   const editorIssuesRef = useRef(editorIssues);
   editorIssuesRef.current = editorIssues;
   useEffect(() => {
-    if (tab !== 'source' || settled.id !== current?.id)
-      setSettled({ id: current?.id, text: source });
+    if (tab !== 'source' || settled.id !== current?.id) setSettled({ id: current?.id, text: source });
   }, [source, tab, current?.id]);
   const checkedSource = tab === 'source' && settled.id === current?.id ? settled.text : source;
   const plainText = !!current && isGitignore(current.filename);
   const checked = useMemo(
-    () =>
-      plainText
-        ? { valid: true as const, model: null, issues: [] as Issue[] }
-        : validateInput(checkedSource, current?.filename ?? 'definition.yaml'),
+    () => (plainText ? { valid: true as const, model: null, issues: [] as Issue[] } : validateInput(checkedSource, current?.filename ?? 'definition.yaml')),
     [checkedSource, current?.filename, plainText],
   );
-  const live =
-    tab === 'source' && checkedSource !== source && editorIssues?.id === current?.id
-      ? editorIssues!.issues
-      : null;
-  const validation = live
-    ? { ...checked, issues: live, valid: !live.some(i => i.severity === 'error') }
-    : checked;
+  const live = tab === 'source' && checkedSource !== source && editorIssues?.id === current?.id ? editorIssues!.issues : null;
+  const validation = live ? { ...checked, issues: live, valid: !live.some(i => i.severity === 'error') } : checked;
   const result = {
     model: validation.model,
     error:

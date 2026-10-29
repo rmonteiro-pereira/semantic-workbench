@@ -17,18 +17,7 @@ type Props = {
   editKpi: (k: KpiSummary) => void;
 };
 /** Renders metrics panel. */
-export function MetricsPanel({
-  kpiProject,
-  projects,
-  kpis,
-  kpiError,
-  kpiLoading,
-  selectedKpi,
-  setSelectedKpi,
-  kpiFilter,
-  setWizard,
-  editKpi,
-}: Props) {
+export function MetricsPanel({ kpiProject, projects, kpis, kpiError, kpiLoading, selectedKpi, setSelectedKpi, kpiFilter, setWizard, editKpi }: Props) {
   return (
     <MetricsView
       project={kpiProject}

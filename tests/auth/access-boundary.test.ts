@@ -34,21 +34,15 @@ test('overlapping restrictions require every group or verified address, except f
   expect(access.authorize({ ...mixed, groupsResolved: 'failed' }, 'read', file).allow).toBe(false);
   const exact = createAccessControl({ ...options, groupMatch: 'exact' });
   expect(exact.authorize(mixed, 'read', file).allow).toBe(false);
-  expect(
-    exact.authorize({ ...alice, groups: [...alice.groups, 'Group-A'] }, 'read', file).allow,
-  ).toBe(true);
+  expect(exact.authorize({ ...alice, groups: [...alice.groups, 'Group-A'] }, 'read', file).allow).toBe(true);
   const admin = createAccessControl({ ...options, bootstrap: { ids: [alice.id], emails: [] } });
   expect(admin.authorize(identity, 'read', file).allow).toBe(true);
 });
 
 test('agent clients read ordinary files but cannot read restricted files', () => {
   const access = createAccessControl(accessFixture());
-  const client = access.principalFor(
-    clientFromToken({ tid: 'tenant', idtyp: 'app', azp: 'sw-agent' }, 'tenant'),
-  );
-  expect(access.authorize(client, 'agentRead', { ...file, path: 'orders.odcs.yaml' }).allow).toBe(
-    true,
-  );
+  const client = access.principalFor(clientFromToken({ tid: 'tenant', idtyp: 'app', azp: 'sw-agent' }, 'tenant'));
+  expect(access.authorize(client, 'agentRead', { ...file, path: 'orders.odcs.yaml' }).allow).toBe(true);
   const denied = access.authorize(client, 'agentRead', {
     ...file,
     path: 'finance/revenue-recognition.odcs.yaml',
@@ -145,9 +139,7 @@ test('configuration boundary validates role semantics and reserves built-in iden
   expect(() =>
     validateAccessConfig({
       ...options.config,
-      roles: [
-        { ...role, permissions: [{ actions: ['push'], conditions: { path: 'finance/**' } }] },
-      ],
+      roles: [{ ...role, permissions: [{ actions: ['push'], conditions: { path: 'finance/**' } }] }],
     }),
   ).toThrow('file conditions require file actions');
   expect(() => validateAccessConfig({ ...options.config, roles: [role, role] })).toThrow();
@@ -156,9 +148,7 @@ test('configuration boundary validates role semantics and reserves built-in iden
 test('admin rules that name a metric keep distinct identities in the request cache', () => {
   const options = accessFixture();
   options.config.adminRules = {
-    hidden:
-      'forbid (principal, action, ' +
-      'resource == SW::Metric::"sales-contracts/orders.yaml#hidden");',
+    hidden: 'forbid (principal, action, ' + 'resource == SW::Metric::"sales-contracts/orders.yaml#hidden");',
   };
   const access = createAccessControl(options);
   const request = access.forRequest(access.principalFor(person('alice')));

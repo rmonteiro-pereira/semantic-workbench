@@ -84,9 +84,7 @@ await Bun.write(
         required: true,
         ...(i === 0 ? { primaryKey: true, unique: true } : {}),
         description: `${t.concept} ${name.replaceAll('_', ' ')}.`,
-        ...(i > 0 && foreignKeys[`${t.name}.${name}`]
-          ? { relationships: [{ type: 'foreignKey', to: foreignKeys[`${t.name}.${name}`] }] }
-          : {}),
+        ...(i > 0 && foreignKeys[`${t.name}.${name}`] ? { relationships: [{ type: 'foreignKey', to: foreignKeys[`${t.name}.${name}`] }] } : {}),
       })),
     })),
     team: [{ username: 'commerce-data', role: 'owner' }],
@@ -109,9 +107,7 @@ await Bun.write(
       fields: t.cols.map(([name, type]) => ({
         name,
         expression: expr(name),
-        datatype: (
-          { integer: 'Integer', number: 'Decimal', date: 'Date', string: 'String' } as any
-        )[type],
+        datatype: ({ integer: 'Integer', number: 'Decimal', date: 'Date', string: 'String' } as any)[type],
         ...(type === 'date' ? { dimension: { is_time: true } } : {}),
       })),
     })),
@@ -205,16 +201,7 @@ await Bun.write(
     ],
   }),
 );
-const classes = [
-  'Customer',
-  'Order',
-  'OrderLine',
-  'Product',
-  'Shipment',
-  'Invoice',
-  'Payment',
-  'Warehouse',
-];
+const classes = ['Customer', 'Order', 'OrderLine', 'Product', 'Shipment', 'Invoice', 'Payment', 'Warehouse'];
 await Bun.write(
   dir + 'commerce-business.ossie.yaml',
   stringify({
@@ -239,28 +226,16 @@ const prefixes = `@prefix c: <${ns}> .\n@prefix rdf: <http://www.w3.org/1999/02/
 const owl =
   prefixes +
   `\n<https://example.org/commerce> a owl:Ontology ; rdfs:label "Commerce OWL ontology" ; owl:versionInfo "1.0.0" .\n` +
-  classes
-    .map(
-      c =>
-        `c:${c} a owl:Class ; rdfs:label "${c}" ; rdfs:comment "${c} in the order-to-cash process." .`,
-    )
-    .join('\n') +
+  classes.map(c => `c:${c} a owl:Class ; rdfs:label "${c}" ; rdfs:comment "${c} in the order-to-cash process." .`).join('\n') +
   '\n' +
-  rels
-    .map(
-      ([from, p, to]) =>
-        `c:${p} a owl:ObjectProperty ; rdfs:label "${p}" ; rdfs:domain c:${from} ; rdfs:range c:${to} .`,
-    )
-    .join('\n') +
+  rels.map(([from, p, to]) => `c:${p} a owl:ObjectProperty ; rdfs:label "${p}" ; rdfs:domain c:${from} ; rdfs:range c:${to} .`).join('\n') +
   `\nc:email a owl:DatatypeProperty ; rdfs:domain c:Customer ; rdfs:range xsd:string .\nc:amount a owl:DatatypeProperty ; rdfs:domain c:Order ; rdfs:range xsd:decimal .\nc:placedBy a owl:ObjectProperty ; owl:inverseOf c:places ; rdfs:domain c:Order ; rdfs:range c:Customer .\nc:PaidOrder a owl:Class ; rdfs:subClassOf c:Order, [ a owl:Restriction ; owl:onProperty c:invoice ; owl:someValuesFrom c:Invoice ] .\n`;
 await Bun.write(dir + 'commerce.owl.ttl', owl);
 const store = graph();
 parse(owl, store, 'https://example.org/commerce', 'text/turtle');
 await Bun.write(
   dir + 'commerce.owl',
-  serialize(null, store, 'https://example.org/commerce', 'application/rdf+xml')!
-    .replace('<rdf:RDF', '<rdf:RDF xml:base="https://example.org/commerce"')
-    .replace(' rdf:parseType="Resource"', ''),
+  serialize(null, store, 'https://example.org/commerce', 'application/rdf+xml')!.replace('<rdf:RDF', '<rdf:RDF xml:base="https://example.org/commerce"').replace(' rdf:parseType="Resource"', ''),
 );
 await Bun.write(
   dir + 'commerce.shacl.ttl',
@@ -342,9 +317,7 @@ const links: Record<string, [string, string][]> = {
   ],
 };
 const sizes = Object.fromEntries(groups.map(([g, size]) => [g, size]));
-let data =
-  prefixes +
-  '\n# Synthetic commerce records, not real customer data. Exactly 1,000 resources / 5,000 business links.\n';
+let data = prefixes + '\n# Synthetic commerce records, not real customer data. Exactly 1,000 resources / 5,000 business links.\n';
 for (const [group, size, type] of groups)
   for (let i = 0; i < size; i++) {
     const id = `${group}_${i}`;
@@ -354,10 +327,7 @@ for (const [group, size, type] of groups)
         : group === 'warehouse'
           ? `Fulfillment center ${i + 1}`
           : `${type} ${10000 + i}`;
-    data +=
-      `c:${id} a c:${type} ; rdfs:label "${label}" ;\n` +
-      links[group].map(([p, t], j) => ` c:${p} c:${t}_${(i + j * 13) % sizes[t]}`).join(' ;\n') +
-      ' .\n';
+    data += `c:${id} a c:${type} ; rdfs:label "${label}" ;\n` + links[group].map(([p, t], j) => ` c:${p} c:${t}_${(i + j * 13) % sizes[t]}`).join(' ;\n') + ' .\n';
   }
 await Bun.write(dir + 'commerce-scale.ttl', data);
 await Bun.write(

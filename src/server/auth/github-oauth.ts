@@ -46,8 +46,7 @@ export function githubOAuth(options: GitHubOAuthOptions) {
         throw new Error(`GitHub token request failed (${response.status}${code}).`);
       }
       const lifetime = body.expires_in;
-      const expiresAt =
-        typeof lifetime === 'number' && lifetime > 0 ? now() + lifetime * 1000 : undefined;
+      const expiresAt = typeof lifetime === 'number' && lifetime > 0 ? now() + lifetime * 1000 : undefined;
       const refreshToken = typeof body.refresh_token === 'string' ? body.refresh_token : undefined;
       return { host: app.host, token: body.access_token, expiresAt, refreshToken };
     },

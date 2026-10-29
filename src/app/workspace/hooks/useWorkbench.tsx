@@ -3,21 +3,9 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { type CodeEditorHandle } from '../../editor/CodeEditor';
 import { exportDocument } from '../../core/export';
 import { resolveSelectedProject } from '../../../shared/core/selected-project';
-import {
-  emptyWalk,
-  reconcileWalk,
-  walkReducer,
-  walkWithinProject,
-  type WalkAction,
-} from '../../graph/walk';
+import { emptyWalk, reconcileWalk, walkReducer, walkWithinProject, type WalkAction } from '../../graph/walk';
 import { modelOverview } from '../../graph/overview';
-import {
-  type Deleted,
-  type Doc,
-  type ProjectInfo,
-  type Suggestion,
-  type WorkspaceStatus,
-} from '../../projects/api';
+import { type Deleted, type Doc, type ProjectInfo, type Suggestion, type WorkspaceStatus } from '../../projects/api';
 import { type DeleteTarget } from '../../projects/DeleteDialog';
 import { useGrouping } from '../../graph/useGrouping';
 import { type ImportDraft } from '../../validation/ValidationPanel';
@@ -64,8 +52,7 @@ export function useWorkbench({ setMessage }: Options) {
     projectsRef.current = next;
     setProjects(next);
   }
-  const getSelectedProject = () =>
-    resolveSelectedProject(projectsRef.current, chosenProjectRef.current);
+  const getSelectedProject = () => resolveSelectedProject(projectsRef.current, chosenProjectRef.current);
   // Showing a document selects its project, so the context always matches what is open.
   function setCurrent(next: Doc | null) {
     if (next?.id !== current?.id) setMessage('');
@@ -89,9 +76,7 @@ export function useWorkbench({ setMessage }: Options) {
 
   const [pendingImport, setPendingImport] = useState<ImportDraft[] | null>(null);
   const [status, setStatus] = useState<WorkspaceStatus | null>(null);
-  const [stale, setStale] = useState<{ current: string | null; currentHash: string | null } | null>(
-    null,
-  );
+  const [stale, setStale] = useState<{ current: string | null; currentHash: string | null } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
   const [deleted, setDeleted] = useState<Deleted | null>(null);
   const [trashOpen, setTrashOpen] = useState(false);
@@ -122,10 +107,7 @@ export function useWorkbench({ setMessage }: Options) {
   const sourceEditor = useRef<CodeEditorHandle | null>(null);
   // Neighborhood walk across centers and files.
   const [walk, setWalk] = useRecordedState('neighborhood.walk', emptyWalk, reconcileWalk);
-  const dispatchWalk = useCallback(
-    (action: WalkAction) => setWalk(previous => walkReducer(previous, action)),
-    [setWalk],
-  );
+  const dispatchWalk = useCallback((action: WalkAction) => setWalk(previous => walkReducer(previous, action)), [setWalk]);
   const walkStep = walk.steps[walk.index];
   const neighborhoodFocus = walkStep && walkStep.doc === current?.id ? walkStep.center : '';
   const setNeighborhoodFocus = (id: string) => {
@@ -196,11 +178,7 @@ export function useWorkbench({ setMessage }: Options) {
     setSelected,
   });
 
-  const groupingOverview = useMemo(
-    () =>
-      model ? modelOverview(model.entities, model.edges, model.name, false, grouping.value) : null,
-    [model, grouping.value],
-  );
+  const groupingOverview = useMemo(() => (model ? modelOverview(model.entities, model.edges, model.name, false, grouping.value) : null), [model, grouping.value]);
   const entity = model?.entities.find(e => e.id === selected);
   const references = useReferences({
     docs,

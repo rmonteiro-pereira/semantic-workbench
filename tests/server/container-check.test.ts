@@ -3,12 +3,7 @@ import { expect, test } from 'bun:test';
 import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-function harness(
-  root: string,
-  uid: number,
-  build = false,
-  ports: { environment?: string; argument?: string } = {},
-) {
+function harness(root: string, uid: number, build = false, ports: { environment?: string; argument?: string } = {}) {
   const preload = `${root}/runtime.ts`;
   writeFileSync(
     preload,
@@ -35,14 +30,7 @@ function harness(
   `,
   );
   return Bun.spawn(
-    [
-      process.execPath,
-      '--preload',
-      preload,
-      resolve('scripts/container-check.ts'),
-      ...(build ? ['--build'] : ['--image', 'test-image']),
-      ...(ports.argument ? ['--port', ports.argument] : []),
-    ],
+    [process.execPath, '--preload', preload, resolve('scripts/container-check.ts'), ...(build ? ['--build'] : ['--image', 'test-image']), ...(ports.argument ? ['--port', ports.argument] : [])],
     {
       env: { ...process.env, TMPDIR: root, SW_CONTAINER_PORT: ports.environment ?? '4310' },
       stdout: 'pipe',
@@ -88,9 +76,7 @@ test('Docker rejects a non-1000 caller before invoking the runtime', async () =>
     expect(await new Response(child.stderr).text()).toContain('owned by uid 1000');
     expect(readdirSync(root)).toEqual(['runtime.ts']);
     const source = readFileSync('scripts/container-check.ts', 'utf8');
-    expect(source.indexOf('process.getuid')).toBeLessThan(
-      source.indexOf('await command(buildArguments'),
-    );
+    expect(source.indexOf('process.getuid')).toBeLessThan(source.indexOf('await command(buildArguments'));
   } finally {
     child.kill();
     await child.exited;
@@ -138,9 +124,7 @@ test('the checked container runs read-only, without capabilities and with a /tmp
       .split('\n')
       .map(line => JSON.parse(line) as string[]);
     const started = commands.find(args => args[1] === 'run')!;
-    expect(started.join(' ')).toContain(
-      '--read-only --tmpfs /tmp --cap-drop ALL --security-opt no-new-privileges',
-    );
+    expect(started.join(' ')).toContain('--read-only --tmpfs /tmp --cap-drop ALL --security-opt no-new-privileges');
     expect(started.indexOf('--read-only')).toBeLessThan(started.indexOf('-v'));
   } finally {
     child.kill();

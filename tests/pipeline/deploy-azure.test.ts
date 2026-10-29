@@ -24,11 +24,7 @@ function azureApp() {
         containers: [
           {
             volumeMounts: [{ mountPath: '/data', volumeName: 'workspace' }],
-            env: Object.entries(app.env).map(([name, value]) =>
-              value.startsWith('secretref:')
-                ? { name, secretRef: value.slice(10) }
-                : { name, value },
-            ),
+            env: Object.entries(app.env).map(([name, value]) => (value.startsWith('secretref:') ? { name, secretRef: value.slice(10) } : { name, value })),
           },
         ],
       },
@@ -63,8 +59,7 @@ test('CLI adapter promotes recorded digest and isolates registry authentication'
       return '';
     }
     if (args.includes('show-tags')) return '[]';
-    if (args.includes('repository') && args.includes('show'))
-      throw Error('MANIFEST_UNKNOWN: not found');
+    if (args.includes('repository') && args.includes('show')) throw Error('MANIFEST_UNKNOWN: not found');
     if (args.includes('login')) return '';
     if (args.includes('list'))
       return JSON.stringify([
@@ -82,8 +77,7 @@ test('CLI adapter promotes recorded digest and isolates registry authentication'
           },
         },
       ]);
-    if (args.includes('update'))
-      return JSON.stringify({ properties: { latestRevisionName: 'after' } });
+    if (args.includes('update')) return JSON.stringify({ properties: { latestRevisionName: 'after' } });
     if (args.includes('revision'))
       return JSON.stringify({
         properties: {
@@ -102,12 +96,8 @@ test('CLI adapter promotes recorded digest and isolates registry authentication'
   expect(promotion).toContain(`swfake.azurecr.io/semantic-workbench@${fakeRelease.digest}`);
   const update = calls.find(args => args.includes('update'))!;
   expect(update).toContain(`swfake.azurecr.io/semantic-workbench@${fakeRelease.digest}`);
-  expect(calls.findIndex(args => args.includes('show-tags'))).toBeLessThan(
-    calls.findIndex(args => args.includes('create')),
-  );
-  expect(
-    credentialDirectories.every(directory => directory.startsWith('/tmp/sw-deploy-registry-')),
-  ).toBe(true);
+  expect(calls.findIndex(args => args.includes('show-tags'))).toBeLessThan(calls.findIndex(args => args.includes('create')));
+  expect(credentialDirectories.every(directory => directory.startsWith('/tmp/sw-deploy-registry-'))).toBe(true);
   for (const directory of credentialDirectories) {
     expect(await Bun.file(`${directory}/config.json`).exists()).toBe(false);
   }
@@ -184,15 +174,7 @@ test('rollback scanner delegates to the image scanner with the resolved digest a
     return '';
   });
   await client.scan(fakeRelease.digest);
-  expect(calls).toEqual([
-    [
-      'bun',
-      'scripts/image.ts',
-      'scan',
-      '--ref',
-      `swfake.azurecr.io/semantic-workbench@${fakeRelease.digest}`,
-    ],
-  ]);
+  expect(calls).toEqual([['bun', 'scripts/image.ts', 'scan', '--ref', `swfake.azurecr.io/semantic-workbench@${fakeRelease.digest}`]]);
 });
 
 test('smoke uses target discovery without trusting or reading app issuer settings', async () => {
@@ -211,13 +193,8 @@ test('smoke uses target discovery without trusting or reading app issuer setting
     const client = azureClient(fakeTarget, async () => {
       throw Error('unexpected app query');
     });
-    await expect(client.smoke({ ...fakeRelease, name: 'active' })).rejects.toThrow(
-      'offline discovery reached',
-    );
-    expect(urls).toEqual([
-      'https://workbench.example/readyz',
-      'https://login.microsoftonline.com/tenant/v2.0/.well-known/openid-configuration',
-    ]);
+    await expect(client.smoke({ ...fakeRelease, name: 'active' })).rejects.toThrow('offline discovery reached');
+    expect(urls).toEqual(['https://workbench.example/readyz', 'https://login.microsoftonline.com/tenant/v2.0/.well-known/openid-configuration']);
   } finally {
     request.mockRestore();
   }

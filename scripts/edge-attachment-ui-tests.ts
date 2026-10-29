@@ -32,20 +32,13 @@ async function distances() {
     const borderDistance = (p: { x: number; y: number }, r: DOMRect) => {
       const outsideX = Math.max(r.left - p.x, 0, p.x - r.right);
       const outsideY = Math.max(r.top - p.y, 0, p.y - r.bottom);
-      return outsideX || outsideY
-        ? Math.hypot(outsideX, outsideY)
-        : Math.min(p.x - r.left, r.right - p.x, p.y - r.top, r.bottom - p.y);
+      return outsideX || outsideY ? Math.hypot(outsideX, outsideY) : Math.min(p.x - r.left, r.right - p.x, p.y - r.top, r.bottom - p.y);
     };
     const result: { id: string; source: number; target: number }[] = [];
     for (const link of links) {
-      const edge = [...document.querySelectorAll('.react-flow__edge')].find(
-        e => e.getAttribute('data-id') === link.id,
-      );
+      const edge = [...document.querySelectorAll('.react-flow__edge')].find(e => e.getAttribute('data-id') === link.id);
       const path = edge?.querySelector('.react-flow__edge-path') as SVGPathElement | null;
-      const node = (id: string) =>
-        [...document.querySelectorAll('.react-flow__node')]
-          .find(n => n.getAttribute('data-id') === id)
-          ?.querySelector('.full-entity');
+      const node = (id: string) => [...document.querySelectorAll('.react-flow__node')].find(n => n.getAttribute('data-id') === id)?.querySelector('.full-entity');
       const a = node(link.source);
       const b = node(link.target);
       if (!path || !a || !b) continue;
@@ -82,10 +75,7 @@ async function attached(label: string) {
       })
       .toBeLessThanOrEqual(4.5);
   } catch (error) {
-    console.log(
-      'DETACHED_ENDPOINTS',
-      JSON.stringify((await distances()).filter(m => m.source > 4.5 || m.target > 4.5)),
-    );
+    console.log('DETACHED_ENDPOINTS', JSON.stringify((await distances()).filter(m => m.source > 4.5 || m.target > 4.5)));
     await page.screenshot({ path: '/tmp/edge-attachment-failure.png' });
     throw error;
   }
@@ -126,10 +116,7 @@ async function targetSelector(selector: string) {
           { x: r.x + Math.min(r.width / 2, 60), y: r.y + Math.min(r.height / 2, 18) },
         ];
         const owner = n.closest('.react-flow__node');
-        return points.every(
-          point =>
-            document.elementFromPoint(point.x, point.y)?.closest('.react-flow__node') === owner,
-        );
+        return points.every(point => document.elementFromPoint(point.x, point.y)?.closest('.react-flow__node') === owner);
       })
     )
       return candidate;
@@ -148,36 +135,21 @@ async function drag(page: Page, selector: string, dx: number, dy: number) {
   try {
     for (let step = 1; step <= 8; step++) {
       await page.mouse.move(x + (dx * step) / 8, y + (dy * step) / 8);
-      await page.evaluate(
-        () =>
-          new Promise<void>(resolve =>
-            requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
-          ),
-      );
+      await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
       const metrics = await distances();
       const worst = Math.max(...metrics.flatMap(m => [m.source, m.target]));
       if (worst > 4.5) {
-        console.log(
-          'DURING_DRAG_DETACHED',
-          step,
-          JSON.stringify(metrics.filter(m => m.source > 4.5 || m.target > 4.5)),
-        );
+        console.log('DURING_DRAG_DETACHED', step, JSON.stringify(metrics.filter(m => m.source > 4.5 || m.target > 4.5)));
         await page.screenshot({ path: '/tmp/edge-attachment-failure.png' });
       }
-      expect(worst, 'Every drag frame endpoint attaches to live entity border').toBeLessThanOrEqual(
-        4.5,
-      );
-      if (step === 7 && selector.includes('businessArea'))
-        await page.screenshot({ path: '/tmp/edge-attachment-parent-drag-fixed.png' });
+      expect(worst, 'Every drag frame endpoint attaches to live entity border').toBeLessThanOrEqual(4.5);
+      if (step === 7 && selector.includes('businessArea')) await page.screenshot({ path: '/tmp/edge-attachment-parent-drag-fixed.png' });
     }
   } finally {
     await page.mouse.up();
   }
   const moved = await target.boundingBox();
-  expect(
-    Math.hypot(moved!.x - r.x, moved!.y - r.y),
-    'Real drag moved the entity/area',
-  ).toBeGreaterThan(8);
+  expect(Math.hypot(moved!.x - r.x, moved!.y - r.y), 'Real drag moved the entity/area').toBeGreaterThan(8);
 }
 
 try {

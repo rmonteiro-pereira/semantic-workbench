@@ -33,9 +33,7 @@ async function openApp(colorScheme: 'light' | 'dark', width = 1280, height = 720
 
 // The brightness of the page behind everything else, from 0 (black) to 1 (white).
 async function pageBrightness(page: Page): Promise<number> {
-  const background = await page.evaluate(
-    () => getComputedStyle(document.documentElement).backgroundColor,
-  );
+  const background = await page.evaluate(() => getComputedStyle(document.documentElement).backgroundColor);
   const color = parseColor(background);
   if (!color) throw new Error(`The page background is not a plain colour: ${background}`);
   return luminance(color);
@@ -57,13 +55,8 @@ async function accentCheck() {
   await expect(focused).toBeVisible();
   const primary = page.locator('button.primary').first();
   const selectedTab = page.locator('.tabs .selected').first();
-  const before = await page.evaluate(() =>
-    getComputedStyle(document.documentElement).getPropertyValue('--color-accent').trim(),
-  );
-  await page.evaluate(
-    value => document.documentElement.style.setProperty('--color-accent', value),
-    ACCENT_SWAP,
-  );
+  const before = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--color-accent').trim());
+  await page.evaluate(value => document.documentElement.style.setProperty('--color-accent', value), ACCENT_SWAP);
   await expect(primary).toHaveCSS('background-color', SWAPPED);
   await expect(primary).toHaveCSS('border-color', SWAPPED);
   await expect(selectedTab).toHaveCSS('color', SWAPPED);
@@ -86,10 +79,7 @@ async function controlCheck() {
   expect(await pageBrightness(page)).toBeLessThan(0.1);
   expect(await page.evaluate(() => localStorage.getItem('workbench.theme'))).toBe('dark');
   const settings = await openSettings(page);
-  await expect(settings.getByRole('button', { name: 'Dark', exact: true })).toHaveAttribute(
-    'aria-pressed',
-    'true',
-  );
+  await expect(settings.getByRole('button', { name: 'Dark', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await page.keyboard.press('Escape');
   await page.reload();
   await page.waitForTimeout(800);
@@ -129,40 +119,19 @@ async function firstPaintCheck() {
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   const script = page.locator('head script[src="/theme-init.js"]');
   await expect(script).toHaveCount(1);
-  expect(
-    await script.evaluate(
-      element =>
-        (element as HTMLScriptElement).async ||
-        (element as HTMLScriptElement).defer ||
-        (element as HTMLScriptElement).type === 'module',
-    ),
-  ).toBe(false);
+  expect(await script.evaluate(element => (element as HTMLScriptElement).async || (element as HTMLScriptElement).defer || (element as HTMLScriptElement).type === 'module')).toBe(false);
   await page.close();
 }
 
 async function contrastCheck(scheme: 'light' | 'dark') {
   const page = await openApp(scheme);
-  const surfaces = [
-    '--color-surface',
-    '--color-surface-page',
-    '--color-surface-sunken',
-    '--color-surface-hover',
-    '--color-accent-soft',
-  ];
+  const surfaces = ['--color-surface', '--color-surface-page', '--color-surface-sunken', '--color-surface-hover', '--color-accent-soft'];
   for (const surface of surfaces) {
-    expect(
-      await tokenContrast(page, '--color-text-muted', surface),
-      `muted text on ${surface}`,
-    ).toBeGreaterThanOrEqual(4.5);
-    expect(
-      await tokenContrast(page, '--color-text', surface),
-      `text on ${surface}`,
-    ).toBeGreaterThanOrEqual(7);
+    expect(await tokenContrast(page, '--color-text-muted', surface), `muted text on ${surface}`).toBeGreaterThanOrEqual(4.5);
+    expect(await tokenContrast(page, '--color-text', surface), `text on ${surface}`).toBeGreaterThanOrEqual(7);
   }
   if (scheme === 'dark') {
-    expect(
-      await tokenContrast(page, '--color-border-strong', '--color-surface'),
-    ).toBeGreaterThanOrEqual(3);
+    expect(await tokenContrast(page, '--color-border-strong', '--color-surface')).toBeGreaterThanOrEqual(3);
   }
   await page.close();
 }
@@ -185,34 +154,15 @@ async function tourCheck(scheme: 'light' | 'dark', groupTitles: string[]) {
 }
 
 try {
-  await check(
-    'the accent token drives the primary button, the selected tab and the graph selection',
-    accentCheck,
-  );
+  await check('the accent token drives the primary button, the selected tab and the graph selection', accentCheck);
   await check('the Theme control sets, stores and clears dark', controlCheck);
   await check('System follows the browser and an explicit choice overrides it', systemCheck);
-  await check(
-    'the stored theme is applied by a blocking script before the app loads',
-    firstPaintCheck,
-  );
-  await check('muted text keeps 4.5:1 on its surfaces in the light theme', () =>
-    contrastCheck('light'),
-  );
-  await check('muted text keeps 4.5:1 on its surfaces in the dark theme', () =>
-    contrastCheck('dark'),
-  );
-  await check('the main tour is readable and free of overlaps in the light theme at 1280×720', () =>
-    tourCheck('light', ['screens']),
-  );
+  await check('the stored theme is applied by a blocking script before the app loads', firstPaintCheck);
+  await check('muted text keeps 4.5:1 on its surfaces in the light theme', () => contrastCheck('light'));
+  await check('muted text keeps 4.5:1 on its surfaces in the dark theme', () => contrastCheck('dark'));
+  await check('the main tour is readable and free of overlaps in the light theme at 1280×720', () => tourCheck('light', ['screens']));
   await check('every tour is readable and free of overlaps in the dark theme at 1280×720', () =>
-    tourCheck('dark', [
-      'screens',
-      'edit screens',
-      'ODCS screens',
-      'project dialogs',
-      'export dialog',
-      'folder dialogs',
-    ]),
+    tourCheck('dark', ['screens', 'edit screens', 'ODCS screens', 'project dialogs', 'export dialog', 'folder dialogs']),
   );
   await check('no uncaught browser errors', async () => expect(errors).toEqual([]));
   console.log(`${passed} theme checks passed`);

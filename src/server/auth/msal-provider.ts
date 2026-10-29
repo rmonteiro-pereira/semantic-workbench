@@ -26,13 +26,7 @@ import { managedIdentityAssertion } from './managed-identity';
 import { normalizeClaims } from './principal';
 import type { SessionTokens } from './sessions';
 import { SignInError, tokenSignInError } from './sign-in-error';
-import type {
-  ProviderFetch,
-  SignInDependencies,
-  SignInIdentity,
-  SignInProvider,
-  SignInStart,
-} from './sign-in-provider';
+import type { ProviderFetch, SignInDependencies, SignInIdentity, SignInProvider, SignInStart } from './sign-in-provider';
 import { log } from '../observability/log';
 
 const PROVIDER_TIMEOUT_MS = 5000;
@@ -49,8 +43,7 @@ export function entraAuthority(issuer: string, tenantId: string): EntraAuthority
   if (!tenantId || url.pathname.toLowerCase() !== `/${tenantId}/v2.0`.toLowerCase()) {
     throw new Error('The Entra issuer must be https://<login host>/<SW_ENTRA_TENANT_ID>/v2.0.');
   }
-  const microsoftHost =
-    url.protocol === 'https:' && ENTRA_LOGIN_HOSTS.includes(url.hostname) && !url.port;
+  const microsoftHost = url.protocol === 'https:' && ENTRA_LOGIN_HOSTS.includes(url.hostname) && !url.port;
   if (!microsoftHost && !isLoopbackHost(url.hostname)) {
     throw new Error(`The Entra issuer must use one of ${ENTRA_LOGIN_HOSTS.join(', ')}.`);
   }
@@ -106,10 +99,7 @@ async function discoverEntra(issuer: string, request: ProviderFetch): Promise<En
 }
 
 /** Maps the configured client credential to MSAL's options; Entra prefers a certificate. */
-export function msalCredential(
-  auth: ClientAuth,
-  assertion: () => Promise<string>,
-): Pick<NodeAuthOptions, 'clientSecret' | 'clientCertificate' | 'clientAssertion'> {
+export function msalCredential(auth: ClientAuth, assertion: () => Promise<string>): Pick<NodeAuthOptions, 'clientSecret' | 'clientCertificate' | 'clientAssertion'> {
   if (auth.kind === 'certificate') {
     const certificate = { privateKey: auth.privateKey };
     if (auth.thumbprint.length === 64) {
@@ -183,10 +173,7 @@ export function msalSignInError(error: unknown): SignInError {
   if (shared) return shared;
   if (!(error instanceof AuthError)) return new SignInError('provider-unreachable', '/', error);
   const code = error.errorCode || undefined;
-  const refused =
-    error instanceof ServerError ||
-    error instanceof InteractionRequiredAuthError ||
-    ATTEMPT_ERROR_CODES.has(error.errorCode);
+  const refused = error instanceof ServerError || error instanceof InteractionRequiredAuthError || ATTEMPT_ERROR_CODES.has(error.errorCode);
   return new SignInError(refused ? 'attempt-invalid' : 'provider-unreachable', '/', error, code);
 }
 
@@ -202,12 +189,7 @@ type MsalContext = {
   application(cache?: SessionTokenCache): ConfidentialClientApplication;
 };
 
-async function msalIdentity(
-  context: MsalContext,
-  result: AuthenticationResult,
-  cache: SessionTokenCache,
-  previous?: SessionTokens,
-): Promise<SignInIdentity> {
+async function msalIdentity(context: MsalContext, result: AuthenticationResult, cache: SessionTokenCache, previous?: SessionTokens): Promise<SignInIdentity> {
   if (!result.idToken || !result.expiresOn) throw new SignInError('token-invalid');
   const claims = await verifyIdToken(result.idToken, context.keys, context.config);
   const principal = normalizeClaims(claims, {
@@ -297,9 +279,7 @@ async function applicationToken(acquire: () => Promise<AuthenticationResult | nu
 
 async function delegatedToken(context: MsalContext, userToken: string, scopes: string[]) {
   const request = { oboAssertion: userToken, scopes };
-  const result = await applicationToken(() =>
-    context.application().acquireTokenOnBehalfOf(request),
-  );
+  const result = await applicationToken(() => context.application().acquireTokenOnBehalfOf(request));
   if (!result.expiresOn) throw new Error('The on-behalf-of token has no lifetime.');
   return { token: result.accessToken, expiresAt: result.expiresOn.getTime() };
 }
@@ -311,17 +291,11 @@ function msalLogger(level: LogLevel, message: string, containsPii: boolean) {
 }
 
 /** Discovers the Entra tenant and returns MSAL's sign-in operations. */
-export async function createMsalProvider(
-  config: ServerConfig,
-  dependencies: SignInDependencies = {},
-): Promise<SignInProvider> {
+export async function createMsalProvider(config: ServerConfig, dependencies: SignInDependencies = {}): Promise<SignInProvider> {
   const request = dependencies.fetch ?? fetch;
   const authority = entraAuthority(config.oidc.issuer, config.oidc.tenantId ?? '');
   const metadata = await discoverEntra(config.oidc.issuer, request);
-  const credential = msalCredential(
-    config.oidc.clientAuth,
-    dependencies.assertion ?? managedIdentityAssertion,
-  );
+  const credential = msalCredential(config.oidc.clientAuth, dependencies.assertion ?? managedIdentityAssertion);
   const now = dependencies.now ?? Date.now;
   const application = (cache?: SessionTokenCache) =>
     new ConfidentialClientApplication({
@@ -356,10 +330,7 @@ export async function createMsalProvider(
 }
 
 // The Graph application token is cached in this one client's memory and reused until it expires.
-function msalOperations(
-  context: MsalContext,
-  applicationClient: ConfidentialClientApplication,
-): SignInProvider {
+function msalOperations(context: MsalContext, applicationClient: ConfidentialClientApplication): SignInProvider {
   const { config, metadata, keys } = context;
   return {
     bearer: createBearerValidator(config, metadata.jwks_uri, context.request),

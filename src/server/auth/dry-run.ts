@@ -51,11 +51,7 @@ function scopeCache(before: AccessControl, after: AccessControl) {
 }
 
 /** Rebuilds the identity an audit snapshot was decided for, with its groups and address. */
-function snapshotIdentity(
-  entry: AuditEntry,
-  identities: Map<string, NormalizedPrincipal>,
-  config: AccessConfig,
-): NormalizedPrincipal {
+function snapshotIdentity(entry: AuditEntry, identities: Map<string, NormalizedPrincipal>, config: AccessConfig): NormalizedPrincipal {
   const snapshot = entry.snapshot!;
   const known = identities.get(entry.principal.id) ?? {
     ...clientPrincipal(entry.principal.clientId ?? '', entry.principal.name),
@@ -63,26 +59,14 @@ function snapshotIdentity(
     kind: entry.principal.kind as NormalizedPrincipal['kind'],
   };
   // The snapshot keeps only whether an e-mail grant matched, so the grant supplies the address.
-  const address = config.grants.find(
-    grant => snapshot.grants.includes(grant.id) && grant.member.kind === 'email',
-  )?.member;
+  const address = config.grants.find(grant => snapshot.grants.includes(grant.id) && grant.member.kind === 'email')?.member;
   const verifiedEmail = snapshot.emailMatched && address?.kind === 'email' ? address.email : null;
   return { ...known, groups: snapshot.groups, verifiedEmail };
 }
 
-function replayDecisions(
-  scopeFor: (identity: NormalizedPrincipal) => ScopePair,
-  audit: AuditEntry[],
-  identities: Map<string, NormalizedPrincipal>,
-  config: AccessConfig,
-) {
+function replayDecisions(scopeFor: (identity: NormalizedPrincipal) => ScopePair, audit: AuditEntry[], identities: Map<string, NormalizedPrincipal>, config: AccessConfig) {
   const changed: ChangedDecision[] = [];
-  function compareDecision(
-    label: string,
-    identity: NormalizedPrincipal,
-    action: Action,
-    resource: ResourceRef,
-  ) {
+  function compareDecision(label: string, identity: NormalizedPrincipal, action: Action, resource: ResourceRef) {
     const previous = scopeFor(identity).before.authorize(action, resource);
     const proposed = scopeFor(identity).after.authorize(action, resource);
     if (previous.allow === proposed.allow) return;
@@ -97,12 +81,7 @@ function replayDecisions(
   for (const identity of matrix.principals as NormalizedPrincipal[]) {
     for (const entry of matrix.cases) {
       if (!isAction(entry.action)) continue;
-      compareDecision(
-        `${identity.id}:${entry.case}`,
-        identity,
-        entry.action,
-        entry.resource as ResourceRef,
-      );
+      compareDecision(`${identity.id}:${entry.case}`, identity, entry.action, entry.resource as ResourceRef);
       matrixCases++;
     }
   }
@@ -118,9 +97,7 @@ function replayDecisions(
 /** Sample files that every role condition of either configuration tells apart. */
 function projectResources(project: string, before: AccessConfig, after: AccessConfig) {
   const example = { name: 'Example', status: 'proposed' };
-  const resources: ResourceRef[] = [
-    { type: 'file', project, path: 'example.yaml', metric: example },
-  ];
+  const resources: ResourceRef[] = [{ type: 'file', project, path: 'example.yaml', metric: example }];
   const permissions = [...before.roles, ...after.roles].flatMap(role => role.permissions);
   for (const { conditions } of permissions) {
     if (!conditions) continue;
@@ -145,20 +122,11 @@ function conditionalActions(pair: ScopePair, before: AccessConfig, after: Access
   const grants = [...pair.before.principal.grants, ...pair.after.principal.grants];
   const roleIds = new Set(grants.map(grant => grant.roleId));
   const roles = [...before.roles, ...after.roles].filter(role => roleIds.has(role.id));
-  const actions = roles.flatMap(role =>
-    role.permissions
-      .filter(permission => permission.conditions)
-      .flatMap(permission => permission.actions),
-  );
+  const actions = roles.flatMap(role => role.permissions.filter(permission => permission.conditions).flatMap(permission => permission.actions));
   return { hasGrants: grants.length > 0, actions: new Set(actions) };
 }
 
-function allowedActions(
-  scope: RequestScope,
-  project: string,
-  files: ResourceRef[],
-  conditional: ReturnType<typeof conditionalActions>,
-): Action[] {
+function allowedActions(scope: RequestScope, project: string, files: ResourceRef[], conditional: ReturnType<typeof conditionalActions>): Action[] {
   const resource: ResourceRef = { type: 'project', project };
   return ACTIONS.filter(action => {
     if (scope.authorize(action, resource).allow) return true;
@@ -169,12 +137,7 @@ function allowedActions(
   });
 }
 
-function projectChange(
-  identity: NormalizedPrincipal & { displayName: string },
-  project: string,
-  oldActions: Action[],
-  newActions: Action[],
-): AccessChange | null {
+function projectChange(identity: NormalizedPrincipal & { displayName: string }, project: string, oldActions: Action[], newActions: Action[]): AccessChange | null {
   const gained = newActions.filter(action => !oldActions.includes(action));
   const lost = oldActions.filter(action => !newActions.includes(action));
   if (!gained.length && !lost.length) return null;
@@ -217,22 +180,13 @@ export interface DryRunEvidence {
 }
 
 /** Replays matrix and audit cases and compares every known person's and client's project actions. */
-export function compareAccess(
-  options: AccessOptions,
-  next: AccessConfig,
-  { users, audit, names = new Map() }: DryRunEvidence,
-) {
-  const scopeFor = scopeCache(
-    createAccessControl(options),
-    createAccessControl({ ...options, config: next }),
-  );
+export function compareAccess(options: AccessOptions, next: AccessConfig, { users, audit, names = new Map() }: DryRunEvidence) {
+  const scopeFor = scopeCache(createAccessControl(options), createAccessControl({ ...options, config: next }));
   const identities = new Map(users.map(user => [user.id, user]));
   for (const client of [...options.config.agents.clients, ...next.agents.clients]) {
     identities.set(`client:${client.clientId}`, clientPrincipal(client.clientId, client.name));
   }
-  const projects = [
-    ...new Set([...options.knownProjects(), ...Object.keys(next.projects.projects)]),
-  ];
+  const projects = [...new Set([...options.knownProjects(), ...Object.keys(next.projects.projects)])];
   const replayed = replayDecisions(scopeFor, audit, identities, options.config);
   const configs = { before: options.config, after: next, names };
   const people = peopleChanges(scopeFor, [...identities.values()], projects, configs);

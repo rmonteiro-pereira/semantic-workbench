@@ -11,12 +11,7 @@ import { decisionLabel } from '../src/app/admin/AccessCheckSection';
 import { inUseMessage } from '../src/app/admin/ReviewChange';
 import { grantSummary } from '../src/app/admin/RolesAccessSection';
 import type { Role } from '../src/app/admin/types';
-import {
-  ADMIN_AREAS,
-  ADMINISTRATION_TIME_LIMIT_MS,
-  screenshotName,
-  withinAdministrationTime,
-} from '../scripts/helpers/admin-browser';
+import { ADMIN_AREAS, ADMINISTRATION_TIME_LIMIT_MS, screenshotName, withinAdministrationTime } from '../scripts/helpers/admin-browser';
 const me: Me = {
   mode: 'server',
   name: 'Dave',
@@ -70,15 +65,7 @@ test('review renders gained and lost actions for people and clients', () => {
       }}
     />,
   );
-  for (const text of [
-    'Alice',
-    'approveMetric',
-    'edit',
-    'client:agent',
-    'access lost',
-    '20 matrix cases',
-  ])
-    expect(html).toContain(text);
+  for (const text of ['Alice', 'approveMetric', 'edit', 'client:agent', 'access lost', '20 matrix cases']) expect(html).toContain(text);
 });
 
 test('role conditions only show for applicable selected actions', () => {
@@ -129,9 +116,7 @@ test('a grant is named by role, member and scope', () => {
     addedAt: '2026-10-01T00:00:00Z',
   };
   const roles = { builtIn: builtin.roles as Role[], custom: [] };
-  expect(grantSummary(grant, roles)).toBe(
-    'the Editor grant for erin@example.org (Projects: sales)',
-  );
+  expect(grantSummary(grant, roles)).toBe('the Editor grant for erin@example.org (Projects: sales)');
   expect(grantSummary({ ...grant, roleId: 'r_gone' }, roles)).toContain('the r_gone grant');
 });
 
@@ -143,17 +128,7 @@ test('new identifiers match the access schema patterns and do not repeat', () =>
 });
 
 test('browser check names screenshots and enforces the three-minute limit', () => {
-  expect(ADMIN_AREAS.map(screenshotName)).toEqual([
-    'access-grants',
-    'roles',
-    'users-groups',
-    'policies',
-    'projects-access',
-    'git-remotes',
-    'audit',
-    'settings',
-    'access-check',
-  ]);
+  expect(ADMIN_AREAS.map(screenshotName)).toEqual(['access-grants', 'roles', 'users-groups', 'policies', 'projects-access', 'git-remotes', 'audit', 'settings', 'access-check']);
   expect(withinAdministrationTime(1_000, 1_000 + ADMINISTRATION_TIME_LIMIT_MS - 1)).toBe(true);
   expect(withinAdministrationTime(1_000, 1_000 + ADMINISTRATION_TIME_LIMIT_MS)).toBe(false);
 });

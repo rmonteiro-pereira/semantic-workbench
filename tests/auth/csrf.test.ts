@@ -4,18 +4,8 @@ import { validCsrf } from '../../src/server/auth/csrf';
 const origin = 'https://workbench.example';
 
 test('writes require both the request marker and exact public origin', async () => {
-  for (const headers of [
-    {},
-    { Origin: origin },
-    { 'X-SW-Request': '1' },
-    { Origin: 'https://foreign.example', 'X-SW-Request': '1' },
-  ]) {
-    expect(
-      await validCsrf(
-        new Request(origin, { method: 'POST', headers: headers as Record<string, string> }),
-        origin,
-      ),
-    ).toBe(false);
+  for (const headers of [{}, { Origin: origin }, { 'X-SW-Request': '1' }, { Origin: 'https://foreign.example', 'X-SW-Request': '1' }]) {
+    expect(await validCsrf(new Request(origin, { method: 'POST', headers: headers as Record<string, string> }), origin)).toBe(false);
   }
   expect(
     await validCsrf(

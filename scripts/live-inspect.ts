@@ -9,11 +9,7 @@ page.on('console', m => {
   if (m.type() === 'error' || m.type() === 'warning') console.log(m.type(), m.text());
 });
 // Read-only inspection of the running workspace: every request that could change it is refused.
-await page.route('**/api/**', route =>
-  route.request().method() === 'GET'
-    ? route.continue()
-    : route.fulfill({ status: 403, json: { error: 'live-inspect is read-only' } }),
-);
+await page.route('**/api/**', route => (route.request().method() === 'GET' ? route.continue() : route.fulfill({ status: 403, json: { error: 'live-inspect is read-only' } })));
 await page.goto(appUrl());
 await page.waitForTimeout(2500);
 console.log('INITIAL', await page.locator('body').innerText());
@@ -35,12 +31,6 @@ const [download] = await Promise.all([page.waitForEvent('download'), exportFile(
 const downloaded = await Bun.file((await download.path())!).text();
 const documents = await (await fetch('http://127.0.0.1:4310/api/documents')).json();
 const original = documents.find((d: any) => d.filename === 'ubl.ontology.yaml');
-if (download.suggestedFilename() !== 'ubl.ontology.yaml' || downloaded !== original.source)
-  throw Error('Live workspace export does not match the project file');
-console.log(
-  'LIVE EXPORT VERIFIED',
-  download.suggestedFilename(),
-  new TextEncoder().encode(downloaded).length,
-  'bytes',
-);
+if (download.suggestedFilename() !== 'ubl.ontology.yaml' || downloaded !== original.source) throw Error('Live workspace export does not match the project file');
+console.log('LIVE EXPORT VERIFIED', download.suggestedFilename(), new TextEncoder().encode(downloaded).length, 'bytes');
 await browser.close();

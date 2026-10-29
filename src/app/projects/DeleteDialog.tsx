@@ -6,15 +6,11 @@ import { api, type Impact, type ProjectInfo } from './api';
 // The confirmation names everything that is removed and warns about unsaved edits and references
 // that will no longer resolve. Nothing is removed until the user presses the action button.
 /** Identifies the project or file being considered for deletion. */
-export type DeleteTarget =
-  | { kind: 'file'; project: string; path: string }
-  | { kind: 'project'; project: string }
-  | { kind: 'clear' };
+export type DeleteTarget = { kind: 'file'; project: string; path: string } | { kind: 'project'; project: string } | { kind: 'clear' };
 
 // A subfolder project whose repository holds other projects too: only then can it leave the
 // workspace without its repository being left with no project.
-const sharesRepository = (impact: Impact | null) =>
-  !!impact?.subproject && (impact.sharedWith?.length ?? 0) > 0;
+const sharesRepository = (impact: Impact | null) => !!impact?.subproject && (impact.sharedWith?.length ?? 0) > 0;
 
 // What deleting the project moves to the trash, in words.
 function deletedScope(impact: Impact) {
@@ -32,17 +28,7 @@ function RemovedSummary({ line }: { line: string | null }) {
 
 type Draft = { project: string; path: string };
 
-function RemovedList({
-  target,
-  impact,
-  projects,
-  name,
-}: {
-  target: DeleteTarget;
-  impact: Impact | null;
-  projects: ProjectInfo[];
-  name: (slug: string) => string;
-}) {
+function RemovedList({ target, impact, projects, name }: { target: DeleteTarget; impact: Impact | null; projects: ProjectInfo[]; name: (slug: string) => string }) {
   if (target.kind === 'clear')
     return (
       <>
@@ -89,17 +75,7 @@ function removedSummary(target: DeleteTarget, impact: Impact | null, projects: P
 
 // A subfolder project shares its repository with other projects, so taking it out of the
 // workspace is the safe default; deleting its folder is a separate, explicit choice.
-function SubprojectChoice({
-  impact,
-  mode,
-  onChange,
-  name,
-}: {
-  impact: Impact;
-  mode: SubprojectMode;
-  onChange: (mode: SubprojectMode) => void;
-  name: (slug: string) => string;
-}) {
+function SubprojectChoice({ impact, mode, onChange, name }: { impact: Impact; mode: SubprojectMode; onChange: (mode: SubprojectMode) => void; name: (slug: string) => string }) {
   const siblings = (impact.sharedWith ?? []).map(name).join(', ');
   return (
     <fieldset className="subproject-choice">
@@ -108,32 +84,17 @@ function SubprojectChoice({
         {siblings && <>, shared with {siblings}</>}.
       </legend>
       <label className="check-row">
-        <input
-          type="radio"
-          name="subproject-mode"
-          checked={mode === 'remove'}
-          onChange={() => onChange('remove')}
-        />
+        <input type="radio" name="subproject-mode" checked={mode === 'remove'} onChange={() => onChange('remove')} />
         <span className="choice-text">
           <span className="choice-title">Remove from workspace</span>
-          <span className="choice-hint">
-            The folder, its files and the history stay as they are.
-          </span>
+          <span className="choice-hint">The folder, its files and the history stay as they are.</span>
         </span>
       </label>
       <label className="check-row">
-        <input
-          type="radio"
-          name="subproject-mode"
-          checked={mode === 'delete'}
-          onChange={() => onChange('delete')}
-        />
+        <input type="radio" name="subproject-mode" checked={mode === 'delete'} onChange={() => onChange('delete')} />
         <span className="choice-text">
           <span className="choice-title">Delete folder</span>
-          <span className="choice-hint">
-            The folder moves to the trash and the repository shows its files as deleted until you
-            commit.
-          </span>
+          <span className="choice-hint">The folder moves to the trash and the repository shows its files as deleted until you commit.</span>
         </span>
       </label>
     </fieldset>
@@ -156,13 +117,7 @@ function UnsavedWarning({ unsaved, name }: { unsaved: Draft[]; name: (slug: stri
   );
 }
 
-function BrokenReferences({
-  impact,
-  name,
-}: {
-  impact: Impact | null;
-  name: (slug: string) => string;
-}) {
+function BrokenReferences({ impact, name }: { impact: Impact | null; name: (slug: string) => string }) {
   if (!impact?.brokenReferences.length) return null;
   return (
     <div className="delete-warning">
@@ -170,8 +125,7 @@ function BrokenReferences({
       <ul>
         {impact.brokenReferences.map((broken, index) => (
           <li key={index}>
-            {broken.from.path} ({name(broken.from.project)}) refers to "{broken.name}" in{' '}
-            {broken.to.path}
+            {broken.from.path} ({name(broken.from.project)}) refers to "{broken.name}" in {broken.to.path}
           </li>
         ))}
       </ul>
@@ -207,8 +161,7 @@ function dialogTitle(target: DeleteTarget, removing: boolean, name: (slug: strin
 }
 
 function dialogIntro(target: DeleteTarget, removing: boolean) {
-  if (target.kind === 'clear')
-    return 'Every project moves to the trash with its Git history. Projects that share a repository move together, as one entry.';
+  if (target.kind === 'clear') return 'Every project moves to the trash with its Git history. Projects that share a repository move together, as one entry.';
   if (removing) {
     return 'The project leaves the workspace. Nothing on disk changes, and you can add the folder back later.';
   }
@@ -225,29 +178,16 @@ type Props = {
 };
 
 // Edits that would be lost: drafts of the removed files, and the open file's unsaved text.
-function unsavedEdits(
-  target: DeleteTarget,
-  impact: Impact | null,
-  drafts: Draft[],
-  dirty: Draft | null,
-) {
-  const removed = (draft: Draft) =>
-    target.kind === 'clear' ||
-    (draft.project === target.project && (target.kind === 'project' || draft.path === target.path));
+function unsavedEdits(target: DeleteTarget, impact: Impact | null, drafts: Draft[], dirty: Draft | null) {
+  const removed = (draft: Draft) => target.kind === 'clear' || (draft.project === target.project && (target.kind === 'project' || draft.path === target.path));
   const fromServer = impact?.unsavedDrafts ?? drafts.filter(removed);
   return dirty && removed(dirty) ? [...fromServer, dirty] : fromServer;
 }
 
-type Outcome =
-  | { removed: true; label: string }
-  | { removed: false; entryIds: string[]; undoUntil: string; label: string };
+type Outcome = { removed: true; label: string } | { removed: false; entryIds: string[]; undoUntil: string; label: string };
 
 // Runs the confirmed action and says what happened, for the undo toast or the status line.
-async function runDeletion(
-  target: DeleteTarget,
-  removing: boolean,
-  name: (slug: string) => string,
-): Promise<Outcome> {
+async function runDeletion(target: DeleteTarget, removing: boolean, name: (slug: string) => string): Promise<Outcome> {
   if (target.kind === 'file') {
     const result = await api.deleteFile(target.project, target.path);
     return {
@@ -305,11 +245,7 @@ export function DeleteDialog({ target, projects, dirty, onCancel, onDeleted, onR
       <button onClick={onCancel} disabled={busy}>
         Cancel
       </button>
-      <button
-        className={removing ? 'primary' : 'danger'}
-        onClick={confirm}
-        disabled={busy || waiting}
-      >
+      <button className={removing ? 'primary' : 'danger'} onClick={confirm} disabled={busy || waiting}>
         {actionText(removing, busy)}
       </button>
     </>
@@ -317,9 +253,7 @@ export function DeleteDialog({ target, projects, dirty, onCancel, onDeleted, onR
   return (
     <Modal title={dialogTitle(target, removing, name)} onCancel={onCancel} footer={footer}>
       <p>{dialogIntro(target, removing)}</p>
-      {shared && impact && (
-        <SubprojectChoice impact={impact} mode={mode} onChange={setMode} name={name} />
-      )}
+      {shared && impact && <SubprojectChoice impact={impact} mode={mode} onChange={setMode} name={name} />}
       {!removing && (
         <>
           <h3>Moved to trash</h3>

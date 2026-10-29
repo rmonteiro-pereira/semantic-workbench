@@ -2,16 +2,7 @@
 // trusts, how credentials map to MSAL, how failures map to sign-in reasons, and its HTTP edge.
 import { expect, test } from 'bun:test';
 import { AuthError, ServerError } from '@azure/msal-node';
-import {
-  authorizationCode,
-  createMsalProvider,
-  entraAuthority,
-  entraMetadata,
-  msalCredential,
-  msalSignInError,
-  providerNetwork,
-  sessionTokenCache,
-} from '../../src/server/auth/msal-provider';
+import { authorizationCode, createMsalProvider, entraAuthority, entraMetadata, msalCredential, msalSignInError, providerNetwork, sessionTokenCache } from '../../src/server/auth/msal-provider';
 import { providerDetail } from '../../src/server/auth/authentication';
 import { ClaimError } from '../../src/server/auth/principal';
 import { TEST_TENANT_ID } from '../helpers/auth-identities';
@@ -112,10 +103,7 @@ test('the session cache plugin reads and writes only the session it was given', 
     },
     serialize: () => '{"Account":{"one":{}}}',
   };
-  const context = (changed: boolean) =>
-    ({ tokenCache, cacheHasChanged: changed }) as unknown as Parameters<
-      typeof plugin.beforeCacheAccess
-    >[0];
+  const context = (changed: boolean) => ({ tokenCache, cacheHasChanged: changed }) as unknown as Parameters<typeof plugin.beforeCacheAccess>[0];
   await plugin.beforeCacheAccess(context(false));
   expect(loaded).toBe('{"Account":{}}');
   await plugin.afterCacheAccess(context(false));

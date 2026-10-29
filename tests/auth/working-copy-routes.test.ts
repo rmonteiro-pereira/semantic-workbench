@@ -42,8 +42,7 @@ test('a branch an Admin rule keeps from being pushed needs the publish right to 
   using fixture = await authWorkspace();
   const options = accessFixture();
   options.config.adminRules = {
-    'release-freeze':
-      'forbid (principal, action == SW::Action::"push", resource) when { context.branch == "release" };',
+    'release-freeze': 'forbid (principal, action == SW::Action::"push", resource) when { context.branch == "release" };',
   };
   const as = signedIn(fixture.ws, createAccessControl(options));
   gitOutput(join(fixture.ws.layout.projects, REPO), ['branch', 'release']);

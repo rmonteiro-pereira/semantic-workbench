@@ -20,12 +20,7 @@ type Props = {
 const SIDEBAR_GAP = 8;
 
 /** Opens beside the sidebar on a wide window and above the row in the phone drawer. */
-function placePanel(
-  panel: HTMLElement,
-  anchor: DOMRect,
-  viewport: Size,
-  sidebar: HTMLElement | null,
-): MenuPlacement {
+function placePanel(panel: HTMLElement, anchor: DOMRect, viewport: Size, sidebar: HTMLElement | null): MenuPlacement {
   panel.style.width = '';
   // The panel starts past the sidebar's border, not over it, level with the Settings row.
   const sidebarRight = sidebar?.getBoundingClientRect().right ?? anchor.right;
@@ -103,20 +98,8 @@ export function SettingsPanel({ sidebar, onClearWorkspace, clearDisabled }: Prop
       </button>
       {open &&
         createPortal(
-          <section
-            id="settings-panel"
-            ref={panel}
-            tabIndex={-1}
-            className="settings-panel"
-            role="dialog"
-            aria-label="Settings"
-            onKeyDown={handlePanelKeyDown}
-          >
-            <SettingsSections
-              clearDisabled={clearDisabled}
-              onClearWorkspace={() => runAndClose(onClearWorkspace)}
-              onOpenAdmin={openAdmin && (() => runAndClose(openAdmin))}
-            />
+          <section id="settings-panel" ref={panel} tabIndex={-1} className="settings-panel" role="dialog" aria-label="Settings" onKeyDown={handlePanelKeyDown}>
+            <SettingsSections clearDisabled={clearDisabled} onClearWorkspace={() => runAndClose(onClearWorkspace)} onOpenAdmin={openAdmin && (() => runAndClose(openAdmin))} />
           </section>,
           document.body,
         )}
@@ -149,13 +132,7 @@ function SettingsSections({ clearDisabled, onClearWorkspace, onOpenAdmin }: Sect
       {onOpenAdmin && (
         <>
           <h2>Administration</h2>
-          <SettingsAction
-            icon={<Shield size={16} />}
-            name="Admin"
-            detail="People, roles, permissions and Git remotes"
-            opensPage
-            onClick={onOpenAdmin}
-          />
+          <SettingsAction icon={<Shield size={16} />} name="Admin" detail="People, roles, permissions and Git remotes" opensPage onClick={onOpenAdmin} />
         </>
       )}
     </>

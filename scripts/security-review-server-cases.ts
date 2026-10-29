@@ -9,8 +9,7 @@ async function serverFixture() {
   const { authWorkspace } = await import('../tests/helpers/auth-workspace');
   const { createAccessControl } = await import('../src/server/auth/authorize');
   const { accessFixture, person } = await import('../tests/auth/access-fixture');
-  const { attachRemoteCredentials, requestAccess } =
-    await import('../src/server/auth/request-scope');
+  const { attachRemoteCredentials, requestAccess } = await import('../src/server/auth/request-scope');
   const { allowEveryRemote } = await import('../tests/helpers/remote-credentials-fixture');
   const fixture = await authWorkspace();
   const access = createAccessControl(accessFixture());
@@ -82,23 +81,16 @@ async function draftsCase(candidate: Candidate) {
       (error: any) => error.name === 'CaseVariantError',
     );
     await assert.rejects(() => put('sales-contracts/orders.odcs.yaml', 'a'.repeat(5_000_000)));
-    const held = (count: number, project = 'p') =>
-      Array.from({ length: count }, (_, index) => ({ project, path: `f${index}.yaml` }));
+    const held = (count: number, project = 'p') => Array.from({ length: count }, (_, index) => ({ project, path: `f${index}.yaml` }));
     assert.doesNotThrow(() => candidate.assertRoomForDraft(held(199), 'p', 'new.yaml'));
-    assert.throws(
-      () => candidate.assertRoomForDraft(held(200), 'p', 'new.yaml'),
-      /in this project/,
-    );
+    assert.throws(() => candidate.assertRoomForDraft(held(200), 'p', 'new.yaml'), /in this project/);
     assert.doesNotThrow(() => candidate.assertRoomForDraft(held(200), 'p', 'f0.yaml'));
     assert.doesNotThrow(() => candidate.assertRoomForDraft(held(200), 'other', 'new.yaml'));
     const wide = Array.from({ length: 1000 }, (_, index) => ({
       project: `p${index % 10}`,
       path: `f${index}.yaml`,
     }));
-    assert.throws(
-      () => candidate.assertRoomForDraft(wide, 'fresh', 'new.yaml'),
-      /Too many unsaved/,
-    );
+    assert.throws(() => candidate.assertRoomForDraft(wide, 'fresh', 'new.yaml'), /Too many unsaved/);
   } finally {
     fixture.dispose();
   }
@@ -131,10 +123,7 @@ async function undoTakesDomain(call: Call, route: unknown, entryId: string) {
 }
 
 /** Calls a route as a person and returns the status and body, or the error it threw. */
-function routeCaller(
-  ws: any,
-  scoped: (name: any, path: string, method: string, body?: unknown) => Request,
-) {
+function routeCaller(ws: any, scoped: (name: any, path: string, method: string, body?: unknown) => Request) {
   return async (route: any, name: 'alice' | 'bob', path: string, body?: unknown) => {
     const request = scoped(name, path, body === undefined ? 'GET' : 'POST', body);
     try {
@@ -157,71 +146,32 @@ async function trashRoutesCase(candidate: Candidate) {
     const administration = openAdminRepository({ root: fixture.root });
     const call = routeCaller(ws, scoped);
     // A file whose project is gone: an Editor may not make a project by restoring it.
-    const own = await ws.trash.deleteFile(
-      'sales-contracts',
-      'orders.odcs.yaml',
-      idOf('alice'),
-      LOCAL_READER,
-    );
-    const stewards = await ws.trash.deleteFile(
-      'sales-contracts',
-      'sales.mapping.yaml',
-      idOf('bob'),
-      LOCAL_READER,
-    );
+    const own = await ws.trash.deleteFile('sales-contracts', 'orders.odcs.yaml', idOf('alice'), LOCAL_READER);
+    const stewards = await ws.trash.deleteFile('sales-contracts', 'sales.mapping.yaml', idOf('bob'), LOCAL_READER);
     // The impact of deleting a project lists unpublished work only for those who may delete it.
-    const impact = await call(
-      candidate.trashRoutesWith(administration),
-      'alice',
-      '/api/projects/sales-contracts/delete-impact',
-    );
+    const impact = await call(candidate.trashRoutesWith(administration), 'alice', '/api/projects/sales-contracts/delete-impact');
     assert.equal(impact.status, 200);
     assert(!('unpublished' in impact.body), 'unpublished work is for those who may delete');
-    const third = await ws.trash.deleteFile(
-      'sales-contracts',
-      'people.mapping.yaml',
-      idOf('bob'),
-      LOCAL_READER,
-    );
+    const third = await ws.trash.deleteFile('sales-contracts', 'people.mapping.yaml', idOf('bob'), LOCAL_READER);
     await ws.trash.deleteProject('sales-contracts', undefined);
     const before = slugs();
-    const refused = await call(
-      candidate.trashRoutesWith(administration),
-      'alice',
-      `/api/trash/${own.entryId}/restore`,
-      {},
-    );
+    const refused = await call(candidate.trashRoutesWith(administration), 'alice', `/api/trash/${own.entryId}/restore`, {});
     assert(refused.error, 'the restore that makes a project needs the right to create one');
     assert.deepEqual(slugs(), before);
-    const undone = await call(
-      candidate.trashRoutesWith(administration),
-      'alice',
-      `/api/trash/${own.entryId}/undo`,
-      {},
-    );
+    const undone = await call(candidate.trashRoutesWith(administration), 'alice', `/api/trash/${own.entryId}/undo`, {});
     assert(undone.error || (undone.status ?? 0) >= 400);
     assert.deepEqual(slugs(), before);
     await undoTakesDomain(call, candidate.trashRoutesWith(administration), third.entryId);
     assert.deepEqual(slugs(), before);
     // Without an administration repository a project cannot be made, and nothing is.
-    const unavailable = await call(
-      candidate.trashRoutesWith(),
-      'bob',
-      `/api/trash/${stewards.entryId}/restore`,
-      {},
-    );
+    const unavailable = await call(candidate.trashRoutesWith(), 'bob', `/api/trash/${stewards.entryId}/restore`, {});
     assert.match(unavailable.error?.message ?? '', /not available/);
     assert.deepEqual(slugs(), before);
     // A Steward makes it in a domain they may create in, and the domain is recorded. The
     // project's old entry is removed first, since the restored project reuses its id.
     await administration.ensure();
     await forgetProject(administration, 'sales-contracts');
-    const made = await call(
-      candidate.trashRoutesWith(administration),
-      'bob',
-      `/api/trash/${stewards.entryId}/restore`,
-      {},
-    );
+    const made = await call(candidate.trashRoutesWith(administration), 'bob', `/api/trash/${stewards.entryId}/restore`, {});
     assert.equal(made.status, 200, JSON.stringify(made));
     const recorded = JSON.parse(readFileSync(join(fixture.root, 'admin', 'projects.json'), 'utf8'));
     assert.equal(recorded.projects[made.body.project].domain, 'sales');
@@ -308,17 +258,12 @@ async function guardsCase(candidate: Candidate) {
   const { createAccessControl } = await import('../src/server/auth/authorize');
   const { accessFixture, person } = await import('../tests/auth/access-fixture');
   const { readFileSync } = await import('node:fs');
-  const metrics = readFileSync(
-    'tests/fixtures/auth-workspace/projects/sales-metrics/sales.semantic.yaml',
-    'utf8',
-  );
+  const metrics = readFileSync('tests/fixtures/auth-workspace/projects/sales-metrics/sales.semantic.yaml', 'utf8');
   const withOrderCount = (status: string, owner: string) => {
     const start = metrics.indexOf('- name: order_count');
     const end = metrics.indexOf('- name:', start + 1);
     const block = metrics.slice(start, end < 0 ? undefined : end);
-    const changed = block
-      .replace(/"status": "[a-z]+"/, `"status": "${status}"`)
-      .replace(/"owner": "[^"]*"/, `"owner": "${owner}"`);
+    const changed = block.replace(/"status": "[a-z]+"/, `"status": "${status}"`).replace(/"owner": "[^"]*"/, `"owner": "${owner}"`);
     return metrics.replace(block, changed);
   };
   const hiddenOwn = {
@@ -401,9 +346,7 @@ async function auditCase(candidate: Candidate) {
     assert.equal(first('2026-08'), '0'.repeat(64));
     assert.equal(first('2026-09'), tail('2026-08'));
     assert.equal(first('2026-10'), tail('2026-09'));
-    const anchors = mirrored
-      .map(line => JSON.parse(line))
-      .filter(record => record.type === 'audit-anchor');
+    const anchors = mirrored.map(line => JSON.parse(line)).filter(record => record.type === 'audit-anchor');
     assert.deepEqual(anchors, [
       { type: 'audit-anchor', month: '2026-08', tail: tail('2026-08') },
       { type: 'audit-anchor', month: '2026-09', tail: tail('2026-09') },
@@ -414,19 +357,13 @@ async function auditCase(candidate: Candidate) {
     const changed = months.map((item: any) => ({ ...item, lines: [...item.lines] }));
     changed[1].lines[0] = changed[1].lines[0].replace('"edit"', '"read"');
     assert.equal(candidate.verifyAuditChain(changed).ok, false);
-    assert.equal(
-      candidate.verifyAuditChain(months.filter((item: any) => item.month !== '2026-09')).ok,
-      false,
-    );
+    assert.equal(candidate.verifyAuditChain(months.filter((item: any) => item.month !== '2026-09')).ok, false);
     const forged = [{ ...anchors[0], tail: 'f'.repeat(64) }];
     const forgedResult = candidate.verifyAuditChain(months, forged);
     assert.equal(forgedResult.ok, false);
     assert.equal(forgedResult.reason, 'anchor-mismatch');
     assert.equal(candidate.verifyAuditChain([], anchors).reason, 'anchor-month-missing');
-    assert.equal(
-      candidate.verifyAuditChain([{ month: '2026-08', lines: ['{no'] }]).reason,
-      'unreadable',
-    );
+    assert.equal(candidate.verifyAuditChain([{ month: '2026-08', lines: ['{no'] }]).reason, 'unreadable');
   } finally {
     dir.cleanup();
   }

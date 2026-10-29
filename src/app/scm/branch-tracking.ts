@@ -6,9 +6,7 @@ export function trackingLine(upstream: string): string {
 }
 
 /** The remote Fetch, Pull and Push use: the upstream's remote, else the first remote there is. */
-export function upstreamRemote(
-  status: Pick<GitStatus, 'upstream' | 'remotes'>,
-): string | undefined {
+export function upstreamRemote(status: Pick<GitStatus, 'upstream' | 'remotes'>): string | undefined {
   if (status.upstream) return status.upstream.slice(0, status.upstream.indexOf('/'));
   return Object.keys(status.remotes)[0];
 }
