@@ -97,7 +97,7 @@ export function HeaderActions({ leadingStatus, ...state }: Props) {
     <div className="header-actions">
       {leadingStatus}
       {state.hasFile && <CommitButton state={state} />}
-      <MenuButton ariaLabel="More actions" title="More actions" icon={<MoreHorizontal size={18} strokeWidth={4} />} buttonClassName="more-actions" items={moreActionItems(state)} />
+      <MenuButton ariaLabel="More actions" title="More actions" icon={<MoreHorizontal size={18} strokeWidth={2} />} buttonClassName="more-actions" items={moreActionItems(state)} />
     </div>
   );
 }

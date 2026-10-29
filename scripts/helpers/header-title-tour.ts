@@ -60,9 +60,9 @@ function headerButtonProblems(): string[] {
   const icon = header.querySelector('button[aria-label="More actions"] svg');
   const iconWidth = icon?.getBoundingClientRect().width ?? 0;
   if (Math.abs(iconWidth - 18) > 1) found.push(`the More actions icon is ${iconWidth}px, not 18px`);
-  // The icon is three small dots; a thin stroke makes them read as text.
+  // The approved design draws the three dots with a 2px stroke.
   const dotWidth = parseFloat(getComputedStyle(icon!).strokeWidth);
-  if (dotWidth < 3) found.push(`the More actions dots are drawn with a ${dotWidth}px stroke`);
+  if (dotWidth !== 2) found.push(`the More actions dots are drawn with a ${dotWidth}px stroke, not 2px`);
   const commit = header.querySelector('button[aria-label="Commit"]');
   // Commit is the green primary button while it can run, and the plain dimmed one while it cannot.
   const commitOff = commit?.getAttribute('aria-disabled') === 'true';
