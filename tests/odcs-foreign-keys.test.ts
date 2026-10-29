@@ -13,11 +13,11 @@ const table = (name: string, properties: any[], extra: any = {}) => ({
   ...extra,
 });
 const pairs = (data: any) =>
-  odcsForeignKeys(data).map(k => ({
-    from: k.from,
-    to: k.to,
-    fromColumns: k.fromColumns,
-    toColumns: k.toColumns,
+  odcsForeignKeys(data).map(foreignKey => ({
+    from: foreignKey.from,
+    to: foreignKey.to,
+    fromColumns: foreignKey.fromColumns,
+    toColumns: foreignKey.toColumns,
   }));
 test('property-level key: from is the property, to the referenced object.property', () => {
   const data = {
@@ -118,10 +118,10 @@ test('every UBL key has one column pair and the target column exists', () => {
   const data = parse(readFileSync('public/examples/ubl/ubl.odcs.yaml', 'utf8'));
   const keys = odcsForeignKeys(data);
   expect(keys.length).toBe(401);
-  for (const k of keys) {
-    expect(k.fromColumns.length).toBe(1);
-    expect(k.toColumns.length).toBe(1);
-    expect(data.schema[k.to].properties.some((p: any) => p.name === k.toColumns[0])).toBe(true);
-    expect(data.schema[k.from].properties.some((p: any) => p.name === k.fromColumns[0])).toBe(true);
+  for (const key of keys) {
+    expect(key.fromColumns.length).toBe(1);
+    expect(key.toColumns.length).toBe(1);
+    expect(data.schema[key.to].properties.some((p: any) => p.name === key.toColumns[0])).toBe(true);
+    expect(data.schema[key.from].properties.some((p: any) => p.name === key.fromColumns[0])).toBe(true);
   }
 });

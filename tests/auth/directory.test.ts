@@ -118,7 +118,11 @@ test('Admin group lookup uses the Graph stand-in, degrades to the ID and refresh
   try {
     const start = await handler(new Request(origin + '/auth/login'));
     const callback = await provider.authorizeAs('dave', start.headers.get('location')!);
-    const signedIn = await handler(new Request(callback, { headers: { Cookie: start.headers.getSetCookie()[0].split(';')[0] } }));
+    const signedIn = await handler(
+      new Request(callback, {
+        headers: { Cookie: start.headers.getSetCookie()[0].split(';')[0] },
+      }),
+    );
     const cookie = signedIn.headers
       .getSetCookie()
       .find(value => value.startsWith('sw-session='))!

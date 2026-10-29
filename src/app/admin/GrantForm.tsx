@@ -94,7 +94,11 @@ function GrantFields({
   const { me } = useMe();
   const [lookup, setLookup] = useState<Awaited<ReturnType<typeof adminApi.group>> | null>(null);
   const [kind, setKind] = useState<'group' | 'email'>(initial?.member.kind ?? (email ? 'email' : 'group'));
-  const [member, setMember] = useState(initial ? (initial.member.kind === 'email' ? initial.member.email : initial.member.groupId) : email);
+  let initialMember = email;
+  if (initial) {
+    initialMember = initial.member.kind === 'email' ? initial.member.email : initial.member.groupId;
+  }
+  const [member, setMember] = useState(initialMember);
   const [role, setRole] = useState(initial?.roleId ?? roleId);
   const [scope, setScope] = useState<Grant['scope']['kind']>(initial?.scope.kind ?? 'workspace');
   const [targets, setTargets] = useState(initial?.scope.kind === 'domains' ? initial.scope.domains.join(', ') : '');
@@ -117,7 +121,7 @@ function GrantFields({
     addedBy: initial?.addedBy ?? me?.id ?? me?.name ?? '',
     addedAt,
   };
-  const changeLabel = `${initial ? 'Change' : 'Add'} ${role} grant for ${member}` + `: ${scopeLabel(selectedScope)}`;
+  const changeLabel = `${initial ? 'Change' : 'Add'} ${role} grant for ${member}: ${scopeLabel(selectedScope)}`;
   const proposal = { grants: [...grants.filter(grant => grant.id !== initial?.id), proposed] };
   const emptyScope = selectedScope.kind !== 'workspace' && !commaList(scope === 'domains' ? targets : projectTargets).length;
   return (

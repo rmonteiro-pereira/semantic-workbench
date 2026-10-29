@@ -16,26 +16,26 @@ const fixture: StoredDocument[] = await Promise.all(
   })),
 );
 function change(docs: StoredDocument[], index: number, edit: (data: any) => void) {
-  const result = structuredClone(docs);
-  const data = parse(result[index].source);
+  const editedDocs = structuredClone(docs);
+  const data = parse(editedDocs[index].source);
   edit(data);
-  result[index].source = stringify(data);
-  return result;
+  editedDocs[index].source = stringify(data);
+  return editedDocs;
 }
 const context = () => buildContext(fixture, '0');
-const plan = (c = context(), overrides: any = {}) =>
-  planQuery(c, {
+const plan = (runtimeContext = context(), overrides: any = {}) =>
+  planQuery(runtimeContext, {
     mappingId: '0',
     metrics: ['gross_revenue'],
     dimensions: [JSON.stringify(['customers', 'region'])],
     ...overrides,
   });
 test('standalone mappings validate and retain exact source paths in the inspector', () => {
-  const m = inspect(fixture[0].source, fixture[0].filename);
-  expect(m.kind).toBe('Ossie mappings');
-  expect(m.entities).toHaveLength(4);
-  expect(m.entities[0].path).toEqual(['concept_mappings', 0]);
-  expect(m.entities[0].definition.object_mappings).toBeDefined();
+  const inspection = inspect(fixture[0].source, fixture[0].filename);
+  expect(inspection.kind).toBe('Ossie mappings');
+  expect(inspection.entities).toHaveLength(4);
+  expect(inspection.entities[0].path).toEqual(['concept_mappings', 0]);
+  expect(inspection.entities[0].definition.object_mappings).toBeDefined();
 });
 test('malformed mapping references, nodes, version and ambiguous families are rejected', () => {
   for (const mutate of [
@@ -51,41 +51,41 @@ test('malformed mapping references, nodes, version and ambiguous families are re
   }
 });
 test('mapping runtime exposes concept → nested mapping → field → physical source and AI context', () => {
-  const c = context();
-  expect(c.findings).toEqual([]);
-  const region = c.bindings.find(b => b.expression === 'customers.region')!;
+  const runtimeContext = context();
+  expect(runtimeContext.findings).toEqual([]);
+  const region = runtimeContext.bindings.find(b => b.expression === 'customers.region')!;
   expect(region.concept).toBe('Region');
   expect(region.rootConcept).toBe('Customer');
   expect(region.relationships).toEqual(['region']);
   expect(region.fields).toEqual(['["customers","region"]']);
   expect(region.evidence.path).toEqual(['concept_mappings', 0, 'link_mappings', 0, 'children', 0, 'object_mapping', 'expression']);
-  expect(c.datasets.find(d => d.name === 'customers').source).toBe('analytics.commerce.customers');
-  expect(c.aiContext.map(a => a.scope)).toEqual(['ontology', 'semantic model']);
-  expect(c.concepts.find(c => c.concept === 'Order').identify_by).toEqual(['id']);
+  expect(runtimeContext.datasets.find(d => d.name === 'customers').source).toBe('analytics.commerce.customers');
+  expect(runtimeContext.aiContext.map(a => a.scope)).toEqual(['ontology', 'semantic model']);
+  expect(runtimeContext.concepts.find(c => c.concept === 'Order').identify_by).toEqual(['id']);
 });
 test('governed metrics are reached by mapping, retain source formulas, and resolve dataset dependencies', () => {
-  const c = context();
-  const metric = c.metrics.find(m => m.id === 'gross_revenue')!;
-  expect(c.bindings.find(b => b.rootConcept === 'Revenue')!.metrics).toEqual(['gross_revenue']);
+  const runtimeContext = context();
+  const metric = runtimeContext.metrics.find(m => m.id === 'gross_revenue')!;
+  expect(runtimeContext.bindings.find(b => b.rootConcept === 'Revenue')!.metrics).toEqual(['gross_revenue']);
   expect(metric.fields).toEqual(['["orders","amount"]']);
   expect(metric.datasets).toEqual(['orders']);
   expect(metric.definition.expression.dialects[0].expression).toBe('SUM(orders.amount)');
-  const selected = selectContext(c, ['Revenue']);
+  const selected = selectContext(runtimeContext, ['Revenue']);
   expect(selected.metrics.map(m => m.id)).toEqual(['gross_revenue']);
   expect(selected.fields.map(f => f.name)).toEqual(['amount']);
-  expect(() => selectContext(c, ['Unknown'])).toThrow('Unknown concept');
+  expect(() => selectContext(runtimeContext, ['Unknown'])).toThrow('Unknown concept');
 });
 test('novel revenue by region query composes governed metric and declared join without predefined query', () => {
   const before = structuredClone(fixture);
-  const p = plan();
-  expect(p.sql).toContain('SUM("orders".amount)');
-  expect(p.sql).toContain('GROUP BY "customers".region');
-  expect(p.sql).toContain('LEFT JOIN "analytics"."commerce"."customers"');
-  expect(p.joins.map(j => j.name)).toEqual(['orders_customer']);
-  expect(p.metrics[0].governedExpression.dialects[0].expression).toBe('SUM(orders.amount)');
+  const queryPlan = plan();
+  expect(queryPlan.sql).toContain('SUM("orders".amount)');
+  expect(queryPlan.sql).toContain('GROUP BY "customers".region');
+  expect(queryPlan.sql).toContain('LEFT JOIN "analytics"."commerce"."customers"');
+  expect(queryPlan.joins.map(j => j.name)).toEqual(['orders_customer']);
+  expect(queryPlan.metrics[0].governedExpression.dialects[0].expression).toBe('SUM(orders.amount)');
   expect(fixture).toEqual(before);
-  expect(p.documents.every(d => d.revision === 1)).toBe(true);
-  expect(plan().sql).toBe(p.sql);
+  expect(queryPlan.documents.every(d => d.revision === 1)).toBe(true);
+  expect(plan().sql).toBe(queryPlan.sql);
 });
 test('generated query executes on a fixture and preserves aggregate grain and unmatched facts', () => {
   const db = new Database(':memory:');
@@ -94,8 +94,8 @@ test('generated query executes on a fixture and preserves aggregate grain and un
       "ATTACH ':memory:' AS commerce; CREATE TABLE commerce.orders(order_id INT,customer_id INT,amount REAL); CREATE TABLE commerce.customers(customer_id INT PRIMARY KEY,region TEXT); INSERT INTO commerce.orders VALUES(1,10,100),(2,10,50),(3,20,80),(4,99,25); INSERT INTO commerce.customers VALUES(10,'North'),(20,'South');",
     );
     const docs = change(fixture, 2, d => d.datasets.forEach((x: any) => (x.source = x.source.replace('analytics.', ''))));
-    const p = plan(buildContext(docs, '0'));
-    const rows = db.query(p.sql).all() as any[];
+    const queryPlan = plan(buildContext(docs, '0'));
+    const rows = db.query(queryPlan.sql).all() as any[];
     expect(rows.find(r => r.dimension_1 === 'North').metric_1).toBe(150);
     expect(rows.find(r => r.dimension_1 === 'South').metric_1).toBe(80);
     expect(rows.find(r => r.dimension_1 === null).metric_1).toBe(25);
@@ -126,11 +126,11 @@ for (const [name, edit] of [
   ['field', (d: any) => (d.concept_mappings[0].object_mappings[0].referent_mappings[0].expression = 'customers.missing')],
   ['dataset', (d: any) => (d.concept_mappings[0].object_mappings[0].referent_mappings[0].expression = 'missing.customer_id')],
   ['unqualified ambiguity', (d: any) => (d.concept_mappings[0].object_mappings[0].referent_mappings[0].expression = 'customer_id')],
-] as [string, (d: any) => void][])
+] as [string, (data: any) => void][])
   test(`unresolved mapping ${name} is reported and blocks SQL`, () => {
-    const c = buildContext(change(fixture, 0, edit), '0');
-    expect(c.findings.some(f => f.severity === 'error')).toBe(true);
-    expect(() => plan(c)).toThrow('Resolve mapping context errors');
+    const runtimeContext = buildContext(change(fixture, 0, edit), '0');
+    expect(runtimeContext.findings.some(f => f.severity === 'error')).toBe(true);
+    expect(() => plan(runtimeContext)).toThrow('Resolve mapping context errors');
   });
 test('SQL references use syntax trees, not substring matches inside literals, comments or similarly named fields', () => {
   const ast = parseExpression("CASE WHEN orders.amount > 0 THEN 'ghost.missing' ELSE 'orders.amount' END /* ghost.bad */");
@@ -142,16 +142,16 @@ test('SQL references use syntax trees, not substring matches inside literals, co
 });
 test('conditional mapping population is preserved in context and blocks automatic query-wide filtering', () => {
   const docs = change(fixture, 0, d => (d.concept_mappings[0].link_mappings[0].children[0].object_mapping.expression = "customers.region WHERE customers.region == 'North'"));
-  const c = buildContext(docs, '0');
-  expect(c.findings).toEqual([]);
-  expect(c.bindings.find(b => b.concept === 'Region')!.condition).not.toBeNull();
-  expect(() => plan(c)).toThrow('population conditions');
+  const runtimeContext = buildContext(docs, '0');
+  expect(runtimeContext.findings).toEqual([]);
+  expect(runtimeContext.bindings.find(b => b.concept === 'Region')!.condition).not.toBeNull();
+  expect(() => plan(runtimeContext)).toThrow('population conditions');
 });
 test('metric dependencies are reusable and cyclic formulas cannot be traversed or queried', () => {
   let docs = change(fixture, 2, d => (d.metrics[0].expression.dialects[0].expression = 'order_count * 5'));
-  const c = buildContext(docs, '0');
-  expect(c.metrics.find(m => m.id === 'gross_revenue')!.fields).toEqual(['["orders","order_id"]']);
-  expect(plan(c).sql).toContain('COUNT(DISTINCT');
+  const runtimeContext = buildContext(docs, '0');
+  expect(runtimeContext.metrics.find(m => m.id === 'gross_revenue')!.fields).toEqual(['["orders","order_id"]']);
+  expect(plan(runtimeContext).sql).toContain('COUNT(DISTINCT');
   docs = change(docs, 2, d => (d.metrics[1].expression.dialects[0].expression = 'gross_revenue'));
   expect(buildContext(docs, '0').findings.some(f => f.code === 'metric' && f.message.includes('cycle'))).toBe(true);
 });
@@ -194,11 +194,11 @@ test('embedded mappings resolve without flattening layers or duplicating metadat
   const docs = [{ ...fixture[1], source: stringify(ontology) }];
   const catalog = agentCatalog(docs);
   expect(catalog.mappings[0].embedded).toBe(true);
-  const c = buildContext(docs, catalog.mappings[0].id);
-  expect(c.findings).toEqual([]);
-  expect(c.bindings.some(b => b.evidence.path[0] === 'ontology_mappings')).toBe(true);
-  expect(c.metrics[0].evidence.path.slice(0, 3)).toEqual(['ontology_mappings', 0, 'semantic_model']);
-  expect(plan(c).sql).toContain('SUM(');
+  const runtimeContext = buildContext(docs, catalog.mappings[0].id);
+  expect(runtimeContext.findings).toEqual([]);
+  expect(runtimeContext.bindings.some(b => b.evidence.path[0] === 'ontology_mappings')).toBe(true);
+  expect(runtimeContext.metrics[0].evidence.path.slice(0, 3)).toEqual(['ontology_mappings', 0, 'semantic_model']);
+  expect(plan(runtimeContext).sql).toContain('SUM(');
 });
 test('upstream Apache Flights documents validate and all nested mappings and population conditions resolve', async () => {
   const docs: StoredDocument[] = await Promise.all(
@@ -209,19 +209,19 @@ test('upstream Apache Flights documents validate and all nested mappings and pop
       source: await Bun.file('tests/fixtures/ossie-mapping/' + filename).text(),
     })),
   );
-  for (const d of docs) expect(validateInput(d.source, d.filename).valid).toBe(true);
-  const c = buildContext(docs, '0');
-  expect(c.findings).toEqual([]);
-  expect(c.bindings.length).toBe(60);
-  expect(c.bindings.filter(b => b.condition)).toHaveLength(2);
-  expect(c.bindings.some(b => b.concept === 'String')).toBe(true);
+  for (const doc of docs) expect(validateInput(doc.source, doc.filename).valid).toBe(true);
+  const runtimeContext = buildContext(docs, '0');
+  expect(runtimeContext.findings).toEqual([]);
+  expect(runtimeContext.bindings.length).toBe(60);
+  expect(runtimeContext.bindings.filter(b => b.condition)).toHaveLength(2);
+  expect(runtimeContext.bindings.some(b => b.concept === 'String')).toBe(true);
   expect(inspect(docs[1].source, docs[1].filename).entities.some(e => e.id === 'builtin/String')).toBe(true);
 });
 test('two equal-length join paths are ambiguous and cycles terminate', () => {
-  let docs = change(fixture, 2, d => {
-    const customers = d.datasets[1];
-    d.datasets.push({ ...customers, name: 'bridge_a' }, { ...customers, name: 'bridge_b' });
-    d.relationships = [
+  let docs = change(fixture, 2, data => {
+    const customers = data.datasets[1];
+    data.datasets.push({ ...customers, name: 'bridge_a' }, { ...customers, name: 'bridge_b' });
+    data.relationships = [
       {
         name: 'a',
         from: 'orders',
@@ -280,9 +280,9 @@ test('inherited identifier relationships and multi-level referents retain ontolo
   docs = change(docs, 0, d => {
     d.concept_mappings[0].concept = 'PreferredCustomer';
   });
-  const c = buildContext(docs, '0');
-  expect(c.findings).toEqual([]);
-  expect(c.bindings.some(b => b.rootConcept === 'PreferredCustomer' && b.relationships.includes('id'))).toBe(true);
+  const runtimeContext = buildContext(docs, '0');
+  expect(runtimeContext.findings).toEqual([]);
+  expect(runtimeContext.bindings.some(b => b.rootConcept === 'PreferredCustomer' && b.relationships.includes('id'))).toBe(true);
 });
 
 test('query clauses cannot be smuggled into an expression or silently discarded', () => {
@@ -290,16 +290,16 @@ test('query clauses cannot be smuggled into an expression or silently discarded'
     expect(() => parseExpression(source)).toThrow();
 });
 test('raw mapping trees remain available alongside flattened traversal evidence', () => {
-  const c = context();
-  expect(c.mapping.conceptMappings).toEqual(parse(fixture[0].source).concept_mappings);
-  expect(c.mapping.evidence.documentId).toBe('0');
-  expect(c.mapping.ontologyRef.name).toBe('Mapped commerce ontology');
+  const runtimeContext = context();
+  expect(runtimeContext.mapping.conceptMappings).toEqual(parse(fixture[0].source).concept_mappings);
+  expect(runtimeContext.mapping.evidence.documentId).toBe('0');
+  expect(runtimeContext.mapping.ontologyRef.name).toBe('Mapped commerce ontology');
 });
 
 test('longer alternative paths are ambiguous too; distance does not select a business role', () => {
-  const docs = change(fixture, 2, d => {
-    d.datasets.push({ ...d.datasets[1], name: 'billing_bridge' });
-    d.relationships.push(
+  const docs = change(fixture, 2, data => {
+    data.datasets.push({ ...data.datasets[1], name: 'billing_bridge' });
+    data.relationships.push(
       {
         name: 'via_billing',
         from: 'orders',
@@ -320,18 +320,18 @@ test('longer alternative paths are ambiguous too; distance does not select a bus
 });
 
 test('physical expression substitution preserves arithmetic precedence in governed metrics', () => {
-  const docs = change(fixture, 2, d => {
-    d.datasets.forEach((x: any) => (x.source = x.source.replace('analytics.', '')));
-    d.datasets[0].fields[2].expression.dialects[0].expression = 'amount + fee';
-    d.metrics[0].expression.dialects[0].expression = 'SUM(orders.amount * 2)';
+  const docs = change(fixture, 2, data => {
+    data.datasets.forEach((x: any) => (x.source = x.source.replace('analytics.', '')));
+    data.datasets[0].fields[2].expression.dialects[0].expression = 'amount + fee';
+    data.metrics[0].expression.dialects[0].expression = 'SUM(orders.amount * 2)';
   });
-  const p = plan(buildContext(docs, '0'));
+  const queryPlan = plan(buildContext(docs, '0'));
   const db = new Database(':memory:');
   try {
     db.exec(
       "ATTACH ':memory:' AS commerce; CREATE TABLE commerce.orders(order_id INT,customer_id INT,amount REAL,fee REAL); CREATE TABLE commerce.customers(customer_id INT PRIMARY KEY,region TEXT); INSERT INTO commerce.orders VALUES(1,10,100,10); INSERT INTO commerce.customers VALUES(10,'North');",
     );
-    expect((db.query(p.sql).get() as any).metric_1).toBe(220);
+    expect((db.query(queryPlan.sql).get() as any).metric_1).toBe(220);
   } finally {
     db.close();
   }
@@ -350,7 +350,7 @@ test('embedded semantic definitions receive the same duplicate and reference int
   const semantic = parse(fixture[2].source);
   semantic.datasets.push(semantic.datasets[0]);
   ontology.ontology_mappings = [{ semantic_model: semantic, concept_mappings: mapping.concept_mappings }];
-  const result = validateInput(stringify(ontology), 'embedded.yaml');
-  expect(result.valid).toBe(false);
-  expect(result.issues.some(i => i.code === 'duplicate' && i.path.startsWith('/ontology_mappings/0/semantic_model/datasets'))).toBe(true);
+  const validation = validateInput(stringify(ontology), 'embedded.yaml');
+  expect(validation.valid).toBe(false);
+  expect(validation.issues.some(i => i.code === 'duplicate' && i.path.startsWith('/ontology_mappings/0/semantic_model/datasets'))).toBe(true);
 });

@@ -34,14 +34,14 @@ export function MappingCanvas({ project, mappingId, revisionKey, dirty, fullscre
     setLoading(true);
     setError('');
     apiFetch(agentContextPath(project, mappingId), { signal: abort.signal })
-      .then(async r => {
-        const d = await r.json();
-        if (!r.ok) throw Error(d.error);
-        setContext(d);
+      .then(async response => {
+        const body = await response.json();
+        if (!response.ok) throw Error(body.error);
+        setContext(body);
       })
-      .catch(e => {
-        if (e.name !== 'AbortError') {
-          setError(e.message);
+      .catch(failure => {
+        if (failure.name !== 'AbortError') {
+          setError(failure.message);
           setContext(null);
         }
       })
@@ -86,9 +86,10 @@ export function MappingCanvas({ project, mappingId, revisionKey, dirty, fullscre
     );
   const bindingsOf = (selected: string, path: { edges: Set<number> } | null) => {
     const ids = new Set<string>();
-    if (path) for (const i of path.edges) for (const b of (graph.edges[i] as any).bindings ?? []) ids.add(b);
+    if (path) for (const i of path.edges) for (const binding of (graph.edges[i] as any).bindings ?? []) ids.add(binding);
     return [...ids].map(id => graph.bindings.get(id)).filter(Boolean) as any[];
   };
+  const editBinding = (evidence: { documentId: string; path: (string | number)[] }) => onEditItem?.(evidence.documentId, evidence.path.slice(0, -1));
   return (
     <div className={`mapping-canvas${compact ? ' compact' : ''}`}>
       {dirty && <p className="mapping-notice">The graph shows the saved revision; your edits appear here once they are saved.</p>}
@@ -131,15 +132,15 @@ export function MappingCanvas({ project, mappingId, revisionKey, dirty, fullscre
             <>
               <h3 className="lineage-bindings-heading">Bindings</h3>
               <ul className="lineage-bindings" aria-label="Bindings">
-                {list.map(b => (
-                  <li key={b.id}>
+                {list.map(binding => (
+                  <li key={binding.id}>
                     <span>
-                      <small>{b.kind}</small>
-                      {b.rootConcept}
-                      {b.relationships.length ? '.' + b.relationships.join('.') : ''}
-                      {b.expression ? <code>{b.expression}</code> : null}
+                      <small>{binding.kind}</small>
+                      {binding.rootConcept}
+                      {binding.relationships.length ? '.' + binding.relationships.join('.') : ''}
+                      {binding.expression ? <code>{binding.expression}</code> : null}
                     </span>
-                    <button onClick={() => onEditItem?.(b.evidence.documentId, b.evidence.path.slice(0, -1))} disabled={!onEditItem}>
+                    <button onClick={() => editBinding(binding.evidence)} disabled={!onEditItem}>
                       Edit item
                     </button>
                   </li>
@@ -157,13 +158,13 @@ export function MappingCanvas({ project, mappingId, revisionKey, dirty, fullscre
           footer={
             <>
               {(() => {
-                const e = evidenceOf(finding.message);
-                return e && onEditItem ? (
+                const evidence = evidenceOf(finding.message);
+                return evidence && onEditItem ? (
                   <button
                     className="primary"
                     onClick={() => {
                       setFinding(null);
-                      onEditItem(e.documentId, e.path);
+                      onEditItem(evidence.documentId, evidence.path);
                     }}
                   >
                     Edit item

@@ -52,21 +52,21 @@ export const draftRoutes: Route = async (ws, req, url) => {
       state
         .drafts()
         .filter(d => !view || view.canRead(d.project, d.path))
-        .map(d => ({
-          project: d.project,
-          path: d.path,
-          baseHash: d.baseHash,
-          updatedAt: d.updatedAt,
+        .map(draft => ({
+          project: draft.project,
+          path: draft.path,
+          baseHash: draft.baseHash,
+          updatedAt: draft.updatedAt,
         })),
     );
-  const m = url.pathname.match(/^\/api\/drafts\/([^/]+)\/(.+)$/);
-  if (!m) return null;
-  const slug = assertSlug(decodeSegment(m[1]));
-  const path = projectPath(decodePath(m[2]));
+  const match = url.pathname.match(/^\/api\/drafts\/([^/]+)\/(.+)$/);
+  if (!match) return null;
+  const slug = assertSlug(decodeSegment(match[1]));
+  const path = projectPath(decodePath(match[2]));
   if (!ws.state.registry().projects.some(p => p.slug === slug)) return Response.json({ error: 'Project not found.' }, { status: 404 });
   if (req.method === 'GET') {
-    const d = state.draft(slug, path);
-    return d ? Response.json(d) : Response.json({ error: 'No draft.' }, { status: 404 });
+    const draft = state.draft(slug, path);
+    return draft ? Response.json(draft) : Response.json({ error: 'No draft.' }, { status: 404 });
   }
   if (req.method === 'PUT') {
     const target = { ws, req, reader, state };

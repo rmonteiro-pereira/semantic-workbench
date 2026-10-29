@@ -36,28 +36,28 @@ export function openFragment(base: string, path: Path): Fragment {
 export const splice = (base: string, f: Fragment, text: string) => base.slice(0, f.from) + reindent(text, f.prefix) + base.slice(f.to);
 
 /** Parses exactly one item from a fragment or returns an explanation of failure. */
-export function fragmentValue(f: Fragment, text: string): { value?: any; error?: string } {
+export function fragmentValue(fragment: Fragment, text: string): { value?: any; error?: string } {
   try {
-    if (f.path.length) {
+    if (fragment.path.length) {
       const list = itemValue(text, []);
       if (!Array.isArray(list) || list.length !== 1) return { error: 'Keep this as one list entry; add other items with Add.' };
     }
-    const value = itemValue(text, f.path);
+    const value = itemValue(text, fragment.path);
     return value && typeof value === 'object' ? { value } : { error: 'The item must stay a mapping of keys and values.' };
-  } catch (e) {
-    return { error: (e as Error).message };
+  } catch (error) {
+    return { error: (error as Error).message };
   }
 }
 // Findings of the whole draft, on the fragment's lines; errors elsewhere stay document-level (they
 // block Save too), warnings elsewhere are about the rest of the file and are left out.
 /** Maps findings to fragment lines while retaining errors elsewhere that block Save. */
-export function fragmentIssues(issues: Issue[], f: Fragment, text: string): Issue[] {
+export function fragmentIssues(issues: Issue[], fragment: Fragment, text: string): Issue[] {
   const lines = text.split(/\r\n|\r|\n/).length;
-  const inside = (i: Issue) => i.line !== undefined && i.line >= f.line && i.line < f.line + lines;
+  const inside = (i: Issue) => i.line !== undefined && i.line >= fragment.line && i.line < fragment.line + lines;
   return issues
     .filter(i => i.severity === 'error' || inside(i))
     .map(i => {
-      if (i.line === undefined || i.line < f.line || i.line >= f.line + lines) {
+      if (i.line === undefined || i.line < fragment.line || i.line >= fragment.line + lines) {
         const { line, column, ...rest } = i;
         return {
           ...rest,
@@ -66,22 +66,25 @@ export function fragmentIssues(issues: Issue[], f: Fragment, text: string): Issu
       }
       return {
         ...i,
-        line: i.line - f.line + 1,
-        column: i.column !== undefined ? Math.max(1, i.column - f.prefix.length) : undefined,
+        line: i.line - fragment.line + 1,
+        column: i.column !== undefined ? Math.max(1, i.column - fragment.prefix.length) : undefined,
       };
     });
 }
-// One form field changed: the item is rewritten through the patcher, so only that value changes.
+/** What one form edit changes: the field, its new input, and the item as it was before the edit. */
+export type FieldChange = { filename: string; kind: ItemKind; spec: FieldSpec; input: string | boolean; original: any };
 /** Patches one form field and reapplies metric status rules when needed. */
-export function setField(text: string, f: Fragment, filename: string, kind: ItemKind, spec: FieldSpec, input: string | boolean, original: any) {
-  const current = fragmentValue(f, text);
+// The item is rewritten through the patcher, so only that value changes.
+export function setField(text: string, fragment: Fragment, change: FieldChange) {
+  const { filename, kind, spec, input, original } = change;
+  const current = fragmentValue(fragment, text);
   if (!current.value) return { text, reopened: false };
   let next = writeField(current.value, spec, fieldValue(spec, input));
   let reopened = false;
   if (kind === 'metric') {
-    const r = applyStatusRules(original, next);
-    next = r.item;
-    reopened = r.reopened;
+    const rules = applyStatusRules(original, next);
+    next = rules.item;
+    reopened = rules.reopened;
   }
-  return { text: applyPatches(text, valuePatches(text, f.path, next, filename)), reopened };
+  return { text: applyPatches(text, valuePatches(text, fragment.path, next, filename)), reopened };
 }

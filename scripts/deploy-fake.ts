@@ -25,7 +25,7 @@ export const fakeRelease: Release = {
 };
 /** Creates independent preflight fixtures so tests cannot mutate another run's settings. */
 export function fakeApp(): AppSettings {
-  const identity = '/subscriptions/subscription/resourceGroups/group/providers/' + 'Microsoft.ManagedIdentity/userAssignedIdentities/id-sw-app';
+  const identity = '/subscriptions/subscription/resourceGroups/group/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-sw-app';
   return {
     mode: 'Single',
     minReplicas: 1,

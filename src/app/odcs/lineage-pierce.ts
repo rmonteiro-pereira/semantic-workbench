@@ -21,27 +21,27 @@ export type LineagePierceResult = {
 export function lineagePierce(i: LineagePierceInput): LineagePierceResult {
   const out = new Map<string, string[]>();
   const inn = new Map<string, string[]>();
-  for (const [a, b] of i.edges) {
-    (out.get(a) ?? out.set(a, []).get(a)!).push(b);
-    (inn.get(b) ?? inn.set(b, []).get(b)!).push(a);
+  for (const [source, target] of i.edges) {
+    (out.get(source) ?? out.set(source, []).get(source)!).push(target);
+    (inn.get(target) ?? inn.set(target, []).get(target)!).push(source);
   }
   const owner = (n: string) => i.owners[n] ?? n;
   const cardStep = new Map<string, number>();
   const walk = (adj: Map<string, string[]>) => {
     const seen = new Map<string, number>(i.start.map(s => [s, 0]));
-    const q = [...i.start];
-    while (q.length) {
-      const n = q.shift()!;
-      const d = seen.get(n)!;
-      for (const m of adj.get(n) ?? [])
-        if (!seen.has(m)) {
-          seen.set(m, d + 1);
-          q.push(m);
+    const queue = [...i.start];
+    while (queue.length) {
+      const current = queue.shift()!;
+      const distance = seen.get(current)!;
+      for (const neighbour of adj.get(current) ?? [])
+        if (!seen.has(neighbour)) {
+          seen.set(neighbour, distance + 1);
+          queue.push(neighbour);
         }
     }
-    for (const [n, d] of seen) {
-      const c = owner(n);
-      cardStep.set(c, Math.min(cardStep.get(c) ?? Infinity, d));
+    for (const [name, distance] of seen) {
+      const card = owner(name);
+      cardStep.set(card, Math.min(cardStep.get(card) ?? Infinity, distance));
     }
   };
   if (i.direction !== 'in') walk(out);

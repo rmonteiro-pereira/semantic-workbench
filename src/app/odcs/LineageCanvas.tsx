@@ -21,7 +21,21 @@ import { useNarrowScreen } from '../workspace/hooks/useNarrowScreen';
 import { ZoomButtons } from '../graph/ZoomButtons';
 import { GraphOptions, OptionGroup, ShowToggle } from '../graph/GraphOptions';
 import { CompactControls } from '../graph/CompactControls';
-import { around, aroundHops, closure, findAssets, foreignKeyPath, cardRows, COLLAPSED_MAX, selectionNodes, cardOfNode, type ColumnWhy, type LineageGraph, type LineageCard } from './lineage';
+import {
+  around,
+  aroundHops,
+  closure,
+  findAssets,
+  foreignKeyPath,
+  cardRows,
+  COLLAPSED_MAX,
+  selectionNodes,
+  cardOfNode,
+  type AssetHitKind,
+  type ColumnWhy,
+  type LineageGraph,
+  type LineageCard,
+} from './lineage';
 import { ForeignKeyHops } from './ForeignKeyHops';
 import { LineageCardNode, type CardData } from './LineageCard';
 import { elkGraph, positionsOf, cardHeight, CARD_W, HEADER_H, ROW_H, MORE_H, FILTER_H, FOOT_H, LIST_ROWS, type LayoutCard, type LayoutEdge, type LayoutResult } from './lineage-layout';
@@ -33,9 +47,19 @@ import { kindOrder, planFirstView } from './lineage-view';
 import './odcs.css';
 // The selected column’s path is emphasized while unrelated rows dim. Navigation records expansions
 // and centers; ELK lays out row ports in a worker.
+const ASSET_KIND_LABEL: Record<AssetHitKind, string> = {
+  field: 'Field',
+  column: 'Column',
+  relationship: 'Relationship',
+  object: 'Table',
+  dataset: 'Dataset',
+  metric: 'Metric',
+  concept: 'Concept',
+  external: 'External',
+};
 const nodeTypes = { card: LineageCardNode };
-const LineageEdge = memo((p: EdgeProps) => {
-  const d = p.data as {
+const LineageEdge = memo((edgeProps: EdgeProps) => {
+  const data = edgeProps.data as {
     kind: EdgeKind;
     onPath: boolean;
     dim: boolean;
@@ -50,41 +74,51 @@ const LineageEdge = memo((p: EdgeProps) => {
   };
   // Parallel lines between the same two ports (an object mapping and a metric binding of one
   // metric) fan out.
-  const shift = (d.lane ?? 0) * 7;
-  const curve = getBezierPath({ ...p, sourceY: p.sourceY + shift, targetY: p.targetY + shift });
+  const shift = (data.lane ?? 0) * 7;
+  const curve = getBezierPath({
+    ...edgeProps,
+    sourceY: edgeProps.sourceY + shift,
+    targetY: edgeProps.targetY + shift,
+  });
   // A line the layout routed around cards follows that route; any other line is a single curve.
-  const routed = d.route && d.route.length > 0;
-  const points = routed ? [{ x: p.sourceX, y: p.sourceY + shift }, ...d.route!, { x: p.targetX, y: p.targetY + shift }] : [];
+  const routed = data.route && data.route.length > 0;
+  const points = routed ? [{ x: edgeProps.sourceX, y: edgeProps.sourceY + shift }, ...data.route!, { x: edgeProps.targetX, y: edgeProps.targetY + shift }] : [];
   const path = routed ? roundedPath(points) : curve[0];
   const middle = routed ? pointAtHalf(points) : { x: curve[1], y: curve[2] };
   const lx = middle.x;
   const ly = middle.y;
+  let labelElement: React.ReactNode;
+  if (data.lineLabel) {
+    labelElement = <LineLabelPill label={data.lineLabel} bundle={(data.count ?? 1) > 1} at={{ x: lx, y: ly }} />;
+  } else if (data.label) {
+    labelElement = (
+      <text x={lx} y={ly - 4} className="lineage-bundle" textAnchor="middle">
+        {data.label}
+      </text>
+    );
+  } else {
+    labelElement = null;
+  }
   return (
     <g
-      className={`lineage-edge${d.onPath ? ' on-path' : ''}${d.dim ? ' dim' : ''}`}
-      data-edge-kind={d.kind}
-      data-on-path={d.onPath ? 'true' : 'false'}
-      data-from={d.from}
-      data-to={d.to}
-      data-count={d.count ?? 1}
+      className={`lineage-edge${data.onPath ? ' on-path' : ''}${data.dim ? ' dim' : ''}`}
+      data-edge-kind={data.kind}
+      data-on-path={data.onPath ? 'true' : 'false'}
+      data-from={data.from}
+      data-to={data.to}
+      data-count={data.count ?? 1}
     >
       <BaseEdge
-        id={p.id}
+        id={edgeProps.id}
         path={path}
         style={{
-          ...edgeSvgStyle(d.kind, d.onPath),
-          opacity: d.dim ? 0.14 : 1,
-          ...(d.onPath ? { stroke: undefined } : {}),
+          ...edgeSvgStyle(data.kind, data.onPath),
+          opacity: data.dim ? 0.14 : 1,
+          ...(data.onPath ? { stroke: undefined } : {}),
         }}
         interactionWidth={12}
       />
-      {d.lineLabel ? (
-        <LineLabelPill label={d.lineLabel} bundle={(d.count ?? 1) > 1} at={{ x: lx, y: ly }} />
-      ) : d.label ? (
-        <text x={lx} y={ly - 4} className="lineage-bundle" textAnchor="middle">
-          {d.label}
-        </text>
-      ) : null}
+      {labelElement}
     </g>
   );
 });
@@ -166,8 +200,8 @@ type Props = {
 };
 const readSteps = (key?: string) => {
   try {
-    const v = key ? Number(localStorage.getItem(key)) : NaN;
-    return v >= 1 && v <= 5 ? v : 1;
+    const value = key ? Number(localStorage.getItem(key)) : NaN;
+    return value >= 1 && value <= 5 ? value : 1;
   } catch {
     return 1;
   }
@@ -218,7 +252,7 @@ function MeasurementWatchdog() {
 // Lays out in ELK's worker (elk-api + elk-worker, as the Graph view does); returns the latest
 // positions (the previous ones stay while a new layout runs).
 function useLayout(cards: LayoutCard[], edges: LayoutEdge[], key: string) {
-  const elk = useRef<{ layout: (g: any) => Promise<any>; terminateWorker: () => void } | null>(null);
+  const elk = useRef<{ layout: (graph: any) => Promise<any>; terminateWorker: () => void } | null>(null);
   const seq = useRef(0);
   const [result, setResult] = useState<{ key: string; layout: LayoutResult } | null>(null);
   const [busy, setBusy] = useState(false);
@@ -227,15 +261,16 @@ function useLayout(cards: LayoutCard[], edges: LayoutEdge[], key: string) {
     return () => elk.current?.terminateWorker();
   }, []);
   useEffect(() => {
-    const e = elk.current;
-    if (!e) return;
+    const elkInstance = elk.current;
+    if (!elkInstance) return;
     const id = ++seq.current;
     setBusy(true);
-    e.layout(elkGraph(cards, edges))
-      .then(r => {
+    elkInstance
+      .layout(elkGraph(cards, edges))
+      .then(layoutOutput => {
         if (id !== seq.current) return;
         setBusy(false);
-        setResult({ key, layout: positionsOf(r) });
+        setResult({ key, layout: positionsOf(layoutOutput) });
       })
       .catch(() => {
         if (id === seq.current) setBusy(false);
@@ -288,7 +323,14 @@ export function LineageCanvas({
   // A centre that is gone from the graph (the file changed under the walk) falls back to the
   // initial one.
   const walked = currentStep(walk)?.center;
-  const center = walked && graph.cards.has(walked) ? walked : graph.cards.has(initial) ? initial : (graph.cards.keys().next().value ?? '');
+  let center: string;
+  if (walked && graph.cards.has(walked)) {
+    center = walked;
+  } else if (graph.cards.has(initial)) {
+    center = initial;
+  } else {
+    center = graph.cards.keys().next().value ?? '';
+  }
   useEffect(() => {
     if (center) onCenterChange?.(center);
   }, [center]);
@@ -335,18 +377,18 @@ export function LineageCanvas({
     const cards = new Set(canvas.nodes);
     const expandedBy = canvas.expandedBy;
     const hidden = new Map<string, number>();
-    for (const [id, n] of base.hidden) if (!expandedBy.has(id)) hidden.set(id, n);
+    for (const [id, count] of base.hidden) if (!expandedBy.has(id)) hidden.set(id, count);
     // Cards that only expansions brought in are placed incrementally beside their origin;
     // everything else (the centre's reach, a pierce) is laid out by ELK.
     const incremental = new Set<string>();
     const laid = new Set([...base.cards, ...canvas.active.filter(x => x.kind === 'pierce').flatMap(x => [x.from, ...x.nodes])]);
-    for (const c of cards) if (!laid.has(c)) incremental.add(c);
+    for (const card of cards) if (!laid.has(card)) incremental.add(card);
     // Iterate over a copy: the loop removes cards from the set.
     // oxlint-disable-next-line no-useless-spread
-    for (const c of [...cards]) {
-      const k = graph.cards.get(c)?.kind;
-      if ((!showMetrics && k === 'metric' && c !== center) || (!showExternal && k === 'external')) cards.delete(c);
-      else if (cardFilter && c !== center && !cardFilter(graph.cards.get(c)!)) cards.delete(c);
+    for (const card of [...cards]) {
+      const cardKind = graph.cards.get(card)?.kind;
+      if ((!showMetrics && cardKind === 'metric' && card !== center) || (!showExternal && cardKind === 'external')) cards.delete(card);
+      else if (cardFilter && card !== center && !cardFilter(graph.cards.get(card)!)) cards.delete(card);
     }
     // Large groups of same-kind leaf cards collapse into a count card to keep the view readable.
     // Selected paths bypass this grouping so every path card stays visible.
@@ -354,20 +396,20 @@ export function LineageCanvas({
     const alias = new Map<string, string>();
     if (!selected) {
       const near = new Map<string, Set<string>>();
-      for (const e of graph.edges) {
-        const a = cardOfNode(graph, e.from);
-        const b = cardOfNode(graph, e.to);
-        if (a === b || !cards.has(a) || !cards.has(b) || incremental.has(a) || incremental.has(b)) continue;
-        (near.get(a) ?? near.set(a, new Set()).get(a)!).add(b);
-        (near.get(b) ?? near.set(b, new Set()).get(b)!).add(a);
+      for (const edge of graph.edges) {
+        const fromCard = cardOfNode(graph, edge.from);
+        const toCard = cardOfNode(graph, edge.to);
+        if (fromCard === toCard || !cards.has(fromCard) || !cards.has(toCard) || incremental.has(fromCard) || incremental.has(toCard)) continue;
+        (near.get(fromCard) ?? near.set(fromCard, new Set()).get(fromCard)!).add(toCard);
+        (near.get(toCard) ?? near.set(toCard, new Set()).get(toCard)!).add(fromCard);
       }
       const leaves = new Map<string, string[]>();
-      for (const c of cards) {
-        const n = near.get(c);
-        if (c === center || expandedBy.has(c) || incremental.has(c) || !n || n.size !== 1) continue;
-        const parent = [...n][0];
-        const key = `group:${parent}|${graph.cards.get(c)!.kind}`;
-        (leaves.get(key) ?? leaves.set(key, []).get(key)!).push(c);
+      for (const card of cards) {
+        const neighbours = near.get(card);
+        if (card === center || expandedBy.has(card) || incremental.has(card) || !neighbours || neighbours.size !== 1) continue;
+        const parent = [...neighbours][0];
+        const key = `group:${parent}|${graph.cards.get(card)!.kind}`;
+        (leaves.get(key) ?? leaves.set(key, []).get(key)!).push(card);
       }
       for (const [id, members] of leaves) {
         if (members.length <= GROUP_AT || openGroups.has(id)) continue;
@@ -380,9 +422,9 @@ export function LineageCanvas({
           detail: members.map(m => graph.cards.get(m)!.label).join(', '),
           columns: [],
         });
-        for (const m of members) {
-          cards.delete(m);
-          alias.set(m, id);
+        for (const member of members) {
+          cards.delete(member);
+          alias.set(member, id);
         }
         cards.add(id);
       }
@@ -395,9 +437,9 @@ export function LineageCanvas({
   // A mapping link lights up the join rows it passes through.
   const path = useMemo(() => {
     if (!selected) return null;
-    const p = closure(graph, selectionNodes(graph, selected));
-    for (const i of p.edges) for (const v of graph.edges[i].via ?? []) p.nodes.add(v);
-    return p;
+    const pathClosure = closure(graph, selectionNodes(graph, selected));
+    for (const i of pathClosure.edges) for (const viaNode of graph.edges[i].via ?? []) pathClosure.nodes.add(viaNode);
+    return pathClosure;
   }, [graph, selected]);
   const [query, setQuery] = useState('');
   const results = useMemo(() => findAssets(graph, query), [graph, query]);
@@ -405,12 +447,12 @@ export function LineageCanvas({
   // selected path or matching the search.
   const why = useMemo<ColumnWhy>(() => {
     const connected = new Set<string>();
-    for (const e of graph.edges) {
-      const from = shownCard(cardOfNode(graph, e.from));
-      const to = shownCard(cardOfNode(graph, e.to));
+    for (const edge of graph.edges) {
+      const from = shownCard(cardOfNode(graph, edge.from));
+      const to = shownCard(cardOfNode(graph, edge.to));
       if (!reach.cards.has(from) || !reach.cards.has(to)) continue;
-      connected.add(e.from);
-      connected.add(e.to);
+      connected.add(edge.from);
+      connected.add(edge.to);
     }
     const focus = new Set<string>(path?.nodes);
     for (const hit of results) focus.add(hit.id);
@@ -442,13 +484,13 @@ export function LineageCanvas({
         edges: number[];
       }
     >();
-    graph.edges.forEach((e, i) => {
-      const fc = shownCard(cardOfNode(graph, e.from));
-      const tc = shownCard(cardOfNode(graph, e.to));
-      if (!reach.cards.has(fc) || !reach.cards.has(tc) || (fc === tc && e.from === e.to)) return;
-      const from = reach.groups.has(fc) ? fc : rowsByCard.get(fc)!.port(e.from);
-      const to = reach.groups.has(tc) ? tc : rowsByCard.get(tc)!.port(e.to);
-      const key = `${from}>${to}>${e.kind}`;
+    graph.edges.forEach((edge, i) => {
+      const fc = shownCard(cardOfNode(graph, edge.from));
+      const tc = shownCard(cardOfNode(graph, edge.to));
+      if (!reach.cards.has(fc) || !reach.cards.has(tc) || (fc === tc && edge.from === edge.to)) return;
+      const from = reach.groups.has(fc) ? fc : rowsByCard.get(fc)!.port(edge.from);
+      const to = reach.groups.has(tc) ? tc : rowsByCard.get(tc)!.port(edge.to);
+      const key = `${from}>${to}>${edge.kind}`;
       const on = !!path?.edges.has(i);
       const x = out.get(key);
       if (x) {
@@ -462,7 +504,7 @@ export function LineageCanvas({
           to,
           fromCard: fc,
           toCard: tc,
-          kind: e.kind,
+          kind: edge.kind,
           onPath: on,
           count: 1,
           edges: [i],
@@ -471,28 +513,28 @@ export function LineageCanvas({
     // Bundle per card pair when nothing on it is selected (edge case "a column read by many
     // fields").
     const pairs = new Map<string, typeof out extends Map<any, infer V> ? V[] : never>();
-    for (const l of out.values()) {
-      const k = `${l.fromCard}>${l.toCard}>${l.kind}`;
-      (pairs.get(k) ?? pairs.set(k, []).get(k)!).push(l);
+    for (const line of out.values()) {
+      const key = `${line.fromCard}>${line.toCard}>${line.kind}`;
+      (pairs.get(key) ?? pairs.set(key, []).get(key)!).push(line);
     }
-    const result: typeof out extends Map<any, infer V> ? V[] : never = [];
-    for (const [k, ls] of pairs) {
-      if (ls.length >= BUNDLE_AT && !ls.some(l => l.onPath) && !splitPairs.has(k)) {
-        const f = ls[0];
-        result.push({
-          id: BUNDLE_PREFIX + k,
-          from: f.fromCard,
-          to: f.toCard,
-          fromCard: f.fromCard,
-          toCard: f.toCard,
-          kind: f.kind,
+    const bundled: typeof out extends Map<any, infer V> ? V[] : never = [];
+    for (const [key, ls] of pairs) {
+      if (ls.length >= BUNDLE_AT && !ls.some(l => l.onPath) && !splitPairs.has(key)) {
+        const first = ls[0];
+        bundled.push({
+          id: BUNDLE_PREFIX + key,
+          from: first.fromCard,
+          to: first.toCard,
+          fromCard: first.fromCard,
+          toCard: first.toCard,
+          kind: first.kind,
           onPath: false,
           count: ls.reduce((a, l) => a + l.count, 0),
           edges: ls.flatMap(l => l.edges),
         });
-      } else result.push(...ls);
+      } else bundled.push(...ls);
     }
-    return result;
+    return bundled;
   }, [graph, reach, rowsByCard, path, splitPairs]);
   const allLayoutCards = useMemo<LayoutCard[]>(
     () =>
@@ -555,11 +597,11 @@ export function LineageCanvas({
         const fromCols = new Set(selectionNodes(graph, x.from));
         const items = x.nodes
           .filter(n => reach.incremental.has(n) && !boxes.has(n))
-          .map(n => ({
-            id: n,
-            side: (graph.edges.some(e => fromCols.has(e.from) && cardOfNode(graph, e.to) === n) ? 1 : -1) as -1 | 1,
+          .map(node => ({
+            id: node,
+            side: (graph.edges.some(e => fromCols.has(e.from) && cardOfNode(graph, e.to) === node) ? 1 : -1) as -1 | 1,
             w: CARD_W,
-            h: size.get(n) ?? HEADER_H,
+            h: size.get(node) ?? HEADER_H,
           }));
         boxes = placeBoxes(boxes, x.from, items);
       }
@@ -580,8 +622,8 @@ export function LineageCanvas({
     });
   const labelOf = (id: string) => graph.cards.get(id)?.label ?? id;
   const expand = (cid: string) => {
-    const r = reachOf(graph, cid, 1);
-    const nodes = [...r.cards].filter(c => c !== cid && (mapping || graph.cards.get(c)?.kind === 'object' || graph.cards.get(c)?.kind === 'external'));
+    const neighbourhood = reachOf(graph, cid, 1);
+    const nodes = [...neighbourhood.cards].filter(card => card !== cid && (mapping || graph.cards.get(card)?.kind === 'object' || graph.cards.get(card)?.kind === 'external'));
     record(
       registerSet({
         kind: 'expand',
@@ -628,13 +670,13 @@ export function LineageCanvas({
     const from = cardOfNode(graph, start);
     if (!from) return;
     stopPierce();
-    const w = new Worker(new URL('./lineage-pierce.worker.ts', import.meta.url), {
+    const worker = new Worker(new URL('./lineage-pierce.worker.ts', import.meta.url), {
       type: 'module',
     });
-    pierceWorker.current = w;
+    pierceWorker.current = worker;
     setPiercing(true);
     const owners: Record<string, string> = {};
-    for (const c of graph.cards.values()) for (const x of c.columns) owners[x.id] = c.id;
+    for (const card of graph.cards.values()) for (const x of card.columns) owners[x.id] = card.id;
     const input: LineagePierceInput = {
       edges: graph.edges.map(e => [e.from, e.to]),
       owners,
@@ -642,12 +684,12 @@ export function LineageCanvas({
       direction,
       budget,
     };
-    w.onmessage = (e: MessageEvent<{ id: number; result: LineagePierceResult }>) => {
-      w.terminate();
-      if (pierceWorker.current !== w) return;
+    worker.onmessage = (messageEvent: MessageEvent<{ id: number; result: LineagePierceResult }>) => {
+      worker.terminate();
+      if (pierceWorker.current !== worker) return;
       pierceWorker.current = null;
       setPiercing(false);
-      const r = e.data.result;
+      const lineagePierceResult = messageEvent.data.result;
       // The result arrives after the click that asked for it, so it opens its own history step.
       actionHistory.act('pierce', () =>
         record(
@@ -655,19 +697,19 @@ export function LineageCanvas({
             kind: 'pierce',
             from,
             direction,
-            nodes: r.cards.filter(c => c !== from),
+            nodes: lineagePierceResult.cards.filter(c => c !== from),
             edges: [],
             frontier: {},
-            total: r.total,
+            total: lineagePierceResult.total,
             budget,
-            steps: r.steps,
+            steps: lineagePierceResult.steps,
           }),
           `pierced ${start === from ? labelOf(from) : start.slice(start.lastIndexOf('/') + 1)}`,
         ),
       );
     };
-    w.onerror = () => stopPierce();
-    w.postMessage({ id: 1, input });
+    worker.onerror = () => stopPierce();
+    worker.postMessage({ id: 1, input });
   };
   const lastSet = reach.active.at(-1);
   // A selected column is named by its last path segment; a selected card by its label.
@@ -677,14 +719,14 @@ export function LineageCanvas({
   const currentIsExpansion = currentStep(walk)?.kind === 'expand';
   const walkTo = useCallback(
     (id: string, via?: string) => {
-      const c = graph.cards.get(id);
-      if (!c) return;
+      const lineageCard = graph.cards.get(id);
+      if (!lineageCard) return;
       dispatch({
         type: 'push',
         step: {
           doc: graph.contract,
           center: id,
-          name: c.label,
+          name: lineageCard.label,
           ...(via ? { via: { id: via, label: via.slice(via.lastIndexOf('/') + 1) } } : {}),
         },
       });
@@ -696,18 +738,18 @@ export function LineageCanvas({
     return [...reach.cards]
       .filter(id => result.layout.positions[id])
       .map(id => {
-        const c = cardFor(id);
-        const p = rowsByCard.get(id)!;
-        const g = groupOf?.(c);
+        const lineageCard = cardFor(id);
+        const cardRowSet = rowsByCard.get(id)!;
+        const group = groupOf?.(lineageCard);
         const isGroup = reach.groups.has(id);
         const data: CardData = {
           kindNames: mapping ? MAPPING_KINDS : undefined,
           onFinding,
-          card: c,
-          rows: p.rows,
-          more: p.hidden,
+          card: lineageCard,
+          rows: cardRowSet.rows,
+          more: cardRowSet.hidden,
           columnsOpen: openColumns.has(id),
-          filterable: p.filterable,
+          filterable: cardRowSet.filterable,
           listRows,
           connected: why.connected,
           hiddenNeighbours: isGroup ? 1 : (reach.hidden.get(id) ?? 0),
@@ -715,7 +757,7 @@ export function LineageCanvas({
           selected,
           onPath: path?.nodes ?? null,
           center: id === center,
-          tint: g?.color,
+          tint: group?.color,
           expanded: reach.expandedBy.has(id),
           onSelect: select,
           onOpenColumns: cid => {
@@ -738,11 +780,11 @@ export function LineageCanvas({
           measured: sizeFor(
             id,
             JSON.stringify([
-              p.rows.map(row => row.id),
-              p.hidden,
+              cardRowSet.rows.map(row => row.id),
+              cardRowSet.hidden,
               data.columnsOpen,
               data.columnsOpen ? listRows : 0,
-              data.columnsOpen ? c.columns.filter(row => why.connected.has(row.id)).map(row => row.id) : [],
+              data.columnsOpen ? lineageCard.columns.filter(row => why.connected.has(row.id)).map(row => row.id) : [],
             ]),
           ),
           data: data as unknown as Record<string, unknown>,
@@ -771,28 +813,28 @@ export function LineageCanvas({
     const lanes = new Map<string, number>();
     return lines
       .filter(l => result?.layout.positions[l.fromCard] && result.layout.positions[l.toCard])
-      .map(l => ({
-        id: l.id,
-        source: l.fromCard,
-        target: l.toCard,
-        sourceHandle: l.from + ':out',
-        targetHandle: l.to + ':in',
+      .map(line => ({
+        id: line.id,
+        source: line.fromCard,
+        target: line.toCard,
+        sourceHandle: line.from + ':out',
+        targetHandle: line.to + ':in',
         type: 'lineage',
         data: {
-          kind: l.kind,
-          onPath: l.onPath,
-          dim: !!path && !l.onPath,
-          count: l.count,
-          from: l.from,
-          to: l.to,
-          label: mapping && l.count === 1 ? graph.edges[l.edges[0]].label : undefined,
-          lineLabel: lineLabels.get(l.id),
-          route: result?.layout.routes[l.id],
+          kind: line.kind,
+          onPath: line.onPath,
+          dim: !!path && !line.onPath,
+          count: line.count,
+          from: line.from,
+          to: line.to,
+          label: mapping && line.count === 1 ? graph.edges[line.edges[0]].label : undefined,
+          lineLabel: lineLabels.get(line.id),
+          route: result?.layout.routes[line.id],
           lane: (() => {
-            const k = l.from + '>' + l.to;
-            const n = lanes.get(k) ?? 0;
-            lanes.set(k, n + 1);
-            return n;
+            const key = line.from + '>' + line.to;
+            const lane = lanes.get(key) ?? 0;
+            lanes.set(key, lane + 1);
+            return lane;
           })(),
         },
       }));
@@ -808,41 +850,45 @@ export function LineageCanvas({
   // Keep column names at least 12 px on entry by fitting the nearest readable neighborhood. Fall
   // back to the center alone when needed; explicit Fit may zoom out further.
   const readableFit = useCallback(async (focus: string, group: string[]) => {
-    const f = flow.current;
-    if (!f) return;
-    await f.fitView({ padding: 0.12, maxZoom: 1, duration: 0 });
-    if (f.getZoom() >= READABLE) return;
-    const ids = [...new Set([focus, ...group])].filter(id => f.getNode(id));
+    const reactFlowInstance = flow.current;
+    if (!reactFlowInstance) return;
+    await reactFlowInstance.fitView({ padding: 0.12, maxZoom: 1, duration: 0 });
+    if (reactFlowInstance.getZoom() >= READABLE) return;
+    const ids = [...new Set([focus, ...group])].filter(id => reactFlowInstance.getNode(id));
     if (ids.length > 1) {
-      await f.fitView({ nodes: ids.map(id => ({ id })), padding: 0.1, maxZoom: 1, duration: 0 });
-      if (f.getZoom() >= READABLE) return;
+      await reactFlowInstance.fitView({
+        nodes: ids.map(id => ({ id })),
+        padding: 0.1,
+        maxZoom: 1,
+        duration: 0,
+      });
+      if (reactFlowInstance.getZoom() >= READABLE) return;
     }
-    const n = f.getNode(focus);
+    const node = reactFlowInstance.getNode(focus);
     const lc = layoutCardsRef.current.find(c => c.id === focus);
-    if (n) {
-      const w = CARD_W;
-      const h = lc ? cardHeight(lc) : (n.measured?.height ?? 200); // A card taller than the canvas shows its
-      // top (header and first rows), not its
-      // middle.
+    if (node) {
+      const width = CARD_W;
+      // A card taller than the canvas shows its top (header and first rows), not its middle.
+      const height = lc ? cardHeight(lc) : (node.measured?.height ?? 200);
       const visible = (stage.current?.clientHeight ?? 600) / READABLE - 48;
-      f.setCenter(n.position.x + w / 2, n.position.y + Math.min(h, visible) / 2 + (h > visible ? -8 : 0), { zoom: READABLE, duration: 0 });
+      reactFlowInstance.setCenter(node.position.x + width / 2, node.position.y + Math.min(height, visible) / 2 + (height > visible ? -8 : 0), { zoom: READABLE, duration: 0 });
     }
   }, []);
   const viewKey = [center, steps].join('|');
   // Frames the nearest cards at a readable zoom. When the real layout is wider than the estimate,
   // the farthest framed card is dropped from the frame, never from the canvas, until it fits.
   const firstView = useCallback(async () => {
-    const f = flow.current;
-    if (!f) return;
-    const framed = [...(framedCards ?? reach.cards)].filter(id => f.getNode(id));
+    const reactFlowInstance = flow.current;
+    if (!reactFlowInstance) return;
+    const framed = [...(framedCards ?? reach.cards)].filter(id => reactFlowInstance.getNode(id));
     while (framed.length > 1) {
-      await f.fitView({
+      await reactFlowInstance.fitView({
         nodes: framed.map(id => ({ id })),
         padding: 0.06,
         maxZoom: FIRST_VIEW_MAX_ZOOM,
         duration: 0,
       });
-      if (f.getZoom() >= READABLE - 0.005) return;
+      if (reactFlowInstance.getZoom() >= READABLE - 0.005) return;
       framed.pop();
     }
     await readableFit(center, []);
@@ -865,10 +911,10 @@ export function LineageCanvas({
   // Opening or closing a card's columns changes its height, and the new layout can move that card
   // far away, so it seemed to vanish. The view follows the card: it stays where it was on screen.
   function keepOnScreen(cardId: string) {
-    const f = flow.current;
-    const node = f?.getNode(cardId);
-    if (!f || !node) return;
-    const { x, y, zoom } = f.getViewport();
+    const reactFlowInstance = flow.current;
+    const node = reactFlowInstance?.getNode(cardId);
+    if (!reactFlowInstance || !node) return;
+    const { x, y, zoom } = reactFlowInstance.getViewport();
     anchoredCard.current = {
       id: cardId,
       layout: result?.key,
@@ -898,19 +944,19 @@ export function LineageCanvas({
   useEffect(() => {
     if (!result || !lastSet || focused.current === lastSet.id) return;
     focused.current = lastSet.id;
-    const t = setTimeout(() => void readableFit(lastSet.from, lastSet.nodes), 120);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => void readableFit(lastSet.from, lastSet.nodes), 120);
+    return () => clearTimeout(timer);
   }, [result, lastSet]);
   // The path panel takes room beside the canvas: when a path opens, bring its cards into a
   // readable view (React Flow learns the new width from a ResizeObserver, so this waits for it).
   const panelOpen = !!path;
   useEffect(() => {
     if (!result || !path) return;
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       const cards = [...new Set([...path.nodes].map(n => cardOfNode(graph, n)))].filter(c => reach.cards.has(c));
       void readableFit(cardOfNode(graph, selected), cards);
     }, 120);
-    return () => clearTimeout(t);
+    return () => clearTimeout(timer);
   }, [panelOpen]);
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
@@ -919,30 +965,30 @@ export function LineageCanvas({
     window.addEventListener('keydown', key);
     return () => window.removeEventListener('keydown', key);
   }, [selected]);
-  const choose = (h: { id: string; card: string }) => {
+  const choose = (hit: { id: string; card: string }) => {
     setQuery('');
     setShowResults(false);
-    if (h.card !== center) walkTo(h.card);
-    if (h.id !== h.card) setTimeout(() => actionHistory.act('select', () => setSelected(h.id)), 0);
+    if (hit.card !== center) walkTo(hit.card);
+    if (hit.id !== hit.card) setTimeout(() => actionHistory.act('select', () => setSelected(hit.id)), 0);
   };
   // The selected path in lineage order: upstream cards first (by layout x), then rows in order.
   const summary = useMemo(() => {
     if (!path) return [];
     const items: { id: string; label: string; x: number; y: number; kind: string }[] = [];
-    for (const n of path.nodes) {
-      const cid = cardOfNode(graph, n);
-      const c = graph.cards.get(cid);
-      if (!c || !reach.cards.has(cid)) continue;
-      const col = c.columns.find(x => x.id === n);
-      if (!col && n !== cid) continue;
-      if (!col && c.columns.length && path.nodes.size > 1 && n === cid && selected !== cid) continue;
+    for (const node of path.nodes) {
+      const cid = cardOfNode(graph, node);
+      const lineageCard = graph.cards.get(cid);
+      if (!lineageCard || !reach.cards.has(cid)) continue;
+      const col = lineageCard.columns.find(x => x.id === node);
+      if (!col && node !== cid) continue;
+      if (!col && lineageCard.columns.length && path.nodes.size > 1 && node === cid && selected !== cid) continue;
       const pos = result?.layout.positions[cid] ?? { x: 0, y: 0 };
       items.push({
-        id: n,
-        label: col ? `${c.label}.${col.path}` : c.label,
+        id: node,
+        label: col ? `${lineageCard.label}.${col.path}` : lineageCard.label,
         x: pos.x,
-        y: pos.y + (col ? c.columns.indexOf(col) : 0),
-        kind: c.kind,
+        y: pos.y + (col ? lineageCard.columns.indexOf(col) : 0),
+        kind: lineageCard.kind,
       });
     }
     return items.sort((a, b) => a.x - b.x || a.y - b.y);
@@ -955,13 +1001,13 @@ export function LineageCanvas({
           return k === x || (x === 'field' && k === 'dataset');
         }),
       );
-    const k = new Set<LegendKind>();
+    const kinds = new Set<LegendKind>();
     for (const id of reach.cards) {
-      const c = cardFor(id);
-      k.add(c.kind === 'external' ? 'external' : (c.kind as LegendKind));
-      if (c.kind === 'dataset') k.add('field');
+      const lineageCard = cardFor(id);
+      kinds.add(lineageCard.kind === 'external' ? 'external' : (lineageCard.kind as LegendKind));
+      if (lineageCard.kind === 'dataset') kinds.add('field');
     }
-    return (['object', 'dataset', 'field', 'metric', 'external'] as LegendKind[]).filter(x => k.has(x));
+    return (['object', 'dataset', 'field', 'metric', 'external'] as LegendKind[]).filter(x => kinds.has(x));
   }, [reach, graph, mapping]);
   const legendLines = useMemo(() => {
     if (!mapping) return undefined;
@@ -997,7 +1043,7 @@ export function LineageCanvas({
       intro={
         mapping
           ? `The view shows ${centreName} and every card within the chosen number of mapping lines of it.`
-          : `The view shows ${centreName} with every field and metric that reads it, ` + 'and tables up to the chosen number of foreign-key hops away.'
+          : `The view shows ${centreName} with every field and metric that reads it, and tables up to the chosen number of foreign-key hops away.`
       }
     >
       {mapping && (
@@ -1005,9 +1051,9 @@ export function LineageCanvas({
           <label>
             Steps
             <select aria-label="Mapping steps" value={steps} onChange={e => setSteps(Number(e.target.value))}>
-              {[1, 2, 3, 4, 5].map(n => (
-                <option key={n} value={n}>
-                  {n}
+              {[1, 2, 3, 4, 5].map(stepCount => (
+                <option key={stepCount} value={stepCount}>
+                  {stepCount}
                 </option>
               ))}
             </select>
@@ -1047,12 +1093,12 @@ export function LineageCanvas({
               setQuery(e.target.value);
               setShowResults(true);
             }}
-            onKeyDown={e => {
-              if (e.key === 'Enter' && results[0]) {
-                e.preventDefault();
+            onKeyDown={event => {
+              if (event.key === 'Enter' && results[0]) {
+                event.preventDefault();
                 choose(results[0]);
               }
-              if (e.key === 'Escape') {
+              if (event.key === 'Escape') {
                 setQuery('');
                 setShowResults(false);
               }
@@ -1061,34 +1107,18 @@ export function LineageCanvas({
           {showResults && query && (
             <ul id="lineage-asset-results" role="listbox" aria-label="Asset results">
               {results.length ? (
-                results.map(h => (
+                results.map(hit => (
                   <li
-                    key={h.id}
+                    key={hit.id}
                     role="option"
                     aria-selected={false}
                     onMouseDown={e => {
                       e.preventDefault();
-                      choose(h);
+                      choose(hit);
                     }}
                   >
-                    <span className={`asset-kind k-${h.kind}`}>
-                      {h.kind === 'field'
-                        ? 'Field'
-                        : h.kind === 'column'
-                          ? 'Column'
-                          : h.kind === 'relationship'
-                            ? 'Relationship'
-                            : h.kind === 'object'
-                              ? 'Table'
-                              : h.kind === 'dataset'
-                                ? 'Dataset'
-                                : h.kind === 'metric'
-                                  ? 'Metric'
-                                  : h.kind === 'concept'
-                                    ? 'Concept'
-                                    : 'External'}
-                    </span>
-                    <span className="asset-name">{h.label}</span>
+                    <span className={`asset-kind k-${hit.kind}`}>{ASSET_KIND_LABEL[hit.kind]}</span>
+                    <span className="asset-name">{hit.label}</span>
                   </li>
                 ))
               ) : (
@@ -1135,11 +1165,11 @@ export function LineageCanvas({
             <ArrowRight size={13} />
           </button>
           <ol>
-            {walk.steps.map((s, i) => (
+            {walk.steps.map((step, i) => (
               <li key={i}>
-                <button aria-current={i === walk.index ? 'step' : undefined} onClick={() => dispatch({ type: 'jump', index: i })} title={s.via ? `via ${s.via.label}` : undefined}>
-                  {s.via && <small>via {s.via.label} →</small>}
-                  {s.name}
+                <button aria-current={i === walk.index ? 'step' : undefined} onClick={() => dispatch({ type: 'jump', index: i })} title={step.via ? `via ${step.via.label}` : undefined}>
+                  {step.via && <small>via {step.via.label} →</small>}
+                  {step.name}
                 </button>
               </li>
             ))}

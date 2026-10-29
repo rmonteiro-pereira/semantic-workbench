@@ -12,14 +12,15 @@ export async function layoutProblems(page: Page, options: { overlays?: string[];
       const doc = document.documentElement;
       if (doc.scrollWidth > vw + 1) out.push(`page scrolls horizontally (${doc.scrollWidth} > ${vw})`);
       const name = (el: Element) => {
-        const a = el.getAttribute('aria-label') || (el as HTMLElement).innerText?.trim().split('\n')[0] || el.getAttribute('placeholder') || '';
-        return `${el.tagName.toLowerCase()}${el.className && typeof el.className === 'string' ? '.' + el.className.trim().split(/\s+/)[0] : ''} "${a.slice(0, 40)}"`;
+        const label = el.getAttribute('aria-label') || (el as HTMLElement).innerText?.trim().split('\n')[0] || el.getAttribute('placeholder') || '';
+        const firstClass = el.className && typeof el.className === 'string' ? '.' + el.className.trim().split(/\s+/)[0] : '';
+        return `${el.tagName.toLowerCase()}${firstClass} "${label.slice(0, 40)}"`;
       };
       const shown = (el: Element) => {
-        const s = getComputedStyle(el);
-        if (s.visibility === 'hidden' || s.display === 'none' || Number(s.opacity) === 0) return false;
-        const r = el.getBoundingClientRect();
-        return r.width >= 1 && r.height >= 1;
+        const style = getComputedStyle(el);
+        if (style.visibility === 'hidden' || style.display === 'none' || Number(style.opacity) === 0) return false;
+        const rect = el.getBoundingClientRect();
+        return rect.width >= 1 && rect.height >= 1;
       };
       // Content of a closed <details> keeps layout boxes in Chromium but is not shown. The React
       // Flow attribution link is a credit, not a working control, so an overlay may cover it.
@@ -31,23 +32,23 @@ export async function layoutProblems(page: Page, options: { overlays?: string[];
       const controls = [...scope.querySelectorAll('button,input:not([type=file]):not([type=hidden]),select,textarea,[role=tab],a[href]')].filter(el => shown(el) && !el.matches(skip));
       const scrolls = (s: CSSStyleDeclaration, axis: 'x' | 'y') => /(auto|scroll)/.test(axis === 'x' ? s.overflowX : s.overflowY);
       for (const el of controls) {
-        const r = el.getBoundingClientRect();
+        const rect = el.getBoundingClientRect();
         let reachableX = false;
         let reachableY = false;
         let clipped = '';
-        for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
-          const s = getComputedStyle(p);
-          if (scrolls(s, 'x')) reachableX = true;
-          if (scrolls(s, 'y')) reachableY = true;
-          const clipX = !reachableX && /(hidden|clip)/.test(s.overflowX);
-          const clipY = !reachableY && /(hidden|clip)/.test(s.overflowY);
+        for (let ancestor = el.parentElement; ancestor && ancestor !== document.body; ancestor = ancestor.parentElement) {
+          const style = getComputedStyle(ancestor);
+          if (scrolls(style, 'x')) reachableX = true;
+          if (scrolls(style, 'y')) reachableY = true;
+          const clipX = !reachableX && /(hidden|clip)/.test(style.overflowX);
+          const clipY = !reachableY && /(hidden|clip)/.test(style.overflowY);
           if (clipX || clipY) {
-            const pr = p.getBoundingClientRect();
-            const outX = clipX && (r.left < pr.left - 1 || r.right > pr.right + 1);
-            const outY = clipY && (r.top < pr.top - 1 || r.bottom > pr.bottom + 1);
-            const inside = r.right > pr.left && r.left < pr.right && r.bottom > pr.top && r.top < pr.bottom;
+            const ancestorRect = ancestor.getBoundingClientRect();
+            const outX = clipX && (rect.left < ancestorRect.left - 1 || rect.right > ancestorRect.right + 1);
+            const outY = clipY && (rect.top < ancestorRect.top - 1 || rect.bottom > ancestorRect.bottom + 1);
+            const inside = rect.right > ancestorRect.left && rect.left < ancestorRect.right && rect.bottom > ancestorRect.top && rect.top < ancestorRect.bottom;
             if ((outX || outY) && inside) {
-              clipped = `cut off by ${name(p)}`;
+              clipped = `cut off by ${name(ancestor)}`;
               break;
             }
             if (!inside) {
@@ -56,58 +57,58 @@ export async function layoutProblems(page: Page, options: { overlays?: string[];
             }
           }
           // A full-screen or fixed element escapes the clipping of its ancestors.
-          if (p === document.fullscreenElement || s.position === 'fixed') break;
+          if (ancestor === document.fullscreenElement || style.position === 'fixed') break;
         }
         if (clipped === 'hidden') continue;
         if (clipped) {
           out.push(`${name(el)} ${clipped}`);
           continue;
         }
-        if (!reachableX && (r.left < -1 || r.right > vw + 1)) out.push(`${name(el)} outside the viewport horizontally (${Math.round(r.left)}–${Math.round(r.right)} of ${vw})`);
-        if (!reachableY && r.top < vh && r.bottom > vh + 1 && getComputedStyle(el).position !== 'fixed') out.push(`${name(el)} cut off at the bottom of the viewport`);
+        if (!reachableX && (rect.left < -1 || rect.right > vw + 1)) out.push(`${name(el)} outside the viewport horizontally (${Math.round(rect.left)}–${Math.round(rect.right)} of ${vw})`);
+        if (!reachableY && rect.top < vh && rect.bottom > vh + 1 && getComputedStyle(el).position !== 'fixed') out.push(`${name(el)} cut off at the bottom of the viewport`);
       }
       // Floating overlays must not cover each other or any visible control outside themselves.
       const boxes = (overlays ?? []).flatMap(sel => [...document.querySelectorAll(sel)].filter(shown).map(el => ({ sel, el, r: el.getBoundingClientRect() })));
       const hit = (a: DOMRect, b: DOMRect) => Math.min(a.right, b.right) - Math.max(a.left, b.left) > 1 && Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 1;
       for (let i = 0; i < boxes.length; i++)
         for (let j = i + 1; j < boxes.length; j++) {
-          const a = boxes[i];
-          const b = boxes[j];
-          if (a.el.contains(b.el) || b.el.contains(a.el)) continue;
-          if (hit(a.r, b.r)) out.push(`overlay ${a.sel} overlaps ${b.sel}`);
+          const firstOverlay = boxes[i];
+          const secondOverlay = boxes[j];
+          if (firstOverlay.el.contains(secondOverlay.el) || secondOverlay.el.contains(firstOverlay.el)) continue;
+          if (hit(firstOverlay.r, secondOverlay.r)) out.push(`overlay ${firstOverlay.sel} overlaps ${secondOverlay.sel}`);
         }
       // The part of a control its scrolling or clipping ancestors actually show (a toolbar strip
       // scrolled sideways hides part of its buttons; the hidden part cannot be covered).
       const shownRect = (el: Element) => {
-        let r = el.getBoundingClientRect();
-        let left = r.left;
-        let top = r.top;
-        let right = r.right;
-        let bottom = r.bottom;
-        for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
-          const s = getComputedStyle(p);
-          if (s.overflowX !== 'visible' || s.overflowY !== 'visible') {
-            const q = p.getBoundingClientRect();
-            left = Math.max(left, q.left);
-            top = Math.max(top, q.top);
-            right = Math.min(right, q.right);
-            bottom = Math.min(bottom, q.bottom);
+        let rect = el.getBoundingClientRect();
+        let left = rect.left;
+        let top = rect.top;
+        let right = rect.right;
+        let bottom = rect.bottom;
+        for (let ancestor = el.parentElement; ancestor && ancestor !== document.body; ancestor = ancestor.parentElement) {
+          const style = getComputedStyle(ancestor);
+          if (style.overflowX !== 'visible' || style.overflowY !== 'visible') {
+            const ancestorRect = ancestor.getBoundingClientRect();
+            left = Math.max(left, ancestorRect.left);
+            top = Math.max(top, ancestorRect.top);
+            right = Math.min(right, ancestorRect.right);
+            bottom = Math.min(bottom, ancestorRect.bottom);
           }
-          if (s.position === 'fixed') break;
+          if (style.position === 'fixed') break;
         }
         return new DOMRect(left, top, Math.max(0, right - left), Math.max(0, bottom - top));
       };
-      for (const o of boxes)
+      for (const overlay of boxes)
         for (const el of controls) {
-          if (o.el.contains(el) || el.contains(o.el)) continue;
-          const r = shownRect(el);
-          if (r.width < 1 || r.height < 1) continue;
-          if (hit(o.r, r)) {
+          if (overlay.el.contains(el) || el.contains(overlay.el)) continue;
+          const rect = shownRect(el);
+          if (rect.width < 1 || rect.height < 1) continue;
+          if (hit(overlay.r, rect)) {
             // Covered only if the overlay is drawn above the control at the overlap's centre.
-            const x = (Math.max(o.r.left, r.left) + Math.min(o.r.right, r.right)) / 2;
-            const y = (Math.max(o.r.top, r.top) + Math.min(o.r.bottom, r.bottom)) / 2;
+            const x = (Math.max(overlay.r.left, rect.left) + Math.min(overlay.r.right, rect.right)) / 2;
+            const y = (Math.max(overlay.r.top, rect.top) + Math.min(overlay.r.bottom, rect.bottom)) / 2;
             const top = document.elementFromPoint(x, y);
-            if (top && o.el.contains(top) && !el.contains(top)) out.push(`overlay ${o.sel} covers ${name(el)}`);
+            if (top && overlay.el.contains(top) && !el.contains(top)) out.push(`overlay ${overlay.sel} covers ${name(el)}`);
           }
         }
       return [...new Set(out)];
@@ -122,37 +123,37 @@ export async function lineageProblems(page: Page): Promise<string[]> {
   return page.evaluate(() => {
     const out: string[] = [];
     const hit = (a: DOMRect, b: DOMRect) => Math.min(a.right, b.right) - Math.max(a.left, b.left) > 1 && Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 1;
-    const inside = (a: DOMRect, b: DOMRect) => a.left >= b.left - 1 && a.right <= b.right + 1 && a.top >= b.top - 1 && a.bottom <= b.bottom + 1;
+    const inside = (inner: DOMRect, outer: DOMRect) => inner.left >= outer.left - 1 && inner.right <= outer.right + 1 && inner.top >= outer.top - 1 && inner.bottom <= outer.bottom + 1;
     const view = document.querySelector('.lineage-view');
     if (!view) return ['no lineage canvas'];
     const cards = [...view.querySelectorAll('.lineage-card')];
-    for (const c of cards) {
-      const r = c.getBoundingClientRect();
-      const label = c.getAttribute('aria-label');
-      for (const el of c.querySelectorAll('.lineage-card-head > *, .lineage-card-marks > *, .lineage-rows li, .lineage-row > *, .property-badge, .lineage-list-foot > *, .lineage-more-button')) {
-        const e = el.getBoundingClientRect();
-        if (e.width < 1) continue;
-        if (!inside(e, r)) out.push(`${label}: ${el.className || el.tagName} "${(el.textContent ?? '').slice(0, 30)}" sticks out of the card`);
+    for (const card of cards) {
+      const cardRect = card.getBoundingClientRect();
+      const label = card.getAttribute('aria-label');
+      for (const el of card.querySelectorAll('.lineage-card-head > *, .lineage-card-marks > *, .lineage-rows li, .lineage-row > *, .property-badge, .lineage-list-foot > *, .lineage-more-button')) {
+        const childRect = el.getBoundingClientRect();
+        if (childRect.width < 1) continue;
+        if (!inside(childRect, cardRect)) out.push(`${label}: ${el.className || el.tagName} "${(el.textContent ?? '').slice(0, 30)}" sticks out of the card`);
       }
-      for (const el of c.querySelectorAll('.lineage-row-name, .lineage-card-title strong')) {
-        const h = el as HTMLElement;
-        if (h.scrollWidth > h.clientWidth + 1 && getComputedStyle(h).textOverflow !== 'ellipsis') out.push(`${label}: "${h.textContent}" is cut without an ellipsis`);
+      for (const el of card.querySelectorAll('.lineage-row-name, .lineage-card-title strong')) {
+        const element = el as HTMLElement;
+        if (element.scrollWidth > element.clientWidth + 1 && getComputedStyle(element).textOverflow !== 'ellipsis') out.push(`${label}: "${element.textContent}" is cut without an ellipsis`);
       }
       // Badges in a row never overlap the column name.
-      for (const row of c.querySelectorAll('.lineage-row')) {
-        const n = row.querySelector('.lineage-row-name')?.getBoundingClientRect();
-        if (!n) continue;
-        for (const b of row.querySelectorAll('.property-badge'))
-          if (hit(n, b.getBoundingClientRect())) out.push(`${label}: badge "${b.textContent}" overlaps "${row.querySelector('.lineage-row-name')!.textContent}"`);
+      for (const row of card.querySelectorAll('.lineage-row')) {
+        const nameRect = row.querySelector('.lineage-row-name')?.getBoundingClientRect();
+        if (!nameRect) continue;
+        for (const badge of row.querySelectorAll('.property-badge'))
+          if (hit(nameRect, badge.getBoundingClientRect())) out.push(`${label}: badge "${badge.textContent}" overlaps "${row.querySelector('.lineage-row-name')!.textContent}"`);
       }
     }
     // Header marks (Unmapped badge, finding markers) never overlap the title or the actions.
-    for (const c of cards) {
-      const t = c.querySelector('.lineage-card-title strong')?.getBoundingClientRect();
-      const m = c.querySelector('.lineage-card-marks')?.getBoundingClientRect();
-      const a = c.querySelector('.lineage-card-actions')?.getBoundingClientRect();
-      if (t && m && m.width > 0 && hit(t, m)) out.push(`${c.getAttribute('aria-label')}: header badges overlap the title`);
-      if (a && m && m.width > 0 && a.width > 0 && hit(a, m)) out.push(`${c.getAttribute('aria-label')}: header badges overlap the actions`);
+    for (const card of cards) {
+      const titleRect = card.querySelector('.lineage-card-title strong')?.getBoundingClientRect();
+      const marksRect = card.querySelector('.lineage-card-marks')?.getBoundingClientRect();
+      const actionsRect = card.querySelector('.lineage-card-actions')?.getBoundingClientRect();
+      if (titleRect && marksRect && marksRect.width > 0 && hit(titleRect, marksRect)) out.push(`${card.getAttribute('aria-label')}: header badges overlap the title`);
+      if (actionsRect && marksRect && marksRect.width > 0 && actionsRect.width > 0 && hit(actionsRect, marksRect)) out.push(`${card.getAttribute('aria-label')}: header badges overlap the actions`);
     }
     for (let i = 0; i < cards.length; i++)
       for (let j = i + 1; j < cards.length; j++)

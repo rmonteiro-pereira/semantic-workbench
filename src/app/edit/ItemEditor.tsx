@@ -33,7 +33,18 @@ type Props = {
   onDelete: () => void;
   onOpenSource: (line: number) => void;
 };
-const display = (spec: FieldSpec, v: any) => (spec.input === 'list' ? (Array.isArray(v) ? v.join(', ') : (v ?? '')) : v === undefined || v === null ? '' : String(v));
+const display = (spec: FieldSpec, value: any) => {
+  if (spec.input === 'list') {
+    if (Array.isArray(value)) {
+      return value.join(', ');
+    }
+    return value ?? '';
+  }
+  if (value === undefined || value === null) {
+    return '';
+  }
+  return String(value);
+};
 /** Edits an item's fields or source and validates the draft before saving. */
 export function ItemEditor({ doc, base, path, kind, projectDocs, choices, onClose, onSaved, onOpenItem, onAddChild, onDelete, onOpenSource }: Props) {
   const access = useCapabilities(doc.project);
@@ -56,8 +67,8 @@ export function ItemEditor({ doc, base, path, kind, projectDocs, choices, onClos
   // A metric's dependents are listed before any change is saved; found after the first paint.
   useEffect(() => {
     if (kind !== 'metric') return;
-    const t = setTimeout(() => setDependents(findReferences({ kind, name: oldName, docId: doc.id, path }, projectDocs).filter(r => r.dependent)), 30);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setDependents(findReferences({ kind, name: oldName, docId: doc.id, path }, projectDocs).filter(r => r.dependent)), 30);
+    return () => clearTimeout(timer);
   }, []);
   // A rename: what still names the old name (rewritten only where ticked).
   const renamed = !!oldName && !!newName && newName !== oldName;
@@ -89,13 +100,13 @@ export function ItemEditor({ doc, base, path, kind, projectDocs, choices, onClos
   const changed = effective !== base;
   // The whole draft is checked in the worker after a short pause; Save waits for the result.
   useEffect(() => {
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       const at = effective;
       validateInWorker(at, doc.filename)
         .then(issues => setCheck({ text: at, issues }))
         .catch(() => {});
     }, 250);
-    return () => clearTimeout(t);
+    return () => clearTimeout(timer);
   }, [effective]);
 
   const canSave = changed && !pending && !errors.length && !parsed.error && !saving;
@@ -104,9 +115,9 @@ export function ItemEditor({ doc, base, path, kind, projectDocs, choices, onClos
   const status = extensionOf(original)?.value?.status;
   function edit(spec: FieldSpec, input: string | boolean) {
     if (typeof input === 'string') setTexts(t => ({ ...t, [spec.key]: input }));
-    const r = setField(text, fragment, doc.filename, kind, spec, input, original);
-    setText(r.text);
-    if (kind === 'metric') setReopened(r.reopened);
+    const updated = setField(text, fragment, { filename: doc.filename, kind, spec, input, original });
+    setText(updated.text);
+    if (kind === 'metric') setReopened(updated.reopened);
   }
   async function save() {
     setSaving(true);
@@ -121,29 +132,29 @@ export function ItemEditor({ doc, base, path, kind, projectDocs, choices, onClos
       );
       const written: Saved[] = [];
       if (!others.length) {
-        const r = await api.save(doc.project, doc.path, doc.hash, main, diffPatches(doc.source, main));
-        written.push({ docId: doc.id, source: r.source ?? main, hash: r.hash });
+        const saved = await api.save(doc.project, doc.path, doc.hash, main, diffPatches(doc.source, main));
+        written.push({ docId: doc.id, source: saved.source ?? main, hash: saved.hash });
       } else {
         const files = [{ doc, source: main }, ...others.map(o => ({ doc: projectDocs.find(d => d.id === o.docId)!, source: o.source }))];
-        const r = await api.saveBatch(
+        const batchSaved = await api.saveBatch(
           doc.project,
-          files.map(f => ({
-            path: f.doc.path,
-            baseHash: f.doc.hash,
-            patches: diffPatches(f.doc.source, f.source),
+          files.map(file => ({
+            path: file.doc.path,
+            baseHash: file.doc.hash,
+            patches: diffPatches(file.doc.source, file.source),
           })),
         );
-        files.forEach((f, i) =>
+        files.forEach((file, i) =>
           written.push({
-            docId: f.doc.id,
-            source: r.written[i].source ?? f.source,
-            hash: r.written[i].hash,
+            docId: file.doc.id,
+            source: batchSaved.written[i].source ?? file.source,
+            hash: batchSaved.written[i].hash,
           }),
         );
       }
       onSaved(written);
-    } catch (e) {
-      setError(e instanceof StaleSave ? 'Not saved: the file changed since this editor opened. Close it and open the item again.' : (e as Error).message);
+    } catch (error) {
+      setError(error instanceof StaleSave ? 'Not saved: the file changed since this editor opened. Close it and open the item again.' : (error as Error).message);
       setSaving(false);
     }
   }
@@ -158,6 +169,18 @@ export function ItemEditor({ doc, base, path, kind, projectDocs, choices, onClos
   useEffect(() => {
     firstField.current?.focus();
   }, []);
+  let editStatus;
+  if (pending && changed) {
+    editStatus = 'Checking…';
+  } else if (parsed.error) {
+    editStatus = 'Not one item';
+  } else if (errors.length) {
+    editStatus = `${errors.length} finding${errors.length === 1 ? '' : 's'} to fix`;
+  } else if (changed) {
+    editStatus = 'Unsaved changes';
+  } else {
+    editStatus = 'No changes';
+  }
   const footer = (
     <>
       <button type="button" className="item-delete" hidden={!access.can('edit')} onClick={onDelete} disabled={saving}>
@@ -165,15 +188,7 @@ export function ItemEditor({ doc, base, path, kind, projectDocs, choices, onClos
         Delete…
       </button>
       <span className="item-state" role="status">
-        {pending && changed
-          ? 'Checking…'
-          : parsed.error
-            ? 'Not one item'
-            : errors.length
-              ? `${errors.length} finding${errors.length === 1 ? '' : 's'} to fix`
-              : changed
-                ? 'Unsaved changes'
-                : 'No changes'}
+        {editStatus}
       </span>
       <button type="button" onClick={onClose} disabled={saving}>
         Cancel
@@ -183,6 +198,92 @@ export function ItemEditor({ doc, base, path, kind, projectDocs, choices, onClos
       </button>
     </>
   );
+  let tabBody;
+  if (tab === 'fields') {
+    if (parsed.error) {
+      tabBody = (
+        <p role="alert" className="dialog-error">
+          {parsed.error}
+        </p>
+      );
+    } else {
+      tabBody = (
+        <div className="item-fields">
+          {fields.filter(shown).map((spec, fieldIndex) => {
+            const value = readField(parsed.value, spec);
+            const id = `item-field-${spec.key}`;
+            const ref = (el: HTMLElement | null) => {
+              if (fieldIndex === 0) firstField.current = el;
+            };
+            const common = {
+              id,
+              'aria-labelledby': id + '-label',
+              'aria-describedby': spec.hint ? id + '-hint' : undefined,
+            };
+            let input: React.ReactNode;
+            if (spec.input === 'boolean') input = <input ref={ref as any} {...common} type="checkbox" checked={!!value} onChange={e => edit(spec, e.target.checked)} />;
+            else if (spec.input === 'select') {
+              const options = spec.key === 'ext.status' ? allowedStatuses(status) : (spec.options ?? []);
+              const current = display(spec, value);
+              input = (
+                <select ref={ref as any} {...common} value={current} onChange={e => edit(spec, e.target.value)}>
+                  {!options.includes(current) && <option value={current}>{current || '—'}</option>}
+                  {options.map(option => (
+                    <option key={option} value={option}>
+                      {option || '—'}
+                    </option>
+                  ))}
+                </select>
+              );
+            } else if (spec.input === 'code')
+              input = <SqlField id={id} labelledBy={id + '-label'} dialect="ANSI_SQL" rows={3} value={texts[spec.key] ?? display(spec, value)} onChange={v => edit(spec, v)} />;
+            else if (spec.input === 'textarea')
+              input = <textarea ref={ref as any} {...common} rows={2} value={texts[spec.key] ?? display(spec, value)} onChange={e => edit(spec, e.target.value)} spellCheck />;
+            else
+              input = (
+                <input
+                  ref={ref as any}
+                  {...common}
+                  list={spec.options?.length ? id + '-options' : undefined}
+                  title={texts[spec.key] ?? display(spec, value)}
+                  value={texts[spec.key] ?? display(spec, value)}
+                  onChange={e => edit(spec, e.target.value)}
+                />
+              );
+            return (
+              <label key={spec.key} className={spec.input === 'boolean' ? 'item-check' : ''} htmlFor={id}>
+                <span id={id + '-label'}>
+                  {spec.label}
+                  {spec.required && <em aria-hidden> *</em>}
+                </span>
+                {input}
+                {spec.input !== 'select' && spec.options?.length ? (
+                  <datalist id={id + '-options'}>
+                    {spec.options.map(o => (
+                      <option key={o} value={o} />
+                    ))}
+                  </datalist>
+                ) : null}
+                {spec.hint && <small id={id + '-hint'}>{spec.hint}</small>}
+              </label>
+            );
+          })}
+        </div>
+      );
+    }
+  } else {
+    tabBody = (
+      <div className="item-source">
+        <CodeEditor
+          ariaLabel={`Source of ${oldName || kindLabel[kind]}`}
+          filename={doc.filename}
+          value={text}
+          onChange={setText}
+          validate={async editedText => fragmentIssues(await validateInWorker(splice(base, fragment, editedText), doc.filename), fragment, editedText)}
+        />
+      </div>
+    );
+  }
   return (
     <Modal title={title} onCancel={onClose} className="item-editor" footer={footer}>
       <p className="item-editor-where">
@@ -208,11 +309,11 @@ export function ItemEditor({ doc, base, path, kind, projectDocs, choices, onClos
       )}
       {issues.length > 0 && (
         <ul className="item-findings" aria-label="Findings">
-          {fragmentIssues(issues, fragment, text).map((i, n) => (
-            <li key={n} className={i.severity}>
+          {fragmentIssues(issues, fragment, text).map((issue, index) => (
+            <li key={index} className={issue.severity}>
               <AlertTriangle size={12} />
-              {i.line ? `Line ${i.line}: ` : ''}
-              {i.message}
+              {issue.line ? `Line ${issue.line}: ` : ''}
+              {issue.message}
             </li>
           ))}
         </ul>
@@ -234,100 +335,27 @@ export function ItemEditor({ doc, base, path, kind, projectDocs, choices, onClos
           Source
         </button>
       </div>
-      {tab === 'fields' ? (
-        parsed.error ? (
-          <p role="alert" className="dialog-error">
-            {parsed.error}
-          </p>
-        ) : (
-          <div className="item-fields">
-            {fields.filter(shown).map((spec, n) => {
-              const value = readField(parsed.value, spec);
-              const id = `item-field-${spec.key}`;
-              const ref = (el: HTMLElement | null) => {
-                if (n === 0) firstField.current = el;
-              };
-              const common = {
-                id,
-                'aria-labelledby': id + '-label',
-                'aria-describedby': spec.hint ? id + '-hint' : undefined,
-              };
-              let input: React.ReactNode;
-              if (spec.input === 'boolean') input = <input ref={ref as any} {...common} type="checkbox" checked={!!value} onChange={e => edit(spec, e.target.checked)} />;
-              else if (spec.input === 'select') {
-                const options = spec.key === 'ext.status' ? allowedStatuses(status) : (spec.options ?? []);
-                const current = display(spec, value);
-                input = (
-                  <select ref={ref as any} {...common} value={current} onChange={e => edit(spec, e.target.value)}>
-                    {!options.includes(current) && <option value={current}>{current || '—'}</option>}
-                    {options.map(o => (
-                      <option key={o} value={o}>
-                        {o || '—'}
-                      </option>
-                    ))}
-                  </select>
-                );
-              } else if (spec.input === 'code')
-                input = <SqlField id={id} labelledBy={id + '-label'} dialect="ANSI_SQL" rows={3} value={texts[spec.key] ?? display(spec, value)} onChange={v => edit(spec, v)} />;
-              else if (spec.input === 'textarea')
-                input = <textarea ref={ref as any} {...common} rows={2} value={texts[spec.key] ?? display(spec, value)} onChange={e => edit(spec, e.target.value)} spellCheck />;
-              else
-                input = (
-                  <input
-                    ref={ref as any}
-                    {...common}
-                    list={spec.options?.length ? id + '-options' : undefined}
-                    title={texts[spec.key] ?? display(spec, value)}
-                    value={texts[spec.key] ?? display(spec, value)}
-                    onChange={e => edit(spec, e.target.value)}
-                  />
-                );
-              return (
-                <label key={spec.key} className={spec.input === 'boolean' ? 'item-check' : ''} htmlFor={id}>
-                  <span id={id + '-label'}>
-                    {spec.label}
-                    {spec.required && <em aria-hidden> *</em>}
-                  </span>
-                  {input}
-                  {spec.input !== 'select' && spec.options?.length ? (
-                    <datalist id={id + '-options'}>
-                      {spec.options.map(o => (
-                        <option key={o} value={o} />
-                      ))}
-                    </datalist>
-                  ) : null}
-                  {spec.hint && <small id={id + '-hint'}>{spec.hint}</small>}
-                </label>
-              );
-            })}
-          </div>
-        )
-      ) : (
-        <div className="item-source">
-          <CodeEditor
-            ariaLabel={`Source of ${oldName || kindLabel[kind]}`}
-            filename={doc.filename}
-            value={text}
-            onChange={setText}
-            validate={async t => fragmentIssues(await validateInWorker(splice(base, fragment, t), doc.filename), fragment, t)}
-          />
-        </div>
-      )}
-      {children.map(c => (
-        <section key={c.key} className="item-children" aria-label={c.label}>
+      {tabBody}
+      {children.map(child => (
+        <section key={child.key} className="item-children" aria-label={child.label}>
           <h3>
-            {c.label} <span>{c.items.length}</span>
-            <button type="button" onClick={() => onAddChild(c.kind, path)} disabled={changed} title={changed ? 'Save or cancel this edit first' : undefined}>
+            {child.label} <span>{child.items.length}</span>
+            <button type="button" onClick={() => onAddChild(child.kind, path)} disabled={changed} title={changed ? 'Save or cancel this edit first' : undefined}>
               <Plus size={12} />
               Add
             </button>
           </h3>
-          {c.items.length > 0 && (
+          {child.items.length > 0 && (
             <ul>
-              {c.items.map((item, i) => (
+              {child.items.map((item, i) => (
                 <li key={i}>
-                  <span>{itemName(c.kind, item) || `#${i + 1}`}</span>
-                  <button type="button" onClick={() => onOpenItem([...path, c.key, i], c.kind)} disabled={changed} aria-label={`Edit ${itemName(c.kind, item) || c.label + ' ' + (i + 1)}`}>
+                  <span>{itemName(child.kind, item) || `#${i + 1}`}</span>
+                  <button
+                    type="button"
+                    onClick={() => onOpenItem([...path, child.key, i], child.kind)}
+                    disabled={changed}
+                    aria-label={`Edit ${itemName(child.kind, item) || child.label + ' ' + (i + 1)}`}
+                  >
                     <Pencil size={12} />
                     Edit
                   </button>
@@ -344,27 +372,27 @@ export function ItemEditor({ doc, base, path, kind, projectDocs, choices, onClos
             <>
               <p>Tick the ones to rewrite to "{newName}". Unticked references keep the old name.</p>
               <ul>
-                {references.map((r, i) => (
+                {references.map((reference, i) => (
                   <li key={i}>
                     <label className="item-check">
                       <input
                         type="checkbox"
                         checked={confirmed.has(i)}
-                        onChange={e =>
-                          setConfirmed(s => {
-                            const n = new Set(s);
-                            if (e.target.checked) n.add(i);
-                            else n.delete(i);
-                            return n;
+                        onChange={event =>
+                          setConfirmed(members => {
+                            const next = new Set(members);
+                            if (event.target.checked) next.add(i);
+                            else next.delete(i);
+                            return next;
                           })
                         }
                       />
                       <span>
                         <code>
-                          {r.file}:{r.line}
+                          {reference.file}:{reference.line}
                         </code>{' '}
-                        {r.where}
-                        <small>{r.excerpt}</small>
+                        {reference.where}
+                        <small>{reference.excerpt}</small>
                       </span>
                     </label>
                   </li>

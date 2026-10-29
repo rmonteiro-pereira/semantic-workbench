@@ -4,7 +4,7 @@ import { AlertTriangle, ListOrdered, Search, XCircle } from 'lucide-react';
 import type { FindingSummary } from './lint';
 import { largeDocumentThreshold } from './documentMode';
 
-const largeModeDescription = `This file opened with over ${largeDocumentThreshold.toLocaleString('en-US')} characters. ` + 'Colouring and folding work on what is on screen so typing stays fast.';
+const largeModeDescription = `This file opened with over ${largeDocumentThreshold.toLocaleString('en-US')} characters. Colouring and folding work on what is on screen so typing stays fast.`;
 
 type Props = {
   syntax: string;

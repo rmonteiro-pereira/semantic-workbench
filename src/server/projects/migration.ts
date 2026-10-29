@@ -89,8 +89,8 @@ export async function migrateLegacy(ctx: Context, hooks: MigrationHooks = {}): P
     // Group: known example sets into their own projects, everything else into "Ungrouped".
     const names = state.registry().projects.map(p => p.name);
     const groups = new Map<string, { name: string; origin: string; preferred: string; docs: typeof docs }>();
-    for (const d of docs) {
-      const set = exampleForFilename(d.filename);
+    for (const doc of docs) {
+      const set = exampleForFilename(doc.filename);
       const key = set ? set.id : 'ungrouped';
       if (!groups.has(key))
         groups.set(
@@ -109,7 +109,7 @@ export async function migrateLegacy(ctx: Context, hooks: MigrationHooks = {}): P
                 docs: [],
               },
         );
-      groups.get(key)!.docs.push(d);
+      groups.get(key)!.docs.push(doc);
     }
     const taken = new Set<string>([...readdirSync(layout.projects), ...state.registry().projects.map(p => p.slug)]);
     const registry: ProjectEntry[] = [];
@@ -128,30 +128,30 @@ export async function migrateLegacy(ctx: Context, hooks: MigrationHooks = {}): P
       taken.add(slug);
       const dir = join(staging, slug);
       const paths = new Set<string>();
-      for (const d of group.docs) {
-        let name = d.filename;
+      for (const doc of group.docs) {
+        let name = doc.filename;
         try {
           projectPath(name);
           if (name.includes('/')) throw Error();
         } catch {
-          name = `document-${d.id.slice(0, 8)}.txt`;
+          name = `document-${doc.id.slice(0, 8)}.txt`;
         }
         const path = disambiguate(name, paths);
         paths.add(path);
-        const bytes = d.bytes;
+        const bytes = doc.bytes;
         const file = join(dir, path);
         const expected = sha256(bytes);
         atomicWrite(file, bytes);
         hooks.afterWrite?.(file);
         report.files++;
-        if (sha256(readFileSync(file)) !== expected) throw Error(`Verification failed for ${d.filename} (${d.id}): written bytes differ from the stored source.`);
+        if (sha256(readFileSync(file)) !== expected) throw Error(`Verification failed for ${doc.filename} (${doc.id}): written bytes differ from the stored source.`);
         report.verified++;
-        ids[d.id] = { project: slug, path };
-        const g = grouping.get(d.id);
-        if (g !== undefined) {
+        ids[doc.id] = { project: slug, path };
+        const viewJson = grouping.get(doc.id);
+        if (viewJson !== undefined) {
           const files = viewFiles.get(slug) ?? {};
           try {
-            files[path] = JSON.parse(g);
+            files[path] = JSON.parse(viewJson);
           } catch {}
           viewFiles.set(slug, files);
         }
@@ -192,9 +192,9 @@ export async function migrateLegacy(ctx: Context, hooks: MigrationHooks = {}): P
     rmSync(readCopy + '-shm', { force: true });
     journal.run('migration', steps, [staging, stateStaging], opId);
     return report;
-  } catch (e) {
+  } catch (error) {
     rmSync(staging, { recursive: true, force: true });
     rmSync(stateStaging, { recursive: true, force: true });
-    return { status: 'failed', reason: (e as Error).message, backup, ...empty };
+    return { status: 'failed', reason: (error as Error).message, backup, ...empty };
   }
 }

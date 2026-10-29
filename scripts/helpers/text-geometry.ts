@@ -8,7 +8,8 @@ export const MIN_TEXT_PX = 12;
 // Graph nodes and edge labels are scaled by the canvas zoom, and the code editor has its own
 // type scale, so neither counts as interface text.
 const NOT_INTERFACE_TEXT =
-  'details:not([open]) > :not(summary),details:not([open]) > :not(summary) *,[inert] *,.react-flow__node,.react-flow__node *,.react-flow__edge,.react-flow__edge *,.react-flow__edgelabel-renderer,.react-flow__edgelabel-renderer *,.react-flow__minimap,.react-flow__minimap *,.cm-editor,.cm-editor *,.sr-only,[aria-hidden="true"],[aria-hidden="true"] *,svg,svg *';
+  'details:not([open]) > :not(summary),details:not([open]) > :not(summary) *,[inert] *,.react-flow__node,.react-flow__node *,.react-flow__edge,.react-flow__edge *,.react-flow__edgelabel-renderer,.react-flow__edgelabel-renderer ' +
+  '*,.react-flow__minimap,.react-flow__minimap *,.cm-editor,.cm-editor *,.sr-only,[aria-hidden="true"],[aria-hidden="true"] *,svg,svg *';
 
 /** Returns visible text, inside the `within` element, whose size is below the minimum. */
 export async function smallTextProblems(page: Page, within = 'body'): Promise<string[]> {
@@ -26,7 +27,8 @@ export async function smallTextProblems(page: Page, within = 'body'): Promise<st
         if (box.width < 1 || box.height < 1) continue;
         const size = parseFloat(style.fontSize);
         if (size === 0 || size >= minimum) continue;
-        const name = `${element.tagName.toLowerCase()}.${String(element.className).split(/\s+/)[0]}`;
+        const firstClass = String(element.className).split(/\s+/)[0];
+        const name = `${element.tagName.toLowerCase()}.${firstClass}`;
         problems.set(`${name} "${node.textContent.trim().slice(0, 30)}" is ${size}px`, size);
       }
       return [...problems.keys()];
@@ -59,16 +61,16 @@ export async function textCollisionProblems(page: Page, within = 'body'): Promis
       // The area of a text run that its scrolling or clipping ancestors actually show.
       const visibleRect = (run: Run) => {
         let { left, top, right, bottom } = run.rect;
-        for (let p = run.element; p && p !== document.body; p = p.parentElement as Element) {
-          const s = getComputedStyle(p);
-          if (s.overflowX !== 'visible' || s.overflowY !== 'visible') {
-            const q = p.getBoundingClientRect();
-            left = Math.max(left, q.left);
-            top = Math.max(top, q.top);
-            right = Math.min(right, q.right);
-            bottom = Math.min(bottom, q.bottom);
+        for (let ancestor = run.element; ancestor && ancestor !== document.body; ancestor = ancestor.parentElement as Element) {
+          const style = getComputedStyle(ancestor);
+          if (style.overflowX !== 'visible' || style.overflowY !== 'visible') {
+            const rect = ancestor.getBoundingClientRect();
+            left = Math.max(left, rect.left);
+            top = Math.max(top, rect.top);
+            right = Math.min(right, rect.right);
+            bottom = Math.min(bottom, rect.bottom);
           }
-          if (s.position === 'fixed') break;
+          if (style.position === 'fixed') break;
         }
         return { left, top, right, bottom, width: right - left, height: bottom - top };
       };
@@ -86,15 +88,15 @@ export async function textCollisionProblems(page: Page, within = 'body'): Promis
       }
       for (let i = 0; i < shown.length; i++)
         for (let j = i + 1; j < shown.length; j++) {
-          const a = shown[i];
-          const b = shown[j];
-          if (a.run.element === b.run.element) continue;
+          const first = shown[i];
+          const second = shown[j];
+          if (first.run.element === second.run.element) continue;
           const inPanel = (run: Run) => !!run.element.closest('.compact-controls-panel');
-          if (inPanel(a.run) !== inPanel(b.run)) continue;
-          if (a.run.element.contains(b.run.element) && a.run.element.children.length === 0) continue;
-          const width = Math.min(a.area.right, b.area.right) - Math.max(a.area.left, b.area.left);
-          const height = Math.min(a.area.bottom, b.area.bottom) - Math.max(a.area.top, b.area.top);
-          if (width > 2 && height > 3) found.add(`"${a.run.label}" overlaps "${b.run.label}"`);
+          if (inPanel(first.run) !== inPanel(second.run)) continue;
+          if (first.run.element.contains(second.run.element) && first.run.element.children.length === 0) continue;
+          const width = Math.min(first.area.right, second.area.right) - Math.max(first.area.left, second.area.left);
+          const height = Math.min(first.area.bottom, second.area.bottom) - Math.max(first.area.top, second.area.top);
+          if (width > 2 && height > 3) found.add(`"${first.run.label}" overlaps "${second.run.label}"`);
         }
       return [...found];
     },

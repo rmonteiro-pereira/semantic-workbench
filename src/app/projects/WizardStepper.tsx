@@ -38,7 +38,14 @@ export function WizardStepper({ steps, current, reachable, onGo }: Props) {
       </div>
       <ol className="wizard-stepper-list">
         {steps.map((name, index) => {
-          const state = index < current ? 'done' : index === current ? 'current' : 'pending';
+          let state: 'done' | 'current' | 'pending';
+          if (index < current) {
+            state = 'done';
+          } else if (index === current) {
+            state = 'current';
+          } else {
+            state = 'pending';
+          }
           return (
             <li key={name} data-state={state}>
               <button type="button" aria-current={index === current ? 'step' : undefined} disabled={index > reachable} onClick={() => onGo(index)}>

@@ -40,7 +40,7 @@ export function useImport({
   const domainChoice = useProjectDomain();
   // One import batch becomes one project.
   async function commitImports(drafts: ImportDraft[]) {
-    let created;
+    let created: Awaited<ReturnType<typeof api.importBatch>>;
     try {
       const domain = await domainChoice.choose();
       created = await api.importBatch(
@@ -48,9 +48,9 @@ export function useImport({
         undefined,
         domain,
       );
-    } catch (e) {
+    } catch (error) {
       const filenames = drafts.map(draft => draft.filename).join(', ');
-      throw Error(`Could not save ${filenames}: ${(e as Error).message} ` + 'Nothing from this batch was imported; retry when ready.');
+      throw Error(`Could not save ${filenames}: ${(error as Error).message} Nothing from this batch was imported; retry when ready.`);
     }
     setPendingImport(null);
     // Keep the last file active so batch imports preserve the existing navigation behavior.
@@ -85,8 +85,8 @@ export function useImport({
         return;
       }
       await commitImports(drafts);
-    } catch (e) {
-      setMessage((e as Error).message);
+    } catch (error) {
+      setMessage((error as Error).message);
     }
   }
 

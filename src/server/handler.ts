@@ -110,10 +110,10 @@ const legacyRoutes: Route = async (ws, req, url) => {
             throw new BadRequestError('Invalid grouping corrections.');
         return Response.json(await ws.saveGrouping(id, value, reader));
       }
-    } catch (e) {
+    } catch (error) {
       // Legacy local clients expect a 400; server mode answers a missing document like a hidden one.
-      if (e instanceof NotFoundError && !reader.view) throw new BadRequestError('Document not found.');
-      throw e;
+      if (error instanceof NotFoundError && !reader.view) throw new BadRequestError('Document not found.');
+      throw error;
     }
   }
   if (url.pathname === '/api/documents' && req.method === 'GET') return Response.json(ws.documentsFor(requestReader(req)));
@@ -169,10 +169,10 @@ const legacyRoutes: Route = async (ws, req, url) => {
     const version = { revision: body.revision, baseHash: body.baseHash };
     try {
       return Response.json(await ws.saveDocument(body.filename, body.source, requestReader(req), body.id, version, authorizeTargets));
-    } catch (e) {
-      if (e instanceof StaleError) throw new BadRequestError('Document changed. Reload before saving.');
-      if (e instanceof NotFoundError) throw new BadRequestError('Document not found.');
-      throw e;
+    } catch (error) {
+      if (error instanceof StaleError) throw new BadRequestError('Document changed. Reload before saving.');
+      if (error instanceof NotFoundError) throw new BadRequestError('Document not found.');
+      throw error;
     }
   }
   return null;
@@ -294,21 +294,27 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
         if (response) return response;
       }
       return new Response('Not found', { status: 404 });
-    } catch (e) {
+    } catch (error) {
       // The access boundary audits a refused target, so it must see the original error.
-      if (e instanceof WriteAccessError) throw e;
+      if (error instanceof WriteAccessError) throw error;
       const serverMode = options.mode === 'server';
       const context = { serverMode, requestId: (req as AuditRequest)[requestAuditId] };
-      if (serverMode && (e instanceof NotFoundError || e instanceof HiddenResourceError)) {
-        return errorResponse(e, options.publicOrigin, context);
+      if (serverMode && (error instanceof NotFoundError || error instanceof HiddenResourceError)) {
+        return errorResponse(error, options.publicOrigin, context);
       }
       // Local legacy document and agent clients expect every error to use HTTP 400. A server
       // maps errors alike for every route, so an unexpected failure cannot leak its text.
       const legacyClient = url.pathname.startsWith('/api/documents') || url.pathname.startsWith('/api/agent/');
       if (legacyClient && !serverMode) {
-        return Response.json({ error: (e as Error).message, ...(e instanceof InputError ? { issues: e.issues } : {}) }, { status: 400 });
+        return Response.json(
+          {
+            error: (error as Error).message,
+            ...(error instanceof InputError ? { issues: error.issues } : {}),
+          },
+          { status: 400 },
+        );
       }
-      return errorResponse(e, options.publicOrigin, context);
+      return errorResponse(error, options.publicOrigin, context);
     }
   };
   const failure = (error: unknown, requestId: string) =>

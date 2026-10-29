@@ -61,10 +61,10 @@ export function edgeAppearance(props: EdgeProps) {
 // React Flow / SVG style for an edge of this kind.
 /** Returns SVG stroke properties, preserving dash patterns when emphasized. */
 export const edgeSvgStyle = (kind: EdgeKind, emphasis = false) => {
-  const s = EDGE_STYLES[kind];
+  const edgeStyle = EDGE_STYLES[kind];
   return {
-    stroke: s.stroke,
+    stroke: edgeStyle.stroke,
     strokeWidth: emphasis ? 2.6 : 1.4,
-    ...(s.dash ? { strokeDasharray: s.dash } : {}),
+    ...(edgeStyle.dash ? { strokeDasharray: edgeStyle.dash } : {}),
   };
 };

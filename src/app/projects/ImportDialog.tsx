@@ -64,9 +64,9 @@ export function ImportDialog({
           <label className="import-project">
             <FolderInput size={14} />
             <select aria-label="Project" value={project} onChange={e => setProject(e.target.value)}>
-              {projects.map(p => (
-                <option key={p.slug} value={p.slug}>
-                  {p.name}
+              {projects.map(project => (
+                <option key={project.slug} value={project.slug}>
+                  {project.name}
                 </option>
               ))}
             </select>

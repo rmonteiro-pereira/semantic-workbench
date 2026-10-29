@@ -131,7 +131,7 @@ function readCommon(env: Env, serverMode: boolean, problems: ConfigProblem[]): C
   if (!serverMode && !isLoopbackHost(host)) {
     problems.push({
       variable: 'SW_HOST',
-      message: 'local mode listens on loopback only (127.0.0.1, localhost or ::1); ' + 'a non-loopback address requires server mode with sign-in.',
+      message: 'local mode listens on loopback only (127.0.0.1, localhost or ::1); a non-loopback address requires server mode with sign-in.',
     });
   }
   const portText = env.SW_PORT || '4310';
@@ -300,7 +300,7 @@ function readClientAuth(env: Env, provider: ProviderKind, problems: ConfigProble
   if (!secret && !assertion && certificate === undefined) {
     problems.push({
       variable: 'SW_OIDC_CLIENT_SECRET or SW_OIDC_CLIENT_ASSERTION',
-      message: 'one of them, or SW_OIDC_CLIENT_CERTIFICATE_KEY with ' + 'SW_OIDC_CLIENT_CERTIFICATE_THUMBPRINT (Entra only), is required in server mode.',
+      message: 'one of them, or SW_OIDC_CLIENT_CERTIFICATE_KEY with SW_OIDC_CLIENT_CERTIFICATE_THUMBPRINT (Entra only), is required in server mode.',
     });
   }
   if (certificate) return certificate;
@@ -315,7 +315,7 @@ function readPrivateKeyPath(keyPath: string, provider: ProviderKind, problems: C
   if (provider === 'entra') {
     problems.push({
       variable: 'SW_OIDC_CLIENT_ASSERTION',
-      message: 'with Entra use "managed-identity", or a certificate through ' + 'SW_OIDC_CLIENT_CERTIFICATE_KEY and SW_OIDC_CLIENT_CERTIFICATE_THUMBPRINT.',
+      message: 'with Entra use "managed-identity", or a certificate through SW_OIDC_CLIENT_CERTIFICATE_KEY and SW_OIDC_CLIENT_CERTIFICATE_THUMBPRINT.',
     });
   }
   return { kind: 'private-key', keyPath };

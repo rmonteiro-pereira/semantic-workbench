@@ -24,43 +24,47 @@ test('blockers: drafts first, then tracked changes; untracked files alone do not
   expect(blockers([], [])).toBeNull();
 });
 test('pull, sync and switch answer 409 with drafts or a dirty tree, and nothing is stashed', async () => {
-  const p = await scmProject();
+  const project = await scmProject();
   try {
-    writeFileSync(join(p.other, 'shop.yaml'), ontology('Remote.'));
-    sh(p.other, ['commit', '-qam', 'Remote']);
-    sh(p.other, ['push', '-q']);
-    await ok(call(p.t, 'POST', p.base + '/git/switch', { branch: 'side', create: true }));
-    await ok(call(p.t, 'POST', p.base + '/git/switch', { branch: 'main' }));
-    p.t.ws.state.writeDraft(p.slug, 'shop.yaml', { baseHash: null, text: 'unsaved', patches: [] });
+    writeFileSync(join(project.other, 'shop.yaml'), ontology('Remote.'));
+    sh(project.other, ['commit', '-qam', 'Remote']);
+    sh(project.other, ['push', '-q']);
+    await ok(call(project.t, 'POST', project.base + '/git/switch', { branch: 'side', create: true }));
+    await ok(call(project.t, 'POST', project.base + '/git/switch', { branch: 'main' }));
+    project.t.ws.state.writeDraft(project.slug, 'shop.yaml', {
+      baseHash: null,
+      text: 'unsaved',
+      patches: [],
+    });
     for (const [method, path, body] of [
       ['POST', '/git/pull'],
       ['POST', '/git/sync'],
       ['POST', '/git/switch', { branch: 'side' }],
     ] as const) {
-      const r = await call(p.t, method, p.base + path, body);
-      expect(r.status).toBe(409);
-      expect(r.body).toMatchObject({ error: 'drafts', paths: ['shop.yaml'] });
+      const response = await call(project.t, method, project.base + path, body);
+      expect(response.status).toBe(409);
+      expect(response.body).toMatchObject({ error: 'drafts', paths: ['shop.yaml'] });
     }
-    p.t.ws.state.deleteDraft(p.slug, 'shop.yaml');
-    p.write('shop.yaml', ontology('Local edit.'));
+    project.t.ws.state.deleteDraft(project.slug, 'shop.yaml');
+    project.write('shop.yaml', ontology('Local edit.'));
     for (const [path, body] of [['/git/pull'], ['/git/switch', { branch: 'side' }]] as const) {
-      const r = await call(p.t, 'POST', p.base + path, body);
-      expect(r.status).toBe(409);
-      expect(r.body).toMatchObject({ error: 'dirty', paths: ['shop.yaml'] });
+      const response = await call(project.t, 'POST', project.base + path, body);
+      expect(response.status).toBe(409);
+      expect(response.body).toMatchObject({ error: 'dirty', paths: ['shop.yaml'] });
     }
-    expect(sh(p.dir, ['stash', 'list'])).toBe('');
-    expect(p.t.ws.readFile(p.slug, 'shop.yaml').source).toBe(ontology('Local edit.'));
-    expect((await ok(call(p.t, 'GET', p.base + '/git/status'))).branch).toBe('main');
+    expect(sh(project.dir, ['stash', 'list'])).toBe('');
+    expect(project.t.ws.readFile(project.slug, 'shop.yaml').source).toBe(ontology('Local edit.'));
+    expect((await ok(call(project.t, 'GET', project.base + '/git/status'))).branch).toBe('main');
     // Staged-only changes block too; push and fetch do not touch the working tree and are allowed.
-    await ok(call(p.t, 'POST', p.base + '/git/stage', { all: true }));
-    expect((await call(p.t, 'POST', p.base + '/git/pull')).body.error).toBe('dirty');
-    expect((await ok(call(p.t, 'POST', p.base + '/git/fetch'))).ok).toBe(true);
+    await ok(call(project.t, 'POST', project.base + '/git/stage', { all: true }));
+    expect((await call(project.t, 'POST', project.base + '/git/pull')).body.error).toBe('dirty');
+    expect((await ok(call(project.t, 'POST', project.base + '/git/fetch'))).ok).toBe(true);
     // An untracked file alone does not block a switch.
-    await ok(call(p.t, 'POST', p.base + '/git/unstage', { all: true }));
-    sh(p.dir, ['checkout', '--', 'shop.yaml']);
-    p.write('scratch.csv', 'x');
-    await ok(call(p.t, 'POST', p.base + '/git/switch', { branch: 'side' }));
+    await ok(call(project.t, 'POST', project.base + '/git/unstage', { all: true }));
+    sh(project.dir, ['checkout', '--', 'shop.yaml']);
+    project.write('scratch.csv', 'x');
+    await ok(call(project.t, 'POST', project.base + '/git/switch', { branch: 'side' }));
   } finally {
-    p.dispose();
+    project.dispose();
   }
 });

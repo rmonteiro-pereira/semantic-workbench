@@ -12,7 +12,7 @@ const docs = {
   get length() {
     return api.ws.documents().length;
   },
-  some: (f: (d: any) => boolean) => api.ws.documents().some(f),
+  some: (f: (doc: any) => boolean) => api.ws.documents().some(f),
 };
 await routeApi(page, api);
 await page.goto(appUrl());

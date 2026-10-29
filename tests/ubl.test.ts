@@ -11,11 +11,11 @@ test('UBL model derives 45 business entities and 277 roles from XSD references',
   expect(model.entities).toHaveLength(45);
   expect(model.edges).toHaveLength(277);
   const names = new Set(model.entities.map(e => e.name));
-  for (const e of map.entities) {
-    expect(e.source.startsWith('https://docs.oasis-open.org/ubl/')).toBe(true);
-    for (const r of e.relationships) {
-      expect(names.has(r.target)).toBe(true);
-      expect(r.ref).toBe('cac:' + r.name);
+  for (const entity of map.entities) {
+    expect(entity.source.startsWith('https://docs.oasis-open.org/ubl/')).toBe(true);
+    for (const relationship of entity.relationships) {
+      expect(names.has(relationship.target)).toBe(true);
+      expect(relationship.ref).toBe('cac:' + relationship.name);
     }
   }
 });
@@ -35,8 +35,8 @@ test('UBL ODCS and semantic schema validation; bridge-table joins refer to actua
   }
 });
 test('UBL OWL and SHACL imports remain bounded in default graph', async () => {
-  for (const f of ['ubl.owl.ttl', 'ubl.shacl.ttl']) {
-    const model = inspect(await Bun.file('public/examples/ubl/' + f).text(), f);
+  for (const fileName of ['ubl.owl.ttl', 'ubl.shacl.ttl']) {
+    const model = inspect(await Bun.file('public/examples/ubl/' + fileName).text(), fileName);
     expect(model.entities.length).toBeGreaterThan(30);
     expect(graphView(model.entities, model.edges, '').entities.length).toBeLessThanOrEqual(16);
   }

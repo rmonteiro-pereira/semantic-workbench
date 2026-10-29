@@ -55,14 +55,14 @@ let failNextSave = false;
 let holdPlan = false;
 let releasePlan: (() => void) | null = null;
 await routeApi(page, api, async route => {
-  const r = route.request();
-  const path = new URL(r.url()).pathname;
-  if (failNextSave && r.method() === 'POST' && path === '/api/import') {
+  const request = route.request();
+  const path = new URL(request.url()).pathname;
+  if (failNextSave && request.method() === 'POST' && path === '/api/import') {
     failNextSave = false;
     await route.fulfill({ status: 503, json: { error: 'Temporary API failure' } });
     return true;
   }
-  if (holdPlan && r.method() === 'POST' && path === '/api/agent/plan') {
+  if (holdPlan && request.method() === 'POST' && path === '/api/agent/plan') {
     holdPlan = false;
     await new Promise<void>(resolve => {
       releasePlan = resolve;
@@ -73,7 +73,8 @@ await routeApi(page, api, async route => {
 if (process.env.UI_MUTATION === 'clear-nodes')
   await page.route('**/src/app/graph/NeighborhoodGraph.tsx*', async route => {
     const response = await route.fetch();
-    const source = await response.text(); // The node list is the expansion canvas, revealed in chunks.
+    // The node list is the expansion canvas, revealed in chunks.
+    const source = await response.text();
     const anchor = 'const build = (limit = reveal) => shownEntities.slice(0, limit).map';
     if (!source.includes(anchor)) throw Error('UI mutation anchor missing');
     console.log('INJECTED_CLEAR_NODES_MUTATION');
@@ -106,11 +107,11 @@ try {
     await page.waitForTimeout(350);
     const point = await edge.locator('.react-flow__edge-interaction').evaluate((path: any) => {
       const group = path.closest('.react-flow__edge');
-      const t = path.getScreenCTM();
+      const screenCTM = path.getScreenCTM();
       for (let i = 1; i < 100; i++) {
-        const p = path.getPointAtLength((path.getTotalLength() * i) / 100);
-        const x = t.a * p.x + t.c * p.y + t.e;
-        const y = t.b * p.x + t.d * p.y + t.f;
+        const pointAtLength = path.getPointAtLength((path.getTotalLength() * i) / 100);
+        const x = screenCTM.a * pointAtLength.x + screenCTM.c * pointAtLength.y + screenCTM.e;
+        const y = screenCTM.b * pointAtLength.x + screenCTM.d * pointAtLength.y + screenCTM.f;
         if (document.elementFromPoint(x, y)?.closest('.react-flow__edge') === group) return { x, y };
       }
       return null;

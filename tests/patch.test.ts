@@ -39,19 +39,19 @@ test('a save sends the smallest patch, never splitting CRLF or surrogate pairs',
   expect(diffPatches('same', 'same')).toEqual([]);
   const base = 'a: 1\r\nb: 2\r\nc: 3\r\n';
   const next = 'a: 1\r\nb: 22\r\nc: 3\r\n';
-  const p = diffPatches(base, next);
-  expect(p).toEqual([{ from: 10, to: 10, insert: '2' }]);
-  expect(applyPatches(base, p)).toBe(next);
-  for (const [a, b] of [
+  const patches = diffPatches(base, next);
+  expect(patches).toEqual([{ from: 10, to: 10, insert: '2' }]);
+  expect(applyPatches(base, patches)).toBe(next);
+  for (const [before, after] of [
     ['x\r\ny', 'x\ny'],
     ['x\ny', 'x\r\ny'],
     ['😀a', '😁a'],
     ['ab', 'b'],
     ['a', ''],
   ] as const) {
-    const q = diffPatches(a, b);
-    expect(applyPatches(a, q)).toBe(b);
-    expect(q[0].to - q[0].from).toBeLessThanOrEqual(a.length);
+    const patches = diffPatches(before, after);
+    expect(applyPatches(before, patches)).toBe(after);
+    expect(patches[0].to - patches[0].from).toBeLessThanOrEqual(before.length);
   }
   expect(() => applyPatches('abc', [{ from: 2, to: 1, insert: '' }])).toThrow();
 });

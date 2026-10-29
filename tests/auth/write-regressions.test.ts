@@ -208,7 +208,7 @@ test('creation and clone refuse a hidden domain even when the caller has the rou
     scope: { kind: 'workspace' },
   });
   options.config.adminRules = {
-    'creation-domain': 'forbid (principal, action in [SW::Action::"createProject", SW::Action::"read"], resource) ' + 'when { resource is SW::Project && resource.domain == "hr" };',
+    'creation-domain': 'forbid (principal, action in [SW::Action::"createProject", SW::Action::"read"], resource) when { resource is SW::Project && resource.domain == "hr" };',
   };
   const access = createAccessControl(options);
   const handler = createHandler(fixture.ws, {
@@ -274,7 +274,7 @@ test('a legacy save without an id is judged under the name it is finally written
   };
   // Alice may edit the requested name but not the name a clash gives the new document.
   options.config.adminRules = {
-    'second-copies': '@id("second-copies")\nforbid (principal, action == SW::Action::"edit", resource) ' + 'when { resource is SW::File && resource.path like "* (2)*" };',
+    'second-copies': '@id("second-copies")\nforbid (principal, action == SW::Action::"edit", resource) when { resource is SW::File && resource.path like "* (2)*" };',
   };
   const access = createAccessControl({
     ...options,

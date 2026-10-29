@@ -15,12 +15,12 @@ export type BareFixture = {
 /** Selects the repository layout or unsafe-path fixture to generate. */
 export type FixtureKind = 'monorepo' | 'monorepo-no-manifest' | 'hazards' | 'single' | 'documentation';
 const git = (cwd: string, args: string[]) => {
-  const r = Bun.spawnSync(['git', ...args], {
+  const syncSubprocess = Bun.spawnSync(['git', ...args], {
     cwd,
     env: { ...process.env, GIT_TERMINAL_PROMPT: '0' },
   });
-  if (r.exitCode !== 0) throw Error(`git ${args.join(' ')}: ${r.stderr.toString()}`);
-  return r.stdout.toString();
+  if (syncSubprocess.exitCode !== 0) throw Error(`git ${args.join(' ')}: ${syncSubprocess.stderr.toString()}`);
+  return syncSubprocess.stdout.toString();
 };
 /** Builds ontology text from the supplied name and concepts. */
 export const ontologyText = (name: string, concepts: string[]) =>

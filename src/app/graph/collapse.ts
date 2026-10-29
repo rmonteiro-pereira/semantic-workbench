@@ -27,16 +27,16 @@ export function collapseAreas(overview: ReturnType<typeof modelOverview>, collap
   }
   const edges: Relationship[] = [];
   for (const edge of overview.links) {
-    const a = overview.groupOf.get(edge.source)!;
-    const b = overview.groupOf.get(edge.target)!;
-    if (a === b && collapsed.has(a)) {
-      internal.get(a)!.push(edge);
+    const sourceGroup = overview.groupOf.get(edge.source)!;
+    const targetGroup = overview.groupOf.get(edge.target)!;
+    if (sourceGroup === targetGroup && collapsed.has(sourceGroup)) {
+      internal.get(sourceGroup)!.push(edge);
       continue;
     }
     edges.push({
       ...edge,
-      source: collapsed.has(a) ? 'collapsed:' + a : edge.source,
-      target: collapsed.has(b) ? 'collapsed:' + b : edge.target,
+      source: collapsed.has(sourceGroup) ? 'collapsed:' + sourceGroup : edge.source,
+      target: collapsed.has(targetGroup) ? 'collapsed:' + targetGroup : edge.target,
     });
   }
   return { entities, edges, internal };

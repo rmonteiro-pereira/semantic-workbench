@@ -17,7 +17,7 @@ type Options = {
   setSuggestions: React.Dispatch<React.SetStateAction<Suggestion[]>>;
   setTrashVersion: React.Dispatch<React.SetStateAction<number>>;
   setStatus: React.Dispatch<React.SetStateAction<WorkspaceStatus | null>>;
-  getOpen: () => (d: Doc, options?: OpenOptions) => boolean;
+  getOpen: () => (doc: Doc, options?: OpenOptions) => boolean;
   /** Shows the empty state of a project that has no files. */
   getCloseDocument: () => (project: string) => void;
   /** The selected project, resolved against the projects loaded last. */

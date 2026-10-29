@@ -95,11 +95,11 @@ test('the JSON inside an extension block is patched line by line', () => {
   const after = out.split('\n');
   expect(after.length).toBe(before.length + 1);
   // Three lines differ: the changed status, the comma after the last attribute, the new steward.
-  let a = 0;
-  while (before[a] === after[a]) a++;
-  let z = 0;
-  while (before[before.length - 1 - z] === after[after.length - 1 - z]) z++;
-  const changed = after.slice(a, after.length - z);
+  let firstDifference = 0;
+  while (before[firstDifference] === after[firstDifference]) firstDifference++;
+  let suffixLength = 0;
+  while (before[before.length - 1 - suffixLength] === after[after.length - 1 - suffixLength]) suffixLength++;
+  const changed = after.slice(firstDifference, after.length - suffixLength);
   expect(changed).toEqual([
     '            "status": "proposed",',
     '            "time": {"dimension":"calendar_months.first_day","min_grain":"month","allowed_grains":["month","quarter","year"]},',
@@ -107,10 +107,10 @@ test('the JSON inside an extension block is patched line by line', () => {
     '            "targets": [{"grain":"month","direction":"higher_is_better","value":0.95}],',
     '            "steward": "Finance"',
   ]);
-  expect(before.slice(a, before.length - z)).toEqual([
+  expect(before.slice(firstDifference, before.length - suffixLength)).toEqual([
     '            "status": "approved",',
-    before[a + 1],
-    before[a + 2],
+    before[firstDifference + 1],
+    before[firstDifference + 2],
     '            "targets": [{"grain":"month","direction":"higher_is_better","value":0.95}]',
   ]);
   expect(JSON.parse(itemValue(out, path))).toEqual({
@@ -126,27 +126,27 @@ test('the item editor edits the item fragment and puts it back in place', () => 
   const sem = readFileSync('public/examples/mall/mall.semantic.yaml', 'utf8');
   const metrics = itemValue(sem, ['metrics']) as any[];
   const i = metrics.findIndex(m => m.name === 'occupancy_rate');
-  const f = openFragment(sem, ['metrics', i]);
-  expect(f.text.startsWith('- name: occupancy_rate\n  description:')).toBe(true);
-  expect(f.prefix).toBe('  ');
-  expect(splice(sem, f, f.text)).toBe(sem);
-  const original = fragmentValue(f, f.text).value;
+  const fragment = openFragment(sem, ['metrics', i]);
+  expect(fragment.text.startsWith('- name: occupancy_rate\n  description:')).toBe(true);
+  expect(fragment.prefix).toBe('  ');
+  expect(splice(sem, fragment, fragment.text)).toBe(sem);
+  const original = fragmentValue(fragment, fragment.text).value;
   const fields = fieldsFor('metric', { concepts: [], datasets: [], metrics: [] });
   const expression = fields.find(x => x.key === 'expression')!;
   const owner = fields.find(x => x.key === 'ext.owner')!;
   // Changing the formula of an approved KPI: two lines change (expression, status → proposed).
-  const a = setField(f.text, f, 'mall.semantic.yaml', 'metric', expression, 'occupied_gla / total_gla', original);
-  expect(a.reopened).toBe(true);
-  const draft = splice(sem, f, a.text);
+  const expressionEdit = setField(fragment.text, fragment, { filename: 'mall.semantic.yaml', kind: 'metric', spec: expression, input: 'occupied_gla / total_gla', original });
+  expect(expressionEdit.reopened).toBe(true);
+  const draft = splice(sem, fragment, expressionEdit.text);
   const x = sem.split('\n');
   const y = draft.split('\n');
   expect(y.length).toBe(x.length);
   expect(y.filter((l, n) => l !== x[n])).toEqual(['          expression: occupied_gla / total_gla', '            "status": "proposed",']);
   // Changing the owner only: one line, status unchanged.
-  const b = setField(f.text, f, 'mall.semantic.yaml', 'metric', owner, 'Finance', original);
-  expect(b.reopened).toBe(false);
+  const ownerEdit = setField(fragment.text, fragment, { filename: 'mall.semantic.yaml', kind: 'metric', spec: owner, input: 'Finance', original });
+  expect(ownerEdit.reopened).toBe(false);
   expect(
-    splice(sem, f, b.text)
+    splice(sem, fragment, ownerEdit.text)
       .split('\n')
       .filter((l, n) => l !== x[n]),
   ).toEqual(['            "owner": "Finance",']);
@@ -154,15 +154,22 @@ test('the item editor edits the item fragment and puts it back in place', () => 
   expect(
     fragmentIssues(
       [
-        { severity: 'error', code: 'x', path: '/', message: 'm', line: f.line + 2, column: 5 },
+        {
+          severity: 'error',
+          code: 'x',
+          path: '/',
+          message: 'm',
+          line: fragment.line + 2,
+          column: 5,
+        },
         { severity: 'error', code: 'x', path: '/', message: 'n', line: 1 },
       ],
-      f,
-      f.text,
+      fragment,
+      fragment.text,
     ),
   ).toEqual([
     { severity: 'error', code: 'x', path: '/', message: 'm', line: 3, column: 3 },
     { severity: 'error', code: 'x', path: '/', message: 'Line 1 (outside this item): n' },
   ]);
-  expect(fragmentValue(f, f.text + '\n- name: other').error).toContain('one list entry');
+  expect(fragmentValue(fragment, fragment.text + '\n- name: other').error).toContain('one list entry');
 });

@@ -154,9 +154,9 @@ function createPersonalState(layout: DataLayout) {
     view: (slug: string) => load<ViewState>(viewFile(slug), () => ({ formatVersion: STATE_FORMAT, files: {} })),
     writeView: (slug: string, files: Record<string, unknown>) => atomicWriteJson(viewFile(slug), { formatVersion: STATE_FORMAT, files }),
     draft: (slug: string, path: string) => {
-      const d = readJsonFile<Draft>(draftFile(slug, path));
-      if (d && d.formatVersion !== STATE_FORMAT) throw Error('Unsupported draft format.');
-      return d;
+      const draft = readJsonFile<Draft>(draftFile(slug, path));
+      if (draft && draft.formatVersion !== STATE_FORMAT) throw Error('Unsupported draft format.');
+      return draft;
     },
     writeDraft: (slug: string, path: string, draft: { baseHash: string | null; text: string; patches: Patch[] }) => {
       const value: Draft = {

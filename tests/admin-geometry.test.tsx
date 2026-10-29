@@ -1,5 +1,4 @@
-// Measures the Admin page and its dialogs at the viewport matrix against canned API responses, so layout
-// defects show up without a running server. Screenshots go to SW_SCREENSHOT_DIR when it is set.
+// Measures the Admin page and its dialogs at the viewport matrix against canned API responses, so layout defects show up without a running server. Screenshots go to SW_SCREENSHOT_DIR when it is set.
 import { afterAll, beforeAll, test } from 'bun:test';
 import { chromium, expect, type Browser, type Page } from '@playwright/test';
 import { adminMockState, openAdminHarness } from './helpers/admin-api-mock';

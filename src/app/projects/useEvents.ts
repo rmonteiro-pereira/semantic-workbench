@@ -28,10 +28,10 @@ export function useEvents(onChange: (event: string, data: any) => void) {
     const source = new EventSource('/api/events');
     let opened = false;
     const listeners = EVENT_TYPES.map(type => {
-      const listener = (e: MessageEvent) => {
+      const listener = (messageEvent: MessageEvent) => {
         let data: any = {};
         try {
-          data = JSON.parse(e.data);
+          data = JSON.parse(messageEvent.data);
         } catch {}
         if (type === 'access') {
           source.close();

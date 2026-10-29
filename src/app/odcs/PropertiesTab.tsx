@@ -12,11 +12,22 @@ import { FlagCheckbox, LogicalTypeSelect } from './PropertyInlineControls';
 import './odcs.css';
 import './contract.css';
 const list = (v: unknown): any[] => (Array.isArray(v) ? v : []);
-const text = (v: unknown) => (v === undefined || v === null ? '' : typeof v === 'string' ? v : typeof v === 'number' || typeof v === 'boolean' ? String(v) : JSON.stringify(v));
+const text = (value: unknown) => {
+  if (value === undefined || value === null) {
+    return '';
+  }
+  if (typeof value === 'string') {
+    return value;
+  }
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return String(value);
+  }
+  return JSON.stringify(value);
+};
 type Property = Record<string, any>;
 type Row = { path: string; property: Property };
 /** A property attribute the rows can be sorted and filtered by. */
-type SortField = { key: string; label: string; value: (p: Property) => unknown };
+type SortField = { key: string; label: string; value: (property: Property) => unknown };
 const SORT_FIELDS: SortField[] = [
   { key: 'name', label: 'Name', value: () => undefined },
   { key: 'logicalType', label: 'Logical type', value: p => p.logicalType },
@@ -35,12 +46,12 @@ type Sort = { key: string; direction: 1 | -1 };
 function foreignKeys(data: any, objectIndex: number) {
   const schema = list(data?.schema);
   const out = new Map<string, string[]>();
-  for (const k of odcsForeignKeys(data))
-    if (k.from === objectIndex)
-      for (const name of k.label.split(', ')) {
-        const t = String(schema[k.to]?.name);
+  for (const odcsForeignKey of odcsForeignKeys(data))
+    if (odcsForeignKey.from === objectIndex)
+      for (const name of odcsForeignKey.label.split(', ')) {
+        const targetName = String(schema[odcsForeignKey.to]?.name);
         const xs = out.get(name) ?? [];
-        if (!xs.includes(t)) xs.push(t);
+        if (!xs.includes(targetName)) xs.push(targetName);
         out.set(name, xs);
       }
   return out;
@@ -51,11 +62,11 @@ function foreignKeySentences(data: any, objectIndex: number) {
   const schema = list(data?.schema);
   const own = String(schema[objectIndex]?.name);
   const out = new Map<string, string>();
-  for (const k of odcsForeignKeys(data))
-    if (k.from === objectIndex)
-      k.fromColumns.forEach((column, i) => {
-        const parent = `${String(schema[k.to]?.name)}.${k.toColumns[i]}`;
-        out.set(`${column}>${String(schema[k.to]?.name)}`, hopSentence({ child: `${own}.${column}`, parent }));
+  for (const odcsForeignKey of odcsForeignKeys(data))
+    if (odcsForeignKey.from === objectIndex)
+      odcsForeignKey.fromColumns.forEach((column, i) => {
+        const parent = `${String(schema[odcsForeignKey.to]?.name)}.${odcsForeignKey.toColumns[i]}`;
+        out.set(`${column}>${String(schema[odcsForeignKey.to]?.name)}`, hopSentence({ child: `${own}.${column}`, parent }));
       });
   return out;
 }
@@ -81,7 +92,7 @@ function visibleRows(rows: Row[], filter: string, sort: Sort | null, targets: Ma
 
 /** Which optional columns have something to show; empty columns are not drawn. */
 function usedColumns(rows: Row[], targets: Map<string, string[]>, editor?: PropertyEditor) {
-  const some = (test: (p: Property) => boolean) => rows.some(row => test(row.property));
+  const some = (test: (property: Property) => boolean) => rows.some(row => test(row.property));
   return {
     // With an editor the three flags are checkboxes in columns of their own, drawn even when no
     // row sets one yet; without it they are badges, drawn only when a row has one.
@@ -165,7 +176,7 @@ export function PropertiesTab({ data, objectIndex, onOpenObject, editor }: TabPr
   );
 }
 
-function SortControl({ sort, onChange }: { sort: Sort | null; onChange: (s: Sort | null) => void }) {
+function SortControl({ sort, onChange }: { sort: Sort | null; onChange: (sort: Sort | null) => void }) {
   function chooseField(key: string) {
     onChange(key ? { key, direction: sort?.direction ?? 1 } : null);
   }
@@ -239,7 +250,7 @@ function ConstraintBadges({ property }: { property: Property }) {
   );
 }
 
-function ForeignKeyChips({ targets, sentenceOf, onOpen }: { targets: string[]; sentenceOf: (target: string) => string | undefined; onOpen: (n: string) => void }) {
+function ForeignKeyChips({ targets, sentenceOf, onOpen }: { targets: string[]; sentenceOf: (target: string) => string | undefined; onOpen: (name: string) => void }) {
   return (
     <>
       {targets.map(target => (

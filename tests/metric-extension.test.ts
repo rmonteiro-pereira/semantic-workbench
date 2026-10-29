@@ -19,9 +19,9 @@ async function annotated(file: string) {
   const doc = parseDocument(source);
   const data = doc.toJS();
   const names = new Set<string>(data.metrics.map((m: any) => m.name));
-  data.metrics.forEach((m: any, i: number) => {
-    if (m.custom_extensions) return;
-    const sql = ansiExpression(m);
+  data.metrics.forEach((metric: any, i: number) => {
+    if (metric.custom_extensions) return;
+    const sql = ansiExpression(metric);
     const shape = inferredType(sql, names);
     const ext = {
       schema: 'semantic-workbench/metric/v1',
@@ -38,12 +38,12 @@ test('the 59 shipped metrics carry valid extensions that parse back', async () =
   const copies = await Promise.all(shipped.map(annotated));
   expect(copies.reduce((n, c) => n + c.count, 0)).toBe(59);
   let parsed = 0;
-  for (const c of copies) {
-    const r = validateInput(c.source, c.file.split('/')[1]);
-    expect(r.issues.filter(i => i.severity === 'error')).toEqual([]);
-    expect(r.valid).toBe(true);
-    for (const m of parseDocument(c.source).toJS().metrics) {
-      const { value, issues } = readMetricExtension(m);
+  for (const copy of copies) {
+    const validation = validateInput(copy.source, copy.file.split('/')[1]);
+    expect(validation.issues.filter(i => i.severity === 'error')).toEqual([]);
+    expect(validation.valid).toBe(true);
+    for (const metric of parseDocument(copy.source).toJS().metrics) {
+      const { value, issues } = readMetricExtension(metric);
       expect(issues).toEqual([]);
       expect(value?.schema).toBe('semantic-workbench/metric/v1');
       parsed++;
@@ -52,23 +52,23 @@ test('the 59 shipped metrics carry valid extensions that parse back', async () =
   expect(parsed).toBe(59);
 });
 test('schema errors are located on the offending key inside the block, line and column', async () => {
-  for (const c of await Promise.all(shipped.map(annotated))) {
-    const doc = parseDocument(c.source);
-    doc.toJS().metrics.forEach((m: any, i: number) => {
-      const data = JSON.parse(m.custom_extensions[0].data);
+  for (const annotatedCopy of await Promise.all(shipped.map(annotated))) {
+    const doc = parseDocument(annotatedCopy.source);
+    doc.toJS().metrics.forEach((metric: any, i: number) => {
+      const data = JSON.parse(metric.custom_extensions[0].data);
       delete data.non_additive_over;
       delete data.period_aggregation;
       doc.setIn(['metrics', i, 'custom_extensions', 0, 'data'], JSON.stringify({ ...data, additivity: 'sometimes' }, null, 2) + '\n');
     });
     const broken = doc.toString({ lineWidth: 0 });
-    const r = validateInput(broken, c.file.split('/')[1]);
-    expect(r.valid).toBe(false);
-    const errors = r.issues.filter(i => i.code === 'extension' && !i.message.startsWith('A ratio'));
-    expect(errors.length).toBe(c.count);
+    const validation = validateInput(broken, annotatedCopy.file.split('/')[1]);
+    expect(validation.valid).toBe(false);
+    const errors = validation.issues.filter(i => i.code === 'extension' && !i.message.startsWith('A ratio'));
+    expect(errors.length).toBe(annotatedCopy.count);
     const lines = broken.split('\n');
-    for (const e of errors) {
-      expect(e.line).toBeGreaterThan(0);
-      expect(lines[e.line! - 1].slice(e.column! - 1)).toStartWith('"additivity"');
+    for (const error of errors) {
+      expect(error.line).toBeGreaterThan(0);
+      expect(lines[error.line! - 1].slice(error.column! - 1)).toStartWith('"additivity"');
     }
   }
 });
@@ -105,7 +105,7 @@ const model = (metrics: any[], extra: any = {}) =>
   });
 const messages = (source: string) => validateInput(source, 'm.yaml').issues.map(i => `${i.severity}:${i.code}:${i.message}`);
 test('plain-language rules: ratio, semi-additive and deprecated', () => {
-  const m = messages(
+  const issueLines = messages(
     model([
       ['revenue', 'SUM(orders.amount)', { type: 'simple' }],
       ['count', 'COUNT(orders.id)', null],
@@ -115,17 +115,17 @@ test('plain-language rules: ratio, semi-additive and deprecated', () => {
       ['summed_ratio', 'revenue / NULLIF(count, 0)', { type: 'ratio', numerator: 'revenue', denominator: 'count', additivity: 'additive' }],
     ]),
   );
-  expect(m).toContain('error:extension:A ratio metric requires numerator and denominator.');
-  expect(m).toContain('error:extension:A semi_additive metric requires non_additive_over and period_aggregation.');
-  expect(m).toContain('error:extension:A deprecated metric requires replaced_by or deprecation_reason.');
-  expect(m).toContain('error:extension:A ratio metric is non_additive: summing ratios gives a wrong result.');
+  expect(issueLines).toContain('error:extension:A ratio metric requires numerator and denominator.');
+  expect(issueLines).toContain('error:extension:A semi_additive metric requires non_additive_over and period_aggregation.');
+  expect(issueLines).toContain('error:extension:A deprecated metric requires replaced_by or deprecation_reason.');
+  expect(issueLines).toContain('error:extension:A ratio metric is non_additive: summing ratios gives a wrong result.');
   // Unknown keys and malformed JSON are reported, not ignored.
   expect(messages(model([['a', 'SUM(orders.amount)', { type: 'simple', colour: 'red' }]])).some(x => x.includes('colour'))).toBe(true);
   const bad = model([['a', 'SUM(orders.amount)', { type: 'simple' }]]).replace('"type": "simple"', '"type": "simple",');
   expect(messages(bad).some(x => x.includes('not valid JSON'))).toBe(true);
 });
 test('workspace findings: inputs exist, cycles, grains, fields and declared type', () => {
-  const m = messages(
+  const issueLines = messages(
     model([
       [
         'revenue',
@@ -148,15 +148,15 @@ test('workspace findings: inputs exist, cycles, grains, fields and declared type
       ['not_ratio', 'revenue - revenue', { type: 'ratio', numerator: 'revenue', denominator: 'revenue' }],
     ]),
   );
-  expect(m).toContain('error:kpi-reference:denominator "cost" is not a metric of this semantic model.');
-  expect(m).toContain('error:kpi-reference:Input "ghost" is not a metric of this semantic model.');
-  expect(m.some(x => x.startsWith('warning:metric-cycle:Metric dependency cycle: a → b → a'))).toBe(true);
-  expect(m).toContain('error:kpi-grain:Grain day is finer than the minimum grain month.');
-  expect(m).toContain('error:kpi-reference:Field orders.missing does not exist in this semantic model.');
-  expect(m).toContain('error:kpi-reference:Field orders.nope does not exist in this semantic model.');
-  expect(m.some(x => x.startsWith('warning:kpi-type:Declared simple, but the expression uses other metrics (revenue)'))).toBe(true);
-  expect(m.some(x => x.startsWith('warning:kpi-type:Declared ratio revenue / revenue, but the expression is not a division'))).toBe(true);
-  expect(m.some(x => x.includes('orders.region'))).toBe(false);
+  expect(issueLines).toContain('error:kpi-reference:denominator "cost" is not a metric of this semantic model.');
+  expect(issueLines).toContain('error:kpi-reference:Input "ghost" is not a metric of this semantic model.');
+  expect(issueLines.some(x => x.startsWith('warning:metric-cycle:Metric dependency cycle: a → b → a'))).toBe(true);
+  expect(issueLines).toContain('error:kpi-grain:Grain day is finer than the minimum grain month.');
+  expect(issueLines).toContain('error:kpi-reference:Field orders.missing does not exist in this semantic model.');
+  expect(issueLines).toContain('error:kpi-reference:Field orders.nope does not exist in this semantic model.');
+  expect(issueLines.some(x => x.startsWith('warning:kpi-type:Declared simple, but the expression uses other metrics (revenue)'))).toBe(true);
+  expect(issueLines.some(x => x.startsWith('warning:kpi-type:Declared ratio revenue / revenue, but the expression is not a division'))).toBe(true);
+  expect(issueLines.some(x => x.includes('orders.region'))).toBe(false);
 });
 test('type and additivity are inferred from the expression when not declared', () => {
   const names = new Set(['a', 'b']);

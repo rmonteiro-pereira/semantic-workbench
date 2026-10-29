@@ -102,7 +102,7 @@ function validRange(range: string): boolean {
 function metricOwnershipText(domain: string, groups: string[]): string {
   if (!groups.length) throw new AdminConfigError('Expected at least one approver group.');
   const members = groups.map(group => `principal in SW::Group::${quote(group)}`).join(' || ');
-  return `permit(principal, action == SW::Action::"approveMetric", resource)\n` + `when { resource.domain == ${quote(domain)} && (${members}) };`;
+  return `permit(principal, action == SW::Action::"approveMetric", resource)\nwhen { resource.domain == ${quote(domain)} && (${members}) };`;
 }
 
 function classificationText(domain: string, level: number): string {
@@ -139,7 +139,7 @@ function restrictingText(input: Exclude<PolicyTemplate, { template: 'metric-owne
   const head = `forbid(principal, action in [${actions}], resource)\n`;
   if (input.template === 'git-limits') {
     if (!/^[a-z][a-z0-9_]*$/.test(input.role)) throw new AdminConfigError('Invalid role.');
-    return head + `when { principal in resource.holders.${input.role} && ` + `context.branch like ${quote(input.branch)} };`;
+    return head + `when { principal in resource.holders.${input.role} && context.branch like ${quote(input.branch)} };`;
   }
   if (input.template === 'time') {
     return head + `unless { ${quote(allowedHours(input.hours))}.contains(context.hour) };`;

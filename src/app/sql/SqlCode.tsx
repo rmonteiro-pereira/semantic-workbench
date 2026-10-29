@@ -32,13 +32,13 @@ export function SqlCode({ sql }: { sql: string }) {
   }, [sql]);
   return (
     <>
-      {parts.map((p, i) =>
-        p.cls ? (
-          <span key={i} className={p.cls}>
-            {p.text}
+      {parts.map((part, i) =>
+        part.cls ? (
+          <span key={i} className={part.cls}>
+            {part.text}
           </span>
         ) : (
-          p.text
+          part.text
         ),
       )}
     </>

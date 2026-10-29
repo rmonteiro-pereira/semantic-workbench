@@ -49,15 +49,15 @@ export function useSaving({ current, source, currentRef, editorIssuesRef, docsRe
       if (editorResult && editorResult.id === document.id && editorResult.text !== undefined && editorResult.text === normalize(text)) return errors(editorResult.issues);
       return errors(await validateInWorker(text, document.filename));
     },
-    save: r => {
-      const documentValue = docsRef.current.get(r.file);
-      if (!documentValue) return Promise.reject(Error('The file is no longer in the workspace.'));
-      return api.save(documentValue.project, documentValue.path, r.baseHash, r.to, diffPatches(r.from, r.to));
+    save: request => {
+      const doc = docsRef.current.get(request.file);
+      if (!doc) return Promise.reject(Error('The file is no longer in the workspace.'));
+      return api.save(doc.project, doc.path, request.baseHash, request.to, diffPatches(request.from, request.to));
     },
     onSaved: (file, text, hash, sent) => {
-      const documentValue = docsRef.current.get(file);
-      if (!documentValue) return;
-      const next = { ...documentValue, source: text, hash };
+      const doc = docsRef.current.get(file);
+      if (!doc) return;
+      const next = { ...doc, source: text, hash };
       docsRef.current.set(file, next);
       setDocs(old => old.map(x => (x.id === file ? next : x)));
       if (currentRef.current?.id === file) setCurrentState(next); /* the server's file event refreshes the tree and counts */
@@ -86,8 +86,8 @@ export function useSaving({ current, source, currentRef, editorIssuesRef, docsRe
   // Leaving a file or view: a due valid save is written first; invalid text stays a server draft
   // (no "Discard unsaved changes?" prompt; the draft is announced instead).
   async function leaveCurrent() {
-    const documentValue = currentRef.current;
-    if (!documentValue || sourceRef.current === documentValue.source) return;
+    const doc = currentRef.current;
+    if (!doc || sourceRef.current === doc.source) return;
     await autosave.flush();
     const now = currentRef.current;
     if (now && sourceRef.current !== now.source) {
@@ -97,11 +97,11 @@ export function useSaving({ current, source, currentRef, editorIssuesRef, docsRe
     }
   }
   async function openStale() {
-    const documentValue = currentRef.current;
-    if (!documentValue) return;
+    const doc = currentRef.current;
+    if (!doc) return;
     try {
-      const fileValue = await api.file(documentValue.project, documentValue.path);
-      setStale({ current: fileValue.source, currentHash: fileValue.hash });
+      const diskFile = await api.file(doc.project, doc.path);
+      setStale({ current: diskFile.source, currentHash: diskFile.hash });
     } catch {
       setStale({ current: null, currentHash: null });
     }

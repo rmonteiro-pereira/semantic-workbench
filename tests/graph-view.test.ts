@@ -29,12 +29,12 @@ test('relationships among visible neighbors are kept around a center, and can be
 });
 test('shown and hidden neighbor counts; deterministic ranking by relationship kind then name; paging and keep', () => {
   const edges = nodes.slice(1).map(n => edge('0', n.id, '0-' + n.id, 'has', Number(n.id) % 2 ? 'b-kind' : 'a-kind'));
-  const n = neighborhood(nodes, edges, { center: '0' });
-  expect(n.total).toBe(29);
-  expect(n.shown).toBe(NEIGHBOR_PAGE);
-  expect(n.hidden).toBe(29 - NEIGHBOR_PAGE);
-  expect(n.entities.slice(1).map(e => e.id)).toEqual(['10', '12', '14', '16', '18', '2', '20', '22', '24', '26', '28', '4']);
-  expect(neighborhood(nodes, [...edges].reverse(), { center: '0' }).entities.map(e => e.id)).toEqual(n.entities.map(e => e.id));
+  const view = neighborhood(nodes, edges, { center: '0' });
+  expect(view.total).toBe(29);
+  expect(view.shown).toBe(NEIGHBOR_PAGE);
+  expect(view.hidden).toBe(29 - NEIGHBOR_PAGE);
+  expect(view.entities.slice(1).map(e => e.id)).toEqual(['10', '12', '14', '16', '18', '2', '20', '22', '24', '26', '28', '4']);
+  expect(neighborhood(nodes, [...edges].reverse(), { center: '0' }).entities.map(e => e.id)).toEqual(view.entities.map(e => e.id));
   expect(neighborhood(nodes, edges, { center: '0', limit: 24 }).hidden).toBe(5);
   expect(neighborhood(nodes, edges, { center: '0', keep: ['29'] }).entities.map(e => e.id)).toContain('29');
   const filtered = neighborhood(nodes, [...edges, edge('0', '1', 'x', 'owns')], {
@@ -45,11 +45,11 @@ test('shown and hidden neighbor counts; deterministic ranking by relationship ki
   expect(filtered.relationships[0]).toEqual({ label: 'has', count: 29 });
 });
 test('incoming, outgoing and two-way neighbors are told apart', () => {
-  const n = neighborhood(nodes, [edge('1', '0'), edge('0', '2'), edge('0', '3'), edge('3', '0'), edge('0', '0')], { center: '0' });
-  expect(n.incoming).toEqual(['1']);
-  expect(n.outgoing).toEqual(['2']);
-  expect(n.both).toEqual(['3']);
-  expect(n.edges.some(e => e.id === '0-0')).toBe(true);
+  const view = neighborhood(nodes, [edge('1', '0'), edge('0', '2'), edge('0', '3'), edge('3', '0'), edge('0', '0')], { center: '0' });
+  expect(view.incoming).toEqual(['1']);
+  expect(view.outgoing).toEqual(['2']);
+  expect(view.both).toEqual(['3']);
+  expect(view.edges.some(e => e.id === '0-0')).toBe(true);
 });
 test('the OWL projection is the same with or without a center; technical resources only on request', () => {
   const rdf = [
@@ -83,10 +83,10 @@ test('default center is the most connected entity, passing over value-type hubs'
   expect(defaultCenter(typed, [edge('1', '0'), edge('2', '0'), edge('3', '0'), edge('2', '3'), edge('1', '2')])).toBe('2');
 });
 test('parallel links group without losing definitions or direction', () => {
-  const g = groupRelationships([edge('a', 'b', 'first'), edge('a', 'b', 'second'), edge('b', 'a', 'reverse')]);
-  expect(g).toHaveLength(2);
-  expect(g[0].data.relationships.map(e => e.id)).toEqual(['first', 'second']);
-  expect(g[1].source).toBe('b');
+  const relationships = groupRelationships([edge('a', 'b', 'first'), edge('a', 'b', 'second'), edge('b', 'a', 'reverse')]);
+  expect(relationships).toHaveLength(2);
+  expect(relationships[0].data.relationships.map(e => e.id)).toEqual(['first', 'second']);
+  expect(relationships[1].source).toBe('b');
 });
 test('wrapped layout positions never overlap and broad layers stay short', () => {
   const ids = nodes.map(e => e.id);

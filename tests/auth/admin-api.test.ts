@@ -501,8 +501,8 @@ test('rules that could forbid the admin action are refused by validation, dry ru
     'forbid(principal, action == SW::Action::"admin", resource);',
     'forbid(principal in SW::RoleHolder::"admin@workspace", action, resource) when { true };',
     'forbid(principal, action, resource) when { context.hour == 3 };',
-    'forbid(principal, action in [SW::Action::"edit", SW::Action::"admin"], resource)\n' + 'unless { [9, 10].contains(context.hour) };',
-    'forbid(principal, action in [SW::Action::"admin"], resource)\n' + 'unless { context.sourceIp.isInRange(ip("10.0.0.0/8")) };',
+    'forbid(principal, action in [SW::Action::"edit", SW::Action::"admin"], resource)\nunless { [9, 10].contains(context.hour) };',
+    'forbid(principal, action in [SW::Action::"admin"], resource)\nunless { context.sourceIp.isInRange(ip("10.0.0.0/8")) };',
     'forbid(principal, action in SW::Action::"admin", resource);',
   ];
   const baseVersion = await fixture.repository.version();

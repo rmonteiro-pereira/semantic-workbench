@@ -11,8 +11,8 @@ type Props = {
   search: string;
   selectEntity: (id: string) => void;
   kpiBadges: Map<string, string[]>;
-  entityTarget: (e: Entity) => ItemTarget | null;
-  rdfTarget: (e: Entity) => RdfTarget | null;
+  entityTarget: (entity: Entity) => ItemTarget | null;
+  rdfTarget: (entity: Entity) => RdfTarget | null;
   setEditing: React.Dispatch<React.SetStateAction<ItemTarget | null>>;
   setRdfEditing: React.Dispatch<React.SetStateAction<RdfTarget | null>>;
 };
@@ -25,30 +25,30 @@ export function CatalogView({ model, search, selectEntity, kpiBadges, entityTarg
     <div className="catalog">
       {model?.entities
         .filter(e => e.name.toLowerCase().includes(search.toLowerCase()))
-        .map(e => {
+        .map(entity => {
           function handleCatalogEditClick() {
-            const target = entityTarget(e);
+            const target = entityTarget(entity);
             if (target) setEditing(target);
-            else setRdfEditing(rdfTarget(e));
+            else setRdfEditing(rdfTarget(entity));
           }
           return (
-            <div className="catalog-card" key={e.id}>
-              <button onClick={() => selectEntity(e.id)}>
+            <div className="catalog-card" key={entity.id}>
+              <button onClick={() => selectEntity(entity.id)}>
                 <small>
-                  {e.kind === 'Metric' ? 'Metric' : e.kind}
-                  {(kpiBadges.get(e.name)?.length ?? 0) > 0 && (
-                    <span className="kpi-badge" title={`Metrics: ${kpiBadges.get(e.name)!.join(', ')}`}>
+                  {entity.kind === 'Metric' ? 'Metric' : entity.kind}
+                  {(kpiBadges.get(entity.name)?.length ?? 0) > 0 && (
+                    <span className="kpi-badge" title={`Metrics: ${kpiBadges.get(entity.name)!.join(', ')}`}>
                       <Gauge size={10} />
-                      {metricCountLabel(kpiBadges.get(e.name)!.length)}
+                      {metricCountLabel(kpiBadges.get(entity.name)!.length)}
                     </span>
                   )}
                 </small>
-                <EntityName name={e.name} />
-                <p title={e.description || undefined}>{e.description || 'No description yet'}</p>
+                <EntityName name={entity.name} />
+                <p title={entity.description || undefined}>{entity.description || 'No description yet'}</p>
                 <span className="catalog-details">View details</span>
               </button>
-              {(entityTarget(e) || rdfTarget(e)) && (
-                <button className="catalog-edit" aria-label={`Edit ${e.name}`} onClick={handleCatalogEditClick}>
+              {(entityTarget(entity) || rdfTarget(entity)) && (
+                <button className="catalog-edit" aria-label={`Edit ${entity.name}`} onClick={handleCatalogEditClick}>
                   <Pencil size={11} />
                   Edit
                 </button>

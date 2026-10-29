@@ -12,36 +12,48 @@ test('edits preserve unknown fields and comments', () => {
   expect(inspect(out).entities[0].description).toBe('Buyer');
 });
 test('facade save indexes into the cache and rejects stale updates', async () => {
-  const t = await testWorkspace();
+  const workspace = await testWorkspace();
   try {
-    const d = await t.ws.saveDocument('a.yaml', yaml, LOCAL_READER);
-    expect(d.id).toBe('ungrouped/a.yaml');
-    expect(t.ws.cache.entities('ungrouped', 'a.yaml')).toHaveLength(1);
-    await expect(t.ws.saveDocument('a.yaml', 'name: invalid', LOCAL_READER, d.id, { revision: d.revision })).rejects.toThrow();
-    expect(t.ws.documents()[0].source).toBe(yaml);
-    await t.ws.saveDocument('a.yaml', editEntity(yaml, ['ontology', 0], 'Updated'), LOCAL_READER, d.id, {
-      revision: d.revision,
+    const saveDocument = await workspace.ws.saveDocument('a.yaml', yaml, LOCAL_READER);
+    expect(saveDocument.id).toBe('ungrouped/a.yaml');
+    expect(workspace.ws.cache.entities('ungrouped', 'a.yaml')).toHaveLength(1);
+    await expect(
+      workspace.ws.saveDocument('a.yaml', 'name: invalid', LOCAL_READER, saveDocument.id, {
+        revision: saveDocument.revision,
+      }),
+    ).rejects.toThrow();
+    expect(workspace.ws.documents()[0].source).toBe(yaml);
+    await workspace.ws.saveDocument('a.yaml', editEntity(yaml, ['ontology', 0], 'Updated'), LOCAL_READER, saveDocument.id, {
+      revision: saveDocument.revision,
     });
-    await expect(t.ws.saveDocument('a.yaml', yaml, LOCAL_READER, d.id, { revision: d.revision })).rejects.toThrow('changed');
-    await expect(t.ws.saveDocument('a.yaml', yaml, LOCAL_READER, d.id, { baseHash: d.hash })).rejects.toThrow('changed');
+    await expect(
+      workspace.ws.saveDocument('a.yaml', yaml, LOCAL_READER, saveDocument.id, {
+        revision: saveDocument.revision,
+      }),
+    ).rejects.toThrow('changed');
+    await expect(
+      workspace.ws.saveDocument('a.yaml', yaml, LOCAL_READER, saveDocument.id, {
+        baseHash: saveDocument.hash,
+      }),
+    ).rejects.toThrow('changed');
   } finally {
-    t.dispose();
+    workspace.dispose();
   }
 });
 test('rejects unresolved semantic joins', () => {
   expect(() => inspect('name: Sales\ndatasets: [{name: orders, source: db.orders}]\nrelationships: [{name: bad, from: orders, to: missing}]')).toThrow('unknown dataset');
 });
 test('folder store retains RDF/XML and SHACL sources byte for byte', async () => {
-  const t = await testWorkspace();
+  const workspace = await testWorkspace();
   try {
     for (const filename of ['commerce.owl', 'commerce.shacl.ttl']) {
       const source = await Bun.file('public/examples/commerce/' + filename).text();
-      await t.ws.saveDocument(filename, source, LOCAL_READER);
-      expect(t.ws.documents().find(d => d.filename === filename)!.source).toBe(source);
-      expect(readFileSync(`${t.root}/projects/ungrouped/${filename}`, 'utf8')).toBe(source);
+      await workspace.ws.saveDocument(filename, source, LOCAL_READER);
+      expect(workspace.ws.documents().find(d => d.filename === filename)!.source).toBe(source);
+      expect(readFileSync(`${workspace.root}/projects/ungrouped/${filename}`, 'utf8')).toBe(source);
     }
-    expect(t.ws.cache.entities('ungrouped', 'commerce.owl').length).toBeGreaterThan(10);
+    expect(workspace.ws.cache.entities('ungrouped', 'commerce.owl').length).toBeGreaterThan(10);
   } finally {
-    t.dispose();
+    workspace.dispose();
   }
 });

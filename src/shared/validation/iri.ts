@@ -15,10 +15,10 @@ export const prefixMap = (value: unknown): Prefixes =>
   value && typeof value === 'object' && !Array.isArray(value) ? Object.fromEntries(Object.entries(value).filter((e): e is [string, string] => typeof e[1] === 'string')) : {};
 /** Expands a qualified name or reports an undeclared prefix without fetching the IRI. */
 export function expandIri(value: string, prefixes: Prefixes = {}): { iri: string; prefix?: string } | { error: string } {
-  const m = QNAME.exec(value);
-  if (!m) return { error: 'Expected a full IRI or a prefix:local QName.' };
-  const prefix = m[1] ?? '';
-  const local = m[2];
+  const match = QNAME.exec(value);
+  if (!match) return { error: 'Expected a full IRI or a prefix:local QName.' };
+  const prefix = match[1] ?? '';
+  const local = match[2];
   if (Object.hasOwn(prefixes, prefix)) return { iri: prefixes[prefix] + local, prefix };
   if (SCHEME.test(prefix) && (local.startsWith('//') || OPAQUE.has(prefix.toLowerCase()))) return { iri: value };
   return {

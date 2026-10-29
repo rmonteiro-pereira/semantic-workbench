@@ -25,39 +25,39 @@ test('Add to .gitignore offers the exact path, the extension and the folder, esc
   expect(() => appendIgnore('', ' ')).toThrow();
 });
 test('appending through the API is a hash-checked save that rescans: the file leaves Source Control and the workspace', async () => {
-  const p = await scmProject({ remote: false });
+  const project = await scmProject({ remote: false });
   try {
-    p.write('notes.csv', 'a,b\n');
-    p.write('extra.yaml', 'name: Extra\nontology:\n  - concept: X\n    type: EntityType\n');
-    const before = await ok(call(p.t, 'GET', p.base + '/git/status'));
+    project.write('notes.csv', 'a,b\n');
+    project.write('extra.yaml', 'name: Extra\nontology:\n  - concept: X\n    type: EntityType\n');
+    const before = await ok(call(project.t, 'GET', project.base + '/git/status'));
     expect(before.changes.map((c: any) => c.path).sort()).toEqual(['extra.yaml', 'notes.csv']);
-    const r = await ok(call(p.t, 'POST', p.base + '/gitignore', { pattern: '*.csv' }));
-    expect(r).toMatchObject({ added: true, tracked: [] });
-    expect(readFileSync(join(p.dir, '.gitignore'), 'utf8')).toBe('*.csv\n');
-    const after = await ok(call(p.t, 'GET', p.base + '/git/status'));
+    const ignoreResult = await ok(call(project.t, 'POST', project.base + '/gitignore', { pattern: '*.csv' }));
+    expect(ignoreResult).toMatchObject({ added: true, tracked: [] });
+    expect(readFileSync(join(project.dir, '.gitignore'), 'utf8')).toBe('*.csv\n');
+    const after = await ok(call(project.t, 'GET', project.base + '/git/status'));
     expect(after.changes.map((c: any) => c.path).sort()).toEqual(['.gitignore', 'extra.yaml']);
-    await ok(call(p.t, 'POST', p.base + '/gitignore', { pattern: '/extra.yaml' }));
-    const files = (await ok(call(p.t, 'GET', '/api/projects')))[0].files.map((f: any) => f.path);
+    await ok(call(project.t, 'POST', project.base + '/gitignore', { pattern: '/extra.yaml' }));
+    const files = (await ok(call(project.t, 'GET', '/api/projects')))[0].files.map((f: any) => f.path);
     expect(files).toContain('.gitignore');
     expect(files).not.toContain('extra.yaml');
-    expect((await ok(call(p.t, 'POST', p.base + '/gitignore', { pattern: '*.csv' }))).added).toBe(false);
+    expect((await ok(call(project.t, 'POST', project.base + '/gitignore', { pattern: '*.csv' }))).added).toBe(false);
     // .gitignore is edited like any other file, with the base hash.
-    const g = p.t.ws.readFile(p.slug, '.gitignore');
-    expect(g.docType).toBe('gitignore');
-    await p.t.ws.saveFile(p.slug, '.gitignore', { baseHash: g.hash, source: '*.csv\n' }, LOCAL_READER);
-    expect((await ok(call(p.t, 'GET', '/api/projects')))[0].files.map((f: any) => f.path)).toContain('extra.yaml');
-    expect((await call(p.t, 'POST', p.base + '/gitignore', { pattern: 'a\nb' })).status).toBe(400);
+    const file = project.t.ws.readFile(project.slug, '.gitignore');
+    expect(file.docType).toBe('gitignore');
+    await project.t.ws.saveFile(project.slug, '.gitignore', { baseHash: file.hash, source: '*.csv\n' }, LOCAL_READER);
+    expect((await ok(call(project.t, 'GET', '/api/projects')))[0].files.map((f: any) => f.path)).toContain('extra.yaml');
+    expect((await call(project.t, 'POST', project.base + '/gitignore', { pattern: 'a\nb' })).status).toBe(400);
   } finally {
-    p.dispose();
+    project.dispose();
   }
 });
 test('ignoring a tracked file explains that Git keeps tracking it', async () => {
-  const p = await scmProject({ remote: false });
+  const project = await scmProject({ remote: false });
   try {
-    const r = await ok(call(p.t, 'POST', p.base + '/gitignore', { pattern: '/shop.yaml' }));
-    expect(r.tracked).toEqual(['shop.yaml']);
-    expect(sh(p.dir, ['ls-files'])).toContain('shop.yaml');
+    const ignoreResult = await ok(call(project.t, 'POST', project.base + '/gitignore', { pattern: '/shop.yaml' }));
+    expect(ignoreResult.tracked).toEqual(['shop.yaml']);
+    expect(sh(project.dir, ['ls-files'])).toContain('shop.yaml');
   } finally {
-    p.dispose();
+    project.dispose();
   }
 });

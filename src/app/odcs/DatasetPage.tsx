@@ -20,7 +20,18 @@ import './odcs.css';
 // Quality rules are displayed as declared and never executed. Git history compares versions at
 // property level.
 const list = (v: unknown): any[] => (Array.isArray(v) ? v : []);
-const text = (v: unknown) => (v === undefined || v === null ? '' : typeof v === 'string' ? v : typeof v === 'number' || typeof v === 'boolean' ? String(v) : JSON.stringify(v));
+const text = (value: unknown) => {
+  if (value === undefined || value === null) {
+    return '';
+  }
+  if (typeof value === 'string') {
+    return value;
+  }
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return String(value);
+  }
+  return JSON.stringify(value);
+};
 type Version = Commit & { source: string; data: any };
 
 type Tab = 'Lineage' | 'Relationships' | 'Data Quality' | 'Properties' | 'History';
@@ -62,19 +73,19 @@ export function DatasetPage({ doc, data, objectName, projectDocs, onBack, onOpen
       .then(vs => {
         if (!live) return;
         setVersions(
-          vs.map(v => {
+          vs.map(version => {
             let parsed: any = null;
             try {
-              parsed = parse(v.source);
+              parsed = parse(version.source);
             } catch {}
-            return { ...v, data: parsed };
+            return { ...version, data: parsed };
           }),
         );
       })
-      .catch(e => {
+      .catch(failure => {
         if (live) {
           setVersions([]);
-          setHistoryError(e.message);
+          setHistoryError(failure.message);
         }
       });
     return () => {
@@ -142,24 +153,16 @@ export function DatasetPage({ doc, data, objectName, projectDocs, onBack, onOpen
           <span>
             <b>Last change</b>
             <span>
-              {versions === null ? (
-                '…'
-              ) : changed ? (
-                <>
-                  {changed.message} · <code>{changed.commit.slice(0, 7)}</code> · {new Date(changed.date).toLocaleDateString()} · {changed.author}
-                </>
-              ) : (
-                'Not committed yet'
-              )}
+              <LastChangeSummary loading={versions === null} change={changed} />
             </span>
           </span>
           {tags.length > 0 && (
             <span>
               <b>Tags</b>
               <span>
-                {tags.map(t => (
-                  <em key={text(t)} className="odcs-tag">
-                    {text(t)}
+                {tags.map(tag => (
+                  <em key={text(tag)} className="odcs-tag">
+                    {text(tag)}
                   </em>
                 ))}
               </span>
@@ -169,10 +172,10 @@ export function DatasetPage({ doc, data, objectName, projectDocs, onBack, onOpen
         {object.description && <ReadMore>{text(object.description)}</ReadMore>}
       </header>
       <ScrollStrip className="odcs-tabs" selection={tab} role="tablist" label="Asset views">
-        {TABS.map(t => (
-          <button key={t} role="tab" aria-selected={tab === t} className={tab === t ? 'selected' : ''} onClick={() => setTab(t)}>
-            {t}
-            {t === 'Data Quality' && rules.length > 0 && <small>{rules.length}</small>}
+        {TABS.map(tabName => (
+          <button key={tabName} role="tab" aria-selected={tab === tabName} className={tab === tabName ? 'selected' : ''} onClick={() => setTab(tabName)}>
+            {tabName}
+            {tabName === 'Data Quality' && rules.length > 0 && <small>{rules.length}</small>}
           </button>
         ))}
       </ScrollStrip>
@@ -189,6 +192,17 @@ export function DatasetPage({ doc, data, objectName, projectDocs, onBack, onOpen
 }
 // The asset's Lineage tab: the lineage canvas centred on this object, and per property the fields
 // that read it and the metrics downstream of it, read from the same lineage graph.
+/** The "Last change" line of the page header: the newest commit that touched the table. */
+function LastChangeSummary({ loading, change }: { loading: boolean; change: Version | null }) {
+  if (loading) return <>…</>;
+  if (!change) return <>Not committed yet</>;
+  return (
+    <>
+      {change.message} · <code>{change.commit.slice(0, 7)}</code> · {new Date(change.date).toLocaleDateString()} · {change.author}
+    </>
+  );
+}
+
 function LineageTab({
   doc,
   projectDocs,
@@ -199,7 +213,7 @@ function LineageTab({
   doc: Doc;
   projectDocs: Doc[];
   objectName: string;
-  onOpenObject: (n: string) => void;
+  onOpenObject: (name: string) => void;
   onNeighborhood?: (card: LineageCard) => void;
 }) {
   const rev = projectRevision(projectDocs);
@@ -212,12 +226,12 @@ function LineageTab({
         const down = closure(graph, [col.id], 'down');
         const fields: string[] = [];
         const metrics: string[] = [];
-        for (const n of down.nodes) {
-          if (n === col.id) continue;
-          const c = graph.cards.get(cardOfNode(graph, n));
-          if (!c) continue;
-          if (c.kind === 'dataset' && n !== c.id) fields.push(`${c.label}.${n.slice(c.id.length + 1)}`);
-          if (c.kind === 'metric') metrics.push(c.label);
+        for (const node of down.nodes) {
+          if (node === col.id) continue;
+          const lineageCard = graph.cards.get(cardOfNode(graph, node));
+          if (!lineageCard) continue;
+          if (lineageCard.kind === 'dataset' && node !== lineageCard.id) fields.push(`${lineageCard.label}.${node.slice(lineageCard.id.length + 1)}`);
+          if (lineageCard.kind === 'metric') metrics.push(lineageCard.label);
         }
         // A dataset that copies this table names its field after the column it copies.
         for (const copy of card?.copies ?? []) if (copy.columns.includes(col.path)) fields.push(`${copy.dataset}.${col.path}`);
@@ -254,16 +268,16 @@ function LineageTab({
             </tr>
           </thead>
           <tbody>
-            {rows.map(r => (
-              <tr key={r.path}>
+            {rows.map(row => (
+              <tr key={row.path}>
                 <td data-label="Property">
-                  <code>{r.path}</code>
+                  <code>{row.path}</code>
                 </td>
                 <td data-label="Read by fields">
-                  {r.fields.length ? (
-                    r.fields.map(f => (
-                      <code key={f} className="odcs-chip">
-                        {f}
+                  {row.fields.length ? (
+                    row.fields.map(field => (
+                      <code key={field} className="odcs-chip">
+                        {field}
                       </code>
                     ))
                   ) : (
@@ -271,10 +285,10 @@ function LineageTab({
                   )}
                 </td>
                 <td data-label="Metrics downstream">
-                  {r.metrics.length ? (
-                    r.metrics.map(m => (
-                      <span key={m} className="odcs-chip metric">
-                        {m}
+                  {row.metrics.length ? (
+                    row.metrics.map(metric => (
+                      <span key={metric} className="odcs-chip metric">
+                        {metric}
                       </span>
                     ))
                   ) : (
@@ -290,7 +304,7 @@ function LineageTab({
   );
 }
 // Relationships: foreign keys out of and into each column, both directions, with links.
-function RelationshipsTab({ data, objectIndex, onOpenObject }: { data: any; objectIndex: number; onOpenObject: (n: string) => void }) {
+function RelationshipsTab({ data, objectIndex, onOpenObject }: { data: any; objectIndex: number; onOpenObject: (name: string) => void }) {
   const schema = list(data?.schema);
   const name = String(schema[objectIndex]?.name);
   const rows = useMemo(() => {
@@ -300,26 +314,26 @@ function RelationshipsTab({ data, objectIndex, onOpenObject }: { data: any; obje
       other: string;
       hop: ForeignKeyHop;
     }[] = [];
-    for (const k of odcsForeignKeys(data))
-      k.fromColumns.forEach((c, i) => {
-        if (k.from === objectIndex)
+    for (const odcsForeignKey of odcsForeignKeys(data))
+      odcsForeignKey.fromColumns.forEach((fromColumn, i) => {
+        if (odcsForeignKey.from === objectIndex)
           out.push({
-            column: c,
+            column: fromColumn,
             direction: 'out',
-            other: String(schema[k.to]?.name),
+            other: String(schema[odcsForeignKey.to]?.name),
             hop: {
-              child: `${name}.${c}`,
-              parent: `${String(schema[k.to]?.name)}.${k.toColumns[i]}`,
+              child: `${name}.${fromColumn}`,
+              parent: `${String(schema[odcsForeignKey.to]?.name)}.${odcsForeignKey.toColumns[i]}`,
             },
           });
-        if (k.to === objectIndex)
+        if (odcsForeignKey.to === objectIndex)
           out.push({
-            column: k.toColumns[i],
+            column: odcsForeignKey.toColumns[i],
             direction: 'in',
-            other: String(schema[k.from]?.name),
+            other: String(schema[odcsForeignKey.from]?.name),
             hop: {
-              child: `${String(schema[k.from]?.name)}.${c}`,
-              parent: `${name}.${k.toColumns[i]}`,
+              child: `${String(schema[odcsForeignKey.from]?.name)}.${fromColumn}`,
+              parent: `${name}.${odcsForeignKey.toColumns[i]}`,
             },
           });
       });
@@ -339,15 +353,15 @@ function RelationshipsTab({ data, objectIndex, onOpenObject }: { data: any; obje
             </tr>
           </thead>
           <tbody>
-            {rows.map((r, i) => (
+            {rows.map((row, i) => (
               <tr key={i}>
                 <td data-label="Foreign key">
-                  <code>{r.hop.child}</code> references <code>{r.hop.parent}</code>
+                  <code>{row.hop.child}</code> references <code>{row.hop.parent}</code>
                 </td>
-                <td data-label="Direction">{r.direction === 'out' ? <span className="odcs-dir out">references</span> : <span className="odcs-dir in">referenced by</span>}</td>
+                <td data-label="Direction">{row.direction === 'out' ? <span className="odcs-dir out">references</span> : <span className="odcs-dir in">referenced by</span>}</td>
                 <td data-label="Other table">
-                  <button className="odcs-link fk" aria-label={`Open ${r.other}`} onClick={() => onOpenObject(r.other)}>
-                    {r.other}
+                  <button className="odcs-link fk" aria-label={`Open ${row.other}`} onClick={() => onOpenObject(row.other)}>
+                    {row.other}
                   </button>
                 </td>
               </tr>
@@ -397,12 +411,12 @@ function HistoryTab({ versions, error, objectName }: { versions: Version[] | nul
     const o = list(v.data?.schema).find((x: any) => x?.name === objectName);
     return o ? flattenProperties(o.properties).length : null;
   };
-  const a = versions.find(v => v.commit === from);
-  const b = versions.find(v => v.commit === to);
-  const diff: ObjectDiff | null = a && b ? diffObject(a.data, b.data, objectName) : null;
-  const option = (v: Version) => (
-    <option key={v.commit} value={v.commit}>
-      {v.commit.slice(0, 7)} · {text(v.data?.version)} · {v.message}
+  const fromVersion = versions.find(v => v.commit === from);
+  const toVersion = versions.find(v => v.commit === to);
+  const diff: ObjectDiff | null = fromVersion && toVersion ? diffObject(fromVersion.data, toVersion.data, objectName) : null;
+  const option = (version: Version) => (
+    <option key={version.commit} value={version.commit}>
+      {version.commit.slice(0, 7)} · {text(version.data?.version)} · {version.message}
     </option>
   );
   return (
@@ -419,16 +433,16 @@ function HistoryTab({ versions, error, objectName }: { versions: Version[] | nul
             </tr>
           </thead>
           <tbody>
-            {versions.map(v => (
-              <tr key={v.commit} className={v.commit === from || v.commit === to ? 'selected' : ''}>
+            {versions.map(version => (
+              <tr key={version.commit} className={version.commit === from || version.commit === to ? 'selected' : ''}>
                 <td data-label="Version">
-                  {text(v.data?.version) || '—'} <code>{v.commit.slice(0, 7)}</code>
+                  {text(version.data?.version) || '—'} <code>{version.commit.slice(0, 7)}</code>
                 </td>
-                <td data-label="Date">{new Date(v.date).toLocaleString()}</td>
-                <td data-label="Author">{v.author}</td>
-                <td data-label="Message">{v.message}</td>
+                <td data-label="Date">{new Date(version.date).toLocaleString()}</td>
+                <td data-label="Author">{version.author}</td>
+                <td data-label="Message">{version.message}</td>
                 <td className="num" data-label="Properties">
-                  {count(v) ?? <span className="muted">absent</span>}
+                  {count(version) ?? <span className="muted">absent</span>}
                 </td>
               </tr>
             ))}
@@ -465,24 +479,24 @@ function HistoryTab({ versions, error, objectName }: { versions: Version[] | nul
                 )}
                 {diff.attributes.length > 0 && (
                   <ul className="odcs-change-list">
-                    {diff.attributes.map(c => (
-                      <li key={c.attribute}>
+                    {diff.attributes.map(change => (
+                      <li key={change.attribute}>
                         <span className="odcs-change changed">changed</span>
-                        <b>{c.attribute}</b> <Values before={c.before} after={c.after} />
+                        <b>{change.attribute}</b> <Values before={change.before} after={change.after} />
                       </li>
                     ))}
                   </ul>
                 )}
                 <ul className="odcs-change-list">
-                  {diff.properties.map(p => (
-                    <li key={p.kind + p.path}>
-                      <span className={`odcs-change ${p.kind}`}>{p.kind}</span>
-                      <code>{p.path}</code>
-                      {p.changes.length > 0 && (
+                  {diff.properties.map(property => (
+                    <li key={property.kind + property.path}>
+                      <span className={`odcs-change ${property.kind}`}>{property.kind}</span>
+                      <code>{property.path}</code>
+                      {property.changes.length > 0 && (
                         <ul>
-                          {p.changes.map(c => (
-                            <li key={c.attribute}>
-                              <b>{c.attribute}</b> <Values before={c.before} after={c.after} />
+                          {property.changes.map(change => (
+                            <li key={change.attribute}>
+                              <b>{change.attribute}</b> <Values before={change.before} after={change.after} />
                             </li>
                           ))}
                         </ul>
@@ -498,7 +512,15 @@ function HistoryTab({ versions, error, objectName }: { versions: Version[] | nul
     </>
   );
 }
-const shown = (v: unknown) => (v === undefined ? '(none)' : typeof v === 'string' ? v : JSON.stringify(v));
+const shown = (value: unknown) => {
+  if (value === undefined) {
+    return '(none)';
+  }
+  if (typeof value === 'string') {
+    return value;
+  }
+  return JSON.stringify(value);
+};
 const Values = ({ before, after }: { before: unknown; after: unknown }) => (
   <span className="odcs-values">
     <del>{shown(before)}</del> → <ins>{shown(after)}</ins>
@@ -513,10 +535,10 @@ const OPERATORS: [string, string][] = [
   ['mustBeLessOrEqualTo', '≤'],
 ];
 /** Formats a declared quality rule's threshold for display. */
-export function threshold(r: any) {
-  for (const [k, op] of OPERATORS) if (r?.[k] !== undefined) return `${op} ${text(r[k])}`;
-  if (Array.isArray(r?.mustBeBetween)) return `between ${text(r.mustBeBetween[0])} and ${text(r.mustBeBetween[1])}`;
-  if (Array.isArray(r?.mustNotBeBetween)) return `not between ${text(r.mustNotBeBetween[0])} and ${text(r.mustNotBeBetween[1])}`;
+export function threshold(rule: any) {
+  for (const [operatorKey, op] of OPERATORS) if (rule?.[operatorKey] !== undefined) return `${op} ${text(rule[operatorKey])}`;
+  if (Array.isArray(rule?.mustBeBetween)) return `between ${text(rule.mustBeBetween[0])} and ${text(rule.mustBeBetween[1])}`;
+  if (Array.isArray(rule?.mustNotBeBetween)) return `not between ${text(rule.mustNotBeBetween[0])} and ${text(rule.mustNotBeBetween[1])}`;
   return '';
 }
 type QualityRow = { scope: string; rule: any };

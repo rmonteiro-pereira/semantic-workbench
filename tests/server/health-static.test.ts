@@ -49,9 +49,7 @@ test('static assets, fallback, traversal, namespaces and security headers', asyn
     expect(index!.headers.get('Content-Security-Policy')).toContain("worker-src 'self' blob:");
     expect(index!.headers.get('Content-Security-Policy')).toContain("script-src 'self'");
     expect(index!.headers.get('Content-Security-Policy')).toBe(
-      "default-src 'self'; script-src 'self'; worker-src 'self' blob:; " +
-        "img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; " +
-        "object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
+      "default-src 'self'; script-src 'self'; worker-src 'self' blob:; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
     );
     expect(index!.headers.get('Content-Security-Policy')).not.toContain('unsafe-eval');
     expect(index!.headers.get('X-Content-Type-Options')).toBe('nosniff');

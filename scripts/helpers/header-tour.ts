@@ -45,7 +45,8 @@ export async function headerGeometry(page: Page): Promise<{ height: number; cont
     const controls = [...header.querySelectorAll('button')].map(control => {
       const box = control.getBoundingClientRect();
       const name = control.getAttribute('aria-label') ?? control.textContent?.trim();
-      return `${name}@${round(box.left)},${round(box.top)},${round(box.width)},${round(box.height)}`;
+      const position = [box.left, box.top, box.width, box.height].map(round).join(',');
+      return `${name}@${position}`;
     });
     return { height: round(header.getBoundingClientRect().height), controls };
   });

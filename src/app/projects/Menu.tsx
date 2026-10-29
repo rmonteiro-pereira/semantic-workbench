@@ -246,42 +246,42 @@ export function MenuButton({
     item.run();
   };
 
-  function closeForKey(e: React.KeyboardEvent) {
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      e.stopPropagation();
+  function closeForKey(event: React.KeyboardEvent) {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
       close();
-    } else if (e.key === 'Tab') {
+    } else if (event.key === 'Tab') {
       // Focus goes back to the button first, so Tab continues from where the menu was opened.
       close();
     }
   }
 
-  const move = (e: React.KeyboardEvent) => {
+  const move = (event: React.KeyboardEvent) => {
     const inSubmenu = beside.popup.current?.contains(document.activeElement) ?? false;
     const menu = inSubmenu ? beside.popup.current : popup.current;
     const rows = [...(menu?.querySelectorAll<HTMLElement>(OWN_ROWS) ?? [])];
     const index = rows.indexOf(document.activeElement as HTMLElement);
-    if (moveFocus(rows, index, e.key)) {
-      e.preventDefault();
+    if (moveFocus(rows, index, event.key)) {
+      event.preventDefault();
       // Moving to another row of the menu closes a submenu that pointing had opened.
       if (!inSubmenu) beside.hide(false);
       return;
     }
-    if (inSubmenu && (e.key === 'Escape' || e.key === 'ArrowLeft')) {
+    if (inSubmenu && (event.key === 'Escape' || event.key === 'ArrowLeft')) {
       // Leaving the submenu beside goes back to its row and keeps the menu open.
-      e.preventDefault();
-      e.stopPropagation();
+      event.preventDefault();
+      event.stopPropagation();
       beside.hide(true);
       return;
     }
     const rowItem = shownItems[index];
-    if (!inSubmenu && e.key === 'ArrowRight' && rowItem?.submenu) {
-      e.preventDefault();
+    if (!inSubmenu && event.key === 'ArrowRight' && rowItem?.submenu) {
+      event.preventDefault();
       choose(rowItem, rows[index]);
       return;
     }
-    closeForKey(e);
+    closeForKey(event);
   };
   return (
     <span className={`menu-button ${className}`.trim()} ref={root} onKeyDown={open ? move : undefined}>
@@ -293,9 +293,9 @@ export function MenuButton({
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen(o => !o)}
-        onKeyDown={e => {
-          if (!open && e.key === 'ArrowDown') {
-            e.preventDefault();
+        onKeyDown={event => {
+          if (!open && event.key === 'ArrowDown') {
+            event.preventDefault();
             setOpen(true);
           }
         }}

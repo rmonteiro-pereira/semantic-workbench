@@ -23,24 +23,24 @@ const list = (v: unknown): any[] => (Array.isArray(v) ? v : []);
 const isObject = (v: unknown): v is Record<string, any> => !!v && typeof v === 'object' && !Array.isArray(v);
 
 /** Serializes values with sorted keys so key order does not count as a change. */
-export function canonical(v: unknown): string {
-  if (Array.isArray(v)) return '[' + v.map(canonical).join(',') + ']';
-  if (isObject(v))
+export function canonical(value: unknown): string {
+  if (Array.isArray(value)) return '[' + value.map(canonical).join(',') + ']';
+  if (isObject(value))
     return (
       '{' +
-      Object.keys(v)
+      Object.keys(value)
         .sort()
-        .map(k => JSON.stringify(k) + ':' + canonical(v[k]))
+        .map(k => JSON.stringify(k) + ':' + canonical(value[k]))
         .join(',') +
       '}'
     );
-  return JSON.stringify(v) ?? 'undefined';
+  return JSON.stringify(value) ?? 'undefined';
 }
 const same = (a: unknown, b: unknown) => canonical(a) === canonical(b);
 // The attribute-level differences of two mappings, leaving out the keys handled elsewhere.
-function attributeChanges(a: Record<string, any>, b: Record<string, any>, skip: string[]): AttributeChange[] {
-  const keys = [...new Set([...Object.keys(a), ...Object.keys(b)])].filter(k => !skip.includes(k)).sort();
-  return keys.filter(k => !same(a[k], b[k])).map(k => ({ attribute: k, before: a[k], after: b[k] }));
+function attributeChanges(before: Record<string, any>, after: Record<string, any>, skip: string[]): AttributeChange[] {
+  const keys = [...new Set([...Object.keys(before), ...Object.keys(after)])].filter(k => !skip.includes(k)).sort();
+  return keys.filter(k => !same(before[k], after[k])).map(k => ({ attribute: k, before: before[k], after: after[k] }));
 }
 const keyOf = (x: any, useId: boolean) => (useId && typeof x?.id === 'string' ? 'id:' + x.id : 'name:' + String(x?.name));
 function matchBy(before: any[], after: any[]) {
@@ -52,64 +52,67 @@ function matchBy(before: any[], after: any[]) {
 export function flattenProperties(props: unknown, prefix = ''): { path: string; property: Record<string, any> }[] {
   return list(props)
     .filter(isObject)
-    .flatMap(p => {
-      const path = prefix + String(p.name ?? '?');
-      const nested = [...flattenProperties(p.properties, path + '.'), ...(isObject(p.items) ? [{ path: path + '[]', property: p.items }, ...flattenProperties(p.items.properties, path + '[].')] : [])];
-      return [{ path, property: p }, ...nested];
+    .flatMap(property => {
+      const path = prefix + String(property.name ?? '?');
+      const nested = [
+        ...flattenProperties(property.properties, path + '.'),
+        ...(isObject(property.items) ? [{ path: path + '[]', property: property.items }, ...flattenProperties(property.items.properties, path + '[].')] : []),
+      ];
+      return [{ path, property }, ...nested];
     });
 }
 const CHILDREN = ['properties', 'items'];
-function propertyDiff(a: unknown, b: unknown): PropertyChange[] {
-  const before = flattenProperties(a);
-  const after = flattenProperties(b);
+function propertyDiff(beforeProps: unknown, afterProps: unknown): PropertyChange[] {
+  const before = flattenProperties(beforeProps);
+  const after = flattenProperties(afterProps);
   const ids = before.every(x => typeof x.property.id === 'string') && after.every(x => typeof x.property.id === 'string');
-  const k = (x: { path: string; property: any }) => (ids ? 'id:' + x.property.id : x.path);
-  const old = new Map(before.map(x => [k(x), x]));
-  const now = new Map(after.map(x => [k(x), x]));
+  const propertyKey = (x: { path: string; property: any }) => (ids ? 'id:' + x.property.id : x.path);
+  const old = new Map(before.map(x => [propertyKey(x), x]));
+  const now = new Map(after.map(x => [propertyKey(x), x]));
   const out: PropertyChange[] = [];
-  for (const x of before) if (!now.has(k(x))) out.push({ path: x.path, kind: 'removed', changes: [] });
+  for (const x of before) if (!now.has(propertyKey(x))) out.push({ path: x.path, kind: 'removed', changes: [] });
   for (const x of after) {
-    const o = old.get(k(x));
-    if (!o) {
+    const previous = old.get(propertyKey(x));
+    if (!previous) {
       out.push({ path: x.path, kind: 'added', changes: [] });
       continue;
     }
-    const changes = attributeChanges(o.property, x.property, CHILDREN);
-    if (o.path !== x.path) changes.unshift({ attribute: 'path', before: o.path, after: x.path });
+    const changes = attributeChanges(previous.property, x.property, CHILDREN);
+    if (previous.path !== x.path) changes.unshift({ attribute: 'path', before: previous.path, after: x.path });
     if (changes.length) out.push({ path: x.path, kind: 'changed', changes });
   }
   return out;
 }
 /** Compares all contract and object attributes across two versions. */
 export function diffContracts(before: any, after: any): ContractDiff {
-  const a = isObject(before) ? before : {};
-  const b = isObject(after) ? after : {};
-  const objsA = list(a.schema).filter(isObject);
-  const objsB = list(b.schema).filter(isObject);
-  const m = matchBy(objsA, objsB);
-  const old = new Map(objsA.map(o => [m.key(o), o]));
-  const now = new Map(objsB.map(o => [m.key(o), o]));
+  const beforeContract = isObject(before) ? before : {};
+  const afterContract = isObject(after) ? after : {};
+  const objsA = list(beforeContract.schema).filter(isObject);
+  const objsB = list(afterContract.schema).filter(isObject);
+  const matcher = matchBy(objsA, objsB);
+  const old = new Map(objsA.map(o => [matcher.key(o), o]));
+  const now = new Map(objsB.map(o => [matcher.key(o), o]));
   const objects: ObjectDiff[] = [];
-  for (const o of objsA)
-    if (!now.has(m.key(o)))
+  for (const schemaObject of objsA)
+    if (!now.has(matcher.key(schemaObject)))
       objects.push({
-        object: String(o.name),
+        object: String(schemaObject.name),
         kind: 'removed',
         attributes: [],
-        properties: flattenProperties(o.properties).map(p => ({
-          path: p.path,
+        properties: flattenProperties(schemaObject.properties).map(removed => ({
+          path: removed.path,
           kind: 'removed',
           changes: [],
         })),
       });
-  for (const o of objsB) {
-    const p = old.get(m.key(o));
-    if (!p) {
+  for (const schemaObject of objsB) {
+    const previous = old.get(matcher.key(schemaObject));
+    if (!previous) {
       objects.push({
-        object: String(o.name),
+        object: String(schemaObject.name),
         kind: 'added',
         attributes: [],
-        properties: flattenProperties(o.properties).map(x => ({
+        properties: flattenProperties(schemaObject.properties).map(x => ({
           path: x.path,
           kind: 'added',
           changes: [],
@@ -117,11 +120,11 @@ export function diffContracts(before: any, after: any): ContractDiff {
       });
       continue;
     }
-    const attributes = attributeChanges(p, o, ['properties']);
-    const properties = propertyDiff(p.properties, o.properties);
-    if (attributes.length || properties.length) objects.push({ object: String(o.name), kind: 'changed', attributes, properties });
+    const attributes = attributeChanges(previous, schemaObject, ['properties']);
+    const properties = propertyDiff(previous.properties, schemaObject.properties);
+    if (attributes.length || properties.length) objects.push({ object: String(schemaObject.name), kind: 'changed', attributes, properties });
   }
-  return { contract: attributeChanges(a, b, ['schema']), objects };
+  return { contract: attributeChanges(beforeContract, afterContract, ['schema']), objects };
 }
 
 /** Returns one object's changes, or null when unchanged or absent from both versions. */

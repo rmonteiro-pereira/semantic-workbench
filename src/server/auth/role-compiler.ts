@@ -63,14 +63,14 @@ export function compileRoles(roles: Role[]) {
   const pathGlobs = new Set<string>();
   for (const role of roles) {
     if (role.id === 'admin') {
-      policies['role:admin:1'] = '@id("role:admin:1")\n' + 'permit (principal in SW::RoleHolder::"admin@workspace", action, resource);';
+      policies['role:admin:1'] = '@id("role:admin:1")\npermit (principal in SW::RoleHolder::"admin@workspace", action, resource);';
       continue;
     }
     role.permissions.forEach((permission, index) => {
       const id = `role:${role.id}:${index + 1}`;
       const actions = permission.actions.map(action => `SW::Action::"${action}"`).join(', ');
       const conditions = [`principal in resource.holders.${role.id}`, ...clauses(permission.conditions ?? {})];
-      policies[id] = `@id("${id}")\npermit (principal, action in [${actions}], resource)\n` + `when { ${conditions.join(' && ')} };`;
+      policies[id] = `@id("${id}")\npermit (principal, action in [${actions}], resource)\nwhen { ${conditions.join(' && ')} };`;
       if (permission.conditions?.path) pathGlobs.add(permission.conditions.path);
     });
   }

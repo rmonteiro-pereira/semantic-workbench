@@ -110,7 +110,11 @@ test('changing the folder of a sparse project previews, then checks out the othe
     const cloned = await cloneFolder(app, team);
     const base = `/api/projects/${cloned.slug}/git/folder`;
     const shown = await ok(call(app, 'GET', `${base}?folder=${encodeURIComponent(OTHER_FOLDER)}`));
-    expect(shown).toMatchObject({ kind: 'change', current: PROJECT_FOLDER, existsOnBranch: true });
+    expect(shown).toMatchObject({
+      kind: 'change',
+      current: PROJECT_FOLDER,
+      existsOnBranch: true,
+    });
     expect(existsSync(join(cloned.project, 'shop.yaml'))).toBe(true);
 
     await ok(call(app, 'PUT', base, { folder: OTHER_FOLDER }));
@@ -133,20 +137,24 @@ test('changing the folder of a sparse project previews, then checks out the othe
 
 test('an interrupted move is completed on the next start, leaving the move to commit', async () => {
   const crash = { on: false };
-  const t = await testWorkspace({
+  const workspace = await testWorkspace({
     journalHooks: {
       crashAfter: (kind: string, step: number) => crash.on && kind === 'project-folder' && step === 0,
     },
   });
-  const root = t.root;
-  const created = await ok(call(t, 'POST', '/api/import', { files: [{ path: 'shop.yaml', source: ontology('Buys.') }] }));
+  const root = workspace.root;
+  const created = await ok(
+    call(workspace, 'POST', '/api/import', {
+      files: [{ path: 'shop.yaml', source: ontology('Buys.') }],
+    }),
+  );
   const dir = join(root, 'projects', created.slug);
   crash.on = true;
-  const interrupted = await call(t, 'PUT', `/api/projects/${created.slug}/git/folder`, {
+  const interrupted = await call(workspace, 'PUT', `/api/projects/${created.slug}/git/folder`, {
     folder: 'semantic/ubl',
   });
   expect(interrupted.status).not.toBe(200);
-  t.ws.close();
+  workspace.ws.close();
   const again = await testWorkspace({ root });
   try {
     expect(again.ws.recovery.map(entry => [entry.kind, entry.outcome])).toEqual([['project-folder', 'completed']]);

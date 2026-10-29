@@ -179,7 +179,9 @@ test('only an Admin changes remotes, clones or registers projects, and only to a
     expect(refused.status, url).toBe(400);
     expect(refused.body.allowedHosts).toEqual(setup.allowedHosts);
   }
-  const clone = await call(dave, 'POST', '/api/clone', { url: 'https://gitlab.example.com/x.git' });
+  const clone = await call(dave, 'POST', '/api/clone', {
+    url: 'https://gitlab.example.com/x.git',
+  });
   expect(clone.status).toBe(400);
   expect(clone.body.allowedHosts).toEqual(setup.allowedHosts);
   git(repoDir(setup.fixture.ws.layout, 'lab-notes'), ['remote', 'add', 'origin', 'https://gitlab.example.com/notes.git']);

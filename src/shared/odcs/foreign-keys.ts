@@ -21,7 +21,15 @@ export type OdcsExternalForeignKey = {
 };
 /** Reports an unresolved contract reference at its document path. */
 export type OdcsReferenceIssue = { path: string; message: string };
-const list = (v: unknown) => (Array.isArray(v) ? v : v === undefined ? [] : [v]);
+const list = (v: unknown) => {
+  if (Array.isArray(v)) {
+    return v;
+  }
+  if (v === undefined) {
+    return [];
+  }
+  return [v];
+};
 type Resolved = { object: number; column: string | undefined } | 'external' | undefined;
 // Column paths are property names joined by '.' (nested properties: `parent.child`). Property ids
 // of fully qualified references resolve to the same names.
@@ -38,10 +46,10 @@ function resolver(schema: any[]) {
     let props: any[] = Array.isArray(schema[object]?.properties) ? schema[object].properties : [];
     const names: string[] = [];
     for (const id of ids) {
-      const p = props.find(x => x && typeof x === 'object' && (x.id === id || x.name === id));
-      if (!p) return undefined;
-      names.push(String(p.name));
-      props = Array.isArray(p.properties) ? p.properties : [];
+      const prop = props.find(x => x && typeof x === 'object' && (x.id === id || x.name === id));
+      if (!prop) return undefined;
+      names.push(String(prop.name));
+      props = Array.isArray(prop.properties) ? prop.properties : [];
     }
     return names.join('.');
   };
@@ -105,7 +113,7 @@ function collect(data: any) {
     if (toColumns.length !== fromColumns.length) {
       issues.push({
         path: '/' + [...path, 'to'].join('/'),
-        message: `Composite foreign key pairs ${columnCount(fromColumns.length, 'source')} with ` + `${columnCount(toColumns.length, 'target')}; both lists must have the same length.`,
+        message: `Composite foreign key pairs ${columnCount(fromColumns.length, 'source')} with ${columnCount(toColumns.length, 'target')}; both lists must have the same length.`,
       });
       pairedFrom = [];
       toColumns = [];
@@ -123,33 +131,34 @@ function collect(data: any) {
   };
   schema.forEach((x: any, i: number) => {
     if (!x || typeof x !== 'object') return;
-    (Array.isArray(x.properties) ? x.properties : []).forEach((p: any, j: number) =>
-      (Array.isArray(p?.relationships) ? p.relationships : []).forEach((r: any, k: number) => {
-        if (r && typeof r === 'object') add(i, [String(p.name)], r.to, String(p.name), ['schema', i, 'properties', j, 'relationships', k], { from: `${x.name}.${p.name}`, ...r });
+    (Array.isArray(x.properties) ? x.properties : []).forEach((property: any, j: number) =>
+      (Array.isArray(property?.relationships) ? property.relationships : []).forEach((relationship: any, index: number) => {
+        if (relationship && typeof relationship === 'object')
+          add(i, [String(property.name)], relationship.to, String(property.name), ['schema', i, 'properties', j, 'relationships', index], { from: `${x.name}.${property.name}`, ...relationship });
       }),
     );
-    (Array.isArray(x.relationships) ? x.relationships : []).forEach((r: any, k: number) => {
-      if (!r || typeof r !== 'object') return;
-      const sources = list(r.from).map(f => resolve(f));
+    (Array.isArray(x.relationships) ? x.relationships : []).forEach((relationship: any, index: number) => {
+      if (!relationship || typeof relationship !== 'object') return;
+      const sources = list(relationship.from).map(f => resolve(f));
       const from = sources[0];
-      const path = ['schema', i, 'relationships', k];
+      const path = ['schema', i, 'relationships', index];
       if (from === undefined || from === 'external') {
         if (from !== 'external')
           issues.push({
             path: '/' + [...path, 'from'].join('/'),
-            message: `Relationship source "${String(list(r.from)[0])}" is not an object of this contract.`,
+            message: `Relationship source "${String(list(relationship.from)[0])}" is not an object of this contract.`,
           });
         return;
       }
       add(
         from.object,
         sources.map(s => (s && s !== 'external' && s.object === from.object ? s.column : undefined)),
-        r.to,
-        list(r.from)
+        relationship.to,
+        list(relationship.from)
           .map(f => String(f).split('.').pop())
           .join(', '),
         path,
-        r,
+        relationship,
       );
     });
   });

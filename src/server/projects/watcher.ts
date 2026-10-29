@@ -35,9 +35,9 @@ export function createWatcher(
       slug,
       setTimeout(() => {
         timers.delete(slug);
-        const g = gitFlags.get(slug) ?? false;
+        const hasGitChange = gitFlags.get(slug) ?? false;
         gitFlags.delete(slug);
-        const next = (running.get(slug) ?? Promise.resolve()).then(() => options.onChange(slug, g)).catch(e => log.failure('watcher.change-failed', e, { project: slug }));
+        const next = (running.get(slug) ?? Promise.resolve()).then(() => options.onChange(slug, hasGitChange)).catch(e => log.failure('watcher.change-failed', e, { project: slug }));
         running.set(slug, next);
       }, debounceMs),
     );
@@ -50,7 +50,7 @@ export function createWatcher(
       const { repo } = options.locate(slug);
       if (watchers.has(repo)) return;
       try {
-        const w = watch(join(layout.projects, repo), { recursive: true }, (_event, name) => {
+        const fsWatcher = watch(join(layout.projects, repo), { recursive: true }, (_event, name) => {
           const file = String(name ?? '')
             .split('\\')
             .join('/');
@@ -65,13 +65,13 @@ export function createWatcher(
             if (!inside || file.startsWith(inside)) schedule(project, false);
           }
         });
-        w.on('error', () => {
-          w.close();
+        fsWatcher.on('error', () => {
+          fsWatcher.close();
           watchers.delete(repo);
         });
-        watchers.set(repo, w);
-      } catch (e) {
-        log.failure('watcher.cannot-watch', e, { repo });
+        watchers.set(repo, fsWatcher);
+      } catch (error) {
+        log.failure('watcher.cannot-watch', error, { repo });
       }
     },
     // Stops the repository's watcher once no other registered project uses it.
@@ -93,9 +93,9 @@ export function createWatcher(
     watching: () => [...watchers.keys()],
     close() {
       clearInterval(interval);
-      for (const w of watchers.values()) w.close();
+      for (const watcher of watchers.values()) watcher.close();
       watchers.clear();
-      for (const t of timers.values()) clearTimeout(t);
+      for (const timer of timers.values()) clearTimeout(timer);
       timers.clear();
     },
   };

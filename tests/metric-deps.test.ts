@@ -9,15 +9,15 @@ import { columnRefs, parseExpression } from '../src/server/agent/sql';
 function expressions(value: any, out: string[] = []) {
   if (Array.isArray(value)) value.forEach(v => expressions(v, out));
   else if (value && typeof value === 'object')
-    for (const [k, v] of Object.entries(value)) {
-      if (k === 'expression' && typeof v === 'string') out.push(v);
-      else expressions(v, out);
+    for (const [key, child] of Object.entries(value)) {
+      if (key === 'expression' && typeof child === 'string') out.push(child);
+      else expressions(child, out);
     }
   return out;
 }
 test('agrees with the SQL syntax tree on every expression of the shipped examples', async () => {
   const all: string[] = [];
-  for await (const f of new Glob('public/examples/**/*.yaml').scan('.')) expressions(parse(await Bun.file(f).text(), { maxAliasCount: -1 }), all);
+  for await (const yamlPath of new Glob('public/examples/**/*.yaml').scan('.')) expressions(parse(await Bun.file(yamlPath).text(), { maxAliasCount: -1 }), all);
   let compared = 0;
   const differences: string[] = [];
   for (const sql of new Set(all)) {

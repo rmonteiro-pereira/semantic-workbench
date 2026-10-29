@@ -7,8 +7,12 @@ import { modelCardHeight } from './overview-capacity';
 // Area titles grow as the graph zooms out; reserve two lines at their largest size.
 const GROUP_HEADER_HEIGHT = 136;
 
+/** The model name, the ELK engine that runs the layout, and the optional grouping of areas. */
+export type FullLayoutOptions = { name: string; elk: { layout: (elkGraph: any) => Promise<any> }; grouping?: GroupingOptions };
+
 /** Lays out nodes and edges within their model groups. */
-export async function layoutFullGraph(entities: Entity[], edges: Relationship[], name: string, elk: { layout: (g: any) => Promise<any> }, grouping?: GroupingOptions) {
+export async function layoutFullGraph(entities: Entity[], edges: Relationship[], options: FullLayoutOptions) {
+  const { name, elk, grouping } = options;
   const overview = modelOverview(entities, edges, name, false, grouping);
   const connections = groupRelationships(overview.links);
   const allAreasCollapsed = entities.length > 0 && entities.every(entity => entity.definition?.collapsedArea);
@@ -33,21 +37,31 @@ export async function layoutFullGraph(entities: Entity[], edges: Relationship[],
         'elk.spacing.nodeNode': '24',
         'elk.layered.spacing.nodeNodeBetweenLayers': '48',
       },
-      children: group.entities.map(e => ({
-        id: e.id,
+      children: group.entities.map(entity => ({
+        id: entity.id,
         width: 184,
-        height: modelCardHeight(Boolean(e.definition?.collapsedArea)),
+        height: modelCardHeight(Boolean(entity.definition?.collapsedArea)),
         layoutOptions: { 'elk.portConstraints': 'FIXED_SIDE' },
         ports: [
-          { id: e.id + '::out', width: 0, height: 0, layoutOptions: { 'elk.port.side': 'EAST' } },
-          { id: e.id + '::in', width: 0, height: 0, layoutOptions: { 'elk.port.side': 'WEST' } },
+          {
+            id: entity.id + '::out',
+            width: 0,
+            height: 0,
+            layoutOptions: { 'elk.port.side': 'EAST' },
+          },
+          {
+            id: entity.id + '::in',
+            width: 0,
+            height: 0,
+            layoutOptions: { 'elk.port.side': 'WEST' },
+          },
         ],
       })),
     })),
-    edges: connections.map(e => ({
-      id: e.id,
-      sources: [e.source + '::out'],
-      targets: [e.target + '::in'],
+    edges: connections.map(connection => ({
+      id: connection.id,
+      sources: [connection.source + '::out'],
+      targets: [connection.target + '::in'],
     })),
   };
   const result = await elk.layout(graph);
@@ -105,18 +119,18 @@ export async function layoutFullGraph(entities: Entity[], edges: Relationship[],
 // Keep fCoSE's internal compound layout, then pack the area rectangles with ELK's box packer to
 // remove empty space without stretching individual nodes.
 /** Packs group rectangles while preserving their internal network layouts. */
-export async function packNetwork(result: any, elk: { layout: (g: any) => Promise<any> }, _grouping?: GroupingOptions) {
+export async function packNetwork(result: any, elk: { layout: (elkGraph: any) => Promise<any> }, _grouping?: GroupingOptions) {
   const groups = result.nodes.filter((n: any) => n.group);
   const interiors = await Promise.all(
-    groups.map((g: any) =>
+    groups.map((group: any) =>
       elk.layout({
-        id: g.id,
+        id: group.id,
         layoutOptions: {
           'elk.algorithm': 'sporeOverlap',
           'elk.spacing.nodeNode': '24',
           'elk.padding': `[top=${GROUP_HEADER_HEIGHT},left=28,bottom=28,right=28]`,
         },
-        children: result.nodes.filter((n: any) => n.parentId === g.id).map((n: any) => ({ id: n.id, x: n.x, y: n.y, width: n.width, height: n.height })),
+        children: result.nodes.filter((n: any) => n.parentId === group.id).map((n: any) => ({ id: n.id, x: n.x, y: n.y, width: n.width, height: n.height })),
       }),
     ),
   );
@@ -130,10 +144,10 @@ export async function packNetwork(result: any, elk: { layout: (g: any) => Promis
       'elk.spacing.nodeNode': '70',
       'elk.padding': '[top=40,left=40,bottom=40,right=40]',
     },
-    children: groups.map((g: any) => ({
-      id: g.id,
-      width: (dimensions.get(g.id) as any).width,
-      height: (dimensions.get(g.id) as any).height,
+    children: groups.map((group: any) => ({
+      id: group.id,
+      width: (dimensions.get(group.id) as any).width,
+      height: (dimensions.get(group.id) as any).height,
     })),
   });
   const positions = new Map(packed.children.map((g: any) => [g.id, g]));

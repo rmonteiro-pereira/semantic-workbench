@@ -11,11 +11,11 @@ export type Patch = { from: number; to: number; insert: string };
 export function lineStarts(text: string) {
   const starts = [0];
   for (let i = 0; i < text.length; i++) {
-    const c = text.charCodeAt(i);
-    if (c === 13) {
+    const code = text.charCodeAt(i);
+    if (code === 13) {
       if (text.charCodeAt(i + 1) === 10) i++;
       starts.push(i + 1);
-    } else if (c === 10) starts.push(i + 1);
+    } else if (code === 10) starts.push(i + 1);
   }
   return starts;
 }
@@ -25,15 +25,21 @@ export function dominantLineBreak(text: string): '\r\n' | '\n' | '\r' {
   let lf = 0;
   let cr = 0;
   for (let i = 0; i < text.length; i++) {
-    const c = text.charCodeAt(i);
-    if (c === 13) {
+    const code = text.charCodeAt(i);
+    if (code === 13) {
       if (text.charCodeAt(i + 1) === 10) {
         crlf++;
         i++;
       } else cr++;
-    } else if (c === 10) lf++;
+    } else if (code === 10) lf++;
   }
-  return crlf > lf && crlf >= cr ? '\r\n' : cr > lf && cr > crlf ? '\r' : '\n';
+  if (crlf > lf && crlf >= cr) {
+    return '\r\n';
+  }
+  if (cr > lf && cr > crlf) {
+    return '\r';
+  }
+  return '\n';
 }
 
 /** Converts source line endings to the editor's LF representation. */
@@ -61,10 +67,10 @@ export function changesToPatches(original: string, doc: Text, changes: ChangeSet
 export function applyPatches(text: string, patches: Patch[]) {
   let out = '';
   let at = 0;
-  for (const p of [...patches].sort((a, b) => a.from - b.from)) {
-    if (p.from < at || p.to < p.from || p.to > text.length) throw Error('Patches must be ordered, non-overlapping and inside the text.');
-    out += text.slice(at, p.from) + p.insert;
-    at = p.to;
+  for (const patch of [...patches].sort((a, b) => a.from - b.from)) {
+    if (patch.from < at || patch.to < patch.from || patch.to > text.length) throw Error('Patches must be ordered, non-overlapping and inside the text.');
+    out += text.slice(at, patch.from) + patch.insert;
+    at = patch.to;
   }
   return out + text.slice(at);
 }
@@ -78,7 +84,8 @@ export function diffPatches(base: string, next: string): Patch[] {
   let end = 0;
   while (end < max - start && base.charCodeAt(base.length - 1 - end) === next.charCodeAt(next.length - 1 - end)) end++;
   // Never split a \r\n pair or a surrogate pair between the kept and replaced parts.
-  const splits = (s: string, i: number) => i > 0 && i < s.length && ((s.charCodeAt(i - 1) === 13 && s.charCodeAt(i) === 10) || (s.charCodeAt(i - 1) >= 0xd800 && s.charCodeAt(i - 1) <= 0xdbff));
+  const splits = (text: string, i: number) =>
+    i > 0 && i < text.length && ((text.charCodeAt(i - 1) === 13 && text.charCodeAt(i) === 10) || (text.charCodeAt(i - 1) >= 0xd800 && text.charCodeAt(i - 1) <= 0xdbff));
   while (start > 0 && (splits(base, start) || splits(next, start))) start--;
   while (end > 0 && (splits(base, base.length - end) || splits(next, next.length - end))) end--;
   return [{ from: start, to: base.length - end, insert: next.slice(start, next.length - end) }];

@@ -43,7 +43,7 @@ const telemetry = await startTelemetry({
 probeDataRoot(config.dataDir, process.pid, process.getuid?.());
 if (config.inContainer && config.mode === 'local') {
   log.warn('startup.local-container-networking', {
-    detail: 'Local containers must use host networking (Compose profile local). ' + 'Docker Desktop: Settings → Resources → Network → Enable host networking.',
+    detail: 'Local containers must use host networking (Compose profile local). Docker Desktop: Settings → Resources → Network → Enable host networking.',
   });
 }
 let workspace: Workspace | undefined;

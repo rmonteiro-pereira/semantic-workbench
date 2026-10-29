@@ -6,41 +6,52 @@ import { allowEveryRemote } from '../tests/helpers/remote-credentials-fixture';
 import { observabilityCase } from './observability-cases';
 // Sign-in pages render the brand, so every candidate runs with the shipped bundle active.
 setActiveBrand(loadBrandBundle());
-const m = await import(process.argv[2]);
+const loadedModule = await import(process.argv[2]);
 const category = process.argv[3];
 if (category === 'edge-appearance') {
-  const appearance = m.edgeAppearance({ id: 'edge', sourceX: 10, selectable: true, label: 'Link' });
+  const appearance = loadedModule.edgeAppearance({
+    id: 'edge',
+    sourceX: 10,
+    selectable: true,
+    label: 'Link',
+  });
   assert.equal(appearance.label, 'Link');
   assert.equal(Object.hasOwn(appearance, 'sourceX'), false);
   assert.equal(Object.hasOwn(appearance, 'selectable'), false);
 }
 if (category === 'expansion-viewport') {
-  const viewport = m.expansionViewport({ x: 0, y: 0, width: 5000, height: 2000 }, { x: 400, y: 200 }, { width: 1000, height: 600 }, 1);
+  const viewport = loadedModule.expansionViewport({ x: 0, y: 0, width: 5000, height: 2000 }, { x: 400, y: 200 }, { width: 1000, height: 600 }, 1);
   assert.deepEqual(viewport, { x: 100, y: 100, zoom: 1 });
 }
 if (category === 'clone-progress') {
   const operation = { op: 'clone-one', name: 'Orders' };
   const failure = { op: operation.op, phase: 'failed', message: 'Folder missing.' };
-  const early = m.cloneProgressReducer(m.initialCloneProgress, {
+  const early = loadedModule.cloneProgressReducer(loadedModule.initialCloneProgress, {
     type: 'progress',
     event: failure,
   });
-  const started = m.cloneProgressReducer(early, { type: 'started', operation });
+  const started = loadedModule.cloneProgressReducer(early, { type: 'started', operation });
   assert.deepEqual(started.progress, failure);
-  const running = m.cloneProgressReducer(m.initialCloneProgress, { type: 'started', operation });
-  const finished = m.cloneProgressReducer(running, { type: 'progress', event: failure });
+  const running = loadedModule.cloneProgressReducer(loadedModule.initialCloneProgress, {
+    type: 'started',
+    operation,
+  });
+  const finished = loadedModule.cloneProgressReducer(running, { type: 'progress', event: failure });
   assert.deepEqual(finished.progress, failure);
-  const unrelated = m.cloneProgressReducer(running, {
+  const unrelated = loadedModule.cloneProgressReducer(running, {
     type: 'progress',
     event: { op: 'another-clone', phase: 'done' },
   });
   assert.deepEqual(unrelated.progress, running.progress);
   const retry = { op: 'clone-retry', name: operation.name };
-  const restarted = m.cloneProgressReducer(finished, { type: 'started', operation: retry });
+  const restarted = loadedModule.cloneProgressReducer(finished, {
+    type: 'started',
+    operation: retry,
+  });
   assert.deepEqual(restarted.progress, { ...retry, phase: 'cloning' });
 }
 if (category === 'folder-refusal-reason') {
-  const folders = m.createProjectFolders({});
+  const folders = loadedModule.createProjectFolders({});
   const reader = { ...LOCAL_READER, view: {} };
   function explainsRefusal(error: Error) {
     return error.name === 'BadRequestError' && error.message.includes('Clone the folder instead.');
@@ -51,7 +62,7 @@ if (category === 'folder-refusal-reason') {
 if (category === 'edge-label-bounds') {
   const bounds = { x: 0, y: 0, w: 400, h: 200 };
   const request = { id: 'outside', lines: ['2'], at: { x: 200, y: -200 }, room: null, priority: 1 };
-  assert.equal(m.placeEdgeLabels([request], [], bounds).size, 0);
+  assert.equal(loadedModule.placeEdgeLabels([request], [], bounds).size, 0);
   const line = {
     id: 'loop',
     from: 'a.row',
@@ -82,25 +93,25 @@ if (category === 'edge-label-bounds') {
     ]),
     scrolling: new Set(),
   };
-  assert.equal(m.buildLineLabels(context, [line]).get('loop').place, undefined);
+  assert.equal(loadedModule.buildLineLabels(context, [line]).get('loop').place, undefined);
 }
 if (category === 'graph-detail-zoom') {
-  assert.equal(m.textSizesAt(1).showDetail, true);
-  assert.equal(m.textSizesAt(0.99).showDetail, false);
-  assert.equal(m.textSizesAt(0.75).showDetail, false);
+  assert.equal(loadedModule.textSizesAt(1).showDetail, true);
+  assert.equal(loadedModule.textSizesAt(0.99).showDetail, false);
+  assert.equal(loadedModule.textSizesAt(0.75).showDetail, false);
 }
 if (category === 'example-registry') {
   const { EXPECTED_EXAMPLE_METRICS, checkExampleSetMetrics } = await import('./example-metric-checks');
-  for (const setId of Object.keys(EXPECTED_EXAMPLE_METRICS)) await checkExampleSetMetrics(setId, m.EXAMPLE_SETS, 'one of each kind');
+  for (const setId of Object.keys(EXPECTED_EXAMPLE_METRICS)) await checkExampleSetMetrics(setId, loadedModule.EXAMPLE_SETS, 'one of each kind');
 }
 if (category === 'edge-path') {
   const path = 'M 10 20 C 30 40 50 60 70 80';
-  assert(m.pathMatchesEndpoints(path, 10, 20, 70, 80));
-  assert(!m.pathMatchesEndpoints(path, 11, 20, 70, 80));
-  assert(!m.pathMatchesEndpoints(path, 10, 20, 71, 80));
+  assert(loadedModule.pathMatchesEndpoints(path, 10, 20, 70, 80));
+  assert(!loadedModule.pathMatchesEndpoints(path, 11, 20, 70, 80));
+  assert(!loadedModule.pathMatchesEndpoints(path, 10, 20, 71, 80));
 }
 if (category === 'layout') {
-  const nodes = m.layoutGraph(
+  const nodes = loadedModule.layoutGraph(
     ['a', 'b', 'c'],
     [
       { source: 'a', target: 'b' },
@@ -109,16 +120,16 @@ if (category === 'layout') {
   );
   assert(nodes[0].position.x < nodes[1].position.x && nodes[1].position.x < nodes[2].position.x);
   const ids = Array.from({ length: 30 }, (_, i) => String(i));
-  const p = m.layoutGraph(
+  const layoutGraph = loadedModule.layoutGraph(
     ids,
     ids.slice(1).map(id => ({ source: '0', target: id })),
   );
-  assert.equal(new Set(p.map((n: any) => JSON.stringify(n.position))).size, 30);
-  assert(Math.max(...p.map((n: any) => n.position.y)) <= 450);
+  assert.equal(new Set(layoutGraph.map((n: any) => JSON.stringify(n.position))).size, 30);
+  assert(Math.max(...layoutGraph.map((n: any) => n.position.y)) <= 450);
 }
 if (category === 'layout') {
-  const p = m.neighborhoodLayout('c', ['i'], ['o']);
-  assert(p.get('i').x < 0 && p.get('o').x > 0 && p.get('c').x === 0);
+  const neighborhoodLayout = loadedModule.neighborhoodLayout('c', ['i'], ['o']);
+  assert(neighborhoodLayout.get('i').x < 0 && neighborhoodLayout.get('o').x > 0 && neighborhoodLayout.get('c').x === 0);
 }
 if (category === 'graph') {
   const nodes = Array.from({ length: 30 }, (_, i) => ({
@@ -129,25 +140,25 @@ if (category === 'graph') {
     path: [],
     fields: [],
   }));
-  const edge = (s: string, t: string, id = s + '-' + t) => ({
+  const edge = (text: string, value: string, id = text + '-' + value) => ({
     id,
-    source: s,
-    target: t,
+    source: text,
+    target: value,
     label: id,
     data: { path: [], definition: {}, kind: 'relationship' },
   });
   const edges = [...nodes.slice(1).map(n => edge('0', n.id)), edge('1', '2')];
-  const v = m.graphView(nodes, edges, '');
-  assert.equal(v.entities.length, 8);
-  assert.equal(m.graphView(nodes, edges, '', true).entities.length, 30);
-  assert.equal(m.graphView(nodes, edges, 'absent').entities.length, 0);
-  const n = m.neighborhood(nodes, edges, { center: '0', limit: 5 });
-  assert.equal(n.center, '0');
-  assert.equal(n.hidden, 24);
-  assert(m.neighborhood(nodes, edges, { center: '1' }).edges.some((e: any) => e.id === '0-2'));
-  assert.equal(m.neighborhood(nodes, edges, { center: '5' }).center, '5');
+  const graphView = loadedModule.graphView(nodes, edges, '');
+  assert.equal(graphView.entities.length, 8);
+  assert.equal(loadedModule.graphView(nodes, edges, '', true).entities.length, 30);
+  assert.equal(loadedModule.graphView(nodes, edges, 'absent').entities.length, 0);
+  const neighborhood = loadedModule.neighborhood(nodes, edges, { center: '0', limit: 5 });
+  assert.equal(neighborhood.center, '0');
+  assert.equal(neighborhood.hidden, 24);
+  assert(loadedModule.neighborhood(nodes, edges, { center: '1' }).edges.some((e: any) => e.id === '0-2'));
+  assert.equal(loadedModule.neighborhood(nodes, edges, { center: '5' }).center, '5');
   assert.equal(
-    m.searchEntities(
+    loadedModule.searchEntities(
       [
         { ...nodes[0], name: 'OrderLine' },
         { ...nodes[1], name: 'Order' },
@@ -157,7 +168,7 @@ if (category === 'graph') {
     'Order',
   );
   assert.deepEqual(
-    m
+    loadedModule
       .searchEntities(
         [
           { ...nodes[0], name: 'Reorder' },
@@ -173,12 +184,12 @@ if (category === 'graph') {
     { ...nodes[1], kind: 'OWL property' },
   ];
   assert.deepEqual(
-    m.neighborhood(rdf, [edge('1', '0')], { center: '0' }).entities.map((e: any) => e.id),
+    loadedModule.neighborhood(rdf, [edge('1', '0')], { center: '0' }).entities.map((e: any) => e.id),
     ['0'],
   );
-  const g = m.groupRelationships([edge('a', 'b', 'one'), edge('a', 'b', 'two'), edge('a', 'c', 'three')]);
-  assert.equal(g.length, 2);
-  assert.equal(g[0].data.relationships.length, 2);
+  const groupRelationships = loadedModule.groupRelationships([edge('a', 'b', 'one'), edge('a', 'b', 'two'), edge('a', 'c', 'three')]);
+  assert.equal(groupRelationships.length, 2);
+  assert.equal(groupRelationships[0].data.relationships.length, 2);
 }
 if (category === 'routes') {
   const box = (x: number, y: number) => ({ x, y, width: 250, height: 96 });
@@ -190,7 +201,7 @@ if (category === 'routes') {
     ['s', box(360, 400)],
     ['f', box(-720, 200)],
   ]);
-  const routes = m.assignRoutes(
+  const routes = loadedModule.assignRoutes(
     [
       { id: 'a>c', source: 'a', target: 'c' },
       { id: 'b>c', source: 'b', target: 'c' },
@@ -202,7 +213,7 @@ if (category === 'routes') {
   assert.notEqual(routes.get('a>c').bendX, routes.get('b>c').bendX);
   assert.notEqual(routes.get('f>r').laneY, routes.get('f>s').laneY);
   assert.equal(
-    m.orthogonalPath([
+    loadedModule.orthogonalPath([
       [300, 100],
       [320, 100],
       [320, 400],
@@ -212,25 +223,34 @@ if (category === 'routes') {
   );
 }
 if (category === 'walk') {
-  let w = m.emptyWalk;
-  for (const c of ['a', 'b', 'c']) w = m.walkReducer(w, { type: 'push', step: { doc: 'd', center: c, name: c } });
-  w = m.walkReducer(m.walkReducer(w, { type: 'back' }), { type: 'back' });
-  w = m.walkReducer(w, { type: 'push', step: { doc: 'd', center: 'x', name: 'x' } });
+  let emptyWalk = loadedModule.emptyWalk;
+  for (const text of ['a', 'b', 'c'])
+    emptyWalk = loadedModule.walkReducer(emptyWalk, {
+      type: 'push',
+      step: { doc: 'd', center: text, name: text },
+    });
+  emptyWalk = loadedModule.walkReducer(loadedModule.walkReducer(emptyWalk, { type: 'back' }), {
+    type: 'back',
+  });
+  emptyWalk = loadedModule.walkReducer(emptyWalk, {
+    type: 'push',
+    step: { doc: 'd', center: 'x', name: 'x' },
+  });
   assert.deepEqual(
-    w.steps.map((s: any) => s.center),
+    emptyWalk.steps.map((s: any) => s.center),
     ['a', 'x'],
   );
 }
 if (category === 'export') {
-  const r = m.exportDocument('original source\n', 'file.ttl');
-  assert.equal(r.filename, 'file.ttl');
-  assert.equal(await r.blob.text(), 'original source\n');
-  assert(r.blob.type.includes('text/turtle'));
+  const exportDocument = loadedModule.exportDocument('original source\n', 'file.ttl');
+  assert.equal(exportDocument.filename, 'file.ttl');
+  assert.equal(await exportDocument.blob.text(), 'original source\n');
+  assert(exportDocument.blob.type.includes('text/turtle'));
 }
 if (category === 'model') {
   const source = 'name: Sample\nunknown: preserved\nontology: [{concept: Customer, type: EntityType}]\n';
-  const edited = m.editEntity(source, ['ontology', 0], 'Updated');
-  assert.equal(m.inspect(edited).entities[0].description, 'Updated');
+  const edited = loadedModule.editEntity(source, ['ontology', 0], 'Updated');
+  assert.equal(loadedModule.inspect(edited).entities[0].description, 'Updated');
   assert(edited.includes('unknown: preserved'));
 }
 // Folder store cases run on isolated temporary data roots with a test Git identity.
@@ -241,30 +261,30 @@ if (['files', 'atomic', 'migration', 'paths', 'events-origin', 'journal', 'trash
   const { createHash } = await import('node:crypto');
   const hash = (b: string | Uint8Array) => createHash('sha256').update(b).digest('hex');
   const source = 'name: Sample\nontology: [{concept: Customer, type: EntityType}]\n';
-  const d = tempDataDir();
+  const dataDir = tempDataDir();
   try {
     if (category === 'files') {
-      const ws = await m.openWorkspace({ root: d.root });
+      const ws = await loadedModule.openWorkspace({ root: dataDir.root });
       try {
         await ws.importBatch({ files: [{ path: 'a.yaml', source }] }, LOCAL_READER);
         await ws.saveFile('sample', 'a.yaml', { baseHash: hash(source), source: source.replace('Customer', 'Buyer') }, LOCAL_READER);
         await assert.rejects(() => ws.saveFile('sample', 'a.yaml', { baseHash: hash(source), source: source.replace('Customer', 'Other') }, LOCAL_READER), /changed/);
         await assert.rejects(() => ws.saveFile('sample', 'a.yaml', { baseHash: hash(source.replace('Customer', 'Buyer')), source: 'ontology: []' }, LOCAL_READER));
-        assert.equal(fs.readFileSync(join(d.root, 'projects/sample/a.yaml'), 'utf8'), source.replace('Customer', 'Buyer'));
+        assert.equal(fs.readFileSync(join(dataDir.root, 'projects/sample/a.yaml'), 'utf8'), source.replace('Customer', 'Buyer'));
         // Import commits: only the imported paths, never the user's other changes.
-        const r = await ws.importInto('sample', [{ path: 'b.yaml', source }], undefined, LOCAL_READER);
-        assert.equal(r.commit.committed, true);
-        const shown = (await ws.git.run(join(d.root, 'projects/sample'), ['show', '--name-only', '--format=', 'HEAD'])).stdout.trim();
+        const importInto = await ws.importInto('sample', [{ path: 'b.yaml', source }], undefined, LOCAL_READER);
+        assert.equal(importInto.commit.committed, true);
+        const shown = (await ws.git.run(join(dataDir.root, 'projects/sample'), ['show', '--name-only', '--format=', 'HEAD'])).stdout.trim();
         assert.equal(shown, 'b.yaml');
       } finally {
         ws.close();
       }
     }
     if (category === 'atomic') {
-      const file = join(d.root, 'x.yaml');
+      const file = join(dataDir.root, 'x.yaml');
       fs.writeFileSync(file, 'original');
       assert.throws(() =>
-        m.atomicWrite(file, 'new bytes', {
+        loadedModule.atomicWrite(file, 'new bytes', {
           beforeRename: () => {
             throw Error('crash');
           },
@@ -287,28 +307,28 @@ if (['files', 'atomic', 'migration', 'paths', 'events-origin', 'journal', 'trash
         return { environment, attempts: () => attempts };
       };
       const windowsLock = renameFailing(['EPERM', 'EBUSY'], 'win32');
-      m.replaceFile('a.tmp', 'a', windowsLock.environment);
+      loadedModule.replaceFile('a.tmp', 'a', windowsLock.environment);
       assert.equal(windowsLock.attempts(), 3);
       const linuxLock = renameFailing(['EPERM'], 'linux');
-      assert.throws(() => m.replaceFile('a.tmp', 'a', linuxLock.environment));
+      assert.throws(() => loadedModule.replaceFile('a.tmp', 'a', linuxLock.environment));
       assert.equal(linuxLock.attempts(), 1);
       const missing = renameFailing(['ENOENT'], 'win32');
-      assert.throws(() => m.replaceFile('a.tmp', 'a', missing.environment));
+      assert.throws(() => loadedModule.replaceFile('a.tmp', 'a', missing.environment));
       const stuck = renameFailing(Array(1_000).fill('EPERM'), 'win32');
-      assert.throws(() => m.replaceFile('a.tmp', 'a', stuck.environment));
+      assert.throws(() => loadedModule.replaceFile('a.tmp', 'a', stuck.environment));
     }
     if (category === 'paths') {
-      for (const bad of ['../x', 'a/../../x', '.git/config', 'a/.git/x']) assert.throws(() => m.projectPath(bad));
-      assert.equal(m.projectPath('a/b.yaml'), 'a/b.yaml');
+      for (const bad of ['../x', 'a/../../x', '.git/config', 'a/.git/x']) assert.throws(() => loadedModule.projectPath(bad));
+      assert.equal(loadedModule.projectPath('a/b.yaml'), 'a/b.yaml');
     }
     if (category === 'journal') {
-      const layout = { root: d.root, journal: join(d.root, 'state/journal') } as any;
+      const layout = { root: dataDir.root, journal: join(dataDir.root, 'state/journal') } as any;
       fs.mkdirSync(layout.journal, { recursive: true });
-      fs.mkdirSync(join(d.root, 'x'));
-      fs.mkdirSync(join(d.root, 's'));
-      fs.writeFileSync(join(d.root, 'x/a'), 'A');
-      fs.writeFileSync(join(d.root, 's/b'), 'B');
-      fs.writeFileSync(join(d.root, 'x/b'), 'other');
+      fs.mkdirSync(join(dataDir.root, 'x'));
+      fs.mkdirSync(join(dataDir.root, 's'));
+      fs.writeFileSync(join(dataDir.root, 'x/a'), 'A');
+      fs.writeFileSync(join(dataDir.root, 's/b'), 'B');
+      fs.writeFileSync(join(dataDir.root, 'x/b'), 'other');
       fs.writeFileSync(
         join(layout.journal, 'op.json'),
         JSON.stringify({
@@ -323,19 +343,19 @@ if (['files', 'atomic', 'migration', 'paths', 'events-origin', 'journal', 'trash
           startedAt: 't',
         }),
       );
-      const [outcome] = m.createJournal(layout).recover();
+      const [outcome] = loadedModule.createJournal(layout).recover();
       assert.equal(outcome.outcome, 'rolled-back');
-      assert.equal(fs.readFileSync(join(d.root, 'x/b'), 'utf8'), 'other');
-      assert.equal(fs.readFileSync(join(d.root, 's/a'), 'utf8'), 'A');
+      assert.equal(fs.readFileSync(join(dataDir.root, 'x/b'), 'utf8'), 'other');
+      assert.equal(fs.readFileSync(join(dataDir.root, 's/a'), 'utf8'), 'A');
     }
     if (category === 'events-origin') {
       const { openWorkspace } = await import('../src/server/projects/workspace');
-      const ws = await openWorkspace({ root: d.root });
+      const ws = await openWorkspace({ root: dataDir.root });
       try {
-        const h = m.createHandler(ws);
+        const handler = loadedModule.createHandler(ws);
         assert.equal(
           (
-            await h(
+            await handler(
               new Request('http://127.0.0.1:4310/api/events', {
                 headers: { origin: 'https://evil.example' },
               }),
@@ -345,7 +365,7 @@ if (['files', 'atomic', 'migration', 'paths', 'events-origin', 'journal', 'trash
         );
         assert.equal(
           (
-            await h(
+            await handler(
               new Request('http://127.0.0.1:4310/api/projects', {
                 headers: { origin: 'https://evil.example' },
               }),
@@ -361,10 +381,10 @@ if (['files', 'atomic', 'migration', 'paths', 'events-origin', 'journal', 'trash
       let clock = Date.parse('2026-10-21T10:00:00Z');
       const { openWorkspace } = await import('../src/server/projects/workspace');
       const { LOCAL_READER } = await import('../src/server/projects/reader');
-      const ws = await openWorkspace({ root: d.root, now: () => clock });
+      const ws = await openWorkspace({ root: dataDir.root, now: () => clock });
       try {
         await ws.importBatch({ files: [{ path: 'a.yaml', source }] }, LOCAL_READER);
-        const trash = m.createTrash({
+        const trash = loadedModule.createTrash({
           layout: ws.layout,
           state: ws.state,
           journal: ws.journal,
@@ -387,31 +407,31 @@ if (['files', 'atomic', 'migration', 'paths', 'events-origin', 'journal', 'trash
           () => trash.undo(first.entryId, LOCAL_READER),
           (e: any) => e.name === 'GoneError',
         );
-        fs.writeFileSync(join(d.root, 'projects/sample/a.yaml'), 'name: Newer\nontology: [{concept: N}]\n');
+        fs.writeFileSync(join(dataDir.root, 'projects/sample/a.yaml'), 'name: Newer\nontology: [{concept: N}]\n');
         await assert.rejects(
           () => trash.restore(first.entryId, {}, LOCAL_READER),
           (e: any) => e.name === 'OccupiedError' && e.suggestion.toPath === 'a (2).yaml',
         );
-        assert.equal(fs.readFileSync(join(d.root, 'projects/sample/a.yaml'), 'utf8'), 'name: Newer\nontology: [{concept: N}]\n');
+        assert.equal(fs.readFileSync(join(dataDir.root, 'projects/sample/a.yaml'), 'utf8'), 'name: Newer\nontology: [{concept: N}]\n');
         // Revert: the replaced version goes to a trash entry, the committed bytes come back.
         const newer = 'name: Newer\nontology: [{concept: N}]\n';
         const rv = await trash.revertFile('sample', 'a.yaml', hash(newer), new TextEncoder().encode(source), LOCAL_READER);
-        assert.equal(fs.readFileSync(join(d.root, 'projects/sample/a.yaml'), 'utf8'), source);
-        assert.equal(fs.readFileSync(join(d.root, 'trash', rv.trashEntry, 'payload', 'a.yaml'), 'utf8'), newer);
+        assert.equal(fs.readFileSync(join(dataDir.root, 'projects/sample/a.yaml'), 'utf8'), source);
+        assert.equal(fs.readFileSync(join(dataDir.root, 'trash', rv.trashEntry, 'payload', 'a.yaml'), 'utf8'), newer);
       } finally {
         ws.close();
       }
     }
     if (category === 'confirm') {
-      assert.throws(() => m.requireConfirm({}));
-      assert.throws(() => m.requireConfirm({ confirm: 'yes' }));
-      m.requireConfirm({ confirm: true });
+      assert.throws(() => loadedModule.requireConfirm({}));
+      assert.throws(() => loadedModule.requireConfirm({ confirm: 'yes' }));
+      loadedModule.requireConfirm({ confirm: true });
       const { openWorkspace } = await import('../src/server/projects/workspace');
-      const ws = await openWorkspace({ root: d.root });
+      const ws = await openWorkspace({ root: dataDir.root });
       try {
         await ws.importBatch({ files: [{ path: 'a.yaml', source }] }, LOCAL_READER);
         await assert.rejects(async () =>
-          m.trashRoutes(
+          loadedModule.trashRoutes(
             ws,
             new Request('http://x/api/projects/sample/files/a.yaml', {
               method: 'DELETE',
@@ -420,8 +440,8 @@ if (['files', 'atomic', 'migration', 'paths', 'events-origin', 'journal', 'trash
             new URL('http://x/api/projects/sample/files/a.yaml'),
           ),
         );
-        await assert.rejects(async () => m.trashRoutes(ws, new Request('http://x/api/clear', { method: 'POST', body: '{}' }), new URL('http://x/api/clear')));
-        assert(fs.existsSync(join(d.root, 'projects/sample/a.yaml')));
+        await assert.rejects(async () => loadedModule.trashRoutes(ws, new Request('http://x/api/clear', { method: 'POST', body: '{}' }), new URL('http://x/api/clear')));
+        assert(fs.existsSync(join(dataDir.root, 'projects/sample/a.yaml')));
       } finally {
         ws.close();
       }
@@ -432,7 +452,7 @@ if (['files', 'atomic', 'migration', 'paths', 'events-origin', 'journal', 'trash
       const { createState } = await import('../src/server/projects/state');
       const { createJournal } = await import('../src/server/projects/journal');
       const { createGit } = await import('../src/server/projects/git');
-      const layout = dataLayout(d.root);
+      const layout = dataLayout(dataDir.root);
       for (const dir of [layout.projects, layout.state, layout.backup]) fs.mkdirSync(dir, { recursive: true });
       const db = new Database(layout.legacyDb, { create: true });
       db.exec('CREATE TABLE documents(id TEXT PRIMARY KEY,filename TEXT NOT NULL,source TEXT NOT NULL,revision INTEGER NOT NULL DEFAULT 1,updated TEXT NOT NULL)');
@@ -446,7 +466,7 @@ if (['files', 'atomic', 'migration', 'paths', 'events-origin', 'journal', 'trash
         gitAvailable: true,
         identityConfigured: true,
       };
-      const report = await m.migrateLegacy(ctx, {
+      const report = await loadedModule.migrateLegacy(ctx, {
         afterWrite: (file: string) => fs.writeFileSync(file, 'tampered'),
       });
       assert.equal(report.status, 'failed');
@@ -454,47 +474,48 @@ if (['files', 'atomic', 'migration', 'paths', 'events-origin', 'journal', 'trash
       assert.equal(ctx.state.hasRegistry(), false);
     }
   } finally {
-    d.cleanup();
+    dataDir.cleanup();
   }
 }
 
 if (category === 'overview') {
   const { inspect } = await import('../src/shared/core/model');
   const input = inspect(await Bun.file('public/examples/ubl/ubl.ontology.yaml').text());
-  const o = m.modelOverview(input.entities, input.edges, input.name);
+  const modelOverview = loadedModule.modelOverview(input.entities, input.edges, input.name);
   const flights = inspect(await Bun.file('public/examples/ossie/flights.ontology.yaml').text());
-  assert.equal(m.modelOverview(flights.entities, flights.edges, flights.name).mode, 'suggested');
-  const corrected = m.modelOverview(flights.entities, flights.edges, flights.name, false, {
+  assert.equal(loadedModule.modelOverview(flights.entities, flights.edges, flights.name).mode, 'suggested');
+  const corrected = loadedModule.modelOverview(flights.entities, flights.edges, flights.name, false, {
     mode: 'types',
     assignments: { [flights.entities[0].id]: 'custom:Review' },
     names: { 'custom:Review': 'Review' },
   });
   assert.equal(corrected.groupOf.get(flights.entities[0].id), 'custom:Review');
   const ns = inspect(
-    'name: N\nprefixes: {a: "https://a.example/", b: "https://b.example/"}\nontology: [{concept: X, type: EntityType, iri: "a:X"}, {concept: Y, type: EntityType, iri: "b:Y"}, {concept: Z, type: EntityType}]\n',
+    'name: N\nprefixes: {a: "https://a.example/", b: "https://b.example/"}\nontology: [{concept: X, type: EntityType, iri: "a:X"}, {concept: Y, type: EntityType, iri: "b:Y"}, {concept: ' +
+      'Z, type: EntityType}]\n',
   );
-  const nso = m.modelOverview(ns.entities, ns.edges, ns.name);
+  const nso = loadedModule.modelOverview(ns.entities, ns.edges, ns.name);
   assert.equal(nso.mode, 'namespaces');
   assert.deepEqual(
     nso.groups.map((g: any) => g.name),
     ['a:', 'b:', 'No IRI'],
   );
-  assert.equal(o.groups.length, 8);
-  assert.equal(o.groups.flatMap((g: any) => g.entities).length, 45);
-  assert.equal([...o.matrix.values()].flat().length, 277);
-  for (const [key, links] of o.matrix) {
+  assert.equal(modelOverview.groups.length, 8);
+  assert.equal(modelOverview.groups.flatMap((g: any) => g.entities).length, 45);
+  assert.equal([...modelOverview.matrix.values()].flat().length, 277);
+  for (const [key, links] of modelOverview.matrix) {
     const [from, to] = JSON.parse(key);
-    assert(links.every((e: any) => o.groupOf.get(e.source) === from && o.groupOf.get(e.target) === to));
+    assert(links.every((e: any) => modelOverview.groupOf.get(e.source) === from && modelOverview.groupOf.get(e.target) === to));
   }
   const contract = inspect(await Bun.file('public/examples/ubl/ubl.odcs.yaml').text(), 'ubl.odcs.yaml');
-  const contractOverview = m.modelOverview(contract.entities, contract.edges, contract.name);
+  const contractOverview = loadedModule.modelOverview(contract.entities, contract.edges, contract.name);
   assert.notEqual(contractOverview.mode, 'declared');
   assert.equal(contractOverview.modes.declared.reason, 'Only the contract-level domain is declared');
   assert.equal(contractOverview.modes.suggested.reason, undefined);
   assert(contractOverview.modes.suggested.groups > 1);
   const owl = inspect(await Bun.file('public/examples/ubl/ubl.owl.ttl').text(), 'ubl.owl.ttl');
-  assert.equal(m.modelOverview(owl.entities, owl.edges, owl.name).entities.length, 45);
-  assert.equal(m.modelOverview(owl.entities, owl.edges, owl.name, true).entities.length, owl.entities.length);
+  assert.equal(loadedModule.modelOverview(owl.entities, owl.edges, owl.name).entities.length, 45);
+  assert.equal(loadedModule.modelOverview(owl.entities, owl.edges, owl.name, true).entities.length, owl.entities.length);
 }
 
 if (category === 'full-layout') {
@@ -504,7 +525,7 @@ if (category === 'full-layout') {
     workerFactory: () => new Worker(import.meta.resolve('elkjs/lib/elk-worker.min.js')),
   });
   try {
-    const result = await m.packNetwork(
+    const result = await loadedModule.packNetwork(
       {
         nodes: [
           { id: 'area:g', group: 'g', x: 0, y: 0, width: 250, height: 200 },
@@ -519,8 +540,8 @@ if (category === 'full-layout') {
     );
     const children = result.nodes.filter((n: any) => !n.group);
     assert.equal(children.length, 2);
-    const [a, b] = children;
-    assert(!(a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y));
+    const [first, second] = children;
+    assert(!(first.x < second.x + second.width && first.x + first.width > second.x && first.y < second.y + second.height && first.y + first.height > second.y));
   } finally {
     elk.terminateWorker();
   }
@@ -530,17 +551,17 @@ if (category === 'validation') {
   const ontology = {
     ontology: [{ concept: 'A', relationships: [{ name: 'b', roles: [{ concept: 'B' }] }] }, { concept: 'B' }],
   };
-  assert.doesNotThrow(() => m.validateStructured(ontology));
+  assert.doesNotThrow(() => loadedModule.validateStructured(ontology));
   const invalids: any[] = [];
-  let d = structuredClone(ontology);
+  let clone = structuredClone(ontology);
   invalids.push({ ontology: [{ concept: 'A' }, { concept: 'A' }] });
-  d = structuredClone(ontology);
-  (d.ontology[0] as any).extends = ['B'];
-  (d.ontology[1] as any).extends = ['A'];
-  invalids.push(d);
-  d = structuredClone(ontology);
-  d.ontology[0].relationships![0].roles[0].concept = 'Missing';
-  invalids.push(d);
+  clone = structuredClone(ontology);
+  (clone.ontology[0] as any).extends = ['B'];
+  (clone.ontology[1] as any).extends = ['A'];
+  invalids.push(clone);
+  clone = structuredClone(ontology);
+  clone.ontology[0].relationships![0].roles[0].concept = 'Missing';
+  invalids.push(clone);
   const join = {
     name: 'S',
     datasets: [
@@ -552,7 +573,7 @@ if (category === 'validation') {
     ],
     relationships: [{ name: 'self', from: 'a', to: 'a', from_columns: ['id'], to_columns: ['id'] }],
   };
-  assert.doesNotThrow(() => m.validateStructured(join));
+  assert.doesNotThrow(() => loadedModule.validateStructured(join));
   const unknown = structuredClone(join);
   unknown.relationships[0].from_columns = ['missing'];
   invalids.push(unknown);
@@ -575,20 +596,20 @@ if (category === 'validation') {
       { concept: 'B', type: 'EntityType', iri: 'https://example.org/B' },
     ],
   };
-  assert.doesNotThrow(() => m.validateStructured(iri));
-  d = structuredClone(iri);
-  (d as any).ontology[0].iri = 'zz:A';
-  invalids.push(d);
-  d = structuredClone(iri);
-  (d as any).ontology[1].iri = 'https://example.org/A';
-  invalids.push(d);
-  for (const input of invalids) assert.throws(() => m.validateStructured(input));
+  assert.doesNotThrow(() => loadedModule.validateStructured(iri));
+  clone = structuredClone(iri);
+  (clone as any).ontology[0].iri = 'zz:A';
+  invalids.push(clone);
+  clone = structuredClone(iri);
+  (clone as any).ontology[1].iri = 'https://example.org/A';
+  invalids.push(clone);
+  for (const input of invalids) assert.throws(() => loadedModule.validateStructured(input));
 }
 if (category === 'diagnostics') {
-  assert.doesNotThrow(() => m.validateEnvelope('ontology: [{concept: A}]', 'x.yaml'));
-  assert.throws(() => m.validateEnvelope('source', ''));
-  assert.throws(() => m.validateEnvelope('é'.repeat(1000001), 'x.yaml'));
-  assert.throws(() => m.rejectIssues([{ severity: 'error', code: 'test', path: '/', message: 'test' }]));
+  assert.doesNotThrow(() => loadedModule.validateEnvelope('ontology: [{concept: A}]', 'x.yaml'));
+  assert.throws(() => loadedModule.validateEnvelope('source', ''));
+  assert.throws(() => loadedModule.validateEnvelope('é'.repeat(1000001), 'x.yaml'));
+  assert.throws(() => loadedModule.rejectIssues([{ severity: 'error', code: 'test', path: '/', message: 'test' }]));
 }
 if (category === 'rdf-validation') {
   const { graph, parse } = await import('rdflib');
@@ -596,7 +617,7 @@ if (category === 'rdf-validation') {
   const check = (source: string) => {
     const store = graph();
     parse(prefix + source, store, 'https://example.org/', 'text/turtle');
-    return m.validateRdf(store);
+    return loadedModule.validateRdf(store);
   };
   assert.doesNotThrow(() => check('ex:S sh:path ex:p; sh:minCount 0; sh:maxCount 2 .'));
   assert.throws(() => check('ex:S sh:path ex:p; sh:minCount 3; sh:maxCount 1 .'));
@@ -611,14 +632,17 @@ if (category === 'agent') {
       filename: 'm.yaml',
       revision: 1,
       source:
-        'version: 0.2.0.dev0\nname: m\nontology_ref: {name: O}\nsemantic_model_ref: {name: s}\nconcept_mappings:\n  - concept: A\n    object_mappings: [{referent_mappings: [{relationship: id, expression: t.id}]}]\n',
+        'version: 0.2.0.dev0\nname: m\nontology_ref: {name: O}\nsemantic_model_ref: {name: s}\nconcept_mappings:\n  - concept: A\n    object_mappings: [{referent_mappings: ' +
+        '[{relationship: id, expression: t.id}]}]\n',
     },
     {
       id: '1',
       filename: 'o.yaml',
       revision: 1,
       source:
-        'version: 0.2.0.dev0\nname: O\nontology:\n  - {concept: Id, type: ValueType, extends: [String]}\n  - concept: A\n    type: EntityType\n    identify_by: [id]\n    relationships: [{name: id, roles: [{concept: Id}], multiplicity: OneToOne, verbalizes: ["{A} has {Id}"]}]\n',
+        'version: 0.2.0.dev0\nname: O\nontology:\n  - {concept: Id, type: ValueType, extends: [String]}\n  - concept: A\n    type: EntityType\n    identify_by: [id]\n    ' +
+        'relationships: [{name: id, roles: [{concept: Id}], multiplicity: OneToOne, ' +
+        'verbalizes: ["{A} has {Id}"]}]\n',
     },
     {
       id: '2',
@@ -627,7 +651,7 @@ if (category === 'agent') {
       source: 'version: 0.2.0.dev0\nsemantic_model:\n  - name: s\n    datasets: [{name: t, source: t, fields: [{name: id, expression: {dialects: [{dialect: ANSI_SQL, expression: id}]}}]}]\n',
     },
   ];
-  const resolved = m.buildContext(legacy, '0');
+  const resolved = loadedModule.buildContext(legacy, '0');
   assert.equal(resolved.findings.length, 0);
   assert.deepEqual(resolved.fields[0].evidence.path, ['semantic_model', 0, 'datasets', 0, 'fields', 0]);
   const { parse, stringify } = await import('yaml');
@@ -646,14 +670,14 @@ if (category === 'agent') {
     clone[index].source = stringify(data);
     return clone;
   };
-  const context = m.buildContext(docs, '0');
+  const context = loadedModule.buildContext(docs, '0');
   assert.equal(context.findings.length, 0);
   const request = {
     mappingId: '0',
     metrics: ['gross_revenue'],
     dimensions: ['["customers","region"]'],
   };
-  const plan = (source = docs, overrides = {}) => m.planQuery(m.buildContext(source, '0'), { ...request, ...overrides });
+  const plan = (source = docs, overrides = {}) => loadedModule.planQuery(loadedModule.buildContext(source, '0'), { ...request, ...overrides });
   const arithmetic = change(2, d => {
     d.datasets[0].fields[2].expression.dialects[0].expression = 'amount + fee';
     d.metrics[0].expression.dialects[0].expression = 'SUM(orders.amount * 2)';
@@ -661,9 +685,9 @@ if (category === 'agent') {
   assert(plan(arithmetic).sql.includes('("orders".amount + "orders".fee) * 2'));
   assert(plan().sql.includes('SUM('));
   assert(plan().sql.includes('GROUP BY'));
-  assert(m.selectContext(context, ['Revenue']).bindings.every((b: any) => b.rootConcept === 'Revenue' || b.concept === 'Revenue'));
+  assert(loadedModule.selectContext(context, ['Revenue']).bindings.every((b: any) => b.rootConcept === 'Revenue' || b.concept === 'Revenue'));
   assert(
-    m
+    loadedModule
       .buildContext(
         change(0, d => (d.concept_mappings[0].object_mappings[0].referent_mappings[0].expression = 'customers.missing')),
         '0',
@@ -680,12 +704,12 @@ if (category === 'agent') {
   assert.throws(() => plan(change(2, d => delete d.datasets[1].primary_key)));
 }
 if (category === 'iri') {
-  assert.deepEqual(m.expandIri('ex:A', { ex: 'https://example.org/' }), {
+  assert.deepEqual(loadedModule.expandIri('ex:A', { ex: 'https://example.org/' }), {
     iri: 'https://example.org/A',
     prefix: 'ex',
   });
-  assert('error' in m.expandIri('zz:A', { ex: 'https://example.org/' }));
-  assert.deepEqual(m.expandIri('https://x.example/A'), { iri: 'https://x.example/A' });
+  assert('error' in loadedModule.expandIri('zz:A', { ex: 'https://example.org/' }));
+  assert.deepEqual(loadedModule.expandIri('https://x.example/A'), { iri: 'https://x.example/A' });
 }
 if (category === 'odcs') {
   const data = {
@@ -700,10 +724,10 @@ if (category === 'odcs') {
       },
     ],
   };
-  assert.equal(m.odcsForeignKeys(data).length, 1);
-  assert.equal(m.odcsReferenceIssues(data).length, 1);
+  assert.equal(loadedModule.odcsForeignKeys(data).length, 1);
+  assert.equal(loadedModule.odcsReferenceIssues(data).length, 1);
   // Column pairs: referenced column kept; unequal composite arity pairs nothing.
-  assert.deepEqual([m.odcsForeignKeys(data)[0].fromColumns, m.odcsForeignKeys(data)[0].toColumns], [['a_id'], ['id']]);
+  assert.deepEqual([loadedModule.odcsForeignKeys(data)[0].fromColumns, loadedModule.odcsForeignKeys(data)[0].toColumns], [['a_id'], ['id']]);
   const composite = {
     schema: [
       { name: 'a', properties: [{ name: 'x' }, { name: 'y' }] },
@@ -714,20 +738,20 @@ if (category === 'odcs') {
       },
     ],
   };
-  assert.deepEqual(m.odcsForeignKeys(composite)[0].toColumns, []);
-  assert.equal(m.odcsReferenceIssues(composite).length, 1);
+  assert.deepEqual(loadedModule.odcsForeignKeys(composite)[0].toColumns, []);
+  assert.equal(loadedModule.odcsReferenceIssues(composite).length, 1);
 }
 if (category === 'suggestions') {
-  const f = (project: string, path: string, facts: any) => ({
+  const projectFacts = (project: string, path: string, facts: any) => ({
     project,
     path,
     hash: path,
     facts: { names: [], refs: [], iris: [], physical: [], sources: [], ...facts },
   });
-  const own = f('p', 'o.yaml', { names: ['Flights'] });
-  for (const ref of ['Flight', 'flights', 'Flig', 'FLIGHTS semantic']) assert.equal(m.evidenceBetween(f('q', 'm.yaml', { refs: [ref] }), own).length, 0);
-  assert.equal(m.evidenceBetween(f('q', 'm.yaml', { refs: ['Flights'] }), own).length, 1);
-  assert.equal(m.inferSuggestions([own, f('q', 'm.yaml', { refs: ['Flightz'] })], new Set()).length, 0);
+  const own = projectFacts('p', 'o.yaml', { names: ['Flights'] });
+  for (const ref of ['Flight', 'flights', 'Flig', 'FLIGHTS semantic']) assert.equal(loadedModule.evidenceBetween(projectFacts('q', 'm.yaml', { refs: [ref] }), own).length, 0);
+  assert.equal(loadedModule.evidenceBetween(projectFacts('q', 'm.yaml', { refs: ['Flights'] }), own).length, 1);
+  assert.equal(loadedModule.inferSuggestions([own, projectFacts('q', 'm.yaml', { refs: ['Flightz'] })], new Set()).length, 0);
 }
 if (category === 'references') {
   const entity = {
@@ -740,7 +764,7 @@ if (category === 'references') {
     definition: { iri: 'core:P' },
   };
   assert(
-    m
+    loadedModule
       .entityKeys(entity, {
         entities: [entity],
         document: { prefixes: { core: 'https://example.org/core#' } },
@@ -751,18 +775,23 @@ if (category === 'references') {
 // Metrics read side: rollup refusal, lineage by exact physical names, both Ossie layouts.
 if (category === 'explain') {
   const docs = await Promise.all(
-    ['mall.mapping.yaml', 'mall.ontology.yaml', 'mall.semantic.yaml', 'mall.odcs.yaml'].map(async f => ({
-      id: 'mall/' + f,
+    ['mall.mapping.yaml', 'mall.ontology.yaml', 'mall.semantic.yaml', 'mall.odcs.yaml'].map(async text => ({
+      id: 'mall/' + text,
       project: 'mall',
-      path: f,
-      filename: f,
+      path: text,
+      filename: text,
       revision: 1,
-      source: await Bun.file('public/examples/mall/' + f).text(),
+      source: await Bun.file('public/examples/mall/' + text).text(),
     })),
   );
-  assert.match(m.explainMetric(docs, 'mall', 'mall.semantic.yaml', 'occupancy_rate', { rollup: 'sum' }).sqlPreview.refused ?? '', /Summing ratios/);
+  assert.match(
+    loadedModule.explainMetric(docs, 'mall', 'mall.semantic.yaml', 'occupancy_rate', {
+      rollup: 'sum',
+    }).sqlPreview.refused ?? '',
+    /Summing ratios/,
+  );
   assert.deepEqual(
-    m.explainMetric(docs, 'mall', 'mall.semantic.yaml', 'billed_amount').inputs[0].fields[0].odcs.map((o: any) => o.property),
+    loadedModule.explainMetric(docs, 'mall', 'mall.semantic.yaml', 'billed_amount').inputs[0].fields[0].odcs.map((o: any) => o.property),
     ['amount'],
   );
   const flights = [
@@ -779,7 +808,7 @@ if (category === 'explain') {
     },
   ];
   assert.deepEqual(
-    m.projectMetrics(flights, 'f').map((k: any) => k.name),
+    loadedModule.projectMetrics(flights, 'f').map((k: any) => k.name),
     ['n'],
   );
 }
@@ -787,11 +816,11 @@ if (category === 'metric-extension') {
   const metric = (data: any) => ({
     custom_extensions: [{ vendor_name: 'SEMANTIC_WORKBENCH', data: JSON.stringify(data) }],
   });
-  assert.equal(m.readMetricExtension(metric({ schema: 'semantic-workbench/metric/v1', type: 'simple' })).issues.length, 0);
-  assert(m.readMetricExtension(metric({ schema: 'semantic-workbench/metric/v1', type: 'simple', additivity: 'sometimes' })).issues.length > 0);
+  assert.equal(loadedModule.readMetricExtension(metric({ schema: 'semantic-workbench/metric/v1', type: 'simple' })).issues.length, 0);
+  assert(loadedModule.readMetricExtension(metric({ schema: 'semantic-workbench/metric/v1', type: 'simple', additivity: 'sometimes' })).issues.length > 0);
 }
 if (category === 'model-layout') {
-  const model = m.inspect(await Bun.file('public/examples/ossie/flights.yaml').text(), 'flights.yaml');
+  const model = loadedModule.inspect(await Bun.file('public/examples/ossie/flights.yaml').text(), 'flights.yaml');
   assert.equal(model.layout, 'embedded (deprecated)');
   assert(model.entities.filter((e: any) => e.kind === 'Dataset').length >= 6);
 }
@@ -801,16 +830,16 @@ if (category === 'patch') {
   const original = 'a: 1\r\nb: 2\r\n';
   const state = EditorState.create({ doc: original });
   const tr = state.update({ changes: { from: 4, insert: '\nz: 9' } });
-  assert.equal(m.applyPatches(original, m.changesToPatches(original, state.doc, tr.changes)), 'a: 1\r\nz: 9\r\nb: 2\r\n');
-  const q = m.diffPatches('x\r\ny', 'x\ny');
-  assert.equal(m.applyPatches('x\r\ny', q), 'x\ny');
-  assert.equal(q[0].from, 1);
+  assert.equal(loadedModule.applyPatches(original, loadedModule.changesToPatches(original, state.doc, tr.changes)), 'a: 1\r\nz: 9\r\nb: 2\r\n');
+  const diffPatches = loadedModule.diffPatches('x\r\ny', 'x\ny');
+  assert.equal(loadedModule.applyPatches('x\r\ny', diffPatches), 'x\ny');
+  assert.equal(diffPatches[0].from, 1);
 }
 if (category === 'lint') {
   const { Text } = await import('@codemirror/state');
-  const r = m.toDiagnostics([{ severity: 'error', code: 'x', path: '/', message: 'm', line: 1, column: 1 }], Text.of(['abc']));
-  assert.equal(r.diagnostics.length, 1);
-  assert.equal(r.documentLevel.length, 0);
+  const toDiagnostics = loadedModule.toDiagnostics([{ severity: 'error', code: 'x', path: '/', message: 'm', line: 1, column: 1 }], Text.of(['abc']));
+  assert.equal(toDiagnostics.diagnostics.length, 1);
+  assert.equal(toDiagnostics.documentLevel.length, 0);
 }
 // An item edit changes one value; the rest keeps its own layout (no re-serialization).
 if (category === 'json-patch') {
@@ -818,26 +847,26 @@ if (category === 'json-patch') {
   const { parseDocument } = await import('yaml');
   const src = '{\n    "a": 1,\n    "tags": ["x", "y"],\n    "b": {"c": 2}\n}\n';
   assert.equal(
-    applyPatches(src, m.jsonPatches(src, parseDocument(src).contents, JSON.parse(src), { ...JSON.parse(src), a: 5 }, { eol: '\n', unit: '    ', json: true })),
+    applyPatches(src, loadedModule.jsonPatches(src, parseDocument(src).contents, JSON.parse(src), { ...JSON.parse(src), a: 5 }, { eol: '\n', unit: '    ', json: true })),
     src.replace('"a": 1', '"a": 5'),
   );
 }
 if (category === 'yaml-patch') {
   const { applyPatches } = await import('../src/shared/editor/patch');
   const src = '# keep\nname: X\nontology:\n  - concept: A   # tail\n    type: EntityType\n    extends: [B]\n';
-  const item = m.itemValue(src, ['ontology', 0]);
-  assert.equal(applyPatches(src, m.valuePatches(src, ['ontology', 0], { ...item, description: 'd' })), src.replace('    extends: [B]\n', '    extends: [B]\n    description: d\n'));
+  const item = loadedModule.itemValue(src, ['ontology', 0]);
+  assert.equal(applyPatches(src, loadedModule.valuePatches(src, ['ontology', 0], { ...item, description: 'd' })), src.replace('    extends: [B]\n', '    extends: [B]\n    description: d\n'));
 }
 if (category === 'dependents') {
   const src = 'name: X\nontology:\n  - concept: A\n    type: EntityType\n    relationships:\n      - name: r\n        roles:\n          - concept: B\n  - concept: B\n    type: EntityType\n';
-  const refs = m.findReferences({ kind: 'concept', name: 'B', docId: 'd', path: ['ontology', 1] }, [{ id: 'd', path: 'x.yaml', filename: 'x.yaml', source: src }]);
+  const refs = loadedModule.findReferences({ kind: 'concept', name: 'B', docId: 'd', path: ['ontology', 1] }, [{ id: 'd', path: 'x.yaml', filename: 'x.yaml', source: src }]);
   assert.deepEqual(
     refs.map((r: any) => r.dependent?.path),
     [['ontology', 0, 'relationships', 0]],
   );
 }
 if (category === 'kpi-draft') {
-  const d = {
+  const data = {
     type: 'ratio',
     numerator: 'a',
     denominator: 'b',
@@ -867,8 +896,8 @@ if (category === 'kpi-draft') {
     filterOperator: '',
     filterValue: '',
   };
-  assert.equal(m.expressionFor(d), 'a / NULLIF(b, 0)');
-  assert.deepEqual(m.extensionFor(d), {
+  assert.equal(loadedModule.expressionFor(data), 'a / NULLIF(b, 0)');
+  assert.deepEqual(loadedModule.extensionFor(data), {
     label: 'R',
     type: 'ratio',
     numerator: 'a',
@@ -884,7 +913,7 @@ if (category === 'kpi-save') {
     path: p,
     source: fs.readFileSync('public/examples/mall/' + p, 'utf8'),
   }));
-  const plan = m.planKpiSave(files, {
+  const plan = loadedModule.planKpiSave(files, {
     semanticPath: 'mall.semantic.yaml',
     metric: { name: 'aaa_rate', expression: 'vacant_gla / NULLIF(total_gla, 0)' },
     extension: { type: 'ratio', numerator: 'vacant_gla', denominator: 'total_gla' },
@@ -910,8 +939,8 @@ if (category === 'status-rules') {
       },
     ],
   });
-  const r = m.applyStatusRules(ext('approved'), ext('approved', { expr: 'b' }));
-  assert.equal(m.extensionOf(r.item).value.status, 'proposed');
+  const applyStatusRules = loadedModule.applyStatusRules(ext('approved'), ext('approved', { expr: 'b' }));
+  assert.equal(loadedModule.extensionOf(applyStatusRules.item).value.status, 'proposed');
 }
 if (category === 'save-client') {
   let body: any;
@@ -919,36 +948,36 @@ if (category === 'save-client') {
     body = JSON.parse(init.body);
     return new Response(JSON.stringify({ path: 'a', hash: 'h' }), { status: 200 });
   };
-  await m.api.save('p', 'a.yaml', 'a'.repeat(64), 'new', [{ from: 0, to: 1, insert: 'x' }]);
+  await loadedModule.api.save('p', 'a.yaml', 'a'.repeat(64), 'new', [{ from: 0, to: 1, insert: 'x' }]);
   assert.deepEqual(body, { baseHash: 'a'.repeat(64), patches: [{ from: 0, to: 1, insert: 'x' }] });
 }
 if (category === 'rdf-gate') {
-  const t = (s: string, o: string) => ({
-    s: { termType: 'NamedNode', value: s },
+  const triple = (subject: string, objectValue: string) => ({
+    s: { termType: 'NamedNode', value: subject },
     p: { termType: 'NamedNode', value: 'https://e/p' },
-    o: { termType: 'Literal', value: o },
+    o: { termType: 'Literal', value: objectValue },
   });
-  assert.equal(m.gate([t('https://e/a', '1'), t('https://e/b', '2')], [t('https://e/a', '9'), t('https://e/b', '2')], ['https://e/a']).ok, true);
-  assert.equal(m.gate([t('https://e/a', '1'), t('https://e/b', '2')], [t('https://e/a', '9'), t('https://e/b', '3')], ['https://e/a']).ok, false);
+  assert.equal(loadedModule.gate([triple('https://e/a', '1'), triple('https://e/b', '2')], [triple('https://e/a', '9'), triple('https://e/b', '2')], ['https://e/a']).ok, true);
+  assert.equal(loadedModule.gate([triple('https://e/a', '1'), triple('https://e/b', '2')], [triple('https://e/a', '9'), triple('https://e/b', '3')], ['https://e/a']).ok, false);
 }
 if (category === 'rdf-lines') {
   const { applyPatches } = await import('../src/shared/editor/patch');
   const src = '<https://e/a> <https://e/p> "1" .\n<https://e/b>   <https://e/p>  "2" .   # kept\n';
-  const out = applyPatches(src, m.ntPatches(src, m.readLines(src), 'https://e/a', new Set(), new Map([[0, '<https://e/a> <https://e/p> "9" .']]), [], '\n'));
+  const out = applyPatches(src, loadedModule.ntPatches(src, loadedModule.readLines(src), 'https://e/a', new Set(), new Map([[0, '<https://e/a> <https://e/p> "9" .']]), [], '\n'));
   assert.equal(out, src.replace('"1"', '"9"'));
 }
 if (category === 'scm-block') {
-  const e = (path: string) => ({
+  const statusEntry = (path: string) => ({
     path,
     index: '.',
     worktree: 'M',
     conflicted: false,
     untracked: false,
   });
-  assert.equal(m.blockers(['a.yaml'], [])?.reason, 'drafts');
-  assert.deepEqual(m.blockers(['a.yaml'], [])?.paths, ['a.yaml']);
-  assert.equal(m.blockers([], [e('b.yaml')])?.reason, 'dirty');
-  assert.equal(m.blockers([], []), null);
+  assert.equal(loadedModule.blockers(['a.yaml'], [])?.reason, 'drafts');
+  assert.deepEqual(loadedModule.blockers(['a.yaml'], [])?.paths, ['a.yaml']);
+  assert.equal(loadedModule.blockers([], [statusEntry('b.yaml')])?.reason, 'dirty');
+  assert.equal(loadedModule.blockers([], []), null);
 }
 if (category === 'git-exec') {
   const fs = await import('node:fs');
@@ -958,7 +987,7 @@ if (category === 'git-exec') {
   const dir = path.join(root, 'p');
   fs.mkdirSync(dir);
   try {
-    const git = m.createGit({
+    const git = loadedModule.createGit({
       projectsRoot: root,
       env: {
         ...process.env,
@@ -969,8 +998,8 @@ if (category === 'git-exec') {
     fs.writeFileSync(path.join(root, 'gitconfig'), '[user]\n\tname = T\n\temail = t@example.invalid\n');
     await git.init(dir);
     // Arguments reach Git literally: no shell splits or runs them.
-    const r = await git.run(dir, ['-c', 'user.name=a b; touch PWNED', 'config', 'user.name']);
-    assert.equal(r.stdout, 'a b; touch PWNED\n');
+    const result = await git.run(dir, ['-c', 'user.name=a b; touch PWNED', 'config', 'user.name']);
+    assert.equal(result.stdout, 'a b; touch PWNED\n');
     assert(!fs.existsSync(path.join(dir, 'PWNED')));
     // Remote commands only from the explicit actions.
     for (const args of [['fetch'], ['push'], ['pull']]) await assert.rejects(git.run(dir, args), /explicit/);
@@ -995,15 +1024,17 @@ if (category === 'git-exec') {
   }
 }
 if (category === 'odcs-diff') {
-  const v = (t: string, p = 'VARCHAR') => ({
-    schema: [{ name: 'o', properties: [{ name: 'a', logicalType: t, physicalType: p }] }],
+  const contractWithType = (logicalType: string, physicalType = 'VARCHAR') => ({
+    schema: [{ name: 'o', properties: [{ name: 'a', logicalType, physicalType }] }],
   });
-  assert.deepEqual(m.diffObject(v('string'), v('integer'), 'o')?.properties[0]?.changes, [{ attribute: 'logicalType', before: 'string', after: 'integer' }]);
-  assert.deepEqual(m.diffObject(v('string'), v('string', 'TEXT'), 'o')?.properties[0]?.changes, [{ attribute: 'physicalType', before: 'VARCHAR', after: 'TEXT' }]);
-  assert.equal(m.diffObject(v('string'), v('string'), 'o'), null);
+  assert.deepEqual(loadedModule.diffObject(contractWithType('string'), contractWithType('integer'), 'o')?.properties[0]?.changes, [{ attribute: 'logicalType', before: 'string', after: 'integer' }]);
+  assert.deepEqual(loadedModule.diffObject(contractWithType('string'), contractWithType('string', 'TEXT'), 'o')?.properties[0]?.changes, [
+    { attribute: 'physicalType', before: 'VARCHAR', after: 'TEXT' },
+  ]);
+  assert.equal(loadedModule.diffObject(contractWithType('string'), contractWithType('string'), 'o'), null);
 }
 if (category === 'fullscreen') {
-  const m1 = m.createViewMemory();
+  const m1 = loadedModule.createViewMemory();
   assert.equal(m1.exit(), null);
   m1.enter({ x: 10, y: -5, zoom: 0.4 });
   assert.equal(m1.pending, true);
@@ -1012,22 +1043,22 @@ if (category === 'fullscreen') {
 }
 
 if (category === 'autosave') {
-  let s = m.initialAutosave;
-  const step = (e: any) => {
-    const r = m.autosave(s, e);
-    s = r.state;
-    return r.effect;
+  let initialAutosave = loadedModule.initialAutosave;
+  const step = (item: any) => {
+    const autosave = loadedModule.autosave(initialAutosave, item);
+    initialAutosave = autosave.state;
+    return autosave.effect;
   };
   step({ type: 'open', file: 'f', hash: 'h0', text: 'a' });
   step({ type: 'edit', text: 'broken' });
   assert.equal(step({ type: 'idle', text: 'broken', errors: 2 }), null);
-  assert.equal(s.status, 'invalid');
+  assert.equal(initialAutosave.status, 'invalid');
   step({ type: 'edit', text: 'ok' });
   assert.equal(step({ type: 'idle', text: 'ok', errors: 0 }).type, 'save');
   step({ type: 'stale' });
   step({ type: 'edit', text: 'ok2' });
   assert.equal(step({ type: 'idle', text: 'ok2', errors: 0 }), null);
-  assert.equal(s.status, 'stale');
+  assert.equal(initialAutosave.status, 'stale');
 }
 if (category === 'lineage') {
   const files = [
@@ -1059,24 +1090,24 @@ if (category === 'lineage') {
       },
     },
   ];
-  const g = m.buildLineage(files, 'c.odcs.yaml');
+  const lineage = loadedModule.buildLineage(files, 'c.odcs.yaml');
   // Foreign key: referenced (parent) column → referencing column.
   assert.deepEqual(
-    g.edges.filter((e: any) => e.kind === 'foreign-key').map((e: any) => [e.from, e.to]),
+    lineage.edges.filter((e: any) => e.kind === 'foreign-key').map((e: any) => [e.from, e.to]),
     [['object:c.odcs.yaml#p/id', 'object:c.odcs.yaml#ch/pid']],
   );
   // The dataset reads `db.ch` only, never the similarly named `db.chx`.
   assert.deepEqual(
-    g.edges
+    lineage.edges
       .filter((e: any) => e.kind === 'reads')
       .map((e: any) => e.from)
       .sort(),
     ['object:c.odcs.yaml#ch/pid', 'object:c.odcs.yaml#ch/v'],
   );
   // Closure direction: upstream of d.v is ch.v only, not d.pid.
-  const up = m.closure(g, ['dataset:s.yaml#/d/v'], 'up');
+  const up = loadedModule.closure(lineage, ['dataset:s.yaml#/d/v'], 'up');
   assert.deepEqual([...up.nodes].sort(), ['dataset:s.yaml#/d/v', 'object:c.odcs.yaml#ch/v']);
-  const down = m.closure(g, ['object:c.odcs.yaml#p/id'], 'down');
+  const down = loadedModule.closure(lineage, ['object:c.odcs.yaml#p/id'], 'down');
   assert(!down.nodes.has('object:c.odcs.yaml#ch/v'));
   // An edge to a column that is not shown attaches to the "more" row.
   const card = {
@@ -1086,29 +1117,29 @@ if (category === 'lineage') {
     file: '',
     columns: Array.from({ length: 12 }, (_, i) => ({ id: `k/c${i}`, path: `c${i}`, badges: [] })),
   };
-  assert.equal(m.cardRows(card, { focus: new Set(), connected: new Set() }).port('k/c11'), m.moreRowId('k'));
+  assert.equal(loadedModule.cardRows(card, { focus: new Set(), connected: new Set() }).port('k/c11'), loadedModule.moreRowId('k'));
 }
 if (category === 'mapping-graph') {
   const { buildContext, agentCatalog } = await import(new URL('../src/server/agent/runtime.ts', import.meta.url).href);
   const { readFileSync } = await import('node:fs');
   const dir = new URL('../public/examples/commerce/', import.meta.url).pathname;
-  const docs = (edit: (f: string, s: string) => string = (_f, s) => s) =>
-    ['commerce.mapping.yaml', 'commerce.mapped-ontology.yaml', 'commerce.mapped-semantic.yaml'].map((f, i) => ({
-      id: 'p/' + f,
-      filename: f,
-      source: edit(f, readFileSync(dir + f, 'utf8')),
+  const docs = (edit: (text: string, value: string) => string = (_f, s) => s) =>
+    ['commerce.mapping.yaml', 'commerce.mapped-ontology.yaml', 'commerce.mapped-semantic.yaml'].map((text, i) => ({
+      id: 'p/' + text,
+      filename: text,
+      source: edit(text, readFileSync(dir + text, 'utf8')),
       revision: i + 1,
       project: 'p',
     }));
   const ctx = (d: any[]) => buildContext(d, agentCatalog(d).mappings[0].id);
-  const g = m.buildMappingGraph(ctx(docs()));
+  const mappingGraph = loadedModule.buildMappingGraph(ctx(docs()));
   // Link Order.customer passes through the join fields.
-  assert.deepEqual(g.edges.find((e: any) => e.kind === 'link' && e.from === 'concept:Order/customer').via, ['dataset:orders/customer_id', 'dataset:customers/customer_id']);
+  assert.deepEqual(mappingGraph.edges.find((e: any) => e.kind === 'link' && e.from === 'concept:Order/customer').via, ['dataset:orders/customer_id', 'dataset:customers/customer_id']);
   // A field nothing reads is unmapped, a mapped one is not.
-  const g2 = m.buildMappingGraph(
+  const g2 = loadedModule.buildMappingGraph(
     ctx(
-      docs((f, s) =>
-        f === 'commerce.mapped-semantic.yaml' ? s.replace('    fields:\n', '    fields:\n      - {name: notes, expression: {dialects: [{dialect: ANSI_SQL, expression: notes}]}}\n') : s,
+      docs((text, value) =>
+        text === 'commerce.mapped-semantic.yaml' ? value.replace('    fields:\n', '    fields:\n      - {name: notes, expression: {dialects: [{dialect: ANSI_SQL, expression: notes}]}}\n') : value,
       ),
     ),
   );
@@ -1116,25 +1147,27 @@ if (category === 'mapping-graph') {
   assert(orders.columns.find((c: any) => c.path === 'notes').badges.some((b: any) => b.label === 'Unmapped'));
   assert(!orders.columns.find((c: any) => c.path === 'order_id').badges.some((b: any) => b.label === 'Unmapped'));
   // A finding sits on the concept mapping it comes from.
-  const g3 = m.buildMappingGraph(
+  const g3 = loadedModule.buildMappingGraph(
     ctx(
-      docs((f, s) =>
-        f === 'commerce.mapping.yaml'
-          ? s.replace('            - relationship: id\n              expression: orders.order_id', '            - relationship: id\n              expression: orders.no_such_field')
-          : s,
+      docs((text, value) =>
+        text === 'commerce.mapping.yaml'
+          ? value.replace('            - relationship: id\n              expression: orders.order_id', '            - relationship: id\n              expression: orders.no_such_field')
+          : value,
       ),
     ),
   );
   assert((g3.cards.get('concept:Order').findings ?? []).join().includes('no_such_field'));
   assert.deepEqual(g3.cards.get('concept:Revenue').findings ?? [], []);
   // A KPI binding's `of` is dashed `of`, not `measures`.
-  const g4 = m.buildMappingGraph(
+  const g4 = loadedModule.buildMappingGraph(
     ctx(
-      docs((f, s) =>
-        f === 'commerce.mapping.yaml'
-          ? s.slice(0, s.indexOf('custom_extensions:')) +
-            'custom_extensions:\n  - vendor_name: SEMANTIC_WORKBENCH\n    data: \'{"schema": "semantic-workbench/mapping/v1", "kpi_bindings": [{"metric":"gross_revenue","measures":"Revenue","of":"Customer"}]}\'\n'
-          : s,
+      docs((text, value) =>
+        text === 'commerce.mapping.yaml'
+          ? value.slice(0, value.indexOf('custom_extensions:')) +
+            'custom_extensions:\n  - vendor_name: SEMANTIC_WORKBENCH\n    data: \'{"schema": ' +
+            '"semantic-workbench/mapping/v1", "kpi_bindings": ' +
+            '[{"metric":"gross_revenue","measures":"Revenue","of":"Customer"}]}\'\n'
+          : value,
       ),
     ),
   );
@@ -1157,26 +1190,26 @@ if (category === 'expansion') {
     ['B', 'X'],
     ['A', 'Z'],
   ].map(([s, t], i) => ({ id: `e${i}`, source: s, target: t, label: 'r' }));
-  const ex = (from: string) => {
-    const n = m.neighbours(edges, from, 'both');
-    return m.registerSet({
+  const expansionFrom = (from: string) => {
+    const neighbours = loadedModule.neighbours(edges, from, 'both');
+    return loadedModule.registerSet({
       kind: 'expand',
       from,
       direction: 'both',
-      nodes: n.nodes,
-      edges: n.edges,
+      nodes: neighbours.nodes,
+      edges: neighbours.edges,
       frontier: {},
       total: 0,
       budget: 0,
     });
   };
   const base = ['C', 'A', 'B'];
-  const a = ex('A');
-  const b = ex('B');
-  const ca = m.registerSet({
+  const expandA = expansionFrom('A');
+  const expandB = expansionFrom('B');
+  const collapseA = loadedModule.registerSet({
     kind: 'collapse',
     from: 'A',
-    target: a.id,
+    target: expandA.id,
     direction: 'both',
     nodes: [],
     edges: [],
@@ -1185,14 +1218,14 @@ if (category === 'expansion') {
     budget: 0,
   });
   // X is reached by B too: collapsing A keeps it, removes Z.
-  assert.deepEqual(m.canvasOf(base, [a, b, ca]).nodes.sort(), ['A', 'B', 'C', 'X']);
+  assert.deepEqual(loadedModule.canvasOf(base, [expandA, expandB, collapseA]).nodes.sort(), ['A', 'B', 'C', 'X']);
 }
 if (category === 'incremental') {
   const pos = new Map([
     ['O', { x: 0, y: 0 }],
     ['k', { x: -50, y: 999 }],
   ]);
-  const out = m.placeNew(
+  const out = loadedModule.placeNew(
     pos,
     'O',
     [
@@ -1211,13 +1244,19 @@ if (category === 'pierce') {
     kind: 'EntityType',
   }));
   const edges = nodes.slice(1).map((n, i) => ({ id: 'e' + i, source: 'n' + i, target: n.id, label: 'next' }));
-  const o = { direction: 'out', valueTypes: true, technical: true, metrics: true, budget: 10 };
-  const r = m.boundedClosure(nodes, edges, ['n0'], o);
-  assert.equal(r.nodes.length, 10);
-  assert.equal(r.total, 30);
-  assert.equal(r.hidden, 20);
+  const options = {
+    direction: 'out',
+    valueTypes: true,
+    technical: true,
+    metrics: true,
+    budget: 10,
+  };
+  const boundedClosure = loadedModule.boundedClosure(nodes, edges, ['n0'], options);
+  assert.equal(boundedClosure.nodes.length, 10);
+  assert.equal(boundedClosure.total, 30);
+  assert.equal(boundedClosure.hidden, 20);
   // Outgoing from the middle never reaches the start of the chain.
-  const mid = m.boundedClosure(nodes, edges, ['n15'], { ...o, budget: 100 });
+  const mid = loadedModule.boundedClosure(nodes, edges, ['n15'], { ...options, budget: 100 });
   assert(!mid.nodes.includes('n14'));
   assert(mid.nodes.includes('n29'));
 }
@@ -1225,31 +1264,31 @@ if (category === 'sql-regions') {
   const { readFileSync } = await import('node:fs');
   const root = process.cwd();
   const json = readFileSync(root + '/tests/fixtures/sql/escaped.semantic.json', 'utf8');
-  const r = m.sqlRegions(json, 'escaped.semantic.json')[2];
-  assert(r.exact);
-  const at = r.offsets[r.value.indexOf('"x"')];
-  assert.deepEqual(m.lineColumn(json, at), { line: 15, column: 143 });
-  const dax = m.sqlRegions(readFileSync(root + '/tests/fixtures/sql/dax.ossie.yaml', 'utf8'), 'dax.ossie.yaml');
+  const item = loadedModule.sqlRegions(json, 'escaped.semantic.json')[2];
+  assert(item.exact);
+  const at = item.offsets[item.value.indexOf('"x"')];
+  assert.deepEqual(loadedModule.lineColumn(json, at), { line: 15, column: 143 });
+  const dax = loadedModule.sqlRegions(readFileSync(root + '/tests/fixtures/sql/dax.ossie.yaml', 'utf8'), 'dax.ossie.yaml');
   assert.deepEqual(
     dax.map((x: any) => x.grammar),
     ['postgresql', null, 'postgresql'],
   );
-  const folded = m.sqlRegions(readFileSync(root + '/tests/fixtures/sql/folded.ossie.yaml', 'utf8'), 'folded.ossie.yaml');
+  const folded = loadedModule.sqlRegions(readFileSync(root + '/tests/fixtures/sql/folded.ossie.yaml', 'utf8'), 'folded.ossie.yaml');
   assert.equal(folded[1].grammar, 'snowflake');
-  const flights = m.sqlRegions(readFileSync(root + '/public/examples/ossie/flights.yaml', 'utf8'), 'flights.yaml');
+  const flights = loadedModule.sqlRegions(readFileSync(root + '/public/examples/ossie/flights.yaml', 'utf8'), 'flights.yaml');
   assert(flights.some((x: any) => x.pointer.startsWith('/ontology_mappings/0/semantic_model/datasets/')));
 }
 if (category === 'sql-lint') {
   const { readFileSync } = await import('node:fs');
   const { Parser } = await import('node-sql-parser');
-  const p = new Parser();
+  const parser = new Parser();
   const src = readFileSync(process.cwd() + '/tests/fixtures/sql/case-when-broken.ossie.yaml', 'utf8');
-  const f = m.lintSql(src, 'case-when-broken.ossie.yaml', (sql: string, g: string) => {
-    p.astify(sql, { database: g });
+  const lintSql = loadedModule.lintSql(src, 'case-when-broken.ossie.yaml', (sql: string, g: string) => {
+    parser.astify(sql, { database: g });
   });
-  assert.equal(f.length, 1);
-  assert.equal(f[0].severity, 'warning');
-  assert.deepEqual([f[0].line, f[0].column], [23, 77]);
+  assert.equal(lintSql.length, 1);
+  assert.equal(lintSql[0].severity, 'warning');
+  assert.deepEqual([lintSql[0].line, lintSql[0].column], [23, 77]);
 }
 
 if (category === 'git-setup') {
@@ -1268,7 +1307,7 @@ if (category === 'git-setup') {
     return result.stdout.toString();
   };
   try {
-    const git = m.createGit({ projectsRoot: projects, env });
+    const git = loadedModule.createGit({ projectsRoot: projects, env });
     // The identity goes into the repository, never into the user's global configuration.
     const repo = path.join(projects, 'repo');
     fs.mkdirSync(repo);
@@ -1304,7 +1343,7 @@ if (category === 'clone') {
   const parents: string[] = [];
   const events: any[] = [];
   try {
-    const cloner = m.createCloner({
+    const cloner = loadedModule.createCloner({
       layout,
       git: {
         clone: async (parent: string, _url: string, folder: string) => {
@@ -1336,16 +1375,16 @@ if (category === 'clone') {
 }
 if (category === 'manifest') {
   const manifest = (path: string) => JSON.stringify({ schema: 'semantic-workbench/repository/v1', projects: [{ path }] });
-  assert.deepEqual(m.parseManifest(manifest('domains/sales')), [{ path: 'domains/sales' }]);
+  assert.deepEqual(loadedModule.parseManifest(manifest('domains/sales')), [{ path: 'domains/sales' }]);
   // A manifest comes from a cloned repository, so its folders must stay inside it.
-  for (const path of ['../outside', 'domains/../../outside', '.git/hooks', '/etc']) assert.throws(() => m.parseManifest(manifest(path)), path);
+  for (const path of ['../outside', 'domains/../../outside', '.git/hooks', '/etc']) assert.throws(() => loadedModule.parseManifest(manifest(path)), path);
 }
 // A repository with two subprojects, Sales and Finance, in a temporary workspace.
 async function teamRepositoryWorkspace() {
   const { tempDataDir } = await import('../tests/helpers/temp-data-dir');
   const { openWorkspace } = await import('../src/server/projects/workspace');
-  const d = tempDataDir();
-  const ws = await openWorkspace({ root: d.root });
+  const dir = tempDataDir();
+  const ws = await openWorkspace({ root: dir.root });
   const text = (name: string) => `name: ${name}\nontology: [{concept: ${name}, type: EntityType}]\n`;
   await ws.importBatch(
     {
@@ -1364,9 +1403,9 @@ async function teamRepositoryWorkspace() {
   const [sales, finance] = registered.projects.map((project: { slug: string }) => project.slug);
   const dispose = () => {
     ws.close();
-    d.cleanup();
+    dir.cleanup();
   };
-  return { ws, root: d.root, sales, finance, dispose };
+  return { ws, root: dir.root, sales, finance, dispose };
 }
 if (category === 'subproject-trash') {
   const fs = await import('node:fs');
@@ -1374,7 +1413,7 @@ if (category === 'subproject-trash') {
   const team = await teamRepositoryWorkspace();
   const { ws } = team;
   try {
-    const trash = m.createTrash({
+    const trash = loadedModule.createTrash({
       layout: ws.layout,
       state: ws.state,
       journal: ws.journal,
@@ -1407,7 +1446,7 @@ if (category === 'subproject-rescan') {
   const { ws } = team;
   const rescanned: string[] = [];
   try {
-    const scm = m.createScm({
+    const scm = loadedModule.createScm({
       layout: ws.layout,
       git: ws.git,
       gitAvailable: true,
@@ -1441,14 +1480,14 @@ if (category === 'auth-grants') {
     member: { kind: 'email', email: 'a@example.org' },
     scope: { kind: 'workspace' },
   };
-  assert.equal(m.resolveGrants(principal, [grant], options).length, 1);
+  assert.equal(loadedModule.resolveGrants(principal, [grant], options).length, 1);
   const projects = [
     { slug: 'sales', domain: 'sales' },
     { slug: 'hr', domain: 'hr' },
     { slug: 'lab', domain: null },
   ];
-  assert.deepEqual(m.holdersOfGrant(grant, projects), ['viewer@workspace', 'viewer@sales', 'viewer@hr']);
-  assert.deepEqual(m.holdersOfGrant({ ...grant, scope: { kind: 'domains', domains: ['sales'] } }, projects), ['viewer@sales']);
+  assert.deepEqual(loadedModule.holdersOfGrant(grant, projects), ['viewer@workspace', 'viewer@sales', 'viewer@hr']);
+  assert.deepEqual(loadedModule.holdersOfGrant({ ...grant, scope: { kind: 'domains', domains: ['sales'] } }, projects), ['viewer@sales']);
 }
 if (category === 'auth-principal') {
   const mapping = { provider: 'generic', groupClaim: 'groups', tenantId: null };
@@ -1460,13 +1499,13 @@ if (category === 'auth-principal') {
     groups: [],
     roles: ['admin'],
   };
-  const person = m.normalizeClaims(claims, mapping);
+  const person = loadedModule.normalizeClaims(claims, mapping);
   assert.equal(person.verifiedEmail, null);
   assert.deepEqual(person.groups, []);
-  const guest = m.normalizeClaims({ tid: 'tenant', oid: 'object', upn: 'guest#EXT#@tenant.org' }, { ...mapping, provider: 'entra' });
+  const guest = loadedModule.normalizeClaims({ tid: 'tenant', oid: 'object', upn: 'guest#EXT#@tenant.org' }, { ...mapping, provider: 'entra' });
   assert.equal(guest.verifiedEmail, null);
   // A verified e-mail claim never names a guest either; this does not pass through the user name.
-  const guestEmail = m.normalizeClaims({ tid: 'tenant', oid: 'object', email: 'guest#EXT#@tenant.org', xms_edov: true }, { ...mapping, provider: 'entra' });
+  const guestEmail = loadedModule.normalizeClaims({ tid: 'tenant', oid: 'object', email: 'guest#EXT#@tenant.org', xms_edov: true }, { ...mapping, provider: 'entra' });
   assert.equal(guestEmail.verifiedEmail, null);
 }
 if (category === 'auth-compiler') {
@@ -1476,12 +1515,12 @@ if (category === 'auth-compiler') {
     description: '',
     permissions: [{ actions: ['read'], conditions: { path: 'public/*' } }],
   };
-  assert.match(m.compileRoles([role]).policies['role:r_reader:1'], /resource\.path like "public\/\*"/);
-  assert.throws(() => m.validateCustomRole({ ...role, permissions: [{ actions: ['admin'] }] }));
+  assert.match(loadedModule.compileRoles([role]).policies['role:r_reader:1'], /resource\.path like "public\/\*"/);
+  assert.throws(() => loadedModule.validateCustomRole({ ...role, permissions: [{ actions: ['admin'] }] }));
 }
 if (category === 'auth-decision') {
   const { accessFixture, person } = await import('../tests/auth/access-fixture');
-  const access = m.createAccessControl(accessFixture());
+  const access = loadedModule.createAccessControl(accessFixture());
   const alice = access.principalFor(person('alice'));
   assert.equal(access.authorize(alice, 'read', { type: 'project', project: 'hr-people' }).status, 404);
   const erin = access.principalFor(person('erin'));
@@ -1490,12 +1529,12 @@ if (category === 'auth-decision') {
   options.config.adminRules = {
     invalid: 'permit(principal, action, resource) when { resource.missing };',
   };
-  assert.throws(() => m.createAccessControl(options));
+  assert.throws(() => loadedModule.createAccessControl(options));
 }
 if (category === 'auth-admin-guard') {
   const { emptyAccessConfig } = await import('../src/server/auth/access-config');
   assert.deepEqual(
-    m.checkLastAdmin(emptyAccessConfig(), {
+    loadedModule.checkLastAdmin(emptyAccessConfig(), {
       users: [],
       bootstrap: { emails: [], ids: [] },
       sessionLifetimeHours: 24,
@@ -1510,7 +1549,7 @@ if (category === 'auth-middleware') {
   const { createAuditLog } = await import('../src/server/auth/audit');
   using workspace = await testWorkspace();
   const audit = createAuditLog({ dir: workspace.root + '/audit' });
-  const handler = m.createAccessMiddleware(
+  const handler = loadedModule.createAccessMiddleware(
     workspace.ws,
     { audit, principal: () => ({ ...localPrincipal(), kind: 'person', id: 'nobody', grants: [] }) },
     () => null,
@@ -1527,7 +1566,7 @@ if (category === 'auth-admin-repo') {
   const { tempDataDir } = await import('../tests/helpers/temp-data-dir');
   const dir = tempDataDir();
   try {
-    const repo = m.openAdminRepository({ root: dir.root });
+    const repo = loadedModule.openAdminRepository({ root: dir.root });
     const author = { name: 'Admin', email: 'admin@example.org' };
     await repo.ensure();
     const first = await repo.version();
@@ -1563,7 +1602,7 @@ if (category === 'auth-audit') {
   const { tempDataDir } = await import('../tests/helpers/temp-data-dir');
   const dir = tempDataDir();
   try {
-    const audit = m.createAuditLog({ dir: dir.root });
+    const audit = loadedModule.createAuditLog({ dir: dir.root });
     audit.append({
       requestId: 'request',
       principal: { id: 'local', kind: 'local' },
@@ -1590,12 +1629,12 @@ if (category === 'auth-middleware') {
     calls++;
     return new Response('ran');
   };
-  const handler = m.createAccessMiddleware(workspace.ws, { audit }, () => null, run);
+  const handler = loadedModule.createAccessMiddleware(workspace.ws, { audit }, () => null, run);
   assert.equal((await handler(new Request('http://localhost/api/unmapped'))).status, 404);
   assert.equal(calls, 0);
   assert.equal((await handler(new Request('http://localhost/api/agent/catalog'))).status, 200);
   assert.equal(audit.entries(new Date().toISOString().slice(0, 7)).length, 1);
-  const server = m.createAccessMiddleware(workspace.ws, { mode: 'server', audit }, () => null, run);
+  const server = loadedModule.createAccessMiddleware(workspace.ws, { mode: 'server', audit }, () => null, run);
   assert.equal(
     (
       await server(
@@ -1611,14 +1650,14 @@ if (category === 'auth-middleware') {
 }
 
 if (category === 'container-health') {
-  const health = m.healthResponse(new Request('http://localhost/healthz'), 'serving', {});
+  const health = loadedModule.healthResponse(new Request('http://localhost/healthz'), 'serving', {});
   assert.deepEqual(await health.json(), {
     ok: true,
     version: null,
     commit: null,
     telemetry: { enabled: false, reason: 'not-started' },
   });
-  const response = m.healthResponse(new Request('http://localhost/api/projects'), 'handover', {});
+  const response = loadedModule.healthResponse(new Request('http://localhost/api/projects'), 'handover', {});
   assert.equal(response?.status, 503);
   assert.equal(response.headers.get('Retry-After'), '10');
 }
@@ -1630,12 +1669,12 @@ if (category === 'container-lock') {
     heartbeat: new Date(0).toISOString(),
     state: 'serving',
   };
-  assert.equal(m.lockDecision(current, 0, 'old'), 'refuse');
+  assert.equal(loadedModule.lockDecision(current, 0, 'old'), 'refuse');
   let opened = 0;
   let writes = 0;
   let finish!: () => void;
   let now = 0;
-  const lock = m.createInstanceLock({
+  const lock = loadedModule.createInstanceLock({
     host: 'new',
     pid: 1,
     revision: 'new',
@@ -1679,31 +1718,31 @@ if (category === 'container-lock') {
 }
 
 if (category === 'pipeline-script') {
-  assert.throws(() => m.checkScript('bun run nonexistent', { check: 'tsc' }));
-  m.checkScript('bun run check', { check: 'tsc' });
+  assert.throws(() => loadedModule.checkScript('bun run nonexistent', { check: 'tsc' }));
+  loadedModule.checkScript('bun run check', { check: 'tsc' });
 }
 if (category === 'pipeline-provider') {
-  const input = m.readPipelineInput();
-  m.lintRules(input);
+  const input = loadedModule.readPipelineInput();
+  loadedModule.lintRules(input);
   input.files['azure-pipelines.yml'] += '\n# Keycloak is forbidden even in comments\n';
-  assert.throws(() => m.lintRules(input), /Keycloak/);
+  assert.throws(() => loadedModule.lintRules(input), /Keycloak/);
 }
 if (category === 'signin-sessions') {
-  assert.match(m.sessionCookie('opaque', 'https://workbench.example'), /; HttpOnly;/);
-  assert.match(m.sessionCookie('opaque', 'https://workbench.example'), /; Secure;/);
-  assert.equal(m.sessionExpired({ createdAt: 0, lastSeenAt: 23 }, 24, 8, 24), true);
+  assert.match(loadedModule.sessionCookie('opaque', 'https://workbench.example'), /; HttpOnly;/);
+  assert.match(loadedModule.sessionCookie('opaque', 'https://workbench.example'), /; Secure;/);
+  assert.equal(loadedModule.sessionExpired({ createdAt: 0, lastSeenAt: 23 }, 24, 8, 24), true);
 }
 if (category === 'signin-csrf') {
   const request = new Request('https://workbench.example/api/projects', {
     method: 'POST',
     headers: { Origin: 'https://workbench.example' },
   });
-  assert.equal(await m.validCsrf(request, 'https://workbench.example'), false);
+  assert.equal(await loadedModule.validCsrf(request, 'https://workbench.example'), false);
 }
 if (category === 'signin-nonce') {
   const { oidcTransport } = await import('../tests/helpers/oidc-transport');
   const transport = await oidcTransport();
-  const client = await m.createOidcClient(transport.config, { fetch: transport.fetch });
+  const client = await loadedModule.createOidcClient(transport.config, { fetch: transport.fetch });
   const started = await client.login('/');
   const result = await client.callback(transport.authorize(started.url), started.attempt);
   assert(result.principal.id);
@@ -1717,7 +1756,7 @@ if (category === 'signin-nonce') {
 }
 if (category === 'signin-tenant') {
   assert.throws(() =>
-    m.normalizeClaims(
+    loadedModule.normalizeClaims(
       { tid: 'foreign', oid: 'person' },
       {
         provider: 'entra',
@@ -1728,7 +1767,7 @@ if (category === 'signin-tenant') {
   );
 }
 if (category === 'signin-directory') {
-  const directory = m.createDirectoryClient({
+  const directory = loadedModule.createDirectoryClient({
     graphUrl: 'http://127.0.0.1/graph',
     token: async () => 'token',
     fetch: async () => new Response('', { status: 503 }),
@@ -1737,9 +1776,9 @@ if (category === 'signin-directory') {
 }
 if (category === 'signin-pages') {
   const { localPrincipal } = await import('../src/server/auth/principal');
-  const page = await m.authPage('no-access', { principal: localPrincipal(), csrf: 'token' }).text();
+  const page = await loadedModule.authPage('no-access', { principal: localPrincipal(), csrf: 'token' }).text();
   assert.doesNotMatch(page, /workspace-data|projects|files|count/);
-  const route = m.createAuthRoutes({
+  const route = loadedModule.createAuthRoutes({
     session: async () => null,
     login: async () => new Response(null, { status: 302, headers: { Location: 'https://provider' } }),
   });
@@ -1750,7 +1789,7 @@ if (category === 'signin-pages') {
 if (category === 'signin-redirect') {
   const { testWorkspace } = await import('../tests/helpers/temp-data-dir');
   using workspace = await testWorkspace();
-  const boundary = m.createAccessMiddleware(
+  const boundary = loadedModule.createAccessMiddleware(
     workspace.ws,
     {
       mode: 'server',
@@ -1782,27 +1821,27 @@ if (category === 'signin-config') {
     SW_SESSION_KEY: Buffer.from(Array.from({ length: 32 }, (_, index) => index + 1)).toString('base64'),
     SW_BOOTSTRAP_ADMINS: 'admin@example.org',
   };
-  assert.equal(m.readConfig(env).mode, 'server');
+  assert.equal(loadedModule.readConfig(env).mode, 'server');
   // A generic provider, so the Entra host rule cannot hide the plain-http rule.
   const generic = { ...env, SW_OIDC_PROVIDER: 'generic' };
-  assert.equal(m.readConfig({ ...generic, SW_OIDC_ISSUER: 'https://provider.example' }).mode, 'server');
-  assert.throws(() => m.readConfig({ ...generic, SW_OIDC_ISSUER: 'http://provider.example' }));
-  assert.throws(() => m.readConfig({ ...env, SW_GRAPH_URL: 'https://attacker.example' }));
+  assert.equal(loadedModule.readConfig({ ...generic, SW_OIDC_ISSUER: 'https://provider.example' }).mode, 'server');
+  assert.throws(() => loadedModule.readConfig({ ...generic, SW_OIDC_ISSUER: 'http://provider.example' }));
+  assert.throws(() => loadedModule.readConfig({ ...env, SW_GRAPH_URL: 'https://attacker.example' }));
 }
 
 if (category === 'deploy-version') {
-  assert.throws(() => m.checkReleaseVersion('v0.4.0', '0.4.0', ['v0.5.0']));
+  assert.throws(() => loadedModule.checkReleaseVersion('v0.4.0', '0.4.0', ['v0.5.0']));
 }
 if (category === 'deploy-preflight') {
   const { fakeApp, fakeTarget } = await import('./deploy-fake');
   const app = fakeApp();
   app.maxReplicas = 2;
-  assert.throws(() => m.preflight(app, fakeTarget));
+  assert.throws(() => loadedModule.preflight(app, fakeTarget));
 }
 if (category === 'deploy-recovery') {
   const { fakeAzure, fakeTarget, fakeRelease } = await import('./deploy-fake');
   const client = fakeAzure({ failSmoke: true });
-  await assert.rejects(() => m.deploy(fakeTarget, fakeRelease, client));
+  await assert.rejects(() => loadedModule.deploy(fakeTarget, fakeRelease, client));
   assert(client.calls.some(call => call[0] === 'copy'));
 }
 if (category === 'deploy-smoke') {
@@ -1822,13 +1861,13 @@ if (category === 'deploy-smoke') {
     home: new Response(null, { status: 302, headers }),
     login: new Response(null, { status: 302, headers }),
   };
-  assert(m.smokeChecks(input, expected, endpoint, false).every((check: any) => check.ok));
+  assert(loadedModule.smokeChecks(input, expected, endpoint, false).every((check: any) => check.ok));
   for (const faulty of [
     { ...input, health: { status: 200, body: { ...expected, version: 'wrong' } } },
     { ...input, projects: { ...input.projects, status: 200 } },
     { ...input, ready: { status: 200, body: { ready: true, state: 'handover' } } },
   ]) {
-    assert(m.smokeChecks(faulty, expected, endpoint, false).some((check: any) => !check.ok));
+    assert(loadedModule.smokeChecks(faulty, expected, endpoint, false).some((check: any) => !check.ok));
   }
 }
 if (category.startsWith('read-')) {
@@ -1838,7 +1877,10 @@ if (category.startsWith('read-')) {
   const principal = access.principalFor(person('alice'));
   const view = access.view(principal);
   if (category === 'read-events') {
-    const events = m.createEvents({ suggestionIndex: () => [], sharedSuggestionCount: () => 0 });
+    const events = loadedModule.createEvents({
+      suggestionIndex: () => [],
+      sharedSuggestionCount: () => 0,
+    });
     events.emit('files', { project: 'hr-people', paths: ['LEAK-secret'] }, { paths: [{ project: 'hr-people', path: 'LEAK-secret' }] });
     events.emit('files', { project: 'sales-contracts', paths: ['orders.odcs.yaml'] }, { paths: [{ project: 'sales-contracts', path: 'orders.odcs.yaml' }] });
     const response = events.stream(
@@ -1856,13 +1898,13 @@ if (category.startsWith('read-')) {
     assert(!new TextDecoder().decode((await reader.read()).value).includes('LEAK-'));
     await reader.cancel();
   } else if (category === 'read-trash') {
-    assert(!m.readableTrash({ project: 'sales-contracts', path: 'orders.odcs.yaml', owner: 'another-person' }, access.forRequest(principal)));
+    assert(!loadedModule.readableTrash({ project: 'sales-contracts', path: 'orders.odcs.yaml', owner: 'another-person' }, access.forRequest(principal)));
   } else {
     const { authWorkspace } = await import('../tests/helpers/auth-workspace');
     using fixture = await authWorkspace();
     if (category === 'read-workspace') {
       fixture.ws.close();
-      const workspace = await m.openWorkspace({ root: fixture.root });
+      const workspace = await loadedModule.openWorkspace({ root: fixture.root });
       try {
         assert(!JSON.stringify(workspace.documentsFor({ view, owner: principal.id })).includes('LEAK-hr-'));
       } finally {
@@ -1870,7 +1912,7 @@ if (category.startsWith('read-')) {
       }
     }
     if (category === 'read-agent') {
-      const handler = m.createHandler(fixture.ws, {
+      const handler = loadedModule.createHandler(fixture.ws, {
         mode: 'server',
         remoteCredentials: allowEveryRemote(),
         access,
@@ -1889,14 +1931,14 @@ if (category.startsWith('read-')) {
       });
       const request = new Request('http://localhost/api/drafts/sales-contracts/orders.odcs.yaml');
       Object.assign(request, { [requestAccess]: access.forRequest(principal) });
-      const response = await m.draftRoutes(fixture.ws, request, new URL(request.url));
+      const response = await loadedModule.draftRoutes(fixture.ws, request, new URL(request.url));
       assert.equal(response.status, 404);
     }
     if (category === 'read-git') {
       const { requestAccess } = await import('../src/server/auth/request-scope');
       const request = new Request('http://localhost/api/projects/sales-contracts/git/show?path=finance/removed.yaml&commit=HEAD');
       Object.assign(request, { [requestAccess]: access.forRequest(principal) });
-      await assert.rejects(() => m.gitRoutes(fixture.ws, request, new URL(request.url)), /Not found/);
+      await assert.rejects(() => loadedModule.gitRoutes(fixture.ws, request, new URL(request.url)), /Not found/);
     }
   }
 }
@@ -1913,7 +1955,7 @@ if (category === 'write-targets') {
   const request = new Request('http://localhost/api');
   Object.assign(request, { [requestAccess]: scope });
   assert.throws(() =>
-    m.authorizeWrite(request, 'move', [
+    loadedModule.authorizeWrite(request, 'move', [
       { type: 'file', project: 'sales-contracts', path: 'orders.odcs.yaml' },
       { type: 'file', project: 'hr-people', path: 'orders.odcs.yaml' },
     ]),
@@ -1924,7 +1966,7 @@ if (category === 'write-drafts') {
   const { createAccessControl } = await import('../src/server/auth/authorize');
   const { accessFixture, person } = await import('../tests/auth/access-fixture');
   const access = createAccessControl(accessFixture());
-  const route = m.routeFor('PUT', '/api/drafts/hr-people/people.odcs.yaml');
+  const route = loadedModule.routeFor('PUT', '/api/drafts/hr-people/people.odcs.yaml');
   const resource = route.row.resource(route.match, new URL('http://localhost'));
   const decision = access.authorize(access.principalFor(person('carol')), route.row.action, resource);
   assert.equal(decision.allow, false);
@@ -1939,7 +1981,7 @@ if (category === 'write-body-flags') {
     ['POST', '/api/trash/example/undo'],
     ['POST', '/api/trash/example/restore'],
   ];
-  for (const [method, path] of paths) assert.equal(m.routeFor(method, path).row.targets, 'body');
+  for (const [method, path] of paths) assert.equal(loadedModule.routeFor(method, path).row.targets, 'body');
 }
 
 if (['write-body-legacy', 'write-body-suggestions', 'write-body-trash'].includes(category)) {
@@ -1961,7 +2003,7 @@ if (['write-body-legacy', 'write-body-suggestions', 'write-body-trash'].includes
     return result;
   };
   if (category === 'write-body-legacy') {
-    const handler = m.createHandler(fixture.ws, {
+    const handler = loadedModule.createHandler(fixture.ws, {
       mode: 'server',
       remoteCredentials: allowEveryRemote(),
       publicOrigin: origin,
@@ -1994,7 +2036,7 @@ if (['write-body-legacy', 'write-body-suggestions', 'write-body-trash'].includes
     } as never);
     const viewing = createAccessControl(options);
     const viewer = viewing.principalFor(person('alice'));
-    const viewerHandler = m.createHandler(fixture.ws, {
+    const viewerHandler = loadedModule.createHandler(fixture.ws, {
       mode: 'server',
       remoteCredentials: allowEveryRemote(),
       publicOrigin: origin,
@@ -2023,7 +2065,7 @@ if (['write-body-legacy', 'write-body-suggestions', 'write-body-trash'].includes
       ] as never;
     for (const action of ['accept', 'reject']) {
       const req = request('/api/suggestions/00000000000000000000/' + action);
-      await assert.rejects(m.suggestionRoutes(fixture.ws, req, new URL(req.url)), {
+      await assert.rejects(loadedModule.suggestionRoutes(fixture.ws, req, new URL(req.url)), {
         name: 'WriteAccessError',
       });
     }
@@ -2032,7 +2074,7 @@ if (['write-body-legacy', 'write-body-suggestions', 'write-body-trash'].includes
     const entry = await fixture.ws.trash.deleteFile('hr-people', 'people.odcs.yaml', undefined, LOCAL_READER);
     for (const action of ['undo', 'restore']) {
       const req = request('/api/trash/' + entry.entryId + '/' + action);
-      await assert.rejects(m.trashRoutes(fixture.ws, req, new URL(req.url)), {
+      await assert.rejects(loadedModule.trashRoutes(fixture.ws, req, new URL(req.url)), {
         name: 'WriteAccessError',
       });
     }
@@ -2043,36 +2085,36 @@ if (['write-body-legacy', 'write-body-suggestions', 'write-body-trash'].includes
 const ADMIN_UI_CATEGORIES = new Set(['admin-review', 'admin-save']);
 if (category.startsWith('sec-')) {
   const { sessionSecurityCase } = await import('./session-security-mutation-cases');
-  await sessionSecurityCase(m, category);
+  await sessionSecurityCase(loadedModule, category);
 }
 if (category === 'admin-review') {
-  const key = m.proposalKey({ roles: [] }, 'base');
+  const key = loadedModule.proposalKey({ roles: [] }, 'base');
   const result = { dryRunId: 'review', changed: [], people: [], matrixCases: 1, auditCases: 0 };
-  assert(m.canConfirm({ key, result }, key));
-  assert(!m.canConfirm(null, key));
-  assert(!m.canConfirm({ key, result }, m.proposalKey({ roles: [] }, 'changed')));
-  assert(!m.canConfirm({ key, result }, m.proposalKey({ grants: [] }, 'base')));
-  assert(!m.canConfirm({ key, result: { ...result, dryRunId: '' } }, key));
+  assert(loadedModule.canConfirm({ key, result }, key));
+  assert(!loadedModule.canConfirm(null, key));
+  assert(!loadedModule.canConfirm({ key, result }, loadedModule.proposalKey({ roles: [] }, 'changed')));
+  assert(!loadedModule.canConfirm({ key, result }, loadedModule.proposalKey({ grants: [] }, 'base')));
+  assert(!loadedModule.canConfirm({ key, result: { ...result, dryRunId: '' } }, key));
 }
 if (category.startsWith('admin-') && !ADMIN_UI_CATEGORIES.has(category)) {
   const { adminMutationCase } = await import('./admin-mutation-cases');
-  await adminMutationCase(m, category);
+  await adminMutationCase(loadedModule, category);
 }
 if (category.startsWith('export-')) {
   const { exportMutationCase } = await import('./export-mutation-cases');
-  await exportMutationCase(m, category);
+  await exportMutationCase(loadedModule, category);
 }
 if (category.startsWith('theme-')) {
   const { themeMutationCase } = await import('./theme-mutation-cases');
-  themeMutationCase(m, category);
+  themeMutationCase(loadedModule, category);
 }
 if (category.startsWith('brand-')) {
   const { brandMutationCase } = await import('./brand-mutation-cases');
-  brandMutationCase(m, category);
+  brandMutationCase(loadedModule, category);
 }
 if (category.startsWith('secrev-')) {
   const { securityReviewCase } = await import('./security-review-mutation-cases');
-  await securityReviewCase(m, category);
+  await securityReviewCase(loadedModule, category);
 }
 if (category === 'admin-save') {
   let requests = 0;
@@ -2080,13 +2122,13 @@ if (category === 'admin-save') {
     requests++;
     return Response.json({ version: 'saved' });
   }) as unknown as typeof fetch;
-  await assert.rejects(m.adminApi.save('grants', { grants: [] }, 'base', ''));
+  await assert.rejects(loadedModule.adminApi.save('grants', { grants: [] }, 'base', ''));
   assert.equal(requests, 0);
 }
 if (category === 'bearer-scope') {
-  assert(m.acceptsBearer('/api/agent/catalog'));
+  assert(loadedModule.acceptsBearer('/api/agent/catalog'));
   for (const path of ['/api/projects', '/api/events', '/', '/auth/login', '/api/agent-other']) {
-    assert.equal(m.acceptsBearer(path), false);
+    assert.equal(loadedModule.acceptsBearer(path), false);
   }
 }
 if (category === 'bearer-audience') {
@@ -2095,7 +2137,7 @@ if (category === 'bearer-audience') {
   const transport = await oidcTransport();
   transport.config.apiAudience = [transport.state.apiAudience];
   const keysUrl = transport.state.issuer + '/keys';
-  const validate = m.createBearerValidator(transport.config, keysUrl, transport.fetch);
+  const validate = loadedModule.createBearerValidator(transport.config, keysUrl, transport.fetch);
   const key = transport.state.keys[0];
   const tokenFor = (audience: string) =>
     new SignJWT({ idtyp: 'app', azp: 'sw-agent', tid: transport.config.oidc.tenantId })
@@ -2116,7 +2158,7 @@ if (category === 'bearer-grants') {
   const config = emptyAccessConfig();
   config.agents.clients = [{ clientId: 'sw-agent', name: 'Sales agent', projects: ['sales'], domains: [] }];
   const policy = loadPolicySet({ builtinRoles: builtin.default.roles, customRoles: [] });
-  const evaluate = m.createPolicyEvaluator(policy, {
+  const evaluate = loadedModule.createPolicyEvaluator(policy, {
     config,
     projects: ['sales', 'hr'],
     groupMatch: 'exact',
@@ -2142,7 +2184,7 @@ if (category === 'bearer-cookie') {
   const audit = createAuditLog({ dir: workspace.root + '/audit-bearer' });
   // The signed-in Admin's cookie travels with the client's token; the token must decide.
   const callWithAdminCookie = (clientId: string) => {
-    const handler = m.createAccessMiddleware(
+    const handler = loadedModule.createAccessMiddleware(
       workspace.ws,
       {
         mode: 'server',
@@ -2169,8 +2211,8 @@ if (category === 'bearer-cookie') {
 }
 if (category === 'bearer-delegated') {
   const app = { idtyp: 'app', azp: 'sw-agent' };
-  assert.equal(m.clientFromToken(app, null).id, 'client:sw-agent');
-  assert.throws(() => m.clientFromToken({ ...app, scp: 'access_as_user' }, null));
+  assert.equal(loadedModule.clientFromToken(app, null).id, 'client:sw-agent');
+  assert.throws(() => loadedModule.clientFromToken({ ...app, scp: 'access_as_user' }, null));
 }
 
 // Governance guards: each case fails when its guard is removed or weakened.
@@ -2190,7 +2232,7 @@ if (category.startsWith('guard-')) {
       [requestRemote]: allowEveryRemote(),
     });
   if (category === 'guard-decisions') {
-    const guardFor = (name: 'alice' | 'bob') => m.guardFor(access.forRequest(access.principalFor(person(name))));
+    const guardFor = (name: 'alice' | 'bob') => loadedModule.guardFor(access.forRequest(access.principalFor(person(name))));
     const own = metrics.replace('"owner": "alice@example.org", "status": "proposed"', '"owner": "bob@example.org", "status": "approved"');
     const metricChange = { project: 'sales-metrics', path: 'sales.semantic.yaml' };
     assert.throws(() => guardFor('bob')([{ ...metricChange, before: metrics, after: own }]), {
@@ -2207,13 +2249,13 @@ if (category.startsWith('guard-')) {
     const refuseAll = () => false;
     const edited = metrics.replace("'SUM(orders.amount)'", "'SUM(orders.amount) * 2'");
     const metricChange = { project: 'sales-metrics', path: 'sales.semantic.yaml' };
-    const outcome = m.applyGuards([{ ...metricChange, before: metrics, after: edited }], settings, refuseAll, {
+    const outcome = loadedModule.applyGuards([{ ...metricChange, before: metrics, after: edited }], settings, refuseAll, {
       demote: true,
     });
     assert.equal(outcome.refused.length, 0);
     assert.equal(outcome.demoted.length, 1);
     assert(outcome.changes[0].after.includes('"status": "proposed"'));
-    const kinds = m
+    const kinds = loadedModule
       .guardedChanges(
         {
           project: 'sales-contracts',
@@ -2228,13 +2270,13 @@ if (category.startsWith('guard-')) {
   }
   if (category === 'guard-people') {
     // Owner choices list addresses, so a Viewer must not reach them.
-    assert.equal(m.routeFor('GET', '/api/projects/sales-metrics/people', 'server').row.action, 'edit');
+    assert.equal(loadedModule.routeFor('GET', '/api/projects/sales-metrics/people', 'server').row.action, 'edit');
   }
   if (category === 'guard-new-project') {
     const { tempDataDir } = await import('../tests/helpers/temp-data-dir');
     const { guardFor } = await import('../src/server/auth/guards');
     const dir = tempDataDir();
-    const ws = await m.openWorkspace({ root: dir.root });
+    const ws = await loadedModule.openWorkspace({ root: dir.root });
     try {
       const bob = access.principalFor(person('bob'));
       const reader = {
@@ -2272,7 +2314,7 @@ if (category.startsWith('guard-')) {
       );
     const route = (fixture: { ws: unknown }, item: Sent, name: 'alice' | 'bob') => {
       const sent = request(item, name);
-      const handle = category === 'guard-import' ? m.projectRoutes({}) : m[routeExport()];
+      const handle = category === 'guard-import' ? loadedModule.projectRoutes({}) : loadedModule[routeExport()];
       return handle(fixture.ws, sent, new URL(sent.url));
     };
     const routeExport = () => {
@@ -2358,7 +2400,7 @@ async function remoteCaseRepository(createGit: (options: object) => any) {
 }
 
 if (category === 'remote-credential') {
-  const setup = await remoteCaseRepository(m.createGit);
+  const setup = await remoteCaseRepository(loadedModule.createGit);
   const { fs, path, root, repo, bare, sh, git } = setup;
   const credential = {
     kind: 'token',
@@ -2386,7 +2428,11 @@ if (category === 'remote-credential') {
     // Output that repeats the token is masked before anyone sees it.
     const fake = path.join(root, 'fake-git');
     fs.writeFileSync(fake, '#!/bin/sh\necho "denied $SW_GIT_TOKEN" >&2\nexit 1\n', { mode: 0o755 });
-    const faked = m.createGit({ projectsRoot: setup.projects, env: setup.env, binary: fake });
+    const faked = loadedModule.createGit({
+      projectsRoot: setup.projects,
+      env: setup.env,
+      binary: fake,
+    });
     const failed = await faked.run(repo, ['push', 'origin', 'main'], {
       remote: true,
       credential,
@@ -2399,7 +2445,7 @@ if (category === 'remote-credential') {
 }
 
 if (category === 'remote-explicit') {
-  const { fs, root, repo, bare, git } = await remoteCaseRepository(m.createGit);
+  const { fs, root, repo, bare, git } = await remoteCaseRepository(loadedModule.createGit);
   try {
     for (const args of [
       ['fetch', bare],
@@ -2423,7 +2469,7 @@ if (category === 'remote-admin') {
     ['PUT', '/api/projects/sales-contracts/git/remote', 'alice'],
     ['POST', '/api/clone', 'bob'],
   ] as const) {
-    const route = m.routeFor(method, path);
+    const route = loadedModule.routeFor(method, path);
     const resource = route.row.resource(route.match, new URL('http://localhost'));
     const principal = access.principalFor(person(username));
     assert.equal(access.authorize(principal, route.row.action, resource).allow, false, path);
@@ -2432,13 +2478,13 @@ if (category === 'remote-admin') {
 
 if (category === 'remote-hosts') {
   const allowed = ['github.com', '127.0.0.1:9418'];
-  assert.equal(m.allowedRemoteHost('https://github.com/team/a.git', allowed).host, 'github.com');
-  assert.throws(() => m.allowedRemoteHost('https://evil.example/team/a.git', allowed));
-  assert.throws(() => m.allowedRemoteHost('http://github.com/team/a.git', allowed));
-  assert.throws(() => m.allowedRemoteHost('https://github.com/x@evil.example/a.git', allowed));
-  assert.throws(() => m.allowedRemoteHost('https://u@evil.example@github.com/a.git', allowed));
+  assert.equal(loadedModule.allowedRemoteHost('https://github.com/team/a.git', allowed).host, 'github.com');
+  assert.throws(() => loadedModule.allowedRemoteHost('https://evil.example/team/a.git', allowed));
+  assert.throws(() => loadedModule.allowedRemoteHost('http://github.com/team/a.git', allowed));
+  assert.throws(() => loadedModule.allowedRemoteHost('https://github.com/x@evil.example/a.git', allowed));
+  assert.throws(() => loadedModule.allowedRemoteHost('https://u@evil.example@github.com/a.git', allowed));
   const remote = { name: 'origin', fetchUrl: 'https://github.com/a.git' };
-  assert.throws(() => m.allowedRemoteAddresses({ ...remote, pushUrl: 'http://127.0.0.1:9418/a.git' }, allowed));
+  assert.throws(() => loadedModule.allowedRemoteAddresses({ ...remote, pushUrl: 'http://127.0.0.1:9418/a.git' }, allowed));
 }
 
 // Pushes a branch through a remote that redirects at once to another host, and returns the
@@ -2486,7 +2532,7 @@ if (category === 'remote-redirect') {
   fs.writeFileSync(lax, `#!/bin/sh\necho ${REDIRECT_TOKEN}\n`, { mode: 0o755 });
   try {
     const credential = { kind: 'token', username: 'u', token: REDIRECT_TOKEN, host: 'unused' };
-    const setup = m.credentialSetup(credential);
+    const setup = loadedModule.credentialSetup(credential);
     const leaked = await redirectedPasswords(setup.args, { ...setup.env, GIT_ASKPASS: lax });
     assert(!leaked.includes(REDIRECT_TOKEN), 'the token followed a redirect to another host');
   } finally {
@@ -2505,7 +2551,7 @@ if (category === 'askpass') {
   assert.equal(ask("Username for 'https://': ", ''), '\n');
   // With redirects followed, the askpass program alone keeps the token from the other host.
   const credential = { kind: 'token', username: 'u', token: REDIRECT_TOKEN, host: 'unused' };
-  const setup = m.credentialSetup(credential);
+  const setup = loadedModule.credentialSetup(credential);
   const args = [...setup.args, '-c', 'http.followRedirects=true'];
   const leaked = await redirectedPasswords(args, { ...setup.env, GIT_ASKPASS: askpass });
   assert(!leaked.includes(REDIRECT_TOKEN), 'the askpass program answered another host');
@@ -2523,7 +2569,7 @@ if (category === 'remote-guarded-fetch') {
   const served = path.join(team.root, 'served');
   const server = startCredentialGitServer(served, async (_user, password) => (password === token ? 'person' : null));
   try {
-    const scm = m.createScm({
+    const scm = loadedModule.createScm({
       layout: team.ws.layout,
       git: team.ws.git,
       gitAvailable: true,
@@ -2578,7 +2624,7 @@ if (category === 'remote-consent') {
     });
     let now = Date.now();
     let obo = false;
-    const credentials = m.createRemoteCredentials({
+    const credentials = loadedModule.createRemoteCredentials({
       config: oidcConfig('http://127.0.0.1:9/issuer', 'http://127.0.0.1:9/graph', 'entra', {
         SW_GITHUB_HOST: 'github.example',
         SW_GITHUB_CLIENT_ID: 'client',
@@ -2653,7 +2699,7 @@ if (category === 'copy-author') {
       message: 'Alice commits',
       paths: ['orders.odcs.yaml'],
     });
-    const response = await m.gitRoutes(fixture.ws, request, new URL(request.url));
+    const response = await loadedModule.gitRoutes(fixture.ws, request, new URL(request.url));
     assert.equal(response.status, 200);
     const copy = join(fixture.ws.layout.worktrees, keyOf('alice'), 'sales-contracts');
     const log = Bun.spawnSync(['git', 'log', '-1', '--format=%an'], { cwd: copy });
@@ -2673,7 +2719,7 @@ if (category === 'copy-worktrees') {
     const git = createGit({ projectsRoot: layout.projects, worktreesRoot: layout.worktrees });
     const ann = { key: 'u' + 'a'.repeat(20), handle: 'ann', name: 'Ann' };
     const ben = { key: 'u' + 'b'.repeat(20), handle: 'ben', name: 'Ben' };
-    const worktrees = m.createWorktrees({ layout, git, people: () => [ann, ben] });
+    const worktrees = loadedModule.createWorktrees({ layout, git, people: () => [ann, ben] });
     const commitIn = (dir: string, name: string) => {
       writeFileSync(join(dir, name), name);
       for (const args of [
@@ -2706,7 +2752,7 @@ if (category === 'copy-publish') {
     const git = createGit({ projectsRoot: layout.projects, worktreesRoot: layout.worktrees });
     const ann = { key: 'u' + 'a'.repeat(20), handle: 'ann', name: 'Ann' };
     const ben = { key: 'u' + 'b'.repeat(20), handle: 'ben', name: 'Ben' };
-    const worktrees = m.createWorktrees({ layout, git, people: () => [ann, ben] });
+    const worktrees = loadedModule.createWorktrees({ layout, git, people: () => [ann, ben] });
     const run = (dir: string, args: string[]) => {
       const identity = ['-c', 'user.name=Someone', '-c', 'user.email=someone@example.org'];
       const result = Bun.spawnSync(['git', ...identity, ...args], { cwd: dir });
@@ -2767,7 +2813,7 @@ if (category === 'copy-drafts') {
   const { dataLayout } = await import('../src/server/projects/paths');
   const data = tempDataDir();
   try {
-    const state = m.createState(dataLayout(data.root));
+    const state = loadedModule.createState(dataLayout(data.root));
     const draft = { baseHash: null, text: 'alice words', patches: [] };
     state.forOwner('tenant:alice').writeDraft('sales', 'a.yaml', draft);
     assert.equal(state.forOwner('tenant:alice').draft('sales', 'a.yaml').text, 'alice words');
@@ -2783,7 +2829,7 @@ if (category === 'copy-save') {
   const { join } = await import('node:path');
   const { fixture, access, person } = await copyFixture();
   fixture.ws.close();
-  const ws = await m.openWorkspace({ root: fixture.root });
+  const ws = await loadedModule.openWorkspace({ root: fixture.root });
   try {
     const origin = 'http://127.0.0.1:4310';
     const { allowEveryRemote } = await import('../tests/helpers/remote-credentials-fixture');
@@ -2832,9 +2878,9 @@ if (category === 'copy-protected') {
       slug: 'sales-contracts',
     });
     // An Editor neither publishes nor checks out the protected main; the Steward publishes.
-    await assert.rejects(m.authorizePublish(target('alice'), undefined), /not authorized/);
-    assert.throws(() => m.authorizeCheckout(target('alice'), 'main'), /not authorized/);
-    await m.authorizePublish(target('bob'), undefined);
+    await assert.rejects(loadedModule.authorizePublish(target('alice'), undefined), /not authorized/);
+    assert.throws(() => loadedModule.authorizeCheckout(target('alice'), 'main'), /not authorized/);
+    await loadedModule.authorizePublish(target('bob'), undefined);
   } finally {
     fixture.dispose();
   }
@@ -2851,7 +2897,7 @@ if (category === 'copy-subproject') {
   const { saveText, signedIn } = await import('../tests/auth/working-copy-fixture');
   const remote = bareRepository('monorepo');
   const data = tempDataDir();
-  const ws = await m.openWorkspace({ root: data.root });
+  const ws = await loadedModule.openWorkspace({ root: data.root });
   try {
     const started = ws.clone(remote.bare, undefined, LOCAL_READER);
     const cloned = () =>
@@ -2895,7 +2941,7 @@ if (category === 'copy-suggestions') {
   const { requestReader } = await import('../src/server/auth/request-scope');
   const { fixture, scoped } = await copyFixture();
   fixture.ws.close();
-  const ws = await m.openWorkspace({ root: fixture.root });
+  const ws = await loadedModule.openWorkspace({ root: fixture.root });
   try {
     const alice = requestReader(scoped('alice', '/'));
     const frank = requestReader(scoped('frank', '/'));
@@ -2916,9 +2962,9 @@ if (category === 'copy-suggestions') {
 // Entra sign-in through MSAL: the library choice, the session's token cache at rest, PKCE, the
 // certificate credential and group overage.
 if (category === 'msal-choice') {
-  assert.equal(m.signInLibrary('entra'), 'msal');
-  assert.equal(m.signInLibrary('generic'), 'openid-client');
-  assert.equal(m.signInLibrary('keycloak'), 'openid-client');
+  assert.equal(loadedModule.signInLibrary('entra'), 'msal');
+  assert.equal(loadedModule.signInLibrary('generic'), 'openid-client');
+  assert.equal(loadedModule.signInLibrary('keycloak'), 'openid-client');
 }
 if (category === 'msal-cache') {
   // MSAL's cache holds refresh tokens; it may live only in the encrypted session record.
@@ -2931,7 +2977,7 @@ if (category === 'msal-cache') {
   }) as typeof Bun.write;
   try {
     await helpers.withEntraProvider(async provider => {
-      const client = await m.createMsalProvider(helpers.entraConfig(provider));
+      const client = await loadedModule.createMsalProvider(helpers.entraConfig(provider));
       const identity = await helpers.signInWith(client, provider, 'alice');
       assert(identity.tokens.tokenCache);
     });
@@ -2943,7 +2989,7 @@ if (category === 'msal-cache') {
 if (category === 'msal-state') {
   const helpers = await import('../tests/helpers/entra-provider');
   await helpers.withEntraProvider(async provider => {
-    const client = await m.createMsalProvider(helpers.entraConfig(provider));
+    const client = await loadedModule.createMsalProvider(helpers.entraConfig(provider));
     // Without the expected state MSAL parses the returned one as its own format and fails.
     assert((await helpers.signInWith(client, provider, 'alice')).principal.id);
     const started = await client.login('/');
@@ -2955,13 +3001,13 @@ if (category === 'msal-state') {
 if (category === 'msal-refresh') {
   const helpers = await import('../tests/helpers/entra-provider');
   await helpers.withEntraProvider(async provider => {
-    const client = await m.createMsalProvider(helpers.entraConfig(provider));
+    const client = await loadedModule.createMsalProvider(helpers.entraConfig(provider));
     const identity = await helpers.signInWith(client, provider, 'alice');
     assert((await client.refresh(identity.tokens)).principal.id);
   });
   await helpers.withEntraProvider(
     async provider => {
-      const client = await m.createMsalProvider(helpers.entraConfig(provider));
+      const client = await loadedModule.createMsalProvider(helpers.entraConfig(provider));
       const identity = await helpers.signInWith(client, provider, 'alice');
       await assert.rejects(client.refresh(identity.tokens));
     },
@@ -2981,16 +3027,16 @@ if (category === 'msal-authority') {
     SW_SESSION_KEY: Buffer.from(Array.from({ length: 32 }, (_, index) => index + 1)).toString('base64'),
     SW_BOOTSTRAP_ADMINS: 'admin@example.org',
   };
-  assert.equal(m.readConfig(env).mode, 'server');
+  assert.equal(loadedModule.readConfig(env).mode, 'server');
   const loopback = `https://127.0.0.1:4400/${tenant}/v2.0`;
-  assert.throws(() => m.readConfig({ ...env, SW_OIDC_ISSUER: loopback }));
+  assert.throws(() => loadedModule.readConfig({ ...env, SW_OIDC_ISSUER: loopback }));
 }
 if (category === 'msal-host') {
   const tenant = '4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f';
-  const microsoft = m.entraAuthority(`https://login.microsoftonline.com/${tenant}/v2.0`, tenant);
+  const microsoft = loadedModule.entraAuthority(`https://login.microsoftonline.com/${tenant}/v2.0`, tenant);
   assert.equal(microsoft.host, 'login.microsoftonline.com');
   // MSAL would send the credential and refresh tokens to whatever host it is given.
-  assert.throws(() => m.entraAuthority(`https://login.example.org/${tenant}/v2.0`, tenant));
+  assert.throws(() => loadedModule.entraAuthority(`https://login.example.org/${tenant}/v2.0`, tenant));
 }
 if (category === 'front-channel-issuer') {
   const helpers = await import('../tests/helpers/entra-provider');
@@ -2999,7 +3045,7 @@ if (category === 'front-channel-issuer') {
   await helpers.withEntraProvider(async provider => {
     using fixture = await authWorkspace();
     const config = helpers.entraConfig(provider);
-    const auth = await m.createServerAuthentication(fixture.ws, config);
+    const auth = await loadedModule.createServerAuthentication(fixture.ws, config);
     try {
       const handler = createHandler(fixture.ws, auth);
       const origin = 'http://127.0.0.1:4310';
@@ -3025,7 +3071,7 @@ if (category === 'front-channel-issuer') {
 if (category === 'msal-pkce') {
   const helpers = await import('../tests/helpers/entra-provider');
   await helpers.withEntraProvider(async provider => {
-    const client = await m.createMsalProvider(helpers.entraConfig(provider));
+    const client = await loadedModule.createMsalProvider(helpers.entraConfig(provider));
     const identity = await helpers.signInWith(client, provider, 'alice');
     assert(identity.principal.id);
   });
@@ -3034,7 +3080,7 @@ if (category === 'msal-certificate') {
   const privateKey = '-----BEGIN PRIVATE KEY-----\nkey\n-----END PRIVATE KEY-----';
   const assertion = async () => 'unused';
   for (const thumbprint of ['a'.repeat(64), 'b'.repeat(40)]) {
-    const credential = m.msalCredential({ kind: 'certificate', privateKey, thumbprint }, assertion);
+    const credential = loadedModule.msalCredential({ kind: 'certificate', privateKey, thumbprint }, assertion);
     assert.equal(credential.clientSecret, undefined);
     assert.equal(credential.clientCertificate?.privateKey, privateKey);
   }
@@ -3045,7 +3091,7 @@ if (category === 'msal-overage') {
   const { createHandler } = await import('../src/server/handler');
   await helpers.withEntraProvider(async provider => {
     using fixture = await authWorkspace();
-    const auth = await m.createServerAuthentication(fixture.ws, helpers.entraConfig(provider));
+    const auth = await loadedModule.createServerAuthentication(fixture.ws, helpers.entraConfig(provider));
     try {
       const handler = createHandler(fixture.ws, auth);
       const origin = 'http://127.0.0.1:4310';
@@ -3065,7 +3111,7 @@ if (category === 'msal-overage') {
 // Delivery hardening cases. Each one passes on the real module and fails on every mutant.
 if (category === 'deploy-ingress') {
   const { fakeApp, fakeTarget } = await import('./deploy-fake');
-  assert.doesNotThrow(() => m.preflight(fakeApp(), fakeTarget));
+  assert.doesNotThrow(() => loadedModule.preflight(fakeApp(), fakeTarget));
   const exposures: ((app: any) => void)[] = [
     app => (app.ingress.external = false),
     app => (app.ingress.allowInsecure = true),
@@ -3076,7 +3122,7 @@ if (category === 'deploy-ingress') {
   for (const expose of exposures) {
     const app = fakeApp();
     expose(app);
-    assert.throws(() => m.preflight(app, fakeTarget), /Preflight failed: ingress|SW_PUBLIC_URL/);
+    assert.throws(() => loadedModule.preflight(app, fakeTarget), /Preflight failed: ingress|SW_PUBLIC_URL/);
   }
 }
 if (category === 'deploy-ingress-read') {
@@ -3088,7 +3134,7 @@ if (category === 'deploy-ingress-read') {
       template: { containers: [{ env: [] }], scale: {} },
     },
   });
-  const read = (ingress: object | undefined) => m.appSettings(response(ingress), fakeTarget).ingress;
+  const read = (ingress: object | undefined) => loadedModule.appSettings(response(ingress), fakeTarget).ingress;
   assert.equal(read(undefined).external, false);
   assert.equal(read({}).allowInsecure, true);
   assert.equal(read({ allowInsecure: false, external: true }).allowInsecure, false);
@@ -3099,7 +3145,7 @@ if (category === 'deploy-ingress-read') {
 if (category === 'deploy-lock') {
   const { fakeAzure, fakeTarget, fakeRelease } = await import('./deploy-fake');
   const client = fakeAzure();
-  await m.deploy(fakeTarget, fakeRelease, client);
+  await loadedModule.deploy(fakeTarget, fakeRelease, client);
   assert.deepEqual(
     client.calls.slice(-2).map((call: unknown[]) => call[0]),
     ['promote', 'lock'],
@@ -3107,13 +3153,13 @@ if (category === 'deploy-lock') {
 }
 if (category === 'image-lock') {
   const { fakeTarget, fakeRelease } = await import('./deploy-fake');
-  assert.deepEqual(m.releaseTags(fakeRelease), [`sha-${fakeRelease.commit}`, fakeRelease.tag]);
-  assert.deepEqual(m.lockArguments(fakeTarget, 'v0.4.0').slice(-2), ['--write-enabled', 'false']);
+  assert.deepEqual(loadedModule.releaseTags(fakeRelease), [`sha-${fakeRelease.commit}`, fakeRelease.tag]);
+  assert.deepEqual(loadedModule.lockArguments(fakeTarget, 'v0.4.0').slice(-2), ['--write-enabled', 'false']);
 }
 if (category === 'deploy-lock-client') {
   const { fakeTarget, fakeRelease } = await import('./deploy-fake');
   const calls: string[][] = [];
-  const client = m.azureClient(fakeTarget, async (args: string[]) => {
+  const client = loadedModule.azureClient(fakeTarget, async (args: string[]) => {
     calls.push(args);
     return '';
   });
@@ -3146,7 +3192,7 @@ if (category === 'image-push-guard') {
     };
     return { calls, run };
   };
-  const push = (run: (args: string[]) => Promise<string>) => m.pushCommitImage(context, 'swfake.azurecr.io', fakeTarget, run);
+  const push = (run: (args: string[]) => Promise<string>) => loadedModule.pushCommitImage(context, 'swfake.azurecr.io', fakeTarget, run);
   const pushed = (calls: string[][]) => calls.some(args => args.includes('push'));
   const kept = record([() => tagJson(digest, false)]);
   assert.deepEqual(await push(kept.run), { digest, kept: true });
@@ -3179,7 +3225,7 @@ if (category === 'deploy-promote-rerun') {
   const state = (value: string) => JSON.stringify({ digest: value, writeEnabled: true });
   const run = (answer: string) => {
     const calls: string[][] = [];
-    const client = m.azureClient(fakeTarget, async (args: string[]) => {
+    const client = loadedModule.azureClient(fakeTarget, async (args: string[]) => {
       calls.push(args);
       return answer;
     });
@@ -3220,11 +3266,11 @@ if (category === 'deploy-ancestry' || category === 'deploy-ancestry-cli') {
     git('checkout', '-q', '-b', 'unreviewed');
     const unreviewed = commitFile('unreviewed');
     if (category === 'deploy-ancestry') {
-      await m.assertCommitOnMain(reviewed, repository);
-      await assert.rejects(() => m.assertCommitOnMain(unreviewed, repository), /not on origin\/main/);
-      await assert.rejects(() => m.assertCommitOnMain(reviewed, '/tmp'), /Could not compare/);
-      assert.throws(() => m.mainAncestryArguments('HEAD'), /40-hex/);
-      assert.equal(m.mainAncestryArguments(reviewed).at(-1), 'origin/main');
+      await loadedModule.assertCommitOnMain(reviewed, repository);
+      await assert.rejects(() => loadedModule.assertCommitOnMain(unreviewed, repository), /not on origin\/main/);
+      await assert.rejects(() => loadedModule.assertCommitOnMain(reviewed, '/tmp'), /Could not compare/);
+      assert.throws(() => loadedModule.mainAncestryArguments('HEAD'), /40-hex/);
+      assert.equal(loadedModule.mainAncestryArguments(reviewed).at(-1), 'origin/main');
     } else {
       const { fakeTarget } = await import('./deploy-fake');
       writeFileSync(`${repository}/package.json`, JSON.stringify({ version: '0.4.0' }));
@@ -3246,7 +3292,7 @@ if (category === 'deploy-ancestry' || category === 'deploy-ancestry-cli') {
 }
 if (category === 'pipeline-gates') {
   const imageJobs = 'deploy/azure-devops/templates/image-jobs.yml';
-  m.lintRules(m.readPipelineInput());
+  loadedModule.lintRules(loadedModule.readPipelineInput());
   const publish = '      - task: PublishPipelineArtifact@1';
   const extraStep = (condition: string) => `      - task: AzureCLI@2
         condition: ${condition}
@@ -3273,37 +3319,41 @@ ${publish}`;
     [
       'azure-pipelines-rollback.yml',
       '                    ROLLBACK_TARGET: ${{ parameters.target }}\n',
-      '                    ROLLBACK_TARGET: ${{ parameters.target }}\n      - job: extra\n        steps:\n          - task: AzureCLI@2\n            inputs:\n              azureSubscription: ${{ parameters.deployServiceConnection }}\n              scriptType: bash\n              scriptLocation: inlineScript\n              inlineScript: bun run check\n',
+      '                    ROLLBACK_TARGET: ${{ parameters.target }}\n      - job: extra\n        steps:\n          - task: AzureCLI@2\n            ' +
+        'inputs:\n              azureSubscription: ${{ parameters.deployServiceConnection ' +
+        '}}\n              scriptType: bash\n              scriptLocation: ' +
+        'inlineScript\n              inlineScript: bun run check\n',
       /service connection outside a deployment/,
     ],
   ];
   for (const [file, before, after, message] of variants) {
-    const input = m.readPipelineInput();
+    const input = loadedModule.readPipelineInput();
     assert(input.files[file].includes(before), `Missing anchor in ${file}: ${before}`);
     input.files[file] = input.files[file].replace(before, after);
-    assert.throws(() => m.lintRules(input), message);
+    assert.throws(() => loadedModule.lintRules(input), message);
   }
-  const extra = m.readPipelineInput();
+  const extra = loadedModule.readPipelineInput();
   extra.files['deploy/azure-devops/templates/extra.yml'] =
-    'steps:\n  - task: AzureCLI@2\n    inputs:\n      azureSubscription: ${{ parameters.acrServiceConnection }}\n      scriptType: bash\n      scriptLocation: inlineScript\n      inlineScript: bun run check\n';
-  assert.throws(() => m.lintRules(extra), /service connection outside a deployment or Image job/);
+    'steps:\n  - task: AzureCLI@2\n    inputs:\n      azureSubscription: ${{ parameters.acrServiceConnection }}\n      scriptType: bash\n      scriptLocation: ' +
+    'inlineScript\n      inlineScript: bun run check\n';
+  assert.throws(() => loadedModule.lintRules(extra), /service connection outside a deployment or Image job/);
 }
 if (category === 'pipeline-pr-azure') {
   const { lintRules, readPipelineInput, readSampleVariables } = await import('./pipeline-lint');
   const documents = lintRules(readPipelineInput());
-  assert.doesNotThrow(() => m.buildPlan(documents, readSampleVariables(), 'pr'));
+  assert.doesNotThrow(() => loadedModule.buildPlan(documents, readSampleVariables(), 'pr'));
   documents['deploy/azure-devops/templates/image-jobs.yml'].jobs[0].condition = 'succeeded()';
-  assert.throws(() => m.buildPlan(documents, readSampleVariables(), 'pr'), /Pull-request runs must not use a service connection/);
+  assert.throws(() => loadedModule.buildPlan(documents, readSampleVariables(), 'pr'), /Pull-request runs must not use a service connection/);
 }
 if (category === 'container-hardening') {
-  assert.deepEqual(m.hardenedRunArguments(), ['--read-only', '--tmpfs', '/tmp', '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges']);
+  assert.deepEqual(loadedModule.hardenedRunArguments(), ['--read-only', '--tmpfs', '/tmp', '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges']);
 }
 if (category === 'save-failure-wording') {
-  assert.equal(m.failureReason('Refused: a classification change.'), 'a classification change.');
-  assert.equal(m.failureReason('file changed on disk'), 'file changed on disk');
-  assert.equal(m.failureReason(null), 'the save failed');
+  assert.equal(loadedModule.failureReason('Refused: a classification change.'), 'a classification change.');
+  assert.equal(loadedModule.failureReason('file changed on disk'), 'file changed on disk');
+  assert.equal(loadedModule.failureReason(null), 'the save failed');
   const failed = { status: 'failed', message: 'Refused: no.' };
-  assert.equal(m.saveStateLabel(failed, 0), 'Not saved: no.');
+  assert.equal(loadedModule.saveStateLabel(failed, 0), 'Not saved: no.');
 }
 if (category === 'sparse-folder-path') {
   const accepted: [string, string][] = [
@@ -3312,21 +3362,21 @@ if (category === 'sparse-folder-path') {
     ['', ''],
     ['a b/c-d.e', 'a b/c-d.e'],
   ];
-  for (const [typed, folder] of accepted) assert.deepEqual(m.checkRepositoryFolder(typed), { ok: true, folder });
-  assert.deepEqual(m.checkRepositoryFolder(undefined), { ok: true, folder: '' });
+  for (const [typed, folder] of accepted) assert.deepEqual(loadedModule.checkRepositoryFolder(typed), { ok: true, folder });
+  assert.deepEqual(loadedModule.checkRepositoryFolder(undefined), { ok: true, folder: '' });
   const refused = ['../x', 'a/../b', 'a/./b', '/etc', 'C:/x', 'a//b', 'a\\b', '.git', 'a/.GIT', '-x', 'a/*', 'a/[b]', 'a\nb', 'a\u0001b', 'x'.repeat(501)];
-  for (const typed of refused) assert.equal(m.checkRepositoryFolder(typed).ok, false, JSON.stringify(typed));
-  assert.equal(m.checkRepositoryFolder(42).ok, false);
+  for (const typed of refused) assert.equal(loadedModule.checkRepositoryFolder(typed).ok, false, JSON.stringify(typed));
+  assert.equal(loadedModule.checkRepositoryFolder(42).ok, false);
   // The message names the actual problem, not only that the path is refused.
-  assert.match(m.checkRepositoryFolder('/etc').message, /absolute/);
-  assert.match(m.checkRepositoryFolder('a\\b').message, /forward slashes/);
-  assert.match(m.checkRepositoryFolder('a/'.repeat(300) + 'b').message, /too long/);
+  assert.match(loadedModule.checkRepositoryFolder('/etc').message, /absolute/);
+  assert.match(loadedModule.checkRepositoryFolder('a\\b').message, /forward slashes/);
+  assert.match(loadedModule.checkRepositoryFolder('a/'.repeat(300) + 'b').message, /too long/);
 }
 if (category === 'sparse-checkout-arguments') {
-  assert.deepEqual(m.sparseSetArguments(['a/b']), ['sparse-checkout', 'set', '--cone', '--', 'a/b']);
-  assert.deepEqual(m.conePathspecs(['semantic/ubl']), [':(glob)*', 'semantic/ubl', ':(glob)semantic/*']);
-  assert.deepEqual(m.conePathspecs(['a/b/c']), [':(glob)*', 'a/b/c', ':(glob)a/*', ':(glob)a/b/*']);
-  assert.deepEqual(m.conePathspecs(['ubl']), [':(glob)*', 'ubl']);
+  assert.deepEqual(loadedModule.sparseSetArguments(['a/b']), ['sparse-checkout', 'set', '--cone', '--', 'a/b']);
+  assert.deepEqual(loadedModule.conePathspecs(['semantic/ubl']), [':(glob)*', 'semantic/ubl', ':(glob)semantic/*']);
+  assert.deepEqual(loadedModule.conePathspecs(['a/b/c']), [':(glob)*', 'a/b/c', ':(glob)a/*', ':(glob)a/b/*']);
+  assert.deepEqual(loadedModule.conePathspecs(['ubl']), [':(glob)*', 'ubl']);
 }
 if (category === 'sparse-partial-clone') {
   const { chmodSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } = await import('node:fs');
@@ -3340,7 +3390,7 @@ if (category === 'sparse-partial-clone') {
   const parent = join(root, 'projects', 'staging');
   // The fake Git clones nothing, so the folder the configuration commands run in is made here.
   mkdirSync(join(parent, 'repo'), { recursive: true });
-  const git = m.createGit({ projectsRoot: join(root, 'projects'), binary: fake });
+  const git = loadedModule.createGit({ projectsRoot: join(root, 'projects'), binary: fake });
   await git.clone(parent, 'file:///team.git', 'repo', undefined, { partial: true });
   await git.clone(parent, 'file:///team.git', 'repo', undefined);
   const clones = readFileSync(record, 'utf8')
@@ -3350,4 +3400,4 @@ if (category === 'sparse-partial-clone') {
   assert(clones[0].includes('--filter=blob:none') && clones[0].includes('--no-checkout'));
   assert(!clones[1].includes('--filter') && !clones[1].includes('--no-checkout'));
 }
-await observabilityCase(category, m);
+await observabilityCase(category, loadedModule);

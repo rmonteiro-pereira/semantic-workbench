@@ -33,7 +33,7 @@ type Options = {
         document: any;
       }
   >;
-  parsedDoc: (d: Doc) => { hash: string; model: ValidatedModel; keys: Set<string> };
+  parsedDoc: (doc: Doc) => { hash: string; model: ValidatedModel; keys: Set<string> };
   docs: Doc[];
   currentRef: React.RefObject<Doc | null>;
   setCurrent: (next: Doc | null) => void;
@@ -41,7 +41,7 @@ type Options = {
   setDocs: React.Dispatch<React.SetStateAction<Doc[]>>;
   setMessage: React.Dispatch<React.SetStateAction<string>>;
   refresh: () => Promise<Doc[]>;
-  openDocument: (d: Doc) => boolean;
+  openDocument: (doc: Doc) => boolean;
   setTab: (next: string) => void;
   sourceEditor: React.RefObject<CodeEditorHandle | null>;
   kpiProject: string | null;
@@ -93,15 +93,24 @@ export function useItemEditing({
   const [rdfAdding, setRdfAdding] = useState<string | null>(null);
   const [rdfDeleting, setRdfDeleting] = useState<RdfTarget | null>(null);
   const currentIsRdf = !!current && !!rdfSyntax(source, current.filename);
-  function rdfTarget(e: Entity): RdfTarget | null {
-    return current && currentIsRdf && e.readOnlyForm && isIri(e.id) && e.kind !== 'Built-in concept' ? { docId: current.id, subject: e.id, label: e.name, kind: e.kind } : null;
+  function rdfTarget(entity: Entity): RdfTarget | null {
+    return current && currentIsRdf && entity.readOnlyForm && isIri(entity.id) && entity.kind !== 'Built-in concept'
+      ? { docId: current.id, subject: entity.id, label: entity.name, kind: entity.kind }
+      : null;
   }
-  function rdfEdgeTarget(r: Relationship): RdfTarget | null {
+  function rdfEdgeTarget(relationship: Relationship): RdfTarget | null {
     if (!current || !currentIsRdf) return null;
-    const definitionValue = r.data.definition;
-    const subject = r.data.kind === 'OWL object property' ? definitionValue?.iri : definitionValue?.subject;
-    const e = model?.entities.find(x => x.id === subject);
-    return subject && isIri(subject) ? { docId: current.id, subject, label: e?.name ?? subject, kind: e?.kind ?? 'RDF resource' } : null;
+    const definition = relationship.data.definition;
+    const subject = relationship.data.kind === 'OWL object property' ? definition?.iri : definition?.subject;
+    const entity = model?.entities.find(x => x.id === subject);
+    return subject && isIri(subject)
+      ? {
+          docId: current.id,
+          subject,
+          label: entity?.name ?? subject,
+          kind: entity?.kind ?? 'RDF resource',
+        }
+      : null;
   }
   const docText = (id: string) => (id === current?.id ? source : (docsRef.current.get(id)?.source ?? ''));
   const modelOf = (id: string) =>
@@ -109,19 +118,19 @@ export function useItemEditing({
       ? model
       : (projectModels.get(id) ??
         (() => {
-          const documentValue = docsRef.current.get(id);
-          return documentValue ? parsedDoc(documentValue).model : null;
+          const doc = docsRef.current.get(id);
+          return doc ? parsedDoc(doc).model : null;
         })());
   const documentOf = (id: string) => (modelOf(id) as any)?.document;
-  function entityTarget(e: Entity): ItemTarget | null {
-    if (!current || e.readOnlyForm || !e.path.length) return null;
-    const kind = itemKindAt(documentOf(current.id), e.path);
-    return kind ? { docId: current.id, path: e.path, kind } : null;
+  function entityTarget(entity: Entity): ItemTarget | null {
+    if (!current || entity.readOnlyForm || !entity.path.length) return null;
+    const kind = itemKindAt(documentOf(current.id), entity.path);
+    return kind ? { docId: current.id, path: entity.path, kind } : null;
   }
-  function relationshipTarget(r: Relationship): ItemTarget | null {
-    if (!current || r.data.readOnlyForm || !r.data.path.length) return null;
-    const kind = itemKindAt(documentOf(current.id), r.data.path);
-    return kind ? { docId: current.id, path: r.data.path, kind } : null;
+  function relationshipTarget(relationship: Relationship): ItemTarget | null {
+    if (!current || relationship.data.readOnlyForm || !relationship.data.path.length) return null;
+    const kind = itemKindAt(documentOf(current.id), relationship.data.path);
+    return kind ? { docId: current.id, path: relationship.data.path, kind } : null;
   }
   function choicesFor(id: string): Choices {
     const own = modelOf(id);
@@ -141,11 +150,11 @@ export function useItemEditing({
   // Saved item changes: every view follows the new bytes at once, then the folder scan confirms.
   function applySaved(saved: Saved[], label: string) {
     for (const savedItem of saved) {
-      const documentValue = docsRef.current.get(savedItem.docId);
-      if (!documentValue) continue;
-      const next = { ...documentValue, source: savedItem.source, hash: savedItem.hash };
-      docsRef.current.set(documentValue.id, next);
-      if (currentRef.current?.id === documentValue.id) {
+      const doc = docsRef.current.get(savedItem.docId);
+      if (!doc) continue;
+      const next = { ...doc, source: savedItem.source, hash: savedItem.hash };
+      docsRef.current.set(doc.id, next);
+      if (currentRef.current?.id === doc.id) {
         setCurrent(next);
         setSource(savedItem.source);
       }
@@ -155,21 +164,21 @@ export function useItemEditing({
     void refresh().catch(() => {});
   }
   function openSourceAt(id: string, line: number) {
-    const documentValue = docsRef.current.get(id);
-    if (documentValue && documentValue.id !== current?.id && !openDocument(documentValue)) return;
+    const doc = docsRef.current.get(id);
+    if (doc && doc.id !== current?.id && !openDocument(doc)) return;
     setTab('source');
     setTimeout(() => sourceEditor.current?.goToLine(line), 60);
   }
   function editMappingItem(docId: string, path: Path) {
-    const documentValue = docsRef.current.get(docId);
-    if (!documentValue) return;
+    const doc = docsRef.current.get(docId);
+    if (!doc) return;
     const document = documentOf(docId);
     const text = docText(docId);
     for (let length = path.length; length > 0; length--) {
       const prefix = path.slice(0, length);
       const kind = itemKindAt(document, prefix);
       if (kind && prefix.reduce((value, key) => value?.[key], document) != null) {
-        if (documentValue.id !== current?.id && !openDocument(documentValue)) return;
+        if (doc.id !== current?.id && !openDocument(doc)) return;
         setEditing({ docId, path: prefix, kind });
         return;
       }
@@ -184,13 +193,13 @@ export function useItemEditing({
     }
     openSourceAt(docId, 1);
   }
-  function editKpi(k: KpiSummary) {
-    const id = `${kpiProject}/${k.file}`;
-    const documentValue = docsRef.current.get(id);
-    if (!documentValue) return;
-    const metrics = itemValue(docText(id), [...k.modelPath, 'metrics']);
-    const index = Array.isArray(metrics) ? metrics.findIndex((m: any) => m?.name === k.name) : -1;
-    if (index >= 0) setEditing({ docId: id, path: [...k.modelPath, 'metrics', index], kind: 'metric' });
+  function editKpi(kpiSummary: KpiSummary) {
+    const id = `${kpiProject}/${kpiSummary.file}`;
+    const doc = docsRef.current.get(id);
+    if (!doc) return;
+    const metrics = itemValue(docText(id), [...kpiSummary.modelPath, 'metrics']);
+    const index = Array.isArray(metrics) ? metrics.findIndex((m: any) => m?.name === kpiSummary.name) : -1;
+    if (index >= 0) setEditing({ docId: id, path: [...kpiSummary.modelPath, 'metrics', index], kind: 'metric' });
   }
   const latest = useRef<() => void>(() => {});
   latest.current = () => {

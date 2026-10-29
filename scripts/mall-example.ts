@@ -2090,19 +2090,19 @@ type Link = {
   owner: string;
 };
 const byConcept = new Map(defs.map(d => [d.concept, d]));
-const attrsOf = (d: Def): Attr[] =>
-  (d.attrs ?? []).map(s => {
-    const [name, type, flags, description] = s.split('|');
-    return { name, type, flags, description, owner: d.concept };
+const attrsOf = (def: Def): Attr[] =>
+  (def.attrs ?? []).map(spec => {
+    const [name, type, flags, description] = spec.split('|');
+    return { name, type, flags, description, owner: def.concept };
   });
-const linksOf = (d: Def): Link[] =>
-  (d.links ?? []).map(s => {
-    const [head, flags, phrase, description] = s.split('|');
+const linksOf = (def: Def): Link[] =>
+  (def.links ?? []).map(link => {
+    const [head, flags, phrase, description] = link.split('|');
     const [name, target] = head.split('>');
-    return { name, target, flags, phrase, description, owner: d.concept };
+    return { name, target, flags, phrase, description, owner: def.concept };
   });
-const ancestors = (d: Def): Def[] =>
-  (d.extends ?? []).flatMap(p => {
+const ancestors = (def: Def): Def[] =>
+  (def.extends ?? []).flatMap(p => {
     const parent = byConcept.get(p)!;
     return [...ancestors(parent), parent];
   });
@@ -2110,17 +2110,20 @@ const allAttrs = (d: Def) => [...ancestors(d), d].flatMap(attrsOf);
 const allLinks = (d: Def) => [...ancestors(d), d].flatMap(linksOf);
 const camel = (s: string) => s.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
 const lowerFirst = (s: string) => s[0].toLowerCase() + s.slice(1);
-const relIri = (owner: string, name: string) => `${byConcept.get(owner)!.module}:${lowerFirst(owner)}${name[0].toUpperCase()}${camel(name).slice(1)}`;
+const relIri = (owner: string, name: string) => {
+  const moduleName = byConcept.get(owner)!.module;
+  return `${moduleName}:${lowerFirst(owner)}${name[0].toUpperCase()}${camel(name).slice(1)}`;
+};
 const words = (s: string) => s.replace(/_/g, ' ');
 const valueBase = new Map(valueTypes.map(([n, b]) => [n, b]));
 const concrete = defs.filter(d => d.table);
-for (const d of defs) {
-  for (const p of d.extends ?? []) if (!byConcept.has(p)) throw Error(`${d.concept} extends unknown ${p}`);
-  for (const l of linksOf(d)) {
-    const t = byConcept.get(l.target);
-    if (!t?.table) throw Error(`${d.concept}.${l.name} targets ${l.target}, which has no table`);
+for (const def of defs) {
+  for (const extend of def.extends ?? []) if (!byConcept.has(extend)) throw Error(`${def.concept} extends unknown ${extend}`);
+  for (const link of linksOf(def)) {
+    const targetDef = byConcept.get(link.target);
+    if (!targetDef?.table) throw Error(`${def.concept}.${link.name} targets ${link.target}, which has no table`);
   }
-  for (const a of attrsOf(d)) if (!valueBase.has(a.type)) throw Error(`${d.concept}.${a.name}: unknown value type ${a.type}`);
+  for (const attr of attrsOf(def)) if (!valueBase.has(attr.type)) throw Error(`${def.concept}.${attr.name}: unknown value type ${attr.type}`);
 }
 
 const ontology: any = {
@@ -2136,44 +2139,44 @@ const ontology: any = {
   prefixes,
   ontology: [],
 };
-for (const d of defs) {
+for (const def of defs) {
   const component: any = {
-    concept: d.concept,
+    concept: def.concept,
     type: 'EntityType',
-    iri: `${d.module}:${d.concept}`,
-    description: d.description,
+    iri: `${def.module}:${def.concept}`,
+    description: def.description,
   };
-  if (d.extends) component.extends = d.extends;
+  if (def.extends) component.extends = def.extends;
   else component.identify_by = ['id'];
-  const relationships: any[] = d.extends
+  const relationships: any[] = def.extends
     ? []
     : [
         {
           name: 'id',
-          iri: relIri(d.concept, 'id'),
-          description: `Identifier of the ${words(d.concept)}.`,
+          iri: relIri(def.concept, 'id'),
+          description: `Identifier of the ${words(def.concept)}.`,
           roles: [{ concept: 'Identifier' }],
           multiplicity: 'OneToOne',
-          verbalizes: [`{${d.concept}} is identified by {Identifier}`],
+          verbalizes: [`{${def.concept}} is identified by {Identifier}`],
         },
       ];
-  for (const a of attrsOf(d))
+  for (const attr of attrsOf(def))
     relationships.push({
-      name: a.name,
-      iri: relIri(d.concept, a.name),
-      description: a.description,
-      roles: [{ concept: a.type }],
+      name: attr.name,
+      iri: relIri(def.concept, attr.name),
+      description: attr.description,
+      roles: [{ concept: attr.type }],
       multiplicity: 'ManyToOne',
-      verbalizes: [`{${d.concept}} has ${words(a.name)} {${a.type}}`],
+      verbalizes: [`{${def.concept}} has ${words(attr.name)} {${attr.type}}`],
     });
-  for (const l of linksOf(d))
+  for (const link of linksOf(def))
     relationships.push({
-      name: l.name,
-      iri: relIri(d.concept, l.name),
-      description: l.description,
-      roles: [{ concept: l.target }],
+      name: link.name,
+      iri: relIri(def.concept, link.name),
+      description: link.description,
+      roles: [{ concept: link.target }],
       multiplicity: 'ManyToOne',
-      verbalizes: [l.target === d.concept ? `{${d.concept}} ${l.phrase} another {${l.target}}` : `{${d.concept}} ${l.phrase} {${l.target}}`],
+      verbalizes: [link.target === def.concept ? `{${def.concept}} ${link.phrase} another {${link.target}}` : `{${def.concept}} ${link.phrase} {${link.target}}`],
     });
   component.relationships = relationships;
   ontology.ontology.push(component);
@@ -2186,17 +2189,17 @@ for (const [name, builtin, description] of valueTypes)
     extends: [builtin],
     description,
   });
-for (const m of metrics)
+for (const metric of metrics)
   ontology.ontology.push({
-    concept: m.concept,
+    concept: metric.concept,
     type: 'ValueType',
-    iri: `kpi:${m.concept}`,
+    iri: `kpi:${metric.concept}`,
     extends: ['Decimal'],
-    description: m.description,
+    description: metric.description,
   });
 
 const expr = (expression: string) => ({ dialects: [{ dialect: 'ANSI_SQL', expression }] });
-const columnsOf = (d: Def) => ['id', ...allAttrs(d).map(a => a.name), ...allLinks(d).map(l => l.name + '_id')];
+const columnsOf = (def: Def) => ['id', ...allAttrs(def).map(a => a.name), ...allLinks(def).map(l => l.name + '_id')];
 const semantic: any = {
   version: '0.2.0.dev0',
   name: 'Shopping center administration semantic model',
@@ -2208,30 +2211,30 @@ const semantic: any = {
   },
   datasets: [],
   relationships: [],
-  metrics: metrics.map(m => ({
-    name: m.name,
-    description: m.description,
-    expression: expr(m.expression),
-    custom_extensions: extension(keyPerLine({ schema: 'semantic-workbench/metric/v1', ...kpis[m.name].ext })),
+  metrics: metrics.map(metric => ({
+    name: metric.name,
+    description: metric.description,
+    expression: expr(metric.expression),
+    custom_extensions: extension(keyPerLine({ schema: 'semantic-workbench/metric/v1', ...kpis[metric.name].ext })),
   })),
 };
-for (const d of concrete) {
-  const fields: any[] = columnsOf(d).map(name => ({ name, expression: expr(name) }));
-  const extra = computed[d.table!];
+for (const def of concrete) {
+  const fields: any[] = columnsOf(def).map(name => ({ name, expression: expr(name) }));
+  const extra = computed[def.table!];
   if (extra) fields.push({ name: extra[0], description: extra[2], expression: expr(extra[1]) });
   semantic.datasets.push({
-    name: d.table,
-    source: `mall.${d.table}`,
-    description: d.description,
+    name: def.table,
+    source: `mall.${def.table}`,
+    description: def.description,
     primary_key: ['id'],
     fields,
   });
-  for (const l of allLinks(d))
+  for (const link of allLinks(def))
     semantic.relationships.push({
-      name: `${d.table}_${l.name}`,
-      from: d.table,
-      to: byConcept.get(l.target)!.table,
-      from_columns: [l.name + '_id'],
+      name: `${def.table}_${link.name}`,
+      from: def.table,
+      to: byConcept.get(link.target)!.table,
+      from_columns: [link.name + '_id'],
       to_columns: ['id'],
     });
 }
@@ -2244,25 +2247,25 @@ const mapping: any = {
   semantic_model_ref: { name: semantic.name, iri: './mall.semantic.yaml' },
   concept_mappings: [],
 };
-for (const d of concrete) {
-  const t = d.table!;
-  const id = { referent_mappings: [{ relationship: 'id', expression: `${t}.id` }] };
+for (const def of concrete) {
+  const table = def.table!;
+  const id = { referent_mappings: [{ relationship: 'id', expression: `${table}.id` }] };
   mapping.concept_mappings.push({
-    concept: d.concept,
+    concept: def.concept,
     object_mappings: [id],
     link_mappings: [
       {
         object_mapping: id,
         children: [
-          ...allAttrs(d).map(a => ({
+          ...allAttrs(def).map(a => ({
             relationship: a.name,
-            object_mapping: { concept: a.type, expression: `${t}.${a.name}` },
+            object_mapping: { concept: a.type, expression: `${table}.${a.name}` },
           })),
-          ...allLinks(d).map(l => ({
-            relationship: l.name,
+          ...allLinks(def).map(link => ({
+            relationship: link.name,
             object_mapping: {
-              concept: l.target,
-              referent_mappings: [{ relationship: 'id', expression: `${t}.${l.name}_id` }],
+              concept: link.target,
+              referent_mappings: [{ relationship: 'id', expression: `${table}.${link.name}_id` }],
             },
           })),
         ],
@@ -2270,7 +2273,11 @@ for (const d of concrete) {
     ],
   });
 }
-for (const m of metrics) mapping.concept_mappings.push({ concept: m.concept, object_mappings: [{ expression: m.name }] });
+for (const metric of metrics)
+  mapping.concept_mappings.push({
+    concept: metric.concept,
+    object_mappings: [{ expression: metric.name }],
+  });
 mapping.custom_extensions = extension(
   bindingsJson(
     'semantic-workbench/mapping/v1',
@@ -2628,33 +2635,41 @@ const sales: Record<number, [number, number]> = {
 };
 // Paid fraction of each lease's charges at the reporting date: lease 3 has not paid September;
 // lease 5 paid half of September.
-const paidFraction = (lease: number, month: number) => (month === 2 && lease === 3 ? 0 : month === 2 && lease === 5 ? 0.5 : 1);
+const paidFraction = (lease: number, month: number) => {
+  if (month === 2 && lease === 3) {
+    return 0;
+  }
+  if (month === 2 && lease === 5) {
+    return 0.5;
+  }
+  return 1;
+};
 const serviceChargePerM2 = 30;
 const marketingRate = 0.1;
 rows.occupancy_snapshots = [];
 rows.charges = [];
 rows.invoices = [];
 rows.sales_reports = [];
-for (const m of months)
-  for (const u of rows.units) {
-    const lease = leaseSpec.find(l => l[3] === u.id && active(l, m.id));
+for (const calendarMonth of months)
+  for (const unitRow of rows.units) {
+    const lease = leaseSpec.find(l => l[3] === unitRow.id && active(l, calendarMonth.id));
     rows.occupancy_snapshots.push({
       id: rows.occupancy_snapshots.length + 1,
-      gla_m2: u.area_m2,
-      occupied_gla_m2: lease ? u.area_m2 : 0,
+      gla_m2: unitRow.area_m2,
+      occupied_gla_m2: lease ? unitRow.area_m2 : 0,
       contracted_minimum_rent: lease ? lease[6] : 0,
-      unit_id: u.id,
-      month_id: m.id,
+      unit_id: unitRow.id,
+      month_id: calendarMonth.id,
       lease_id: lease?.[0] ?? null,
     });
     if (!lease) continue;
     const [leaseId, tenant, , unit, , , rent, rate] = lease;
-    const gross = sales[leaseId][m.id - 1];
+    const gross = sales[leaseId][calendarMonth.id - 1];
     const invoice = {
       id: rows.invoices.length + 1,
-      invoice_number: `${m.year_month}-${String(leaseId).padStart(4, '0')}`,
-      issue_date: monthEnd[m.id],
-      due_date: monthEnd[m.id],
+      invoice_number: `${calendarMonth.year_month}-${String(leaseId).padStart(4, '0')}`,
+      issue_date: monthEnd[calendarMonth.id],
+      due_date: monthEnd[calendarMonth.id],
       property_id: unitProperty(unit),
       billed_tenant_id: tenant,
     };
@@ -2672,12 +2687,12 @@ for (const m of months)
       rows.charges.push({
         id: rows.charges.length + 1,
         amount,
-        paid_amount: amount * paidFraction(leaseId, m.id),
-        due_date: monthEnd[m.id],
+        paid_amount: amount * paidFraction(leaseId, calendarMonth.id),
+        due_date: monthEnd[calendarMonth.id],
         invoice_id: invoice.id,
         lease_id: leaseId,
         charge_type_id: type,
-        month_id: m.id,
+        month_id: calendarMonth.id,
       });
     }
     rows.sales_reports.push({
@@ -2685,36 +2700,42 @@ for (const m of months)
       gross_sales: gross,
       reported_gla_m2: unitArea.get(unit),
       occupancy_cost: occupancy,
-      submitted_date: monthEnd[m.id],
+      submitted_date: monthEnd[calendarMonth.id],
       is_audited: 0,
       lease_id: leaseId,
       property_id: unitProperty(unit),
-      month_id: m.id,
+      month_id: calendarMonth.id,
     });
   }
-rows.footfall_counts = months.flatMap(m =>
+rows.footfall_counts = months.flatMap(calendarMonth =>
   [
     [1, 1, 410000, 455000],
     [2, 1, 120000, 131000],
     [3, 2, 95000, 118000],
   ].map(([entrance, , aug, sep], i) => ({
-    id: (m.id - 1) * 3 + i + 1,
-    period_start: monthStart[m.id],
-    period_end: monthEnd[m.id],
-    visitors: m.id === 1 ? aug : sep,
+    id: (calendarMonth.id - 1) * 3 + i + 1,
+    period_start: monthStart[calendarMonth.id],
+    period_end: monthEnd[calendarMonth.id],
+    visitors: calendarMonth.id === 1 ? aug : sep,
     entrance_id: entrance,
-    month_id: m.id,
+    month_id: calendarMonth.id,
   })),
 );
-rows.parking_activity = months.flatMap(m => [
+rows.parking_activity = months.flatMap(calendarMonth => [
   {
-    id: m.id * 2 - 1,
-    tickets: m.id === 1 ? 6100 : 6600,
-    revenue: m.id === 1 ? 61000 : 66000,
+    id: calendarMonth.id * 2 - 1,
+    tickets: calendarMonth.id === 1 ? 6100 : 6600,
+    revenue: calendarMonth.id === 1 ? 61000 : 66000,
     facility_id: 1,
-    month_id: m.id,
+    month_id: calendarMonth.id,
   },
-  { id: m.id * 2, tickets: m.id === 1 ? 14000 : 16500, revenue: 0, facility_id: 2, month_id: m.id },
+  {
+    id: calendarMonth.id * 2,
+    tickets: calendarMonth.id === 1 ? 14000 : 16500,
+    revenue: 0,
+    facility_id: 2,
+    month_id: calendarMonth.id,
+  },
 ]);
 // Ledger: rent income from minimum and percentage rent charges, parking income, non-recoverable
 // expenses and depreciation.
@@ -2722,22 +2743,24 @@ const opex: Record<number, [number, number]> = { 1: [30000, 32000], 2: [9000, 95
 const depreciation: Record<number, number> = { 1: 45000, 2: 12000 };
 rows.journal_entries = [];
 rows.journal_lines = [];
-for (const m of months)
+for (const calendarMonth of months)
   for (const property of [1, 2]) {
     const entry = {
       id: rows.journal_entries.length + 1,
-      entry_date: monthEnd[m.id],
-      summary: `Month-end close ${m.year_month}`,
+      entry_date: monthEnd[calendarMonth.id],
+      summary: `Month-end close ${calendarMonth.year_month}`,
       legal_entity_id: property,
-      month_id: m.id,
+      month_id: calendarMonth.id,
     };
     rows.journal_entries.push(entry);
-    const rent = rows.charges.filter(c => c.month_id === m.id && [1, 2].includes(c.charge_type_id) && rows.invoices[c.invoice_id - 1].property_id === property).reduce((s, c) => s + c.amount, 0);
-    const parking = rows.parking_activity.filter(p => p.month_id === m.id && p.facility_id === property).reduce((s, p) => s + p.revenue, 0);
+    const rent = rows.charges
+      .filter(c => c.month_id === calendarMonth.id && [1, 2].includes(c.charge_type_id) && rows.invoices[c.invoice_id - 1].property_id === property)
+      .reduce((s, c) => s + c.amount, 0);
+    const parking = rows.parking_activity.filter(p => p.month_id === calendarMonth.id && p.facility_id === property).reduce((s, p) => s + p.revenue, 0);
     for (const [account, amount, noi_class] of [
       [1, rent, 'revenue'],
       [2, parking, 'revenue'],
-      [3, -opex[property][m.id - 1], 'opex'],
+      [3, -opex[property][calendarMonth.id - 1], 'opex'],
       [4, -depreciation[property], 'excluded'],
     ] as [number, number, string][])
       rows.journal_lines.push({
@@ -2752,30 +2775,30 @@ for (const m of months)
 // Payroll of the administrator: base salary, employer social charges (20 %) and employee
 // withholdings (not an employer cost).
 const salary: Record<number, number> = { 1: 25000, 2: 6000, 3: 7500, 4: 14000 };
-rows.payroll_runs = months.map(m => ({
-  id: m.id,
-  payment_date: `${m.year_month}-${m.id === 1 ? '29' : '30'}`,
+rows.payroll_runs = months.map(calendarMonth => ({
+  id: calendarMonth.id,
+  payment_date: `${calendarMonth.year_month}-${calendarMonth.id === 1 ? '29' : '30'}`,
   status: 'paid',
   legal_entity_id: 3,
-  month_id: m.id,
+  month_id: calendarMonth.id,
 }));
 rows.payroll_lines = [];
-for (const m of months)
-  for (const e of rows.employees.filter(e => e.hire_date <= monthEnd[m.id])) {
+for (const calendarMonth of months)
+  for (const employee of rows.employees.filter(e => e.hire_date <= monthEnd[calendarMonth.id])) {
     const items: [string, number, number][] = [
-      ['base salary', salary[e.id], 1],
-      ['employer social charge', salary[e.id] * 0.2, 1],
-      ['employee social security', salary[e.id] * 0.11, 0],
+      ['base salary', salary[employee.id], 1],
+      ['employer social charge', salary[employee.id] * 0.2, 1],
+      ['employee social security', salary[employee.id] * 0.11, 0],
     ];
-    if (e.id === 2 && m.id === 2) items.push(['overtime', 900, 1]);
+    if (employee.id === 2 && calendarMonth.id === 2) items.push(['overtime', 900, 1]);
     for (const [component, amount, employer_cost] of items)
       rows.payroll_lines.push({
         id: rows.payroll_lines.length + 1,
         component,
         amount,
         employer_cost,
-        payroll_run_id: m.id,
-        employee_id: e.id,
+        payroll_run_id: calendarMonth.id,
+        employee_id: employee.id,
       });
   }
 // Procurement: purchase orders, their lines and the resulting supplier invoices.
@@ -2864,8 +2887,10 @@ rows.supplier_invoices = rows.purchase_orders.map(po => {
 // Expected metric values come directly from rows to provide an independent check of SQL.
 const sum = <T>(xs: T[], f: (x: T) => number) => xs.reduce((s, x) => s + f(x), 0);
 const propertyOfUnit = (unit: number) => unitProperty(unit);
-const byMonthProperty = <T>(xs: T[], month: (x: T) => number, property: (x: T) => number, f: (xs: T[]) => number) =>
-  Object.fromEntries(months.flatMap(m => [1, 2].map(p => [`${m.year_month}|${rows.properties[p - 1].name}`, f(xs.filter(x => month(x) === m.id && property(x) === p))])));
+const byMonthProperty = <T>(xs: T[], monthOf: (x: T) => number, property: (x: T) => number, aggregate: (xs: T[]) => number) =>
+  Object.fromEntries(
+    months.flatMap(calendarMonth => [1, 2].map(p => [`${calendarMonth.year_month}|${rows.properties[p - 1].name}`, aggregate(xs.filter(x => monthOf(x) === calendarMonth.id && property(x) === p))])),
+  );
 const snap = rows.occupancy_snapshots;
 const chg = rows.charges;
 const rep = rows.sales_reports;
@@ -2891,25 +2916,25 @@ const expected = {
     xs => sum(xs, s => s.occupied_gla_m2) / sum(xs, s => s.gla_m2),
   ),
   vacantGlaByMonth: Object.fromEntries(
-    months.map(m => [
-      m.year_month,
+    months.map(calendarMonth => [
+      calendarMonth.year_month,
       sum(
-        snap.filter(s => s.month_id === m.id),
+        snap.filter(s => s.month_id === calendarMonth.id),
         s => s.gla_m2 - s.occupied_gla_m2,
       ),
     ]),
   ),
   minimumRentPerM2ByMonth: Object.fromEntries(
-    months.map(m => {
-      const xs = snap.filter(s => s.month_id === m.id);
-      return [m.year_month, sum(xs, s => s.contracted_minimum_rent) / sum(xs, s => s.occupied_gla_m2)];
+    months.map(calendarMonth => {
+      const xs = snap.filter(s => s.month_id === calendarMonth.id);
+      return [calendarMonth.year_month, sum(xs, s => s.contracted_minimum_rent) / sum(xs, s => s.occupied_gla_m2)];
     }),
   ),
   billedByChargeType: Object.fromEntries(
-    rows.charge_types.map(t => [
-      t.name,
+    rows.charge_types.map(chargeType => [
+      chargeType.name,
       sum(
-        chg.filter(c => c.charge_type_id === t.id),
+        chg.filter(c => c.charge_type_id === chargeType.id),
         c => c.amount,
       ),
     ]),
@@ -2921,28 +2946,28 @@ const expected = {
     }),
   ),
   openAmountByMonth: Object.fromEntries(
-    months.map(m => [
-      m.year_month,
+    months.map(calendarMonth => [
+      calendarMonth.year_month,
       sum(
-        chg.filter(c => c.month_id === m.id),
+        chg.filter(c => c.month_id === calendarMonth.id),
         c => c.amount - c.paid_amount,
       ),
     ]),
   ),
   salesPerM2ByMonthCategory: Object.fromEntries(
-    months.flatMap(m =>
+    months.flatMap(calendarMonth =>
       rows.merchandise_categories
-        .map(c => {
-          const xs = rep.filter(r => r.month_id === m.id && rows.leases[r.lease_id - 1].permitted_use_id === c.id);
-          return xs.length ? [[`${m.year_month}|${c.name}`, sum(xs, r => r.gross_sales) / sum(xs, r => r.reported_gla_m2)]] : [];
+        .map(permittedUse => {
+          const xs = rep.filter(r => r.month_id === calendarMonth.id && rows.leases[r.lease_id - 1].permitted_use_id === permittedUse.id);
+          return xs.length ? [[`${calendarMonth.year_month}|${permittedUse.name}`, sum(xs, r => r.gross_sales) / sum(xs, r => r.reported_gla_m2)]] : [];
         })
         .flat(),
     ),
   ),
   occupancyCostRatioByProperty: Object.fromEntries(
-    [1, 2].map(p => {
-      const xs = rep.filter(r => r.property_id === p);
-      return [rows.properties[p - 1].name, sum(xs, r => r.occupancy_cost) / sum(xs, r => r.gross_sales)];
+    [1, 2].map(propertyId => {
+      const xs = rep.filter(r => r.property_id === propertyId);
+      return [rows.properties[propertyId - 1].name, sum(xs, r => r.occupancy_cost) / sum(xs, r => r.gross_sales)];
     }),
   ),
   visitorsByMonthProperty: byMonthProperty(
@@ -2962,14 +2987,14 @@ const expected = {
       ),
   ),
   noiMarginByProperty: Object.fromEntries(
-    [1, 2].map(p => {
-      const xs = jl.filter(l => propertyOfLine(l) === p);
+    [1, 2].map(propertyId => {
+      const xs = jl.filter(l => propertyOfLine(l) === propertyId);
       const revenue = sum(
         xs.filter(l => l.noi_class === 'revenue'),
         l => l.amount,
       );
       return [
-        rows.properties[p - 1].name,
+        rows.properties[propertyId - 1].name,
         sum(
           xs.filter(l => l.noi_class !== 'excluded'),
           l => l.amount,
@@ -2978,30 +3003,34 @@ const expected = {
     }),
   ),
   payrollCostByMonthDepartment: Object.fromEntries(
-    months.flatMap(m =>
+    months.flatMap(calendarMonth =>
       rows.departments
-        .map(d => {
-          const xs = rows.payroll_lines.filter(l => l.payroll_run_id === m.id && rows.positions[rows.employees[l.employee_id - 1].position_id - 1].department_id === d.id && l.employer_cost);
-          return [`${m.year_month}|${d.name}`, sum(xs, l => l.amount)];
+        .map(department => {
+          const xs = rows.payroll_lines.filter(
+            line => line.payroll_run_id === calendarMonth.id && rows.positions[rows.employees[line.employee_id - 1].position_id - 1].department_id === department.id && line.employer_cost,
+          );
+          return [`${calendarMonth.year_month}|${department.name}`, sum(xs, l => l.amount)];
         })
         .filter(([, v]) => v),
     ),
   ),
-  headcountByMonth: Object.fromEntries(months.map(m => [m.year_month, new Set(rows.payroll_lines.filter(l => l.payroll_run_id === m.id).map(l => l.employee_id)).size])),
+  headcountByMonth: Object.fromEntries(
+    months.map(calendarMonth => [calendarMonth.year_month, new Set(rows.payroll_lines.filter(l => l.payroll_run_id === calendarMonth.id).map(l => l.employee_id)).size]),
+  ),
   purchaseSpendByCategory: Object.fromEntries(
-    rows.expense_categories.map(c => [
-      c.name,
+    rows.expense_categories.map(category => [
+      category.name,
       sum(
-        rows.purchase_order_lines.filter(l => l.category_id === c.id),
+        rows.purchase_order_lines.filter(l => l.category_id === category.id),
         l => l.quantity * l.unit_price,
       ),
     ]),
   ),
   payablesOutstandingByMonth: Object.fromEntries(
-    months.map(m => [
-      m.year_month,
+    months.map(calendarMonth => [
+      calendarMonth.year_month,
       sum(
-        rows.supplier_invoices.filter(i => i.month_id === m.id),
+        rows.supplier_invoices.filter(i => i.month_id === calendarMonth.id),
         i => i.gross_amount - i.withheld_taxes - i.paid_amount,
       ),
     ]),
@@ -3016,7 +3045,7 @@ const xsd: Record<string, string> = {
   Boolean: 'xsd:boolean',
 };
 const datatype = (type: string) => (type === 'YearMonth' ? 'xsd:gYearMonth' : xsd[valueBase.get(type)!]);
-const q = (s: string) => JSON.stringify(s);
+const turtleString = (s: string) => JSON.stringify(s);
 const header = (extra: string[] = []) =>
   [
     ...Object.entries(prefixes).map(([p, iri]) => `@prefix ${p}: <${iri}> .`),
@@ -3027,8 +3056,8 @@ const header = (extra: string[] = []) =>
     ...extra,
     '',
   ].join('\n');
-const label = (s: string) =>
-  s
+const label = (concept: string) =>
+  concept
     .replace(/([a-z])([A-Z])/g, '$1 $2')
     .replace(/_/g, ' ')
     .replace(/^./, c => c.toUpperCase());
@@ -3047,15 +3076,18 @@ const schemaMatches: Record<string, string> = {
   Lease: 'schema:RentAction',
 };
 let owl = header(['@prefix skos: <http://www.w3.org/2004/02/skos/core#> .', '@prefix schema: <https://schema.org/> .']);
-owl += `<${base}ontology> a owl:Ontology ; rdfs:label ${q('Shopping center administration OWL ontology')} ; rdfs:comment ${q(ontology.description)} ; owl:versionInfo "1.0.0" .\n\n`;
-for (const [m, comment] of Object.entries(modules)) owl += `# ${m}: ${comment}\n`;
+owl += `<${base}ontology> a owl:Ontology ; rdfs:label ${turtleString('Shopping center administration OWL ontology')} ; rdfs:comment ${turtleString(ontology.description)} ; owl:versionInfo "1.0.0" .\n\n`;
+for (const [moduleName, comment] of Object.entries(modules)) owl += `# ${moduleName}: ${comment}\n`;
 owl += '\n';
-for (const d of defs) {
-  const supers = (d.extends ?? []).map(p => `${byConcept.get(p)!.module}:${p}`);
-  const required = linksOf(d)
+for (const def of defs) {
+  const supers = (def.extends ?? []).map(p => `${byConcept.get(p)!.module}:${p}`);
+  const required = linksOf(def)
     .filter(l => l.flags.includes('!'))
-    .map(l => `[ a owl:Restriction ; owl:onProperty ${relIri(d.concept, l.name)} ; owl:someValuesFrom ${byConcept.get(l.target)!.module}:${l.target} ]`);
-  owl += `${d.module}:${d.concept} a owl:Class ; rdfs:label ${q(label(d.concept))} ; rdfs:comment ${q(d.description)}${[...supers, ...required].length ? ` ;\n  rdfs:subClassOf ${[...supers, ...required].join(' ,\n    ')}` : ''}${schemaMatches[d.concept] ? ` ;\n  skos:closeMatch ${schemaMatches[d.concept]}` : ''} .\n`;
+    .map(l => `[ a owl:Restriction ; owl:onProperty ${relIri(def.concept, l.name)} ; owl:someValuesFrom ${byConcept.get(l.target)!.module}:${l.target} ]`);
+  const parents = [...supers, ...required];
+  const subClassOf = parents.length ? ` ;\n  rdfs:subClassOf ${parents.join(' ,\n    ')}` : '';
+  const closeMatch = schemaMatches[def.concept] ? ` ;\n  skos:closeMatch ${schemaMatches[def.concept]}` : '';
+  owl += `${def.module}:${def.concept} a owl:Class ; rdfs:label ${turtleString(label(def.concept))} ; rdfs:comment ${turtleString(def.description)}${subClassOf}${closeMatch} .\n`;
 }
 for (const group of [
   ['Organization', 'Person'],
@@ -3064,11 +3096,27 @@ for (const group of [
 ])
   owl += `[] a owl:AllDisjointClasses ; owl:members ( ${group.map(c => `${byConcept.get(c)!.module}:${c}`).join(' ')} ) .\n`;
 owl += '\n';
-for (const d of defs) {
-  for (const l of linksOf(d))
-    owl += `${relIri(d.concept, l.name)} a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:label ${q(words(l.name))} ; rdfs:comment ${q(l.description)} ; rdfs:domain ${d.module}:${d.concept} ; rdfs:range ${byConcept.get(l.target)!.module}:${l.target} .\n`;
-  for (const a of attrsOf(d))
-    owl += `${relIri(d.concept, a.name)} a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:label ${q(words(a.name))} ; rdfs:comment ${q(a.description)} ; rdfs:domain ${d.module}:${d.concept} ; rdfs:range ${datatype(a.type)} .\n`;
+for (const def of defs) {
+  for (const link of linksOf(def)) {
+    const clauses = [
+      `${relIri(def.concept, link.name)} a owl:ObjectProperty, owl:FunctionalProperty`,
+      `rdfs:label ${turtleString(words(link.name))}`,
+      `rdfs:comment ${turtleString(link.description)}`,
+      `rdfs:domain ${def.module}:${def.concept}`,
+      `rdfs:range ${byConcept.get(link.target)!.module}:${link.target}`,
+    ];
+    owl += clauses.join(' ; ') + ' .\n';
+  }
+  for (const attr of attrsOf(def)) {
+    const clauses = [
+      `${relIri(def.concept, attr.name)} a owl:DatatypeProperty, owl:FunctionalProperty`,
+      `rdfs:label ${turtleString(words(attr.name))}`,
+      `rdfs:comment ${turtleString(attr.description)}`,
+      `rdfs:domain ${def.module}:${def.concept}`,
+      `rdfs:range ${datatype(attr.type)}`,
+    ];
+    owl += clauses.join(' ; ') + ' .\n';
+  }
 }
 let shacl = header(['@prefix sh: <http://www.w3.org/ns/shacl#> .']);
 const dateOrder: [string, string][] = [
@@ -3079,42 +3127,53 @@ const dateOrder: [string, string][] = [
   ['issue_date', 'due_date'],
   ['issue_date', 'expiry_date'],
 ];
-for (const d of defs) {
+for (const def of defs) {
   const props: [string, string][] = [];
-  for (const a of attrsOf(d)) {
-    const c = [`sh:path ${relIri(d.concept, a.name)}`, `sh:name ${q(words(a.name))}`, `sh:datatype ${datatype(a.type)}`, 'sh:maxCount 1'];
-    if (a.flags.includes('!')) c.push('sh:minCount 1');
-    if (a.flags.includes('+')) c.push('sh:minInclusive 0');
-    if (a.flags.includes('%')) c.push('sh:minInclusive 0', 'sh:maxInclusive 1');
-    if (['Name', 'Code'].includes(a.type)) c.push('sh:minLength 1');
-    const later = dateOrder.find(([from]) => from === a.name)?.[1];
-    if (later && attrsOf(d).some(x => x.name === later)) c.push(`sh:lessThanOrEquals ${relIri(d.concept, later)}`);
-    props.push([a.name, c.join(' ; ')]);
+  for (const attr of attrsOf(def)) {
+    const constraints = [`sh:path ${relIri(def.concept, attr.name)}`, `sh:name ${turtleString(words(attr.name))}`, `sh:datatype ${datatype(attr.type)}`, 'sh:maxCount 1'];
+    if (attr.flags.includes('!')) constraints.push('sh:minCount 1');
+    if (attr.flags.includes('+')) constraints.push('sh:minInclusive 0');
+    if (attr.flags.includes('%')) constraints.push('sh:minInclusive 0', 'sh:maxInclusive 1');
+    if (['Name', 'Code'].includes(attr.type)) constraints.push('sh:minLength 1');
+    const later = dateOrder.find(([from]) => from === attr.name)?.[1];
+    if (later && attrsOf(def).some(x => x.name === later)) constraints.push(`sh:lessThanOrEquals ${relIri(def.concept, later)}`);
+    props.push([attr.name, constraints.join(' ; ')]);
   }
-  for (const l of linksOf(d))
+  for (const link of linksOf(def))
     props.push([
-      l.name,
-      `sh:path ${relIri(d.concept, l.name)} ; sh:name ${q(words(l.name))} ; sh:class ${byConcept.get(l.target)!.module}:${l.target} ; sh:maxCount 1${l.flags.includes('!') ? ' ; sh:minCount 1' : ''}`,
+      link.name,
+      `sh:path ${relIri(def.concept, link.name)} ; sh:name ${turtleString(words(link.name))} ; sh:class ${byConcept.get(link.target)!.module}:${link.target} ; sh:maxCount 1${link.flags.includes('!') ? ' ; sh:minCount 1' : ''}`,
     ]);
   // Named property shapes keep each constraint addressable and readable in graph views.
-  const shapeIri = (name: string) => `${d.module}:${d.concept}_${camel(name)}Shape`;
+  const shapeIri = (name: string) => `${def.module}:${def.concept}_${camel(name)}Shape`;
+  const shapeList = props.map(([name]) => shapeIri(name)).join(' ,\n    ');
   if (props.length)
     shacl +=
-      `${d.module}:${d.concept}Shape a sh:NodeShape ; rdfs:label ${q(label(d.concept) + ' requirements')} ; sh:targetClass ${d.module}:${d.concept} ;\n  sh:property ${props.map(([name]) => shapeIri(name)).join(' ,\n    ')} .\n` +
-      props.map(([name, body]) => `${shapeIri(name)} a sh:PropertyShape ; rdfs:label ${q(`${label(d.concept)}: ${words(name)}`)} ; ${body} .\n`).join('');
+      `${def.module}:${def.concept}Shape a sh:NodeShape ; rdfs:label ${turtleString(label(def.concept) + ' requirements')} ; sh:targetClass ${def.module}:${def.concept} ;\n` +
+      `  sh:property ${shapeList} .\n` +
+      props.map(([name, body]) => `${shapeIri(name)} a sh:PropertyShape ; rdfs:label ${turtleString(`${label(def.concept)}: ${words(name)}`)} ; ${body} .\n`).join('');
 }
 const literal = (type: string, value: any) => {
   const dt = datatype(type);
-  return dt === 'xsd:boolean' ? (value ? 'true' : 'false') : dt === 'xsd:string' ? q(String(value)) : `${q(String(value))}^^${dt}`;
+  if (dt === 'xsd:boolean') {
+    if (value) {
+      return 'true';
+    }
+    return 'false';
+  }
+  if (dt === 'xsd:string') {
+    return turtleString(String(value));
+  }
+  return `${turtleString(String(value))}^^${dt}`;
 };
 let data = header(['@prefix data: <https://example.org/mall/data/> .']);
-for (const d of concrete)
-  for (const row of rows[d.table!] ?? []) {
-    const labelAttr = allAttrs(d).find(a => ['Name', 'Code'].includes(a.type) && row[a.name] != null);
-    const parts = [`a ${d.module}:${d.concept}`, `rdfs:label ${q(labelAttr ? String(row[labelAttr.name]) : `${label(d.concept)} ${row.id}`)}`];
-    for (const a of allAttrs(d)) if (row[a.name] != null) parts.push(`${relIri(a.owner, a.name)} ${literal(a.type, row[a.name])}`);
-    for (const l of allLinks(d)) if (row[l.name + '_id'] != null) parts.push(`${relIri(l.owner, l.name)} data:${byConcept.get(l.target)!.table}-${row[l.name + '_id']}`);
-    data += `data:${d.table}-${row.id} ${parts.join(' ;\n  ')} .\n`;
+for (const def of concrete)
+  for (const row of rows[def.table!] ?? []) {
+    const labelAttr = allAttrs(def).find(a => ['Name', 'Code'].includes(a.type) && row[a.name] != null);
+    const parts = [`a ${def.module}:${def.concept}`, `rdfs:label ${turtleString(labelAttr ? String(row[labelAttr.name]) : `${label(def.concept)} ${row.id}`)}`];
+    for (const attr of allAttrs(def)) if (row[attr.name] != null) parts.push(`${relIri(attr.owner, attr.name)} ${literal(attr.type, row[attr.name])}`);
+    for (const link of allLinks(def)) if (row[link.name + '_id'] != null) parts.push(`${relIri(link.owner, link.name)} data:${byConcept.get(link.target)!.table}-${row[link.name + '_id']}`);
+    data += `data:${def.table}-${row.id} ${parts.join(' ;\n  ')} .\n`;
   }
 
 const logical: Record<string, string> = {
@@ -3139,22 +3198,30 @@ const contract: any = {
     purpose: 'Governed tables for leasing, billing, operations and performance reporting of shopping centers.',
     limitations: 'Fictional demonstration data in BRL. No real tenants, people or properties.',
   },
-  schema: concrete.map(d => ({
-    name: d.table,
-    physicalName: `mall.${d.table}`,
+  schema: concrete.map(def => ({
+    name: def.table,
+    physicalName: `mall.${def.table}`,
     physicalType: 'table',
     logicalType: 'object',
-    description: d.description,
-    authoritativeDefinitions: [{ type: 'businessDefinition', url: `${prefixes[d.module]}${d.concept}` }],
-    properties: columnsOf(d).map(column => {
-      const attr = allAttrs(d).find(a => a.name === column);
-      const link = allLinks(d).find(l => l.name + '_id' === column);
+    description: def.description,
+    authoritativeDefinitions: [{ type: 'businessDefinition', url: `${prefixes[def.module]}${def.concept}` }],
+    properties: columnsOf(def).map(column => {
+      const attr = allAttrs(def).find(a => a.name === column);
+      const link = allLinks(def).find(l => l.name + '_id' === column);
+      let description: string;
+      if (column === 'id') {
+        description = `Identifier of the ${words(def.concept)}.`;
+      } else if (attr) {
+        description = attr.description;
+      } else {
+        description = `Reference to ${words(link!.target)}: ${link!.description}`;
+      }
       return {
         name: column,
-        logicalType: logical[fieldType(d, column)],
+        logicalType: logical[fieldType(def, column)],
         required: column === 'id' || !!(attr ?? link)?.flags.includes('!'),
         ...(column === 'id' ? { primaryKey: true, unique: true } : {}),
-        description: column === 'id' ? `Identifier of the ${words(d.concept)}.` : attr ? attr.description : `Reference to ${words(link!.target)}: ${link!.description}`,
+        description: description,
         ...(link
           ? {
               relationships: [{ type: 'foreignKey', to: `${byConcept.get(link.target)!.table}.id` }],
@@ -3215,16 +3282,34 @@ quality('sales_reports', 'gross_sales', [
   },
 ]);
 
-const sqlLiteral = (value: any) => (value == null ? 'NULL' : typeof value === 'number' ? String(value) : "'" + String(value).replaceAll("'", "''") + "'");
-const sqlType = (t: string) => (t === 'Integer' || t === 'Boolean' ? 'INTEGER' : t === 'Decimal' ? 'REAL' : 'TEXT');
+const sqlLiteral = (value: any) => {
+  if (value == null) {
+    return 'NULL';
+  }
+  if (typeof value === 'number') {
+    return String(value);
+  }
+  return "'" + String(value).replaceAll("'", "''") + "'";
+};
+const sqlType = (baseType: string) => {
+  if (baseType === 'Integer' || baseType === 'Boolean') {
+    return 'INTEGER';
+  }
+  if (baseType === 'Decimal') {
+    return 'REAL';
+  }
+  return 'TEXT';
+};
 let sql = "-- Synthetic BRL fixture for isolated tests. Not a warehouse migration.\nATTACH ':memory:' AS mall;\n";
-for (const d of concrete) {
-  const columns = columnsOf(d);
-  sql += `CREATE TABLE mall.${d.table} (${columns.map(c => c + ' ' + (c === 'id' ? 'INTEGER PRIMARY KEY' : sqlType(fieldType(d, c)))).join(', ')});\n`;
-  for (const row of rows[d.table!] ?? []) sql += `INSERT INTO mall.${d.table} (${columns.join(', ')}) VALUES (${columns.map(c => sqlLiteral(row[c])).join(', ')});\n`;
+for (const def of concrete) {
+  const columns = columnsOf(def);
+  const columnType = (column: string) => (column === 'id' ? 'INTEGER PRIMARY KEY' : sqlType(fieldType(def, column)));
+  const columnDefinitions = columns.map(column => `${column} ${columnType(column)}`);
+  sql += `CREATE TABLE mall.${def.table} (${columnDefinitions.join(', ')});\n`;
+  for (const row of rows[def.table!] ?? []) sql += `INSERT INTO mall.${def.table} (${columns.join(', ')}) VALUES (${columns.map(c => sqlLiteral(row[c])).join(', ')});\n`;
 }
 for (const table of Object.keys(rows)) if (!concrete.some(d => d.table === table)) throw Error(`Fixture rows for unknown table ${table}`);
-for (const d of concrete) for (const row of rows[d.table!] ?? []) for (const key of Object.keys(row)) if (!columnsOf(d).includes(key)) throw Error(`${d.table}.${key} is not a column`);
+for (const def of concrete) for (const row of rows[def.table!] ?? []) for (const key of Object.keys(row)) if (!columnsOf(def).includes(key)) throw Error(`${def.table}.${key} is not a column`);
 
 const dir = 'public/examples/mall';
 await mkdir(dir, { recursive: true });
@@ -3254,5 +3339,9 @@ const context = buildContext(docs, 'mall-0');
 if (context.findings.some(f => f.severity === 'error')) throw Error(JSON.stringify(context.findings.slice(0, 5)));
 await Bun.write(`${dir}/expected.json`, JSON.stringify({ ...expected, counts: { ...expected.counts, bindings: context.bindings.length } }, null, 2) + '\n');
 console.log(
-  `Generated ${defs.length} entity types (${concrete.length} concrete) in ${Object.keys(modules).length} modules, ${valueTypes.length} value types, ${metrics.length} KPIs, ${semantic.relationships.length} joins and ${context.bindings.length} resolved bindings.`,
+  [
+    `Generated ${defs.length} entity types (${concrete.length} concrete) in ${Object.keys(modules).length} modules,`,
+    `${valueTypes.length} value types, ${metrics.length} KPIs, ${semantic.relationships.length} joins`,
+    `and ${context.bindings.length} resolved bindings.`,
+  ].join(' '),
 );

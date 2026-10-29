@@ -3,9 +3,8 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Network, Square, Undo2 } from 'lucide-react';
 import type { Direction, Link } from './expansion';
 import type { PierceNode, PierceOptions, PierceResult } from './pierce';
-// Shared controls to show everything connected (the full pierce): the button, the Pierce direction radio group, Stop while running,
-// Undo expansion. The closure runs in pierce.worker.ts; Stop or a new run terminates the previous
-// worker.
+// Shared controls to show everything connected (the full pierce): the button, the Pierce direction radio group, Stop while running, Undo expansion. The closure runs in pierce.worker.ts; Stop or a new
+// run terminates the previous worker.
 /** Runs graph traversal in a worker and terminates superseded or stopped runs. */
 export function usePierce() {
   const worker = useRef<Worker | null>(null);
@@ -21,27 +20,27 @@ export function usePierce() {
   const run = useCallback((nodes: PierceNode[], edges: Link[], start: string[], options: PierceOptions): Promise<PierceResult | null> => {
     worker.current?.terminate();
     const id = ++seq.current;
-    const w = new Worker(new URL('./pierce.worker.ts', import.meta.url), { type: 'module' });
-    worker.current = w;
+    const pierceWorker = new Worker(new URL('./pierce.worker.ts', import.meta.url), { type: 'module' });
+    worker.current = pierceWorker;
     setRunning(true);
     return new Promise(resolve => {
-      w.onmessage = (e: MessageEvent<{ id: number; result: PierceResult }>) => {
-        if (e.data.id !== seq.current) {
+      pierceWorker.onmessage = (messageEvent: MessageEvent<{ id: number; result: PierceResult }>) => {
+        if (messageEvent.data.id !== seq.current) {
           resolve(null);
           return;
         }
-        w.terminate();
-        if (worker.current === w) worker.current = null;
+        pierceWorker.terminate();
+        if (worker.current === pierceWorker) worker.current = null;
         setRunning(false);
-        resolve(e.data.result);
+        resolve(messageEvent.data.result);
       };
-      w.onerror = () => {
-        w.terminate();
-        if (worker.current === w) worker.current = null;
+      pierceWorker.onerror = () => {
+        pierceWorker.terminate();
+        if (worker.current === pierceWorker) worker.current = null;
         setRunning(false);
         resolve(null);
       };
-      w.postMessage({ id, nodes, edges, start, options });
+      pierceWorker.postMessage({ id, nodes, edges, start, options });
     });
   }, []);
   return { run, stop, running };
@@ -63,7 +62,7 @@ export function PierceControls({
   title,
 }: {
   direction: Direction;
-  onDirection: (d: Direction) => void;
+  onDirection: (direction: Direction) => void;
   running: boolean;
   onPierce: () => void;
   onStop: () => void;
@@ -79,16 +78,16 @@ export function PierceControls({
       </button>
       <span className="pierce-direction-label">Expand:</span>
       <span role="radiogroup" aria-label="Pierce direction" className="pierce-direction">
-        {(['out', 'in', 'both'] as Direction[]).map(d => (
+        {(['out', 'in', 'both'] as Direction[]).map(choice => (
           <button
-            key={d}
+            key={choice}
             role="radio"
-            aria-checked={direction === d}
-            aria-label={LABELS[d][1]}
-            title={`Follow ${LABELS[d][1].toLowerCase()} relationships on the next expansion`}
-            onClick={() => onDirection(d)}
+            aria-checked={direction === choice}
+            aria-label={LABELS[choice][1]}
+            title={`Follow ${LABELS[choice][1].toLowerCase()} relationships on the next expansion`}
+            onClick={() => onDirection(choice)}
           >
-            {LABELS[d][0]}
+            {LABELS[choice][0]}
           </button>
         ))}
       </span>

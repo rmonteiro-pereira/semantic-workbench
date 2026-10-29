@@ -80,9 +80,9 @@ await api.ws.importBatch(
     files: [
       {
         path: 'flights.yaml',
-        source: edit(await file('ossie/flights.yaml'), d => {
-          d.setIn(['ontology_mappings', 0, 'semantic_model', 'metrics'], d.createNode([metric]));
-          d.setIn(['ontology_mappings', 0, 'semantic_model', 'custom_extensions'], d.createNode(bindings));
+        source: edit(await file('ossie/flights.yaml'), yamlDocument => {
+          yamlDocument.setIn(['ontology_mappings', 0, 'semantic_model', 'metrics'], yamlDocument.createNode([metric]));
+          yamlDocument.setIn(['ontology_mappings', 0, 'semantic_model', 'custom_extensions'], yamlDocument.createNode(bindings));
         }),
       },
     ],
@@ -113,22 +113,22 @@ async function check(name: string, run: () => Promise<void>) {
   console.log('PASS', name);
 }
 const tree = (p: Page = page) => p.getByRole('tree', { name: 'Projects' });
-async function openFile(path: string, p: Page = page) {
-  await tree(p).getByRole('button', { name: path, exact: true }).click();
+async function openFile(path: string, targetPage: Page = page) {
+  await tree(targetPage).getByRole('button', { name: path, exact: true }).click();
 }
 // On a narrow screen the app may open a document right after loading, which closes the drawer
 // the check has just opened, so the drawer is opened again until the tree shows.
-async function openDrawer(p: Page) {
+async function openDrawer(targetPage: Page) {
   await expect(async () => {
-    if (!(await tree(p).isVisible())) await p.getByRole('button', { name: 'Open workspace', exact: true }).click();
-    await expect(tree(p)).toBeVisible({ timeout: 1000 });
+    if (!(await tree(targetPage).isVisible())) await targetPage.getByRole('button', { name: 'Open workspace', exact: true }).click();
+    await expect(tree(targetPage)).toBeVisible({ timeout: 1000 });
   }).toPass({ timeout: 15000 });
 }
 const metricsTab = (p: Page = page) => p.locator('.tabs').getByRole('button', { name: /^Metrics/ });
 const list = (p: Page = page) => p.getByRole('region', { name: 'Metrics' });
 // Rules and the SQL preview are shown with their heading as soon as a metric is open.
-async function expectSection(title: 'Rules' | 'SQL preview', p: Page = page) {
-  const heading = p.locator('.explain-step h4').filter({ hasText: title }).first();
+async function expectSection(title: 'Rules' | 'SQL preview', targetPage: Page = page) {
+  const heading = targetPage.locator('.explain-step h4').filter({ hasText: title }).first();
   await expect(heading).toBeVisible();
 }
 const filterControl = (name: string, p: Page = page) => list(p).getByRole('combobox', { name });
@@ -276,29 +276,29 @@ try {
       [2560, 1440],
     ] as const) {
       const context = await browser.newContext({ viewport: { width, height } });
-      const p = await context.newPage();
+      const metricsPage = await context.newPage();
       try {
-        p.on('pageerror', e => errors.push(`${width}: ${e.message}`));
-        await routeApi(p, api);
-        await p.goto(appUrl());
-        if (width < 1100) await openDrawer(p);
-        await openFile('mall.odcs.yaml', p);
-        await metricsTab(p).click();
-        await expect(list(p).getByRole('status')).toHaveText('25 metrics');
+        metricsPage.on('pageerror', e => errors.push(`${width}: ${e.message}`));
+        await routeApi(metricsPage, api);
+        await metricsPage.goto(appUrl());
+        if (width < 1100) await openDrawer(metricsPage);
+        await openFile('mall.odcs.yaml', metricsPage);
+        await metricsTab(metricsPage).click();
+        await expect(list(metricsPage).getByRole('status')).toHaveText('25 metrics');
         const overflow = () =>
-          p.evaluate(() => [...document.querySelectorAll('.metrics-view, .metrics-list, .metrics-detail')].filter(el => el.scrollWidth > el.clientWidth + 1).map(el => el.className));
+          metricsPage.evaluate(() => [...document.querySelectorAll('.metrics-view, .metrics-list, .metrics-detail')].filter(el => el.scrollWidth > el.clientWidth + 1).map(el => el.className));
         expect(await overflow()).toEqual([]);
-        await p.getByRole('button', { name: 'Delinquency rate: explain' }).click();
-        await expect(p.getByRole('region', { name: 'How this metric is calculated' })).toBeVisible();
-        await expectSection('SQL preview', p);
-        await expect(p.getByLabel('SQL preview, not executed')).toBeVisible();
+        await metricsPage.getByRole('button', { name: 'Delinquency rate: explain' }).click();
+        await expect(metricsPage.getByRole('region', { name: 'How this metric is calculated' })).toBeVisible();
+        await expectSection('SQL preview', metricsPage);
+        await expect(metricsPage.getByLabel('SQL preview, not executed')).toBeVisible();
         expect(await overflow()).toEqual([]);
         if (width === 390) {
-          await expect(list(p)).toBeHidden();
-          await p.getByRole('button', { name: 'All metrics' }).click();
-          await expect(list(p)).toBeVisible();
-        } else await expect(list(p)).toBeVisible();
-        await p.screenshot({ path: `/tmp/workbench-metrics-${width}.png` });
+          await expect(list(metricsPage)).toBeHidden();
+          await metricsPage.getByRole('button', { name: 'All metrics' }).click();
+          await expect(list(metricsPage)).toBeVisible();
+        } else await expect(list(metricsPage)).toBeVisible();
+        await metricsPage.screenshot({ path: `/tmp/workbench-metrics-${width}.png` });
       } finally {
         await context.close();
       }
@@ -323,34 +323,34 @@ try {
     const before = await Bun.file(path).text();
     await list().getByRole('button', { name: 'gross_revenue: explain' }).click();
     await page.getByRole('region', { name: 'Metric gross_revenue' }).getByRole('button', { name: 'Add attributes', exact: true }).click();
-    const w = page.getByRole('dialog', { name: 'Add attributes to gross_revenue' });
-    await expect(w).toBeVisible();
-    const next = () => w.getByRole('button', { name: 'Next' }).click();
+    const wizard = page.getByRole('dialog', { name: 'Add attributes to gross_revenue' });
+    await expect(wizard).toBeVisible();
+    const next = () => wizard.getByRole('button', { name: 'Next' }).click();
     await next();
-    await expect(w).toContainText('sales.ossie.yaml');
+    await expect(wizard).toContainText('sales.ossie.yaml');
     await next();
-    await expect(w.getByLabel('Name')).toHaveValue('gross_revenue');
-    await expect(w.getByLabel('Metric type')).toHaveValue('simple');
-    await expect(w.locator('.formula-line code')).toHaveText('SUM(orders.amount)');
-    await w.getByLabel('Label').fill('Gross revenue');
+    await expect(wizard.getByLabel('Name')).toHaveValue('gross_revenue');
+    await expect(wizard.getByLabel('Metric type')).toHaveValue('simple');
+    await expect(wizard.locator('.formula-line code')).toHaveText('SUM(orders.amount)');
+    await wizard.getByLabel('Label').fill('Gross revenue');
     await next();
     await next();
     await next();
-    await w.getByLabel('Owner').fill('Sales');
+    await wizard.getByLabel('Owner').fill('Sales');
     await next();
-    await expect(w.getByLabel('Preview · not executed')).toBeVisible({ timeout: 10000 });
+    await expect(wizard.getByLabel('Preview · not executed')).toBeVisible({ timeout: 10000 });
     await next();
-    await w.getByRole('button', { name: 'Save to file' }).click();
-    await expect(w).toBeHidden({ timeout: 10000 });
+    await wizard.getByRole('button', { name: 'Save to file' }).click();
+    await expect(wizard).toBeHidden({ timeout: 10000 });
     const after = await Bun.file(path).text();
-    const a = before.split('\n');
-    const b = after.split('\n');
+    const beforeLines = before.split('\n');
+    const afterLines = after.split('\n');
     let i = 0;
-    while (a[i] === b[i]) i++;
+    while (beforeLines[i] === afterLines[i]) i++;
     let j = 0;
-    while (j < a.length - i && j < b.length - i && a[a.length - 1 - j] === b[b.length - 1 - j]) j++;
-    expect(a.length - i - j).toBe(0);
-    expect(b.length - i - j).toBeGreaterThan(0); // Only added lines.
+    while (j < beforeLines.length - i && j < afterLines.length - i && beforeLines[beforeLines.length - 1 - j] === afterLines[afterLines.length - 1 - j]) j++;
+    expect(beforeLines.length - i - j).toBe(0);
+    expect(afterLines.length - i - j).toBeGreaterThan(0); // Only added lines.
     expect(after).toContain('SUM(orders.amount)');
     expect(after).toContain('"owner": "Sales"');
     await governed.check();

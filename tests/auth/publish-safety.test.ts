@@ -10,8 +10,8 @@ import { authWorkspace } from '../helpers/auth-workspace';
 import { gitOutput } from './working-copy-fixture';
 
 const REPO = 'sales-contracts';
-const ANN = { key: 'u' + 'a'.repeat(20), handle: 'ann', name: 'Ann' };
-const BEN = { key: 'u' + 'b'.repeat(20), handle: 'ben', name: 'Ben' };
+const ANN = { key: 'ua'.repeat(20), handle: 'ann', name: 'Ann' };
+const BEN = { key: 'ub'.repeat(20), handle: 'ben', name: 'Ben' };
 const IDENTITY = ['-c', 'user.name=Someone', '-c', 'user.email=someone@example.org'];
 
 // The fixture's repositories with copy operations for two people, outside any request.

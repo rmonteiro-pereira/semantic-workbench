@@ -11,10 +11,10 @@ export const observabilityMutants: [string, string, string, string][] = [
   ['observability-redaction', 'src/server/observability/redaction.ts', 'result.length > MAX_STRING_LENGTH ?', 'false ?'],
   // Redaction of fields by name.
   ['observability-sensitive-fields', 'src/server/observability/redaction.ts', 'if (!TRUSTED_KEYS.has(key) && isSensitiveKey(key)) {', 'if (false) {'],
-  ['observability-sensitive-fields', 'src/server/observability/redaction.ts', '    SECRET_KEY.test(key) ||\n', ''],
-  ['observability-sensitive-fields', 'src/server/observability/redaction.ts', '    CONTENT_KEY.test(key) ||\n', ''],
-  ['observability-sensitive-fields', 'src/server/observability/redaction.ts', '    SESSION_KEY.test(key) ||\n', ''],
-  ['observability-sensitive-fields', 'src/server/observability/redaction.ts', '    LOCATION_KEY.test(key)', '    false'],
+  ['observability-sensitive-fields', 'src/server/observability/redaction.ts', 'SECRET_KEY.test(key) || ', ''],
+  ['observability-sensitive-fields', 'src/server/observability/redaction.ts', 'CONTENT_KEY.test(key) || ', ''],
+  ['observability-sensitive-fields', 'src/server/observability/redaction.ts', 'SESSION_KEY.test(key) || ', ''],
+  ['observability-sensitive-fields', 'src/server/observability/redaction.ts', ' || LOCATION_KEY.test(key)', ' || false'],
   ['observability-sensitive-fields', 'src/server/observability/redaction.ts', 'if (depth >= MAX_DEPTH) return REDACTED;', ''],
   ['observability-sensitive-fields', 'src/server/observability/redaction.ts', 'value.slice(0, MAX_ARRAY_ITEMS)', 'value'],
   // The telemetry-off guard.

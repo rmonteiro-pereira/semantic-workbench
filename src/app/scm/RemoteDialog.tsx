@@ -123,8 +123,8 @@ export function RemoteDialog({ project, onClose }: Props) {
     try {
       await action();
       onClose();
-    } catch (e) {
-      setError((e as Error).message);
+    } catch (error) {
+      setError((error as Error).message);
     } finally {
       setBusy(false);
     }
@@ -135,8 +135,8 @@ export function RemoteDialog({ project, onClose }: Props) {
     setError('');
     try {
       setConfirming(await scm.folderPreview(project, folderInput.folder));
-    } catch (e) {
-      setError((e as Error).message);
+    } catch (error) {
+      setError((error as Error).message);
     } finally {
       setBusy(false);
     }

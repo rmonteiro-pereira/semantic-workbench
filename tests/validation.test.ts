@@ -35,12 +35,12 @@ const semantic = {
 };
 const asJson = (v: any) => JSON.stringify(v);
 function bad(source: string, filename = 'test.yaml', code?: string) {
-  const r = validateInput(source, filename);
-  expect(r.valid).toBe(false);
-  expect(r.model).toBeNull();
-  expect(r.issues.some(i => i.severity === 'error')).toBe(true);
-  if (code) expect(r.issues.some(i => i.code === code)).toBe(true);
-  return r;
+  const validation = validateInput(source, filename);
+  expect(validation.valid).toBe(false);
+  expect(validation.model).toBeNull();
+  expect(validation.issues.some(i => i.severity === 'error')).toBe(true);
+  if (code) expect(validation.issues.some(i => i.code === code)).toBe(true);
+  return validation;
 }
 for (const [name, source, filename, code] of [
   ['empty', '', 'x.yaml', 'empty'],
@@ -103,11 +103,11 @@ for (const [name, mutate, code] of [
     'inheritance-cycle',
   ],
   ['ambiguous format', (d: any) => (d.datasets = []), 'format'],
-] as [string, (d: any) => void, string][])
+] as [string, (data: any) => void, string][])
   test(`ontology: ${name}`, () => {
-    const d = structuredClone(ontology);
-    mutate(d);
-    bad(asJson(d), 'ontology.json', code);
+    const clone = structuredClone(ontology);
+    mutate(clone);
+    bad(asJson(clone), 'ontology.json', code);
   });
 for (const [name, mutate, code] of [
   ['empty datasets', (d: any) => (d.datasets = []), 'structure'],
@@ -127,20 +127,20 @@ for (const [name, mutate, code] of [
   ['malformed dialects', (d: any) => (d.metrics[0].expression.dialects = 'SQL'), 'structure'],
   ['empty expression', (d: any) => (d.metrics[0].expression.dialects[0].expression = ''), 'structure'],
   ['official schema extra property', (d: any) => (d.unrecognized = true), 'schema'],
-] as [string, (d: any) => void, string][])
+] as [string, (data: any) => void, string][])
   test(`semantic: ${name}`, () => {
-    const d = structuredClone(semantic);
-    mutate(d);
-    bad(asJson(d), 'sales.json', code);
+    const clone = structuredClone(semantic);
+    mutate(clone);
+    bad(asJson(clone), 'sales.json', code);
   });
 test('valid semantic model, legal business cycles and self links remain supported', () => {
   expect(validateInput(asJson(semantic), 'sales.json').valid).toBe(true);
-  const d = structuredClone(ontology);
-  d.ontology[1].relationships = [{ name: 'customer', roles: [{ concept: 'Customer' }] }];
-  d.ontology[0].relationships!.push({ name: 'self', roles: [{ concept: 'Customer' }] });
-  const r = validateInput(asJson(d));
-  expect(r.valid).toBe(true);
-  expect(r.model?.edges).toHaveLength(3);
+  const clone = structuredClone(ontology);
+  clone.ontology[1].relationships = [{ name: 'customer', roles: [{ concept: 'Customer' }] }];
+  clone.ontology[0].relationships!.push({ name: 'self', roles: [{ concept: 'Customer' }] });
+  const validation = validateInput(asJson(clone));
+  expect(validation.valid).toBe(true);
+  expect(validation.model?.edges).toHaveLength(3);
 });
 test('inheritance DAG diamond is valid and deep chains are iterative', () => {
   const nodes = Array.from({ length: 20000 }, (_, i) => String(i));
@@ -166,23 +166,23 @@ test('size limit uses UTF-8 bytes including multibyte input', () => {
   expect(validateInput(prefix + 'a'.repeat(MAX_INPUT_BYTES - prefix.length)).valid).toBe(true);
 });
 test('unknown versions and undeclared external fields are honest warnings', () => {
-  const r = validateInput('kind: DataContract\napiVersion: v99\nid: x\nversion: "1"\nschema: [{name: X}]');
-  expect(r.valid).toBe(true);
-  expect(r.issues.some(i => i.severity === 'warning' && i.path === '/apiVersion')).toBe(true);
-  const s = validateInput('name: external\ndatasets: [{name: x, source: db.x, primary_key: [id]}]');
-  expect(s.valid).toBe(true);
-  expect(s.issues.some(i => i.path.includes('/fields'))).toBe(true);
+  const validation = validateInput('kind: DataContract\napiVersion: v99\nid: x\nversion: "1"\nschema: [{name: X}]');
+  expect(validation.valid).toBe(true);
+  expect(validation.issues.some(i => i.severity === 'warning' && i.path === '/apiVersion')).toBe(true);
+  const externalValidation = validateInput('name: external\ndatasets: [{name: x, source: db.x, primary_key: [id]}]');
+  expect(externalValidation.valid).toBe(true);
+  expect(externalValidation.issues.some(i => i.path.includes('/fields'))).toBe(true);
 });
 test('all shipped imports including benchmarks continue to validate', async () => {
   for (const dir of ['public/examples/commerce', 'public/examples/ubl', 'public/examples'])
     for (const file of await readdir(dir)) {
       if (!/\.(yaml|ttl|owl)$/.test(file) || file === 'summary.json') continue;
-      const r = validateInput(await Bun.file(`${dir}/${file}`).text(), file);
-      expect({ file, errors: r.issues.filter(i => i.severity === 'error') }).toEqual({
+      const validation = validateInput(await Bun.file(`${dir}/${file}`).text(), file);
+      expect({ file, errors: validation.issues.filter(i => i.severity === 'error') }).toEqual({
         file,
         errors: [],
       });
-      expect(r.valid).toBe(true);
+      expect(validation.valid).toBe(true);
     }
 });
 const pre = '@prefix ex: <https://example.org/> .\n@prefix sh: <http://www.w3.org/ns/shacl#> .\n@prefix owl: <http://www.w3.org/2002/07/owl#> .\n@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n';
@@ -241,9 +241,9 @@ test('error is structured at the lower-level inspector boundary', () => {
   try {
     inspect(asJson({ ...ontology, ontology: [] }));
     throw Error('accepted');
-  } catch (e) {
-    expect(e).toBeInstanceOf(InputError);
-    expect((e as InputError).issues[0].path).toBe('/ontology');
+  } catch (error) {
+    expect(error).toBeInstanceOf(InputError);
+    expect((error as InputError).issues[0].path).toBe('/ontology');
   }
 });
 const odcsFixture = JSON.parse(JSON.stringify((await import('yaml')).parse(await Bun.file('public/examples/commerce/commerce.odcs.yaml').text())));
@@ -260,11 +260,11 @@ for (const [name, mutate, code] of [
   ['missing required status', (d: any) => delete d.status, 'schema'],
   ['invalid boolean', (d: any) => (d.schema[0].properties[0].required = 'yes'), 'schema'],
   ['invalid URL', (d: any) => (d.schema[0].authoritativeDefinitions[0].url = 42), 'schema'],
-] as [string, (d: any) => void, string][])
+] as [string, (data: any) => void, string][])
   test(`ODCS: ${name}`, () => {
-    const d = structuredClone(odcsFixture);
-    mutate(d);
-    bad(asJson(d), 'contract.json', code);
+    const clone = structuredClone(odcsFixture);
+    mutate(clone);
+    bad(asJson(clone), 'contract.json', code);
   });
 test('RDF cannot bypass JSON extension validation', () => {
   bad(pre + 'ex:a ex:p ex:b .', 'wrong.json', 'json');
@@ -277,8 +277,8 @@ test('recoverable XML errors are rejected instead of silently repaired', () => {
   );
 });
 test('source diagnostics include the offending line and column', () => {
-  const r = bad('name: Test\nontology:\n - concept: A\n   extends: [Missing]', 'test.yaml', 'reference');
-  const issue = r.issues.find(i => i.code === 'reference')!;
+  const rejection = bad('name: Test\nontology:\n - concept: A\n   extends: [Missing]', 'test.yaml', 'reference');
+  const issue = rejection.issues.find(i => i.code === 'reference')!;
   expect(issue.line).toBe(4);
   expect(issue.column).toBeGreaterThan(1);
 });
@@ -296,9 +296,9 @@ test('empty filenames and object-valued model names cannot bypass shared validat
 });
 
 test('primary-key columns need not all be exposed as logical fields', () => {
-  const d = structuredClone(semantic);
-  d.datasets[0].primary_key = ['id', 'physical_ticket'];
-  const r = validateInput(asJson(d), 'model.json');
-  expect(r.valid).toBe(true);
-  expect(r.issues.some(i => i.severity === 'warning' && i.path === '/datasets/0/primary_key/1')).toBe(true);
+  const clone = structuredClone(semantic);
+  clone.datasets[0].primary_key = ['id', 'physical_ticket'];
+  const validation = validateInput(asJson(clone), 'model.json');
+  expect(validation.valid).toBe(true);
+  expect(validation.issues.some(i => i.severity === 'warning' && i.path === '/datasets/0/primary_key/1')).toBe(true);
 });

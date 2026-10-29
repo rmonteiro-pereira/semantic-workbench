@@ -2,13 +2,13 @@
 import { isBlank, termKey, type Term, type Triple } from './terms';
 // Blank-node names can change between parses, so comparison allows renaming. Ground triples
 // compare as sets; ambiguous neighborhood hashes require exact matching.
-const hash = (s: string) => {
+const hash = (text: string) => {
   let h1 = 0x811c9dc5;
   let h2 = 0x1b873593;
-  for (let i = 0; i < s.length; i++) {
-    const c = s.charCodeAt(i);
-    h1 = Math.imul(h1 ^ c, 0x01000193);
-    h2 = Math.imul(h2 ^ c, 0x5bd1e995) ^ (h2 >>> 15);
+  for (let i = 0; i < text.length; i++) {
+    const code = text.charCodeAt(i);
+    h1 = Math.imul(h1 ^ code, 0x01000193);
+    h2 = Math.imul(h2 ^ code, 0x5bd1e995) ^ (h2 >>> 15);
   }
   return (h1 >>> 0).toString(36) + (h2 >>> 0).toString(36);
 };
@@ -16,36 +16,44 @@ const key = (t: Triple) => `${termKey(t.s)} ${termKey(t.p)} ${termKey(t.o)}${t.g
 const blanks = (t: Triple) => [t.s, t.p, t.o, ...(t.g ? [t.g] : [])].filter(isBlank);
 /** Removes duplicate triples using their term identities. */
 export function dedupe(triples: Triple[]) {
-  const m = new Map<string, Triple>();
-  for (const t of triples) m.set(key(t), t);
-  return [...m.values()];
+  const lookup = new Map<string, Triple>();
+  for (const triple of triples) lookup.set(key(triple), triple);
+  return [...lookup.values()];
 }
 // Blank-node colours after refinement: equal colours mean equal surroundings.
 function colours(triples: Triple[]) {
   const nodes = new Map<string, string>();
-  for (const t of triples) for (const b of blanks(t)) nodes.set(termKey(b), 'b');
+  for (const triple of triples) for (const term of blanks(triple)) nodes.set(termKey(term), 'b');
   const touching = new Map<string, Triple[]>();
-  for (const t of triples)
-    for (const b of blanks(t)) {
-      const k = termKey(b);
-      touching.set(k, [...(touching.get(k) ?? []), t]);
+  for (const triple of triples)
+    for (const term of blanks(triple)) {
+      const blankKey = termKey(term);
+      touching.set(blankKey, [...(touching.get(blankKey) ?? []), triple]);
     }
-  const name = (term: Term, self: string, c: Map<string, string>) => (isBlank(term) ? (termKey(term) === self ? '@' : '#' + c.get(termKey(term))) : termKey(term));
+  const name = (term: Term, self: string, c: Map<string, string>) => {
+    if (isBlank(term)) {
+      if (termKey(term) === self) {
+        return '@';
+      }
+      return '#' + c.get(termKey(term));
+    }
+    return termKey(term);
+  };
   let current = nodes;
   let classes = 1;
   for (let round = 0; round < 64; round++) {
     const next = new Map<string, string>();
-    for (const k of current.keys())
+    for (const blankKey of current.keys())
       next.set(
-        k,
+        blankKey,
         hash(
-          current.get(k) +
+          current.get(blankKey) +
             '|' +
-            (touching.get(k) ?? [])
-              .map(t =>
-                [t.s, t.p, t.o, t.g]
+            (touching.get(blankKey) ?? [])
+              .map(triple =>
+                [triple.s, triple.p, triple.o, triple.g]
                   .filter(Boolean)
-                  .map(x => name(x!, k, current))
+                  .map(x => name(x!, blankKey, current))
                   .join(' '),
               )
               .sort()
@@ -60,43 +68,43 @@ function colours(triples: Triple[]) {
   return current;
 }
 /** Compares RDF graphs while allowing blank-node identifiers to differ. */
-export function isomorphic(a: Triple[], b: Triple[]): boolean {
-  a = dedupe(a);
-  b = dedupe(b);
-  if (a.length !== b.length) return false;
+export function isomorphic(leftTriples: Triple[], rightTriples: Triple[]): boolean {
+  const left = dedupe(leftTriples);
+  const right = dedupe(rightTriples);
+  if (left.length !== right.length) return false;
   const ground = (x: Triple[]) =>
     x
       .filter(t => !blanks(t).length)
       .map(key)
       .sort();
-  const ga = ground(a);
-  const gb = ground(b);
+  const ga = ground(left);
+  const gb = ground(right);
   if (ga.length !== gb.length || ga.some((k, i) => k !== gb[i])) return false;
-  const ba = a.filter(t => blanks(t).length);
-  const bb = b.filter(t => blanks(t).length);
+  const ba = left.filter(t => blanks(t).length);
+  const bb = right.filter(t => blanks(t).length);
   if (!ba.length) return true;
   const ca = colours(ba);
   const cb = colours(bb);
-  const sig = (t: Triple, c: Map<string, string>) =>
-    [t.s, t.p, t.o, t.g]
+  const sig = (triple: Triple, lookup: Map<string, string>) =>
+    [triple.s, triple.p, triple.o, triple.g]
       .filter(Boolean)
-      .map(x => (isBlank(x!) ? '#' + c.get(termKey(x!)) : termKey(x!)))
+      .map(x => (isBlank(x!) ? '#' + lookup.get(termKey(x!)) : termKey(x!)))
       .join(' ');
   const sa = ba.map(t => sig(t, ca)).sort();
   const sb = bb.map(t => sig(t, cb)).sort();
   if (sa.some((s, i) => s !== sb[i])) return false;
   // Colour classes with one member fix the mapping; larger classes are matched by search.
-  const byColour = (c: Map<string, string>) => {
-    const m = new Map<string, string[]>();
-    for (const [k, v] of c) m.set(v, [...(m.get(v) ?? []), k]);
-    return m;
+  const byColour = (lookup: Map<string, string>) => {
+    const nodesByColour = new Map<string, string[]>();
+    for (const [nodeKey, colour] of lookup) nodesByColour.set(colour, [...(nodesByColour.get(colour) ?? []), nodeKey]);
+    return nodesByColour;
   };
   const qa = byColour(ca);
   const qb = byColour(cb);
   if ([...qa.values()].every(x => x.length === 1)) return true;
   const set = new Set(bb.map(t => key(t)));
   const map = new Map<string, string>();
-  for (const [c, xs] of qa) if (xs.length === 1) map.set(xs[0], qb.get(c)![0]);
+  for (const [colour, xs] of qa) if (xs.length === 1) map.set(xs[0], qb.get(colour)![0]);
   const ambiguous = [...qa.entries()].filter(([, xs]) => xs.length > 1).flatMap(([c, xs]) => xs.map(x => ({ x, options: qb.get(c)! })));
   // Hashes already agree; beyond this many interchangeable blank nodes the search is not run.
   if (ambiguous.length > 200) return true;
@@ -109,12 +117,12 @@ export function isomorphic(a: Triple[], b: Triple[]): boolean {
   const used = new Set(map.values());
   const search = (i: number): boolean => {
     if (i === ambiguous.length) return ba.every(t => set.has(keyB(t)));
-    for (const o of ambiguous[i].options) {
-      if (used.has(o)) continue;
-      map.set(ambiguous[i].x, o);
-      used.add(o);
+    for (const option of ambiguous[i].options) {
+      if (used.has(option)) continue;
+      map.set(ambiguous[i].x, option);
+      used.add(option);
       if (search(i + 1)) return true;
-      used.delete(o);
+      used.delete(option);
       map.delete(ambiguous[i].x);
     }
     return false;
@@ -126,20 +134,20 @@ export function isomorphic(a: Triple[], b: Triple[]): boolean {
 /** Collects subjects' triples and the blank-node descriptions they reach. */
 export function description(triples: Triple[], subjects: Set<string>): Set<Triple> {
   const bySubject = new Map<string, Triple[]>();
-  for (const t of triples) {
-    const k = termKey(t.s);
-    bySubject.set(k, [...(bySubject.get(k) ?? []), t]);
+  for (const triple of triples) {
+    const subjectKey = termKey(triple.s);
+    bySubject.set(subjectKey, [...(bySubject.get(subjectKey) ?? []), triple]);
   }
   const out = new Set<Triple>();
   const seen = new Set<string>();
   const queue = [...subjects];
   while (queue.length) {
-    const k = queue.pop()!;
-    if (seen.has(k)) continue;
-    seen.add(k);
-    for (const t of bySubject.get(k) ?? []) {
-      out.add(t);
-      if (isBlank(t.o)) queue.push(termKey(t.o));
+    const subjectKey = queue.pop()!;
+    if (seen.has(subjectKey)) continue;
+    seen.add(subjectKey);
+    for (const triple of bySubject.get(subjectKey) ?? []) {
+      out.add(triple);
+      if (isBlank(triple.o)) queue.push(termKey(triple.o));
     }
   }
   return out;

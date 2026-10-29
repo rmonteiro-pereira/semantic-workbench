@@ -27,9 +27,9 @@ type Props = {
   selectedProject: string;
   selectProject: (project: string) => boolean;
   current: Doc | null;
-  treeAction: (a: TreeAction) => void;
+  treeAction: (treeAction: TreeAction) => void;
   docs: Doc[];
-  openDocument: (d: Doc) => boolean;
+  openDocument: (doc: Doc) => boolean;
   setDeleteTarget: React.Dispatch<React.SetStateAction<DeleteTarget | null>>;
   setTrashOpen: React.Dispatch<React.SetStateAction<boolean>>;
   suggestions: Suggestion[];
@@ -156,11 +156,11 @@ export const WorkspaceSidebar = React.memo(function WorkspaceSidebar({
       .catch(e => setMessage(e.message));
   }
 
-  function handleImportInputChange(e: React.ChangeEvent<HTMLInputElement, HTMLInputElement>) {
-    const files = Array.from(e.target.files ?? []);
+  function handleImportInputChange(event: React.ChangeEvent<HTMLInputElement, HTMLInputElement>) {
+    const files = Array.from(event.target.files ?? []);
     const into = importInto.current;
     importInto.current = '';
-    e.target.value = '';
+    event.target.value = '';
     if (into)
       void Promise.all(files.map(async f => ({ path: f.name, source: await f.text() }))).then(list => {
         if (list.length) void importIntoProject(list, undefined, into);

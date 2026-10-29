@@ -14,7 +14,7 @@ type Props = {
   setSelectedKpi: React.Dispatch<React.SetStateAction<string>>;
   kpiFilter: string;
   setWizard: React.Dispatch<React.SetStateAction<boolean | KpiSummary>>;
-  editKpi: (k: KpiSummary) => void;
+  editKpi: (kpiSummary: KpiSummary) => void;
 };
 /** Renders metrics panel. */
 export function MetricsPanel({ kpiProject, projects, kpis, kpiError, kpiLoading, selectedKpi, setSelectedKpi, kpiFilter, setWizard, editKpi }: Props) {

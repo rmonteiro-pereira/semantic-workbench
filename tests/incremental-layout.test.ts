@@ -2,7 +2,7 @@
 import { test, expect } from 'bun:test';
 import { placeNew, placeLayers, placeBoxes } from '../src/app/graph/incremental-layout';
 
-const g = { column: 360, row: 130 };
+const spacing = { column: 360, row: 130 };
 test('placed nodes never move; new nodes go beside their origin, left for incoming and right for outgoing', () => {
   const before = new Map([
     ['C', { x: 0, y: 0 }],
@@ -16,9 +16,9 @@ test('placed nodes never move; new nodes go beside their origin, left for incomi
       { id: 'X', side: 1 },
       { id: 'P', side: -1 },
     ],
-    g,
+    spacing,
   );
-  for (const [id, p] of before) expect(after.get(id)).toEqual(p);
+  for (const [id, entry] of before) expect(after.get(id)).toEqual(entry);
   expect(after.get('X')).toEqual({ x: 720, y: 0 });
   // Left of A is the centre's column, occupied at row 0: the nearest free row.
   expect(after.get('P')!.x).toBe(0);
@@ -31,7 +31,7 @@ test('the nearest free row alternates below and above, and nothing overlaps', ()
     pos,
     'O',
     ['a', 'b', 'c', 'd', 'e'].map(id => ({ id, side: 1 as const })),
-    g,
+    spacing,
   );
   expect(['a', 'b', 'c', 'd', 'e'].map(id => out.get(id)!.y)).toEqual([0, 130, -130, 260, -260]);
   const keys = [...out.values()].map(p => `${p.x},${p.y}`);
@@ -49,7 +49,7 @@ test('step distance places pierce layers further out; an already placed id is le
       { id: 's2', side: 1, step: 2 },
       { id: 'k', side: 1 },
     ],
-    g,
+    spacing,
   );
   expect(out.get('s2')).toEqual({ x: 720, y: 0 });
   expect(out.get('k')).toEqual({ x: -50, y: 999 });
@@ -60,7 +60,7 @@ test('deterministic for the same input', () => {
     ['n', { x: 360, y: 0 }],
   ]);
   const items = ['a', 'b', 'c'].map(id => ({ id, side: 1 as const }));
-  expect([...placeNew(pos, 'O', items, g)]).toEqual([...placeNew(pos, 'O', items, g)]);
+  expect([...placeNew(pos, 'O', items, spacing)]).toEqual([...placeNew(pos, 'O', items, spacing)]);
 });
 test('pierce layers: steps go further out, each step wraps into columns of at most 8, nothing placed moves or overlaps', () => {
   const pos = new Map([
@@ -72,7 +72,7 @@ test('pierce layers: steps go further out, each step wraps into columns of at mo
     ...Array.from({ length: 3 }, (_, i) => ({ id: 'b' + i, side: 1 as const, step: 2 })),
     { id: 'L', side: -1 as const, step: 1 },
   ];
-  const out = placeLayers(pos, 'O', items, g);
+  const out = placeLayers(pos, 'O', items, spacing);
   expect(out.get('P')).toEqual({ x: 360, y: 0 });
   const xs = (p: string) => items.filter(i => i.id.startsWith(p)).map(i => out.get(i.id)!.x);
   expect(Math.max(...xs('a'))).toBe(720);

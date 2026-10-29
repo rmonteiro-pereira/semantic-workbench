@@ -72,7 +72,7 @@ export function indexBytes(project: string, path: string, bytes: Uint8Array, git
   let source: string;
   try {
     source = decode(bytes);
-  } catch (e) {
+  } catch (error) {
     return {
       file: {
         ...base,
@@ -83,7 +83,7 @@ export function indexBytes(project: string, path: string, bytes: Uint8Array, git
         visible: true,
       },
       entities: [],
-      findings: [{ severity: 'error', code: 'encoding', path: '/', message: (e as Error).message }],
+      findings: [{ severity: 'error', code: 'encoding', path: '/', message: (error as Error).message }],
     };
   }
   serialization = serializationOf(path, source);

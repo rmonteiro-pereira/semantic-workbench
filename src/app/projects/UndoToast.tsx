@@ -8,9 +8,9 @@ export function UndoToast({ deleted, onUndo, onExpire }: { deleted: Deleted; onU
   const [seconds, setSeconds] = useState(left());
   useEffect(() => {
     const timer = setInterval(() => {
-      const s = left();
-      setSeconds(s);
-      if (!s) onExpire();
+      const secondsLeft = left();
+      setSeconds(secondsLeft);
+      if (!secondsLeft) onExpire();
     }, 250);
     return () => clearInterval(timer);
   }, [deleted]);

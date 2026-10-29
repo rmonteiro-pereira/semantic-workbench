@@ -21,9 +21,9 @@ export async function odcsGraphProblems(page: Page, options: { withKeys?: boolea
         name: element.getAttribute('aria-label') ?? 'card',
       }));
       for (const card of cards) {
-        const r = card.rect;
-        const cut = r.left < pane.left - 1 || r.right > pane.right + 1;
-        const cutVertically = r.top < pane.top - 1 || r.bottom > pane.bottom + 1;
+        const rect = card.rect;
+        const cut = rect.left < pane.left - 1 || rect.right > pane.right + 1;
+        const cutVertically = rect.top < pane.top - 1 || rect.bottom > pane.bottom + 1;
         // The centre shows whole. A neighbour may peek in at the edge, which tells a person that
         // more of the graph is a pan away.
         const isCentre = card.element.classList.contains('center');
@@ -66,9 +66,9 @@ export async function odcsGraphProblems(page: Page, options: { withKeys?: boolea
             bottom: card.rect.bottom - 3,
           };
           for (let at = 0; at <= length; at += 6) {
-            const p = path.getPointAtLength(at);
-            const s = new DOMPoint(p.x, p.y).matrixTransform(matrix);
-            if (s.x > inner.left && s.x < inner.right && s.y > inner.top && s.y < inner.bottom) {
+            const point = path.getPointAtLength(at);
+            const screenPoint = new DOMPoint(point.x, point.y).matrixTransform(matrix);
+            if (screenPoint.x > inner.left && screenPoint.x < inner.right && screenPoint.y > inner.top && screenPoint.y < inner.bottom) {
               out.push(`a line crosses ${card.name}`);
               break;
             }
@@ -109,9 +109,9 @@ export async function odcsGraphProblems(page: Page, options: { withKeys?: boolea
       if (hops) {
         const box = view.getBoundingClientRect();
         for (const child of hops.children) {
-          const r = child.getBoundingClientRect();
-          if (r.width < 1) continue;
-          if (r.left < box.left - 1 || r.right > box.right + 1) out.push(`the hop row sticks out: ${child.textContent?.slice(0, 20)}`);
+          const rect = child.getBoundingClientRect();
+          if (rect.width < 1) continue;
+          if (rect.left < box.left - 1 || rect.right > box.right + 1) out.push(`the hop row sticks out: ${child.textContent?.slice(0, 20)}`);
         }
       }
       return out;
@@ -139,11 +139,11 @@ export async function hopRowProblems(page: Page): Promise<string[]> {
       const rect = child.getBoundingClientRect();
       if (rect.width > 0 && child.textContent?.trim()) boxes.push({ text: child.textContent.trim(), rect });
     }
-    boxes.forEach((a, i) =>
-      boxes.slice(i + 1).forEach(b => {
-        const across = Math.min(a.rect.right, b.rect.right) - Math.max(a.rect.left, b.rect.left);
-        const down = Math.min(a.rect.bottom, b.rect.bottom) - Math.max(a.rect.top, b.rect.top);
-        if (across > 1 && down > 1) out.push(`"${a.text}" overlaps "${b.text}" in the hop row`);
+    boxes.forEach((first, i) =>
+      boxes.slice(i + 1).forEach(second => {
+        const across = Math.min(first.rect.right, second.rect.right) - Math.max(first.rect.left, second.rect.left);
+        const down = Math.min(first.rect.bottom, second.rect.bottom) - Math.max(first.rect.top, second.rect.top);
+        if (across > 1 && down > 1) out.push(`"${first.text}" overlaps "${second.text}" in the hop row`);
       }),
     );
     return out;

@@ -28,17 +28,16 @@ export function lintRegion(source: string, region: SqlRegion, astify: Astify): S
   // the finding reports the PostgreSQL error.
   const grammars = region.grammar === 'postgresql' ? ['postgresql', 'sqlite'] : [region.grammar];
   let first: unknown = null;
-  for (const g of grammars) {
+  for (const grammar of grammars) {
     try {
-      astify(sql, g);
+      astify(sql, grammar);
       return [];
-    } catch (e) {
-      first ??= e;
+    } catch (error) {
+      first ??= error;
     }
   }
   {
-    const e = first;
-    const error = e as {
+    const error = first as {
       location?: { start?: { offset?: number } };
       found?: unknown;
       message?: string;
@@ -72,13 +71,13 @@ export function uncheckedRegions(regions: SqlRegion[]) {
 }
 /** Reports informational notes for unsupported or non-SQL dialects. */
 export function dialectNotes(source: string, regions: SqlRegion[]): Issue[] {
-  return uncheckedRegions(regions).map(r => {
-    const { line, column } = lineColumn(source, r.offsets[0] ?? r.start);
+  return uncheckedRegions(regions).map(sqlRegion => {
+    const { line, column } = lineColumn(source, sqlRegion.offsets[0] ?? sqlRegion.start);
     return {
       severity: 'info',
       code: 'sql-dialect',
-      path: r.pointer,
-      message: `${r.dialect} expression: not SQL, shown as written and not checked.`,
+      path: sqlRegion.pointer,
+      message: `${sqlRegion.dialect} expression: not SQL, shown as written and not checked.`,
       line,
       column,
     };
@@ -89,4 +88,16 @@ export function lintSql(source: string, filename: string, astify: Astify, region
   return [...regions.flatMap(r => lintRegion(source, r, astify)), ...dialectNotes(source, regions)];
 }
 /** Lists the distinct parser grammars required by SQL regions. */
-export const grammarsNeeded = (regions: SqlRegion[]) => [...new Set(regions.flatMap(r => (r.grammar === 'postgresql' ? ['postgresql', 'sqlite'] : r.grammar ? [r.grammar] : [])))];
+export const grammarsNeeded = (regions: SqlRegion[]) => [
+  ...new Set(
+    regions.flatMap(region => {
+      if (region.grammar === 'postgresql') {
+        return ['postgresql', 'sqlite'];
+      }
+      if (region.grammar) {
+        return [region.grammar];
+      }
+      return [];
+    }),
+  ),
+];

@@ -10,13 +10,13 @@ export type Viewport = { x: number; y: number; zoom: number };
 export function createViewMemory() {
   let saved: Viewport | null = null;
   return {
-    enter(v: Viewport) {
-      saved = { ...v };
+    enter(viewport: Viewport) {
+      saved = { ...viewport };
     },
     exit(): Viewport | null {
-      const v = saved;
+      const viewport = saved;
       saved = null;
-      return v;
+      return viewport;
     },
     get pending() {
       return saved !== null;
@@ -71,9 +71,9 @@ export function useFullscreen(target: RefObject<HTMLElement | null>, enabled = t
   }, []);
   useEffect(() => {
     if (!active) return;
-    const key = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
+    const key = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
         exit();
       }
     };
@@ -88,7 +88,7 @@ export function useFullscreen(target: RefObject<HTMLElement | null>, enabled = t
 // For a React Flow canvas: save the viewport when full screen starts; when it ends, ignore the
 // resize refit for a moment and put the saved viewport back.
 /** Restores the entry viewport after exit and briefly suppresses resize refits. */
-export function useViewRestore(active: boolean, getViewport: () => Viewport | undefined, setViewport: (v: Viewport) => void) {
+export function useViewRestore(active: boolean, getViewport: () => Viewport | undefined, setViewport: (viewport: Viewport) => void) {
   const memory = useRef(createViewMemory());
   const holdUntil = useRef(0);
   const was = useRef(active);
@@ -96,19 +96,19 @@ export function useViewRestore(active: boolean, getViewport: () => Viewport | un
     if (active === was.current) return;
     was.current = active;
     if (active) {
-      const v = getViewport();
-      if (v) memory.current.enter(v);
+      const viewport = getViewport();
+      if (viewport) memory.current.enter(viewport);
       return;
     }
-    const v = memory.current.exit();
-    if (!v) return;
+    const savedViewport = memory.current.exit();
+    if (!savedViewport) return;
     holdUntil.current = performance.now() + 700;
     // After the layout settles at its old size (two frames, then once more after the resize refit
     // window).
     let frame = requestAnimationFrame(() => {
-      frame = requestAnimationFrame(() => setViewport(v));
+      frame = requestAnimationFrame(() => setViewport(savedViewport));
     });
-    const timer = setTimeout(() => setViewport(v), 250);
+    const timer = setTimeout(() => setViewport(savedViewport), 250);
     return () => {
       cancelAnimationFrame(frame);
       clearTimeout(timer);

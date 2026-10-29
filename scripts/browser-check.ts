@@ -13,9 +13,9 @@ const source = JSON.stringify({
   ontology: Array.from({ length: count }, (_, i) => ({
     concept: `Entity_${i}`,
     type: 'EntityType',
-    relationships: [1, 7, 31].map(k => ({
-      name: `link_${k}`,
-      roles: [{ concept: `Entity_${(i + k) % count}` }],
+    relationships: [1, 7, 31].map(index => ({
+      name: `link_${index}`,
+      roles: [{ concept: `Entity_${(i + index) % count}` }],
       verbalizes: ['links'],
     })),
   })),

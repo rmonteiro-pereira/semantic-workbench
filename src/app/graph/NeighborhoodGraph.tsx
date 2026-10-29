@@ -186,7 +186,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
     return [
       ...view.edges,
       ...projection.edges.filter(
-        e => !base.has(e.id) && ids.has(e.source) && ids.has(e.target) && (own.has(e.id) || (lateral && canvasState.active.some(s => s.from === e.source || s.from === e.target))),
+        edge => !base.has(edge.id) && ids.has(edge.source) && ids.has(edge.target) && (own.has(edge.id) || (lateral && canvasState.active.some(s => s.from === edge.source || s.from === edge.target))),
       ),
     ];
   }, [sets, view, canvasState, projection, lateral]);
@@ -203,28 +203,28 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
   const positions = useMemo(() => {
     if (!center) return new Map<string, { x: number; y: number }>();
     let out = neighborhoodLayout(center, view.incoming, view.outgoing, view.both);
-    for (const s of canvasState.active) {
+    for (const expansionSet of canvasState.active) {
       const grid = { column: NEIGHBOR_COLUMN, row: NEIGHBOR_ROW };
-      if (s.kind === 'pierce')
+      if (expansionSet.kind === 'pierce')
         out = placeLayers(
           out,
-          s.from,
-          s.nodes.map(n => ({
-            id: n,
-            side: (s.direction === 'in' ? -1 : 1) as -1 | 1,
-            step: Math.max(1, s.steps?.[n] ?? 1),
+          expansionSet.from,
+          expansionSet.nodes.map(node => ({
+            id: node,
+            side: (expansionSet.direction === 'in' ? -1 : 1) as -1 | 1,
+            step: Math.max(1, expansionSet.steps?.[node] ?? 1),
           })),
           grid,
         );
       else
         out = placeNew(
           out,
-          s.from,
-          s.nodes
+          expansionSet.from,
+          expansionSet.nodes
             .filter(n => !out.has(n))
-            .map(n => ({
-              id: n,
-              side: (projection.edges.some(e => e.source === s.from && e.target === n) ? 1 : -1) as -1 | 1,
+            .map(node => ({
+              id: node,
+              side: (projection.edges.some(e => e.source === expansionSet.from && e.target === node) ? 1 : -1) as -1 | 1,
             })),
           grid,
         );
@@ -236,13 +236,13 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
   // input.
   const [reveal, setReveal] = useState(Infinity);
   const build = (limit = reveal) =>
-    shownEntities.slice(0, limit).map((e): Node => ({
-      id: e.id,
-      position: positions.get(e.id) ?? { x: 0, y: 0 },
+    shownEntities.slice(0, limit).map((shownEntity): Node => ({
+      id: shownEntity.id,
+      position: positions.get(shownEntity.id) ?? { x: 0, y: 0 },
       sourcePosition: Position.Right,
       targetPosition: Position.Left,
       style: { width: NODE.width },
-      data: { entity: e },
+      data: { entity: shownEntity },
     }));
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>(build());
   // A rebuilt node keeps the size React Flow measured, because the browser reports a size only
@@ -258,13 +258,13 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
       rebuildNodes(Infinity);
       return;
     }
-    let n = have;
+    let revealedCount = have;
     let frame = 0;
     const tick = () => {
-      n += REVEAL_CHUNK;
-      const done = n >= shownEntities.length;
-      setReveal(done ? Infinity : n);
-      rebuildNodes(done ? Infinity : n);
+      revealedCount += REVEAL_CHUNK;
+      const done = revealedCount >= shownEntities.length;
+      setReveal(done ? Infinity : revealedCount);
+      rebuildNodes(done ? Infinity : revealedCount);
       if (!done) frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);
@@ -273,13 +273,13 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
   const boxes = useMemo(
     () =>
       new Map<string, Box>(
-        nodes.map(n => [
-          n.id,
+        nodes.map(node => [
+          node.id,
           {
-            x: n.position.x,
-            y: n.position.y,
-            width: n.measured?.width ?? NODE.width,
-            height: n.measured?.height ?? NODE.height,
+            x: node.position.x,
+            y: node.position.y,
+            width: node.measured?.width ?? NODE.width,
+            height: node.measured?.height ?? NODE.height,
           },
         ]),
       ),
@@ -295,11 +295,11 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
   );
   const walkTo = (target: string, via?: { id: string; label: string }, select = true) => {
     if (!center || target === center) return;
-    const e = byId.get(target);
-    if (!e) return;
+    const entity = byId.get(target);
+    if (!entity) return;
     const steps: WalkStep[] = [];
     if (!step || step.doc !== docId || step.center !== center) steps.push({ doc: docId, center, name: byId.get(center)?.name ?? center });
-    steps.push({ doc: docId, center: target, name: e.name, ...(via ? { via } : {}) });
+    steps.push({ doc: docId, center: target, name: entity.name, ...(via ? { via } : {}) });
     props.onWalk(steps);
     if (select) props.onSelectEntity(target);
   };
@@ -314,17 +314,17 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
     props.onWalk(steps);
   };
   const expand = (id: string) => {
-    const n = neighbours(projection.edges, id, 'both', nameOf);
+    const neighbourSet = neighbours(projection.edges, id, 'both', nameOf);
     record(
       registerSet({
         kind: 'expand',
         from: id,
         direction: 'both',
-        nodes: n.nodes,
-        edges: n.edges,
+        nodes: neighbourSet.nodes,
+        edges: neighbourSet.edges,
         frontier: {},
-        total: n.nodes.length,
-        budget: n.nodes.length,
+        total: neighbourSet.nodes.length,
+        budget: neighbourSet.nodes.length,
       }),
       `expanded ${nameOf(id)}`,
     );
@@ -352,18 +352,18 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
   const fullPierce = async (budget = PIERCE_BUDGET) => {
     const from = selected && canvasState.nodes.includes(selected) ? selected : center;
     if (!from) return;
-    const r = await pierce.run(
+    const pierceResult = await pierce.run(
       projection.entities.map(e => ({ id: e.id, name: e.name, kind: e.kind })),
-      projection.edges.map(e => ({
-        id: e.id,
-        source: e.source,
-        target: e.target,
-        label: e.label,
+      projection.edges.map(edge => ({
+        id: edge.id,
+        source: edge.source,
+        target: edge.target,
+        label: edge.label,
       })),
       [from],
       { direction, valueTypes: !hideValues, technical, metrics: !hideKpis, budget },
     );
-    if (!r) return;
+    if (!pierceResult) return;
     // The result arrives after the click that asked for it, so it opens its own history step.
     actionHistory.act('pierce', () =>
       record(
@@ -371,12 +371,12 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
           kind: 'pierce',
           from,
           direction,
-          nodes: r.nodes.filter(n => n !== from),
-          edges: r.edges,
-          frontier: r.frontier,
-          total: r.total,
+          nodes: pierceResult.nodes.filter(n => n !== from),
+          edges: pierceResult.edges,
+          frontier: pierceResult.frontier,
+          total: pierceResult.total,
           budget,
-          steps: r.steps,
+          steps: pierceResult.steps,
         }),
         `pierced ${nameOf(from)}`,
       ),
@@ -387,53 +387,59 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
   // A new centre or document stops a running pierce .
   useEffect(() => () => pierce.stop(), [center, docId]);
   const viaFor = (target: string) => {
-    const g = view.edges.find(x => (x.source === center && x.target === target) || (x.target === center && x.source === target));
-    return g ? { id: g.id, label: g.label } : undefined;
+    const relationship = view.edges.find(x => (x.source === center && x.target === target) || (x.target === center && x.source === target));
+    return relationship ? { id: relationship.id, label: relationship.label } : undefined;
   };
   const rendered = useMemo(
     () =>
-      nodes.map(n => {
-        const e = n.data.entity as Entity;
-        const kpis = kpiBadges?.get(e.name) ?? [];
-        const isCenter = n.id === center;
-        const groupColor = groupColorOf?.(e.id);
+      nodes.map(node => {
+        const entity = node.data.entity as Entity;
+        const kpis = kpiBadges?.get(entity.name) ?? [];
+        const isCenter = node.id === center;
+        const groupColor = groupColorOf?.(entity.id);
+        let centerTag: React.ReactNode;
+        if (isCenter) {
+          centerTag = (
+            <span className="center-tag">
+              <Crosshair size={10} />
+              Center
+            </span>
+          );
+        } else if (node.id === previous) {
+          centerTag = <span className="origin-tag">Previous center</span>;
+        } else {
+          centerTag = null;
+        }
         return {
-          ...n,
-          style: groupColor ? ({ ...n.style, '--group-color': groupColor } as React.CSSProperties) : n.style,
-          className: ['neighborhood-node', isCenter ? ' center' : '', n.id === previous ? ' origin' : '', n.id === selected ? ' selected-entity' : ''].join(''),
+          ...node,
+          style: groupColor ? ({ ...node.style, '--group-color': groupColor } as React.CSSProperties) : node.style,
+          className: ['neighborhood-node', isCenter ? ' center' : '', node.id === previous ? ' origin' : '', node.id === selected ? ' selected-entity' : ''].join(''),
           data: {
-            ...n.data,
+            ...node.data,
             label: (
-              <div className={`node${e.kind === 'Metric' ? ' kpi-node' : ''}`}>
+              <div className={`node${entity.kind === 'Metric' ? ' kpi-node' : ''}`}>
                 <small>
-                  {isCenter ? (
-                    <span className="center-tag">
-                      <Crosshair size={10} />
-                      Center
-                    </span>
-                  ) : n.id === previous ? (
-                    <span className="origin-tag">Previous center</span>
-                  ) : null}
-                  {e.kind === 'Metric' ? (
+                  {centerTag}
+                  {entity.kind === 'Metric' ? (
                     <>
                       <Gauge size={10} /> Metric
                     </>
                   ) : (
-                    e.kind
+                    entity.kind
                   )}
                 </small>
-                <EntityName name={e.name} />
-                <span>{e.fields.length ? `${e.fields.length} ${e.fields.length === 1 ? 'field' : 'fields'}` : e.description || 'Select to inspect'}</span>
+                <EntityName name={entity.name} />
+                <span>{entity.fields.length ? `${entity.fields.length} ${entity.fields.length === 1 ? 'field' : 'fields'}` : entity.description || 'Select to inspect'}</span>
                 <div className="node-actions">
                   {!isCenter &&
-                    (canvasState.expandedBy.has(e.id) ? (
+                    (canvasState.expandedBy.has(entity.id) ? (
                       <button
                         className="expand-button nodrag"
-                        aria-label={`Collapse ${e.name}`}
+                        aria-label={`Collapse ${entity.name}`}
                         title="Remove what expanding this added"
                         onClick={ev => {
                           ev.stopPropagation();
-                          collapse(e.id);
+                          collapse(entity.id);
                         }}
                       >
                         <Minus size={12} />
@@ -441,28 +447,28 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
                     ) : (
                       <button
                         className="expand-button nodrag"
-                        aria-label={`Expand ${e.name}`}
+                        aria-label={`Expand ${entity.name}`}
                         title="Add its neighbours here"
                         onClick={ev => {
                           ev.stopPropagation();
-                          expand(e.id);
+                          expand(entity.id);
                         }}
                       >
                         <Plus size={12} />
                       </button>
                     ))}
-                  {pierceSet?.frontier[e.id] ? (
+                  {pierceSet?.frontier[entity.id] ? (
                     <span className="frontier-marker" title="Reachable but not shown">
-                      +{pierceSet.frontier[e.id]} hidden
+                      +{pierceSet.frontier[entity.id]} hidden
                     </span>
                   ) : null}
                   {!isCenter && (
                     <button
                       className="walk-button nodrag"
-                      aria-label={`Walk to ${e.name}`}
+                      aria-label={`Walk to ${entity.name}`}
                       onClick={ev => {
                         ev.stopPropagation();
-                        walkTo(e.id, viaFor(e.id));
+                        walkTo(entity.id, viaFor(entity.id));
                       }}
                     >
                       <ArrowRight size={12} />
@@ -473,10 +479,10 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
                     <button
                       className="kpi-badge nodrag"
                       title={`Metrics: ${kpis.join(', ')}`}
-                      aria-label={`Open ${kpis.length} metric${kpis.length === 1 ? '' : 's'} for ${e.name}`}
+                      aria-label={`Open ${kpis.length} metric${kpis.length === 1 ? '' : 's'} for ${entity.name}`}
                       onClick={ev => {
                         ev.stopPropagation();
-                        props.onOpenKpis?.(e.name);
+                        props.onOpenKpis?.(entity.name);
                       }}
                     >
                       <Gauge size={10} />
@@ -500,16 +506,16 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
   const labelAt = useMemo(
     () =>
       placeLabels(
-        shownLabels.flatMap(g => {
-          const s = boxes.get(g.source);
-          const t = boxes.get(g.target);
-          const r = routes.get(g.id);
-          if (!s || !t || !r) return [];
+        shownLabels.flatMap(shownLabel => {
+          const sourceBox = boxes.get(shownLabel.source);
+          const targetBox = boxes.get(shownLabel.target);
+          const edgeRoute = routes.get(shownLabel.id);
+          if (!sourceBox || !targetBox || !edgeRoute) return [];
           return [
             {
-              id: g.id,
-              text: String(labelText(g)),
-              points: routePoints(s.x + s.width, s.y + s.height / 2, t.x, t.y + t.height / 2, r).points,
+              id: shownLabel.id,
+              text: String(labelText(shownLabel)),
+              points: routePoints({ x: sourceBox.x + sourceBox.width, y: sourceBox.y + sourceBox.height / 2 }, { x: targetBox.x, y: targetBox.y + targetBox.height / 2 }, edgeRoute).points,
             },
           ];
         }),
@@ -521,21 +527,38 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
   const renderedIds = new Set(nodes.map(n => n.id));
   const visibleEdges = groups
     .filter(g => renderedIds.has(g.source) && renderedIds.has(g.target))
-    .map(g => {
-      const active = g.data.relationships.some(r => r.id === selectedEdge);
-      const kind = g.source === center && g.target !== center ? 'out' : g.target === center && g.source !== center ? 'in' : g.source === center ? 'out' : 'lateral';
+    .map(edgeGroup => {
+      const active = edgeGroup.data.relationships.some(r => r.id === selectedEdge);
+      let kind: 'out' | 'in' | 'lateral';
+      if (edgeGroup.source === center && edgeGroup.target !== center) {
+        kind = 'out';
+      } else if (edgeGroup.target === center && edgeGroup.source !== center) {
+        kind = 'in';
+      } else if (edgeGroup.source === center) {
+        kind = 'out';
+      } else {
+        kind = 'lateral';
+      }
       const color = COLORS[kind as keyof typeof COLORS];
+      let strokeWidth: number;
+      if (active) {
+        strokeWidth = 2.6;
+      } else if (kind === 'lateral') {
+        strokeWidth = 1.1;
+      } else {
+        strokeWidth = 1.5;
+      }
       return {
-        ...g,
+        ...edgeGroup,
         type: 'relationship',
         data: {
-          ...g.data,
-          route: routes.get(g.id),
+          ...edgeGroup.data,
+          route: routes.get(edgeGroup.id),
           direction: kind,
-          labelAt: labelAt.get(g.id),
+          labelAt: labelAt.get(edgeGroup.id),
           labelScale,
         },
-        label: labels || active || hovered === g.id ? labelText(g) : undefined,
+        label: labels || active || hovered === edgeGroup.id ? labelText(edgeGroup) : undefined,
         selected: active,
         interactionWidth: 24,
         markerEnd: { type: MarkerType.ArrowClosed, color, width: 14, height: 14 },
@@ -543,7 +566,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
         style: {
           stroke: color,
           strokeOpacity: kind === 'lateral' ? 0.55 : 0.85,
-          strokeWidth: active ? 2.6 : kind === 'lateral' ? 1.1 : 1.5,
+          strokeWidth,
           strokeDasharray: kind === 'lateral' ? '5 4' : undefined,
         },
       };
@@ -564,11 +587,11 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
   // canvas even when one side has more columns; it leaves room for the lanes above and below.
   const fitRef = useRef(() => {});
   fitRef.current = () => {
-    const c = boxes.get(center ?? '');
-    if (!c || !boxes.size) return;
+    const box = boxes.get(center ?? '');
+    if (!box || !boxes.size) return;
     const all = [...boxes.values()];
-    const cx = c.x + c.width / 2;
-    const cy = c.y + c.height / 2;
+    const cx = box.x + box.width / 2;
+    const cy = box.y + box.height / 2;
     const halfW = Math.max(...all.map(b => Math.max(cx - b.x, b.x + b.width - cx)));
     const lanes = [...routes.values()].filter(r => r.route === 'lane' || r.route === 'loop').length;
     const halfH = Math.max(...all.map(b => Math.max(cy - b.y, b.y + b.height - cy))) + Math.min(160, 30 + lanes * 16);
@@ -583,12 +606,12 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
   // the zoom-out controls and Re-center show the whole canvas.
   const READABLE = DETAIL_ZOOM;
   const focusLatest = () => {
-    const s = canvasState.active.at(-1);
-    if (!s) {
+    const expansionSet = canvasState.active.at(-1);
+    if (!expansionSet) {
       fitRef.current();
       return false;
     }
-    const ids = [s.from, ...s.nodes].filter(id => boxes.has(id));
+    const ids = [expansionSet.from, ...expansionSet.nodes].filter(id => boxes.has(id));
     const bs = ids.map(id => boxes.get(id)!);
     if (!bs.length) {
       fitRef.current();
@@ -598,10 +621,10 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
     const y0 = Math.min(...bs.map(b => b.y));
     const x1 = Math.max(...bs.map(b => b.x + b.width));
     const y1 = Math.max(...bs.map(b => b.y + b.height));
-    const origin = boxes.get(s.from)!;
+    const origin = boxes.get(expansionSet.from)!;
     const pane = canvas.current;
     if (!pane) return false;
-    const originShift = s.kind === 'pierce' && s.direction !== 'in' ? NEIGHBOR_COLUMN * 0.9 : 0;
+    const originShift = expansionSet.kind === 'pierce' && expansionSet.direction !== 'in' ? NEIGHBOR_COLUMN * 0.9 : 0;
     const viewport = expansionViewport(
       { x: x0, y: y0, width: x1 - x0, height: y1 - y0 },
       { x: origin.x + origin.width / 2 + originShift, y: origin.y + origin.height / 2 },
@@ -649,9 +672,9 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
   const pickResults = useMemo(() => (pick.trim() ? searchEntities(projected, pick, 30) : []), [projected, pick]);
   const searchResults = useMemo(() => (search.trim() ? searchEntities(projected, search, 30) : []), [projected, search]);
   const choose = (id: string) => {
-    const e = byId.get(id);
-    if (!e) return;
-    props.onWalk([{ doc: docId, center: id, name: e.name }]);
+    const entity = byId.get(id);
+    if (!entity) return;
+    props.onWalk([{ doc: docId, center: id, name: entity.name }]);
     props.onSelectEntity(id);
     setPick('');
     setPickOpen(false);
@@ -708,24 +731,24 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
             aria-autocomplete="list"
             placeholder={centerEntity ? `Center: ${centerEntity.name}` : 'Find a center'}
             value={pick}
-            onChange={e => {
-              setPick(e.target.value);
+            onChange={event => {
+              setPick(event.target.value);
               setPickOpen(true);
               setActive(0);
             }}
             onFocus={() => setPickOpen(true)}
             onBlur={() => setTimeout(() => setPickOpen(false), 150)}
-            onKeyDown={e => {
-              if (e.key === 'ArrowDown') {
-                e.preventDefault();
+            onKeyDown={event => {
+              if (event.key === 'ArrowDown') {
+                event.preventDefault();
                 setActive(i => Math.min(i + 1, pickResults.length - 1));
-              } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
+              } else if (event.key === 'ArrowUp') {
+                event.preventDefault();
                 setActive(i => Math.max(i - 1, 0));
-              } else if (e.key === 'Enter' && pickResults[active]) {
-                e.preventDefault();
+              } else if (event.key === 'Enter' && pickResults[active]) {
+                event.preventDefault();
                 choose(pickResults[active].id);
-              } else if (e.key === 'Escape') {
+              } else if (event.key === 'Escape') {
                 setPick('');
                 setPickOpen(false);
               }
@@ -733,18 +756,18 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
           />
           {pickOpen && pickResults.length > 0 && (
             <ul id="center-picker-results" role="listbox" aria-label="Center candidates">
-              {pickResults.map((e, i) => (
+              {pickResults.map((pickResult, i) => (
                 <li
-                  key={e.id}
+                  key={pickResult.id}
                   role="option"
                   aria-selected={i === active}
                   onMouseDown={ev => {
                     ev.preventDefault();
-                    choose(e.id);
+                    choose(pickResult.id);
                   }}
                 >
-                  <EntityName name={e.name} />
-                  <small>{e.kind}</small>
+                  <EntityName name={pickResult.name} />
+                  <small>{pickResult.kind}</small>
                 </li>
               ))}
             </ul>
@@ -770,9 +793,9 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
                   Relationship
                   <select aria-label="Filter neighbors by relationship" value={relationship} onChange={e => setRelationship(e.target.value)}>
                     <option value="">All ({view.relationships.reduce((n, r) => n + r.count, 0)})</option>
-                    {view.relationships.map(r => (
-                      <option key={r.label} value={r.label}>
-                        {r.label} ({r.count})
+                    {view.relationships.map(relationship => (
+                      <option key={relationship.label} value={relationship.label}>
+                        {relationship.label} ({relationship.count})
                       </option>
                     ))}
                   </select>
@@ -826,16 +849,20 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
             <ArrowRight size={14} />
           </button>
           <ol>
-            {walk.steps.map((s, i) => (
+            {walk.steps.map((step, i) => (
               <li key={i}>
-                {s.via && (
-                  <span className="via" title={`through ${s.via.label}`}>
-                    {s.via.label} →
+                {step.via && (
+                  <span className="via" title={`through ${step.via.label}`}>
+                    {step.via.label} →
                   </span>
                 )}
-                <button aria-current={i === walk.index && !offTrail ? 'step' : undefined} onClick={() => props.onWalkTo(i)} title={s.doc === docId ? s.name : `${s.name} in ${props.docLabel(s.doc)}`}>
-                  {s.name}
-                  {s.doc !== docId && <small> · {props.docLabel(s.doc)}</small>}
+                <button
+                  aria-current={i === walk.index && !offTrail ? 'step' : undefined}
+                  onClick={() => props.onWalkTo(i)}
+                  title={step.doc === docId ? step.name : `${step.name} in ${props.docLabel(step.doc)}`}
+                >
+                  {step.name}
+                  {step.doc !== docId && <small> · {props.docLabel(step.doc)}</small>}
                 </button>
               </li>
             ))}
@@ -850,10 +877,10 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
         </nav>
         {cross.length > 0 && (
           <CompactControls label="Other files">
-            {cross.map(t => (
-              <button key={t.doc + t.entity} onClick={() => props.onCrossFile?.(t)} title={t.reason}>
+            {cross.map(crossFileTarget => (
+              <button key={crossFileTarget.doc + crossFileTarget.entity} onClick={() => props.onCrossFile?.(crossFileTarget)} title={crossFileTarget.reason}>
                 <FileSymlink size={13} />
-                Continue in <strong>{t.file}</strong> · {t.name}
+                Continue in <strong>{crossFileTarget.file}</strong> · {crossFileTarget.name}
               </button>
             ))}
           </CompactControls>
@@ -892,11 +919,11 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
               <>
                 <small>Choose a center</small>
                 <ul role="listbox" aria-label="Matching entities">
-                  {searchResults.map(e => (
-                    <li key={e.id} role="option" aria-selected={false}>
-                      <button onClick={() => choose(e.id)}>
-                        <EntityName name={e.name} />
-                        <small>{e.kind}</small>
+                  {searchResults.map(searchResult => (
+                    <li key={searchResult.id} role="option" aria-selected={false}>
+                      <button onClick={() => choose(searchResult.id)}>
+                        <EntityName name={searchResult.name} />
+                        <small>{searchResult.kind}</small>
                       </button>
                     </li>
                   ))}
@@ -927,7 +954,14 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
             }}
             onEdgeClick={(_, edge) => {
               // A relationship line expands its far end in place; Walk here re-centres.
-              const ends = edge.source === center ? [edge.target] : edge.target === center ? [edge.source] : [edge.target, edge.source];
+              let ends: string[];
+              if (edge.source === center) {
+                ends = [edge.target];
+              } else if (edge.target === center) {
+                ends = [edge.source];
+              } else {
+                ends = [edge.target, edge.source];
+              }
               const far = ends.find(id => !canvasState.expandedBy.has(id));
               if (far) expand(far);
               props.onSelectEdge(edge.id);

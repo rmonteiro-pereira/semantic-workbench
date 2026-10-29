@@ -70,8 +70,8 @@ test('setting the identity writes the repository configuration only and counts a
     expect(missing.repositories[0].identityConfigured).toBe(false);
     expect((await ok(call(app, 'GET', base + '/git/status'))).identityConfigured).toBe(false);
 
-    const result = await ok(call(app, 'PUT', base + '/git/identity', { name: 'Ana Lima', email: 'ana@example.org' }));
-    expect(result).toEqual({ repositories: [slugs[0]] });
+    const identityResult = await ok(call(app, 'PUT', base + '/git/identity', { name: 'Ana Lima', email: 'ana@example.org' }));
+    expect(identityResult).toEqual({ repositories: [slugs[0]] });
     const repo = join(app.root, 'projects', slugs[0]);
     expect(sh(repo, ['config', '--local', 'user.name']).trim()).toBe('Ana Lima');
     expect(sh(repo, ['config', '--local', 'user.email']).trim()).toBe('ana@example.org');
@@ -99,14 +99,14 @@ test('the identity can be set in every repository at once', async () => {
   const { app, slugs } = await workspaceWithProjects(2);
   try {
     withoutGlobalIdentity();
-    const result = await ok(
+    const identityResult = await ok(
       call(app, 'PUT', `/api/projects/${slugs[0]}/git/identity`, {
         name: 'Ana Lima',
         email: 'ana@example.org',
         allRepositories: true,
       }),
     );
-    expect(result.repositories.sort()).toEqual([...slugs].sort());
+    expect(identityResult.repositories.sort()).toEqual([...slugs].sort());
     for (const slug of slugs) expect(sh(join(app.root, 'projects', slug), ['config', '--local', 'user.name']).trim()).toBe('Ana Lima');
     expect((await ok(call(app, 'GET', '/api/status'))).identityConfigured).toBe(true);
   } finally {
@@ -154,14 +154,14 @@ test('every repository fills in missing identities and keeps an author a reposit
     const second = join(app.root, 'projects', slugs[1]);
     sh(second, ['config', '--local', 'user.name', 'Bot']);
     sh(second, ['config', '--local', 'user.email', 'bot@example.org']);
-    const result = await ok(
+    const identityResult = await ok(
       call(app, 'PUT', `/api/projects/${slugs[0]}/git/identity`, {
         name: 'Ana Lima',
         email: 'ana@example.org',
         allRepositories: true,
       }),
     );
-    expect(result).toEqual({ repositories: [slugs[0]] });
+    expect(identityResult).toEqual({ repositories: [slugs[0]] });
     expect(sh(second, ['config', '--local', 'user.name']).trim()).toBe('Bot');
   } finally {
     app.dispose();

@@ -11,10 +11,10 @@ import type { ItemTarget, RdfTarget, ValidatedModel } from './types';
 type Props = {
   entity: Entity;
   showNeighborhood: (id?: string | undefined) => void;
-  rdfTarget: (e: Entity) => RdfTarget | null;
+  rdfTarget: (entity: Entity) => RdfTarget | null;
   setRdfEditing: React.Dispatch<React.SetStateAction<RdfTarget | null>>;
   setRdfDeleting: React.Dispatch<React.SetStateAction<RdfTarget | null>>;
-  entityTarget: (e: Entity) => ItemTarget | null;
+  entityTarget: (entity: Entity) => ItemTarget | null;
   setEditing: React.Dispatch<React.SetStateAction<ItemTarget | null>>;
   setAdding: React.Dispatch<
     React.SetStateAction<{
@@ -29,7 +29,7 @@ type Props = {
   source: string;
   current: Doc | null;
   relatedDocuments: Doc[];
-  openDocument: (d: Doc) => boolean;
+  openDocument: (doc: Doc) => boolean;
   model: ValidatedModel;
   setSelectedEdge: React.Dispatch<React.SetStateAction<string>>;
   setSelected: React.Dispatch<React.SetStateAction<string>>;
@@ -56,8 +56,8 @@ export function EntityDetails({
   setSelected,
   setDefinition,
 }: Props) {
-  function handleTextareaChange(e: React.ChangeEvent<HTMLTextAreaElement, HTMLTextAreaElement>) {
-    return setSource(editEntity(source, entity.path, e.target.value, current?.filename));
+  function handleTextareaChange(event: React.ChangeEvent<HTMLTextAreaElement, HTMLTextAreaElement>) {
+    return setSource(editEntity(source, entity.path, event.target.value, current?.filename));
   }
 
   function handleViewDefinitionClick() {
@@ -168,10 +168,10 @@ export function EntityDetails({
       {relatedDocuments.length > 0 && (
         <>
           <div className="section-label">SHARED REFERENCES</div>
-          {relatedDocuments.map(d => (
-            <button className="document" key={d.id} onClick={() => openDocument(d)}>
+          {relatedDocuments.map(relatedDocument => (
+            <button className="document" key={relatedDocument.id} onClick={() => openDocument(relatedDocument)}>
               <FileCode size={14} />
-              {d.filename}
+              {relatedDocument.filename}
             </button>
           ))}
         </>
@@ -180,15 +180,15 @@ export function EntityDetails({
       <div className="related-edges">
         {model?.edges
           .filter(e => e.source === entity.id || e.target === entity.id)
-          .map(e => {
+          .map(edge => {
             function handleAddChildClick2() {
-              setSelectedEdge(e.id);
+              setSelectedEdge(edge.id);
               setSelected('');
             }
             return (
-              <button key={e.id} onClick={handleAddChildClick2}>
-                <span>{e.label}</span>
-                <small>{model.entities.find(n => n.id === (e.source === entity.id ? e.target : e.source))?.name}</small>
+              <button key={edge.id} onClick={handleAddChildClick2}>
+                <span>{edge.label}</span>
+                <small>{model.entities.find(n => n.id === (edge.source === entity.id ? edge.target : edge.source))?.name}</small>
               </button>
             );
           })}
@@ -202,9 +202,9 @@ export function EntityDetails({
       {entity.fields.length > 0 && (
         <>
           <div className="section-label">FIELDS</div>
-          {entity.fields.map((f, i) => (
+          {entity.fields.map((field, i) => (
             <div className="field" key={i}>
-              {f}
+              {field}
             </div>
           ))}
         </>

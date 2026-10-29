@@ -64,8 +64,8 @@ page.on('dialog', d => {
   void d.dismiss();
 });
 await routeApi(page, api, async route => {
-  const r = route.request();
-  if (r.method() === 'PUT' && /\/files\//.test(r.url())) puts.push(JSON.parse(r.postData() ?? '{}'));
+  const request = route.request();
+  if (request.method() === 'PUT' && /\/files\//.test(request.url())) puts.push(JSON.parse(request.postData() ?? '{}'));
   return false;
 });
 let passed = 0;
@@ -82,10 +82,10 @@ async function openSource(path: string) {
 }
 // The color of the first token whose text is exactly `text`.
 const colorOf = (text: string) =>
-  page.evaluate(t => {
+  page.evaluate(text => {
     const walker = document.createTreeWalker(document.querySelector('.cm-content')!, NodeFilter.SHOW_TEXT);
-    let n;
-    while ((n = walker.nextNode())) if (n.textContent === t) return getComputedStyle(n.parentElement!).color;
+    let textNode: Node | null;
+    while ((textNode = walker.nextNode())) if (textNode.textContent === text) return getComputedStyle(textNode.parentElement!).color;
     return null;
   }, text);
 async function goTo(line: number) {
@@ -243,10 +243,10 @@ try {
     await goTo(3);
     await page.keyboard.press('End');
     await page.evaluate(() => {
-      const w = window as any;
-      w.__keys0 = [];
+      const perfWindow = window as any;
+      perfWindow.__keys0 = [];
       new PerformanceObserver(l => {
-        for (const e of l.getEntries() as any[]) if (e.name === 'keydown') w.__keys0.push(e.duration);
+        for (const e of l.getEntries() as any[]) if (e.name === 'keydown') perfWindow.__keys0.push(e.duration);
       }).observe({ type: 'event', durationThreshold: 16 } as any);
     });
     const start = Date.now();
@@ -264,7 +264,7 @@ try {
   await check('typing in a 1.9 MB file stays responsive to each keystroke while an automatic save runs', async () => {
     const root = mkdtempSync(join(tmpdir(), 'workbench-latency-'));
     const child = await startApiProcess(root);
-    const p = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+    const typingPage = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     try {
       const created = await (
         await fetch(child.url + '/api/import', {
@@ -276,39 +276,39 @@ try {
           }),
         })
       ).json();
-      await routeApi(p, { url: child.url } as any);
-      await p.goto(appUrl());
-      await p.getByRole('tree', { name: 'Projects' }).getByRole('button', { name: 'large.yaml', exact: true }).click();
-      await p.locator('.tabs').getByRole('button', { name: 'Source' }).click();
-      await expect(p.getByRole('textbox', { name: 'Definition source' })).toBeVisible();
-      await p.getByRole('spinbutton', { name: 'Go to line' }).fill('4');
-      await p.keyboard.press('Enter');
-      await p.keyboard.press('End');
+      await routeApi(typingPage, { url: child.url } as any);
+      await typingPage.goto(appUrl());
+      await typingPage.getByRole('tree', { name: 'Projects' }).getByRole('button', { name: 'large.yaml', exact: true }).click();
+      await typingPage.locator('.tabs').getByRole('button', { name: 'Source' }).click();
+      await expect(typingPage.getByRole('textbox', { name: 'Definition source' })).toBeVisible();
+      await typingPage.getByRole('spinbutton', { name: 'Go to line' }).fill('4');
+      await typingPage.keyboard.press('Enter');
+      await typingPage.keyboard.press('End');
       // Compare keystroke-to-paint timing and long tasks before and during a save in the
       // same page, so machine load affects both measurements alike.
-      await p.evaluate(() => {
-        const w = window as any;
-        w.__keys = [];
-        w.__long = [];
+      await typingPage.evaluate(() => {
+        const perfWindow = window as any;
+        perfWindow.__keys = [];
+        perfWindow.__long = [];
         new PerformanceObserver(l => {
-          for (const e of l.getEntries() as any[]) if (e.name === 'keydown') w.__keys.push(e.duration);
+          for (const e of l.getEntries() as any[]) if (e.name === 'keydown') perfWindow.__keys.push(e.duration);
         }).observe({ type: 'event', durationThreshold: 16 } as any);
         new PerformanceObserver(l => {
-          for (const e of l.getEntries()) w.__long.push(e.duration);
+          for (const e of l.getEntries()) perfWindow.__long.push(e.duration);
         }).observe({ type: 'longtask' });
       });
       const typed = ' plus forty more typed characters here.';
       const measure = async (label: string) => {
-        await p.evaluate(() => {
+        await typingPage.evaluate(() => {
           (window as any).__keys = [];
           (window as any).__long = [];
         });
         const start = Date.now();
-        await p.keyboard.type(typed, { delay: 0 });
-        await expect(p.locator('.cm-activeLine')).toContainText(typed);
+        await typingPage.keyboard.type(typed, { delay: 0 });
+        await expect(typingPage.locator('.cm-activeLine')).toContainText(typed);
         const ms = Date.now() - start;
-        await p.waitForTimeout(300);
-        const { keys, long } = await p.evaluate(() => ({
+        await typingPage.waitForTimeout(300);
+        const { keys, long } = await typingPage.evaluate(() => ({
           keys: (window as any).__keys as number[],
           long: (window as any).__long as number[],
         }));
@@ -318,18 +318,18 @@ try {
         return { mean, longest };
       };
       const before = await measure('no save running');
-      await expect(p.getByRole('status', { name: 'Save state' })).toHaveText(/^Saved to file/, {
+      await expect(typingPage.getByRole('status', { name: 'Save state' })).toHaveText(/^Saved to file/, {
         timeout: 15000,
       });
-      const put = p.waitForRequest(r => r.method() === 'PUT' && r.url().includes('large.yaml'), {
+      const put = typingPage.waitForRequest(r => r.method() === 'PUT' && r.url().includes('large.yaml'), {
         timeout: 8000,
       });
-      await p.keyboard.type(' first.', { delay: 0 });
+      await typingPage.keyboard.type(' first.', { delay: 0 });
       await put;
       const during = await measure('automatic save in flight');
       expect(during.mean).toBeLessThan(Math.max(30, before.mean + 4));
       expect(during.longest).toBeLessThan(100);
-      await expect(p.getByRole('status', { name: 'Save state' })).toHaveText(/^Saved to file/, {
+      await expect(typingPage.getByRole('status', { name: 'Save state' })).toHaveText(/^Saved to file/, {
         timeout: 15000,
       });
       await expect
@@ -338,7 +338,7 @@ try {
         })
         .toBe(true);
     } finally {
-      await p.close();
+      await typingPage.close();
       await child.stop();
       rmSync(root, { recursive: true, force: true });
     }

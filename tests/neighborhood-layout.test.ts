@@ -4,14 +4,14 @@ import { neighborhoodLayout, NEIGHBOR_COLUMN } from '../src/app/graph/layout';
 import { assignRoutes, routePoints, orthogonalPath, type Box } from '../src/app/graph/routes';
 
 test('the center is in the middle column, incoming on the left and outgoing on the right', () => {
-  const p = neighborhoodLayout('c', ['i1', 'i2'], ['o1', 'o2', 'o3'], ['b1']);
-  expect(p.get('c')!.x).toBe(0);
-  for (const id of ['i1', 'i2']) expect(p.get(id)!.x).toBeLessThan(0);
-  for (const id of ['o1', 'o2', 'o3']) expect(p.get(id)!.x).toBeGreaterThan(0);
-  expect(p.get('b1')!.x).toBe(-NEIGHBOR_COLUMN);
-  const ys = [...p.values()].map(v => v.y);
+  const positions = neighborhoodLayout('c', ['i1', 'i2'], ['o1', 'o2', 'o3'], ['b1']);
+  expect(positions.get('c')!.x).toBe(0);
+  for (const id of ['i1', 'i2']) expect(positions.get(id)!.x).toBeLessThan(0);
+  for (const id of ['o1', 'o2', 'o3']) expect(positions.get(id)!.x).toBeGreaterThan(0);
+  expect(positions.get('b1')!.x).toBe(-NEIGHBOR_COLUMN);
+  const ys = [...positions.values()].map(v => v.y);
   const mid = (Math.min(...ys) + Math.max(...ys)) / 2;
-  expect(Math.abs(p.get('c')!.y - mid)).toBeLessThan(1);
+  expect(Math.abs(positions.get('c')!.y - mid)).toBeLessThan(1);
   const many = neighborhoodLayout(
     'c',
     Array.from({ length: 14 }, (_, i) => 'i' + i),
@@ -21,17 +21,17 @@ test('the center is in the middle column, incoming on the left and outgoing on t
   expect(Math.min(...[...many.values()].map(v => v.x))).toBe(-3 * NEIGHBOR_COLUMN);
 });
 const segments = (points: [number, number][]) => points.slice(1).map((p, i) => [points[i], p] as const);
-function shared(a: [number, number][], b: [number, number][]) {
+function shared(first: [number, number][], second: [number, number][]) {
   // Two routes share a path when collinear segments overlap by more than a few pixels.
-  for (const [p, q] of segments(a))
-    for (const [r, s] of segments(b)) {
-      if (p[1] === q[1] && r[1] === s[1] && p[1] === r[1]) {
-        const o = Math.min(Math.max(p[0], q[0]), Math.max(r[0], s[0])) - Math.max(Math.min(p[0], q[0]), Math.min(r[0], s[0]));
-        if (o > 4) return true;
+  for (const [firstStart, firstEnd] of segments(first))
+    for (const [secondStart, secondEnd] of segments(second)) {
+      if (firstStart[1] === firstEnd[1] && secondStart[1] === secondEnd[1] && firstStart[1] === secondStart[1]) {
+        const overlap = Math.min(Math.max(firstStart[0], firstEnd[0]), Math.max(secondStart[0], secondEnd[0])) - Math.max(Math.min(firstStart[0], firstEnd[0]), Math.min(secondStart[0], secondEnd[0]));
+        if (overlap > 4) return true;
       }
-      if (p[0] === q[0] && r[0] === s[0] && p[0] === r[0]) {
-        const o = Math.min(Math.max(p[1], q[1]), Math.max(r[1], s[1])) - Math.max(Math.min(p[1], q[1]), Math.min(r[1], s[1]));
-        if (o > 4) return true;
+      if (firstStart[0] === firstEnd[0] && secondStart[0] === secondEnd[0] && firstStart[0] === secondStart[0]) {
+        const overlap = Math.min(Math.max(firstStart[1], firstEnd[1]), Math.max(secondStart[1], secondEnd[1])) - Math.max(Math.min(firstStart[1], firstEnd[1]), Math.min(secondStart[1], secondEnd[1]));
+        if (overlap > 4) return true;
       }
     }
   return false;
@@ -54,12 +54,12 @@ test('no two edges share a path, including long and backward ones; labels sit ap
   ];
   const routes = assignRoutes(edges, boxes);
   expect(routes.size).toBe(edges.length);
-  const paths = edges.map(e => {
-    const s = boxes.get(e.source)!;
-    const t = boxes.get(e.target)!;
+  const paths = edges.map(edge => {
+    const sourceBox = boxes.get(edge.source)!;
+    const targetBox = boxes.get(edge.target)!;
     return {
-      id: e.id,
-      ...routePoints(s.x + s.width, s.y + s.height / 2, t.x, t.y + t.height / 2, routes.get(e.id)!),
+      id: edge.id,
+      ...routePoints({ x: sourceBox.x + sourceBox.width, y: sourceBox.y + sourceBox.height / 2 }, { x: targetBox.x, y: targetBox.y + targetBox.height / 2 }, routes.get(edge.id)!),
     };
   });
   for (let i = 0; i < paths.length; i++)

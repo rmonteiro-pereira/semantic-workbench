@@ -62,9 +62,9 @@ const isCenter = (s: WalkStep) => (s.kind ?? 'center') === 'center';
 export function canvasAt(walk: Walk): { center: WalkStep | undefined; sets: string[] } {
   const sets: string[] = [];
   for (let i = walk.index; i >= 0; i--) {
-    const s = walk.steps[i];
-    if (isCenter(s)) return { center: s, sets: sets.reverse() };
-    if (s.set) sets.push(s.set);
+    const walkStep = walk.steps[i];
+    if (isCenter(walkStep)) return { center: walkStep, sets: sets.reverse() };
+    if (walkStep.set) sets.push(walkStep.set);
   }
   return { center: undefined, sets: sets.reverse() };
 }

@@ -16,20 +16,24 @@ export const KIND_LABEL: Record<LegendKind, string> = {
   external: 'External reference',
 };
 /** Renders the shared icon for an asset kind. */
-export const KindIcon = ({ kind, size = 12 }: { kind: LegendKind; size?: number }) =>
-  kind === 'object' ? (
-    <Table2 size={size} />
-  ) : kind === 'dataset' ? (
-    <Database size={size} />
-  ) : kind === 'field' ? (
-    <Columns3 size={size} />
-  ) : kind === 'metric' ? (
-    <Gauge size={size} />
-  ) : kind === 'concept' ? (
-    <Boxes size={size} />
-  ) : (
-    <Link2 size={size} />
-  );
+export const KindIcon = ({ kind, size = 12 }: { kind: LegendKind; size?: number }) => {
+  if (kind === 'object') {
+    return <Table2 size={size} />;
+  }
+  if (kind === 'dataset') {
+    return <Database size={size} />;
+  }
+  if (kind === 'field') {
+    return <Columns3 size={size} />;
+  }
+  if (kind === 'metric') {
+    return <Gauge size={size} />;
+  }
+  if (kind === 'concept') {
+    return <Boxes size={size} />;
+  }
+  return <Link2 size={size} />;
+};
 /** Explains the asset icons and edge styles visible on a canvas. */
 export function LineageLegend({
   kinds = ['object', 'dataset', 'field', 'metric'],
@@ -48,10 +52,10 @@ export function LineageLegend({
 }) {
   return (
     <ul className={`lineage-legend ${className}`.trim()} aria-label="Legend">
-      {kinds.map(k => (
-        <li key={k} className={`k-${k}`}>
-          <KindIcon kind={k} />
-          {KIND_LABEL[k]}
+      {kinds.map(kind => (
+        <li key={kind} className={`k-${kind}`}>
+          <KindIcon kind={kind} />
+          {KIND_LABEL[kind]}
         </li>
       ))}
       {keys && (
@@ -72,14 +76,14 @@ export function LineageLegend({
           Several links in one line
         </li>
       )}
-      {lines.map(l => {
-        const s = LEGEND_LINES[l];
+      {lines.map(legendLine => {
+        const lineStyle = LEGEND_LINES[legendLine];
         return (
-          <li key={l} className={`line l-${l}`}>
+          <li key={legendLine} className={`line l-${legendLine}`}>
             <svg width="18" height="6" aria-hidden="true">
-              <line x1="0" y1="3" x2="18" y2="3" stroke={s.stroke} strokeWidth="2" strokeDasharray={s.dash} />
+              <line x1="0" y1="3" x2="18" y2="3" stroke={lineStyle.stroke} strokeWidth="2" strokeDasharray={lineStyle.dash} />
             </svg>
-            {s.label}
+            {lineStyle.label}
           </li>
         );
       })}

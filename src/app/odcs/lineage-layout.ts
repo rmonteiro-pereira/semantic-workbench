@@ -29,25 +29,25 @@ export const listBox = (columnCount: number, filter: boolean, visibleRows = LIST
   height: Math.min(columnCount, visibleRows) * ROW_H,
 });
 /** Computes a card's height from its rows and visible footer sections. */
-export function cardHeight(c: LayoutCard) {
-  if (c.open) {
-    const box = listBox(c.rows.length, c.open.filter, c.open.visibleRows);
+export function cardHeight(layoutCard: LayoutCard) {
+  if (layoutCard.open) {
+    const box = listBox(layoutCard.rows.length, layoutCard.open.filter, layoutCard.open.visibleRows);
     return box.top + box.height + FOOT_H;
   }
-  return HEADER_H + c.rows.length * ROW_H + (c.more ? MORE_H : 0);
+  return HEADER_H + layoutCard.rows.length * ROW_H + (layoutCard.more ? MORE_H : 0);
 }
 
 /** Returns a row port's vertical offset, using the header for a column-less card. A row of an
  * opened card that is out of the list's view sits on the list's edge. */
-export function portY(c: LayoutCard, row: string) {
-  if (row === c.id) return HEADER_H / 2;
-  const i = c.rows.indexOf(row);
-  if (c.open) {
-    const box = listBox(c.rows.length, c.open.filter, c.open.visibleRows);
+export function portY(layoutCard: LayoutCard, row: string) {
+  if (row === layoutCard.id) return HEADER_H / 2;
+  const i = layoutCard.rows.indexOf(row);
+  if (layoutCard.open) {
+    const box = listBox(layoutCard.rows.length, layoutCard.open.filter, layoutCard.open.visibleRows);
     return box.top + Math.min(Math.max(i * ROW_H + ROW_H / 2, 0), box.height);
   }
   if (i >= 0) return HEADER_H + i * ROW_H + ROW_H / 2;
-  return HEADER_H + c.rows.length * ROW_H + MORE_H / 2;
+  return HEADER_H + layoutCard.rows.length * ROW_H + MORE_H / 2;
 }
 /** Builds an ELK graph with fixed ports aligned to visible card rows. */
 export function elkGraph(cards: LayoutCard[], edges: LayoutEdge[]) {
@@ -64,24 +64,24 @@ export function elkGraph(cards: LayoutCard[], edges: LayoutEdge[]) {
       'elk.separateConnectedComponents': 'true',
       'elk.spacing.componentComponent': '60',
     },
-    children: cards.map(c => ({
-      id: c.id,
+    children: cards.map(card => ({
+      id: card.id,
       width: CARD_W,
-      height: cardHeight(c),
+      height: cardHeight(card),
       layoutOptions: { 'elk.portConstraints': 'FIXED_POS' },
-      ports: [c.id, ...c.portRows, ...(c.more ? [c.id + '/#more'] : [])].flatMap(r => [
+      ports: [card.id, ...card.portRows, ...(card.more ? [card.id + '/#more'] : [])].flatMap(row => [
         {
-          id: r + ':in',
+          id: row + ':in',
           x: 0,
-          y: portY(c, r),
+          y: portY(card, row),
           width: 1,
           height: 1,
           layoutOptions: { 'elk.port.side': 'WEST' },
         },
         {
-          id: r + ':out',
+          id: row + ':out',
           x: CARD_W - 1,
-          y: portY(c, r),
+          y: portY(card, row),
           width: 1,
           height: 1,
           layoutOptions: { 'elk.port.side': 'EAST' },

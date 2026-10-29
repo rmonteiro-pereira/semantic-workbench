@@ -8,20 +8,20 @@ const fixture = (name: string) => readFileSync(`tests/fixtures/sql/${name}`, 'ut
 const shape = (r: SqlRegion) => r.pointer.replace(/\/\d+(?=\/|$)/g, '/*');
 // Every value character maps to the file character it came from: itself, the line break a folded
 // break replaced, the backslash of an escape, or the first quote of `''`.
-function mapsBack(src: string, r: SqlRegion) {
-  expect(r.exact).toBe(true);
-  expect(r.offsets).toHaveLength(r.value.length + 1);
-  for (let i = 0; i < r.value.length; i++) {
-    const v = r.value[i];
-    const f = src[r.offsets[i]];
-    const ok = v === f || (/[ \n]/.test(v) && /[\r\n]/.test(f)) || f === '\\' || (v === "'" && f === "'");
-    if (!ok) throw Error(`${r.pointer}[${i}]: value ${JSON.stringify(v)} maps to ${JSON.stringify(f)} at ${r.offsets[i]}`);
+function mapsBack(src: string, sqlRegion: SqlRegion) {
+  expect(sqlRegion.exact).toBe(true);
+  expect(sqlRegion.offsets).toHaveLength(sqlRegion.value.length + 1);
+  for (let i = 0; i < sqlRegion.value.length; i++) {
+    const valueChar = sqlRegion.value[i];
+    const sourceChar = src[sqlRegion.offsets[i]];
+    const ok = valueChar === sourceChar || (/[ \n]/.test(valueChar) && /[\r\n]/.test(sourceChar)) || sourceChar === '\\' || (valueChar === "'" && sourceChar === "'");
+    if (!ok) throw Error(`${sqlRegion.pointer}[${i}]: value ${JSON.stringify(valueChar)} maps to ${JSON.stringify(sourceChar)} at ${sqlRegion.offsets[i]}`);
   }
-  for (let i = 1; i < r.value.length; i++) expect(r.offsets[i]).toBeGreaterThanOrEqual(r.offsets[i - 1]);
+  for (let i = 1; i < sqlRegion.value.length; i++) expect(sqlRegion.offsets[i]).toBeGreaterThanOrEqual(sqlRegion.offsets[i - 1]);
 }
 const one = (src: string, name = 'm.yaml') => {
   const rs = sqlRegions(src, name);
-  for (const r of rs) mapsBack(src, r);
+  for (const sqlRegion of rs) mapsBack(src, sqlRegion);
   return rs;
 };
 const metric = (scalar: string, dialect = 'ANSI_SQL') =>
@@ -42,12 +42,12 @@ test('Ossie locations: dataset fields and metrics, flat, legacy semantic_model l
 });
 test('Ossie mapping locations: object, referent and link mapping expressions at any depth under concept_mappings', () => {
   const rs = one(readFileSync('public/examples/ossie/flights.mapping.yaml', 'utf8'), 'flights.mapping.yaml').map(shape);
-  for (const p of [
+  for (const path of [
     '/concept_mappings/*/object_mappings/*/referent_mappings/*/expression',
     '/concept_mappings/*/link_mappings/*/object_mapping/referent_mappings/*/expression',
     '/concept_mappings/*/link_mappings/*/children/*/object_mapping/referent_mappings/*/expression',
   ])
-    expect(rs).toContain(p);
+    expect(rs).toContain(path);
   const mall = one(readFileSync('public/examples/mall/mall.mapping.yaml', 'utf8'), 'mall.mapping.yaml').map(shape);
   expect(mall).toContain('/concept_mappings/*/object_mappings/*/expression');
   // Other keys named expression are not SQL regions.
@@ -58,9 +58,9 @@ test('ODCS locations: quality query only when type is sql (schema, property and 
   expect(rs.map(r => r.pointer)).toEqual(['/schema/0/properties/0/quality/0/query', '/schema/0/properties/1/transformLogic', '/schema/0/quality/0/query']);
   expect(rs.every(r => r.kind === 'statement' && r.dialect === 'postgres' && r.grammar === 'postgresql')).toBe(true);
   const nested = `apiVersion: v3.1.0\nkind: DataContract\nid: x\nversion: 1.0.0\nstatus: active\nservers:\n  - server: s\n    type: snowflake\nquality:\n  - type: sql\n    query: SELECT 1\n  - type: library\n    query: not sql\nschema:\n  - name: t\n    properties:\n      - name: a\n        logicalType: object\n        properties:\n          - name: b\n            quality:\n              - type: SQL\n                query: SELECT COUNT(*) FROM t\n      - name: c\n        logicalType: array\n        items:\n          properties:\n            - name: d\n              transformLogic: SELECT d FROM t\n`;
-  const n = one(nested, 'c.odcs.yaml');
-  expect(n.map(r => r.pointer)).toEqual(['/quality/0/query', '/schema/0/properties/0/properties/0/quality/0/query', '/schema/0/properties/1/items/properties/0/transformLogic']);
-  expect(n.every(r => r.grammar === 'snowflake')).toBe(true);
+  const regions = one(nested, 'c.odcs.yaml');
+  expect(regions.map(r => r.pointer)).toEqual(['/quality/0/query', '/schema/0/properties/0/properties/0/quality/0/query', '/schema/0/properties/1/items/properties/0/transformLogic']);
+  expect(regions.every(r => r.grammar === 'snowflake')).toBe(true);
   expect(one(nested.replace('    type: snowflake\n', ''), 'c.odcs.yaml').every(r => r.grammar === 'postgresql')).toBe(true);
 });
 test('dialects: sibling dialect; ANSI and none → PostgreSQL grammar; Snowflake, BigQuery, Databricks; non-SQL dialects not checked', () => {
@@ -70,8 +70,8 @@ test('dialects: sibling dialect; ANSI and none → PostgreSQL grammar; Snowflake
   expect(grammarOf('SNOWFLAKE')).toBe('snowflake');
   expect(grammarOf('BIGQUERY')).toBe('bigquery');
   expect(grammarOf('DATABRICKS')).toBe('hive');
-  for (const d of ['MDX', 'DAX', 'MAQL', 'TABLEAU', 'SIGMA', 'THOUGHTSPOT', 'HOLISTICS_AQL']) expect(grammarOf(d)).toBeNull();
-  for (const [t, g] of [
+  for (const dialect of ['MDX', 'DAX', 'MAQL', 'TABLEAU', 'SIGMA', 'THOUGHTSPOT', 'HOLISTICS_AQL']) expect(grammarOf(dialect)).toBeNull();
+  for (const [dialect, grammar] of [
     ['postgres', 'postgresql'],
     ['mysql', 'mysql'],
     ['sqlserver', 'transactsql'],
@@ -82,7 +82,7 @@ test('dialects: sibling dialect; ANSI and none → PostgreSQL grammar; Snowflake
     ['databricks', 'hive'],
     ['unknown', 'postgresql'],
   ])
-    expect(grammarOf(t, true)).toBe(g);
+    expect(grammarOf(dialect, true)).toBe(grammar);
   const dax = one(fixture('dax.ossie.yaml'));
   expect(dax.map(r => [r.dialect, r.grammar])).toEqual([
     ['ANSI_SQL', 'postgresql'],
@@ -93,31 +93,31 @@ test('dialects: sibling dialect; ANSI and none → PostgreSQL grammar; Snowflake
 test('block literal: indentation removed per line, breaks map to line breaks; chomping and indentation indicators', () => {
   for (const header of ['|', '|-', '|+', '|2', '|-1', '|1+']) {
     const src = metric(`${header}\n            SUM(a)\n\n              / NULLIF(SUM(b), 0)\n\n`);
-    const [r] = one(src);
-    expect(r.value.startsWith(header.includes('1') ? ' SUM(a)' : 'SUM(a)')).toBe(true);
+    const [sqlRegion] = one(src);
+    expect(sqlRegion.value.startsWith(header.includes('1') ? ' SUM(a)' : 'SUM(a)')).toBe(true);
   }
-  const [r] = one(metric('|\n            SUM(CASE\n              WHEN x THEN 1 END)\n'));
-  const at = r.value.indexOf('WHEN');
-  expect(lineColumn(metric('|\n            SUM(CASE\n              WHEN x THEN 1 END)\n'), r.offsets[at])).toEqual({ line: 10, column: 15 });
+  const [region] = one(metric('|\n            SUM(CASE\n              WHEN x THEN 1 END)\n'));
+  const at = region.value.indexOf('WHEN');
+  expect(lineColumn(metric('|\n            SUM(CASE\n              WHEN x THEN 1 END)\n'), region.offsets[at])).toEqual({ line: 10, column: 15 });
 });
 test('block folded: single breaks fold to spaces mapped to the break; empty and more-indented lines keep breaks', () => {
   const src = fixture('folded.ossie.yaml');
-  const [, r] = one(src);
-  expect(r.value).toBe('SUM(CASE WHEN orders.amount > 100\n  THEN orders.amount\n  ELSE 0 END END)\n');
+  const [, sqlRegion] = one(src);
+  expect(sqlRegion.value).toBe('SUM(CASE WHEN orders.amount > 100\n  THEN orders.amount\n  ELSE 0 END END)\n');
   const plain = metric('>-\n            SUM(a)\n            + SUM(b)\n\n            + SUM(c)\n');
-  const [f] = one(plain);
-  expect(f.value).toBe('SUM(a) + SUM(b)\n+ SUM(c)');
-  expect(plain[f.offsets[f.value.indexOf(' + SUM(b)')]]).toBe('\n');
+  const [region] = one(plain);
+  expect(region.value).toBe('SUM(a) + SUM(b)\n+ SUM(c)');
+  expect(plain[region.offsets[region.value.indexOf(' + SUM(b)')]]).toBe('\n');
 });
 test('plain, single- and double-quoted scalars, single and multi-line', () => {
-  const [p] = one(metric('SUM(a)\n            + SUM(b)'));
-  expect(p.value).toBe('SUM(a) + SUM(b)');
-  const [s] = one(metric("'CASE WHEN x = ''a'' THEN 1 END'"));
-  expect(s.value).toBe("CASE WHEN x = 'a' THEN 1 END");
+  const [sqlRegion] = one(metric('SUM(a)\n            + SUM(b)'));
+  expect(sqlRegion.value).toBe('SUM(a) + SUM(b)');
+  const [quotedRegion] = one(metric("'CASE WHEN x = ''a'' THEN 1 END'"));
+  expect(quotedRegion.value).toBe("CASE WHEN x = 'a' THEN 1 END");
   const [s2] = one(metric("'SUM(a)\n            + SUM(b)'"));
   expect(s2.value).toBe('SUM(a) + SUM(b)');
-  const [d] = one(metric('"CASE WHEN x = \\"a\\" AND y = \'\\\\\' THEN \\u00e9 \\x41 \\U0001F600 END\\t"'));
-  expect(d.value).toBe('CASE WHEN x = "a" AND y = \'\\\' THEN é A 😀 END\t');
+  const [escapedRegion] = one(metric('"CASE WHEN x = \\"a\\" AND y = \'\\\\\' THEN \\u00e9 \\x41 \\U0001F600 END\\t"'));
+  expect(escapedRegion.value).toBe('CASE WHEN x = "a" AND y = \'\\\' THEN é A 😀 END\t');
   const [d2] = one(metric('"SUM(a) \\\n            + SUM(b)\n\n            + 1"'));
   expect(d2.value).toBe('SUM(a) + SUM(b)\n+ 1');
 });
@@ -146,12 +146,12 @@ test('JSON strings with escapes, flow YAML and multi-document YAML', () => {
 });
 test('every shipped example maps every SQL region exactly', () => {
   const { readdirSync } = require('node:fs');
-  let n = 0;
-  for (const f of readdirSync('public/examples', { recursive: true })
+  let regionCount = 0;
+  for (const file of readdirSync('public/examples', { recursive: true })
     .map(String)
     .filter((f: string) => /\.(ya?ml|json)$/.test(f))) {
-    const src = readFileSync('public/examples/' + f, 'utf8');
-    n += one(src, f).length;
+    const src = readFileSync('public/examples/' + file, 'utf8');
+    regionCount += one(src, file).length;
   }
-  expect(n).toBeGreaterThan(1000);
+  expect(regionCount).toBeGreaterThan(1000);
 });

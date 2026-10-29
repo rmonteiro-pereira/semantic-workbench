@@ -347,16 +347,34 @@ const rows: Record<string, Record<string, any>[]> = {
     is_recurring,
   })),
 };
-const literal = (value: any) => (value == null ? 'NULL' : typeof value === 'number' ? String(value) : "'" + String(value).replaceAll("'", "''") + "'");
+const literal = (value: any) => {
+  if (value == null) {
+    return 'NULL';
+  }
+  if (typeof value === 'number') {
+    return String(value);
+  }
+  return "'" + String(value).replaceAll("'", "''") + "'";
+};
 let sql = "-- Synthetic USD-only fixture, for isolated tests. Not a warehouse migration.\nATTACH ':memory:' AS billing;\n";
-for (const d of semantic.datasets) {
-  const columns = d.fields.filter((f: any) => f.name !== 'net_amount').map((f: any) => f.name);
-  sql += `CREATE TABLE billing.${d.name} (${columns.map((c: string) => c + ' ' + (c === 'id' ? 'INTEGER PRIMARY KEY' : ['name', 'tier', 'code', 'invoice_date'].includes(c) ? 'TEXT' : 'REAL')).join(', ')});\n`;
-  for (const row of rows[d.name] ?? []) sql += `INSERT INTO billing.${d.name} (${columns.join(', ')}) VALUES (${columns.map((c: string) => literal(row[c])).join(', ')});\n`;
+function sqlType(column: string): string {
+  if (column === 'id') return 'INTEGER PRIMARY KEY';
+  if (['name', 'tier', 'code', 'invoice_date'].includes(column)) return 'TEXT';
+  return 'REAL';
+}
+for (const dataset of semantic.datasets) {
+  const columns = dataset.fields.filter((f: any) => f.name !== 'net_amount').map((f: any) => f.name);
+  const columnDefinitions = columns.map((column: string) => `${column} ${sqlType(column)}`);
+  sql += `CREATE TABLE billing.${dataset.name} (${columnDefinitions.join(', ')});\n`;
+  for (const row of rows[dataset.name] ?? []) {
+    const values = columns.map((column: string) => literal(row[column]));
+    sql += `INSERT INTO billing.${dataset.name} (${columns.join(', ')}) `;
+    sql += `VALUES (${values.join(', ')});\n`;
+  }
 }
 const dir = 'public/examples/billing';
 const CONTRACT_FILE = 'billing.odcs.yaml';
-const CONTRACT_LABEL = '# Workbench addition: the data contract that the governed metrics of this example bind to.\n' + '# It is not part of any upstream standard example.\n';
+const CONTRACT_LABEL = '# Workbench addition: the data contract that the governed metrics of this example bind to.\n# It is not part of any upstream standard example.\n';
 await mkdir(dir, { recursive: true });
 for (const [filename, data] of [
   ['billing.ontology.yaml', ontology],

@@ -329,10 +329,10 @@ export function modelOverview(entities: Entity[], edges: Relationship[], _name: 
   const mode: ConcreteGroupingMode = requested !== 'auto' && enabled(modes[requested]) ? requested : autoMode;
   const { groups, memberships, counts } = assignGroups(mode, visible, context, grouping);
   const order = areas.map(a => a.id);
-  const ordered = [...groups.values()].sort((a, b) => {
-    const ai = order.indexOf(a.id);
-    const bi = order.indexOf(b.id);
-    return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi) || a.name.localeCompare(b.name);
+  const ordered = [...groups.values()].sort((first, second) => {
+    const ai = order.indexOf(first.id);
+    const bi = order.indexOf(second.id);
+    return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi) || first.name.localeCompare(second.name);
   });
   const groupOf = new Map(ordered.flatMap(g => g.entities.map(e => [e.id, g.id] as const)));
   const degree = new Map(visible.map(e => [e.id, 0]));

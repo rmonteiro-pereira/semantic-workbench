@@ -245,8 +245,8 @@ export function CloneDialog({ onClose, onOpenProject, onCredentials, onChoosePro
         createFolder,
       });
       dispatchProgress({ type: 'started', operation: started });
-    } catch (e) {
-      setError((e as Error).message);
+    } catch (error) {
+      setError((error as Error).message);
     }
   }
 

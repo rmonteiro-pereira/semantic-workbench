@@ -117,8 +117,8 @@ export function ColumnList(props: ListProps) {
       </div>
       {above > 0 && <EdgeMarker where="above" count={above} top={box.top} />}
       {below > 0 && <EdgeMarker where="below" count={below} top={box.top + box.height} />}
-      {ports.map(p => (
-        <Port key={p.id} id={p.id} top={box.top + Math.min(Math.max(p.y, 0), box.height)} edge={p.y < 0 || p.y > box.height} />
+      {ports.map(port => (
+        <Port key={port.id} id={port.id} top={box.top + Math.min(Math.max(port.y, 0), box.height)} edge={port.y < 0 || port.y > box.height} />
       ))}
       {hiddenByFilter.map(c => (
         <Port key={c.id} id={c.id} top={box.top} edge />

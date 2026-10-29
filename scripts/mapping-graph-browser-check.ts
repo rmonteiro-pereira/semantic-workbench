@@ -22,10 +22,10 @@ page.on('console', m => {
 await routeApi(page, api);
 let passed = 0;
 async function check(name: string, run: () => Promise<void>) {
-  const t = Date.now();
+  const startedAt = Date.now();
   await run();
   passed++;
-  console.log('PASS', name, `(${((Date.now() - t) / 1000).toFixed(1)} s)`);
+  console.log('PASS', name, `(${((Date.now() - startedAt) / 1000).toFixed(1)} s)`);
 }
 const tree = (p: Page = page) => p.getByRole('tree', { name: 'Projects' });
 const graph = () => page.getByRole('region', { name: 'Mapping graph' });
@@ -33,8 +33,8 @@ const card = (name: string) => graph().getByRole('group', { name, exact: true })
 // The resolver's graph for a mapping, as the server sees the saved files.
 function expected(filename: string, embedded = false): MappingGraph {
   const docs = api.ws.documents();
-  const m = agentCatalog(docs).mappings.find(x => x.filename === filename && x.embedded === embedded)!;
-  return buildMappingGraph(buildContext(docs, m.id) as any);
+  const mapping = agentCatalog(docs).mappings.find(x => x.filename === filename && x.embedded === embedded)!;
+  return buildMappingGraph(buildContext(docs, mapping.id) as any);
 }
 async function openMapping(path: string, project: string) {
   await tree().getByRole('treeitem', { name: project }).getByRole('button', { name: path, exact: true }).click();
@@ -43,48 +43,48 @@ async function openMapping(path: string, project: string) {
   await graph().getByRole('button', { name: 'Fit', exact: true }).click();
   await page.waitForTimeout(400);
 }
-async function compare(g: MappingGraph, label: string) {
-  const want = new Set(g.edges.map(e => `${e.from}>${e.to}>${e.kind}`));
+async function compare(mappingGraph: MappingGraph, label: string) {
+  const want = new Set(mappingGraph.edges.map(e => `${e.from}>${e.to}>${e.kind}`));
   const { lines, ports } = await page.evaluate(() => ({
-    lines: [...document.querySelectorAll('[aria-label="Mapping graph"] g[data-edge-kind]')].map(e => ({
-      from: e.getAttribute('data-from')!,
-      to: e.getAttribute('data-to')!,
-      kind: e.getAttribute('data-edge-kind')!,
-      count: Number(e.getAttribute('data-count')),
+    lines: [...document.querySelectorAll('[aria-label="Mapping graph"] g[data-edge-kind]')].map(edgeElement => ({
+      from: edgeElement.getAttribute('data-from')!,
+      to: edgeElement.getAttribute('data-to')!,
+      kind: edgeElement.getAttribute('data-edge-kind')!,
+      count: Number(edgeElement.getAttribute('data-count')),
     })),
     ports: [...document.querySelectorAll('[aria-label="Mapping graph"] [data-id]')].map(e => e.getAttribute('data-id')!),
   }));
   expect(lines.length).toBeGreaterThan(0);
   const drawn = new Set<string>();
-  for (const l of lines) {
-    if (l.count > 1 || l.from.endsWith('/#more') || l.to.endsWith('/#more')) continue;
-    const k = `${l.from}>${l.to}>${l.kind}`;
-    drawn.add(k);
-    if (!want.has(k)) throw Error(`${label}: line ${k} is not a resolver binding`);
+  for (const line of lines) {
+    if (line.count > 1 || line.from.endsWith('/#more') || line.to.endsWith('/#more')) continue;
+    const key = `${line.from}>${line.to}>${line.kind}`;
+    drawn.add(key);
+    if (!want.has(key)) throw Error(`${label}: line ${key} is not a resolver binding`);
   }
   const shown = new Set(ports);
   const bundled = lines.some(l => l.count > 1);
-  for (const k of want) {
-    const [from, to] = k.split('>');
-    if (shown.has(from) && shown.has(to) && !drawn.has(k) && !bundled) throw Error(`${label}: binding line ${k} is missing`);
+  for (const key of want) {
+    const [from, to] = key.split('>');
+    if (shown.has(from) && shown.has(to) && !drawn.has(key) && !bundled) throw Error(`${label}: binding line ${key} is missing`);
   }
   // The entity graph's area boxes never appear for a mapping.
   await expect(page.locator('.full-area-title')).toHaveCount(0);
   return drawn.size;
 }
 async function shots(name: string) {
-  for (const [w, h] of [
+  for (const [width, height] of [
     [390, 844],
     [1280, 720],
     [1440, 900],
     [2560, 1440],
   ]) {
-    await page.setViewportSize({ width: w, height: h });
+    await page.setViewportSize({ width, height });
     await page.waitForTimeout(300);
     await graph().getByRole('button', { name: 'Fit', exact: true }).click();
     await page.waitForTimeout(300);
     await expect(graph().locator('.lineage-reading')).toHaveText(/^Saved mapping · \d+ reachable assets · \d+ total assets$/);
-    await page.screenshot({ path: `/tmp/workbench-mapping-graph-${name}-${w}.png` });
+    await page.screenshot({ path: `/tmp/workbench-mapping-graph-${name}-${width}.png` });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
   }
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -94,12 +94,12 @@ try {
   await page.goto(appUrl());
   await check('mapped commerce: concepts left, datasets right, the shared legend; drawn lines are the resolver bindings both ways', async () => {
     await openMapping('commerce.mapping.yaml', loaded['mapped-commerce'].name);
-    for (const n of ['Concept Customer', 'Dataset customers']) await expect(card(n)).toBeVisible();
-    const c = (await card('Concept Customer').boundingBox())!;
-    const d = (await card('Dataset customers').boundingBox())!;
-    expect(c.x + c.width).toBeLessThan(d.x + 1);
+    for (const name of ['Concept Customer', 'Dataset customers']) await expect(card(name)).toBeVisible();
+    const conceptBox = (await card('Concept Customer').boundingBox())!;
+    const datasetBox = (await card('Dataset customers').boundingBox())!;
+    expect(conceptBox.x + conceptBox.width).toBeLessThan(datasetBox.x + 1);
     const legend = graph().getByRole('list', { name: 'Legend' });
-    for (const t of ['Concept', 'Semantic dataset', 'Object mapping', 'Referent']) await expect(legend).toContainText(t);
+    for (const term of ['Concept', 'Semantic dataset', 'Object mapping', 'Referent']) await expect(legend).toContainText(term);
     expect(await compare(expected('commerce.mapping.yaml'), 'commerce')).toBeGreaterThan(2);
     await expect(graph().locator('g[data-edge-kind="object"][data-from="concept:Customer"][data-to="dataset:customers"]')).toHaveCount(1);
     await expect(card('Dataset customers').getByRole('button', { name: 'customers.customer_id' })).toContainText('Identifying');
@@ -132,24 +132,24 @@ try {
     await page.waitForTimeout(300);
     await graph().getByRole('button', { name: 'Fit', exact: true }).click();
     await page.waitForTimeout(300);
-    for (const [d, f] of [
+    for (const [dataset, field] of [
       ['orders', 'customer_id'],
       ['customers', 'customer_id'],
     ])
-      await expect(card(`Dataset ${d}`).locator(`li[data-id="dataset:${d}/${f}"]`)).toHaveClass(/on-path/);
+      await expect(card(`Dataset ${dataset}`).locator(`li[data-id="dataset:${dataset}/${field}"]`)).toHaveClass(/on-path/);
     await page.keyboard.press('Escape');
     await shots('commerce');
   });
   await check('Unmapped only: unmapped concepts and fields carry the badge; the filter leaves only them', async () => {
     // Add an unmapped concept to the mapped commerce ontology through the API, as an edit would.
     const slug = loaded['mapped-commerce'].slug;
-    const f = api.ws.readFile(slug, 'commerce.mapped-ontology.yaml');
+    const file = api.ws.readFile(slug, 'commerce.mapped-ontology.yaml');
     await api.ws.saveFile(
       slug,
       'commerce.mapped-ontology.yaml',
       {
-        baseHash: f.hash,
-        source: f.source + '  - concept: Shipment\n    type: EntityType\n',
+        baseHash: file.hash,
+        source: file.source + '  - concept: Shipment\n    type: EntityType\n',
       },
       LOCAL_READER,
     );
@@ -159,27 +159,27 @@ try {
     await graph().getByRole('listbox', { name: 'Asset results' }).getByRole('option').first().click();
     await expect(card('Concept Shipment')).toContainText('Unmapped');
     await graph().getByRole('checkbox', { name: 'Unmapped only' }).check();
-    for (const c of await graph().locator('.lineage-card').all()) await expect(c).toContainText('Unmapped');
+    for (const unmappedCard of await graph().locator('.lineage-card').all()) await expect(unmappedCard).toContainText('Unmapped');
     await graph().getByRole('checkbox', { name: 'Unmapped only' }).uncheck();
     await api.ws.saveFile(
       slug,
       'commerce.mapped-ontology.yaml',
       {
         baseHash: api.ws.readFile(slug, 'commerce.mapped-ontology.yaml').hash,
-        source: f.source,
+        source: file.source,
       },
       LOCAL_READER,
     );
   });
   await check('warning markers: a resolver finding shows on the affected card with its message and Edit item', async () => {
     const slug = loaded['mapped-commerce'].slug;
-    const f = api.ws.readFile(slug, 'commerce.mapping.yaml');
+    const file = api.ws.readFile(slug, 'commerce.mapping.yaml');
     await api.ws.saveFile(
       slug,
       'commerce.mapping.yaml',
       {
-        baseHash: f.hash,
-        source: f.source.replace('            - relationship: id\n              expression: orders.order_id', '            - relationship: id\n              expression: orders.no_such_field'),
+        baseHash: file.hash,
+        source: file.source.replace('            - relationship: id\n              expression: orders.order_id', '            - relationship: id\n              expression: orders.no_such_field'),
       },
       LOCAL_READER,
     );
@@ -205,21 +205,21 @@ try {
       'commerce.mapping.yaml',
       {
         baseHash: api.ws.readFile(slug, 'commerce.mapping.yaml').hash,
-        source: f.source,
+        source: file.source,
       },
       LOCAL_READER,
     );
   });
   await check('Expand, Collapse and Show all connected work on the mapping canvas: Show all connected from Customer opens exactly the cards its mappings reach', async () => {
-    const g = expected('commerce.mapping.yaml');
+    const mappingGraph = expected('commerce.mapping.yaml');
     await graph().getByRole('textbox', { name: 'Find assets' }).fill('Customer');
     await graph().getByRole('listbox', { name: 'Asset results' }).getByRole('option').filter({ hasText: 'Concept' }).first().click();
     await expect(card('Concept Customer')).toHaveClass(/center/);
     await page.keyboard.press('Escape');
     const want = lineagePierce({
-      edges: g.edges.map(e => [e.from, e.to] as [string, string]),
-      owners: Object.fromEntries([...g.cards.values()].flatMap(c => c.columns.map(x => [x.id, c.id]))),
-      start: selectionNodes(g as any, 'concept:Customer'),
+      edges: mappingGraph.edges.map(e => [e.from, e.to] as [string, string]),
+      owners: Object.fromEntries([...mappingGraph.cards.values()].flatMap(c => c.columns.map(x => [x.id, c.id]))),
+      start: selectionNodes(mappingGraph as any, 'concept:Customer'),
       direction: 'both',
       budget: 150,
     });
@@ -231,7 +231,7 @@ try {
     const ids = await graph()
       .locator('.lineage-card')
       .evaluateAll(ns => ns.map(n => n.getAttribute('data-id')));
-    for (const c of want.cards) expect(ids).toContain(c);
+    for (const cardId of want.cards) expect(ids).toContain(cardId);
     await graph().getByRole('button', { name: 'Undo expansion' }).click();
     const trail = graph().getByLabel('Walk', { exact: true });
     await expect(trail.getByRole('button', { name: 'pierced Customer' })).not.toHaveAttribute('aria-current', 'step');
@@ -277,25 +277,25 @@ try {
     await shots('mall');
   });
   await check('readable first view: concept and field names render at 12 px or more at 1280×720 and 1440×900', async () => {
-    for (const [w, h] of [
+    for (const [width, height] of [
       [1280, 720],
       [1440, 900],
     ]) {
-      await page.setViewportSize({ width: w, height: h });
+      await page.setViewportSize({ width, height });
       await page.reload();
       await tree().getByRole('treeitem', { name: loaded.billing.name }).getByRole('button', { name: 'billing.mapping.yaml', exact: true }).click();
       await page.locator('.tabs').getByRole('button', { name: 'Graph' }).click();
       await expect(graph().locator('.lineage-card.center')).toBeVisible({ timeout: 15000 });
       await page.waitForTimeout(600);
       const px = await page.evaluate(() => {
-        const v = document.querySelector('[aria-label="Mapping graph"] .react-flow__viewport') as HTMLElement;
-        const m = v.style.transform.match(/scale\(([\d.]+)\)/);
+        const element = document.querySelector('[aria-label="Mapping graph"] .react-flow__viewport') as HTMLElement;
+        const match = element.style.transform.match(/scale\(([\d.]+)\)/);
         const name = document.querySelector('[aria-label="Mapping graph"] .lineage-card.center .lineage-row-name, [aria-label="Mapping graph"] .lineage-row-name') as HTMLElement;
-        return parseFloat(getComputedStyle(name).fontSize) * (m ? Number(m[1]) : 1);
+        return parseFloat(getComputedStyle(name).fontSize) * (match ? Number(match[1]) : 1);
       });
-      console.log(`  billing ${w}×${h}: row names at ${px.toFixed(1)} px`);
+      console.log(`  billing ${width}×${height}: row names at ${px.toFixed(1)} px`);
       expect(px).toBeGreaterThanOrEqual(12);
-      await page.screenshot({ path: `/tmp/workbench-mapping-graph-billing-first-${w}.png` });
+      await page.screenshot({ path: `/tmp/workbench-mapping-graph-billing-first-${width}.png` });
     }
     await page.setViewportSize({ width: 1440, height: 900 });
   });
@@ -303,10 +303,10 @@ try {
     expect(errors).toEqual([]);
   });
   console.log(`${passed} mapping graph checks passed on isolated data root ${api.root}.`);
-} catch (e) {
+} catch (error) {
   await page.screenshot({ path: '/tmp/workbench-mapping-graph-failure.png' });
   console.log('browser errors:', errors.join('\n').slice(0, 3000));
-  throw e;
+  throw error;
 } finally {
   await browser.close();
   await api.stop();

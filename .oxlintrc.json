@@ -5,7 +5,7 @@
   },
   "rules": {
     "eslint/one-var": ["error", "never"],
-    "eslint/no-nested-ternary": "warn",
+    "eslint/no-nested-ternary": "error",
     "eslint/max-depth": [
       "warn",
       {

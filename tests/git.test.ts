@@ -6,10 +6,10 @@ import { createGit, gitEnv, parseStatus, LOCAL_TIMEOUT_MS } from '../src/server/
 import { dataLayout } from '../src/server/projects/paths';
 import { tempDataDir } from './helpers/temp-data-dir';
 function setup(binary?: string) {
-  const d = tempDataDir();
-  const layout = dataLayout(d.root);
+  const dir = tempDataDir();
+  const layout = dataLayout(dir.root);
   mkdirSync(layout.projects, { recursive: true });
-  return { d, layout, git: createGit({ projectsRoot: layout.projects, binary }) };
+  return { tempData: dir, layout, git: createGit({ projectsRoot: layout.projects, binary }) };
 }
 test('environment disables terminal prompts, fixes the locale and drops repository overrides', () => {
   const env = gitEnv({
@@ -28,18 +28,18 @@ test('environment disables terminal prompts, fixes the locale and drops reposito
   expect(LOCAL_TIMEOUT_MS).toBe(30_000);
 });
 test('Git runs only with argument arrays and inside data/projects/', async () => {
-  const { d, layout, git } = setup();
+  const { tempData, layout, git } = setup();
   try {
-    await expect(git.run(d.root, ['status'])).rejects.toThrow('inside data/projects');
+    await expect(git.run(tempData.root, ['status'])).rejects.toThrow('inside data/projects');
     await expect(git.run('/tmp', ['status'])).rejects.toThrow('inside data/projects');
     await expect(git.run(join(layout.projects, 'p'), 'status --short' as any)).rejects.toThrow('array');
     await expect(git.run(join(layout.projects, 'p'), ['status', 42 as any])).rejects.toThrow('array');
   } finally {
-    d.cleanup();
+    tempData.cleanup();
   }
 });
 test('init configures managed repositories so committed bytes equal saved bytes', async () => {
-  const { d, layout, git } = setup();
+  const { tempData, layout, git } = setup();
   try {
     const dir = join(layout.projects, 'p');
     mkdirSync(dir);
@@ -53,11 +53,11 @@ test('init configures managed repositories so committed bytes equal saved bytes'
     expect((await git.run(dir, ['show', 'HEAD:crlf.yaml'])).stdout).toBe('a: 1\r\nb: 2\r\n');
     await expect(git.commit(dir, '  ')).rejects.toThrow('message');
   } finally {
-    d.cleanup();
+    tempData.cleanup();
   }
 });
 test('operations on one repository are serialized', async () => {
-  const { d, layout, git } = setup();
+  const { tempData, layout, git } = setup();
   try {
     const dir = join(layout.projects, 'p');
     mkdirSync(dir);
@@ -70,36 +70,36 @@ test('operations on one repository are serialized', async () => {
     await expect(failing).rejects.toThrow();
     expect((await after).stdout.trim()).toBe('5');
   } finally {
-    d.cleanup();
+    tempData.cleanup();
   }
 });
 test('a command that exceeds its timeout is killed', async () => {
-  const { d, layout } = setup();
+  const { tempData, layout } = setup();
   try {
     const dir = join(layout.projects, 'p');
     mkdirSync(dir);
-    const script = join(d.root, 'slow-git');
+    const script = join(tempData.root, 'slow-git');
     writeFileSync(script, '#!/bin/sh\nsleep 5\n', { mode: 0o755 });
     const slow = createGit({ projectsRoot: layout.projects, binary: script, timeoutMs: 200 });
     const started = Date.now();
     await expect(slow.run(dir, ['status'])).rejects.toThrow('timed out');
     expect(Date.now() - started).toBeLessThan(3000);
   } finally {
-    d.cleanup();
+    tempData.cleanup();
   }
 });
 test('missing Git and missing identity are detected', async () => {
-  const { d, layout, git } = setup();
+  const { tempData, layout, git } = setup();
   try {
     expect(await git.available()).toBe(true);
     expect(await git.identity()).toBe(true);
     expect(
       await createGit({
         projectsRoot: layout.projects,
-        binary: join(d.root, 'no-git'),
+        binary: join(tempData.root, 'no-git'),
       }).available(),
     ).toBe(false);
-    const empty = join(d.root, 'empty-gitconfig');
+    const empty = join(tempData.root, 'empty-gitconfig');
     writeFileSync(empty, '');
     const noIdentity = createGit({
       projectsRoot: layout.projects,
@@ -107,8 +107,8 @@ test('missing Git and missing identity are detected', async () => {
         ...process.env,
         GIT_CONFIG_GLOBAL: empty,
         GIT_CONFIG_NOSYSTEM: '1',
-        HOME: d.root,
-        XDG_CONFIG_HOME: d.root,
+        HOME: tempData.root,
+        XDG_CONFIG_HOME: tempData.root,
         GIT_AUTHOR_NAME: undefined,
         GIT_AUTHOR_EMAIL: undefined,
         EMAIL: undefined,
@@ -116,7 +116,7 @@ test('missing Git and missing identity are detected', async () => {
     });
     expect(await noIdentity.identity()).toBe(false);
   } finally {
-    d.cleanup();
+    tempData.cleanup();
   }
 });
 test('porcelain v2 status is read per path', () => {
@@ -133,9 +133,9 @@ test('porcelain v2 status is read per path', () => {
     '? untracked.yaml',
     '',
   ].join('\0');
-  const s = parseStatus(out);
-  expect([s.branch, s.ahead, s.behind, s.changes]).toEqual(['main', 2, 1, 6]);
-  expect(Object.fromEntries(s.files)).toEqual({
+  const status = parseStatus(out);
+  expect([status.branch, status.ahead, status.behind, status.changes]).toEqual(['main', 2, 1, 6]);
+  expect(Object.fromEntries(status.files)).toEqual({
     'a.yaml': 'modified',
     'new file.yaml': 'added',
     'gone.ttl': 'deleted',

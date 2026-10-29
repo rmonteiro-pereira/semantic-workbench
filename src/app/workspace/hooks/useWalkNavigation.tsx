@@ -10,7 +10,7 @@ type Options = {
   walk: Walk;
   current: Doc | null;
   docsRef: React.RefObject<Map<string, Doc>>;
-  openDocument: (d: Doc) => boolean;
+  openDocument: (doc: Doc) => boolean;
   setTab: (next: string) => void;
   setSelected: React.Dispatch<React.SetStateAction<string>>;
   setSelectedEdge: React.Dispatch<React.SetStateAction<string>>;
@@ -51,11 +51,11 @@ export function useWalkNavigation({
     setSelectedEdge('');
     dispatchWalk({ type: 'jump', index });
   }
-  function crossTo(t: CrossFileTarget) {
-    const documentValue = docsRef.current.get(t.doc);
-    if (!documentValue || !current) return;
+  function crossTo(crossFileTarget: CrossFileTarget) {
+    const doc = docsRef.current.get(crossFileTarget.doc);
+    if (!doc || !current) return;
     const from = walk.steps[walk.index];
-    if (!openDocument(documentValue)) return;
+    if (!openDocument(doc)) return;
     if (!from || from.doc !== current.id || from.center !== neighborhoodFocus) {
       const centerEntity = model?.entities.find(e => e.id === (neighborhoodFocus || selected));
       if (centerEntity)
@@ -67,14 +67,14 @@ export function useWalkNavigation({
     dispatchWalk({
       type: 'push',
       step: {
-        doc: t.doc,
-        center: t.entity,
-        name: t.name,
+        doc: crossFileTarget.doc,
+        center: crossFileTarget.entity,
+        name: crossFileTarget.name,
         via: { id: 'file', label: 'same definition' },
       },
     });
     setTab('neighborhood');
-    setSelected(t.entity);
+    setSelected(crossFileTarget.entity);
     setSelectedEdge('');
   }
   function showNeighborhood(id = selected || relationship?.source || neighborhoodFocus) {

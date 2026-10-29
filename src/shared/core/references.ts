@@ -9,11 +9,11 @@ type ModelLike = { entities: Entity[]; document?: any } | null | undefined;
 const usable = (key: unknown): key is string => typeof key === 'string' && key.length > 5;
 /** Returns comparable entity identities with declared prefixes expanded. */
 export function entityKeys(entity: Entity, model: ModelLike): string[] {
-  const d = entity.definition ?? {};
-  const keys = [d.iri, d.source, d.physicalName, ...(Array.isArray(d.authoritativeDefinitions) ? d.authoritativeDefinitions.map((a: any) => a?.url) : [])];
-  if (typeof d.iri === 'string') {
-    const r = expandIri(d.iri, prefixMap(model?.document?.prefixes));
-    if ('iri' in r) keys.push(r.iri);
+  const data = entity.definition ?? {};
+  const keys = [data.iri, data.source, data.physicalName, ...(Array.isArray(data.authoritativeDefinitions) ? data.authoritativeDefinitions.map((a: any) => a?.url) : [])];
+  if (typeof data.iri === 'string') {
+    const iri = expandIri(data.iri, prefixMap(model?.document?.prefixes));
+    if ('iri' in iri) keys.push(iri.iri);
   }
   if (/^https?:/.test(entity.id)) keys.push(entity.id);
   return [...new Set(keys.filter(usable))];

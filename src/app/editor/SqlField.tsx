@@ -15,7 +15,7 @@ import './editor.css';
 const fromProps = Annotation.define<boolean>();
 type Props = {
   value: string;
-  onChange: (v: string) => void;
+  onChange: (value: string) => void;
   ariaLabel?: string;
   labelledBy?: string;
   id?: string;
@@ -23,9 +23,18 @@ type Props = {
   rows?: number;
   placeholder?: string;
   disabled?: boolean;
-  onFindings?: (f: Issue[]) => void;
+  onFindings?: (issues: Issue[]) => void;
 };
 /** Edits a SQL expression with nonblocking syntax warnings. */
+/** The "Line 3, column 5: " lead-in of a finding, as precise as its position allows. */
+function locationPrefix(finding: Issue): string {
+  if (finding.line && finding.line > 1) {
+    return `Line ${finding.line}, column ${finding.column}: `;
+  }
+  if (finding.column) return `Column ${finding.column}: `;
+  return '';
+}
+
 export function SqlField({ value, onChange, ariaLabel, labelledBy, id, dialect = null, rows = 2, placeholder, disabled = false, onFindings }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const view = useRef<EditorView | null>(null);
@@ -37,17 +46,17 @@ export function SqlField({ value, onChange, ariaLabel, labelledBy, id, dialect =
   const sql = grammarOf(dialect) !== null;
   useEffect(() => {
     const lint = linter(
-      async v => {
-        const text = v.state.doc.toString();
+      async lintView => {
+        const text = lintView.state.doc.toString();
         const issues = await lintSqlInWorker(text, props.current.dialect ?? null);
-        if (v.state.doc.toString() !== text) return [];
+        if (lintView.state.doc.toString() !== text) return [];
         setFindings(issues);
         props.current.onFindings?.(issues);
-        return toDiagnostics(issues, v.state.doc).diagnostics;
+        return toDiagnostics(issues, lintView.state.doc).diagnostics;
       },
       { delay: 250 },
     );
-    const v = new EditorView({
+    const editorView = new EditorView({
       parent: host.current!,
       state: EditorState.create({
         doc: value,
@@ -78,30 +87,30 @@ export function SqlField({ value, onChange, ariaLabel, labelledBy, id, dialect =
         ],
       }),
     });
-    view.current = v;
+    view.current = editorView;
     return () => {
-      v.destroy();
+      editorView.destroy();
       view.current = null;
     };
   }, []);
   // A value set from outside (prefill, reset) replaces the text.
   useEffect(() => {
-    const v = view.current;
-    if (!v) return;
-    const current = v.state.doc.toString();
+    const currentView = view.current;
+    if (!currentView) return;
+    const current = currentView.state.doc.toString();
     if (current !== value) {
-      v.dispatch({
+      currentView.dispatch({
         changes: { from: 0, to: current.length, insert: value },
         annotations: fromProps.of(true),
       });
-      forceLinting(v);
+      forceLinting(currentView);
     }
   }, [value]);
   useEffect(() => {
-    const v = view.current;
-    if (!v) return;
-    v.dispatch({ effects: language.current.reconfigure(sql ? StandardSQL : []) });
-    forceLinting(v);
+    const currentView = view.current;
+    if (!currentView) return;
+    currentView.dispatch({ effects: language.current.reconfigure(sql ? StandardSQL : []) });
+    forceLinting(currentView);
   }, [sql, dialect]);
   useEffect(() => {
     view.current?.dispatch({
@@ -114,10 +123,10 @@ export function SqlField({ value, onChange, ariaLabel, labelledBy, id, dialect =
       {!sql && dialect && <small className="sql-field-note">{dialect} is not SQL: shown as written, not checked.</small>}
       {findings.length > 0 && (
         <ul className="sql-field-findings" aria-label="SQL findings">
-          {findings.map((f, i) => (
+          {findings.map((finding, i) => (
             <li key={i}>
-              {f.line && f.line > 1 ? `Line ${f.line}, column ${f.column}: ` : f.column ? `Column ${f.column}: ` : ''}
-              {f.message}
+              {locationPrefix(finding)}
+              {finding.message}
             </li>
           ))}
         </ul>

@@ -41,9 +41,9 @@ test('indexing validates with the shared rules and keeps invalid supported files
   expect(indexBytes('p', 'd.yaml', new Uint8Array([0xff, 0xfe])).findings[0].code).toBe('encoding');
 });
 test('the scanner lists files through git ls-files, honours .gitignore and hides unsupported types', async () => {
-  const d = tempDataDir();
+  const dataDir = tempDataDir();
   try {
-    const layout = dataLayout(d.root);
+    const layout = dataLayout(dataDir.root);
     const git = createGit({ projectsRoot: layout.projects });
     const cache = createCache(layout.cache);
     const dir = join(layout.projects, 'p');
@@ -70,13 +70,13 @@ test('the scanner lists files through git ls-files, honours .gitignore and hides
     expect(second.changed).toEqual(['.gitignore']);
     cache.close();
   } finally {
-    d.cleanup();
+    dataDir.cleanup();
   }
 });
 test('without Git the scanner walks the folder and skips .git', async () => {
-  const d = tempDataDir();
+  const dataDir = tempDataDir();
   try {
-    const layout = dataLayout(d.root);
+    const layout = dataLayout(dataDir.root);
     const cache = createCache(layout.cache);
     const dir = join(layout.projects, 'p');
     mkdirSync(join(dir, '.git'), { recursive: true });
@@ -87,6 +87,6 @@ test('without Git the scanner walks the folder and skips .git', async () => {
     expect(cache.file('p', 'a.yaml')!.gitState).toBe('unknown');
     cache.close();
   } finally {
-    d.cleanup();
+    dataDir.cleanup();
   }
 });

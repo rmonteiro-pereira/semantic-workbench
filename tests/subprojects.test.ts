@@ -310,7 +310,12 @@ test('the last project of a repository cannot be removed, and deleting it moves 
     expect(byName(team.app).has('Finance')).toBe(true);
     const impact = await ok(call(team.app, 'GET', `/api/projects/${team.finance}/delete-impact`));
     expect(impact).toMatchObject({ subproject: true, repo: 'monorepo', sharedWith: [] });
-    await ok(call(team.app, 'DELETE', `/api/projects/${team.finance}`, { mode: 'delete', confirm: true }));
+    await ok(
+      call(team.app, 'DELETE', `/api/projects/${team.finance}`, {
+        mode: 'delete',
+        confirm: true,
+      }),
+    );
     expect(existsSync(team.repo)).toBe(false);
     expect(team.app.ws.trash.list()[0]).toMatchObject({ kind: 'repository' });
   } finally {

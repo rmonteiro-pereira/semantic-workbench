@@ -71,20 +71,20 @@ await Bun.write(
       purpose: 'Governed customer and order data for daily revenue reporting.',
       limitations: 'Synthetic demonstration data. USD only. No real personal information.',
     },
-    schema: tables.map(t => ({
-      name: t.name,
-      physicalName: `analytics.commerce.${t.name}`,
+    schema: tables.map(table => ({
+      name: table.name,
+      physicalName: `analytics.commerce.${table.name}`,
       physicalType: 'table',
       logicalType: 'object',
-      description: t.description,
-      authoritativeDefinitions: [{ type: 'businessDefinition', url: ns + t.concept }],
-      properties: t.cols.map(([name, type], i) => ({
+      description: table.description,
+      authoritativeDefinitions: [{ type: 'businessDefinition', url: ns + table.concept }],
+      properties: table.cols.map(([name, type], i) => ({
         name,
         logicalType: type,
         required: true,
         ...(i === 0 ? { primaryKey: true, unique: true } : {}),
-        description: `${t.concept} ${name.replaceAll('_', ' ')}.`,
-        ...(i > 0 && foreignKeys[`${t.name}.${name}`] ? { relationships: [{ type: 'foreignKey', to: foreignKeys[`${t.name}.${name}`] }] } : {}),
+        description: `${table.concept} ${name.replaceAll('_', ' ')}.`,
+        ...(i > 0 && foreignKeys[`${table.name}.${name}`] ? { relationships: [{ type: 'foreignKey', to: foreignKeys[`${table.name}.${name}`] }] } : {}),
       })),
     })),
     team: [{ username: 'commerce-data', role: 'owner' }],
@@ -99,12 +99,12 @@ await Bun.write(
     version: '0.2.0.dev0',
     name: semanticModelName,
     description: 'Revenue and order metrics over contracted warehouse tables.',
-    datasets: tables.map(t => ({
-      name: t.name,
-      source: `analytics.commerce.${t.name}`,
-      description: t.description,
-      primary_key: [t.cols[0][0]],
-      fields: t.cols.map(([name, type]) => ({
+    datasets: tables.map(table => ({
+      name: table.name,
+      source: `analytics.commerce.${table.name}`,
+      description: table.description,
+      primary_key: [table.cols[0][0]],
+      fields: table.cols.map(([name, type]) => ({
         name,
         expression: expr(name),
         datatype: ({ integer: 'Integer', number: 'Decimal', date: 'Date', string: 'String' } as any)[type],
@@ -229,7 +229,10 @@ const owl =
   classes.map(c => `c:${c} a owl:Class ; rdfs:label "${c}" ; rdfs:comment "${c} in the order-to-cash process." .`).join('\n') +
   '\n' +
   rels.map(([from, p, to]) => `c:${p} a owl:ObjectProperty ; rdfs:label "${p}" ; rdfs:domain c:${from} ; rdfs:range c:${to} .`).join('\n') +
-  `\nc:email a owl:DatatypeProperty ; rdfs:domain c:Customer ; rdfs:range xsd:string .\nc:amount a owl:DatatypeProperty ; rdfs:domain c:Order ; rdfs:range xsd:decimal .\nc:placedBy a owl:ObjectProperty ; owl:inverseOf c:places ; rdfs:domain c:Order ; rdfs:range c:Customer .\nc:PaidOrder a owl:Class ; rdfs:subClassOf c:Order, [ a owl:Restriction ; owl:onProperty c:invoice ; owl:someValuesFrom c:Invoice ] .\n`;
+  `\nc:email a owl:DatatypeProperty ; rdfs:domain c:Customer ; rdfs:range xsd:string .\n` +
+  `c:amount a owl:DatatypeProperty ; rdfs:domain c:Order ; rdfs:range xsd:decimal .\n` +
+  `c:placedBy a owl:ObjectProperty ; owl:inverseOf c:places ; rdfs:domain c:Order ; rdfs:range c:Customer .\n` +
+  `c:PaidOrder a owl:Class ; rdfs:subClassOf c:Order, [ a owl:Restriction ; owl:onProperty c:invoice ; owl:someValuesFrom c:Invoice ] .\n`;
 await Bun.write(dir + 'commerce.owl.ttl', owl);
 const store = graph();
 parse(owl, store, 'https://example.org/commerce', 'text/turtle');
@@ -240,12 +243,23 @@ await Bun.write(
 await Bun.write(
   dir + 'commerce.shacl.ttl',
   prefixes +
-    `\nc:CustomerShape a sh:NodeShape ; rdfs:label "Customer requirements" ; sh:targetClass c:Customer ;\n sh:property [ sh:path c:email ; sh:name "Email" ; sh:datatype xsd:string ; sh:minCount 1 ; sh:maxCount 1 ; sh:pattern "^[^@]+@[^@]+[.][^@]+$" ] .\nc:OrderShape a sh:NodeShape ; rdfs:label "Order requirements" ; sh:targetClass c:Order ;\n sh:property [ sh:path c:amount ; sh:name "Order amount" ; sh:datatype xsd:decimal ; sh:minInclusive 0 ; sh:minCount 1 ; sh:maxCount 1 ] ;\n sh:property [ sh:path c:contains ; sh:name "Order lines" ; sh:class c:OrderLine ; sh:minCount 1 ] .\n`,
+    `\nc:CustomerShape a sh:NodeShape ; rdfs:label "Customer requirements" ; sh:targetClass c:Customer ;\n` +
+    ` sh:property [ sh:path c:email ; sh:name "Email" ; sh:datatype xsd:string ; sh:minCount 1 ; sh:maxCount 1 ; sh:pattern "^[^@]+@[^@]+[.][^@]+$" ] .\n` +
+    `c:OrderShape a sh:NodeShape ; rdfs:label "Order requirements" ; sh:targetClass c:Order ;\n` +
+    ` sh:property [ sh:path c:amount ; sh:name "Order amount" ; sh:datatype xsd:decimal ; sh:minInclusive 0 ; sh:minCount 1 ; sh:maxCount 1 ] ;\n` +
+    ` sh:property [ sh:path c:contains ; sh:name "Order lines" ; sh:class c:OrderLine ; sh:minCount 1 ] .\n`,
 );
 await Bun.write(
   dir + 'commerce-data.ttl',
   prefixes +
-    `\nc:customer_alex a c:Customer ; rdfs:label "Alex Morgan" ; c:email "alex@example.org" ; c:places c:order_1042 .\nc:order_1042 a c:Order ; rdfs:label "Order 1042" ; c:amount "79.00"^^xsd:decimal ; c:contains c:line_1042_1 ; c:shipment c:shipment_1042 ; c:invoice c:invoice_1042 .\nc:line_1042_1 a c:OrderLine ; rdfs:label "Order 1042 · desk lamp" ; c:product c:desk_lamp .\nc:desk_lamp a c:Product ; rdfs:label "Adjustable desk lamp" .\nc:shipment_1042 a c:Shipment ; rdfs:label "Shipment 1042" ; c:warehouse c:warehouse_east .\nc:warehouse_east a c:Warehouse ; rdfs:label "East fulfillment center" .\nc:invoice_1042 a c:Invoice ; rdfs:label "Invoice 1042" ; c:payment c:payment_1042 .\nc:payment_1042 a c:Payment ; rdfs:label "Card payment · USD 79" .\n`,
+    `\nc:customer_alex a c:Customer ; rdfs:label "Alex Morgan" ; c:email "alex@example.org" ; c:places c:order_1042 .\n` +
+    `c:order_1042 a c:Order ; rdfs:label "Order 1042" ; c:amount "79.00"^^xsd:decimal ; c:contains c:line_1042_1 ; c:shipment c:shipment_1042 ; c:invoice c:invoice_1042 .\n` +
+    `c:line_1042_1 a c:OrderLine ; rdfs:label "Order 1042 · desk lamp" ; c:product c:desk_lamp .\n` +
+    `c:desk_lamp a c:Product ; rdfs:label "Adjustable desk lamp" .\n` +
+    `c:shipment_1042 a c:Shipment ; rdfs:label "Shipment 1042" ; c:warehouse c:warehouse_east .\n` +
+    `c:warehouse_east a c:Warehouse ; rdfs:label "East fulfillment center" .\n` +
+    `c:invoice_1042 a c:Invoice ; rdfs:label "Invoice 1042" ; c:payment c:payment_1042 .\n` +
+    `c:payment_1042 a c:Payment ; rdfs:label "Card payment · USD 79" .\n`,
 );
 // Instances, not 1,000 invented ontology classes. Five explicit business links per resource.
 const groups = [
@@ -321,12 +335,14 @@ let data = prefixes + '\n# Synthetic commerce records, not real customer data. E
 for (const [group, size, type] of groups)
   for (let i = 0; i < size; i++) {
     const id = `${group}_${i}`;
-    const label =
-      group === 'product'
-        ? `${['Desk lamp', 'Office chair', 'Standing desk', 'Monitor arm', 'Keyboard'][i % 5]} · SKU ${10000 + i}`
-        : group === 'warehouse'
-          ? `Fulfillment center ${i + 1}`
-          : `${type} ${10000 + i}`;
+    let label: string;
+    if (group === 'product') {
+      label = `${['Desk lamp', 'Office chair', 'Standing desk', 'Monitor arm', 'Keyboard'][i % 5]} · SKU ${10000 + i}`;
+    } else if (group === 'warehouse') {
+      label = `Fulfillment center ${i + 1}`;
+    } else {
+      label = `${type} ${10000 + i}`;
+    }
     data += `c:${id} a c:${type} ; rdfs:label "${label}" ;\n` + links[group].map(([p, t], j) => ` c:${p} c:${t}_${(i + j * 13) % sizes[t]}`).join(' ;\n') + ' .\n';
   }
 await Bun.write(dir + 'commerce-scale.ttl', data);

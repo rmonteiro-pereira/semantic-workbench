@@ -172,18 +172,18 @@ try {
   async function chainProblems() {
     return page.locator('.mapping-binding').evaluateAll(
       (items, labels) =>
-        items.flatMap((b, i) => {
+        items.flatMap((binding, i) => {
           const out: string[] = [];
-          const steps = [...b.querySelectorAll('[data-step]')];
+          const steps = [...binding.querySelectorAll('[data-step]')];
           const kinds = steps.map(s => s.getAttribute('data-step')!);
-          if (b.getAttribute('role') !== 'group' || !(b.getAttribute('aria-label') ?? '').startsWith('Binding ')) out.push(`binding ${i}: not a labelled group`);
+          if (binding.getAttribute('role') !== 'group' || !(binding.getAttribute('aria-label') ?? '').startsWith('Binding ')) out.push(`binding ${i}: not a labelled group`);
           if (kinds[0] !== 'concept') out.push(`binding ${i}: chain does not start with the concept`);
           if (!kinds.some(k => k === 'field' || k === 'metric')) out.push(`binding ${i}: no field or metric step`);
           if (kinds.includes('field') && !(kinds.includes('dataset') && kinds.includes('source'))) out.push(`binding ${i}: field without dataset and physical source`);
-          for (const s of steps) {
-            const label = s.querySelector('.step-label')?.textContent?.trim();
-            if (label !== labels[s.getAttribute('data-step')!]) out.push(`binding ${i}: step ${s.getAttribute('data-step')} labelled "${label}"`);
-            if (!s.textContent?.replace(label ?? '', '').trim()) out.push(`binding ${i}: empty ${s.getAttribute('data-step')} step`);
+          for (const step of steps) {
+            const label = step.querySelector('.step-label')?.textContent?.trim();
+            if (label !== labels[step.getAttribute('data-step')!]) out.push(`binding ${i}: step ${step.getAttribute('data-step')} labelled "${label}"`);
+            if (!step.textContent?.replace(label ?? '', '').trim()) out.push(`binding ${i}: empty ${step.getAttribute('data-step')} step`);
           }
           return out;
         }),
@@ -192,10 +192,10 @@ try {
   }
   async function groupCounts() {
     return page.locator('details.mapping-group').evaluateAll(gs =>
-      gs.map(g => ({
-        dataset: g.getAttribute('data-dataset'),
-        summary: g.querySelector('summary')?.textContent ?? '',
-        bindings: g.querySelectorAll('.mapping-binding').length,
+      gs.map(group => ({
+        dataset: group.getAttribute('data-dataset'),
+        summary: group.querySelector('summary')?.textContent ?? '',
+        bindings: group.querySelectorAll('.mapping-binding').length,
       })),
     );
   }
@@ -206,15 +206,15 @@ try {
       .click();
     await expect(page.locator('.mapping-detail>h3')).toHaveText('Airport');
     await showAllBindings(page);
-    const n = await page.locator('.mapping-binding').count();
-    if (!n) throw Error('No Airport bindings');
+    const bindingCount = await page.locator('.mapping-binding').count();
+    if (!bindingCount) throw Error('No Airport bindings');
     expect(await chainProblems()).toEqual([]);
     const groups = await groupCounts();
     expect(groups.length).toBeGreaterThan(0);
-    expect(groups.reduce((a, g) => a + g.bindings, 0)).toBe(n);
-    for (const g of groups) {
-      expect(g.summary).toContain(g.dataset || 'Metrics');
-      expect(g.summary).toMatch(new RegExp(`${g.bindings} binding`));
+    expect(groups.reduce((a, g) => a + g.bindings, 0)).toBe(bindingCount);
+    for (const group of groups) {
+      expect(group.summary).toContain(group.dataset || 'Metrics');
+      expect(group.summary).toMatch(new RegExp(`${group.bindings} binding`));
     }
     const first = page.locator('details.mapping-group').first();
     await first.locator(':scope > summary').click();
@@ -244,12 +244,12 @@ try {
     await page.setViewportSize({ width: 1600, height: 1000 });
   });
   await check('all official source exports retain exact upstream bytes', async () => {
-    for (const f of manifest.files) {
-      await page.getByRole('button', { name: f.filename, exact: true }).first().click();
+    for (const file of manifest.files) {
+      await page.getByRole('button', { name: file.filename, exact: true }).first().click();
       const [download] = await Promise.all([page.waitForEvent('download'), exportFile(page)]);
       const path = await download.path();
-      if (!path || (await readFile(path, 'utf8')) !== (await Bun.file('tests/fixtures/ossie-mapping/' + f.filename).text()) || download.suggestedFilename() !== f.filename)
-        throw Error('Upstream export changed: ' + f.filename);
+      if (!path || (await readFile(path, 'utf8')) !== (await Bun.file('tests/fixtures/ossie-mapping/' + file.filename).text()) || download.suggestedFilename() !== file.filename)
+        throw Error('Upstream export changed: ' + file.filename);
     }
   });
   await check('fresh billing ontology, semantic model and mappings import and render', async () => {
@@ -379,7 +379,7 @@ try {
     const rows = mallDb.query(sql).all() as any[];
     const wanted = mallExpected.occupancyRateByMonthProperty;
     if (rows.length !== Object.keys(wanted).length) throw Error('Wrong occupancy row count');
-    for (const r of rows) if (Math.abs(r.metric_1 - wanted[`${r.dimension_1}|${r.dimension_2}`]) > 1e-9) throw Error('Wrong occupancy rate for ' + r.dimension_1 + ' ' + r.dimension_2);
+    for (const row of rows) if (Math.abs(row.metric_1 - wanted[`${row.dimension_1}|${row.dimension_2}`]) > 1e-9) throw Error('Wrong occupancy rate for ' + row.dimension_1 + ' ' + row.dimension_2);
     await page.screenshot({ path: '/tmp/mall-occupancy-query.png' });
     await closeComposer(page);
   });

@@ -16,9 +16,9 @@ export async function checkExamples() {
   const imports: any[] = [];
   const sqlExecutions: any[] = [];
   const plans: any[] = [];
-  const t = await testWorkspace();
+  const workspace = await testWorkspace();
   try {
-    const handler = t.handler;
+    const handler = workspace.handler;
     for (const file of manifest.files) {
       const source = await Bun.file('tests/fixtures/ossie-mapping/' + file.filename).text();
       assert.equal(createHash('sha256').update(source).digest('hex'), file.sha256, 'Upstream fixture was edited: ' + file.filename);
@@ -58,7 +58,7 @@ export async function checkExamples() {
         assert.deepEqual(context.findings, []);
         assert.equal(context.bindings.length, 60);
         assert.equal(context.bindings.filter(b => b.condition).length, 2);
-        const p = planQuery(context, {
+        const query = planQuery(context, {
           mappingId: mapping.id,
           concepts: ['AirportName'],
           metrics: [],
@@ -66,12 +66,12 @@ export async function checkExamples() {
         });
         // Only the test execution adapter changes the warehouse catalog prefix. Source files,
         // exported context and original SQL preview remain untouched.
-        const testSql = p.sql.replaceAll('"DATABASE"."SCHEMA".', '"flights".');
+        const testSql = query.sql.replaceAll('"DATABASE"."SCHEMA".', '"flights".');
         const actual = (flightDb.query(testSql).all() as any[]).map(r => r.dimension_1).sort();
         assert.deepEqual(actual, ['Boston', 'Denver', 'Seattle']);
         sqlExecutions.push({
           example: mapping.embedded ? 'upstream Flights embedded' : 'upstream Flights standalone',
-          sql: p.sql,
+          sql: query.sql,
           testAdapter: 'DATABASE.SCHEMA → flights (synthetic SQLite fixture only)',
           result: actual,
         });
@@ -97,11 +97,11 @@ export async function checkExamples() {
         source: await Bun.file('public/examples/billing/' + filename).text(),
       })),
     );
-    for (const d of billing) {
-      assert(validateInput(d.source, d.filename).valid);
-      const saved = await t.ws.saveDocument(d.filename, d.source, LOCAL_READER);
-      assert.equal(saved.source, d.source);
-      assert.equal(await exportDocument(saved.source, d.filename).blob.text(), d.source);
+    for (const storedDocument of billing) {
+      assert(validateInput(storedDocument.source, storedDocument.filename).valid);
+      const saved = await workspace.ws.saveDocument(storedDocument.filename, storedDocument.source, LOCAL_READER);
+      assert.equal(saved.source, storedDocument.source);
+      assert.equal(await exportDocument(saved.source, storedDocument.filename).blob.text(), storedDocument.source);
     }
     const context = buildContext(billing, 'billing-0');
     assert.deepEqual(context.findings, []);
@@ -135,27 +135,40 @@ export async function checkExamples() {
       };
       for (const metric of ['net_revenue', 'recurring_revenue', 'invoice_count', 'revenue_per_invoice'])
         for (const dimension of [null, ['plans', 'tier'], ['product_families', 'name'], ['currencies', 'code']] as const) {
-          const p = planQuery(context, {
+          const query = planQuery(context, {
             mappingId: context.mappingId,
             metrics: [metric],
             dimensions: dimension ? [JSON.stringify(dimension)] : [],
           });
-          const rows = db.query(p.sql).all() as any[];
+          const rows = db.query(query.sql).all() as any[];
           const actual = Object.fromEntries(rows.map(r => [dimension ? (r.dimension_1 ?? 'unmatched') : 'total', r.metric_1]));
-          const expected = dimension
-            ? metric === 'net_revenue'
-              ? amounts[dimension[0]]
-              : metric === 'recurring_revenue'
-                ? recurring[dimension[0]]
-                : metric === 'invoice_count'
-                  ? counts[dimension[0]]
-                  : Object.fromEntries(Object.entries(amounts[dimension[0]]).map(([k, n]) => [k, n / counts[dimension[0]][k]]))
-            : {
-                total: metric === 'net_revenue' ? 2090 : metric === 'recurring_revenue' ? 1990 : metric === 'invoice_count' ? 6 : 2090 / 6,
-              };
+          let expected: Record<string, any>;
+          if (dimension) {
+            if (metric === 'net_revenue') {
+              expected = amounts[dimension[0]];
+            } else if (metric === 'recurring_revenue') {
+              expected = recurring[dimension[0]];
+            } else if (metric === 'invoice_count') {
+              expected = counts[dimension[0]];
+            } else {
+              expected = Object.fromEntries(Object.entries(amounts[dimension[0]]).map(([k, n]) => [k, n / counts[dimension[0]][k]]));
+            }
+          } else {
+            let total: number;
+            if (metric === 'net_revenue') {
+              total = 2090;
+            } else if (metric === 'recurring_revenue') {
+              total = 1990;
+            } else if (metric === 'invoice_count') {
+              total = 6;
+            } else {
+              total = 2090 / 6;
+            }
+            expected = { total };
+          }
           assert.deepEqual(Object.keys(actual).sort(), Object.keys(expected).sort());
           for (const key of Object.keys(expected)) assert(Math.abs(actual[key] - expected[key]) < 1e-8, `${metric}/${dimension}: ${actual[key]} != ${expected[key]}`);
-          plans.push(p);
+          plans.push(query);
           sqlExecutions.push({
             example: 'generated subscription billing',
             metric,
@@ -174,15 +187,15 @@ export async function checkExamples() {
       for (const [metric, total] of Object.entries(addedTotals)) {
         // The mapping has no concept_mappings entry for these metrics, so the plan is made over
         // the whole semantic model.
-        const p = planQuery(context, {
+        const query = planQuery(context, {
           mappingId: context.mappingId,
           scope: 'model',
           metrics: [metric],
           dimensions: [],
         });
-        const [row] = db.query(p.sql).all() as any[];
+        const [row] = db.query(query.sql).all() as any[];
         assert(Math.abs(row.metric_1 - total) < 1e-8, `${metric}: ${row.metric_1} != ${total}`);
-        plans.push(p);
+        plans.push(query);
         sqlExecutions.push({
           example: 'generated subscription billing',
           metric,
@@ -260,15 +273,15 @@ export async function checkExamples() {
       sqlExecutions,
       blockedCases: ['Flights conditional population mapping needs explicit interpretation', 'BillingCycle has billed-cycle and subscribed-cycle paths; no role was guessed'],
       governedDefinitionsUnchanged: true,
-      plans: plans.map(p => ({
-        sql: p.sql,
-        metrics: p.metrics,
-        dimensions: p.dimensions,
-        joins: p.joins.map((j: any) => j.name),
-        documents: p.documents,
+      plans: plans.map(plan => ({
+        sql: plan.sql,
+        metrics: plan.metrics,
+        dimensions: plan.dimensions,
+        joins: plan.joins.map((j: any) => j.name),
+        documents: plan.documents,
       })),
     };
   } finally {
-    t.dispose();
+    workspace.dispose();
   }
 }

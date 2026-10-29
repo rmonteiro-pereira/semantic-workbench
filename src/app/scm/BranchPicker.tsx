@@ -79,16 +79,16 @@ export function BranchPicker({
           }}
         >
           <optgroup label="Local">
-            {branches.local.map(b => (
-              <BranchOption key={b} branch={b} holder={b === current ? undefined : holderOf(inUse, b)} />
+            {branches.local.map(branch => (
+              <BranchOption key={branch} branch={branch} holder={branch === current ? undefined : holderOf(inUse, branch)} />
             ))}
             {!branches.local.includes(current) && <option value={current}>{current || '(no branch)'}</option>}
           </optgroup>
           {remoteOnly.length > 0 && (
             <optgroup label="Remote">
-              {remoteOnly.map(b => (
-                <option key={b} value={b}>
-                  {b}
+              {remoteOnly.map(branch => (
+                <option key={branch} value={branch}>
+                  {branch}
                 </option>
               ))}
             </optgroup>
@@ -98,8 +98,8 @@ export function BranchPicker({
       {creating ? (
         <form
           className="branch-create"
-          onSubmit={e => {
-            e.preventDefault();
+          onSubmit={submitEvent => {
+            submitEvent.preventDefault();
             if (name.trim()) {
               onSwitch(name.trim(), true);
               setCreating(false);
@@ -113,9 +113,9 @@ export function BranchPicker({
             value={name}
             placeholder="feature/new-metric"
             onChange={e => setName(e.target.value)}
-            onKeyDown={e => {
-              if (e.key === 'Escape') {
-                e.stopPropagation();
+            onKeyDown={event => {
+              if (event.key === 'Escape') {
+                event.stopPropagation();
                 cancelCreating();
               }
             }}

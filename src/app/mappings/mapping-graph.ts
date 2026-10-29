@@ -105,85 +105,85 @@ export function buildMappingGraph(context: MappingContext, revision = ''): Mappi
     const seen = new Set<string>();
     const queue = [concept];
     for (let i = 0; i < queue.length; i++) {
-      const c = concepts.get(queue[i]);
-      if (!c || seen.has(queue[i])) continue;
+      const definition = concepts.get(queue[i]);
+      if (!definition || seen.has(queue[i])) continue;
       seen.add(queue[i]);
-      const r = (c.relationships ?? []).find((x: any) => x.name === name);
-      if (r) return r;
-      queue.push(...(c.extends ?? []));
+      const relationship = (definition.relationships ?? []).find((x: any) => x.name === name);
+      if (relationship) return relationship;
+      queue.push(...(definition.extends ?? []));
     }
     return null;
   };
   // Cards: every ontology concept (built-in value types only when the mapping draws a line to
   // them), every dataset with its fields, metrics as lines reach them.
   const conceptCard = (name: string, missing = false): MappingCard => {
-    let c = cards.get(conceptId(name));
-    if (c) return c;
+    let card = cards.get(conceptId(name));
+    if (card) return card;
     const def = concepts.get(name);
-    c = {
+    card = {
       id: conceptId(name),
       kind: 'concept' as any,
       label: name,
       file: context.mappingId,
       detail: def?.type ?? (missing ? 'not in the ontology' : undefined),
-      columns: (def?.relationships ?? []).map((r: any): LineageColumn => ({
-        id: `${conceptId(name)}/${r.name}`,
-        path: r.name,
-        type: r.roles?.map((x: any) => x.concept).join(', ') || undefined,
+      columns: (def?.relationships ?? []).map((relationship: any): LineageColumn => ({
+        id: `${conceptId(name)}/${relationship.name}`,
+        path: relationship.name,
+        type: relationship.roles?.map((x: any) => x.concept).join(', ') || undefined,
         badges: [],
       })),
       ...(missing ? { missing: true } : {}),
     };
-    cards.set(c.id, c);
-    return c;
+    cards.set(card.id, card);
+    return card;
   };
-  for (const c of context.concepts) if (!builtin(c.concept)) conceptCard(c.concept);
-  for (const d of context.datasets)
-    cards.set(datasetId(d.name), {
-      id: datasetId(d.name),
+  for (const concept of context.concepts) if (!builtin(concept.concept)) conceptCard(concept.concept);
+  for (const dataset of context.datasets)
+    cards.set(datasetId(dataset.name), {
+      id: datasetId(dataset.name),
       kind: 'dataset',
-      label: d.name,
+      label: dataset.name,
       file: context.mappingId,
-      detail: typeof d.source === 'string' ? d.source : undefined,
-      columns: (d.fields ?? []).map((f: any): LineageColumn => ({
-        id: fieldId(d.name, f.name),
-        path: f.name,
-        type: f.datatype ?? undefined,
+      detail: typeof dataset.source === 'string' ? dataset.source : undefined,
+      columns: (dataset.fields ?? []).map((field: any): LineageColumn => ({
+        id: fieldId(dataset.name, field.name),
+        path: field.name,
+        type: field.datatype ?? undefined,
         badges: [],
       })),
     });
   const metricCard = (name: string): MappingCard => {
-    let c = cards.get(metricId(name));
-    if (c) return c;
-    const m = context.metrics.find(x => x.id === name);
-    c = {
+    let card = cards.get(metricId(name));
+    if (card) return card;
+    const metric = context.metrics.find(x => x.id === name);
+    card = {
       id: metricId(name),
       kind: 'metric',
       label: name,
       file: context.mappingId,
-      detail: m ? ansi(m.definition) : 'not in the semantic model',
+      detail: metric ? ansi(metric.definition) : 'not in the semantic model',
       columns: [],
       governed: true,
-      ...(m ? {} : { missing: true }),
+      ...(metric ? {} : { missing: true }),
     };
-    cards.set(c.id, c);
-    return c;
+    cards.set(card.id, card);
+    return card;
   };
   const row = (concept: string, path: string) => {
-    const c = conceptCard(concept, !concepts.has(concept));
-    const id = `${c.id}/${path}`;
-    if (!c.columns.some(x => x.id === id)) c.columns.push({ id, path, badges: [] });
+    const card = conceptCard(concept, !concepts.has(concept));
+    const id = `${card.id}/${path}`;
+    if (!card.columns.some(x => x.id === id)) card.columns.push({ id, path, badges: [] });
     return id;
   };
-  const add = (e: MappingEdge) => {
-    const same = edges.find(x => x.from === e.from && x.to === e.to && x.kind === e.kind);
+  const add = (mappingEdge: MappingEdge) => {
+    const same = edges.find(x => x.from === mappingEdge.from && x.to === mappingEdge.to && x.kind === mappingEdge.kind);
     if (same) {
-      for (const b of e.bindings) if (!same.bindings.includes(b)) same.bindings.push(b);
-      for (const v of e.via ?? []) if (!same.via?.includes(v)) (same.via ??= []).push(v);
+      for (const binding of mappingEdge.bindings) if (!same.bindings.includes(binding)) same.bindings.push(binding);
+      for (const value of mappingEdge.via ?? []) if (!same.via?.includes(value)) (same.via ??= []).push(value);
       return same;
     }
-    edges.push(e);
-    return e;
+    edges.push(mappingEdge);
+    return mappingEdge;
   };
   const targets = (b: Binding) => [...b.fields.map(fieldOf), ...b.metrics.map(m => metricCard(m).id)];
   const identifying = new Set<string>();
@@ -196,87 +196,94 @@ export function buildMappingGraph(context: MappingContext, revision = ''): Mappi
   const tree = context.mapping.conceptMappings ?? [];
   const nodeAt = (path: (string | number)[]) => {
     const i = path.indexOf('concept_mappings');
-    let n: any = tree;
-    for (const k of path.slice(i + 1)) n = n?.[k];
-    return n;
+    let node: any = tree;
+    for (const key of path.slice(i + 1)) node = node?.[key];
+    return node;
   };
-  for (const b of context.bindings) {
-    mapped.add(b.rootConcept);
-    mapped.add(b.concept);
-    for (const f of b.fields) used.add(fieldOf(f));
-    const p = b.evidence.path.slice(0, -1);
-    const cm = p.indexOf('concept_mappings');
-    if (b.kind === 'link') {
+  for (const binding of context.bindings) {
+    mapped.add(binding.rootConcept);
+    mapped.add(binding.concept);
+    for (const field of binding.fields) used.add(fieldOf(field));
+    const bindingPath = binding.evidence.path.slice(0, -1);
+    const cm = bindingPath.indexOf('concept_mappings');
+    if (binding.kind === 'link') {
       // The innermost link child holding this binding, or the link's anchor object mapping.
-      const at = p.lastIndexOf('children');
+      const at = bindingPath.lastIndexOf('children');
       if (at < 0) {
-        const key = JSON.stringify(p.slice(0, p.indexOf('link_mappings') + 2));
-        (linkAnchors.get(key) ?? linkAnchors.set(key, []).get(key)!).push(b);
+        const key = JSON.stringify(bindingPath.slice(0, bindingPath.indexOf('link_mappings') + 2));
+        (linkAnchors.get(key) ?? linkAnchors.set(key, []).get(key)!).push(binding);
         continue;
       }
-      const childPath = p.slice(0, at + 2);
+      const childPath = bindingPath.slice(0, at + 2);
       const key = JSON.stringify(childPath);
       let entry = linkChildren.get(key);
       if (!entry) {
         // The owner of a child's relationship: the root concept, or the parent child's object
         // concept.
         const parentAt = childPath.slice(0, -2).lastIndexOf('children');
-        let owner = b.rootConcept;
+        let owner = binding.rootConcept;
         if (parentAt >= 0) {
           const parent = nodeAt(childPath.slice(0, parentAt + 2));
-          const prevOwner = b.rootConcept;
+          const prevOwner = binding.rootConcept;
           owner = parent?.object_mapping?.concept ?? relationship(prevOwner, parent?.relationship)?.roles?.[0]?.concept ?? prevOwner;
         }
         entry = { owner, child: nodeAt(childPath), path: childPath, bindings: [] };
         linkChildren.set(key, entry);
       }
-      entry.bindings.push(b);
+      entry.bindings.push(binding);
       continue;
     }
     // Object mapping node: concept_mappings,i,object_mappings,j (direct) — referents below it
-    const om = p.slice(0, cm + 4);
+    const om = bindingPath.slice(0, cm + 4);
     const key = JSON.stringify(om);
-    let g = objectGroups.get(key);
-    if (!g) {
-      g = {
-        concept: String(tree[Number(p[cm + 1])]?.concept ?? b.rootConcept),
+    let objectGroup = objectGroups.get(key);
+    if (!objectGroup) {
+      objectGroup = {
+        concept: String(tree[Number(bindingPath[cm + 1])]?.concept ?? binding.rootConcept),
         path: om,
         bindings: [],
       };
-      objectGroups.set(key, g);
+      objectGroups.set(key, objectGroup);
     }
-    g.bindings.push(b);
+    objectGroup.bindings.push(binding);
   }
-  for (const g of objectGroups.values()) {
-    const concept = conceptCard(g.concept, !concepts.has(g.concept)).id;
-    const ident = new Set<string>(concepts.get(g.concept)?.identify_by ?? []);
+  for (const objectGroup of objectGroups.values()) {
+    const concept = conceptCard(objectGroup.concept, !concepts.has(objectGroup.concept)).id;
+    const ident = new Set<string>(concepts.get(objectGroup.concept)?.identify_by ?? []);
     const datasets = new Map<string, string[]>();
-    for (const b of g.bindings) {
-      if (b.kind === 'referent') {
-        const from = row(b.rootConcept, b.relationships.join('.'));
-        for (const t of targets(b)) add({ from, to: t, kind: 'referent', bindings: [b.id], source: source(b.evidence.path) });
-        if (ident.has(b.relationships[0])) for (const f of b.fields) identifying.add(fieldOf(f));
-        for (const f of b.fields) {
-          const d = datasetId(JSON.parse(f)[0]);
-          (datasets.get(d) ?? datasets.set(d, []).get(d)!).push(b.id);
+    for (const binding of objectGroup.bindings) {
+      if (binding.kind === 'referent') {
+        const from = row(binding.rootConcept, binding.relationships.join('.'));
+        for (const targetId of targets(binding))
+          add({
+            from,
+            to: targetId,
+            kind: 'referent',
+            bindings: [binding.id],
+            source: source(binding.evidence.path),
+          });
+        if (ident.has(binding.relationships[0])) for (const field of binding.fields) identifying.add(fieldOf(field));
+        for (const field of binding.fields) {
+          const datasetCardId = datasetId(JSON.parse(field)[0]);
+          (datasets.get(datasetCardId) ?? datasets.set(datasetCardId, []).get(datasetCardId)!).push(binding.id);
         }
       } else
-        for (const t of targets(b))
+        for (const targetId of targets(binding))
           add({
             from: concept,
-            to: t,
+            to: targetId,
             kind: 'object',
-            bindings: [b.id],
-            source: source(b.evidence.path),
+            bindings: [binding.id],
+            source: source(binding.evidence.path),
           });
     }
-    for (const [d, ids] of datasets)
+    for (const [datasetCardId, ids] of datasets)
       add({
         from: concept,
-        to: d,
+        to: datasetCardId,
         kind: 'object',
         bindings: [...new Set(ids)],
-        source: source(g.path),
+        source: source(objectGroup.path),
       });
   }
   // Joins declared between datasets: a field on one side pairs with the field on the other.
@@ -294,28 +301,28 @@ export function buildMappingGraph(context: MappingContext, revision = ''): Mappi
     }
     return out;
   };
-  for (const [key, c] of linkChildren) {
-    const rel = c.child?.relationship;
+  for (const [key, linkChild] of linkChildren) {
+    const rel = linkChild.child?.relationship;
     if (!rel) continue;
-    const target = c.child?.object_mapping?.concept ?? relationship(c.owner, rel)?.roles?.[0]?.concept;
+    const target = linkChild.child?.object_mapping?.concept ?? relationship(linkChild.owner, rel)?.roles?.[0]?.concept;
     if (!target) continue;
     mapped.add(target);
     const via: string[] = [];
-    for (const b of c.bindings)
-      for (const f of b.fields) {
-        const id = fieldOf(f);
+    for (const binding of linkChild.bindings)
+      for (const field of binding.fields) {
+        const id = fieldOf(field);
         if (!via.includes(id)) via.push(id);
-        for (const p of joinPartners(id)) if (!via.includes(p)) via.push(p);
+        for (const partner of joinPartners(id)) if (!via.includes(partner)) via.push(partner);
       }
-    const anchors = linkAnchors.get(JSON.stringify(c.path.slice(0, c.path.indexOf('link_mappings') + 2))) ?? [];
+    const anchors = linkAnchors.get(JSON.stringify(linkChild.path.slice(0, linkChild.path.indexOf('link_mappings') + 2))) ?? [];
     add({
-      from: row(c.owner, rel),
+      from: row(linkChild.owner, rel),
       to: conceptCard(target, !concepts.has(target)).id,
       kind: 'link',
       label: rel,
       via,
-      bindings: [...c.bindings.map(b => b.id), ...anchors.map(b => b.id)],
-      source: source(c.path),
+      bindings: [...linkChild.bindings.map(b => b.id), ...anchors.map(b => b.id)],
+      source: source(linkChild.path),
     });
     void key;
   }
@@ -323,21 +330,21 @@ export function buildMappingGraph(context: MappingContext, revision = ''): Mappi
   // lines.
   for (const [key, list] of linkAnchors)
     if (![...linkChildren.values()].some(c => JSON.stringify(c.path.slice(0, c.path.indexOf('link_mappings') + 2)) === key))
-      for (const b of list)
-        for (const t of targets(b))
+      for (const binding of list)
+        for (const targetId of targets(binding))
           add({
-            from: row(b.rootConcept, b.relationships.join('.') || '(object)'),
-            to: t,
+            from: row(binding.rootConcept, binding.relationships.join('.') || '(object)'),
+            to: targetId,
             kind: 'link',
-            bindings: [b.id],
-            source: source(b.evidence.path),
+            bindings: [binding.id],
+            source: source(binding.evidence.path),
           });
   // Metric bindings.
-  for (const m of context.metricBindings) {
-    const metric = metricCard(m.metric);
+  for (const metricBinding of context.metricBindings) {
+    const metric = metricCard(metricBinding.metric);
     for (const [role, ref] of [
-      ['measures', m.measures],
-      ['of', m.of],
+      ['measures', metricBinding.measures],
+      ['of', metricBinding.of],
     ] as const) {
       if (!ref) continue;
       const name = ref.concept ?? ref.input;
@@ -346,38 +353,38 @@ export function buildMappingGraph(context: MappingContext, revision = ''): Mappi
         from: conceptCard(name, !ref.concept).id,
         to: metric.id,
         kind: role,
-        bindings: [`kpi:${m.metric}`],
-        source: source(m.evidence.path),
+        bindings: [`kpi:${metricBinding.metric}`],
+        source: source(metricBinding.evidence.path),
       });
     }
-    if (m.findings.length) {
-      (metric.findings ??= []).push(...m.findings.map(f => f.message));
-      for (const f of m.findings) note(f.message, f.evidence);
+    if (metricBinding.findings.length) {
+      (metric.findings ??= []).push(...metricBinding.findings.map(f => f.message));
+      for (const finding of metricBinding.findings) note(finding.message, finding.evidence);
     }
   }
   // Badges: identifying and unmapped fields; unmapped concepts.
-  for (const c of cards.values()) {
-    if (c.kind === 'dataset')
-      for (const col of c.columns) {
+  for (const card of cards.values()) {
+    if (card.kind === 'dataset')
+      for (const col of card.columns) {
         if (identifying.has(col.id)) col.badges.push(badge('identifying'));
         if (!used.has(col.id)) col.badges.push(badge('unmapped'));
       }
-    if ((c.kind as string) === 'concept' && !mapped.has(c.label)) c.badges = [badge('unmapped')];
+    if ((card.kind as string) === 'concept' && !mapped.has(card.label)) card.badges = [badge('unmapped')];
   }
   // Resolver findings: on the concept card of the concept mapping they come from; others on the
   // graph.
-  for (const f of context.findings) {
-    const i = f.evidence ? cmIndex(f.evidence.path) : -1;
+  for (const finding of context.findings) {
+    const i = finding.evidence ? cmIndex(finding.evidence.path) : -1;
     const name = i >= 0 ? tree[i]?.concept : undefined;
-    note(f.message, f.evidence);
-    const metric = f.code === 'metric' ? context.metrics.find(m => JSON.stringify(m.evidence.path) === JSON.stringify(f.evidence?.path)) : undefined;
+    note(finding.message, finding.evidence);
+    const metric = finding.code === 'metric' ? context.metrics.find(m => JSON.stringify(m.evidence.path) === JSON.stringify(finding.evidence?.path)) : undefined;
     if (typeof name === 'string') {
-      const c = conceptCard(name, !concepts.has(name));
-      (c.findings ??= []).push(f.message);
+      const card = conceptCard(name, !concepts.has(name));
+      (card.findings ??= []).push(finding.message);
     } else if (metric) {
-      const c = metricCard(metric.id);
-      (c.findings ??= []).push(f.message);
-    } else findings.push(f.message);
+      const card = metricCard(metric.id);
+      (card.findings ??= []).push(finding.message);
+    } else findings.push(finding.message);
   }
   // Edges as ColumnEdge for the canvas' generic code (kind is a mapping kind).
   return {
@@ -393,13 +400,13 @@ export function buildMappingGraph(context: MappingContext, revision = ''): Mappi
 }
 
 /** Chooses the concept card with the most mapping connections. */
-export function defaultMappingCenter(g: MappingGraph) {
+export function defaultMappingCenter(mappingGraph: MappingGraph) {
   const count = new Map<string, number>();
-  const owner = (n: string) => (g.cards.has(n) ? n : n.slice(0, n.lastIndexOf('/')));
-  for (const e of g.edges)
-    for (const n of [e.from, e.to]) {
-      const c = owner(n);
-      if ((g.cards.get(c)?.kind as string) === 'concept') count.set(c, (count.get(c) ?? 0) + 1);
+  const owner = (n: string) => (mappingGraph.cards.has(n) ? n : n.slice(0, n.lastIndexOf('/')));
+  for (const edge of mappingGraph.edges)
+    for (const name of [edge.from, edge.to]) {
+      const ownerCard = owner(name);
+      if ((mappingGraph.cards.get(ownerCard)?.kind as string) === 'concept') count.set(ownerCard, (count.get(ownerCard) ?? 0) + 1);
     }
-  return [...count].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0]?.[0] ?? [...g.cards.keys()][0] ?? '';
+  return [...count].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0]?.[0] ?? [...mappingGraph.cards.keys()][0] ?? '';
 }

@@ -21,12 +21,12 @@ const extra = mkdtempSync(join(tmpdir(), 'workbench-remote-'));
 const bare = join(extra, 'remote.git');
 const other = join(extra, 'other');
 const sh = (cwd: string, args: string[]) => {
-  const r = Bun.spawnSync(['git', ...args], {
+  const syncSubprocess = Bun.spawnSync(['git', ...args], {
     cwd,
     env: { ...process.env, GIT_TERMINAL_PROMPT: '0' },
   });
-  if (r.exitCode !== 0) throw Error(`git ${args.join(' ')}: ${r.stderr}`);
-  return r.stdout.toString();
+  if (syncSubprocess.exitCode !== 0) throw Error(`git ${args.join(' ')}: ${syncSubprocess.stderr}`);
+  return syncSubprocess.stdout.toString();
 };
 sh(extra, ['init', '-q', '--bare', '-b', 'main', bare]);
 const read = (path: string) => readFileSync(projectFile(api.ws.layout, commerce.slug, path), 'utf8');
@@ -45,18 +45,18 @@ async function newPage(target: IsolatedApi) {
 const page = await newPage(api);
 let passed = 0;
 async function check(name: string, run: () => Promise<void>) {
-  const t = Date.now();
+  const startedAt = Date.now();
   await run();
   passed++;
-  console.log('PASS', name, `(${((Date.now() - t) / 1000).toFixed(1)} s)`);
+  console.log('PASS', name, `(${((Date.now() - startedAt) / 1000).toFixed(1)} s)`);
 }
 const tree = (p: Page = page) => p.getByRole('tree', { name: 'Projects' });
-async function openFile(path: string, p: Page = page) {
-  await tree(p).getByRole('button', { name: path, exact: true }).first().click();
+async function openFile(path: string, targetPage: Page = page) {
+  await tree(targetPage).getByRole('button', { name: path, exact: true }).first().click();
 }
 // The sidebar button opens the Source editor without going through the model tabs.
-async function showSourceEditor(p: Page) {
-  await p.getByRole('button', { name: /^Source editor/ }).click();
+async function showSourceEditor(targetPage: Page) {
+  await targetPage.getByRole('button', { name: /^Source editor/ }).click();
 }
 const panel = () => page.getByRole('region', { name: 'Source Control' });
 async function openScm() {
@@ -105,7 +105,7 @@ async function saveSource() {
 }
 try {
   await check('commit from the panel: the diff shows exactly the changed line; staged, committed with a message', async () => {
-    await editInSource(file, t => t.replace('description: Customer in the order-to-cash process.', 'description: Person or company that buys from us.'));
+    await editInSource(file, source => source.replace('description: Customer in the order-to-cash process.', 'description: Person or company that buys from us.'));
     await saveSource();
     await openScm();
     await expect(page.getByRole('button', { name: /^Source control/ }).locator('.nav-count')).toHaveText('1');
@@ -173,7 +173,7 @@ try {
     await panel().getByLabel('New branch name').fill('feature/notes');
     await panel().getByRole('button', { name: 'Create' }).click();
     await expect(panel().getByLabel('Branch')).toHaveValue('feature/notes');
-    await editInSource(file, t => t.replace('description: Person or company that buys from us.', 'description: On the feature branch.'));
+    await editInSource(file, source => source.replace('description: Person or company that buys from us.', 'description: On the feature branch.'));
     await saveSource();
     await openScm();
     await commitAll('Feature wording');
@@ -232,9 +232,9 @@ try {
     await expect(refusal.getByRole('button', { name: 'Commit…' })).toBeVisible();
     // The server refuses too, from the stored draft.
     await expect.poll(() => api.ws.state.drafts().map(d => d.path)).toEqual([file]);
-    const r = await api.handler(new Request(`http://127.0.0.1/api/projects/${commerce.slug}/git/pull`, { method: 'POST' }));
-    expect(r.status).toBe(409);
-    expect((await r.json()).error).toBe('drafts');
+    const response = await api.handler(new Request(`http://127.0.0.1/api/projects/${commerce.slug}/git/pull`, { method: 'POST' }));
+    expect(response.status).toBe(409);
+    expect((await response.json()).error).toBe('drafts');
     expect(sh(dir, ['stash', 'list'])).toBe('');
     await refusal.getByRole('button', { name: 'Commit…' }).click();
     await expect(page.getByRole('dialog', { name: 'Commit' })).toBeVisible();
@@ -416,14 +416,14 @@ try {
   await check('Admin → Git remotes explains an empty workspace and leads back to Add project', async () => {
     const empty = await startIsolatedApi();
     try {
-      const p = await newPage(empty);
-      const remotes = await adminArea(p, 'Git remotes');
+      const emptyPage = await newPage(empty);
+      const remotes = await adminArea(emptyPage, 'Git remotes');
       await expect(remotes).toContainText('No projects yet. Add or clone a project to configure its remote.');
       await expect(remotes.getByRole('table')).toHaveCount(0);
       await remotes.getByRole('button', { name: 'Back to workspace' }).click();
-      await expect(p.locator('.admin-page')).toHaveCount(0);
-      await expect(p.getByRole('button', { name: 'Add project' })).toBeVisible();
-      await p.close();
+      await expect(emptyPage.locator('.admin-page')).toHaveCount(0);
+      await expect(emptyPage.getByRole('button', { name: 'Add project' })).toBeVisible();
+      await emptyPage.close();
     } finally {
       await empty.stop();
     }
@@ -431,21 +431,21 @@ try {
   await check('missing Git: the banner explains it, the panel says so, editing and saving still work', async () => {
     const noGit = await startIsolatedApi({ gitBinary: join(extra, 'no-such-git') });
     try {
-      const p = await newPage(noGit);
-      await (await example(p, /Commerce workspace/)).click();
-      await expect(tree(p).getByRole('button', { name: file, exact: true })).toBeVisible({
+      const noGitPage = await newPage(noGit);
+      await (await example(noGitPage, /Commerce workspace/)).click();
+      await expect(tree(noGitPage).getByRole('button', { name: file, exact: true })).toBeVisible({
         timeout: 10000,
       });
-      await expect(p.getByRole('alert').filter({ hasText: 'Git 2.40 or newer was not found' })).toBeVisible();
-      await p.getByRole('button', { name: /^Source control/ }).click();
-      await expect(p.getByRole('region', { name: 'Source Control' })).toContainText('Git was not found on this machine');
-      await p.screenshot({ path: '/tmp/workbench-scm-no-git.png' });
-      await openFile(file, p);
-      await showSourceEditor(p);
-      const editor = p.getByRole('textbox', { name: 'Definition source' });
+      await expect(noGitPage.getByRole('alert').filter({ hasText: 'Git 2.40 or newer was not found' })).toBeVisible();
+      await noGitPage.getByRole('button', { name: /^Source control/ }).click();
+      await expect(noGitPage.getByRole('region', { name: 'Source Control' })).toContainText('Git was not found on this machine');
+      await noGitPage.screenshot({ path: '/tmp/workbench-scm-no-git.png' });
+      await openFile(file, noGitPage);
+      await showSourceEditor(noGitPage);
+      const editor = noGitPage.getByRole('textbox', { name: 'Definition source' });
       await fillEditor(editor, (await editorValue(editor)).replace('Customer in the order-to-cash process.', 'Saved without Git.'));
       await expect.poll(() => readFileSync(projectFile(noGit.ws.layout, 'commerce', file), 'utf8')).toContain('Saved without Git.');
-      await p.close();
+      await noGitPage.close();
     } finally {
       await noGit.stop();
     }

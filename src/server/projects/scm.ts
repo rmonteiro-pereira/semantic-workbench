@@ -13,6 +13,7 @@ import {
   remoteAddress,
   remoteName,
   type CommitAuthor,
+  type CommitPathsResult,
   type Git,
   type GitResult,
   type RemoteAddresses,
@@ -113,6 +114,12 @@ function localBranchOf(ref: string): string | null {
   const remoteAndBranch = ref.slice('refs/remotes/'.length);
   return remoteAndBranch.slice(remoteAndBranch.indexOf('/') + 1);
 }
+const NOT_COMMITTED_MESSAGE: Record<Extract<CommitPathsResult, { committed: false }>['reason'], string> = {
+  'no-identity': 'Not committed: set your Git identity (user.name and user.email) for this repository.',
+  merging: 'A merge is in progress.',
+  nothing: 'Nothing to commit: the chosen files match the last commit.',
+};
+
 /** Creates project source control operations with draft checks and workspace notifications. */
 export function createScm(deps: ScmDeps) {
   const { layout, git } = deps;
@@ -140,7 +147,13 @@ export function createScm(deps: ScmDeps) {
   // Show changes across the repository; paths outside this project keep repository-relative names.
   const fromRepo = (slug: string, path: string) => {
     const pre = prefix(slug);
-    return !pre ? { path } : path.startsWith(pre) ? { path: path.slice(pre.length) } : { path, outside: true };
+    if (!pre) {
+      return { path };
+    }
+    if (path.startsWith(pre)) {
+      return { path: path.slice(pre.length) };
+    }
+    return { path, outside: true };
   };
   // The project a changed file belongs to, and its path inside that project.
   const ownership = (owner: { project: string; prefix: string } | undefined, path: string) => (owner ? { project: owner.project, projectPath: path.slice(owner.prefix.length) } : {});
@@ -164,25 +177,25 @@ export function createScm(deps: ScmDeps) {
   }
   // Where Pull takes from when it is not the upstream, such as `origin/main` for a personal
   // branch, so the panel can name it.
-  async function pullSource(slug: string, d: string, s: Awaited<ReturnType<Git['status']>>): Promise<{ pullSource?: string }> {
-    if (s.upstream || !deps.untrackedPull) return {};
-    const target = await deps.untrackedPull(slug, s.branch);
-    const remote = target ? await chosenRemote(d, '') : null;
+  async function pullSource(slug: string, directory: string, gitStatus: Awaited<ReturnType<Git['status']>>): Promise<{ pullSource?: string }> {
+    if (gitStatus.upstream || !deps.untrackedPull) return {};
+    const target = await deps.untrackedPull(slug, gitStatus.branch);
+    const remote = target ? await chosenRemote(directory, '') : null;
     return remote ? { pullSource: `${remote.name}/${target}` } : {};
   }
   // The folder of the repository a sparse project lives in, for the panel header and the rule
   // below; nothing when the whole repository is checked out. A project in a folder of a repository
   // that is checked out in full, as in a shared monorepo, is deliberately not limited: its
   // sibling projects are on disk and their files are committed from the same panel.
-  async function sparseProjectFolder(slug: string, d: string): Promise<{ folder?: string }> {
-    const folders = await sparseFolders(git, d);
+  async function sparseProjectFolder(slug: string, directory: string): Promise<{ folder?: string }> {
+    const folders = await sparseFolders(git, directory);
     const folder = prefix(slug).replace(/\/$/, '');
     return folders.length && folder ? { folder } : {};
   }
   // Commits touch only the project's folder: a path outside it never reaches a sparse checkout's
   // commit, because the rest of the repository belongs to other people's projects.
-  async function assertInsideFolder(slug: string, d: string, repoPaths: string[]) {
-    const { folder } = await sparseProjectFolder(slug, d);
+  async function assertInsideFolder(slug: string, directory: string, repoPaths: string[]) {
+    const { folder } = await sparseProjectFolder(slug, directory);
     if (!folder) return;
     const outside = repoPaths.filter(path => !path.startsWith(folder + '/'));
     if (outside.length) throw new BadRequestError(`Only files inside ${folder} can be committed from this project. Outside: ${outside.join(', ')}`);
@@ -191,10 +204,10 @@ export function createScm(deps: ScmDeps) {
   // branch does not contain. While everything the project holds is inside its folder, its first
   // pull may join the two; once it holds the team's other folders the histories are related, and
   // a pull from an unrelated repository is refused as usual.
-  async function unrelatedHistories(d: string) {
-    const folders = await sparseFolders(git, d);
+  async function unrelatedHistories(directory: string) {
+    const folders = await sparseFolders(git, directory);
     if (!folders.length) return [];
-    const tree = await git.run(d, ['ls-tree', '--name-only', 'HEAD'], {
+    const tree = await git.run(directory, ['ls-tree', '--name-only', 'HEAD'], {
       readOnly: true,
       allowFailure: true,
     });
@@ -204,12 +217,12 @@ export function createScm(deps: ScmDeps) {
   }
   // Downloads what a judged change brings before it is read, when the repository holds only a
   // folder; a full clone has every file already.
-  async function fetchFolderContents(d: string, tip: string, chooseRemote: () => Promise<RemoteChoice | null>) {
-    const folders = await sparseFolders(git, d);
+  async function fetchFolderContents(directory: string, tip: string, chooseRemote: () => Promise<RemoteChoice | null>) {
+    const folders = await sparseFolders(git, directory);
     if (!folders.length) return;
     const choice = await chooseRemote();
     if (!choice) return;
-    await fetchMissingContents(git, d, {
+    await fetchMissingContents(git, directory, {
       tip,
       folders,
       remote: choice.name,
@@ -230,29 +243,29 @@ export function createScm(deps: ScmDeps) {
         remotes: {},
         changes: [],
       };
-    const d = dir(slug);
-    const s = await git.status(d);
-    const merging = await git.merging(d);
-    const changes = s.entries.map(e => ({
-      ...e,
-      ...fromRepo(slug, e.path),
-      repoPath: e.path,
-      ...ownership(ownerOf(slug, e.path), e.path),
-      hidden: serializationOf(e.path) === 'unsupported',
-      ...(serializationOf(e.path) === 'unsupported' ? { label: HIDDEN_LABEL } : {}),
+    const directory = dir(slug);
+    const gitStatus = await git.status(directory);
+    const merging = await git.merging(directory);
+    const changes = gitStatus.entries.map(entry => ({
+      ...entry,
+      ...fromRepo(slug, entry.path),
+      repoPath: entry.path,
+      ...ownership(ownerOf(slug, entry.path), entry.path),
+      hidden: serializationOf(entry.path) === 'unsupported',
+      ...(serializationOf(entry.path) === 'unsupported' ? { label: HIDDEN_LABEL } : {}),
     }));
     return {
-      branch: s.branch,
-      upstream: s.upstream,
-      ...(await pullSource(slug, d, s)),
-      ahead: s.ahead,
-      behind: s.behind,
+      branch: gitStatus.branch,
+      upstream: gitStatus.upstream,
+      ...(await pullSource(slug, directory, gitStatus)),
+      ahead: gitStatus.ahead,
+      behind: gitStatus.behind,
       gitAvailable: true,
-      ...(await sparseProjectFolder(slug, d)),
-      identityConfigured: deps.signedCommits || (await git.identity(d)),
+      ...(await sparseProjectFolder(slug, directory)),
+      identityConfigured: deps.signedCommits || (await git.identity(directory)),
       merging,
-      hasCommits: s.hasCommits,
-      remotes: Object.fromEntries([...(await git.remotes(d))].map(([n, u]) => [n, redactCredentials(u)])),
+      hasCommits: gitStatus.hasCommits,
+      remotes: Object.fromEntries([...(await git.remotes(directory))].map(([n, u]) => [n, redactCredentials(u)])),
       changes: view
         ? changes
             .filter(change => readablePath(slug, change.repoPath, view, 'repository'))
@@ -268,37 +281,37 @@ export function createScm(deps: ScmDeps) {
   async function after(slug: string, altered: string[] = []) {
     const projects = deps.siblings(slug);
     for (const project of projects) await deps.rescan(project);
-    const s = await git.status(repoDir(layout, slug));
+    const gitStatus = await git.status(repoDir(layout, slug));
     deps.emit(
       'git',
       {
         project: slug,
         repo: locationRepo(slug),
         projects,
-        branch: s.branch,
-        ahead: s.ahead,
-        behind: s.behind,
-        changes: s.changes,
+        branch: gitStatus.branch,
+        ahead: gitStatus.ahead,
+        behind: gitStatus.behind,
+        changes: gitStatus.changes,
         altered,
       },
       { projects, paths: altered.map(path => ({ project: slug, path })) },
     );
-    return s;
+    return gitStatus;
   }
   // Hooks and filters can change saved bytes even when Git reports a clean file.
   // Skip files with uncommitted edits so normal editing is not reported as a rewrite.
-  async function alteredAfter(d: string, changed: string[]) {
+  async function alteredAfter(directory: string, changed: string[]) {
     if (!changed.length) return [];
-    const s = await git.status(d);
-    const busy = new Set(s.entries.filter(e => e.worktree !== '.' || e.conflicted).map(e => e.path));
-    const candidates = changed.filter(p => !busy.has(p) && existsSync(join(d, p)));
-    const [disk, tree] = await Promise.all([git.worktreeIds(d, candidates), git.treeIds(d, 'HEAD', candidates)]);
+    const gitStatus = await git.status(directory);
+    const busy = new Set(gitStatus.entries.filter(e => e.worktree !== '.' || e.conflicted).map(e => e.path));
+    const candidates = changed.filter(p => !busy.has(p) && existsSync(join(directory, p)));
+    const [disk, tree] = await Promise.all([git.worktreeIds(directory, candidates), git.treeIds(directory, 'HEAD', candidates)]);
     return candidates.filter(p => tree.has(p) && disk.get(p) !== tree.get(p));
   }
   // The one choice of remote for fetch, pull and push: the branch's upstream, else origin, else
   // the first remote, with the addresses Git resolves for it; null without a remote.
-  async function chosenRemote(d: string, upstream: string): Promise<RemoteAddresses | null> {
-    const remotes = await git.remoteAddresses(d);
+  async function chosenRemote(directory: string, upstream: string): Promise<RemoteAddresses | null> {
+    const remotes = await git.remoteAddresses(directory);
     let name = remotes.find(remote => remote.name === 'origin')?.name ?? remotes[0]?.name;
     if (upstream) name = upstream.slice(0, upstream.indexOf('/'));
     if (name === undefined) return null;
@@ -309,8 +322,8 @@ export function createScm(deps: ScmDeps) {
     return remotes.find(remote => remote.name === name) ?? null;
   }
   async function chosenRemoteAddresses(slug: string) {
-    const d = dir(slug);
-    return chosenRemote(d, (await git.status(d)).upstream);
+    const directory = dir(slug);
+    return chosenRemote(directory, (await git.status(directory)).upstream);
   }
   // Chooses the remote once for the whole request, and its credential when one is needed.
   async function chooseRemote(slug: string, credentialFor?: CredentialFor): Promise<RemoteChoice | null> {
@@ -323,168 +336,168 @@ export function createScm(deps: ScmDeps) {
     if (!choice) throw new GitError('This project has no remote. Add one under Remote first.');
     return choice.name;
   }
-  // Text of a document at a revision, or null when it is absent or not text.
-  async function textAt(d: string, rev: string | null, path: string) {
+  // Text of a document at a revision, or null when it is absent or not directory.
+  async function textAt(directory: string, rev: string | null, path: string) {
     if (!rev) return null;
-    const bytes = await git.blob(d, rev, path);
+    const bytes = await git.blob(directory, rev, path);
     if (!bytes) return null;
     const text = asText(bytes);
     return text.binary ? null : text.text;
   }
   // What moving from `base` to `tip` would bring into each project of the repository: every
   // file changed between them, as `base` has it and as `tip` has it.
-  async function incomingChanges(slug: string, d: string, base: string | null, tip: string): Promise<FileChange[]> {
+  async function incomingChanges(slug: string, directory: string, base: string | null, tip: string): Promise<FileChange[]> {
     const changes: FileChange[] = [];
-    for (const path of await git.changedBetween(d, base, tip)) {
+    for (const path of await git.changedBetween(directory, base, tip)) {
       const owner = ownerOf(slug, path);
       if (!owner) continue;
       changes.push({
         project: owner.project,
         path: path.slice(owner.prefix.length),
-        before: await textAt(d, base, path),
-        after: await textAt(d, tip, path),
+        before: await textAt(directory, base, path),
+        after: await textAt(directory, tip, path),
       });
     }
     return changes;
   }
   // A merge brings in what the tip changed since the common ancestor, so that is what is judged,
   // as if the person wrote it.
-  async function guardMerge(slug: string, d: string, tip: string, guard: ContentGuard) {
-    const merged = await git.run(d, ['merge-base', 'HEAD', tip], {
+  async function guardMerge(slug: string, directory: string, tip: string, guard: ContentGuard) {
+    const merged = await git.run(directory, ['merge-base', 'HEAD', tip], {
       readOnly: true,
       allowFailure: true,
     });
     const base = merged.code === 0 ? merged.stdout.trim() : null;
-    guard(await incomingChanges(slug, d, base, tip), { operation: 'pull' });
+    guard(await incomingChanges(slug, directory, base, tip), { operation: 'pull' });
   }
   // A pull is checked before any file changes: the branch is fetched and what it would bring in
   // is judged. The checked commit is then merged instead of fetching again, so commits pushed
   // after the check stay out of this pull. A failed fetch is reported as the pull's result.
-  async function guardedPull(slug: string, d: string, source: { remote: string; branch: string; credential?: RemoteCredential }, guard: ContentGuard) {
+  async function guardedPull(slug: string, directory: string, source: { remote: string; branch: string; credential?: RemoteCredential }, guard: ContentGuard) {
     const refspec = 'refs/heads/' + source.branch;
-    const fetched = await git.run(d, ['fetch', '--end-of-options', source.remote, refspec], {
+    const fetched = await git.run(directory, ['fetch', '--end-of-options', source.remote, refspec], {
       remote: true,
       allowFailure: true,
       credential: source.credential,
     });
     if (fetched.code !== 0) return fetched;
-    const fetchedTip = await git.run(d, ['rev-parse', '-q', '--verify', 'FETCH_HEAD'], {
+    const fetchedTip = await git.run(directory, ['rev-parse', '-q', '--verify', 'FETCH_HEAD'], {
       readOnly: true,
     });
     const tip = fetchedTip.stdout.trim();
-    await fetchFolderContents(d, tip, async () => ({
+    await fetchFolderContents(directory, tip, async () => ({
       name: source.remote,
       credential: source.credential,
     }));
-    await guardMerge(slug, d, tip, guard);
+    await guardMerge(slug, directory, tip, guard);
     // The merge is local: filters and merge drivers it runs never see the person's token.
-    return git.run(d, ['merge', '--no-edit', ...(await unrelatedHistories(d)), tip], {
+    return git.run(directory, ['merge', '--no-edit', ...(await unrelatedHistories(directory)), tip], {
       allowFailure: true,
     });
   }
   // Unsaved edits and uncommitted changes block a merge; conflicts and bytes rewritten by hooks
   // are reported, whichever merge runs.
-  async function mergeIn(slug: string, d: string, merge: (status: Awaited<ReturnType<Git['status']>>) => Promise<GitResult>) {
-    const s = await git.status(d);
-    const blocked = blockers(deps.drafts(slug), s.entries);
+  async function mergeIn(slug: string, directory: string, merge: (gitStatus: Awaited<ReturnType<Git['status']>>) => Promise<GitResult>) {
+    const gitStatus = await git.status(directory);
+    const blocked = blockers(deps.drafts(slug), gitStatus.entries);
     if (blocked) throw blocked;
-    const before = await git.head(d);
-    const r = await merge(s);
-    const now = await git.status(d);
+    const before = await git.head(directory);
+    const gitResult = await merge(gitStatus);
+    const now = await git.status(directory);
     const conflicted = now.entries.filter(e => e.conflicted).map(e => e.path);
-    const head = await git.head(d);
-    const altered = head && head !== before ? await alteredAfter(d, await git.changedBetween(d, before, head)) : [];
-    return { ok: r.code === 0, conflicted, altered, stderr: r.stderr.trim() };
+    const head = await git.head(directory);
+    const altered = head && head !== before ? await alteredAfter(directory, await git.changedBetween(directory, before, head)) : [];
+    return { ok: gitResult.code === 0, conflicted, altered, stderr: gitResult.stderr.trim() };
   }
-  const pullIn = (slug: string, d: string, { choice, guard }: RemoteRequest) =>
-    mergeIn(slug, d, async s => {
+  const pullIn = (slug: string, directory: string, { choice, guard }: RemoteRequest) =>
+    mergeIn(slug, directory, async gitStatus => {
       const remote = chosenName(choice);
       const credential = choice?.credential;
       // A personal branch exists only here, so without an upstream it takes the remote's default
       // branch, which the copy started from.
-      const untracked = (await deps.untrackedPull?.(slug, s.branch)) ?? s.branch;
+      const untracked = (await deps.untrackedPull?.(slug, gitStatus.branch)) ?? gitStatus.branch;
       if (guard) {
-        const branch = s.upstream ? s.upstream.slice(remote.length + 1) : untracked;
-        return guardedPull(slug, d, { remote, branch, credential }, guard);
+        const branch = gitStatus.upstream ? gitStatus.upstream.slice(remote.length + 1) : untracked;
+        return guardedPull(slug, directory, { remote, branch, credential }, guard);
       }
       // A full ref name, so no branch name is ever read as an option.
-      const target = s.upstream ? [] : ['--end-of-options', remote, 'refs/heads/' + untracked];
-      const unrelated = await unrelatedHistories(d);
-      const pull = ['pull', '--no-rebase', '--no-edit', ...unrelated, ...target];
-      return git.run(d, pull, { remote: true, allowFailure: true, credential });
+      const pullRefspec = gitStatus.upstream ? [] : ['--end-of-options', remote, 'refs/heads/' + untracked];
+      const unrelated = await unrelatedHistories(directory);
+      const pull = ['pull', '--no-rebase', '--no-edit', ...unrelated, ...pullRefspec];
+      return git.run(directory, pull, { remote: true, allowFailure: true, credential });
     });
   // The published default branch follows the remote's after a fetch, and that move is judged on
   // the files it brings, so a sparse checkout downloads them first.
-  async function fetchDefaultBranchContents(slug: string, d: string, choice: RemoteChoice | null) {
+  async function fetchDefaultBranchContents(slug: string, directory: string, choice: RemoteChoice | null) {
     if (!deps.defaultBranch) return;
     const tip = `refs/remotes/${chosenName(choice)}/${await deps.defaultBranch(slug)}`;
-    await fetchFolderContents(d, tip, async () => choice);
+    await fetchFolderContents(directory, tip, async () => choice);
   }
   // Remote actions report Git's result instead of throwing, so the panel can show stderr; Cancel
   // (or the 10-minute limit) ends them.
   async function remoteAction(slug: string, kind: 'fetch' | 'pull' | 'push' | 'sync', request: RemoteRequest) {
-    const d = dir(slug);
+    const directory = dir(slug);
     const choice = request.choice;
     const credential = choice?.credential;
     try {
       let result = { ok: true, conflicted: [] as string[], altered: [] as string[], stderr: '' };
       let follow: FollowResult | null = null;
       if (kind === 'fetch') {
-        const r = await git.run(d, ['fetch', '--prune', '--end-of-options', chosenName(choice)], {
+        const gitResult = await git.run(directory, ['fetch', '--prune', '--end-of-options', chosenName(choice)], {
           remote: true,
           allowFailure: true,
           credential,
         });
-        result = { ...result, ok: r.code === 0, stderr: r.stderr.trim() };
-        if (r.code === 0 && request.follow && deps.fetched) {
-          await fetchDefaultBranchContents(slug, d, choice);
+        result = { ...result, ok: gitResult.code === 0, stderr: gitResult.stderr.trim() };
+        if (gitResult.code === 0 && request.follow && deps.fetched) {
+          await fetchDefaultBranchContents(slug, directory, choice);
           follow = await deps.fetched(slug, chosenName(choice), request.follow);
         }
       }
       if (kind === 'pull' || kind === 'sync') {
-        const s = await git.status(d);
-        if (kind === 'pull' || s.upstream) result = await pullIn(slug, d, request);
+        const gitStatus = await git.status(directory);
+        if (kind === 'pull' || gitStatus.upstream) result = await pullIn(slug, directory, request);
       }
       if ((kind === 'push' || kind === 'sync') && result.ok) {
-        const s = await git.status(d);
-        const r = await git.run(d, ['push', '-u', '--end-of-options', chosenName(choice), s.branch], {
+        const gitStatus = await git.status(directory);
+        const gitResult = await git.run(directory, ['push', '-u', '--end-of-options', chosenName(choice), gitStatus.branch], {
           remote: true,
           allowFailure: true,
           credential,
         });
         result = {
           ...result,
-          ok: r.code === 0,
-          stderr: [result.stderr, r.stderr.trim()].filter(Boolean).join('\n'),
+          ok: gitResult.code === 0,
+          stderr: [result.stderr, gitResult.stderr.trim()].filter(Boolean).join('\n'),
         };
       }
-      const s = await after(slug, result.altered);
-      return { ...result, ahead: s.ahead, behind: s.behind, ...(follow ? { follow } : {}) };
-    } catch (e) {
-      if (e instanceof GitError && e.cancelled) {
-        const s = await after(slug);
+      const gitStatus = await after(slug, result.altered);
+      return { ...result, ahead: gitStatus.ahead, behind: gitStatus.behind, ...(follow ? { follow } : {}) };
+    } catch (error) {
+      if (error instanceof GitError && error.cancelled) {
+        const gitStatus = await after(slug);
         return {
           ok: false,
           cancelled: true,
           conflicted: [],
           altered: [],
-          stderr: e.message,
-          ahead: s.ahead,
-          behind: s.behind,
+          stderr: error.message,
+          ahead: gitStatus.ahead,
+          behind: gitStatus.behind,
         };
       }
-      throw e;
+      throw error;
     }
   }
   // The bytes of a path at `HEAD`, a commit, `index` or `worktree`, for the diff view.
-  async function content(d: string, rev: string, path: string) {
+  async function content(directory: string, rev: string, path: string) {
     if (rev === 'worktree') {
-      assertNoLinks(d, path);
-      const f = join(d, path);
-      return existsSync(f) ? new Uint8Array(readFileSync(f)) : null;
+      assertNoLinks(directory, path);
+      const filePath = join(directory, path);
+      return existsSync(filePath) ? new Uint8Array(readFileSync(filePath)) : null;
     }
     if (rev !== 'index' && !REV.test(rev)) throw new BadRequestError('Revision must be HEAD, index, worktree or a commit id.');
-    return git.blob(d, rev === 'index' ? '' : rev, path);
+    return git.blob(directory, rev === 'index' ? '' : rev, path);
   }
   const asText = (bytes: Uint8Array | null) => {
     if (!bytes) return { text: '', binary: false };
@@ -496,82 +509,75 @@ export function createScm(deps: ScmDeps) {
     }
   };
   async function commitIndex(slug: string, message: string, author?: CommitAuthor) {
-    const d = dir(slug);
-    const s = await git.status(d);
-    if (s.entries.some(e => e.conflicted)) throw new GitError('Resolve the conflicted files and stage them before committing.');
-    const staged = s.entries.filter(e => e.index !== '.' && !e.untracked);
-    const merging = await git.merging(d);
+    const directory = dir(slug);
+    const gitStatus = await git.status(directory);
+    if (gitStatus.entries.some(e => e.conflicted)) throw new GitError('Resolve the conflicted files and stage them before committing.');
+    const staged = gitStatus.entries.filter(e => e.index !== '.' && !e.untracked);
+    const merging = await git.merging(directory);
     // A merge commit holds everything the merge brought in, so only a plain commit is limited.
     if (!merging)
       await assertInsideFolder(
         slug,
-        d,
+        directory,
         staged.map(e => e.path),
       );
     if (!staged.length && !merging) throw new GitError('Nothing is staged. Stage the changes to include, then commit.');
     const clean = staged.filter(e => e.worktree === '.').map(e => e.path);
     const before = await git.worktreeIds(
-      d,
-      clean.filter(p => existsSync(join(d, p))),
+      directory,
+      clean.filter(p => existsSync(join(directory, p))),
     );
-    const parent = await git.head(d);
-    await git.commit(d, message, false, author);
-    const head = (await git.head(d))!;
-    const committed = await git.changedBetween(d, parent, head);
+    const parent = await git.head(directory);
+    await git.commit(directory, message, false, author);
+    const head = (await git.head(directory))!;
+    const committed = await git.changedBetween(directory, parent, head);
     // A hook that rewrote a file, or a clean filter whose committed bytes differ from the saved
     // file.
     const checked = committed.filter(p => before.has(p));
     const [disk, tree] = await Promise.all([
       git.worktreeIds(
-        d,
-        checked.filter(p => existsSync(join(d, p))),
+        directory,
+        checked.filter(p => existsSync(join(directory, p))),
       ),
-      git.treeIds(d, 'HEAD', checked),
+      git.treeIds(directory, 'HEAD', checked),
     ]);
     const altered = checked.filter(p => disk.get(p) !== before.get(p) || (tree.has(p) && disk.get(p) !== tree.get(p)));
     await after(slug, altered);
     return { commit: head, altered };
   }
   async function commitChosen(slug: string, message: string, list: unknown, base: PathBase, author?: CommitAuthor) {
-    const d = dir(slug);
+    const directory = dir(slug);
     const chosen = paths(slug, list, base);
-    await assertInsideFolder(slug, d, chosen);
-    if (await git.merging(d)) {
-      const s = await git.status(d);
-      throw new MergingError(s.entries.filter(e => e.conflicted).map(e => fromRepo(slug, e.path).path));
+    await assertInsideFolder(slug, directory, chosen);
+    if (await git.merging(directory)) {
+      const gitStatus = await git.status(directory);
+      throw new MergingError(gitStatus.entries.filter(e => e.conflicted).map(e => fromRepo(slug, e.path).path));
     }
-    const clean = chosen.filter(p => existsSync(join(d, p)));
-    const before = await git.worktreeIds(d, clean);
-    const r = await git.commitPaths(d, chosen, message, author);
-    if (!r.committed)
-      throw new GitError(
-        r.reason === 'no-identity'
-          ? 'Not committed: set your Git identity (user.name and user.email) for this repository.'
-          : r.reason === 'merging'
-            ? 'A merge is in progress.'
-            : 'Nothing to commit: the chosen files match the last commit.',
-      );
+    const clean = chosen.filter(p => existsSync(join(directory, p)));
+    const before = await git.worktreeIds(directory, clean);
+    const commitPathsResult = await git.commitPaths(directory, chosen, message, author);
+    if (!commitPathsResult.committed) throw new GitError(NOT_COMMITTED_MESSAGE[commitPathsResult.reason]);
     const checked = clean.filter(p => before.has(p));
     const [disk, tree] = await Promise.all([
       git.worktreeIds(
-        d,
-        checked.filter(p => existsSync(join(d, p))),
+        directory,
+        checked.filter(p => existsSync(join(directory, p))),
       ),
-      git.treeIds(d, 'HEAD', checked),
+      git.treeIds(directory, 'HEAD', checked),
     ]);
     const altered = checked.filter(p => disk.get(p) !== before.get(p) || (tree.has(p) && disk.get(p) !== tree.get(p))).map(p => fromRepo(slug, p).path);
     await after(slug, altered);
-    return { commit: r.commit, altered };
+    return { commit: commitPathsResult.commit, altered };
   }
   // The local branch a switch checks out for the name the person gave, found by asking Git what
   // the name is. `origin/x` is the remote branch whose local branch is `x`; a name that is a tag,
   // a commit, or `@{-1}` is no branch and is refused, so the name that is authorized is the name
   // that is checked out.
-  async function branchTarget(d: string, name: string, create: boolean) {
-    const target = await resolvedBranch(d, name, create);
+  async function branchTarget(directory: string, name: string, create: boolean) {
+    const target = await resolvedBranch(directory, name, create);
     // A volume that ignores case keeps `Work/bob` and `work/bob` in one file, so a spelling that
     // differs only in case from an existing branch is that branch under a name no rule matches.
-    const known = await git.branches(d);
+    const known = await git.branches(directory);
     const existing = [...known.local, ...known.remote.map(remote => remote.slice(remote.indexOf('/') + 1))];
     const clash = branchSpelledDifferently(target.local, existing);
     if (clash) throw new BadRequestError(`"${target.local}" differs only in letter case from "${clash}".`);
@@ -579,13 +585,13 @@ export function createScm(deps: ScmDeps) {
   }
   // A branch without the project's folder would remove the project from the disk on a sparse
   // checkout, so the switch is refused with the reason.
-  async function assertBranchHasFolder(slug: string, d: string, tip: string, branch: string) {
-    const { folder } = await sparseProjectFolder(slug, d);
-    if (folder && !(await folderExistsAt(git, d, tip, folder))) throw new MissingFolderError(folder, branch);
+  async function assertBranchHasFolder(slug: string, directory: string, tip: string, branch: string) {
+    const { folder } = await sparseProjectFolder(slug, directory);
+    if (folder && !(await folderExistsAt(git, directory, tip, folder))) throw new MissingFolderError(folder, branch);
   }
   async function judgeSwitch(
     slug: string,
-    d: string,
+    directory: string,
     switching: {
       tip: string;
       before: string | null;
@@ -594,23 +600,23 @@ export function createScm(deps: ScmDeps) {
     },
   ) {
     const { tip, before, guard, credentialFor } = switching;
-    await fetchFolderContents(d, tip, () => chooseRemote(slug, credentialFor));
-    guard(await incomingChanges(slug, d, before, tip), { operation: 'switch' });
+    await fetchFolderContents(directory, tip, () => chooseRemote(slug, credentialFor));
+    guard(await incomingChanges(slug, directory, before, tip), { operation: 'switch' });
   }
-  async function resolvedBranch(d: string, name: string, create: boolean) {
+  async function resolvedBranch(directory: string, name: string, create: boolean) {
     if (create) {
-      if (!(await isBranchName(git, d, name))) throw new BadRequestError(`"${name}" is not a valid branch name.`);
+      if (!(await isBranchName(git, directory, name))) throw new BadRequestError(`"${name}" is not a valid branch name.`);
       return { local: name, ref: '' };
     }
     if (name.includes('@{')) throw new BadRequestError(`"${name}" is not a valid branch name.`);
-    const resolved = await git.run(d, ['rev-parse', '--symbolic-full-name', name], {
+    const resolved = await git.run(directory, ['rev-parse', '--symbolic-full-name', name], {
       readOnly: true,
       allowFailure: true,
     });
     const ref = resolved.code === 0 ? resolved.stdout.trim() : '';
     const local = localBranchOf(ref);
     if (local === null) throw new BadRequestError(`"${name}" is not a branch.`);
-    if (!(await isBranchName(git, d, local))) throw new BadRequestError(`"${local}" is not a valid branch name.`);
+    if (!(await isBranchName(git, directory, local))) throw new BadRequestError(`"${local}" is not a valid branch name.`);
     return { local, ref };
   }
   return {
@@ -620,48 +626,48 @@ export function createScm(deps: ScmDeps) {
       to ??= 'worktree';
       base ??= 'project';
       requireReadable(slug, path, view, base);
-      const d = dir(slug);
-      const p = projectPath(path);
+      const directory = dir(slug);
+      const projectRelativePath = projectPath(path);
       const pre = base === 'repository' ? '' : prefix(slug);
-      const [a, b] = await Promise.all([content(d, from, pre + p), content(d, to, pre + p)]);
-      const before = asText(a);
-      const after = asText(b);
+      const [bytes, afterBytes] = await Promise.all([content(directory, from, pre + projectRelativePath), content(directory, to, pre + projectRelativePath)]);
+      const before = asText(bytes);
+      const after = asText(afterBytes);
       return {
-        path: p,
+        path: projectRelativePath,
         from,
         to,
         before: before.text,
         after: after.text,
         binary: before.binary || after.binary,
-        beforeExists: !!a,
-        afterExists: !!b,
+        beforeExists: !!bytes,
+        afterExists: !!afterBytes,
       };
     },
-    // The status they return is the caller's own view, so staging never reveals a hidden path.
+    // The gitStatus they return is the caller's own view, so staging never reveals a hidden path.
     async stage(slug: string, list: unknown, base: PathBase = 'project', reader: Reader = LOCAL_READER) {
-      const d = dir(slug);
+      const directory = dir(slug);
       const chosen = paths(slug, list, base);
-      await assertInsideFolder(slug, d, chosen);
-      await git.stage(d, chosen);
+      await assertInsideFolder(slug, directory, chosen);
+      await git.stage(directory, chosen);
       await after(slug);
       return status(slug, reader);
     },
     async unstage(slug: string, list: unknown, base: PathBase = 'project', reader: Reader = LOCAL_READER) {
-      const d = dir(slug);
-      await git.unstage(d, paths(slug, list, base));
+      const directory = dir(slug);
+      await git.unstage(directory, paths(slug, list, base));
       await after(slug);
       return status(slug, reader);
     },
     async stageAll(slug: string, stage: boolean, reader: Reader = LOCAL_READER) {
-      const d = dir(slug);
-      const s = await git.status(d);
-      const { folder } = await sparseProjectFolder(slug, d);
+      const directory = dir(slug);
+      const gitStatus = await git.status(directory);
+      const { folder } = await sparseProjectFolder(slug, directory);
       const insideProject = (path: string) => !folder || path.startsWith(folder + '/');
-      const list = s.entries
+      const list = gitStatus.entries
         .filter(e => (stage ? e.worktree !== '.' : e.index !== '.' && !e.untracked))
         .map(e => e.path)
         .filter(insideProject);
-      if (list.length) await (stage ? git.stage(d, list) : git.unstage(d, list));
+      if (list.length) await (stage ? git.stage(directory, list) : git.unstage(directory, list));
       await after(slug);
       return status(slug, reader);
     },
@@ -687,10 +693,13 @@ export function createScm(deps: ScmDeps) {
       if (!options.push) return result;
       let pushed: { ok: boolean; message: string };
       try {
-        const r = await remoteAction(slug, 'push', { choice });
-        pushed = { ok: r.ok, message: r.stderr || (r.ok ? 'Pushed.' : 'Push failed.') };
-      } catch (e) {
-        pushed = { ok: false, message: (e as Error).message };
+        const action = await remoteAction(slug, 'push', { choice });
+        pushed = {
+          ok: action.ok,
+          message: action.stderr || (action.ok ? 'Pushed.' : 'Push failed.'),
+        };
+      } catch (error) {
+        pushed = { ok: false, message: (error as Error).message };
       }
       return { ...result, pushed };
     },
@@ -698,15 +707,15 @@ export function createScm(deps: ScmDeps) {
     // Another person's personal branch is not listed for someone who may not use it. A reader
     // with no view is the local person, who sees every branch of their own repository.
     async branches(slug: string, { view }: Reader = LOCAL_READER) {
-      const d = dir(slug);
-      const b = await git.branches(d);
-      const s = await git.status(d);
-      if (!view) return { current: s.branch, ...b };
+      const directory = dir(slug);
+      const branches = await git.branches(directory);
+      const gitStatus = await git.status(directory);
+      if (!view) return { current: gitStatus.branch, ...branches };
       const own = deps.ownBranch?.() ?? null;
       return {
-        current: s.branch,
-        local: b.local.filter(name => branchShownTo(name, own)),
-        remote: b.remote.filter(name => branchShownTo(name, own, true)),
+        current: gitStatus.branch,
+        local: branches.local.filter(name => branchShownTo(name, own)),
+        remote: branches.remote.filter(name => branchShownTo(name, own, true)),
       };
     },
     // The caller authorizes the branch actually checked out: `origin/x` becomes the local `x`.
@@ -714,45 +723,45 @@ export function createScm(deps: ScmDeps) {
       // Trimmed before any check, so a leading space cannot smuggle an option such as `--detach`.
       const name = typeof branch === 'string' ? branch.trim() : '';
       if (!name || name.startsWith('-') || name.length > 200) throw new BadRequestError('Give a branch name.');
-      const d = dir(slug);
-      const { local, ref } = await branchTarget(d, name, create);
-      const s = await git.status(d);
-      const blocked = blockers(deps.drafts(slug), s.entries);
+      const directory = dir(slug);
+      const { local, ref } = await branchTarget(directory, name, create);
+      const gitStatus = await git.status(directory);
+      const blocked = blockers(deps.drafts(slug), gitStatus.entries);
       if (blocked) throw blocked;
       authorizeBranch?.(local);
       await deps.assertBranchFree?.(slug, local);
-      const before = await git.head(d);
+      const before = await git.head(directory);
       // Everyone works in one tree, so the branch's content is checked as if the person wrote it.
       if (!create) {
-        const exists = (await git.branches(d)).local.includes(local);
+        const exists = (await git.branches(directory)).local.includes(local);
         const tip = exists ? 'refs/heads/' + local : ref;
-        await assertBranchHasFolder(slug, d, tip, local);
-        if (guard) await judgeSwitch(slug, d, { tip, before, guard, credentialFor });
+        await assertBranchHasFolder(slug, directory, tip, local);
+        if (guard) await judgeSwitch(slug, directory, { tip, before, guard, credentialFor });
       }
-      await git.run(d, create ? ['switch', '-c', local] : ['switch', '--end-of-options', local]);
+      await git.run(directory, create ? ['switch', '-c', local] : ['switch', '--end-of-options', local]);
       deps.branchesMoved?.(slug);
-      const head = await git.head(d);
-      const altered = head && head !== before ? await alteredAfter(d, await git.changedBetween(d, before, head)) : [];
+      const head = await git.head(directory);
+      const altered = head && head !== before ? await alteredAfter(directory, await git.changedBetween(directory, before, head)) : [];
       await after(slug, altered);
       return { branch: local, altered };
     },
     async setRemote(slug: string, requestedName: unknown, url: unknown) {
       const name = remoteName(requestedName);
-      const d = dir(slug);
-      const remotes = await git.remotes(d);
+      const directory = dir(slug);
+      const remotes = await git.remotes(directory);
       const current = remotes.get(name);
       // The panel shows addresses with credentials masked; saving one unchanged keeps the original.
       if (current !== undefined && typeof url === 'string' && url.trim() === redactCredentials(current)) return { name, url: url.trim() };
       const address = remoteAddress(url);
-      await git.run(d, remotes.has(name) ? ['remote', 'set-url', name, address] : ['remote', 'add', name, address]);
+      await git.run(directory, remotes.has(name) ? ['remote', 'set-url', name, address] : ['remote', 'add', name, address]);
       await after(slug);
       return { name, url: address };
     },
     async removeRemote(slug: string, requestedName: unknown) {
       const name = remoteName(requestedName);
-      const d = dir(slug);
-      if (!(await git.remotes(d)).has(name)) throw new BadRequestError(`There is no remote named ${name}.`);
-      await git.run(d, ['remote', 'remove', name]);
+      const directory = dir(slug);
+      if (!(await git.remotes(directory)).has(name)) throw new BadRequestError(`There is no remote named ${name}.`);
+      await git.run(directory, ['remote', 'remove', name]);
       await after(slug);
       return { removed: name };
     },
@@ -772,9 +781,9 @@ export function createScm(deps: ScmDeps) {
         allowFailure: true,
         credential: choice?.credential,
       });
-      const s = await after(slug);
+      const gitStatus = await after(slug);
       const result = { ok: pushed.code === 0, conflicted: [], altered: [] };
-      return { ...result, stderr: pushed.stderr.trim(), ahead: s.ahead, behind: s.behind };
+      return { ...result, stderr: pushed.stderr.trim(), ahead: gitStatus.ahead, behind: gitStatus.behind };
     },
     /** Fetches; `follow` lets the published default branch follow the remote in server mode. */
     fetch: async (slug: string, credentialFor?: CredentialFor, follow?: FollowRequest) => remoteAction(slug, 'fetch', { choice: await chooseRemote(slug, credentialFor), follow }),
@@ -785,13 +794,13 @@ export function createScm(deps: ScmDeps) {
     async pullDefault(slug: string, { guard, copy }: Reader) {
       const merge = deps.mergeDefault;
       if (!merge) throw new BadRequestError('Pull from the default branch works on a personal working copy.');
-      const d = dir(slug);
+      const directory = dir(slug);
       const check = async (tip: string) => {
-        if (guard) await guardMerge(slug, d, tip, guard);
+        if (guard) await guardMerge(slug, directory, tip, guard);
       };
-      const result = await mergeIn(slug, d, () => merge(slug, copy?.author, check));
-      const s = await after(slug, result.altered);
-      return { ...result, ahead: s.ahead, behind: s.behind };
+      const result = await mergeIn(slug, directory, () => merge(slug, copy?.author, check));
+      const gitStatus = await after(slug, result.altered);
+      return { ...result, ahead: gitStatus.ahead, behind: gitStatus.behind };
     },
     /** What moving the repository from `base` to `tip` changes, file by file, per project. */
     changesBetween: (slug: string, base: string | null, tip: string) => incomingChanges(slug, dir(slug), base, tip),
@@ -829,9 +838,9 @@ export function createScm(deps: ScmDeps) {
     // Skip binary and missing versions because the history view displays text.
     async versions(slug: string, path: string, limit: number | undefined, { view }: Reader) {
       requireReadable(slug, path, view);
-      const d = dir(slug);
-      const p = prefix(slug) + projectPath(path);
-      const log = await git.log(d, p, Math.max(1, Math.min(50, limit ?? 20)));
+      const directory = dir(slug);
+      const repoPath = prefix(slug) + projectPath(path);
+      const log = await git.log(directory, repoPath, Math.max(1, Math.min(50, limit ?? 20)));
       const out: {
         commit: string;
         author: string;
@@ -839,11 +848,11 @@ export function createScm(deps: ScmDeps) {
         message: string;
         source: string;
       }[] = [];
-      for (const c of log) {
-        const bytes = await git.blob(d, c.commit, p);
+      for (const entry of log) {
+        const bytes = await git.blob(directory, entry.commit, repoPath);
         if (!bytes) continue;
         try {
-          const { paths: _paths, ...commit } = c;
+          const { paths: _paths, ...commit } = entry;
           out.push({ ...commit, source: decode(bytes) });
         } catch {}
       }
@@ -851,10 +860,10 @@ export function createScm(deps: ScmDeps) {
     },
     // Git keeps tracking files even after an ignore pattern matches them.
     async ignoredButTracked(slug: string) {
-      const r = await git.run(dir(slug), ['--no-optional-locks', '-c', 'core.quotepath=off', 'ls-files', '-ci', '--exclude-standard', '-z'], { readOnly: true, allowFailure: true });
-      return r.stdout.split('\0').filter(Boolean);
+      const gitResult = await git.run(dir(slug), ['--no-optional-locks', '-c', 'core.quotepath=off', 'ls-files', '-ci', '--exclude-standard', '-z'], { readOnly: true, allowFailure: true });
+      return gitResult.stdout.split('\0').filter(Boolean);
     },
   };
 }
-/** Project source control operations, status, and history. */
+/** Project source control operations, gitStatus, and history. */
 export type Scm = ReturnType<typeof createScm>;

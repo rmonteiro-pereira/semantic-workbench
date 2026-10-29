@@ -6,16 +6,16 @@ const line: [number, number][] = [
   [200, 100],
 ];
 
-function overlapArea(a: Box, b: Box) {
-  const width = Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x);
-  const height = Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y);
+function overlapArea(boxA: Box, boxB: Box) {
+  const width = Math.min(boxA.x + boxA.width, boxB.x + boxB.width) - Math.max(boxA.x, boxB.x);
+  const height = Math.min(boxA.y + boxA.height, boxB.y + boxB.height) - Math.max(boxA.y, boxB.y);
   return Math.max(0, width) * Math.max(0, height);
 }
 
 function totalOverlap(items: { text: string }[], placed: Map<string, [number, number]>) {
   let total = 0;
   const boxes = items.map((item, index) => labelBox(item.text, placed.get(String(index))!));
-  for (let first = 0; first < boxes.length; first++) for (let second = first + 1; second < boxes.length; second++) total += overlapArea(boxes[first], boxes[second]);
+  for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) total += overlapArea(boxes[i], boxes[j]);
   return total;
 }
 

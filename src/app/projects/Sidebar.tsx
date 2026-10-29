@@ -31,7 +31,15 @@ function DeleteButton({ label, onClick }: { label: string; onClick: () => void }
     </button>
   );
 }
-const typeLabel = (docType: string) => (docType === 'unknown' ? 'Unrecognized' : docType === 'gitignore' ? '.gitignore' : docType);
+const typeLabel = (docType: string) => {
+  if (docType === 'unknown') {
+    return 'Unrecognized';
+  }
+  if (docType === 'gitignore') {
+    return '.gitignore';
+  }
+  return docType;
+};
 type TreeProps = {
   currentId?: string;
   /** The project the app works on; its row is marked, and choosing another switches to it. */
@@ -45,10 +53,10 @@ type TreeProps = {
 
 // Arrow keys fold and unfold a tree row, as in a file explorer.
 function foldKeys(open: boolean, toggle: () => void) {
-  return (e: React.KeyboardEvent) => {
-    const wantsChange = (e.key === 'ArrowLeft' && open) || (e.key === 'ArrowRight' && !open);
+  return (event: React.KeyboardEvent) => {
+    const wantsChange = (event.key === 'ArrowLeft' && open) || (event.key === 'ArrowRight' && !open);
     if (!wantsChange) return;
-    e.preventDefault();
+    event.preventDefault();
     toggle();
   };
 }

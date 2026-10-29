@@ -66,7 +66,7 @@ test('an attempt is still consumed only once', () => {
 const PRUNE_INTERVAL_MS = 60_000;
 
 /** Runs `start` while recording the callbacks of one-minute intervals, then restores timers. */
-async function recordingMinuteIntervals<T>(start: () => Promise<T>) {
+async function recordingMinuteIntervals<Value>(start: () => Promise<Value>) {
   const callbacks = new Map<unknown, () => void>();
   const original = globalThis.setInterval;
   globalThis.setInterval = ((callback: () => void, milliseconds: number) => {

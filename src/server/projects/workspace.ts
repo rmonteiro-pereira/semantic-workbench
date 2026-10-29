@@ -34,7 +34,7 @@ import { movePersonalState, clearPersonalDrafts } from './personal-state';
 import { createState, type ProjectEntry, type Patch } from './state';
 import { createWatcher } from './watcher';
 import { migrateLegacy, type MigrationReport } from './migration';
-import { createTrash, guardDeletion, guardRevert, type TrashEntry } from './trash';
+import { createTrash, guardDeletion, guardRevert, type GuardedFile, type TrashEntry } from './trash';
 import { restoreTrashedDeletions } from './published-checkout';
 import { createScm } from './scm';
 import { createWorktrees } from './worktrees';
@@ -93,13 +93,13 @@ export function importMessage(paths: string[], subfolder = '') {
 export function applyPatches(base: string, patches: Patch[]) {
   if (!Array.isArray(patches) || patches.length > 10_000) throw new BadRequestError('Patches must be an array.');
   let end = 0;
-  for (const p of patches) {
-    if (!p || !Number.isSafeInteger(p.from) || !Number.isSafeInteger(p.to) || typeof p.insert !== 'string' || p.from < end || p.to < p.from || p.to > base.length)
+  for (const patch of patches) {
+    if (!patch || !Number.isSafeInteger(patch.from) || !Number.isSafeInteger(patch.to) || typeof patch.insert !== 'string' || patch.from < end || patch.to < patch.from || patch.to > base.length)
       throw new BadRequestError('Patches must be ordered, non-overlapping ranges inside the base text.');
-    end = p.to;
+    end = patch.to;
   }
   let out = base;
-  for (const p of [...patches].reverse()) out = out.slice(0, p.from) + p.insert + out.slice(p.to);
+  for (const patch of [...patches].reverse()) out = out.slice(0, patch.from) + patch.insert + out.slice(patch.to);
   return out;
 }
 /** Derives a numeric revision from a content hash for legacy document clients. */
@@ -148,25 +148,25 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   }
   const projects = () => state.registry().projects;
   const entry = (slug: string) => {
-    const p = projects().find(p => p.slug === assertSlug(slug));
-    if (!p) throw new NotFoundError('Project not found.');
-    return p;
+    const projectEntry = projects().find(p => p.slug === assertSlug(slug));
+    if (!projectEntry) throw new NotFoundError('Project not found.');
+    return projectEntry;
   };
   // Rescans one project of a place; events about a person's copy reach only that person.
   async function rescanIn(place: Pick<Place, 'scanner' | 'tags'>, slug: string) {
-    const r = await place.scanner.scan(slug);
-    if (r.changed.length || r.removed.length) {
+    const scan = await place.scanner.scan(slug);
+    if (scan.changed.length || scan.removed.length) {
       events.emit(
         'files',
-        r,
+        scan,
         place.tags({
           projects: [slug],
-          paths: [...r.changed, ...r.removed].map(path => ({ project: slug, path })),
+          paths: [...scan.changed, ...scan.removed].map(path => ({ project: slug, path })),
         }),
       );
       notifySuggestions();
     }
-    return r;
+    return scan;
   }
   const rescan = (slug: string) => rescanIn({ scanner, tags: tags => tags }, slug);
   const projectLock = (place: Place, slug: string) => projectLockKey(slug, place.copy);
@@ -179,23 +179,23 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   const facts = new Map<string, FileFacts>();
   // `filesOf` picks whose files a project is indexed from: the published state by default.
   function indexedFiles({ view }: Reader, filesOf: (slug: string) => Pick<Place, 'cache' | 'layout'> = () => publishedBase): IndexedFile[] {
-    return projects().flatMap(p => {
-      const files = filesOf(p.slug);
+    return projects().flatMap(projectEntry => {
+      const files = filesOf(projectEntry.slug);
       return files.cache
-        .files(p.slug)
-        .filter(f => isDefinitionFile(f) && (!view || view.canRead(p.slug, f.path)))
-        .flatMap(f => {
-          let fx = facts.get(f.hash);
+        .files(projectEntry.slug)
+        .filter(f => isDefinitionFile(f) && (!view || view.canRead(projectEntry.slug, f.path)))
+        .flatMap(cachedFile => {
+          let fx = facts.get(cachedFile.hash);
           if (!fx) {
             try {
-              const bytes = readFileSync(indexedFile(files.layout, p.slug, f.path));
-              fx = factsOf(decode(bytes), f.path);
+              const bytes = readFileSync(indexedFile(files.layout, projectEntry.slug, cachedFile.path));
+              fx = factsOf(decode(bytes), cachedFile.path);
             } catch {
               return [];
             }
-            facts.set(f.hash, fx);
+            facts.set(cachedFile.hash, fx);
           }
-          return [{ project: p.slug, path: f.path, hash: f.hash, facts: fx }];
+          return [{ project: projectEntry.slug, path: cachedFile.path, hash: cachedFile.hash, facts: fx }];
         });
     });
   }
@@ -240,7 +240,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
         current.map(p => p.name),
       );
       const taken = new Set(current.map(p => p.slug));
-      for (const s of safeDirs(layout.projects)) taken.add(s);
+      for (const name of safeDirs(layout.projects)) taken.add(name);
       const slug = preferredSlug && !taken.has(preferredSlug) ? preferredSlug : slugify(finalName, taken);
       beforeCreate?.(slug);
       const opId = journal.newId();
@@ -249,11 +249,11 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       const stateStaging = join(layout.state, `.staging-${opId}`);
       try {
         mkdirSync(stagedProject, { recursive: true });
-        for (const f of files) {
-          const bytes = encode(f.source);
-          const file = join(stagedProject, f.path);
+        for (const importFile of files) {
+          const bytes = encode(importFile.source);
+          const file = join(stagedProject, importFile.path);
           atomicWrite(file, bytes);
-          if (sha256(readFileSync(file)) !== sha256(bytes)) throw Error(`Could not verify ${f.path} after writing.`);
+          if (sha256(readFileSync(file)) !== sha256(bytes)) throw Error(`Could not verify ${importFile.path} after writing.`);
         }
         let commit: ImportCommit = { committed: false, reason: 'no-git' };
         if (gitAvailable) {
@@ -278,10 +278,10 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
         notifySuggestions();
         events.emit('projects', { added: [slug], removed: [], renamed: [] }, { projects: [slug] });
         return Object.assign({}, project, { commit });
-      } catch (e) {
+      } catch (error) {
         rmSync(staging, { recursive: true, force: true });
         rmSync(stateStaging, { recursive: true, force: true });
-        throw e;
+        throw error;
       }
     });
   }
@@ -289,24 +289,24 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   async function commitFiles(repo: string, paths: string[], prefix = '', author?: CommitAuthor): Promise<ImportCommit> {
     if (!gitAvailable) return { committed: false, reason: 'no-git' };
     const message = importMessage(paths, prefix.replace(/\/$/, ''));
-    const r = await git.commitPaths(
+    const commitPathsResult = await git.commitPaths(
       repo,
       paths.map(p => prefix + p),
       message,
       author,
     );
-    return r.committed ? { committed: true, commit: r.commit, message } : r;
+    return commitPathsResult.committed ? { committed: true, commit: commitPathsResult.commit, message } : commitPathsResult;
   }
   function preflight(files: ImportFile[]) {
     if (!Array.isArray(files) || !files.length || files.length > 500) throw new BadRequestError('Expected 1–500 files.');
     const paths = new Set<string>();
     const issues: Issue[] = [];
-    for (const f of files) {
-      if (!f || typeof f.path !== 'string' || typeof f.source !== 'string') throw new BadRequestError('Each file needs a path and source text.');
-      const path = projectPath(f.path);
+    for (const file of files) {
+      if (!file || typeof file.path !== 'string' || typeof file.source !== 'string') throw new BadRequestError('Each file needs a path and source text.');
+      const path = projectPath(file.path);
       if (paths.has(path)) throw new BadRequestError(`Duplicate path in batch: ${path}`);
       paths.add(path);
-      const indexed = indexBytes('preflight', path, encode(f.source));
+      const indexed = indexBytes('preflight', path, encode(file.source));
       if (!indexed.file.visible)
         issues.push({
           severity: 'error',
@@ -323,7 +323,8 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   // name.
   function batchName(files: ImportFile[]) {
     const models = files.map(f => validateInput(f.source, posix.basename(f.path)).model);
-    for (const kind of ['Ossie ontology', 'Ossie semantic']) for (const m of models) if (m?.kind === kind && typeof m.name === 'string' && m.name.trim()) return m.name.trim().slice(0, 200);
+    for (const kind of ['Ossie ontology', 'Ossie semantic'])
+      for (const model of models) if (model?.kind === kind && typeof model.name === 'string' && model.name.trim()) return model.name.trim().slice(0, 200);
     return posix.basename(files[0].path).replace(/\.[^.]+$/, '') || 'Imported files';
   }
   function readFile(slug: string, path: string, reader: Reader = LOCAL_READER) {
@@ -336,16 +337,16 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     } catch {
       throw new NotFoundError('File not found.');
     }
-    const p = projectPath(path);
+    const relativePath = projectPath(path);
     const hash = sha256(bytes);
-    const cached = place.cache.file(slug, p);
+    const cached = place.cache.file(slug, relativePath);
     return {
-      path: p,
+      path: relativePath,
       source: decode(bytes),
       hash,
       docType: cached?.docType ?? 'unknown',
       valid: cached?.valid ?? false,
-      findings: cached && cached.hash === hash ? place.cache.findings(slug, p) : indexBytes(slug, p, bytes).findings,
+      findings: cached && cached.hash === hash ? place.cache.findings(slug, relativePath) : indexBytes(slug, relativePath, bytes).findings,
     };
   }
   // The file as the last commit has it, so an owner handed over in an earlier save still counts
@@ -362,27 +363,28 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   }
   // The edit a save makes to the file in a place: a stale base is refused, and the reader's
   // guard, given in server mode, may refuse it or store an approved metric as proposed.
-  async function guardedEdit(place: Place, slug: string, p: string, body: { baseHash: string | null; source?: string; patches?: Patch[] }, guard: ContentGuard | undefined) {
+  async function guardedEdit(place: Place, file: GuardedFile, body: { baseHash: string | null; source?: string; patches?: Patch[] }, guard: ContentGuard | undefined) {
+    const { slug, path } = file;
     let current: Uint8Array | null = null;
     try {
-      current = readFileSync(projectFile(place.layout, slug, p));
+      current = readFileSync(projectFile(place.layout, slug, path));
     } catch {}
     const currentHash = current ? sha256(current) : null;
     if (body.baseHash !== currentHash) throw new StaleError(currentHash, current ? decode(current) : null);
     const base = current ? decode(current) : '';
     const edited = body.source !== undefined ? body.source : applyPatches(base, body.patches ?? []);
     const before = current ? base : null;
-    const committed = guard ? await committedText(place.layout, slug, p) : null;
-    const change = { project: slug, path: p, before, after: edited, committed };
+    const committed = guard ? await committedText(place.layout, slug, path) : null;
+    const change = { project: slug, path, before, after: edited, committed };
     return { edited, guarded: guard?.([change]) };
   }
   async function saveFile(slug: string, path: string, body: { baseHash: string | null; source?: string; patches?: Patch[] }, reader: Reader) {
     const { guard } = reader;
     entry(slug);
-    const p = projectPath(path);
-    const check = (at: Place) => guardedEdit(at, slug, p, body, guard);
+    const relativePath = projectPath(path);
+    const check = (at: Place) => guardedEdit(at, { slug, path: relativePath }, body, guard);
     const place = await copies.writePlace(reader, slug, check);
-    const file = projectFile(place.layout, slug, p);
+    const file = projectFile(place.layout, slug, relativePath);
     return lock(projectLock(place, slug), async () => {
       const { edited, guarded } = await check(place);
       const next = guarded?.changes[0].after ?? edited;
@@ -396,13 +398,13 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
             message: 'The definition exceeds the 2 MB UTF-8 limit. Split it into smaller documents.',
           },
         ]);
-      const indexed = indexBytes(slug, p, bytes);
+      const indexed = indexBytes(slug, relativePath, bytes);
       if (!indexed.file.visible) throw new InputError([{ severity: 'error', code: 'unsupported', path: '/', message: 'Unsupported file type.' }]);
       if (!indexed.file.valid) throw new InputError(indexed.findings);
       const staging = join(layout.state, `.staging-${journal.newId()}`);
       const staged = join(staging, 'source');
       const hash = atomicWrite(staged, bytes);
-      const steps = clearPersonalDrafts(state, slug, [p], staging, place.copy ?? undefined);
+      const steps = clearPersonalDrafts(state, slug, [relativePath], staging, place.copy ?? undefined);
       if (existsSync(file)) steps.push({ from: file, to: join(staging, 'previous') });
       steps.push({ from: staged, to: file });
       journal.run('save', steps, [staging]);
@@ -410,28 +412,34 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       const demoted = guarded ? demotionsOf(guarded) : [];
       // A demoted metric means the stored text differs from what was sent, so it is returned.
       const stored = demoted.length ? { demoted, source: next } : {};
-      return { path: p, hash, findings: indexed.findings, ...stored };
+      return { path: relativePath, hash, findings: indexed.findings, ...stored };
     });
   }
   // The edits of a batch in a place: every base hash is checked and every file is guarded before
   // any is validated or staged, so a refusal changes nothing.
   async function guardedEdits(place: Place, slug: string, files: { path: string; baseHash: string | null; source?: string; patches?: Patch[] }[], guard: ContentGuard | undefined) {
-    const edited = files.map(f => {
-      const file = projectFile(place.layout, slug, f.path);
+    const edited = files.map(edit => {
+      const file = projectFile(place.layout, slug, edit.path);
       let current: Uint8Array | null = null;
       try {
         current = readFileSync(file);
       } catch {}
       const currentHash = current ? sha256(current) : null;
-      if (f.baseHash !== currentHash) throw new StaleError(currentHash, current ? decode(current) : null);
+      if (edit.baseHash !== currentHash) throw new StaleError(currentHash, current ? decode(current) : null);
       const before = current ? decode(current) : null;
-      const next = f.source !== undefined ? f.source : applyPatches(before ?? '', f.patches ?? []);
-      return { ...f, file, current, before, next };
+      const next = edit.source !== undefined ? edit.source : applyPatches(before ?? '', edit.patches ?? []);
+      return { ...edit, file, current, before, next };
     });
     const changes = [];
-    for (const f of edited) {
-      const committed = guard ? await committedText(place.layout, slug, f.path) : null;
-      changes.push({ project: slug, path: f.path, before: f.before, after: f.next, committed });
+    for (const edit of edited) {
+      const committed = guard ? await committedText(place.layout, slug, edit.path) : null;
+      changes.push({
+        project: slug,
+        path: edit.path,
+        before: edit.before,
+        after: edit.next,
+        committed,
+      });
     }
     return { edited, guarded: guard?.(changes) };
   }
@@ -449,9 +457,9 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     const place = await copies.writePlace(reader, slug, check);
     return lock(projectLock(place, slug), async () => {
       const { edited, guarded } = await check(place);
-      const prepared = edited.map((f, index) => {
-        const { file, current } = f;
-        const next = guarded?.changes[index].after ?? f.next;
+      const prepared = edited.map((edit, index) => {
+        const { file, current } = edit;
+        const next = guarded?.changes[index].after ?? edit.next;
         const bytes = encode(next);
         if (bytes.length > MAX_INPUT_BYTES)
           throw new InputError([
@@ -459,23 +467,23 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
               severity: 'error',
               code: 'size',
               path: '/',
-              message: `${f.path}: the definition exceeds the 2 MB UTF-8 limit.`,
+              message: `${edit.path}: the definition exceeds the 2 MB UTF-8 limit.`,
             },
           ]);
-        const indexed = indexBytes(slug, f.path, bytes);
+        const indexed = indexBytes(slug, edit.path, bytes);
         if (!indexed.file.visible)
           throw new InputError([
             {
               severity: 'error',
               code: 'unsupported',
               path: '/',
-              message: `${f.path}: unsupported file type.`,
+              message: `${edit.path}: unsupported file type.`,
             },
           ]);
-        if (!indexed.file.valid) throw new InputError(indexed.findings.map(i => ({ ...i, message: `${f.path}: ${i.message}` })));
-        const rewritten = next !== f.next;
+        if (!indexed.file.valid) throw new InputError(indexed.findings.map(i => ({ ...i, message: `${edit.path}: ${i.message}` })));
+        const rewritten = next !== edit.next;
         return {
-          path: f.path,
+          path: edit.path,
           file,
           exists: !!current,
           bytes,
@@ -487,11 +495,11 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       const staging = join(place.layout.projects, `.staging-${opId}`);
       try {
         const steps: { from: string; to: string }[] = [];
-        prepared.forEach((f, i) => {
+        prepared.forEach((write, i) => {
           const staged = join(staging, 'new', String(i));
-          atomicWrite(staged, f.bytes);
-          if (f.exists) steps.push({ from: f.file, to: join(staging, 'previous', String(i)) });
-          steps.push({ from: staged, to: f.file });
+          atomicWrite(staged, write.bytes);
+          if (write.exists) steps.push({ from: write.file, to: join(staging, 'previous', String(i)) });
+          steps.push({ from: staged, to: write.file });
         });
         steps.push(
           ...clearPersonalDrafts(
@@ -503,19 +511,19 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
           ),
         );
         journal.run(kind, steps, [staging], opId);
-      } catch (e) {
+      } catch (error) {
         rmSync(staging, { recursive: true, force: true });
-        throw e;
+        throw error;
       }
       await rescanIn(place, slug);
       const demoted = guarded ? demotionsOf(guarded) : [];
       return {
-        written: prepared.map(f => ({
-          path: f.path,
-          hash: sha256(f.bytes),
-          created: !f.exists,
-          findings: f.findings,
-          ...(f.rewritten ? { source: decode(f.bytes) } : {}),
+        written: prepared.map(write => ({
+          path: write.path,
+          hash: sha256(write.bytes),
+          created: !write.exists,
+          findings: write.findings,
+          ...(write.rewritten ? { source: decode(write.bytes) } : {}),
         })),
         ...(demoted.length ? { demoted } : {}),
       };
@@ -531,28 +539,28 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   }
   function documentsFor(reader: Reader) {
     const { view } = reader;
-    return projects().flatMap(p => {
-      const place = copies.readPlace(reader, p.slug);
+    return projects().flatMap(projectEntry => {
+      const place = copies.readPlace(reader, projectEntry.slug);
       return place.cache
-        .files(p.slug)
-        .filter(f => f.visible && (!view || view.canRead(p.slug, f.path)))
-        .flatMap(f => {
+        .files(projectEntry.slug)
+        .filter(f => f.visible && (!view || view.canRead(projectEntry.slug, f.path)))
+        .flatMap(cachedFile => {
           let source: string;
           try {
-            source = decode(readFileSync(indexedFile(place.layout, p.slug, f.path)));
+            source = decode(readFileSync(indexedFile(place.layout, projectEntry.slug, cachedFile.path)));
           } catch {
             return [];
           }
           return [
             {
-              id: `${p.slug}/${f.path}`,
-              filename: posix.basename(f.path),
+              id: `${projectEntry.slug}/${cachedFile.path}`,
+              filename: posix.basename(cachedFile.path),
               source,
-              revision: revisionOf(f.hash),
-              hash: f.hash,
-              project: p.slug,
-              path: f.path,
-              updated: f.indexedAt,
+              revision: revisionOf(cachedFile.hash),
+              hash: cachedFile.hash,
+              project: projectEntry.slug,
+              path: cachedFile.path,
+              updated: cachedFile.indexedAt,
             },
           ];
         });
@@ -571,17 +579,17 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
         .filter(project => locationOf(project).repo === repo)
         .map(project => project.slug);
       try {
-        const s = await git.status(join(layout.projects, repo));
+        const status = await git.status(join(layout.projects, repo));
         events.emit(
           'git',
           {
             project: slug,
             repo,
             projects: projectsInRepo,
-            branch: s.branch,
-            ahead: s.ahead,
-            behind: s.behind,
-            changes: s.changes,
+            branch: status.branch,
+            ahead: status.ahead,
+            behind: status.behind,
+            changes: status.changes,
             altered: [],
           },
           { projects: projectsInRepo },
@@ -632,12 +640,12 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   // A stop between moving the default branch and moving the published files is finished here.
   if (gitAvailable) for (const repo of new Set(projects().map(project => locationOf(project).repo))) if (existsSync(join(layout.projects, repo, '.git'))) await worktrees.repairBase(repo);
   if (gitAvailable && options.reconcilePublished) await reconcilePublishedCheckouts();
-  for (const p of projects())
-    if (existsSync(projectDir(layout, p.slug))) {
-      await scanner.scan(p.slug);
-      watcher?.add(p.slug);
+  for (const projectEntry of projects())
+    if (existsSync(projectDir(layout, projectEntry.slug))) {
+      await scanner.scan(projectEntry.slug);
+      watcher?.add(projectEntry.slug);
     }
-  for (const r of recovery) events.emit('recovery', { outcome: r.outcome }, { audience: 'all' });
+  for (const recoveryOutcome of recovery) events.emit('recovery', { outcome: recoveryOutcome.outcome }, { audience: 'all' });
   const repoOf = (slug: string) => locationOf(entry(slug)).repo;
   const projectsIn = (repo: string) =>
     projects()
@@ -773,9 +781,9 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     // The target project's repository may need a copy too; the file comes from this place, so a
     // refused move is judged on it before that copy is made.
     await copies.writePlace(reader, toProject, () => guardAt(place, to));
-    const [a, b] = [slug, toProject].sort();
-    return lock(projectLock(place, a), () =>
-      lock(a === b ? 'none' : projectLock(place, b), async () => {
+    const [firstSlug, secondSlug] = [slug, toProject].sort();
+    return lock(projectLock(place, firstSlug), () =>
+      lock(firstSlug === secondSlug ? 'none' : projectLock(place, secondSlug), async () => {
         const src = projectFile(place.layout, slug, from);
         if (!existsSync(src)) throw new NotFoundError('File not found.');
         if (slug === toProject && from === to) return { project: toProject, path: to };
@@ -866,7 +874,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   function existingNames(place: Place, slug: string, batch: ImportFile[]) {
     const dir = projectDir(place.layout, slug);
     const existing = new Set(place.cache.files(slug).map(f => f.path));
-    for (const f of batch) if (existsSync(join(dir, f.path))) existing.add(f.path);
+    for (const importFile of batch) if (existsSync(join(dir, importFile.path))) existing.add(importFile.path);
     return existing;
   }
   // The text each imported file is written with. A replaced file is compared with the file it
@@ -956,9 +964,9 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
         // A draft of a replaced file was edited against bytes that are gone.
         steps.push(...clearPersonalDrafts(state, slug, replaced, staging, place.copy ?? undefined));
         journal.run('import', steps, [staging], opId);
-      } catch (e) {
+      } catch (error) {
         rmSync(staging, { recursive: true, force: true });
-        throw e;
+        throw error;
       }
       let commit: ImportCommit;
       try {
@@ -968,8 +976,8 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
           projectPrefix(layout, slug),
           reader.copy?.author,
         );
-      } catch (e) {
-        log.failure('import.commit-failed', e);
+      } catch (error) {
+        log.failure('import.commit-failed', error);
         commit = { committed: false, reason: 'nothing' };
       }
       await rescanIn(place, slug);
@@ -984,11 +992,11 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   function deleteImpact(slug: string, path: string | undefined, reader: Reader) {
     const { view, owner } = reader;
     entry(slug);
-    const p = path === undefined ? undefined : projectPath(path);
-    if (view && p && !view.canRead(slug, p)) throw new HiddenResourceError();
+    const relativePath = path === undefined ? undefined : projectPath(path);
+    if (view && relativePath && !view.canRead(slug, relativePath)) throw new HiddenResourceError();
     const place = copies.readPlace(reader, slug);
-    if (p !== undefined && !place.cache.file(slug, p)) throw new NotFoundError('File not found.');
-    const removed = (f: { project: string; path: string }) => f.project === slug && (p === undefined || f.path === p);
+    if (relativePath !== undefined && !place.cache.file(slug, relativePath)) throw new NotFoundError('File not found.');
+    const removed = (f: { project: string; path: string }) => f.project === slug && (relativePath === undefined || f.path === relativePath);
     // References resolve inside a project, so another project's files never keep one alive.
     const all = indexedFiles(LOCAL_READER).filter(f => f.project === slug);
     const gone = all.filter(removed);
@@ -999,14 +1007,14 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       kind: string;
       name: string;
     }[] = [];
-    for (const k of kept)
-      for (const ref of k.facts.refs) {
+    for (const keptFile of kept)
+      for (const ref of keptFile.facts.refs) {
         const targets = gone.filter(g => g.facts.names.includes(ref));
-        if (targets.length && !kept.some(o => o !== k && o.facts.names.includes(ref)))
-          for (const g of targets)
+        if (targets.length && !kept.some(o => o !== keptFile && o.facts.names.includes(ref)))
+          for (const target of targets)
             brokenReferences.push({
-              from: { project: k.project, path: k.path },
-              to: { project: g.project, path: g.path },
+              from: { project: keptFile.project, path: keptFile.path },
+              to: { project: target.project, path: target.path },
               kind: 'ossie-ref-name',
               name: ref,
             });
@@ -1021,7 +1029,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       repo: location.repo,
       sharedWith: sharedWith.filter(project => !view || view.readableProjects.has(project)),
       removes:
-        p === undefined
+        relativePath === undefined
           ? {
               project: slug,
               name: entry(slug).name,
@@ -1030,7 +1038,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
                 .filter(f => !view || view.canRead(slug, f.path))
                 .map(f => f.path),
             }
-          : { project: slug, files: [p] },
+          : { project: slug, files: [relativePath] },
       unsavedDrafts: (owner ? state.forOwner(owner) : state)
         .drafts()
         .filter(removed)
@@ -1045,25 +1053,25 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     };
   }
   async function acceptSuggestion(id: string, reader: Reader) {
-    const s = suggestions(reader).find(x => x.id === id);
-    if (!s) throw new NotFoundError('Suggestion not found or no longer valid.');
-    const moved = await moveFile(s.file.project, s.file.path, s.targetProject, undefined, true, reader);
+    const suggestion = suggestions(reader).find(x => x.id === id);
+    if (!suggestion) throw new NotFoundError('Suggestion not found or no longer valid.');
+    const moved = await moveFile(suggestion.file.project, suggestion.file.path, suggestion.targetProject, undefined, true, reader);
     notifySuggestions();
     return moved;
   }
   function rejectSuggestion(id: string, reader: Reader) {
     const { owner } = reader;
     const personal = owner ? state.forOwner(owner) : state;
-    const s = suggestions(reader).find(x => x.id === id);
-    if (!s) throw new NotFoundError('Suggestion not found or no longer valid.');
+    const suggestion = suggestions(reader).find(x => x.id === id);
+    if (!suggestion) throw new NotFoundError('Suggestion not found or no longer valid.');
     const current = personal.suggestions().rejected;
     personal.writeSuggestions([
       ...current,
       {
-        hash: s.file.hash,
-        target: s.targetProject,
-        project: s.file.project,
-        path: s.file.path,
+        hash: suggestion.file.hash,
+        target: suggestion.targetProject,
+        project: suggestion.file.project,
+        path: suggestion.file.path,
         rejectedAt: new Date().toISOString(),
       },
     ]);
@@ -1259,17 +1267,17 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       entry(slug);
       if (baseHash !== null && (typeof baseHash !== 'string' || !/^[0-9a-f]{64}$/.test(baseHash))) throw new BadRequestError('baseHash must be a SHA-256 hex digest or null.');
       if (!gitAvailable) throw new BadRequestError('Git is not available on this machine.');
-      const p = projectPath(path);
-      const committedIn = (at: Place) => git.blob(repoDir(at.layout, slug), 'HEAD', projectPrefix(layout, slug) + p);
-      const check = async (at: Place) => guardRevert(at.layout, slug, p, await committedIn(at), reader.guard);
+      const relativePath = projectPath(path);
+      const committedIn = (at: Place) => git.blob(repoDir(at.layout, slug), 'HEAD', projectPrefix(layout, slug) + relativePath);
+      const check = async (at: Place) => guardRevert(at.layout, { slug, path: relativePath }, await committedIn(at), reader.guard);
       const place = await copies.writePlace(reader, slug, check);
       const committed = await committedIn(place);
       const expected = baseHash as string | null;
-      const r = await trash.revertFile(slug, p, expected, committed, reader, place.copy);
+      const reverted = await trash.revertFile(slug, relativePath, expected, committed, reader, place.copy);
       try {
         await place.scm.refresh(slug);
       } catch {}
-      return r;
+      return reverted;
     },
     lock,
     rescan,
@@ -1313,8 +1321,8 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     /** Moves a file to the trash from the place the person edits it in. */
     deleteFile: async (slug: string, path: string, reader: Reader) => {
       entry(slug);
-      const p = projectPath(path);
-      const check = (at: Place) => guardDeletion(at.layout, slug, p, reader.guard);
+      const relativePath = projectPath(path);
+      const check = (at: Place) => guardDeletion(at.layout, slug, relativePath, reader.guard);
       const place = await copies.writePlace(reader, slug, check);
       return trash.deleteFile(slug, path, reader.owner, reader, place.copy);
     },
@@ -1366,48 +1374,48 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       return Promise.all(
         projects()
           .filter(p => !view || view.readableProjects.has(p.slug))
-          .map(async p => {
-            const place = copies.readPlace(reader, p.slug);
+          .map(async projectEntry => {
+            const place = copies.readPlace(reader, projectEntry.slug);
             const cache = place.cache;
             let gitInfo = { branch: '', ahead: 0, behind: 0, changes: 0 };
-            if (gitAvailable && existsSync(projectDir(place.layout, p.slug)))
+            if (gitAvailable && existsSync(projectDir(place.layout, projectEntry.slug)))
               try {
-                const s = await git.status(repoDir(place.layout, p.slug));
+                const status = await git.status(repoDir(place.layout, projectEntry.slug));
                 gitInfo = {
-                  branch: s.branch,
-                  ahead: s.ahead,
-                  behind: s.behind,
-                  changes: s.changes,
+                  branch: status.branch,
+                  ahead: status.ahead,
+                  behind: status.behind,
+                  changes: status.changes,
                 };
               } catch {}
-            const location = locationOf(p);
+            const location = locationOf(projectEntry);
             return {
-              slug: p.slug,
-              name: p.name,
-              origin: p.origin,
-              createdAt: p.createdAt,
+              slug: projectEntry.slug,
+              name: projectEntry.name,
+              origin: projectEntry.origin,
+              createdAt: projectEntry.createdAt,
               repo: location.repo,
               // The project's folder inside its repository; empty for the repository itself.
               folder: location.folder === location.repo ? '' : location.folder.slice(location.repo.length + 1),
               ...gitInfo,
               ...(view
                 ? {
-                    copy: await copies.copyInfo(reader, p.slug, gitInfo.branch, facts),
-                    hiddenFiles: cache.files(p.slug).filter(f => f.visible && !view.canRead(p.slug, f.path)).length,
-                    changes: cache.files(p.slug).filter(f => view.canRead(p.slug, f.path) && f.gitState !== 'clean').length,
+                    copy: await copies.copyInfo(reader, projectEntry.slug, gitInfo.branch, facts),
+                    hiddenFiles: cache.files(projectEntry.slug).filter(f => f.visible && !view.canRead(projectEntry.slug, f.path)).length,
+                    changes: cache.files(projectEntry.slug).filter(f => view.canRead(projectEntry.slug, f.path) && f.gitState !== 'clean').length,
                   }
                 : {}),
               files: cache
-                .files(p.slug)
-                .filter(f => f.visible && (!view || view.canRead(p.slug, f.path)))
-                .map(f => ({
-                  path: f.path,
-                  docType: f.docType,
-                  layout: f.layout,
-                  valid: f.valid,
-                  visible: f.visible,
-                  gitState: f.gitState,
-                  hash: f.hash,
+                .files(projectEntry.slug)
+                .filter(f => f.visible && (!view || view.canRead(projectEntry.slug, f.path)))
+                .map(cachedFile => ({
+                  path: cachedFile.path,
+                  docType: cachedFile.docType,
+                  layout: cachedFile.layout,
+                  valid: cachedFile.valid,
+                  visible: cachedFile.visible,
+                  gitState: cachedFile.gitState,
+                  hash: cachedFile.hash,
                 })),
             };
           }),
@@ -1457,11 +1465,11 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     renameProject: (slug: string, name: unknown) =>
       lock('registry', () => {
         const current = projects();
-        const p = entry(slug);
+        const projectEntry = entry(slug);
         const value = projectName(
           name,
           current.map(x => x.name),
-          p.name,
+          projectEntry.name,
         );
         state.writeRegistry(current.map(x => (x.slug === slug ? { ...x, name: value } : x)));
         events.emit('projects', { added: [], removed: [], renamed: [{ slug, name: value }] }, { projects: [slug] });

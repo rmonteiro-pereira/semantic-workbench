@@ -15,12 +15,12 @@ const commerce = await api.ws.loadExample('commerce');
 const dir = projectDir(api.ws.layout, commerce.slug);
 const file = 'commerce-business.ossie.yaml';
 const sh = (cwd: string, args: string[]) => {
-  const r = Bun.spawnSync(['git', ...args], {
+  const syncSubprocess = Bun.spawnSync(['git', ...args], {
     cwd,
     env: { ...process.env, GIT_TERMINAL_PROMPT: '0' },
   });
-  if (r.exitCode !== 0) throw Error(`git ${args.join(' ')}: ${r.stderr}`);
-  return r.stdout.toString();
+  if (syncSubprocess.exitCode !== 0) throw Error(`git ${args.join(' ')}: ${syncSubprocess.stderr}`);
+  return syncSubprocess.stdout.toString();
 };
 const read = (path: string) => readFileSync(projectFile(api.ws.layout, commerce.slug, path), 'utf8');
 const extra = mkdtempSync(join(tmpdir(), 'workbench-remote-'));
@@ -37,10 +37,10 @@ await routeApi(page, api);
 await page.goto(appUrl());
 let passed = 0;
 async function check(name: string, run: () => Promise<void>) {
-  const t = Date.now();
+  const startedAt = Date.now();
   await run();
   passed++;
-  console.log('PASS', name, `(${((Date.now() - t) / 1000).toFixed(1)} s)`);
+  console.log('PASS', name, `(${((Date.now() - startedAt) / 1000).toFixed(1)} s)`);
 }
 const tree = (p: Page = page) => p.getByRole('tree', { name: 'Projects' });
 const saveState = () => page.getByRole('status', { name: 'Save state' });
@@ -135,21 +135,21 @@ try {
     await expect(dialog.getByRole('textbox', { name: 'Commit message' })).toHaveValue('Update 2 files');
     await files.getByRole('checkbox', { name: 'notes.ossie.yaml' }).uncheck();
     await expect(dialog.getByRole('textbox', { name: 'Commit message' })).toHaveValue(`Update ${file}`);
-    for (const [w, h] of [
+    for (const [width, height] of [
       [390, 844],
       [1280, 720],
       [1440, 900],
       [2560, 1440],
     ]) {
-      await page.setViewportSize({ width: w, height: h });
+      await page.setViewportSize({ width, height });
       await page.waitForTimeout(150);
-      await page.screenshot({ path: `/tmp/workbench-autosave-commit-${w}.png` });
+      await page.screenshot({ path: `/tmp/workbench-autosave-commit-${width}.png` });
       const box = await dialog.locator('section.workbench-dialog').boundingBox();
       expect(box!.x).toBeGreaterThanOrEqual(0);
-      expect(box!.x + box!.width).toBeLessThanOrEqual(w + 0.5);
-      expect(box!.y + box!.height).toBeLessThanOrEqual(h + 0.5);
+      expect(box!.x + box!.width).toBeLessThanOrEqual(width + 0.5);
+      expect(box!.y + box!.height).toBeLessThanOrEqual(height + 0.5);
       const commit = await dialog.getByRole('button', { name: 'Commit', exact: true }).boundingBox();
-      expect(commit!.y + commit!.height).toBeLessThanOrEqual(h);
+      expect(commit!.y + commit!.height).toBeLessThanOrEqual(height);
     }
     await page.setViewportSize({ width: 1440, height: 900 });
     await dialog.getByRole('button', { name: 'Commit', exact: true }).click();
@@ -205,35 +205,36 @@ try {
       timeout: 8000,
     });
     const slug = (await api.ws.listProjects(LOCAL_READER)).find(p => p.files.some(f => f.path === 'imported.ossie.yaml'))!.slug;
-    const d = projectDir(api.ws.layout, slug);
-    expect(sh(d, ['log', '--format=%s']).trim()).toBe('Import imported.ossie.yaml');
-    expect(sh(d, ['status', '--porcelain']).trim()).toBe('');
+    const repoDir = projectDir(api.ws.layout, slug);
+    expect(sh(repoDir, ['log', '--format=%s']).trim()).toBe('Import imported.ossie.yaml');
+    expect(sh(repoDir, ['status', '--porcelain']).trim()).toBe('');
   });
   await check('the header fits: Commit… and the indicator are visible and do not overlap at four viewports', async () => {
     await tree().getByRole('button', { name: file, exact: true }).first().click();
-    for (const [w, h] of [
+    for (const [width, height] of [
       [390, 844],
       [1280, 720],
       [1440, 900],
       [2560, 1440],
     ]) {
-      await page.setViewportSize({ width: w, height: h });
+      await page.setViewportSize({ width, height });
       await page.waitForTimeout(200);
       const header = page.locator('.workspace-header');
       const commit = header.getByRole('button', { name: 'Commit…' });
       const state = saveState();
       await expect(commit).toBeVisible();
       await expect(state).toBeVisible();
-      const a = (await commit.boundingBox())!;
-      const b = (await state.boundingBox())!;
+      const commitBox = (await commit.boundingBox())!;
+      const stateBox = (await state.boundingBox())!;
       const hb = (await header.boundingBox())!;
-      const overlap = a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
+      const overlap =
+        commitBox.x < stateBox.x + stateBox.width && stateBox.x < commitBox.x + commitBox.width && commitBox.y < stateBox.y + stateBox.height && stateBox.y < commitBox.y + commitBox.height;
       expect(overlap).toBe(false);
-      for (const r of [a, b]) {
-        expect(r.x).toBeGreaterThanOrEqual(hb.x - 0.5);
-        expect(r.x + r.width).toBeLessThanOrEqual(hb.x + hb.width + 0.5);
+      for (const box of [commitBox, stateBox]) {
+        expect(box.x).toBeGreaterThanOrEqual(hb.x - 0.5);
+        expect(box.x + box.width).toBeLessThanOrEqual(hb.x + hb.width + 0.5);
       }
-      await page.screenshot({ path: `/tmp/workbench-autosave-header-${w}.png` });
+      await page.screenshot({ path: `/tmp/workbench-autosave-header-${width}.png` });
     }
     await page.setViewportSize({ width: 1440, height: 900 });
   });

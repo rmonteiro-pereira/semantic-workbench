@@ -8,7 +8,7 @@ export { assignRoutes, placeLabels, routePoints, orthogonalPath, type EdgeRoute,
 export function RelationshipEdge(props: EdgeProps) {
   const { sourceX: sx, sourceY: sy, targetX: tx, targetY: ty, data } = props;
   const route = (data?.route as EdgeRoute | undefined) ?? { route: 'short', bendX: (sx + tx) / 2 };
-  const { points, label: own } = routePoints(sx, sy, tx, ty, route);
+  const { points, label: own } = routePoints({ x: sx, y: sy }, { x: tx, y: ty }, route);
   const label = (data?.labelAt as [number, number] | undefined) ?? own;
   const labelScale = (data?.labelScale as number | undefined) ?? 1;
   const bounds = labelBox(String(props.label ?? ''), label, labelScale);

@@ -67,7 +67,7 @@ test('route scan ignores formatting prefixes but refuses unmapped routes', () =>
 
 test('handler retains the DNS rebinding explanation', () => {
   const source = readFileSync('src/server/handler.ts', 'utf8').replace(/\n\s*\/\/ /g, ' ');
-  expect(source).toContain('DNS rebinding: a page on another name resolved to 127.0.0.1 sends its own name as Host, and a ' + 'same-origin GET carries no Origin. Only loopback names are served.');
+  expect(source).toContain('DNS rebinding: a page on another name resolved to 127.0.0.1 sends its own name as Host, and a same-origin GET carries no Origin. Only loopback names are served.');
 });
 test('every implemented inventory example reaches a route in local mode', async () => {
   using workspace = await testWorkspace();

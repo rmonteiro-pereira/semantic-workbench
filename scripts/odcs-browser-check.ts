@@ -17,13 +17,13 @@ const git = async (slug: string, args: string[]) => (await api.ws.git.run(projec
 const read = (slug: string, path: string) => readFileSync(projectFile(api.ws.layout, slug, path), 'utf8');
 // Two committed edits to the commerce contract, for History.
 async function commitEdit(change: (text: string) => string, message: string) {
-  const f = api.ws.readFile(commerce.slug, 'commerce.odcs.yaml');
+  const file = api.ws.readFile(commerce.slug, 'commerce.odcs.yaml');
   await api.ws.saveFile(
     commerce.slug,
     'commerce.odcs.yaml',
     {
-      baseHash: f.hash,
-      source: change(f.source),
+      baseHash: file.hash,
+      source: change(file.source),
     },
     LOCAL_READER,
   );
@@ -31,8 +31,8 @@ async function commitEdit(change: (text: string) => string, message: string) {
 }
 await commitEdit(t => t.replace('version: 1.0.0', 'version: 1.1.0').replace('        description: Order amount.', '        description: Order amount in USD.'), 'Describe amount');
 await commitEdit(
-  t =>
-    t
+  source =>
+    source
       .replace('version: 1.1.0', 'version: 1.2.0')
       .replace(
         '      - name: status\n        logicalType: string\n        required: true\n        description: Order status.\n',
@@ -50,10 +50,10 @@ page.on('console', m => {
 await routeApi(page, api);
 let passed = 0;
 async function check(name: string, run: () => Promise<void>) {
-  const t = Date.now();
+  const startedAt = Date.now();
   await run();
   passed++;
-  console.log('PASS', name, `(${((Date.now() - t) / 1000).toFixed(1)} s)`);
+  console.log('PASS', name, `(${((Date.now() - startedAt) / 1000).toFixed(1)} s)`);
 }
 const tree = (p: Page = page) => p.getByRole('tree', { name: 'Projects' });
 async function openFile(path: string, project: string) {
@@ -86,19 +86,19 @@ try {
   await check('contract overview: identity, status, team, and a searchable table list with counts', async () => {
     await openFile('commerce.odcs.yaml', 'Commerce workspace');
     await contractTab().click();
-    const o = overview();
-    await expect(o).toBeVisible();
-    await expect(o.getByRole('heading', { level: 2 })).toHaveText('Commerce warehouse contract');
+    const contractOverview = overview();
+    await expect(contractOverview).toBeVisible();
+    await expect(contractOverview.getByRole('heading', { level: 2 })).toHaveText('Commerce warehouse contract');
     // The id is one monospace chip with a copy button, never a text that breaks inside the UUID.
-    await expect(o.locator('.odcs-contract-id code')).toHaveText(/^[0-9a-f-]{36}$/);
-    await expect(o.getByRole('button', { name: 'Copy contract id' })).toBeVisible();
-    for (const fact of ['1.2.0', 'active', 'Commerce', 'Sales analytics', 'v3.1.0']) await expect(o).toContainText(fact);
+    await expect(contractOverview.locator('.odcs-contract-id code')).toHaveText(/^[0-9a-f-]{36}$/);
+    await expect(contractOverview.getByRole('button', { name: 'Copy contract id' })).toBeVisible();
+    for (const fact of ['1.2.0', 'active', 'Commerce', 'Sales analytics', 'v3.1.0']) await expect(contractOverview).toContainText(fact);
     // Who owns the contract is on the page itself, with no dialog to open.
-    const team = o.getByRole('region', { name: 'Team and roles' });
+    const team = contractOverview.getByRole('region', { name: 'Team and roles' });
     await expect(team).toContainText('commerce-data');
     await expect(team).toContainText('owner');
-    await expect(o.getByRole('button', { name: 'Team and roles' })).toHaveCount(0);
-    const table = o.getByRole('table', { name: 'Tables' });
+    await expect(contractOverview.getByRole('button', { name: 'Team and roles' })).toHaveCount(0);
+    const table = contractOverview.getByRole('table', { name: 'Tables' });
     await expect(table.getByRole('row')).toHaveCount(5);
     const orders = table.getByRole('row').filter({ hasText: 'analytics.commerce.orders' });
     await expect(orders).toContainText('6'); // Properties after the "Add currency" commit.
@@ -106,22 +106,22 @@ try {
     await expect(orders.locator('td[data-label="Keys"]')).toContainText('1 FK');
     // The physical name is a second line under the table name, not a column of its own.
     expect(await table.getByRole('columnheader').allTextContents()).toEqual(['Table', 'Properties', 'Keys', 'Description']);
-    await o.getByRole('searchbox', { name: 'Find a table' }).fill('line');
+    await contractOverview.getByRole('searchbox', { name: 'Find a table' }).fill('line');
     await expect(table.getByRole('row')).toHaveCount(2);
     await expect(table).toContainText('order_lines');
-    await o.getByRole('searchbox', { name: 'Find a table' }).fill('');
+    await contractOverview.getByRole('searchbox', { name: 'Find a table' }).fill('');
     await page.screenshot({ path: '/tmp/workbench-odcs-overview.png' });
   });
   await check('dataset page header and Schema tab: every property with type, flags and keys; sortable, filterable, foreign keys link to their target', async () => {
     await openDataset('orders');
-    const d = dataset('orders');
-    await expect(d.getByRole('heading', { level: 2 })).toHaveText('orders');
-    const header = d.getByRole('group', { name: 'Table facts' });
+    const datasetView = dataset('orders');
+    await expect(datasetView.getByRole('heading', { level: 2 })).toHaveText('orders');
+    const header = datasetView.getByRole('group', { name: 'Table facts' });
     for (const fact of ['table', '6 properties', '0 quality rules', 'Add currency']) await expect(header).toContainText(fact);
     // Properties is the default asset tab and contains the schema table.
     expect(await views('orders').getByRole('tab').allTextContents()).toEqual(['Lineage', 'Relationships', 'Data Quality', 'Properties', 'History']);
     await expect(views('orders').getByRole('tab', { name: 'Properties' })).toHaveAttribute('aria-selected', 'true');
-    const table = d.getByRole('table', { name: 'Properties' });
+    const table = datasetView.getByRole('table', { name: 'Properties' });
     // Columns nobody fills (physical type, classification, tags) are not drawn. Logical type and
     // the three flags are controls in the row.
     expect(await table.getByRole('columnheader').allTextContents()).toEqual(['Name', 'Logical type', 'Required', 'Unique', 'Primary key', 'Description', 'Foreign keys', 'Edit']);
@@ -131,14 +131,14 @@ try {
     await expect(table.getByLabel('Primary key of amount')).not.toBeChecked();
     const names = async () => (await table.getByRole('row').locator('td:first-child').allTextContents()).map(s => s.trim());
     expect(await names()).toEqual(['order_id', 'customer_id', 'order_date', 'amount', 'status', 'currency']);
-    const sortBy = d.getByRole('combobox', { name: 'Sort properties by' });
+    const sortBy = datasetView.getByRole('combobox', { name: 'Sort properties by' });
     await sortBy.selectOption('name');
     expect(await names()).toEqual(['amount', 'currency', 'customer_id', 'order_date', 'order_id', 'status']);
-    await d.getByRole('button', { name: /reverse/ }).click();
+    await datasetView.getByRole('button', { name: /reverse/ }).click();
     expect(await names()).toEqual(['status', 'order_id', 'order_date', 'customer_id', 'currency', 'amount']);
-    await d.getByRole('searchbox', { name: 'Filter properties' }).fill('date');
+    await datasetView.getByRole('searchbox', { name: 'Filter properties' }).fill('date');
     expect(await names()).toEqual(['order_date']);
-    await d.getByRole('searchbox', { name: 'Filter properties' }).fill('');
+    await datasetView.getByRole('searchbox', { name: 'Filter properties' }).fill('');
     await page.screenshot({ path: '/tmp/workbench-odcs-schema.png' });
     await table.getByRole('row').filter({ hasText: 'customer_id' }).getByRole('button', { name: 'Open customers' }).click();
     await expect(dataset('customers')).toBeVisible();
@@ -183,7 +183,8 @@ try {
   await check('History tab: versions from Git with property-level changes between two versions', async () => {
     await views('orders').getByRole('tab', { name: 'History' }).click();
     const versions = dataset('orders').getByRole('table', { name: 'Versions' });
-    await expect(versions.getByRole('row')).toHaveCount(4); // Header + 3 commits touching the contract.
+    // Header + 3 commits touching the contract.
+    await expect(versions.getByRole('row')).toHaveCount(4);
     await expect(versions).toContainText('Add currency');
     await expect(versions).toContainText('1.2.0');
     await expect(versions).toContainText('Workbench Test');
@@ -233,10 +234,10 @@ try {
     await contractTab().click();
     const table = overview().getByRole('table', { name: 'Tables' });
     await expect(table.getByRole('row')).toHaveCount(170);
-    const t = Date.now();
+    const startedAt = Date.now();
     await overview().getByRole('searchbox', { name: 'Find a table' }).fill('invoice');
     await expect(table.getByRole('row').nth(1)).toContainText(/invoice/i);
-    expect(Date.now() - t).toBeLessThan(1500);
+    expect(Date.now() - startedAt).toBeLessThan(1500);
     const first = (await table.getByRole('row').nth(1).locator('td').first().getByRole('button').first().textContent())!.trim();
     await openDataset(first);
     await expect(dataset(first).getByRole('table', { name: 'Properties' })).toBeVisible();
@@ -255,13 +256,13 @@ try {
     await openDataset('orders');
     const table = dataset('orders').getByRole('table', { name: 'Properties' });
     const diff = async () => {
-      const d = await git(commerce.slug, ['diff', '-U0', '--', 'commerce.odcs.yaml']);
+      const diffOutput = await git(commerce.slug, ['diff', '-U0', '--', 'commerce.odcs.yaml']);
       return {
-        removed: d
+        removed: diffOutput
           .split('\n')
           .filter(l => /^-(?!--)/.test(l))
           .map(l => l.slice(1)),
-        added: d
+        added: diffOutput
           .split('\n')
           .filter(l => /^\+(?!\+\+)/.test(l))
           .map(l => l.slice(1)),

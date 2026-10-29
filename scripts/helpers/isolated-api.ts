@@ -49,7 +49,7 @@ export async function startIsolatedApi(options: { root?: string; watch?: boolean
     async restart({ deleteCache = false } = {}) {
       await current.server.stop(true);
       current.ws.close();
-      if (deleteCache) for (const s of ['', '-wal', '-shm']) rmSync(current.ws.layout.cache + s, { force: true });
+      if (deleteCache) for (const suffix of ['', '-wal', '-shm']) rmSync(current.ws.layout.cache + suffix, { force: true });
       current = await start();
     },
     async stop() {

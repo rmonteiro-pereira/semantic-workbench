@@ -41,14 +41,19 @@ export function placeEdgeLabels(requests: readonly LabelRequest[], obstacles: re
   const placed = new Map<string, Rect>();
   const ordered = [...requests].sort((a, b) => a.priority - b.priority || a.at.y - b.at.y);
   for (const request of ordered) {
-    const { w, h } = labelSize(request.lines);
-    if (request.room !== null && request.room < w + 2 * GAP_AROUND) continue;
+    const { w: width, h: height } = labelSize(request.lines);
+    if (request.room !== null && request.room < width + 2 * GAP_AROUND) continue;
     const centre = request.at;
     // A label sits just above its line, then just below it, and only then on it. An opaque pill
     // over a line reads as part of the line.
-    const clear = h / 2 + LINE_CLEARANCE;
-    for (const shift of [-clear, clear, 0, h + GAP_AROUND, -(h + GAP_AROUND)]) {
-      const spot = { x: centre.x - w / 2, y: centre.y + shift - h / 2, w, h };
+    const clear = height / 2 + LINE_CLEARANCE;
+    for (const shift of [-clear, clear, 0, height + GAP_AROUND, -(height + GAP_AROUND)]) {
+      const spot = {
+        x: centre.x - width / 2,
+        y: centre.y + shift - height / 2,
+        w: width,
+        h: height,
+      };
       const outside = bounds && (spot.x < bounds.x || spot.y < bounds.y || spot.x + spot.w > bounds.x + bounds.w || spot.y + spot.h > bounds.y + bounds.h);
       if (outside) continue;
       const blocked = obstacles.some(o => touches(spot, o)) || [...placed.values()].some(o => touches(spot, o, GAP_AROUND));
@@ -113,7 +118,14 @@ export function buildLineLabels(context: LabelContext, lines: readonly LabelledL
     const ends = lineEnds(context, line);
     const fixed = !context.scrolling.has(line.fromCard) && !context.scrolling.has(line.toCard);
     if (!ends || !fixed) continue;
-    const priority = line.onPath ? 0 : line.count > 1 ? 2 : 1;
+    let priority: number;
+    if (line.onPath) {
+      priority = 0;
+    } else if (line.count > 1) {
+      priority = 2;
+    } else {
+      priority = 1;
+    }
     const route = context.routes[line.id];
     const routed = route !== undefined && route.length > 0;
     const middle = pointAtHalf(routed ? [ends.from, ...route, ends.to] : [ends.from, ends.to]);

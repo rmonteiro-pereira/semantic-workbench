@@ -19,9 +19,9 @@ await routeApi(page, api);
 const report: any[] = [];
 const shot = async (name: string) => page.screenshot({ path: `${out}/${name}.png` });
 const tab = async (name: string) => {
-  const b = page.locator('.tabs').getByRole('button', { name, exact: true });
-  if (!(await b.count())) return false;
-  await b.click();
+  const tabButton = page.locator('.tabs').getByRole('button', { name, exact: true });
+  if (!(await tabButton.count())) return false;
+  await tabButton.click();
   await page.waitForTimeout(600);
   return true;
 };

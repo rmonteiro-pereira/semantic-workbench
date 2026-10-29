@@ -54,32 +54,32 @@ function open(path: string) {
     }
     db.exec('PRAGMA journal_mode=WAL;' + SCHEMA + `PRAGMA user_version=${CACHE_VERSION};`);
     return { db, rebuilt: true };
-  } catch (e) {
+  } catch (error) {
     try {
       db.close();
     } catch {}
-    throw e;
+    throw error;
   }
 }
-const row = (r: any): CachedFile => ({
-  project: r.project,
-  path: r.path,
-  hash: r.hash,
-  serialization: r.serialization,
-  docType: r.doc_type,
-  layout: r.layout ?? null,
-  valid: !!r.valid,
-  visible: !!r.visible,
-  gitState: r.git_state,
-  indexedAt: r.indexed_at,
+const row = (dbRow: any): CachedFile => ({
+  project: dbRow.project,
+  path: dbRow.path,
+  hash: dbRow.hash,
+  serialization: dbRow.serialization,
+  docType: dbRow.doc_type,
+  layout: dbRow.layout ?? null,
+  valid: !!dbRow.valid,
+  visible: !!dbRow.visible,
+  gitState: dbRow.git_state,
+  indexedAt: dbRow.indexed_at,
 });
-const finding = (f: any): Issue => ({
-  severity: f.severity,
-  code: f.code,
-  path: f.json_path,
-  message: f.message,
-  ...(f.line != null ? { line: f.line } : {}),
-  ...(f.column != null ? { column: f.column } : {}),
+const finding = (dbRow: any): Issue => ({
+  severity: dbRow.severity,
+  code: dbRow.code,
+  path: dbRow.json_path,
+  message: dbRow.message,
+  ...(dbRow.line != null ? { line: dbRow.line } : {}),
+  ...(dbRow.column != null ? { column: dbRow.column } : {}),
 });
 const blobName = (path: string) => path.slice(path.lastIndexOf('/') + 1);
 // A blob's entities are dropped once no file of any copy holds that blob any more.
@@ -94,8 +94,8 @@ function copyIndex(db: Database, copy: string) {
   const findingsOf = (project: string, path: string): Issue[] =>
     (db.query('SELECT * FROM findings WHERE copy=? AND project=? AND path=? ORDER BY rowid').all(copy, project, path) as any[]).map(finding);
   const file = (project: string, path: string) => {
-    const r = db.query('SELECT * FROM files WHERE copy=? AND project=? AND path=?').get(copy, project, path);
-    return r ? row(r) : null;
+    const fileRow = db.query('SELECT * FROM files WHERE copy=? AND project=? AND path=?').get(copy, project, path);
+    return fileRow ? row(fileRow) : null;
   };
   return {
     copy,
@@ -113,10 +113,10 @@ function copyIndex(db: Database, copy: string) {
     findings: findingsOf,
     /** The same blob already parsed under this path in another copy, so it is not parsed again. */
     parsedElsewhere: (project: string, path: string, hash: string) => {
-      const r = db.query('SELECT * FROM files WHERE project=? AND path=? AND hash=? AND copy<>? LIMIT 1').get(project, path, hash, copy) as any;
-      if (!r) return null;
-      const findings = (db.query('SELECT * FROM findings WHERE copy=? AND project=? AND path=? ORDER BY rowid').all(r.copy, project, path) as any[]).map(finding);
-      return { file: row(r), findings };
+      const fileRow = db.query('SELECT * FROM files WHERE project=? AND path=? AND hash=? AND copy<>? LIMIT 1').get(project, path, hash, copy) as any;
+      if (!fileRow) return null;
+      const findings = (db.query('SELECT * FROM findings WHERE copy=? AND project=? AND path=? ORDER BY rowid').all(fileRow.copy, project, path) as any[]).map(finding);
+      return { file: row(fileRow), findings };
     },
     put: db.transaction((file: CachedFile, entities: CachedEntity[], findings: Issue[]) => {
       const replaced = hashesOf(db, 'copy=? AND project=? AND path=?', [copy, file.project, file.path]);
@@ -137,19 +137,19 @@ function copyIndex(db: Database, copy: string) {
       const name = blobName(file.path);
       db.query('DELETE FROM entities WHERE hash=? AND name=?').run(file.hash, name);
       const entity = db.query('INSERT OR IGNORE INTO entities VALUES(?,?,?,?,?)');
-      for (const e of entities) entity.run(file.hash, name, e.id, e.name, e.kind);
+      for (const cachedEntity of entities) entity.run(file.hash, name, cachedEntity.id, cachedEntity.name, cachedEntity.kind);
       const insert = db.query('INSERT INTO findings VALUES(?,?,?,?,?,?,?,?,?)');
-      for (const f of findings) insert.run(copy, file.project, file.path, f.severity, f.code, f.path, f.line ?? null, f.column ?? null, f.message);
+      for (const issue of findings) insert.run(copy, file.project, file.path, issue.severity, issue.code, issue.path, issue.line ?? null, issue.column ?? null, issue.message);
       forgetUnusedEntities(db, replaced);
     }),
     remove: db.transaction((project: string, path: string) => {
       const removed = hashesOf(db, 'copy=? AND project=? AND path=?', [copy, project, path]);
-      for (const t of ['files', 'findings']) db.query(`DELETE FROM ${t} WHERE copy=? AND project=? AND path=?`).run(copy, project, path);
+      for (const table of ['files', 'findings']) db.query(`DELETE FROM ${table} WHERE copy=? AND project=? AND path=?`).run(copy, project, path);
       forgetUnusedEntities(db, removed);
     }),
     removeProject: db.transaction((project: string) => {
       const removed = hashesOf(db, 'copy=? AND project=?', [copy, project]);
-      for (const t of ['files', 'findings']) db.query(`DELETE FROM ${t} WHERE copy=? AND project=?`).run(copy, project);
+      for (const table of ['files', 'findings']) db.query(`DELETE FROM ${table} WHERE copy=? AND project=?`).run(copy, project);
       if (copy === PUBLISHED_COPY) db.query('DELETE FROM suggestions WHERE file_project=?').run(project);
       forgetUnusedEntities(db, removed);
     }),
@@ -177,13 +177,13 @@ export function createCache(path: string) {
     /** Drops every row of one working copy, for a removed copy. */
     removeCopy: db.transaction((copy: string) => {
       const removed = hashesOf(db, 'copy=?', [copy]);
-      for (const t of ['files', 'findings']) db.query(`DELETE FROM ${t} WHERE copy=?`).run(copy);
+      for (const table of ['files', 'findings']) db.query(`DELETE FROM ${table} WHERE copy=?`).run(copy);
       forgetUnusedEntities(db, removed);
     }),
     /** Drops one project from every person's working copy, for a project leaving the workspace. */
     removeProjectFromCopies: db.transaction((project: string) => {
       const removed = hashesOf(db, 'copy<>? AND project=?', [PUBLISHED_COPY, project]);
-      for (const t of ['files', 'findings']) db.query(`DELETE FROM ${t} WHERE copy<>? AND project=?`).run(PUBLISHED_COPY, project);
+      for (const table of ['files', 'findings']) db.query(`DELETE FROM ${table} WHERE copy<>? AND project=?`).run(PUBLISHED_COPY, project);
       forgetUnusedEntities(db, removed);
     }),
     close: () => db.close(),

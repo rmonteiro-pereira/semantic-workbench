@@ -32,7 +32,7 @@ type Props = {
   lineage: import('../odcs/lineage').LineageGraph | null;
   lineageCenterId: string;
   lineageCenterChanged: (id: string) => void;
-  handleLineageCanvasOpenAsset: (c: import('../odcs/lineage').LineageCard) => void;
+  handleLineageCanvasOpenAsset: (lineageCard: import('../odcs/lineage').LineageCard) => void;
   continueInNeighborhood: (card: import('../odcs/lineage').LineageCard) => void;
   model:
     | {
@@ -75,8 +75,8 @@ type Props = {
   handleNeighborhoodGraphSelectEntity: (id: string) => void;
   setSelectedEdge: React.Dispatch<React.SetStateAction<string>>;
   handleNeighborhoodGraphOpenKpis: (concept: string) => void;
-  crossFile: (e: import('../../shared/core/model').Entity) => import('../graph/NeighborhoodGraph').CrossFileTarget[];
-  crossTo: (t: import('../graph/NeighborhoodGraph').CrossFileTarget) => void;
+  crossFile: (entity: import('../../shared/core/model').Entity) => import('../graph/NeighborhoodGraph').CrossFileTarget[];
+  crossTo: (crossFileTarget: import('../graph/NeighborhoodGraph').CrossFileTarget) => void;
 };
 /** Renders graph views. */
 export function GraphViews({

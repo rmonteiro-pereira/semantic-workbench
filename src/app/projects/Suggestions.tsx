@@ -33,33 +33,33 @@ export function Suggestions({ items, projects, onAccept, onReject }: { items: Su
             }
           >
             <p className="dialog-lead">Files that may belong in another project, with the evidence. Nothing moves until you choose Add to project.</p>
-            {items.map(s => (
-              <div key={s.id} className="suggestion">
+            {items.map(suggestion => (
+              <div key={suggestion.id} className="suggestion">
                 <p>
-                  <strong>{s.file.path}</strong> ({name(s.file.project)}) may belong in <strong>{name(s.targetProject)}</strong>.
+                  <strong>{suggestion.file.path}</strong> ({name(suggestion.file.project)}) may belong in <strong>{name(suggestion.targetProject)}</strong>.
                 </p>
                 <ul>
-                  {s.evidence.slice(0, 3).map((e, i) => (
-                    <li key={i} title={e.detail}>
-                      {e.detail}
+                  {suggestion.evidence.slice(0, 3).map((entry, i) => (
+                    <li key={i} title={entry.detail}>
+                      {entry.detail}
                     </li>
                   ))}
-                  {s.evidence.length > 3 && <li>and {s.evidence.length - 3} more</li>}
+                  {suggestion.evidence.length > 3 && <li>and {suggestion.evidence.length - 3} more</li>}
                 </ul>
                 <span>
                   <button
-                    hidden={!access.can('move', s.file.project) || !access.can('move', s.targetProject)}
+                    hidden={!access.can('move', suggestion.file.project) || !access.can('move', suggestion.targetProject)}
                     onClick={() => {
-                      onAccept(s.id);
+                      onAccept(suggestion.id);
                       if (items.length === 1) setOpen(false);
                     }}
                   >
                     Add to project
                   </button>
                   <button
-                    hidden={!access.can('edit', s.file.project)}
+                    hidden={!access.can('edit', suggestion.file.project)}
                     onClick={() => {
-                      onReject(s.id);
+                      onReject(suggestion.id);
                       if (items.length === 1) setOpen(false);
                     }}
                   >

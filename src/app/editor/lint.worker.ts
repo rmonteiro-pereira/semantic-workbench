@@ -26,8 +26,8 @@ self.onmessage = async (
   let issues;
   try {
     issues = isGitignore(filename) ? [] : validateInput(source, filename).issues;
-  } catch (e) {
-    issues = [{ severity: 'error', code: 'parse', path: '/', message: (e as Error).message }];
+  } catch (error) {
+    issues = [{ severity: 'error', code: 'parse', path: '/', message: (error as Error).message }];
   }
   if (!isGitignore(filename))
     try {

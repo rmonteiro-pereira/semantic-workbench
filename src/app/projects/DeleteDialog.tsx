@@ -233,8 +233,8 @@ export function DeleteDialog({ target, projects, dirty, onCancel, onDeleted, onR
       const outcome = await runDeletion(target, removing, name);
       if (outcome.removed) onRemoved(outcome.label);
       else onDeleted(outcome.entryIds, outcome.undoUntil, outcome.label);
-    } catch (e) {
-      setError(`Nothing was ${removing ? 'removed' : 'deleted'}: ${(e as Error).message}`);
+    } catch (error) {
+      setError(`Nothing was ${removing ? 'removed' : 'deleted'}: ${(error as Error).message}`);
       setBusy(false);
     }
   }

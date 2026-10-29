@@ -34,9 +34,9 @@ test('5,000 entities and 15,000 relationships parse and align', () => {
   const ontology = Array.from({ length: count }, (_, i) => ({
     concept: `Entity_${i}`,
     type: 'EntityType',
-    relationships: [1, 7, 31].map(k => ({
-      name: `link_${k}`,
-      roles: [{ concept: `Entity_${(i + k) % count}` }],
+    relationships: [1, 7, 31].map(linkOffset => ({
+      name: `link_${linkOffset}`,
+      roles: [{ concept: `Entity_${(i + linkOffset) % count}` }],
       verbalizes: ['links'],
     })),
   }));
@@ -63,7 +63,7 @@ test('loadable enterprise example has exactly 1,000 entities and 5,000 relations
   expect(model.edges[0].data.path).toEqual(['ontology', 0, 'relationships', 0]);
 });
 test('semantic join metadata retains keys and editable source path', () => {
-  const m = inspect(
+  const inspection = inspect(
     JSON.stringify({
       name: 'Commerce',
       datasets: [
@@ -81,6 +81,6 @@ test('semantic join metadata retains keys and editable source path', () => {
       ],
     }),
   );
-  expect(m.edges[0].data.definition.from_columns).toEqual(['customer_id']);
-  expect(m.edges[0].data.path).toEqual(['relationships', 0]);
+  expect(inspection.edges[0].data.definition.from_columns).toEqual(['customer_id']);
+  expect(inspection.edges[0].data.path).toEqual(['relationships', 0]);
 });

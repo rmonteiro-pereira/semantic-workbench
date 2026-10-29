@@ -66,9 +66,9 @@ export function AdjustGroupingDialog({ overview, value, onChange, onClose }: Pro
         <label>
           <span>Entity</span>
           <select aria-label="Entity to regroup" value={selected} onChange={e => setEntity(e.target.value)}>
-            {overview.entities.map(e => (
-              <option key={e.id} value={e.id}>
-                {e.name}
+            {overview.entities.map(entity => (
+              <option key={entity.id} value={entity.id}>
+                {entity.name}
               </option>
             ))}
           </select>
@@ -76,9 +76,9 @@ export function AdjustGroupingDialog({ overview, value, onChange, onClose }: Pro
         <label>
           <span>Move to</span>
           <select aria-label="Move to group" value={destination} onChange={e => setGroup(e.target.value)}>
-            {overview.groups.map(g => (
-              <option key={g.id} value={g.id}>
-                {g.name}
+            {overview.groups.map(group => (
+              <option key={group.id} value={group.id}>
+                {group.name}
               </option>
             ))}
           </select>
@@ -90,12 +90,12 @@ export function AdjustGroupingDialog({ overview, value, onChange, onClose }: Pro
       </div>
       <h3>Groups</h3>
       <ul className="adjust-grouping-groups" aria-label="Current groups">
-        {overview.groups.map(g => (
-          <li key={g.id}>
-            <span className="group-swatch" style={{ background: g.color }} aria-hidden="true" />
-            <span className="group-name">{g.name}</span>
+        {overview.groups.map(group => (
+          <li key={group.id}>
+            <span className="group-swatch" style={{ background: group.color }} aria-hidden="true" />
+            <span className="group-name">{group.name}</span>
             <small>
-              {g.entities.length} {g.entities.length === 1 ? 'entity' : 'entities'}
+              {group.entities.length} {group.entities.length === 1 ? 'entity' : 'entities'}
             </small>
           </li>
         ))}

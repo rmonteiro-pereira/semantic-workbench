@@ -32,15 +32,15 @@ test('split and consolidated Flights give the same concepts, datasets, joins, me
   expect(whole.edges.filter((e: any) => e.data.kind === 'Dataset relationship').length).toBe(splitModel.edges.filter((e: any) => e.data.kind === 'Dataset relationship').length);
   expect(count(whole, 'Metric')).toBe(count(splitModel, 'Metric'));
   expect(whole.document.ontology.length).toBe(ontology.document.ontology.length);
-  const a = buildContext(split, 'flights/flights.mapping.yaml');
-  const b = buildContext(consolidated, agentCatalog(consolidated).mappings[0].id);
-  expect(a.bindings).toHaveLength(60);
-  expect(b.bindings).toHaveLength(60);
-  for (const k of ['concepts', 'datasets', 'joins', 'metrics', 'fields'] as const) expect((b as any)[k].length).toBe((a as any)[k].length);
-  expect(b.findings.filter(f => f.severity === 'error')).toEqual([]);
+  const splitContext = buildContext(split, 'flights/flights.mapping.yaml');
+  const consolidatedContext = buildContext(consolidated, agentCatalog(consolidated).mappings[0].id);
+  expect(splitContext.bindings).toHaveLength(60);
+  expect(consolidatedContext.bindings).toHaveLength(60);
+  for (const key of ['concepts', 'datasets', 'joins', 'metrics', 'fields'] as const) expect((consolidatedContext as any)[key].length).toBe((splitContext as any)[key].length);
+  expect(consolidatedContext.findings.filter(f => f.severity === 'error')).toEqual([]);
 });
 test('layouts are labelled: split files, and the consolidated form as deprecated upstream', async () => {
-  for (const f of ['flights.ontology.yaml', 'flights.semantic_model.yaml', 'flights.mapping.yaml']) expect((inspect(await read(f), f) as any).layout).toBe('split');
+  for (const fileName of ['flights.ontology.yaml', 'flights.semantic_model.yaml', 'flights.mapping.yaml']) expect((inspect(await read(fileName), fileName) as any).layout).toBe('split');
   const whole = inspect(await read('flights.yaml'), 'flights.yaml') as any;
   expect(whole.layout).toBe('embedded (deprecated)');
   // The embedded semantic model is not treated as ontology-only: its datasets are entities of the
@@ -52,9 +52,9 @@ test('other single-file layouts are rejected with the two official layouts named
   const ontology = await read('flights.ontology.yaml');
   const semantic = await read('flights.semantic_model.yaml');
   const mixed = stringify({ ...parse(ontology), datasets: parse(semantic).datasets });
-  const r = validateInput(mixed, 'mixed.yaml');
-  expect(r.valid).toBe(false);
-  expect(r.issues.map(i => i.message).join(' ')).toContain('two official Ossie layouts');
+  const validation = validateInput(mixed, 'mixed.yaml');
+  expect(validation.valid).toBe(false);
+  expect(validation.issues.map(i => i.message).join(' ')).toContain('two official Ossie layouts');
   const mapping = await read('flights.mapping.yaml');
   const r2 = validateInput(mapping.replace(/^concept_mappings:/m, 'ontology: []\nconcept_mappings:'), 'm.yaml');
   expect(r2.valid).toBe(false);

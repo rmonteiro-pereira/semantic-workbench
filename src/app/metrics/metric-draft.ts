@@ -39,72 +39,83 @@ export type Draft = {
   format: string;
 };
 /** Builds the metric expression represented by the wizard draft. */
-export function expressionFor(d: Draft) {
-  if (d.type === 'simple') return d.field ? (d.aggregation === 'COUNT DISTINCT' ? `COUNT(DISTINCT ${d.field})` : `${d.aggregation}(${d.field})`) : '';
-  if (d.type === 'ratio') return d.numerator && d.denominator ? `${d.numerator} / NULLIF(${d.denominator}, 0)` : '';
-  return d.expression.trim();
+export function expressionFor(draft: Draft) {
+  if (draft.type === 'simple') {
+    if (!draft.field) return '';
+    if (draft.aggregation === 'COUNT DISTINCT') return `COUNT(DISTINCT ${draft.field})`;
+    return `${draft.aggregation}(${draft.field})`;
+  }
+  if (draft.type === 'ratio') return draft.numerator && draft.denominator ? `${draft.numerator} / NULLIF(${draft.denominator}, 0)` : '';
+  return draft.expression.trim();
 }
 /** Splits comma-separated input into nonempty trimmed values. */
-export const list = (s: string) =>
-  s
+export const list = (text: string) =>
+  text
     .split(',')
     .map(x => x.trim())
     .filter(Boolean);
 const num = (s: string) => (s.trim() === '' ? undefined : Number(s));
 // The extension names inputs and rules; the formula stays in the metric's expression.
 /** Builds metric attributes while keeping the formula in the metric expression. */
-export function extensionFor(d: Draft): Record<string, any> {
-  const e: Record<string, any> = { label: d.label.trim() || undefined, type: d.type };
-  if (d.type === 'ratio') {
-    e.numerator = d.numerator;
-    e.denominator = d.denominator;
+/** The additivity a metric has by its type when the author did not choose one. */
+function impliedAdditivity(draft: Draft): string {
+  if (draft.type === 'ratio') return 'non_additive';
+  if (draft.type === 'simple' && ['SUM', 'COUNT'].includes(draft.aggregation)) return 'additive';
+  return '';
+}
+
+export function extensionFor(draft: Draft): Record<string, any> {
+  const extension: Record<string, any> = { label: draft.label.trim() || undefined, type: draft.type };
+  if (draft.type === 'ratio') {
+    extension.numerator = draft.numerator;
+    extension.denominator = draft.denominator;
   }
-  if (['derived', 'cumulative', 'filtered'].includes(d.type) && list(d.inputs).length) e.inputs = list(d.inputs);
-  if (d.type === 'cumulative')
-    e.window = {
-      kind: d.window || 'to_date',
-      ...(d.window === 'rolling' && num(d.windowLength) ? { length: num(d.windowLength) } : {}),
-      ...(d.windowGrain ? { grain: d.windowGrain } : {}),
+  if (['derived', 'cumulative', 'filtered'].includes(draft.type) && list(draft.inputs).length) extension.inputs = list(draft.inputs);
+  if (draft.type === 'cumulative')
+    extension.window = {
+      kind: draft.window || 'to_date',
+      ...(draft.window === 'rolling' && num(draft.windowLength) ? { length: num(draft.windowLength) } : {}),
+      ...(draft.windowGrain ? { grain: draft.windowGrain } : {}),
     };
-  if (d.type === 'filtered' && d.filterField)
-    e.filters = [
+  if (draft.type === 'filtered' && draft.filterField)
+    extension.filters = [
       {
-        field: d.filterField,
-        operator: d.filterOperator || 'equals',
-        ...(['is_null', 'is_not_null'].includes(d.filterOperator) ? {} : { value: d.filterValue }),
+        field: draft.filterField,
+        operator: draft.filterOperator || 'equals',
+        ...(['is_null', 'is_not_null'].includes(draft.filterOperator) ? {} : { value: draft.filterValue }),
       },
     ];
-  const additivity = d.additivity || (d.type === 'ratio' ? 'non_additive' : d.type === 'simple' && ['SUM', 'COUNT'].includes(d.aggregation) ? 'additive' : '');
-  if (additivity) e.additivity = additivity;
+  const additivity = draft.additivity || impliedAdditivity(draft);
+  if (additivity) extension.additivity = additivity;
   if (additivity === 'semi_additive') {
-    e.non_additive_over = 'time';
-    e.period_aggregation = 'last';
+    extension.non_additive_over = 'time';
+    extension.period_aggregation = 'last';
   }
-  if (d.timeDimension)
-    e.time = {
-      dimension: d.timeDimension,
-      ...(d.minGrain ? { min_grain: d.minGrain } : {}),
-      ...(d.grains.length ? { allowed_grains: d.grains } : {}),
+  if (draft.timeDimension)
+    extension.time = {
+      dimension: draft.timeDimension,
+      ...(draft.minGrain ? { min_grain: draft.minGrain } : {}),
+      ...(draft.grains.length ? { allowed_grains: draft.grains } : {}),
     };
-  if (d.dimensions.length) e.dimensions = d.dimensions;
-  if (d.unit.trim()) e.unit = d.unit.trim();
-  if (d.format.trim()) e.format = d.format.trim();
-  if (d.direction && num(d.target) !== undefined) {
-    const ops = d.direction === 'higher_is_better' ? 'mustBeLessThan' : 'mustBeGreaterThan';
+  if (draft.dimensions.length) extension.dimensions = draft.dimensions;
+  if (draft.unit.trim()) extension.unit = draft.unit.trim();
+  if (draft.format.trim()) extension.format = draft.format.trim();
+  if (draft.direction && num(draft.target) !== undefined) {
+    const ops = draft.direction === 'higher_is_better' ? 'mustBeLessThan' : 'mustBeGreaterThan';
     const thresholds: Record<string, any> = {};
-    if (num(d.warning) !== undefined) thresholds.warning = { [ops]: num(d.warning) };
-    if (num(d.critical) !== undefined) thresholds.critical = { [ops]: num(d.critical) };
-    e.targets = [
+    if (num(draft.warning) !== undefined) thresholds.warning = { [ops]: num(draft.warning) };
+    if (num(draft.critical) !== undefined) thresholds.critical = { [ops]: num(draft.critical) };
+    extension.targets = [
       {
-        ...(d.targetGrain ? { grain: d.targetGrain } : {}),
-        direction: d.direction,
-        value: num(d.target),
+        ...(draft.targetGrain ? { grain: draft.targetGrain } : {}),
+        direction: draft.direction,
+        value: num(draft.target),
         ...(Object.keys(thresholds).length ? { thresholds } : {}),
       },
     ];
   }
-  if (d.owner.trim()) e.owner = d.owner.trim();
-  if (d.steward.trim()) e.steward = d.steward.trim();
-  e.status = d.status || 'proposed';
-  return Object.fromEntries(Object.entries(e).filter(([, v]) => v !== undefined));
+  if (draft.owner.trim()) extension.owner = draft.owner.trim();
+  if (draft.steward.trim()) extension.steward = draft.steward.trim();
+  extension.status = draft.status || 'proposed';
+  return Object.fromEntries(Object.entries(extension).filter(([, v]) => v !== undefined));
 }

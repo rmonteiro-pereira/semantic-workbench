@@ -46,117 +46,130 @@ const KIND_NAME: Record<string, string> = {
 
 /** Renders an asset card with row ports, a scrolling column list and neighbor expansion. */
 export const LineageCardNode = memo(({ data }: NodeProps) => {
-  const d = data as unknown as CardData;
-  const c = d.card;
-  const dim = !!d.onPath && !d.onPath.has(c.id) && !c.columns.some(x => d.onPath!.has(x.id));
-  const kindLabel = d.kindNames?.[c.kind] ?? KIND_NAME[c.kind] ?? c.kind;
-  const legendKind = c.kind as any;
-  const onPath = !!d.onPath && (d.onPath.has(c.id) || c.columns.some(x => d.onPath!.has(x.id)));
-  const className = [`lineage-card k-${c.kind}`, d.center ? ' center' : '', d.group ? ' group' : '', dim ? ' dim' : '', onPath ? ' on-path' : '', d.selected === c.id ? ' selected' : ''].join('');
+  const cardData = data as unknown as CardData;
+  const lineageCard = cardData.card;
+  const dim = !!cardData.onPath && !cardData.onPath.has(lineageCard.id) && !lineageCard.columns.some(x => cardData.onPath!.has(x.id));
+  const kindLabel = cardData.kindNames?.[lineageCard.kind] ?? KIND_NAME[lineageCard.kind] ?? lineageCard.kind;
+  const legendKind = lineageCard.kind as any;
+  const onPath = !!cardData.onPath && (cardData.onPath.has(lineageCard.id) || lineageCard.columns.some(x => cardData.onPath!.has(x.id)));
+  const className = [
+    `lineage-card k-${lineageCard.kind}`,
+    cardData.center ? ' center' : '',
+    cardData.group ? ' group' : '',
+    dim ? ' dim' : '',
+    onPath ? ' on-path' : '',
+    cardData.selected === lineageCard.id ? ' selected' : '',
+  ].join('');
   const legendLabel = KIND_LABEL[legendKind as keyof typeof KIND_LABEL] ?? kindLabel;
-  const detailLine = c.detail ? `\n${c.detail}` : '';
+  const openCard = () => (cardData.group ? cardData.onExpand(lineageCard.id) : cardData.onSelect(lineageCard.id));
+  const detailLine = lineageCard.detail ? `\n${lineageCard.detail}` : '';
   return (
     <div
       role="group"
-      data-id={c.id}
-      aria-label={`${kindLabel} ${c.label}`}
+      data-id={lineageCard.id}
+      aria-label={`${kindLabel} ${lineageCard.label}`}
       className={className}
-      style={{ width: CARD_W, ...(d.tint ? { '--card-tint': d.tint } : {}) } as React.CSSProperties}
+      style={
+        {
+          width: CARD_W,
+          ...(cardData.tint ? { '--card-tint': cardData.tint } : {}),
+        } as React.CSSProperties
+      }
       onDoubleClick={e => {
         if ((e.target as HTMLElement).closest('button')) return;
-        d.onWalk(c.id);
+        cardData.onWalk(lineageCard.id);
       }}
     >
-      <Port id={c.id} top={HEADER_H / 2} />
+      <Port id={lineageCard.id} top={HEADER_H / 2} />
       <header className="lineage-card-head" style={{ height: HEADER_H }}>
         <button
           className="lineage-card-title nodrag"
-          onClick={() => (d.group ? d.onExpand(c.id) : d.onSelect(c.id))}
-          aria-pressed={d.group ? undefined : d.selected === c.id}
-          title={`${legendLabel}: ${c.label}${detailLine}\n${c.file}`}
+          onClick={openCard}
+          aria-pressed={cardData.group ? undefined : cardData.selected === lineageCard.id}
+          title={`${legendLabel}: ${lineageCard.label}${detailLine}\n${lineageCard.file}`}
         >
           <span className="lineage-card-kind">
             <KindIcon kind={legendKind} />
             {kindLabel}
-            {d.center && <em>center</em>}
-            {c.badges?.length ? <PropertyBadges badges={c.badges} /> : null}
+            {cardData.center && <em>center</em>}
+            {lineageCard.badges?.length ? <PropertyBadges badges={lineageCard.badges} /> : null}
           </span>
-          <strong>{c.label}</strong>
-          {c.detail && <small>{c.detail}</small>}
+          <strong>{lineageCard.label}</strong>
+          {lineageCard.detail && <small>{lineageCard.detail}</small>}
         </button>
-        {c.findings?.length ? (
+        {lineageCard.findings?.length ? (
           <span className="lineage-card-marks nodrag">
-            {c.findings?.map((m, i) => (
-              <button key={i} className="lineage-finding" aria-label={`Mapping finding: ${m}`} title={m} onClick={() => d.onFinding?.(c, m)}>
+            {lineageCard.findings?.map((finding, i) => (
+              <button key={i} className="lineage-finding" aria-label={`Mapping finding: ${finding}`} title={finding} onClick={() => cardData.onFinding?.(lineageCard, finding)}>
                 <AlertTriangle size={13} />
               </button>
             ))}
           </span>
         ) : null}
         <span className="lineage-card-actions nodrag">
-          {!d.center && !d.group && (
-            <button aria-label="Walk here" title="Walk here (re-center)" onClick={() => d.onWalk(c.id)}>
+          {!cardData.center && !cardData.group && (
+            <button aria-label="Walk here" title="Walk here (re-center)" onClick={() => cardData.onWalk(lineageCard.id)}>
               <Footprints size={13} />
             </button>
           )}
-          {d.expanded && d.onCollapse ? (
-            <button aria-label={`Collapse ${c.label}`} title="Collapse" onClick={() => d.onCollapse!(c.id)}>
+          {cardData.expanded && cardData.onCollapse ? (
+            <button aria-label={`Collapse ${lineageCard.label}`} title="Collapse" onClick={() => cardData.onCollapse!(lineageCard.id)}>
               <Minus size={13} />
             </button>
           ) : (
-            d.hiddenNeighbours > 0 && (
+            cardData.hiddenNeighbours > 0 && (
               <button
-                aria-label={`Expand ${c.label}`}
-                title={d.group ? `Show these cards` : `Show ${d.hiddenNeighbours} more connected ${d.hiddenNeighbours === 1 ? 'table' : 'tables'}`}
-                onClick={() => d.onExpand(c.id)}
+                aria-label={`Expand ${lineageCard.label}`}
+                title={cardData.group ? `Show these cards` : `Show ${cardData.hiddenNeighbours} more connected ${cardData.hiddenNeighbours === 1 ? 'table' : 'tables'}`}
+                onClick={() => cardData.onExpand(lineageCard.id)}
               >
                 <Plus size={13} />
               </button>
             )
           )}
-          {c.kind === 'object' && d.onOpenAsset && (
-            <button aria-label="Open asset page" title="Open asset page" onClick={() => d.onOpenAsset!(c)}>
+          {lineageCard.kind === 'object' && cardData.onOpenAsset && (
+            <button aria-label="Open asset page" title="Open asset page" onClick={() => cardData.onOpenAsset!(lineageCard)}>
               <ExternalLink size={13} />
             </button>
           )}
         </span>
       </header>
-      {d.columnsOpen ? (
+      {cardData.columnsOpen ? (
         <ColumnList
-          card={c}
-          columns={c.columns}
-          connected={d.connected}
-          filterable={d.filterable}
-          visibleRows={d.listRows}
-          selected={d.selected}
-          onPath={d.onPath}
-          onSelect={d.onSelect}
-          onClose={() => d.onCloseColumns(c.id)}
+          card={lineageCard}
+          columns={lineageCard.columns}
+          connected={cardData.connected}
+          filterable={cardData.filterable}
+          visibleRows={cardData.listRows}
+          selected={cardData.selected}
+          onPath={cardData.onPath}
+          onSelect={cardData.onSelect}
+          onClose={() => cardData.onCloseColumns(lineageCard.id)}
         />
       ) : (
-        <CollapsedRows data={d} />
+        <CollapsedRows data={cardData} />
       )}
     </div>
   );
 });
 
 // A card that is not opened lists the columns that matter, then one line that opens the rest.
-function CollapsedRows({ data: d }: { data: CardData }) {
-  const c = d.card;
-  if (d.rows.length === 0 && d.more === 0) return null;
+function CollapsedRows({ data: cardData }: { data: CardData }) {
+  const lineageCard = cardData.card;
+  if (cardData.rows.length === 0 && cardData.more === 0) return null;
   return (
     <ul className="lineage-rows">
-      {d.rows.map((r, i) => (
-        <li key={r.id} data-id={r.id} className={d.onPath?.has(r.id) ? 'on-path' : ''} style={{ height: ROW_H }}>
-          <Port id={r.id} top={HEADER_H + i * ROW_H + ROW_H / 2} />
-          <ColumnRow card={c} column={r} selected={d.selected} onPath={d.onPath} onSelect={d.onSelect} />
+      {cardData.rows.map((row, i) => (
+        <li key={row.id} data-id={row.id} className={cardData.onPath?.has(row.id) ? 'on-path' : ''} style={{ height: ROW_H }}>
+          <Port id={row.id} top={HEADER_H + i * ROW_H + ROW_H / 2} />
+          <ColumnRow card={lineageCard} column={row} selected={cardData.selected} onPath={cardData.onPath} onSelect={cardData.onSelect} />
         </li>
       ))}
-      {d.more > 0 && (
+      {cardData.more > 0 && (
         <li className="lineage-more" style={{ height: MORE_H }}>
-          <Port id={moreRowId(c.id)} top={HEADER_H + d.rows.length * ROW_H + MORE_H / 2} />
-          <button className="lineage-more-button nodrag" aria-label={`Show all ${c.columns.length} columns of ${c.label}`} onClick={() => d.onOpenColumns(c.id)}>
-            + {d.more} more {d.more === 1 ? 'column' : 'columns'}
+          <Port id={moreRowId(lineageCard.id)} top={HEADER_H + cardData.rows.length * ROW_H + MORE_H / 2} />
+          <button className="lineage-more-button nodrag" aria-label={`Show all ${lineageCard.columns.length} columns of ${lineageCard.label}`} onClick={() => cardData.onOpenColumns(lineageCard.id)}>
+            + {cardData.more} more {cardData.more === 1 ? 'column' : 'columns'}
           </button>
         </li>
       )}

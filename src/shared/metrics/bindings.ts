@@ -26,24 +26,27 @@ export function resolveConcept(input: string, ontology: any): string | null {
   const prefixes = prefixMap(ontology?.prefixes);
   const target = expandIri(input, prefixes);
   if ('error' in target) return null;
-  const hit = concepts.find(c => {
-    if (typeof c?.iri !== 'string') return false;
-    const own = expandIri(c.iri, prefixes);
+  const hit = concepts.find(concept => {
+    if (typeof concept?.iri !== 'string') return false;
+    const own = expandIri(concept.iri, prefixes);
     return 'iri' in own && own.iri === target.iri;
   });
   return hit?.concept ?? null;
 }
 /** Validates metric bindings against known metrics and ontology concepts. */
 export function resolveBindings(bindings: KpiBinding[], ontology: any, metricNames: Set<string>): ResolvedBinding[] {
-  return bindings.map(b => {
+  return bindings.map(binding => {
     const problems: string[] = [];
-    if (!metricNames.has(b.metric)) problems.push(`Metric "${b.metric}" is not in the referenced semantic model.`);
-    const measures = { input: b.measures, concept: resolveConcept(b.measures, ontology) };
-    if (!measures.concept) problems.push(`Concept "${b.measures}" is not in the referenced ontology.`);
-    const of = b.of === undefined ? undefined : { input: b.of, concept: resolveConcept(b.of, ontology) };
-    if (of && !of.concept) problems.push(`Concept "${b.of}" is not in the referenced ontology.`);
+    if (!metricNames.has(binding.metric)) problems.push(`Metric "${binding.metric}" is not in the referenced semantic model.`);
+    const measures = {
+      input: binding.measures,
+      concept: resolveConcept(binding.measures, ontology),
+    };
+    if (!measures.concept) problems.push(`Concept "${binding.measures}" is not in the referenced ontology.`);
+    const of = binding.of === undefined ? undefined : { input: binding.of, concept: resolveConcept(binding.of, ontology) };
+    if (of && !of.concept) problems.push(`Concept "${binding.of}" is not in the referenced ontology.`);
     return {
-      metric: b.metric,
+      metric: binding.metric,
       measures,
       ...(of ? { of } : {}),
       source: 'kpi-binding' as const,

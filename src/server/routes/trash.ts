@@ -60,13 +60,13 @@ export const trashRoutes: Route = trashRoutesWith();
 
 /** Handles trash operations, requiring confirmation before destructive actions. */
 const handleTrash = async (ws: Workspace, req: Request, url: URL, administration?: AdminRepository) => {
-  const p = url.pathname;
-  if (!p.startsWith('/api/')) return null;
+  const pathname = url.pathname;
+  if (!pathname.startsWith('/api/')) return null;
   const reader = requestReader(req);
   const { view, owner } = reader;
   const scope = requestScope(req);
   const visibleEntries = () => ws.trash.list().filter(entry => !view || readableTrash(entry, scope));
-  const impact = p.match(/^\/api\/projects\/([^/]+)\/delete-impact$/);
+  const impact = pathname.match(/^\/api\/projects\/([^/]+)\/delete-impact$/);
   if (impact && req.method === 'GET') {
     const path = url.searchParams.get('path');
     const slug = decodeSegment(impact[1]);
@@ -78,12 +78,12 @@ const handleTrash = async (ws: Workspace, req: Request, url: URL, administration
     if (!mayDelete) return Response.json(result);
     return Response.json({ ...result, unpublished: await ws.unpublishedWork(slug) });
   }
-  const file = p.match(/^\/api\/projects\/([^/]+)\/files\/(.+)$/);
+  const file = pathname.match(/^\/api\/projects\/([^/]+)\/files\/(.+)$/);
   if (file && req.method === 'DELETE') {
     requireConfirm(await readJson(req, 4096));
     return Response.json(await ws.deleteFile(decodeSegment(file[1]), decodePath(file[2]), reader));
   }
-  const project = p.match(/^\/api\/projects\/([^/]+)$/);
+  const project = pathname.match(/^\/api\/projects\/([^/]+)$/);
   if (project && req.method === 'DELETE') {
     const body = await readJson(req, 4096);
     // Remove from workspace deletes nothing; deleting the folder needs the confirmation.
@@ -92,19 +92,19 @@ const handleTrash = async (ws: Workspace, req: Request, url: URL, administration
     requireConfirm(body);
     return Response.json(await ws.trash.deleteProject(decodeSegment(project[1]), owner));
   }
-  if (p === '/api/clear' && req.method === 'POST') {
+  if (pathname === '/api/clear' && req.method === 'POST') {
     requireConfirm(await readJson(req, 4096));
     return Response.json(await ws.trash.clear(owner));
   }
-  if (p === '/api/trash' && req.method === 'GET') return Response.json(visibleEntries());
-  if (p === '/api/trash' && req.method === 'DELETE') {
+  if (pathname === '/api/trash' && req.method === 'GET') return Response.json(visibleEntries());
+  if (pathname === '/api/trash' && req.method === 'DELETE') {
     requireConfirm(await readJson(req, 4096));
     if (view) {
       for (const entry of visibleEntries()) ws.trash.purge(entry.entryId);
     } else ws.trash.purgeAll();
     return new Response(null, { status: 204 });
   }
-  const entry = p.match(/^\/api\/trash\/([^/]+)(\/undo|\/restore)?$/);
+  const entry = pathname.match(/^\/api\/trash\/([^/]+)(\/undo|\/restore)?$/);
   if (entry && ENTRY.test(entry[1])) {
     const id = entry[1];
     if (entry[2] === '/undo' && req.method === 'POST') {
@@ -120,7 +120,7 @@ const handleTrash = async (ws: Workspace, req: Request, url: URL, administration
     if (entry[2] === '/restore' && req.method === 'POST') {
       const body = await readJson(req, 4096, {});
       if (!body || typeof body !== 'object' || Object.keys(body).some(k => !['toProject', 'toPath', 'domain'].includes(k))) throw new BadRequestError('Expected {toProject?, toPath?, domain?}.');
-      for (const k of ['toProject', 'toPath']) if (body[k] !== undefined && typeof body[k] !== 'string') throw new BadRequestError(`${k} must be text.`);
+      for (const key of ['toProject', 'toPath']) if (body[key] !== undefined && typeof body[key] !== 'string') throw new BadRequestError(`${key} must be text.`);
       const target = ws.trash.entry(id);
       authorizeWrite(req, restoreAction(target, scope), [...restoreResources(target), ...restoreResources(target, body.toProject ?? target.project, body.toPath ?? target.path)]);
       const context = { ws, req, administration };

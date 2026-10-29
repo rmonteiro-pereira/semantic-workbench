@@ -50,21 +50,21 @@ function tokenize(sql: string): Token[] {
   const out: Token[] = [];
   let i = 0;
   while (i < sql.length) {
-    const c = sql[i];
-    if (/\s/.test(c)) {
+    const char = sql[i];
+    if (/\s/.test(char)) {
       i++;
       continue;
     }
-    if (c === '-' && sql[i + 1] === '-') {
+    if (char === '-' && sql[i + 1] === '-') {
       while (i < sql.length && sql[i] !== '\n') i++;
       continue;
     }
-    if (c === '/' && sql[i + 1] === '*') {
+    if (char === '/' && sql[i + 1] === '*') {
       const end = sql.indexOf('*/', i + 2);
       i = end < 0 ? sql.length : end + 2;
       continue;
     }
-    if (c === "'") {
+    if (char === "'") {
       i++;
       while (i < sql.length) {
         if (sql[i] === "'") {
@@ -80,37 +80,37 @@ function tokenize(sql: string): Token[] {
       out.push({ kind: 'other', value: 'string' });
       continue;
     }
-    if (c === '"' || c === '`') {
-      const close = c;
-      let v = '';
+    if (char === '"' || char === '`') {
+      const close = char;
+      let value = '';
       i++;
       while (i < sql.length) {
         if (sql[i] === close) {
           if (sql[i + 1] === close) {
-            v += close;
+            value += close;
             i += 2;
             continue;
           }
           i++;
           break;
         }
-        v += sql[i++];
+        value += sql[i++];
       }
-      out.push({ kind: 'quoted', value: v });
+      out.push({ kind: 'quoted', value });
       continue;
     }
-    if (/[A-Za-z_]/.test(c)) {
-      let v = '';
-      while (i < sql.length && /[\w$]/.test(sql[i])) v += sql[i++];
-      out.push({ kind: 'ident', value: v });
+    if (/[A-Za-z_]/.test(char)) {
+      let value = '';
+      while (i < sql.length && /[\w$]/.test(sql[i])) value += sql[i++];
+      out.push({ kind: 'ident', value });
       continue;
     }
-    if (/[0-9]/.test(c)) {
+    if (/[0-9]/.test(char)) {
       while (i < sql.length && /[\w.]/.test(sql[i])) i++;
       out.push({ kind: 'other', value: 'number' });
       continue;
     }
-    out.push({ kind: 'punct', value: c });
+    out.push({ kind: 'punct', value: char });
     i++;
   }
   return out;
@@ -122,11 +122,11 @@ export function expressionRefs(sql: string): ExprRef[] {
   const tokens = tokenize(sql);
   const refs: ExprRef[] = [];
   for (let i = 0; i < tokens.length; i++) {
-    const t = tokens[i];
-    if (!isName(t)) continue;
+    const token = tokens[i];
+    if (!isName(token)) continue;
     // A name chain a.b.c: the last part is the column, the rest the (dataset) qualifier.
     const start = i;
-    const parts = [t.value];
+    const parts = [token.value];
     let j = i;
     while (tokens[j + 1]?.value === '.' && tokens[j + 1].kind === 'punct' && isName(tokens[j + 2])) {
       parts.push(tokens[j + 2].value);
@@ -136,7 +136,7 @@ export function expressionRefs(sql: string): ExprRef[] {
     const next = tokens[j + 1];
     i = j;
     if (next?.kind === 'punct' && next.value === '(') continue;
-    if (parts.length === 1 && t.kind === 'ident' && KEYWORDS.has(t.value.toLowerCase())) continue;
+    if (parts.length === 1 && token.kind === 'ident' && KEYWORDS.has(token.value.toLowerCase())) continue;
     if (previous?.kind === 'ident' && previous.value.toLowerCase() === 'as') continue;
     if (previous?.value === ':' && tokens[start - 2]?.value === ':') continue;
     // EXTRACT(YEAR FROM x) and typed literals such as DATE '2024-01-01' are not references.

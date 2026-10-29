@@ -36,12 +36,12 @@ function usePanelPosition(details: React.RefObject<HTMLDetailsElement | null>, o
   useLayoutEffect(() => {
     if (!opened) return;
     const place = () => {
-      const r = details.current!.querySelector('summary')!.getBoundingClientRect();
+      const rect = details.current!.querySelector('summary')!.getBoundingClientRect();
       const width = Math.min(480, window.innerWidth - 20);
       setPosition({
-        left: Math.max(10, Math.min(r.right - width, window.innerWidth - width - 10)),
-        top: r.bottom + 4,
-        maxHeight: Math.max(0, window.innerHeight - r.bottom - 14),
+        left: Math.max(10, Math.min(rect.right - width, window.innerWidth - width - 10)),
+        top: rect.bottom + 4,
+        maxHeight: Math.max(0, window.innerHeight - rect.bottom - 14),
       });
     };
     place();

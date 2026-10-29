@@ -4,16 +4,16 @@ import type { Doc } from '../projects/api';
 import { documentKeys } from '../../shared/core/references';
 const parsedDocs = new Map<string, { hash: string; model: ReturnType<typeof validateInput>['model']; keys: Set<string> }>();
 /** Reuses a parsed model until the document content hash changes. */
-export function parsedDoc(d: Doc) {
-  const hit = parsedDocs.get(d.id);
-  if (hit && hit.hash === d.hash) return hit;
+export function parsedDoc(doc: Doc) {
+  const hit = parsedDocs.get(doc.id);
+  if (hit && hit.hash === doc.hash) return hit;
   let model: ReturnType<typeof validateInput>['model'] = null;
   let keys = new Set<string>();
   try {
-    model = validateInput(d.source, d.filename).model;
+    model = validateInput(doc.source, doc.filename).model;
     keys = documentKeys(model);
   } catch {}
-  const value = { hash: d.hash, model, keys };
-  parsedDocs.set(d.id, value);
-  return value;
+  const entry = { hash: doc.hash, model, keys };
+  parsedDocs.set(doc.id, entry);
+  return entry;
 }

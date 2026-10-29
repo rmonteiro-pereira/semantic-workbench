@@ -48,7 +48,10 @@ test('a clone into a folder checks out only that folder and makes it the project
     expect(sh(cloned.repository, ['config', '--get', 'extensions.worktreeConfig']).trim()).toBe('true');
     expect(sh(cloned.repository, ['config', '--get', 'remote.origin.partialclonefilter']).trim()).toBe('blob:none');
     const entry = app.ws.state.registry().projects.find(project => project.slug === cloned.slug);
-    expect(entry).toMatchObject({ folder: `${cloned.slug}/${PROJECT_FOLDER}`, repo: cloned.slug });
+    expect(entry).toMatchObject({
+      folder: `${cloned.slug}/${PROJECT_FOLDER}`,
+      repo: cloned.slug,
+    });
     const listed = (await ok(call(app, 'GET', '/api/projects'))).find((project: any) => project.slug === cloned.slug);
     expect(listed.files.map((file: any) => file.path)).toEqual(['shop.yaml']);
     const status = await ok(call(app, 'GET', `/api/projects/${cloned.slug}/git/status`));

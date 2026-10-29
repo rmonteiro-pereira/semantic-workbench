@@ -82,8 +82,8 @@ function useRepositoryFolders(repo: string, start: StartingChoice) {
       const candidates = await api.projectCandidates(repo);
       setFound(candidates);
       setRows(rowsFrom(candidates, repo, start));
-    } catch (e) {
-      setError((e as Error).message);
+    } catch (error) {
+      setError((error as Error).message);
     }
   }
   useEffect(() => {
@@ -138,15 +138,16 @@ export function RepositoryProjectsDialog({ repo, start = 'current', onClose, onS
       const manifest = saveManifest && !rootChosen ? { baseHash: found!.manifestHash } : undefined;
       const result = await api.setRepositoryProjects(repo, projects, manifest);
       onSaved(result.projects.map(project => project.slug));
-    } catch (e: any) {
-      if (e.status === 409) {
+    } catch (error: any) {
+      if (error.status === 409) {
         setError('The manifest changed in the repository. The list now shows the saved version.');
         await load();
-      } else setError(e.message);
+      } else setError(error.message);
       setBusy(false);
     }
   }
 
+  const renameRow = (path: string, name: string) => setRows(old => old.map(row => (row.path === path ? { ...row, name } : row)));
   const footer = <DialogFooter busy={busy} canSave={!!found && projects.length > 0} onCancel={onClose} onSave={() => void save()} />;
 
   return (
@@ -163,12 +164,7 @@ export function RepositoryProjectsDialog({ repo, start = 'current', onClose, onS
       {found && (
         <ul className="repository-folders" aria-label="Folders">
           {rows.map(row => (
-            <FolderRow
-              key={row.path}
-              row={row}
-              onToggle={checked => setRows(old => toggleRow(old, row.path, checked))}
-              onRename={name => setRows(old => old.map(item => (item.path === row.path ? { ...item, name } : item)))}
-            />
+            <FolderRow key={row.path} row={row} onToggle={checked => setRows(old => toggleRow(old, row.path, checked))} onRename={name => renameRow(row.path, name)} />
           ))}
         </ul>
       )}

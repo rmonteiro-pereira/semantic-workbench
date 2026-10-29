@@ -21,7 +21,7 @@ type Props = {
   historyPath: string | undefined;
   refresh: () => Promise<Doc[]>;
   docsRef: React.RefObject<Map<string, Doc>>;
-  openDocument: (d: Doc) => boolean;
+  openDocument: (doc: Doc) => boolean;
   setTab: (next: string) => void;
 };
 /** Renders source control view. */

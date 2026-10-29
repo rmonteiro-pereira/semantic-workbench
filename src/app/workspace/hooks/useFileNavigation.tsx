@@ -58,7 +58,7 @@ export function useFileNavigation({
    * Opens a document. A person's choice closes the phone drawer behind it; the first file the app
    * opens by itself at start-up leaves the drawer as the person has it.
    */
-  function openDocument(d: Doc, options: OpenOptions = {}): boolean {
+  function openDocument(doc: Doc, options: OpenOptions = {}): boolean {
     const closeDrawerUnlessKept = () => {
       if (compact && !options.keepDrawer) closeWorkspace();
     };
@@ -66,24 +66,24 @@ export function useFileNavigation({
     setEmptyProjectSlug(null);
     // The refs hold what is open now, also when a delete or a disk change has just replaced it.
     const shown = currentRef.current;
-    if (shown?.id === d.id) {
+    if (shown?.id === doc.id) {
       closeDrawerUnlessKept();
       return true;
     }
     recorder.noteCommand('open file', {
       undo: () => showDocument(shown?.id ?? null),
-      redo: () => showDocument(d.id),
+      redo: () => showDocument(doc.id),
     });
     if (shown && sourceRef.current !== shown.source) void getLeaveCurrent()();
-    setCurrent(d);
-    setSource(d.source);
-    void restoreDraft(d);
+    setCurrent(doc);
+    setSource(doc.source);
+    void restoreDraft(doc);
     setNeighborhoodFocus('');
     closeDrawerUnlessKept();
     setSelected('');
     setSelectedEdge('');
     setSearch('');
-    if (!options.keepTab && tab !== 'neighborhood' && validateInput(d.source, d.filename).model?.kind === 'Ossie mappings') setTab('mappings');
+    if (!options.keepTab && tab !== 'neighborhood' && validateInput(doc.source, doc.filename).model?.kind === 'Ossie mappings') setTab('mappings');
     return true;
   }
   /**
@@ -133,21 +133,21 @@ export function useFileNavigation({
     if (target) void restoreDraft(target);
   }
   // A draft kept for this file (invalid or not yet saved text) comes back when the file opens.
-  async function restoreDraft(d: Doc) {
+  async function restoreDraft(doc: Doc) {
     try {
-      const project = encodeURIComponent(d.project);
-      const path = d.path.split('/').map(encodeURIComponent).join('/');
+      const project = encodeURIComponent(doc.project);
+      const path = doc.path.split('/').map(encodeURIComponent).join('/');
       const response = await apiFetch(`/api/drafts/${project}/${path}`);
       if (!response.ok) return;
       const draft = await response.json();
-      if (currentRef.current?.id === d.id && sourceRef.current === d.source && typeof draft.text === 'string') {
-        getDraftOf().current = { project: d.project, path: d.path };
-        if (draft.text === d.source) {
-          void scmApi.deleteDraft(d.project, d.path).catch(() => {});
+      if (currentRef.current?.id === doc.id && sourceRef.current === doc.source && typeof draft.text === 'string') {
+        getDraftOf().current = { project: doc.project, path: doc.path };
+        if (draft.text === doc.source) {
+          void scmApi.deleteDraft(doc.project, doc.path).catch(() => {});
           return;
         }
         setSource(draft.text);
-        setMessage(`Restored unsaved edits to ${d.path} from a draft.`);
+        setMessage(`Restored unsaved edits to ${doc.path} from a draft.`);
       }
     } catch {}
   }

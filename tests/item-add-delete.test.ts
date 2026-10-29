@@ -19,9 +19,9 @@ test('add a concept and a relationship to it, then delete both: the file equals 
   const data = (validateInput(original, 'b.ossie.yaml').model as any).document;
   const added = edit(
     original,
-    t =>
+    text =>
       insertPatches(
-        t,
+        text,
         listPathFor('concept', data)!,
         newItem('concept', {
           concept: 'Supplier',
@@ -29,9 +29,9 @@ test('add a concept and a relationship to it, then delete both: the file equals 
           description: 'Who sells products to us.',
         }),
       ),
-    t =>
+    text =>
       insertPatches(
-        t,
+        text,
         ['ontology', 3, 'relationships'],
         newItem('ontology-relationship', {
           name: 'supplied_by',
@@ -40,9 +40,9 @@ test('add a concept and a relationship to it, then delete both: the file equals 
         }),
       ),
   );
-  const v = validateInput(added, 'b.ossie.yaml');
-  expect(v.valid).toBe(true);
-  expect(v.model!.edges.some(e => e.label === 'supplied_by')).toBe(true);
+  const input = validateInput(added, 'b.ossie.yaml');
+  expect(input.valid).toBe(true);
+  expect(input.model!.edges.some(e => e.label === 'supplied_by')).toBe(true);
   expect(added).toContain('  - concept: Supplier\n    type: EntityType\n    description: Who sells products to us.\n');
   expect(added).toContain('    relationships:\n      - name: supplied_by\n        roles:\n          - concept: Supplier\n        verbalizes:\n          - "{Product} supplied by {Supplier}"\n');
   const concepts = itemValue(added, ['ontology']) as any[];

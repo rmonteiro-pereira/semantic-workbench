@@ -35,9 +35,9 @@ export type JournalHooks = { crashAfter?: (kind: string, step: number) => boolea
 /** Creates journaled file operations and recovery confined to the data root. */
 export function createJournal(layout: DataLayout, hooks: JournalHooks = {}) {
   const abs = (path: string) => {
-    const p = resolve(layout.root, path);
-    if (p !== layout.root && !p.startsWith(layout.root + sep)) throw Error('Journal path escapes the data root.');
-    return p;
+    const absolute = resolve(layout.root, path);
+    if (absolute !== layout.root && !absolute.startsWith(layout.root + sep)) throw Error('Journal path escapes the data root.');
+    return absolute;
   };
   const newId = () => `${Date.now().toString(36)}-${randomBytes(4).toString('hex')}`;
   const rel = (path: string) => relative(layout.root, path).split(sep).join('/');
@@ -79,10 +79,10 @@ export function createJournal(layout: DataLayout, hooks: JournalHooks = {}) {
         formatVersion: 1,
         opId,
         kind,
-        steps: steps.map(s => ({
+        steps: steps.map(step => ({
           action: 'rename',
-          from: rel(abs(s.from)),
-          to: rel(abs(s.to)),
+          from: rel(abs(step.from)),
+          to: rel(abs(step.to)),
           done: false,
         })),
         cleanup: cleanup.map(c => rel(abs(c))),
@@ -97,11 +97,11 @@ export function createJournal(layout: DataLayout, hooks: JournalHooks = {}) {
           save(j);
           if (hooks.crashAfter?.(kind, i)) throw new JournalCrash();
         }
-      } catch (e) {
-        if (e instanceof JournalCrash) throw e;
+      } catch (error) {
+        if (error instanceof JournalCrash) throw error;
         rollBack(j);
         finish(j);
-        throw e;
+        throw error;
       }
       finish(j);
       return j;
@@ -118,10 +118,10 @@ export function createJournal(layout: DataLayout, hooks: JournalHooks = {}) {
         // it.
         const moved = new Map<string, boolean>();
         const exists = (p: string) => moved.get(p) ?? existsSync(abs(p));
-        const forward = remaining.every(s => {
-          const ok = exists(s.from) && !exists(s.to);
-          moved.set(s.from, false);
-          moved.set(s.to, true);
+        const forward = remaining.every(journalStep => {
+          const ok = exists(journalStep.from) && !exists(journalStep.to);
+          moved.set(journalStep.from, false);
+          moved.set(journalStep.to, true);
           return ok;
         });
         let outcome: RecoveryOutcome['outcome'] = 'rolled-back';

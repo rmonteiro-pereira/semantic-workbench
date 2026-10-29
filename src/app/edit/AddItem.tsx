@@ -101,7 +101,7 @@ export function AddItem({ doc, base, document, kind: fixed, owner, preset = {}, 
       };
   const plan = useMemo((): Plan => {
     if (!kind || !listPath) return { error: 'This document cannot hold this kind of item.' };
-    const missing = fields.filter(f => f.required && (values[f.key] === undefined || values[f.key] === '' || (Array.isArray(values[f.key]) && !values[f.key].length)));
+    const missing = fields.filter(field => field.required && (values[field.key] === undefined || values[field.key] === '' || (Array.isArray(values[field.key]) && !values[field.key].length)));
     if (missing.length) {
       const required = fields.filter(f => f.required).map(f => f.label);
       return { error: requiredHint(required), incomplete: true };
@@ -120,17 +120,17 @@ export function AddItem({ doc, base, document, kind: fixed, owner, preset = {}, 
         line: base.slice(0, patches[0].from).split(/\r\n|\r|\n/).length,
         path: [...listPath, index] as Path,
       };
-    } catch (e) {
-      return { error: (e as Error).message };
+    } catch (error) {
+      return { error: (error as Error).message };
     }
   }, [kind, JSON.stringify(values)]);
   useEffect(() => {
     if (plan.text === undefined) return;
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       const at = plan.text;
       validateInWorker(at, doc.filename).then(issues => setCheck({ text: at, issues }));
     }, 200);
-    return () => clearTimeout(t);
+    return () => clearTimeout(timer);
   }, [plan]);
   const pending = plan.text !== undefined && check?.text !== plan.text;
   const issues = plan.text !== undefined && check && check.text === plan.text ? check.issues : [];
@@ -140,22 +140,30 @@ export function AddItem({ doc, base, document, kind: fixed, owner, preset = {}, 
     setSaving(true);
     setError('');
     try {
-      const r = await api.save(doc.project, doc.path, doc.hash, plan.text, diffPatches(doc.source, plan.text));
-      onSaved({ docId: doc.id, source: plan.text, hash: r.hash }, plan.path, kind);
-    } catch (e) {
-      setError(e instanceof StaleSave ? 'Not saved: the file changed since you opened it. Close this and try again.' : (e as Error).message);
+      const saved = await api.save(doc.project, doc.path, doc.hash, plan.text, diffPatches(doc.source, plan.text));
+      onSaved({ docId: doc.id, source: plan.text, hash: saved.hash }, plan.path, kind);
+    } catch (error) {
+      setError(error instanceof StaleSave ? 'Not saved: the file changed since you opened it. Close this and try again.' : (error as Error).message);
       setSaving(false);
     }
   }
   const set = (spec: FieldSpec, input: string | boolean) => setRaw(v => ({ ...v, [spec.key]: input }));
   const valueOf = (spec: FieldSpec) => String(raw[spec.key] ?? '');
+  let saveStatus;
+  if (saving) {
+    saveStatus = 'Saving…';
+  } else if (pending) {
+    saveStatus = 'Checking…';
+  } else {
+    saveStatus = 'Save to file';
+  }
   const footer = (
     <>
       <button type="button" onClick={onClose} disabled={saving}>
         Cancel
       </button>
       <button type="button" className="primary" onClick={save} title={access.control('edit').title} disabled={!access.can('edit') || plan.text === undefined || pending || errors.length > 0 || saving}>
-        {saving ? 'Saving…' : pending ? 'Checking…' : 'Save to file'}
+        {saveStatus}
       </button>
     </>
   );
@@ -179,9 +187,9 @@ export function AddItem({ doc, base, document, kind: fixed, owner, preset = {}, 
               setRaw({});
             }}
           >
-            {kinds.map(k => (
-              <option key={k} value={k}>
-                {kindLabel[k]}
+            {kinds.map(kindOption => (
+              <option key={kindOption} value={kindOption}>
+                {kindLabel[kindOption]}
               </option>
             ))}
           </select>
@@ -193,30 +201,34 @@ export function AddItem({ doc, base, document, kind: fixed, owner, preset = {}, 
         <div className="item-fields">
           {fields.map(spec => {
             const id = `add-field-${spec.key}`;
+            let fieldControl;
+            if (spec.input === 'boolean') {
+              fieldControl = <input id={id} aria-labelledby={id + '-label'} type="checkbox" checked={!!raw[spec.key]} onChange={e => set(spec, e.target.checked)} />;
+            } else if (spec.input === 'select') {
+              fieldControl = (
+                <select id={id} aria-labelledby={id + '-label'} value={valueOf(spec)} onChange={e => set(spec, e.target.value)}>
+                  <option value="">Choose {spec.label.toLowerCase()}</option>
+                  {(spec.options ?? []).filter(Boolean).map(option => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              );
+            } else if (spec.input === 'code') {
+              fieldControl = <SqlField id={id} labelledBy={id + '-label'} dialect="ANSI_SQL" value={valueOf(spec)} onChange={v => set(spec, v)} />;
+            } else if (spec.input === 'textarea') {
+              fieldControl = <textarea id={id} aria-labelledby={id + '-label'} rows={2} value={valueOf(spec)} onChange={e => set(spec, e.target.value)} />;
+            } else {
+              fieldControl = <input id={id} aria-labelledby={id + '-label'} value={valueOf(spec)} onChange={e => set(spec, e.target.value)} />;
+            }
             return (
               <label key={spec.key} htmlFor={id} className={spec.input === 'boolean' ? 'item-check' : ''}>
                 <span id={id + '-label'}>
                   {spec.label}
                   {spec.required && <em aria-hidden> *</em>}
                 </span>
-                {spec.input === 'boolean' ? (
-                  <input id={id} aria-labelledby={id + '-label'} type="checkbox" checked={!!raw[spec.key]} onChange={e => set(spec, e.target.checked)} />
-                ) : spec.input === 'select' ? (
-                  <select id={id} aria-labelledby={id + '-label'} value={valueOf(spec)} onChange={e => set(spec, e.target.value)}>
-                    <option value="">Choose {spec.label.toLowerCase()}</option>
-                    {(spec.options ?? []).filter(Boolean).map(o => (
-                      <option key={o} value={o}>
-                        {o}
-                      </option>
-                    ))}
-                  </select>
-                ) : spec.input === 'code' ? (
-                  <SqlField id={id} labelledBy={id + '-label'} dialect="ANSI_SQL" value={valueOf(spec)} onChange={v => set(spec, v)} />
-                ) : spec.input === 'textarea' ? (
-                  <textarea id={id} aria-labelledby={id + '-label'} rows={2} value={valueOf(spec)} onChange={e => set(spec, e.target.value)} />
-                ) : (
-                  <input id={id} aria-labelledby={id + '-label'} value={valueOf(spec)} onChange={e => set(spec, e.target.value)} />
-                )}
+                {fieldControl}
                 {spec.hint && <small>{spec.hint}</small>}
               </label>
             );
@@ -232,11 +244,11 @@ export function AddItem({ doc, base, document, kind: fixed, owner, preset = {}, 
       )}
       {errors.length > 0 && (
         <ul className="item-findings" aria-label="Findings">
-          {errors.map((i, n) => (
-            <li key={n} className="error">
+          {errors.map((issue, index) => (
+            <li key={index} className="error">
               <AlertTriangle size={12} />
-              {i.line ? `Line ${i.line}: ` : ''}
-              {i.message}
+              {issue.line ? `Line ${issue.line}: ` : ''}
+              {issue.message}
             </li>
           ))}
         </ul>

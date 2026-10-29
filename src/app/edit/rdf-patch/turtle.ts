@@ -22,85 +22,85 @@ export function tokenize(src: string): Tok[] {
     i = end;
   };
   while (i < src.length) {
-    const c = src[i];
+    const char = src[i];
     const rest = src.slice(i, i + 3);
-    if (/\s/.test(c)) {
+    if (/\s/.test(char)) {
       i++;
       continue;
     }
-    if (c === '#') {
-      let e = i;
-      while (e < src.length && src[e] !== '\n' && src[e] !== '\r') e++;
-      push('comment', e);
+    if (char === '#') {
+      let commentEnd = i;
+      while (commentEnd < src.length && src[commentEnd] !== '\n' && src[commentEnd] !== '\r') commentEnd++;
+      push('comment', commentEnd);
       continue;
     }
-    if (c === '<' && src[i + 1] === '=') {
+    if (char === '<' && src[i + 1] === '=') {
       push('n3', i + 2);
       continue;
     }
-    if (c === '<') {
-      const e = src.indexOf('>', i);
-      if (e < 0) throw Error('Unclosed IRI.');
-      push('iri', e + 1);
+    if (char === '<') {
+      const iriEnd = src.indexOf('>', i);
+      if (iriEnd < 0) throw Error('Unclosed IRI.');
+      push('iri', iriEnd + 1);
       continue;
     }
-    if (c === '"' || c === "'") {
-      let e: number;
-      if (rest === c.repeat(3)) {
-        e = i + 3;
-        while (e < src.length && !(src.startsWith(c.repeat(3), e) && src[e - 1] !== '\\')) e += src[e] === '\\' ? 2 : 1;
-        e += 3;
+    if (char === '"' || char === "'") {
+      let literalEnd: number;
+      if (rest === char.repeat(3)) {
+        literalEnd = i + 3;
+        while (literalEnd < src.length && !(src.startsWith(char.repeat(3), literalEnd) && src[literalEnd - 1] !== '\\')) literalEnd += src[literalEnd] === '\\' ? 2 : 1;
+        literalEnd += 3;
       } else {
-        e = i + 1;
-        while (e < src.length && src[e] !== c) {
-          if (src[e] === '\n') throw Error('Unclosed string.');
-          e += src[e] === '\\' ? 2 : 1;
+        literalEnd = i + 1;
+        while (literalEnd < src.length && src[literalEnd] !== char) {
+          if (src[literalEnd] === '\n') throw Error('Unclosed string.');
+          literalEnd += src[literalEnd] === '\\' ? 2 : 1;
         }
-        e++;
+        literalEnd++;
       }
-      if (src[e] === '@') {
-        const m = /^@[A-Za-z]+(?:-[A-Za-z0-9]+)*/.exec(src.slice(e));
-        if (m) e += m[0].length;
-      } else if (src.startsWith('^^', e)) {
-        e += 2;
-        if (src[e] === '<') e = src.indexOf('>', e) + 1;
+      if (src[literalEnd] === '@') {
+        const match = /^@[A-Za-z]+(?:-[A-Za-z0-9]+)*/.exec(src.slice(literalEnd));
+        if (match) literalEnd += match[0].length;
+      } else if (src.startsWith('^^', literalEnd)) {
+        literalEnd += 2;
+        if (src[literalEnd] === '<') literalEnd = src.indexOf('>', literalEnd) + 1;
         else {
-          const m = PN.exec(src.slice(e));
-          if (m) e += m[0].length;
+          const match = PN.exec(src.slice(literalEnd));
+          if (match) literalEnd += match[0].length;
         }
       }
-      push('literal', e);
+      push('literal', literalEnd);
       continue;
     }
-    if (c === '@') {
-      const m = /^@[A-Za-z]+/.exec(src.slice(i))!;
-      push(/^@(prefix|base)$/.test(m[0]) ? 'directive' : 'n3', i + m[0].length);
+    if (char === '@') {
+      const match = /^@[A-Za-z]+/.exec(src.slice(i))!;
+      push(/^@(prefix|base)$/.test(match[0]) ? 'directive' : 'n3', i + match[0].length);
       continue;
     }
-    if ('[]();,{}'.includes(c)) {
-      push(c === '{' || c === '}' ? 'n3' : 'punct', i + 1);
+    if ('[]();,{}'.includes(char)) {
+      push(char === '{' || char === '}' ? 'n3' : 'punct', i + 1);
       continue;
     }
-    if (c === '.' && !/[0-9]/.test(src[i + 1] ?? '')) {
+    if (char === '.' && !/[0-9]/.test(src[i + 1] ?? '')) {
       push('punct', i + 1);
       continue;
     }
-    if (c === '=') {
+    if (char === '=') {
       push('n3', i + (src[i + 1] === '>' ? 2 : 1));
       continue;
     }
-    if (c === '^' || c === '!') {
+    if (char === '^' || char === '!') {
       push('n3', i + 1);
       continue;
     }
-    if (c === '?') {
-      const m = /^\?[\w]+/.exec(src.slice(i));
-      push('n3', i + (m ? m[0].length : 1));
+    if (char === '?') {
+      const match = /^\?[\w]+/.exec(src.slice(i));
+      push('n3', i + (match ? match[0].length : 1));
       continue;
     }
     if (src.startsWith('_:', i)) {
-      const m = /^_:[\p{L}\p{N}_-]+(?:\.[\p{L}\p{N}_-]+)*/u.exec(src.slice(i));
-      push('bnode', i + (m ? m[0].length : 2));
+      const match = /^_:[\p{L}\p{N}_-]+(?:\.[\p{L}\p{N}_-]+)*/u.exec(src.slice(i));
+      push('bnode', i + (match ? match[0].length : 2));
       continue;
     }
     const num = /^[+-]?(?:\d+(?:\.\d+)?(?:[eE][+-]?\d+)?|\.\d+(?:[eE][+-]?\d+)?)/.exec(src.slice(i));
@@ -113,12 +113,20 @@ export function tokenize(src: string): Tok[] {
       push('pname', i + pn[0].length);
       continue;
     }
-    const w = /^[A-Za-z][\w-]*/.exec(src.slice(i));
-    if (w) {
-      push(/^(PREFIX|BASE)$/i.test(w[0]) ? 'directive' : ['is', 'of', 'has'].includes(w[0]) ? 'n3' : 'word', i + w[0].length);
+    const wordMatch = /^[A-Za-z][\w-]*/.exec(src.slice(i));
+    if (wordMatch) {
+      let tokenKind: Tok['t'];
+      if (/^(PREFIX|BASE)$/i.test(wordMatch[0])) {
+        tokenKind = 'directive';
+      } else if (['is', 'of', 'has'].includes(wordMatch[0])) {
+        tokenKind = 'n3';
+      } else {
+        tokenKind = 'word';
+      }
+      push(tokenKind, i + wordMatch[0].length);
       continue;
     }
-    throw Error(`Unexpected character "${c}".`);
+    throw Error(`Unexpected character "${char}".`);
   }
   return out;
 }
@@ -167,18 +175,22 @@ export function readDocument(src: string): Document {
   let base = BASE;
   let directiveEnd = 0;
   let sparqlStyle = false;
-  const expand = (t: Tok): string | null =>
-    t.t === 'iri'
-      ? resolve(t.text.slice(1, -1), base)
-      : t.t === 'pname'
-        ? (() => {
-            const k = t.text.indexOf(':');
-            const p = t.text.slice(0, k);
-            return p in prefixes ? prefixes[p] + t.text.slice(k + 1).replace(/\\(.)/g, '$1') : null;
-          })()
-        : t.t === 'word' && t.text === 'a'
-          ? 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
-          : null;
+  const expand = (tok: Tok): string | null => {
+    if (tok.t === 'iri') {
+      return resolve(tok.text.slice(1, -1), base);
+    }
+    if (tok.t === 'pname') {
+      return (() => {
+        const colonAt = tok.text.indexOf(':');
+        const prefix = tok.text.slice(0, colonAt);
+        return prefix in prefixes ? prefixes[prefix] + tok.text.slice(colonAt + 1).replace(/\\(.)/g, '$1') : null;
+      })();
+    }
+    if (tok.t === 'word' && tok.text === 'a') {
+      return 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type';
+    }
+    return null;
+  };
   let i = 0;
   while (i < toks.length) {
     const comments: Tok[] = [];
@@ -189,9 +201,9 @@ export function readDocument(src: string): Document {
       const lower = first.text.toLowerCase();
       const sparql = !first.text.startsWith('@');
       if (lower.endsWith('prefix')) {
-        const p = toks[i + 1];
+        const tok = toks[i + 1];
         const iri = toks[i + 2];
-        prefixes[p.text.slice(0, -1)] = resolve(iri.text.slice(1, -1), base);
+        prefixes[tok.text.slice(0, -1)] = resolve(iri.text.slice(1, -1), base);
         i += 3;
       } else {
         base = resolve(toks[i + 1].text.slice(1, -1), base);
@@ -218,16 +230,16 @@ export function readDocument(src: string): Document {
     let depth = 0;
     const body: Tok[] = [];
     while (j < toks.length) {
-      const t = toks[j];
-      if (t.t === 'comment') {
-        comments.push(t);
+      const tok = toks[j];
+      if (tok.t === 'comment') {
+        comments.push(tok);
         j++;
         continue;
       }
-      if (t.text === '[' || t.text === '(' || t.text === '{') depth++;
-      if (t.text === ']' || t.text === ')' || t.text === '}') depth--;
-      if (depth === 0 && t.t === 'punct' && t.text === '.') break;
-      body.push(t);
+      if (tok.text === '[' || tok.text === '(' || tok.text === '{') depth++;
+      if (tok.text === ']' || tok.text === ')' || tok.text === '}') depth--;
+      if (depth === 0 && tok.t === 'punct' && tok.text === '.') break;
+      body.push(tok);
       j++;
     }
     const end = toks[j]?.end ?? body.at(-1)!.end;
@@ -247,53 +259,57 @@ export function readDocument(src: string): Document {
     if (st.n3 || !['iri', 'pname'].includes(first.t)) continue;
     st.subject = expand(first);
     // Predicate-object list
-    let k = 1;
+    let index = 1;
     let ok = true;
     const object = (): ObjectSpan | null => {
-      const t = body[k];
-      if (!t) return null;
-      if (t.text === '[' || t.text === '(') {
-        let d = 0;
-        let e = k;
-        for (; e < body.length; e++) {
-          if (body[e].text === '[' || body[e].text === '(') d++;
-          if (body[e].text === ']' || body[e].text === ')') d--;
-          if (d === 0) break;
+      const tok = body[index];
+      if (!tok) return null;
+      if (tok.text === '[' || tok.text === '(') {
+        let depth = 0;
+        let closeAt = index;
+        for (; closeAt < body.length; closeAt++) {
+          if (body[closeAt].text === '[' || body[closeAt].text === '(') depth++;
+          if (body[closeAt].text === ']' || body[closeAt].text === ')') depth--;
+          if (depth === 0) break;
         }
-        if (e >= body.length) return null;
-        const span = { start: t.start, end: body[e].end, text: src.slice(t.start, body[e].end) };
-        k = e + 1;
+        if (closeAt >= body.length) return null;
+        const span = {
+          start: tok.start,
+          end: body[closeAt].end,
+          text: src.slice(tok.start, body[closeAt].end),
+        };
+        index = closeAt + 1;
         return span;
       }
-      if (['iri', 'pname', 'bnode', 'literal', 'number'].includes(t.t) || (t.t === 'word' && (t.text === 'true' || t.text === 'false'))) {
-        k++;
-        return { start: t.start, end: t.end, text: t.text };
+      if (['iri', 'pname', 'bnode', 'literal', 'number'].includes(tok.t) || (tok.t === 'word' && (tok.text === 'true' || tok.text === 'false'))) {
+        index++;
+        return { start: tok.start, end: tok.end, text: tok.text };
       }
       return null;
     };
-    while (k < body.length) {
-      const verb = body[k];
+    while (index < body.length) {
+      const verb = body[index];
       const iri = expand(verb);
       if (!iri || !['iri', 'pname', 'word'].includes(verb.t)) {
         ok = false;
         break;
       }
-      k++;
+      index++;
       const objects: ObjectSpan[] = [];
-      const o = object();
-      if (!o) {
+      const objectSpan = object();
+      if (!objectSpan) {
         ok = false;
         break;
       }
-      objects.push(o);
-      while (body[k]?.text === ',') {
-        k++;
-        const n = object();
-        if (!n) {
+      objects.push(objectSpan);
+      while (body[index]?.text === ',') {
+        index++;
+        const moreObject = object();
+        if (!moreObject) {
           ok = false;
           break;
         }
-        objects.push(n);
+        objects.push(moreObject);
       }
       if (!ok) break;
       st.segments.push({
@@ -303,12 +319,12 @@ export function readDocument(src: string): Document {
         start: verb.start,
         end: objects.at(-1)!.end,
       });
-      if (k < body.length) {
-        if (body[k].text !== ';') {
+      if (index < body.length) {
+        if (body[index].text !== ';') {
           ok = false;
           break;
         }
-        while (body[k]?.text === ';') k++;
+        while (body[index]?.text === ';') index++;
       }
     }
     st.parsed = ok && st.segments.length > 0;
@@ -343,31 +359,32 @@ export function turtlePatches(
   const mine = doc.statements.map((s, i) => ({ s, i })).filter(x => !x.s.directive && x.s.subject === subject);
   const id = (st: number, sg: number, ob: number) => `${st}:${sg}:${ob}`;
   const warnComments = (from: number, to: number, st: Statement) => {
-    for (const c of st.comments) if (c.start >= from && c.end <= to) warnings.push(`The comment "${c.text.slice(0, 80)}" is inside a removed statement and is removed with it.`);
+    for (const comment of st.comments)
+      if (comment.start >= from && comment.end <= to) warnings.push(`The comment "${comment.text.slice(0, 80)}" is inside a removed statement and is removed with it.`);
   };
   let pending = [...added];
-  mine.forEach(({ s: st, i }, n) => {
+  mine.forEach(({ s: st, i }, statementIndex) => {
     const keptSeg = st.segments.map((sg, g) => sg.objects.some((_, o) => !removed.has(id(i, g, o))));
-    const additions = n === 0 ? pending : [];
-    if (n === 0) pending = [];
+    const additions = statementIndex === 0 ? pending : [];
+    if (statementIndex === 0) pending = [];
     // Additions to a predicate the block already has go after its last remaining object.
     const rest: TurtleAdd[] = [];
-    for (const a of additions) {
-      const g = st.segments.findIndex((sg, x) => keptSeg[x] && sg.verbIri === a.verbIri);
-      if (g < 0) {
-        rest.push(a);
+    for (const addition of additions) {
+      const index = st.segments.findIndex((sg, x) => keptSeg[x] && sg.verbIri === addition.verbIri);
+      if (index < 0) {
+        rest.push(addition);
         continue;
       }
-      const sg = st.segments[g];
-      const last = [...sg.objects.keys()].filter(o => !removed.has(id(i, g, o))).at(-1)!;
+      const sg = st.segments[index];
+      const last = [...sg.objects.keys()].filter(o => !removed.has(id(i, index, o))).at(-1)!;
       patches.push({
         from: sg.objects[last].end,
         to: sg.objects[last].end,
-        insert: ', ' + a.objectText,
+        insert: ', ' + addition.objectText,
       });
     }
     const grouped = new Map<string, TurtleAdd[]>();
-    for (const a of rest) grouped.set(a.verbIri, [...(grouped.get(a.verbIri) ?? []), a]);
+    for (const addition of rest) grouped.set(addition.verbIri, [...(grouped.get(addition.verbIri) ?? []), addition]);
     const newText = (sep: string) => [...grouped.values()].map(g => `${g[0].verbText} ${g.map(a => a.objectText).join(', ')}`).join(' ;' + sep);
     if (!keptSeg.some(Boolean)) {
       if (grouped.size) {
@@ -393,30 +410,30 @@ export function turtlePatches(
         g++;
         continue;
       }
-      let h = g;
-      while (h + 1 < st.segments.length && !keptSeg[h + 1]) h++;
+      let lastRemoved = g;
+      while (lastRemoved + 1 < st.segments.length && !keptSeg[lastRemoved + 1]) lastRemoved++;
       const from = g > 0 ? st.segments[g - 1].end : st.segments[g].start;
-      const to = g > 0 ? st.segments[h].end : st.segments[h + 1].start;
+      const to = g > 0 ? st.segments[lastRemoved].end : st.segments[lastRemoved + 1].start;
       patches.push({ from, to, insert: '' });
       warnComments(from, to, st);
-      g = h + 1;
+      g = lastRemoved + 1;
     }
-    st.segments.forEach((sg, g) => {
-      if (!keptSeg[g]) return;
-      const keptObj = sg.objects.map((_, o) => !removed.has(id(i, g, o)));
+    st.segments.forEach((sg, segmentIndex) => {
+      if (!keptSeg[segmentIndex]) return;
+      const keptObj = sg.objects.map((_, o) => !removed.has(id(i, segmentIndex, o)));
       for (let o = 0; o < sg.objects.length;) {
         if (keptObj[o]) {
-          const r = replaced.get(id(i, g, o));
-          if (r !== undefined) patches.push({ from: sg.objects[o].start, to: sg.objects[o].end, insert: r });
+          const replacement = replaced.get(id(i, segmentIndex, o));
+          if (replacement !== undefined) patches.push({ from: sg.objects[o].start, to: sg.objects[o].end, insert: replacement });
           o++;
           continue;
         }
-        let h = o;
-        while (h + 1 < sg.objects.length && !keptObj[h + 1]) h++;
+        let lastRemoved = o;
+        while (lastRemoved + 1 < sg.objects.length && !keptObj[lastRemoved + 1]) lastRemoved++;
         const from = o > 0 ? sg.objects[o - 1].end : sg.objects[o].start;
-        const to = o > 0 ? sg.objects[h].end : sg.objects[h + 1].start;
+        const to = o > 0 ? sg.objects[lastRemoved].end : sg.objects[lastRemoved + 1].start;
         patches.push({ from, to, insert: '' });
-        o = h + 1;
+        o = lastRemoved + 1;
       }
     });
     if (grouped.size) {
@@ -431,11 +448,11 @@ export function turtlePatches(
   // A resource without statements gets a new one at the end of the file, in the file's layout.
   if (pending.length) {
     const grouped = new Map<string, TurtleAdd[]>();
-    for (const a of pending) grouped.set(a.verbIri, [...(grouped.get(a.verbIri) ?? []), a]);
+    for (const addition of pending) grouped.set(addition.verbIri, [...(grouped.get(addition.verbIri) ?? []), addition]);
     const multi = doc.statements.some(s => !s.directive && s.segments.length > 1 && separator(src, s, eol) !== ' ');
     const indent = (() => {
-      const s = doc.statements.find(s => !s.directive && s.segments.length > 1 && separator(src, s, eol) !== ' ');
-      return s ? separator(src, s, eol).slice(eol.length) : '    ';
+      const statement = doc.statements.find(s => !s.directive && s.segments.length > 1 && separator(src, s, eol) !== ' ');
+      return statement ? separator(src, statement, eol).slice(eol.length) : '    ';
     })();
     const body = [...grouped.values()].map(g => `${g[0].verbText} ${g.map(a => a.objectText).join(', ')}`).join(multi ? ` ;${eol}${indent}` : ' ; ');
     const at = src.length;

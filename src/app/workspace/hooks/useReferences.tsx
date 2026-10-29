@@ -12,7 +12,7 @@ type Options = {
   docs: Doc[];
   project: string;
   current: Doc | null;
-  parsedDoc: (d: Doc) => { hash: string; model: ValidatedModel; keys: Set<string> };
+  parsedDoc: (doc: Doc) => { hash: string; model: ValidatedModel; keys: Set<string> };
   entity: Entity | undefined;
   model: ValidatedModel;
   selectedEdge: string;
@@ -39,10 +39,10 @@ export function useReferences({ docs, project, current, parsedDoc, entity, model
       new Map(
         projectDocuments
           .filter(d => d.id !== current?.id)
-          .flatMap(d => {
+          .flatMap(projectDocument => {
             try {
-              const projectModelValue = parsedDoc(d).model;
-              return projectModelValue ? [[d.id, projectModelValue] as const] : [];
+              const parsedModel = parsedDoc(projectDocument).model;
+              return parsedModel ? [[projectDocument.id, parsedModel] as const] : [];
             } catch {
               return [];
             }
@@ -51,24 +51,24 @@ export function useReferences({ docs, project, current, parsedDoc, entity, model
     [projectDocuments, current?.id],
   );
   const conceptKinds = new Set(['EntityType', 'ValueType', 'Built-in concept', 'OWL class']);
-  function crossFile(e: Entity): CrossFileTarget[] {
+  function crossFile(entity: Entity): CrossFileTarget[] {
     function findMappedEntity(projectModel: NonNullable<ValidatedModel>) {
-      if (e.kind === 'Concept mapping') {
-        return projectModel.entities.find(x => x.name === e.name && conceptKinds.has(x.kind));
+      if (entity.kind === 'Concept mapping') {
+        return projectModel.entities.find(x => x.name === entity.name && conceptKinds.has(x.kind));
       }
-      if (conceptKinds.has(e.kind)) {
-        return projectModel.entities.find(x => x.name === e.name && x.kind === 'Concept mapping');
+      if (conceptKinds.has(entity.kind)) {
+        return projectModel.entities.find(x => x.name === entity.name && x.kind === 'Concept mapping');
       }
       return undefined;
     }
 
-    const keys = new Set(entityKeys(e, model));
+    const keys = new Set(entityKeys(entity, model));
     const targets: CrossFileTarget[] = [];
-    for (const [id, m] of projectModels) {
+    for (const [id, otherModel] of projectModels) {
       const document = docsRef.current.get(id);
       if (!document) continue;
-      const hit = m.entities.find(x => entityKeys(x, m).some(k => keys.has(k)));
-      const mapped = !hit && findMappedEntity(m);
+      const hit = otherModel.entities.find(x => entityKeys(x, otherModel).some(k => keys.has(k)));
+      const mapped = !hit && findMappedEntity(otherModel);
       const target = hit ?? mapped;
       if (target)
         targets.push({

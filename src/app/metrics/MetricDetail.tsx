@@ -25,9 +25,9 @@ export function MetricDetail({ project, kpi, all, onEdit, onAddAttributes }: { p
         setExplanation(e);
         setLoading(false);
       })
-      .catch(e => {
-        if (e.name !== 'AbortError') {
-          setError(e.message);
+      .catch(failure => {
+        if (failure.name !== 'AbortError') {
+          setError(failure.message);
           setLoading(false);
         }
       });
@@ -36,6 +36,27 @@ export function MetricDetail({ project, kpi, all, onEdit, onAddAttributes }: { p
   const measures = kpi.concepts.filter(c => c.role === 'measures');
   const of = kpi.concepts.filter(c => c.role === 'of');
   const problems = [...new Set(kpi.concepts.flatMap(c => c.problems))];
+  let explanationBody: React.ReactNode;
+  if (error) {
+    explanationBody = (
+      <p role="alert" className="mapping-error">
+        {error}
+      </p>
+    );
+  } else if (!explanation) {
+    explanationBody = (
+      <p role="status" className="metrics-empty">
+        Explaining {kpi.label}…
+      </p>
+    );
+  } else {
+    explanationBody = (
+      <>
+        <Explanation explanation={explanation} all={all} query={query} onQuery={setQuery} loading={loading} />
+        <Lineage explanation={explanation} />
+      </>
+    );
+  }
   return (
     <article className="kpi-detail">
       <header className="kpi-header">
@@ -80,14 +101,14 @@ export function MetricDetail({ project, kpi, all, onEdit, onAddAttributes }: { p
             <dt>Measures</dt>
             <dd>
               {measures.length ? (
-                measures.map((c, i) => (
+                measures.map((measure, i) => (
                   <span
                     key={i}
                     className="concept-chip"
-                    title={c.source === 'mapping-expression' ? `From a concept mapping in ${c.file} whose expression is this metric’s name` : `Metric binding in ${c.file}`}
+                    title={measure.source === 'mapping-expression' ? `From a concept mapping in ${measure.file} whose expression is this metric’s name` : `Metric binding in ${measure.file}`}
                   >
-                    {c.concept ?? c.input}
-                    {c.source === 'mapping-expression' && <small>mapping</small>}
+                    {measure.concept ?? measure.input}
+                    {measure.source === 'mapping-expression' && <small>mapping</small>}
                   </span>
                 ))
               ) : (
@@ -99,9 +120,9 @@ export function MetricDetail({ project, kpi, all, onEdit, onAddAttributes }: { p
             <dt>About</dt>
             <dd>
               {of.length ? (
-                of.map((c, i) => (
+                of.map((conceptLink, i) => (
                   <span key={i} className="concept-chip of">
-                    {c.concept ?? c.input}
+                    {conceptLink.concept ?? conceptLink.input}
                   </span>
                 ))
               ) : (
@@ -143,45 +164,32 @@ export function MetricDetail({ project, kpi, all, onEdit, onAddAttributes }: { p
           <p className="kpi-targets">
             <Target size={14} />
             Target:{' '}
-            {explanation!.targets.map((t, i) => (
+            {explanation!.targets.map((target, i) => (
               <span key={i}>
-                {targetText(t, kpi.unit)}
-                {t.direction !== 'in_range' && <small>{t.direction === 'higher_is_better' ? ' · higher is better' : ' · lower is better'}</small>}
+                {targetText(target, kpi.unit)}
+                {target.direction !== 'in_range' && <small>{target.direction === 'higher_is_better' ? ' · higher is better' : ' · lower is better'}</small>}
               </span>
             ))}
           </p>
         )}
         {(kpi.findings.length > 0 || problems.length > 0) && (
           <ul className="kpi-findings">
-            {kpi.findings.map((f, i) => (
-              <li key={i} className={f.severity}>
+            {kpi.findings.map((finding, i) => (
+              <li key={i} className={finding.severity}>
                 <AlertTriangle size={13} />
-                {f.message}
+                {finding.message}
               </li>
             ))}
-            {problems.map(p => (
-              <li key={p} className="warning">
+            {problems.map(problem => (
+              <li key={problem} className="warning">
                 <AlertTriangle size={13} />
-                {p}
+                {problem}
               </li>
             ))}
           </ul>
         )}
       </header>
-      {error ? (
-        <p role="alert" className="mapping-error">
-          {error}
-        </p>
-      ) : !explanation ? (
-        <p role="status" className="metrics-empty">
-          Explaining {kpi.label}…
-        </p>
-      ) : (
-        <>
-          <Explanation explanation={explanation} all={all} query={query} onQuery={setQuery} loading={loading} />
-          <Lineage explanation={explanation} />
-        </>
-      )}
+      {explanationBody}
     </article>
   );
 }

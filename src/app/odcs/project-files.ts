@@ -8,18 +8,18 @@ import type { ProjectFile } from './lineage';
 const parsedCache = new Map<string, any>();
 /** Parses project definitions once per content hash, excluding RDF files. */
 export function projectFiles(docs: Doc[]): ProjectFile[] {
-  return docs.flatMap(d => {
-    if (rdfSyntax(d.source, d.filename)) return [];
-    const key = d.id + '#' + d.hash;
+  return docs.flatMap(doc => {
+    if (rdfSyntax(doc.source, doc.filename)) return [];
+    const key = doc.id + '#' + doc.hash;
     if (!parsedCache.has(key)) {
-      let v: any = null;
+      let value: any = null;
       try {
-        v = parse(d.source);
+        value = parse(doc.source);
       } catch {}
-      parsedCache.set(key, v);
+      parsedCache.set(key, value);
     }
     const data = parsedCache.get(key);
-    return data && typeof data === 'object' ? [{ path: d.path, data }] : [];
+    return data && typeof data === 'object' ? [{ path: doc.path, data }] : [];
   });
 }
 /** Builds a revision key from project file paths and content hashes. */

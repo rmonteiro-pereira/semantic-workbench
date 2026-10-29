@@ -17,8 +17,8 @@ let owl =
 let shacl = prefixes;
 const tables: any[] = [];
 const joins: any[] = [];
-for (const e of mapping.entities) {
-  owl += `\nu:${e.name} a owl:Class ; rdfs:label ${quote(e.name)} ; rdfs:comment ${quote(desc(e))} ; rdfs:isDefinedBy <${e.source}> .\n`;
+for (const entity of mapping.entities) {
+  owl += `\nu:${entity.name} a owl:Class ; rdfs:label ${quote(entity.name)} ; rdfs:comment ${quote(desc(entity))} ; rdfs:isDefinedBy <${entity.source}> .\n`;
   const props: any[] = [
     {
       name: 'record_id',
@@ -29,46 +29,64 @@ for (const e of mapping.entities) {
       description: 'Application-generated surrogate ID for the analytical projection; not a UBL XML field.',
     },
   ];
-  for (const f of e.fields) {
-    const name = snake(f.name);
+  for (const field of entity.fields) {
+    const name = snake(field.name);
     if (props.some(p => p.name === name)) continue;
-    const logicalType = /Amount|Quantity|Percent|Rate|Numeric$/.test(f.name) ? 'number' : f.name.endsWith('Indicator') ? 'boolean' : f.name.endsWith('Date') ? 'date' : 'string';
+    let logicalType: 'number' | 'boolean' | 'date' | 'string';
+    if (/Amount|Quantity|Percent|Rate|Numeric$/.test(field.name)) {
+      logicalType = 'number';
+    } else if (field.name.endsWith('Indicator')) {
+      logicalType = 'boolean';
+    } else if (field.name.endsWith('Date')) {
+      logicalType = 'date';
+    } else {
+      logicalType = 'string';
+    }
     props.push({
       name,
       logicalType,
-      required: f.min > 0,
-      description: `Source cbc:${f.name}; occurrences ${f.min}..${f.max}. Repeating basic fields are represented as arrays in this projection.`,
-      ...(f.max !== '1' ? { logicalType: 'array', items: { logicalType } } : {}),
+      required: field.min > 0,
+      description: `Source cbc:${field.name}; occurrences ${field.min}..${field.max}. Repeating basic fields are represented as arrays in this projection.`,
+      ...(field.max !== '1' ? { logicalType: 'array', items: { logicalType } } : {}),
     });
   }
   const constraints: string[] = [];
-  for (const r of e.relationships) {
-    const property = `${e.name}_${r.name}`;
-    owl += `u:${property} a owl:ObjectProperty ; rdfs:label ${quote(r.name)} ; rdfs:domain u:${e.name} ; rdfs:range u:${r.target} ; rdfs:comment ${quote(`UBL cac:${r.name}; ${r.min}..${r.max} occurrences.`)} ; rdfs:isDefinedBy <${e.source}> .\n`;
-    constraints.push(`[ sh:path u:${property} ; sh:class u:${r.target} ; sh:minCount ${r.min}${r.max === 'unbounded' ? '' : ` ; sh:maxCount ${r.max}`} ]`);
-    if (r.max === '1') {
-      const col = snake(r.name) + '_id';
+  for (const relationship of entity.relationships) {
+    const property = `${entity.name}_${relationship.name}`;
+    const occurrences = `UBL cac:${relationship.name}; ${relationship.min}..${relationship.max} occurrences.`;
+    const clauses = [
+      `u:${property} a owl:ObjectProperty`,
+      `rdfs:label ${quote(relationship.name)}`,
+      `rdfs:domain u:${entity.name}`,
+      `rdfs:range u:${relationship.target}`,
+      `rdfs:comment ${quote(occurrences)}`,
+      `rdfs:isDefinedBy <${entity.source}>`,
+    ];
+    owl += clauses.join(' ; ') + ' .\n';
+    constraints.push(`[ sh:path u:${property} ; sh:class u:${relationship.target} ; sh:minCount ${relationship.min}${relationship.max === 'unbounded' ? '' : ` ; sh:maxCount ${relationship.max}`} ]`);
+    if (relationship.max === '1') {
+      const col = snake(relationship.name) + '_id';
       props.push({
         name: col,
         logicalType: 'string',
-        required: r.min > 0,
-        description: `Analytical foreign key for UBL cac:${r.name}, targeting ${r.target}.`,
+        required: relationship.min > 0,
+        description: `Analytical foreign key for UBL cac:${relationship.name}, targeting ${relationship.target}.`,
       });
       joins.push({
         name: property,
-        from: snake(e.name),
-        to: snake(r.target),
+        from: snake(entity.name),
+        to: snake(relationship.target),
         from_columns: [col],
         to_columns: ['record_id'],
       });
     } else {
-      const name = snake(e.name) + '__' + snake(r.name);
+      const name = snake(entity.name) + '__' + snake(relationship.name);
       tables.push({
         name,
         logicalType: 'object',
         physicalType: 'table',
         physicalName: 'analytics.ubl.' + name,
-        description: `Bridge for repeatable UBL ${e.name}.${r.name} → ${r.target}; source occurrences ${r.min}..${r.max}.`,
+        description: `Bridge for repeatable UBL ${entity.name}.${relationship.name} → ${relationship.target}; source occurrences ${relationship.min}..${relationship.max}.`,
         properties: [
           {
             name: 'record_id',
@@ -85,30 +103,31 @@ for (const e of mapping.entities) {
         {
           name: property + '_source',
           from: name,
-          to: snake(e.name),
+          to: snake(entity.name),
           from_columns: ['source_id'],
           to_columns: ['record_id'],
         },
         {
           name: property + '_target',
           from: name,
-          to: snake(r.target),
+          to: snake(relationship.target),
           from_columns: ['target_id'],
           to_columns: ['record_id'],
         },
       );
     }
   }
-  shacl += `\nu:${e.name}Shape a sh:NodeShape ; rdfs:label ${quote(e.name + ' aggregate roles')} ; sh:targetClass u:${e.name}${constraints.length ? ' ;\n sh:property ' + constraints.join(' ,\n ') : ''} .\n`;
+  const properties = constraints.length ? ' ;\n sh:property ' + constraints.join(' ,\n ') : '';
+  shacl += `\nu:${entity.name}Shape a sh:NodeShape ; rdfs:label ${quote(entity.name + ' aggregate roles')} ; sh:targetClass u:${entity.name}${properties} .\n`;
   tables.push({
-    name: snake(e.name),
+    name: snake(entity.name),
     logicalType: 'object',
     physicalType: 'table',
-    physicalName: 'analytics.ubl.' + snake(e.name),
-    description: desc(e),
+    physicalName: 'analytics.ubl.' + snake(entity.name),
+    description: desc(entity),
     authoritativeDefinitions: [
-      { type: 'businessDefinition', url: e.source },
-      { type: 'businessDefinition', url: iri + e.name },
+      { type: 'businessDefinition', url: entity.source },
+      { type: 'businessDefinition', url: iri + entity.name },
     ],
     properties: props,
   });
@@ -123,17 +142,22 @@ await Bun.write(
     version: '0.2.0.dev0',
     name: ontologyName,
     description: 'A schema-derived, focused business model spanning procurement, fulfillment, invoicing, tax and settlement. Application projection, not an official OASIS ontology.',
-    ontology: mapping.entities.map((e: any) => ({
-      concept: e.name,
+    ontology: mapping.entities.map((entity: any) => ({
+      concept: entity.name,
       type: 'EntityType',
-      iri: iri + e.name,
-      description: desc(e),
-      relationships: e.relationships.map((r: any) => ({
-        name: r.name,
-        description: `UBL role cac:${r.name}; source occurrences ${r.min}..${r.max}.`,
-        roles: [{ concept: r.target, ...(r.target === e.name ? { name: 'related' } : {}) }],
-        ...(r.max === '1' ? { multiplicity: 'ManyToOne' } : {}),
-        verbalizes: [`{${e.name}} has ${r.name} {${r.target}${r.target === e.name ? ':related' : ''}}`],
+      iri: iri + entity.name,
+      description: desc(entity),
+      relationships: entity.relationships.map((relationship: any) => ({
+        name: relationship.name,
+        description: `UBL role cac:${relationship.name}; source occurrences ${relationship.min}..${relationship.max}.`,
+        roles: [
+          {
+            concept: relationship.target,
+            ...(relationship.target === entity.name ? { name: 'related' } : {}),
+          },
+        ],
+        ...(relationship.max === '1' ? { multiplicity: 'ManyToOne' } : {}),
+        verbalizes: [`{${entity.name}} has ${relationship.name} {${relationship.target}${relationship.target === entity.name ? ':related' : ''}}`],
       })),
     })),
   }),
@@ -164,13 +188,13 @@ const expression = (expression: string) => ({ dialects: [{ dialect: 'ANSI_SQL', 
  */
 function conceptMapping(entity: any) {
   const dataset = snake(entity.name);
-  const links = entity.relationships.map((r: any) => {
-    if (r.max === '1') {
-      const foreignKey = `${dataset}.${snake(r.name)}_id`;
-      return linkMapping(`${dataset}.record_id`, r.name, r.target, foreignKey);
+  const links = entity.relationships.map((relationship: any) => {
+    if (relationship.max === '1') {
+      const foreignKey = `${dataset}.${snake(relationship.name)}_id`;
+      return linkMapping(`${dataset}.record_id`, relationship.name, relationship.target, foreignKey);
     }
-    const bridge = `${dataset}__${snake(r.name)}`;
-    return linkMapping(`${bridge}.source_id`, r.name, r.target, `${bridge}.target_id`);
+    const bridge = `${dataset}__${snake(relationship.name)}`;
+    return linkMapping(`${bridge}.source_id`, relationship.name, relationship.target, `${bridge}.target_id`);
   });
   return {
     concept: entity.name,
@@ -184,15 +208,15 @@ await Bun.write(
     version: '0.2.0.dev0',
     name: semanticModelName,
     description: `${tables.length} normalized datasets, including bridge tables for repeatable roles. Physical sources match the ODCS contract.`,
-    datasets: tables.map(t => ({
-      name: t.name,
-      source: t.physicalName,
+    datasets: tables.map(table => ({
+      name: table.name,
+      source: table.physicalName,
       primary_key: ['record_id'],
-      description: t.description,
-      fields: t.properties.map((p: any) => ({
-        name: p.name,
-        description: p.description,
-        expression: expression(p.name),
+      description: table.description,
+      fields: table.properties.map((property: any) => ({
+        name: property.name,
+        description: property.description,
+        expression: expression(property.name),
         datatype: (
           {
             string: 'String',
@@ -201,7 +225,7 @@ await Bun.write(
             date: 'Date',
             array: 'Opaque',
           } as any
-        )[p.logicalType],
+        )[property.logicalType],
       })),
     })),
     relationships: joins,

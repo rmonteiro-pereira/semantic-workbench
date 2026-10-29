@@ -47,39 +47,39 @@ export function inspect(source: string, filename = 'definition.yaml') {
   if (filename.toLowerCase().endsWith('.json'))
     try {
       JSON.parse(source);
-    } catch (e) {
-      throw new InputError([{ severity: 'error', code: 'json', path: '/', message: (e as Error).message }]);
+    } catch (error) {
+      throw new InputError([{ severity: 'error', code: 'json', path: '/', message: (error as Error).message }]);
     }
   const syntax = rdfSyntax(source, filename);
   if (syntax) return inspectRdf(source, filename, syntax);
   const doc = parseDocument(source, { uniqueKeys: true });
   if (doc.errors.length)
     throw new InputError(
-      doc.errors.map(e => ({
+      doc.errors.map(error => ({
         severity: 'error',
         code: 'syntax',
         path: '/',
-        message: e.message,
-        line: e.linePos?.[0].line,
-        column: e.linePos?.[0].col,
+        message: error.message,
+        line: error.linePos?.[0].line,
+        column: error.linePos?.[0].col,
       })),
     );
   if (doc.warnings.length)
     throw new InputError(
-      doc.warnings.map(e => ({
+      doc.warnings.map(warning => ({
         severity: 'error',
         code: 'yaml-tag',
         path: '/',
-        message: e.message,
-        line: e.linePos?.[0].line,
-        column: e.linePos?.[0].col,
+        message: warning.message,
+        line: warning.linePos?.[0].line,
+        column: warning.linePos?.[0].col,
       })),
     );
   let data: any;
   try {
     data = doc.toJS({ maxAliasCount: 100 });
-  } catch (e) {
-    throw new InputError([{ severity: 'error', code: 'aliases', path: '/', message: (e as Error).message }]);
+  } catch (error) {
+    throw new InputError([{ severity: 'error', code: 'aliases', path: '/', message: (error as Error).message }]);
   }
   if (!data || typeof data !== 'object' || Array.isArray(data))
     throw new InputError([
@@ -114,9 +114,9 @@ export function inspect(source: string, filename = 'definition.yaml') {
   let issues: Issue[];
   try {
     issues = locate(validateStructured(data));
-  } catch (e) {
-    if (e instanceof InputError) throw new InputError(locate(e.issues));
-    throw e;
+  } catch (error) {
+    if (error instanceof InputError) throw new InputError(locate(error.issues));
+    throw error;
   }
   const entities: Entity[] = [];
   const edges: Relationship[] = [];
@@ -139,32 +139,33 @@ export function inspect(source: string, filename = 'definition.yaml') {
   };
   // Datasets, joins and metrics of one semantic model, at `prefix` inside the document. Metric
   // edges come from the syntax-aware reference scan (src/shared/metrics/deps.ts), not substring matches.
-  const addSemanticModel = (m: any, prefix: (string | number)[], mi: number) => {
-    if (!m.name || !Array.isArray(m.datasets) || !m.datasets.length) throw Error('Ossie model requires a name and non-empty datasets');
-    m.datasets.forEach((x: any, i: number) => {
+  const addSemanticModel = (semanticModel: any, prefix: (string | number)[], mi: number) => {
+    if (!semanticModel.name || !Array.isArray(semanticModel.datasets) || !semanticModel.datasets.length) throw Error('Ossie model requires a name and non-empty datasets');
+    semanticModel.datasets.forEach((x: any, i: number) => {
       if (!x.source) throw Error(`Dataset ${x.name}: source required`);
       add(x, [...prefix, 'datasets', i], 'Dataset');
     });
     const byName = new Map(entities.filter(e => e.kind === 'Dataset' && e.path.slice(0, prefix.length).join('/') === prefix.join('/')).map(e => [e.name, e]));
-    for (const [ri, r] of (m.relationships ?? []).entries()) {
-      const a = byName.get(r.from);
-      const b = byName.get(r.to);
-      if (!a || !b) throw Error(`Relationship ${r.name}: unknown dataset`);
-      if (!r.from_columns?.length || r.from_columns.length !== r.to_columns?.length) throw Error(`Relationship ${r.name}: join keys must have equal lengths`);
+    for (const [ri, relationship] of (semanticModel.relationships ?? []).entries()) {
+      const fromDataset = byName.get(relationship.from);
+      const toDataset = byName.get(relationship.to);
+      if (!fromDataset || !toDataset) throw Error(`Relationship ${relationship.name}: unknown dataset`);
+      if (!relationship.from_columns?.length || relationship.from_columns.length !== relationship.to_columns?.length)
+        throw Error(`Relationship ${relationship.name}: join keys must have equal lengths`);
       edges.push({
         id: `join-${mi}-${edges.length}`,
-        source: a.id,
-        target: b.id,
-        label: r.name,
+        source: fromDataset.id,
+        target: toDataset.id,
+        label: relationship.name,
         data: {
           path: [...prefix, 'relationships', ri],
-          definition: r,
+          definition: relationship,
           kind: 'Dataset relationship',
         },
       });
     }
     const datasetNames = new Set(byName.keys());
-    for (const [i, mx] of (m.metrics ?? []).entries()) {
+    for (const [i, mx] of (semanticModel.metrics ?? []).entries()) {
       const metricId = add(mx, [...prefix, 'metrics', i], 'Metric');
       const used = new Set(
         (Array.isArray(mx.expression?.dialects) ? mx.expression.dialects : []).flatMap((d: any) => (typeof d?.expression === 'string' ? datasetReferences(d.expression, datasetNames) : [])),
@@ -206,11 +207,13 @@ export function inspect(source: string, filename = 'definition.yaml') {
     kind = 'Ossie ontology';
     data.ontology.forEach((x: any, i: number) => add(x, ['ontology', i], x.type ?? 'Concept'));
     const prefixes = prefixMap(data.prefixes);
-    for (const e of entities) {
-      const iri = typeof e.definition?.iri === 'string' ? expandIri(e.definition.iri, prefixes) : null;
-      if (iri && 'iri' in iri) e.namespace = namespaceOf(iri.iri, prefixes);
+    for (const entity of entities) {
+      const iri = typeof entity.definition?.iri === 'string' ? expandIri(entity.definition.iri, prefixes) : null;
+      if (iri && 'iri' in iri) entity.namespace = namespaceOf(iri.iri, prefixes);
     }
-    const referenced = new Set<string>(data.ontology.flatMap((c: any) => [...(c.extends ?? []), ...(c.relationships ?? []).flatMap((r: any) => (r.roles ?? []).map((role: any) => role.concept))]));
+    const referenced = new Set<string>(
+      data.ontology.flatMap((concept: any) => [...(concept.extends ?? []), ...(concept.relationships ?? []).flatMap((r: any) => (r.roles ?? []).map((role: any) => role.concept))]),
+    );
     for (const name of referenced)
       if (OSSIE_BUILTINS.has(name) && !entities.some(e => e.name === name))
         entities.push({
@@ -225,18 +228,18 @@ export function inspect(source: string, filename = 'definition.yaml') {
         });
     const byName = new Map(entities.map(e => [e.name, e]));
     data.ontology.forEach((x: any, i: number) => {
-      for (const [ri, r] of (x.relationships ?? []).entries())
-        for (const role of r.roles ?? []) {
+      for (const [ri, relationship] of (x.relationships ?? []).entries())
+        for (const role of relationship.roles ?? []) {
           const target = byName.get(role.concept);
           if (target)
             edges.push({
               id: `r-${i}-${edges.length}`,
               source: `ontology/${i}`,
               target: target.id,
-              label: r.name,
+              label: relationship.name,
               data: {
                 path: ['ontology', i, 'relationships', ri],
-                definition: r,
+                definition: relationship,
                 kind: 'Ontology relationship',
               },
             });
@@ -266,12 +269,16 @@ export function inspect(source: string, filename = 'definition.yaml') {
     const models = Array.isArray(data.semantic_model) ? data.semantic_model : [data];
     models.forEach((m: any, mi: number) => addSemanticModel(m, data.semantic_model ? ['semantic_model', mi] : [], mi));
   }
-  const layout =
-    kind === 'Ossie ontology' || kind === 'Ossie semantic' || kind === 'Ossie mappings'
-      ? Array.isArray(data.ontology_mappings) && data.ontology_mappings.length
-        ? 'embedded (deprecated)'
-        : 'split'
-      : undefined;
+  let layout: string | undefined;
+  if (kind === 'Ossie ontology' || kind === 'Ossie semantic' || kind === 'Ossie mappings') {
+    if (Array.isArray(data.ontology_mappings) && data.ontology_mappings.length) {
+      layout = 'embedded (deprecated)';
+    } else {
+      layout = 'split';
+    }
+  } else {
+    layout = undefined;
+  }
   return {
     kind,
     layout,

@@ -25,7 +25,7 @@ type AuthPageKind = 'no-access' | 'signed-out' | 'error' | 'connect-failed';
 // The compact logo and product name of the active brand. The mark is a separate request, so the
 // pages stay free of inline images and scripts.
 function brandMarkup(): string {
-  return '<div class="brand"><img src="/brand/logo-mark.svg" width="28" height="28" alt="">' + '<span>' + escapeHtml(activeBrand().manifest.productName) + '</span></div>';
+  return '<div class="brand"><img src="/brand/logo-mark.svg" width="28" height="28" alt=""><span>' + escapeHtml(activeBrand().manifest.productName) + '</span></div>';
 }
 
 function pageContent(page: AuthPageKind, options: AuthPageOptions) {
@@ -50,12 +50,11 @@ function pageContent(page: AuthPageKind, options: AuthPageOptions) {
   }
   if (page === 'error') {
     title = 'Sign-in error';
-    content =
-      '<p>' + escapeHtml(options.reason ?? 'Provider unreachable') + '</p>' + '<a href="/auth/login?returnTo=' + escapeHtml(encodeURIComponent(safeReturnTo(options.returnTo))) + '">Try again</a>';
+    content = '<p>' + escapeHtml(options.reason ?? 'Provider unreachable') + '</p><a href="/auth/login?returnTo=' + escapeHtml(encodeURIComponent(safeReturnTo(options.returnTo))) + '">Try again</a>';
   }
   if (page === 'connect-failed') {
     title = 'GitHub not connected';
-    content = '<p>Your GitHub account could not be connected. Nothing was changed.</p>' + '<a href="' + escapeHtml(safeReturnTo(options.returnTo)) + '">Back to the workbench</a>';
+    content = '<p>Your GitHub account could not be connected. Nothing was changed.</p><a href="' + escapeHtml(safeReturnTo(options.returnTo)) + '">Back to the workbench</a>';
   }
   return { title, content };
 }

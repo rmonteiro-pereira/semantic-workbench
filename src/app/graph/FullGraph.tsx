@@ -268,24 +268,24 @@ export function FullGraph(props: Props) {
     const current = instance.getNodes();
     const byId = new Map(current.map(n => [n.id, n]));
     if (!current.length) return;
-    const boxes = current.map(n => {
-      let x = n.position.x;
-      let y = n.position.y;
-      let parent = n.parentId;
+    const boxes = current.map(node => {
+      let x = node.position.x;
+      let y = node.position.y;
+      let parent = node.parentId;
       const seen = new Set<string>();
       while (parent && !seen.has(parent)) {
         seen.add(parent);
-        const p = byId.get(parent);
-        if (!p) break;
-        x += p.position.x;
-        y += p.position.y;
-        parent = p.parentId;
+        const parentNode = byId.get(parent);
+        if (!parentNode) break;
+        x += parentNode.position.x;
+        y += parentNode.position.y;
+        parent = parentNode.parentId;
       }
       return {
         x,
         y,
-        width: Number(n.style?.width ?? n.measured?.width ?? 184),
-        height: Number(n.style?.height ?? n.measured?.height ?? 60),
+        width: Number(node.style?.width ?? node.measured?.width ?? 184),
+        height: Number(node.style?.height ?? node.measured?.height ?? 60),
       };
     });
     const x = Math.min(...boxes.map(n => n.x));
@@ -301,7 +301,7 @@ export function FullGraph(props: Props) {
   useEffect(() => {
     let cancelled = false;
     let worker: Worker | undefined;
-    let elk: { layout: (g: any) => Promise<any>; terminateWorker: () => void } | undefined;
+    let elk: { layout: (elkGraph: any) => Promise<any>; terminateWorker: () => void } | undefined;
     const key = JSON.stringify([algorithm, layoutGrouping, props.name, display.entities.map(e => [e.id, e.name, e.kind]), display.edges.map(e => [e.source, e.target])]);
     setBusy(true);
     setError('');
@@ -313,24 +313,24 @@ export function FullGraph(props: Props) {
       if (cache.size > 6) cache.delete(cache.keys().next().value!);
       setNodes(previous => {
         const previousById = new Map(previous.map(node => [node.id, node]));
-        return result.nodes.map(n => {
-          const group = n.group ? groupById.get(n.group) : groupById.get(overview.groupOf.get(n.id)!);
-          const type = n.group ? 'businessArea' : 'entity';
-          const prior = previousById.get(n.id);
-          const sameSize = prior?.type === type && prior.style?.width === n.width && prior.style?.height === n.height;
+        return result.nodes.map(node => {
+          const group = node.group ? groupById.get(node.group) : groupById.get(overview.groupOf.get(node.id)!);
+          const type = node.group ? 'businessArea' : 'entity';
+          const prior = previousById.get(node.id);
+          const sameSize = prior?.type === type && prior.style?.width === node.width && prior.style?.height === node.height;
           return {
-            id: n.id,
+            id: node.id,
             type,
             measured: sameSize ? prior.measured : undefined,
-            position: { x: n.x, y: n.y },
-            parentId: n.parentId,
-            extent: n.parentId ? 'parent' : undefined,
+            position: { x: node.x, y: node.y },
+            parentId: node.parentId,
+            extent: node.parentId ? 'parent' : undefined,
             draggable: true,
-            selectable: !n.group,
+            selectable: !node.group,
             style: {
-              width: n.width,
-              height: n.height,
-              ...(n.group
+              width: node.width,
+              height: node.height,
+              ...(node.group
                 ? {
                     background: group!.color + '06',
                     border: '1px solid ' + group!.color + '45',
@@ -339,12 +339,12 @@ export function FullGraph(props: Props) {
                   }
                 : { zIndex: 2 }),
             },
-            data: n.group
+            data: node.group
               ? { name: group!.name, color: group!.color, count: group!.entities.length }
               : {
-                  name: entityById.get(n.id)?.name,
-                  collapsedArea: entityById.get(n.id)?.definition?.collapsedArea,
-                  internalCount: display.internal.get(entityById.get(n.id)?.definition?.collapsedArea)?.length ?? 0,
+                  name: entityById.get(node.id)?.name,
+                  collapsedArea: entityById.get(node.id)?.definition?.collapsedArea,
+                  internalCount: display.internal.get(entityById.get(node.id)?.definition?.collapsedArea)?.length ?? 0,
                   color: group?.color ?? FALLBACK_GROUP_COLOR,
                 },
           };
@@ -372,9 +372,9 @@ export function FullGraph(props: Props) {
           });
           packNetwork(data.result, elk)
             .then(apply)
-            .catch(e => {
+            .catch(failure => {
               if (!cancelled) {
-                setError(e.message);
+                setError(failure.message);
                 setBusy(false);
               }
             })
@@ -399,11 +399,11 @@ export function FullGraph(props: Props) {
         algorithms: ['layered', 'sporeOverlap', 'box'],
         workerFactory: () => new Worker(elkWorkerUrl),
       });
-      timeOperation('graph-layout', layoutFullGraph(display.entities, display.edges, props.name, elk, layoutGrouping))
+      timeOperation('graph-layout', layoutFullGraph(display.entities, display.edges, { name: props.name, elk, grouping: layoutGrouping }))
         .then(apply)
-        .catch(e => {
+        .catch(failure => {
           if (!cancelled) {
-            setError(e.message);
+            setError(failure.message);
             setBusy(false);
           }
         })
@@ -452,31 +452,31 @@ export function FullGraph(props: Props) {
     const ids = new Set<string>();
     if (focus) {
       ids.add(focus);
-      for (const e of display.edges)
-        if (e.source === focus || e.target === focus) {
-          ids.add(e.source);
-          ids.add(e.target);
+      for (const edge of display.edges)
+        if (edge.source === focus || edge.target === focus) {
+          ids.add(edge.source);
+          ids.add(edge.target);
         }
     }
     return ids;
   }, [display, focus]);
   const renderedNodes = useMemo(
     () =>
-      nodes.map(n =>
-        n.type === 'entity'
+      nodes.map(node =>
+        node.type === 'entity'
           ? {
-              ...n,
-              selected: n.id === props.selected,
+              ...node,
+              selected: node.id === props.selected,
               data: {
-                ...n.data,
-                kind: entityById.get(n.id)?.kind,
-                kpis: props.kpiBadges?.get(String(n.data.name)),
-                focused: connected.has(n.id),
-                tooltip: n.id === hover || n.id === props.selected,
+                ...node.data,
+                kind: entityById.get(node.id)?.kind,
+                kpis: props.kpiBadges?.get(String(node.data.name)),
+                focused: connected.has(node.id),
+                tooltip: node.id === hover || node.id === props.selected,
               },
-              style: { ...n.style, opacity: focus && !connected.has(n.id) ? 0.32 : 1 },
+              style: { ...node.style, opacity: focus && !connected.has(node.id) ? 0.32 : 1 },
             }
-          : n,
+          : node,
       ),
     [nodes, connected, focus, props.selected, hover, entityById, props.kpiBadges],
   );
@@ -485,13 +485,13 @@ export function FullGraph(props: Props) {
     return new Map(
       nodes
         .filter(n => n.type === 'entity')
-        .map(n => {
-          const p = byId.get(n.parentId);
+        .map(node => {
+          const parentNode = byId.get(node.parentId);
           return [
-            n.id,
+            node.id,
             {
-              x: n.position.x + (p?.position.x ?? 0),
-              y: n.position.y + (p?.position.y ?? 0),
+              x: node.position.x + (parentNode?.position.x ?? 0),
+              y: node.position.y + (parentNode?.position.y ?? 0),
               width: 184,
               height: 60,
             },
@@ -502,14 +502,14 @@ export function FullGraph(props: Props) {
   const dragging = nodes.some(n => n.dragging);
   const edges = useMemo(
     () =>
-      connections.map(e => {
-        const a = positions.get(e.source);
-        const b = positions.get(e.target);
+      connections.map(connection => {
+        const fromPosition = positions.get(connection.source);
+        const toPosition = positions.get(connection.target);
         let source = 'e';
         let target = 'w';
-        if (a && b) {
-          const dx = b.x - a.x;
-          const dy = b.y - a.y;
+        if (fromPosition && toPosition) {
+          const dx = toPosition.x - fromPosition.x;
+          const dy = toPosition.y - fromPosition.y;
           if (Math.abs(dx) > Math.abs(dy)) {
             source = dx >= 0 ? 'e' : 'w';
             target = dx >= 0 ? 'w' : 'e';
@@ -518,7 +518,7 @@ export function FullGraph(props: Props) {
             target = dy >= 0 ? 'n' : 's';
           }
         }
-        if (e.source === e.target) {
+        if (connection.source === connection.target) {
           source = 'e';
           target = 's';
         }
@@ -526,28 +526,38 @@ export function FullGraph(props: Props) {
           source = 'e';
           target = 'w';
         }
-        const active = e.data.relationships.some(r => r.id === props.selectedEdge);
-        const adjacent = e.source === focus || e.target === focus;
-        const visible = (p: any) =>
-          p &&
-          p.x * viewport.zoom + viewport.x > -220 * viewport.zoom &&
-          p.x * viewport.zoom + viewport.x < size.width + 30 &&
-          p.y * viewport.zoom + viewport.y > -90 * viewport.zoom &&
-          p.y * viewport.zoom + viewport.y < size.height + 30;
-        const routeDetailed = !dragging && e.source !== e.target && (active || adjacent || (viewport.zoom >= 0.35 && visible(a) && visible(b)));
+        const active = connection.data.relationships.some(r => r.id === props.selectedEdge);
+        const adjacent = connection.source === focus || connection.target === focus;
+        const visible = (position: any) =>
+          position &&
+          position.x * viewport.zoom + viewport.x > -220 * viewport.zoom &&
+          position.x * viewport.zoom + viewport.x < size.width + 30 &&
+          position.y * viewport.zoom + viewport.y > -90 * viewport.zoom &&
+          position.y * viewport.zoom + viewport.y < size.height + 30;
+        const routeDetailed = !dragging && connection.source !== connection.target && (active || adjacent || (viewport.zoom >= 0.35 && visible(fromPosition) && visible(toPosition)));
+        let label: string | undefined;
+        if (labels || active || hoverEdge === connection.id) {
+          if (connection.data.relationships.length > 1) {
+            label = `${connection.data.relationships.length} relationships`;
+          } else {
+            label = connection.label;
+          }
+        } else {
+          label = undefined;
+        }
         return {
-          ...e,
+          ...connection,
           data: {
-            ...e.data,
+            ...connection.data,
             algorithm,
             routeDetailed,
-            layoutRoute: algorithm === 'layered' ? layoutRoutes[e.id]?.flat() : undefined,
+            layoutRoute: algorithm === 'layered' ? layoutRoutes[connection.id]?.flat() : undefined,
           },
           type: 'routed',
           sourceHandle: 'source-' + source,
           targetHandle: 'target-' + target,
           selected: active,
-          label: labels || active || hoverEdge === e.id ? (e.data.relationships.length > 1 ? `${e.data.relationships.length} relationships` : e.label) : undefined,
+          label,
           markerEnd: {
             type: MarkerType.ArrowClosed,
             color: active || adjacent ? 'var(--color-edge-active)' : 'var(--color-edge-idle)',
@@ -619,9 +629,9 @@ export function FullGraph(props: Props) {
                 <Crosshair size={13} aria-hidden="true" />
                 <select aria-label="Zoom to group" title={overview.groupingLabel} defaultValue="" onChange={e => zoomToGroup(e.target.value)}>
                   <option value="">Whole model</option>
-                  {overview.groups.map(g => (
-                    <option key={g.id} value={g.id}>
-                      {g.name}
+                  {overview.groups.map(group => (
+                    <option key={group.id} value={group.id}>
+                      {group.name}
                     </option>
                   ))}
                 </select>
@@ -680,9 +690,9 @@ export function FullGraph(props: Props) {
               if (n.data.collapsedArea) expandArea(String(n.data.collapsedArea));
               else if (n.type === 'entity') props.onSelectEntity(n.id);
             }}
-            onNodeDoubleClick={(_, n) => {
+            onNodeDoubleClick={(_, node) => {
               void flow.current?.fitView({
-                nodes: [{ id: n.parentId ?? n.id }],
+                nodes: [{ id: node.parentId ?? node.id }],
                 padding: 0.2,
                 maxZoom: 1,
                 duration: 300,
@@ -710,11 +720,11 @@ export function FullGraph(props: Props) {
         <label className="graph-bundle-choice">
           {selectedConnection.data.relationships.length} relationships in this bundle
           <select aria-label="Graph bundle relationship" value={props.selectedEdge} onChange={e => props.onSelectEdge(e.target.value)}>
-            {selectedConnection.data.relationships.map(r => {
-              const original = originalById.get(r.id)!;
+            {selectedConnection.data.relationships.map(relationship => {
+              const original = originalById.get(relationship.id)!;
               return (
-                <option key={r.id} value={r.id}>
-                  {originalEntities.get(original.source)?.name} · {r.label} → {originalEntities.get(original.target)?.name}
+                <option key={relationship.id} value={relationship.id}>
+                  {originalEntities.get(original.source)?.name} · {relationship.label} → {originalEntities.get(original.target)?.name}
                 </option>
               );
             })}
@@ -736,15 +746,15 @@ export function FullGraph(props: Props) {
   );
 }
 /** Toggles the graph's full-screen view. */
-export const FullscreenButton = ({ fullscreen: f }: { fullscreen: Fullscreen }) => (
+export const FullscreenButton = ({ fullscreen }: { fullscreen: Fullscreen }) => (
   <button
     className="fullscreen-toggle"
-    onClick={f.toggle}
-    aria-pressed={f.active}
-    aria-label={f.active ? 'Exit full screen' : 'Enter full screen'}
-    title={f.active ? 'Exit full screen (Esc)' : 'Full screen (F)'}
+    onClick={fullscreen.toggle}
+    aria-pressed={fullscreen.active}
+    aria-label={fullscreen.active ? 'Exit full screen' : 'Enter full screen'}
+    title={fullscreen.active ? 'Exit full screen (Esc)' : 'Full screen (F)'}
   >
-    {f.active ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
-    {f.active && 'Exit full screen'}
+    {fullscreen.active ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
+    {fullscreen.active && 'Exit full screen'}
   </button>
 );

@@ -22,7 +22,7 @@ const table = (name: string, properties: any[], extra: any = {}) => ({
   ...extra,
 });
 test('ODCS property-level, schema-level and fully qualified foreign keys become relationships', () => {
-  const m = inspect(
+  const model = inspect(
     contract([
       table('customers', []),
       table(
@@ -48,11 +48,11 @@ test('ODCS property-level, schema-level and fully qualified foreign keys become 
     ]),
     'c.odcs.yaml',
   );
-  expect(m.edges.map(e => [e.source, e.target, e.label, e.data.kind])).toEqual([
+  expect(model.edges.map(e => [e.source, e.target, e.label, e.data.kind])).toEqual([
     ['schema/1', 'schema/0', 'customer_id', 'Foreign key'],
     ['schema/1', 'schema/0', 'sold_by', 'Foreign key'],
   ]);
-  expect(m.edges[0].data.path).toEqual(['schema', 1, 'properties', 1, 'relationships', 0]);
+  expect(model.edges[0].data.path).toEqual(['schema', 1, 'properties', 1, 'relationships', 0]);
 });
 test('ODCS references to other contract files are external; unknown local targets are errors', () => {
   const external = validateInput(

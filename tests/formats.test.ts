@@ -26,13 +26,13 @@ test('all commerce formats import and preserve full definitions', async () => {
   }
 });
 test('RDF identity, typed literals and SHACL blank-node constraints remain inspectable', () => {
-  const m = inspect(
+  const inspection = inspect(
     '@prefix sh: <http://www.w3.org/ns/shacl#> .\n@prefix c: <https://example.org/> .\nc:S a sh:NodeShape; sh:targetClass c:Customer; sh:property [sh:path c:email; sh:minCount 1] .',
     'shape.ttl',
   );
-  expect(m.kind).toBe('SHACL');
-  expect(m.entities.some(e => JSON.stringify(e.definition).includes('minCount'))).toBe(true);
-  expect(m.edges.some(e => e.label === 'property')).toBe(true);
+  expect(inspection.kind).toBe('SHACL');
+  expect(inspection.entities.some(e => JSON.stringify(e.definition).includes('minCount'))).toBe(true);
+  expect(inspection.edges.some(e => e.label === 'property')).toBe(true);
 });
 test('invalid RDF is rejected, not silently treated as YAML', () => {
   expect(() => inspect('@prefix c: <https://example.org/> . c:X c:bad', 'bad.ttl')).toThrow();

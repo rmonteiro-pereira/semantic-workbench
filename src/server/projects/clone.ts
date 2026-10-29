@@ -182,17 +182,17 @@ export function createCloner(deps: CloneDeps) {
         ...projects,
       };
       deps.emit(folder ? { ...done, folder } : done, owner);
-    } catch (e) {
+    } catch (error) {
       rmSync(staging, { recursive: true, force: true });
       rmSync(stateStaging, { recursive: true, force: true });
-      const cancelled = e instanceof GitError && e.cancelled;
+      const cancelled = error instanceof GitError && error.cancelled;
       deps.emit(
         {
           op,
           phase: cancelled ? 'cancelled' : 'failed',
           name,
-          message: cancelled ? 'Clone cancelled.' : redactCredentials((e as Error).message),
-          ...(e instanceof MissingFolderError ? { missingFolder: e.folder } : {}),
+          message: cancelled ? 'Clone cancelled.' : redactCredentials((error as Error).message),
+          ...(error instanceof MissingFolderError ? { missingFolder: error.folder } : {}),
         },
         owner,
       );

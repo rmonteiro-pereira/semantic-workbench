@@ -1,5 +1,6 @@
 /** Assigns separate orthogonal routes and rounded corners to neighborhood relationships. */
 import type { Link } from './layout';
+import type { Pos } from './incremental-layout';
 // Short forward edges bend between columns; long and backward edges get separate outer lanes.
 // Self-relationships loop over their nodes, and each corner follows the travel direction.
 /** Describes an edge's assigned lane or bend and endpoint offsets. */
@@ -11,64 +12,66 @@ export type EdgeRoute = (
 ) & { dyOut?: number; dyIn?: number };
 /** Builds a rounded SVG path through orthogonal points. */
 export function orthogonalPath(points: [number, number][], radius = 10) {
-  const p = points.filter((pt, i) => i === 0 || pt[0] !== points[i - 1][0] || pt[1] !== points[i - 1][1]);
-  let d = `M ${p[0][0]},${p[0][1]}`;
-  for (let i = 1; i < p.length; i++) {
-    const [x, y] = p[i];
-    if (i === p.length - 1) {
-      d += ` L ${x},${y}`;
+  const corners = points.filter((pt, i) => i === 0 || pt[0] !== points[i - 1][0] || pt[1] !== points[i - 1][1]);
+  let pathData = `M ${corners[0][0]},${corners[0][1]}`;
+  for (let i = 1; i < corners.length; i++) {
+    const [x, y] = corners[i];
+    if (i === corners.length - 1) {
+      pathData += ` L ${x},${y}`;
       break;
     }
-    const [px, py] = p[i - 1];
-    const [nx, ny] = p[i + 1];
-    const r = Math.min(radius, Math.hypot(x - px, y - py) / 2, Math.hypot(nx - x, ny - y) / 2);
-    const ax = x - Math.sign(x - px) * r;
-    const ay = y - Math.sign(y - py) * r;
-    const bx = x + Math.sign(nx - x) * r;
-    const by = y + Math.sign(ny - y) * r;
-    d += ` L ${ax},${ay} Q ${x},${y} ${bx},${by}`;
+    const [px, py] = corners[i - 1];
+    const [nx, ny] = corners[i + 1];
+    const cornerRadius = Math.min(radius, Math.hypot(x - px, y - py) / 2, Math.hypot(nx - x, ny - y) / 2);
+    const ax = x - Math.sign(x - px) * cornerRadius;
+    const ay = y - Math.sign(y - py) * cornerRadius;
+    const bx = x + Math.sign(nx - x) * cornerRadius;
+    const by = y + Math.sign(ny - y) * cornerRadius;
+    pathData += ` L ${ax},${ay} Q ${x},${y} ${bx},${by}`;
   }
-  return d;
+  return pathData;
 }
 /** Returns route vertices and an initial label position for the current endpoints. */
-export function routePoints(sx: number, sy0: number, tx: number, ty0: number, r: EdgeRoute): { points: [number, number][]; label: [number, number] } {
-  const sy = sy0 + (r.dyOut ?? 0);
-  const ty = ty0 + (r.dyIn ?? 0);
+export function routePoints(source: Pos, target: Pos, edgeRoute: EdgeRoute): { points: [number, number][]; label: [number, number] } {
+  const { x: sx, y: sy0 } = source;
+  const { x: tx, y: ty0 } = target;
+  const sy = sy0 + (edgeRoute.dyOut ?? 0);
+  const ty = ty0 + (edgeRoute.dyIn ?? 0);
   // Between two nodes of one column: out of the source's right side, along the column, into the
   // target's right side.
-  if (r.route === 'side') {
-    const ey = r.endY + (r.dyIn ?? 0);
+  if (edgeRoute.route === 'side') {
+    const ey = edgeRoute.endY + (edgeRoute.dyIn ?? 0);
     return {
       points: [
         [sx, sy],
-        [r.laneX, sy],
-        [r.laneX, ey],
-        [r.endX, ey],
+        [edgeRoute.laneX, sy],
+        [edgeRoute.laneX, ey],
+        [edgeRoute.endX, ey],
       ],
-      label: [r.laneX, (sy + ey) / 2],
+      label: [edgeRoute.laneX, (sy + ey) / 2],
     };
   }
-  if (r.route === 'short')
+  if (edgeRoute.route === 'short')
     return {
       points: [
         [sx, sy],
-        [r.bendX, sy],
-        [r.bendX, ty],
+        [edgeRoute.bendX, sy],
+        [edgeRoute.bendX, ty],
         [tx, ty],
       ],
-      label: [r.bendX, (sy + ty) / 2],
+      label: [edgeRoute.bendX, (sy + ty) / 2],
     };
-  const lane = r.route === 'loop' ? r.top : r.laneY;
+  const lane = edgeRoute.route === 'loop' ? edgeRoute.top : edgeRoute.laneY;
   return {
     points: [
       [sx, sy],
-      [r.outX, sy],
-      [r.outX, lane],
-      [r.inX, lane],
-      [r.inX, ty],
+      [edgeRoute.outX, sy],
+      [edgeRoute.outX, lane],
+      [edgeRoute.inX, lane],
+      [edgeRoute.inX, ty],
       [tx, ty],
     ],
-    label: [(r.outX + r.inX) / 2, lane],
+    label: [(edgeRoute.outX + edgeRoute.inX) / 2, lane],
   };
 }
 // Routes for a set of edges between laid-out nodes. Boxes are the node rectangles; handles sit on
@@ -85,7 +88,7 @@ const loopTop = (box: Box, index: number) => box.y - 14 - index * 10;
  */
 function createLanePlacer(boxes: Map<string, Box>, edges: { source: string; target: string }[]) {
   const loopCount = new Map<string, number>();
-  for (const e of edges) if (e.source === e.target) loopCount.set(e.source, (loopCount.get(e.source) ?? 0) + 1);
+  for (const edge of edges) if (edge.source === edge.target) loopCount.set(edge.source, (loopCount.get(edge.source) ?? 0) + 1);
   const entries = [...boxes];
   const clearanceAbove = ([id, box]: [string, Box]) => {
     const loops = loopCount.get(id) ?? 0;
@@ -120,69 +123,69 @@ export function assignRoutes(edges: (Link & { id: string })[], boxes: Map<string
   };
   type Need = { edge: string; slot: 'bendX' | 'laneX' | 'outX' | 'inX'; order: number };
   const gaps = new Map<string, { range: readonly [number, number]; needs: Need[] }>();
-  const need = (range: readonly [number, number], n: Need) => {
-    const k = range.map(Math.round).join(':');
-    const g = gaps.get(k) ?? { range, needs: [] };
-    g.needs.push(n);
-    gaps.set(k, g);
+  const need = (range: readonly [number, number], gapNeed: Need) => {
+    const gapKey = range.map(Math.round).join(':');
+    const gap = gaps.get(gapKey) ?? { range, needs: [] };
+    gap.needs.push(gapNeed);
+    gaps.set(gapKey, gap);
   };
   const placeLane = createLanePlacer(boxes, edges);
-  for (const e of [...edges].sort((a, b) => a.id.localeCompare(b.id))) {
-    const s = boxes.get(e.source);
-    const t = boxes.get(e.target);
-    if (!s || !t) continue;
-    const sx = s.x + s.width;
-    const sy = s.y + s.height / 2;
-    const tx = t.x;
-    const ty = t.y + t.height / 2;
-    if (e.source === e.target) {
+  for (const edge of [...edges].sort((a, b) => a.id.localeCompare(b.id))) {
+    const sourceBox = boxes.get(edge.source);
+    const targetBox = boxes.get(edge.target);
+    if (!sourceBox || !targetBox) continue;
+    const sx = sourceBox.x + sourceBox.width;
+    const sy = sourceBox.y + sourceBox.height / 2;
+    const tx = targetBox.x;
+    const ty = targetBox.y + targetBox.height / 2;
+    if (edge.source === edge.target) {
       // A self loop sits just above its own card.
-      routes.set(e.id, { route: 'loop', outX: 0, inX: 0, top: s.y - 14 });
-      need(rightOf(sx), { edge: e.id, slot: 'outX', order: sy });
-      need(leftOf(tx), { edge: e.id, slot: 'inX', order: ty });
+      routes.set(edge.id, { route: 'loop', outX: 0, inX: 0, top: sourceBox.y - 14 });
+      need(rightOf(sx), { edge: edge.id, slot: 'outX', order: sy });
+      need(leftOf(tx), { edge: edge.id, slot: 'inX', order: ty });
       continue;
     }
     // Same column: a lane of its own just right of the column.
-    if (Math.abs(s.x - t.x) < 4) {
-      routes.set(e.id, { route: 'side', laneX: 0, endX: t.x + t.width, endY: ty });
-      need(rightOf(Math.max(sx, t.x + t.width)), {
-        edge: e.id,
+    if (Math.abs(sourceBox.x - targetBox.x) < 4) {
+      routes.set(edge.id, { route: 'side', laneX: 0, endX: targetBox.x + targetBox.width, endY: ty });
+      need(rightOf(Math.max(sx, targetBox.x + targetBox.width)), {
+        edge: edge.id,
         slot: 'laneX',
         order: (sy + ty) / 2,
       });
       continue;
     }
     // Forward to the next column only: bend in the gap. Anything else gets a lane of its own.
-    if (tx - sx > 24 && !all.some(b => b !== s && b !== t && b.x > sx && b.x + b.width < tx)) {
-      routes.set(e.id, { route: 'short', bendX: 0 });
-      need([sx, tx], { edge: e.id, slot: 'bendX', order: sy + ty });
+    if (tx - sx > 24 && !all.some(b => b !== sourceBox && b !== targetBox && b.x > sx && b.x + b.width < tx)) {
+      routes.set(edge.id, { route: 'short', bendX: 0 });
+      need([sx, tx], { edge: edge.id, slot: 'bendX', order: sy + ty });
       continue;
     }
     const backward = tx <= sx;
-    routes.set(e.id, {
+    routes.set(edge.id, {
       route: 'lane',
       laneY: placeLane(Math.min(sx, tx), Math.max(sx, tx), backward),
       outX: 0,
       inX: 0,
     });
-    need(rightOf(sx), { edge: e.id, slot: 'outX', order: sy });
-    need(leftOf(tx), { edge: e.id, slot: 'inX', order: ty });
+    need(rightOf(sx), { edge: edge.id, slot: 'outX', order: sy });
+    need(leftOf(tx), { edge: edge.id, slot: 'inX', order: ty });
   }
   // Loops climb just above their node, each at its own height.
   const loopHeights = new Map<string, number>();
-  for (const e of edges)
-    if (e.source === e.target && routes.get(e.id)?.route === 'loop') {
-      const n = loopHeights.get(e.source) ?? 0;
-      loopHeights.set(e.source, n + 1);
-      (routes.get(e.id) as any).top = loopTop(boxes.get(e.source)!, n);
+  for (const edge of edges)
+    if (edge.source === edge.target && routes.get(edge.id)?.route === 'loop') {
+      const loopIndex = loopHeights.get(edge.source) ?? 0;
+      loopHeights.set(edge.source, loopIndex + 1);
+      (routes.get(edge.id) as any).top = loopTop(boxes.get(edge.source)!, loopIndex);
     }
   // Spread every vertical segment of a gap evenly across it, ordered to limit crossings.
   for (const { range, needs } of gaps.values()) {
     needs.sort((a, b) => a.order - b.order || a.edge.localeCompare(b.edge));
-    const [l, r] = range;
-    const inner = Math.max(4, r - l - 24);
+    const [rangeStart, rangeEnd] = range;
+    const inner = Math.max(4, rangeEnd - rangeStart - 24);
     const step = needs.length > 1 ? Math.min(12, inner / (needs.length - 1)) : 0;
-    const start = (l + r) / 2 - (step * (needs.length - 1)) / 2;
+    const start = (rangeStart + rangeEnd) / 2 - (step * (needs.length - 1)) / 2;
     needs.forEach((n, i) => {
       (routes.get(n.edge) as any)[n.slot] = start + i * step;
     });
@@ -203,25 +206,25 @@ export function assignRoutes(edges: (Link & { id: string })[], boxes: Map<string
   };
   const outs = new Map<string, { id: string; other: number }[]>();
   const ins = new Map<string, { id: string; other: number }[]>();
-  for (const e of edges) {
-    const s = boxes.get(e.source);
-    const t = boxes.get(e.target);
-    if (!s || !t || !routes.has(e.id)) continue;
-    const r = routes.get(e.id)!;
-    outs.set(e.source, [...(outs.get(e.source) ?? []), { id: e.id, other: t.y }]);
-    (r.route === 'side' ? outs : ins).set(r.route === 'side' ? e.target + '#right' : e.target, [
-      ...((r.route === 'side' ? outs : ins).get(r.route === 'side' ? e.target + '#right' : e.target) ?? []),
-      { id: e.id, other: s.y },
+  for (const edge of edges) {
+    const sourceBox = boxes.get(edge.source);
+    const targetBox = boxes.get(edge.target);
+    if (!sourceBox || !targetBox || !routes.has(edge.id)) continue;
+    const edgeRoute = routes.get(edge.id)!;
+    outs.set(edge.source, [...(outs.get(edge.source) ?? []), { id: edge.id, other: targetBox.y }]);
+    (edgeRoute.route === 'side' ? outs : ins).set(edgeRoute.route === 'side' ? edge.target + '#right' : edge.target, [
+      ...((edgeRoute.route === 'side' ? outs : ins).get(edgeRoute.route === 'side' ? edge.target + '#right' : edge.target) ?? []),
+      { id: edge.id, other: sourceBox.y },
     ]);
   }
   // Ends on a node's right side (outgoing and same-column arrivals) share one spread.
   // Iterate over a copy: the loop adds and removes entries of the map.
   // oxlint-disable-next-line no-useless-spread
-  for (const [k, list] of [...outs])
-    if (k.endsWith('#right')) {
-      const node = k.slice(0, -6);
+  for (const [key, list] of [...outs])
+    if (key.endsWith('#right')) {
+      const node = key.slice(0, -6);
       outs.set(node, [...(outs.get(node) ?? []), ...list.map(x => ({ ...x, id: x.id + '#in' }))]);
-      outs.delete(k);
+      outs.delete(key);
     }
   const sideIn = new Map<string, number>();
   for (const [node, list] of outs) {
@@ -229,18 +232,18 @@ export function assignRoutes(edges: (Link & { id: string })[], boxes: Map<string
     const usable = Math.max(0, box.height / 2 - 14);
     list.sort((a, b) => a.other - b.other || a.id.localeCompare(b.id));
     const step = list.length > 1 ? Math.min(14, (2 * usable) / (list.length - 1)) : 0;
-    list.forEach((e, i) => {
+    list.forEach((port, i) => {
       const dy = (i - (list.length - 1) / 2) * step;
-      if (e.id.endsWith('#in')) sideIn.set(e.id.slice(0, -3), dy);
+      if (port.id.endsWith('#in')) sideIn.set(port.id.slice(0, -3), dy);
       else {
-        const r = routes.get(e.id);
-        if (r) r.dyOut = dy;
+        const edgeRoute = routes.get(port.id);
+        if (edgeRoute) edgeRoute.dyOut = dy;
       }
     });
   }
   for (const [id, dy] of sideIn) {
-    const r = routes.get(id);
-    if (r) r.dyIn = dy;
+    const edgeRoute = routes.get(id);
+    if (edgeRoute) edgeRoute.dyIn = dy;
   }
   spread('dyIn', ins);
   return routes;

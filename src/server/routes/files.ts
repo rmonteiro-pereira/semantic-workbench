@@ -7,10 +7,10 @@ import { BadRequestError } from '../projects/errors';
 const HASH = /^[0-9a-f]{64}$/;
 /** Handles file reads and saves with base hashes to detect stale edits. */
 export const fileRoutes: Route = async (ws, req, url) => {
-  const m = url.pathname.match(/^\/api\/projects\/([^/]+)\/files\/(.+)$/);
-  if (!m) return null;
-  const slug = decodeSegment(m[1]);
-  const path = decodePath(m[2]);
+  const match = url.pathname.match(/^\/api\/projects\/([^/]+)\/files\/(.+)$/);
+  if (!match) return null;
+  const slug = decodeSegment(match[1]);
+  const path = decodePath(match[2]);
   const reader = requestReader(req);
   if (req.method === 'GET') return Response.json(ws.readFile(slug, path, reader));
   if (req.method === 'PUT') {

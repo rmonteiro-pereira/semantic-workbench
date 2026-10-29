@@ -159,8 +159,8 @@ function parseProject(documents: StoredDocument[], slug: string): Parsed[] {
     .flatMap(doc => {
       try {
         if (rdfSyntax(doc.source, doc.filename)) return [];
-        const m = inspect(doc.source, doc.filename);
-        return 'document' in m && object(m.document) ? [{ doc, data: m.document }] : [];
+        const inspected = inspect(doc.source, doc.filename);
+        return 'document' in inspected && object(inspected.document) ? [{ doc, data: inspected.document }] : [];
       } catch {
         return [];
       }
@@ -188,12 +188,25 @@ const fieldNamesOf = (model: any) =>
 function conceptLinks(parsed: Parsed[], ref: ModelRef, names: Set<string>): Map<string, ConceptLink[]> {
   const out = new Map<string, ConceptLink[]>();
   const add = (bindings: ResolvedBinding[], file: string) => {
-    for (const b of bindings) {
-      const links = out.get(b.metric) ?? [];
-      if (b.source === 'mapping-expression' && links.some(l => l.source === 'kpi-binding')) continue;
-      links.push({ ...b.measures, role: 'measures', source: b.source, file, problems: b.problems });
-      if (b.of) links.push({ ...b.of, role: 'of', source: b.source, file, problems: b.problems });
-      out.set(b.metric, links);
+    for (const binding of bindings) {
+      const links = out.get(binding.metric) ?? [];
+      if (binding.source === 'mapping-expression' && links.some(l => l.source === 'kpi-binding')) continue;
+      links.push({
+        ...binding.measures,
+        role: 'measures',
+        source: binding.source,
+        file,
+        problems: binding.problems,
+      });
+      if (binding.of)
+        links.push({
+          ...binding.of,
+          role: 'of',
+          source: binding.source,
+          file,
+          problems: binding.problems,
+        });
+      out.set(binding.metric, links);
     }
   };
   const sources: {
@@ -212,21 +225,21 @@ function conceptLinks(parsed: Parsed[], ref: ModelRef, names: Set<string>): Map<
       mappingDocument: false,
     });
   else
-    for (const p of parsed)
-      if (isMapping(p.data) && p.data.semantic_model_ref?.name === ref.model.name) {
-        const ontology = parsed.find(o => Array.isArray(o.data.ontology) && o.data.name === p.data.ontology_ref?.name)?.data;
+    for (const parsedDocument of parsed)
+      if (isMapping(parsedDocument.data) && parsedDocument.data.semantic_model_ref?.name === ref.model.name) {
+        const ontology = parsed.find(o => Array.isArray(o.data.ontology) && o.data.name === parsedDocument.data.ontology_ref?.name)?.data;
         sources.push({
-          owner: p.data,
-          mapping: p.data,
+          owner: parsedDocument.data,
+          mapping: parsedDocument.data,
           ontology,
-          file: p.doc.path,
+          file: parsedDocument.doc.path,
           mappingDocument: true,
         });
       }
-  for (const s of sources) {
-    add(resolveBindings(readKpiBindings(s.owner, '', s.mappingDocument).value, s.ontology, names), s.file);
+  for (const source of sources) {
+    add(resolveBindings(readKpiBindings(source.owner, '', source.mappingDocument).value, source.ontology, names), source.file);
   }
-  for (const s of sources) add(mappingExpressionBindings(s.mapping, names), s.file);
+  for (const source of sources) add(mappingExpressionBindings(source.mapping, names), source.file);
   return out;
 }
 function summaries(parsed: Parsed[], ref: ModelRef): KpiSummary[] {
@@ -241,15 +254,15 @@ function summaries(parsed: Parsed[], ref: ModelRef): KpiSummary[] {
     if (ext?.additivity) return ext.additivity;
     if (seen.has(name)) return null;
     seen.add(name);
-    const m = metrics.find((x: any) => x.name === name);
-    const sql = ansiExpression(m);
+    const metric = metrics.find((x: any) => x.name === name);
+    const sql = ansiExpression(metric);
     const shape = inferredType(sql, names);
     return inferredAdditivity(sql, ext?.type ?? shape.type, n => additivity(n, seen), shape.inputs ?? ([shape.numerator, shape.denominator].filter(Boolean) as string[]));
   };
   const layout = ref.embeddedMapping ? 'embedded (deprecated)' : 'split';
-  return metrics.map((m: any, i: number) => {
-    const ext = declared.get(m.name) ?? null;
-    const sql = ansiExpression(m);
+  return metrics.map((metric: any, i: number) => {
+    const ext = declared.get(metric.name) ?? null;
+    const sql = ansiExpression(metric);
     const shape = inferredType(sql, names);
     const own = issues.filter(x => x.path === `${prefix}/metrics/${i}` || x.path.startsWith(`${prefix}/metrics/${i}/`));
     return {
@@ -257,13 +270,13 @@ function summaries(parsed: Parsed[], ref: ModelRef): KpiSummary[] {
       modelPath: ref.path,
       model: ref.model.name ?? '(unnamed)',
       layout,
-      name: m.name,
-      label: ext?.label ?? m.name,
-      description: m.description,
+      name: metric.name,
+      label: ext?.label ?? metric.name,
+      description: metric.description,
       expression: sql,
       type: ext?.type ?? shape.type,
       typeDeclared: !!ext,
-      additivity: additivity(m.name),
+      additivity: additivity(metric.name),
       additivityDeclared: !!ext?.additivity,
       unit: ext?.unit,
       format: ext?.format,
@@ -271,7 +284,7 @@ function summaries(parsed: Parsed[], ref: ModelRef): KpiSummary[] {
       owner: ext?.owner,
       steward: ext?.steward,
       inputs: sql ? metricDependencies(sql, names) : [],
-      concepts: links.get(m.name) ?? [],
+      concepts: links.get(metric.name) ?? [],
       extension: ext,
       findings: own,
       governed: !!ext,
@@ -312,13 +325,13 @@ const operatorText: Record<string, string> = {
 };
 function odcsIndex(parsed: Parsed[]) {
   const objects = new Map<string, { file: string; contract: any; object: any }[]>();
-  for (const p of parsed)
-    if (p.data.kind === 'DataContract')
-      for (const o of list(p.data.schema).filter(object)) {
-        const key = o.physicalName ?? o.name;
+  for (const parsedDocument of parsed)
+    if (parsedDocument.data.kind === 'DataContract')
+      for (const schemaObject of list(parsedDocument.data.schema).filter(object)) {
+        const key = schemaObject.physicalName ?? schemaObject.name;
         if (typeof key !== 'string') continue;
         const xs = objects.get(key) ?? [];
-        xs.push({ file: p.doc.path, contract: p.data, object: o });
+        xs.push({ file: parsedDocument.doc.path, contract: parsedDocument.data, object: schemaObject });
         objects.set(key, xs);
       }
   return objects;
@@ -326,12 +339,12 @@ function odcsIndex(parsed: Parsed[]) {
 const qualityOf = (owner: any): Trust[] =>
   list(owner?.quality)
     .filter(object)
-    .map((q: any) => ({
+    .map((rule: any) => ({
       kind: 'quality',
-      name: q.name,
-      dimension: q.dimension,
-      severity: q.severity,
-      description: q.description ?? (q.metric ? `${q.metric}${q.mustBe !== undefined ? ` must be ${q.mustBe}` : ''}` : undefined),
+      name: rule.name,
+      dimension: rule.dimension,
+      severity: rule.severity,
+      description: rule.description ?? (rule.metric ? `${rule.metric}${rule.mustBe !== undefined ? ` must be ${rule.mustBe}` : ''}` : undefined),
     }));
 /** Explains a project metric and previews SQL for the requested grain and dimensions. */
 export function explainMetric(
@@ -358,109 +371,118 @@ export function explainMetric(
   const index = odcsIndex(parsed);
   const fieldLeaves = (sql: string) => {
     const seen = new Set<string>();
-    return expressionRefs(sql).flatMap(r => {
-      const dataset = r.table ?? (datasets.size === 1 ? [...datasets.keys()][0] : null);
-      const key = `${dataset}.${r.column}`;
-      if (!dataset || seen.has(key) || (byName.has(r.column) && !r.table)) return [];
+    return expressionRefs(sql).flatMap(exprRef => {
+      const dataset = exprRef.table ?? (datasets.size === 1 ? [...datasets.keys()][0] : null);
+      const key = `${dataset}.${exprRef.column}`;
+      if (!dataset || seen.has(key) || (byName.has(exprRef.column) && !exprRef.table)) return [];
       seen.add(key);
-      const f = list(datasets.get(dataset)?.fields).find((x: any) => x?.name === r.column);
+      const fieldDefinition = list(datasets.get(dataset)?.fields).find((x: any) => x?.name === exprRef.column);
       return [
         {
           kind: 'field' as const,
-          name: r.column,
+          name: exprRef.column,
           dataset,
-          expression: f ? ansiExpression(f) : undefined,
+          expression: fieldDefinition ? ansiExpression(fieldDefinition) : undefined,
           children: [],
         },
       ];
     });
   };
   const tree = (name: string, role?: TreeNode['role'], path = new Set<string>()): TreeNode => {
-    const k = byName.get(name)!;
-    if (path.has(name)) return { kind: 'metric', name, label: k.label, role, children: [], repeated: true };
+    const kpiSummary = byName.get(name)!;
+    if (path.has(name)) return { kind: 'metric', name, label: kpiSummary.label, role, children: [], repeated: true };
     const next = new Set(path).add(name);
-    const sql = k.expression ?? '';
-    const ratio =
-      k.type === 'ratio'
-        ? k.extension?.numerator && k.extension.denominator
-          ? { numerator: k.extension.numerator, denominator: k.extension.denominator }
-          : ratioParts(sql, new Set(byName.keys()))
-        : null;
-    const children: TreeNode[] =
-      ratio && byName.has(ratio.numerator) && byName.has(ratio.denominator)
-        ? [tree(ratio.numerator, 'numerator', next), tree(ratio.denominator, 'denominator', next)]
-        : k.inputs.length
-          ? k.inputs.map(n => tree(n, 'input', next))
-          : fieldLeaves(sql);
+    const sql = kpiSummary.expression ?? '';
+    let ratio: { numerator: string; denominator: string } | null;
+    if (kpiSummary.type === 'ratio') {
+      if (kpiSummary.extension?.numerator && kpiSummary.extension.denominator) {
+        ratio = {
+          numerator: kpiSummary.extension.numerator,
+          denominator: kpiSummary.extension.denominator,
+        };
+      } else {
+        ratio = ratioParts(sql, new Set(byName.keys()));
+      }
+    } else {
+      ratio = null;
+    }
+    let children: TreeNode[];
+    if (ratio && byName.has(ratio.numerator) && byName.has(ratio.denominator)) {
+      children = [tree(ratio.numerator, 'numerator', next), tree(ratio.denominator, 'denominator', next)];
+    } else if (kpiSummary.inputs.length) {
+      children = kpiSummary.inputs.map(n => tree(n, 'input', next));
+    } else {
+      children = fieldLeaves(sql);
+    }
     return {
       kind: 'metric',
       name,
-      label: k.label,
+      label: kpiSummary.label,
       role,
-      type: k.type,
-      additivity: k.additivity,
+      type: kpiSummary.type,
+      additivity: kpiSummary.additivity,
       expression: sql,
       children,
     };
   };
   const root = tree(metric);
   const bases: string[] = [];
-  const walk = (n: TreeNode) => {
-    if (n.kind === 'metric' && !n.repeated && !n.children.some(c => c.kind === 'metric')) {
-      if (!bases.includes(n.name)) bases.push(n.name);
-    } else n.children.forEach(walk);
+  const walk = (treeNode: TreeNode) => {
+    if (treeNode.kind === 'metric' && !treeNode.repeated && !treeNode.children.some(c => c.kind === 'metric')) {
+      if (!bases.includes(treeNode.name)) bases.push(treeNode.name);
+    } else treeNode.children.forEach(walk);
   };
   walk(root);
   const inputs: BaseInput[] = bases.map(name => {
-    const k = byName.get(name)!;
-    const sql = k.expression ?? '';
+    const kpiSummary = byName.get(name)!;
+    const sql = kpiSummary.expression ?? '';
     const leaves = fieldLeaves(sql);
     const used = [...new Set(leaves.map(l => l.dataset!))];
-    const fields = leaves.map(l => {
-      const d = datasets.get(l.dataset!);
-      const columns = l.expression ? [...new Set(expressionRefs(l.expression).map(r => r.column))] : [l.name];
-      const odcs: OdcsLink[] = (typeof d?.source === 'string' ? (index.get(d.source) ?? []) : []).flatMap((o): OdcsLink[] => {
-        const props = list(o.object.properties).filter((p: any) => columns.includes(p?.physicalName ?? p?.name));
+    const fields = leaves.map(leaf => {
+      const datasetDefinition = datasets.get(leaf.dataset!);
+      const columns = leaf.expression ? [...new Set(expressionRefs(leaf.expression).map(r => r.column))] : [leaf.name];
+      const odcs: OdcsLink[] = (typeof datasetDefinition?.source === 'string' ? (index.get(datasetDefinition.source) ?? []) : []).flatMap((schemaEntry): OdcsLink[] => {
+        const props = list(schemaEntry.object.properties).filter((p: any) => columns.includes(p?.physicalName ?? p?.name));
         const base = {
-          file: o.file,
-          contract: o.contract.name ?? o.contract.id,
-          object: o.object.name,
-          physicalName: o.object.physicalName ?? o.object.name,
+          file: schemaEntry.file,
+          contract: schemaEntry.contract.name ?? schemaEntry.contract.id,
+          object: schemaEntry.object.name,
+          physicalName: schemaEntry.object.physicalName ?? schemaEntry.object.name,
         };
         return props.length
-          ? props.map((p: any) => ({
+          ? props.map((prop: any) => ({
               ...base,
-              property: p.name,
-              logicalType: p.logicalType,
-              quality: [...qualityOf(o.object), ...qualityOf(p)],
+              property: prop.name,
+              logicalType: prop.logicalType,
+              quality: [...qualityOf(schemaEntry.object), ...qualityOf(prop)],
             }))
-          : [{ ...base, property: null, quality: qualityOf(o.object) }];
+          : [{ ...base, property: null, quality: qualityOf(schemaEntry.object) }];
       });
       return {
-        dataset: l.dataset!,
-        field: l.name,
-        expression: l.expression ?? l.name,
+        dataset: leaf.dataset!,
+        field: leaf.name,
+        expression: leaf.expression ?? leaf.name,
         columns,
         odcs,
       };
     });
-    const sla = used.flatMap(n => {
-      const d = datasets.get(n);
-      return (index.get(d?.source) ?? []).flatMap(o =>
-        list(o.contract.slaProperties)
-          .filter((s: any) => object(s) && (!s.element || String(s.element).startsWith(o.object.physicalName ?? o.object.name)))
-          .map((s: any) => ({
+    const sla = used.flatMap(name => {
+      const datasetDefinition = datasets.get(name);
+      return (index.get(datasetDefinition?.source) ?? []).flatMap(schemaEntry =>
+        list(schemaEntry.contract.slaProperties)
+          .filter((s: any) => object(s) && (!s.element || String(s.element).startsWith(schemaEntry.object.physicalName ?? schemaEntry.object.name)))
+          .map((slaProperty: any) => ({
             kind: 'sla' as const,
-            property: s.property,
-            value: s.value,
-            unit: s.unit,
-            element: s.element,
+            property: slaProperty.property,
+            value: slaProperty.value,
+            unit: slaProperty.unit,
+            element: slaProperty.element,
           })),
       );
     });
     return {
       metric: name,
-      label: k.label,
+      label: kpiSummary.label,
       expression: sql,
       dialect: 'ANSI_SQL',
       aggregation: aggregationOf(sql),
@@ -479,6 +501,14 @@ export function explainMetric(
     : null;
   const division = divisionSafety(kpi.expression ?? '');
   const stocks = bases.filter(n => byName.get(n)!.additivity === 'semi_additive');
+  let divisionText: string;
+  if (division === 'handled') {
+    divisionText = 'Division by zero is guarded: NULLIF turns a zero denominator into NULL, so the metric is empty rather than an error or infinity.';
+  } else if (division === 'unhandled') {
+    divisionText = 'Division by zero is not guarded: a zero denominator makes the query fail or return infinity, depending on the engine. Wrap the denominator in NULLIF(…, 0).';
+  } else {
+    divisionText = 'The expression divides by nothing.';
+  }
   return {
     kpi,
     formula: kpi.expression ?? '',
@@ -486,21 +516,16 @@ export function explainMetric(
     inputs,
     time,
     dimensions: ext?.dimensions ?? [],
-    filters: (ext?.filters ?? []).map(f => ({
-      ...f,
-      text: `${f.field} ${operatorText[f.operator] ?? f.operator}${f.value === undefined ? '' : ' ' + JSON.stringify(f.value)}`,
-    })),
+    filters: (ext?.filters ?? []).map(f => {
+      const valueText = f.value === undefined ? '' : ' ' + JSON.stringify(f.value);
+      return { ...f, text: `${f.field} ${operatorText[f.operator] ?? f.operator}${valueText}` };
+    }),
     additivityText:
       additivityText[kpi.additivity ?? 'unknown'] +
       (kpi.additivity && !kpi.additivityDeclared ? ' (inferred from the expression)' : '') +
       (kpi.additivity === 'semi_additive' && ext?.period_aggregation ? ` Period aggregation: ${ext.period_aggregation}.` : ''),
     divisionByZero: division,
-    divisionText:
-      division === 'handled'
-        ? 'Division by zero is guarded: NULLIF turns a zero denominator into NULL, so the metric is empty rather than an error or infinity.'
-        : division === 'unhandled'
-          ? 'Division by zero is not guarded: a zero denominator makes the query fail or return infinity, depending on the engine. Wrap the denominator in NULLIF(…, 0).'
-          : 'The expression divides by nothing.',
+    divisionText,
     missingValues:
       'SUM and COUNT skip NULL values; rows without a value do not count' +
       (division === 'handled' ? '. An empty result means the denominator was zero or missing.' : '.') +
@@ -526,10 +551,12 @@ function preview(
   const refuse = (refused: string): SqlPreview => ({ refused, grain, dimensions, rollup });
   if (requested !== null && !(GRAINS as readonly string[]).includes(requested)) return refuse(`Grain "${requested}" is not one of ${GRAINS.join(', ')}.`);
   if (grain && !time) return refuse(`${kpi.label} declares no time dimension, so it has no time grain.`);
-  if (grain && time && !time.allowedGrains.includes(grain))
-    return refuse(
-      `${kpi.label} is defined at ${time.allowedGrains.join(', ')} grain${time.allowedGrains.length > 1 ? 's' : ''}; ${grain} is not allowed${time.minGrain && GRAINS.indexOf(grain) < GRAINS.indexOf(time.minGrain) ? ` (finer than the minimum grain ${time.minGrain})` : ''}.`,
-    );
+  if (grain && time && !time.allowedGrains.includes(grain)) {
+    const grainsText = time.allowedGrains.join(', ');
+    const plural = time.allowedGrains.length > 1 ? 's' : '';
+    const finerThanMinimum = time.minGrain && GRAINS.indexOf(grain) < GRAINS.indexOf(time.minGrain) ? ` (finer than the minimum grain ${time.minGrain})` : '';
+    return refuse(`${kpi.label} is defined at ${grainsText} grain${plural}; ${grain} is not allowed${finerThanMinimum}.`);
+  }
   if (rollup !== null && rollup !== 'sum') return refuse(`Rollup "${rollup}" is not supported; the only rollup is sum.`);
   // Additivity determines which rollups preserve the meaning of a metric.
   if (rollup === 'sum' && kpi.additivity === null) return refuse(`${kpi.label} has no declared additivity and none can be inferred, so summing it is refused.`);
@@ -542,18 +569,25 @@ function preview(
   // A month-end stock summed over a coarser period counts the same stock once per period.
   const stocks = [
     kpi.name,
-    ...(function inputsOf(n: string, seen = new Set<string>()): string[] {
-      if (seen.has(n)) return [];
-      seen.add(n);
-      return (byName.get(n)?.inputs ?? []).flatMap(i => [i, ...inputsOf(i, seen)]);
+    ...(function inputsOf(name: string, seen = new Set<string>()): string[] {
+      if (seen.has(name)) return [];
+      seen.add(name);
+      return (byName.get(name)?.inputs ?? []).flatMap(i => [i, ...inputsOf(i, seen)]);
     })(kpi.name),
   ].filter((n, i, a) => a.indexOf(n) === i && byName.get(n)?.additivity === 'semi_additive');
   const stockGrain = (n: string) => byName.get(n)!.extension?.time?.min_grain ?? time?.minGrain;
   const over = stocks.filter(n => grain && stockGrain(n) && GRAINS.indexOf(grain) > GRAINS.indexOf(stockGrain(n)!));
-  if (over.length)
+  if (over.length) {
+    const stockLabels = over.map(n => byName.get(n)!.label).join(', ');
+    const stockNoun = over.length > 1 ? 'are stocks' : 'is a stock';
+    const pronoun = over.length > 1 ? 'them' : 'it';
+    const stockUnit = stockGrain(over[0]);
+    const periodAggregation = byName.get(over[0])!.extension?.period_aggregation ?? 'last';
     return refuse(
-      `${over.map(n => byName.get(n)!.label).join(', ')} ${over.length > 1 ? 'are stocks' : 'is a stock'} measured per ${stockGrain(over[0])}. Summing ${over.length > 1 ? 'them' : 'it'} over the ${stockGrain(over[0])}s of a ${grain} counts the same quantity once per ${stockGrain(over[0])}; take the ${byName.get(over[0])!.extension?.period_aggregation ?? 'last'} ${stockGrain(over[0])} of each ${grain} instead. Preview available at ${stockGrain(over[0])} grain.`,
+      `${stockLabels} ${stockNoun} measured per ${stockUnit}. Summing ${pronoun} over the ${stockUnit}s of a ${grain} counts the same quantity once per ${stockUnit}; take the ` +
+        `${periodAggregation} ${stockUnit} of each ${grain} instead. Preview available at ${stockUnit} grain.`,
     );
+  }
   if (rollup === 'sum' && kpi.additivity === 'semi_additive' && !grain) return refuse(`${kpi.label} is semi-additive: it can be summed across dimensions but not across time. Choose a time grain.`);
   try {
     const context = modelContext(documents, ref.doc.id, ref.path);
@@ -577,7 +611,7 @@ function preview(
       warnings: plan.warnings,
       notExecuted: true,
     };
-  } catch (e) {
-    return refuse((e as Error).message);
+  } catch (error) {
+    return refuse((error as Error).message);
   }
 }

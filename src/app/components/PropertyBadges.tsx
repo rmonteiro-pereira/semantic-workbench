@@ -24,7 +24,15 @@ const TITLE: Record<Exclude<BadgeKind, 'classification' | 'fk'>, string> = {
   unmapped: 'No mapping refers to this item',
   semantic: 'A semantic dataset of the same name copies this table column for column',
 };
-const text = (v: unknown) => (typeof v === 'string' ? v : typeof v === 'number' || typeof v === 'boolean' ? String(v) : '');
+const scalarText = (value: unknown) => {
+  if (typeof value === 'string') {
+    return value;
+  }
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return String(value);
+  }
+  return '';
+};
 
 /** Returns property badges, including the supplied foreign-key target names. */
 export function propertyBadges(property: Record<string, any> | undefined, fkTargets: string[] = []): BadgeInfo[] {
@@ -34,8 +42,8 @@ export function propertyBadges(property: Record<string, any> | undefined, fkTarg
   if (fkTargets.length) out.push({ kind: 'fk', label: LABEL.fk, title: `Foreign key to ${fkTargets.join(', ')}` });
   if (property.required === true) out.push({ kind: 'required', label: LABEL.required, title: TITLE.required });
   if (property.unique === true) out.push({ kind: 'unique', label: LABEL.unique, title: TITLE.unique });
-  const c = text(property.classification);
-  if (c) out.push({ kind: 'classification', label: c, title: `Classification: ${c}` });
+  const classification = scalarText(property.classification);
+  if (classification) out.push({ kind: 'classification', label: classification, title: `Classification: ${classification}` });
   return out;
 }
 /** Returns the shared label and tooltip for a fixed constraint badge. */
@@ -57,9 +65,9 @@ export function PropertyBadges({ badges, className = '' }: { badges: BadgeInfo[]
   if (!badges.length) return null;
   return (
     <span className={`prop-badges ${className}`.trim()}>
-      {badges.map(b => (
-        <Badge key={b.kind + b.label} kind={b.kind} title={b.title}>
-          {b.label}
+      {badges.map(info => (
+        <Badge key={info.kind + info.label} kind={info.kind} title={info.title}>
+          {info.label}
         </Badge>
       ))}
     </span>

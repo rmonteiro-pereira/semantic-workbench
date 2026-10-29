@@ -27,8 +27,8 @@ type Props = {
   selectedEdge: string;
   setSelectedEdge: React.Dispatch<React.SetStateAction<string>>;
   relationship: Relationship;
-  relationshipTarget: (r: Relationship) => ItemTarget | null;
-  rdfEdgeTarget: (r: Relationship) => RdfTarget | null;
+  relationshipTarget: (relationship: Relationship) => ItemTarget | null;
+  rdfEdgeTarget: (relationship: Relationship) => RdfTarget | null;
   setRdfEditing: React.Dispatch<React.SetStateAction<RdfTarget | null>>;
   source: string;
   setEditing: React.Dispatch<React.SetStateAction<ItemTarget | null>>;
@@ -55,8 +55,8 @@ export function RelationshipDetails({
   current,
   setDefinition,
 }: Props) {
-  function handleTextareaChange(e: React.ChangeEvent<HTMLTextAreaElement, HTMLTextAreaElement>) {
-    return setSource(editEntity(source, relationship.data.path, e.target.value, current?.filename));
+  function handleTextareaChange(event: React.ChangeEvent<HTMLTextAreaElement, HTMLTextAreaElement>) {
+    return setSource(editEntity(source, relationship.data.path, event.target.value, current?.filename));
   }
 
   function handleViewDefinitionClick() {
@@ -75,9 +75,9 @@ export function RelationshipDetails({
         <label>
           Relationships on this connection
           <select aria-label="Connection relationship" value={selectedEdge} onChange={e => setSelectedEdge(e.target.value)}>
-            {activeGroup.data.relationships.map(r => (
-              <option key={r.id} value={r.id}>
-                {r.label}
+            {activeGroup.data.relationships.map(option => (
+              <option key={option.id} value={option.id}>
+                {option.label}
               </option>
             ))}
           </select>

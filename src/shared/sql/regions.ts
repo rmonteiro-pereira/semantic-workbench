@@ -94,25 +94,25 @@ export function sqlRegions(source: string, filename = ''): SqlRegion[] {
         return;
       }
       if (!isScalar(node) || typeof node.value !== 'string' || !node.range) return;
-      const p = pattern(path);
+      const pathText = pattern(path);
       let kind: SqlKind | null = null;
       let dialect: string | null = null;
       let grammar: string | null = null;
       if (odcs) {
-        if (ODCS_QUERY.test(p)) {
+        if (ODCS_QUERY.test(pathText)) {
           const type = isMap(parent) ? parent.get('type') : undefined;
           if (typeof type === 'string' && type.toLowerCase() === 'sql') kind = 'statement';
-        } else if (ODCS_TRANSFORM.test(p)) kind = 'statement';
+        } else if (ODCS_TRANSFORM.test(pathText)) kind = 'statement';
         if (kind) {
           dialect = server;
           grammar = grammarOf(server, true);
         }
-      } else if (OSSIE_MODEL.test(p)) {
+      } else if (OSSIE_MODEL.test(pathText)) {
         kind = 'expression';
-        const d = isMap(parent) ? parent.get('dialect') : undefined;
-        dialect = typeof d === 'string' ? d : null;
+        const declaredDialect = isMap(parent) ? parent.get('dialect') : undefined;
+        dialect = typeof declaredDialect === 'string' ? declaredDialect : null;
         grammar = grammarOf(dialect);
-      } else if (OSSIE_MAPPING.test(p)) {
+      } else if (OSSIE_MAPPING.test(pathText)) {
         kind = 'expression';
         dialect = null;
         grammar = 'postgresql';
@@ -200,9 +200,9 @@ function flow(src: string, from: number, to: number, quote: '"' | "'" | null): {
       }
       if (!joined) {
         if (empties.length)
-          for (const e of empties) {
+          for (const empty of empties) {
             chars.push('\n');
-            offsets.push(e);
+            offsets.push(empty);
           }
         else {
           chars.push(' ');
@@ -214,22 +214,29 @@ function flow(src: string, from: number, to: number, quote: '"' | "'" | null): {
     }
     let i = 0;
     for (; i < body.length; i++) {
-      const c = body[i];
+      const char = body[i];
       const at = base + i;
-      if (quote === "'" && c === "'" && body[i + 1] === "'") {
+      if (quote === "'" && char === "'" && body[i + 1] === "'") {
         chars.push("'");
         offsets.push(at);
         i++;
         continue;
       }
-      if (quote === '"' && c === '\\') {
-        const n = body[i + 1];
-        if (n === undefined) {
+      if (quote === '"' && char === '\\') {
+        const escape = body[i + 1];
+        if (escape === undefined) {
           joined = true;
           break;
         }
-        if (n === 'x' || n === 'u' || n === 'U') {
-          const len = n === 'x' ? 2 : n === 'u' ? 4 : 8;
+        if (escape === 'x' || escape === 'u' || escape === 'U') {
+          let len: number;
+          if (escape === 'x') {
+            len = 2;
+          } else if (escape === 'u') {
+            len = 4;
+          } else {
+            len = 8;
+          }
           for (const ch of String.fromCodePoint(parseInt(body.slice(i + 2, i + 2 + len), 16)).split('')) {
             chars.push(ch);
             offsets.push(at);
@@ -237,14 +244,14 @@ function flow(src: string, from: number, to: number, quote: '"' | "'" | null): {
           i += 1 + len;
           continue;
         }
-        if (n in ESCAPES) {
-          chars.push(ESCAPES[n]);
+        if (escape in ESCAPES) {
+          chars.push(ESCAPES[escape]);
           offsets.push(at);
           i++;
           continue;
         }
       }
-      chars.push(c);
+      chars.push(char);
       offsets.push(at);
     }
     breakAt = base + body.length;
@@ -264,77 +271,84 @@ function block(src: string, node: Scalar<string>): { chars: string[]; offsets: n
     .trim();
   const folded = header[0] === '>';
   const indicator = /[1-9]/.exec(header)?.[0];
-  const chomp = header.includes('-') ? 'strip' : header.includes('+') ? 'keep' : 'clip';
-  let ls = lines(src, headerEnd + 1, end);
-  if (ls.length && ls[ls.length - 1].at === end && ls[ls.length - 1].text === '') ls = ls.slice(0, -1);
+  let chomp: 'strip' | 'keep' | 'clip';
+  if (header.includes('-')) {
+    chomp = 'strip';
+  } else if (header.includes('+')) {
+    chomp = 'keep';
+  } else {
+    chomp = 'clip';
+  }
+  let blockLines = lines(src, headerEnd + 1, end);
+  if (blockLines.length && blockLines[blockLines.length - 1].at === end && blockLines[blockLines.length - 1].text === '') blockLines = blockLines.slice(0, -1);
   let indent: number;
   if (indicator) {
     const lineStart = src.lastIndexOf('\n', start - 1) + 1;
     const keyLine = src.slice(lineStart, start);
     indent = keyLine.length - keyLine.trimStart().length + Number(indicator);
   } else {
-    const first = ls.find(l => l.text.trim().length);
+    const first = blockLines.find(l => l.text.trim().length);
     indent = first ? first.text.length - first.text.trimStart().length : 0;
   }
   const breakOf = (l: { text: string; at: number }) => l.at + l.text.length;
-  const content = ls.map(l => ({
-    text: l.text.trim().length ? l.text.slice(indent) : '',
-    at: l.at + indent,
-    line: l,
+  const dedentedLines = blockLines.map(line => ({
+    text: line.text.trim().length ? line.text.slice(indent) : '',
+    at: line.at + indent,
+    line,
   }));
-  let lastContent = content.length - 1;
-  while (lastContent >= 0 && !content[lastContent].text.length) lastContent--;
+  let lastContent = dedentedLines.length - 1;
+  while (lastContent >= 0 && !dedentedLines[lastContent].text.length) lastContent--;
   const chars: string[] = [];
   const offsets: number[] = [];
   let prev = -1;
   let empties: number[] = [];
   for (let i = 0; i <= lastContent; i++) {
-    const c = content[i];
-    if (!c.text.length) {
+    const row = dedentedLines[i];
+    if (!row.text.length) {
       empties.push(i);
       continue;
     }
-    const more = /^[ \t]/.test(c.text);
+    const more = /^[ \t]/.test(row.text);
     if (prev < 0)
-      for (const e of empties) {
+      for (const empty of empties) {
         chars.push('\n');
-        offsets.push(breakOf(content[e].line));
+        offsets.push(breakOf(dedentedLines[empty].line));
       }
     else {
-      const prevMore = /^[ \t]/.test(content[prev].text);
+      const prevMore = /^[ \t]/.test(dedentedLines[prev].text);
       if (folded && !more && !prevMore) {
         if (empties.length)
-          for (const e of empties) {
+          for (const empty of empties) {
             chars.push('\n');
-            offsets.push(breakOf(content[e].line));
+            offsets.push(breakOf(dedentedLines[empty].line));
           }
         else {
           chars.push(' ');
-          offsets.push(breakOf(content[prev].line));
+          offsets.push(breakOf(dedentedLines[prev].line));
         }
       } else {
         chars.push('\n');
-        offsets.push(breakOf(content[prev].line));
-        for (const e of empties) {
+        offsets.push(breakOf(dedentedLines[prev].line));
+        for (const empty of empties) {
           chars.push('\n');
-          offsets.push(breakOf(content[e].line));
+          offsets.push(breakOf(dedentedLines[empty].line));
         }
       }
     }
-    for (let k = 0; k < c.text.length; k++) {
-      chars.push(c.text[k]);
-      offsets.push(c.at + k);
+    for (let k = 0; k < row.text.length; k++) {
+      chars.push(row.text[k]);
+      offsets.push(row.at + k);
     }
     prev = i;
     empties = [];
   }
   if (prev >= 0 && chomp !== 'strip') {
     chars.push('\n');
-    offsets.push(breakOf(content[prev].line));
+    offsets.push(breakOf(dedentedLines[prev].line));
     if (chomp === 'keep')
-      for (let i = prev + 1; i < content.length; i++) {
+      for (let i = prev + 1; i < dedentedLines.length; i++) {
         chars.push('\n');
-        offsets.push(breakOf(content[i].line));
+        offsets.push(breakOf(dedentedLines[i].line));
       }
   }
   return { chars, offsets };
@@ -343,23 +357,25 @@ function block(src: string, node: Scalar<string>): { chars: string[]; offsets: n
 export function offsetMap(src: string, node: Scalar<string>): Map_ {
   const [start, valueEnd] = node.range!;
   const value = node.value;
-  let r: { chars: string[]; offsets: number[] };
+  let decoded: { chars: string[]; offsets: number[] };
   try {
-    if (node.type === 'BLOCK_LITERAL' || node.type === 'BLOCK_FOLDED') r = block(src, node);
-    else if (node.type === 'QUOTE_DOUBLE') r = flow(src, start + 1, valueEnd - 1, '"');
-    else if (node.type === 'QUOTE_SINGLE') r = flow(src, start + 1, valueEnd - 1, "'");
-    else r = flow(src, start, valueEnd, null);
+    if (node.type === 'BLOCK_LITERAL' || node.type === 'BLOCK_FOLDED') decoded = block(src, node);
+    else if (node.type === 'QUOTE_DOUBLE') decoded = flow(src, start + 1, valueEnd - 1, '"');
+    else if (node.type === 'QUOTE_SINGLE') decoded = flow(src, start + 1, valueEnd - 1, "'");
+    else decoded = flow(src, start, valueEnd, null);
   } catch {
-    r = { chars: [], offsets: [] };
+    decoded = { chars: [], offsets: [] };
   }
-  if (r.chars.join('') === value && r.offsets.length === value.length) return { offsets: [...r.offsets, valueEnd], exact: true };
+  if (decoded.chars.join('') === value && decoded.offsets.length === value.length) return { offsets: [...decoded.offsets, valueEnd], exact: true };
   // Not reliably mappable: every character goes to the expression's first character.
-  const first =
-    node.type === 'QUOTE_DOUBLE' || node.type === 'QUOTE_SINGLE'
-      ? start + 1
-      : node.type?.startsWith('BLOCK')
-        ? Math.min(valueEnd, src.indexOf('\n', start) + 1 + (/^[ \t]*/.exec(src.slice(src.indexOf('\n', start) + 1))?.[0].length ?? 0))
-        : start;
+  let first: number;
+  if (node.type === 'QUOTE_DOUBLE' || node.type === 'QUOTE_SINGLE') {
+    first = start + 1;
+  } else if (node.type?.startsWith('BLOCK')) {
+    first = Math.min(valueEnd, src.indexOf('\n', start) + 1 + (/^[ \t]*/.exec(src.slice(src.indexOf('\n', start) + 1))?.[0].length ?? 0));
+  } else {
+    first = start;
+  }
   return { offsets: Array.from({ length: value.length + 1 }, () => first), exact: false };
 }
 

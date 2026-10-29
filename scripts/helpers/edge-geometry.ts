@@ -7,8 +7,8 @@ export async function neighborhoodEdgeProblems(page: Page) {
   return page.evaluate(() => {
     const problems: string[] = [];
     const edges = [...document.querySelectorAll('.neighborhood-canvas .react-flow__edge')]
-      .map(g => {
-        const path = g.querySelector('path.react-flow__edge-path') as SVGPathElement | null;
+      .map(edgeGroup => {
+        const path = edgeGroup.querySelector('path.react-flow__edge-path') as SVGPathElement | null;
         if (!path) return null;
         const ctm = path.getScreenCTM()!;
         const pt = (x: number, y: number) => {
@@ -31,19 +31,28 @@ export async function neighborhoodEdgeProblems(page: Page) {
             current = [+tokens[i++], +tokens[i++]];
           } else i++;
         }
-        return { id: g.getAttribute('data-id') ?? '', segments };
+        return { id: edgeGroup.getAttribute('data-id') ?? '', segments };
       })
       .filter(Boolean) as { id: string; segments: [[number, number], [number, number]][] }[];
     const near = (a: number, b: number) => Math.abs(a - b) < 0.75;
     for (let i = 0; i < edges.length; i++)
       for (let j = i + 1; j < edges.length; j++)
-        for (const [p, q] of edges[i].segments)
-          for (const [r, s] of edges[j].segments) {
-            const horizontal = near(p[1], q[1]) && near(r[1], s[1]) && near(p[1], r[1]);
-            const vertical = near(p[0], q[0]) && near(r[0], s[0]) && near(p[0], r[0]);
-            const k = horizontal ? 0 : vertical ? 1 : -1;
-            if (k < 0) continue;
-            const overlap = Math.min(Math.max(p[k], q[k]), Math.max(r[k], s[k])) - Math.max(Math.min(p[k], q[k]), Math.min(r[k], s[k]));
+        for (const [firstStart, firstEnd] of edges[i].segments)
+          for (const [secondStart, secondEnd] of edges[j].segments) {
+            const horizontal = near(firstStart[1], firstEnd[1]) && near(secondStart[1], secondEnd[1]) && near(firstStart[1], secondStart[1]);
+            const vertical = near(firstStart[0], firstEnd[0]) && near(secondStart[0], secondEnd[0]) && near(firstStart[0], secondStart[0]);
+            let axis: number;
+            if (horizontal) {
+              axis = 0;
+            } else if (vertical) {
+              axis = 1;
+            } else {
+              axis = -1;
+            }
+            if (axis < 0) continue;
+            const overlap =
+              Math.min(Math.max(firstStart[axis], firstEnd[axis]), Math.max(secondStart[axis], secondEnd[axis])) -
+              Math.max(Math.min(firstStart[axis], firstEnd[axis]), Math.min(secondStart[axis], secondEnd[axis]));
             if (overlap > 4) {
               problems.push(`${edges[i].id} and ${edges[j].id} share ${Math.round(overlap)} px`);
               break;
@@ -55,9 +64,10 @@ export async function neighborhoodEdgeProblems(page: Page) {
     }));
     for (let i = 0; i < labels.length; i++)
       for (let j = i + 1; j < labels.length; j++) {
-        const a = labels[i].box;
-        const b = labels[j].box;
-        if (a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1) problems.push(`labels "${labels[i].text}" and "${labels[j].text}" overlap`);
+        const firstBox = labels[i].box;
+        const secondBox = labels[j].box;
+        if (firstBox.left < secondBox.right - 1 && secondBox.left < firstBox.right - 1 && firstBox.top < secondBox.bottom - 1 && secondBox.top < firstBox.bottom - 1)
+          problems.push(`labels "${labels[i].text}" and "${labels[j].text}" overlap`);
       }
     return problems;
   });
@@ -67,12 +77,12 @@ export async function neighborhoodEdgeProblems(page: Page) {
 export async function neighborhoodState(page: Page) {
   return page.evaluate(() => {
     const counts = document.querySelector('[aria-label="Neighbor counts"]')?.textContent ?? '';
-    const m = counts.match(/^(\d+) of (\d+) neighbors(?: · (\d+) hidden)?/);
+    const match = counts.match(/^(\d+) of (\d+) neighbors(?: · (\d+) hidden)?/);
     return {
       center: document.querySelector('.react-flow__node.center')?.getAttribute('data-id') ?? null,
-      shown: m ? +m[1] : null,
-      total: m ? +m[2] : null,
-      hidden: m ? +(m[3] ?? 0) : null,
+      shown: match ? +match[1] : null,
+      total: match ? +match[2] : null,
+      hidden: match ? +(match[3] ?? 0) : null,
       nodes: document.querySelectorAll('.neighborhood-canvas .react-flow__node').length,
     };
   });

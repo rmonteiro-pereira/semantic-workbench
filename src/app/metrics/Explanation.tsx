@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Ban, CalendarDays, Check, Copy, Filter, Layers3, ShieldAlert, ShieldCheck, Sigma, CircleSlash } from 'lucide-react';
 import type { KpiExplanation, KpiSummary, TreeNode } from '../../server/agent/explain';
 import type { ExplainQuery } from '../projects/api';
-import { additivityLabel, readableFormula, typeLabel } from './format';
+import { additivityLabel, divisionByZeroTitle, readableFormula, typeLabel } from './format';
 import { SqlCode } from '../sql/SqlCode';
 const GRAINS = ['day', 'week', 'month', 'quarter', 'year'];
 const roleLabel = { numerator: 'Numerator', denominator: 'Denominator', input: 'Input' } as const;
@@ -12,7 +12,7 @@ const roleLabel = { numerator: 'Numerator', denominator: 'Denominator', input: '
 // rules that govern rollups, and a SQL preview that is never executed.
 /** Displays a metric's formula, rollup rules and unexecuted SQL preview. */
 export function Explanation({
-  explanation: e,
+  explanation: kpiExplanation,
   all,
   query,
   onQuery,
@@ -21,12 +21,62 @@ export function Explanation({
   explanation: KpiExplanation;
   all: KpiSummary[];
   query: ExplainQuery;
-  onQuery: (q: ExplainQuery) => void;
+  onQuery: (explainQuery: ExplainQuery) => void;
   loading: boolean;
 }) {
-  const labels = new Map(all.filter(k => k.file === e.kpi.file).map(k => [k.name, k.label]));
-  const parts = readableFormula(e.formula, labels);
-  const aggregation = e.inputs.length === 1 && e.inputs[0].metric === e.kpi.name ? e.inputs[0] : null;
+  const labels = new Map(all.filter(k => k.file === kpiExplanation.kpi.file).map(k => [k.name, k.label]));
+  const parts = readableFormula(kpiExplanation.formula, labels);
+  const aggregation = kpiExplanation.inputs.length === 1 && kpiExplanation.inputs[0].metric === kpiExplanation.kpi.name ? kpiExplanation.inputs[0] : null;
+  let formulaInWords: React.ReactNode;
+  if (parts.length) {
+    formulaInWords = (
+      <p className="formula-readable" aria-label="Formula in words">
+        {parts.map((part, i) => {
+          if (part.kind === 'metric') {
+            return (
+              <span key={i} className="formula-metric">
+                {part.text}
+              </span>
+            );
+          }
+          if (part.kind === 'op') {
+            return (
+              <span key={i} className="formula-op">
+                {part.text}
+              </span>
+            );
+          }
+          return (
+            <span key={i} className="formula-text">
+              {part.text}
+            </span>
+          );
+        })}
+      </p>
+    );
+  } else if (aggregation) {
+    formulaInWords = (
+      <p className="formula-readable" aria-label="Formula in words">
+        <span className="formula-agg">{aggregation.aggregation ?? 'Value'}</span>
+        <span className="formula-text">of</span>
+        {aggregation.fields.map((field, i) => (
+          <span key={i} className="formula-field">
+            {field.dataset}.{field.field}
+          </span>
+        ))}
+      </p>
+    );
+  } else {
+    formulaInWords = null;
+  }
+  let tone: 'ok' | 'warn' | 'muted' | 'bad' | 'plain' | undefined;
+  if (kpiExplanation.kpi.additivity === 'additive') {
+    tone = 'ok';
+  } else if (kpiExplanation.kpi.additivity) {
+    tone = 'warn';
+  } else {
+    tone = 'muted';
+  }
   return (
     <section className="kpi-explanation" aria-labelledby="how-calculated">
       <h3 id="how-calculated">How this metric is calculated</h3>
@@ -34,37 +84,9 @@ export function Explanation({
         <span className="step-number">1</span>
         <div className="step-body">
           <h4>Formula</h4>
-          {parts.length ? (
-            <p className="formula-readable" aria-label="Formula in words">
-              {parts.map((p, i) =>
-                p.kind === 'metric' ? (
-                  <span key={i} className="formula-metric">
-                    {p.text}
-                  </span>
-                ) : p.kind === 'op' ? (
-                  <span key={i} className="formula-op">
-                    {p.text}
-                  </span>
-                ) : (
-                  <span key={i} className="formula-text">
-                    {p.text}
-                  </span>
-                ),
-              )}
-            </p>
-          ) : aggregation ? (
-            <p className="formula-readable" aria-label="Formula in words">
-              <span className="formula-agg">{aggregation.aggregation ?? 'Value'}</span>
-              <span className="formula-text">of</span>
-              {aggregation.fields.map((f, i) => (
-                <span key={i} className="formula-field">
-                  {f.dataset}.{f.field}
-                </span>
-              ))}
-            </p>
-          ) : null}
+          {formulaInWords}
           <pre className="formula-sql" aria-label="Governed expression">
-            <code>{e.formula || 'No ANSI SQL expression'}</code>
+            <code>{kpiExplanation.formula || 'No ANSI SQL expression'}</code>
           </pre>
         </div>
       </div>
@@ -72,18 +94,18 @@ export function Explanation({
         <span className="step-number">2</span>
         <div className="step-body">
           <h4>Built from</h4>
-          <CompositionTree node={e.tree} />
+          <CompositionTree node={kpiExplanation.tree} />
         </div>
       </div>
       <Step number={3} title="Rules">
         <div className="rule-grid">
           <Rule icon={<CalendarDays size={15} />} title="Time">
-            {e.time ? (
+            {kpiExplanation.time ? (
               <>
-                <code>{e.time.dimension}</code>
+                <code>{kpiExplanation.time.dimension}</code>
                 <span>
-                  {e.time.minGrain ? `From ${e.time.minGrain} upward: ` : 'Grains: '}
-                  {e.time.allowedGrains.join(', ')}
+                  {kpiExplanation.time.minGrain ? `From ${kpiExplanation.time.minGrain} upward: ` : 'Grains: '}
+                  {kpiExplanation.time.allowedGrains.join(', ')}
                 </span>
               </>
             ) : (
@@ -91,9 +113,9 @@ export function Explanation({
             )}
           </Rule>
           <Rule icon={<Layers3 size={15} />} title="Break down by">
-            {e.dimensions.length ? (
+            {kpiExplanation.dimensions.length ? (
               <span className="chip-row">
-                {e.dimensions.map(d => (
+                {kpiExplanation.dimensions.map(d => (
                   <code key={d}>{d}</code>
                 ))}
               </span>
@@ -102,29 +124,25 @@ export function Explanation({
             )}
           </Rule>
           <Rule icon={<Filter size={15} />} title="Filters">
-            {e.filters.length ? e.filters.map((f, i) => <span key={i}>{f.text}</span>) : <span className="muted">No filters: every row counts.</span>}
+            {kpiExplanation.filters.length ? kpiExplanation.filters.map((f, i) => <span key={i}>{f.text}</span>) : <span className="muted">No filters: every row counts.</span>}
+          </Rule>
+          <Rule icon={<Sigma size={15} />} title={kpiExplanation.kpi.additivity ? additivityLabel[kpiExplanation.kpi.additivity] : 'Additivity unknown'} tone={tone}>
+            <span>{kpiExplanation.additivityText}</span>
           </Rule>
           <Rule
-            icon={<Sigma size={15} />}
-            title={e.kpi.additivity ? additivityLabel[e.kpi.additivity] : 'Additivity unknown'}
-            tone={e.kpi.additivity === 'additive' ? 'ok' : e.kpi.additivity ? 'warn' : 'muted'}
+            icon={kpiExplanation.divisionByZero === 'unhandled' ? <ShieldAlert size={15} /> : <ShieldCheck size={15} />}
+            title={divisionByZeroTitle[kpiExplanation.divisionByZero]}
+            tone={kpiExplanation.divisionByZero === 'unhandled' ? 'bad' : 'ok'}
           >
-            <span>{e.additivityText}</span>
-          </Rule>
-          <Rule
-            icon={e.divisionByZero === 'unhandled' ? <ShieldAlert size={15} /> : <ShieldCheck size={15} />}
-            title={e.divisionByZero === 'handled' ? 'Division by zero guarded' : e.divisionByZero === 'unhandled' ? 'Division by zero not guarded' : 'No division'}
-            tone={e.divisionByZero === 'unhandled' ? 'bad' : 'ok'}
-          >
-            <span>{e.divisionText}</span>
+            <span>{kpiExplanation.divisionText}</span>
           </Rule>
           <Rule icon={<CircleSlash size={15} />} title="Missing values">
-            <span>{e.missingValues}</span>
+            <span>{kpiExplanation.missingValues}</span>
           </Rule>
         </div>
       </Step>
       <Step number={4} title="SQL preview">
-        <Preview e={e} query={query} onQuery={onQuery} loading={loading} />
+        <Preview explanation={kpiExplanation} query={query} onQuery={onQuery} loading={loading} />
       </Step>
     </section>
   );
@@ -198,15 +216,15 @@ function Node({ node, root = false }: { node: TreeNode; root?: boolean }) {
     </li>
   );
 }
-function Preview({ e, query, onQuery, loading }: { e: KpiExplanation; query: ExplainQuery; onQuery: (q: ExplainQuery) => void; loading: boolean }) {
-  const p = e.sqlPreview;
+function Preview({ explanation: kpiExplanation, query, onQuery, loading }: { explanation: KpiExplanation; query: ExplainQuery; onQuery: (explainQuery: ExplainQuery) => void; loading: boolean }) {
+  const sqlPreview = kpiExplanation.sqlPreview;
   const [copied, setCopied] = useState(false);
-  const grains = e.time ? GRAINS : [];
+  const grains = kpiExplanation.time ? GRAINS : [];
   const dims = query.dimensions ?? [];
-  const toggle = (d: string) =>
+  const toggle = (dimension: string) =>
     onQuery({
       ...query,
-      dimensions: dims.includes(d) ? dims.filter(x => x !== d) : [...dims, d],
+      dimensions: dims.includes(dimension) ? dims.filter(x => x !== dimension) : [...dims, dimension],
     });
   return (
     <div className="sql-preview">
@@ -214,23 +232,23 @@ function Preview({ e, query, onQuery, loading }: { e: KpiExplanation; query: Exp
         {grains.length > 0 && (
           <label>
             Time grain
-            <select aria-label="Time grain" value={query.grain ?? p.grain ?? ''} onChange={ev => onQuery({ ...query, grain: ev.target.value })}>
-              {grains.map(g => (
-                <option key={g} value={g} disabled={!e.time!.allowedGrains.includes(g as any) && g !== query.grain}>
-                  {g}
-                  {e.time!.allowedGrains.includes(g as any) ? '' : ' · not allowed'}
+            <select aria-label="Time grain" value={query.grain ?? sqlPreview.grain ?? ''} onChange={ev => onQuery({ ...query, grain: ev.target.value })}>
+              {grains.map(grain => (
+                <option key={grain} value={grain} disabled={!kpiExplanation.time!.allowedGrains.includes(grain as any) && grain !== query.grain}>
+                  {grain}
+                  {kpiExplanation.time!.allowedGrains.includes(grain as any) ? '' : ' · not allowed'}
                 </option>
               ))}
             </select>
           </label>
         )}
-        {e.dimensions.length > 0 && (
+        {kpiExplanation.dimensions.length > 0 && (
           <fieldset>
             <legend>Break down by</legend>
-            {e.dimensions.map(d => (
-              <label key={d} className="check">
-                <input type="checkbox" checked={dims.includes(d)} onChange={() => toggle(d)} />
-                {d}
+            {kpiExplanation.dimensions.map(dimension => (
+              <label key={dimension} className="check">
+                <input type="checkbox" checked={dims.includes(dimension)} onChange={() => toggle(dimension)} />
+                {dimension}
               </label>
             ))}
           </fieldset>
@@ -240,24 +258,24 @@ function Preview({ e, query, onQuery, loading }: { e: KpiExplanation; query: Exp
           Sum the metric values
         </label>
       </div>
-      {'refused' in p ? (
+      {'refused' in sqlPreview ? (
         <div className="preview-refused" role="alert">
           <Ban size={18} />
           <div>
             <strong>No SQL for this request</strong>
-            <p>{p.refused}</p>
+            <p>{sqlPreview.refused}</p>
           </div>
         </div>
       ) : (
         <>
           <div className="preview-head">
             <span className="not-executed">Preview · not executed</span>
-            {p.joins.length > 0 && <span className="muted">Joins: {p.joins.join(', ')}</span>}
+            {sqlPreview.joins.length > 0 && <span className="muted">Joins: {sqlPreview.joins.join(', ')}</span>}
             <button
               className="copy-sql"
               onClick={() => {
                 void navigator.clipboard
-                  ?.writeText(p.sql)
+                  ?.writeText(sqlPreview.sql)
                   .then(() => {
                     setCopied(true);
                     setTimeout(() => setCopied(false), 1500);
@@ -271,12 +289,12 @@ function Preview({ e, query, onQuery, loading }: { e: KpiExplanation; query: Exp
           </div>
           <pre className={`preview-sql${loading ? ' stale' : ''}`} aria-label="SQL preview, not executed">
             <code>
-              <SqlCode sql={p.sql} />
+              <SqlCode sql={sqlPreview.sql} />
             </code>
           </pre>
-          {p.warnings.map(w => (
-            <p key={w} className="preview-note">
-              {w}
+          {sqlPreview.warnings.map(warning => (
+            <p key={warning} className="preview-note">
+              {warning}
             </p>
           ))}
         </>

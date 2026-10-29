@@ -21,12 +21,12 @@ export function RenameDialog({ project, onClose, onDone }: { project: ProjectInf
     <Modal title={`Rename ${project.name}`} onCancel={onClose} footer={footer}>
       <form
         id="rename-project"
-        onSubmit={async e => {
-          e.preventDefault();
+        onSubmit={async submitEvent => {
+          submitEvent.preventDefault();
           setError('');
           try {
-            const r = await api.rename(project.slug, name);
-            onDone(r.name);
+            const renamed = await api.rename(project.slug, name);
+            onDone(renamed.name);
           } catch (err) {
             setError((err as Error).message);
           }
@@ -68,11 +68,11 @@ export function MoveDialog({
     setError('');
     try {
       onDone(await api.move(project, path, target, toPath));
-    } catch (e: any) {
-      if (e.status === 409 && e.body?.suggestion?.toPath) {
-        setToPath(e.body.suggestion.toPath);
-        setError(`${e.body.message} The name below is free.`);
-      } else setError(e.message);
+    } catch (error: any) {
+      if (error.status === 409 && error.body?.suggestion?.toPath) {
+        setToPath(error.body.suggestion.toPath);
+        setError(`${error.body.message} The name below is free.`);
+      } else setError(error.message);
     }
   }
   const footer = others.length ? (
@@ -100,9 +100,9 @@ export function MoveDialog({
           <label>
             Target project
             <select autoFocus value={target} onChange={e => setTarget(e.target.value)}>
-              {others.map(p => (
-                <option key={p.slug} value={p.slug}>
-                  {p.name}
+              {others.map(other => (
+                <option key={other.slug} value={other.slug}>
+                  {other.name}
                 </option>
               ))}
             </select>

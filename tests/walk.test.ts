@@ -4,22 +4,22 @@ import { walkReducer, emptyWalk, currentStep, canBack, canForward, MAX_STEPS, re
 const step = (center: string, doc = 'd') => ({ doc, center, name: center });
 const run = (walk: Walk, ...actions: WalkAction[]): Walk => actions.reduce(walkReducer, walk);
 test('push, back and forward move through the trail', () => {
-  let w = run(emptyWalk, { type: 'push', step: step('a') }, { type: 'push', step: step('b') }, { type: 'push', step: step('c') });
-  expect(w.steps.map(s => s.center)).toEqual(['a', 'b', 'c']);
-  expect(currentStep(w).center).toBe('c');
-  w = run(w, { type: 'back' }, { type: 'back' });
-  expect(currentStep(w).center).toBe('a');
-  expect(canBack(w)).toBe(false);
-  w = run(w, { type: 'back' });
-  expect(w.index).toBe(0);
-  w = run(w, { type: 'forward' });
-  expect(currentStep(w).center).toBe('b');
-  expect(canForward(w)).toBe(true);
-  w = run(w, { type: 'forward' }, { type: 'forward' });
-  expect(w.index).toBe(2);
+  let walk = run(emptyWalk, { type: 'push', step: step('a') }, { type: 'push', step: step('b') }, { type: 'push', step: step('c') });
+  expect(walk.steps.map(s => s.center)).toEqual(['a', 'b', 'c']);
+  expect(currentStep(walk).center).toBe('c');
+  walk = run(walk, { type: 'back' }, { type: 'back' });
+  expect(currentStep(walk).center).toBe('a');
+  expect(canBack(walk)).toBe(false);
+  walk = run(walk, { type: 'back' });
+  expect(walk.index).toBe(0);
+  walk = run(walk, { type: 'forward' });
+  expect(currentStep(walk).center).toBe('b');
+  expect(canForward(walk)).toBe(true);
+  walk = run(walk, { type: 'forward' }, { type: 'forward' });
+  expect(walk.index).toBe(2);
 });
 test('pushing after going back truncates forward history; the same center is not pushed twice', () => {
-  let w = run(
+  let walk = run(
     emptyWalk,
     { type: 'push', step: step('a') },
     { type: 'push', step: step('b') },
@@ -28,20 +28,20 @@ test('pushing after going back truncates forward history; the same center is not
     { type: 'back' },
     { type: 'push', step: step('x') },
   );
-  expect(w.steps.map(s => s.center)).toEqual(['a', 'x']);
-  expect(canForward(w)).toBe(false);
-  expect(run(w, { type: 'push', step: step('x') })).toBe(w);
-  expect(run(w, { type: 'push', step: step('x', 'other') }).steps).toHaveLength(3);
+  expect(walk.steps.map(s => s.center)).toEqual(['a', 'x']);
+  expect(canForward(walk)).toBe(false);
+  expect(run(walk, { type: 'push', step: step('x') })).toBe(walk);
+  expect(run(walk, { type: 'push', step: step('x', 'other') }).steps).toHaveLength(3);
 });
 test('jump and reset; the trail is bounded', () => {
-  let w = run(emptyWalk, { type: 'push', step: step('a') }, { type: 'push', step: step('b') }, { type: 'jump', index: 0 });
-  expect(currentStep(w).center).toBe('a');
-  expect(run(w, { type: 'jump', index: 9 })).toBe(w);
-  expect(run(w, { type: 'reset', step: step('z') }).steps.map(s => s.center)).toEqual(['z']);
-  expect(run(w, { type: 'reset' })).toEqual(emptyWalk);
-  for (let i = 0; i < MAX_STEPS + 20; i++) w = walkReducer(w, { type: 'push', step: step('s' + i) });
-  expect(w.steps).toHaveLength(MAX_STEPS);
-  expect(w.index).toBe(MAX_STEPS - 1);
+  let walk = run(emptyWalk, { type: 'push', step: step('a') }, { type: 'push', step: step('b') }, { type: 'jump', index: 0 });
+  expect(currentStep(walk).center).toBe('a');
+  expect(run(walk, { type: 'jump', index: 9 })).toBe(walk);
+  expect(run(walk, { type: 'reset', step: step('z') }).steps.map(s => s.center)).toEqual(['z']);
+  expect(run(walk, { type: 'reset' })).toEqual(emptyWalk);
+  for (let i = 0; i < MAX_STEPS + 20; i++) walk = walkReducer(walk, { type: 'push', step: step('s' + i) });
+  expect(walk.steps).toHaveLength(MAX_STEPS);
+  expect(walk.index).toBe(MAX_STEPS - 1);
 });
 // Expansion steps (data-model WalkStep); steps without `kind` stay re-centering steps.
 import { canvasAt } from '../src/app/graph/walk';
@@ -53,23 +53,23 @@ const expand = (center: string, set: string, name = set) => ({
   set,
 });
 test('expansion steps keep the center and are pushed even when the center repeats', () => {
-  let w = run(emptyWalk, { type: 'push', step: step('a') }, { type: 'push', step: expand('a', 's1', 'b') }, { type: 'push', step: expand('a', 's2', 'c') });
-  expect(w.steps.map(s => s.kind ?? 'center')).toEqual(['center', 'expand', 'expand']);
-  expect(canvasAt(w)).toEqual({ center: step('a'), sets: ['s1', 's2'] });
-  expect(run(w, { type: 'push', step: expand('a', 's2', 'c') })).toBe(w);
-  w = run(w, { type: 'back' });
-  expect(canvasAt(w).sets).toEqual(['s1']);
-  w = run(w, { type: 'back' });
-  expect(canvasAt(w)).toEqual({ center: step('a'), sets: [] });
-  w = run(w, { type: 'forward' }, { type: 'forward' });
-  expect(canvasAt(w).sets).toEqual(['s1', 's2']);
+  let walk = run(emptyWalk, { type: 'push', step: step('a') }, { type: 'push', step: expand('a', 's1', 'b') }, { type: 'push', step: expand('a', 's2', 'c') });
+  expect(walk.steps.map(s => s.kind ?? 'center')).toEqual(['center', 'expand', 'expand']);
+  expect(canvasAt(walk)).toEqual({ center: step('a'), sets: ['s1', 's2'] });
+  expect(run(walk, { type: 'push', step: expand('a', 's2', 'c') })).toBe(walk);
+  walk = run(walk, { type: 'back' });
+  expect(canvasAt(walk).sets).toEqual(['s1']);
+  walk = run(walk, { type: 'back' });
+  expect(canvasAt(walk)).toEqual({ center: step('a'), sets: [] });
+  walk = run(walk, { type: 'forward' }, { type: 'forward' });
+  expect(canvasAt(walk).sets).toEqual(['s1', 's2']);
 });
 test('re-centering starts a new canvas; legacy steps without kind still dedupe', () => {
-  let w = run(emptyWalk, { type: 'push', step: step('a') }, { type: 'push', step: expand('a', 's1') }, { type: 'push', step: step('b') });
-  expect(canvasAt(w)).toEqual({ center: step('b'), sets: [] });
-  expect(run(w, { type: 'push', step: step('b') })).toBe(w);
-  w = run(w, { type: 'back' });
-  expect(canvasAt(w)).toEqual({ center: step('a'), sets: ['s1'] });
+  let walk = run(emptyWalk, { type: 'push', step: step('a') }, { type: 'push', step: expand('a', 's1') }, { type: 'push', step: step('b') });
+  expect(canvasAt(walk)).toEqual({ center: step('b'), sets: [] });
+  expect(run(walk, { type: 'push', step: step('b') })).toBe(walk);
+  walk = run(walk, { type: 'back' });
+  expect(canvasAt(walk)).toEqual({ center: step('a'), sets: ['s1'] });
   expect(canvasAt(emptyWalk)).toEqual({ center: undefined, sets: [] });
   const legacy: Walk = { steps: [{ doc: 'd', center: 'x', name: 'x' }], index: 0 };
   expect(canvasAt(legacy).center?.center).toBe('x');

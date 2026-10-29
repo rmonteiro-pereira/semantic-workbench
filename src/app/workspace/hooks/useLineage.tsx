@@ -13,8 +13,8 @@ type Options = {
   docs: Doc[];
   tab: string;
   setTab: (next: string) => void;
-  openDocument: (d: Doc) => boolean;
-  parsedDoc: (d: Doc) => { hash: string; model: ValidatedModel; keys: Set<string> };
+  openDocument: (doc: Doc) => boolean;
+  parsedDoc: (doc: Doc) => { hash: string; model: ValidatedModel; keys: Set<string> };
   dispatchWalk: React.ActionDispatch<[action: WalkAction]>;
   setSelected: React.Dispatch<React.SetStateAction<string>>;
 };
@@ -51,9 +51,9 @@ export function useLineage({ model, current, docs, tab, setTab, openDocument, pa
   const mappingId = getMappingId();
   const graphViewSwitch = isConsolidated ? (
     <span className="graph-view-switch" role="group" aria-label="Graph view">
-      {(['mapping', 'ontology'] as const).map(v => (
-        <button key={v} aria-pressed={mappingView === v} onClick={() => setMappingView(v)}>
-          {v === 'mapping' ? 'Mapping graph' : 'Ontology graph'}
+      {(['mapping', 'ontology'] as const).map(value => (
+        <button key={value} aria-pressed={mappingView === value} onClick={() => setMappingView(value)}>
+          {value === 'mapping' ? 'Mapping graph' : 'Ontology graph'}
         </button>
       ))}
     </span>
@@ -95,15 +95,15 @@ export function useLineage({ model, current, docs, tab, setTab, openDocument, pa
   }
   // Walking into a semantic model or metric continues in that file's Neighborhood.
   function continueInNeighborhood(card: LineageCard) {
-    const documentValue = docs.find(x => x.project === current?.project && x.path === card.file);
-    if (!documentValue || !openDocument(documentValue)) return;
+    const doc = docs.find(x => x.project === current?.project && x.path === card.file);
+    if (!doc || !openDocument(doc)) return;
     const name = card.kind === 'metric' ? card.id.slice(card.id.lastIndexOf('/') + 1) : card.label;
-    const target = parsedDoc(documentValue).model?.entities.find(e => e.name === name && (e.kind === 'Dataset' || e.kind === 'Metric'));
+    const target = parsedDoc(doc).model?.entities.find(e => e.name === name && (e.kind === 'Dataset' || e.kind === 'Metric'));
     setTab('neighborhood');
     if (target) {
       dispatchWalk({
         type: 'push',
-        step: { doc: documentValue.id, center: target.id, name: target.name },
+        step: { doc: doc.id, center: target.id, name: target.name },
       });
       setSelected(target.id);
     }

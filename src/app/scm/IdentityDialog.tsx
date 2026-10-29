@@ -53,8 +53,8 @@ export function IdentityDialog({ project, everyRepository = false, onClose }: Pr
     try {
       await scm.setIdentity(project, name, email, all);
       onClose();
-    } catch (e) {
-      setError((e as Error).message);
+    } catch (error) {
+      setError((error as Error).message);
     } finally {
       setBusy(false);
     }

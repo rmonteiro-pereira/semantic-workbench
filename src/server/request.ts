@@ -70,7 +70,7 @@ export function decodePath(raw: string) {
  * goes to the server log with the request id, because its text can hold file paths or library
  * internals.
  */
-export function internalErrorResponse(e: unknown, requestId = 'unknown') {
-  log.failure('http.unexpected-error', e, { requestId });
+export function internalErrorResponse(error: unknown, requestId = 'unknown') {
+  log.failure('http.unexpected-error', error, { requestId });
   return Response.json({ error: 'Internal error.' }, { status: 500 });
 }

@@ -3,12 +3,12 @@ import { test, expect } from 'bun:test';
 import { checkExamples } from '../scripts/example-checks';
 import { checkExampleMetrics } from '../scripts/example-metric-checks';
 test('all official Ossie examples and generated billing model round-trip; generated SQL produces verified fixture results', async () => {
-  const r = await checkExamples();
-  expect(r.imports).toHaveLength(5);
-  expect(r.sqlExecutions).toHaveLength(24);
-  expect(r.generated.businessEntities).toBe(36);
-  expect(r.generated.governedMetrics).toBe(8);
-  expect(r.blockedCases).toHaveLength(2);
+  const examples = await checkExamples();
+  expect(examples.imports).toHaveLength(5);
+  expect(examples.sqlExecutions).toHaveLength(24);
+  expect(examples.generated.businessEntities).toBe(36);
+  expect(examples.generated.governedMetrics).toBe(8);
+  expect(examples.blockedCases).toHaveLength(2);
 }, 30000);
 test('every example set shows its governed metrics, validates cleanly and leaves upstream files unchanged', async () => {
   const sets = await checkExampleMetrics();

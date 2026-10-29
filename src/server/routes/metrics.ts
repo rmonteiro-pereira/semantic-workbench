@@ -20,11 +20,11 @@ export const metricRoutes: Route = (ws, req, url) => {
     const verified = ownerVerifier(ws.state.users().users);
     return Response.json(metrics.map(metric => (metric.owner ? { ...metric, ownerVerified: verified(metric.owner) } : metric)));
   }
-  const m = url.pathname.match(/^\/api\/projects\/([^/]+)\/files\/(.+)\/explain\/([^/]+)$/);
-  if (!m) return null;
-  const slug = decodeSegment(m[1]);
-  const path = decodePath(m[2]);
-  const metric = decodeSegment(m[3]);
+  const match = url.pathname.match(/^\/api\/projects\/([^/]+)\/files\/(.+)\/explain\/([^/]+)$/);
+  if (!match) return null;
+  const slug = decodeSegment(match[1]);
+  const path = decodePath(match[2]);
+  const metric = decodeSegment(match[3]);
   ws.project(slug);
   const dimensions = url.searchParams.getAll('dimension');
   if (dimensions.length > 20 || dimensions.some(d => !/^[^.\s]+\.[^.\s]+$/.test(d))) throw new BadRequestError('dimension must be dataset.field (at most 20).');

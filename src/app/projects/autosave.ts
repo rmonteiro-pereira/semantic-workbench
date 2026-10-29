@@ -154,19 +154,19 @@ export function failureReason(message: string | null | undefined) {
 }
 // Save-state labels distinguish validation, conflicts and uncommitted changes.
 /** Returns the visible save-state label including uncommitted-change status. */
-export function saveStateLabel(s: AutosaveState, uncommitted: number) {
+export function saveStateLabel(autosaveState: AutosaveState, uncommitted: number) {
   const changes = `${uncommitted} uncommitted change${uncommitted === 1 ? '' : 's'}`;
-  switch (s.status) {
+  switch (autosaveState.status) {
     case 'saving':
       return 'Saving…';
     case 'pending':
       return 'Editing…';
     case 'invalid':
-      return `Not saved: ${s.errors} error${s.errors === 1 ? '' : 's'}`;
+      return `Not saved: ${autosaveState.errors} error${autosaveState.errors === 1 ? '' : 's'}`;
     case 'stale':
       return 'Not saved: file changed on disk';
     case 'failed':
-      return `Not saved: ${failureReason(s.message)}`;
+      return `Not saved: ${failureReason(autosaveState.message)}`;
     case 'waiting':
       return 'Not saved yet: waiting for Git';
     case 'cancelled':
@@ -187,8 +187,8 @@ export function saveNeedsAction(status: AutosaveStatus): boolean {
  * The save-state label for a header with little room: a clean save is just "Saved". Every other
  * state keeps its full label because it tells the person what to do.
  */
-export function saveStateShortLabel(s: AutosaveState, uncommitted: number) {
-  if (s.status !== 'saved' && s.status !== 'clean') return saveStateLabel(s, uncommitted);
+export function saveStateShortLabel(autosaveState: AutosaveState, uncommitted: number) {
+  if (autosaveState.status !== 'saved' && autosaveState.status !== 'clean') return saveStateLabel(autosaveState, uncommitted);
   if (uncommitted === 0) return 'Saved';
   return `Saved · ${uncommitted} to commit`;
 }
@@ -217,35 +217,35 @@ export type AutosaveOptions = {
   onFailed?: (file: string, message: string) => void;
 };
 const idle = (fn: () => void) => {
-  const w = globalThis as {
-    requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number;
+  const browserGlobal = globalThis as {
+    requestIdleCallback?: (cb: () => void, options?: { timeout: number }) => number;
   };
-  if (w.requestIdleCallback) w.requestIdleCallback(fn, { timeout: 500 });
+  if (browserGlobal.requestIdleCallback) browserGlobal.requestIdleCallback(fn, { timeout: 500 });
   else setTimeout(fn, 0);
 };
 /** Drives delayed validation and serialized saves for the open file. */
-export function useAutosave(o: AutosaveOptions) {
+export function useAutosave(autosaveOptions: AutosaveOptions) {
   const ref = useRef<AutosaveState>(initialAutosave);
   const [state, setState] = useState<AutosaveState>(initialAutosave);
-  const opts = useRef(o);
-  opts.current = o;
+  const opts = useRef(autosaveOptions);
+  opts.current = autosaveOptions;
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const waiters = useRef<(() => void)[]>([]);
   const settle = () => {
     if (ref.current.inFlight === null && !timer.current) {
-      const w = waiters.current;
+      const pending = waiters.current;
       waiters.current = [];
-      for (const f of w) f();
+      for (const resolve of pending) resolve();
     }
   };
   const dispatch = useCallback((event: AutosaveEvent) => {
-    const r = autosave(ref.current, event);
-    ref.current = r.state;
-    setState(r.state);
-    if (r.effect?.type === 'schedule') {
+    const transition = autosave(ref.current, event);
+    ref.current = transition.state;
+    setState(transition.state);
+    if (transition.effect?.type === 'schedule') {
       clearTimeout(timer.current);
       timer.current = setTimeout(fire, opts.current.delay ?? AUTOSAVE_DELAY_MS);
-    } else if (r.effect?.type === 'save') run(r.effect);
+    } else if (transition.effect?.type === 'save') run(transition.effect);
     else settle();
   }, []);
   async function fire() {
@@ -264,23 +264,23 @@ export function useAutosave(o: AutosaveOptions) {
   function run(request: SaveRequest) {
     idle(() => {
       timeOperation('save', opts.current.save(request)).then(
-        r => {
+        saved => {
           const mine = ref.current.file === request.file;
-          const stored = r.source ?? request.to;
-          const sent = { text: request.to, demoted: r.demoted };
-          opts.current.onSaved(request.file, stored, r.hash, sent);
+          const stored = saved.source ?? request.to;
+          const sent = { text: request.to, demoted: saved.demoted };
+          opts.current.onSaved(request.file, stored, saved.hash, sent);
           if (mine) {
             const at = Date.now();
-            dispatch({ type: 'saved', text: stored, hash: r.hash, at, demoted: r.demoted });
+            dispatch({ type: 'saved', text: stored, hash: saved.hash, at, demoted: saved.demoted });
           } else settle();
         },
-        e => {
+        failure => {
           const mine = ref.current.file === request.file;
-          if (opts.current.isStale(e)) {
+          if (opts.current.isStale(failure)) {
             if (mine) dispatch({ type: 'stale' });
-            opts.current.onStale(request.file, e);
+            opts.current.onStale(request.file, failure);
           } else {
-            const message = (e as Error).message;
+            const message = (failure as Error).message;
             if (mine) dispatch({ type: 'failed', message });
             opts.current.onFailed?.(request.file, message);
           }
@@ -291,21 +291,26 @@ export function useAutosave(o: AutosaveOptions) {
   }
   // Open: a new file resets the machine; the same file following the disk is an external change.
   useEffect(() => {
-    if (o.file !== ref.current.file) {
+    if (autosaveOptions.file !== ref.current.file) {
       clearTimeout(timer.current);
       timer.current = undefined;
-      dispatch({ type: 'open', file: o.file ?? '', hash: o.hash, text: o.saved });
-      if (o.text !== o.saved) dispatch({ type: 'edit', text: o.text });
+      dispatch({
+        type: 'open',
+        file: autosaveOptions.file ?? '',
+        hash: autosaveOptions.hash,
+        text: autosaveOptions.saved,
+      });
+      if (autosaveOptions.text !== autosaveOptions.saved) dispatch({ type: 'edit', text: autosaveOptions.text });
       return;
     }
-    if (o.hash !== ref.current.baseHash && ref.current.inFlight === null) dispatch({ type: 'external', hash: o.hash ?? '', text: o.saved });
-  }, [o.file, o.hash, o.saved]);
+    if (autosaveOptions.hash !== ref.current.baseHash && ref.current.inFlight === null) dispatch({ type: 'external', hash: autosaveOptions.hash ?? '', text: autosaveOptions.saved });
+  }, [autosaveOptions.file, autosaveOptions.hash, autosaveOptions.saved]);
   useEffect(() => {
-    if (o.file === ref.current.file && o.text !== ref.current.text) dispatch({ type: 'edit', text: o.text });
-  }, [o.text]);
+    if (autosaveOptions.file === ref.current.file && autosaveOptions.text !== ref.current.text) dispatch({ type: 'edit', text: autosaveOptions.text });
+  }, [autosaveOptions.text]);
   useEffect(() => {
-    if (!!o.gitBusy !== ref.current.gitBusy) dispatch({ type: 'git', busy: !!o.gitBusy });
-  }, [o.gitBusy]);
+    if (!!autosaveOptions.gitBusy !== ref.current.gitBusy) dispatch({ type: 'git', busy: !!autosaveOptions.gitBusy });
+  }, [autosaveOptions.gitBusy]);
   useEffect(() => () => clearTimeout(timer.current), []);
   return {
     state,

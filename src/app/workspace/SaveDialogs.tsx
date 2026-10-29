@@ -70,14 +70,14 @@ export function SaveDialogs({
     void refresh().catch(() => {});
   }
 
-  function handleCommitDialogCommitted(r: import('../scm/CommitDialog').CommitOutcome) {
+  function handleCommitDialogCommitted(commitOutcome: import('../scm/CommitDialog').CommitOutcome) {
     function getPushOutcome() {
-      if (r.pushed) {
-        if (r.pushed.ok) {
+      if (commitOutcome.pushed) {
+        if (commitOutcome.pushed.ok) {
           return ' and pushed.';
         }
-        const guide = looksLikeAuthFailure(r.pushed.message) ? ' Source control offers a Credential setup guide.' : '';
-        return `; push failed: ${r.pushed.message}${guide}`;
+        const guide = looksLikeAuthFailure(commitOutcome.pushed.message) ? ' Source control offers a Credential setup guide.' : '';
+        return `; push failed: ${commitOutcome.pushed.message}${guide}`;
       }
       return '.';
     }
@@ -86,8 +86,8 @@ export function SaveDialogs({
 
     setCommitting(false);
     itemHints.current[current.project] = {};
-    const commit = r.commit.slice(0, 7);
-    const fileCount = r.files.length;
+    const commit = commitOutcome.commit.slice(0, 7);
+    const fileCount = commitOutcome.files.length;
     setMessage(`Committed ${commit} (${fileCount} file${fileCount === 1 ? '' : 's'})${getPushOutcome()}`);
     setGitVersion(v => v + 1);
     void refresh().catch(() => {});
@@ -99,8 +99,8 @@ export function SaveDialogs({
     setMessage(hash ? `Reverted ${path} to the last commit; the replaced version is in the trash.` : `Moved ${path} to the trash.`);
     setTrashVersion(v => v + 1);
     void refresh()
-      .then(d => {
-        const doc = d.find(x => x.project === current.project && x.path === path);
+      .then(docs => {
+        const doc = docs.find(x => x.project === current.project && x.path === path);
         if (doc && currentRef.current?.project === current.project && currentRef.current.path === path) {
           autosave.resolved(doc.hash, doc.source);
           setCurrent(doc);

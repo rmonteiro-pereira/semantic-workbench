@@ -39,7 +39,11 @@ export function itemKindAt(document: any, path: Path): ItemKind | null {
   const list = path[at];
   if (typeof path.at(-1) !== 'number') return null;
   if (list === 'ontology') return 'concept';
-  if (list === 'relationships') return path[at - 2] === 'ontology' ? 'ontology-relationship' : document?.kind === 'DataContract' ? 'odcs-foreign-key' : 'join';
+  if (list === 'relationships') {
+    if (path[at - 2] === 'ontology') return 'ontology-relationship';
+    if (document?.kind === 'DataContract') return 'odcs-foreign-key';
+    return 'join';
+  }
   if (list === 'datasets') return 'dataset';
   if (list === 'fields' && path[at - 2] === 'datasets') return 'field';
   if (list === 'metrics') return 'metric';
@@ -49,11 +53,25 @@ export function itemKindAt(document: any, path: Path): ItemKind | null {
   return null;
 }
 /** Returns the field used as the name for an item kind. */
-export const nameKey = (kind: ItemKind) => (kind === 'concept' || kind === 'concept-mapping' ? 'concept' : kind === 'odcs-foreign-key' ? 'to' : 'name');
+export const nameKey = (kind: ItemKind) => {
+  if (kind === 'concept' || kind === 'concept-mapping') {
+    return 'concept';
+  }
+  if (kind === 'odcs-foreign-key') {
+    return 'to';
+  }
+  return 'name';
+};
 /** Reads the identifying name of an item. */
 export function itemName(kind: ItemKind, item: any) {
-  const v = item?.[nameKey(kind)];
-  return typeof v === 'string' ? v : Array.isArray(v) ? v.join(', ') : '';
+  const value = item?.[nameKey(kind)];
+  if (typeof value === 'string') {
+    return value;
+  }
+  if (Array.isArray(value)) {
+    return value.join(', ');
+  }
+  return '';
 }
 export const STATUSES = ['draft', 'proposed', 'approved', 'deprecated'] as const;
 // Draft → proposed → approved → deprecated; a proposed metric can go back to draft and a
@@ -70,71 +88,80 @@ export type Choices = { concepts: string[]; datasets: string[]; metrics: string[
 const ansi: Path = ['expression', 'dialects', 0, 'expression'];
 /** Returns the form fields supported by an item kind. */
 export function fieldsFor(kind: ItemKind, choices: Choices): FieldSpec[] {
-  const f = (key: string, label: string, input: FieldSpec['input'], extra: Partial<FieldSpec> = {}): FieldSpec => ({ key, label, input, at: extra.at ?? [key], ...extra });
-  const ext = (key: string, label: string, input: FieldSpec['input'], extra: Partial<FieldSpec> = {}): FieldSpec => f('ext.' + key, label, input, { at: extra.at ?? [key], extension: true, ...extra });
+  const field = (key: string, label: string, input: FieldSpec['input'], extra: Partial<FieldSpec> = {}): FieldSpec => ({ key, label, input, at: extra.at ?? [key], ...extra });
+  const ext = (key: string, label: string, input: FieldSpec['input'], extra: Partial<FieldSpec> = {}): FieldSpec =>
+    field('ext.' + key, label, input, { at: extra.at ?? [key], extension: true, ...extra });
   switch (kind) {
     case 'concept':
       return [
-        f('concept', 'Name', 'text', { required: true }),
-        f('type', 'Type', 'select', { options: ['EntityType', 'ValueType'], required: true }),
-        f('description', 'Description', 'textarea'),
-        f('extends', 'Extends', 'list', {
+        field('concept', 'Name', 'text', { required: true }),
+        field('type', 'Type', 'select', {
+          options: ['EntityType', 'ValueType'],
+          required: true,
+        }),
+        field('description', 'Description', 'textarea'),
+        field('extends', 'Extends', 'list', {
           options: choices.concepts,
           hint: 'Concepts this one specializes, separated by commas',
         }),
-        f('iri', 'IRI', 'text', { hint: 'Full IRI or prefix:local' }),
+        field('iri', 'IRI', 'text', { hint: 'Full IRI or prefix:local' }),
       ];
     case 'ontology-relationship':
       return [
-        f('name', 'Name', 'text', { required: true }),
-        f('target', 'Related concept', 'select', {
+        field('name', 'Name', 'text', { required: true }),
+        field('target', 'Related concept', 'select', {
           at: ['roles', 0, 'concept'],
           options: choices.concepts,
           required: true,
         }),
-        f('role', 'Role name', 'text', { at: ['roles', 0, 'name'] }),
-        f('multiplicity', 'Multiplicity', 'select', { options: ['', 'ManyToOne', 'OneToOne'] }),
-        f('verbalizes', 'Reading', 'list', {
+        field('role', 'Role name', 'text', { at: ['roles', 0, 'name'] }),
+        field('multiplicity', 'Multiplicity', 'select', {
+          options: ['', 'ManyToOne', 'OneToOne'],
+        }),
+        field('verbalizes', 'Reading', 'list', {
           hint: 'For example {Customer} places {Order}; separate several with commas',
         }),
-        f('description', 'Description', 'textarea'),
+        field('description', 'Description', 'textarea'),
       ];
     case 'dataset':
       return [
-        f('name', 'Name', 'text', { required: true }),
-        f('source', 'Physical source', 'text', {
+        field('name', 'Name', 'text', { required: true }),
+        field('source', 'Physical source', 'text', {
           required: true,
           hint: 'database.schema.table or a query',
         }),
-        f('description', 'Description', 'textarea'),
-        f('primary_key', 'Primary key', 'list', { hint: 'Columns, separated by commas' }),
+        field('description', 'Description', 'textarea'),
+        field('primary_key', 'Primary key', 'list', { hint: 'Columns, separated by commas' }),
       ];
     case 'field':
       return [
-        f('name', 'Name', 'text', { required: true }),
-        f('expression', 'Expression (ANSI SQL)', 'code', { at: ansi, required: true }),
-        f('datatype', 'Data type', 'select', {
+        field('name', 'Name', 'text', { required: true }),
+        field('expression', 'Expression (ANSI SQL)', 'code', { at: ansi, required: true }),
+        field('datatype', 'Data type', 'select', {
           options: ['', 'String', 'Integer', 'Decimal', 'Float', 'Boolean', 'Date', 'Time', 'DateTime', 'DateTimeTz', 'Opaque'],
         }),
-        f('description', 'Description', 'textarea'),
+        field('description', 'Description', 'textarea'),
       ];
     case 'join':
       return [
-        f('name', 'Name', 'text', { required: true }),
-        f('from', 'From dataset (many side)', 'select', {
+        field('name', 'Name', 'text', { required: true }),
+        field('from', 'From dataset (many side)', 'select', {
           options: choices.datasets,
           required: true,
         }),
-        f('from_columns', 'From columns', 'list', { required: true }),
-        f('to', 'To dataset (one side)', 'select', { options: choices.datasets, required: true }),
-        f('to_columns', 'To columns', 'list', { required: true }),
+        field('from_columns', 'From columns', 'list', { required: true }),
+        field('to', 'To dataset (one side)', 'select', {
+          options: choices.datasets,
+          required: true,
+        }),
+        field('to_columns', 'To columns', 'list', { required: true }),
       ];
     case 'metric':
       return [
-        f('name', 'Name', 'text', { required: true }),
+        field('name', 'Name', 'text', { required: true }),
         ext('label', 'Label', 'text'),
-        f('description', 'Description', 'textarea'),
-        f('expression', 'Expression (ANSI SQL)', 'code', { at: ansi, required: true }),
+        field('description', 'Description', 'textarea'),
+        field('expression', 'Expression (ANSI SQL)', 'code', { at: ansi, required: true }),
         ext('type', 'Metric type', 'select', {
           options: ['', 'simple', 'ratio', 'derived', 'cumulative', 'filtered'],
         }),
@@ -177,29 +204,29 @@ export function fieldsFor(kind: ItemKind, choices: Choices): FieldSpec[] {
       ];
     case 'odcs-object':
       return [
-        f('name', 'Name', 'text', { required: true }),
-        f('physicalName', 'Physical name', 'text'),
-        f('businessName', 'Business name', 'text'),
-        f('physicalType', 'Physical type', 'text'),
-        f('description', 'Description', 'textarea'),
+        field('name', 'Name', 'text', { required: true }),
+        field('physicalName', 'Physical name', 'text'),
+        field('businessName', 'Business name', 'text'),
+        field('physicalType', 'Physical type', 'text'),
+        field('description', 'Description', 'textarea'),
       ];
     case 'odcs-property':
       return [
-        f('name', 'Name', 'text', { required: true }),
-        f('logicalType', 'Logical type', 'select', {
+        field('name', 'Name', 'text', { required: true }),
+        field('logicalType', 'Logical type', 'select', {
           options: ['', 'string', 'date', 'timestamp', 'time', 'number', 'integer', 'object', 'array', 'boolean'],
         }),
-        f('physicalType', 'Physical type', 'text'),
-        f('required', 'Required', 'boolean'),
-        f('unique', 'Unique', 'boolean'),
-        f('primaryKey', 'Primary key', 'boolean'),
-        f('classification', 'Classification', 'text'),
-        f('description', 'Description', 'textarea'),
+        field('physicalType', 'Physical type', 'text'),
+        field('required', 'Required', 'boolean'),
+        field('unique', 'Unique', 'boolean'),
+        field('primaryKey', 'Primary key', 'boolean'),
+        field('classification', 'Classification', 'text'),
+        field('description', 'Description', 'textarea'),
       ];
     case 'odcs-foreign-key':
-      return [f('to', 'References', 'text', { required: true, hint: 'object.property' }), f('type', 'Type', 'select', { options: ['foreignKey'] })];
+      return [field('to', 'References', 'text', { required: true, hint: 'object.property' }), field('type', 'Type', 'select', { options: ['foreignKey'] })];
     case 'concept-mapping':
-      return [f('concept', 'Concept', 'select', { options: choices.concepts, required: true })];
+      return [field('concept', 'Concept', 'select', { options: choices.concepts, required: true })];
   }
 }
 // Child lists shown in an item's editor, each opening its own item editor.
@@ -227,14 +254,23 @@ export function extensionOf(item: any): { index: number; value: any } | null {
   }
 }
 const getAt = (v: any, path: Path) => path.reduce((x, k) => x?.[k], v);
-function setAt(v: any, path: Path, value: any): any {
-  const [k, ...rest] = path;
-  const base: any = Array.isArray(v) ? [...v] : isObject(v) ? { ...v } : typeof k === 'number' ? [] : {};
-  const next = rest.length ? setAt(base[k as any], rest, value) : value;
-  if (next === undefined && !Array.isArray(base)) delete base[k as any];
-  else base[k as any] = next;
+function setAt(current: any, path: Path, value: any): any {
+  const [key, ...rest] = path;
+  let base: any;
+  if (Array.isArray(current)) {
+    base = [...current];
+  } else if (isObject(current)) {
+    base = { ...current };
+  } else if (typeof key === 'number') {
+    base = [];
+  } else {
+    base = {};
+  }
+  const next = rest.length ? setAt(base[key as any], rest, value) : value;
+  if (next === undefined && !Array.isArray(base)) delete base[key as any];
+  else base[key as any] = next;
   // An object left empty by a removal disappears with it.
-  if (rest.length && isObject(base[k as any]) && !Object.keys(base[k as any]).length) delete base[k as any];
+  if (rest.length && isObject(base[key as any]) && !Object.keys(base[key as any]).length) delete base[key as any];
   return base;
 }
 /** Reads a field from the item or its metric extension. */
@@ -356,7 +392,7 @@ export function semanticModelPaths(document: any): Path[] {
 
 /** Builds a new item with fields ordered like the format's examples. */
 export function newItem(kind: ItemKind, values: Record<string, any>): any {
-  const clean = (o: Record<string, any>) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined && v !== '' && !(Array.isArray(v) && !v.length)));
+  const clean = (fieldValues: Record<string, any>) => Object.fromEntries(Object.entries(fieldValues).filter(([, v]) => v !== undefined && v !== '' && !(Array.isArray(v) && !v.length)));
   switch (kind) {
     case 'concept':
       return clean({

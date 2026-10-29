@@ -10,44 +10,44 @@ let instruments: ReturnType<typeof createInstruments> | undefined;
 let instrumentsProvider: unknown;
 
 function createInstruments() {
-  const m = metrics.getMeter(METER_NAME);
+  const meter = metrics.getMeter(METER_NAME);
   return {
-    requests: m.createCounter('sw.http.server.requests', {
+    requests: meter.createCounter('sw.http.server.requests', {
       description: 'Handled HTTP requests by route template and status.',
     }),
-    requestDuration: m.createHistogram('sw.http.server.duration', {
+    requestDuration: meter.createHistogram('sw.http.server.duration', {
       unit: 'ms',
       description: 'HTTP request duration by route template and status.',
     }),
-    gitDuration: m.createHistogram('sw.git.command.duration', {
+    gitDuration: meter.createHistogram('sw.git.command.duration', {
       unit: 'ms',
       description: 'Git command duration by subcommand.',
     }),
-    gitFailures: m.createCounter('sw.git.command.failures', {
+    gitFailures: meter.createCounter('sw.git.command.failures', {
       description: 'Git commands that failed, timed out or were cancelled.',
     }),
-    scanDuration: m.createHistogram('sw.workspace.scan.duration', {
+    scanDuration: meter.createHistogram('sw.workspace.scan.duration', {
       unit: 'ms',
       description: 'Duration of a project scan that reindexes its files.',
     }),
-    validationDuration: m.createHistogram('sw.validation.duration', {
+    validationDuration: meter.createHistogram('sw.validation.duration', {
       unit: 'ms',
       description: 'Duration of validating one document.',
     }),
-    streams: m.createUpDownCounter('sw.sse.active_streams', {
+    streams: meter.createUpDownCounter('sw.sse.active_streams', {
       description: 'Event streams currently open.',
     }),
-    authFailures: m.createCounter('sw.auth.failures', {
+    authFailures: meter.createCounter('sw.auth.failures', {
       description: 'Refused sign-ins, tokens and sessions by reason.',
     }),
-    browserErrors: m.createCounter('sw.browser.errors', {
+    browserErrors: meter.createCounter('sw.browser.errors', {
       description: 'JavaScript errors and unhandled rejections reported by browsers.',
     }),
-    browserOperation: m.createHistogram('sw.browser.operation.duration', {
+    browserOperation: meter.createHistogram('sw.browser.operation.duration', {
       unit: 'ms',
       description: 'Browser-measured duration of page load, layout, validation and save.',
     }),
-    browserOverBudget: m.createCounter('sw.browser.over_budget', {
+    browserOverBudget: meter.createCounter('sw.browser.over_budget', {
       description: 'Browser operations slower than their budget.',
     }),
   };

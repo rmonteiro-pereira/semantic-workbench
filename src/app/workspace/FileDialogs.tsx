@@ -153,8 +153,8 @@ export function FileDialogs({
     if (currentRef.current?.project === moving.project && currentRef.current.path === moving.path) autosave.cancel();
     setMoving(null);
     setMessage(`Moved ${moving.path} to ${projects.find(p => p.slug === to.project)?.name}.`);
-    void refresh().then(d => {
-      const doc = d.find(x => x.project === to.project && x.path === to.path);
+    void refresh().then(docs => {
+      const doc = docs.find(x => x.project === to.project && x.path === to.path);
       if (doc && currentRef.current?.project === moving.project && currentRef.current.path === moving.path) {
         setCurrent(doc);
         setSource(doc.source);

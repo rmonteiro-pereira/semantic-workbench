@@ -32,8 +32,8 @@ type Props = {
       }
     | undefined;
   selectedEdge: string;
-  relationshipTarget: (r: Relationship) => ItemTarget | null;
-  rdfEdgeTarget: (r: Relationship) => RdfTarget | null;
+  relationshipTarget: (relationship: Relationship) => ItemTarget | null;
+  rdfEdgeTarget: (relationship: Relationship) => RdfTarget | null;
   setRdfEditing: React.Dispatch<React.SetStateAction<RdfTarget | null>>;
   source: string;
   setEditing: React.Dispatch<React.SetStateAction<ItemTarget | null>>;
@@ -43,9 +43,9 @@ type Props = {
   current: Doc | null;
   setDefinition: React.Dispatch<React.SetStateAction<{ title: string; value: unknown } | null>>;
   showNeighborhood: (id?: string) => void;
-  rdfTarget: (e: Entity) => RdfTarget | null;
+  rdfTarget: (entity: Entity) => RdfTarget | null;
   setRdfDeleting: React.Dispatch<React.SetStateAction<RdfTarget | null>>;
-  entityTarget: (e: Entity) => ItemTarget | null;
+  entityTarget: (entity: Entity) => ItemTarget | null;
   setAdding: React.Dispatch<
     React.SetStateAction<{
       docId: string;
@@ -55,7 +55,7 @@ type Props = {
     } | null>
   >;
   relatedDocuments: Doc[];
-  openDocument: (d: Doc) => boolean;
+  openDocument: (doc: Doc) => boolean;
 };
 /** Renders details panel. */
 export function DetailsPanel({

@@ -8,10 +8,10 @@ import { expandIri, namespaceOf } from '../src/shared/validation/iri';
 import { buildContext, type StoredDocument } from '../src/server/agent/runtime';
 const uriSource = await Bun.file('tests/fixtures/issue-2/uri.ontology.yaml').text();
 const iriSource = uriSource.replaceAll('uri:', 'iri:');
-const edit = (source: string, change: (d: any) => void) => {
-  const d = parse(source);
-  change(d);
-  return stringify(d);
+const edit = (source: string, change: (data: any) => void) => {
+  const document = parse(source);
+  change(document);
+  return stringify(document);
 };
 test('issue 2: uri is rejected with a rename hint, iri with prefixes is accepted', () => {
   const bad = validateInput(uriSource, 'uri.ontology.yaml');
@@ -76,9 +76,9 @@ test('QName IRIs require a declared prefix; full IRIs and duplicate expansions a
   expect(namespaceOf('https://b.example/terms/Z')).toEqual({ iri: 'https://b.example/terms/' });
 });
 test('issue 2 request: modular ontologies group by declared namespace prefix', () => {
-  const modular = edit(iriSource, d => {
-    d.prefixes.lease = 'https://example.org/lease#';
-    d.ontology.push(
+  const modular = edit(iriSource, data => {
+    data.prefixes.lease = 'https://example.org/lease#';
+    data.ontology.push(
       {
         concept: 'Lease',
         type: 'EntityType',
@@ -95,16 +95,16 @@ test('issue 2 request: modular ontologies group by declared namespace prefix', (
       { concept: 'Note', type: 'EntityType' },
     );
   });
-  const m = inspect(modular, 'm.yaml');
-  const o = modelOverview(m.entities, m.edges, m.name);
-  expect(o.mode).toBe('namespaces');
-  expect(Object.fromEntries(o.groups.map(g => [g.name, g.entities.map(e => e.name).sort()]))).toEqual({
+  const inspection = inspect(modular, 'm.yaml');
+  const overview = modelOverview(inspection.entities, inspection.edges, inspection.name);
+  expect(overview.mode).toBe('namespaces');
+  expect(Object.fromEntries(overview.groups.map(g => [g.name, g.entities.map(e => e.name).sort()]))).toEqual({
     'ex:': ['Code', 'Thing'],
     'lease:': ['Lease'],
     'No IRI': ['Note'],
     'Built-in concepts': ['String'],
   });
-  expect(modelOverview(m.entities, m.edges, m.name, false, { mode: 'types' }).mode).toBe('types');
+  expect(modelOverview(inspection.entities, inspection.edges, inspection.name, false, { mode: 'types' }).mode).toBe('types');
 });
 test('issue 3: a legacy semantic_model wrapper resolves by its inner model name', async () => {
   const names = ['sales.mapping.yaml', 'sales.ontology.yaml', 'sales.semantic_model.yaml'];
@@ -116,14 +116,14 @@ test('issue 3: a legacy semantic_model wrapper resolves by its inner model name'
       source: await Bun.file('tests/fixtures/issue-3/' + filename).text(),
     })),
   );
-  for (const d of docs) expect(validateInput(d.source, d.filename).valid).toBe(true);
-  const c = buildContext(docs, '0');
-  expect(c.findings).toEqual([]);
-  expect(c.datasets.map(d => d.name)).toEqual(['orders']);
-  const b = c.bindings.find(b => b.expression === 'orders.order_id')!;
-  expect(b.rootConcept).toBe('Order');
-  expect(b.fields).toEqual(['["orders","order_id"]']);
-  expect(c.fields[0].evidence.path).toEqual(['semantic_model', 0, 'datasets', 0, 'fields', 0]);
+  for (const doc of docs) expect(validateInput(doc.source, doc.filename).valid).toBe(true);
+  const runtimeContext = buildContext(docs, '0');
+  expect(runtimeContext.findings).toEqual([]);
+  expect(runtimeContext.datasets.map(d => d.name)).toEqual(['orders']);
+  const binding = runtimeContext.bindings.find(b => b.expression === 'orders.order_id')!;
+  expect(binding.rootConcept).toBe('Order');
+  expect(binding.fields).toEqual(['["orders","order_id"]']);
+  expect(runtimeContext.fields[0].evidence.path).toEqual(['semantic_model', 0, 'datasets', 0, 'fields', 0]);
   const flat = docs.map(d => (d.id === '2' ? { ...d, source: stringify({ version: '0.2.0.dev0', ...parse(d.source).semantic_model[0] }) } : d));
   expect(buildContext(flat, '0').findings).toEqual([]);
   const renamed = docs.map(d => (d.id === '2' ? { ...d, source: d.source.replace('name: sales', 'name: retail') } : d));

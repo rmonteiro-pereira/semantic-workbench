@@ -38,8 +38,8 @@ export function inspectRdf(source: string, filename: string, syntax: string) {
       }).parseFromString(source, 'application/xml');
     if (filename.toLowerCase().endsWith('.nt')) new Parser({ format: 'N-Triples' }).parse(source);
     parse(source, store, 'https://workbench.local/import/', syntax);
-  } catch (e) {
-    throw new InputError([{ severity: 'error', code: 'rdf-syntax', path: '/', message: (e as Error).message }]);
+  } catch (error) {
+    throw new InputError([{ severity: 'error', code: 'rdf-syntax', path: '/', message: (error as Error).message }]);
   }
   const issues = validateRdf(store);
   if (!store.statements.length) throw Error('RDF document contains no triples');
@@ -51,18 +51,18 @@ export function inspectRdf(source: string, filename: string, syntax: string) {
     list.push(st);
     statements.set(st.subject.value, list);
   }
-  const safeDecode = (s: string) => {
+  const safeDecode = (text: string) => {
     try {
-      return decodeURIComponent(s);
+      return decodeURIComponent(text);
     } catch {
-      return s;
+      return text;
     }
   };
   const short = (s: string) => (s.startsWith('n') && !s.includes(':') ? `_:${s}` : safeDecode(s.split(/[#/]/).pop() || s));
-  const get = (id: string, p: string) =>
+  const get = (id: string, predicate: string) =>
     statements
       .get(id)
-      ?.filter(s => s.predicate.value === p)
+      ?.filter(s => s.predicate.value === predicate)
       .map(s => s.object) ?? [];
   const types = (id: string) => get(id, RDF + 'type').map(t => t.value);
   const entities: Entity[] = Array.from(subjects.keys())
@@ -79,28 +79,31 @@ export function inspectRdf(source: string, filename: string, syntax: string) {
           language: st.object.language || undefined,
         });
       }
+      let entityKind: string;
+      if (ts.includes(OWL + 'Class') || ts.includes(RDFS + 'Class')) {
+        entityKind = 'OWL class';
+      } else if (ts.includes(OWL + 'ObjectProperty')) {
+        entityKind = 'Object property';
+      } else if (ts.includes(OWL + 'DatatypeProperty')) {
+        entityKind = 'Datatype property';
+      } else if (ts.includes(SH + 'NodeShape')) {
+        entityKind = 'Node shape';
+      } else if (ts.includes(SH + 'PropertyShape')) {
+        entityKind = 'Property shape';
+      } else if (subjects.get(id)?.termType === 'BlankNode') {
+        entityKind = 'Blank node';
+      } else if (ts.length) {
+        entityKind = short(ts[0]);
+      } else {
+        entityKind = 'RDF resource';
+      }
       return {
         id,
         name:
           get(id, RDFS + 'label')[0]?.value ??
           get(id, SH + 'name')[0]?.value ??
           (types(id).includes(OWL + 'Restriction') ? 'Restriction: ' + short(get(id, OWL + 'onProperty')[0]?.value ?? id) : short(id)),
-        kind:
-          ts.includes(OWL + 'Class') || ts.includes(RDFS + 'Class')
-            ? 'OWL class'
-            : ts.includes(OWL + 'ObjectProperty')
-              ? 'Object property'
-              : ts.includes(OWL + 'DatatypeProperty')
-                ? 'Datatype property'
-                : ts.includes(SH + 'NodeShape')
-                  ? 'Node shape'
-                  : ts.includes(SH + 'PropertyShape')
-                    ? 'Property shape'
-                    : subjects.get(id)?.termType === 'BlankNode'
-                      ? 'Blank node'
-                      : ts.length
-                        ? short(ts[0])
-                        : 'RDF resource',
+        kind: entityKind,
         description: get(id, RDFS + 'comment')[0]?.value ?? get(id, SH + 'description')[0]?.value ?? '',
         path: [],
         fields: (statements.get(id) ?? []).filter(s => s.object.termType === 'Literal').map(s => `${short(s.predicate.value)}: ${s.object.value}`),
@@ -109,7 +112,7 @@ export function inspectRdf(source: string, filename: string, syntax: string) {
       };
     });
   const prefixes = prefixMap((store as any).namespaces);
-  for (const e of entities) if (subjects.get(e.id)?.termType === 'NamedNode') e.namespace = namespaceOf(e.id, prefixes);
+  for (const entity of entities) if (subjects.get(entity.id)?.termType === 'NamedNode') entity.namespace = namespaceOf(entity.id, prefixes);
   const ids = new Set(entities.map(e => e.id));
   const edges: Relationship[] = [];
   for (const st of store.statements)
@@ -155,8 +158,16 @@ export function inspectRdf(source: string, filename: string, syntax: string) {
   const isShacl = store.statements.some(s => s.predicate.value.startsWith(SH) || s.object.value.startsWith(SH));
   const isOwl = store.statements.some(s => s.predicate.value.startsWith(OWL) || s.object.value.startsWith(OWL));
   const ontology = Array.from(subjects.keys()).find(id => types(id).includes(OWL + 'Ontology'));
+  let documentKind: string;
+  if (isShacl) {
+    documentKind = 'SHACL';
+  } else if (isOwl) {
+    documentKind = 'OWL';
+  } else {
+    documentKind = 'RDF';
+  }
   return {
-    kind: isShacl ? 'SHACL' : isOwl ? 'OWL' : 'RDF',
+    kind: documentKind,
     name: ontology ? (get(ontology, RDFS + 'label')[0]?.value ?? short(ontology)) : filename || 'RDF graph',
     entities,
     edges,

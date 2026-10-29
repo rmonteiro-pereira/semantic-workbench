@@ -500,8 +500,8 @@ try {
   await page.close();
   // Full screen: Graph and Neighborhood fill the screen, details open over the graph, and Escape
   // (or the exit control) restores the earlier layout, zoom and selection.
-  const transform = (p: Page) =>
-    p
+  const transform = (targetPage: Page) =>
+    targetPage
       .locator('.react-flow__viewport')
       .first()
       .evaluate(el => getComputedStyle(el).transform);
@@ -586,39 +586,39 @@ try {
     [390, 844],
     [1440, 900],
   ];
-  async function tab(p: Page, name: string) {
-    if (!(await p.locator('.tabs').isVisible())) return;
-    await p.locator('.tabs').getByRole('button', { name, exact: true }).click();
+  async function tab(targetPage: Page, name: string) {
+    if (!(await targetPage.locator('.tabs').isVisible())) return;
+    await targetPage.locator('.tabs').getByRole('button', { name, exact: true }).click();
   }
   // Makes the sidebar reachable. Right after a resize the page may still show the other layout,
   // so wait for the one that matches the viewport before deciding what to click.
-  async function showSidebar(p: Page) {
-    const open = p.getByRole('button', { name: 'Open workspace', exact: true });
-    if ((p.viewportSize()?.width ?? 1440) < 1100) {
+  async function showSidebar(targetPage: Page) {
+    const open = targetPage.getByRole('button', { name: 'Open workspace', exact: true });
+    if ((targetPage.viewportSize()?.width ?? 1440) < 1100) {
       await expect(open).toBeVisible();
       await open.click();
       return;
     }
     await expect(open).toHaveCount(0);
     // The desktop sidebar can be hidden by an earlier check; its state persists per browser.
-    const show = p.getByRole('button', { name: 'Show sidebar', exact: true });
+    const show = targetPage.getByRole('button', { name: 'Show sidebar', exact: true });
     if (await show.isVisible()) await show.click();
   }
-  async function sidebarNav(p: Page, name: RegExp) {
-    await showSidebar(p);
-    await p.getByRole('button', { name }).click();
+  async function sidebarNav(targetPage: Page, name: RegExp) {
+    await showSidebar(targetPage);
+    await targetPage.getByRole('button', { name }).click();
   }
-  async function openFile(p: Page, path: string) {
-    await showSidebar(p);
-    await p.getByRole('button', { name: path, exact: true }).click();
+  async function openFile(targetPage: Page, path: string) {
+    await showSidebar(targetPage);
+    await targetPage.getByRole('button', { name: path, exact: true }).click();
   }
-  const views: [string, (p: Page) => Promise<void>][] = [
+  const views: [string, (targetPage: Page) => Promise<void>][] = [
     [
       'Graph',
-      async p => {
-        await openFile(p, 'ubl.ontology.yaml');
-        await tab(p, 'Graph');
-        await expect(p.locator('.full-graph-loading')).toHaveCount(0, {
+      async targetPage => {
+        await openFile(targetPage, 'ubl.ontology.yaml');
+        await tab(targetPage, 'Graph');
+        await expect(targetPage.locator('.full-graph-loading')).toHaveCount(0, {
           timeout: 60_000,
         });
       },
@@ -630,9 +630,9 @@ try {
     ['Mappings', async p => tab(p, 'Mappings')],
     [
       'Metrics',
-      async p => {
-        await openFile(p, 'sales.ossie.yaml');
-        await p
+      async targetPage => {
+        await openFile(targetPage, 'sales.ossie.yaml');
+        await targetPage
           .locator('.tabs')
           .getByRole('button', { name: /^Metrics/ })
           .click();
@@ -640,10 +640,10 @@ try {
     ],
     [
       'Contract',
-      async p => {
-        await openFile(p, 'commerce.odcs.yaml');
-        await tab(p, 'Contract');
-        await expect(p.getByRole('region', { name: 'Contract overview' })).toBeVisible();
+      async targetPage => {
+        await openFile(targetPage, 'commerce.odcs.yaml');
+        await tab(targetPage, 'Contract');
+        await expect(targetPage.getByRole('region', { name: 'Contract overview' })).toBeVisible();
       },
     ],
     [
@@ -655,10 +655,10 @@ try {
     ],
     [
       'Lineage',
-      async p => {
-        await openFile(p, 'commerce.odcs.yaml');
-        await tab(p, 'Graph');
-        await expect(p.getByRole('region', { name: 'Lineage graph' }).locator('.lineage-card').first()).toBeVisible({ timeout: 10_000 });
+      async targetPage => {
+        await openFile(targetPage, 'commerce.odcs.yaml');
+        await tab(targetPage, 'Graph');
+        await expect(targetPage.getByRole('region', { name: 'Lineage graph' }).locator('.lineage-card').first()).toBeVisible({ timeout: 10_000 });
       },
     ],
     [
@@ -765,24 +765,24 @@ try {
   // row; from 1100 px it is a panel beside the canvas and the button does not exist.
   const pathButton = (graph: Locator) => graph.getByRole('button', { name: /^Selected path/ });
   const pathInDialog = (p: Page) => p.viewportSize()!.width < 1100;
-  async function showSelectedPath(graph: Locator, p: Page) {
-    if (pathInDialog(p)) {
+  async function showSelectedPath(graph: Locator, targetPage: Page) {
+    if (pathInDialog(targetPage)) {
       await expect(pathButton(graph)).toBeVisible();
       await pathButton(graph).click();
-      const dialog = p.getByRole('dialog', { name: 'Selected path' });
+      const dialog = targetPage.getByRole('dialog', { name: 'Selected path' });
       await expect(dialog.getByRole('region', { name: 'Selected path' })).toBeVisible();
       return;
     }
     await expect(pathButton(graph)).toHaveCount(0);
     await expect(graph.getByRole('region', { name: 'Selected path' })).toBeVisible();
   }
-  async function hideSelectedPath(graph: Locator, p: Page) {
-    if (pathInDialog(p)) await p.getByRole('button', { name: 'Done', exact: true }).click();
+  async function hideSelectedPath(graph: Locator, targetPage: Page) {
+    if (pathInDialog(targetPage)) await targetPage.getByRole('button', { name: 'Done', exact: true }).click();
   }
-  async function clearSelectedPath(graph: Locator, p: Page) {
-    if (pathInDialog(p)) {
+  async function clearSelectedPath(graph: Locator, targetPage: Page) {
+    if (pathInDialog(targetPage)) {
       await pathButton(graph).click();
-      await p.getByRole('button', { name: 'Clear path', exact: true }).click();
+      await targetPage.getByRole('button', { name: 'Clear path', exact: true }).click();
       return;
     }
     await graph.getByRole('button', { name: 'Clear the selected path' }).click();
@@ -821,11 +821,11 @@ try {
     expect(found).toEqual([]);
   });
   // Opens the inspector on an entity where the view allows selecting one.
-  const details: Record<string, (p: Page) => Promise<void>> = {
-    Graph: async p => {
-      await revealGraphControls(p);
-      await showEveryEntity(p);
-      await p.locator('.react-flow__node-entity').first().click();
+  const details: Record<string, (targetPage: Page) => Promise<void>> = {
+    Graph: async targetPage => {
+      await revealGraphControls(targetPage);
+      await showEveryEntity(targetPage);
+      await targetPage.locator('.react-flow__node-entity').first().click();
     },
     Neighborhood: async p => {
       await p.locator('.react-flow__node').last().click();
@@ -837,8 +837,8 @@ try {
       await p.locator('.catalog-card > button').first().click();
     },
   };
-  async function overlapProblems(p: Page, where: string) {
-    const found = (await layoutProblems(p, { overlays })).filter(problem => problem.startsWith('overlay '));
+  async function overlapProblems(targetPage: Page, where: string) {
+    const found = (await layoutProblems(targetPage, { overlays })).filter(problem => problem.startsWith('overlay '));
     return found.map(problem => `${where}: ${problem}`);
   }
   for (const [view, show] of views) {
@@ -859,10 +859,10 @@ try {
           await expect(sweep.locator('.inspector')).toBeVisible();
           await sweep.waitForTimeout(250);
           found.push(...(await overlapProblems(sweep, `${width}×${height} with details`)));
-          if (width === 1280 || width === 390)
-            await sweep.screenshot({
-              path: `/tmp/workbench-overlap-${view.toLowerCase().replace(/ /g, '-')}-${width}.png`,
-            });
+          if (width === 1280 || width === 390) {
+            const slug = view.toLowerCase().replace(/ /g, '-');
+            await sweep.screenshot({ path: `/tmp/workbench-overlap-${slug}-${width}.png` });
+          }
           await closeDetails(sweep);
         }
       }
@@ -900,12 +900,12 @@ try {
       for (const edge of edges) {
         if (!/\d+ relationships/.test(edge.textContent ?? '')) continue;
         const path = edge.querySelector('.react-flow__edge-interaction') as SVGPathElement | null;
-        const m = path?.getScreenCTM();
-        if (!path || !m) continue;
+        const matrix = path?.getScreenCTM();
+        if (!path || !matrix) continue;
         for (let i = 1; i < 30; i++) {
           const local = path.getPointAtLength((path.getTotalLength() * i) / 30);
-          const x = m.a * local.x + m.c * local.y + m.e;
-          const y = m.b * local.x + m.d * local.y + m.f;
+          const x = matrix.a * local.x + matrix.c * local.y + matrix.e;
+          const y = matrix.b * local.x + matrix.d * local.y + matrix.f;
           if (document.elementFromPoint(x, y)?.closest('.react-flow__edge') === edge) return { x, y };
         }
       }
@@ -968,12 +968,12 @@ try {
       await summary.click();
       const pop = sweep.locator('.grouping-details[open]');
       await expect(pop).toBeVisible();
-      const s = (await sweep.locator('summary[aria-label="Grouping details"]').boundingBox())!;
-      const b = (await pop.boundingBox())!;
+      const controlBox = (await sweep.locator('summary[aria-label="Grouping details"]').boundingBox())!;
+      const popBox = (await pop.boundingBox())!;
       const header = (await sweep.locator('main > header.workspace-header').boundingBox())!;
-      if (b.left < -1 || b.right > width + 1 || b.bottom > height + 1) found.push(`${width}×${height}: grouping details outside the viewport`);
-      if (b.top < header.y + header.height - 1) found.push(`${width}×${height}: grouping details cover the header`);
-      if (b.top < s.y - 1) found.push(`${width}×${height}: grouping details open above their control`);
+      if (popBox.left < -1 || popBox.right > width + 1 || popBox.bottom > height + 1) found.push(`${width}×${height}: grouping details outside the viewport`);
+      if (popBox.top < header.y + header.height - 1) found.push(`${width}×${height}: grouping details cover the header`);
+      if (popBox.top < controlBox.y - 1) found.push(`${width}×${height}: grouping details open above their control`);
       if (width === 390)
         await sweep.screenshot({
           path: '/tmp/workbench-grouping-popover-390.png',
@@ -984,107 +984,107 @@ try {
     expect(found).toEqual([]);
   });
   const lineageOverlays = ['.lineage-toolbar', '.lineage-trail', '.lineage-busy', '.lineage-path', '.lineage-foot', '.lineage-stage .react-flow__minimap'];
-  async function assertContained(p: Page, selector: string) {
-    for (const element of await p.locator(selector).all()) {
+  async function assertContained(targetPage: Page, selector: string) {
+    for (const element of await targetPage.locator(selector).all()) {
       if (!(await element.isVisible())) continue;
       await expect(element).toBeInViewport({ ratio: 1 });
       const bounds = await element.boundingBox();
       expect(bounds, selector).not.toBeNull();
       expect(bounds!.x, selector).toBeGreaterThanOrEqual(-1);
       expect(bounds!.y, selector).toBeGreaterThanOrEqual(-1);
-      expect(bounds!.x + bounds!.width, selector).toBeLessThanOrEqual(p.viewportSize()!.width + 1);
-      expect(bounds!.y + bounds!.height, selector).toBeLessThanOrEqual(p.viewportSize()!.height + 1);
+      expect(bounds!.x + bounds!.width, selector).toBeLessThanOrEqual(targetPage.viewportSize()!.width + 1);
+      expect(bounds!.y + bounds!.height, selector).toBeLessThanOrEqual(targetPage.viewportSize()!.height + 1);
     }
   }
-  async function assertFinalOverlays(p: Page, selectors: string[]) {
-    await expect.poll(() => layoutProblems(p, { overlays: selectors })).toEqual([]);
-    await assertContained(p, selectors.join(', '));
-    expect(await overlapProblems(p, 'final sweep')).toEqual([]);
+  async function assertFinalOverlays(targetPage: Page, selectors: string[]) {
+    await expect.poll(() => layoutProblems(targetPage, { overlays: selectors })).toEqual([]);
+    await assertContained(targetPage, selectors.join(', '));
+    expect(await overlapProblems(targetPage, 'final sweep')).toEqual([]);
   }
-  async function selectLineagePath(p: Page) {
-    const graph = p.getByRole('region', { name: 'Lineage graph' });
+  async function selectLineagePath(targetPage: Page) {
+    const graph = targetPage.getByRole('region', { name: 'Lineage graph' });
     await expect(graph.locator('.lineage-card').first()).toBeVisible();
     await graph.getByRole('button', { name: 'Fit', exact: true }).click();
     // Fit shows every card, which lays them out again before the view settles.
-    await p.waitForTimeout(800);
+    await targetPage.waitForTimeout(800);
     await graph.getByRole('group', { name: 'Table orders' }).getByRole('button', { name: 'orders.amount', exact: true }).click({ force: true });
-    await showSelectedPath(graph, p);
-    await hideSelectedPath(graph, p);
+    await showSelectedPath(graph, targetPage);
+    await hideSelectedPath(graph, targetPage);
   }
-  async function sweepLineage(p: Page, width: number) {
+  async function sweepLineage(targetPage: Page, width: number) {
     let releaseLayout = () => {};
     const layoutGate = new Promise<void>(resolve => {
       releaseLayout = resolve;
     });
     // Hold the real worker response so the transient loading note can be measured reliably.
     const workerPattern = '**/*elk-worker*';
-    await p.route(workerPattern, async route => {
+    await targetPage.route(workerPattern, async route => {
       await layoutGate;
       await route.continue();
     });
     try {
-      await openFile(p, 'commerce.odcs.yaml');
-      await closeDrawer(p);
-      await tab(p, 'Graph');
-      await expect(p.locator('.lineage-busy')).toBeVisible();
-      await assertFinalOverlays(p, lineageOverlays);
+      await openFile(targetPage, 'commerce.odcs.yaml');
+      await closeDrawer(targetPage);
+      await tab(targetPage, 'Graph');
+      await expect(targetPage.locator('.lineage-busy')).toBeVisible();
+      await assertFinalOverlays(targetPage, lineageOverlays);
     } finally {
       releaseLayout();
-      await p.unroute(workerPattern);
+      await targetPage.unroute(workerPattern);
     }
-    await expect(p.locator('.lineage-busy')).toHaveCount(0);
+    await expect(targetPage.locator('.lineage-busy')).toHaveCount(0);
     for (const selector of ['.lineage-toolbar', '.lineage-trail', '.lineage-foot']) {
-      await expect(p.locator(selector)).toBeVisible();
+      await expect(targetPage.locator(selector)).toBeVisible();
     }
     // A phone folds the zoom buttons behind the Controls button.
     const zoomOrControls = width <= 650 ? 'Controls' : 'Zoom in';
-    await expect(p.getByRole('button', { name: zoomOrControls, exact: true })).toBeVisible();
-    await assertFinalOverlays(p, lineageOverlays);
-    await selectLineagePath(p);
-    await assertFinalOverlays(p, lineageOverlays);
-    await p.screenshot({
+    await expect(targetPage.getByRole('button', { name: zoomOrControls, exact: true })).toBeVisible();
+    await assertFinalOverlays(targetPage, lineageOverlays);
+    await selectLineagePath(targetPage);
+    await assertFinalOverlays(targetPage, lineageOverlays);
+    await targetPage.screenshot({
       path: `/tmp/workbench-final-sweep-lineage-${width}.png`,
     });
   }
-  async function sweepPierce(p: Page, width: number) {
-    await openFile(p, 'ubl.ontology.yaml');
-    await closeDrawer(p);
-    await tab(p, 'Neighborhood');
-    await pickCenter(p, name40);
-    await closeDetails(p);
-    const tools = p.locator('.neighborhood-tools');
-    await revealGraphControls(p);
+  async function sweepPierce(targetPage: Page, width: number) {
+    await openFile(targetPage, 'ubl.ontology.yaml');
+    await closeDrawer(targetPage);
+    await tab(targetPage, 'Neighborhood');
+    await pickCenter(targetPage, name40);
+    await closeDetails(targetPage);
+    const tools = targetPage.locator('.neighborhood-tools');
+    await revealGraphControls(targetPage);
     await tools.getByRole('button', { name: 'Show all connected', exact: true }).click();
-    await expect(p.locator('.pierce-banner')).toBeVisible();
+    await expect(targetPage.locator('.pierce-banner')).toBeVisible();
     const pierceOverlays = [...overlays, '.pierce-banner'];
-    await assertFinalOverlays(p, pierceOverlays);
+    await assertFinalOverlays(targetPage, pierceOverlays);
     // Selecting the current center preserves the pierce step and its banner.
     // On a phone the pierce view opens on what it added, so the centre can be off screen.
-    const centreNode = p.locator('.react-flow__node[data-id="ontology/40"]');
+    const centreNode = targetPage.locator('.react-flow__node[data-id="ontology/40"]');
     if (width <= 650) await centreNode.dispatchEvent('click');
     else await centreNode.click();
-    await expect(p.locator('.inspector')).toBeVisible();
-    await expect(p.locator('.pierce-banner')).toBeVisible();
-    await assertFinalOverlays(p, pierceOverlays);
-    await p.screenshot({
+    await expect(targetPage.locator('.inspector')).toBeVisible();
+    await expect(targetPage.locator('.pierce-banner')).toBeVisible();
+    await assertFinalOverlays(targetPage, pierceOverlays);
+    await targetPage.screenshot({
       path: `/tmp/workbench-final-sweep-pierce-${width}.png`,
     });
-    await closeDetails(p);
+    await closeDetails(targetPage);
   }
   const dialogNames = ['Commit', 'Validation details', 'Add concept', 'Grouping suggestions', 'Import', 'View definition', 'Trash'];
-  async function openSweepDialog(p: Page, name: string) {
-    const header = p.locator('.workspace-header');
+  async function openSweepDialog(targetPage: Page, name: string) {
+    const header = targetPage.locator('.workspace-header');
     if (['Grouping suggestions', 'Import', 'Trash'].includes(name)) {
-      await showSidebar(p);
+      await showSidebar(targetPage);
       if (name === 'Import') {
-        await (await addProjectItem(p, 'Import files')).click();
+        await (await addProjectItem(targetPage, 'Import files')).click();
         return;
       }
       const labels = {
         'Grouping suggestions': /grouping suggestion/,
         Trash: /^Trash$/,
       };
-      await p
+      await targetPage
         .locator('#workspace-sidebar')
         .getByRole('button', {
           name: labels[name as keyof typeof labels],
@@ -1092,24 +1092,24 @@ try {
         .click();
       return;
     }
-    await openFile(p, 'ubl.ontology.yaml');
-    await closeDrawer(p);
+    await openFile(targetPage, 'ubl.ontology.yaml');
+    await closeDrawer(targetPage);
     if (name === 'View definition') {
-      await tab(p, 'Catalog');
-      await p.locator('.catalog button').first().click();
-      await p.getByRole('button', { name: 'View definition' }).click();
+      await tab(targetPage, 'Catalog');
+      await targetPage.locator('.catalog button').first().click();
+      await targetPage.getByRole('button', { name: 'View definition' }).click();
     } else if (name === 'Add concept') {
-      await openNewMenu(p);
-      await p.getByRole('menuitem', { name: 'Add concept…', exact: true }).click();
+      await openNewMenu(targetPage);
+      await targetPage.getByRole('menuitem', { name: 'Add concept…', exact: true }).click();
     } else if (name === 'Validation details') {
-      await p.getByRole('button', { name: /^Validation details/ }).click();
+      await targetPage.getByRole('button', { name: /^Validation details/ }).click();
     } else {
       await header.getByRole('button', { name: /^Commit/ }).click();
     }
   }
-  async function assertUnclipped(p: Page, selector: string) {
-    await assertContained(p, selector);
-    const problems = await p.locator(selector).evaluateAll(elements => {
+  async function assertUnclipped(targetPage: Page, selector: string) {
+    await assertContained(targetPage, selector);
+    const problems = await targetPage.locator(selector).evaluateAll(elements => {
       const found: string[] = [];
       for (const element of elements) {
         const bounds = element.getBoundingClientRect();
@@ -1128,19 +1128,19 @@ try {
     });
     expect(problems).toEqual([]);
   }
-  async function assertDialogLayout(p: Page) {
-    const box = p.locator('.workbench-dialog');
+  async function assertDialogLayout(targetPage: Page) {
+    const box = targetPage.locator('.workbench-dialog');
     await expect(box).toBeVisible();
     await expect(box.locator(':scope > h2')).toBeVisible();
-    await assertContained(p, '.workbench-dialog');
+    await assertContained(targetPage, '.workbench-dialog');
     const footerSelector = '.workbench-dialog > footer, .workbench-dialog > .repair-actions';
-    const footer = p.locator(footerSelector);
+    const footer = targetPage.locator(footerSelector);
     await expect(footer).toBeVisible();
     const buttons = footer.getByRole('button');
     expect(await buttons.count()).toBeGreaterThan(0);
     for (const button of await buttons.all()) await expect(button).toBeVisible();
-    const chrome = '.workbench-dialog > h2, ' + '.workbench-dialog > footer button, .workbench-dialog > .repair-actions button';
-    await assertUnclipped(p, chrome);
+    const chrome = '.workbench-dialog > h2, .workbench-dialog > footer button, .workbench-dialog > .repair-actions button';
+    await assertUnclipped(targetPage, chrome);
     const controls = box.locator('button, input:not([type=hidden]), select, textarea, a[href]');
     for (const control of (await controls.all()).reverse()) {
       if (!(await control.isVisible())) continue;
@@ -1150,25 +1150,25 @@ try {
       expect(bounds.y + bounds.height).toBeLessThanOrEqual((await footer.boundingBox())!.y + 1);
       break;
     }
-    await assertUnclipped(p, chrome);
+    await assertUnclipped(targetPage, chrome);
     expect(
-      await layoutProblems(p, {
+      await layoutProblems(targetPage, {
         overlays: [footerSelector],
         ignore: ':not(.workbench-dialog):not(.workbench-dialog *)',
       }),
     ).toEqual([]);
-    await noOverflow(p);
+    await noOverflow(targetPage);
   }
-  async function sweepDialog(p: Page, name: string, width: number) {
-    await openSweepDialog(p, name);
-    await assertDialogLayout(p);
+  async function sweepDialog(targetPage: Page, name: string, width: number) {
+    await openSweepDialog(targetPage, name);
+    await assertDialogLayout(targetPage);
     const area = name.toLowerCase().replaceAll(' ', '-');
-    await p.screenshot({
+    await targetPage.screenshot({
       path: `/tmp/workbench-final-sweep-dialog-${area}-${width}.png`,
     });
-    await p.keyboard.press('Escape');
-    await closeDrawer(p);
-    await closeDetails(p);
+    await targetPage.keyboard.press('Escape');
+    await closeDrawer(targetPage);
+    await closeDetails(targetPage);
   }
   for (const [width, height] of six) {
     for (const [area, run] of [

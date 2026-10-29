@@ -9,7 +9,7 @@ export class PublishedCheckoutChangedError extends Error {
     public repo: string,
     public paths: string[],
   ) {
-    super(`The published checkout of ${repo} has changes that are not deletions kept in the trash: ` + `${paths.join(', ')}. Commit or discard them in data/projects/${repo} and start again.`);
+    super(`The published checkout of ${repo} has changes that are not deletions kept in the trash: ${paths.join(', ')}. Commit or discard them in data/projects/${repo} and start again.`);
     this.name = 'PublishedCheckoutChangedError';
   }
 }

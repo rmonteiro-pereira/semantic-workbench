@@ -7,8 +7,8 @@ import type { KpiExplanation, Trust } from '../../server/agent/explain';
 // service levels are displayed as declared, never checked here.
 const slaText = (s: Trust) => `${s.property}${s.value !== undefined ? ` ${s.value}` : ''}${s.unit ? ` ${s.unit}` : ''}`;
 /** Displays metric inputs and their declared dataset and contract sources. */
-export function Lineage({ explanation: e }: { explanation: KpiExplanation }) {
-  const declared = e.inputs.some(i => i.sla.length || i.fields.some(f => f.odcs.some(o => o.quality.length)));
+export function Lineage({ explanation: kpiExplanation }: { explanation: KpiExplanation }) {
+  const declared = kpiExplanation.inputs.some(i => i.sla.length || i.fields.some(f => f.odcs.some(o => o.quality.length)));
   return (
     <section className="kpi-lineage" aria-labelledby="kpi-lineage">
       <h3 id="kpi-lineage">Where the data comes from</h3>
@@ -22,7 +22,7 @@ export function Lineage({ explanation: e }: { explanation: KpiExplanation }) {
         <span>Dataset</span>
         <span>Data contract (ODCS)</span>
       </div>
-      {e.inputs.map(input => (
+      {kpiExplanation.inputs.map(input => (
         <div className="lineage-row" key={input.metric} role="group" aria-label={`Lineage of ${input.label}`}>
           <div className="lineage-cell metric" data-step="Input metric">
             <Gauge size={15} />
@@ -35,25 +35,25 @@ export function Lineage({ explanation: e }: { explanation: KpiExplanation }) {
             <ArrowRight className="lineage-arrow" size={14} />
           </div>
           <div className="lineage-cell fields" data-step="Fields">
-            {input.fields.map(f => (
-              <div key={f.dataset + f.field} className="lineage-field">
+            {input.fields.map(field => (
+              <div key={field.dataset + field.field} className="lineage-field">
                 <code>
-                  {f.dataset}.{f.field}
+                  {field.dataset}.{field.field}
                 </code>
-                {f.expression !== f.field && <small>= {f.expression}</small>}
+                {field.expression !== field.field && <small>= {field.expression}</small>}
               </div>
             ))}
             {!input.fields.length && <span className="muted">No field reference</span>}
             <ArrowRight className="lineage-arrow" size={14} />
           </div>
           <div className="lineage-cell dataset" data-step="Dataset">
-            {input.datasets.map(d => (
-              <div key={d.name}>
+            {input.datasets.map(dataset => (
+              <div key={dataset.name}>
                 <Table2 size={14} />
                 <div>
-                  <strong>{d.name}</strong>
+                  <strong>{dataset.name}</strong>
                   <small>
-                    source <code>{d.source || '—'}</code>
+                    source <code>{dataset.source || '—'}</code>
                   </small>
                 </div>
               </div>
@@ -70,9 +70,9 @@ export function Lineage({ explanation: e }: { explanation: KpiExplanation }) {
                   </span>
                 );
               const byObject = new Map<string, typeof links>();
-              for (const l of links) {
-                const k = l.file + '#' + l.object;
-                byObject.set(k, [...(byObject.get(k) ?? []), l]);
+              for (const link of links) {
+                const key = link.file + '#' + link.object;
+                byObject.set(key, [...(byObject.get(key) ?? []), link]);
               }
               return [...byObject.values()].map(group => {
                 const first = group[0];
@@ -89,19 +89,19 @@ export function Lineage({ explanation: e }: { explanation: KpiExplanation }) {
                     <div className="chip-row">
                       {group
                         .filter(l => l.property)
-                        .map(l => (
-                          <span key={l.property} className="odcs-property">
-                            <code>{l.property}</code>
-                            {l.logicalType && <small>{l.logicalType}</small>}
+                        .map(odcsLink => (
+                          <span key={odcsLink.property} className="odcs-property">
+                            <code>{odcsLink.property}</code>
+                            {odcsLink.logicalType && <small>{odcsLink.logicalType}</small>}
                           </span>
                         ))}
                     </div>
                     {objectQuality.length > 0 && (
                       <ul className="trust-list">
-                        {objectQuality.map(q => (
-                          <li key={q.name} className={`trust quality severity-${q.severity ?? 'info'}`} title={q.description}>
-                            <span>{q.dimension ?? 'quality'}</span>
-                            {q.description ?? q.name}
+                        {objectQuality.map(trust => (
+                          <li key={trust.name} className={`trust quality severity-${trust.severity ?? 'info'}`} title={trust.description}>
+                            <span>{trust.dimension ?? 'quality'}</span>
+                            {trust.description ?? trust.name}
                           </li>
                         ))}
                       </ul>
@@ -112,9 +112,9 @@ export function Lineage({ explanation: e }: { explanation: KpiExplanation }) {
             })()}
             {input.sla.length > 0 && (
               <div className="chip-row sla">
-                {input.sla.map(s => (
-                  <span key={slaText(s)} className="trust sla" title={s.element ? `Applies to ${s.element}` : 'Applies to the whole contract'}>
-                    SLA · {slaText(s)}
+                {input.sla.map(trust => (
+                  <span key={slaText(trust)} className="trust sla" title={trust.element ? `Applies to ${trust.element}` : 'Applies to the whole contract'}>
+                    SLA · {slaText(trust)}
                   </span>
                 ))}
               </div>

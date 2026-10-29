@@ -23,7 +23,7 @@ type Props = {
   itemHints?: Record<string, string>;
   unsaved?: string[];
   onClose: () => void;
-  onCommitted: (r: CommitOutcome) => void;
+  onCommitted: (commitOutcome: CommitOutcome) => void;
   onReverted: (path: string, hash: string | null) => void;
   onSetIdentity?: () => void;
 };
@@ -31,13 +31,27 @@ type Props = {
 export function suggestedMessage(paths: string[], itemHints: Record<string, string> = {}) {
   if (!paths.length) return '';
   if (paths.length === 1) {
-    const p = paths[0];
-    const item = itemHints[p];
-    return item ? `Update ${item} in ${p}` : `Update ${p}`;
+    const path = paths[0];
+    const itemName = itemHints[path];
+    return itemName ? `Update ${itemName} in ${path}` : `Update ${path}`;
   }
   return `Update ${paths.length} files`;
 }
-const describe = (c: GitChange) => (c.conflicted ? 'conflicted' : c.untracked ? 'new' : c.worktree === 'D' || c.index === 'D' ? 'deleted' : c.index === 'A' ? 'added' : 'modified');
+const describe = (gitChange: GitChange) => {
+  if (gitChange.conflicted) {
+    return 'conflicted';
+  }
+  if (gitChange.untracked) {
+    return 'new';
+  }
+  if (gitChange.worktree === 'D' || gitChange.index === 'D') {
+    return 'deleted';
+  }
+  if (gitChange.index === 'A') {
+    return 'added';
+  }
+  return 'modified';
+};
 /** Reviews selected changes before committing, pushing or confirmed reversion. */
 export function CommitDialog({ project, projectName, itemHints = {}, unsaved = [], onClose, onCommitted, onReverted, onSetIdentity }: Props) {
   const access = useCapabilities(project);
@@ -56,13 +70,13 @@ export function CommitDialog({ project, projectName, itemHints = {}, unsaved = [
     let live = true;
     scm
       .status(project)
-      .then(s => {
+      .then(gitStatus => {
         if (!live) return;
-        setStatus(s);
+        setStatus(gitStatus);
         // Files are named from the repository root: projects sharing it may hold the same path.
-        const paths = s.changes.filter(c => !c.conflicted).map(c => c.repoPath);
+        const paths = gitStatus.changes.filter(c => !c.conflicted).map(c => c.repoPath);
         setTicked(new Set(paths));
-        setSelected(current => (current && s.changes.some(c => c.repoPath === current) ? current : (s.changes[0]?.repoPath ?? '')));
+        setSelected(current => (current && gitStatus.changes.some(c => c.repoPath === current) ? current : (gitStatus.changes[0]?.repoPath ?? '')));
       })
       .catch(e => {
         if (live) setError(e.message);
@@ -125,13 +139,17 @@ export function CommitDialog({ project, projectName, itemHints = {}, unsaved = [
     setBusy(true);
     setError('');
     try {
-      const r = await scm.commit(project, message.trim(), merging ? {} : { repoPaths: tickedPaths, push });
+      const commit = await scm.commit(project, message.trim(), merging ? {} : { repoPaths: tickedPaths, push });
       if (merging && push) {
-        const p = await scm.remote(project, 'push');
-        onCommitted({ ...r, pushed: { ok: p.ok, message: p.stderr }, files: tickedPaths });
-      } else onCommitted({ ...r, files: tickedPaths });
-    } catch (e) {
-      setError((e as Error).message);
+        const remoteResult = await scm.remote(project, 'push');
+        onCommitted({
+          ...commit,
+          pushed: { ok: remoteResult.ok, message: remoteResult.stderr },
+          files: tickedPaths,
+        });
+      } else onCommitted({ ...commit, files: tickedPaths });
+    } catch (error) {
+      setError((error as Error).message);
       setTick(t => t + 1);
     } finally {
       setBusy(false);
@@ -143,23 +161,23 @@ export function CommitDialog({ project, projectName, itemHints = {}, unsaved = [
     setError('');
     try {
       // A file of a sibling project is reverted through the project that holds it.
-      const r = await scm.revert(change.project, change.projectPath, diskHash);
-      if (change.project === project) onReverted(change.projectPath, r.hash);
+      const revert = await scm.revert(change.project, change.projectPath, diskHash);
+      if (change.project === project) onReverted(change.projectPath, revert.hash);
       setTick(t => t + 1);
-    } catch (e) {
-      setError((e as Error).message);
+    } catch (error) {
+      setError((error as Error).message);
       setTick(t => t + 1);
     } finally {
       setBusy(false);
       setConfirmRevert(false);
     }
   }
-  const toggle = (p: string) =>
-    setTicked(s => {
-      const n = new Set(s);
-      if (n.has(p)) n.delete(p);
-      else n.add(p);
-      return n;
+  const toggle = (path: string) =>
+    setTicked(members => {
+      const next = new Set(members);
+      if (next.has(path)) next.delete(path);
+      else next.add(path);
+      return next;
     });
   const footer = (
     <>
@@ -242,9 +260,9 @@ export function CommitDialog({ project, projectName, itemHints = {}, unsaved = [
           </span>
           {conflicts.length > 0 && (
             <ul>
-              {conflicts.map(c => (
-                <li key={c.path}>
-                  <code>{c.path}</code>
+              {conflicts.map(conflict => (
+                <li key={conflict.path}>
+                  <code>{conflict.path}</code>
                 </li>
               ))}
             </ul>
@@ -255,12 +273,12 @@ export function CommitDialog({ project, projectName, itemHints = {}, unsaved = [
       {changes.length > 0 && (
         <div className="commit-body">
           <ul className="commit-files" aria-label="Changed files">
-            {changes.map(c => (
-              <li key={c.repoPath} className={c.repoPath === selected ? 'selected' : ''}>
-                <input type="checkbox" aria-label={c.path} checked={ticked.has(c.repoPath)} disabled={merging || c.conflicted} onChange={() => toggle(c.repoPath)} />
-                <button className="commit-file" aria-pressed={c.repoPath === selected} onClick={() => setSelected(c.repoPath)} title={c.path}>
-                  <span className="commit-path">{c.path}</span>
-                  <small className={`commit-kind k-${describe(c)}`}>{describe(c)}</small>
+            {changes.map(change => (
+              <li key={change.repoPath} className={change.repoPath === selected ? 'selected' : ''}>
+                <input type="checkbox" aria-label={change.path} checked={ticked.has(change.repoPath)} disabled={merging || change.conflicted} onChange={() => toggle(change.repoPath)} />
+                <button className="commit-file" aria-pressed={change.repoPath === selected} onClick={() => setSelected(change.repoPath)} title={change.path}>
+                  <span className="commit-path">{change.path}</span>
+                  <small className={`commit-kind k-${describe(change)}`}>{describe(change)}</small>
                 </button>
               </li>
             ))}
@@ -297,9 +315,9 @@ export function CommitDialog({ project, projectName, itemHints = {}, unsaved = [
             setMessage(e.target.value);
             setEdited(true);
           }}
-          onKeyDown={e => {
-            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && canCommit) {
-              e.preventDefault();
+          onKeyDown={event => {
+            if (event.key === 'Enter' && (event.ctrlKey || event.metaKey) && canCommit) {
+              event.preventDefault();
               void commit(false);
             }
           }}

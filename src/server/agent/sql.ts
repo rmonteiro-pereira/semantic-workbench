@@ -23,8 +23,8 @@ export function parseExpression(expression: string, { conditional = false } = {}
   } catch {
     try {
       ast = parser.astify('SELECT ' + expression, { database: 'SQLite' });
-    } catch (e) {
-      const error = e as any;
+    } catch (thrown) {
+      const error = thrown as any;
       throw new BadRequestError(
         `Unsupported expression syntax${error.location?.start ? ` at ${error.location.start.line}:${error.location.start.column}` : ''}. Preserve the expression and use a compatible planner.`,
       );
@@ -49,8 +49,8 @@ export function parseExpression(expression: string, { conditional = false } = {}
     (!conditional && ast.where)
   )
     throw new BadRequestError('Expected a single scalar/aggregate expression, not a query or alias.');
-  walk([ast.columns[0].expr, ast.where], n => {
-    if (n.type === 'select' || n.type === 'star' || n.type === 'param' || n.type === 'origin' || (n.type === 'column_ref' && n.column === '*') || n.over)
+  walk([ast.columns[0].expr, ast.where], node => {
+    if (node.type === 'select' || node.type === 'star' || node.type === 'param' || node.type === 'origin' || (node.type === 'column_ref' && node.column === '*') || node.over)
       throw new BadRequestError('Subqueries, wildcards, parameters and window expressions require a richer planner.');
   });
   return { expression: ast.columns[0].expr, condition: ast.where ?? null };
@@ -58,14 +58,14 @@ export function parseExpression(expression: string, { conditional = false } = {}
 /** Collects column references and rejects wildcards or unresolved column names. */
 export function columnRefs(ast: any) {
   const refs: ColumnRef[] = [];
-  walk(ast, n => {
-    if (n.type === 'column_ref') {
-      const column = typeof n.column === 'string' ? n.column : n.column?.expr?.value;
+  walk(ast, node => {
+    if (node.type === 'column_ref') {
+      const column = typeof node.column === 'string' ? node.column : node.column?.expr?.value;
       if (typeof column !== 'string' || column === '*') throw new BadRequestError('Unresolved wildcard or complex column reference.');
       refs.push({
-        table: typeof n.table === 'string' ? n.table : (n.table?.value ?? null),
+        table: typeof node.table === 'string' ? node.table : (node.table?.value ?? null),
         column,
-        node: n,
+        node,
       });
     }
   });

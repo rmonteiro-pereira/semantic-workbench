@@ -7,10 +7,10 @@ export type Link = { source: string; target: string };
 export function layoutGraph(ids: string[], edges: Link[]) {
   const outgoing = new Map(ids.map(id => [id, [] as string[]]));
   const incoming = new Map(ids.map(id => [id, 0]));
-  for (const e of edges)
-    if (outgoing.has(e.source) && outgoing.has(e.target) && e.source !== e.target) {
-      outgoing.get(e.source)!.push(e.target);
-      incoming.set(e.target, incoming.get(e.target)! + 1);
+  for (const edge of edges)
+    if (outgoing.has(edge.source) && outgoing.has(edge.target) && edge.source !== edge.target) {
+      outgoing.get(edge.source)!.push(edge.target);
+      incoming.set(edge.target, incoming.get(edge.target)! + 1);
     }
   const ranks = new Map<string, number>();
   const queue: string[] = [];
@@ -86,10 +86,10 @@ export function neighborhoodLayout(center: string, incoming: string[], outgoing:
     for (let c = 0; c * rows < ids.length; c++) {
       const column = ids.slice(c * rows, (c + 1) * rows);
       const top = ((rows - column.length) * NEIGHBOR_ROW) / 2;
-      column.forEach((id, r) =>
+      column.forEach((id, rowIndex) =>
         positions.set(id, {
           x: side * (c + 1) * NEIGHBOR_COLUMN * spacing,
-          y: top + r * NEIGHBOR_ROW,
+          y: top + rowIndex * NEIGHBOR_ROW,
         }),
       );
     }

@@ -50,10 +50,18 @@ const openFile = async (path: string) => {
 const tab = (name: string) => page.locator('.tabs').getByRole('button', { name, exact: true });
 const id = (m: typeof ubl, name: string) => m.entities.find(e => e.name === name)!.id;
 // The page's state must equal the projection computed here from the same file.
-async function expectState(m: typeof ubl, center: string, keep: string[] = [], extra: { limit?: number } = {}) {
-  const n = neighborhood(m.entities, m.edges, { center, keep, ...extra });
-  await expect.poll(() => neighborhoodState(page)).toEqual({ center, shown: n.shown, total: n.total, hidden: n.hidden, nodes: n.shown + 1 });
-  return n;
+async function expectState(entityModel: typeof ubl, center: string, keep: string[] = [], extra: { limit?: number } = {}) {
+  const view = neighborhood(entityModel.entities, entityModel.edges, { center, keep, ...extra });
+  await expect
+    .poll(() => neighborhoodState(page))
+    .toEqual({
+      center,
+      shown: view.shown,
+      total: view.total,
+      hidden: view.hidden,
+      nodes: view.shown + 1,
+    });
+  return view;
 }
 // The view fits once nodes are measured (and again when the canvas resizes): poll until it
 // settles.
@@ -123,23 +131,23 @@ try {
     await page.getByRole('textbox', { name: 'Find a center' }).fill('order');
     await expect(page.getByRole('listbox', { name: 'Center candidates' }).getByRole('option').first()).toContainText('Order');
     await page.getByRole('listbox', { name: 'Center candidates' }).getByRole('option').first().click();
-    const n = await expectState(ubl, id(ubl, 'Order'));
-    walked.push(n.center!);
+    const view = await expectState(ubl, id(ubl, 'Order'));
+    walked.push(view.center!);
     await expectCentered();
     const canvasMid = (await page.locator('.react-flow__node.center').boundingBox())!.x;
-    for (const i of n.incoming) expect((await page.locator(`.react-flow__node[data-id="${i}"]`).boundingBox())!.x).toBeLessThan(canvasMid);
-    for (const o of n.outgoing) expect((await page.locator(`.react-flow__node[data-id="${o}"]`).boundingBox())!.x).toBeGreaterThan(canvasMid);
+    for (const incomingId of view.incoming) expect((await page.locator(`.react-flow__node[data-id="${incomingId}"]`).boundingBox())!.x).toBeLessThan(canvasMid);
+    for (const outgoingId of view.outgoing) expect((await page.locator(`.react-flow__node[data-id="${outgoingId}"]`).boundingBox())!.x).toBeGreaterThan(canvasMid);
     expect(await neighborhoodEdgeProblems(page)).toEqual([]);
     await shot('ubl-step0');
   });
   await check('UBL: five steps across relationships (the last by keyboard), each with the right center, counts, origin and trail; no edge shares a path', async () => {
     for (let step = 1; step <= 5; step++) {
       const previous = walked.at(-1)!;
-      const n = neighborhood(ubl.entities, ubl.edges, {
+      const view = neighborhood(ubl.entities, ubl.edges, {
         center: previous,
         keep: walked.length > 1 ? [walked.at(-2)!] : [],
       });
-      const next = n.entities.slice(1).find(e => !walked.includes(e.id))!;
+      const next = view.entities.slice(1).find(e => !walked.includes(e.id))!;
       const walkButton = page.getByRole('button', { name: `Walk to ${next.name}`, exact: true });
       if (step === 5) {
         await walkButton.focus();
@@ -242,8 +250,10 @@ try {
     await expectState(scale, id(scale, 'Customer 10000'));
     const options = await page.getByRole('textbox', { name: 'Find a center' }).evaluate(() => document.querySelectorAll('#center-picker-results li').length);
     expect(options).toBe(0);
-    const n = neighborhood(scale.entities, scale.edges, { center: id(scale, 'Customer 10000') });
-    if (n.hidden) {
+    const view = neighborhood(scale.entities, scale.edges, {
+      center: id(scale, 'Customer 10000'),
+    });
+    if (view.hidden) {
       await page.getByRole('button', { name: /^\d+ more neighbors?$/ }).click();
       await expectState(scale, id(scale, 'Customer 10000'), [], { limit: 24 });
     }
@@ -261,33 +271,33 @@ try {
     page.locator('.neighborhood-canvas .react-flow__node').evaluateAll(ns => Object.fromEntries(ns.map(n => [n.getAttribute('data-id'), (n as HTMLElement).style.transform])));
   const node = (m: typeof ubl, name: string) => page.locator(`.neighborhood-canvas .react-flow__node[data-id="${id(m, name)}"]`);
   // The canvas the app must show, computed here from the file with the same pure functions.
-  const expectedCanvas = (m: typeof ubl, center: string, steps: { expand?: string; collapse?: string }[]) => {
-    const p = projectModel(m.entities, m.edges);
-    const base = neighborhood(m.entities, m.edges, { center: id(m, center) }).entities.map(e => e.id);
+  const expectedCanvas = (entityModel: typeof ubl, center: string, steps: { expand?: string; collapse?: string }[]) => {
+    const projection = projectModel(entityModel.entities, entityModel.edges);
+    const base = neighborhood(entityModel.entities, entityModel.edges, { center: id(entityModel, center) }).entities.map(e => e.id);
     const sets: any[] = [];
     const by = new Map<string, any>();
-    for (const s of steps) {
-      if (s.expand) {
-        const n = neighbours(p.edges, id(m, s.expand), 'both');
+    for (const step of steps) {
+      if (step.expand) {
+        const expansion = neighbours(projection.edges, id(entityModel, step.expand), 'both');
         const set = registerSet({
           kind: 'expand',
-          from: id(m, s.expand),
+          from: id(entityModel, step.expand),
           direction: 'both',
-          nodes: n.nodes,
-          edges: n.edges,
+          nodes: expansion.nodes,
+          edges: expansion.edges,
           frontier: {},
           total: 0,
           budget: 0,
         });
         sets.push(set);
-        by.set(s.expand, set);
+        by.set(step.expand, set);
       }
-      if (s.collapse)
+      if (step.collapse)
         sets.push(
           registerSet({
             kind: 'collapse',
-            from: id(m, s.collapse),
-            target: by.get(s.collapse).id,
+            from: id(entityModel, step.collapse),
+            target: by.get(step.collapse).id,
             direction: 'both',
             nodes: [],
             edges: [],
@@ -313,7 +323,7 @@ try {
       done.push({ expand: name });
       await expect.poll(nodeIds).toEqual(expectedCanvas(ubl, 'Order', done));
       const after = await nodePositions();
-      for (const [k, v] of Object.entries(before)) expect(after[k], `${k} moved`).toBe(v);
+      for (const [key, value] of Object.entries(before)) expect(after[key], `${key} moved`).toBe(value);
       await expect(page.getByRole('navigation', { name: 'Walk' })).toContainText(`expanded ${name}`);
     }
     for (const name of ['Order', 'OrderLine', 'LineItem', 'Item', 'Price']) await expect(node(ubl, name)).toHaveCount(1);
@@ -338,8 +348,8 @@ try {
     await tab('Neighborhood').click();
     await pickCenter(page, 'Lease');
     const lease = id(mall, 'Lease');
-    const p = projectModel(mall.entities, mall.edges);
-    const r = boundedClosure(p.entities, p.edges, [lease], {
+    const projection = projectModel(mall.entities, mall.edges);
+    const closure = boundedClosure(projection.entities, projection.edges, [lease], {
       direction: 'out',
       valueTypes: true,
       technical: false,
@@ -349,18 +359,18 @@ try {
     await page.getByRole('radiogroup', { name: 'Pierce direction' }).getByRole('radio', { name: 'Outgoing' }).click();
     await page.getByRole('button', { name: 'Show all connected' }).click();
     const status = page.locator('.pierce-banner');
-    await expect(status).toContainText(`${r.shown} entities shown in ${r.maxStep} steps`);
+    await expect(status).toContainText(`${closure.shown} entities shown in ${closure.maxStep} steps`);
     const ids = await canvasIds();
-    for (const n of r.nodes) expect(ids).toContain(n);
+    for (const node of closure.nodes) expect(ids).toContain(node);
     expect(new Set(ids).size).toBe(ids.length);
     await shot('pierce-lease');
   });
   await check('1,000 entities, Both: Show all connected stops at the 150-node budget with frontier markers and "N more reachable"; Expand further grows it; input stays responsive', async () => {
     await openFile('commerce-scale.ttl');
     await tab('Neighborhood').click();
-    const p = projectModel(scale.entities, scale.edges);
+    const projection = projectModel(scale.entities, scale.edges);
     const start = (await neighborhoodState(page)).center!;
-    const r = boundedClosure(p.entities, p.edges, [start], {
+    const closure = boundedClosure(projection.entities, projection.edges, [start], {
       direction: 'both',
       valueTypes: true,
       technical: false,
@@ -376,22 +386,22 @@ try {
     await page.getByRole('radiogroup', { name: 'Pierce direction' }).getByRole('radio', { name: 'Both' }).click();
     await page.getByRole('button', { name: 'Show all connected' }).click();
     const status = page.locator('.pierce-banner');
-    await expect(status).toContainText(`${r.total - r.shown} more reachable`, { timeout: 20000 });
+    await expect(status).toContainText(`${closure.total - closure.shown} more reachable`, { timeout: 20000 });
     await expect(page.locator('.frontier-marker').first()).toBeVisible();
-    expect(Number(await page.locator('.neighborhood-canvas').getAttribute('data-canvas-nodes'))).toBeGreaterThanOrEqual(r.shown);
+    expect(Number(await page.locator('.neighborhood-canvas').getAttribute('data-canvas-nodes'))).toBeGreaterThanOrEqual(closure.shown);
     await shot('pierce-budget');
     const long = await page.evaluate(() => (window as any).__long);
     console.log(`  longest main-thread task during pierce: ${long.toFixed(0)} ms`);
     expect(long).toBeLessThanOrEqual(100);
     await status.getByRole('button', { name: 'Expand further' }).click();
-    const r2 = boundedClosure(p.entities, p.edges, [start], {
+    const furtherClosure = boundedClosure(projection.entities, projection.edges, [start], {
       direction: 'both',
       valueTypes: true,
       technical: false,
       metrics: true,
       budget: 2 * PIERCE_BUDGET,
     });
-    await expect(page.locator('.pierce-banner')).toContainText(`${r2.total - r2.shown} more reachable`, { timeout: 20000 });
+    await expect(page.locator('.pierce-banner')).toContainText(`${furtherClosure.total - furtherClosure.shown} more reachable`, { timeout: 20000 });
   });
   await check('no empty-state flash on any center or document change; no browser errors', async () => {
     expect(await page.evaluate(() => (window as any).__emptySeen)).toBe(0);

@@ -21,7 +21,7 @@ type Options = {
   docsRef: React.RefObject<Map<string, Doc>>;
   refresh: () => Promise<Doc[]>;
   setMessage: React.Dispatch<React.SetStateAction<string>>;
-  openDocument: (d: Doc) => boolean;
+  openDocument: (doc: Doc) => boolean;
   importConflict: {
     project: ProjectInfo;
     files: { path: string; source: string }[];
@@ -60,22 +60,22 @@ export function useProjectActions({
   deleted,
   setDeleted,
 }: Options) {
-  function treeAction(a: TreeAction) {
-    const project = projects.find(p => p.slug === a.project);
+  function treeAction(treeEvent: TreeAction) {
+    const project = projects.find(p => p.slug === treeEvent.project);
     if (!project) return;
-    if (a.action === 'rename') setRenaming(project);
-    else if (a.action === 'export') setExporting(project);
-    else if (a.action === 'move') setMoving({ project: a.project, path: a.path });
-    else if (a.action === 'delete-file') setDeleteTarget({ kind: 'file', project: a.project, path: a.path });
-    else if (a.action === 'delete-project') setDeleteTarget({ kind: 'project', project: a.project });
-    else if (a.action === 'history') {
-      if (a.project !== selectedProject) selectProject(a.project);
-      setHistoryPath(a.path, a.project);
+    if (treeEvent.action === 'rename') setRenaming(project);
+    else if (treeEvent.action === 'export') setExporting(project);
+    else if (treeEvent.action === 'move') setMoving({ project: treeEvent.project, path: treeEvent.path });
+    else if (treeEvent.action === 'delete-file') setDeleteTarget({ kind: 'file', project: treeEvent.project, path: treeEvent.path });
+    else if (treeEvent.action === 'delete-project') setDeleteTarget({ kind: 'project', project: treeEvent.project });
+    else if (treeEvent.action === 'history') {
+      if (treeEvent.project !== selectedProject) selectProject(treeEvent.project);
+      setHistoryPath(treeEvent.path, treeEvent.project);
       setTab('scm');
       if (compact) closeWorkspace();
-    } else if (a.action === 'gitignore') void editGitignore(a.project);
+    } else if (treeEvent.action === 'gitignore') void editGitignore(treeEvent.project);
     else {
-      setImporting({ project: a.project });
+      setImporting({ project: treeEvent.project });
     }
   }
   // `.gitignore` opens in Source; it is created empty when the project has none.
@@ -85,8 +85,8 @@ export function useProjectActions({
       try {
         await api.save(slug, '.gitignore', null, '');
         document = (await refresh()).find(x => x.id === `${slug}/.gitignore`);
-      } catch (e) {
-        setMessage((e as Error).message);
+      } catch (error) {
+        setMessage((error as Error).message);
         return;
       }
     }
@@ -101,25 +101,25 @@ export function useProjectActions({
       await refresh();
       const fileCount = response.written.length;
       setMessage(`Imported ${fileCount} file${fileCount === 1 ? '' : 's'} into ${project.name}.`);
-    } catch (e: any) {
-      if (e.status === 409 && e.body?.conflicts) setImportConflict({ project, files, conflicts: e.body.conflicts });
+    } catch (error: any) {
+      if (error.status === 409 && error.body?.conflicts) setImportConflict({ project, files, conflicts: error.body.conflicts });
       else {
         setImportConflict(null);
-        setMessage(e.message);
+        setMessage(error.message);
       }
     }
   }
   async function undoDelete() {
-    const documentValue = deleted;
+    const undone = deleted;
     setDeleted(null);
-    if (!documentValue) return;
+    if (!undone) return;
     try {
-      for (const id of documentValue.entryIds) await api.undo(id);
+      for (const id of undone.entryIds) await api.undo(id);
       await refresh();
-      setMessage(`Restored ${documentValue.label}.`);
-    } catch (e) {
+      setMessage(`Restored ${undone.label}.`);
+    } catch (error) {
       await refresh().catch(() => {});
-      setMessage(`${(e as Error).message} Open Trash to restore it.`);
+      setMessage(`${(error as Error).message} Open Trash to restore it.`);
     }
   }
 

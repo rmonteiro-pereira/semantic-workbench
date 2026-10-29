@@ -30,10 +30,10 @@ export type Target = { kind: ItemKind; name: string; docId: string; path: Path; 
 type Node = any;
 const lineOf = (src: string, pos: number) => src.slice(0, pos).split('\n').length;
 const excerpt = (src: string, pos: number) => {
-  const a = src.lastIndexOf('\n', pos - 1) + 1;
-  const b = src.indexOf('\n', pos);
+  const lineStart = src.lastIndexOf('\n', pos - 1) + 1;
+  const lineEnd = src.indexOf('\n', pos);
   return src
-    .slice(a, b < 0 ? undefined : b)
+    .slice(lineStart, lineEnd < 0 ? undefined : lineEnd)
     .trim()
     .slice(0, 160);
 };
@@ -42,13 +42,13 @@ const startsWith = (path: Path, prefix: Path) => prefix.length <= path.length &&
 // Every string scalar of a document, with its path, node and the nearest list item paths.
 function scalars(doc: Document.Parsed) {
   const out: { path: Path; node: Node; value: string }[] = [];
-  const walk = (n: Node, path: Path) => {
-    if (isMap(n))
-      for (const p of n.items as any[]) {
-        if (isScalar(p.key)) walk(p.value, [...path, String(p.key.value)]);
+  const walk = (node: Node, path: Path) => {
+    if (isMap(node))
+      for (const pair of node.items as any[]) {
+        if (isScalar(pair.key)) walk(pair.value, [...path, String(pair.key.value)]);
       }
-    else if (isSeq(n)) n.items.forEach((x: any, i: number) => walk(x, [...path, i]));
-    else if (isScalar(n) && typeof n.value === 'string' && n.range) out.push({ path, node: n, value: n.value });
+    else if (isSeq(node)) node.items.forEach((x: any, i: number) => walk(x, [...path, i]));
+    else if (isScalar(node) && typeof node.value === 'string' && node.range) out.push({ path, node: node, value: node.value });
   };
   walk(doc.contents, []);
   return out;
@@ -59,23 +59,23 @@ const upTo = (path: Path, key: string) => {
 };
 // The text of `name` inside a scalar's source, at each match of `pattern`.
 function within(src: string, node: Node, pattern: RegExp) {
-  const [a, b] = node.range;
-  const text = src.slice(a, b);
+  const [rangeStart, rangeEnd] = node.range;
+  const text = src.slice(rangeStart, rangeEnd);
   const out: [number, number][] = [];
-  let m;
+  let match;
   pattern.lastIndex = 0;
-  while ((m = pattern.exec(text))) {
-    const at = a + m.index + (m[1] ? m[0].indexOf(m[1]) : 0);
-    out.push([at, at + (m[1] ?? m[0]).length]);
-    if (!m[0].length) pattern.lastIndex++;
+  while ((match = pattern.exec(text))) {
+    const at = rangeStart + match.index + (match[1] ? match[0].indexOf(match[1]) : 0);
+    out.push([at, at + (match[1] ?? match[0]).length]);
+    if (!match[0].length) pattern.lastIndex++;
   }
   return out;
 }
 function describe(path: Path, data: any) {
   const item = (key: string) => {
-    const p = upTo(path, key);
-    const v = p && p.reduce((x: any, k) => x?.[k], data);
-    return v?.concept ?? v?.name ?? (typeof v?.to === 'string' ? v.to : '');
+    const itemPath = upTo(path, key);
+    const found = itemPath && itemPath.reduce((x: any, k) => x?.[k], data);
+    return found?.concept ?? found?.name ?? (typeof found?.to === 'string' ? found.to : '');
   };
   if (path.includes('concept_mappings')) return `concept mapping ${item('concept_mappings')}`;
   if (path.includes('metrics')) return `metric ${item('metrics')}`;
@@ -96,23 +96,23 @@ export function findReferences(target: Target, docs: ProjectDoc[]): Reference[] 
   const word = new RegExp(`(?<![\\w$.'"])(${escape(name)})(?![\\w$'"(])`, 'g');
   const qualifier = new RegExp(`(?<![\\w$.'"])(${escape(name)})(?=\\s*\\.)`, 'g');
   const fieldRef = target.owner ? new RegExp(`(?<![\\w$'"])${escape(target.owner)}\\s*\\.\\s*(${escape(name)})(?![\\w$])`, 'g') : null;
-  for (const d of docs) {
-    if (rdfSyntax(d.source, d.filename)) continue;
+  for (const projectDoc of docs) {
+    if (rdfSyntax(projectDoc.source, projectDoc.filename)) continue;
     let doc: Document.Parsed;
     try {
-      doc = parseDocument(d.source, { uniqueKeys: false });
+      doc = parseDocument(projectDoc.source, { uniqueKeys: false });
       if (doc.errors.length) continue;
     } catch {
       continue;
     }
     const data = doc.toJS();
-    const src = d.source;
-    const self = d.id === target.docId;
+    const src = projectDoc.source;
+    const self = projectDoc.id === target.docId;
     const add = (path: Path, spans: [number, number][], dependent: Dependent | null) => {
       for (const [from, to] of spans)
         out.push({
-          docId: d.id,
-          file: d.path,
+          docId: projectDoc.id,
+          file: projectDoc.path,
           path,
           where: describe(path, data),
           from,
@@ -123,8 +123,8 @@ export function findReferences(target: Target, docs: ProjectDoc[]): Reference[] 
         });
     };
     const dep = (p: Path | null): Dependent | null => (p ? { path: p, label: describe(p, data) } : null);
-    for (const s of scalars(doc)) {
-      const { path, node, value } = s;
+    for (const scalar of scalars(doc)) {
+      const { path, node, value } = scalar;
       const key = path.at(-1);
       // The item itself (and what it contains) is not a reference to itself.
       if (self && startsWith(path, target.path)) continue;
@@ -140,32 +140,41 @@ export function findReferences(target: Target, docs: ProjectDoc[]): Reference[] 
           continue;
         }
         if (Array.isArray(json?.kpi_bindings))
-          for (const b of json.kpi_bindings) {
-            const hit = target.kind === 'metric' ? b.metric === name : target.kind === 'concept' ? b.measures === name || b.of === name : false;
+          for (const binding of json.kpi_bindings) {
+            let hit;
+            if (target.kind === 'metric') {
+              hit = binding.metric === name;
+            } else if (target.kind === 'concept') {
+              hit = binding.measures === name || binding.of === name;
+            } else {
+              hit = false;
+            }
             if (!hit) continue;
-            const [a, z] = node.range;
-            const text = src.slice(a, z);
-            const at = text.indexOf(`${JSON.stringify(b.metric)}`) >= 0 ? text.indexOf(JSON.stringify(b.metric)) : 0;
+            const [rangeStart, rangeEnd] = node.range;
+            const text = src.slice(rangeStart, rangeEnd);
+            const at = text.indexOf(`${JSON.stringify(binding.metric)}`) >= 0 ? text.indexOf(JSON.stringify(binding.metric)) : 0;
             const spans: [number, number][] = [];
             let i = text.indexOf(quoted, at);
             const end = text.indexOf('}', at);
             while (i >= 0 && (end < 0 || i < end)) {
-              spans.push([a + i + 1, a + i + 1 + name.length]);
+              spans.push([rangeStart + i + 1, rangeStart + i + 1 + name.length]);
               i = text.indexOf(quoted, i + 1);
             }
-            add(path, spans.length ? spans : [[a, a]], {
+            add(path, spans.length ? spans : [[rangeStart, rangeStart]], {
               path: owner,
-              label: `metric binding of ${b.metric}`,
-              binding: { dataPath: path, metric: b.metric },
+              label: `metric binding of ${binding.metric}`,
+              binding: { dataPath: path, metric: binding.metric },
             });
           }
         else if (target.kind === 'metric' || target.kind === 'dataset' || target.kind === 'field') {
-          const pattern =
-            target.kind === 'metric'
-              ? new RegExp(`"(${escape(name)})"`, 'g')
-              : target.kind === 'dataset'
-                ? new RegExp(`"(${escape(name)})\\.`, 'g')
-                : new RegExp(`"${escape(target.owner ?? '')}\\.(${escape(name)})"`, 'g');
+          let pattern;
+          if (target.kind === 'metric') {
+            pattern = new RegExp(`"(${escape(name)})"`, 'g');
+          } else if (target.kind === 'dataset') {
+            pattern = new RegExp(`"(${escape(name)})\\.`, 'g');
+          } else {
+            pattern = new RegExp(`"${escape(target.owner ?? '')}\\.(${escape(name)})"`, 'g');
+          }
           const spans = within(src, node, pattern);
           if (spans.length) add(path, spans, dep(upTo(path, 'metrics')));
         }
@@ -198,14 +207,33 @@ export function findReferences(target: Target, docs: ProjectDoc[]): Reference[] 
         case 'metric':
           if (key === 'expression') {
             const spans = within(src, node, word);
-            if (spans.length) add(path, spans, path.includes('metrics') ? dep(upTo(path, 'metrics')) : path.includes('object_mappings') ? dep(upTo(path, 'object_mappings')) : null);
+            if (spans.length) {
+              let dependency: ReturnType<typeof dep> | null = null;
+              if (path.includes('metrics')) {
+                dependency = dep(upTo(path, 'metrics'));
+              } else if (path.includes('object_mappings')) {
+                dependency = dep(upTo(path, 'object_mappings'));
+              }
+              add(path, spans, dependency);
+            }
           }
           break;
         case 'odcs-object':
         case 'odcs-property': {
           // Foreign keys name their target as object.property.
           const isRef = (key === 'to' || key === 'from' || (typeof key === 'number' && (path.at(-2) === 'to' || path.at(-2) === 'from'))) && path.includes('relationships');
-          const offset = target.kind === 'odcs-object' ? (value === name || value.startsWith(name + '.') ? 0 : -1) : value === `${target.owner}.${name}` ? String(target.owner).length + 1 : -1;
+          let offset;
+          if (target.kind === 'odcs-object') {
+            if (value === name || value.startsWith(name + '.')) {
+              offset = 0;
+            } else {
+              offset = -1;
+            }
+          } else if (value === `${target.owner}.${name}`) {
+            offset = String(target.owner).length + 1;
+          } else {
+            offset = -1;
+          }
           if (isRef && offset >= 0) {
             const at = node.range[0] + src.slice(node.range[0], node.range[1]).indexOf(value) + offset;
             add(path, [[at, at + name.length]], dep(upTo(path, 'relationships')));
@@ -227,21 +255,21 @@ export function removeDependents(docs: ProjectDoc[], dependents: { docId: string
     if (!list.some(x => JSON.stringify(x.path) === JSON.stringify(dependent.path) && x.binding?.metric === dependent.binding?.metric)) list.push(dependent);
     byDoc.set(docId, list);
   }
-  const cmp = (a: Path, b: Path) => {
-    for (let i = 0; i < Math.min(a.length, b.length); i++) {
-      if (a[i] === b[i]) continue;
-      return typeof a[i] === 'number' && typeof b[i] === 'number' ? (a[i] as number) - (b[i] as number) : String(a[i]).localeCompare(String(b[i]));
+  const cmp = (left: Path, right: Path) => {
+    for (let i = 0; i < Math.min(left.length, right.length); i++) {
+      if (left[i] === right[i]) continue;
+      return typeof left[i] === 'number' && typeof right[i] === 'number' ? (left[i] as number) - (right[i] as number) : String(left[i]).localeCompare(String(right[i]));
     }
-    return a.length - b.length;
+    return left.length - right.length;
   };
   return [...byDoc].map(([docId, list]) => {
-    const d = docs.find(x => x.id === docId)!;
+    const projectDoc = docs.find(x => x.id === docId)!;
     // A dependent inside another removed dependent goes with it.
     const items = list
       .filter(x => x.binding || !list.some(y => !y.binding && y !== x && startsWith(x.path, y.path) && y.path.length < x.path.length))
       .sort((a, b) => cmp(b.binding?.dataPath ?? b.path, a.binding?.dataPath ?? a.path));
     const steps = items.map(x => (text: string): Patch[] => {
-      if (!x.binding) return removePatches(text, x.path, d.filename);
+      if (!x.binding) return removePatches(text, x.path, projectDoc.filename);
       const json = JSON.parse(itemValue(text, x.binding.dataPath));
       return valuePatches(
         text,
@@ -250,26 +278,26 @@ export function removeDependents(docs: ProjectDoc[], dependents: { docId: string
           ...json,
           kpi_bindings: json.kpi_bindings.filter((b: any) => b.metric !== x.binding!.metric),
         }),
-        d.filename,
+        projectDoc.filename,
       );
     });
-    return { docId, source: edit(d.source, ...steps) };
+    return { docId, source: edit(projectDoc.source, ...steps) };
   });
 }
 
 /** Rewrites only the rename occurrences explicitly selected by the user. */
 export function rewriteReferences(docs: ProjectDoc[], refs: Reference[], newName: string): { docId: string; source: string }[] {
   const byDoc = new Map<string, Reference[]>();
-  for (const r of refs) byDoc.set(r.docId, [...(byDoc.get(r.docId) ?? []), r]);
+  for (const ref of refs) byDoc.set(ref.docId, [...(byDoc.get(ref.docId) ?? []), ref]);
   return [...byDoc].map(([docId, list]) => {
-    const d = docs.find(x => x.id === docId)!;
+    const projectDoc = docs.find(x => x.id === docId)!;
     let out = '';
     let at = 0;
-    for (const r of [...list].sort((a, b) => a.from - b.from)) {
-      if (r.from < at || r.to === r.from) continue;
-      out += d.source.slice(at, r.from) + newName;
-      at = r.to;
+    for (const reference of [...list].sort((a, b) => a.from - b.from)) {
+      if (reference.from < at || reference.to === reference.from) continue;
+      out += projectDoc.source.slice(at, reference.from) + newName;
+      at = reference.to;
     }
-    return { docId, source: out + d.source.slice(at) };
+    return { docId, source: out + projectDoc.source.slice(at) };
   });
 }

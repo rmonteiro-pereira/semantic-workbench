@@ -316,7 +316,7 @@ test('changes always go to the person’s copy; agent clients and local mode hav
     view,
     owner: 'ann',
     guard: guard!,
-    copy: { key: 'u' + 'a'.repeat(20), author, editable: () => true },
+    copy: { key: 'ua'.repeat(20), author, editable: () => true },
   };
   const committer = { ...editor, copy: { ...editor.copy, editable: () => false } };
   expect(writeKeyFor(editor)).toBe(editor.copy.key);

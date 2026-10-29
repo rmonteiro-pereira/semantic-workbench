@@ -11,10 +11,10 @@ const filename = 'flights.ontology.yaml';
 const source = await Bun.file('public/examples/ossie/' + filename).text();
 const api = await startIsolatedApi();
 await api.ws.importBatch({ files: [{ path: filename, source }] }, LOCAL_READER);
-const links = groupRelationships(inspect(source, filename).edges).map(e => ({
-  id: e.id,
-  source: e.source,
-  target: e.target,
+const links = groupRelationships(inspect(source, filename).edges).map(edge => ({
+  id: edge.id,
+  source: edge.source,
+  target: edge.target,
 }));
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1600, height: 1000 } });
@@ -29,29 +29,32 @@ async function check(name: string, run: () => Promise<void>) {
 }
 async function distances() {
   return page.evaluate(links => {
-    const borderDistance = (p: { x: number; y: number }, r: DOMRect) => {
-      const outsideX = Math.max(r.left - p.x, 0, p.x - r.right);
-      const outsideY = Math.max(r.top - p.y, 0, p.y - r.bottom);
-      return outsideX || outsideY ? Math.hypot(outsideX, outsideY) : Math.min(p.x - r.left, r.right - p.x, p.y - r.top, r.bottom - p.y);
+    const borderDistance = (position: { x: number; y: number }, rect: DOMRect) => {
+      const outsideX = Math.max(rect.left - position.x, 0, position.x - rect.right);
+      const outsideY = Math.max(rect.top - position.y, 0, position.y - rect.bottom);
+      return outsideX || outsideY ? Math.hypot(outsideX, outsideY) : Math.min(position.x - rect.left, rect.right - position.x, position.y - rect.top, rect.bottom - position.y);
     };
     const result: { id: string; source: number; target: number }[] = [];
     for (const link of links) {
       const edge = [...document.querySelectorAll('.react-flow__edge')].find(e => e.getAttribute('data-id') === link.id);
       const path = edge?.querySelector('.react-flow__edge-path') as SVGPathElement | null;
       const node = (id: string) => [...document.querySelectorAll('.react-flow__node')].find(n => n.getAttribute('data-id') === id)?.querySelector('.full-entity');
-      const a = node(link.source);
-      const b = node(link.target);
-      if (!path || !a || !b) continue;
-      const m = path.getScreenCTM();
-      if (!m) continue;
-      const point = (t: number) => {
-        const p = path.getPointAtLength(t);
-        return { x: m.a * p.x + m.c * p.y + m.e, y: m.b * p.x + m.d * p.y + m.f };
+      const sourceNode = node(link.source);
+      const targetNode = node(link.target);
+      if (!path || !sourceNode || !targetNode) continue;
+      const matrix = path.getScreenCTM();
+      if (!matrix) continue;
+      const point = (distance: number) => {
+        const onPath = path.getPointAtLength(distance);
+        return {
+          x: matrix.a * onPath.x + matrix.c * onPath.y + matrix.e,
+          y: matrix.b * onPath.x + matrix.d * onPath.y + matrix.f,
+        };
       };
       result.push({
         id: link.id,
-        source: borderDistance(point(0), a.getBoundingClientRect()),
-        target: borderDistance(point(path.getTotalLength()), b.getBoundingClientRect()),
+        source: borderDistance(point(0), sourceNode.getBoundingClientRect()),
+        target: borderDistance(point(path.getTotalLength()), targetNode.getBoundingClientRect()),
       });
     }
     return result;
@@ -109,13 +112,13 @@ async function targetSelector(selector: string) {
   for (let i = 0; i < (await candidates.count()); i++) {
     const candidate = candidates.nth(i);
     if (
-      await candidate.evaluate(n => {
-        const r = n.getBoundingClientRect();
+      await candidate.evaluate(element => {
+        const rect = element.getBoundingClientRect();
         const points = [
-          { x: r.x + r.width / 2, y: r.y + r.height / 2 },
-          { x: r.x + Math.min(r.width / 2, 60), y: r.y + Math.min(r.height / 2, 18) },
+          { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 },
+          { x: rect.x + Math.min(rect.width / 2, 60), y: rect.y + Math.min(rect.height / 2, 18) },
         ];
-        const owner = n.closest('.react-flow__node');
+        const owner = element.closest('.react-flow__node');
         return points.every(point => document.elementFromPoint(point.x, point.y)?.closest('.react-flow__node') === owner);
       })
     )
@@ -126,10 +129,10 @@ async function targetSelector(selector: string) {
 async function drag(page: Page, selector: string, dx: number, dy: number) {
   const target = await targetSelector(selector);
   await expect(target).toBeVisible();
-  const r = await target.boundingBox();
-  if (!r) throw Error('Missing drag bounds');
-  const x = r.x + Math.min(r.width / 2, 60);
-  const y = r.y + Math.min(r.height / 2, 18);
+  const boundingBox = await target.boundingBox();
+  if (!boundingBox) throw Error('Missing drag bounds');
+  const x = boundingBox.x + Math.min(boundingBox.width / 2, 60);
+  const y = boundingBox.y + Math.min(boundingBox.height / 2, 18);
   await page.mouse.move(x, y);
   await page.mouse.down();
   try {
@@ -149,7 +152,7 @@ async function drag(page: Page, selector: string, dx: number, dy: number) {
     await page.mouse.up();
   }
   const moved = await target.boundingBox();
-  expect(Math.hypot(moved!.x - r.x, moved!.y - r.y), 'Real drag moved the entity/area').toBeGreaterThan(8);
+  expect(Math.hypot(moved!.x - boundingBox.x, moved!.y - boundingBox.y), 'Real drag moved the entity/area').toBeGreaterThan(8);
 }
 
 try {

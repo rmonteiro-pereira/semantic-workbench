@@ -55,7 +55,7 @@ type Props = {
   historyPath: string | undefined;
   refresh: () => Promise<Doc[]>;
   docsRef: React.RefObject<Map<string, Doc>>;
-  openDocument: (d: Doc) => boolean;
+  openDocument: (doc: Doc) => boolean;
   setTab: (next: string) => void;
   kpiProject: string | null;
   kpis: KpiSummary[];
@@ -65,7 +65,7 @@ type Props = {
   setSelectedKpi: React.Dispatch<React.SetStateAction<string>>;
   kpiFilter: string;
   setWizard: React.Dispatch<React.SetStateAction<boolean | KpiSummary>>;
-  editKpi: (k: KpiSummary) => void;
+  editKpi: (kpiSummary: KpiSummary) => void;
   editMappingItem: (docId: string, path: Path) => void;
   commitImports: (drafts: ImportDraft[]) => Promise<void>;
   sample: string;
@@ -83,8 +83,8 @@ type Props = {
   search: string;
   selectEntity: (id: string) => void;
   kpiBadges: Map<string, string[]>;
-  entityTarget: (e: Entity) => ItemTarget | null;
-  rdfTarget: (e: Entity) => RdfTarget | null;
+  entityTarget: (entity: Entity) => ItemTarget | null;
+  rdfTarget: (entity: Entity) => RdfTarget | null;
   setEditing: React.Dispatch<React.SetStateAction<ItemTarget | null>>;
   setRdfEditing: React.Dispatch<React.SetStateAction<RdfTarget | null>>;
   mappingId: string;
@@ -106,8 +106,8 @@ type Props = {
   dispatchWalk: React.ActionDispatch<[action: WalkAction]>;
   walkTo: (index: number) => void;
   setKpiFilter: React.Dispatch<React.SetStateAction<string>>;
-  crossFile: (e: Entity) => CrossFileTarget[];
-  crossTo: (t: CrossFileTarget) => void;
+  crossFile: (entity: Entity) => CrossFileTarget[];
+  crossTo: (crossFileTarget: CrossFileTarget) => void;
   /** A project the person opened that has no definitions, shown instead of the welcome text. */
   emptyProject?: ProjectInfo;
   onImportInto: (slug: string) => void;
@@ -359,9 +359,9 @@ export function WorkspaceCanvas({
     return void commitImports([{ filename: 'commerce-business.ossie.yaml', source: sample }]).catch(e => setMessage((e as Error).message));
   }
 
-  function handleLineageCanvasOpenAsset(c: import('../odcs/lineage').LineageCard) {
+  function handleLineageCanvasOpenAsset(lineageCard: import('../odcs/lineage').LineageCard) {
     setTab('contract');
-    setContractObject(c.label);
+    setContractObject(lineageCard.label);
   }
 
   function handleFullGraphSelectEdge(id: string) {

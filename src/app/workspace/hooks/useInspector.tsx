@@ -60,20 +60,20 @@ export function useInspector({ tab, entity, relationship, setSelected, setSelect
   const toggleFull = useRef(() => {});
   toggleFull.current = fullscreen.toggle;
   useEffect(() => {
-    const key = (e: KeyboardEvent) => {
-      const element = e.target as HTMLElement;
-      if (e.key !== 'f' || e.ctrlKey || e.metaKey || e.altKey || element.closest('input,textarea,select,[contenteditable=true],dialog,.cm-editor')) return;
-      e.preventDefault();
+    const key = (event: KeyboardEvent) => {
+      const pressedIn = event.target as HTMLElement;
+      if (event.key !== 'f' || event.ctrlKey || event.metaKey || event.altKey || pressedIn.closest('input,textarea,select,[contenteditable=true],dialog,.cm-editor')) return;
+      event.preventDefault();
       toggleFull.current();
     };
     window.addEventListener('keydown', key);
     return () => window.removeEventListener('keydown', key);
   }, []);
   useEffect(() => {
-    const key = (e: KeyboardEvent) => {
-      const elementValue = e.target as HTMLElement;
-      if (e.key !== 'e' || e.ctrlKey || e.metaKey || e.altKey || elementValue.closest('input,textarea,select,[contenteditable=true],dialog')) return;
-      e.preventDefault();
+    const key = (event: KeyboardEvent) => {
+      const pressedIn = event.target as HTMLElement;
+      if (event.key !== 'e' || event.ctrlKey || event.metaKey || event.altKey || pressedIn.closest('input,textarea,select,[contenteditable=true],dialog')) return;
+      event.preventDefault();
       latest.current();
     };
     window.addEventListener('keydown', key);

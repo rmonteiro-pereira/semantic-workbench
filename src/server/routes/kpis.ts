@@ -20,13 +20,13 @@ export const kpiRoutes: Route = async (ws, req, url) => {
     const body = await readJson(req, MAX_INPUT_BYTES * 6 + 4096);
     if (!object(body) || !Array.isArray(body.files) || Object.keys(body).some(k => k !== 'files'))
       throw new BadRequestError('Expected {files: [{path, baseHash, source} or {path, baseHash, patches}]}.');
-    for (const f of body.files)
+    for (const file of body.files)
       if (
-        !object(f) ||
-        typeof f.path !== 'string' ||
-        (f.baseHash !== null && (typeof f.baseHash !== 'string' || !HASH.test(f.baseHash))) ||
-        (f.source === undefined) === (f.patches === undefined) ||
-        (f.source !== undefined && typeof f.source !== 'string')
+        !object(file) ||
+        typeof file.path !== 'string' ||
+        (file.baseHash !== null && (typeof file.baseHash !== 'string' || !HASH.test(file.baseHash))) ||
+        (file.source === undefined) === (file.patches === undefined) ||
+        (file.source !== undefined && typeof file.source !== 'string')
       )
         throw new BadRequestError('Each file needs a path, the SHA-256 of the version the edit started from (null for a new file), and either source or patches.');
     authorizeWrite(
@@ -42,15 +42,15 @@ export const kpiRoutes: Route = async (ws, req, url) => {
     return Response.json(await ws.saveFiles(slug, body.files, reader, 'save-batch'));
   }
   // Keep the older `kpis` paths as aliases for existing clients.
-  const m = url.pathname.match(/^\/api\/projects\/([^/]+)\/(?:metrics|kpis)(\/preview)?$/);
-  if (!m) return null;
-  const slug = decodeSegment(m[1]);
-  const preview = !!m[2];
+  const match = url.pathname.match(/^\/api\/projects\/([^/]+)\/(?:metrics|kpis)(\/preview)?$/);
+  if (!match) return null;
+  const slug = decodeSegment(match[1]);
+  const preview = !!match[2];
   ws.project(slug);
   const body = await readJson(req, 256_000);
   if (
     !object(body) ||
-    Object.keys(body).some(k => !['semanticPath', 'modelPath', 'existing', 'metric', 'extension', 'binding', 'baseHashes'].includes(k)) ||
+    Object.keys(body).some(key => !['semanticPath', 'modelPath', 'existing', 'metric', 'extension', 'binding', 'baseHashes'].includes(key)) ||
     typeof body.semanticPath !== 'string' ||
     (body.existing !== undefined && typeof body.existing !== 'boolean') ||
     !object(body.metric) ||
@@ -72,9 +72,9 @@ export const kpiRoutes: Route = async (ws, req, url) => {
       documents.map(d => ({ path: d.path, source: d.source })),
       body as KpiRequest,
     );
-  } catch (e) {
-    if (e instanceof KpiError) throw new InputError([{ severity: 'error', code: 'kpi', path: '/', message: e.message }]);
-    throw e;
+  } catch (error) {
+    if (error instanceof KpiError) throw new InputError([{ severity: 'error', code: 'kpi', path: '/', message: error.message }]);
+    throw error;
   }
   if (preview) {
     const next = [
@@ -84,28 +84,33 @@ export const kpiRoutes: Route = async (ws, req, url) => {
       }),
       ...plan.writes
         .filter(w => w.created)
-        .map(w => ({
-          id: `${slug}/${w.path}`,
-          filename: w.path.split('/').pop()!,
-          source: w.source,
+        .map(write => ({
+          id: `${slug}/${write.path}`,
+          filename: write.path.split('/').pop()!,
+          source: write.source,
           revision: 1,
           project: slug,
-          path: w.path,
+          path: write.path,
         })),
     ];
-    const changes = plan.writes.map(w => {
-      const before = documents.find(d => d.path === w.path)?.source ?? '';
-      const a = before ? before.split('\n') : [];
-      const b = w.source.split('\n');
-      let p = 0;
-      while (p < a.length && p < b.length && a[p] === b[p]) p++;
-      let s = 0;
-      while (s < a.length - p && s < b.length - p && a[a.length - 1 - s] === b[b.length - 1 - s]) s++;
+    const changes = plan.writes.map(write => {
+      const before = documents.find(d => d.path === write.path)?.source ?? '';
+      const beforeLines = before ? before.split('\n') : [];
+      const afterLines = write.source.split('\n');
+      let commonPrefix = 0;
+      while (commonPrefix < beforeLines.length && commonPrefix < afterLines.length && beforeLines[commonPrefix] === afterLines[commonPrefix]) commonPrefix++;
+      let commonSuffix = 0;
+      while (
+        commonSuffix < beforeLines.length - commonPrefix &&
+        commonSuffix < afterLines.length - commonPrefix &&
+        beforeLines[beforeLines.length - 1 - commonSuffix] === afterLines[afterLines.length - 1 - commonSuffix]
+      )
+        commonSuffix++;
       return {
-        path: w.path,
-        created: w.created,
-        added: b.slice(p, b.length - s),
-        removed: a.slice(p, a.length - s),
+        path: write.path,
+        created: write.created,
+        added: afterLines.slice(commonPrefix, afterLines.length - commonSuffix),
+        removed: beforeLines.slice(commonPrefix, beforeLines.length - commonSuffix),
       };
     });
     return Response.json({
@@ -113,11 +118,11 @@ export const kpiRoutes: Route = async (ws, req, url) => {
       explanation: explainMetric(next, slug, body.semanticPath, body.metric.name, {}),
     });
   }
-  const writes = plan.writes.map(w => {
-    if (w.created) return { path: w.path, baseHash: null, source: w.source };
-    const hash = body.baseHashes[w.path];
-    if (typeof hash !== 'string' || !HASH.test(hash)) throw new BadRequestError(`baseHashes must include the hash of ${w.path} as you last read it.`);
-    return { path: w.path, baseHash: hash, source: w.source };
+  const writes = plan.writes.map(write => {
+    if (write.created) return { path: write.path, baseHash: null, source: write.source };
+    const hash = body.baseHashes[write.path];
+    if (typeof hash !== 'string' || !HASH.test(hash)) throw new BadRequestError(`baseHashes must include the hash of ${write.path} as you last read it.`);
+    return { path: write.path, baseHash: hash, source: write.source };
   });
   authorizeWrite(
     req,

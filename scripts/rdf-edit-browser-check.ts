@@ -15,10 +15,10 @@ const commerce = await api.ws.loadExample('commerce');
 const mall = await api.ws.loadExample('mall');
 const ttl = readFileSync('public/examples/commerce/commerce.owl.ttl', 'utf8');
 const nt = (() => {
-  const w = new Writer({ format: 'N-Triples' });
-  w.addQuads(new Parser({ baseIRI: 'https://workbench.local/import/' }).parse(ttl));
+  const writer = new Writer({ format: 'N-Triples' });
+  writer.addQuads(new Parser({ baseIRI: 'https://workbench.local/import/' }).parse(ttl));
   let out = '';
-  w.end((_e: any, r: string) => {
+  writer.end((_e: any, r: string) => {
     out = r;
   });
   return out;
@@ -37,17 +37,17 @@ const imported = await api.ws.importBatch(
 const read = (slug: string, path: string) => readFileSync(projectFile(api.ws.layout, slug, path), 'utf8');
 const git = async (slug: string, args: string[]) => (await api.ws.git.run(projectDir(api.ws.layout, slug), args)).stdout;
 async function changed(slug: string, path: string) {
-  const d = await git(slug, ['diff', '-U0', '--', path]);
+  const diffOutput = await git(slug, ['diff', '-U0', '--', path]);
   return {
-    removed: d
+    removed: diffOutput
       .split('\n')
       .filter(l => /^-(?!--)/.test(l))
       .map(l => l.slice(1)),
-    added: d
+    added: diffOutput
       .split('\n')
       .filter(l => /^\+(?!\+\+)/.test(l))
       .map(l => l.slice(1)),
-    hunks: d.split('\n').filter(l => l.startsWith('@@')).length,
+    hunks: diffOutput.split('\n').filter(l => l.startsWith('@@')).length,
   };
 }
 const commit = (slug: string, message: string) => api.ws.git.run(projectDir(api.ws.layout, slug), ['commit', '-qam', message]);
@@ -61,10 +61,10 @@ page.on('console', m => {
 await routeApi(page, api);
 let passed = 0;
 async function check(name: string, run: () => Promise<void>) {
-  const t = Date.now();
+  const startedAt = Date.now();
   await run();
   passed++;
-  console.log('PASS', name, `(${((Date.now() - t) / 1000).toFixed(1)} s)`);
+  console.log('PASS', name, `(${((Date.now() - startedAt) / 1000).toFixed(1)} s)`);
 }
 const tree = () => page.getByRole('tree', { name: 'Projects' });
 async function openFile(path: string) {
@@ -76,9 +76,9 @@ const editor = (name: string) => page.getByRole('dialog', { name: `Edit ${name}`
 async function catalogEdit(name: string) {
   await tabs().getByRole('button', { name: 'Catalog' }).click();
   await page.getByRole('button', { name: `Edit ${name}`, exact: true }).click();
-  const d = editor(name);
-  await expect(d).toBeVisible();
-  return d;
+  const dialog = editor(name);
+  await expect(dialog).toBeVisible();
+  return dialog;
 }
 const card = (name: string) =>
   page
@@ -88,31 +88,31 @@ const card = (name: string) =>
     .locator('button')
     .first()
     .click();
-// The statement row whose object reads `text` (1-based, as the row labels count).
-async function row(d: Locator, text: string) {
-  const values = await d.locator('[aria-label^="Object "]').evaluateAll(els => els.map(e => (e as HTMLInputElement).value));
-  const i = values.indexOf(text);
-  expect(i, `row ${text} in ${values.join(' | ')}`).toBeGreaterThanOrEqual(0);
+// The statement row whose object reads `objectText` (1-based, as the row labels count).
+async function row(dialog: Locator, objectText: string) {
+  const values = await dialog.locator('[aria-label^="Object "]').evaluateAll(els => els.map(e => (e as HTMLInputElement).value));
+  const i = values.indexOf(objectText);
+  expect(i, `row ${objectText} in ${values.join(' | ')}`).toBeGreaterThanOrEqual(0);
   return i + 1;
 }
-async function saveDialog(d: Locator) {
-  await expect(d.getByRole('button', { name: 'Save to file', exact: true })).toBeEnabled({
+async function saveDialog(dialog: Locator) {
+  await expect(dialog.getByRole('button', { name: 'Save to file', exact: true })).toBeEnabled({
     timeout: 5000,
   });
-  await d.getByRole('button', { name: 'Save to file', exact: true }).click();
-  await expect(d).toHaveCount(0, { timeout: 5000 });
+  await dialog.getByRole('button', { name: 'Save to file', exact: true }).click();
+  await expect(dialog).toHaveCount(0, { timeout: 5000 });
 }
 try {
   await page.goto(appUrl());
   await check('Turtle (catalog → Edit): changing one object rewrites only that statement line', async () => {
     await openFile('commerce.owl.ttl');
-    const d = await catalogEdit('Customer');
-    await expect(d.locator('.item-subject')).toHaveText('https://example.org/commerce#Customer');
-    const n = await row(d, '"Customer in the order-to-cash process."');
-    await d.getByLabel(`Object ${n}`, { exact: true }).fill('"Person or company that buys from us."');
-    await expect(d.locator('.item-gate')).toContainText('1 triple removed, 1 added');
+    const dialog = await catalogEdit('Customer');
+    await expect(dialog.locator('.item-subject')).toHaveText('https://example.org/commerce#Customer');
+    const rowNumber = await row(dialog, '"Customer in the order-to-cash process."');
+    await dialog.getByLabel(`Object ${rowNumber}`, { exact: true }).fill('"Person or company that buys from us."');
+    await expect(dialog.locator('.item-gate')).toContainText('1 triple removed, 1 added');
     await page.screenshot({ path: '/tmp/workbench-rdf-turtle.png' });
-    await saveDialog(d);
+    await saveDialog(dialog);
     expect(await changed(commerce.slug, 'commerce.owl.ttl')).toEqual({
       removed: ['c:Customer a owl:Class ; rdfs:label "Customer" ; rdfs:comment "Customer in the order-to-cash process." .'],
       added: ['c:Customer a owl:Class ; rdfs:label "Customer" ; rdfs:comment "Person or company that buys from us." .'],
@@ -126,53 +126,53 @@ try {
     await card('Order');
     await expect(page.getByRole('complementary', { name: 'Definition details' })).toBeVisible();
     await page.keyboard.press('e');
-    const d = page.getByRole('dialog', { name: /^Edit / });
-    await expect(d).toBeVisible();
-    const subject = await d.locator('.item-subject').textContent();
+    const dialog = page.getByRole('dialog', { name: /^Edit / });
+    await expect(dialog).toBeVisible();
+    const subject = await dialog.locator('.item-subject').textContent();
     expect(subject).toMatch(/^https:\/\/example\.org\/commerce#/);
-    const before = await d.locator('[aria-label^="Object "]').count();
-    await d.getByRole('button', { name: 'Add statement' }).click();
-    await d.getByLabel(`Predicate ${before + 1}`).fill('rdfs:seeAlso');
-    await d.getByLabel(`Object ${before + 1}`, { exact: true }).fill('<https://example.org/docs/order>');
-    await expect(d.locator('.item-gate')).toContainText('0 triples removed, 1 added');
-    await saveDialog(d);
-    const c = await changed(commerce.slug, 'commerce.owl.ttl');
-    expect(c.hunks).toBe(1);
-    expect(c.removed.length).toBe(1);
-    expect(c.added.length).toBe(1);
-    expect(c.added[0]).toBe(c.removed[0].replace(/ \.$/, ' ; rdfs:seeAlso <https://example.org/docs/order> .'));
+    const before = await dialog.locator('[aria-label^="Object "]').count();
+    await dialog.getByRole('button', { name: 'Add statement' }).click();
+    await dialog.getByLabel(`Predicate ${before + 1}`).fill('rdfs:seeAlso');
+    await dialog.getByLabel(`Object ${before + 1}`, { exact: true }).fill('<https://example.org/docs/order>');
+    await expect(dialog.locator('.item-gate')).toContainText('0 triples removed, 1 added');
+    await saveDialog(dialog);
+    const change = await changed(commerce.slug, 'commerce.owl.ttl');
+    expect(change.hunks).toBe(1);
+    expect(change.removed.length).toBe(1);
+    expect(change.added.length).toBe(1);
+    expect(change.added[0]).toBe(change.removed[0].replace(/ \.$/, ' ; rdfs:seeAlso <https://example.org/docs/order> .'));
     await commit(commerce.slug, 'turtle add statement');
   });
   await check('Turtle Source tab: an edit that changes another resource is refused and Save stays off', async () => {
-    const d = await catalogEdit('Customer');
-    await d.getByRole('tab', { name: 'Source' }).click();
-    const source = d.getByRole('textbox', { name: 'Source of Customer' });
+    const dialog = await catalogEdit('Customer');
+    await dialog.getByRole('tab', { name: 'Source' }).click();
+    const source = dialog.getByRole('textbox', { name: 'Source of Customer' });
     const fragment = await editorValue(source);
     expect(fragment.startsWith('c:Customer a owl:Class')).toBe(true);
     expect(fragment).not.toContain('c:Order a');
     await fillEditor(source, fragment + '\nc:Order rdfs:label "Purchase order" .');
-    await expect(d.getByRole('alert').filter({ hasText: 'change statements of other resources' })).toBeVisible({ timeout: 5000 });
-    await expect(d.getByRole('button', { name: 'Save to file', exact: true })).toBeDisabled();
+    await expect(dialog.getByRole('alert').filter({ hasText: 'change statements of other resources' })).toBeVisible({ timeout: 5000 });
+    await expect(dialog.getByRole('button', { name: 'Save to file', exact: true })).toBeDisabled();
     await page.screenshot({ path: '/tmp/workbench-rdf-refused.png' });
     await fillEditor(source, fragment.replace('rdfs:label "Customer"', 'rdfs:label "Customer" , "Client"@en'));
-    await saveDialog(d);
-    const c = await changed(commerce.slug, 'commerce.owl.ttl');
-    expect(c.hunks).toBe(1);
-    expect(c.added[0]).toContain('rdfs:label "Customer" , "Client"@en ;');
+    await saveDialog(dialog);
+    const change = await changed(commerce.slug, 'commerce.owl.ttl');
+    expect(change.hunks).toBe(1);
+    expect(change.added[0]).toContain('rdfs:label "Customer" , "Client"@en ;');
     await commit(commerce.slug, 'turtle source fragment');
   });
   await check('RDF/XML: a label edit changes one property element, the node element stays in place', async () => {
     await openFile('commerce.owl');
-    const d = await catalogEdit('Customer');
-    await expect(d.getByLabel('Predicate 1')).toBeDisabled();
-    const n = await row(d, '"Customer"');
-    await d.getByLabel(`Object ${n}`, { exact: true }).fill('"Client"');
-    await d.getByRole('button', { name: 'Add statement' }).click();
-    const m = await d.locator('[aria-label^="Object "]').count();
-    await d.getByLabel(`Predicate ${m}`).fill('rdfs:seeAlso');
-    await d.getByLabel(`Object ${m}`, { exact: true }).fill('<https://example.org/docs/customer>');
+    const dialog = await catalogEdit('Customer');
+    await expect(dialog.getByLabel('Predicate 1')).toBeDisabled();
+    const rowNumber = await row(dialog, '"Customer"');
+    await dialog.getByLabel(`Object ${rowNumber}`, { exact: true }).fill('"Client"');
+    await dialog.getByRole('button', { name: 'Add statement' }).click();
+    const statementCount = await dialog.locator('[aria-label^="Object "]').count();
+    await dialog.getByLabel(`Predicate ${statementCount}`).fill('rdfs:seeAlso');
+    await dialog.getByLabel(`Object ${statementCount}`, { exact: true }).fill('<https://example.org/docs/customer>');
     await page.screenshot({ path: '/tmp/workbench-rdf-xml.png' });
-    await saveDialog(d);
+    await saveDialog(dialog);
     expect(await changed(commerce.slug, 'commerce.owl')).toEqual({
       removed: ['        <rdfs:label>Customer</rdfs:label>'],
       added: ['        <rdfs:label>Client</rdfs:label>', '        <rdfs:seeAlso rdf:resource="https://example.org/docs/customer"/>'],
@@ -182,10 +182,10 @@ try {
   });
   await check('N-Triples: an edit replaces whole lines and every other line keeps its bytes', async () => {
     await openFile('commerce.owl.nt');
-    const d = await catalogEdit('Invoice');
-    const n = await row(d, '"Invoice in the order-to-cash process."');
-    await d.getByLabel(`Object ${n}`, { exact: true }).fill('"Bill sent to the customer."');
-    await saveDialog(d);
+    const dialog = await catalogEdit('Invoice');
+    const rowNumber = await row(dialog, '"Invoice in the order-to-cash process."');
+    await dialog.getByLabel(`Object ${rowNumber}`, { exact: true }).fill('"Bill sent to the customer."');
+    await saveDialog(dialog);
     expect(await changed(imported.slug, 'commerce.owl.nt')).toEqual({
       removed: ['<https://example.org/commerce#Invoice> <http://www.w3.org/2000/01/rdf-schema#comment> "Invoice in the order-to-cash process." .'],
       added: ['<https://example.org/commerce#Invoice> <http://www.w3.org/2000/01/rdf-schema#comment> "Bill sent to the customer." .'],
@@ -195,35 +195,35 @@ try {
   });
   await check('N3: a resource used in a rule is refused, with a jump to the rule in Source', async () => {
     await openFile('commerce.n3');
-    const d = await catalogEdit('PaidOrder');
-    const note = d.locator('.item-refusal');
+    const dialog = await catalogEdit('PaidOrder');
+    const note = dialog.locator('.item-refusal');
     await expect(note).toContainText('N3 formula or rule');
-    await expect(d.getByRole('alert').filter({ hasText: 'N3 formula or rule' })).toHaveCount(1);
-    await expect(d.getByRole('button', { name: 'Save to file', exact: true })).toBeDisabled();
-    await expect(d.getByRole('button', { name: 'Add statement' })).toBeDisabled();
+    await expect(dialog.getByRole('alert').filter({ hasText: 'N3 formula or rule' })).toHaveCount(1);
+    await expect(dialog.getByRole('button', { name: 'Save to file', exact: true })).toBeDisabled();
+    await expect(dialog.getByRole('button', { name: 'Add statement' })).toBeDisabled();
     await page.screenshot({ path: '/tmp/workbench-rdf-n3-refused.png' });
     await note.getByRole('button', { name: /^Open line \d+ in Source$/ }).click();
-    await expect(d).toHaveCount(0);
+    await expect(dialog).toHaveCount(0);
     await expect(page.locator('.cm-activeLine')).toContainText('=>');
     // Other resources of the same N3 file are still editable.
     await openFile('commerce.n3');
-    const e = await catalogEdit('Warehouse');
-    const n = await row(e, '"Warehouse"');
-    await e.getByLabel(`Object ${n}`, { exact: true }).fill('"Depot"');
-    await saveDialog(e);
-    const c = await changed(imported.slug, 'commerce.n3');
-    expect(c.hunks).toBe(1);
-    expect(c.added[0]).toContain('rdfs:label "Depot"');
+    const edit = await catalogEdit('Warehouse');
+    const rowNumber = await row(edit, '"Warehouse"');
+    await edit.getByLabel(`Object ${rowNumber}`, { exact: true }).fill('"Depot"');
+    await saveDialog(edit);
+    const change = await changed(imported.slug, 'commerce.n3');
+    expect(change.hunks).toBe(1);
+    expect(change.added[0]).toContain('rdfs:label "Depot"');
     expect(read(imported.slug, 'commerce.n3').endsWith(rule)).toBe(true);
   });
   await check('SHACL (mall): removing one sh:property object keeps the rest of the shape and file', async () => {
     await openFile('mall.shacl.ttl');
-    const d = await catalogEdit('Party requirements');
-    const n = await row(d, 'core:Party_phoneShape');
-    await d.getByRole('button', { name: `Remove statement ${n}` }).click();
-    await expect(d.locator('.item-gate')).toContainText('1 triple removed, 0 added');
+    const dialog = await catalogEdit('Party requirements');
+    const rowNumber = await row(dialog, 'core:Party_phoneShape');
+    await dialog.getByRole('button', { name: `Remove statement ${rowNumber}` }).click();
+    await expect(dialog.locator('.item-gate')).toContainText('1 triple removed, 0 added');
     await page.screenshot({ path: '/tmp/workbench-rdf-shacl.png' });
-    await saveDialog(d);
+    await saveDialog(dialog);
     expect(await changed(mall.slug, 'mall.shacl.ttl')).toEqual({
       removed: ['    core:Party_phoneShape ,'],
       added: [],
@@ -234,22 +234,22 @@ try {
     await openFile('commerce.owl.ttl');
     const before = read(commerce.slug, 'commerce.owl.ttl');
     await newItem(page, /^Add RDF resource/);
-    const a = page.getByRole('dialog', { name: /^Add to commerce\.owl\.ttl/ });
-    await a.getByLabel('Item type').selectOption('class');
-    await a.getByLabel('IRI').fill('c:Supplier');
-    await a.getByLabel('Label').fill('Supplier');
-    await a.getByLabel('Subclass of').fill('c:Customer');
-    await expect(a.getByLabel('Text to insert')).toHaveText('c:Supplier a owl:Class ; rdfs:label "Supplier" ; rdfs:subClassOf c:Customer .\n');
+    const dialog = page.getByRole('dialog', { name: /^Add to commerce\.owl\.ttl/ });
+    await dialog.getByLabel('Item type').selectOption('class');
+    await dialog.getByLabel('IRI').fill('c:Supplier');
+    await dialog.getByLabel('Label').fill('Supplier');
+    await dialog.getByLabel('Subclass of').fill('c:Customer');
+    await expect(dialog.getByLabel('Text to insert')).toHaveText('c:Supplier a owl:Class ; rdfs:label "Supplier" ; rdfs:subClassOf c:Customer .\n');
     await page.screenshot({ path: '/tmp/workbench-rdf-add.png' });
-    await a.getByRole('button', { name: 'Save to file' }).click();
-    await expect(a).toHaveCount(0, { timeout: 5000 });
+    await dialog.getByRole('button', { name: 'Save to file' }).click();
+    await expect(dialog).toHaveCount(0, { timeout: 5000 });
     await expect(page.getByRole('complementary', { name: 'Definition details' })).toContainText('Supplier');
-    const d = await catalogEdit('Product');
-    await d.getByRole('button', { name: 'Add statement' }).click();
-    const m = await d.locator('[aria-label^="Object "]').count();
-    await d.getByLabel(`Predicate ${m}`).fill('rdfs:seeAlso');
-    await d.getByLabel(`Object ${m}`, { exact: true }).fill('c:Supplier');
-    await saveDialog(d);
+    const edit = await catalogEdit('Product');
+    await edit.getByRole('button', { name: 'Add statement' }).click();
+    const statementCount = await edit.locator('[aria-label^="Object "]').count();
+    await edit.getByLabel(`Predicate ${statementCount}`).fill('rdfs:seeAlso');
+    await edit.getByLabel(`Object ${statementCount}`, { exact: true }).fill('c:Supplier');
+    await saveDialog(edit);
     await tabs().getByRole('button', { name: 'Catalog' }).click();
     await card('Supplier');
     await page.getByRole('complementary', { name: 'Definition details' }).getByRole('button', { name: 'Delete Supplier' }).click();

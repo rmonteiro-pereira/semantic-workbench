@@ -110,8 +110,7 @@ test('client without app roles sees only granted mappings and every call is attr
     expect(text).not.toContain('LEAK-hr-people');
     expect(text).not.toContain('LEAK-shared-reference');
     expect(text).not.toContain('LEAK-sales-metrics');
-    // The people mapping refers to a project the client cannot read, so nothing resolves; the
-    // sales mapping resolves inside its own project.
+    // The people mapping refers to a project the client cannot read, so nothing resolves; the sales mapping resolves inside its own project.
     if (mapping === 'people') {
       expect(text).toContain('resolves to 0 local documents');
       expect(JSON.parse(text).ontology).toEqual({});

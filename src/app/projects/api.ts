@@ -274,19 +274,19 @@ export type KpiSaveRequest = {
 };
 /** Selects grain, dimensions and rollup options for a metric explanation. */
 export type ExplainQuery = { grain?: string; dimensions?: string[]; rollup?: string };
-const explainQuery = (q: ExplainQuery) => {
-  const p = new URLSearchParams();
-  if (q.grain) p.set('grain', q.grain);
-  for (const d of q.dimensions ?? []) p.append('dimension', d);
-  if (q.rollup) p.set('rollup', q.rollup);
-  const s = p.toString();
-  return s ? '?' + s : '';
+const explainQuery = (query: ExplainQuery) => {
+  const params = new URLSearchParams();
+  if (query.grain) params.set('grain', query.grain);
+  for (const dimension of query.dimensions ?? []) params.append('dimension', dimension);
+  if (query.rollup) params.set('rollup', query.rollup);
+  const queryString = params.toString();
+  return queryString ? '?' + queryString : '';
 };
 /** Provides browser operations for projects, documents, imports and metrics. */
 export const api = {
   metrics: (project: string) => apiFetch(`/api/projects/${encodeURIComponent(project)}/metrics`).then(r => json<KpiSummary[]>(r)),
-  explain: (project: string, path: string, metric: string, q: ExplainQuery = {}, signal?: AbortSignal) =>
-    apiFetch(`${fileUrl(project, path)}/explain/${encodeURIComponent(metric)}${explainQuery(q)}`, {
+  explain: (project: string, path: string, metric: string, query: ExplainQuery = {}, signal?: AbortSignal) =>
+    apiFetch(`${fileUrl(project, path)}/explain/${encodeURIComponent(metric)}${explainQuery(query)}`, {
       signal,
     }).then(r => json<KpiExplanation>(r)),
   status: () => apiFetch('/api/status').then(r => json<WorkspaceStatus>(r)),
@@ -324,28 +324,28 @@ export const api = {
     }>(response);
   },
   previewKpi: (project: string, body: KpiSaveRequest) =>
-    apiFetch(`/api/projects/${encodeURIComponent(project)}/metrics/preview`, send('POST', body)).then(r =>
+    apiFetch(`/api/projects/${encodeURIComponent(project)}/metrics/preview`, send('POST', body)).then(response =>
       json<{
         changes: { path: string; created: boolean; added: string[]; removed: string[] }[];
         explanation: KpiExplanation;
-      }>(r),
+      }>(response),
     ),
   async saveKpi(project: string, body: KpiSaveRequest & { baseHashes: Record<string, string> }) {
     const response = await apiFetch(`/api/projects/${encodeURIComponent(project)}/metrics`, send('POST', body));
     if (response.status === 409) {
-      const b = await response.json();
-      throw new StaleSave(b.currentHash, b.currentSource);
+      const conflictBody = await response.json();
+      throw new StaleSave(conflictBody.currentHash, conflictBody.currentSource);
     }
     return json<{ written: { path: string; hash: string; created: boolean }[] }>(response);
   },
   importBatch: async (files: { path: string; source: string }[], name?: string, domain?: string) =>
-    apiFetch('/api/import', send('POST', { files, ...(name ? { name } : {}), domain })).then(r =>
+    apiFetch('/api/import', send('POST', { files, ...(name ? { name } : {}), domain })).then(response =>
       json<{
         slug: string;
         name: string;
         written: { path: string; hash: string }[];
         commit?: ImportCommit;
-      }>(r),
+      }>(response),
     ),
   deleteImpact: (project: string, path?: string) => {
     const query = path !== undefined ? '?path=' + encodeURIComponent(path) : '';
@@ -411,41 +411,41 @@ const gitUrl = (project: string, action: string) => `/api/projects/${encodeURICo
 async function gitPost<T>(project: string, action: string, body?: unknown): Promise<T> {
   const response = await apiFetch(gitUrl(project, action), send('POST', body));
   if (response.status === 409) {
-    const b = await response.json();
+    const conflictBody = await response.json();
     // A branch in use or a publish that is not a fast-forward is explained by its message.
-    if (b.error !== 'drafts' && b.error !== 'dirty') throw Object.assign(Error(b.error), b);
-    throw new Blocked(b.error, b.paths ?? [], b.message ?? b.error);
+    if (conflictBody.error !== 'drafts' && conflictBody.error !== 'dirty') throw Object.assign(Error(conflictBody.error), conflictBody);
+    throw new Blocked(conflictBody.error, conflictBody.paths ?? [], conflictBody.message ?? conflictBody.error);
   }
   return json<T>(response);
 }
 /** Provides browser operations for source-control review and Git actions. */
 export const scm = {
   status: (p: string) => apiFetch(gitUrl(p, 'git/status')).then(r => json<GitStatus>(r)),
-  diff: (p: string, path: string, from = 'HEAD', to = 'worktree') =>
-    apiFetch(gitUrl(p, 'git/diff') + `?path=${encodeURIComponent(path)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`).then(r => json<GitDiff>(r)),
+  diff: (project: string, path: string, from = 'HEAD', to = 'worktree') =>
+    apiFetch(gitUrl(project, 'git/diff') + `?path=${encodeURIComponent(path)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`).then(r => json<GitDiff>(r)),
   /** The diff of a changed file named by its path from the repository root. */
-  changeDiff: (p: string, repoPath: string, from: string, to: string) =>
-    apiFetch(gitUrl(p, 'git/diff') + `?repoPath=${encodeURIComponent(repoPath)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`).then(r => json<GitDiff>(r)),
+  changeDiff: (project: string, repoPath: string, from: string, to: string) =>
+    apiFetch(gitUrl(project, 'git/diff') + `?repoPath=${encodeURIComponent(repoPath)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`).then(r => json<GitDiff>(r)),
   stage: (p: string, paths: string[] | 'all') => gitPost<GitStatus>(p, 'git/stage', paths === 'all' ? { all: true } : { paths }),
   unstage: (p: string, paths: string[] | 'all') => gitPost<GitStatus>(p, 'git/unstage', paths === 'all' ? { all: true } : { paths }),
   /** Stages or unstages changed files named by their paths from the repository root. */
   stageChanges: (p: string, repoPaths: string[], stage: boolean) => gitPost<GitStatus>(p, stage ? 'git/stage' : 'git/unstage', { repoPaths }),
   // `paths`: commit exactly these files (git commit --only); `push`: then push and report the
   // outcome.
-  async commit(p: string, message: string, options: { paths?: string[]; repoPaths?: string[]; push?: boolean } = {}) {
-    const response = await apiFetch(gitUrl(p, 'git/commit'), send('POST', { message, ...options }));
+  async commit(project: string, message: string, options: { paths?: string[]; repoPaths?: string[]; push?: boolean } = {}) {
+    const response = await apiFetch(gitUrl(project, 'git/commit'), send('POST', { message, ...options }));
     if (response.status === 409) {
-      const b = await response.json();
-      throw Object.assign(Error(b.message ?? b.error), { status: 409, body: b });
+      const conflictBody = await response.json();
+      throw Object.assign(Error(conflictBody.message ?? conflictBody.error), { status: 409, body: conflictBody });
     }
     return json<{ commit: string; altered: string[]; pushed?: { ok: boolean; message: string } }>(response);
   },
   // Revert to last commit: `baseHash` is the hash of the file now on disk (null if absent).
-  async revert(p: string, path: string, baseHash: string | null) {
-    const response = await apiFetch(gitUrl(p, 'git/revert'), send('POST', { path, baseHash }));
+  async revert(project: string, path: string, baseHash: string | null) {
+    const response = await apiFetch(gitUrl(project, 'git/revert'), send('POST', { path, baseHash }));
     if (response.status === 409) {
-      const b = await response.json();
-      throw new StaleSave(b.currentHash, b.currentSource);
+      const conflictBody = await response.json();
+      throw new StaleSave(conflictBody.currentHash, conflictBody.currentSource);
     }
     return json<{ hash: string | null; trashEntry: string | null }>(response);
   },
@@ -480,35 +480,35 @@ export const scm = {
   pullDefault: (p: string) => gitPost<RemoteResult>(p, 'git/pull-default', {}),
   /** Server mode: pushes the default branch to the remote; Stewards and Admins only. */
   pushDefault: (p: string) => gitPost<RemoteResult>(p, 'git/push-default', {}),
-  log: (p: string, path?: string, limit = 50) =>
-    apiFetch(gitUrl(p, 'git/log') + `?limit=${limit}${path ? '&path=' + encodeURIComponent(path) : ''}`)
+  log: (project: string, path?: string, limit = 50) =>
+    apiFetch(gitUrl(project, 'git/log') + `?limit=${limit}${path ? '&path=' + encodeURIComponent(path) : ''}`)
       .then(r => json<GitCommit[] | { commits: GitCommit[]; hiddenCommits: number }>(r))
       .then(history => (Array.isArray(history) ? { commits: history, hiddenCommits: 0 } : history)),
   versions: (p: string, path: string, limit = 20) => apiFetch(gitUrl(p, 'git/versions') + `?path=${encodeURIComponent(path)}&limit=${limit}`).then(r => json<(GitCommit & { source: string })[]>(r)),
   ignore: (p: string, pattern: string) => gitPost<{ hash: string; added: boolean; tracked: string[] }>(p, 'gitignore', { pattern }),
-  saveDraft: (p: string, path: string, baseHash: string | null, text: string) =>
-    apiFetch(`/api/drafts/${encodeURIComponent(p)}/${path.split('/').map(encodeURIComponent).join('/')}`, send('PUT', { baseHash, text, patches: [] })),
-  deleteDraft: (p: string, path: string) => apiFetch(`/api/drafts/${encodeURIComponent(p)}/${path.split('/').map(encodeURIComponent).join('/')}`, { method: 'DELETE' }),
+  saveDraft: (project: string, path: string, baseHash: string | null, text: string) =>
+    apiFetch(`/api/drafts/${encodeURIComponent(project)}/${path.split('/').map(encodeURIComponent).join('/')}`, send('PUT', { baseHash, text, patches: [] })),
+  deleteDraft: (project: string, path: string) => apiFetch(`/api/drafts/${encodeURIComponent(project)}/${path.split('/').map(encodeURIComponent).join('/')}`, { method: 'DELETE' }),
 };
 
 /** Loads visible project files while reusing sources whose hashes are unchanged. */
 export async function loadWorkspace(previous: Map<string, Doc>) {
   const projects = await api.projects();
   const docs = await Promise.all(
-    projects.flatMap(p =>
-      p.files
+    projects.flatMap(project =>
+      project.files
         .filter(f => f.visible)
-        .map(async f => {
-          const id = docId(p.slug, f.path);
+        .map(async projectFile => {
+          const id = docId(project.slug, projectFile.path);
           const old = previous.get(id);
-          if (old && old.hash === f.hash) return old;
+          if (old && old.hash === projectFile.hash) return old;
           try {
-            const file = await api.file(p.slug, f.path);
+            const file = await api.file(project.slug, projectFile.path);
             return {
               id,
-              project: p.slug,
-              path: f.path,
-              filename: f.path.split('/').pop()!,
+              project: project.slug,
+              path: projectFile.path,
+              filename: projectFile.path.split('/').pop()!,
               source: file.source,
               hash: file.hash,
             } as Doc;

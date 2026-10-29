@@ -12,25 +12,25 @@ type Props = {
 };
 /** Renders sidebar resize handle. */
 export const SidebarResizeHandle = React.memo(function SidebarResizeHandle({ compact, sidebarOpen, sidebarWidth, sidebarDrag, setResizingSidebar, setSidebarWidth, clampSidebarWidth }: Props) {
-  function handleSidebarSeparatorPointerDown(e: React.PointerEvent<HTMLDivElement>) {
-    if (e.button !== 0) return;
-    e.preventDefault();
-    e.currentTarget.focus();
-    e.currentTarget.setPointerCapture(e.pointerId);
-    sidebarDrag.current = { pointerId: e.pointerId, x: e.clientX, width: sidebarWidth };
+  function handleSidebarSeparatorPointerDown(event: React.PointerEvent<HTMLDivElement>) {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    event.currentTarget.focus();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    sidebarDrag.current = { pointerId: event.pointerId, x: event.clientX, width: sidebarWidth };
     setResizingSidebar(true);
   }
 
-  function handleSidebarSeparatorPointerMove(e: React.PointerEvent<HTMLDivElement>) {
+  function handleSidebarSeparatorPointerMove(event: React.PointerEvent<HTMLDivElement>) {
     const drag = sidebarDrag.current;
-    if (drag?.pointerId === e.pointerId) setSidebarWidth(clampSidebarWidth(drag.width + e.clientX - drag.x));
+    if (drag?.pointerId === event.pointerId) setSidebarWidth(clampSidebarWidth(drag.width + event.clientX - drag.x));
   }
 
-  function handleSidebarSeparatorPointerUp(e: React.PointerEvent<HTMLDivElement>) {
-    if (sidebarDrag.current?.pointerId !== e.pointerId) return;
+  function handleSidebarSeparatorPointerUp(event: React.PointerEvent<HTMLDivElement>) {
+    if (sidebarDrag.current?.pointerId !== event.pointerId) return;
     sidebarDrag.current = null;
     setResizingSidebar(false);
-    e.currentTarget.releasePointerCapture(e.pointerId);
+    event.currentTarget.releasePointerCapture(event.pointerId);
   }
 
   function handleSidebarSeparatorPointerCancel() {
@@ -43,18 +43,18 @@ export const SidebarResizeHandle = React.memo(function SidebarResizeHandle({ com
     setResizingSidebar(false);
   }
 
-  function handleSidebarSeparatorKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+  function handleSidebarSeparatorKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
     function getWidth() {
-      if (e.key === 'Home') {
+      if (event.key === 'Home') {
         return 220;
       }
-      if (e.key === 'End') {
+      if (event.key === 'End') {
         return 520;
       }
-      if (e.key === 'ArrowLeft') {
+      if (event.key === 'ArrowLeft') {
         return sidebarWidth - 16;
       }
-      if (e.key === 'ArrowRight') {
+      if (event.key === 'ArrowRight') {
         return sidebarWidth + 16;
       }
       return null;
@@ -62,7 +62,7 @@ export const SidebarResizeHandle = React.memo(function SidebarResizeHandle({ com
 
     const width = getWidth();
     if (width !== null) {
-      e.preventDefault();
+      event.preventDefault();
       setSidebarWidth(clampSidebarWidth(width));
     }
   }

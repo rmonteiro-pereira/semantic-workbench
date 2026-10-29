@@ -34,30 +34,30 @@ const SIX: [number, number][] = [
 type Entry = {
   name: string;
   dialog: string | RegExp;
-  open: (p: Page) => Promise<void>;
-  trigger: (p: Page) => ReturnType<Page['getByRole']>;
-  returns?: (p: Page) => ReturnType<Page['getByRole']>;
+  open: (page: Page) => Promise<void>;
+  trigger: (page: Page) => ReturnType<Page['getByRole']>;
+  returns?: (page: Page) => ReturnType<Page['getByRole']>;
 };
 const tree = (p: Page) => p.getByRole('tree', { name: 'Projects' });
 const narrow = (p: Page) => p.viewportSize()!.width < 1100;
 // On a narrow screen the app may open a document right after loading, which closes the drawer
 // the check has just opened, so the drawer is opened again until the tree shows.
-async function workspace(p: Page) {
-  if (!narrow(p)) {
-    await expect(tree(p)).toBeVisible();
+async function workspace(page: Page) {
+  if (!narrow(page)) {
+    await expect(tree(page)).toBeVisible();
     return;
   }
   await expect(async () => {
-    if (!(await tree(p).isVisible())) await p.getByRole('button', { name: 'Open workspace', exact: true }).click();
-    await expect(tree(p)).toBeVisible({ timeout: 1000 });
+    if (!(await tree(page).isVisible())) await page.getByRole('button', { name: 'Open workspace', exact: true }).click();
+    await expect(tree(page)).toBeVisible({ timeout: 1000 });
   }).toPass({ timeout: 15000 });
 }
-async function openFile(p: Page, project: string, path: string) {
-  await workspace(p);
-  await tree(p).getByRole('treeitem', { name: project }).getByRole('button', { name: path, exact: true }).click();
-  if (narrow(p)) {
-    await p.waitForTimeout(300);
-    const close = p.getByRole('button', { name: 'Close workspace', exact: true });
+async function openFile(page: Page, project: string, path: string) {
+  await workspace(page);
+  await tree(page).getByRole('treeitem', { name: project }).getByRole('button', { name: path, exact: true }).click();
+  if (narrow(page)) {
+    await page.waitForTimeout(300);
+    const close = page.getByRole('button', { name: 'Close workspace', exact: true });
     if (await close.isVisible()) await close.click();
   }
 }
@@ -105,10 +105,10 @@ const entries: Entry[] = [
   {
     name: 'View definition',
     dialog: /^Definition of /,
-    open: async p => {
-      await openFile(p, mall.name, 'mall.ontology.yaml');
-      await p.locator('.tabs').getByRole('button', { name: 'Catalog', exact: true }).click();
-      await p.locator('.catalog button').first().click();
+    open: async page => {
+      await openFile(page, mall.name, 'mall.ontology.yaml');
+      await page.locator('.tabs').getByRole('button', { name: 'Catalog', exact: true }).click();
+      await page.locator('.catalog button').first().click();
     },
     trigger: p => p.getByRole('button', { name: 'View definition' }),
   },
@@ -129,43 +129,49 @@ async function check(name: string, run: () => Promise<void>) {
 }
 const ONLY = process.env.DIALOGS_ONLY;
 try {
-  for (const e of entries.filter(e => !ONLY || e.name.includes(ONLY)))
-    await check(`${e.name}: opens from its trigger, fits the six viewports, traps focus, Escape closes and returns focus`, async () => {
+  for (const entry of entries.filter(e => !ONLY || e.name.includes(ONLY)))
+    await check(`${entry.name}: opens from its trigger, fits the six viewports, traps focus, Escape closes and returns focus`, async () => {
       for (const [width, height] of SIX) {
         const context = await browser.newContext({ viewport: { width, height } });
-        const p = await context.newPage();
-        p.on('pageerror', x => errors.push(`${e.name} ${width}: ${x.message}`));
+        const page = await context.newPage();
+        page.on('pageerror', x => errors.push(`${entry.name} ${width}: ${x.message}`));
         try {
-          await routeApi(p, api);
-          await p.goto(appUrl());
-          await expect(p.locator('.project-tree, .projects-empty').first()).toBeAttached();
-          await e.open(p);
-          const trigger = e.trigger(p);
+          await routeApi(page, api);
+          await page.goto(appUrl());
+          await expect(page.locator('.project-tree, .projects-empty').first()).toBeAttached();
+          await entry.open(page);
+          const trigger = entry.trigger(page);
           await trigger.scrollIntoViewIfNeeded();
           await trigger.focus();
-          await p.keyboard.press('Enter');
-          if (!e.dialog) {
+          await page.keyboard.press('Enter');
+          if (!entry.dialog) {
             // A menu: Export lives in More actions.
-            const menu = p.getByRole('menu');
+            const menu = page.getByRole('menu');
             await expect(menu).toBeVisible();
             await expect(menu.getByRole('menuitem', { name: /^Export/ })).toBeVisible();
             const box = (await menu.boundingBox())!;
             expect(box.x >= 0 && box.y >= 0 && box.x + box.width <= width + 1 && box.y + box.height <= height + 1).toBe(true);
-            await p.keyboard.press('Escape');
+            await page.keyboard.press('Escape');
             await expect(menu).toBeHidden();
             await expect(trigger).toBeFocused();
             continue;
           }
-          const dialog = p.getByRole('dialog', { name: e.dialog });
+          const dialog = page.getByRole('dialog', { name: entry.dialog });
           await expect(dialog).toBeVisible({ timeout: 10000 });
           // Fits: the dialog box inside the window, nothing scrolling sideways inside it.
-          const fit = await dialog.evaluate(d => {
-            const s = (d.querySelector('section') ?? d) as HTMLElement;
-            const r = s.getBoundingClientRect();
-            const wide = [s, ...s.querySelectorAll<HTMLElement>('*')]
+          const fit = await dialog.evaluate(dialogElement => {
+            const element = (dialogElement.querySelector('section') ?? dialogElement) as HTMLElement;
+            const rect = element.getBoundingClientRect();
+            const wide = [element, ...element.querySelectorAll<HTMLElement>('*')]
               .filter(el => el.scrollWidth > el.clientWidth + 1 && getComputedStyle(el).overflowX !== 'auto' && getComputedStyle(el).overflowX !== 'scroll' && !el.closest('pre,.cm-editor,code'))
               .map(el => el.className || el.tagName);
-            return { x: r.x, y: r.y, r: r.right, b: r.bottom, wide: wide.slice(0, 3) };
+            return {
+              x: rect.x,
+              y: rect.y,
+              r: rect.right,
+              b: rect.bottom,
+              wide: wide.slice(0, 3),
+            };
           });
           expect(fit.x).toBeGreaterThanOrEqual(0);
           expect(fit.y).toBeGreaterThanOrEqual(0);
@@ -174,20 +180,20 @@ try {
           expect(fit.wide).toEqual([]);
           // Focus stays inside while tabbing.
           for (let i = 0; i < 12; i++) {
-            await p.keyboard.press('Tab');
+            await page.keyboard.press('Tab');
             expect(await dialog.evaluate(d => d.contains(document.activeElement))).toBe(true);
           }
-          if ([390, 1280, 2560].includes(width))
-            await p.screenshot({
-              path: `/tmp/workbench-dialog-${e.name.toLowerCase().replace(/ /g, '-')}-${width}.png`,
-            });
-          await p.keyboard.press('Escape');
+          if ([390, 1280, 2560].includes(width)) {
+            const slug = entry.name.toLowerCase().replace(/ /g, '-');
+            await page.screenshot({ path: `/tmp/workbench-dialog-${slug}-${width}.png` });
+          }
+          await page.keyboard.press('Escape');
           await expect(dialog).toBeHidden();
           // A dialog opened from the phone drawer closes the drawer, so focus goes to the button
           // that opens it again.
-          const fromDrawer = ['Grouping suggestions', 'Import', 'Trash'].includes(e.name);
-          if (fromDrawer && narrow(p)) await expect(p.getByRole('button', { name: 'Open workspace', exact: true })).toBeFocused();
-          else await expect(e.returns ? e.returns(p) : trigger).toBeFocused();
+          const fromDrawer = ['Grouping suggestions', 'Import', 'Trash'].includes(entry.name);
+          if (fromDrawer && narrow(page)) await expect(page.getByRole('button', { name: 'Open workspace', exact: true })).toBeFocused();
+          else await expect(entry.returns ? entry.returns(page) : trigger).toBeFocused();
         } finally {
           await context.close();
         }
@@ -203,47 +209,47 @@ try {
       ];
       for (const [width, height] of menuSizes) {
         const context = await browser.newContext({ viewport: { width, height } });
-        const p = await context.newPage();
-        p.on('pageerror', x => errors.push(`menus ${width}: ${x.message}`));
+        const page = await context.newPage();
+        page.on('pageerror', x => errors.push(`menus ${width}: ${x.message}`));
         try {
-          await routeApi(p, api);
-          await p.goto(appUrl());
-          await expect(p.locator('.project-tree, .projects-empty').first()).toBeAttached();
-          await openFile(p, mall.name, 'mall.ontology.yaml');
+          await routeApi(page, api);
+          await page.goto(appUrl());
+          await expect(page.locator('.project-tree, .projects-empty').first()).toBeAttached();
+          await openFile(page, mall.name, 'mall.ontology.yaml');
           const openers = [
             {
               name: 'New',
-              open: async () => openNewMenu(p),
+              open: async () => openNewMenu(page),
             },
             {
               name: 'project',
               open: async () => {
-                await workspace(p);
-                await p.getByRole('button', { name: `Actions for ${commerce.name}` }).click();
+                await workspace(page);
+                await page.getByRole('button', { name: `Actions for ${commerce.name}` }).click();
               },
             },
             {
               name: 'file',
               open: async () => {
-                await workspace(p);
+                await workspace(page);
                 const label = `Actions for mall.ontology.yaml in ${mall.name}`;
-                await p.getByRole('button', { name: label }).click();
+                await page.getByRole('button', { name: label }).click();
               },
             },
             {
               name: 'Add project',
               open: async () => {
-                await workspace(p);
-                await p.getByRole('button', { name: 'Add project', exact: true }).click();
+                await workspace(page);
+                await page.getByRole('button', { name: 'Add project', exact: true }).click();
               },
             },
           ];
           for (const opener of openers) {
             await opener.open();
-            await expect(p.getByRole('menu')).toBeVisible();
-            expect(await menuSurfaceProblems(p), `${opener.name} menu at ${width}`).toEqual([]);
-            await p.keyboard.press('Escape');
-            await expect(p.getByRole('menu')).toHaveCount(0);
+            await expect(page.getByRole('menu')).toBeVisible();
+            expect(await menuSurfaceProblems(page), `${opener.name} menu at ${width}`).toEqual([]);
+            await page.keyboard.press('Escape');
+            await expect(page.getByRole('menu')).toHaveCount(0);
           }
         } finally {
           await context.close();

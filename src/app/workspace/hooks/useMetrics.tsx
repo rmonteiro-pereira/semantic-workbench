@@ -26,16 +26,16 @@ export function useMetrics({ project, docs }: Options) {
     setKpiLoading(true);
     api
       .metrics(kpiProject)
-      .then(k => {
+      .then(kpiSummaries => {
         if (live) {
-          setKpis(k);
+          setKpis(kpiSummaries);
           setKpiError('');
         }
       })
-      .catch(e => {
+      .catch(failure => {
         if (live) {
           setKpis([]);
-          setKpiError(e.message);
+          setKpiError(failure.message);
         }
       })
       .finally(() => {

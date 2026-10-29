@@ -21,28 +21,28 @@ const allowed = (text: string) => {
   return !retiredTerm(t) || (t.length > 3 && sources.includes(t));
 };
 const found = new Map<string, Set<string>>();
-async function scan(p: Page, where: string) {
-  const texts: string[] = await p.evaluate(() => {
+async function scan(page: Page, where: string) {
+  const texts: string[] = await page.evaluate(() => {
     const out: string[] = [];
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
-      const el = n.parentElement;
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      const el = node.parentElement;
       if (!el || el.closest('.cm-editor,script,style')) continue;
-      const s = getComputedStyle(el);
-      if (s.display === 'none' || s.visibility === 'hidden') continue;
-      if (n.textContent?.trim()) out.push(n.textContent);
+      const style = getComputedStyle(el);
+      if (style.display === 'none' || style.visibility === 'hidden') continue;
+      if (node.textContent?.trim()) out.push(node.textContent);
     }
     for (const el of document.querySelectorAll('[aria-label],[title],[placeholder],[aria-description]'))
-      for (const a of ['aria-label', 'title', 'placeholder', 'aria-description']) {
-        const v = el.getAttribute(a);
-        if (v && !el.closest('.cm-editor')) out.push(v);
+      for (const attributeName of ['aria-label', 'title', 'placeholder', 'aria-description']) {
+        const attribute = el.getAttribute(attributeName);
+        if (attribute && !el.closest('.cm-editor')) out.push(attribute);
       }
     return out;
   });
-  for (const t of texts)
-    if (!allowed(t)) {
-      const k = t.trim().slice(0, 120);
-      (found.get(k) ?? found.set(k, new Set()).get(k)!).add(where);
+  for (const text of texts)
+    if (!allowed(text)) {
+      const key = text.trim().slice(0, 120);
+      (found.get(key) ?? found.set(key, new Set()).get(key)!).add(where);
     }
 }
 const browser = await chromium.launch();
@@ -58,9 +58,9 @@ async function openFile(project: string, path: string) {
 }
 async function visitTabs(where: string) {
   for (const name of ['Overview', 'Graph', 'Neighborhood', 'Catalog', 'Source', 'Mappings', /^Metrics/, 'Contract']) {
-    const t = tab(name as any);
-    if (!(await t.count())) continue;
-    await t.first().click();
+    const locator = tab(name as any);
+    if (!(await locator.count())) continue;
+    await locator.first().click();
     await page.waitForTimeout(700);
     await scan(page, `${where} · ${String(name)}`);
   }
@@ -79,9 +79,9 @@ try {
     ['commerce', 'sales.ossie.yaml'],
     ['mapped-commerce', 'commerce.mapping.yaml'],
   ];
-  for (const [p, f] of files) {
-    await openFile(loaded[p].name, f);
-    await visitTabs(f);
+  for (const [project, fileName] of files) {
+    await openFile(loaded[project].name, fileName);
+    await visitTabs(fileName);
   }
   // Metric detail, its explanation, the new-metric wizard on the shopping center.
   await openFile(loaded.mall.name, 'mall.semantic.yaml');
@@ -121,12 +121,12 @@ try {
     .split('\n');
   for (const line of readme)
     if (retiredTerm(line)) {
-      const k = line.trim().slice(0, 120);
-      (found.get(k) ?? found.set(k, new Set()).get(k)!).add('README/docs');
+      const key = line.trim().slice(0, 120);
+      (found.get(key) ?? found.set(key, new Set()).get(key)!).add('README/docs');
     }
   if (found.size) {
     console.log(`${found.size} texts use a retired term ("KPI" or "contract object"):`);
-    for (const [t, w] of found) console.log(`  "${t}"  ← ${[...w].slice(0, 3).join('; ')}`);
+    for (const [term, locations] of found) console.log(`  "${term}"  ← ${[...locations].slice(0, 3).join('; ')}`);
     throw Error('Terminology check failed.');
   }
   if (errors.length) throw Error(errors.join('\n'));

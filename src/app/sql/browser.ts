@@ -19,29 +19,29 @@ const builds: Record<string, () => Promise<any>> = {
 };
 const parsers = new Map<string, Promise<any>>();
 function parserFor(grammar: string) {
-  let p = parsers.get(grammar);
-  if (!p) {
+  let parser = parsers.get(grammar);
+  if (!parser) {
     const load = builds[grammar];
-    p = load
+    parser = load
       ? load().then(m => {
           const P = m.Parser ?? m.default?.Parser;
           return new P();
         })
       : Promise.resolve(null);
-    parsers.set(grammar, p);
+    parsers.set(grammar, parser);
   }
-  return p;
+  return parser;
 }
 /** Lints embedded SQL using dialect grammars loaded on demand. */
 export async function browserSqlFindings(source: string, filename: string): Promise<Issue[]> {
   const regions = sqlRegions(source, filename);
   if (!regions.length) return [];
   const loaded = new Map<string, any>();
-  for (const g of grammarsNeeded(regions)) loaded.set(g, await parserFor(g));
+  for (const grammarName of grammarsNeeded(regions)) loaded.set(grammarName, await parserFor(grammarName));
   const astify: Astify = (sql, grammar) => {
-    const p = loaded.get(grammar);
-    if (!p) return;
-    p.astify(sql, { database: grammar });
+    const parser = loaded.get(grammar);
+    if (!parser) return;
+    parser.astify(sql, { database: grammar });
   };
   return lintSql(source, filename, astify, regions);
 }
@@ -63,9 +63,9 @@ export async function browserSqlTextFindings(sql: string, dialect: string | null
     exact: true,
   };
   const loaded = new Map<string, any>();
-  for (const g of grammarsNeeded([region])) loaded.set(g, await parserFor(g));
-  return lintRegion(sql, region, (text, g) => {
-    const p = loaded.get(g);
-    if (p) p.astify(text, { database: g });
+  for (const grammarName of grammarsNeeded([region])) loaded.set(grammarName, await parserFor(grammarName));
+  return lintRegion(sql, region, (sqlText, grammarName) => {
+    const parser = loaded.get(grammarName);
+    if (parser) parser.astify(sqlText, { database: grammarName });
   });
 }

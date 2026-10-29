@@ -63,26 +63,26 @@ const browser = await chromium.launch();
 const errors: string[] = [];
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 page.on('pageerror', e => errors.push(e.message));
-page.on('console', m => {
-  if ((m.type() === 'error' && !/Failed to load resource/.test(m.text())) || (m.type() === 'warning' && m.text().includes('[React Flow]'))) {
-    errors.push(m.text());
+page.on('console', consoleMessage => {
+  if ((consoleMessage.type() === 'error' && !/Failed to load resource/.test(consoleMessage.text())) || (consoleMessage.type() === 'warning' && consoleMessage.text().includes('[React Flow]'))) {
+    errors.push(consoleMessage.text());
   }
 });
 await recordResizeErrors(page, message => errors.push(message));
 await routeApi(page, api);
 let passed = 0;
 async function check(name: string, run: () => Promise<void>) {
-  const t = Date.now();
+  const startedAt = Date.now();
   await run();
   passed++;
-  console.log('PASS', name, `(${((Date.now() - t) / 1000).toFixed(1)} s)`);
+  console.log('PASS', name, `(${((Date.now() - startedAt) / 1000).toFixed(1)} s)`);
 }
 const tree = (p: Page = page) => p.getByRole('tree', { name: 'Projects' });
 const graph = () => page.getByRole('region', { name: 'Lineage graph' });
 const card = (name: string) => graph().getByRole('group', { name, exact: true });
 async function openContract(path: string, project: string) {
   // Timed from opening the file (the Graph tab stays selected between files).
-  const t = Date.now();
+  const startedAt = Date.now();
   // On a phone the workspace tree is a drawer.
   const drawer = page.getByRole('button', {
     name: 'Open workspace',
@@ -98,7 +98,7 @@ async function openContract(path: string, project: string) {
   await expect(graph().locator('.lineage-card').first()).toBeVisible({
     timeout: 8000,
   });
-  return Date.now() - t;
+  return Date.now() - startedAt;
 }
 // Makes a table the centre of the open contract's graph through the asset search.
 async function centreOn(table: string) {
@@ -167,72 +167,72 @@ async function clickLine(selector: string) {
 // drawn for edges whose two ends are drawn rows or cards.
 async function compare(name: string) {
   await fit();
-  const g = golden(name);
+  const expectedLines = golden(name);
   const { lines, ports } = await page.evaluate(() => ({
-    lines: [...document.querySelectorAll('[aria-label="Lineage graph"] g[data-edge-kind]')].map(e => ({
-      from: e.getAttribute('data-from')!,
-      to: e.getAttribute('data-to')!,
-      kind: e.getAttribute('data-edge-kind')!,
-      count: Number(e.getAttribute('data-count')),
+    lines: [...document.querySelectorAll('[aria-label="Lineage graph"] g[data-edge-kind]')].map(edge => ({
+      from: edge.getAttribute('data-from')!,
+      to: edge.getAttribute('data-to')!,
+      kind: edge.getAttribute('data-edge-kind')!,
+      count: Number(edge.getAttribute('data-count')),
     })),
     ports: [...document.querySelectorAll('[aria-label="Lineage graph"] [data-id]')].map(e => e.getAttribute('data-id')!),
   }));
   expect(lines.length).toBeGreaterThan(0);
   const drawn = new Set<string>();
-  for (const l of lines) {
-    if (l.from.startsWith('group:') || l.to.startsWith('group:')) continue;
-    if (l.count > 1 || l.from.endsWith('/#more') || l.to.endsWith('/#more')) continue;
-    const k = `${l.from}>${l.to}>${l.kind}`;
-    drawn.add(k);
-    if (!g.has(k)) throw new Error(`${name}: unexpected line ${k}`);
+  for (const line of lines) {
+    if (line.from.startsWith('group:') || line.to.startsWith('group:')) continue;
+    if (line.count > 1 || line.from.endsWith('/#more') || line.to.endsWith('/#more')) continue;
+    const key = `${line.from}>${line.to}>${line.kind}`;
+    drawn.add(key);
+    if (!expectedLines.has(key)) throw new Error(`${name}: unexpected line ${key}`);
   }
   const shown = new Set(ports);
   const bundled = lines.some(l => l.count > 1);
-  for (const k of g) {
-    const [from, to] = k.split('>');
-    if (shown.has(from) && shown.has(to) && !drawn.has(k) && !bundled) throw new Error(`${name}: missing line ${k}`);
+  for (const key of expectedLines) {
+    const [from, to] = key.split('>');
+    if (shown.has(from) && shown.has(to) && !drawn.has(key) && !bundled) throw new Error(`${name}: missing line ${key}`);
   }
   return drawn.size;
 }
 // Center-card column names must render at 12 px or more in the initial laptop views.
 async function renderedRowPx() {
   return page.evaluate(() => {
-    const v = document.querySelector('[aria-label="Lineage graph"] .react-flow__viewport') as HTMLElement;
-    const m = v.style.transform.match(/scale\(([\d.]+)\)/);
-    const scale = m ? Number(m[1]) : 1;
+    const element = document.querySelector('[aria-label="Lineage graph"] .react-flow__viewport') as HTMLElement;
+    const match = element.style.transform.match(/scale\(([\d.]+)\)/);
+    const scale = match ? Number(match[1]) : 1;
     const name = document.querySelector('[aria-label="Lineage graph"] .lineage-card.center .lineage-row-name') as HTMLElement | null;
     return name ? parseFloat(getComputedStyle(name).fontSize) * scale : 0;
   });
 }
 async function firstViewReadable(path: string, project: string, label: string) {
-  for (const [w, h] of [
+  for (const [width, height] of [
     [1280, 720],
     [1440, 900],
   ]) {
-    await page.setViewportSize({ width: w, height: h });
+    await page.setViewportSize({ width, height });
     await page.locator('.tabs').getByRole('button', { name: 'Overview' }).click();
     await openContract(path, project);
     await page.waitForTimeout(500);
     await page.screenshot({
-      path: `/tmp/workbench-lineage-${label.toLowerCase()}-first-${w}.png`,
+      path: `/tmp/workbench-lineage-${label.toLowerCase()}-first-${width}.png`,
     });
     const px = await renderedRowPx();
-    console.log(`  ${label} ${w}×${h}: column names at ${px.toFixed(1)} px`);
+    console.log(`  ${label} ${width}×${height}: column names at ${px.toFixed(1)} px`);
     expect(px).toBeGreaterThanOrEqual(12);
   }
   await page.setViewportSize({ width: 1440, height: 900 });
 }
 async function shots(name: string) {
-  for (const [w, h] of [
+  for (const [width, height] of [
     [390, 844],
     [1280, 720],
     [1440, 900],
     [2560, 1440],
   ]) {
-    await page.setViewportSize({ width: w, height: h });
+    await page.setViewportSize({ width, height });
     await page.waitForTimeout(300);
     await fit();
-    await page.screenshot({ path: `/tmp/workbench-lineage-${name}-${w}.png` });
+    await page.screenshot({ path: `/tmp/workbench-lineage-${name}-${width}.png` });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
   }
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -245,7 +245,7 @@ try {
     await expect(card('Table orders')).toHaveClass(/center/);
     // The first view may leave outer cards off screen at a readable zoom; Fit shows them all.
     expect(await compare('commerce')).toBeGreaterThan(5);
-    for (const n of ['Table customers', 'Table order_lines', 'Metric Gross revenue']) await expect(card(n)).toBeVisible();
+    for (const cardName of ['Table customers', 'Table order_lines', 'Metric Gross revenue']) await expect(card(cardName)).toBeVisible();
     // The orders dataset copies its table, so the table card stands for it with a badge.
     await expect(card('Semantic dataset orders')).toHaveCount(0);
     await expect(card('Table orders')).toContainText('Semantic dataset');
@@ -309,12 +309,12 @@ try {
   });
   await check('legend and badges: kinds and line styles in the footer; PK, FK and Required on the rows', async () => {
     const legend = graph().getByRole('list', { name: 'Legend' });
-    for (const t of ['Table', 'Metric']) await expect(legend).toContainText(t);
+    for (const kind of ['Table', 'Metric']) await expect(legend).toContainText(kind);
     await expect(legend.locator('li').filter({ hasText: 'Foreign key' })).toHaveCount(1);
     const orderId = card('Table orders').getByRole('button', {
       name: 'orders.order_id',
     });
-    for (const b of ['PK', 'Required']) await expect(orderId).toContainText(b);
+    for (const badge of ['PK', 'Required']) await expect(orderId).toContainText(badge);
     await expect(
       card('Table orders').getByRole('button', {
         name: 'orders.customer_id',
@@ -329,12 +329,12 @@ try {
     const ms = await page.evaluate(
       () =>
         new Promise<number>(res => {
-          const b = [...document.querySelectorAll('button')].find(x => x.getAttribute('aria-label') === 'orders.amount')!;
-          const t = performance.now();
+          const button = [...document.querySelectorAll('button')].find(x => x.getAttribute('aria-label') === 'orders.amount')!;
+          const startedAt = performance.now();
           const obs = new MutationObserver(() => {
             if (document.querySelector('[aria-label="Lineage graph"] g[data-on-path="true"]')) {
               obs.disconnect();
-              res(performance.now() - t);
+              res(performance.now() - startedAt);
             }
           });
           obs.observe(document.body, {
@@ -342,7 +342,7 @@ try {
             attributes: true,
             childList: true,
           });
-          b.click();
+          button.click();
         }),
     );
     console.log(`  highlight ${ms.toFixed(0)} ms`);
@@ -453,7 +453,7 @@ try {
     await fit();
     const after = await cardPositions();
     expect(Object.keys(after).length).toBeGreaterThan(Object.keys(before).length);
-    for (const [id, t] of Object.entries(before)) expect(after[id], `${id} moved`).toBe(t);
+    for (const [id, position] of Object.entries(before)) expect(after[id], `${id} moved`).toBe(position);
     await graph().getByRole('button', { name: 'Undo expansion' }).click();
     await page.waitForTimeout(600);
     await fit();
@@ -466,12 +466,12 @@ try {
         path: f,
         data: parse(readFileSync(`public/examples/ubl/${f}`, 'utf8')),
       }));
-    const g = buildLineage(files, 'ubl.odcs.yaml');
+    const lineageGraph = buildLineage(files, 'ubl.odcs.yaml');
     const col = 'object:ubl.odcs.yaml#invoice_line/line_extension_amount';
     const want = lineagePierce({
-      edges: g.edges.map(e => [e.from, e.to] as [string, string]),
-      owners: Object.fromEntries([...g.cards.values()].flatMap(c => c.columns.map(x => [x.id, c.id]))),
-      start: selectionNodes(g, col),
+      edges: lineageGraph.edges.map(e => [e.from, e.to] as [string, string]),
+      owners: Object.fromEntries([...lineageGraph.cards.values()].flatMap(c => c.columns.map(x => [x.id, c.id]))),
+      start: selectionNodes(lineageGraph, col),
       direction: 'both',
       budget: 150,
     });
@@ -485,7 +485,7 @@ try {
     const ids = await graph()
       .locator('.lineage-card')
       .evaluateAll(ns => ns.map(n => n.getAttribute('data-id')));
-    for (const c of want.cards) expect(ids).toContain(c);
+    for (const cardId of want.cards) expect(ids).toContain(cardId);
     expect(await graph().locator('g[data-on-path="true"]').count()).toBeGreaterThan(0);
     await expect(page.locator('.pierce-banner')).toContainText(`${want.cards.length} cards shown`);
     await page.screenshot({ path: '/tmp/workbench-lineage-pierce.png' });
@@ -760,10 +760,10 @@ try {
     expect(errors).toEqual([]);
   });
   console.log(`${passed} lineage checks passed on isolated data root ${api.root}.`);
-} catch (e) {
+} catch (error) {
   await page.screenshot({ path: '/tmp/workbench-lineage-failure.png' });
   console.log('browser errors:', errors.join('\n').slice(0, 3000));
-  throw e;
+  throw error;
 } finally {
   await browser.close();
   await api.stop();

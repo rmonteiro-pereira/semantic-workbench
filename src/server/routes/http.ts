@@ -39,12 +39,12 @@ export type ErrorContext = { serverMode?: boolean; requestId?: string };
  * keeps it in the log and tells the client only that Git failed. The failures a person can act
  * on, such as conflicts or a rejected push, have their own error types and keep their answers.
  */
-function gitFailureResponse(e: GitError, context: ErrorContext) {
-  if (!context.serverMode) return Response.json({ error: e.message }, { status: 500 });
-  const output = e.result?.stderr.trim();
+function gitFailureResponse(gitError: GitError, context: ErrorContext) {
+  if (!context.serverMode) return Response.json({ error: gitError.message }, { status: 500 });
+  const output = gitError.result?.stderr.trim();
   log.error('http.git-failed', {
     requestId: context.requestId ?? 'unknown',
-    errorMessage: e.message,
+    errorMessage: gitError.message,
     gitOutput: output,
   });
   return Response.json({ error: 'Git failed.' }, { status: 500 });
@@ -55,40 +55,40 @@ function gitFailureResponse(e: GitError, context: ErrorContext) {
  * mode an unexpected error answers 500; local mode keeps 400 with the message, because the
  * person reading it owns the machine.
  */
-export function errorResponse(e: unknown, publicUrl?: string, context: ErrorContext = {}) {
-  if (e instanceof AdminRefusal) return Response.json(e.body, { status: e.status });
+export function errorResponse(error: unknown, publicUrl?: string, context: ErrorContext = {}) {
+  if (error instanceof AdminRefusal) return Response.json(error.body, { status: error.status });
   // Marks the hidden-resource 404 so the access middleware can audit it as a denial; the body
-  // stays identical to an ordinary missing item, so the client cannot tell them apart.
+  // stays identical to an ordinary missing error, so the client cannot tell them apart.
   // A case variant of a name could name a file the person may not read on a volume that ignores
   // case, so it answers like a hidden file.
-  if (e instanceof HiddenResourceError || e instanceof CaseVariantError) {
+  if (error instanceof HiddenResourceError || error instanceof CaseVariantError) {
     const response = Response.json({ error: 'Not found.' }, { status: 404 });
     hiddenResponses.add(response);
     return response;
   }
-  if (e instanceof SignInError) return signInErrorResponse(e, publicUrl);
-  if (e instanceof AdminStaleError) return Response.json({ error: 'stale', message: e.message }, { status: 409 });
-  if (e instanceof AdminConfigError || e instanceof AccessConfigError) return Response.json({ error: e.message }, { status: 400 });
-  if (e instanceof StaleError) return Response.json({ error: 'stale', currentHash: e.currentHash, currentSource: e.currentSource }, { status: 409 });
-  if (e instanceof ConnectRequiredError) return Response.json({ error: e.message, connect: e.connect }, { status: 428 });
-  if (e instanceof RemoteHostError) return Response.json({ error: e.message, allowedHosts: e.allowedHosts }, { status: 400 });
-  if (e instanceof GoneError) return Response.json({ error: e.message }, { status: 410 });
-  if (e instanceof OccupiedError) return Response.json({ error: 'occupied', message: e.message, suggestion: e.suggestion }, { status: 409 });
-  if (e instanceof ConflictError) return Response.json({ error: 'conflict', message: e.message, conflicts: e.conflicts }, { status: 409 });
-  if (e instanceof MergingError) return Response.json({ error: 'merging', message: e.message, conflicts: e.conflicts }, { status: 409 });
-  if (e instanceof BranchInUseError) return Response.json({ error: e.message, inUseBy: e.inUseBy }, { status: 409 });
-  if (e instanceof PersonalBranchError) return Response.json({ error: e.message, branch: e.branch }, { status: 403 });
-  if (e instanceof NotFastForwardError) return Response.json({ error: e.message, notFastForward: true }, { status: 409 });
-  if (e instanceof NothingToPublishError) return Response.json({ error: e.message, nothingToPublish: true }, { status: 409 });
-  if (e instanceof MissingFolderError) return Response.json({ error: e.message, missingFolder: e.folder }, { status: 409 });
-  if (e instanceof NotFoundError) return Response.json({ error: e.message }, { status: 404 });
-  if (e instanceof TooLargeError) return Response.json({ error: e.message, limitBytes: e.limitBytes }, { status: 413 });
-  if (e instanceof InputError) return Response.json({ error: e.message, issues: e.issues }, { status: 400 });
-  if (e instanceof BlockedError) return Response.json({ error: e.reason, message: e.message, paths: e.paths }, { status: 409 });
-  if (e instanceof GitError) return gitFailureResponse(e, context);
-  if (e instanceof PathError || e instanceof BadRequestError) {
-    return Response.json({ error: e.message }, { status: 400 });
+  if (error instanceof SignInError) return signInErrorResponse(error, publicUrl);
+  if (error instanceof AdminStaleError) return Response.json({ error: 'stale', message: error.message }, { status: 409 });
+  if (error instanceof AdminConfigError || error instanceof AccessConfigError) return Response.json({ error: error.message }, { status: 400 });
+  if (error instanceof StaleError) return Response.json({ error: 'stale', currentHash: error.currentHash, currentSource: error.currentSource }, { status: 409 });
+  if (error instanceof ConnectRequiredError) return Response.json({ error: error.message, connect: error.connect }, { status: 428 });
+  if (error instanceof RemoteHostError) return Response.json({ error: error.message, allowedHosts: error.allowedHosts }, { status: 400 });
+  if (error instanceof GoneError) return Response.json({ error: error.message }, { status: 410 });
+  if (error instanceof OccupiedError) return Response.json({ error: 'occupied', message: error.message, suggestion: error.suggestion }, { status: 409 });
+  if (error instanceof ConflictError) return Response.json({ error: 'conflict', message: error.message, conflicts: error.conflicts }, { status: 409 });
+  if (error instanceof MergingError) return Response.json({ error: 'merging', message: error.message, conflicts: error.conflicts }, { status: 409 });
+  if (error instanceof BranchInUseError) return Response.json({ error: error.message, inUseBy: error.inUseBy }, { status: 409 });
+  if (error instanceof PersonalBranchError) return Response.json({ error: error.message, branch: error.branch }, { status: 403 });
+  if (error instanceof NotFastForwardError) return Response.json({ error: error.message, notFastForward: true }, { status: 409 });
+  if (error instanceof NothingToPublishError) return Response.json({ error: error.message, nothingToPublish: true }, { status: 409 });
+  if (error instanceof MissingFolderError) return Response.json({ error: error.message, missingFolder: error.folder }, { status: 409 });
+  if (error instanceof NotFoundError) return Response.json({ error: error.message }, { status: 404 });
+  if (error instanceof TooLargeError) return Response.json({ error: error.message, limitBytes: error.limitBytes }, { status: 413 });
+  if (error instanceof InputError) return Response.json({ error: error.message, issues: error.issues }, { status: 400 });
+  if (error instanceof BlockedError) return Response.json({ error: error.reason, message: error.message, paths: error.paths }, { status: 409 });
+  if (error instanceof GitError) return gitFailureResponse(error, context);
+  if (error instanceof PathError || error instanceof BadRequestError) {
+    return Response.json({ error: error.message }, { status: 400 });
   }
-  if (context.serverMode) return internalErrorResponse(e, context.requestId);
-  return Response.json({ error: (e as Error).message }, { status: 400 });
+  if (context.serverMode) return internalErrorResponse(error, context.requestId);
+  return Response.json({ error: (error as Error).message }, { status: 400 });
 }

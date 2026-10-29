@@ -42,10 +42,10 @@ test('subfolder entries resolve inside their repository; invalid ones are refuse
   expect(() => projectDir(layout, '../x')).toThrow(PathError);
 });
 test('a legacy registry file loads unchanged and its projects keep working', async () => {
-  const t = await testWorkspace();
+  const workspace = await testWorkspace();
   try {
     const created = await ok(
-      call(t, 'POST', '/api/import', {
+      call(workspace, 'POST', '/api/import', {
         files: [
           {
             path: 'shop.yaml',
@@ -54,27 +54,30 @@ test('a legacy registry file loads unchanged and its projects keep working', asy
         ],
       }),
     );
-    const before = readFileSync(t.ws.layout.registry, 'utf8');
+    const before = readFileSync(workspace.ws.layout.registry, 'utf8');
     expect(JSON.parse(before).projects[0]).not.toHaveProperty('folder');
-    expect(t.ws.layout.locate!(created.slug)).toEqual({ folder: created.slug, repo: created.slug });
-    const file = await ok(call(t, 'GET', `/api/projects/${created.slug}/files/shop.yaml`));
+    expect(workspace.ws.layout.locate!(created.slug)).toEqual({
+      folder: created.slug,
+      repo: created.slug,
+    });
+    const file = await ok(call(workspace, 'GET', `/api/projects/${created.slug}/files/shop.yaml`));
     expect(file.source).toContain('Customer');
-    const status = await ok(call(t, 'GET', `/api/projects/${created.slug}/git/status`));
+    const status = await ok(call(workspace, 'GET', `/api/projects/${created.slug}/git/status`));
     expect(status.branch).toBe('main');
-    expect(readFileSync(t.ws.layout.registry, 'utf8')).toBe(before);
+    expect(readFileSync(workspace.ws.layout.registry, 'utf8')).toBe(before);
   } finally {
-    t.dispose();
+    workspace.dispose();
   }
 });
 test('the workspace resolves a registered subfolder project through the registry', async () => {
-  const t = await testWorkspace();
+  const workspace = await testWorkspace();
   try {
-    const repo = join(t.ws.layout.projects, 'team');
+    const repo = join(workspace.ws.layout.projects, 'team');
     const sub = join(repo, 'domains', 'sales');
     mkdirSync(sub, { recursive: true });
-    await t.ws.git.init(repo);
+    await workspace.ws.git.init(repo);
     writeFileSync(join(sub, 'sales.yaml'), 'name: Sales\nontology:\n  - concept: Customer\n    type: EntityType\n');
-    t.ws.state.writeRegistry([
+    workspace.ws.state.writeRegistry([
       {
         slug: 'sales',
         name: 'Sales',
@@ -84,12 +87,12 @@ test('the workspace resolves a registered subfolder project through the registry
         repo: 'team',
       },
     ]);
-    expect(projectDir(t.ws.layout, 'sales')).toBe(sub);
-    expect(repoDir(t.ws.layout, 'sales')).toBe(repo);
-    const file = t.ws.readFile('sales', 'sales.yaml');
+    expect(projectDir(workspace.ws.layout, 'sales')).toBe(sub);
+    expect(repoDir(workspace.ws.layout, 'sales')).toBe(repo);
+    const file = workspace.ws.readFile('sales', 'sales.yaml');
     expect(file.source).toContain('Sales');
-    expect(existsSync(join(t.ws.layout.projects, 'sales'))).toBe(false);
+    expect(existsSync(join(workspace.ws.layout.projects, 'sales'))).toBe(false);
   } finally {
-    t.dispose();
+    workspace.dispose();
   }
 });

@@ -45,11 +45,16 @@ export function ModelOverview(props: Props) {
     }
     return ids;
   }, [overview, focus]);
-  const connections = pair
-    ? pair[1] === '*'
-      ? overview.links.filter(e => overview.groupOf.get(e.source) === pair[0] && overview.groupOf.get(e.target) !== pair[0])
-      : (overview.matrix.get(JSON.stringify(pair)) ?? [])
-    : [];
+  let connections: typeof overview.links;
+  if (pair) {
+    if (pair[1] === '*') {
+      connections = overview.links.filter(e => overview.groupOf.get(e.source) === pair[0] && overview.groupOf.get(e.target) !== pair[0]);
+    } else {
+      connections = overview.matrix.get(JSON.stringify(pair)) ?? [];
+    }
+  } else {
+    connections = [];
+  }
   const groupName = (id: string) => (id === '*' ? 'Other areas' : (overview.groups.find(g => g.id === id)?.name ?? id));
   const matches = (e: Entity) => !props.search || e.name.toLowerCase().includes(props.search.toLowerCase()) || e.id.toLowerCase().includes(props.search.toLowerCase());
   return (
@@ -114,23 +119,23 @@ export function ModelOverview(props: Props) {
                     </span>
                   </header>
                   <div className="area-entities">
-                    {entities.map(e => (
+                    {entities.map(entity => (
                       <button
-                        key={e.id}
-                        data-entity-id={e.id}
-                        title={e.name}
-                        onMouseEnter={() => setHover(e.id)}
+                        key={entity.id}
+                        data-entity-id={entity.id}
+                        title={entity.name}
+                        onMouseEnter={() => setHover(entity.id)}
                         onMouseLeave={() => setHover('')}
-                        onFocus={() => setHover(e.id)}
+                        onFocus={() => setHover(entity.id)}
                         onBlur={() => setHover('')}
                         onClick={() => {
                           setHover('');
-                          props.onSelectEntity(e.id);
+                          props.onSelectEntity(entity.id);
                         }}
-                        className={[props.selected === e.id ? 'selected' : '', connected.has(e.id) ? 'connected' : '', focus && !connected.has(e.id) ? 'muted' : ''].join(' ')}
+                        className={[props.selected === entity.id ? 'selected' : '', connected.has(entity.id) ? 'connected' : '', focus && !connected.has(entity.id) ? 'muted' : ''].join(' ')}
                       >
-                        <span>{e.name.replace(/([a-z])([A-Z])/g, '$1 $2').replaceAll('_', ' ')}</span>
-                        <small title="Declared relationships">{overview.degree.get(e.id)}</small>
+                        <span>{entity.name.replace(/([a-z])([A-Z])/g, '$1 $2').replaceAll('_', ' ')}</span>
+                        <small title="Declared relationships">{overview.degree.get(entity.id)}</small>
                       </button>
                     ))}
                   </div>
@@ -162,9 +167,9 @@ export function ModelOverview(props: Props) {
                 <thead>
                   <tr>
                     <th>FROM ↓ / TO →</th>
-                    {overview.groups.map(g => (
-                      <th key={g.id}>
-                        <span style={{ color: g.color }}>●</span> {g.name}
+                    {overview.groups.map(group => (
+                      <th key={group.id}>
+                        <span style={{ color: group.color }}>●</span> {group.name}
                       </th>
                     ))}
                   </tr>
@@ -221,11 +226,11 @@ export function ModelOverview(props: Props) {
             </button>
           </header>
           <div className="connection-list">
-            {connections.map(e => (
-              <button key={e.id} onClick={() => props.onSelectRelationship(e.id)}>
-                <span>{byId.get(e.source)?.name}</span>
-                <strong>{e.label}</strong>
-                <span>{byId.get(e.target)?.name}</span>
+            {connections.map(connection => (
+              <button key={connection.id} onClick={() => props.onSelectRelationship(connection.id)}>
+                <span>{byId.get(connection.source)?.name}</span>
+                <strong>{connection.label}</strong>
+                <span>{byId.get(connection.target)?.name}</span>
                 <ArrowRight size={12} />
               </button>
             ))}

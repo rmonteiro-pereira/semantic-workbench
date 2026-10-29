@@ -90,9 +90,9 @@ export function RdfAddItem({ doc, base, onClose, onSaved }: { doc: Doc; base: st
     if (!iri || iri.endsWith(':')) return { error: 'Give the new resource an IRI or a prefixed name.' };
     let subject: string;
     try {
-      const t = parseObject(iri, prefixes).term;
-      if (t.termType !== 'NamedNode') throw Error();
-      subject = t.value;
+      const term = parseObject(iri, prefixes).term;
+      if (term.termType !== 'NamedNode') throw Error();
+      subject = term.value;
     } catch {
       return { error: `"${iri}" is not an IRI or a prefixed name of this file.` };
     }
@@ -109,26 +109,26 @@ export function RdfAddItem({ doc, base, onClose, onSaved }: { doc: Doc; base: st
         predicateText: kind === 'property' || kind === 'node' ? 'sh:description' : 'rdfs:comment',
         objectText: quote(values.comment.trim()),
       });
-    for (const f of spec.fields) if (values[f.key]?.trim()) pairs.push({ predicateText: f.predicate, objectText: values[f.key].trim() });
+    for (const field of spec.fields) if (values[field.key]?.trim()) pairs.push({ predicateText: field.predicate, objectText: values[field.key].trim() });
     if (!pairs.length) return { error: 'Add at least a type or a label.' };
-    const r = addRdfItem(base, doc.filename, subject, pairs);
-    return r.ok
+    const rdfResult = addRdfItem(base, doc.filename, subject, pairs);
+    return rdfResult.ok
       ? {
-          text: r.text,
+          text: rdfResult.text,
           subject,
-          inserted: r.patches
+          inserted: rdfResult.patches
             .map(p => p.insert)
             .join('')
             .replace(/^\r?\n/, ''),
-          line: base.slice(0, r.patches[0]?.from ?? 0).split('\n').length,
+          line: base.slice(0, rdfResult.patches[0]?.from ?? 0).split('\n').length,
         }
-      : { error: r.error };
+      : { error: rdfResult.error };
   }, [kind, JSON.stringify(values)]);
   useEffect(() => {
     if (!('text' in plan) || !plan.text) return;
     const at = plan.text;
-    const t = setTimeout(() => validateInWorker(at, doc.filename).then(issues => setCheck({ text: at, issues })), 200);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => validateInWorker(at, doc.filename).then(issues => setCheck({ text: at, issues })), 200);
+    return () => clearTimeout(timer);
   }, [plan]);
   const ready = 'text' in plan && !!plan.text;
   const pending = ready && check?.text !== (plan as any).text;
@@ -138,10 +138,10 @@ export function RdfAddItem({ doc, base, onClose, onSaved }: { doc: Doc; base: st
     setSaving(true);
     setError('');
     try {
-      const r = await api.save(doc.project, doc.path, doc.hash, plan.text, diffPatches(doc.source, plan.text));
-      onSaved({ docId: doc.id, source: plan.text, hash: r.hash }, plan.subject!);
-    } catch (e) {
-      setError(e instanceof StaleSave ? 'Not saved: the file changed since you opened it. Close this and try again.' : (e as Error).message);
+      const saved = await api.save(doc.project, doc.path, doc.hash, plan.text, diffPatches(doc.source, plan.text));
+      onSaved({ docId: doc.id, source: plan.text, hash: saved.hash }, plan.subject!);
+    } catch (error) {
+      setError(error instanceof StaleSave ? 'Not saved: the file changed since you opened it. Close this and try again.' : (error as Error).message);
       setSaving(false);
     }
   }
@@ -152,13 +152,21 @@ export function RdfAddItem({ doc, base, onClose, onSaved }: { doc: Doc; base: st
       {hint && <small>{hint}</small>}
     </label>
   );
+  let saveStatus;
+  if (saving) {
+    saveStatus = 'Saving…';
+  } else if (pending) {
+    saveStatus = 'Checking…';
+  } else {
+    saveStatus = 'Save to file';
+  }
   const footer = (
     <>
       <button type="button" onClick={onClose} disabled={saving}>
         Cancel
       </button>
       <button type="button" className="primary" onClick={save} title={access.control('edit').title} disabled={!access.can('edit') || !ready || pending || errors.length > 0 || saving}>
-        {saving ? 'Saving…' : pending ? 'Checking…' : 'Save to file'}
+        {saveStatus}
       </button>
     </>
   );
@@ -168,9 +176,9 @@ export function RdfAddItem({ doc, base, onClose, onSaved }: { doc: Doc; base: st
         <label className="wide">
           <span>What to add</span>
           <select aria-label="Item type" value={kind} onChange={e => setKind(e.target.value as Kind)}>
-            {(Object.keys(KINDS) as Kind[]).map(k => (
-              <option key={k} value={k}>
-                {KINDS[k].label}
+            {(Object.keys(KINDS) as Kind[]).map(kindOption => (
+              <option key={kindOption} value={kindOption}>
+                {KINDS[kindOption].label}
               </option>
             ))}
           </select>
@@ -192,10 +200,10 @@ export function RdfAddItem({ doc, base, onClose, onSaved }: { doc: Doc; base: st
       )}
       {errors.length > 0 && (
         <ul className="item-findings" aria-label="Findings">
-          {errors.map((i, n) => (
-            <li key={n} className="error">
+          {errors.map((issue, index) => (
+            <li key={index} className="error">
               <AlertTriangle size={12} />
-              {i.message}
+              {issue.message}
             </li>
           ))}
         </ul>
@@ -238,10 +246,10 @@ export function RdfDeleteItem({
     setBusy(true);
     setError('');
     try {
-      const r = await api.save(doc.project, doc.path, doc.hash, result.text, diffPatches(doc.source, result.text));
-      onDeleted([{ docId: doc.id, source: result.text, hash: r.hash }]);
-    } catch (e) {
-      setError(e instanceof StaleSave ? 'Nothing was deleted: the file changed since this opened.' : `Nothing was deleted: ${(e as Error).message}`);
+      const saved = await api.save(doc.project, doc.path, doc.hash, result.text, diffPatches(doc.source, result.text));
+      onDeleted([{ docId: doc.id, source: result.text, hash: saved.hash }]);
+    } catch (error) {
+      setError(error instanceof StaleSave ? 'Nothing was deleted: the file changed since this opened.' : `Nothing was deleted: ${(error as Error).message}`);
       setBusy(false);
     }
   }
@@ -265,10 +273,10 @@ export function RdfDeleteItem({
           {result.ok ? ` (${result.removed} triples)` : ''}
         </li>
         {result.ok &&
-          result.dependents?.flatMap(d =>
-            d.pairs.map(p => (
-              <li key={d.subject + p}>
-                {d.subject} {p}
+          result.dependents?.flatMap(dependent =>
+            dependent.pairs.map(pair => (
+              <li key={dependent.subject + pair}>
+                {dependent.subject} {pair}
               </li>
             )),
           )}

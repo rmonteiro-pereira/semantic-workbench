@@ -120,23 +120,23 @@ try {
         hasTouch: touch,
         isMobile: touch,
       });
-      const p = await context.newPage();
+      const rowsPage = await context.newPage();
       try {
-        p.on('pageerror', e => errors.push(`${width}: ${e.message}`));
-        await routeApi(p, api);
-        await p.goto(appUrl());
-        if (width < 1100) await p.getByRole('button', { name: 'Open workspace', exact: true }).click();
-        const icon = p.getByRole('button', { name: 'Delete scratch.yaml', exact: true });
+        rowsPage.on('pageerror', e => errors.push(`${width}: ${e.message}`));
+        await routeApi(rowsPage, api);
+        await rowsPage.goto(appUrl());
+        if (width < 1100) await rowsPage.getByRole('button', { name: 'Open workspace', exact: true }).click();
+        const icon = rowsPage.getByRole('button', { name: 'Delete scratch.yaml', exact: true });
         await expect(icon).toBeVisible();
-        expect(await treeRowProblems(p)).toEqual([]);
-        const long = p.getByRole('tree', { name: 'Projects' }).getByRole('button', { name: longName, exact: true }).locator('span');
+        expect(await treeRowProblems(rowsPage)).toEqual([]);
+        const long = rowsPage.getByRole('tree', { name: 'Projects' }).getByRole('button', { name: longName, exact: true }).locator('span');
         // Long names wrap to at most two lines and keep the full name as a tooltip.
         if (width === 390) {
           expect(await long.getAttribute('title')).toBe(longName);
           expect(await long.evaluate(el => el.getBoundingClientRect().height <= 2 * parseFloat(getComputedStyle(el).lineHeight) + 1)).toBe(true);
         }
         if (touch) await expect(icon).toHaveCSS('opacity', '1');
-        await p.screenshot({
+        await rowsPage.screenshot({
           path: `/tmp/workbench-trash-rows-${width}${touch ? '-touch' : ''}.png`,
         });
       } finally {

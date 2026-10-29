@@ -57,8 +57,8 @@ export function useExamples({
       setSearch('');
       setTab(set.tab);
       setMessage(set.message);
-    } catch (e) {
-      setMessage((e as Error).message);
+    } catch (error) {
+      setMessage((error as Error).message);
     } finally {
       setBusy(false);
     }

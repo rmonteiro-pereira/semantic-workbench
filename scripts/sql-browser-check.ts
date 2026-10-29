@@ -58,10 +58,10 @@ const rgb = (hex: string) => `rgb(${parseInt(hex.slice(1, 3), 16)}, ${parseInt(h
 // Color of the first text node exactly `text` inside `root`.
 const colorOf = (text: string, root = '.cm-content') =>
   page.evaluate(
-    ([t, r]) => {
-      const walker = document.createTreeWalker(document.querySelector(r)!, NodeFilter.SHOW_TEXT);
-      let n;
-      while ((n = walker.nextNode())) if (n.textContent === t) return getComputedStyle(n.parentElement!).color;
+    ([text, containerSelector]) => {
+      const walker = document.createTreeWalker(document.querySelector(containerSelector)!, NodeFilter.SHOW_TEXT);
+      let node: Node | null;
+      while ((node = walker.nextNode())) if (node.textContent === text) return getComputedStyle(node.parentElement!).color;
       return null;
     },
     [text, root] as const,
@@ -69,17 +69,17 @@ const colorOf = (text: string, root = '.cm-content') =>
 // Line and column (1-based) of the first warning range in the Source editor.
 const warningAt = () =>
   page.evaluate(() => {
-    const w = document.querySelector('.cm-content .cm-lintRange-warning');
-    if (!w) return null;
-    const line = w.closest('.cm-line')!;
+    const warningElement = document.querySelector('.cm-content .cm-lintRange-warning');
+    if (!warningElement) return null;
+    const line = warningElement.closest('.cm-line')!;
     const lines = [...document.querySelectorAll('.cm-content .cm-line')];
     const range = document.createRange();
     range.setStart(line, 0);
-    range.setEndBefore(w);
+    range.setEndBefore(warningElement);
     return {
       line: lines.indexOf(line) + 1,
       column: range.toString().length + 1,
-      text: w.textContent,
+      text: warningElement.textContent,
     };
   });
 try {
@@ -105,7 +105,8 @@ try {
     await page.getByRole('spinbutton', { name: 'Go to line' }).fill('23');
     await page.getByRole('spinbutton', { name: 'Go to line' }).press('Enter');
     await page.keyboard.press('End');
-    await page.keyboard.press('ArrowLeft'); // Before the ")" closing SUM(CASE …; then delete " END".
+    // Before the ")" closing SUM(CASE …; then delete " END".
+    await page.keyboard.press('ArrowLeft');
     const typed = Date.now();
     await page.keyboard.press('Backspace', { delay: 5 });
     await page.keyboard.press('Backspace');
@@ -165,24 +166,26 @@ try {
     await open('mall.semantic.yaml', mall.name);
     await tab(/^Metrics/).click();
     await page.locator('.metrics-new').click();
-    const w = page.getByRole('dialog', { name: 'New metric' });
-    await w.getByRole('button', { name: 'Next' }).click();
-    await w.getByRole('button', { name: 'Next' }).click();
-    await w.getByLabel('Label').fill('Spend per visitor');
-    await w.getByLabel('Metric type').selectOption('derived');
-    await w.getByLabel('Input metrics').fill('purchase_spend, visitors');
-    const field = w.getByRole('textbox', { name: 'Expression' });
+    const wizard = page.getByRole('dialog', { name: 'New metric' });
+    await wizard.getByRole('button', { name: 'Next' }).click();
+    await wizard.getByRole('button', { name: 'Next' }).click();
+    await wizard.getByLabel('Label').fill('Spend per visitor');
+    await wizard.getByLabel('Metric type').selectOption('derived');
+    await wizard.getByLabel('Input metrics').fill('purchase_spend, visitors');
+    const field = wizard.getByRole('textbox', { name: 'Expression' });
     await field.click();
     await page.keyboard.type('purchase_spend / NULLIF(visitors, 0');
-    await expect(w.getByRole('list', { name: 'SQL findings' })).toContainText('syntax error', {
+    await expect(wizard.getByRole('list', { name: 'SQL findings' })).toContainText('syntax error', {
       timeout: 5000,
     });
-    await expect(w.getByRole('button', { name: 'Next' })).toBeEnabled();
+    await expect(wizard.getByRole('button', { name: 'Next' })).toBeEnabled();
     await page.keyboard.type(')');
-    await expect(w.getByRole('list', { name: 'SQL findings' })).toHaveCount(0, { timeout: 5000 });
+    await expect(wizard.getByRole('list', { name: 'SQL findings' })).toHaveCount(0, {
+      timeout: 5000,
+    });
     expect(await colorOf('0', '.kpi-wizard .sql-field .cm-content')).toBe(rgb('#098658'));
     await page.screenshot({ path: '/tmp/workbench-sql-wizard.png' });
-    await w.getByRole('button', { name: 'Cancel' }).click();
+    await wizard.getByRole('button', { name: 'Cancel' }).click();
   });
   await check('SQL previews are colored: the metric explanation preview has keyword spans and its text is exactly the SQL', async () => {
     await open('mall.semantic.yaml', mall.name);
@@ -195,8 +198,8 @@ try {
     expect(text).toMatch(/^SELECT/);
     expect(
       await page.evaluate(() => {
-        const s = [...document.querySelectorAll('.preview-sql span')].find(x => x.textContent === 'SELECT');
-        return s ? getComputedStyle(s).color : null;
+        const keywordSpan = [...document.querySelectorAll('.preview-sql span')].find(x => x.textContent === 'SELECT');
+        return keywordSpan ? getComputedStyle(keywordSpan).color : null;
       }),
     ).toBe(rgb('#0000ff'));
   });

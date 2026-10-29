@@ -177,8 +177,8 @@ function settingsResponse(value: unknown): Settings {
 
 /** Typed administration requests; every request uses the shared cookie and CSRF wrapper. */
 export const adminApi = {
-  async users(q = '', access = '') {
-    return list<AdminUser>(await request('/api/admin/users?' + query({ q, access })), {
+  async users(search = '', access = '') {
+    return list<AdminUser>(await request('/api/admin/users?' + query({ q: search, access })), {
       id: 'string',
       name: 'string',
       groups: 'array',

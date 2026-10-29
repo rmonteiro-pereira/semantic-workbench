@@ -109,13 +109,13 @@ export function authorship(author?: CommitAuthor): {
 export function gitEnv(base: Record<string, string | undefined> = process.env) {
   const env: Record<string, string> = {};
   // Variables that redirect the repository, inject configuration or swap Git's helper programs.
-  for (const [k, v] of Object.entries(base))
+  for (const [key, value] of Object.entries(base))
     if (
-      v !== undefined &&
-      !['GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE', 'GIT_OBJECT_DIRECTORY', 'GIT_PREFIX', 'GIT_CONFIG_PARAMETERS', 'GIT_CONFIG_COUNT', 'GIT_EXEC_PATH'].includes(k) &&
-      !/^GIT_CONFIG_(KEY|VALUE)_/.test(k)
+      value !== undefined &&
+      !['GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE', 'GIT_OBJECT_DIRECTORY', 'GIT_PREFIX', 'GIT_CONFIG_PARAMETERS', 'GIT_CONFIG_COUNT', 'GIT_EXEC_PATH'].includes(key) &&
+      !/^GIT_CONFIG_(KEY|VALUE)_/.test(key)
     )
-      env[k] = v;
+      env[key] = value;
   return { ...env, GIT_TERMINAL_PROMPT: '0', LC_ALL: 'C' };
 }
 // A line of `git remote -v`: name, address and direction. A partial clone adds its filter after
@@ -176,13 +176,13 @@ export function remoteAddress(url: unknown) {
 /** Finds the Git subcommand after global options, recognizing remote update separately. */
 export function subcommandOf(args: string[]) {
   for (let i = 0; i < args.length; i++) {
-    const a = args[i];
-    if (a === '-c' || a === '-C') {
+    const arg = args[i];
+    if (arg === '-c' || arg === '-C') {
       i++;
       continue;
     }
-    if (a.startsWith('-')) continue;
-    return a === 'remote' && args[i + 1] === 'update' ? 'remote-update' : a;
+    if (arg.startsWith('-')) continue;
+    return arg === 'remote' && args[i + 1] === 'update' ? 'remote-update' : arg;
   }
   return '';
 }
@@ -236,8 +236,8 @@ export function createGit(options: GitOptions) {
         stdout: 'pipe',
         stderr: 'pipe',
       });
-    } catch (e) {
-      throw new GitError(`Git is not available: ${(e as Error).message}`);
+    } catch (error) {
+      throw new GitError(`Git is not available: ${(error as Error).message}`);
     }
     // On timeout or Cancel, kill Git and stop waiting: a child process (hook, credential helper)
     // may keep the pipes open.
@@ -279,9 +279,9 @@ export function createGit(options: GitOptions) {
     const credentialArgs = opts.credential ? credentialSetup(opts.credential).args : [];
     const argv = opts.remote ? ['-c', 'protocol.ext.allow=never', ...credentialArgs, ...args] : args;
     const exec = async () => {
-      const r = await spawnGit(dir, argv, opts.stdin, opts.timeout ?? (opts.remote ? remoteTimeoutMs : timeoutMs), !!opts.remote, opts.credential, opts.env);
-      if (r.code !== 0 && !opts.allowFailure) throw new GitError(r.stderr.trim() || `git ${subcommandOf(args)} failed with exit code ${r.code}.`, r);
-      return r;
+      const gitResult = await spawnGit(dir, argv, opts.stdin, opts.timeout ?? (opts.remote ? remoteTimeoutMs : timeoutMs), !!opts.remote, opts.credential, opts.env);
+      if (gitResult.code !== 0 && !opts.allowFailure) throw new GitError(gitResult.stderr.trim() || `git ${subcommandOf(args)} failed with exit code ${gitResult.code}.`, gitResult);
+      return gitResult;
     };
     if (opts.readOnly) return exec();
     const key = queueKey(dir);
@@ -303,9 +303,9 @@ export function createGit(options: GitOptions) {
   // One configuration value as Git sees it here; `scope` limits the lookup to one file.
   async function configValue(cwd: string, key: string, scope?: 'local' | 'global') {
     try {
-      const r = await spawnGit(cwd, ['config', ...(scope ? [`--${scope}`] : []), '--get', key]);
-      const value = r.stdout.trim();
-      return r.code === 0 && value ? value : null;
+      const gitResult = await spawnGit(cwd, ['config', ...(scope ? [`--${scope}`] : []), '--get', key]);
+      const value = gitResult.stdout.trim();
+      return gitResult.code === 0 && value ? value : null;
     } catch {
       return null;
     }
@@ -337,18 +337,18 @@ export function createGit(options: GitOptions) {
     if (!author && !(await identity(cwd))) return { committed: false, reason: 'no-identity' };
     if (await merging(cwd)) return { committed: false, reason: 'merging' };
     const changed = new Set<string>();
-    for (const c of chunks(paths)) {
-      const r = await read(cwd, ['status', '--porcelain=v1', '-z', '--untracked-files=all', '--', ...c]);
-      for (const e of r.stdout.split('\0')) if (e.length > 3) changed.add(e.slice(3));
+    for (const chunk of chunks(paths)) {
+      const gitResult = await read(cwd, ['status', '--porcelain=v1', '-z', '--untracked-files=all', '--', ...chunk]);
+      for (const statusLine of gitResult.stdout.split('\0')) if (statusLine.length > 3) changed.add(statusLine.slice(3));
     }
     const list = paths.filter(p => changed.has(p));
     if (!list.length) return { committed: false, reason: 'nothing' };
     const untracked: string[] = [];
-    for (const c of chunks(list)) {
-      const r = await read(cwd, ['ls-files', '-z', '--others', '--exclude-standard', '--', ...c]);
-      untracked.push(...r.stdout.split('\0').filter(Boolean));
+    for (const chunk of chunks(list)) {
+      const gitResult = await read(cwd, ['ls-files', '-z', '--others', '--exclude-standard', '--', ...chunk]);
+      untracked.push(...gitResult.stdout.split('\0').filter(Boolean));
     }
-    for (const c of chunks(untracked)) await run(cwd, ['add', '--', ...c]);
+    for (const chunk of chunks(untracked)) await run(cwd, ['add', '--', ...chunk]);
     const signed = authorship(author);
     await run(cwd, [...signed.config, 'commit', '-q', ...signed.trailer, '--only', '-F', '-', '--', ...list], { stdin: message, env: signed.env });
     const head = await read(cwd, ['rev-parse', '-q', '--verify', 'HEAD']);
@@ -366,9 +366,9 @@ export function createGit(options: GitOptions) {
     // Global facts, checked without a repository.
     async available() {
       try {
-        const r = await spawnGit(root, ['--version']);
-        const m = r.stdout.match(/(\d+)\.(\d+)/);
-        return r.code === 0 && !!m && (+m[1] > 2 || (+m[1] === 2 && +m[2] >= 40));
+        const gitResult = await spawnGit(root, ['--version']);
+        const match = gitResult.stdout.match(/(\d+)\.(\d+)/);
+        return gitResult.code === 0 && !!match && (+match[1] > 2 || (+match[1] === 2 && +match[2] >= 40));
       } catch {
         return false;
       }
@@ -377,10 +377,8 @@ export function createGit(options: GitOptions) {
     identityOf,
     setIdentity,
     configValue,
-    // Clones into `folder` inside `parent` (a staging folder under data/projects/). Line endings are
-    // kept as committed, symbolic links arrive as plain files and submodules are not fetched. A
-    // partial clone leaves out file contents and the checkout, so a sparse checkout can fetch
-    // only the folder it needs.
+    // Clones into `folder` inside `parent` (a staging folder under data/projects/). Line endings are kept as committed, symbolic links arrive as plain files and submodules are not fetched. A partial
+    // clone leaves out file contents and the checkout, so a sparse checkout can fetch only the folder it needs.
     async clone(parent: string, url: string, folder: string, credential?: RemoteCredential, options: { partial?: boolean } = {}) {
       const partial = options.partial ? ['--filter=blob:none', '--no-checkout'] : [];
       await run(parent, ['-c', 'core.autocrlf=false', '-c', 'core.symlinks=false', 'clone', '-q', '--no-recurse-submodules', ...partial, '--', url, folder], { remote: true, credential });
@@ -407,48 +405,48 @@ export function createGit(options: GitOptions) {
     },
     // Tracked and untracked files, with .gitignore applied by Git itself.
     async lsFiles(cwd: string) {
-      const r = await read(cwd, ['ls-files', '-co', '--exclude-standard', '-z']);
-      return [...new Set(r.stdout.split('\0').filter(Boolean))];
+      const gitResult = await read(cwd, ['ls-files', '-co', '--exclude-standard', '-z']);
+      return [...new Set(gitResult.stdout.split('\0').filter(Boolean))];
     },
     // The full name of the checked-out branch, or null when HEAD points at a commit directly.
     async currentRef(cwd: string) {
-      const r = await read(cwd, ['symbolic-ref', '-q', 'HEAD'], true);
-      return r.code === 0 ? r.stdout.trim() : null;
+      const gitResult = await read(cwd, ['symbolic-ref', '-q', 'HEAD'], true);
+      return gitResult.code === 0 ? gitResult.stdout.trim() : null;
     },
     // Every path any commit reachable from the revision ever touched, in repository spelling.
     async historyPaths(cwd: string, rev: string) {
-      const r = await read(cwd, ['log', '--format=', '--name-only', '--no-renames', '-z', rev]);
-      return [...new Set(r.stdout.split('\0').filter(Boolean))];
+      const gitResult = await read(cwd, ['log', '--format=', '--name-only', '--no-renames', '-z', rev]);
+      return [...new Set(gitResult.stdout.split('\0').filter(Boolean))];
     },
     // Writes the revisions and their history into a bundle file that `git clone` can read.
     async bundle(cwd: string, file: string, revs: string[]) {
       await run(cwd, ['bundle', 'create', '-q', file, ...revs]);
     },
     async status(cwd: string) {
-      const r = await read(cwd, ['status', '--porcelain=v2', '-z', '--branch', '--untracked-files=all']);
-      return parseStatus(r.stdout);
+      const gitResult = await read(cwd, ['status', '--porcelain=v2', '-z', '--branch', '--untracked-files=all']);
+      return parseStatus(gitResult.stdout);
     },
     async stage(cwd: string, paths: string[]) {
-      for (const c of chunks(paths)) await run(cwd, ['add', '-A', '--', ...c]);
+      for (const chunk of chunks(paths)) await run(cwd, ['add', '-A', '--', ...chunk]);
     },
     async unstage(cwd: string, paths: string[]) {
       const head = (await read(cwd, ['rev-parse', '-q', '--verify', 'HEAD'], true)).code === 0;
-      for (const c of chunks(paths)) await run(cwd, head ? ['restore', '--staged', '--', ...c] : ['rm', '-q', '-r', '--cached', '--', ...c]);
+      for (const chunk of chunks(paths)) await run(cwd, head ? ['restore', '--staged', '--', ...chunk] : ['rm', '-q', '-r', '--cached', '--', ...chunk]);
     },
     // A file's bytes at a revision (`HEAD`, a commit, or '' for the index); null when it is absent.
     async blob(cwd: string, rev: string, path: string) {
-      const r = await read(cwd, ['cat-file', 'blob', `${rev}:${path}`], true);
-      return r.code === 0 ? r.bytes : null;
+      const gitResult = await read(cwd, ['cat-file', 'blob', `${rev}:${path}`], true);
+      return gitResult.code === 0 ? gitResult.bytes : null;
     },
     async head(cwd: string) {
-      const r = await read(cwd, ['rev-parse', '-q', '--verify', 'HEAD'], true);
-      return r.code === 0 ? r.stdout.trim() : null;
+      const gitResult = await read(cwd, ['rev-parse', '-q', '--verify', 'HEAD'], true);
+      return gitResult.code === 0 ? gitResult.stdout.trim() : null;
     },
     merging,
     commitPaths,
     async branches(cwd: string) {
-      const r = await read(cwd, ['for-each-ref', '--format=%(refname)', 'refs/heads', 'refs/remotes']);
-      const refs = r.stdout.split('\n').filter(Boolean);
+      const gitResult = await read(cwd, ['for-each-ref', '--format=%(refname)', 'refs/heads', 'refs/remotes']);
+      const refs = gitResult.stdout.split('\n').filter(Boolean);
       return {
         local: refs.filter(x => x.startsWith('refs/heads/')).map(x => x.slice(11)),
         remote: refs.filter(x => x.startsWith('refs/remotes/') && !x.endsWith('/HEAD')).map(x => x.slice(13)),
@@ -456,9 +454,9 @@ export function createGit(options: GitOptions) {
     },
     // Every remote with the fetch and push addresses Git resolves (`insteadOf`, `pushurl`).
     async remoteAddresses(cwd: string) {
-      const r = await read(cwd, ['remote', '-v']);
+      const gitResult = await read(cwd, ['remote', '-v']);
       const out = new Map<string, RemoteAddresses>();
-      for (const line of r.stdout.split('\n')) {
+      for (const line of gitResult.stdout.split('\n')) {
         const match = line.match(REMOTE_LINE);
         if (!match) continue;
         const entry = out.get(match[1]) ?? { name: match[1], fetchUrl: '', pushUrl: '' };
@@ -469,51 +467,51 @@ export function createGit(options: GitOptions) {
       return [...out.values()];
     },
     async remotes(cwd: string) {
-      const r = await read(cwd, ['remote', '-v']);
+      const gitResult = await read(cwd, ['remote', '-v']);
       const out = new Map<string, string>();
-      for (const l of r.stdout.split('\n')) {
-        const m = l.match(REMOTE_LINE);
-        if (m && m[3] === 'fetch') out.set(m[1], m[2]);
+      for (const remoteLine of gitResult.stdout.split('\n')) {
+        const match = remoteLine.match(REMOTE_LINE);
+        if (match && match[3] === 'fetch') out.set(match[1], match[2]);
       }
       return out;
     },
     // Raw blob ids of working-tree files (no filters applied) and of a revision's tree entries.
     async worktreeIds(cwd: string, paths: string[]) {
       const out = new Map<string, string>();
-      for (const c of chunks(paths)) {
-        if (!c.length) continue;
-        const r = await read(cwd, ['hash-object', '--no-filters', '--', ...c]);
-        r.stdout
+      for (const chunk of chunks(paths)) {
+        if (!chunk.length) continue;
+        const gitResult = await read(cwd, ['hash-object', '--no-filters', '--', ...chunk]);
+        gitResult.stdout
           .split('\n')
           .filter(Boolean)
-          .forEach((id, i) => out.set(c[i], id));
+          .forEach((id, i) => out.set(chunk[i], id));
       }
       return out;
     },
     async treeIds(cwd: string, rev: string, paths: string[]) {
       const out = new Map<string, string>();
-      for (const c of chunks(paths)) {
-        if (!c.length) continue;
-        const r = await read(cwd, ['ls-tree', '-r', '-z', rev, '--', ...c], true);
-        for (const e of r.stdout.split('\0').filter(Boolean)) {
-          const tab = e.indexOf('\t');
-          out.set(e.slice(tab + 1), e.slice(0, tab).split(' ')[2]);
+      for (const chunk of chunks(paths)) {
+        if (!chunk.length) continue;
+        const gitResult = await read(cwd, ['ls-tree', '-r', '-z', rev, '--', ...chunk], true);
+        for (const treeEntry of gitResult.stdout.split('\0').filter(Boolean)) {
+          const tab = treeEntry.indexOf('\t');
+          out.set(treeEntry.slice(tab + 1), treeEntry.slice(0, tab).split(' ')[2]);
         }
       }
       return out;
     },
     async changedBetween(cwd: string, from: string | null, to: string) {
-      const r = from ? await read(cwd, ['diff', '--no-ext-diff', '--name-only', '-z', from, to]) : await read(cwd, ['ls-tree', '-r', '-z', '--name-only', to]);
-      return r.stdout.split('\0').filter(Boolean);
+      const gitResult = from ? await read(cwd, ['diff', '--no-ext-diff', '--name-only', '-z', from, to]) : await read(cwd, ['ls-tree', '-r', '-z', '--name-only', to]);
+      return gitResult.stdout.split('\0').filter(Boolean);
     },
     async log(cwd: string, path?: string, limit = 50) {
-      const r = await read(
+      const gitResult = await read(
         cwd,
         ['log', '-z', '--name-only', `-n${Math.max(1, Math.min(500, limit))}`, '--format=%x1e%H%x1f%an%x1f%aI%x1f%s%x00', ...(path ? [...(path.endsWith('/') ? [] : ['--follow']), '--', path] : [])],
         true,
       );
-      if (r.code !== 0) return [];
-      return r.stdout
+      if (gitResult.code !== 0) return [];
+      return gitResult.stdout
         .split('\x1e')
         .filter(Boolean)
         .map(record => {
@@ -564,39 +562,53 @@ export function parseStatus(output: string) {
     else if (entry.startsWith('# branch.head ')) branch = entry.slice(14);
     else if (entry.startsWith('# branch.upstream ')) upstream = entry.slice(18);
     else if (entry.startsWith('# branch.ab ')) {
-      const m = entry.match(/\+(\d+) -(\d+)/);
-      if (m) {
-        ahead = +m[1];
-        behind = +m[2];
+      const match = entry.match(/\+(\d+) -(\d+)/);
+      if (match) {
+        ahead = +match[1];
+        behind = +match[2];
       }
     } else if (entry.startsWith('? ')) {
       const path = entry.slice(2);
       files.set(path, 'untracked');
       entries.push({ path, index: '?', worktree: '?', conflicted: false, untracked: true });
     } else if (entry.startsWith('1 ')) {
-      const f = entry.split(' ');
-      const xy = f[1];
-      const path = f.slice(8).join(' ');
-      files.set(path, xy[0] === 'A' ? 'added' : xy.includes('D') ? 'deleted' : 'modified');
+      const fields = entry.split(' ');
+      const xy = fields[1];
+      const path = fields.slice(8).join(' ');
+      let fileState: FileGitState;
+      if (xy[0] === 'A') {
+        fileState = 'added';
+      } else if (xy.includes('D')) {
+        fileState = 'deleted';
+      } else {
+        fileState = 'modified';
+      }
+      files.set(path, fileState);
       entries.push({ path, index: xy[0], worktree: xy[1], conflicted: false, untracked: false });
     } else if (entry.startsWith('2 ')) {
-      const f = entry.split(' ');
-      const path = f.slice(9).join(' ');
+      const fields = entry.split(' ');
+      const path = fields.slice(9).join(' ');
       files.set(path, 'renamed');
       entries.push({
         path,
         orig: parts[i + 1],
-        index: f[1][0],
-        worktree: f[1][1],
+        index: fields[1][0],
+        worktree: fields[1][1],
         conflicted: false,
         untracked: false,
       });
       i++;
     } else if (entry.startsWith('u ')) {
-      const f = entry.split(' ');
-      const path = f.slice(10).join(' ');
+      const fields = entry.split(' ');
+      const path = fields.slice(10).join(' ');
       files.set(path, 'conflicted');
-      entries.push({ path, index: f[1][0], worktree: f[1][1], conflicted: true, untracked: false });
+      entries.push({
+        path,
+        index: fields[1][0],
+        worktree: fields[1][1],
+        conflicted: true,
+        untracked: false,
+      });
     }
   }
   return { branch, upstream, hasCommits, ahead, behind, changes: files.size, files, entries };

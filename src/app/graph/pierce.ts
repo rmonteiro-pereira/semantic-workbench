@@ -35,25 +35,25 @@ export function technicalIds(nodes: PierceNode[]) {
   return nodes.some(n => n.kind === 'OWL class') ? new Set(nodes.filter(n => n.kind !== 'OWL class').map(n => n.id)) : new Set<string>();
 }
 /** Traverses filtered relationships deterministically and limits visible nodes to the budget. */
-export function boundedClosure(nodes: PierceNode[], edges: Link[], start: string[], o: PierceOptions): PierceResult {
+export function boundedClosure(nodes: PierceNode[], edges: Link[], start: string[], pierceOptions: PierceOptions): PierceResult {
   const byId = new Map(nodes.map(n => [n.id, n]));
-  const technical = o.technical ? new Set<string>() : technicalIds(nodes);
+  const technical = pierceOptions.technical ? new Set<string>() : technicalIds(nodes);
   const allowed = (id: string) => {
-    const n = byId.get(id);
-    if (!n) return false;
-    if (!o.valueTypes && VALUE_KINDS.has(n.kind)) return false;
-    if (!o.metrics && n.kind === 'Metric') return false;
+    const pierceNode = byId.get(id);
+    if (!pierceNode) return false;
+    if (!pierceOptions.valueTypes && VALUE_KINDS.has(pierceNode.kind)) return false;
+    if (!pierceOptions.metrics && pierceNode.kind === 'Metric') return false;
     return !technical.has(id);
   };
   const adj = new Map<string, { to: string; label: string; edge: string }[]>();
   const add = (a: string, b: string, label: string, edge: string) => {
     (adj.get(a) ?? adj.set(a, []).get(a)!).push({ to: b, label, edge });
   };
-  for (const e of edges) {
-    if (o.relationship && e.label !== o.relationship) continue;
-    if (e.source === e.target) continue;
-    if (o.direction !== 'in') add(e.source, e.target, e.label, e.id);
-    if (o.direction !== 'out') add(e.target, e.source, e.label, e.id);
+  for (const edge of edges) {
+    if (pierceOptions.relationship && edge.label !== pierceOptions.relationship) continue;
+    if (edge.source === edge.target) continue;
+    if (pierceOptions.direction !== 'in') add(edge.source, edge.target, edge.label, edge.id);
+    if (pierceOptions.direction !== 'out') add(edge.target, edge.source, edge.label, edge.id);
   }
   const name = (id: string) => byId.get(id)?.name ?? id;
   for (const list of adj.values()) list.sort((a, b) => a.label.localeCompare(b.label) || name(a.to).localeCompare(name(b.to)) || a.to.localeCompare(b.to));
@@ -71,29 +71,29 @@ export function boundedClosure(nodes: PierceNode[], edges: Link[], start: string
     step++;
     const next: { id: string; label: string }[] = [];
     for (const id of layer)
-      for (const n of adj.get(id) ?? [])
-        if (steps[n.to] === undefined && allowed(n.to)) {
-          steps[n.to] = step;
-          via[n.to] = n.edge;
-          next.push({ id: n.to, label: n.label });
+      for (const link of adj.get(id) ?? [])
+        if (steps[link.to] === undefined && allowed(link.to)) {
+          steps[link.to] = step;
+          via[link.to] = link.edge;
+          next.push({ id: link.to, label: link.label });
         }
     next.sort((a, b) => a.label.localeCompare(b.label) || name(a.id).localeCompare(name(b.id)) || a.id.localeCompare(b.id));
     layer = next.map(n => n.id);
     order.push(...layer);
   }
-  const budget = Math.max(1, Math.min(o.budget, PIERCE_MAX));
+  const budget = Math.max(1, Math.min(pierceOptions.budget, PIERCE_MAX));
   const shownList = order.slice(0, budget);
   const shown = new Set(shownList);
   const frontier: Record<string, number> = {};
   for (const id of shownList) {
-    let n = 0;
+    let count = 0;
     const seen = new Set<string>();
     for (const x of adj.get(id) ?? [])
       if (!shown.has(x.to) && steps[x.to] !== undefined && !seen.has(x.to)) {
         seen.add(x.to);
-        n++;
+        count++;
       }
-    if (n) frontier[id] = n;
+    if (count) frontier[id] = count;
   }
   // The lines drawn are the ones that reached each node (a tree): every shown node is connected to
   // the start, and the canvas is not buried under every relationship among 150 nodes.

@@ -14,7 +14,18 @@ import './contract.css';
 // that is present (servers, team and roles, service levels, quality, support, pricing, custom
 // properties; each opens in a dialog) and a searchable list of tables.
 const list = (v: unknown): any[] => (Array.isArray(v) ? v : []);
-const text = (v: unknown) => (v === undefined || v === null ? '' : typeof v === 'string' ? v : typeof v === 'number' || typeof v === 'boolean' ? String(v) : JSON.stringify(v));
+const text = (value: unknown) => {
+  if (value === undefined || value === null) {
+    return '';
+  }
+  if (typeof value === 'string') {
+    return value;
+  }
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return String(value);
+  }
+  return JSON.stringify(value);
+};
 /** Collects quality rules declared on an object and its properties. */
 export const rulesOf = (o: any) => [...list(o?.quality), ...flattenProperties(o?.properties).flatMap(p => list(p.property.quality))];
 // Every schema entry is a table in the interface. ODCS declares its type as `logicalType` (always
@@ -31,16 +42,16 @@ export function tableTypeBadge(table: any): string {
 export function objectFacts(data: any) {
   const schema = list(data?.schema);
   const fks = odcsForeignKeys(data);
-  return schema.map((o: any, i: number) => ({
+  return schema.map((schemaObject: any, i: number) => ({
     index: i,
-    name: String(o?.name ?? `table ${i + 1}`),
-    physicalName: text(o?.physicalName),
-    type: tableTypeBadge(o),
-    properties: flattenProperties(o?.properties).length,
-    pk: flattenProperties(o?.properties).filter(p => p.property.primaryKey === true).length,
+    name: String(schemaObject?.name ?? `table ${i + 1}`),
+    physicalName: text(schemaObject?.physicalName),
+    type: tableTypeBadge(schemaObject),
+    properties: flattenProperties(schemaObject?.properties).length,
+    pk: flattenProperties(schemaObject?.properties).filter(p => p.property.primaryKey === true).length,
     fk: fks.filter(k => k.from === i).length,
-    rules: rulesOf(o).length,
-    description: text(o?.description),
+    rules: rulesOf(schemaObject).length,
+    description: text(schemaObject?.description),
   }));
 }
 type RecordColumns = [string, string][];
@@ -264,11 +275,11 @@ function ContractHead({ data }: { data: any }) {
       <dl className="odcs-facts odcs-identity">
         {identity
           .filter(([, v]) => v !== undefined && v !== '')
-          .map(([k, v]) => (
-            <div key={k}>
-              <dt>{k}</dt>
+          .map(([key, value]) => (
+            <div key={key}>
+              <dt>{key}</dt>
               <dd>
-                <IdentityValue label={k} value={v} />
+                <IdentityValue label={key} value={value} />
               </dd>
             </div>
           ))}
@@ -290,11 +301,11 @@ function PurposeList({ description }: { description: Record<string, unknown> }) 
     <dl className="odcs-purpose">
       {(['purpose', 'limitations', 'usage'] as const)
         .filter(k => description[k])
-        .map(k => (
-          <div key={k}>
-            <dt>{k[0].toUpperCase() + k.slice(1)}</dt>
+        .map(key => (
+          <div key={key}>
+            <dt>{key[0].toUpperCase() + key.slice(1)}</dt>
             <dd>
-              <ReadMore>{text(description[k])}</ReadMore>
+              <ReadMore>{text(description[key])}</ReadMore>
             </dd>
           </div>
         ))}

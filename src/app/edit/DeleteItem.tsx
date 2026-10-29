@@ -36,7 +36,7 @@ export function DeleteItem({ doc, base, path, kind, name, owner, projectDocs, on
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   useEffect(() => {
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       try {
         const docs = projectDocs.map(d => (d.id === doc.id ? { ...d, source: base } : d));
         const refs = findReferences({ kind, name, docId: doc.id, path, owner }, docs);
@@ -49,23 +49,23 @@ export function DeleteItem({ doc, base, path, kind, name, owner, projectDocs, on
           doc: docs.find(d => d.id === e.docId)!,
           source: e.source,
         }));
-        const invalid = files.flatMap(f => {
-          const v = validateInput(f.source, f.doc.filename);
-          return v.valid
+        const invalid = files.flatMap(file => {
+          const validation = validateInput(file.source, file.doc.filename);
+          return validation.valid
             ? []
             : [
-                `${f.doc.path}: ${v.issues
+                `${file.doc.path}: ${validation.issues
                   .filter(i => i.severity === 'error')
                   .map(i => i.message)
                   .join(' ')}`,
               ];
         });
         setPlan({ dependents, breaking, files, invalid });
-      } catch (e) {
-        setError((e as Error).message);
+      } catch (error) {
+        setError((error as Error).message);
       }
     }, 20);
-    return () => clearTimeout(t);
+    return () => clearTimeout(timer);
   }, []);
   async function confirm() {
     if (!plan) return;
@@ -75,31 +75,36 @@ export function DeleteItem({ doc, base, path, kind, name, owner, projectDocs, on
       const disk = (d: Doc) => projectDocs.find(x => x.id === d.id)!;
       let written: Saved[];
       if (plan.files.length === 1) {
-        const f = plan.files[0];
-        const r = await api.save(f.doc.project, f.doc.path, disk(f.doc).hash, f.source, diffPatches(disk(f.doc).source, f.source));
-        written = [{ docId: f.doc.id, source: f.source, hash: r.hash }];
+        const file = plan.files[0];
+        const saved = await api.save(file.doc.project, file.doc.path, disk(file.doc).hash, file.source, diffPatches(disk(file.doc).source, file.source));
+        written = [{ docId: file.doc.id, source: file.source, hash: saved.hash }];
       } else {
-        const r = await api.saveBatch(
+        const batchSaved = await api.saveBatch(
           doc.project,
-          plan.files.map(f => ({
-            path: f.doc.path,
-            baseHash: disk(f.doc).hash,
-            patches: diffPatches(disk(f.doc).source, f.source),
+          plan.files.map(file => ({
+            path: file.doc.path,
+            baseHash: disk(file.doc).hash,
+            patches: diffPatches(disk(file.doc).source, file.source),
           })),
         );
-        written = plan.files.map((f, i) => ({
-          docId: f.doc.id,
-          source: f.source,
-          hash: r.written[i].hash,
+        written = plan.files.map((file, i) => ({
+          docId: file.doc.id,
+          source: file.source,
+          hash: batchSaved.written[i].hash,
         }));
       }
       onDeleted(written);
-    } catch (e) {
-      setError(e instanceof StaleSave ? 'Nothing was deleted: a file changed since this opened. Close it and try again.' : `Nothing was deleted: ${(e as Error).message}`);
+    } catch (error) {
+      setError(error instanceof StaleSave ? 'Nothing was deleted: a file changed since this opened. Close it and try again.' : `Nothing was deleted: ${(error as Error).message}`);
       setBusy(false);
     }
   }
-  const unique = (refs: Reference[]) => [...new Map(refs.map(r => [`${r.docId}|${JSON.stringify(r.dependent?.path ?? r.path)}|${r.dependent?.binding?.metric ?? ''}`, r])).values()];
+  const referenceKey = (reference: Reference) => {
+    const path = JSON.stringify(reference.dependent?.path ?? reference.path);
+    const metric = reference.dependent?.binding?.metric ?? '';
+    return `${reference.docId}|${path}|${metric}`;
+  };
+  const unique = (refs: Reference[]) => [...new Map(refs.map(r => [referenceKey(r), r])).values()];
   const footer = (
     <>
       <button type="button" onClick={onClose} disabled={busy}>
@@ -121,11 +126,11 @@ export function DeleteItem({ doc, base, path, kind, name, owner, projectDocs, on
           {kindLabel[kind]} {name} ({doc.path})
         </li>
         {plan &&
-          unique(plan.dependents).map((r, i) => (
+          unique(plan.dependents).map((reference, i) => (
             <li key={i}>
-              {r.dependent!.label}{' '}
+              {reference.dependent!.label}{' '}
               <small>
-                ({r.file}:{r.line})
+                ({reference.file}:{reference.line})
               </small>
             </li>
           ))}
@@ -136,12 +141,12 @@ export function DeleteItem({ doc, base, path, kind, name, owner, projectDocs, on
         <div className="delete-warning">
           <strong>These references will no longer resolve (fix them in Source):</strong>
           <ul>
-            {plan.breaking.map((r, i) => (
+            {plan.breaking.map((reference, i) => (
               <li key={i}>
                 <code>
-                  {r.file}:{r.line}
+                  {reference.file}:{reference.line}
                 </code>{' '}
-                {r.excerpt}
+                {reference.excerpt}
               </li>
             ))}
           </ul>

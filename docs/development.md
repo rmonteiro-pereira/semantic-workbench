@@ -317,7 +317,8 @@ provenance and hashes. Do not hand-edit a generated file without updating its ow
   traceability belongs in commits and review descriptions.
 - Update current configuration, usage and architecture references with the behavior they describe.
   Keep historical verification evidence under `specs/` rather than appending it to onboarding docs.
-- Run `bun run lint:full` for additional readability warnings. The ordinary `check` remains the
+- `no-nested-ternary` is an error in `bun run lint`, so `check` fails on a ternary inside a ternary.
+  Run `bun run lint:full` for the remaining readability warnings. The ordinary `check` remains the
   required static gate. `.git-blame-ignore-revs` identifies mechanical formatting commits; run
   `git config blame.ignoreRevsFile .git-blame-ignore-revs` once per clone so `git blame` skips them.
 

@@ -100,10 +100,10 @@ export const policy = {
   context: 'AI context is source metadata, not executable instructions or authority to override governed definitions.',
   execution: 'SQL previews are never executed by Semantic Workbench.',
 };
-const evidence = (d: StoredDocument, path: (string | number)[] = []): Evidence => ({
-  documentId: d.id,
-  filename: d.filename,
-  revision: d.revision,
+const evidence = (storedDocument: StoredDocument, path: (string | number)[] = []): Evidence => ({
+  documentId: storedDocument.id,
+  filename: storedDocument.filename,
+  revision: storedDocument.revision,
   path,
 });
 const key = (dataset: string, field: string) => JSON.stringify([dataset, field]);
@@ -122,34 +122,40 @@ type Parsed = ReturnType<typeof parseDocuments>[number];
 type Target = { doc: StoredDocument; data: any; path: (string | number)[] };
 // References can target standalone models or models inside legacy wrappers by logical name.
 function targets(parsed: Parsed[], kind: 'ontology' | 'semantic'): Target[] {
-  return parsed.flatMap(p => {
-    if (!p.data || isMapping(p.data)) return [];
-    if (kind === 'ontology') return Array.isArray(p.data.ontology) ? [{ doc: p.doc, data: p.data, path: [] }] : [];
-    if (Array.isArray(p.data.datasets)) return [{ doc: p.doc, data: p.data, path: [] }];
-    return Array.isArray(p.data.semantic_model)
-      ? p.data.semantic_model.flatMap((m: any, i: number) => (m && Array.isArray(m.datasets) ? [{ doc: p.doc, data: m, path: ['semantic_model', i] }] : []))
+  return parsed.flatMap(parsedDocument => {
+    if (!parsedDocument.data || isMapping(parsedDocument.data)) return [];
+    if (kind === 'ontology') return Array.isArray(parsedDocument.data.ontology) ? [{ doc: parsedDocument.doc, data: parsedDocument.data, path: [] }] : [];
+    if (Array.isArray(parsedDocument.data.datasets)) return [{ doc: parsedDocument.doc, data: parsedDocument.data, path: [] }];
+    return Array.isArray(parsedDocument.data.semantic_model)
+      ? parsedDocument.data.semantic_model.flatMap((m: any, i: number) => (m && Array.isArray(m.datasets) ? [{ doc: parsedDocument.doc, data: m, path: ['semantic_model', i] }] : []))
       : [];
   });
 }
-const identity = (t: Target) =>
-  `"${t.data.name ?? '(unnamed)'}" in ${t.doc.project ? `${t.doc.project}/` : ''}${t.doc.project ? t.doc.id.slice(t.doc.project.length + 1) : t.doc.filename}${t.path.length ? '#/' + t.path.join('/') : ''}`;
+const identity = (target: Target) => {
+  const name = target.data.name ?? '(unnamed)';
+  const project = target.doc.project;
+  const projectPrefix = project ? `${project}/` : '';
+  const file = project ? target.doc.id.slice(project.length + 1) : target.doc.filename;
+  const pointer = target.path.length ? '#/' + target.path.join('/') : '';
+  return `"${name}" in ${projectPrefix}${file}${pointer}`;
+};
 function mappingEntries(parsed: Parsed[]) {
-  return parsed.flatMap(p => {
-    if (isMapping(p.data))
+  return parsed.flatMap(parsedDocument => {
+    if (isMapping(parsedDocument.data))
       return [
         {
-          id: p.doc.id,
-          doc: p.doc,
-          data: p.data,
+          id: parsedDocument.doc.id,
+          doc: parsedDocument.doc,
+          data: parsedDocument.data,
           ontology: null as Parsed | null,
           path: [] as (string | number)[],
         },
       ];
-    return (p.data?.ontology_mappings ?? []).map((m: any, i: number) => ({
-      id: `${p.doc.id}#ontology_mappings/${i}`,
-      doc: p.doc,
-      data: m,
-      ontology: p,
+    return (parsedDocument.data?.ontology_mappings ?? []).map((mappingEntry: any, i: number) => ({
+      id: `${parsedDocument.doc.id}#ontology_mappings/${i}`,
+      doc: parsedDocument.doc,
+      data: mappingEntry,
+      ontology: parsedDocument,
       path: ['ontology_mappings', i] as (string | number)[],
     }));
   });
@@ -158,14 +164,14 @@ function mappingEntries(parsed: Parsed[]) {
 export function agentCatalog(documents: StoredDocument[]) {
   const parsed = parseDocuments(documents);
   return {
-    mappings: mappingEntries(parsed).map(m => ({
-      id: m.id,
-      name: m.data.name ?? `${m.doc.filename} mapping`,
-      filename: m.doc.filename,
-      embedded: !!m.ontology,
-      project: m.doc.project,
-      ontologyRef: m.data.ontology_ref ?? { name: m.ontology?.data.name },
-      semanticModelRef: m.data.semantic_model_ref ?? { name: m.data.semantic_model?.name },
+    mappings: mappingEntries(parsed).map(mapping => ({
+      id: mapping.id,
+      name: mapping.data.name ?? `${mapping.doc.filename} mapping`,
+      filename: mapping.doc.filename,
+      embedded: !!mapping.ontology,
+      project: mapping.doc.project,
+      ontologyRef: mapping.data.ontology_ref ?? { name: mapping.ontology?.data.name },
+      semanticModelRef: mapping.data.semantic_model_ref ?? { name: mapping.data.semantic_model?.name },
     })),
     policy,
   };
@@ -181,16 +187,16 @@ type Entry = ReturnType<typeof mappingEntries>[number] & { semanticPath?: (strin
 /** Builds context for a model at a document path when no mapping is required. */
 export function modelContext(documents: StoredDocument[], documentId: string, path: (string | number)[] = []): RuntimeContext {
   const parsed = parseDocuments(documents);
-  const p = parsed.find(x => x.doc.id === documentId);
-  if (!p?.data) throw new BadRequestError('Semantic model not found.');
-  let model: any = p.data;
-  for (const k of path) model = model?.[k];
+  const parsedDocument = parsed.find(x => x.doc.id === documentId);
+  if (!parsedDocument?.data) throw new BadRequestError('Semantic model not found.');
+  let model: any = parsedDocument.data;
+  for (const segment of path) model = model?.[segment];
   if (!model || !Array.isArray(model.datasets)) throw new BadRequestError('Semantic model not found.');
   const entry: Entry = {
     id: `${documentId}#model`,
-    doc: p.doc,
+    doc: parsedDocument.doc,
     data: { name: model.name, semantic_model: model, concept_mappings: [] },
-    ontology: { doc: p.doc, data: { name: '(none)', ontology: [] } },
+    ontology: { doc: parsedDocument.doc, data: { name: '(none)', ontology: [] } },
     path: [],
     semanticPath: path,
   };
@@ -215,9 +221,13 @@ function assemble(parsed: Parsed[], entry: Entry): RuntimeContext {
     const own = entry.doc.project === undefined ? [] : candidates.filter(t => t.doc.project === entry.doc.project);
     if (own.length) candidates = own;
     if (candidates.length !== 1) {
+      const iriText = ref.iri ? ` at ${ref.iri}` : '';
+      const candidateList = candidates.length > 1 ? `: ${candidates.map(identity).join(', ')}` : '';
+      const knownIdentities = all.length ? `Local ${label} identities: ${all.map(identity).join(', ')}.` : `No ${label} documents are loaded.`;
       problem(
         'reference',
-        `${label} reference "${ref.name}"${ref.iri ? ` at ${ref.iri}` : ''} resolves to ${candidates.length} local documents${candidates.length > 1 ? `: ${candidates.map(identity).join(', ')}` : ''}. Import the missing document or remove duplicate identities; no target was guessed. ${all.length ? `Local ${label} identities: ${all.map(identity).join(', ')}.` : `No ${label} documents are loaded.`}`,
+        `${label} reference "${ref.name}"${iriText} resolves to ${candidates.length} local documents${candidateList}. ` +
+          `Import the missing document or remove duplicate identities; no target was guessed. ${knownIdentities}`,
       );
       return null;
     }
@@ -282,36 +292,36 @@ function assemble(parsed: Parsed[], entry: Entry): RuntimeContext {
   addAi(ontology, 'ontology', evidence(ont.doc));
   addAi(model, 'semantic model', evidence(sem.doc, semanticPrefix));
   context.concepts.forEach((c, i) => addAi(c, `concept:${c.concept}`, evidence(ont.doc, ['ontology', i])));
-  context.datasets.forEach((d, i) => {
-    addAi(d, `dataset:${d.name}`, evidence(sem.doc, [...semanticPrefix, 'datasets', i]));
-    (d.fields ?? []).forEach((f: any, j: number) => {
+  context.datasets.forEach((dataset, i) => {
+    addAi(dataset, `dataset:${dataset.name}`, evidence(sem.doc, [...semanticPrefix, 'datasets', i]));
+    (dataset.fields ?? []).forEach((field: any, j: number) => {
       const ev = evidence(sem.doc, [...semanticPrefix, 'datasets', i, 'fields', j]);
-      const item = {
-        id: key(d.name, f.name),
-        dataset: d.name,
-        name: f.name,
-        definition: f,
+      const runtimeField = {
+        id: key(dataset.name, field.name),
+        dataset: dataset.name,
+        name: field.name,
+        definition: field,
         evidence: ev,
       };
-      fieldMap.set(item.id, item);
-      context.fields.push(item);
-      addAi(f, `field:${d.name}.${f.name}`, ev);
+      fieldMap.set(runtimeField.id, runtimeField);
+      context.fields.push(runtimeField);
+      addAi(field, `field:${dataset.name}.${field.name}`, ev);
     });
   });
-  (model.metrics ?? []).forEach((m: any, i: number) => {
+  (model.metrics ?? []).forEach((metricDefinition: any, i: number) => {
     const ev = evidence(sem.doc, [...semanticPrefix, 'metrics', i]);
     const metric = {
-      id: m.name,
-      name: m.name,
-      definition: m,
+      id: metricDefinition.name,
+      name: metricDefinition.name,
+      definition: metricDefinition,
       fields: [] as string[],
       datasets: [] as string[],
       dependsOn: [] as string[],
       evidence: ev,
     };
-    metricMap.set(m.name, metric);
+    metricMap.set(metricDefinition.name, metric);
     context.metrics.push(metric);
-    addAi(m, `metric:${m.name}`, ev);
+    addAi(metricDefinition, `metric:${metricDefinition.name}`, ev);
   });
   context.joins.forEach((j, i) => addAi(j, `join:${j.name}`, evidence(sem.doc, [...semanticPrefix, 'relationships', i])));
   const resolveRefs = (expression: string): { fields: string[]; metrics: string[]; condition: unknown } => {
@@ -356,11 +366,11 @@ function assemble(parsed: Parsed[], entry: Entry): RuntimeContext {
   for (const metric of context.metrics)
     try {
       metricDependencies(metric.name);
-    } catch (e) {
+    } catch (error) {
       findings.push({
         severity: 'error',
         code: 'metric',
-        message: (e as Error).message,
+        message: (error as Error).message,
         evidence: metric.evidence,
       });
     }
@@ -377,14 +387,14 @@ function assemble(parsed: Parsed[], entry: Entry): RuntimeContext {
       const current = queue[i];
       if (seen.has(current)) continue;
       seen.add(current);
-      const c = concepts.get(current);
-      if (!c) continue;
-      const own = (c.relationships ?? []).filter((r: any) => r.name === name);
+      const conceptDefinition = concepts.get(current);
+      if (!conceptDefinition) continue;
+      const own = (conceptDefinition.relationships ?? []).filter((r: any) => r.name === name);
       if (own.length) {
         matches.push(...own);
         continue;
       }
-      queue.push(...(c.extends ?? []));
+      queue.push(...(conceptDefinition.extends ?? []));
     }
     if (matches.length !== 1) throw new BadRequestError(`Relationship ${concept}.${name} resolves to ${matches.length} definitions (including inheritance).`);
     return matches[0];
@@ -401,16 +411,16 @@ function assemble(parsed: Parsed[], entry: Entry): RuntimeContext {
   };
   const queue: Task[] = [];
   (entry.data.concept_mappings ?? []).forEach((cm: any, i: number) => {
-    const p = [...entry.path, 'concept_mappings', i];
-    if (!concepts.has(cm.concept)) problem('concept', `Unknown ontology concept ${cm.concept}.`, p);
-    for (const [kind, k] of [
+    const mappingPath = [...entry.path, 'concept_mappings', i];
+    if (!concepts.has(cm.concept)) problem('concept', `Unknown ontology concept ${cm.concept}.`, mappingPath);
+    for (const [kind, mappingKey] of [
       ['object', 'object_mappings'],
       ['link', 'link_mappings'],
     ] as const)
-      (cm[k] ?? []).forEach((node: any, j: number) =>
+      (cm[mappingKey] ?? []).forEach((node: any, j: number) =>
         queue.push({
           node,
-          path: [...p, k, j],
+          path: [...mappingPath, mappingKey, j],
           concept: cm.concept,
           rootConcept: cm.concept,
           relationships: [],
@@ -463,9 +473,17 @@ function assemble(parsed: Parsed[], entry: Entry): RuntimeContext {
       if (!concepts.has(concept)) throw new BadRequestError(`Unknown ontology concept ${concept}.`);
       if (node.expression !== undefined) {
         const refs = resolveRefs(node.expression);
+        let bindingKind: BindingKind;
+        if (task.inLink) {
+          bindingKind = 'link';
+        } else if (task.kind === 'referent') {
+          bindingKind = 'referent';
+        } else {
+          bindingKind = 'object';
+        }
         context.bindings.push({
           id: JSON.stringify(path),
-          kind: task.inLink ? 'link' : task.kind === 'referent' ? 'referent' : 'object',
+          kind: bindingKind,
           concept,
           rootConcept,
           relationships,
@@ -484,8 +502,8 @@ function assemble(parsed: Parsed[], entry: Entry): RuntimeContext {
           kind: 'referent',
           depth: task.depth + 1,
         });
-    } catch (e) {
-      problem('mapping-reference', (e as Error).message, path);
+    } catch (error) {
+      problem('mapping-reference', (error as Error).message, path);
     }
   }
   // Bindings can belong to a standalone mapping or an embedded semantic model.
@@ -493,11 +511,11 @@ function assemble(parsed: Parsed[], entry: Entry): RuntimeContext {
   const kpiPath = entry.ontology ? [...entry.path, 'semantic_model'] : entry.path;
   const kpi = readKpiBindings(kpiOwner, '', !entry.ontology);
   const extIndex = workbenchEntry(kpiOwner)?.index ?? 0;
-  context.metricBindings = resolveBindings(kpi.value, ontology, new Set(metricMap.keys())).map((b, i) => ({
-    metric: b.metric,
-    measures: b.measures,
-    ...(b.of ? { of: b.of } : {}),
-    findings: b.problems.map(message => ({
+  context.metricBindings = resolveBindings(kpi.value, ontology, new Set(metricMap.keys())).map((resolvedBinding, i) => ({
+    metric: resolvedBinding.metric,
+    measures: resolvedBinding.measures,
+    ...(resolvedBinding.of ? { of: resolvedBinding.of } : {}),
+    findings: resolvedBinding.problems.map(message => ({
       severity: 'warning' as const,
       code: 'metric-binding',
       message,
@@ -510,7 +528,7 @@ function assemble(parsed: Parsed[], entry: Entry): RuntimeContext {
 /** Narrows context to named concepts and their referenced fields and metrics. */
 export function selectContext(context: RuntimeContext, conceptNames: string[]) {
   const names = new Set(conceptNames);
-  for (const n of names) if (!context.concepts.some(c => c.concept === n)) throw new BadRequestError(`Unknown concept ${n}.`);
+  for (const name of names) if (!context.concepts.some(c => c.concept === name)) throw new BadRequestError(`Unknown concept ${name}.`);
   const bindings = context.bindings.filter(b => names.size === 0 || names.has(b.rootConcept) || names.has(b.concept));
   const metricNames = new Set(bindings.flatMap(b => b.metrics));
   const pending = [...metricNames];
@@ -551,14 +569,14 @@ export function planQuery(context: RuntimeContext, request: PlanRequest) {
   const metricMap = new Map(context.metrics.map(m => [m.id, m]));
   const fieldMap = new Map(context.fields.map(f => [f.id, f]));
   const metrics = request.metrics.map(id => {
-    const m = selected.metrics.find(m => m.id === id);
-    if (!m) throw new BadRequestError(`Metric ${id} is not reachable through the selected ontology mappings.`);
-    return m;
+    const runtimeMetric = selected.metrics.find(m => m.id === id);
+    if (!runtimeMetric) throw new BadRequestError(`Metric ${id} is not reachable through the selected ontology mappings.`);
+    return runtimeMetric;
   });
   const dimensions = request.dimensions.map(id => {
-    const f = selected.fields.find(f => f.id === id);
-    if (!f) throw new BadRequestError(`Field ${id} is not reachable through the selected ontology mappings.`);
-    return f;
+    const runtimeField = selected.fields.find(f => f.id === id);
+    if (!runtimeField) throw new BadRequestError(`Field ${id} is not reachable through the selected ontology mappings.`);
+    return runtimeField;
   });
   const timeField = request.timeGrain ? selected.fields.find(f => f.id === request.timeGrain!.field) : undefined;
   if (request.timeGrain && (!timeField || !['day', 'week', 'month', 'quarter', 'year'].includes(request.timeGrain.grain)))
@@ -632,47 +650,48 @@ export function planQuery(context: RuntimeContext, request: PlanRequest) {
         continue;
       }
       const dataset = ref.table ?? currentDataset;
-      const f = dataset ? fieldMap.get(key(dataset, ref.column)) : null;
-      if (!f) throw new BadRequestError(`Unresolved query field ${dataset ?? ''}.${ref.column}.`);
-      if (!aliases.has(f.dataset)) throw new BadRequestError(`Dataset ${f.dataset} is not in the declared join plan.`);
-      const fieldExpr = f.definition.expression?.dialects?.find((d: any) => d.dialect === 'ANSI_SQL')?.expression;
-      if (!fieldExpr) throw new BadRequestError(`Field ${f.dataset}.${f.name} has no ANSI_SQL expression.`);
+      const runtimeField = dataset ? fieldMap.get(key(dataset, ref.column)) : null;
+      if (!runtimeField) throw new BadRequestError(`Unresolved query field ${dataset ?? ''}.${ref.column}.`);
+      if (!aliases.has(runtimeField.dataset)) throw new BadRequestError(`Dataset ${runtimeField.dataset} is not in the declared join plan.`);
+      const fieldExpr = runtimeField.definition.expression?.dialects?.find((d: any) => d.dialect === 'ANSI_SQL')?.expression;
+      if (!fieldExpr) throw new BadRequestError(`Field ${runtimeField.dataset}.${runtimeField.name} has no ANSI_SQL expression.`);
       const physical = parseExpression(fieldExpr).expression;
-      if (!scalar(physical)) throw new BadRequestError(`Field ${f.dataset}.${f.name} is not scalar.`);
+      if (!scalar(physical)) throw new BadRequestError(`Field ${runtimeField.dataset}.${runtimeField.name} is not scalar.`);
       for (const column of columnRefs(physical)) {
-        if (column.table && column.table !== f.dataset) throw new BadRequestError('Cross-dataset field expressions need an explicit physical binding.');
-        column.node.table = f.dataset;
+        if (column.table && column.table !== runtimeField.dataset) throw new BadRequestError('Cross-dataset field expressions need an explicit physical binding.');
+        column.node.table = runtimeField.dataset;
       }
       if (['binary_expr', 'unary_expr', 'case'].includes(physical.type)) physical.parentheses = true;
-      for (const k of Object.keys(ref.node)) delete ref.node[k];
+      for (const key of Object.keys(ref.node)) delete ref.node[key];
       Object.assign(ref.node, physical);
     }
     return ast;
   };
+  const timeColumnSql = timeField ? expressionSql(compile(`${quoteIdentifier(timeField.dataset)}.${quoteIdentifier(timeField.name)}`)) : '';
   const select = [
     ...(timeField
       ? [
           {
             alias: 'period',
-            sql: `DATE_TRUNC('${request.timeGrain!.grain}', ${expressionSql(compile(`${quoteIdentifier(timeField.dataset)}.${quoteIdentifier(timeField.name)}`))})`,
+            sql: `DATE_TRUNC('${request.timeGrain!.grain}', ${timeColumnSql})`,
             fieldId: timeField.id,
             evidence: timeField.evidence,
           },
         ]
       : []),
-    ...dimensions.map((f, i) => ({
+    ...dimensions.map((dimension, i) => ({
       alias: `dimension_${i + 1}`,
-      sql: expressionSql(compile(`${quoteIdentifier(f.dataset)}.${quoteIdentifier(f.name)}`)),
-      fieldId: f.id,
-      evidence: f.evidence,
+      sql: expressionSql(compile(`${quoteIdentifier(dimension.dataset)}.${quoteIdentifier(dimension.name)}`)),
+      fieldId: dimension.id,
+      evidence: dimension.evidence,
     })),
   ];
-  const measures = metrics.map((m, i) => ({
+  const measures = metrics.map((metric, i) => ({
     alias: `metric_${i + 1}`,
-    sql: expressionSql(compile(m.definition.expression.dialects.find((d: any) => d.dialect === 'ANSI_SQL').expression)),
-    metricId: m.id,
-    governedExpression: m.definition.expression,
-    evidence: m.evidence,
+    sql: expressionSql(compile(metric.definition.expression.dialects.find((d: any) => d.dialect === 'ANSI_SQL').expression)),
+    metricId: metric.id,
+    governedExpression: metric.definition.expression,
+    evidence: metric.evidence,
   }));
   const orderedJoins = [...joins.values()].sort((a, b) => distances.get(a.to)! - distances.get(b.to)! || a.name.localeCompare(b.name));
   const from = `${sourceSql(modelDatasets.get(root).source)} AS ${quoteIdentifier(root)}`;
@@ -681,14 +700,18 @@ export function planQuery(context: RuntimeContext, request: PlanRequest) {
     const uniqueKeys = [...(target.primary_key?.length ? [target.primary_key] : []), ...(target.unique_keys ?? [])];
     if (!uniqueKeys.some((keys: string[]) => keys.length === j.to_columns.length && keys.every(k => j.to_columns.includes(k))))
       throw new BadRequestError(`Join ${j.name} has no declared unique target key. Add primary_key or unique_keys to ${j.to} before aggregating through it.`);
-    const conditions = j.from_columns.map(
-      (column: string, i: number) =>
-        `${expressionSql(compile(`${quoteIdentifier(j.from)}.${quoteIdentifier(column)}`))} = ${expressionSql(compile(`${quoteIdentifier(j.to)}.${quoteIdentifier(j.to_columns[i])}`))}`,
-    );
+    const conditions = j.from_columns.map((column: string, i: number) => {
+      const fromColumn = `${quoteIdentifier(j.from)}.${quoteIdentifier(column)}`;
+      const toColumn = `${quoteIdentifier(j.to)}.${quoteIdentifier(j.to_columns[i])}`;
+      return `${expressionSql(compile(fromColumn))} = ${expressionSql(compile(toColumn))}`;
+    });
     // LEFT JOIN retains facts with missing dimensions. Inner-join filtering must be explicit.
     return `LEFT JOIN ${sourceSql(modelDatasets.get(j.to).source)} AS ${quoteIdentifier(j.to)} ON ${conditions.join(' AND ')}`;
   });
-  const sql = `SELECT\n  ${[...select, ...measures].map(s => `${s.sql} AS ${quoteIdentifier(s.alias)}`).join(',\n  ')}\nFROM ${from}${joinSql.length ? '\n' + joinSql.join('\n') : ''}${metrics.length && select.length ? '\nGROUP BY ' + select.map(s => s.sql).join(', ') : ''};`;
+  const columnList = [...select, ...measures].map(s => `${s.sql} AS ${quoteIdentifier(s.alias)}`).join(',\n  ');
+  const joinClause = joinSql.length ? '\n' + joinSql.join('\n') : '';
+  const groupByClause = metrics.length && select.length ? '\nGROUP BY ' + select.map(s => s.sql).join(', ') : '';
+  const sql = `SELECT\n  ${columnList}\nFROM ${from}${joinClause}${groupByClause};`;
   return {
     mappingId: context.mappingId,
     dialect: 'ANSI_SQL',

@@ -1,4 +1,5 @@
 /** Defines validation findings and rejects unsafe or oversized input envelopes. */
+import type { ErrorObject } from 'ajv';
 /** Describes a validation finding with optional source and feature locations. */
 export type Issue = {
   severity: 'error' | 'warning' | 'info';
@@ -9,6 +10,13 @@ export type Issue = {
   column?: number;
   innerPath?: string;
 };
+/** The document path a schema error points at, including a missing or unexpected property. */
+export function schemaErrorPath(error: ErrorObject): string {
+  const base = error.instancePath || '';
+  if (error.keyword === 'required') return base + '/' + error.params.missingProperty;
+  if (error.keyword === 'additionalProperties') return base + '/' + error.params.additionalProperty;
+  return base;
+}
 /** Carries validation findings for input that cannot be accepted. */
 export class InputError extends Error {
   constructor(public issues: Issue[]) {

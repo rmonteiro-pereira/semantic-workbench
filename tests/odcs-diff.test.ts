@@ -12,15 +12,15 @@ test('identical versions, and key order, are no change', () => {
 });
 test('added, removed and changed properties with each changed attribute, types included', () => {
   const next = clone();
-  const o = orders(next);
-  o.properties.find((p: any) => p.name === 'amount').logicalType = 'string';
-  o.properties.find((p: any) => p.name === 'status').required = false;
-  o.properties = o.properties.filter((p: any) => p.name !== 'order_date');
-  o.properties.push({ name: 'currency', logicalType: 'string' });
-  o.description = 'Changed.';
-  const d = diffContracts(base, next);
-  expect(d.objects).toHaveLength(1);
-  const od = d.objects[0];
+  const schemaObject = orders(next);
+  schemaObject.properties.find((p: any) => p.name === 'amount').logicalType = 'string';
+  schemaObject.properties.find((p: any) => p.name === 'status').required = false;
+  schemaObject.properties = schemaObject.properties.filter((p: any) => p.name !== 'order_date');
+  schemaObject.properties.push({ name: 'currency', logicalType: 'string' });
+  schemaObject.description = 'Changed.';
+  const contractDiff = diffContracts(base, next);
+  expect(contractDiff.objects).toHaveLength(1);
+  const od = contractDiff.objects[0];
   expect(od.object).toBe('orders');
   expect(od.kind).toBe('changed');
   expect(od.attributes).toEqual([
@@ -47,11 +47,11 @@ test('added, removed and changed properties with each changed attribute, types i
 });
 test('physical type, keys, relationships and classification changes are all reported', () => {
   const next = clone();
-  const p = orders(next).properties.find((x: any) => x.name === 'customer_id');
-  p.physicalType = 'BIGINT';
-  p.primaryKey = true;
-  p.classification = 'internal';
-  p.relationships[0].to = 'customers.name';
+  const property = orders(next).properties.find((x: any) => x.name === 'customer_id');
+  property.physicalType = 'BIGINT';
+  property.primaryKey = true;
+  property.classification = 'internal';
+  property.relationships[0].to = 'customers.name';
   expect(diffObject(base, next, 'orders')!.properties[0].changes.map(c => c.attribute)).toEqual(['classification', 'physicalType', 'primaryKey', 'relationships']);
 });
 test('objects added and removed, contract-level attributes, nested properties by dotted path, matching by id', () => {
@@ -59,9 +59,9 @@ test('objects added and removed, contract-level attributes, nested properties by
   next.schema = next.schema.filter((o: any) => o.name !== 'products');
   next.schema.push({ name: 'refunds', properties: [{ name: 'refund_id' }] });
   next.version = '1.1.0';
-  const d = diffContracts(base, next);
-  expect(d.contract).toEqual([{ attribute: 'version', before: '1.0.0', after: '1.1.0' }]);
-  expect(d.objects.map(o => [o.object, o.kind, o.properties.length])).toEqual([
+  const contractDiff = diffContracts(base, next);
+  expect(contractDiff.contract).toEqual([{ attribute: 'version', before: '1.0.0', after: '1.1.0' }]);
+  expect(contractDiff.objects.map(o => [o.object, o.kind, o.properties.length])).toEqual([
     ['products', 'removed', 3],
     ['refunds', 'added', 1],
   ]);
@@ -80,9 +80,9 @@ test('objects added and removed, contract-level attributes, nested properties by
     },
   ]);
   // With ids on both sides, a renamed property is one change, not a removal and an addition.
-  const a = { schema: [{ id: 'o1', name: 'o', properties: [{ id: 'p1', name: 'old' }] }] };
-  const b = { schema: [{ id: 'o1', name: 'o', properties: [{ id: 'p1', name: 'new' }] }] };
-  expect(diffContracts(a, b).objects[0].properties).toEqual([
+  const before = { schema: [{ id: 'o1', name: 'o', properties: [{ id: 'p1', name: 'old' }] }] };
+  const after = { schema: [{ id: 'o1', name: 'o', properties: [{ id: 'p1', name: 'new' }] }] };
+  expect(diffContracts(before, after).objects[0].properties).toEqual([
     {
       path: 'new',
       kind: 'changed',

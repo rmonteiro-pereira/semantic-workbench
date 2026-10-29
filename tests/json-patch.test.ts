@@ -10,14 +10,19 @@ import { validateInput } from '../src/shared/validation/input';
 // elsewhere; the file is never re-serialized.
 const contract = (indent: string | number) => JSON.stringify(parse(readFileSync('public/examples/commerce/commerce.odcs.yaml', 'utf8')), null, indent) + '\n';
 const set = (src: string, path: (string | number)[], value: any) => applyPatches(src, valuePatches(src, path, value, 'c.odcs.json'));
-const lines = (a: string, b: string) => {
-  const x = a.split('\n');
-  const y = b.split('\n');
-  let p = 0;
-  while (x[p] === y[p]) p++;
-  let s = 0;
-  while (s < x.length - p && s < y.length - p && x[x.length - 1 - s] === y[y.length - 1 - s]) s++;
-  return { removed: x.slice(p, x.length - s), added: y.slice(p, y.length - s) };
+const lines = (before: string, after: string) => {
+  const beforeLines = before.split('\n');
+  const afterLines = after.split('\n');
+  let prefixLength = 0;
+  while (beforeLines[prefixLength] === afterLines[prefixLength]) prefixLength++;
+  let suffixLength = 0;
+  while (
+    suffixLength < beforeLines.length - prefixLength &&
+    suffixLength < afterLines.length - prefixLength &&
+    beforeLines[beforeLines.length - 1 - suffixLength] === afterLines[afterLines.length - 1 - suffixLength]
+  )
+    suffixLength++;
+  return { removed: beforeLines.slice(prefixLength, beforeLines.length - suffixLength), added: afterLines.slice(prefixLength, afterLines.length - suffixLength) };
 };
 for (const indent of [2, 4, '\t']) {
   const src = contract(indent);
@@ -38,12 +43,15 @@ for (const indent of [2, 4, '\t']) {
     expect(validateInput(out, 'c.odcs.json').valid).toBe(true);
   });
   test(`adding a key and a list entry uses the document's indentation (indent ${JSON.stringify(indent)})`, () => {
-    const item = itemValue(src, ['schema', 0, 'properties', 0]);
-    const out = set(src, ['schema', 0, 'properties', 0], { ...item, classification: 'restricted' });
-    const d = lines(src, out);
-    expect(d.added.at(-1)).toBe(`${pad.repeat(5)}"classification": "restricted"`);
-    expect(d.added.length).toBe(2);
-    expect(d.removed.length).toBe(1);
+    const property = itemValue(src, ['schema', 0, 'properties', 0]);
+    const out = set(src, ['schema', 0, 'properties', 0], {
+      ...property,
+      classification: 'restricted',
+    });
+    const lineDiff = lines(src, out);
+    expect(lineDiff.added.at(-1)).toBe(`${pad.repeat(5)}"classification": "restricted"`);
+    expect(lineDiff.added.length).toBe(2);
+    expect(lineDiff.removed.length).toBe(1);
     const added = applyPatches(src, insertPatches(src, ['schema', 0, 'properties'], { name: 'segment', logicalType: 'string' }, undefined, 'c.odcs.json'));
     expect(lines(src, added).added).toEqual([`${pad.repeat(4)}},`, `${pad.repeat(4)}{`, `${pad.repeat(5)}"name": "segment",`, `${pad.repeat(5)}"logicalType": "string"`]);
     expect(JSON.parse(added).schema[0].properties.at(-1)).toEqual({

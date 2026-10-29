@@ -1,5 +1,5 @@
-// Renders the Settings panel's Admin entry and the page with the app's stylesheet so the page keeps its real geometry.
 // Browser harness for tests/admin-dialogs.test.tsx (bundled by bun build, run in Chromium).
+// It renders the Settings panel's Admin entry and the page with the app's stylesheet so the page keeps its real geometry.
 import { useEffect, useState } from 'react';
 import { ReviewChange } from '../../src/app/admin/ReviewChange';
 import type { Proposal } from '../../src/app/admin/types';

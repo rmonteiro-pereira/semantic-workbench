@@ -32,16 +32,25 @@ export { KpiError as MetricError };
 export const planMetricSave = (files: ProjectFile[], req: KpiRequest) => planKpiSave(files, req);
 const basename = (p: string) => p.split('/').pop()!;
 const object = (v: unknown): v is Record<string, any> => !!v && typeof v === 'object' && !Array.isArray(v);
-const parsed = (f: ProjectFile) => {
-  if (rdfSyntax(f.source, basename(f.path))) return null;
-  const v = validateInput(f.source, basename(f.path));
-  return v.valid && 'document' in v.model ? v.model.document : null;
+const parsed = (projectFile: ProjectFile) => {
+  if (rdfSyntax(projectFile.source, basename(projectFile.path))) return null;
+  const input = validateInput(projectFile.source, basename(projectFile.path));
+  return input.valid && 'document' in input.model ? input.model.document : null;
 };
 
 /** Serializes metric bindings one per line for readable source diffs. */
 export const bindingsText = (bindings: KpiBinding[]) => `{"schema": "${MAPPING_SCHEMA}", "kpi_bindings": [\n${bindings.map(b => '  ' + JSON.stringify(b)).join(',\n')}\n]}\n`;
 /** Replaces or adds one metric binding and sorts bindings by metric name. */
-export const sortedBindings = (list: KpiBinding[], next: KpiBinding) => [...list, next].sort((a, b) => (a.metric < b.metric ? -1 : a.metric > b.metric ? 1 : 0));
+export const sortedBindings = (list: KpiBinding[], next: KpiBinding) =>
+  [...list, next].sort((a, b) => {
+    if (a.metric < b.metric) {
+      return -1;
+    }
+    if (a.metric > b.metric) {
+      return 1;
+    }
+    return 0;
+  });
 
 /** Patches a binding into the selected root extension of YAML or JSON source. */
 export function addBinding(source: string, owner: Path, binding: KpiBinding, filename = ''): string {
@@ -142,11 +151,13 @@ export function planKpiSave(files: ProjectFile[], req: KpiRequest): KpiPlan {
     if (prefix[0] === 'ontology_mappings') semantic = addBinding(semantic, prefix, binding, file.path);
     else {
       // The mapping document that draws from this semantic model.
-      const mappings = files.flatMap(f => {
-        const d = f === file ? null : parsed(f);
-        return d && isMapping(d) && (d.semantic_model_ref?.name === model.name || stem(String(d.semantic_model_ref?.iri ?? '')) === stem(file.path)) ? [{ f, d }] : [];
+      const mappings = files.flatMap(projectFile => {
+        const document = projectFile === file ? null : parsed(projectFile);
+        return document && isMapping(document) && (document.semantic_model_ref?.name === model.name || stem(String(document.semantic_model_ref?.iri ?? '')) === stem(file.path))
+          ? [{ f: projectFile, d: document }]
+          : [];
       });
-      if (mappings.length > 1) throw new KpiError(`Several mapping documents draw from ${model.name}: ` + `${mappings.map(m => m.f.path).join(', ')}. Bind the metric in one of them by hand.`);
+      if (mappings.length > 1) throw new KpiError(`Several mapping documents draw from ${model.name}: ${mappings.map(m => m.f.path).join(', ')}. Bind the metric in one of them by hand.`);
       if (mappings.length)
         writes.push({
           path: mappings[0].f.path,
@@ -154,9 +165,9 @@ export function planKpiSave(files: ProjectFile[], req: KpiRequest): KpiPlan {
           created: false,
         });
       else {
-        const ontologies = files.flatMap(f => {
-          const d = parsed(f);
-          return d && Array.isArray(d.ontology) && !(d.ontology_mappings ?? []).length ? [{ f, d }] : [];
+        const ontologies = files.flatMap(projectFile => {
+          const document = parsed(projectFile);
+          return document && Array.isArray(document.ontology) && !(document.ontology_mappings ?? []).length ? [{ f: projectFile, d: document }] : [];
         });
         if (!ontologies.length) throw new KpiError('The project has no Ossie ontology to bind the metric to. Save it without concepts, or add the ontology first.');
         const taken = new Set(files.map(f => f.path));
@@ -171,11 +182,11 @@ export function planKpiSave(files: ProjectFile[], req: KpiRequest): KpiPlan {
     }
   }
   writes.unshift({ path: file.path, source: semantic, created: false });
-  for (const w of writes) {
-    const v = validateInput(w.source, basename(w.path));
-    if (!v.valid)
+  for (const write of writes) {
+    const input = validateInput(write.source, basename(write.path));
+    if (!input.valid)
       throw new KpiError(
-        `${w.path} would not be valid: ${v.issues
+        `${write.path} would not be valid: ${input.issues
           .filter(i => i.severity === 'error')
           .map(i => i.message)
           .join(' ')}`,

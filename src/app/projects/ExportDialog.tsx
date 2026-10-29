@@ -80,8 +80,8 @@ export function ExportDialog({ project, dirty, saveOpenFile, onClose, onDone }: 
       const result = await api.exportProject(project.slug, includeHistory);
       downloadBlob(result.blob, result.fileName);
       onDone(doneMessage(project.name, result.files, result.omitted));
-    } catch (e) {
-      setError(`Nothing was downloaded: ${(e as Error).message}`);
+    } catch (error) {
+      setError(`Nothing was downloaded: ${(error as Error).message}`);
       setBusy(false);
     }
   }

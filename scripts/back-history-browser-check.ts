@@ -73,7 +73,8 @@ const fingerprint = (): Promise<Fingerprint> =>
     const switches = [...document.querySelectorAll('.canvas [aria-pressed], .canvas [role=radio]')]
       .map(element => {
         const label = clean(element.getAttribute('aria-label') ?? element.textContent);
-        return `${label}=${element.getAttribute('aria-pressed') ?? element.getAttribute('aria-checked')}`;
+        const state = element.getAttribute('aria-pressed') ?? element.getAttribute('aria-checked');
+        return `${label}=${state}`;
       })
       .sort();
     return {

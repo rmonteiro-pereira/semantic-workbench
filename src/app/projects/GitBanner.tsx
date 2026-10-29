@@ -41,41 +41,40 @@ export function GitBanner({ status }: { status: WorkspaceStatus | null }) {
           }),
       },
     });
-  const m = status.migration;
-  if (m?.status === 'completed')
+  const migration = status.migration;
+  if (migration?.status === 'completed')
     notes.push({
       id: 'migration',
       tone: 'info',
       text:
-        `Moved ${m.verified} of ${m.files} documents from the previous SQLite workspace into ` +
-        `${m.projects.length} project folders; every file's SHA-256 matched. ` +
-        `The old database is unchanged and a copy is in ${m.backup}.`,
+        `Moved ${migration.verified} of ${migration.files} documents from the previous SQLite workspace into ${migration.projects.length} project folders; every file's SHA-256 matched. ` +
+        `The old database is unchanged and a copy is in ${migration.backup}.`,
     });
-  if (m && m.status !== 'completed')
+  if (migration && migration.status !== 'completed')
     notes.push({
       id: 'migration',
       tone: 'warning',
-      text: `The previous SQLite workspace was not migrated: ${m.reason} It will be tried again on the next start.`,
+      text: `The previous SQLite workspace was not migrated: ${migration.reason} It will be tried again on the next start.`,
     });
-  for (const r of status.recovery ?? [])
+  for (const recovery of status.recovery ?? [])
     notes.push({
-      id: 'recovery-' + r.opId,
+      id: 'recovery-' + recovery.opId,
       tone: 'info',
-      text: `An interrupted ${r.kind} operation was ${r.outcome === 'completed' ? 'completed' : 'rolled back'} at start-up.`,
+      text: `An interrupted ${recovery.kind} operation was ${recovery.outcome === 'completed' ? 'completed' : 'rolled back'} at start-up.`,
     });
   const visible = notes.filter(n => !dismissed.includes(n.id));
   if (!visible.length) return null;
   return (
     <div className="git-banners">
-      {visible.map(n => (
-        <div key={n.id} role={n.tone === 'warning' ? 'alert' : 'status'} className={`git-banner ${n.tone}`}>
-          <span>{n.text}</span>
-          {n.action && (
-            <button className="git-banner-action" onClick={n.action.run}>
-              {n.action.label}
+      {visible.map(note => (
+        <div key={note.id} role={note.tone === 'warning' ? 'alert' : 'status'} className={`git-banner ${note.tone}`}>
+          <span>{note.text}</span>
+          {note.action && (
+            <button className="git-banner-action" onClick={note.action.run}>
+              {note.action.label}
             </button>
           )}
-          <button aria-label="Dismiss message" onClick={() => setDismissed(d => [...d, n.id])}>
+          <button aria-label="Dismiss message" onClick={() => setDismissed(d => [...d, note.id])}>
             ×
           </button>
         </div>

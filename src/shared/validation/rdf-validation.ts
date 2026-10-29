@@ -11,17 +11,17 @@ export function validateRdf(store: any): Issue[] {
   const fail = (id: string, p: string, message: string) => issues.push({ severity: 'error', code: 'rdf-structure', path: `${id} / ${p}`, message });
   const propertyTargets = new Set<string>(store.statements.filter((s: any) => s.predicate.value === SH + 'property').map((s: any) => s.object.value));
   const bySubject = new Map<string, Map<string, any[]>>();
-  for (const s of store.statements) {
-    const ps = bySubject.get(s.subject.value) ?? new Map();
-    const os = ps.get(s.predicate.value) ?? [];
-    os.push(s.object);
-    ps.set(s.predicate.value, os);
-    bySubject.set(s.subject.value, ps);
+  for (const statement of store.statements) {
+    const ps = bySubject.get(statement.subject.value) ?? new Map();
+    const os = ps.get(statement.predicate.value) ?? [];
+    os.push(statement.object);
+    ps.set(statement.predicate.value, os);
+    bySubject.set(statement.subject.value, ps);
   }
   const get = (id: string, p: string): any[] => bySubject.get(id)?.get(p) ?? [];
-  const count = (id: string, p: string) => {
-    const os = get(id, p);
-    if (os.length > 1) fail(id, p, 'Expected at most one value.');
+  const count = (id: string, predicate: string) => {
+    const os = get(id, predicate);
+    if (os.length > 1) fail(id, predicate, 'Expected at most one value.');
     return os[0];
   };
   const resource = (x: any) => x?.termType === 'NamedNode' || x?.termType === 'BlankNode';
@@ -51,17 +51,17 @@ export function validateRdf(store: any): Issue[] {
       return term.elements.length >= min && term.elements.every((x: any) => path(x, next));
     }
     const seen = new Set<string>();
-    let n = 0;
+    let elementCount = 0;
     while (term?.value !== RDF + 'nil') {
-      if (!resource(term) || seen.has(term.value) || n > 10000) return false;
+      if (!resource(term) || seen.has(term.value) || elementCount > 10000) return false;
       seen.add(term.value);
       const first = get(term.value, RDF + 'first');
       const rest = get(term.value, RDF + 'rest');
       if (first.length !== 1 || rest.length !== 1 || !path(first[0], active)) return false;
-      n++;
+      elementCount++;
       term = rest[0];
     }
-    return n >= min;
+    return elementCount >= min;
   };
   for (const [id, ps] of bySubject) {
     const types = get(id, RDF + 'type').map(x => x.value);
@@ -72,32 +72,34 @@ export function validateRdf(store: any): Issue[] {
       if (paths.length !== 1 || !path(paths[0])) fail(id, SH + 'path', 'A property shape requires exactly one well-formed SHACL path.');
     }
     if (nodeShape && ps.has(SH + 'path')) fail(id, SH + 'path', 'A NodeShape cannot also have sh:path.');
-    for (const p of ['minCount', 'maxCount', 'minLength', 'maxLength', 'qualifiedMinCount', 'qualifiedMaxCount']) {
-      const v = count(id, SH + p);
-      if (v && !integer(v)) fail(id, SH + p, 'Expected a non-negative integer literal.');
-      if (nodeShape && ['minCount', 'maxCount', 'qualifiedMinCount', 'qualifiedMaxCount'].includes(p) && v) fail(id, SH + p, 'This constraint requires a property shape.');
+    for (const constraint of ['minCount', 'maxCount', 'minLength', 'maxLength', 'qualifiedMinCount', 'qualifiedMaxCount']) {
+      const constraintValue = count(id, SH + constraint);
+      if (constraintValue && !integer(constraintValue)) fail(id, SH + constraint, 'Expected a non-negative integer literal.');
+      if (nodeShape && ['minCount', 'maxCount', 'qualifiedMinCount', 'qualifiedMaxCount'].includes(constraint) && constraintValue)
+        fail(id, SH + constraint, 'This constraint requires a property shape.');
     }
     for (const [lo, hi] of [
       ['minCount', 'maxCount'],
       ['minLength', 'maxLength'],
       ['qualifiedMinCount', 'qualifiedMaxCount'],
     ]) {
-      const l = get(id, SH + lo)[0];
-      const h = get(id, SH + hi)[0];
-      if (integer(l) && integer(h) && BigInt(l.value) > BigInt(h.value)) fail(id, SH + hi, `${hi} must be greater than or equal to ${lo}.`);
+      const lowValue = get(id, SH + lo)[0];
+      const highValue = get(id, SH + hi)[0];
+      if (integer(lowValue) && integer(highValue) && BigInt(lowValue.value) > BigInt(highValue.value)) fail(id, SH + hi, `${hi} must be greater than or equal to ${lo}.`);
     }
-    for (const p of ['datatype', 'nodeKind', 'severity']) {
-      const v = count(id, SH + p);
-      if (v && v.termType !== 'NamedNode') fail(id, SH + p, 'Expected an IRI.');
+    for (const constraint of ['datatype', 'nodeKind', 'severity']) {
+      const constraintValue = count(id, SH + constraint);
+      if (constraintValue && constraintValue.termType !== 'NamedNode') fail(id, SH + constraint, 'Expected an IRI.');
     }
-    for (const v of get(id, SH + 'class')) if (v.termType !== 'NamedNode') fail(id, SH + 'class', 'Expected a class IRI.');
+    for (const term of get(id, SH + 'class')) if (term.termType !== 'NamedNode') fail(id, SH + 'class', 'Expected a class IRI.');
     const nk = get(id, SH + 'nodeKind')[0];
     if (nk && !['IRI', 'BlankNode', 'Literal', 'BlankNodeOrIRI', 'BlankNodeOrLiteral', 'IRIOrLiteral'].includes(nk.value.slice(SH.length))) fail(id, SH + 'nodeKind', 'Unknown SHACL node kind.');
-    for (const p of ['closed', 'deactivated', 'uniqueLang']) {
-      const v = count(id, SH + p);
-      if (v && (v.termType !== 'Literal' || v.datatype?.value !== XSD + 'boolean' || !['true', 'false', '1', '0'].includes(v.value))) fail(id, SH + p, 'Expected an xsd:boolean literal.');
+    for (const constraint of ['closed', 'deactivated', 'uniqueLang']) {
+      const constraintValue = count(id, SH + constraint);
+      if (constraintValue && (constraintValue.termType !== 'Literal' || constraintValue.datatype?.value !== XSD + 'boolean' || !['true', 'false', '1', '0'].includes(constraintValue.value)))
+        fail(id, SH + constraint, 'Expected an xsd:boolean literal.');
     }
-    for (const v of get(id, SH + 'property')) if (!resource(v)) fail(id, SH + 'property', 'Expected a property-shape resource.');
+    for (const term of get(id, SH + 'property')) if (!resource(term)) fail(id, SH + 'property', 'Expected a property-shape resource.');
     if (types.includes(OWL + 'Restriction')) {
       const on = get(id, OWL + 'onProperty');
       const qualifiers = [
@@ -117,15 +119,15 @@ export function validateRdf(store: any): Issue[] {
       if (qs.length !== 1) fail(id, OWL + 'Restriction', 'Expected exactly one restriction constraint.');
       const self = count(id, OWL + 'hasSelf');
       if (self && (self.datatype?.value !== XSD + 'boolean' || !['true', '1'].includes(self.value))) fail(id, OWL + 'hasSelf', 'Expected boolean true.');
-      for (const p of ['someValuesFrom', 'allValuesFrom']) {
-        const v = count(id, OWL + p);
-        if (v && !resource(v)) fail(id, OWL + p, 'Expected a class or data-range resource.');
+      for (const constraint of ['someValuesFrom', 'allValuesFrom']) {
+        const constraintValue = count(id, OWL + constraint);
+        if (constraintValue && !resource(constraintValue)) fail(id, OWL + constraint, 'Expected a class or data-range resource.');
       }
       if (qs.some(p => p.includes('Qualified') || p === 'qualifiedCardinality') && get(id, OWL + 'onClass').length + get(id, OWL + 'onDataRange').length !== 1)
         fail(id, OWL + 'Restriction', 'Qualified cardinality requires exactly one onClass or onDataRange.');
-      for (const p of qualifiers.filter(p => /cardinality/i.test(p))) {
-        const v = count(id, OWL + p);
-        if (v && !integer(v)) fail(id, OWL + p, 'Expected a non-negative integer cardinality.');
+      for (const qualifier of qualifiers.filter(p => /cardinality/i.test(p))) {
+        const constraintValue = count(id, OWL + qualifier);
+        if (constraintValue && !integer(constraintValue)) fail(id, OWL + qualifier, 'Expected a non-negative integer cardinality.');
       }
     }
   }

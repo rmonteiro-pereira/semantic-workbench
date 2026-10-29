@@ -8,17 +8,17 @@ export type { Patch };
 /** Checks for a non-null mapping value rather than an array. */
 export const isObject = (v: unknown): v is Record<string, any> => !!v && typeof v === 'object' && !Array.isArray(v);
 /** Compares structured values recursively without depending on object key order. */
-export function deepEqual(a: any, b: any): boolean {
-  if (a === b) return true;
-  if (Array.isArray(a)) {
-    if (!Array.isArray(b) || a.length !== b.length) return false;
-    return a.every((x, i) => deepEqual(x, b[i]));
+export function deepEqual(first: any, second: any): boolean {
+  if (first === second) return true;
+  if (Array.isArray(first)) {
+    if (!Array.isArray(second) || first.length !== second.length) return false;
+    return first.every((x, i) => deepEqual(x, second[i]));
   }
-  if (isObject(a)) {
-    if (!isObject(b)) return false;
-    const ka = Object.keys(a);
-    const kb = Object.keys(b);
-    return ka.length === kb.length && ka.every(k => Object.hasOwn(b, k) && deepEqual(a[k], b[k]));
+  if (isObject(first)) {
+    if (!isObject(second)) return false;
+    const ka = Object.keys(first);
+    const kb = Object.keys(second);
+    return ka.length === kb.length && ka.every(k => Object.hasOwn(second, k) && deepEqual(first[k], second[k]));
   }
   return false;
 }
@@ -43,16 +43,24 @@ export const columnOf = (src: string, pos: number) => pos - lineStart(src, pos);
 
 /** Returns indentation before a position, or null if non-whitespace precedes it. */
 export function leadingSpace(src: string, pos: number) {
-  const s = src.slice(lineStart(src, pos), pos);
-  return /^[ \t]*$/.test(s) ? s : null;
+  const text = src.slice(lineStart(src, pos), pos);
+  return /^[ \t]*$/.test(text) ? text : null;
 }
 /** Describes a source document's line ending, indentation unit and JSON mode. */
 export type TextStyle = { eol: string; unit: string; json: boolean };
 
 /** Detects line endings and indentation from the original text. */
 export function textStyle(src: string, json: boolean): TextStyle {
-  const m = /(?:^|\n)([ \t]+)\S/.exec(src);
-  return { eol: dominantLineBreak(src), unit: m ? m[1] : json ? '  ' : '  ', json };
+  const match = /(?:^|\n)([ \t]+)\S/.exec(src);
+  let unit: string;
+  if (match) {
+    unit = match[1];
+  } else if (json) {
+    unit = '  ';
+  } else {
+    unit = '  ';
+  }
+  return { eol: dominantLineBreak(src), unit, json };
 }
 /** Converts line endings to the requested source style. */
 export const withEol = (text: string, eol: string) => (eol === '\n' ? text : text.replace(/\n/g, eol));

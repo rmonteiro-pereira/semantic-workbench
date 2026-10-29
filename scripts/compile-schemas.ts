@@ -203,9 +203,13 @@ export function compileSchemas(destination = 'src/generated') {
         const value = symbol.value;
         if (!isRecord(value) || !isRecord(value.ref)) throw new Error(`AJV did not provide source schema metadata for ${output.name} ${symbol.str}.`);
         const reference = value.ref;
-        const schemaName =
-          knownSchemaNames.get(reference) ??
-          `${output.schemaRoots[0].name}${pascalCase(typeof reference.title === 'string' ? reference.title : typeof reference.description === 'string' ? reference.description : 'Referenced')}Schema`;
+        let referenceTitle = 'Referenced';
+        if (typeof reference.title === 'string') {
+          referenceTitle = reference.title;
+        } else if (typeof reference.description === 'string') {
+          referenceTitle = reference.description;
+        }
+        const schemaName = knownSchemaNames.get(reference) ?? `${output.schemaRoots[0].name}${pascalCase(referenceTitle)}Schema`;
         namesByAjvSymbol.set(symbol.str, schemaName);
       }
     }
@@ -263,7 +267,7 @@ export function compileSchemas(destination = 'src/generated') {
   const jsPath = join(destination, 'validators.js');
   const declarationPath = join(destination, 'validators.d.ts');
   writeFileSync(jsPath, `// generated, do not edit\n${[...imports].join('\n')}\n${modules.join('\n')}\n${exports.join('\n')}\n`);
-  writeFileSync(declarationPath, '// generated, do not edit\n' + "import type { ValidateFunction } from 'ajv';\n" + `${declarations.join('\n')}\n`);
+  writeFileSync(declarationPath, "// generated, do not edit\nimport type { ValidateFunction } from 'ajv';\n" + `${declarations.join('\n')}\n`);
   for (const name of oldOutputs) {
     if (name === 'validators') continue;
     for (const extension of ['.js', '.d.ts']) {

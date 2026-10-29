@@ -395,8 +395,8 @@ export function toLab(color: Rgba): [number, number, number] {
   const blue = linear(color.blue);
   const x = (0.4124 * red + 0.3576 * green + 0.1805 * blue) / WHITE_POINT[0];
   const y = (0.2126 * red + 0.7152 * green + 0.0722 * blue) / WHITE_POINT[1];
-  const z = (0.0193 * red + 0.1192 * green + 0.9505 * blue) / WHITE_POINT[2];
-  const [fx, fy, fz] = [labChannel(x), labChannel(y), labChannel(z)];
+  const zChannel = (0.0193 * red + 0.1192 * green + 0.9505 * blue) / WHITE_POINT[2];
+  const [fx, fy, fz] = [labChannel(x), labChannel(y), labChannel(zChannel)];
   return [116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz)];
 }
 

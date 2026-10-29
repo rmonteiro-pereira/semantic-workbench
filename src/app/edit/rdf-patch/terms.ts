@@ -36,76 +36,102 @@ export const WELL_KNOWN: Record<string, string> = {
 export function formatOf(filename: string, source: string): RdfFormat {
   const ext = filename.split('.').pop()?.toLowerCase();
   if (/^\s*(<\?xml|<rdf:RDF|<RDF\b)/.test(source) || (['rdf', 'xml', 'owl'].includes(ext ?? '') && /^\s*</.test(source) && !/^\s*<https?:/.test(source))) return 'rdfxml';
-  return ext === 'nt' ? 'ntriples' : ext === 'n3' ? 'n3' : 'turtle';
+  if (ext === 'nt') {
+    return 'ntriples';
+  }
+  if (ext === 'n3') {
+    return 'n3';
+  }
+  return 'turtle';
 }
-const plain = (t: any): Term =>
-  t.termType === 'Literal'
+const plain = (parsedTerm: any): Term =>
+  parsedTerm.termType === 'Literal'
     ? {
         termType: 'Literal',
-        value: t.value,
-        language: t.language || undefined,
-        datatype: t.language ? undefined : (t.datatype?.value ?? XSD + 'string'),
+        value: parsedTerm.value,
+        language: parsedTerm.language || undefined,
+        datatype: parsedTerm.language ? undefined : (parsedTerm.datatype?.value ?? XSD + 'string'),
       }
-    : { termType: t.termType === 'Collection' ? 'BlankNode' : t.termType, value: t.value };
+    : { termType: parsedTerm.termType === 'Collection' ? 'BlankNode' : parsedTerm.termType, value: parsedTerm.value };
+// The format names the n3 parser expects.
+const N3_FORMAT: Record<Exclude<RdfFormat, 'rdfxml'>, string> = {
+  ntriples: 'N-Triples',
+  n3: 'N3',
+  turtle: 'Turtle',
+};
 /** Parses RDF using the shared base IRI and serialization-specific parser. */
 export function parseGraph(source: string, format: RdfFormat): Triple[] {
   if (format === 'rdfxml') {
     const store = graph();
     parse(source, store, BASE, 'application/rdf+xml');
-    return store.statements.map((s: any) => ({
-      s: plain(s.subject),
-      p: plain(s.predicate),
-      o: plain(s.object),
+    return store.statements.map((statement: any) => ({
+      s: plain(statement.subject),
+      p: plain(statement.predicate),
+      o: plain(statement.object),
     }));
   }
   const quads = new Parser({
-    format: format === 'ntriples' ? 'N-Triples' : format === 'n3' ? 'N3' : 'Turtle',
+    format: N3_FORMAT[format],
     baseIRI: BASE,
   }).parse(source);
-  return quads.map(q => ({
-    s: plain(q.subject),
-    p: plain(q.predicate),
-    o: plain(q.object),
-    ...(q.graph.termType === 'DefaultGraph' ? {} : { g: plain(q.graph) }),
+  return quads.map(quad => ({
+    s: plain(quad.subject),
+    p: plain(quad.predicate),
+    o: plain(quad.object),
+    ...(quad.graph.termType === 'DefaultGraph' ? {} : { g: plain(quad.graph) }),
   }));
 }
 /** Builds a comparable identity from a term's kind, value and literal metadata. */
-export const termKey = (t: Term) =>
-  t.termType === 'NamedNode'
-    ? `<${t.value}>`
-    : t.termType === 'BlankNode'
-      ? `_:${t.value}`
-      : t.termType === 'Variable'
-        ? `?${t.value}`
-        : t.termType === 'Literal'
-          ? `${JSON.stringify(t.value)}${t.language ? '@' + t.language.toLowerCase() : '^^<' + t.datatype + '>'}`
-          : '';
+export const termKey = (term: Term) => {
+  if (term.termType === 'NamedNode') {
+    return `<${term.value}>`;
+  }
+  if (term.termType === 'BlankNode') {
+    return `_:${term.value}`;
+  }
+  if (term.termType === 'Variable') {
+    return `?${term.value}`;
+  }
+  if (term.termType === 'Literal') {
+    const suffix = term.language ? '@' + term.language.toLowerCase() : '^^<' + term.datatype + '>';
+    return `${JSON.stringify(term.value)}${suffix}`;
+  }
+  return '';
+};
 /** Identifies blank nodes and variables requiring graph-local identity handling. */
 export const isBlank = (t: Term) => t.termType === 'BlankNode' || t.termType === 'Variable';
 
 /** Serializes a term as N-Triples text that is also valid Turtle. */
-export function ntTerm(t: Term) {
-  if (t.termType === 'NamedNode') return `<${t.value}>`;
-  if (t.termType === 'BlankNode') return `_:${t.value.replace(/[^\w-]/g, '_')}`;
-  const v = t.value.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
-  return `"${v}"${t.language ? '@' + t.language : t.datatype && t.datatype !== XSD + 'string' ? '^^<' + t.datatype + '>' : ''}`;
+export function ntTerm(term: Term) {
+  if (term.termType === 'NamedNode') return `<${term.value}>`;
+  if (term.termType === 'BlankNode') return `_:${term.value.replace(/[^\w-]/g, '_')}`;
+  const value = term.value.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+  let label: string;
+  if (term.language) {
+    label = '@' + term.language;
+  } else if (term.datatype && term.datatype !== XSD + 'string') {
+    label = '^^<' + term.datatype + '>';
+  } else {
+    label = '';
+  }
+  return `"${value}"${label}`;
 }
 
 /** Uses a declared prefix when the local part is a valid plain name. */
 export function shortIri(iri: string, prefixes: Record<string, string>) {
   let best: [string, string] | null = null;
-  for (const [p, ns] of Object.entries(prefixes)) if (iri.startsWith(ns) && /^[A-Za-z_][\w-]*$/.test(iri.slice(ns.length)) && (!best || ns.length > best[1].length)) best = [p, ns];
+  for (const [prefix, ns] of Object.entries(prefixes)) if (iri.startsWith(ns) && /^[A-Za-z_][\w-]*$/.test(iri.slice(ns.length)) && (!best || ns.length > best[1].length)) best = [prefix, ns];
   return best ? `${best[0]}:${iri.slice(best[1].length)}` : `<${iri}>`;
 }
 /** Serializes an RDF term using available prefixes. */
-export function turtleTerm(t: Term, prefixes: Record<string, string>) {
-  if (t.termType === 'NamedNode') return shortIri(t.value, prefixes);
-  if (t.termType !== 'Literal') return ntTerm(t);
-  const v = t.value.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
-  if (t.language) return `"${v}"@${t.language}`;
-  if (!t.datatype || t.datatype === XSD + 'string') return `"${v}"`;
-  if (t.datatype === XSD + 'integer' && /^[+-]?\d+$/.test(t.value)) return t.value;
-  return `"${v}"^^${shortIri(t.datatype, prefixes)}`;
+export function turtleTerm(term: Term, prefixes: Record<string, string>) {
+  if (term.termType === 'NamedNode') return shortIri(term.value, prefixes);
+  if (term.termType !== 'Literal') return ntTerm(term);
+  const value = term.value.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+  if (term.language) return `"${value}"@${term.language}`;
+  if (!term.datatype || term.datatype === XSD + 'string') return `"${value}"`;
+  if (term.datatype === XSD + 'integer' && /^[+-]?\d+$/.test(term.value)) return term.value;
+  return `"${value}"^^${shortIri(term.datatype, prefixes)}`;
 }
 // The terms a user types (Turtle syntax: prefixed names, <IRIs>, literals, nested [ ] and ( )),
 // read with the file's prefixes plus the well-known ones.

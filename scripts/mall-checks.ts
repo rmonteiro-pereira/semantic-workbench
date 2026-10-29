@@ -18,18 +18,18 @@ export async function checkMall() {
       source: await Bun.file(dir + filename).text(),
     })),
   );
-  const imports = docs.map(d => {
-    const r = validateInput(d.source, d.filename);
-    assert(r.valid, `${d.filename}: ${JSON.stringify(r.issues.slice(0, 3))}`);
+  const imports = docs.map(doc => {
+    const validation = validateInput(doc.source, doc.filename);
+    assert(validation.valid, `${doc.filename}: ${JSON.stringify(validation.issues.slice(0, 3))}`);
     assert.deepEqual(
-      r.issues.filter(i => i.severity === 'error'),
+      validation.issues.filter(i => i.severity === 'error'),
       [],
     );
     return {
-      file: d.filename,
-      kind: r.model.kind,
-      entities: r.model.entities.length,
-      relationships: r.model.edges.length,
+      file: doc.filename,
+      kind: validation.model.kind,
+      entities: validation.model.entities.length,
+      relationships: validation.model.edges.length,
     };
   });
   const expected = await Bun.file(dir + 'expected.json').json();
@@ -49,19 +49,19 @@ export async function checkMall() {
   try {
     db.exec(await Bun.file(dir + 'fixture.sql').text());
     const run = (metric: string, dimensions: [string, string][]) => {
-      const p = planQuery(context, {
+      const plan = planQuery(context, {
         mappingId: context.mappingId,
         metrics: [metric],
         dimensions: dimensions.map(d => JSON.stringify(d)),
       });
-      const rows = db.query(p.sql).all() as any[];
+      const rows = db.query(plan.sql).all() as any[];
       const result = Object.fromEntries(rows.map(r => [dimensions.map((_, i) => r[`dimension_${i + 1}`]).join('|') || 'total', r.metric_1]));
-      executions.push({ metric, dimensions, joins: p.joins.map((j: any) => j.name), result });
+      executions.push({ metric, dimensions, joins: plan.joins.map((j: any) => j.name), result });
       return result;
     };
     const same = (actual: Record<string, number>, wanted: Record<string, number>, label: string) => {
       assert.deepEqual(Object.keys(actual).sort(), Object.keys(wanted).sort(), label);
-      for (const k of Object.keys(wanted)) assert(Math.abs(actual[k] - wanted[k]) < 1e-9, `${label} ${k}: ${actual[k]} != ${wanted[k]}`);
+      for (const key of Object.keys(wanted)) assert(Math.abs(actual[key] - wanted[key]) < 1e-9, `${label} ${key}: ${actual[key]} != ${wanted[key]}`);
     };
     const month: [string, string] = ['calendar_months', 'year_month'];
     const property: [string, string] = ['properties', 'name'];

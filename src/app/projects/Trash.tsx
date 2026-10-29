@@ -39,8 +39,8 @@ export function TrashDialog({ onClose, version, selectedProject, selectedProject
     try {
       await run();
       await load();
-    } catch (e) {
-      setError((e as Error).message);
+    } catch (error) {
+      setError((error as Error).message);
     }
   }
   async function restore(id: string, target = {}) {
@@ -49,35 +49,35 @@ export function TrashDialog({ onClose, version, selectedProject, selectedProject
     try {
       await api.restore(id, target);
       await load();
-    } catch (e: any) {
-      if (e.status === 409 && e.body?.suggestion) setOccupied({ id, message: e.body.message, suggestion: e.body.suggestion });
-      else setError(e.message);
+    } catch (error: any) {
+      if (error.status === 409 && error.body?.suggestion) setOccupied({ id, message: error.body.message, suggestion: error.body.suggestion });
+      else setError(error.message);
     }
   }
-  function renderRow(t: TrashItem) {
+  function renderRow(trashItem: TrashItem) {
     return (
-      <li key={t.entryId}>
+      <li key={trashItem.entryId}>
         <div>
-          <strong>{entryLabel(t)}</strong>
+          <strong>{entryLabel(trashItem)}</strong>
           <small>
-            Deleted {new Date(t.deletedAt).toLocaleString()}
-            {t.batchId ? ' · by Clear' : ''}
+            Deleted {new Date(trashItem.deletedAt).toLocaleString()}
+            {trashItem.batchId ? ' · by Clear' : ''}
           </small>
         </div>
-        {confirming === t.entryId ? (
+        {confirming === trashItem.entryId ? (
           <span className="trash-confirm">
             Delete permanently?{' '}
-            <button className="danger" onClick={() => act(() => api.purge(t.entryId))}>
+            <button className="danger" onClick={() => act(() => api.purge(trashItem.entryId))}>
               Yes, delete
             </button>
             <button onClick={() => setConfirming(null)}>No</button>
           </span>
         ) : (
           <span>
-            <button hidden={!access.can('restoreOwn', t.project)} onClick={() => restore(t.entryId)}>
+            <button hidden={!access.can('restoreOwn', trashItem.project)} onClick={() => restore(trashItem.entryId)}>
               Restore
             </button>
-            <button hidden={!access.can('purge')} onClick={() => setConfirming(t.entryId)}>
+            <button hidden={!access.can('purge')} onClick={() => setConfirming(trashItem.entryId)}>
               Delete permanently
             </button>
           </span>
@@ -87,7 +87,7 @@ export function TrashDialog({ onClose, version, selectedProject, selectedProject
   }
   const sections = trashSections(items ?? [], selectedProject);
   const count = items?.length ?? 0;
-  const emptyingNote = confirming === '*' ? `Permanently delete all ${count} item${count === 1 ? '' : 's'} in the trash, from every ` + 'project? This cannot be undone.' : undefined;
+  const emptyingNote = confirming === '*' ? `Permanently delete all ${count} item${count === 1 ? '' : 's'} in the trash, from every project? This cannot be undone.` : undefined;
   const footer =
     confirming === '*' ? (
       <>
@@ -108,29 +108,33 @@ export function TrashDialog({ onClose, version, selectedProject, selectedProject
         <button onClick={onClose}>Close</button>
       </>
     );
+  let dialogBody: React.ReactNode;
+  if (items === null) {
+    dialogBody = <p>Loading…</p>;
+  } else if (items.length === 0) {
+    dialogBody = <EmptyState title="Nothing here yet">Deleted projects and files stay here until you empty the trash.</EmptyState>;
+  } else {
+    dialogBody = (
+      <>
+        {sections.otherProjectFiles > 0 && <p className="trash-elsewhere">{otherProjectFilesLine(sections.otherProjectFiles)}</p>}
+        {sections.files.length > 0 && (
+          <section aria-label="Deleted files">
+            <h3>Deleted files in {selectedProjectName}</h3>
+            <ul className="trash-list">{sections.files.map(renderRow)}</ul>
+          </section>
+        )}
+        {sections.projects.length > 0 && (
+          <section aria-label="Deleted projects">
+            <h3>Deleted projects</h3>
+            <ul className="trash-list">{sections.projects.map(renderRow)}</ul>
+          </section>
+        )}
+      </>
+    );
+  }
   return (
     <Modal title="Trash" onCancel={onClose} className="trash-dialog" footer={footer} footerNote={emptyingNote}>
-      {items === null ? (
-        <p>Loading…</p>
-      ) : items.length === 0 ? (
-        <EmptyState title="Nothing here yet">Deleted projects and files stay here until you empty the trash.</EmptyState>
-      ) : (
-        <>
-          {sections.otherProjectFiles > 0 && <p className="trash-elsewhere">{otherProjectFilesLine(sections.otherProjectFiles)}</p>}
-          {sections.files.length > 0 && (
-            <section aria-label="Deleted files">
-              <h3>Deleted files in {selectedProjectName}</h3>
-              <ul className="trash-list">{sections.files.map(renderRow)}</ul>
-            </section>
-          )}
-          {sections.projects.length > 0 && (
-            <section aria-label="Deleted projects">
-              <h3>Deleted projects</h3>
-              <ul className="trash-list">{sections.projects.map(renderRow)}</ul>
-            </section>
-          )}
-        </>
-      )}
+      {dialogBody}
       {occupied && (
         <div role="alert" className="delete-warning">
           <p>{occupied.message}</p>

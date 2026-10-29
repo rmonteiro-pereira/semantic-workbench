@@ -73,6 +73,7 @@ export function ImportRepair({ initial, onCancel, onImport }: { initial: ImportD
   const reports = useMemo(() => drafts.map(d => validateInput(d.source, d.filename)), [drafts]);
   const invalid = reports.filter(r => !r.valid).length;
   const current = drafts[active];
+  const updateActive = (patch: Partial<ImportDraft>) => setDrafts(old => old.map((d, i) => (i === active ? { ...d, ...patch } : d)));
   return (
     <dialog
       ref={dialog}
@@ -91,29 +92,21 @@ export function ImportRepair({ initial, onCancel, onImport }: { initial: ImportD
         <label>
           File to review
           <select autoFocus aria-label="File to review" disabled={busy} value={active} onChange={e => setActive(Number(e.target.value))}>
-            {drafts.map((d, i) => (
+            {drafts.map((draft, i) => (
               <option key={i} value={i}>
-                {d.filename} · {reports[i].valid ? 'Ready' : 'Needs repair'}
+                {draft.filename} · {reports[i].valid ? 'Ready' : 'Needs repair'}
               </option>
             ))}
           </select>
         </label>
         <label>
           Import filename
-          <input aria-label="Import filename" value={current.filename} disabled={busy} onChange={e => setDrafts(old => old.map((d, i) => (i === active ? { ...d, filename: e.target.value } : d)))} />
+          <input aria-label="Import filename" value={current.filename} disabled={busy} onChange={e => updateActive({ filename: e.target.value })} />
         </label>
         <div className="repair-columns">
           <div className="repair-editor">
             <span className="repair-editor-title">Repair definition</span>
-            <CodeEditor
-              key={active}
-              ref={editor}
-              ariaLabel="Repair definition"
-              filename={current.filename}
-              disabled={busy}
-              value={current.source}
-              onChange={next => setDrafts(old => old.map((d, i) => (i === active ? { ...d, source: next } : d)))}
-            />
+            <CodeEditor key={active} ref={editor} ariaLabel="Repair definition" filename={current.filename} disabled={busy} value={current.source} onChange={next => updateActive({ source: next })} />
           </div>
           <ValidationPanel issues={reports[active].issues} source={current.source} onLocate={issue => editor.current?.locate(issue)} />
         </div>
@@ -130,8 +123,8 @@ export function ImportRepair({ initial, onCancel, onImport }: { initial: ImportD
               setError('');
               try {
                 await onImport(drafts);
-              } catch (e) {
-                setError((e as Error).message);
+              } catch (error) {
+                setError((error as Error).message);
               } finally {
                 setBusy(false);
               }

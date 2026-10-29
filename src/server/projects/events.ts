@@ -135,14 +135,14 @@ export function createEvents(options: EventOptions) {
         scheduleSuggestions();
         return;
       }
-      const e = { id: ++lastId, event, data, tags };
-      ring.push(e);
+      const storedEvent = { id: ++lastId, event, data, tags };
+      ring.push(storedEvent);
       if (ring.length > ringSize) ring.shift();
       for (const [send, access] of clients) {
-        const visible = access ? readableEvent(e, access) : e;
+        const visible = access ? readableEvent(storedEvent, access) : storedEvent;
         if (visible) send(frame(visible));
       }
-      return e;
+      return storedEvent;
     },
     get lastId() {
       return lastId;
@@ -201,8 +201,8 @@ export function createEvents(options: EventOptions) {
             const missed = replay(since);
             if (missed === null) send(frame({ id: lastId, event: 'resync', data: {}, tags: { audience: 'all' } }));
             else
-              for (const e of missed) {
-                const visible = replayable(e, access);
+              for (const workbenchEvent of missed) {
+                const visible = replayable(workbenchEvent, access);
                 if (visible) send(frame(visible));
               }
           }

@@ -9,18 +9,18 @@ import { modelCardHeight } from './overview-capacity';
 cytoscape.use(fcose);
 /** Requests a worker-computed layout for a model network. */
 export function layoutNetwork(entities: Entity[], edges: Relationship[], name: string, options: Record<string, unknown> = {}, grouping?: GroupingOptions) {
-  const o = modelOverview(entities, edges, name, false, grouping);
-  const connections = groupRelationships(o.links);
+  const overview = modelOverview(entities, edges, name, false, grouping);
+  const connections = groupRelationships(overview.links);
   const cy = cytoscape({
     headless: true,
     styleEnabled: true,
     elements: [
-      ...o.groups.map(g => ({ data: { id: 'area:' + g.id } })),
-      ...o.entities.map(e => ({
+      ...overview.groups.map(g => ({ data: { id: 'area:' + g.id } })),
+      ...overview.entities.map(entity => ({
         data: {
-          id: e.id,
-          parent: 'area:' + o.groupOf.get(e.id),
-          cardHeight: modelCardHeight(Boolean(e.definition?.collapsedArea)),
+          id: entity.id,
+          parent: 'area:' + overview.groupOf.get(entity.id),
+          cardHeight: modelCardHeight(Boolean(entity.definition?.collapsedArea)),
         },
       })),
       ...connections.map(e => ({
@@ -54,34 +54,34 @@ export function layoutNetwork(entities: Entity[], edges: Relationship[], name: s
     packComponents: true,
     ...options,
   } as any).run();
-  const groupBounds = new Map(o.groups.map(g => [g.id, cy.getElementById('area:' + g.id).boundingBox({ includeLabels: false, includeOverlays: false })]));
+  const groupBounds = new Map(overview.groups.map(group => [group.id, cy.getElementById('area:' + group.id).boundingBox({ includeLabels: false, includeOverlays: false })]));
   const minX = Math.min(0, ...[...groupBounds.values()].map(b => b.x1)) - 40;
   const minY = Math.min(0, ...[...groupBounds.values()].map(b => b.y1)) - 40;
   const nodes = [
-    ...o.groups.map(g => {
-      const b = groupBounds.get(g.id)!;
+    ...overview.groups.map(group => {
+      const bounds = groupBounds.get(group.id)!;
       return {
-        id: 'area:' + g.id,
-        x: b.x1 - minX,
-        y: b.y1 - minY,
-        width: b.w,
-        height: b.h,
-        group: g.id,
+        id: 'area:' + group.id,
+        x: bounds.x1 - minX,
+        y: bounds.y1 - minY,
+        width: bounds.w,
+        height: bounds.h,
+        group: group.id,
         parentId: undefined as string | undefined,
       };
     }),
-    ...o.entities.map(e => {
-      const g = o.groupOf.get(e.id)!;
-      const parent = groupBounds.get(g)!;
-      const b = cy.getElementById(e.id).boundingBox({ includeLabels: false, includeOverlays: false });
+    ...overview.entities.map(entity => {
+      const groupId = overview.groupOf.get(entity.id)!;
+      const parent = groupBounds.get(groupId)!;
+      const boundingBox = cy.getElementById(entity.id).boundingBox({ includeLabels: false, includeOverlays: false });
       return {
-        id: e.id,
-        x: b.x1 - parent.x1,
-        y: b.y1 - parent.y1,
+        id: entity.id,
+        x: boundingBox.x1 - parent.x1,
+        y: boundingBox.y1 - parent.y1,
         width: 184,
-        height: modelCardHeight(Boolean(e.definition?.collapsedArea)),
+        height: modelCardHeight(Boolean(entity.definition?.collapsedArea)),
         group: undefined as string | undefined,
-        parentId: 'area:' + g,
+        parentId: 'area:' + groupId,
       };
     }),
   ];
@@ -92,8 +92,8 @@ export function layoutNetwork(entities: Entity[], edges: Relationship[], name: s
     nodes,
     width,
     height,
-    entityCount: o.entities.length,
-    relationshipCount: o.links.length,
+    entityCount: overview.entities.length,
+    relationshipCount: overview.links.length,
     routes: {} as Record<string, { x: number; y: number }[][]>,
   };
 }

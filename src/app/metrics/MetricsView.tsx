@@ -34,8 +34,8 @@ export function MetricsView({
   onSelect: (key: string) => void;
   filter?: string;
   onNew?: () => void;
-  onEdit?: (k: KpiSummary) => void;
-  onAddAttributes?: (k: KpiSummary) => void;
+  onEdit?: (kpiSummary: KpiSummary) => void;
+  onAddAttributes?: (kpiSummary: KpiSummary) => void;
 }) {
   const access = useCapabilities(project ?? undefined);
   if (!access.can('edit')) {
@@ -65,6 +65,40 @@ export function MetricsView({
     setQuery('');
     setFilters({ ...noFilters, groupBy: filters.groupBy });
   }
+  let metricsBody: React.ReactNode;
+  if (!project) {
+    metricsBody = <p className="metrics-empty">Open a file of a project to see its metrics.</p>;
+  } else if (loading && !kpis.length) {
+    metricsBody = (
+      <p role="status" className="metrics-empty">
+        Reading the project’s semantic models…
+      </p>
+    );
+  } else if (error) {
+    metricsBody = (
+      <p role="alert" className="mapping-error">
+        {error}
+      </p>
+    );
+  } else if (!kpis.length) {
+    metricsBody = (
+      <div className="metrics-empty">
+        <Gauge size={28} />
+        <p>This project has no governed metrics yet. Metrics live in an Ossie semantic model, either in its own file or embedded in a consolidated ontology file.</p>
+      </div>
+    );
+  } else {
+    metricsBody = (
+      <>
+        <p className="metrics-count">
+          <span role="status">{filtered ? `${visible.length} of ${kpis.length} metrics` : `${kpis.length} ${kpis.length === 1 ? 'metric' : 'metrics'}`}</span>
+          {filtered && <button onClick={clearFilters}>Clear filters</button>}
+        </p>
+        <MetricsTable groups={groups} groupBy={filters.groupBy} columns={columns} selected={selected} onSelect={onSelect} />
+        {!visible.length && <p className="metrics-empty">No metric matches these filters.</p>}
+      </>
+    );
+  }
   return (
     <div className={`metrics-view${current ? ' has-detail' : ''}`}>
       <section className="metrics-list" aria-label="Metrics">
@@ -88,31 +122,7 @@ export function MetricsView({
           </label>
           <MetricFilterControls kpis={kpis} filters={filters} onChange={setFilters} />
         </div>
-        {!project ? (
-          <p className="metrics-empty">Open a file of a project to see its metrics.</p>
-        ) : loading && !kpis.length ? (
-          <p role="status" className="metrics-empty">
-            Reading the project’s semantic models…
-          </p>
-        ) : error ? (
-          <p role="alert" className="mapping-error">
-            {error}
-          </p>
-        ) : !kpis.length ? (
-          <div className="metrics-empty">
-            <Gauge size={28} />
-            <p>This project has no governed metrics yet. Metrics live in an Ossie semantic model, either in its own file or embedded in a consolidated ontology file.</p>
-          </div>
-        ) : (
-          <>
-            <p className="metrics-count">
-              <span role="status">{filtered ? `${visible.length} of ${kpis.length} metrics` : `${kpis.length} ${kpis.length === 1 ? 'metric' : 'metrics'}`}</span>
-              {filtered && <button onClick={clearFilters}>Clear filters</button>}
-            </p>
-            <MetricsTable groups={groups} groupBy={filters.groupBy} columns={columns} selected={selected} onSelect={onSelect} />
-            {!visible.length && <p className="metrics-empty">No metric matches these filters.</p>}
-          </>
-        )}
+        {metricsBody}
       </section>
       {current && project && (
         <section ref={detailPane} className="metrics-detail" aria-label={`Metric ${current.label}`}>

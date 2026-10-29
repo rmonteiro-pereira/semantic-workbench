@@ -64,9 +64,9 @@ function post(message: Record<string, unknown>): Promise<Issue[]> {
   if (!worker) {
     worker = new Worker(new URL('./lint.worker.ts', import.meta.url), { type: 'module' });
     worker.onmessage = ({ data }) => {
-      const p = pending.get(data.id);
+      const request = pending.get(data.id);
       pending.delete(data.id);
-      p?.resolve(data.issues);
+      request?.resolve(data.issues);
     };
   }
   const id = ++next;

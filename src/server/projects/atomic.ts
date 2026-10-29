@@ -87,12 +87,12 @@ export function atomicWrite(path: string, data: Uint8Array | string, hooks: Atom
     let offset = 0;
     while (offset < bytes.length) offset += writeSync(fd, bytes, offset);
     fsyncSync(fd);
-  } catch (e) {
+  } catch (error) {
     closeSync(fd);
     try {
       unlinkSync(temp);
     } catch {}
-    throw e;
+    throw error;
   }
   closeSync(fd);
   hooks.beforeRename?.(temp);
@@ -117,9 +117,9 @@ export function readJsonFile<T>(path: string): T | null {
   let text: string;
   try {
     text = readFileSync(path, 'utf8');
-  } catch (e) {
-    if ((e as NodeJS.ErrnoException).code === 'ENOENT') return null;
-    throw e;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null;
+    throw error;
   }
   return JSON.parse(text) as T;
 }

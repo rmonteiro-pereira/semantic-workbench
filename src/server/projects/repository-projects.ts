@@ -129,8 +129,8 @@ export function createRepositoryProjects(deps: RepositoryProjectDeps) {
     if (text !== null)
       try {
         manifest = { projects: parseManifest(text) };
-      } catch (e) {
-        manifestError = (e as Error).message;
+      } catch (error) {
+        manifestError = (error as Error).message;
       }
     const found: ProjectCandidates = {
       manifest,
@@ -231,8 +231,8 @@ export function createRepositoryProjects(deps: RepositoryProjectDeps) {
         manifest: found.manifest,
         projects: registered.projects.map(project => project.slug),
       };
-    } catch (e) {
-      return { candidates: found.detected, manifestError: (e as Error).message };
+    } catch (error) {
+      return { candidates: found.detected, manifestError: (error as Error).message };
     }
   }
 

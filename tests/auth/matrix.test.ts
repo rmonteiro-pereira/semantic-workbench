@@ -80,7 +80,7 @@ async function expectAllowedReadResponse(method: string, path: string, response:
   if (method === 'GET' && /^\/api\/projects\/[^/]+\/git\/folder$/.test(path)) {
     expect(response.status).toBe(400);
     expect(await response.clone().json()).toEqual({
-      error: 'Choosing a folder for an existing project works in local mode. ' + 'Clone the folder instead.',
+      error: 'Choosing a folder for an existing project works in local mode. Clone the folder instead.',
     });
     return;
   }
@@ -146,7 +146,8 @@ describe('read route inventory', () => {
             };
           }
           if (path.includes('/grouping')) {
-            path = `/api/documents/${encodeURIComponent(project + '/' + fixtureFiles(project)[0].path)}/grouping`;
+            const documentId = project + '/' + fixtureFiles(project)[0].path;
+            path = `/api/documents/${encodeURIComponent(documentId)}/grouping`;
           }
           const url = new URL('http://localhost' + path);
           if (path.includes('/git/')) {

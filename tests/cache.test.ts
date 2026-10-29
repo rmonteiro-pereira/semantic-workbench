@@ -8,25 +8,25 @@ import { testWorkspace, example } from './helpers/temp-data-dir';
 // Rdflib numbers blank nodes with a process-wide counter, so their labels differ between parses in
 // one process (not between restarts); compare them by position only.
 const snapshot = (ws: Awaited<ReturnType<typeof testWorkspace>>['ws']) =>
-  ws.cache.files().map(f => ({
-    ...f,
+  ws.cache.files().map(cachedFile => ({
+    ...cachedFile,
     indexedAt: '',
-    entities: ws.cache.entities(f.project, f.path).map(e => (e.kind === 'Blank node' ? { ...e, id: '_:b', name: '_:b' } : e)),
-    findings: ws.cache.findings(f.project, f.path),
+    entities: ws.cache.entities(cachedFile.project, cachedFile.path).map(e => (e.kind === 'Blank node' ? { ...e, id: '_:b', name: '_:b' } : e)),
+    findings: ws.cache.findings(cachedFile.project, cachedFile.path),
   }));
 test('deleting cache.sqlite and reopening rebuilds identical files, entities and findings', async () => {
-  const t = await testWorkspace();
+  const workspace = await testWorkspace();
   try {
-    await t.seed(
+    await workspace.seed(
       [
         { path: 'ubl.ontology.yaml', source: await example('ubl', 'ubl.ontology.yaml') },
         { path: 'commerce.owl', source: await example('commerce', 'commerce.owl') },
       ],
       'UBL',
     );
-    writeFileSync(`${t.root}/projects/ubl/notes.txt`, 'x');
-    await t.ws.rescan('ubl');
-    await t.seed(
+    writeFileSync(`${workspace.root}/projects/ubl/notes.txt`, 'x');
+    await workspace.ws.rescan('ubl');
+    await workspace.seed(
       [
         {
           path: 'tpcds.yaml',
@@ -35,15 +35,19 @@ test('deleting cache.sqlite and reopening rebuilds identical files, entities and
       ],
       'TPC-DS',
     );
-    t.ws.state.writeView('ubl', { 'ubl.ontology.yaml': { mode: 'types' } });
-    t.ws.state.writeDraft('ubl', 'commerce.owl', { baseHash: null, text: 'draft', patches: [] });
-    const before = snapshot(t.ws);
-    const registry = t.ws.state.registry();
+    workspace.ws.state.writeView('ubl', { 'ubl.ontology.yaml': { mode: 'types' } });
+    workspace.ws.state.writeDraft('ubl', 'commerce.owl', {
+      baseHash: null,
+      text: 'draft',
+      patches: [],
+    });
+    const before = snapshot(workspace.ws);
+    const registry = workspace.ws.state.registry();
     expect(before.length).toBe(4);
     expect(before.some(f => f.findings.length)).toBe(true);
-    t.ws.close();
-    for (const s of ['', '-wal', '-shm']) rmSync(t.ws.layout.cache + s, { force: true });
-    const again = await testWorkspace({ root: t.root });
+    workspace.ws.close();
+    for (const sqliteSuffix of ['', '-wal', '-shm']) rmSync(workspace.ws.layout.cache + sqliteSuffix, { force: true });
+    const again = await testWorkspace({ root: workspace.root });
     try {
       expect(again.ws.cache.rebuilt).toBe(true);
       expect(snapshot(again.ws)).toEqual(before);
@@ -54,15 +58,15 @@ test('deleting cache.sqlite and reopening rebuilds identical files, entities and
       again.ws.close();
     }
   } finally {
-    t.dispose();
+    workspace.dispose();
   }
 });
 test('a user_version mismatch or a corrupt file triggers a rebuild', () => {
-  const t = `/tmp/workbench-cache-${crypto.randomUUID()}.sqlite`;
+  const cachePath = `/tmp/workbench-cache-${crypto.randomUUID()}.sqlite`;
   try {
-    const c = createCache(t);
-    expect(c.rebuilt).toBe(true);
-    c.put(
+    const cache = createCache(cachePath);
+    expect(cache.rebuilt).toBe(true);
+    cache.put(
       {
         project: 'p',
         path: 'a',
@@ -78,25 +82,25 @@ test('a user_version mismatch or a corrupt file triggers a rebuild', () => {
       [],
       [],
     );
-    c.close();
-    const kept = createCache(t);
+    cache.close();
+    const kept = createCache(cachePath);
     expect(kept.rebuilt).toBe(false);
     expect(kept.files()).toHaveLength(1);
     kept.close();
-    const db = new Database(t);
+    const db = new Database(cachePath);
     db.exec(`PRAGMA user_version=${CACHE_VERSION + 1}`);
     db.close();
-    const bumped = createCache(t);
+    const bumped = createCache(cachePath);
     expect(bumped.rebuilt).toBe(true);
     expect(bumped.files()).toHaveLength(0);
     bumped.close();
-    for (const s of ['', '-wal', '-shm']) rmSync(t + s, { force: true });
-    writeFileSync(t, 'this is not a database');
-    const corrupt = createCache(t);
+    for (const suffix of ['', '-wal', '-shm']) rmSync(cachePath + suffix, { force: true });
+    writeFileSync(cachePath, 'this is not a database');
+    const corrupt = createCache(cachePath);
     expect(corrupt.rebuilt).toBe(true);
     expect(corrupt.files()).toHaveLength(0);
     corrupt.close();
   } finally {
-    for (const s of ['', '-wal', '-shm']) rmSync(t + s, { force: true });
+    for (const suffix of ['', '-wal', '-shm']) rmSync(cachePath + suffix, { force: true });
   }
 });

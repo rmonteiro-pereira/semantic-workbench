@@ -1,5 +1,5 @@
 /** Shares readable metric labels, formulas and targets between tables, details and graph badges. */
-import type { ConceptLink, KpiSummary } from '../../server/agent/explain';
+import type { ConceptLink, KpiExplanation, KpiSummary } from '../../server/agent/explain';
 import { expressionRefs } from '../../shared/metrics/deps';
 // Wording shared by the Metrics view, the metric detail and the graph badges.
 export const typeLabel: Record<KpiSummary['type'], string> = {
@@ -14,11 +14,17 @@ export const additivityLabel = {
   semi_additive: 'Semi-additive',
   non_additive: 'Non-additive',
 } as const;
+/** The headline of the division-by-zero rule in a KPI explanation. */
+export const divisionByZeroTitle: Record<KpiExplanation['divisionByZero'], string> = {
+  handled: 'Division by zero guarded',
+  unhandled: 'Division by zero not guarded',
+  'n/a': 'No division',
+};
 /** Formats metric concept links for compact display. */
 export const conceptText = (links: ConceptLink[]) => {
-  const m = links.find(c => c.role === 'measures');
+  const conceptLink = links.find(c => c.role === 'measures');
   const of = links.find(c => c.role === 'of');
-  return [m ? (m.concept ?? m.input) : null, of ? `of ${of.concept ?? of.input}` : null].filter(Boolean).join(' ');
+  return [conceptLink ? (conceptLink.concept ?? conceptLink.input) : null, of ? `of ${of.concept ?? of.input}` : null].filter(Boolean).join(' ');
 };
 /** Converts an identifier into readable words. */
 export const humanize = (name: string) => name.replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2');
@@ -36,21 +42,37 @@ export function readableFormula(sql: string, labels: Map<string, string>): Formu
     .trim();
   const parts: FormulaPart[] = [];
   for (const token of compact.split(/([A-Za-z_][\w$]*|[-+*/()])/).filter(t => t.trim())) {
-    const t = token.trim();
-    if (labels.has(t)) parts.push({ kind: 'metric', text: labels.get(t)!, name: t });
-    else if (['+', '-', '*', '/', '(', ')'].includes(t))
+    const trimmed = token.trim();
+    if (labels.has(trimmed)) parts.push({ kind: 'metric', text: labels.get(trimmed)!, name: trimmed });
+    else if (['+', '-', '*', '/', '(', ')'].includes(trimmed))
       parts.push({
         kind: 'op',
-        text: ({ '*': '×', '/': '÷', '-': '−' } as Record<string, string>)[t] ?? t,
+        text: ({ '*': '×', '/': '÷', '-': '−' } as Record<string, string>)[trimmed] ?? trimmed,
       });
-    else parts.push({ kind: 'text', text: t });
+    else parts.push({ kind: 'text', text: trimmed });
   }
   return parts;
 }
 /** Formats a metric target with its optional unit. */
-export function targetText(t: any, unit?: string) {
+export function targetText(target: any, unit?: string) {
   const show = (v: number) => (unit === 'ratio' ? `${Math.round(v * 1000) / 10}%` : `${v.toLocaleString()}${unit ? ' ' + unit : ''}`);
-  const direction = t.direction === 'higher_is_better' ? 'at least' : t.direction === 'lower_is_better' ? 'at most' : 'between';
-  const value = Array.isArray(t.range) ? `${show(t.range[0])} and ${show(t.range[1])}` : typeof t.value === 'number' ? show(t.value) : '';
-  return `${direction} ${value}${t.grain ? ` per ${t.grain}` : ''}${t.period ? ` (${t.period})` : ''}`.trim();
+  let direction: string;
+  if (target.direction === 'higher_is_better') {
+    direction = 'at least';
+  } else if (target.direction === 'lower_is_better') {
+    direction = 'at most';
+  } else {
+    direction = 'between';
+  }
+  let value: string;
+  if (Array.isArray(target.range)) {
+    value = `${show(target.range[0])} and ${show(target.range[1])}`;
+  } else if (typeof target.value === 'number') {
+    value = show(target.value);
+  } else {
+    value = '';
+  }
+  const grainText = target.grain ? ` per ${target.grain}` : '';
+  const periodText = target.period ? ` (${target.period})` : '';
+  return `${direction} ${value}${grainText}${periodText}`.trim();
 }

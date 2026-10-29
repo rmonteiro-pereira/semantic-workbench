@@ -36,15 +36,15 @@ test('community suggestions are invariant under input permutations, direction an
 test('inheritance and primitive hubs do not change business communities', () => {
   const original = modelOverview(entities, edges, 'Unknown');
   const extra = [node('String', 'Built-in concept'), node('Shared', 'ValueType')];
-  const result = modelOverview([...entities, ...extra], [...edges, ...entities.flatMap(e => [edge(e.id, 'String'), edge(e.id, 'Shared')]), edge('a', 'z', 'inherit', 'Inheritance')], 'Unknown');
-  for (const e of entities) expect(result.groupOf.get(e.id)).toBe(original.groupOf.get(e.id));
-  expect(result.groupOf.get('Shared')).toBe('shared-values');
-  expect(result.groupOf.get('String')).toBe('builtins');
+  const withHubs = modelOverview([...entities, ...extra], [...edges, ...entities.flatMap(e => [edge(e.id, 'String'), edge(e.id, 'Shared')]), edge('a', 'z', 'inherit', 'Inheritance')], 'Unknown');
+  for (const entity of entities) expect(withHubs.groupOf.get(entity.id)).toBe(original.groupOf.get(entity.id));
+  expect(withHubs.groupOf.get('Shared')).toBe('shared-values');
+  expect(withHubs.groupOf.get('String')).toBe('builtins');
 });
 test('single-community value types follow their owners; ownerless values stay honest', () => {
-  const o = modelOverview([...entities, node('Weight', 'ValueType'), node('UnknownValue', 'ValueType')], [...edges, edge('Weight', 'a'), edge('Weight', 'b')], 'Unknown');
-  expect(o.groupOf.get('Weight')).toBe(o.groupOf.get('a'));
-  expect(o.groupOf.get('UnknownValue')).toBe('unassigned-values');
+  const overview = modelOverview([...entities, node('Weight', 'ValueType'), node('UnknownValue', 'ValueType')], [...edges, edge('Weight', 'a'), edge('Weight', 'b')], 'Unknown');
+  expect(overview.groupOf.get('Weight')).toBe(overview.groupOf.get('a'));
+  expect(overview.groupOf.get('UnknownValue')).toBe('unassigned-values');
 });
 test('declared domains preserve secondary affiliations, omit inferred RDF domain and retain unassigned', () => {
   const nodes = [
@@ -52,58 +52,58 @@ test('declared domains preserve secondary affiliations, omit inferred RDF domain
     node('b', 'EntityType', { domains: ['Operations'] }),
     node('c', 'OWL class', { domain: { id: 'Not a declaration' } }),
   ];
-  const o = modelOverview(nodes, [], 'Unknown', true, { mode: 'declared' });
-  expect(o.groupOf.get('a')).toBe('domain:Sales');
-  expect(o.memberships.get('a')).toEqual(['domain:Sales', 'domain:Finance']);
-  expect(o.groupOf.get('c')).toBe('unassigned');
-  expect(o.provenance.counts.declared).toBe(2);
+  const overview = modelOverview(nodes, [], 'Unknown', true, { mode: 'declared' });
+  expect(overview.groupOf.get('a')).toBe('domain:Sales');
+  expect(overview.memberships.get('a')).toEqual(['domain:Sales', 'domain:Finance']);
+  expect(overview.groupOf.get('c')).toBe('unassigned');
+  expect(overview.provenance.counts.declared).toBe(2);
 });
 test('workspace corrections use exact stable keys and names without touching definitions or dropping links', () => {
   const before = JSON.stringify(entities);
-  const o = modelOverview(entities, edges, 'Unknown', false, {
+  const overview = modelOverview(entities, edges, 'Unknown', false, {
     mode: 'types',
     assignments: { a: 'my-group', b: 'my-group' },
     names: { 'my-group': 'Reviewed area' },
   });
-  expect(o.groupOf.get('a')).toBe('my-group');
-  expect(o.groups.find(g => g.id === 'my-group')?.name).toBe('Reviewed area');
+  expect(overview.groupOf.get('a')).toBe('my-group');
+  expect(overview.groups.find(g => g.id === 'my-group')?.name).toBe('Reviewed area');
   expect(JSON.stringify(entities)).toBe(before);
   expect(
-    [...o.matrix.values()]
+    [...overview.matrix.values()]
       .flat()
       .map(e => e.id)
       .sort(),
   ).toEqual(edges.map(e => e.id).sort());
-  expect(o.provenance.counts.corrected).toBe(2);
+  expect(overview.provenance.counts.corrected).toBe(2);
 });
 test('official Flights has deterministic structural suggestions and retains all links', async () => {
-  const m = inspect(await Bun.file('public/examples/ossie/flights.ontology.yaml').text(), 'flights.ontology.yaml');
-  const o = modelOverview(m.entities, m.edges, m.name);
-  const reversed = modelOverview([...m.entities].reverse(), [...m.edges].reverse(), m.name);
-  expect(o.mode).toBe('suggested');
-  expect(memberships(o)).toEqual(memberships(reversed));
-  expect(o.links.length).toBe(m.edges.length);
-  expect([...o.matrix.values()].flat().length).toBe(m.edges.length);
-  expect(o.explanation).toContain('suggestions');
+  const inspection = inspect(await Bun.file('public/examples/ossie/flights.ontology.yaml').text(), 'flights.ontology.yaml');
+  const overview = modelOverview(inspection.entities, inspection.edges, inspection.name);
+  const reversed = modelOverview([...inspection.entities].reverse(), [...inspection.edges].reverse(), inspection.name);
+  expect(overview.mode).toBe('suggested');
+  expect(memberships(overview)).toEqual(memberships(reversed));
+  expect(overview.links.length).toBe(inspection.edges.length);
+  expect([...overview.matrix.values()].flat().length).toBe(inspection.edges.length);
+  expect(overview.explanation).toContain('suggestions');
 });
 test('unknown benchmarks use definition types; suggested mode is bounded on large simple backbones', () => {
   expect(modelOverview([node('unknown', 'Concept')], [], 'Unknown').mode).toBe('types');
   const nodes = Array.from({ length: 1000 }, (_, i) => node(String(i)));
   const links = Array.from({ length: 5000 }, (_, i) => edge(String(i % 1000), String((i * 37 + 1) % 1000), String(i)));
   const start = performance.now();
-  const o = modelOverview(nodes, links, 'Benchmark');
-  expect(o.entities).toHaveLength(1000);
-  expect(o.links).toHaveLength(5000);
+  const overview = modelOverview(nodes, links, 'Benchmark');
+  expect(overview.entities).toHaveLength(1000);
+  expect(overview.links).toHaveLength(5000);
   expect(performance.now() - start).toBeLessThan(5000);
 });
 
 test('ODCS contract domain is preserved as a declared affiliation without rewriting source', async () => {
   const source = await Bun.file('public/examples/commerce/commerce.odcs.yaml').text();
-  const m = inspect(source, 'commerce.odcs.yaml');
+  const inspection = inspect(source, 'commerce.odcs.yaml');
   // The contract-level domain stays every object's declared affiliation, but on its own it is one
   // group, so Declared domains is disabled and Auto moves on.
-  expect(m.entities.every(e => e.declaredDomains?.[0] === 'Commerce')).toBe(true);
-  const o = modelOverview(m.entities, m.edges, m.name);
-  expect(o.modes.declared.reason).toBe('Only the contract-level domain is declared');
-  expect(o.mode).not.toBe('declared');
+  expect(inspection.entities.every(e => e.declaredDomains?.[0] === 'Commerce')).toBe(true);
+  const overview = modelOverview(inspection.entities, inspection.edges, inspection.name);
+  expect(overview.modes.declared.reason).toBe('Only the contract-level domain is declared');
+  expect(overview.mode).not.toBe('declared');
 });

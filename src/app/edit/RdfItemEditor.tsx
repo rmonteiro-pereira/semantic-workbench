@@ -62,22 +62,22 @@ export function RdfItemEditor({ doc, base, subject, label, kind, onClose, onSave
   const item = useMemo(() => {
     try {
       return readRdfItem(base, doc.filename, subject);
-    } catch (e) {
-      return { error: (e as Error).message };
+    } catch (error) {
+      return { error: (error as Error).message };
     }
   }, []);
   const ok = 'pairs' in item ? item : null;
   const initial = useMemo<Row[]>(
     () =>
       ok
-        ? ok.pairs.map(p => ({
-            key: p.id,
-            id: p.id,
-            predicateText: p.predicateText,
-            objectText: p.objectText,
-            locked: p.locked ?? (ok.refusal ? ok.refusal.reason : undefined),
-            nested: p.nested,
-            line: p.line,
+        ? ok.pairs.map(pair => ({
+            key: pair.id,
+            id: pair.id,
+            predicateText: pair.predicateText,
+            objectText: pair.objectText,
+            locked: pair.locked ?? (ok.refusal ? ok.refusal.reason : undefined),
+            nested: pair.nested,
+            line: pair.line,
           }))
         : [],
     [],
@@ -89,8 +89,8 @@ export function RdfItemEditor({ doc, base, subject, label, kind, onClose, onSave
     if (!ok?.fragment) return null;
     const { from, to } = ok.fragment;
     const lead = /^[ \t]*/.exec(base.slice(from))![0];
-    const d = dedent(base.slice(from, to), lead);
-    return { from, to, prefix: d.prefix, text: d.text, path: [], line: ok.line };
+    const dedented = dedent(base.slice(from, to), lead);
+    return { from, to, prefix: dedented.prefix, text: dedented.text, path: [], line: ok.line };
   }, []);
   const [text, setText] = useState(fragment?.text ?? '');
   const rowsChanged = JSON.stringify(rows.map(({ key, line, ...r }) => r)) !== JSON.stringify(initial.map(({ key, line, ...r }) => r));
@@ -106,21 +106,21 @@ export function RdfItemEditor({ doc, base, subject, label, kind, onClose, onSave
       setResult(null);
       return;
     }
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       if (textChanged && fragment) {
         const draft = base.slice(0, fragment.from) + reindent(text, fragment.prefix) + base.slice(fragment.to);
-        const g = checkRdfSource(base, draft, doc.filename, subject);
+        const gate = checkRdfSource(base, draft, doc.filename, subject);
         setResult(
-          g.ok
+          gate.ok
             ? {
                 ok: true,
                 text: draft,
                 patches: diffPatches(base, draft),
                 warnings: [],
-                removed: g.removed,
-                added: g.added,
+                removed: gate.removed,
+                added: gate.added,
               }
-            : { ok: false, error: g.reason },
+            : { ok: false, error: gate.reason },
         );
       } else
         setResult(
@@ -133,7 +133,7 @@ export function RdfItemEditor({ doc, base, subject, label, kind, onClose, onSave
         );
       setAccept(false);
     }, 250);
-    return () => clearTimeout(t);
+    return () => clearTimeout(timer);
   }, [rows, text]);
   const draft = result?.ok ? result.text : null;
   useEffect(() => {
@@ -152,15 +152,28 @@ export function RdfItemEditor({ doc, base, subject, label, kind, onClose, onSave
     setSaving(true);
     setError('');
     try {
-      const r = await api.save(doc.project, doc.path, doc.hash, draft, diffPatches(doc.source, draft));
-      onSaved([{ docId: doc.id, source: draft, hash: r.hash }]);
-    } catch (e) {
-      setError(e instanceof StaleSave ? 'Not saved: the file changed since this editor opened. Close it and open the item again.' : (e as Error).message);
+      const saved = await api.save(doc.project, doc.path, doc.hash, draft, diffPatches(doc.source, draft));
+      onSaved([{ docId: doc.id, source: draft, hash: saved.hash }]);
+    } catch (error) {
+      setError(error instanceof StaleSave ? 'Not saved: the file changed since this editor opened. Close it and open the item again.' : (error as Error).message);
       setSaving(false);
     }
   }
   const set = (key: string, patch: Partial<Row>) => setRows(rs => rs.map(r => (r.key === key ? { ...r, ...patch } : r)));
   const refusal = ok?.refusal;
+  const addStatement = () => setRows(rs => [...rs, { key: 'new-' + Date.now(), predicateText: '', objectText: '', nested: false }]);
+  let editStatus;
+  if (pending) {
+    editStatus = 'Checking…';
+  } else if (result && !result.ok) {
+    editStatus = 'Not applied';
+  } else if (errors.length) {
+    editStatus = `${errors.length} finding${errors.length === 1 ? '' : 's'} to fix`;
+  } else if (rowsChanged || textChanged) {
+    editStatus = 'Unsaved changes';
+  } else {
+    editStatus = 'No changes';
+  }
   const footer = (
     <>
       <button type="button" className="item-delete" hidden={!access.can('edit')} onClick={onDelete} disabled={saving || !!refusal}>
@@ -168,15 +181,7 @@ export function RdfItemEditor({ doc, base, subject, label, kind, onClose, onSave
         Delete…
       </button>
       <span className="item-state" role="status">
-        {pending
-          ? 'Checking…'
-          : result && !result.ok
-            ? 'Not applied'
-            : errors.length
-              ? `${errors.length} finding${errors.length === 1 ? '' : 's'} to fix`
-              : rowsChanged || textChanged
-                ? 'Unsaved changes'
-                : 'No changes'}
+        {editStatus}
       </span>
       <button type="button" onClick={onClose} disabled={saving}>
         Cancel
@@ -245,31 +250,31 @@ export function RdfItemEditor({ doc, base, subject, label, kind, onClose, onSave
             <span>Object (Turtle syntax)</span>
             <span />
           </div>
-          {rows.map((r, i) => (
-            <div key={r.key} className={`rdf-row${r.locked ? ' locked' : ''}`}>
-              <input aria-label={`Predicate ${i + 1}`} list="rdf-predicates" value={r.predicateText} disabled={!!r.locked} onChange={e => set(r.key, { predicateText: e.target.value })} />
-              {r.nested || r.objectText.length > 60 ? (
+          {rows.map((row, i) => (
+            <div key={row.key} className={`rdf-row${row.locked ? ' locked' : ''}`}>
+              <input aria-label={`Predicate ${i + 1}`} list="rdf-predicates" value={row.predicateText} disabled={!!row.locked} onChange={e => set(row.key, { predicateText: e.target.value })} />
+              {row.nested || row.objectText.length > 60 ? (
                 <textarea
                   aria-label={`Object ${i + 1}`}
-                  rows={r.nested ? 3 : 2}
+                  rows={row.nested ? 3 : 2}
                   className="code-field"
-                  value={r.objectText}
-                  disabled={!!r.locked}
-                  onChange={e => set(r.key, { objectText: e.target.value })}
+                  value={row.objectText}
+                  disabled={!!row.locked}
+                  onChange={e => set(row.key, { objectText: e.target.value })}
                 />
               ) : (
-                <input aria-label={`Object ${i + 1}`} className="code-field" value={r.objectText} disabled={!!r.locked} onChange={e => set(r.key, { objectText: e.target.value })} />
+                <input aria-label={`Object ${i + 1}`} className="code-field" value={row.objectText} disabled={!!row.locked} onChange={e => set(row.key, { objectText: e.target.value })} />
               )}
               <button
                 type="button"
                 aria-label={`Remove statement ${i + 1}`}
-                title={r.locked && !r.nested ? r.locked : 'Remove this statement'}
-                disabled={!!refusal || (!!r.locked && !r.nested)}
-                onClick={() => setRows(rs => rs.filter(x => x.key !== r.key))}
+                title={row.locked && !row.nested ? row.locked : 'Remove this statement'}
+                disabled={!!refusal || (!!row.locked && !row.nested)}
+                onClick={() => setRows(rs => rs.filter(x => x.key !== row.key))}
               >
                 <X size={13} />
               </button>
-              {r.locked && r.locked !== refusal?.reason && <small className="rdf-lock">{r.locked}</small>}
+              {row.locked && row.locked !== refusal?.reason && <small className="rdf-lock">{row.locked}</small>}
             </div>
           ))}
           <datalist id="rdf-predicates">
@@ -277,7 +282,7 @@ export function RdfItemEditor({ doc, base, subject, label, kind, onClose, onSave
               <option key={p} value={p} />
             ))}
           </datalist>
-          <button type="button" className="rdf-add" disabled={!!refusal} onClick={() => setRows(rs => [...rs, { key: 'new-' + Date.now(), predicateText: '', objectText: '', nested: false }])}>
+          <button type="button" className="rdf-add" disabled={!!refusal} onClick={addStatement}>
             <Plus size={13} />
             Add statement
           </button>
@@ -290,21 +295,21 @@ export function RdfItemEditor({ doc, base, subject, label, kind, onClose, onSave
               filename={doc.filename}
               value={text}
               onChange={setText}
-              validate={async t => {
-                const d = base.slice(0, fragment.from) + reindent(t, fragment.prefix) + base.slice(fragment.to);
-                const g = checkRdfSource(base, d, doc.filename, subject);
+              validate={async text => {
+                const editedBase = base.slice(0, fragment.from) + reindent(text, fragment.prefix) + base.slice(fragment.to);
+                const gate = checkRdfSource(base, editedBase, doc.filename, subject);
                 return [
-                  ...(g.ok
+                  ...(gate.ok
                     ? []
                     : [
                         {
                           severity: 'error' as const,
                           code: 'rdf-gate',
                           path: '/',
-                          message: g.reason,
+                          message: gate.reason,
                         },
                       ]),
-                  ...fragmentIssues(await validateInWorker(d, doc.filename), fragment, t),
+                  ...fragmentIssues(await validateInWorker(editedBase, doc.filename), fragment, text),
                 ];
               }}
             />
@@ -337,10 +342,10 @@ export function RdfItemEditor({ doc, base, subject, label, kind, onClose, onSave
       )}
       {errors.length > 0 && (
         <ul className="item-findings" aria-label="Findings">
-          {errors.map((i, n) => (
-            <li key={n} className="error">
+          {errors.map((issue, index) => (
+            <li key={index} className="error">
               <AlertTriangle size={12} />
-              {i.message}
+              {issue.message}
             </li>
           ))}
         </ul>

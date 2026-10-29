@@ -27,12 +27,12 @@ export const createGitRoutes =
   async (ws, req, url) => {
     // The credential helper set in the user's or system Git settings; credentials are never read.
     if (url.pathname === '/api/git/credential-helper' && req.method === 'GET') return Response.json(await ws.credentialHelper());
-    const m = url.pathname.match(/^\/api\/projects\/([^/]+)\/(git\/[a-z-]+|gitignore)$/);
-    if (!m) return null;
-    const slug = decodeSegment(m[1]);
-    const action = m[2];
+    const match = url.pathname.match(/^\/api\/projects\/([^/]+)\/(git\/[a-z-]+|gitignore)$/);
+    if (!match) return null;
+    const slug = decodeSegment(match[1]);
+    const action = match[2];
     if (req.method === 'POST' && REMOTE_ACTIONS.has(action)) options.keepOpen?.(req);
-    const q = url.searchParams;
+    const params = url.searchParams;
     const reader = requestReader(req);
     // A person's changes go to their own copy, created on first use. Each action authorizes its
     // targets first, so a refused request never creates one.
@@ -40,9 +40,10 @@ export const createGitRoutes =
     const gitTarget = { ws, request: req, slug };
 
     const body = async (keys: string[]) => {
-      const b = await readJson(req, 64_000);
-      if (!b || typeof b !== 'object' || Array.isArray(b) || Object.keys(b).some(k => !keys.includes(k))) throw new BadRequestError(`Expected {${keys.join(', ')}}.`);
-      return b;
+      const requestBody = await readJson(req, 64_000);
+      if (!requestBody || typeof requestBody !== 'object' || Array.isArray(requestBody) || Object.keys(requestBody).some(k => !keys.includes(k)))
+        throw new BadRequestError(`Expected {${keys.join(', ')}}.`);
+      return requestBody;
     };
     if (req.method === 'GET') {
       if (action === 'git/identity') return Response.json(await ws.identity(slug));
@@ -50,25 +51,25 @@ export const createGitRoutes =
       const scm = ws.readScm(slug, reader);
       if (action === 'git/status') return Response.json(await scm.status(slug, reader));
       if (action === 'git/diff') {
-        const repoPath = q.get('repoPath');
-        const path = repoPath ?? q.get('path');
+        const repoPath = params.get('repoPath');
+        const path = repoPath ?? params.get('path');
         if (!path) throw new BadRequestError('path or repoPath is required.');
         const base = repoPath === null ? 'project' : 'repository';
-        return Response.json(await scm.diff(slug, path, q.get('from') ?? 'HEAD', q.get('to') ?? 'worktree', base, reader));
+        return Response.json(await scm.diff(slug, path, params.get('from') ?? 'HEAD', params.get('to') ?? 'worktree', base, reader));
       }
       if (action === 'git/folder') {
-        return Response.json(await ws.projectFolders.preview(slug, q.get('folder'), reader));
+        return Response.json(await ws.projectFolders.preview(slug, params.get('folder'), reader));
       }
       if (action === 'git/branches') return Response.json(await scm.branches(slug, reader));
-      if (action === 'git/log') return Response.json(await scm.log(slug, q.get('path') ?? undefined, q.has('limit') ? Number(q.get('limit')) : undefined, reader));
+      if (action === 'git/log') return Response.json(await scm.log(slug, params.get('path') ?? undefined, params.has('limit') ? Number(params.get('limit')) : undefined, reader));
       if (action === 'git/versions') {
-        const path = q.get('path');
+        const path = params.get('path');
         if (!path) throw new BadRequestError('path is required.');
-        return Response.json(await scm.versions(slug, path, q.has('limit') ? Number(q.get('limit')) : undefined, reader));
+        return Response.json(await scm.versions(slug, path, params.has('limit') ? Number(params.get('limit')) : undefined, reader));
       }
       if (action === 'git/show') {
-        const commit = q.get('commit');
-        const path = q.get('path');
+        const commit = params.get('commit');
+        const path = params.get('path');
         if (!commit || !path) throw new BadRequestError('commit and path are required.');
         return Response.json(await scm.show(slug, commit, path, reader));
       }
@@ -76,57 +77,57 @@ export const createGitRoutes =
     }
     if (req.method === 'POST') {
       if (action === 'git/stage' || action === 'git/unstage') {
-        const b = await body(['paths', 'repoPaths', 'all']);
+        const requestBody = await body(['paths', 'repoPaths', 'all']);
         const stage = action === 'git/stage';
         await authorizeGitPaths(gitTarget, 'stage', {
-          paths: b.all === true ? undefined : (b.repoPaths ?? b.paths),
-          repository: b.repoPaths !== undefined,
+          paths: requestBody.all === true ? undefined : (requestBody.repoPaths ?? requestBody.paths),
+          repository: requestBody.repoPaths !== undefined,
         });
         const scm = await sourceControl();
-        if (b.all === true) return Response.json(await scm.stageAll(slug, stage, reader));
-        const { list, base } = chosenPaths(b);
+        if (requestBody.all === true) return Response.json(await scm.stageAll(slug, stage, reader));
+        const { list, base } = chosenPaths(requestBody);
         const change = stage ? scm.stage : scm.unstage;
         return Response.json(await change(slug, list, base, reader));
       }
       if (action === 'git/commit') {
-        const b = await body(['message', 'paths', 'repoPaths', 'push']);
-        if (b.push !== undefined && typeof b.push !== 'boolean') throw new BadRequestError('push must be true or false.');
+        const requestBody = await body(['message', 'paths', 'repoPaths', 'push']);
+        if (requestBody.push !== undefined && typeof requestBody.push !== 'boolean') throw new BadRequestError('push must be true or false.');
         await authorizeGitPaths(gitTarget, 'commit', {
-          paths: b.repoPaths ?? b.paths,
-          repository: b.repoPaths !== undefined,
+          paths: requestBody.repoPaths ?? requestBody.paths,
+          repository: requestBody.repoPaths !== undefined,
         });
-        if (b.push === true) await authorizeGitPush(gitTarget);
-        const chosen = b.paths === undefined && b.repoPaths === undefined ? null : chosenPaths(b);
+        if (requestBody.push === true) await authorizeGitPush(gitTarget);
+        const chosen = requestBody.paths === undefined && requestBody.repoPaths === undefined ? null : chosenPaths(requestBody);
         const scm = await sourceControl();
         return Response.json(
-          await scm.commit(slug, b.message, {
+          await scm.commit(slug, requestBody.message, {
             paths: chosen?.list,
             base: chosen?.base,
-            push: b.push === true,
+            push: requestBody.push === true,
             credentialFor: delegatedCredentials(req),
             author: reader.copy?.author,
           }),
         );
       }
       if (action === 'git/revert') {
-        const b = await body(['path', 'baseHash']);
-        if (typeof b.path !== 'string') throw new BadRequestError('path is required.');
-        authorizeWrite(req, 'revert', [{ type: 'file', project: slug, path: b.path }]);
-        const baseHash = b.baseHash ?? null;
-        return Response.json(await ws.revertFile(slug, b.path, baseHash, reader));
+        const requestBody = await body(['path', 'baseHash']);
+        if (typeof requestBody.path !== 'string') throw new BadRequestError('path is required.');
+        authorizeWrite(req, 'revert', [{ type: 'file', project: slug, path: requestBody.path }]);
+        const baseHash = requestBody.baseHash ?? null;
+        return Response.json(await ws.revertFile(slug, requestBody.path, baseHash, reader));
       }
       if (action === 'git/switch') {
         authorizeRepository(gitTarget, 'branch');
-        const b = await body(['branch', 'create']);
+        const requestBody = await body(['branch', 'create']);
         const scm = await sourceControl();
         const checkout = (local: string) => authorizeCheckout(gitTarget, local);
-        const create = b.create === true;
+        const create = requestBody.create === true;
         const credentialFor = delegatedCredentials(req);
-        return Response.json(await scm.switchBranch(slug, b.branch, create, reader, checkout, credentialFor));
+        return Response.json(await scm.switchBranch(slug, requestBody.branch, create, reader, checkout, credentialFor));
       }
       if (action === 'git/publish') {
-        const b = await body(['branch']);
-        await authorizePublish(gitTarget, b.branch);
+        const requestBody = await body(['branch']);
+        await authorizePublish(gitTarget, requestBody.branch);
         return Response.json(await ws.publish(slug, reader));
       }
       if (action === 'git/pull-default') {
@@ -161,14 +162,14 @@ export const createGitRoutes =
       if (action === 'git/sync') return Response.json(await scm!.sync(slug, reader, credentialFor));
       // Use the hash-checked save so concurrent edits are detected and the project is rescanned.
       if (action === 'gitignore') {
-        const b = await body(['pattern']);
-        if (typeof b.pattern !== 'string' || b.pattern.length > 1000) throw new BadRequestError('pattern must be one line of text.');
+        const requestBody = await body(['pattern']);
+        if (typeof requestBody.pattern !== 'string' || requestBody.pattern.length > 1000) throw new BadRequestError('pattern must be one line of text.');
         authorizeWrite(req, 'edit', [{ type: 'file', project: slug, path: '.gitignore' }]);
         ws.project(slug);
         const file = ws.filePath(slug, '.gitignore', reader);
         const bytes = existsSync(file) ? new Uint8Array(readFileSync(file)) : null;
         const current = bytes ? decode(bytes) : '';
-        const next = appendIgnore(current, b.pattern);
+        const next = appendIgnore(current, requestBody.pattern);
         const hash = next === null ? sha256(bytes!) : (await ws.saveFile(slug, '.gitignore', { baseHash: bytes ? sha256(bytes) : null, source: next }, reader)).hash;
         return Response.json({
           hash,
@@ -179,29 +180,29 @@ export const createGitRoutes =
       return null;
     }
     if (req.method === 'PUT' && action === 'git/remote') {
-      const b = await body(['name', 'url']);
+      const requestBody = await body(['name', 'url']);
       // The remote belongs to the repository, so every project sharing it must allow the change.
       authorizeRepository(gitTarget, 'setRemote');
       // Server mode stores the canonical form of the address it checked.
-      const address = checkRemoteAddress(req, b.url);
-      return Response.json(await (await sourceControl()).setRemote(slug, b.name, address));
+      const address = checkRemoteAddress(req, requestBody.url);
+      return Response.json(await (await sourceControl()).setRemote(slug, requestBody.name, address));
     }
     if (req.method === 'PUT' && action === 'git/folder') {
-      const b = await body(['folder', 'createFolder']);
-      if (b.createFolder !== undefined && typeof b.createFolder !== 'boolean') throw new BadRequestError('createFolder must be true or false.');
+      const requestBody = await body(['folder', 'createFolder']);
+      if (requestBody.createFolder !== undefined && typeof requestBody.createFolder !== 'boolean') throw new BadRequestError('createFolder must be true or false.');
       authorizeRepository(gitTarget, 'setRemote');
-      const options = { createFolder: b.createFolder === true };
-      return Response.json(await ws.projectFolders.apply(slug, b.folder, options, reader));
+      const options = { createFolder: requestBody.createFolder === true };
+      return Response.json(await ws.projectFolders.apply(slug, requestBody.folder, options, reader));
     }
     if (req.method === 'DELETE' && action === 'git/remote') {
-      const b = await body(['name']);
+      const requestBody = await body(['name']);
       authorizeRepository(gitTarget, 'setRemote');
-      return Response.json(await (await sourceControl()).removeRemote(slug, b.name));
+      return Response.json(await (await sourceControl()).removeRemote(slug, requestBody.name));
     }
     if (req.method === 'PUT' && action === 'git/identity') {
-      const b = await body(['name', 'email', 'allRepositories']);
-      if (b.allRepositories !== undefined && typeof b.allRepositories !== 'boolean') throw new BadRequestError('allRepositories must be true or false.');
-      return Response.json(await ws.setIdentity(slug, b.name, b.email, b.allRepositories === true));
+      const requestBody = await body(['name', 'email', 'allRepositories']);
+      if (requestBody.allRepositories !== undefined && typeof requestBody.allRepositories !== 'boolean') throw new BadRequestError('allRepositories must be true or false.');
+      return Response.json(await ws.setIdentity(slug, requestBody.name, requestBody.email, requestBody.allRepositories === true));
     }
     return null;
   };
