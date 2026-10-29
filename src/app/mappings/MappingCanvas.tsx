@@ -81,7 +81,7 @@ export function MappingCanvas({ project, mappingId, revisionKey, dirty, fullscre
   if (!graph || !center)
     return state(
       <p className="mapping-graph-state" role="status">
-        {loading ? 'Resolving the mapping…' : 'This mapping has no concepts or datasets to draw.'}
+        {loading ? 'Resolving the mapping' : 'This mapping has no concepts or datasets to draw.'}
       </p>,
     );
   const bindingsOf = (selected: string, path: { edges: Set<number> } | null) => {

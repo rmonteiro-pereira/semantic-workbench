@@ -132,7 +132,7 @@ try {
       entry.tabs.mappings = {
         text: (
           await page
-            .locator('.mapping-layer-chain')
+            .locator('.mapping-layers')
             .innerText()
             .catch(() => '')
         )

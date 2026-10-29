@@ -110,7 +110,7 @@ export function TrashDialog({ onClose, version, selectedProject, selectedProject
     );
   let dialogBody: React.ReactNode;
   if (items === null) {
-    dialogBody = <p>Loading…</p>;
+    dialogBody = <p>Loading</p>;
   } else if (items.length === 0) {
     dialogBody = <EmptyState title="Nothing here yet">Deleted projects and files stay here until you empty the trash.</EmptyState>;
   } else {

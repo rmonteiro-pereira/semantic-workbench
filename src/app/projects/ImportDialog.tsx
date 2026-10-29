@@ -38,7 +38,7 @@ export function ImportDialog({
           </button>
           <button type="button" className="primary" disabled={target === 'existing' && !project} onClick={() => onPick(into)}>
             <Upload size={14} />
-            Choose files…
+            Choose files
           </button>
         </>
       }
@@ -77,7 +77,7 @@ export function ImportDialog({
         <p className="import-clone">
           Files in a Git repository?{' '}
           <button type="button" className="link" onClick={onClone}>
-            Clone a Git repository…
+            Clone a Git repository
           </button>
         </p>
       )}

@@ -67,12 +67,12 @@ function projectMenu(project: ProjectInfo, onAction: (action: TreeAction) => voi
   return [
     { action: 'renameProject', label: 'Rename', run: run('rename') },
     { action: 'import', label: 'Import files into this project', run: run('import') },
-    { action: 'export', label: 'Export project…', run: run('export') },
+    { action: 'export', label: 'Export project', run: run('export') },
     { action: 'edit', label: 'Edit .gitignore', run: run('gitignore') },
-    { action: 'setRemote', label: 'Remote…', run: run('remote') },
+    { action: 'setRemote', label: 'Remote', run: run('remote') },
     {
       action: 'registerProjects',
-      label: 'Projects in this repository…',
+      label: 'Projects in this repository',
       run: run('repository-projects'),
     },
     { action: 'deleteProject', label: 'Delete', run: run('delete-project') },
@@ -180,7 +180,7 @@ function RepositoryItem({ repo, projects, ...props }: { repo: string; projects: 
             access.can('registerProjects')
               ? [
                   {
-                    label: 'Projects in this repository…',
+                    label: 'Projects in this repository',
                     run: () => props.onAction({ action: 'repository-projects', project: member.slug }),
                   },
                 ]

@@ -44,7 +44,7 @@ export async function expectFileOpen(page: Page, options: { timeout?: number } =
 export async function expectNoFileOpen(page: Page) {
   await expect(headerTitle(page)).toHaveText(NO_FILE_TITLE);
   await expect(page.locator('.workspace-header .header-meta')).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'Commit…', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Commit', exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'More actions', exact: true })).toBeVisible();
   expect(await page.evaluate(noFileHeaderProblems)).toEqual([]);
 }
@@ -53,7 +53,7 @@ export async function expectNoFileOpen(page: Page) {
 function noFileHeaderProblems(): string[] {
   const found: string[] = [];
   const header = document.querySelector<HTMLElement>('.workspace-header')!;
-  const rowHeight = parseFloat(getComputedStyle(header).minHeight);
+  const rowHeight = 60;
   const height = header.getBoundingClientRect().height;
   if (Math.abs(height - rowHeight) > 1) found.push(`the header is ${height}px, not ${rowHeight}px`);
   const block = header.querySelector('.workspace-title')!.getBoundingClientRect();
@@ -104,8 +104,10 @@ export async function headerProblems(page: Page): Promise<string[]> {
     }
     for (const control of controls) {
       const rect = control.getBoundingClientRect();
-      if (Math.abs(rect.height - controlHeight) > 0.5) {
-        problems.push(`${describe(control)} is ${rect.height}px high, not ${controlHeight}px`);
+      // The round account button is 34 px, two pixels under the other controls, as designed.
+      const wanted = control.classList.contains('person-avatar-button') ? 34 : controlHeight;
+      if (Math.abs(rect.height - wanted) > 0.5) {
+        problems.push(`${describe(control)} is ${rect.height}px high, not ${wanted}px`);
       }
     }
     // The title block takes the free width and must never overlap a control.

@@ -525,12 +525,14 @@ function assemble(parsed: Parsed[], entry: Entry): RuntimeContext {
   }));
   return context;
 }
-/** Narrows context to named concepts and their referenced fields and metrics. */
+/** Narrows context to named concepts and their referenced fields and metrics, including metrics bound to those concepts. */
 export function selectContext(context: RuntimeContext, conceptNames: string[]) {
   const names = new Set(conceptNames);
   for (const name of names) if (!context.concepts.some(c => c.concept === name)) throw new BadRequestError(`Unknown concept ${name}.`);
   const bindings = context.bindings.filter(b => names.size === 0 || names.has(b.rootConcept) || names.has(b.concept));
-  const metricNames = new Set(bindings.flatMap(b => b.metrics));
+  // A metric can also be bound straight to a concept, without a mapping expression of its own.
+  const boundMetrics = context.metricBindings.filter(binding => names.size === 0 || [binding.measures.concept, binding.of?.concept].some(concept => !!concept && names.has(concept)));
+  const metricNames = new Set([...bindings.flatMap(b => b.metrics), ...boundMetrics.map(binding => binding.metric)]);
   const pending = [...metricNames];
   for (let i = 0; i < pending.length; i++)
     for (const dep of context.metrics.find(m => m.id === pending[i])?.dependsOn ?? [])

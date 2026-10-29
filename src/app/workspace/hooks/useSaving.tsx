@@ -3,9 +3,9 @@ import React, { useRef, useState } from 'react';
 import type { Issue } from '../../../shared/validation/diagnostics';
 import { validateInWorker } from '../../editor/lint';
 import { diffPatches, normalize } from '../../../shared/editor/patch';
-import type { Doc, ProjectInfo } from '../../projects/api';
+import type { Doc } from '../../projects/api';
 import { api, scm as scmApi, StaleSave } from '../../projects/api';
-import { failureReason, saveStateLabel, saveStateShortLabel, useAutosave } from '../../projects/autosave';
+import { failureReason, saveStateLabel, useAutosave } from '../../projects/autosave';
 import { isGitignore } from '../../../shared/scm/gitignore';
 import { applyDemotions, type Demotion } from '../../../shared/governance/guards';
 
@@ -23,13 +23,12 @@ type Options = {
   setCurrentState: React.Dispatch<React.SetStateAction<Doc | null>>;
   setStale: React.Dispatch<React.SetStateAction<{ current: string | null; currentHash: string | null } | null>>;
   setMessage: React.Dispatch<React.SetStateAction<string>>;
-  projects: ProjectInfo[];
   sourceRef: React.RefObject<string>;
   setSource: React.Dispatch<React.SetStateAction<string>>;
   draftOf: React.RefObject<{ project: string; path: string } | null>;
 };
 /** Manages saving. */
-export function useSaving({ current, source, currentRef, editorIssuesRef, docsRef, setDocs, setCurrentState, setStale, setMessage, projects, sourceRef, setSource, draftOf }: Options) {
+export function useSaving({ current, source, currentRef, editorIssuesRef, docsRef, setDocs, setCurrentState, setStale, setMessage, sourceRef, setSource, draftOf }: Options) {
   // Automatic saving of valid edits: 1 s after the last edit, through the usual
   // hash-checked save with only the changed range; invalid text stays a server draft.
   const [gitBusy, setGitBusy] = useState(false);
@@ -80,9 +79,7 @@ export function useSaving({ current, source, currentRef, editorIssuesRef, docsRe
     }
     setMessage('Saved. An approved metric you changed is now proposed for review.');
   }
-  const uncommitted = projects.find(p => p.slug === current?.project)?.changes ?? 0;
-  const saveState = saveStateLabel(autosave.state, uncommitted);
-  const saveStateShort = saveStateShortLabel(autosave.state, uncommitted);
+  const saveState = saveStateLabel(autosave.state);
   // Leaving a file or view: a due valid save is written first; invalid text stays a server draft
   // (no "Discard unsaved changes?" prompt; the draft is announced instead).
   async function leaveCurrent() {
@@ -114,7 +111,6 @@ export function useSaving({ current, source, currentRef, editorIssuesRef, docsRe
     committing,
     setCommitting,
     saveState,
-    saveStateShort,
     openStale,
     setGitBusy,
   };

@@ -96,7 +96,9 @@ const fingerprint = (): Promise<Fingerprint> =>
       flowEdges: document.querySelectorAll('.react-flow__edge').length,
       lineageLines: ids('g.lineage-edge', 'data-count'),
       areas: texts('.area-grid > *').length,
-      bindings: document.querySelectorAll('.mapping-binding').length,
+      mappingConcepts: document.querySelectorAll('.mapping-concepts .mapping-concept').length,
+      mappingConcept: clean(document.querySelector('.mapping-concept[aria-pressed="true"]')?.textContent),
+      datasetRows: document.querySelectorAll('.mapping-dataset-row').length,
       showFewer: texts('.mapping-show-more button'),
       metric: clean(document.querySelector('.kpi-detail h2')?.textContent),
       catalogRows: document.querySelectorAll('.catalog-card, .catalog-row').length,
@@ -193,7 +195,7 @@ const journey: Action[] = [
     name: 'Mappings: show more concepts',
     run: async () => {
       await page
-        .getByRole('button', { name: /^Show \d+ more/ })
+        .getByRole('button', { name: /^Show all \d+ concepts/ })
         .first()
         .click();
     },
@@ -201,7 +203,7 @@ const journey: Action[] = [
   {
     name: 'Mappings: select a concept',
     run: async () => {
-      await page.locator('.mapping-concept-list button[aria-pressed]').nth(3).click();
+      await page.locator('.mapping-concepts .mapping-concept').nth(3).click();
     },
   },
   openFile('wide.odcs.yaml'),

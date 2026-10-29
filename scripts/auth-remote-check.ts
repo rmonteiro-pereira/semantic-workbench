@@ -31,7 +31,7 @@ function allowGitHub(root: string, github: CredentialGitServer) {
 }
 
 async function openAccounts(page: Page) {
-  await page.getByRole('button', { name: 'Person menu', exact: true }).click();
+  await page.getByRole('button', { name: 'Account and Admin', exact: true }).click();
   await page.getByRole('menuitem', { name: /^Connected accounts/ }).click();
   return page.getByRole('dialog', { name: 'Connected accounts' });
 }

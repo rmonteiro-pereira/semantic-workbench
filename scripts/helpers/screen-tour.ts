@@ -74,7 +74,7 @@ export function fileTab(file: string, tab: string): Screen['show'] {
 function resolvedMappings(file: string): Screen['show'] {
   return async page => {
     await fileTab(file, 'Mappings')(page);
-    const resolved = page.locator('.mapping-detail .mapping-binding, .mapping-detail .empty-state, .mapping-explorer > .empty-state');
+    const resolved = page.locator('.mapping-detail .mapping-card, .mapping-explorer > .empty-state');
     await resolved.first().waitFor({ state: 'attached', timeout: 30000 });
   };
 }

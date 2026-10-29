@@ -209,7 +209,7 @@ export function RemoteDialog({ project, onClose }: Props) {
                 typed.current = true;
                 setUrl(e.target.value);
               }}
-              placeholder="https://… or git@… or /path/to/repo.git"
+              placeholder="https://host/repo.git, git@host:repo.git or /path/to/repo.git"
             />
           </label>
           <FolderField

@@ -156,7 +156,9 @@ check that happens to succeed.
   lets the user pick the data file. `src/shared/odcs/foreign-keys.ts`
   resolves contract relationships. These modules are reused by browser and server logic.
 - `src/shared/mappings/` owns mapping schemas and built-ins; `src/app/mappings/` the mapping
-  explorer. `src/shared/core/` holds the model and document references; `src/app/core/export.ts`
+  explorer: `MappingExplorer.tsx` picks the mappings that are, or read, the open file
+  (`mapping-scope.ts`), `MappingSection.tsx` shows one mapping, and `mapping-view.ts` turns the
+  context the agent API returns into the rows and cards. `src/shared/core/` holds the model and document references; `src/app/core/export.ts`
   the export projection.
 - `schemas/` contains pinned standards and application schemas. `scripts/compile-schemas.ts`
   produces checked-in, formatted standalone browser validators grouped by schema family in

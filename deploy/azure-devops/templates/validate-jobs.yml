@@ -82,6 +82,8 @@ jobs:
           suite: test:mappings-layout
         clipping:
           suite: test:clipping
+        header_mappings:
+          suite: test:header-mappings
         mapping_graph:
           suite: test:mapping-graph
         back_history:

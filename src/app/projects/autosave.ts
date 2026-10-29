@@ -152,15 +152,15 @@ export function failureReason(message: string | null | undefined) {
   if (!refusal) return message;
   return refusal[1]!;
 }
-// Save-state labels distinguish validation, conflicts and uncommitted changes.
-/** Returns the visible save-state label including uncommitted-change status. */
-export function saveStateLabel(autosaveState: AutosaveState, uncommitted: number) {
-  const changes = `${uncommitted} uncommitted change${uncommitted === 1 ? '' : 's'}`;
+// Save-state labels distinguish validation and conflicts. How many files wait to be committed is
+// the badge on Commit, not part of this text.
+/** Returns the visible save-state label. */
+export function saveStateLabel(autosaveState: AutosaveState) {
   switch (autosaveState.status) {
     case 'saving':
-      return 'Saving…';
+      return 'Saving';
     case 'pending':
-      return 'Editing…';
+      return 'Editing';
     case 'invalid':
       return `Not saved: ${autosaveState.errors} error${autosaveState.errors === 1 ? '' : 's'}`;
     case 'stale':
@@ -172,7 +172,7 @@ export function saveStateLabel(autosaveState: AutosaveState, uncommitted: number
     case 'cancelled':
       return 'Not saved: the file was removed';
     default:
-      return `Saved to file · ${changes}`;
+      return 'Saved';
   }
 }
 /**
@@ -183,15 +183,6 @@ export function saveNeedsAction(status: AutosaveStatus): boolean {
   return !['clean', 'pending', 'saving', 'saved'].includes(status);
 }
 
-/**
- * The save-state label for a header with little room: a clean save is just "Saved". Every other
- * state keeps its full label because it tells the person what to do.
- */
-export function saveStateShortLabel(autosaveState: AutosaveState, uncommitted: number) {
-  if (autosaveState.status !== 'saved' && autosaveState.status !== 'clean') return saveStateLabel(autosaveState, uncommitted);
-  if (uncommitted === 0) return 'Saved';
-  return `Saved · ${uncommitted} to commit`;
-}
 // Validation must match the exact editor text. Saves apply changes against the saved version’s
 // hash and return the next hash. Diff computation and requests start in idle time after the pause,
 // never on a keystroke.

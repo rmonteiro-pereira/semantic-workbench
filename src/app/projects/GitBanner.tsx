@@ -32,7 +32,7 @@ export function GitBanner({ status }: { status: WorkspaceStatus | null }) {
       tone: 'warning',
       text: `Git has no user.name or user.email for ${repositoryCount}, so changes there cannot be committed yet.`,
       action: {
-        label: 'Set Git identity…',
+        label: 'Set Git identity',
         run: () =>
           openGitSetup({
             kind: 'identity',

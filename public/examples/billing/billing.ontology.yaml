@@ -746,23 +746,33 @@ ontology:
     type: ValueType
     extends:
       - Integer
+    description: Whole-number key that names one row of a business entity.
   - concept: Text
     type: ValueType
     extends:
       - String
+    description: Free-form reporting value such as a name, a code or a status.
   - concept: NetRevenue
     type: ValueType
     extends:
       - Decimal
+    description: Invoiced revenue without tax and credits, in USD; the governed
+      metric net_revenue calculates it.
   - concept: RecurringRevenue
     type: ValueType
     extends:
       - Decimal
+    description: Net revenue from recurring plan lines only, in USD; usage-only
+      lines are left out.
   - concept: InvoiceCount
     type: ValueType
     extends:
       - Integer
+    description: Number of distinct invoices; the governed metric invoice_count
+      calculates it.
   - concept: RevenuePerInvoice
     type: ValueType
     extends:
       - Decimal
+    description: Net revenue divided by the number of invoices, in USD; a governed
+      ratio of two metrics.

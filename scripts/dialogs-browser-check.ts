@@ -86,7 +86,7 @@ const entries: Entry[] = [
       await openFile(p, mall.name, 'mall.ontology.yaml');
       await openNewMenu(p);
     },
-    trigger: p => p.getByRole('menuitem', { name: 'Add concept…', exact: true }),
+    trigger: p => p.getByRole('menuitem', { name: 'Add concept', exact: true }),
     // New sits inside More actions, which gets the focus back.
     returns: p => header(p, 'More actions'),
   },

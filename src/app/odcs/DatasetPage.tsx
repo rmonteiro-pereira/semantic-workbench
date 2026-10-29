@@ -194,7 +194,7 @@ export function DatasetPage({ doc, data, objectName, projectDocs, onBack, onOpen
 // that read it and the metrics downstream of it, read from the same lineage graph.
 /** The "Last change" line of the page header: the newest commit that touched the table. */
 function LastChangeSummary({ loading, change }: { loading: boolean; change: Version | null }) {
-  if (loading) return <>…</>;
+  if (loading) return <></>;
   if (!change) return <>Not committed yet</>;
   return (
     <>
@@ -406,7 +406,7 @@ function HistoryTab({ versions, error, objectName }: { versions: Version[] | nul
         History is not available: {error}
       </p>
     );
-  if (!versions) return <p className="odcs-note">Loading versions…</p>;
+  if (!versions) return <p className="odcs-note">Loading versions</p>;
   const count = (v: Version) => {
     const o = list(v.data?.schema).find((x: any) => x?.name === objectName);
     return o ? flattenProperties(o.properties).length : null;

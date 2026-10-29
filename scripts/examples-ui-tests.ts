@@ -15,7 +15,7 @@ import { closeComposer, composerDialog, openComposer } from './helpers/query-com
 import { EXPECTED_EXAMPLE_METRICS } from './example-metric-checks';
 import { expectMetricPresented, metricsList } from './helpers/examples-tour';
 import { geometryProblems } from './helpers/screen-tour';
-import { chooseConcept, expectResolvedBindings, showAllBindings } from './helpers/mapping-bindings';
+import { chooseConcept, expectResolvedBindings, showAllDatasets } from './helpers/mapping-bindings';
 const api = await startIsolatedApi();
 const store = { list: () => api.ws.documents() };
 const db = new Database(':memory:');
@@ -99,30 +99,19 @@ try {
     await page.screenshot({ path: '/tmp/ossie-flights-graph.png' });
   });
   await check('both official standalone and embedded Flights mappings render 60 bindings and export their context', async () => {
-    // The imported official files and the Flights example are two projects, and each lists only
-    // its own mappings: the standalone and embedded forms of the official files, plus, in the
-    // example, its own metrics mapping. Open a file of each project to see its list.
-    const projects = [
-      { open: page.getByRole('button', { name: 'flights.mapping.yaml', exact: true }).first() },
-      { open: page.getByRole('button', { name: 'flights.mapping.yaml', exact: true }).last() },
-    ];
-    const allIds: string[] = [];
-    let metricsMappings = 0;
-    for (const project of projects) {
-      await project.open.click();
+    // The imported official files and the Flights example are two projects. The Mappings tab shows
+    // the mapping of the open file, so each form is opened through its own file: the standalone
+    // mapping, the consolidated file with its embedded mapping, and the example's metrics mapping.
+    const fileButton = (name: string, index: number) => page.getByRole('button', { name, exact: true }).nth(index);
+    for (const index of [0, 1]) {
+      await fileButton('flights.mapping.yaml', index).click();
       await page.locator('.tabs').getByRole('button', { name: 'Mappings', exact: true }).click();
-      const chooser = page.getByLabel('Mapping document');
-      // The list loads from the server; wait for it before reading the options.
-      await expect(chooser.locator('option').nth(2)).toBeAttached();
-      const options = await chooser.locator('option').evaluateAll(list => list.map((o: any) => ({ value: o.value, text: o.textContent })));
-      const listed = options.filter(o => o.value);
-      const slugs = new Set(listed.map(o => o.value.split('/')[0]));
-      if (slugs.size !== 1) throw Error('Mapping list mixes projects: ' + [...slugs].join(', '));
-      metricsMappings += listed.filter(o => o.text.includes('Flights metrics')).length;
-      const ids = listed.filter(o => !o.text.includes('Flights metrics')).map(o => o.value);
-      allIds.push(...ids);
-      for (const id of ids) {
-        await chooser.selectOption(id);
+      await expect(page.locator('.mapping-page')).toHaveCount(1);
+      const forms = [fileButton('flights.mapping.yaml', index), fileButton('flights.yaml', index)];
+      for (const form of forms) {
+        await form.click();
+        await expect(page.locator('.mapping-page')).toHaveCount(1);
+        await page.getByRole('button', { name: /^All concepts/ }).click();
         await expectResolvedBindings(page, 60);
         await expect(page.locator('.mapping-findings')).toHaveCount(0);
         const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Export agent context', exact: true }).click()]);
@@ -132,11 +121,14 @@ try {
         if (context.bindings.length !== 60 || context.bindings.filter((b: any) => b.condition).length !== 2) throw Error('Lost official bindings/conditions');
       }
     }
-    if (metricsMappings !== 1) throw Error('Missing Flights metrics mapping');
-    if (new Set(allIds).size !== 4) throw Error('Missing Flights mapping forms');
-    await page.screenshot({ path: '/tmp/ossie-flights-mappings.png' });
+    await page.getByRole('button', { name: 'flights.metrics.mapping.yaml', exact: true }).click();
+    await expect(page.locator('.mapping-page h2')).toContainText('Flights metrics');
+    // The example's ontology is read by its standalone mapping and its metrics mapping, so Mappings shows both, one after the other under their names.
+    await page.getByRole('button', { name: 'flights.ontology.yaml', exact: true }).last().click();
+    await expect(page.locator('.mapping-page h2')).toHaveCount(2);
   });
   await check('official mapped field generates SQL that executes on a synthetic warehouse mirror', async () => {
+    await page.getByRole('button', { name: 'flights.mapping.yaml', exact: true }).last().click();
     await chooseConcept(page, /^AirportName/);
     await openComposer(page);
     await page.getByRole('checkbox', { name: 'Dimension AIRPORT.name', exact: true }).check();
@@ -160,88 +152,38 @@ try {
     await page.screenshot({ path: '/tmp/ossie-flights-query.png' });
     await closeComposer(page);
   });
-  // Bindings remain separate labelled steps, grouped by dataset with counts and collapse. The
-  // composer moves below the evidence on narrow screens; findings open the item editor.
-  const STEP_LABELS: Record<string, string> = {
-    concept: 'Concept',
-    relationship: 'Relationship',
-    field: 'Field',
-    metric: 'Metric',
-    dataset: 'Dataset',
-    source: 'Physical source',
-  };
-  async function chainProblems() {
-    return page.locator('.mapping-binding').evaluateAll(
-      (items, labels) =>
-        items.flatMap((binding, i) => {
-          const out: string[] = [];
-          const steps = [...binding.querySelectorAll('[data-step]')];
-          const kinds = steps.map(s => s.getAttribute('data-step')!);
-          if (binding.getAttribute('role') !== 'group' || !(binding.getAttribute('aria-label') ?? '').startsWith('Binding ')) out.push(`binding ${i}: not a labelled group`);
-          if (kinds[0] !== 'concept') out.push(`binding ${i}: chain does not start with the concept`);
-          if (!kinds.some(k => k === 'field' || k === 'metric')) out.push(`binding ${i}: no field or metric step`);
-          if (kinds.includes('field') && !(kinds.includes('dataset') && kinds.includes('source'))) out.push(`binding ${i}: field without dataset and physical source`);
-          for (const step of steps) {
-            const label = step.querySelector('.step-label')?.textContent?.trim();
-            if (label !== labels[step.getAttribute('data-step')!]) out.push(`binding ${i}: step ${step.getAttribute('data-step')} labelled "${label}"`);
-            if (!step.textContent?.replace(label ?? '', '').trim()) out.push(`binding ${i}: empty ${step.getAttribute('data-step')} step`);
-          }
-          return out;
-        }),
-      STEP_LABELS,
-    );
-  }
-  async function groupCounts() {
-    return page.locator('details.mapping-group').evaluateAll(gs =>
-      gs.map(group => ({
-        dataset: group.getAttribute('data-dataset'),
-        summary: group.querySelector('summary')?.textContent ?? '',
-        bindings: group.querySelectorAll('.mapping-binding').length,
-      })),
-    );
-  }
-  await check('Flights Airport: every binding is a chain of labelled steps, grouped by dataset with counts; composer beside the evidence', async () => {
+  // The concept page lists where a concept lives as one row per dataset, with the fields bound in it.
+  // The composer is a dialog; the concept list and the cards sit side by side and stack on a phone.
+  await check('Flights Airport: the cards give the definition, the datasets with their fields and the AI context; concepts sit beside them', async () => {
     await page
       .locator('.mapping-concepts')
       .getByRole('button', { name: /^Airport\s*\d/ })
       .click();
-    await expect(page.locator('.mapping-detail>h3')).toHaveText('Airport');
-    await showAllBindings(page);
-    const bindingCount = await page.locator('.mapping-binding').count();
-    if (!bindingCount) throw Error('No Airport bindings');
-    expect(await chainProblems()).toEqual([]);
-    const groups = await groupCounts();
-    expect(groups.length).toBeGreaterThan(0);
-    expect(groups.reduce((a, g) => a + g.bindings, 0)).toBe(bindingCount);
-    for (const group of groups) {
-      expect(group.summary).toContain(group.dataset || 'Metrics');
-      expect(group.summary).toMatch(new RegExp(`${group.bindings} binding`));
+    await expect(page.locator('.mapping-detail h3').first()).toContainText('Airport');
+    await showAllDatasets(page);
+    const rows = page.locator('.mapping-dataset-row');
+    expect(await rows.count()).toBeGreaterThan(0);
+    for (const row of await rows.all()) {
+      await expect(row.locator('b')).not.toHaveText('');
+      await expect(row.locator('.mapping-fields')).not.toHaveText('');
     }
-    const first = page.locator('details.mapping-group').first();
-    await first.locator(':scope > summary').click();
-    await expect(first.locator('.mapping-binding').first()).toBeHidden();
-    await first.locator(':scope > summary').click();
-    await expect(first.locator('.mapping-binding').first()).toBeVisible();
-    // Concepts sit beside the bindings, which take the rest of the width; the composer is a
-    // dialog, so it no longer takes a column.
-    const evidence = (await page.locator('.mapping-bindings').boundingBox())!;
+    await expect(page.locator('.mapping-ai')).toContainText('Airport');
+    // Concepts sit beside the cards, which take the rest of the width.
+    const detail = (await page.locator('.mapping-detail').boundingBox())!;
     const concepts = (await page.locator('.mapping-concepts').boundingBox())!;
-    const explorer = (await page.locator('.mapping-columns').boundingBox())!;
-    expect(concepts.x + concepts.width).toBeLessThanOrEqual(evidence.x + 1);
-    expect(evidence.x + evidence.width).toBeGreaterThan(explorer.x + explorer.width - 40);
-    await page.screenshot({ path: '/tmp/workbench-mapping-chains.png' });
+    const columns = (await page.locator('.mapping-columns').boundingBox())!;
+    expect(concepts.x + concepts.width).toBeLessThanOrEqual(detail.x + 1);
+    expect(detail.x + detail.width).toBeGreaterThan(columns.x + columns.width - 40);
     await page.setViewportSize({ width: 390, height: 844 });
-    const e2 = (await page.locator('.mapping-bindings').boundingBox())!;
-    const k2 = (await page.locator('.mapping-concepts').boundingBox())!;
-    expect(k2.y).toBeLessThan(e2.y);
+    const detailPhone = (await page.locator('.mapping-detail').boundingBox())!;
+    const conceptsPhone = (await page.locator('.mapping-concepts').boundingBox())!;
+    expect(conceptsPhone.y).toBeLessThan(detailPhone.y);
     await openComposer(page);
     const dialogBox = (await composerDialog(page).locator('.workbench-dialog').boundingBox())!;
     expect(dialogBox.x).toBeGreaterThanOrEqual(0);
     expect(dialogBox.x + dialogBox.width).toBeLessThanOrEqual(390);
-    await page.screenshot({ path: '/tmp/workbench-mapping-composer-390.png' });
     await closeComposer(page);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    await page.screenshot({ path: '/tmp/workbench-mapping-chains-390.png' });
     await page.setViewportSize({ width: 1600, height: 1000 });
   });
   await check('all official source exports retain exact upstream bytes', async () => {
@@ -256,8 +198,9 @@ try {
   await check('fresh billing ontology, semantic model and mappings import and render', async () => {
     await upload(['billing.ontology.yaml', 'billing.semantic.yaml', 'billing.mapping.yaml'].map(file => [file, 'public/examples/billing/' + file]));
     await page.locator('.tabs').getByRole('button', { name: 'Mappings', exact: true }).click();
-    await expect(page.locator('.mapping-layer-chain')).toContainText('Subscription billing mappings');
-    await expect(page.locator('.mapping-layer-chain')).toContainText('36 datasets');
+    await expect(page.locator('.mapping-page h2')).toHaveText('Subscription billing mappings');
+    await expect(page.locator('.mapping-layers')).toContainText('36 datasets');
+    await page.getByRole('button', { name: /^All concepts/ }).click();
     await expectResolvedBindings(page, 119);
     await expect(page.locator('.mapping-bindings')).not.toHaveAttribute('open', '');
     // The concept list shows only the first concepts, so the test finds Plan the way a reader does.
@@ -269,7 +212,7 @@ try {
     await expectResolvedBindings(page, 4);
     await expect(page.locator('.mapping-bindings')).toHaveAttribute('open', '');
     await page.getByLabel('Find concept').fill('');
-    await page.getByRole('button', { name: 'All concepts', exact: true }).click();
+    await page.getByRole('button', { name: /^All concepts/ }).click();
   });
   await check('billing query selected in the UI produces verified net revenue, distinct counts and governed ratios', async () => {
     await openComposer(page);
@@ -313,7 +256,8 @@ try {
     const exampleDocuments = 4;
     for (let opening = 0; opening < 2; opening++) {
       await (await example(page, /Subscription billing/)).click();
-      await expect(page.locator('.mapping-layer-chain')).toContainText('Subscription billing mappings');
+      await expect(page.locator('.mapping-page h2')).toHaveText('Subscription billing mappings');
+      await page.getByRole('button', { name: /^All concepts/ }).click();
       await expectResolvedBindings(page, 119);
       if (store.list().length !== before + exampleDocuments) throw Error('Example loader duplicated or omitted definitions');
     }
@@ -371,10 +315,9 @@ try {
   });
   await check('shopping center occupancy rate query from the UI matches the computed KPIs', async () => {
     await page.locator('.tabs').getByRole('button', { name: 'Mappings', exact: true }).click();
-    const select = page.getByLabel('Mapping document');
-    const value = await select.locator('option', { hasText: 'Shopping center' }).getAttribute('value');
-    await select.selectOption(value!);
-    await expect(page.locator('.mapping-layer-chain')).toContainText('Shopping center administration mappings');
+    await page.getByRole('button', { name: 'mall.mapping.yaml', exact: true }).click();
+    await expect(page.locator('.mapping-page h2')).toHaveText('Shopping center administration mappings');
+    await page.getByRole('button', { name: /^All concepts/ }).click();
     await openComposer(page);
     await page.getByRole('checkbox', { name: 'Metric occupancy_rate', exact: true }).check();
     await page.getByRole('checkbox', { name: 'Dimension calendar_months.year_month', exact: true }).check();
@@ -408,13 +351,12 @@ try {
   await check('mapped commerce Customer chains reach fields, datasets and sources; a mapping finding opens the item editor', async () => {
     await (await example(page, /Mapped commerce/)).click();
     await page.locator('.tabs').getByRole('button', { name: 'Mappings', exact: true }).click();
-    await expect(page.locator('.mapping-layer-chain')).toContainText('Mapped commerce ontology');
+    await expect(page.locator('.mapping-layers')).toContainText('Mapped commerce ontology');
     await page
       .locator('.mapping-concepts')
       .getByRole('button', { name: /^Customer\s*\d/ })
       .click();
-    expect(await chainProblems()).toEqual([]);
-    await expect(page.locator('.mapping-binding [data-step="source"]').first()).toContainText('customers');
+    await expect(page.locator('.mapping-dataset-row').filter({ hasText: 'customers' }).first()).toContainText('customer_id');
     // A mapping whose expression names a field the semantic model does not declare.
     const broken = (await Bun.file('public/examples/commerce/commerce.mapping.yaml').text())
       .replace('name: Commerce ontology mapping', 'name: Broken commerce mapping')
@@ -425,10 +367,9 @@ try {
       undefined,
       LOCAL_READER,
     );
-    const select = page.getByLabel('Mapping document');
-    await expect(select.locator('option', { hasText: 'Broken commerce mapping' })).toHaveCount(1);
-    await select.selectOption((await select.locator('option', { hasText: 'Broken commerce mapping' }).getAttribute('value'))!);
-    const finding = page.locator('.mapping-findings, .mapping-binding-finding').filter({ hasText: 'amount_missing' });
+    await page.getByRole('button', { name: 'commerce.broken.mapping.yaml', exact: true }).click();
+    await expect(page.locator('.mapping-page h2')).toHaveText('Broken commerce mapping');
+    const finding = page.locator('.mapping-findings p').filter({ hasText: 'amount_missing' });
     await expect(finding).toBeVisible();
     await finding.getByRole('button', { name: 'Edit item' }).first().click();
     const editor = page.getByRole('dialog', { name: /^Edit / });

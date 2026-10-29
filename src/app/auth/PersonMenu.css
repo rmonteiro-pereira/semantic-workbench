@@ -1,25 +1,23 @@
 .person-menu {
   flex-shrink: 0;
 }
-.person-menu > button {
-  display: flex;
+.menu-button.person-menu > .person-avatar-button {
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  max-width: 200px;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--color-surface-inverse);
+  color: var(--color-text-inverse);
 }
-.person-label {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.person-avatar {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
 }
-/* The header shows the name from 1200 px; below that the icon is enough. The roles are in the
-   menu and the tooltip. */
-@media (max-width: 1199px) {
-  .person-label {
-    display: none;
-  }
-}
-
 .person-summary {
   display: flex;
   flex-direction: column;

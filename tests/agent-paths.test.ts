@@ -8,3 +8,10 @@ test('the catalog and context addresses carry the project', () => {
   expect(address.searchParams.get('project')).toBe('sales');
   expect(address.searchParams.get('mappingId')).toBe('sales/a.mapping.yaml#ontology_mappings/0');
 });
+
+test('the context address names the concept only when one is chosen', () => {
+  const withConcept = new URL(agentContextPath('sales', 'sales/a.mapping.yaml', 'Order'), 'http://x');
+  expect(withConcept.searchParams.getAll('concept')).toEqual(['Order']);
+  const without = new URL(agentContextPath('sales', 'sales/a.mapping.yaml'), 'http://x');
+  expect(without.searchParams.has('concept')).toBe(false);
+});

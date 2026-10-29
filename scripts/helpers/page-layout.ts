@@ -51,29 +51,27 @@ export async function pageLayoutProblems(page: Page, screenName: string) {
       // A project without a mapping document shows one empty state for the whole tab instead.
       const detail = document.querySelector('.mapping-detail');
       const projectEmpty = document.querySelector('.mapping-explorer > .empty-state');
-      if (!detail?.querySelector('.mapping-binding, .empty-state') && !projectEmpty) {
-        problems.push('the detail shows neither a binding nor an empty state');
+      if (!detail?.querySelector('.mapping-card') && !projectEmpty) {
+        problems.push('the detail shows neither a card nor an empty state');
       }
-      const chain = rows('.mapping-layer-chain > span');
-      if (chain.some(box => Math.abs(box.height - chain[0].height) > 1)) {
-        problems.push('the layer summary items differ in height');
+      const layers = rows('.mapping-layers > .mapping-layer');
+      const layerRows = new Set(layers.map(box => Math.round(box.top)));
+      if (layers.length && layers.length !== 4) {
+        problems.push('the layer strip does not show four layers');
       }
-      const list = document.querySelector('.mapping-concept-list');
+      if (layers.length === 4 && layerRows.size === 1 && layers.some(box => Math.abs(box.height - layers[0].height) > 1)) {
+        problems.push('the layer strip cells differ in height');
+      }
+      const list = document.querySelector('.mapping-concepts');
       if (list) {
-        const style = getComputedStyle(list);
-        // The list scrolls by itself inside the tab, so it must stay within one screen and must
-        // not fade its last cards out with a mask.
-        if (style.maskImage !== 'none') {
-          problems.push('the concept list fades its cards with a mask');
+        // The list grows with its content and the tab scrolls as one page, so it never scrolls by itself.
+        if (getComputedStyle(list).overflowY !== 'visible') {
+          problems.push('the concept list scrolls on its own');
         }
-        if (list.getBoundingClientRect().height > window.innerHeight) {
-          problems.push('the concept list grows past one screen instead of scrolling');
-        }
-        const empty = document.querySelector('.mapping-detail .empty-state');
-        const buttons = list.querySelectorAll('button');
-        const search = document.querySelector<HTMLInputElement>('[aria-label="Find concept"]');
-        if (empty && !search?.value && buttons.length > 1) {
-          problems.push('an unbound mapping repeats a card for every unmapped concept');
+        const buttons = list.querySelectorAll('.mapping-concept');
+        const search = document.querySelector<HTMLInputElement>('[aria-label="Find a concept"]');
+        if (!search?.value && buttons.length > 12) {
+          problems.push('the concept list shows more than its first rows before Show all');
         }
       }
     }

@@ -36,7 +36,7 @@ export async function exportProjectChecks(browser: Browser, target: SignInTarget
     await check('a viewer exports a project and receives only the files they may read', async () => {
       const before = auditActions(dataRoot).length;
       await page.getByRole('button', { name: `Actions for ${PROJECT}`, exact: true }).click();
-      await page.getByRole('menuitem', { name: 'Export project…' }).click();
+      await page.getByRole('menuitem', { name: 'Export project' }).click();
       const dialog = page.getByRole('dialog', { name: `Export ${PROJECT}` });
       await expect(dialog).toBeVisible();
       for (const [width, height] of authViewports) {

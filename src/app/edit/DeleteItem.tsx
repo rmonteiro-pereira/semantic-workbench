@@ -111,7 +111,7 @@ export function DeleteItem({ doc, base, path, kind, name, owner, projectDocs, on
         Cancel
       </button>
       <button type="button" className="danger" onClick={confirm} title={access.control('edit').title} disabled={!access.can('edit') || busy || !plan || plan.invalid.length > 0}>
-        {busy ? 'Deleting…' : 'Delete'}
+        {busy ? 'Deleting' : 'Delete'}
       </button>
     </>
   );
@@ -135,7 +135,7 @@ export function DeleteItem({ doc, base, path, kind, name, owner, projectDocs, on
             </li>
           ))}
       </ul>
-      {!plan && !error && <p role="status">Looking for what depends on {name}…</p>}
+      {!plan && !error && <p role="status">Looking for what depends on {name}</p>}
       {plan && plan.dependents.length > 0 && <p className="item-note">These depend on {name} and are removed with it. Cancel to keep everything.</p>}
       {plan && plan.breaking.length > 0 && (
         <div className="delete-warning">

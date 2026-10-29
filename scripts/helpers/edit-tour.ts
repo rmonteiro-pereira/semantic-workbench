@@ -50,7 +50,7 @@ export function editScreens({ ontology, metricsModel, mappedFile }: EditTourFile
       dialog,
       show: async page => {
         await openFile(page, ontology);
-        await newItem(page, 'Add concept…');
+        await newItem(page, 'Add concept');
         await page.waitForTimeout(500);
       },
     },
@@ -128,11 +128,11 @@ export async function editContainmentProblems(page: Page, screenName: string): P
       }
     }
     if (name === 'mappings' && width <= 480) {
-      const summary = document.querySelector('.mapping-layer-chain');
+      const summary = document.querySelector('.mapping-layers');
       if (summary && getComputedStyle(summary).gridTemplateColumns.split(' ').length !== 2) {
         problems.push('the phone layer summary does not use two compact columns');
       }
-      const concept = box('.mapping-concept-list button:nth-child(2)');
+      const concept = box('.mapping-concepts .mapping-concept:nth-of-type(2)');
       if (concept && concept.top >= height - 60) {
         problems.push('the phone introduction pushes every concept below the first view');
       }

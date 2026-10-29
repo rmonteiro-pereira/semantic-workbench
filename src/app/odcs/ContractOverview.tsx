@@ -405,7 +405,7 @@ export function ContractOverview({ data, onOpen, onOpenInLineage }: { data: any;
           </h3>
           <label className="odcs-search">
             <Search size={14} />
-            <input type="search" aria-label="Find a table" placeholder="Find a table…" value={query} onChange={e => setQuery(e.target.value)} />
+            <input type="search" aria-label="Find a table" placeholder="Find a table" value={query} onChange={e => setQuery(e.target.value)} />
           </label>
         </div>
         <div className="odcs-table-wrap">

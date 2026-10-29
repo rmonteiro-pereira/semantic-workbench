@@ -49,7 +49,7 @@ export function GroupingControls({ overview, value, onChange, error }: Props) {
   const items: MenuItem[] = [
     ...MENU.filter(([mode]) => usable.includes(mode)).map(([mode, summary]) => choice(mode, GROUPING_LABELS[mode], summaryWithCount(mode, summary))),
     choice('auto', 'Automatic', `Currently ${GROUPING_LABELS[overview.autoMode]}`),
-    { label: 'Adjust grouping…', separatorBefore: true, run: () => setAdjusting(true) },
+    { label: 'Adjust grouping', separatorBefore: true, run: () => setAdjusting(true) },
   ];
 
   return (

@@ -111,7 +111,7 @@ async function deniedPerson(page: Page, target: SignInTarget, username: 'erin' |
 
 async function signedInPerson(page: Page, target: SignInTarget, person: { username: TestUserName; start: number; expected?: ExpectedRole }) {
   const { username, start, expected } = person;
-  await expect(page.getByRole('button', { name: 'Person menu', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Account and Admin', exact: true })).toBeVisible();
   await expect(page.getByRole('tree', { name: 'Projects' })).toBeVisible();
   await expect(page.locator('.workspace-sidebar')).toContainText('SHARED WORKSPACE');
   assert.equal(new URL(page.url()).search, '?auth-check=return');
@@ -119,7 +119,7 @@ async function signedInPerson(page: Page, target: SignInTarget, person: { userna
   const me = await page.request.get(target.url + '/api/me');
   assert.equal(me.status(), 200);
   assertPerson(await me.json(), username, expected);
-  await page.getByRole('button', { name: 'Person menu', exact: true }).click();
+  await page.getByRole('button', { name: 'Account and Admin', exact: true }).click();
   await expect(page.getByRole('menu')).toContainText(TEST_USERS[username].name);
   if (expected) await expect(page.getByRole('menu')).toContainText(expected.name);
   await page.keyboard.press('Escape');
@@ -155,7 +155,7 @@ export async function authGeometry(page: Page, name: string, scope?: string, reo
         const cut = await text.evaluate(el => el.scrollWidth > el.clientWidth + 1);
         assert(!cut, `the save state is cut at ${width}×${height}`);
       }
-      const trigger = await page.getByRole('button', { name: 'Person menu', exact: true }).boundingBox();
+      const trigger = await page.getByRole('button', { name: 'Account and Admin', exact: true }).boundingBox();
       const title = await page.locator('.workspace-title').boundingBox();
       assert(trigger && title);
       assert(trigger.y < title.y + title.height && title.y < trigger.y + trigger.height, 'Person menu must stay on the first header row');
@@ -178,7 +178,7 @@ export async function authGeometry(page: Page, name: string, scope?: string, reo
 
 /** Signs out through the native form and proves that the signed-out page remains passive. */
 export async function signOut(page: Page, target: SignInTarget) {
-  const trigger = page.getByRole('button', { name: 'Person menu', exact: true });
+  const trigger = page.getByRole('button', { name: 'Account and Admin', exact: true });
   if (await trigger.isVisible()) {
     await trigger.click();
     await page.getByRole('menuitem', { name: 'Sign out', exact: true }).click();
@@ -246,7 +246,7 @@ async function checkPerson(browser: Browser, target: SignInTarget, username: Tes
     assert.deepEqual(findings, [], 'Provider credentials reached the browser');
     if (username !== 'erin' && username !== 'gina') assert.equal(identityRequests, 1);
     if (username === 'alice') {
-      await page.getByRole('button', { name: 'Person menu' }).click();
+      await page.getByRole('button', { name: 'Account and Admin' }).click();
       await authGeometry(page, 'person-menu', '.menu-popup', openPersonMenu);
       await page.keyboard.press('Escape');
     }
@@ -340,7 +340,7 @@ export async function readVisibilityChecks(browser: Browser, target: SignInTarge
     await downloadText(() => page.getByRole('button', { name: 'Export agent context' }).click());
     await page.getByRole('button', { name: 'orders.odcs.yaml', exact: true }).click();
     await page.locator('.tabs').getByRole('button', { name: 'Catalog', exact: true }).click();
-    const search = page.getByPlaceholder('Find an entity…');
+    const search = page.getByPlaceholder('Find an entity');
     await expect(search).toBeVisible();
     await search.fill('Employee');
     assertReadable(await page.locator('body').innerText());
@@ -379,7 +379,7 @@ async function checkRoleControls(page: Page, target: SignInTarget, username: Tes
     });
     assert.equal(denied.status(), 403);
   }
-  await page.getByRole('button', { name: 'Person menu' }).click();
+  await page.getByRole('button', { name: 'Account and Admin' }).click();
   await authGeometry(page, `roles-${username}`, '.menu-popup', openPersonMenu);
 }
 
@@ -486,5 +486,5 @@ async function closeWorkspaceDrawer(page: Page, reopen?: (page: Page) => Promise
 
 /** Opens the person menu from the header. */
 async function openPersonMenu(page: Page) {
-  await page.getByRole('button', { name: 'Person menu', exact: true }).click();
+  await page.getByRole('button', { name: 'Account and Admin', exact: true }).click();
 }

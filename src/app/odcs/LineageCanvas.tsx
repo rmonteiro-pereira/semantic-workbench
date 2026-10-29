@@ -1083,7 +1083,7 @@ export function LineageCanvas({
           <Search size={14} />
           <input
             aria-label="Find assets"
-            placeholder="Find assets…"
+            placeholder="Find assets"
             value={query}
             aria-autocomplete="list"
             aria-controls="lineage-asset-results"
@@ -1223,7 +1223,7 @@ export function LineageCanvas({
           </ReactFlow>
           {busy && !nodes.length && (
             <p className="lineage-busy" role="status">
-              Laying out the lineage…
+              Laying out the lineage
             </p>
           )}
         </div>

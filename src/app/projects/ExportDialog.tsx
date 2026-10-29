@@ -47,7 +47,7 @@ function doneMessage(name: string, files: number, omitted: number) {
 }
 
 function exportLabel(busy: boolean, savesFirst: boolean) {
-  if (busy) return 'Exporting…';
+  if (busy) return 'Exporting';
   return savesFirst ? 'Save and export' : 'Export';
 }
 

@@ -1,30 +1,22 @@
-import { showMoreLabel } from './list-window';
-
-/** Buttons that reveal the next step of a long list or collapse it again. */
+/** Text buttons that reveal more items of a long list or fold it back. */
 export function ShowMoreControl({
-  hidden,
-  step,
+  showMoreLabel,
   expanded,
-  noun,
   onShowMore,
   onShowFewer,
 }: {
-  hidden: number;
-  step: number;
+  /** The label for revealing more, or an empty string when nothing is hidden. */
+  showMoreLabel: string;
   expanded: boolean;
-  noun: string;
   onShowMore: () => void;
   onShowFewer: () => void;
 }) {
-  if (!hidden && !expanded) return null;
+  if (!showMoreLabel && !expanded) return null;
   return (
     <div className="mapping-show-more">
-      {hidden > 0 && (
+      {showMoreLabel && (
         <button type="button" onClick={onShowMore}>
-          {showMoreLabel(hidden, step)}
-          <small>
-            {hidden} hidden {noun}
-          </small>
+          {showMoreLabel}
         </button>
       )}
       {expanded && (

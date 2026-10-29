@@ -50,6 +50,7 @@
     "test:terminology": "bun scripts/terminology-check.ts",
     "test:mappings-layout": "bun scripts/mappings-layout-browser-check.ts",
     "test:clipping": "bun scripts/clipping-browser-check.ts",
+    "test:header-mappings": "bun scripts/header-mappings-browser-check.ts",
     "test:mapping-graph": "bun scripts/mapping-graph-browser-check.ts",
     "test:back-history": "bun scripts/back-history-browser-check.ts",
     "audit:verify": "bun scripts/audit-verify.ts",

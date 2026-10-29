@@ -184,15 +184,15 @@ for (const [concept, , relations] of definitions)
       })),
     ],
   });
-for (const [name, type] of [
-  ['Identifier', 'Integer'],
-  ['Text', 'String'],
-  ['NetRevenue', 'Decimal'],
-  ['RecurringRevenue', 'Decimal'],
-  ['InvoiceCount', 'Integer'],
-  ['RevenuePerInvoice', 'Decimal'],
+for (const [name, type, description] of [
+  ['Identifier', 'Integer', 'Whole-number key that names one row of a business entity.'],
+  ['Text', 'String', 'Free-form reporting value such as a name, a code or a status.'],
+  ['NetRevenue', 'Decimal', 'Invoiced revenue without tax and credits, in USD; the governed metric net_revenue calculates it.'],
+  ['RecurringRevenue', 'Decimal', 'Net revenue from recurring plan lines only, in USD; usage-only lines are left out.'],
+  ['InvoiceCount', 'Integer', 'Number of distinct invoices; the governed metric invoice_count calculates it.'],
+  ['RevenuePerInvoice', 'Decimal', 'Net revenue divided by the number of invoices, in USD; a governed ratio of two metrics.'],
 ])
-  ontology.ontology.push({ concept: name, type: 'ValueType', extends: [type] });
+  ontology.ontology.push({ concept: name, type: 'ValueType', extends: [type], description });
 const semantic: any = {
   version: '0.2.0.dev0',
   name: 'Subscription billing semantic model',

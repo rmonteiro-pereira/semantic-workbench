@@ -40,7 +40,7 @@ export function useExamples({
     const set = exampleSet(id)!;
     await getLeaveCurrent()();
     setBusy(true);
-    setMessage('Loading example documents…');
+    setMessage('Loading example documents');
     try {
       const domain = await domainChoice.choose();
       const { slug } = await api.example(id, domain);

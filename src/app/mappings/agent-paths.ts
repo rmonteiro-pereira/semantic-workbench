@@ -5,8 +5,9 @@ export function agentCatalogPath(project: string) {
   return `/api/agent/catalog?project=${encodeURIComponent(project)}`;
 }
 
-/** The address that reads one mapping's context, resolved inside its project. */
-export function agentContextPath(project: string, mappingId: string) {
+/** The address that reads one mapping's context, resolved inside its project, narrowed to one concept when it is named. */
+export function agentContextPath(project: string, mappingId: string, concept?: string) {
   const query = new URLSearchParams({ project, mappingId });
+  if (concept) query.set('concept', concept);
   return `/api/agent/context?${query}`;
 }

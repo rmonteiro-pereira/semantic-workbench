@@ -1,11 +1,19 @@
 // Uses the shared keyboard menu and a native form for session sign-out.
 import './PersonMenu.css';
 import { useRef, useState } from 'react';
-import { UserRound } from 'lucide-react';
 import { MenuButton } from '../projects/Menu';
 import { startLeavingPage } from '../projects/api';
 import { personRoles, useMe } from './useMe';
 import { accountsSummary, ConnectedAccountsDialog } from './ConnectedAccounts';
+
+/** Takes the first letters of the first and last word of a name, for the avatar. */
+export function initialsOf(name: string): string {
+  const words = name.split(/\s+/).filter(Boolean);
+  if (words.length === 0) return '?';
+  const first = words[0][0];
+  if (words.length === 1) return first.toUpperCase();
+  return (first + words[words.length - 1][0]).toUpperCase();
+}
 
 /** Shows the server identity and submits sign-out with the session's form token. */
 export function PersonMenu() {
@@ -22,7 +30,7 @@ export function PersonMenu() {
   return (
     <>
       <MenuButton
-        ariaLabel="Person menu"
+        ariaLabel="Account and Admin"
         className="person-menu"
         menuLabel={`Person menu for ${me.name}`}
         header={
@@ -32,9 +40,13 @@ export function PersonMenu() {
             <span>{personRoles(me).join(', ')}</span>
           </div>
         }
-        label={<span className="person-label">{me.name}</span>}
+        label={
+          <span className="person-avatar" aria-hidden="true">
+            {initialsOf(me.name)}
+          </span>
+        }
+        buttonClassName="person-avatar-button"
         title={details.join(' · ')}
-        icon={<UserRound size={18} />}
         items={[
           {
             label: 'Connected accounts',

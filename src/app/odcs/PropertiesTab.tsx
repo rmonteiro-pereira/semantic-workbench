@@ -134,7 +134,7 @@ export function PropertiesTab({ data, objectIndex, onOpenObject, editor }: TabPr
       <div className="odcs-toolbar">
         <label className="odcs-search">
           <Search size={14} />
-          <input type="search" aria-label="Filter properties" placeholder="Filter properties…" value={filter} onChange={e => setFilter(e.target.value)} />
+          <input type="search" aria-label="Filter properties" placeholder="Filter properties" value={filter} onChange={e => setFilter(e.target.value)} />
         </label>
         <SortControl sort={sort} onChange={setSort} />
         <small>{shown.length === rows.length ? `${rows.length} properties` : `${shown.length} of ${rows.length} properties`}</small>

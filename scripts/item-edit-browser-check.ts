@@ -212,7 +212,7 @@ try {
   await check('add a concept and a relationship to it, then delete both: the file is back to its last commit', async () => {
     await openFile('commerce-business.ossie.yaml');
     const before = read(commerce.slug, 'commerce-business.ossie.yaml');
-    await newItem(page, 'Add concept…');
+    await newItem(page, 'Add concept');
     const dialog = page.getByRole('dialog', { name: /^Add concept/ });
     await dialog.getByRole('textbox', { name: 'Name', exact: true }).fill('Supplier');
     await dialog.getByLabel('Type').selectOption('EntityType');

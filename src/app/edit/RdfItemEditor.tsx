@@ -164,7 +164,7 @@ export function RdfItemEditor({ doc, base, subject, label, kind, onClose, onSave
   const addStatement = () => setRows(rs => [...rs, { key: 'new-' + Date.now(), predicateText: '', objectText: '', nested: false }]);
   let editStatus;
   if (pending) {
-    editStatus = 'Checking…';
+    editStatus = 'Checking';
   } else if (result && !result.ok) {
     editStatus = 'Not applied';
   } else if (errors.length) {
@@ -178,7 +178,7 @@ export function RdfItemEditor({ doc, base, subject, label, kind, onClose, onSave
     <>
       <button type="button" className="item-delete" hidden={!access.can('edit')} onClick={onDelete} disabled={saving || !!refusal}>
         <Trash2 size={13} />
-        Delete…
+        Delete
       </button>
       <span className="item-state" role="status">
         {editStatus}
@@ -187,7 +187,7 @@ export function RdfItemEditor({ doc, base, subject, label, kind, onClose, onSave
         Cancel
       </button>
       <button type="button" className="primary" onClick={save} title={access.control('edit').title} disabled={!canSave || !access.can('edit')}>
-        {saving ? 'Saving…' : 'Save to file'}
+        {saving ? 'Saving' : 'Save to file'}
       </button>
     </>
   );

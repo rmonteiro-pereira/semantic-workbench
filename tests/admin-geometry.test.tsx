@@ -49,7 +49,7 @@ test('Git remotes lists each project with its address or No remote', async () =>
   await expect(sales.getByRole('button', { name: 'Remove remote', exact: true })).toBeVisible();
   const lab = remotes.getByRole('row').filter({ hasText: 'Lab notes' });
   await expect(lab).toContainText('No remote');
-  await expect(lab.getByRole('button', { name: 'Set remote…', exact: true })).toBeVisible();
+  await expect(lab.getByRole('button', { name: 'Set remote', exact: true })).toBeVisible();
   await expect(lab.getByRole('button', { name: 'Remove remote', exact: true })).toHaveCount(0);
 });
 

@@ -187,7 +187,7 @@ function PropertyEditDialog({ objectIndex, tableName, path, property, onClose, o
         Cancel
       </button>
       <button type="submit" form="property-edit-form" className="primary" disabled={!changes.length || saving}>
-        {saving ? 'Saving…' : 'Save to file'}
+        {saving ? 'Saving' : 'Save to file'}
       </button>
     </>
   );

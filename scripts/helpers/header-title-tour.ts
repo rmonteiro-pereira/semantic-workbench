@@ -1,4 +1,4 @@
-// The header's title block and menus: the file name, the project, kind and save state under it,
+// The header's title block and menus: the file name, the kind and save state under it,
 // the danger colour of a failing save, and New and Export living only in More actions.
 import { expect, type Page } from '@playwright/test';
 import { fillEditor } from './code-editor';
@@ -6,7 +6,7 @@ import { openNewMenu } from './header';
 import { contrastRatio, parseColor, tokenColour } from './color-literals';
 
 /** What the header should say about the open file. */
-export type OpenFileHeader = { fileName: string; projectName: string; kind: string };
+export type OpenFileHeader = { fileName: string; kind: string };
 
 /** Lists what is wrong with the title block of a header that has a file open. */
 function titleBlockProblems(expected: OpenFileHeader): string[] {
@@ -38,7 +38,7 @@ function titleBlockProblems(expected: OpenFileHeader): string[] {
   const saveState = meta.querySelector('.save-state-text')?.textContent?.trim() ?? '';
   const parts = [...meta.children].map(part => part.textContent?.trim() ?? '');
   const text = parts.join(' ');
-  const wanted = `${expected.projectName} · ${expected.kind} · ${saveState}`;
+  const wanted = `${expected.kind} · ${saveState}`;
   if (!saveState || text !== wanted) found.push(`the meta line reads "${text}", not "${wanted}"`);
   const stateStyle = getComputedStyle(meta.querySelector('.save-state')!);
   const isPill = parseFloat(stateStyle.borderTopWidth) > 0 || stateStyle.backgroundColor !== 'rgba(0, 0, 0, 0)';
@@ -54,7 +54,7 @@ function headerButtonProblems(): string[] {
   for (const name of ['New', 'Export']) {
     if (names.includes(name)) found.push(`${name} is a header button, not in More actions`);
   }
-  for (const name of ['Commit…', 'More actions']) {
+  for (const name of ['Commit', 'More actions']) {
     if (!names.includes(name)) found.push(`${name} is missing from the header`);
   }
   const icon = header.querySelector('button[aria-label="More actions"] svg');
@@ -63,8 +63,10 @@ function headerButtonProblems(): string[] {
   // The icon is three small dots; a thin stroke makes them read as text.
   const dotWidth = parseFloat(getComputedStyle(icon!).strokeWidth);
   if (dotWidth < 3) found.push(`the More actions dots are drawn with a ${dotWidth}px stroke`);
-  const commit = header.querySelector('button[aria-label="Commit…"]');
-  if (commit && !commit.classList.contains('primary')) found.push('Commit is not the primary button');
+  const commit = header.querySelector('button[aria-label="Commit"]');
+  // Commit is the green primary button while it can run, and the plain dimmed one while it cannot.
+  const commitOff = commit?.getAttribute('aria-disabled') === 'true';
+  if (commit && !commitOff && !commit.classList.contains('primary')) found.push('Commit is not the primary button');
   return found;
 }
 

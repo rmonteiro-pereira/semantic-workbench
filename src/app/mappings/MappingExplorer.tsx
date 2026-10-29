@@ -1,17 +1,13 @@
-/** Displays resolved concept mappings and their validation findings. */
-import { useRecordedState } from '../workspace/hooks/useRecordedState';
-import { apiFetch } from '../projects/api';
-import React, { useEffect, useState, useRef } from 'react';
-import { Code } from 'lucide-react';
-import type { Binding, Finding, RuntimeContext } from '../../server/agent/runtime';
-import { QueryComposer } from './QueryComposer';
+/** The Mappings tab: the mapping of the open file, or the project's mappings that cover it. */
+import React, { useEffect, useMemo, useState } from 'react';
+import type { RuntimeContext } from '../../server/agent/runtime';
 import { EmptyState } from '../projects/EmptyState';
-import { ShowMoreControl } from './ShowMoreControl';
-import { agentContextView } from './agent-context-view';
+import { apiFetch } from '../projects/api';
+import { MappingSection } from './MappingSection';
 import { agentCatalogPath, agentContextPath } from './agent-paths';
-import { chooseMapping, mappingsOfProject, shownMapping } from './mapping-choice';
-import { BINDINGS_PER_GROUP, BINDINGS_STEP, CONCEPTS_SHOWN, CONCEPTS_STEP, GROUPS_SHOWN, GROUPS_STEP, limitCovering, visibleCount } from './list-window';
+import { candidateMappings, coveringMappings, dataContractFilenames, isDefinedIn, type ProjectFile } from './mapping-scope';
 import './mapping-explorer.css';
+
 type MappingOption = {
   id: string;
   name: string;
@@ -19,455 +15,102 @@ type MappingOption = {
   embedded: boolean;
   project?: string;
 };
-const BINDING_ERROR = 'mapping-binding-finding mapping-error';
-const BINDING_NOTICE = 'mapping-binding-finding mapping-notice';
-const stepLabels = {
-  concept: 'Concept',
-  relationship: 'Relationship',
-  field: 'Field',
-  metric: 'Metric',
-  dataset: 'Dataset',
-  source: 'Physical source',
-};
-// Offers a line break after each `.` and `_`, so long dotted or snake_case names wrap at their
-// natural seams; the text itself is unchanged.
-function breakableName(text: string) {
-  return text.split(/(?<=[._])/u).map((part, index) => (
-    <React.Fragment key={index}>
-      {part}
-      {/[._]$/u.test(part) && <wbr />}
-    </React.Fragment>
-  ));
-}
-function belongsTo(finding: Finding, binding: Binding) {
-  const evidence = finding.evidence;
-  if (!evidence || evidence.documentId !== binding.evidence.documentId) return false;
-  const prefix = (a: (string | number)[], z: (string | number)[]) => a.length <= z.length && a.every((v, i) => v === z[i]);
-  return prefix(evidence.path, binding.evidence.path) || prefix(binding.evidence.path, evidence.path);
-}
-function bindingSteps(binding: Binding, context: RuntimeContext) {
-  const steps: { kind: keyof typeof stepLabels; value: string }[] = [{ kind: 'concept', value: binding.rootConcept }];
-  for (const name of binding.relationships) steps.push({ kind: 'relationship', value: name });
-  if (binding.concept !== binding.rootConcept) steps.push({ kind: 'concept', value: binding.concept });
-  const datasets = new Set<string>();
-  for (const id of binding.fields) {
-    const runtimeField = context.fields.find(f => f.id === id);
-    if (runtimeField) {
-      steps.push({ kind: 'field', value: `${runtimeField.dataset}.${runtimeField.name}` });
-      datasets.add(runtimeField.dataset);
-    }
-  }
-  for (const id of binding.metrics) steps.push({ kind: 'metric', value: context.metrics.find(m => m.id === id)?.name ?? id });
-  for (const name of datasets) {
-    steps.push(
-      { kind: 'dataset', value: name },
-      {
-        kind: 'source',
-        value: context.datasets.find(d => d.name === name)?.source ?? 'Unresolved',
-      },
-    );
-  }
-  return steps;
-}
-/** Says there is no mapping document to show: none in the open project, or no project open. */
-function NoMappings({ projectOpen }: { projectOpen: boolean }) {
-  if (!projectOpen) {
-    return <EmptyState title="Open a project">Mappings shows the mapping documents of the project whose file is open.</EmptyState>;
-  }
-  return <EmptyState title="This project has no mapping document">Import an Ossie mapping document and its referenced ontology and semantic model, or load the mapped commerce example.</EmptyState>;
-}
 
-/** Displays resolved mappings and their findings. */
-export function MappingExplorer({
-  currentId,
-  currentProject,
-  revisionKey,
-  dirty,
-  onEditItem,
-  onOpenSource,
-}: {
+type LoadedMapping = { option: MappingOption; context: RuntimeContext };
+
+type Props = {
   currentId?: string;
-  /** The selected project; the tab offers its mappings only, and none when it is empty. */
+  currentFilename?: string;
+  /** The selected project; the tab shows its mappings only, and none when it is empty. */
   currentProject: string;
+  projectName: string;
+  /** The files of the open workspace; the data contracts among those of the project are the physical sources. */
+  projectFiles: (ProjectFile & { project: string })[];
   revisionKey: string;
   dirty: boolean;
   onEditItem?: (docId: string, path: (string | number)[]) => void;
   /** Shows the source of the open file, where a binding is added. */
   onOpenSource?: (documentId: string) => void;
-}) {
-  const requestVersion = useRef(0);
-  const [catalog, setCatalog] = useState<MappingOption[]>([]);
-  // Derived while rendering, so switching project hides the last project's mapping at once.
-  const options = mappingsOfProject(catalog, currentProject);
-  const [mappingId, setMappingId] = useRecordedState('mappings.mapping', '');
-  const [context, setContext] = useState<RuntimeContext | null>(null);
-  const [concept, setConcept] = useRecordedState('mappings.concept', '');
-  const [query, setQuery] = useState('');
-  const [metrics, setMetrics] = useRecordedState<string[]>('mappings.metrics', []);
-  const [dimensions, setDimensions] = useRecordedState<string[]>('mappings.dimensions', []);
-  const [plan, setPlan] = useState<any>(null);
-  // A failed load shows on the page; a failed query preview shows in the composer.
-  const [loadError, setLoadError] = useState('');
-  const [planError, setPlanError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [composing, setComposing] = useRecordedState('mappings.composing', false);
-  // How many bindings each dataset group shows, and how many concepts the list shows.
-  const [bindingLimits, setBindingLimits] = useRecordedState<Record<string, number>>('mappings.bindingLimits', {});
-  const [conceptLimit, setConceptLimit] = useRecordedState('mappings.conceptLimit', CONCEPTS_SHOWN);
-  const [groupLimit, setGroupLimit] = useRecordedState('mappings.groupLimit', GROUPS_SHOWN);
-  const conceptList = useRef<HTMLDivElement>(null);
+};
+
+async function fetchJson(path: string, signal: AbortSignal) {
+  const response = await apiFetch(path, { signal });
+  const body = await response.json();
+  if (!response.ok) throw Error(body.error);
+  return body;
+}
+
+/** Loads the project's mapping list, then the context of each mapping that may cover the open file. */
+function useProjectMappings(currentProject: string, currentId: string | undefined, revisionKey: string) {
+  const [catalog, setCatalog] = useState<MappingOption[] | null>(null);
+  const [loaded, setLoaded] = useState<LoadedMapping[]>([]);
+  const [error, setError] = useState('');
   useEffect(() => {
-    if (!currentProject) {
-      setCatalog([]);
-      return;
-    }
+    setCatalog(null);
+    setLoaded([]);
+    setError('');
+    if (!currentProject) return;
     const abort = new AbortController();
-    apiFetch(agentCatalogPath(currentProject), { signal: abort.signal })
-      .then(async response => {
-        const body = await response.json();
-        if (!response.ok) throw Error(body.error);
-        setCatalog(body.mappings);
-        setMappingId(old => chooseMapping(body.mappings, currentId, currentProject, old));
-      })
-      .catch(e => {
-        if (e.name !== 'AbortError') setLoadError(e.message);
-      });
+    async function load() {
+      const body = await fetchJson(agentCatalogPath(currentProject), abort.signal);
+      setCatalog(body.mappings);
+      const candidates = candidateMappings<MappingOption>(body.mappings, currentProject, currentId);
+      const contexts = await Promise.all(candidates.map(option => fetchJson(agentContextPath(currentProject, option.id), abort.signal)));
+      setLoaded(candidates.map((option, index) => ({ option, context: contexts[index] })));
+    }
+    load().catch(failure => {
+      if (failure.name !== 'AbortError') setError(failure.message);
+    });
     return () => abort.abort();
   }, [revisionKey, currentId, currentProject]);
-  const activeMappingId = shownMapping(options, mappingId);
-  // A new mapping choice starts from a clean selection.
-  useEffect(() => {
-    setPlan(null);
-    setMetrics([]);
-    setDimensions([]);
-    setConcept('');
-    setBindingLimits({});
-    setConceptLimit(CONCEPTS_SHOWN);
-    setGroupLimit(GROUPS_SHOWN);
-    setPlanError('');
-    setComposing(false);
-  }, [mappingId, revisionKey]);
-  useEffect(() => {
-    requestVersion.current++;
-    setContext(null);
-    setLoadError('');
-    setLoading(false);
-    if (!activeMappingId) return;
-    const abort = new AbortController();
-    setLoading(true);
-    apiFetch(agentContextPath(currentProject, activeMappingId), { signal: abort.signal })
-      .then(async response => {
-        const data = await response.json();
-        if (!response.ok) throw Error(data.error);
-        setContext(data);
-      })
-      .catch(e => {
-        if (e.name !== 'AbortError') setLoadError(e.message);
-      })
-      .finally(() => {
-        if (!abort.signal.aborted) setLoading(false);
-      });
-    return () => abort.abort();
-  }, [activeMappingId, revisionKey]);
-  const bindings = context?.bindings.filter(b => !concept || b.rootConcept === concept || b.concept === concept) ?? [];
-  const groups = new Map<string, Binding[]>();
-  for (const binding of bindings) {
-    const dataset = context?.fields.find(f => f.id === binding.fields[0])?.dataset ?? '';
-    const group = groups.get(dataset) ?? [];
-    group.push(binding);
-    groups.set(dataset, group);
+  return { catalog, loaded, error };
+}
+
+/** Says why there is no mapping to show, in one line. */
+function NoMappings({ projectOpen, hasCatalog, fileName }: { projectOpen: boolean; hasCatalog: boolean; fileName: string }) {
+  if (!projectOpen) {
+    return <EmptyState title="Open a project">Mappings shows the mapping documents of the project whose file is open.</EmptyState>;
   }
-  const unboundFindings = context?.findings.filter(f => !context.bindings.some(b => belongsTo(f, b))) ?? [];
-  const findingContent = (finding: Finding) => (
-    <>
-      {finding.message}
-      {finding.evidence?.path.length ? (
-        <button type="button" onClick={() => onEditItem?.(finding.evidence!.documentId, finding.evidence!.path)} disabled={!onEditItem}>
-          Edit item
-        </button>
-      ) : null}
-    </>
+  if (!hasCatalog) {
+    return <EmptyState title="This project has no mapping document">Import an Ossie mapping document and its referenced ontology and semantic model, or load the mapped commerce example.</EmptyState>;
+  }
+  return <EmptyState title={`No mapping of this project covers ${fileName || 'the open file'}`} />;
+}
+
+/** Shows each mapping that is the open file or reads it, one after the other under its own name. */
+export function MappingExplorer({ currentId, currentFilename, currentProject, projectName, projectFiles, revisionKey, dirty, onEditItem, onOpenSource }: Props) {
+  const dataContractFiles = useMemo(() => dataContractFilenames(projectFiles.filter(file => file.project === currentProject)), [projectFiles, currentProject]);
+  const { catalog, loaded, error } = useProjectMappings(currentProject, currentId, revisionKey);
+  const shown = coveringMappings(
+    loaded.map(entry => ({ ...entry, documents: entry.context.documents })),
+    currentId,
   );
-  const mappingFile = options.find(m => m.id === activeMappingId)?.filename;
-  const fieldIds = new Set(bindings.flatMap(b => b.fields));
-  const metricIds = new Set(bindings.flatMap(b => b.metrics));
-  const fields = context?.fields.filter(f => fieldIds.has(f.id)) ?? [];
-  const governed = context?.metrics.filter(m => metricIds.has(m.id)) ?? [];
-  const term = query.toLocaleLowerCase().trim();
-  const concepts =
-    context?.concepts.filter(
-      concept =>
-        (!concept.builtin || context.bindings.some(b => b.concept === concept.concept || b.rootConcept === concept.concept)) &&
-        (!term ||
-          [concept.concept, concept.description, ...(Array.isArray(concept.ai_context?.synonyms) ? concept.ai_context.synonyms : [])]
-            .filter(x => typeof x === 'string')
-            .some(s => s.toLocaleLowerCase().includes(term))),
-    ) ?? [];
-  const selectedConceptIndex = concepts.findIndex(c => c.concept === concept);
-  const shownConcepts = visibleCount(limitCovering(conceptLimit, selectedConceptIndex), concepts.length);
-  // The selected concept can sit past the limit, so keep it in view inside the list's own scroll.
-  useEffect(() => {
-    const selected = conceptList.current?.querySelector('[aria-pressed="true"]:not(:first-child)');
-    selected?.scrollIntoView({ block: 'nearest' });
-  }, [concept]);
-  const shownGroups = visibleCount(groupLimit, groups.size);
-  const showMoreBindings = (dataset: string, shown: number) => setBindingLimits(old => ({ ...old, [dataset]: shown + BINDINGS_STEP }));
-  const showFewerBindings = (dataset: string) => setBindingLimits(old => ({ ...old, [dataset]: BINDINGS_PER_GROUP }));
-  const toggle = (id: string, values: string[], set: (selected: string[]) => void) => {
-    requestVersion.current++;
-    setLoading(false);
-    set(values.includes(id) ? values.filter(v => v !== id) : [...values, id]);
-    setPlan(null);
-    setPlanError('');
-  };
-  function openBindingSource() {
-    setComposing(false);
-    onOpenSource?.(activeMappingId.split('#')[0]);
-  }
-  const openConcept = (name: string) => {
-    requestVersion.current++;
-    setLoading(false);
-    setConcept(name);
-    setBindingLimits({});
-    setGroupLimit(GROUPS_SHOWN);
-    setMetrics([]);
-    setDimensions([]);
-    setPlan(null);
-    setPlanError('');
-  };
-  function download() {
-    if (!context) return;
-    const data = { ...context, selectedConcept: concept || null, selectedBindings: bindings };
-    const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'agent-context.json';
-    link.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  }
-  async function preview() {
-    const version = ++requestVersion.current;
-    setLoading(true);
-    setPlanError('');
-    setPlan(null);
-    try {
-      const response = await apiFetch('/api/agent/plan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          project: currentProject,
-          mappingId: activeMappingId,
-          concepts: concept ? [concept] : [],
-          metrics,
-          dimensions,
-        }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw Error(data.error);
-      if (version === requestVersion.current) setPlan(data);
-    } catch (error) {
-      if (version === requestVersion.current) setPlanError((error as Error).message);
-    } finally {
-      if (version === requestVersion.current) setLoading(false);
-    }
-  }
+  const settled = catalog !== null && loaded.length === candidateMappings(catalog, currentProject, currentId).length;
+  const hasCatalog = catalog !== null && catalog.some(option => option.project === currentProject);
   return (
     <div className="mapping-explorer">
-      <div className="mapping-heading">
-        <div>
-          <small>CONNECTED LAYERS</small>
-          <h2>Ontology mappings</h2>
-          <p>Follow concepts into fields, metrics and physical sources.</p>
-          <p className="mapping-heading-note">Export agent context saves mapping JSON for AI tools.</p>
-        </div>
-        <div className="mapping-heading-actions">
-          <button onClick={() => setComposing(true)} disabled={!context}>
-            <Code size={16} aria-hidden="true" />
-            Show query
-          </button>
-          <button onClick={download} disabled={!context || loading}>
-            Export agent context
-          </button>
-        </div>
-      </div>
-      {dirty && <p className="mapping-notice">This view uses saved document revisions. Save your changes to update the runtime context.</p>}
-      <label>
-        Mapping document
-        <select aria-label="Mapping document" value={activeMappingId} onChange={e => setMappingId(e.target.value)}>
-          <option value="">Choose a mapping</option>
-          {options.map(mappingOption => (
-            <option key={mappingOption.id} value={mappingOption.id}>
-              {mappingOption.name}
-              {mappingOption.embedded ? ' · embedded' : ''}
-            </option>
-          ))}
-        </select>
-      </label>
-      {!options.length && !loadError && <NoMappings projectOpen={Boolean(currentProject)} />}
-      {loading && <p role="status">Resolving saved layers…</p>}
-      {loadError && (
+      {currentProject && !settled && !error && <p role="status">Resolving saved layers</p>}
+      {error && (
         <p role="alert" className="mapping-error">
-          {loadError}
+          {error}
         </p>
       )}
-      {context && composing && (
-        <QueryComposer
-          governed={governed}
-          fields={fields}
-          metrics={metrics}
-          dimensions={dimensions}
-          onToggleMetric={id => toggle(id, metrics, setMetrics)}
-          onToggleDimension={id => toggle(id, dimensions, setDimensions)}
-          canPreview={!loading && (metrics.length > 0 || dimensions.length > 0) && !context.findings.some(finding => finding.severity === 'error')}
-          loading={loading}
-          plan={plan}
-          error={planError}
-          onPreview={() => void preview()}
-          onClose={() => setComposing(false)}
-          onOpenSource={onOpenSource ? openBindingSource : undefined}
+      {(!currentProject || (settled && shown.length === 0)) && <NoMappings projectOpen={Boolean(currentProject)} hasCatalog={hasCatalog} fileName={currentFilename ?? ''} />}
+      {shown.map(({ option, context }) => (
+        <MappingSection
+          key={option.id}
+          context={context}
+          mappingFile={option.filename}
+          project={currentProject}
+          projectName={projectName}
+          openFileName={isDefinedIn(option, currentId) ? '' : (currentFilename ?? '')}
+          dataContractFiles={dataContractFiles}
+          revisionKey={revisionKey}
+          dirty={dirty}
+          onEditItem={onEditItem}
+          onOpenSource={onOpenSource}
         />
-      )}
-      {context && (
-        <>
-          <div className="mapping-layer-chain">
-            <span>
-              Ontology<strong>{context.ontology.name ?? 'Unresolved'}</strong>
-            </span>
-            <span>
-              Mapping<strong>{context.name}</strong>
-            </span>
-            <span>
-              Semantic model<strong>{context.semanticModel.name ?? 'Unresolved'}</strong>
-            </span>
-            <span>
-              Physical sources
-              <strong>
-                {context.datasets.length} {context.datasets.length === 1 ? 'dataset' : 'datasets'}
-              </strong>
-            </span>
-          </div>
-          {unboundFindings.length > 0 && (
-            <div className="mapping-findings">
-              {unboundFindings.map((unboundFinding, i) => (
-                <p key={i} className={unboundFinding.severity === 'error' ? 'mapping-error' : 'mapping-notice'}>
-                  {findingContent(unboundFinding)}
-                </p>
-              ))}
-            </div>
-          )}
-          <div className="mapping-columns">
-            <div className="mapping-concepts">
-              <label>
-                Find concept
-                <input aria-label="Find concept" placeholder="Concept, description or synonym" value={query} onChange={e => setQuery(e.target.value)} />
-              </label>
-              <div className="mapping-concept-list" ref={conceptList}>
-                <button aria-pressed={!concept} onClick={() => openConcept('')}>
-                  All concepts
-                </button>
-                {context.bindings.length === 0 && !query ? (
-                  <p className="mapping-empty-concepts">{concepts.length} concepts, none mapped. Find a concept to inspect it.</p>
-                ) : (
-                  concepts.slice(0, shownConcepts).map(listedConcept => {
-                    const bindingCount = context.bindings.filter(binding => binding.rootConcept === listedConcept.concept || binding.concept === listedConcept.concept).length;
-                    return (
-                      <button key={listedConcept.concept} aria-pressed={concept === listedConcept.concept} onClick={() => openConcept(listedConcept.concept)}>
-                        {listedConcept.concept}
-                        <small>
-                          {bindingCount} {bindingCount === 1 ? 'binding' : 'bindings'}
-                        </small>
-                      </button>
-                    );
-                  })
-                )}
-                <ShowMoreControl
-                  hidden={concepts.length - shownConcepts}
-                  step={CONCEPTS_STEP}
-                  expanded={shownConcepts > CONCEPTS_SHOWN}
-                  noun="concepts"
-                  onShowMore={() => setConceptLimit(shownConcepts + CONCEPTS_STEP)}
-                  onShowFewer={() => setConceptLimit(CONCEPTS_SHOWN)}
-                />
-              </div>
-            </div>
-            <div className="mapping-detail">
-              <h3>{concept || 'All concepts'}</h3>
-              {!bindings.length && (
-                <EmptyState title={concept ? `No binding for ${concept}` : 'No bindings in this mapping'} action={onOpenSource && <button onClick={openBindingSource}>Open Source to add one</button>}>
-                  {mappingFile ?? 'This mapping'} does not bind {concept ? 'this concept' : 'any concept'} to a field or metric yet. Add a binding to the mapping file and it shows here, grouped by
-                  dataset.
-                </EmptyState>
-              )}
-              {bindings.length > 0 && <p className="mapping-grouping-note">View grouped by dataset.</p>}
-              <details className="mapping-bindings" open={bindings.length <= 12} hidden={!bindings.length}>
-                <summary>
-                  {bindings.length} resolved {bindings.length === 1 ? 'binding' : 'bindings'} · source evidence
-                </summary>
-                {[...groups].slice(0, shownGroups).map(([dataset, items]) => {
-                  const shown = visibleCount(bindingLimits[dataset] ?? BINDINGS_PER_GROUP, items.length);
-                  return (
-                    <details className="mapping-group" data-dataset={dataset} key={dataset} open>
-                      <summary>
-                        {dataset || 'Metrics'} · {items.length} binding
-                        {items.length === 1 ? '' : 's'}
-                        {dataset && <small> · {context.datasets.find(d => d.name === dataset)?.source ?? 'Unresolved'}</small>}
-                      </summary>
-                      {items.slice(0, shown).map(binding => (
-                        <article className="mapping-binding" role="group" aria-label={`Binding ${binding.rootConcept}`} key={binding.id}>
-                          <div className="mapping-binding-chain">
-                            {bindingSteps(binding, context).map((step, i) => (
-                              <span data-step={step.kind} key={i}>
-                                <small className="step-label">{stepLabels[step.kind]}</small>
-                                <span>{breakableName(step.value)}</span>
-                              </span>
-                            ))}
-                          </div>
-                          <code>{binding.expression}</code>
-                          {binding.condition != null && <p className="mapping-condition mapping-notice">Conditional population mapping. Review its meaning before composing a query.</p>}
-                          {context.findings
-                            .filter(f => belongsTo(f, binding))
-                            .map((finding, i) => (
-                              <p key={i} className={finding.severity === 'error' ? BINDING_ERROR : BINDING_NOTICE}>
-                                {findingContent(finding)}
-                              </p>
-                            ))}
-                          <small>
-                            {binding.evidence.filename} · revision {binding.evidence.revision} · /{binding.evidence.path.join('/')}
-                          </small>
-                          <details>
-                            <summary>Mapping evidence</summary>
-                            <pre>{JSON.stringify(binding, null, 2)}</pre>
-                          </details>
-                        </article>
-                      ))}
-                      <ShowMoreControl
-                        hidden={items.length - shown}
-                        step={BINDINGS_STEP}
-                        expanded={shown > BINDINGS_PER_GROUP}
-                        noun="bindings"
-                        onShowMore={() => showMoreBindings(dataset, shown)}
-                        onShowFewer={() => showFewerBindings(dataset)}
-                      />
-                    </details>
-                  );
-                })}
-                <ShowMoreControl
-                  hidden={groups.size - shownGroups}
-                  step={GROUPS_STEP}
-                  expanded={shownGroups > GROUPS_SHOWN}
-                  noun="datasets"
-                  onShowMore={() => setGroupLimit(shownGroups + GROUPS_STEP)}
-                  onShowFewer={() => setGroupLimit(GROUPS_SHOWN)}
-                />
-              </details>
-              <details>
-                <summary>AI context · the metadata an agent receives</summary>
-                <pre>{JSON.stringify(agentContextView(context, concept, bindings), null, 2)}</pre>
-              </details>
-            </div>
-          </div>
-        </>
-      )}
+      ))}
     </div>
   );
 }

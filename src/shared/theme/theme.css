@@ -16,6 +16,8 @@
   --color-surface-hover: #edf5f2;
   /* Dark panels on a light page, such as tooltips. Their writing is --color-text-inverse. */
   --color-surface-inverse: #26453d;
+  /* The quiet panel inside a card, such as the summary of what an agent receives. */
+  --color-surface-context: #f4f7f6;
 
   /* Borders: dividers, outlines of cards and inputs, and stronger edges of inputs. */
   --color-border-subtle: #e6ecea;
@@ -66,6 +68,9 @@
   --color-violet-border: #d9d3ee;
   --color-orange: #aa4e1f;
   --color-metric: #8a5ad1;
+  /* The chip that names a governed metric. */
+  --color-metric-soft: #f1f3ea;
+  --color-metric-text: #5a6a1e;
   --color-rose: #86304f;
   --color-rose-soft: #f6eaf0;
   --color-rose-border: #ebcfdc;
@@ -124,6 +129,7 @@
     --color-surface-sunken: #0f1514;
     --color-surface-hover: #22312e;
     --color-surface-inverse: #dbe7e3;
+    --color-surface-context: #1f2b29;
     --color-border-subtle: #243230;
     --color-border: #2f3f3c;
     --color-border-strong: #67807a;
@@ -166,6 +172,8 @@
     --color-violet-border: #433c75;
     --color-orange: #f59c69;
     --color-metric: #b78df0;
+    --color-metric-soft: #2b3220;
+    --color-metric-text: #c9d68a;
     --color-rose: #f59ab9;
     --color-rose-soft: #3b202c;
     --color-rose-border: #6b3b51;
@@ -203,6 +211,7 @@
   --color-surface-sunken: #0f1514;
   --color-surface-hover: #22312e;
   --color-surface-inverse: #dbe7e3;
+  --color-surface-context: #1f2b29;
   --color-border-subtle: #243230;
   --color-border: #2f3f3c;
   --color-border-strong: #67807a;
@@ -245,6 +254,8 @@
   --color-violet-border: #433c75;
   --color-orange: #f59c69;
   --color-metric: #b78df0;
+  --color-metric-soft: #2b3220;
+  --color-metric-text: #c9d68a;
   --color-rose: #f59ab9;
   --color-rose-soft: #3b202c;
   --color-rose-border: #6b3b51;

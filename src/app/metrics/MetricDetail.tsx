@@ -46,7 +46,7 @@ export function MetricDetail({ project, kpi, all, onEdit, onAddAttributes }: { p
   } else if (!explanation) {
     explanationBody = (
       <p role="status" className="metrics-empty">
-        Explaining {kpi.label}…
+        Explaining {kpi.label}
       </p>
     );
   } else {

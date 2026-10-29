@@ -39,7 +39,7 @@ if (!handles) throw Error('Missing right-facing handles');
 const aligned = performance.now();
 const renderedNodes = await page.locator('.react-flow__node').count();
 await page.screenshot({ path: '/tmp/semantic-workbench-scale.png' });
-await page.getByPlaceholder('Find an entity…').fill('Entity_2999');
+await page.getByPlaceholder('Find an entity').fill('Entity_2999');
 await page.getByRole('button', { name: 'Auto align', exact: true }).click();
 await page.getByRole('button', { name: 'Auto align', exact: true }).waitFor({ state: 'visible' });
 await page.waitForTimeout(700);

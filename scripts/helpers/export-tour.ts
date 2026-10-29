@@ -5,7 +5,7 @@ import { openProjectMenuItem } from './project-dialog-tour';
 import type { Screen } from './screen-tour';
 
 async function openExportDialog(page: Page, file: string) {
-  await openProjectMenuItem(page, file, 'Export project…');
+  await openProjectMenuItem(page, file, 'Export project');
   await expect(page.getByRole('dialog')).toHaveCount(1);
   await page.getByRole('dialog', { name: /^Export / }).waitFor();
 }

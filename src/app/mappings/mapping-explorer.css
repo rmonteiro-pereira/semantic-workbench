@@ -1,95 +1,262 @@
-/* The layer summary is a grid of label and value pairs that stay aligned at every width. */
-.mapping-explorer .mapping-layer-chain {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px 20px;
-}
-.mapping-explorer .mapping-layer-chain span {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-}
-/* The whole tab scrolls as one page. The concept list and the detail column grow to their content
-   instead of scrolling on their own, so no blank area is left under a short column and nothing sits
-   inside a scroll box of its own. The lists are kept short by their Show more buttons. */
-.mapping-explorer > * {
-  flex-shrink: 0;
-}
-.mapping-explorer > .mapping-columns {
-  flex: 0 0 auto;
-  grid-template-rows: auto;
-  align-items: start;
-}
-.mapping-explorer .mapping-concepts,
-.mapping-explorer .mapping-concept-list,
-.mapping-explorer .mapping-detail {
-  max-height: none;
-  overflow: visible;
-}
-.mapping-concept-list {
-  padding-bottom: 16px;
-  mask-image: none;
-  scroll-snap-type: none;
-}
-@media (max-width: 759px) {
-  .mapping-explorer > .mapping-columns {
-    grid-template-rows: auto auto;
-  }
-}
-
-/* Buttons that reveal more items stay inside the box of the list or group they extend. */
-.mapping-show-more {
+/* The Mappings tab is one page. Its columns grow with their content, so the tab's own scroll is the only one. */
+.mapping-explorer {
+  height: 100%;
+  overflow: auto;
   display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding: 24px 28px;
+  background: var(--color-surface-page);
+  font-size: 14px;
+}
+.mapping-page {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.mapping-top {
+  display: flex;
+  align-items: flex-start;
   flex-wrap: wrap;
-  gap: 8px;
-  max-width: 100%;
-  margin-top: 10px;
+  gap: 16px;
 }
-.mapping-show-more button {
-  min-width: 0;
-  max-width: 100%;
-  white-space: normal;
-  overflow-wrap: anywhere;
-  text-align: left;
-}
-.mapping-concepts .mapping-show-more button {
-  margin: 0;
-  width: auto;
-}
-.mapping-heading-note {
-  margin: 0;
-}
-
-/* The legend of a group sits clear of the border line it interrupts. */
-.workbench-dialog .mapping-query fieldset > legend {
-  padding: 0 8px;
-}
-
-@media (max-width: 1199px) {
-  .mapping-explorer .mapping-layer-chain {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-.mapping-layer-chain > span {
-  text-transform: uppercase;
-  font-size: var(--text-small);
-}
-.mapping-layer-chain strong {
-  text-transform: none;
-}
-.mapping-empty-concepts {
-  padding: 12px;
-  color: var(--text-muted);
-  font-size: var(--text-small);
-}
-
-/* The heading buttons keep their whole label; the title block gives way and the buttons wrap
-   onto their own line instead. */
-.mapping-heading > div:first-child {
+.mapping-top > div:first-child {
   flex: 1 1 280px;
   min-width: 0;
 }
-.mapping-heading-actions button {
-  flex-shrink: 0;
+.mapping-top h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+}
+.mapping-top p {
+  margin: 6px 0 0;
+  font-size: 13.5px;
+  line-height: normal;
+  color: var(--color-text-muted);
+}
+.mapping-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+.mapping-actions button {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
   white-space: nowrap;
+}
+
+/* The four layers a concept is followed through, side by side. */
+.mapping-layers {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+}
+.mapping-layer {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px 16px;
+  font-size: 13.5px;
+  overflow-wrap: anywhere;
+}
+.mapping-layer + .mapping-layer {
+  border-left: 1px solid var(--color-border-subtle);
+}
+.mapping-layer-label {
+  font-size: var(--text-small);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.mapping-layer-file {
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+
+.mapping-columns {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+.mapping-concepts {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.mapping-explorer .mapping-search {
+  height: 36px;
+  width: 100%;
+  margin: 0;
+  padding: 0 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  font-size: 14px;
+}
+.mapping-explorer .mapping-concept {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  font-size: 14px;
+  text-align: left;
+}
+.mapping-concept .mapping-concept-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.mapping-concept span:not(.mapping-concept-name) {
+  flex-shrink: 0;
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+.mapping-explorer .mapping-concept[aria-pressed='true'] {
+  border-color: var(--color-accent-border-strong);
+  background: var(--color-surface-hover);
+  color: var(--color-accent-text);
+  font-weight: 500;
+}
+.mapping-show-more {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.mapping-explorer .mapping-show-more button {
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: var(--color-accent-text);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.mapping-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+.mapping-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+}
+.mapping-card h3 {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 600;
+}
+.mapping-card h3 span {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+.mapping-definition {
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--color-text-secondary);
+}
+.mapping-dataset-row {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 12px;
+  padding: 5px 0;
+  border-top: 1px solid var(--color-border-subtle);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.mapping-dataset-row b {
+  font-weight: 500;
+}
+.mapping-fields {
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+.mapping-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.mapping-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 12px;
+  background: var(--color-metric-soft);
+  color: var(--color-metric-text);
+  font-size: 12.5px;
+  font-weight: 500;
+}
+.mapping-ai {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--color-surface-context);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+.mapping-ai-label {
+  display: inline-block;
+  width: 84px;
+  color: var(--color-text-muted);
+}
+.mapping-note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+.mapping-findings button {
+  margin-left: 8px;
+}
+
+@media (max-width: 1199px) {
+  .mapping-layers {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .mapping-layer:nth-child(3) {
+    border-left: 0;
+  }
+  .mapping-layer:nth-child(n + 3) {
+    border-top: 1px solid var(--color-border-subtle);
+  }
+}
+@media (max-width: 759px) {
+  .mapping-explorer {
+    padding: 12px;
+  }
+  .mapping-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .mapping-dataset-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
 }

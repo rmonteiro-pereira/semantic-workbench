@@ -98,7 +98,7 @@ export function GitRemotesSection() {
                 <td data-label="Remote">{project.problem ?? remoteLabel(project)}</td>
                 <td data-label="Actions">
                   <div className="admin-actions">
-                    <button onClick={() => setSetting(project.slug)}>Set remote…</button>
+                    <button onClick={() => setSetting(project.slug)}>Set remote</button>
                     {project.remoteName && <button onClick={() => setRemoving(project)}>Remove remote</button>}
                   </div>
                 </td>

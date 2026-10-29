@@ -60,12 +60,12 @@ try {
     const before = read(file);
     const saved = putDone();
     await fillEditor(editor(), before.replace('Customer in the order-to-cash process.', 'Buyer of record.'));
-    await expect(saveState()).toHaveText('Editing…');
+    await expect(saveState()).toHaveText('Editing');
     const started = Date.now();
     await saved;
     const waited = Date.now() - started;
     expect(waited).toBeGreaterThan(700);
-    await expect(saveState()).toHaveText('Saved to file · 1 uncommitted change', {
+    await expect(saveState()).toHaveText('Saved', {
       timeout: 5000,
     });
     expect(read(file)).toBe(before.replace('Customer in the order-to-cash process.', 'Buyer of record.'));
@@ -98,7 +98,7 @@ try {
     await expect(saveState()).toHaveText(/^Not saved: \d+ errors?$/, { timeout: 5000 });
     expect(read(file)).toBe(disk);
     await fillEditor(editor(), disk);
-    await expect(saveState()).toHaveText(/^Saved to file/, { timeout: 5000 });
+    await expect(saveState()).toHaveText(/^Saved/, { timeout: 5000 });
     await expect.poll(() => api.ws.state.drafts().length, { timeout: 5000 }).toBe(0);
   });
   await check('a file changed on disk meanwhile: the save is refused, the diff opens and autosave waits for the choice', async () => {
@@ -119,13 +119,13 @@ try {
     await expect(dialog.getByRole('group', { name: 'Your version and the current file' })).toContainText('Changed in a terminal.');
     await page.screenshot({ path: '/tmp/workbench-autosave-stale.png' });
     await dialog.getByRole('button', { name: 'Keep my version and save over it' }).click();
-    await expect(saveState()).toHaveText(/^Saved to file/, { timeout: 5000 });
+    await expect(saveState()).toHaveText(/^Saved/, { timeout: 5000 });
     expect(read(file)).toBe(disk.replace('Buyer of record.', 'My wording.'));
   });
-  await check('Commit… commits only the ticked files in two actions after typing', async () => {
+  await check('Commit commits only the ticked files in two actions after typing', async () => {
     writeFileSync(join(dir, 'notes.ossie.yaml'), 'name: Notes\nontology:\n  - concept: Note\n    type: EntityType\n');
     await expect(tree().getByRole('button', { name: 'notes.ossie.yaml', exact: true })).toBeVisible({ timeout: 5000 });
-    await page.getByRole('button', { name: 'Commit…' }).click();
+    await page.getByRole('button', { name: 'Commit' }).click();
     const dialog = page.getByRole('dialog', { name: 'Commit' });
     await expect(dialog).toBeVisible();
     const files = dialog.getByRole('list', { name: 'Changed files' });
@@ -157,12 +157,12 @@ try {
     await expect(page.locator('main > .status')).toContainText(/^Committed [0-9a-f]{7} \(1 file\)/);
     expect(sh(dir, ['show', '--name-only', '--format=%s', 'HEAD']).trim().split('\n').filter(Boolean)).toEqual([`Update ${file}`, file]);
     expect(sh(dir, ['status', '--porcelain']).trim()).toBe('?? notes.ossie.yaml');
-    await expect(saveState()).toHaveText('Saved to file · 1 uncommitted change', {
+    await expect(saveState()).toHaveText('Saved', {
       timeout: 5000,
     });
   });
   await check('Commit & push without a remote commits and explains; with a remote it pushes', async () => {
-    await page.getByRole('button', { name: 'Commit…' }).click();
+    await page.getByRole('button', { name: 'Commit' }).click();
     const dialog = page.getByRole('dialog', { name: 'Commit' });
     await dialog.getByRole('button', { name: 'Commit & push' }).click();
     await expect(dialog).toHaveCount(0);
@@ -170,7 +170,7 @@ try {
     sh(dir, ['remote', 'add', 'origin', bare]);
     writeFileSync(join(dir, 'notes.ossie.yaml'), 'name: Notes\nontology:\n  - concept: Note\n    type: EntityType\n    description: Second.\n');
     await page.waitForTimeout(400);
-    await page.getByRole('button', { name: 'Commit…' }).click();
+    await page.getByRole('button', { name: 'Commit' }).click();
     await expect(dialog.getByRole('textbox', { name: 'Commit message' })).toHaveValue('Update notes.ossie.yaml');
     await dialog.getByRole('button', { name: 'Commit & push' }).click();
     await expect(dialog).toHaveCount(0);
@@ -182,8 +182,8 @@ try {
     const saved = putDone();
     await fillEditor(editor(), committed.replace('My wording.', 'Temporary wording.'));
     await saved;
-    await expect(saveState()).toHaveText(/^Saved to file/, { timeout: 5000 });
-    await page.getByRole('button', { name: 'Commit…' }).click();
+    await expect(saveState()).toHaveText(/^Saved/, { timeout: 5000 });
+    await page.getByRole('button', { name: 'Commit' }).click();
     const dialog = page.getByRole('dialog', { name: 'Commit' });
     await dialog.getByRole('button', { name: `Revert ${file} to last commit` }).click();
     await dialog.getByRole('group', { name: 'Confirm revert' }).getByRole('button', { name: 'Revert' }).click();
@@ -209,7 +209,7 @@ try {
     expect(sh(repoDir, ['log', '--format=%s']).trim()).toBe('Import imported.ossie.yaml');
     expect(sh(repoDir, ['status', '--porcelain']).trim()).toBe('');
   });
-  await check('the header fits: Commit… and the indicator are visible and do not overlap at four viewports', async () => {
+  await check('the header fits: Commit and the indicator are visible and do not overlap at four viewports', async () => {
     await tree().getByRole('button', { name: file, exact: true }).first().click();
     for (const [width, height] of [
       [390, 844],
@@ -220,7 +220,7 @@ try {
       await page.setViewportSize({ width, height });
       await page.waitForTimeout(200);
       const header = page.locator('.workspace-header');
-      const commit = header.getByRole('button', { name: 'Commit…' });
+      const commit = header.getByRole('button', { name: 'Commit' });
       const state = saveState();
       await expect(commit).toBeVisible();
       await expect(state).toBeVisible();

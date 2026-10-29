@@ -38,7 +38,7 @@ export function useNewItems({ model, current, currentIsRdf, setAdding, setRdfAdd
     const kinds = current && model && !currentIsRdf ? addableKinds(doc) : [];
     const none = getUnavailableReason();
     const item = (kind: ItemKind, why: string): MenuItem => ({
-      label: `Add ${kindLabel[kind].toLowerCase()}…`,
+      label: `Add ${kindLabel[kind].toLowerCase()}`,
       disabled: none || (kinds.includes(kind) ? false : why),
       run: () => {
         if (current) setAdding({ docId: current.id, kind });
@@ -52,7 +52,7 @@ export function useNewItems({ model, current, currentIsRdf, setAdding, setRdfAdd
       item('odcs-object', 'Open an ODCS contract to add a table.'),
       item('concept-mapping', 'Open an Ossie mapping document to add a concept mapping.'),
       {
-        label: 'Add RDF resource…',
+        label: 'Add RDF resource',
         disabled: none || (currentIsRdf ? false : 'Open a Turtle, N-Triples, RDF/XML or N3 file to add a resource.'),
         run: () => {
           if (current) setRdfAdding(current.id);

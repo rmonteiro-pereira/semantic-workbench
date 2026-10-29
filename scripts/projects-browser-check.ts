@@ -102,7 +102,7 @@ try {
     });
     await fillEditor(sourceText(secondTab), base.replace('A buyer.', 'Edited in tab B.'));
     await fillEditor(sourceText(firstTab), base.replace('A buyer.', 'Saved from tab A.'));
-    await expect(firstTab.getByRole('status', { name: 'Save state' })).toHaveText(/^Saved to file/, {
+    await expect(firstTab.getByRole('status', { name: 'Save state' })).toHaveText(/^Saved/, {
       timeout: 5000,
     });
     await expect.poll(() => readFileSync(join(api.root, 'projects/shop/shop.yaml'), 'utf8')).toContain('Saved from tab A.');
@@ -136,7 +136,7 @@ try {
     );
     await fillEditor(sourceText(secondTab), base.replace('A buyer.', 'Second edit in B.'));
     await secondTab.getByRole('dialog').getByRole('button', { name: 'Keep my version and save over it' }).click({ timeout: 5000 });
-    await expect(secondTab.getByRole('status', { name: 'Save state' })).toHaveText(/^Saved to file/, {
+    await expect(secondTab.getByRole('status', { name: 'Save state' })).toHaveText(/^Saved/, {
       timeout: 5000,
     });
     expect(readFileSync(join(api.root, 'projects/shop/shop.yaml'), 'utf8')).toBe(base.replace('A buyer.', 'Second edit in B.'));
@@ -185,7 +185,7 @@ try {
     await firstTab.reload();
     const openExport = async () => {
       await firstTab.getByRole('button', { name: 'Actions for Export source', exact: true }).click();
-      await firstTab.getByRole('menuitem', { name: 'Export project…' }).click();
+      await firstTab.getByRole('menuitem', { name: 'Export project' }).click();
       return firstTab.getByRole('dialog', { name: 'Export Export source' });
     };
     const dialog = await openExport();

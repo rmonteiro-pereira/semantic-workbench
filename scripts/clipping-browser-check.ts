@@ -45,7 +45,7 @@ for (const [width, height] of VIEWPORTS) {
 
   await check(`${width}px: the header has nothing cut and Commit explains why it is off`, async () => {
     expect(await clippedTextProblems(page, 'header.workspace-header')).toEqual([]);
-    const commit = page.locator('header.workspace-header').getByRole('button', { name: 'Commit…', exact: true });
+    const commit = page.locator('header.workspace-header').getByRole('button', { name: 'Commit', exact: true });
     await expect(commit).toHaveAttribute('aria-disabled', 'true');
     const border = await commit.evaluate(button => getComputedStyle(button).borderTopStyle);
     expect(border).toBe('solid');
@@ -65,10 +65,7 @@ for (const [width, height] of VIEWPORTS) {
     expect(await nestedScrollBoxes(page, '.mapping-explorer')).toEqual([]);
     expect(await verticallyCutBoxes(page, '.mapping-explorer')).toEqual([]);
     expect(await sidewaysOverflowProblems(page, '.mapping-explorer')).toEqual([]);
-    await expect(page.getByLabel('Mapping document').locator('option')).toHaveCount(2);
-    const context = page.locator('summary', { hasText: 'AI context' });
-    await context.click();
-    await expect(page.locator('.mapping-detail pre').last()).toContainText('"concepts"');
+    await expect(page.locator('.mapping-ai')).toContainText('Order');
     // The concept list and the detail stack on a phone, and the detail stays reachable by the page's scroll.
     const listBottom = await page.locator('.mapping-concepts').evaluate(element => element.getBoundingClientRect().bottom);
     const detailTop = await page.locator('.mapping-detail').evaluate(element => element.getBoundingClientRect().top);

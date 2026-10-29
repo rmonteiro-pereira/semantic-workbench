@@ -12,8 +12,9 @@ semantic definition; they are not copied into an ontology, mapping or agent requ
 
 1. Choose **Add project → Load an example → Mapped commerce**. It loads separate ontology, semantic and mapping
    documents, plus the ODCS contract used by their metrics.
-2. In **Mappings**, select Revenue to inspect its binding to `gross_revenue`. Customer and Region
-   expose nested referent/link mappings to fields and physical sources, with source evidence.
+2. In **Mappings**, select Revenue to see `gross_revenue` among its metrics. Customer and Region
+   list the datasets and fields their nested referent/link mappings reach. The **AI context** card
+   is what `GET /api/agent/context` returns for the selected concept.
 3. Choose All concepts, open **Show query**, and select `gross_revenue` with
    `customers.region`. Preview the composed query; the stored metric and declared join determine
    it rather than a predefined query or replacement formula.
@@ -173,7 +174,7 @@ unsaved editor drafts are not read and remote references/schemas are never fetch
 | --- | --- |
 | Discover projects | `GET /api/agent/projects` returns `{projects: [{slug, name}]}` |
 | Discover mappings | `GET /api/agent/catalog?project=SLUG` |
-| Read context | `GET /api/agent/context?project=SLUG&mappingId=ID` |
+| Read context | `GET /api/agent/context?project=SLUG&mappingId=ID`, optionally with one or more `concept=NAME` to narrow it to those concepts, their bindings, fields and the metrics bound to them |
 | Request a plan | `POST /api/agent/plan` |
 
 Every request names the project it works in. References resolve only against that project's files,

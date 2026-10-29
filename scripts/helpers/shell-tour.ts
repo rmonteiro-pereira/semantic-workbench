@@ -16,8 +16,8 @@ export function shellScreens(ontology: string, contract: string): Screen[] {
 }
 
 /** Everything that makes a header at this width hard to use: a missing tooltip or cut text. */
-export async function headerTitleProblems(page: Page, width: number): Promise<string[]> {
-  return page.evaluate(viewport => {
+export async function headerTitleProblems(page: Page): Promise<string[]> {
+  return page.evaluate(() => {
     const found: string[] = [];
     const title = document.querySelector<HTMLElement>('.workspace-title h1');
     if (!title?.getAttribute('title')) found.push('the file title has no tooltip');
@@ -35,16 +35,8 @@ export async function headerTitleProblems(page: Page, width: number): Promise<st
       const hasTooltip = !!button.getAttribute('title') || hasTooltipElement;
       if (hidden && !hasTooltip) found.push(`an icon-only header button has no tooltip`);
     }
-    const pill = document.querySelector<HTMLElement>('.save-state-text');
-    // The phone header draws only a dot, so there is no pill text to shorten.
-    if (pill && !pill.closest('.save-dot')) {
-      const short = getComputedStyle(pill, '::after').content;
-      const drawsShort = short !== 'none' && short !== 'normal';
-      if (viewport < 1500 && !drawsShort) found.push('the save state is not shortened');
-      if (viewport >= 1500 && drawsShort) found.push('the save state is shortened on a wide window');
-    }
     return found;
-  }, width);
+  });
 }
 
 /** Checks that the open file is inside the visible part of the sidebar tree. */

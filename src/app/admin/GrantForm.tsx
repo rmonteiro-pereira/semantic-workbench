@@ -26,10 +26,10 @@ export function scopeLabel(scope: Grant['scope']): string {
 }
 /** Resolves group names whenever a grant is displayed, retaining the ID on lookup failure. */
 export function GroupName({ id, onResolved }: { id: string; onResolved?: (group: Awaited<ReturnType<typeof adminApi.group>>) => void }) {
-  const [name, setName] = useState('looking up name…');
+  const [name, setName] = useState('looking up name');
   useEffect(() => {
     let active = true;
-    setName('looking up name…');
+    setName('looking up name');
     void adminApi.group(id).then(
       group => {
         if (active) {
@@ -66,7 +66,7 @@ export function GrantForm({
   return (
     <AdminPane title={initial ? 'Change grant' : 'Add grant'} backLabel={backLabel} onBack={onBack} lastAdminNotice={Boolean(initial)}>
       {error && <p role="alert">{error}</p>}
-      {!data && !error && <p>Loading grants…</p>}
+      {!data && !error && <p>Loading grants</p>}
       {data && <GrantFields {...data} initial={initial} email={email} roleId={roleId} onSaved={onSaved} />}
     </AdminPane>
   );

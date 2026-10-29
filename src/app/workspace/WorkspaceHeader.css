@@ -3,17 +3,24 @@
 .workspace-header {
   --header-control-height: 36px;
   flex: 0 0 auto;
-  height: auto;
-  min-height: 58px;
-  padding: 9px 16px;
+  height: 60px;
+  padding: 0 16px;
   gap: 12px;
   justify-content: flex-start;
 }
+/* The sidebar toggle is a borderless icon button. */
 .workspace-toggle {
   flex-shrink: 0;
   width: var(--header-control-height);
   height: var(--header-control-height);
   padding: 0;
+  border-color: transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text-secondary);
+}
+.workspace-toggle:hover {
+  background: var(--color-surface-hover);
 }
 .workspace-title {
   flex: 1 1 0;
@@ -25,7 +32,7 @@
 .workspace-title h1 {
   margin: 0;
   font-size: 16px;
-  line-height: 1.35;
+  line-height: 1.3;
   font-weight: 600;
   min-width: 0;
   overflow: hidden;
@@ -41,9 +48,9 @@
 .header-meta {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   min-width: 0;
-  font-size: var(--text-small);
+  font-size: 12.5px;
   line-height: 1.3;
   color: var(--color-text-muted);
 }
@@ -59,12 +66,10 @@
   align-items: center;
   gap: 6px;
 }
-/* The account cluster sits apart from the actions so it reads as who is signed in. An empty
-   cluster, as in server mode before the person is known, takes no room; an error message stays. */
+/* The account cluster is the round avatar. With no account, as in local mode or in server mode
+   before the person is known, it takes no room; an error message stays. */
 .header-account {
   flex: 0 0 auto;
-  padding-left: 12px;
-  border-left: 1px solid var(--color-border-subtle);
 }
 .header-account:not(:has(button, [role='status'])) {
   display: none;
@@ -73,26 +78,53 @@
   flex: 0 0 auto;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 12px;
 }
 .header-actions > button,
 .header-actions .commit-wrap > button,
 .header-actions .menu-button > button,
 .header-account .menu-button > button {
   height: var(--header-control-height);
-  padding: 0 12px;
-  font-size: 13px;
+  padding: 0 14px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 8px;
   white-space: nowrap;
 }
 /* The icon button has no label, so it takes no side padding: with it the 18 px icon is squeezed. */
 .header-actions .menu-button > .more-actions {
   width: var(--header-control-height);
   padding: 0;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+.header-actions .menu-button > .more-actions:hover {
+  background: var(--color-surface-hover);
+}
+.commit-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--color-on-accent) 22%, transparent);
+  font-size: 12px;
+  font-weight: 600;
 }
 .commit-button {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+}
+/* Commit that cannot run is the plain button, dimmed, not a sunken grey one. */
+.header-actions .commit-wrap > .commit-button[aria-disabled='true'] {
+  opacity: 0.55;
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-text);
 }
 
 /* Save state: plain text with a coloured dot at the end of the meta line. It opens Commit, the
@@ -114,7 +146,7 @@
 .header-meta > .save-state:disabled {
   color: var(--color-text-muted);
 }
-.save-state::before {
+.save-dot::before {
   content: '';
   flex: none;
   width: 7px;
@@ -122,12 +154,12 @@
   border-radius: 50%;
   background: var(--color-success);
 }
-.save-state.s-pending::before,
-.save-state.s-saving::before,
-.save-state.s-waiting::before {
+.save-dot.s-pending::before,
+.save-dot.s-saving::before,
+.save-dot.s-waiting::before {
   background: var(--color-warning-bright);
 }
-.save-state.needs-action::before {
+.save-dot.needs-action::before {
   background: var(--color-danger-text);
 }
 .header-meta > .save-state.needs-action {
@@ -141,19 +173,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-/* Below 1500 px the save state draws a short form of its text, so the file name keeps the room.
-   The full text stays in the element for tests and assistive technology, and in the tooltip. The
-   text is emptied by a zero font size and the short form comes from the element's data attribute. */
-@media (max-width: 1499px) {
-  .save-state .save-state-text[data-short] {
-    font-size: 0;
-  }
-  .save-state .save-state-text[data-short]::after {
-    content: attr(data-short);
-    font-size: var(--text-small);
-  }
 }
 
 /* Below 1100 px Commit keeps its icon; the name stays for assistive technology and in the
@@ -180,8 +199,7 @@
 /* A short window needs every pixel for the graph. */
 @media (max-height: 650px) and (min-width: 651px) {
   .workspace-header {
-    min-height: 46px;
-    padding-block: 5px;
+    height: 48px;
   }
   .workspace-title h1 {
     line-height: 1.2;
@@ -198,6 +216,7 @@ header.workspace-header.header-phone {
   --header-control-height: 34px;
   display: flex;
   align-items: center;
+  height: auto;
   min-height: 0;
   padding: 7px 9px;
   gap: 6px;
@@ -238,10 +257,6 @@ header.workspace-header.header-phone {
   height: 1px;
   overflow: hidden;
   clip-path: inset(50%);
-}
-.header-phone .header-account {
-  padding-left: 0;
-  border-left: 0;
 }
 /* A save that needs action shows its label beside the dot, cut to fit, with the full text in the
    tooltip. */
