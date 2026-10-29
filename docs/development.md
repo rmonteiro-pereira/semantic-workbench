@@ -311,14 +311,15 @@ provenance and hashes. Do not hand-edit a generated file without updating its ow
 - Read [architecture](../ARCHITECTURE.md), the owning module and neighboring tests first.
 - Extend existing domain modules and shared controls rather than adding parallel configuration,
   routing, authorization or dialog implementations.
-- Run the configured formatter on changed code. Keep one statement and declaration per line,
-  descriptive names and small functions/components. Avoid nested ternaries and long JSX handlers.
+- Run the configured formatter on changed code; it wraps at 200 columns. Keep one statement and
+  declaration per line, descriptive names and small functions/components. Avoid nested ternaries and long JSX handlers.
 - Explain why in plain-English comments. Keep task identifiers and process history out of code;
   traceability belongs in commits and review descriptions.
 - Update current configuration, usage and architecture references with the behavior they describe.
   Keep historical verification evidence under `specs/` rather than appending it to onboarding docs.
 - Run `bun run lint:full` for additional readability warnings. The ordinary `check` remains the
-  required static gate. `.git-blame-ignore-revs` identifies mechanical formatting commits.
+  required static gate. `.git-blame-ignore-revs` identifies mechanical formatting commits; run
+  `git config blame.ignoreRevsFile .git-blame-ignore-revs` once per clone so `git blame` skips them.
 
 For API work, maintain the action inventory and relevant HTTP/configuration contracts. The actual
 handlers, schemas and tests remain authoritative when an older design contract describes an
