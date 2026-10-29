@@ -6,6 +6,12 @@ not configure a production deployment.
 
 ## Unreleased
 
+### Fixed
+
+- Keep the Mappings tab at a normal height: the concept list and the bindings scroll on their own,
+  each dataset group shows its first five bindings with Show more and Show fewer, and a long
+  concept list does the same. The tab opens on a mapping of the open file's project.
+
 ### Documentation
 
 - Explain the architecture, full technology stack and definition-to-preview flow in the README.

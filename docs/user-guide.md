@@ -395,7 +395,10 @@ reason. See [the server governance rules](server-mode.md#governed-content).
 
 The **Mappings** view resolves ontology → mapping → semantic model → physical source. Object,
 referent and link mappings retain source evidence and report missing or ambiguous references.
-Bindings are grouped by dataset. Search includes unbound concepts; empty views offer Source
+Bindings are grouped by dataset. The concept list and the bindings scroll on their own inside the
+tab; each dataset group shows its first five bindings and **Show N more** reveals ten at a time,
+**Show fewer** folds them again, and a long concept list works the same way. The tab opens on a
+mapping from the open file's project. Search includes unbound concepts; empty views offer Source
 navigation for the selected mapping document. **Compose a query…** selects mapped fields/metrics
 and previews a newly composed governed query. **Export agent context** downloads metadata.
 

@@ -42,8 +42,13 @@ export async function pageLayoutProblems(page: Page, screenName: string) {
       const list = document.querySelector('.mapping-concept-list');
       if (list) {
         const style = getComputedStyle(list);
-        if (style.maskImage !== 'none' || list.scrollHeight > list.clientHeight + 1) {
-          problems.push('the concept list clips cards inside a nested scroll region');
+        // The list scrolls by itself inside the tab, so it must stay within one screen and must
+        // not fade its last cards out with a mask.
+        if (style.maskImage !== 'none') {
+          problems.push('the concept list fades its cards with a mask');
+        }
+        if (list.getBoundingClientRect().height > window.innerHeight) {
+          problems.push('the concept list grows past one screen instead of scrolling');
         }
         const empty = document.querySelector('.mapping-detail .empty-state');
         const buttons = list.querySelectorAll('button');

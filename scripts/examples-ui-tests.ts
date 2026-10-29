@@ -14,6 +14,7 @@ import { closeComposer, composerDialog, openComposer } from './helpers/query-com
 import { EXPECTED_EXAMPLE_METRICS } from './example-metric-checks';
 import { expectMetricPresented, metricsList } from './helpers/examples-tour';
 import { geometryProblems } from './helpers/screen-tour';
+import { chooseConcept, expectResolvedBindings, showAllBindings } from './helpers/mapping-bindings';
 const api = await startIsolatedApi();
 const store = { list: () => api.ws.documents() };
 const db = new Database(':memory:');
@@ -130,7 +131,7 @@ try {
       if (ids.length !== 4) throw Error('Missing Flights mapping forms');
       for (const id of ids) {
         await page.getByLabel('Mapping document').selectOption(id);
-        await expect(page.locator('.mapping-binding')).toHaveCount(60);
+        await expectResolvedBindings(page, 60);
         await expect(page.locator('.mapping-findings')).toHaveCount(0);
         const [download] = await Promise.all([
           page.waitForEvent('download'),
@@ -151,10 +152,7 @@ try {
   await check(
     'official mapped field generates SQL that executes on a synthetic warehouse mirror',
     async () => {
-      await page
-        .locator('.mapping-concepts')
-        .getByRole('button', { name: /^AirportName/ })
-        .click();
+      await chooseConcept(page, /^AirportName/);
       await openComposer(page);
       await page.getByRole('checkbox', { name: 'Dimension AIRPORT.name', exact: true }).check();
       await page.getByRole('button', { name: 'Preview governed query', exact: true }).click();
@@ -239,6 +237,7 @@ try {
         .getByRole('button', { name: /^Airport\s*\d/ })
         .click();
       await expect(page.locator('.mapping-detail>h3')).toHaveText('Airport');
+      await showAllBindings(page);
       const n = await page.locator('.mapping-binding').count();
       if (!n) throw Error('No Airport bindings');
       expect(await chainProblems()).toEqual([]);
@@ -305,13 +304,13 @@ try {
       'Subscription billing mappings',
     );
     await expect(page.locator('.mapping-layer-chain')).toContainText('36 datasets');
-    await expect(page.locator('.mapping-binding')).toHaveCount(119);
+    await expectResolvedBindings(page, 119);
     await expect(page.locator('.mapping-bindings')).not.toHaveAttribute('open', '');
     await page
       .locator('.mapping-concepts')
       .getByRole('button', { name: /^Plan / })
       .click();
-    await expect(page.locator('.mapping-binding')).toHaveCount(4);
+    await expectResolvedBindings(page, 4);
     await expect(page.locator('.mapping-bindings')).toHaveAttribute('open', '');
     await page.getByRole('button', { name: 'All concepts', exact: true }).click();
   });
@@ -383,7 +382,7 @@ try {
         await expect(page.locator('.mapping-layer-chain')).toContainText(
           'Subscription billing mappings',
         );
-        await expect(page.locator('.mapping-binding')).toHaveCount(119);
+        await expectResolvedBindings(page, 119);
         if (store.list().length !== before + exampleDocuments)
           throw Error('Example loader duplicated or omitted definitions');
       }

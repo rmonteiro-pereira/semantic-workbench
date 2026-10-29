@@ -179,6 +179,7 @@ export function agentCatalog(documents: StoredDocument[]) {
       name: m.data.name ?? `${m.doc.filename} mapping`,
       filename: m.doc.filename,
       embedded: !!m.ontology,
+      project: m.doc.project,
       ontologyRef: m.data.ontology_ref ?? { name: m.ontology?.data.name },
       semanticModelRef: m.data.semantic_model_ref ?? { name: m.data.semantic_model?.name },
     })),

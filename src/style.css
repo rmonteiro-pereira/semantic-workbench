@@ -1350,6 +1350,8 @@ dialog.validation-backdrop:not([open]) {
 .mapping-explorer {
   height: 100%;
   overflow: auto;
+  display: flex;
+  flex-direction: column;
   padding: 26px;
   background: var(--color-surface-page);
   font-size: 13px;
@@ -1415,8 +1417,9 @@ dialog.validation-backdrop:not([open]) {
   display: grid;
   grid-template-columns: minmax(0, 230px) minmax(0, 1fr);
   grid-template-areas: 'concepts bindings';
+  grid-template-rows: minmax(0, 1fr);
   gap: 18px;
-  align-items: start;
+  align-items: stretch;
 }
 .mapping-concepts button {
   display: block;
@@ -1516,6 +1519,15 @@ dialog.validation-backdrop:not([open]) {
 .mapping-detail {
   grid-area: bindings;
   overflow-wrap: break-word;
+  overflow-y: auto;
+}
+.mapping-detail > h3 {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin-top: 0;
+  padding: 4px 0;
+  background: var(--color-surface-page);
 }
 .mapping-query {
   min-width: 0;
@@ -1577,6 +1589,7 @@ dialog.validation-backdrop:not([open]) {
   .mapping-columns {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas: 'concepts' 'bindings';
+    grid-template-rows: minmax(150px, 0.4fr) minmax(0, 1fr);
   }
   .mapping-concepts {
     max-height: 40vh;

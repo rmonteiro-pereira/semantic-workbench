@@ -10,6 +10,7 @@ import { editorValue, expectEditorValue, fillEditor } from './helpers/code-edito
 import { example } from './helpers/examples';
 import { exportFile } from './helpers/header';
 import { closeComposer, openComposer } from './helpers/query-composer';
+import { expectResolvedBindings } from './helpers/mapping-bindings';
 // Isolated data root: the UBL example project plus commerce.owl imported as its own project.
 const api = await startIsolatedApi();
 const store = {
@@ -472,7 +473,7 @@ try {
       await expect(page.locator('.mapping-layer-chain')).toContainText(
         'Mapped commerce semantic model',
       );
-      await expect(page.locator('.mapping-binding')).toHaveCount(9);
+      await expectResolvedBindings(page, 9);
       await page
         .locator('.mapping-concepts')
         .getByRole('button', { name: /^Revenue/ })
@@ -552,7 +553,7 @@ try {
         timeout: 5000,
       });
       await page.locator('.tabs').getByRole('button', { name: 'Mappings', exact: true }).click();
-      await expect(page.locator('.mapping-binding')).toHaveCount(9);
+      await expectResolvedBindings(page, 9);
       await expect(page.locator('.mapping-findings')).toHaveCount(0);
       await page.getByRole('button', { name: 'ubl.ontology.yaml', exact: true }).click();
       await page.locator('.tabs').getByRole('button', { name: 'Graph', exact: true }).click();
