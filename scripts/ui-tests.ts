@@ -214,7 +214,8 @@ try {
     await expect(page.locator('.full-graph-status')).toHaveAttribute('data-relationship-count', '277');
     await showEveryEntity(page);
     await expect(page.locator('.react-flow__node-entity')).toHaveCount(45);
-    await expect(page.locator('.react-flow__edge')).toHaveCount(183);
+    // Links between areas stay hidden until an entity is selected, so only the 62 links inside an area are drawn.
+    await expect(page.locator('.react-flow__edge')).toHaveCount(62);
     await viewOptions(page, async options => {
       const layout = options.getByRole('radiogroup', { name: 'Graph layout' });
       await expect(layout.getByRole('radio', { name: 'Network', exact: true })).toBeChecked();
@@ -223,7 +224,7 @@ try {
     });
     await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60000 });
     await expect(page.locator('.react-flow__node-entity')).toHaveCount(45);
-    await expect(page.locator('.react-flow__edge')).toHaveCount(183);
+    await expect(page.locator('.react-flow__edge')).toHaveCount(62);
     await expect(page.locator('.full-graph-status')).toHaveAttribute('data-routing', 'worker', {
       timeout: 30000,
     });

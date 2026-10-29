@@ -14,8 +14,7 @@ For current package versions, see [the technology stack](../README.md#technology
 | --- | --- |
 | React Flow | HTML/SVG interaction, compound nodes, selection and handles |
 | ELK Layered | Directed layout with areas, ports and orthogonal routes |
-| ELK SPOrE / box packing | Network overlap cleanup and compact area placement |
-| Cytoscape/fCoSE | Headless Network positioning; never the browser renderer |
+| Local `packTiles` | Network view: packs the area tiles in rows without overlap |
 | React Flow Smart Edge | Shared worker routes for detailed/visible connections |
 | Local graph functions | Traversal, projection, labels and incremental placement |
 
@@ -31,8 +30,7 @@ it is not a drop-in performance switch.
    one link bundle, but every original relationship remains available for inspection.
 2. Apply the selected display grouping. Automatic uses the first applicable mode with useful
    groups. These areas are view organization, not additional standard semantics.
-3. Use Network layout by default. Layered uses ELK routes. Network uses fCoSE positions, then overlap cleanup and area
-   packing rather than assuming that force layout cannot overlap HTML cards.
+3. Use Network layout by default. Layered uses ELK routes. Network sizes each area as a tile for the whole names it holds, then packs the tiles in rows (`packTiles`) so none overlap. It draws links inside an area; links between areas are summarised on the tile ("links to N areas") and drawn only for the selected entity.
 4. Render parent areas before their children using relative positions and `parentId`.
 5. Retain ELK route vertices while their endpoints match live handles. Dragging invalidates stale
    routes and falls back to live geometry. SVG appearance props are selected separately so graph
@@ -184,8 +182,5 @@ See [development commands](development.md#browser-suites) for the current script
 - [React Flow subflows](https://reactflow.dev/learn/layouting/sub-flows)
 - [React Flow performance](https://reactflow.dev/learn/advanced-use/performance)
 - [ELK Layered](https://eclipse.dev/elk/reference/algorithms/org-eclipse-elk-layered.html)
-- [ELK SPOrE overlap cleanup](https://eclipse.dev/elk/reference/algorithms/org-eclipse-elk-sporeOverlap.html)
-- [Cytoscape.js](https://js.cytoscape.org/)
-- [fCoSE](https://github.com/iVis-at-Bilkent/cytoscape.js-fcose)
 - [React Flow Smart Edge](https://github.com/tisoap/react-flow-smart-edge)
 - [Sigma rendering](https://www.sigmajs.org/concepts/rendering/) — reviewed, not implemented

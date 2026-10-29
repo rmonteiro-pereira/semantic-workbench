@@ -2,6 +2,7 @@
 import { appUrl } from './helpers/base-url';
 import { recordResizeErrors } from './helpers/resize-errors';
 import { checkExpansionViewports } from './graph-expansion-checks';
+import { checkGraphTiles } from './graph-tile-checks';
 import { chooseLayout, setShown, viewOptions } from './helpers/graph-options';
 import { chromium, expect } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
@@ -408,6 +409,7 @@ try {
     expect(errors).toEqual([]);
   });
   await checkExpansionViewports(browser, api);
+  await checkGraphTiles(browser, api);
   console.log(`${passed} graph and neighborhood checks passed on isolated data root ${api.root}.`);
 } finally {
   await browser.close();

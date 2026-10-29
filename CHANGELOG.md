@@ -81,6 +81,11 @@ not configure a production deployment.
 
 ### Fixed
 
+- The grouped Graph (Network view) shows each area as a tile sized to its entities, packed without
+  overlap. Entity names and area titles are always whole, never cut with an ellipsis. Links inside
+  an area are drawn; links between areas are summarised on the tile ("links to N areas") and drawn
+  only for the selected entity. The graph toolbar wraps to more rows instead of cutting a control,
+  and the Labels, Mini-map, Value types and Metrics switches keep their label centred when off. Layered area headers are a little taller to hold the same title.
 - The UBL example opens without a "Basic checks only" warning: its ontology declares its Ossie
   version and gets the full schema checks. Its mapping now maps all 45 components to their datasets
   and all 277 roles to their keys or bridge tables, instead of mapping no concept. The commerce
