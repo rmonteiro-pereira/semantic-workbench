@@ -41,7 +41,6 @@ test('malformed mapping references, nodes, version and ambiguous families are re
   for (const mutate of [
     (d: any) => delete d.ontology_ref,
     (d: any) => (d.semantic_model_ref = {}),
-    (d: any) => (d.version = 'wrong'),
     (d: any) => (d.concept_mappings[0].object_mappings = [{}]),
     (d: any) => (d.concept_mappings[0].link_mappings = [{}]),
     (d: any) => (d.datasets = []),
@@ -49,6 +48,11 @@ test('malformed mapping references, nodes, version and ambiguous families are re
     const docs = change(fixture, 0, mutate);
     expect(validateInput(docs[0].source, docs[0].filename).valid).toBe(false);
   }
+});
+test('a mapping that names an unknown version is reported as not validated rather than rejected', () => {
+  const docs = change(fixture, 0, (d: any) => (d.version = 'wrong'));
+  const result = validateInput(docs[0].source, docs[0].filename);
+  expect(result.issues.map(issue => issue.code)).toEqual(['not-validated']);
 });
 test('mapping runtime exposes concept → nested mapping → field → physical source and AI context', () => {
   const runtimeContext = context();

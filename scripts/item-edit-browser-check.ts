@@ -233,6 +233,7 @@ try {
     const relationshipDialog = page.getByRole('dialog', { name: /^Add relationship/ });
     await relationshipDialog.getByRole('textbox', { name: 'Name', exact: true }).fill('supplied_by');
     await relationshipDialog.getByLabel('Related concept').selectOption('Supplier');
+    await relationshipDialog.getByLabel('Reading').fill('{Product} is supplied by {Supplier}');
     await relationshipDialog.getByRole('button', { name: 'Save to file' }).click();
     await expect(relationshipDialog).toHaveCount(0);
     expect(read(commerce.slug, 'commerce-business.ossie.yaml')).toContain('    relationships:\n      - name: supplied_by\n        roles:\n          - concept: Supplier\n');

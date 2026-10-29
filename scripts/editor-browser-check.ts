@@ -45,7 +45,7 @@ const formats = await api.ws.importBatch(
       },
       {
         path: 'shop.yaml',
-        source: 'name: Shop\nontology:\n  - concept: Customer\n    type: EntityType\n    description: Buyer\n',
+        source: 'name: Shop\nontology:\n  - concept: Customer\n    type: EntityType\n    description: Buyer\nversion: 0.2.0.dev0\n',
       },
       { path: 'endings.yaml', source: crlf },
       { path: 'large.yaml', source: large },
@@ -207,7 +207,7 @@ try {
     await page.locator('input[type=file]').setInputFiles({
       name: 'broken.yaml',
       mimeType: 'text/yaml',
-      buffer: Buffer.from('name: Broken\nontology:\n  - concept: Customer\n    type: EntityType\n    extends: [Nowhere]\n'),
+      buffer: Buffer.from('name: Broken\nontology:\n  - concept: Customer\n    type: EntityType\n    extends: [Nowhere]\nversion: 0.2.0.dev0\n'),
     });
     const dialog = page.getByRole('dialog', { name: 'Review import' });
     await expect(dialog).toBeVisible();

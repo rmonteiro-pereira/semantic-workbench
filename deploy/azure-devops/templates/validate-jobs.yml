@@ -54,6 +54,8 @@ jobs:
           suite: test:item-edit
         rdf_edit:
           suite: test:rdf-edit
+        validation:
+          suite: test:validation
         scm:
           suite: test:scm
         odcs:

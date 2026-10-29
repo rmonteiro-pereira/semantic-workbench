@@ -1,3 +1,4 @@
+version: 0.2.0.dev0
 name: Commerce business ontology
 description: Business concepts independent of storage. OWL counterpart uses the same IRIs.
 ontology:

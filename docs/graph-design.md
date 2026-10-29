@@ -1,7 +1,7 @@
 # Graph rendering and layout
 
 Graph views show the structure declared in definitions. They do not infer OWL facts, evaluate
-SHACL shapes or execute metric queries. The complete graph, neighborhood, relationship matrix,
+SHACL shapes (that runs from Validation details) or execute metric queries. The complete graph, neighborhood, relationship matrix,
 contract lineage and mapping graph are complementary views, not separate sources of business
 semantics.
 

@@ -2,11 +2,24 @@
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 import type { Issue } from '../../shared/validation/diagnostics';
 import { validateInput } from '../../shared/validation/input';
+import { OSSIE_SCHEMA_VERSION } from '../../shared/validation/validation';
 import { featureLabeler } from '../editor/feature';
 import { CodeEditor, type CodeEditorHandle } from '../editor/CodeEditor';
 import './validation-editor.css';
 /** Displays document findings and links to their source locations. */
-export function ValidationPanel({ issues, onLocate, source }: { issues: Issue[]; onLocate?: (issue: Issue) => void; source?: string }) {
+export function ValidationPanel({
+  issues: allIssues,
+  onLocate,
+  onValidateAsShippedVersion,
+  source,
+}: {
+  issues: Issue[];
+  onLocate?: (issue: Issue) => void;
+  onValidateAsShippedVersion?: () => void;
+  source?: string;
+}) {
+  const notValidated = allIssues.find(issue => issue.code === 'not-validated');
+  const issues = allIssues.filter(issue => issue.code !== 'not-validated');
   const feature = useMemo(() => featureLabeler(source), [source]);
   const lines = useMemo(() => source?.split('\n'), [source]);
   const errorCount = issues.filter(issue => issue.severity === 'error').length;
@@ -22,9 +35,23 @@ export function ValidationPanel({ issues, onLocate, source }: { issues: Issue[];
   };
   return (
     <div className="validation-report" aria-label="Validation report">
-      <p>
-        {errorCount} {errorCount === 1 ? 'error' : 'errors'} · {warningCount} {warningCount === 1 ? 'warning' : 'warnings'}
-      </p>
+      {notValidated && (
+        <div className="validation-not-validated" role="status">
+          <strong>Not validated</strong>
+          <span>{notValidated.message.replace(/^Not validated — /, '')}</span>
+          {onValidateAsShippedVersion && (
+            <button type="button" onClick={onValidateAsShippedVersion}>
+              Validate as Ossie {OSSIE_SCHEMA_VERSION}
+            </button>
+          )}
+          <span>Syntax errors still show, because the file cannot be read without them.</span>
+        </div>
+      )}
+      {!notValidated && (
+        <p>
+          {errorCount} {errorCount === 1 ? 'error' : 'errors'} · {warningCount} {warningCount === 1 ? 'warning' : 'warnings'}
+        </p>
+      )}
       <ul>
         {issues.map((issue, i) => (
           <li key={i} className={issue.severity}>

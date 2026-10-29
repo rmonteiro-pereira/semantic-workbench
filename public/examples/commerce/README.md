@@ -11,7 +11,7 @@ Fictional order-to-cash domain. These are illustrative models, not production or
 - commerce-data.ttl: readable eight-resource order lifecycle.
 - commerce-scale.ttl: 1,000 synthetic business resources, 5,000 explicit business links, plus type and label triples. It is a navigation benchmark, not a claim of validated business rules.
 
-Contract-to-semantic links are physical source names. Ontology links are shared IRIs. The app preserves these definitions; it does not automatically infer cross-document equivalence or execute OWL reasoning / SHACL validation.
+Contract-to-semantic links are physical source names. Ontology links are shared IRIs. The app preserves these definitions; it does not automatically infer cross-document equivalence or perform OWL reasoning. Open commerce.shacl.ttl, choose Validation details and run the shapes against commerce-data.ttl; they find nothing.
 
 ## Explicit mapping and agent example
 

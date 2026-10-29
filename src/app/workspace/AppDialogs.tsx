@@ -4,6 +4,7 @@ import React from 'react';
 import type { KpiSummary } from '../../server/agent/explain';
 import type { ImportDraft } from '../validation/ValidationPanel';
 import { ImportRepair, ValidationPanel } from '../validation/ValidationPanel';
+import { ShaclCheck } from '../validation/ShaclCheck';
 import type { Issue } from '../../shared/validation/diagnostics';
 import type { Saved } from '../edit/ItemEditor';
 import type { Choices, ItemKind, Path } from '../../shared/edit/item-model';
@@ -113,6 +114,7 @@ type Props = {
   setTrashVersion: React.Dispatch<React.SetStateAction<number>>;
   showValidation: boolean;
   setShowValidation: React.Dispatch<React.SetStateAction<boolean>>;
+  validateAsShippedVersion: () => void;
   validation:
     | {
         issues: Issue[];
@@ -209,6 +211,7 @@ export function AppDialogs({
   showValidation,
   setShowValidation,
   validation,
+  validateAsShippedVersion,
   sourceEditor,
   definition,
   setDefinition,
@@ -340,7 +343,8 @@ export function AppDialogs({
             </button>
           }
         >
-          <ValidationPanel source={source} issues={validation.issues} onLocate={handleValidationPanelLocate} />
+          <ValidationPanel source={source} issues={validation.issues} onLocate={handleValidationPanelLocate} onValidateAsShippedVersion={validateAsShippedVersion} />
+          {validation.model?.kind === 'SHACL' && current && <ShaclCheck shapes={current} shapesSource={source} projectDocs={docs} />}
         </Modal>
       )}
       {definition && (

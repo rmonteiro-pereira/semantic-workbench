@@ -138,6 +138,7 @@ suites use `SW_BASE_URL`. The full runner supplies fresh frontend processes as n
 | `test:editor` | Serialization colors, located findings, byte preservation and typing |
 | `test:item-edit` | Forms, new items, rename/delete and metric wizard |
 | `test:rdf-edit` | Resource-local RDF edits, graph difference and refusal behavior |
+| `test:validation` | Bundled files report nothing, shapes run against a data file, an unknown Ossie version is not validated |
 | `test:scm` | Stage/commit, branches, conflicts, local remotes and history |
 | `test:odcs` | Contract/table sections and byte-preserving property edits |
 | `test:lineage` | Expected dependency edges, row handles, paths, hops and resizing |

@@ -212,6 +212,7 @@ function App() {
           showValidation={showValidation}
           setShowValidation={setShowValidation}
           validation={validationState.validation}
+          validateAsShippedVersion={validationState.validateAsShippedVersion}
           sourceEditor={sourceEditor}
           definition={definition}
           setDefinition={setDefinition}
@@ -345,6 +346,8 @@ function App() {
               setSource={setSource}
               setEditorIssues={validationState.setEditorIssues}
               plainText={validationState.plainText}
+              assumeOssieVersion={validationState.assumeOssieVersion}
+              validateAsShippedVersion={validationState.validateAsShippedVersion}
               result={validationState.result}
               search={search}
               selectEntity={selectEntity}
@@ -412,6 +415,7 @@ function App() {
             dirty={!!current && source !== current.source}
             setShowValidation={setShowValidation}
             issueCount={validationState.validation.issues.length}
+            validated={!validationState.plainText && !validationState.validation.issues.some(issue => issue.code === 'not-validated')}
             kind={validationState.model?.kind}
             entityCount={validationState.model?.entities.length ?? 0}
             relationshipCount={validationState.model?.edges.length ?? 0}
