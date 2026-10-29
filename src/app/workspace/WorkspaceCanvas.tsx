@@ -1,6 +1,7 @@
 /** Presentation and event handling for workspace canvas. */
 import { Network } from 'lucide-react';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import type { AreaFilter } from '../graph/ModelOverview';
 import type { KpiSummary } from '../../server/agent/explain';
 import type { Issue } from '../../shared/validation/diagnostics';
 import type { Path } from '../../shared/edit/item-model';
@@ -191,6 +192,16 @@ export function WorkspaceCanvas({
   emptyProject,
   onImportInto,
 }: Props) {
+  // "Show all" on an Overview card opens the Catalog filtered to that area. The filter ends when
+  // the user leaves the Catalog, so the next visit lists everything again.
+  const [catalogArea, setCatalogArea] = useState<AreaFilter | null>(null);
+  useEffect(() => {
+    if (tab !== 'catalog') setCatalogArea(null);
+  }, [tab]);
+  function showAreaInCatalog(area: AreaFilter) {
+    setCatalogArea(area);
+    setTab('catalog');
+  }
   function openMappingSource(documentId: string) {
     const document = docs.find(candidate => candidate.id === documentId);
     if (document && openDocument(document)) setTab('source');
@@ -317,6 +328,8 @@ export function WorkspaceCanvas({
         <CatalogView
           model={model}
           search={search}
+          area={catalogArea}
+          clearArea={() => setCatalogArea(null)}
           selectEntity={selectEntity}
           kpiBadges={kpiBadges}
           entityTarget={entityTarget}
@@ -353,6 +366,7 @@ export function WorkspaceCanvas({
         selectEntity={selectEntity}
         handleFullGraphSelectEdge={handleFullGraphSelectEdge}
         setTab={setTab}
+        showAreaInCatalog={showAreaInCatalog}
         setSearch={setSearch}
         showNeighborhood={showNeighborhood}
         handleModelOverviewSelectRelationship={handleModelOverviewSelectRelationship}

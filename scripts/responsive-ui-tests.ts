@@ -42,6 +42,7 @@ import { EXPECTED_EXAMPLE_METRICS } from './example-metric-checks';
 import { exampleMetricScreens } from './helpers/examples-tour';
 import { DARK_TOUR_SIZES, chooseTheme, darkTourScreens, themedScreenProblems } from './helpers/theme-tour';
 import { addProjectItem, chooseSetting } from './helpers/sidebar-menus';
+import { groupTrigger } from './helpers/grouping-menu';
 
 // Isolated API fixture: exercising viewport changes never modifies the local workspace. The UBL
 // ontology is imported first so that it opens first.
@@ -328,7 +329,8 @@ try {
       expect(header!.height).toBeLessThanOrEqual(desktop ? 64 : 110);
       const graph = await page.locator('.react-flow').boundingBox();
       expect(graph).not.toBeNull();
-      expect(graph!.height).toBeGreaterThan(height! * (desktop ? 0.7 : 0.55));
+      // The graph tool row may wrap onto a second line now that it holds the whole Group button name, so a desktop window keeps a little less than before.
+      expect(graph!.height).toBeGreaterThan(height! * (desktop ? 0.6 : 0.55));
       expect(graph!.width).toBeGreaterThan(desktop ? width! * 0.5 : width! * 0.7);
       await noOverflow(page);
       await visibleGraph(page);
@@ -959,27 +961,29 @@ try {
     }
     expect(found).toEqual([]);
   });
-  await check('popovers: the grouping details stay anchored below their control and inside the viewport', async () => {
+  await check('popovers: the Group menu stays anchored below its button and inside the viewport', async () => {
     const found: string[] = [];
     for (const [width, height] of six) {
       await sweep.setViewportSize({ width, height });
       await sweep.waitForTimeout(250);
-      const summary = sweep.getByRole('button', { name: 'Grouping details' }).or(sweep.locator('summary[aria-label="Grouping details"]')).first();
-      await summary.click();
-      const pop = sweep.locator('.grouping-details[open]');
-      await expect(pop).toBeVisible();
-      const controlBox = (await sweep.locator('summary[aria-label="Grouping details"]').boundingBox())!;
-      const popBox = (await pop.boundingBox())!;
+      const controls = sweep.getByRole('button', { name: 'Controls', exact: true });
+      if (await controls.isVisible()) await controls.click();
+      const trigger = groupTrigger(sweep);
+      await trigger.click();
+      const menu = sweep.getByRole('menu', { name: 'Group by' });
+      await expect(menu).toBeVisible();
+      const controlBox = (await trigger.boundingBox())!;
+      const menuBox = (await menu.boundingBox())!;
       const header = (await sweep.locator('main > header.workspace-header').boundingBox())!;
-      if (popBox.left < -1 || popBox.right > width + 1 || popBox.bottom > height + 1) found.push(`${width}×${height}: grouping details outside the viewport`);
-      if (popBox.top < header.y + header.height - 1) found.push(`${width}×${height}: grouping details cover the header`);
-      if (popBox.top < controlBox.y - 1) found.push(`${width}×${height}: grouping details open above their control`);
+      if (menuBox.x < -1 || menuBox.x + menuBox.width > width + 1 || menuBox.y + menuBox.height > height + 1) found.push(`${width}×${height}: Group menu outside the viewport`);
+      if (menuBox.y < header.y + header.height - 1) found.push(`${width}×${height}: Group menu covers the header`);
+      if (menuBox.y < controlBox.y - 1) found.push(`${width}×${height}: Group menu opens above its button`);
       if (width === 390)
         await sweep.screenshot({
           path: '/tmp/workbench-grouping-popover-390.png',
         });
-      await sweep.locator('summary[aria-label="Grouping details"]').click();
-      await expect(pop).toHaveCount(0);
+      await sweep.keyboard.press('Escape');
+      await expect(menu).toHaveCount(0);
     }
     expect(found).toEqual([]);
   });
@@ -1483,7 +1487,7 @@ try {
       }
       // Graph toolbars keep their frequent controls to at most two rows: the rest is in a dialog.
       const toolbar = async (selector: string) => (await shellPage.locator(selector).boundingBox())!;
-      expect((await toolbar('.full-graph-tools')).height).toBeLessThanOrEqual(58);
+      expect((await toolbar('.full-graph-tools')).height).toBeLessThanOrEqual(phone ? 58 : 104);
       await shellPage.locator('.tabs').getByRole('button', { name: 'Neighborhood' }).click();
       await expect(shellPage.locator('.neighborhood-tools')).toBeVisible();
       expect((await toolbar('.neighborhood-tools')).height).toBeLessThanOrEqual(phone ? 58 : 104);

@@ -9,6 +9,8 @@ import { editorSelection, expectEditorValue, fillEditor } from './helpers/code-e
 import { inspect } from '../src/shared/core/model';
 import { groupRelationships } from '../src/app/graph/graph-view';
 import { expectModelName, exportFile } from './helpers/header';
+import { areaEntityTotal } from './helpers/overview-areas';
+import { chooseGrouping, groupTrigger, groupingMenuLabels, openGroupMenu } from './helpers/grouping-menu';
 import { LOCAL_READER } from '../src/server/projects/reader';
 
 const fixtures = [
@@ -40,10 +42,6 @@ async function check(name: string, action: () => Promise<void>) {
   await action();
   passed++;
   console.log('PASS', name);
-}
-async function groupingDetails() {
-  const details = page.locator('.grouping-details');
-  if (!(await details.evaluate(node => (node as HTMLDetailsElement).open))) await details.locator(':scope > summary').click();
 }
 async function graphReady() {
   await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60_000 });
@@ -86,7 +84,7 @@ const selectedText = (editor: Locator) => editorSelection(editor);
 async function attachmentFailureDetails() {
   await page.screenshot({ path: '/tmp/workbench-grouping-attachment-failure.png' });
   const state = await page.evaluate(() => ({
-    grouping: (document.querySelector('[aria-label="Group model by"]') as HTMLSelectElement)?.value,
+    grouping: document.querySelector('.grouping-trigger')?.textContent,
     status: document.querySelector('.full-graph-status')?.textContent,
     loading: document.querySelector('.full-graph-loading')?.textContent,
     viewport: document.querySelector('.react-flow__viewport')?.getAttribute('style'),
@@ -160,48 +158,40 @@ try {
   await expectModelName(page, 'Flights');
   await graphReady();
   await check('Flights grouping modes state provenance honestly and retain all graph connections', async () => {
-    const mode = page.getByLabel('Group model by', { exact: true });
-    // Flights declares no domains and no IRIs, so those modes are disabled with the reason.
-    await expect(mode.locator('option[value="declared"]')).toHaveJSProperty('disabled', true);
-    await expect(mode.locator('option[value="declared"]')).toContainText('No domains declared');
-    await expect(mode.locator('option[value="namespaces"]')).toHaveJSProperty('disabled', true);
-    await expect(mode.locator('option[value="namespaces"]')).toContainText('No IRIs declared');
-    await expect(mode.locator('option[value="example"]')).toHaveCount(0);
-    for (const value of ['suggested', 'types', 'auto']) {
-      await mode.selectOption(value);
+    // Flights declares no domains and no IRIs, so the menu does not list those ways at all.
+    expect(await groupingMenuLabels(page)).toEqual(['Suggested communities', 'Definition types', 'Automatic']);
+    await expect(page.getByRole('menuitemradio', { disabled: true })).toHaveCount(0);
+    for (const value of ['Suggested communities', 'Definition types', 'Automatic']) {
+      await chooseGrouping(page, value);
       await graphReady();
       await expect(page.locator('.full-graph-status')).toHaveAttribute('data-entity-count', '49');
       await expect(page.locator('.full-graph-status')).toHaveAttribute('data-relationship-count', '90');
-      await groupingDetails();
-      await expect(page.locator('.grouping-explanation')).toBeVisible();
       await attachedFlights();
       await allFlightsContained();
-      if (value === 'types') {
-        await expect(page.locator('.grouping-explanation')).toContainText(/type/i);
+      if (value === 'Definition types') {
+        await expect(groupTrigger(page)).toContainText(/type/i);
         await page.locator('.tabs').getByRole('button', { name: 'Overview', exact: true }).click();
         await expect(page.getByRole('button', { name: 'Business areas', exact: true })).toHaveCount(0);
-        await expect(page.locator('.area-entities button')).toHaveCount(49);
+        await expect(page.locator('.overview-grouping-note')).toContainText('Grouped by definition types');
+        expect(await areaEntityTotal(page)).toBe(49);
         await page.locator('.tabs').getByRole('button', { name: 'Graph', exact: true }).click();
         await graphReady();
       }
-      if (value === 'suggested') await expect(page.locator('.grouping-explanation')).toContainText(/suggest|infer|graph/i);
+      if (value === 'Suggested communities') await expect(groupTrigger(page)).toContainText(/suggest/i);
     }
     await unchangedExport('flights.ontology.yaml');
-    const details = page.locator('.grouping-details');
-    if (await details.evaluate(node => (node as HTMLDetailsElement).open)) await details.locator(':scope > summary').click();
     await page.getByRole('button', { name: 'Fit model', exact: true }).click();
     await allFlightsContained();
     await page.screenshot({ path: '/tmp/workbench-grouping-flights.png' });
   });
   await check('grouping corrections persist across views, documents and reload without rewriting source', async () => {
     const airport = inspect(originals.get('flights.ontology.yaml')!, 'flights.ontology.yaml').entities.find(entity => entity.name === 'Airport')!;
-    const mode = page.getByLabel('Group model by', { exact: true });
-    await mode.selectOption('types');
-    // After an explicit choice, Auto still names its own choice.
-    await expect(mode.locator('option[value="auto"]')).toHaveAttribute('title', 'Currently groups by related entities');
-    await mode.selectOption('suggested');
-    await groupingDetails();
-    await page.getByRole('button', { name: 'Adjust grouping…', exact: true }).click();
+    await chooseGrouping(page, 'Definition types');
+    // After an explicit choice, Automatic still names its own choice.
+    const menu = await openGroupMenu(page);
+    await expect(menu.getByRole('menuitemradio', { name: /^Automatic/ })).toContainText('Currently Suggested communities');
+    await menu.getByRole('menuitemradio', { name: /^Suggested communities/ }).click();
+    await (await openGroupMenu(page)).getByRole('button', { name: 'Adjust grouping…', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: 'Adjust grouping' });
     await expect(dialog).toBeVisible();
     await expect(dialog.getByRole('list', { name: 'Current groups' }).getByRole('listitem')).not.toHaveCount(0);
@@ -232,33 +222,34 @@ try {
   await check('UBL grouping provenance remains explicit and source exports remain unchanged', async () => {
     await page.getByRole('button', { name: 'ubl.ontology.yaml', exact: true }).click();
     await expectModelName(page, /UBL/);
+    await page.locator('.tabs').getByRole('button', { name: 'Graph', exact: true }).click();
+    await chooseGrouping(page, 'Curated example areas');
+    await expect(groupTrigger(page)).toContainText(/curated/i);
     await page.locator('.tabs').getByRole('button', { name: 'Overview', exact: true }).click();
-    const mode = page.getByLabel('Group model by', { exact: true });
-    await mode.selectOption('example');
-    await groupingDetails();
-    await expect(page.locator('.grouping-explanation')).toContainText(/example|curated|UBL/i);
-    await expect(page.locator('.area-entities button')).toHaveCount(45);
+    await expect(page.locator('.overview-grouping-note')).toContainText(/curated example areas/i);
+    expect(await areaEntityTotal(page)).toBe(45);
     await unchangedExport('ubl.ontology.yaml');
   });
   await check('contracts and semantic models group into communities; lineage cards carry the group tint', async () => {
     await page.getByRole('button', { name: 'ubl.odcs.yaml', exact: true }).click();
     await page.locator('.tabs').getByRole('button', { name: 'Graph', exact: true }).click();
-    const mode = page.getByLabel('Group model by', { exact: true });
-    await expect(mode).toBeVisible();
-    // The contract-level domain alone is not a grouping, and the contract has no IRIs.
-    await expect(mode.locator('option[value="declared"]')).toHaveJSProperty('disabled', true);
-    await expect(mode.locator('option[value="declared"]')).toContainText('Only the contract-level domain is declared');
-    await expect(mode.locator('option[value="namespaces"]')).toContainText('No IRIs declared');
-    await expect(mode.locator('option[value="auto"]')).toHaveAttribute('title', 'Currently groups by business areas');
-    await mode.selectOption('suggested');
+    await expect(groupTrigger(page)).toBeVisible();
+    // The contract-level domain alone is not a grouping, and the contract has no IRIs, so the menu leaves both out.
+    const labels = await groupingMenuLabels(page);
+    expect(labels).not.toContain('Declared domains');
+    expect(labels).not.toContain('IRI namespaces');
+    const menu = await openGroupMenu(page);
+    await expect(menu.getByRole('menuitemradio', { name: /^Automatic/ })).toContainText('Currently Curated example areas');
+    await menu.getByRole('menuitemradio', { name: /^Suggested communities/ }).click();
     const canvas = page.getByRole('region', { name: 'Lineage graph' });
     await expect(canvas.locator('.lineage-card.k-object[style*="--card-tint"]').first()).toBeVisible();
     await page.locator('.tabs').getByRole('button', { name: 'Overview', exact: true }).click();
     await expect.poll(() => page.locator('.business-area').count()).toBeGreaterThan(1);
     await unchangedExport('ubl.odcs.yaml');
     await page.getByRole('button', { name: 'mall.semantic.yaml', exact: true }).click();
+    await page.locator('.tabs').getByRole('button', { name: 'Graph', exact: true }).click();
+    await chooseGrouping(page, 'Suggested communities');
     await page.locator('.tabs').getByRole('button', { name: 'Overview', exact: true }).click();
-    await page.getByLabel('Group model by', { exact: true }).selectOption('suggested');
     await expect.poll(() => page.locator('.business-area').count()).toBeGreaterThan(1);
     await unchangedExport('mall.semantic.yaml');
     await page.screenshot({ path: '/tmp/workbench-grouping-semantic.png' });

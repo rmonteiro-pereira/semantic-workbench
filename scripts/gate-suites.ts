@@ -7,6 +7,7 @@ export const gateSuites: string[] = [
   'test:responsive',
   'test:edges',
   'test:grouping-validation',
+  'test:overview-areas',
   'test:examples:ui',
   'test:projects',
   'test:trash',

@@ -6,6 +6,7 @@ import { appUrl } from './helpers/base-url';
 import { chromium, expect } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { LOCAL_READER } from '../src/server/projects/reader';
+import { groupTrigger, openGroupMenu } from './helpers/grouping-menu';
 
 const api = await startIsolatedApi();
 const mall = await api.ws.loadExample('mall');
@@ -303,18 +304,20 @@ async function checkBackDoesNotSave() {
   });
   await openFile('mall.ontology.yaml').run();
   await openTab('Graph').run();
-  const select = page.getByLabel('Group model by');
-  const before = await select.inputValue();
-  const options = await select.locator('option:not([disabled])').evaluateAll(list => {
-    return list.map(option => (option as HTMLOptionElement).value);
-  });
-  const chosen = options.find(value => value !== before)!;
-  await select.selectOption(chosen);
+  const trigger = groupTrigger(page);
+  const before = await trigger.innerText();
+  const menu = await openGroupMenu(page);
+  const entries = await menu.getByRole('menuitemradio').allInnerTexts();
+  // Picks an entry that changes what the trigger says, so Back has something to restore.
+  const chosenEntry = entries.find(entry => !entry.startsWith('Automatic') && !before.endsWith(entry.split('\n')[0]))!;
+  await menu.getByRole('menuitemradio', { name: chosenEntry.split('\n')[0] }).click();
+  const chosen = await trigger.innerText();
+  expect(chosen).not.toBe(before);
   await expect.poll(() => groupingWrites.length).toBe(1);
   await page.goBack();
-  await expect(select).toHaveValue(before);
+  await expect(trigger).toHaveText(before);
   await page.goForward();
-  await expect(select).toHaveValue(chosen);
+  await expect(trigger).toHaveText(chosen);
   await page.waitForTimeout(POLL_MS);
   expect(groupingWrites, 'Back and Forward do not save the grouping').toHaveLength(1);
   console.log('GROUPING not saved by Back');

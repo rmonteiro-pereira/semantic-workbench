@@ -1,6 +1,7 @@
 // Checks workspace interactions in the browser using isolated example projects.
 import { LOCAL_READER } from '../src/server/projects/reader';
 import { appUrl } from './helpers/base-url';
+import { expectAreaEntityTotal } from './helpers/overview-areas';
 import { graphOptions, showEveryEntity, viewOptions } from './helpers/graph-options';
 import { chromium, expect } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
@@ -175,7 +176,7 @@ try {
   await check('full model shows all entities and every matrix count opens real relationships', async () => {
     await page.getByRole('button', { name: 'ubl.ontology.yaml', exact: true }).click();
     await page.locator('.tabs').getByRole('button', { name: 'Overview', exact: true }).click();
-    await expect(page.locator('.area-entities button')).toHaveCount(45);
+    await expectAreaEntityTotal(page, 45);
     await expect(page.locator('.business-area')).toHaveCount(8);
     await expect(page.locator('.inspector')).toHaveCount(0);
     await expect(page.locator('.model-overview .react-flow__edge')).toHaveCount(0);
@@ -184,7 +185,7 @@ try {
     await expect(page.locator('.area-entities .connected')).not.toHaveCount(0);
     await page.getByRole('button', { name: 'Close details', exact: true }).click();
     await expect(page.locator('.inspector')).toHaveCount(0);
-    await expect(page.locator('.area-entities button')).toHaveCount(45);
+    await expectAreaEntityTotal(page, 45);
     await page.getByRole('button', { name: 'Relationship matrix', exact: true }).click();
     const counts = await page.locator('.matrix-view td button').allTextContents();
     if (counts.reduce((n, v) => n + Number(v), 0) !== 277) throw Error('Matrix does not account for every relationship');
@@ -199,7 +200,7 @@ try {
     await page.getByPlaceholder('Find an entity…').fill('Shipment');
     await expect(page.locator('.area-entities button')).toHaveCount(1);
     await page.getByPlaceholder('Find an entity…').fill('');
-    await expect(page.locator('.area-entities button')).toHaveCount(45);
+    await expectAreaEntityTotal(page, 45);
     await page.screenshot({ path: '/tmp/workbench-ui-overview.png' });
     await page.locator('.tabs').getByRole('button', { name: 'Neighborhood', exact: true }).click();
     await expectNeighborhood();
@@ -235,7 +236,7 @@ try {
     await expect(page.locator('.inspector h2')).toHaveText('Order');
     await page.getByRole('button', { name: 'Close details', exact: true }).click();
     await page.locator('.tabs').getByRole('button', { name: 'Overview', exact: true }).click();
-    await expect(page.locator('.area-entities button')).toHaveCount(45);
+    await expectAreaEntityTotal(page, 45);
     await page.locator('.tabs').getByRole('button', { name: 'Neighborhood', exact: true }).click();
     await expectNeighborhood();
   });

@@ -2,14 +2,13 @@
 import { Box, FileCheck2, FileCode, Focus, Gauge, Layers, Network, Search } from 'lucide-react';
 import React from 'react';
 import type { KpiSummary } from '../../server/agent/explain';
-import { GroupingControls } from '../graph/GroupingControls';
 import type { Relationship } from '../../shared/core/model';
-import type { GroupingOptions, modelOverview } from '../graph/overview';
 import { ScrollStrip } from '../components/ScrollStrip';
 
 type Props = {
   tab: string;
   isContract: boolean;
+  lineageShown: boolean;
   setTab: (next: string) => void;
   setSearch: React.Dispatch<React.SetStateAction<string>>;
   showNeighborhood: (id?: string) => void;
@@ -19,15 +18,13 @@ type Props = {
   compact: boolean;
   closeWorkspace: () => void;
   kpis: KpiSummary[];
-  groupingOverview: ReturnType<typeof modelOverview> | null;
-  lineageShown: boolean;
-  grouping: { value: GroupingOptions; error: string; change: (value: GroupingOptions) => void };
   search: string;
 };
 /** Renders workspace toolbar. */
 export const WorkspaceToolbar = React.memo(function WorkspaceToolbar({
   tab,
   isContract,
+  lineageShown,
   setTab,
   setSearch,
   showNeighborhood,
@@ -37,9 +34,6 @@ export const WorkspaceToolbar = React.memo(function WorkspaceToolbar({
   compact,
   closeWorkspace,
   kpis,
-  groupingOverview,
-  lineageShown,
-  grouping,
   search,
 }: Props) {
   function handleButtonClick() {
@@ -56,9 +50,6 @@ export const WorkspaceToolbar = React.memo(function WorkspaceToolbar({
     if (compact) closeWorkspace();
   }
 
-  // Grouping applies to the entity graph, the overview and a contract's lineage canvas, not to
-  // the mapping canvas.
-  const groupingApplies = tab === 'overview' || (tab === 'fullgraph' && (!lineageShown || isContract));
   return (
     <>
       <div className="toolbar">
@@ -98,7 +89,6 @@ export const WorkspaceToolbar = React.memo(function WorkspaceToolbar({
             {kpis.length > 0 && <span className="tab-count">{kpis.length}</span>}
           </button>
         </ScrollStrip>
-        {groupingOverview && groupingApplies && <GroupingControls overview={groupingOverview} value={grouping.value} onChange={grouping.change} error={grouping.error} />}
         {/* The lineage canvas has its own Find assets. */}
         {!lineageShown && (
           <label className="search">
