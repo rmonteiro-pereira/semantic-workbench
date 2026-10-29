@@ -420,6 +420,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
     });
     if (repeatedIndex >= 0) {
       props.onWalkTo(repeatedIndex);
+      props.onStatus?.(`Everything connected to ${nameOf(from)} is already shown`);
       return;
     }
     const shownNodes = new Set(canvasNodes);

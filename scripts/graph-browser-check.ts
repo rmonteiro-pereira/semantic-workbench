@@ -224,6 +224,9 @@ try {
     await page.getByRole('radiogroup', { name: 'Pierce direction' }).getByRole('radio', { name: 'Outgoing' }).click();
     await pierce.click();
     await expect(page.locator('main > .status')).toHaveText('Everything connected to Party is already shown');
+    // Pressing it again on the identical view says the same thing instead of staying silent.
+    await pierce.click();
+    await expect(page.locator('main > .status')).toHaveText('Everything connected to Party is already shown');
   });
   await check('UBL OWL: the classes-only projection holds with and without a center; technical resources only on request', async () => {
     await openFile('ubl.owl.ttl');
