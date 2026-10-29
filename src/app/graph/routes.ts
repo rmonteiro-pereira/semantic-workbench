@@ -78,6 +78,11 @@ export function routePoints(source: Pos, target: Pos, edgeRoute: EdgeRoute): { p
 // the right (source) and left (target) edges at mid height.
 /** Records a positioned rectangle used for graph layout. */
 export type Box = { x: number; y: number; width: number; height: number };
+// Edges meeting one card side are spread this far apart (an arrowhead is 14 px wide) and stay this far from its corners.
+const END_SPACING = 14;
+const END_MARGIN = 10;
+/** The card height that keeps this many edge ends on one side at full spacing. */
+export const heightForEdgeEnds = (count: number) => Math.max(0, count - 1) * END_SPACING + 2 * END_MARGIN;
 /** Height of the nth self loop above a box. */
 const loopTop = (box: Box, index: number) => box.y - 14 - index * 10;
 
@@ -195,9 +200,9 @@ export function assignRoutes(edges: (Link & { id: string })[], boxes: Map<string
   const spread = (key: 'dyOut' | 'dyIn', ends: Map<string, { id: string; other: number }[]>) => {
     for (const [node, list] of ends) {
       const box = boxes.get(node)!;
-      const usable = Math.max(0, box.height / 2 - 14);
+      const usable = Math.max(0, box.height / 2 - END_MARGIN);
       list.sort((a, b) => a.other - b.other || a.id.localeCompare(b.id));
-      const step = list.length > 1 ? Math.min(14, (2 * usable) / (list.length - 1)) : 0;
+      const step = list.length > 1 ? Math.min(END_SPACING, (2 * usable) / (list.length - 1)) : 0;
       list.forEach((e, i) => {
         const r = routes.get(e.id);
         if (r) r[key] = (i - (list.length - 1) / 2) * step;
@@ -229,9 +234,9 @@ export function assignRoutes(edges: (Link & { id: string })[], boxes: Map<string
   const sideIn = new Map<string, number>();
   for (const [node, list] of outs) {
     const box = boxes.get(node)!;
-    const usable = Math.max(0, box.height / 2 - 14);
+    const usable = Math.max(0, box.height / 2 - END_MARGIN);
     list.sort((a, b) => a.other - b.other || a.id.localeCompare(b.id));
-    const step = list.length > 1 ? Math.min(14, (2 * usable) / (list.length - 1)) : 0;
+    const step = list.length > 1 ? Math.min(END_SPACING, (2 * usable) / (list.length - 1)) : 0;
     list.forEach((port, i) => {
       const dy = (i - (list.length - 1) / 2) * step;
       if (port.id.endsWith('#in')) sideIn.set(port.id.slice(0, -3), dy);

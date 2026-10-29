@@ -479,7 +479,7 @@ try {
     await graph().getByRole('listbox', { name: 'Asset results' }).getByRole('option').filter({ hasText: 'Column' }).filter({ hasText: 'invoice_line.line_extension_amount' }).first().click();
     await expect(graph().getByRole('region', { name: 'Selected path' })).toBeVisible();
     await graph().getByRole('button', { name: 'Show all connected' }).click();
-    await expect(graph().getByLabel('Walk', { exact: true })).toContainText('pierced line_extension_amount');
+    await expect(graph().getByLabel('Walk', { exact: true })).toContainText('All connected to line_extension_amount');
     await page.waitForTimeout(600);
     await fit();
     const ids = await graph()

@@ -9,7 +9,7 @@ import { ArrowLeft, ArrowRight, Maximize2, Minimize2, Scan, Search, X } from 'lu
 import { LineageLegend, type LegendKind } from '../graph/LineageLegend';
 import { edgeSvgStyle, type EdgeKind } from '../graph/edge-styles';
 import { walkReducer, emptyWalk, currentStep, canvasAt, reconcileWalk, type WalkAction } from '../graph/walk';
-import { canvasOf, registerSet, setsOf, type Direction } from '../graph/expansion';
+import { allConnectedLabel, canvasOf, registerSet, setsOf, type Direction } from '../graph/expansion';
 import { placeBoxes, type Box } from '../graph/incremental-layout';
 import { PIERCE_BUDGET, PIERCE_MAX } from '../graph/pierce';
 import { PierceBanner, PierceControls } from '../graph/PierceControls';
@@ -704,7 +704,7 @@ export function LineageCanvas({
             budget,
             steps: lineagePierceResult.steps,
           }),
-          `pierced ${start === from ? labelOf(from) : start.slice(start.lastIndexOf('/') + 1)}`,
+          allConnectedLabel(start === from ? labelOf(from) : start.slice(start.lastIndexOf('/') + 1)),
         ),
       );
     };

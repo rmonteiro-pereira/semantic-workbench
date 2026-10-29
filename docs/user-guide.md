@@ -299,8 +299,10 @@ returns the complete layout to view. A finite viewport cannot show unlimited ful
 
 Incoming neighbors appear left of the center; outgoing neighbors appear right. The initial view
 shows up to twelve neighbors, on a phone too, with a shown/hidden count and **N more neighbors**.
-Cards keep their type, description and metric count at every zoom, and **Labels** shows every
-relationship name when it is on.
+Cards keep their type (in words, such as "Entity type"), their whole description, wrapped to as many
+lines as it needs, and metric count at every zoom. Cards never overlap, links stop at the card border
+and never cross a card, and links that arrive at one card are spread along its side. **Labels** shows
+every relationship name when it is on.
 The picker ranks exact name matches first. Walking to a neighbor records a trail; Back, Forward
 and breadcrumbs restore earlier centers (see [Back and Forward](#back-and-forward)). **Continue in <file>** follows an explicitly shared
 identity into another project file and retains return navigation.
@@ -309,7 +311,8 @@ identity into another project file and retains return navigation.
 walk history remove or restore only that expansion's contribution. **Show all connected** follows
 Outgoing, Incoming or Both directions from the selection or center. It stops at 150 entities;
 frontier markers explain hidden reachable nodes. **Expand further** permits up to 500, and **Stop**
-cancels the worker operation. The same bounded traversal is used by lineage and mapping cards.
+cancels the worker operation. Each run is one trail step, "All connected to <name>"; repeating the
+same run goes back to that step, and a run that adds nothing new adds no step. The same bounded traversal is used by lineage and mapping cards.
 
 The toolbar filters neighbors by **Relationship** and switches **Links between neighbors**,
 **Technical resources**, **Labels**, **Value types** and **Metrics** on or off. **Re-arrange** puts

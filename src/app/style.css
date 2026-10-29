@@ -2869,6 +2869,10 @@ button.danger:hover {
 }
 .react-flow__node.neighborhood-node .node span {
   max-width: 100%;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .react-flow__node.neighborhood-node.center {
   border: 2px solid var(--color-accent);
