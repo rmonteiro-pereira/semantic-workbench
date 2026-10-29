@@ -12,9 +12,16 @@ const CARD_VERTICAL_SPACE = 20;
 const CARD_WIDTHS = [184, 224, 264, 304];
 const READABLE_NAME_PX = 16;
 
+const CAMEL_CASE_BOUNDARY = /([a-z])([A-Z])/g;
+
 /** The name as a card shows it: camel case and underscores become spaces. */
 export function shownName(name: string): string {
-  return name.replace(/([a-z])([A-Z])/g, '$1 $2').replaceAll('_', ' ');
+  return name.replace(CAMEL_CASE_BOUNDARY, '$1 $2').replaceAll('_', ' ');
+}
+
+/** A model kind in words a reader knows: "EntityType" becomes "Entity type", other kinds keep their wording. */
+export function kindWords(kind: string): string {
+  return kind.replace(CAMEL_CASE_BOUNDARY, (_match, before: string, after: string) => `${before} ${after.toLowerCase()}`);
 }
 
 /** How many lines the text takes in a box of this width at this font size. */

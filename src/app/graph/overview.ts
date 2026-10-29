@@ -16,6 +16,9 @@ export type GroupingOptions = {
 /** Whether a mode is offered for a document, how many groups it yields, and why it is disabled. */
 export type GroupingModeState = { offered: boolean; groups: number; reason?: string };
 
+/** The entities of one overview area, as the Catalog lists them after "Show all". */
+export type AreaFilter = { name: string; entityIds: string[] };
+
 /** The order in which Auto tries the modes; it takes the first that yields two or more groups. */
 export const GROUPING_ORDER: ConcreteGroupingMode[] = ['declared', 'example', 'namespaces', 'suggested', 'types'];
 

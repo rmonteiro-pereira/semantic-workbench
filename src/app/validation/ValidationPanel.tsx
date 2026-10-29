@@ -44,7 +44,7 @@ export function ValidationPanel({
               Validate as Ossie {OSSIE_SCHEMA_VERSION}
             </button>
           )}
-          <span>Syntax errors still show, because the file cannot be read without them.</span>
+          <span>Syntax and structure problems still show; only the Ossie schema was not checked.</span>
         </div>
       )}
       {!notValidated && (

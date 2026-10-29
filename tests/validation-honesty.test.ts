@@ -20,20 +20,32 @@ describe('bundled examples', () => {
 const ontologyWithBrokenReference = (version: string) => [`version: "${version}"`, 'name: ubl', 'ontology:', '  - concept: Order', '    iri: ubl:Order', '    extends: [Missing]', ''].join('\n');
 
 describe('an Ossie version the app has no schema for', () => {
-  test('is reported once as not validated, with no per-line findings', () => {
+  test('still gets the structural checks and carries one not-validated notice', () => {
     const result = validateInput(ontologyWithBrokenReference('0.3.1'), 'ubl.ontology.yaml');
+    expect(result.valid).toBe(false);
+    expect(result.issues.filter(issue => issue.code === 'not-validated')).toHaveLength(1);
+    expect(result.issues.some(issue => issue.code === 'reference')).toBe(true);
+    const notice = result.issues.find(issue => issue.code === 'not-validated')!;
+    expect(notice).toMatchObject({ severity: 'info', path: '/version' });
+    expect(notice.message).toBe(`Not validated — this app checks Ossie ${OSSIE_SCHEMA_VERSION}, the file says 0.3.1.`);
+  });
+
+  test('is valid with only the notice when its structure is sound', () => {
+    const result = validateInput('version: "0.3.1"\nname: ubl\nontology:\n  - concept: Order\n    type: EntityType\n', 'ubl.ontology.yaml');
     expect(result.valid).toBe(true);
-    expect(result.issues).toHaveLength(1);
-    expect(result.issues[0]).toMatchObject({ severity: 'info', code: 'not-validated' });
-    expect(result.issues[0]!.message).toBe(`Not validated — this app checks Ossie ${OSSIE_SCHEMA_VERSION}, the file says 0.3.1.`);
-    expect(result.issues[0]!.line).toBeUndefined();
+    expect(result.issues.map(issue => issue.code)).toEqual(['not-validated']);
   });
 
   test('says so when the file declares no version', () => {
     const source = ontologyWithBrokenReference('0.3.1').replace(/version: .*\n/, '');
     const result = validateInput(source, 'ubl.ontology.yaml');
-    expect(result.issues).toHaveLength(1);
-    expect(result.issues[0]!.message).toContain('the file declares no version');
+    expect(result.issues.find(issue => issue.code === 'not-validated')!.message).toContain('the file declares no version');
+  });
+
+  test('an unversioned file with an empty ontology is rejected', () => {
+    const result = validateInput('ontology: []', 'empty.ontology.yaml');
+    expect(result.valid).toBe(false);
+    expect(result.issues.some(issue => issue.path === '/ontology' && issue.severity === 'error')).toBe(true);
   });
 
   test('is checked against the shipped schema when the user asks for that', () => {

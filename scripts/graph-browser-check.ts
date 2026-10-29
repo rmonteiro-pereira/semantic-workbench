@@ -220,6 +220,10 @@ try {
     expect(kinds.some(kind => kind.includes('Entity type'))).toBe(true);
     expect(kinds.some(kind => kind.includes('EntityType'))).toBe(false);
     expect(await neighborhoodCardProblems(page)).toEqual([]);
+    // Everything reachable going outward is already on the canvas after the Both run, so the click says that instead of doing nothing.
+    await page.getByRole('radiogroup', { name: 'Pierce direction' }).getByRole('radio', { name: 'Outgoing' }).click();
+    await pierce.click();
+    await expect(page.locator('main > .status')).toHaveText('Everything connected to Party is already shown');
   });
   await check('UBL OWL: the classes-only projection holds with and without a center; technical resources only on request', async () => {
     await openFile('ubl.owl.ttl');

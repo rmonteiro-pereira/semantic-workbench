@@ -46,6 +46,9 @@ import { groupTrigger } from './helpers/grouping-menu';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { projectFile } from '../src/server/projects/paths';
 
+/** Space below the graph taken by the status line and margins, in pixels. */
+const GRAPH_BOTTOM_SLACK = 90;
+
 // Isolated API fixture: exercising viewport changes never modifies the local workspace. The UBL
 // ontology is imported first so that it opens first.
 const api = await startIsolatedApi();
@@ -331,8 +334,10 @@ try {
       expect(header!.height).toBeLessThanOrEqual(desktop ? 64 : 110);
       const graph = await page.locator('.react-flow').boundingBox();
       expect(graph).not.toBeNull();
-      // The graph tool row may wrap onto a second line now that it holds the whole Group button name, so a desktop window keeps a little less than before.
-      expect(graph!.height).toBeGreaterThan(height! * (desktop ? 0.6 : 0.55));
+      // The graph must fill what is left of the window below its tool row, which may wrap onto two lines.
+      const toolRow = await page.locator('.full-graph-tools').first().boundingBox();
+      const roomBelowToolRow = toolRow ? height! - (toolRow.y + toolRow.height) - GRAPH_BOTTOM_SLACK : height! * 0.55;
+      expect(graph!.height).toBeGreaterThanOrEqual(desktop ? roomBelowToolRow : height! * 0.55);
       expect(graph!.width).toBeGreaterThan(desktop ? width! * 0.5 : width! * 0.7);
       await noOverflow(page);
       await visibleGraph(page);

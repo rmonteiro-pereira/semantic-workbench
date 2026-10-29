@@ -1,5 +1,5 @@
 /** Provides keyboard-accessible menus that return focus to their trigger when closed. */
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import React, { useEffect, useId, useRef, useState, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
 import { placeSubmenu, placeMenu, submenuFits, type MenuPlacement, type MenuPreference, type Size } from './menu-position';
@@ -15,6 +15,8 @@ export type MenuItem = {
   hint?: string;
   /** A second line under the label, for items that need a short description. */
   detail?: string;
+  /** Makes the item one choice of a set: it is read as a radio item, and a check mark shows the chosen one. */
+  checked?: boolean;
   /** Draws a divider above this item, to start a new group. */
   separatorBefore?: boolean;
   /**
@@ -28,10 +30,10 @@ function menuHost(button: HTMLElement | null): HTMLElement {
   return button?.closest<HTMLElement>('dialog[open]') ?? document.body;
 }
 /** The item that takes focus when a menu or submenu opens. */
-const FIRST_ITEM = '[role=menuitem]:not([aria-disabled=true])';
+const FIRST_ITEM = '[role^=menuitem]:not([aria-disabled=true])';
 const MENU_FOCUS = { firstControl: FIRST_ITEM };
 /** The rows of one menu, without the rows of a submenu drawn beside it. */
-const OWN_ROWS = ':scope > [role=menuitem]';
+const OWN_ROWS = ':scope > [role^=menuitem]';
 
 /** The ids that tie a row to the submenu it shows beside the menu. */
 type SubmenuIds = { row: string; submenu: string };
@@ -50,7 +52,8 @@ function MenuRow({ item, openSubmenu, onChoose, onPoint }: RowProps) {
     <>
       {item.separatorBefore && <div role="separator" />}
       <button
-        role="menuitem"
+        role={item.checked === undefined ? 'menuitem' : 'menuitemradio'}
+        aria-checked={item.checked}
         id={openSubmenu?.row}
         aria-controls={openSubmenu?.submenu}
         tabIndex={-1}
@@ -62,7 +65,7 @@ function MenuRow({ item, openSubmenu, onChoose, onPoint }: RowProps) {
         onClick={event => onChoose(item, event.currentTarget)}
         onMouseEnter={event => onPoint?.(item, event.currentTarget)}
       >
-        {item.icon}
+        {item.checked === undefined ? item.icon : <Check size={16} aria-hidden className={item.checked ? undefined : 'menu-check-hidden'} />}
         <span>
           {item.label}
           {item.detail && <small>{item.detail}</small>}

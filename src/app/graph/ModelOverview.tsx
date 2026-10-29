@@ -1,6 +1,7 @@
 /** Displays model groups and their entities as a browsable catalog. */
 import { useRecordedState } from '../workspace/hooks/useRecordedState';
-import type { GroupingOptions } from './overview';
+import type { AreaFilter, GroupingOptions } from './overview';
+import { shownName } from './text-fit';
 import { useMemo, useState } from 'react';
 import { ArrowRight, Focus, Grid2X2, Layers, Search, X, Network } from 'lucide-react';
 import { modelOverview, usableGroupingModes } from './overview';
@@ -19,9 +20,6 @@ type Props = {
   /** Opens one area in the Catalog, filtered to its entities. */
   onShowArea: (area: AreaFilter) => void;
 };
-
-/** The entities of one overview area, as the Catalog lists them after "Show all". */
-export type AreaFilter = { name: string; entityIds: string[] };
 
 // A card lists this many entities; the rest are one click away in the Catalog, so no card grows
 // with the size of its area.
@@ -155,7 +153,7 @@ export function ModelOverview(props: Props) {
                         }}
                         className={[props.selected === entity.id ? 'selected' : '', connected.has(entity.id) ? 'connected' : '', focus && !connected.has(entity.id) ? 'muted' : ''].join(' ')}
                       >
-                        <span>{entity.name.replace(/([a-z])([A-Z])/g, '$1 $2').replaceAll('_', ' ')}</span>
+                        <span>{shownName(entity.name)}</span>
                         <small title="Declared relationships">{overview.degree.get(entity.id)}</small>
                       </button>
                     ))}

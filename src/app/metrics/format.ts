@@ -1,6 +1,7 @@
 /** Shares readable metric labels, formulas and targets between tables, details and graph badges. */
 import type { ConceptLink, KpiExplanation, KpiSummary } from '../../server/agent/explain';
 import { expressionRefs } from '../../shared/metrics/deps';
+import { shownName } from '../graph/text-fit';
 // Wording shared by the Metrics view, the metric detail and the graph badges.
 export const typeLabel: Record<KpiSummary['type'], string> = {
   simple: 'Simple',
@@ -27,7 +28,7 @@ export const conceptText = (links: ConceptLink[]) => {
   return [conceptLink ? (conceptLink.concept ?? conceptLink.input) : null, of ? `of ${of.concept ?? of.input}` : null].filter(Boolean).join(' ');
 };
 /** Converts an identifier into readable words. */
-export const humanize = (name: string) => name.replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2');
+export const humanize = shownName;
 // A metric expression as readable parts: governed metrics become their labels, NULLIF guards and
 // operators are shown as arithmetic. Anything else stays as written.
 /** Represents a metric reference, arithmetic operator or unchanged formula text. */

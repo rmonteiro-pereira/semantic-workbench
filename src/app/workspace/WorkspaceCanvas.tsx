@@ -1,7 +1,7 @@
 /** Presentation and event handling for workspace canvas. */
 import { Network } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-import type { AreaFilter } from '../graph/ModelOverview';
+import type { AreaFilter } from '../graph/overview';
 import type { KpiSummary } from '../../server/agent/explain';
 import type { Issue } from '../../shared/validation/diagnostics';
 import type { Path } from '../../shared/edit/item-model';
@@ -379,6 +379,7 @@ export function WorkspaceCanvas({
         handleNeighborhoodGraphOpenKpis={handleNeighborhoodGraphOpenKpis}
         crossFile={crossFile}
         crossTo={crossTo}
+        onStatus={setMessage}
       />
     );
   }

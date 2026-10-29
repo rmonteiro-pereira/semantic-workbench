@@ -150,8 +150,8 @@ check that happens to succeed.
 
 - `src/shared/core/model.ts` projects supported definitions into entities and relationships.
   `src/shared/validation/` owns input checks, diagnostics and RDF parsing; it validates Ossie files
-  against the one shipped schema version (`OSSIE_SCHEMA_VERSION`) and reports any other version as
-  "not validated". `shacl.ts` runs a shapes file, SPARQL constraints included, against a data file with
+  against the one shipped schema version (`OSSIE_SCHEMA_VERSION`); any other version gets the structural
+  checks and a "not validated" notice instead of the schema check. `shacl.ts` runs a shapes file, SPARQL constraints included, against a data file with
   the `shacl-engine` library, loaded on demand in the browser; `src/app/validation/ShaclCheck.tsx`
   lets the user pick the data file. `src/shared/odcs/foreign-keys.ts`
   resolves contract relationships. These modules are reused by browser and server logic.
@@ -219,7 +219,10 @@ check that happens to succeed.
   select sections; no general routing framework computes authorization in the browser.
 - `src/app/graph/` owns whole-model and neighborhood views, traversal, grouping projection, layout,
   workers, controls, name wrapping and shared edge appearance. `overview.ts` and `communities.ts`
-  decide display grouping, not standard semantics.
+  decide display grouping, not standard semantics. The Network layout runs on the main thread
+  (`network-layout.ts`; there is no network-layout worker), while ELK layered layout and routing stay
+  in workers. `text-fit.ts` sizes names, cards and tiles to show whole names and holds the shared
+  camel-case-to-words wording; `area-links.ts` summarises how areas link to each other for the tile text.
 - `src/app/odcs/lineage.ts` builds declared column dependencies; `LineageCanvas.tsx`, `LineageCard.tsx`
   and `LineageColumnList.tsx` draw row ports, selection and windowed column lists. Mapping canvases
   reuse this infrastructure with resolver-derived cards/lines.
