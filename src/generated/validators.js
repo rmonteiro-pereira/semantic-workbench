@@ -12,43 +12,20 @@ const generatedContract = (() => {
     type: 'object',
     properties: {
       version: { type: 'string', description: 'Current version of the data contract.' },
-      kind: {
-        type: 'string',
-        default: 'DataContract',
-        description: 'The kind of file this is. Valid value is `DataContract`.',
-        enum: ['DataContract'],
-      },
+      kind: { type: 'string', default: 'DataContract', description: 'The kind of file this is. Valid value is `DataContract`.', enum: ['DataContract'] },
       apiVersion: {
         type: 'string',
         default: 'v3.1.0',
         description: 'Version of the standard used to build data contract. Default value is v3.1.0.',
         enum: ['v3.1.0', 'v3.0.2', 'v3.0.1', 'v3.0.0', 'v2.2.2', 'v2.2.1', 'v2.2.0'],
       },
-      id: {
-        type: 'string',
-        description: 'A unique identifier used to reduce the risk of dataset name collisions, such as a UUID.',
-      },
+      id: { type: 'string', description: 'A unique identifier used to reduce the risk of dataset name collisions, such as a UUID.' },
       name: { type: 'string', description: 'Name of the data contract.' },
-      tenant: {
-        type: 'string',
-        description: 'Indicates the property the data is primarily associated with. Value is case insensitive.',
-      },
+      tenant: { type: 'string', description: 'Indicates the property the data is primarily associated with. Value is case insensitive.' },
       tags: { $ref: '#/$defs/Tags' },
-      status: {
-        type: 'string',
-        description: 'Current status of the dataset.',
-        examples: ['proposed', 'draft', 'active', 'deprecated', 'retired'],
-      },
-      servers: {
-        type: 'array',
-        description: 'List of servers where the datasets reside.',
-        items: { $ref: '#/$defs/Server' },
-      },
-      dataProduct: {
-        type: 'string',
-        description: 'The name of the data product. DEPRECATED since v3.1.0.',
-        deprecated: true,
-      },
+      status: { type: 'string', description: 'Current status of the dataset.', examples: ['proposed', 'draft', 'active', 'deprecated', 'retired'] },
+      servers: { type: 'array', description: 'List of servers where the datasets reside.', items: { $ref: '#/$defs/Server' } },
+      dataProduct: { type: 'string', description: 'The name of the data product. DEPRECATED since v3.1.0.', deprecated: true },
       description: {
         type: 'object',
         description: 'High level description of the dataset.',
@@ -60,24 +37,13 @@ const generatedContract = (() => {
           customProperties: { $ref: '#/$defs/CustomProperties' },
         },
       },
-      domain: {
-        type: 'string',
-        description: 'Name of the logical data domain.',
-        examples: ['imdb_ds_aggregate', 'receiver_profile_out', 'transaction_profile_out'],
-      },
-      schema: {
-        type: 'array',
-        description: 'A list of elements within the schema to be cataloged.',
-        items: { $ref: '#/$defs/SchemaObject' },
-      },
+      domain: { type: 'string', description: 'Name of the logical data domain.', examples: ['imdb_ds_aggregate', 'receiver_profile_out', 'transaction_profile_out'] },
+      schema: { type: 'array', description: 'A list of elements within the schema to be cataloged.', items: { $ref: '#/$defs/SchemaObject' } },
       support: { $ref: '#/$defs/Support' },
       price: { $ref: '#/$defs/Pricing' },
       team: {
         oneOf: [
-          {
-            $ref: '#/$defs/Team',
-            description: 'Team information object with members array (v3.1.0+).',
-          },
+          { $ref: '#/$defs/Team', description: 'Team information object with members array (v3.1.0+).' },
           {
             type: 'array',
             description:
@@ -87,16 +53,8 @@ const generatedContract = (() => {
           },
         ],
       },
-      roles: {
-        type: 'array',
-        description: 'A list of roles that will provide user access to the dataset.',
-        items: { $ref: '#/$defs/Role' },
-      },
-      slaDefaultElement: {
-        type: 'string',
-        description: 'DEPRECATED SINCE 3.1. WILL BE REMOVED IN ODCS 4.0. Element (using the element path notation) to do the checks on.',
-        deprecated: true,
-      },
+      roles: { type: 'array', description: 'A list of roles that will provide user access to the dataset.', items: { $ref: '#/$defs/Role' } },
+      slaDefaultElement: { type: 'string', description: 'DEPRECATED SINCE 3.1. WILL BE REMOVED IN ODCS 4.0. Element (using the element path notation) to do the checks on.', deprecated: true },
       slaProperties: {
         type: 'array',
         description: 'A list of key/value pairs for SLA specific properties. There is no limit on the type of properties (more details to come).',
@@ -104,21 +62,13 @@ const generatedContract = (() => {
       },
       authoritativeDefinitions: { $ref: '#/$defs/AuthoritativeDefinitions' },
       customProperties: { $ref: '#/$defs/CustomProperties' },
-      contractCreatedTs: {
-        type: 'string',
-        format: 'date-time',
-        description: 'Timestamp in UTC of when the data contract was created.',
-      },
+      contractCreatedTs: { type: 'string', format: 'date-time', description: 'Timestamp in UTC of when the data contract was created.' },
     },
     required: ['version', 'apiVersion', 'kind', 'id', 'status'],
     additionalProperties: false,
     unevaluatedProperties: false,
     $defs: {
-      ShorthandReference: {
-        type: 'string',
-        description: 'Shorthand notation using name fields (table_name.column_name)',
-        pattern: '^[A-Za-z_][A-Za-z0-9_\\-]*(\\.[A-Za-z_][A-Za-z0-9_\\-]*)+$',
-      },
+      ShorthandReference: { type: 'string', description: 'Shorthand notation using name fields (table_name.column_name)', pattern: '^[A-Za-z_][A-Za-z0-9_\\-]*(\\.[A-Za-z_][A-Za-z0-9_\\-]*)+$' },
       FullyQualifiedReference: {
         type: 'string',
         description: 'Fully qualified notation using id fields (section/id/properties/id), optionally prefixed with external file reference',
@@ -177,155 +127,45 @@ const generatedContract = (() => {
             ],
           },
           description: { type: 'string', description: 'Description of the server.' },
-          environment: {
-            type: 'string',
-            description: 'Environment of the server.',
-            examples: ['prod', 'preprod', 'dev', 'uat'],
-          },
-          roles: {
-            type: 'array',
-            description: 'List of roles that have access to the server.',
-            items: { $ref: '#/$defs/Role' },
-          },
+          environment: { type: 'string', description: 'Environment of the server.', examples: ['prod', 'preprod', 'dev', 'uat'] },
+          roles: { type: 'array', description: 'List of roles that have access to the server.', items: { $ref: '#/$defs/Role' } },
           customProperties: { $ref: '#/$defs/CustomProperties' },
         },
         allOf: [
-          {
-            if: { properties: { type: { const: 'api' } }, required: ['type'] },
-            then: { $ref: '#/$defs/ServerSource/ApiServer' },
-          },
-          {
-            if: { properties: { type: { const: 'athena' } }, required: ['type'] },
-            then: { $ref: '#/$defs/ServerSource/AthenaServer' },
-          },
-          {
-            if: { properties: { type: { const: 'azure' } }, required: ['type'] },
-            then: { $ref: '#/$defs/ServerSource/AzureServer' },
-          },
-          {
-            if: { properties: { type: { const: 'bigquery' } }, required: ['type'] },
-            then: { $ref: '#/$defs/ServerSource/BigQueryServer' },
-          },
-          {
-            if: { properties: { type: { const: 'clickhouse' } }, required: ['type'] },
-            then: { $ref: '#/$defs/ServerSource/ClickHouseServer' },
-          },
-          {
-            if: { properties: { type: { const: 'databricks' } }, required: ['type'] },
-            then: { $ref: '#/$defs/ServerSource/DatabricksServer' },
-          },
-          {
-            if: { properties: { type: { const: 'denodo' } }, required: ['type'] },
-            then: { $ref: '#/$defs/ServerSource/DenodoServer' },
-          },
-          {
-            if: { properties: { type: { const: 'dremio' } }, required: ['type'] },
-            then: { $ref: '#/$defs/ServerSource/DremioServer' },
-          },
-          {
-            if: { properties: { type: { const: 'duckdb' } }, required: ['type'] },
-            then: { $ref: '#/$defs/ServerSource/DuckdbServer' },
-          },
-          {
-            if: { properties: { type: { const: 'glue' } }, required: ['type'] },
-            then: { $ref: '#/$defs/ServerSource/GlueServer' },
-          },
-          {
-            if: { properties: { type: { const: 'cloudsql' } }, required: ['type'] },
-            then: { $ref: '#/$defs/ServerSource/GoogleCloudSqlServer' },
-          },
-          {
-            if: { properties: { type: { const: 'db2' } }, required: ['type'] },
-            then: { $ref: '#/$defs/ServerSource/IBMDB2Server' },
-          },
-          {
-            if: { properties: { type: { const: 'hive' } }, required: ['type'] },
-            then: { $ref: '#/$defs/ServerSource/HiveServer' },
-          },
-          {
-            if: { properties: { type: { const: 'impala' } }, required: ['type'] },
-            then: { $ref: '#/$defs/ServerSource/ImpalaServer' },
-          },
-          {
-            if: { properties: { type: { const: 'informix' } }, required: ['type'] },
-            then: { $ref: '#/$defs/ServerSource/InformixServer' },
-          },
-          {
-            if: { properties: { type: { const: 'zen' } }, required: ['type'] },
-            then: { $ref: '#/$defs/ServerSource/ZenServer' },
-          },
-          {
-            if: { properties: { type: { const: 'custom' } }, required: ['type'] },
-            then: { $ref: '#/$defs/ServerSource/CustomServer' },
-          },
-          {
-            if: { properties: { type: { const: 'kafka' } }, required: ['type'] },
-            then: { $ref: '#/$defs/ServerSource/KafkaServer' },
-          },
-          {
-            if: { properties: { type: { const: 'kinesis' } }, required: ['type'] },
-            then: { $ref: '#/$defs/ServerSource/KinesisServer' },
-          },
-          {
-            if: { properties: { type: { const: 'local' } }, required: ['type'] },
-            then: { $ref: '#/$defs/ServerSource/LocalServer' },
-          },
-          {
-            if: { properties: { type: { const: 'mysql' } }, required: ['type'] },
-            then: { $ref: '#/$defs/ServerSource/MySqlServer' },
-          },
-          {
-            if: { properties: { type: { const: 'oracle' } }, required: ['type'] },
-            then: { $ref: '#/$defs/ServerSource/OracleServer' },
-          },
-          {
-            if: { properties: { type: { const: 'postgresql' } }, required: ['type'] },
-            then: { $ref: '#/$defs/ServerSource/PostgresServer' },
-          },
-          {
-            if: { properties: { type: { const: 'postgres' } }, required: ['type'] },
-            then: { $ref: '#/$defs/ServerSource/PostgresServer' },
-          },
-          {
-            if: { properties: { type: { const: 'presto' } }, required: ['type'] },
-            then: { $ref: '#/$defs/ServerSource/PrestoServer' },
-          },
-          {
-            if: { properties: { type: { const: 'pubsub' } }, required: ['type'] },
-            then: { $ref: '#/$defs/ServerSource/PubSubServer' },
-          },
-          {
-            if: { properties: { type: { const: 'redshift' } }, required: ['type'] },
-            then: { $ref: '#/$defs/ServerSource/RedshiftServer' },
-          },
-          {
-            if: { properties: { type: { const: 's3' } }, required: ['type'] },
-            then: { $ref: '#/$defs/ServerSource/S3Server' },
-          },
-          {
-            if: { properties: { type: { const: 'sftp' } }, required: ['type'] },
-            then: { $ref: '#/$defs/ServerSource/SftpServer' },
-          },
-          {
-            if: { properties: { type: { const: 'snowflake' } }, required: ['type'] },
-            then: { $ref: '#/$defs/ServerSource/SnowflakeServer' },
-          },
-          {
-            if: { properties: { type: { const: 'sqlserver' } }, required: ['type'] },
-            then: { $ref: '#/$defs/ServerSource/SqlserverServer' },
-          },
-          {
-            if: { properties: { type: { const: 'synapse' } }, required: ['type'] },
-            then: { $ref: '#/$defs/ServerSource/SynapseServer' },
-          },
-          {
-            if: { properties: { type: { const: 'trino' } }, required: ['type'] },
-            then: { $ref: '#/$defs/ServerSource/TrinoServer' },
-          },
-          {
-            if: { properties: { type: { const: 'vertica' } }, required: ['type'] },
-            then: { $ref: '#/$defs/ServerSource/VerticaServer' },
-          },
+          { if: { properties: { type: { const: 'api' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/ApiServer' } },
+          { if: { properties: { type: { const: 'athena' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/AthenaServer' } },
+          { if: { properties: { type: { const: 'azure' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/AzureServer' } },
+          { if: { properties: { type: { const: 'bigquery' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/BigQueryServer' } },
+          { if: { properties: { type: { const: 'clickhouse' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/ClickHouseServer' } },
+          { if: { properties: { type: { const: 'databricks' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/DatabricksServer' } },
+          { if: { properties: { type: { const: 'denodo' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/DenodoServer' } },
+          { if: { properties: { type: { const: 'dremio' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/DremioServer' } },
+          { if: { properties: { type: { const: 'duckdb' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/DuckdbServer' } },
+          { if: { properties: { type: { const: 'glue' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/GlueServer' } },
+          { if: { properties: { type: { const: 'cloudsql' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/GoogleCloudSqlServer' } },
+          { if: { properties: { type: { const: 'db2' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/IBMDB2Server' } },
+          { if: { properties: { type: { const: 'hive' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/HiveServer' } },
+          { if: { properties: { type: { const: 'impala' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/ImpalaServer' } },
+          { if: { properties: { type: { const: 'informix' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/InformixServer' } },
+          { if: { properties: { type: { const: 'zen' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/ZenServer' } },
+          { if: { properties: { type: { const: 'custom' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/CustomServer' } },
+          { if: { properties: { type: { const: 'kafka' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/KafkaServer' } },
+          { if: { properties: { type: { const: 'kinesis' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/KinesisServer' } },
+          { if: { properties: { type: { const: 'local' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/LocalServer' } },
+          { if: { properties: { type: { const: 'mysql' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/MySqlServer' } },
+          { if: { properties: { type: { const: 'oracle' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/OracleServer' } },
+          { if: { properties: { type: { const: 'postgresql' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/PostgresServer' } },
+          { if: { properties: { type: { const: 'postgres' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/PostgresServer' } },
+          { if: { properties: { type: { const: 'presto' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/PrestoServer' } },
+          { if: { properties: { type: { const: 'pubsub' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/PubSubServer' } },
+          { if: { properties: { type: { const: 'redshift' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/RedshiftServer' } },
+          { if: { properties: { type: { const: 's3' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/S3Server' } },
+          { if: { properties: { type: { const: 'sftp' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/SftpServer' } },
+          { if: { properties: { type: { const: 'snowflake' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/SnowflakeServer' } },
+          { if: { properties: { type: { const: 'sqlserver' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/SqlserverServer' } },
+          { if: { properties: { type: { const: 'synapse' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/SynapseServer' } },
+          { if: { properties: { type: { const: 'trino' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/TrinoServer' } },
+          { if: { properties: { type: { const: 'vertica' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/VerticaServer' } },
         ],
         required: ['server', 'type'],
         unevaluatedProperties: false,
@@ -334,14 +174,7 @@ const generatedContract = (() => {
         ApiServer: {
           type: 'object',
           title: 'ApiServer',
-          properties: {
-            location: {
-              type: 'string',
-              format: 'uri',
-              description: 'The url to the API.',
-              examples: ['https://api.example.com/v1'],
-            },
-          },
+          properties: { location: { type: 'string', format: 'uri', description: 'The url to the API.', examples: ['https://api.example.com/v1'] } },
           required: ['location'],
         },
         AthenaServer: {
@@ -354,20 +187,9 @@ const generatedContract = (() => {
               description: 'Amazon Athena automatically stores query results and metadata information for each query that runs in a query result location that you can specify in Amazon S3.',
               examples: ['s3://my_storage_account_name/my_container/path'],
             },
-            schema: {
-              type: 'string',
-              description: 'Identify the schema in the data source in which your tables exist.',
-            },
-            catalog: {
-              type: 'string',
-              description: 'Identify the name of the Data Source, also referred to as a Catalog.',
-              default: 'awsdatacatalog',
-            },
-            regionName: {
-              type: 'string',
-              description: 'The region your AWS account uses.',
-              examples: ['eu-west-1'],
-            },
+            schema: { type: 'string', description: 'Identify the schema in the data source in which your tables exist.' },
+            catalog: { type: 'string', description: 'Identify the name of the Data Source, also referred to as a Catalog.', default: 'awsdatacatalog' },
+            regionName: { type: 'string', description: 'The region your AWS account uses.', examples: ['eu-west-1'] },
           },
           required: ['stagingDir', 'schema'],
         },
@@ -381,26 +203,15 @@ const generatedContract = (() => {
               description: 'Fully qualified path to Azure Blob Storage or Azure Data Lake Storage (ADLS), supports globs.',
               examples: ['az://my_storage_account_name.blob.core.windows.net/my_container/path/*.parquet', 'abfss://my_storage_account_name.dfs.core.windows.net/my_container_name/path/*.parquet'],
             },
-            format: {
-              type: 'string',
-              examples: ['parquet', 'delta', 'json', 'csv'],
-              description: 'File format.',
-            },
-            delimiter: {
-              type: 'string',
-              examples: ['new_line', 'array'],
-              description: 'Only for format = json. How multiple json documents are delimited within one file',
-            },
+            format: { type: 'string', examples: ['parquet', 'delta', 'json', 'csv'], description: 'File format.' },
+            delimiter: { type: 'string', examples: ['new_line', 'array'], description: 'Only for format = json. How multiple json documents are delimited within one file' },
           },
           required: ['location', 'format'],
         },
         BigQueryServer: {
           type: 'object',
           title: 'BigQueryServer',
-          properties: {
-            project: { type: 'string', description: 'The GCP project name.' },
-            dataset: { type: 'string', description: 'The GCP dataset name.' },
-          },
+          properties: { project: { type: 'string', description: 'The GCP project name.' }, dataset: { type: 'string', description: 'The GCP dataset name.' } },
           required: ['project', 'dataset'],
         },
         ClickHouseServer: {
@@ -417,11 +228,7 @@ const generatedContract = (() => {
           type: 'object',
           title: 'DatabricksServer',
           properties: {
-            host: {
-              type: 'string',
-              description: 'The Databricks host',
-              examples: ['dbc-abcdefgh-1234.cloud.databricks.com'],
-            },
+            host: { type: 'string', description: 'The Databricks host', examples: ['dbc-abcdefgh-1234.cloud.databricks.com'] },
             catalog: { type: 'string', description: 'The name of the Hive or Unity catalog' },
             schema: { type: 'string', description: 'The schema name in the catalog' },
           },
@@ -450,37 +257,17 @@ const generatedContract = (() => {
         DuckdbServer: {
           type: 'object',
           title: 'DuckdbServer',
-          properties: {
-            database: { type: 'string', description: 'Path to duckdb database file.' },
-            schema: { type: 'string', description: 'The name of the schema.' },
-          },
+          properties: { database: { type: 'string', description: 'Path to duckdb database file.' }, schema: { type: 'string', description: 'The name of the schema.' } },
           required: ['database'],
         },
         GlueServer: {
           type: 'object',
           title: 'GlueServer',
           properties: {
-            account: {
-              type: 'string',
-              description: 'The AWS Glue account',
-              examples: ['1234-5678-9012'],
-            },
-            database: {
-              type: 'string',
-              description: 'The AWS Glue database name',
-              examples: ['my_database'],
-            },
-            location: {
-              type: 'string',
-              format: 'uri',
-              description: 'The AWS S3 path. Must be in the form of a URL.',
-              examples: ['s3://datacontract-example-orders-latest/data/{model}'],
-            },
-            format: {
-              type: 'string',
-              description: 'The format of the files',
-              examples: ['parquet', 'csv', 'json', 'delta'],
-            },
+            account: { type: 'string', description: 'The AWS Glue account', examples: ['1234-5678-9012'] },
+            database: { type: 'string', description: 'The AWS Glue database name', examples: ['my_database'] },
+            location: { type: 'string', format: 'uri', description: 'The AWS S3 path. Must be in the form of a URL.', examples: ['s3://datacontract-example-orders-latest/data/{model}'] },
+            format: { type: 'string', description: 'The format of the files', examples: ['parquet', 'csv', 'json', 'delta'] },
           },
           required: ['account', 'database'],
         },
@@ -511,10 +298,7 @@ const generatedContract = (() => {
           title: 'HiveServer',
           properties: {
             host: { type: 'string', description: 'The host to the Hive server. ' },
-            port: {
-              type: 'integer',
-              description: 'The port to the Hive server. Defaults to 10000.',
-            },
+            port: { type: 'integer', description: 'The port to the Hive server. Defaults to 10000.' },
             database: { type: 'string', description: 'The name of the Hive database.' },
           },
           required: ['host', 'database'],
@@ -524,10 +308,7 @@ const generatedContract = (() => {
           title: 'ImpalaServer',
           properties: {
             host: { type: 'string', description: 'The host to the Impala server.' },
-            port: {
-              type: 'integer',
-              description: 'The port to the Impala server. Defaults to 21050.',
-            },
+            port: { type: 'integer', description: 'The port to the Impala server. Defaults to 21050.' },
             database: { type: 'string', description: 'The name of the Impala database.' },
           },
           required: ['host', 'database'],
@@ -537,10 +318,7 @@ const generatedContract = (() => {
           title: 'InformixServer',
           properties: {
             host: { type: 'string', description: 'The host to the Informix server. ' },
-            port: {
-              type: 'integer',
-              description: 'The port to the Informix server. Defaults to 9088.',
-            },
+            port: { type: 'integer', description: 'The port to the Informix server. Defaults to 9088.' },
             database: { type: 'string', description: 'The name of the database.' },
           },
           required: ['host', 'database'],
@@ -550,14 +328,8 @@ const generatedContract = (() => {
           title: 'ZenServer',
           properties: {
             host: { type: 'string', description: 'Hostname or IP address of the Zen server.' },
-            port: {
-              type: 'integer',
-              description: 'Zen server SQL connections port. Defaults to 1583.',
-            },
-            database: {
-              type: 'string',
-              description: 'Database name to connect to on the Zen server.',
-            },
+            port: { type: 'integer', description: 'Zen server SQL connections port. Defaults to 1583.' },
+            database: { type: 'string', description: 'Database name to connect to on the Zen server.' },
           },
           required: ['host', 'database'],
         },
@@ -575,10 +347,7 @@ const generatedContract = (() => {
             host: { type: 'string', description: 'Host name or IP address.' },
             location: { type: 'string', description: 'A URL to a location.', format: 'uri' },
             path: { type: 'string', description: 'Relative or absolute path to the data file(s).' },
-            port: {
-              type: 'integer',
-              description: 'Port to the server. No default value is assumed for custom servers.',
-            },
+            port: { type: 'integer', description: 'Port to the server. No default value is assumed for custom servers.' },
             project: { type: 'string', description: 'Project name.' },
             region: { type: 'string', description: 'Cloud region.' },
             regionName: { type: 'string', description: 'Region name.' },
@@ -595,12 +364,7 @@ const generatedContract = (() => {
           description: 'Kafka Server',
           properties: {
             host: { type: 'string', description: 'The bootstrap server of the kafka cluster.' },
-            format: {
-              type: 'string',
-              description: 'The format of the messages.',
-              examples: ['json', 'avro', 'protobuf', 'xml'],
-              default: 'json',
-            },
+            format: { type: 'string', description: 'The format of the messages.', examples: ['json', 'avro', 'protobuf', 'xml'], default: 'json' },
           },
           required: ['host'],
         },
@@ -610,27 +374,15 @@ const generatedContract = (() => {
           description: 'Kinesis Data Streams Server',
           properties: {
             region: { type: 'string', description: 'AWS region.', examples: ['eu-west-1'] },
-            format: {
-              type: 'string',
-              description: 'The format of the record',
-              examples: ['json', 'avro', 'protobuf'],
-            },
+            format: { type: 'string', description: 'The format of the record', examples: ['json', 'avro', 'protobuf'] },
           },
         },
         LocalServer: {
           type: 'object',
           title: 'LocalServer',
           properties: {
-            path: {
-              type: 'string',
-              description: 'The relative or absolute path to the data file(s).',
-              examples: ['./folder/data.parquet', './folder/*.parquet'],
-            },
-            format: {
-              type: 'string',
-              description: 'The format of the file(s)',
-              examples: ['json', 'parquet', 'delta', 'csv'],
-            },
+            path: { type: 'string', description: 'The relative or absolute path to the data file(s).', examples: ['./folder/data.parquet', './folder/*.parquet'] },
+            format: { type: 'string', description: 'The format of the file(s)', examples: ['json', 'parquet', 'delta', 'csv'] },
           },
           required: ['path', 'format'],
         },
@@ -648,21 +400,9 @@ const generatedContract = (() => {
           type: 'object',
           title: 'OracleServer',
           properties: {
-            host: {
-              type: 'string',
-              description: 'The host to the oracle server',
-              examples: ['localhost'],
-            },
-            port: {
-              type: 'integer',
-              description: 'The port to the oracle server.',
-              examples: [1523],
-            },
-            serviceName: {
-              type: 'string',
-              description: 'The name of the service.',
-              examples: ['service'],
-            },
+            host: { type: 'string', description: 'The host to the oracle server', examples: ['localhost'] },
+            port: { type: 'integer', description: 'The port to the oracle server.', examples: [1523] },
+            serviceName: { type: 'string', description: 'The name of the service.', examples: ['service'] },
           },
           required: ['host', 'port', 'serviceName'],
         },
@@ -681,30 +421,13 @@ const generatedContract = (() => {
           type: 'object',
           title: 'PrestoServer',
           properties: {
-            host: {
-              type: 'string',
-              description: 'The host to the Presto server',
-              examples: ['localhost:8080'],
-            },
-            catalog: {
-              type: 'string',
-              description: 'The name of the catalog.',
-              examples: ['postgres'],
-            },
-            schema: {
-              type: 'string',
-              description: 'The name of the schema.',
-              examples: ['public'],
-            },
+            host: { type: 'string', description: 'The host to the Presto server', examples: ['localhost:8080'] },
+            catalog: { type: 'string', description: 'The name of the catalog.', examples: ['postgres'] },
+            schema: { type: 'string', description: 'The name of the schema.', examples: ['public'] },
           },
           required: ['host'],
         },
-        PubSubServer: {
-          type: 'object',
-          title: 'PubSubServer',
-          properties: { project: { type: 'string', description: 'The GCP project name.' } },
-          required: ['project'],
-        },
+        PubSubServer: { type: 'object', title: 'PubSubServer', properties: { project: { type: 'string', description: 'The GCP project name.' } }, required: ['project'] },
         RedshiftServer: {
           type: 'object',
           title: 'RedshiftServer',
@@ -712,11 +435,7 @@ const generatedContract = (() => {
             host: { type: 'string', description: 'An optional string describing the server.' },
             database: { type: 'string', description: 'The name of the database.' },
             schema: { type: 'string', description: 'The name of the schema.' },
-            region: {
-              type: 'string',
-              description: 'AWS region of Redshift server.',
-              examples: ['us-east-1'],
-            },
+            region: { type: 'string', description: 'AWS region of Redshift server.', examples: ['us-east-1'] },
             account: { type: 'string', description: 'The account used by the server.' },
           },
           required: ['database', 'schema'],
@@ -725,28 +444,10 @@ const generatedContract = (() => {
           type: 'object',
           title: 'S3Server',
           properties: {
-            location: {
-              type: 'string',
-              format: 'uri',
-              description: 'S3 URL, starting with `s3://`',
-              examples: ['s3://datacontract-example-orders-latest/data/{model}/*.json'],
-            },
-            endpointUrl: {
-              type: 'string',
-              format: 'uri',
-              description: 'The server endpoint for S3-compatible servers.',
-              examples: ['https://minio.example.com'],
-            },
-            format: {
-              type: 'string',
-              examples: ['parquet', 'delta', 'json', 'csv'],
-              description: 'File format.',
-            },
-            delimiter: {
-              type: 'string',
-              examples: ['new_line', 'array'],
-              description: 'Only for format = json. How multiple json documents are delimited within one file',
-            },
+            location: { type: 'string', format: 'uri', description: 'S3 URL, starting with `s3://`', examples: ['s3://datacontract-example-orders-latest/data/{model}/*.json'] },
+            endpointUrl: { type: 'string', format: 'uri', description: 'The server endpoint for S3-compatible servers.', examples: ['https://minio.example.com'] },
+            format: { type: 'string', examples: ['parquet', 'delta', 'json', 'csv'], description: 'File format.' },
+            delimiter: { type: 'string', examples: ['new_line', 'array'], description: 'Only for format = json. How multiple json documents are delimited within one file' },
           },
           required: ['location'],
         },
@@ -754,23 +455,9 @@ const generatedContract = (() => {
           type: 'object',
           title: 'SftpServer',
           properties: {
-            location: {
-              type: 'string',
-              format: 'uri',
-              pattern: '^sftp://.*',
-              description: 'SFTP URL, starting with `sftp://`',
-              examples: ['sftp://123.123.12.123/{model}/*.json'],
-            },
-            format: {
-              type: 'string',
-              examples: ['parquet', 'delta', 'json', 'csv'],
-              description: 'File format.',
-            },
-            delimiter: {
-              type: 'string',
-              examples: ['new_line', 'array'],
-              description: 'Only for format = json. How multiple json documents are delimited within one file',
-            },
+            location: { type: 'string', format: 'uri', pattern: '^sftp://.*', description: 'SFTP URL, starting with `sftp://`', examples: ['sftp://123.123.12.123/{model}/*.json'] },
+            format: { type: 'string', examples: ['parquet', 'delta', 'json', 'csv'], description: 'File format.' },
+            delimiter: { type: 'string', examples: ['new_line', 'array'], description: 'Only for format = json. How multiple json documents are delimited within one file' },
           },
           required: ['location'],
         },
@@ -783,10 +470,7 @@ const generatedContract = (() => {
             account: { type: 'string', description: 'The Snowflake account used by the server.' },
             database: { type: 'string', description: 'The name of the database.' },
             schema: { type: 'string', description: 'The name of the schema.' },
-            warehouse: {
-              type: 'string',
-              description: 'The name of the cluster of resources that is a Snowflake virtual warehouse.',
-            },
+            warehouse: { type: 'string', description: 'The name of the cluster of resources that is a Snowflake virtual warehouse.' },
           },
           required: ['account', 'database', 'schema'],
         },
@@ -794,27 +478,10 @@ const generatedContract = (() => {
           type: 'object',
           title: 'SqlserverServer',
           properties: {
-            host: {
-              type: 'string',
-              description: 'The host to the database server',
-              examples: ['localhost'],
-            },
-            port: {
-              type: 'integer',
-              description: 'The port to the database server.',
-              default: 1433,
-              examples: [1433],
-            },
-            database: {
-              type: 'string',
-              description: 'The name of the database.',
-              examples: ['database'],
-            },
-            schema: {
-              type: 'string',
-              description: 'The name of the schema in the database.',
-              examples: ['dbo'],
-            },
+            host: { type: 'string', description: 'The host to the database server', examples: ['localhost'] },
+            port: { type: 'integer', description: 'The port to the database server.', default: 1433, examples: [1433] },
+            database: { type: 'string', description: 'The name of the database.', examples: ['database'] },
+            schema: { type: 'string', description: 'The name of the schema in the database.', examples: ['dbo'] },
           },
           required: ['host', 'database', 'schema'],
         },
@@ -834,16 +501,8 @@ const generatedContract = (() => {
           properties: {
             host: { type: 'string', description: 'The Trino host URL.', examples: ['localhost'] },
             port: { type: 'integer', description: 'The Trino port.' },
-            catalog: {
-              type: 'string',
-              description: 'The name of the catalog.',
-              examples: ['hive'],
-            },
-            schema: {
-              type: 'string',
-              description: 'The name of the schema in the database.',
-              examples: ['my_schema'],
-            },
+            catalog: { type: 'string', description: 'The name of the catalog.', examples: ['hive'] },
+            schema: { type: 'string', description: 'The name of the schema in the database.', examples: ['my_schema'] },
           },
           required: ['host', 'port', 'catalog', 'schema'],
         },
@@ -864,11 +523,7 @@ const generatedContract = (() => {
         properties: {
           id: { $ref: '#/$defs/StableId' },
           name: { type: 'string', description: 'Name of the element.' },
-          physicalType: {
-            type: 'string',
-            description: 'The physical element data type in the data source.',
-            examples: ['table', 'view', 'topic', 'file'],
-          },
+          physicalType: { type: 'string', description: 'The physical element data type in the data source.', examples: ['table', 'view', 'topic', 'file'] },
           description: { type: 'string', description: 'Description of the element.' },
           businessName: { type: 'string', description: 'The business name of the element.' },
           authoritativeDefinitions: { $ref: '#/$defs/AuthoritativeDefinitions' },
@@ -879,26 +534,10 @@ const generatedContract = (() => {
       SchemaObject: {
         type: 'object',
         properties: {
-          logicalType: {
-            type: 'string',
-            description: 'The logical element data type.',
-            enum: ['object'],
-          },
-          physicalName: {
-            type: 'string',
-            description: 'Physical name.',
-            examples: ['table_1_2_0'],
-          },
-          dataGranularityDescription: {
-            type: 'string',
-            description: 'Granular level of the data in the object.',
-            examples: ['Aggregation by country'],
-          },
-          properties: {
-            type: 'array',
-            description: 'A list of properties for the object.',
-            items: { $ref: '#/$defs/SchemaProperty' },
-          },
+          logicalType: { type: 'string', description: 'The logical element data type.', enum: ['object'] },
+          physicalName: { type: 'string', description: 'Physical name.', examples: ['table_1_2_0'] },
+          dataGranularityDescription: { type: 'string', description: 'Granular level of the data in the object.', examples: ['Aggregation by country'] },
+          properties: { type: 'array', description: 'A list of properties for the object.', items: { $ref: '#/$defs/SchemaProperty' } },
           relationships: {
             type: 'array',
             description: "A list of relationships to other properties. Each relationship must have 'from', 'to' and optionally 'type' field.",
@@ -913,45 +552,20 @@ const generatedContract = (() => {
       SchemaBaseProperty: {
         type: 'object',
         properties: {
-          primaryKey: {
-            type: 'boolean',
-            description: 'Boolean value specifying whether the element is primary or not. Default is false.',
-          },
+          primaryKey: { type: 'boolean', description: 'Boolean value specifying whether the element is primary or not. Default is false.' },
           primaryKeyPosition: {
             type: 'integer',
             default: -1,
             description:
               'If element is a primary key, the position of the primary key element. Starts from 1. Example of `account_id, name` being primary key columns, `account_id` has primaryKeyPosition 1 and `name` primaryKeyPosition 2. Default to -1.',
           },
-          logicalType: {
-            type: 'string',
-            description: 'The logical element data type.',
-            enum: ['string', 'date', 'timestamp', 'time', 'number', 'integer', 'object', 'array', 'boolean'],
-          },
-          logicalTypeOptions: {
-            type: 'object',
-            description: 'Additional optional metadata to describe the logical type.',
-          },
-          physicalType: {
-            type: 'string',
-            description: 'The physical element data type in the data source. For example, VARCHAR(2), DOUBLE, INT.',
-          },
+          logicalType: { type: 'string', description: 'The logical element data type.', enum: ['string', 'date', 'timestamp', 'time', 'number', 'integer', 'object', 'array', 'boolean'] },
+          logicalTypeOptions: { type: 'object', description: 'Additional optional metadata to describe the logical type.' },
+          physicalType: { type: 'string', description: 'The physical element data type in the data source. For example, VARCHAR(2), DOUBLE, INT.' },
           physicalName: { type: 'string', description: 'Physical name.', examples: ['col_str_a'] },
-          required: {
-            type: 'boolean',
-            default: false,
-            description: 'Indicates if the element may contain Null values; possible values are true and false. Default is false.',
-          },
-          unique: {
-            type: 'boolean',
-            default: false,
-            description: 'Indicates if the element contains unique values; possible values are true and false. Default is false.',
-          },
-          partitioned: {
-            type: 'boolean',
-            default: false,
-            description: 'Indicates if the element is partitioned; possible values are true and false.',
-          },
+          required: { type: 'boolean', default: false, description: 'Indicates if the element may contain Null values; possible values are true and false. Default is false.' },
+          unique: { type: 'boolean', default: false, description: 'Indicates if the element contains unique values; possible values are true and false. Default is false.' },
+          partitioned: { type: 'boolean', default: false, description: 'Indicates if the element is partitioned; possible values are true and false.' },
           partitionKeyPosition: {
             type: 'integer',
             default: -1,
@@ -969,29 +583,11 @@ const generatedContract = (() => {
             description:
               'The element name within the dataset that contains the encrypted element value. For example, unencrypted element `email_address` might have an encryptedName of `email_address_encrypt`.',
           },
-          transformSourceObjects: {
-            type: 'array',
-            description: 'List of objects in the data source used in the transformation.',
-            items: { type: 'string' },
-          },
-          transformLogic: {
-            type: 'string',
-            description: 'Logic used in the element transformation.',
-          },
-          transformDescription: {
-            type: 'string',
-            description: 'Describes the transform logic in very simple terms.',
-          },
-          examples: {
-            type: 'array',
-            description: 'List of sample element values.',
-            items: { $ref: '#/$defs/AnyType' },
-          },
-          criticalDataElement: {
-            type: 'boolean',
-            default: false,
-            description: 'True or false indicator; If element is considered a critical data element (CDE) then true else false.',
-          },
+          transformSourceObjects: { type: 'array', description: 'List of objects in the data source used in the transformation.', items: { type: 'string' } },
+          transformLogic: { type: 'string', description: 'Logic used in the element transformation.' },
+          transformDescription: { type: 'string', description: 'Describes the transform logic in very simple terms.' },
+          examples: { type: 'array', description: 'List of sample element values.', items: { $ref: '#/$defs/AnyType' } },
+          criticalDataElement: { type: 'boolean', default: false, description: 'True or false indicator; If element is considered a critical data element (CDE) then true else false.' },
           relationships: {
             type: 'array',
             description: "A list of relationships to other properties. When defined at property level, the 'from' field is implicit and should not be specified.",
@@ -1009,16 +605,8 @@ const generatedContract = (() => {
                   type: 'object',
                   additionalProperties: false,
                   properties: {
-                    minLength: {
-                      type: 'integer',
-                      minimum: 0,
-                      description: 'Minimum length of the string.',
-                    },
-                    maxLength: {
-                      type: 'integer',
-                      minimum: 0,
-                      description: 'Maximum length of the string.',
-                    },
+                    minLength: { type: 'integer', minimum: 0, description: 'Minimum length of the string.' },
+                    maxLength: { type: 'integer', minimum: 0, description: 'Maximum length of the string.' },
                     pattern: {
                       type: 'string',
                       description: 'Regular expression pattern to define valid value. Follows regular expression syntax from ECMA-262 (https://262.ecma-international.org/5.1/#sec-15.10.1).',
@@ -1047,31 +635,17 @@ const generatedContract = (() => {
                       description:
                         "Format of the date. Follows the format as prescribed by [JDK DateTimeFormatter](https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html). For example, format 'yyyy-MM-dd'.",
                     },
-                    exclusiveMaximum: {
-                      type: 'string',
-                      description: 'All values must be strictly less than this value (values < exclusiveMaximum).',
-                    },
-                    maximum: {
-                      type: 'string',
-                      description: 'All date values are less than or equal to this value (values <= maximum).',
-                    },
-                    exclusiveMinimum: {
-                      type: 'string',
-                      description: 'All values must be strictly greater than this value (values > exclusiveMinimum).',
-                    },
-                    minimum: {
-                      type: 'string',
-                      description: 'All date values are greater than or equal to this value (values >= minimum).',
-                    },
+                    exclusiveMaximum: { type: 'string', description: 'All values must be strictly less than this value (values < exclusiveMaximum).' },
+                    maximum: { type: 'string', description: 'All date values are less than or equal to this value (values <= maximum).' },
+                    exclusiveMinimum: { type: 'string', description: 'All values must be strictly greater than this value (values > exclusiveMinimum).' },
+                    minimum: { type: 'string', description: 'All date values are greater than or equal to this value (values >= minimum).' },
                   },
                 },
               },
             },
           },
           {
-            if: {
-              anyOf: [{ properties: { logicalType: { const: 'timestamp' } } }, { properties: { logicalType: { const: 'time' } } }],
-            },
+            if: { anyOf: [{ properties: { logicalType: { const: 'timestamp' } } }, { properties: { logicalType: { const: 'time' } } }] },
             then: {
               properties: {
                 logicalTypeOptions: {
@@ -1084,31 +658,12 @@ const generatedContract = (() => {
                       description:
                         "Format of the date. Follows the format as prescribed by [JDK DateTimeFormatter](https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html). For example, format 'yyyy-MM-dd'.",
                     },
-                    exclusiveMaximum: {
-                      type: 'string',
-                      description: 'All values must be strictly less than this value (values < exclusiveMaximum).',
-                    },
-                    maximum: {
-                      type: 'string',
-                      description: 'All date values are less than or equal to this value (values <= maximum).',
-                    },
-                    exclusiveMinimum: {
-                      type: 'string',
-                      description: 'All values must be strictly greater than this value (values > exclusiveMinimum).',
-                    },
-                    minimum: {
-                      type: 'string',
-                      description: 'All date values are greater than or equal to this value (values >= minimum).',
-                    },
-                    timezone: {
-                      type: 'boolean',
-                      description: 'Whether the timestamp defines the timezone or not. If true, timezone information is included in the timestamp.',
-                    },
-                    defaultTimezone: {
-                      type: 'string',
-                      description: 'The default timezone of the timestamp. If timezone is not defined, the default timezone UTC is used.',
-                      default: 'Etc/UTC',
-                    },
+                    exclusiveMaximum: { type: 'string', description: 'All values must be strictly less than this value (values < exclusiveMaximum).' },
+                    maximum: { type: 'string', description: 'All date values are less than or equal to this value (values <= maximum).' },
+                    exclusiveMinimum: { type: 'string', description: 'All values must be strictly greater than this value (values > exclusiveMinimum).' },
+                    minimum: { type: 'string', description: 'All date values are greater than or equal to this value (values >= minimum).' },
+                    timezone: { type: 'boolean', description: 'Whether the timestamp defines the timezone or not. If true, timezone information is included in the timestamp.' },
+                    defaultTimezone: { type: 'string', description: 'The default timezone of the timestamp. If timezone is not defined, the default timezone UTC is used.', default: 'Etc/UTC' },
                   },
                 },
               },
@@ -1122,27 +677,11 @@ const generatedContract = (() => {
                   type: 'object',
                   additionalProperties: false,
                   properties: {
-                    multipleOf: {
-                      type: 'number',
-                      exclusiveMinimum: 0,
-                      description: 'Values must be multiples of this number. For example, multiple of 5 has valid values 0, 5, 10, -5.',
-                    },
-                    maximum: {
-                      type: 'number',
-                      description: 'All values are less than or equal to this value (values <= maximum).',
-                    },
-                    exclusiveMaximum: {
-                      type: 'number',
-                      description: 'All values must be strictly less than this value (values < exclusiveMaximum).',
-                    },
-                    minimum: {
-                      type: 'number',
-                      description: 'All values are greater than or equal to this value (values >= minimum).',
-                    },
-                    exclusiveMinimum: {
-                      type: 'number',
-                      description: 'All values must be strictly greater than this value (values > exclusiveMinimum).',
-                    },
+                    multipleOf: { type: 'number', exclusiveMinimum: 0, description: 'Values must be multiples of this number. For example, multiple of 5 has valid values 0, 5, 10, -5.' },
+                    maximum: { type: 'number', description: 'All values are less than or equal to this value (values <= maximum).' },
+                    exclusiveMaximum: { type: 'number', description: 'All values must be strictly less than this value (values < exclusiveMaximum).' },
+                    minimum: { type: 'number', description: 'All values are greater than or equal to this value (values >= minimum).' },
+                    exclusiveMinimum: { type: 'number', description: 'All values must be strictly greater than this value (values > exclusiveMinimum).' },
                     format: {
                       type: 'string',
                       default: 'i32',
@@ -1162,33 +701,12 @@ const generatedContract = (() => {
                   type: 'object',
                   additionalProperties: false,
                   properties: {
-                    multipleOf: {
-                      type: 'number',
-                      exclusiveMinimum: 0,
-                      description: 'Values must be multiples of this number. For example, multiple of 5 has valid values 0, 5, 10, -5.',
-                    },
-                    maximum: {
-                      type: 'number',
-                      description: 'All values are less than or equal to this value (values <= maximum).',
-                    },
-                    exclusiveMaximum: {
-                      type: 'number',
-                      description: 'All values must be strictly less than this value (values < exclusiveMaximum).',
-                    },
-                    minimum: {
-                      type: 'number',
-                      description: 'All values are greater than or equal to this value (values >= minimum).',
-                    },
-                    exclusiveMinimum: {
-                      type: 'number',
-                      description: 'All values must be strictly greater than this value (values > exclusiveMinimum).',
-                    },
-                    format: {
-                      type: 'string',
-                      default: 'i32',
-                      description: 'Format of the value in terms of how many bits of space it can use (follows the Rust float types).',
-                      enum: ['f32', 'f64'],
-                    },
+                    multipleOf: { type: 'number', exclusiveMinimum: 0, description: 'Values must be multiples of this number. For example, multiple of 5 has valid values 0, 5, 10, -5.' },
+                    maximum: { type: 'number', description: 'All values are less than or equal to this value (values <= maximum).' },
+                    exclusiveMaximum: { type: 'number', description: 'All values must be strictly less than this value (values < exclusiveMaximum).' },
+                    minimum: { type: 'number', description: 'All values are greater than or equal to this value (values >= minimum).' },
+                    exclusiveMinimum: { type: 'number', description: 'All values must be strictly greater than this value (values > exclusiveMinimum).' },
+                    format: { type: 'string', default: 'i32', description: 'Format of the value in terms of how many bits of space it can use (follows the Rust float types).', enum: ['f32', 'f64'] },
                   },
                 },
               },
@@ -1202,31 +720,12 @@ const generatedContract = (() => {
                   type: 'object',
                   additionalProperties: false,
                   properties: {
-                    maxProperties: {
-                      type: 'integer',
-                      minimum: 0,
-                      description: 'Maximum number of properties.',
-                    },
-                    minProperties: {
-                      type: 'integer',
-                      minimum: 0,
-                      default: 0,
-                      description: 'Minimum number of properties.',
-                    },
-                    required: {
-                      type: 'array',
-                      items: { type: 'string' },
-                      minItems: 1,
-                      uniqueItems: true,
-                      description: 'Property names that are required to exist in the object.',
-                    },
+                    maxProperties: { type: 'integer', minimum: 0, description: 'Maximum number of properties.' },
+                    minProperties: { type: 'integer', minimum: 0, default: 0, description: 'Minimum number of properties.' },
+                    required: { type: 'array', items: { type: 'string' }, minItems: 1, uniqueItems: true, description: 'Property names that are required to exist in the object.' },
                   },
                 },
-                properties: {
-                  type: 'array',
-                  description: 'A list of properties for the object.',
-                  items: { $ref: '#/$defs/SchemaProperty' },
-                },
+                properties: { type: 'array', description: 'A list of properties for the object.', items: { $ref: '#/$defs/SchemaProperty' } },
               },
             },
           },
@@ -1238,50 +737,23 @@ const generatedContract = (() => {
                   type: 'object',
                   additionalProperties: false,
                   properties: {
-                    maxItems: {
-                      type: 'integer',
-                      minimum: 0,
-                      description: 'Maximum number of items.',
-                    },
-                    minItems: {
-                      type: 'integer',
-                      minimum: 0,
-                      default: 0,
-                      description: 'Minimum number of items',
-                    },
-                    uniqueItems: {
-                      type: 'boolean',
-                      default: false,
-                      description: 'If set to true, all items in the array are unique.',
-                    },
+                    maxItems: { type: 'integer', minimum: 0, description: 'Maximum number of items.' },
+                    minItems: { type: 'integer', minimum: 0, default: 0, description: 'Minimum number of items' },
+                    uniqueItems: { type: 'boolean', default: false, description: 'If set to true, all items in the array are unique.' },
                   },
                 },
-                items: {
-                  $ref: '#/$defs/SchemaItemProperty',
-                  description: 'List of items in an array (only applicable when `logicalType: array`).',
-                },
+                items: { $ref: '#/$defs/SchemaItemProperty', description: 'List of items in an array (only applicable when `logicalType: array`).' },
               },
             },
           },
         ],
         unevaluatedProperties: false,
       },
-      SchemaProperty: {
-        type: 'object',
-        $ref: '#/$defs/SchemaBaseProperty',
-        required: ['name'],
-        unevaluatedProperties: false,
-      },
+      SchemaProperty: { type: 'object', $ref: '#/$defs/SchemaBaseProperty', required: ['name'], unevaluatedProperties: false },
       SchemaItemProperty: {
         type: 'object',
         $ref: '#/$defs/SchemaBaseProperty',
-        properties: {
-          properties: {
-            type: 'array',
-            description: 'A list of properties for the object.',
-            items: { $ref: '#/$defs/SchemaProperty' },
-          },
-        },
+        properties: { properties: { type: 'array', description: 'A list of properties for the object.', items: { $ref: '#/$defs/SchemaProperty' } } },
         unevaluatedProperties: false,
       },
       Tags: {
@@ -1296,20 +768,9 @@ const generatedContract = (() => {
         properties: {
           id: { $ref: '#/$defs/StableId' },
           authoritativeDefinitions: { $ref: '#/$defs/AuthoritativeDefinitions' },
-          businessImpact: {
-            type: 'string',
-            description: 'Consequences of the rule failure.',
-            examples: ['operational', 'regulatory'],
-          },
-          customProperties: {
-            type: 'array',
-            description: 'Additional properties required for rule execution.',
-            items: { $ref: '#/$defs/CustomProperty' },
-          },
-          description: {
-            type: 'string',
-            description: 'Describe the quality check to be completed.',
-          },
+          businessImpact: { type: 'string', description: 'Consequences of the rule failure.', examples: ['operational', 'regulatory'] },
+          customProperties: { type: 'array', description: 'Additional properties required for rule execution.', items: { $ref: '#/$defs/CustomProperty' } },
+          description: { type: 'string', description: 'Describe the quality check to be completed.' },
           dimension: {
             type: 'string',
             description: 'The key performance indicator (KPI) or dimension for data quality.',
@@ -1317,21 +778,9 @@ const generatedContract = (() => {
           },
           method: { type: 'string', examples: ['reconciliation'] },
           name: { type: 'string', description: 'Name of the data quality check.' },
-          schedule: {
-            type: 'string',
-            description: 'Rule execution schedule details.',
-            examples: ['0 20 * * *'],
-          },
-          scheduler: {
-            type: 'string',
-            description: 'The name or type of scheduler used to start the data quality check.',
-            examples: ['cron'],
-          },
-          severity: {
-            type: 'string',
-            description: 'The severance of the quality rule.',
-            examples: ['info', 'warning', 'error'],
-          },
+          schedule: { type: 'string', description: 'Rule execution schedule details.', examples: ['0 20 * * *'] },
+          scheduler: { type: 'string', description: 'The name or type of scheduler used to start the data quality check.', examples: ['cron'] },
+          severity: { type: 'string', description: 'The severance of the quality rule.', examples: ['info', 'warning', 'error'] },
           tags: { $ref: '#/$defs/Tags' },
           type: {
             type: 'string',
@@ -1340,11 +789,7 @@ const generatedContract = (() => {
             enum: ['text', 'library', 'sql', 'custom'],
             default: 'library',
           },
-          unit: {
-            type: 'string',
-            description: 'Unit the rule is using, popular values are `rows` or `percent`, but any value is allowed.',
-            examples: ['rows', 'percent'],
-          },
+          unit: { type: 'string', description: 'Unit the rule is using, popular values are `rows` or `percent`, but any value is allowed.', examples: ['rows', 'percent'] },
         },
         allOf: [
           {
@@ -1356,78 +801,25 @@ const generatedContract = (() => {
             },
             then: { $ref: '#/$defs/DataQualityLibrary' },
           },
-          {
-            if: { properties: { type: { const: 'sql' } }, required: ['type'] },
-            then: { $ref: '#/$defs/DataQualitySql' },
-          },
-          {
-            if: { properties: { type: { const: 'custom' } }, required: ['type'] },
-            then: { $ref: '#/$defs/DataQualityCustom' },
-          },
+          { if: { properties: { type: { const: 'sql' } }, required: ['type'] }, then: { $ref: '#/$defs/DataQualitySql' } },
+          { if: { properties: { type: { const: 'custom' } }, required: ['type'] }, then: { $ref: '#/$defs/DataQualityCustom' } },
         ],
         unevaluatedProperties: false,
       },
-      DataQualityChecks: {
-        type: 'array',
-        description: 'Data quality rules with all the relevant information for rule setup and execution.',
-        items: { $ref: '#/$defs/DataQuality' },
-      },
+      DataQualityChecks: { type: 'array', description: 'Data quality rules with all the relevant information for rule setup and execution.', items: { $ref: '#/$defs/DataQuality' } },
       DataQualityOperators: {
         type: 'object',
         description: 'Common comparison operators for data quality checks.',
         oneOf: [
+          { properties: { mustBe: { description: "Must be equal to the value to be valid. When using numbers, it is equivalent to '='." } }, required: ['mustBe'] },
+          { properties: { mustNotBe: { description: "Must not be equal to the value to be valid. When using numbers, it is equivalent to '!='." } }, required: ['mustNotBe'] },
+          { properties: { mustBeGreaterThan: { type: 'number', description: "Must be greater than the value to be valid. It is equivalent to '>'." } }, required: ['mustBeGreaterThan'] },
           {
-            properties: {
-              mustBe: {
-                description: "Must be equal to the value to be valid. When using numbers, it is equivalent to '='.",
-              },
-            },
-            required: ['mustBe'],
-          },
-          {
-            properties: {
-              mustNotBe: {
-                description: "Must not be equal to the value to be valid. When using numbers, it is equivalent to '!='.",
-              },
-            },
-            required: ['mustNotBe'],
-          },
-          {
-            properties: {
-              mustBeGreaterThan: {
-                type: 'number',
-                description: "Must be greater than the value to be valid. It is equivalent to '>'.",
-              },
-            },
-            required: ['mustBeGreaterThan'],
-          },
-          {
-            properties: {
-              mustBeGreaterOrEqualTo: {
-                type: 'number',
-                description: "Must be greater than or equal to the value to be valid. It is equivalent to '>='.",
-              },
-            },
+            properties: { mustBeGreaterOrEqualTo: { type: 'number', description: "Must be greater than or equal to the value to be valid. It is equivalent to '>='." } },
             required: ['mustBeGreaterOrEqualTo'],
           },
-          {
-            properties: {
-              mustBeLessThan: {
-                type: 'number',
-                description: "Must be less than the value to be valid. It is equivalent to '<'.",
-              },
-            },
-            required: ['mustBeLessThan'],
-          },
-          {
-            properties: {
-              mustBeLessOrEqualTo: {
-                type: 'number',
-                description: "Must be less than or equal to the value to be valid. It is equivalent to '<='.",
-              },
-            },
-            required: ['mustBeLessOrEqualTo'],
-          },
+          { properties: { mustBeLessThan: { type: 'number', description: "Must be less than the value to be valid. It is equivalent to '<'." } }, required: ['mustBeLessThan'] },
+          { properties: { mustBeLessOrEqualTo: { type: 'number', description: "Must be less than or equal to the value to be valid. It is equivalent to '<='." } }, required: ['mustBeLessOrEqualTo'] },
           {
             properties: {
               mustBeBetween: {
@@ -1466,10 +858,7 @@ const generatedContract = (() => {
             enum: ['nullValues', 'missingValues', 'invalidValues', 'duplicateValues', 'rowCount'],
           },
           rule: { type: 'string', deprecated: true, description: 'Use metric instead' },
-          arguments: {
-            type: 'object',
-            description: 'Additional arguments for the metric, if needed.',
-          },
+          arguments: { type: 'object', description: 'Additional arguments for the metric, if needed.' },
         },
         required: ['metric'],
       },
@@ -1477,22 +866,14 @@ const generatedContract = (() => {
         type: 'object',
         allOf: [{ $ref: '#/$defs/DataQualityOperators' }],
         properties: {
-          query: {
-            type: 'string',
-            description: 'Query string that adheres to the dialect of the provided server.',
-            examples: ['SELECT COUNT(*) FROM ${table} WHERE ${column} IS NOT NULL'],
-          },
+          query: { type: 'string', description: 'Query string that adheres to the dialect of the provided server.', examples: ['SELECT COUNT(*) FROM ${table} WHERE ${column} IS NOT NULL'] },
         },
         required: ['query'],
       },
       DataQualityCustom: {
         type: 'object',
         properties: {
-          engine: {
-            type: 'string',
-            description: 'Name of the engine which executes the data quality checks.',
-            examples: ['soda', 'great-expectations', 'monte-carlo', 'dbt'],
-          },
+          engine: { type: 'string', description: 'Name of the engine which executes the data quality checks.', examples: ['soda', 'great-expectations', 'monte-carlo', 'dbt'] },
           implementation: { oneOf: [{ type: 'string' }, { type: 'object' }] },
         },
         required: ['engine', 'implementation'],
@@ -1511,44 +892,27 @@ const generatedContract = (() => {
               description: 'Type of definition for authority: v2.3 adds standard values: `businessDefinition`, `transformationImplementation`, `videoTutorial`, `tutorial`, and `implementation`.',
               examples: ['businessDefinition', 'transformationImplementation', 'videoTutorial', 'tutorial', 'implementation'],
             },
-            description: {
-              type: 'string',
-              description: 'Description of the authoritative definition for humans.',
-            },
+            description: { type: 'string', description: 'Description of the authoritative definition for humans.' },
           },
           required: ['url', 'type'],
           additionalProperties: false,
         },
       },
-      Support: {
-        type: 'array',
-        description: 'Top level for support channels.',
-        items: { $ref: '#/$defs/SupportItem' },
-      },
+      Support: { type: 'array', description: 'Top level for support channels.', items: { $ref: '#/$defs/SupportItem' } },
       SupportItem: {
         type: 'object',
         properties: {
           id: { $ref: '#/$defs/StableId' },
           channel: { type: 'string', description: 'Channel name or identifier.' },
-          url: {
-            type: 'string',
-            description: 'Access URL using normal [URL scheme](https://en.wikipedia.org/wiki/URL#Syntax) (https, mailto, etc.).',
-          },
+          url: { type: 'string', description: 'Access URL using normal [URL scheme](https://en.wikipedia.org/wiki/URL#Syntax) (https, mailto, etc.).' },
           description: { type: 'string', description: 'Description of the channel, free text.' },
           tool: {
             type: 'string',
             description: 'Name of the tool, value can be `email`, `slack`, `teams`, `discord`, `ticket`, `googlechat`, or `other`.',
             examples: ['email', 'slack', 'teams', 'discord', 'ticket', 'googlechat', 'other'],
           },
-          scope: {
-            type: 'string',
-            description: 'Scope can be: `interactive`, `announcements`, `issues`, `notifications`.',
-            examples: ['interactive', 'announcements', 'issues', 'notifications'],
-          },
-          invitationUrl: {
-            type: 'string',
-            description: 'Some tools uses invitation URL for requesting or subscribing. Follows the [URL scheme](https://en.wikipedia.org/wiki/URL#Syntax).',
-          },
+          scope: { type: 'string', description: 'Scope can be: `interactive`, `announcements`, `issues`, `notifications`.', examples: ['interactive', 'announcements', 'issues', 'notifications'] },
+          invitationUrl: { type: 'string', description: 'Some tools uses invitation URL for requesting or subscribing. Follows the [URL scheme](https://en.wikipedia.org/wiki/URL#Syntax).' },
           customProperties: { $ref: '#/$defs/CustomProperties' },
         },
         required: ['channel'],
@@ -1558,18 +922,9 @@ const generatedContract = (() => {
         type: 'object',
         properties: {
           id: { $ref: '#/$defs/StableId' },
-          priceAmount: {
-            type: 'number',
-            description: 'Subscription price per unit of measure in `priceUnit`.',
-          },
-          priceCurrency: {
-            type: 'string',
-            description: 'Currency of the subscription price in `price.priceAmount`.',
-          },
-          priceUnit: {
-            type: 'string',
-            description: 'The unit of measure for calculating cost. Examples megabyte, gigabyte.',
-          },
+          priceAmount: { type: 'number', description: 'Subscription price per unit of measure in `priceUnit`.' },
+          priceCurrency: { type: 'string', description: 'Currency of the subscription price in `price.priceAmount`.' },
+          priceUnit: { type: 'string', description: 'The unit of measure for calculating cost. Examples megabyte, gigabyte.' },
         },
         additionalProperties: false,
       },
@@ -1582,30 +937,12 @@ const generatedContract = (() => {
           username: { type: 'string', description: "The user's username or email." },
           name: { type: 'string', description: "The user's name." },
           description: { type: 'string', description: "The user's description." },
-          role: {
-            type: 'string',
-            description: "The user's job role; Examples might be owner, data steward. There is no limit on the role.",
-          },
-          dateIn: {
-            type: 'string',
-            format: 'date',
-            description: 'The date when the user joined the team.',
-          },
-          dateOut: {
-            type: 'string',
-            format: 'date',
-            description: 'The date when the user ceased to be part of the team.',
-          },
-          replacedByUsername: {
-            type: 'string',
-            description: 'The username of the user who replaced the previous user.',
-          },
+          role: { type: 'string', description: "The user's job role; Examples might be owner, data steward. There is no limit on the role." },
+          dateIn: { type: 'string', format: 'date', description: 'The date when the user joined the team.' },
+          dateOut: { type: 'string', format: 'date', description: 'The date when the user ceased to be part of the team.' },
+          replacedByUsername: { type: 'string', description: 'The username of the user who replaced the previous user.' },
           tags: { $ref: '#/$defs/Tags' },
-          customProperties: {
-            type: 'array',
-            description: 'Custom properties block.',
-            items: { $ref: '#/$defs/CustomProperty' },
-          },
+          customProperties: { type: 'array', description: 'Custom properties block.', items: { $ref: '#/$defs/CustomProperty' } },
           authoritativeDefinitions: { $ref: '#/$defs/AuthoritativeDefinitions' },
         },
         required: ['username'],
@@ -1618,17 +955,9 @@ const generatedContract = (() => {
           id: { $ref: '#/$defs/StableId' },
           name: { type: 'string', description: 'Team name.' },
           description: { type: 'string', description: 'Team description.' },
-          members: {
-            type: 'array',
-            description: 'List of members.',
-            items: { $ref: '#/$defs/TeamMember' },
-          },
+          members: { type: 'array', description: 'List of members.', items: { $ref: '#/$defs/TeamMember' } },
           tags: { $ref: '#/$defs/Tags' },
-          customProperties: {
-            type: 'array',
-            description: 'Custom properties block.',
-            items: { $ref: '#/$defs/CustomProperty' },
-          },
+          customProperties: { type: 'array', description: 'Custom properties block.', items: { $ref: '#/$defs/CustomProperty' } },
           authoritativeDefinitions: { $ref: '#/$defs/AuthoritativeDefinitions' },
         },
       },
@@ -1636,23 +965,11 @@ const generatedContract = (() => {
         type: 'object',
         properties: {
           id: { $ref: '#/$defs/StableId' },
-          role: {
-            type: 'string',
-            description: 'Name of the IAM role that provides access to the dataset.',
-          },
-          description: {
-            type: 'string',
-            description: 'Description of the IAM role and its permissions.',
-          },
+          role: { type: 'string', description: 'Name of the IAM role that provides access to the dataset.' },
+          description: { type: 'string', description: 'Description of the IAM role and its permissions.' },
           access: { type: 'string', description: 'The type of access provided by the IAM role.' },
-          firstLevelApprovers: {
-            type: 'string',
-            description: 'The name(s) of the first-level approver(s) of the role.',
-          },
-          secondLevelApprovers: {
-            type: 'string',
-            description: 'The name(s) of the second-level approver(s) of the role.',
-          },
+          firstLevelApprovers: { type: 'string', description: 'The name(s) of the first-level approver(s) of the role.' },
+          secondLevelApprovers: { type: 'string', description: 'The name(s) of the second-level approver(s) of the role.' },
           customProperties: { $ref: '#/$defs/CustomProperties' },
         },
         required: ['role'],
@@ -1662,97 +979,52 @@ const generatedContract = (() => {
         type: 'object',
         properties: {
           id: { $ref: '#/$defs/StableId' },
-          property: {
-            type: 'string',
-            description: 'Specific property in SLA, check the periodic table. May requires units (more details to come).',
-          },
+          property: { type: 'string', description: 'Specific property in SLA, check the periodic table. May requires units (more details to come).' },
           value: {
             anyOf: [{ type: 'string' }, { type: 'number' }, { type: 'integer' }, { type: 'boolean' }, { type: 'null' }],
             description: 'Agreement value. The label will change based on the property itself.',
           },
-          valueExt: {
-            $ref: '#/$defs/AnyNonCollectionType',
-            description: 'Extended agreement value. The label will change based on the property itself.',
-          },
-          unit: {
-            type: 'string',
-            description: '**d**, day, days for days; **y**, yr, years for years, etc. Units use the ISO standard.',
-          },
-          element: {
-            type: 'string',
-            description: 'Element(s) to check on. Multiple elements should be extremely rare and, if so, separated by commas.',
-          },
+          valueExt: { $ref: '#/$defs/AnyNonCollectionType', description: 'Extended agreement value. The label will change based on the property itself.' },
+          unit: { type: 'string', description: '**d**, day, days for days; **y**, yr, years for years, etc. Units use the ISO standard.' },
+          element: { type: 'string', description: 'Element(s) to check on. Multiple elements should be extremely rare and, if so, separated by commas.' },
           driver: {
             type: 'string',
             description: 'Describes the importance of the SLA from the list of: `regulatory`, `analytics`, or `operational`.',
             examples: ['regulatory', 'analytics', 'operational'],
           },
-          description: {
-            type: 'string',
-            description: 'Description of the SLA for humans.',
-            examples: ['99.9% of the time, data is available by 6 AM UTC'],
-          },
-          scheduler: {
-            type: 'string',
-            description: 'Name of the scheduler, can be cron or any tool your organization support.',
-            examples: ['cron'],
-          },
-          schedule: {
-            type: 'string',
-            description: 'Configuration information for the scheduling tool, for cron a possible value is 0 20 * * *.',
-            examples: ['0 20 * * *'],
-          },
+          description: { type: 'string', description: 'Description of the SLA for humans.', examples: ['99.9% of the time, data is available by 6 AM UTC'] },
+          scheduler: { type: 'string', description: 'Name of the scheduler, can be cron or any tool your organization support.', examples: ['cron'] },
+          schedule: { type: 'string', description: 'Configuration information for the scheduling tool, for cron a possible value is 0 20 * * *.', examples: ['0 20 * * *'] },
         },
         required: ['property', 'value'],
         additionalProperties: false,
       },
-      CustomProperties: {
-        type: 'array',
-        description: 'A list of key/value pairs for custom properties.',
-        items: { $ref: '#/$defs/CustomProperty' },
-      },
+      CustomProperties: { type: 'array', description: 'A list of key/value pairs for custom properties.', items: { $ref: '#/$defs/CustomProperty' } },
       CustomProperty: {
         type: 'object',
         properties: {
           id: { $ref: '#/$defs/StableId' },
-          property: {
-            type: 'string',
-            description: 'The name of the key. Names should be in camel case–the same as if they were permanent properties in the contract.',
-          },
+          property: { type: 'string', description: 'The name of the key. Names should be in camel case–the same as if they were permanent properties in the contract.' },
           value: { $ref: '#/$defs/AnyType', description: 'The value of the key.' },
           description: { type: 'string', description: 'Description of the custom property.' },
         },
         required: ['property', 'value'],
         additionalProperties: false,
       },
-      AnyType: {
-        anyOf: [{ type: 'string' }, { type: 'number' }, { type: 'integer' }, { type: 'boolean' }, { type: 'null' }, { type: 'array' }, { type: 'object' }],
-      },
-      AnyNonCollectionType: {
-        anyOf: [{ type: 'string' }, { type: 'number' }, { type: 'integer' }, { type: 'boolean' }, { type: 'null' }],
-      },
+      AnyType: { anyOf: [{ type: 'string' }, { type: 'number' }, { type: 'integer' }, { type: 'boolean' }, { type: 'null' }, { type: 'array' }, { type: 'object' }] },
+      AnyNonCollectionType: { anyOf: [{ type: 'string' }, { type: 'number' }, { type: 'integer' }, { type: 'boolean' }, { type: 'null' }] },
       RelationshipBase: {
         type: 'object',
         description: 'Base definition for relationships between properties, typically for foreign key constraints.',
         properties: {
-          type: {
-            type: 'string',
-            description: "The type of relationship. Defaults to 'foreignKey'.",
-            default: 'foreignKey',
-            enum: ['foreignKey'],
-          },
+          type: { type: 'string', description: "The type of relationship. Defaults to 'foreignKey'.", default: 'foreignKey', enum: ['foreignKey'] },
           from: {
             oneOf: [
-              {
-                anyOf: [{ $ref: '#/$defs/ShorthandReference' }, { $ref: '#/$defs/FullyQualifiedReference' }],
-                description: 'Source property reference using fully qualified or shorthand notation.',
-              },
+              { anyOf: [{ $ref: '#/$defs/ShorthandReference' }, { $ref: '#/$defs/FullyQualifiedReference' }], description: 'Source property reference using fully qualified or shorthand notation.' },
               {
                 type: 'array',
                 description: 'Array of source properties for composite keys.',
-                items: {
-                  anyOf: [{ $ref: '#/$defs/ShorthandReference' }, { $ref: '#/$defs/FullyQualifiedReference' }],
-                },
+                items: { anyOf: [{ $ref: '#/$defs/ShorthandReference' }, { $ref: '#/$defs/FullyQualifiedReference' }] },
                 minItems: 1,
               },
             ],
@@ -1760,16 +1032,11 @@ const generatedContract = (() => {
           },
           to: {
             oneOf: [
-              {
-                anyOf: [{ $ref: '#/$defs/ShorthandReference' }, { $ref: '#/$defs/FullyQualifiedReference' }],
-                description: 'Target property reference using fully qualified or shorthand notation.',
-              },
+              { anyOf: [{ $ref: '#/$defs/ShorthandReference' }, { $ref: '#/$defs/FullyQualifiedReference' }], description: 'Target property reference using fully qualified or shorthand notation.' },
               {
                 type: 'array',
                 description: 'Array of target properties for composite keys.',
-                items: {
-                  anyOf: [{ $ref: '#/$defs/ShorthandReference' }, { $ref: '#/$defs/FullyQualifiedReference' }],
-                },
+                items: { anyOf: [{ $ref: '#/$defs/ShorthandReference' }, { $ref: '#/$defs/FullyQualifiedReference' }] },
                 minItems: 1,
               },
             ],
@@ -1786,16 +1053,10 @@ const generatedContract = (() => {
           { required: ['from', 'to'] },
           {
             oneOf: [
-              {
-                description: 'Single-column relationship - both fields must be strings',
-                properties: { from: { type: 'string' }, to: { type: 'string' } },
-              },
+              { description: 'Single-column relationship - both fields must be strings', properties: { from: { type: 'string' }, to: { type: 'string' } } },
               {
                 description: 'Composite key relationship - both fields must be arrays with matching lengths',
-                properties: {
-                  from: { type: 'array', items: { type: 'string' }, minItems: 1 },
-                  to: { type: 'array', items: { type: 'string' }, minItems: 1 },
-                },
+                properties: { from: { type: 'array', items: { type: 'string' }, minItems: 1 }, to: { type: 'array', items: { type: 'string' }, minItems: 1 } },
               },
             ],
           },
@@ -1808,17 +1069,11 @@ const generatedContract = (() => {
         allOf: [
           { $ref: '#/$defs/RelationshipBase' },
           { type: 'object', required: ['to'] },
-          {
-            not: { required: ['from'] },
-            description: "The 'from' field must not be specified at property level as it is implicitly derived from the property context",
-          },
+          { not: { required: ['from'] }, description: "The 'from' field must not be specified at property level as it is implicitly derived from the property context" },
         ],
         unevaluatedProperties: false,
       },
-      Relationship: {
-        description: 'Compatibility wrapper for relationship definitions.',
-        oneOf: [{ $ref: '#/$defs/RelationshipSchemaLevel' }, { $ref: '#/$defs/RelationshipPropertyLevel' }],
-      },
+      Relationship: { description: 'Compatibility wrapper for relationship definitions.', oneOf: [{ $ref: '#/$defs/RelationshipSchemaLevel' }, { $ref: '#/$defs/RelationshipPropertyLevel' }] },
     },
   };
   const odcsContractTagsSchema = {
@@ -1876,155 +1131,45 @@ const generatedContract = (() => {
         ],
       },
       description: { type: 'string', description: 'Description of the server.' },
-      environment: {
-        type: 'string',
-        description: 'Environment of the server.',
-        examples: ['prod', 'preprod', 'dev', 'uat'],
-      },
-      roles: {
-        type: 'array',
-        description: 'List of roles that have access to the server.',
-        items: { $ref: '#/$defs/Role' },
-      },
+      environment: { type: 'string', description: 'Environment of the server.', examples: ['prod', 'preprod', 'dev', 'uat'] },
+      roles: { type: 'array', description: 'List of roles that have access to the server.', items: { $ref: '#/$defs/Role' } },
       customProperties: { $ref: '#/$defs/CustomProperties' },
     },
     allOf: [
-      {
-        if: { properties: { type: { const: 'api' } }, required: ['type'] },
-        then: { $ref: '#/$defs/ServerSource/ApiServer' },
-      },
-      {
-        if: { properties: { type: { const: 'athena' } }, required: ['type'] },
-        then: { $ref: '#/$defs/ServerSource/AthenaServer' },
-      },
-      {
-        if: { properties: { type: { const: 'azure' } }, required: ['type'] },
-        then: { $ref: '#/$defs/ServerSource/AzureServer' },
-      },
-      {
-        if: { properties: { type: { const: 'bigquery' } }, required: ['type'] },
-        then: { $ref: '#/$defs/ServerSource/BigQueryServer' },
-      },
-      {
-        if: { properties: { type: { const: 'clickhouse' } }, required: ['type'] },
-        then: { $ref: '#/$defs/ServerSource/ClickHouseServer' },
-      },
-      {
-        if: { properties: { type: { const: 'databricks' } }, required: ['type'] },
-        then: { $ref: '#/$defs/ServerSource/DatabricksServer' },
-      },
-      {
-        if: { properties: { type: { const: 'denodo' } }, required: ['type'] },
-        then: { $ref: '#/$defs/ServerSource/DenodoServer' },
-      },
-      {
-        if: { properties: { type: { const: 'dremio' } }, required: ['type'] },
-        then: { $ref: '#/$defs/ServerSource/DremioServer' },
-      },
-      {
-        if: { properties: { type: { const: 'duckdb' } }, required: ['type'] },
-        then: { $ref: '#/$defs/ServerSource/DuckdbServer' },
-      },
-      {
-        if: { properties: { type: { const: 'glue' } }, required: ['type'] },
-        then: { $ref: '#/$defs/ServerSource/GlueServer' },
-      },
-      {
-        if: { properties: { type: { const: 'cloudsql' } }, required: ['type'] },
-        then: { $ref: '#/$defs/ServerSource/GoogleCloudSqlServer' },
-      },
-      {
-        if: { properties: { type: { const: 'db2' } }, required: ['type'] },
-        then: { $ref: '#/$defs/ServerSource/IBMDB2Server' },
-      },
-      {
-        if: { properties: { type: { const: 'hive' } }, required: ['type'] },
-        then: { $ref: '#/$defs/ServerSource/HiveServer' },
-      },
-      {
-        if: { properties: { type: { const: 'impala' } }, required: ['type'] },
-        then: { $ref: '#/$defs/ServerSource/ImpalaServer' },
-      },
-      {
-        if: { properties: { type: { const: 'informix' } }, required: ['type'] },
-        then: { $ref: '#/$defs/ServerSource/InformixServer' },
-      },
-      {
-        if: { properties: { type: { const: 'zen' } }, required: ['type'] },
-        then: { $ref: '#/$defs/ServerSource/ZenServer' },
-      },
-      {
-        if: { properties: { type: { const: 'custom' } }, required: ['type'] },
-        then: { $ref: '#/$defs/ServerSource/CustomServer' },
-      },
-      {
-        if: { properties: { type: { const: 'kafka' } }, required: ['type'] },
-        then: { $ref: '#/$defs/ServerSource/KafkaServer' },
-      },
-      {
-        if: { properties: { type: { const: 'kinesis' } }, required: ['type'] },
-        then: { $ref: '#/$defs/ServerSource/KinesisServer' },
-      },
-      {
-        if: { properties: { type: { const: 'local' } }, required: ['type'] },
-        then: { $ref: '#/$defs/ServerSource/LocalServer' },
-      },
-      {
-        if: { properties: { type: { const: 'mysql' } }, required: ['type'] },
-        then: { $ref: '#/$defs/ServerSource/MySqlServer' },
-      },
-      {
-        if: { properties: { type: { const: 'oracle' } }, required: ['type'] },
-        then: { $ref: '#/$defs/ServerSource/OracleServer' },
-      },
-      {
-        if: { properties: { type: { const: 'postgresql' } }, required: ['type'] },
-        then: { $ref: '#/$defs/ServerSource/PostgresServer' },
-      },
-      {
-        if: { properties: { type: { const: 'postgres' } }, required: ['type'] },
-        then: { $ref: '#/$defs/ServerSource/PostgresServer' },
-      },
-      {
-        if: { properties: { type: { const: 'presto' } }, required: ['type'] },
-        then: { $ref: '#/$defs/ServerSource/PrestoServer' },
-      },
-      {
-        if: { properties: { type: { const: 'pubsub' } }, required: ['type'] },
-        then: { $ref: '#/$defs/ServerSource/PubSubServer' },
-      },
-      {
-        if: { properties: { type: { const: 'redshift' } }, required: ['type'] },
-        then: { $ref: '#/$defs/ServerSource/RedshiftServer' },
-      },
-      {
-        if: { properties: { type: { const: 's3' } }, required: ['type'] },
-        then: { $ref: '#/$defs/ServerSource/S3Server' },
-      },
-      {
-        if: { properties: { type: { const: 'sftp' } }, required: ['type'] },
-        then: { $ref: '#/$defs/ServerSource/SftpServer' },
-      },
-      {
-        if: { properties: { type: { const: 'snowflake' } }, required: ['type'] },
-        then: { $ref: '#/$defs/ServerSource/SnowflakeServer' },
-      },
-      {
-        if: { properties: { type: { const: 'sqlserver' } }, required: ['type'] },
-        then: { $ref: '#/$defs/ServerSource/SqlserverServer' },
-      },
-      {
-        if: { properties: { type: { const: 'synapse' } }, required: ['type'] },
-        then: { $ref: '#/$defs/ServerSource/SynapseServer' },
-      },
-      {
-        if: { properties: { type: { const: 'trino' } }, required: ['type'] },
-        then: { $ref: '#/$defs/ServerSource/TrinoServer' },
-      },
-      {
-        if: { properties: { type: { const: 'vertica' } }, required: ['type'] },
-        then: { $ref: '#/$defs/ServerSource/VerticaServer' },
-      },
+      { if: { properties: { type: { const: 'api' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/ApiServer' } },
+      { if: { properties: { type: { const: 'athena' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/AthenaServer' } },
+      { if: { properties: { type: { const: 'azure' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/AzureServer' } },
+      { if: { properties: { type: { const: 'bigquery' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/BigQueryServer' } },
+      { if: { properties: { type: { const: 'clickhouse' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/ClickHouseServer' } },
+      { if: { properties: { type: { const: 'databricks' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/DatabricksServer' } },
+      { if: { properties: { type: { const: 'denodo' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/DenodoServer' } },
+      { if: { properties: { type: { const: 'dremio' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/DremioServer' } },
+      { if: { properties: { type: { const: 'duckdb' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/DuckdbServer' } },
+      { if: { properties: { type: { const: 'glue' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/GlueServer' } },
+      { if: { properties: { type: { const: 'cloudsql' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/GoogleCloudSqlServer' } },
+      { if: { properties: { type: { const: 'db2' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/IBMDB2Server' } },
+      { if: { properties: { type: { const: 'hive' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/HiveServer' } },
+      { if: { properties: { type: { const: 'impala' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/ImpalaServer' } },
+      { if: { properties: { type: { const: 'informix' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/InformixServer' } },
+      { if: { properties: { type: { const: 'zen' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/ZenServer' } },
+      { if: { properties: { type: { const: 'custom' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/CustomServer' } },
+      { if: { properties: { type: { const: 'kafka' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/KafkaServer' } },
+      { if: { properties: { type: { const: 'kinesis' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/KinesisServer' } },
+      { if: { properties: { type: { const: 'local' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/LocalServer' } },
+      { if: { properties: { type: { const: 'mysql' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/MySqlServer' } },
+      { if: { properties: { type: { const: 'oracle' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/OracleServer' } },
+      { if: { properties: { type: { const: 'postgresql' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/PostgresServer' } },
+      { if: { properties: { type: { const: 'postgres' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/PostgresServer' } },
+      { if: { properties: { type: { const: 'presto' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/PrestoServer' } },
+      { if: { properties: { type: { const: 'pubsub' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/PubSubServer' } },
+      { if: { properties: { type: { const: 'redshift' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/RedshiftServer' } },
+      { if: { properties: { type: { const: 's3' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/S3Server' } },
+      { if: { properties: { type: { const: 'sftp' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/SftpServer' } },
+      { if: { properties: { type: { const: 'snowflake' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/SnowflakeServer' } },
+      { if: { properties: { type: { const: 'sqlserver' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/SqlserverServer' } },
+      { if: { properties: { type: { const: 'synapse' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/SynapseServer' } },
+      { if: { properties: { type: { const: 'trino' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/TrinoServer' } },
+      { if: { properties: { type: { const: 'vertica' } }, required: ['type'] }, then: { $ref: '#/$defs/ServerSource/VerticaServer' } },
     ],
     required: ['server', 'type'],
     unevaluatedProperties: false,
@@ -2032,14 +1177,7 @@ const generatedContract = (() => {
   const ApiServerSchema = {
     type: 'object',
     title: 'ApiServer',
-    properties: {
-      location: {
-        type: 'string',
-        format: 'uri',
-        description: 'The url to the API.',
-        examples: ['https://api.example.com/v1'],
-      },
-    },
+    properties: { location: { type: 'string', format: 'uri', description: 'The url to the API.', examples: ['https://api.example.com/v1'] } },
     required: ['location'],
   };
   const AthenaServerSchema = {
@@ -2052,20 +1190,9 @@ const generatedContract = (() => {
         description: 'Amazon Athena automatically stores query results and metadata information for each query that runs in a query result location that you can specify in Amazon S3.',
         examples: ['s3://my_storage_account_name/my_container/path'],
       },
-      schema: {
-        type: 'string',
-        description: 'Identify the schema in the data source in which your tables exist.',
-      },
-      catalog: {
-        type: 'string',
-        description: 'Identify the name of the Data Source, also referred to as a Catalog.',
-        default: 'awsdatacatalog',
-      },
-      regionName: {
-        type: 'string',
-        description: 'The region your AWS account uses.',
-        examples: ['eu-west-1'],
-      },
+      schema: { type: 'string', description: 'Identify the schema in the data source in which your tables exist.' },
+      catalog: { type: 'string', description: 'Identify the name of the Data Source, also referred to as a Catalog.', default: 'awsdatacatalog' },
+      regionName: { type: 'string', description: 'The region your AWS account uses.', examples: ['eu-west-1'] },
     },
     required: ['stagingDir', 'schema'],
   };
@@ -2079,26 +1206,15 @@ const generatedContract = (() => {
         description: 'Fully qualified path to Azure Blob Storage or Azure Data Lake Storage (ADLS), supports globs.',
         examples: ['az://my_storage_account_name.blob.core.windows.net/my_container/path/*.parquet', 'abfss://my_storage_account_name.dfs.core.windows.net/my_container_name/path/*.parquet'],
       },
-      format: {
-        type: 'string',
-        examples: ['parquet', 'delta', 'json', 'csv'],
-        description: 'File format.',
-      },
-      delimiter: {
-        type: 'string',
-        examples: ['new_line', 'array'],
-        description: 'Only for format = json. How multiple json documents are delimited within one file',
-      },
+      format: { type: 'string', examples: ['parquet', 'delta', 'json', 'csv'], description: 'File format.' },
+      delimiter: { type: 'string', examples: ['new_line', 'array'], description: 'Only for format = json. How multiple json documents are delimited within one file' },
     },
     required: ['location', 'format'],
   };
   const BigQueryServerSchema = {
     type: 'object',
     title: 'BigQueryServer',
-    properties: {
-      project: { type: 'string', description: 'The GCP project name.' },
-      dataset: { type: 'string', description: 'The GCP dataset name.' },
-    },
+    properties: { project: { type: 'string', description: 'The GCP project name.' }, dataset: { type: 'string', description: 'The GCP dataset name.' } },
     required: ['project', 'dataset'],
   };
   const ClickHouseServerSchema = {
@@ -2115,11 +1231,7 @@ const generatedContract = (() => {
     type: 'object',
     title: 'DatabricksServer',
     properties: {
-      host: {
-        type: 'string',
-        description: 'The Databricks host',
-        examples: ['dbc-abcdefgh-1234.cloud.databricks.com'],
-      },
+      host: { type: 'string', description: 'The Databricks host', examples: ['dbc-abcdefgh-1234.cloud.databricks.com'] },
       catalog: { type: 'string', description: 'The name of the Hive or Unity catalog' },
       schema: { type: 'string', description: 'The schema name in the catalog' },
     },
@@ -2148,37 +1260,17 @@ const generatedContract = (() => {
   const DuckdbServerSchema = {
     type: 'object',
     title: 'DuckdbServer',
-    properties: {
-      database: { type: 'string', description: 'Path to duckdb database file.' },
-      schema: { type: 'string', description: 'The name of the schema.' },
-    },
+    properties: { database: { type: 'string', description: 'Path to duckdb database file.' }, schema: { type: 'string', description: 'The name of the schema.' } },
     required: ['database'],
   };
   const GlueServerSchema = {
     type: 'object',
     title: 'GlueServer',
     properties: {
-      account: {
-        type: 'string',
-        description: 'The AWS Glue account',
-        examples: ['1234-5678-9012'],
-      },
-      database: {
-        type: 'string',
-        description: 'The AWS Glue database name',
-        examples: ['my_database'],
-      },
-      location: {
-        type: 'string',
-        format: 'uri',
-        description: 'The AWS S3 path. Must be in the form of a URL.',
-        examples: ['s3://datacontract-example-orders-latest/data/{model}'],
-      },
-      format: {
-        type: 'string',
-        description: 'The format of the files',
-        examples: ['parquet', 'csv', 'json', 'delta'],
-      },
+      account: { type: 'string', description: 'The AWS Glue account', examples: ['1234-5678-9012'] },
+      database: { type: 'string', description: 'The AWS Glue database name', examples: ['my_database'] },
+      location: { type: 'string', format: 'uri', description: 'The AWS S3 path. Must be in the form of a URL.', examples: ['s3://datacontract-example-orders-latest/data/{model}'] },
+      format: { type: 'string', description: 'The format of the files', examples: ['parquet', 'csv', 'json', 'delta'] },
     },
     required: ['account', 'database'],
   };
@@ -2258,10 +1350,7 @@ const generatedContract = (() => {
       host: { type: 'string', description: 'Host name or IP address.' },
       location: { type: 'string', description: 'A URL to a location.', format: 'uri' },
       path: { type: 'string', description: 'Relative or absolute path to the data file(s).' },
-      port: {
-        type: 'integer',
-        description: 'Port to the server. No default value is assumed for custom servers.',
-      },
+      port: { type: 'integer', description: 'Port to the server. No default value is assumed for custom servers.' },
       project: { type: 'string', description: 'Project name.' },
       region: { type: 'string', description: 'Cloud region.' },
       regionName: { type: 'string', description: 'Region name.' },
@@ -2278,12 +1367,7 @@ const generatedContract = (() => {
     description: 'Kafka Server',
     properties: {
       host: { type: 'string', description: 'The bootstrap server of the kafka cluster.' },
-      format: {
-        type: 'string',
-        description: 'The format of the messages.',
-        examples: ['json', 'avro', 'protobuf', 'xml'],
-        default: 'json',
-      },
+      format: { type: 'string', description: 'The format of the messages.', examples: ['json', 'avro', 'protobuf', 'xml'], default: 'json' },
     },
     required: ['host'],
   };
@@ -2293,27 +1377,15 @@ const generatedContract = (() => {
     description: 'Kinesis Data Streams Server',
     properties: {
       region: { type: 'string', description: 'AWS region.', examples: ['eu-west-1'] },
-      format: {
-        type: 'string',
-        description: 'The format of the record',
-        examples: ['json', 'avro', 'protobuf'],
-      },
+      format: { type: 'string', description: 'The format of the record', examples: ['json', 'avro', 'protobuf'] },
     },
   };
   const LocalServerSchema = {
     type: 'object',
     title: 'LocalServer',
     properties: {
-      path: {
-        type: 'string',
-        description: 'The relative or absolute path to the data file(s).',
-        examples: ['./folder/data.parquet', './folder/*.parquet'],
-      },
-      format: {
-        type: 'string',
-        description: 'The format of the file(s)',
-        examples: ['json', 'parquet', 'delta', 'csv'],
-      },
+      path: { type: 'string', description: 'The relative or absolute path to the data file(s).', examples: ['./folder/data.parquet', './folder/*.parquet'] },
+      format: { type: 'string', description: 'The format of the file(s)', examples: ['json', 'parquet', 'delta', 'csv'] },
     },
     required: ['path', 'format'],
   };
@@ -2331,17 +1403,9 @@ const generatedContract = (() => {
     type: 'object',
     title: 'OracleServer',
     properties: {
-      host: {
-        type: 'string',
-        description: 'The host to the oracle server',
-        examples: ['localhost'],
-      },
+      host: { type: 'string', description: 'The host to the oracle server', examples: ['localhost'] },
       port: { type: 'integer', description: 'The port to the oracle server.', examples: [1523] },
-      serviceName: {
-        type: 'string',
-        description: 'The name of the service.',
-        examples: ['service'],
-      },
+      serviceName: { type: 'string', description: 'The name of the service.', examples: ['service'] },
     },
     required: ['host', 'port', 'serviceName'],
   };
@@ -2360,22 +1424,13 @@ const generatedContract = (() => {
     type: 'object',
     title: 'PrestoServer',
     properties: {
-      host: {
-        type: 'string',
-        description: 'The host to the Presto server',
-        examples: ['localhost:8080'],
-      },
+      host: { type: 'string', description: 'The host to the Presto server', examples: ['localhost:8080'] },
       catalog: { type: 'string', description: 'The name of the catalog.', examples: ['postgres'] },
       schema: { type: 'string', description: 'The name of the schema.', examples: ['public'] },
     },
     required: ['host'],
   };
-  const PubSubServerSchema = {
-    type: 'object',
-    title: 'PubSubServer',
-    properties: { project: { type: 'string', description: 'The GCP project name.' } },
-    required: ['project'],
-  };
+  const PubSubServerSchema = { type: 'object', title: 'PubSubServer', properties: { project: { type: 'string', description: 'The GCP project name.' } }, required: ['project'] };
   const RedshiftServerSchema = {
     type: 'object',
     title: 'RedshiftServer',
@@ -2383,11 +1438,7 @@ const generatedContract = (() => {
       host: { type: 'string', description: 'An optional string describing the server.' },
       database: { type: 'string', description: 'The name of the database.' },
       schema: { type: 'string', description: 'The name of the schema.' },
-      region: {
-        type: 'string',
-        description: 'AWS region of Redshift server.',
-        examples: ['us-east-1'],
-      },
+      region: { type: 'string', description: 'AWS region of Redshift server.', examples: ['us-east-1'] },
       account: { type: 'string', description: 'The account used by the server.' },
     },
     required: ['database', 'schema'],
@@ -2396,28 +1447,10 @@ const generatedContract = (() => {
     type: 'object',
     title: 'S3Server',
     properties: {
-      location: {
-        type: 'string',
-        format: 'uri',
-        description: 'S3 URL, starting with `s3://`',
-        examples: ['s3://datacontract-example-orders-latest/data/{model}/*.json'],
-      },
-      endpointUrl: {
-        type: 'string',
-        format: 'uri',
-        description: 'The server endpoint for S3-compatible servers.',
-        examples: ['https://minio.example.com'],
-      },
-      format: {
-        type: 'string',
-        examples: ['parquet', 'delta', 'json', 'csv'],
-        description: 'File format.',
-      },
-      delimiter: {
-        type: 'string',
-        examples: ['new_line', 'array'],
-        description: 'Only for format = json. How multiple json documents are delimited within one file',
-      },
+      location: { type: 'string', format: 'uri', description: 'S3 URL, starting with `s3://`', examples: ['s3://datacontract-example-orders-latest/data/{model}/*.json'] },
+      endpointUrl: { type: 'string', format: 'uri', description: 'The server endpoint for S3-compatible servers.', examples: ['https://minio.example.com'] },
+      format: { type: 'string', examples: ['parquet', 'delta', 'json', 'csv'], description: 'File format.' },
+      delimiter: { type: 'string', examples: ['new_line', 'array'], description: 'Only for format = json. How multiple json documents are delimited within one file' },
     },
     required: ['location'],
   };
@@ -2425,23 +1458,9 @@ const generatedContract = (() => {
     type: 'object',
     title: 'SftpServer',
     properties: {
-      location: {
-        type: 'string',
-        format: 'uri',
-        pattern: '^sftp://.*',
-        description: 'SFTP URL, starting with `sftp://`',
-        examples: ['sftp://123.123.12.123/{model}/*.json'],
-      },
-      format: {
-        type: 'string',
-        examples: ['parquet', 'delta', 'json', 'csv'],
-        description: 'File format.',
-      },
-      delimiter: {
-        type: 'string',
-        examples: ['new_line', 'array'],
-        description: 'Only for format = json. How multiple json documents are delimited within one file',
-      },
+      location: { type: 'string', format: 'uri', pattern: '^sftp://.*', description: 'SFTP URL, starting with `sftp://`', examples: ['sftp://123.123.12.123/{model}/*.json'] },
+      format: { type: 'string', examples: ['parquet', 'delta', 'json', 'csv'], description: 'File format.' },
+      delimiter: { type: 'string', examples: ['new_line', 'array'], description: 'Only for format = json. How multiple json documents are delimited within one file' },
     },
     required: ['location'],
   };
@@ -2454,10 +1473,7 @@ const generatedContract = (() => {
       account: { type: 'string', description: 'The Snowflake account used by the server.' },
       database: { type: 'string', description: 'The name of the database.' },
       schema: { type: 'string', description: 'The name of the schema.' },
-      warehouse: {
-        type: 'string',
-        description: 'The name of the cluster of resources that is a Snowflake virtual warehouse.',
-      },
+      warehouse: { type: 'string', description: 'The name of the cluster of resources that is a Snowflake virtual warehouse.' },
     },
     required: ['account', 'database', 'schema'],
   };
@@ -2465,27 +1481,10 @@ const generatedContract = (() => {
     type: 'object',
     title: 'SqlserverServer',
     properties: {
-      host: {
-        type: 'string',
-        description: 'The host to the database server',
-        examples: ['localhost'],
-      },
-      port: {
-        type: 'integer',
-        description: 'The port to the database server.',
-        default: 1433,
-        examples: [1433],
-      },
-      database: {
-        type: 'string',
-        description: 'The name of the database.',
-        examples: ['database'],
-      },
-      schema: {
-        type: 'string',
-        description: 'The name of the schema in the database.',
-        examples: ['dbo'],
-      },
+      host: { type: 'string', description: 'The host to the database server', examples: ['localhost'] },
+      port: { type: 'integer', description: 'The port to the database server.', default: 1433, examples: [1433] },
+      database: { type: 'string', description: 'The name of the database.', examples: ['database'] },
+      schema: { type: 'string', description: 'The name of the schema in the database.', examples: ['dbo'] },
     },
     required: ['host', 'database', 'schema'],
   };
@@ -2506,11 +1505,7 @@ const generatedContract = (() => {
       host: { type: 'string', description: 'The Trino host URL.', examples: ['localhost'] },
       port: { type: 'integer', description: 'The Trino port.' },
       catalog: { type: 'string', description: 'The name of the catalog.', examples: ['hive'] },
-      schema: {
-        type: 'string',
-        description: 'The name of the schema in the database.',
-        examples: ['my_schema'],
-      },
+      schema: { type: 'string', description: 'The name of the schema in the database.', examples: ['my_schema'] },
     },
     required: ['host', 'port', 'catalog', 'schema'],
   };
@@ -2538,50 +1533,29 @@ const generatedContract = (() => {
     type: 'object',
     properties: {
       id: { $ref: '#/$defs/StableId' },
-      role: {
-        type: 'string',
-        description: 'Name of the IAM role that provides access to the dataset.',
-      },
-      description: {
-        type: 'string',
-        description: 'Description of the IAM role and its permissions.',
-      },
+      role: { type: 'string', description: 'Name of the IAM role that provides access to the dataset.' },
+      description: { type: 'string', description: 'Description of the IAM role and its permissions.' },
       access: { type: 'string', description: 'The type of access provided by the IAM role.' },
-      firstLevelApprovers: {
-        type: 'string',
-        description: 'The name(s) of the first-level approver(s) of the role.',
-      },
-      secondLevelApprovers: {
-        type: 'string',
-        description: 'The name(s) of the second-level approver(s) of the role.',
-      },
+      firstLevelApprovers: { type: 'string', description: 'The name(s) of the first-level approver(s) of the role.' },
+      secondLevelApprovers: { type: 'string', description: 'The name(s) of the second-level approver(s) of the role.' },
       customProperties: { $ref: '#/$defs/CustomProperties' },
     },
     required: ['role'],
     additionalProperties: false,
   };
-  const ListKeyValuePairsSchema = {
-    type: 'array',
-    description: 'A list of key/value pairs for custom properties.',
-    items: { $ref: '#/$defs/CustomProperty' },
-  };
+  const ListKeyValuePairsSchema = { type: 'array', description: 'A list of key/value pairs for custom properties.', items: { $ref: '#/$defs/CustomProperty' } };
   const OdcsContractSchemaComponentSchema2 = {
     type: 'object',
     properties: {
       id: { $ref: '#/$defs/StableId' },
-      property: {
-        type: 'string',
-        description: 'The name of the key. Names should be in camel case–the same as if they were permanent properties in the contract.',
-      },
+      property: { type: 'string', description: 'The name of the key. Names should be in camel case–the same as if they were permanent properties in the contract.' },
       value: { $ref: '#/$defs/AnyType', description: 'The value of the key.' },
       description: { type: 'string', description: 'Description of the custom property.' },
     },
     required: ['property', 'value'],
     additionalProperties: false,
   };
-  const OdcsContractSchemaComponentSchema3 = {
-    anyOf: [{ type: 'string' }, { type: 'number' }, { type: 'integer' }, { type: 'boolean' }, { type: 'null' }, { type: 'array' }, { type: 'object' }],
-  };
+  const OdcsContractSchemaComponentSchema3 = { anyOf: [{ type: 'string' }, { type: 'number' }, { type: 'integer' }, { type: 'boolean' }, { type: 'null' }, { type: 'array' }, { type: 'object' }] };
 
   function validate22(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
@@ -2595,13 +1569,7 @@ const generatedContract = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.property === undefined) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'property' },
-          message: "must have required property '" + 'property' + "'",
-        };
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'property' }, message: "must have required property '" + 'property' + "'" };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -2610,13 +1578,7 @@ const generatedContract = (() => {
         errors++;
       }
       if (data.value === undefined) {
-        const err1 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'value' },
-          message: "must have required property '" + 'value' + "'",
-        };
+        const err1 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'value' }, message: "must have required property '" + 'value' + "'" };
         if (vErrors === null) {
           vErrors = [err1];
         } else {
@@ -2626,13 +1588,7 @@ const generatedContract = (() => {
       }
       for (const key0 in data) {
         if (!(key0 === 'id' || key0 === 'property' || key0 === 'value' || key0 === 'description')) {
-          const err2 = {
-            instancePath,
-            schemaPath: '#/additionalProperties',
-            keyword: 'additionalProperties',
-            params: { additionalProperty: key0 },
-            message: 'must NOT have additional properties',
-          };
+          const err2 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err2];
           } else {
@@ -2660,13 +1616,7 @@ const generatedContract = (() => {
             errors++;
           }
         } else {
-          const err4 = {
-            instancePath: instancePath + '/id',
-            schemaPath: '#/$defs/StableId/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err4 = { instancePath: instancePath + '/id', schemaPath: '#/$defs/StableId/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err4];
           } else {
@@ -2677,13 +1627,7 @@ const generatedContract = (() => {
       }
       if (data.property !== undefined) {
         if (typeof data.property !== 'string') {
-          const err5 = {
-            instancePath: instancePath + '/property',
-            schemaPath: '#/properties/property/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err5 = { instancePath: instancePath + '/property', schemaPath: '#/properties/property/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err5];
           } else {
@@ -2698,13 +1642,7 @@ const generatedContract = (() => {
         let valid3 = false;
         const _errs10 = errors;
         if (typeof data2 !== 'string') {
-          const err6 = {
-            instancePath: instancePath + '/value',
-            schemaPath: '#/$defs/AnyType/anyOf/0/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err6 = { instancePath: instancePath + '/value', schemaPath: '#/$defs/AnyType/anyOf/0/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err6];
           } else {
@@ -2716,13 +1654,7 @@ const generatedContract = (() => {
         valid3 = valid3 || _valid0;
         const _errs12 = errors;
         if (!(typeof data2 == 'number')) {
-          const err7 = {
-            instancePath: instancePath + '/value',
-            schemaPath: '#/$defs/AnyType/anyOf/1/type',
-            keyword: 'type',
-            params: { type: 'number' },
-            message: 'must be number',
-          };
+          const err7 = { instancePath: instancePath + '/value', schemaPath: '#/$defs/AnyType/anyOf/1/type', keyword: 'type', params: { type: 'number' }, message: 'must be number' };
           if (vErrors === null) {
             vErrors = [err7];
           } else {
@@ -2734,13 +1666,7 @@ const generatedContract = (() => {
         valid3 = valid3 || _valid0;
         const _errs14 = errors;
         if (!(typeof data2 == 'number' && !(data2 % 1) && !isNaN(data2))) {
-          const err8 = {
-            instancePath: instancePath + '/value',
-            schemaPath: '#/$defs/AnyType/anyOf/2/type',
-            keyword: 'type',
-            params: { type: 'integer' },
-            message: 'must be integer',
-          };
+          const err8 = { instancePath: instancePath + '/value', schemaPath: '#/$defs/AnyType/anyOf/2/type', keyword: 'type', params: { type: 'integer' }, message: 'must be integer' };
           if (vErrors === null) {
             vErrors = [err8];
           } else {
@@ -2752,13 +1678,7 @@ const generatedContract = (() => {
         valid3 = valid3 || _valid0;
         const _errs16 = errors;
         if (typeof data2 !== 'boolean') {
-          const err9 = {
-            instancePath: instancePath + '/value',
-            schemaPath: '#/$defs/AnyType/anyOf/3/type',
-            keyword: 'type',
-            params: { type: 'boolean' },
-            message: 'must be boolean',
-          };
+          const err9 = { instancePath: instancePath + '/value', schemaPath: '#/$defs/AnyType/anyOf/3/type', keyword: 'type', params: { type: 'boolean' }, message: 'must be boolean' };
           if (vErrors === null) {
             vErrors = [err9];
           } else {
@@ -2770,13 +1690,7 @@ const generatedContract = (() => {
         valid3 = valid3 || _valid0;
         const _errs18 = errors;
         if (data2 !== null) {
-          const err10 = {
-            instancePath: instancePath + '/value',
-            schemaPath: '#/$defs/AnyType/anyOf/4/type',
-            keyword: 'type',
-            params: { type: 'null' },
-            message: 'must be null',
-          };
+          const err10 = { instancePath: instancePath + '/value', schemaPath: '#/$defs/AnyType/anyOf/4/type', keyword: 'type', params: { type: 'null' }, message: 'must be null' };
           if (vErrors === null) {
             vErrors = [err10];
           } else {
@@ -2788,13 +1702,7 @@ const generatedContract = (() => {
         valid3 = valid3 || _valid0;
         const _errs20 = errors;
         if (!Array.isArray(data2)) {
-          const err11 = {
-            instancePath: instancePath + '/value',
-            schemaPath: '#/$defs/AnyType/anyOf/5/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err11 = { instancePath: instancePath + '/value', schemaPath: '#/$defs/AnyType/anyOf/5/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err11];
           } else {
@@ -2806,13 +1714,7 @@ const generatedContract = (() => {
         valid3 = valid3 || _valid0;
         const _errs22 = errors;
         if (!(data2 && typeof data2 == 'object' && !Array.isArray(data2))) {
-          const err12 = {
-            instancePath: instancePath + '/value',
-            schemaPath: '#/$defs/AnyType/anyOf/6/type',
-            keyword: 'type',
-            params: { type: 'object' },
-            message: 'must be object',
-          };
+          const err12 = { instancePath: instancePath + '/value', schemaPath: '#/$defs/AnyType/anyOf/6/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
           if (vErrors === null) {
             vErrors = [err12];
           } else {
@@ -2823,13 +1725,7 @@ const generatedContract = (() => {
         var _valid0 = _errs22 === errors;
         valid3 = valid3 || _valid0;
         if (!valid3) {
-          const err13 = {
-            instancePath: instancePath + '/value',
-            schemaPath: '#/$defs/AnyType/anyOf',
-            keyword: 'anyOf',
-            params: {},
-            message: 'must match a schema in anyOf',
-          };
+          const err13 = { instancePath: instancePath + '/value', schemaPath: '#/$defs/AnyType/anyOf', keyword: 'anyOf', params: {}, message: 'must match a schema in anyOf' };
           if (vErrors === null) {
             vErrors = [err13];
           } else {
@@ -2849,13 +1745,7 @@ const generatedContract = (() => {
       }
       if (data.description !== undefined) {
         if (typeof data.description !== 'string') {
-          const err14 = {
-            instancePath: instancePath + '/description',
-            schemaPath: '#/properties/description/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err14 = { instancePath: instancePath + '/description', schemaPath: '#/properties/description/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err14];
           } else {
@@ -2865,13 +1755,7 @@ const generatedContract = (() => {
         }
       }
     } else {
-      const err15 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err15 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err15];
       } else {
@@ -2897,27 +1781,13 @@ const generatedContract = (() => {
     if (Array.isArray(data)) {
       const len0 = data.length;
       for (let i0 = 0; i0 < len0; i0++) {
-        if (
-          !validate22(data[i0], {
-            instancePath: instancePath + '/' + i0,
-            parentData: data,
-            parentDataProperty: i0,
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate22(data[i0], { instancePath: instancePath + '/' + i0, parentData: data, parentDataProperty: i0, rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate22.errors : vErrors.concat(validate22.errors);
           errors = vErrors.length;
         }
       }
     } else {
-      const err0 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'array' },
-        message: 'must be array',
-      };
+      const err0 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
       if (vErrors === null) {
         vErrors = [err0];
       } else {
@@ -2942,13 +1812,7 @@ const generatedContract = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.role === undefined) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'role' },
-          message: "must have required property '" + 'role' + "'",
-        };
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'role' }, message: "must have required property '" + 'role' + "'" };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -2958,13 +1822,7 @@ const generatedContract = (() => {
       }
       for (const key0 in data) {
         if (!(key0 === 'id' || key0 === 'role' || key0 === 'description' || key0 === 'access' || key0 === 'firstLevelApprovers' || key0 === 'secondLevelApprovers' || key0 === 'customProperties')) {
-          const err1 = {
-            instancePath,
-            schemaPath: '#/additionalProperties',
-            keyword: 'additionalProperties',
-            params: { additionalProperty: key0 },
-            message: 'must NOT have additional properties',
-          };
+          const err1 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err1];
           } else {
@@ -2992,13 +1850,7 @@ const generatedContract = (() => {
             errors++;
           }
         } else {
-          const err3 = {
-            instancePath: instancePath + '/id',
-            schemaPath: '#/$defs/StableId/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err3 = { instancePath: instancePath + '/id', schemaPath: '#/$defs/StableId/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err3];
           } else {
@@ -3009,13 +1861,7 @@ const generatedContract = (() => {
       }
       if (data.role !== undefined) {
         if (typeof data.role !== 'string') {
-          const err4 = {
-            instancePath: instancePath + '/role',
-            schemaPath: '#/properties/role/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err4 = { instancePath: instancePath + '/role', schemaPath: '#/properties/role/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err4];
           } else {
@@ -3026,13 +1872,7 @@ const generatedContract = (() => {
       }
       if (data.description !== undefined) {
         if (typeof data.description !== 'string') {
-          const err5 = {
-            instancePath: instancePath + '/description',
-            schemaPath: '#/properties/description/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err5 = { instancePath: instancePath + '/description', schemaPath: '#/properties/description/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err5];
           } else {
@@ -3043,13 +1883,7 @@ const generatedContract = (() => {
       }
       if (data.access !== undefined) {
         if (typeof data.access !== 'string') {
-          const err6 = {
-            instancePath: instancePath + '/access',
-            schemaPath: '#/properties/access/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err6 = { instancePath: instancePath + '/access', schemaPath: '#/properties/access/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err6];
           } else {
@@ -3093,27 +1927,13 @@ const generatedContract = (() => {
         }
       }
       if (data.customProperties !== undefined) {
-        if (
-          !validate21(data.customProperties, {
-            instancePath: instancePath + '/customProperties',
-            parentData: data,
-            parentDataProperty: 'customProperties',
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate21(data.customProperties, { instancePath: instancePath + '/customProperties', parentData: data, parentDataProperty: 'customProperties', rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate21.errors : vErrors.concat(validate21.errors);
           errors = vErrors.length;
         }
       }
     } else {
-      const err9 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err9 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err9];
       } else {
@@ -3225,13 +2045,7 @@ const generatedContract = (() => {
           }
         }
       } else {
-        const err5 = {
-          instancePath,
-          schemaPath: '#/$defs/ServerSource/ApiServer/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        };
+        const err5 = { instancePath, schemaPath: '#/$defs/ServerSource/ApiServer/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
         if (vErrors === null) {
           vErrors = [err5];
         } else {
@@ -3248,13 +2062,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid1) {
-      const err6 = {
-        instancePath,
-        schemaPath: '#/allOf/0/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err6 = { instancePath, schemaPath: '#/allOf/0/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err6];
       } else {
@@ -3417,13 +2225,7 @@ const generatedContract = (() => {
           }
         }
       } else {
-        const err16 = {
-          instancePath,
-          schemaPath: '#/$defs/ServerSource/AthenaServer/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        };
+        const err16 = { instancePath, schemaPath: '#/$defs/ServerSource/AthenaServer/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
         if (vErrors === null) {
           vErrors = [err16];
         } else {
@@ -3443,13 +2245,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid5) {
-      const err17 = {
-        instancePath,
-        schemaPath: '#/allOf/1/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err17 = { instancePath, schemaPath: '#/allOf/1/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err17];
       } else {
@@ -3603,13 +2399,7 @@ const generatedContract = (() => {
           }
         }
       } else {
-        const err26 = {
-          instancePath,
-          schemaPath: '#/$defs/ServerSource/AzureServer/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        };
+        const err26 = { instancePath, schemaPath: '#/$defs/ServerSource/AzureServer/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
         if (vErrors === null) {
           vErrors = [err26];
         } else {
@@ -3628,13 +2418,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid9) {
-      const err27 = {
-        instancePath,
-        schemaPath: '#/allOf/2/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err27 = { instancePath, schemaPath: '#/allOf/2/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err27];
       } else {
@@ -3754,13 +2538,7 @@ const generatedContract = (() => {
           }
         }
       } else {
-        const err34 = {
-          instancePath,
-          schemaPath: '#/$defs/ServerSource/BigQueryServer/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        };
+        const err34 = { instancePath, schemaPath: '#/$defs/ServerSource/BigQueryServer/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
         if (vErrors === null) {
           vErrors = [err34];
         } else {
@@ -3778,13 +2556,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid13) {
-      const err35 = {
-        instancePath,
-        schemaPath: '#/allOf/3/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err35 = { instancePath, schemaPath: '#/allOf/3/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err35];
       } else {
@@ -3937,13 +2709,7 @@ const generatedContract = (() => {
           }
         }
       } else {
-        const err44 = {
-          instancePath,
-          schemaPath: '#/$defs/ServerSource/ClickHouseServer/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        };
+        const err44 = { instancePath, schemaPath: '#/$defs/ServerSource/ClickHouseServer/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
         if (vErrors === null) {
           vErrors = [err44];
         } else {
@@ -3962,13 +2728,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid17) {
-      const err45 = {
-        instancePath,
-        schemaPath: '#/allOf/4/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err45 = { instancePath, schemaPath: '#/allOf/4/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err45];
       } else {
@@ -4105,13 +2865,7 @@ const generatedContract = (() => {
           }
         }
       } else {
-        const err53 = {
-          instancePath,
-          schemaPath: '#/$defs/ServerSource/DatabricksServer/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        };
+        const err53 = { instancePath, schemaPath: '#/$defs/ServerSource/DatabricksServer/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
         if (vErrors === null) {
           vErrors = [err53];
         } else {
@@ -4130,13 +2884,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid21) {
-      const err54 = {
-        instancePath,
-        schemaPath: '#/allOf/5/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err54 = { instancePath, schemaPath: '#/allOf/5/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err54];
       } else {
@@ -4274,13 +3022,7 @@ const generatedContract = (() => {
           }
         }
       } else {
-        const err62 = {
-          instancePath,
-          schemaPath: '#/$defs/ServerSource/DenodoServer/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        };
+        const err62 = { instancePath, schemaPath: '#/$defs/ServerSource/DenodoServer/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
         if (vErrors === null) {
           vErrors = [err62];
         } else {
@@ -4299,13 +3041,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid25) {
-      const err63 = {
-        instancePath,
-        schemaPath: '#/allOf/6/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err63 = { instancePath, schemaPath: '#/allOf/6/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err63];
       } else {
@@ -4443,13 +3179,7 @@ const generatedContract = (() => {
           }
         }
       } else {
-        const err71 = {
-          instancePath,
-          schemaPath: '#/$defs/ServerSource/DremioServer/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        };
+        const err71 = { instancePath, schemaPath: '#/$defs/ServerSource/DremioServer/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
         if (vErrors === null) {
           vErrors = [err71];
         } else {
@@ -4468,13 +3198,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid29) {
-      const err72 = {
-        instancePath,
-        schemaPath: '#/allOf/7/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err72 = { instancePath, schemaPath: '#/allOf/7/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err72];
       } else {
@@ -4579,13 +3303,7 @@ const generatedContract = (() => {
           }
         }
       } else {
-        const err78 = {
-          instancePath,
-          schemaPath: '#/$defs/ServerSource/DuckdbServer/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        };
+        const err78 = { instancePath, schemaPath: '#/$defs/ServerSource/DuckdbServer/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
         if (vErrors === null) {
           vErrors = [err78];
         } else {
@@ -4603,13 +3321,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid33) {
-      const err79 = {
-        instancePath,
-        schemaPath: '#/allOf/8/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err79 = { instancePath, schemaPath: '#/allOf/8/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err79];
       } else {
@@ -4780,13 +3492,7 @@ const generatedContract = (() => {
           }
         }
       } else {
-        const err89 = {
-          instancePath,
-          schemaPath: '#/$defs/ServerSource/GlueServer/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        };
+        const err89 = { instancePath, schemaPath: '#/$defs/ServerSource/GlueServer/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
         if (vErrors === null) {
           vErrors = [err89];
         } else {
@@ -4806,13 +3512,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid37) {
-      const err90 = {
-        instancePath,
-        schemaPath: '#/allOf/9/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err90 = { instancePath, schemaPath: '#/allOf/9/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err90];
       } else {
@@ -4997,13 +3697,7 @@ const generatedContract = (() => {
           }
         }
       } else {
-        const err101 = {
-          instancePath,
-          schemaPath: '#/$defs/ServerSource/GoogleCloudSqlServer/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        };
+        const err101 = { instancePath, schemaPath: '#/$defs/ServerSource/GoogleCloudSqlServer/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
         if (vErrors === null) {
           vErrors = [err101];
         } else {
@@ -5023,13 +3717,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid41) {
-      const err102 = {
-        instancePath,
-        schemaPath: '#/allOf/10/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err102 = { instancePath, schemaPath: '#/allOf/10/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err102];
       } else {
@@ -5199,13 +3887,7 @@ const generatedContract = (() => {
           }
         }
       } else {
-        const err112 = {
-          instancePath,
-          schemaPath: '#/$defs/ServerSource/IBMDB2Server/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        };
+        const err112 = { instancePath, schemaPath: '#/$defs/ServerSource/IBMDB2Server/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
         if (vErrors === null) {
           vErrors = [err112];
         } else {
@@ -5225,13 +3907,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid45) {
-      const err113 = {
-        instancePath,
-        schemaPath: '#/allOf/11/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err113 = { instancePath, schemaPath: '#/allOf/11/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err113];
       } else {
@@ -5369,13 +4045,7 @@ const generatedContract = (() => {
           }
         }
       } else {
-        const err121 = {
-          instancePath,
-          schemaPath: '#/$defs/ServerSource/HiveServer/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        };
+        const err121 = { instancePath, schemaPath: '#/$defs/ServerSource/HiveServer/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
         if (vErrors === null) {
           vErrors = [err121];
         } else {
@@ -5394,13 +4064,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid49) {
-      const err122 = {
-        instancePath,
-        schemaPath: '#/allOf/12/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err122 = { instancePath, schemaPath: '#/allOf/12/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err122];
       } else {
@@ -5538,13 +4202,7 @@ const generatedContract = (() => {
           }
         }
       } else {
-        const err130 = {
-          instancePath,
-          schemaPath: '#/$defs/ServerSource/ImpalaServer/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        };
+        const err130 = { instancePath, schemaPath: '#/$defs/ServerSource/ImpalaServer/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
         if (vErrors === null) {
           vErrors = [err130];
         } else {
@@ -5563,13 +4221,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid53) {
-      const err131 = {
-        instancePath,
-        schemaPath: '#/allOf/13/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err131 = { instancePath, schemaPath: '#/allOf/13/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err131];
       } else {
@@ -5707,13 +4359,7 @@ const generatedContract = (() => {
           }
         }
       } else {
-        const err139 = {
-          instancePath,
-          schemaPath: '#/$defs/ServerSource/InformixServer/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        };
+        const err139 = { instancePath, schemaPath: '#/$defs/ServerSource/InformixServer/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
         if (vErrors === null) {
           vErrors = [err139];
         } else {
@@ -5732,13 +4378,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid57) {
-      const err140 = {
-        instancePath,
-        schemaPath: '#/allOf/14/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err140 = { instancePath, schemaPath: '#/allOf/14/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err140];
       } else {
@@ -5876,13 +4516,7 @@ const generatedContract = (() => {
           }
         }
       } else {
-        const err148 = {
-          instancePath,
-          schemaPath: '#/$defs/ServerSource/ZenServer/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        };
+        const err148 = { instancePath, schemaPath: '#/$defs/ServerSource/ZenServer/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
         if (vErrors === null) {
           vErrors = [err148];
         } else {
@@ -5901,13 +4535,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid61) {
-      const err149 = {
-        instancePath,
-        schemaPath: '#/allOf/15/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err149 = { instancePath, schemaPath: '#/allOf/15/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err149];
       } else {
@@ -6321,13 +4949,7 @@ const generatedContract = (() => {
           }
         }
       } else {
-        const err173 = {
-          instancePath,
-          schemaPath: '#/$defs/ServerSource/CustomServer/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        };
+        const err173 = { instancePath, schemaPath: '#/$defs/ServerSource/CustomServer/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
         if (vErrors === null) {
           vErrors = [err173];
         } else {
@@ -6362,13 +4984,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid65) {
-      const err174 = {
-        instancePath,
-        schemaPath: '#/allOf/16/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err174 = { instancePath, schemaPath: '#/allOf/16/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err174];
       } else {
@@ -6473,13 +5089,7 @@ const generatedContract = (() => {
           }
         }
       } else {
-        const err180 = {
-          instancePath,
-          schemaPath: '#/$defs/ServerSource/KafkaServer/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        };
+        const err180 = { instancePath, schemaPath: '#/$defs/ServerSource/KafkaServer/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
         if (vErrors === null) {
           vErrors = [err180];
         } else {
@@ -6497,13 +5107,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid69) {
-      const err181 = {
-        instancePath,
-        schemaPath: '#/allOf/17/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err181 = { instancePath, schemaPath: '#/allOf/17/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err181];
       } else {
@@ -6593,13 +5197,7 @@ const generatedContract = (() => {
           }
         }
       } else {
-        const err186 = {
-          instancePath,
-          schemaPath: '#/$defs/ServerSource/KinesisServer/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        };
+        const err186 = { instancePath, schemaPath: '#/$defs/ServerSource/KinesisServer/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
         if (vErrors === null) {
           vErrors = [err186];
         } else {
@@ -6617,13 +5215,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid73) {
-      const err187 = {
-        instancePath,
-        schemaPath: '#/allOf/18/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err187 = { instancePath, schemaPath: '#/allOf/18/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err187];
       } else {
@@ -6743,13 +5335,7 @@ const generatedContract = (() => {
           }
         }
       } else {
-        const err194 = {
-          instancePath,
-          schemaPath: '#/$defs/ServerSource/LocalServer/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        };
+        const err194 = { instancePath, schemaPath: '#/$defs/ServerSource/LocalServer/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
         if (vErrors === null) {
           vErrors = [err194];
         } else {
@@ -6767,13 +5353,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid77) {
-      const err195 = {
-        instancePath,
-        schemaPath: '#/allOf/19/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err195 = { instancePath, schemaPath: '#/allOf/19/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err195];
       } else {
@@ -6926,13 +5506,7 @@ const generatedContract = (() => {
           }
         }
       } else {
-        const err204 = {
-          instancePath,
-          schemaPath: '#/$defs/ServerSource/MySqlServer/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        };
+        const err204 = { instancePath, schemaPath: '#/$defs/ServerSource/MySqlServer/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
         if (vErrors === null) {
           vErrors = [err204];
         } else {
@@ -6951,13 +5525,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid81) {
-      const err205 = {
-        instancePath,
-        schemaPath: '#/allOf/20/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err205 = { instancePath, schemaPath: '#/allOf/20/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err205];
       } else {
@@ -7110,13 +5678,7 @@ const generatedContract = (() => {
           }
         }
       } else {
-        const err214 = {
-          instancePath,
-          schemaPath: '#/$defs/ServerSource/OracleServer/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        };
+        const err214 = { instancePath, schemaPath: '#/$defs/ServerSource/OracleServer/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
         if (vErrors === null) {
           vErrors = [err214];
         } else {
@@ -7135,13 +5697,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid85) {
-      const err215 = {
-        instancePath,
-        schemaPath: '#/allOf/21/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err215 = { instancePath, schemaPath: '#/allOf/21/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err215];
       } else {
@@ -7326,13 +5882,7 @@ const generatedContract = (() => {
           }
         }
       } else {
-        const err226 = {
-          instancePath,
-          schemaPath: '#/$defs/ServerSource/PostgresServer/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        };
+        const err226 = { instancePath, schemaPath: '#/$defs/ServerSource/PostgresServer/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
         if (vErrors === null) {
           vErrors = [err226];
         } else {
@@ -7352,13 +5902,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid89) {
-      const err227 = {
-        instancePath,
-        schemaPath: '#/allOf/22/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err227 = { instancePath, schemaPath: '#/allOf/22/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err227];
       } else {
@@ -7543,13 +6087,7 @@ const generatedContract = (() => {
           }
         }
       } else {
-        const err238 = {
-          instancePath,
-          schemaPath: '#/$defs/ServerSource/PostgresServer/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        };
+        const err238 = { instancePath, schemaPath: '#/$defs/ServerSource/PostgresServer/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
         if (vErrors === null) {
           vErrors = [err238];
         } else {
@@ -7569,13 +6107,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid93) {
-      const err239 = {
-        instancePath,
-        schemaPath: '#/allOf/23/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err239 = { instancePath, schemaPath: '#/allOf/23/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err239];
       } else {
@@ -7697,13 +6229,7 @@ const generatedContract = (() => {
           }
         }
       } else {
-        const err246 = {
-          instancePath,
-          schemaPath: '#/$defs/ServerSource/PrestoServer/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        };
+        const err246 = { instancePath, schemaPath: '#/$defs/ServerSource/PrestoServer/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
         if (vErrors === null) {
           vErrors = [err246];
         } else {
@@ -7722,13 +6248,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid97) {
-      const err247 = {
-        instancePath,
-        schemaPath: '#/allOf/24/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err247 = { instancePath, schemaPath: '#/allOf/24/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err247];
       } else {
@@ -7816,13 +6336,7 @@ const generatedContract = (() => {
           }
         }
       } else {
-        const err252 = {
-          instancePath,
-          schemaPath: '#/$defs/ServerSource/PubSubServer/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        };
+        const err252 = { instancePath, schemaPath: '#/$defs/ServerSource/PubSubServer/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
         if (vErrors === null) {
           vErrors = [err252];
         } else {
@@ -7839,13 +6353,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid101) {
-      const err253 = {
-        instancePath,
-        schemaPath: '#/allOf/25/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err253 = { instancePath, schemaPath: '#/allOf/25/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err253];
       } else {
@@ -8016,13 +6524,7 @@ const generatedContract = (() => {
           }
         }
       } else {
-        const err263 = {
-          instancePath,
-          schemaPath: '#/$defs/ServerSource/RedshiftServer/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        };
+        const err263 = { instancePath, schemaPath: '#/$defs/ServerSource/RedshiftServer/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
         if (vErrors === null) {
           vErrors = [err263];
         } else {
@@ -8043,13 +6545,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid105) {
-      const err264 = {
-        instancePath,
-        schemaPath: '#/allOf/26/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err264 = { instancePath, schemaPath: '#/allOf/26/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err264];
       } else {
@@ -8222,13 +6718,7 @@ const generatedContract = (() => {
           }
         }
       } else {
-        const err274 = {
-          instancePath,
-          schemaPath: '#/$defs/ServerSource/S3Server/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        };
+        const err274 = { instancePath, schemaPath: '#/$defs/ServerSource/S3Server/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
         if (vErrors === null) {
           vErrors = [err274];
         } else {
@@ -8248,13 +6738,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid109) {
-      const err275 = {
-        instancePath,
-        schemaPath: '#/allOf/27/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err275 = { instancePath, schemaPath: '#/allOf/27/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err275];
       } else {
@@ -8408,13 +6892,7 @@ const generatedContract = (() => {
           }
         }
       } else {
-        const err284 = {
-          instancePath,
-          schemaPath: '#/$defs/ServerSource/SftpServer/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        };
+        const err284 = { instancePath, schemaPath: '#/$defs/ServerSource/SftpServer/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
         if (vErrors === null) {
           vErrors = [err284];
         } else {
@@ -8433,13 +6911,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid113) {
-      const err285 = {
-        instancePath,
-        schemaPath: '#/allOf/28/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err285 = { instancePath, schemaPath: '#/allOf/28/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err285];
       } else {
@@ -8643,13 +7115,7 @@ const generatedContract = (() => {
           }
         }
       } else {
-        const err297 = {
-          instancePath,
-          schemaPath: '#/$defs/ServerSource/SnowflakeServer/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        };
+        const err297 = { instancePath, schemaPath: '#/$defs/ServerSource/SnowflakeServer/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
         if (vErrors === null) {
           vErrors = [err297];
         } else {
@@ -8671,13 +7137,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid117) {
-      const err298 = {
-        instancePath,
-        schemaPath: '#/allOf/29/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err298 = { instancePath, schemaPath: '#/allOf/29/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err298];
       } else {
@@ -8847,13 +7307,7 @@ const generatedContract = (() => {
           }
         }
       } else {
-        const err308 = {
-          instancePath,
-          schemaPath: '#/$defs/ServerSource/SqlserverServer/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        };
+        const err308 = { instancePath, schemaPath: '#/$defs/ServerSource/SqlserverServer/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
         if (vErrors === null) {
           vErrors = [err308];
         } else {
@@ -8873,13 +7327,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid121) {
-      const err309 = {
-        instancePath,
-        schemaPath: '#/allOf/30/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err309 = { instancePath, schemaPath: '#/allOf/30/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err309];
       } else {
@@ -9032,13 +7480,7 @@ const generatedContract = (() => {
           }
         }
       } else {
-        const err318 = {
-          instancePath,
-          schemaPath: '#/$defs/ServerSource/SynapseServer/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        };
+        const err318 = { instancePath, schemaPath: '#/$defs/ServerSource/SynapseServer/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
         if (vErrors === null) {
           vErrors = [err318];
         } else {
@@ -9057,13 +7499,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid125) {
-      const err319 = {
-        instancePath,
-        schemaPath: '#/allOf/31/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err319 = { instancePath, schemaPath: '#/allOf/31/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err319];
       } else {
@@ -9248,13 +7684,7 @@ const generatedContract = (() => {
           }
         }
       } else {
-        const err330 = {
-          instancePath,
-          schemaPath: '#/$defs/ServerSource/TrinoServer/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        };
+        const err330 = { instancePath, schemaPath: '#/$defs/ServerSource/TrinoServer/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
         if (vErrors === null) {
           vErrors = [err330];
         } else {
@@ -9274,13 +7704,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid129) {
-      const err331 = {
-        instancePath,
-        schemaPath: '#/allOf/32/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err331 = { instancePath, schemaPath: '#/allOf/32/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err331];
       } else {
@@ -9465,13 +7889,7 @@ const generatedContract = (() => {
           }
         }
       } else {
-        const err342 = {
-          instancePath,
-          schemaPath: '#/$defs/ServerSource/VerticaServer/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        };
+        const err342 = { instancePath, schemaPath: '#/$defs/ServerSource/VerticaServer/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
         if (vErrors === null) {
           vErrors = [err342];
         } else {
@@ -9491,13 +7909,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid133) {
-      const err343 = {
-        instancePath,
-        schemaPath: '#/allOf/33/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err343 = { instancePath, schemaPath: '#/allOf/33/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err343];
       } else {
@@ -9515,13 +7927,7 @@ const generatedContract = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.server === undefined) {
-        const err344 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'server' },
-          message: "must have required property '" + 'server' + "'",
-        };
+        const err344 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'server' }, message: "must have required property '" + 'server' + "'" };
         if (vErrors === null) {
           vErrors = [err344];
         } else {
@@ -9530,13 +7936,7 @@ const generatedContract = (() => {
         errors++;
       }
       if (data.type === undefined) {
-        const err345 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'type' },
-          message: "must have required property '" + 'type' + "'",
-        };
+        const err345 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'type' }, message: "must have required property '" + 'type' + "'" };
         if (vErrors === null) {
           vErrors = [err345];
         } else {
@@ -9573,13 +7973,7 @@ const generatedContract = (() => {
             errors++;
           }
         } else {
-          const err347 = {
-            instancePath: instancePath + '/id',
-            schemaPath: '#/$defs/StableId/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err347 = { instancePath: instancePath + '/id', schemaPath: '#/$defs/StableId/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err347];
           } else {
@@ -9590,13 +7984,7 @@ const generatedContract = (() => {
       }
       if (data.server !== undefined) {
         if (typeof data.server !== 'string') {
-          const err348 = {
-            instancePath: instancePath + '/server',
-            schemaPath: '#/properties/server/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err348 = { instancePath: instancePath + '/server', schemaPath: '#/properties/server/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err348];
           } else {
@@ -9608,13 +7996,7 @@ const generatedContract = (() => {
       if (data.type !== undefined) {
         let data160 = data.type;
         if (typeof data160 !== 'string') {
-          const err349 = {
-            instancePath: instancePath + '/type',
-            schemaPath: '#/properties/type/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err349 = { instancePath: instancePath + '/type', schemaPath: '#/properties/type/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err349];
           } else {
@@ -9677,13 +8059,7 @@ const generatedContract = (() => {
       }
       if (data.description !== undefined) {
         if (typeof data.description !== 'string') {
-          const err351 = {
-            instancePath: instancePath + '/description',
-            schemaPath: '#/properties/description/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err351 = { instancePath: instancePath + '/description', schemaPath: '#/properties/description/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err351];
           } else {
@@ -9694,13 +8070,7 @@ const generatedContract = (() => {
       }
       if (data.environment !== undefined) {
         if (typeof data.environment !== 'string') {
-          const err352 = {
-            instancePath: instancePath + '/environment',
-            schemaPath: '#/properties/environment/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err352 = { instancePath: instancePath + '/environment', schemaPath: '#/properties/environment/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err352];
           } else {
@@ -9714,27 +8084,13 @@ const generatedContract = (() => {
         if (Array.isArray(data163)) {
           const len0 = data163.length;
           for (let i0 = 0; i0 < len0; i0++) {
-            if (
-              !validate20(data163[i0], {
-                instancePath: instancePath + '/roles/' + i0,
-                parentData: data163,
-                parentDataProperty: i0,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!validate20(data163[i0], { instancePath: instancePath + '/roles/' + i0, parentData: data163, parentDataProperty: i0, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? validate20.errors : vErrors.concat(validate20.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err353 = {
-            instancePath: instancePath + '/roles',
-            schemaPath: '#/properties/roles/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err353 = { instancePath: instancePath + '/roles', schemaPath: '#/properties/roles/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err353];
           } else {
@@ -9744,15 +8100,7 @@ const generatedContract = (() => {
         }
       }
       if (data.customProperties !== undefined) {
-        if (
-          !validate21(data.customProperties, {
-            instancePath: instancePath + '/customProperties',
-            parentData: data,
-            parentDataProperty: 'customProperties',
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate21(data.customProperties, { instancePath: instancePath + '/customProperties', parentData: data, parentDataProperty: 'customProperties', rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate21.errors : vErrors.concat(validate21.errors);
           errors = vErrors.length;
         }
@@ -9777,13 +8125,7 @@ const generatedContract = (() => {
         }
       }
     } else {
-      const err355 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err355 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err355];
       } else {
@@ -9810,10 +8152,7 @@ const generatedContract = (() => {
           description: 'Type of definition for authority: v2.3 adds standard values: `businessDefinition`, `transformationImplementation`, `videoTutorial`, `tutorial`, and `implementation`.',
           examples: ['businessDefinition', 'transformationImplementation', 'videoTutorial', 'tutorial', 'implementation'],
         },
-        description: {
-          type: 'string',
-          description: 'Description of the authoritative definition for humans.',
-        },
+        description: { type: 'string', description: 'Description of the authoritative definition for humans.' },
       },
       required: ['url', 'type'],
       additionalProperties: false,
@@ -9901,13 +8240,7 @@ const generatedContract = (() => {
                 errors++;
               }
             } else {
-              const err4 = {
-                instancePath: instancePath + '/' + i0 + '/id',
-                schemaPath: '#/$defs/StableId/type',
-                keyword: 'type',
-                params: { type: 'string' },
-                message: 'must be string',
-              };
+              const err4 = { instancePath: instancePath + '/' + i0 + '/id', schemaPath: '#/$defs/StableId/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
               if (vErrors === null) {
                 vErrors = [err4];
               } else {
@@ -9918,13 +8251,7 @@ const generatedContract = (() => {
           }
           if (data0.url !== undefined) {
             if (typeof data0.url !== 'string') {
-              const err5 = {
-                instancePath: instancePath + '/' + i0 + '/url',
-                schemaPath: '#/items/properties/url/type',
-                keyword: 'type',
-                params: { type: 'string' },
-                message: 'must be string',
-              };
+              const err5 = { instancePath: instancePath + '/' + i0 + '/url', schemaPath: '#/items/properties/url/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
               if (vErrors === null) {
                 vErrors = [err5];
               } else {
@@ -9935,13 +8262,7 @@ const generatedContract = (() => {
           }
           if (data0.type !== undefined) {
             if (typeof data0.type !== 'string') {
-              const err6 = {
-                instancePath: instancePath + '/' + i0 + '/type',
-                schemaPath: '#/items/properties/type/type',
-                keyword: 'type',
-                params: { type: 'string' },
-                message: 'must be string',
-              };
+              const err6 = { instancePath: instancePath + '/' + i0 + '/type', schemaPath: '#/items/properties/type/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
               if (vErrors === null) {
                 vErrors = [err6];
               } else {
@@ -9968,13 +8289,7 @@ const generatedContract = (() => {
             }
           }
         } else {
-          const err8 = {
-            instancePath: instancePath + '/' + i0,
-            schemaPath: '#/items/type',
-            keyword: 'type',
-            params: { type: 'object' },
-            message: 'must be object',
-          };
+          const err8 = { instancePath: instancePath + '/' + i0, schemaPath: '#/items/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
           if (vErrors === null) {
             vErrors = [err8];
           } else {
@@ -9984,13 +8299,7 @@ const generatedContract = (() => {
         }
       }
     } else {
-      const err9 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'array' },
-        message: 'must be array',
-      };
+      const err9 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
       if (vErrors === null) {
         vErrors = [err9];
       } else {
@@ -10006,22 +8315,10 @@ const generatedContract = (() => {
   const OdcsContractSchemaComponentSchema4 = {
     type: 'object',
     properties: {
-      logicalType: {
-        type: 'string',
-        description: 'The logical element data type.',
-        enum: ['object'],
-      },
+      logicalType: { type: 'string', description: 'The logical element data type.', enum: ['object'] },
       physicalName: { type: 'string', description: 'Physical name.', examples: ['table_1_2_0'] },
-      dataGranularityDescription: {
-        type: 'string',
-        description: 'Granular level of the data in the object.',
-        examples: ['Aggregation by country'],
-      },
-      properties: {
-        type: 'array',
-        description: 'A list of properties for the object.',
-        items: { $ref: '#/$defs/SchemaProperty' },
-      },
+      dataGranularityDescription: { type: 'string', description: 'Granular level of the data in the object.', examples: ['Aggregation by country'] },
+      properties: { type: 'array', description: 'A list of properties for the object.', items: { $ref: '#/$defs/SchemaProperty' } },
       relationships: {
         type: 'array',
         description: "A list of relationships to other properties. Each relationship must have 'from', 'to' and optionally 'type' field.",
@@ -10038,11 +8335,7 @@ const generatedContract = (() => {
     properties: {
       id: { $ref: '#/$defs/StableId' },
       name: { type: 'string', description: 'Name of the element.' },
-      physicalType: {
-        type: 'string',
-        description: 'The physical element data type in the data source.',
-        examples: ['table', 'view', 'topic', 'file'],
-      },
+      physicalType: { type: 'string', description: 'The physical element data type in the data source.', examples: ['table', 'view', 'topic', 'file'] },
       description: { type: 'string', description: 'Description of the element.' },
       businessName: { type: 'string', description: 'The business name of the element.' },
       authoritativeDefinitions: { $ref: '#/$defs/AuthoritativeDefinitions' },
@@ -10081,13 +8374,7 @@ const generatedContract = (() => {
             errors++;
           }
         } else {
-          const err1 = {
-            instancePath: instancePath + '/id',
-            schemaPath: '#/$defs/StableId/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err1 = { instancePath: instancePath + '/id', schemaPath: '#/$defs/StableId/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err1];
           } else {
@@ -10098,13 +8385,7 @@ const generatedContract = (() => {
       }
       if (data.name !== undefined) {
         if (typeof data.name !== 'string') {
-          const err2 = {
-            instancePath: instancePath + '/name',
-            schemaPath: '#/properties/name/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err2 = { instancePath: instancePath + '/name', schemaPath: '#/properties/name/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err2];
           } else {
@@ -10115,13 +8396,7 @@ const generatedContract = (() => {
       }
       if (data.physicalType !== undefined) {
         if (typeof data.physicalType !== 'string') {
-          const err3 = {
-            instancePath: instancePath + '/physicalType',
-            schemaPath: '#/properties/physicalType/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err3 = { instancePath: instancePath + '/physicalType', schemaPath: '#/properties/physicalType/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err3];
           } else {
@@ -10132,13 +8407,7 @@ const generatedContract = (() => {
       }
       if (data.description !== undefined) {
         if (typeof data.description !== 'string') {
-          const err4 = {
-            instancePath: instancePath + '/description',
-            schemaPath: '#/properties/description/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err4 = { instancePath: instancePath + '/description', schemaPath: '#/properties/description/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err4];
           } else {
@@ -10149,13 +8418,7 @@ const generatedContract = (() => {
       }
       if (data.businessName !== undefined) {
         if (typeof data.businessName !== 'string') {
-          const err5 = {
-            instancePath: instancePath + '/businessName',
-            schemaPath: '#/properties/businessName/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err5 = { instancePath: instancePath + '/businessName', schemaPath: '#/properties/businessName/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err5];
           } else {
@@ -10184,13 +8447,7 @@ const generatedContract = (() => {
           const len0 = data6.length;
           for (let i0 = 0; i0 < len0; i0++) {
             if (typeof data6[i0] !== 'string') {
-              const err6 = {
-                instancePath: instancePath + '/tags/' + i0,
-                schemaPath: '#/$defs/Tags/items/type',
-                keyword: 'type',
-                params: { type: 'string' },
-                message: 'must be string',
-              };
+              const err6 = { instancePath: instancePath + '/tags/' + i0, schemaPath: '#/$defs/Tags/items/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
               if (vErrors === null) {
                 vErrors = [err6];
               } else {
@@ -10200,13 +8457,7 @@ const generatedContract = (() => {
             }
           }
         } else {
-          const err7 = {
-            instancePath: instancePath + '/tags',
-            schemaPath: '#/$defs/Tags/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err7 = { instancePath: instancePath + '/tags', schemaPath: '#/$defs/Tags/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err7];
           } else {
@@ -10216,27 +8467,13 @@ const generatedContract = (() => {
         }
       }
       if (data.customProperties !== undefined) {
-        if (
-          !validate21(data.customProperties, {
-            instancePath: instancePath + '/customProperties',
-            parentData: data,
-            parentDataProperty: 'customProperties',
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate21(data.customProperties, { instancePath: instancePath + '/customProperties', parentData: data, parentDataProperty: 'customProperties', rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate21.errors : vErrors.concat(validate21.errors);
           errors = vErrors.length;
         }
       }
     } else {
-      const err8 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err8 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err8];
       } else {
@@ -10248,68 +8485,29 @@ const generatedContract = (() => {
     return errors === 0;
   }
   validate32.evaluated = {
-    props: {
-      id: true,
-      name: true,
-      physicalType: true,
-      description: true,
-      businessName: true,
-      authoritativeDefinitions: true,
-      tags: true,
-      customProperties: true,
-    },
+    props: { id: true, name: true, physicalType: true, description: true, businessName: true, authoritativeDefinitions: true, tags: true, customProperties: true },
     dynamicProps: false,
     dynamicItems: false,
   };
 
-  const OdcsContractSchemaComponentSchema6 = {
-    type: 'object',
-    $ref: '#/$defs/SchemaBaseProperty',
-    required: ['name'],
-    unevaluatedProperties: false,
-  };
+  const OdcsContractSchemaComponentSchema6 = { type: 'object', $ref: '#/$defs/SchemaBaseProperty', required: ['name'], unevaluatedProperties: false };
   const OdcsContractSchemaComponentSchema7 = {
     type: 'object',
     properties: {
-      primaryKey: {
-        type: 'boolean',
-        description: 'Boolean value specifying whether the element is primary or not. Default is false.',
-      },
+      primaryKey: { type: 'boolean', description: 'Boolean value specifying whether the element is primary or not. Default is false.' },
       primaryKeyPosition: {
         type: 'integer',
         default: -1,
         description:
           'If element is a primary key, the position of the primary key element. Starts from 1. Example of `account_id, name` being primary key columns, `account_id` has primaryKeyPosition 1 and `name` primaryKeyPosition 2. Default to -1.',
       },
-      logicalType: {
-        type: 'string',
-        description: 'The logical element data type.',
-        enum: ['string', 'date', 'timestamp', 'time', 'number', 'integer', 'object', 'array', 'boolean'],
-      },
-      logicalTypeOptions: {
-        type: 'object',
-        description: 'Additional optional metadata to describe the logical type.',
-      },
-      physicalType: {
-        type: 'string',
-        description: 'The physical element data type in the data source. For example, VARCHAR(2), DOUBLE, INT.',
-      },
+      logicalType: { type: 'string', description: 'The logical element data type.', enum: ['string', 'date', 'timestamp', 'time', 'number', 'integer', 'object', 'array', 'boolean'] },
+      logicalTypeOptions: { type: 'object', description: 'Additional optional metadata to describe the logical type.' },
+      physicalType: { type: 'string', description: 'The physical element data type in the data source. For example, VARCHAR(2), DOUBLE, INT.' },
       physicalName: { type: 'string', description: 'Physical name.', examples: ['col_str_a'] },
-      required: {
-        type: 'boolean',
-        default: false,
-        description: 'Indicates if the element may contain Null values; possible values are true and false. Default is false.',
-      },
-      unique: {
-        type: 'boolean',
-        default: false,
-        description: 'Indicates if the element contains unique values; possible values are true and false. Default is false.',
-      },
-      partitioned: {
-        type: 'boolean',
-        default: false,
-        description: 'Indicates if the element is partitioned; possible values are true and false.',
-      },
+      required: { type: 'boolean', default: false, description: 'Indicates if the element may contain Null values; possible values are true and false. Default is false.' },
+      unique: { type: 'boolean', default: false, description: 'Indicates if the element contains unique values; possible values are true and false. Default is false.' },
+      partitioned: { type: 'boolean', default: false, description: 'Indicates if the element is partitioned; possible values are true and false.' },
       partitionKeyPosition: {
         type: 'integer',
         default: -1,
@@ -10327,26 +8525,11 @@ const generatedContract = (() => {
         description:
           'The element name within the dataset that contains the encrypted element value. For example, unencrypted element `email_address` might have an encryptedName of `email_address_encrypt`.',
       },
-      transformSourceObjects: {
-        type: 'array',
-        description: 'List of objects in the data source used in the transformation.',
-        items: { type: 'string' },
-      },
+      transformSourceObjects: { type: 'array', description: 'List of objects in the data source used in the transformation.', items: { type: 'string' } },
       transformLogic: { type: 'string', description: 'Logic used in the element transformation.' },
-      transformDescription: {
-        type: 'string',
-        description: 'Describes the transform logic in very simple terms.',
-      },
-      examples: {
-        type: 'array',
-        description: 'List of sample element values.',
-        items: { $ref: '#/$defs/AnyType' },
-      },
-      criticalDataElement: {
-        type: 'boolean',
-        default: false,
-        description: 'True or false indicator; If element is considered a critical data element (CDE) then true else false.',
-      },
+      transformDescription: { type: 'string', description: 'Describes the transform logic in very simple terms.' },
+      examples: { type: 'array', description: 'List of sample element values.', items: { $ref: '#/$defs/AnyType' } },
+      criticalDataElement: { type: 'boolean', default: false, description: 'True or false indicator; If element is considered a critical data element (CDE) then true else false.' },
       relationships: {
         type: 'array',
         description: "A list of relationships to other properties. When defined at property level, the 'from' field is implicit and should not be specified.",
@@ -10364,16 +8547,8 @@ const generatedContract = (() => {
               type: 'object',
               additionalProperties: false,
               properties: {
-                minLength: {
-                  type: 'integer',
-                  minimum: 0,
-                  description: 'Minimum length of the string.',
-                },
-                maxLength: {
-                  type: 'integer',
-                  minimum: 0,
-                  description: 'Maximum length of the string.',
-                },
+                minLength: { type: 'integer', minimum: 0, description: 'Minimum length of the string.' },
+                maxLength: { type: 'integer', minimum: 0, description: 'Maximum length of the string.' },
                 pattern: {
                   type: 'string',
                   description: 'Regular expression pattern to define valid value. Follows regular expression syntax from ECMA-262 (https://262.ecma-international.org/5.1/#sec-15.10.1).',
@@ -10402,31 +8577,17 @@ const generatedContract = (() => {
                   description:
                     "Format of the date. Follows the format as prescribed by [JDK DateTimeFormatter](https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html). For example, format 'yyyy-MM-dd'.",
                 },
-                exclusiveMaximum: {
-                  type: 'string',
-                  description: 'All values must be strictly less than this value (values < exclusiveMaximum).',
-                },
-                maximum: {
-                  type: 'string',
-                  description: 'All date values are less than or equal to this value (values <= maximum).',
-                },
-                exclusiveMinimum: {
-                  type: 'string',
-                  description: 'All values must be strictly greater than this value (values > exclusiveMinimum).',
-                },
-                minimum: {
-                  type: 'string',
-                  description: 'All date values are greater than or equal to this value (values >= minimum).',
-                },
+                exclusiveMaximum: { type: 'string', description: 'All values must be strictly less than this value (values < exclusiveMaximum).' },
+                maximum: { type: 'string', description: 'All date values are less than or equal to this value (values <= maximum).' },
+                exclusiveMinimum: { type: 'string', description: 'All values must be strictly greater than this value (values > exclusiveMinimum).' },
+                minimum: { type: 'string', description: 'All date values are greater than or equal to this value (values >= minimum).' },
               },
             },
           },
         },
       },
       {
-        if: {
-          anyOf: [{ properties: { logicalType: { const: 'timestamp' } } }, { properties: { logicalType: { const: 'time' } } }],
-        },
+        if: { anyOf: [{ properties: { logicalType: { const: 'timestamp' } } }, { properties: { logicalType: { const: 'time' } } }] },
         then: {
           properties: {
             logicalTypeOptions: {
@@ -10439,31 +8600,12 @@ const generatedContract = (() => {
                   description:
                     "Format of the date. Follows the format as prescribed by [JDK DateTimeFormatter](https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html). For example, format 'yyyy-MM-dd'.",
                 },
-                exclusiveMaximum: {
-                  type: 'string',
-                  description: 'All values must be strictly less than this value (values < exclusiveMaximum).',
-                },
-                maximum: {
-                  type: 'string',
-                  description: 'All date values are less than or equal to this value (values <= maximum).',
-                },
-                exclusiveMinimum: {
-                  type: 'string',
-                  description: 'All values must be strictly greater than this value (values > exclusiveMinimum).',
-                },
-                minimum: {
-                  type: 'string',
-                  description: 'All date values are greater than or equal to this value (values >= minimum).',
-                },
-                timezone: {
-                  type: 'boolean',
-                  description: 'Whether the timestamp defines the timezone or not. If true, timezone information is included in the timestamp.',
-                },
-                defaultTimezone: {
-                  type: 'string',
-                  description: 'The default timezone of the timestamp. If timezone is not defined, the default timezone UTC is used.',
-                  default: 'Etc/UTC',
-                },
+                exclusiveMaximum: { type: 'string', description: 'All values must be strictly less than this value (values < exclusiveMaximum).' },
+                maximum: { type: 'string', description: 'All date values are less than or equal to this value (values <= maximum).' },
+                exclusiveMinimum: { type: 'string', description: 'All values must be strictly greater than this value (values > exclusiveMinimum).' },
+                minimum: { type: 'string', description: 'All date values are greater than or equal to this value (values >= minimum).' },
+                timezone: { type: 'boolean', description: 'Whether the timestamp defines the timezone or not. If true, timezone information is included in the timestamp.' },
+                defaultTimezone: { type: 'string', description: 'The default timezone of the timestamp. If timezone is not defined, the default timezone UTC is used.', default: 'Etc/UTC' },
               },
             },
           },
@@ -10477,27 +8619,11 @@ const generatedContract = (() => {
               type: 'object',
               additionalProperties: false,
               properties: {
-                multipleOf: {
-                  type: 'number',
-                  exclusiveMinimum: 0,
-                  description: 'Values must be multiples of this number. For example, multiple of 5 has valid values 0, 5, 10, -5.',
-                },
-                maximum: {
-                  type: 'number',
-                  description: 'All values are less than or equal to this value (values <= maximum).',
-                },
-                exclusiveMaximum: {
-                  type: 'number',
-                  description: 'All values must be strictly less than this value (values < exclusiveMaximum).',
-                },
-                minimum: {
-                  type: 'number',
-                  description: 'All values are greater than or equal to this value (values >= minimum).',
-                },
-                exclusiveMinimum: {
-                  type: 'number',
-                  description: 'All values must be strictly greater than this value (values > exclusiveMinimum).',
-                },
+                multipleOf: { type: 'number', exclusiveMinimum: 0, description: 'Values must be multiples of this number. For example, multiple of 5 has valid values 0, 5, 10, -5.' },
+                maximum: { type: 'number', description: 'All values are less than or equal to this value (values <= maximum).' },
+                exclusiveMaximum: { type: 'number', description: 'All values must be strictly less than this value (values < exclusiveMaximum).' },
+                minimum: { type: 'number', description: 'All values are greater than or equal to this value (values >= minimum).' },
+                exclusiveMinimum: { type: 'number', description: 'All values must be strictly greater than this value (values > exclusiveMinimum).' },
                 format: {
                   type: 'string',
                   default: 'i32',
@@ -10517,33 +8643,12 @@ const generatedContract = (() => {
               type: 'object',
               additionalProperties: false,
               properties: {
-                multipleOf: {
-                  type: 'number',
-                  exclusiveMinimum: 0,
-                  description: 'Values must be multiples of this number. For example, multiple of 5 has valid values 0, 5, 10, -5.',
-                },
-                maximum: {
-                  type: 'number',
-                  description: 'All values are less than or equal to this value (values <= maximum).',
-                },
-                exclusiveMaximum: {
-                  type: 'number',
-                  description: 'All values must be strictly less than this value (values < exclusiveMaximum).',
-                },
-                minimum: {
-                  type: 'number',
-                  description: 'All values are greater than or equal to this value (values >= minimum).',
-                },
-                exclusiveMinimum: {
-                  type: 'number',
-                  description: 'All values must be strictly greater than this value (values > exclusiveMinimum).',
-                },
-                format: {
-                  type: 'string',
-                  default: 'i32',
-                  description: 'Format of the value in terms of how many bits of space it can use (follows the Rust float types).',
-                  enum: ['f32', 'f64'],
-                },
+                multipleOf: { type: 'number', exclusiveMinimum: 0, description: 'Values must be multiples of this number. For example, multiple of 5 has valid values 0, 5, 10, -5.' },
+                maximum: { type: 'number', description: 'All values are less than or equal to this value (values <= maximum).' },
+                exclusiveMaximum: { type: 'number', description: 'All values must be strictly less than this value (values < exclusiveMaximum).' },
+                minimum: { type: 'number', description: 'All values are greater than or equal to this value (values >= minimum).' },
+                exclusiveMinimum: { type: 'number', description: 'All values must be strictly greater than this value (values > exclusiveMinimum).' },
+                format: { type: 'string', default: 'i32', description: 'Format of the value in terms of how many bits of space it can use (follows the Rust float types).', enum: ['f32', 'f64'] },
               },
             },
           },
@@ -10557,31 +8662,12 @@ const generatedContract = (() => {
               type: 'object',
               additionalProperties: false,
               properties: {
-                maxProperties: {
-                  type: 'integer',
-                  minimum: 0,
-                  description: 'Maximum number of properties.',
-                },
-                minProperties: {
-                  type: 'integer',
-                  minimum: 0,
-                  default: 0,
-                  description: 'Minimum number of properties.',
-                },
-                required: {
-                  type: 'array',
-                  items: { type: 'string' },
-                  minItems: 1,
-                  uniqueItems: true,
-                  description: 'Property names that are required to exist in the object.',
-                },
+                maxProperties: { type: 'integer', minimum: 0, description: 'Maximum number of properties.' },
+                minProperties: { type: 'integer', minimum: 0, default: 0, description: 'Minimum number of properties.' },
+                required: { type: 'array', items: { type: 'string' }, minItems: 1, uniqueItems: true, description: 'Property names that are required to exist in the object.' },
               },
             },
-            properties: {
-              type: 'array',
-              description: 'A list of properties for the object.',
-              items: { $ref: '#/$defs/SchemaProperty' },
-            },
+            properties: { type: 'array', description: 'A list of properties for the object.', items: { $ref: '#/$defs/SchemaProperty' } },
           },
         },
       },
@@ -10594,23 +8680,11 @@ const generatedContract = (() => {
               additionalProperties: false,
               properties: {
                 maxItems: { type: 'integer', minimum: 0, description: 'Maximum number of items.' },
-                minItems: {
-                  type: 'integer',
-                  minimum: 0,
-                  default: 0,
-                  description: 'Minimum number of items',
-                },
-                uniqueItems: {
-                  type: 'boolean',
-                  default: false,
-                  description: 'If set to true, all items in the array are unique.',
-                },
+                minItems: { type: 'integer', minimum: 0, default: 0, description: 'Minimum number of items' },
+                uniqueItems: { type: 'boolean', default: false, description: 'If set to true, all items in the array are unique.' },
               },
             },
-            items: {
-              $ref: '#/$defs/SchemaItemProperty',
-              description: 'List of items in an array (only applicable when `logicalType: array`).',
-            },
+            items: { $ref: '#/$defs/SchemaItemProperty', description: 'List of items in an array (only applicable when `logicalType: array`).' },
           },
         },
       },
@@ -10620,13 +8694,7 @@ const generatedContract = (() => {
   const OdcsContractSchemaComponentSchema8 = {
     type: 'object',
     $ref: '#/$defs/SchemaBaseProperty',
-    properties: {
-      properties: {
-        type: 'array',
-        description: 'A list of properties for the object.',
-        items: { $ref: '#/$defs/SchemaProperty' },
-      },
-    },
+    properties: { properties: { type: 'array', description: 'A list of properties for the object.', items: { $ref: '#/$defs/SchemaProperty' } } },
     unevaluatedProperties: false,
   };
   const wrapper1 = { validate: validate37 };
@@ -10642,15 +8710,7 @@ const generatedContract = (() => {
     if (evaluated0.dynamicItems) {
       evaluated0.items = undefined;
     }
-    if (
-      !wrapper1.validate(data, {
-        instancePath,
-        parentData,
-        parentDataProperty,
-        rootData,
-        dynamicAnchors,
-      })
-    ) {
+    if (!wrapper1.validate(data, { instancePath, parentData, parentDataProperty, rootData, dynamicAnchors })) {
       vErrors = vErrors === null ? wrapper1.validate.errors : vErrors.concat(wrapper1.validate.errors);
       errors = vErrors.length;
     } else {
@@ -10667,27 +8727,13 @@ const generatedContract = (() => {
         if (Array.isArray(data0)) {
           const len0 = data0.length;
           for (let i0 = 0; i0 < len0; i0++) {
-            if (
-              !wrapper0.validate(data0[i0], {
-                instancePath: instancePath + '/properties/' + i0,
-                parentData: data0,
-                parentDataProperty: i0,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!wrapper0.validate(data0[i0], { instancePath: instancePath + '/properties/' + i0, parentData: data0, parentDataProperty: i0, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? wrapper0.validate.errors : vErrors.concat(wrapper0.validate.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err0 = {
-            instancePath: instancePath + '/properties',
-            schemaPath: '#/properties/properties/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err0 = { instancePath: instancePath + '/properties', schemaPath: '#/properties/properties/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err0];
           } else {
@@ -10716,13 +8762,7 @@ const generatedContract = (() => {
         }
       }
     } else {
-      const err2 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err2 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err2];
       } else {
@@ -10742,10 +8782,7 @@ const generatedContract = (() => {
     allOf: [
       { $ref: '#/$defs/RelationshipBase' },
       { type: 'object', required: ['to'] },
-      {
-        not: { required: ['from'] },
-        description: "The 'from' field must not be specified at property level as it is implicitly derived from the property context",
-      },
+      { not: { required: ['from'] }, description: "The 'from' field must not be specified at property level as it is implicitly derived from the property context" },
     ],
     unevaluatedProperties: false,
   };
@@ -10753,24 +8790,14 @@ const generatedContract = (() => {
     type: 'object',
     description: 'Base definition for relationships between properties, typically for foreign key constraints.',
     properties: {
-      type: {
-        type: 'string',
-        description: "The type of relationship. Defaults to 'foreignKey'.",
-        default: 'foreignKey',
-        enum: ['foreignKey'],
-      },
+      type: { type: 'string', description: "The type of relationship. Defaults to 'foreignKey'.", default: 'foreignKey', enum: ['foreignKey'] },
       from: {
         oneOf: [
-          {
-            anyOf: [{ $ref: '#/$defs/ShorthandReference' }, { $ref: '#/$defs/FullyQualifiedReference' }],
-            description: 'Source property reference using fully qualified or shorthand notation.',
-          },
+          { anyOf: [{ $ref: '#/$defs/ShorthandReference' }, { $ref: '#/$defs/FullyQualifiedReference' }], description: 'Source property reference using fully qualified or shorthand notation.' },
           {
             type: 'array',
             description: 'Array of source properties for composite keys.',
-            items: {
-              anyOf: [{ $ref: '#/$defs/ShorthandReference' }, { $ref: '#/$defs/FullyQualifiedReference' }],
-            },
+            items: { anyOf: [{ $ref: '#/$defs/ShorthandReference' }, { $ref: '#/$defs/FullyQualifiedReference' }] },
             minItems: 1,
           },
         ],
@@ -10778,16 +8805,11 @@ const generatedContract = (() => {
       },
       to: {
         oneOf: [
-          {
-            anyOf: [{ $ref: '#/$defs/ShorthandReference' }, { $ref: '#/$defs/FullyQualifiedReference' }],
-            description: 'Target property reference using fully qualified or shorthand notation.',
-          },
+          { anyOf: [{ $ref: '#/$defs/ShorthandReference' }, { $ref: '#/$defs/FullyQualifiedReference' }], description: 'Target property reference using fully qualified or shorthand notation.' },
           {
             type: 'array',
             description: 'Array of target properties for composite keys.',
-            items: {
-              anyOf: [{ $ref: '#/$defs/ShorthandReference' }, { $ref: '#/$defs/FullyQualifiedReference' }],
-            },
+            items: { anyOf: [{ $ref: '#/$defs/ShorthandReference' }, { $ref: '#/$defs/FullyQualifiedReference' }] },
             minItems: 1,
           },
         ],
@@ -10823,13 +8845,7 @@ const generatedContract = (() => {
       if (data.type !== undefined) {
         let data0 = data.type;
         if (typeof data0 !== 'string') {
-          const err0 = {
-            instancePath: instancePath + '/type',
-            schemaPath: '#/properties/type/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err0 = { instancePath: instancePath + '/type', schemaPath: '#/properties/type/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err0];
           } else {
@@ -10842,9 +8858,7 @@ const generatedContract = (() => {
             instancePath: instancePath + '/type',
             schemaPath: '#/properties/type/enum',
             keyword: 'enum',
-            params: {
-              allowedValues: BaseDefinitionRelationshipsBetweenSchema.properties.type.enum,
-            },
+            params: { allowedValues: BaseDefinitionRelationshipsBetweenSchema.properties.type.enum },
             message: 'must be equal to one of the allowed values',
           };
           if (vErrors === null) {
@@ -10881,13 +8895,7 @@ const generatedContract = (() => {
             errors++;
           }
         } else {
-          const err3 = {
-            instancePath: instancePath + '/from',
-            schemaPath: '#/$defs/ShorthandReference/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err3 = { instancePath: instancePath + '/from', schemaPath: '#/$defs/ShorthandReference/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err3];
           } else {
@@ -10904,9 +8912,7 @@ const generatedContract = (() => {
               instancePath: instancePath + '/from',
               schemaPath: '#/$defs/FullyQualifiedReference/pattern',
               keyword: 'pattern',
-              params: {
-                pattern: '^(?:(?:https?:\\/\\/)?[A-Za-z0-9._\\-\\/]+\\.yaml#)?\\/?[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+(?:\\/[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+)*$',
-              },
+              params: { pattern: '^(?:(?:https?:\\/\\/)?[A-Za-z0-9._\\-\\/]+\\.yaml#)?\\/?[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+(?:\\/[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+)*$' },
               message:
                 'must match pattern "' +
                 '^(?:(?:https?:\\/\\/)?[A-Za-z0-9._\\-\\/]+\\.yaml#)?\\/?[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+(?:\\/[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+)*$' +
@@ -10920,13 +8926,7 @@ const generatedContract = (() => {
             errors++;
           }
         } else {
-          const err5 = {
-            instancePath: instancePath + '/from',
-            schemaPath: '#/$defs/FullyQualifiedReference/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err5 = { instancePath: instancePath + '/from', schemaPath: '#/$defs/FullyQualifiedReference/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err5];
           } else {
@@ -10937,13 +8937,7 @@ const generatedContract = (() => {
         var _valid1 = _errs10 === errors;
         valid2 = valid2 || _valid1;
         if (!valid2) {
-          const err6 = {
-            instancePath: instancePath + '/from',
-            schemaPath: '#/properties/from/oneOf/0/anyOf',
-            keyword: 'anyOf',
-            params: {},
-            message: 'must match a schema in anyOf',
-          };
+          const err6 = { instancePath: instancePath + '/from', schemaPath: '#/properties/from/oneOf/0/anyOf', keyword: 'anyOf', params: {}, message: 'must match a schema in anyOf' };
           if (vErrors === null) {
             vErrors = [err6];
           } else {
@@ -11005,13 +8999,7 @@ const generatedContract = (() => {
                 errors++;
               }
             } else {
-              const err9 = {
-                instancePath: instancePath + '/from/' + i0,
-                schemaPath: '#/$defs/ShorthandReference/type',
-                keyword: 'type',
-                params: { type: 'string' },
-                message: 'must be string',
-              };
+              const err9 = { instancePath: instancePath + '/from/' + i0, schemaPath: '#/$defs/ShorthandReference/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
               if (vErrors === null) {
                 vErrors = [err9];
               } else {
@@ -11028,9 +9016,7 @@ const generatedContract = (() => {
                   instancePath: instancePath + '/from/' + i0,
                   schemaPath: '#/$defs/FullyQualifiedReference/pattern',
                   keyword: 'pattern',
-                  params: {
-                    pattern: '^(?:(?:https?:\\/\\/)?[A-Za-z0-9._\\-\\/]+\\.yaml#)?\\/?[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+(?:\\/[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+)*$',
-                  },
+                  params: { pattern: '^(?:(?:https?:\\/\\/)?[A-Za-z0-9._\\-\\/]+\\.yaml#)?\\/?[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+(?:\\/[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+)*$' },
                   message:
                     'must match pattern "' +
                     '^(?:(?:https?:\\/\\/)?[A-Za-z0-9._\\-\\/]+\\.yaml#)?\\/?[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+(?:\\/[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+)*$' +
@@ -11044,13 +9030,7 @@ const generatedContract = (() => {
                 errors++;
               }
             } else {
-              const err11 = {
-                instancePath: instancePath + '/from/' + i0,
-                schemaPath: '#/$defs/FullyQualifiedReference/type',
-                keyword: 'type',
-                params: { type: 'string' },
-                message: 'must be string',
-              };
+              const err11 = { instancePath: instancePath + '/from/' + i0, schemaPath: '#/$defs/FullyQualifiedReference/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
               if (vErrors === null) {
                 vErrors = [err11];
               } else {
@@ -11061,13 +9041,7 @@ const generatedContract = (() => {
             var _valid2 = _errs20 === errors;
             valid7 = valid7 || _valid2;
             if (!valid7) {
-              const err12 = {
-                instancePath: instancePath + '/from/' + i0,
-                schemaPath: '#/properties/from/oneOf/1/items/anyOf',
-                keyword: 'anyOf',
-                params: {},
-                message: 'must match a schema in anyOf',
-              };
+              const err12 = { instancePath: instancePath + '/from/' + i0, schemaPath: '#/properties/from/oneOf/1/items/anyOf', keyword: 'anyOf', params: {}, message: 'must match a schema in anyOf' };
               if (vErrors === null) {
                 vErrors = [err12];
               } else {
@@ -11086,13 +9060,7 @@ const generatedContract = (() => {
             }
           }
         } else {
-          const err13 = {
-            instancePath: instancePath + '/from',
-            schemaPath: '#/properties/from/oneOf/1/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err13 = { instancePath: instancePath + '/from', schemaPath: '#/properties/from/oneOf/1/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err13];
           } else {
@@ -11161,13 +9129,7 @@ const generatedContract = (() => {
             errors++;
           }
         } else {
-          const err16 = {
-            instancePath: instancePath + '/to',
-            schemaPath: '#/$defs/ShorthandReference/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err16 = { instancePath: instancePath + '/to', schemaPath: '#/$defs/ShorthandReference/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err16];
           } else {
@@ -11184,9 +9146,7 @@ const generatedContract = (() => {
               instancePath: instancePath + '/to',
               schemaPath: '#/$defs/FullyQualifiedReference/pattern',
               keyword: 'pattern',
-              params: {
-                pattern: '^(?:(?:https?:\\/\\/)?[A-Za-z0-9._\\-\\/]+\\.yaml#)?\\/?[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+(?:\\/[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+)*$',
-              },
+              params: { pattern: '^(?:(?:https?:\\/\\/)?[A-Za-z0-9._\\-\\/]+\\.yaml#)?\\/?[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+(?:\\/[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+)*$' },
               message:
                 'must match pattern "' +
                 '^(?:(?:https?:\\/\\/)?[A-Za-z0-9._\\-\\/]+\\.yaml#)?\\/?[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+(?:\\/[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+)*$' +
@@ -11200,13 +9160,7 @@ const generatedContract = (() => {
             errors++;
           }
         } else {
-          const err18 = {
-            instancePath: instancePath + '/to',
-            schemaPath: '#/$defs/FullyQualifiedReference/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err18 = { instancePath: instancePath + '/to', schemaPath: '#/$defs/FullyQualifiedReference/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err18];
           } else {
@@ -11217,13 +9171,7 @@ const generatedContract = (() => {
         var _valid4 = _errs30 === errors;
         valid11 = valid11 || _valid4;
         if (!valid11) {
-          const err19 = {
-            instancePath: instancePath + '/to',
-            schemaPath: '#/properties/to/oneOf/0/anyOf',
-            keyword: 'anyOf',
-            params: {},
-            message: 'must match a schema in anyOf',
-          };
+          const err19 = { instancePath: instancePath + '/to', schemaPath: '#/properties/to/oneOf/0/anyOf', keyword: 'anyOf', params: {}, message: 'must match a schema in anyOf' };
           if (vErrors === null) {
             vErrors = [err19];
           } else {
@@ -11285,13 +9233,7 @@ const generatedContract = (() => {
                 errors++;
               }
             } else {
-              const err22 = {
-                instancePath: instancePath + '/to/' + i1,
-                schemaPath: '#/$defs/ShorthandReference/type',
-                keyword: 'type',
-                params: { type: 'string' },
-                message: 'must be string',
-              };
+              const err22 = { instancePath: instancePath + '/to/' + i1, schemaPath: '#/$defs/ShorthandReference/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
               if (vErrors === null) {
                 vErrors = [err22];
               } else {
@@ -11308,9 +9250,7 @@ const generatedContract = (() => {
                   instancePath: instancePath + '/to/' + i1,
                   schemaPath: '#/$defs/FullyQualifiedReference/pattern',
                   keyword: 'pattern',
-                  params: {
-                    pattern: '^(?:(?:https?:\\/\\/)?[A-Za-z0-9._\\-\\/]+\\.yaml#)?\\/?[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+(?:\\/[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+)*$',
-                  },
+                  params: { pattern: '^(?:(?:https?:\\/\\/)?[A-Za-z0-9._\\-\\/]+\\.yaml#)?\\/?[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+(?:\\/[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+)*$' },
                   message:
                     'must match pattern "' +
                     '^(?:(?:https?:\\/\\/)?[A-Za-z0-9._\\-\\/]+\\.yaml#)?\\/?[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+(?:\\/[A-Za-z_][A-Za-z0-9_]*\\/[^\\s.#/\\\\@!%&^]+)*$' +
@@ -11324,13 +9264,7 @@ const generatedContract = (() => {
                 errors++;
               }
             } else {
-              const err24 = {
-                instancePath: instancePath + '/to/' + i1,
-                schemaPath: '#/$defs/FullyQualifiedReference/type',
-                keyword: 'type',
-                params: { type: 'string' },
-                message: 'must be string',
-              };
+              const err24 = { instancePath: instancePath + '/to/' + i1, schemaPath: '#/$defs/FullyQualifiedReference/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
               if (vErrors === null) {
                 vErrors = [err24];
               } else {
@@ -11341,13 +9275,7 @@ const generatedContract = (() => {
             var _valid5 = _errs40 === errors;
             valid16 = valid16 || _valid5;
             if (!valid16) {
-              const err25 = {
-                instancePath: instancePath + '/to/' + i1,
-                schemaPath: '#/properties/to/oneOf/1/items/anyOf',
-                keyword: 'anyOf',
-                params: {},
-                message: 'must match a schema in anyOf',
-              };
+              const err25 = { instancePath: instancePath + '/to/' + i1, schemaPath: '#/properties/to/oneOf/1/items/anyOf', keyword: 'anyOf', params: {}, message: 'must match a schema in anyOf' };
               if (vErrors === null) {
                 vErrors = [err25];
               } else {
@@ -11366,13 +9294,7 @@ const generatedContract = (() => {
             }
           }
         } else {
-          const err26 = {
-            instancePath: instancePath + '/to',
-            schemaPath: '#/properties/to/oneOf/1/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err26 = { instancePath: instancePath + '/to', schemaPath: '#/properties/to/oneOf/1/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err26];
           } else {
@@ -11416,27 +9338,13 @@ const generatedContract = (() => {
         }
       }
       if (data.customProperties !== undefined) {
-        if (
-          !validate21(data.customProperties, {
-            instancePath: instancePath + '/customProperties',
-            parentData: data,
-            parentDataProperty: 'customProperties',
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate21(data.customProperties, { instancePath: instancePath + '/customProperties', parentData: data, parentDataProperty: 'customProperties', rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate21.errors : vErrors.concat(validate21.errors);
           errors = vErrors.length;
         }
       }
     } else {
-      const err28 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err28 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err28];
       } else {
@@ -11447,11 +9355,7 @@ const generatedContract = (() => {
     validate42.errors = vErrors;
     return errors === 0;
   }
-  validate42.evaluated = {
-    props: { type: true, from: true, to: true, customProperties: true },
-    dynamicProps: false,
-    dynamicItems: false,
-  };
+  validate42.evaluated = { props: { type: true, from: true, to: true, customProperties: true }, dynamicProps: false, dynamicItems: false };
 
   function validate41(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
@@ -11469,13 +9373,7 @@ const generatedContract = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.to === undefined) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/allOf/1/required',
-          keyword: 'required',
-          params: { missingProperty: 'to' },
-          message: "must have required property '" + 'to' + "'",
-        };
+        const err0 = { instancePath, schemaPath: '#/allOf/1/required', keyword: 'required', params: { missingProperty: 'to' }, message: "must have required property '" + 'to' + "'" };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -11484,13 +9382,7 @@ const generatedContract = (() => {
         errors++;
       }
     } else {
-      const err1 = {
-        instancePath,
-        schemaPath: '#/allOf/1/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err1 = { instancePath, schemaPath: '#/allOf/1/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err1];
       } else {
@@ -11514,13 +9406,7 @@ const generatedContract = (() => {
     }
     var valid1 = _errs6 === errors;
     if (valid1) {
-      const err3 = {
-        instancePath,
-        schemaPath: '#/allOf/2/not',
-        keyword: 'not',
-        params: {},
-        message: 'must NOT be valid',
-      };
+      const err3 = { instancePath, schemaPath: '#/allOf/2/not', keyword: 'not', params: {}, message: 'must NOT be valid' };
       if (vErrors === null) {
         vErrors = [err3];
       } else {
@@ -11556,13 +9442,7 @@ const generatedContract = (() => {
         }
       }
     } else {
-      const err5 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err5 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err5];
       } else {
@@ -11575,26 +9455,14 @@ const generatedContract = (() => {
   }
   validate41.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
 
-  const DataQualityRulesAllSchema = {
-    type: 'array',
-    description: 'Data quality rules with all the relevant information for rule setup and execution.',
-    items: { $ref: '#/$defs/DataQuality' },
-  };
+  const DataQualityRulesAllSchema = { type: 'array', description: 'Data quality rules with all the relevant information for rule setup and execution.', items: { $ref: '#/$defs/DataQuality' } };
   const OdcsContractSchemaComponentSchema9 = {
     type: 'object',
     properties: {
       id: { $ref: '#/$defs/StableId' },
       authoritativeDefinitions: { $ref: '#/$defs/AuthoritativeDefinitions' },
-      businessImpact: {
-        type: 'string',
-        description: 'Consequences of the rule failure.',
-        examples: ['operational', 'regulatory'],
-      },
-      customProperties: {
-        type: 'array',
-        description: 'Additional properties required for rule execution.',
-        items: { $ref: '#/$defs/CustomProperty' },
-      },
+      businessImpact: { type: 'string', description: 'Consequences of the rule failure.', examples: ['operational', 'regulatory'] },
+      customProperties: { type: 'array', description: 'Additional properties required for rule execution.', items: { $ref: '#/$defs/CustomProperty' } },
       description: { type: 'string', description: 'Describe the quality check to be completed.' },
       dimension: {
         type: 'string',
@@ -11603,21 +9471,9 @@ const generatedContract = (() => {
       },
       method: { type: 'string', examples: ['reconciliation'] },
       name: { type: 'string', description: 'Name of the data quality check.' },
-      schedule: {
-        type: 'string',
-        description: 'Rule execution schedule details.',
-        examples: ['0 20 * * *'],
-      },
-      scheduler: {
-        type: 'string',
-        description: 'The name or type of scheduler used to start the data quality check.',
-        examples: ['cron'],
-      },
-      severity: {
-        type: 'string',
-        description: 'The severance of the quality rule.',
-        examples: ['info', 'warning', 'error'],
-      },
+      schedule: { type: 'string', description: 'Rule execution schedule details.', examples: ['0 20 * * *'] },
+      scheduler: { type: 'string', description: 'The name or type of scheduler used to start the data quality check.', examples: ['cron'] },
+      severity: { type: 'string', description: 'The severance of the quality rule.', examples: ['info', 'warning', 'error'] },
       tags: { $ref: '#/$defs/Tags' },
       type: {
         type: 'string',
@@ -11626,11 +9482,7 @@ const generatedContract = (() => {
         enum: ['text', 'library', 'sql', 'custom'],
         default: 'library',
       },
-      unit: {
-        type: 'string',
-        description: 'Unit the rule is using, popular values are `rows` or `percent`, but any value is allowed.',
-        examples: ['rows', 'percent'],
-      },
+      unit: { type: 'string', description: 'Unit the rule is using, popular values are `rows` or `percent`, but any value is allowed.', examples: ['rows', 'percent'] },
     },
     allOf: [
       {
@@ -11642,25 +9494,15 @@ const generatedContract = (() => {
         },
         then: { $ref: '#/$defs/DataQualityLibrary' },
       },
-      {
-        if: { properties: { type: { const: 'sql' } }, required: ['type'] },
-        then: { $ref: '#/$defs/DataQualitySql' },
-      },
-      {
-        if: { properties: { type: { const: 'custom' } }, required: ['type'] },
-        then: { $ref: '#/$defs/DataQualityCustom' },
-      },
+      { if: { properties: { type: { const: 'sql' } }, required: ['type'] }, then: { $ref: '#/$defs/DataQualitySql' } },
+      { if: { properties: { type: { const: 'custom' } }, required: ['type'] }, then: { $ref: '#/$defs/DataQualityCustom' } },
     ],
     unevaluatedProperties: false,
   };
   const OdcsContractSchemaComponentSchema10 = {
     type: 'object',
     properties: {
-      engine: {
-        type: 'string',
-        description: 'Name of the engine which executes the data quality checks.',
-        examples: ['soda', 'great-expectations', 'monte-carlo', 'dbt'],
-      },
+      engine: { type: 'string', description: 'Name of the engine which executes the data quality checks.', examples: ['soda', 'great-expectations', 'monte-carlo', 'dbt'] },
       implementation: { oneOf: [{ type: 'string' }, { type: 'object' }] },
     },
     required: ['engine', 'implementation'],
@@ -11683,58 +9525,15 @@ const generatedContract = (() => {
     type: 'object',
     description: 'Common comparison operators for data quality checks.',
     oneOf: [
+      { properties: { mustBe: { description: "Must be equal to the value to be valid. When using numbers, it is equivalent to '='." } }, required: ['mustBe'] },
+      { properties: { mustNotBe: { description: "Must not be equal to the value to be valid. When using numbers, it is equivalent to '!='." } }, required: ['mustNotBe'] },
+      { properties: { mustBeGreaterThan: { type: 'number', description: "Must be greater than the value to be valid. It is equivalent to '>'." } }, required: ['mustBeGreaterThan'] },
       {
-        properties: {
-          mustBe: {
-            description: "Must be equal to the value to be valid. When using numbers, it is equivalent to '='.",
-          },
-        },
-        required: ['mustBe'],
-      },
-      {
-        properties: {
-          mustNotBe: {
-            description: "Must not be equal to the value to be valid. When using numbers, it is equivalent to '!='.",
-          },
-        },
-        required: ['mustNotBe'],
-      },
-      {
-        properties: {
-          mustBeGreaterThan: {
-            type: 'number',
-            description: "Must be greater than the value to be valid. It is equivalent to '>'.",
-          },
-        },
-        required: ['mustBeGreaterThan'],
-      },
-      {
-        properties: {
-          mustBeGreaterOrEqualTo: {
-            type: 'number',
-            description: "Must be greater than or equal to the value to be valid. It is equivalent to '>='.",
-          },
-        },
+        properties: { mustBeGreaterOrEqualTo: { type: 'number', description: "Must be greater than or equal to the value to be valid. It is equivalent to '>='." } },
         required: ['mustBeGreaterOrEqualTo'],
       },
-      {
-        properties: {
-          mustBeLessThan: {
-            type: 'number',
-            description: "Must be less than the value to be valid. It is equivalent to '<'.",
-          },
-        },
-        required: ['mustBeLessThan'],
-      },
-      {
-        properties: {
-          mustBeLessOrEqualTo: {
-            type: 'number',
-            description: "Must be less than or equal to the value to be valid. It is equivalent to '<='.",
-          },
-        },
-        required: ['mustBeLessOrEqualTo'],
-      },
+      { properties: { mustBeLessThan: { type: 'number', description: "Must be less than the value to be valid. It is equivalent to '<'." } }, required: ['mustBeLessThan'] },
+      { properties: { mustBeLessOrEqualTo: { type: 'number', description: "Must be less than or equal to the value to be valid. It is equivalent to '<='." } }, required: ['mustBeLessOrEqualTo'] },
       {
         properties: {
           mustBeBetween: {
@@ -11775,13 +9574,7 @@ const generatedContract = (() => {
       evaluated0.items = undefined;
     }
     if (!(data && typeof data == 'object' && !Array.isArray(data))) {
-      const err0 = {
-        instancePath,
-        schemaPath: '#/$defs/DataQualityOperators/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err0 = { instancePath, schemaPath: '#/$defs/DataQualityOperators/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err0];
       } else {
@@ -12302,13 +10095,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid2) {
-      const err23 = {
-        instancePath,
-        schemaPath: '#/$defs/DataQualityOperators/oneOf',
-        keyword: 'oneOf',
-        params: { passingSchemas: passing0 },
-        message: 'must match exactly one schema in oneOf',
-      };
+      const err23 = { instancePath, schemaPath: '#/$defs/DataQualityOperators/oneOf', keyword: 'oneOf', params: { passingSchemas: passing0 }, message: 'must match exactly one schema in oneOf' };
       if (vErrors === null) {
         vErrors = [err23];
       } else {
@@ -12327,13 +10114,7 @@ const generatedContract = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.metric === undefined) {
-        const err24 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'metric' },
-          message: "must have required property '" + 'metric' + "'",
-        };
+        const err24 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'metric' }, message: "must have required property '" + 'metric' + "'" };
         if (vErrors === null) {
           vErrors = [err24];
         } else {
@@ -12350,13 +10131,7 @@ const generatedContract = (() => {
       if (data.metric !== undefined) {
         let data8 = data.metric;
         if (typeof data8 !== 'string') {
-          const err25 = {
-            instancePath: instancePath + '/metric',
-            schemaPath: '#/properties/metric/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err25 = { instancePath: instancePath + '/metric', schemaPath: '#/properties/metric/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err25];
           } else {
@@ -12382,13 +10157,7 @@ const generatedContract = (() => {
       }
       if (data.rule !== undefined) {
         if (typeof data.rule !== 'string') {
-          const err27 = {
-            instancePath: instancePath + '/rule',
-            schemaPath: '#/properties/rule/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err27 = { instancePath: instancePath + '/rule', schemaPath: '#/properties/rule/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err27];
           } else {
@@ -12400,13 +10169,7 @@ const generatedContract = (() => {
       if (data.arguments !== undefined) {
         let data10 = data.arguments;
         if (!(data10 && typeof data10 == 'object' && !Array.isArray(data10))) {
-          const err28 = {
-            instancePath: instancePath + '/arguments',
-            schemaPath: '#/properties/arguments/type',
-            keyword: 'type',
-            params: { type: 'object' },
-            message: 'must be object',
-          };
+          const err28 = { instancePath: instancePath + '/arguments', schemaPath: '#/properties/arguments/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
           if (vErrors === null) {
             vErrors = [err28];
           } else {
@@ -12416,13 +10179,7 @@ const generatedContract = (() => {
         }
       }
     } else {
-      const err29 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err29 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err29];
       } else {
@@ -12439,13 +10196,7 @@ const generatedContract = (() => {
   const OdcsContractSchemaComponentSchema12 = {
     type: 'object',
     allOf: [{ $ref: '#/$defs/DataQualityOperators' }],
-    properties: {
-      query: {
-        type: 'string',
-        description: 'Query string that adheres to the dialect of the provided server.',
-        examples: ['SELECT COUNT(*) FROM ${table} WHERE ${column} IS NOT NULL'],
-      },
-    },
+    properties: { query: { type: 'string', description: 'Query string that adheres to the dialect of the provided server.', examples: ['SELECT COUNT(*) FROM ${table} WHERE ${column} IS NOT NULL'] } },
     required: ['query'],
   };
 
@@ -12460,13 +10211,7 @@ const generatedContract = (() => {
       evaluated0.items = undefined;
     }
     if (!(data && typeof data == 'object' && !Array.isArray(data))) {
-      const err0 = {
-        instancePath,
-        schemaPath: '#/$defs/DataQualityOperators/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err0 = { instancePath, schemaPath: '#/$defs/DataQualityOperators/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err0];
       } else {
@@ -12987,13 +10732,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid2) {
-      const err23 = {
-        instancePath,
-        schemaPath: '#/$defs/DataQualityOperators/oneOf',
-        keyword: 'oneOf',
-        params: { passingSchemas: passing0 },
-        message: 'must match exactly one schema in oneOf',
-      };
+      const err23 = { instancePath, schemaPath: '#/$defs/DataQualityOperators/oneOf', keyword: 'oneOf', params: { passingSchemas: passing0 }, message: 'must match exactly one schema in oneOf' };
       if (vErrors === null) {
         vErrors = [err23];
       } else {
@@ -13012,13 +10751,7 @@ const generatedContract = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.query === undefined) {
-        const err24 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'query' },
-          message: "must have required property '" + 'query' + "'",
-        };
+        const err24 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'query' }, message: "must have required property '" + 'query' + "'" };
         if (vErrors === null) {
           vErrors = [err24];
         } else {
@@ -13032,13 +10765,7 @@ const generatedContract = (() => {
       }
       if (data.query !== undefined) {
         if (typeof data.query !== 'string') {
-          const err25 = {
-            instancePath: instancePath + '/query',
-            schemaPath: '#/properties/query/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err25 = { instancePath: instancePath + '/query', schemaPath: '#/properties/query/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err25];
           } else {
@@ -13048,13 +10775,7 @@ const generatedContract = (() => {
         }
       }
     } else {
-      const err26 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err26 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err26];
       } else {
@@ -13176,15 +10897,7 @@ const generatedContract = (() => {
     }
     if (_valid0) {
       const _errs10 = errors;
-      if (
-        !validate48(data, {
-          instancePath,
-          parentData,
-          parentDataProperty,
-          rootData,
-          dynamicAnchors,
-        })
-      ) {
+      if (!validate48(data, { instancePath, parentData, parentDataProperty, rootData, dynamicAnchors })) {
         vErrors = vErrors === null ? validate48.errors : vErrors.concat(validate48.errors);
         errors = vErrors.length;
       } else {
@@ -13204,13 +10917,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid1) {
-      const err5 = {
-        instancePath,
-        schemaPath: '#/allOf/0/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err5 = { instancePath, schemaPath: '#/allOf/0/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err5];
       } else {
@@ -13256,15 +10963,7 @@ const generatedContract = (() => {
     }
     if (_valid2) {
       const _errs15 = errors;
-      if (
-        !validate50(data, {
-          instancePath,
-          parentData,
-          parentDataProperty,
-          rootData,
-          dynamicAnchors,
-        })
-      ) {
+      if (!validate50(data, { instancePath, parentData, parentDataProperty, rootData, dynamicAnchors })) {
         vErrors = vErrors === null ? validate50.errors : vErrors.concat(validate50.errors);
         errors = vErrors.length;
       } else {
@@ -13280,13 +10979,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid5) {
-      const err8 = {
-        instancePath,
-        schemaPath: '#/allOf/1/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err8 = { instancePath, schemaPath: '#/allOf/1/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err8];
       } else {
@@ -13466,13 +11159,7 @@ const generatedContract = (() => {
           }
         }
       } else {
-        const err17 = {
-          instancePath,
-          schemaPath: '#/$defs/DataQualityCustom/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        };
+        const err17 = { instancePath, schemaPath: '#/$defs/DataQualityCustom/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
         if (vErrors === null) {
           vErrors = [err17];
         } else {
@@ -13490,13 +11177,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid7) {
-      const err18 = {
-        instancePath,
-        schemaPath: '#/allOf/2/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err18 = { instancePath, schemaPath: '#/allOf/2/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err18];
       } else {
@@ -13549,13 +11230,7 @@ const generatedContract = (() => {
             errors++;
           }
         } else {
-          const err20 = {
-            instancePath: instancePath + '/id',
-            schemaPath: '#/$defs/StableId/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err20 = { instancePath: instancePath + '/id', schemaPath: '#/$defs/StableId/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err20];
           } else {
@@ -13580,13 +11255,7 @@ const generatedContract = (() => {
       }
       if (data.businessImpact !== undefined) {
         if (typeof data.businessImpact !== 'string') {
-          const err21 = {
-            instancePath: instancePath + '/businessImpact',
-            schemaPath: '#/properties/businessImpact/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err21 = { instancePath: instancePath + '/businessImpact', schemaPath: '#/properties/businessImpact/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err21];
           } else {
@@ -13600,27 +11269,13 @@ const generatedContract = (() => {
         if (Array.isArray(data9)) {
           const len0 = data9.length;
           for (let i0 = 0; i0 < len0; i0++) {
-            if (
-              !validate22(data9[i0], {
-                instancePath: instancePath + '/customProperties/' + i0,
-                parentData: data9,
-                parentDataProperty: i0,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!validate22(data9[i0], { instancePath: instancePath + '/customProperties/' + i0, parentData: data9, parentDataProperty: i0, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? validate22.errors : vErrors.concat(validate22.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err22 = {
-            instancePath: instancePath + '/customProperties',
-            schemaPath: '#/properties/customProperties/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err22 = { instancePath: instancePath + '/customProperties', schemaPath: '#/properties/customProperties/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err22];
           } else {
@@ -13631,13 +11286,7 @@ const generatedContract = (() => {
       }
       if (data.description !== undefined) {
         if (typeof data.description !== 'string') {
-          const err23 = {
-            instancePath: instancePath + '/description',
-            schemaPath: '#/properties/description/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err23 = { instancePath: instancePath + '/description', schemaPath: '#/properties/description/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err23];
           } else {
@@ -13649,13 +11298,7 @@ const generatedContract = (() => {
       if (data.dimension !== undefined) {
         let data12 = data.dimension;
         if (typeof data12 !== 'string') {
-          const err24 = {
-            instancePath: instancePath + '/dimension',
-            schemaPath: '#/properties/dimension/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err24 = { instancePath: instancePath + '/dimension', schemaPath: '#/properties/dimension/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err24];
           } else {
@@ -13683,13 +11326,7 @@ const generatedContract = (() => {
       }
       if (data.method !== undefined) {
         if (typeof data.method !== 'string') {
-          const err26 = {
-            instancePath: instancePath + '/method',
-            schemaPath: '#/properties/method/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err26 = { instancePath: instancePath + '/method', schemaPath: '#/properties/method/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err26];
           } else {
@@ -13700,13 +11337,7 @@ const generatedContract = (() => {
       }
       if (data.name !== undefined) {
         if (typeof data.name !== 'string') {
-          const err27 = {
-            instancePath: instancePath + '/name',
-            schemaPath: '#/properties/name/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err27 = { instancePath: instancePath + '/name', schemaPath: '#/properties/name/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err27];
           } else {
@@ -13717,13 +11348,7 @@ const generatedContract = (() => {
       }
       if (data.schedule !== undefined) {
         if (typeof data.schedule !== 'string') {
-          const err28 = {
-            instancePath: instancePath + '/schedule',
-            schemaPath: '#/properties/schedule/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err28 = { instancePath: instancePath + '/schedule', schemaPath: '#/properties/schedule/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err28];
           } else {
@@ -13734,13 +11359,7 @@ const generatedContract = (() => {
       }
       if (data.scheduler !== undefined) {
         if (typeof data.scheduler !== 'string') {
-          const err29 = {
-            instancePath: instancePath + '/scheduler',
-            schemaPath: '#/properties/scheduler/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err29 = { instancePath: instancePath + '/scheduler', schemaPath: '#/properties/scheduler/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err29];
           } else {
@@ -13751,13 +11370,7 @@ const generatedContract = (() => {
       }
       if (data.severity !== undefined) {
         if (typeof data.severity !== 'string') {
-          const err30 = {
-            instancePath: instancePath + '/severity',
-            schemaPath: '#/properties/severity/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err30 = { instancePath: instancePath + '/severity', schemaPath: '#/properties/severity/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err30];
           } else {
@@ -13772,13 +11385,7 @@ const generatedContract = (() => {
           const len1 = data18.length;
           for (let i1 = 0; i1 < len1; i1++) {
             if (typeof data18[i1] !== 'string') {
-              const err31 = {
-                instancePath: instancePath + '/tags/' + i1,
-                schemaPath: '#/$defs/Tags/items/type',
-                keyword: 'type',
-                params: { type: 'string' },
-                message: 'must be string',
-              };
+              const err31 = { instancePath: instancePath + '/tags/' + i1, schemaPath: '#/$defs/Tags/items/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
               if (vErrors === null) {
                 vErrors = [err31];
               } else {
@@ -13788,13 +11395,7 @@ const generatedContract = (() => {
             }
           }
         } else {
-          const err32 = {
-            instancePath: instancePath + '/tags',
-            schemaPath: '#/$defs/Tags/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err32 = { instancePath: instancePath + '/tags', schemaPath: '#/$defs/Tags/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err32];
           } else {
@@ -13806,13 +11407,7 @@ const generatedContract = (() => {
       if (data.type !== undefined) {
         let data20 = data.type;
         if (typeof data20 !== 'string') {
-          const err33 = {
-            instancePath: instancePath + '/type',
-            schemaPath: '#/properties/type/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err33 = { instancePath: instancePath + '/type', schemaPath: '#/properties/type/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err33];
           } else {
@@ -13838,13 +11433,7 @@ const generatedContract = (() => {
       }
       if (data.unit !== undefined) {
         if (typeof data.unit !== 'string') {
-          const err35 = {
-            instancePath: instancePath + '/unit',
-            schemaPath: '#/properties/unit/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err35 = { instancePath: instancePath + '/unit', schemaPath: '#/properties/unit/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err35];
           } else {
@@ -13873,13 +11462,7 @@ const generatedContract = (() => {
         }
       }
     } else {
-      const err37 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err37 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err37];
       } else {
@@ -13905,27 +11488,13 @@ const generatedContract = (() => {
     if (Array.isArray(data)) {
       const len0 = data.length;
       for (let i0 = 0; i0 < len0; i0++) {
-        if (
-          !validate47(data[i0], {
-            instancePath: instancePath + '/' + i0,
-            parentData: data,
-            parentDataProperty: i0,
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate47(data[i0], { instancePath: instancePath + '/' + i0, parentData: data, parentDataProperty: i0, rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate47.errors : vErrors.concat(validate47.errors);
           errors = vErrors.length;
         }
       }
     } else {
-      const err0 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'array' },
-        message: 'must be array',
-      };
+      const err0 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
       if (vErrors === null) {
         vErrors = [err0];
       } else {
@@ -14130,13 +11699,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid1) {
-      const err9 = {
-        instancePath,
-        schemaPath: '#/allOf/1/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err9 = { instancePath, schemaPath: '#/allOf/1/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err9];
       } else {
@@ -14314,13 +11877,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid5) {
-      const err18 = {
-        instancePath,
-        schemaPath: '#/allOf/2/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err18 = { instancePath, schemaPath: '#/allOf/2/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err18];
       } else {
@@ -14579,13 +12136,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid9) {
-      const err31 = {
-        instancePath,
-        schemaPath: '#/allOf/3/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err31 = { instancePath, schemaPath: '#/allOf/3/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err31];
       } else {
@@ -14813,9 +12364,7 @@ const generatedContract = (() => {
                   instancePath: instancePath + '/logicalTypeOptions/format',
                   schemaPath: '#/allOf/4/then/properties/logicalTypeOptions/properties/format/enum',
                   keyword: 'enum',
-                  params: {
-                    allowedValues: OdcsContractSchemaComponentSchema7.allOf[4].then.properties.logicalTypeOptions.properties.format.enum,
-                  },
+                  params: { allowedValues: OdcsContractSchemaComponentSchema7.allOf[4].then.properties.logicalTypeOptions.properties.format.enum },
                   message: 'must be equal to one of the allowed values',
                 };
                 if (vErrors === null) {
@@ -14853,13 +12402,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid15) {
-      const err44 = {
-        instancePath,
-        schemaPath: '#/allOf/4/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err44 = { instancePath, schemaPath: '#/allOf/4/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err44];
       } else {
@@ -15074,9 +12617,7 @@ const generatedContract = (() => {
                   instancePath: instancePath + '/logicalTypeOptions/format',
                   schemaPath: '#/allOf/5/then/properties/logicalTypeOptions/properties/format/enum',
                   keyword: 'enum',
-                  params: {
-                    allowedValues: OdcsContractSchemaComponentSchema7.allOf[5].then.properties.logicalTypeOptions.properties.format.enum,
-                  },
+                  params: { allowedValues: OdcsContractSchemaComponentSchema7.allOf[5].then.properties.logicalTypeOptions.properties.format.enum },
                   message: 'must be equal to one of the allowed values',
                 };
                 if (vErrors === null) {
@@ -15114,13 +12655,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid20) {
-      const err57 = {
-        instancePath,
-        schemaPath: '#/allOf/5/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err57 = { instancePath, schemaPath: '#/allOf/5/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err57];
       } else {
@@ -15356,27 +12891,13 @@ const generatedContract = (() => {
           if (Array.isArray(data45)) {
             const len1 = data45.length;
             for (let i2 = 0; i2 < len1; i2++) {
-              if (
-                !wrapper0.validate(data45[i2], {
-                  instancePath: instancePath + '/properties/' + i2,
-                  parentData: data45,
-                  parentDataProperty: i2,
-                  rootData,
-                  dynamicAnchors,
-                })
-              ) {
+              if (!wrapper0.validate(data45[i2], { instancePath: instancePath + '/properties/' + i2, parentData: data45, parentDataProperty: i2, rootData, dynamicAnchors })) {
                 vErrors = vErrors === null ? wrapper0.validate.errors : vErrors.concat(wrapper0.validate.errors);
                 errors = vErrors.length;
               }
             }
           } else {
-            const err69 = {
-              instancePath: instancePath + '/properties',
-              schemaPath: '#/allOf/6/then/properties/properties/type',
-              keyword: 'type',
-              params: { type: 'array' },
-              message: 'must be array',
-            };
+            const err69 = { instancePath: instancePath + '/properties', schemaPath: '#/allOf/6/then/properties/properties/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
             if (vErrors === null) {
               vErrors = [err69];
             } else {
@@ -15396,13 +12917,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid25) {
-      const err70 = {
-        instancePath,
-        schemaPath: '#/allOf/6/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err70 = { instancePath, schemaPath: '#/allOf/6/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err70];
       } else {
@@ -15570,15 +13085,7 @@ const generatedContract = (() => {
           }
         }
         if (data.items !== undefined) {
-          if (
-            !validate39(data.items, {
-              instancePath: instancePath + '/items',
-              parentData: data,
-              parentDataProperty: 'items',
-              rootData,
-              dynamicAnchors,
-            })
-          ) {
+          if (!validate39(data.items, { instancePath: instancePath + '/items', parentData: data, parentDataProperty: 'items', rootData, dynamicAnchors })) {
             vErrors = vErrors === null ? validate39.errors : vErrors.concat(validate39.errors);
             errors = vErrors.length;
           }
@@ -15594,13 +13101,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid34) {
-      const err79 = {
-        instancePath,
-        schemaPath: '#/allOf/7/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err79 = { instancePath, schemaPath: '#/allOf/7/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err79];
       } else {
@@ -15641,13 +13142,7 @@ const generatedContract = (() => {
       }
       if (data.primaryKey !== undefined) {
         if (typeof data.primaryKey !== 'boolean') {
-          const err80 = {
-            instancePath: instancePath + '/primaryKey',
-            schemaPath: '#/properties/primaryKey/type',
-            keyword: 'type',
-            params: { type: 'boolean' },
-            message: 'must be boolean',
-          };
+          const err80 = { instancePath: instancePath + '/primaryKey', schemaPath: '#/properties/primaryKey/type', keyword: 'type', params: { type: 'boolean' }, message: 'must be boolean' };
           if (vErrors === null) {
             vErrors = [err80];
           } else {
@@ -15677,13 +13172,7 @@ const generatedContract = (() => {
       if (data.logicalType !== undefined) {
         let data55 = data.logicalType;
         if (typeof data55 !== 'string') {
-          const err82 = {
-            instancePath: instancePath + '/logicalType',
-            schemaPath: '#/properties/logicalType/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err82 = { instancePath: instancePath + '/logicalType', schemaPath: '#/properties/logicalType/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err82];
           } else {
@@ -15708,9 +13197,7 @@ const generatedContract = (() => {
             instancePath: instancePath + '/logicalType',
             schemaPath: '#/properties/logicalType/enum',
             keyword: 'enum',
-            params: {
-              allowedValues: OdcsContractSchemaComponentSchema7.properties.logicalType.enum,
-            },
+            params: { allowedValues: OdcsContractSchemaComponentSchema7.properties.logicalType.enum },
             message: 'must be equal to one of the allowed values',
           };
           if (vErrors === null) {
@@ -15741,13 +13228,7 @@ const generatedContract = (() => {
       }
       if (data.physicalType !== undefined) {
         if (typeof data.physicalType !== 'string') {
-          const err85 = {
-            instancePath: instancePath + '/physicalType',
-            schemaPath: '#/properties/physicalType/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err85 = { instancePath: instancePath + '/physicalType', schemaPath: '#/properties/physicalType/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err85];
           } else {
@@ -15758,13 +13239,7 @@ const generatedContract = (() => {
       }
       if (data.physicalName !== undefined) {
         if (typeof data.physicalName !== 'string') {
-          const err86 = {
-            instancePath: instancePath + '/physicalName',
-            schemaPath: '#/properties/physicalName/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err86 = { instancePath: instancePath + '/physicalName', schemaPath: '#/properties/physicalName/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err86];
           } else {
@@ -15775,13 +13250,7 @@ const generatedContract = (() => {
       }
       if (data.required !== undefined) {
         if (typeof data.required !== 'boolean') {
-          const err87 = {
-            instancePath: instancePath + '/required',
-            schemaPath: '#/properties/required/type',
-            keyword: 'type',
-            params: { type: 'boolean' },
-            message: 'must be boolean',
-          };
+          const err87 = { instancePath: instancePath + '/required', schemaPath: '#/properties/required/type', keyword: 'type', params: { type: 'boolean' }, message: 'must be boolean' };
           if (vErrors === null) {
             vErrors = [err87];
           } else {
@@ -15792,13 +13261,7 @@ const generatedContract = (() => {
       }
       if (data.unique !== undefined) {
         if (typeof data.unique !== 'boolean') {
-          const err88 = {
-            instancePath: instancePath + '/unique',
-            schemaPath: '#/properties/unique/type',
-            keyword: 'type',
-            params: { type: 'boolean' },
-            message: 'must be boolean',
-          };
+          const err88 = { instancePath: instancePath + '/unique', schemaPath: '#/properties/unique/type', keyword: 'type', params: { type: 'boolean' }, message: 'must be boolean' };
           if (vErrors === null) {
             vErrors = [err88];
           } else {
@@ -15809,13 +13272,7 @@ const generatedContract = (() => {
       }
       if (data.partitioned !== undefined) {
         if (typeof data.partitioned !== 'boolean') {
-          const err89 = {
-            instancePath: instancePath + '/partitioned',
-            schemaPath: '#/properties/partitioned/type',
-            keyword: 'type',
-            params: { type: 'boolean' },
-            message: 'must be boolean',
-          };
+          const err89 = { instancePath: instancePath + '/partitioned', schemaPath: '#/properties/partitioned/type', keyword: 'type', params: { type: 'boolean' }, message: 'must be boolean' };
           if (vErrors === null) {
             vErrors = [err89];
           } else {
@@ -15844,13 +13301,7 @@ const generatedContract = (() => {
       }
       if (data.classification !== undefined) {
         if (typeof data.classification !== 'string') {
-          const err91 = {
-            instancePath: instancePath + '/classification',
-            schemaPath: '#/properties/classification/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err91 = { instancePath: instancePath + '/classification', schemaPath: '#/properties/classification/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err91];
           } else {
@@ -15861,13 +13312,7 @@ const generatedContract = (() => {
       }
       if (data.encryptedName !== undefined) {
         if (typeof data.encryptedName !== 'string') {
-          const err92 = {
-            instancePath: instancePath + '/encryptedName',
-            schemaPath: '#/properties/encryptedName/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err92 = { instancePath: instancePath + '/encryptedName', schemaPath: '#/properties/encryptedName/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err92];
           } else {
@@ -15915,13 +13360,7 @@ const generatedContract = (() => {
       }
       if (data.transformLogic !== undefined) {
         if (typeof data.transformLogic !== 'string') {
-          const err95 = {
-            instancePath: instancePath + '/transformLogic',
-            schemaPath: '#/properties/transformLogic/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err95 = { instancePath: instancePath + '/transformLogic', schemaPath: '#/properties/transformLogic/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err95];
           } else {
@@ -15957,13 +13396,7 @@ const generatedContract = (() => {
             let valid44 = false;
             const _errs177 = errors;
             if (typeof data70 !== 'string') {
-              const err97 = {
-                instancePath: instancePath + '/examples/' + i4,
-                schemaPath: '#/$defs/AnyType/anyOf/0/type',
-                keyword: 'type',
-                params: { type: 'string' },
-                message: 'must be string',
-              };
+              const err97 = { instancePath: instancePath + '/examples/' + i4, schemaPath: '#/$defs/AnyType/anyOf/0/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
               if (vErrors === null) {
                 vErrors = [err97];
               } else {
@@ -15975,13 +13408,7 @@ const generatedContract = (() => {
             valid44 = valid44 || _valid10;
             const _errs179 = errors;
             if (!(typeof data70 == 'number')) {
-              const err98 = {
-                instancePath: instancePath + '/examples/' + i4,
-                schemaPath: '#/$defs/AnyType/anyOf/1/type',
-                keyword: 'type',
-                params: { type: 'number' },
-                message: 'must be number',
-              };
+              const err98 = { instancePath: instancePath + '/examples/' + i4, schemaPath: '#/$defs/AnyType/anyOf/1/type', keyword: 'type', params: { type: 'number' }, message: 'must be number' };
               if (vErrors === null) {
                 vErrors = [err98];
               } else {
@@ -15993,13 +13420,7 @@ const generatedContract = (() => {
             valid44 = valid44 || _valid10;
             const _errs181 = errors;
             if (!(typeof data70 == 'number' && !(data70 % 1) && !isNaN(data70))) {
-              const err99 = {
-                instancePath: instancePath + '/examples/' + i4,
-                schemaPath: '#/$defs/AnyType/anyOf/2/type',
-                keyword: 'type',
-                params: { type: 'integer' },
-                message: 'must be integer',
-              };
+              const err99 = { instancePath: instancePath + '/examples/' + i4, schemaPath: '#/$defs/AnyType/anyOf/2/type', keyword: 'type', params: { type: 'integer' }, message: 'must be integer' };
               if (vErrors === null) {
                 vErrors = [err99];
               } else {
@@ -16011,13 +13432,7 @@ const generatedContract = (() => {
             valid44 = valid44 || _valid10;
             const _errs183 = errors;
             if (typeof data70 !== 'boolean') {
-              const err100 = {
-                instancePath: instancePath + '/examples/' + i4,
-                schemaPath: '#/$defs/AnyType/anyOf/3/type',
-                keyword: 'type',
-                params: { type: 'boolean' },
-                message: 'must be boolean',
-              };
+              const err100 = { instancePath: instancePath + '/examples/' + i4, schemaPath: '#/$defs/AnyType/anyOf/3/type', keyword: 'type', params: { type: 'boolean' }, message: 'must be boolean' };
               if (vErrors === null) {
                 vErrors = [err100];
               } else {
@@ -16029,13 +13444,7 @@ const generatedContract = (() => {
             valid44 = valid44 || _valid10;
             const _errs185 = errors;
             if (data70 !== null) {
-              const err101 = {
-                instancePath: instancePath + '/examples/' + i4,
-                schemaPath: '#/$defs/AnyType/anyOf/4/type',
-                keyword: 'type',
-                params: { type: 'null' },
-                message: 'must be null',
-              };
+              const err101 = { instancePath: instancePath + '/examples/' + i4, schemaPath: '#/$defs/AnyType/anyOf/4/type', keyword: 'type', params: { type: 'null' }, message: 'must be null' };
               if (vErrors === null) {
                 vErrors = [err101];
               } else {
@@ -16047,13 +13456,7 @@ const generatedContract = (() => {
             valid44 = valid44 || _valid10;
             const _errs187 = errors;
             if (!Array.isArray(data70)) {
-              const err102 = {
-                instancePath: instancePath + '/examples/' + i4,
-                schemaPath: '#/$defs/AnyType/anyOf/5/type',
-                keyword: 'type',
-                params: { type: 'array' },
-                message: 'must be array',
-              };
+              const err102 = { instancePath: instancePath + '/examples/' + i4, schemaPath: '#/$defs/AnyType/anyOf/5/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
               if (vErrors === null) {
                 vErrors = [err102];
               } else {
@@ -16065,13 +13468,7 @@ const generatedContract = (() => {
             valid44 = valid44 || _valid10;
             const _errs189 = errors;
             if (!(data70 && typeof data70 == 'object' && !Array.isArray(data70))) {
-              const err103 = {
-                instancePath: instancePath + '/examples/' + i4,
-                schemaPath: '#/$defs/AnyType/anyOf/6/type',
-                keyword: 'type',
-                params: { type: 'object' },
-                message: 'must be object',
-              };
+              const err103 = { instancePath: instancePath + '/examples/' + i4, schemaPath: '#/$defs/AnyType/anyOf/6/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
               if (vErrors === null) {
                 vErrors = [err103];
               } else {
@@ -16082,13 +13479,7 @@ const generatedContract = (() => {
             var _valid10 = _errs189 === errors;
             valid44 = valid44 || _valid10;
             if (!valid44) {
-              const err104 = {
-                instancePath: instancePath + '/examples/' + i4,
-                schemaPath: '#/$defs/AnyType/anyOf',
-                keyword: 'anyOf',
-                params: {},
-                message: 'must match a schema in anyOf',
-              };
+              const err104 = { instancePath: instancePath + '/examples/' + i4, schemaPath: '#/$defs/AnyType/anyOf', keyword: 'anyOf', params: {}, message: 'must match a schema in anyOf' };
               if (vErrors === null) {
                 vErrors = [err104];
               } else {
@@ -16107,13 +13498,7 @@ const generatedContract = (() => {
             }
           }
         } else {
-          const err105 = {
-            instancePath: instancePath + '/examples',
-            schemaPath: '#/properties/examples/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err105 = { instancePath: instancePath + '/examples', schemaPath: '#/properties/examples/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err105];
           } else {
@@ -16144,27 +13529,13 @@ const generatedContract = (() => {
         if (Array.isArray(data72)) {
           const len4 = data72.length;
           for (let i5 = 0; i5 < len4; i5++) {
-            if (
-              !validate41(data72[i5], {
-                instancePath: instancePath + '/relationships/' + i5,
-                parentData: data72,
-                parentDataProperty: i5,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!validate41(data72[i5], { instancePath: instancePath + '/relationships/' + i5, parentData: data72, parentDataProperty: i5, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? validate41.errors : vErrors.concat(validate41.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err107 = {
-            instancePath: instancePath + '/relationships',
-            schemaPath: '#/properties/relationships/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err107 = { instancePath: instancePath + '/relationships', schemaPath: '#/properties/relationships/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err107];
           } else {
@@ -16174,15 +13545,7 @@ const generatedContract = (() => {
         }
       }
       if (data.quality !== undefined) {
-        if (
-          !validate46(data.quality, {
-            instancePath: instancePath + '/quality',
-            parentData: data,
-            parentDataProperty: 'quality',
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate46(data.quality, { instancePath: instancePath + '/quality', parentData: data, parentDataProperty: 'quality', rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate46.errors : vErrors.concat(validate46.errors);
           errors = vErrors.length;
         }
@@ -16207,13 +13570,7 @@ const generatedContract = (() => {
         }
       }
     } else {
-      const err109 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err109 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err109];
       } else {
@@ -16242,13 +13599,7 @@ const generatedContract = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.name === undefined) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'name' },
-          message: "must have required property '" + 'name' + "'",
-        };
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'name' }, message: "must have required property '" + 'name' + "'" };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -16257,13 +13608,7 @@ const generatedContract = (() => {
         errors++;
       }
     } else {
-      const err1 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err1 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err1];
       } else {
@@ -16284,16 +13629,10 @@ const generatedContract = (() => {
       { required: ['from', 'to'] },
       {
         oneOf: [
-          {
-            description: 'Single-column relationship - both fields must be strings',
-            properties: { from: { type: 'string' }, to: { type: 'string' } },
-          },
+          { description: 'Single-column relationship - both fields must be strings', properties: { from: { type: 'string' }, to: { type: 'string' } } },
           {
             description: 'Composite key relationship - both fields must be arrays with matching lengths',
-            properties: {
-              from: { type: 'array', items: { type: 'string' }, minItems: 1 },
-              to: { type: 'array', items: { type: 'string' }, minItems: 1 },
-            },
+            properties: { from: { type: 'array', items: { type: 'string' }, minItems: 1 }, to: { type: 'array', items: { type: 'string' }, minItems: 1 } },
           },
         ],
       },
@@ -16317,13 +13656,7 @@ const generatedContract = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.from === undefined) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/allOf/1/required',
-          keyword: 'required',
-          params: { missingProperty: 'from' },
-          message: "must have required property '" + 'from' + "'",
-        };
+        const err0 = { instancePath, schemaPath: '#/allOf/1/required', keyword: 'required', params: { missingProperty: 'from' }, message: "must have required property '" + 'from' + "'" };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -16332,13 +13665,7 @@ const generatedContract = (() => {
         errors++;
       }
       if (data.to === undefined) {
-        const err1 = {
-          instancePath,
-          schemaPath: '#/allOf/1/required',
-          keyword: 'required',
-          params: { missingProperty: 'to' },
-          message: "must have required property '" + 'to' + "'",
-        };
+        const err1 = { instancePath, schemaPath: '#/allOf/1/required', keyword: 'required', params: { missingProperty: 'to' }, message: "must have required property '" + 'to' + "'" };
         if (vErrors === null) {
           vErrors = [err1];
         } else {
@@ -16354,13 +13681,7 @@ const generatedContract = (() => {
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.from !== undefined) {
         if (typeof data.from !== 'string') {
-          const err2 = {
-            instancePath: instancePath + '/from',
-            schemaPath: '#/allOf/2/oneOf/0/properties/from/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err2 = { instancePath: instancePath + '/from', schemaPath: '#/allOf/2/oneOf/0/properties/from/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err2];
           } else {
@@ -16371,13 +13692,7 @@ const generatedContract = (() => {
       }
       if (data.to !== undefined) {
         if (typeof data.to !== 'string') {
-          const err3 = {
-            instancePath: instancePath + '/to',
-            schemaPath: '#/allOf/2/oneOf/0/properties/to/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err3 = { instancePath: instancePath + '/to', schemaPath: '#/allOf/2/oneOf/0/properties/to/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err3];
           } else {
@@ -16434,13 +13749,7 @@ const generatedContract = (() => {
             }
           }
         } else {
-          const err6 = {
-            instancePath: instancePath + '/from',
-            schemaPath: '#/allOf/2/oneOf/1/properties/from/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err6 = { instancePath: instancePath + '/from', schemaPath: '#/allOf/2/oneOf/1/properties/from/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err6];
           } else {
@@ -16486,13 +13795,7 @@ const generatedContract = (() => {
             }
           }
         } else {
-          const err9 = {
-            instancePath: instancePath + '/to',
-            schemaPath: '#/allOf/2/oneOf/1/properties/to/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err9 = { instancePath: instancePath + '/to', schemaPath: '#/allOf/2/oneOf/1/properties/to/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err9];
           } else {
@@ -16518,13 +13821,7 @@ const generatedContract = (() => {
       }
     }
     if (!valid1) {
-      const err10 = {
-        instancePath,
-        schemaPath: '#/allOf/2/oneOf',
-        keyword: 'oneOf',
-        params: { passingSchemas: passing0 },
-        message: 'must match exactly one schema in oneOf',
-      };
+      const err10 = { instancePath, schemaPath: '#/allOf/2/oneOf', keyword: 'oneOf', params: { passingSchemas: passing0 }, message: 'must match exactly one schema in oneOf' };
       if (vErrors === null) {
         vErrors = [err10];
       } else {
@@ -16569,13 +13866,7 @@ const generatedContract = (() => {
         }
       }
     } else {
-      const err12 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err12 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err12];
       } else {
@@ -16604,13 +13895,7 @@ const generatedContract = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.name === undefined) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'name' },
-          message: "must have required property '" + 'name' + "'",
-        };
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'name' }, message: "must have required property '" + 'name' + "'" };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -16621,13 +13906,7 @@ const generatedContract = (() => {
       if (data.logicalType !== undefined) {
         let data0 = data.logicalType;
         if (typeof data0 !== 'string') {
-          const err1 = {
-            instancePath: instancePath + '/logicalType',
-            schemaPath: '#/properties/logicalType/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err1 = { instancePath: instancePath + '/logicalType', schemaPath: '#/properties/logicalType/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err1];
           } else {
@@ -16640,9 +13919,7 @@ const generatedContract = (() => {
             instancePath: instancePath + '/logicalType',
             schemaPath: '#/properties/logicalType/enum',
             keyword: 'enum',
-            params: {
-              allowedValues: OdcsContractSchemaComponentSchema4.properties.logicalType.enum,
-            },
+            params: { allowedValues: OdcsContractSchemaComponentSchema4.properties.logicalType.enum },
             message: 'must be equal to one of the allowed values',
           };
           if (vErrors === null) {
@@ -16655,13 +13932,7 @@ const generatedContract = (() => {
       }
       if (data.physicalName !== undefined) {
         if (typeof data.physicalName !== 'string') {
-          const err3 = {
-            instancePath: instancePath + '/physicalName',
-            schemaPath: '#/properties/physicalName/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err3 = { instancePath: instancePath + '/physicalName', schemaPath: '#/properties/physicalName/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err3];
           } else {
@@ -16692,27 +13963,13 @@ const generatedContract = (() => {
         if (Array.isArray(data3)) {
           const len0 = data3.length;
           for (let i0 = 0; i0 < len0; i0++) {
-            if (
-              !validate36(data3[i0], {
-                instancePath: instancePath + '/properties/' + i0,
-                parentData: data3,
-                parentDataProperty: i0,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!validate36(data3[i0], { instancePath: instancePath + '/properties/' + i0, parentData: data3, parentDataProperty: i0, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? validate36.errors : vErrors.concat(validate36.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err5 = {
-            instancePath: instancePath + '/properties',
-            schemaPath: '#/properties/properties/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err5 = { instancePath: instancePath + '/properties', schemaPath: '#/properties/properties/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err5];
           } else {
@@ -16726,27 +13983,13 @@ const generatedContract = (() => {
         if (Array.isArray(data5)) {
           const len1 = data5.length;
           for (let i1 = 0; i1 < len1; i1++) {
-            if (
-              !validate58(data5[i1], {
-                instancePath: instancePath + '/relationships/' + i1,
-                parentData: data5,
-                parentDataProperty: i1,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!validate58(data5[i1], { instancePath: instancePath + '/relationships/' + i1, parentData: data5, parentDataProperty: i1, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? validate58.errors : vErrors.concat(validate58.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err6 = {
-            instancePath: instancePath + '/relationships',
-            schemaPath: '#/properties/relationships/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err6 = { instancePath: instancePath + '/relationships', schemaPath: '#/properties/relationships/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err6];
           } else {
@@ -16756,15 +13999,7 @@ const generatedContract = (() => {
         }
       }
       if (data.quality !== undefined) {
-        if (
-          !validate46(data.quality, {
-            instancePath: instancePath + '/quality',
-            parentData: data,
-            parentDataProperty: 'quality',
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate46(data.quality, { instancePath: instancePath + '/quality', parentData: data, parentDataProperty: 'quality', rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate46.errors : vErrors.concat(validate46.errors);
           errors = vErrors.length;
         }
@@ -16802,13 +14037,7 @@ const generatedContract = (() => {
         }
       }
     } else {
-      const err8 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err8 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err8];
       } else {
@@ -16821,35 +14050,21 @@ const generatedContract = (() => {
   }
   validate31.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
 
-  const TopLevelSupportChannelsSchema = {
-    type: 'array',
-    description: 'Top level for support channels.',
-    items: { $ref: '#/$defs/SupportItem' },
-  };
+  const TopLevelSupportChannelsSchema = { type: 'array', description: 'Top level for support channels.', items: { $ref: '#/$defs/SupportItem' } };
   const OdcsContractSchemaComponentSchema13 = {
     type: 'object',
     properties: {
       id: { $ref: '#/$defs/StableId' },
       channel: { type: 'string', description: 'Channel name or identifier.' },
-      url: {
-        type: 'string',
-        description: 'Access URL using normal [URL scheme](https://en.wikipedia.org/wiki/URL#Syntax) (https, mailto, etc.).',
-      },
+      url: { type: 'string', description: 'Access URL using normal [URL scheme](https://en.wikipedia.org/wiki/URL#Syntax) (https, mailto, etc.).' },
       description: { type: 'string', description: 'Description of the channel, free text.' },
       tool: {
         type: 'string',
         description: 'Name of the tool, value can be `email`, `slack`, `teams`, `discord`, `ticket`, `googlechat`, or `other`.',
         examples: ['email', 'slack', 'teams', 'discord', 'ticket', 'googlechat', 'other'],
       },
-      scope: {
-        type: 'string',
-        description: 'Scope can be: `interactive`, `announcements`, `issues`, `notifications`.',
-        examples: ['interactive', 'announcements', 'issues', 'notifications'],
-      },
-      invitationUrl: {
-        type: 'string',
-        description: 'Some tools uses invitation URL for requesting or subscribing. Follows the [URL scheme](https://en.wikipedia.org/wiki/URL#Syntax).',
-      },
+      scope: { type: 'string', description: 'Scope can be: `interactive`, `announcements`, `issues`, `notifications`.', examples: ['interactive', 'announcements', 'issues', 'notifications'] },
+      invitationUrl: { type: 'string', description: 'Some tools uses invitation URL for requesting or subscribing. Follows the [URL scheme](https://en.wikipedia.org/wiki/URL#Syntax).' },
       customProperties: { $ref: '#/$defs/CustomProperties' },
     },
     required: ['channel'],
@@ -16868,13 +14083,7 @@ const generatedContract = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.channel === undefined) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'channel' },
-          message: "must have required property '" + 'channel' + "'",
-        };
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'channel' }, message: "must have required property '" + 'channel' + "'" };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -16884,13 +14093,7 @@ const generatedContract = (() => {
       }
       for (const key0 in data) {
         if (!(key0 === 'id' || key0 === 'channel' || key0 === 'url' || key0 === 'description' || key0 === 'tool' || key0 === 'scope' || key0 === 'invitationUrl' || key0 === 'customProperties')) {
-          const err1 = {
-            instancePath,
-            schemaPath: '#/additionalProperties',
-            keyword: 'additionalProperties',
-            params: { additionalProperty: key0 },
-            message: 'must NOT have additional properties',
-          };
+          const err1 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err1];
           } else {
@@ -16918,13 +14121,7 @@ const generatedContract = (() => {
             errors++;
           }
         } else {
-          const err3 = {
-            instancePath: instancePath + '/id',
-            schemaPath: '#/$defs/StableId/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err3 = { instancePath: instancePath + '/id', schemaPath: '#/$defs/StableId/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err3];
           } else {
@@ -16935,13 +14132,7 @@ const generatedContract = (() => {
       }
       if (data.channel !== undefined) {
         if (typeof data.channel !== 'string') {
-          const err4 = {
-            instancePath: instancePath + '/channel',
-            schemaPath: '#/properties/channel/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err4 = { instancePath: instancePath + '/channel', schemaPath: '#/properties/channel/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err4];
           } else {
@@ -16952,13 +14143,7 @@ const generatedContract = (() => {
       }
       if (data.url !== undefined) {
         if (typeof data.url !== 'string') {
-          const err5 = {
-            instancePath: instancePath + '/url',
-            schemaPath: '#/properties/url/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err5 = { instancePath: instancePath + '/url', schemaPath: '#/properties/url/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err5];
           } else {
@@ -16969,13 +14154,7 @@ const generatedContract = (() => {
       }
       if (data.description !== undefined) {
         if (typeof data.description !== 'string') {
-          const err6 = {
-            instancePath: instancePath + '/description',
-            schemaPath: '#/properties/description/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err6 = { instancePath: instancePath + '/description', schemaPath: '#/properties/description/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err6];
           } else {
@@ -16986,13 +14165,7 @@ const generatedContract = (() => {
       }
       if (data.tool !== undefined) {
         if (typeof data.tool !== 'string') {
-          const err7 = {
-            instancePath: instancePath + '/tool',
-            schemaPath: '#/properties/tool/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err7 = { instancePath: instancePath + '/tool', schemaPath: '#/properties/tool/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err7];
           } else {
@@ -17003,13 +14176,7 @@ const generatedContract = (() => {
       }
       if (data.scope !== undefined) {
         if (typeof data.scope !== 'string') {
-          const err8 = {
-            instancePath: instancePath + '/scope',
-            schemaPath: '#/properties/scope/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err8 = { instancePath: instancePath + '/scope', schemaPath: '#/properties/scope/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err8];
           } else {
@@ -17020,13 +14187,7 @@ const generatedContract = (() => {
       }
       if (data.invitationUrl !== undefined) {
         if (typeof data.invitationUrl !== 'string') {
-          const err9 = {
-            instancePath: instancePath + '/invitationUrl',
-            schemaPath: '#/properties/invitationUrl/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err9 = { instancePath: instancePath + '/invitationUrl', schemaPath: '#/properties/invitationUrl/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err9];
           } else {
@@ -17036,27 +14197,13 @@ const generatedContract = (() => {
         }
       }
       if (data.customProperties !== undefined) {
-        if (
-          !validate21(data.customProperties, {
-            instancePath: instancePath + '/customProperties',
-            parentData: data,
-            parentDataProperty: 'customProperties',
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate21(data.customProperties, { instancePath: instancePath + '/customProperties', parentData: data, parentDataProperty: 'customProperties', rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate21.errors : vErrors.concat(validate21.errors);
           errors = vErrors.length;
         }
       }
     } else {
-      const err10 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err10 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err10];
       } else {
@@ -17082,27 +14229,13 @@ const generatedContract = (() => {
     if (Array.isArray(data)) {
       const len0 = data.length;
       for (let i0 = 0; i0 < len0; i0++) {
-        if (
-          !validate64(data[i0], {
-            instancePath: instancePath + '/' + i0,
-            parentData: data,
-            parentDataProperty: i0,
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate64(data[i0], { instancePath: instancePath + '/' + i0, parentData: data, parentDataProperty: i0, rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate64.errors : vErrors.concat(validate64.errors);
           errors = vErrors.length;
         }
       }
     } else {
-      const err0 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'array' },
-        message: 'must be array',
-      };
+      const err0 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
       if (vErrors === null) {
         vErrors = [err0];
       } else {
@@ -17119,18 +14252,9 @@ const generatedContract = (() => {
     type: 'object',
     properties: {
       id: { $ref: '#/$defs/StableId' },
-      priceAmount: {
-        type: 'number',
-        description: 'Subscription price per unit of measure in `priceUnit`.',
-      },
-      priceCurrency: {
-        type: 'string',
-        description: 'Currency of the subscription price in `price.priceAmount`.',
-      },
-      priceUnit: {
-        type: 'string',
-        description: 'The unit of measure for calculating cost. Examples megabyte, gigabyte.',
-      },
+      priceAmount: { type: 'number', description: 'Subscription price per unit of measure in `priceUnit`.' },
+      priceCurrency: { type: 'string', description: 'Currency of the subscription price in `price.priceAmount`.' },
+      priceUnit: { type: 'string', description: 'The unit of measure for calculating cost. Examples megabyte, gigabyte.' },
     },
     additionalProperties: false,
   };
@@ -17148,13 +14272,7 @@ const generatedContract = (() => {
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       for (const key0 in data) {
         if (!(key0 === 'id' || key0 === 'priceAmount' || key0 === 'priceCurrency' || key0 === 'priceUnit')) {
-          const err0 = {
-            instancePath,
-            schemaPath: '#/additionalProperties',
-            keyword: 'additionalProperties',
-            params: { additionalProperty: key0 },
-            message: 'must NOT have additional properties',
-          };
+          const err0 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err0];
           } else {
@@ -17182,13 +14300,7 @@ const generatedContract = (() => {
             errors++;
           }
         } else {
-          const err2 = {
-            instancePath: instancePath + '/id',
-            schemaPath: '#/$defs/StableId/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err2 = { instancePath: instancePath + '/id', schemaPath: '#/$defs/StableId/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err2];
           } else {
@@ -17199,13 +14311,7 @@ const generatedContract = (() => {
       }
       if (data.priceAmount !== undefined) {
         if (!(typeof data.priceAmount == 'number')) {
-          const err3 = {
-            instancePath: instancePath + '/priceAmount',
-            schemaPath: '#/properties/priceAmount/type',
-            keyword: 'type',
-            params: { type: 'number' },
-            message: 'must be number',
-          };
+          const err3 = { instancePath: instancePath + '/priceAmount', schemaPath: '#/properties/priceAmount/type', keyword: 'type', params: { type: 'number' }, message: 'must be number' };
           if (vErrors === null) {
             vErrors = [err3];
           } else {
@@ -17216,13 +14322,7 @@ const generatedContract = (() => {
       }
       if (data.priceCurrency !== undefined) {
         if (typeof data.priceCurrency !== 'string') {
-          const err4 = {
-            instancePath: instancePath + '/priceCurrency',
-            schemaPath: '#/properties/priceCurrency/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err4 = { instancePath: instancePath + '/priceCurrency', schemaPath: '#/properties/priceCurrency/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err4];
           } else {
@@ -17233,13 +14333,7 @@ const generatedContract = (() => {
       }
       if (data.priceUnit !== undefined) {
         if (typeof data.priceUnit !== 'string') {
-          const err5 = {
-            instancePath: instancePath + '/priceUnit',
-            schemaPath: '#/properties/priceUnit/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err5 = { instancePath: instancePath + '/priceUnit', schemaPath: '#/properties/priceUnit/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err5];
           } else {
@@ -17249,13 +14343,7 @@ const generatedContract = (() => {
         }
       }
     } else {
-      const err6 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err6 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err6];
       } else {
@@ -17276,17 +14364,9 @@ const generatedContract = (() => {
       id: { $ref: '#/$defs/StableId' },
       name: { type: 'string', description: 'Team name.' },
       description: { type: 'string', description: 'Team description.' },
-      members: {
-        type: 'array',
-        description: 'List of members.',
-        items: { $ref: '#/$defs/TeamMember' },
-      },
+      members: { type: 'array', description: 'List of members.', items: { $ref: '#/$defs/TeamMember' } },
       tags: { $ref: '#/$defs/Tags' },
-      customProperties: {
-        type: 'array',
-        description: 'Custom properties block.',
-        items: { $ref: '#/$defs/CustomProperty' },
-      },
+      customProperties: { type: 'array', description: 'Custom properties block.', items: { $ref: '#/$defs/CustomProperty' } },
       authoritativeDefinitions: { $ref: '#/$defs/AuthoritativeDefinitions' },
     },
   };
@@ -17299,30 +14379,12 @@ const generatedContract = (() => {
       username: { type: 'string', description: "The user's username or email." },
       name: { type: 'string', description: "The user's name." },
       description: { type: 'string', description: "The user's description." },
-      role: {
-        type: 'string',
-        description: "The user's job role; Examples might be owner, data steward. There is no limit on the role.",
-      },
-      dateIn: {
-        type: 'string',
-        format: 'date',
-        description: 'The date when the user joined the team.',
-      },
-      dateOut: {
-        type: 'string',
-        format: 'date',
-        description: 'The date when the user ceased to be part of the team.',
-      },
-      replacedByUsername: {
-        type: 'string',
-        description: 'The username of the user who replaced the previous user.',
-      },
+      role: { type: 'string', description: "The user's job role; Examples might be owner, data steward. There is no limit on the role." },
+      dateIn: { type: 'string', format: 'date', description: 'The date when the user joined the team.' },
+      dateOut: { type: 'string', format: 'date', description: 'The date when the user ceased to be part of the team.' },
+      replacedByUsername: { type: 'string', description: 'The username of the user who replaced the previous user.' },
       tags: { $ref: '#/$defs/Tags' },
-      customProperties: {
-        type: 'array',
-        description: 'Custom properties block.',
-        items: { $ref: '#/$defs/CustomProperty' },
-      },
+      customProperties: { type: 'array', description: 'Custom properties block.', items: { $ref: '#/$defs/CustomProperty' } },
       authoritativeDefinitions: { $ref: '#/$defs/AuthoritativeDefinitions' },
     },
     required: ['username'],
@@ -17341,13 +14403,7 @@ const generatedContract = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.username === undefined) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'username' },
-          message: "must have required property '" + 'username' + "'",
-        };
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'username' }, message: "must have required property '" + 'username' + "'" };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -17357,13 +14413,7 @@ const generatedContract = (() => {
       }
       for (const key0 in data) {
         if (!func1.call(TeamMemberInformationSchema.properties, key0)) {
-          const err1 = {
-            instancePath,
-            schemaPath: '#/additionalProperties',
-            keyword: 'additionalProperties',
-            params: { additionalProperty: key0 },
-            message: 'must NOT have additional properties',
-          };
+          const err1 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err1];
           } else {
@@ -17391,13 +14441,7 @@ const generatedContract = (() => {
             errors++;
           }
         } else {
-          const err3 = {
-            instancePath: instancePath + '/id',
-            schemaPath: '#/$defs/StableId/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err3 = { instancePath: instancePath + '/id', schemaPath: '#/$defs/StableId/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err3];
           } else {
@@ -17408,13 +14452,7 @@ const generatedContract = (() => {
       }
       if (data.username !== undefined) {
         if (typeof data.username !== 'string') {
-          const err4 = {
-            instancePath: instancePath + '/username',
-            schemaPath: '#/properties/username/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err4 = { instancePath: instancePath + '/username', schemaPath: '#/properties/username/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err4];
           } else {
@@ -17425,13 +14463,7 @@ const generatedContract = (() => {
       }
       if (data.name !== undefined) {
         if (typeof data.name !== 'string') {
-          const err5 = {
-            instancePath: instancePath + '/name',
-            schemaPath: '#/properties/name/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err5 = { instancePath: instancePath + '/name', schemaPath: '#/properties/name/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err5];
           } else {
@@ -17442,13 +14474,7 @@ const generatedContract = (() => {
       }
       if (data.description !== undefined) {
         if (typeof data.description !== 'string') {
-          const err6 = {
-            instancePath: instancePath + '/description',
-            schemaPath: '#/properties/description/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err6 = { instancePath: instancePath + '/description', schemaPath: '#/properties/description/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err6];
           } else {
@@ -17459,13 +14485,7 @@ const generatedContract = (() => {
       }
       if (data.role !== undefined) {
         if (typeof data.role !== 'string') {
-          const err7 = {
-            instancePath: instancePath + '/role',
-            schemaPath: '#/properties/role/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err7 = { instancePath: instancePath + '/role', schemaPath: '#/properties/role/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err7];
           } else {
@@ -17493,13 +14513,7 @@ const generatedContract = (() => {
             errors++;
           }
         } else {
-          const err9 = {
-            instancePath: instancePath + '/dateIn',
-            schemaPath: '#/properties/dateIn/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err9 = { instancePath: instancePath + '/dateIn', schemaPath: '#/properties/dateIn/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err9];
           } else {
@@ -17527,13 +14541,7 @@ const generatedContract = (() => {
             errors++;
           }
         } else {
-          const err11 = {
-            instancePath: instancePath + '/dateOut',
-            schemaPath: '#/properties/dateOut/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err11 = { instancePath: instancePath + '/dateOut', schemaPath: '#/properties/dateOut/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err11];
           } else {
@@ -17565,13 +14573,7 @@ const generatedContract = (() => {
           const len0 = data8.length;
           for (let i0 = 0; i0 < len0; i0++) {
             if (typeof data8[i0] !== 'string') {
-              const err13 = {
-                instancePath: instancePath + '/tags/' + i0,
-                schemaPath: '#/$defs/Tags/items/type',
-                keyword: 'type',
-                params: { type: 'string' },
-                message: 'must be string',
-              };
+              const err13 = { instancePath: instancePath + '/tags/' + i0, schemaPath: '#/$defs/Tags/items/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
               if (vErrors === null) {
                 vErrors = [err13];
               } else {
@@ -17581,13 +14583,7 @@ const generatedContract = (() => {
             }
           }
         } else {
-          const err14 = {
-            instancePath: instancePath + '/tags',
-            schemaPath: '#/$defs/Tags/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err14 = { instancePath: instancePath + '/tags', schemaPath: '#/$defs/Tags/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err14];
           } else {
@@ -17601,27 +14597,13 @@ const generatedContract = (() => {
         if (Array.isArray(data10)) {
           const len1 = data10.length;
           for (let i1 = 0; i1 < len1; i1++) {
-            if (
-              !validate22(data10[i1], {
-                instancePath: instancePath + '/customProperties/' + i1,
-                parentData: data10,
-                parentDataProperty: i1,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!validate22(data10[i1], { instancePath: instancePath + '/customProperties/' + i1, parentData: data10, parentDataProperty: i1, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? validate22.errors : vErrors.concat(validate22.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err15 = {
-            instancePath: instancePath + '/customProperties',
-            schemaPath: '#/properties/customProperties/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err15 = { instancePath: instancePath + '/customProperties', schemaPath: '#/properties/customProperties/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err15];
           } else {
@@ -17645,13 +14627,7 @@ const generatedContract = (() => {
         }
       }
     } else {
-      const err16 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err16 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err16];
       } else {
@@ -17677,13 +14653,7 @@ const generatedContract = (() => {
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       for (const key0 in data) {
         if (!(key0 === 'id' || key0 === 'name' || key0 === 'description' || key0 === 'members' || key0 === 'tags' || key0 === 'customProperties' || key0 === 'authoritativeDefinitions')) {
-          const err0 = {
-            instancePath,
-            schemaPath: '#/additionalProperties',
-            keyword: 'additionalProperties',
-            params: { additionalProperty: key0 },
-            message: 'must NOT have additional properties',
-          };
+          const err0 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err0];
           } else {
@@ -17711,13 +14681,7 @@ const generatedContract = (() => {
             errors++;
           }
         } else {
-          const err2 = {
-            instancePath: instancePath + '/id',
-            schemaPath: '#/$defs/StableId/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err2 = { instancePath: instancePath + '/id', schemaPath: '#/$defs/StableId/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err2];
           } else {
@@ -17728,13 +14692,7 @@ const generatedContract = (() => {
       }
       if (data.name !== undefined) {
         if (typeof data.name !== 'string') {
-          const err3 = {
-            instancePath: instancePath + '/name',
-            schemaPath: '#/properties/name/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err3 = { instancePath: instancePath + '/name', schemaPath: '#/properties/name/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err3];
           } else {
@@ -17745,13 +14703,7 @@ const generatedContract = (() => {
       }
       if (data.description !== undefined) {
         if (typeof data.description !== 'string') {
-          const err4 = {
-            instancePath: instancePath + '/description',
-            schemaPath: '#/properties/description/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err4 = { instancePath: instancePath + '/description', schemaPath: '#/properties/description/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err4];
           } else {
@@ -17765,27 +14717,13 @@ const generatedContract = (() => {
         if (Array.isArray(data3)) {
           const len0 = data3.length;
           for (let i0 = 0; i0 < len0; i0++) {
-            if (
-              !validate71(data3[i0], {
-                instancePath: instancePath + '/members/' + i0,
-                parentData: data3,
-                parentDataProperty: i0,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!validate71(data3[i0], { instancePath: instancePath + '/members/' + i0, parentData: data3, parentDataProperty: i0, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? validate71.errors : vErrors.concat(validate71.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err5 = {
-            instancePath: instancePath + '/members',
-            schemaPath: '#/properties/members/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err5 = { instancePath: instancePath + '/members', schemaPath: '#/properties/members/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err5];
           } else {
@@ -17800,13 +14738,7 @@ const generatedContract = (() => {
           const len1 = data5.length;
           for (let i1 = 0; i1 < len1; i1++) {
             if (typeof data5[i1] !== 'string') {
-              const err6 = {
-                instancePath: instancePath + '/tags/' + i1,
-                schemaPath: '#/$defs/Tags/items/type',
-                keyword: 'type',
-                params: { type: 'string' },
-                message: 'must be string',
-              };
+              const err6 = { instancePath: instancePath + '/tags/' + i1, schemaPath: '#/$defs/Tags/items/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
               if (vErrors === null) {
                 vErrors = [err6];
               } else {
@@ -17816,13 +14748,7 @@ const generatedContract = (() => {
             }
           }
         } else {
-          const err7 = {
-            instancePath: instancePath + '/tags',
-            schemaPath: '#/$defs/Tags/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err7 = { instancePath: instancePath + '/tags', schemaPath: '#/$defs/Tags/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err7];
           } else {
@@ -17836,27 +14762,13 @@ const generatedContract = (() => {
         if (Array.isArray(data7)) {
           const len2 = data7.length;
           for (let i2 = 0; i2 < len2; i2++) {
-            if (
-              !validate22(data7[i2], {
-                instancePath: instancePath + '/customProperties/' + i2,
-                parentData: data7,
-                parentDataProperty: i2,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!validate22(data7[i2], { instancePath: instancePath + '/customProperties/' + i2, parentData: data7, parentDataProperty: i2, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? validate22.errors : vErrors.concat(validate22.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err8 = {
-            instancePath: instancePath + '/customProperties',
-            schemaPath: '#/properties/customProperties/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err8 = { instancePath: instancePath + '/customProperties', schemaPath: '#/properties/customProperties/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err8];
           } else {
@@ -17880,13 +14792,7 @@ const generatedContract = (() => {
         }
       }
     } else {
-      const err9 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err9 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err9];
       } else {
@@ -17903,53 +14809,27 @@ const generatedContract = (() => {
     type: 'object',
     properties: {
       id: { $ref: '#/$defs/StableId' },
-      property: {
-        type: 'string',
-        description: 'Specific property in SLA, check the periodic table. May requires units (more details to come).',
-      },
+      property: { type: 'string', description: 'Specific property in SLA, check the periodic table. May requires units (more details to come).' },
       value: {
         anyOf: [{ type: 'string' }, { type: 'number' }, { type: 'integer' }, { type: 'boolean' }, { type: 'null' }],
         description: 'Agreement value. The label will change based on the property itself.',
       },
-      valueExt: {
-        $ref: '#/$defs/AnyNonCollectionType',
-        description: 'Extended agreement value. The label will change based on the property itself.',
-      },
-      unit: {
-        type: 'string',
-        description: '**d**, day, days for days; **y**, yr, years for years, etc. Units use the ISO standard.',
-      },
-      element: {
-        type: 'string',
-        description: 'Element(s) to check on. Multiple elements should be extremely rare and, if so, separated by commas.',
-      },
+      valueExt: { $ref: '#/$defs/AnyNonCollectionType', description: 'Extended agreement value. The label will change based on the property itself.' },
+      unit: { type: 'string', description: '**d**, day, days for days; **y**, yr, years for years, etc. Units use the ISO standard.' },
+      element: { type: 'string', description: 'Element(s) to check on. Multiple elements should be extremely rare and, if so, separated by commas.' },
       driver: {
         type: 'string',
         description: 'Describes the importance of the SLA from the list of: `regulatory`, `analytics`, or `operational`.',
         examples: ['regulatory', 'analytics', 'operational'],
       },
-      description: {
-        type: 'string',
-        description: 'Description of the SLA for humans.',
-        examples: ['99.9% of the time, data is available by 6 AM UTC'],
-      },
-      scheduler: {
-        type: 'string',
-        description: 'Name of the scheduler, can be cron or any tool your organization support.',
-        examples: ['cron'],
-      },
-      schedule: {
-        type: 'string',
-        description: 'Configuration information for the scheduling tool, for cron a possible value is 0 20 * * *.',
-        examples: ['0 20 * * *'],
-      },
+      description: { type: 'string', description: 'Description of the SLA for humans.', examples: ['99.9% of the time, data is available by 6 AM UTC'] },
+      scheduler: { type: 'string', description: 'Name of the scheduler, can be cron or any tool your organization support.', examples: ['cron'] },
+      schedule: { type: 'string', description: 'Configuration information for the scheduling tool, for cron a possible value is 0 20 * * *.', examples: ['0 20 * * *'] },
     },
     required: ['property', 'value'],
     additionalProperties: false,
   };
-  const OdcsContractSchemaComponentSchema16 = {
-    anyOf: [{ type: 'string' }, { type: 'number' }, { type: 'integer' }, { type: 'boolean' }, { type: 'null' }],
-  };
+  const OdcsContractSchemaComponentSchema16 = { anyOf: [{ type: 'string' }, { type: 'number' }, { type: 'integer' }, { type: 'boolean' }, { type: 'null' }] };
 
   function validate80(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
@@ -17963,13 +14843,7 @@ const generatedContract = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.property === undefined) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'property' },
-          message: "must have required property '" + 'property' + "'",
-        };
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'property' }, message: "must have required property '" + 'property' + "'" };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -17978,13 +14852,7 @@ const generatedContract = (() => {
         errors++;
       }
       if (data.value === undefined) {
-        const err1 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'value' },
-          message: "must have required property '" + 'value' + "'",
-        };
+        const err1 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'value' }, message: "must have required property '" + 'value' + "'" };
         if (vErrors === null) {
           vErrors = [err1];
         } else {
@@ -17994,13 +14862,7 @@ const generatedContract = (() => {
       }
       for (const key0 in data) {
         if (!func1.call(OdcsContractSchemaComponentSchema15.properties, key0)) {
-          const err2 = {
-            instancePath,
-            schemaPath: '#/additionalProperties',
-            keyword: 'additionalProperties',
-            params: { additionalProperty: key0 },
-            message: 'must NOT have additional properties',
-          };
+          const err2 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err2];
           } else {
@@ -18028,13 +14890,7 @@ const generatedContract = (() => {
             errors++;
           }
         } else {
-          const err4 = {
-            instancePath: instancePath + '/id',
-            schemaPath: '#/$defs/StableId/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err4 = { instancePath: instancePath + '/id', schemaPath: '#/$defs/StableId/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err4];
           } else {
@@ -18045,13 +14901,7 @@ const generatedContract = (() => {
       }
       if (data.property !== undefined) {
         if (typeof data.property !== 'string') {
-          const err5 = {
-            instancePath: instancePath + '/property',
-            schemaPath: '#/properties/property/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err5 = { instancePath: instancePath + '/property', schemaPath: '#/properties/property/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err5];
           } else {
@@ -18066,13 +14916,7 @@ const generatedContract = (() => {
         let valid2 = false;
         const _errs9 = errors;
         if (typeof data2 !== 'string') {
-          const err6 = {
-            instancePath: instancePath + '/value',
-            schemaPath: '#/properties/value/anyOf/0/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err6 = { instancePath: instancePath + '/value', schemaPath: '#/properties/value/anyOf/0/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err6];
           } else {
@@ -18084,13 +14928,7 @@ const generatedContract = (() => {
         valid2 = valid2 || _valid0;
         const _errs11 = errors;
         if (!(typeof data2 == 'number')) {
-          const err7 = {
-            instancePath: instancePath + '/value',
-            schemaPath: '#/properties/value/anyOf/1/type',
-            keyword: 'type',
-            params: { type: 'number' },
-            message: 'must be number',
-          };
+          const err7 = { instancePath: instancePath + '/value', schemaPath: '#/properties/value/anyOf/1/type', keyword: 'type', params: { type: 'number' }, message: 'must be number' };
           if (vErrors === null) {
             vErrors = [err7];
           } else {
@@ -18102,13 +14940,7 @@ const generatedContract = (() => {
         valid2 = valid2 || _valid0;
         const _errs13 = errors;
         if (!(typeof data2 == 'number' && !(data2 % 1) && !isNaN(data2))) {
-          const err8 = {
-            instancePath: instancePath + '/value',
-            schemaPath: '#/properties/value/anyOf/2/type',
-            keyword: 'type',
-            params: { type: 'integer' },
-            message: 'must be integer',
-          };
+          const err8 = { instancePath: instancePath + '/value', schemaPath: '#/properties/value/anyOf/2/type', keyword: 'type', params: { type: 'integer' }, message: 'must be integer' };
           if (vErrors === null) {
             vErrors = [err8];
           } else {
@@ -18120,13 +14952,7 @@ const generatedContract = (() => {
         valid2 = valid2 || _valid0;
         const _errs15 = errors;
         if (typeof data2 !== 'boolean') {
-          const err9 = {
-            instancePath: instancePath + '/value',
-            schemaPath: '#/properties/value/anyOf/3/type',
-            keyword: 'type',
-            params: { type: 'boolean' },
-            message: 'must be boolean',
-          };
+          const err9 = { instancePath: instancePath + '/value', schemaPath: '#/properties/value/anyOf/3/type', keyword: 'type', params: { type: 'boolean' }, message: 'must be boolean' };
           if (vErrors === null) {
             vErrors = [err9];
           } else {
@@ -18138,13 +14964,7 @@ const generatedContract = (() => {
         valid2 = valid2 || _valid0;
         const _errs17 = errors;
         if (data2 !== null) {
-          const err10 = {
-            instancePath: instancePath + '/value',
-            schemaPath: '#/properties/value/anyOf/4/type',
-            keyword: 'type',
-            params: { type: 'null' },
-            message: 'must be null',
-          };
+          const err10 = { instancePath: instancePath + '/value', schemaPath: '#/properties/value/anyOf/4/type', keyword: 'type', params: { type: 'null' }, message: 'must be null' };
           if (vErrors === null) {
             vErrors = [err10];
           } else {
@@ -18155,13 +14975,7 @@ const generatedContract = (() => {
         var _valid0 = _errs17 === errors;
         valid2 = valid2 || _valid0;
         if (!valid2) {
-          const err11 = {
-            instancePath: instancePath + '/value',
-            schemaPath: '#/properties/value/anyOf',
-            keyword: 'anyOf',
-            params: {},
-            message: 'must match a schema in anyOf',
-          };
+          const err11 = { instancePath: instancePath + '/value', schemaPath: '#/properties/value/anyOf', keyword: 'anyOf', params: {}, message: 'must match a schema in anyOf' };
           if (vErrors === null) {
             vErrors = [err11];
           } else {
@@ -18185,13 +14999,7 @@ const generatedContract = (() => {
         let valid4 = false;
         const _errs22 = errors;
         if (typeof data3 !== 'string') {
-          const err12 = {
-            instancePath: instancePath + '/valueExt',
-            schemaPath: '#/$defs/AnyNonCollectionType/anyOf/0/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err12 = { instancePath: instancePath + '/valueExt', schemaPath: '#/$defs/AnyNonCollectionType/anyOf/0/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err12];
           } else {
@@ -18203,13 +15011,7 @@ const generatedContract = (() => {
         valid4 = valid4 || _valid1;
         const _errs24 = errors;
         if (!(typeof data3 == 'number')) {
-          const err13 = {
-            instancePath: instancePath + '/valueExt',
-            schemaPath: '#/$defs/AnyNonCollectionType/anyOf/1/type',
-            keyword: 'type',
-            params: { type: 'number' },
-            message: 'must be number',
-          };
+          const err13 = { instancePath: instancePath + '/valueExt', schemaPath: '#/$defs/AnyNonCollectionType/anyOf/1/type', keyword: 'type', params: { type: 'number' }, message: 'must be number' };
           if (vErrors === null) {
             vErrors = [err13];
           } else {
@@ -18221,13 +15023,7 @@ const generatedContract = (() => {
         valid4 = valid4 || _valid1;
         const _errs26 = errors;
         if (!(typeof data3 == 'number' && !(data3 % 1) && !isNaN(data3))) {
-          const err14 = {
-            instancePath: instancePath + '/valueExt',
-            schemaPath: '#/$defs/AnyNonCollectionType/anyOf/2/type',
-            keyword: 'type',
-            params: { type: 'integer' },
-            message: 'must be integer',
-          };
+          const err14 = { instancePath: instancePath + '/valueExt', schemaPath: '#/$defs/AnyNonCollectionType/anyOf/2/type', keyword: 'type', params: { type: 'integer' }, message: 'must be integer' };
           if (vErrors === null) {
             vErrors = [err14];
           } else {
@@ -18239,13 +15035,7 @@ const generatedContract = (() => {
         valid4 = valid4 || _valid1;
         const _errs28 = errors;
         if (typeof data3 !== 'boolean') {
-          const err15 = {
-            instancePath: instancePath + '/valueExt',
-            schemaPath: '#/$defs/AnyNonCollectionType/anyOf/3/type',
-            keyword: 'type',
-            params: { type: 'boolean' },
-            message: 'must be boolean',
-          };
+          const err15 = { instancePath: instancePath + '/valueExt', schemaPath: '#/$defs/AnyNonCollectionType/anyOf/3/type', keyword: 'type', params: { type: 'boolean' }, message: 'must be boolean' };
           if (vErrors === null) {
             vErrors = [err15];
           } else {
@@ -18257,13 +15047,7 @@ const generatedContract = (() => {
         valid4 = valid4 || _valid1;
         const _errs30 = errors;
         if (data3 !== null) {
-          const err16 = {
-            instancePath: instancePath + '/valueExt',
-            schemaPath: '#/$defs/AnyNonCollectionType/anyOf/4/type',
-            keyword: 'type',
-            params: { type: 'null' },
-            message: 'must be null',
-          };
+          const err16 = { instancePath: instancePath + '/valueExt', schemaPath: '#/$defs/AnyNonCollectionType/anyOf/4/type', keyword: 'type', params: { type: 'null' }, message: 'must be null' };
           if (vErrors === null) {
             vErrors = [err16];
           } else {
@@ -18274,13 +15058,7 @@ const generatedContract = (() => {
         var _valid1 = _errs30 === errors;
         valid4 = valid4 || _valid1;
         if (!valid4) {
-          const err17 = {
-            instancePath: instancePath + '/valueExt',
-            schemaPath: '#/$defs/AnyNonCollectionType/anyOf',
-            keyword: 'anyOf',
-            params: {},
-            message: 'must match a schema in anyOf',
-          };
+          const err17 = { instancePath: instancePath + '/valueExt', schemaPath: '#/$defs/AnyNonCollectionType/anyOf', keyword: 'anyOf', params: {}, message: 'must match a schema in anyOf' };
           if (vErrors === null) {
             vErrors = [err17];
           } else {
@@ -18300,13 +15078,7 @@ const generatedContract = (() => {
       }
       if (data.unit !== undefined) {
         if (typeof data.unit !== 'string') {
-          const err18 = {
-            instancePath: instancePath + '/unit',
-            schemaPath: '#/properties/unit/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err18 = { instancePath: instancePath + '/unit', schemaPath: '#/properties/unit/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err18];
           } else {
@@ -18317,13 +15089,7 @@ const generatedContract = (() => {
       }
       if (data.element !== undefined) {
         if (typeof data.element !== 'string') {
-          const err19 = {
-            instancePath: instancePath + '/element',
-            schemaPath: '#/properties/element/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err19 = { instancePath: instancePath + '/element', schemaPath: '#/properties/element/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err19];
           } else {
@@ -18334,13 +15100,7 @@ const generatedContract = (() => {
       }
       if (data.driver !== undefined) {
         if (typeof data.driver !== 'string') {
-          const err20 = {
-            instancePath: instancePath + '/driver',
-            schemaPath: '#/properties/driver/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err20 = { instancePath: instancePath + '/driver', schemaPath: '#/properties/driver/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err20];
           } else {
@@ -18351,13 +15111,7 @@ const generatedContract = (() => {
       }
       if (data.description !== undefined) {
         if (typeof data.description !== 'string') {
-          const err21 = {
-            instancePath: instancePath + '/description',
-            schemaPath: '#/properties/description/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err21 = { instancePath: instancePath + '/description', schemaPath: '#/properties/description/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err21];
           } else {
@@ -18368,13 +15122,7 @@ const generatedContract = (() => {
       }
       if (data.scheduler !== undefined) {
         if (typeof data.scheduler !== 'string') {
-          const err22 = {
-            instancePath: instancePath + '/scheduler',
-            schemaPath: '#/properties/scheduler/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err22 = { instancePath: instancePath + '/scheduler', schemaPath: '#/properties/scheduler/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err22];
           } else {
@@ -18385,13 +15133,7 @@ const generatedContract = (() => {
       }
       if (data.schedule !== undefined) {
         if (typeof data.schedule !== 'string') {
-          const err23 = {
-            instancePath: instancePath + '/schedule',
-            schemaPath: '#/properties/schedule/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err23 = { instancePath: instancePath + '/schedule', schemaPath: '#/properties/schedule/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err23];
           } else {
@@ -18401,13 +15143,7 @@ const generatedContract = (() => {
         }
       }
     } else {
-      const err24 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err24 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err24];
       } else {
@@ -18434,13 +15170,7 @@ const generatedContract = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.version === undefined) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'version' },
-          message: "must have required property '" + 'version' + "'",
-        };
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'version' }, message: "must have required property '" + 'version' + "'" };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -18449,13 +15179,7 @@ const generatedContract = (() => {
         errors++;
       }
       if (data.apiVersion === undefined) {
-        const err1 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'apiVersion' },
-          message: "must have required property '" + 'apiVersion' + "'",
-        };
+        const err1 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'apiVersion' }, message: "must have required property '" + 'apiVersion' + "'" };
         if (vErrors === null) {
           vErrors = [err1];
         } else {
@@ -18464,13 +15188,7 @@ const generatedContract = (() => {
         errors++;
       }
       if (data.kind === undefined) {
-        const err2 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'kind' },
-          message: "must have required property '" + 'kind' + "'",
-        };
+        const err2 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'kind' }, message: "must have required property '" + 'kind' + "'" };
         if (vErrors === null) {
           vErrors = [err2];
         } else {
@@ -18479,13 +15197,7 @@ const generatedContract = (() => {
         errors++;
       }
       if (data.id === undefined) {
-        const err3 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'id' },
-          message: "must have required property '" + 'id' + "'",
-        };
+        const err3 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'id' }, message: "must have required property '" + 'id' + "'" };
         if (vErrors === null) {
           vErrors = [err3];
         } else {
@@ -18494,13 +15206,7 @@ const generatedContract = (() => {
         errors++;
       }
       if (data.status === undefined) {
-        const err4 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'status' },
-          message: "must have required property '" + 'status' + "'",
-        };
+        const err4 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'status' }, message: "must have required property '" + 'status' + "'" };
         if (vErrors === null) {
           vErrors = [err4];
         } else {
@@ -18510,13 +15216,7 @@ const generatedContract = (() => {
       }
       for (const key0 in data) {
         if (!func1.call(odcsContractSchema.properties, key0)) {
-          const err5 = {
-            instancePath,
-            schemaPath: '#/additionalProperties',
-            keyword: 'additionalProperties',
-            params: { additionalProperty: key0 },
-            message: 'must NOT have additional properties',
-          };
+          const err5 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err5];
           } else {
@@ -18527,13 +15227,7 @@ const generatedContract = (() => {
       }
       if (data.version !== undefined) {
         if (typeof data.version !== 'string') {
-          const err6 = {
-            instancePath: instancePath + '/version',
-            schemaPath: '#/properties/version/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err6 = { instancePath: instancePath + '/version', schemaPath: '#/properties/version/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err6];
           } else {
@@ -18545,13 +15239,7 @@ const generatedContract = (() => {
       if (data.kind !== undefined) {
         let data1 = data.kind;
         if (typeof data1 !== 'string') {
-          const err7 = {
-            instancePath: instancePath + '/kind',
-            schemaPath: '#/properties/kind/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err7 = { instancePath: instancePath + '/kind', schemaPath: '#/properties/kind/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err7];
           } else {
@@ -18578,13 +15266,7 @@ const generatedContract = (() => {
       if (data.apiVersion !== undefined) {
         let data2 = data.apiVersion;
         if (typeof data2 !== 'string') {
-          const err9 = {
-            instancePath: instancePath + '/apiVersion',
-            schemaPath: '#/properties/apiVersion/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err9 = { instancePath: instancePath + '/apiVersion', schemaPath: '#/properties/apiVersion/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err9];
           } else {
@@ -18610,13 +15292,7 @@ const generatedContract = (() => {
       }
       if (data.id !== undefined) {
         if (typeof data.id !== 'string') {
-          const err11 = {
-            instancePath: instancePath + '/id',
-            schemaPath: '#/properties/id/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err11 = { instancePath: instancePath + '/id', schemaPath: '#/properties/id/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err11];
           } else {
@@ -18627,13 +15303,7 @@ const generatedContract = (() => {
       }
       if (data.name !== undefined) {
         if (typeof data.name !== 'string') {
-          const err12 = {
-            instancePath: instancePath + '/name',
-            schemaPath: '#/properties/name/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err12 = { instancePath: instancePath + '/name', schemaPath: '#/properties/name/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err12];
           } else {
@@ -18644,13 +15314,7 @@ const generatedContract = (() => {
       }
       if (data.tenant !== undefined) {
         if (typeof data.tenant !== 'string') {
-          const err13 = {
-            instancePath: instancePath + '/tenant',
-            schemaPath: '#/properties/tenant/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err13 = { instancePath: instancePath + '/tenant', schemaPath: '#/properties/tenant/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err13];
           } else {
@@ -18665,13 +15329,7 @@ const generatedContract = (() => {
           const len0 = data6.length;
           for (let i0 = 0; i0 < len0; i0++) {
             if (typeof data6[i0] !== 'string') {
-              const err14 = {
-                instancePath: instancePath + '/tags/' + i0,
-                schemaPath: '#/$defs/Tags/items/type',
-                keyword: 'type',
-                params: { type: 'string' },
-                message: 'must be string',
-              };
+              const err14 = { instancePath: instancePath + '/tags/' + i0, schemaPath: '#/$defs/Tags/items/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
               if (vErrors === null) {
                 vErrors = [err14];
               } else {
@@ -18681,13 +15339,7 @@ const generatedContract = (() => {
             }
           }
         } else {
-          const err15 = {
-            instancePath: instancePath + '/tags',
-            schemaPath: '#/$defs/Tags/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err15 = { instancePath: instancePath + '/tags', schemaPath: '#/$defs/Tags/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err15];
           } else {
@@ -18698,13 +15350,7 @@ const generatedContract = (() => {
       }
       if (data.status !== undefined) {
         if (typeof data.status !== 'string') {
-          const err16 = {
-            instancePath: instancePath + '/status',
-            schemaPath: '#/properties/status/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err16 = { instancePath: instancePath + '/status', schemaPath: '#/properties/status/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err16];
           } else {
@@ -18718,27 +15364,13 @@ const generatedContract = (() => {
         if (Array.isArray(data9)) {
           const len1 = data9.length;
           for (let i1 = 0; i1 < len1; i1++) {
-            if (
-              !validate19(data9[i1], {
-                instancePath: instancePath + '/servers/' + i1,
-                parentData: data9,
-                parentDataProperty: i1,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!validate19(data9[i1], { instancePath: instancePath + '/servers/' + i1, parentData: data9, parentDataProperty: i1, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? validate19.errors : vErrors.concat(validate19.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err17 = {
-            instancePath: instancePath + '/servers',
-            schemaPath: '#/properties/servers/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err17 = { instancePath: instancePath + '/servers', schemaPath: '#/properties/servers/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err17];
           } else {
@@ -18749,13 +15381,7 @@ const generatedContract = (() => {
       }
       if (data.dataProduct !== undefined) {
         if (typeof data.dataProduct !== 'string') {
-          const err18 = {
-            instancePath: instancePath + '/dataProduct',
-            schemaPath: '#/properties/dataProduct/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err18 = { instancePath: instancePath + '/dataProduct', schemaPath: '#/properties/dataProduct/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err18];
           } else {
@@ -18847,13 +15473,7 @@ const generatedContract = (() => {
             }
           }
         } else {
-          const err22 = {
-            instancePath: instancePath + '/description',
-            schemaPath: '#/properties/description/type',
-            keyword: 'type',
-            params: { type: 'object' },
-            message: 'must be object',
-          };
+          const err22 = { instancePath: instancePath + '/description', schemaPath: '#/properties/description/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
           if (vErrors === null) {
             vErrors = [err22];
           } else {
@@ -18864,13 +15484,7 @@ const generatedContract = (() => {
       }
       if (data.domain !== undefined) {
         if (typeof data.domain !== 'string') {
-          const err23 = {
-            instancePath: instancePath + '/domain',
-            schemaPath: '#/properties/domain/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err23 = { instancePath: instancePath + '/domain', schemaPath: '#/properties/domain/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err23];
           } else {
@@ -18884,27 +15498,13 @@ const generatedContract = (() => {
         if (Array.isArray(data19)) {
           const len2 = data19.length;
           for (let i2 = 0; i2 < len2; i2++) {
-            if (
-              !validate31(data19[i2], {
-                instancePath: instancePath + '/schema/' + i2,
-                parentData: data19,
-                parentDataProperty: i2,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!validate31(data19[i2], { instancePath: instancePath + '/schema/' + i2, parentData: data19, parentDataProperty: i2, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? validate31.errors : vErrors.concat(validate31.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err24 = {
-            instancePath: instancePath + '/schema',
-            schemaPath: '#/properties/schema/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err24 = { instancePath: instancePath + '/schema', schemaPath: '#/properties/schema/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err24];
           } else {
@@ -18914,29 +15514,13 @@ const generatedContract = (() => {
         }
       }
       if (data.support !== undefined) {
-        if (
-          !validate63(data.support, {
-            instancePath: instancePath + '/support',
-            parentData: data,
-            parentDataProperty: 'support',
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate63(data.support, { instancePath: instancePath + '/support', parentData: data, parentDataProperty: 'support', rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate63.errors : vErrors.concat(validate63.errors);
           errors = vErrors.length;
         }
       }
       if (data.price !== undefined) {
-        if (
-          !validate68(data.price, {
-            instancePath: instancePath + '/price',
-            parentData: data,
-            parentDataProperty: 'price',
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate68(data.price, { instancePath: instancePath + '/price', parentData: data, parentDataProperty: 'price', rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate68.errors : vErrors.concat(validate68.errors);
           errors = vErrors.length;
         }
@@ -18947,15 +15531,7 @@ const generatedContract = (() => {
         let valid9 = false;
         let passing0 = null;
         const _errs45 = errors;
-        if (
-          !validate70(data23, {
-            instancePath: instancePath + '/team',
-            parentData: data,
-            parentDataProperty: 'team',
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate70(data23, { instancePath: instancePath + '/team', parentData: data, parentDataProperty: 'team', rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate70.errors : vErrors.concat(validate70.errors);
           errors = vErrors.length;
         }
@@ -18968,27 +15544,13 @@ const generatedContract = (() => {
         if (Array.isArray(data23)) {
           const len3 = data23.length;
           for (let i3 = 0; i3 < len3; i3++) {
-            if (
-              !validate71(data23[i3], {
-                instancePath: instancePath + '/team/' + i3,
-                parentData: data23,
-                parentDataProperty: i3,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!validate71(data23[i3], { instancePath: instancePath + '/team/' + i3, parentData: data23, parentDataProperty: i3, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? validate71.errors : vErrors.concat(validate71.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err25 = {
-            instancePath: instancePath + '/team',
-            schemaPath: '#/properties/team/oneOf/1/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err25 = { instancePath: instancePath + '/team', schemaPath: '#/properties/team/oneOf/1/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err25];
           } else {
@@ -19036,27 +15598,13 @@ const generatedContract = (() => {
         if (Array.isArray(data25)) {
           const len4 = data25.length;
           for (let i4 = 0; i4 < len4; i4++) {
-            if (
-              !validate20(data25[i4], {
-                instancePath: instancePath + '/roles/' + i4,
-                parentData: data25,
-                parentDataProperty: i4,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!validate20(data25[i4], { instancePath: instancePath + '/roles/' + i4, parentData: data25, parentDataProperty: i4, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? validate20.errors : vErrors.concat(validate20.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err27 = {
-            instancePath: instancePath + '/roles',
-            schemaPath: '#/properties/roles/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err27 = { instancePath: instancePath + '/roles', schemaPath: '#/properties/roles/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err27];
           } else {
@@ -19087,27 +15635,13 @@ const generatedContract = (() => {
         if (Array.isArray(data28)) {
           const len5 = data28.length;
           for (let i5 = 0; i5 < len5; i5++) {
-            if (
-              !validate80(data28[i5], {
-                instancePath: instancePath + '/slaProperties/' + i5,
-                parentData: data28,
-                parentDataProperty: i5,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!validate80(data28[i5], { instancePath: instancePath + '/slaProperties/' + i5, parentData: data28, parentDataProperty: i5, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? validate80.errors : vErrors.concat(validate80.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err29 = {
-            instancePath: instancePath + '/slaProperties',
-            schemaPath: '#/properties/slaProperties/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err29 = { instancePath: instancePath + '/slaProperties', schemaPath: '#/properties/slaProperties/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err29];
           } else {
@@ -19131,15 +15665,7 @@ const generatedContract = (() => {
         }
       }
       if (data.customProperties !== undefined) {
-        if (
-          !validate21(data.customProperties, {
-            instancePath: instancePath + '/customProperties',
-            parentData: data,
-            parentDataProperty: 'customProperties',
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate21(data.customProperties, { instancePath: instancePath + '/customProperties', parentData: data, parentDataProperty: 'customProperties', rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate21.errors : vErrors.concat(validate21.errors);
           errors = vErrors.length;
         }
@@ -19179,13 +15705,7 @@ const generatedContract = (() => {
         }
       }
     } else {
-      const err32 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err32 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err32];
       } else {
@@ -19210,11 +15730,7 @@ const generatedSemantic = (() => {
     description: 'JSON Schema for validating a single Apache Ossie semantic model document',
     type: 'object',
     properties: {
-      version: {
-        type: 'string',
-        const: '0.2.0.dev0',
-        description: 'Apache Ossie specification version',
-      },
+      version: { type: 'string', const: '0.2.0.dev0', description: 'Apache Ossie specification version' },
       name: { $ref: '#/$defs/SemanticModel/properties/name' },
       description: { $ref: '#/$defs/SemanticModel/properties/description' },
       ai_context: { $ref: '#/$defs/SemanticModel/properties/ai_context' },
@@ -19243,20 +15759,9 @@ const generatedSemantic = (() => {
           {
             type: 'object',
             properties: {
-              instructions: {
-                type: 'string',
-                description: 'Instructions for AI on how to use this entity',
-              },
-              synonyms: {
-                type: 'array',
-                items: { type: 'string' },
-                description: 'Alternative names and terms',
-              },
-              examples: {
-                type: 'array',
-                items: { type: 'string' },
-                description: 'Sample questions or use cases',
-              },
+              instructions: { type: 'string', description: 'Instructions for AI on how to use this entity' },
+              synonyms: { type: 'array', items: { type: 'string' }, description: 'Alternative names and terms' },
+              examples: { type: 'array', items: { type: 'string' }, description: 'Sample questions or use cases' },
             },
             additionalProperties: true,
           },
@@ -19265,29 +15770,21 @@ const generatedSemantic = (() => {
       CustomExtension: {
         type: 'object',
         description: 'Vendor-specific attributes for extensibility',
-        properties: {
-          vendor_name: { $ref: '#/$defs/Vendor' },
-          data: { type: 'string', description: 'JSON string containing vendor-specific data' },
-        },
+        properties: { vendor_name: { $ref: '#/$defs/Vendor' }, data: { type: 'string', description: 'JSON string containing vendor-specific data' } },
         required: ['vendor_name', 'data'],
         additionalProperties: false,
       },
       DialectExpression: {
         type: 'object',
         description: 'Expression in a specific dialect',
-        properties: {
-          dialect: { $ref: '#/$defs/Dialect' },
-          expression: { type: 'string', description: 'SQL or dialect-specific expression' },
-        },
+        properties: { dialect: { $ref: '#/$defs/Dialect' }, expression: { type: 'string', description: 'SQL or dialect-specific expression' } },
         required: ['dialect', 'expression'],
         additionalProperties: false,
       },
       Expression: {
         type: 'object',
         description: 'Expression definition with multi-dialect support',
-        properties: {
-          dialects: { type: 'array', items: { $ref: '#/$defs/DialectExpression' }, minItems: 1 },
-        },
+        properties: { dialects: { type: 'array', items: { $ref: '#/$defs/DialectExpression' }, minItems: 1 } },
         required: ['dialects'],
         additionalProperties: false,
       },
@@ -19313,11 +15810,7 @@ const generatedSemantic = (() => {
         type: 'object',
         description: 'Row-level attribute for grouping, filtering, and metric expressions',
         properties: {
-          name: {
-            type: 'string',
-            minLength: 1,
-            description: 'Unique identifier for the field within the dataset',
-          },
+          name: { type: 'string', minLength: 1, description: 'Unique identifier for the field within the dataset' },
           expression: { $ref: '#/$defs/Expression' },
           dimension: { $ref: '#/$defs/Dimension' },
           label: { type: 'string', description: 'Label for categorization' },
@@ -19334,17 +15827,8 @@ const generatedSemantic = (() => {
         description: 'Logical dataset representing a business entity (fact or dimension table)',
         properties: {
           name: { type: 'string', minLength: 1, description: 'Unique identifier for the dataset' },
-          source: {
-            type: 'string',
-            minLength: 1,
-            description: 'Reference to underlying physical table/view (database.schema.table) or query',
-          },
-          primary_key: {
-            type: 'array',
-            items: { type: 'string' },
-            minItems: 1,
-            description: 'Primary key columns (single or composite)',
-          },
+          source: { type: 'string', minLength: 1, description: 'Reference to underlying physical table/view (database.schema.table) or query' },
+          primary_key: { type: 'array', items: { type: 'string' }, minItems: 1, description: 'Primary key columns (single or composite)' },
           unique_keys: {
             type: 'array',
             items: { type: 'array', items: { type: 'string' }, minItems: 1 },
@@ -19363,33 +15847,11 @@ const generatedSemantic = (() => {
         type: 'object',
         description: 'Foreign key relationship between datasets',
         properties: {
-          name: {
-            type: 'string',
-            minLength: 1,
-            description: 'Unique identifier for the relationship',
-          },
-          from: {
-            type: 'string',
-            minLength: 1,
-            description: 'Dataset on the many side of the relationship',
-          },
-          to: {
-            type: 'string',
-            minLength: 1,
-            description: 'Dataset on the one side of the relationship',
-          },
-          from_columns: {
-            type: 'array',
-            items: { type: 'string' },
-            minItems: 1,
-            description: "Foreign key columns in the 'from' dataset",
-          },
-          to_columns: {
-            type: 'array',
-            items: { type: 'string' },
-            minItems: 1,
-            description: "Primary/unique key columns in the 'to' dataset",
-          },
+          name: { type: 'string', minLength: 1, description: 'Unique identifier for the relationship' },
+          from: { type: 'string', minLength: 1, description: 'Dataset on the many side of the relationship' },
+          to: { type: 'string', minLength: 1, description: 'Dataset on the one side of the relationship' },
+          from_columns: { type: 'array', items: { type: 'string' }, minItems: 1, description: "Foreign key columns in the 'from' dataset" },
+          to_columns: { type: 'array', items: { type: 'string' }, minItems: 1, description: "Primary/unique key columns in the 'to' dataset" },
           ai_context: { $ref: '#/$defs/AIContext' },
           custom_extensions: { type: 'array', items: { $ref: '#/$defs/CustomExtension' } },
         },
@@ -19402,10 +15864,7 @@ const generatedSemantic = (() => {
         properties: {
           name: { type: 'string', minLength: 1, description: 'Unique identifier for the metric' },
           expression: { $ref: '#/$defs/Expression' },
-          description: {
-            type: 'string',
-            description: 'Human-readable description of what the metric measures',
-          },
+          description: { type: 'string', description: 'Human-readable description of what the metric measures' },
           datatype: { $ref: '#/$defs/DataType' },
           ai_context: { $ref: '#/$defs/AIContext' },
           custom_extensions: { type: 'array', items: { $ref: '#/$defs/CustomExtension' } },
@@ -19417,29 +15876,12 @@ const generatedSemantic = (() => {
         type: 'object',
         description: 'Top-level container representing a complete semantic model',
         properties: {
-          name: {
-            type: 'string',
-            minLength: 1,
-            description: 'Unique identifier for the semantic model',
-          },
+          name: { type: 'string', minLength: 1, description: 'Unique identifier for the semantic model' },
           description: { type: 'string', description: 'Human-readable description' },
           ai_context: { $ref: '#/$defs/AIContext' },
-          datasets: {
-            type: 'array',
-            items: { $ref: '#/$defs/Dataset' },
-            minItems: 1,
-            description: 'Collection of logical datasets',
-          },
-          relationships: {
-            type: 'array',
-            items: { $ref: '#/$defs/Relationship' },
-            description: 'Defines how datasets are connected',
-          },
-          metrics: {
-            type: 'array',
-            items: { $ref: '#/$defs/Metric' },
-            description: 'Quantifiable measures spanning datasets',
-          },
+          datasets: { type: 'array', items: { $ref: '#/$defs/Dataset' }, minItems: 1, description: 'Collection of logical datasets' },
+          relationships: { type: 'array', items: { $ref: '#/$defs/Relationship' }, description: 'Defines how datasets are connected' },
+          metrics: { type: 'array', items: { $ref: '#/$defs/Metric' }, description: 'Quantifiable measures spanning datasets' },
           custom_extensions: { type: 'array', items: { $ref: '#/$defs/CustomExtension' } },
         },
         required: ['name', 'datasets'],
@@ -19447,15 +15889,8 @@ const generatedSemantic = (() => {
       },
     },
   };
-  const ossieSemanticModelSemanticModelNameSchema = {
-    type: 'string',
-    minLength: 1,
-    description: 'Unique identifier for the semantic model',
-  };
-  const ossieSemanticModelSemanticModelDescriptionSchema = {
-    type: 'string',
-    description: 'Human-readable description',
-  };
+  const ossieSemanticModelSemanticModelNameSchema = { type: 'string', minLength: 1, description: 'Unique identifier for the semantic model' };
+  const ossieSemanticModelSemanticModelDescriptionSchema = { type: 'string', description: 'Human-readable description' };
   const ossieSemanticModelAIContextSchema = {
     description: 'Additional context for AI tools',
     oneOf: [
@@ -19463,54 +15898,24 @@ const generatedSemantic = (() => {
       {
         type: 'object',
         properties: {
-          instructions: {
-            type: 'string',
-            description: 'Instructions for AI on how to use this entity',
-          },
-          synonyms: {
-            type: 'array',
-            items: { type: 'string' },
-            description: 'Alternative names and terms',
-          },
-          examples: {
-            type: 'array',
-            items: { type: 'string' },
-            description: 'Sample questions or use cases',
-          },
+          instructions: { type: 'string', description: 'Instructions for AI on how to use this entity' },
+          synonyms: { type: 'array', items: { type: 'string' }, description: 'Alternative names and terms' },
+          examples: { type: 'array', items: { type: 'string' }, description: 'Sample questions or use cases' },
         },
         additionalProperties: true,
       },
     ],
   };
   const func1 = semanticRuntime0.default;
-  const CollectionLogicalDatasetsSchema = {
-    type: 'array',
-    items: { $ref: '#/$defs/Dataset' },
-    minItems: 1,
-    description: 'Collection of logical datasets',
-  };
+  const CollectionLogicalDatasetsSchema = { type: 'array', items: { $ref: '#/$defs/Dataset' }, minItems: 1, description: 'Collection of logical datasets' };
   const LogicalDatasetRepresentingBusinessSchema = {
     type: 'object',
     description: 'Logical dataset representing a business entity (fact or dimension table)',
     properties: {
       name: { type: 'string', minLength: 1, description: 'Unique identifier for the dataset' },
-      source: {
-        type: 'string',
-        minLength: 1,
-        description: 'Reference to underlying physical table/view (database.schema.table) or query',
-      },
-      primary_key: {
-        type: 'array',
-        items: { type: 'string' },
-        minItems: 1,
-        description: 'Primary key columns (single or composite)',
-      },
-      unique_keys: {
-        type: 'array',
-        items: { type: 'array', items: { type: 'string' }, minItems: 1 },
-        minItems: 1,
-        description: 'Array of unique key definitions (each can be single or composite)',
-      },
+      source: { type: 'string', minLength: 1, description: 'Reference to underlying physical table/view (database.schema.table) or query' },
+      primary_key: { type: 'array', items: { type: 'string' }, minItems: 1, description: 'Primary key columns (single or composite)' },
+      unique_keys: { type: 'array', items: { type: 'array', items: { type: 'string' }, minItems: 1 }, minItems: 1, description: 'Array of unique key definitions (each can be single or composite)' },
       description: { type: 'string', description: 'Human-readable description' },
       ai_context: { $ref: '#/$defs/AIContext' },
       fields: { type: 'array', items: { $ref: '#/$defs/Field' } },
@@ -19523,11 +15928,7 @@ const generatedSemantic = (() => {
     type: 'object',
     description: 'Row-level attribute for grouping, filtering, and metric expressions',
     properties: {
-      name: {
-        type: 'string',
-        minLength: 1,
-        description: 'Unique identifier for the field within the dataset',
-      },
+      name: { type: 'string', minLength: 1, description: 'Unique identifier for the field within the dataset' },
       expression: { $ref: '#/$defs/Expression' },
       dimension: { $ref: '#/$defs/Dimension' },
       label: { type: 'string', description: 'Label for categorization' },
@@ -19560,19 +15961,14 @@ const generatedSemantic = (() => {
   const ExpressionDefinitionMultiDialectSchema = {
     type: 'object',
     description: 'Expression definition with multi-dialect support',
-    properties: {
-      dialects: { type: 'array', items: { $ref: '#/$defs/DialectExpression' }, minItems: 1 },
-    },
+    properties: { dialects: { type: 'array', items: { $ref: '#/$defs/DialectExpression' }, minItems: 1 } },
     required: ['dialects'],
     additionalProperties: false,
   };
   const ExpressionSpecificDialectSchema = {
     type: 'object',
     description: 'Expression in a specific dialect',
-    properties: {
-      dialect: { $ref: '#/$defs/Dialect' },
-      expression: { type: 'string', description: 'SQL or dialect-specific expression' },
-    },
+    properties: { dialect: { $ref: '#/$defs/Dialect' }, expression: { type: 'string', description: 'SQL or dialect-specific expression' } },
     required: ['dialect', 'expression'],
     additionalProperties: false,
   };
@@ -19594,13 +15990,7 @@ const generatedSemantic = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.dialect === undefined) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'dialect' },
-          message: "must have required property '" + 'dialect' + "'",
-        };
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'dialect' }, message: "must have required property '" + 'dialect' + "'" };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -19609,13 +15999,7 @@ const generatedSemantic = (() => {
         errors++;
       }
       if (data.expression === undefined) {
-        const err1 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'expression' },
-          message: "must have required property '" + 'expression' + "'",
-        };
+        const err1 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'expression' }, message: "must have required property '" + 'expression' + "'" };
         if (vErrors === null) {
           vErrors = [err1];
         } else {
@@ -19625,13 +16009,7 @@ const generatedSemantic = (() => {
       }
       for (const key0 in data) {
         if (!(key0 === 'dialect' || key0 === 'expression')) {
-          const err2 = {
-            instancePath,
-            schemaPath: '#/additionalProperties',
-            keyword: 'additionalProperties',
-            params: { additionalProperty: key0 },
-            message: 'must NOT have additional properties',
-          };
+          const err2 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err2];
           } else {
@@ -19643,13 +16021,7 @@ const generatedSemantic = (() => {
       if (data.dialect !== undefined) {
         let data0 = data.dialect;
         if (typeof data0 !== 'string') {
-          const err3 = {
-            instancePath: instancePath + '/dialect',
-            schemaPath: '#/$defs/Dialect/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err3 = { instancePath: instancePath + '/dialect', schemaPath: '#/$defs/Dialect/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err3];
           } else {
@@ -19690,13 +16062,7 @@ const generatedSemantic = (() => {
       }
       if (data.expression !== undefined) {
         if (typeof data.expression !== 'string') {
-          const err5 = {
-            instancePath: instancePath + '/expression',
-            schemaPath: '#/properties/expression/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err5 = { instancePath: instancePath + '/expression', schemaPath: '#/properties/expression/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err5];
           } else {
@@ -19706,13 +16072,7 @@ const generatedSemantic = (() => {
         }
       }
     } else {
-      const err6 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err6 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err6];
       } else {
@@ -19737,13 +16097,7 @@ const generatedSemantic = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.dialects === undefined) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'dialects' },
-          message: "must have required property '" + 'dialects' + "'",
-        };
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'dialects' }, message: "must have required property '" + 'dialects' + "'" };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -19753,13 +16107,7 @@ const generatedSemantic = (() => {
       }
       for (const key0 in data) {
         if (!(key0 === 'dialects')) {
-          const err1 = {
-            instancePath,
-            schemaPath: '#/additionalProperties',
-            keyword: 'additionalProperties',
-            params: { additionalProperty: key0 },
-            message: 'must NOT have additional properties',
-          };
+          const err1 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err1];
           } else {
@@ -19788,27 +16136,13 @@ const generatedSemantic = (() => {
           }
           const len0 = data0.length;
           for (let i0 = 0; i0 < len0; i0++) {
-            if (
-              !validate25(data0[i0], {
-                instancePath: instancePath + '/dialects/' + i0,
-                parentData: data0,
-                parentDataProperty: i0,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!validate25(data0[i0], { instancePath: instancePath + '/dialects/' + i0, parentData: data0, parentDataProperty: i0, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? validate25.errors : vErrors.concat(validate25.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err3 = {
-            instancePath: instancePath + '/dialects',
-            schemaPath: '#/properties/dialects/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err3 = { instancePath: instancePath + '/dialects', schemaPath: '#/properties/dialects/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err3];
           } else {
@@ -19818,13 +16152,7 @@ const generatedSemantic = (() => {
         }
       }
     } else {
-      const err4 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err4 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err4];
       } else {
@@ -19840,10 +16168,7 @@ const generatedSemantic = (() => {
   const VendorSpecificAttributesExtensibilitySchema = {
     type: 'object',
     description: 'Vendor-specific attributes for extensibility',
-    properties: {
-      vendor_name: { $ref: '#/$defs/Vendor' },
-      data: { type: 'string', description: 'JSON string containing vendor-specific data' },
-    },
+    properties: { vendor_name: { $ref: '#/$defs/Vendor' }, data: { type: 'string', description: 'JSON string containing vendor-specific data' } },
     required: ['vendor_name', 'data'],
     additionalProperties: false,
   };
@@ -19865,13 +16190,7 @@ const generatedSemantic = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.vendor_name === undefined) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'vendor_name' },
-          message: "must have required property '" + 'vendor_name' + "'",
-        };
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'vendor_name' }, message: "must have required property '" + 'vendor_name' + "'" };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -19880,13 +16199,7 @@ const generatedSemantic = (() => {
         errors++;
       }
       if (data.data === undefined) {
-        const err1 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'data' },
-          message: "must have required property '" + 'data' + "'",
-        };
+        const err1 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'data' }, message: "must have required property '" + 'data' + "'" };
         if (vErrors === null) {
           vErrors = [err1];
         } else {
@@ -19896,13 +16209,7 @@ const generatedSemantic = (() => {
       }
       for (const key0 in data) {
         if (!(key0 === 'vendor_name' || key0 === 'data')) {
-          const err2 = {
-            instancePath,
-            schemaPath: '#/additionalProperties',
-            keyword: 'additionalProperties',
-            params: { additionalProperty: key0 },
-            message: 'must NOT have additional properties',
-          };
+          const err2 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err2];
           } else {
@@ -19913,13 +16220,7 @@ const generatedSemantic = (() => {
       }
       if (data.vendor_name !== undefined) {
         if (typeof data.vendor_name !== 'string') {
-          const err3 = {
-            instancePath: instancePath + '/vendor_name',
-            schemaPath: '#/$defs/Vendor/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err3 = { instancePath: instancePath + '/vendor_name', schemaPath: '#/$defs/Vendor/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err3];
           } else {
@@ -19930,13 +16231,7 @@ const generatedSemantic = (() => {
       }
       if (data.data !== undefined) {
         if (typeof data.data !== 'string') {
-          const err4 = {
-            instancePath: instancePath + '/data',
-            schemaPath: '#/properties/data/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err4 = { instancePath: instancePath + '/data', schemaPath: '#/properties/data/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err4];
           } else {
@@ -19946,13 +16241,7 @@ const generatedSemantic = (() => {
         }
       }
     } else {
-      const err5 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err5 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err5];
       } else {
@@ -19977,13 +16266,7 @@ const generatedSemantic = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.name === undefined) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'name' },
-          message: "must have required property '" + 'name' + "'",
-        };
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'name' }, message: "must have required property '" + 'name' + "'" };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -19992,13 +16275,7 @@ const generatedSemantic = (() => {
         errors++;
       }
       if (data.expression === undefined) {
-        const err1 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'expression' },
-          message: "must have required property '" + 'expression' + "'",
-        };
+        const err1 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'expression' }, message: "must have required property '" + 'expression' + "'" };
         if (vErrors === null) {
           vErrors = [err1];
         } else {
@@ -20019,13 +16296,7 @@ const generatedSemantic = (() => {
             key0 === 'custom_extensions'
           )
         ) {
-          const err2 = {
-            instancePath,
-            schemaPath: '#/additionalProperties',
-            keyword: 'additionalProperties',
-            params: { additionalProperty: key0 },
-            message: 'must NOT have additional properties',
-          };
+          const err2 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err2];
           } else {
@@ -20053,13 +16324,7 @@ const generatedSemantic = (() => {
             errors++;
           }
         } else {
-          const err4 = {
-            instancePath: instancePath + '/name',
-            schemaPath: '#/properties/name/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err4 = { instancePath: instancePath + '/name', schemaPath: '#/properties/name/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err4];
           } else {
@@ -20069,15 +16334,7 @@ const generatedSemantic = (() => {
         }
       }
       if (data.expression !== undefined) {
-        if (
-          !validate24(data.expression, {
-            instancePath: instancePath + '/expression',
-            parentData: data,
-            parentDataProperty: 'expression',
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate24(data.expression, { instancePath: instancePath + '/expression', parentData: data, parentDataProperty: 'expression', rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate24.errors : vErrors.concat(validate24.errors);
           errors = vErrors.length;
         }
@@ -20120,13 +16377,7 @@ const generatedSemantic = (() => {
             }
           }
         } else {
-          const err7 = {
-            instancePath: instancePath + '/dimension',
-            schemaPath: '#/$defs/Dimension/type',
-            keyword: 'type',
-            params: { type: 'object' },
-            message: 'must be object',
-          };
+          const err7 = { instancePath: instancePath + '/dimension', schemaPath: '#/$defs/Dimension/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
           if (vErrors === null) {
             vErrors = [err7];
           } else {
@@ -20137,13 +16388,7 @@ const generatedSemantic = (() => {
       }
       if (data.label !== undefined) {
         if (typeof data.label !== 'string') {
-          const err8 = {
-            instancePath: instancePath + '/label',
-            schemaPath: '#/properties/label/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err8 = { instancePath: instancePath + '/label', schemaPath: '#/properties/label/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err8];
           } else {
@@ -20154,13 +16399,7 @@ const generatedSemantic = (() => {
       }
       if (data.description !== undefined) {
         if (typeof data.description !== 'string') {
-          const err9 = {
-            instancePath: instancePath + '/description',
-            schemaPath: '#/properties/description/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err9 = { instancePath: instancePath + '/description', schemaPath: '#/properties/description/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err9];
           } else {
@@ -20172,13 +16411,7 @@ const generatedSemantic = (() => {
       if (data.datatype !== undefined) {
         let data6 = data.datatype;
         if (typeof data6 !== 'string') {
-          const err10 = {
-            instancePath: instancePath + '/datatype',
-            schemaPath: '#/$defs/DataType/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err10 = { instancePath: instancePath + '/datatype', schemaPath: '#/$defs/DataType/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err10];
           } else {
@@ -20222,13 +16455,7 @@ const generatedSemantic = (() => {
         let passing0 = null;
         const _errs21 = errors;
         if (typeof data7 !== 'string') {
-          const err12 = {
-            instancePath: instancePath + '/ai_context',
-            schemaPath: '#/$defs/AIContext/oneOf/0/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err12 = { instancePath: instancePath + '/ai_context', schemaPath: '#/$defs/AIContext/oneOf/0/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err12];
           } else {
@@ -20335,13 +16562,7 @@ const generatedSemantic = (() => {
             }
           }
         } else {
-          const err18 = {
-            instancePath: instancePath + '/ai_context',
-            schemaPath: '#/$defs/AIContext/oneOf/1/type',
-            keyword: 'type',
-            params: { type: 'object' },
-            message: 'must be object',
-          };
+          const err18 = { instancePath: instancePath + '/ai_context', schemaPath: '#/$defs/AIContext/oneOf/1/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
           if (vErrors === null) {
             vErrors = [err18];
           } else {
@@ -20389,27 +16610,13 @@ const generatedSemantic = (() => {
         if (Array.isArray(data13)) {
           const len2 = data13.length;
           for (let i2 = 0; i2 < len2; i2++) {
-            if (
-              !validate28(data13[i2], {
-                instancePath: instancePath + '/custom_extensions/' + i2,
-                parentData: data13,
-                parentDataProperty: i2,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!validate28(data13[i2], { instancePath: instancePath + '/custom_extensions/' + i2, parentData: data13, parentDataProperty: i2, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? validate28.errors : vErrors.concat(validate28.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err20 = {
-            instancePath: instancePath + '/custom_extensions',
-            schemaPath: '#/properties/custom_extensions/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err20 = { instancePath: instancePath + '/custom_extensions', schemaPath: '#/properties/custom_extensions/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err20];
           } else {
@@ -20419,13 +16626,7 @@ const generatedSemantic = (() => {
         }
       }
     } else {
-      const err21 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err21 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err21];
       } else {
@@ -20450,13 +16651,7 @@ const generatedSemantic = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.name === undefined) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'name' },
-          message: "must have required property '" + 'name' + "'",
-        };
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'name' }, message: "must have required property '" + 'name' + "'" };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -20465,13 +16660,7 @@ const generatedSemantic = (() => {
         errors++;
       }
       if (data.source === undefined) {
-        const err1 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'source' },
-          message: "must have required property '" + 'source' + "'",
-        };
+        const err1 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'source' }, message: "must have required property '" + 'source' + "'" };
         if (vErrors === null) {
           vErrors = [err1];
         } else {
@@ -20492,13 +16681,7 @@ const generatedSemantic = (() => {
             key0 === 'custom_extensions'
           )
         ) {
-          const err2 = {
-            instancePath,
-            schemaPath: '#/additionalProperties',
-            keyword: 'additionalProperties',
-            params: { additionalProperty: key0 },
-            message: 'must NOT have additional properties',
-          };
+          const err2 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err2];
           } else {
@@ -20526,13 +16709,7 @@ const generatedSemantic = (() => {
             errors++;
           }
         } else {
-          const err4 = {
-            instancePath: instancePath + '/name',
-            schemaPath: '#/properties/name/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err4 = { instancePath: instancePath + '/name', schemaPath: '#/properties/name/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err4];
           } else {
@@ -20560,13 +16737,7 @@ const generatedSemantic = (() => {
             errors++;
           }
         } else {
-          const err6 = {
-            instancePath: instancePath + '/source',
-            schemaPath: '#/properties/source/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err6 = { instancePath: instancePath + '/source', schemaPath: '#/properties/source/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err6];
           } else {
@@ -20612,13 +16783,7 @@ const generatedSemantic = (() => {
             }
           }
         } else {
-          const err9 = {
-            instancePath: instancePath + '/primary_key',
-            schemaPath: '#/properties/primary_key/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err9 = { instancePath: instancePath + '/primary_key', schemaPath: '#/properties/primary_key/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err9];
           } else {
@@ -20699,13 +16864,7 @@ const generatedSemantic = (() => {
             }
           }
         } else {
-          const err14 = {
-            instancePath: instancePath + '/unique_keys',
-            schemaPath: '#/properties/unique_keys/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err14 = { instancePath: instancePath + '/unique_keys', schemaPath: '#/properties/unique_keys/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err14];
           } else {
@@ -20716,13 +16875,7 @@ const generatedSemantic = (() => {
       }
       if (data.description !== undefined) {
         if (typeof data.description !== 'string') {
-          const err15 = {
-            instancePath: instancePath + '/description',
-            schemaPath: '#/properties/description/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err15 = { instancePath: instancePath + '/description', schemaPath: '#/properties/description/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err15];
           } else {
@@ -20738,13 +16891,7 @@ const generatedSemantic = (() => {
         let passing0 = null;
         const _errs21 = errors;
         if (typeof data8 !== 'string') {
-          const err16 = {
-            instancePath: instancePath + '/ai_context',
-            schemaPath: '#/$defs/AIContext/oneOf/0/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err16 = { instancePath: instancePath + '/ai_context', schemaPath: '#/$defs/AIContext/oneOf/0/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err16];
           } else {
@@ -20851,13 +16998,7 @@ const generatedSemantic = (() => {
             }
           }
         } else {
-          const err22 = {
-            instancePath: instancePath + '/ai_context',
-            schemaPath: '#/$defs/AIContext/oneOf/1/type',
-            keyword: 'type',
-            params: { type: 'object' },
-            message: 'must be object',
-          };
+          const err22 = { instancePath: instancePath + '/ai_context', schemaPath: '#/$defs/AIContext/oneOf/1/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
           if (vErrors === null) {
             vErrors = [err22];
           } else {
@@ -20905,27 +17046,13 @@ const generatedSemantic = (() => {
         if (Array.isArray(data14)) {
           const len5 = data14.length;
           for (let i5 = 0; i5 < len5; i5++) {
-            if (
-              !validate23(data14[i5], {
-                instancePath: instancePath + '/fields/' + i5,
-                parentData: data14,
-                parentDataProperty: i5,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!validate23(data14[i5], { instancePath: instancePath + '/fields/' + i5, parentData: data14, parentDataProperty: i5, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? validate23.errors : vErrors.concat(validate23.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err24 = {
-            instancePath: instancePath + '/fields',
-            schemaPath: '#/properties/fields/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err24 = { instancePath: instancePath + '/fields', schemaPath: '#/properties/fields/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err24];
           } else {
@@ -20939,27 +17066,13 @@ const generatedSemantic = (() => {
         if (Array.isArray(data16)) {
           const len6 = data16.length;
           for (let i6 = 0; i6 < len6; i6++) {
-            if (
-              !validate28(data16[i6], {
-                instancePath: instancePath + '/custom_extensions/' + i6,
-                parentData: data16,
-                parentDataProperty: i6,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!validate28(data16[i6], { instancePath: instancePath + '/custom_extensions/' + i6, parentData: data16, parentDataProperty: i6, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? validate28.errors : vErrors.concat(validate28.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err25 = {
-            instancePath: instancePath + '/custom_extensions',
-            schemaPath: '#/properties/custom_extensions/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err25 = { instancePath: instancePath + '/custom_extensions', schemaPath: '#/properties/custom_extensions/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err25];
           } else {
@@ -20969,13 +17082,7 @@ const generatedSemantic = (() => {
         }
       }
     } else {
-      const err26 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err26 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err26];
       } else {
@@ -21000,13 +17107,7 @@ const generatedSemantic = (() => {
     }
     if (Array.isArray(data)) {
       if (data.length < 1) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/minItems',
-          keyword: 'minItems',
-          params: { limit: 1 },
-          message: 'must NOT have fewer than 1 items',
-        };
+        const err0 = { instancePath, schemaPath: '#/minItems', keyword: 'minItems', params: { limit: 1 }, message: 'must NOT have fewer than 1 items' };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -21016,27 +17117,13 @@ const generatedSemantic = (() => {
       }
       const len0 = data.length;
       for (let i0 = 0; i0 < len0; i0++) {
-        if (
-          !validate22(data[i0], {
-            instancePath: instancePath + '/' + i0,
-            parentData: data,
-            parentDataProperty: i0,
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate22(data[i0], { instancePath: instancePath + '/' + i0, parentData: data, parentDataProperty: i0, rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate22.errors : vErrors.concat(validate22.errors);
           errors = vErrors.length;
         }
       }
     } else {
-      const err1 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'array' },
-        message: 'must be array',
-      };
+      const err1 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
       if (vErrors === null) {
         vErrors = [err1];
       } else {
@@ -21049,38 +17136,16 @@ const generatedSemantic = (() => {
   }
   validate21.evaluated = { items: true, dynamicProps: false, dynamicItems: false };
 
-  const DefinesHowDatasetsConnectedSchema = {
-    type: 'array',
-    items: { $ref: '#/$defs/Relationship' },
-    description: 'Defines how datasets are connected',
-  };
+  const DefinesHowDatasetsConnectedSchema = { type: 'array', items: { $ref: '#/$defs/Relationship' }, description: 'Defines how datasets are connected' };
   const ForeignKeyRelationshipBetweenSchema = {
     type: 'object',
     description: 'Foreign key relationship between datasets',
     properties: {
       name: { type: 'string', minLength: 1, description: 'Unique identifier for the relationship' },
-      from: {
-        type: 'string',
-        minLength: 1,
-        description: 'Dataset on the many side of the relationship',
-      },
-      to: {
-        type: 'string',
-        minLength: 1,
-        description: 'Dataset on the one side of the relationship',
-      },
-      from_columns: {
-        type: 'array',
-        items: { type: 'string' },
-        minItems: 1,
-        description: "Foreign key columns in the 'from' dataset",
-      },
-      to_columns: {
-        type: 'array',
-        items: { type: 'string' },
-        minItems: 1,
-        description: "Primary/unique key columns in the 'to' dataset",
-      },
+      from: { type: 'string', minLength: 1, description: 'Dataset on the many side of the relationship' },
+      to: { type: 'string', minLength: 1, description: 'Dataset on the one side of the relationship' },
+      from_columns: { type: 'array', items: { type: 'string' }, minItems: 1, description: "Foreign key columns in the 'from' dataset" },
+      to_columns: { type: 'array', items: { type: 'string' }, minItems: 1, description: "Primary/unique key columns in the 'to' dataset" },
       ai_context: { $ref: '#/$defs/AIContext' },
       custom_extensions: { type: 'array', items: { $ref: '#/$defs/CustomExtension' } },
     },
@@ -21100,13 +17165,7 @@ const generatedSemantic = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.name === undefined) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'name' },
-          message: "must have required property '" + 'name' + "'",
-        };
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'name' }, message: "must have required property '" + 'name' + "'" };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -21115,13 +17174,7 @@ const generatedSemantic = (() => {
         errors++;
       }
       if (data.from === undefined) {
-        const err1 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'from' },
-          message: "must have required property '" + 'from' + "'",
-        };
+        const err1 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'from' }, message: "must have required property '" + 'from' + "'" };
         if (vErrors === null) {
           vErrors = [err1];
         } else {
@@ -21130,13 +17183,7 @@ const generatedSemantic = (() => {
         errors++;
       }
       if (data.to === undefined) {
-        const err2 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'to' },
-          message: "must have required property '" + 'to' + "'",
-        };
+        const err2 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'to' }, message: "must have required property '" + 'to' + "'" };
         if (vErrors === null) {
           vErrors = [err2];
         } else {
@@ -21145,13 +17192,7 @@ const generatedSemantic = (() => {
         errors++;
       }
       if (data.from_columns === undefined) {
-        const err3 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'from_columns' },
-          message: "must have required property '" + 'from_columns' + "'",
-        };
+        const err3 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'from_columns' }, message: "must have required property '" + 'from_columns' + "'" };
         if (vErrors === null) {
           vErrors = [err3];
         } else {
@@ -21160,13 +17201,7 @@ const generatedSemantic = (() => {
         errors++;
       }
       if (data.to_columns === undefined) {
-        const err4 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'to_columns' },
-          message: "must have required property '" + 'to_columns' + "'",
-        };
+        const err4 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'to_columns' }, message: "must have required property '" + 'to_columns' + "'" };
         if (vErrors === null) {
           vErrors = [err4];
         } else {
@@ -21176,13 +17211,7 @@ const generatedSemantic = (() => {
       }
       for (const key0 in data) {
         if (!(key0 === 'name' || key0 === 'from' || key0 === 'to' || key0 === 'from_columns' || key0 === 'to_columns' || key0 === 'ai_context' || key0 === 'custom_extensions')) {
-          const err5 = {
-            instancePath,
-            schemaPath: '#/additionalProperties',
-            keyword: 'additionalProperties',
-            params: { additionalProperty: key0 },
-            message: 'must NOT have additional properties',
-          };
+          const err5 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err5];
           } else {
@@ -21210,13 +17239,7 @@ const generatedSemantic = (() => {
             errors++;
           }
         } else {
-          const err7 = {
-            instancePath: instancePath + '/name',
-            schemaPath: '#/properties/name/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err7 = { instancePath: instancePath + '/name', schemaPath: '#/properties/name/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err7];
           } else {
@@ -21244,13 +17267,7 @@ const generatedSemantic = (() => {
             errors++;
           }
         } else {
-          const err9 = {
-            instancePath: instancePath + '/from',
-            schemaPath: '#/properties/from/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err9 = { instancePath: instancePath + '/from', schemaPath: '#/properties/from/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err9];
           } else {
@@ -21263,13 +17280,7 @@ const generatedSemantic = (() => {
         let data2 = data.to;
         if (typeof data2 === 'string') {
           if (func1(data2) < 1) {
-            const err10 = {
-              instancePath: instancePath + '/to',
-              schemaPath: '#/properties/to/minLength',
-              keyword: 'minLength',
-              params: { limit: 1 },
-              message: 'must NOT have fewer than 1 characters',
-            };
+            const err10 = { instancePath: instancePath + '/to', schemaPath: '#/properties/to/minLength', keyword: 'minLength', params: { limit: 1 }, message: 'must NOT have fewer than 1 characters' };
             if (vErrors === null) {
               vErrors = [err10];
             } else {
@@ -21278,13 +17289,7 @@ const generatedSemantic = (() => {
             errors++;
           }
         } else {
-          const err11 = {
-            instancePath: instancePath + '/to',
-            schemaPath: '#/properties/to/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err11 = { instancePath: instancePath + '/to', schemaPath: '#/properties/to/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err11];
           } else {
@@ -21330,13 +17335,7 @@ const generatedSemantic = (() => {
             }
           }
         } else {
-          const err14 = {
-            instancePath: instancePath + '/from_columns',
-            schemaPath: '#/properties/from_columns/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err14 = { instancePath: instancePath + '/from_columns', schemaPath: '#/properties/from_columns/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err14];
           } else {
@@ -21382,13 +17381,7 @@ const generatedSemantic = (() => {
             }
           }
         } else {
-          const err17 = {
-            instancePath: instancePath + '/to_columns',
-            schemaPath: '#/properties/to_columns/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err17 = { instancePath: instancePath + '/to_columns', schemaPath: '#/properties/to_columns/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err17];
           } else {
@@ -21404,13 +17397,7 @@ const generatedSemantic = (() => {
         let passing0 = null;
         const _errs19 = errors;
         if (typeof data7 !== 'string') {
-          const err18 = {
-            instancePath: instancePath + '/ai_context',
-            schemaPath: '#/$defs/AIContext/oneOf/0/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err18 = { instancePath: instancePath + '/ai_context', schemaPath: '#/$defs/AIContext/oneOf/0/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err18];
           } else {
@@ -21517,13 +17504,7 @@ const generatedSemantic = (() => {
             }
           }
         } else {
-          const err24 = {
-            instancePath: instancePath + '/ai_context',
-            schemaPath: '#/$defs/AIContext/oneOf/1/type',
-            keyword: 'type',
-            params: { type: 'object' },
-            message: 'must be object',
-          };
+          const err24 = { instancePath: instancePath + '/ai_context', schemaPath: '#/$defs/AIContext/oneOf/1/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
           if (vErrors === null) {
             vErrors = [err24];
           } else {
@@ -21571,27 +17552,13 @@ const generatedSemantic = (() => {
         if (Array.isArray(data13)) {
           const len4 = data13.length;
           for (let i4 = 0; i4 < len4; i4++) {
-            if (
-              !validate28(data13[i4], {
-                instancePath: instancePath + '/custom_extensions/' + i4,
-                parentData: data13,
-                parentDataProperty: i4,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!validate28(data13[i4], { instancePath: instancePath + '/custom_extensions/' + i4, parentData: data13, parentDataProperty: i4, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? validate28.errors : vErrors.concat(validate28.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err26 = {
-            instancePath: instancePath + '/custom_extensions',
-            schemaPath: '#/properties/custom_extensions/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err26 = { instancePath: instancePath + '/custom_extensions', schemaPath: '#/properties/custom_extensions/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err26];
           } else {
@@ -21601,13 +17568,7 @@ const generatedSemantic = (() => {
         }
       }
     } else {
-      const err27 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err27 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err27];
       } else {
@@ -21633,27 +17594,13 @@ const generatedSemantic = (() => {
     if (Array.isArray(data)) {
       const len0 = data.length;
       for (let i0 = 0; i0 < len0; i0++) {
-        if (
-          !validate35(data[i0], {
-            instancePath: instancePath + '/' + i0,
-            parentData: data,
-            parentDataProperty: i0,
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate35(data[i0], { instancePath: instancePath + '/' + i0, parentData: data, parentDataProperty: i0, rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate35.errors : vErrors.concat(validate35.errors);
           errors = vErrors.length;
         }
       }
     } else {
-      const err0 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'array' },
-        message: 'must be array',
-      };
+      const err0 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
       if (vErrors === null) {
         vErrors = [err0];
       } else {
@@ -21666,21 +17613,14 @@ const generatedSemantic = (() => {
   }
   validate34.evaluated = { items: true, dynamicProps: false, dynamicItems: false };
 
-  const QuantifiableMeasuresSpanningDatasetsSchema = {
-    type: 'array',
-    items: { $ref: '#/$defs/Metric' },
-    description: 'Quantifiable measures spanning datasets',
-  };
+  const QuantifiableMeasuresSpanningDatasetsSchema = { type: 'array', items: { $ref: '#/$defs/Metric' }, description: 'Quantifiable measures spanning datasets' };
   const QuantitativeMeasureDefinedBusinessSchema = {
     type: 'object',
     description: 'Quantitative measure defined on business data',
     properties: {
       name: { type: 'string', minLength: 1, description: 'Unique identifier for the metric' },
       expression: { $ref: '#/$defs/Expression' },
-      description: {
-        type: 'string',
-        description: 'Human-readable description of what the metric measures',
-      },
+      description: { type: 'string', description: 'Human-readable description of what the metric measures' },
       datatype: { $ref: '#/$defs/DataType' },
       ai_context: { $ref: '#/$defs/AIContext' },
       custom_extensions: { type: 'array', items: { $ref: '#/$defs/CustomExtension' } },
@@ -21701,13 +17641,7 @@ const generatedSemantic = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.name === undefined) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'name' },
-          message: "must have required property '" + 'name' + "'",
-        };
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'name' }, message: "must have required property '" + 'name' + "'" };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -21716,13 +17650,7 @@ const generatedSemantic = (() => {
         errors++;
       }
       if (data.expression === undefined) {
-        const err1 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'expression' },
-          message: "must have required property '" + 'expression' + "'",
-        };
+        const err1 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'expression' }, message: "must have required property '" + 'expression' + "'" };
         if (vErrors === null) {
           vErrors = [err1];
         } else {
@@ -21732,13 +17660,7 @@ const generatedSemantic = (() => {
       }
       for (const key0 in data) {
         if (!(key0 === 'name' || key0 === 'expression' || key0 === 'description' || key0 === 'datatype' || key0 === 'ai_context' || key0 === 'custom_extensions')) {
-          const err2 = {
-            instancePath,
-            schemaPath: '#/additionalProperties',
-            keyword: 'additionalProperties',
-            params: { additionalProperty: key0 },
-            message: 'must NOT have additional properties',
-          };
+          const err2 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err2];
           } else {
@@ -21766,13 +17688,7 @@ const generatedSemantic = (() => {
             errors++;
           }
         } else {
-          const err4 = {
-            instancePath: instancePath + '/name',
-            schemaPath: '#/properties/name/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err4 = { instancePath: instancePath + '/name', schemaPath: '#/properties/name/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err4];
           } else {
@@ -21782,28 +17698,14 @@ const generatedSemantic = (() => {
         }
       }
       if (data.expression !== undefined) {
-        if (
-          !validate24(data.expression, {
-            instancePath: instancePath + '/expression',
-            parentData: data,
-            parentDataProperty: 'expression',
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate24(data.expression, { instancePath: instancePath + '/expression', parentData: data, parentDataProperty: 'expression', rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate24.errors : vErrors.concat(validate24.errors);
           errors = vErrors.length;
         }
       }
       if (data.description !== undefined) {
         if (typeof data.description !== 'string') {
-          const err5 = {
-            instancePath: instancePath + '/description',
-            schemaPath: '#/properties/description/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err5 = { instancePath: instancePath + '/description', schemaPath: '#/properties/description/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err5];
           } else {
@@ -21815,13 +17717,7 @@ const generatedSemantic = (() => {
       if (data.datatype !== undefined) {
         let data3 = data.datatype;
         if (typeof data3 !== 'string') {
-          const err6 = {
-            instancePath: instancePath + '/datatype',
-            schemaPath: '#/$defs/DataType/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err6 = { instancePath: instancePath + '/datatype', schemaPath: '#/$defs/DataType/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err6];
           } else {
@@ -21865,13 +17761,7 @@ const generatedSemantic = (() => {
         let passing0 = null;
         const _errs13 = errors;
         if (typeof data4 !== 'string') {
-          const err8 = {
-            instancePath: instancePath + '/ai_context',
-            schemaPath: '#/$defs/AIContext/oneOf/0/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err8 = { instancePath: instancePath + '/ai_context', schemaPath: '#/$defs/AIContext/oneOf/0/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err8];
           } else {
@@ -21978,13 +17868,7 @@ const generatedSemantic = (() => {
             }
           }
         } else {
-          const err14 = {
-            instancePath: instancePath + '/ai_context',
-            schemaPath: '#/$defs/AIContext/oneOf/1/type',
-            keyword: 'type',
-            params: { type: 'object' },
-            message: 'must be object',
-          };
+          const err14 = { instancePath: instancePath + '/ai_context', schemaPath: '#/$defs/AIContext/oneOf/1/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
           if (vErrors === null) {
             vErrors = [err14];
           } else {
@@ -22032,27 +17916,13 @@ const generatedSemantic = (() => {
         if (Array.isArray(data10)) {
           const len2 = data10.length;
           for (let i2 = 0; i2 < len2; i2++) {
-            if (
-              !validate28(data10[i2], {
-                instancePath: instancePath + '/custom_extensions/' + i2,
-                parentData: data10,
-                parentDataProperty: i2,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!validate28(data10[i2], { instancePath: instancePath + '/custom_extensions/' + i2, parentData: data10, parentDataProperty: i2, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? validate28.errors : vErrors.concat(validate28.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err16 = {
-            instancePath: instancePath + '/custom_extensions',
-            schemaPath: '#/properties/custom_extensions/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err16 = { instancePath: instancePath + '/custom_extensions', schemaPath: '#/properties/custom_extensions/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err16];
           } else {
@@ -22062,13 +17932,7 @@ const generatedSemantic = (() => {
         }
       }
     } else {
-      const err17 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err17 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err17];
       } else {
@@ -22094,27 +17958,13 @@ const generatedSemantic = (() => {
     if (Array.isArray(data)) {
       const len0 = data.length;
       for (let i0 = 0; i0 < len0; i0++) {
-        if (
-          !validate40(data[i0], {
-            instancePath: instancePath + '/' + i0,
-            parentData: data,
-            parentDataProperty: i0,
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate40(data[i0], { instancePath: instancePath + '/' + i0, parentData: data, parentDataProperty: i0, rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate40.errors : vErrors.concat(validate40.errors);
           errors = vErrors.length;
         }
       }
     } else {
-      const err0 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'array' },
-        message: 'must be array',
-      };
+      const err0 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
       if (vErrors === null) {
         vErrors = [err0];
       } else {
@@ -22127,10 +17977,7 @@ const generatedSemantic = (() => {
   }
   validate39.evaluated = { items: true, dynamicProps: false, dynamicItems: false };
 
-  const OssieSemanticModelSchemaComponent = {
-    type: 'array',
-    items: { $ref: '#/$defs/CustomExtension' },
-  };
+  const OssieSemanticModelSchemaComponent = { type: 'array', items: { $ref: '#/$defs/CustomExtension' } };
 
   function validate45(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
@@ -22145,27 +17992,13 @@ const generatedSemantic = (() => {
     if (Array.isArray(data)) {
       const len0 = data.length;
       for (let i0 = 0; i0 < len0; i0++) {
-        if (
-          !validate28(data[i0], {
-            instancePath: instancePath + '/' + i0,
-            parentData: data,
-            parentDataProperty: i0,
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate28(data[i0], { instancePath: instancePath + '/' + i0, parentData: data, parentDataProperty: i0, rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate28.errors : vErrors.concat(validate28.errors);
           errors = vErrors.length;
         }
       }
     } else {
-      const err0 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'array' },
-        message: 'must be array',
-      };
+      const err0 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
       if (vErrors === null) {
         vErrors = [err0];
       } else {
@@ -22191,13 +18024,7 @@ const generatedSemantic = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.version === undefined) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'version' },
-          message: "must have required property '" + 'version' + "'",
-        };
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'version' }, message: "must have required property '" + 'version' + "'" };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -22206,13 +18033,7 @@ const generatedSemantic = (() => {
         errors++;
       }
       if (data.name === undefined) {
-        const err1 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'name' },
-          message: "must have required property '" + 'name' + "'",
-        };
+        const err1 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'name' }, message: "must have required property '" + 'name' + "'" };
         if (vErrors === null) {
           vErrors = [err1];
         } else {
@@ -22221,13 +18042,7 @@ const generatedSemantic = (() => {
         errors++;
       }
       if (data.datasets === undefined) {
-        const err2 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'datasets' },
-          message: "must have required property '" + 'datasets' + "'",
-        };
+        const err2 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'datasets' }, message: "must have required property '" + 'datasets' + "'" };
         if (vErrors === null) {
           vErrors = [err2];
         } else {
@@ -22248,13 +18063,7 @@ const generatedSemantic = (() => {
             key0 === 'custom_extensions'
           )
         ) {
-          const err3 = {
-            instancePath,
-            schemaPath: '#/additionalProperties',
-            keyword: 'additionalProperties',
-            params: { additionalProperty: key0 },
-            message: 'must NOT have additional properties',
-          };
+          const err3 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err3];
           } else {
@@ -22266,13 +18075,7 @@ const generatedSemantic = (() => {
       if (data.version !== undefined) {
         let data0 = data.version;
         if (typeof data0 !== 'string') {
-          const err4 = {
-            instancePath: instancePath + '/version',
-            schemaPath: '#/properties/version/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err4 = { instancePath: instancePath + '/version', schemaPath: '#/properties/version/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err4];
           } else {
@@ -22315,13 +18118,7 @@ const generatedSemantic = (() => {
             errors++;
           }
         } else {
-          const err7 = {
-            instancePath: instancePath + '/name',
-            schemaPath: '#/$defs/SemanticModel/properties/name/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err7 = { instancePath: instancePath + '/name', schemaPath: '#/$defs/SemanticModel/properties/name/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err7];
           } else {
@@ -22517,69 +18314,31 @@ const generatedSemantic = (() => {
         }
       }
       if (data.datasets !== undefined) {
-        if (
-          !validate21(data.datasets, {
-            instancePath: instancePath + '/datasets',
-            parentData: data,
-            parentDataProperty: 'datasets',
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate21(data.datasets, { instancePath: instancePath + '/datasets', parentData: data, parentDataProperty: 'datasets', rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate21.errors : vErrors.concat(validate21.errors);
           errors = vErrors.length;
         }
       }
       if (data.relationships !== undefined) {
-        if (
-          !validate34(data.relationships, {
-            instancePath: instancePath + '/relationships',
-            parentData: data,
-            parentDataProperty: 'relationships',
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate34(data.relationships, { instancePath: instancePath + '/relationships', parentData: data, parentDataProperty: 'relationships', rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate34.errors : vErrors.concat(validate34.errors);
           errors = vErrors.length;
         }
       }
       if (data.metrics !== undefined) {
-        if (
-          !validate39(data.metrics, {
-            instancePath: instancePath + '/metrics',
-            parentData: data,
-            parentDataProperty: 'metrics',
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate39(data.metrics, { instancePath: instancePath + '/metrics', parentData: data, parentDataProperty: 'metrics', rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate39.errors : vErrors.concat(validate39.errors);
           errors = vErrors.length;
         }
       }
       if (data.custom_extensions !== undefined) {
-        if (
-          !validate45(data.custom_extensions, {
-            instancePath: instancePath + '/custom_extensions',
-            parentData: data,
-            parentDataProperty: 'custom_extensions',
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate45(data.custom_extensions, { instancePath: instancePath + '/custom_extensions', parentData: data, parentDataProperty: 'custom_extensions', rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate45.errors : vErrors.concat(validate45.errors);
           errors = vErrors.length;
         }
       }
     } else {
-      const err17 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err17 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err17];
       } else {
@@ -22605,31 +18364,17 @@ const generatedMappings = (() => {
       "JSON Schema for validating a standalone Apache Ossie mapping document: the constructs of one semantic model mapped onto one ontology, as its own document rather than embedded inside the ontology's ontology_mappings.",
     type: 'object',
     properties: {
-      version: {
-        type: 'string',
-        const: '0.2.0.dev0',
-        description: 'Mapping specification version',
-      },
+      version: { type: 'string', const: '0.2.0.dev0', description: 'Mapping specification version' },
       name: { type: 'string', minLength: 1, description: 'Unique identifier for this mapping' },
       description: { type: 'string', description: 'Human-readable description of this mapping' },
-      ontology_ref: {
-        $ref: '#/$defs/DocumentReference',
-        description: 'Reference to the ontology document this mapping targets',
-      },
-      semantic_model_ref: {
-        $ref: '#/$defs/DocumentReference',
-        description: 'Reference to the semantic model document this mapping draws from',
-      },
+      ontology_ref: { $ref: '#/$defs/DocumentReference', description: 'Reference to the ontology document this mapping targets' },
+      semantic_model_ref: { $ref: '#/$defs/DocumentReference', description: 'Reference to the semantic model document this mapping draws from' },
       concept_mappings: {
         type: 'array',
-        items: {
-          $ref: 'https://raw.githubusercontent.com/apache/ossie/main/ontology/ontology.json#/$defs/ConceptMapping',
-        },
+        items: { $ref: 'https://raw.githubusercontent.com/apache/ossie/main/ontology/ontology.json#/$defs/ConceptMapping' },
         description: 'Maps logical model constructs to some concept and its relationships in the referenced ontology',
       },
-      custom_extensions: {
-        $ref: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/SemanticModel/properties/custom_extensions',
-      },
+      custom_extensions: { $ref: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/SemanticModel/properties/custom_extensions' },
     },
     required: ['version', 'name', 'ontology_ref', 'semantic_model_ref', 'concept_mappings'],
     additionalProperties: false,
@@ -22638,11 +18383,7 @@ const generatedMappings = (() => {
         type: 'object',
         description: 'Reference to another Ossie document by its logical name, with an iri saying where to resolve it from',
         properties: {
-          name: {
-            type: 'string',
-            minLength: 1,
-            description: "Must equal the referenced document's own 'name'; carries this reference's checkable identity regardless of location",
-          },
+          name: { type: 'string', minLength: 1, description: "Must equal the referenced document's own 'name'; carries this reference's checkable identity regardless of location" },
           iri: {
             type: 'string',
             minLength: 1,
@@ -22658,11 +18399,7 @@ const generatedMappings = (() => {
     type: 'object',
     description: 'Reference to another Ossie document by its logical name, with an iri saying where to resolve it from',
     properties: {
-      name: {
-        type: 'string',
-        minLength: 1,
-        description: "Must equal the referenced document's own 'name'; carries this reference's checkable identity regardless of location",
-      },
+      name: { type: 'string', minLength: 1, description: "Must equal the referenced document's own 'name'; carries this reference's checkable identity regardless of location" },
       iri: {
         type: 'string',
         minLength: 1,
@@ -22677,10 +18414,7 @@ const generatedMappings = (() => {
     type: 'object',
     description: 'Mappings from logical model constructs to some ontology component',
     properties: {
-      concept: {
-        type: 'string',
-        description: 'Name of the concept whose part of the ontology we are mapping to',
-      },
+      concept: { type: 'string', description: 'Name of the concept whose part of the ontology we are mapping to' },
       object_mappings: {
         type: 'array',
         minItems: 1,
@@ -22702,16 +18436,8 @@ const generatedMappings = (() => {
     type: 'object',
     description: 'Pattern of logical-level expressions for identifying objects of some concept using the values in one or more fields',
     properties: {
-      concept: {
-        type: 'string',
-        description: 'Name of the concept whose objects we are mapping to',
-      },
-      referent_mappings: {
-        type: 'array',
-        minItems: 1,
-        items: { $ref: '#/$defs/ReferentMapping' },
-        description: 'Maps logical-model constructs to referent relationships of this entity type',
-      },
+      concept: { type: 'string', description: 'Name of the concept whose objects we are mapping to' },
+      referent_mappings: { type: 'array', minItems: 1, items: { $ref: '#/$defs/ReferentMapping' }, description: 'Maps logical-model constructs to referent relationships of this entity type' },
       expression: { $ref: '#/$defs/Expression' },
     },
     anyOf: [{ required: ['expression'] }, { required: ['referent_mappings'] }],
@@ -22747,13 +18473,7 @@ const generatedMappings = (() => {
     const _errs2 = errors;
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.expression === undefined) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/anyOf/0/required',
-          keyword: 'required',
-          params: { missingProperty: 'expression' },
-          message: "must have required property '" + 'expression' + "'",
-        };
+        const err0 = { instancePath, schemaPath: '#/anyOf/0/required', keyword: 'required', params: { missingProperty: 'expression' }, message: "must have required property '" + 'expression' + "'" };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -22785,13 +18505,7 @@ const generatedMappings = (() => {
     var _valid0 = _errs3 === errors;
     valid0 = valid0 || _valid0;
     if (!valid0) {
-      const err2 = {
-        instancePath,
-        schemaPath: '#/anyOf',
-        keyword: 'anyOf',
-        params: {},
-        message: 'must match a schema in anyOf',
-      };
+      const err2 = { instancePath, schemaPath: '#/anyOf', keyword: 'anyOf', params: {}, message: 'must match a schema in anyOf' };
       if (vErrors === null) {
         vErrors = [err2];
       } else {
@@ -22810,13 +18524,7 @@ const generatedMappings = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.relationship === undefined) {
-        const err3 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'relationship' },
-          message: "must have required property '" + 'relationship' + "'",
-        };
+        const err3 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'relationship' }, message: "must have required property '" + 'relationship' + "'" };
         if (vErrors === null) {
           vErrors = [err3];
         } else {
@@ -22826,13 +18534,7 @@ const generatedMappings = (() => {
       }
       for (const key0 in data) {
         if (!(key0 === 'relationship' || key0 === 'expression' || key0 === 'referent_mappings')) {
-          const err4 = {
-            instancePath,
-            schemaPath: '#/additionalProperties',
-            keyword: 'additionalProperties',
-            params: { additionalProperty: key0 },
-            message: 'must NOT have additional properties',
-          };
+          const err4 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err4];
           } else {
@@ -22843,13 +18545,7 @@ const generatedMappings = (() => {
       }
       if (data.relationship !== undefined) {
         if (typeof data.relationship !== 'string') {
-          const err5 = {
-            instancePath: instancePath + '/relationship',
-            schemaPath: '#/properties/relationship/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err5 = { instancePath: instancePath + '/relationship', schemaPath: '#/properties/relationship/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err5];
           } else {
@@ -22860,13 +18556,7 @@ const generatedMappings = (() => {
       }
       if (data.expression !== undefined) {
         if (typeof data.expression !== 'string') {
-          const err6 = {
-            instancePath: instancePath + '/expression',
-            schemaPath: '#/$defs/Expression/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err6 = { instancePath: instancePath + '/expression', schemaPath: '#/$defs/Expression/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err6];
           } else {
@@ -22895,27 +18585,13 @@ const generatedMappings = (() => {
           }
           const len0 = data2.length;
           for (let i0 = 0; i0 < len0; i0++) {
-            if (
-              !wrapper0.validate(data2[i0], {
-                instancePath: instancePath + '/referent_mappings/' + i0,
-                parentData: data2,
-                parentDataProperty: i0,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!wrapper0.validate(data2[i0], { instancePath: instancePath + '/referent_mappings/' + i0, parentData: data2, parentDataProperty: i0, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? wrapper0.validate.errors : vErrors.concat(wrapper0.validate.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err8 = {
-            instancePath: instancePath + '/referent_mappings',
-            schemaPath: '#/properties/referent_mappings/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err8 = { instancePath: instancePath + '/referent_mappings', schemaPath: '#/properties/referent_mappings/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err8];
           } else {
@@ -22925,13 +18601,7 @@ const generatedMappings = (() => {
         }
       }
     } else {
-      const err9 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err9 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err9];
       } else {
@@ -22959,13 +18629,7 @@ const generatedMappings = (() => {
     const _errs2 = errors;
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.expression === undefined) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/anyOf/0/required',
-          keyword: 'required',
-          params: { missingProperty: 'expression' },
-          message: "must have required property '" + 'expression' + "'",
-        };
+        const err0 = { instancePath, schemaPath: '#/anyOf/0/required', keyword: 'required', params: { missingProperty: 'expression' }, message: "must have required property '" + 'expression' + "'" };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -22997,13 +18661,7 @@ const generatedMappings = (() => {
     var _valid0 = _errs3 === errors;
     valid0 = valid0 || _valid0;
     if (!valid0) {
-      const err2 = {
-        instancePath,
-        schemaPath: '#/anyOf',
-        keyword: 'anyOf',
-        params: {},
-        message: 'must match a schema in anyOf',
-      };
+      const err2 = { instancePath, schemaPath: '#/anyOf', keyword: 'anyOf', params: {}, message: 'must match a schema in anyOf' };
       if (vErrors === null) {
         vErrors = [err2];
       } else {
@@ -23023,13 +18681,7 @@ const generatedMappings = (() => {
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       for (const key0 in data) {
         if (!(key0 === 'concept' || key0 === 'referent_mappings' || key0 === 'expression')) {
-          const err3 = {
-            instancePath,
-            schemaPath: '#/additionalProperties',
-            keyword: 'additionalProperties',
-            params: { additionalProperty: key0 },
-            message: 'must NOT have additional properties',
-          };
+          const err3 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err3];
           } else {
@@ -23040,13 +18692,7 @@ const generatedMappings = (() => {
       }
       if (data.concept !== undefined) {
         if (typeof data.concept !== 'string') {
-          const err4 = {
-            instancePath: instancePath + '/concept',
-            schemaPath: '#/properties/concept/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err4 = { instancePath: instancePath + '/concept', schemaPath: '#/properties/concept/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err4];
           } else {
@@ -23075,27 +18721,13 @@ const generatedMappings = (() => {
           }
           const len0 = data1.length;
           for (let i0 = 0; i0 < len0; i0++) {
-            if (
-              !validate58(data1[i0], {
-                instancePath: instancePath + '/referent_mappings/' + i0,
-                parentData: data1,
-                parentDataProperty: i0,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!validate58(data1[i0], { instancePath: instancePath + '/referent_mappings/' + i0, parentData: data1, parentDataProperty: i0, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? validate58.errors : vErrors.concat(validate58.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err6 = {
-            instancePath: instancePath + '/referent_mappings',
-            schemaPath: '#/properties/referent_mappings/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err6 = { instancePath: instancePath + '/referent_mappings', schemaPath: '#/properties/referent_mappings/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err6];
           } else {
@@ -23106,13 +18738,7 @@ const generatedMappings = (() => {
       }
       if (data.expression !== undefined) {
         if (typeof data.expression !== 'string') {
-          const err7 = {
-            instancePath: instancePath + '/expression',
-            schemaPath: '#/$defs/Expression/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err7 = { instancePath: instancePath + '/expression', schemaPath: '#/$defs/Expression/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err7];
           } else {
@@ -23122,13 +18748,7 @@ const generatedMappings = (() => {
         }
       }
     } else {
-      const err8 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err8 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err8];
       } else {
@@ -23145,16 +18765,9 @@ const generatedMappings = (() => {
     type: 'object',
     description: 'Mapping from logical schema to the links of relationships in the ontology',
     properties: {
-      relationship: {
-        type: 'string',
-        description: 'Name of relationship being populated by this mapping node',
-      },
+      relationship: { type: 'string', description: 'Name of relationship being populated by this mapping node' },
       object_mapping: { $ref: '#/$defs/ObjectMapping' },
-      children: {
-        type: 'array',
-        items: { $ref: '#/$defs/LinkMapping' },
-        description: 'Relationship maps at the next level in this hierarchy',
-      },
+      children: { type: 'array', items: { $ref: '#/$defs/LinkMapping' }, description: 'Relationship maps at the next level in this hierarchy' },
     },
     required: ['object_mapping'],
     additionalProperties: false,
@@ -23173,13 +18786,7 @@ const generatedMappings = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.object_mapping === undefined) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'object_mapping' },
-          message: "must have required property '" + 'object_mapping' + "'",
-        };
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'object_mapping' }, message: "must have required property '" + 'object_mapping' + "'" };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -23189,13 +18796,7 @@ const generatedMappings = (() => {
       }
       for (const key0 in data) {
         if (!(key0 === 'relationship' || key0 === 'object_mapping' || key0 === 'children')) {
-          const err1 = {
-            instancePath,
-            schemaPath: '#/additionalProperties',
-            keyword: 'additionalProperties',
-            params: { additionalProperty: key0 },
-            message: 'must NOT have additional properties',
-          };
+          const err1 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err1];
           } else {
@@ -23206,13 +18807,7 @@ const generatedMappings = (() => {
       }
       if (data.relationship !== undefined) {
         if (typeof data.relationship !== 'string') {
-          const err2 = {
-            instancePath: instancePath + '/relationship',
-            schemaPath: '#/properties/relationship/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err2 = { instancePath: instancePath + '/relationship', schemaPath: '#/properties/relationship/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err2];
           } else {
@@ -23222,15 +18817,7 @@ const generatedMappings = (() => {
         }
       }
       if (data.object_mapping !== undefined) {
-        if (
-          !validate57(data.object_mapping, {
-            instancePath: instancePath + '/object_mapping',
-            parentData: data,
-            parentDataProperty: 'object_mapping',
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate57(data.object_mapping, { instancePath: instancePath + '/object_mapping', parentData: data, parentDataProperty: 'object_mapping', rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate57.errors : vErrors.concat(validate57.errors);
           errors = vErrors.length;
         }
@@ -23240,27 +18827,13 @@ const generatedMappings = (() => {
         if (Array.isArray(data2)) {
           const len0 = data2.length;
           for (let i0 = 0; i0 < len0; i0++) {
-            if (
-              !wrapper1.validate(data2[i0], {
-                instancePath: instancePath + '/children/' + i0,
-                parentData: data2,
-                parentDataProperty: i0,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!wrapper1.validate(data2[i0], { instancePath: instancePath + '/children/' + i0, parentData: data2, parentDataProperty: i0, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? wrapper1.validate.errors : vErrors.concat(wrapper1.validate.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err3 = {
-            instancePath: instancePath + '/children',
-            schemaPath: '#/properties/children/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err3 = { instancePath: instancePath + '/children', schemaPath: '#/properties/children/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err3];
           } else {
@@ -23270,13 +18843,7 @@ const generatedMappings = (() => {
         }
       }
     } else {
-      const err4 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err4 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err4];
       } else {
@@ -23342,13 +18909,7 @@ const generatedMappings = (() => {
     var _valid0 = _errs3 === errors;
     valid0 = valid0 || _valid0;
     if (!valid0) {
-      const err2 = {
-        instancePath,
-        schemaPath: '#/anyOf',
-        keyword: 'anyOf',
-        params: {},
-        message: 'must match a schema in anyOf',
-      };
+      const err2 = { instancePath, schemaPath: '#/anyOf', keyword: 'anyOf', params: {}, message: 'must match a schema in anyOf' };
       if (vErrors === null) {
         vErrors = [err2];
       } else {
@@ -23367,13 +18928,7 @@ const generatedMappings = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.concept === undefined) {
-        const err3 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'concept' },
-          message: "must have required property '" + 'concept' + "'",
-        };
+        const err3 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'concept' }, message: "must have required property '" + 'concept' + "'" };
         if (vErrors === null) {
           vErrors = [err3];
         } else {
@@ -23383,13 +18938,7 @@ const generatedMappings = (() => {
       }
       for (const key0 in data) {
         if (!(key0 === 'concept' || key0 === 'object_mappings' || key0 === 'link_mappings')) {
-          const err4 = {
-            instancePath,
-            schemaPath: '#/additionalProperties',
-            keyword: 'additionalProperties',
-            params: { additionalProperty: key0 },
-            message: 'must NOT have additional properties',
-          };
+          const err4 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err4];
           } else {
@@ -23400,13 +18949,7 @@ const generatedMappings = (() => {
       }
       if (data.concept !== undefined) {
         if (typeof data.concept !== 'string') {
-          const err5 = {
-            instancePath: instancePath + '/concept',
-            schemaPath: '#/properties/concept/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err5 = { instancePath: instancePath + '/concept', schemaPath: '#/properties/concept/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err5];
           } else {
@@ -23435,27 +18978,13 @@ const generatedMappings = (() => {
           }
           const len0 = data1.length;
           for (let i0 = 0; i0 < len0; i0++) {
-            if (
-              !validate57(data1[i0], {
-                instancePath: instancePath + '/object_mappings/' + i0,
-                parentData: data1,
-                parentDataProperty: i0,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!validate57(data1[i0], { instancePath: instancePath + '/object_mappings/' + i0, parentData: data1, parentDataProperty: i0, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? validate57.errors : vErrors.concat(validate57.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err7 = {
-            instancePath: instancePath + '/object_mappings',
-            schemaPath: '#/properties/object_mappings/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err7 = { instancePath: instancePath + '/object_mappings', schemaPath: '#/properties/object_mappings/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err7];
           } else {
@@ -23484,27 +19013,13 @@ const generatedMappings = (() => {
           }
           const len1 = data3.length;
           for (let i1 = 0; i1 < len1; i1++) {
-            if (
-              !validate61(data3[i1], {
-                instancePath: instancePath + '/link_mappings/' + i1,
-                parentData: data3,
-                parentDataProperty: i1,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!validate61(data3[i1], { instancePath: instancePath + '/link_mappings/' + i1, parentData: data3, parentDataProperty: i1, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? validate61.errors : vErrors.concat(validate61.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err9 = {
-            instancePath: instancePath + '/link_mappings',
-            schemaPath: '#/properties/link_mappings/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err9 = { instancePath: instancePath + '/link_mappings', schemaPath: '#/properties/link_mappings/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err9];
           } else {
@@ -23514,13 +19029,7 @@ const generatedMappings = (() => {
         }
       }
     } else {
-      const err10 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err10 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err10];
       } else {
@@ -23537,10 +19046,7 @@ const generatedMappings = (() => {
   const VendorSpecificAttributesExtensibilitySchema = {
     type: 'object',
     description: 'Vendor-specific attributes for extensibility',
-    properties: {
-      vendor_name: { $ref: '#/$defs/Vendor' },
-      data: { type: 'string', description: 'JSON string containing vendor-specific data' },
-    },
+    properties: { vendor_name: { $ref: '#/$defs/Vendor' }, data: { type: 'string', description: 'JSON string containing vendor-specific data' } },
     required: ['vendor_name', 'data'],
     additionalProperties: false,
   };
@@ -23562,13 +19068,7 @@ const generatedMappings = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.vendor_name === undefined) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'vendor_name' },
-          message: "must have required property '" + 'vendor_name' + "'",
-        };
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'vendor_name' }, message: "must have required property '" + 'vendor_name' + "'" };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -23577,13 +19077,7 @@ const generatedMappings = (() => {
         errors++;
       }
       if (data.data === undefined) {
-        const err1 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'data' },
-          message: "must have required property '" + 'data' + "'",
-        };
+        const err1 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'data' }, message: "must have required property '" + 'data' + "'" };
         if (vErrors === null) {
           vErrors = [err1];
         } else {
@@ -23593,13 +19087,7 @@ const generatedMappings = (() => {
       }
       for (const key0 in data) {
         if (!(key0 === 'vendor_name' || key0 === 'data')) {
-          const err2 = {
-            instancePath,
-            schemaPath: '#/additionalProperties',
-            keyword: 'additionalProperties',
-            params: { additionalProperty: key0 },
-            message: 'must NOT have additional properties',
-          };
+          const err2 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err2];
           } else {
@@ -23610,13 +19098,7 @@ const generatedMappings = (() => {
       }
       if (data.vendor_name !== undefined) {
         if (typeof data.vendor_name !== 'string') {
-          const err3 = {
-            instancePath: instancePath + '/vendor_name',
-            schemaPath: '#/$defs/Vendor/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err3 = { instancePath: instancePath + '/vendor_name', schemaPath: '#/$defs/Vendor/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err3];
           } else {
@@ -23627,13 +19109,7 @@ const generatedMappings = (() => {
       }
       if (data.data !== undefined) {
         if (typeof data.data !== 'string') {
-          const err4 = {
-            instancePath: instancePath + '/data',
-            schemaPath: '#/properties/data/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err4 = { instancePath: instancePath + '/data', schemaPath: '#/properties/data/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err4];
           } else {
@@ -23643,13 +19119,7 @@ const generatedMappings = (() => {
         }
       }
     } else {
-      const err5 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err5 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err5];
       } else {
@@ -23675,27 +19145,13 @@ const generatedMappings = (() => {
     if (Array.isArray(data)) {
       const len0 = data.length;
       for (let i0 = 0; i0 < len0; i0++) {
-        if (
-          !validate30(data[i0], {
-            instancePath: instancePath + '/' + i0,
-            parentData: data,
-            parentDataProperty: i0,
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate30(data[i0], { instancePath: instancePath + '/' + i0, parentData: data, parentDataProperty: i0, rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate30.errors : vErrors.concat(validate30.errors);
           errors = vErrors.length;
         }
       }
     } else {
-      const err0 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'array' },
-        message: 'must be array',
-      };
+      const err0 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
       if (vErrors === null) {
         vErrors = [err0];
       } else {
@@ -23721,13 +19177,7 @@ const generatedMappings = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.version === undefined) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'version' },
-          message: "must have required property '" + 'version' + "'",
-        };
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'version' }, message: "must have required property '" + 'version' + "'" };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -23736,13 +19186,7 @@ const generatedMappings = (() => {
         errors++;
       }
       if (data.name === undefined) {
-        const err1 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'name' },
-          message: "must have required property '" + 'name' + "'",
-        };
+        const err1 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'name' }, message: "must have required property '" + 'name' + "'" };
         if (vErrors === null) {
           vErrors = [err1];
         } else {
@@ -23751,13 +19195,7 @@ const generatedMappings = (() => {
         errors++;
       }
       if (data.ontology_ref === undefined) {
-        const err2 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'ontology_ref' },
-          message: "must have required property '" + 'ontology_ref' + "'",
-        };
+        const err2 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'ontology_ref' }, message: "must have required property '" + 'ontology_ref' + "'" };
         if (vErrors === null) {
           vErrors = [err2];
         } else {
@@ -23799,13 +19237,7 @@ const generatedMappings = (() => {
         if (
           !(key0 === 'version' || key0 === 'name' || key0 === 'description' || key0 === 'ontology_ref' || key0 === 'semantic_model_ref' || key0 === 'concept_mappings' || key0 === 'custom_extensions')
         ) {
-          const err5 = {
-            instancePath,
-            schemaPath: '#/additionalProperties',
-            keyword: 'additionalProperties',
-            params: { additionalProperty: key0 },
-            message: 'must NOT have additional properties',
-          };
+          const err5 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err5];
           } else {
@@ -23817,13 +19249,7 @@ const generatedMappings = (() => {
       if (data.version !== undefined) {
         let data0 = data.version;
         if (typeof data0 !== 'string') {
-          const err6 = {
-            instancePath: instancePath + '/version',
-            schemaPath: '#/properties/version/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err6 = { instancePath: instancePath + '/version', schemaPath: '#/properties/version/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err6];
           } else {
@@ -23866,13 +19292,7 @@ const generatedMappings = (() => {
             errors++;
           }
         } else {
-          const err9 = {
-            instancePath: instancePath + '/name',
-            schemaPath: '#/properties/name/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err9 = { instancePath: instancePath + '/name', schemaPath: '#/properties/name/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err9];
           } else {
@@ -23883,13 +19303,7 @@ const generatedMappings = (() => {
       }
       if (data.description !== undefined) {
         if (typeof data.description !== 'string') {
-          const err10 = {
-            instancePath: instancePath + '/description',
-            schemaPath: '#/properties/description/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err10 = { instancePath: instancePath + '/description', schemaPath: '#/properties/description/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err10];
           } else {
@@ -24002,13 +19416,7 @@ const generatedMappings = (() => {
             }
           }
         } else {
-          const err17 = {
-            instancePath: instancePath + '/ontology_ref',
-            schemaPath: '#/$defs/DocumentReference/type',
-            keyword: 'type',
-            params: { type: 'object' },
-            message: 'must be object',
-          };
+          const err17 = { instancePath: instancePath + '/ontology_ref', schemaPath: '#/$defs/DocumentReference/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
           if (vErrors === null) {
             vErrors = [err17];
           } else {
@@ -24121,13 +19529,7 @@ const generatedMappings = (() => {
             }
           }
         } else {
-          const err24 = {
-            instancePath: instancePath + '/semantic_model_ref',
-            schemaPath: '#/$defs/DocumentReference/type',
-            keyword: 'type',
-            params: { type: 'object' },
-            message: 'must be object',
-          };
+          const err24 = { instancePath: instancePath + '/semantic_model_ref', schemaPath: '#/$defs/DocumentReference/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
           if (vErrors === null) {
             vErrors = [err24];
           } else {
@@ -24141,27 +19543,13 @@ const generatedMappings = (() => {
         if (Array.isArray(data9)) {
           const len0 = data9.length;
           for (let i0 = 0; i0 < len0; i0++) {
-            if (
-              !validate66(data9[i0], {
-                instancePath: instancePath + '/concept_mappings/' + i0,
-                parentData: data9,
-                parentDataProperty: i0,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!validate66(data9[i0], { instancePath: instancePath + '/concept_mappings/' + i0, parentData: data9, parentDataProperty: i0, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? validate66.errors : vErrors.concat(validate66.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err25 = {
-            instancePath: instancePath + '/concept_mappings',
-            schemaPath: '#/properties/concept_mappings/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err25 = { instancePath: instancePath + '/concept_mappings', schemaPath: '#/properties/concept_mappings/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err25];
           } else {
@@ -24171,27 +19559,13 @@ const generatedMappings = (() => {
         }
       }
       if (data.custom_extensions !== undefined) {
-        if (
-          !validate70(data.custom_extensions, {
-            instancePath: instancePath + '/custom_extensions',
-            parentData: data,
-            parentDataProperty: 'custom_extensions',
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate70(data.custom_extensions, { instancePath: instancePath + '/custom_extensions', parentData: data, parentDataProperty: 'custom_extensions', rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate70.errors : vErrors.concat(validate70.errors);
           errors = vErrors.length;
         }
       }
     } else {
-      const err26 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err26 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err26];
       } else {
@@ -24204,26 +19578,15 @@ const generatedMappings = (() => {
   }
   validate20.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
 
-  const ossieMappingReferencedSchema = {
-    $ref: 'https://raw.githubusercontent.com/apache/ossie/main/ontology/ontology.json#/$defs/OntologyMap',
-  };
+  const ossieMappingReferencedSchema = { $ref: 'https://raw.githubusercontent.com/apache/ossie/main/ontology/ontology.json#/$defs/OntologyMap' };
   const MapConstructsLogicalModelSchema = {
     type: 'object',
     description: 'Map from the constructs of some logical model to some ontology',
     properties: {
       name: { type: 'string', description: 'Name of this ontology map' },
-      description: {
-        type: 'string',
-        description: 'Human-readable description of this ontology map',
-      },
-      semantic_model: {
-        $ref: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json',
-      },
-      concept_mappings: {
-        type: 'array',
-        items: { $ref: '#/$defs/ConceptMapping' },
-        description: 'Maps logical model constructs to some concept and its relationships in the ontology',
-      },
+      description: { type: 'string', description: 'Human-readable description of this ontology map' },
+      semantic_model: { $ref: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json' },
+      concept_mappings: { type: 'array', items: { $ref: '#/$defs/ConceptMapping' }, description: 'Maps logical model constructs to some concept and its relationships in the ontology' },
     },
     required: ['semantic_model', 'concept_mappings'],
     additionalProperties: false,
@@ -24235,11 +19598,7 @@ const generatedMappings = (() => {
     description: 'JSON Schema for validating a single Apache Ossie semantic model document',
     type: 'object',
     properties: {
-      version: {
-        type: 'string',
-        const: '0.2.0.dev0',
-        description: 'Apache Ossie specification version',
-      },
+      version: { type: 'string', const: '0.2.0.dev0', description: 'Apache Ossie specification version' },
       name: { $ref: '#/$defs/SemanticModel/properties/name' },
       description: { $ref: '#/$defs/SemanticModel/properties/description' },
       ai_context: { $ref: '#/$defs/SemanticModel/properties/ai_context' },
@@ -24268,20 +19627,9 @@ const generatedMappings = (() => {
           {
             type: 'object',
             properties: {
-              instructions: {
-                type: 'string',
-                description: 'Instructions for AI on how to use this entity',
-              },
-              synonyms: {
-                type: 'array',
-                items: { type: 'string' },
-                description: 'Alternative names and terms',
-              },
-              examples: {
-                type: 'array',
-                items: { type: 'string' },
-                description: 'Sample questions or use cases',
-              },
+              instructions: { type: 'string', description: 'Instructions for AI on how to use this entity' },
+              synonyms: { type: 'array', items: { type: 'string' }, description: 'Alternative names and terms' },
+              examples: { type: 'array', items: { type: 'string' }, description: 'Sample questions or use cases' },
             },
             additionalProperties: true,
           },
@@ -24290,29 +19638,21 @@ const generatedMappings = (() => {
       CustomExtension: {
         type: 'object',
         description: 'Vendor-specific attributes for extensibility',
-        properties: {
-          vendor_name: { $ref: '#/$defs/Vendor' },
-          data: { type: 'string', description: 'JSON string containing vendor-specific data' },
-        },
+        properties: { vendor_name: { $ref: '#/$defs/Vendor' }, data: { type: 'string', description: 'JSON string containing vendor-specific data' } },
         required: ['vendor_name', 'data'],
         additionalProperties: false,
       },
       DialectExpression: {
         type: 'object',
         description: 'Expression in a specific dialect',
-        properties: {
-          dialect: { $ref: '#/$defs/Dialect' },
-          expression: { type: 'string', description: 'SQL or dialect-specific expression' },
-        },
+        properties: { dialect: { $ref: '#/$defs/Dialect' }, expression: { type: 'string', description: 'SQL or dialect-specific expression' } },
         required: ['dialect', 'expression'],
         additionalProperties: false,
       },
       Expression: {
         type: 'object',
         description: 'Expression definition with multi-dialect support',
-        properties: {
-          dialects: { type: 'array', items: { $ref: '#/$defs/DialectExpression' }, minItems: 1 },
-        },
+        properties: { dialects: { type: 'array', items: { $ref: '#/$defs/DialectExpression' }, minItems: 1 } },
         required: ['dialects'],
         additionalProperties: false,
       },
@@ -24338,11 +19678,7 @@ const generatedMappings = (() => {
         type: 'object',
         description: 'Row-level attribute for grouping, filtering, and metric expressions',
         properties: {
-          name: {
-            type: 'string',
-            minLength: 1,
-            description: 'Unique identifier for the field within the dataset',
-          },
+          name: { type: 'string', minLength: 1, description: 'Unique identifier for the field within the dataset' },
           expression: { $ref: '#/$defs/Expression' },
           dimension: { $ref: '#/$defs/Dimension' },
           label: { type: 'string', description: 'Label for categorization' },
@@ -24359,17 +19695,8 @@ const generatedMappings = (() => {
         description: 'Logical dataset representing a business entity (fact or dimension table)',
         properties: {
           name: { type: 'string', minLength: 1, description: 'Unique identifier for the dataset' },
-          source: {
-            type: 'string',
-            minLength: 1,
-            description: 'Reference to underlying physical table/view (database.schema.table) or query',
-          },
-          primary_key: {
-            type: 'array',
-            items: { type: 'string' },
-            minItems: 1,
-            description: 'Primary key columns (single or composite)',
-          },
+          source: { type: 'string', minLength: 1, description: 'Reference to underlying physical table/view (database.schema.table) or query' },
+          primary_key: { type: 'array', items: { type: 'string' }, minItems: 1, description: 'Primary key columns (single or composite)' },
           unique_keys: {
             type: 'array',
             items: { type: 'array', items: { type: 'string' }, minItems: 1 },
@@ -24388,33 +19715,11 @@ const generatedMappings = (() => {
         type: 'object',
         description: 'Foreign key relationship between datasets',
         properties: {
-          name: {
-            type: 'string',
-            minLength: 1,
-            description: 'Unique identifier for the relationship',
-          },
-          from: {
-            type: 'string',
-            minLength: 1,
-            description: 'Dataset on the many side of the relationship',
-          },
-          to: {
-            type: 'string',
-            minLength: 1,
-            description: 'Dataset on the one side of the relationship',
-          },
-          from_columns: {
-            type: 'array',
-            items: { type: 'string' },
-            minItems: 1,
-            description: "Foreign key columns in the 'from' dataset",
-          },
-          to_columns: {
-            type: 'array',
-            items: { type: 'string' },
-            minItems: 1,
-            description: "Primary/unique key columns in the 'to' dataset",
-          },
+          name: { type: 'string', minLength: 1, description: 'Unique identifier for the relationship' },
+          from: { type: 'string', minLength: 1, description: 'Dataset on the many side of the relationship' },
+          to: { type: 'string', minLength: 1, description: 'Dataset on the one side of the relationship' },
+          from_columns: { type: 'array', items: { type: 'string' }, minItems: 1, description: "Foreign key columns in the 'from' dataset" },
+          to_columns: { type: 'array', items: { type: 'string' }, minItems: 1, description: "Primary/unique key columns in the 'to' dataset" },
           ai_context: { $ref: '#/$defs/AIContext' },
           custom_extensions: { type: 'array', items: { $ref: '#/$defs/CustomExtension' } },
         },
@@ -24427,10 +19732,7 @@ const generatedMappings = (() => {
         properties: {
           name: { type: 'string', minLength: 1, description: 'Unique identifier for the metric' },
           expression: { $ref: '#/$defs/Expression' },
-          description: {
-            type: 'string',
-            description: 'Human-readable description of what the metric measures',
-          },
+          description: { type: 'string', description: 'Human-readable description of what the metric measures' },
           datatype: { $ref: '#/$defs/DataType' },
           ai_context: { $ref: '#/$defs/AIContext' },
           custom_extensions: { type: 'array', items: { $ref: '#/$defs/CustomExtension' } },
@@ -24442,29 +19744,12 @@ const generatedMappings = (() => {
         type: 'object',
         description: 'Top-level container representing a complete semantic model',
         properties: {
-          name: {
-            type: 'string',
-            minLength: 1,
-            description: 'Unique identifier for the semantic model',
-          },
+          name: { type: 'string', minLength: 1, description: 'Unique identifier for the semantic model' },
           description: { type: 'string', description: 'Human-readable description' },
           ai_context: { $ref: '#/$defs/AIContext' },
-          datasets: {
-            type: 'array',
-            items: { $ref: '#/$defs/Dataset' },
-            minItems: 1,
-            description: 'Collection of logical datasets',
-          },
-          relationships: {
-            type: 'array',
-            items: { $ref: '#/$defs/Relationship' },
-            description: 'Defines how datasets are connected',
-          },
-          metrics: {
-            type: 'array',
-            items: { $ref: '#/$defs/Metric' },
-            description: 'Quantifiable measures spanning datasets',
-          },
+          datasets: { type: 'array', items: { $ref: '#/$defs/Dataset' }, minItems: 1, description: 'Collection of logical datasets' },
+          relationships: { type: 'array', items: { $ref: '#/$defs/Relationship' }, description: 'Defines how datasets are connected' },
+          metrics: { type: 'array', items: { $ref: '#/$defs/Metric' }, description: 'Quantifiable measures spanning datasets' },
           custom_extensions: { type: 'array', items: { $ref: '#/$defs/CustomExtension' } },
         },
         required: ['name', 'datasets'],
@@ -24472,15 +19757,8 @@ const generatedMappings = (() => {
       },
     },
   };
-  const UniqueIdentifierSemanticModelSchema = {
-    type: 'string',
-    minLength: 1,
-    description: 'Unique identifier for the semantic model',
-  };
-  const HumanReadableDescriptionSchema = {
-    type: 'string',
-    description: 'Human-readable description',
-  };
+  const UniqueIdentifierSemanticModelSchema = { type: 'string', minLength: 1, description: 'Unique identifier for the semantic model' };
+  const HumanReadableDescriptionSchema = { type: 'string', description: 'Human-readable description' };
   const ossieSemanticModelAIContextSchema = {
     description: 'Additional context for AI tools',
     oneOf: [
@@ -24488,53 +19766,23 @@ const generatedMappings = (() => {
       {
         type: 'object',
         properties: {
-          instructions: {
-            type: 'string',
-            description: 'Instructions for AI on how to use this entity',
-          },
-          synonyms: {
-            type: 'array',
-            items: { type: 'string' },
-            description: 'Alternative names and terms',
-          },
-          examples: {
-            type: 'array',
-            items: { type: 'string' },
-            description: 'Sample questions or use cases',
-          },
+          instructions: { type: 'string', description: 'Instructions for AI on how to use this entity' },
+          synonyms: { type: 'array', items: { type: 'string' }, description: 'Alternative names and terms' },
+          examples: { type: 'array', items: { type: 'string' }, description: 'Sample questions or use cases' },
         },
         additionalProperties: true,
       },
     ],
   };
-  const CollectionLogicalDatasetsSchema = {
-    type: 'array',
-    items: { $ref: '#/$defs/Dataset' },
-    minItems: 1,
-    description: 'Collection of logical datasets',
-  };
+  const CollectionLogicalDatasetsSchema = { type: 'array', items: { $ref: '#/$defs/Dataset' }, minItems: 1, description: 'Collection of logical datasets' };
   const LogicalDatasetRepresentingBusinessSchema = {
     type: 'object',
     description: 'Logical dataset representing a business entity (fact or dimension table)',
     properties: {
       name: { type: 'string', minLength: 1, description: 'Unique identifier for the dataset' },
-      source: {
-        type: 'string',
-        minLength: 1,
-        description: 'Reference to underlying physical table/view (database.schema.table) or query',
-      },
-      primary_key: {
-        type: 'array',
-        items: { type: 'string' },
-        minItems: 1,
-        description: 'Primary key columns (single or composite)',
-      },
-      unique_keys: {
-        type: 'array',
-        items: { type: 'array', items: { type: 'string' }, minItems: 1 },
-        minItems: 1,
-        description: 'Array of unique key definitions (each can be single or composite)',
-      },
+      source: { type: 'string', minLength: 1, description: 'Reference to underlying physical table/view (database.schema.table) or query' },
+      primary_key: { type: 'array', items: { type: 'string' }, minItems: 1, description: 'Primary key columns (single or composite)' },
+      unique_keys: { type: 'array', items: { type: 'array', items: { type: 'string' }, minItems: 1 }, minItems: 1, description: 'Array of unique key definitions (each can be single or composite)' },
       description: { type: 'string', description: 'Human-readable description' },
       ai_context: { $ref: '#/$defs/AIContext' },
       fields: { type: 'array', items: { $ref: '#/$defs/Field' } },
@@ -24547,11 +19795,7 @@ const generatedMappings = (() => {
     type: 'object',
     description: 'Row-level attribute for grouping, filtering, and metric expressions',
     properties: {
-      name: {
-        type: 'string',
-        minLength: 1,
-        description: 'Unique identifier for the field within the dataset',
-      },
+      name: { type: 'string', minLength: 1, description: 'Unique identifier for the field within the dataset' },
       expression: { $ref: '#/$defs/Expression' },
       dimension: { $ref: '#/$defs/Dimension' },
       label: { type: 'string', description: 'Label for categorization' },
@@ -24584,19 +19828,14 @@ const generatedMappings = (() => {
   const ExpressionDefinitionMultiDialectSchema = {
     type: 'object',
     description: 'Expression definition with multi-dialect support',
-    properties: {
-      dialects: { type: 'array', items: { $ref: '#/$defs/DialectExpression' }, minItems: 1 },
-    },
+    properties: { dialects: { type: 'array', items: { $ref: '#/$defs/DialectExpression' }, minItems: 1 } },
     required: ['dialects'],
     additionalProperties: false,
   };
   const ExpressionSpecificDialectSchema = {
     type: 'object',
     description: 'Expression in a specific dialect',
-    properties: {
-      dialect: { $ref: '#/$defs/Dialect' },
-      expression: { type: 'string', description: 'SQL or dialect-specific expression' },
-    },
+    properties: { dialect: { $ref: '#/$defs/Dialect' }, expression: { type: 'string', description: 'SQL or dialect-specific expression' } },
     required: ['dialect', 'expression'],
     additionalProperties: false,
   };
@@ -24618,13 +19857,7 @@ const generatedMappings = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.dialect === undefined) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'dialect' },
-          message: "must have required property '" + 'dialect' + "'",
-        };
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'dialect' }, message: "must have required property '" + 'dialect' + "'" };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -24633,13 +19866,7 @@ const generatedMappings = (() => {
         errors++;
       }
       if (data.expression === undefined) {
-        const err1 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'expression' },
-          message: "must have required property '" + 'expression' + "'",
-        };
+        const err1 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'expression' }, message: "must have required property '" + 'expression' + "'" };
         if (vErrors === null) {
           vErrors = [err1];
         } else {
@@ -24649,13 +19876,7 @@ const generatedMappings = (() => {
       }
       for (const key0 in data) {
         if (!(key0 === 'dialect' || key0 === 'expression')) {
-          const err2 = {
-            instancePath,
-            schemaPath: '#/additionalProperties',
-            keyword: 'additionalProperties',
-            params: { additionalProperty: key0 },
-            message: 'must NOT have additional properties',
-          };
+          const err2 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err2];
           } else {
@@ -24667,13 +19888,7 @@ const generatedMappings = (() => {
       if (data.dialect !== undefined) {
         let data0 = data.dialect;
         if (typeof data0 !== 'string') {
-          const err3 = {
-            instancePath: instancePath + '/dialect',
-            schemaPath: '#/$defs/Dialect/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err3 = { instancePath: instancePath + '/dialect', schemaPath: '#/$defs/Dialect/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err3];
           } else {
@@ -24714,13 +19929,7 @@ const generatedMappings = (() => {
       }
       if (data.expression !== undefined) {
         if (typeof data.expression !== 'string') {
-          const err5 = {
-            instancePath: instancePath + '/expression',
-            schemaPath: '#/properties/expression/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err5 = { instancePath: instancePath + '/expression', schemaPath: '#/properties/expression/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err5];
           } else {
@@ -24730,13 +19939,7 @@ const generatedMappings = (() => {
         }
       }
     } else {
-      const err6 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err6 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err6];
       } else {
@@ -24761,13 +19964,7 @@ const generatedMappings = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.dialects === undefined) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'dialects' },
-          message: "must have required property '" + 'dialects' + "'",
-        };
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'dialects' }, message: "must have required property '" + 'dialects' + "'" };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -24777,13 +19974,7 @@ const generatedMappings = (() => {
       }
       for (const key0 in data) {
         if (!(key0 === 'dialects')) {
-          const err1 = {
-            instancePath,
-            schemaPath: '#/additionalProperties',
-            keyword: 'additionalProperties',
-            params: { additionalProperty: key0 },
-            message: 'must NOT have additional properties',
-          };
+          const err1 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err1];
           } else {
@@ -24812,27 +20003,13 @@ const generatedMappings = (() => {
           }
           const len0 = data0.length;
           for (let i0 = 0; i0 < len0; i0++) {
-            if (
-              !validate27(data0[i0], {
-                instancePath: instancePath + '/dialects/' + i0,
-                parentData: data0,
-                parentDataProperty: i0,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!validate27(data0[i0], { instancePath: instancePath + '/dialects/' + i0, parentData: data0, parentDataProperty: i0, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? validate27.errors : vErrors.concat(validate27.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err3 = {
-            instancePath: instancePath + '/dialects',
-            schemaPath: '#/properties/dialects/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err3 = { instancePath: instancePath + '/dialects', schemaPath: '#/properties/dialects/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err3];
           } else {
@@ -24842,13 +20019,7 @@ const generatedMappings = (() => {
         }
       }
     } else {
-      const err4 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err4 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err4];
       } else {
@@ -24873,13 +20044,7 @@ const generatedMappings = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.name === undefined) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'name' },
-          message: "must have required property '" + 'name' + "'",
-        };
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'name' }, message: "must have required property '" + 'name' + "'" };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -24888,13 +20053,7 @@ const generatedMappings = (() => {
         errors++;
       }
       if (data.expression === undefined) {
-        const err1 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'expression' },
-          message: "must have required property '" + 'expression' + "'",
-        };
+        const err1 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'expression' }, message: "must have required property '" + 'expression' + "'" };
         if (vErrors === null) {
           vErrors = [err1];
         } else {
@@ -24915,13 +20074,7 @@ const generatedMappings = (() => {
             key0 === 'custom_extensions'
           )
         ) {
-          const err2 = {
-            instancePath,
-            schemaPath: '#/additionalProperties',
-            keyword: 'additionalProperties',
-            params: { additionalProperty: key0 },
-            message: 'must NOT have additional properties',
-          };
+          const err2 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err2];
           } else {
@@ -24949,13 +20102,7 @@ const generatedMappings = (() => {
             errors++;
           }
         } else {
-          const err4 = {
-            instancePath: instancePath + '/name',
-            schemaPath: '#/properties/name/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err4 = { instancePath: instancePath + '/name', schemaPath: '#/properties/name/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err4];
           } else {
@@ -24965,15 +20112,7 @@ const generatedMappings = (() => {
         }
       }
       if (data.expression !== undefined) {
-        if (
-          !validate26(data.expression, {
-            instancePath: instancePath + '/expression',
-            parentData: data,
-            parentDataProperty: 'expression',
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate26(data.expression, { instancePath: instancePath + '/expression', parentData: data, parentDataProperty: 'expression', rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate26.errors : vErrors.concat(validate26.errors);
           errors = vErrors.length;
         }
@@ -25016,13 +20155,7 @@ const generatedMappings = (() => {
             }
           }
         } else {
-          const err7 = {
-            instancePath: instancePath + '/dimension',
-            schemaPath: '#/$defs/Dimension/type',
-            keyword: 'type',
-            params: { type: 'object' },
-            message: 'must be object',
-          };
+          const err7 = { instancePath: instancePath + '/dimension', schemaPath: '#/$defs/Dimension/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
           if (vErrors === null) {
             vErrors = [err7];
           } else {
@@ -25033,13 +20166,7 @@ const generatedMappings = (() => {
       }
       if (data.label !== undefined) {
         if (typeof data.label !== 'string') {
-          const err8 = {
-            instancePath: instancePath + '/label',
-            schemaPath: '#/properties/label/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err8 = { instancePath: instancePath + '/label', schemaPath: '#/properties/label/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err8];
           } else {
@@ -25050,13 +20177,7 @@ const generatedMappings = (() => {
       }
       if (data.description !== undefined) {
         if (typeof data.description !== 'string') {
-          const err9 = {
-            instancePath: instancePath + '/description',
-            schemaPath: '#/properties/description/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err9 = { instancePath: instancePath + '/description', schemaPath: '#/properties/description/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err9];
           } else {
@@ -25068,13 +20189,7 @@ const generatedMappings = (() => {
       if (data.datatype !== undefined) {
         let data6 = data.datatype;
         if (typeof data6 !== 'string') {
-          const err10 = {
-            instancePath: instancePath + '/datatype',
-            schemaPath: '#/$defs/DataType/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err10 = { instancePath: instancePath + '/datatype', schemaPath: '#/$defs/DataType/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err10];
           } else {
@@ -25118,13 +20233,7 @@ const generatedMappings = (() => {
         let passing0 = null;
         const _errs21 = errors;
         if (typeof data7 !== 'string') {
-          const err12 = {
-            instancePath: instancePath + '/ai_context',
-            schemaPath: '#/$defs/AIContext/oneOf/0/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err12 = { instancePath: instancePath + '/ai_context', schemaPath: '#/$defs/AIContext/oneOf/0/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err12];
           } else {
@@ -25231,13 +20340,7 @@ const generatedMappings = (() => {
             }
           }
         } else {
-          const err18 = {
-            instancePath: instancePath + '/ai_context',
-            schemaPath: '#/$defs/AIContext/oneOf/1/type',
-            keyword: 'type',
-            params: { type: 'object' },
-            message: 'must be object',
-          };
+          const err18 = { instancePath: instancePath + '/ai_context', schemaPath: '#/$defs/AIContext/oneOf/1/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
           if (vErrors === null) {
             vErrors = [err18];
           } else {
@@ -25285,27 +20388,13 @@ const generatedMappings = (() => {
         if (Array.isArray(data13)) {
           const len2 = data13.length;
           for (let i2 = 0; i2 < len2; i2++) {
-            if (
-              !validate30(data13[i2], {
-                instancePath: instancePath + '/custom_extensions/' + i2,
-                parentData: data13,
-                parentDataProperty: i2,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!validate30(data13[i2], { instancePath: instancePath + '/custom_extensions/' + i2, parentData: data13, parentDataProperty: i2, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? validate30.errors : vErrors.concat(validate30.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err20 = {
-            instancePath: instancePath + '/custom_extensions',
-            schemaPath: '#/properties/custom_extensions/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err20 = { instancePath: instancePath + '/custom_extensions', schemaPath: '#/properties/custom_extensions/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err20];
           } else {
@@ -25315,13 +20404,7 @@ const generatedMappings = (() => {
         }
       }
     } else {
-      const err21 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err21 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err21];
       } else {
@@ -25346,13 +20429,7 @@ const generatedMappings = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.name === undefined) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'name' },
-          message: "must have required property '" + 'name' + "'",
-        };
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'name' }, message: "must have required property '" + 'name' + "'" };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -25361,13 +20438,7 @@ const generatedMappings = (() => {
         errors++;
       }
       if (data.source === undefined) {
-        const err1 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'source' },
-          message: "must have required property '" + 'source' + "'",
-        };
+        const err1 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'source' }, message: "must have required property '" + 'source' + "'" };
         if (vErrors === null) {
           vErrors = [err1];
         } else {
@@ -25388,13 +20459,7 @@ const generatedMappings = (() => {
             key0 === 'custom_extensions'
           )
         ) {
-          const err2 = {
-            instancePath,
-            schemaPath: '#/additionalProperties',
-            keyword: 'additionalProperties',
-            params: { additionalProperty: key0 },
-            message: 'must NOT have additional properties',
-          };
+          const err2 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err2];
           } else {
@@ -25422,13 +20487,7 @@ const generatedMappings = (() => {
             errors++;
           }
         } else {
-          const err4 = {
-            instancePath: instancePath + '/name',
-            schemaPath: '#/properties/name/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err4 = { instancePath: instancePath + '/name', schemaPath: '#/properties/name/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err4];
           } else {
@@ -25456,13 +20515,7 @@ const generatedMappings = (() => {
             errors++;
           }
         } else {
-          const err6 = {
-            instancePath: instancePath + '/source',
-            schemaPath: '#/properties/source/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err6 = { instancePath: instancePath + '/source', schemaPath: '#/properties/source/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err6];
           } else {
@@ -25508,13 +20561,7 @@ const generatedMappings = (() => {
             }
           }
         } else {
-          const err9 = {
-            instancePath: instancePath + '/primary_key',
-            schemaPath: '#/properties/primary_key/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err9 = { instancePath: instancePath + '/primary_key', schemaPath: '#/properties/primary_key/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err9];
           } else {
@@ -25595,13 +20642,7 @@ const generatedMappings = (() => {
             }
           }
         } else {
-          const err14 = {
-            instancePath: instancePath + '/unique_keys',
-            schemaPath: '#/properties/unique_keys/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err14 = { instancePath: instancePath + '/unique_keys', schemaPath: '#/properties/unique_keys/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err14];
           } else {
@@ -25612,13 +20653,7 @@ const generatedMappings = (() => {
       }
       if (data.description !== undefined) {
         if (typeof data.description !== 'string') {
-          const err15 = {
-            instancePath: instancePath + '/description',
-            schemaPath: '#/properties/description/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err15 = { instancePath: instancePath + '/description', schemaPath: '#/properties/description/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err15];
           } else {
@@ -25634,13 +20669,7 @@ const generatedMappings = (() => {
         let passing0 = null;
         const _errs21 = errors;
         if (typeof data8 !== 'string') {
-          const err16 = {
-            instancePath: instancePath + '/ai_context',
-            schemaPath: '#/$defs/AIContext/oneOf/0/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err16 = { instancePath: instancePath + '/ai_context', schemaPath: '#/$defs/AIContext/oneOf/0/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err16];
           } else {
@@ -25747,13 +20776,7 @@ const generatedMappings = (() => {
             }
           }
         } else {
-          const err22 = {
-            instancePath: instancePath + '/ai_context',
-            schemaPath: '#/$defs/AIContext/oneOf/1/type',
-            keyword: 'type',
-            params: { type: 'object' },
-            message: 'must be object',
-          };
+          const err22 = { instancePath: instancePath + '/ai_context', schemaPath: '#/$defs/AIContext/oneOf/1/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
           if (vErrors === null) {
             vErrors = [err22];
           } else {
@@ -25801,27 +20824,13 @@ const generatedMappings = (() => {
         if (Array.isArray(data14)) {
           const len5 = data14.length;
           for (let i5 = 0; i5 < len5; i5++) {
-            if (
-              !validate25(data14[i5], {
-                instancePath: instancePath + '/fields/' + i5,
-                parentData: data14,
-                parentDataProperty: i5,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!validate25(data14[i5], { instancePath: instancePath + '/fields/' + i5, parentData: data14, parentDataProperty: i5, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? validate25.errors : vErrors.concat(validate25.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err24 = {
-            instancePath: instancePath + '/fields',
-            schemaPath: '#/properties/fields/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err24 = { instancePath: instancePath + '/fields', schemaPath: '#/properties/fields/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err24];
           } else {
@@ -25835,27 +20844,13 @@ const generatedMappings = (() => {
         if (Array.isArray(data16)) {
           const len6 = data16.length;
           for (let i6 = 0; i6 < len6; i6++) {
-            if (
-              !validate30(data16[i6], {
-                instancePath: instancePath + '/custom_extensions/' + i6,
-                parentData: data16,
-                parentDataProperty: i6,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!validate30(data16[i6], { instancePath: instancePath + '/custom_extensions/' + i6, parentData: data16, parentDataProperty: i6, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? validate30.errors : vErrors.concat(validate30.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err25 = {
-            instancePath: instancePath + '/custom_extensions',
-            schemaPath: '#/properties/custom_extensions/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err25 = { instancePath: instancePath + '/custom_extensions', schemaPath: '#/properties/custom_extensions/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err25];
           } else {
@@ -25865,13 +20860,7 @@ const generatedMappings = (() => {
         }
       }
     } else {
-      const err26 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err26 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err26];
       } else {
@@ -25896,13 +20885,7 @@ const generatedMappings = (() => {
     }
     if (Array.isArray(data)) {
       if (data.length < 1) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/minItems',
-          keyword: 'minItems',
-          params: { limit: 1 },
-          message: 'must NOT have fewer than 1 items',
-        };
+        const err0 = { instancePath, schemaPath: '#/minItems', keyword: 'minItems', params: { limit: 1 }, message: 'must NOT have fewer than 1 items' };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -25912,27 +20895,13 @@ const generatedMappings = (() => {
       }
       const len0 = data.length;
       for (let i0 = 0; i0 < len0; i0++) {
-        if (
-          !validate24(data[i0], {
-            instancePath: instancePath + '/' + i0,
-            parentData: data,
-            parentDataProperty: i0,
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate24(data[i0], { instancePath: instancePath + '/' + i0, parentData: data, parentDataProperty: i0, rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate24.errors : vErrors.concat(validate24.errors);
           errors = vErrors.length;
         }
       }
     } else {
-      const err1 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'array' },
-        message: 'must be array',
-      };
+      const err1 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
       if (vErrors === null) {
         vErrors = [err1];
       } else {
@@ -25945,38 +20914,16 @@ const generatedMappings = (() => {
   }
   validate23.evaluated = { items: true, dynamicProps: false, dynamicItems: false };
 
-  const DefinesHowDatasetsConnectedSchema = {
-    type: 'array',
-    items: { $ref: '#/$defs/Relationship' },
-    description: 'Defines how datasets are connected',
-  };
+  const DefinesHowDatasetsConnectedSchema = { type: 'array', items: { $ref: '#/$defs/Relationship' }, description: 'Defines how datasets are connected' };
   const ForeignKeyRelationshipBetweenSchema = {
     type: 'object',
     description: 'Foreign key relationship between datasets',
     properties: {
       name: { type: 'string', minLength: 1, description: 'Unique identifier for the relationship' },
-      from: {
-        type: 'string',
-        minLength: 1,
-        description: 'Dataset on the many side of the relationship',
-      },
-      to: {
-        type: 'string',
-        minLength: 1,
-        description: 'Dataset on the one side of the relationship',
-      },
-      from_columns: {
-        type: 'array',
-        items: { type: 'string' },
-        minItems: 1,
-        description: "Foreign key columns in the 'from' dataset",
-      },
-      to_columns: {
-        type: 'array',
-        items: { type: 'string' },
-        minItems: 1,
-        description: "Primary/unique key columns in the 'to' dataset",
-      },
+      from: { type: 'string', minLength: 1, description: 'Dataset on the many side of the relationship' },
+      to: { type: 'string', minLength: 1, description: 'Dataset on the one side of the relationship' },
+      from_columns: { type: 'array', items: { type: 'string' }, minItems: 1, description: "Foreign key columns in the 'from' dataset" },
+      to_columns: { type: 'array', items: { type: 'string' }, minItems: 1, description: "Primary/unique key columns in the 'to' dataset" },
       ai_context: { $ref: '#/$defs/AIContext' },
       custom_extensions: { type: 'array', items: { $ref: '#/$defs/CustomExtension' } },
     },
@@ -25996,13 +20943,7 @@ const generatedMappings = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.name === undefined) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'name' },
-          message: "must have required property '" + 'name' + "'",
-        };
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'name' }, message: "must have required property '" + 'name' + "'" };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -26011,13 +20952,7 @@ const generatedMappings = (() => {
         errors++;
       }
       if (data.from === undefined) {
-        const err1 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'from' },
-          message: "must have required property '" + 'from' + "'",
-        };
+        const err1 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'from' }, message: "must have required property '" + 'from' + "'" };
         if (vErrors === null) {
           vErrors = [err1];
         } else {
@@ -26026,13 +20961,7 @@ const generatedMappings = (() => {
         errors++;
       }
       if (data.to === undefined) {
-        const err2 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'to' },
-          message: "must have required property '" + 'to' + "'",
-        };
+        const err2 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'to' }, message: "must have required property '" + 'to' + "'" };
         if (vErrors === null) {
           vErrors = [err2];
         } else {
@@ -26041,13 +20970,7 @@ const generatedMappings = (() => {
         errors++;
       }
       if (data.from_columns === undefined) {
-        const err3 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'from_columns' },
-          message: "must have required property '" + 'from_columns' + "'",
-        };
+        const err3 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'from_columns' }, message: "must have required property '" + 'from_columns' + "'" };
         if (vErrors === null) {
           vErrors = [err3];
         } else {
@@ -26056,13 +20979,7 @@ const generatedMappings = (() => {
         errors++;
       }
       if (data.to_columns === undefined) {
-        const err4 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'to_columns' },
-          message: "must have required property '" + 'to_columns' + "'",
-        };
+        const err4 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'to_columns' }, message: "must have required property '" + 'to_columns' + "'" };
         if (vErrors === null) {
           vErrors = [err4];
         } else {
@@ -26072,13 +20989,7 @@ const generatedMappings = (() => {
       }
       for (const key0 in data) {
         if (!(key0 === 'name' || key0 === 'from' || key0 === 'to' || key0 === 'from_columns' || key0 === 'to_columns' || key0 === 'ai_context' || key0 === 'custom_extensions')) {
-          const err5 = {
-            instancePath,
-            schemaPath: '#/additionalProperties',
-            keyword: 'additionalProperties',
-            params: { additionalProperty: key0 },
-            message: 'must NOT have additional properties',
-          };
+          const err5 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err5];
           } else {
@@ -26106,13 +21017,7 @@ const generatedMappings = (() => {
             errors++;
           }
         } else {
-          const err7 = {
-            instancePath: instancePath + '/name',
-            schemaPath: '#/properties/name/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err7 = { instancePath: instancePath + '/name', schemaPath: '#/properties/name/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err7];
           } else {
@@ -26140,13 +21045,7 @@ const generatedMappings = (() => {
             errors++;
           }
         } else {
-          const err9 = {
-            instancePath: instancePath + '/from',
-            schemaPath: '#/properties/from/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err9 = { instancePath: instancePath + '/from', schemaPath: '#/properties/from/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err9];
           } else {
@@ -26159,13 +21058,7 @@ const generatedMappings = (() => {
         let data2 = data.to;
         if (typeof data2 === 'string') {
           if (func1(data2) < 1) {
-            const err10 = {
-              instancePath: instancePath + '/to',
-              schemaPath: '#/properties/to/minLength',
-              keyword: 'minLength',
-              params: { limit: 1 },
-              message: 'must NOT have fewer than 1 characters',
-            };
+            const err10 = { instancePath: instancePath + '/to', schemaPath: '#/properties/to/minLength', keyword: 'minLength', params: { limit: 1 }, message: 'must NOT have fewer than 1 characters' };
             if (vErrors === null) {
               vErrors = [err10];
             } else {
@@ -26174,13 +21067,7 @@ const generatedMappings = (() => {
             errors++;
           }
         } else {
-          const err11 = {
-            instancePath: instancePath + '/to',
-            schemaPath: '#/properties/to/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err11 = { instancePath: instancePath + '/to', schemaPath: '#/properties/to/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err11];
           } else {
@@ -26226,13 +21113,7 @@ const generatedMappings = (() => {
             }
           }
         } else {
-          const err14 = {
-            instancePath: instancePath + '/from_columns',
-            schemaPath: '#/properties/from_columns/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err14 = { instancePath: instancePath + '/from_columns', schemaPath: '#/properties/from_columns/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err14];
           } else {
@@ -26278,13 +21159,7 @@ const generatedMappings = (() => {
             }
           }
         } else {
-          const err17 = {
-            instancePath: instancePath + '/to_columns',
-            schemaPath: '#/properties/to_columns/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err17 = { instancePath: instancePath + '/to_columns', schemaPath: '#/properties/to_columns/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err17];
           } else {
@@ -26300,13 +21175,7 @@ const generatedMappings = (() => {
         let passing0 = null;
         const _errs19 = errors;
         if (typeof data7 !== 'string') {
-          const err18 = {
-            instancePath: instancePath + '/ai_context',
-            schemaPath: '#/$defs/AIContext/oneOf/0/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err18 = { instancePath: instancePath + '/ai_context', schemaPath: '#/$defs/AIContext/oneOf/0/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err18];
           } else {
@@ -26413,13 +21282,7 @@ const generatedMappings = (() => {
             }
           }
         } else {
-          const err24 = {
-            instancePath: instancePath + '/ai_context',
-            schemaPath: '#/$defs/AIContext/oneOf/1/type',
-            keyword: 'type',
-            params: { type: 'object' },
-            message: 'must be object',
-          };
+          const err24 = { instancePath: instancePath + '/ai_context', schemaPath: '#/$defs/AIContext/oneOf/1/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
           if (vErrors === null) {
             vErrors = [err24];
           } else {
@@ -26467,27 +21330,13 @@ const generatedMappings = (() => {
         if (Array.isArray(data13)) {
           const len4 = data13.length;
           for (let i4 = 0; i4 < len4; i4++) {
-            if (
-              !validate30(data13[i4], {
-                instancePath: instancePath + '/custom_extensions/' + i4,
-                parentData: data13,
-                parentDataProperty: i4,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!validate30(data13[i4], { instancePath: instancePath + '/custom_extensions/' + i4, parentData: data13, parentDataProperty: i4, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? validate30.errors : vErrors.concat(validate30.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err26 = {
-            instancePath: instancePath + '/custom_extensions',
-            schemaPath: '#/properties/custom_extensions/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err26 = { instancePath: instancePath + '/custom_extensions', schemaPath: '#/properties/custom_extensions/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err26];
           } else {
@@ -26497,13 +21346,7 @@ const generatedMappings = (() => {
         }
       }
     } else {
-      const err27 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err27 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err27];
       } else {
@@ -26529,27 +21372,13 @@ const generatedMappings = (() => {
     if (Array.isArray(data)) {
       const len0 = data.length;
       for (let i0 = 0; i0 < len0; i0++) {
-        if (
-          !validate37(data[i0], {
-            instancePath: instancePath + '/' + i0,
-            parentData: data,
-            parentDataProperty: i0,
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate37(data[i0], { instancePath: instancePath + '/' + i0, parentData: data, parentDataProperty: i0, rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate37.errors : vErrors.concat(validate37.errors);
           errors = vErrors.length;
         }
       }
     } else {
-      const err0 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'array' },
-        message: 'must be array',
-      };
+      const err0 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
       if (vErrors === null) {
         vErrors = [err0];
       } else {
@@ -26562,21 +21391,14 @@ const generatedMappings = (() => {
   }
   validate36.evaluated = { items: true, dynamicProps: false, dynamicItems: false };
 
-  const QuantifiableMeasuresSpanningDatasetsSchema = {
-    type: 'array',
-    items: { $ref: '#/$defs/Metric' },
-    description: 'Quantifiable measures spanning datasets',
-  };
+  const QuantifiableMeasuresSpanningDatasetsSchema = { type: 'array', items: { $ref: '#/$defs/Metric' }, description: 'Quantifiable measures spanning datasets' };
   const QuantitativeMeasureDefinedBusinessSchema = {
     type: 'object',
     description: 'Quantitative measure defined on business data',
     properties: {
       name: { type: 'string', minLength: 1, description: 'Unique identifier for the metric' },
       expression: { $ref: '#/$defs/Expression' },
-      description: {
-        type: 'string',
-        description: 'Human-readable description of what the metric measures',
-      },
+      description: { type: 'string', description: 'Human-readable description of what the metric measures' },
       datatype: { $ref: '#/$defs/DataType' },
       ai_context: { $ref: '#/$defs/AIContext' },
       custom_extensions: { type: 'array', items: { $ref: '#/$defs/CustomExtension' } },
@@ -26597,13 +21419,7 @@ const generatedMappings = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.name === undefined) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'name' },
-          message: "must have required property '" + 'name' + "'",
-        };
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'name' }, message: "must have required property '" + 'name' + "'" };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -26612,13 +21428,7 @@ const generatedMappings = (() => {
         errors++;
       }
       if (data.expression === undefined) {
-        const err1 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'expression' },
-          message: "must have required property '" + 'expression' + "'",
-        };
+        const err1 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'expression' }, message: "must have required property '" + 'expression' + "'" };
         if (vErrors === null) {
           vErrors = [err1];
         } else {
@@ -26628,13 +21438,7 @@ const generatedMappings = (() => {
       }
       for (const key0 in data) {
         if (!(key0 === 'name' || key0 === 'expression' || key0 === 'description' || key0 === 'datatype' || key0 === 'ai_context' || key0 === 'custom_extensions')) {
-          const err2 = {
-            instancePath,
-            schemaPath: '#/additionalProperties',
-            keyword: 'additionalProperties',
-            params: { additionalProperty: key0 },
-            message: 'must NOT have additional properties',
-          };
+          const err2 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err2];
           } else {
@@ -26662,13 +21466,7 @@ const generatedMappings = (() => {
             errors++;
           }
         } else {
-          const err4 = {
-            instancePath: instancePath + '/name',
-            schemaPath: '#/properties/name/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err4 = { instancePath: instancePath + '/name', schemaPath: '#/properties/name/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err4];
           } else {
@@ -26678,28 +21476,14 @@ const generatedMappings = (() => {
         }
       }
       if (data.expression !== undefined) {
-        if (
-          !validate26(data.expression, {
-            instancePath: instancePath + '/expression',
-            parentData: data,
-            parentDataProperty: 'expression',
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate26(data.expression, { instancePath: instancePath + '/expression', parentData: data, parentDataProperty: 'expression', rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate26.errors : vErrors.concat(validate26.errors);
           errors = vErrors.length;
         }
       }
       if (data.description !== undefined) {
         if (typeof data.description !== 'string') {
-          const err5 = {
-            instancePath: instancePath + '/description',
-            schemaPath: '#/properties/description/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err5 = { instancePath: instancePath + '/description', schemaPath: '#/properties/description/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err5];
           } else {
@@ -26711,13 +21495,7 @@ const generatedMappings = (() => {
       if (data.datatype !== undefined) {
         let data3 = data.datatype;
         if (typeof data3 !== 'string') {
-          const err6 = {
-            instancePath: instancePath + '/datatype',
-            schemaPath: '#/$defs/DataType/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err6 = { instancePath: instancePath + '/datatype', schemaPath: '#/$defs/DataType/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err6];
           } else {
@@ -26761,13 +21539,7 @@ const generatedMappings = (() => {
         let passing0 = null;
         const _errs13 = errors;
         if (typeof data4 !== 'string') {
-          const err8 = {
-            instancePath: instancePath + '/ai_context',
-            schemaPath: '#/$defs/AIContext/oneOf/0/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err8 = { instancePath: instancePath + '/ai_context', schemaPath: '#/$defs/AIContext/oneOf/0/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err8];
           } else {
@@ -26874,13 +21646,7 @@ const generatedMappings = (() => {
             }
           }
         } else {
-          const err14 = {
-            instancePath: instancePath + '/ai_context',
-            schemaPath: '#/$defs/AIContext/oneOf/1/type',
-            keyword: 'type',
-            params: { type: 'object' },
-            message: 'must be object',
-          };
+          const err14 = { instancePath: instancePath + '/ai_context', schemaPath: '#/$defs/AIContext/oneOf/1/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
           if (vErrors === null) {
             vErrors = [err14];
           } else {
@@ -26928,27 +21694,13 @@ const generatedMappings = (() => {
         if (Array.isArray(data10)) {
           const len2 = data10.length;
           for (let i2 = 0; i2 < len2; i2++) {
-            if (
-              !validate30(data10[i2], {
-                instancePath: instancePath + '/custom_extensions/' + i2,
-                parentData: data10,
-                parentDataProperty: i2,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!validate30(data10[i2], { instancePath: instancePath + '/custom_extensions/' + i2, parentData: data10, parentDataProperty: i2, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? validate30.errors : vErrors.concat(validate30.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err16 = {
-            instancePath: instancePath + '/custom_extensions',
-            schemaPath: '#/properties/custom_extensions/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err16 = { instancePath: instancePath + '/custom_extensions', schemaPath: '#/properties/custom_extensions/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err16];
           } else {
@@ -26958,13 +21710,7 @@ const generatedMappings = (() => {
         }
       }
     } else {
-      const err17 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err17 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err17];
       } else {
@@ -26990,27 +21736,13 @@ const generatedMappings = (() => {
     if (Array.isArray(data)) {
       const len0 = data.length;
       for (let i0 = 0; i0 < len0; i0++) {
-        if (
-          !validate42(data[i0], {
-            instancePath: instancePath + '/' + i0,
-            parentData: data,
-            parentDataProperty: i0,
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate42(data[i0], { instancePath: instancePath + '/' + i0, parentData: data, parentDataProperty: i0, rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate42.errors : vErrors.concat(validate42.errors);
           errors = vErrors.length;
         }
       }
     } else {
-      const err0 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'array' },
-        message: 'must be array',
-      };
+      const err0 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
       if (vErrors === null) {
         vErrors = [err0];
       } else {
@@ -27036,27 +21768,13 @@ const generatedMappings = (() => {
     if (Array.isArray(data)) {
       const len0 = data.length;
       for (let i0 = 0; i0 < len0; i0++) {
-        if (
-          !validate30(data[i0], {
-            instancePath: instancePath + '/' + i0,
-            parentData: data,
-            parentDataProperty: i0,
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate30(data[i0], { instancePath: instancePath + '/' + i0, parentData: data, parentDataProperty: i0, rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate30.errors : vErrors.concat(validate30.errors);
           errors = vErrors.length;
         }
       }
     } else {
-      const err0 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'array' },
-        message: 'must be array',
-      };
+      const err0 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
       if (vErrors === null) {
         vErrors = [err0];
       } else {
@@ -27082,13 +21800,7 @@ const generatedMappings = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.version === undefined) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'version' },
-          message: "must have required property '" + 'version' + "'",
-        };
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'version' }, message: "must have required property '" + 'version' + "'" };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -27097,13 +21809,7 @@ const generatedMappings = (() => {
         errors++;
       }
       if (data.name === undefined) {
-        const err1 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'name' },
-          message: "must have required property '" + 'name' + "'",
-        };
+        const err1 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'name' }, message: "must have required property '" + 'name' + "'" };
         if (vErrors === null) {
           vErrors = [err1];
         } else {
@@ -27112,13 +21818,7 @@ const generatedMappings = (() => {
         errors++;
       }
       if (data.datasets === undefined) {
-        const err2 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'datasets' },
-          message: "must have required property '" + 'datasets' + "'",
-        };
+        const err2 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'datasets' }, message: "must have required property '" + 'datasets' + "'" };
         if (vErrors === null) {
           vErrors = [err2];
         } else {
@@ -27139,13 +21839,7 @@ const generatedMappings = (() => {
             key0 === 'custom_extensions'
           )
         ) {
-          const err3 = {
-            instancePath,
-            schemaPath: '#/additionalProperties',
-            keyword: 'additionalProperties',
-            params: { additionalProperty: key0 },
-            message: 'must NOT have additional properties',
-          };
+          const err3 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err3];
           } else {
@@ -27157,13 +21851,7 @@ const generatedMappings = (() => {
       if (data.version !== undefined) {
         let data0 = data.version;
         if (typeof data0 !== 'string') {
-          const err4 = {
-            instancePath: instancePath + '/version',
-            schemaPath: '#/properties/version/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err4 = { instancePath: instancePath + '/version', schemaPath: '#/properties/version/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err4];
           } else {
@@ -27206,13 +21894,7 @@ const generatedMappings = (() => {
             errors++;
           }
         } else {
-          const err7 = {
-            instancePath: instancePath + '/name',
-            schemaPath: '#/$defs/SemanticModel/properties/name/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err7 = { instancePath: instancePath + '/name', schemaPath: '#/$defs/SemanticModel/properties/name/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err7];
           } else {
@@ -27408,69 +22090,31 @@ const generatedMappings = (() => {
         }
       }
       if (data.datasets !== undefined) {
-        if (
-          !validate23(data.datasets, {
-            instancePath: instancePath + '/datasets',
-            parentData: data,
-            parentDataProperty: 'datasets',
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate23(data.datasets, { instancePath: instancePath + '/datasets', parentData: data, parentDataProperty: 'datasets', rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate23.errors : vErrors.concat(validate23.errors);
           errors = vErrors.length;
         }
       }
       if (data.relationships !== undefined) {
-        if (
-          !validate36(data.relationships, {
-            instancePath: instancePath + '/relationships',
-            parentData: data,
-            parentDataProperty: 'relationships',
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate36(data.relationships, { instancePath: instancePath + '/relationships', parentData: data, parentDataProperty: 'relationships', rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate36.errors : vErrors.concat(validate36.errors);
           errors = vErrors.length;
         }
       }
       if (data.metrics !== undefined) {
-        if (
-          !validate41(data.metrics, {
-            instancePath: instancePath + '/metrics',
-            parentData: data,
-            parentDataProperty: 'metrics',
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate41(data.metrics, { instancePath: instancePath + '/metrics', parentData: data, parentDataProperty: 'metrics', rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate41.errors : vErrors.concat(validate41.errors);
           errors = vErrors.length;
         }
       }
       if (data.custom_extensions !== undefined) {
-        if (
-          !validate47(data.custom_extensions, {
-            instancePath: instancePath + '/custom_extensions',
-            parentData: data,
-            parentDataProperty: 'custom_extensions',
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate47(data.custom_extensions, { instancePath: instancePath + '/custom_extensions', parentData: data, parentDataProperty: 'custom_extensions', rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate47.errors : vErrors.concat(validate47.errors);
           errors = vErrors.length;
         }
       }
     } else {
-      const err17 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err17 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err17];
       } else {
@@ -27536,13 +22180,7 @@ const generatedMappings = (() => {
     var _valid0 = _errs3 === errors;
     valid0 = valid0 || _valid0;
     if (!valid0) {
-      const err2 = {
-        instancePath,
-        schemaPath: '#/anyOf',
-        keyword: 'anyOf',
-        params: {},
-        message: 'must match a schema in anyOf',
-      };
+      const err2 = { instancePath, schemaPath: '#/anyOf', keyword: 'anyOf', params: {}, message: 'must match a schema in anyOf' };
       if (vErrors === null) {
         vErrors = [err2];
       } else {
@@ -27561,13 +22199,7 @@ const generatedMappings = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.concept === undefined) {
-        const err3 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'concept' },
-          message: "must have required property '" + 'concept' + "'",
-        };
+        const err3 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'concept' }, message: "must have required property '" + 'concept' + "'" };
         if (vErrors === null) {
           vErrors = [err3];
         } else {
@@ -27577,13 +22209,7 @@ const generatedMappings = (() => {
       }
       for (const key0 in data) {
         if (!(key0 === 'concept' || key0 === 'object_mappings' || key0 === 'link_mappings')) {
-          const err4 = {
-            instancePath,
-            schemaPath: '#/additionalProperties',
-            keyword: 'additionalProperties',
-            params: { additionalProperty: key0 },
-            message: 'must NOT have additional properties',
-          };
+          const err4 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err4];
           } else {
@@ -27594,13 +22220,7 @@ const generatedMappings = (() => {
       }
       if (data.concept !== undefined) {
         if (typeof data.concept !== 'string') {
-          const err5 = {
-            instancePath: instancePath + '/concept',
-            schemaPath: '#/properties/concept/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err5 = { instancePath: instancePath + '/concept', schemaPath: '#/properties/concept/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err5];
           } else {
@@ -27629,27 +22249,13 @@ const generatedMappings = (() => {
           }
           const len0 = data1.length;
           for (let i0 = 0; i0 < len0; i0++) {
-            if (
-              !validate57(data1[i0], {
-                instancePath: instancePath + '/object_mappings/' + i0,
-                parentData: data1,
-                parentDataProperty: i0,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!validate57(data1[i0], { instancePath: instancePath + '/object_mappings/' + i0, parentData: data1, parentDataProperty: i0, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? validate57.errors : vErrors.concat(validate57.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err7 = {
-            instancePath: instancePath + '/object_mappings',
-            schemaPath: '#/properties/object_mappings/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err7 = { instancePath: instancePath + '/object_mappings', schemaPath: '#/properties/object_mappings/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err7];
           } else {
@@ -27678,27 +22284,13 @@ const generatedMappings = (() => {
           }
           const len1 = data3.length;
           for (let i1 = 0; i1 < len1; i1++) {
-            if (
-              !validate61(data3[i1], {
-                instancePath: instancePath + '/link_mappings/' + i1,
-                parentData: data3,
-                parentDataProperty: i1,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!validate61(data3[i1], { instancePath: instancePath + '/link_mappings/' + i1, parentData: data3, parentDataProperty: i1, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? validate61.errors : vErrors.concat(validate61.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err9 = {
-            instancePath: instancePath + '/link_mappings',
-            schemaPath: '#/properties/link_mappings/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err9 = { instancePath: instancePath + '/link_mappings', schemaPath: '#/properties/link_mappings/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err9];
           } else {
@@ -27708,13 +22300,7 @@ const generatedMappings = (() => {
         }
       }
     } else {
-      const err10 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err10 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err10];
       } else {
@@ -27739,13 +22325,7 @@ const generatedMappings = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.semantic_model === undefined) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'semantic_model' },
-          message: "must have required property '" + 'semantic_model' + "'",
-        };
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'semantic_model' }, message: "must have required property '" + 'semantic_model' + "'" };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -27770,13 +22350,7 @@ const generatedMappings = (() => {
       }
       for (const key0 in data) {
         if (!(key0 === 'name' || key0 === 'description' || key0 === 'semantic_model' || key0 === 'concept_mappings')) {
-          const err2 = {
-            instancePath,
-            schemaPath: '#/additionalProperties',
-            keyword: 'additionalProperties',
-            params: { additionalProperty: key0 },
-            message: 'must NOT have additional properties',
-          };
+          const err2 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err2];
           } else {
@@ -27787,13 +22361,7 @@ const generatedMappings = (() => {
       }
       if (data.name !== undefined) {
         if (typeof data.name !== 'string') {
-          const err3 = {
-            instancePath: instancePath + '/name',
-            schemaPath: '#/properties/name/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err3 = { instancePath: instancePath + '/name', schemaPath: '#/properties/name/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err3];
           } else {
@@ -27804,13 +22372,7 @@ const generatedMappings = (() => {
       }
       if (data.description !== undefined) {
         if (typeof data.description !== 'string') {
-          const err4 = {
-            instancePath: instancePath + '/description',
-            schemaPath: '#/properties/description/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err4 = { instancePath: instancePath + '/description', schemaPath: '#/properties/description/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err4];
           } else {
@@ -27820,15 +22382,7 @@ const generatedMappings = (() => {
         }
       }
       if (data.semantic_model !== undefined) {
-        if (
-          !validate22(data.semantic_model, {
-            instancePath: instancePath + '/semantic_model',
-            parentData: data,
-            parentDataProperty: 'semantic_model',
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate22(data.semantic_model, { instancePath: instancePath + '/semantic_model', parentData: data, parentDataProperty: 'semantic_model', rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate22.errors : vErrors.concat(validate22.errors);
           errors = vErrors.length;
         }
@@ -27838,27 +22392,13 @@ const generatedMappings = (() => {
         if (Array.isArray(data3)) {
           const len0 = data3.length;
           for (let i0 = 0; i0 < len0; i0++) {
-            if (
-              !validate56(data3[i0], {
-                instancePath: instancePath + '/concept_mappings/' + i0,
-                parentData: data3,
-                parentDataProperty: i0,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!validate56(data3[i0], { instancePath: instancePath + '/concept_mappings/' + i0, parentData: data3, parentDataProperty: i0, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? validate56.errors : vErrors.concat(validate56.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err5 = {
-            instancePath: instancePath + '/concept_mappings',
-            schemaPath: '#/properties/concept_mappings/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err5 = { instancePath: instancePath + '/concept_mappings', schemaPath: '#/properties/concept_mappings/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err5];
           } else {
@@ -27868,13 +22408,7 @@ const generatedMappings = (() => {
         }
       }
     } else {
-      const err6 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err6 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err6];
       } else {
@@ -27913,27 +22447,12 @@ const generatedMappings = (() => {
     description: 'JSON Schema for validating Apache Ossie ontology definitions',
     type: 'object',
     properties: {
-      version: {
-        type: 'string',
-        const: '0.2.0.dev0',
-        description: 'Ontology specification version',
-      },
+      version: { type: 'string', const: '0.2.0.dev0', description: 'Ontology specification version' },
       name: { type: 'string', description: 'Unique identifier for the ontology' },
       description: { type: 'string', description: 'Human-readable description' },
-      ai_context: {
-        $ref: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/AIContext',
-      },
-      requires: {
-        type: 'array',
-        items: { $ref: '#/$defs/Expression' },
-        description: 'Expressions that constrain the population of this ontology',
-      },
-      ontology: {
-        type: 'array',
-        items: { $ref: '#/$defs/OntologyComponent' },
-        minItems: 1,
-        description: 'Components that define the concepts and relationships in this ontology',
-      },
+      ai_context: { $ref: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/AIContext' },
+      requires: { type: 'array', items: { $ref: '#/$defs/Expression' }, description: 'Expressions that constrain the population of this ontology' },
+      ontology: { type: 'array', items: { $ref: '#/$defs/OntologyComponent' }, minItems: 1, description: 'Components that define the concepts and relationships in this ontology' },
       ontology_mappings: {
         type: 'array',
         description:
@@ -27954,41 +22473,15 @@ const generatedMappings = (() => {
         type: 'object',
         description: 'Ontology component that defines a single concept and any relationships that are keyed primarily by that concept',
         properties: {
-          concept: {
-            type: 'string',
-            description: 'Unique name of the concept defined by this component',
-          },
+          concept: { type: 'string', description: 'Unique name of the concept defined by this component' },
           type: { $ref: '#/$defs/ConceptType' },
           description: { type: 'string', description: 'Human-readable description of the concept' },
-          extends: {
-            type: 'array',
-            items: { type: 'string' },
-            description: 'Indicates that this concept extends one or more other concepts',
-          },
-          derived_by: {
-            type: 'array',
-            items: { $ref: '#/$defs/Expression' },
-            description: 'Expressions that define how this concept is derived',
-          },
-          identify_by: {
-            type: 'array',
-            items: { type: 'string' },
-            description: 'Names of relationships to use as the preferred identifier of this concept',
-          },
-          requires: {
-            type: 'array',
-            items: { $ref: '#/$defs/Expression' },
-            description: 'Expressions that constrain the population of this concept',
-          },
-          relationships: {
-            type: 'array',
-            items: { $ref: '#/$defs/Relationship' },
-            description: 'Defines relationships that pertain primarily to the concept defined in this component',
-          },
-          iri: {
-            type: 'string',
-            description: "Optional global identifier for this concept, expressed as a full IRI or as a QName (prefix:local) resolved against the ontology-level 'prefixes' map.",
-          },
+          extends: { type: 'array', items: { type: 'string' }, description: 'Indicates that this concept extends one or more other concepts' },
+          derived_by: { type: 'array', items: { $ref: '#/$defs/Expression' }, description: 'Expressions that define how this concept is derived' },
+          identify_by: { type: 'array', items: { type: 'string' }, description: 'Names of relationships to use as the preferred identifier of this concept' },
+          requires: { type: 'array', items: { $ref: '#/$defs/Expression' }, description: 'Expressions that constrain the population of this concept' },
+          relationships: { type: 'array', items: { $ref: '#/$defs/Relationship' }, description: 'Defines relationships that pertain primarily to the concept defined in this component' },
+          iri: { type: 'string', description: "Optional global identifier for this concept, expressed as a full IRI or as a QName (prefix:local) resolved against the ontology-level 'prefixes' map." },
         },
         required: ['concept', 'type'],
         additionalProperties: false,
@@ -27999,31 +22492,12 @@ const generatedMappings = (() => {
         description: 'Relationship between concepts in the ontology',
         properties: {
           name: { type: 'string', description: 'Name of the relationship' },
-          description: {
-            type: 'string',
-            description: 'Human-readable description of the relationship',
-          },
-          roles: {
-            type: 'array',
-            items: { $ref: '#/$defs/Role' },
-            description: 'Additional roles in this relationship',
-          },
+          description: { type: 'string', description: 'Human-readable description of the relationship' },
+          roles: { type: 'array', items: { $ref: '#/$defs/Role' }, description: 'Additional roles in this relationship' },
           multiplicity: { $ref: '#/$defs/Multiplicity' },
-          derived_by: {
-            type: 'array',
-            items: { $ref: '#/$defs/Expression' },
-            description: 'Expressions that define how this concept is derived',
-          },
-          requires: {
-            type: 'array',
-            items: { $ref: '#/$defs/Expression' },
-            description: 'Expressions that constrain the population of this relationship',
-          },
-          verbalizes: {
-            type: 'array',
-            items: { type: 'string' },
-            description: 'Natural language expressions that verbalize this relationship',
-          },
+          derived_by: { type: 'array', items: { $ref: '#/$defs/Expression' }, description: 'Expressions that define how this concept is derived' },
+          requires: { type: 'array', items: { $ref: '#/$defs/Expression' }, description: 'Expressions that constrain the population of this relationship' },
+          verbalizes: { type: 'array', items: { type: 'string' }, description: 'Natural language expressions that verbalize this relationship' },
           iri: {
             type: 'string',
             description: "Optional global identifier for this relationship, expressed as a full IRI or as a QName (prefix:local) resolved against the ontology-level 'prefixes' map.",
@@ -28036,10 +22510,7 @@ const generatedMappings = (() => {
         type: 'object',
         description: 'Mappings from logical model constructs to some ontology component',
         properties: {
-          concept: {
-            type: 'string',
-            description: 'Name of the concept whose part of the ontology we are mapping to',
-          },
+          concept: { type: 'string', description: 'Name of the concept whose part of the ontology we are mapping to' },
           object_mappings: {
             type: 'array',
             minItems: 1,
@@ -28057,22 +22528,14 @@ const generatedMappings = (() => {
         anyOf: [{ required: ['object_mappings'] }, { required: ['link_mappings'] }],
         additionalProperties: false,
       },
-      ConceptType: {
-        type: 'string',
-        enum: ['EntityType', 'ValueType'],
-        description: 'A concept is either an entity type or a value type',
-      },
+      ConceptType: { type: 'string', enum: ['EntityType', 'ValueType'], description: 'A concept is either an entity type or a value type' },
       ReferentMapping: {
         type: 'object',
         description: 'Mapping from logical model constructs to a relationship used to references some entity type in the ontology',
         properties: {
           relationship: { type: 'string', description: 'Name of referent relationship' },
           expression: { $ref: '#/$defs/Expression' },
-          referent_mappings: {
-            type: 'array',
-            minItems: 1,
-            items: { $ref: '#/$defs/ReferentMapping' },
-          },
+          referent_mappings: { type: 'array', minItems: 1, items: { $ref: '#/$defs/ReferentMapping' } },
         },
         required: ['relationship'],
         anyOf: [{ required: ['expression'] }, { required: ['referent_mappings'] }],
@@ -28083,10 +22546,7 @@ const generatedMappings = (() => {
         description: 'Role in some relationship (the container)',
         properties: {
           concept: { type: 'string', description: 'Name of the concept playing this role' },
-          name: {
-            type: 'string',
-            description: 'Optional name of this role, used when the same concept plays multiple roles in the same relationship',
-          },
+          name: { type: 'string', description: 'Optional name of this role, used when the same concept plays multiple roles in the same relationship' },
         },
         required: ['concept'],
         additionalProperties: false,
@@ -28095,16 +22555,8 @@ const generatedMappings = (() => {
         type: 'object',
         description: 'Pattern of logical-level expressions for identifying objects of some concept using the values in one or more fields',
         properties: {
-          concept: {
-            type: 'string',
-            description: 'Name of the concept whose objects we are mapping to',
-          },
-          referent_mappings: {
-            type: 'array',
-            minItems: 1,
-            items: { $ref: '#/$defs/ReferentMapping' },
-            description: 'Maps logical-model constructs to referent relationships of this entity type',
-          },
+          concept: { type: 'string', description: 'Name of the concept whose objects we are mapping to' },
+          referent_mappings: { type: 'array', minItems: 1, items: { $ref: '#/$defs/ReferentMapping' }, description: 'Maps logical-model constructs to referent relationships of this entity type' },
           expression: { $ref: '#/$defs/Expression' },
         },
         anyOf: [{ required: ['expression'] }, { required: ['referent_mappings'] }],
@@ -28114,42 +22566,22 @@ const generatedMappings = (() => {
         type: 'object',
         description: 'Mapping from logical schema to the links of relationships in the ontology',
         properties: {
-          relationship: {
-            type: 'string',
-            description: 'Name of relationship being populated by this mapping node',
-          },
+          relationship: { type: 'string', description: 'Name of relationship being populated by this mapping node' },
           object_mapping: { $ref: '#/$defs/ObjectMapping' },
-          children: {
-            type: 'array',
-            items: { $ref: '#/$defs/LinkMapping' },
-            description: 'Relationship maps at the next level in this hierarchy',
-          },
+          children: { type: 'array', items: { $ref: '#/$defs/LinkMapping' }, description: 'Relationship maps at the next level in this hierarchy' },
         },
         required: ['object_mapping'],
         additionalProperties: false,
       },
-      Multiplicity: {
-        type: 'string',
-        enum: ['ManyToOne', 'OneToOne'],
-        description: 'Relationship multiplicity',
-      },
+      Multiplicity: { type: 'string', enum: ['ManyToOne', 'OneToOne'], description: 'Relationship multiplicity' },
       OntologyMap: {
         type: 'object',
         description: 'Map from the constructs of some logical model to some ontology',
         properties: {
           name: { type: 'string', description: 'Name of this ontology map' },
-          description: {
-            type: 'string',
-            description: 'Human-readable description of this ontology map',
-          },
-          semantic_model: {
-            $ref: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json',
-          },
-          concept_mappings: {
-            type: 'array',
-            items: { $ref: '#/$defs/ConceptMapping' },
-            description: 'Maps logical model constructs to some concept and its relationships in the ontology',
-          },
+          description: { type: 'string', description: 'Human-readable description of this ontology map' },
+          semantic_model: { $ref: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json' },
+          concept_mappings: { type: 'array', items: { $ref: '#/$defs/ConceptMapping' }, description: 'Maps logical model constructs to some concept and its relationships in the ontology' },
         },
         required: ['semantic_model', 'concept_mappings'],
         additionalProperties: false,
@@ -28160,81 +22592,32 @@ const generatedMappings = (() => {
     type: 'object',
     description: 'Ontology component that defines a single concept and any relationships that are keyed primarily by that concept',
     properties: {
-      concept: {
-        type: 'string',
-        description: 'Unique name of the concept defined by this component',
-      },
+      concept: { type: 'string', description: 'Unique name of the concept defined by this component' },
       type: { $ref: '#/$defs/ConceptType' },
       description: { type: 'string', description: 'Human-readable description of the concept' },
-      extends: {
-        type: 'array',
-        items: { type: 'string' },
-        description: 'Indicates that this concept extends one or more other concepts',
-      },
-      derived_by: {
-        type: 'array',
-        items: { $ref: '#/$defs/Expression' },
-        description: 'Expressions that define how this concept is derived',
-      },
-      identify_by: {
-        type: 'array',
-        items: { type: 'string' },
-        description: 'Names of relationships to use as the preferred identifier of this concept',
-      },
-      requires: {
-        type: 'array',
-        items: { $ref: '#/$defs/Expression' },
-        description: 'Expressions that constrain the population of this concept',
-      },
-      relationships: {
-        type: 'array',
-        items: { $ref: '#/$defs/Relationship' },
-        description: 'Defines relationships that pertain primarily to the concept defined in this component',
-      },
-      iri: {
-        type: 'string',
-        description: "Optional global identifier for this concept, expressed as a full IRI or as a QName (prefix:local) resolved against the ontology-level 'prefixes' map.",
-      },
+      extends: { type: 'array', items: { type: 'string' }, description: 'Indicates that this concept extends one or more other concepts' },
+      derived_by: { type: 'array', items: { $ref: '#/$defs/Expression' }, description: 'Expressions that define how this concept is derived' },
+      identify_by: { type: 'array', items: { type: 'string' }, description: 'Names of relationships to use as the preferred identifier of this concept' },
+      requires: { type: 'array', items: { $ref: '#/$defs/Expression' }, description: 'Expressions that constrain the population of this concept' },
+      relationships: { type: 'array', items: { $ref: '#/$defs/Relationship' }, description: 'Defines relationships that pertain primarily to the concept defined in this component' },
+      iri: { type: 'string', description: "Optional global identifier for this concept, expressed as a full IRI or as a QName (prefix:local) resolved against the ontology-level 'prefixes' map." },
     },
     required: ['concept', 'type'],
     additionalProperties: false,
   };
-  const ConceptEitherEntityTypeSchema = {
-    type: 'string',
-    enum: ['EntityType', 'ValueType'],
-    description: 'A concept is either an entity type or a value type',
-  };
+  const ConceptEitherEntityTypeSchema = { type: 'string', enum: ['EntityType', 'ValueType'], description: 'A concept is either an entity type or a value type' };
   const func14 = Object.prototype.hasOwnProperty;
   const RelationshipBetweenConceptsOntologySchema = {
     type: 'object',
     description: 'Relationship between concepts in the ontology',
     properties: {
       name: { type: 'string', description: 'Name of the relationship' },
-      description: {
-        type: 'string',
-        description: 'Human-readable description of the relationship',
-      },
-      roles: {
-        type: 'array',
-        items: { $ref: '#/$defs/Role' },
-        description: 'Additional roles in this relationship',
-      },
+      description: { type: 'string', description: 'Human-readable description of the relationship' },
+      roles: { type: 'array', items: { $ref: '#/$defs/Role' }, description: 'Additional roles in this relationship' },
       multiplicity: { $ref: '#/$defs/Multiplicity' },
-      derived_by: {
-        type: 'array',
-        items: { $ref: '#/$defs/Expression' },
-        description: 'Expressions that define how this concept is derived',
-      },
-      requires: {
-        type: 'array',
-        items: { $ref: '#/$defs/Expression' },
-        description: 'Expressions that constrain the population of this relationship',
-      },
-      verbalizes: {
-        type: 'array',
-        items: { type: 'string' },
-        description: 'Natural language expressions that verbalize this relationship',
-      },
+      derived_by: { type: 'array', items: { $ref: '#/$defs/Expression' }, description: 'Expressions that define how this concept is derived' },
+      requires: { type: 'array', items: { $ref: '#/$defs/Expression' }, description: 'Expressions that constrain the population of this relationship' },
+      verbalizes: { type: 'array', items: { type: 'string' }, description: 'Natural language expressions that verbalize this relationship' },
       iri: {
         type: 'string',
         description: "Optional global identifier for this relationship, expressed as a full IRI or as a QName (prefix:local) resolved against the ontology-level 'prefixes' map.",
@@ -28248,19 +22631,12 @@ const generatedMappings = (() => {
     description: 'Role in some relationship (the container)',
     properties: {
       concept: { type: 'string', description: 'Name of the concept playing this role' },
-      name: {
-        type: 'string',
-        description: 'Optional name of this role, used when the same concept plays multiple roles in the same relationship',
-      },
+      name: { type: 'string', description: 'Optional name of this role, used when the same concept plays multiple roles in the same relationship' },
     },
     required: ['concept'],
     additionalProperties: false,
   };
-  const RelationshipMultiplicitySchema = {
-    type: 'string',
-    enum: ['ManyToOne', 'OneToOne'],
-    description: 'Relationship multiplicity',
-  };
+  const RelationshipMultiplicitySchema = { type: 'string', enum: ['ManyToOne', 'OneToOne'], description: 'Relationship multiplicity' };
 
   function validate51(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     let vErrors = null;
@@ -28274,13 +22650,7 @@ const generatedMappings = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.name === undefined) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'name' },
-          message: "must have required property '" + 'name' + "'",
-        };
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'name' }, message: "must have required property '" + 'name' + "'" };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -28289,13 +22659,7 @@ const generatedMappings = (() => {
         errors++;
       }
       if (data.verbalizes === undefined) {
-        const err1 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'verbalizes' },
-          message: "must have required property '" + 'verbalizes' + "'",
-        };
+        const err1 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'verbalizes' }, message: "must have required property '" + 'verbalizes' + "'" };
         if (vErrors === null) {
           vErrors = [err1];
         } else {
@@ -28305,13 +22669,7 @@ const generatedMappings = (() => {
       }
       for (const key0 in data) {
         if (!(key0 === 'name' || key0 === 'description' || key0 === 'roles' || key0 === 'multiplicity' || key0 === 'derived_by' || key0 === 'requires' || key0 === 'verbalizes' || key0 === 'iri')) {
-          const err2 = {
-            instancePath,
-            schemaPath: '#/additionalProperties',
-            keyword: 'additionalProperties',
-            params: { additionalProperty: key0 },
-            message: 'must NOT have additional properties',
-          };
+          const err2 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err2];
           } else {
@@ -28322,13 +22680,7 @@ const generatedMappings = (() => {
       }
       if (data.name !== undefined) {
         if (typeof data.name !== 'string') {
-          const err3 = {
-            instancePath: instancePath + '/name',
-            schemaPath: '#/properties/name/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err3 = { instancePath: instancePath + '/name', schemaPath: '#/properties/name/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err3];
           } else {
@@ -28339,13 +22691,7 @@ const generatedMappings = (() => {
       }
       if (data.description !== undefined) {
         if (typeof data.description !== 'string') {
-          const err4 = {
-            instancePath: instancePath + '/description',
-            schemaPath: '#/properties/description/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err4 = { instancePath: instancePath + '/description', schemaPath: '#/properties/description/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err4];
           } else {
@@ -28428,13 +22774,7 @@ const generatedMappings = (() => {
                 }
               }
             } else {
-              const err9 = {
-                instancePath: instancePath + '/roles/' + i0,
-                schemaPath: '#/$defs/Role/type',
-                keyword: 'type',
-                params: { type: 'object' },
-                message: 'must be object',
-              };
+              const err9 = { instancePath: instancePath + '/roles/' + i0, schemaPath: '#/$defs/Role/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
               if (vErrors === null) {
                 vErrors = [err9];
               } else {
@@ -28444,13 +22784,7 @@ const generatedMappings = (() => {
             }
           }
         } else {
-          const err10 = {
-            instancePath: instancePath + '/roles',
-            schemaPath: '#/properties/roles/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err10 = { instancePath: instancePath + '/roles', schemaPath: '#/properties/roles/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err10];
           } else {
@@ -28462,13 +22796,7 @@ const generatedMappings = (() => {
       if (data.multiplicity !== undefined) {
         let data6 = data.multiplicity;
         if (typeof data6 !== 'string') {
-          const err11 = {
-            instancePath: instancePath + '/multiplicity',
-            schemaPath: '#/$defs/Multiplicity/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err11 = { instancePath: instancePath + '/multiplicity', schemaPath: '#/$defs/Multiplicity/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err11];
           } else {
@@ -28498,13 +22826,7 @@ const generatedMappings = (() => {
           const len1 = data7.length;
           for (let i1 = 0; i1 < len1; i1++) {
             if (typeof data7[i1] !== 'string') {
-              const err13 = {
-                instancePath: instancePath + '/derived_by/' + i1,
-                schemaPath: '#/$defs/Expression/type',
-                keyword: 'type',
-                params: { type: 'string' },
-                message: 'must be string',
-              };
+              const err13 = { instancePath: instancePath + '/derived_by/' + i1, schemaPath: '#/$defs/Expression/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
               if (vErrors === null) {
                 vErrors = [err13];
               } else {
@@ -28514,13 +22836,7 @@ const generatedMappings = (() => {
             }
           }
         } else {
-          const err14 = {
-            instancePath: instancePath + '/derived_by',
-            schemaPath: '#/properties/derived_by/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err14 = { instancePath: instancePath + '/derived_by', schemaPath: '#/properties/derived_by/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err14];
           } else {
@@ -28535,13 +22851,7 @@ const generatedMappings = (() => {
           const len2 = data9.length;
           for (let i2 = 0; i2 < len2; i2++) {
             if (typeof data9[i2] !== 'string') {
-              const err15 = {
-                instancePath: instancePath + '/requires/' + i2,
-                schemaPath: '#/$defs/Expression/type',
-                keyword: 'type',
-                params: { type: 'string' },
-                message: 'must be string',
-              };
+              const err15 = { instancePath: instancePath + '/requires/' + i2, schemaPath: '#/$defs/Expression/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
               if (vErrors === null) {
                 vErrors = [err15];
               } else {
@@ -28551,13 +22861,7 @@ const generatedMappings = (() => {
             }
           }
         } else {
-          const err16 = {
-            instancePath: instancePath + '/requires',
-            schemaPath: '#/properties/requires/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err16 = { instancePath: instancePath + '/requires', schemaPath: '#/properties/requires/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err16];
           } else {
@@ -28588,13 +22892,7 @@ const generatedMappings = (() => {
             }
           }
         } else {
-          const err18 = {
-            instancePath: instancePath + '/verbalizes',
-            schemaPath: '#/properties/verbalizes/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err18 = { instancePath: instancePath + '/verbalizes', schemaPath: '#/properties/verbalizes/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err18];
           } else {
@@ -28605,13 +22903,7 @@ const generatedMappings = (() => {
       }
       if (data.iri !== undefined) {
         if (typeof data.iri !== 'string') {
-          const err19 = {
-            instancePath: instancePath + '/iri',
-            schemaPath: '#/properties/iri/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err19 = { instancePath: instancePath + '/iri', schemaPath: '#/properties/iri/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err19];
           } else {
@@ -28621,13 +22913,7 @@ const generatedMappings = (() => {
         }
       }
     } else {
-      const err20 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err20 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err20];
       } else {
@@ -28652,13 +22938,7 @@ const generatedMappings = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.concept === undefined) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'concept' },
-          message: "must have required property '" + 'concept' + "'",
-        };
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'concept' }, message: "must have required property '" + 'concept' + "'" };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -28667,13 +22947,7 @@ const generatedMappings = (() => {
         errors++;
       }
       if (data.type === undefined) {
-        const err1 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'type' },
-          message: "must have required property '" + 'type' + "'",
-        };
+        const err1 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'type' }, message: "must have required property '" + 'type' + "'" };
         if (vErrors === null) {
           vErrors = [err1];
         } else {
@@ -28683,13 +22957,7 @@ const generatedMappings = (() => {
       }
       for (const key0 in data) {
         if (!func14.call(OntologyComponentDefinesSingleSchema.properties, key0)) {
-          const err2 = {
-            instancePath,
-            schemaPath: '#/additionalProperties',
-            keyword: 'additionalProperties',
-            params: { additionalProperty: key0 },
-            message: 'must NOT have additional properties',
-          };
+          const err2 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err2];
           } else {
@@ -28700,13 +22968,7 @@ const generatedMappings = (() => {
       }
       if (data.concept !== undefined) {
         if (typeof data.concept !== 'string') {
-          const err3 = {
-            instancePath: instancePath + '/concept',
-            schemaPath: '#/properties/concept/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err3 = { instancePath: instancePath + '/concept', schemaPath: '#/properties/concept/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err3];
           } else {
@@ -28718,13 +22980,7 @@ const generatedMappings = (() => {
       if (data.type !== undefined) {
         let data1 = data.type;
         if (typeof data1 !== 'string') {
-          const err4 = {
-            instancePath: instancePath + '/type',
-            schemaPath: '#/$defs/ConceptType/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err4 = { instancePath: instancePath + '/type', schemaPath: '#/$defs/ConceptType/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err4];
           } else {
@@ -28750,13 +23006,7 @@ const generatedMappings = (() => {
       }
       if (data.description !== undefined) {
         if (typeof data.description !== 'string') {
-          const err6 = {
-            instancePath: instancePath + '/description',
-            schemaPath: '#/properties/description/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err6 = { instancePath: instancePath + '/description', schemaPath: '#/properties/description/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err6];
           } else {
@@ -28771,13 +23021,7 @@ const generatedMappings = (() => {
           const len0 = data3.length;
           for (let i0 = 0; i0 < len0; i0++) {
             if (typeof data3[i0] !== 'string') {
-              const err7 = {
-                instancePath: instancePath + '/extends/' + i0,
-                schemaPath: '#/properties/extends/items/type',
-                keyword: 'type',
-                params: { type: 'string' },
-                message: 'must be string',
-              };
+              const err7 = { instancePath: instancePath + '/extends/' + i0, schemaPath: '#/properties/extends/items/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
               if (vErrors === null) {
                 vErrors = [err7];
               } else {
@@ -28787,13 +23031,7 @@ const generatedMappings = (() => {
             }
           }
         } else {
-          const err8 = {
-            instancePath: instancePath + '/extends',
-            schemaPath: '#/properties/extends/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err8 = { instancePath: instancePath + '/extends', schemaPath: '#/properties/extends/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err8];
           } else {
@@ -28808,13 +23046,7 @@ const generatedMappings = (() => {
           const len1 = data5.length;
           for (let i1 = 0; i1 < len1; i1++) {
             if (typeof data5[i1] !== 'string') {
-              const err9 = {
-                instancePath: instancePath + '/derived_by/' + i1,
-                schemaPath: '#/$defs/Expression/type',
-                keyword: 'type',
-                params: { type: 'string' },
-                message: 'must be string',
-              };
+              const err9 = { instancePath: instancePath + '/derived_by/' + i1, schemaPath: '#/$defs/Expression/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
               if (vErrors === null) {
                 vErrors = [err9];
               } else {
@@ -28824,13 +23056,7 @@ const generatedMappings = (() => {
             }
           }
         } else {
-          const err10 = {
-            instancePath: instancePath + '/derived_by',
-            schemaPath: '#/properties/derived_by/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err10 = { instancePath: instancePath + '/derived_by', schemaPath: '#/properties/derived_by/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err10];
           } else {
@@ -28861,13 +23087,7 @@ const generatedMappings = (() => {
             }
           }
         } else {
-          const err12 = {
-            instancePath: instancePath + '/identify_by',
-            schemaPath: '#/properties/identify_by/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err12 = { instancePath: instancePath + '/identify_by', schemaPath: '#/properties/identify_by/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err12];
           } else {
@@ -28882,13 +23102,7 @@ const generatedMappings = (() => {
           const len3 = data9.length;
           for (let i3 = 0; i3 < len3; i3++) {
             if (typeof data9[i3] !== 'string') {
-              const err13 = {
-                instancePath: instancePath + '/requires/' + i3,
-                schemaPath: '#/$defs/Expression/type',
-                keyword: 'type',
-                params: { type: 'string' },
-                message: 'must be string',
-              };
+              const err13 = { instancePath: instancePath + '/requires/' + i3, schemaPath: '#/$defs/Expression/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
               if (vErrors === null) {
                 vErrors = [err13];
               } else {
@@ -28898,13 +23112,7 @@ const generatedMappings = (() => {
             }
           }
         } else {
-          const err14 = {
-            instancePath: instancePath + '/requires',
-            schemaPath: '#/properties/requires/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err14 = { instancePath: instancePath + '/requires', schemaPath: '#/properties/requires/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err14];
           } else {
@@ -28918,27 +23126,13 @@ const generatedMappings = (() => {
         if (Array.isArray(data11)) {
           const len4 = data11.length;
           for (let i4 = 0; i4 < len4; i4++) {
-            if (
-              !validate51(data11[i4], {
-                instancePath: instancePath + '/relationships/' + i4,
-                parentData: data11,
-                parentDataProperty: i4,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!validate51(data11[i4], { instancePath: instancePath + '/relationships/' + i4, parentData: data11, parentDataProperty: i4, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? validate51.errors : vErrors.concat(validate51.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err15 = {
-            instancePath: instancePath + '/relationships',
-            schemaPath: '#/properties/relationships/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err15 = { instancePath: instancePath + '/relationships', schemaPath: '#/properties/relationships/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err15];
           } else {
@@ -28949,13 +23143,7 @@ const generatedMappings = (() => {
       }
       if (data.iri !== undefined) {
         if (typeof data.iri !== 'string') {
-          const err16 = {
-            instancePath: instancePath + '/iri',
-            schemaPath: '#/properties/iri/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err16 = { instancePath: instancePath + '/iri', schemaPath: '#/properties/iri/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err16];
           } else {
@@ -28965,13 +23153,7 @@ const generatedMappings = (() => {
         }
       }
     } else {
-      const err17 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err17 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err17];
       } else {
@@ -28996,13 +23178,7 @@ const generatedMappings = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.semantic_model === undefined) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'semantic_model' },
-          message: "must have required property '" + 'semantic_model' + "'",
-        };
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'semantic_model' }, message: "must have required property '" + 'semantic_model' + "'" };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -29027,13 +23203,7 @@ const generatedMappings = (() => {
       }
       for (const key0 in data) {
         if (!(key0 === 'name' || key0 === 'description' || key0 === 'semantic_model' || key0 === 'concept_mappings')) {
-          const err2 = {
-            instancePath,
-            schemaPath: '#/additionalProperties',
-            keyword: 'additionalProperties',
-            params: { additionalProperty: key0 },
-            message: 'must NOT have additional properties',
-          };
+          const err2 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err2];
           } else {
@@ -29044,13 +23214,7 @@ const generatedMappings = (() => {
       }
       if (data.name !== undefined) {
         if (typeof data.name !== 'string') {
-          const err3 = {
-            instancePath: instancePath + '/name',
-            schemaPath: '#/properties/name/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err3 = { instancePath: instancePath + '/name', schemaPath: '#/properties/name/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err3];
           } else {
@@ -29061,13 +23225,7 @@ const generatedMappings = (() => {
       }
       if (data.description !== undefined) {
         if (typeof data.description !== 'string') {
-          const err4 = {
-            instancePath: instancePath + '/description',
-            schemaPath: '#/properties/description/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err4 = { instancePath: instancePath + '/description', schemaPath: '#/properties/description/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err4];
           } else {
@@ -29077,15 +23235,7 @@ const generatedMappings = (() => {
         }
       }
       if (data.semantic_model !== undefined) {
-        if (
-          !validate22(data.semantic_model, {
-            instancePath: instancePath + '/semantic_model',
-            parentData: data,
-            parentDataProperty: 'semantic_model',
-            rootData,
-            dynamicAnchors,
-          })
-        ) {
+        if (!validate22(data.semantic_model, { instancePath: instancePath + '/semantic_model', parentData: data, parentDataProperty: 'semantic_model', rootData, dynamicAnchors })) {
           vErrors = vErrors === null ? validate22.errors : vErrors.concat(validate22.errors);
           errors = vErrors.length;
         }
@@ -29095,27 +23245,13 @@ const generatedMappings = (() => {
         if (Array.isArray(data3)) {
           const len0 = data3.length;
           for (let i0 = 0; i0 < len0; i0++) {
-            if (
-              !validate56(data3[i0], {
-                instancePath: instancePath + '/concept_mappings/' + i0,
-                parentData: data3,
-                parentDataProperty: i0,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!validate56(data3[i0], { instancePath: instancePath + '/concept_mappings/' + i0, parentData: data3, parentDataProperty: i0, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? validate56.errors : vErrors.concat(validate56.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err5 = {
-            instancePath: instancePath + '/concept_mappings',
-            schemaPath: '#/properties/concept_mappings/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err5 = { instancePath: instancePath + '/concept_mappings', schemaPath: '#/properties/concept_mappings/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err5];
           } else {
@@ -29125,13 +23261,7 @@ const generatedMappings = (() => {
         }
       }
     } else {
-      const err6 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err6 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err6];
       } else {
@@ -29159,13 +23289,7 @@ const generatedMappings = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.version === undefined) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'version' },
-          message: "must have required property '" + 'version' + "'",
-        };
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'version' }, message: "must have required property '" + 'version' + "'" };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -29174,13 +23298,7 @@ const generatedMappings = (() => {
         errors++;
       }
       if (data.name === undefined) {
-        const err1 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'name' },
-          message: "must have required property '" + 'name' + "'",
-        };
+        const err1 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'name' }, message: "must have required property '" + 'name' + "'" };
         if (vErrors === null) {
           vErrors = [err1];
         } else {
@@ -29189,13 +23307,7 @@ const generatedMappings = (() => {
         errors++;
       }
       if (data.ontology === undefined) {
-        const err2 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'ontology' },
-          message: "must have required property '" + 'ontology' + "'",
-        };
+        const err2 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'ontology' }, message: "must have required property '" + 'ontology' + "'" };
         if (vErrors === null) {
           vErrors = [err2];
         } else {
@@ -29216,13 +23328,7 @@ const generatedMappings = (() => {
             key0 === 'prefixes'
           )
         ) {
-          const err3 = {
-            instancePath,
-            schemaPath: '#/additionalProperties',
-            keyword: 'additionalProperties',
-            params: { additionalProperty: key0 },
-            message: 'must NOT have additional properties',
-          };
+          const err3 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err3];
           } else {
@@ -29234,13 +23340,7 @@ const generatedMappings = (() => {
       if (data.version !== undefined) {
         let data0 = data.version;
         if (typeof data0 !== 'string') {
-          const err4 = {
-            instancePath: instancePath + '/version',
-            schemaPath: '#/properties/version/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err4 = { instancePath: instancePath + '/version', schemaPath: '#/properties/version/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err4];
           } else {
@@ -29266,13 +23366,7 @@ const generatedMappings = (() => {
       }
       if (data.name !== undefined) {
         if (typeof data.name !== 'string') {
-          const err6 = {
-            instancePath: instancePath + '/name',
-            schemaPath: '#/properties/name/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err6 = { instancePath: instancePath + '/name', schemaPath: '#/properties/name/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err6];
           } else {
@@ -29283,13 +23377,7 @@ const generatedMappings = (() => {
       }
       if (data.description !== undefined) {
         if (typeof data.description !== 'string') {
-          const err7 = {
-            instancePath: instancePath + '/description',
-            schemaPath: '#/properties/description/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err7 = { instancePath: instancePath + '/description', schemaPath: '#/properties/description/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err7];
           } else {
@@ -29473,13 +23561,7 @@ const generatedMappings = (() => {
           const len2 = data9.length;
           for (let i2 = 0; i2 < len2; i2++) {
             if (typeof data9[i2] !== 'string') {
-              const err16 = {
-                instancePath: instancePath + '/requires/' + i2,
-                schemaPath: '#/$defs/Expression/type',
-                keyword: 'type',
-                params: { type: 'string' },
-                message: 'must be string',
-              };
+              const err16 = { instancePath: instancePath + '/requires/' + i2, schemaPath: '#/$defs/Expression/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
               if (vErrors === null) {
                 vErrors = [err16];
               } else {
@@ -29489,13 +23571,7 @@ const generatedMappings = (() => {
             }
           }
         } else {
-          const err17 = {
-            instancePath: instancePath + '/requires',
-            schemaPath: '#/properties/requires/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err17 = { instancePath: instancePath + '/requires', schemaPath: '#/properties/requires/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err17];
           } else {
@@ -29524,27 +23600,13 @@ const generatedMappings = (() => {
           }
           const len3 = data11.length;
           for (let i3 = 0; i3 < len3; i3++) {
-            if (
-              !validate50(data11[i3], {
-                instancePath: instancePath + '/ontology/' + i3,
-                parentData: data11,
-                parentDataProperty: i3,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!validate50(data11[i3], { instancePath: instancePath + '/ontology/' + i3, parentData: data11, parentDataProperty: i3, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? validate50.errors : vErrors.concat(validate50.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err19 = {
-            instancePath: instancePath + '/ontology',
-            schemaPath: '#/properties/ontology/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err19 = { instancePath: instancePath + '/ontology', schemaPath: '#/properties/ontology/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err19];
           } else {
@@ -29558,27 +23620,13 @@ const generatedMappings = (() => {
         if (Array.isArray(data13)) {
           const len4 = data13.length;
           for (let i4 = 0; i4 < len4; i4++) {
-            if (
-              !validate54(data13[i4], {
-                instancePath: instancePath + '/ontology_mappings/' + i4,
-                parentData: data13,
-                parentDataProperty: i4,
-                rootData,
-                dynamicAnchors,
-              })
-            ) {
+            if (!validate54(data13[i4], { instancePath: instancePath + '/ontology_mappings/' + i4, parentData: data13, parentDataProperty: i4, rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? validate54.errors : vErrors.concat(validate54.errors);
               errors = vErrors.length;
             }
           }
         } else {
-          const err20 = {
-            instancePath: instancePath + '/ontology_mappings',
-            schemaPath: '#/properties/ontology_mappings/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err20 = { instancePath: instancePath + '/ontology_mappings', schemaPath: '#/properties/ontology_mappings/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err20];
           } else {
@@ -29625,13 +23673,7 @@ const generatedMappings = (() => {
             }
           }
         } else {
-          const err23 = {
-            instancePath: instancePath + '/prefixes',
-            schemaPath: '#/properties/prefixes/type',
-            keyword: 'type',
-            params: { type: 'object' },
-            message: 'must be object',
-          };
+          const err23 = { instancePath: instancePath + '/prefixes', schemaPath: '#/properties/prefixes/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
           if (vErrors === null) {
             vErrors = [err23];
           } else {
@@ -29641,13 +23683,7 @@ const generatedMappings = (() => {
         }
       }
     } else {
-      const err24 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err24 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err24];
       } else {
@@ -29700,21 +23736,12 @@ const generatedExtensions = (() => {
       type: { enum: ['simple', 'ratio', 'derived', 'cumulative', 'filtered'] },
       numerator: { $ref: '#/$defs/metricName' },
       denominator: { $ref: '#/$defs/metricName' },
-      inputs: {
-        type: 'array',
-        items: { $ref: '#/$defs/metricName' },
-        minItems: 1,
-        uniqueItems: true,
-      },
+      inputs: { type: 'array', items: { $ref: '#/$defs/metricName' }, minItems: 1, uniqueItems: true },
       window: {
         type: 'object',
         required: ['kind'],
         additionalProperties: false,
-        properties: {
-          kind: { enum: ['rolling', 'to_date', 'all'] },
-          length: { type: 'integer', minimum: 1 },
-          grain: { $ref: '#/$defs/grain' },
-        },
+        properties: { kind: { enum: ['rolling', 'to_date', 'all'] }, length: { type: 'integer', minimum: 1 }, grain: { $ref: '#/$defs/grain' } },
       },
       additivity: { enum: ['additive', 'semi_additive', 'non_additive'] },
       non_additive_over: { const: 'time' },
@@ -29723,11 +23750,7 @@ const generatedExtensions = (() => {
         type: 'object',
         required: ['dimension'],
         additionalProperties: false,
-        properties: {
-          dimension: { $ref: '#/$defs/fieldRef' },
-          min_grain: { $ref: '#/$defs/grain' },
-          allowed_grains: { type: 'array', items: { $ref: '#/$defs/grain' }, uniqueItems: true },
-        },
+        properties: { dimension: { $ref: '#/$defs/fieldRef' }, min_grain: { $ref: '#/$defs/grain' }, allowed_grains: { type: 'array', items: { $ref: '#/$defs/grain' }, uniqueItems: true } },
       },
       dimensions: { type: 'array', items: { $ref: '#/$defs/fieldRef' }, uniqueItems: true },
       filters: {
@@ -29736,13 +23759,7 @@ const generatedExtensions = (() => {
           type: 'object',
           required: ['field', 'operator'],
           additionalProperties: false,
-          properties: {
-            field: { $ref: '#/$defs/fieldRef' },
-            operator: {
-              enum: ['equals', 'not_equals', 'in', 'not_in', 'gt', 'gte', 'lt', 'lte', 'between', 'is_null', 'is_not_null'],
-            },
-            value: {},
-          },
+          properties: { field: { $ref: '#/$defs/fieldRef' }, operator: { enum: ['equals', 'not_equals', 'in', 'not_in', 'gt', 'gte', 'lt', 'lte', 'between', 'is_null', 'is_not_null'] }, value: {} },
         },
       },
       unit: { type: 'string' },
@@ -29759,14 +23776,7 @@ const generatedExtensions = (() => {
             direction: { enum: ['higher_is_better', 'lower_is_better', 'in_range'] },
             value: { type: 'number' },
             range: { type: 'array', items: { type: 'number' }, minItems: 2, maxItems: 2 },
-            thresholds: {
-              type: 'object',
-              additionalProperties: false,
-              properties: {
-                warning: { $ref: '#/$defs/operatorSet' },
-                critical: { $ref: '#/$defs/operatorSet' },
-              },
-            },
+            thresholds: { type: 'object', additionalProperties: false, properties: { warning: { $ref: '#/$defs/operatorSet' }, critical: { $ref: '#/$defs/operatorSet' } } },
           },
         },
       },
@@ -29777,27 +23787,12 @@ const generatedExtensions = (() => {
       deprecation_reason: { type: 'string' },
     },
     allOf: [
-      {
-        if: { properties: { type: { const: 'ratio' } } },
-        then: { required: ['numerator', 'denominator'] },
-      },
-      {
-        if: { properties: { type: { enum: ['derived', 'filtered'] } } },
-        then: { required: ['inputs'] },
-      },
-      {
-        if: { properties: { type: { const: 'cumulative' } } },
-        then: { required: ['inputs', 'window'] },
-      },
+      { if: { properties: { type: { const: 'ratio' } } }, then: { required: ['numerator', 'denominator'] } },
+      { if: { properties: { type: { enum: ['derived', 'filtered'] } } }, then: { required: ['inputs'] } },
+      { if: { properties: { type: { const: 'cumulative' } } }, then: { required: ['inputs', 'window'] } },
       { if: { properties: { type: { const: 'filtered' } } }, then: { required: ['filters'] } },
-      {
-        if: { properties: { additivity: { const: 'semi_additive' } }, required: ['additivity'] },
-        then: { required: ['non_additive_over', 'period_aggregation'] },
-      },
-      {
-        if: { properties: { status: { const: 'deprecated' } }, required: ['status'] },
-        then: { anyOf: [{ required: ['replaced_by'] }, { required: ['deprecation_reason'] }] },
-      },
+      { if: { properties: { additivity: { const: 'semi_additive' } }, required: ['additivity'] }, then: { required: ['non_additive_over', 'period_aggregation'] } },
+      { if: { properties: { status: { const: 'deprecated' } }, required: ['status'] }, then: { anyOf: [{ required: ['replaced_by'] }, { required: ['deprecation_reason'] }] } },
     ],
   };
   const metricExtensionMetricNameSchema = { type: 'string', minLength: 1 };
@@ -29897,13 +23892,7 @@ const generatedExtensions = (() => {
       valid1 = _valid0;
     }
     if (!valid1) {
-      const err3 = {
-        instancePath,
-        schemaPath: '#/allOf/0/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err3 = { instancePath, schemaPath: '#/allOf/0/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err3];
       } else {
@@ -29941,13 +23930,7 @@ const generatedExtensions = (() => {
       const _errs10 = errors;
       if (data && typeof data == 'object' && !Array.isArray(data)) {
         if (data.inputs === undefined) {
-          const err5 = {
-            instancePath,
-            schemaPath: '#/allOf/1/then/required',
-            keyword: 'required',
-            params: { missingProperty: 'inputs' },
-            message: "must have required property '" + 'inputs' + "'",
-          };
+          const err5 = { instancePath, schemaPath: '#/allOf/1/then/required', keyword: 'required', params: { missingProperty: 'inputs' }, message: "must have required property '" + 'inputs' + "'" };
           if (vErrors === null) {
             vErrors = [err5];
           } else {
@@ -29960,13 +23943,7 @@ const generatedExtensions = (() => {
       valid3 = _valid1;
     }
     if (!valid3) {
-      const err6 = {
-        instancePath,
-        schemaPath: '#/allOf/1/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err6 = { instancePath, schemaPath: '#/allOf/1/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err6];
       } else {
@@ -30003,13 +23980,7 @@ const generatedExtensions = (() => {
       const _errs15 = errors;
       if (data && typeof data == 'object' && !Array.isArray(data)) {
         if (data.inputs === undefined) {
-          const err8 = {
-            instancePath,
-            schemaPath: '#/allOf/2/then/required',
-            keyword: 'required',
-            params: { missingProperty: 'inputs' },
-            message: "must have required property '" + 'inputs' + "'",
-          };
+          const err8 = { instancePath, schemaPath: '#/allOf/2/then/required', keyword: 'required', params: { missingProperty: 'inputs' }, message: "must have required property '" + 'inputs' + "'" };
           if (vErrors === null) {
             vErrors = [err8];
           } else {
@@ -30018,13 +23989,7 @@ const generatedExtensions = (() => {
           errors++;
         }
         if (data.window === undefined) {
-          const err9 = {
-            instancePath,
-            schemaPath: '#/allOf/2/then/required',
-            keyword: 'required',
-            params: { missingProperty: 'window' },
-            message: "must have required property '" + 'window' + "'",
-          };
+          const err9 = { instancePath, schemaPath: '#/allOf/2/then/required', keyword: 'required', params: { missingProperty: 'window' }, message: "must have required property '" + 'window' + "'" };
           if (vErrors === null) {
             vErrors = [err9];
           } else {
@@ -30037,13 +24002,7 @@ const generatedExtensions = (() => {
       valid5 = _valid2;
     }
     if (!valid5) {
-      const err10 = {
-        instancePath,
-        schemaPath: '#/allOf/2/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err10 = { instancePath, schemaPath: '#/allOf/2/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err10];
       } else {
@@ -30099,13 +24058,7 @@ const generatedExtensions = (() => {
       valid7 = _valid3;
     }
     if (!valid7) {
-      const err13 = {
-        instancePath,
-        schemaPath: '#/allOf/3/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err13 = { instancePath, schemaPath: '#/allOf/3/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err13];
       } else {
@@ -30187,13 +24140,7 @@ const generatedExtensions = (() => {
       valid9 = _valid4;
     }
     if (!valid9) {
-      const err18 = {
-        instancePath,
-        schemaPath: '#/allOf/4/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err18 = { instancePath, schemaPath: '#/allOf/4/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err18];
       } else {
@@ -30282,13 +24229,7 @@ const generatedExtensions = (() => {
       var _valid6 = _errs33 === errors;
       valid13 = valid13 || _valid6;
       if (!valid13) {
-        const err23 = {
-          instancePath,
-          schemaPath: '#/allOf/5/then/anyOf',
-          keyword: 'anyOf',
-          params: {},
-          message: 'must match a schema in anyOf',
-        };
+        const err23 = { instancePath, schemaPath: '#/allOf/5/then/anyOf', keyword: 'anyOf', params: {}, message: 'must match a schema in anyOf' };
         if (vErrors === null) {
           vErrors = [err23];
         } else {
@@ -30309,13 +24250,7 @@ const generatedExtensions = (() => {
       valid11 = _valid5;
     }
     if (!valid11) {
-      const err24 = {
-        instancePath,
-        schemaPath: '#/allOf/5/if',
-        keyword: 'if',
-        params: { failingKeyword: 'then' },
-        message: 'must match "then" schema',
-      };
+      const err24 = { instancePath, schemaPath: '#/allOf/5/if', keyword: 'if', params: { failingKeyword: 'then' }, message: 'must match "then" schema' };
       if (vErrors === null) {
         vErrors = [err24];
       } else {
@@ -30325,13 +24260,7 @@ const generatedExtensions = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.schema === undefined) {
-        const err25 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'schema' },
-          message: "must have required property '" + 'schema' + "'",
-        };
+        const err25 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'schema' }, message: "must have required property '" + 'schema' + "'" };
         if (vErrors === null) {
           vErrors = [err25];
         } else {
@@ -30340,13 +24269,7 @@ const generatedExtensions = (() => {
         errors++;
       }
       if (data.type === undefined) {
-        const err26 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'type' },
-          message: "must have required property '" + 'type' + "'",
-        };
+        const err26 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'type' }, message: "must have required property '" + 'type' + "'" };
         if (vErrors === null) {
           vErrors = [err26];
         } else {
@@ -30356,13 +24279,7 @@ const generatedExtensions = (() => {
       }
       for (const key0 in data) {
         if (!func1.call(metricExtensionSchema.properties, key0)) {
-          const err27 = {
-            instancePath,
-            schemaPath: '#/additionalProperties',
-            keyword: 'additionalProperties',
-            params: { additionalProperty: key0 },
-            message: 'must NOT have additional properties',
-          };
+          const err27 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err27];
           } else {
@@ -30390,13 +24307,7 @@ const generatedExtensions = (() => {
       }
       if (data.label !== undefined) {
         if (typeof data.label !== 'string') {
-          const err29 = {
-            instancePath: instancePath + '/label',
-            schemaPath: '#/properties/label/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err29 = { instancePath: instancePath + '/label', schemaPath: '#/properties/label/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err29];
           } else {
@@ -30442,13 +24353,7 @@ const generatedExtensions = (() => {
             errors++;
           }
         } else {
-          const err32 = {
-            instancePath: instancePath + '/numerator',
-            schemaPath: '#/$defs/metricName/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err32 = { instancePath: instancePath + '/numerator', schemaPath: '#/$defs/metricName/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err32];
           } else {
@@ -30476,13 +24381,7 @@ const generatedExtensions = (() => {
             errors++;
           }
         } else {
-          const err34 = {
-            instancePath: instancePath + '/denominator',
-            schemaPath: '#/$defs/metricName/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err34 = { instancePath: instancePath + '/denominator', schemaPath: '#/$defs/metricName/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err34];
           } else {
@@ -30529,13 +24428,7 @@ const generatedExtensions = (() => {
                 errors++;
               }
             } else {
-              const err37 = {
-                instancePath: instancePath + '/inputs/' + i0,
-                schemaPath: '#/$defs/metricName/type',
-                keyword: 'type',
-                params: { type: 'string' },
-                message: 'must be string',
-              };
+              const err37 = { instancePath: instancePath + '/inputs/' + i0, schemaPath: '#/$defs/metricName/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
               if (vErrors === null) {
                 vErrors = [err37];
               } else {
@@ -30569,13 +24462,7 @@ const generatedExtensions = (() => {
             }
           }
         } else {
-          const err39 = {
-            instancePath: instancePath + '/inputs',
-            schemaPath: '#/properties/inputs/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err39 = { instancePath: instancePath + '/inputs', schemaPath: '#/properties/inputs/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err39];
           } else {
@@ -30626,9 +24513,7 @@ const generatedExtensions = (() => {
                 instancePath: instancePath + '/window/kind',
                 schemaPath: '#/properties/window/properties/kind/enum',
                 keyword: 'enum',
-                params: {
-                  allowedValues: metricExtensionSchema.properties.window.properties.kind.enum,
-                },
+                params: { allowedValues: metricExtensionSchema.properties.window.properties.kind.enum },
                 message: 'must be equal to one of the allowed values',
               };
               if (vErrors === null) {
@@ -30693,13 +24578,7 @@ const generatedExtensions = (() => {
             }
           }
         } else {
-          const err46 = {
-            instancePath: instancePath + '/window',
-            schemaPath: '#/properties/window/type',
-            keyword: 'type',
-            params: { type: 'object' },
-            message: 'must be object',
-          };
+          const err46 = { instancePath: instancePath + '/window', schemaPath: '#/properties/window/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
           if (vErrors === null) {
             vErrors = [err46];
           } else {
@@ -30815,13 +24694,7 @@ const generatedExtensions = (() => {
                 errors++;
               }
             } else {
-              const err53 = {
-                instancePath: instancePath + '/time/dimension',
-                schemaPath: '#/$defs/fieldRef/type',
-                keyword: 'type',
-                params: { type: 'string' },
-                message: 'must be string',
-              };
+              const err53 = { instancePath: instancePath + '/time/dimension', schemaPath: '#/$defs/fieldRef/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
               if (vErrors === null) {
                 vErrors = [err53];
               } else {
@@ -30911,13 +24784,7 @@ const generatedExtensions = (() => {
             }
           }
         } else {
-          const err58 = {
-            instancePath: instancePath + '/time',
-            schemaPath: '#/properties/time/type',
-            keyword: 'type',
-            params: { type: 'object' },
-            message: 'must be object',
-          };
+          const err58 = { instancePath: instancePath + '/time', schemaPath: '#/properties/time/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
           if (vErrors === null) {
             vErrors = [err58];
           } else {
@@ -30949,13 +24816,7 @@ const generatedExtensions = (() => {
                 errors++;
               }
             } else {
-              const err60 = {
-                instancePath: instancePath + '/dimensions/' + i4,
-                schemaPath: '#/$defs/fieldRef/type',
-                keyword: 'type',
-                params: { type: 'string' },
-                message: 'must be string',
-              };
+              const err60 = { instancePath: instancePath + '/dimensions/' + i4, schemaPath: '#/$defs/fieldRef/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
               if (vErrors === null) {
                 vErrors = [err60];
               } else {
@@ -30989,13 +24850,7 @@ const generatedExtensions = (() => {
             }
           }
         } else {
-          const err62 = {
-            instancePath: instancePath + '/dimensions',
-            schemaPath: '#/properties/dimensions/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err62 = { instancePath: instancePath + '/dimensions', schemaPath: '#/properties/dimensions/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err62];
           } else {
@@ -31113,9 +24968,7 @@ const generatedExtensions = (() => {
                     instancePath: instancePath + '/filters/' + i6 + '/operator',
                     schemaPath: '#/properties/filters/items/properties/operator/enum',
                     keyword: 'enum',
-                    params: {
-                      allowedValues: metricExtensionSchema.properties.filters.items.properties.operator.enum,
-                    },
+                    params: { allowedValues: metricExtensionSchema.properties.filters.items.properties.operator.enum },
                     message: 'must be equal to one of the allowed values',
                   };
                   if (vErrors === null) {
@@ -31127,13 +24980,7 @@ const generatedExtensions = (() => {
                 }
               }
             } else {
-              const err69 = {
-                instancePath: instancePath + '/filters/' + i6,
-                schemaPath: '#/properties/filters/items/type',
-                keyword: 'type',
-                params: { type: 'object' },
-                message: 'must be object',
-              };
+              const err69 = { instancePath: instancePath + '/filters/' + i6, schemaPath: '#/properties/filters/items/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
               if (vErrors === null) {
                 vErrors = [err69];
               } else {
@@ -31143,13 +24990,7 @@ const generatedExtensions = (() => {
             }
           }
         } else {
-          const err70 = {
-            instancePath: instancePath + '/filters',
-            schemaPath: '#/properties/filters/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err70 = { instancePath: instancePath + '/filters', schemaPath: '#/properties/filters/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err70];
           } else {
@@ -31160,13 +25001,7 @@ const generatedExtensions = (() => {
       }
       if (data.unit !== undefined) {
         if (typeof data.unit !== 'string') {
-          const err71 = {
-            instancePath: instancePath + '/unit',
-            schemaPath: '#/properties/unit/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err71 = { instancePath: instancePath + '/unit', schemaPath: '#/properties/unit/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err71];
           } else {
@@ -31177,13 +25012,7 @@ const generatedExtensions = (() => {
       }
       if (data.format !== undefined) {
         if (typeof data.format !== 'string') {
-          const err72 = {
-            instancePath: instancePath + '/format',
-            schemaPath: '#/properties/format/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err72 = { instancePath: instancePath + '/format', schemaPath: '#/properties/format/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err72];
           } else {
@@ -31273,9 +25102,7 @@ const generatedExtensions = (() => {
                     instancePath: instancePath + '/targets/' + i7 + '/direction',
                     schemaPath: '#/properties/targets/items/properties/direction/enum',
                     keyword: 'enum',
-                    params: {
-                      allowedValues: metricExtensionSchema.properties.targets.items.properties.direction.enum,
-                    },
+                    params: { allowedValues: metricExtensionSchema.properties.targets.items.properties.direction.enum },
                     message: 'must be equal to one of the allowed values',
                   };
                   if (vErrors === null) {
@@ -31935,13 +25762,7 @@ const generatedExtensions = (() => {
                 }
               }
             } else {
-              const err115 = {
-                instancePath: instancePath + '/targets/' + i7,
-                schemaPath: '#/properties/targets/items/type',
-                keyword: 'type',
-                params: { type: 'object' },
-                message: 'must be object',
-              };
+              const err115 = { instancePath: instancePath + '/targets/' + i7, schemaPath: '#/properties/targets/items/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
               if (vErrors === null) {
                 vErrors = [err115];
               } else {
@@ -31951,13 +25772,7 @@ const generatedExtensions = (() => {
             }
           }
         } else {
-          const err116 = {
-            instancePath: instancePath + '/targets',
-            schemaPath: '#/properties/targets/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err116 = { instancePath: instancePath + '/targets', schemaPath: '#/properties/targets/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err116];
           } else {
@@ -31968,13 +25783,7 @@ const generatedExtensions = (() => {
       }
       if (data.owner !== undefined) {
         if (typeof data.owner !== 'string') {
-          const err117 = {
-            instancePath: instancePath + '/owner',
-            schemaPath: '#/properties/owner/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err117 = { instancePath: instancePath + '/owner', schemaPath: '#/properties/owner/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err117];
           } else {
@@ -31985,13 +25794,7 @@ const generatedExtensions = (() => {
       }
       if (data.steward !== undefined) {
         if (typeof data.steward !== 'string') {
-          const err118 = {
-            instancePath: instancePath + '/steward',
-            schemaPath: '#/properties/steward/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err118 = { instancePath: instancePath + '/steward', schemaPath: '#/properties/steward/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err118];
           } else {
@@ -32037,13 +25840,7 @@ const generatedExtensions = (() => {
             errors++;
           }
         } else {
-          const err121 = {
-            instancePath: instancePath + '/replaced_by',
-            schemaPath: '#/$defs/metricName/type',
-            keyword: 'type',
-            params: { type: 'string' },
-            message: 'must be string',
-          };
+          const err121 = { instancePath: instancePath + '/replaced_by', schemaPath: '#/$defs/metricName/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err121];
           } else {
@@ -32070,13 +25867,7 @@ const generatedExtensions = (() => {
         }
       }
     } else {
-      const err123 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err123 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err123];
       } else {
@@ -32107,21 +25898,9 @@ const generatedExtensions = (() => {
           required: ['metric', 'measures'],
           additionalProperties: false,
           properties: {
-            metric: {
-              type: 'string',
-              minLength: 1,
-              description: 'Name of a metric in the semantic model named by semantic_model_ref',
-            },
-            measures: {
-              type: 'string',
-              minLength: 1,
-              description: 'Concept name, IRI or declared QName of the ontology concept the KPI measures',
-            },
-            of: {
-              type: 'string',
-              minLength: 1,
-              description: 'Concept the KPI is about (for example the entity it is computed per)',
-            },
+            metric: { type: 'string', minLength: 1, description: 'Name of a metric in the semantic model named by semantic_model_ref' },
+            measures: { type: 'string', minLength: 1, description: 'Concept name, IRI or declared QName of the ontology concept the KPI measures' },
+            of: { type: 'string', minLength: 1, description: 'Concept the KPI is about (for example the entity it is computed per)' },
           },
         },
       },
@@ -32141,13 +25920,7 @@ const generatedExtensions = (() => {
     }
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       if (data.schema === undefined) {
-        const err0 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'schema' },
-          message: "must have required property '" + 'schema' + "'",
-        };
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'schema' }, message: "must have required property '" + 'schema' + "'" };
         if (vErrors === null) {
           vErrors = [err0];
         } else {
@@ -32156,13 +25929,7 @@ const generatedExtensions = (() => {
         errors++;
       }
       if (data.kpi_bindings === undefined) {
-        const err1 = {
-          instancePath,
-          schemaPath: '#/required',
-          keyword: 'required',
-          params: { missingProperty: 'kpi_bindings' },
-          message: "must have required property '" + 'kpi_bindings' + "'",
-        };
+        const err1 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'kpi_bindings' }, message: "must have required property '" + 'kpi_bindings' + "'" };
         if (vErrors === null) {
           vErrors = [err1];
         } else {
@@ -32172,13 +25939,7 @@ const generatedExtensions = (() => {
       }
       for (const key0 in data) {
         if (!(key0 === 'schema' || key0 === 'kpi_bindings')) {
-          const err2 = {
-            instancePath,
-            schemaPath: '#/additionalProperties',
-            keyword: 'additionalProperties',
-            params: { additionalProperty: key0 },
-            message: 'must NOT have additional properties',
-          };
+          const err2 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err2];
           } else {
@@ -32377,13 +26138,7 @@ const generatedExtensions = (() => {
             }
           }
         } else {
-          const err14 = {
-            instancePath: instancePath + '/kpi_bindings',
-            schemaPath: '#/properties/kpi_bindings/type',
-            keyword: 'type',
-            params: { type: 'array' },
-            message: 'must be array',
-          };
+          const err14 = { instancePath: instancePath + '/kpi_bindings', schemaPath: '#/properties/kpi_bindings/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err14];
           } else {
@@ -32393,13 +26148,7 @@ const generatedExtensions = (() => {
         }
       }
     } else {
-      const err15 = {
-        instancePath,
-        schemaPath: '#/type',
-        keyword: 'type',
-        params: { type: 'object' },
-        message: 'must be object',
-      };
+      const err15 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
         vErrors = [err15];
       } else {
