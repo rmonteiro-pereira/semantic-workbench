@@ -1,8 +1,10 @@
 /** How many items a long list shows at first and how many each "Show more" press adds. */
 export const BINDINGS_PER_GROUP = 5;
 export const BINDINGS_STEP = 10;
-export const CONCEPTS_SHOWN = 30;
+export const CONCEPTS_SHOWN = 12;
 export const CONCEPTS_STEP = 30;
+export const GROUPS_SHOWN = 3;
+export const GROUPS_STEP = 5;
 
 /** How many items to render given the requested limit; never more than the list holds. */
 export function visibleCount(requested: number, total: number) {

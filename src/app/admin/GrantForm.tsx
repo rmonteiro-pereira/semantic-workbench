@@ -146,7 +146,7 @@ function GrantFields({
           </option>
         ))}
       </SelectField>
-      <SelectField label="Scope" value={role === 'admin' ? 'workspace' : scope} disabled={role === 'admin'} onChange={event => setScope(event.target.value as typeof scope)}>
+      <SelectField label="Applies to" value={role === 'admin' ? 'workspace' : scope} disabled={role === 'admin'} onChange={event => setScope(event.target.value as typeof scope)}>
         <option value="workspace">Whole workspace</option>
         <option value="domains">Domains</option>
         <option value="projects">Projects</option>

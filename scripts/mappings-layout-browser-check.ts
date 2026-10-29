@@ -141,17 +141,17 @@ async function bindingLayoutProblems(target: Page) {
   });
 }
 
-// Problems with the tab's height and with the "Show more" buttons: the tab must not grow with its
-// content, each column must scroll by itself, and a control must stay inside its group's box.
+// Problems with the tab's height and with the "Show more" buttons: the tab scrolls as one page and
+// stays a reasonable length because every list shows a few items first, no column is a scroll box
+// of its own, and a control must stay inside its group's box.
 async function boundedLayoutProblems(target: Page, viewportHeight: number) {
   return target.evaluate(viewport => {
     const found: string[] = [];
     const explorer = document.querySelector<HTMLElement>('.mapping-explorer')!;
-    if (explorer.scrollHeight > viewport * 3) found.push(`the tab is ${explorer.scrollHeight}px tall`);
-    for (const selector of ['.mapping-concept-list', '.mapping-detail']) {
+    if (explorer.scrollHeight > viewport * 12) found.push(`the tab is ${explorer.scrollHeight}px tall`);
+    for (const selector of ['.mapping-concepts', '.mapping-concept-list', '.mapping-detail']) {
       const column = document.querySelector<HTMLElement>(selector)!;
-      const box = column.getBoundingClientRect();
-      if (box.height > viewport) found.push(`${selector} is ${box.height}px tall`);
+      if (getComputedStyle(column).overflowY !== 'visible') found.push(`${selector} scrolls on its own`);
     }
     const groups = document.querySelectorAll<HTMLElement>('.mapping-group');
     for (const group of groups) {
@@ -226,7 +226,7 @@ try {
       await chooser.selectOption(document.id);
       await expect(page.getByText('No bindings in this mapping', { exact: true })).toBeVisible();
       await expect(page.locator('.mapping-concept-list > button')).toHaveCount(1);
-      await page.getByRole('button', { name: 'Compose a query…', exact: true }).click();
+      await page.getByRole('button', { name: 'Show query', exact: true }).click();
       await page.getByRole('button', { name: 'Open Source to add bindings', exact: true }).click();
       await expect(page.locator('.tabs .selected')).toHaveText('Source');
       // The title is the file name; the model's own name moves to its tooltip.

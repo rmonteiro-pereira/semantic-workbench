@@ -29,7 +29,10 @@ export async function headerTitleProblems(page: Page, width: number): Promise<st
     for (const button of document.querySelectorAll<HTMLElement>('.header-actions button')) {
       const drawn = button.querySelector('.action-label');
       const hidden = !drawn || getComputedStyle(drawn).position === 'absolute';
-      const hasTooltip = !!button.getAttribute('title');
+      // A button that is off explains itself with a tooltip element instead of a title attribute.
+      const describedBy = button.getAttribute('aria-describedby');
+      const hasTooltipElement = !!describedBy && document.getElementById(describedBy)?.getAttribute('role') === 'tooltip';
+      const hasTooltip = !!button.getAttribute('title') || hasTooltipElement;
       if (hidden && !hasTooltip) found.push(`an icon-only header button has no tooltip`);
     }
     const pill = document.querySelector<HTMLElement>('.save-state-text');

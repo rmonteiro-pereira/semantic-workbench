@@ -6,7 +6,7 @@ export const composerDialog = (page: Page) => page.getByRole('dialog', { name: '
 
 /** Opens the composer from the Mappings tab and waits for it. */
 export async function openComposer(page: Page) {
-  await page.getByRole('button', { name: 'Compose a query…', exact: true }).click();
+  await page.getByRole('button', { name: 'Show query', exact: true }).click();
   await expect(composerDialog(page)).toBeVisible();
 }
 

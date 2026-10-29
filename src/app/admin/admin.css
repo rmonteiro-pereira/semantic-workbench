@@ -426,3 +426,12 @@
 .admin-page table {
   font-size: 14px;
 }
+
+/* A select is as wide as its longest option, so the chosen value is never cut. It only gives way
+   when the pane itself is narrower than that option. */
+.admin-field select {
+  align-self: flex-start;
+  width: max-content;
+  min-width: min(100%, max-content);
+  max-width: 100%;
+}

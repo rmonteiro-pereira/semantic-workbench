@@ -14,7 +14,7 @@ semantic definition; they are not copied into an ontology, mapping or agent requ
    documents, plus the ODCS contract used by their metrics.
 2. In **Mappings**, select Revenue to inspect its binding to `gross_revenue`. Customer and Region
    expose nested referent/link mappings to fields and physical sources, with source evidence.
-3. Choose All concepts, open **Compose a query…**, and select `gross_revenue` with
+3. Choose All concepts, open **Show query**, and select `gross_revenue` with
    `customers.region`. Preview the composed query; the stored metric and declared join determine
    it rather than a predefined query or replacement formula.
 4. **Export agent context** downloads resolved layers, the original mapping tree, definitions,

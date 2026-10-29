@@ -39,7 +39,7 @@ async function addGrant(page: Page, { member, value, role, scope, target }: Gran
   await dialog.getByLabel(member === 'group' ? 'Group object ID' : 'E-mail address').fill(value);
   if (member === 'group') await expect(dialog).toContainText(TEST_GROUPS.salesEditors.name);
   await dialog.getByLabel('Role', { exact: true }).selectOption(role);
-  await dialog.getByLabel('Scope', { exact: true }).selectOption(scope);
+  await dialog.getByLabel('Applies to', { exact: true }).selectOption(scope);
   await dialog.getByLabel(scope === 'domains' ? 'Domain IDs (comma separated)' : 'Projects (comma separated)').fill(target);
   await adminGeometry(page, 'grant-form');
   await review(page, dialog);
