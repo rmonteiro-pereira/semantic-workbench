@@ -1,6 +1,7 @@
 // Checks example loading, mappings and metric composition in the browser.
 import { LOCAL_READER } from '../src/server/projects/reader';
 import { appUrl } from './helpers/base-url';
+import { expectAreaEntityTotal } from './helpers/overview-areas';
 import { setShown, showToggle, viewOptions } from './helpers/graph-options';
 import { chromium, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
@@ -301,7 +302,7 @@ try {
     await expect(page.locator('.react-flow__node-entity').first()).toBeVisible();
     await page.screenshot({ path: '/tmp/billing-full-graph.png' });
     await page.locator('.tabs').getByRole('button', { name: 'Overview', exact: true }).click();
-    await expect(page.locator('.area-entities button')).toHaveCount(45);
+    await expectAreaEntityTotal(page, 45);
   });
   await check('billing example sidebar action opens its project of four documents once and reopens it without duplicating', async () => {
     // The uploaded files lack the data contract, so the first load saves the example project.
@@ -320,7 +321,8 @@ try {
     await expectModelName(page, /Shopping center administration ontology/);
     if (store.list().length !== before + 7) throw Error('Shopping center loader did not save seven documents');
     await page.locator('.tabs').getByRole('button', { name: 'Overview', exact: true }).click();
-    await expect(page.getByLabel('Group model by')).toHaveValue('auto');
+    await expect(page.getByLabel('Group model by')).toHaveCount(0);
+    await expect(page.locator('.overview-grouping-note')).toContainText('Grouped by IRI namespaces');
     for (const prefix of ['core:', 'asset:', 'party:', 'lease:', 'legal:', 'hr:', 'proc:', 'ops:', 'fin:', 'perf:'])
       await expect(page.locator('.area-grid h3', { hasText: prefix }).first()).toBeVisible();
     await page.screenshot({ path: '/tmp/mall-namespaces.png' });

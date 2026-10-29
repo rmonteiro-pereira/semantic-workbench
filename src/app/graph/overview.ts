@@ -309,6 +309,12 @@ export function groupingModes(visible: Entity[], context: GroupingContext) {
 
 const enabled = (state: GroupingModeState) => state.offered && !state.reason;
 
+/** The ways of grouping that work for this file, in the order Auto tries them. Modes with nothing
+ * to group are left out rather than shown disabled. */
+export function usableGroupingModes(modes: Record<ConcreteGroupingMode, GroupingModeState>): ConcreteGroupingMode[] {
+  return GROUPING_ORDER.filter(mode => enabled(modes[mode]));
+}
+
 /** Groups entities and relationships into overview areas. */
 export function modelOverview(entities: Entity[], edges: Relationship[], _name: string, technical = false, grouping: GroupingOptions = {}) {
   const hasClasses = entities.some(e => e.kind === 'OWL class');

@@ -6,6 +6,28 @@ import type { Page } from '@playwright/test';
 export async function pageLayoutProblems(page: Page, screenName: string) {
   return page.evaluate(name => {
     const problems: string[] = [];
+    // Cards pack into columns, so a card may be as short as its content; what must hold is that the
+    // space between a card and the one below it is never larger than the gap between columns.
+    const masonryGapProblems = () => {
+      const grid = document.querySelector('.area-grid');
+      if (!grid) return [];
+      const columnGap = Number.parseFloat(getComputedStyle(grid).columnGap) || 0;
+      const cards = [...grid.children].map(card => card.getBoundingClientRect());
+      const found: string[] = [];
+      for (const card of cards) {
+        const below = cards.filter(other => Math.abs(other.left - card.left) < 2 && other.top > card.top + 1);
+        const next = below.sort((first, second) => first.top - second.top)[0];
+        if (next && next.top - card.bottom > columnGap + 1) found.push('a card leaves a gap below it larger than the column gap');
+      }
+      for (const card of grid.children) {
+        const buttons = card.querySelectorAll('.area-entities button, .area-show-all');
+        const footer = card.querySelector('footer');
+        if (!buttons.length || !footer) continue;
+        const roomBelowEntities = footer.getBoundingClientRect().top - buttons[buttons.length - 1].getBoundingClientRect().bottom;
+        if (roomBelowEntities > 24) found.push('a card has empty room between its entities and its footer');
+      }
+      return found;
+    };
     const rows = (selector: string) => {
       const boxes = [...document.querySelectorAll(selector)].map(el => el.getBoundingClientRect());
       return boxes.filter(box => box.width > 0 && Math.abs(box.top - boxes[0].top) < 2);
@@ -17,10 +39,7 @@ export async function pageLayoutProblems(page: Page, screenName: string) {
       if (!document.querySelector('.overview-top p')?.textContent?.includes('declared relationships')) {
         problems.push('the overview does not explain entity counts');
       }
-      const first = rows('.business-area');
-      if (first.some(box => Math.abs(box.height - first[0].height) > 1)) {
-        problems.push('group cards of one row differ in height');
-      }
+      problems.push(...masonryGapProblems());
     }
     if (name === 'ontology-catalog') {
       const titles = rows('.catalog-card strong');

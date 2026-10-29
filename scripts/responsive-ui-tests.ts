@@ -42,6 +42,7 @@ import { EXPECTED_EXAMPLE_METRICS } from './example-metric-checks';
 import { exampleMetricScreens } from './helpers/examples-tour';
 import { DARK_TOUR_SIZES, chooseTheme, darkTourScreens, themedScreenProblems } from './helpers/theme-tour';
 import { addProjectItem, chooseSetting } from './helpers/sidebar-menus';
+import { groupTrigger } from './helpers/grouping-menu';
 
 // Isolated API fixture: exercising viewport changes never modifies the local workspace. The UBL
 // ontology is imported first so that it opens first.
@@ -959,27 +960,27 @@ try {
     }
     expect(found).toEqual([]);
   });
-  await check('popovers: the grouping details stay anchored below their control and inside the viewport', async () => {
+  await check('popovers: the Group menu stays anchored below its button and inside the viewport', async () => {
     const found: string[] = [];
     for (const [width, height] of six) {
       await sweep.setViewportSize({ width, height });
       await sweep.waitForTimeout(250);
-      const summary = sweep.getByRole('button', { name: 'Grouping details' }).or(sweep.locator('summary[aria-label="Grouping details"]')).first();
-      await summary.click();
-      const pop = sweep.locator('.grouping-details[open]');
-      await expect(pop).toBeVisible();
-      const controlBox = (await sweep.locator('summary[aria-label="Grouping details"]').boundingBox())!;
-      const popBox = (await pop.boundingBox())!;
+      const trigger = groupTrigger(sweep);
+      await trigger.click();
+      const menu = sweep.getByRole('menu', { name: 'Group by' });
+      await expect(menu).toBeVisible();
+      const controlBox = (await trigger.boundingBox())!;
+      const menuBox = (await menu.boundingBox())!;
       const header = (await sweep.locator('main > header.workspace-header').boundingBox())!;
-      if (popBox.left < -1 || popBox.right > width + 1 || popBox.bottom > height + 1) found.push(`${width}×${height}: grouping details outside the viewport`);
-      if (popBox.top < header.y + header.height - 1) found.push(`${width}×${height}: grouping details cover the header`);
-      if (popBox.top < controlBox.y - 1) found.push(`${width}×${height}: grouping details open above their control`);
+      if (menuBox.x < -1 || menuBox.x + menuBox.width > width + 1 || menuBox.y + menuBox.height > height + 1) found.push(`${width}×${height}: Group menu outside the viewport`);
+      if (menuBox.y < header.y + header.height - 1) found.push(`${width}×${height}: Group menu covers the header`);
+      if (menuBox.y < controlBox.y - 1) found.push(`${width}×${height}: Group menu opens above its button`);
       if (width === 390)
         await sweep.screenshot({
           path: '/tmp/workbench-grouping-popover-390.png',
         });
-      await sweep.locator('summary[aria-label="Grouping details"]').click();
-      await expect(pop).toHaveCount(0);
+      await sweep.keyboard.press('Escape');
+      await expect(menu).toHaveCount(0);
     }
     expect(found).toEqual([]);
   });

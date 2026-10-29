@@ -68,6 +68,7 @@ type Props = {
   setSearch: React.Dispatch<React.SetStateAction<string>>;
   showNeighborhood: (id?: string | undefined) => void;
   handleModelOverviewSelectRelationship: (id: string) => void;
+  showAreaInCatalog: (area: import('../graph/ModelOverview').AreaFilter) => void;
   docsRef: React.RefObject<Map<string, import('../projects/api').Doc>>;
   walk: import('../graph/walk').Walk;
   handleNeighborhoodGraphWalk: (steps: import('../graph/walk').WalkStep[]) => void;
@@ -108,6 +109,7 @@ export function GraphViews({
   setSearch,
   showNeighborhood,
   handleModelOverviewSelectRelationship,
+  showAreaInCatalog,
   docsRef,
   walk,
   handleNeighborhoodGraphWalk,
@@ -182,8 +184,6 @@ export function GraphViews({
     return (
       <ModelOverview
         grouping={grouping.value}
-        onGroupingChange={grouping.change}
-        groupingError={grouping.error}
         key={current?.id}
         name={model.name}
         entities={model.entities}
@@ -191,6 +191,7 @@ export function GraphViews({
         search={search}
         selected={selected}
         onSelectEntity={selectEntity}
+        onShowArea={showAreaInCatalog}
         onSelectRelationship={handleModelOverviewSelectRelationship}
         onClose={() => showNeighborhood()}
         onOpenGraph={() => {

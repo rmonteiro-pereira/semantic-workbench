@@ -56,9 +56,9 @@ export const WorkspaceToolbar = React.memo(function WorkspaceToolbar({
     if (compact) closeWorkspace();
   }
 
-  // Grouping applies to the entity graph, the overview and a contract's lineage canvas, not to
-  // the mapping canvas.
-  const groupingApplies = tab === 'overview' || (tab === 'fullgraph' && (!lineageShown || isContract));
+  // The Group menu lives only in the Graph toolbar. It applies to the entity graph and a contract's
+  // lineage canvas, not to the mapping canvas; the Overview only says how it is grouped.
+  const groupingApplies = tab === 'fullgraph' && (!lineageShown || isContract);
   return (
     <>
       <div className="toolbar">
