@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { candidateMappings, coveringMappings, dataContractFilenames, isDefinedIn, mappingsOfProject } from '../src/app/mappings/mapping-scope';
+import { candidateMappings, coveringMappings, dataContractFilenames, mappingsToShow, isDefinedIn, mappingsOfProject } from '../src/app/mappings/mapping-scope';
 import { limitCovering, showMoreDatasetsLabel, visibleCount } from '../src/app/mappings/list-window';
 
 const mappings = [
@@ -50,6 +50,17 @@ describe('which loaded mappings cover the open file', () => {
 
   test('keeps none for a file no mapping reads', () => {
     expect(coveringMappings(loaded, 'c.odcs')).toEqual([]);
+  });
+
+  test('keeps the mapping whose datasets read the open file as a physical source', () => {
+    const withSource = loaded.map(entry => ({ ...entry, documents: [...entry.documents, { documentId: entry.option.id.replace('mapping', 'odcs') }] }));
+    expect(coveringMappings(withSource, 'b.odcs').map(entry => entry.option.id)).toEqual(['b.mapping']);
+  });
+
+  test('shows every mapping of the project when none covers the open file, and only the covering one otherwise', () => {
+    expect(mappingsToShow(loaded, 'shapes.shacl.ttl').map(entry => entry.option.id)).toEqual(['a.mapping', 'b.mapping']);
+    expect(mappingsToShow(loaded, 'a.ontology').map(entry => entry.option.id)).toEqual(['a.mapping']);
+    expect(mappingsToShow([], 'a.ontology')).toEqual([]);
   });
 });
 

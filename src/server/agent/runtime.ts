@@ -25,8 +25,8 @@ export type Evidence = {
   path: (string | number)[];
 };
 /** The part a document plays in a mapping's context. */
-export type DocumentRole = 'mapping' | 'ontology' | 'semantic';
-/** Evidence for a document the context reads, with the role it plays. An unresolved ontology or semantic model has no entry. */
+export type DocumentRole = 'mapping' | 'ontology' | 'semantic' | 'source';
+/** Evidence for a document the context reads, with the role it plays. An unresolved ontology or semantic model has no entry. A `source` is a data contract the datasets read. */
 export type ContextDocument = Evidence & { role: DocumentRole };
 /** A context error or warning with optional source evidence. */
 export type Finding = {
@@ -111,6 +111,14 @@ const evidence = (storedDocument: StoredDocument, path: (string | number)[] = []
   path,
 });
 const contextDocument = (role: DocumentRole, storedDocument: StoredDocument, path: (string | number)[] = []): ContextDocument => ({ ...evidence(storedDocument, path), role });
+/** Finds the data contracts whose objects the datasets read: a dataset's source names a contract object by its physical name or name. */
+function physicalSourceDocuments(parsed: Parsed[], datasets: any[]): ContextDocument[] {
+  const sources = new Set(datasets.map(dataset => dataset?.source).filter((source): source is string => typeof source === 'string'));
+  return parsed
+    .filter(parsedDocument => parsedDocument.data?.kind === 'DataContract')
+    .filter(parsedDocument => (Array.isArray(parsedDocument.data.schema) ? parsedDocument.data.schema : []).some((object: any) => sources.has(object?.physicalName ?? object?.name)))
+    .map(parsedDocument => contextDocument('source', parsedDocument.doc));
+}
 const key = (dataset: string, field: string) => JSON.stringify([dataset, field]);
 function parseDocuments(documents: StoredDocument[]) {
   return documents.map(doc => {
@@ -259,7 +267,12 @@ function assemble(parsed: Parsed[], entry: Entry): RuntimeContext {
   const context: RuntimeContext = {
     mappingId: entry.id,
     name: entry.data.name ?? entry.doc.filename,
-    documents: [contextDocument('mapping', entry.doc, entry.path), ...(ont ? [contextDocument('ontology', ont.doc)] : []), ...(sem ? [contextDocument('semantic', sem.doc, semanticPrefix)] : [])],
+    documents: [
+      contextDocument('mapping', entry.doc, entry.path),
+      ...(ont ? [contextDocument('ontology', ont.doc)] : []),
+      ...(sem ? [contextDocument('semantic', sem.doc, semanticPrefix)] : []),
+      ...(sem ? physicalSourceDocuments(parsed, model.datasets ?? []) : []),
+    ],
     mapping: {
       conceptMappings: entry.data.concept_mappings,
       ontologyRef: entry.data.ontology_ref,

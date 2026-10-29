@@ -4,7 +4,7 @@ import type { SelectedContext } from '../../server/agent/runtime';
 import { EmptyState } from '../projects/EmptyState';
 import { api, type AgentMapping, type Doc } from '../projects/api';
 import { MappingSection } from './MappingSection';
-import { candidateMappings, coveringMappings, dataContractFilenames, isDefinedIn } from './mapping-scope';
+import { candidateMappings, mappingsToShow, dataContractFilenames, isDefinedIn } from './mapping-scope';
 import './mapping-explorer.css';
 
 type MappingOption = AgentMapping;
@@ -87,7 +87,7 @@ export function MappingExplorer({ currentId, currentFilename, currentProject, pr
   const dataContractFiles = useMemo(() => dataContractFilenames(projectFiles.filter(file => file.project === currentProject)), [projectFiles, currentProject]);
   const { catalog, loaded, error } = useProjectMappings(currentProject, currentId, revisionKey);
   const healthy = loaded.flatMap(({ option, context }) => (context ? [{ option, context, documents: context.documents }] : []));
-  const shown = coveringMappings(healthy, currentId);
+  const shown = mappingsToShow(healthy, currentId);
   // A mapping that failed to load cannot say which files it reads, so its error is always shown under its name.
   const failed = loaded.filter(entry => entry.error !== undefined);
   const settled = catalog !== null && loaded.length === candidateMappings(catalog, currentProject, currentId).length;
@@ -100,7 +100,7 @@ export function MappingExplorer({ currentId, currentFilename, currentProject, pr
           {error}
         </p>
       )}
-      {(!currentProject || (settled && shown.length === 0)) && <NoMappings projectOpen={Boolean(currentProject)} hasCatalog={hasCatalog} fileName={currentFilename ?? ''} />}
+      {(!currentProject || (settled && shown.length === 0 && failed.length === 0)) && <NoMappings projectOpen={Boolean(currentProject)} hasCatalog={hasCatalog} fileName={currentFilename ?? ''} />}
       {failed.map(({ option, error: message }) => (
         <MappingFailure key={option.id} name={option.name} message={message ?? ''} />
       ))}

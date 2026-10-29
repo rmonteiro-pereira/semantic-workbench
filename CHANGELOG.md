@@ -13,7 +13,9 @@ not configure a production deployment.
   `boundMetricIds`, and every entry of `documents` has a `role` (`mapping`, `ontology` or
   `semantic`), so the Mappings layer strip shows the right file when a layer is unresolved. A
   mapping whose context fails to load shows its error under its own name while the others still
-  appear, and a concept with a conditional population mapping carries a short notice.
+  appear, and a data contract opens the mapping that reads it as a physical source. When no mapping
+  covers the open file, **Mappings** shows the project's mappings under their names. Pressing
+  **Show all connected** again on an unchanged view repeats the "already shown" message. A concept with a conditional population mapping carries a short notice.
 
 - The header, the tab row and **Mappings** follow the approved designs. The header is 60 px
   with the file name over its kind and save state, a green **Commit** with the number of files

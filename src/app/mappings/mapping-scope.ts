@@ -28,9 +28,18 @@ export function candidateMappings<Mapping extends MappingChoice>(mappings: Mappi
 /** The documents a loaded mapping reads, as the agent API reports them. */
 export type MappingDocuments = { documentId: string }[];
 
-/** Keeps the mappings that are defined in the open file or read it as their ontology or semantic model. */
+/** Keeps the mappings that are defined in the open file or read it as their ontology, semantic model or physical source. */
 export function coveringMappings<Loaded extends { option: MappingChoice; documents: MappingDocuments }>(loaded: Loaded[], openFileId: string | undefined) {
   return loaded.filter(entry => isDefinedIn(entry.option, openFileId) || entry.documents.some(document => document.documentId === openFileId));
+}
+
+/**
+ * Chooses the mappings to show for the open file: those that cover it, or when none does (an RDF or
+ * SHACL file, say) every mapping of the project, so the tab still shows the project's mappings.
+ */
+export function mappingsToShow<Loaded extends { option: MappingChoice; documents: MappingDocuments }>(loaded: Loaded[], openFileId: string | undefined) {
+  const covering = coveringMappings(loaded, openFileId);
+  return covering.length > 0 ? covering : loaded;
 }
 
 /** Names the data contract files among the documents of one project: the physical sources of its datasets. */

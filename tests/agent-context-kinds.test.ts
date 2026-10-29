@@ -25,7 +25,7 @@ function withoutAdditions(agentContext: any) {
   const { metricBindings, boundMetricIds, ...rest } = agentContext;
   void metricBindings;
   void boundMetricIds;
-  const documents = agentContext.documents.map(({ role, ...document }: any) => (void role, document));
+  const documents = agentContext.documents.filter((document: any) => document.role !== 'source').map(({ role, ...document }: any) => (void role, document));
   return { ...rest, documents, bindings: agentContext.bindings.map(({ kind, ...binding }: any) => (void kind, binding)) };
 }
 const digest = (c: any) =>
@@ -145,6 +145,7 @@ test('metricBindings findings: an unknown metric or concept is reported on its b
 });
 test('every document of a context has a role and the context lists the metrics bound directly', () => {
   const context = all['mapped-commerce'].find(x => x.filename === 'commerce.mapping.yaml')!.context;
-  expect(context.documents.map((document: any) => document.role)).toEqual(['mapping', 'ontology', 'semantic']);
+  expect(context.documents.map((document: any) => document.role).slice(0, 3)).toEqual(['mapping', 'ontology', 'semantic']);
+  expect(context.documents.some((document: any) => document.role === 'source')).toBe(true);
   expect(Array.isArray(context.boundMetricIds)).toBe(true);
 });

@@ -296,12 +296,22 @@ try {
   await showMappings(page);
   await mappingStructureChecks(page, 'mall (mapping open)', 'Shopping center administration', 'mall.mapping.yaml');
 
-  await check('a file that no mapping reads gets a one-line message instead of another mapping', async () => {
+  await check('a data contract that a mapping reads as a physical source shows that mapping', async () => {
     await openFile(page, 'Shopping center administration', 'mall.odcs.yaml');
     await showSidebar(page);
     await tab(page, 'Mappings').click();
-    await expect(page.locator('.mapping-explorer .empty-state strong')).toHaveText(/^No mapping of this project covers mall\.odcs\.yaml$/);
-    await expect(page.locator('.mapping-page')).toHaveCount(0);
+    await expect(page.locator('.mapping-page')).toHaveCount(1);
+    await expect(page.locator('.mapping-explorer .empty-state')).toHaveCount(0);
+    await expect(page.locator('.mapping-page .mapping-top p').first()).toContainText('for mall.odcs.yaml');
+  });
+  await api.ws.loadExample('ubl');
+  await page.reload();
+  await check('opening ubl.odcs.yaml shows the UBL mapping and not the empty message', async () => {
+    await openFile(page, 'UBL business model', 'ubl.odcs.yaml');
+    await showSidebar(page);
+    await tab(page, 'Mappings').click();
+    await expect(page.locator('.mapping-page')).not.toHaveCount(0);
+    await expect(page.locator('.mapping-explorer .empty-state')).toHaveCount(0);
   });
   await check('no browser runtime errors', async () => expect(errors).toEqual([]));
   console.log(JSON.stringify({ passed, errors }));

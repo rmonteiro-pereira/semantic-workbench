@@ -255,8 +255,9 @@ For “show revenue by customer region”:
   query filters or treated as fully implemented population semantics.
 
 Each entry of `documents` in a context or plan names the file it reads, its revision and a `role`:
-`mapping`, `ontology` or `semantic`. A reference that does not resolve has no entry, so look a
-document up by its role and not by its position.
+`mapping`, `ontology`, `semantic` or `source`. A `source` is a data contract whose objects the
+datasets read. A reference that does not resolve has no entry, so look a document up by its role
+and not by its position.
 
 ## Metric explanation: explains, never executes
 
