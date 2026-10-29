@@ -1,7 +1,7 @@
 /** One mapping of the Mappings tab: its heading, the four connected layers, and the concepts with their detail. */
 import { Code } from 'lucide-react';
 import React, { useMemo } from 'react';
-import type { Finding, RuntimeContext } from '../../server/agent/runtime';
+import type { Finding, RuntimeContext, SelectedContext } from '../../server/agent/runtime';
 import { useRecordedState } from '../workspace/hooks/useRecordedState';
 import { ConceptDetail } from './ConceptDetail';
 import { ConceptList } from './ConceptList';
@@ -12,7 +12,7 @@ import { useConceptContext } from './useConceptContext';
 import { useQueryComposer } from './useQueryComposer';
 
 type Props = {
-  context: RuntimeContext;
+  context: SelectedContext;
   mappingFile: string;
   project: string;
   projectName: string;
@@ -113,8 +113,8 @@ export function MappingSection({ context, mappingFile, project, projectName, ope
       {dirty && <p className="mapping-notice">This view uses saved document revisions. Save your changes to update the runtime context.</p>}
       {composing && selected.context && (
         <QueryComposer
-          governed={boundMetrics(selected.context, concept)}
-          fields={boundFields(selected.context, concept)}
+          governed={boundMetrics(selected.context)}
+          fields={boundFields(selected.context)}
           metrics={composer.metrics}
           dimensions={composer.dimensions}
           onToggleMetric={composer.toggleMetric}

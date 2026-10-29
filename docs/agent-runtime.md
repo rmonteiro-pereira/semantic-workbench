@@ -174,7 +174,7 @@ unsaved editor drafts are not read and remote references/schemas are never fetch
 | --- | --- |
 | Discover projects | `GET /api/agent/projects` returns `{projects: [{slug, name}]}` |
 | Discover mappings | `GET /api/agent/catalog?project=SLUG` |
-| Read context | `GET /api/agent/context?project=SLUG&mappingId=ID`, optionally with one or more `concept=NAME` to narrow it to those concepts, their bindings, fields and the metrics bound to them |
+| Read context | `GET /api/agent/context?project=SLUG&mappingId=ID`, optionally with one or more `concept=NAME` to narrow it to those concepts, their bindings, fields and the metrics bound to them. The answer always carries `boundMetricIds`, the metrics bound to the selected concepts before the metrics they depend on were added |
 | Request a plan | `POST /api/agent/plan` |
 
 Every request names the project it works in. References resolve only against that project's files,
@@ -253,6 +253,10 @@ For “show revenue by customer region”:
   unmatched facts; declared uniqueness still has to be true in the real external data.
 - Conditional population mappings remain evidence. They are not silently converted into global
   query filters or treated as fully implemented population semantics.
+
+Each entry of `documents` in a context or plan names the file it reads, its revision and a `role`:
+`mapping`, `ontology` or `semantic`. A reference that does not resolve has no entry, so look a
+document up by its role and not by its position.
 
 ## Metric explanation: explains, never executes
 

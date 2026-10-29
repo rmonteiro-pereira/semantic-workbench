@@ -11,7 +11,7 @@ import { createAuditLog } from './auth/audit';
 import { adminRoutes } from './routes/admin';
 import { auditRoutes } from './routes/audit';
 import { documentsOfProject } from '../shared/core/project-scope';
-import { agentCatalog, buildContext, selectContext, planQuery } from './agent/runtime';
+import { agentCatalog, buildContext, selectContext, wholeContext, planQuery } from './agent/runtime';
 import { decodeSegment, readJson, requestAuditId, type AuditRequest } from './request';
 import { InputError, MAX_INPUT_BYTES } from '../shared/validation/diagnostics';
 import { NotFoundError, StaleError, type Workspace } from './projects/workspace';
@@ -62,10 +62,9 @@ const legacyRoutes: Route = async (ws, req, url) => {
     const documents = agentDocuments(ws, req, project);
     requireReadableDocument(ws, req, mappingRef(mappingId));
     requireMappingInProject(ws, mappingRef(mappingId), project);
-    let context = buildContext(documents, mappingRef(mappingId));
+    const context = buildContext(documents, mappingRef(mappingId));
     const concepts = url.searchParams.getAll('concept');
-    if (concepts.length) context = selectContext(context, concepts);
-    return Response.json(context);
+    return Response.json(concepts.length ? selectContext(context, concepts) : wholeContext(context));
   }
   if (url.pathname === '/api/agent/plan' && req.method === 'POST') {
     const body = await readJson(req, 64_000);

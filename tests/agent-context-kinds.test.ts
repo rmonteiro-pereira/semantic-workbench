@@ -22,9 +22,11 @@ const stable = (value: any): any => {
   return value;
 };
 function withoutAdditions(agentContext: any) {
-  const { metricBindings, ...rest } = agentContext;
+  const { metricBindings, boundMetricIds, ...rest } = agentContext;
   void metricBindings;
-  return { ...rest, bindings: agentContext.bindings.map(({ kind, ...binding }: any) => (void kind, binding)) };
+  void boundMetricIds;
+  const documents = agentContext.documents.map(({ role, ...document }: any) => (void role, document));
+  return { ...rest, documents, bindings: agentContext.bindings.map(({ kind, ...binding }: any) => (void kind, binding)) };
 }
 const digest = (c: any) =>
   createHash('sha256')
@@ -140,4 +142,9 @@ test('metricBindings findings: an unknown metric or concept is reported on its b
   expect(bad.of.concept).toBeNull();
   expect(agentContext.findings.some((f: any) => /no_such_metric/.test(f.message))).toBe(false);
   workspace.dispose();
+});
+test('every document of a context has a role and the context lists the metrics bound directly', () => {
+  const context = all['mapped-commerce'].find(x => x.filename === 'commerce.mapping.yaml')!.context;
+  expect(context.documents.map((document: any) => document.role)).toEqual(['mapping', 'ontology', 'semantic']);
+  expect(Array.isArray(context.boundMetricIds)).toBe(true);
 });

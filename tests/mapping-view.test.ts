@@ -1,6 +1,17 @@
 import { expect, test } from 'bun:test';
-import type { RuntimeContext } from '../src/server/agent/runtime';
-import { agentContextLines, boundFields, boundMetrics, conceptRows, conceptSummary, datasetRows, firstConceptToShow, layerCells, withDeclaredPrefix } from '../src/app/mappings/mapping-view';
+import { selectContext, wholeContext, type RuntimeContext, type SelectedContext } from '../src/server/agent/runtime';
+import {
+  agentContextLines,
+  boundFields,
+  boundMetrics,
+  conceptRows,
+  conceptSummary,
+  datasetRows,
+  firstConceptToShow,
+  hasConditionalBinding,
+  layerCells,
+  withDeclaredPrefix,
+} from '../src/app/mappings/mapping-view';
 
 const evidence = { documentId: 'a', filename: 'a.yaml', revision: 1, path: [] };
 
@@ -10,9 +21,9 @@ function context(): RuntimeContext {
     mappingId: 'shop.mapping.yaml',
     name: 'Shop mapping',
     documents: [
-      { ...evidence, filename: 'shop.mapping.yaml' },
-      { ...evidence, filename: 'shop.ontology.yaml' },
-      { ...evidence, filename: 'shop.semantic.yaml' },
+      { ...evidence, role: 'mapping', filename: 'shop.mapping.yaml' },
+      { ...evidence, role: 'ontology', filename: 'shop.ontology.yaml' },
+      { ...evidence, role: 'semantic', filename: 'shop.semantic.yaml' },
     ],
     ontology: { name: 'Shop ontology', description: 'Orders and customers.', prefixes: { shop: 'https://example.org/shop#' } },
     semanticModel: { name: 'Shop model' },
@@ -75,30 +86,53 @@ test('a concept shows its definition and its IRI with the ontology prefix', () =
 });
 
 test('where a concept lives lists the datasets of its fields and of its bound metrics', () => {
-  expect(datasetRows(context(), '')).toEqual([
+  expect(datasetRows(wholeContext(context()))).toEqual([
     { dataset: 'orders', fields: ['id', 'total'] },
     { dataset: 'customers', fields: ['id'] },
   ]);
 });
 
 test('a metric counts as bound when a binding names it or a metric binding points at the concept', () => {
-  expect(boundMetrics(context(), 'Order').map(metric => metric.name)).toEqual(['revenue']);
+  expect(boundMetrics(selectContext(context(), ['Order'])).map(metric => metric.name)).toEqual(['revenue']);
   const direct = { ...context(), bindings: [], metricBindings: [{ metric: 'revenue', measures: { concept: 'Order' }, findings: [], evidence }] } as unknown as RuntimeContext;
-  expect(boundMetrics(direct, 'Order').map(metric => metric.name)).toEqual(['revenue']);
-  expect(boundMetrics(direct, 'Customer')).toEqual([]);
+  expect(boundMetrics(selectContext(direct, ['Order'])).map(metric => metric.name)).toEqual(['revenue']);
+  expect(boundMetrics(selectContext(direct, ['Customer']))).toEqual([]);
   const unbound = { ...context(), bindings: [], metricBindings: [] } as unknown as RuntimeContext;
-  expect(boundMetrics(unbound, '')).toEqual([]);
-  expect(datasetRows(unbound, '')).toEqual([]);
+  expect(boundMetrics(wholeContext(unbound))).toEqual([]);
+  expect(datasetRows(wholeContext(unbound))).toEqual([]);
+});
+
+test('a metric another bound metric depends on is not listed as bound to the concept', () => {
+  const base = context();
+  const withDependency = { ...base, metrics: [...base.metrics, { id: 'base', name: 'base', fields: ['o.id'], datasets: ['orders'], dependsOn: [] }] } as unknown as RuntimeContext;
+  withDependency.metrics[0]!.dependsOn = ['base'];
+  const selected = selectContext(withDependency, ['Order']);
+  expect(selected.metrics.map(metric => metric.id)).toEqual(['revenue', 'base']);
+  expect(boundMetrics(selected).map(metric => metric.id)).toEqual(['revenue']);
+});
+
+test('the layer strip keeps the semantic file under Semantic model when the ontology did not resolve', () => {
+  const unresolved = { ...context(), documents: context().documents.filter(document => document.role !== 'ontology'), ontology: {} } as unknown as RuntimeContext;
+  const cells = layerCells(unresolved, []);
+  expect(cells[0]).toMatchObject({ layer: 'Ontology', name: 'Unresolved', file: '' });
+  expect(cells[2]).toMatchObject({ layer: 'Semantic model', file: 'shop.semantic.yaml' });
+});
+
+test('a conditional binding is reported so the page can warn about it', () => {
+  expect(hasConditionalBinding(context())).toBe(false);
+  const conditional = context();
+  conditional.bindings[0]!.condition = { op: 'equals' };
+  expect(hasConditionalBinding(conditional)).toBe(true);
 });
 
 test('the AI context lines describe what the agent API returned', () => {
-  const lines = agentContextLines(context(), 'Order');
+  const lines = agentContextLines(wholeContext(context()), 'Order');
   expect(lines.map(line => line.label)).toEqual(['Concept', 'Datasets', 'Metrics', 'Notes']);
   expect(lines[0]!.text).toBe('Order, with its definition and synonyms');
   expect(lines[1]!.text).toBe('2 datasets, each with its fields and keys');
   expect(lines[2]!.text).toBe('1 governed metric with its formula');
   expect(lines[3]!.text).toBe('1 ai_context note written in the files');
-  const bare = { ...context(), metrics: [], bindings: [], aiContext: [] } as unknown as RuntimeContext;
+  const bare = { ...wholeContext(context()), metrics: [], bindings: [], aiContext: [] } as unknown as SelectedContext;
   expect(
     agentContextLines(bare, 'Order')
       .map(line => line.text)
@@ -107,7 +141,7 @@ test('the AI context lines describe what the agent API returned', () => {
 });
 
 test('a query can use the fields of the bindings and of the bound metrics, and nothing else', () => {
-  expect(boundFields(context(), 'Order').map(field => field.id)).toEqual(['o.id', 'o.total', 'c.id']);
+  expect(boundFields(wholeContext(context())).map(field => field.id)).toEqual(['o.id', 'o.total', 'c.id']);
   const unbound = { ...context(), bindings: [], metricBindings: [] } as unknown as RuntimeContext;
-  expect(boundFields(unbound, '')).toEqual([]);
+  expect(boundFields(wholeContext(unbound))).toEqual([]);
 });

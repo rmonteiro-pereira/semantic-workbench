@@ -24,6 +24,10 @@ export type Evidence = {
   revision: number;
   path: (string | number)[];
 };
+/** The part a document plays in a mapping's context. */
+export type DocumentRole = 'mapping' | 'ontology' | 'semantic';
+/** Evidence for a document the context reads, with the role it plays. An unresolved ontology or semantic model has no entry. */
+export type ContextDocument = Evidence & { role: DocumentRole };
 /** A context error or warning with optional source evidence. */
 export type Finding = {
   severity: 'error' | 'warning';
@@ -77,7 +81,7 @@ export type MetricBinding = {
 export type RuntimeContext = {
   mappingId: string;
   name: string;
-  documents: Evidence[];
+  documents: ContextDocument[];
   mapping: any;
   ontology: any;
   semanticModel: any;
@@ -106,6 +110,7 @@ const evidence = (storedDocument: StoredDocument, path: (string | number)[] = []
   revision: storedDocument.revision,
   path,
 });
+const contextDocument = (role: DocumentRole, storedDocument: StoredDocument, path: (string | number)[] = []): ContextDocument => ({ ...evidence(storedDocument, path), role });
 const key = (dataset: string, field: string) => JSON.stringify([dataset, field]);
 function parseDocuments(documents: StoredDocument[]) {
   return documents.map(doc => {
@@ -254,7 +259,7 @@ function assemble(parsed: Parsed[], entry: Entry): RuntimeContext {
   const context: RuntimeContext = {
     mappingId: entry.id,
     name: entry.data.name ?? entry.doc.filename,
-    documents: [evidence(entry.doc, entry.path), ...(ont ? [evidence(ont.doc)] : []), ...(sem ? [evidence(sem.doc, semanticPrefix)] : [])],
+    documents: [contextDocument('mapping', entry.doc, entry.path), ...(ont ? [contextDocument('ontology', ont.doc)] : []), ...(sem ? [contextDocument('semantic', sem.doc, semanticPrefix)] : [])],
     mapping: {
       conceptMappings: entry.data.concept_mappings,
       ontologyRef: entry.data.ontology_ref,
@@ -525,14 +530,25 @@ function assemble(parsed: Parsed[], entry: Entry): RuntimeContext {
   }));
   return context;
 }
-/** Narrows context to named concepts and their referenced fields and metrics, including metrics bound to those concepts. */
-export function selectContext(context: RuntimeContext, conceptNames: string[]) {
+/** A context with the ids of the metrics bound to its concepts directly, before the metrics they depend on are added. */
+export type SelectedContext = RuntimeContext & { boundMetricIds: string[] };
+/** Lists the metrics a binding names or a metric binding attaches to one of the concepts, or to any concept when none is named. */
+function directlyBoundMetricIds(context: RuntimeContext, names: Set<string>, bindings: Binding[]) {
+  // A metric can also be bound straight to a concept, without a mapping expression of its own.
+  const boundStraight = context.metricBindings.filter(binding => names.size === 0 || [binding.measures.concept, binding.of?.concept].some(concept => !!concept && names.has(concept)));
+  return [...new Set([...bindings.flatMap(binding => binding.metrics), ...boundStraight.map(binding => binding.metric)])];
+}
+/** Returns the whole mapping context, unnarrowed, with the metrics bound to any of its concepts. */
+export function wholeContext(context: RuntimeContext): SelectedContext {
+  return { ...context, boundMetricIds: directlyBoundMetricIds(context, new Set(), context.bindings) };
+}
+/** Narrows context to named concepts and their referenced fields and metrics, including metrics bound to those concepts. `boundMetricIds` lists the metrics bound to the concepts directly, before the metrics they depend on are added. */
+export function selectContext(context: RuntimeContext, conceptNames: string[]): SelectedContext {
   const names = new Set(conceptNames);
   for (const name of names) if (!context.concepts.some(c => c.concept === name)) throw new BadRequestError(`Unknown concept ${name}.`);
   const bindings = context.bindings.filter(b => names.size === 0 || names.has(b.rootConcept) || names.has(b.concept));
-  // A metric can also be bound straight to a concept, without a mapping expression of its own.
-  const boundMetrics = context.metricBindings.filter(binding => names.size === 0 || [binding.measures.concept, binding.of?.concept].some(concept => !!concept && names.has(concept)));
-  const metricNames = new Set([...bindings.flatMap(b => b.metrics), ...boundMetrics.map(binding => binding.metric)]);
+  const boundMetricIds = directlyBoundMetricIds(context, names, bindings);
+  const metricNames = new Set(boundMetricIds);
   const pending = [...metricNames];
   for (let i = 0; i < pending.length; i++)
     for (const dep of context.metrics.find(m => m.id === pending[i])?.dependsOn ?? [])
@@ -547,6 +563,7 @@ export function selectContext(context: RuntimeContext, conceptNames: string[]) {
     ...context,
     concepts: context.concepts.filter(c => names.size === 0 || names.has(c.concept) || bindings.some(b => b.concept === c.concept || b.rootConcept === c.concept)),
     bindings,
+    boundMetricIds,
     metrics,
     fields,
     datasets: context.datasets,

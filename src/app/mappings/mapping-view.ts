@@ -1,5 +1,5 @@
 /** Turns a mapping's resolved context into the rows, cards and lines the Mappings tab shows. */
-import type { RuntimeContext } from '../../server/agent/runtime';
+import type { DocumentRole, RuntimeContext, SelectedContext } from '../../server/agent/runtime';
 
 type Concept = RuntimeContext['concepts'][number];
 
@@ -31,6 +31,11 @@ export function firstConceptToShow(rows: ConceptRow[]) {
   return rows.find(row => row.bindings > 0)?.concept ?? '';
 }
 
+/** Tells whether any of the selected bindings maps only the rows that meet a condition. */
+export function hasConditionalBinding(context: RuntimeContext) {
+  return context.bindings.some(binding => Boolean(binding.condition));
+}
+
 /** One cell of the strip that connects ontology, mapping, semantic model and physical sources. */
 export type LayerCell = { layer: string; name: string; count: string; file: string };
 
@@ -40,12 +45,12 @@ function plural(count: number, singular: string, pluralForm = singular + 's') {
 
 /** Describes the four layers of a mapping. The file names come from the documents the mapping reads. */
 export function layerCells(context: RuntimeContext, dataContractFiles: string[]): LayerCell[] {
-  const [mappingDocument, ontologyDocument, semanticDocument] = context.documents;
+  const fileOf = (role: DocumentRole) => context.documents.find(document => document.role === role)?.filename ?? '';
   const ontologyConcepts = context.concepts.filter(concept => !concept.builtin).length;
   return [
-    { layer: 'Ontology', name: context.ontology.name ?? 'Unresolved', count: plural(ontologyConcepts, 'concept'), file: ontologyDocument?.filename ?? '' },
-    { layer: 'Mapping', name: plural(context.bindings.length, 'binding'), count: '', file: mappingDocument?.filename ?? '' },
-    { layer: 'Semantic model', name: context.semanticModel.name ?? 'Unresolved', count: '', file: semanticDocument?.filename ?? '' },
+    { layer: 'Ontology', name: context.ontology.name ?? 'Unresolved', count: plural(ontologyConcepts, 'concept'), file: fileOf('ontology') },
+    { layer: 'Mapping', name: plural(context.bindings.length, 'binding'), count: '', file: fileOf('mapping') },
+    { layer: 'Semantic model', name: context.semanticModel.name ?? 'Unresolved', count: '', file: fileOf('semantic') },
     { layer: 'Physical sources', name: plural(context.datasets.length, 'dataset'), count: '', file: dataContractFiles.join(', ') },
   ];
 }
@@ -75,18 +80,15 @@ export function conceptSummary(context: RuntimeContext, concept: string): Concep
   };
 }
 
-/** Lists the governed metrics bound to the concept: named by a binding, or bound straight to it. Without a concept, every bound metric. */
-export function boundMetrics(context: RuntimeContext, concept: string) {
-  const bound = new Set(context.bindings.flatMap(binding => binding.metrics));
-  for (const metricBinding of context.metricBindings) {
-    if (!concept || metricBinding.measures.concept === concept || metricBinding.of?.concept === concept) bound.add(metricBinding.metric);
-  }
+/** Lists the governed metrics the server bound to the concept, or to every concept when none is selected. */
+export function boundMetrics(context: SelectedContext) {
+  const bound = new Set(context.boundMetricIds);
   return context.metrics.filter(metric => bound.has(metric.id));
 }
 
 /** Lists the fields the bindings use and the fields of the bound metrics: what a query for the concept can group by or calculate. */
-export function boundFields(context: RuntimeContext, concept: string) {
-  const ids = new Set([...context.bindings.flatMap(binding => binding.fields), ...boundMetrics(context, concept).flatMap(metric => metric.fields)]);
+export function boundFields(context: SelectedContext) {
+  const ids = new Set([...context.bindings.flatMap(binding => binding.fields), ...boundMetrics(context).flatMap(metric => metric.fields)]);
   return context.fields.filter(field => ids.has(field.id));
 }
 
@@ -94,9 +96,9 @@ export function boundFields(context: RuntimeContext, concept: string) {
 export type DatasetRow = { dataset: string; fields: string[] };
 
 /** Groups by dataset the fields the bindings use, then the fields of the bound metrics, in the order they are listed. */
-export function datasetRows(context: RuntimeContext, concept: string): DatasetRow[] {
+export function datasetRows(context: SelectedContext): DatasetRow[] {
   const fieldsById = new Map(context.fields.map(field => [field.id, field]));
-  const fieldIds = [...context.bindings.flatMap(binding => binding.fields), ...boundMetrics(context, concept).flatMap(metric => metric.fields)];
+  const fieldIds = [...context.bindings.flatMap(binding => binding.fields), ...boundMetrics(context).flatMap(metric => metric.fields)];
   const rows = new Map<string, string[]>();
   for (const id of fieldIds) {
     const field = fieldsById.get(id);
@@ -131,8 +133,8 @@ export function aiContextNotes(context: RuntimeContext): string[] {
 export type AgentContextLine = { label: string; text: string };
 
 /** Describes what the agent API returned for the selection, one line per kind of information. */
-export function agentContextLines(context: RuntimeContext, concept: string): AgentContextLine[] {
-  const datasets = datasetRows(context, concept).length;
+export function agentContextLines(context: SelectedContext, concept: string): AgentContextLine[] {
+  const datasets = datasetRows(context).length;
   const metrics = context.metrics.length;
   const notes = aiContextNotes(context).length;
   return [

@@ -1,12 +1,12 @@
 /** The right column of the Mappings tab: what the ontology, the mapping and the agent API say about one concept. */
-import type { RuntimeContext } from '../../server/agent/runtime';
+import type { SelectedContext } from '../../server/agent/runtime';
 import { ShowMoreControl } from './ShowMoreControl';
 import { DATASETS_SHOWN, DATASETS_STEP, showMoreDatasetsLabel, visibleCount } from './list-window';
-import { agentContextLines, boundMetrics, conceptSummary, datasetRows } from './mapping-view';
+import { agentContextLines, boundMetrics, hasConditionalBinding, conceptSummary, datasetRows } from './mapping-view';
 
 type Props = {
   /** What the agent API returned for the concept; for All concepts, the whole mapping. */
-  context: RuntimeContext;
+  context: SelectedContext;
   concept: string;
   datasetLimit: number;
   onDatasetLimit: (limit: number) => void;
@@ -25,9 +25,10 @@ function datasetCountText(bindings: number, datasets: number) {
 export function ConceptDetail({ context, concept, datasetLimit, onDatasetLimit }: Props) {
   const summary = conceptSummary(context, concept);
   const subject = concept || 'all concepts';
-  const rows = datasetRows(context, concept);
+  const rows = datasetRows(context);
   const shown = visibleCount(datasetLimit, rows.length);
-  const metrics = boundMetrics(context, concept).map(metric => metric.name);
+  const conditional = hasConditionalBinding(context);
+  const metrics = boundMetrics(context).map(metric => metric.name);
   return (
     <div className="mapping-detail">
       <Card>
@@ -49,6 +50,7 @@ export function ConceptDetail({ context, concept, datasetLimit, onDatasetLimit }
             <span className="mapping-fields">{row.fields.join(' · ')}</span>
           </div>
         ))}
+        {conditional && <p className="mapping-note">Conditional population mapping. Review its meaning before composing a query.</p>}
         <ShowMoreControl
           showMoreLabel={rows.length > shown ? showMoreDatasetsLabel(rows.length - shown) : ''}
           expanded={shown > DATASETS_SHOWN}
