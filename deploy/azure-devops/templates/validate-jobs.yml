@@ -76,6 +76,8 @@ jobs:
           suite: test:terminology
         mappings_layout:
           suite: test:mappings-layout
+        clipping:
+          suite: test:clipping
         mapping_graph:
           suite: test:mapping-graph
         back_history:

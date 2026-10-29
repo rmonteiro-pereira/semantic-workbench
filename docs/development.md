@@ -149,6 +149,7 @@ suites use `SW_BASE_URL`. The full runner supplies fresh frontend processes as n
 | `test:telemetry` | Bounded error/timing reports, redaction and export-off behavior |
 | `test:terminology` | Metric/table naming across the interface and current guides |
 | `test:mappings-layout` | Binding presentation, geometry and selected-document Source |
+| `test:clipping` | Nothing cut on Mappings, header and entity details at 1280 and 390 px; Commit tooltip; no sideways scroll in details (Admin: `tests/admin-clipping.test.tsx`) |
 | `test:mapping-graph` | Every displayed mapping line against resolver evidence |
 | `test:back-history` | Back and Forward undo and redo every click action, in the app and the browser |
 | `test:theme` | Theme choice, token propagation, contrast and viewport tours |

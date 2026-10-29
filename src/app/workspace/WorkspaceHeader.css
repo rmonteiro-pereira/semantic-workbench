@@ -76,6 +76,7 @@
   gap: 6px;
 }
 .header-actions > button,
+.header-actions .commit-wrap > button,
 .header-actions .menu-button > button,
 .header-account .menu-button > button {
   height: var(--header-control-height);
@@ -168,6 +169,7 @@
     white-space: nowrap;
   }
   .header-actions > button,
+  .header-actions .commit-wrap > button,
   .header-actions .menu-button > button,
   .header-account .menu-button > button {
     min-width: var(--header-control-height);
@@ -257,4 +259,31 @@ header.workspace-header.header-phone {
   clip-path: none;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+/* The reason Commit is off shows under it on hover and focus, kept inside the window's right edge. */
+.commit-wrap {
+  position: relative;
+  display: inline-flex;
+}
+.commit-tooltip {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 30;
+  width: max-content;
+  max-width: min(260px, calc(100vw - 24px));
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--color-text);
+  color: var(--color-surface);
+  font-size: 12.5px;
+  line-height: 1.4;
+  white-space: normal;
+  pointer-events: none;
+}
+.commit-wrap:hover > .commit-tooltip,
+.commit-wrap:focus-within > .commit-tooltip {
+  display: block;
 }

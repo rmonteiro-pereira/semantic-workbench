@@ -9,18 +9,32 @@
   align-items: flex-start;
   gap: 2px;
 }
-/* The tab keeps a fixed height: the header rows stay put and the two columns fill the rest,
-   each scrolling on its own. The columns never get shorter than a usable list. */
+/* The whole tab scrolls as one page. The concept list and the detail column grow to their content
+   instead of scrolling on their own, so no blank area is left under a short column and nothing sits
+   inside a scroll box of its own. The lists are kept short by their Show more buttons. */
 .mapping-explorer > * {
   flex-shrink: 0;
 }
 .mapping-explorer > .mapping-columns {
-  flex: 1 0 520px;
-  min-height: 520px;
+  flex: 0 0 auto;
+  grid-template-rows: auto;
+  align-items: start;
+}
+.mapping-explorer .mapping-concepts,
+.mapping-explorer .mapping-concept-list,
+.mapping-explorer .mapping-detail {
+  max-height: none;
+  overflow: visible;
 }
 .mapping-concept-list {
   padding-bottom: 16px;
   mask-image: none;
+  scroll-snap-type: none;
+}
+@media (max-width: 759px) {
+  .mapping-explorer > .mapping-columns {
+    grid-template-rows: auto auto;
+  }
 }
 
 /* Buttons that reveal more items stay inside the box of the list or group they extend. */
@@ -69,6 +83,13 @@
   font-size: var(--text-small);
 }
 
-.mapping-explorer .mapping-concepts {
-  max-height: none;
+/* The heading buttons keep their whole label; the title block gives way and the buttons wrap
+   onto their own line instead. */
+.mapping-heading > div:first-child {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+.mapping-heading-actions button {
+  flex-shrink: 0;
+  white-space: nowrap;
 }

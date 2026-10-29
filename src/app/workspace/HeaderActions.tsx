@@ -1,5 +1,5 @@
 /** The header's actions: Commit and a More actions menu, with an optional status before them. */
-import type { ReactNode } from 'react';
+import { useId, type ReactNode } from 'react';
 import { Download, GitCommit as GitCommitIcon, MoreHorizontal, Plus } from 'lucide-react';
 import type { MenuItem } from '../projects/Menu';
 import { MenuButton } from '../projects/Menu';
@@ -45,17 +45,42 @@ type Props = HeaderActionState & {
   leadingStatus?: ReactNode;
 };
 
+/**
+ * Commit stays focusable while it is off, so keyboard users reach the reason too. It is marked
+ * aria-disabled instead of disabled, and a tooltip says why on hover and focus.
+ */
+function CommitButton({ state }: { state: HeaderActionState }) {
+  const tooltipId = useId();
+  const unavailable = state.commitDisabled;
+  const handleClick = unavailable ? undefined : state.onCommitClick;
+  return (
+    <span className="commit-wrap">
+      <button
+        className="primary commit-button"
+        aria-label="Commit…"
+        aria-disabled={unavailable || undefined}
+        aria-describedby={unavailable ? tooltipId : undefined}
+        onClick={handleClick}
+        title={unavailable ? undefined : state.commitTitle}
+      >
+        <GitCommitIcon size={16} />
+        <span className="action-label">Commit…</span>
+      </button>
+      {unavailable && (
+        <span role="tooltip" id={tooltipId} className="commit-tooltip">
+          {state.commitTitle}
+        </span>
+      )}
+    </span>
+  );
+}
+
 /** Renders Commit and the More actions menu; New and Export live in the menu. */
 export function HeaderActions({ leadingStatus, ...state }: Props) {
   return (
     <div className="header-actions">
       {leadingStatus}
-      {state.hasFile && (
-        <button className="primary commit-button" aria-label="Commit…" onClick={state.onCommitClick} disabled={state.commitDisabled} title={state.commitTitle}>
-          <GitCommitIcon size={16} />
-          <span className="action-label">Commit…</span>
-        </button>
-      )}
+      {state.hasFile && <CommitButton state={state} />}
       <MenuButton ariaLabel="More actions" title="More actions" icon={<MoreHorizontal size={18} strokeWidth={4} />} buttonClassName="more-actions" items={moreActionItems(state)} />
     </div>
   );

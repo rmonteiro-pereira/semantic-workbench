@@ -27,6 +27,7 @@ export const gateSuites: string[] = [
   'test:telemetry',
   'test:terminology',
   'test:mappings-layout',
+  'test:clipping',
   'test:mapping-graph',
   'test:back-history',
   'test:theme',

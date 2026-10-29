@@ -42,6 +42,8 @@ import { EXPECTED_EXAMPLE_METRICS } from './example-metric-checks';
 import { exampleMetricScreens } from './helpers/examples-tour';
 import { DARK_TOUR_SIZES, chooseTheme, darkTourScreens, themedScreenProblems } from './helpers/theme-tour';
 import { addProjectItem, chooseSetting } from './helpers/sidebar-menus';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { projectFile } from '../src/server/projects/paths';
 
 // Isolated API fixture: exercising viewport changes never modifies the local workspace. The UBL
 // ontology is imported first so that it opens first.
@@ -738,8 +740,8 @@ try {
         await page.goto(appUrl());
         const commit = page.getByRole('button', { name: /^Commit/ }).first();
         await expect(commit).toBeDisabled();
-        await expect(commit).toHaveAttribute('title', /Requires Editor/);
         await commit.hover({ force: true });
+        await expect(page.getByRole('tooltip')).toHaveText(/Requires Editor/);
         await page.getByRole('button', { name: 'Person menu', exact: true }).click();
         expect(await layoutProblems(page)).toEqual([]);
         const menu = page.getByRole('menu');
@@ -1198,13 +1200,22 @@ try {
       },
       LOCAL_READER,
     );
-    for (const [width, height] of six) {
-      const finalPage = await openPage(width, height);
-      try {
-        for (const name of dialogNames) await sweepDialog(finalPage, name, width);
-      } finally {
-        await finalPage.close();
+    // Commit is off while nothing has changed, so one file is edited on disk while the sweep runs.
+    const sweepProject = api.ws.documents().find(document => document.filename === 'ubl.ontology.yaml')!.project;
+    const sweepFile = projectFile(api.ws.layout, sweepProject, 'ubl.ontology.yaml');
+    const original = readFileSync(sweepFile, 'utf8');
+    writeFileSync(sweepFile, original + '\n# edited for the Commit dialog\n');
+    try {
+      for (const [width, height] of six) {
+        const finalPage = await openPage(width, height);
+        try {
+          for (const name of dialogNames) await sweepDialog(finalPage, name, width);
+        } finally {
+          await finalPage.close();
+        }
       }
+    } finally {
+      writeFileSync(sweepFile, original);
     }
   });
   // Status messages: a message never covers a control, disappears by itself within six seconds,

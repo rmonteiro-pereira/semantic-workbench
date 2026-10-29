@@ -482,8 +482,10 @@ tab; each dataset group shows its first five bindings and **Show N more** reveal
 **Show fewer** folds them again, and a long concept list works the same way. The tab lists only the
 mappings of the open file's project, says so when that project has none, and asks you to open a
 project when no file is open. Search includes unbound concepts; empty views offer Source navigation
-for the selected mapping document. **Compose a query…** selects mapped fields/metrics and previews a
-newly composed governed query. **Export agent context** downloads metadata.
+for the selected mapping document. **Show query** selects mapped fields/metrics and previews a
+newly composed governed query without running it. **AI context** lists the concepts, fields and
+metrics an agent receives for the selected concept (or all concepts), with any `ai_context` the
+documents declare. **Export agent context** downloads metadata.
 
 For mapping files, **Graph** shows concepts and relationship rows, datasets/fields, metrics and
 resolved mapping lines. Select a row to highlight its bindings and relevant joins. **Unmapped

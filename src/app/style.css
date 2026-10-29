@@ -71,11 +71,14 @@ button:hover {
 button:disabled,
 button.primary:disabled,
 button.danger:disabled,
-button:disabled:hover {
+button:disabled:hover,
+button[aria-disabled='true'],
+button.primary[aria-disabled='true'],
+button[aria-disabled='true']:hover {
   opacity: 1;
   background: var(--color-surface-sunken);
   border-color: var(--color-border);
-  border-style: dashed;
+  border-style: solid;
   color: var(--text-muted);
   cursor: default;
 }
@@ -602,16 +605,18 @@ main {
   background: var(--color-surface);
   font-size: var(--text-small);
 }
-.related-edges {
-  max-height: 280px;
-  overflow: auto;
-}
+/* The list flows in the panel's own scroll. A row wraps, so the target goes under the relationship
+   name when the panel is narrow, and no name is ever cut. */
 .related-edges button {
   width: 100%;
+  flex-wrap: wrap;
   justify-content: space-between;
+  gap: 2px 8px;
   margin: 3px 0;
   text-align: left;
   font-size: var(--text-small);
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .related-edges small {
   color: var(--text-muted);

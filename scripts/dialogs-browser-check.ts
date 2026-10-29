@@ -5,11 +5,15 @@ import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { LOCAL_READER } from '../src/server/projects/reader';
 import { menuSurfaceProblems } from './helpers/menu-geometry';
 import { openNewMenu } from './helpers/header';
+import { appendFileSync } from 'node:fs';
+import { projectFile } from '../src/server/projects/paths';
 // Dialogs must fit six viewports, trap focus and return focus to their trigger after Escape.
 // Screenshots use /tmp/workbench-dialog-*.png.
 const api = await startIsolatedApi();
 const mall = await api.ws.loadExample('mall');
 const commerce = await api.ws.loadExample('commerce');
+// Commit is off while nothing has changed, so the Commit dialog needs one edited file to open from.
+appendFileSync(projectFile(api.ws.layout, mall.slug, 'mall.ontology.yaml'), '\n# edited for the Commit dialog\n');
 // A mapping imported on its own gives one grouping suggestion (it references Flights).
 await api.ws.loadExample('flights');
 await api.ws.importBatch(
