@@ -12,7 +12,6 @@ import {
 } from 'lucide-react';
 import type { ProjectFile, ProjectInfo } from './api';
 import { MenuButton } from './Menu';
-import { observeTreeViewport } from './tree-viewport';
 // Project → files tree. Each file shows its document type and whether it passed validation;
 // invalid files stay listed so they can be repaired in Source.
 /** Names actions available from a project or file tree row. */
@@ -273,9 +272,7 @@ function treeEntries(projects: ProjectInfo[]) {
 
 /**
  * Brings a hidden row to the top of the tree's container. A row that is already fully visible does
- * not move, so the tree keeps the position the person scrolled to. The row goes to the top, below
- * the container's scroll padding, because the tree snaps to the start of a row and a row put
- * anywhere else would be moved again.
+ * not move, so the tree keeps the position the person scrolled to.
  */
 function revealRow(scroller: HTMLElement, row: HTMLElement) {
   const frame = scroller.getBoundingClientRect();
@@ -302,15 +299,12 @@ export function ProjectTree({
 }) {
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
   const tree = useRef<HTMLUListElement>(null);
-  // Reveal the selected row before fitting the viewport that will be painted.
+  // Reveal the selected row so keyboard and click selection never leave it out of sight.
   useLayoutEffect(() => {
     const row = tree.current?.querySelector<HTMLElement>('[aria-selected="true"]');
     const scroller = tree.current?.closest<HTMLElement>('.documents');
     if (shown && row && scroller) revealRow(scroller, row);
   }, [currentId, shown]);
-  useLayoutEffect(() => {
-    if (shown && tree.current) return observeTreeViewport(tree.current);
-  }, [currentId, shown, projects, collapsed]);
   const toggle = (key: string) =>
     setCollapsed(old => {
       const next = new Set(old);

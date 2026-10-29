@@ -55,8 +55,8 @@ export async function sidebarTreeProblems(page: Page, file: string): Promise<str
     const row = document.querySelector<HTMLElement>('[role="treeitem"][aria-selected="true"]');
     if (!scroller || !row) return ['the tree or the open file is missing'];
     const treeStyle = getComputedStyle(scroller);
-    if (treeStyle.backgroundImage !== 'none' || treeStyle.scrollPaddingTop !== '0px') {
-      found.push('the tree still fades or leaves room for fragments above its first row');
+    if (treeStyle.backgroundImage !== 'none') {
+      found.push('the tree still fades');
     }
     const examples = document.querySelector('.sidebar-footer .examples-menu');
     const importButton = document.querySelector('.sidebar-footer .import');
@@ -67,20 +67,6 @@ export async function sidebarTreeProblems(page: Page, file: string): Promise<str
       if (offset > 1) found.push('the short-window footer does not pair Examples and Import');
     }
     const frame = scroller.getBoundingClientRect();
-    const entries = scroller.querySelectorAll(
-      '.project > .tree-row, .repository > .tree-row, .project-file',
-    );
-    for (const entry of entries) {
-      const bounds = entry.getBoundingClientRect();
-      if (bounds.top < frame.bottom - 1 && bounds.bottom > frame.bottom + 1) {
-        const label = entry.getAttribute('aria-label') ?? entry.textContent?.trim();
-        found.push(
-          `partial sidebar row at ${innerWidth}×${innerHeight}: ${label}; ` +
-            `row ${bounds.top}-${bounds.bottom}, viewport ${frame.top}-${frame.bottom}, ` +
-            `scroll ${scroller.scrollTop}`,
-        );
-      }
-    }
     const box = row.getBoundingClientRect();
     if (box.top < frame.top - 1 || box.bottom > frame.bottom + 1) {
       const where = `${box.top}-${box.bottom} in ${frame.top}-${frame.bottom}`;

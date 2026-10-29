@@ -12,8 +12,9 @@ are covered in [the server guide](server-mode.md).
 
 The sidebar contains **Model explorer**, **Source editor**, **Source control**, the **Projects**
 tree, and a footer with **Clear workspace**, **Trash**, **Examples** and **Import…**. The tree has
-its own scrollbar and ends at a complete row above the footer. All files remain reachable by
-scrolling and keyboard focus. The selected file is brought into view when it would be hidden.
+its own scrollbar and takes the height left above the footer, so the footer, including the Theme
+control, stays fully visible at any window height. All files remain reachable by scrolling and
+keyboard focus. The selected file is brought into view when it would be hidden.
 
 On desktop, drag the sidebar separator or use its arrow keys, Home and End to choose a width
 between 220 and 520 pixels; the browser remembers it. Long project and file names wrap to two

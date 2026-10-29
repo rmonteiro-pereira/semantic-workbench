@@ -172,7 +172,7 @@ check that happens to succeed.
   source text stays synchronous rather than being deferred back into the editor.
 - `src/projects/api.ts` is the browser HTTP boundary. `useEvents.ts` owns SSE delivery and
   connection readiness. `autosave.ts` coordinates validation, drafts, version checks and saving.
-  `Sidebar.tsx` and `tree-viewport.ts` keep the selected file and whole-row viewport reachable.
+  `Sidebar.tsx` keeps the selected file reachable in the scrolling project list.
 - `src/scm/` owns Source Control, diffs, branch/commit/remote/clone dialogs and personal-credential
   prompts. `src/projects/Modal.tsx`, `Menu.tsx`, `WizardStepper.tsx`, `EmptyState.tsx` and
   `src/shared/ScrollStrip.tsx` provide shared interaction and layout behavior.

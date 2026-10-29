@@ -2,7 +2,6 @@ import { expect, test } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { ValidationPanel } from '../src/validation/ValidationPanel';
 import { EntityName } from '../src/graph/EntityName';
-import { completeRowsHeight } from '../src/projects/tree-viewport';
 import type { Issue } from '../src/validation/diagnostics';
 
 function findings(errors: number, warnings: number): Issue[] {
@@ -45,15 +44,4 @@ test.each([
   const html = renderToStaticMarkup(<EntityName name={name} />);
   expect(html).toContain(`>${broken}</strong>`);
   expect(html.replaceAll('<wbr/>', '')).toContain(`>${name}</strong>`);
-});
-
-test.each([
-  [160, [36, 89, 142, 195], 142],
-  [142, [36, 89, 142, 195], 142],
-  [90, [-17, 36, 89, 142], 89],
-  [300, [36, 89], 89],
-  [20, [36, 89], 20],
-  [160, [], 160],
-])('tree height %i ends at its last complete visible row', (available, bottoms, expected) => {
-  expect(completeRowsHeight(available, bottoms)).toBe(expected);
 });

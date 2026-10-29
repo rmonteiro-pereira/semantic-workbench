@@ -6,6 +6,13 @@ not configure a production deployment.
 
 ## Unreleased
 
+### Fixed
+
+- Keep the whole sidebar footer, including the Theme control, visible at short window heights; the
+  project list shrinks and scrolls instead.
+- Stop the project list from shrinking to a single row after loading several examples, and keep it
+  stable after deleting a file or a project.
+
 ### Documentation
 
 - Explain the architecture, full technology stack and definition-to-preview flow in the README.

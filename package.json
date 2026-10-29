@@ -28,6 +28,7 @@
     "inspect:mall": "bun scripts/mall-visual-inspect.ts /tmp/mall-inspect",
     "test:projects": "bun scripts/projects-browser-check.ts",
     "test:trash": "bun scripts/trash-browser-check.ts",
+    "test:sidebar": "bun scripts/sidebar-layout-browser-check.ts",
     "test:metrics": "bun scripts/metrics-browser-check.ts",
     "test:graph": "bun scripts/graph-browser-check.ts",
     "test:editor": "bun scripts/editor-browser-check.ts",
