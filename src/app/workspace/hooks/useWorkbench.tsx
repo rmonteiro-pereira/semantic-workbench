@@ -101,6 +101,7 @@ export function useWorkbench({ setMessage }: Options) {
   // View definition: the item's full definition as read, in a dialog.
   const [definition, setDefinition] = useState<{ title: string; value: unknown } | null>(null);
   const [importing, setImporting] = useState<{ project?: string } | null>(null);
+  const [creatingFile, setCreatingFile] = useState<string | null>(null);
   const grouping = useGrouping(current?.id);
   const metrics = useMetrics({ project: selectedProject, docs });
   const { kpiProject } = metrics;
@@ -310,6 +311,7 @@ export function useWorkbench({ setMessage }: Options) {
     compact,
     closeWorkspace,
     setImporting,
+    setCreatingFile,
     docsRef,
     refresh,
     setMessage,
@@ -379,6 +381,8 @@ export function useWorkbench({ setMessage }: Options) {
     setDefinition,
     importing,
     setImporting,
+    creatingFile,
+    setCreatingFile,
     importInto,
     importInput,
     pendingImport,

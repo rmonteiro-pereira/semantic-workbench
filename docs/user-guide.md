@@ -80,7 +80,22 @@ project. Repaired drafts remain available for retry. If a network reply is lost,
 inspect the workspace first: the server may have completed the import even though the browser
 did not receive its result.
 
-A project or file's actions menu provides rename, import, move, export, history and delete actions
+### Creating a file
+
+An empty project shows **New file** beside **Import files**, and every project row has **New file…**
+in its actions menu. Choose a kind (Ossie ontology, Ossie semantic model, Ossie mapping or ODCS
+contract) and a name. The app saves a minimal file that validates with no findings, named from
+the name you typed: `<name>.ontology.yaml`, `.semantic.yaml`, `.mapping.yaml` or `.odcs.yaml`
+(`Sales Orders` becomes `sales-orders.ontology.yaml`). It then opens the file, so **New** in the
+header can add concepts, datasets and the other items at once. A name that is already used in the
+project is refused with a message; names are compared without regard to case.
+
+A mapping points at an ontology and a semantic model, which you choose from the project's files.
+**Ossie mapping** stays disabled until the project holds both, and the dialog says which one is
+missing. In server mode the action appears only for people who may import files into the project;
+the file is saved through the same checked path as an import.
+
+A project or file's actions menu provides rename, new file, import, move, export, history and delete actions
 as applicable. Each row also has a direct trash button. Renaming a project preserves its folder
 identifier. Importing a filename that already exists asks whether to replace it or keep both.
 Supported files that are invalid on disk stay listed and open in Source for repair. Unsupported
@@ -215,7 +230,7 @@ if needed, **Folder in repository**. A clone is staged before registration. Fail
 or interrupted startup recovery leaves no partially registered clone. Invalid definitions are
 listed for repair, not rewritten. A failed clone keeps what you entered: **Edit details** returns to
 the form and **Retry** runs it again. A repository with no commits or no definitions is cloned and
-reported as such; **Open project** then shows an empty project with **Import files**.
+reported as such; **Open project** then shows an empty project with **New file** and **Import files**.
 
 Submodules are not fetched. Symlinks are checked out as plain files, line-ending conversion is
 kept off, and external Git helper transports such as `ext::` are refused.

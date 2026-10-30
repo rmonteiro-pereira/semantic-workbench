@@ -11,7 +11,7 @@ import { MenuButton } from './Menu';
 /** Names actions available from a project or file tree row. */
 export type TreeAction =
   | {
-      action: 'rename' | 'import' | 'export' | 'delete-project' | 'gitignore' | 'remote' | 'repository-projects';
+      action: 'rename' | 'import' | 'new-file' | 'export' | 'delete-project' | 'gitignore' | 'remote' | 'repository-projects';
       project: string;
     }
   | { action: 'move' | 'delete-file' | 'history'; project: string; path: string };
@@ -66,6 +66,7 @@ function projectMenu(project: ProjectInfo, onAction: (action: TreeAction) => voi
   const run = (action: Exclude<TreeAction, { path: string }>['action']) => () => onAction({ action, project: project.slug });
   return [
     { action: 'renameProject', label: 'Rename', run: run('rename') },
+    { action: 'import', label: 'New file…', run: run('new-file') },
     { action: 'import', label: 'Import files into this project', run: run('import') },
     { action: 'export', label: 'Export project…', run: run('export') },
     { action: 'edit', label: 'Edit .gitignore', run: run('gitignore') },
