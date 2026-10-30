@@ -165,7 +165,7 @@ try {
     expect(await rows.count()).toBeGreaterThan(0);
     for (const row of await rows.all()) {
       await expect(row.locator('b')).not.toHaveText('');
-      await expect(row.locator('.mapping-fields')).not.toHaveText('');
+      await expect(row.locator('.mapping-binding .mapping-chain-step').first()).toBeVisible();
     }
     await expect(page.locator('.mapping-ai')).toContainText('Airport');
     // Concepts sit beside the cards, which take the rest of the width.
@@ -348,7 +348,7 @@ try {
       .locator('.mapping-concepts')
       .getByRole('button', { name: /^Customer\s*\d/ })
       .click();
-    await expect(page.locator('.mapping-dataset-row').filter({ hasText: 'customers' }).first()).toContainText('customer_id');
+    await expect(page.locator('.mapping-dataset-row').filter({ hasText: 'customers' }).first()).toContainText('customers.customer_id');
     // A mapping whose expression names a field the semantic model does not declare.
     const broken = (await Bun.file('public/examples/commerce/commerce.mapping.yaml').text())
       .replace('name: Commerce ontology mapping', 'name: Broken commerce mapping')

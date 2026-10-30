@@ -1,17 +1,6 @@
 import { expect, test } from 'bun:test';
 import { selectContext, wholeContext, type RuntimeContext, type SelectedContext } from '../src/server/agent/runtime';
-import {
-  agentContextLines,
-  boundFields,
-  boundMetrics,
-  conceptRows,
-  conceptSummary,
-  datasetRows,
-  firstConceptToShow,
-  hasConditionalBinding,
-  layerCells,
-  withDeclaredPrefix,
-} from '../src/app/mappings/mapping-view';
+import { agentContextLines, boundFields, boundMetrics, conceptRows, conceptSummary, datasetRows, firstConceptToShow, layerCells, withDeclaredPrefix } from '../src/app/mappings/mapping-view';
 
 const evidence = { documentId: 'a', filename: 'a.yaml', revision: 1, path: [] };
 
@@ -116,13 +105,6 @@ test('the layer strip keeps the semantic file under Semantic model when the onto
   const cells = layerCells(unresolved, []);
   expect(cells[0]).toMatchObject({ layer: 'Ontology', name: 'Unresolved', file: '' });
   expect(cells[2]).toMatchObject({ layer: 'Semantic model', file: 'shop.semantic.yaml' });
-});
-
-test('a conditional binding is reported so the page can warn about it', () => {
-  expect(hasConditionalBinding(context())).toBe(false);
-  const conditional = context();
-  conditional.bindings[0]!.condition = { op: 'equals' };
-  expect(hasConditionalBinding(conditional)).toBe(true);
 });
 
 test('the AI context lines describe what the agent API returned', () => {

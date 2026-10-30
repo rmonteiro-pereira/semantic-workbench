@@ -219,10 +219,55 @@ async function mappingDataChecks(page: Page, label: string, expectations: { defi
     if (expectations.datasets) {
       await expect(page.locator('.mapping-dataset-row').first()).toBeVisible();
       expect(await page.locator('.mapping-dataset-row').count()).toBeLessThanOrEqual(3);
-      await expect(page.locator('.mapping-dataset-row .mapping-fields').first()).not.toHaveText('');
+      await expect(page.locator('.mapping-dataset-row .mapping-binding .mapping-expression').first()).not.toHaveText('');
     }
     if (expectations.metrics) await expect(page.locator('.mapping-chip').first()).toBeVisible();
     await expect(page.locator('.mapping-ai')).not.toContainText('No datasets are bound');
+  });
+}
+
+/** Checks the lineage of the first binding of the selected concept, its provenance link and the sideways overflow of the card. */
+async function bindingLineageChecks(page: Page, label: string, concept: RegExp, mappingFile: string) {
+  await check(`${label}: a binding shows its chain, expression and provenance, and Open in Source lands on the mapping file`, async () => {
+    await page.locator('.mapping-concepts .mapping-concept', { hasText: concept }).click();
+    const block = page.locator('.mapping-dataset-row').first();
+    const binding = block.locator('.mapping-binding').first();
+    await expect(binding).toBeVisible();
+    expect(await block.locator('.mapping-binding').count()).toBeLessThanOrEqual(2);
+    expect(await page.locator('.mapping-dataset-row').count()).toBeLessThanOrEqual(3);
+    const labels = await binding.locator('.mapping-chain-step small').allTextContents();
+    expect(labels.slice(0, 1)).toEqual(['Concept']);
+    expect(labels.slice(-3)).toEqual(['Field', 'Dataset', 'Physical source']);
+    for (const value of await binding.locator('.mapping-chain-step span').allTextContents()) expect(value.trim()).not.toBe('');
+    await expect(binding.locator('.mapping-expression')).not.toHaveText('');
+    await expect(binding.locator('.mapping-provenance')).toContainText(new RegExp(`${mappingFile.replaceAll('.', '\\.')} · /concept_mappings/\\d+/.+ ·\\s*Open in Source$`));
+    expect(await sidewaysOverflowProblems(page, '.mapping-detail')).toEqual([]);
+    expect(await ellipsisProblems(page, '.mapping-detail')).toEqual([]);
+    await binding.getByRole('button', { name: 'Open in Source', exact: true }).click();
+    await expect(page.locator('.workspace-title h1')).toHaveText(mappingFile);
+    await expect(page.getByLabel('Definition source')).toBeVisible();
+    await expect(page.locator('.cm-activeLine')).toContainText('expression');
+    await tab(page, 'Mappings').click();
+    await expect(page.locator('.mapping-detail .mapping-card').first()).toBeVisible();
+  });
+}
+
+/** Checks that Show all reveals every binding of a dataset and Show fewer folds them back. */
+async function showAllBindingsChecks(page: Page, concept: RegExp) {
+  await check('UBL: Show all bindings expands one dataset, keeps the card inside its column and folds back', async () => {
+    await page.locator('.mapping-concepts .mapping-concept', { hasText: concept }).click();
+    const block = page.locator('.mapping-dataset-row').first();
+    const showAll = block.getByRole('button', { name: /^Show all \d+ bindings in .+$/ });
+    const total = Number(/^Show all (\d+) bindings/.exec((await showAll.textContent()) ?? '')![1]);
+    expect(total).toBeGreaterThan(2);
+    await expect(block.locator('.mapping-dataset-name')).toContainText(`${total} bindings`);
+    await showAll.click();
+    await expect(block.locator('.mapping-binding')).toHaveCount(total);
+    expect(await sidewaysOverflowProblems(page, '.mapping-detail')).toEqual([]);
+    expect(await nestedScrollBoxes(page, '.mapping-explorer')).toEqual([]);
+    await expect(page.locator('.mapping-detail')).not.toContainText('Conditional population mapping');
+    await block.getByRole('button', { name: 'Show fewer', exact: true }).click();
+    await expect(block.locator('.mapping-binding')).toHaveCount(2);
   });
 }
 
@@ -271,6 +316,8 @@ try {
     await expect(page.locator('.mapping-chip').first()).toBeVisible();
     await expect(page.locator('.mapping-ai')).toContainText('governed metric');
   });
+  await bindingLineageChecks(page, 'UBL Order', /^Order\s*\d/, 'ubl.semantic-mapping.yaml');
+  await showAllBindingsChecks(page, /^Order\s*\d/);
   await openFile(page, 'UBL business model', 'ubl.semantic-mapping.yaml');
   await showMappings(page);
   await mappingStructureChecks(page, 'UBL (mapping open)', 'UBL business model', 'ubl.semantic-mapping.yaml');
@@ -282,6 +329,7 @@ try {
   await showMappings(page);
   await mappingStructureChecks(page, 'commerce (semantic model open)', 'Commerce workspace', 'sales.mapping.yaml');
   await mappingDataChecks(page, 'commerce', { definition: true, datasets: false, metrics: false });
+  await bindingLineageChecks(page, 'commerce Customer', /^Customer\s*\d/, 'sales.mapping.yaml');
   await openFile(page, 'Commerce workspace', 'sales.mapping.yaml');
   await showMappings(page);
   await mappingStructureChecks(page, 'commerce (mapping open)', 'Commerce workspace', 'sales.mapping.yaml');
@@ -292,6 +340,7 @@ try {
   await showMappings(page);
   await mappingStructureChecks(page, 'mall (ontology open)', 'Shopping center administration', 'mall.mapping.yaml');
   await mappingDataChecks(page, 'mall', { definition: true, datasets: true, metrics: false });
+  await bindingLineageChecks(page, 'mall Organization', /^Organization\s*\d/, 'mall.mapping.yaml');
   await openFile(page, 'Shopping center administration', 'mall.mapping.yaml');
   await showMappings(page);
   await mappingStructureChecks(page, 'mall (mapping open)', 'Shopping center administration', 'mall.mapping.yaml');

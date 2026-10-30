@@ -158,7 +158,8 @@ check that happens to succeed.
 - `src/shared/mappings/` owns mapping schemas and built-ins; `src/app/mappings/` the mapping
   explorer: `MappingExplorer.tsx` picks the mappings that are, or read, the open file
   (`mapping-scope.ts`), `MappingSection.tsx` shows one mapping with `ConceptList.tsx` and
-  `ConceptDetail.tsx`, and `mapping-view.ts` turns the context the agent API returns into the rows
+  `ConceptDetail.tsx` (its dataset blocks are `DatasetBindings.tsx`, fed by the lineage in
+  `binding-lineage.ts`), and `mapping-view.ts` turns the context the agent API returns into the rows
   and cards. The concept-level context comes only from `/api/agent/context?concept=` through
   `useConceptContext.ts`, and `useQueryComposer.ts` asks `/api/agent/plan` for the SQL preview;
   both call the agent methods of `api` in `src/app/projects/api.ts`. `src/shared/core/` holds the model and document references; `src/app/core/export.ts`

@@ -68,6 +68,7 @@ type Props = {
   setWizard: React.Dispatch<React.SetStateAction<boolean | KpiSummary>>;
   editKpi: (kpiSummary: KpiSummary) => void;
   editMappingItem: (docId: string, path: Path) => void;
+  openSourceAtPath: (docId: string, path: Path) => void;
   commitImports: (drafts: ImportDraft[]) => Promise<void>;
   sample: string;
   sourceEditor: React.RefObject<CodeEditorHandle | null>;
@@ -152,6 +153,7 @@ export function WorkspaceCanvas({
   setWizard,
   editKpi,
   editMappingItem,
+  openSourceAtPath,
   commitImports,
   sample,
   sourceEditor,
@@ -264,6 +266,7 @@ export function WorkspaceCanvas({
         <MappingExplorer
           onEditItem={editMappingItem}
           onOpenSource={openMappingSource}
+          onOpenSourceAt={openSourceAtPath}
           currentId={current?.id}
           currentFilename={current?.filename}
           currentProject={project}

@@ -506,9 +506,14 @@ mapping opens with its name, "The mapping of the project for the open file" and 
 **Ontology**, **Mapping**, **Semantic model** and **Physical sources**, each with its name, count
 and file. The left column lists the concepts with their binding counts (the first twelve, then
 **Show all N concepts**) and a **Find a concept** field. The right column describes the selected
-concept in four cards: its definition from the ontology; **Where it lives**, one row per dataset
-with the fields bound (three datasets, then **Show N more datasets**); the governed metrics bound
-to it; and **AI context**, which lists what the agent API returns for the concept (its definition
+concept in four cards: its definition from the ontology; **Where it lives**, one block per dataset
+(three datasets, then **Show N more datasets**) that gives the dataset's binding count and physical
+source and then its first two bindings, each as a chain of Concept, Field, Dataset and Physical
+source (a nested concept or relationship adds a step), the mapping expression and the mapping file
+with the JSON pointer where it is written. **Open in Source** opens that file in Source at that
+line, **Show all N bindings in dataset** lists the rest, and a binding that maps only the rows
+meeting a condition carries a "Conditional" note to review before composing a query; the governed
+metrics bound to it; and **AI context**, which lists what the agent API returns for the concept (its definition
 and synonyms, datasets, governed metrics and any `ai_context` written in the files). The whole tab
 scrolls as one page. Findings, such as a reference that cannot be resolved, appear under the strip
 with an **Edit item** button. **Show query** selects mapped fields and metrics and previews a newly

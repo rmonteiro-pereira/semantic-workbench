@@ -173,7 +173,6 @@ export function useItemEditing({
     const doc = docsRef.current.get(docId);
     if (!doc) return;
     const document = documentOf(docId);
-    const text = docText(docId);
     for (let length = path.length; length > 0; length--) {
       const prefix = path.slice(0, length);
       const kind = itemKindAt(document, prefix);
@@ -183,7 +182,11 @@ export function useItemEditing({
         return;
       }
     }
-    // A non-editable finding still leads to the nearest source location available.
+    openSourceAtPath(docId, path);
+  }
+  // Opens the document in Source at the deepest part of the path that the text still has, or at the top.
+  function openSourceAtPath(docId: string, path: Path) {
+    const text = docText(docId);
     for (let length = path.length; length > 0; length--) {
       try {
         const fragment = openFragment(text, path.slice(0, length));
@@ -260,6 +263,7 @@ export function useItemEditing({
     historyPath,
     editKpi,
     editMappingItem,
+    openSourceAtPath,
     entityTarget,
     rdfTarget,
     relationshipTarget,

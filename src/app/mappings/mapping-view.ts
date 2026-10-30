@@ -31,11 +31,6 @@ export function firstConceptToShow(rows: ConceptRow[]) {
   return rows.find(row => row.bindings > 0)?.concept ?? '';
 }
 
-/** Tells whether any of the selected bindings maps only the rows that meet a condition. */
-export function hasConditionalBinding(context: RuntimeContext) {
-  return context.bindings.some(binding => Boolean(binding.condition));
-}
-
 /** One cell of the strip that connects ontology, mapping, semantic model and physical sources. */
 export type LayerCell = { layer: string; name: string; count: string; file: string };
 

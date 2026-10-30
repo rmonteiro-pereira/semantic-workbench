@@ -25,6 +25,8 @@ type Props = {
   onEditItem?: (docId: string, path: (string | number)[]) => void;
   /** Shows the source of the open file, where a binding is added. */
   onOpenSource?: (documentId: string) => void;
+  /** Opens a document in the Source tab at the place a path points to. */
+  onOpenSourceAt?: (documentId: string, path: (string | number)[]) => void;
 };
 
 function loadedMapping(option: MappingOption, result: PromiseSettledResult<SelectedContext>): LoadedMapping {
@@ -83,7 +85,7 @@ function MappingFailure({ name, message }: { name: string; message: string }) {
 }
 
 /** Shows each mapping that is the open file or reads it, one after the other under its own name. */
-export function MappingExplorer({ currentId, currentFilename, currentProject, projectName, projectFiles, revisionKey, dirty, onEditItem, onOpenSource }: Props) {
+export function MappingExplorer({ currentId, currentFilename, currentProject, projectName, projectFiles, revisionKey, dirty, onEditItem, onOpenSource, onOpenSourceAt }: Props) {
   const dataContractFiles = useMemo(() => dataContractFilenames(projectFiles.filter(file => file.project === currentProject)), [projectFiles, currentProject]);
   const { catalog, loaded, error } = useProjectMappings(currentProject, currentId, revisionKey);
   const healthy = loaded.flatMap(({ option, context }) => (context ? [{ option, context, documents: context.documents }] : []));
@@ -117,6 +119,7 @@ export function MappingExplorer({ currentId, currentFilename, currentProject, pr
           dirty={dirty}
           onEditItem={onEditItem}
           onOpenSource={onOpenSource}
+          onOpenSourceAt={onOpenSourceAt}
         />
       ))}
     </div>

@@ -335,6 +335,7 @@ function App() {
               setWizard={itemEditing.setWizard}
               editKpi={itemEditing.editKpi}
               editMappingItem={itemEditing.editMappingItem}
+              openSourceAtPath={itemEditing.openSourceAtPath}
               commitImports={imports.commitImports}
               sample={sample}
               sourceEditor={sourceEditor}

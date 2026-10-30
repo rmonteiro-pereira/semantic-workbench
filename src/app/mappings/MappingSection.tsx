@@ -23,6 +23,8 @@ type Props = {
   dirty: boolean;
   onEditItem?: (docId: string, path: (string | number)[]) => void;
   onOpenSource?: (documentId: string) => void;
+  /** Opens a document in the Source tab at the place a path points to. */
+  onOpenSourceAt?: (documentId: string, path: (string | number)[]) => void;
 };
 
 function Layers({ context, dataContractFiles }: { context: RuntimeContext; dataContractFiles: string[] }) {
@@ -72,12 +74,13 @@ function downloadAgentContext(context: RuntimeContext, concept: string, selected
 }
 
 /** Shows one resolved mapping. The selected concept's cards come from what the agent API returns for it. */
-export function MappingSection({ context, mappingFile, project, projectName, openFileName, dataContractFiles, revisionKey, dirty, onEditItem, onOpenSource }: Props) {
+export function MappingSection({ context, mappingFile, project, projectName, openFileName, dataContractFiles, revisionKey, dirty, onEditItem, onOpenSource, onOpenSourceAt }: Props) {
   const stateKey = context.mappingId;
   const [chosenConcept, setConcept] = useRecordedState<string | null>(`mappings.concept:${stateKey}`, null);
   const [searchText, setSearchText] = useRecordedState(`mappings.search:${stateKey}`, '');
   const [conceptLimit, setConceptLimit] = useRecordedState(`mappings.conceptLimit:${stateKey}`, CONCEPTS_SHOWN);
   const [datasetLimit, setDatasetLimit] = useRecordedState(`mappings.datasetLimit:${stateKey}`, DATASETS_SHOWN);
+  const [expandedDatasets, setExpandedDatasets] = useRecordedState<string[]>(`mappings.expandedDatasets:${stateKey}`, []);
   const [composing, setComposing] = useRecordedState(`mappings.composing:${stateKey}`, false);
   const allRows = useMemo(() => conceptRows(context, ''), [context]);
   const rows = useMemo(() => conceptRows(context, searchText), [context, searchText]);
@@ -88,6 +91,7 @@ export function MappingSection({ context, mappingFile, project, projectName, ope
   function selectConcept(name: string) {
     setConcept(name);
     setDatasetLimit(DATASETS_SHOWN);
+    setExpandedDatasets([]);
     composer.reset();
   }
 
@@ -141,7 +145,17 @@ export function MappingSection({ context, mappingFile, project, projectName, ope
           onSelect={selectConcept}
           onLimit={setConceptLimit}
         />
-        {selected.context && <ConceptDetail context={selected.context} concept={concept} datasetLimit={datasetLimit} onDatasetLimit={setDatasetLimit} />}
+        {selected.context && (
+          <ConceptDetail
+            context={selected.context}
+            concept={concept}
+            datasetLimit={datasetLimit}
+            onDatasetLimit={setDatasetLimit}
+            expandedDatasets={expandedDatasets}
+            onExpandedDatasets={setExpandedDatasets}
+            onOpenSourceAt={onOpenSourceAt}
+          />
+        )}
         {!selected.context && !selected.error && <p role="status">Resolving saved layers</p>}
         {selected.error && (
           <p role="alert" className="mapping-error">
