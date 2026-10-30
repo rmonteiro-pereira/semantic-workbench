@@ -15,6 +15,8 @@ export type HeaderActionState = {
   /** Commit is left out while no file is open. */
   hasFile: boolean;
   onCommitClick: () => void;
+  /** Files of the open project that differ from the last commit; shown on the button when above zero. */
+  uncommittedFiles: number;
   commitDisabled: boolean;
   commitTitle: string;
 };
@@ -53,18 +55,27 @@ function CommitButton({ state }: { state: HeaderActionState }) {
   const tooltipId = useId();
   const unavailable = state.commitDisabled;
   const handleClick = unavailable ? undefined : state.onCommitClick;
+  const showCount = !unavailable && state.uncommittedFiles > 0;
+  // An unavailable Commit is an outlined, faded button rather than a primary one, so it does not
+  // compete with the actions that can run.
+  const className = unavailable ? 'commit-button' : 'primary commit-button';
   return (
     <span className="commit-wrap">
       <button
-        className="primary commit-button"
-        aria-label="Commit…"
+        className={className}
+        aria-label="Commit"
         aria-disabled={unavailable || undefined}
         aria-describedby={unavailable ? tooltipId : undefined}
         onClick={handleClick}
-        title={unavailable ? undefined : state.commitTitle}
+        title={unavailable ? undefined : `${state.commitTitle} (${changedFilesLabel(state.uncommittedFiles)})`}
       >
         <GitCommitIcon size={16} />
-        <span className="action-label">Commit…</span>
+        <span className="action-label">Commit</span>
+        {showCount && (
+          <span className="commit-count" aria-hidden="true">
+            {state.uncommittedFiles}
+          </span>
+        )}
       </button>
       {unavailable && (
         <span role="tooltip" id={tooltipId} className="commit-tooltip">
@@ -73,6 +84,10 @@ function CommitButton({ state }: { state: HeaderActionState }) {
       )}
     </span>
   );
+}
+
+function changedFilesLabel(count: number) {
+  return count === 1 ? '1 changed file' : `${count} changed files`;
 }
 
 /** Renders Commit and the More actions menu; New and Export live in the menu. */

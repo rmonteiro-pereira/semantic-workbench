@@ -44,7 +44,7 @@ export async function expectFileOpen(page: Page, options: { timeout?: number } =
 export async function expectNoFileOpen(page: Page) {
   await expect(headerTitle(page)).toHaveText(NO_FILE_TITLE);
   await expect(page.locator('.workspace-header .header-meta')).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'Commit…', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Commit', exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'More actions', exact: true })).toBeVisible();
   expect(await page.evaluate(noFileHeaderProblems)).toEqual([]);
 }

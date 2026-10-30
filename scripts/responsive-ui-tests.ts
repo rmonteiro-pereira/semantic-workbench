@@ -145,11 +145,11 @@ const ublHeader = {
 const DESKTOP_HEADER_GEOMETRY: Record<number, { height: number; controls: string[] }> = {
   1280: {
     height: 58,
-    controls: ['Hide sidebar@316,11,36,36', 'Save state@763,32,45,16', 'Commit…@1115,11,107,36', 'More actions@1228,11,36,36'],
+    controls: ['Hide sidebar@316,11,36,36', 'Save state@763,32,45,16', 'Commit@1067,11,94,36', 'More actions@1167,11,36,36', 'Person menu@1228,11,36,36'],
   },
   1440: {
     height: 58,
-    controls: ['Hide sidebar@316,11,36,36', 'Save state@763,32,45,16', 'Commit…@1275,11,107,36', 'More actions@1388,11,36,36'],
+    controls: ['Hide sidebar@316,11,36,36', 'Save state@763,32,45,16', 'Commit@1227,11,94,36', 'More actions@1327,11,36,36', 'Person menu@1388,11,36,36'],
   },
 };
 
@@ -1574,7 +1574,7 @@ try {
         await checkPhoneHeader(headerPage);
       } else {
         // Local mode has no person menu, so the empty Account group stays hidden.
-        for (const name of ['Commit…', 'More actions']) {
+        for (const name of ['Commit', 'More actions']) {
           await expect(headerPage.getByRole('button', { name, exact: true })).toBeVisible();
         }
         const before = DESKTOP_HEADER_GEOMETRY[width!];

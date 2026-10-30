@@ -107,7 +107,7 @@ try {
     await page.screenshot({ path: '/tmp/workbench-monorepo-scm.png' });
     await row.getByRole('button', { name: /^Stage / }).click();
     await expect.poll(() => sh(repo, ['diff', '--cached', '--name-only']).trim()).toBe('domains/finance/finance.ontology.yaml');
-    await page.getByRole('button', { name: 'Commit…' }).click();
+    await page.getByRole('button', { name: 'Commit', exact: true }).click();
     const commit = page.getByRole('dialog', { name: 'Commit' });
     await expect(commit.getByRole('list', { name: 'Changed files' })).toContainText('finance.ontology.yaml');
     await commit.getByRole('button', { name: 'Commit', exact: true }).click();

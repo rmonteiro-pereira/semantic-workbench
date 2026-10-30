@@ -94,6 +94,28 @@
   align-items: center;
   gap: 8px;
 }
+/* The number of changed files sits inside the primary button, on a lighter pill of its own colour. */
+.commit-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: color-mix(in srgb, currentColor 22%, transparent);
+  font-size: 12px;
+  font-weight: 600;
+}
+/* An unavailable Commit keeps the outlined button's solid border and fill, faded, as in the header
+   design; the app-wide disabled look would make it read as a second, sunken control. */
+.header-actions .commit-wrap > .commit-button[aria-disabled='true'],
+.header-actions .commit-wrap > .commit-button[aria-disabled='true']:hover {
+  background: var(--color-surface);
+  border-style: solid;
+  color: inherit;
+  opacity: 0.55;
+}
 
 /* Save state: plain text with a coloured dot at the end of the meta line. It opens Commit, the
    findings or the diff. A save that needs action turns red and underlined. */
