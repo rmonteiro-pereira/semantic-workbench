@@ -90,9 +90,11 @@ export async function checkTiles(page: Page, api: IsolatedApi) {
   expect(drawnBefore).toBeGreaterThan(0);
   const invoice = ubl.entities.find(entity => entity.name === 'Invoice')!;
   await page.locator(`.full-graph .react-flow__node[data-id="${invoice.id}"]`).click();
-  await expect.poll(() => crossAreaLinks(page, connections)).not.toEqual([]);
   const around = connections.filter(connection => connection.source === invoice.id || connection.target === invoice.id).map(connection => connection.id);
-  for (const id of await crossAreaLinks(page, connections)) expect(around).toContain(id);
+  // The links drawn for the previous selection leave a moment after the click, so wait for the settled set.
+  const strayLinks = async () => (await crossAreaLinks(page, connections)).filter(id => !around.includes(id));
+  await expect.poll(() => crossAreaLinks(page, connections)).not.toEqual([]);
+  await expect.poll(strayLinks).toEqual([]);
   expect(await page.locator('.full-graph .react-flow__edge').count()).toBeGreaterThan(drawnBefore);
 }
 

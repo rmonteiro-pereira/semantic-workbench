@@ -210,3 +210,27 @@
 .full-graph .full-graph-tools select {
   white-space: nowrap;
 }
+
+/* Beside an open sidebar a desktop window leaves the Graph toolbar about 950px, so its buttons sit
+   closer together and it keeps to one row; the canvas below keeps its full height. */
+@media (min-width: 1100px) and (max-width: 1450px) {
+  .full-graph .full-graph-tools {
+    gap: 4px;
+  }
+  .full-graph .full-graph-tools button {
+    padding-inline: 4px;
+  }
+  .full-graph .full-graph-tools select {
+    padding-inline: 5px;
+  }
+  .full-graph .full-graph-tools .grouping-trigger {
+    gap: 4px;
+  }
+  .full-graph .full-graph-tools .option-group {
+    gap: 3px;
+    padding-left: 4px;
+  }
+  .full-graph .full-graph-tools .option-group .zoom-to-group select {
+    width: 100px;
+  }
+}
