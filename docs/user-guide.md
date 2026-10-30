@@ -433,7 +433,8 @@ self-links and disconnected components remain legal.
 ODCS 3.1.0 and Ossie 0.2.0.dev0 definitions use pinned companion schemas. An Ossie file that names
 another version, or none, still gets its syntax, structure, reference and cycle checks, but its
 schema is not applied: Validation details and the editor say "Not validated" once, and **Validate
-as Ossie 0.2.0.dev0** checks it against the shipped schema for that file. RDF/XML is checked
+as Ossie 0.2.0.dev0** checks it against the shipped schema for that file. Mapping files are the
+exception: they must declare 0.2.0.dev0, because the agent runtime reads only that version. RDF/XML is checked
 for XML errors and rejects DTD/entity declarations. RDF imports never fetch remote ontologies or
 `owl:imports`.
 

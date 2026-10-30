@@ -27,7 +27,7 @@ export function AiContextPanel({ project, mappingId, concept, revisionKey, fullC
     apiFetch(agentContextPath(project, mappingId, concept), { signal: abort.signal })
       .then(async response => {
         const body = await response.json();
-        if (!response.ok) throw Error(body.error);
+        if (!response.ok) throw Error(body.error || `The agent context could not be loaded (HTTP ${response.status}).`);
         setNarrowed(body);
       })
       .catch(failure => {

@@ -61,6 +61,15 @@ describe('an Ossie version the app has no schema for', () => {
     expect(result.issues.some(isNotValidated)).toBe(false);
   });
 
+  test('does not apply to mapping files, which must declare the shipped version', async () => {
+    const shipped = await Bun.file('public/examples/commerce/sales.mapping.yaml').text();
+    const mapping = shipped.replace(`version: ${OSSIE_SCHEMA_VERSION}`, 'version: 0.3.1');
+    expect(mapping).not.toBe(shipped);
+    const result = validateInput(mapping, 'sales.mapping.yaml');
+    expect(result.valid).toBe(false);
+    expect(result.issues.some(issue => isNotValidated(issue))).toBe(false);
+  });
+
   test('still reports syntax errors', () => {
     const result = validateInput('version: "0.3.1"\nontology: [unclosed', 'broken.ontology.yaml');
     expect(result.valid).toBe(false);

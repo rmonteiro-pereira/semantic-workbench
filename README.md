@@ -375,7 +375,8 @@ instance validation of one file against one shapes file, with no warehouse conne
 reasoning. An Ossie file is validated against the one Ossie schema the app ships, 0.2.0.dev0. A
 file that names another version, or none, still gets its syntax, structure, reference and cycle
 checks, shows "Not validated" once because the schema was not applied, and has a button to validate
-it as 0.2.0.dev0. The status bar reads "Not validated" in that case.
+it as 0.2.0.dev0. The status bar reads "Not validated" in that case. Mapping files must declare
+0.2.0.dev0, because the agent runtime reads only that version.
 
 SQL highlighting and warning coverage are dialect-dependent. Non-SQL expressions such as DAX or
 MDX remain plain with a not-checked note. Syntax warnings do not block autosave. The planner
