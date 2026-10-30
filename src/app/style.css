@@ -78,7 +78,7 @@ button[aria-disabled='true']:hover {
   opacity: 1;
   background: var(--color-surface-sunken);
   border-color: var(--color-border);
-  border-style: solid;
+  border-style: dashed;
   color: var(--text-muted);
   cursor: default;
 }

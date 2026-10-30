@@ -6,12 +6,12 @@ import { chromium, expect, type Page } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { clippedTextProblems, nestedScrollBoxes, sidewaysOverflowProblems, verticallyCutBoxes } from './helpers/clipped-text';
 import { showSidebar } from './helpers/screen-tour';
+import { NOTHING_TO_COMMIT } from '../src/app/workspace/commit-availability';
 
 const VIEWPORTS: [number, number][] = [
   [1280, 800],
   [390, 844],
 ];
-const NOTHING_TO_COMMIT = 'Nothing to commit. Edit a file first.';
 
 const api = await startIsolatedApi();
 await api.ws.loadExample('ubl');
@@ -48,7 +48,7 @@ for (const [width, height] of VIEWPORTS) {
     const commit = page.locator('header.workspace-header').getByRole('button', { name: 'Commit…', exact: true });
     await expect(commit).toHaveAttribute('aria-disabled', 'true');
     const border = await commit.evaluate(button => getComputedStyle(button).borderTopStyle);
-    expect(border).toBe('solid');
+    expect(border).toBe('dashed');
     await commit.hover();
     await expect(page.getByRole('tooltip')).toHaveText(NOTHING_TO_COMMIT);
     await page.mouse.move(0, 0);

@@ -7,7 +7,7 @@ import type { Binding, Finding, RuntimeContext } from '../../server/agent/runtim
 import { QueryComposer } from './QueryComposer';
 import { EmptyState } from '../projects/EmptyState';
 import { ShowMoreControl } from './ShowMoreControl';
-import { agentContextView } from './agent-context-view';
+import { AiContextPanel } from './AiContextPanel';
 import { agentCatalogPath, agentContextPath } from './agent-paths';
 import { chooseMapping, mappingsOfProject, shownMapping } from './mapping-choice';
 import { BINDINGS_PER_GROUP, BINDINGS_STEP, CONCEPTS_SHOWN, CONCEPTS_STEP, GROUPS_SHOWN, GROUPS_STEP, limitCovering, visibleCount } from './list-window';
@@ -205,7 +205,7 @@ export function MappingExplorer({
     ) ?? [];
   const selectedConceptIndex = concepts.findIndex(c => c.concept === concept);
   const shownConcepts = visibleCount(limitCovering(conceptLimit, selectedConceptIndex), concepts.length);
-  // The selected concept can sit past the limit, so keep it in view inside the list's own scroll.
+  // The selected concept can sit past the limit, so scroll the page to it.
   useEffect(() => {
     const selected = conceptList.current?.querySelector('[aria-pressed="true"]:not(:first-child)');
     selected?.scrollIntoView({ block: 'nearest' });
@@ -460,10 +460,7 @@ export function MappingExplorer({
                   onShowFewer={() => setGroupLimit(GROUPS_SHOWN)}
                 />
               </details>
-              <details>
-                <summary>AI context · the metadata an agent receives</summary>
-                <pre>{JSON.stringify(agentContextView(context, concept, bindings), null, 2)}</pre>
-              </details>
+              <AiContextPanel project={currentProject} mappingId={activeMappingId} concept={concept} revisionKey={revisionKey} fullContext={context} />
             </div>
           </div>
         </>

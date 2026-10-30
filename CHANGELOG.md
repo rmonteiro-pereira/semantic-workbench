@@ -81,8 +81,10 @@ not configure a production deployment.
 
 ### Fixed
 
-- Mappings: **AI context** lists the concepts, fields and metrics an agent receives for the selected
-  concept (or all concepts) instead of an empty list when the documents declare no `ai_context`.
+- Mappings: **AI context** shows the same context `/api/agent/context?concept=` returns for the
+  selected concept (or all concepts) instead of an empty list when the documents declare no
+  `ai_context`. The tab scrolls as one page; the concept list starts at 12 and the binding list with
+  3 dataset groups, with **Show N more datasets** for the rest.
   The query button is named **Show query**, and the heading buttons keep their whole label.
 - Admin grants: the **Applies to** select is as wide as its longest option.
 - Header: **Commit** is off while the project has nothing to commit. It looks like the other

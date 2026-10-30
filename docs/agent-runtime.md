@@ -188,6 +188,8 @@ original mapping trees, resolved bindings, semantic fields/metrics/dependencies,
 AI metadata, revisions, evidence and findings.
 Repeated `concept` query parameters can limit selected roots/targets; the necessary metric
 formulas/fields remain included and full datasets/joins remain available for traversal.
+The Mappings tab's **AI context** panel shows exactly what this endpoint returns for the selected
+concept.
 
 Plan accepts `{project, mappingId, concepts?, metrics: [metricId], dimensions: [fieldId]}`. It returns a SQL
 preview, original expressions, joins, sources, bindings and revision provenance. Keys such as

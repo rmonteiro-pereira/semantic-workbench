@@ -1,6 +1,6 @@
-// Loads the UBL example into its own project and checks what the Mappings tab would show for it.
+// Loads the UBL example into its own project and checks what the Mappings tab reads for it.
 import { expect, test } from 'bun:test';
-import { agentContextView } from '../src/app/mappings/agent-context-view';
+import { agentContextPath } from '../src/app/mappings/agent-paths';
 import { mappingsOfProject } from '../src/app/mappings/mapping-choice';
 import type { RuntimeContext } from '../src/server/agent/runtime';
 import { LOCAL_READER } from '../src/server/projects/reader';
@@ -21,30 +21,22 @@ async function readJson(workspace: Awaited<ReturnType<typeof loadUblProject>>, p
   return (await workspace.handler(new Request('http://localhost' + path))).json();
 }
 
-test('the UBL example loads in its project with one mapping, 599 bindings and an AI context that is not empty', async () => {
+test('the UBL example loads in its project with one mapping, 599 bindings and a concept-narrowed context from the agent API', async () => {
   const workspace = await loadUblProject();
   try {
     const catalog = await readJson(workspace, `/api/agent/catalog?project=${UBL_PROJECT}`);
     expect(catalog.mappings).toHaveLength(1);
     expect(catalog.mappings[0].project).toBe(UBL_PROJECT);
-    const mappingId = encodeURIComponent(catalog.mappings[0].id);
-    const context: RuntimeContext = await readJson(workspace, `/api/agent/context?project=${UBL_PROJECT}&mappingId=${mappingId}`);
+    const context: RuntimeContext = await readJson(workspace, agentContextPath(UBL_PROJECT, catalog.mappings[0].id));
     expect(context.findings.filter(finding => finding.severity === 'error')).toEqual([]);
     expect(context.bindings).toHaveLength(599);
 
-    const everything = agentContextView(context, '', context.bindings);
-    expect(everything.scope).toBe('All concepts');
-    expect(everything.concepts.length).toBeGreaterThan(10);
-    expect(everything.fields.length).toBeGreaterThan(0);
-    expect(everything.metrics.length).toBeGreaterThan(0);
-
     const invoiceBindings = context.bindings.filter(binding => binding.rootConcept === 'Invoice' || binding.concept === 'Invoice');
-    const invoice = agentContextView(context, 'Invoice', invoiceBindings);
-    expect(invoice.scope).toBe('Invoice');
-    expect(invoice.concepts.map(entry => entry.concept)).toEqual(['Invoice']);
-    expect(invoice.concepts[0]!.bindings).toBe(invoiceBindings.length);
-    expect(invoice.concepts[0]!.definition).toBeDefined();
+    const invoice: RuntimeContext = await readJson(workspace, agentContextPath(UBL_PROJECT, catalog.mappings[0].id, 'Invoice'));
+    expect(invoice.concepts.map(entry => entry.concept)).toContain('Invoice');
+    expect(invoice.bindings).toHaveLength(invoiceBindings.length);
     expect(invoice.fields.length).toBeGreaterThan(0);
+    expect(invoice.bindings.length).toBeLessThan(context.bindings.length);
   } finally {
     workspace.dispose();
   }

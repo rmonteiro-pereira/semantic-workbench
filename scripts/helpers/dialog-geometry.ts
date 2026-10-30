@@ -76,7 +76,7 @@ export async function dialogStandardProblems(page: Page): Promise<string[]> {
       }
       for (const button of buttons.filter(candidate => candidate.disabled)) {
         const style = getComputedStyle(button);
-        if (style.borderTopStyle !== 'solid') {
+        if (style.borderTopStyle !== 'dashed') {
           problems.push(`the disabled "${button.textContent}" action has a dashed border`);
         }
         const readable = style.opacity === '1' && style.color === mutedText && style.backgroundColor === sunkenBackground;
