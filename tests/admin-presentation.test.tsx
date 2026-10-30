@@ -3,7 +3,8 @@ import { expect, test } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { DryRunResult } from '../src/app/admin/ReviewChange';
 import { canOpenAdmin } from '../src/app/admin/admin-entry';
-import { grantScope } from '../src/app/admin/GrantForm';
+import { grantScope, GroupName } from '../src/app/admin/GrantForm';
+import { RoleEditor } from '../src/app/admin/RoleEditor';
 import { RolePermissions } from '../src/app/admin/RolePermissions';
 import type { Me } from '../src/app/auth/useMe';
 import builtin from '../policies/builtin-roles.json';
@@ -36,6 +37,33 @@ test('Admin scope cannot be narrowed and member lists are normalized', () => {
   });
 });
 
+test('the same group keeps each grant label, including an explicitly missing label', () => {
+  expect(renderToStaticMarkup(<GroupName id="same-group" displayName="Team Beta" />)).toContain('Team Beta');
+  expect(renderToStaticMarkup(<GroupName id="same-group" displayName={null} />)).toContain('name not resolved');
+  const role: Role = { id: 'r_test', name: 'Test', description: '', permissions: [{ actions: ['read'] }] };
+  const html = renderToStaticMarkup(
+    <RoleEditor
+      initial={role}
+      roles={{ builtIn: [], custom: [role], actions: ['read'], conditions: [], usage: {} }}
+      version="version"
+      grants={['Team Alpha', 'Team Beta', undefined].map((displayName, index) => ({
+        id: `grant-${index}`,
+        roleId: role.id,
+        member: { kind: 'group', groupId: index === 2 ? 'unlabeled-group' : 'same-group', displayName },
+        scope: { kind: 'workspace' },
+        addedBy: 'test',
+        addedAt: '2026-01-01T00:00:00Z',
+      }))}
+      onBack={() => {}}
+      onSaved={() => {}}
+    />,
+  );
+  expect(html).toContain('Team Alpha');
+  expect(html).toContain('Team Beta');
+  expect(html).toContain('unlabeled-group');
+  expect(html).toContain('name not resolved');
+  expect(html).not.toContain('looking up name');
+});
 test('review renders gained and lost actions for people and clients', () => {
   const html = renderToStaticMarkup(
     <DryRunResult

@@ -15,6 +15,7 @@ beforeAll(useDefaultBrand);
 
 async function setup() {
   const transport = await oidcTransport();
+  transport.config.directory.overage = 'off';
   const fixture = await authWorkspace();
   const client = await createOidcClient(transport.config, { fetch: transport.fetch });
   const auth = await createServerAuthentication(fixture.ws, transport.config, client);
@@ -76,7 +77,8 @@ test('sign-in audit failure returns 503 before creating a session', async () => 
 test('directory degradation preserves successful sign-in and refresh request ids', async () => {
   using context = await setup();
   context.transport.changeClaims({ hasgroups: true });
-  const token = spyOn(context.client, 'directoryToken').mockRejectedValue(new Error('secret token'));
+  context.transport.config.directory.overage = 'directory';
+  const token = spyOn(context.client, 'onBehalfOf').mockRejectedValue(new Error('secret token'));
   const log = spyOn(console, 'error').mockImplementation(() => {});
   try {
     const response = await context.signIn();
@@ -105,6 +107,87 @@ test('directory degradation preserves successful sign-in and refresh request ids
   }
 });
 
+test('a transient provider refresh failure preserves the session for a later retry', async () => {
+  using context = await setup();
+  const cookie = sessionCookie(await context.signIn());
+  const id = cookie.split('=')[1];
+  const previous = (await context.auth.authentication.sessions.get(id, false))!;
+  previous.tokens.expiresAt = 0;
+  await context.auth.authentication.sessions.update(previous);
+  const failure = spyOn(context.client, 'refresh').mockRejectedValue(new SignInError('provider-unreachable'));
+  try {
+    expect((await context.handler(new Request(context.transport.config.publicUrl + '/api/me', { headers: { Cookie: cookie } }))).status).toBe(503);
+    expect((await context.auth.authentication.sessions.get(id, false))!.tokens).toEqual(previous.tokens);
+  } finally {
+    failure.mockRestore();
+  }
+  expect((await context.handler(new Request(context.transport.config.publicUrl + '/api/me', { headers: { Cookie: cookie } }))).status).toBe(200);
+});
+
+test('refresh persists rotated credentials before failed audit and retries only the pending audit after restart', async () => {
+  using context = await setup();
+  const cookie = sessionCookie(await context.signIn());
+  const id = cookie.split('=')[1];
+  const previous = (await context.auth.authentication.sessions.get(id, false))!;
+  previous.tokens.expiresAt = 0;
+  await context.auth.authentication.sessions.update(previous);
+  context.transport.config.directory.overage = 'directory';
+  const refresh = spyOn(context.client, 'refresh');
+  const token = spyOn(context.client, 'onBehalfOf').mockRejectedValue(new Error('directory-unavailable'));
+  const append = spyOn(context.auth.audit, 'append').mockImplementation(() => {
+    throw new Error('audit disk unavailable');
+  });
+  const request = () => new Request(context.transport.config.publicUrl + '/api/me', { headers: { Cookie: cookie } });
+  try {
+    for (let attempt = 0; attempt < 2; attempt++) expect((await context.handler(request())).status).toBe(500);
+    const stored = (await context.auth.authentication.sessions.get(id, false))!;
+    expect(stored.tokens.refreshToken).not.toBe(previous.tokens.refreshToken);
+    expect(stored.tokens.expiresAt).toBeGreaterThan(Date.now());
+    expect(stored.principal.groups).toEqual([]);
+    expect(stored.directoryAuditPending).toBe(true);
+    expect(refresh).toHaveBeenCalledTimes(1);
+    expect(token).toHaveBeenCalledTimes(1);
+    append.mockRestore();
+    context.auth.close();
+    const restarted = await createServerAuthentication(context.fixture.ws, context.transport.config, context.client);
+    try {
+      const handler = createHandler(context.fixture.ws, restarted);
+      expect((await handler(request())).status).toBe(200);
+      const recovered = (await restarted.authentication.sessions.get(id, false))!;
+      expect(recovered.tokens).toEqual(stored.tokens);
+      expect(recovered.directoryAuditPending).toBeUndefined();
+      expect(refresh).toHaveBeenCalledTimes(1);
+      expect(token).toHaveBeenCalledTimes(1);
+    } finally {
+      restarted.close();
+    }
+  } finally {
+    append.mockRestore();
+    token.mockRestore();
+    refresh.mockRestore();
+  }
+}, 60000);
+
+test('a session revoked during refresh is not recreated by the renewed credentials', async () => {
+  using context = await setup();
+  const cookie = sessionCookie(await context.signIn());
+  const id = cookie.split('=')[1];
+  const previous = (await context.auth.authentication.sessions.get(id, false))!;
+  previous.tokens.expiresAt = 0;
+  await context.auth.authentication.sessions.update(previous);
+  const original = context.client.refresh.bind(context.client);
+  const refresh = spyOn(context.client, 'refresh').mockImplementation(async tokens => {
+    await context.auth.authentication.sessions.end(id);
+    return original(tokens);
+  });
+  try {
+    const response = await context.handler(new Request(context.transport.config.publicUrl + '/api/me', { headers: { Cookie: cookie } }));
+    expect(response.status).toBe(401);
+    expect(await context.auth.authentication.sessions.get(id, false)).toBeNull();
+  } finally {
+    refresh.mockRestore();
+  }
+});
 test('callback replaces the browser session and root key cannot decrypt derived-key sessions', async () => {
   using context = await setup();
   const first = await context.signIn();

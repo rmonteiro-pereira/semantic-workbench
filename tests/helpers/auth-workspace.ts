@@ -18,7 +18,7 @@ export function fixtureFiles(project: string) {
     for (const name of readdirSync(dir).sort()) {
       const full = join(dir, name);
       if (statSync(full).isDirectory()) walk(full);
-      else files.push({ path: relative(root, full), source: readFileSync(full, 'utf8') });
+      else files.push({ path: relative(root, full).replaceAll('\\', '/'), source: readFileSync(full, 'utf8') });
     }
   };
   walk(root);

@@ -42,6 +42,8 @@ export type Session = {
   csrf: string;
   createdAt: number;
   lastSeenAt: number;
+  /** A failed membership lookup whose audit must succeed before the session is used again. */
+  directoryAuditPending?: boolean;
   remote?: RemoteTokens;
 };
 /** Persistence, time and lifecycle dependencies of the session store. */

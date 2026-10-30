@@ -1,8 +1,8 @@
-// Resolves only configured directory groups using an application credential.
+// Resolves configured group memberships and caches optional group display names.
 import type { AccessConfig } from './access-config';
 import { isLoopbackHost } from '../config';
 
-/** Public directory lookup result, including a recoverable unresolved name. */
+/** A group label; resolved means its name was verified against the directory. */
 export type GroupName = { id: string; displayName: string | null; resolved: boolean };
 /** Looks up one group's display name; it never fails, it reports the name as unresolved. */
 export type GroupLookup = (id: string) => Promise<GroupName>;
@@ -48,7 +48,7 @@ export function createGroupNameCache(lookup: GroupLookup, options: GroupNameCach
     await Promise.all(Array.from({ length: Math.min(concurrency, queue.length) }, worker));
     return result;
   }
-  return { name, names };
+  return { name, names, clear: () => cached.clear() };
 }
 
 /** Collects group identifiers mentioned by grants or restricted paths. */
@@ -58,13 +58,22 @@ export function directoryGroupIds(config: AccessConfig): string[] {
   return [...new Set([...grants, ...restricted].map(id => id.toLowerCase()))];
 }
 
+/** Rejects malformed Entra object IDs before one can invalidate a Graph membership batch. */
+export function validateDirectoryGroupIds(config: AccessConfig): void {
+  for (const id of directoryGroupIds(config)) {
+    if (!/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/.test(id)) {
+      throw new Error('Entra groups in grants and restricted paths must use GUID object IDs.');
+    }
+  }
+}
+
 /**
- * The scope of the application token for directory lookups. The mock provider's Graph stand-in
+ * A Graph scope for directory lookups. The mock provider's Graph stand-in
  * on loopback is addressed with Microsoft Graph's own scope, as the real Graph would be.
  */
-export function directoryScope(graphUrl: string): string {
-  if (isLoopbackHost(new URL(graphUrl).hostname)) return 'https://graph.microsoft.com/.default';
-  return graphUrl + '/.default';
+export function directoryScope(graphUrl: string, permission: '.default' | 'User.Read' = '.default'): string {
+  const resource = isLoopbackHost(new URL(graphUrl).hostname) ? 'https://graph.microsoft.com' : graphUrl;
+  return resource + '/' + permission;
 }
 
 /** Creates a bounded directory client with injectable token and HTTP edges. */
@@ -74,9 +83,11 @@ export function createDirectoryClient(options: {
   fetch?: (url: string, init?: RequestInit) => Promise<Response>;
   failure?: (reason: string) => void;
   timeoutMs?: number;
+  signal?: AbortSignal;
 }) {
   const request = options.fetch ?? fetch;
   async function perform(path: string, signal: AbortSignal, groupIds?: string[]): Promise<unknown> {
+    signal.throwIfAborted();
     const token = await options.token();
     signal.throwIfAborted();
     const response = await request(options.graphUrl + '/v1.0/' + path, {
@@ -89,26 +100,49 @@ export function createDirectoryClient(options: {
     if (!response.ok) throw new Error('Directory request failed.');
     return response.json();
   }
-  async function call(path: string, groupIds?: string[]): Promise<unknown> {
+  async function withinDeadline<T>(run: (signal: AbortSignal) => Promise<T>): Promise<T> {
     const controller = new AbortController();
+    const signal = options.signal ? AbortSignal.any([controller.signal, options.signal]) : controller.signal;
     let timer: ReturnType<typeof setTimeout>;
-    const timeout = new Promise<never>((_resolve, reject) => {
-      timer = setTimeout(() => {
-        controller.abort();
-        reject(new Error('Directory lookup timed out.'));
-      }, options.timeoutMs ?? 5000);
+    let abort: () => void;
+    const interrupted = new Promise<never>((_resolve, reject) => {
+      abort = () => reject(signal.reason);
+      signal.addEventListener('abort', abort, { once: true });
+      if (signal.aborted) abort();
+      timer = setTimeout(() => controller.abort(new Error('Directory lookup timed out.')), options.timeoutMs ?? 5000);
     });
     try {
-      return await Promise.race([perform(path, controller.signal, groupIds), timeout]);
+      return await Promise.race([run(signal), interrupted]);
     } finally {
       clearTimeout(timer!);
+      signal.removeEventListener('abort', abort!);
+    }
+  }
+  async function checkGroups(path: string, ids: string[]): Promise<string[] | null> {
+    try {
+      return await withinDeadline(async signal => {
+        const result = new Set<string>();
+        for (let offset = 0; offset < ids.length; offset += 20) {
+          const batch = ids.slice(offset, offset + 20);
+          const body = await perform(path, signal, batch);
+          const value = (body as { value?: unknown })?.value;
+          if (!Array.isArray(value) || !value.every(id => typeof id === 'string')) {
+            throw new Error('Invalid directory membership response.');
+          }
+          for (const id of value) if (batch.includes(id)) result.add(id);
+        }
+        return [...result];
+      });
+    } catch {
+      options.failure?.('directory-unavailable');
+      return null;
     }
   }
   return {
     async group(id: string) {
       try {
         if (!id || id.length > 256) throw new Error('Invalid directory group ID.');
-        const body = await call('groups/' + encodeURIComponent(id) + '?$select=displayName');
+        const body = await withinDeadline(signal => perform('groups/' + encodeURIComponent(id) + '?$select=displayName', signal));
         const displayName = (body as { displayName?: unknown })?.displayName;
         if (typeof displayName !== 'string') throw new Error('Invalid directory group name.');
         return { id, displayName, resolved: true };
@@ -118,22 +152,10 @@ export function createDirectoryClient(options: {
       }
     },
     async groups(oid: string, ids: string[]): Promise<string[] | null> {
-      try {
-        const result = new Set<string>();
-        for (let offset = 0; offset < ids.length; offset += 20) {
-          const batch = ids.slice(offset, offset + 20);
-          const body = await call('users/' + encodeURIComponent(oid) + '/checkMemberGroups', batch);
-          const value = (body as { value?: unknown })?.value;
-          if (!Array.isArray(value) || !value.every(id => typeof id === 'string')) {
-            throw new Error('Invalid directory membership response.');
-          }
-          for (const id of value) if (batch.includes(id)) result.add(id);
-        }
-        return [...result];
-      } catch {
-        options.failure?.('directory-unavailable');
-        return null;
-      }
+      return checkGroups('users/' + encodeURIComponent(oid) + '/checkMemberGroups', ids);
+    },
+    async myGroups(ids: string[]): Promise<string[] | null> {
+      return checkGroups('me/checkMemberGroups', ids);
     },
   };
 }

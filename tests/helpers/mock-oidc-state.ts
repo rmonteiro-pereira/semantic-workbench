@@ -15,6 +15,8 @@ export type MockOidcOptions = {
   redirectUris?: string[];
   postLogoutRedirectUris?: string[];
   overageStyle?: 'hasgroups' | 'claim-sources';
+  /** Whether Entra emits group claims and overage markers in user tokens. */
+  groupClaims?: boolean;
   /**
    * Where the endpoints live: under the issuer, or Entra's layout with authorize, token and
    * logout under `/<tenant>/oauth2/v2.0` and keys under `/<tenant>/discovery/v2.0/keys`.
@@ -103,6 +105,7 @@ export async function createProviderState(options: MockOidcOptions): Promise<Pro
       redirectUris: options.redirectUris ?? ['http://127.0.0.1:4310/auth/callback'],
       postLogoutRedirectUris: options.postLogoutRedirectUris ?? ['http://127.0.0.1:4310/auth/signed-out'],
       overageStyle: options.overageStyle ?? 'claim-sources',
+      groupClaims: options.groupClaims ?? true,
       layout: options.layout ?? 'issuer',
       clientCertificate: options.clientCertificate,
       federatedAssertion: options.federatedAssertion,
@@ -149,6 +152,7 @@ function entraClaims(state: ProviderState, user: TestUser, clientId: string): JW
   };
   if (user.emailDomainVerified) claims.xms_edov = true;
   if (user.appRoles?.length) claims.roles = [...user.appRoles];
+  if (!state.options.groupClaims) return claims;
   if (!user.groupOverage) {
     claims.groups = user.groups.map(group => group.id);
   } else if (state.options.overageStyle === 'hasgroups') {

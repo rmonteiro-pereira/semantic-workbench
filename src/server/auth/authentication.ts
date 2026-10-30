@@ -10,9 +10,9 @@ import { createAuditLog } from './audit';
 import { safeReturnTo } from './attempts';
 import { createSignInProvider, type SignInProvider } from './sign-in-provider';
 import { createAttemptStore, ATTEMPT_TTL_SECONDS } from './attempts';
-import { createDirectoryClient, directoryGroupIds } from './directory';
-import { resolvePrincipalGroups, type NormalizedPrincipal, type Principal } from './principal';
-import { createSessionStore, cookieName, readCookie, sessionCookie, type Session, type SessionStore } from './sessions';
+import { createDirectoryClient, directoryGroupIds, directoryScope, validateDirectoryGroupIds } from './directory';
+import { withDirectoryGroups, type NormalizedPrincipal, type Principal } from './principal';
+import { createSessionStore, cookieName, readCookie, sessionCookie, type Session, type SessionStore, type SessionTokens } from './sessions';
 import { requestAuditId, requestSourceIp, type AuditRequest } from '../request';
 import { createAnonymousAuditGate } from './rate-limit';
 import { createRemoteCredentials, type RemoteCredentialOptions } from './remote-credentials';
@@ -60,6 +60,9 @@ export async function createServerAuthentication(ws: Workspace, config: ServerCo
   // instance, and each commit replaces the policy every request decides with.
   const repository = openAdminRepository({
     root: ws.layout.root,
+    validate: policy => {
+      if (config.oidc.provider === 'entra') validateDirectoryGroupIds(policy);
+    },
     committed: config => access.reload(config),
   });
   await repository.ensure();
@@ -122,27 +125,46 @@ export async function createServerAuthentication(ws: Workspace, config: ServerCo
       return Response.json({ error: 'Audit unavailable' }, { status: 503 });
     }
   }
-  async function principalFor(identity: NormalizedPrincipal, request?: Request) {
-    if (identity.groupOverage) {
+  async function principalFor(identity: NormalizedPrincipal, tokens: SessionTokens, request?: Request) {
+    const ids = directoryGroupIds(access.snapshot().config);
+    if (config.oidc.provider === 'entra' && config.directory.overage === 'directory' && (ids.length || identity.groupOverage)) {
+      let delegated: Promise<string> | undefined;
       const directory = createDirectoryClient({
         graphUrl: config.directory.graphUrl,
-        token: () => client.directoryToken(),
+        token: () => (delegated ??= client.onBehalfOf(tokens.accessToken, [directoryScope(config.directory.graphUrl, 'User.Read')]).then(result => result.token)),
         failure: reason => logFailure(request, new Error(reason)),
+        signal: request?.signal,
       });
-      identity = await resolvePrincipalGroups(identity, oid => (config.directory.overage === 'directory' ? directory.groups(oid, directoryGroupIds(access.snapshot().config)) : Promise.resolve(null)));
-      if (identity.groupsResolved === 'failed') {
-        record({
-          action: 'directoryLookup',
-          principal: access.principalFor(identity),
-          outcome: 'degraded',
-          reason: 'directory-unavailable',
-          request,
-        });
-      }
+      identity = withDirectoryGroups(identity, await directory.myGroups(ids));
+    } else if (identity.groupOverage) {
+      identity = withDirectoryGroups(identity, null);
     }
-    const principal = access.principalFor(identity);
-    ws.state.recordUser(principal, new Date().toISOString());
-    return principal;
+    return access.principalFor(identity);
+  }
+  function recordDirectoryFailure(principal: Principal, request?: Request) {
+    if (principal.groupsResolved === 'failed') {
+      record({
+        action: 'directoryLookup',
+        principal,
+        outcome: 'degraded',
+        reason: 'directory-unavailable',
+        request,
+      });
+    }
+  }
+  async function finishRefresh(session: Session, request: Request): Promise<Session | null> {
+    if (session.directoryAuditPending) {
+      try {
+        recordDirectoryFailure(session.principal, request);
+      } catch (error) {
+        logFailure(request, new Error('audit-unavailable'));
+        throw error;
+      }
+      session.directoryAuditPending = undefined;
+      if (!(await sessions.update(session))) return null;
+    }
+    ws.state.recordUser(session.principal, new Date().toISOString());
+    return session;
   }
   const refreshing = new Map<string, Promise<Session | null>>();
   async function refresh(session: Session, request: Request): Promise<Session | null> {
@@ -167,10 +189,18 @@ export async function createServerAuthentication(ws: Workspace, config: ServerCo
       return null;
     }
     // A failure from here on is ours, not the provider's, and answers as an internal error.
-    session.principal = await principalFor(renewed.principal, request);
-    session.tokens = renewed.tokens;
-    if (!(await sessions.update(session))) return null;
-    return session;
+    const principal = await principalFor(renewed.principal, renewed.tokens, request);
+    const updated = { ...session, principal, tokens: renewed.tokens, directoryAuditPending: principal.groupsResolved === 'failed' || undefined };
+    if (!(await sessions.update(updated))) return null;
+    return finishRefresh(updated, request);
+  }
+  async function renew(session: Session, request: Request): Promise<Session | null> {
+    if (session.directoryAuditPending) {
+      const completed = await finishRefresh(session, request);
+      if (!completed) return null;
+      session = completed;
+    }
+    return Date.now() >= session.tokens.expiresAt ? refresh(session, request) : session;
   }
   const requests = new WeakMap<Request, Promise<Session | null>>();
   async function resolve(request: Request) {
@@ -178,10 +208,10 @@ export async function createServerAuthentication(ws: Workspace, config: ServerCo
     if (!id) return null;
     let session = await sessions.get(id);
     if (!session) return null;
-    if (Date.now() >= session.tokens.expiresAt) {
+    if (session.directoryAuditPending || Date.now() >= session.tokens.expiresAt) {
       let pending = refreshing.get(id);
       if (!pending) {
-        pending = refresh(session, request).finally(() => refreshing.delete(id));
+        pending = renew(session, request).finally(() => refreshing.delete(id));
         refreshing.set(id, pending);
       }
       session = await pending;
@@ -233,7 +263,9 @@ export async function createServerAuthentication(ws: Workspace, config: ServerCo
       const url = new URL(request.url);
       const callbackUrl = new URL('/auth/callback' + url.search, config.publicUrl);
       const identity = await withSpan('auth.callback.token-exchange', {}, () => client.callback(callbackUrl, attempt));
-      const principal = await withSpan('auth.callback.resolve-principal', {}, () => principalFor(identity.principal, request));
+      const principal = await withSpan('auth.callback.resolve-principal', {}, () => principalFor(identity.principal, identity.tokens, request));
+      recordDirectoryFailure(principal, request);
+      ws.state.recordUser(principal, new Date().toISOString());
       const denied = principal.deactivated || !principal.grants.length;
       const refused = recordOrRefuse({
         action: 'signIn',
@@ -320,6 +352,10 @@ export async function createServerAuthentication(ws: Workspace, config: ServerCo
   // Keycloak puts group names in the token, so the name is the identifier itself.
   async function groupName(id: string) {
     if (config.oidc.provider === 'keycloak') return { id, displayName: id, resolved: true };
+    if (config.oidc.provider === 'entra') {
+      const member = access.snapshot().config.grants.find(grant => grant.member.kind === 'group' && grant.member.groupId.toLowerCase() === id.toLowerCase() && grant.member.displayName)?.member;
+      return { id, displayName: member?.kind === 'group' ? (member.displayName ?? null) : null, resolved: false };
+    }
     return groupDirectory.group(id);
   }
   const remoteCredentials = createRemoteCredentials({

@@ -258,13 +258,12 @@ export function createAccessAdmin(options: AccessAdminOptions) {
     if (area !== 'grants' || !options.groupName) return null;
     return groups.names(proposedGroupIds(body));
   }
-  /** Stores the directory name of each group grant so the panel can show it later. */
+  /** Keeps local labels, replacing them only when a directory name is available. */
   function storeGroupNames(next: Proposal, names: Map<string, GroupName> | null) {
     if (next.area !== 'grants' || !names) return;
     for (const grant of next.config.grants) {
       if (grant.member.kind !== 'group') continue;
       const name = names.get(grant.member.groupId);
-      delete grant.member.displayName;
       delete grant.member.resolvedAt;
       if (name?.resolved && name.displayName) {
         grant.member.displayName = name.displayName;
@@ -310,6 +309,7 @@ export function createAccessAdmin(options: AccessAdminOptions) {
     });
     // The repository's commit listener has already reloaded the shared access boundary.
     receipts.clear();
+    if (next.area === 'grants' || next.area === 'roles' || next.area === 'rollback') groups.clear();
     await applyToSessions(next, effect.affected);
     recordChange(actor, next.area, version, effect.requestId);
     return { version };

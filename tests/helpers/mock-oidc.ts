@@ -160,6 +160,13 @@ function graphGroupEndpoint(id: string) {
 
 async function graphEndpoint(state: ProviderState, request: Request, path: string, body: unknown) {
   const identity = await readAccessToken(state, bearerToken(request), 'https://graph.microsoft.com');
+  if (path === '/graph/v1.0/me/checkMemberGroups' && request.method === 'POST') {
+    const scopes = String(identity?.payload.scp ?? '').split(/\s+/);
+    if (!identity?.username || !scopes.some(scope => scope === 'User.Read' || scope === 'https://graph.microsoft.com/User.Read')) {
+      return new Response('Delegated User.Read is required', { status: 403 });
+    }
+    return graphCheckEndpoint(state, state.users[identity.username].oid, body);
+  }
   if (!identity || identity.username || identity.clientId !== TEST_WORKBENCH_CLIENT.clientId || identity.payload.idtyp !== 'app') {
     return new Response('A workbench app-only Graph token is required', { status: 401 });
   }
@@ -173,6 +180,7 @@ async function graphEndpoint(state: ProviderState, request: Request, path: strin
 }
 
 function endpointName(state: ProviderState, path: string): string {
+  if (path === '/graph/v1.0/me/checkMemberGroups') return 'graph-check';
   if (/^\/graph\/v1.0\/users\/[^/]+\/checkMemberGroups$/.test(path)) return 'graph-check';
   if (/^\/graph\/v1.0\/groups\/[^/]+$/.test(path)) return 'graph-group';
   if (entraLayout(state) && path === ENTRA_KEYS) return 'jwks';

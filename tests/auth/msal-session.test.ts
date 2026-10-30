@@ -1,12 +1,12 @@
 // Checks MSAL sign-in through the real handler: each session keeps its own token cache inside the
 // encrypted session record, no token reaches a response or a log line, and group overage and
-// group names use the application token MSAL acquired.
+// memberships use delegated Graph and group labels require no application permissions.
 import { expect, test } from 'bun:test';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { createServerAuthentication } from '../../src/server/auth/authentication';
 import { createHandler } from '../../src/server/handler';
-import { TEST_GROUPS, type TestUserName } from '../helpers/auth-identities';
+import { TEST_GROUPS, TEST_USERS, type TestUserName } from '../helpers/auth-identities';
 import { authWorkspace } from '../helpers/auth-workspace';
 import type { MockOidc } from '../helpers/mock-oidc';
 import { entraConfig, withEntraProvider } from '../helpers/entra-provider';
@@ -87,7 +87,7 @@ test('each session keeps its own MSAL cache, encrypted, and no token reaches a r
     auth.close();
   }));
 
-test('group overage and group names use the application token MSAL acquired', () =>
+test('group overage uses delegated User.Read and labels require no application token', () =>
   withEntraProvider(async provider => {
     using fixture = await authWorkspace();
     const auth = await createServerAuthentication(fixture.ws, entraConfig(provider));
@@ -98,14 +98,158 @@ test('group overage and group names use the application token MSAL acquired', ()
     const person = await me.json();
     expect(person.roleSources.some((source: { via: string }) => source.via === 'group')).toBe(true);
     expect(provider.calls.some(call => call.endpoint === 'graph-check')).toBe(true);
-    const appToken = provider.calls.find(call => call.params.grant_type === 'client_credentials');
-    expect(appToken?.endpoint).toBe('token');
-    expect(appToken?.params.scope).toContain('https://graph.microsoft.com/.default');
+    expect(provider.calls.some(call => call.params.grant_type === 'client_credentials')).toBe(false);
+    const obo = provider.calls.filter(call => call.params.requested_token_use === 'on_behalf_of');
+    expect(obo).toHaveLength(1);
+    expect(obo[0].params.scope.split(' ')).toContain('https://graph.microsoft.com/User.Read');
     const group = TEST_GROUPS.salesEditors;
     expect(await auth.groupName(group.id)).toEqual({
       id: group.id,
       displayName: group.name,
-      resolved: true,
+      resolved: false,
     });
     auth.close();
   }));
+
+test(
+  'configured internal groups work without token group claims and stay isolated across users and refresh',
+  () =>
+    withEntraProvider(
+      async provider => {
+        using fixture = await authWorkspace();
+        const auth = await createServerAuthentication(fixture.ws, entraConfig(provider));
+        try {
+          const handler = createHandler(fixture.ws, auth);
+          const [alice, carol] = await Promise.all([browserSignIn(handler, provider, 'alice'), browserSignIn(handler, provider, 'carol')]);
+          const aliceSession = (await auth.authentication.sessions.get(alice.id, false))!;
+          const carolSession = (await auth.authentication.sessions.get(carol.id, false))!;
+          expect(aliceSession.principal.groupOverage).toBe(false);
+          expect(aliceSession.principal.groupsResolved).toBe('directory');
+          expect(aliceSession.principal.groups).toEqual([TEST_GROUPS.salesEditors.id]);
+          expect(carolSession.principal.groups).toEqual([TEST_GROUPS.hrViewers.id]);
+          expect(aliceSession.principal.grants.some(grant => grant.roleId === 'editor')).toBe(true);
+          expect(carolSession.principal.grants.some(grant => grant.roleId === 'editor')).toBe(false);
+          provider.setUserGroups('alice', [TEST_GROUPS.hrViewers]);
+          aliceSession.tokens.expiresAt = 0;
+          await auth.authentication.sessions.update(aliceSession);
+          const refreshed = await handler(new Request(origin + '/api/me', { headers: { Cookie: alice.cookie } }));
+          expect(refreshed.status).toBe(200);
+          const current = (await auth.authentication.sessions.get(alice.id, false))!;
+          expect(current.principal.groups).toEqual([TEST_GROUPS.hrViewers.id]);
+          expect(current.principal.grants.some(grant => grant.roleId === 'editor')).toBe(false);
+          provider.setUserGroups('alice', []);
+          current.tokens.expiresAt = 0;
+          await auth.authentication.sessions.update(current);
+          expect((await handler(new Request(origin + '/api/me', { headers: { Cookie: alice.cookie } }))).status).toBe(403);
+          expect(provider.calls.some(call => call.params.grant_type === 'client_credentials')).toBe(false);
+          expect(provider.calls.filter(call => call.endpoint === 'graph-check')).toHaveLength(4);
+        } finally {
+          auth.close();
+        }
+      },
+      { groupClaims: false },
+    ),
+  60000,
+);
+
+test(
+  'group grants are optional: email access needs no Graph, while login alone grants no role',
+  () =>
+    withEntraProvider(async provider => {
+      using fixture = await authWorkspace();
+      const auth = await createServerAuthentication(fixture.ws, entraConfig(provider));
+      try {
+        const policy = structuredClone(auth.access.snapshot().config);
+        policy.grants = policy.grants.filter(grant => grant.member.kind !== 'group');
+        for (const project of Object.values(policy.projects.projects)) {
+          for (const rule of project.restricted) rule.groups = [];
+        }
+        auth.access.reload(policy);
+        const handler = createHandler(fixture.ws, auth);
+        const bob = await browserSignIn(handler, provider, 'bob');
+        expect((await handler(new Request(origin + '/api/me', { headers: { Cookie: bob.cookie } }))).status).toBe(200);
+        const alice = await browserSignIn(handler, provider, 'alice');
+        expect((await auth.authentication.sessions.get(alice.id, false))!.principal.grants).toEqual([]);
+        expect((await handler(new Request(origin + '/api/me', { headers: { Cookie: alice.cookie } }))).status).toBe(403);
+        expect(provider.calls.filter(call => call.endpoint.startsWith('graph-'))).toHaveLength(0);
+        expect(provider.calls.filter(call => call.params.requested_token_use === 'on_behalf_of')).toHaveLength(0);
+      } finally {
+        auth.close();
+      }
+    }),
+  30000,
+);
+
+test(
+  'Graph failure never retains token groups but preserves independent email grants',
+  () =>
+    withEntraProvider(async provider => {
+      using fixture = await authWorkspace();
+      const auth = await createServerAuthentication(fixture.ws, entraConfig(provider));
+      try {
+        provider.fail('graph-check', 'error');
+        const handler = createHandler(fixture.ws, auth);
+        const alice = await browserSignIn(handler, provider, 'alice');
+        const principal = (await auth.authentication.sessions.get(alice.id, false))!.principal;
+        expect(principal.groups).toEqual([]);
+        expect(principal.groupsResolved).toBe('failed');
+        expect(principal.grants).toEqual([]);
+        const bob = await browserSignIn(handler, provider, 'bob');
+        expect((await handler(new Request(origin + '/api/me', { headers: { Cookie: bob.cookie } }))).status).toBe(200);
+        expect((await auth.authentication.sessions.get(bob.id, false))!.principal.grants.every(grant => grant.via === 'email')).toBe(true);
+        expect(provider.calls.some(call => call.params.grant_type === 'client_credentials')).toBe(false);
+      } finally {
+        auth.close();
+      }
+    }),
+  30000,
+);
+
+test(
+  'turning directory checks off retains token-only grants without OBO',
+  () =>
+    withEntraProvider(async provider => {
+      using fixture = await authWorkspace();
+      const config = entraConfig(provider);
+      config.directory.overage = 'off';
+      const auth = await createServerAuthentication(fixture.ws, config);
+      try {
+        const handler = createHandler(fixture.ws, auth);
+        const alice = await browserSignIn(handler, provider, 'alice');
+        expect((await auth.authentication.sessions.get(alice.id, false))!.principal.groupsResolved).toBe('token');
+        const olga = await browserSignIn(handler, provider, 'olga');
+        expect((await auth.authentication.sessions.get(olga.id, false))!.principal.groupsResolved).toBe('failed');
+        expect(provider.calls.filter(call => call.endpoint === 'graph-check')).toHaveLength(0);
+        expect(provider.calls.filter(call => call.params.requested_token_use === 'on_behalf_of')).toHaveLength(0);
+      } finally {
+        auth.close();
+      }
+    }),
+  30000,
+);
+
+test(
+  'multiple membership batches share one delegated token per user resolution',
+  () =>
+    withEntraProvider(async provider => {
+      using fixture = await authWorkspace();
+      const auth = await createServerAuthentication(fixture.ws, entraConfig(provider));
+      try {
+        const policy = structuredClone(auth.access.snapshot().config);
+        const example = policy.grants.find(grant => grant.member.kind === 'group')!;
+        for (let index = 0; index < 45; index++) {
+          policy.grants.push({ ...example, id: `extra-${index}`, member: { kind: 'group', groupId: `bb000000-0000-4000-8000-${String(index).padStart(12, '0')}` } });
+        }
+        auth.access.reload(policy);
+        const alice = await browserSignIn(createHandler(fixture.ws, auth), provider, 'alice');
+        expect((await auth.authentication.sessions.get(alice.id, false))!.principal.groups).toEqual(TEST_USERS.alice.groups.map(group => group.id));
+        const checks = provider.calls.filter(call => call.endpoint === 'graph-check');
+        expect(checks).toHaveLength(3);
+        expect(checks.map(call => JSON.parse(call.params.body).groupIds.length)).toEqual([20, 20, 10]);
+        expect(provider.calls.filter(call => call.params.requested_token_use === 'on_behalf_of')).toHaveLength(1);
+      } finally {
+        auth.close();
+      }
+    }),
+  30000,
+);

@@ -147,19 +147,23 @@ Microsoft Entra admin center under **App registrations → New registration**:
      secrets are still required.
    - **Client secret.** Create one under **Client secrets**, store it in Key Vault and reference
      it as `SW_OIDC_CLIENT_SECRET`. Note its expiry date.
-4. **Token configuration.** **Add groups claim → Security groups** (group IDs) for the ID and
-   access tokens, or **Groups assigned to the application** if the granted groups are assigned
-   to the enterprise application, which avoids overage. **Add optional claim → ID** with
+4. **Token configuration.** Group claims are optional with delegated directory checks (the
+   default). For token-only internal grants (`SW_GROUP_OVERAGE=off`), **Add groups claim →
+   Security groups** with object IDs. **Groups assigned to the application** includes only
+   directly assigned memberships, not nested groups or internal groups unassigned to the app.
+   **Add optional claim → ID** with
    `email`, `upn`, `xms_edov`, `sid` (front-channel logout names it) and `login_hint` (sent
    back as `logout_hint`, so sign-out does not ask which account), and **Add optional claim →
-   Access** with `idtyp` (agent tokens without it are refused). When a person belongs to more
-   groups than fit in a token, Entra leaves them out and marks the overage. The server asks
-   Microsoft Graph which of the
-   granted groups the person is in (needs `GroupMember.Read.All` below; `SW_GROUP_OVERAGE=off`
-   disables it).
+   Access** with `idtyp` (agent tokens without it are refused). With
+   `SW_GROUP_OVERAGE=directory`, the server checks only group IDs referenced by internal grants
+   or restricted paths at sign-in and token refresh, even without group claims or overage.
+   It exchanges the person's Workbench API access token through OBO for Graph delegated
+   `User.Read` and calls `/me/checkMemberGroups` in batches of at most 20. No configured
+   internal group IDs means no membership lookup. A failure grants no group-derived access.
 5. **API permissions.** Microsoft Graph delegated `openid`, `profile`, `email`, `offline_access`
-   and `User.Read`. Add the Microsoft Graph application permission `GroupMember.Read.All` only
-   for the Graph lookups: overage resolution and the group names the Admin panel shows. Azure
+   and `User.Read`. No Microsoft Graph application permissions are needed for Entra group
+   resolution. Group names in the Admin panel are optional local labels, not directory-verified
+   names; access always matches object IDs. Azure
    DevOps delegated `user_impersonation` when people push to Azure Repos through the workbench.
    **Grant admin consent** for the tenant.
 6. **Expose an API.** Set the Application ID URI to `api://<client-id>`. Add the scope
@@ -189,10 +193,47 @@ Where each value of the registration goes:
 | Application Insights connection string (Key Vault secret `sw-appinsights-connection-string`) | `APPLICATIONINSIGHTS_CONNECTION_STRING=secretref:<name>` | none; preflight requires a Key Vault reference when it is set |
 | Actor pseudonym salt (Key Vault secret, optional) | `SW_TELEMETRY_ACTOR_SALT=secretref:<name>` | none; preflight requires a Key Vault reference when it is set |
 | Groups claim | `SW_GROUP_CLAIM` (default `groups`) | none |
-| `GroupMember.Read.All` | `SW_GROUP_OVERAGE=directory` (default) | none |
+| Graph delegated `User.Read` | `SW_GROUP_OVERAGE=directory` (default); `off` uses token claims only | none |
 
 Secrets never enter the variable group: the container app resolves each `secretref` from Key
 Vault with `id-sw-app`.
+
+### Entry and internal permissions
+
+These are separate decisions:
+
+1. **Entry:** in **Enterprise applications → the Workbench application → Properties**, set
+   **Assignment required? → Yes**, then assign the entry group in **Users and groups**. Remove
+   unintended direct user assignments. Group assignment requires Entra ID P1/P2 and does not
+   include nested groups. Global Administrators have a documented assignment exception; this
+   switch alone is not an absolute group-members-only rule. These are tenant administration
+   steps, not settings the Workbench changes.
+2. **Identity:** OIDC/MSAL validates the sign-in and establishes the person's session.
+   `User.Read` is delegated Graph access, not an authentication method.
+3. **Internal permissions:** the Workbench applies its existing grants. Entra groups are
+   optional alongside verified e-mail grants and bootstrap administrators. Entry does not
+   imply Viewer, Editor or Admin, and the entry group need not be an internal role group.
+   A signed-in person without a matching internal grant sees **No access**.
+
+Membership is a snapshot from sign-in or token refresh, plus directory propagation delay:
+removing a member is not immediate session revocation. Failed lookups are audited and remove
+group-derived grants; other independent grants remain. Recovery is observed on another sign-in
+or token refresh. OBO consent/MFA/Conditional Access failures also fail closed; this flow does
+not bypass interactive challenges or implement automatic claims-challenge recovery.
+
+Entra group references must be GUID object IDs; startup and administration validation reject
+malformed grant or restricted-path references before activation. Textual group IDs remain valid
+for other providers. A membership resolution has one five-second budget for token acquisition
+and all Graph batches, with cancellation of pending Graph requests.
+
+Temporary provider errors, throttling and HTTP 5xx during refresh preserve the session and
+return 503. Renewed credentials and the safe principal are persisted before degradation
+auditing. If that audit fails, requests remain blocked and retry the pending audit, not the
+token exchange; the pending state survives restart. Revoked sessions are never recreated.
+
+References: [restrict an application to assigned users](https://learn.microsoft.com/en-us/entra/identity-platform/howto-restrict-your-app-to-a-set-of-users),
+[group assignment](https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/assign-user-or-group-access-portal),
+[delegated membership checks](https://learn.microsoft.com/en-us/graph/api/directoryobject-checkmembergroups?view=graph-rest-1.0).
 
 ### Logging and telemetry
 

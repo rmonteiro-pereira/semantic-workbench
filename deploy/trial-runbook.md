@@ -22,10 +22,11 @@ commands or the report. Real-target acceptance is separate from local implementa
    `refs/tags/v*`, with Verify branch protection; `sw-azure-pull`: `refs/tags/v*`). Only the release
    operator should have Create tag permission on `refs/tags/v*`. Check the
    [Entra App Registration](README.md#entra-app-registration) item by item: both Web redirect
-   URIs, the front-channel logout URL `https://<host>/auth/front-channel-logout`, groups claim
+   URIs, the front-channel logout URL `https://<host>/auth/front-channel-logout`, entry-group
+   assignment with **Assignment required? → Yes**, optional internal group grants and
    and optional claims (`email`, `upn`, `xms_edov`, `sid`, `login_hint` on ID tokens, `idtyp`
    on access tokens), API permissions with admin consent
-   (`GroupMember.Read.All` only for the Graph lookups), the exposed `api://<client-id>` with
+   (Graph delegated `User.Read`, no Graph application permissions), the exposed `api://<client-id>` with
    `access_as_user`, access token version 2, and the credential (certificate preferred). Record
    which credential was used. Expected: all items present, every value mapped to its setting as
    in the guide's table, and the variable group contains no secrets. Result: [ ] pass [ ] fail.

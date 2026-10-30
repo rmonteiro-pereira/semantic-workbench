@@ -195,7 +195,7 @@ async function versionedDocument({ service, path }: AdminRequest) {
   const document = path === 'roles' ? rolesDocument(service, config) : listPolicies(config.adminRules, config.roles);
   return { ...document, version: snapshot.version };
 }
-/** Returns one stored document; group grants carry the directory's current name when known. */
+/** Returns stored labels, preferring a directory's current name when available. */
 async function storedDocument({ service, path }: AdminRequest) {
   const { files, version } = await service.repository.snapshot();
   const document = JSON.parse(files[path + '.json']);
@@ -206,7 +206,6 @@ async function storedDocument({ service, path }: AdminRequest) {
   for (const grant of grants) {
     if (grant.member.kind !== 'group') continue;
     const name = names.get(grant.member.groupId);
-    delete grant.member.displayName;
     if (name?.resolved && name.displayName) grant.member.displayName = name.displayName;
   }
   return { ...document, version };

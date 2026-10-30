@@ -173,7 +173,10 @@ export function msalSignInError(error: unknown): SignInError {
   if (shared) return shared;
   if (!(error instanceof AuthError)) return new SignInError('provider-unreachable', '/', error);
   const code = error.errorCode || undefined;
-  const refused = error instanceof ServerError || error instanceof InteractionRequiredAuthError || ATTEMPT_ERROR_CODES.has(error.errorCode);
+  const transient =
+    error instanceof ServerError &&
+    (code === 'temporarily_unavailable' || code === 'server_error' || error.status === 429 || (error.status !== undefined && error.status >= 500 && error.status < 600));
+  const refused = !transient && (error instanceof ServerError || error instanceof InteractionRequiredAuthError || ATTEMPT_ERROR_CODES.has(error.errorCode));
   return new SignInError(refused ? 'attempt-invalid' : 'provider-unreachable', '/', error, code);
 }
 

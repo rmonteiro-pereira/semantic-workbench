@@ -43,7 +43,14 @@ export function RoleEditor({
         .filter(grant => grant.roleId === role.id)
         .map(grant => (
           <p key={grant.id}>
-            {grant.member.kind === 'email' ? grant.member.email : <GroupName id={grant.member.groupId} />} · {scopeLabel(grant.scope)}
+            {grant.member.kind === 'email' ? (
+              grant.member.email
+            ) : (
+              <>
+                <GroupName id={grant.member.groupId} displayName={grant.member.displayName ?? null} /> <code>{grant.member.groupId}</code>
+              </>
+            )}{' '}
+            · {scopeLabel(grant.scope)}
           </p>
         ))}
       <button disabled={!persisted} onClick={() => setMember(true)}>

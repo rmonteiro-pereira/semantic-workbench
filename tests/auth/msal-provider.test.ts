@@ -86,6 +86,42 @@ test('MSAL failures map to the same safe sign-in reasons as openid-client', () =
   expect(providerDetail(refused)).toBe(' (invalid_grant)');
 });
 
+test('transient OAuth errors, throttling and server failures preserve refresh sessions', () => {
+  for (const code of ['temporarily_unavailable', 'server_error']) {
+    const failure = msalSignInError(new ServerError(code, ''));
+    expect(failure.reason).toBe('provider-unreachable');
+    expect(failure.providerCode).toBe(code);
+  }
+  for (const status of [429, 500, 502, 503, 504]) {
+    expect(msalSignInError(new ServerError('service_failure', '', '', undefined, undefined, status)).reason).toBe('provider-unreachable');
+  }
+  for (const code of ['invalid_grant', 'invalid_client']) {
+    expect(msalSignInError(new ServerError(code, '', '', undefined, undefined, 400)).reason).toBe('attempt-invalid');
+  }
+});
+
+test('real MSAL maps an OAuth 503 during silent refresh to a recoverable provider failure', async () => {
+  const { withEntraProvider, entraConfig, signInWith } = await import('../helpers/entra-provider');
+  await withEntraProvider(async provider => {
+    let unavailable = false;
+    const client = await createMsalProvider(entraConfig(provider), {
+      fetch: async (url, init) => {
+        if (unavailable && new URLSearchParams(String(init?.body)).get('grant_type') === 'refresh_token') {
+          return Response.json({ error: 'temporarily_unavailable', error_description: 'Simulated outage' }, { status: 503 });
+        }
+        return fetch(url, init);
+      },
+    });
+    const identity = await signInWith(client, provider);
+    unavailable = true;
+    await expect(client.refresh(identity.tokens)).rejects.toMatchObject({ reason: 'provider-unreachable', providerCode: 'temporarily_unavailable' });
+    unavailable = false;
+    const renewed = await client.refresh(identity.tokens);
+    expect(renewed.principal.id).toBe(identity.principal.id);
+    expect(renewed.tokens.tokenCache).not.toBe(identity.tokens.tokenCache);
+  });
+});
+
 test('the callback must carry a code and no error', () => {
   const callback = 'http://127.0.0.1:4310/auth/callback';
   expect(authorizationCode(new URL(callback + '?code=abc&state=s'))).toBe('abc');

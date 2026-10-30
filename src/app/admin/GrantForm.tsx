@@ -24,17 +24,18 @@ export function scopeLabel(scope: Grant['scope']): string {
   if (scope.kind === 'domains') return 'Domains: ' + scope.domains.join(', ');
   return 'Projects: ' + scope.projects.join(', ');
 }
-/** Resolves group names whenever a grant is displayed, retaining the ID on lookup failure. */
-export function GroupName({ id, onResolved }: { id: string; onResolved?: (group: Awaited<ReturnType<typeof adminApi.group>>) => void }) {
+/** Displays a stored label or directory name without hiding the group's identifier. */
+export function GroupName({ id, displayName, onResolved }: { id: string; displayName?: string | null; onResolved?: (group: Awaited<ReturnType<typeof adminApi.group>>) => void }) {
   const [name, setName] = useState('looking up name…');
   useEffect(() => {
+    if (displayName !== undefined) return;
     let active = true;
     setName('looking up name…');
     void adminApi.group(id).then(
       group => {
         if (active) {
           onResolved?.(group);
-          setName(group.resolved && group.displayName ? group.displayName : 'name not resolved');
+          setName(group.displayName || 'name not resolved');
         }
       },
       problem => {
@@ -44,8 +45,8 @@ export function GroupName({ id, onResolved }: { id: string; onResolved?: (group:
     return () => {
       active = false;
     };
-  }, [id, onResolved]);
-  return <span>{name}</span>;
+  }, [id, displayName, onResolved]);
+  return <span>{displayName !== undefined ? displayName || 'name not resolved' : name}</span>;
 }
 /** Adds or changes a grant through the same form wherever members are managed. */
 export function GrantForm({
@@ -99,6 +100,7 @@ function GrantFields({
     initialMember = initial.member.kind === 'email' ? initial.member.email : initial.member.groupId;
   }
   const [member, setMember] = useState(initialMember);
+  const [displayName, setDisplayName] = useState(initial?.member.kind === 'group' ? (initial.member.displayName ?? '') : '');
   const [role, setRole] = useState(initial?.roleId ?? roleId);
   const [scope, setScope] = useState<Grant['scope']['kind']>(initial?.scope.kind ?? 'workspace');
   const [targets, setTargets] = useState(initial?.scope.kind === 'domains' ? initial.scope.domains.join(', ') : '');
@@ -106,6 +108,7 @@ function GrantFields({
   const [id] = useState(() => initial?.id ?? newIdentifier('g_'));
   const [addedAt] = useState(() => initial?.addedAt ?? new Date().toISOString());
   const selectedScope = grantScope(role, scope, targets, projectTargets);
+  const groupLabel = displayName.trim();
   const proposed: Grant = {
     id,
     roleId: role,
@@ -115,7 +118,7 @@ function GrantFields({
         : {
             kind,
             groupId: member.trim(),
-            ...(lookup?.id === member.trim() && lookup.resolved && lookup.displayName ? { displayName: lookup.displayName } : {}),
+            ...(groupLabel ? { displayName: groupLabel } : {}),
           },
     scope: selectedScope,
     addedBy: initial?.addedBy ?? me?.id ?? me?.name ?? '',
@@ -132,12 +135,28 @@ function GrantFields({
       </SelectField>
       <label>
         {kind === 'group' ? 'Group object ID' : 'E-mail address'}
-        <input value={member} type={kind === 'email' ? 'email' : 'text'} onChange={event => setMember(event.target.value)} />
+        <input
+          value={member}
+          type={kind === 'email' ? 'email' : 'text'}
+          onChange={event => {
+            setMember(event.target.value);
+            setDisplayName('');
+            setLookup(null);
+          }}
+        />
       </label>
       {kind === 'group' && member.trim() && (
         <p>
-          Group name: <GroupName id={member.trim()} onResolved={setLookup} />
+          Group name:{' '}
+          <GroupName id={member.trim()} displayName={initial?.member.kind === 'group' && initial.member.groupId === member.trim() ? displayName.trim() || null : undefined} onResolved={setLookup} />
         </p>
+      )}
+      {kind === 'group' && (
+        <label>
+          Group label (optional)
+          <input value={displayName} placeholder={lookup?.id === member.trim() ? (lookup.displayName ?? '') : ''} onChange={event => setDisplayName(event.target.value)} />
+          <small>Display only. Access is matched by group object ID, not this label.</small>
+        </label>
       )}
       <SelectField label="Role" value={role} onChange={event => setRole(event.target.value)}>
         {roles.map(item => (

@@ -1,6 +1,7 @@
 // Checks overage batching and fail-closed resolution using an injected HTTP edge.
 import { expect, test } from 'bun:test';
-import { createDirectoryClient, createGroupNameCache } from '../../src/server/auth/directory';
+import { createDirectoryClient, createGroupNameCache, validateDirectoryGroupIds } from '../../src/server/auth/directory';
+import { accessFixture } from './access-fixture';
 
 test('checks at most twenty candidate groups per call and drops unexpected groups', async () => {
   const batches: string[][] = [];
@@ -102,7 +103,7 @@ test('a stalled token acquisition has a bounded unresolved result', async () => 
   expect(await directory.group('id')).toEqual({ id: 'id', displayName: null, resolved: false });
 });
 
-test('Admin group lookup uses the Graph stand-in, degrades to the ID and refreshes names', async () => {
+test('Entra administration validates IDs and preserves local labels without application Graph lookups', async () => {
   const { startMockOidc } = await import('../helpers/mock-oidc');
   const { authWorkspace } = await import('../helpers/auth-workspace');
   const { oidcConfig } = await import('../helpers/server-auth');
@@ -139,7 +140,7 @@ test('Admin group lookup uses the Graph stand-in, degrades to the ID and refresh
     expect(await (await request('/api/admin/groups/' + group.id)).json()).toEqual({
       id: group.id,
       displayName: group.name,
-      resolved: true,
+      resolved: false,
     });
     const groupLookups = () => provider.calls.filter(call => call.endpoint === 'graph-group');
     const before = groupLookups().length;
@@ -149,17 +150,16 @@ test('Admin group lookup uses the Graph stand-in, degrades to the ID and refresh
       {
         id: TEST_GROUPS.workbenchAdmins.id,
         displayName: TEST_GROUPS.workbenchAdmins.name,
-        resolved: true,
+        resolved: false,
       },
     ]);
-    expect(groupLookups().length).toBeGreaterThan(before);
+    expect(groupLookups().length).toBe(before);
 
     provider.fail('graph-group', 'error');
-    // Names are cached briefly, so the failure shows on a group not looked up before.
     const uncached = TEST_GROUPS.hrViewers;
     expect(await (await request('/api/admin/groups/' + uncached.id)).json()).toEqual({
       id: uncached.id,
-      displayName: null,
+      displayName: uncached.name,
       resolved: false,
     });
     const repository = openAdminRepository({ root: fixture.root });
@@ -167,13 +167,25 @@ test('Admin group lookup uses the Graph stand-in, degrades to the ID and refresh
       ...repository.load().grants,
       {
         id: 'unnamed-group',
-        roleId: 'viewer',
-        member: { kind: 'group', groupId: 'f0000000-0000-4000-8000-000000000001' },
+        roleId: 'r_metric_reviewer',
+        member: { kind: 'group', groupId: 'f0000000-0000-4000-8000-000000000001', displayName: 'Local HR label', resolvedAt: '2026-01-01T00:00:00Z' },
         scope: { kind: 'domains', domains: ['hr'] },
         addedBy: dave.id,
         addedAt: new Date().toISOString(),
       },
     ];
+    const version = await repository.version();
+    const invalid = await request('/api/admin/policies/dry-run', 'POST', {
+      grants: [...grants, { ...grants.at(-1), id: 'invalid-entra-group', member: { kind: 'group', groupId: 'Sales Editors' } }],
+    });
+    expect(invalid.status).toBe(400);
+    expect(await invalid.text()).toContain('GUID object IDs');
+    const projects = structuredClone(repository.load().projects);
+    projects.projects['sales-metrics'].restricted.push({ pattern: '**', groups: ['not-a-guid'], emails: [] });
+    const restricted = await request('/api/admin/policies/dry-run', 'POST', projects);
+    expect(restricted.status).toBe(400);
+    expect(await restricted.text()).toContain('GUID object IDs');
+    expect(await repository.version()).toBe(version);
     const { dryRunId } = await (await request('/api/admin/policies/dry-run', 'POST', { grants })).json();
     const saved = await request('/api/admin/grants', 'PUT', {
       grants,
@@ -185,16 +197,115 @@ test('Admin group lookup uses the Graph stand-in, degrades to the ID and refresh
     expect(stored?.member).toEqual({
       kind: 'group',
       groupId: 'f0000000-0000-4000-8000-000000000001',
+      displayName: 'Local HR label',
+    });
+    const listed = await (await request('/api/admin/grants')).json();
+    expect(listed.grants.find((grant: { id: string }) => grant.id === 'unnamed-group').member.displayName).toBe('Local HR label');
+    expect(await (await request('/api/admin/groups/f0000000-0000-4000-8000-000000000001')).json()).toEqual({
+      id: 'f0000000-0000-4000-8000-000000000001',
+      displayName: 'Local HR label',
+      resolved: false,
+    });
+    expect(await (await request('/api/admin/groups/f0000000-0000-4000-8000-000000000002')).json()).toEqual({
+      id: 'f0000000-0000-4000-8000-000000000002',
+      displayName: null,
+      resolved: false,
     });
     const tokenRequests = provider.calls.filter(call => call.params.grant_type === 'client_credentials');
-    expect(tokenRequests.length).toBeGreaterThan(0);
+    expect(tokenRequests).toHaveLength(0);
     const graphCalls = provider.calls.filter(call => call.endpoint.startsWith('graph-'));
-    expect(new Set(graphCalls.map(call => call.endpoint))).toEqual(new Set(['graph-group']));
+    expect(new Set(graphCalls.map(call => call.endpoint))).toEqual(new Set(['graph-check']));
+    const roles = { roles: [] };
+    const preview = await (await request('/api/admin/policies/dry-run', 'POST', roles)).json();
+    expect(
+      (
+        await request('/api/admin/roles', 'PUT', {
+          ...roles,
+          dryRunId: preview.dryRunId,
+          baseVersion: await repository.version(),
+          confirmDeleteInUse: true,
+        })
+      ).status,
+    ).toBe(200);
+    expect(await (await request('/api/admin/groups/f0000000-0000-4000-8000-000000000001')).json()).toEqual({
+      id: 'f0000000-0000-4000-8000-000000000001',
+      displayName: null,
+      resolved: false,
+    });
   } finally {
     auth.close();
     await provider.stop();
   }
-}, 30000);
+}, 60000);
+
+test('Entra group validation rejects malformed grant and restricted IDs before a lookup', () => {
+  const policy = accessFixture().config;
+  expect(() => validateDirectoryGroupIds(policy)).not.toThrow();
+  policy.grants.push({ ...policy.grants[0], id: 'uppercase-group', member: { kind: 'group', groupId: 'F0000000-0000-4000-8000-000000000001' } });
+  expect(() => validateDirectoryGroupIds(policy)).not.toThrow();
+  policy.grants.pop();
+  policy.grants.push({ ...policy.grants[0], id: 'bad-group', member: { kind: 'group', groupId: 'Sales Editors' } });
+  expect(() => validateDirectoryGroupIds(policy)).toThrow('GUID object IDs');
+  policy.grants.pop();
+  policy.projects.projects['sales-metrics'].restricted.push({ pattern: '**', groups: ['bad-id'], emails: [] });
+  expect(() => validateDirectoryGroupIds(policy)).toThrow('GUID object IDs');
+});
+
+test('membership batches share a total deadline and abort the outstanding HTTP request', async () => {
+  const failures: string[] = [];
+  const signals: AbortSignal[] = [];
+  const directory = createDirectoryClient({
+    graphUrl: 'http://127.0.0.1/graph',
+    timeoutMs: 50,
+    token: async () => 'delegated-token',
+    failure: reason => failures.push(reason),
+    fetch: async (_url, init) => {
+      const signal = init!.signal!;
+      signals.push(signal);
+      return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => resolve(Response.json({ value: JSON.parse(String(init?.body)).groupIds })), 25);
+        signal.addEventListener(
+          'abort',
+          () => {
+            clearTimeout(timer);
+            reject(signal.reason);
+          },
+          { once: true },
+        );
+      });
+    },
+  });
+  expect(await directory.myGroups(Array.from({ length: 41 }, (_, index) => String(index)))).toBeNull();
+  expect(signals.length).toBeGreaterThan(0);
+  expect(signals.every(signal => signal === signals[0] && signal.aborted)).toBe(true);
+  expect(failures).toEqual(['directory-unavailable']);
+});
+
+test('caller cancellation bounds a stalled token lookup without making an HTTP request', async () => {
+  const controller = new AbortController();
+  let requests = 0;
+  let finishToken: (token: string) => void = () => {
+    throw new Error('Token acquisition has not started.');
+  };
+  const directory = createDirectoryClient({
+    graphUrl: 'http://127.0.0.1/graph',
+    signal: controller.signal,
+    token: () =>
+      new Promise(resolve => {
+        finishToken = resolve;
+      }),
+    fetch: async () => {
+      requests++;
+      return Response.json({ value: [] });
+    },
+  });
+  const pending = directory.myGroups(['group']);
+  controller.abort();
+  expect(await pending).toBeNull();
+  finishToken('late-token');
+  await Promise.resolve();
+  expect(requests).toBe(0);
+});
 
 test('group names are looked up a few at a time and cached briefly by group id', async () => {
   let inFlight = 0;
@@ -230,4 +341,44 @@ test('a failing group lookup is reported as unresolved instead of failing the ca
     throw new Error('directory down');
   });
   expect(await cache.names(['group'])).toEqual(new Map([['group', { id: 'group', displayName: null, resolved: false }]]));
+});
+
+test('delegated membership checks use only /me, batch candidates and discard every batch on failure', async () => {
+  const calls: string[] = [];
+  let tokenRequests = 0;
+  const directory = createDirectoryClient({
+    graphUrl: 'http://127.0.0.1/graph',
+    token: async () => {
+      tokenRequests++;
+      return 'delegated-token';
+    },
+    fetch: async (url, init) => {
+      calls.push(url);
+      if (calls.length === 2) return new Response('unavailable', { status: 503 });
+      return Response.json({ value: JSON.parse(String(init?.body)).groupIds });
+    },
+  });
+  expect(await directory.myGroups([])).toEqual([]);
+  expect(tokenRequests).toBe(0);
+  expect(await directory.myGroups(Array.from({ length: 25 }, (_, index) => String(index)))).toBeNull();
+  expect(calls).toEqual(['http://127.0.0.1/graph/v1.0/me/checkMemberGroups', 'http://127.0.0.1/graph/v1.0/me/checkMemberGroups']);
+});
+
+test('Graph /me requires a delegated User.Read token, not an API, app-only or differently scoped token', async () => {
+  const { withEntraProvider, entraConfig, signInWith } = await import('../helpers/entra-provider');
+  const { createMsalProvider } = await import('../../src/server/auth/msal-provider');
+  const { TEST_GROUPS, TEST_USERS } = await import('../helpers/auth-identities');
+  await withEntraProvider(async provider => {
+    const client = await createMsalProvider(entraConfig(provider));
+    const identity = await signInWith(client, provider, 'alice');
+    const permitted = await client.onBehalfOf(identity.tokens.accessToken, ['https://graph.microsoft.com/User.Read']);
+    const wrongScope = await client.onBehalfOf(identity.tokens.accessToken, ['https://graph.microsoft.com/profile']);
+    for (const token of [identity.tokens.accessToken, await client.directoryToken(), wrongScope.token]) {
+      const directory = createDirectoryClient({ graphUrl: provider.graphUrl, token: async () => token });
+      expect(await directory.myGroups([TEST_GROUPS.salesEditors.id])).toBeNull();
+    }
+    const directory = createDirectoryClient({ graphUrl: provider.graphUrl, token: async () => permitted.token });
+    expect(await directory.myGroups([TEST_GROUPS.salesEditors.id])).toEqual([TEST_GROUPS.salesEditors.id]);
+    expect(await directory.groups(TEST_USERS.carol.oid, [TEST_GROUPS.hrViewers.id])).toBeNull();
+  });
 });

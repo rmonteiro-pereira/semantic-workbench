@@ -56,7 +56,7 @@ export type ServerConfig = CommonConfig & {
     /** Entra tenant whose tokens are accepted; null for other providers. */
     tenantId: string | null;
   };
-  /** Where group membership comes from: the token's group claim, and the directory on overage. */
+  /** Entra uses delegated Graph for configured groups, or token claims when directory is off. */
   directory: {
     groupClaim: string;
     overage: 'directory' | 'off';
@@ -92,7 +92,7 @@ export class ConfigError extends Error {
 
 const LOOPBACK_HOSTS = ['127.0.0.1', 'localhost', '::1', '[::1]'];
 
-// The directory receives an app-only token, so only Microsoft's own Graph endpoints (public and
+// The directory receives bearer tokens, so only Microsoft's own Graph endpoints (public and
 // national clouds) may receive it.
 const GRAPH_ENDPOINTS = ['https://graph.microsoft.com', 'https://graph.microsoft.us', 'https://dod-graph.microsoft.us', 'https://microsoftgraph.chinacloudapi.cn'];
 
