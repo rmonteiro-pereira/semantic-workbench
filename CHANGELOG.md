@@ -177,6 +177,13 @@ not configure a production deployment.
 - Stop the project list from shrinking to a single row after loading several examples, and keep it
   stable after deleting a file or a project.
 
+### Known issues
+
+- After **Re-layout** on a graph that keeps the same arrangement, the lines are not routed again in
+  the routing worker; the earlier routing, done on the main thread, stays in place. The graph draws
+  correctly, but a very large model can respond more slowly. `test:ui` reports it at the "routes
+  the lines a second time" check.
+
 ### Documentation
 
 - Three diagrams in the README, ARCHITECTURE.md and the server-mode guide: identities and access,
