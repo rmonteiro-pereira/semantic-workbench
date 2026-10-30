@@ -181,6 +181,22 @@ export function groupRelationships(edges: Relationship[]) {
   }));
 }
 
+/** For each card, the larger of its arriving and leaving link counts; links from a card to itself are ignored. */
+export function edgeEndCounts(groups: { source: string; target: string }[]): Map<string, number> {
+  const arriving = new Map<string, number>();
+  const leaving = new Map<string, number>();
+  for (const group of groups) {
+    if (group.source === group.target) continue;
+    arriving.set(group.target, (arriving.get(group.target) ?? 0) + 1);
+    leaving.set(group.source, (leaving.get(group.source) ?? 0) + 1);
+  }
+  const counts = new Map<string, number>();
+  for (const id of [...arriving.keys(), ...leaving.keys()]) {
+    counts.set(id, Math.max(arriving.get(id) ?? 0, leaving.get(id) ?? 0));
+  }
+  return counts;
+}
+
 /** A model kind in words a reader knows: "EntityType" becomes "Entity type", other kinds keep their wording. */
 export function kindWords(kind: string) {
   return kind.replace(/([a-z])([A-Z])/g, (_match, before: string, after: string) => `${before} ${after.toLowerCase()}`);

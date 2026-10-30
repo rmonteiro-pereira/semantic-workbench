@@ -17,7 +17,7 @@ import { GraphOptions, OptionGroup, ShowToggle } from './GraphOptions';
 import { ZoomButtons } from './ZoomButtons';
 import { CompactControls, useCompactToolbar } from './CompactControls';
 import type { Entity, Relationship } from '../../shared/core/model';
-import { groupRelationships, kindWords, neighborhood, searchEntities, projectModel, NEIGHBOR_PAGE } from './graph-view';
+import { edgeEndCounts, groupRelationships, kindWords, neighborhood, searchEntities, projectModel, NEIGHBOR_PAGE } from './graph-view';
 import { neighborhoodLayout, NEIGHBOR_COLUMN, NEIGHBOR_ROW } from './layout';
 import { assignRoutes, heightForEdgeEnds, placeLabels, routePoints, relationshipEdgeTypes, type Box } from './RelationshipEdge';
 import type { Walk, WalkStep } from './walk';
@@ -247,7 +247,12 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>(build());
   // A rebuilt node keeps the size React Flow measured, because the browser reports a size only
   // when it changes and a node left unmeasured would stay hidden.
-  const rebuildNodes = (limit = reveal) => setNodes(previous => separateNodes(keepMeasuredSizes(previous, build(limit))));
+  // Cards the user dragged since the nodes were last built; measurement-driven separation leaves them where they are.
+  const draggedIds = useRef(new Set<string>());
+  const rebuildNodes = (limit = reveal) => {
+    draggedIds.current.clear();
+    setNodes(previous => separateNodes(keepMeasuredSizes(previous, build(limit))));
+  };
   const built = useRef(membership);
   useEffect(() => {
     if (built.current === membership) return;
@@ -285,12 +290,16 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
   }, [view, canvasState]);
   // Positions always start from the column layout, so the same cards give the same placement and
   // Back, Forward and Undo restore a canvas exactly.
+  // Dragged cards start from where the user left them and are placed first, so they do not move.
   const separateNodes = (toSeparate: Node[]): Node[] => {
-    const startById = new Map(toSeparate.map(node => [node.id, positions.get(node.id) ?? node.position]));
+    const dragged = draggedIds.current;
+    const startById = new Map(toSeparate.map(node => [node.id, dragged.has(node.id) ? node.position : (positions.get(node.id) ?? node.position)]));
+    const rankWithDragged = new Map(placementRank);
+    for (const id of dragged) rankWithDragged.set(id, -1);
     const sizeById = new Map(toSeparate.map(node => [node.id, { width: node.measured?.width ?? NODE.width, height: node.measured?.height ?? NODE.height }]));
     const centerSize = sizeById.get(center ?? '');
     const centerTop = startById.get(center ?? '')?.y ?? 0;
-    const separated = separateCards(startById, sizeById, centerTop + (centerSize?.height ?? NODE.height) / 2, placementRank);
+    const separated = separateCards(startById, sizeById, centerTop + (centerSize?.height ?? NODE.height) / 2, rankWithDragged);
     return toSeparate.map(node => ({ ...node, position: separated.get(node.id) ?? node.position }));
   };
   const separateMeasured = () => {
@@ -381,8 +390,8 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
   const [direction, setDirection] = useRecordedState<Direction>('neighborhood.direction', 'out');
   const pierce = usePierce();
   // The pierce result arrives later, so it reads the walk and canvas as they are then.
-  const latest = useRef({ walk, canvasNodes: canvasState.nodes });
-  latest.current = { walk, canvasNodes: canvasState.nodes };
+  const currentTrail = useRef({ walk, canvasNodes: canvasState.nodes });
+  currentTrail.current = { walk, canvasNodes: canvasState.nodes };
   const fullPierce = async (budget = PIERCE_BUDGET) => {
     const from = selected && canvasState.nodes.includes(selected) ? selected : center;
     if (!from) return;
@@ -410,7 +419,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
       steps: pierceResult.steps,
     };
     // Repeating a request that is already on the trail goes back to that step instead of adding another.
-    const { walk: currentWalk, canvasNodes } = latest.current;
+    const { walk: currentWalk, canvasNodes } = currentTrail.current;
     const repeatedIndex = currentWalk.steps.findIndex(walkStep => {
       const earlier = walkStep.set ? getSet(walkStep.set) : undefined;
       return !!earlier && sameExpansion(earlier, pierceRequest);
@@ -434,14 +443,9 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
   };
   // A card with many edges on one side is tall enough to give each edge end its own spot.
   const minHeights = useMemo(() => {
-    const arriving = new Map<string, number>();
-    const leaving = new Map<string, number>();
-    for (const group of groups) {
-      if (group.source === group.target) continue;
-      arriving.set(group.target, (arriving.get(group.target) ?? 0) + 1);
-      leaving.set(group.source, (leaving.get(group.source) ?? 0) + 1);
-    }
-    return new Map([...new Set([...arriving.keys(), ...leaving.keys()])].map(id => [id, heightForEdgeEnds(Math.max(arriving.get(id) ?? 0, leaving.get(id) ?? 0))] as const));
+    const heights = new Map<string, number>();
+    for (const [id, count] of edgeEndCounts(groups)) heights.set(id, heightForEdgeEnds(count));
+    return heights;
   }, [groups]);
   const rendered = useMemo(
     () =>
@@ -1003,6 +1007,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
             maxZoom={2}
             nodesConnectable={false}
             onNodesChange={onNodesChange}
+            onNodeDragStop={(_, node) => draggedIds.current.add(node.id)}
             onlyRenderVisibleElements={rendered.length > LARGE_CANVAS}
             onNodeClick={(_, node) => {
               if (node.id === center) props.onSelectEntity(node.id);

@@ -82,7 +82,7 @@ not configure a production deployment.
 ### Fixed
 
 - The Neighborhood walk trail records **Show all connected** once: repeating the same run focuses its
-  step, a run that opens nothing new adds none, and the step reads "All connected to <name>" in the
+  step and a run that opens nothing new adds none. The step reads "All connected to <name>" in the
   Neighborhood, lineage and mapping views.
 - Neighborhood cards show their whole description and the type in words ("Entity type"), never
   overlap, and links stay outside card bodies and spread along the card side they arrive at.

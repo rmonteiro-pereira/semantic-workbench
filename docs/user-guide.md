@@ -312,7 +312,8 @@ walk history remove or restore only that expansion's contribution. **Show all co
 Outgoing, Incoming or Both directions from the selection or center. It stops at 150 entities;
 frontier markers explain hidden reachable nodes. **Expand further** permits up to 500, and **Stop**
 cancels the worker operation. Each run is one trail step, "All connected to <name>"; repeating the
-same run goes back to that step, and a run that adds nothing new adds no step. The same bounded traversal is used by lineage and mapping cards.
+same run goes back to that step, and a run that adds nothing new adds no step. The Neighborhood, lineage and mapping views share the
+same bounded traversal and the same step wording.
 
 The toolbar filters neighbors by **Relationship** and switches **Links between neighbors**,
 **Technical resources**, **Labels**, **Value types** and **Metrics** on or off. **Re-arrange** puts

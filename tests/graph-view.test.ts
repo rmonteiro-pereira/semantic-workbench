@@ -1,6 +1,6 @@
 // Tests neighborhood projection, search, ranking and paging.
 import { test, expect } from 'bun:test';
-import { kindWords, graphView, groupRelationships, neighborhood, projectModel, searchEntities, defaultCenter, NEIGHBOR_PAGE } from '../src/app/graph/graph-view';
+import { edgeEndCounts, kindWords, graphView, groupRelationships, neighborhood, projectModel, searchEntities, defaultCenter, NEIGHBOR_PAGE } from '../src/app/graph/graph-view';
 import { layoutGraph } from '../src/app/graph/layout';
 
 const nodes = Array.from({ length: 30 }, (_, i) => ({
@@ -107,4 +107,14 @@ test('model kinds read as words', () => {
   expect(kindWords('ValueType')).toBe('Value type');
   expect(kindWords('OWL class')).toBe('OWL class');
   expect(kindWords('Built-in concept')).toBe('Built-in concept');
+});
+
+test('edgeEndCounts gives each card the larger of its arriving and leaving links and skips self links', () => {
+  const counts = edgeEndCounts([
+    { source: 'a', target: 'b' },
+    { source: 'a', target: 'c' },
+    { source: 'c', target: 'b' },
+    { source: 'b', target: 'b' },
+  ]);
+  expect(Object.fromEntries(counts)).toEqual({ a: 2, b: 2, c: 1 });
 });

@@ -189,6 +189,25 @@ try {
     await showLabels(false);
     await toggleLinks();
   });
+  await check('UBL: a dragged card stays where it was dropped when Links between neighbors changes', async () => {
+    const card = page.locator('.neighborhood-canvas .react-flow__node:not(.center)').first();
+    const start = (await card.boundingBox())!;
+    await page.mouse.move(start.x + start.width / 2, start.y + 10);
+    await page.mouse.down();
+    await page.mouse.move(start.x + start.width / 2 + 60, start.y + 90, { steps: 8 });
+    await page.mouse.up();
+    const dropped = (await card.boundingBox())!;
+    await viewOptions(page, async options => {
+      await options.getByRole('button', { name: /^Links between neighbors/ }).click();
+    });
+    await page.waitForTimeout(500);
+    const after = (await card.boundingBox())!;
+    expect(Math.abs(after.x - dropped.x)).toBeLessThan(2);
+    expect(Math.abs(after.y - dropped.y)).toBeLessThan(2);
+    await viewOptions(page, async options => {
+      await options.getByRole('button', { name: /^Links between neighbors/ }).click();
+    });
+  });
   await check('UBL: toolbar search offers results; the chosen one stays the center after the search is cleared', async () => {
     await page.getByPlaceholder('Find an entity…').fill('Invoice');
     const results = page.getByRole('region', { name: 'Search results' });
