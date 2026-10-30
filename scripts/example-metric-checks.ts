@@ -101,7 +101,9 @@ async function readSet(set: ExampleSet): Promise<ProjectDocument[]> {
 function assertValidation(set: ExampleSet, documents: ProjectDocument[]) {
   for (const document of documents) {
     const result = validateInput(document.source, document.filename);
-    assert.deepEqual(result.issues, [], `${set.id}/${document.filename} has findings`);
+    // Info-level coverage notices say what was not evaluated, such as OWL reasoning, and are expected.
+    const findings = result.issues.filter(issue => !(issue.severity === 'info' && issue.code === 'coverage'));
+    assert.deepEqual(findings, [], `${set.id}/${document.filename} has findings`);
   }
 }
 

@@ -1,7 +1,7 @@
 // Tests validation failures through the HTTP API.
 import { test, expect } from 'bun:test';
 import { testWorkspace } from './helpers/temp-data-dir';
-const source = 'version: 0.2.0.dev0\nname: Test\nontology: [{concept: A, type: EntityType}]';
+const source = 'name: Test\nontology: [{concept: A}]';
 const request = (body: any) =>
   new Request('http://127.0.0.1:4310/api/documents', {
     method: 'POST',
@@ -17,7 +17,7 @@ for (const [name, body] of [
   ['bad revision', { filename: 'x.yaml', source, revision: -1 }],
   ['fraction revision', { filename: 'x.yaml', source, revision: 1.5 }],
   ['invalid filename', { filename: '../x.yaml', source }],
-  ['invalid model', { filename: 'x.yaml', source: 'version: 0.2.0.dev0\nontology: []' }],
+  ['invalid model', { filename: 'x.yaml', source: 'ontology: []' }],
 ])
   test(`API rejects ${name} without writes`, async () => {
     const workspace = await testWorkspace();
@@ -34,7 +34,7 @@ test('API sends structured errors and valid save/read round-trip preserves bytes
   const workspace = await testWorkspace();
   try {
     const handler = workspace.handler;
-    const bad = await handler(request({ filename: 'x.yaml', source: 'version: 0.2.0.dev0\nontology: [ ]' }));
+    const bad = await handler(request({ filename: 'x.yaml', source: 'ontology: [ ]' }));
     expect((await bad.json()).issues[0].path).toBe('/ontology');
     const response = await handler(request({ filename: 'x.yaml', source }));
     expect(response.status).toBe(200);
@@ -43,7 +43,7 @@ test('API sends structured errors and valid save/read round-trip preserves bytes
     const failed = await handler(
       request({
         filename: 'x.yaml',
-        source: 'version: 0.2.0.dev0\nontology: []',
+        source: 'ontology: []',
         id: savedDocument.id,
         revision: savedDocument.revision,
       }),

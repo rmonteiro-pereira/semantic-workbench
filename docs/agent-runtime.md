@@ -207,7 +207,9 @@ reducing the mapping to a natural-language description.
 ### Mapping identity
 
 A standalone mapping requires `version`, `name`, `ontology_ref`, `semantic_model_ref` and
-`concept_mappings`. Missing required fields fail schema validation during import:
+`concept_mappings`. Missing required fields, or a `version` other than the shipped Ossie version,
+fail validation during import and when the runtime loads mappings, so a mapping never loads
+unchecked:
 
 ```yaml
 version: 0.2.0.dev0
@@ -275,7 +277,8 @@ PostgreSQL-compatible parsing/serialization, with a SQLite expression fallback f
 Other stored dialects are preserved, not translated into ANSI_SQL. Subqueries, window expressions,
 wildcards, arbitrary filters, ambiguous/multi-fact grains, conditional-population execution and
 full n-ary tuple population execution are not implemented. There is no ontology satisfiability
-check or OWL reasoner. SHACL instance validation exists only in the workbench's validation details and is not part of the agent runtime.
+check or OWL reasoner. SHACL shapes run only in the workbench's validation details, in the browser,
+and are not part of the agent runtime.
 
 ## Verification and provenance
 

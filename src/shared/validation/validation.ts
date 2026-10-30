@@ -25,10 +25,17 @@ export function inheritanceCycle(nodes: string[], parents: Map<string, string[]>
       }
   return nodes.filter(n => degree.get(n)! > 0);
 }
-/** Says that an Ossie file names a schema version the app cannot check, so nothing about it was validated. */
+/** The code of the notice that says a file's declared version has no schema in this app. */
+export const NOT_VALIDATED = 'not-validated';
+/** Tells whether a finding is the notice that a file was not checked against a schema. */
+export function isNotValidated(issue: Issue): boolean {
+  return issue.code === NOT_VALIDATED;
+}
+/** Says that an Ossie file names a schema version the app cannot check, so its schema was not applied. */
 function notValidatedIssue(version: unknown): Issue {
   const declared = version === undefined ? 'the file declares no version' : `the file says ${String(version)}`;
-  return { severity: 'info', code: 'not-validated', path: '/version', message: `Not validated — this app checks Ossie ${OSSIE_SCHEMA_VERSION}, ${declared}.` };
+  const detail = `this app checks Ossie ${OSSIE_SCHEMA_VERSION}, ${declared}.`;
+  return { severity: 'info', code: NOT_VALIDATED, path: '/version', message: `Not validated — ${detail}`, detail };
 }
 /** Tells whether parsed data is an Ossie ontology, semantic model or mapping rather than a data contract. */
 function isOssieDocument(data: any) {
@@ -97,9 +104,17 @@ export function validateStructured(data: any, applyPinnedSchema = true, options:
     fail('/', 'Cyclic aliases or non-JSON scalar values are unsupported.', 'serialization');
     rejectIssues(issues);
   }
+  // The notice goes last so the findings that block a save stay first.
+  let notice: Issue | null = null;
   if (applyPinnedSchema && isOssieDocument(data) && data.version !== OSSIE_SCHEMA_VERSION) {
-    if (!options.assumeOssieVersion) return [notValidatedIssue(data.version)];
-    data = { ...data, version: OSSIE_SCHEMA_VERSION };
+    if (options.assumeOssieVersion) {
+      data = { ...data, version: OSSIE_SCHEMA_VERSION };
+    } else {
+      // Structure, references and cycles do not depend on the version, so they still run and broken
+      // files are still refused. Only the pinned schema is skipped, and the notice says so.
+      notice = notValidatedIssue(data.version);
+      applyPinnedSchema = false;
+    }
   }
   const families = [
     data.kind === 'DataContract' || data.apiVersion !== undefined || data.schema !== undefined,
@@ -115,6 +130,7 @@ export function validateStructured(data: any, applyPinnedSchema = true, options:
         : 'Provide exactly one ODCS contract, Ossie ontology, mapping document, or Ossie semantic model.',
       'format',
     );
+    if (notice) issues.push(notice);
     rejectIssues(issues);
     return issues;
   }
@@ -307,6 +323,7 @@ export function validateStructured(data: any, applyPinnedSchema = true, options:
         path: schemaErrorPath(error) || '/',
         message: error.message ?? 'Schema violation.',
       });
+  if (notice) issues.push(notice);
   rejectIssues(issues);
   return issues;
 }

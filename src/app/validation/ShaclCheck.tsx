@@ -1,8 +1,9 @@
 /** Runs a SHACL shapes file against another RDF file of the same project and lists what the data breaks. */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Doc } from '../projects/api';
 import { rdfSyntax } from '../../shared/validation/rdf';
-import { runShaclShapes, type ShaclReport } from '../../shared/validation/shacl';
+import type { ShaclReport } from '../../shared/validation/shacl';
+import { runShaclInWorker } from './shacl-run';
 import './shacl-check.css';
 
 type Props = {
@@ -32,17 +33,25 @@ export function ShaclCheck({ shapes, shapesSource, projectDocs }: Props) {
   const [check, setCheck] = useState<CheckState>({ status: 'idle' });
   const data = dataFiles.find(doc => doc.id === dataId) ?? dataFiles[0];
 
+  // Each run gets a number. A run that finishes after the files changed, or after a newer run began, is dropped.
+  const latestRun = useRef(0);
+
   // A result describes the text it ran on, so it is dropped as soon as either file changes.
-  useEffect(() => setCheck({ status: 'idle' }), [shapesSource, data?.id, data?.source]);
+  useEffect(() => {
+    latestRun.current += 1;
+    setCheck({ status: 'idle' });
+  }, [shapesSource, data?.id, data?.source]);
 
   async function run() {
     if (!data) return;
+    latestRun.current += 1;
+    const thisRun = latestRun.current;
     setCheck({ status: 'running' });
     try {
-      const report = await runShaclShapes({ filename: shapes.filename, source: shapesSource }, { filename: data.filename, source: data.source });
-      setCheck({ status: 'done', report });
+      const report = await runShaclInWorker({ filename: shapes.filename, source: shapesSource }, { filename: data.filename, source: data.source });
+      if (thisRun === latestRun.current) setCheck({ status: 'done', report });
     } catch (error) {
-      setCheck({ status: 'failed', message: (error as Error).message });
+      if (thisRun === latestRun.current) setCheck({ status: 'failed', message: (error as Error).message });
     }
   }
 

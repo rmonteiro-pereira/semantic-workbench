@@ -9,7 +9,7 @@ import { parseDocument } from 'yaml';
 import { valuePatches } from '../edit/yaml-patch';
 import { applyPatches } from '../editor/patch';
 import { inspectRdf, rdfSyntax } from '../validation/rdf';
-import { validateStructured, type ValidationOptions } from '../validation/validation';
+import { isNotValidated, validateStructured, type ValidationOptions } from '../validation/validation';
 import { InputError, validateEnvelope, type Issue } from '../validation/diagnostics';
 /** Describes a model item displayed in the catalog and graph. */
 export type Entity = {
@@ -93,7 +93,7 @@ export function inspect(source: string, filename = 'definition.yaml', options: V
   // A "not validated" notice is about the whole file, so it carries no line and the editor lists it above the text.
   const locate = (items: Issue[]) =>
     items.map(issue => {
-      if (issue.code === 'not-validated') return issue;
+      if (isNotValidated(issue)) return issue;
       const path = issue.path
         .split('/')
         .slice(1)

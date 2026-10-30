@@ -1,5 +1,6 @@
 /** Runs SHACL shapes, including SPARQL constraints, against a data graph held in memory. */
 import { DataFactory, Parser, Store, type Quad_Object, type Term } from 'n3';
+import type { ShaclEngineResult } from 'shacl-engine';
 import { InputError } from './diagnostics';
 import { rdfSyntax } from './rdf';
 
@@ -72,7 +73,7 @@ function shapeName(shapes: ParsedRdf, shape: Term): string {
 }
 
 /** Describes the constraint that failed, such as "sh:minCount on ex:customer" or a SPARQL rule's own label. */
-function ruleName(shapes: ParsedRdf, result: any): string {
+function ruleName(shapes: ParsedRdf, result: ShaclEngineResult): string {
   const component: string = result.constraintComponent.value;
   if (component === SH + 'SPARQLConstraintComponent') {
     const constraint: Term | undefined = result.source?.[0];
@@ -87,11 +88,11 @@ function ruleName(shapes: ParsedRdf, result: any): string {
 
 const SEVERITIES: Record<string, ShaclFinding['severity']> = { [SH + 'Violation']: 'error', [SH + 'Warning']: 'warning', [SH + 'Info']: 'info' };
 
-function toFinding(shapes: ParsedRdf, data: ParsedRdf, result: any): ShaclFinding {
+function toFinding(shapes: ParsedRdf, data: ParsedRdf, result: ShaclEngineResult): ShaclFinding {
   const focusNode: Term = result.focusNode.term;
   const message: string = result.message?.[0]?.value ?? 'The data does not satisfy this shape.';
   return {
-    severity: SEVERITIES[result.severity?.value] ?? 'error',
+    severity: SEVERITIES[result.severity?.value ?? ''] ?? 'error',
     focusNode: focusNode.value,
     focusLabel: literalOf(data.store, focusNode, RDFS_LABEL) ?? compactIri(focusNode.value, data.prefixes),
     shape: shapeName(shapes, result.shape.ptr.term),
@@ -108,6 +109,6 @@ export async function runShaclShapes(shapesFile: RdfSource, dataFile: RdfSource)
   const [{ Validator }, { targetResolvers, validations }] = await Promise.all([import('shacl-engine'), import('shacl-engine/sparql.js')]);
   const validator = new Validator(shapes.store, { factory: DataFactory, targetResolvers, validations });
   const report = await validator.validate({ dataset: data.store });
-  const findings = report.results.map((result: any) => toFinding(shapes, data, result));
+  const findings = report.results.map(result => toFinding(shapes, data, result));
   return { conforms: report.conforms, findings };
 }

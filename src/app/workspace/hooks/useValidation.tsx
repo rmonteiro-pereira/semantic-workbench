@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Issue } from '../../../shared/validation/diagnostics';
 import { validateInput } from '../../../shared/validation/input';
+import { isNotValidated } from '../../../shared/validation/validation';
 import type { Doc } from '../../projects/api';
 import { isGitignore } from '../../../shared/scm/gitignore';
 
@@ -45,6 +46,7 @@ export function useValidation({ current, source, tab }: Options) {
   };
   const model = result.model;
 
+  const validated = !plainText && !validation.issues.some(isNotValidated);
   const validateAsShippedVersion = () => setAssumedVersionDocumentId(current?.id);
-  return { model, editorIssuesRef, validation, result, setEditorIssues, plainText, assumeOssieVersion, validateAsShippedVersion };
+  return { model, editorIssuesRef, validation, result, setEditorIssues, plainText, validated, assumeOssieVersion, validateAsShippedVersion };
 }

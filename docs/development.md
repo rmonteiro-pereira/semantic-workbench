@@ -307,6 +307,15 @@ UBL extraction uses Python's standard library and fetches published upstream sch
 is an intentional network action, not normal application startup. Preserve upstream licenses,
 provenance and hashes. Do not hand-edit a generated file without updating its owning generator.
 
+## Dependencies worth knowing
+
+`shacl-engine` runs SHACL shapes, SPARQL constraints included. It is the maintained JavaScript SHACL
+engine that supports SPARQL constraints, and it runs in the browser with no network. It loads only
+when a user runs a shapes check, inside a worker (`src/app/validation/shacl.worker.ts`) that the app
+stops after 30 seconds. In `bun run build` its own chunk is about 54 kB, its SPARQL runtime chunk
+about 1.2 MB and the worker wrapper about 284 kB; none of them is part of the main bundle.
+A test in `tests/validation-honesty.test.ts` checks that a `SERVICE` clause makes no network request.
+
 ## Contribution rules
 
 - Read [architecture](../ARCHITECTURE.md), the owning module and neighboring tests first.

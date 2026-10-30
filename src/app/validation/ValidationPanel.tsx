@@ -2,7 +2,7 @@
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 import type { Issue } from '../../shared/validation/diagnostics';
 import { validateInput } from '../../shared/validation/input';
-import { OSSIE_SCHEMA_VERSION } from '../../shared/validation/validation';
+import { OSSIE_SCHEMA_VERSION, isNotValidated } from '../../shared/validation/validation';
 import { featureLabeler } from '../editor/feature';
 import { CodeEditor, type CodeEditorHandle } from '../editor/CodeEditor';
 import './validation-editor.css';
@@ -18,8 +18,8 @@ export function ValidationPanel({
   onValidateAsShippedVersion?: () => void;
   source?: string;
 }) {
-  const notValidated = allIssues.find(issue => issue.code === 'not-validated');
-  const issues = allIssues.filter(issue => issue.code !== 'not-validated');
+  const notValidated = allIssues.find(isNotValidated);
+  const issues = allIssues.filter(issue => !isNotValidated(issue));
   const feature = useMemo(() => featureLabeler(source), [source]);
   const lines = useMemo(() => source?.split('\n'), [source]);
   const errorCount = issues.filter(issue => issue.severity === 'error').length;
@@ -38,13 +38,13 @@ export function ValidationPanel({
       {notValidated && (
         <div className="validation-not-validated" role="status">
           <strong>Not validated</strong>
-          <span>{notValidated.message.replace(/^Not validated — /, '')}</span>
+          <span>{notValidated.detail}</span>
           {onValidateAsShippedVersion && (
             <button type="button" onClick={onValidateAsShippedVersion}>
               Validate as Ossie {OSSIE_SCHEMA_VERSION}
             </button>
           )}
-          <span>Syntax errors still show, because the file cannot be read without them.</span>
+          <span>Structure and reference checks still run; only the schema check is skipped.</span>
         </div>
       )}
       {!notValidated && (

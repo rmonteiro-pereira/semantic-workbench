@@ -1,10 +1,9 @@
 # Using Semantic Workbench
 
 Semantic Workbench edits definitions as files and explains how metrics are calculated. It never
-connects to a warehouse, executes an analytical query or calculates live metric values. It does
-not perform OWL reasoning. It runs SHACL shapes against a data file in the same project, inside the
-workbench and without any warehouse connection. SQL shown in the application
-is a preview.
+connects to a warehouse, executes an analytical query or calculates live metric values, and it does
+not perform OWL reasoning. It does run SHACL shapes and their SPARQL constraints over one file of
+the same project, in the browser, with no network. SQL shown in the application is a preview.
 
 For installation, see [the README](../README.md#quick-start). Shared-server sign-in and permissions
 are covered in [the server guide](server-mode.md).
@@ -420,9 +419,9 @@ inheritance cycles, declared keys/joins and supported schema checks. Ordinary re
 self-links and disconnected components remain legal.
 
 ODCS 3.1.0 and Ossie 0.2.0.dev0 definitions use pinned companion schemas. An Ossie file that names
-another version, or none, is not validated: Validation details and the editor say "Not validated"
-once, and **Validate as Ossie 0.2.0.dev0** checks it against the shipped schema for that file.
-Syntax errors still show. RDF/XML is checked
+another version, or none, still gets its syntax, structure, reference and cycle checks, but its
+schema is not applied: Validation details and the editor say "Not validated" once, and **Validate
+as Ossie 0.2.0.dev0** checks it against the shipped schema for that file. RDF/XML is checked
 for XML errors and rejects DTD/entity declarations. RDF imports never fetch remote ontologies or
 `owl:imports`.
 

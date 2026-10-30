@@ -131,6 +131,14 @@ export function validateRdf(store: any): Issue[] {
       }
     }
   }
+  const usesOwl = store.statements.some((s: any) => s.predicate.value.startsWith(OWL) || s.object.value.startsWith(OWL));
+  if (usesOwl)
+    issues.push({
+      severity: 'info',
+      code: 'coverage',
+      path: '/',
+      message: 'Coverage: OWL RDF syntax and basic restriction checks. Logical consistency, imports, and OWL profile conformance require a reasoner and were not evaluated.',
+    });
   rejectIssues(issues);
   return issues;
 }
