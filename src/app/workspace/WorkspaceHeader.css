@@ -261,7 +261,8 @@ header.workspace-header.header-phone {
   text-overflow: ellipsis;
 }
 
-/* The reason Commit is off shows under it on hover and focus, kept inside the window's right edge. */
+/* The reason Commit is off shows under it on hover and focus, kept inside the window's right edge.
+   It takes pointer events like any visible text, so what lies under it is not mistaken for what is shown. */
 .commit-wrap {
   position: relative;
   display: inline-flex;
@@ -281,7 +282,6 @@ header.workspace-header.header-phone {
   font-size: 12.5px;
   line-height: 1.4;
   white-space: normal;
-  pointer-events: none;
 }
 .commit-wrap:hover > .commit-tooltip,
 .commit-wrap:focus-within > .commit-tooltip {

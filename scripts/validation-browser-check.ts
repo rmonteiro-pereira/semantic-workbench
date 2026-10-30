@@ -45,7 +45,8 @@ for (const filename of ['sales.ossie.yaml', 'commerce-business.ossie.yaml', 'com
 // Extra files are written into the commerce project's folder, then the page reloads to list them.
 const projectFolder = join(api.root, 'projects', api.ws.documents().find(doc => doc.filename === 'commerce.shacl.ttl')!.project);
 const violatingData = '@prefix c: <https://example.org/commerce#> .\nc:order_9 a c:Order .\n';
-const unknownVersion = 'version: "0.3.1"\nname: later\nontology:\n  - concept: Order\n    extends: [Missing]\n';
+// Sound apart from its version, so only the "not validated" notice shows; the shipped schema then asks for an IRI.
+const unknownVersion = 'version: "0.3.1"\nname: later\nontology:\n  - concept: Order\n';
 await Bun.write(join(projectFolder, 'broken-data.ttl'), violatingData);
 await Bun.write(join(projectFolder, 'later.ontology.yaml'), unknownVersion);
 await api.restart({ deleteCache: true });
