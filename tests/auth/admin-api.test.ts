@@ -74,6 +74,7 @@ test('Admin-only routes, matching dry run, concurrency, one authored commit and 
     baseVersion,
     dryRunId,
   });
+  if (saved.status !== 200) console.log(await saved.clone().text());
   expect(saved.status).toBe(200);
   expect(fixture.repository.load().grants.at(-1)?.member).toEqual({
     kind: 'email',
@@ -159,6 +160,7 @@ test('preview cannot activate a different proposal; rollback restores decisions 
     baseVersion,
     dryRunId,
   });
+  if (saved.status !== 200) console.log(await saved.clone().text());
   expect(saved.status).toBe(200);
   expect(fixture.access.principalFor(person('hank')).grants).toHaveLength(0);
   const review = await fixture.request('/api/admin/policies/dry-run', 'POST', {
@@ -376,6 +378,7 @@ test('an e-mail grant gives a person without access the role at the next request
     baseVersion,
     dryRunId,
   });
+  if (saved.status !== 200) console.log(await saved.clone().text());
   expect(saved.status).toBe(200);
   const [latest] = await fixture.repository.history();
   expect(latest.message).toBe('grants: Add grant erin-viewer (viewer to erin@example.org)');
@@ -412,6 +415,7 @@ test('version history filters by area, including the policies folder, and diffs 
     dryRunId,
     baseVersion: await fixture.repository.version(),
   });
+  if (saved.status !== 200) console.log(await saved.clone().text());
   expect(saved.status).toBe(200);
   const { version } = await saved.json();
   const policies = await (await fixture.request('/api/admin/versions?area=policies')).json();
@@ -453,6 +457,7 @@ test('a bootstrap Admin is shown, cannot be deactivated and keeps recovery possi
     dryRunId,
     baseVersion: await fixture.repository.version(),
   });
+  if (saved.status !== 200) console.log(await saved.clone().text());
   expect(saved.status).toBe(200);
 }, 30000);
 
@@ -464,6 +469,66 @@ test('users show role sources in the /api/me shape, with the group name when kno
   const viaGroup = sources.find((source: any) => source.via === 'group');
   expect(viaGroup.group).toEqual({ id: viaGroup.group.id, name: 'Group ' + viaGroup.group.id });
   expect(sources.every((source: any) => !('grantId' in source))).toBe(true);
+}, 30000);
+
+/** A second, workspace-wide Admin grant for Erin, next to Dave's group grant. */
+function erinAdminGrant() {
+  return {
+    id: 'erin-admin',
+    roleId: 'admin',
+    member: { kind: 'email', email: person('erin').verifiedEmail },
+    scope: { kind: 'workspace' },
+    addedBy: 'dave',
+    addedAt: new Date().toISOString(),
+  };
+}
+
+/** Saves grants the way the admin panel does: a dry run first, then the save with its receipt. */
+async function saveGrants(fixture: Awaited<ReturnType<typeof adminFixture>>, grants: unknown[]) {
+  const { dryRunId } = await (await fixture.request('/api/admin/policies/dry-run', 'POST', { grants })).json();
+  return fixture.request('/api/admin/grants', 'PUT', {
+    grants,
+    dryRunId,
+    baseVersion: await fixture.repository.version(),
+  });
+}
+
+function deactivate(fixture: Awaited<ReturnType<typeof adminFixture>>, name: 'dave' | 'erin') {
+  return fixture.request('/api/admin/users/' + encodeURIComponent(person(name).id) + '/deactivate', 'POST', { reason: 'test' });
+}
+
+test('several people can be Admin, and either one can leave while another remains', async () => {
+  using fixture = await adminFixture();
+  expect((await saveGrants(fixture, [...fixture.repository.load().grants, erinAdminGrant()])).status).toBe(200);
+  fixture.identify('erin');
+  expect((await fixture.request('/api/admin/grants')).status).toBe(200);
+
+  // Dave's group grant can go, because Erin is still an Admin.
+  const withoutGroup = fixture.repository.load().grants.filter(grant => grant.id !== 'g-admins');
+  expect((await saveGrants(fixture, withoutGroup)).status).toBe(200);
+  fixture.identify('dave');
+  expect((await fixture.request('/api/admin/grants')).status).toBe(403);
+
+  // Erin is now the only Admin, so she can neither remove her grant nor deactivate herself.
+  fixture.identify('erin');
+  const noAdmin = await saveGrants(
+    fixture,
+    fixture.repository.load().grants.filter(grant => grant.roleId !== 'admin'),
+  );
+  expect(noAdmin.status).toBe(400);
+  expect(await noAdmin.json()).toMatchObject({ error: 'last-admin' });
+  expect((await deactivate(fixture, 'erin')).status).toBe(400);
+}, 30000);
+
+test('deactivating one of two Admins is allowed, but not the one who remains', async () => {
+  using fixture = await adminFixture();
+  expect((await saveGrants(fixture, [...fixture.repository.load().grants, erinAdminGrant()])).status).toBe(200);
+  expect((await deactivate(fixture, 'dave')).status).toBe(200);
+
+  fixture.identify('erin');
+  const lastOne = await deactivate(fixture, 'erin');
+  expect(lastOne.status).toBe(400);
+  expect(await lastOne.text()).toContain('last-admin');
 }, 30000);
 
 test('a document is proposed without the version it was read with, which is the baseVersion', async () => {
@@ -481,6 +546,7 @@ test('a document is proposed without the version it was read with, which is the 
     baseVersion: version,
     dryRunId,
   });
+  if (saved.status !== 200) console.log(await saved.clone().text());
   expect(saved.status).toBe(200);
 }, 30000);
 
@@ -682,6 +748,7 @@ test('a failed adminChange audit write is logged with the request id and the new
   try {
     const grants = fixture.repository.load().grants.slice(0, -1);
     const saved = await reviewAndSave(fixture, 'grants', { grants });
+    if (saved.status !== 200) console.log(await saved.clone().text());
     expect(saved.status).toBe(200);
     const { version } = await saved.json();
     const failure = lines.map(line => JSON.parse(line)).find(line => line.action === 'adminChange');
@@ -734,6 +801,7 @@ test('a dry run taken before another save cannot activate its proposal', async (
       ...document,
       baseVersion,
     });
+    if (saved.status !== 200) console.log(await saved.clone().text());
     expect(saved.status).toBe(200);
     return (await saved.json()).version;
   }

@@ -273,9 +273,12 @@ reviewed again. The server replays configured matrix cases, recent audit snapsho
 identities without changing live policies during preview.
 
 Each accepted change makes one Admin-authored commit in `DATA_DIR/admin/`. History compares
-versions. Rollback is a new reviewed commit, not a history rewrite. Last-Admin and bootstrap
-checks refuse changes that could lock out administration. Bootstrap identities cannot be
-deactivated. User deactivation/reactivation ends their existing sessions.
+versions. Rollback is a new reviewed commit, not a history rewrite. Any number of people can be
+Admin, through several grants, groups or bootstrap identities, and one of them can be removed or
+deactivated while another remains. A change that would leave no Admin is refused with
+`last-admin`: removing, narrowing or deactivating the last one, or a rule that forbids the Admin
+action. Only people who signed in within one session lifetime count, and a configured bootstrap
+identity always counts. Bootstrap identities cannot be deactivated. User deactivation/reactivation ends their existing sessions.
 
 Raw Cedar rules must validate, including disabled rules. Forbid rules cannot cover the Admin
 action. Time-window policies use UTC; network policies use the direct socket peer, not forwarded
