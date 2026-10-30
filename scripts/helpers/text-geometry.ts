@@ -84,6 +84,9 @@ export async function textCollisionProblems(page: Page, within = 'body'): Promis
         const top = document.elementFromPoint(x, y);
         // An open Controls panel is a menu laid over the graph on purpose; its own text is checked.
         if (top?.closest('.compact-controls-panel') && !run.element.closest('.compact-controls-panel')) continue;
+        // Hit-testing cannot see text that ignores the pointer, such as a hint laid over the toolbar, so its overlap
+        // with other text is left to the pairwise check below.
+        if (getComputedStyle(run.element).pointerEvents === 'none') continue;
         if (top && !run.element.contains(top) && !top.contains(run.element)) found.add(`"${run.label}" is covered by ${top.tagName.toLowerCase()}.${String(top.className).split(/\s+/)[0]}`);
       }
       for (let i = 0; i < shown.length; i++)
