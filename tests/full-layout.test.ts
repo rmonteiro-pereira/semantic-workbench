@@ -3,8 +3,8 @@ import { test, expect } from 'bun:test';
 import ELK from 'elkjs/lib/elk-api.js';
 import { fitZoom, layoutNetwork, packTiles } from '../src/app/graph/network-layout';
 import { cardNameFontSize } from '../src/app/graph/text-fit';
-import { textSizesAt } from '../src/app/graph/overview-capacity';
 import { GROUP_HEADER_HEIGHT } from '../src/app/graph/overview-capacity';
+import { reservedNameHeight } from '../src/app/graph/full-node-data';
 import { layoutFullGraph } from '../src/app/graph/full-layout';
 import { inspect } from '../src/shared/core/model';
 import { groupRelationships } from '../src/app/graph/graph-view';
@@ -107,15 +107,15 @@ test('one name size is planned for the whole layout and long names wrap in talle
   const canvas = { width: 1200, height: 800 };
   const layout = layoutNetwork(inspection.entities, inspection.edges, inspection.name, undefined, canvas);
   checkGeometry(layout, 45);
-  const zoom = fitZoom(layout, canvas);
-  const plannedPx = textSizesAt(zoom).entityName;
+  const plannedPx = layout.textPlan.entityNamePx;
   const cards = layout.nodes.filter(node => !node.group);
   for (const card of cards) {
-    const name = inspection.entities.find(entity => entity.id === card.id)!.name;
-    expect(cardNameFontSize(name, card, plannedPx), name).toBeGreaterThanOrEqual(Math.floor(plannedPx * 0.9));
+    const entity = inspection.entities.find(candidate => candidate.id === card.id)!;
+    const room = { width: card.width, height: card.height, reservedHeight: reservedNameHeight(entity, false) };
+    expect(cardNameFontSize(entity.name, room, plannedPx), entity.name).toBe(plannedPx);
   }
   // On screen the smallest name stays readable.
-  expect(plannedPx * zoom).toBeGreaterThanOrEqual(10);
+  expect(plannedPx * fitZoom(layout, canvas)).toBeGreaterThanOrEqual(10);
 });
 test('a tall canvas packs the tiles into fewer columns than a wide one', () => {
   const sizes = Array.from({ length: 8 }, () => ({ width: 320, height: 300 }));

@@ -11,7 +11,7 @@ import { inspect } from '../src/shared/core/model';
 
 type Box = { left: number; top: number; right: number; bottom: number };
 
-async function openUblGraph(page: Page, api: IsolatedApi, filename = 'ubl.ontology.yaml') {
+async function openGraph(page: Page, api: IsolatedApi, filename = 'ubl.ontology.yaml') {
   await routeApi(page, api);
   await page.goto(appUrl());
   const workspace = page.getByRole('button', { name: 'Open workspace', exact: true });
@@ -75,7 +75,7 @@ async function crossAreaLinks(page: Page, connections: { id: string; source: str
 export async function checkTiles(page: Page, api: IsolatedApi) {
   const ubl = inspect(await Bun.file('public/examples/ubl/ubl.ontology.yaml').text(), 'ubl.ontology.yaml');
   const connections = groupRelationships(ubl.edges);
-  await openUblGraph(page, api);
+  await openGraph(page, api);
   await expect(page.locator('.full-graph .react-flow__node-entity')).toHaveCount(45);
   expect(await nameProblems(page)).toEqual([]);
   const boxes = await areaBoxes(page);
@@ -86,8 +86,9 @@ export async function checkTiles(page: Page, api: IsolatedApi) {
   await expect(page.locator('.full-graph .area-links')).toHaveCount(boxes.length);
   await expect(page.locator('.full-graph .area-links').first()).toHaveText(/^(links to \d+ areas?|no links to other areas)$/);
   expect(await crossAreaLinks(page, connections)).toEqual([]);
+  // Edges are drawn once the first fit has moved the view, so wait for them instead of counting at once.
+  await expect.poll(() => page.locator('.full-graph .react-flow__edge').count()).toBeGreaterThan(0);
   const drawnBefore = await page.locator('.full-graph .react-flow__edge').count();
-  expect(drawnBefore).toBeGreaterThan(0);
   const invoice = ubl.entities.find(entity => entity.name === 'Invoice')!;
   await page.locator(`.full-graph .react-flow__node[data-id="${invoice.id}"]`).click();
   const around = connections.filter(connection => connection.source === invoice.id || connection.target === invoice.id).map(connection => connection.id);
@@ -131,14 +132,14 @@ async function toolbarProblems(page: Page) {
 }
 
 export async function checkToolbar(page: Page, api: IsolatedApi) {
-  await openUblGraph(page, api);
+  await openGraph(page, api);
   expect(await toolbarProblems(page)).toEqual([]);
   await revealGraphControls(page);
   expect(await toolbarProblems(page)).toEqual([]);
 }
 
 export async function checkToggleCentring(page: Page, api: IsolatedApi) {
-  await openUblGraph(page, api);
+  await openGraph(page, api);
   await revealGraphControls(page);
   const gaps = await page.evaluate(() =>
     [...document.querySelectorAll<HTMLElement>('.full-graph-tools .show-toggle[aria-pressed="false"]')].map(toggle => {
@@ -175,7 +176,7 @@ async function shownTextSizes(page: Page) {
 export async function checkFittedTextSizes(browser: Browser, api: IsolatedApi) {
   const laptop = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   try {
-    await openUblGraph(laptop, api);
+    await openGraph(laptop, api);
     const sizes = await shownTextSizes(laptop);
     expect(sizes.entityName, 'the smallest entity name at 1440 px').toBeGreaterThanOrEqual(SMALLEST_READABLE_PX);
     expect(sizes.areaTitle, 'the smallest area title at 1440 px').toBeGreaterThanOrEqual(SMALLEST_READABLE_PX);
@@ -184,13 +185,43 @@ export async function checkFittedTextSizes(browser: Browser, api: IsolatedApi) {
   }
   const phone = await browser.newPage({ viewport: { width: 390, height: 844 } });
   try {
-    await openUblGraph(phone, api, 'commerce-scale.ttl');
+    await openGraph(phone, api, 'commerce-scale.ttl');
     const sizes = await shownTextSizes(phone);
     expect(sizes.areaTitle, 'the smallest area title at 390 px').toBeGreaterThanOrEqual(SMALLEST_READABLE_PX);
   } finally {
     await phone.close();
   }
   console.log('PASS graph text sizes: entity names and area titles stay at 10 px or more after Fit model');
+}
+
+/** The position, inside its area, that a card is laid out at, read from the card's own transform. */
+async function cardPosition(page: Page, cardIndex: number) {
+  return page
+    .locator('.full-graph .react-flow__node-entity')
+    .nth(cardIndex)
+    .evaluate(card => new DOMMatrix(getComputedStyle(card).transform).toString());
+}
+
+/** A card dragged by hand stays where it was dropped when the sidebar is hidden and shown again. */
+export async function checkDragSurvivesResize(browser: Browser, api: IsolatedApi) {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  try {
+    await openGraph(page, api);
+    const card = page.locator('.full-graph .react-flow__node-entity').first();
+    const box = (await card.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width / 2 + 30, box.y + box.height / 2 + 20, { steps: 5 });
+    await page.mouse.up();
+    const dropped = await cardPosition(page, 0);
+    await page.getByRole('button', { name: 'Hide sidebar', exact: true }).click();
+    await page.getByRole('button', { name: 'Show sidebar', exact: true }).click();
+    await page.waitForTimeout(600);
+    expect(await cardPosition(page, 0), 'the dragged card moved when the sidebar was toggled').toBe(dropped);
+  } finally {
+    await page.close();
+  }
+  console.log('PASS graph resize: a dragged card keeps its position when the sidebar is toggled');
 }
 
 /** Runs the tile, name, toolbar and toggle checks at laptop and phone widths. */
@@ -210,5 +241,6 @@ export async function checkGraphTiles(browser: Browser, api: IsolatedApi) {
     }
   }
   await checkFittedTextSizes(browser, api);
+  await checkDragSurvivesResize(browser, api);
   console.log('PASS graph area tiles: whole names, no overlap, cross-area links on selection, wrapping toolbar, centred toggles');
 }

@@ -8,6 +8,8 @@ const LARGE_MODEL = 250;
 export const LARGEST_AREA_TITLE_PX = 48;
 /** Room above an area's entities for its title (two lines at the largest size) and its link summary. */
 export const GROUP_HEADER_HEIGHT = 160;
+/** Area link summaries grow as the graph zooms out, up to this size. */
+const LARGEST_AREA_LINKS_PX = 36;
 /** Taller names no longer fit a card, so names stop growing here as the canvas zooms out. */
 export const LARGEST_ENTITY_NAME_PX = 44;
 
@@ -21,7 +23,7 @@ export function textSizesAt(zoom: number) {
   const entityName = zoom >= READABLE_ZOOM ? 16 : Math.min(LARGEST_ENTITY_NAME_PX, Math.ceil(12 / zoom));
   const areaTitle = Math.min(LARGEST_AREA_TITLE_PX, Math.max(20, Math.ceil(13 / zoom)));
   // Two lines of the larger name no longer fit the card, so it keeps one.
-  const areaLinks = Math.min(36, Math.max(12, Math.ceil(10 / zoom)));
+  const areaLinks = Math.min(LARGEST_AREA_LINKS_PX, Math.max(12, Math.ceil(10 / zoom)));
   const entityLines = entityName > 17 ? 1 : 2;
   const entityPadding = entityName > 30 ? 2 : 9;
   // Detail starts at 12 canvas pixels, so it needs an unscaled view to stay readable.

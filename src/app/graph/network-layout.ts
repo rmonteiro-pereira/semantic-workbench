@@ -3,7 +3,8 @@ import type { GroupingOptions } from './overview';
 import { modelOverview } from './overview';
 import type { Entity, Relationship } from '../../shared/core/model';
 import { GROUP_HEADER_HEIGHT, modelCardHeight, textSizesAt } from './overview-capacity';
-import { cardHeightFor, cardWidthFor, textWidth, titleWidthFor } from './text-fit';
+import { reservedNameHeight } from './full-node-data';
+import { cardHeightFor, cardWidthFor, textWidth, TITLE_SIDE_SPACE, titleWidthFor } from './text-fit';
 
 const TILE_PADDING = 24;
 const CARD_GAP_X = 20;
@@ -24,7 +25,6 @@ const PLANNING_ROUNDS = 5;
 const PLANNING_ZOOM_MARGIN = 0.9;
 // The title may use two lines of the header, so it never plans for more than this size.
 const LARGEST_PLANNED_TITLE_PX = 40;
-const TITLE_SIDE_SPACE = 60;
 const LINKS_TEXT_SAMPLE = 'links to 00 areas';
 const LINKS_TEXT_SIDE_SPACE = 40;
 
@@ -66,7 +66,7 @@ function columnCountFor(entityCount: number): number {
 function arrangeTile(entities: Entity[], areaName: string, plan: TextPlan) {
   const cards: TileEntity[] = entities.map(entity => {
     const width = cardWidthFor(entity.name, plan.entityNamePx);
-    return { entity, width, height: cardHeightFor(entity.name, width, plan.entityNamePx, modelCardHeight(Boolean(entity.definition?.collapsedArea))) };
+    return { entity, width, height: cardHeightFor(entity.name, width, plan.entityNamePx, modelCardHeight(Boolean(entity.definition?.collapsedArea)), reservedNameHeight(entity, false)) };
   });
   const cellWidth = Math.max(0, ...cards.map(card => card.width));
   const cellHeight = Math.max(0, ...cards.map(card => card.height));
@@ -140,6 +140,22 @@ function packAreas(overview: ReturnType<typeof modelOverview>, plan: TextPlan, t
 }
 
 /**
+ * Re-plans the text sizes until they stop changing, because the sizes decide the layout and the
+ * layout decides the zoom the sizes follow. The round limit only guards against a plan that flips.
+ */
+export function planTextForCanvas(overview: ReturnType<typeof modelOverview>, canvas: CanvasSize, targetAspect: number) {
+  let plan = textPlanAt(1);
+  let arranged = packAreas(overview, plan, targetAspect);
+  for (let round = 0; round < PLANNING_ROUNDS; round++) {
+    const nextPlan = textPlanAt(fitZoom(arranged.packed, canvas) * PLANNING_ZOOM_MARGIN);
+    if (JSON.stringify(nextPlan) === JSON.stringify(plan)) break;
+    plan = nextPlan;
+    arranged = packAreas(overview, plan, targetAspect);
+  }
+  return { plan, arranged };
+}
+
+/**
  * Builds one tile per area and packs the tiles so that none overlap. Text sizes follow the zoom the
  * canvas will fit the result at, and the packing follows the canvas shape, so a tall phone canvas
  * gets fewer columns and its names stay readable.
@@ -147,12 +163,8 @@ function packAreas(overview: ReturnType<typeof modelOverview>, plan: TextPlan, t
 export function layoutNetwork(entities: Entity[], edges: Relationship[], name: string, grouping?: GroupingOptions, canvas?: CanvasSize) {
   const overview = modelOverview(entities, edges, name, false, grouping);
   const targetAspect = canvas ? canvas.width / canvas.height : PACKED_ASPECT;
-  let plan = textPlanAt(1);
-  let arranged = packAreas(overview, plan, targetAspect);
-  for (let round = 0; canvas && round < PLANNING_ROUNDS; round++) {
-    plan = textPlanAt(fitZoom(arranged.packed, canvas) * PLANNING_ZOOM_MARGIN);
-    arranged = packAreas(overview, plan, targetAspect);
-  }
+  const startingPlan = textPlanAt(1);
+  const { plan, arranged } = canvas ? planTextForCanvas(overview, canvas, targetAspect) : { plan: startingPlan, arranged: packAreas(overview, startingPlan, targetAspect) };
   const { tiles, packed } = arranged;
   const nodes = tiles.flatMap((tile, index) => {
     const areaId = 'area:' + tile.group.id;
@@ -167,6 +179,7 @@ export function layoutNetwork(entities: Entity[], edges: Relationship[], name: s
     height: packed.height,
     entityCount: overview.entities.length,
     relationshipCount: overview.links.length,
+    textPlan: plan,
     routes: {} as Record<string, { x: number; y: number }[][]>,
   };
 }

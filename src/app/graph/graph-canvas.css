@@ -211,9 +211,12 @@
   white-space: nowrap;
 }
 
-/* Beside an open sidebar a desktop window leaves the Graph toolbar about 950px, so its buttons sit
-   closer together and it keeps to one row; the canvas below keeps its full height. */
-@media (min-width: 1100px) and (max-width: 1450px) {
+/* When the graph pane itself is narrow (an open sidebar beside a laptop window), the toolbar buttons
+   sit closer together and it keeps to one row; the canvas below keeps its full height. */
+.full-graph {
+  container-type: inline-size;
+}
+@container (max-width: 1000px) {
   .full-graph .full-graph-tools {
     gap: 4px;
   }

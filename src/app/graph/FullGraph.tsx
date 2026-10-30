@@ -128,6 +128,8 @@ const nodeTypes = { entity: EntityNode, businessArea: AreaNode };
 const edgeTypes = { routed: GraphEdge };
 const routingOptions = { nodePadding: 10, gridRatio: 10 };
 type LayoutResult = Awaited<ReturnType<typeof layoutFullGraph>>;
+// How long the pane must keep its size before the first layout is planned for it.
+const PANE_SETTLE_MS = 250;
 const cache = new Map<string, LayoutResult>();
 type Props = {
   toolbarExtra?: React.ReactNode;
@@ -174,8 +176,12 @@ export function FullGraph(props: Props) {
   const [zoomStep, setZoomStep] = useState(1);
   const followZoom = (zoom: number) => setZoomStep(Math.floor(zoom * 20) / 20);
   const [size, setSize] = useState({ width: 1200, height: 650 });
-  // Coarse steps keep a small panel resize from laying the graph out again and undoing drags.
-  const canvasShape = useMemo(() => coarseCanvasSize(size), [size.width, size.height]);
+  // The first layout waits for a real measurement, so it is planned for the pane the person sees.
+  const [paneMeasured, setPaneMeasured] = useState(false);
+  // The Network layout reads the canvas shape only when it is computed, so resizing the pane
+  // (sidebar, rotation, full screen) never lays the graph out again and undoes drags.
+  const canvasShapeRef = useRef(coarseCanvasSize(size));
+  canvasShapeRef.current = coarseCanvasSize(size);
   const flow = useRef<ReactFlowInstance<any, any> | null>(null);
   const laidOutKey = useRef('');
   const [nodes, setNodes, onNodesChange] = useNodesState<any>([]);
@@ -247,6 +253,7 @@ export function FullGraph(props: Props) {
     const el = container.current;
     if (!el) return;
     let resizeFrame = 0;
+    let settleTimer: ReturnType<typeof setTimeout> | undefined;
     const observer = new ResizeObserver(([entry]) => {
       const pane = { width: entry.contentRect.width, height: entry.contentRect.height };
       cancelAnimationFrame(resizeFrame);
@@ -256,12 +263,16 @@ export function FullGraph(props: Props) {
         flushSync(() => {
           setSize(previous => (previous.width === pane.width && previous.height === pane.height ? previous : pane));
         });
+        // The pane settles while the workspace opens, so the first layout waits for a quiet moment.
+        clearTimeout(settleTimer);
+        if (pane.width > 0 && pane.height > 0) settleTimer = setTimeout(() => setPaneMeasured(true), PANE_SETTLE_MS);
       });
     });
     observer.observe(el);
     return () => {
       observer.disconnect();
       cancelAnimationFrame(resizeFrame);
+      clearTimeout(settleTimer);
     };
   }, []);
   // An animated move reads the canvas size one frame later. If the workspace is hidden by then
@@ -306,6 +317,8 @@ export function FullGraph(props: Props) {
   const fit = useCallback(() => fitWithin(250), [fitWithin]);
   useEffect(() => {
     let cancelled = false;
+    if (!paneMeasured) return;
+    const canvasShape = canvasShapeRef.current;
     let elk: { layout: (elkGraph: any) => Promise<any>; terminateWorker: () => void } | undefined;
     const key = JSON.stringify([
       algorithm,
@@ -402,7 +415,7 @@ export function FullGraph(props: Props) {
       cancelled = true;
       elk?.terminateWorker();
     };
-  }, [overview, display, algorithm, version, layoutGrouping, canvasShape]);
+  }, [overview, display, algorithm, version, layoutGrouping, paneMeasured]);
   // Full screen keeps the view it started from and puts it back on exit.
   const held = useViewRestore(
     !!props.fullscreen?.active,

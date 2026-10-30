@@ -292,7 +292,8 @@ they match current handles, with the **Layered / Network** control in the graph 
 toolbar also holds **Re-layout**, the crosshair select that zooms to an area (**Zoom to group**),
 **Collapse areas**, **Expand all**, and switches for **Labels**, **Value types**, **Metrics** and **Mini-map**; a check mark shows which
 are on. On a phone these controls fold behind **Controls**. The canvas supports grouped areas,
-dragging, area zoom and selection. Network detail routing uses a shared background worker;
+dragging, area zoom and selection. Resizing the window or the sidebar does not rearrange the
+graph or undo your drags; **Re-layout** plans it again for the current window. Network detail routing uses a shared background worker;
 whole-model views use less expensive paths.
 
 The first view shows every entity by name; models above 250 visible business entities start with

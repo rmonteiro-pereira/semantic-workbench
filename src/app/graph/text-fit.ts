@@ -61,15 +61,20 @@ export function cardWidthFor(name: string, fontPx: number = READABLE_NAME_PX): n
 }
 
 /** The card height that holds the whole name at the given size, never less than the standard height. */
-export function cardHeightFor(name: string, width: number, fontPx: number, standardHeight: number): number {
+export function cardHeightFor(name: string, width: number, fontPx: number, standardHeight: number, reservedHeight: number = 0): number {
   const lines = lineCount(shownName(name), width - CARD_SIDE_SPACE, fontPx);
-  return Math.max(standardHeight, Math.ceil(lines * fontPx * LINE_HEIGHT_EM) + CARD_VERTICAL_SPACE);
+  return Math.max(standardHeight, Math.ceil(lines * fontPx * LINE_HEIGHT_EM) + CARD_VERTICAL_SPACE + reservedHeight);
 }
+
+// A tile title never asks for a tile wider than this.
+const WIDEST_TILE = 1200;
+/** Room a tile's header keeps beside its title for the colour dot and padding. */
+export const TITLE_SIDE_SPACE = 60;
 
 /** The narrowest tile width, from the minimum, that shows the title in two lines at the given size. */
 export function titleWidthFor(title: string, fontPx: number, minimumWidth: number, sideSpace: number): number {
   let width = minimumWidth;
-  while (lineCount(title, width - sideSpace, fontPx) > 2 && width < 1200) width += CARD_WIDTH_STEP;
+  while (lineCount(title, width - sideSpace, fontPx) > 2 && width < WIDEST_TILE) width += CARD_WIDTH_STEP;
   return width;
 }
 
