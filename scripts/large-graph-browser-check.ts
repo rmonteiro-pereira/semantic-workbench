@@ -1,5 +1,6 @@
 // Checks large graph rendering and interactions in the browser.
 import { appUrl } from './helpers/base-url';
+import { expectAreaEntityTotal } from './helpers/overview-areas';
 import { chooseLayout, viewOptions } from './helpers/graph-options';
 import { chromium, expect, type Page } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
@@ -22,7 +23,7 @@ try {
   await expect(page.locator('.full-graph-status')).toHaveAttribute('data-entity-count', '1000');
   await expect(page.locator('.full-graph-status')).toHaveAttribute('data-relationship-count', '5000');
   await openGraphOverview(page);
-  await expect(page.locator('.area-entities button')).toHaveCount(1000, { timeout: 10000 });
+  await expectAreaEntityTotal(page, 1000, 10000);
   const start = performance.now();
   await page.locator('.tabs').getByRole('button', { name: 'Graph', exact: true }).click();
   await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 120000 });

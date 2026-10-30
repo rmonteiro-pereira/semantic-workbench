@@ -1,14 +1,12 @@
 /** Displays model groups and their entities as a browsable catalog. */
 import { useRecordedState } from '../workspace/hooks/useRecordedState';
-import type { GroupingOptions } from './overview';
+import type { AreaFilter, GroupingOptions } from './overview';
 import { useMemo, useState } from 'react';
 import { ArrowRight, Focus, Grid2X2, Layers, Search, X, Network } from 'lucide-react';
-import { modelOverview } from './overview';
+import { modelOverview, usableGroupingModes } from './overview';
 import type { Entity, Relationship } from '../../shared/core/model';
 type Props = {
   grouping?: GroupingOptions;
-  onGroupingChange?: (value: GroupingOptions) => void;
-  groupingError?: string;
   name: string;
   entities: Entity[];
   edges: Relationship[];
@@ -18,7 +16,18 @@ type Props = {
   onSelectRelationship: (id: string) => void;
   onClose: () => void;
   onOpenGraph: () => void;
+  /** Opens one area in the Catalog, filtered to its entities. */
+  onShowArea: (area: AreaFilter) => void;
 };
+
+// A card lists this many entities; the rest are one click away in the Catalog, so no card grows
+// with the size of its area.
+export const AREA_ENTITY_LIMIT = 8;
+
+// "Declared domains" reads as "declared domains" inside a sentence; "IRI namespaces" keeps its acronym.
+function inSentence(label: string): string {
+  return /^[A-Z][a-z]/.test(label) ? label[0].toLowerCase() + label.slice(1) : label;
+}
 // A cell of the relationship matrix is shaded in the accent colour; more relationships are darker.
 function relationshipHeat(count: number): string {
   const percent = Math.round(Math.min(8 + Math.log2(count + 1) * 3.5, 32));
@@ -56,6 +65,7 @@ export function ModelOverview(props: Props) {
     connections = [];
   }
   const groupName = (id: string) => (id === '*' ? 'Other areas' : (overview.groups.find(g => g.id === id)?.name ?? id));
+  const canChangeInGraph = usableGroupingModes(overview.modes).length > 1;
   const matches = (e: Entity) => !props.search || e.name.toLowerCase().includes(props.search.toLowerCase()) || e.id.toLowerCase().includes(props.search.toLowerCase());
   return (
     <div className="model-overview">
@@ -76,6 +86,14 @@ export function ModelOverview(props: Props) {
           </button>
         </div>
       </div>
+      <p className="overview-grouping-note">
+        Grouped by {inSentence(overview.groupingLabel)}, as in Graph.{' '}
+        {canChangeInGraph && (
+          <button type="button" className="link-button" onClick={props.onOpenGraph}>
+            Change in Graph
+          </button>
+        )}
+      </p>
       <div className="overview-options">
         <div className="overview-switch">
           <button className={mode === 'areas' ? 'active' : ''} onClick={() => setMode('areas')}>
@@ -119,7 +137,7 @@ export function ModelOverview(props: Props) {
                     </span>
                   </header>
                   <div className="area-entities">
-                    {entities.map(entity => (
+                    {entities.slice(0, AREA_ENTITY_LIMIT).map(entity => (
                       <button
                         key={entity.id}
                         data-entity-id={entity.id}
@@ -139,6 +157,20 @@ export function ModelOverview(props: Props) {
                       </button>
                     ))}
                   </div>
+                  {entities.length > AREA_ENTITY_LIMIT && (
+                    <button
+                      type="button"
+                      className="area-show-all"
+                      onClick={() =>
+                        props.onShowArea({
+                          name: group.name,
+                          entityIds: group.entities.map(entity => entity.id),
+                        })
+                      }
+                    >
+                      Show all {group.entities.length}
+                    </button>
+                  )}
                   <footer>
                     <span>
                       {internal} internal {internal === 1 ? 'relationship' : 'relationships'}

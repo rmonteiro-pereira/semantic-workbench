@@ -707,17 +707,17 @@ main {
   padding: 0 26px 24px;
   scrollbar-gutter: stable;
 }
+/* Masonry: every card keeps its own height and the cards pack into columns, so a short card never
+   leaves a hole that the card below cannot fill. */
 .area-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 16px;
-  align-items: stretch;
+  columns: 4 280px;
+  column-gap: 16px;
 }
-/* Cards of one row share a height: the entity list takes the spare room and the footer stays at
-   the bottom edge. */
 .business-area {
   display: flex;
   flex-direction: column;
+  break-inside: avoid;
+  margin: 0 0 16px;
   background: var(--color-surface);
   border: 1px solid var(--color-border-subtle);
   border-radius: 10px;
@@ -759,6 +759,29 @@ main {
   border-radius: 5px;
   font-size: var(--text-small);
   color: var(--text-muted);
+}
+.overview-grouping-note {
+  margin: 0 26px 8px;
+  font-size: var(--text-small);
+  color: var(--text-muted);
+}
+.overview-grouping-note .link-button {
+  border: 0;
+  background: none;
+  padding: 0;
+  font-size: inherit;
+  color: var(--color-accent-text);
+  text-decoration: underline;
+}
+.area-show-all {
+  align-self: flex-start;
+  border: 0;
+  background: none;
+  margin: 0 15px 10px;
+  padding: 2px 0;
+  font-size: var(--text-small);
+  font-weight: 600;
+  color: var(--color-accent-text);
 }
 .area-entities {
   flex: 1 1 auto;
@@ -938,9 +961,6 @@ main {
   .overview-options {
     flex-wrap: wrap;
   }
-  .area-grid {
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  }
   .overview-top h2 {
     font-size: 19px;
   }
@@ -970,9 +990,6 @@ main {
   overscroll-behavior: contain;
 }
 
-.area-grid {
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-}
 .inspector-close {
   border: 0;
   background: none;
@@ -982,9 +999,6 @@ main {
   color: var(--text-muted);
 }
 @media (max-width: 1100px) {
-  .area-grid {
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  }
 }
 .overview-view-actions {
   display: flex;
@@ -1811,9 +1825,6 @@ main > .status {
 .overview-top h2 {
   font-size: 19px;
 }
-.area-grid {
-  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
-}
 .mapping-explorer {
   padding: 18px;
 }
@@ -1992,115 +2003,6 @@ main > .status {
   font-size: 13px;
   color: var(--text-muted);
 }
-.grouping-controls {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  min-width: 0;
-  flex: 0 1 auto;
-  font-size: var(--text-small);
-  color: var(--color-text-muted);
-}
-.grouping-controls > label {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  white-space: nowrap;
-}
-.grouping-controls select,
-.grouping-controls input {
-  font:
-    var(--text-small) system-ui,
-    sans-serif;
-  min-width: 0;
-  max-width: 190px;
-  border: 1px solid var(--color-border-subtle);
-  background: var(--color-surface);
-  border-radius: 5px;
-  padding: 6px;
-  color: var(--color-text-secondary);
-}
-.grouping-controls > .grouping-details > summary {
-  cursor: pointer;
-  list-style: none;
-  padding: 6px;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 5px;
-  white-space: nowrap;
-}
-.grouping-controls > .grouping-details > summary::after {
-  content: ' ⓘ';
-}
-.grouping-details[open] {
-  position: absolute;
-  right: 0;
-  top: 0;
-  width: min(480px, calc(100vw - 28px));
-  z-index: 45;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 7px;
-  box-shadow: 0 6px 24px color-mix(in srgb, var(--color-shadow) 13%, transparent);
-  padding: 10px;
-  max-height: 70dvh;
-  overflow: auto;
-}
-.grouping-details[open] > summary {
-  margin-bottom: 8px;
-}
-.grouping-details p {
-  font-size: var(--text-small);
-  line-height: 1.5;
-  margin: 8px 0;
-}
-.grouping-details details > summary {
-  cursor: pointer;
-  font-weight: 600;
-  padding: 6px 0;
-}
-.grouping-details label {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 8px 0;
-  gap: 8px;
-}
-.grouping-details select,
-.grouping-details input {
-  width: 70%;
-  max-width: none;
-}
-.grouping-details button {
-  font-size: var(--text-small);
-  margin: 5px 5px 0 0;
-}
-.grouping-controls > [role='alert'] {
-  color: var(--color-danger-text);
-  max-width: 200px;
-}
-@media (max-width: 650px) {
-  .grouping-controls {
-    flex: 1 1 auto;
-  }
-  .grouping-controls select {
-    max-width: 155px;
-  }
-  .grouping-controls .grouping-details[open] {
-    position: fixed;
-    top: 100px;
-    right: 10px;
-  }
-}
-.grouping-controls > label > select {
-  width: 145px;
-}
-.grouping-controls > .grouping-details > summary {
-  padding: 5px 7px;
-}
-.grouping-controls > .grouping-details > summary::after {
-  content: none;
-}
 .toolbar .tabs {
   flex: 1 1 420px;
 }
@@ -2115,9 +2017,6 @@ main > .status {
     padding-left: 6px;
     padding-right: 6px;
     font-size: var(--text-small);
-  }
-  .grouping-controls > label > select {
-    width: 100px;
   }
   .toolbar .search {
     flex-basis: 100px;
@@ -3126,30 +3025,6 @@ main > .status {
   white-space: normal;
   overflow-wrap: anywhere;
 }
-.grouping-controls .grouping-details[open] {
-  position: static;
-  width: auto;
-  padding: 0;
-  border: 0;
-  background: none;
-  box-shadow: none;
-  max-height: none;
-  overflow: visible;
-}
-.grouping-controls .grouping-details[open] > summary {
-  margin: 0;
-}
-.grouping-panel {
-  position: fixed;
-  z-index: 45;
-  width: min(480px, calc(100vw - 20px));
-  overflow: auto;
-  padding: 10px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 7px;
-  box-shadow: 0 6px 24px color-mix(in srgb, var(--color-shadow) 13%, transparent);
-}
 .workspace-sidebar .workspace-label {
   margin: 10px 8px 6px;
 }
@@ -3755,9 +3630,6 @@ main > .status {
 .adjust-grouping-corrections li {
   font-size: 13px;
   overflow-wrap: anywhere;
-}
-.grouping-panel > button {
-  font-size: var(--text-small);
 }
 @media (max-width: 480px) {
   .adjust-grouping-form label {

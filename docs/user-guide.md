@@ -268,7 +268,11 @@ folder. Server working copies each retain their own sparse configuration.
 
 ## Model views and graph navigation
 
-**Overview** retains business areas and a relationship matrix. **Catalog** exposes definitions;
+**Overview** retains business areas and a relationship matrix. Area cards pack into columns that
+read top to bottom, each card keeping its own height, and list at most eight entities;
+**Show all N** opens that area in **Catalog**, filtered to it. The filter ends when you leave
+**Catalog** or change file. A line above the cards says how the model is grouped, as in Graph.
+**Catalog** exposes definitions;
 a long entity name wraps between its words on the card instead of being cut. **Graph** shows the
 complete interactive model; ODCS and mapping documents use their specialized canvases.
 **Neighborhood** centers exploration on one entity.
@@ -328,9 +332,11 @@ screen** restores the prior layout, zoom and selection. If browser full screen i
 view fills the browser window instead. On phones, secondary controls sit behind **Controls** and
 cross-file links behind **Other files**.
 
-**Group by** offers declared domains, IRI namespaces, suggested communities, definition types and
-curated UBL areas where applicable. Unavailable modes are disabled with their reason. Automatic
-selects the first applicable mode and names the choice. Communities are deterministic structural
+The **Group** menu exists only in the Graph toolbar (not in Overview). It offers declared domains,
+IRI namespaces, suggested communities, definition types and curated UBL areas, listing only the
+ways that work for the open file, each with a one-line explanation. Automatic selects the first
+applicable mode and the menu footer names the choice. When a file has fewer than two usable ways
+to group, the menu is hidden. Communities are deterministic structural
 suggestions, not new semantic facts: closely linked entities are joined, and those groups are
 joined again while that keeps links inside areas. Entities with no relationships are grouped by
 type. **Adjust grouping…** changes view state, not source files.

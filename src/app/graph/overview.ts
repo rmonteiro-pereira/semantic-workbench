@@ -14,6 +14,9 @@ export type GroupingOptions = {
   names?: Record<string, string>;
 };
 /** Whether a mode is offered for a document, how many groups it yields, and why it is disabled. */
+/** The entities of one overview area, as the Catalog lists them after "Show all". */
+export type AreaFilter = { name: string; entityIds: string[] };
+
 export type GroupingModeState = { offered: boolean; groups: number; reason?: string };
 
 /** The order in which Auto tries the modes; it takes the first that yields two or more groups. */
@@ -308,6 +311,12 @@ export function groupingModes(visible: Entity[], context: GroupingContext) {
 }
 
 const enabled = (state: GroupingModeState) => state.offered && !state.reason;
+
+/** The ways of grouping that work for this file, in the order Auto tries them. Modes with nothing
+ * to group are left out rather than shown disabled. */
+export function usableGroupingModes(modes: Record<ConcreteGroupingMode, GroupingModeState>): ConcreteGroupingMode[] {
+  return GROUPING_ORDER.filter(mode => enabled(modes[mode]));
+}
 
 /** Groups entities and relationships into overview areas. */
 export function modelOverview(entities: Entity[], edges: Relationship[], _name: string, technical = false, grouping: GroupingOptions = {}) {

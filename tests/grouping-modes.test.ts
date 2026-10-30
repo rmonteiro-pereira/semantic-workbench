@@ -3,7 +3,7 @@ import { test, expect } from 'bun:test';
 import { Glob } from 'bun';
 import { basename, resolve } from 'node:path';
 import { inspect, type Entity, type Relationship } from '../src/shared/core/model';
-import { modelOverview, GROUPING_ORDER, type ConcreteGroupingMode } from '../src/app/graph/overview';
+import { modelOverview, usableGroupingModes, GROUPING_ORDER, type ConcreteGroupingMode } from '../src/app/graph/overview';
 
 type Model = { name: string; entities: Entity[]; edges: Relationship[] };
 
@@ -182,4 +182,24 @@ test('a stored choice of a disabled mode falls back to Auto', async () => {
   const model = await load('public/examples/ubl/ubl.odcs.yaml');
   const overview = overviewOf(model, 'namespaces');
   expect(overview.mode).toBe(overview.autoMode);
+});
+
+test('the Group menu lists only modes that work and nothing when there is no choice', async () => {
+  const models = await shippedModels();
+  for (const [path, model] of models) {
+    const modes = overviewOf(model).modes;
+    for (const mode of usableGroupingModes(modes)) {
+      expect(modes[mode].offered, `${path} ${mode}`).toBe(true);
+      expect(modes[mode].reason, `${path} ${mode}`).toBeUndefined();
+    }
+  }
+  const sameKind = {
+    name: 'Plain',
+    entities: [
+      { id: 'a', name: 'A', kind: 'EntityType' },
+      { id: 'b', name: 'B', kind: 'EntityType' },
+    ],
+    edges: [],
+  } as unknown as Model;
+  expect(usableGroupingModes(overviewOf(sameKind).modes)).toEqual([]);
 });

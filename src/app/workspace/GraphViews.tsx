@@ -4,10 +4,11 @@ import { FullGraph } from '../graph/FullGraph';
 import { projectRevisionKey } from '../../shared/core/selected-project';
 import { MappingCanvas } from '../mappings/MappingCanvas';
 import { ModelOverview } from '../graph/ModelOverview';
+import { GroupingControls } from '../graph/GroupingControls';
 import { NeighborhoodGraph } from '../graph/NeighborhoodGraph';
 import { LineageCanvas } from '../odcs/LineageCanvas';
 import type { LineageCard } from '../odcs/lineage';
-import type { modelOverview } from '../graph/overview';
+import type { AreaFilter, modelOverview } from '../graph/overview';
 
 type GroupLook = { name: string; color: string };
 
@@ -68,6 +69,7 @@ type Props = {
   setSearch: React.Dispatch<React.SetStateAction<string>>;
   showNeighborhood: (id?: string | undefined) => void;
   handleModelOverviewSelectRelationship: (id: string) => void;
+  showAreaInCatalog: (area: AreaFilter) => void;
   docsRef: React.RefObject<Map<string, import('../projects/api').Doc>>;
   walk: import('../graph/walk').Walk;
   handleNeighborhoodGraphWalk: (steps: import('../graph/walk').WalkStep[]) => void;
@@ -108,6 +110,7 @@ export function GraphViews({
   setSearch,
   showNeighborhood,
   handleModelOverviewSelectRelationship,
+  showAreaInCatalog,
   docsRef,
   walk,
   handleNeighborhoodGraphWalk,
@@ -119,6 +122,8 @@ export function GraphViews({
   crossTo,
 }: Props) {
   const looks = useMemo(() => groupLooks(groupingOverview), [groupingOverview]);
+  // The Group menu sits in the graph's own tool row, beside Fit and the layout controls.
+  const groupMenu = groupingOverview ? <GroupingControls overview={groupingOverview} value={grouping.value} onChange={grouping.change} error={grouping.error} /> : null;
   const groupColorOf = useCallback((id: string) => looks.get(id)?.color, [looks]);
   if (tab === 'fullgraph' && mappingId && mappingView === 'mapping') {
     return (
@@ -154,6 +159,7 @@ export function GraphViews({
         onOpenAsset={handleLineageCanvasOpenAsset}
         onNeighborhood={continueInNeighborhood}
         groupOf={contractGroupOf}
+        toolbarExtra={groupMenu}
       />
     );
   }
@@ -161,11 +167,10 @@ export function GraphViews({
     return (
       <FullGraph
         toolbarExtra={graphViewSwitch}
+        groupMenu={groupMenu}
         fullscreen={fullscreen}
         kpiBadges={kpiBadges}
         grouping={grouping.value}
-        onGroupingChange={grouping.change}
-        groupingError={grouping.error}
         key={current?.id}
         name={model.name}
         entities={model.entities}
@@ -182,8 +187,6 @@ export function GraphViews({
     return (
       <ModelOverview
         grouping={grouping.value}
-        onGroupingChange={grouping.change}
-        groupingError={grouping.error}
         key={current?.id}
         name={model.name}
         entities={model.entities}
@@ -191,6 +194,7 @@ export function GraphViews({
         search={search}
         selected={selected}
         onSelectEntity={selectEntity}
+        onShowArea={showAreaInCatalog}
         onSelectRelationship={handleModelOverviewSelectRelationship}
         onClose={() => showNeighborhood()}
         onOpenGraph={() => {

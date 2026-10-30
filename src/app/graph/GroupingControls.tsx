@@ -1,8 +1,11 @@
-/** Provides the grouping selector shared by model overview and graph views. */
-import { useState, useRef, useLayoutEffect } from 'react';
+/** The Group menu in the graph toolbar: lists only the ways of grouping that work for the open file. */
+import { useState, useRef, useLayoutEffect, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { Check, ChevronDown, LayoutGrid } from 'lucide-react';
+import { GROUPING_LABELS, usableGroupingModes } from './overview';
 import type { modelOverview, GroupingOptions, GroupingMode, ConcreteGroupingMode } from './overview';
 import { AdjustGroupingDialog } from './AdjustGroupingDialog';
+import './grouping-menu.css';
 
 type Overview = ReturnType<typeof modelOverview>;
 type Props = {
@@ -12,34 +15,26 @@ type Props = {
   error?: string;
 };
 
-// Short names for the Auto option, which says which mode Auto would use for this document.
-const AUTO_NAMES: Record<ConcreteGroupingMode, string> = {
-  declared: 'declared domains',
-  example: 'business areas',
-  namespaces: 'namespaces',
-  suggested: 'related entities',
-  types: 'entity types',
-};
-
-// The order of the options in the menu; the UBL areas come last because few files offer them.
+// The order of the options in the menu, each with the one-line reason to pick it. The UBL areas
+// come last because few files offer them.
 const MENU: [ConcreteGroupingMode, string][] = [
-  ['declared', 'Declared domains'],
-  ['namespaces', 'IRI namespaces'],
-  ['suggested', 'Suggested communities'],
-  ['types', 'Definition types'],
-  ['example', 'UBL example areas'],
+  ['declared', 'Declared in the file'],
+  ['namespaces', 'From each definition IRI'],
+  ['suggested', 'Found from the links'],
+  ['types', 'Concepts, metrics, dimensions'],
+  ['example', 'Curated UBL areas'],
 ];
 
-// Places the floating explanation under its button and inside the window.
-function usePanelPosition(details: React.RefObject<HTMLDetailsElement | null>, opened: boolean) {
+// Places the menu under its button and inside the window.
+function useMenuPosition(button: React.RefObject<HTMLButtonElement | null>, opened: boolean) {
   const [position, setPosition] = useState({ left: 0, top: 0, maxHeight: 0 });
   useLayoutEffect(() => {
     if (!opened) return;
     const place = () => {
-      const rect = details.current!.querySelector('summary')!.getBoundingClientRect();
-      const width = Math.min(480, window.innerWidth - 20);
+      const rect = button.current!.getBoundingClientRect();
+      const width = Math.min(320, window.innerWidth - 20);
       setPosition({
-        left: Math.max(10, Math.min(rect.right - width, window.innerWidth - width - 10)),
+        left: Math.max(10, Math.min(rect.left, window.innerWidth - width - 10)),
         top: rect.bottom + 4,
         maxHeight: Math.max(0, window.innerHeight - rect.bottom - 14),
       });
@@ -55,57 +50,124 @@ function usePanelPosition(details: React.RefObject<HTMLDetailsElement | null>, o
   return position;
 }
 
-/** Selects how model entities are grouped. Modes with nothing to group are disabled with the
- * reason, and corrections open in their own dialog. */
+// Closes the menu on Escape or on a click anywhere outside it. Escape also puts focus back on the
+// button that opened the menu, as a menu is expected to.
+function useDismiss(container: React.RefObject<HTMLElement | null>, opened: boolean, close: () => void, trigger: React.RefObject<HTMLElement | null>) {
+  useEffect(() => {
+    if (!opened) return;
+    const onPointerDown = (event: PointerEvent) => {
+      if (!container.current?.contains(event.target as Node)) close();
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      close();
+      trigger.current?.focus();
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [opened]);
+}
+
+// Focuses the checked item when the menu opens, so the arrow keys start from the current choice.
+function useFocusCheckedItem(menu: React.RefObject<HTMLElement | null>, opened: boolean) {
+  useEffect(() => {
+    if (!opened) return;
+    const checked = menu.current?.querySelector<HTMLElement>('[aria-checked="true"]');
+    const firstItem = menu.current?.querySelector<HTMLElement>('button');
+    (checked ?? firstItem)?.focus();
+  }, [opened]);
+}
+
+// ArrowDown and ArrowUp move focus between the menu's buttons and wrap around at either end.
+function moveFocusWithArrows(event: React.KeyboardEvent<HTMLElement>) {
+  if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+  event.preventDefault();
+  const items = Array.from(event.currentTarget.querySelectorAll<HTMLElement>('button'));
+  const step = event.key === 'ArrowDown' ? 1 : -1;
+  const next = (items.indexOf(document.activeElement as HTMLElement) + step + items.length) % items.length;
+  items[next].focus();
+}
+
+type ItemProps = { label: string; summary: string; checked: boolean; onChoose: () => void };
+
+function MenuItem({ label, summary, checked, onChoose }: ItemProps) {
+  return (
+    <button type="button" role="menuitemradio" aria-checked={checked} className="grouping-item" onClick={onChoose}>
+      <span className="grouping-check">{checked && <Check size={16} />}</span>
+      <span>
+        {label}
+        <small>{summary}</small>
+      </span>
+    </button>
+  );
+}
+
+/** Selects how model entities are grouped. A file with fewer than two usable ways to group shows
+ * no control at all; the Overview grouping note says how it is grouped. */
 export function GroupingControls({ overview, value, onChange, error }: Props) {
-  const details = useRef<HTMLDetailsElement>(null);
+  const wrapper = useRef<HTMLDivElement>(null);
+  const button = useRef<HTMLButtonElement>(null);
+  const menu = useRef<HTMLDivElement>(null);
   const [opened, setOpened] = useState(false);
   const [adjusting, setAdjusting] = useState(false);
-  const position = usePanelPosition(details, opened);
-  const requested = value.mode ?? 'auto';
-  // A stored mode this document cannot use shows as Auto, which is what the views use.
-  const shown = requested !== 'auto' && overview.mode !== requested ? 'auto' : requested;
+  const position = useMenuPosition(button, opened);
+  useDismiss(wrapper, opened, () => setOpened(false), button);
+  useFocusCheckedItem(menu, opened);
+  const usable = usableGroupingModes(overview.modes);
+  if (usable.length < 2) return error ? <span role="alert">{error}</span> : null;
 
-  function chooseMode(event: React.ChangeEvent<HTMLSelectElement>) {
-    onChange({ ...value, mode: event.target.value as GroupingMode });
+  const requested = value.mode ?? 'auto';
+  // A stored mode this document cannot use shows as Automatic, which is what the views use.
+  const checkedMode: GroupingMode = requested !== 'auto' && usable.includes(requested) ? requested : 'auto';
+
+  function choose(mode: GroupingMode) {
+    setOpened(false);
+    onChange({ ...value, mode });
   }
 
   function openAdjustDialog() {
-    details.current?.removeAttribute('open');
+    setOpened(false);
     setAdjusting(true);
   }
 
+  function summaryWithCount(mode: ConcreteGroupingMode, summary: string) {
+    const groups = overview.modes[mode].groups;
+    return `${summary} · ${groups} ${groups === 1 ? 'group' : 'groups'}`;
+  }
+
   return (
-    <div className="grouping-controls">
-      <label>
-        Group by{' '}
-        <select aria-label="Group model by" title={overview.explanation} value={shown} onChange={chooseMode}>
-          <option value="auto" title={`Currently groups by ${AUTO_NAMES[overview.autoMode]}`}>
-            Automatic
-          </option>
-          {MENU.filter(([mode]) => overview.modes[mode].offered).map(([mode, label]) => {
-            const reason = overview.modes[mode].reason;
-            return (
-              <option key={mode} value={mode} disabled={!!reason} title={reason}>
-                {reason ? `${label} (${reason})` : label}
-              </option>
-            );
-          })}
-        </select>
-      </label>
-      <details ref={details} className="grouping-details" onToggle={e => setOpened(e.currentTarget.open)}>
-        <summary aria-label="Grouping details" title="Grouping details">
-          ⓘ
-        </summary>
-        <div className="grouping-panel" style={position}>
-          <p className="grouping-explanation">
-            <strong>{overview.groupingLabel}.</strong> {overview.explanation}
-          </p>
-          <button type="button" onClick={openAdjustDialog}>
+    <div className="grouping-controls" ref={wrapper}>
+      <button
+        ref={button}
+        type="button"
+        className="grouping-trigger"
+        aria-haspopup="menu"
+        aria-expanded={opened}
+        aria-label={`Group by: ${GROUPING_LABELS[overview.mode]}`}
+        title={`Group by: ${GROUPING_LABELS[overview.mode]}`}
+        onClick={() => setOpened(!opened)}
+      >
+        <LayoutGrid size={16} />
+        {GROUPING_LABELS[overview.mode]}
+        <ChevronDown size={14} />
+      </button>
+      {opened && (
+        <div className="grouping-menu" role="menu" aria-label="Group by" style={position} ref={menu} onKeyDown={moveFocusWithArrows}>
+          {MENU.filter(([mode]) => usable.includes(mode)).map(([mode, summary]) => (
+            <MenuItem key={mode} label={GROUPING_LABELS[mode]} summary={summaryWithCount(mode, summary)} checked={checkedMode === mode} onChoose={() => choose(mode)} />
+          ))}
+          <MenuItem label="Automatic" summary={`Currently ${GROUPING_LABELS[overview.autoMode]}`} checked={checkedMode === 'auto'} onChoose={() => choose('auto')} />
+          <div className="grouping-divider" />
+          <p className="grouping-footer">Only ways that work for this file are listed. Automatic picked {GROUPING_LABELS[overview.autoMode]}.</p>
+          <button type="button" className="grouping-adjust" onClick={openAdjustDialog}>
             Adjust grouping…
           </button>
         </div>
-      </details>
+      )}
       {error && <span role="alert">{error}</span>}
       {/* The dialog renders outside the toolbar so the toolbar's compact control styles do not
           apply to its form. */}

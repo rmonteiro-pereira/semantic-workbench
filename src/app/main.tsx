@@ -1,7 +1,7 @@
 /** Application entry point and composition of the workspace views. */
 import { Capabilities } from './auth/Capabilities';
 import { BrandProvider } from './brand/BrandContext';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { PersonMenu } from './auth/PersonMenu';
 import { ActionHistoryProvider } from './workspace/ActionHistoryContext';
@@ -120,8 +120,6 @@ function App() {
   const exportSource = useStableHandler(download);
   const flushSave = useStableHandler(saving.autosave.flush);
   const openStale = useStableHandler(saving.openStale);
-  const changeGrouping = useStableHandler(grouping.change);
-  const toolbarGrouping = useMemo(() => ({ value: grouping.value, error: grouping.error, change: changeGrouping }), [grouping.value, grouping.error, changeGrouping]);
   const shellClassName = ['shell', sidebar.sidebarOpen ? 'workspace-open' : 'workspace-closed', sidebar.resizingSidebar && 'sidebar-resizing'].filter(Boolean).join(' ');
   const canvasClassName = [
     'canvas-row',
@@ -297,9 +295,7 @@ function App() {
             compact={sidebar.compact}
             closeWorkspace={closeWorkspace}
             kpis={metrics.kpis}
-            groupingOverview={groupingOverview}
             lineageShown={lineageState.lineageShown}
-            grouping={toolbarGrouping}
             search={search}
           />
           <div ref={inspector.canvasRow} className={canvasClassName}>

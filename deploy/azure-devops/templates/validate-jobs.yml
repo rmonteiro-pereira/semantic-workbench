@@ -36,6 +36,8 @@ jobs:
           suite: test:edges
         grouping_validation:
           suite: test:grouping-validation
+        overview_areas:
+          suite: test:overview-areas
         examples_ui:
           suite: test:examples:ui
         projects:
