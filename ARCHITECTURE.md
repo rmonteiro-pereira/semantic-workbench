@@ -66,10 +66,16 @@ Public probe/brand/authentication responses have explicit boundary rules; the ma
 shown above applies access enforcement before workspace dispatch. Static serving does not turn
 protected documents into public assets.
 
+![Identities and access: people and agent clients are recognised through sign-in or a bearer token, receive roles from grants at a scope, and every request is decided by Cedar policies, content guards and an audit record; access changes pass a dry run and a last-Admin guard.](docs/diagrams/identities.svg)
+
 Local mode binds loopback and supplies an implicit Admin. Server mode resolves a person or an
 eligible agent identity and enforces a filtered view before a workspace service runs. The same
 file/model/governance logic is reused; local mode is an explicit path, not a missing permission
 check that happens to succeed.
+
+The integration view shows what the application reads and contacts, and what it never does.
+
+![Integrations and boundaries: file formats read, the identity provider, agent clients, Git hosting and Azure Monitor that it can talk to when configured, container deployment and outputs, and what it never does: connect to a warehouse, produce live metric values, reason over OWL or call a hosted language model.](docs/diagrams/integrations.svg)
 
 ## Code map
 
@@ -250,6 +256,8 @@ check that happens to succeed.
   real acceptance; those operations do not happen during application startup.
 
 ## Request and state flow
+
+![How a request and an edit travel: browser, HTTP handler, access boundary, routes and the workspace service down to project files, the SQLite index and durable state, and the edit path from byte patch through validation, autosave and the server write gate to an atomic save, live events and an explicit Git commit.](docs/diagrams/flow.svg)
 
 ### Opening and editing a definition
 

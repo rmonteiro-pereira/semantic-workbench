@@ -186,6 +186,20 @@ access, Git, durable state, access decisions and live updates. In development, V
 browser bundle separately; the built server/container serves both the API and `dist/` from one
 origin. Neither arrangement needs a warehouse or a hosted AI service.
 
+### Three views of the system
+
+**Integrations.** What the workbench reads, what it can contact when configured, and the boundary it never crosses.
+
+![Integrations and boundaries: file formats read, the identity provider, agent clients, Git hosting and Azure Monitor that it can talk to when configured, container deployment and outputs, and what it never does: connect to a warehouse, produce live metric values, reason over OWL or call a hosted language model.](docs/diagrams/integrations.svg)
+
+**Request and edit flow.** How a request reaches files on disk and how an edit becomes a validated, saved change.
+
+![How a request and an edit travel: browser, HTTP handler, access boundary, routes and the workspace service down to project files, the SQLite index and durable state, and the edit path from byte patch through validation, autosave and the server write gate to an atomic save, live events and an explicit Git commit.](docs/diagrams/flow.svg)
+
+**Identities and access.** Who can act, how they sign in, and how roles, policies and the audit record decide each request.
+
+![Identities and access: people and agent clients are recognised through sign-in or a bearer token, receive roles from grants at a scope, and every request is decided by Cedar policies, content guards and an audit record; access changes pass a dry run and a last-Admin guard.](docs/diagrams/identities.svg)
+
 ### C4 level 1: system context
 
 This view shows who uses the workbench and which outside systems it can contact. Dashed links
