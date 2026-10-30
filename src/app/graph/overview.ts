@@ -14,6 +14,9 @@ export type GroupingOptions = {
   names?: Record<string, string>;
 };
 /** Whether a mode is offered for a document, how many groups it yields, and why it is disabled. */
+/** The entities of one overview area, as the Catalog lists them after "Show all". */
+export type AreaFilter = { name: string; entityIds: string[] };
+
 export type GroupingModeState = { offered: boolean; groups: number; reason?: string };
 
 /** The order in which Auto tries the modes; it takes the first that yields two or more groups. */

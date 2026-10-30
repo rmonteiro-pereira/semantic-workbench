@@ -3,7 +3,7 @@ import { expect, type Locator, type Page } from '@playwright/test';
 
 /** The toolbar button that opens the Group menu. */
 export function groupTrigger(page: Page): Locator {
-  return page.getByRole('button', { name: /^Group:/ });
+  return page.getByRole('button', { name: /^Group by:/ });
 }
 
 /** Opens the Group menu if it is closed and returns it. */

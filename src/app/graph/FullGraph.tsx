@@ -133,8 +133,6 @@ type Props = {
   /** The Group menu; on a phone it folds into the Controls panel with the other options. */
   groupMenu?: React.ReactNode;
   grouping?: GroupingOptions;
-  onGroupingChange?: (value: GroupingOptions) => void;
-  groupingError?: string;
   name: string;
   entities: Entity[];
   edges: Relationship[];

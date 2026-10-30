@@ -1,6 +1,6 @@
 /** Displays model groups and their entities as a browsable catalog. */
 import { useRecordedState } from '../workspace/hooks/useRecordedState';
-import type { GroupingOptions } from './overview';
+import type { AreaFilter, GroupingOptions } from './overview';
 import { useMemo, useState } from 'react';
 import { ArrowRight, Focus, Grid2X2, Layers, Search, X, Network } from 'lucide-react';
 import { modelOverview, usableGroupingModes } from './overview';
@@ -19,9 +19,6 @@ type Props = {
   /** Opens one area in the Catalog, filtered to its entities. */
   onShowArea: (area: AreaFilter) => void;
 };
-
-/** The entities of one overview area, as the Catalog lists them after "Show all". */
-export type AreaFilter = { name: string; entityIds: string[] };
 
 // A card lists this many entities; the rest are one click away in the Catalog, so no card grows
 // with the size of its area.
@@ -161,8 +158,17 @@ export function ModelOverview(props: Props) {
                     ))}
                   </div>
                   {entities.length > AREA_ENTITY_LIMIT && (
-                    <button type="button" className="area-show-all" onClick={() => props.onShowArea({ name: group.name, entityIds: group.entities.map(entity => entity.id) })}>
-                      Show all {entities.length}
+                    <button
+                      type="button"
+                      className="area-show-all"
+                      onClick={() =>
+                        props.onShowArea({
+                          name: group.name,
+                          entityIds: group.entities.map(entity => entity.id),
+                        })
+                      }
+                    >
+                      Show all {group.entities.length}
                     </button>
                   )}
                   <footer>

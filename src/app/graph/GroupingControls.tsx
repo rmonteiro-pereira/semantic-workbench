@@ -50,15 +50,18 @@ function useMenuPosition(button: React.RefObject<HTMLButtonElement | null>, open
   return position;
 }
 
-// Closes the menu on Escape or on a click anywhere outside it.
-function useDismiss(container: React.RefObject<HTMLElement | null>, opened: boolean, close: () => void) {
+// Closes the menu on Escape or on a click anywhere outside it. Escape also puts focus back on the
+// button that opened the menu, as a menu is expected to.
+function useDismiss(container: React.RefObject<HTMLElement | null>, opened: boolean, close: () => void, trigger: React.RefObject<HTMLElement | null>) {
   useEffect(() => {
     if (!opened) return;
     const onPointerDown = (event: PointerEvent) => {
       if (!container.current?.contains(event.target as Node)) close();
     };
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') close();
+      if (event.key !== 'Escape') return;
+      close();
+      trigger.current?.focus();
     };
     document.addEventListener('pointerdown', onPointerDown);
     document.addEventListener('keydown', onKeyDown);
@@ -67,6 +70,26 @@ function useDismiss(container: React.RefObject<HTMLElement | null>, opened: bool
       document.removeEventListener('keydown', onKeyDown);
     };
   }, [opened]);
+}
+
+// Focuses the checked item when the menu opens, so the arrow keys start from the current choice.
+function useFocusCheckedItem(menu: React.RefObject<HTMLElement | null>, opened: boolean) {
+  useEffect(() => {
+    if (!opened) return;
+    const checked = menu.current?.querySelector<HTMLElement>('[aria-checked="true"]');
+    const firstItem = menu.current?.querySelector<HTMLElement>('button');
+    (checked ?? firstItem)?.focus();
+  }, [opened]);
+}
+
+// ArrowDown and ArrowUp move focus between the menu's buttons and wrap around at either end.
+function moveFocusWithArrows(event: React.KeyboardEvent<HTMLElement>) {
+  if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+  event.preventDefault();
+  const items = Array.from(event.currentTarget.querySelectorAll<HTMLElement>('button'));
+  const step = event.key === 'ArrowDown' ? 1 : -1;
+  const next = (items.indexOf(document.activeElement as HTMLElement) + step + items.length) % items.length;
+  items[next].focus();
 }
 
 type ItemProps = { label: string; summary: string; checked: boolean; onChoose: () => void };
@@ -84,14 +107,16 @@ function MenuItem({ label, summary, checked, onChoose }: ItemProps) {
 }
 
 /** Selects how model entities are grouped. A file with fewer than two usable ways to group shows
- * no control at all; the Overview chip says how it is grouped. */
+ * no control at all; the Overview grouping note says how it is grouped. */
 export function GroupingControls({ overview, value, onChange, error }: Props) {
   const wrapper = useRef<HTMLDivElement>(null);
   const button = useRef<HTMLButtonElement>(null);
+  const menu = useRef<HTMLDivElement>(null);
   const [opened, setOpened] = useState(false);
   const [adjusting, setAdjusting] = useState(false);
   const position = useMenuPosition(button, opened);
-  useDismiss(wrapper, opened, () => setOpened(false));
+  useDismiss(wrapper, opened, () => setOpened(false), button);
+  useFocusCheckedItem(menu, opened);
   const usable = usableGroupingModes(overview.modes);
   if (usable.length < 2) return error ? <span role="alert">{error}</span> : null;
 
@@ -116,13 +141,22 @@ export function GroupingControls({ overview, value, onChange, error }: Props) {
 
   return (
     <div className="grouping-controls" ref={wrapper}>
-      <button ref={button} type="button" className="grouping-trigger" aria-haspopup="menu" aria-expanded={opened} onClick={() => setOpened(!opened)}>
+      <button
+        ref={button}
+        type="button"
+        className="grouping-trigger"
+        aria-haspopup="menu"
+        aria-expanded={opened}
+        aria-label={`Group by: ${GROUPING_LABELS[overview.mode]}`}
+        title={`Group by: ${GROUPING_LABELS[overview.mode]}`}
+        onClick={() => setOpened(!opened)}
+      >
         <LayoutGrid size={16} />
-        Group: {GROUPING_LABELS[overview.mode]}
+        {GROUPING_LABELS[overview.mode]}
         <ChevronDown size={14} />
       </button>
       {opened && (
-        <div className="grouping-menu" role="menu" aria-label="Group by" style={position}>
+        <div className="grouping-menu" role="menu" aria-label="Group by" style={position} ref={menu} onKeyDown={moveFocusWithArrows}>
           {MENU.filter(([mode]) => usable.includes(mode)).map(([mode, summary]) => (
             <MenuItem key={mode} label={GROUPING_LABELS[mode]} summary={summaryWithCount(mode, summary)} checked={checkedMode === mode} onChoose={() => choose(mode)} />
           ))}

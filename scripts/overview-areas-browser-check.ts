@@ -36,7 +36,7 @@ try {
   await page.getByRole('button', { name: 'flights.ontology.yaml', exact: true }).click();
   await expectModelName(page, 'Flights');
 
-  await check('Overview has no Group by control, only a chip that names the grouping', async () => {
+  await check('Overview has no Group by control, only a grouping note that names the grouping', async () => {
     await openTab('Overview');
     await expect(page.locator('.overview-grouping-note')).toContainText('Grouped by suggested communities');
     await expect(page.locator('.overview-grouping-note').getByRole('button', { name: 'Change in Graph' })).toBeVisible();
@@ -106,7 +106,7 @@ try {
     expect(new Set(heights).size, 'cards of different content keep different heights').toBeGreaterThan(1);
   });
 
-  await check('a file with nothing to choose between hides the Graph control and the chip only says how it is grouped', async () => {
+  await check('a file with nothing to choose between hides the Graph control and the grouping note only says how it is grouped', async () => {
     await page.getByRole('button', { name: 'plain.ontology.yaml', exact: true }).click();
     await expectModelName(page, 'Plain list');
     await openTab('Graph');

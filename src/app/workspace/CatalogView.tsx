@@ -3,7 +3,7 @@ import { Gauge, Pencil } from 'lucide-react';
 import React from 'react';
 import type { Entity } from '../../shared/core/model';
 import { EntityName } from '../graph/EntityName';
-import type { AreaFilter } from '../graph/ModelOverview';
+import type { AreaFilter } from '../graph/overview';
 import type { ItemTarget, RdfTarget, ValidatedModel } from './types';
 import './catalog.css';
 

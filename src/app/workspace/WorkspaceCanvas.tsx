@@ -1,7 +1,7 @@
 /** Presentation and event handling for workspace canvas. */
 import { Network } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-import type { AreaFilter } from '../graph/ModelOverview';
+import type { AreaFilter } from '../graph/overview';
 import type { KpiSummary } from '../../server/agent/explain';
 import type { Issue } from '../../shared/validation/diagnostics';
 import type { Path } from '../../shared/edit/item-model';
@@ -189,11 +189,11 @@ export function WorkspaceCanvas({
   onImportInto,
 }: Props) {
   // "Show all" on an Overview card opens the Catalog filtered to that area. The filter ends when
-  // the user leaves the Catalog, so the next visit lists everything again.
+  // the user leaves the Catalog or opens another file, because the area lists the old file's entities.
   const [catalogArea, setCatalogArea] = useState<AreaFilter | null>(null);
   useEffect(() => {
     if (tab !== 'catalog') setCatalogArea(null);
-  }, [tab]);
+  }, [tab, current?.id]);
   function showAreaInCatalog(area: AreaFilter) {
     setCatalogArea(area);
     setTab('catalog');

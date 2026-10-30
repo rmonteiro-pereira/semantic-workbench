@@ -268,9 +268,10 @@ folder. Server working copies each retain their own sparse configuration.
 
 ## Model views and graph navigation
 
-**Overview** retains business areas and a relationship matrix. Area cards pack into columns, each
-keeping its own height, and list at most eight entities; **Show all N** opens that area in
-**Catalog**, filtered to it. A line above the cards says how the model is grouped, as in Graph.
+**Overview** retains business areas and a relationship matrix. Area cards pack into columns that
+read top to bottom, each card keeping its own height, and list at most eight entities;
+**Show all N** opens that area in **Catalog**, filtered to it. The filter ends when you leave
+**Catalog** or change file. A line above the cards says how the model is grouped, as in Graph.
 **Catalog** exposes definitions;
 a long entity name wraps between its words on the card instead of being cut. **Graph** shows the
 complete interactive model; ODCS and mapping documents use their specialized canvases.

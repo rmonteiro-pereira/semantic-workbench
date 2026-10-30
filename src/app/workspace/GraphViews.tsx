@@ -8,7 +8,7 @@ import { GroupingControls } from '../graph/GroupingControls';
 import { NeighborhoodGraph } from '../graph/NeighborhoodGraph';
 import { LineageCanvas } from '../odcs/LineageCanvas';
 import type { LineageCard } from '../odcs/lineage';
-import type { modelOverview } from '../graph/overview';
+import type { AreaFilter, modelOverview } from '../graph/overview';
 
 type GroupLook = { name: string; color: string };
 
@@ -69,7 +69,7 @@ type Props = {
   setSearch: React.Dispatch<React.SetStateAction<string>>;
   showNeighborhood: (id?: string | undefined) => void;
   handleModelOverviewSelectRelationship: (id: string) => void;
-  showAreaInCatalog: (area: import('../graph/ModelOverview').AreaFilter) => void;
+  showAreaInCatalog: (area: AreaFilter) => void;
   docsRef: React.RefObject<Map<string, import('../projects/api').Doc>>;
   walk: import('../graph/walk').Walk;
   handleNeighborhoodGraphWalk: (steps: import('../graph/walk').WalkStep[]) => void;
@@ -171,8 +171,6 @@ export function GraphViews({
         fullscreen={fullscreen}
         kpiBadges={kpiBadges}
         grouping={grouping.value}
-        onGroupingChange={grouping.change}
-        groupingError={grouping.error}
         key={current?.id}
         name={model.name}
         entities={model.entities}
