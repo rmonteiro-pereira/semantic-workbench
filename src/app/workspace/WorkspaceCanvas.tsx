@@ -197,7 +197,8 @@ export function WorkspaceCanvas({
   const [catalogArea, setCatalogArea] = useState<AreaFilter | null>(null);
   useEffect(() => {
     if (tab !== 'catalog') setCatalogArea(null);
-  }, [tab, current?.id]);
+  }, [tab]);
+  useEffect(() => setCatalogArea(null), [current?.id]);
   function showAreaInCatalog(area: AreaFilter) {
     setCatalogArea(area);
     setTab('catalog');

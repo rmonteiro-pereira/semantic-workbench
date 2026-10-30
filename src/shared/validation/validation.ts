@@ -106,7 +106,8 @@ export function validateStructured(data: any, applyPinnedSchema = true, options:
   }
   // The notice goes last so the findings that block a save stay first.
   let notice: Issue | null = null;
-  if (applyPinnedSchema && isOssieDocument(data) && data.version !== OSSIE_SCHEMA_VERSION) {
+  // Mapping files keep their strict schema, which names the one version the agent runtime reads.
+  if (applyPinnedSchema && isOssieDocument(data) && !isMapping(data) && data.version !== OSSIE_SCHEMA_VERSION) {
     if (options.assumeOssieVersion) {
       data = { ...data, version: OSSIE_SCHEMA_VERSION };
     } else {
