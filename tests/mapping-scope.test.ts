@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { candidateMappings, coveringMappings, dataContractFilenames, mappingsToShow, isDefinedIn, mappingsOfProject } from '../src/app/mappings/mapping-scope';
+import { candidateMappings, coveringMappings, dataContractFilenames, mappingsToShow, isDefinedIn, loadScope, mappingsOfProject } from '../src/app/mappings/mapping-scope';
 import { limitCovering, showMoreDatasetsLabel, visibleCount } from '../src/app/mappings/list-window';
 
 const mappings = [
@@ -90,5 +90,16 @@ describe('list window', () => {
   test('names the next step of hidden datasets, or what remains when less than a step is hidden', () => {
     expect(showMoreDatasetsLabel(40)).toBe('Show 10 more datasets');
     expect(showMoreDatasetsLabel(4)).toBe('Show 4 more datasets');
+  });
+});
+
+describe('load scope', () => {
+  test('differs when the open file, the project or the revision differs, so an old load is not shown', () => {
+    const scope = loadScope('mall', 'mall.ontology', 'r1');
+    expect(loadScope('mall', 'mall.ontology', 'r1')).toBe(scope);
+    expect(loadScope('mall', 'wide.odcs', 'r1')).not.toBe(scope);
+    expect(loadScope('shop', 'mall.ontology', 'r1')).not.toBe(scope);
+    expect(loadScope('mall', 'mall.ontology', 'r2')).not.toBe(scope);
+    expect(loadScope('mall', undefined, 'r1')).not.toBe(loadScope('mall', '', 'r1x'));
   });
 });

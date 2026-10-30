@@ -51,3 +51,8 @@ export function dataContractFilenames(documents: Doc[]) {
   );
   return documents.filter(document => contractPaths.has(document.path)).map(document => document.filename);
 }
+
+/** Names what one load of the Mappings tab is for; a load made for another scope is out of date. */
+export function loadScope(project: string, openFileId: string | undefined, revisionKey: string) {
+  return JSON.stringify([project, openFileId ?? '', revisionKey]);
+}

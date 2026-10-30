@@ -4,7 +4,7 @@ import type { SelectedContext } from '../../server/agent/runtime';
 import { EmptyState } from '../projects/EmptyState';
 import { api, type AgentMapping, type Doc } from '../projects/api';
 import { MappingSection } from './MappingSection';
-import { candidateMappings, mappingsToShow, dataContractFilenames, isDefinedIn } from './mapping-scope';
+import { candidateMappings, mappingsToShow, dataContractFilenames, isDefinedIn, loadScope } from './mapping-scope';
 import './mapping-explorer.css';
 
 type MappingOption = AgentMapping;
@@ -34,31 +34,32 @@ function loadedMapping(option: MappingOption, result: PromiseSettledResult<Selec
   return { option, error: result.reason instanceof Error ? result.reason.message : String(result.reason) };
 }
 
+/** What the tab has loaded, and which project, open file and revision it was loaded for. */
+type MappingsLoad = { scope: string; catalog: MappingOption[] | null; loaded: LoadedMapping[]; error: string };
+
 /** Loads the project's mapping list, then the context of each mapping that may cover the open file. */
 function useProjectMappings(currentProject: string, currentId: string | undefined, revisionKey: string) {
-  const [catalog, setCatalog] = useState<MappingOption[] | null>(null);
-  const [loaded, setLoaded] = useState<LoadedMapping[]>([]);
-  const [error, setError] = useState('');
+  const scope = loadScope(currentProject, currentId, revisionKey);
+  const [load, setLoad] = useState<MappingsLoad>({ scope, catalog: null, loaded: [], error: '' });
   useEffect(() => {
-    setCatalog(null);
-    setLoaded([]);
-    setError('');
     if (!currentProject) return;
     const abort = new AbortController();
-    async function load() {
+    async function loadMappings() {
       const body = await api.agentCatalog(currentProject, abort.signal);
-      setCatalog(body.mappings);
+      setLoad({ scope, catalog: body.mappings, loaded: [], error: '' });
       const candidates = candidateMappings<MappingOption>(body.mappings, currentProject, currentId);
       const results = await Promise.allSettled(candidates.map(option => api.agentContext(currentProject, option.id, undefined, abort.signal)));
       if (abort.signal.aborted) return;
-      setLoaded(candidates.map((option, index) => loadedMapping(option, results[index])));
+      setLoad({ scope, catalog: body.mappings, loaded: candidates.map((option, index) => loadedMapping(option, results[index])), error: '' });
     }
-    load().catch(failure => {
-      if (failure.name !== 'AbortError') setError(failure.message);
+    loadMappings().catch(failure => {
+      if (failure.name !== 'AbortError') setLoad({ scope, catalog: null, loaded: [], error: failure.message });
     });
     return () => abort.abort();
-  }, [revisionKey, currentId, currentProject]);
-  return { catalog, loaded, error };
+  }, [scope]);
+  // What was loaded for another file is dropped in the render that changes the file, inside the click, so the
+  // sections that leave unmount as part of that click and Back finds the state they had.
+  return load.scope === scope ? load : { scope, catalog: null, loaded: [], error: '' };
 }
 
 /** Says why there is no mapping to show, in one line. */
