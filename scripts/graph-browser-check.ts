@@ -192,17 +192,26 @@ try {
   });
   await check('UBL: a dragged card stays where it was dropped when Links between neighbors changes', async () => {
     const card = page.locator('.neighborhood-canvas .react-flow__node:not(.center)').first();
+    const cardId = (await card.getAttribute('data-id'))!;
+    // The pane may refit after the toggle, so the card is compared by its flow position (the node's own
+    // translate), which does not change with pan or zoom.
+    const flowPosition = () =>
+      page.evaluate(id => {
+        const node = document.querySelector<HTMLElement>(`.neighborhood-canvas .react-flow__node[data-id="${id}"]`)!;
+        const match = /translate\((-?[\d.]+)px,\s*(-?[\d.]+)px\)/.exec(node.style.transform)!;
+        return { x: Number(match[1]), y: Number(match[2]) };
+      }, cardId);
     const start = (await card.boundingBox())!;
     await page.mouse.move(start.x + start.width / 2, start.y + 10);
     await page.mouse.down();
     await page.mouse.move(start.x + start.width / 2 + 60, start.y + 90, { steps: 8 });
     await page.mouse.up();
-    const dropped = (await card.boundingBox())!;
+    const dropped = await flowPosition();
     await viewOptions(page, async options => {
       await options.getByRole('button', { name: /^Links between neighbors/ }).click();
     });
     await page.waitForTimeout(500);
-    const after = (await card.boundingBox())!;
+    const after = await flowPosition();
     expect(Math.abs(after.x - dropped.x)).toBeLessThan(2);
     expect(Math.abs(after.y - dropped.y)).toBeLessThan(2);
     await viewOptions(page, async options => {
