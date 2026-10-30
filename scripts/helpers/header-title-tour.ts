@@ -54,7 +54,7 @@ function headerButtonProblems(): string[] {
   for (const name of ['New', 'Export']) {
     if (names.includes(name)) found.push(`${name} is a header button, not in More actions`);
   }
-  for (const name of ['Commit…', 'More actions']) {
+  for (const name of ['Commit', 'More actions']) {
     if (!names.includes(name)) found.push(`${name} is missing from the header`);
   }
   const icon = header.querySelector('button[aria-label="More actions"] svg');
@@ -63,8 +63,11 @@ function headerButtonProblems(): string[] {
   // The icon is three small dots; a thin stroke makes them read as text.
   const dotWidth = parseFloat(getComputedStyle(icon!).strokeWidth);
   if (dotWidth < 3) found.push(`the More actions dots are drawn with a ${dotWidth}px stroke`);
-  const commit = header.querySelector('button[aria-label="Commit…"]');
-  if (commit && !commit.classList.contains('primary')) found.push('Commit is not the primary button');
+  const commit = header.querySelector('button[aria-label="Commit"]');
+  // Commit is the primary button while it can run; while it cannot, it is outlined and faded.
+  const commitOff = commit?.getAttribute('aria-disabled') === 'true';
+  if (commit && !commitOff && !commit.classList.contains('primary')) found.push('Commit is not the primary button');
+  if (commit && commitOff && commit.classList.contains('primary')) found.push('an unavailable Commit is still the primary button');
   return found;
 }
 

@@ -1,23 +1,27 @@
 .person-menu {
   flex-shrink: 0;
 }
-.person-menu > button {
-  display: flex;
+/* The trigger is the avatar alone: a round button the size of the header controls. The name and
+   roles are in the tooltip and at the top of the menu. */
+.header-account .person-menu > button {
+  width: var(--header-control-height);
+  height: var(--header-control-height);
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+}
+.person-avatar {
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  max-width: 200px;
-}
-.person-label {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-/* The header shows the name from 1200 px; below that the icon is enough. The roles are in the
-   menu and the tooltip. */
-@media (max-width: 1199px) {
-  .person-label {
-    display: none;
-  }
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .person-summary {

@@ -69,7 +69,7 @@ export async function phoneRowProblems(page: Page): Promise<string[]> {
     if (title.getBoundingClientRect().width < 120) problems.push('the title has no room');
     if (title.getBoundingClientRect().height > 24) problems.push('the title wraps');
     if (!title.getAttribute('title')) problems.push('the title has no tooltip with its full text');
-    const missing = ['Save state', 'Commit…', 'More actions'].filter(name => !header.querySelector(`button[aria-label="${name}"]`));
+    const missing = ['Save state', 'Commit', 'More actions'].filter(name => !header.querySelector(`button[aria-label="${name}"]`));
     problems.push(...missing.map(name => `${name} is missing from the phone header`));
     const wide = ['New', 'Export'].filter(name => [...header.querySelectorAll('button')].some(button => button.textContent?.trim() === name));
     problems.push(...wide.map(name => `${name} still sits in the phone header`));

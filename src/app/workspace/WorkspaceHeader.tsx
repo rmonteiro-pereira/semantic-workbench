@@ -172,6 +172,7 @@ export const WorkspaceHeader = React.memo(function WorkspaceHeader({
           exportDisabled={!hasSource}
           hasFile={!!current}
           onCommitClick={handleCommitClick}
+          uncommittedFiles={uncommittedFiles}
           commitDisabled={commitDisabled}
           commitTitle={commitTitle}
         />

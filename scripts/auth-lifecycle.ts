@@ -152,7 +152,7 @@ export async function mockLifecycleChecks(browser: Browser, target: SignInTarget
   await check('expired session returns to provider', () => expiredSession(browser, target, mock));
 }
 
-/** Confirms the built local workspace opens without a person menu or sign-in. */
+/** Confirms the built local workspace opens without sign-in, and its avatar menu offers Admin but no sign-out. */
 export async function localAuthSmoke(browser: Browser) {
   const url = `http://127.0.0.1:${freeAuthPort()}`;
   const api = await startAuthApi(url, { mode: 'local' });
@@ -164,7 +164,10 @@ export async function localAuthSmoke(browser: Browser) {
         await expect(page.locator('.workspace-header')).toBeVisible();
         await expect(page.locator('.workspace-sidebar')).toContainText('LOCAL WORKSPACE');
         assert.equal((await (await page.request.get(url + '/api/me')).json()).mode, 'local');
-        await expect(page.getByRole('button', { name: 'Person menu' })).toHaveCount(0);
+        await page.getByRole('button', { name: 'Person menu' }).click();
+        await expect(page.getByRole('menuitem', { name: /^Admin/ })).toBeVisible();
+        await expect(page.getByRole('menuitem', { name: /^Sign out/ })).toHaveCount(0);
+        await page.keyboard.press('Escape');
       });
     } finally {
       await page.close();

@@ -45,10 +45,11 @@ for (const [width, height] of VIEWPORTS) {
 
   await check(`${width}px: the header has nothing cut and Commit explains why it is off`, async () => {
     expect(await clippedTextProblems(page, 'header.workspace-header')).toEqual([]);
-    const commit = page.locator('header.workspace-header').getByRole('button', { name: 'Commit…', exact: true });
+    const commit = page.locator('header.workspace-header').getByRole('button', { name: 'Commit', exact: true });
     await expect(commit).toHaveAttribute('aria-disabled', 'true');
-    const border = await commit.evaluate(button => getComputedStyle(button).borderTopStyle);
-    expect(border).toBe('dashed');
+    // The header design draws an unavailable Commit as the outlined button, faded.
+    const look = await commit.evaluate(button => ({ border: getComputedStyle(button).borderTopStyle, opacity: getComputedStyle(button).opacity }));
+    expect(look).toEqual({ border: 'solid', opacity: '0.55' });
     await commit.hover();
     await expect(page.getByRole('tooltip')).toHaveText(NOTHING_TO_COMMIT);
     await page.mouse.move(0, 0);

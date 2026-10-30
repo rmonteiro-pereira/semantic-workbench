@@ -143,7 +143,7 @@ try {
     expect(readFileSync(emptyGlobal, 'utf8')).toBe('[init]\n\tdefaultBranch = main\n');
   });
   await check('commit: the files saved before the identity existed commit now', async () => {
-    await page.getByRole('button', { name: 'Commit…' }).click();
+    await page.getByRole('button', { name: 'Commit', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: 'Commit' });
     await expect(dialog.getByRole('button', { name: 'Commit', exact: true })).toBeEnabled();
     await dialog.getByRole('button', { name: 'Commit', exact: true }).click();
