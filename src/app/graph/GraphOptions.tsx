@@ -37,7 +37,7 @@ export function OptionGroup({ title, children }: { title: string; children: Reac
 // and never changes; the check mark and the pressed style say whether it is on. A hidden copy of
 // the on state sets the button's width, so both states are as wide and the visible content stays
 // centred without a blank slot for the check.
-/** A toolbar switch that shows or hides one kind of graph content. */
+/** A toolbar switch that shows or hides one kind of graph content. The children render twice, so they must be static label content. */
 export function ShowToggle({ on, onToggle, title, children }: { on: boolean; onToggle: () => void; title?: string; children: React.ReactNode }) {
   return (
     <button className="show-toggle" aria-pressed={on} onClick={onToggle} title={title}>

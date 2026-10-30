@@ -36,6 +36,8 @@ async function nameProblems(page: Page) {
       if (name.scrollWidth > name.clientWidth + 1 || name.scrollHeight > name.clientHeight + 1) problems.push(`${text} is clipped by its own box`);
       const outside = nameBox.left < cardBox.left - 1 || nameBox.right > cardBox.right + 1 || nameBox.top < cardBox.top - 1 || nameBox.bottom > cardBox.bottom + 1;
       if (outside) problems.push(`${text} overflows its card`);
+      const nodeWidth = card.closest<HTMLElement>('.react-flow__node')!.getBoundingClientRect().width;
+      if (Math.abs(cardBox.width - nodeWidth) > 1) problems.push(`${text} card is ${cardBox.width}px inside a ${nodeWidth}px node`);
     }
     return problems;
   });

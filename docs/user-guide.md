@@ -281,11 +281,12 @@ inferred equivalence.
 
 ### Full graph
 
-The default **Network** layout shows each area as a tile sized to its entities, with whole names. Links inside an area are drawn; each tile says "links to N areas", and those links are drawn only for the entity you select. Switch to **Layered
-(ELK)**, which preserves orthogonal routes while they match current handles, with the **Layered /
-Network** control in the graph toolbar. The
-toolbar also holds **Re-layout**, the crosshair select that zooms to an area (**Zoom to group**), **Collapse areas**, **Expand all**, and
-switches for **Labels**, **Value types**, **Metrics** and **Mini-map**; a check mark shows which
+The default **Network** layout shows each area as a tile sized to its entities, with whole names.
+Links inside an area are drawn; each tile says "links to N areas", and those links are drawn only
+for the entity you select. Switch to **Layered (ELK)**, which preserves orthogonal routes while
+they match current handles, with the **Layered / Network** control in the graph toolbar. The
+toolbar also holds **Re-layout**, the crosshair select that zooms to an area (**Zoom to group**),
+**Collapse areas**, **Expand all**, and switches for **Labels**, **Value types**, **Metrics** and **Mini-map**; a check mark shows which
 are on. On a phone these controls fold behind **Controls**. The canvas supports grouped areas,
 dragging, area zoom and selection. Network detail routing uses a shared background worker;
 whole-model views use less expensive paths.

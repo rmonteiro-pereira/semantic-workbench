@@ -310,6 +310,21 @@ export function FullGraph(props: Props) {
     setError('');
     // A re-layout that lands on the same arrangement re-routes nothing, so its old metrics still hold.
     if (laidOutKey.current !== key) setRouteMetrics(null);
+    function nodeData(node: LayoutResult['nodes'][number], group: (typeof overview.groups)[number] | undefined) {
+      if (node.group) {
+        const linkedAreaCount = algorithm === 'network' ? (areaLinkCounts.get(node.group) ?? 0) : undefined;
+        return areaTileData({ name: group!.name, color: group!.color, entityCount: group!.entities.length }, node.width, linkedAreaCount);
+      }
+      const entity = entityById.get(node.id);
+      const collapsedArea = entity?.definition?.collapsedArea;
+      return {
+        name: entity?.name,
+        collapsedArea,
+        internalCount: display.internal.get(collapsedArea)?.length ?? 0,
+        color: group?.color ?? FALLBACK_GROUP_COLOR,
+        ...entityCardData(entity!, node, props.kpiBadges),
+      };
+    }
     function apply(result: LayoutResult) {
       if (cancelled) return;
       laidOutKey.current = key;
@@ -344,15 +359,7 @@ export function FullGraph(props: Props) {
                   }
                 : { zIndex: 2 }),
             },
-            data: node.group
-              ? areaTileData({ name: group!.name, color: group!.color, entityCount: group!.entities.length }, node.width, algorithm === 'network' ? (areaLinkCounts.get(node.group) ?? 0) : undefined)
-              : {
-                  name: entityById.get(node.id)?.name,
-                  collapsedArea: entityById.get(node.id)?.definition?.collapsedArea,
-                  internalCount: display.internal.get(entityById.get(node.id)?.definition?.collapsedArea)?.length ?? 0,
-                  color: group?.color ?? FALLBACK_GROUP_COLOR,
-                  ...entityCardData(entityById.get(node.id)!, node, props.kpiBadges),
-                },
+            data: nodeData(node, group),
           };
         });
       });
@@ -364,7 +371,7 @@ export function FullGraph(props: Props) {
     } else {
       let arranged: Promise<LayoutResult>;
       if (algorithm === 'network') {
-        arranged = Promise.resolve(layoutNetwork(display.entities, display.edges, props.name, layoutGrouping));
+        arranged = Promise.resolve().then(() => layoutNetwork(display.entities, display.edges, props.name, layoutGrouping));
       } else {
         elk = new ELK({
           algorithms: ['layered', 'box'],

@@ -133,7 +133,9 @@
   }
 }
 
+/* The card fills its node, whose width follows the longest name, so a long name never overflows. */
 .full-graph .full-entity {
+  width: 100%;
   padding-block: var(--entity-card-padding-block, 9px);
 }
 

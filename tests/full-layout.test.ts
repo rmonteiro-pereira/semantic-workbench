@@ -9,7 +9,7 @@ import { inspect } from '../src/shared/core/model';
 import { groupRelationships } from '../src/app/graph/graph-view';
 function engine() {
   return new ELK({
-    algorithms: ['layered', 'sporeOverlap', 'box'],
+    algorithms: ['layered', 'box'],
     workerFactory: () => new Worker(import.meta.resolve('elkjs/lib/elk-worker.min.js')),
   });
 }

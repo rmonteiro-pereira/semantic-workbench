@@ -20,10 +20,10 @@ export function shownName(name: string): string {
 /** How many lines the text takes in a box of this width at this font size. */
 export function lineCount(text: string, boxWidth: number, fontPx: number): number {
   const glyphWidth = AVERAGE_GLYPH_EM * fontPx;
-  const wordsPerLine = text.split(' ').filter(Boolean);
+  const words = text.split(' ').filter(Boolean);
   let lines = 1;
   let used = 0;
-  for (const word of wordsPerLine) {
+  for (const word of words) {
     const wordWidth = word.length * glyphWidth;
     const withSpace = used === 0 ? wordWidth : used + glyphWidth + wordWidth;
     if (withSpace <= boxWidth) {

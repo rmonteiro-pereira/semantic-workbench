@@ -518,7 +518,7 @@ if (category === 'overview') {
   assert.equal(loadedModule.modelOverview(owl.entities, owl.edges, owl.name, true).entities.length, owl.entities.length);
 }
 
-if (category === 'full-layout') {
+if (category === 'network-layout') {
   const sizes = [
     { width: 640, height: 320 },
     { width: 844, height: 396 },
