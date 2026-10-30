@@ -4,10 +4,16 @@ Source release tags identify the versions below. Image build metadata and approv
 also require a matching package version in the target release checkout; a source tag alone does
 not configure a production deployment.
 
-## Unreleased
+## v0.6.0 — 2026-10-30
 
 ### Added
 
+- The header follows its design: **Commit** shows how many files of the project differ from the
+  last commit and is drawn faded while there is nothing to commit, and an avatar with the person's
+  initials sits at the right in local and server mode. Its menu opens **Admin** for those allowed;
+  in server mode it also holds **Connected accounts** and **Sign out**.
+- Several people can be Admin at once. Removing, narrowing or deactivating the last one is refused
+  with `last-admin`; tests cover both rules through the API.
 - **New file** creates the first (or next) definition of a project from the app. An empty project
   offers it beside **Import files**, and a project's actions menu has **New file…**. Choose an Ossie
   ontology, semantic model, mapping or an ODCS contract and a name; the app saves a minimal file
@@ -173,6 +179,8 @@ not configure a production deployment.
 
 ### Documentation
 
+- Three diagrams in the README, ARCHITECTURE.md and the server-mode guide: identities and access,
+  how a request and an edit travel, and what the workbench talks to and never does.
 - Explain the architecture, full technology stack and definition-to-preview flow in the README.
 - Provide task-oriented user, server, configuration and development guides.
 - Consolidate repeated setup/behavior explanations and separate release evidence from current use.

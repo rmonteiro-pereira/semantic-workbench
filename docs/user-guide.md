@@ -37,10 +37,11 @@ The header is one row at every width. Its title is the open file's name, with th
 name in the tooltip; with no file open it reads "Open a file from Projects" and has no Commit
 button. Under the name, a muted line gives the project, the kind of file and the save state. A
 save that needs action, such as "Not saved: 2 errors", turns red and underlined; selecting it
-opens the findings. On the right are **Commit…** (an icon below 1100 px), **More actions** and
-the account menu. **More actions** holds **New** and **Export**; on a phone the **New** items open
+opens the findings. On the right are **Commit** (an icon below 1100 px), **More actions** and
+the avatar. **Commit** shows how many files of the project differ from the last commit; while
+there is nothing to commit it is faded, and hover or focus says why. **More actions** holds **New** and **Export**; on a phone the **New** items open
 in place, under a **Back** row. On a phone (up to 650 px wide) the row shows the file name, a dot
-for the save state, **Commit…** as an icon and **More actions**; a save that needs action keeps
+for the save state, **Commit** as an icon, **More actions** and the avatar; a save that needs action keeps
 its words beside the dot. Tabs that do not fit scroll sideways with edge cues; keyboard navigation
 reveals the focused tab. Model views, Source and Source Control retain separate sidebar navigation
 states.
@@ -48,9 +49,10 @@ states.
 **Settings → Admin** opens the administration page for people allowed to administer. Its **Git remotes**
 section lists every project with its remote address, or "No remote", with **Set remote…** and
 **Remove remote** for each project. With no projects it says so and offers **Back to
-workspace**, where **Add project** is. Addresses are shown without credentials. In server mode, the
-person menu contains **Connected accounts** and **Sign out**. In local mode there is no sign-in or
-person menu.
+workspace**, where **Add project** is. Addresses are shown without credentials. The avatar at the right of the header
+shows the initials of who is working and opens **Admin** for those allowed. In server mode its
+menu also contains **Connected accounts** and **Sign out**; in local mode there is no sign-in, and
+the avatar reads "L" for the local workspace.
 
 ### Back and Forward
 
