@@ -1150,6 +1150,10 @@ main {
   background: var(--color-neutral-strong);
   opacity: 0.5;
 }
+/* The name label floats above a small card, so it must not take clicks meant for the cards under it. */
+.react-flow__node-toolbar:has(.entity-tooltip) {
+  pointer-events: none;
+}
 .entity-tooltip {
   background: var(--color-surface-inverse);
   color: var(--color-text-inverse);
