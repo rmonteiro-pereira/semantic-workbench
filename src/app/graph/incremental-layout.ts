@@ -91,3 +91,47 @@ export function placeBoxes(boxes: Map<string, Box>, from: string, items: { id: s
   }
   return out;
 }
+/** The rendered size of a card. */
+export type CardSize = { width: number; height: number };
+const CARD_GAP = 24;
+const intersects = (first: { pos: Pos; size: CardSize }, second: { pos: Pos; size: CardSize }) =>
+  first.pos.x < second.pos.x + second.size.width &&
+  second.pos.x < first.pos.x + first.size.width &&
+  first.pos.y < second.pos.y + second.size.height + CARD_GAP &&
+  second.pos.y < first.pos.y + first.size.height + CARD_GAP;
+/**
+ * Moves cards apart, using their rendered heights, until none overlaps another. Cards with a lower
+ * placement rank are placed first and keep their place when they can; each other card slides away
+ * from the anchor row, so the center stays where it is and the neighbors above it move up and those
+ * below it move down.
+ */
+export function separateCards(positions: Map<string, Pos>, sizes: Map<string, CardSize>, anchorY: number, placementRank: Map<string, number>): Map<string, Pos> {
+  const sizeOf = (id: string): CardSize => {
+    const size = sizes.get(id);
+    if (!size) throw new Error(`separateCards: no size given for card "${id}"`);
+    return size;
+  };
+  const middleOf = (id: string) => (positions.get(id)?.y ?? 0) + sizeOf(id).height / 2;
+  const order = [...positions.keys()].sort((first, second) => {
+    const rankOrder = (placementRank.get(first) ?? 0) - (placementRank.get(second) ?? 0);
+    if (rankOrder) return rankOrder;
+    return Math.abs(middleOf(first) - anchorY) - Math.abs(middleOf(second) - anchorY) || first.localeCompare(second);
+  });
+  const placed: { pos: Pos; size: CardSize }[] = [];
+  const result = new Map<string, Pos>();
+  for (const id of order) {
+    const size = sizeOf(id);
+    const downward = middleOf(id) >= anchorY;
+    const pos = { ...positions.get(id)! };
+    const firstOverlap = () => placed.find(card => intersects({ pos, size }, card));
+    // Each step moves the card past the card it hit, so it ends once the card reaches free space.
+    let hit = firstOverlap();
+    while (hit) {
+      pos.y = downward ? hit.pos.y + hit.size.height + CARD_GAP : hit.pos.y - CARD_GAP - size.height;
+      hit = firstOverlap();
+    }
+    placed.push({ pos, size });
+    result.set(id, pos);
+  }
+  return result;
+}

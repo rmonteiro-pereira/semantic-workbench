@@ -224,7 +224,7 @@ try {
       budget: 150,
     });
     await graph().getByRole('button', { name: 'Show all connected' }).click();
-    await expect(graph().getByLabel('Walk', { exact: true })).toContainText('pierced Customer');
+    await expect(graph().getByLabel('Walk', { exact: true })).toContainText('All connected to Customer');
     await page.waitForTimeout(500);
     await graph().getByRole('button', { name: 'Fit', exact: true }).click();
     await page.waitForTimeout(300);
@@ -234,7 +234,7 @@ try {
     for (const cardId of want.cards) expect(ids).toContain(cardId);
     await graph().getByRole('button', { name: 'Undo expansion' }).click();
     const trail = graph().getByLabel('Walk', { exact: true });
-    await expect(trail.getByRole('button', { name: 'pierced Customer' })).not.toHaveAttribute('aria-current', 'step');
+    await expect(trail.getByRole('button', { name: 'All connected to Customer' })).not.toHaveAttribute('aria-current', 'step');
     await expect(trail.getByRole('button', { name: 'Forward' })).toBeEnabled();
   });
   await check('Flights standalone: drawn lines are the resolver bindings', async () => {

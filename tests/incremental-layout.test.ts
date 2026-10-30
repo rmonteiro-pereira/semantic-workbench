@@ -1,6 +1,6 @@
 // Tests placement of new graph nodes without moving existing nodes.
 import { test, expect } from 'bun:test';
-import { placeNew, placeLayers, placeBoxes } from '../src/app/graph/incremental-layout';
+import { placeNew, placeLayers, placeBoxes, separateCards } from '../src/app/graph/incremental-layout';
 
 const spacing = { column: 360, row: 130 };
 test('placed nodes never move; new nodes go beside their origin, left for incoming and right for outgoing', () => {
@@ -98,4 +98,42 @@ test('cards of different heights: placed beside the origin without overlapping a
   const ov = (p: any, q: any) => p.x < q.x + q.w && p.x + p.w > q.x && p.y < q.y + q.h && p.y + p.h > q.y;
   const all = [...out.values()];
   for (let i = 0; i < all.length; i++) for (let j = i + 1; j < all.length; j++) expect(ov(all[i], all[j])).toBe(false);
+});
+
+test('cards that grow taller are moved apart from the center row and the center stays put', () => {
+  const positions = new Map([
+    ['above', { x: 0, y: 0 }],
+    ['center', { x: 0, y: 100 }],
+    ['below', { x: 0, y: 200 }],
+  ]);
+  const tall = { width: 250, height: 180 };
+  const sizes = new Map([
+    ['above', tall],
+    ['center', tall],
+    ['below', tall],
+  ]);
+  const placed = separateCards(
+    positions,
+    sizes,
+    190,
+    new Map([
+      ['center', 0],
+      ['above', 1],
+      ['below', 1],
+    ]),
+  );
+  expect(placed.get('center')).toEqual({ x: 0, y: 100 });
+  expect(placed.get('above')!.y + 180 + 24).toBeLessThanOrEqual(100);
+  expect(placed.get('below')!.y).toBeGreaterThanOrEqual(100 + 180 + 24);
+});
+test('separating cards that do not overlap changes nothing, and the result does not depend on call history', () => {
+  const positions = new Map([
+    ['first', { x: 0, y: 0 }],
+    ['second', { x: 400, y: 0 }],
+  ]);
+  const sizes = new Map([
+    ['first', { width: 250, height: 96 }],
+    ['second', { width: 250, height: 96 }],
+  ]);
+  expect(separateCards(positions, sizes, 48, new Map())).toEqual(positions);
 });

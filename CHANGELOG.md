@@ -81,6 +81,12 @@ not configure a production deployment.
 
 ### Fixed
 
+- The Neighborhood walk trail records **Show all connected** once: repeating the same run focuses its
+  step and a run that opens nothing new adds none. The step reads "All connected to <name>" in the
+  Neighborhood, lineage and mapping views.
+- Neighborhood cards show their whole description and the type in words ("Entity type"), never
+  overlap, and links stay outside card bodies and spread along the card side they arrive at.
+
 - The UBL example opens without a "Basic checks only" warning: its ontology declares its Ossie
   version and gets the full schema checks. Its mapping now maps all 45 components to their datasets
   and all 277 roles to their keys or bridge tables, instead of mapping no concept. The commerce
