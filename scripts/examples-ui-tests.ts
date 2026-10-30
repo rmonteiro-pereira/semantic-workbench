@@ -260,10 +260,7 @@ try {
     await expect(page.locator('.mapping-layer-chain')).toContainText('36 datasets');
     await expectResolvedBindings(page, 119);
     await expect(page.locator('.mapping-bindings')).not.toHaveAttribute('open', '');
-    await page
-      .locator('.mapping-concepts')
-      .getByRole('button', { name: /^Plan / })
-      .click();
+    await chooseConcept(page, /^Plan /);
     await expectResolvedBindings(page, 4);
     await expect(page.locator('.mapping-bindings')).toHaveAttribute('open', '');
     await page.getByRole('button', { name: 'All concepts', exact: true }).click();

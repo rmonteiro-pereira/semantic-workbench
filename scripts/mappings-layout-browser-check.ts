@@ -7,7 +7,7 @@ import { readFileSync } from 'node:fs';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { LOCAL_READER } from '../src/server/projects/reader';
 import { fileTab, showSidebar } from './helpers/screen-tour';
-import { GROUPS_SHOWN } from '../src/app/mappings/list-window';
+import { BINDINGS_PER_GROUP, BINDINGS_STEP, GROUPS_SHOWN } from '../src/app/mappings/list-window';
 
 const VIEWPORTS: [number, number][] = [
   [1280, 720],
@@ -18,9 +18,15 @@ const VIEWPORTS: [number, number][] = [
   [390, 844],
 ];
 
-// With the default limits the tab shows 12 concepts and 3 dataset groups of 5 bindings. A group is
-// about one viewport tall, and the heading, layer chain and AI context take one more.
-const MAX_TAB_VIEWPORTS = 1 + GROUPS_SHOWN;
+// A binding card is 180 to 300px tall, so the Mall mapping with its default limits (3 groups of 5
+// bindings beside 12 concepts) measured 3.4 to 5.3 viewports tall on desktop and 7.1 on a phone.
+// One "Show more" press adds 10 bindings, which measured 9.4 viewports on a phone. The limits
+// below sit just above those values. Each list grows by tall cards, so a viewport multiple alone
+// would not notice a Show more that reveals a few extra groups; the rendered binding count is
+// checked exactly as well.
+const MAX_TAB_VIEWPORTS = 8;
+const MAX_TAB_VIEWPORTS_AFTER_SHOW_MORE = 10;
+const MAX_BINDINGS_BY_DEFAULT = GROUPS_SHOWN * BINDINGS_PER_GROUP;
 
 const read = (path: string) => readFileSync('public/examples/' + path, 'utf8');
 const files = (folder: string, names: string[]) => names.map(name => ({ path: name, source: read(`${folder}/${name}`) }));
@@ -149,9 +155,9 @@ async function bindingLayoutProblems(target: Page) {
 // Problems with the tab's height and with the "Show more" buttons: the tab scrolls as one page and
 // stays a reasonable length because every list shows a few items first, no column is a scroll box
 // of its own, and a control must stay inside its group's box.
-async function boundedLayoutProblems(target: Page, viewportHeight: number) {
+async function boundedLayoutProblems(target: Page, viewportHeight: number, afterShowMore = false) {
   return target.evaluate(
-    ({ viewport, maxViewports }) => {
+    ({ viewport, maxViewports, maxBindings }) => {
       const found: string[] = [];
       const explorer = document.querySelector<HTMLElement>('.mapping-explorer')!;
       if (explorer.scrollHeight > viewport * maxViewports) found.push(`the tab is ${explorer.scrollHeight}px tall`);
@@ -168,11 +174,17 @@ async function boundedLayoutProblems(target: Page, viewportHeight: number) {
           if (box.bottom > groupBox.bottom + 1) found.push(`a show-more control leaves its group`);
         }
       }
+      const rendered = document.querySelectorAll('.mapping-binding').length;
+      if (rendered > maxBindings) found.push(`${rendered} bindings rendered; at most ${maxBindings} expected`);
       const cards = document.querySelectorAll('.mapping-group:first-of-type .mapping-binding');
       if (cards.length > 15) found.push(`${cards.length} bindings rendered in the first group`);
       return found;
     },
-    { viewport: viewportHeight, maxViewports: MAX_TAB_VIEWPORTS },
+    {
+      viewport: viewportHeight,
+      maxViewports: afterShowMore ? MAX_TAB_VIEWPORTS_AFTER_SHOW_MORE : MAX_TAB_VIEWPORTS,
+      maxBindings: MAX_BINDINGS_BY_DEFAULT + (afterShowMore ? BINDINGS_STEP : 0),
+    },
   );
 }
 
@@ -271,7 +283,7 @@ try {
       found.push(...first.map(problem => `${width}: ${problem}`));
       const more = page.locator('.mapping-group .mapping-show-more button').first();
       await more.click();
-      const second = await boundedLayoutProblems(page, height);
+      const second = await boundedLayoutProblems(page, height, true);
       found.push(...second.map(problem => `${width} after show more: ${problem}`));
       await page.locator('.mapping-group').first().getByRole('button', { name: 'Show fewer' }).click();
     }
