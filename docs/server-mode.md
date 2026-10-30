@@ -5,6 +5,8 @@ permissions for every request. Browser capabilities explain available actions; t
 authorization boundary. Local mode remains a loopback-only, single-person workspace with an
 implicit Admin.
 
+![Identities and access: people and agent clients are recognised through sign-in or a bearer token, receive roles from grants at a scope, and every request is decided by Cedar policies, content guards and an audit record; access changes pass a dry run and a last-Admin guard.](../docs/diagrams/identities.svg)
+
 Use [the configuration reference](configuration.md) for environment variables and defaults,
 [the Azure setup guide](../deploy/README.md) for infrastructure and pipeline configuration, and
 [the acceptance runbook](../deploy/trial-runbook.md) for checks against a real deployment.
