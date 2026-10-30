@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Issue } from '../../../shared/validation/diagnostics';
 import { validateInput } from '../../../shared/validation/input';
+import { isNotValidated } from '../../../shared/validation/validation';
 import type { Doc } from '../../projects/api';
 import { isGitignore } from '../../../shared/scm/gitignore';
 
@@ -17,6 +18,9 @@ export function useValidation({ current, source, tab }: Options) {
     issues: Issue[];
     text?: string;
   } | null>(null);
+  // The user may ask to check a file with an unknown Ossie version as the shipped version. It applies to that file only.
+  const [assumedVersionDocumentId, setAssumedVersionDocumentId] = useState<string | undefined>(undefined);
+  const assumeOssieVersion = !!current && assumedVersionDocumentId === current.id;
   const editorIssuesRef = useRef(editorIssues);
   editorIssuesRef.current = editorIssues;
   useEffect(() => {
@@ -25,8 +29,8 @@ export function useValidation({ current, source, tab }: Options) {
   const checkedSource = tab === 'source' && settled.id === current?.id ? settled.text : source;
   const plainText = !!current && isGitignore(current.filename);
   const checked = useMemo(
-    () => (plainText ? { valid: true as const, model: null, issues: [] as Issue[] } : validateInput(checkedSource, current?.filename ?? 'definition.yaml')),
-    [checkedSource, current?.filename, plainText],
+    () => (plainText ? { valid: true as const, model: null, issues: [] as Issue[] } : validateInput(checkedSource, current?.filename ?? 'definition.yaml', { assumeOssieVersion })),
+    [checkedSource, current?.filename, plainText, assumeOssieVersion],
   );
   const live = tab === 'source' && checkedSource !== source && editorIssues?.id === current?.id ? editorIssues!.issues : null;
   const validation = live ? { ...checked, issues: live, valid: !live.some(i => i.severity === 'error') } : checked;
@@ -42,5 +46,7 @@ export function useValidation({ current, source, tab }: Options) {
   };
   const model = result.model;
 
-  return { model, editorIssuesRef, validation, result, setEditorIssues, plainText };
+  const validated = !plainText && !validation.issues.some(isNotValidated);
+  const validateAsShippedVersion = () => setAssumedVersionDocumentId(current?.id);
+  return { model, editorIssuesRef, validation, result, setEditorIssues, plainText, validated, assumeOssieVersion, validateAsShippedVersion };
 }

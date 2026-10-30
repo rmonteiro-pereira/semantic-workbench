@@ -69,6 +69,17 @@
   max-height: 120px;
   overflow: auto;
 }
+.code-editor-document-findings li.info {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-text-secondary);
+}
+.code-editor-document-findings.notice {
+  border-bottom-color: var(--color-border);
+  background: var(--color-surface-sunken);
+}
 .code-editor-document-findings li.error strong {
   color: var(--color-danger-text);
 }

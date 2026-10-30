@@ -80,6 +80,8 @@ type Props = {
     } | null>
   >;
   plainText: boolean;
+  assumeOssieVersion: boolean;
+  validateAsShippedVersion: () => void;
   result: { model: ValidatedModel; error: string };
   search: string;
   selectEntity: (id: string) => void;
@@ -156,6 +158,8 @@ export function WorkspaceCanvas({
   setSource,
   setEditorIssues,
   plainText,
+  assumeOssieVersion,
+  validateAsShippedVersion,
   result,
   search,
   selectEntity,
@@ -289,7 +293,17 @@ export function WorkspaceCanvas({
       );
     }
     if (tab === 'source') {
-      return <SourceView sourceEditor={sourceEditor} current={current} source={source} setSource={setSource} setEditorIssues={setEditorIssues} />;
+      return (
+        <SourceView
+          sourceEditor={sourceEditor}
+          current={current}
+          source={source}
+          setSource={setSource}
+          setEditorIssues={setEditorIssues}
+          assumeOssieVersion={assumeOssieVersion}
+          validateAsShippedVersion={validateAsShippedVersion}
+        />
+      );
     }
     if (plainText) {
       return (

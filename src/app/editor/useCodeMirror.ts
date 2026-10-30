@@ -1,6 +1,6 @@
 /** Owns the CodeMirror view and synchronizes it with React props. */
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Compartment, EditorState } from '@codemirror/state';
+import { Compartment, EditorState, StateEffect } from '@codemirror/state';
 import { EditorView, type ViewUpdate } from '@codemirror/view';
 import { linter, forceLinting } from '@codemirror/lint';
 import { baseEditorExtensions, editorKeymap } from './editorExtensions';
@@ -12,16 +12,19 @@ import { initialDocumentMode, resolveDocumentMode } from './documentMode';
 import { summarizeDiagnostics, toDiagnostics, validateInWorker, type FindingSummary } from './lint';
 import type { CodeEditorOptions } from './editorTypes';
 
+/** Asks the linter to check the same text again, for example after the validation options changed. */
+const recheck = StateEffect.define<null>();
+
 /** Creates one editor view and keeps external values, syntax and editability in sync. */
-export function useCodeMirror({ value, filename, documentId, onChange, ariaLabel, disabled = false, onIssues, validate }: CodeEditorOptions) {
+export function useCodeMirror({ value, filename, documentId, onChange, ariaLabel, disabled = false, onIssues, validate, assumeOssieVersion = false }: CodeEditorOptions) {
   const host = useRef<HTMLDivElement>(null);
   const view = useRef<EditorView | null>(null);
   const lineInput = useRef<HTMLInputElement>(null);
   const bytes = useRef(value);
   const hasCarriageReturn = useRef(value.includes('\r'));
   const [lineEnding, setLineEnding] = useState(() => lineEndingLabel(value));
-  const latestProps = useRef({ onChange, onIssues, filename, validate });
-  latestProps.current = { onChange, onIssues, filename, validate };
+  const latestProps = useRef({ onChange, onIssues, filename, validate, assumeOssieVersion });
+  latestProps.current = { onChange, onIssues, filename, validate, assumeOssieVersion };
   const language = useRef(new Compartment());
   const editable = useRef(new Compartment());
   const [documentLevel, setDocumentLevel] = useState<Issue[]>([]);
@@ -48,7 +51,9 @@ export function useCodeMirror({ value, filename, documentId, onChange, ariaLabel
   async function validateDocument(editorView: EditorView) {
     setChecking(true);
     const text = editorView.state.doc.toString();
-    const issues = await (latestProps.current.validate ? latestProps.current.validate(text) : validateInWorker(text, latestProps.current.filename));
+    const issues = await (latestProps.current.validate
+      ? latestProps.current.validate(text)
+      : validateInWorker(text, latestProps.current.filename, { assumeOssieVersion: latestProps.current.assumeOssieVersion }));
     setChecking(false);
     if (editorView.state.doc.toString() !== text) return [];
     const { diagnostics, documentLevel } = toDiagnostics(issues, editorView.state.doc);
@@ -84,7 +89,7 @@ export function useCodeMirror({ value, filename, documentId, onChange, ariaLabel
         ...baseEditorExtensions(),
         language.current.of(languageFor(syntax, largeDocument.current)),
         editable.current.of([EditorView.editable.of(!disabled), EditorState.readOnly.of(disabled)]),
-        linter(validateDocument, { delay: 300 }),
+        linter(validateDocument, { delay: 300, needsRefresh: update => update.transactions.some(transaction => transaction.effects.some(effect => effect.is(recheck))) }),
         editorKeymap(focusLineInput),
         EditorView.contentAttributes.of({
           'aria-label': ariaLabel,
@@ -144,6 +149,10 @@ export function useCodeMirror({ value, filename, documentId, onChange, ariaLabel
       effects: language.current.reconfigure(languageFor(syntax, largeDocument.current)),
     });
   }, [syntax]);
+  // The text did not change, so the linter would not run again by itself; this effect asks it to.
+  useEffect(() => {
+    view.current?.dispatch({ effects: recheck.of(null) });
+  }, [assumeOssieVersion]);
   useEffect(() => {
     view.current?.dispatch({
       effects: editable.current.reconfigure([EditorView.editable.of(!disabled), EditorState.readOnly.of(disabled)]),

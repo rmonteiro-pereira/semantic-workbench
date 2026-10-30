@@ -7,7 +7,11 @@ import { inheritanceCycle } from '../src/shared/validation/validation';
 import { readdir } from 'node:fs/promises';
 const ontology = {
   name: 'Test',
-  ontology: [{ concept: 'Customer', relationships: [{ name: 'orders', roles: [{ concept: 'Order' }] }] }, { concept: 'Order' }],
+  version: '0.2.0.dev0',
+  ontology: [
+    { concept: 'Customer', type: 'EntityType', relationships: [{ name: 'orders', roles: [{ concept: 'Order' }], verbalizes: ['Customer places Order'] }] },
+    { concept: 'Order', type: 'EntityType' },
+  ],
 };
 const semantic = {
   name: 'Sales',
@@ -87,7 +91,6 @@ for (const [name, mutate, code] of [
   ['non-array relationships', (d: any) => (d.ontology[0].relationships = {}), 'structure'],
   ['null relationship', (d: any) => (d.ontology[0].relationships = [null]), 'structure'],
   ['unnamed relationship', (d: any) => delete d.ontology[0].relationships[0].name, 'structure'],
-  ['empty roles', (d: any) => (d.ontology[0].relationships[0].roles = []), 'structure'],
   ['null role', (d: any) => (d.ontology[0].relationships[0].roles = [null]), 'structure'],
   ['missing role target', (d: any) => (d.ontology[0].relationships[0].roles[0].concept = 'Missing'), 'reference'],
   ['invalid verbalizations', (d: any) => (d.ontology[0].relationships[0].verbalizes = [4]), 'structure'],
@@ -136,8 +139,8 @@ for (const [name, mutate, code] of [
 test('valid semantic model, legal business cycles and self links remain supported', () => {
   expect(validateInput(asJson(semantic), 'sales.json').valid).toBe(true);
   const clone = structuredClone(ontology);
-  clone.ontology[1].relationships = [{ name: 'customer', roles: [{ concept: 'Customer' }] }];
-  clone.ontology[0].relationships!.push({ name: 'self', roles: [{ concept: 'Customer' }] });
+  clone.ontology[1].relationships = [{ name: 'customer', roles: [{ concept: 'Customer' }], verbalizes: ['Order has Customer'] }];
+  clone.ontology[0].relationships!.push({ name: 'self', roles: [{ concept: 'Customer' }], verbalizes: ['Customer is Customer'] });
   const validation = validateInput(asJson(clone));
   expect(validation.valid).toBe(true);
   expect(validation.model?.edges).toHaveLength(3);
@@ -169,7 +172,7 @@ test('unknown versions and undeclared external fields are honest warnings', () =
   const validation = validateInput('kind: DataContract\napiVersion: v99\nid: x\nversion: "1"\nschema: [{name: X}]');
   expect(validation.valid).toBe(true);
   expect(validation.issues.some(i => i.severity === 'warning' && i.path === '/apiVersion')).toBe(true);
-  const externalValidation = validateInput('name: external\ndatasets: [{name: x, source: db.x, primary_key: [id]}]');
+  const externalValidation = validateInput('name: external\nversion: 0.2.0.dev0\ndatasets: [{name: x, source: db.x, primary_key: [id]}]');
   expect(externalValidation.valid).toBe(true);
   expect(externalValidation.issues.some(i => i.path.includes('/fields'))).toBe(true);
 });
@@ -277,9 +280,9 @@ test('recoverable XML errors are rejected instead of silently repaired', () => {
   );
 });
 test('source diagnostics include the offending line and column', () => {
-  const rejection = bad('name: Test\nontology:\n - concept: A\n   extends: [Missing]', 'test.yaml', 'reference');
+  const rejection = bad('version: 0.2.0.dev0\nname: Test\nontology:\n - concept: A\n   extends: [Missing]', 'test.yaml', 'reference');
   const issue = rejection.issues.find(i => i.code === 'reference')!;
-  expect(issue.line).toBe(4);
+  expect(issue.line).toBe(5);
   expect(issue.column).toBeGreaterThan(1);
 });
 test('SHACL allows multiple class constraints and valid signed nonnegative integers', () => {

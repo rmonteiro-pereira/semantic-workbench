@@ -6,6 +6,8 @@ import { odcsReferenceIssues } from '../odcs/foreign-keys';
 import { contract, semantic } from '../../generated/validators.js';
 import { type Issue, rejectIssues, InputError, schemaErrorPath } from './diagnostics';
 import { metricLayerIssues, readKpiBindings } from '../metrics/extension';
+/** The one Ossie schema version this app ships validators for. */
+export const OSSIE_SCHEMA_VERSION = '0.2.0.dev0';
 const object = (v: any) => v !== null && typeof v === 'object' && !Array.isArray(v);
 const text = (v: any) => typeof v === 'string' && !!v.trim();
 
@@ -23,8 +25,30 @@ export function inheritanceCycle(nodes: string[], parents: Map<string, string[]>
       }
   return nodes.filter(n => degree.get(n)! > 0);
 }
+/** The code of the notice that says a file's declared version has no schema in this app. */
+export const NOT_VALIDATED = 'not-validated';
+/** Tells whether a finding is the notice that a file was not checked against a schema. */
+export function isNotValidated(issue: Issue): boolean {
+  return issue.code === NOT_VALIDATED;
+}
+/** Says that an Ossie file names a schema version the app cannot check, so its schema was not applied. */
+function notValidatedIssue(version: unknown): Issue {
+  const declared = version === undefined ? 'the file declares no version' : `the file says ${String(version)}`;
+  const detail = `this app checks Ossie ${OSSIE_SCHEMA_VERSION}, ${declared}.`;
+  return { severity: 'info', code: NOT_VALIDATED, path: '/version', message: `Not validated — ${detail}`, detail };
+}
+/** Tells whether parsed data is an Ossie ontology, semantic model or mapping rather than a data contract. */
+function isOssieDocument(data: any) {
+  const isContract = data.kind === 'DataContract' || data.apiVersion !== undefined || data.schema !== undefined;
+  return !isContract && (data.ontology !== undefined || data.datasets !== undefined || data.semantic_model !== undefined || isMapping(data));
+}
+/** Options that change how a document is checked. */
+export type ValidationOptions = {
+  /** Check a file with an unknown Ossie version as if it declared the shipped version. */
+  assumeOssieVersion?: boolean;
+};
 /** Checks structured definitions against schemas and semantic rules. */
-export function validateStructured(data: any, applyPinnedSchema = true): Issue[] {
+export function validateStructured(data: any, applyPinnedSchema = true, options: ValidationOptions = {}): Issue[] {
   const issues: Issue[] = [];
   const fail = (path: string, message: string, code = 'structure') => issues.push({ severity: 'error', code, path, message });
   const warn = (path: string, message: string, code = 'coverage') => issues.push({ severity: 'warning', code, path, message });
@@ -80,6 +104,18 @@ export function validateStructured(data: any, applyPinnedSchema = true): Issue[]
     fail('/', 'Cyclic aliases or non-JSON scalar values are unsupported.', 'serialization');
     rejectIssues(issues);
   }
+  // The notice goes last so the findings that block a save stay first.
+  let notice: Issue | null = null;
+  if (applyPinnedSchema && isOssieDocument(data) && data.version !== OSSIE_SCHEMA_VERSION) {
+    if (options.assumeOssieVersion) {
+      data = { ...data, version: OSSIE_SCHEMA_VERSION };
+    } else {
+      // Structure, references and cycles do not depend on the version, so they still run and broken
+      // files are still refused. Only the pinned schema is skipped, and the notice says so.
+      notice = notValidatedIssue(data.version);
+      applyPinnedSchema = false;
+    }
+  }
   const families = [
     data.kind === 'DataContract' || data.apiVersion !== undefined || data.schema !== undefined,
     data.ontology !== undefined,
@@ -94,6 +130,7 @@ export function validateStructured(data: any, applyPinnedSchema = true): Issue[]
         : 'Provide exactly one ODCS contract, Ossie ontology, mapping document, or Ossie semantic model.',
       'format',
     );
+    if (notice) issues.push(notice);
     rejectIssues(issues);
     return issues;
   }
@@ -141,14 +178,10 @@ export function validateStructured(data: any, applyPinnedSchema = true): Issue[]
       }
       return iri.iri;
     };
-    const legacyUri = (x: any, pointer: string) => {
-      if (x.uri !== undefined && data.version !== '0.2.0.dev0') warn(pointer + '/uri', '"uri" is not an Ossie ontology field and is ignored. Global identifiers use "iri".');
-    };
     xs.forEach((x, i) => {
       if (!object(x)) return;
       const path = `/ontology/${i}`;
       if (x.type !== undefined) str(x.type, path + '/type');
-      legacyUri(x, path);
       if (x.iri !== undefined) {
         const iri = identifier(x.iri, path + '/iri');
         if (iri) {
@@ -167,9 +200,8 @@ export function validateStructured(data: any, applyPinnedSchema = true): Issue[]
       rs.forEach((relationship, j) => {
         if (!object(relationship)) return;
         const relationshipPath = `${path}/relationships/${j}`;
-        legacyUri(relationship, relationshipPath);
         if (relationship.iri !== undefined) identifier(relationship.iri, relationshipPath + '/iri');
-        arr(relationship.roles, relationshipPath + '/roles', data.version !== '0.2.0.dev0').forEach((role, index) => {
+        arr(relationship.roles, relationshipPath + '/roles').forEach((role, index) => {
           if (obj(role, `${relationshipPath}/roles/${index}`) && str(role.concept, `${relationshipPath}/roles/${index}/concept`) && !names.has(role.concept) && !OSSIE_BUILTINS.has(role.concept))
             fail(`${relationshipPath}/roles/${index}/concept`, `Unknown concept "${role.concept}". Define it before importing.`, 'reference');
         });
@@ -178,8 +210,7 @@ export function validateStructured(data: any, applyPinnedSchema = true): Issue[]
     });
     const cycle = inheritanceCycle([...names], parents);
     if (cycle.length) fail('/ontology', `Cyclic inheritance detected near: ${cycle.slice(0, 8).join(', ')}. Remove an extends link to break the cycle.`, 'inheritance-cycle');
-    if (data.version === '0.2.0.dev0') issues.push(...mappingSchemaIssues(data, 'ontology'));
-    else warn('/ontology', 'Basic checks only. Use ontology version 0.2.0.dev0 for full schema checks.');
+    if (applyPinnedSchema) issues.push(...mappingSchemaIssues(data, 'ontology'));
     arr(data.ontology_mappings, '/ontology_mappings').forEach((embeddedMapping, i) => {
       const prefix = `/ontology_mappings/${i}`;
       const schemaIssues = mappingSchemaIssues(embeddedMapping, 'embedded', prefix);
@@ -273,7 +304,6 @@ export function validateStructured(data: any, applyPinnedSchema = true): Issue[]
       // Metrics-layer extensions and metric bindings on this model.
       issues.push(...metricLayerIssues(model, modelPath, fieldNames), ...readKpiBindings(model, modelPath, false).issues);
     });
-    if (data.version !== '0.2.0.dev0') warn('/version', `No pinned Ossie schema for ${String(data.version ?? 'unspecified version')}; only structural checks apply.`);
   }
   let validator: typeof contract | typeof semantic | null;
   if (!applyPinnedSchema) {
@@ -293,6 +323,7 @@ export function validateStructured(data: any, applyPinnedSchema = true): Issue[]
         path: schemaErrorPath(error) || '/',
         message: error.message ?? 'Schema violation.',
       });
+  if (notice) issues.push(notice);
   rejectIssues(issues);
   return issues;
 }

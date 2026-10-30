@@ -21,7 +21,7 @@ test('blank lines, columns past the end and lines past the document are clamped 
   expect(issueRange({ severity: 'error', code: 'x', path: '/', message: '' }, text)).toBe(null);
 });
 test('real findings: located ones become diagnostics, unlocated ones stay document-level', () => {
-  const source = 'name: Shop\nontology:\n  - concept: Customer\n    type: EntityType\n    extends: [Missing]\n';
+  const source = 'version: 0.2.0.dev0\nname: Shop\nontology:\n  - concept: Customer\n    type: EntityType\n    extends: [Missing]\n';
   const { issues } = validateInput(source, 'shop.yaml');
   expect(issues.length).toBeGreaterThan(0);
   const { diagnostics, documentLevel } = toDiagnostics([...issues, { severity: 'warning', code: 'doc', path: '/', message: 'whole file' }], doc(source));

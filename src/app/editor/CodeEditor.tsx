@@ -2,6 +2,7 @@
 import { forwardRef, useImperativeHandle } from 'react';
 import { openSearchPanel } from '@codemirror/search';
 import type { Issue } from '../../shared/validation/diagnostics';
+import { OSSIE_SCHEMA_VERSION, isNotValidated } from '../../shared/validation/validation';
 import type { CodeEditorOptions } from './editorTypes';
 import { EditorStatusBar } from './EditorStatusBar';
 import { goToEditorLine } from './editorNavigation';
@@ -54,10 +55,23 @@ export const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorOptions>(functi
         goToLine={goToLine}
       />
       {documentLevel.length > 0 && (
-        <ul className="code-editor-document-findings" aria-label="Document-level findings">
+        <ul className={`code-editor-document-findings${documentLevel.every(issue => issue.severity === 'info') ? ' notice' : ''}`} aria-label="Document-level findings">
           {documentLevel.map((issue, index) => (
             <li key={index} className={issue.severity}>
-              <strong>{issue.severity === 'error' ? 'Error' : 'Warning'}</strong> {issue.message}
+              {isNotValidated(issue) ? (
+                <>
+                  {issue.message}
+                  {options.onValidateAsShippedVersion && (
+                    <button type="button" onClick={options.onValidateAsShippedVersion}>
+                      Validate as Ossie {OSSIE_SCHEMA_VERSION}
+                    </button>
+                  )}
+                </>
+              ) : (
+                <>
+                  <strong>{issue.severity === 'error' ? 'Error' : 'Warning'}</strong> {issue.message}
+                </>
+              )}
             </li>
           ))}
         </ul>

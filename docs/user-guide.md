@@ -1,9 +1,9 @@
 # Using Semantic Workbench
 
 Semantic Workbench edits definitions as files and explains how metrics are calculated. It never
-connects to a warehouse, executes an analytical query or calculates live metric values. It does
-not apply SHACL shapes to an instance graph or perform OWL reasoning. SQL shown in the application
-is a preview.
+connects to a warehouse, executes an analytical query or calculates live metric values, and it does
+not perform OWL reasoning. It does run SHACL shapes and their SPARQL constraints over one file of
+the same project, in the browser, with no network. SQL shown in the application is a preview.
 
 For installation, see [the README](../README.md#quick-start). Shared-server sign-in and permissions
 are covered in [the server guide](server-mode.md).
@@ -428,13 +428,21 @@ unsupported YAML tags and unsafe alias expansion, duplicate identifiers, danglin
 inheritance cycles, declared keys/joins and supported schema checks. Ordinary relationship cycles,
 self-links and disconnected components remain legal.
 
-ODCS 3.1.0 and versioned Ossie 0.2.0.dev0 definitions use pinned companion schemas. Other versions
-and legacy/unversioned layouts report their more limited structural coverage. RDF/XML is checked
+ODCS 3.1.0 and Ossie 0.2.0.dev0 definitions use pinned companion schemas. An Ossie file that names
+another version, or none, still gets its syntax, structure, reference and cycle checks, but its
+schema is not applied: Validation details and the editor say "Not validated" once, and **Validate
+as Ossie 0.2.0.dev0** checks it against the shipped schema for that file. RDF/XML is checked
 for XML errors and rejects DTD/entity declarations. RDF imports never fetch remote ontologies or
 `owl:imports`.
 
 OWL restriction and SHACL definition checks are selected structural checks, not full logical or
-standards conformance. JSON-LD, TriG, N-Quads, OWL/XML, Functional Syntax and Manchester syntax are
+standards conformance.
+
+To run SHACL shapes against data, open a shapes file, choose **Validation details**, pick a data
+file from the project under **Check these shapes against data** and select **Run shapes**.
+SPARQL-based constraints run too. Each finding shows the focus node, the shape and the rule.
+Results describe the text as it is now and clear when either file changes. Data and shapes must be
+Turtle, N-Triples or N3; convert RDF/XML first. JSON-LD, TriG, N-Quads, OWL/XML, Functional Syntax and Manchester syntax are
 not supported inputs. See [schema provenance](../schemas/README.md).
 
 ### SQL expressions

@@ -139,6 +139,7 @@ suites use `SW_BASE_URL`. The full runner supplies fresh frontend processes as n
 | `test:editor` | Serialization colors, located findings, byte preservation and typing |
 | `test:item-edit` | Forms, new items, rename/delete and metric wizard |
 | `test:rdf-edit` | Resource-local RDF edits, graph difference and refusal behavior |
+| `test:validation` | Bundled files report nothing, shapes run against a data file, an unknown Ossie version is not validated |
 | `test:scm` | Stage/commit, branches, conflicts, local remotes and history |
 | `test:odcs` | Contract/table sections and byte-preserving property edits |
 | `test:lineage` | Expected dependency edges, row handles, paths, hops and resizing |
@@ -306,6 +307,15 @@ bun scripts/ubl-example.ts
 UBL extraction uses Python's standard library and fetches published upstream schemas; regeneration
 is an intentional network action, not normal application startup. Preserve upstream licenses,
 provenance and hashes. Do not hand-edit a generated file without updating its owning generator.
+
+## Dependencies worth knowing
+
+`shacl-engine` runs SHACL shapes, SPARQL constraints included. It is the maintained JavaScript SHACL
+engine that supports SPARQL constraints, and it runs in the browser with no network. It loads only
+when a user runs a shapes check, inside a worker (`src/app/validation/shacl.worker.ts`) that the app
+stops after 30 seconds. In `bun run build` its own chunk is about 54 kB, its SPARQL runtime chunk
+about 1.2 MB and the worker wrapper about 284 kB; none of them is part of the main bundle.
+A test in `tests/validation-honesty.test.ts` checks that a `SERVICE` clause makes no network request.
 
 ## Contribution rules
 

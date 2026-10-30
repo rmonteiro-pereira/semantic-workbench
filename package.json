@@ -35,6 +35,7 @@
     "test:editor": "bun scripts/editor-browser-check.ts",
     "test:item-edit": "bun scripts/item-edit-browser-check.ts",
     "test:rdf-edit": "bun scripts/rdf-edit-browser-check.ts",
+    "test:validation": "bun scripts/validation-browser-check.ts",
     "test:scm": "bun scripts/scm-browser-check.ts",
     "test:odcs": "bun scripts/odcs-browser-check.ts",
     "test:lineage": "bun scripts/lineage-browser-check.ts",
@@ -111,6 +112,7 @@
     "rdflib": "^2.4.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "shacl-engine": "1.1.3",
     "yaml": "^2.8.0"
   },
   "devDependencies": {

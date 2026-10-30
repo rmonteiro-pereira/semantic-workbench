@@ -149,7 +149,13 @@ check that happens to succeed.
 ### Parsing, editing, metrics and agent planning
 
 - `src/shared/core/model.ts` projects supported definitions into entities and relationships.
-  `src/shared/validation/` owns input checks, diagnostics and RDF parsing; `src/shared/odcs/foreign-keys.ts`
+  `src/shared/validation/` owns input checks, diagnostics and RDF parsing; it validates Ossie files
+  against the one shipped schema version (`OSSIE_SCHEMA_VERSION`). A file with another or no version
+  still gets the syntax, family, reference and cycle checks, so the write gate keeps refusing broken
+  files; only the pinned-schema step is skipped, and an info notice (`NOT_VALIDATED`) says so.
+  `shacl.ts` runs a shapes file, SPARQL constraints included, against a data file with
+  the `shacl-engine` library, loaded on demand; `src/app/validation/ShaclCheck.tsx` lets the user
+  pick the data file and runs it in a worker (`shacl-run.ts`) that is stopped after 30 s. `src/shared/odcs/foreign-keys.ts`
   resolves contract relationships. These modules are reused by browser and server logic.
 - `src/shared/mappings/` owns mapping schemas and built-ins; `src/app/mappings/` the mapping
   explorer. `src/shared/core/` holds the model and document references; `src/app/core/export.ts`

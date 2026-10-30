@@ -12,6 +12,7 @@ self.onmessage = async (
     filename: string;
     sql?: string;
     dialect?: string | null;
+    assumeOssieVersion?: boolean;
   }>,
 ) => {
   const { id, source, filename, sql } = event.data;
@@ -25,7 +26,7 @@ self.onmessage = async (
   }
   let issues;
   try {
-    issues = isGitignore(filename) ? [] : validateInput(source, filename).issues;
+    issues = isGitignore(filename) ? [] : validateInput(source, filename, { assumeOssieVersion: event.data.assumeOssieVersion }).issues;
   } catch (error) {
     issues = [{ severity: 'error', code: 'parse', path: '/', message: (error as Error).message }];
   }

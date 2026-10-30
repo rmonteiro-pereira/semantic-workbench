@@ -9,7 +9,7 @@ import { parseDocument } from 'yaml';
 import { valuePatches } from '../edit/yaml-patch';
 import { applyPatches } from '../editor/patch';
 import { inspectRdf, rdfSyntax } from '../validation/rdf';
-import { validateStructured } from '../validation/validation';
+import { isNotValidated, validateStructured, type ValidationOptions } from '../validation/validation';
 import { InputError, validateEnvelope, type Issue } from '../validation/diagnostics';
 /** Describes a model item displayed in the catalog and graph. */
 export type Entity = {
@@ -33,7 +33,7 @@ export type Relationship = {
   data: { path: (string | number)[]; definition: any; kind: string; readOnlyForm?: boolean };
 };
 /** Parses a document into model entities, relationships and validation findings. */
-export function inspect(source: string, filename = 'definition.yaml') {
+export function inspect(source: string, filename = 'definition.yaml', options: ValidationOptions = {}) {
   validateEnvelope(source, filename);
   if (/\.(trig|nq|jsonld|ofn|omn)$/i.test(filename))
     throw new InputError([
@@ -90,8 +90,10 @@ export function inspect(source: string, filename = 'definition.yaml') {
         message: 'Expected a YAML or JSON object.',
       },
     ]);
+  // A "not validated" notice is about the whole file, so it carries no line and the editor lists it above the text.
   const locate = (items: Issue[]) =>
     items.map(issue => {
+      if (isNotValidated(issue)) return issue;
       const path = issue.path
         .split('/')
         .slice(1)
@@ -113,7 +115,7 @@ export function inspect(source: string, filename = 'definition.yaml') {
     });
   let issues: Issue[];
   try {
-    issues = locate(validateStructured(data));
+    issues = locate(validateStructured(data, true, options));
   } catch (error) {
     if (error instanceof InputError) throw new InputError(locate(error.issues));
     throw error;

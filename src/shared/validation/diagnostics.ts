@@ -9,6 +9,8 @@ export type Issue = {
   line?: number;
   column?: number;
   innerPath?: string;
+  /** The part of a notice's message after its heading, for screens that show the heading themselves. */
+  detail?: string;
 };
 /** The document path a schema error points at, including a missing or unexpected property. */
 export function schemaErrorPath(error: ErrorObject): string {

@@ -20,6 +20,7 @@ type Props = {
   dirty: boolean;
   setShowValidation: React.Dispatch<React.SetStateAction<boolean>>;
   issueCount: number;
+  validated: boolean;
   kind?: string;
   entityCount: number;
   relationshipCount: number;
@@ -27,10 +28,26 @@ type Props = {
   tab: string;
 };
 /** Renders status footer. */
-export const StatusFooter = React.memo(function StatusFooter({ error, hasSource, hasDocument, dirty, setShowValidation, issueCount, kind, entityCount, relationshipCount, message, tab }: Props) {
+export const StatusFooter = React.memo(function StatusFooter({
+  error,
+  hasSource,
+  hasDocument,
+  dirty,
+  setShowValidation,
+  issueCount,
+  validated,
+  kind,
+  entityCount,
+  relationshipCount,
+  message,
+  tab,
+}: Props) {
   function getValidationStatus() {
     if (error) {
       return 'Validation failed';
+    }
+    if (hasSource && !validated) {
+      return 'Not validated';
     }
     if (hasSource) {
       return 'Structure checked';
