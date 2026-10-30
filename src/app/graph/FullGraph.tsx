@@ -37,7 +37,11 @@ import { modelOverview } from './overview';
 import { groupRelationships } from './graph-view';
 import { collapseAreas } from './collapse';
 import { FALLBACK_GROUP_COLOR } from '../theme/theme-palette';
-import { layoutFullGraph, packNetwork } from './full-layout';
+import { layoutFullGraph } from './full-layout';
+import { layoutNetwork } from './network-layout';
+import { crossesAreas, linkedAreaCounts } from './area-links';
+import { areaTileData, entityCardData } from './full-node-data';
+import { shownName } from './text-fit';
 import type { Entity, Relationship } from '../../shared/core/model';
 import { timeOperation } from '../observability/page-reporting';
 function relationshipOpacity(emphasized: boolean, hasFocus: boolean, zoom: number) {
@@ -68,11 +72,7 @@ const EntityNode = memo(({ data }: NodeProps) => (
         Metric
       </small>
     )}
-    <strong>
-      {String(data.name)
-        .replace(/([a-z])([A-Z])/g, '$1 $2')
-        .replaceAll('_', ' ')}
-    </strong>
+    <strong style={{ '--entity-name-cap': data.nameCap } as React.CSSProperties}>{shownName(String(data.name))}</strong>
     {!!data.collapsedArea && (
       <small>
         {String(data.internalCount ?? 0)} internal relationship
@@ -88,10 +88,11 @@ const EntityNode = memo(({ data }: NodeProps) => (
   </div>
 ));
 const AreaNode = memo(({ data }: NodeProps) => (
-  <div className="full-area-title" title={String(data.name)}>
+  <div className="full-area-title" title={String(data.name)} style={{ '--area-title-cap': data.titleCap } as React.CSSProperties}>
     <span style={{ background: String(data.color) }} />
     <strong>{String(data.name)}</strong>
     <small>{String(data.count)} entities</small>
+    {Boolean(data.linksText) && <em className="area-links">{String(data.linksText)}</em>}
   </div>
 ));
 const GraphEdge = memo((props: EdgeProps) => {
@@ -174,6 +175,7 @@ export function FullGraph(props: Props) {
   const followZoom = (zoom: number) => setZoomStep(Math.floor(zoom * 20) / 20);
   const [size, setSize] = useState({ width: 1200, height: 650 });
   const flow = useRef<ReactFlowInstance<any, any> | null>(null);
+  const laidOutKey = useRef('');
   const [nodes, setNodes, onNodesChange] = useNodesState<any>([]);
   const [algorithm, setAlgorithm] = useRecordedState<'network' | 'layered'>('graph.algorithm', 'network');
   const [layoutRoutes, setLayoutRoutes] = useState<LayoutResult['routes']>({});
@@ -237,6 +239,8 @@ export function FullGraph(props: Props) {
   const connections = useMemo(() => groupRelationships(display.edges), [display]);
   const entityById = useMemo(() => new Map(display.entities.map(e => [e.id, e])), [display]);
   const groupById = useMemo(() => new Map(overview.groups.map(g => [g.id, g])), [overview]);
+  const areaOf = useCallback((entityId: string) => entityById.get(entityId)?.definition?.collapsedArea ?? overview.groupOf.get(entityId), [entityById, overview]);
+  const areaLinkCounts = useMemo(() => linkedAreaCounts(connections, areaOf), [connections, areaOf]);
   useEffect(() => {
     const el = container.current;
     if (!el) return;
@@ -300,14 +304,30 @@ export function FullGraph(props: Props) {
   const fit = useCallback(() => fitWithin(250), [fitWithin]);
   useEffect(() => {
     let cancelled = false;
-    let worker: Worker | undefined;
     let elk: { layout: (elkGraph: any) => Promise<any>; terminateWorker: () => void } | undefined;
     const key = JSON.stringify([algorithm, layoutGrouping, props.name, display.entities.map(e => [e.id, e.name, e.kind]), display.edges.map(e => [e.source, e.target])]);
     setBusy(true);
     setError('');
-    setRouteMetrics(null);
+    // A re-layout that lands on the same arrangement re-routes nothing, so its old metrics still hold.
+    if (laidOutKey.current !== key) setRouteMetrics(null);
+    function nodeData(node: LayoutResult['nodes'][number], group: (typeof overview.groups)[number] | undefined) {
+      if (node.group) {
+        const linkedAreaCount = algorithm === 'network' ? (areaLinkCounts.get(node.group) ?? 0) : undefined;
+        return areaTileData({ name: group!.name, color: group!.color, entityCount: group!.entities.length }, node.width, linkedAreaCount);
+      }
+      const entity = entityById.get(node.id);
+      const collapsedArea = entity?.definition?.collapsedArea;
+      return {
+        name: entity?.name,
+        collapsedArea,
+        internalCount: display.internal.get(collapsedArea)?.length ?? 0,
+        color: group?.color ?? FALLBACK_GROUP_COLOR,
+        ...entityCardData(entity!, node, props.kpiBadges),
+      };
+    }
     function apply(result: LayoutResult) {
       if (cancelled) return;
+      laidOutKey.current = key;
       setLayoutRoutes(result.routes ?? {});
       cache.set(key, result);
       if (cache.size > 6) cache.delete(cache.keys().next().value!);
@@ -339,14 +359,7 @@ export function FullGraph(props: Props) {
                   }
                 : { zIndex: 2 }),
             },
-            data: node.group
-              ? { name: group!.name, color: group!.color, count: group!.entities.length }
-              : {
-                  name: entityById.get(node.id)?.name,
-                  collapsedArea: entityById.get(node.id)?.definition?.collapsedArea,
-                  internalCount: display.internal.get(entityById.get(node.id)?.definition?.collapsedArea)?.length ?? 0,
-                  color: group?.color ?? FALLBACK_GROUP_COLOR,
-                },
+            data: nodeData(node, group),
           };
         });
       });
@@ -355,51 +368,18 @@ export function FullGraph(props: Props) {
     }
     if (cache.has(key) && !version) {
       apply(cache.get(key)!);
-    } else if (algorithm === 'network') {
-      worker = new Worker(new URL('./network-layout.worker.ts', import.meta.url), {
-        type: 'module',
-      });
-      worker.onmessage = ({ data }) => {
-        if (data.error) {
-          if (!cancelled) {
-            setError(data.error);
-            setBusy(false);
-          }
-        } else {
-          elk = new ELK({
-            algorithms: ['layered', 'sporeOverlap', 'box'],
-            workerFactory: () => new Worker(elkWorkerUrl),
-          });
-          packNetwork(data.result, elk)
-            .then(apply)
-            .catch(failure => {
-              if (!cancelled) {
-                setError(failure.message);
-                setBusy(false);
-              }
-            })
-            .finally(() => elk?.terminateWorker());
-        }
-        worker?.terminate();
-      };
-      worker.onerror = () => {
-        if (!cancelled) {
-          setError('Network layout failed');
-          setBusy(false);
-        }
-      };
-      worker.postMessage({
-        entities: display.entities,
-        edges: display.edges,
-        name: props.name,
-        grouping: layoutGrouping,
-      });
     } else {
-      elk = new ELK({
-        algorithms: ['layered', 'sporeOverlap', 'box'],
-        workerFactory: () => new Worker(elkWorkerUrl),
-      });
-      timeOperation('graph-layout', layoutFullGraph(display.entities, display.edges, { name: props.name, elk, grouping: layoutGrouping }))
+      let arranged: Promise<LayoutResult>;
+      if (algorithm === 'network') {
+        arranged = Promise.resolve().then(() => layoutNetwork(display.entities, display.edges, props.name, layoutGrouping));
+      } else {
+        elk = new ELK({
+          algorithms: ['layered', 'box'],
+          workerFactory: () => new Worker(elkWorkerUrl),
+        });
+        arranged = layoutFullGraph(display.entities, display.edges, { name: props.name, elk, grouping: layoutGrouping });
+      }
+      timeOperation('graph-layout', arranged)
         .then(apply)
         .catch(failure => {
           if (!cancelled) {
@@ -411,7 +391,6 @@ export function FullGraph(props: Props) {
     }
     return () => {
       cancelled = true;
-      worker?.terminate();
       elk?.terminateWorker();
     };
   }, [overview, display, algorithm, version, layoutGrouping]);
@@ -500,9 +479,21 @@ export function FullGraph(props: Props) {
     );
   }, [nodes]);
   const dragging = nodes.some(n => n.dragging);
+  // Links between areas are summarised on the tiles; one is drawn only for the entity in focus, the
+  // chosen link, or a collapsed area card, so the canvas never turns into a tangle.
+  const drawnConnections = useMemo(() => {
+    if (algorithm !== 'network') return connections;
+    const isCollapsedCard = (entityId: string) => Boolean(entityById.get(entityId)?.definition?.collapsedArea);
+    return connections.filter(connection => {
+      if (!crossesAreas(connection, areaOf)) return true;
+      if (isCollapsedCard(connection.source) || isCollapsedCard(connection.target)) return true;
+      if (connection.source === focus || connection.target === focus) return true;
+      return connection.data.relationships.some(relationship => relationship.id === props.selectedEdge);
+    });
+  }, [connections, algorithm, areaOf, entityById, focus, props.selectedEdge]);
   const edges = useMemo(
     () =>
-      connections.map(connection => {
+      drawnConnections.map(connection => {
         const fromPosition = positions.get(connection.source);
         const toPosition = positions.get(connection.target);
         let source = 'e';
@@ -573,7 +564,7 @@ export function FullGraph(props: Props) {
           },
         };
       }),
-    [connections, positions, props.selectedEdge, focus, labels, hoverEdge, algorithm, layoutRoutes, viewport, size, dragging],
+    [drawnConnections, positions, props.selectedEdge, focus, labels, hoverEdge, algorithm, layoutRoutes, viewport, size, dragging],
   );
   useEffect(() => {
     if (!props.search || busy) return;

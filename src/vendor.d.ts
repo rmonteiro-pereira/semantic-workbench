@@ -1,9 +1,5 @@
 /** Provides browser asset and worker module declarations for TypeScript. */
 /// <reference types="vite/client" />
-declare module 'cytoscape-fcose' {
-  const extension: any;
-  export default extension;
-}
 declare module 'shacl-engine' {
   import type { Term } from 'n3';
   /** The parts of one validation result that this app reads. */

@@ -43,9 +43,11 @@ export async function graphCanvasProblems(page: Page, which: Which): Promise<str
         const px = sizeOnScreen(name);
         // A graph that opens on every entity can be zoomed out past the point where a card could
         // hold a 12 px name. Its names must then be the largest the card holds, and a card
-        // never shrinks its own name.
+        // never shrinks its own name below that.
         const largestName = which === 'model' ? largestModelNamePx : neighborhoodNamePx;
-        const largestCardName = Math.min(largestName, Math.ceil(minName / scale));
+        // A card also never draws a name larger than its whole name fits, so that no name is cut.
+        const fittingName = parseFloat(getComputedStyle(name).getPropertyValue('--entity-name-cap')) || largestName;
+        const largestCardName = Math.min(largestName, fittingName, Math.ceil(minName / scale));
         const minimum = Math.min(minName, largestCardName * scale);
         if (px < minimum - 0.01) {
           out.push(`name "${name.textContent}" is ${px.toFixed(1)} px on screen`);

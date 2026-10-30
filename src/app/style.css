@@ -3716,14 +3716,14 @@ main > .status {
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 .option-group {
   display: inline-flex;
   flex: none;
   align-items: center;
-  gap: 6px;
-  padding-left: 6px;
+  gap: 4px;
+  padding-left: 5px;
   border-left: 1px solid var(--color-border-subtle);
 }
 .option-group label {
@@ -3737,25 +3737,35 @@ main > .status {
 }
 /* The crosshair names the select, and a narrow select keeps the Graph toolbar on one row. */
 .option-group .zoom-to-group select {
-  width: 92px;
+  width: 106px;
   text-overflow: ellipsis;
 }
+/* The hidden copy of the on state sets the width; the visible face is centred over it, so the
+   label sits in the middle whether or not the check is shown. */
 .show-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.show-toggle .show-toggle-size,
+.show-toggle .show-toggle-face {
   display: inline-flex;
   align-items: center;
   gap: 5px;
 }
-/* The check keeps its space when off, so switching does not shift the controls beside it. */
-.show-toggle .show-toggle-check {
+.show-toggle .show-toggle-size {
   visibility: hidden;
+}
+.show-toggle .show-toggle-face {
+  position: absolute;
+  inset: 0;
+  justify-content: center;
 }
 .show-toggle[aria-pressed='true'] {
   background: var(--color-accent-soft);
   border-color: var(--color-accent-border);
   color: var(--color-accent-text);
-}
-.show-toggle[aria-pressed='true'] .show-toggle-check {
-  visibility: visible;
 }
 /* On a phone the folded panel stacks one group per row. */
 .compact-controls-panel .option-group {
