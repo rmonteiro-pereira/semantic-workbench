@@ -290,7 +290,8 @@ same definitions. They do not maintain independent copies of a metric formula.
 
 React Flow renders interactive HTML/SVG nodes and connections. ELK calculates the optional layered
 positions and compound routes. The default Network layout sizes each area as a tile to fit its
-entity names, packs the tiles in rows (`packTiles`) and draws only links inside an area. Smart Edge
+entity names at one size, packs the tiles in rows (`packTiles`) to the canvas's own shape, so a tall phone
+canvas gets fewer columns, and draws only links inside an area. Smart Edge
 supplies worker routing at useful detail levels.
 
 Neighborhood traversal adds nearby entities without moving existing ones and records reversible

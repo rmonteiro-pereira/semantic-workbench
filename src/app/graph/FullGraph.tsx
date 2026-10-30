@@ -38,7 +38,7 @@ import { groupRelationships } from './graph-view';
 import { collapseAreas } from './collapse';
 import { FALLBACK_GROUP_COLOR } from '../theme/theme-palette';
 import { layoutFullGraph } from './full-layout';
-import { layoutNetwork } from './network-layout';
+import { coarseCanvasSize, layoutNetwork } from './network-layout';
 import { crossesAreas, linkedAreaCounts } from './area-links';
 import { areaTileData, entityCardData } from './full-node-data';
 import { shownName } from './text-fit';
@@ -174,6 +174,8 @@ export function FullGraph(props: Props) {
   const [zoomStep, setZoomStep] = useState(1);
   const followZoom = (zoom: number) => setZoomStep(Math.floor(zoom * 20) / 20);
   const [size, setSize] = useState({ width: 1200, height: 650 });
+  // Coarse steps keep a small panel resize from laying the graph out again and undoing drags.
+  const canvasShape = useMemo(() => coarseCanvasSize(size), [size.width, size.height]);
   const flow = useRef<ReactFlowInstance<any, any> | null>(null);
   const laidOutKey = useRef('');
   const [nodes, setNodes, onNodesChange] = useNodesState<any>([]);
@@ -305,7 +307,14 @@ export function FullGraph(props: Props) {
   useEffect(() => {
     let cancelled = false;
     let elk: { layout: (elkGraph: any) => Promise<any>; terminateWorker: () => void } | undefined;
-    const key = JSON.stringify([algorithm, layoutGrouping, props.name, display.entities.map(e => [e.id, e.name, e.kind]), display.edges.map(e => [e.source, e.target])]);
+    const key = JSON.stringify([
+      algorithm,
+      layoutGrouping,
+      algorithm === 'network' ? [canvasShape.width, canvasShape.height] : 0,
+      props.name,
+      display.entities.map(e => [e.id, e.name, e.kind]),
+      display.edges.map(e => [e.source, e.target]),
+    ]);
     setBusy(true);
     setError('');
     // A re-layout that lands on the same arrangement re-routes nothing, so its old metrics still hold.
@@ -371,7 +380,7 @@ export function FullGraph(props: Props) {
     } else {
       let arranged: Promise<LayoutResult>;
       if (algorithm === 'network') {
-        arranged = Promise.resolve().then(() => layoutNetwork(display.entities, display.edges, props.name, layoutGrouping));
+        arranged = Promise.resolve().then(() => layoutNetwork(display.entities, display.edges, props.name, layoutGrouping, canvasShape));
       } else {
         elk = new ELK({
           algorithms: ['layered', 'box'],
@@ -393,7 +402,7 @@ export function FullGraph(props: Props) {
       cancelled = true;
       elk?.terminateWorker();
     };
-  }, [overview, display, algorithm, version, layoutGrouping]);
+  }, [overview, display, algorithm, version, layoutGrouping, canvasShape]);
   // Full screen keeps the view it started from and puts it back on exit.
   const held = useViewRestore(
     !!props.fullscreen?.active,
@@ -589,6 +598,7 @@ export function FullGraph(props: Props) {
     '--entity-name-lines': sizes.entityLines,
     '--entity-card-padding-block': `${sizes.entityPadding}px`,
     '--area-title-size': `${sizes.areaTitle}px`,
+    '--area-links-size': `${sizes.areaLinks}px`,
     '--entity-detail-display': sizes.showDetail ? 'block' : 'none',
   } as React.CSSProperties;
   const metrics = useCallback((m: SmartEdgeMetrics) => setRouteMetrics(m), []);

@@ -1,7 +1,7 @@
 // Tests the area link summary and the estimates that keep graph names whole.
 import { expect, test } from 'bun:test';
 import { crossesAreas, linkedAreaCounts, linkedAreasText } from '../src/app/graph/area-links';
-import { cardNameFontSize, cardWidthFor, fittingFontSize, lineCount, shownName } from '../src/app/graph/text-fit';
+import { cardHeightFor, cardNameFontSize, cardWidthFor, fittingFontSize, lineCount, shownName } from '../src/app/graph/text-fit';
 
 const areaOf = (entityId: string) => ({ a1: 'A', a2: 'A', b1: 'B', c1: 'C' })[entityId as 'a1'];
 
@@ -54,4 +54,13 @@ test('long names get a wider card and the name size drops until the whole name f
   expect(small).toBeLessThan(44);
   const reserved = cardNameFontSize('Order', { width: 184, height: 96, reservedHeight: 40 }, 44);
   expect(reserved).toBeLessThanOrEqual(cardNameFontSize('Order', { width: 184, height: 96 }, 44));
+});
+
+test('a larger name size widens the card and a long name wraps into a taller one', () => {
+  expect(cardWidthFor('TransportHandlingUnit', 28)).toBeGreaterThan(cardWidthFor('TransportHandlingUnit', 16));
+  const width = cardWidthFor('TransportHandlingUnit', 28);
+  expect(cardHeightFor('TransportHandlingUnit', width, 28, 60)).toBeGreaterThanOrEqual(2 * 28 * 1.25);
+  expect(cardHeightFor('Order', 184, 16, 60)).toBe(60);
+  const font = cardNameFontSize('TransportHandlingUnit', { width, height: cardHeightFor('TransportHandlingUnit', width, 28, 60) }, 28);
+  expect(font).toBe(28);
 });

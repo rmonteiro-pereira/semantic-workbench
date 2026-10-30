@@ -31,7 +31,8 @@ it is not a drop-in performance switch.
 2. Apply the selected display grouping. Automatic uses the first applicable mode with useful
    groups. These areas are view organization, not additional standard semantics.
 3. Use Network layout by default. Layered uses ELK routes. Network sizes each area as a tile for
-   the whole names it holds, then packs the tiles in rows (`packTiles`) so none overlap. It draws
+   the whole names it holds (one name size for the layout, long names wrapping into taller cards), then
+   packs the tiles in rows (`packTiles`) to the canvas's width-to-height ratio so none overlap. It draws
    links inside an area; links between areas are summarised on the tile ("links to N areas") and
    drawn only for the selected entity.
 4. Render parent areas before their children using relative positions and `parentId`.

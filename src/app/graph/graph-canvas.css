@@ -194,7 +194,7 @@
   flex: 1 0 100%;
   padding-left: 16px;
   font:
-    400 12px/1.3 system-ui,
+    400 var(--area-links-size, 12px) / 1.3 system-ui,
     sans-serif;
   color: var(--text-muted);
   font-style: normal;
