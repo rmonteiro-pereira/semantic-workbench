@@ -217,7 +217,9 @@
   .full-graph .full-graph-tools {
     gap: 4px;
   }
-  .full-graph .full-graph-tools button,
+  .full-graph .full-graph-tools button {
+    padding-inline: 4px;
+  }
   .full-graph .full-graph-tools select {
     padding-inline: 5px;
   }
@@ -229,6 +231,6 @@
     padding-left: 4px;
   }
   .full-graph .full-graph-tools .option-group .zoom-to-group select {
-    width: 90px;
+    width: 100px;
   }
 }
