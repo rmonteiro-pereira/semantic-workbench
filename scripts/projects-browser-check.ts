@@ -266,6 +266,71 @@ try {
     await expect(page.getByRole('region', { name: 'Beta has no definitions' })).toBeVisible();
     await page.close();
   });
+  await check('New file creates each kind in an empty project, opens it and validates', async () => {
+    const gamma = await api.ws.importBatch({ name: 'Gamma', files: [{ path: 'seed.yaml', source: 'name: Gamma seed\nontology:\n  - concept: Item\n    type: EntityType\n' }] }, LOCAL_READER);
+    await api.ws.deleteFile(gamma.slug, 'seed.yaml', LOCAL_READER);
+    const page = await openPage();
+    const tree = page.getByRole('tree', { name: 'Projects' });
+    await tree.getByRole('button', { name: 'Gamma', exact: true }).click();
+    const empty = page.getByRole('region', { name: 'Gamma has no definitions' });
+    await expect(empty).toBeVisible();
+    const createFile = async (kind: string, name: string) => {
+      const dialog = page.getByRole('dialog', { name: 'New file in Gamma' });
+      await expect(dialog).toBeVisible();
+      await dialog.getByRole('radio', { name: new RegExp('^' + kind) }).check();
+      await dialog.getByRole('textbox', { name: 'Name' }).fill(name);
+      return dialog;
+    };
+    const expectOpenAndValid = async (path: string, docType: string) => {
+      const row = tree.getByRole('treeitem', { name: path, exact: true });
+      await expect(row).toContainText(docType);
+      await expect(row).not.toContainText('invalid');
+      await expect(row.locator('button.document.chosen')).toHaveCount(1);
+      await page.getByRole('button', { name: 'Validation details', exact: true }).click();
+      await expect(page.getByRole('dialog', { name: 'Validation details' })).toContainText('0 errors · 0 warnings');
+      await page.getByRole('dialog', { name: 'Validation details' }).getByRole('button', { name: 'Close' }).click();
+    };
+    // The empty page offers the dialog, and a mapping waits for the files it points at.
+    await empty.getByRole('button', { name: 'New file' }).click();
+    let dialog = await createFile('Ossie semantic model', 'Shop');
+    await expect(dialog.getByRole('radio', { name: /^Ossie mapping/ })).toBeDisabled();
+    await expect(dialog).toContainText('A mapping needs an ontology and a semantic model in this project.');
+    await expect(dialog).toContainText('Saved as shop.semantic.yaml.');
+    await dialog.getByRole('button', { name: 'Create' }).click();
+    await expect(dialog).toHaveCount(0);
+    await expectOpenAndValid('shop.semantic.yaml', 'Ossie semantic');
+    // The sidebar menu of the project adds the other kinds, and a name already taken is refused.
+    const startNewFile = async () => {
+      await tree.getByRole('button', { name: 'Actions for Gamma', exact: true }).click();
+      await page.getByRole('menuitem', { name: 'New file…', exact: true }).click();
+    };
+    await startNewFile();
+    dialog = await createFile('Ossie semantic model', 'shop');
+    await expect(dialog.getByRole('alert')).toContainText('shop.semantic.yaml already exists in this project. Choose another name.');
+    await expect(dialog.getByRole('button', { name: 'Create' })).toBeDisabled();
+    await dialog.getByRole('radio', { name: /^Ossie ontology/ }).check();
+    await expect(dialog.getByRole('radio', { name: /^Ossie mapping/ })).toBeDisabled();
+    await expect(dialog).toContainText('A mapping needs an ontology in this project.');
+    await dialog.getByRole('textbox', { name: 'Name' }).fill('Shop');
+    await dialog.getByRole('button', { name: 'Create' }).click();
+    await expectOpenAndValid('shop.ontology.yaml', 'Ossie ontology');
+    await page.getByRole('button', { name: 'More actions', exact: true }).click();
+    await page.getByRole('menuitem', { name: 'New', exact: true }).click();
+    await expect(page.getByRole('menuitem', { name: 'Add concept…', exact: true })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await page.keyboard.press('Escape');
+    await startNewFile();
+    dialog = await createFile('Ossie mapping', 'Shop links');
+    await expect(dialog.getByRole('combobox', { name: 'Ontology' })).toHaveValue('shop.ontology.yaml');
+    await expect(dialog.getByRole('combobox', { name: 'Semantic model' })).toHaveValue('shop.semantic.yaml');
+    await dialog.getByRole('button', { name: 'Create' }).click();
+    await expectOpenAndValid('shop-links.mapping.yaml', 'Ossie mappings');
+    await startNewFile();
+    dialog = await createFile('ODCS contract', 'Shop contract');
+    await dialog.getByRole('button', { name: 'Create' }).click();
+    await expectOpenAndValid('shop-contract.odcs.yaml', 'ODCS');
+    await page.close();
+  });
   if (errors.length) throw Error('Browser errors: ' + errors.join('\n'));
   console.log(`${passed} project checks passed on isolated data root ${api.root}.`);
 } finally {

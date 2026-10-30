@@ -8,6 +8,13 @@ not configure a production deployment.
 
 ### Added
 
+- **New file** creates the first (or next) definition of a project from the app. An empty project
+  offers it beside **Import files**, and a project's actions menu has **New file…**. Choose an Ossie
+  ontology, semantic model, mapping or an ODCS contract and a name; the app saves a minimal file
+  that validates with no findings as `<name>.ontology.yaml`, `.semantic.yaml`, `.mapping.yaml` or
+  `.odcs.yaml`, refuses a name already used, and opens it. A mapping points at an ontology and a
+  semantic model of the project and is disabled until both exist. It needs the same permission as
+  importing files.
 - The app works on one **selected project** at a time. Opening a file selects
   its project, and choosing another project's row in the sidebar switches to it. Every view shows
   that project only: its files, metrics, Mappings, shared references, Neighborhood trail, Source

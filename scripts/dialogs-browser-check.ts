@@ -107,6 +107,16 @@ const entries: Entry[] = [
     returns: page => page.getByRole('button', { name: 'Add project', exact: true }),
   },
   {
+    name: 'New file',
+    dialog: /^New file in /,
+    open: async page => {
+      await workspace(page);
+      await page.getByRole('button', { name: `Actions for ${mall.name}`, exact: true }).click();
+    },
+    trigger: page => page.getByRole('menuitem', { name: 'New file…', exact: true }),
+    returns: page => page.getByRole('button', { name: `Actions for ${mall.name}`, exact: true }),
+  },
+  {
     name: 'View definition',
     dialog: /^Definition of /,
     open: async page => {
@@ -195,7 +205,7 @@ try {
           await expect(dialog).toBeHidden();
           // A dialog opened from the phone drawer closes the drawer, so focus goes to the button
           // that opens it again.
-          const fromDrawer = ['Grouping suggestions', 'Import', 'Trash'].includes(entry.name);
+          const fromDrawer = ['Grouping suggestions', 'Import', 'New file', 'Trash'].includes(entry.name);
           if (fromDrawer && narrow(page)) await expect(page.getByRole('button', { name: 'Open workspace', exact: true })).toBeFocused();
           else await expect(entry.returns ? entry.returns(page) : trigger).toBeFocused();
         } finally {

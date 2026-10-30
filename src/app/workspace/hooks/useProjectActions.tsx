@@ -18,6 +18,7 @@ type Options = {
   compact: boolean;
   closeWorkspace: () => void;
   setImporting: React.Dispatch<React.SetStateAction<{ project?: string | undefined } | null>>;
+  setCreatingFile: React.Dispatch<React.SetStateAction<string | null>>;
   docsRef: React.RefObject<Map<string, Doc>>;
   refresh: () => Promise<Doc[]>;
   setMessage: React.Dispatch<React.SetStateAction<string>>;
@@ -37,6 +38,10 @@ type Options = {
   deleted: Deleted | null;
   setDeleted: React.Dispatch<React.SetStateAction<Deleted | null>>;
 };
+// A new mapping opens in the Mappings view; every other kind opens in the model explorer.
+function tabForNewFile(doc: Doc) {
+  return doc.filename.endsWith('.mapping.yaml') ? 'mappings' : 'fullgraph';
+}
 /** Manages project actions. */
 export function useProjectActions({
   projects,
@@ -51,6 +56,7 @@ export function useProjectActions({
   compact,
   closeWorkspace,
   setImporting,
+  setCreatingFile,
   docsRef,
   refresh,
   setMessage,
@@ -73,7 +79,8 @@ export function useProjectActions({
       setHistoryPath(treeEvent.path, treeEvent.project);
       setTab('scm');
       if (compact) closeWorkspace();
-    } else if (treeEvent.action === 'gitignore') void editGitignore(treeEvent.project);
+    } else if (treeEvent.action === 'new-file') setCreatingFile(treeEvent.project);
+    else if (treeEvent.action === 'gitignore') void editGitignore(treeEvent.project);
     else {
       setImporting({ project: treeEvent.project });
     }
@@ -109,6 +116,21 @@ export function useProjectActions({
       }
     }
   }
+  // Saves a new file through the import route, which refuses a name already taken, then opens it.
+  async function createFile(slug: string, file: { path: string; source: string }) {
+    try {
+      await api.importInto(slug, [file]);
+    } catch (error: any) {
+      if (error.status === 409 && error.body?.conflicts) throw new Error(`${file.path} already exists in this project. Choose another name.`);
+      throw error;
+    }
+    const created = (await refresh()).find(doc => doc.id === `${slug}/${file.path}`);
+    setCreatingFile(null);
+    if (!created) return;
+    openDocument(created);
+    setTab(tabForNewFile(created));
+    setMessage(`Created ${file.path}.`);
+  }
   async function undoDelete() {
     const undone = deleted;
     setDeleted(null);
@@ -123,5 +145,5 @@ export function useProjectActions({
     }
   }
 
-  return { importIntoProject, undoDelete, treeAction };
+  return { importIntoProject, createFile, undoDelete, treeAction };
 }

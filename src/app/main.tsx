@@ -80,6 +80,8 @@ function App() {
     setDefinition,
     importing,
     setImporting,
+    creatingFile,
+    setCreatingFile,
     importInto,
     importInput,
     pendingImport,
@@ -115,6 +117,7 @@ function App() {
   const refresh = useStableHandler(workspaceEvents.refresh);
   const loadExample = useStableHandler(examples.loadExample);
   const importIntoProject = useStableHandler(projectActions.importIntoProject);
+  const createFile = useStableHandler(projectActions.createFile);
   const importFiles = useStableHandler(imports.importFiles);
   const showNeighborhood = useStableHandler(walkNavigation.showNeighborhood);
   const exportSource = useStableHandler(download);
@@ -216,6 +219,9 @@ function App() {
           setDefinition={setDefinition}
           importing={importing}
           setImporting={setImporting}
+          creatingFile={creatingFile}
+          setCreatingFile={setCreatingFile}
+          createFile={createFile}
           importInto={importInto}
           importInput={importInput}
           pendingImport={pendingImport}
@@ -375,6 +381,7 @@ function App() {
               crossTo={walkNavigation.crossTo}
               emptyProject={emptyProject}
               onImportInto={slug => setImporting({ project: slug })}
+              onNewFileInto={setCreatingFile}
             />
             <DetailsPanel
               inspectorVisible={inspector.inspectorVisible}

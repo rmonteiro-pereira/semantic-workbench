@@ -12,6 +12,7 @@ import type { CodeEditorHandle } from '../editor/CodeEditor';
 import type { Entity, Relationship } from '../../shared/core/model';
 import type { DeleteTarget } from '../projects/DeleteDialog';
 import { ImportDialog } from '../projects/ImportDialog';
+import { NewFileDialog } from '../projects/NewFileDialog';
 import { Modal } from '../projects/Modal';
 import type { Deleted, Doc, ProjectInfo } from '../projects/api';
 import type { AutosaveState } from '../projects/autosave';
@@ -137,6 +138,9 @@ type Props = {
   setDefinition: React.Dispatch<React.SetStateAction<{ title: string; value: unknown } | null>>;
   importing: { project?: string | undefined } | null;
   setImporting: React.Dispatch<React.SetStateAction<{ project?: string | undefined } | null>>;
+  creatingFile: string | null;
+  setCreatingFile: React.Dispatch<React.SetStateAction<string | null>>;
+  createFile: (slug: string, file: { path: string; source: string }) => Promise<void>;
   importInto: React.RefObject<string>;
   importInput: React.RefObject<HTMLInputElement | null>;
   pendingImport: ImportDraft[] | null;
@@ -217,6 +221,9 @@ export function AppDialogs({
   setDefinition,
   importing,
   setImporting,
+  creatingFile,
+  setCreatingFile,
+  createFile,
   importInto,
   importInput,
   pendingImport,
@@ -237,6 +244,8 @@ export function AppDialogs({
     setImporting(null);
     requestAnimationFrame(() => importInput.current?.click());
   }
+
+  const creatingProject = projects.find(project => project.slug === creatingFile);
 
   return (
     <>
@@ -375,6 +384,14 @@ export function AppDialogs({
             setImporting(null);
             openGitSetup({ kind: 'clone' });
           }}
+        />
+      )}
+      {creatingProject && (
+        <NewFileDialog
+          project={creatingProject}
+          projectDocs={docs.filter(doc => doc.project === creatingProject.slug)}
+          onClose={() => setCreatingFile(null)}
+          onCreate={file => createFile(creatingProject.slug, file)}
         />
       )}
       {pendingImport && <ImportRepair initial={pendingImport} onCancel={() => setPendingImport(null)} onImport={commitImports} />}

@@ -114,6 +114,7 @@ type Props = {
   /** A project the person opened that has no definitions, shown instead of the welcome text. */
   emptyProject?: ProjectInfo;
   onImportInto: (slug: string) => void;
+  onNewFileInto: (slug: string) => void;
 };
 /** Renders workspace canvas. */
 export function WorkspaceCanvas({
@@ -191,6 +192,7 @@ export function WorkspaceCanvas({
   crossTo,
   emptyProject,
   onImportInto,
+  onNewFileInto,
 }: Props) {
   // "Show all" on an Overview card opens the Catalog filtered to that area. The filter ends when
   // the user leaves the Catalog or opens another file, because the area lists the old file's entities.
@@ -273,7 +275,7 @@ export function WorkspaceCanvas({
       );
     }
     if (!source && !current && emptyProject) {
-      return <EmptyProject project={emptyProject} onImportFiles={() => onImportInto(emptyProject.slug)} />;
+      return <EmptyProject project={emptyProject} onImportFiles={() => onImportInto(emptyProject.slug)} onNewFile={() => onNewFileInto(emptyProject.slug)} />;
     }
     if (!source && !current) {
       return (
