@@ -9,7 +9,6 @@ const SMALLEST_FONT_PX = 9;
 // Space inside an entity card around its name: border, colour bar and padding.
 const CARD_SIDE_SPACE = 33;
 const CARD_VERTICAL_SPACE = 20;
-const CARD_WIDTHS = [184, 224, 264, 304];
 const READABLE_NAME_PX = 16;
 
 /** The name as a card shows it: camel case and underscores become spaces. */
@@ -48,12 +47,35 @@ export function fittingFontSize(text: string, boxWidth: number, boxHeight: numbe
   return SMALLEST_FONT_PX;
 }
 
-/** The narrowest standard card width that shows the name in two lines at its normal size. */
-export function cardWidthFor(name: string): number {
+const CARD_WIDTH_STEP = 40;
+const SMALLEST_CARD_WIDTH = 184;
+const LARGEST_CARD_WIDTH_AT_READABLE_SIZE = 304;
+
+/** The narrowest card width, in steps of 40, that shows the name in two lines at the given size. */
+export function cardWidthFor(name: string, fontPx: number = READABLE_NAME_PX): number {
   const text = shownName(name);
-  const normalHeight = 2 * READABLE_NAME_PX * LINE_HEIGHT_EM;
-  const fitting = CARD_WIDTHS.find(width => lineCount(text, width - CARD_SIDE_SPACE, READABLE_NAME_PX) * READABLE_NAME_PX * LINE_HEIGHT_EM <= normalHeight);
-  return fitting ?? CARD_WIDTHS[CARD_WIDTHS.length - 1];
+  const widest = Math.round(LARGEST_CARD_WIDTH_AT_READABLE_SIZE * Math.max(1, fontPx / READABLE_NAME_PX));
+  let width = SMALLEST_CARD_WIDTH;
+  while (width + CARD_WIDTH_STEP <= widest && lineCount(text, width - CARD_SIDE_SPACE, fontPx) > 2) width += CARD_WIDTH_STEP;
+  return width;
+}
+
+/** The card height that holds the whole name at the given size, never less than the standard height. */
+export function cardHeightFor(name: string, width: number, fontPx: number, standardHeight: number): number {
+  const lines = lineCount(shownName(name), width - CARD_SIDE_SPACE, fontPx);
+  return Math.max(standardHeight, Math.ceil(lines * fontPx * LINE_HEIGHT_EM) + CARD_VERTICAL_SPACE);
+}
+
+/** The narrowest tile width, from the minimum, that shows the title in two lines at the given size. */
+export function titleWidthFor(title: string, fontPx: number, minimumWidth: number, sideSpace: number): number {
+  let width = minimumWidth;
+  while (lineCount(title, width - sideSpace, fontPx) > 2 && width < 1200) width += CARD_WIDTH_STEP;
+  return width;
+}
+
+/** The width one line of text takes at the given size. */
+export function textWidth(text: string, fontPx: number): number {
+  return Math.ceil(text.length * AVERAGE_GLYPH_EM * fontPx);
 }
 
 /** The largest name size that keeps the whole name inside a card of this size. */

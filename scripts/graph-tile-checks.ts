@@ -11,16 +11,16 @@ import { inspect } from '../src/shared/core/model';
 
 type Box = { left: number; top: number; right: number; bottom: number };
 
-async function openUblGraph(page: Page, api: IsolatedApi) {
+async function openUblGraph(page: Page, api: IsolatedApi, filename = 'ubl.ontology.yaml') {
   await routeApi(page, api);
   await page.goto(appUrl());
   const workspace = page.getByRole('button', { name: 'Open workspace', exact: true });
   if ((page.viewportSize()?.width ?? 0) < 1100) await workspace.click();
-  await page.getByRole('tree', { name: 'Projects' }).getByRole('button', { name: 'ubl.ontology.yaml', exact: true }).click();
+  await page.getByRole('tree', { name: 'Projects' }).getByRole('button', { name: filename, exact: true }).click();
   await page.locator('.tabs').getByRole('button', { name: 'Graph', exact: true }).click();
   await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60000 });
   await page.getByRole('button', { name: 'Fit model', exact: true }).click();
-  await expect(page.locator('.full-graph .react-flow__node-entity')).toHaveCount(45);
+  await expect(page.locator('.full-graph .react-flow__node-entity').first()).toBeVisible();
 }
 
 async function nameProblems(page: Page) {
@@ -76,6 +76,7 @@ export async function checkTiles(page: Page, api: IsolatedApi) {
   const ubl = inspect(await Bun.file('public/examples/ubl/ubl.ontology.yaml').text(), 'ubl.ontology.yaml');
   const connections = groupRelationships(ubl.edges);
   await openUblGraph(page, api);
+  await expect(page.locator('.full-graph .react-flow__node-entity')).toHaveCount(45);
   expect(await nameProblems(page)).toEqual([]);
   const boxes = await areaBoxes(page);
   expect(boxes.length).toBeGreaterThan(3);
@@ -152,6 +153,44 @@ export async function checkToggleCentring(page: Page, api: IsolatedApi) {
   for (const gap of gaps) expect(Math.abs(gap.left - gap.right), `${gap.label} sits off-centre`).toBeLessThanOrEqual(1);
 }
 
+// Names and titles smaller than this on screen are too small to read.
+const SMALLEST_READABLE_PX = 10;
+
+/** The smallest on-screen size, in pixels, of the entity names, area titles and area link summaries. */
+async function shownTextSizes(page: Page) {
+  return page.evaluate(() => {
+    const zoom = new DOMMatrix(getComputedStyle(document.querySelector('.react-flow__viewport')!).transform).a;
+    const smallest = (selector: string) => Math.min(...[...document.querySelectorAll<HTMLElement>(selector)].map(element => parseFloat(getComputedStyle(element).fontSize) * zoom));
+    return {
+      entityName: smallest('.full-graph .full-entity strong'),
+      areaTitle: smallest('.full-graph .full-area-title strong'),
+      areaLinks: smallest('.full-graph .area-links'),
+    };
+  });
+}
+
+/** After Fit model, entity names at laptop width and area titles at phone width stay readable. */
+export async function checkFittedTextSizes(browser: Browser, api: IsolatedApi) {
+  const laptop = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  try {
+    await openUblGraph(laptop, api);
+    const sizes = await shownTextSizes(laptop);
+    expect(sizes.entityName, 'the smallest entity name at 1440 px').toBeGreaterThanOrEqual(SMALLEST_READABLE_PX);
+    expect(sizes.areaTitle, 'the smallest area title at 1440 px').toBeGreaterThanOrEqual(SMALLEST_READABLE_PX);
+  } finally {
+    await laptop.close();
+  }
+  const phone = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  try {
+    await openUblGraph(phone, api, 'commerce-scale.ttl');
+    const sizes = await shownTextSizes(phone);
+    expect(sizes.areaTitle, 'the smallest area title at 390 px').toBeGreaterThanOrEqual(SMALLEST_READABLE_PX);
+  } finally {
+    await phone.close();
+  }
+  console.log('PASS graph text sizes: entity names and area titles stay at 10 px or more after Fit model');
+}
+
 /** Runs the tile, name, toolbar and toggle checks at laptop and phone widths. */
 export async function checkGraphTiles(browser: Browser, api: IsolatedApi) {
   const sizes = [
@@ -168,5 +207,6 @@ export async function checkGraphTiles(browser: Browser, api: IsolatedApi) {
       await page.close();
     }
   }
+  await checkFittedTextSizes(browser, api);
   console.log('PASS graph area tiles: whole names, no overlap, cross-area links on selection, wrapping toolbar, centred toggles');
 }

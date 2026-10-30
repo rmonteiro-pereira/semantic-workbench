@@ -21,11 +21,12 @@ export function textSizesAt(zoom: number) {
   const entityName = zoom >= READABLE_ZOOM ? 16 : Math.min(LARGEST_ENTITY_NAME_PX, Math.ceil(12 / zoom));
   const areaTitle = Math.min(LARGEST_AREA_TITLE_PX, Math.max(20, Math.ceil(13 / zoom)));
   // Two lines of the larger name no longer fit the card, so it keeps one.
+  const areaLinks = Math.min(36, Math.max(12, Math.ceil(10 / zoom)));
   const entityLines = entityName > 17 ? 1 : 2;
   const entityPadding = entityName > 30 ? 2 : 9;
   // Detail starts at 12 canvas pixels, so it needs an unscaled view to stay readable.
   const showDetail = zoom >= 1;
-  return { entityName, areaTitle, entityLines, entityPadding, showDetail };
+  return { entityName, areaTitle, areaLinks, entityLines, entityPadding, showDetail };
 }
 
 /** Says whether the first view shows each area as one card, because the model is very large. */

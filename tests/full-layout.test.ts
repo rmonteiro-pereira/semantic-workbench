@@ -1,8 +1,9 @@
 // Tests full graph placement and routing.
 import { test, expect } from 'bun:test';
 import ELK from 'elkjs/lib/elk-api.js';
-import { layoutNetwork, packTiles } from '../src/app/graph/network-layout';
+import { fitZoom, layoutNetwork, packTiles } from '../src/app/graph/network-layout';
 import { cardNameFontSize } from '../src/app/graph/text-fit';
+import { textSizesAt } from '../src/app/graph/overview-capacity';
 import { GROUP_HEADER_HEIGHT } from '../src/app/graph/overview-capacity';
 import { layoutFullGraph } from '../src/app/graph/full-layout';
 import { inspect } from '../src/shared/core/model';
@@ -101,3 +102,23 @@ test('ELK compound layout retains groups and a route for every bundled connectio
     elk.terminateWorker();
   }
 }, 15000);
+test('one name size is planned for the whole layout and long names wrap in taller cards', async () => {
+  const inspection = inspect(await Bun.file('public/examples/ubl/ubl.ontology.yaml').text());
+  const canvas = { width: 1200, height: 800 };
+  const layout = layoutNetwork(inspection.entities, inspection.edges, inspection.name, undefined, canvas);
+  checkGeometry(layout, 45);
+  const zoom = fitZoom(layout, canvas);
+  const plannedPx = textSizesAt(zoom).entityName;
+  const cards = layout.nodes.filter(node => !node.group);
+  for (const card of cards) {
+    const name = inspection.entities.find(entity => entity.id === card.id)!.name;
+    expect(cardNameFontSize(name, card, plannedPx), name).toBeGreaterThanOrEqual(Math.floor(plannedPx * 0.9));
+  }
+  // On screen the smallest name stays readable.
+  expect(plannedPx * zoom).toBeGreaterThanOrEqual(10);
+});
+test('a tall canvas packs the tiles into fewer columns than a wide one', () => {
+  const sizes = Array.from({ length: 8 }, () => ({ width: 320, height: 300 }));
+  const columnsOf = (aspect: number) => new Set(packTiles(sizes, aspect).corners.map(corner => corner.x)).size;
+  expect(columnsOf(0.46)).toBeLessThan(columnsOf(1.7));
+});
