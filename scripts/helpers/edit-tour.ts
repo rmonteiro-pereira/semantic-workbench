@@ -77,7 +77,7 @@ export function editScreens({ ontology, metricsModel, mappedFile }: EditTourFile
       dialog,
       show: async page => {
         await fileTab(mappedFile, 'Mappings')(page);
-        await page.getByRole('button', { name: 'Compose a query…', exact: true }).click();
+        await page.getByRole('button', { name: 'Show query', exact: true }).click();
         await page.waitForTimeout(500);
       },
     },

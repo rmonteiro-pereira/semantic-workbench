@@ -14,7 +14,7 @@ semantic definition; they are not copied into an ontology, mapping or agent requ
    documents, plus the ODCS contract used by their metrics.
 2. In **Mappings**, select Revenue to inspect its binding to `gross_revenue`. Customer and Region
    expose nested referent/link mappings to fields and physical sources, with source evidence.
-3. Choose All concepts, open **Compose a query…**, and select `gross_revenue` with
+3. Choose All concepts, open **Show query**, and select `gross_revenue` with
    `customers.region`. Preview the composed query; the stored metric and declared join determine
    it rather than a predefined query or replacement formula.
 4. **Export agent context** downloads resolved layers, the original mapping tree, definitions,
@@ -188,6 +188,8 @@ original mapping trees, resolved bindings, semantic fields/metrics/dependencies,
 AI metadata, revisions, evidence and findings.
 Repeated `concept` query parameters can limit selected roots/targets; the necessary metric
 formulas/fields remain included and full datasets/joins remain available for traversal.
+The Mappings tab's **AI context** panel shows exactly what this endpoint returns for the selected
+concept.
 
 Plan accepts `{project, mappingId, concepts?, metrics: [metricId], dimensions: [fieldId]}`. It returns a SQL
 preview, original expressions, joins, sources, bindings and revision provenance. Keys such as

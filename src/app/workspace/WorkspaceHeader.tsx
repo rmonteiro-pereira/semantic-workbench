@@ -7,10 +7,12 @@ import type { Doc, ProjectInfo, WorkspaceStatus } from '../projects/api';
 import type { AutosaveStatus } from '../projects/autosave';
 import type { MenuItem } from '../projects/Menu';
 import { HeaderActions } from './HeaderActions';
+import { hasNothingToCommit, NOTHING_TO_COMMIT } from './commit-availability';
 import { HeaderTitle } from './HeaderTitle';
 import { SaveStateButton } from './SaveStateButton';
 import type { ValidatedModel } from './types';
 import { usePhoneScreen } from './hooks/useNarrowScreen';
+import { useListRefreshedSinceSave } from './hooks/useListRefreshedSinceSave';
 
 type Props = {
   personMenu?: React.ReactNode;
@@ -62,6 +64,7 @@ export const WorkspaceHeader = React.memo(function WorkspaceHeader({
   status,
 }: Props) {
   const access = useCapabilities(current?.project);
+  const listRefreshedSinceSave = useListRefreshedSinceSave(saveStatus, projects);
   const isPhone = usePhoneScreen();
   function getWorkspaceToggleLabel() {
     if (compact) {
@@ -120,8 +123,10 @@ export const WorkspaceHeader = React.memo(function WorkspaceHeader({
   const exportTitle = hasSource ? 'Download the file exactly as it is' : 'Open a file to export it.';
   const saveStateLabel = current ? saveState : 'No file open';
   const saveStateTitle = `${saveStateLabel} — ${getSaveStateAction()}`;
-  const commitDisabled = !current || status?.gitAvailable === false || !access.can('commit');
-  const commitTitle = access.control('commit').title ?? getCommitTitle();
+  const uncommittedFiles = projects.find(project => project.slug === current?.project)?.changes ?? 0;
+  const nothingToCommit = !!current && hasNothingToCommit(uncommittedFiles, saveStatus, listRefreshedSinceSave);
+  const commitDisabled = !current || status?.gitAvailable === false || !access.can('commit') || nothingToCommit;
+  const commitTitle = access.control('commit').title ?? (nothingToCommit ? NOTHING_TO_COMMIT : getCommitTitle());
 
   const saveStateButton = (
     <SaveStateButton

@@ -2,13 +2,15 @@
 import { useRecordedState } from '../workspace/hooks/useRecordedState';
 import { apiFetch } from '../projects/api';
 import React, { useEffect, useState, useRef } from 'react';
+import { Code } from 'lucide-react';
 import type { Binding, Finding, RuntimeContext } from '../../server/agent/runtime';
 import { QueryComposer } from './QueryComposer';
 import { EmptyState } from '../projects/EmptyState';
 import { ShowMoreControl } from './ShowMoreControl';
+import { AiContextPanel } from './AiContextPanel';
 import { agentCatalogPath, agentContextPath } from './agent-paths';
 import { chooseMapping, mappingsOfProject, shownMapping } from './mapping-choice';
-import { BINDINGS_PER_GROUP, BINDINGS_STEP, CONCEPTS_SHOWN, CONCEPTS_STEP, limitCovering, visibleCount } from './list-window';
+import { BINDINGS_PER_GROUP, BINDINGS_STEP, CONCEPTS_SHOWN, CONCEPTS_STEP, GROUPS_SHOWN, GROUPS_STEP, limitCovering, visibleCount } from './list-window';
 import './mapping-explorer.css';
 type MappingOption = {
   id: string;
@@ -112,6 +114,7 @@ export function MappingExplorer({
   // How many bindings each dataset group shows, and how many concepts the list shows.
   const [bindingLimits, setBindingLimits] = useRecordedState<Record<string, number>>('mappings.bindingLimits', {});
   const [conceptLimit, setConceptLimit] = useRecordedState('mappings.conceptLimit', CONCEPTS_SHOWN);
+  const [groupLimit, setGroupLimit] = useRecordedState('mappings.groupLimit', GROUPS_SHOWN);
   const conceptList = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!currentProject) {
@@ -140,6 +143,7 @@ export function MappingExplorer({
     setConcept('');
     setBindingLimits({});
     setConceptLimit(CONCEPTS_SHOWN);
+    setGroupLimit(GROUPS_SHOWN);
     setPlanError('');
     setComposing(false);
   }, [mappingId, revisionKey]);
@@ -201,11 +205,12 @@ export function MappingExplorer({
     ) ?? [];
   const selectedConceptIndex = concepts.findIndex(c => c.concept === concept);
   const shownConcepts = visibleCount(limitCovering(conceptLimit, selectedConceptIndex), concepts.length);
-  // The selected concept can sit past the limit, so keep it in view inside the list's own scroll.
+  // The selected concept can sit past the limit, so scroll the page to it.
   useEffect(() => {
     const selected = conceptList.current?.querySelector('[aria-pressed="true"]:not(:first-child)');
     selected?.scrollIntoView({ block: 'nearest' });
   }, [concept]);
+  const shownGroups = visibleCount(groupLimit, groups.size);
   const showMoreBindings = (dataset: string, shown: number) => setBindingLimits(old => ({ ...old, [dataset]: shown + BINDINGS_STEP }));
   const showFewerBindings = (dataset: string) => setBindingLimits(old => ({ ...old, [dataset]: BINDINGS_PER_GROUP }));
   const toggle = (id: string, values: string[], set: (selected: string[]) => void) => {
@@ -224,6 +229,7 @@ export function MappingExplorer({
     setLoading(false);
     setConcept(name);
     setBindingLimits({});
+    setGroupLimit(GROUPS_SHOWN);
     setMetrics([]);
     setDimensions([]);
     setPlan(null);
@@ -276,7 +282,8 @@ export function MappingExplorer({
         </div>
         <div className="mapping-heading-actions">
           <button onClick={() => setComposing(true)} disabled={!context}>
-            Compose a query…
+            <Code size={16} aria-hidden="true" />
+            Show query
           </button>
           <button onClick={download} disabled={!context || loading}>
             Export agent context
@@ -396,7 +403,7 @@ export function MappingExplorer({
                 <summary>
                   {bindings.length} resolved {bindings.length === 1 ? 'binding' : 'bindings'} · source evidence
                 </summary>
-                {[...groups].map(([dataset, items]) => {
+                {[...groups].slice(0, shownGroups).map(([dataset, items]) => {
                   const shown = visibleCount(bindingLimits[dataset] ?? BINDINGS_PER_GROUP, items.length);
                   return (
                     <details className="mapping-group" data-dataset={dataset} key={dataset} open>
@@ -444,11 +451,16 @@ export function MappingExplorer({
                     </details>
                   );
                 })}
+                <ShowMoreControl
+                  hidden={groups.size - shownGroups}
+                  step={GROUPS_STEP}
+                  expanded={shownGroups > GROUPS_SHOWN}
+                  noun="datasets"
+                  onShowMore={() => setGroupLimit(shownGroups + GROUPS_STEP)}
+                  onShowFewer={() => setGroupLimit(GROUPS_SHOWN)}
+                />
               </details>
-              <details>
-                <summary>AI context · the metadata an agent receives</summary>
-                <pre>{JSON.stringify(context.aiContext, null, 2)}</pre>
-              </details>
+              <AiContextPanel project={currentProject} mappingId={activeMappingId} concept={concept} revisionKey={revisionKey} fullContext={context} />
             </div>
           </div>
         </>

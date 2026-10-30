@@ -495,13 +495,16 @@ reason. See [the server governance rules](server-mode.md#governed-content).
 
 The **Mappings** view resolves ontology → mapping → semantic model → physical source. Object,
 referent and link mappings retain source evidence and report missing or ambiguous references.
-Bindings are grouped by dataset. The concept list and the bindings scroll on their own inside the
-tab; each dataset group shows its first five bindings and **Show N more** reveals ten at a time,
-**Show fewer** folds them again, and a long concept list works the same way. The tab lists only the
+Bindings are grouped by dataset. The tab scrolls as one page. The concept list starts with 12
+concepts and the binding list with 3 dataset groups, then **Show N more datasets** reveals the
+rest; each group shows its first five bindings and **Show N more** reveals ten at a time, **Show
+fewer** folds them again, and **Show N more concepts** works the same way. The tab lists only the
 mappings of the open file's project, says so when that project has none, and asks you to open a
 project when no file is open. Search includes unbound concepts; empty views offer Source navigation
-for the selected mapping document. **Compose a query…** selects mapped fields/metrics and previews a
-newly composed governed query. **Export agent context** downloads metadata.
+for the selected mapping document. **Show query** selects mapped fields/metrics and previews a
+newly composed governed query without running it. **AI context** shows the same context
+`/api/agent/context?concept=` returns for the selected concept (or the whole mapping when none is
+selected), including any `ai_context` the documents declare. **Export agent context** downloads metadata.
 
 For mapping files, **Graph** shows concepts and relationship rows, datasets/fields, metrics and
 resolved mapping lines. Select a row to highlight its bindings and relevant joins. **Unmapped

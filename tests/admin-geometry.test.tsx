@@ -59,7 +59,7 @@ test('grant panes fit each viewport, and the dry-run preview is a dialog', async
   const grant = pane('Add grant');
   await grant.getByLabel('Group object ID').fill('7d1f3a52-2c4e-4b8a-9a61-0f3c5e2b1a01');
   await expect(grant).toContainText('Sales Editors');
-  await grant.getByLabel('Scope', { exact: true }).selectOption('projects');
+  await grant.getByLabel('Applies to', { exact: true }).selectOption('projects');
   await grant.getByLabel('Projects (comma separated)').fill('sales');
   await adminGeometry(page, 'add-grant');
   await grant.getByRole('button', { name: 'Dry run', exact: true }).click();

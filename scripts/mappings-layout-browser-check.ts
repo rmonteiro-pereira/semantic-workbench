@@ -7,6 +7,7 @@ import { readFileSync } from 'node:fs';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { LOCAL_READER } from '../src/server/projects/reader';
 import { fileTab, showSidebar } from './helpers/screen-tour';
+import { GROUPS_SHOWN } from '../src/app/mappings/list-window';
 
 const VIEWPORTS: [number, number][] = [
   [1280, 720],
@@ -16,6 +17,10 @@ const VIEWPORTS: [number, number][] = [
   [1024, 768],
   [390, 844],
 ];
+
+// With the default limits the tab shows 12 concepts and 3 dataset groups of 5 bindings. A group is
+// about one viewport tall, and the heading, layer chain and AI context take one more.
+const MAX_TAB_VIEWPORTS = 1 + GROUPS_SHOWN;
 
 const read = (path: string) => readFileSync('public/examples/' + path, 'utf8');
 const files = (folder: string, names: string[]) => names.map(name => ({ path: name, source: read(`${folder}/${name}`) }));
@@ -141,31 +146,34 @@ async function bindingLayoutProblems(target: Page) {
   });
 }
 
-// Problems with the tab's height and with the "Show more" buttons: the tab must not grow with its
-// content, each column must scroll by itself, and a control must stay inside its group's box.
+// Problems with the tab's height and with the "Show more" buttons: the tab scrolls as one page and
+// stays a reasonable length because every list shows a few items first, no column is a scroll box
+// of its own, and a control must stay inside its group's box.
 async function boundedLayoutProblems(target: Page, viewportHeight: number) {
-  return target.evaluate(viewport => {
-    const found: string[] = [];
-    const explorer = document.querySelector<HTMLElement>('.mapping-explorer')!;
-    if (explorer.scrollHeight > viewport * 3) found.push(`the tab is ${explorer.scrollHeight}px tall`);
-    for (const selector of ['.mapping-concept-list', '.mapping-detail']) {
-      const column = document.querySelector<HTMLElement>(selector)!;
-      const box = column.getBoundingClientRect();
-      if (box.height > viewport) found.push(`${selector} is ${box.height}px tall`);
-    }
-    const groups = document.querySelectorAll<HTMLElement>('.mapping-group');
-    for (const group of groups) {
-      const groupBox = group.getBoundingClientRect();
-      for (const button of group.querySelectorAll<HTMLElement>('.mapping-show-more, .mapping-show-more button')) {
-        const box = button.getBoundingClientRect();
-        if (box.left < groupBox.left - 1 || box.right > groupBox.right + 1) found.push(`a show-more control leaves its group sideways`);
-        if (box.bottom > groupBox.bottom + 1) found.push(`a show-more control leaves its group`);
+  return target.evaluate(
+    ({ viewport, maxViewports }) => {
+      const found: string[] = [];
+      const explorer = document.querySelector<HTMLElement>('.mapping-explorer')!;
+      if (explorer.scrollHeight > viewport * maxViewports) found.push(`the tab is ${explorer.scrollHeight}px tall`);
+      for (const selector of ['.mapping-concepts', '.mapping-concept-list', '.mapping-detail']) {
+        const column = document.querySelector<HTMLElement>(selector)!;
+        if (getComputedStyle(column).overflowY !== 'visible') found.push(`${selector} scrolls on its own`);
       }
-    }
-    const cards = document.querySelectorAll('.mapping-group:first-of-type .mapping-binding');
-    if (cards.length > 15) found.push(`${cards.length} bindings rendered in the first group`);
-    return found;
-  }, viewportHeight);
+      const groups = document.querySelectorAll<HTMLElement>('.mapping-group');
+      for (const group of groups) {
+        const groupBox = group.getBoundingClientRect();
+        for (const button of group.querySelectorAll<HTMLElement>('.mapping-show-more, .mapping-show-more button')) {
+          const box = button.getBoundingClientRect();
+          if (box.left < groupBox.left - 1 || box.right > groupBox.right + 1) found.push(`a show-more control leaves its group sideways`);
+          if (box.bottom > groupBox.bottom + 1) found.push(`a show-more control leaves its group`);
+        }
+      }
+      const cards = document.querySelectorAll('.mapping-group:first-of-type .mapping-binding');
+      if (cards.length > 15) found.push(`${cards.length} bindings rendered in the first group`);
+      return found;
+    },
+    { viewport: viewportHeight, maxViewports: MAX_TAB_VIEWPORTS },
+  );
 }
 
 try {
@@ -226,7 +234,7 @@ try {
       await chooser.selectOption(document.id);
       await expect(page.getByText('No bindings in this mapping', { exact: true })).toBeVisible();
       await expect(page.locator('.mapping-concept-list > button')).toHaveCount(1);
-      await page.getByRole('button', { name: 'Compose a query…', exact: true }).click();
+      await page.getByRole('button', { name: 'Show query', exact: true }).click();
       await page.getByRole('button', { name: 'Open Source to add bindings', exact: true }).click();
       await expect(page.locator('.tabs .selected')).toHaveText('Source');
       // The title is the file name; the model's own name moves to its tooltip.

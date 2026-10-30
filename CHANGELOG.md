@@ -86,7 +86,18 @@ not configure a production deployment.
   Neighborhood, lineage and mapping views.
 - Neighborhood cards show their whole description and the type in words ("Entity type"), never
   overlap, and links stay outside card bodies and spread along the card side they arrive at.
-
+- Mappings: **AI context** shows the same context `/api/agent/context?concept=` returns for the
+  selected concept (or all concepts) instead of an empty list when the documents declare no
+  `ai_context`. The tab scrolls as one page; the concept list starts at 12 and the binding list with
+  3 dataset groups, with **Show N more datasets** for the rest.
+  The query button is named **Show query**, and the heading buttons keep their whole label.
+- Admin grants: the **Applies to** select is as wide as its longest option.
+- Header: **Commit** is off while the project has nothing to commit. It looks like the other
+  disabled buttons, and hover or focus says "Nothing to commit. Edit a file first."
+- Entity details: the relationship list flows in the panel's own scroll, with no nested scroll box
+  and no sideways scrollbar. Rows wrap so no name is cut.
+- `test:clipping` and `tests/admin-clipping.test.tsx` fail when a button, label or chosen select
+  value is cut.
 - The UBL example opens without a "Basic checks only" warning: its ontology declares its Ossie
   version and gets the full schema checks. Its mapping now maps all 45 components to their datasets
   and all 277 roles to their keys or bridge tables, instead of mapping no concept. The commerce

@@ -27,7 +27,7 @@ and previews SQL; it does not execute the fixture or query a warehouse.
   invoices, subscription items, plans, products, product families and currencies. Includes keys,
   quality rules and service levels.
 
-In **Mappings**, choose **All concepts**, open **Compose a query…**, select `net_revenue`,
+In **Mappings**, choose **All concepts**, open **Show query**, select `net_revenue`,
 `invoice_count` and `revenue_per_invoice`, and group by `plans.tier`. Preview the composed query.
 Binding groups expose their source evidence; selecting a concept narrows inspection. Exported
 agent context retains the available bindings. Query execution belongs only to the separate
