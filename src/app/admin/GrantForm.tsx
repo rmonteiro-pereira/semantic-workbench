@@ -155,7 +155,7 @@ function GrantFields({
         <label>
           Group label (optional)
           <input value={displayName} placeholder={lookup?.id === member.trim() ? (lookup.displayName ?? '') : ''} onChange={event => setDisplayName(event.target.value)} />
-          <small>Display only. Access is matched by group object ID, not this label.</small>
+          <small>Display only. Access never depends on this label.</small>
         </label>
       )}
       <SelectField label="Role" value={role} onChange={event => setRole(event.target.value)}>

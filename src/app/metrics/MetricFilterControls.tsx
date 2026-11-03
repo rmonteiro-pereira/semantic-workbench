@@ -14,6 +14,9 @@ export function MetricFilterControls({ kpis, filters, onChange }: { kpis: KpiSum
   const owners = useMemo(() => distinct(kpis.map(kpi => kpi.owner)), [kpis]);
   const statuses = useMemo(() => distinct(kpis.map(kpi => kpi.status)), [kpis]);
   const types = useMemo(() => [...new Set(kpis.map(kpi => kpi.type))].sort(), [kpis]);
+  function changeType(event: React.ChangeEvent<HTMLSelectElement>) {
+    onChange({ ...filters, type: event.target.value as MetricFilters['type'] });
+  }
   return (
     <>
       <label>
@@ -28,7 +31,7 @@ export function MetricFilterControls({ kpis, filters, onChange }: { kpis: KpiSum
       </label>
       <label>
         Type
-        <select aria-label="Filter by type" value={filters.type} onChange={event => onChange({ ...filters, type: event.target.value as MetricFilters['type'] })}>
+        <select aria-label="Filter by type" value={filters.type} onChange={changeType}>
           <option value="">All</option>
           {types.map(type => (
             <option key={type} value={type}>
