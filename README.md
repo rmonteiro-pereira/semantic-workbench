@@ -628,6 +628,7 @@ by the locally recorded quality gate.
 | Guide | Read it for |
 | --- | --- |
 | [Documentation index](docs/README.md) | Task-oriented map of current guides |
+| [OpenWiki](docs/openwiki/README.md) | Identity architecture, MSAL/Entra wiring and production operations |
 | [User guide](docs/user-guide.md) | Editing, metrics, graphs, imports, export and Git workflows |
 | [Server guide](docs/server-mode.md) | Sign-in, grants, worktrees, governance and operations |
 | [Configuration](docs/configuration.md) | Environment, data layout and startup constraints |

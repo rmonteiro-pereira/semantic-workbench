@@ -12,6 +12,7 @@ specific tasks without duplicating the same instructions in several places.
 | Edit definitions, inspect metrics or navigate graphs | [User guide](user-guide.md) |
 | Use Source Control, sparse folders, export or trash | [User guide](user-guide.md) |
 | Run a team server and understand access | [Server operation](server-mode.md) |
+| Understand MSAL, Entra groups, managed identities and recovery | [OpenWiki](openwiki/README.md) |
 | Configure environment variables and storage | [Configuration](configuration.md) |
 | Change code, run tests or capture the UI | [Development](development.md) |
 | Find module owners and request boundaries | [Architecture map](../ARCHITECTURE.md) |

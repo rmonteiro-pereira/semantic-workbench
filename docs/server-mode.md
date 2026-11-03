@@ -48,17 +48,27 @@ exception, not a production transport.
 
 ### Microsoft Entra ID
 
-Entra sign-in uses MSAL Node on the server. Configure a single-tenant App Registration, the groups
-claim and the supported identity claims. The token cache is per session and remains inside its
+Entra sign-in uses MSAL Node on the server. Configure a single-tenant App Registration and the
+supported identity claims. Group claims are optional with the default delegated directory
+checks. The token cache is per session and remains inside its
 encrypted server record. Tenant and issuer restrictions are enforced independently of the UI.
+
+For group-controlled entry, require assignment on the Enterprise Application and assign the
+entry group in Entra. This is separate from authentication and internal role grants; the
+workbench does not enable that tenant setting. See the
+[OpenWiki identity model](openwiki/identity-and-access.md) for assignment caveats and trust boundaries.
 
 People's roles come from workbench grants, not provider app-role claims. Group grants use Entra
 object IDs. Verified-address grants accept a domain-verified e-mail claim or an eligible home-tenant
 member identity; guest `#EXT#` identifiers and unverified addresses do not count.
 
-Large group lists can be resolved through Microsoft Graph. Only group IDs named in grants or
-restricted paths are checked, in batches of up to twenty. Lookup failure supplies no membership,
-shows an explanation and is audited. Directory permissions also support group display names.
+With `SW_GROUP_OVERAGE=directory`, Microsoft Graph checks the signed-in person's membership in
+group IDs named in grants or restricted paths at sign-in and token refresh, even without token
+group claims or overage. OBO requests delegated `User.Read` and calls `/me/checkMemberGroups`
+in batches of up to twenty, under one five-second resolution deadline. No configured candidates
+means no membership request. Lookup failure supplies no group membership and is audited;
+independent e-mail/bootstrap grants remain. Entra group display names are optional local labels,
+not directory-verified names, and require no Graph application permissions.
 
 Agent clients and Azure DevOps remote access need additional App Registration settings. Follow
 [the complete Entra setup](../deploy/README.md#entra-app-registration) rather than treating a basic
@@ -133,6 +143,11 @@ Default lifetimes are eight hours idle and twenty-four hours absolute. Admin set
 them. Last-seen persistence is limited to once per minute, so a restart can shorten the idle
 window by up to sixty seconds. Refresh rechecks identity, groups and grants. A refused refresh
 ends the session; a provider outage returns 503 without destroying an otherwise valid session.
+This includes temporary OAuth server errors, throttling and HTTP 5xx. Refreshed credentials and
+the safe principal are persisted before degradation auditing. If that audit fails, session-backed
+requests fail closed; the pending audit survives restart and is retried without another token
+exchange while those credentials remain valid. See
+[OpenWiki operations](openwiki/identity-operations.md) for recovery and acceptance checks.
 
 Changing `SW_SESSION_KEY` ends old sessions and in-flight attempts. Unreadable session records
 are discarded with a `session-unreadable` log entry instead of preventing startup.

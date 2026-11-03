@@ -134,7 +134,7 @@ federated credential and the platform identity endpoint; the string alone does n
 | `SW_ENTRA_TENANT_ID` | Required only for Entra; accepted tenant identity |
 | `SW_OIDC_SCOPES` | Default OIDC scopes, plus the workbench API scope for Entra |
 | `SW_GROUP_CLAIM` | `groups`; group IDs for Entra, names/paths for Keycloak |
-| `SW_GROUP_OVERAGE` | `directory`; accepts `directory` or `off` |
+| `SW_GROUP_OVERAGE` | `directory`; delegated Entra checks for configured internal groups; `off` uses token claims only |
 | `SW_GRAPH_URL` | `https://graph.microsoft.com`; permitted directory endpoint |
 | `SW_API_AUDIENCE` | Unset/empty; refuses all agent bearer tokens |
 | `SW_TRUSTED_PROXY_HOPS` | `0`; whole number from 0 to 5 |
@@ -143,6 +143,14 @@ Default OIDC scopes are `openid profile email offline_access`. Entra adds
 `api://<client ID>/access_as_user` so its access token can support on-behalf-of exchange.
 The provider setting chooses both claim normalization and the library: Entra uses MSAL Node;
 Keycloak/generic use `openid-client`.
+
+For Entra, `directory` checks configured grant/restricted-path group IDs at sign-in and refresh,
+not only on token overage. It uses OBO with delegated Graph `User.Read`; no group candidates
+means no membership request. `off` performs no directory membership lookup and fails closed on
+overage. Entra group references must be GUID object IDs; startup and administration validation
+reject malformed references. Other providers retain textual group identifiers. See
+[OpenWiki identity and access](openwiki/identity-and-access.md) for the separate entry gate,
+permissions and managed-identity boundaries.
 
 Graph endpoints are restricted to the configured Microsoft public/national-cloud endpoints:
 `graph.microsoft.com`, `graph.microsoft.us`, `dod-graph.microsoft.us` and
