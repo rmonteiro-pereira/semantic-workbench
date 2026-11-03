@@ -478,7 +478,7 @@ try {
     await graph().getByRole('textbox', { name: 'Find assets' }).fill('line_extension_amount');
     await graph().getByRole('listbox', { name: 'Asset results' }).getByRole('option').filter({ hasText: 'Column' }).filter({ hasText: 'invoice_line.line_extension_amount' }).first().click();
     await expect(graph().getByRole('region', { name: 'Selected path' })).toBeVisible();
-    await graph().getByRole('button', { name: 'Show all connected' }).click();
+    await graph().getByRole('button', { name: 'Full pierce' }).click();
     await expect(graph().getByLabel('Walk', { exact: true })).toContainText('All connected to line_extension_amount');
     await page.waitForTimeout(600);
     await fit();

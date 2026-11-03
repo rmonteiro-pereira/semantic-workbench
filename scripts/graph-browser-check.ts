@@ -234,7 +234,7 @@ try {
     const trail = page.getByRole('navigation', { name: 'Walk' });
     const steps = trail.locator('ol li');
     const stepsBefore = await steps.count();
-    const pierce = page.getByRole('button', { name: 'Show all connected' });
+    const pierce = page.getByRole('button', { name: 'Full pierce' });
     for (let click = 0; click < 9; click++) {
       await pierce.click();
       await expect(pierce).toBeEnabled();
@@ -413,7 +413,7 @@ try {
       budget: PIERCE_BUDGET,
     });
     await page.getByRole('radiogroup', { name: 'Pierce direction' }).getByRole('radio', { name: 'Outgoing' }).click();
-    await page.getByRole('button', { name: 'Show all connected' }).click();
+    await page.getByRole('button', { name: 'Full pierce' }).click();
     const status = page.locator('.pierce-banner');
     await expect(status).toContainText(`${closure.shown} entities shown in ${closure.maxStep} steps`);
     const ids = await canvasIds();
@@ -440,7 +440,7 @@ try {
       }).observe({ type: 'longtask', buffered: false });
     });
     await page.getByRole('radiogroup', { name: 'Pierce direction' }).getByRole('radio', { name: 'Both' }).click();
-    await page.getByRole('button', { name: 'Show all connected' }).click();
+    await page.getByRole('button', { name: 'Full pierce' }).click();
     const status = page.locator('.pierce-banner');
     await expect(status).toContainText(`${closure.total - closure.shown} more reachable`, { timeout: 20000 });
     await expect(page.locator('.frontier-marker').first()).toBeVisible();

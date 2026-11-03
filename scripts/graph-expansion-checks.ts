@@ -39,7 +39,7 @@ async function checkExpansion(page: Page, api: IsolatedApi) {
   page.on('pageerror', error => errors.push(error.message));
   await openExpansionModel(page, api);
   await recordViewportChanges(page);
-  await page.getByRole('button', { name: 'Show all connected' }).click();
+  await page.getByRole('button', { name: 'Full pierce' }).click();
   await expect(page.locator('.pierce-banner')).toContainText('more reachable');
   await expect(page.locator('.neighborhood-canvas')).toHaveAttribute('data-viewport-ready', 'true');
   await expect

@@ -331,7 +331,7 @@ and breadcrumbs restore earlier centers (see [Back and Forward](#back-and-forwar
 identity into another project file and retains return navigation.
 
 **+** expands a node in place without moving already placed nodes. **−**, **Undo expansion** and
-walk history remove or restore only that expansion's contribution. **Show all connected** follows
+walk history remove or restore only that expansion's contribution. **Full pierce** follows
 Outgoing, Incoming or Both directions from the selection or center. It stops at 150 entities;
 frontier markers explain hidden reachable nodes. **Expand further** permits up to 500, and **Stop**
 cancels the worker operation. Each run is one trail step, "All connected to <name>"; repeating the

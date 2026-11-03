@@ -223,7 +223,7 @@ try {
       direction: 'both',
       budget: 150,
     });
-    await graph().getByRole('button', { name: 'Show all connected' }).click();
+    await graph().getByRole('button', { name: 'Full pierce' }).click();
     await expect(graph().getByLabel('Walk', { exact: true })).toContainText('All connected to Customer');
     await page.waitForTimeout(500);
     await graph().getByRole('button', { name: 'Fit', exact: true }).click();

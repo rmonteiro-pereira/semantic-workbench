@@ -101,7 +101,7 @@ try {
     await expect(page.locator('.react-flow__edge-text, .relationship-label')).toHaveCount(0);
     await expect(await example(page, /UBL business model/)).toBeInViewport();
     await expect(graphOptions(page)).toBeInViewport();
-    await expect(page.getByRole('button', { name: 'Show all connected', exact: true })).toBeInViewport();
+    await expect(page.getByRole('button', { name: 'Full pierce', exact: true })).toBeInViewport();
   });
   await check('grouped connection exposes all original relationships', async () => {
     const edge = page.locator('.react-flow__edge').first();

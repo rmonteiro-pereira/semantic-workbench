@@ -1059,7 +1059,7 @@ try {
     await closeDetails(targetPage);
     const tools = targetPage.locator('.neighborhood-tools');
     await revealGraphControls(targetPage);
-    await tools.getByRole('button', { name: 'Show all connected', exact: true }).click();
+    await tools.getByRole('button', { name: 'Full pierce', exact: true }).click();
     await expect(targetPage.locator('.pierce-banner')).toBeVisible();
     const pierceOverlays = [...overlays, '.pierce-banner'];
     await assertFinalOverlays(targetPage, pierceOverlays);

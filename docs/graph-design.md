@@ -73,7 +73,7 @@ moves cards apart by their real heights, so a card whose description wraps never
 That separation keeps the position of any card the user dragged; only Re-arrange or a change in
 which cards are shown puts dragged cards back. Collapse removes only nodes contributed by that
 expansion; shared contributions remain. Back, Forward and Undo reconstruct the recorded canvas. A
-Show all connected run that repeats one already on the trail focuses that step in the Neighborhood
+Full pierce run that repeats one already on the trail focuses that step in the Neighborhood
 view, and a run that adds no card adds none.
 
 Connected traversal runs in a worker with a 150-node initial budget and a 500-node expansion cap.
