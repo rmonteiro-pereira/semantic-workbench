@@ -157,16 +157,30 @@ test('a mapping document with no links between its concepts disables suggested c
   expect(overviewOf(model).modes.suggested.reason).toBe('No relationships to group by');
 });
 
-test('UBL example areas are offered by content, not by the model name', async () => {
+test('UBL names carry no special grouping semantics', async () => {
   const ubl = await load('public/examples/ubl/ubl.ontology.yaml');
   const renamed = { ...ubl, name: 'Procurement model' };
-  expect(overviewOf(renamed).modes.example.offered).toBe(true);
-  expect(overviewOf(renamed).mode).toBe('example');
-  expect(overviewOf(renamed, 'example').groups).toHaveLength(8);
-  const mall = await load('public/examples/mall/mall.ontology.yaml');
-  const named = { ...mall, name: 'UBL lookalike' };
-  expect(overviewOf(named).modes.example.offered).toBe(false);
-  expect(overviewOf(named).mode).not.toBe('example');
+  expect(overviewOf(renamed).mode).toBe('suggested');
+  const anonymous = { ...renamed, entities: renamed.entities.map((entity, index) => ({ ...entity, name: `Entity ${index}` })) };
+  expect([...overviewOf(anonymous).groupOf]).toEqual([...overviewOf(renamed).groupOf]);
+  const disconnected = { ...renamed, edges: [] };
+  expect(overviewOf(disconnected).mode).toBe('types');
+  expect(overviewOf(disconnected).groups).toHaveLength(1);
+});
+
+test('stale grouping modes fall back to Auto without losing manual corrections', async () => {
+  const model = await load('public/examples/ubl/ubl.ontology.yaml');
+  const entity = model.entities[0];
+  const overview = modelOverview(model.entities, model.edges, model.name, false, {
+    mode: 'example' as 'auto',
+    assignments: { [entity.id]: 'documents' },
+    names: { documents: 'Reviewed documents' },
+  });
+  expect(overview.mode).toBe(overview.autoMode);
+  expect(overview.groups.find(group => group.id === 'documents')?.name).toBe('Reviewed documents');
+  expect(overview.groupOf.get(entity.id)).toBe('documents');
+  expect(overview.provenance.counts.corrected).toBe(1);
+  expect(overview.links).toEqual(model.edges);
 });
 
 test('Auto names its own choice even after another mode is chosen', async () => {
@@ -184,7 +198,7 @@ test('a stored choice of a disabled mode falls back to Auto', async () => {
   expect(overview.mode).toBe(overview.autoMode);
 });
 
-test('the Group menu lists only modes that work and nothing when there is no choice', async () => {
+test('the Group menu lists only automatic modes that have a grouping basis', async () => {
   const models = await shippedModels();
   for (const [path, model] of models) {
     const modes = overviewOf(model).modes;

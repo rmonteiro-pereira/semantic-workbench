@@ -1,7 +1,7 @@
 /** Displays an ODCS object's properties, relationships, lineage, Git history and declared quality
  * rules. */
 import { useRecordedState } from '../workspace/hooks/useRecordedState';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { parse } from 'yaml';
 import { ArrowLeft, ShieldCheck, Table2, Workflow } from 'lucide-react';
 import { odcsForeignKeys } from '../../shared/odcs/foreign-keys';
@@ -16,6 +16,7 @@ import { PropertiesTab } from './PropertiesTab';
 import type { PropertyEditor } from './PropertyEditors';
 import { ReadMore } from './ReadMore';
 import { ScrollStrip } from '../components/ScrollStrip';
+import { useFullscreen } from '../graph/fullscreen';
 import './odcs.css';
 // Quality rules are displayed as declared and never executed. Git history compares versions at
 // property level.
@@ -219,6 +220,8 @@ function LineageTab({
   const rev = projectRevision(projectDocs);
   const graph = useMemo(() => buildLineage(projectFiles(projectDocs), doc.path, rev), [rev, doc.path]);
   const id = objectId(doc.path, objectName);
+  const host = useRef<HTMLDivElement | null>(null);
+  const fullscreen = useFullscreen(host);
   const card = graph.cards.get(id);
   const rows = useMemo(
     () =>
@@ -246,13 +249,17 @@ function LineageTab({
   if (!card) return <p className="odcs-note">No lineage for this table.</p>;
   return (
     <>
-      <div className="odcs-lineage-host">
+      <div ref={host} className={`odcs-lineage-host${fullscreen.fallback ? ' window-fill' : ''}`}>
         <LineageCanvas
+          key={id}
           graph={graph}
           center={id}
           compact
+          initialFit="all"
           ariaLabel="Lineage graph"
-          storageKey={`workbench:lineage-steps:${doc.id}`}
+          historyKey={`lineage.detail:${doc.id}:${id}`}
+          pierceFromCenter
+          fullscreen={fullscreen}
           onOpenAsset={c => onOpenObject(c.label)}
           onNeighborhood={onNeighborhood}
         />

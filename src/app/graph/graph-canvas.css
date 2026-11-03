@@ -58,8 +58,7 @@
   }
 }
 
-/* The whole-model graph keeps names and area titles readable when it is zoomed out. The canvas
-   sets the sizes from its zoom. */
+/* Layered compensates text for zoom; Network keeps its original type scale. */
 .full-graph .full-entity strong {
   font-size: var(--entity-name-size, 16px);
   line-height: 1.2;
@@ -110,11 +109,6 @@
 .full-graph .full-entity .node-kpi-badge {
   display: var(--entity-detail-display, block);
 }
-.full-graph .full-area-title {
-  background: var(--color-surface-page);
-  border-radius: 4px;
-}
-
 .full-graph .full-area-title strong {
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -232,8 +226,5 @@
   .full-graph .full-graph-tools .option-group {
     gap: 3px;
     padding-left: 4px;
-  }
-  .full-graph .full-graph-tools .option-group .zoom-to-group select {
-    width: 100px;
   }
 }

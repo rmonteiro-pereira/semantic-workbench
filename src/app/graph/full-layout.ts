@@ -4,6 +4,7 @@ import { modelOverview } from './overview';
 import { groupRelationships } from './graph-view';
 import type { Entity, Relationship } from '../../shared/core/model';
 import { GROUP_HEADER_HEIGHT, modelCardHeight } from './overview-capacity';
+import type { ElkNode } from 'elkjs/lib/elk-api.js';
 
 /** The model name, the ELK engine that runs the layout, and the optional grouping of areas. */
 export type FullLayoutOptions = { name: string; elk: { layout: (elkGraph: any) => Promise<any> }; grouping?: GroupingOptions };
@@ -112,5 +113,58 @@ export async function layoutFullGraph(entities: Entity[], edges: Relationship[],
     height: result.height ?? 0,
     entityCount: overview.entities.length,
     relationshipCount: overview.links.length,
+  };
+}
+
+/** The grouped nodes, routes and dimensions shared by both layouts. */
+export type FullLayoutResult = Awaited<ReturnType<typeof layoutFullGraph>>;
+/** The network canvas keeps the header spacing of the original compound layout. */
+export const NETWORK_HEADER_HEIGHT = 62;
+
+/** Separates overlapping cards, then packs area frames without replacing their network layout. */
+export async function packNetwork(result: FullLayoutResult, elk: FullLayoutOptions['elk']): Promise<FullLayoutResult> {
+  const groups = result.nodes.filter(node => node.group);
+  if (!groups.length) return result;
+  const interiors: ElkNode[] = await Promise.all(
+    groups.map(group =>
+      elk.layout({
+        id: group.id,
+        layoutOptions: {
+          'elk.algorithm': 'sporeOverlap',
+          'elk.spacing.nodeNode': '24',
+          'elk.padding': `[top=${NETWORK_HEADER_HEIGHT},left=28,bottom=28,right=28]`,
+        },
+        children: result.nodes.filter(node => node.parentId === group.id).map(node => ({ id: node.id, x: node.x, y: node.y, width: node.width, height: node.height })),
+      }),
+    ),
+  );
+  const dimensions = new Map(
+    interiors.map(group => {
+      if (group.width === undefined || group.height === undefined) throw new Error(`Network area ${group.id} has no computed dimensions.`);
+      return [group.id, { width: group.width, height: group.height }] as const;
+    }),
+  );
+  const children = new Map(interiors.flatMap(group => (group.children ?? []).map(node => [node.id, node] as const)));
+  const packed: ElkNode = await elk.layout({
+    id: 'packing',
+    layoutOptions: {
+      'elk.algorithm': 'box',
+      'elk.aspectRatio': '2.0',
+      'elk.spacing.nodeNode': '70',
+      'elk.padding': '[top=40,left=40,bottom=40,right=40]',
+    },
+    children: groups.map(group => ({ id: group.id, ...dimensions.get(group.id)! })),
+  });
+  if (packed.width === undefined || packed.height === undefined) throw new Error('The packed network has no computed dimensions.');
+  const positions = new Map((packed.children ?? []).map(group => [group.id, group]));
+  return {
+    ...result,
+    width: packed.width,
+    height: packed.height,
+    nodes: result.nodes.map(node => {
+      const placed = (node.group ? positions : children).get(node.id);
+      if (placed?.x === undefined || placed.y === undefined) throw new Error(`Network node ${node.id} has no computed position.`);
+      return { ...node, ...(node.group ? dimensions.get(node.id) : {}), x: placed.x, y: placed.y };
+    }),
   };
 }

@@ -42,6 +42,12 @@ export function allowedOrigins(port: number) {
   return ['http://127.0.0.1:5173', 'http://localhost:5173', `http://127.0.0.1:${port}`, `http://localhost:${port}`];
 }
 
+// Retired display heuristics fall back to Auto. Keep every correction and name, including
+// legacy group IDs; reads do not rewrite view state, and the next explicit save persists Auto.
+function migrateGrouping<T>(value: T): T {
+  return value && typeof value === 'object' && !Array.isArray(value) && 'mode' in value && value.mode === 'example' ? { ...value, mode: 'auto' } : value;
+}
+
 // Legacy clients still use document, grouping, and agent endpoints.
 // Document IDs use `<project>/<path>`; older IDs resolve through legacy-ids.json.
 const legacyRoutes: Route = async (ws, req, url) => {
@@ -87,15 +93,15 @@ const legacyRoutes: Route = async (ws, req, url) => {
     const id = decodeSegment(groupingPath[1]);
     const reader = requestReader(req);
     try {
-      if (req.method === 'GET') return Response.json(ws.grouping(id, reader));
+      if (req.method === 'GET') return Response.json(migrateGrouping(ws.grouping(id, reader)));
       if (req.method === 'PUT') {
-        const value = await readJson(req, 256_000);
+        const value = migrateGrouping(await readJson(req, 256_000));
         if (
           !value ||
           typeof value !== 'object' ||
           Array.isArray(value) ||
           Object.keys(value).some(k => !['mode', 'assignments', 'names'].includes(k)) ||
-          !['auto', 'declared', 'namespaces', 'suggested', 'types', 'example'].includes(value.mode ?? 'auto')
+          !['auto', 'declared', 'namespaces', 'suggested', 'types'].includes(value.mode ?? 'auto')
         )
           throw new BadRequestError('Invalid grouping view.');
         for (const key of ['assignments', 'names'])

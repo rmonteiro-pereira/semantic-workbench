@@ -1,10 +1,10 @@
 /** Groups model entities into overview areas using declared or inferred structure. */
 import type { Entity, Relationship } from '../../shared/core/model';
 import { conceptMappingLinks, isInheritance, suggestCommunities } from './communities';
-import { GROUP_PALETTE, TYPE_GROUP_COLOR, UNASSIGNED_GROUP_COLOR, paletteColorFor } from '../theme/theme-palette';
+import { TYPE_GROUP_COLOR, UNASSIGNED_GROUP_COLOR, paletteColorFor } from '../theme/theme-palette';
 
 /** Selects the source of model group boundaries. */
-export type GroupingMode = 'auto' | 'declared' | 'namespaces' | 'suggested' | 'types' | 'example';
+export type GroupingMode = 'auto' | 'declared' | 'namespaces' | 'suggested' | 'types';
 /** A grouping mode other than Auto. */
 export type ConcreteGroupingMode = Exclude<GroupingMode, 'auto'>;
 /** Controls grouping mode and namespace depth. */
@@ -20,72 +20,7 @@ export type AreaFilter = { name: string; entityIds: string[] };
 export type GroupingModeState = { offered: boolean; groups: number; reason?: string };
 
 /** The order in which Auto tries the modes; it takes the first that yields two or more groups. */
-export const GROUPING_ORDER: ConcreteGroupingMode[] = ['declared', 'example', 'namespaces', 'suggested', 'types'];
-
-// The curated UBL areas are offered only when nearly every entity carries a UBL name. A few
-// shared names such as Order or Address must not turn another model into a UBL layout.
-const EXAMPLE_AREA_SHARE = 0.8;
-
-const areas = [
-  {
-    id: 'documents',
-    name: 'Business documents',
-    description: 'Procurement, invoicing and evidence',
-    color: GROUP_PALETTE[0],
-    names: ['Order', 'Invoice', 'DespatchAdvice', 'ReceiptAdvice', 'CreditNote', 'OrderReference', 'BillingReference', 'DocumentReference', 'Contract'],
-  },
-  {
-    id: 'parties',
-    name: 'Trading parties',
-    description: 'Buyers, suppliers and people',
-    color: GROUP_PALETTE[1],
-    names: ['Party', 'CustomerParty', 'SupplierParty', 'Person', 'Contact'],
-  },
-  {
-    id: 'lines',
-    name: 'Document lines',
-    description: 'Line-level commitments and quantities',
-    color: GROUP_PALETTE[2],
-    names: ['OrderLine', 'LineItem', 'InvoiceLine', 'CreditNoteLine', 'ReceiptLine', 'DespatchLine'],
-  },
-  {
-    id: 'products',
-    name: 'Products & pricing',
-    description: 'What is traded and how it is priced',
-    color: GROUP_PALETTE[3],
-    names: ['Item', 'CommodityClassification', 'Price', 'AllowanceCharge'],
-  },
-  {
-    id: 'fulfillment',
-    name: 'Fulfillment & transport',
-    description: 'Delivery, cargo and movement',
-    color: GROUP_PALETTE[4],
-    names: ['Delivery', 'Shipment', 'Consignment', 'TransportHandlingUnit', 'TransportEquipment', 'GoodsItem', 'TransportationService', 'TransportMeans'],
-  },
-  {
-    id: 'tax',
-    name: 'Tax & totals',
-    description: 'Tax calculation and monetary totals',
-    color: GROUP_PALETTE[5],
-    names: ['TaxTotal', 'TaxSubtotal', 'TaxCategory', 'TaxScheme', 'MonetaryTotal'],
-  },
-  {
-    id: 'payment',
-    name: 'Payment & finance',
-    description: 'Settlement, terms and banking',
-    color: GROUP_PALETTE[6],
-    names: ['PaymentMeans', 'PaymentTerms', 'FinancialAccount', 'FinancialInstitution', 'Branch'],
-  },
-  {
-    id: 'places',
-    name: 'Places',
-    description: 'Addresses and geographical context',
-    color: GROUP_PALETTE[7],
-    names: ['Address', 'Location', 'Country'],
-  },
-];
-const normalize = (name: string) => name.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-const byName = new Map(areas.flatMap(area => area.names.map(name => [normalize(name), area] as const)));
+export const GROUPING_ORDER: ConcreteGroupingMode[] = ['declared', 'namespaces', 'suggested', 'types'];
 
 type Group = {
   id: string;
@@ -111,12 +46,6 @@ const typeGroup = (entity: Entity): Group => ({
   color: TYPE_GROUP_COLOR,
   provenance: 'Definition type',
 });
-
-const exampleArea = (entity: Entity) => {
-  let key = normalize(entity.name.split('__')[0]);
-  if (key === 'purchaseorder') key = 'order';
-  return byName.get(key);
-};
 
 const textValues = (values: unknown[]) => values.filter((v): v is string => typeof v === 'string' && v.trim().length > 0).map(v => v.trim());
 
@@ -226,10 +155,6 @@ function communityGroup(entity: Entity, context: GroupingContext, counts: Counts
 }
 
 function groupFor(mode: ConcreteGroupingMode, entity: Entity, context: GroupingContext, counts: Counts): Group {
-  if (mode === 'example') {
-    const area = exampleArea(entity);
-    return area ? { ...area, provenance: 'Curated UBL example' } : typeGroup(entity);
-  }
   if (mode === 'declared') return declaredGroup(entity, counts);
   if (mode === 'namespaces') return namespaceGroup(entity, counts);
   if (mode === 'suggested') return communityGroup(entity, context, counts);
@@ -257,7 +182,7 @@ function assignGroups(mode: ConcreteGroupingMode, visible: Entity[], context: Gr
         id: correction,
         name: own(grouping.names, correction) ?? groups.get(correction)?.name ?? correction,
         description: 'Workspace grouping correction',
-        color: groups.get(correction)?.color ?? areas.find(a => a.id === correction)?.color ?? paletteColorFor(correction),
+        color: groups.get(correction)?.color ?? paletteColorFor(correction),
         provenance: 'User correction',
       };
     }
@@ -279,18 +204,16 @@ function disabledReason(mode: ConcreteGroupingMode, visible: Entity[], context: 
   }
   if (mode === 'namespaces') return visible.some(e => e.namespace) ? 'Every IRI is in one namespace' : 'No IRIs declared';
   if (mode === 'suggested') return context.suggested.backboneEdges ? 'The relationships form a single community' : 'No relationships to group by';
-  if (mode === 'example') return 'Fewer than two example areas match';
   return 'Every entity has the same type';
 }
 
-// How many real groups a mode finds: distinct domains, namespaces, communities, areas or types.
+// How many real groups a mode finds: distinct domains, namespaces, communities or types.
 // Catch-all groups such as Unassigned or No IRI do not count, so a mode that sorts everything
 // into one real group plus a catch-all is still disabled.
 function basisCount(mode: ConcreteGroupingMode, visible: Entity[], context: GroupingContext) {
   const distinct = (values: (string | undefined)[]) => new Set(values.filter((v): v is string => v !== undefined)).size;
   if (mode === 'declared') return distinct(visible.map(e => declaredDomains(e)[0]));
   if (mode === 'namespaces') return distinct(visible.map(e => e.namespace?.iri));
-  if (mode === 'example') return distinct(visible.map(e => exampleArea(e)?.id));
   if (mode === 'suggested') return context.suggested.backboneEdges ? distinct([...context.suggested.membership.values()]) : 0;
   return distinct(visible.map(e => e.kind));
 }
@@ -298,19 +221,17 @@ function basisCount(mode: ConcreteGroupingMode, visible: Entity[], context: Grou
 /** Reports, for each concrete mode, whether it is offered, its group count and any reason it is
  * disabled. Corrections are left out: they are the user's edits, not the mode's basis. */
 export function groupingModes(visible: Entity[], context: GroupingContext) {
-  const matched = visible.filter(e => exampleArea(e)).length;
-  const exampleOffered = visible.length > 0 && matched / visible.length >= EXAMPLE_AREA_SHARE;
   const states = {} as Record<ConcreteGroupingMode, GroupingModeState>;
   for (const mode of GROUPING_ORDER) {
-    const offered = mode !== 'example' || exampleOffered;
-    const groups = offered ? assignGroups(mode, visible, context).groups.size : 0;
-    const usable = offered && basisCount(mode, visible, context) >= 2;
+    const offered = true;
+    const groups = assignGroups(mode, visible, context).groups.size;
+    const usable = basisCount(mode, visible, context) >= 2;
     states[mode] = usable ? { offered, groups } : { offered, groups, reason: disabledReason(mode, visible, context) };
   }
   return states;
 }
 
-const enabled = (state: GroupingModeState) => state.offered && !state.reason;
+const enabled = (state: GroupingModeState | undefined) => state?.offered && !state.reason;
 
 /** The ways of grouping that work for this file, in the order Auto tries them. Modes with nothing
  * to group are left out rather than shown disabled. */
@@ -337,12 +258,7 @@ export function modelOverview(entities: Entity[], edges: Relationship[], _name: 
   // A stored choice of a mode this document cannot use falls back to Auto.
   const mode: ConcreteGroupingMode = requested !== 'auto' && enabled(modes[requested]) ? requested : autoMode;
   const { groups, memberships, counts } = assignGroups(mode, visible, context, grouping);
-  const order = areas.map(a => a.id);
-  const ordered = [...groups.values()].sort((first, second) => {
-    const ai = order.indexOf(first.id);
-    const bi = order.indexOf(second.id);
-    return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi) || first.name.localeCompare(second.name);
-  });
+  const ordered = [...groups.values()].sort((first, second) => first.name.localeCompare(second.name));
   const groupOf = new Map(ordered.flatMap(g => g.entities.map(e => [e.id, g.id] as const)));
   const degree = new Map(visible.map(e => [e.id, 0]));
   const matrix = new Map<string, Relationship[]>();
@@ -378,7 +294,6 @@ export function modelOverview(entities: Entity[], edges: Relationship[], _name: 
 
 /** Names each concrete grouping mode as the overview headings show it. */
 export const GROUPING_LABELS: Record<ConcreteGroupingMode, string> = {
-  example: 'Curated example areas',
   declared: 'Declared domains',
   namespaces: 'IRI namespaces',
   suggested: 'Suggested communities',
@@ -386,7 +301,6 @@ export const GROUPING_LABELS: Record<ConcreteGroupingMode, string> = {
 };
 
 const EXPLANATIONS: Record<ConcreteGroupingMode, string> = {
-  example: 'Curated UBL example display areas; these are not source-declared domains.',
   declared: 'Uses only domain/domains declarations. Multiple affiliations are retained; the first determines placement.',
   suggested:
     'Deterministic suggestions from undirected business relationships (foreign keys, joins, metric references and mapped links), excluding inheritance and primitive hubs. Review and correct these groups.',

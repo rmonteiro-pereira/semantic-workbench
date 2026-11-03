@@ -18,10 +18,10 @@ export function modelCardHeight(collapsed: boolean): number {
   return collapsed ? 96 : CARD_HEIGHT;
 }
 
-/** Returns the type sizes, in canvas units, that keep names readable once the canvas is scaled. */
-export function textSizesAt(zoom: number) {
-  const entityName = zoom >= READABLE_ZOOM ? 16 : Math.min(LARGEST_ENTITY_NAME_PX, Math.ceil(12 / zoom));
-  const areaTitle = Math.min(LARGEST_AREA_TITLE_PX, Math.max(20, Math.ceil(13 / zoom)));
+/** Network text scales with its original cards; Layered text compensates for zoom. */
+export function textSizesAt(zoom: number, layout: 'network' | 'layered' = 'layered') {
+  const entityName = layout === 'network' || zoom >= READABLE_ZOOM ? 16 : Math.min(LARGEST_ENTITY_NAME_PX, Math.ceil(12 / zoom));
+  const areaTitle = layout === 'network' ? 20 : Math.min(LARGEST_AREA_TITLE_PX, Math.max(20, Math.ceil(13 / zoom)));
   // Two lines of the larger name no longer fit the card, so it keeps one.
   const areaLinks = Math.min(LARGEST_AREA_LINKS_PX, Math.max(12, Math.ceil(10 / zoom)));
   const entityLines = entityName > 17 ? 1 : 2;

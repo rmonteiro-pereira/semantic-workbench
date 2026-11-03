@@ -77,8 +77,7 @@
 }
 .header-actions > button,
 .header-actions .commit-wrap > button,
-.header-actions .menu-button > button,
-.header-account .menu-button > button {
+.header-actions .menu-button > button {
   height: var(--header-control-height);
   padding: 0 12px;
   font-size: 13px;
@@ -192,8 +191,7 @@
   }
   .header-actions > button,
   .header-actions .commit-wrap > button,
-  .header-actions .menu-button > button,
-  .header-account .menu-button > button {
+  .header-actions .menu-button > button {
     min-width: var(--header-control-height);
     padding: 0 9px;
   }

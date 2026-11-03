@@ -5,7 +5,7 @@ import { Handle, Position, useUpdateNodeInternals } from '@xyflow/react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { PropertyBadges } from '../components/PropertyBadges';
 import type { LineageCard, LineageColumn } from './lineage';
-import { FILTER_H, FOOT_H, ROW_H, listBox } from './lineage-layout';
+import { FILTER_H, FOOT_H, cardHeaderHeight, columnHeight, listBox } from './lineage-layout';
 
 /** Marks a place on a card where lines attach: one handle for lines in, one for lines out. */
 export function Port({ id, top, edge }: { id: string; top: number; edge?: boolean }) {
@@ -39,8 +39,10 @@ export const ColumnRow = memo(({ card, column, selected, onPath, onSelect }: Row
       onClick={() => onSelect(column.id)}
     >
       <span className="lineage-row-name">{column.path}</span>
-      {column.type && <small>{column.type}</small>}
-      <PropertyBadges badges={column.badges} />
+      <span className="lineage-row-meta">
+        {column.type && <small>{column.type}</small>}
+        <PropertyBadges badges={column.badges} />
+      </span>
     </button>
   );
 });
@@ -59,13 +61,13 @@ type ListProps = {
 const OVERSCAN = 3;
 // The ports of connected rows follow the list as it scrolls. A row scrolled out of view keeps its
 // port on the list's edge, so its line still reaches the card, and a marker counts such rows.
-function connectedPorts(columns: LineageColumn[], connected: ReadonlySet<string>, scroll: number) {
+function connectedPorts(columns: LineageColumn[], connected: ReadonlySet<string>, scroll: number, offsets: number[]) {
   const out: { id: string; y: number; above: boolean; below: boolean }[] = [];
   columns.forEach((column, index) => {
     if (connected.has(column.id))
       out.push({
         id: column.id,
-        y: index * ROW_H + ROW_H / 2 - scroll,
+        y: offsets[index] + columnHeight(column) / 2 - scroll,
         above: false,
         below: false,
       });
@@ -81,14 +83,21 @@ export function ColumnList(props: ListProps) {
   const updateNodeInternals = useUpdateNodeInternals();
   const needle = filter.trim().toLowerCase();
   const shown = useMemo(() => (needle ? columns.filter(c => c.path.toLowerCase().includes(needle)) : columns), [columns, needle]);
-  const box = listBox(columns.length, filterable, visibleRows);
+  const offsets = useMemo(() => {
+    const values = [0];
+    for (const column of shown) values.push(values.at(-1)! + columnHeight(column));
+    return values;
+  }, [shown]);
+  const box = listBox(columns.length, filterable, visibleRows, cardHeaderHeight(card), columns.map(columnHeight));
   useEffect(() => {
     const frame = requestAnimationFrame(() => updateNodeInternals(card.id));
     return () => cancelAnimationFrame(frame);
   }, [scrollTop, needle, card.id, updateNodeInternals]);
-  const first = Math.max(0, Math.floor(scrollTop / ROW_H) - OVERSCAN);
-  const last = Math.min(shown.length, Math.ceil((scrollTop + box.height) / ROW_H) + OVERSCAN);
-  const ports = connectedPorts(shown, connected, scrollTop);
+  const start = offsets.findIndex((top, index) => index < shown.length && offsets[index + 1] > scrollTop);
+  const end = offsets.findIndex(top => top >= scrollTop + box.height);
+  const first = Math.max(0, (start < 0 ? shown.length : start) - OVERSCAN);
+  const last = Math.min(shown.length, (end < 0 ? shown.length : end) + OVERSCAN);
+  const ports = connectedPorts(shown, connected, scrollTop, offsets);
   const hiddenByFilter = columns.filter(c => connected.has(c.id) && !shown.includes(c));
   const above = ports.filter(p => p.y < 0).length;
   const below = ports.filter(p => p.y > box.height).length;
@@ -107,9 +116,9 @@ export function ColumnList(props: ListProps) {
         tabIndex={0}
         onScroll={e => setScrollTop(e.currentTarget.scrollTop)}
       >
-        <ul style={{ height: shown.length * ROW_H }}>
+        <ul style={{ height: offsets.at(-1) }}>
           {shown.slice(first, last).map((column, offset) => (
-            <li key={column.id} data-id={column.id} className={onPath?.has(column.id) ? 'on-path' : ''} style={{ top: (first + offset) * ROW_H, height: ROW_H }}>
+            <li key={column.id} data-id={column.id} className={onPath?.has(column.id) ? 'on-path' : ''} style={{ top: offsets[first + offset], height: columnHeight(column) }}>
               <ColumnRow card={card} column={column} selected={selected} onPath={onPath} onSelect={onSelect} />
             </li>
           ))}

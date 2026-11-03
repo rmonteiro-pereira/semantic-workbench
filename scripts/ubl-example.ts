@@ -288,6 +288,8 @@ const readmeLines = [
   ``,
   `Regenerate from the project root: python3 scripts/extract-ubl.py then bun scripts/ubl-example.ts.`,
   ``,
+  `Grouping uses the workbench's generic modes, not a UBL name classifier. This ontology has no declared domains, so Automatic uses structural community suggestions, not source-declared UBL areas. Review or correct groups through Graph → Adjust grouping; corrections affect only the saved view, never relationships or exported definitions. Legacy curated-example preferences fall back to Automatic while retaining manual corrections and group names.`,
+  ``,
 ];
 await Bun.write(dir + 'README.md', readmeLines.join('\n'));
 console.log(summary);

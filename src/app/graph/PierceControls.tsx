@@ -74,7 +74,7 @@ export function PierceControls({
     <span className="pierce-controls">
       <button onClick={onPierce} disabled={running} title={title ?? 'Expand everything reachable in the chosen direction'}>
         <Network size={13} />
-        Show all connected
+        Full pierce
       </button>
       <span className="pierce-direction-label">Expand:</span>
       <span role="radiogroup" aria-label="Pierce direction" className="pierce-direction">

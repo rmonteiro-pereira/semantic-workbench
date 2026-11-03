@@ -108,6 +108,19 @@ export async function headerProblems(page: Page): Promise<string[]> {
         problems.push(`${describe(control)} is ${rect.height}px high, not ${controlHeight}px`);
       }
     }
+    const avatar = header.querySelector('.person-avatar');
+    const personButton = avatar?.closest('button');
+    if (avatar && personButton) {
+      const circle = avatar.getBoundingClientRect();
+      const trigger = personButton.getBoundingClientRect();
+      if (Math.abs(circle.width - circle.height) > 0.5) problems.push('the person avatar is compressed instead of circular');
+      if (Math.abs(trigger.width - trigger.height) > 0.5) problems.push('the person menu trigger is not square');
+      const outside = circle.left < trigger.left || circle.right > trigger.right || circle.top < trigger.top || circle.bottom > trigger.bottom;
+      if (outside) problems.push('the person avatar extends outside its button');
+      const offsetX = Math.abs(circle.left + circle.width / 2 - (trigger.left + trigger.width / 2));
+      const offsetY = Math.abs(circle.top + circle.height / 2 - (trigger.top + trigger.height / 2));
+      if (offsetX > 0.5 || offsetY > 0.5) problems.push('the person avatar is not centred in its button');
+    }
     // The title block takes the free width and must never overlap a control.
     const titleBlock = header.querySelector('.workspace-title')?.getBoundingClientRect();
     const rectangles = controls.map(control => ({

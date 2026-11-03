@@ -103,8 +103,8 @@ export function CommitDialog({ project, projectName, itemHints = {}, unsaved = [
   const change = changes.find(c => c.repoPath === selected);
   useEffect(() => {
     setConfirmRevert(false);
+    setDiff(null);
     if (!change) {
-      setDiff(null);
       return;
     }
     let live = true;
@@ -294,13 +294,14 @@ export function CommitDialog({ project, projectName, itemHints = {}, unsaved = [
                     filename={change.path}
                     before={diff.before}
                     after={diff.after}
+                    newFile={!diff.beforeExists && diff.afterExists}
                     beforeLabel={diff.beforeExists ? 'Last commit' : 'Not in the last commit'}
                     afterLabel={diff.afterExists ? 'File now' : 'Deleted'}
                   />
                 )}
               </section>
             ) : (
-              <p className="scm-empty">Select a file to see its changes.</p>
+              <p className="scm-empty">{change ? 'Loading diff…' : 'Select a file to see its changes.'}</p>
             )}
           </div>
         </div>

@@ -871,9 +871,7 @@ button.odcs-link.fk:hover {
   outline-style: dashed;
 }
 .lineage-card[style*='--card-tint'] {
-  background:
-    linear-gradient(color-mix(in srgb, var(--card-tint) 14%, var(--color-surface)), color-mix(in srgb, var(--card-tint) 14%, var(--color-surface))) top/100% 64px no-repeat,
-    var(--color-surface);
+  background: linear-gradient(color-mix(in srgb, var(--card-tint) 14%, var(--color-surface)), color-mix(in srgb, var(--card-tint) 14%, var(--color-surface))), var(--color-surface);
 }
 .lineage-card.center {
   box-shadow:
@@ -917,23 +915,22 @@ button.odcs-link.fk:hover {
   line-height: 18px;
   font-size: 14px;
   max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .lineage-card-title small {
-  line-height: 14px;
+  line-height: 16px;
   font-size: var(--text-small);
   color: var(--text-muted);
   max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .lineage-card-kind {
   line-height: 13px;
-  white-space: nowrap;
+  white-space: normal;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 4px;
   font-size: var(--text-small);
@@ -947,6 +944,15 @@ button.odcs-link.fk:hover {
   min-width: 0;
   letter-spacing: 0;
   text-transform: none;
+}
+.lineage-card-title > .prop-badges {
+  flex-wrap: wrap;
+  gap: 4px;
+  line-height: 20px;
+}
+.lineage-card-title > .prop-badges .prop-badge {
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .lineage-card-kind .prop-badge {
   font-size: var(--text-small);
@@ -997,12 +1003,14 @@ button.odcs-link.fk:hover {
   min-width: 0;
   height: 100%;
   display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 6px;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0;
   border: 0;
   background: none;
-  padding: 0 10px;
+  padding: 4px 10px;
+  box-sizing: border-box;
   text-align: left;
   cursor: pointer;
   font-size: var(--text-small);
@@ -1011,35 +1019,40 @@ button.odcs-link.fk:hover {
   background: var(--color-surface-sunken);
 }
 .lineage-row-name {
-  flex: 1 1 90px;
-  min-width: 36px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  flex: none;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 18px;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 13px;
 }
 .lineage-row small {
-  flex: 0 1 72px;
+  flex: 0 1 auto;
   min-width: 0;
-  max-width: 72px;
-  overflow: hidden;
-  text-overflow: ellipsis;
   color: var(--color-text-muted);
   font-size: var(--text-small);
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 20px;
+}
+.lineage-row-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 6px;
+  min-width: 0;
 }
 .lineage-row .prop-badges {
-  margin-left: auto;
   flex: 0 1 auto;
-  flex-wrap: nowrap;
-  gap: 2px;
+  flex-wrap: wrap;
+  gap: 0 4px;
 }
 .lineage-row .prop-badge {
   min-width: 0;
   padding: 0 4px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: anywhere;
   font-size: var(--text-small);
   line-height: 17px;
 }
@@ -1490,12 +1503,8 @@ button.odcs-link.fk:hover {
   outline-style: dashed;
   background: var(--color-surface-page);
 }
-/* The header has room for one line below the name; the full list is in the tooltip. */
 .lineage-card.group .lineage-card-title small {
   white-space: normal;
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
 }
 /* A name drawn at the far-zoom size fills the card header, so the kind line steps aside. */
 .zoom-far .lineage-card-kind {
@@ -1518,4 +1527,28 @@ button.odcs-link.fk:hover {
     flex: none;
     height: max(60vh, 420px);
   }
+}
+.odcs-lineage-host:fullscreen,
+.odcs-lineage-host.window-fill {
+  height: 100dvh;
+  width: 100vw;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  background: var(--color-surface);
+}
+.odcs-lineage-host.window-fill {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+}
+.odcs-lineage-host:fullscreen .lineage-view,
+.odcs-lineage-host.window-fill .lineage-view {
+  height: 100%;
+}
+.odcs-lineage-host:fullscreen .lineage-stage,
+.odcs-lineage-host.window-fill .lineage-stage {
+  flex: 1;
+  height: auto;
+  min-height: 0;
 }

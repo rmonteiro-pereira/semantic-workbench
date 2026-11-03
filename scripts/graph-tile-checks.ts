@@ -4,10 +4,11 @@ import { revealGraphControls } from './helpers/graph-options';
 import { routeApi, type IsolatedApi } from './helpers/isolated-api';
 import { groupRelationships } from '../src/app/graph/graph-view';
 import { inspect } from '../src/shared/core/model';
+import { graphCanvasProblems } from './helpers/graph-canvas-geometry';
 
-// The whole-model graph groups the UBL example into area tiles. These checks read the real layout
-// in the browser: whole names, tiles that do not overlap, links between areas drawn only for the
-// selected entity, a toolbar whose controls are never cut off, and centred toggles.
+// The whole-model graph keeps relationship-driven placement within area frames. These checks read
+// the real browser layout: whole names, frames that do not overlap, links between areas always present,
+// a toolbar whose controls are never cut off, and centred toggles.
 
 type Box = { left: number; top: number; right: number; bottom: number };
 
@@ -31,9 +32,11 @@ async function nameProblems(page: Page) {
       const cardBox = card.getBoundingClientRect();
       const nameBox = name.getBoundingClientRect();
       const text = name.textContent ?? '';
+      const style = getComputedStyle(name);
       if (text.includes('…') || text.includes('...')) problems.push(`${text} ends with an ellipsis`);
-      if (getComputedStyle(name).textOverflow === 'ellipsis') problems.push(`${text} uses text-overflow ellipsis`);
-      if (name.scrollWidth > name.clientWidth + 1 || name.scrollHeight > name.clientHeight + 1) problems.push(`${text} is clipped by its own box`);
+      if (style.textOverflow === 'ellipsis') problems.push(`${text} uses text-overflow ellipsis`);
+      if ((name.scrollWidth > name.clientWidth + 1 && style.overflowX !== 'visible') || (name.scrollHeight > name.clientHeight + 1 && style.overflowY !== 'visible'))
+        problems.push(`${text} is clipped by its own box`);
       const outside = nameBox.left < cardBox.left - 1 || nameBox.right > cardBox.right + 1 || nameBox.top < cardBox.top - 1 || nameBox.bottom > cardBox.bottom + 1;
       if (outside) problems.push(`${text} overflows its card`);
       const nodeWidth = card.closest<HTMLElement>('.react-flow__node')!.getBoundingClientRect().width;
@@ -83,20 +86,21 @@ export async function checkTiles(page: Page, api: IsolatedApi) {
   for (let first = 0; first < boxes.length; first++) {
     for (let second = first + 1; second < boxes.length; second++) expect(overlapping(boxes[first], boxes[second])).toBe(false);
   }
-  await expect(page.locator('.full-graph .area-links')).toHaveCount(boxes.length);
-  await expect(page.locator('.full-graph .area-links').first()).toHaveText(/^(links to \d+ areas?|no links to other areas)$/);
-  expect(await crossAreaLinks(page, connections)).toEqual([]);
-  // Edges are drawn once the first fit has moved the view, so wait for them instead of counting at once.
-  await expect.poll(() => page.locator('.full-graph .react-flow__edge').count()).toBeGreaterThan(0);
-  const drawnBefore = await page.locator('.full-graph .react-flow__edge').count();
+  const backgrounds = await page.locator('.full-graph .full-area-title').evaluateAll(titles => titles.map(title => getComputedStyle(title).backgroundColor));
+  expect(backgrounds.every(background => background === 'rgba(0, 0, 0, 0)')).toBe(true);
+  await expect(page.locator('.full-graph .react-flow__edge')).toHaveCount(connections.length);
+  const linksBefore = await crossAreaLinks(page, connections);
+  expect(linksBefore.length).toBeGreaterThan(0);
   const invoice = ubl.entities.find(entity => entity.name === 'Invoice')!;
   await page.locator(`.full-graph .react-flow__node[data-id="${invoice.id}"]`).click();
-  const around = connections.filter(connection => connection.source === invoice.id || connection.target === invoice.id).map(connection => connection.id);
-  // The links drawn for the previous selection leave a moment after the click, so wait for the settled set.
-  const strayLinks = async () => (await crossAreaLinks(page, connections)).filter(id => !around.includes(id));
-  await expect.poll(() => crossAreaLinks(page, connections)).not.toEqual([]);
-  await expect.poll(strayLinks).toEqual([]);
-  expect(await page.locator('.full-graph .react-flow__edge').count()).toBeGreaterThan(drawnBefore);
+  await expect(page.locator('.full-graph .react-flow__edge')).toHaveCount(connections.length);
+  expect(await crossAreaLinks(page, connections)).toEqual(linksBefore);
+  await expect(
+    page
+      .locator('.full-graph .react-flow__node-entity')
+      .filter({ has: page.locator('.full-entity:not(.focused)') })
+      .first(),
+  ).toHaveCSS('opacity', '0.32');
 }
 
 // The drop-down arrow of a select takes about this much of its width.
@@ -156,42 +160,33 @@ export async function checkToggleCentring(page: Page, api: IsolatedApi) {
   for (const gap of gaps) expect(Math.abs(gap.left - gap.right), `${gap.label} sits off-centre`).toBeLessThanOrEqual(1);
 }
 
-// Names and titles smaller than this on screen are too small to read.
-const SMALLEST_READABLE_PX = 10;
-
-/** The smallest on-screen size, in pixels, of the entity names, area titles and area link summaries. */
-async function shownTextSizes(page: Page) {
-  return page.evaluate(() => {
-    const zoom = new DOMMatrix(getComputedStyle(document.querySelector('.react-flow__viewport')!).transform).a;
-    const smallest = (selector: string) => Math.min(...[...document.querySelectorAll<HTMLElement>(selector)].map(element => parseFloat(getComputedStyle(element).fontSize) * zoom));
-    return {
-      entityName: smallest('.full-graph .full-entity strong'),
-      areaTitle: smallest('.full-graph .full-area-title strong'),
-      areaLinks: smallest('.full-graph .area-links'),
-    };
-  });
-}
-
-/** After Fit model, entity names at laptop width and area titles at phone width stay readable. */
+/** Network names keep a consistent historical scale, including cards with floating metric badges. */
 export async function checkFittedTextSizes(browser: Browser, api: IsolatedApi) {
   const laptop = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   try {
     await openGraph(laptop, api);
-    const sizes = await shownTextSizes(laptop);
-    expect(sizes.entityName, 'the smallest entity name at 1440 px').toBeGreaterThanOrEqual(SMALLEST_READABLE_PX);
-    expect(sizes.areaTitle, 'the smallest area title at 1440 px').toBeGreaterThanOrEqual(SMALLEST_READABLE_PX);
+    const nameSizes = () => laptop.locator('.full-entity strong').evaluateAll(names => [...new Set(names.map(name => getComputedStyle(name).fontSize))]);
+    await expect.poll(nameSizes).toEqual(['16px']);
+    await expect(laptop.locator('.full-area-title').first()).toHaveCSS('font-size', '20px');
+    const viewport = () => laptop.locator('.full-graph .react-flow__viewport').getAttribute('style');
+    const fitted = await viewport();
+    await laptop.getByRole('button', { name: 'Zoom in', exact: true }).click();
+    await expect.poll(viewport).not.toBe(fitted);
+    await expect.poll(nameSizes).toEqual(['16px']);
+    await laptop.getByRole('button', { name: 'Zoom out', exact: true }).click();
+    await expect.poll(nameSizes).toEqual(['16px']);
+    expect(await graphCanvasProblems(laptop, 'model')).toEqual([]);
   } finally {
     await laptop.close();
   }
   const phone = await browser.newPage({ viewport: { width: 390, height: 844 } });
   try {
     await openGraph(phone, api, 'commerce-scale.ttl');
-    const sizes = await shownTextSizes(phone);
-    expect(sizes.areaTitle, 'the smallest area title at 390 px').toBeGreaterThanOrEqual(SMALLEST_READABLE_PX);
+    expect(await graphCanvasProblems(phone, 'model')).toEqual([]);
   } finally {
     await phone.close();
   }
-  console.log('PASS graph text sizes: entity names and area titles stay at 10 px or more after Fit model');
+  console.log('PASS graph text: consistent Network typography across zoom, whole names and clear headings');
 }
 
 /** The position, inside its area, that a card is laid out at, read from the card's own transform. */
@@ -242,5 +237,5 @@ export async function checkGraphTiles(browser: Browser, api: IsolatedApi) {
   }
   await checkFittedTextSizes(browser, api);
   await checkDragSurvivesResize(browser, api);
-  console.log('PASS graph area tiles: whole names, no overlap, cross-area links on selection, wrapping toolbar, centred toggles');
+  console.log('PASS graph area tiles: whole names, no overlap, persistent cross-area links, wrapping toolbar, centred toggles');
 }

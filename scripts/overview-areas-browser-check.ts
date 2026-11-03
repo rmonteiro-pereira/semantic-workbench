@@ -1,6 +1,8 @@
 // Checks that Group by lives only in the Graph toolbar and that Overview cards pack as a masonry with a cap.
 import { appUrl } from './helpers/base-url';
 import { chromium, expect } from '@playwright/test';
+import { mkdir } from 'node:fs/promises';
+import { join } from 'node:path';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { expectModelName } from './helpers/header';
 import { groupTrigger, groupingMenuLabels, openGroupMenu, chooseGrouping } from './helpers/grouping-menu';
@@ -9,6 +11,7 @@ import { LOCAL_READER } from '../src/server/projects/reader';
 
 const AREA_ENTITY_LIMIT = 8;
 const flightsSource = await Bun.file('public/examples/ossie/flights.ontology.yaml').text();
+const ublSource = await Bun.file('public/examples/ubl/ubl.ontology.yaml').text();
 // Twelve entities of one type and no links, domains or IRIs: nothing to choose between, one big area.
 const plainNames = 'Alpha Bravo Charlie Delta Echo Foxtrot Golf Hotel India Juliet Kilo Lima'.split(' ');
 const plainSource = ['version: 0.2.0.dev0', 'name: Plain list', 'ontology:', ...plainNames.map(name => `- concept: ${name}\n  type: EntityType`)].join('\n') + '\n';
@@ -16,7 +19,8 @@ const plainSource = ['version: 0.2.0.dev0', 'name: Plain list', 'ontology:', ...
 const api = await startIsolatedApi();
 await api.ws.importBatch({ files: [{ path: 'plain.ontology.yaml', source: plainSource }] }, LOCAL_READER);
 await api.ws.importBatch({ files: [{ path: 'flights.ontology.yaml', source: flightsSource }] }, LOCAL_READER);
-const browser = await chromium.launch();
+await api.ws.importBatch({ files: [{ path: 'ubl.ontology.yaml', source: ublSource }], name: 'UBL' }, LOCAL_READER);
+const browser = await chromium.launch({ channel: 'msedge' });
 const page = await browser.newPage({ viewport: { width: 1600, height: 1000 } });
 const errors: string[] = [];
 page.on('pageerror', error => errors.push(error.message));
@@ -29,6 +33,12 @@ async function check(name: string, action: () => Promise<void>) {
   await action();
   passed++;
   console.log('PASS', name);
+}
+async function screenshot(name: string) {
+  const directory = process.env.GROUPING_SCREENSHOTS;
+  if (!directory) return;
+  await mkdir(directory, { recursive: true });
+  await page.screenshot({ path: join(directory, name + '.png'), fullPage: true });
 }
 
 try {
@@ -87,13 +97,14 @@ try {
     for (const width of [1100, 1280, 1450, 390]) {
       await page.setViewportSize({ width, height: 900 });
       // On a phone the graph options, Group included, sit behind the Controls button.
-      const controls = page.getByRole('button', { name: 'Controls', exact: true });
-      if (await controls.isVisible()) await controls.click();
+      if (width === 390) await expect(page.getByRole('button', { name: 'Controls', exact: true })).toBeVisible();
+      await openGroupMenu(page);
       const trigger = groupTrigger(page);
       await expect(trigger).toBeVisible();
       const fit = await trigger.evaluate(button => ({ scrollWidth: button.scrollWidth, clientWidth: button.clientWidth, text: (button.textContent ?? '').trim() }));
       expect(fit.scrollWidth, `${width}px: button content fits`).toBeLessThanOrEqual(fit.clientWidth);
       expect(fit.text.endsWith('…'), `${width}px: text ${fit.text}`).toBe(false);
+      await page.keyboard.press('Escape');
     }
     await page.setViewportSize({ width: 1600, height: 1000 });
   });
@@ -106,18 +117,64 @@ try {
     expect(new Set(heights).size, 'cards of different content keep different heights').toBeGreaterThan(1);
   });
 
-  await check('a file with nothing to choose between hides the Graph control and the grouping note only says how it is grouped', async () => {
+  await check('manual grouping stays accessible when no automatic mode has a grouping basis', async () => {
     await page.getByRole('button', { name: 'plain.ontology.yaml', exact: true }).click();
     await expectModelName(page, 'Plain list');
     await openTab('Graph');
-    await expect(groupTrigger(page)).toHaveCount(0);
+    await expect(groupTrigger(page)).toBeVisible();
+    expect(await groupingMenuLabels(page)).toEqual(['Automatic']);
+    await (await openGroupMenu(page)).getByRole('button', { name: 'Adjust grouping…' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Adjust grouping' });
+    await dialog.getByLabel('New group name').fill('Reviewed');
+    await dialog.getByRole('button', { name: 'Apply grouping correction' }).click();
+    await expect(dialog.getByRole('list', { name: 'Grouping corrections' })).toContainText('Alpha → Reviewed');
+    await screenshot('plain-manual-correction-desktop');
+    await dialog.getByRole('button', { name: 'Close', exact: true }).click();
     await openTab('Overview');
     const note = page.locator('.overview-grouping-note');
     await expect(note).toContainText('Grouped by definition types, as in Graph.');
-    await expect(note.getByRole('button')).toHaveCount(0);
-    const card = page.locator('.business-area');
-    await expect(card.locator('.area-entities button')).toHaveCount(AREA_ENTITY_LIMIT);
-    await expect(card.getByRole('button', { name: 'Show all 12', exact: true })).toBeVisible();
+    await expect(note.getByRole('button', { name: 'Change in Graph' })).toBeVisible();
+    await expect(page.locator('.business-area')).toHaveCount(2);
+    await page.reload();
+    await openTab('Overview');
+    await expect(page.locator('.business-area').filter({ hasText: 'Reviewed' })).toContainText('Alpha');
+    expect(api.ws.documents().find(doc => doc.filename === 'plain.ontology.yaml')?.source).toBe(plainSource);
+  });
+
+  await check('UBL uses generic communities and manual corrections survive desktop/mobile reloads without changing source', async () => {
+    await page.getByRole('button', { name: 'ubl.ontology.yaml', exact: true }).click();
+    await openTab('Overview');
+    await expect(page.locator('.overview-grouping-note')).toContainText('Grouped by suggested communities');
+    await expect(page.locator('.business-area')).toHaveCount(4);
+    await screenshot('ubl-suggested-desktop');
+    for (const width of [1600, 390]) {
+      await page.setViewportSize({ width, height: 1000 });
+      await openTab('Graph');
+      await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60_000 });
+      expect(await groupingMenuLabels(page)).toEqual(['Suggested communities', 'Automatic']);
+      const menu = await openGroupMenu(page);
+      await expect(menu).not.toContainText(/UBL|Curated/);
+      await screenshot(`ubl-grouping-menu-${width}`);
+      await menu.getByRole('button', { name: 'Adjust grouping…' }).click();
+      const dialog = page.getByRole('dialog', { name: 'Adjust grouping' });
+      await dialog.getByLabel('New group name').fill(`Review ${width}`);
+      await dialog.getByRole('button', { name: 'Apply grouping correction' }).click();
+      await expect(dialog.getByRole('list', { name: 'Grouping corrections' })).toContainText(`Review ${width}`);
+      await screenshot(`ubl-manual-correction-${width}`);
+      await dialog.getByRole('button', { name: 'Close', exact: true }).click();
+      const doc = api.ws.documents().find(doc => doc.filename === 'ubl.ontology.yaml')!;
+      await expect.poll(() => JSON.stringify(api.ws.grouping(doc.id, LOCAL_READER))).toContain(`custom:Review ${width}`);
+      await openTab('Overview');
+      await page.reload();
+      const ubl = page.getByRole('button', { name: 'ubl.ontology.yaml', exact: true });
+      if (width === 390) await page.getByRole('button', { name: 'Open workspace', exact: true }).click();
+      await ubl.click();
+      await expectModelName(page, /UBL/);
+      await openTab('Overview');
+      await expect(page.locator('.business-area').filter({ hasText: `Review ${width}` })).toBeVisible();
+      const source = api.ws.documents().find(doc => doc.filename === 'ubl.ontology.yaml')?.source;
+      expect(source).toBe(ublSource);
+    }
   });
 
   expect(errors).toEqual([]);

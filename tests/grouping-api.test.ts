@@ -56,3 +56,25 @@ test('grouping API rejects malformed modes and corrections and missing documents
     workspace.dispose();
   }
 });
+
+test('legacy example grouping reads as Auto and saves canonically without losing corrections', async () => {
+  const workspace = await testWorkspace();
+  try {
+    const doc = await workspace.ws.saveDocument('sample.yaml', 'ontology: [{concept: Order}, {concept: Party}]', LOCAL_READER);
+    const legacy = { mode: 'example', assignments: { 'ontology/0': 'documents' }, names: { documents: 'Reviewed documents', parties: 'Trading parties' } };
+    await workspace.ws.saveGrouping(doc.id, legacy, LOCAL_READER);
+    const url = 'http://localhost/api/documents/' + encodeURIComponent(doc.id) + '/grouping';
+    const migrated = { ...legacy, mode: 'auto' };
+    expect(await (await workspace.handler(new Request(url))).json()).toEqual(migrated);
+    expect(workspace.ws.state.view('ungrouped').files['sample.yaml']).toEqual(legacy);
+    const response = await workspace.handler(new Request(url, { method: 'PUT', body: JSON.stringify(legacy) }));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual(migrated);
+    expect(workspace.ws.state.view('ungrouped').files['sample.yaml']).toEqual(migrated);
+    expect(workspace.ws.documents()[0].hash).toBe(doc.hash);
+    expect((await workspace.handler(new Request(url, { method: 'PUT', body: JSON.stringify({ ...legacy, names: { documents: 5 } }) }))).status).toBe(400);
+    expect(await (await workspace.handler(new Request(url))).json()).toEqual(migrated);
+  } finally {
+    workspace.dispose();
+  }
+});

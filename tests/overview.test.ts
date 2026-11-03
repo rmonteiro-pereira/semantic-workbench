@@ -5,15 +5,18 @@ import { modelOverview } from '../src/app/graph/overview';
 async function ubl() {
   return inspect(await Bun.file('public/examples/ubl/ubl.ontology.yaml').text());
 }
-test('overview represents every business entity exactly once in eight explicit areas', async () => {
+test('overview represents every UBL entity exactly once using transparent structural suggestions', async () => {
   const model = await ubl();
   const overview = modelOverview(model.entities, model.edges, model.name);
-  expect(overview.groups).toHaveLength(8);
+  expect(overview.mode).toBe('suggested');
+  expect(overview.groups.length).toBeGreaterThan(1);
+  expect(overview.provenance.algorithm).toBe('Louvain modularity');
+  expect(overview.provenance.counts.suggested).toBe(45);
   const ids = overview.groups.flatMap(g => g.entities.map(e => e.id));
   expect(ids).toHaveLength(45);
   expect(new Set(ids).size).toBe(45);
   expect(new Set(ids)).toEqual(new Set(model.entities.map(e => e.id)));
-  expect(overview.groups[0].name).toBe('Business documents');
+  expect(overview.groups.every(group => group.provenance === 'Structural suggestion')).toBe(true);
 });
 test('directed matrix preserves all 277 relationship identities, including internal links', async () => {
   const model = await ubl();
@@ -21,7 +24,12 @@ test('directed matrix preserves all 277 relationship identities, including inter
   const links = [...overview.matrix.values()].flat();
   expect(links).toHaveLength(277);
   expect(new Set(links.map(e => e.id))).toEqual(new Set(model.edges.map(e => e.id)));
-  expect(overview.matrix.get(JSON.stringify(['documents', 'parties']))?.length).toBeGreaterThan(0);
+  expect(
+    [...overview.matrix.keys()].some(key => {
+      const [from, to] = JSON.parse(key);
+      return from !== to;
+    }),
+  ).toBe(true);
   for (const [key, links] of overview.matrix) {
     const [from, to] = JSON.parse(key);
     expect(links.every(e => overview.groupOf.get(e.source) === from && overview.groupOf.get(e.target) === to)).toBe(true);

@@ -5,7 +5,7 @@ import type { NodeProps } from '@xyflow/react';
 import { AlertTriangle, ExternalLink, Footprints, Minus, Plus } from 'lucide-react';
 import { KindIcon, KIND_LABEL } from '../graph/LineageLegend';
 import { moreRowId, type LineageCard as Card, type LineageColumn } from './lineage';
-import { CARD_W, HEADER_H, ROW_H, MORE_H } from './lineage-layout';
+import { CARD_W, MORE_H, cardHeaderHeight, cardGeometry, columnHeight, portY } from './lineage-layout';
 import { ColumnList, ColumnRow, Port } from './LineageColumnList';
 import { PropertyBadges } from '../components/PropertyBadges';
 // Hidden column edges attach to the shared more-columns row. Path rows stay on the card while they
@@ -80,8 +80,8 @@ export const LineageCardNode = memo(({ data }: NodeProps) => {
         cardData.onWalk(lineageCard.id);
       }}
     >
-      <Port id={lineageCard.id} top={HEADER_H / 2} />
-      <header className="lineage-card-head" style={{ height: HEADER_H }}>
+      <Port id={lineageCard.id} top={cardHeaderHeight(lineageCard) / 2} />
+      <header className="lineage-card-head" style={{ height: cardHeaderHeight(lineageCard) }}>
         <button
           className="lineage-card-title nodrag"
           onClick={openCard}
@@ -92,10 +92,10 @@ export const LineageCardNode = memo(({ data }: NodeProps) => {
             <KindIcon kind={legendKind} />
             {kindLabel}
             {cardData.center && <em>center</em>}
-            {lineageCard.badges?.length ? <PropertyBadges badges={lineageCard.badges} /> : null}
           </span>
           <strong>{lineageCard.label}</strong>
           {lineageCard.detail && <small>{lineageCard.detail}</small>}
+          {lineageCard.badges?.length ? <PropertyBadges badges={lineageCard.badges} /> : null}
         </button>
         {lineageCard.findings?.length ? (
           <span className="lineage-card-marks nodrag">
@@ -156,18 +156,19 @@ export const LineageCardNode = memo(({ data }: NodeProps) => {
 // A card that is not opened lists the columns that matter, then one line that opens the rest.
 function CollapsedRows({ data: cardData }: { data: CardData }) {
   const lineageCard = cardData.card;
+  const geometry = { id: lineageCard.id, rows: cardData.rows.map(row => row.id), portRows: [], more: cardData.more > 0, ...cardGeometry(lineageCard, cardData.rows) };
   if (cardData.rows.length === 0 && cardData.more === 0) return null;
   return (
     <ul className="lineage-rows">
-      {cardData.rows.map((row, i) => (
-        <li key={row.id} data-id={row.id} className={cardData.onPath?.has(row.id) ? 'on-path' : ''} style={{ height: ROW_H }}>
-          <Port id={row.id} top={HEADER_H + i * ROW_H + ROW_H / 2} />
+      {cardData.rows.map(row => (
+        <li key={row.id} data-id={row.id} className={cardData.onPath?.has(row.id) ? 'on-path' : ''} style={{ height: columnHeight(row) }}>
+          <Port id={row.id} top={portY(geometry, row.id)} />
           <ColumnRow card={lineageCard} column={row} selected={cardData.selected} onPath={cardData.onPath} onSelect={cardData.onSelect} />
         </li>
       ))}
       {cardData.more > 0 && (
         <li className="lineage-more" style={{ height: MORE_H }}>
-          <Port id={moreRowId(lineageCard.id)} top={HEADER_H + cardData.rows.length * ROW_H + MORE_H / 2} />
+          <Port id={moreRowId(lineageCard.id)} top={portY(geometry, moreRowId(lineageCard.id))} />
           <button className="lineage-more-button nodrag" aria-label={`Show all ${lineageCard.columns.length} columns of ${lineageCard.label}`} onClick={() => cardData.onOpenColumns(lineageCard.id)}>
             + {cardData.more} more {cardData.more === 1 ? 'column' : 'columns'}
           </button>

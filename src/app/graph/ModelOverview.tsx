@@ -3,7 +3,7 @@ import { useRecordedState } from '../workspace/hooks/useRecordedState';
 import type { AreaFilter, GroupingOptions } from './overview';
 import { useMemo, useState } from 'react';
 import { ArrowRight, Focus, Grid2X2, Layers, Search, X, Network } from 'lucide-react';
-import { modelOverview, usableGroupingModes } from './overview';
+import { modelOverview } from './overview';
 import type { Entity, Relationship } from '../../shared/core/model';
 type Props = {
   grouping?: GroupingOptions;
@@ -65,7 +65,7 @@ export function ModelOverview(props: Props) {
     connections = [];
   }
   const groupName = (id: string) => (id === '*' ? 'Other areas' : (overview.groups.find(g => g.id === id)?.name ?? id));
-  const canChangeInGraph = usableGroupingModes(overview.modes).length > 1;
+  const canChangeInGraph = overview.entities.length > 0;
   const matches = (e: Entity) => !props.search || e.name.toLowerCase().includes(props.search.toLowerCase()) || e.id.toLowerCase().includes(props.search.toLowerCase());
   return (
     <div className="model-overview">
@@ -97,7 +97,7 @@ export function ModelOverview(props: Props) {
       <div className="overview-options">
         <div className="overview-switch">
           <button className={mode === 'areas' ? 'active' : ''} onClick={() => setMode('areas')}>
-            <Layers size={14} /> {overview.mode === 'example' ? 'Business areas' : overview.groupingLabel}
+            <Layers size={14} /> {overview.groupingLabel}
           </button>
           <button className={mode === 'matrix' ? 'active' : ''} onClick={() => setMode('matrix')}>
             <Grid2X2 size={14} /> Relationship matrix

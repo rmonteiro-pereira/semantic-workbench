@@ -6,7 +6,7 @@ import type { ForeignKeyPath } from './lineage';
 import './hops.css';
 
 /** The most hops a view can follow. */
-export const MAX_HOPS = 5;
+export const MAX_HOPS = 3;
 const HELP = 'A hop is one foreign key, followed from the centre table in either direction. Each key reads column → the column it references.';
 const hopsWord = (n: number) => (n === 1 ? '1 hop' : `${n} hops`);
 

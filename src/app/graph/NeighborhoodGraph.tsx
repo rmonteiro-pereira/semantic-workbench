@@ -102,6 +102,7 @@ function keepMeasuredSizes(previous: Node[], next: Node[]): Node[] {
 
 function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
   const { docId, entities: all, edges: allEdges, search, walk, selected, selectedEdge, kpiBadges, groupColorOf } = props;
+  const trail = useRef<HTMLOListElement>(null);
   const actionHistory = useActionHistory();
   const [hideKpis, setHideKpis] = useRecordedState('neighborhood.hideKpis', false);
   const [lateralChoice, setLateral] = useRecordedState<boolean | null>('neighborhood.lateral', null);
@@ -158,6 +159,16 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
     [base, lateral],
   );
   const center = view.center;
+  useEffect(() => {
+    const list = trail.current;
+    const current = list?.querySelector<HTMLElement>('[aria-current="step"]');
+    if (!list || !current) return;
+    const frame = list.getBoundingClientRect();
+    const button = current.getBoundingClientRect();
+    const clearance = 4;
+    if (button.left < frame.left + clearance) list.scrollLeft -= frame.left + clearance - button.left;
+    else if (button.right > frame.right - clearance) list.scrollLeft += button.right - frame.right + clearance;
+  }, [walk, center, docId]);
   const byId = useMemo(() => new Map(all.map(e => [e.id, e])), [all]);
   // Expansions in place on top of the centre's view; a walk to another centre starts afresh.
   const projection = useMemo(() => projectModel(entities, edges, technical), [entities, edges, technical]);
@@ -908,7 +919,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
           <button aria-label="Forward" title="Forward" disabled={!actionHistory.canForward} onClick={actionHistory.forward}>
             <ArrowRight size={14} />
           </button>
-          <ol>
+          <ol ref={trail}>
             {walk.steps.map((step, i) => (
               <li key={i}>
                 {step.via && (

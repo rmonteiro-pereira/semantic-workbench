@@ -1,5 +1,5 @@
 // Measures the whole-model graph and the neighborhood graph in screen coordinates: names that
-// are as large as their cards allow, detail lines that keep their size, cards that do not overlap,
+// follow their layout's type scale, detail lines that keep their size, cards that do not overlap,
 // a toolbar that fits, and a canvas that keeps most of a phone screen.
 import type { Page } from '@playwright/test';
 import { LARGEST_ENTITY_NAME_PX } from '../../src/app/graph/overview-capacity';
@@ -16,8 +16,8 @@ import {
 /** The smallest on-screen size of an entity name, and of a detail line where one is shown. */
 export const MIN_NAME_PX = 12;
 export const MIN_DETAIL_PX = 12;
-/** A neighborhood card draws its name at this size whatever the zoom. */
-const NEIGHBORHOOD_NAME_PX = 16;
+/** Network and neighborhood names scale with their cards, using the original type size. */
+const STANDARD_NAME_PX = 16;
 /** The share of the window height the canvas keeps on a phone. */
 export const MIN_PHONE_CANVAS_SHARE = 0.55;
 
@@ -26,7 +26,7 @@ type Which = 'model' | 'neighborhood';
 /** Returns what is wrong with the graph now on screen; an empty list means it is clean. */
 export async function graphCanvasProblems(page: Page, which: Which): Promise<string[]> {
   const problems = await page.evaluate(
-    ({ which, minName, minDetail, minShare, largestModelNamePx, neighborhoodNamePx }) => {
+    ({ which, minName, minDetail, minShare, largestModelNamePx, standardNamePx }) => {
       const out: string[] = [];
       const root = document.querySelector(which === 'model' ? '.full-graph' : '.neighborhood-graph');
       const flow = root?.querySelector('.react-flow');
@@ -41,16 +41,17 @@ export async function graphCanvasProblems(page: Page, which: Which): Promise<str
       for (const name of root.querySelectorAll(nameSelector)) {
         if (!onScreen(name.getBoundingClientRect())) continue;
         const px = sizeOnScreen(name);
-        // A graph that opens on every entity can be zoomed out past the point where a card could
-        // hold a 12 px name. Its names must then be the largest the card holds, and a card
-        // never shrinks its own name below that.
-        const largestName = which === 'model' ? largestModelNamePx : neighborhoodNamePx;
+        const network = which === 'model' && root.getAttribute('data-layout') === 'network';
+        const largestName = which === 'model' && !network ? largestModelNamePx : standardNamePx;
         // A card also never draws a name larger than its whole name fits, so that no name is cut.
         const fittingName = parseFloat(getComputedStyle(name).getPropertyValue('--entity-name-cap')) || largestName;
         const largestCardName = Math.min(largestName, fittingName, Math.ceil(minName / scale));
         const minimum = Math.min(minName, largestCardName * scale);
         if (px < minimum - 0.01) {
           out.push(`name "${name.textContent}" is ${px.toFixed(1)} px on screen`);
+        }
+        if (network && parseFloat(getComputedStyle(name).fontSize) > standardNamePx) {
+          out.push(`Network name "${name.textContent}" grows beyond its original type scale`);
         }
       }
       if (which === 'model') {
@@ -114,7 +115,12 @@ export async function graphCanvasProblems(page: Page, which: Which): Promise<str
       const toolbar = root.querySelector('.full-graph-tools, .neighborhood-tools');
       if (toolbar && toolbar.scrollWidth > toolbar.clientWidth + 1) out.push('the toolbar is wider than its row');
       const phone = window.innerWidth <= 650;
-      if (phone && pane.height < minShare * window.innerHeight) out.push(`the canvas is ${Math.round((100 * pane.height) / window.innerHeight)}% of the screen`);
+      // With an inspector below it, the graph uses the remaining canvas row, not the whole window.
+      const row = root.closest('.canvas-row');
+      const inspector = row?.querySelector('.inspector');
+      const inspectorHeight = phone && inspector ? inspector.getBoundingClientRect().height : 0;
+      const availableHeight = inspectorHeight > 0 && row ? row.getBoundingClientRect().height - inspectorHeight : window.innerHeight;
+      if (phone && pane.height < minShare * availableHeight) out.push(`the canvas is ${Math.round((100 * pane.height) / availableHeight)}% of the available screen`);
       return out;
     },
     {
@@ -123,7 +129,7 @@ export async function graphCanvasProblems(page: Page, which: Which): Promise<str
       minDetail: MIN_DETAIL_PX,
       minShare: MIN_PHONE_CANVAS_SHARE,
       largestModelNamePx: LARGEST_ENTITY_NAME_PX,
-      neighborhoodNamePx: NEIGHBORHOOD_NAME_PX,
+      standardNamePx: STANDARD_NAME_PX,
     },
   );
   problems.push(...(await graphControlsProblems(page)));

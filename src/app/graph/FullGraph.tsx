@@ -37,17 +37,16 @@ import { modelOverview } from './overview';
 import { groupRelationships } from './graph-view';
 import { collapseAreas } from './collapse';
 import { FALLBACK_GROUP_COLOR } from '../theme/theme-palette';
-import { layoutFullGraph } from './full-layout';
-import { coarseCanvasSize, layoutNetwork } from './network-layout';
-import { crossesAreas, linkedAreaCounts } from './area-links';
+import { layoutFullGraph, packNetwork } from './full-layout';
+import type { NetworkLayoutRequest, NetworkLayoutResponse } from './network-layout';
 import { areaTileData, entityCardData } from './full-node-data';
 import { shownName } from './text-fit';
 import type { Entity, Relationship } from '../../shared/core/model';
 import { timeOperation } from '../observability/page-reporting';
-function relationshipOpacity(emphasized: boolean, hasFocus: boolean, zoom: number) {
+function relationshipOpacity(emphasized: boolean, hasFocus: boolean) {
   if (emphasized) return 0.95;
   if (hasFocus) return 0.07;
-  return zoom < 0.6 ? 0.22 : 0.48;
+  return 0.48;
 }
 
 const sides = [
@@ -178,10 +177,6 @@ export function FullGraph(props: Props) {
   const [size, setSize] = useState({ width: 1200, height: 650 });
   // The first layout waits for a real measurement, so it is planned for the pane the person sees.
   const [paneMeasured, setPaneMeasured] = useState(false);
-  // The Network layout reads the canvas shape only when it is computed, so resizing the pane
-  // (sidebar, rotation, full screen) never lays the graph out again and undoes drags.
-  const canvasShapeRef = useRef(coarseCanvasSize(size));
-  canvasShapeRef.current = coarseCanvasSize(size);
   const flow = useRef<ReactFlowInstance<any, any> | null>(null);
   const laidOutKey = useRef('');
   const [nodes, setNodes, onNodesChange] = useNodesState<any>([]);
@@ -247,8 +242,6 @@ export function FullGraph(props: Props) {
   const connections = useMemo(() => groupRelationships(display.edges), [display]);
   const entityById = useMemo(() => new Map(display.entities.map(e => [e.id, e])), [display]);
   const groupById = useMemo(() => new Map(overview.groups.map(g => [g.id, g])), [overview]);
-  const areaOf = useCallback((entityId: string) => entityById.get(entityId)?.definition?.collapsedArea ?? overview.groupOf.get(entityId), [entityById, overview]);
-  const areaLinkCounts = useMemo(() => linkedAreaCounts(connections, areaOf), [connections, areaOf]);
   useEffect(() => {
     const el = container.current;
     if (!el) return;
@@ -318,24 +311,17 @@ export function FullGraph(props: Props) {
   useEffect(() => {
     let cancelled = false;
     if (!paneMeasured) return;
-    const canvasShape = canvasShapeRef.current;
+    const controller = new AbortController();
+    let worker: Worker | undefined;
     let elk: { layout: (elkGraph: any) => Promise<any>; terminateWorker: () => void } | undefined;
-    const key = JSON.stringify([
-      algorithm,
-      layoutGrouping,
-      algorithm === 'network' ? [canvasShape.width, canvasShape.height] : 0,
-      props.name,
-      display.entities.map(e => [e.id, e.name, e.kind]),
-      display.edges.map(e => [e.source, e.target]),
-    ]);
+    const key = JSON.stringify([algorithm, layoutGrouping, props.name, display.entities.map(e => [e.id, e.name, e.kind]), display.edges.map(e => [e.source, e.target])]);
     setBusy(true);
     setError('');
     // A re-layout that lands on the same arrangement re-routes nothing, so its old metrics still hold.
     if (laidOutKey.current !== key) setRouteMetrics(null);
     function nodeData(node: LayoutResult['nodes'][number], group: (typeof overview.groups)[number] | undefined) {
       if (node.group) {
-        const linkedAreaCount = algorithm === 'network' ? (areaLinkCounts.get(node.group) ?? 0) : undefined;
-        return areaTileData({ name: group!.name, color: group!.color, entityCount: group!.entities.length }, node.width, linkedAreaCount);
+        return areaTileData({ name: group!.name, color: group!.color, entityCount: group!.entities.length }, node.width);
       }
       const entity = entityById.get(node.id);
       const collapsedArea = entity?.definition?.collapsedArea;
@@ -344,7 +330,7 @@ export function FullGraph(props: Props) {
         collapsedArea,
         internalCount: display.internal.get(collapsedArea)?.length ?? 0,
         color: group?.color ?? FALLBACK_GROUP_COLOR,
-        ...entityCardData(entity!, node, props.kpiBadges),
+        ...entityCardData(entity!, node),
       };
     }
     function apply(result: LayoutResult) {
@@ -393,7 +379,26 @@ export function FullGraph(props: Props) {
     } else {
       let arranged: Promise<LayoutResult>;
       if (algorithm === 'network') {
-        arranged = Promise.resolve().then(() => layoutNetwork(display.entities, display.edges, props.name, layoutGrouping, canvasShape));
+        arranged = new Promise((resolve, reject) => {
+          controller.signal.addEventListener('abort', () => reject(new DOMException('Network layout cancelled.', 'AbortError')), { once: true });
+          worker = new Worker(new URL('./network-layout.worker.ts', import.meta.url), { type: 'module' });
+          worker.onmessage = ({ data }: MessageEvent<NetworkLayoutResponse>) => {
+            worker?.terminate();
+            if (cancelled) return;
+            if ('error' in data) {
+              reject(new Error(data.error));
+              return;
+            }
+            elk = new ELK({ algorithms: ['box', 'sporeOverlap'], workerFactory: () => new Worker(elkWorkerUrl) });
+            packNetwork(data.result, elk).then(resolve, reject);
+          };
+          worker.onerror = event => {
+            event.preventDefault();
+            worker?.terminate();
+            reject(new Error(event.message || 'Network layout failed.'));
+          };
+          worker.postMessage({ entities: display.entities, edges: display.edges, name: props.name, grouping: layoutGrouping } satisfies NetworkLayoutRequest);
+        });
       } else {
         elk = new ELK({
           algorithms: ['layered', 'box'],
@@ -413,6 +418,8 @@ export function FullGraph(props: Props) {
     }
     return () => {
       cancelled = true;
+      controller.abort();
+      worker?.terminate();
       elk?.terminateWorker();
     };
   }, [overview, display, algorithm, version, layoutGrouping, paneMeasured]);
@@ -501,21 +508,9 @@ export function FullGraph(props: Props) {
     );
   }, [nodes]);
   const dragging = nodes.some(n => n.dragging);
-  // Links between areas are summarised on the tiles; one is drawn only for the entity in focus, the
-  // chosen link, or a collapsed area card, so the canvas never turns into a tangle.
-  const drawnConnections = useMemo(() => {
-    if (algorithm !== 'network') return connections;
-    const isCollapsedCard = (entityId: string) => Boolean(entityById.get(entityId)?.definition?.collapsedArea);
-    return connections.filter(connection => {
-      if (!crossesAreas(connection, areaOf)) return true;
-      if (isCollapsedCard(connection.source) || isCollapsedCard(connection.target)) return true;
-      if (connection.source === focus || connection.target === focus) return true;
-      return connection.data.relationships.some(relationship => relationship.id === props.selectedEdge);
-    });
-  }, [connections, algorithm, areaOf, entityById, focus, props.selectedEdge]);
   const edges = useMemo(
     () =>
-      drawnConnections.map(connection => {
+      connections.map(connection => {
         const fromPosition = positions.get(connection.source);
         const toPosition = positions.get(connection.target);
         let source = 'e';
@@ -582,11 +577,11 @@ export function FullGraph(props: Props) {
           style: {
             stroke: active || adjacent ? 'var(--color-edge-active)' : 'var(--color-edge-idle)',
             strokeWidth: active ? 2 : 1.2,
-            strokeOpacity: relationshipOpacity(active || adjacent, Boolean(focus), viewport.zoom),
+            strokeOpacity: relationshipOpacity(active || adjacent, Boolean(focus)),
           },
         };
       }),
-    [drawnConnections, positions, props.selectedEdge, focus, labels, hoverEdge, algorithm, layoutRoutes, viewport, size, dragging],
+    [connections, positions, props.selectedEdge, focus, labels, hoverEdge, algorithm, layoutRoutes, viewport, size, dragging],
   );
   useEffect(() => {
     if (!props.search || busy) return;
@@ -605,7 +600,7 @@ export function FullGraph(props: Props) {
   const selectedConnection = collapsed.size ? connections.find(e => e.data.relationships.some(r => r.id === props.selectedEdge)) : undefined;
   const originalById = useMemo(() => new Map(props.edges.map(e => [e.id, e])), [props.edges]);
   const originalEntities = useMemo(() => new Map(props.entities.map(e => [e.id, e])), [props.entities]);
-  const sizes = textSizesAt(zoomStep);
+  const sizes = textSizesAt(zoomStep, algorithm);
   const textStyle = {
     '--entity-name-size': `${sizes.entityName}px`,
     '--entity-name-lines': sizes.entityLines,

@@ -479,6 +479,9 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.diff-additions-only .diff-labels {
+  grid-template-columns: minmax(0, 1fr);
+}
 .diff-host {
   min-height: 0;
   flex: 1 1 auto;
@@ -571,6 +574,9 @@
   }
 }
 /* Commit dialog: files left, diff right; one column on narrow screens. */
+.workbench-dialog.size-wide.commit-dialog {
+  width: min(1440px, calc(100vw - 48px));
+}
 .commit-dialog .commit-scope {
   margin: 0 0 10px;
   font-size: var(--text-small);
@@ -578,7 +584,7 @@
 }
 .commit-dialog .commit-body {
   display: grid;
-  grid-template-columns: minmax(200px, 280px) minmax(0, 1fr);
+  grid-template-columns: minmax(180px, 23%) minmax(0, 1fr);
   gap: 12px;
   min-height: 0;
   height: min(52vh, 520px);
@@ -600,7 +606,7 @@
   padding: 2px 4px;
 }
 .commit-dialog .commit-files li.selected {
-  background: var(--color-surface-hover);
+  background: var(--color-accent-soft);
 }
 .commit-dialog .commit-files input {
   flex: none;
@@ -629,9 +635,7 @@
 .commit-dialog .commit-kind {
   flex: none;
   font-size: var(--text-small);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
+  font-weight: 600;
   color: var(--text-muted);
 }
 .commit-dialog .commit-kind.k-new,
@@ -648,11 +652,28 @@
   min-width: 0;
   min-height: 0;
   overflow: auto;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
+}
+.commit-dialog .commit-diff > section,
+.commit-dialog .commit-diff .diff-view {
+  height: 100%;
+  min-height: 0;
 }
 .commit-dialog .commit-diff .diff-view {
   margin: 0;
+}
+.commit-dialog .diff-host {
+  font-size: 13px;
+  background: var(--color-surface);
+}
+.commit-dialog .diff-host .cm-editor {
+  background: var(--color-surface);
+}
+/* CodeMirror's changed-text background is a 2px underline; use a full highlight in Commit. */
+.commit-dialog .diff-host .cm-editor.cm-merge-a .cm-changedText {
+  background: var(--color-danger-soft);
+}
+.commit-dialog .diff-host .cm-editor.cm-merge-b .cm-changedText {
+  background: var(--color-accent-soft-strong);
 }
 .commit-dialog .commit-message {
   margin: 12px 0 0;
@@ -698,6 +719,9 @@
   display: block;
 }
 @media (max-width: 700px) {
+  .workbench-dialog.size-wide.commit-dialog {
+    width: 100%;
+  }
   .commit-dialog .commit-body {
     grid-template-columns: 1fr;
     grid-template-rows: auto auto;
@@ -707,7 +731,10 @@
     max-height: 132px;
   }
   .commit-dialog .commit-diff {
-    height: min(34vh, 300px);
+    height: min(38vh, 340px);
+  }
+  .commit-dialog .diff-host {
+    font-size: 12px;
   }
   .commit-dialog .dialog-footer .commit-spacer {
     display: none;

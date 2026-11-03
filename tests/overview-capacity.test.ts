@@ -26,6 +26,17 @@ test('names keep their size while readable and grow once zoomed out', () => {
   expect(textSizesAt(1).showDetail).toBe(true);
 });
 
+test('Network retains its historical type scale and padding across zoom levels', () => {
+  for (const zoom of [0.1, 0.28, 0.5, 0.75, 1, 1.5, 2]) {
+    const sizes = textSizesAt(zoom, 'network');
+    expect(sizes.entityName).toBe(16);
+    expect(sizes.areaTitle).toBe(20);
+    expect(sizes.entityLines).toBe(2);
+    expect(sizes.entityPadding).toBe(9);
+    expect(sizes.showDetail).toBe(zoom >= 1);
+  }
+});
+
 test('unscaled twelve-pixel details disappear before they become smaller on screen', () => {
   expect(textSizesAt(1).showDetail).toBe(true);
   expect(textSizesAt(0.99).showDetail).toBe(false);

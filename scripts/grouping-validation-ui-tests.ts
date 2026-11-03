@@ -223,10 +223,10 @@ try {
     await page.getByRole('button', { name: 'ubl.ontology.yaml', exact: true }).click();
     await expectModelName(page, /UBL/);
     await page.locator('.tabs').getByRole('button', { name: 'Graph', exact: true }).click();
-    await chooseGrouping(page, 'Curated example areas');
-    await expect(groupTrigger(page)).toContainText(/curated/i);
+    await chooseGrouping(page, 'Suggested communities');
+    await expect(groupTrigger(page)).toContainText('Suggested communities');
     await page.locator('.tabs').getByRole('button', { name: 'Overview', exact: true }).click();
-    await expect(page.locator('.overview-grouping-note')).toContainText(/curated example areas/i);
+    await expect(page.locator('.overview-grouping-note')).toContainText('suggested communities');
     expect(await areaEntityTotal(page)).toBe(45);
     await unchangedExport('ubl.ontology.yaml');
   });
@@ -239,7 +239,7 @@ try {
     expect(labels).not.toContain('Declared domains');
     expect(labels).not.toContain('IRI namespaces');
     const menu = await openGroupMenu(page);
-    await expect(menu.getByRole('menuitemradio', { name: /^Automatic/ })).toContainText('Currently Curated example areas');
+    await expect(menu.getByRole('menuitemradio', { name: /^Automatic/ })).toContainText('Currently Suggested communities');
     await menu.getByRole('menuitemradio', { name: /^Suggested communities/ }).click();
     const canvas = page.getByRole('region', { name: 'Lineage graph' });
     await expect(canvas.locator('.lineage-card.k-object[style*="--card-tint"]').first()).toBeVisible();

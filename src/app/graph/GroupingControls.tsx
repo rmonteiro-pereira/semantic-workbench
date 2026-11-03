@@ -15,14 +15,12 @@ type Props = {
   error?: string;
 };
 
-// The order of the options in the menu, each with the one-line reason to pick it. The UBL areas
-// come last because few files offer them.
+// The order of the options in the menu, each with the one-line reason to pick it.
 const MENU: [ConcreteGroupingMode, string][] = [
   ['declared', 'Declared in the file'],
   ['namespaces', 'From each definition IRI'],
   ['suggested', 'Found from the links'],
   ['types', 'Concepts, metrics, dimensions'],
-  ['example', 'Curated UBL areas'],
 ];
 
 // Places the menu under its button and inside the window.
@@ -106,8 +104,7 @@ function MenuItem({ label, summary, checked, onChoose }: ItemProps) {
   );
 }
 
-/** Selects how model entities are grouped. A file with fewer than two usable ways to group shows
- * no control at all; the Overview grouping note says how it is grouped. */
+/** Selects how model entities are grouped, keeping manual corrections available even without a usable automatic mode. */
 export function GroupingControls({ overview, value, onChange, error }: Props) {
   const wrapper = useRef<HTMLDivElement>(null);
   const button = useRef<HTMLButtonElement>(null);
@@ -118,7 +115,7 @@ export function GroupingControls({ overview, value, onChange, error }: Props) {
   useDismiss(wrapper, opened, () => setOpened(false), button);
   useFocusCheckedItem(menu, opened);
   const usable = usableGroupingModes(overview.modes);
-  if (usable.length < 2) return error ? <span role="alert">{error}</span> : null;
+  if (!overview.entities.length) return error ? <span role="alert">{error}</span> : null;
 
   const requested = value.mode ?? 'auto';
   // A stored mode this document cannot use shows as Automatic, which is what the views use.

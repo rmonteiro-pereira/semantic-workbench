@@ -23,8 +23,8 @@ export function Lineage({ explanation: kpiExplanation }: { explanation: KpiExpla
         <span>Data contract (ODCS)</span>
       </div>
       {kpiExplanation.inputs.map(input => (
-        <div className="lineage-row" key={input.metric} role="group" aria-label={`Lineage of ${input.label}`}>
-          <div className="lineage-cell metric" data-step="Input metric">
+        <div className="kpi-lineage-row" key={input.metric} role="group" aria-label={`Lineage of ${input.label}`}>
+          <div className="kpi-lineage-cell metric" data-step="Input metric">
             <Gauge size={15} />
             <div>
               <strong>{input.label}</strong>
@@ -34,7 +34,7 @@ export function Lineage({ explanation: kpiExplanation }: { explanation: KpiExpla
             </div>
             <ArrowRight className="lineage-arrow" size={14} />
           </div>
-          <div className="lineage-cell fields" data-step="Fields">
+          <div className="kpi-lineage-cell fields" data-step="Fields">
             {input.fields.map(field => (
               <div key={field.dataset + field.field} className="lineage-field">
                 <code>
@@ -46,7 +46,7 @@ export function Lineage({ explanation: kpiExplanation }: { explanation: KpiExpla
             {!input.fields.length && <span className="muted">No field reference</span>}
             <ArrowRight className="lineage-arrow" size={14} />
           </div>
-          <div className="lineage-cell dataset" data-step="Dataset">
+          <div className="kpi-lineage-cell dataset" data-step="Dataset">
             {input.datasets.map(dataset => (
               <div key={dataset.name}>
                 <Table2 size={14} />
@@ -60,7 +60,7 @@ export function Lineage({ explanation: kpiExplanation }: { explanation: KpiExpla
             ))}
             <ArrowRight className="lineage-arrow" size={14} />
           </div>
-          <div className="lineage-cell odcs" data-step="Data contract (ODCS)">
+          <div className="kpi-lineage-cell odcs" data-step="Data contract (ODCS)">
             {(() => {
               const links = input.fields.flatMap(f => f.odcs);
               if (!links.length)

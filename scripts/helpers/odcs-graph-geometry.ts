@@ -6,9 +6,9 @@ import type { Page } from '@playwright/test';
 export const MIN_COLUMN_PX = 12;
 
 /** Returns what is wrong with the graph now shown; an empty list means it is clean. */
-export async function odcsGraphProblems(page: Page, options: { withKeys?: boolean; readableColumns?: boolean } = {}): Promise<string[]> {
+export async function odcsGraphProblems(page: Page, options: { withKeys?: boolean; readableColumns?: boolean; fitAllCards?: boolean } = {}): Promise<string[]> {
   return page.evaluate(
-    ({ minimum, withKeys, readable }) => {
+    ({ minimum, withKeys, readable, fitAllCards }) => {
       const out: string[] = [];
       const view = document.querySelector('.lineage-view');
       const flow = view?.querySelector('.react-flow');
@@ -24,10 +24,9 @@ export async function odcsGraphProblems(page: Page, options: { withKeys?: boolea
         const rect = card.rect;
         const cut = rect.left < pane.left - 1 || rect.right > pane.right + 1;
         const cutVertically = rect.top < pane.top - 1 || rect.bottom > pane.bottom + 1;
-        // The centre shows whole. A neighbour may peek in at the edge, which tells a person that
-        // more of the graph is a pan away.
+        // A fitted overview contains every card; a centred view may leave neighbours a pan away.
         const isCentre = card.element.classList.contains('center');
-        if ((cut || cutVertically) && isCentre) {
+        if ((cut || cutVertically) && (isCentre || fitAllCards)) {
           out.push(`${card.name} is cut by the edge of the canvas`);
         }
       }
@@ -36,13 +35,13 @@ export async function odcsGraphProblems(page: Page, options: { withKeys?: boolea
           if (hit(a.rect, b.rect)) out.push(`${a.name} overlaps ${b.name}`);
         }),
       );
-      // Column names are at least the minimum size once the canvas zoom is counted.
+      // Fit scales the entire graph, so check native type size there, not a zoom-in requirement.
       const viewport = view.querySelector('.react-flow__viewport');
       const scale = viewport ? new DOMMatrix(getComputedStyle(viewport).transform).a : 1;
       const rowName = view.querySelector('.lineage-row-name');
       if (rowName && readable) {
-        const px = parseFloat(getComputedStyle(rowName).fontSize) * scale;
-        if (px < minimum) out.push(`column names are ${px.toFixed(1)} px on screen`);
+        const px = parseFloat(getComputedStyle(rowName).fontSize) * (fitAllCards ? 1 : scale);
+        if (px < minimum) out.push(`column names are ${px.toFixed(1)} ${fitAllCards ? 'canvas px' : 'px on screen'}`);
       }
       // Lines never run across a card they do not join.
       const owner = new Map<string, Element>();
@@ -120,6 +119,7 @@ export async function odcsGraphProblems(page: Page, options: { withKeys?: boolea
       minimum: MIN_COLUMN_PX,
       withKeys: options.withKeys ?? true,
       readable: options.readableColumns ?? true,
+      fitAllCards: options.fitAllCards ?? false,
     },
   );
 }
