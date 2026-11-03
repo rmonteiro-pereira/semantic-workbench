@@ -4,7 +4,7 @@ import fcose from 'cytoscape-fcose';
 import type { Entity, Relationship } from '../../shared/core/model';
 import type { FullLayoutResult } from './full-layout';
 import { groupRelationships } from './graph-view';
-import { modelCardHeight } from './overview-capacity';
+import { MODEL_CARD_WIDTH, modelCardHeight } from './overview-capacity';
 import { modelOverview, type GroupingOptions } from './overview';
 
 cytoscape.use(fcose);
@@ -38,7 +38,7 @@ export function layoutNetwork(entities: Entity[], edges: Relationship[], name: s
       })),
     ],
     style: [
-      { selector: 'node', style: { width: 184, height: 60, 'border-width': 0, padding: '0px' } },
+      { selector: 'node', style: { width: MODEL_CARD_WIDTH, height: modelCardHeight(false), 'border-width': 0, padding: '0px' } },
       { selector: ':parent', style: { padding: '38px', 'compound-sizing-wrt-labels': 'exclude', 'border-width': 0 } },
       { selector: 'node[?collapsed]', style: { height: modelCardHeight(true) } },
     ],
@@ -76,7 +76,7 @@ export function layoutNetwork(entities: Entity[], edges: Relationship[], name: s
           id: entity.id,
           x: bounds.x1 - parent.x1,
           y: bounds.y1 - parent.y1,
-          width: 184,
+          width: MODEL_CARD_WIDTH,
           height: modelCardHeight(Boolean(entity.definition?.collapsedArea)),
           parentId: 'area:' + group,
         };

@@ -3,7 +3,7 @@ import type { GroupingOptions } from './overview';
 import { modelOverview } from './overview';
 import { groupRelationships } from './graph-view';
 import type { Entity, Relationship } from '../../shared/core/model';
-import { GROUP_HEADER_HEIGHT, modelCardHeight } from './overview-capacity';
+import { GROUP_HEADER_HEIGHT, MODEL_CARD_WIDTH, modelCardHeight } from './overview-capacity';
 import type { ElkNode } from 'elkjs/lib/elk-api.js';
 
 /** The model name, the ELK engine that runs the layout, and the optional grouping of areas. */
@@ -38,7 +38,7 @@ export async function layoutFullGraph(entities: Entity[], edges: Relationship[],
       },
       children: group.entities.map(entity => ({
         id: entity.id,
-        width: 184,
+        width: MODEL_CARD_WIDTH,
         height: modelCardHeight(Boolean(entity.definition?.collapsedArea)),
         layoutOptions: { 'elk.portConstraints': 'FIXED_SIDE' },
         ports: [
