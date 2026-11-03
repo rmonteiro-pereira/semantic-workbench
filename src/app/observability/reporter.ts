@@ -1,7 +1,16 @@
 // Collects error and timing reports in the browser and hands them to a sender in small batches.
 // It holds nothing back for later: reports wait in memory only until the server says whether
 // reporting is on, and a failed send drops its batch instead of retrying.
-import { MAX_FRAMES_LENGTH, MAX_NAME_LENGTH, MAX_REPORTS_PER_REQUEST, isOverBudget, scrubErrorMessage, type BrowserReport, type ReportedOperation } from '../../shared/observability/browser-report';
+import {
+  MAX_FRAMES_LENGTH,
+  MAX_NAME_LENGTH,
+  MAX_REPORTS_PER_REQUEST,
+  isOverBudget,
+  scrubErrorMessage,
+  type BrowserReport,
+  type ReactRenderReport,
+  type ReportedOperation,
+} from '../../shared/observability/browser-report';
 
 /** Sends one batch; resolves with the HTTP status, or rejects when the network failed. */
 export type ReportSender = (reports: BrowserReport[]) => Promise<number>;
@@ -48,6 +57,7 @@ export function createReporter(options: ReporterOptions) {
   let flushScheduled = false;
   const seenErrors = new Set<string>();
   const lastSlow = new Map<ReportedOperation, number>();
+  const lastRender = new Map<string, number>();
 
   function accept(report: BrowserReport): void {
     if (mode === 'off' || sent + queue.length >= limits.perSession) return;
@@ -79,6 +89,13 @@ export function createReporter(options: ReporterOptions) {
   }
 
   return {
+    reportRender(report: ReactRenderReport): void {
+      const key = `${report.area}:${report.phase}`;
+      const last = lastRender.get(key);
+      if (last !== undefined && now() - last < 1000) return;
+      lastRender.set(key, now());
+      accept(report);
+    },
     /** Records a script error or an unhandled rejection; the same one is sent once per page. */
     reportError(kind: 'error' | 'unhandled-rejection', error: unknown): void {
       const name = (error instanceof Error ? error.name : 'Error').slice(0, MAX_NAME_LENGTH);

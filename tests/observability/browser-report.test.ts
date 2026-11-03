@@ -16,6 +16,10 @@ const error = { kind: 'error', name: 'TypeError', message: 'x is not a function'
 const operation = { kind: 'operation', operation: 'save', durationMs: 2500 } as const;
 
 describe('what is accepted', () => {
+  test('fixed React areas and phases with finite durations', () => {
+    const render = { kind: 'react-render', area: 'canvas', phase: 'nested-update', actualDurationMs: 21.75, baseDurationMs: 100 } as const;
+    expect(checkReportBatch({ reports: [render] })).toEqual({ ok: true, reports: [render] });
+  });
   test('an error, a rejection and an operation', () => {
     const batch = {
       reports: [error, { ...error, kind: 'unhandled-rejection' as const, frames: 'at a (b.js:1:2)' }, operation],
@@ -35,6 +39,21 @@ describe('what is refused', () => {
     const checked = checkReportBatch(body);
     expect(checked.ok).toBe(false);
   };
+
+  test('React reports cannot carry component names, content, unknown phases or invalid durations', () => {
+    const render = { kind: 'react-render', area: 'app', phase: 'update', actualDurationMs: 5, baseDurationMs: 10 };
+    for (const extra of [
+      { area: 'payroll.yaml' },
+      { phase: 'click' },
+      { props: 'private' },
+      { actualDurationMs: -1 },
+      { baseDurationMs: Number.NaN },
+      { actualDurationMs: Infinity },
+      { baseDurationMs: MAX_DURATION_MS + 1 },
+      { actualDurationMs: '5' },
+    ])
+      refused({ reports: [{ ...render, ...extra }] });
+  });
 
   test('bodies of the wrong shape', () => {
     for (const body of [null, 'text', [], {}, { reports: 'x' }, { reports: [], extra: 1 }]) {

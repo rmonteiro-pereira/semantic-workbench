@@ -1,6 +1,7 @@
 // The metrics the server records. Instruments come from the OpenTelemetry API, so they record
 // nothing until telemetry registers a meter provider.
 import { metrics, type Attributes } from '@opentelemetry/api';
+import type { ReactRenderReport } from '../../shared/observability/browser-report';
 
 const METER_NAME = 'semantic-workbench';
 
@@ -49,6 +50,14 @@ function createInstruments() {
     }),
     browserOverBudget: meter.createCounter('sw.browser.over_budget', {
       description: 'Browser operations slower than their budget.',
+    }),
+    reactRender: meter.createHistogram('sw.browser.react.render.duration', {
+      unit: 'ms',
+      description: 'Sampled React CPU render duration, not DOM commit or paint time.',
+    }),
+    reactBase: meter.createHistogram('sw.browser.react.base.duration', {
+      unit: 'ms',
+      description: 'React estimate of rendering the whole profiled subtree without memoization.',
     }),
   };
 }
@@ -110,4 +119,10 @@ export function recordBrowserError(kind: string) {
 export function recordBrowserOperation(operation: string, durationMs: number, overBudget: boolean) {
   use().browserOperation.record(durationMs, { operation });
   if (overBudget) use().browserOverBudget.add(1, { operation });
+}
+
+export function recordReactRender(report: ReactRenderReport): void {
+  const attributes = { area: report.area, phase: report.phase };
+  use().reactRender.record(report.actualDurationMs, attributes);
+  use().reactBase.record(report.baseDurationMs, attributes);
 }

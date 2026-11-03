@@ -74,6 +74,41 @@ Generated standalone schema validators are checked in and formatted with the pro
 Regenerate with `bun run schemas:compile`; tests verify reproducible output. The browser uses these
 validators without eval under the CSP. Do not edit pinned upstream schemas to make a fixture pass.
 
+## Profiling the React UI
+
+Normal production builds do not enable React profiling. For a temporary diagnostic build:
+
+```powershell
+bun run build --mode profile
+```
+
+For the container, pass `--build-arg SW_PROFILE_UI=1` to the image build. This is a build-time
+choice, not an App Service runtime setting. Rebuild normally to remove profiling overhead.
+
+Record a browser DevTools Performance trace while reproducing the slowdown. The User Timing
+track contains `sw.react.<area>.<phase>` for app, sidebar, canvas, details and dialogs. Each span
+runs from React's render start to its commit timestamp, including scheduling delays; its detail
+contains `actualDurationMs` (CPU time rendering that update) and `baseDurationMs` (React's estimate
+without memoization). These are not DOM commit durations or paint timings. Nested areas overlap;
+do not sum them with the app total. React DevTools can also profile this production build.
+
+Browsers supporting Event Timing also record `sw.ui.interaction`: event latency through the next
+paint, including input delay, event handling and presentation delay. Events shorter than 16 ms
+are not observed. These samples are not a calculation of the page's INP score. Neither observer
+captures input values, DOM targets, document names or component props.
+
+The latest measurement per area/phase and the latest interaction remain available through
+`performance.getEntriesByType('measure')`; the DevTools recording captures the full timeline.
+Local measurements work even when server telemetry is off. When the server enables browser
+reports through Application Insights, React samples are exported at most once per second per
+area/phase within the existing queue and 100-report page-session limit. They appear as
+`browser.react-render` logs and `sw.browser.react.render.duration` / `sw.browser.react.base.duration`
+histograms; interactions over 200 ms use `browser.slow-operation`. Normal telemetry consent,
+same-origin transport and schema validation still apply.
+
+Verify the production build with `SW_EXPECT_UI_PROFILE=1` and `test:telemetry`, pointing
+`SW_BASE_URL` at a preview of the profiling build. Omit the flag for a normal production build.
+
 ## Complete quality gate
 
 ```sh

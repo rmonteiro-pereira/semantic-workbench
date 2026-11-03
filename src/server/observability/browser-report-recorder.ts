@@ -2,13 +2,16 @@
 // timings; here they are re-scrubbed, because the server must not trust what a browser says.
 import { isOverBudget, OPERATION_BUDGETS_MS, scrubErrorMessage, type BrowserReport } from '../../shared/observability/browser-report';
 import { log } from './log';
-import { recordBrowserError, recordBrowserOperation } from './metrics';
+import { recordBrowserError, recordBrowserOperation, recordReactRender } from './metrics';
 
 /** Records each report; the caller has already checked them against the report schema. */
 export function recordBrowserReports(reports: BrowserReport[]): void {
   for (const report of reports) {
     if (report.kind === 'operation') recordOperation(report);
-    else recordError(report);
+    else if (report.kind === 'react-render') {
+      recordReactRender(report);
+      log.info('browser.react-render', { ...report });
+    } else recordError(report);
   }
 }
 

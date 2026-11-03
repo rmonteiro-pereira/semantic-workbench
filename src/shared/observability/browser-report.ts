@@ -18,7 +18,7 @@ export const MAX_FRAMES_LENGTH = 1000;
 export const MAX_DURATION_MS = 3_600_000;
 
 /** The operations whose duration is reported. */
-export const REPORTED_OPERATIONS = ['page-load', 'graph-layout', 'validation', 'save'] as const;
+export const REPORTED_OPERATIONS = ['page-load', 'graph-layout', 'validation', 'save', 'interaction'] as const;
 
 /** One operation from {@link REPORTED_OPERATIONS}. */
 export type ReportedOperation = (typeof REPORTED_OPERATIONS)[number];
@@ -34,6 +34,19 @@ export const OPERATION_BUDGETS_MS: Record<ReportedOperation, number | null> = {
   'graph-layout': 2000,
   validation: 500,
   save: 2000,
+  interaction: 200,
+};
+
+export const REACT_AREAS = ['app', 'sidebar', 'canvas', 'details', 'dialogs'] as const;
+export type ReactArea = (typeof REACT_AREAS)[number];
+export const REACT_PHASES = ['mount', 'update', 'nested-update'] as const;
+
+export type ReactRenderReport = {
+  kind: 'react-render';
+  area: ReactArea;
+  phase: (typeof REACT_PHASES)[number];
+  actualDurationMs: number;
+  baseDurationMs: number;
 };
 
 /** A script error or a promise rejection nobody handled. */
@@ -53,7 +66,7 @@ export type OperationReport = {
 };
 
 /** One report. */
-export type BrowserReport = ErrorReport | OperationReport;
+export type BrowserReport = ErrorReport | OperationReport | ReactRenderReport;
 
 /** The request body of the report route. */
 export type BrowserReportBatch = { reports: BrowserReport[] };
@@ -64,6 +77,7 @@ export type ReportCheck = { ok: true; reports: BrowserReport[] } | { ok: false; 
 const QUOTED_TEXT = /"[^"]*"|'[^']*'|`[^`]*`/g;
 const ERROR_KEYS = ['kind', 'name', 'message', 'frames'];
 const OPERATION_KEYS = ['kind', 'operation', 'durationMs'];
+const REACT_RENDER_KEYS = ['kind', 'area', 'phase', 'actualDurationMs', 'baseDurationMs'];
 
 /**
  * Shortens a message and replaces anything quoted in it. Parser errors often quote the input they
@@ -96,7 +110,22 @@ function checkReport(candidate: unknown): BrowserReport | string {
     return checkErrorReport(candidate);
   }
   if (candidate.kind === 'operation') return checkOperationReport(candidate);
+  if (candidate.kind === 'react-render') return checkReactRenderReport(candidate);
   return 'Unknown report kind.';
+}
+
+function checkReactRenderReport(candidate: Record<string, unknown>): ReactRenderReport | string {
+  if (!onlyKeys(candidate, REACT_RENDER_KEYS)) return 'A React render report has unknown fields.';
+  const area = REACT_AREAS.find(area => area === candidate.area);
+  const phase = REACT_PHASES.find(phase => phase === candidate.phase);
+  if (!area || !phase) return 'Unknown React area or phase.';
+  const { actualDurationMs, baseDurationMs } = candidate;
+  if (!validDuration(actualDurationMs) || !validDuration(baseDurationMs)) return 'React durations are out of range.';
+  return { kind: 'react-render', area, phase, actualDurationMs, baseDurationMs };
+}
+
+function validDuration(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= MAX_DURATION_MS;
 }
 
 function checkErrorReport(candidate: Record<string, unknown>): ErrorReport | string {

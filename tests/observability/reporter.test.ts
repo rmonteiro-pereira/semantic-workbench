@@ -60,6 +60,27 @@ describe('waiting for the server', () => {
 });
 
 describe('what is sent', () => {
+  test('React samples are throttled per area and phase and obey the reporting switch', async () => {
+    const { reporter, batches, runTimers, advance } = setup();
+    const render = { kind: 'react-render', area: 'canvas', phase: 'update', actualDurationMs: 20.25, baseDurationMs: 80.5 } as const;
+    reporter.reportRender(render);
+    await runTimers();
+    expect(batches).toEqual([]);
+    reporter.enable();
+    reporter.reportRender(render);
+    reporter.reportRender({ ...render, area: 'sidebar' });
+    reporter.reportRender({ ...render, phase: 'mount' });
+    advance(1000);
+    reporter.reportRender(render);
+    await runTimers();
+    expect(batches.flat()).toHaveLength(4);
+    expect(batches[0][0]).toEqual(render);
+    reporter.disable();
+    advance(1000);
+    reporter.reportRender(render);
+    await runTimers();
+    expect(batches.flat()).toHaveLength(4);
+  });
   test('a message is scrubbed of quoted text and cut', async () => {
     const { reporter, batches, runTimers } = setup();
     reporter.enable();

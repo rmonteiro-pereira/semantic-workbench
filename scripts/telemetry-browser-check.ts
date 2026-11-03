@@ -5,7 +5,8 @@ import { chromium, type Page, type Route } from '@playwright/test';
 import { appUrl, BASE_URL } from './helpers/base-url';
 import { routeApi, startIsolatedApi, type IsolatedApi } from './helpers/isolated-api';
 
-type SentReport = { kind: string; name?: string; message?: string; frames?: string };
+type SentReport = { kind: string; name?: string; message?: string; frames?: string; operation?: string; area?: string; phase?: string; actualDurationMs?: number };
+const expectUiProfile = process.env.SW_EXPECT_UI_PROFILE === '1';
 
 const SECRET_TEXT = 'salary-column-for-ana-91000';
 let passed = 0;
@@ -62,51 +63,99 @@ async function throwInPage(page: Page, message: string) {
   }, message);
 }
 
-async function waitForReports(sent: SentReport[], count: number) {
+async function waitForReports(sent: SentReport[], ready: (reports: SentReport[]) => boolean) {
   const deadline = Date.now() + 15_000;
-  while (sent.length < count && Date.now() < deadline) await Bun.sleep(100);
+  while (!ready(sent) && Date.now() < deadline) await Bun.sleep(100);
 }
 
 async function reportsWhenEnabled(api: IsolatedApi) {
   const { browser, page, sent, hosts } = await openPage(api, true);
-  await throwInPage(page, `Unexpected token "${SECRET_TEXT}" in JSON`);
-  await page.evaluate(() => {
-    setTimeout(() => void Promise.reject(new TypeError('x is not a function')), 0);
-  });
-  await waitForReports(sent, 2);
-  const error = sent.find(report => report.kind === 'error');
-  assert(error, 'the thrown error was not reported');
-  check('a thrown error reaches the report route');
-  assert(error.name === 'Error', 'the error name is kept');
-  assert(!JSON.stringify(sent).includes(SECRET_TEXT), 'quoted text must not be sent');
-  check('quoted text of the message is replaced before sending');
-  const rejection = sent.find(report => report.kind === 'unhandled-rejection');
-  assert(rejection?.message === 'x is not a function', 'the unhandled rejection was not reported');
-  check('an unhandled rejection reaches the report route');
-  assert(
-    sent.some(report => report.kind === 'operation'),
-    'the page load timing was not reported',
-  );
-  check('the page load timing is reported');
-  for (const report of sent) {
-    const keys = Object.keys(report).sort().join(',');
-    assert(['frames,kind,message,name', 'kind,message,name', 'durationMs,kind,operation'].includes(keys), `unexpected report fields: ${keys}`);
+  try {
+    await throwInPage(page, `Unexpected token "${SECRET_TEXT}" in JSON`);
+    await page.evaluate(() => {
+      setTimeout(() => void Promise.reject(new TypeError('x is not a function')), 0);
+    });
+    await waitForReports(sent, reports => reports.some(report => report.kind === 'error') && reports.some(report => report.kind === 'unhandled-rejection'));
+    const error = sent.find(report => report.kind === 'error');
+    assert(error, 'the thrown error was not reported');
+    check('a thrown error reaches the report route');
+    assert(error.name === 'Error', 'the error name is kept');
+    assert(!JSON.stringify(sent).includes(SECRET_TEXT), 'quoted text must not be sent');
+    check('quoted text of the message is replaced before sending');
+    const rejection = sent.find(report => report.kind === 'unhandled-rejection');
+    assert(rejection?.message === 'x is not a function', 'the unhandled rejection was not reported');
+    check('an unhandled rejection reaches the report route');
+    assert(
+      sent.some(report => report.kind === 'operation'),
+      'the page load timing was not reported',
+    );
+    check('the page load timing is reported');
+    for (const report of sent) {
+      const keys = Object.keys(report).sort().join(',');
+      assert(['frames,kind,message,name', 'kind,message,name', 'durationMs,kind,operation', 'actualDurationMs,area,baseDurationMs,kind,phase'].includes(keys), `unexpected report fields: ${keys}`);
+    }
+    check('reports carry only the documented fields');
+    await checkUiProfile(page, sent);
+    const outside = [...hosts].filter(host => host !== new URL(BASE_URL).host);
+    assert(outside.length === 0, `the page contacted other hosts: ${outside.join(', ')}`);
+    check('the page contacts only the workbench');
+  } finally {
+    await browser.close();
   }
-  check('reports carry only the documented fields');
-  const outside = [...hosts].filter(host => host !== new URL(BASE_URL).host);
-  assert(outside.length === 0, `the page contacted other hosts: ${outside.join(', ')}`);
-  check('the page contacts only the workbench');
-  await browser.close();
+}
+
+async function checkUiProfile(page: Page, sent: SentReport[]) {
+  const measures = await page.evaluate(() =>
+    performance
+      .getEntriesByType('measure')
+      .filter(entry => entry.name.startsWith('sw.react.'))
+      .map(entry => entry.name),
+  );
+  assert(measures.length > 0 === expectUiProfile, `React profiling build mismatch: ${measures.join(', ')}`);
+  if (!expectUiProfile) {
+    assert(!sent.some(report => report.kind === 'react-render'), 'normal production must not send React timings');
+    check('normal production has no React profiling measurements');
+    return;
+  }
+  assert(measures.includes('sw.react.app.mount'), 'production React Profiler did not measure the app mount');
+  await page.evaluate(() => {
+    document.addEventListener(
+      'click',
+      () => {
+        const end = performance.now() + 260;
+        while (performance.now() < end) {
+          /* Controlled main-thread stall for Event Timing. */
+        }
+      },
+      { once: true, capture: true },
+    );
+  });
+  await page.getByRole('button', { name: 'Catalog', exact: true }).click();
+  await page.waitForFunction(() => performance.getEntriesByName('sw.react.app.update').length > 0);
+  const deadline = Date.now() + 15_000;
+  while (!sent.some(report => report.operation === 'interaction') && Date.now() < deadline) await Bun.sleep(100);
+  assert(
+    sent.some(report => report.kind === 'react-render' && report.area === 'app' && typeof report.actualDurationMs === 'number'),
+    'React render timing was not reported',
+  );
+  assert(
+    sent.some(report => report.operation === 'interaction'),
+    'slow real browser interaction was not reported',
+  );
+  check('production React renders, updates and slow interactions are measured and reported');
 }
 
 async function noReportsWhenDisabled(api: IsolatedApi) {
   const { browser, page, sent } = await openPage(api, false);
-  await throwInPage(page, 'an error nobody should hear about');
-  await page.getByRole('button', { name: 'Catalog', exact: true }).click();
-  await page.waitForTimeout(4500);
-  assert(sent.length === 0, 'reports were sent although the server did not ask for them');
-  check('no report is sent when the server has telemetry off');
-  await browser.close();
+  try {
+    await throwInPage(page, 'an error nobody should hear about');
+    await page.getByRole('button', { name: 'Catalog', exact: true }).click();
+    await page.waitForTimeout(4500);
+    assert(sent.length === 0, 'reports were sent although the server did not ask for them');
+    check('no report is sent when the server has telemetry off');
+  } finally {
+    await browser.close();
+  }
 }
 
 const api = await startIsolatedApi({ watch: false });

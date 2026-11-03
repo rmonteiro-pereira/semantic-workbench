@@ -130,6 +130,7 @@ beforeAll(async () => {
     reports: [
       { kind: 'error', name: 'TypeError', message: `bad "${DOCUMENT_TEXT}"` },
       { kind: 'operation', operation: 'validation', durationMs: 900 },
+      { kind: 'react-render', area: 'canvas', phase: 'update', actualDurationMs: 42.5, baseDurationMs: 90 },
     ],
   });
   await withSpan('probe.failure', {}, () => {
@@ -222,9 +223,19 @@ describe('metrics', () => {
     expect(points('sw.browser.errors')[0].attributes.kind).toBe('error');
     expect(points('sw.browser.over_budget')[0].attributes.operation).toBe('validation');
   });
+
+  test('React render and base durations keep fixed area and phase labels', () => {
+    for (const name of ['sw.browser.react.render.duration', 'sw.browser.react.base.duration']) {
+      expect(points(name)[0].attributes).toEqual({ area: 'canvas', phase: 'update' });
+    }
+  });
 });
 
 describe('logs', () => {
+  test('React timing fields reach the exporter', () => {
+    const render = logRecords.records.find(record => record.body === 'browser.react-render')!;
+    expect(render.attributes).toMatchObject({ area: 'canvas', phase: 'update', actualDurationMs: 42.5, baseDurationMs: 90 });
+  });
   test('log records reach the exporter with the trace and span of their request', () => {
     const requestLog = logRecords.records.find(record => record.body === 'http.request' && record.attributes.route === '/api/me')!;
     const span = spanNamed('GET /api/me')!;

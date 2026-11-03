@@ -6,7 +6,10 @@ RUN bun install --frozen-lockfile
 
 FROM deps AS build
 COPY . .
-RUN bun --bun run build
+ARG SW_PROFILE_UI=0
+RUN if [ "$SW_PROFILE_UI" = "1" ]; then bun --bun run build --mode profile; \
+    elif [ "$SW_PROFILE_UI" = "0" ]; then bun --bun run build; \
+    else echo "SW_PROFILE_UI must be 0 or 1" >&2; exit 1; fi
 
 FROM docker.io/oven/bun:1.4@sha256:c017a211c49a21adc0e49dda7b60ac8112887c3d9465e01427f434ed107c830e AS prod-deps
 WORKDIR /app

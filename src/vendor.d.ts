@@ -1,5 +1,6 @@
 /** Provides browser asset and worker module declarations for TypeScript. */
 /// <reference types="vite/client" />
+declare const __SW_PROFILE_UI__: boolean;
 declare module 'cytoscape-fcose' {
   import type { Ext } from 'cytoscape';
   const fcose: Ext;

@@ -138,6 +138,7 @@ test('an over-budget operation is logged and a fast one is only measured', async
       { kind: 'operation', operation: 'graph-layout', durationMs: 4000 },
     ],
   });
+
   const slow = records.filter(record => record.event === 'browser.slow-operation');
   expect(slow).toHaveLength(1);
   expect(slow[0].fields).toMatchObject({
@@ -145,4 +146,12 @@ test('an over-budget operation is logged and a fast one is only measured', async
     durationMs: 4000,
     budgetMs: 2000,
   });
+});
+
+test('React render samples and slow interactions reach structured logs', async () => {
+  using server = await app({ enabled: true });
+  const render = { kind: 'react-render', area: 'canvas', phase: 'update', actualDurationMs: 42.5, baseDurationMs: 90 };
+  expect((await server.send({ reports: [render, { kind: 'operation', operation: 'interaction', durationMs: 320 }] })).status).toBe(204);
+  expect(records.find(record => record.event === 'browser.react-render')?.fields).toMatchObject(render);
+  expect(records.find(record => record.event === 'browser.slow-operation')?.fields).toMatchObject({ operation: 'interaction', durationMs: 320, budgetMs: 200 });
 });
