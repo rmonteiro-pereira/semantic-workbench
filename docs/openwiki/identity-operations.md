@@ -15,8 +15,8 @@ The following are distinct ownership checks, not commands run automatically by t
 | Workbench administrator | Optional internal group/e-mail grants, scopes, restricted paths and bootstrap recovery identities |
 | Platform/SRE | HTTPS ingress, trusted proxy configuration, persistent storage, session-key custody, workload identity and monitoring |
 
-Set `SW_OIDC_PROVIDER=entra`, the matching `SW_ENTRA_TENANT_ID`/v2 issuer, client ID and public
-origin. Register `/auth/callback`, `/auth/signed-out` and `/auth/front-channel-logout`.
+Set `SW_OIDC_PROVIDER=entra` with the matching tenant, v2 issuer, client ID and public origin
+(see the [configuration reference](../configuration.md)). Register `/auth/callback`, `/auth/signed-out` and `/auth/front-channel-logout`.
 Retain the default API scope if overriding `SW_OIDC_SCOPES`; otherwise the token needed for
 OBO may be missing or unsuitable.
 
@@ -59,46 +59,19 @@ Group removal is not immediate revocation. For urgent application-access removal
 Workbench's deactivation/session-termination controls as well as the approved Entra process.
 Removing a grant or entry-group member alone must not be described as instant sign-out.
 
-## The six reviewed corrections
+## Invariants
 
-| Correction | Invariant protected |
+| Behaviour | Invariant protected |
 | --- | --- |
-| Classify transient MSAL errors separately from definitive refusal | A provider outage does not destroy valid sessions |
-| Validate Entra GUIDs before policy activation | One malformed ID cannot poison every project's membership batch |
-| Persist refreshed credentials/safe principal before audit side effects | Rotated credentials are not lost when audit storage fails |
-| Share a cancellable total membership deadline | More configured groups cannot multiply request latency by the batch count |
-| Display each grant's own label, including an explicit absence | Another grant for the same object cannot supply the wrong label while editing/listing roles |
-| Invalidate label cache on role changes as well as grants/rollback | Cascaded grant removal does not retain a stale name |
+| Transient MSAL errors are classified separately from definitive refusal | A provider outage does not destroy valid sessions |
+| Entra group GUIDs are validated before a policy is activated | One malformed ID cannot poison every project's membership batch |
+| Refreshed credentials and the safe principal are persisted before audit side effects | Rotated credentials are not lost when audit storage fails |
+| One cancellable deadline covers the whole membership lookup | More configured groups cannot multiply request latency by the batch count |
+| Each grant shows its own label, or an explicit absence | Another grant for the same object cannot supply the wrong label |
+| Role changes, grant changes and rollback invalidate the label cache | A cascaded grant removal does not retain a stale name |
 
-## Verification evidence
-
-At commit
-[`00a4a9e`](https://github.com/rmonteiro-pereira/semantic-workbench/commit/00a4a9ed68b23259e8f095dc684560df7b81be2f),
-64 focused tests passed on an isolated checkout of `main` plus the identity changes, excluding
-parallel UI work. Full TypeScript, selected formatting/lint, repository comment checks and
-`git diff --check` also passed. This is local/mock evidence, not tenant acceptance.
-
-Reproduce the focused test selection from the repository root with installed dependencies.
-PowerShell:
-
-```powershell
-$identityTests = @(
-    "tests\auth\msal-provider.test.ts",
-    "tests\auth\directory.test.ts",
-    "tests\auth\authentication-review.test.ts",
-    "tests\auth\msal-session.test.ts",
-    "tests\auth\admin-sessions.test.ts",
-    "tests\auth\sessions.test.ts",
-    "tests\admin-presentation.test.tsx"
-)
-bun test @identityTests --timeout 60000
-```
-
-The regressions include real MSAL against a local provider, per-user cache isolation, transient
-refresh recovery, persisted rotated credentials under Graph plus audit failure, restart
-recovery without repeated exchange, revocation during refresh, GUID validation, total-deadline
-cancellation, per-grant labels and cache invalidation after role deletion. Mocked issuer/Graph
-responses cannot establish live tenant consent, network reachability or policy compatibility.
+Mocked issuer and Graph responses cannot establish live tenant consent, network reachability or
+policy compatibility; the acceptance gates below do.
 
 ## Production acceptance
 
