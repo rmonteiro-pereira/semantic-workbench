@@ -1,4 +1,5 @@
 /** Displays a centered relationship graph with expansion and navigation history. */
+import { VALUE_KINDS, readHideValues, writeHideValues } from './hidden-kinds';
 import { DETAIL_ZOOM, LOWEST_FIT_ZOOM, useFarZoom } from './FarZoom';
 import { ScrollStrip } from '../components/ScrollStrip';
 import { EntityName } from './EntityName';
@@ -74,23 +75,6 @@ const COLORS = {
   out: 'var(--color-edge-out)',
   in: 'var(--color-edge-in)',
   lateral: 'var(--color-edge-lateral)',
-};
-// Value types share the Graph view's per-model setting.
-const VALUE_KINDS = new Set(['ValueType', 'Built-in concept']);
-const valuesKey = (name: string) => 'workbench:hide-value-types:' + name;
-const readHideValues = (name?: string) => {
-  try {
-    return !!name && localStorage.getItem(valuesKey(name)) === '1';
-  } catch {
-    return false;
-  }
-};
-const writeHideValues = (name: string | undefined, hide: boolean) => {
-  try {
-    if (!name) return;
-    if (hide) localStorage.setItem(valuesKey(name), '1');
-    else localStorage.removeItem(valuesKey(name));
-  } catch {}
 };
 function keepMeasuredSizes(previous: Node[], next: Node[]): Node[] {
   const measuredById = new Map(previous.map(node => [node.id, node.measured]));
