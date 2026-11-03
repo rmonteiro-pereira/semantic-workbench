@@ -737,7 +737,7 @@ try {
     const bottom = fits ? box!.y + box!.height : box!.y;
     expect(bottom, fits ? 'bottom edge' : 'top of a tall card').toBeLessThanOrEqual(pane!.y + pane!.height);
   });
-  await check('graph: the Semantic dataset badge sits on the type row and no table name is cut', async () => {
+  await check('graph: the Semantic dataset badge sits in the card header under the name and no table name is cut', async () => {
     await page.locator('.tabs').getByRole('button', { name: 'Overview' }).click();
     await openContract('commerce.odcs.yaml', 'Commerce workspace');
     await fit();
@@ -745,7 +745,12 @@ try {
       const badged = [...root.querySelectorAll('.lineage-card')].filter(candidate => candidate.querySelector('.prop-badge.b-semantic'));
       return {
         badged: badged.length,
-        offTypeRow: badged.filter(candidate => !candidate.querySelector('.lineage-card-kind .prop-badge.b-semantic')).length,
+        offHeader: badged.filter(candidate => !candidate.querySelector('.lineage-card-head .lineage-card-title .prop-badge.b-semantic')).length,
+        cutHeaders: badged.filter(candidate => {
+          const header = candidate.querySelector('.lineage-card-head')!.getBoundingClientRect();
+          const badge = candidate.querySelector('.prop-badge.b-semantic')!.getBoundingClientRect();
+          return badge.top < header.top || badge.bottom > header.bottom;
+        }).length,
         cutNames: badged
           .map(candidate => candidate.querySelector('.lineage-card-title strong')!)
           .filter(name => name.scrollWidth > name.clientWidth)
@@ -753,7 +758,8 @@ try {
       };
     });
     expect(cut.badged).toBeGreaterThan(0);
-    expect(cut.offTypeRow).toBe(0);
+    expect(cut.offHeader).toBe(0);
+    expect(cut.cutHeaders).toBe(0);
     expect(cut.cutNames).toEqual([]);
   });
   await check('no browser errors', async () => {

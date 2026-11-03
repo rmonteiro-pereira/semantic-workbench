@@ -147,6 +147,9 @@ const FIRST_VIEW_MARGIN = 24;
 // A large pane keeps the cards at their natural size so the neighbours of the framed cards show
 // at its edges.
 const FIRST_VIEW_MAX_ZOOM = 1;
+// Cards are tall enough that a large expanded group needs to zoom out further than 0.08 to fit.
+// The canvas draws only cards on screen, so a higher floor would leave some of them undrawn after Fit.
+const MIN_ZOOM = 0.02;
 // Generous guesses of the space the layout leaves between columns and between stacked cards.
 const FIRST_VIEW_COLUMN_GAP = 240;
 const FIRST_VIEW_ROW_GAP = 60;
@@ -1275,7 +1278,7 @@ export function LineageCanvas({
             }}
             onPaneClick={() => setSelected('')}
             onEdgeClick={openLine}
-            minZoom={0.08}
+            minZoom={MIN_ZOOM}
             maxZoom={1.6}
             nodesConnectable={false}
             proOptions={{ hideAttribution: false }}

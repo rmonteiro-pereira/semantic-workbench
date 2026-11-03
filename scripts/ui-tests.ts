@@ -6,6 +6,8 @@ import { graphOptions, showEveryEntity, viewOptions } from './helpers/graph-opti
 import { chromium, expect } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { inspect } from '../src/shared/core/model';
+import { modelOverview } from '../src/app/graph/overview';
+import { groupRelationships } from '../src/app/graph/graph-view';
 import { readFile } from 'node:fs/promises';
 import { editorValue, expectEditorValue, fillEditor } from './helpers/code-editor';
 import { example } from './helpers/examples';
@@ -21,6 +23,11 @@ const store = {
 const files = ['ubl.ontology.yaml', 'ubl.owl.ttl', 'ubl.odcs.yaml', 'ubl.semantic.yaml', 'ubl.shacl.ttl', 'commerce.owl'];
 const asset = (filename: string) => 'public/examples/' + (filename === 'commerce.owl' ? 'commerce/' : 'ubl/') + filename;
 await api.ws.loadExample('ubl');
+// The Overview groups the UBL ontology the way the app computes it, so the check follows the grouping rules instead of fixed area names.
+const ublModel = inspect(await Bun.file(asset('ubl.ontology.yaml')).text(), 'ubl.ontology.yaml');
+const ublOverview = modelOverview(ublModel.entities, ublModel.edges, ublModel.name);
+const ublConnections = groupRelationships(ublModel.edges).length;
+const orderArea = ublOverview.groups.find(group => group.entities.some(entity => entity.id === 'ontology/0'))!;
 await api.ws.importBatch(
   {
     files: [{ path: 'commerce.owl', source: await Bun.file(asset('commerce.owl')).text() }],
@@ -177,7 +184,8 @@ try {
     await page.getByRole('button', { name: 'ubl.ontology.yaml', exact: true }).click();
     await page.locator('.tabs').getByRole('button', { name: 'Overview', exact: true }).click();
     await expectAreaEntityTotal(page, 45);
-    await expect(page.locator('.business-area')).toHaveCount(8);
+    // UBL declares no domains, so Automatic groups it by structural communities; the page must show exactly those.
+    await expect(page.locator('.business-area')).toHaveCount(ublOverview.groups.length);
     await expect(page.locator('.inspector')).toHaveCount(0);
     await expect(page.locator('.model-overview .react-flow__edge')).toHaveCount(0);
     await page.locator('[data-entity-id="ontology/0"]').click();
@@ -189,14 +197,20 @@ try {
     await page.getByRole('button', { name: 'Relationship matrix', exact: true }).click();
     const counts = await page.locator('.matrix-view td button').allTextContents();
     if (counts.reduce((n, v) => n + Number(v), 0) !== 277) throw Error('Matrix does not account for every relationship');
-    await page.getByRole('button', { name: /Business documents to Trading parties:/ }).click();
+    // Open the first pair of different areas that the app's own matrix connects.
+    const crossAreaPair = ublOverview.groups
+      .flatMap(from => ublOverview.groups.filter(to => to.id !== from.id).map(to => [from, to] as const))
+      .find(([from, to]) => ublOverview.matrix.get(JSON.stringify([from.id, to.id]))?.length);
+    if (!crossAreaPair) throw Error('UBL areas have no relationship between two different areas');
+    const [fromArea, toArea] = crossAreaPair;
+    await page.getByRole('button', { name: new RegExp(`^${fromArea.name} to ${toArea.name}: [1-9]`) }).click();
     const row = page.locator('.connection-list>button').first();
     const name = await row.locator('strong').innerText();
     await row.click();
     await expect(page.locator('.inspector h2')).toHaveText(name);
     await page.screenshot({ path: '/tmp/workbench-ui-matrix.png' });
     await page.getByRole('button', { name: 'Close relationship list', exact: true }).click();
-    await page.getByRole('button', { name: 'Business areas', exact: true }).click();
+    await page.getByRole('button', { name: ublOverview.groupingLabel, exact: true }).click();
     await page.getByPlaceholder('Find an entity…').fill('Shipment');
     await expect(page.locator('.area-entities button')).toHaveCount(1);
     await page.getByPlaceholder('Find an entity…').fill('');
@@ -215,8 +229,8 @@ try {
     await expect(page.locator('.full-graph-status')).toHaveAttribute('data-relationship-count', '277');
     await showEveryEntity(page);
     await expect(page.locator('.react-flow__node-entity')).toHaveCount(45);
-    // Links between areas stay hidden until an entity is selected, so only the 62 links inside an area are drawn.
-    await expect(page.locator('.react-flow__edge')).toHaveCount(62);
+    // Links between areas stay drawn, so every grouped connection of the model is on the canvas.
+    await expect(page.locator('.react-flow__edge')).toHaveCount(ublConnections);
     await viewOptions(page, async options => {
       const layout = options.getByRole('radiogroup', { name: 'Graph layout' });
       await expect(layout.getByRole('radio', { name: 'Network', exact: true })).toBeChecked();
@@ -225,12 +239,12 @@ try {
     });
     await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60000 });
     await expect(page.locator('.react-flow__node-entity')).toHaveCount(45);
-    await expect(page.locator('.react-flow__edge')).toHaveCount(62);
+    await expect(page.locator('.react-flow__edge')).toHaveCount(ublConnections);
     await expect(page.locator('.full-graph-status')).toHaveAttribute('data-routing', 'worker', {
       timeout: 30000,
     });
     await viewOptions(page, async options => {
-      await options.getByLabel('Zoom to group').selectOption('documents');
+      await options.getByLabel('Zoom to group').selectOption(orderArea.id);
     });
     await page.waitForTimeout(500);
     await page.locator('.react-flow__node[data-id="ontology/0"] .full-entity').click();
