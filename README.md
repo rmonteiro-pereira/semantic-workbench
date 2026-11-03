@@ -117,7 +117,8 @@ application API and command scripts run with Bun.
 | --- | --- | --- |
 | React Flow | 12.12.0, locally patched | Interactive nodes, handles and compound canvases |
 | React Flow Smart Edge | 5.0.0 | Background obstacle-aware edge routing |
-| ELK.js | 0.12.0 | Layered layout and box packing of collapsed areas |
+| Cytoscape / cytoscape-fcose | 3.34.4 / 2.2.0 | Force-directed compound layout of the Network view, in a worker |
+| ELK.js | 0.12.0 | Layered layout, and spacing and packing of the areas in the Network view |
 | YAML | 2.9.1 | YAML parsing and byte-preserving edits |
 | Ajv / ajv-formats | 8.20.0 / 3.0.1 | JSON Schema validation and browser validators |
 | N3 / rdflib | 2.13.12 / 2.4.1 | RDF parsing and graph operations |
@@ -304,11 +305,11 @@ same definitions. They do not maintain independent copies of a metric formula.
 
 ### Graph architecture
 
-React Flow renders interactive HTML/SVG nodes and connections. ELK calculates the optional layered
-positions and compound routes. The default Network layout sizes each area as a tile to fit its
-entity names at one size, packs the tiles in rows (`packTiles`) to the canvas's own shape, so a tall phone
-canvas gets fewer columns, and draws only links inside an area. Smart Edge
-supplies worker routing at useful detail levels.
+React Flow renders interactive HTML/SVG nodes and connections. The default Network layout runs the
+compound fCoSE force layout (Cytoscape) in a worker, so related entities sit close together inside
+their area, and ELK then spaces the entities of each area and packs the areas without overlap. It
+draws only links inside an area. The optional Layered layout uses ELK for positions and compound
+routes. Smart Edge supplies worker routing at useful detail levels.
 
 Neighborhood traversal adds nearby entities without moving existing ones and records reversible
 walk/expansion history. Contract lineage and mapping graphs connect ports on rows inside cards.

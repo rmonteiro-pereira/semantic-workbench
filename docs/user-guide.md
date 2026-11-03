@@ -302,8 +302,8 @@ inferred equivalence.
 
 ### Full graph
 
-The default **Network** layout shows each area as a tile sized to its entities, with whole names.
-Links inside an area are drawn; each tile says "links to N areas", and those links are drawn only
+The default **Network** layout places related entities close together inside each area, with whole names.
+Links inside an area are drawn; each area says "links to N areas", and those links are drawn only
 for the entity you select. Switch to **Layered (ELK)**, which preserves orthogonal routes while
 they match current handles, with the **Layered / Network** control in the graph toolbar. The
 toolbar also holds **Re-layout**, the crosshair select that zooms to an area (**Zoom to group**),
@@ -352,7 +352,7 @@ view fills the browser window instead. On phones, secondary controls sit behind 
 cross-file links behind **Other files**.
 
 The **Group** menu exists only in the Graph toolbar (not in Overview). It offers declared domains,
-IRI namespaces, suggested communities, definition types and curated UBL areas, listing only the
+IRI namespaces, suggested communities, or definition types, listing only the
 ways that work for the open file, each with a one-line explanation. Automatic selects the first
 applicable mode and the menu footer names the choice. When a file has fewer than two usable ways
 to group, the menu is hidden. Communities are deterministic structural
