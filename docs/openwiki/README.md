@@ -8,13 +8,11 @@ be read directly on GitHub or in a local checkout; no separate wiki service is r
 | Page | Contents |
 | --- | --- |
 | [Identity and access](identity-and-access.md) | Entry groups, MSAL/OIDC/OBO, least-privilege Graph access, sessions and managed identities |
-| [Identity operations](identity-operations.md) | Configuration, failure recovery, the six reviewed corrections, validation and production acceptance |
+| [Identity operations](identity-operations.md) | Configuration, failure recovery, invariants and production acceptance |
 | [Logging, telemetry and UI profiling](observability-operations.md) | Enable/disable collection, App Service setup, React profiling builds, viewing signals, costs and acceptance |
 
-The identity documentation describes the implementation introduced in
-[`00a4a9e`](https://github.com/rmonteiro-pereira/semantic-workbench/commit/00a4a9ed68b23259e8f095dc684560df7b81be2f).
-It is not a live tenant inventory or proof of an Azure deployment. Real-target acceptance,
-consent and Conditional Access checks are still required.
+The identity documentation is not a live tenant inventory or proof of an Azure deployment.
+Real-target acceptance, consent and Conditional Access checks are still required.
 
 ## Project guides
 

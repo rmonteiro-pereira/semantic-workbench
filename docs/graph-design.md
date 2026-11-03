@@ -13,8 +13,9 @@ For current package versions, see [the technology stack](../README.md#technology
 | Component | Implemented responsibility |
 | --- | --- |
 | React Flow | HTML/SVG interaction, compound nodes, selection and handles |
-| ELK Layered | Directed layout with areas, ports and orthogonal routes |
-| Local `packTiles` | Network view: packs the area tiles in rows without overlap |
+| Cytoscape with fCoSE | Network view: force-directed layout of entities inside compound areas, run in a worker |
+| ELK Layered | Layered view: directed layout with areas, ports and orthogonal routes |
+| ELK sporeOverlap and box | Network view: removes overlaps inside each area, then packs the areas |
 | React Flow Smart Edge | Shared worker routes for detailed/visible connections |
 | Local graph functions | Traversal, projection, labels and incremental placement |
 
@@ -30,13 +31,15 @@ it is not a drop-in performance switch.
    one link bundle, but every original relationship remains available for inspection.
 2. Apply the selected display grouping. Automatic uses the first applicable mode with useful
    groups. These areas are view organization, not additional standard semantics.
-3. Use Network layout by default. Layered uses ELK routes. Network sizes each area as a tile for
-   the whole names it holds (one name size for the layout, long names wrapping into taller cards), then
-   packs the tiles in rows (`packTiles`) to the canvas's width-to-height ratio so none overlap. The
-   canvas shape is read once the pane has settled and again on an explicit re-layout; resizing the
-   pane afterwards (sidebar, rotation, full screen) does not lay the graph out again. It draws
-   links inside an area; links between areas are summarised on the tile ("links to N areas") and
-   drawn only for the selected entity.
+3. Use Network layout by default. Layered uses ELK routes. Network (`network-layout.ts`, run by
+   `network-layout.worker.ts`) places fixed-size entity cards with the compound fCoSE force layout,
+   so connected entities sit near each other inside their area. `packNetwork` in `full-layout.ts`
+   then lets ELK remove overlaps inside every area and pack the areas into a box of roughly
+   2:1 proportions. Resizing the pane does not lay the graph out again; **Re-layout** does. The view
+   draws links inside an area; links between areas are summarised on the area ("links to N areas")
+   and drawn only for the selected entity. fCoSE starts from random positions, so the arrangement
+   can differ between uncached runs of the same model; the result is cached per model and grouping
+   while the page stays open.
 4. Render parent areas before their children using relative positions and `parentId`.
 5. Retain ELK route vertices while their endpoints match live handles. Dragging invalidates stale
    routes and falls back to live geometry. SVG appearance props are selected separately so graph

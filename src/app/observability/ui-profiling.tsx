@@ -5,7 +5,10 @@ import type { Reporter } from './reporter';
 
 const enabled = typeof __SW_PROFILE_UI__ !== 'undefined' && __SW_PROFILE_UI__;
 
-export function createRenderCallback(reporter: Pick<Reporter, 'reportRender'>, timeline: Pick<Performance, 'clearMeasures' | 'measure'> = performance): ProfilerOnRenderCallback {
+/** The slice of the browser's User Timing API that profiling writes to, injectable for tests. */
+type Timeline = Pick<Performance, 'clearMeasures' | 'measure'>;
+
+export function createRenderCallback(reporter: Pick<Reporter, 'reportRender'>, timeline: Timeline = performance): ProfilerOnRenderCallback {
   return (id, phase, actualDuration, baseDuration, startTime, commitTime) => {
     const area = REACT_AREAS.find(area => area === id);
     if (!area) return;
@@ -30,7 +33,7 @@ export function UiProfiler({ area, children }: { area: ReactArea; children: Reac
   );
 }
 
-export function observeInteractions(reporter: Pick<Reporter, 'reportOperation'>, Observer = globalThis.PerformanceObserver): (() => void) | undefined {
+export function observeInteractions(reporter: Pick<Reporter, 'reportOperation'>, Observer = globalThis.PerformanceObserver, timeline: Timeline = performance): (() => void) | undefined {
   if (!Observer?.supportedEntryTypes.includes('event')) return;
   const observer = new Observer(list => {
     const interactions = new Map<number, PerformanceEntry>();
@@ -40,8 +43,8 @@ export function observeInteractions(reporter: Pick<Reporter, 'reportOperation'>,
     }
     for (const entry of interactions.values()) {
       const name = 'sw.ui.interaction';
-      performance.clearMeasures(name);
-      performance.measure(name, { start: entry.startTime, duration: entry.duration });
+      timeline.clearMeasures(name);
+      timeline.measure(name, { start: entry.startTime, duration: entry.duration });
       reporter.reportOperation('interaction', entry.duration);
     }
   });

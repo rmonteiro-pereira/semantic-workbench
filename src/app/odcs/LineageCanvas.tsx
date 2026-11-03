@@ -231,6 +231,8 @@ function useMeasuredNodeSizes() {
   }, []);
   return { sizeFor, recordSizes };
 }
+/** About one second of animation frames; after this a lineage fit stops waiting for card measurements. */
+const MAX_FIT_WAIT_FRAMES = 60;
 const MEASURE_CHECK_MS = 500;
 
 // React Flow keeps a card hidden until it has measured it. Under load a measurement can be lost
@@ -931,6 +933,8 @@ export function LineageCanvas({
     if (fitted.current === viewKey || anchoredCard.current || viewHeld()) return;
     let cancelled = false;
     let frame: number;
+    let framesWaited = 0;
+    const fitOptions = { padding: 0.12, maxZoom: 1, duration: 0 };
     const fitReadyNeighborhood = async () => {
       const instance = flow.current;
       // Offscreen cards have layout dimensions too; wait until React Flow holds this layout,
@@ -947,9 +951,14 @@ export function LineageCanvas({
             (current.measured?.height ?? current.initialHeight)
           );
         });
-      if (ready && (await instance.fitView({ padding: 0.12, maxZoom: 1, duration: 0 }))) {
+      // A card that never reports a size must not keep this loop running; fit what is there instead.
+      const gaveUpWaiting = framesWaited >= MAX_FIT_WAIT_FRAMES;
+      if ((ready || gaveUpWaiting) && (await instance?.fitView(fitOptions))) {
         if (!cancelled) fitted.current = viewKey;
-      } else if (!cancelled) frame = requestAnimationFrame(() => void fitReadyNeighborhood());
+        return;
+      }
+      framesWaited += 1;
+      if (!cancelled) frame = requestAnimationFrame(() => void fitReadyNeighborhood());
     };
     frame = requestAnimationFrame(() => void fitReadyNeighborhood());
     return () => {

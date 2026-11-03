@@ -3,6 +3,8 @@
 // Names are 16 px, so this zoom keeps them at 12 px or more on screen without any help.
 const READABLE_ZOOM = 0.75;
 const CARD_HEIGHT = 60;
+/** Width of an entity card on the whole-model graph. */
+export const MODEL_CARD_WIDTH = 184;
 const LARGE_MODEL = 250;
 /** Area titles also grow as the graph zooms out, up to this size. */
 export const LARGEST_AREA_TITLE_PX = 48;

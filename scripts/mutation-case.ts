@@ -519,23 +519,20 @@ if (category === 'overview') {
 }
 
 if (category === 'network-layout') {
-  const sizes = [
-    { width: 640, height: 320 },
-    { width: 844, height: 396 },
-    { width: 300, height: 244 },
-    { width: 640, height: 320 },
-    { width: 300, height: 244 },
-  ];
-  const { corners } = loadedModule.packTiles(sizes);
-  for (let first = 0; first < sizes.length; first++) {
-    for (let second = first + 1; second < sizes.length; second++) {
-      const apart =
-        corners[first].x + sizes[first].width <= corners[second].x ||
-        corners[second].x + sizes[second].width <= corners[first].x ||
-        corners[first].y + sizes[first].height <= corners[second].y ||
-        corners[second].y + sizes[second].height <= corners[first].y;
-      assert(apart);
-    }
+  const { inspect } = await import('../src/shared/core/model');
+  const model = inspect(await Bun.file('public/examples/ubl/ubl.ontology.yaml').text());
+  const layout = loadedModule.layoutNetwork(model.entities, model.edges, model.name);
+  const areas = layout.nodes.filter((node: any) => node.group);
+  const cards = layout.nodes.filter((node: any) => !node.group);
+  assert.equal(cards.length, model.entities.length);
+  for (const area of areas) {
+    assert(area.x >= 0 && area.y >= 0);
+    assert(area.x + area.width <= layout.width && area.y + area.height <= layout.height);
+  }
+  for (const card of cards) {
+    const area = areas.find((node: any) => node.id === card.parentId);
+    assert(card.x >= 0 && card.y >= 0);
+    assert(card.x + card.width <= area.width + 0.01 && card.y + card.height <= area.height + 0.01);
   }
 }
 

@@ -31,13 +31,14 @@ import { Crosshair, Maximize, Maximize2, Minimize2, RefreshCw, Gauge } from 'luc
 import { useViewRestore, type Fullscreen } from './fullscreen';
 import { GraphOptions, OptionGroup, Segmented, ShowToggle } from './GraphOptions';
 import { ZoomButtons } from './ZoomButtons';
-import { startsCollapsed, textSizesAt } from './overview-capacity';
+import { MODEL_CARD_WIDTH, startsCollapsed, textSizesAt } from './overview-capacity';
 import { CompactControls } from './CompactControls';
 import { modelOverview } from './overview';
 import { groupRelationships } from './graph-view';
 import { collapseAreas } from './collapse';
 import { FALLBACK_GROUP_COLOR } from '../theme/theme-palette';
 import { layoutFullGraph, packNetwork } from './full-layout';
+import { VALUE_KINDS, kpisKey, readFlag, readHideValues, writeFlag, writeHideValues } from './hidden-kinds';
 import type { NetworkLayoutRequest, NetworkLayoutResponse } from './network-layout';
 import { areaTileData, entityCardData } from './full-node-data';
 import { shownName } from './text-fit';
@@ -146,26 +147,8 @@ type Props = {
   kpiBadges?: Map<string, string[]>;
   fullscreen?: Fullscreen;
 };
-const VALUE_KINDS = new Set(['ValueType', 'Built-in concept']);
-const valuesKey = (name: string) => 'workbench:hide-value-types:' + name;
-const kpisKey = (name: string) => 'workbench:hide-kpis:' + name;
 // The mini-map is off until a person asks for it; the choice is remembered in this browser.
 const MINI_MAP_KEY = 'workbench:graph-mini-map';
-function readFlag(key: string) {
-  try {
-    return localStorage.getItem(key) === '1';
-  } catch {
-    return false;
-  }
-}
-function writeFlag(key: string, hide: boolean) {
-  try {
-    if (hide) localStorage.setItem(key, '1');
-    else localStorage.removeItem(key);
-  } catch {}
-}
-const readHideValues = (name: string) => readFlag(valuesKey(name));
-const writeHideValues = (name: string, hide: boolean) => writeFlag(valuesKey(name), hide);
 /** Displays the model graph with grouping, filtering and entity details. */
 export function FullGraph(props: Props) {
   const container = useRef<HTMLDivElement | null>(null);
@@ -294,7 +277,7 @@ export function FullGraph(props: Props) {
       return {
         x,
         y,
-        width: Number(node.style?.width ?? node.measured?.width ?? 184),
+        width: Number(node.style?.width ?? node.measured?.width ?? MODEL_CARD_WIDTH),
         height: Number(node.style?.height ?? node.measured?.height ?? 60),
       };
     });
@@ -500,7 +483,7 @@ export function FullGraph(props: Props) {
             {
               x: node.position.x + (parentNode?.position.x ?? 0),
               y: node.position.y + (parentNode?.position.y ?? 0),
-              width: 184,
+              width: MODEL_CARD_WIDTH,
               height: 60,
             },
           ];

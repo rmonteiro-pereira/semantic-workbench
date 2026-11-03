@@ -231,7 +231,7 @@ The integration view shows what the application reads and contacts, and what it 
 - `src/app/odcs/lineage.ts` builds declared column dependencies; `LineageCanvas.tsx`, `LineageCard.tsx`
   and `LineageColumnList.tsx` draw row ports, selection and windowed column lists. Mapping canvases
   reuse this infrastructure with resolver-derived cards/lines.
-- `docs/graph-design.md` describes ELK layered versus area tiles, worker routing, card measurement,
+- `docs/graph-design.md` describes the Network (fCoSE) and Layered (ELK) layouts, worker routing, card measurement,
   viewport fitting and the pinned React Flow observer patch. No WebGL/Sigma renderer is active.
 
 ### Branding, observability and delivery
@@ -246,7 +246,9 @@ The integration view shows what the application reads and contacts, and what it 
   logs, browser report recording and optional exporter loading. SDK/exporter imports stay behind
   `telemetry.ts`; ordinary application code uses the no-op-capable OpenTelemetry API.
 - `src/app/observability/` owns bounded browser reporting to the workbench API; the report shape
-  both sides check is `src/shared/observability/browser-report.ts`. No browser exporter
+  both sides check is `src/shared/observability/browser-report.ts`. `ui-profiling.tsx` adds React
+  render timing and interaction latency, active only in a `bun run build --mode profile` build
+  (see [development](docs/development.md#profiling-the-react-ui)). No browser exporter
   contacts an external ingestion host. `src/server/auth/audit.ts` remains a separate durable security
   record, with integrity verification described in `docs/audit-tamper-evidence.md`.
 - `Dockerfile`, `compose.yaml`, `scripts/image.ts` and `container-*.ts` own image construction and
