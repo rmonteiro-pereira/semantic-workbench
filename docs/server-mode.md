@@ -315,6 +315,9 @@ For external anchors, truncation detection, failure behavior and limits, see
 
 ## Logging, telemetry and outbound traffic
 
+For the App Service enable/disable procedure, profiling builds, viewing signals and ingestion
+costs, see [observability operations](openwiki/observability-operations.md).
+
 Operational logging is separate from the security audit. Server mode writes JSON lines to stdout;
 local mode writes readable lines. `SW_LOG_LEVEL` selects the level. Request IDs link API responses,
 operational records and audit entries. Actors are pseudonyms, not names or e-mail addresses.

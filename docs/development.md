@@ -76,6 +76,9 @@ validators without eval under the CSP. Do not edit pinned upstream schemas to ma
 
 ## Profiling the React UI
 
+For Azure configuration, enable/disable procedures, viewing signals and costs, see
+[observability operations](openwiki/observability-operations.md).
+
 Normal production builds do not enable React profiling. For a temporary diagnostic build:
 
 ```powershell

@@ -629,6 +629,7 @@ by the locally recorded quality gate.
 | --- | --- |
 | [Documentation index](docs/README.md) | Task-oriented map of current guides |
 | [OpenWiki](docs/openwiki/README.md) | Identity architecture, MSAL/Entra wiring and production operations |
+| [Observability operations](docs/openwiki/observability-operations.md) | Enable/disable logging and telemetry, profile React UI, inspect Azure data and estimate ingestion |
 | [User guide](docs/user-guide.md) | Editing, metrics, graphs, imports, export and Git workflows |
 | [Server guide](docs/server-mode.md) | Sign-in, grants, worktrees, governance and operations |
 | [Configuration](docs/configuration.md) | Environment, data layout and startup constraints |
