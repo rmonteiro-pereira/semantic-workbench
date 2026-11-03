@@ -37,8 +37,6 @@ export type SignInProvider = {
    * session's tokens it names the account, so the provider need not ask which one.
    */
   logout(tokens?: SessionTokens): string;
-  /** An application token for Microsoft Graph group lookups. */
-  directoryToken(): Promise<string>;
   /** Exchanges a person's access token for a token to another API on their behalf. */
   onBehalfOf(userToken: string, scopes: string[]): Promise<DelegatedToken>;
 };

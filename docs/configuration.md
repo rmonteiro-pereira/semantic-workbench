@@ -148,7 +148,9 @@ For Entra, `directory` checks configured grant/restricted-path group IDs at sign
 not only on token overage. It uses OBO with delegated Graph `User.Read`; no group candidates
 means no membership request. `off` performs no directory membership lookup and fails closed on
 overage. Entra group references must be GUID object IDs; startup and administration validation
-reject malformed references. Other providers retain textual group identifiers. See
+reject malformed references. Upgrading an Entra deployment whose grants or restricted paths
+hold a non-GUID group ID (for example a group name) stops at startup with an error that begins
+`grants:` and names the ID; replace it with the group's object ID first. Other providers retain textual group identifiers. See
 [OpenWiki identity and access](openwiki/identity-and-access.md) for the separate entry gate,
 permissions and managed-identity boundaries.
 

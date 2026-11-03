@@ -344,19 +344,13 @@ export async function createServerAuthentication(ws: Workspace, config: ServerCo
       record({ action: 'signOut', principal: session.principal, outcome: 'ok', request });
     }
   }
-  const groupDirectory = createDirectoryClient({
-    graphUrl: config.directory.graphUrl,
-    token: () => client.directoryToken(),
-    failure: reason => log.warn('auth.group-name-lookup-failed', { reason }),
-  });
-  // Keycloak puts group names in the token, so the name is the identifier itself.
+  // Keycloak puts group names in the token, so the name is the identifier itself. Every other
+  // provider shows only the label an administrator stored with the grant: Microsoft Graph applies
+  // to Entra alone, and Entra names are never verified against it.
   async function groupName(id: string) {
     if (config.oidc.provider === 'keycloak') return { id, displayName: id, resolved: true };
-    if (config.oidc.provider === 'entra') {
-      const member = access.snapshot().config.grants.find(grant => grant.member.kind === 'group' && grant.member.groupId.toLowerCase() === id.toLowerCase() && grant.member.displayName)?.member;
-      return { id, displayName: member?.kind === 'group' ? (member.displayName ?? null) : null, resolved: false };
-    }
-    return groupDirectory.group(id);
+    const member = access.snapshot().config.grants.find(grant => grant.member.kind === 'group' && grant.member.groupId.toLowerCase() === id.toLowerCase() && grant.member.displayName)?.member;
+    return { id, displayName: member?.kind === 'group' ? (member.displayName ?? null) : null, resolved: false };
   }
   const remoteCredentials = createRemoteCredentials({
     ...remoteOptions,

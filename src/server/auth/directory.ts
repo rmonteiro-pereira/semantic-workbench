@@ -1,5 +1,6 @@
 // Resolves configured group memberships and caches optional group display names.
 import type { AccessConfig } from './access-config';
+import { AdminConfigError } from './admin-repo';
 import { isLoopbackHost } from '../config';
 
 /** A group label; resolved means its name was verified against the directory. */
@@ -51,18 +52,23 @@ export function createGroupNameCache(lookup: GroupLookup, options: GroupNameCach
   return { name, names, clear: () => cached.clear() };
 }
 
-/** Collects group identifiers mentioned by grants or restricted paths. */
-export function directoryGroupIds(config: AccessConfig): string[] {
+/** Group identifiers exactly as written in grants and restricted paths. */
+function configuredGroupIds(config: AccessConfig): string[] {
   const grants = config.grants.flatMap(grant => (grant.member.kind === 'group' ? [grant.member.groupId] : []));
   const restricted = Object.values(config.projects.projects).flatMap(project => project.restricted.flatMap(rule => rule.groups));
-  return [...new Set([...grants, ...restricted].map(id => id.toLowerCase()))];
+  return [...grants, ...restricted];
+}
+
+/** Collects group identifiers mentioned by grants or restricted paths, lower-cased and unique. */
+export function directoryGroupIds(config: AccessConfig): string[] {
+  return [...new Set(configuredGroupIds(config).map(id => id.toLowerCase()))];
 }
 
 /** Rejects malformed Entra object IDs before one can invalidate a Graph membership batch. */
 export function validateDirectoryGroupIds(config: AccessConfig): void {
-  for (const id of directoryGroupIds(config)) {
-    if (!/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/.test(id)) {
-      throw new Error('Entra groups in grants and restricted paths must use GUID object IDs.');
+  for (const id of configuredGroupIds(config)) {
+    if (!/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(id)) {
+      throw new AdminConfigError(`grants: Entra groups in grants and restricted paths must use GUID object IDs; "${id}" is not one.`);
     }
   }
 }
@@ -139,21 +145,6 @@ export function createDirectoryClient(options: {
     }
   }
   return {
-    async group(id: string) {
-      try {
-        if (!id || id.length > 256) throw new Error('Invalid directory group ID.');
-        const body = await withinDeadline(signal => perform('groups/' + encodeURIComponent(id) + '?$select=displayName', signal));
-        const displayName = (body as { displayName?: unknown })?.displayName;
-        if (typeof displayName !== 'string') throw new Error('Invalid directory group name.');
-        return { id, displayName, resolved: true };
-      } catch {
-        options.failure?.('directory-unavailable');
-        return { id, displayName: null, resolved: false };
-      }
-    },
-    async groups(oid: string, ids: string[]): Promise<string[] | null> {
-      return checkGroups('users/' + encodeURIComponent(oid) + '/checkMemberGroups', ids);
-    },
     async myGroups(ids: string[]): Promise<string[] | null> {
       return checkGroups('me/checkMemberGroups', ids);
     },

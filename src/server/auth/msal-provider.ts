@@ -20,7 +20,6 @@ import {
 import { ENTRA_LOGIN_HOSTS, isLoopbackHost, type ClientAuth, type ServerConfig } from '../config';
 import { safeReturnTo, type SignInAttempt } from './attempts';
 import { createBearerValidator } from './bearer';
-import { directoryScope } from './directory';
 import { createProviderKeys, sessionClaims, verifyIdToken, type ProviderKeys } from './id-token';
 import { managedIdentityAssertion } from './managed-identity';
 import { normalizeClaims } from './principal';
@@ -329,11 +328,10 @@ export async function createMsalProvider(config: ServerConfig, dependencies: Sig
     request,
     application,
   };
-  return msalOperations(context, application());
+  return msalOperations(context);
 }
 
-// The Graph application token is cached in this one client's memory and reused until it expires.
-function msalOperations(context: MsalContext, applicationClient: ConfidentialClientApplication): SignInProvider {
+function msalOperations(context: MsalContext): SignInProvider {
   const { config, metadata, keys } = context;
   return {
     bearer: createBearerValidator(config, metadata.jwks_uri, context.request),
@@ -356,12 +354,6 @@ function msalOperations(context: MsalContext, applicationClient: ConfidentialCli
       }
     },
     logout: tokens => signOutUrl(context, tokens),
-    directoryToken: () =>
-      applicationToken(() =>
-        applicationClient.acquireTokenByClientCredential({
-          scopes: [directoryScope(config.directory.graphUrl)],
-        }),
-      ).then(result => result.accessToken),
     // A fresh client per exchange keeps no person's delegated token in memory; the caller
     // stores the result in that person's encrypted session.
     onBehalfOf: (userToken, scopes) => delegatedToken(context, userToken, scopes),

@@ -4,6 +4,17 @@ Source release tags identify the versions below. Image build metadata and approv
 also require a matching package version in the target release checkout; a source tag alone does
 not configure a production deployment.
 
+## Unreleased
+
+### Changed
+
+- Entra: a grant or restricted path that names a group by anything other than its GUID object ID
+  now stops startup with an error beginning `grants:` that names the ID. Replace such references
+  with object IDs before upgrading.
+- Group names in the Admin panel are the labels stored with each grant for every provider except
+  Keycloak, which shows the group identifier. The application-only Graph group lookup and its
+  token were removed.
+
 ## v0.6.0 — 2026-10-30
 
 ### Added

@@ -12,6 +12,7 @@ import { TEST_GROUPS, TEST_TENANT_ID, TEST_USERS, TEST_WORKBENCH_CLIENT } from '
 import { startMockOidc } from '../helpers/mock-oidc';
 import { oidcConfig } from '../helpers/server-auth';
 import { entraConfig, signInWith, withEntraProvider } from '../helpers/entra-provider';
+import { graphToken } from './mock-oidc-client';
 
 const AZURE_DEVOPS = '499b84ac-1321-427f-aa17-267ca6975798';
 
@@ -145,7 +146,6 @@ test('a client secret, a certificate or the managed identity authenticate the wo
       const auth = { kind: 'certificate' as const, privateKey, thumbprint };
       const client = await createMsalProvider(entraConfig(provider, auth));
       expect((await signInWith(client, provider)).principal.name).toBe(TEST_USERS.alice.name);
-      expect(decodeJwt(await client.directoryToken()).idtyp).toBe('app');
     }, options);
   }
   await withEntraProvider(
@@ -162,18 +162,14 @@ test('a client secret, a certificate or the managed identity authenticate the wo
   });
 });
 
-test('Graph and on-behalf-of tokens are application tokens MSAL acquires', () =>
+test('on-behalf-of tokens are exchanged for the person and refuse an application token', () =>
   withEntraProvider(async provider => {
     const client = await createMsalProvider(entraConfig(provider));
-    const graph = decodeJwt(await client.directoryToken());
-    expect(graph.aud).toBe('https://graph.microsoft.com');
-    const credentials = provider.calls.find(call => call.params.grant_type === 'client_credentials');
-    expect(credentials?.params.scope).toContain('https://graph.microsoft.com/.default');
     const signedIn = await signInWith(client, provider, 'alice');
     const delegated = await client.onBehalfOf(signedIn.tokens.accessToken, [`${AZURE_DEVOPS}/user_impersonation`]);
     const claims = decodeJwt(delegated.token);
     expect(delegated.expiresAt).toBeGreaterThan(Date.now());
     expect(claims.aud).toBe(AZURE_DEVOPS);
     expect(claims.oid).toBe(TEST_USERS.alice.oid);
-    await expect(client.onBehalfOf(await client.directoryToken(), [`${AZURE_DEVOPS}/user_impersonation`])).rejects.toThrow();
+    await expect(client.onBehalfOf(await graphToken(provider), [`${AZURE_DEVOPS}/user_impersonation`])).rejects.toThrow();
   }));

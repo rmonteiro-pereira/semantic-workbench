@@ -8,7 +8,6 @@ import { normalizeClaims } from './principal';
 import type { SessionTokens } from './sessions';
 import { SignInError, tokenSignInError } from './sign-in-error';
 import { createProviderKeys, sessionClaims, verifyIdToken } from './id-token';
-import { directoryScope } from './directory';
 import { safeReturnTo, type SignInAttempt } from './attempts';
 import { managedIdentityAssertion } from './managed-identity';
 import type { ProviderFetch, SignInDependencies, SignInProvider } from './sign-in-provider';
@@ -195,11 +194,6 @@ export async function createOidcClient(config: ServerConfig, dependencies: SignI
         throw new Error('The on-behalf-of token has no lifetime.');
       }
       return { token: response.access_token, expiresAt: now() + lifetime * 1000 };
-    },
-    async directoryToken() {
-      const scope = directoryScope(config.directory.graphUrl);
-      const token = await oidc.clientCredentialsGrant(client, { scope });
-      return token.access_token;
     },
   };
 }

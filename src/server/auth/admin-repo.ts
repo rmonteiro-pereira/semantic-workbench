@@ -169,6 +169,8 @@ export function openAdminRepository(options: {
       });
       options.validate?.(config);
     } catch (error) {
+      // A validation that already names its own area keeps that name.
+      if (error instanceof AdminConfigError) throw error;
       throw new AdminConfigError(`policies: ${(error as Error).message}`);
     }
     return config;

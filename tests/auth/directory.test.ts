@@ -11,12 +11,13 @@ test('checks at most twenty candidate groups per call and drops unexpected group
     fetch: async (_url, init) => {
       const body = JSON.parse(String(init?.body));
       batches.push(body.groupIds);
+      expect(init?.redirect).toBe('error');
       expect(new Headers(init?.headers).get('authorization')).toBe('Bearer app-token');
       return Response.json({ value: [...body.groupIds, 'unrequested'] });
     },
   });
   const ids = Array.from({ length: 45 }, (_, index) => String(index));
-  expect(await directory.groups('person', ids)).toEqual(ids);
+  expect(await directory.myGroups(ids)).toEqual(ids);
   expect(batches.map(batch => batch.length)).toEqual([20, 20, 5]);
 });
 
@@ -28,57 +29,11 @@ test('a directory failure removes all membership and reports a safe reason', asy
     fetch: async () => new Response('secret provider error', { status: 503 }),
     failure: reason => failures.push(reason),
   });
-  expect(await directory.groups('person', ['group'])).toBeNull();
+  expect(await directory.myGroups(['group'])).toBeNull();
   expect(failures).toEqual(['directory-unavailable']);
 });
 
-test('group lookup confines the app token and degrades without losing the group ID', async () => {
-  const calls: string[] = [];
-  const directory = createDirectoryClient({
-    graphUrl: 'https://graph.example',
-    token: async () => 'app-token',
-    fetch: async (url, init) => {
-      calls.push(url);
-      expect(init?.redirect).toBe('error');
-      return Response.json({ displayName: 'Sales editors' });
-    },
-  });
-  expect(await directory.group('group-id')).toEqual({
-    id: 'group-id',
-    displayName: 'Sales editors',
-    resolved: true,
-  });
-  expect(calls).toEqual(['https://graph.example/v1.0/groups/group-id?$select=displayName']);
-  const failed = createDirectoryClient({
-    graphUrl: 'https://graph.example',
-    token: async () => {
-      throw new Error('token-secret');
-    },
-  });
-  expect(await failed.group('group-id')).toEqual({
-    id: 'group-id',
-    displayName: null,
-    resolved: false,
-  });
-});
-
-test('Graph stand-in resolves group names through an app-only token', async () => {
-  const { withProvider, graphToken } = await import('./mock-oidc-client');
-  const { TEST_GROUPS } = await import('../helpers/auth-identities');
-  await withProvider(async provider => {
-    const directory = createDirectoryClient({
-      graphUrl: provider.graphUrl,
-      token: () => graphToken(provider),
-    });
-    expect(await directory.group(TEST_GROUPS.salesEditors.id)).toEqual({
-      id: TEST_GROUPS.salesEditors.id,
-      displayName: TEST_GROUPS.salesEditors.name,
-      resolved: true,
-    });
-  });
-});
-
-test('directory aborts and malformed responses remain unresolved without returning secrets', async () => {
+test('directory aborts and malformed responses fail closed without returning secrets', async () => {
   for (const request of [
     async () => {
       throw new DOMException('secret endpoint', 'TimeoutError');
@@ -90,17 +45,17 @@ test('directory aborts and malformed responses remain unresolved without returni
       token: async () => 'secret',
       fetch: request,
     });
-    expect(await directory.group('id')).toEqual({ id: 'id', displayName: null, resolved: false });
+    expect(await directory.myGroups(['id'])).toBeNull();
   }
 });
 
-test('a stalled token acquisition has a bounded unresolved result', async () => {
+test('a stalled token acquisition has a bounded failed result', async () => {
   const directory = createDirectoryClient({
     graphUrl: 'https://graph.example',
     timeoutMs: 5,
     token: () => new Promise(() => {}),
   });
-  expect(await directory.group('id')).toEqual({ id: 'id', displayName: null, resolved: false });
+  expect(await directory.myGroups(['id'])).toBeNull();
 });
 
 test('Entra administration validates IDs and preserves local labels without application Graph lookups', async () => {
@@ -251,6 +206,34 @@ test('Entra group validation rejects malformed grant and restricted IDs before a
   expect(() => validateDirectoryGroupIds(policy)).toThrow('GUID object IDs');
 });
 
+test('an existing deployment with a non-GUID group ID fails to load with an error that names the grants and the ID', async () => {
+  const { openAdminRepository, AdminConfigError } = await import('../../src/server/auth/admin-repo');
+  const { tempDataDir } = await import('../helpers/temp-data-dir');
+  const dir = tempDataDir();
+  try {
+    const legacy = openAdminRepository({ root: dir.root });
+    await legacy.ensure();
+    const grant = { id: 'g_legacy', roleId: 'viewer', member: { kind: 'group', groupId: 'Sales Editors' }, scope: { kind: 'workspace' }, addedBy: 'admin', addedAt: '2026-01-01T00:00:00Z' };
+    await legacy.write(
+      { 'grants.json': JSON.stringify({ grants: [grant] }) },
+      { author: { name: 'Admin', email: 'admin@example.org' }, baseVersion: await legacy.version(), message: 'grants: Legacy group' },
+    );
+    const entra = openAdminRepository({ root: dir.root, validate: validateDirectoryGroupIds });
+    let failure: unknown;
+    try {
+      entra.load();
+    } catch (error) {
+      failure = error;
+    }
+    expect(failure).toBeInstanceOf(AdminConfigError);
+    expect((failure as Error).message).toStartWith('grants: ');
+    expect((failure as Error).message).toContain('"Sales Editors"');
+    expect((failure as Error).message).not.toContain('policies');
+  } finally {
+    dir.cleanup();
+  }
+});
+
 test('membership batches share a total deadline and abort the outstanding HTTP request', async () => {
   const failures: string[] = [];
   const signals: AbortSignal[] = [];
@@ -367,18 +350,17 @@ test('delegated membership checks use only /me, batch candidates and discard eve
 test('Graph /me requires a delegated User.Read token, not an API, app-only or differently scoped token', async () => {
   const { withEntraProvider, entraConfig, signInWith } = await import('../helpers/entra-provider');
   const { createMsalProvider } = await import('../../src/server/auth/msal-provider');
-  const { TEST_GROUPS, TEST_USERS } = await import('../helpers/auth-identities');
+  const { TEST_GROUPS } = await import('../helpers/auth-identities');
   await withEntraProvider(async provider => {
     const client = await createMsalProvider(entraConfig(provider));
     const identity = await signInWith(client, provider, 'alice');
     const permitted = await client.onBehalfOf(identity.tokens.accessToken, ['https://graph.microsoft.com/User.Read']);
     const wrongScope = await client.onBehalfOf(identity.tokens.accessToken, ['https://graph.microsoft.com/profile']);
-    for (const token of [identity.tokens.accessToken, await client.directoryToken(), wrongScope.token]) {
+    for (const token of [identity.tokens.accessToken, wrongScope.token]) {
       const directory = createDirectoryClient({ graphUrl: provider.graphUrl, token: async () => token });
       expect(await directory.myGroups([TEST_GROUPS.salesEditors.id])).toBeNull();
     }
     const directory = createDirectoryClient({ graphUrl: provider.graphUrl, token: async () => permitted.token });
     expect(await directory.myGroups([TEST_GROUPS.salesEditors.id])).toEqual([TEST_GROUPS.salesEditors.id]);
-    expect(await directory.groups(TEST_USERS.carol.oid, [TEST_GROUPS.hrViewers.id])).toBeNull();
   });
 });
