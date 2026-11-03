@@ -13,6 +13,8 @@ beforeAll(useDefaultBrand);
 
 test('pages redirect, denied identities stay outside, refresh removes grants, logout ends events', async () => {
   const transport = await oidcTransport();
+  // This socketless transport serves only the token edge, so group membership comes from the token claims.
+  transport.config.directory.overage = 'off';
   using fixture = await authWorkspace();
   const client = await createOidcClient(transport.config, { fetch: transport.fetch });
   const auth = await createServerAuthentication(fixture.ws, transport.config, client);

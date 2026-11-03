@@ -46,7 +46,10 @@ test('an Azure DevOps push uses a token obtained on behalf of the person who pus
       .filter(scope => !openIdScopes.has(scope))
       .join(' '),
   );
-  expect(requested).toEqual([`${AZURE_DEVOPS_AUDIENCE}/.default`, `${AZURE_DEVOPS_AUDIENCE}/.default`]);
+  // Each sign-in also exchanges the session token for delegated Graph User.Read to check group membership.
+  const directoryScope = 'https://graph.microsoft.com/User.Read';
+  expect(requested.filter(scope => scope !== directoryScope)).toEqual([`${AZURE_DEVOPS_AUDIENCE}/.default`, `${AZURE_DEVOPS_AUDIENCE}/.default`]);
+  expect(requested.filter(scope => scope === directoryScope).length).toBe(requested.length - 2);
 });
 
 test('an Admin clone uses the Admin’s own Azure DevOps token', async () => {

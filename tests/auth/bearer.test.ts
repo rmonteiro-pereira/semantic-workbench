@@ -42,6 +42,8 @@ function auditEntries(folder: string, response: Response) {
 
 async function setup() {
   const transport = await oidcTransport();
+  // This socketless transport serves only the token edge, so group membership comes from the token claims.
+  transport.config.directory.overage = 'off';
   transport.config.apiAudience = [transport.state.apiAudience];
   const fixture = await authWorkspace();
   let keysDown = false;

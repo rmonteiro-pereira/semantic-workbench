@@ -73,7 +73,8 @@ const grants = [
   {
     id: 'g_reviewer',
     roleId: 'r_metricreviewer',
-    member: { kind: 'group', groupId: TEST_GROUPS.finance.id },
+    // Entra group names are local labels, so the stored grant carries the name the panel shows.
+    member: { kind: 'group', groupId: TEST_GROUPS.finance.id, displayName: TEST_GROUPS.finance.name },
     scope: { kind: 'workspace' },
     addedBy: 'tenant:dave',
     addedAt: '2026-10-03T08:00:00Z',
