@@ -270,7 +270,7 @@ try {
   await check('commerce: the first view is readable (column names ≥ 12 px) at 1280×720 and 1440×900', async () => {
     await firstViewReadable('commerce.odcs.yaml', 'Commerce workspace', 'commerce');
   });
-  await check('commerce: the orders dataset Lineage tab opens with every card on screen when they fit legibly, and Fit then shows every card', async () => {
+  await check('commerce: the orders dataset Lineage tab opens with legible column names and no cut card at 1280×720, and Fit then shows every card', async () => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await openContract('commerce.odcs.yaml', 'Commerce workspace');
     await openOrdersDatasetLineage();
