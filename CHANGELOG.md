@@ -4,16 +4,43 @@ Source release tags identify the versions below. Image build metadata and approv
 also require a matching package version in the target release checkout; a source tag alone does
 not configure a production deployment.
 
-## Unreleased
+## v0.6.1 — 2026-11-03
 
 ### Changed
 
+- Entra: group grants are checked through the signed-in person's own delegated Microsoft Graph
+  access (`User.Read`, `/me/checkMemberGroups`) instead of an application token. A failed lookup
+  keeps the session and drops only the grants that came from groups. Session refresh survives a
+  short identity-provider outage.
 - Entra: a grant or restricted path that names a group by anything other than its GUID object ID
   now stops startup with an error beginning `grants:` that names the ID. Replace such references
   with object IDs before upgrading.
 - Group names in the Admin panel are the labels stored with each grant for every provider except
   Keycloak, which shows the group identifier. The application-only Graph group lookup and its
   token were removed.
+- The Network graph uses fCoSE again (in a worker), then packs the areas with ELK. Links between
+  areas stay drawn.
+- Grouping uses the generic modes only. The curated UBL areas are gone; a saved choice of them
+  falls back to Automatic and keeps manual corrections and group names.
+- The button that follows every connection is named **Full pierce**.
+- Lineage cards show whole names and their badges under the name, so cards are taller.
+- **Zoom to group** in the Graph toolbar is at most 100 px wide so the toolbar stays on one row on
+  a laptop; a longer group name ends in an ellipsis and shows in full on hover.
+- The dataset **Lineage** tab opens on the whole dataset when its column names stay legible, and
+  otherwise on the nearest tables with the center table whole. **Fit** still shows every table.
+- Opt-in React UI profiling for local investigation (a `profile` build mode).
+
+### Fixed
+
+- **Fit** on a lineage canvas shows every card of a large expanded group; before, cards past the
+  zoom limit were left undrawn.
+- The grant form no longer has two fields that a screen reader announces as "Group object ID".
+- After **Re-layout** the lines are routed again in the routing worker (the v0.6.0 known issue).
+
+### Known issues
+
+- At 1280×720 the mall example's Graph canvas is 407 px tall where the responsive check expects at
+  least 421 px. `test:responsive` reports it at "mall Graph toolbars keep the canvas height".
 
 ## v0.6.0 — 2026-10-30
 
