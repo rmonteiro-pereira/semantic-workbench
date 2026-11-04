@@ -87,7 +87,7 @@ async function expectGovernedWithLineage(page: Page) {
   const lineage = page.getByRole('region', { name: 'Where the data comes from' });
   await expect(lineage).toBeVisible();
   await expect(lineage).not.toContainText('No data contract declares this source');
-  const rows = lineage.locator('.lineage-row');
+  const rows = lineage.locator('.kpi-lineage-row');
   const rowCount = await rows.count();
   expect(rowCount).toBeGreaterThan(0);
   for (let row = 0; row < rowCount; row++) {
