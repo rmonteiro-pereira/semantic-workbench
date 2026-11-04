@@ -32,8 +32,9 @@ function checkGeometry(layout: FullLayoutResult, expectedNodeCount: number, head
   for (const child of children) {
     const parent = byId.get(child.parentId!);
     if (!parent) throw new Error(`Missing parent for ${child.id}`);
-    expect(child.x).toBeGreaterThanOrEqual(0);
-    expect(child.y).toBeGreaterThanOrEqual(headerHeight);
+    // The Network layout starts from random positions, so packing can land a card a rounding error past an edge.
+    expect(child.x).toBeGreaterThanOrEqual(-0.01);
+    expect(child.y).toBeGreaterThanOrEqual(headerHeight - 0.01);
     expect(child.x + child.width).toBeLessThanOrEqual(parent.width + 0.01);
     expect(child.y + child.height).toBeLessThanOrEqual(parent.height + 0.01);
   }
