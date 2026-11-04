@@ -156,6 +156,7 @@ export function FullGraph(props: Props) {
   // The zoom rounded down in steps of 0.05. Text sizes follow it while the canvas moves, never
   // read smaller than planned, and do not redraw every edge on each frame.
   const [zoomStep, setZoomStep] = useState(1);
+  const [zoomedGroupId, setZoomedGroupId] = useState('');
   const followZoom = (zoom: number) => setZoomStep(Math.floor(zoom * 20) / 20);
   const [size, setSize] = useState({ width: 1200, height: 650 });
   // The first layout waits for a real measurement, so it is planned for the pane the person sees.
@@ -211,6 +212,7 @@ export function FullGraph(props: Props) {
   };
   const relayout = () => setVersion(current => current + 1);
   const zoomToGroup = (groupId: string) => {
+    setZoomedGroupId(groupId);
     if (!groupId) {
       fit();
       return;
@@ -592,6 +594,7 @@ export function FullGraph(props: Props) {
     '--area-links-size': `${sizes.areaLinks}px`,
     '--entity-detail-display': sizes.showDetail ? 'block' : 'none',
   } as React.CSSProperties;
+  const zoomedGroupName = overview.groups.find(group => group.id === zoomedGroupId)?.name;
   const metrics = useCallback((m: SmartEdgeMetrics) => setRouteMetrics(m), []);
   return (
     <div className="full-graph" ref={container} style={textStyle} data-layout={algorithm}>
@@ -620,7 +623,7 @@ export function FullGraph(props: Props) {
               </button>
               <label className="zoom-to-group">
                 <Crosshair size={13} aria-hidden="true" />
-                <select aria-label="Zoom to group" title={overview.groupingLabel} defaultValue="" onChange={e => zoomToGroup(e.target.value)}>
+                <select aria-label="Zoom to group" title={zoomedGroupName ?? overview.groupingLabel} defaultValue="" onChange={e => zoomToGroup(e.target.value)}>
                   <option value="">Whole model</option>
                   {overview.groups.map(group => (
                     <option key={group.id} value={group.id}>

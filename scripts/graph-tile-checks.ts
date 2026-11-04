@@ -142,6 +142,37 @@ export async function checkToolbar(page: Page, api: IsolatedApi) {
   expect(await toolbarProblems(page)).toEqual([]);
 }
 
+// The Graph toolbar is one row of controls; the responsive suite allows at most this height for it.
+const ONE_ROW_TOOLBAR_HEIGHT = 58;
+
+function toolbarScrollsSideways(page: Page) {
+  return page.locator('.full-graph-tools').evaluate(toolbar => toolbar.scrollWidth > toolbar.clientWidth + 1);
+}
+
+/** Selecting the longest group name in Zoom to group neither wraps the toolbar nor hides the full name. */
+export async function checkLongGroupName(browser: Browser, api: IsolatedApi) {
+  for (const viewport of [
+    { width: 1280, height: 720 },
+    { width: 1366, height: 768 },
+  ]) {
+    const page = await browser.newPage({ viewport });
+    try {
+      await openGraph(page, api);
+      await revealGraphControls(page);
+      const select = page.getByLabel('Zoom to group');
+      const names = await select.locator('option').allTextContents();
+      const longest = names.reduce((best, name) => (name.length > best.length ? name : best), '');
+      await select.selectOption({ label: longest });
+      await expect(select).toHaveAttribute('title', longest);
+      const toolbar = (await page.locator('.full-graph-tools').boundingBox())!;
+      expect(toolbar.height, `${longest} wraps the toolbar at ${viewport.width}px`).toBeLessThanOrEqual(ONE_ROW_TOOLBAR_HEIGHT);
+      expect(await toolbarScrollsSideways(page)).toBe(false);
+    } finally {
+      await page.close();
+    }
+  }
+}
+
 export async function checkToggleCentring(page: Page, api: IsolatedApi) {
   await openGraph(page, api);
   await revealGraphControls(page);
@@ -235,6 +266,7 @@ export async function checkGraphTiles(browser: Browser, api: IsolatedApi) {
       await page.close();
     }
   }
+  await checkLongGroupName(browser, api);
   await checkFittedTextSizes(browser, api);
   await checkDragSurvivesResize(browser, api);
   console.log('PASS graph area tiles: whole names, no overlap, persistent cross-area links, wrapping toolbar, centred toggles');

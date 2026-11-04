@@ -306,7 +306,7 @@ The default **Network** layout places related entities close together inside eac
 Links inside an area are drawn; each area says "links to N areas", and those links are drawn only
 for the entity you select. Switch to **Layered (ELK)**, which preserves orthogonal routes while
 they match current handles, with the **Layered / Network** control in the graph toolbar. The
-toolbar also holds **Re-layout**, the crosshair select that zooms to an area (**Zoom to group**),
+toolbar also holds **Re-layout**, the crosshair select that zooms to an area (**Zoom to group**; a long area name ends in an ellipsis and hovering the select shows the full name),
 **Collapse areas**, **Expand all**, and switches for **Labels**, **Value types**, **Metrics** and **Mini-map**; a check mark shows which
 are on. On a phone these controls fold behind **Controls**. The canvas supports grouped areas,
 dragging, area zoom and selection. Resizing the window or the sidebar does not rearrange the
