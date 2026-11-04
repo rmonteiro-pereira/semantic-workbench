@@ -37,7 +37,11 @@ async function addGrant(page: Page, { member, value, role, scope, target }: Gran
   const dialog = page.getByRole('region', { name: 'Add grant', exact: true });
   await dialog.getByLabel('Member kind').selectOption(member);
   await dialog.getByLabel(member === 'group' ? 'Group object ID' : 'E-mail address').fill(value);
-  if (member === 'group') await expect(dialog).toContainText(TEST_GROUPS.salesEditors.name);
+  if (member === 'group') {
+    await expect(dialog).toContainText(TEST_GROUPS.salesEditors.name);
+    // Group names shown elsewhere in Admin are the label stored with the grant, not a directory lookup.
+    await dialog.getByLabel('Group label (optional)').fill(TEST_GROUPS.salesEditors.name);
+  }
   await dialog.getByLabel('Role', { exact: true }).selectOption(role);
   await dialog.getByLabel('Applies to', { exact: true }).selectOption(scope);
   await dialog.getByLabel(scope === 'domains' ? 'Domain IDs (comma separated)' : 'Projects (comma separated)').fill(target);

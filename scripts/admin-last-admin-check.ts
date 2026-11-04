@@ -34,6 +34,8 @@ export async function lastAdminBrowserCheck(browser: Browser) {
   useDefaultBrand();
   using fixture = await authWorkspace();
   const transport = await oidcTransport();
+  // This socketless transport serves only the token edge, so group membership comes from the token claims.
+  transport.config.directory.overage = 'off';
   // Production requires recovery identities; this fixture isolates the last ordinary Admin guard.
   const config = { ...transport.config, bootstrapAdmins: { emails: [], ids: [] } };
   const client = await createOidcClient(config, { fetch: transport.fetch });
