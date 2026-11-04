@@ -41,6 +41,10 @@ not configure a production deployment.
 
 - At 1280×720 the mall example's Graph canvas is 407 px tall where the responsive check expects at
   least 421 px. `test:responsive` reports it at "mall Graph toolbars keep the canvas height".
+- On a dataset's Lineage tab, the **Walk here** button of a neighbouring table does not become
+  clickable in `test:back-history`.
+- Opening the Graph tab right after reopening a file occasionally shows no Graph toolbar within
+  30 seconds; `test:ui` reports it at the "Fit model" step about one run in three.
 
 ## v0.6.0 — 2026-10-30
 
