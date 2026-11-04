@@ -611,7 +611,9 @@ function columnRank(column: LineageColumn, why: ColumnWhy) {
 export function cardRows(card: LineageCard, why: ColumnWhy, options: { open?: boolean; uncapped?: boolean; maxRows?: number } = {}) {
   const all = card.columns;
   let rows = all;
-  if (!options.open && all.length > SMALL_CARD) {
+  // A short pane lowers the row cap below a small card's size, so even a small card collapses to fit whole.
+  const exceedsPaneBudget = options.maxRows !== undefined && all.length > options.maxRows;
+  if (!options.open && (all.length > SMALL_CARD || exceedsPaneBudget)) {
     const ranked = all.map((column, index) => ({ column, index, rank: columnRank(column, why) }));
     const wanted = ranked.filter(x => x.rank < 3);
     const chosen = options.uncapped ? wanted : [...wanted].sort((a, b) => a.rank - b.rank || a.index - b.index).slice(0, options.maxRows ?? COLLAPSED_MAX);

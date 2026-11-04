@@ -150,8 +150,6 @@ const FIRST_VIEW_MAX_ZOOM = 1;
 // Cards are tall enough that a large expanded group needs to zoom out further than 0.08 to fit.
 // The canvas draws only cards on screen, so a higher floor would leave some of them undrawn after Fit.
 const MIN_ZOOM = 0.02;
-// A view the user did not ask for keeps the older floor, so a first view never shrinks names past reading.
-const FIRST_VIEW_MIN_ZOOM = 0.08;
 // Generous guesses of the space the layout leaves between columns and between stacked cards.
 const FIRST_VIEW_COLUMN_GAP = 240;
 const FIRST_VIEW_ROW_GAP = 60;
@@ -939,7 +937,7 @@ export function LineageCanvas({
     let cancelled = false;
     let frame: number;
     let framesWaited = 0;
-    const fitOptions = { padding: 0.12, minZoom: FIRST_VIEW_MIN_ZOOM, maxZoom: 1, duration: 0 };
+    const fitOptions = { padding: 0.12, minZoom: MIN_ZOOM, maxZoom: 1, duration: 0 };
     const fitReadyNeighborhood = async () => {
       const instance = flow.current;
       // Offscreen cards have layout dimensions too; wait until React Flow holds this layout,
@@ -959,7 +957,10 @@ export function LineageCanvas({
       // A card that never reports a size must not keep this loop running; fit what is there instead.
       const gaveUpWaiting = framesWaited >= MAX_FIT_WAIT_FRAMES;
       if ((ready || gaveUpWaiting) && (await instance?.fitView(fitOptions))) {
-        if (!cancelled) fitted.current = viewKey;
+        if (cancelled) return;
+        fitted.current = viewKey;
+        // Showing everything only helps while names stay legible; otherwise frame the nearest cards.
+        if (instance && instance.getZoom() < READABLE - 0.005) await firstView();
         return;
       }
       framesWaited += 1;
@@ -970,7 +971,7 @@ export function LineageCanvas({
       cancelled = true;
       cancelAnimationFrame(frame);
     };
-  }, [initialFit, result, layoutKey, viewKey, nodes, stageSize.width, stageSize.height, viewHeld]);
+  }, [initialFit, result, layoutKey, viewKey, nodes, stageSize.width, stageSize.height, viewHeld, firstView]);
   useEffect(() => () => clearTimeout(firstViewTimer.current), []);
   // An explicit Fit wins over a first view that is still waiting to run, and shows every card.
   function fitAll() {

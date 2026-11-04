@@ -383,6 +383,11 @@ fields are that table's columns, unchanged, is a copy: the table card stands for
 a **Semantic dataset** badge beside its type, and metrics connect to the table's columns. A dataset that renames,
 computes or adds a field keeps its own card.
 
+The Lineage tab of a table opens with every card on screen when that keeps column names legible.
+When the lineage is too large for that, it opens on the table and its nearest cards at a readable
+size, with the table whole; **Fit** then shows every card. On a short pane a small table collapses to
+its most relevant columns so that it fits whole.
+
 Click a line to see what it stands for. A single line selects its relationship, highlighting
 both columns and listing them under **Selected path**. A bundled line, labelled with the number
 of lines it stands for, splits into those lines. A line to a counted card, such as **17 more

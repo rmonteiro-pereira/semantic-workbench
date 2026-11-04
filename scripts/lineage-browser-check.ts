@@ -11,7 +11,7 @@ import { buildLineage, selectionNodes } from '../src/app/odcs/lineage';
 import { lineagePierce } from '../src/app/odcs/lineage-pierce';
 import { layoutProblems } from './helpers/layout-geometry';
 import { smallTextProblems, textCollisionProblems } from './helpers/text-geometry';
-import { hopRowProblems, odcsGraphProblems } from './helpers/odcs-graph-geometry';
+import { hopRowProblems, odcsGraphProblems, MIN_COLUMN_PX } from './helpers/odcs-graph-geometry';
 import { anchorReport, drawnLabels, paginationControls } from './helpers/odcs-graph-flow';
 // Every visible edge must match a reference edge, and all reference edges between visible rows
 // must appear. Path highlighting has a 200 ms budget; the first UBL view has a 2 s budget.
@@ -222,6 +222,23 @@ async function firstViewReadable(path: string, project: string, label: string) {
   }
   await page.setViewportSize({ width: 1440, height: 900 });
 }
+// Counts the dataset lineage cards, and how many of them lie whole inside the canvas.
+async function datasetLineageCards() {
+  return page.evaluate(() => {
+    const pane = document.querySelector('.lineage-view .react-flow')!.getBoundingClientRect();
+    const rects = [...document.querySelectorAll('.lineage-view .lineage-card')].map(element => element.getBoundingClientRect());
+    const whole = rects.filter(rect => rect.left >= pane.left - 1 && rect.right <= pane.right + 1 && rect.top >= pane.top - 1 && rect.bottom <= pane.bottom + 1);
+    return { total: rects.length, whole: whole.length };
+  });
+}
+async function openOrdersDatasetLineage() {
+  await page.locator('.tabs').getByRole('button', { name: 'Contract' }).click();
+  const back = page.getByRole('button', { name: 'All tables' });
+  if (await back.isVisible()) await back.click();
+  await page.getByRole('button', { name: 'Open orders', exact: true }).click();
+  await page.getByRole('tab', { name: 'Lineage' }).click();
+  await page.waitForTimeout(1200);
+}
 async function shots(name: string) {
   for (const [width, height] of [
     [390, 844],
@@ -252,6 +269,21 @@ try {
   });
   await check('commerce: the first view is readable (column names ≥ 12 px) at 1280×720 and 1440×900', async () => {
     await firstViewReadable('commerce.odcs.yaml', 'Commerce workspace', 'commerce');
+  });
+  await check('commerce: the orders dataset Lineage tab opens with every card on screen when they fit legibly, and Fit then shows every card', async () => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await openContract('commerce.odcs.yaml', 'Commerce workspace');
+    await openOrdersDatasetLineage();
+    const opened = await datasetLineageCards();
+    const px = await renderedRowPx();
+    console.log(`  orders dataset lineage: ${opened.whole} of ${opened.total} cards whole, column names at ${px.toFixed(1)} px`);
+    expect(px).toBeGreaterThanOrEqual(MIN_COLUMN_PX);
+    expect(await odcsGraphProblems(page, { readableColumns: true })).toEqual([]);
+    await graph().getByRole('button', { name: 'Fit' }).click();
+    await page.waitForTimeout(600);
+    const fitted = await datasetLineageCards();
+    expect(fitted.whole).toBe(fitted.total);
+    expect(fitted.total).toBeGreaterThanOrEqual(opened.total);
   });
   await check('commerce: zoomed far out, card names are drawn larger and stay at least 11.5 px on screen', async () => {
     await openContract('commerce.odcs.yaml', 'Commerce workspace');
