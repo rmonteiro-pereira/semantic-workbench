@@ -20,7 +20,7 @@ const api = await startIsolatedApi();
 await api.ws.importBatch({ files: [{ path: 'plain.ontology.yaml', source: plainSource }] }, LOCAL_READER);
 await api.ws.importBatch({ files: [{ path: 'flights.ontology.yaml', source: flightsSource }] }, LOCAL_READER);
 await api.ws.importBatch({ files: [{ path: 'ubl.ontology.yaml', source: ublSource }], name: 'UBL' }, LOCAL_READER);
-const browser = await chromium.launch({ channel: 'msedge' });
+const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1600, height: 1000 } });
 const errors: string[] = [];
 page.on('pageerror', error => errors.push(error.message));
