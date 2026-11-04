@@ -483,6 +483,8 @@ try {
   const page = await openPage(1920, 1080);
   await check('overview-selected entity becomes neighborhood center and survives desktop resizing', async () => {
     await page.locator('.tabs').getByRole('button', { name: 'Overview', exact: true }).click();
+    // An area card lists at most eight entities, so find this one by name instead of relying on where grouping puts it.
+    await page.getByPlaceholder('Find an entity…').fill(name40);
     await page.locator('[data-entity-id="ontology/40"]').click();
     await page.getByRole('button', { name: 'Neighborhood', exact: true }).last().click();
     await expect.poll(() => centerOf(page)).toBe('ontology/40');
