@@ -62,8 +62,9 @@ export async function authBrowserCheck() {
         await roleControlChecks(browser, target);
         await agentBearerChecks(browser, target);
         await governanceChecks(browser, target);
-        // The second server needs the issuer itself, not the endpoint prefix the browser sees.
-        const remoteProvider = { issuer: mock.issuer, kind: 'entra' as const };
+        // The second server needs the issuer itself, not the endpoint prefix the browser sees, and the
+        // mock Graph, because group grants are checked there and would otherwise fail closed.
+        const remoteProvider = { issuer: mock.issuer, graphUrl: mock.graphUrl, kind: 'entra' as const };
         await remoteCredentialChecks(browser, { ...target, url: remoteUrl }, remoteProvider);
         await mockLifecycleChecks(browser, target, mock, api.root);
         await localAuthSmoke(browser);
