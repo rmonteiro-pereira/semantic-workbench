@@ -1,158 +1,39 @@
 /** Displays column-level lineage with path highlighting, paging and reversible graph expansion. */
 import { useFarZoom } from '../graph/FarZoom';
 import { useStageSize } from '../graph/stage-size';
-import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useActionHistory } from '../workspace/ActionHistoryContext';
 import { useRecordedState } from '../workspace/hooks/useRecordedState';
-import { ReactFlow, Background, BaseEdge, getBezierPath, type Edge, type EdgeProps, type NodeChange, type ReactFlowInstance, useStoreApi, useUpdateNodeInternals } from '@xyflow/react';
-import { ArrowLeft, ArrowRight, Maximize2, Minimize2, Scan, Search, X } from 'lucide-react';
+import { ReactFlow, Background, type Edge, type ReactFlowInstance } from '@xyflow/react';
+import { X } from 'lucide-react';
 import { LineageLegend, type LegendKind } from '../graph/LineageLegend';
-import { edgeSvgStyle, type EdgeKind } from '../graph/edge-styles';
-import { walkReducer, emptyWalk, currentStep, canvasAt, reconcileWalk, type WalkAction } from '../graph/walk';
-import { allConnectedLabel, canvasOf, registerSet, setsOf, type Direction } from '../graph/expansion';
+import { type EdgeKind } from '../graph/edge-styles';
+import { currentStep } from '../graph/walk';
+import { aroundHops, around } from './lineage';
+import { registerSet, type Direction } from '../graph/expansion';
 import { placeBoxes, type Box } from '../graph/incremental-layout';
 import { PIERCE_BUDGET, PIERCE_MAX } from '../graph/pierce';
-import { PierceBanner, PierceControls } from '../graph/PierceControls';
-import type { LineagePierceInput, LineagePierceResult } from './lineage-pierce';
-import { useViewRestore, type Fullscreen } from '../graph/fullscreen';
+import { PierceBanner } from '../graph/PierceControls';
+import { type Fullscreen } from '../graph/fullscreen';
 import { Modal } from '../projects/Modal';
 import { SelectedPath } from './SelectedPath';
 import { useNarrowScreen } from '../workspace/hooks/useNarrowScreen';
-import { ZoomButtons } from '../graph/ZoomButtons';
-import { GraphOptions, OptionGroup, ShowToggle } from '../graph/GraphOptions';
-import { CompactControls } from '../graph/CompactControls';
-import {
-  around,
-  aroundHops,
-  closure,
-  findAssets,
-  foreignKeyPath,
-  cardRows,
-  COLLAPSED_MAX,
-  selectionNodes,
-  cardOfNode,
-  type AssetHitKind,
-  type ColumnWhy,
-  type LineageGraph,
-  type LineageCard,
-} from './lineage';
-import { ForeignKeyHops } from './ForeignKeyHops';
+import { closure, findAssets, foreignKeyPath, cardRows, COLLAPSED_MAX, selectionNodes, cardOfNode, type ColumnWhy, type LineageGraph, type LineageCard } from './lineage';
 import { LineageCardNode, type CardData } from './LineageCard';
-import { elkGraph, positionsOf, cardHeight, cardGeometry, CARD_W, HEADER_H, ROW_H, MORE_H, FILTER_H, FOOT_H, LIST_ROWS, type LayoutCard, type LayoutEdge, type LayoutResult } from './lineage-layout';
-import ELK from 'elkjs/lib/elk-api.js';
-import elkWorkerUrl from 'elkjs/lib/elk-worker.min.js?url';
-import { buildLineLabels, labelSize, type LineLabel } from './edge-labels';
-import { pointAtHalf, roundedPath, type Point } from './edge-route';
+import { cardHeight, cardGeometry, CARD_W, HEADER_H, ROW_H, MORE_H, FILTER_H, FOOT_H, LIST_ROWS, type LayoutCard, type LayoutEdge } from './lineage-layout';
+import { buildLineLabels, type LineLabel } from './edge-labels';
 import { kindOrder, planFirstView } from './lineage-view';
+import { edgeTypes } from './LineageEdge';
+import { LineageSubbar, LineageToolbar } from './LineageToolbar';
+import { MeasurementWatchdog, useLayout, useMeasuredNodeSizes } from './useLineageLayout';
+import { useLineagePierce } from './useLineagePierce';
+import { useLineageReach } from './useLineageReach';
+import { FIRST_VIEW_COLUMN_GAP, FIRST_VIEW_MARGIN, FIRST_VIEW_ROW_GAP, MIN_ZOOM, READABLE, useCardAnchor, useLineageViewport } from './useLineageViewport';
+import { useLineageWalk } from './useLineageWalk';
 import './odcs.css';
 // The selected column’s path is emphasized while unrelated rows dim. Navigation records expansions
 // and centers; ELK lays out row ports in a worker.
-const ASSET_KIND_LABEL: Record<AssetHitKind, string> = {
-  field: 'Field',
-  column: 'Column',
-  relationship: 'Relationship',
-  object: 'Table',
-  dataset: 'Dataset',
-  metric: 'Metric',
-  concept: 'Concept',
-  external: 'External',
-};
 const nodeTypes = { card: LineageCardNode };
-const LineageEdge = memo((edgeProps: EdgeProps) => {
-  const data = edgeProps.data as {
-    kind: EdgeKind;
-    onPath: boolean;
-    dim: boolean;
-    count?: number;
-    ambiguous?: boolean;
-    from: string;
-    to: string;
-    label?: string;
-    lineLabel?: LineLabel;
-    route?: Point[];
-    lane?: number;
-  };
-  // Parallel lines between the same two ports (an object mapping and a metric binding of one
-  // metric) fan out.
-  const shift = (data.lane ?? 0) * 7;
-  const curve = getBezierPath({
-    ...edgeProps,
-    sourceY: edgeProps.sourceY + shift,
-    targetY: edgeProps.targetY + shift,
-  });
-  // A line the layout routed around cards follows that route; any other line is a single curve.
-  const routed = data.route && data.route.length > 0;
-  const points = routed ? [{ x: edgeProps.sourceX, y: edgeProps.sourceY + shift }, ...data.route!, { x: edgeProps.targetX, y: edgeProps.targetY + shift }] : [];
-  const path = routed ? roundedPath(points) : curve[0];
-  const middle = routed ? pointAtHalf(points) : { x: curve[1], y: curve[2] };
-  const lx = middle.x;
-  const ly = middle.y;
-  let labelElement: React.ReactNode;
-  if (data.lineLabel) {
-    labelElement = <LineLabelPill label={data.lineLabel} bundle={(data.count ?? 1) > 1} at={{ x: lx, y: ly }} />;
-  } else if (data.label) {
-    labelElement = (
-      <text x={lx} y={ly - 4} className="lineage-bundle" textAnchor="middle">
-        {data.label}
-      </text>
-    );
-  } else {
-    labelElement = null;
-  }
-  return (
-    <g
-      className={`lineage-edge${data.onPath ? ' on-path' : ''}${data.dim ? ' dim' : ''}`}
-      data-edge-kind={data.kind}
-      data-on-path={data.onPath ? 'true' : 'false'}
-      data-from={data.from}
-      data-to={data.to}
-      data-count={data.count ?? 1}
-    >
-      <BaseEdge
-        id={edgeProps.id}
-        path={path}
-        style={{
-          ...edgeSvgStyle(data.kind, data.onPath),
-          opacity: data.dim ? 0.14 : 1,
-          ...(data.onPath ? { stroke: undefined } : {}),
-        }}
-        interactionWidth={12}
-      />
-      {labelElement}
-    </g>
-  );
-});
-const edgeTypes = { lineage: LineageEdge };
-// A label placed on its line is always drawn; one without room shows when the line is hovered.
-function LineLabelPill({ label, bundle, at }: { label: LineLabel; bundle: boolean; at: { x: number; y: number } }) {
-  const size = labelSize(label.lines);
-  const place = label.place ?? { x: at.x - size.w / 2, y: at.y - size.h / 2, ...size };
-  const centre = place.x + place.w / 2;
-  const meaning = bundle ? `${label.lines[0]} lines` : label.lines.join(' ');
-  return (
-    <g className={`lineage-edge-label ${label.place ? 'shown' : 'hover'}`} data-shown={label.place ? 'true' : 'false'}>
-      <title>{meaning}</title>
-      <rect x={place.x} y={place.y} width={place.w} height={place.h} rx={8} />
-      {label.lines.map((line, i) => (
-        <text key={line} x={centre} y={place.y + 15 * (i + 1) - 1} textAnchor="middle">
-          {line}
-        </text>
-      ))}
-    </g>
-  );
-}
-// Column names are 13 px, so this zoom keeps them at 12 px or more on screen.
-const READABLE = 0.93;
-const FIRST_VIEW_MARGIN = 24;
-// A large pane keeps the cards at their natural size so the neighbours of the framed cards show
-// at its edges.
-const FIRST_VIEW_MAX_ZOOM = 1;
-// Cards are tall enough that a large expanded group needs to zoom out further than 0.08 to fit.
-// The canvas draws only cards on screen, so a higher floor would leave some of them undrawn after Fit.
-const MIN_ZOOM = 0.02;
-// Generous guesses of the space the layout leaves between columns and between stacked cards.
-const FIRST_VIEW_COLUMN_GAP = 240;
-const FIRST_VIEW_ROW_GAP = 60;
 // A card must fit the pane whole, so a short pane (a phone) shows fewer rows per card.
 function rowBudget(paneHeight: number) {
   if (paneHeight === 0) return { maxRows: COLLAPSED_MAX, listRows: LIST_ROWS };
@@ -164,23 +45,6 @@ function rowBudget(paneHeight: number) {
 }
 const BUNDLE_AT = 8;
 const BUNDLE_PREFIX = 'bundle:';
-// Space kept between a card that was just resized and the edge of the canvas.
-const CARD_EDGE_GAP = 16;
-// Where a resized card's top edge goes on screen: the whole card shows when it fits the canvas,
-// and a card taller than the canvas keeps its top visible.
-function visibleCardTop(top: number, cardPixels: number, canvasPixels: number): number {
-  if (!canvasPixels || !cardPixels) return top;
-  const lowestTop = canvasPixels - CARD_EDGE_GAP - cardPixels;
-  return Math.max(CARD_EDGE_GAP, Math.min(top, lowestTop));
-}
-const GROUP_AT = 6;
-const KIND_PLURAL: Record<string, string> = {
-  object: 'tables',
-  dataset: 'datasets',
-  metric: 'metrics',
-  external: 'references',
-  concept: 'concepts',
-};
 // The mapping canvas (src/app/mappings/MappingCanvas.tsx) reuses this canvas with mapping names and
 // lines.
 const MAPPING_KINDS = { concept: 'Concept', dataset: 'Dataset', metric: 'Metric' };
@@ -204,88 +68,6 @@ type Props = {
   onNeighborhood?: (card: LineageCard) => void;
   groupOf?: (card: LineageCard) => { name: string; color: string } | undefined;
 };
-const readSteps = (key?: string) => {
-  try {
-    const value = key ? Number(localStorage.getItem(key)) : NaN;
-    return Number.isInteger(value) && value >= 1 && value <= 3 ? value : 1;
-  } catch {
-    return 1;
-  }
-};
-type NodeSize = { width: number; height: number };
-// Preserve measurements while a card keeps its rows. Changed rows invalidate the size so React
-// Flow measures their new handles before trying to connect edges to them.
-function useMeasuredNodeSizes() {
-  const sizes = useRef(new Map<string, NodeSize>());
-  const shapes = useRef(new Map<string, string>());
-  const sizeFor = useCallback((id: string, shape: string) => {
-    if (shapes.current.get(id) !== shape) {
-      shapes.current.set(id, shape);
-      sizes.current.delete(id);
-    }
-    return sizes.current.get(id);
-  }, []);
-  const recordSizes = useCallback((changes: NodeChange[]) => {
-    for (const change of changes) {
-      if (change.type === 'dimensions' && change.dimensions) {
-        sizes.current.set(change.id, change.dimensions);
-      }
-    }
-  }, []);
-  return { sizeFor, recordSizes };
-}
-/** About one second of animation frames; after this a lineage fit stops waiting for card measurements. */
-const MAX_FIT_WAIT_FRAMES = 60;
-const MEASURE_CHECK_MS = 500;
-
-// React Flow keeps a card hidden until it has measured it. Under load a measurement can be lost
-// for good, and then nothing retries it: the card stays hidden and the canvas looks empty. This
-// watches the cards on screen and asks React Flow to measure again any that are still hidden.
-function MeasurementWatchdog() {
-  const store = useStoreApi();
-  const updateNodeInternals = useUpdateNodeInternals();
-  useEffect(() => {
-    const timer = setInterval(() => {
-      const canvas = store.getState().domNode;
-      if (!canvas) return;
-      const renderedCards = canvas.querySelectorAll<HTMLElement>('.react-flow__node');
-      const unmeasured = [...renderedCards].filter(card => card.style.visibility === 'hidden').map(card => card.dataset.id ?? '');
-      if (unmeasured.length) updateNodeInternals(unmeasured.filter(Boolean));
-    }, MEASURE_CHECK_MS);
-    return () => clearInterval(timer);
-  }, [store, updateNodeInternals]);
-  return null;
-}
-
-// Lays out in ELK's worker (elk-api + elk-worker, as the Graph view does); returns the latest
-// positions (the previous ones stay while a new layout runs).
-function useLayout(cards: LayoutCard[], edges: LayoutEdge[], key: string) {
-  const elk = useRef<{ layout: (graph: any) => Promise<any>; terminateWorker: () => void } | null>(null);
-  const seq = useRef(0);
-  const [result, setResult] = useState<{ key: string; layout: LayoutResult } | null>(null);
-  const [busy, setBusy] = useState(false);
-  useEffect(() => {
-    elk.current = new ELK({ workerFactory: () => new Worker(elkWorkerUrl) }) as any;
-    return () => elk.current?.terminateWorker();
-  }, []);
-  useEffect(() => {
-    const elkInstance = elk.current;
-    if (!elkInstance) return;
-    const id = ++seq.current;
-    setBusy(true);
-    elkInstance
-      .layout(elkGraph(cards, edges))
-      .then(layoutOutput => {
-        if (id !== seq.current) return;
-        setBusy(false);
-        setResult({ key, layout: positionsOf(layoutOutput) });
-      })
-      .catch(() => {
-        if (id === seq.current) setBusy(false);
-      });
-  }, [key]);
-  return { result, busy };
-}
 /** Displays lineage cards with navigation, path highlighting and graph expansion. */
 export function LineageCanvas({
   mode = 'lineage',
@@ -308,59 +90,14 @@ export function LineageCanvas({
   groupOf,
 }: Props) {
   const actionHistory = useActionHistory();
-  const [walk, setWalk, setWalkSilently] = useRecordedState(`${historyKey}.walk`, emptyWalk, reconcileWalk);
-  const dispatch = useCallback((action: WalkAction) => setWalk(previous => walkReducer(previous, action)), [setWalk]);
-  // Starting a walk on a new centre is not a step the person took, so it is not recorded. A walk
-  // that Back or Forward brought back is kept when the canvas appears.
-  const walkStarted = useRef(false);
-  useEffect(() => {
-    const keepRestored = !walkStarted.current;
-    walkStarted.current = true;
-    setWalkSilently(previous =>
-      keepRestored && previous.steps.length > 0
-        ? previous
-        : walkReducer(previous, {
-            type: 'reset',
-            step: {
-              doc: graph.contract,
-              center: initial,
-              name: graph.cards.get(initial)?.label ?? initial,
-            },
-          }),
-    );
-  }, [initial, graph.contract]);
   const mapping = mode === 'mapping';
   const reachOf = mapping ? aroundHops : around;
-  // A centre that is gone from the graph (the file changed under the walk) falls back to the
-  // initial one.
-  const walked = currentStep(walk)?.center;
-  let center: string;
-  if (walked && graph.cards.has(walked)) {
-    center = walked;
-  } else if (graph.cards.has(initial)) {
-    center = initial;
-  } else {
-    center = graph.cards.keys().next().value ?? '';
-  }
-  useEffect(() => {
-    if (center) onCenterChange?.(center);
-  }, [center]);
-  const [steps, setSteps] = useRecordedState(`${historyKey}.hops`, () => readSteps(storageKey));
-  useEffect(() => {
-    try {
-      if (storageKey) localStorage.setItem(storageKey, String(steps));
-    } catch {}
-  }, [steps, storageKey]);
+  const { walk, dispatch, center, steps, setSteps, sets, walkTo } = useLineageWalk({ graph, initial, historyKey, storageKey, onCenterChange });
   const farZoom = useFarZoom();
   const [selected, setSelected] = useRecordedState(`${historyKey}.selected`, '');
   const stage = useRef<HTMLDivElement | null>(null);
   const stageSize = useStageSize(stage, !!selected);
   const [openColumns, setOpenColumns] = useRecordedState<Set<string>>(`${historyKey}.openColumns`, () => new Set());
-  // Expansions and pierces are walk steps on this canvas: Back / Undo expansion restore it.
-  const sets = useMemo(() => {
-    const c = canvasAt(walk);
-    return c.center && c.center.center === center ? setsOf(c.sets) : [];
-  }, [walk, center]);
   const [showResults, setShowResults] = useState(false);
   const [pathOpen, setPathOpen] = useState(false);
   // On a narrow window, and in the embedded canvas, the path opens in a dialog so the canvas keeps its room.
@@ -381,71 +118,7 @@ export function LineageCanvas({
     setOpenGroups(new Set());
     setSplitPairs(new Set());
   }, [center]);
-  // Which cards: the centre's reach, plus the neighbours of expanded cards.
-  const reach = useMemo(() => {
-    const base = reachOf(graph, center, steps);
-    // A directed pierce replaces the hop neighborhood rather than retaining unrelated neighbors.
-    const lastPierce = sets.findLastIndex(set => set.kind === 'pierce');
-    const appliedSets = lastPierce < 0 ? sets : sets.slice(lastPierce);
-    const canvas = canvasOf(lastPierce < 0 ? [...base.cards] : [center, sets[lastPierce].from], appliedSets);
-    const cards = new Set(canvas.nodes);
-    const expandedBy = canvas.expandedBy;
-    const hidden = new Map<string, number>();
-    for (const [id, count] of base.hidden) if (!expandedBy.has(id)) hidden.set(id, count);
-    // Cards that only expansions brought in are placed incrementally beside their origin;
-    // everything else (the centre's reach, a pierce) is laid out by ELK.
-    const incremental = new Set<string>();
-    const laid = new Set([...base.cards, ...canvas.active.filter(x => x.kind === 'pierce').flatMap(x => [x.from, ...x.nodes])]);
-    for (const card of cards) if (!laid.has(card)) incremental.add(card);
-    // Iterate over a copy: the loop removes cards from the set.
-    // oxlint-disable-next-line no-useless-spread
-    for (const card of [...cards]) {
-      const cardKind = graph.cards.get(card)?.kind;
-      if ((!showMetrics && cardKind === 'metric' && card !== center) || (!showExternal && cardKind === 'external')) cards.delete(card);
-      else if (cardFilter && card !== center && !cardFilter(graph.cards.get(card)!)) cards.delete(card);
-    }
-    // Large groups of same-kind leaf cards collapse into a count card to keep the view readable.
-    // Selected paths bypass this grouping so every path card stays visible.
-    const groups = new Map<string, LineageCard>();
-    const alias = new Map<string, string>();
-    if (!selected) {
-      const near = new Map<string, Set<string>>();
-      for (const edge of graph.edges) {
-        const fromCard = cardOfNode(graph, edge.from);
-        const toCard = cardOfNode(graph, edge.to);
-        if (fromCard === toCard || !cards.has(fromCard) || !cards.has(toCard) || incremental.has(fromCard) || incremental.has(toCard)) continue;
-        (near.get(fromCard) ?? near.set(fromCard, new Set()).get(fromCard)!).add(toCard);
-        (near.get(toCard) ?? near.set(toCard, new Set()).get(toCard)!).add(fromCard);
-      }
-      const leaves = new Map<string, string[]>();
-      for (const card of cards) {
-        const neighbours = near.get(card);
-        if (card === center || expandedBy.has(card) || incremental.has(card) || !neighbours || neighbours.size !== 1) continue;
-        const parent = [...neighbours][0];
-        const key = `group:${parent}|${graph.cards.get(card)!.kind}`;
-        (leaves.get(key) ?? leaves.set(key, []).get(key)!).push(card);
-      }
-      for (const [id, members] of leaves) {
-        if (members.length <= GROUP_AT || openGroups.has(id)) continue;
-        const kind = graph.cards.get(members[0])!.kind;
-        groups.set(id, {
-          id,
-          kind,
-          label: `${members.length} more ${KIND_PLURAL[kind] ?? 'cards'}`,
-          file: '',
-          detail: members.map(m => graph.cards.get(m)!.label).join(', '),
-          columns: [],
-        });
-        for (const member of members) {
-          cards.delete(member);
-          alias.set(member, id);
-        }
-        cards.add(id);
-      }
-    }
-    const hops = (base as { hops?: Map<string, number> }).hops;
-    return { cards, hidden, groups, alias, expandedBy, incremental, hops, active: canvas.active };
-  }, [graph, center, steps, sets, showMetrics, showExternal, cardFilter, mapping, selected, openGroups]);
+  const reach = useLineageReach({ graph, center, steps, sets, mapping, showMetrics, showExternal, cardFilter, selected, openGroups });
   const cardFor = (id: string) => graph.cards.get(id) ?? reach.groups.get(id)!;
   const shownCard = (id: string) => reach.alias.get(id) ?? id;
   // A mapping link lights up the join rows it passes through.
@@ -672,60 +345,7 @@ export function LineageCanvas({
       );
   };
   const [direction, setDirection] = useRecordedState<Direction>(`${historyKey}.direction`, 'both');
-  const [piercing, setPiercing] = useState(false);
-  const pierceWorker = useRef<Worker | null>(null);
-  const stopPierce = () => {
-    pierceWorker.current?.terminate();
-    pierceWorker.current = null;
-    setPiercing(false);
-  };
-  useEffect(() => stopPierce, [center]);
-  const fullPierce = (budget = PIERCE_BUDGET) => {
-    const start = (pierceFromCenter ? '' : selected) || center;
-    const from = cardOfNode(graph, start);
-    if (!from) return;
-    stopPierce();
-    const worker = new Worker(new URL('./lineage-pierce.worker.ts', import.meta.url), {
-      type: 'module',
-    });
-    pierceWorker.current = worker;
-    setPiercing(true);
-    const owners: Record<string, string> = {};
-    for (const card of graph.cards.values()) for (const x of card.columns) owners[x.id] = card.id;
-    const input: LineagePierceInput = {
-      edges: graph.edges.map(e => [e.from, e.to]),
-      owners,
-      start: selectionNodes(graph, start),
-      direction,
-      budget,
-    };
-    worker.onmessage = (messageEvent: MessageEvent<{ id: number; result: LineagePierceResult }>) => {
-      worker.terminate();
-      if (pierceWorker.current !== worker) return;
-      pierceWorker.current = null;
-      setPiercing(false);
-      const lineagePierceResult = messageEvent.data.result;
-      // The result arrives after the click that asked for it, so it opens its own history step.
-      actionHistory.act('pierce', () =>
-        record(
-          registerSet({
-            kind: 'pierce',
-            from,
-            direction,
-            nodes: lineagePierceResult.cards.filter(c => c !== from),
-            edges: [],
-            frontier: {},
-            total: lineagePierceResult.total,
-            budget,
-            steps: lineagePierceResult.steps,
-          }),
-          allConnectedLabel(start === from ? labelOf(from) : start.slice(start.lastIndexOf('/') + 1)),
-        ),
-      );
-    };
-    worker.onerror = () => stopPierce();
-    worker.postMessage({ id: 1, input });
-  };
+  const { piercing, stopPierce, fullPierce } = useLineagePierce({ graph, center, selected, pierceFromCenter, direction, actionHistory, record, labelOf });
   const lastSet = reach.active.at(-1);
   // A selected column is named by its last path segment; a selected card by its label.
   const selectedColumnOnly = !!selected && selected.includes('/') && !graph.cards.has(selected);
@@ -737,22 +357,8 @@ export function LineageCanvas({
     if (sets.length) dispatch({ type: 'reset', step: { doc: graph.contract, center, name: labelOf(center) } });
   };
   const currentIsExpansion = currentStep(walk)?.kind === 'expand';
-  const walkTo = useCallback(
-    (id: string, via?: string) => {
-      const lineageCard = graph.cards.get(id);
-      if (!lineageCard) return;
-      dispatch({
-        type: 'push',
-        step: {
-          doc: graph.contract,
-          center: id,
-          name: lineageCard.label,
-          ...(via ? { via: { id: via, label: via.slice(via.lastIndexOf('/') + 1) } } : {}),
-        },
-      });
-    },
-    [graph],
-  );
+  const flow = useRef<ReactFlowInstance<any, any> | null>(null);
+  const { anchoredCard, keepOnScreen } = useCardAnchor(flow, result?.key);
   const nodes = useMemo(() => {
     if (!result) return [];
     return [...reach.cards]
@@ -861,173 +467,26 @@ export function LineageCanvas({
         },
       }));
   }, [lines, result, path, graph, mapping, lineLabels]);
-  const flow = useRef<ReactFlowInstance<any, any> | null>(null);
-  const viewHeld = useViewRestore(
-    fullscreen?.active ?? false,
-    () => flow.current?.getViewport(),
-    viewport => void flow.current?.setViewport(viewport),
-  );
-  const fitted = useRef('');
-  const anchoredCard = useRef<{
-    id: string;
-    layout: string | undefined;
-    screen: { x: number; y: number };
-  } | null>(null);
-  const firstViewTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
-  // Keep column names at least 12 px on entry by fitting the nearest readable neighborhood. Fall
-  // back to the center alone when needed; explicit Fit may zoom out further.
-  const readableFit = useCallback(async (focus: string, group: string[]) => {
-    const reactFlowInstance = flow.current;
-    if (!reactFlowInstance) return;
-    await reactFlowInstance.fitView({ padding: 0.12, maxZoom: 1, duration: 0 });
-    if (reactFlowInstance.getZoom() >= READABLE) return;
-    const ids = [...new Set([focus, ...group])].filter(id => reactFlowInstance.getNode(id));
-    if (ids.length > 1) {
-      await reactFlowInstance.fitView({
-        nodes: ids.map(id => ({ id })),
-        padding: 0.1,
-        maxZoom: 1,
-        duration: 0,
-      });
-      if (reactFlowInstance.getZoom() >= READABLE) return;
-    }
-    const node = reactFlowInstance.getNode(focus);
-    const lc = layoutCardsRef.current.find(c => c.id === focus);
-    if (node) {
-      const width = CARD_W;
-      // A card taller than the canvas shows its top (header and first rows), not its middle.
-      const height = lc ? cardHeight(lc) : (node.measured?.height ?? 200);
-      const visible = (stage.current?.clientHeight ?? 600) / READABLE - 48;
-      reactFlowInstance.setCenter(node.position.x + width / 2, node.position.y + Math.min(height, visible) / 2 + (height > visible ? -8 : 0), { zoom: READABLE, duration: 0 });
-    }
-  }, []);
-  const viewKey = [center, steps].join('|');
-  // Frames the nearest cards at a readable zoom. When the real layout is wider than the estimate,
-  // the farthest framed card is dropped from the frame, never from the canvas, until it fits.
-  const firstView = useCallback(async () => {
-    if (viewHeld()) return;
-    const reactFlowInstance = flow.current;
-    if (!reactFlowInstance) return;
-    const framed = [...(framedCards ?? reach.cards)].filter(id => reactFlowInstance.getNode(id));
-    while (framed.length > 1) {
-      await reactFlowInstance.fitView({
-        nodes: framed.map(id => ({ id })),
-        padding: 0.06,
-        maxZoom: FIRST_VIEW_MAX_ZOOM,
-        duration: 0,
-      });
-      if (reactFlowInstance.getZoom() >= READABLE - 0.005) return;
-      framed.pop();
-    }
-    await readableFit(center, []);
-  }, [center, reach, framedCards, readableFit, viewHeld]);
-  useEffect(() => {
-    if (initialFit === 'all') return;
-    if (!result || result.key !== layoutKey || !nodes.length) return;
-    if (fitted.current === viewKey) return;
-    fitted.current = viewKey;
-    // A card that opened or closed its columns keeps its place; the view does not start over.
-    if (anchoredCard.current) return;
-    // Wait until React Flow has measured the pane and the cards with its ResizeObserver.
-    firstViewTimer.current = setTimeout(() => requestAnimationFrame(() => void firstView()), 80);
-  }, [result, layoutKey, viewKey, nodes.length, initialFit]);
-  useEffect(() => {
-    if (initialFit !== 'all' || !result || result.key !== layoutKey || !nodes.length || !stageSize.width || !stageSize.height) return;
-    if (fitted.current === viewKey || anchoredCard.current || viewHeld()) return;
-    let cancelled = false;
-    let frame: number;
-    let framesWaited = 0;
-    const fitOptions = { padding: 0.12, minZoom: MIN_ZOOM, maxZoom: 1, duration: 0 };
-    const fitReadyNeighborhood = async () => {
-      const instance = flow.current;
-      // Offscreen cards have layout dimensions too; wait until React Flow holds this layout,
-      // rather than fitting only the cards its first viewport happened to render.
-      const ready =
-        instance?.viewportInitialized &&
-        nodes.every(node => {
-          const current = instance.getNode(node.id);
-          return (
-            current &&
-            current.position.x === node.position.x &&
-            current.position.y === node.position.y &&
-            (current.measured?.width ?? current.initialWidth) &&
-            (current.measured?.height ?? current.initialHeight)
-          );
-        });
-      // A card that never reports a size must not keep this loop running; fit what is there instead.
-      const gaveUpWaiting = framesWaited >= MAX_FIT_WAIT_FRAMES;
-      if ((ready || gaveUpWaiting) && (await instance?.fitView(fitOptions))) {
-        if (cancelled) return;
-        fitted.current = viewKey;
-        // Showing everything only helps while names stay legible; otherwise frame the nearest cards.
-        if (instance && instance.getZoom() < READABLE - 0.005) await firstView();
-        return;
-      }
-      framesWaited += 1;
-      if (!cancelled) frame = requestAnimationFrame(() => void fitReadyNeighborhood());
-    };
-    frame = requestAnimationFrame(() => void fitReadyNeighborhood());
-    return () => {
-      cancelled = true;
-      cancelAnimationFrame(frame);
-    };
-  }, [initialFit, result, layoutKey, viewKey, nodes, stageSize.width, stageSize.height, viewHeld, firstView]);
-  useEffect(() => () => clearTimeout(firstViewTimer.current), []);
-  // An explicit Fit wins over a first view that is still waiting to run, and shows every card.
-  function fitAll() {
-    clearTimeout(firstViewTimer.current);
-    void flow.current?.fitView({ padding: 0.12, maxZoom: 1, duration: 200 });
-  }
-  // Opening or closing a card's columns changes its height, and the new layout can move that card
-  // far away, so it seemed to vanish. The view follows the card: it stays where it was on screen.
-  function keepOnScreen(cardId: string) {
-    const reactFlowInstance = flow.current;
-    const node = reactFlowInstance?.getNode(cardId);
-    if (!reactFlowInstance || !node) return;
-    const { x, y, zoom } = reactFlowInstance.getViewport();
-    anchoredCard.current = {
-      id: cardId,
-      layout: result?.key,
-      screen: { x: node.position.x * zoom + x, y: node.position.y * zoom + y },
-    };
-  }
-  useEffect(() => {
-    const anchor = anchoredCard.current;
-    // Only the layout made for the new card height moves it; earlier results still hold the old
-    // positions.
-    if (!anchor || !result || result.key === anchor.layout) return;
-    const moved = result.layout.positions[anchor.id];
-    if (!moved || !flow.current) return;
-    anchoredCard.current = null;
-    const zoom = flow.current.getZoom();
-    const layoutCard = layoutCardsRef.current.find(candidate => candidate.id === anchor.id);
-    const cardPixels = layoutCard ? cardHeight(layoutCard) * zoom : 0;
-    const top = visibleCardTop(anchor.screen.y, cardPixels, stage.current?.clientHeight ?? 0);
-    void flow.current.setViewport({
-      x: anchor.screen.x - moved.x * zoom,
-      y: top - moved.y * zoom,
-      zoom,
-    });
-  }, [result]);
-  // After an expansion or pierce, bring its cards into a readable view around its origin.
-  const focused = useRef('');
-  useEffect(() => {
-    if (!result || !lastSet || focused.current === lastSet.id) return;
-    focused.current = lastSet.id;
-    const timer = setTimeout(() => void readableFit(lastSet.from, lastSet.nodes), 120);
-    return () => clearTimeout(timer);
-  }, [result, lastSet]);
-  // The path panel takes room beside the canvas: when a path opens, bring its cards into a
-  // readable view (React Flow learns the new width from a ResizeObserver, so this waits for it).
-  const panelOpen = !!path;
-  useEffect(() => {
-    if (!result || !path) return;
-    const timer = setTimeout(() => {
-      const cards = [...new Set([...path.nodes].map(n => cardOfNode(graph, n)))].filter(c => reach.cards.has(c));
-      void readableFit(cardOfNode(graph, selected), cards);
-    }, 120);
-    return () => clearTimeout(timer);
-  }, [panelOpen]);
+  const { fitAll } = useLineageViewport({
+    flow,
+    anchoredCard,
+    stage,
+    layoutCardsRef,
+    fullscreen,
+    result,
+    layoutKey,
+    nodes,
+    stageSize,
+    center,
+    steps,
+    initialFit,
+    framedCards,
+    reach,
+    lastSet,
+    path,
+    graph,
+    selected,
+  });
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && selected && !(e.target as HTMLElement).closest('dialog,input')) setSelected('');
@@ -1107,150 +566,52 @@ export function LineageCanvas({
     }
     setSelected((edge.data as { from: string }).from);
   };
-  const lineageOptions = (
-    <GraphOptions
-      title="View options"
-      intro={
-        mapping
-          ? `The view shows ${centreName} and every card within the chosen number of mapping lines of it.`
-          : `The view shows ${centreName} with every field and metric that reads it, and tables up to the chosen number of foreign-key hops away.`
-      }
-    >
-      {mapping && (
-        <OptionGroup title="Steps">
-          <label>
-            Steps
-            <select aria-label="Mapping steps" value={steps} onChange={e => setSteps(Number(e.target.value))}>
-              {[1, 2, 3, 4, 5].map(stepCount => (
-                <option key={stepCount} value={stepCount}>
-                  {stepCount}
-                </option>
-              ))}
-            </select>
-          </label>
-        </OptionGroup>
-      )}
-      <OptionGroup title="Show">
-        <ShowToggle on={showMetrics} onToggle={() => setShowMetrics(shown => !shown)} title="Metrics that read the shown columns">
-          Metrics
-        </ShowToggle>
-        {!mapping && (
-          <ShowToggle on={showExternal} onToggle={() => setShowExternal(shown => !shown)} title="Tables in other contracts that these columns refer to">
-            Other contracts
-          </ShowToggle>
-        )}
-      </OptionGroup>
-    </GraphOptions>
-  );
   const selectedPathList =
     path && summary.length > 0 ? (
       <SelectedPath items={summary} selected={selected} onSelect={setSelected} selectedCard={selectedCard} onNeighborhood={onNeighborhood} extra={selectionExtra?.(selected, path)} />
     ) : null;
   return (
     <section className={`lineage-view${compact ? ' compact' : ''}`} role="region" aria-label={ariaLabel}>
-      <div className="lineage-toolbar">
-        <div className="lineage-search" role="combobox" aria-expanded={showResults && results.length > 0} aria-haspopup="listbox" aria-owns="lineage-asset-results">
-          <Search size={14} />
-          <input
-            aria-label="Find assets"
-            placeholder="Find assets…"
-            value={query}
-            aria-autocomplete="list"
-            aria-controls="lineage-asset-results"
-            onFocus={() => setShowResults(true)}
-            onBlur={() => setTimeout(() => setShowResults(false), 150)}
-            onChange={e => {
-              setQuery(e.target.value);
-              setShowResults(true);
-            }}
-            onKeyDown={event => {
-              if (event.key === 'Enter' && results[0]) {
-                event.preventDefault();
-                choose(results[0]);
-              }
-              if (event.key === 'Escape') {
-                setQuery('');
-                setShowResults(false);
-              }
-            }}
-          />
-          {showResults && query && (
-            <ul id="lineage-asset-results" role="listbox" aria-label="Asset results">
-              {results.length ? (
-                results.map(hit => (
-                  <li
-                    key={hit.id}
-                    role="option"
-                    aria-selected={false}
-                    onMouseDown={e => {
-                      e.preventDefault();
-                      choose(hit);
-                    }}
-                  >
-                    <span className={`asset-kind k-${hit.kind}`}>{ASSET_KIND_LABEL[hit.kind]}</span>
-                    <span className="asset-name">{hit.label}</span>
-                  </li>
-                ))
-              ) : (
-                <li role="option" aria-disabled="true" aria-selected={false} className="none">
-                  No asset matches “{query}”
-                </li>
-              )}
-            </ul>
-          )}
-        </div>
-        <button onClick={fitAll} aria-label="Fit" title="Fit the graph">
-          <Scan size={14} />
-          <span className="tool-label">Fit</span>
-        </button>
-        <CompactControls>
-          <PierceControls
-            direction={direction}
-            onDirection={setDirection}
-            running={piercing}
-            onPierce={() => fullPierce()}
-            onStop={stopPierce}
-            canUndo={currentIsExpansion}
-            onUndo={actionHistory.back}
-            title={`Open every card on the path of ${pierceOriginLabel}`}
-          />
-          {toolbarExtra}
-          <span className="lineage-toolbar-spacer" />
-          {lineageOptions}
-          <ZoomButtons onZoomIn={() => void flow.current?.zoomIn({ duration: 150 })} onZoomOut={() => void flow.current?.zoomOut({ duration: 150 })} />
-          {fullscreen && (
-            <button onClick={fullscreen.toggle} aria-label={fullscreen.active ? 'Exit full screen' : 'Full screen'} title="Full screen (F)">
-              {fullscreen.active ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
-            </button>
-          )}
-        </CompactControls>
-      </div>
-      <div className="lineage-subbar">
-        {foreignKeys && <ForeignKeyHops path={foreignKeys} hops={steps} onHops={changeHops} />}
-        <div className="lineage-trail" aria-label="Walk">
-          <button aria-label="Back" disabled={!actionHistory.canBack} onClick={actionHistory.back}>
-            <ArrowLeft size={13} />
-          </button>
-          <button aria-label="Forward" disabled={!actionHistory.canForward} onClick={actionHistory.forward}>
-            <ArrowRight size={13} />
-          </button>
-          <ol>
-            {walk.steps.map((step, i) => (
-              <li key={i}>
-                <button aria-current={i === walk.index ? 'step' : undefined} onClick={() => dispatch({ type: 'jump', index: i })} title={step.via ? `via ${step.via.label}` : undefined}>
-                  {step.via && <small>via {step.via.label} →</small>}
-                  {step.name}
-                </button>
-              </li>
-            ))}
-          </ol>
-          {pathInDialog && selectedPathList && (
-            <button className="lineage-path-toggle" onClick={() => setPathOpen(true)}>
-              Selected path <span>{summary.length}</span>
-            </button>
-          )}
-        </div>
-      </div>
+      <LineageToolbar
+        mapping={mapping}
+        centreName={centreName}
+        steps={steps}
+        onSteps={setSteps}
+        showMetrics={showMetrics}
+        onToggleMetrics={() => setShowMetrics(shown => !shown)}
+        showExternal={showExternal}
+        onToggleExternal={() => setShowExternal(shown => !shown)}
+        query={query}
+        onQuery={setQuery}
+        showResults={showResults}
+        onShowResults={setShowResults}
+        results={results}
+        onChoose={choose}
+        onFit={fitAll}
+        direction={direction}
+        onDirection={setDirection}
+        piercing={piercing}
+        onPierce={() => fullPierce()}
+        onStopPierce={stopPierce}
+        canUndo={currentIsExpansion}
+        onUndo={actionHistory.back}
+        pierceTitle={`Open every card on the path of ${pierceOriginLabel}`}
+        toolbarExtra={toolbarExtra}
+        fullscreen={fullscreen}
+        onZoomIn={() => void flow.current?.zoomIn({ duration: 150 })}
+        onZoomOut={() => void flow.current?.zoomOut({ duration: 150 })}
+      />
+      <LineageSubbar
+        foreignKeys={foreignKeys}
+        steps={steps}
+        onHops={changeHops}
+        actionHistory={actionHistory}
+        walk={walk}
+        dispatch={dispatch}
+        showPathToggle={pathInDialog && !!selectedPathList}
+        pathCount={summary.length}
+        onOpenPath={() => setPathOpen(true)}
+      />
       {lastSet?.kind === 'pierce' && currentStep(walk)?.set === lastSet.id && (
         <PierceBanner
           noun={['card', 'cards']}

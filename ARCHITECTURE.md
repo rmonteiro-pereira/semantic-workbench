@@ -242,7 +242,10 @@ The integration view shows what the application reads and contacts, and what it 
   decide display grouping, not standard semantics.
 - `src/app/odcs/lineage.ts` builds declared column dependencies; `LineageCanvas.tsx`, `LineageCard.tsx`
   and `LineageColumnList.tsx` draw row ports, selection and windowed column lists. Mapping canvases
-  reuse this infrastructure with resolver-derived cards/lines.
+  reuse this infrastructure with resolver-derived cards/lines. `LineageCanvas.tsx` composes
+  `useLineageWalk.ts` (recorded walk, centre, hops), `useLineageReach.ts` (which cards show),
+  `useLineageLayout.ts` (ELK worker, card measurements), `useLineagePierce.ts` (full pierce worker),
+  `useLineageViewport.ts` (first view, Fit, card anchoring), `LineageEdge.tsx` and `LineageToolbar.tsx`.
 - `docs/graph-design.md` describes the Network (fCoSE) and Layered (ELK) layouts, worker routing, card measurement,
   viewport fitting and the pinned React Flow observer patch. No WebGL/Sigma renderer is active.
 
