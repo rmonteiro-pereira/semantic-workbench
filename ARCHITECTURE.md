@@ -117,7 +117,9 @@ The integration view shows what the application reads and contacts, and what it 
   changes. Cache rows are not another authoritative copy of the definitions.
 - `git.ts` is the subprocess boundary for Git; `scm.ts` owns Source Control behavior and converts
   project-relative paths to repository paths. Commands are serialized per underlying repository,
-  including all of its worktrees.
+  including all of its worktrees. `scm-context.ts` holds what its parts share (dependencies,
+  blockers, repository paths, refresh after a change); `scm-remote.ts` runs fetch, pull, push,
+  sync and remote settings; `scm-branches.ts` lists, switches and creates branches.
 - `repositories.ts` and `repository-projects.ts` interpret the multi-project manifest.
   `sparse-folder.ts` owns partial/sparse checkout steps; `project-folder.ts` coordinates a reviewed
   local move into a repository folder.
