@@ -6,6 +6,12 @@ not configure a production deployment.
 
 ## Unreleased
 
+### Changed
+
+- Agent context: every document of a context names its `role` (`mapping`, `ontology` or `semantic`),
+  and the answer lists `boundMetricIds`, the metrics bound directly to the selected concepts
+  (including metrics bound straight to a concept).
+
 ### Fixed
 
 - A fresh development server no longer reloads the page while the Network graph loads for the first
