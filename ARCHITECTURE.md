@@ -240,7 +240,8 @@ The integration view shows what the application reads and contacts, and what it 
 - `src/app/graph/` owns whole-model and neighborhood views, traversal, grouping projection, layout,
   workers, controls, name wrapping and shared edge appearance. `NeighborhoodGraph.tsx` composes
   `useNeighborhoodView.ts` (filtering, walk canvas, shown entities and edges), `useNeighborhoodNodes.ts`
-  (positions, chunked reveal, separation by measured size) and `NeighborhoodToolbar.tsx`. `overview.ts` and `communities.ts`
+  (positions, chunked reveal, separation by measured size) and `NeighborhoodToolbar.tsx`. `FullGraph.tsx` composes `useFullGraphLayout.ts` (layout cache, the Network worker
+  and ELK layout) and `FullGraphNodes.tsx` (entity, area and relationship renderers). `overview.ts` and `communities.ts`
   decide display grouping, not standard semantics.
 - `src/app/odcs/lineage.ts` builds declared column dependencies; `LineageCanvas.tsx`, `LineageCard.tsx`
   and `LineageColumnList.tsx` draw row ports, selection and windowed column lists. Mapping canvases

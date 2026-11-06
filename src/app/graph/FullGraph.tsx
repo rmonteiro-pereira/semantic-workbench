@@ -2,32 +2,11 @@
 import { flushSync } from 'react-dom';
 import { ScrollStrip } from '../components/ScrollStrip';
 import type { GroupingOptions } from './overview';
-import { RoutedEdge } from './RoutedEdge';
-import { roundedPath, pointAtHalf, type Point } from '../odcs/edge-route';
-import { pathMatchesEndpoints } from './edge-path';
-import { edgeAppearance } from './edge-styles';
 import { useRecordedState } from '../workspace/hooks/useRecordedState';
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  ReactFlow,
-  getViewportForBounds,
-  Background,
-  MiniMap,
-  Handle,
-  Position,
-  NodeToolbar,
-  BaseEdge,
-  BezierEdge,
-  useNodesState,
-  MarkerType,
-  type NodeProps,
-  type EdgeProps,
-  type ReactFlowInstance,
-} from '@xyflow/react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ReactFlow, getViewportForBounds, Background, MiniMap, MarkerType, type ReactFlowInstance } from '@xyflow/react';
 import { SmartEdgeProvider, type SmartEdgeMetrics } from '@tisoap/react-flow-smart-edge';
-import ELK from 'elkjs/lib/elk-api.js';
-import elkWorkerUrl from 'elkjs/lib/elk-worker.min.js?url';
-import { Crosshair, Maximize, Maximize2, Minimize2, RefreshCw, Gauge } from 'lucide-react';
+import { Crosshair, Maximize, Maximize2, Minimize2, RefreshCw } from 'lucide-react';
 import { useViewRestore, type Fullscreen } from './fullscreen';
 import { GraphOptions, OptionGroup, Segmented, ShowToggle } from './GraphOptions';
 import { ZoomButtons } from './ZoomButtons';
@@ -36,101 +15,19 @@ import { CompactControls } from './CompactControls';
 import { modelOverview } from './overview';
 import { groupRelationships } from './graph-view';
 import { collapseAreas } from './collapse';
-import { FALLBACK_GROUP_COLOR } from '../theme/theme-palette';
-import { layoutFullGraph, packNetwork } from './full-layout';
 import { VALUE_KINDS, kpisKey, readFlag, readHideValues, writeFlag, writeHideValues } from './hidden-kinds';
-import type { NetworkLayoutRequest, NetworkLayoutResponse } from './network-layout';
-import { areaTileData, entityCardData } from './full-node-data';
-import { shownName } from './text-fit';
 import type { Entity, Relationship } from '../../shared/core/model';
-import { timeOperation } from '../observability/page-reporting';
+import { edgeTypes, nodeTypes } from './FullGraphNodes';
+import { useFullGraphLayout } from './useFullGraphLayout';
 function relationshipOpacity(emphasized: boolean, hasFocus: boolean) {
   if (emphasized) return 0.95;
   if (hasFocus) return 0.07;
   return 0.48;
 }
 
-const sides = [
-  ['n', Position.Top],
-  ['e', Position.Right],
-  ['s', Position.Bottom],
-  ['w', Position.Left],
-] as const;
-const EntityNode = memo(({ data }: NodeProps) => (
-  <div className={`full-entity ${data.focused ? 'focused' : ''} ${data.collapsedArea ? 'collapsed' : ''} ${data.kind === 'Metric' ? 'kpi-node' : ''}`} style={{ '--entity-color': data.color } as any}>
-    <NodeToolbar isVisible={!!data.tooltip} position={Position.Top}>
-      <div className="entity-tooltip">{String(data.name)}</div>
-    </NodeToolbar>
-    {sides.flatMap(([id, position]) => [
-      <Handle key={'s' + id} id={'source-' + id} type="source" position={position} />,
-      <Handle key={'t' + id} id={'target-' + id} type="target" position={position} />,
-    ])}
-    <span className="entity-color" />
-    {data.kind === 'Metric' && (
-      <small className="kpi-kind">
-        <Gauge size={11} />
-        Metric
-      </small>
-    )}
-    <strong style={{ '--entity-name-cap': data.nameCap } as React.CSSProperties}>{shownName(String(data.name))}</strong>
-    {!!data.collapsedArea && (
-      <small>
-        {String(data.internalCount ?? 0)} internal relationship
-        {Number(data.internalCount ?? 0) === 1 ? '' : 's'} · click to expand
-      </small>
-    )}
-    {Array.isArray(data.kpis) && data.kpis.length > 0 && (
-      <span className="kpi-badge node-kpi-badge" title={`Metrics: ${data.kpis.join(', ')}`}>
-        <Gauge size={10} />
-        {data.kpis.length === 1 ? 'Metric' : `${data.kpis.length} metrics`}
-      </span>
-    )}
-  </div>
-));
-const AreaNode = memo(({ data }: NodeProps) => (
-  <div className="full-area-title" title={String(data.name)} style={{ '--area-title-cap': data.titleCap } as React.CSSProperties}>
-    <span style={{ background: String(data.color) }} />
-    <strong>{String(data.name)}</strong>
-    <small>{String(data.count)} entities</small>
-    {Boolean(data.linksText) && <em className="area-links">{String(data.linksText)}</em>}
-  </div>
-));
-const GraphEdge = memo((props: EdgeProps) => {
-  const appearance = edgeAppearance(props);
-  const points = props.data?.layoutRoute as Point[] | undefined;
-  const path = points && roundedPath(points, 8);
-  if (path && pathMatchesEndpoints(path, props.sourceX, props.sourceY, props.targetX, props.targetY, 1.1)) {
-    const anchored = [...points!];
-    anchored[0] = { x: props.sourceX, y: props.sourceY };
-    anchored[anchored.length - 1] = { x: props.targetX, y: props.targetY };
-    const label = pointAtHalf(anchored);
-    return <BaseEdge {...appearance} path={roundedPath(anchored, 8)} labelX={label.x} labelY={label.y} interactionWidth={24} />;
-  }
-  if (props.source === props.target) {
-    const { sourceX: x, sourceY: y, targetX: tx, targetY: ty } = props;
-    return (
-      <BaseEdge
-        id={props.id}
-        path={`M ${x},${y} C ${x + 70},${y - 75} ${tx + 70},${ty + 75} ${tx},${ty}`}
-        markerEnd={props.markerEnd}
-        style={props.style}
-        interactionWidth={24}
-        label={props.label}
-        labelX={x + 55}
-        labelY={y - 35}
-      />
-    );
-  }
-  if (!props.data?.routeDetailed) return <BezierEdge {...props} />;
-  return <RoutedEdge {...props} />;
-});
-const nodeTypes = { entity: EntityNode, businessArea: AreaNode };
-const edgeTypes = { routed: GraphEdge };
 const routingOptions = { nodePadding: 10, gridRatio: 10 };
-type LayoutResult = Awaited<ReturnType<typeof layoutFullGraph>>;
 // How long the pane must keep its size before the first layout is planned for it.
 const PANE_SETTLE_MS = 250;
-const cache = new Map<string, LayoutResult>();
 type Props = {
   toolbarExtra?: React.ReactNode;
   /** The Group menu; on a phone it folds into the Controls panel with the other options. */
@@ -162,12 +59,7 @@ export function FullGraph(props: Props) {
   // The first layout waits for a real measurement, so it is planned for the pane the person sees.
   const [paneMeasured, setPaneMeasured] = useState(false);
   const flow = useRef<ReactFlowInstance<any, any> | null>(null);
-  const laidOutKey = useRef('');
-  const [nodes, setNodes, onNodesChange] = useNodesState<any>([]);
   const [algorithm, setAlgorithm] = useRecordedState<'network' | 'layered'>('graph.algorithm', 'network');
-  const [layoutRoutes, setLayoutRoutes] = useState<LayoutResult['routes']>({});
-  const [busy, setBusy] = useState(true);
-  const [error, setError] = useState('');
   const [hover, setHover] = useState('');
   const [hoverEdge, setHoverEdge] = useState('');
   const [labels, setLabels] = useRecordedState('graph.labels', false);
@@ -293,121 +185,19 @@ export function FullGraph(props: Props) {
     void instance.setViewport(getViewportForBounds({ x, y, width, height }, rect.width, rect.height, 0.001, 1, 0.12), { duration: startsValid ? duration : 0 });
   }, []);
   const fit = useCallback(() => fitWithin(250), [fitWithin]);
-  useEffect(() => {
-    let cancelled = false;
-    if (!paneMeasured) return;
-    const controller = new AbortController();
-    let worker: Worker | undefined;
-    let elk: { layout: (elkGraph: any) => Promise<any>; terminateWorker: () => void } | undefined;
-    const key = JSON.stringify([algorithm, layoutGrouping, props.name, display.entities.map(e => [e.id, e.name, e.kind]), display.edges.map(e => [e.source, e.target])]);
-    setBusy(true);
-    setError('');
-    // A re-layout that lands on the same arrangement re-routes nothing, so its old metrics still hold.
-    if (laidOutKey.current !== key) setRouteMetrics(null);
-    function nodeData(node: LayoutResult['nodes'][number], group: (typeof overview.groups)[number] | undefined) {
-      if (node.group) {
-        return areaTileData({ name: group!.name, color: group!.color, entityCount: group!.entities.length }, node.width);
-      }
-      const entity = entityById.get(node.id);
-      const collapsedArea = entity?.definition?.collapsedArea;
-      return {
-        name: entity?.name,
-        collapsedArea,
-        internalCount: display.internal.get(collapsedArea)?.length ?? 0,
-        color: group?.color ?? FALLBACK_GROUP_COLOR,
-        ...entityCardData(entity!, node),
-      };
-    }
-    function apply(result: LayoutResult) {
-      if (cancelled) return;
-      laidOutKey.current = key;
-      setLayoutRoutes(result.routes ?? {});
-      cache.set(key, result);
-      if (cache.size > 6) cache.delete(cache.keys().next().value!);
-      setNodes(previous => {
-        const previousById = new Map(previous.map(node => [node.id, node]));
-        return result.nodes.map(node => {
-          const group = node.group ? groupById.get(node.group) : groupById.get(overview.groupOf.get(node.id)!);
-          const type = node.group ? 'businessArea' : 'entity';
-          const prior = previousById.get(node.id);
-          const sameSize = prior?.type === type && prior.style?.width === node.width && prior.style?.height === node.height;
-          return {
-            id: node.id,
-            type,
-            measured: sameSize ? prior.measured : undefined,
-            position: { x: node.x, y: node.y },
-            parentId: node.parentId,
-            extent: node.parentId ? 'parent' : undefined,
-            draggable: true,
-            selectable: !node.group,
-            style: {
-              width: node.width,
-              height: node.height,
-              ...(node.group
-                ? {
-                    background: group!.color + '06',
-                    border: '1px solid ' + group!.color + '45',
-                    borderRadius: 16,
-                    zIndex: -1,
-                  }
-                : { zIndex: 2 }),
-            },
-            data: nodeData(node, group),
-          };
-        });
-      });
-      setBusy(false);
-      setTimeout(fit, 150);
-    }
-    if (cache.has(key) && !version) {
-      apply(cache.get(key)!);
-    } else {
-      let arranged: Promise<LayoutResult>;
-      if (algorithm === 'network') {
-        arranged = new Promise((resolve, reject) => {
-          controller.signal.addEventListener('abort', () => reject(new DOMException('Network layout cancelled.', 'AbortError')), { once: true });
-          worker = new Worker(new URL('./network-layout.worker.ts', import.meta.url), { type: 'module' });
-          worker.onmessage = ({ data }: MessageEvent<NetworkLayoutResponse>) => {
-            worker?.terminate();
-            if (cancelled) return;
-            if ('error' in data) {
-              reject(new Error(data.error));
-              return;
-            }
-            elk = new ELK({ algorithms: ['box', 'sporeOverlap'], workerFactory: () => new Worker(elkWorkerUrl) });
-            packNetwork(data.result, elk).then(resolve, reject);
-          };
-          worker.onerror = event => {
-            event.preventDefault();
-            worker?.terminate();
-            reject(new Error(event.message || 'Network layout failed.'));
-          };
-          worker.postMessage({ entities: display.entities, edges: display.edges, name: props.name, grouping: layoutGrouping } satisfies NetworkLayoutRequest);
-        });
-      } else {
-        elk = new ELK({
-          algorithms: ['layered', 'box'],
-          workerFactory: () => new Worker(elkWorkerUrl),
-        });
-        arranged = layoutFullGraph(display.entities, display.edges, { name: props.name, elk, grouping: layoutGrouping });
-      }
-      timeOperation('graph-layout', arranged)
-        .then(apply)
-        .catch(failure => {
-          if (!cancelled) {
-            setError(failure.message);
-            setBusy(false);
-          }
-        })
-        .finally(() => elk?.terminateWorker());
-    }
-    return () => {
-      cancelled = true;
-      controller.abort();
-      worker?.terminate();
-      elk?.terminateWorker();
-    };
-  }, [overview, display, algorithm, version, layoutGrouping, paneMeasured]);
+  const { nodes, onNodesChange, layoutRoutes, busy, error } = useFullGraphLayout({
+    name: props.name,
+    algorithm,
+    version,
+    paneMeasured,
+    overview,
+    display,
+    layoutGrouping,
+    entityById,
+    groupById,
+    fit,
+    setRouteMetrics,
+  });
   // Full screen keeps the view it started from and puts it back on exit.
   const held = useViewRestore(
     !!props.fullscreen?.active,
