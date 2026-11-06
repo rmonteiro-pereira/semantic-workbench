@@ -79,7 +79,7 @@ await routeApi(page, api, async route => {
   return false;
 });
 if (process.env.UI_MUTATION === 'clear-nodes')
-  await page.route('**/src/app/graph/NeighborhoodGraph.tsx*', async route => {
+  await page.route('**/src/app/graph/useNeighborhoodNodes.ts*', async route => {
     const response = await route.fetch();
     // The node list is the expansion canvas, revealed in chunks.
     const source = await response.text();
