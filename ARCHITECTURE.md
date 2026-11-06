@@ -190,8 +190,9 @@ The integration view shows what the application reads and contacts, and what it 
   `src/app/metrics/` draws the metric views and wizards. `src/shared/sql/` lints SQL and finds its
   regions; `src/app/sql/` highlights it in the browser. None of them access a data source.
 - `src/server/agent/explain.ts`, `context.ts`, `runtime.ts` and `sql.ts` produce filtered catalog/context,
-  definition-preserving metric explanations and governed query plans. `context.ts` resolves a mapping into
-  fields, metrics, bindings and findings; `query-plan.ts` builds the SQL preview;
+  definition-preserving metric explanations and governed query plans. `context.ts` is the entry for resolving a mapping into
+  fields, metrics, bindings and findings (`context-types.ts`, `context-documents.ts`, `context-assembly.ts`,
+  `context-selection.ts`); `query-plan.ts` builds the SQL preview;
   `runtime.ts` re-exports both as the public entry point. They never execute a plan or
   call an LLM. Synthetic example execution belongs only to verification scripts/tests.
 
