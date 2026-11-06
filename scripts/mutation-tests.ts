@@ -10,7 +10,7 @@ import { exampleMetricMutants } from './example-metric-mutants';
 import { themeMutants } from './theme-mutants';
 import { brandMutants } from './brand-mutants';
 import { observabilityMutants } from './observability-mutants';
-import { chmod, mkdtemp, rm, symlink } from 'node:fs/promises';
+import { chmod, mkdtemp, readdir, rm, symlink } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 const root = process.cwd();
 const temp = await mkdtemp('/tmp/workbench-mutations-');
@@ -72,7 +72,7 @@ const mutants: [string, string, string, string][] = [
   ['signin-csrf', 'src/server/auth/csrf.ts', "if (request.headers.get('X-SW-Request') === '1')", 'if (true)'],
   ['signin-nonce', 'src/server/auth/oidc.ts', 'expectedNonce: attempt.nonce,', 'expectedNonce: undefined,'],
   ['signin-tenant', 'src/server/auth/principal.ts', 'mapping.tenantId && tenant.toLowerCase() !== mapping.tenantId.toLowerCase()', 'false'],
-  ['signin-directory', 'src/server/auth/directory.ts', 'return null;\n      }\n    },\n  };', 'return ids;\n      }\n    },\n  };'],
+  ['signin-directory', 'src/server/auth/directory.ts', "options.failure?.('directory-unavailable');\n      return null;", "options.failure?.('directory-unavailable');\n      return ids;"],
   ['signin-redirect', 'src/server/auth/middleware.ts', 'return options.authentication.login(url.pathname + url.search, request);', 'return run(request);'],
   ['signin-pages', 'src/server/routes/auth.ts', "return authPage('signed-out');", "return options.login('/');"],
   ['signin-pages', 'src/server/routes/auth.ts', "'<p>An Admin must grant you access to this workbench.</p>'", "'<p>An Admin must grant you access to this workbench.</p><p>workspace-data</p>'"],
@@ -207,8 +207,8 @@ const mutants: [string, string, string, string][] = [
   ['export', 'src/app/core/export.ts', 'return { filename, blob:', "return {filename:'wrong.yaml',blob:"],
   ['export', 'src/app/core/export.ts', 'new Blob([source]', "new Blob(['']"],
   ['model', 'src/shared/core/model.ts', "valuePatches(source, [...path, 'description'], description, filename)", "valuePatches(source, ['unrelated'], description, filename)"],
-  ['files', 'src/server/projects/workspace.ts', 'if (body.baseHash !== currentHash) throw new StaleError', 'if(false)throw new StaleError'],
-  ['files', 'src/server/projects/workspace.ts', 'if (!indexed.file.valid) throw new InputError(indexed.findings)', ''],
+  ['files', 'src/server/projects/workspace/document-save.ts', 'if (body.baseHash !== currentHash) throw new StaleError', 'if(false)throw new StaleError'],
+  ['files', 'src/server/projects/workspace/document-save.ts', 'if (!indexed.file.valid) throw new InputError(indexed.findings)', ''],
   ['atomic', 'src/server/projects/atomic.ts', 'const temp = tempPath(path)', 'const temp=path;'],
   ['atomic', 'src/server/projects/atomic.ts', "environment.platform === 'win32' && TRANSIENT_RENAME_CODES.has(code)", 'TRANSIENT_RENAME_CODES.has(code)'],
   ['atomic', 'src/server/projects/atomic.ts', 'if (!retryable || waited >= RENAME_RETRY_BUDGET_MS) throw error;', 'if (!retryable) throw error;'],
@@ -223,8 +223,8 @@ const mutants: [string, string, string, string][] = [
     "if(origin&&!allowedOrigins(options.port??4310).includes(origin)&&new URL(req.url).pathname!=='/api/events')return",
   ],
   ['journal', 'src/server/projects/journal.ts', 'const forward = remaining.every(', 'const forward=true||remaining.every('],
-  ['trash', 'src/server/projects/trash.ts', 'if (undo && now() > Date.parse(trashEntry.undoUntil)) throw new GoneError', 'if(false)throw new GoneError'],
-  ['trash', 'src/server/projects/trash.ts', 'if (existsSync(dest)) {', 'if(false){'],
+  ['trash', 'src/server/projects/trash-restore.ts', 'if (undo && now() > Date.parse(trashEntry.undoUntil)) throw new GoneError', 'if(false)throw new GoneError'],
+  ['trash', 'src/server/projects/trash-restore.ts', 'if (existsSync(dest)) {', 'if(false){'],
   [
     'suggestions',
     'src/server/projects/suggestions.ts',
@@ -245,7 +245,7 @@ const mutants: [string, string, string, string][] = [
     'exit():Viewport|null{saved=null;return null;}',
   ],
   ['odcs-diff', 'src/app/odcs/odcs-diff.ts', '.filter(k => !skip.includes(k)).sort()', '.filter(k=>!skip.includes(k)&&!/Type$/.test(k)).sort();'],
-  ['scm-block', 'src/server/projects/scm.ts', "if (drafts.length) return new BlockedError('drafts', drafts)", ''],
+  ['scm-block', 'src/server/projects/scm-context.ts', "if (drafts.length) return new BlockedError('drafts', drafts)", ''],
   ['autosave', 'src/app/projects/autosave.ts', 'if (event.errors > 0) return keep(', 'if(false)return keep('],
   ['autosave', 'src/app/projects/autosave.ts', "if (state.status === 'stale') return keep(state)", ''],
   [
@@ -293,7 +293,7 @@ const mutants: [string, string, string, string][] = [
   ],
   [
     'files',
-    'src/server/projects/workspace.ts',
+    'src/server/projects/workspace/import-batch.ts',
     'const commitPathsResult = await git.commitPaths(\n      repo,\n      paths.map(p => prefix + p),\n      message,\n      author,\n    )',
     'const commitPathsResult=await git.commitPaths(repo,await git.lsFiles(repo),message,author);',
   ],
@@ -338,7 +338,7 @@ const mutants: [string, string, string, string][] = [
     "steps.push({ from: projectDir(layout, slug), to: join(dir, 'payload', slug) });",
     "steps.push({ from: join(layout.projects, locationOf(unit.project).repo), to: join(dir, 'payload', slug) });",
   ],
-  ['subproject-rescan', 'src/server/projects/scm.ts', 'for (const project of projects) await deps.rescan(project);', 'await deps.rescan(slug);'],
+  ['subproject-rescan', 'src/server/projects/scm-context.ts', 'for (const project of projects) await deps.rescan(project);', 'await deps.rescan(slug);'],
   // Admin panel: a save is confirmed only for the reviewed proposal and never without a dry run.
   ['admin-review', 'src/app/admin/change-review.ts', 'review.key === key', 'true'],
   ['admin-review', 'src/app/admin/change-review.ts', 'Boolean(review.result.dryRunId)', 'true'],
@@ -358,7 +358,7 @@ mutants.push(
   ['guard-restore', 'src/server/routes/trash.ts', 'ws.trash.undo(id, reader)', 'ws.trash.undo(id, { ...reader, guard: undefined })'],
   ['guard-restore', 'src/server/routes/trash.ts', 'ws.trash.restore(id, body, reader)', 'ws.trash.restore(id, body, { ...reader, guard: undefined })'],
   ['guard-import', 'src/server/routes/projects.ts', 'body.onConflict, reader, authorizePaths', 'body.onConflict, { ...reader, guard: undefined }, authorizePaths'],
-  ['guard-new-project', 'src/server/projects/workspace.ts', 'guardedNewProject(preflight(body.files), reader.guard, creating.domain)', 'preflight(body.files)'],
+  ['guard-new-project', 'src/server/projects/workspace/import-batch.ts', 'guardedNewProject(preflight(body.files), reader.guard, creating.domain)', 'preflight(body.files)'],
   ['guard-people', 'src/server/auth/route-actions.ts', "row('GET', '/api/projects/:slug/people', 'edit', project)", "row('GET', '/api/projects/:slug/people', 'read', project)"],
 );
 mutants.push(
@@ -371,7 +371,7 @@ mutants.push(
   ],
   ['read-events', 'src/server/projects/events.ts', "if (event.event !== 'suggestions') return access ? readableEvent(event, access) : event;", "if (event.event !== 'suggestions') return event;"],
   ['read-drafts', 'src/server/routes/drafts.ts', 'owner ? ws.state.forOwner(owner) : ws.state', 'ws.state'],
-  ['read-trash', 'src/server/projects/trash.ts', "scope.authorize(action, { type: 'file', project: file.project, path: file.path }).allow", 'true'],
+  ['read-trash', 'src/server/projects/trash-access.ts', "scope.authorize(action, { type: 'file', project: file.project, path: file.path }).allow", 'true'],
   ['read-git', 'src/server/routes/git.ts', 'scm.show(slug, commit, path, reader)', 'scm.show(slug, commit, path, { view: undefined, owner: undefined })'],
   ['read-agent', 'src/server/handler.ts', 'documentsOfProject(ws.documentsFor(requestReader(request)), project)', 'documentsOfProject(ws.documents(), project)'],
 );
@@ -409,7 +409,7 @@ mutants.push(
   ['remote-consent', 'src/server/auth/remote-credentials.ts', "sameText(attempt.state, params.get('state') ?? '')", 'true'],
   ['remote-consent', 'src/server/auth/remote-credentials.ts', 'attempt.expiresAt > now() &&', ''],
   ['remote-consent', 'src/server/auth/remote-credentials.ts', 'if (!enabled()) {', 'if (false) {'],
-  ['remote-guarded-fetch', 'src/server/projects/scm.ts', '      credential: source.credential,\n', ''],
+  ['remote-guarded-fetch', 'src/server/projects/scm-remote.ts', '      credential: source.credential,\n', ''],
   ['remote-redirect', 'src/server/projects/git.ts', "args.push('-c', 'http.followRedirects=false');", "args.push('-c', 'http.followRedirects=initial');"],
 );
 
@@ -433,10 +433,15 @@ mutants.push(
   ['copy-publish', 'src/server/projects/worktrees.ts', 'return await moveDefault(context, repo, move, check);', 'return await moveDefault(context, repo, move, async () => {});'],
   ['copy-publish', 'src/server/projects/worktrees.ts', 'if (named && (await isBranchName(git, dir, named))) return named;', 'if (named) return named;'],
   ['copy-drafts', 'src/server/projects/state.ts', "ownerState('u' + sha256(owner).slice(0, 20))", "ownerState('u' + sha256('').slice(0, 20))"],
-  ['copy-save', 'src/server/projects/workspace.ts', 'clearPersonalDrafts(state, slug, [relativePath], staging, place.copy ?? undefined)', 'clearPersonalDrafts(state, slug, [relativePath], staging)'],
   [
     'copy-save',
-    'src/server/projects/workspace.ts',
+    'src/server/projects/workspace/document-save.ts',
+    'clearPersonalDrafts(state, slug, [relativePath], staging, place.copy ?? undefined)',
+    'clearPersonalDrafts(state, slug, [relativePath], staging)',
+  ],
+  [
+    'copy-save',
+    'src/server/projects/workspace/document-save.ts',
     'const place = await copies.writePlace(reader, slug, check);\n    const file = projectFile(place.layout, slug, relativePath);',
     'const place = published;\n    const file = projectFile(place.layout, slug, relativePath);',
   ],
@@ -466,7 +471,7 @@ mutants.push(
   ['msal-refresh', 'src/server/auth/msal-provider.ts', "  if (result.idToken === tokens.idToken) throw new SignInError('token-invalid');\n", ''],
   ['msal-certificate', 'src/server/auth/msal-provider.ts', 'return { clientCertificate: { ...certificate, thumbprintSha256: auth.thumbprint } };', 'return { clientSecret: auth.thumbprint };'],
   ['msal-certificate', 'src/server/auth/msal-provider.ts', 'return { clientCertificate: { ...certificate, thumbprint: auth.thumbprint } };', 'return { clientSecret: auth.thumbprint };'],
-  ['msal-overage', 'src/server/auth/authentication.ts', 'if (identity.groupOverage) {', 'if (false) {'],
+  ['msal-overage', 'src/server/auth/authentication.ts', '&& (ids.length || identity.groupOverage)) {', '&& false) {'],
   ['msal-authority', 'src/server/config.ts', 'const developerMock = isLoopbackHost(url.hostname) && loopbackPublicUrl;', 'const developerMock = isLoopbackHost(url.hostname);'],
   ['msal-host', 'src/server/auth/msal-provider.ts', "url.protocol === 'https:' && ENTRA_LOGIN_HOSTS.includes(url.hostname) && !url.port;", "url.protocol === 'https:' && !url.port;"],
   ['front-channel-issuer', 'src/server/auth/authentication.ts', "sid !== '' && (issuer === null || issuer === config.oidc.issuer);", "sid !== '';"],
@@ -554,16 +559,51 @@ mutants.push(...brandMutants);
 // Logging, telemetry and browser report faults.
 mutants.push(...observabilityMutants);
 
+// Split modules import their siblings, so a mutant runs inside a copy of the whole folder: only
+// imports that leave the folder point back at the real sources.
+const SPLIT_PROJECT_MODULES = /^src\/server\/projects\/(workspace\.ts|workspace\/|scm|trash)/;
+function copiedFolderOf(category: string, file: string) {
+  if (category === 'agent') return 'src/server/agent';
+  return SPLIT_PROJECT_MODULES.test(file) ? 'src/server/projects' : undefined;
+}
+async function writeFolderCopy(folder: string, file: string, mutatedSource: string, index: string) {
+  const folderRoot = resolve(root, folder);
+  const copyRoot = resolve(temp, index + '-tree');
+  const mutatedPath = resolve(root, file);
+  const keepInside = (originalDir: string) => (_all: string, quote: string, path: string) => {
+    const absolute = resolve(originalDir, path);
+    const inside = absolute === folderRoot || absolute.startsWith(folderRoot + '/');
+    return `${quote}${inside ? path : absolute}${quote}`;
+  };
+  async function copyDirectory(directory: string) {
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      const entryPath = resolve(directory, entry.name);
+      if (entry.isDirectory()) {
+        await copyDirectory(entryPath);
+        continue;
+      }
+      if (!entry.name.endsWith('.ts')) continue;
+      const text = entryPath === mutatedPath ? mutatedSource : await Bun.file(entryPath).text();
+      const rewritten = text
+        .replace(/\bfrom\s*(['"])(\.[^'"]+)\1/g, (all, quote, path) => `from ${keepInside(directory)(all, quote, path)}`)
+        .replace(/\bimport\(\s*(['"])(\.[^'"]+)\1\s*\)/g, (all, quote, path) => `import(${keepInside(directory)(all, quote, path)})`);
+      await Bun.write(resolve(copyRoot, entryPath.slice(folderRoot.length + 1)), rewritten);
+    }
+  }
+  await copyDirectory(folderRoot);
+  return resolve(copyRoot, mutatedPath.slice(folderRoot.length + 1));
+}
 async function run(category: string, file: string, source: string, index: string, env: Record<string, string> = {}) {
   if (category.startsWith('admin-')) {
-    source = source.replaceAll("new URL('../../policies/", `new URL('${root}/policies/`);
+    source = source.replace(/new URL\('(?:\.\.\/)+policies\//g, `new URL('${root}/policies/`);
   }
   const absolute = (path: string) => resolve(dirname(resolve(root, file)), path);
   const rewritten = source
     .replace(/\bfrom\s*(['"])(\.[^'"]+)\1/g, (_all, q, path) => `from ${q}${absolute(path)}${q}`)
     .replace(/\bimport\(\s*(['"])(\.[^'"]+)\1\s*\)/g, (_all, q, path) => `import(${q}${absolute(path)}${q})`);
-  const target = resolve(temp, index + '.ts');
-  await Bun.write(target, rewritten);
+  const copiedFolder = copiedFolderOf(category, file);
+  const target = copiedFolder ? await writeFolderCopy(copiedFolder, file, source, index) : resolve(temp, index + '.ts');
+  if (!copiedFolder) await Bun.write(target, rewritten);
   const child = Bun.spawn([process.execPath, resolve(root, 'scripts/mutation-case.ts'), target, category], { stdout: 'pipe', stderr: 'pipe', env: { ...process.env, ...env } });
   const timer = setTimeout(() => child.kill(), 10000);
   const code = await child.exited;

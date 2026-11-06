@@ -30,7 +30,7 @@ export const checkoutMutants: [string, string, string, string][] = [
   ['secrev-worktrees', 'src/server/projects/worktrees.ts', 'if (existing.includes(name)) return undefined;', ''],
   ['secrev-worktrees', 'src/server/projects/worktrees.ts', 'existing.find(other => sameBranchName(other, name))', 'existing.find(other => other === name)'],
   ['secrev-hooks', 'src/server/projects/working-copies.ts', 'sameBranchName(branch, mine)', 'branch === mine'],
-  ['secrev-scm-switch', 'src/server/projects/scm.ts', 'if (clash)', 'if (false)'],
+  ['secrev-scm-switch', 'src/server/projects/scm-branches.ts', 'if (clash)', 'if (false)'],
   ['secrev-trash-routes', 'src/server/routes/trash.ts', "Object.keys(body).some(key => key !== 'domain')", 'false'],
   ['secrev-trash-routes', 'src/server/routes/trash.ts', 'await restoring(context, target, body, undone)', 'await restoring(context, target, {}, undone)'],
 ];

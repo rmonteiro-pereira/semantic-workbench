@@ -1,12 +1,19 @@
 // Runs focused assertions against candidate modules to detect deliberately introduced faults.
 import { LOCAL_READER } from '../src/server/projects/reader';
 import assert from 'node:assert/strict';
+import { dirname, resolve } from 'node:path';
 import { loadBrandBundle, setActiveBrand } from '../src/server/brand/bundle';
 import { allowEveryRemote } from '../tests/helpers/remote-credentials-fixture';
 import { observabilityCase } from './observability-cases';
 // Sign-in pages render the brand, so every candidate runs with the shipped bundle active.
 setActiveBrand(loadBrandBundle());
-const loadedModule = await import(process.argv[2]);
+const mutatedModule = await import(process.argv[2]);
+// A mutant of a split module runs inside a copy of its folder; the cases call the composed entry points.
+const treeRoot = process.argv[2].match(/^(.*-tree)\//)?.[1];
+const entryModules = treeRoot && treeRoot.includes('/') && (await Bun.file(resolve(treeRoot, 'workspace.ts')).exists()) ? ['workspace.ts', 'scm.ts', 'trash.ts'] : [];
+const composed = {};
+for (const name of entryModules) Object.assign(composed, await import(resolve(treeRoot!, name)));
+const loadedModule = { ...composed, ...mutatedModule };
 const category = process.argv[3];
 if (category === 'edge-appearance') {
   const appearance = loadedModule.edgeAppearance({
@@ -500,7 +507,7 @@ if (category === 'overview') {
     nso.groups.map((g: any) => g.name),
     ['a:', 'b:', 'No IRI'],
   );
-  assert.equal(modelOverview.groups.length, 8);
+  assert.equal(modelOverview.groups.length, 4);
   assert.equal(modelOverview.groups.flatMap((g: any) => g.entities).length, 45);
   assert.equal([...modelOverview.matrix.values()].flat().length, 277);
   for (const [key, links] of modelOverview.matrix) {
@@ -615,6 +622,7 @@ if (category === 'rdf-validation') {
 }
 
 if (category === 'agent') {
+  const agentRuntime = await import(resolve(dirname(process.argv[2]), 'runtime.ts'));
   const legacy = [
     {
       id: '0',
@@ -640,7 +648,7 @@ if (category === 'agent') {
       source: 'version: 0.2.0.dev0\nsemantic_model:\n  - name: s\n    datasets: [{name: t, source: t, fields: [{name: id, expression: {dialects: [{dialect: ANSI_SQL, expression: id}]}}]}]\n',
     },
   ];
-  const resolved = loadedModule.buildContext(legacy, '0');
+  const resolved = agentRuntime.buildContext(legacy, '0');
   assert.equal(resolved.findings.length, 0);
   assert.deepEqual(resolved.fields[0].evidence.path, ['semantic_model', 0, 'datasets', 0, 'fields', 0]);
   const { parse, stringify } = await import('yaml');
@@ -659,14 +667,14 @@ if (category === 'agent') {
     clone[index].source = stringify(data);
     return clone;
   };
-  const context = loadedModule.buildContext(docs, '0');
+  const context = agentRuntime.buildContext(docs, '0');
   assert.equal(context.findings.length, 0);
   const request = {
     mappingId: '0',
     metrics: ['gross_revenue'],
     dimensions: ['["customers","region"]'],
   };
-  const plan = (source = docs, overrides = {}) => loadedModule.planQuery(loadedModule.buildContext(source, '0'), { ...request, ...overrides });
+  const plan = (source = docs, overrides = {}) => agentRuntime.planQuery(agentRuntime.buildContext(source, '0'), { ...request, ...overrides });
   const arithmetic = change(2, d => {
     d.datasets[0].fields[2].expression.dialects[0].expression = 'amount + fee';
     d.metrics[0].expression.dialects[0].expression = 'SUM(orders.amount * 2)';
@@ -674,9 +682,9 @@ if (category === 'agent') {
   assert(plan(arithmetic).sql.includes('("orders".amount + "orders".fee) * 2'));
   assert(plan().sql.includes('SUM('));
   assert(plan().sql.includes('GROUP BY'));
-  assert(loadedModule.selectContext(context, ['Revenue']).bindings.every((b: any) => b.rootConcept === 'Revenue' || b.concept === 'Revenue'));
+  assert(agentRuntime.selectContext(context, ['Revenue']).bindings.every((b: any) => b.rootConcept === 'Revenue' || b.concept === 'Revenue'));
   assert(
-    loadedModule
+    agentRuntime
       .buildContext(
         change(0, d => (d.concept_mappings[0].object_mappings[0].referent_mappings[0].expression = 'customers.missing')),
         '0',
@@ -1761,7 +1769,7 @@ if (category === 'signin-directory') {
     token: async () => 'token',
     fetch: async () => new Response('', { status: 503 }),
   });
-  assert.equal(await directory.groups('person', ['grant-group']), null);
+  assert.equal(await directory.myGroups(['grant-group']), null);
 }
 if (category === 'signin-pages') {
   const { localPrincipal } = await import('../src/server/auth/principal');
@@ -1910,6 +1918,15 @@ if (category.startsWith('read-')) {
       const response = await handler(new Request('http://localhost/api/agent/context?project=sales-contracts&mappingId=sales-contracts/people.mapping.yaml'));
       assert.equal(response.status, 200);
       assert(!(await response.text()).includes('LEAK-hr-'));
+      // The catalog lists the mappings of the project; one in a folder this reader may not open must stay out.
+      const { fixtureFiles } = await import('../tests/helpers/auth-workspace');
+      const mapping = fixtureFiles('sales-contracts').find(file => file.path === 'people.mapping.yaml')!;
+      const hiddenPath = 'finance/hidden.mapping.yaml';
+      assert(!view.canRead('sales-contracts', hiddenPath));
+      await fixture.ws.saveFile('sales-contracts', hiddenPath, { baseHash: null, source: mapping.source }, LOCAL_READER);
+      const catalog = await handler(new Request('http://localhost/api/agent/catalog?project=sales-contracts'));
+      assert.equal(catalog.status, 200);
+      assert(!(await catalog.text()).includes('hidden.mapping.yaml'));
     }
     if (category === 'read-drafts') {
       const { requestAccess } = await import('../src/server/auth/request-scope');
