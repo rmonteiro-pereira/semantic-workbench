@@ -1,8 +1,8 @@
 {
- "mapped-commerce:commerce.mapping.yaml": "edad989f83fea8f02858de4cd989aa1618ef3499b031f8936eef224f7575d586",
+ "mapped-commerce:commerce.mapping.yaml": "3a4bbf64bf45313cf0d53dda0d259b49747670f4edafa1a8d5bdba9b92cbc8a9",
  "flights:flights.mapping.yaml": "40a80884e5e1a729e7a9f000714f3a9044a8ba1abaf619bf8ec90e7c26698b5e",
  "flights:flights.metrics.mapping.yaml": "df5ca5f92c28096aba5a185aa974c5eb5060f78ef3ee1d2c66fd6b7a8cab9302",
  "flights:flights.yaml#embedded": "0327920b19edf9a02fe7b617de554b5ea5fb05a6db0f7ae7a5afb69b89bee0ec",
- "billing:billing.mapping.yaml": "98acb345b683545bd7a2ffa4d444fb626cce2ffdb6d19420556a707e3839bca2",
+ "billing:billing.mapping.yaml": "784a37277af45759fa88a3dda7c79218bf3c447b123b515c05ef532ba0c4e0de",
  "mall:mall.mapping.yaml": "3f8b03ff9a854dc4be5e48c17f3775b27436532b31ca98235655267ec54c1424"
 }
