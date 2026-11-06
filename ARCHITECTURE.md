@@ -104,6 +104,10 @@ The integration view shows what the application reads and contacts, and what it 
 
 - `src/server/projects/workspace.ts` is the workspace composition root. It wires registration,
   reads/saves, scanning, Git, journals, trash, working copies, publishing and event delivery.
+  The use cases it composes live in `src/server/projects/workspace/`: `import-batch.ts` (imports,
+  new projects from a batch, examples, project folder creation), `document-save.ts` (saves and
+  reverts), `file-move.ts` (moves between folders and projects) and `git-identity.ts`
+  (repository Git identity and credential helper). Each receives a small context object.
 - `paths.ts` owns data layouts and path validation; `state.ts` owns the registry and persistent
   state; `reader.ts` defines the caller's filtered view, owner and content guard.
 - `atomic.ts` replaces files without modifying untouched bytes. `journal.ts` coordinates

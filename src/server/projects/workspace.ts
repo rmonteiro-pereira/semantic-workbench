@@ -1,40 +1,19 @@
 // Coordinates project files, durable state, and workspace services. Project folders are the source
 // of truth; the SQLite cache can be rebuilt.
-import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join, posix } from 'node:path';
-import { validateInput } from '../../shared/validation/input';
-import { InputError, MAX_INPUT_BYTES, type Issue } from '../../shared/validation/diagnostics';
-import { exampleSet } from '../../shared/projects/examples';
-import { atomicWrite, atomicWriteJson, decode, encode, readJsonFile, sha256 } from './atomic';
+import { atomicWriteJson, decode, readJsonFile, sha256 } from './atomic';
 import { createCache, type Cache } from './cache';
 import { createEvents, type EventTags } from './events';
-import { createGit, GitError, hasControlCharacters, type CommitAuthor, type RemoteCredential } from './git';
+import { createGit, GitError, type RemoteCredential } from './git';
 import { createJournal, type JournalHooks, type RecoveryOutcome } from './journal';
-import {
-  dataLayout,
-  disambiguate,
-  locationOf,
-  projectDir,
-  projectPrefix,
-  repoDir,
-  indexedFile,
-  projectFile,
-  projectName,
-  projectPath,
-  slugify,
-  uniqueName,
-  assertSlug,
-  copyLayout,
-  PathError,
-  type DataLayout,
-} from './paths';
+import { dataLayout, locationOf, projectDir, projectPrefix, repoDir, indexedFile, projectFile, projectName, projectPath, assertSlug, copyLayout, PathError, type DataLayout } from './paths';
 import { createScanner, indexBytes, walk } from './scanner';
 import { planProjectExport, type ExportOptions } from './project-export';
-import { movePersonalState, clearPersonalDrafts } from './personal-state';
-import { createState, type ProjectEntry, type Patch } from './state';
+import { createState, type ProjectEntry } from './state';
 import { createWatcher } from './watcher';
 import { migrateLegacy, type MigrationReport } from './migration';
-import { createTrash, guardDeletion, guardRevert, type GuardedFile, type TrashEntry } from './trash';
+import { createTrash, deleteImpact as reportDeleteImpact, guardDeletion, type TrashEntry } from './trash';
 import { restoreTrashedDeletions } from './published-checkout';
 import { createScm } from './scm';
 import { createWorktrees } from './worktrees';
@@ -44,18 +23,21 @@ import { createUnpublishedWork } from './unpublished-work';
 import { createCloner, rollBackInterruptedClones, type AssignProject, type FolderRequest } from './clone';
 import { createRepositoryProjects } from './repository-projects';
 import { createProjectFolders } from './project-folder';
+import { createImportBatch, freeReadableName, preflight } from './workspace/import-batch';
+import { createDocumentSave, applyPatches } from './workspace/document-save';
+import { createFileMove } from './workspace/file-move';
+import { createGitIdentity } from './workspace/git-identity';
 import { MANIFEST_FILE } from './repositories';
 import { LOCAL_READER, type Reader } from './reader';
 import { BadRequestError, HiddenResourceError } from './errors';
 import { factsOf, inferSuggestions, type FileFacts, type IndexedFile } from './suggestions';
-import { ConflictError, MergingError, OccupiedError } from './errors';
+import { MergingError, OccupiedError } from './errors';
 import { StaleError, NotFoundError } from './errors';
-import { demotionsOf, type ContentGuard, type Demotion } from '../auth/guards';
-import { NEW_PROJECT } from '../auth/resource';
+import {} from '../auth/guards';
 import { log } from '../observability/log';
 export { StaleError, NotFoundError, GoneError, OccupiedError, ConflictError } from './errors';
-/** A project-relative path and the source text to import there. */
-export type ImportFile = { path: string; source: string };
+export { importMessage, type ImportFile, type ImportCommit } from './workspace/import-batch';
+export { applyPatches };
 /** Storage, Git, watching, and test-hook options for opening a workspace. */
 export type WorkspaceOptions = {
   root?: string;
@@ -78,29 +60,9 @@ export type WorkspaceOptions = {
   /** Where a structured start-up line goes; the console by default. */
   log?: (line: string) => void;
 };
-/** Records an import commit or explains why no commit was created. */
-export type ImportCommit = { committed: true; commit: string; message: string } | { committed: false; reason: 'no-git' | 'no-identity' | 'merging' | 'nothing' };
 /** A definition file is one the person sees as a definition: visible, and not a .gitignore. */
 function isDefinitionFile(file: { visible: boolean; docType: string }) {
   return file.visible && file.docType !== 'gitignore';
-}
-/** Builds an import commit message naming the file or count and optional subfolder. */
-export function importMessage(paths: string[], subfolder = '') {
-  const what = paths.length === 1 ? posix.basename(paths[0]) : `${paths.length} files`;
-  return `Import ${what}${subfolder ? ` into ${subfolder}` : ''}`;
-}
-/** Applies ordered UTF-16 ranges from the end, preserving untouched source text exactly. */
-export function applyPatches(base: string, patches: Patch[]) {
-  if (!Array.isArray(patches) || patches.length > 10_000) throw new BadRequestError('Patches must be an array.');
-  let end = 0;
-  for (const patch of patches) {
-    if (!patch || !Number.isSafeInteger(patch.from) || !Number.isSafeInteger(patch.to) || typeof patch.insert !== 'string' || patch.from < end || patch.to < patch.from || patch.to > base.length)
-      throw new BadRequestError('Patches must be ordered, non-overlapping ranges inside the base text.');
-    end = patch.to;
-  }
-  let out = base;
-  for (const patch of [...patches].reverse()) out = out.slice(0, patch.from) + patch.insert + out.slice(patch.to);
-  return out;
 }
 /** Derives a numeric revision from a content hash for legacy document clients. */
 export const revisionOf = (hash: string) => parseInt(hash.slice(0, 12), 16) + 1;
@@ -229,104 +191,6 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   function notifySuggestions() {
     if (!closed) events.emit('suggestions', {}, { audience: 'all' });
   }
-  // Stage a new project folder, then move it and the new registry into place in one journaled
-  // operation. A caller that must authorize the final slug gets it before anything is written,
-  // because a stray folder on disk can make it differ from the preferred one.
-  async function createProjectFolder(name: string, origin: string, files: ImportFile[], preferredSlug?: string, beforeCreate?: (slug: string) => void) {
-    return lock('registry', async () => {
-      const current = projects();
-      const finalName = uniqueName(
-        name,
-        current.map(p => p.name),
-      );
-      const taken = new Set(current.map(p => p.slug));
-      for (const name of safeDirs(layout.projects)) taken.add(name);
-      const slug = preferredSlug && !taken.has(preferredSlug) ? preferredSlug : slugify(finalName, taken);
-      beforeCreate?.(slug);
-      const opId = journal.newId();
-      const staging = join(layout.projects, `.staging-${opId}`);
-      const stagedProject = join(staging, slug);
-      const stateStaging = join(layout.state, `.staging-${opId}`);
-      try {
-        mkdirSync(stagedProject, { recursive: true });
-        for (const importFile of files) {
-          const bytes = encode(importFile.source);
-          const file = join(stagedProject, importFile.path);
-          atomicWrite(file, bytes);
-          if (sha256(readFileSync(file)) !== sha256(bytes)) throw Error(`Could not verify ${importFile.path} after writing.`);
-        }
-        let commit: ImportCommit = { committed: false, reason: 'no-git' };
-        if (gitAvailable) {
-          await git.init(stagedProject);
-          if (files.length)
-            commit = await commitFiles(
-              stagedProject,
-              files.map(f => f.path),
-            );
-          else if (await git.identity(stagedProject)) await git.commit(stagedProject, 'Create project', true);
-        }
-        const project: ProjectEntry = {
-          slug,
-          name: finalName,
-          createdAt: new Date().toISOString(),
-          origin,
-        };
-        const steps = [{ from: stagedProject, to: projectDir(layout, slug) }, ...registrySteps(stateStaging, [...current, project])];
-        journal.run(origin === 'import' ? 'import' : 'create', steps, [staging, stateStaging], opId);
-        await scanner.scan(slug);
-        watcher?.add(slug);
-        notifySuggestions();
-        events.emit('projects', { added: [slug], removed: [], renamed: [] }, { projects: [slug] });
-        return Object.assign({}, project, { commit });
-      } catch (error) {
-        rmSync(staging, { recursive: true, force: true });
-        rmSync(stateStaging, { recursive: true, force: true });
-        throw error;
-      }
-    });
-  }
-  // Commit only imported paths to preserve unrelated work; prefix paths for subfolder projects.
-  async function commitFiles(repo: string, paths: string[], prefix = '', author?: CommitAuthor): Promise<ImportCommit> {
-    if (!gitAvailable) return { committed: false, reason: 'no-git' };
-    const message = importMessage(paths, prefix.replace(/\/$/, ''));
-    const commitPathsResult = await git.commitPaths(
-      repo,
-      paths.map(p => prefix + p),
-      message,
-      author,
-    );
-    return commitPathsResult.committed ? { committed: true, commit: commitPathsResult.commit, message } : commitPathsResult;
-  }
-  function preflight(files: ImportFile[]) {
-    if (!Array.isArray(files) || !files.length || files.length > 500) throw new BadRequestError('Expected 1–500 files.');
-    const paths = new Set<string>();
-    const issues: Issue[] = [];
-    for (const file of files) {
-      if (!file || typeof file.path !== 'string' || typeof file.source !== 'string') throw new BadRequestError('Each file needs a path and source text.');
-      const path = projectPath(file.path);
-      if (paths.has(path)) throw new BadRequestError(`Duplicate path in batch: ${path}`);
-      paths.add(path);
-      const indexed = indexBytes('preflight', path, encode(file.source));
-      if (!indexed.file.visible)
-        issues.push({
-          severity: 'error',
-          code: 'unsupported',
-          path: '/',
-          message: `${path}: unsupported file type.`,
-        });
-      else if (!indexed.file.valid) issues.push(...indexed.findings.filter(i => i.severity === 'error').map(i => ({ ...i, message: `${path}: ${i.message}` })));
-    }
-    if (issues.length) throw new InputError(issues);
-    return files.map(f => ({ path: projectPath(f.path), source: f.source }));
-  }
-  // Use the contained ontology or semantic model name to give the import a recognizable project
-  // name.
-  function batchName(files: ImportFile[]) {
-    const models = files.map(f => validateInput(f.source, posix.basename(f.path)).model);
-    for (const kind of ['Ossie ontology', 'Ossie semantic'])
-      for (const model of models) if (model?.kind === kind && typeof model.name === 'string' && model.name.trim()) return model.name.trim().slice(0, 200);
-    return posix.basename(files[0].path).replace(/\.[^.]+$/, '') || 'Imported files';
-  }
   function readFile(slug: string, path: string, reader: Reader = LOCAL_READER) {
     entry(slug);
     const place = copies.readPlace(reader, slug);
@@ -348,186 +212,6 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       valid: cached?.valid ?? false,
       findings: cached && cached.hash === hash ? place.cache.findings(slug, relativePath) : indexBytes(slug, relativePath, bytes).findings,
     };
-  }
-  // The file as the last commit has it, so an owner handed over in an earlier save still counts
-  // for self-approval. Null without Git, without a commit, or for a binary file.
-  async function committedText(files: DataLayout, slug: string, path: string): Promise<string | null> {
-    if (!gitAvailable) return null;
-    const bytes = await git.blob(repoDir(files, slug), 'HEAD', projectPrefix(files, slug) + path);
-    if (!bytes) return null;
-    try {
-      return decode(bytes);
-    } catch {
-      return null;
-    }
-  }
-  // The edit a save makes to the file in a place: a stale base is refused, and the reader's
-  // guard, given in server mode, may refuse it or store an approved metric as proposed.
-  async function guardedEdit(place: Place, file: GuardedFile, body: { baseHash: string | null; source?: string; patches?: Patch[] }, guard: ContentGuard | undefined) {
-    const { slug, path } = file;
-    let current: Uint8Array | null = null;
-    try {
-      current = readFileSync(projectFile(place.layout, slug, path));
-    } catch {}
-    const currentHash = current ? sha256(current) : null;
-    if (body.baseHash !== currentHash) throw new StaleError(currentHash, current ? decode(current) : null);
-    const base = current ? decode(current) : '';
-    const edited = body.source !== undefined ? body.source : applyPatches(base, body.patches ?? []);
-    const before = current ? base : null;
-    const committed = guard ? await committedText(place.layout, slug, path) : null;
-    const change = { project: slug, path, before, after: edited, committed };
-    return { edited, guarded: guard?.([change]) };
-  }
-  async function saveFile(slug: string, path: string, body: { baseHash: string | null; source?: string; patches?: Patch[] }, reader: Reader) {
-    const { guard } = reader;
-    entry(slug);
-    const relativePath = projectPath(path);
-    const check = (at: Place) => guardedEdit(at, { slug, path: relativePath }, body, guard);
-    const place = await copies.writePlace(reader, slug, check);
-    const file = projectFile(place.layout, slug, relativePath);
-    return lock(projectLock(place, slug), async () => {
-      const { edited, guarded } = await check(place);
-      const next = guarded?.changes[0].after ?? edited;
-      const bytes = encode(next);
-      if (bytes.length > MAX_INPUT_BYTES)
-        throw new InputError([
-          {
-            severity: 'error',
-            code: 'size',
-            path: '/',
-            message: 'The definition exceeds the 2 MB UTF-8 limit. Split it into smaller documents.',
-          },
-        ]);
-      const indexed = indexBytes(slug, relativePath, bytes);
-      if (!indexed.file.visible) throw new InputError([{ severity: 'error', code: 'unsupported', path: '/', message: 'Unsupported file type.' }]);
-      if (!indexed.file.valid) throw new InputError(indexed.findings);
-      const staging = join(layout.state, `.staging-${journal.newId()}`);
-      const staged = join(staging, 'source');
-      const hash = atomicWrite(staged, bytes);
-      const steps = clearPersonalDrafts(state, slug, [relativePath], staging, place.copy ?? undefined);
-      if (existsSync(file)) steps.push({ from: file, to: join(staging, 'previous') });
-      steps.push({ from: staged, to: file });
-      journal.run('save', steps, [staging]);
-      await rescanIn(place, slug);
-      const demoted = guarded ? demotionsOf(guarded) : [];
-      // A demoted metric means the stored text differs from what was sent, so it is returned.
-      const stored = demoted.length ? { demoted, source: next } : {};
-      return { path: relativePath, hash, findings: indexed.findings, ...stored };
-    });
-  }
-  // The edits of a batch in a place: every base hash is checked and every file is guarded before
-  // any is validated or staged, so a refusal changes nothing.
-  async function guardedEdits(place: Place, slug: string, files: { path: string; baseHash: string | null; source?: string; patches?: Patch[] }[], guard: ContentGuard | undefined) {
-    const edited = files.map(edit => {
-      const file = projectFile(place.layout, slug, edit.path);
-      let current: Uint8Array | null = null;
-      try {
-        current = readFileSync(file);
-      } catch {}
-      const currentHash = current ? sha256(current) : null;
-      if (edit.baseHash !== currentHash) throw new StaleError(currentHash, current ? decode(current) : null);
-      const before = current ? decode(current) : null;
-      const next = edit.source !== undefined ? edit.source : applyPatches(before ?? '', edit.patches ?? []);
-      return { ...edit, file, current, before, next };
-    });
-    const changes = [];
-    for (const edit of edited) {
-      const committed = guard ? await committedText(place.layout, slug, edit.path) : null;
-      changes.push({
-        project: slug,
-        path: edit.path,
-        before: edit.before,
-        after: edit.next,
-        committed,
-      });
-    }
-    return { edited, guarded: guard?.(changes) };
-  }
-  // Journal the file swaps together so related edits can be recovered after a crash.
-  async function saveFiles(slug: string, writes: { path: string; baseHash: string | null; source?: string; patches?: Patch[] }[], reader: Reader, kind = 'save-files') {
-    const { guard } = reader;
-    entry(slug);
-    if (!Array.isArray(writes) || !writes.length || writes.length > 50) throw new BadRequestError('Expected 1–50 files.');
-    const files = writes.map(w => ({ ...w, path: projectPath(w.path) }));
-    if (new Set(files.map(f => f.path)).size !== files.length) throw new BadRequestError('Each file may appear once.');
-    if (reader.view && files.some(file => !reader.view!.canRead(slug, file.path))) {
-      throw new OccupiedError('The target is unavailable.', {});
-    }
-    const check = (at: Place) => guardedEdits(at, slug, files, guard);
-    const place = await copies.writePlace(reader, slug, check);
-    return lock(projectLock(place, slug), async () => {
-      const { edited, guarded } = await check(place);
-      const prepared = edited.map((edit, index) => {
-        const { file, current } = edit;
-        const next = guarded?.changes[index].after ?? edit.next;
-        const bytes = encode(next);
-        if (bytes.length > MAX_INPUT_BYTES)
-          throw new InputError([
-            {
-              severity: 'error',
-              code: 'size',
-              path: '/',
-              message: `${edit.path}: the definition exceeds the 2 MB UTF-8 limit.`,
-            },
-          ]);
-        const indexed = indexBytes(slug, edit.path, bytes);
-        if (!indexed.file.visible)
-          throw new InputError([
-            {
-              severity: 'error',
-              code: 'unsupported',
-              path: '/',
-              message: `${edit.path}: unsupported file type.`,
-            },
-          ]);
-        if (!indexed.file.valid) throw new InputError(indexed.findings.map(i => ({ ...i, message: `${edit.path}: ${i.message}` })));
-        const rewritten = next !== edit.next;
-        return {
-          path: edit.path,
-          file,
-          exists: !!current,
-          bytes,
-          findings: indexed.findings,
-          rewritten,
-        };
-      });
-      const opId = journal.newId();
-      const staging = join(place.layout.projects, `.staging-${opId}`);
-      try {
-        const steps: { from: string; to: string }[] = [];
-        prepared.forEach((write, i) => {
-          const staged = join(staging, 'new', String(i));
-          atomicWrite(staged, write.bytes);
-          if (write.exists) steps.push({ from: write.file, to: join(staging, 'previous', String(i)) });
-          steps.push({ from: staged, to: write.file });
-        });
-        steps.push(
-          ...clearPersonalDrafts(
-            state,
-            slug,
-            prepared.map(file => file.path),
-            staging,
-            place.copy ?? undefined,
-          ),
-        );
-        journal.run(kind, steps, [staging], opId);
-      } catch (error) {
-        rmSync(staging, { recursive: true, force: true });
-        throw error;
-      }
-      await rescanIn(place, slug);
-      const demoted = guarded ? demotionsOf(guarded) : [];
-      return {
-        written: prepared.map(write => ({
-          path: write.path,
-          hash: sha256(write.bytes),
-          created: !write.exists,
-          findings: write.findings,
-          ...(write.rewritten ? { source: decode(write.bytes) } : {}),
-        })),
-        ...(demoted.length ? { demoted } : {}),
-      };
-    });
   }
   // Legacy clients accept both `<project>/<path>` IDs and IDs from the old database.
   function resolveId(id: string) {
@@ -718,6 +402,27 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     repoOf,
     folderOf: slug => projectPrefix(layout, slug).replace(/\/$/, ''),
   });
+  const importBatch = createImportBatch({
+    layout,
+    git,
+    gitAvailable,
+    journal,
+    state,
+    scanner,
+    cache,
+    copies,
+    events,
+    lock,
+    projects,
+    entry,
+    registrySteps,
+    projectLock,
+    rescanIn,
+    watchProject: slug => watcher?.add(slug),
+    notifySuggestions,
+    examplesDir,
+  });
+  const { createProjectFolder } = importBatch;
   const trash = createTrash({
     layout,
     state,
@@ -746,312 +451,9 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     },
     createProject: (name, origin, files) => createProjectFolder(name, origin, files),
   });
-  // Journal the file move with its draft and view settings so they remain attached to the file.
-  // A move between projects is judged as removing the file from its project and creating it in
-  // the target project, whose domain and classification settings may differ.
-  function guardMove(guard: ContentGuard, files: DataLayout, move: { slug: string; from: string; toProject: string; to: string }) {
-    let text: string | null;
-    try {
-      text = decode(readFileSync(projectFile(files, move.slug, move.from)));
-    } catch {
-      // A file that is not text holds nothing a guard reads.
-      text = null;
-    }
-    const removed = { project: move.slug, path: move.from, before: text, after: null };
-    const created = { project: move.toProject, path: move.to, before: null, after: text };
-    guard([removed, created], { operation: 'move' });
-  }
-  async function moveFile(slug: string, path: string, toProject: string, toPath: string | undefined, keepBoth: boolean, reader: Reader) {
-    const { view: accessView, guard } = reader;
-    entry(slug);
-    if (accessView && !accessView.readableProjects.has(toProject)) {
-      throw new NotFoundError('Project not found.');
-    }
-    entry(toProject);
-    const from = projectPath(path);
-    let to = projectPath(toPath ?? posix.basename(from));
-    if (accessView && !accessView.canRead(toProject, to)) {
-      throw new OccupiedError('The target is unavailable.', {});
-    }
-    // Across projects the file leaves one project's governance and enters another's.
-    const guardAt = (at: Place, target: string) => {
-      if (guard && toProject !== slug) guardMove(guard, at.layout, { slug, from, toProject, to: target });
-    };
-    const place = await copies.writePlace(reader, slug, at => guardAt(at, to));
-    // The target project's repository may need a copy too; the file comes from this place, so a
-    // refused move is judged on it before that copy is made.
-    await copies.writePlace(reader, toProject, () => guardAt(place, to));
-    const [firstSlug, secondSlug] = [slug, toProject].sort();
-    return lock(projectLock(place, firstSlug), () =>
-      lock(firstSlug === secondSlug ? 'none' : projectLock(place, secondSlug), async () => {
-        const src = projectFile(place.layout, slug, from);
-        if (!existsSync(src)) throw new NotFoundError('File not found.');
-        if (slug === toProject && from === to) return { project: toProject, path: to };
-        if (existsSync(projectFile(place.layout, toProject, to))) {
-          const free = freeReadableName(place, toProject, to, accessView);
-          if (!keepBoth) throw new OccupiedError(`${to} already exists in the target project; nothing was overwritten.`, free ? { toProject, toPath: free } : {});
-          if (!free) throw new OccupiedError('The target is unavailable.', {});
-          to = free;
-        }
-        guardAt(place, to);
-        const steps = [{ from: src, to: projectFile(place.layout, toProject, to) }];
-        if (existsSync(state.draftFile(slug, from)) && !existsSync(state.draftFile(toProject, to))) steps.push({ from: state.draftFile(slug, from), to: state.draftFile(toProject, to) });
-        const personalStaging = join(layout.state, `.staging-${journal.newId()}`);
-        steps.push(...movePersonalState(state, { project: slug, path: from, target: toProject, targetPath: to }, personalStaging, place.copy ?? undefined));
-        journal.run('move', steps, [personalStaging]);
-        const view = state.view(slug).files[from];
-        if (view !== undefined) {
-          const files = { ...state.view(slug).files };
-          delete files[from];
-          state.writeView(slug, files);
-          state.writeView(toProject, { ...state.view(toProject).files, [to]: view });
-        }
-        const draft = state.draft(toProject, to);
-        if ((draft && draft.project !== toProject) || (draft && draft.path !== to))
-          state.writeDraft(toProject, to, {
-            baseHash: draft.baseHash,
-            text: draft.text,
-            patches: draft.patches,
-          });
-        await rescanIn(place, slug);
-        if (toProject !== slug) await rescanIn(place, toProject);
-        return { project: toProject, path: to };
-      }),
-    );
-  }
-  // The names a keep-both choice must avoid: those this reader can see, plus names already taken
-  // in the same batch. Hidden names are left out so the choice does not reveal them.
-  function visibleNames(place: Place, slug: string, view: Reader['view'], batchNames: Iterable<string> = []) {
-    const taken = new Set(batchNames);
-    for (const file of place.cache.files(slug)) {
-      if (!view || view.canRead(slug, file.path)) taken.add(file.path);
-    }
-    return taken;
-  }
-  // A keep-both name chosen among the visible names. A name the reader cannot open is refused, so
-  // a hidden file is neither revealed nor replaced. A file on disk that the cache does not list
-  // counts as hidden for a person.
-  function freeReadableName(place: Place, slug: string, path: string, view: Reader['view'], batchNames: Iterable<string> = []) {
-    const taken = visibleNames(place, slug, view, batchNames);
-    for (;;) {
-      const free = disambiguate(path, taken);
-      if (view && !view.canRead(slug, free)) return null;
-      if (!existsSync(projectFile(place.layout, slug, free))) return free;
-      if (view) return null;
-      taken.add(free);
-    }
-  }
-  // The name each imported file is written under. Keep-both names are chosen before anything is
-  // staged, so a refused name leaves the project untouched.
-  function importTargets(
-    place: Place,
-    slug: string,
-    batch: ImportFile[],
-    conflicts: {
-      existing: Set<string>;
-      keepBoth: boolean;
-      view: Reader['view'];
-      authorizePaths?: (paths: string[]) => void;
-    },
-  ) {
-    const { existing, keepBoth, view, authorizePaths } = conflicts;
-    const taken = new Set(batch.map(file => file.path));
-    let refused = false;
-    const targets = batch.map(file => {
-      if (!keepBoth || !existing.has(file.path)) return file.path;
-      const free = freeReadableName(place, slug, file.path, view, taken);
-      // A refused name is still the one this reader would get, so authorization judges it first.
-      const name = free ?? disambiguate(file.path, visibleNames(place, slug, view, taken));
-      if (!free) refused = true;
-      taken.add(name);
-      return name;
-    });
-    authorizePaths?.(targets);
-    if (refused) throw new OccupiedError('The target is unavailable.', {});
-    return targets;
-  }
-  // The names of a batch already taken in a project: indexed files and files on disk.
-  function existingNames(place: Place, slug: string, batch: ImportFile[]) {
-    const dir = projectDir(place.layout, slug);
-    const existing = new Set(place.cache.files(slug).map(f => f.path));
-    for (const importFile of batch) if (existsSync(join(dir, importFile.path))) existing.add(importFile.path);
-    return existing;
-  }
-  // The text each imported file is written with. A replaced file is compared with the file it
-  // replaces, a new one with nothing, and an approved metric may come back as proposed.
-  async function guardedImport(files: DataLayout, slug: string, batch: ImportFile[], targets: string[], guard: ContentGuard | undefined): Promise<{ sources: string[]; demoted: Demotion[] }> {
-    if (!guard) return { sources: batch.map(file => file.source), demoted: [] };
-    const changes = [];
-    for (const [position, file] of batch.entries()) {
-      const path = targets[position];
-      const full = projectFile(files, slug, path);
-      const before = existsSync(full) ? decode(readFileSync(full)) : null;
-      const committed = await committedText(files, slug, path);
-      changes.push({ project: slug, path, before, after: file.source, committed });
-    }
-    // An import replacing an approved metric is a save: the metric comes back as proposed.
-    const outcome = guard(changes, { operation: 'import', demote: true });
-    const sources = outcome.changes.map(change => change.after ?? '');
-    return { sources, demoted: demotionsOf(outcome) };
-  }
-  /** The files of a project being created, as the guard returns them. */
-  function guardedNewProject(files: ImportFile[], guard: ContentGuard | undefined, domain: string | undefined): ImportFile[] {
-    if (!guard) return files;
-    const changes = files.map(file => ({
-      project: NEW_PROJECT,
-      path: file.path,
-      before: null,
-      after: file.source,
-    }));
-    const outcome = guard(changes, { operation: 'import', domain });
-    return files.map((file, position) => ({
-      ...file,
-      source: outcome.changes[position].after ?? file.source,
-    }));
-  }
-  // Name clashes require an explicit replace or keep-both choice before any files change.
-  async function importInto(slug: string, files: ImportFile[], onConflict: 'replace' | 'keep-both' | undefined, reader: Reader, authorizePaths?: (paths: string[]) => void) {
-    entry(slug);
-    const batch = preflight(files);
-    authorizePaths?.(batch.map(file => file.path));
-    if (reader.view && batch.some(file => !reader.view!.canRead(slug, file.path))) {
-      throw new OccupiedError('The target is unavailable.', {});
-    }
-    if (onConflict !== undefined && onConflict !== 'replace' && onConflict !== 'keep-both') throw new BadRequestError('onConflict must be replace or keep-both.');
-    // Final names and their content are judged before a first write creates the person's copy;
-    // the copy starts with the same files, and both are checked again under the lock below.
-    const planned = importTargets(copies.readPlace(reader, slug), slug, batch, {
-      existing: existingNames(copies.readPlace(reader, slug), slug, batch),
-      keepBoth: onConflict === 'keep-both',
-      view: reader.view,
-      authorizePaths,
-    });
-    const { guard } = reader;
-    const check = (at: Place) => guardedImport(at.layout, slug, batch, planned, guard);
-    const place = await copies.writePlace(reader, slug, check);
-    return lock(projectLock(place, slug), async () => {
-      const dir = projectDir(place.layout, slug);
-      const existing = existingNames(place, slug, batch);
-      const conflicts = batch.filter(f => existing.has(f.path)).map(f => f.path);
-      if (conflicts.length && !onConflict) throw new ConflictError(conflicts);
-      const { view } = reader;
-      const targets = importTargets(place, slug, batch, {
-        existing,
-        keepBoth: onConflict === 'keep-both',
-        view,
-        // Final names are checked while the project lock keeps another import from taking them.
-        authorizePaths,
-      });
-      const imported = await guardedImport(place.layout, slug, batch, targets, guard);
-      const { sources, demoted } = imported;
-      const opId = journal.newId();
-      const staging = join(place.layout.projects, `.staging-${opId}`);
-      const steps: { from: string; to: string }[] = [];
-      const written: { path: string; hash: string }[] = [];
-      const replaced: string[] = [];
-      try {
-        for (const position of batch.keys()) {
-          const path = targets[position];
-          const staged = join(staging, 'new', path);
-          atomicWrite(staged, encode(sources[position]));
-          if (existing.has(path)) {
-            steps.push({ from: join(dir, path), to: join(staging, 'replaced', path) });
-            replaced.push(path);
-          }
-          steps.push({ from: staged, to: join(dir, path) });
-          written.push({ path, hash: sha256(encode(sources[position])) });
-        }
-        // A draft of a replaced file was edited against bytes that are gone.
-        steps.push(...clearPersonalDrafts(state, slug, replaced, staging, place.copy ?? undefined));
-        journal.run('import', steps, [staging], opId);
-      } catch (error) {
-        rmSync(staging, { recursive: true, force: true });
-        throw error;
-      }
-      let commit: ImportCommit;
-      try {
-        commit = await commitFiles(
-          repoDir(place.layout, slug),
-          written.map(w => w.path),
-          projectPrefix(layout, slug),
-          reader.copy?.author,
-        );
-      } catch (error) {
-        log.failure('import.commit-failed', error);
-        commit = { committed: false, reason: 'nothing' };
-      }
-      await rescanIn(place, slug);
-      if (commit.committed)
-        try {
-          await place.scm.refresh(slug);
-        } catch {}
-      return { written, commit, ...(demoted.length ? { demoted } : {}) };
-    });
-  }
-  // Warn about unsaved drafts and references that would no longer resolve after deletion.
-  function deleteImpact(slug: string, path: string | undefined, reader: Reader) {
-    const { view, owner } = reader;
-    entry(slug);
-    const relativePath = path === undefined ? undefined : projectPath(path);
-    if (view && relativePath && !view.canRead(slug, relativePath)) throw new HiddenResourceError();
-    const place = copies.readPlace(reader, slug);
-    if (relativePath !== undefined && !place.cache.file(slug, relativePath)) throw new NotFoundError('File not found.');
-    const removed = (f: { project: string; path: string }) => f.project === slug && (relativePath === undefined || f.path === relativePath);
-    // References resolve inside a project, so another project's files never keep one alive.
-    const all = indexedFiles(LOCAL_READER).filter(f => f.project === slug);
-    const gone = all.filter(removed);
-    const kept = all.filter(f => !removed(f));
-    const brokenReferences: {
-      from: { project: string; path: string };
-      to: { project: string; path: string };
-      kind: string;
-      name: string;
-    }[] = [];
-    for (const keptFile of kept)
-      for (const ref of keptFile.facts.refs) {
-        const targets = gone.filter(g => g.facts.names.includes(ref));
-        if (targets.length && !kept.some(o => o !== keptFile && o.facts.names.includes(ref)))
-          for (const target of targets)
-            brokenReferences.push({
-              from: { project: keptFile.project, path: keptFile.path },
-              to: { project: target.project, path: target.path },
-              kind: 'ossie-ref-name',
-              name: ref,
-            });
-      }
-    // A subfolder project shares its repository; deleting it leaves the siblings in place.
-    const location = locationOf(entry(slug));
-    const sharedWith = projects()
-      .filter(project => project.slug !== slug && locationOf(project).repo === location.repo)
-      .map(project => project.slug);
-    return {
-      subproject: location.folder !== location.repo,
-      repo: location.repo,
-      sharedWith: sharedWith.filter(project => !view || view.readableProjects.has(project)),
-      removes:
-        relativePath === undefined
-          ? {
-              project: slug,
-              name: entry(slug).name,
-              files: place.cache
-                .files(slug)
-                .filter(f => !view || view.canRead(slug, f.path))
-                .map(f => f.path),
-            }
-          : { project: slug, files: [relativePath] },
-      unsavedDrafts: (owner ? state.forOwner(owner) : state)
-        .drafts()
-        .filter(removed)
-        .filter(d => !view || view.canRead(d.project, d.path))
-        .map(d => ({ project: d.project, path: d.path })),
-      brokenReferences: brokenReferences.filter(ref => !view || (view.canRead(ref.from.project, ref.from.path) && view.canRead(ref.to.project, ref.to.path))),
-      ...(view
-        ? {
-            hiddenReferences: brokenReferences.filter(ref => view.readableProjects.has(ref.from.project) && !view.canRead(ref.from.project, ref.from.path)).length,
-          }
-        : {}),
-    };
-  }
+  const documentSave = createDocumentSave({ layout, git, gitAvailable, journal, state, copies, trash, lock, entry, projectLock, rescanIn });
+  const { saveFile } = documentSave;
+  const { moveFile } = createFileMove({ layout, journal, state, copies, lock, entry, projectLock, rescanIn });
   async function acceptSuggestion(id: string, reader: Reader) {
     const suggestion = suggestions(reader).find(x => x.id === id);
     if (!suggestion) throw new NotFoundError('Suggestion not found or no longer valid.');
@@ -1112,11 +514,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     }
     return byRepo;
   }
-  function checkIdentityText(value: unknown, label: string, min: number, max: number) {
-    if (typeof value !== 'string' || value.trim().length < min || value.length > max || hasControlCharacters(value))
-      throw new BadRequestError(`${label} must be ${min}–${max} characters without control characters.`);
-    return value.trim();
-  }
+  const gitIdentity = createGitIdentity({ layout, git, gitAvailable, events, projects, entry, repositories });
   const projectFolders = createProjectFolders({
     layout,
     git,
@@ -1199,6 +597,10 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     recovery,
     migration,
     repositoryStatus,
+    ...gitIdentity,
+    revertFile: documentSave.revertFile,
+    importBatch: importBatch.importBatch,
+    loadExample: importBatch.loadExample,
     /** Git availability, per-repository identity (checked now), and start-up reports. */
     async status() {
       const repositories = await repositoryStatus();
@@ -1213,42 +615,6 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
         recovery,
       };
     },
-    /** The identity a commit in this project's repository would use. */
-    async identity(slug: string) {
-      entry(slug);
-      if (!gitAvailable) throw new BadRequestError('Git is not available on this machine.');
-      return git.identityOf(repoDir(layout, slug));
-    },
-    /** Writes user.name and user.email into this project's repository, or into every repository. */
-    async setIdentity(slug: string, name: unknown, email: unknown, allRepositories = false) {
-      entry(slug);
-      if (!gitAvailable) throw new BadRequestError('Git is not available on this machine.');
-      const userName = checkIdentityText(name, 'The name', 1, 200);
-      const userEmail = checkIdentityText(email, 'The email', 3, 320);
-      const own = locationOf(entry(slug)).repo;
-      // "Every repository" fills in the ones without an identity; it never replaces another
-      // author that a repository has on purpose.
-      const targets = [];
-      for (const [repo, known] of repositories()) if (repo === own || (allRepositories && !(await git.identity(known.dir)))) targets.push([repo, known] as const);
-      for (const [repo, known] of targets) {
-        await git.setIdentity(known.dir, userName, userEmail);
-        events.emit(
-          'identity',
-          { repo },
-          {
-            projects: projects()
-              .filter(project => locationOf(project).repo === repo)
-              .map(project => project.slug),
-          },
-        );
-      }
-      return { repositories: targets.map(([repo]) => repo) };
-    },
-    /** The configured credential helper's name; credentials themselves are never read. */
-    async credentialHelper() {
-      if (!gitAvailable) return { helper: null };
-      return { helper: await git.configValue(layout.projects, 'credential.helper') };
-    },
     /** A repository's project folders, with the manifest as the reader sees it. */
     projectCandidates: (repo: string, reader?: Reader) => repositoryProjects.candidates(repo, reader),
     registerRepositoryProjects: repositoryProjects.register,
@@ -1261,24 +627,6 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     clone: (url: unknown, name: unknown, { owner }: Reader, assign?: AssignProject, credential?: RemoteCredential, sparse: FolderRequest = {}) =>
       cloner.start(url, name, { owner, assign, credential, ...sparse }),
     cancelClone: cloner.cancel,
-    // Restore committed bytes through a journaled trash operation so the current version is
-    // recoverable.
-    async revertFile(slug: string, path: string, baseHash: unknown, reader: Reader) {
-      entry(slug);
-      if (baseHash !== null && (typeof baseHash !== 'string' || !/^[0-9a-f]{64}$/.test(baseHash))) throw new BadRequestError('baseHash must be a SHA-256 hex digest or null.');
-      if (!gitAvailable) throw new BadRequestError('Git is not available on this machine.');
-      const relativePath = projectPath(path);
-      const committedIn = (at: Place) => git.blob(repoDir(at.layout, slug), 'HEAD', projectPrefix(layout, slug) + relativePath);
-      const check = async (at: Place) => guardRevert(at.layout, { slug, path: relativePath }, await committedIn(at), reader.guard);
-      const place = await copies.writePlace(reader, slug, check);
-      const committed = await committedIn(place);
-      const expected = baseHash as string | null;
-      const reverted = await trash.revertFile(slug, relativePath, expected, committed, reader, place.copy);
-      try {
-        await place.scm.refresh(slug);
-      } catch {}
-      return reverted;
-    },
     lock,
     rescan,
     /** Fast-forwards the default branch to the person's working copy. */
@@ -1337,14 +685,14 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     registrySteps,
     readFile,
     saveFile,
-    saveFiles,
+    saveFiles: documentSave.saveFiles,
     documents: () => documentsFor(LOCAL_READER),
     documentsFor,
     resolveId,
     preflight,
     trash,
     moveFile,
-    importInto,
+    importInto: importBatch.importInto,
     /**
      * Plans the zip export of a project's files as the reader sees them, or throws before
      * anything is sent when the project is too large or the history may not be exported.
@@ -1362,7 +710,8 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       };
       return planProjectExport(deps, slug, reader, options);
     },
-    deleteImpact,
+    deleteImpact: (slug: string, path: string | undefined, reader: Reader) =>
+      reportDeleteImpact({ entry, projects, state, copies, indexedFiles: () => indexedFiles(LOCAL_READER) }, slug, path, reader),
     suggestions,
     /** One person's open suggestion count from a shared unrestricted index. */
     suggestionCount: (reader: Reader, index: IndexedFile[]) => suggestionsFrom(personalIndex(reader, index), reader).length,
@@ -1430,38 +779,6 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
         'import',
         [],
       ),
-    /**
-     * Creates a project from an import. Its files are judged as created by the person, as files
-     * of the project's chosen domain, before the project exists.
-     */
-    async importBatch(body: { name?: unknown; files: ImportFile[] }, reader: Reader, creating: { domain?: string } = {}) {
-      const files = guardedNewProject(preflight(body.files), reader.guard, creating.domain);
-      const name = body.name === undefined ? batchName(files) : projectName(body.name);
-      const project = await createProjectFolder(name, 'import', files);
-      return {
-        slug: project.slug,
-        name: project.name,
-        written: files.map(f => ({ path: f.path, hash: sha256(encode(f.source)) })),
-        commit: project.commit,
-      };
-    },
-    async loadExample(id: string) {
-      const set = exampleSet(id);
-      if (!set) throw new NotFoundError('Unknown example.');
-      const existing = projects().find(p => p.origin === `example:${id}`);
-      if (existing && existsSync(projectDir(layout, existing.slug))) return { slug: existing.slug, name: existing.name, created: false };
-      const files = set.files.map(name => ({
-        path: name,
-        source: readFileSync(join(examplesDir, set.folder, name), 'utf8'),
-      }));
-      // A project that already holds every example file with identical bytes is opened, not
-      // duplicated.
-      const hashes = new Map(files.map(f => [f.path, sha256(encode(f.source))]));
-      const same = projects().find(p => files.every(f => cache.file(p.slug, f.path)?.hash === hashes.get(f.path)));
-      if (same) return { slug: same.slug, name: same.name, created: false };
-      const project = await createProjectFolder(set.name, `example:${id}`, files, set.id);
-      return { slug: project.slug, name: project.name, created: true, commit: project.commit };
-    },
     renameProject: (slug: string, name: unknown) =>
       lock('registry', () => {
         const current = projects();
@@ -1546,13 +863,5 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     },
   };
 }
-function safeDirs(dir: string) {
-  try {
-    return readdirSync(dir);
-  } catch {
-    return [];
-  }
-}
-/** Project storage and services returned by an opened workspace. */
 export type Workspace = Awaited<ReturnType<typeof openWorkspace>>;
 export { PathError };

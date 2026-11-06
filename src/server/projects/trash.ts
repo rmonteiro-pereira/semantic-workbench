@@ -10,7 +10,9 @@ import { existsSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { join, posix } from 'node:path';
 import { randomBytes } from 'node:crypto';
 import { atomicWrite, atomicWriteJson, decode, readJsonFile, sha256 } from './atomic';
-import { BadRequestError, GoneError, NotFoundError, OccupiedError, StaleError } from './errors';
+import { BadRequestError, GoneError, HiddenResourceError, NotFoundError, OccupiedError, StaleError } from './errors';
+import type { IndexedFile } from './suggestions';
+import type { WorkingCopies } from './working-copies';
 import { JournalCrash, type Journal } from './journal';
 import { assertSlug, disambiguate, locationOf, projectDir, projectFile, projectPath, slugify, uniqueName, type DataLayout } from './paths';
 import type { ProjectEntry, State } from './state';
@@ -754,3 +756,80 @@ export function readableTrash(entry: Pick<TrashEntry, 'project' | 'path' | 'dele
   }
   return paths.every(file => scope.view().canRead(file.project, file.path) && scope.authorize(action, { type: 'file', project: file.project, path: file.path }).allow);
 }
+/** The workspace services a delete preview reads; the composition root supplies them. */
+export type DeleteImpactDeps = {
+  entry: (slug: string) => ProjectEntry;
+  projects: () => ProjectEntry[];
+  state: State;
+  copies: Pick<WorkingCopies, 'readPlace'>;
+  /** Every indexed definition file with its facts, unrestricted by any reader. */
+  indexedFiles: () => IndexedFile[];
+};
+// Warn about unsaved drafts and references that would no longer resolve after deletion.
+export function deleteImpact(deps: DeleteImpactDeps, slug: string, path: string | undefined, reader: Reader) {
+  const { entry, projects, state, copies, indexedFiles } = deps;
+  const { view, owner } = reader;
+  entry(slug);
+  const relativePath = path === undefined ? undefined : projectPath(path);
+  if (view && relativePath && !view.canRead(slug, relativePath)) throw new HiddenResourceError();
+  const place = copies.readPlace(reader, slug);
+  if (relativePath !== undefined && !place.cache.file(slug, relativePath)) throw new NotFoundError('File not found.');
+  const removed = (f: { project: string; path: string }) => f.project === slug && (relativePath === undefined || f.path === relativePath);
+  // References resolve inside a project, so another project's files never keep one alive.
+  const all = indexedFiles().filter(f => f.project === slug);
+  const gone = all.filter(removed);
+  const kept = all.filter(f => !removed(f));
+  const brokenReferences: {
+    from: { project: string; path: string };
+    to: { project: string; path: string };
+    kind: string;
+    name: string;
+  }[] = [];
+  for (const keptFile of kept)
+    for (const ref of keptFile.facts.refs) {
+      const targets = gone.filter(g => g.facts.names.includes(ref));
+      if (targets.length && !kept.some(o => o !== keptFile && o.facts.names.includes(ref)))
+        for (const target of targets)
+          brokenReferences.push({
+            from: { project: keptFile.project, path: keptFile.path },
+            to: { project: target.project, path: target.path },
+            kind: 'ossie-ref-name',
+            name: ref,
+          });
+    }
+  // A subfolder project shares its repository; deleting it leaves the siblings in place.
+  const location = locationOf(entry(slug));
+  const sharedWith = projects()
+    .filter(project => project.slug !== slug && locationOf(project).repo === location.repo)
+    .map(project => project.slug);
+  return {
+    subproject: location.folder !== location.repo,
+    repo: location.repo,
+    sharedWith: sharedWith.filter(project => !view || view.readableProjects.has(project)),
+    removes:
+      relativePath === undefined
+        ? {
+            project: slug,
+            name: entry(slug).name,
+            files: place.cache
+              .files(slug)
+              .filter(f => !view || view.canRead(slug, f.path))
+              .map(f => f.path),
+          }
+        : { project: slug, files: [relativePath] },
+    unsavedDrafts: (owner ? state.forOwner(owner) : state)
+      .drafts()
+      .filter(removed)
+      .filter(d => !view || view.canRead(d.project, d.path))
+      .map(d => ({ project: d.project, path: d.path })),
+    brokenReferences: brokenReferences.filter(ref => !view || (view.canRead(ref.from.project, ref.from.path) && view.canRead(ref.to.project, ref.to.path))),
+    ...(view
+      ? {
+          hiddenReferences: brokenReferences.filter(ref => view.readableProjects.has(ref.from.project) && !view.canRead(ref.from.project, ref.from.path)).length,
+        }
+      : {}),
+  };
+}
+
+/** The trash service returned by `createTrash`. */
+export type Trash = ReturnType<typeof createTrash>;
