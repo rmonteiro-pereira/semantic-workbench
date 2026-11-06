@@ -11,6 +11,8 @@ not configure a production deployment.
 - Agent context: every document of a context names its `role` (`mapping`, `ontology` or `semantic`),
   and the answer lists `boundMetricIds`, the metrics bound directly to the selected concepts
   (including metrics bound straight to a concept).
+- Examples: the Mapped commerce and Subscription billing ontologies describe their value types and
+  the commerce entities, so the Mappings AI context and the graph show a definition for each.
 
 ### Fixed
 
