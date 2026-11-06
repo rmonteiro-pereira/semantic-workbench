@@ -238,7 +238,9 @@ The integration view shows what the application reads and contacts, and what it 
   separate from the server's versioned `DATA_DIR/admin/` configuration repository. Admin URL hashes
   select sections; no general routing framework computes authorization in the browser.
 - `src/app/graph/` owns whole-model and neighborhood views, traversal, grouping projection, layout,
-  workers, controls, name wrapping and shared edge appearance. `overview.ts` and `communities.ts`
+  workers, controls, name wrapping and shared edge appearance. `NeighborhoodGraph.tsx` composes
+  `useNeighborhoodView.ts` (filtering, walk canvas, shown entities and edges), `useNeighborhoodNodes.ts`
+  (positions, chunked reveal, separation by measured size) and `NeighborhoodToolbar.tsx`. `overview.ts` and `communities.ts`
   decide display grouping, not standard semantics.
 - `src/app/odcs/lineage.ts` builds declared column dependencies; `LineageCanvas.tsx`, `LineageCard.tsx`
   and `LineageColumnList.tsx` draw row ports, selection and windowed column lists. Mapping canvases

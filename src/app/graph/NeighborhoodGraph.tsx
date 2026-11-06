@@ -1,29 +1,26 @@
 /** Displays a centered relationship graph with expansion and navigation history. */
 import { VALUE_KINDS, readHideValues, writeHideValues } from './hidden-kinds';
 import { DETAIL_ZOOM, LOWEST_FIT_ZOOM, useFarZoom } from './FarZoom';
-import { ScrollStrip } from '../components/ScrollStrip';
 import { EntityName } from './EntityName';
 import { useActionHistory } from '../workspace/ActionHistoryContext';
 import { useRecordedState } from '../workspace/hooks/useRecordedState';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ReactFlow, ReactFlowProvider, Background, Position, MarkerType, useNodesState, useReactFlow, type Node } from '@xyflow/react';
-import { ArrowLeft, ArrowRight, Crosshair, FileSymlink, Gauge, LocateFixed, Minus, Plus } from 'lucide-react';
-import { canvasAt } from './walk';
-import { allConnectedLabel, canvasOf, getSet, neighbours, registerSet, sameExpansion, setsOf, type Direction, type ExpansionSet } from './expansion';
-import { placeLayers, placeNew, separateCards } from './incremental-layout';
+import { ReactFlow, ReactFlowProvider, Background, MarkerType, useReactFlow } from '@xyflow/react';
+import { ArrowRight, Crosshair, Gauge, Minus, Plus } from 'lucide-react';
+import { allConnectedLabel, getSet, neighbours, registerSet, sameExpansion, type Direction, type ExpansionSet } from './expansion';
 import { expansionViewport } from './expansion-viewport';
 import { PIERCE_BUDGET, PIERCE_MAX } from './pierce';
-import { PierceBanner, PierceControls, usePierce } from './PierceControls';
-import { GraphOptions, OptionGroup, ShowToggle } from './GraphOptions';
-import { ZoomButtons } from './ZoomButtons';
-import { CompactControls, useCompactToolbar } from './CompactControls';
+import { PierceBanner, usePierce } from './PierceControls';
+import { useCompactToolbar } from './CompactControls';
 import type { Entity, Relationship } from '../../shared/core/model';
-import { edgeEndCounts, groupRelationships, kindWords, neighborhood, searchEntities, projectModel, NEIGHBOR_PAGE } from './graph-view';
-import { neighborhoodLayout, NEIGHBOR_COLUMN, NEIGHBOR_ROW } from './layout';
+import { edgeEndCounts, kindWords, searchEntities, projectModel, NEIGHBOR_PAGE } from './graph-view';
+import { NEIGHBOR_COLUMN } from './layout';
 import { assignRoutes, heightForEdgeEnds, placeLabels, routePoints, relationshipEdgeTypes, type Box } from './RelationshipEdge';
 import type { Walk, WalkStep } from './walk';
 import { useViewRestore, type Fullscreen } from './fullscreen';
-import { FullscreenButton } from './FullGraph';
+import { NeighborhoodLinks, NeighborhoodTools } from './NeighborhoodToolbar';
+import { NODE, useNeighborhoodNodes } from './useNeighborhoodNodes';
+import { useNeighborhoodView } from './useNeighborhoodView';
 // Incoming neighbors appear left of the center and outgoing neighbors right. Navigation history
 // also records steps into other project files.
 /** Identifies a navigation target in another project document. */
@@ -67,23 +64,12 @@ export function NeighborhoodGraph(props: NeighborhoodGraphProps) {
   );
 }
 // Large canvases (a pierce) render only what is on screen, so the main thread stays responsive.
-const NODE = { width: 250, height: 96 };
-const LATERAL_DEFAULT_MAX = 10;
 const LARGE_CANVAS = 60;
-const REVEAL_CHUNK = 15;
 const COLORS = {
   out: 'var(--color-edge-out)',
   in: 'var(--color-edge-in)',
   lateral: 'var(--color-edge-lateral)',
 };
-function keepMeasuredSizes(previous: Node[], next: Node[]): Node[] {
-  const measuredById = new Map(previous.map(node => [node.id, node.measured]));
-  return next.map(node => {
-    const measured = measuredById.get(node.id);
-    return measured ? { ...node, measured } : node;
-  });
-}
-
 function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
   const { docId, entities: all, edges: allEdges, search, walk, selected, selectedEdge, kpiBadges, groupColorOf } = props;
   const trail = useRef<HTMLOListElement>(null);
@@ -99,50 +85,18 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
   const kpiCount = useMemo(() => all.filter(e => e.kind === 'Metric').length, [all]);
   const [hideValues, setHideValues] = useRecordedState('neighborhood.hideValues', () => readHideValues(props.modelName));
   const valueCount = useMemo(() => all.filter(e => VALUE_KINDS.has(e.kind)).length, [all]);
-  const entities = useMemo(() => all.filter(e => !(hideKpis && e.kind === 'Metric') && !(hideValues && VALUE_KINDS.has(e.kind))), [all, hideKpis, hideValues]);
-  const edges = useMemo(() => {
-    if (!hideKpis && !hideValues) return allEdges;
-    const ids = new Set(entities.map(e => e.id));
-    return allEdges.filter(e => ids.has(e.source) && ids.has(e.target));
-  }, [allEdges, entities, hideKpis, hideValues]);
-  // The canvas at this point of the walk: its re-centring step and the expansions after it.
-  const walkCanvas = useMemo(() => canvasAt(walk), [walk]);
-  const step = walkCanvas.center;
-  const requested = step?.doc === docId ? step.center : undefined;
-  const stepIndex = step ? walk.steps.lastIndexOf(step) : -1;
-  const before = stepIndex > 0 ? walk.steps[stepIndex - 1] : undefined;
-  const previous = before && before.doc === docId ? before.center : undefined;
-  // Links among neighbors are shown by default unless there are so many that they bury the
-  // center's own relationships; the toggle states how many there are either way.
-  const base = useMemo(
-    () =>
-      neighborhood(entities, edges, {
-        center: requested,
-        limit,
-        lateral: false,
-        technical,
-        relationship: relationship || undefined,
-        keep: previous ? [previous] : [],
-      }),
-    [entities, edges, requested, limit, technical, relationship, previous],
-  );
-  const lateralCount = base.lateral;
-  const lateral = lateralChoice ?? lateralCount <= LATERAL_DEFAULT_MAX;
-  const view = useMemo(
-    () =>
-      lateral
-        ? neighborhood(entities, edges, {
-            center: requested,
-            limit,
-            lateral,
-            technical,
-            relationship: relationship || undefined,
-            keep: previous ? [previous] : [],
-          })
-        : base,
-    [base, lateral],
-  );
-  const center = view.center;
+  const { entities, edges, step, previous, lateralCount, lateral, view, center, byId, projection, sets, canvasState, shownEntities, pierceSet, groups, membership } = useNeighborhoodView({
+    docId,
+    all,
+    allEdges,
+    walk,
+    hideKpis,
+    hideValues,
+    technical,
+    limit,
+    relationship,
+    lateralChoice,
+  });
   useEffect(() => {
     const list = trail.current;
     const current = list?.querySelector<HTMLElement>('[aria-current="step"]');
@@ -153,158 +107,12 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
     if (button.left < frame.left + clearance) list.scrollLeft -= frame.left + clearance - button.left;
     else if (button.right > frame.right - clearance) list.scrollLeft += button.right - frame.right + clearance;
   }, [walk, center, docId]);
-  const byId = useMemo(() => new Map(all.map(e => [e.id, e])), [all]);
-  // Expansions in place on top of the centre's view; a walk to another centre starts afresh.
-  const projection = useMemo(() => projectModel(entities, edges, technical), [entities, edges, technical]);
-  const sets = useMemo(() => (step && step.doc === docId && step.center === center ? setsOf(walkCanvas.sets) : []), [walkCanvas, step, docId, center]);
-  const canvasState = useMemo(
-    () =>
-      canvasOf(
-        view.entities.map(e => e.id),
-        sets,
-      ),
-    [view, sets],
-  );
-  const shownEntities = useMemo(() => {
-    const ids = new Set(canvasState.nodes);
-    const extra = canvasState.nodes
-      .filter(id => !view.entities.some(e => e.id === id))
-      .map(id => byId.get(id))
-      .filter((e): e is Entity => !!e);
-    return [...view.entities, ...extra].filter(e => ids.has(e.id));
-  }, [canvasState, view, byId]);
-  const shownEdges = useMemo(() => {
-    if (!sets.length) return view.edges;
-    const ids = new Set(canvasState.nodes);
-    const own = new Set(canvasState.active.flatMap(s => s.edges));
-    const base = new Set(view.edges.map(e => e.id));
-    return [
-      ...view.edges,
-      ...projection.edges.filter(
-        edge => !base.has(edge.id) && ids.has(edge.source) && ids.has(edge.target) && (own.has(edge.id) || (lateral && canvasState.active.some(s => s.from === edge.source || s.from === edge.target))),
-      ),
-    ];
-  }, [sets, view, canvasState, projection, lateral]);
-  const pierceSet = canvasState.active.filter(s => s.kind === 'pierce').at(-1);
   // Paging and the relationship filter belong to one center.
   useEffect(() => {
     setLimit(NEIGHBOR_PAGE);
     setRelationship('');
   }, [center]);
-  const groups = useMemo(() => groupRelationships(shownEdges), [shownEdges]);
-  const membership = JSON.stringify([center, shownEntities.map(e => e.id)]);
-  // Base positions from the column layout; each expansion places only its new nodes beside its
-  // origin (incoming left, outgoing right; pierce by step distance), never moving placed ones.
-  const positions = useMemo(() => {
-    if (!center) return new Map<string, { x: number; y: number }>();
-    let out = neighborhoodLayout(center, view.incoming, view.outgoing, view.both);
-    for (const expansionSet of canvasState.active) {
-      const grid = { column: NEIGHBOR_COLUMN, row: NEIGHBOR_ROW };
-      if (expansionSet.kind === 'pierce')
-        out = placeLayers(
-          out,
-          expansionSet.from,
-          expansionSet.nodes.map(node => ({
-            id: node,
-            side: (expansionSet.direction === 'in' ? -1 : 1) as -1 | 1,
-            step: Math.max(1, expansionSet.steps?.[node] ?? 1),
-          })),
-          grid,
-        );
-      else
-        out = placeNew(
-          out,
-          expansionSet.from,
-          expansionSet.nodes
-            .filter(n => !out.has(n))
-            .map(node => ({
-              id: node,
-              side: (projection.edges.some(e => e.source === expansionSet.from && e.target === node) ? 1 : -1) as -1 | 1,
-            })),
-          grid,
-        );
-    }
-    return out;
-  }, [membership]);
-  // Nodes are derived from the view synchronously; selection and center styling never rebuild
-  // them. A large addition (a pierce) is revealed in chunks, one per frame, so no frame blocks
-  // input.
-  const [reveal, setReveal] = useState(Infinity);
-  const build = (limit = reveal) =>
-    shownEntities.slice(0, limit).map((shownEntity): Node => ({
-      id: shownEntity.id,
-      position: positions.get(shownEntity.id) ?? { x: 0, y: 0 },
-      sourcePosition: Position.Right,
-      targetPosition: Position.Left,
-      style: { width: NODE.width },
-      data: { entity: shownEntity },
-    }));
-  const [nodes, setNodes, onNodesChange] = useNodesState<Node>(build());
-  // A rebuilt node keeps the size React Flow measured, because the browser reports a size only
-  // when it changes and a node left unmeasured would stay hidden.
-  // Cards the user dragged since the nodes were last built; measurement-driven separation leaves them where they are.
-  const draggedIds = useRef(new Set<string>());
-  const rebuildNodes = (limit = reveal) => {
-    draggedIds.current.clear();
-    setNodes(previous => separateNodes(keepMeasuredSizes(previous, build(limit))));
-  };
-  const built = useRef(membership);
-  useEffect(() => {
-    if (built.current === membership) return;
-    built.current = membership;
-    const have = nodes.length;
-    if (shownEntities.length - have <= REVEAL_CHUNK) {
-      setReveal(Infinity);
-      rebuildNodes(Infinity);
-      return;
-    }
-    let revealedCount = have;
-    let frame = 0;
-    const tick = () => {
-      revealedCount += REVEAL_CHUNK;
-      const done = revealedCount >= shownEntities.length;
-      setReveal(done ? Infinity : revealedCount);
-      rebuildNodes(done ? Infinity : revealedCount);
-      if (!done) frame = requestAnimationFrame(tick);
-    };
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, [membership]);
-  // Cards grow when their description wraps, so once every card is measured they are moved apart
-  // using their real heights.
-  const heightKey = useMemo(() => nodes.map(node => `${node.id}:${node.measured?.height ?? ''}`).join('|'), [nodes]);
-  const [separatedKey, setSeparatedKey] = useState('');
-  // Earlier cards are placed first: the center's own view, then each expansion in the order it was made.
-  const placementRank = useMemo(() => {
-    const rank = new Map<string, number>();
-    for (const id of view.entities.map(e => e.id)) rank.set(id, 0);
-    canvasState.active.forEach((expansionSet, index) => {
-      for (const id of [expansionSet.from, ...expansionSet.nodes]) if (!rank.has(id)) rank.set(id, index + 1);
-    });
-    return rank;
-  }, [view, canvasState]);
-  // Positions always start from the column layout, so the same cards give the same placement and
-  // Back, Forward and Undo restore a canvas exactly.
-  // Dragged cards start from where the user left them and are placed first, so they do not move.
-  const separateNodes = (toSeparate: Node[]): Node[] => {
-    const dragged = draggedIds.current;
-    const startById = new Map(toSeparate.map(node => [node.id, dragged.has(node.id) ? node.position : (positions.get(node.id) ?? node.position)]));
-    const rankWithDragged = new Map(placementRank);
-    for (const id of dragged) rankWithDragged.set(id, -1);
-    const sizeById = new Map(toSeparate.map(node => [node.id, { width: node.measured?.width ?? NODE.width, height: node.measured?.height ?? NODE.height }]));
-    const centerSize = sizeById.get(center ?? '');
-    const centerTop = startById.get(center ?? '')?.y ?? 0;
-    const separated = separateCards(startById, sizeById, centerTop + (centerSize?.height ?? NODE.height) / 2, rankWithDragged);
-    return toSeparate.map(node => ({ ...node, position: separated.get(node.id) ?? node.position }));
-  };
-  const separateMeasured = () => {
-    setNodes(previous => separateNodes(previous));
-    setSeparatedKey(heightKey);
-  };
-  useEffect(() => {
-    const allMeasured = nodes.length > 0 && nodes.every(node => node.measured?.height);
-    if (allMeasured && separatedKey !== heightKey) separateMeasured();
-  }, [heightKey, separatedKey]);
+  const { nodes, onNodesChange, draggedIds, rebuildNodes, separatedKey, setSeparatedKey, heightKey } = useNeighborhoodNodes({ center, view, canvasState, projection, shownEntities, membership });
   const boxes = useMemo(
     () =>
       new Map<string, Box>(
@@ -750,203 +558,59 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
     rebuildNodes();
     setFitted('');
   };
-  const neighborCounts = (
-    <>
-      <span className="neighborhood-counts" role="status" aria-label="Neighbor counts">
-        {centerEntity ? (
-          <>
-            {view.shown} of {view.total} neighbors
-            {view.hidden > 0 && (
-              <>
-                {' '}
-                · <strong>{view.hidden} hidden</strong>
-              </>
-            )}
-          </>
-        ) : (
-          'No center'
-        )}
-      </span>
-      {view.hidden > 0 && (
-        <button onClick={() => setLimit(l => l + NEIGHBOR_PAGE)}>
-          {Math.min(NEIGHBOR_PAGE, view.hidden)} more {Math.min(NEIGHBOR_PAGE, view.hidden) === 1 ? 'neighbor' : 'neighbors'}
-        </button>
-      )}
-      {limit > NEIGHBOR_PAGE && <button onClick={() => setLimit(NEIGHBOR_PAGE)}>Fewer</button>}
-    </>
-  );
   return (
     <div className="neighborhood-graph">
-      <ScrollStrip className="neighborhood-tools">
-        <div className="center-picker" role="combobox" aria-expanded={pickOpen && pickResults.length > 0} aria-haspopup="listbox" aria-owns="center-picker-results">
-          <LocateFixed size={14} />
-          <input
-            aria-label="Find a center"
-            aria-controls="center-picker-results"
-            aria-autocomplete="list"
-            placeholder={centerEntity ? `Center: ${centerEntity.name}` : 'Find a center'}
-            value={pick}
-            onChange={event => {
-              setPick(event.target.value);
-              setPickOpen(true);
-              setActive(0);
-            }}
-            onFocus={() => setPickOpen(true)}
-            onBlur={() => setTimeout(() => setPickOpen(false), 150)}
-            onKeyDown={event => {
-              if (event.key === 'ArrowDown') {
-                event.preventDefault();
-                setActive(i => Math.min(i + 1, pickResults.length - 1));
-              } else if (event.key === 'ArrowUp') {
-                event.preventDefault();
-                setActive(i => Math.max(i - 1, 0));
-              } else if (event.key === 'Enter' && pickResults[active]) {
-                event.preventDefault();
-                choose(pickResults[active].id);
-              } else if (event.key === 'Escape') {
-                setPick('');
-                setPickOpen(false);
-              }
-            }}
-          />
-          {pickOpen && pickResults.length > 0 && (
-            <ul id="center-picker-results" role="listbox" aria-label="Center candidates">
-              {pickResults.map((pickResult, i) => (
-                <li
-                  key={pickResult.id}
-                  role="option"
-                  aria-selected={i === active}
-                  onMouseDown={ev => {
-                    ev.preventDefault();
-                    choose(pickResult.id);
-                  }}
-                >
-                  <EntityName name={pickResult.name} />
-                  <small>{pickResult.kind}</small>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-        {!compact && neighborCounts}
-        <CompactControls>
-          <PierceControls
-            direction={direction}
-            onDirection={setDirection}
-            running={pierce.running}
-            onPierce={() => void fullPierce()}
-            onStop={pierce.stop}
-            canUndo={undoable}
-            onUndo={actionHistory.back}
-            title={`Expand everything reachable from ${pierceOrigin}`}
-          />
-          <ZoomButtons onZoomIn={() => void zoomIn({ duration: 150 })} onZoomOut={() => void zoomOut({ duration: 150 })} />
-          <GraphOptions>
-            <OptionGroup title="Neighbors">
-              {view.relationships.length > 1 && (
-                <label>
-                  Relationship
-                  <select aria-label="Filter neighbors by relationship" value={relationship} onChange={e => setRelationship(e.target.value)}>
-                    <option value="">All ({view.relationships.reduce((n, r) => n + r.count, 0)})</option>
-                    {view.relationships.map(relationship => (
-                      <option key={relationship.label} value={relationship.label}>
-                        {relationship.label} ({relationship.count})
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              )}
-              <ShowToggle on={lateral} onToggle={() => setLateral(!lateral)} title="Relationships among the visible neighbors">
-                Links between neighbors ({lateralCount})
-              </ShowToggle>
-              {view.technicalHidden > 0 || technical ? (
-                <ShowToggle on={technical} onToggle={() => setTechnical(shown => !shown)} title="OWL properties, restrictions and other RDF resources">
-                  Technical resources{technical ? '' : ` (${view.technicalHidden})`}
-                </ShowToggle>
-              ) : null}
-            </OptionGroup>
-            <OptionGroup title="Show">
-              <ShowToggle on={labels} onToggle={() => setLabels(shown => !shown)}>
-                Labels
-              </ShowToggle>
-              {valueCount > 0 && (
-                <ShowToggle on={!hideValues} onToggle={toggleValueTypes} title={`${valueCount} value types and built-in concepts`}>
-                  Value types
-                </ShowToggle>
-              )}
-              {kpiCount > 0 && (
-                <ShowToggle on={!hideKpis} onToggle={() => setHideKpis(hidden => !hidden)} title={`${kpiCount} metric nodes`}>
-                  Metrics
-                </ShowToggle>
-              )}
-            </OptionGroup>
-            <OptionGroup title="Layout">
-              <button onClick={rearrange} title="Put every node back in its column">
-                Re-arrange
-              </button>
-            </OptionGroup>
-          </GraphOptions>
-          {props.fullscreen && <FullscreenButton fullscreen={props.fullscreen} />}
-          <span className="neighborhood-legend" aria-hidden="true">
-            <span className="in">Incoming</span>
-            <span className="out">Outgoing</span>
-            {lateral && <span className="lateral">Between neighbors</span>}
-          </span>
-        </CompactControls>
-      </ScrollStrip>
-      <div className="neighborhood-links">
-        {compact && neighborCounts}
-        <nav className="walk-trail" aria-label="Walk">
-          <button aria-label="Back" title="Back" disabled={!actionHistory.canBack} onClick={actionHistory.back}>
-            <ArrowLeft size={14} />
-          </button>
-          <button aria-label="Forward" title="Forward" disabled={!actionHistory.canForward} onClick={actionHistory.forward}>
-            <ArrowRight size={14} />
-          </button>
-          <ol ref={trail}>
-            {walk.steps.map((step, i) => (
-              <li key={i}>
-                {step.via && (
-                  <span className="via" title={`through ${step.via.label}`}>
-                    {step.via.label} →
-                  </span>
-                )}
-                <button
-                  aria-current={i === walk.index && !offTrail ? 'step' : undefined}
-                  onClick={() => props.onWalkTo(i)}
-                  title={step.doc === docId ? step.name : `${step.name} in ${props.docLabel(step.doc)}`}
-                >
-                  {step.name}
-                  {step.doc !== docId && <small> · {props.docLabel(step.doc)}</small>}
-                </button>
-              </li>
-            ))}
-            {offTrail && centerEntity && (
-              <li>
-                <button aria-current="step" title="Current center">
-                  {centerEntity.name}
-                </button>
-              </li>
-            )}
-          </ol>
-        </nav>
-        {cross.length > 0 && (
-          <CompactControls label="Other files">
-            {cross.map(crossFileTarget => (
-              <button key={crossFileTarget.doc + crossFileTarget.entity} onClick={() => props.onCrossFile?.(crossFileTarget)} title={crossFileTarget.reason}>
-                <FileSymlink size={13} />
-                Continue in <strong>{crossFileTarget.file}</strong> · {crossFileTarget.name}
-              </button>
-            ))}
-          </CompactControls>
-        )}
-        {kpiFor.length > 0 && centerEntity && (
-          <button onClick={() => props.onOpenKpis?.(centerEntity.name)}>
-            <Gauge size={13} />
-            {kpiFor.length} metric{kpiFor.length === 1 ? '' : 's'} for {centerEntity.name}
-          </button>
-        )}
-      </div>
+      <NeighborhoodTools
+        picker={{ centerEntity, pick, setPick, pickOpen, setPickOpen, active, setActive, pickResults, onChoose: choose }}
+        counts={{ centerEntity, view, limit, setLimit }}
+        compact={compact}
+        direction={direction}
+        onDirection={setDirection}
+        pierceRunning={pierce.running}
+        onPierce={() => void fullPierce()}
+        onStopPierce={pierce.stop}
+        canUndo={undoable}
+        onUndo={actionHistory.back}
+        pierceOrigin={pierceOrigin}
+        onZoomIn={() => void zoomIn({ duration: 150 })}
+        onZoomOut={() => void zoomOut({ duration: 150 })}
+        options={{
+          view,
+          relationship,
+          setRelationship,
+          lateral,
+          lateralCount,
+          onLateral: setLateral,
+          technical,
+          setTechnical,
+          labels,
+          setLabels,
+          valueCount,
+          hideValues,
+          onToggleValueTypes: toggleValueTypes,
+          kpiCount,
+          hideKpis,
+          setHideKpis,
+          onRearrange: rearrange,
+        }}
+        fullscreen={props.fullscreen}
+      />
+      <NeighborhoodLinks
+        compact={compact}
+        counts={{ centerEntity, view, limit, setLimit }}
+        actionHistory={actionHistory}
+        trail={trail}
+        walk={walk}
+        docId={docId}
+        docLabel={props.docLabel}
+        offTrail={offTrail}
+        centerEntity={centerEntity}
+        onWalkTo={props.onWalkTo}
+        cross={cross}
+        onCrossFile={props.onCrossFile}
+        kpiFor={kpiFor}
+        onOpenKpis={props.onOpenKpis}
+      />
       {pierceSet && walk.steps[walk.index]?.set === pierceSet.id && (
         <PierceBanner
           result={{
