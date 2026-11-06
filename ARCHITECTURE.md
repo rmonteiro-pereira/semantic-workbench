@@ -189,8 +189,9 @@ The integration view shows what the application reads and contacts, and what it 
 - `src/shared/metrics/` resolves dependencies, bindings, extensions and metric saves;
   `src/app/metrics/` draws the metric views and wizards. `src/shared/sql/` lints SQL and finds its
   regions; `src/app/sql/` highlights it in the browser. None of them access a data source.
-- `src/server/agent/explain.ts`, `runtime.ts` and `sql.ts` produce filtered catalog/context,
-  definition-preserving metric explanations and governed query plans. They never execute a plan or
+- `src/server/agent/explain.ts`, `context.ts`, `runtime.ts` and `sql.ts` produce filtered catalog/context,
+  definition-preserving metric explanations and governed query plans. `context.ts` resolves a mapping into
+  fields, metrics, bindings and findings; `runtime.ts` is the public entry point and holds `planQuery`. They never execute a plan or
   call an LLM. Synthetic example execution belongs only to verification scripts/tests.
 
 ### Browser shell and graph rendering

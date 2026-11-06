@@ -57,7 +57,7 @@ const ALLOWED: { file: string; rule: BrandRule; reason: string }[] = [
     reason: 'agent reply text pinned by a digest test',
   },
   {
-    file: 'src/server/agent/runtime.ts',
+    file: 'src/server/agent/context.ts',
     rule: 'product-name',
     reason: 'agent reply text pinned by a digest test',
   },
