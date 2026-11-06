@@ -447,7 +447,8 @@ test('grouping and document saves take the reader and hide restricted documents'
 
 test('workspace modules depend on the access boundary, never on the HTTP middleware', async () => {
   const { readdirSync, readFileSync } = await import('node:fs');
-  for (const name of readdirSync('src/server/projects')) {
+  const names = readdirSync('src/server/projects', { recursive: true, encoding: 'utf8' }).filter(name => name.endsWith('.ts'));
+  for (const name of names) {
     const source = readFileSync(`src/server/projects/${name}`, 'utf8');
     expect(`${name}: ${source.includes('auth/middleware')}`).toBe(`${name}: false`);
   }
