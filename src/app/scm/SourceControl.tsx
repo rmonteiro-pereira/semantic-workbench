@@ -3,19 +3,20 @@
 import { useCapabilities } from '../auth/Capabilities';
 import { useGitSetup } from './GitSetup';
 import { ScmError } from './ScmError';
-import { isPublished, trackingLine, upstreamRemote } from './branch-tracking';
+import { trackingLine, upstreamRemote } from './branch-tracking';
 import { cleanTreeText } from './empty-repository';
-import { EmptyState } from '../projects/EmptyState';
-import { ConnectPrompt, actionTitle, connectRequired, useResumeAfterConnect, type RemoteAction } from './RemoteConnectPrompt';
+import { ConnectPrompt, connectRequired, useResumeAfterConnect, type RemoteAction } from './RemoteConnectPrompt';
 import type { ConnectKind } from '../auth/ConnectedAccounts';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, ArrowDown, ArrowUp, Check, EyeOff, FileCode, GitCommit, History, Minus, Plus, RefreshCw, X } from 'lucide-react';
-import { scm, Blocked, type GitChange, type GitCommit as Commit, type GitDiff, type GitStatus, type ProjectInfo, type RemoteResult, type FollowResult } from '../projects/api';
-import { DiffView } from './DiffView';
+import { AlertTriangle, Check, GitCommit, History, RefreshCw, X } from 'lucide-react';
+import { scm, Blocked, type GitChange, type GitCommit as Commit, type GitDiff, type GitStatus, type ProjectInfo, type RemoteResult } from '../projects/api';
+import { ChangeGroup, type Group, type Selection } from './ChangeGroup';
+import { DiffPane } from './DiffPane';
+import { SyncCounters } from './SyncCounters';
+import { useRemoteActions, type Note } from './useRemoteActions';
 import { BranchPicker } from './BranchPicker';
 import { SyncDialog } from './SyncDialog';
 import { RemoteActions } from './RemoteActions';
-import { ignoreChoices } from '../../shared/scm/gitignore';
 import { changesOfProject, elsewhereLine } from './project-changes';
 import './scm.css';
 
@@ -23,38 +24,6 @@ import './scm.css';
 export function repositoryLocation(status: Pick<GitStatus, 'upstream' | 'remotes' | 'branch' | 'folder'>): string {
   const remote = upstreamRemote(status) ?? 'no remote';
   return [remote, status.branch, status.folder].filter(Boolean).join(' · ');
-}
-
-// Changes include diffs, staging, branches, history and explicit remote actions. Hidden-type files
-// remain read-only; remote actions expose progress and cancellation.
-type Group = 'conflicts' | 'staged' | 'changes';
-type Selection = { path: string; group: Group } | null;
-const STATE: Record<string, string> = {
-  M: 'Modified',
-  A: 'Added',
-  D: 'Deleted',
-  R: 'Renamed',
-  C: 'Copied',
-  T: 'Type changed',
-  U: 'Conflicted',
-  '?': 'Untracked',
-};
-const letter = (change: GitChange, group: Group) => {
-  if (group === 'conflicts') {
-    return '!';
-  }
-  if (group === 'staged') {
-    return change.index;
-  }
-  if (change.untracked) {
-    return 'U';
-  }
-  return change.worktree;
-};
-/** The commit counts a finished Git action left to push and to pull, when there are any. */
-function aheadBehind(counts: { ahead?: number; behind?: number }): string {
-  if (!counts.ahead && !counts.behind) return '';
-  return ` · ${counts.ahead} to push, ${counts.behind} to pull`;
 }
 
 /** The history note for commits that touch only files the person cannot open. */
@@ -107,6 +76,8 @@ type Props = {
   onBusy?: (busy: boolean) => void;
   onCommit?: () => void;
 };
+// Changes include diffs, staging, branches, history and explicit remote actions. Hidden-type files
+// remain read-only; remote actions expose progress and cancellation.
 /** Displays project Git changes and actions with progress and cancellation. */
 export function SourceControl({ projects, project, version, unsaved, historyPath, onOpen, onChanged, onBusy, onCommit }: Props) {
   const access = useCapabilities(project);
@@ -119,12 +90,7 @@ export function SourceControl({ projects, project, version, unsaved, historyPath
   // Kept apart from action errors: reloading the status after a failed push must not hide why it
   // failed.
   const [loadError, setLoadError] = useState('');
-  const [note, setNote] = useState<{
-    tone: 'info' | 'warning';
-    text: string;
-    paths?: string[];
-    commit?: boolean;
-  } | null>(null);
+  const [note, setNote] = useState<Note | null>(null);
   const [selected, setSelected] = useState<Selection>(null);
   const [diff, setDiff] = useState<GitDiff | null>(null);
   const [message, setMessage] = useState('');
@@ -294,6 +260,7 @@ export function SourceControl({ projects, project, version, unsaved, historyPath
     }
     return true;
   }
+  const { reportRemote, pullDefault, pushDefault, publishCopy, fromSync } = useRemoteActions({ project, act, guard, altered, setNote, setError, setSyncOpen });
   // A missing account is not a failure: the panel asks for it and keeps the action to continue.
   async function remoteOrConnect(action: RemoteAction) {
     setConnect(null);
@@ -305,29 +272,6 @@ export function SourceControl({ projects, project, version, unsaved, historyPath
       setConnect({ kind, action });
       return null;
     }
-  }
-  // A fetch found the remote's default branch ahead but left the published one where it is.
-  function behindText(follow: FollowResult) {
-    const behind = `${follow.branch} is behind ${follow.remote}`;
-    if (follow.reason === 'guard') return `${behind}: its new commits hold changes only a Steward or Admin may bring in.`;
-    return `${behind}; someone with publish must bring it in.`;
-  }
-  function reportRemote(action: string, remoteResult: RemoteResult) {
-    if (remoteResult.cancelled) setNote({ tone: 'info', text: `${actionTitle(action)} cancelled.` });
-    else if (remoteResult.conflicted.length)
-      setNote({
-        tone: 'warning',
-        text: 'The pull stopped on conflicts. Open each file, repair it, stage it, then commit the merge:',
-        paths: remoteResult.conflicted,
-      });
-    else if (!remoteResult.ok) setError(remoteResult.stderr || `${actionTitle(action)} failed.`);
-    else if (remoteResult.follow && !remoteResult.follow.followed) setNote({ tone: 'warning', text: behindText(remoteResult.follow) });
-    else if (remoteResult.altered.length) altered(remoteResult.altered, action);
-    else
-      setNote({
-        tone: 'info',
-        text: `${actionTitle(action)} finished${aheadBehind(remoteResult)}.`,
-      });
   }
   async function remote(action: RemoteAction) {
     if ((action === 'pull' || action === 'sync') && !guard(action)) return;
@@ -345,26 +289,6 @@ export function SourceControl({ projects, project, version, unsaved, historyPath
       onBusy?.(false);
     }
     if (local.current === id) setWaiting(null);
-  }
-  // Server mode: the person's copy takes the published branch in, or publishes to it.
-  function pullDefault() {
-    if (!guard('pull')) return;
-    void act(
-      () => scm.pullDefault(project),
-      r => reportRemote('pull', r),
-    );
-  }
-  function pushDefault() {
-    void act(
-      () => scm.pushDefault(project),
-      r => reportRemote('push', r),
-    );
-  }
-  function publishCopy() {
-    void act(
-      () => scm.publish(project),
-      r => setNote({ tone: 'info', text: `Published to ${r.published}.` }),
-    );
   }
   const switchTo = (branch: string, create: boolean) => {
     if (!guard('switch branches')) return;
@@ -418,176 +342,45 @@ export function SourceControl({ projects, project, version, unsaved, historyPath
   const remoteNames = Object.keys(status.remotes);
   // The dialog holds only the published-branch actions of a server working copy.
   const offersSync = copy !== null;
-  function fromSync(run: () => void) {
-    setSyncOpen(false);
-    run();
-  }
   const canCommit = access.can('commit') && !!message.trim() && (groups.staged.length > 0 || status.merging) && !groups.conflicts.length && status.identityConfigured && !busy;
-  const row = (gitChange: GitChange, group: Group) => {
-    const isSel = selected?.path === gitChange.repoPath && selected.group === group;
-    const statusLetter = letter(gitChange, group);
-    const name = gitChange.path.split('/').pop()!;
-    const folder = gitChange.path.slice(0, -name.length).replace(/\/$/, '');
-    const openInEditor = () => onOpen(gitChange.project ?? project, gitChange.projectPath ?? gitChange.path);
-    return (
-      <li key={group + gitChange.repoPath} className={`scm-row${isSel ? ' selected' : ''}${gitChange.hidden ? ' hidden-file' : ''}`}>
-        <button
-          className="scm-file"
-          aria-label={`${gitChange.path}, ${group === 'conflicts' ? 'conflicted' : (STATE[statusLetter] ?? statusLetter)}${gitChange.hidden ? ', not shown in workspace' : ''}`}
-          aria-pressed={isSel}
-          onClick={() => {
-            setSelected({ path: gitChange.repoPath, group });
-            setHistoryFile(gitChange.outside ? undefined : gitChange.path);
-          }}
-        >
-          <span className="scm-name">{name}</span>
-          {folder && <small>{folder}</small>}
-          {gitChange.orig && <small>← {gitChange.orig}</small>}
-          {gitChange.hidden && (
-            <em className="scm-label" title="This file type is not shown in the workspace; it can be diffed, staged and committed here, not edited.">
-              <EyeOff size={11} />
-              {gitChange.label}
-            </em>
-          )}
-        </button>
-        <span className="scm-actions">
-          {!gitChange.hidden && gitChange.project && !(group === 'staged' && gitChange.index === 'D') && gitChange.worktree !== 'D' && (
-            <button aria-label={`Open ${gitChange.path}`} title="Open in the editor" onClick={openInEditor}>
-              <FileCode size={13} />
-            </button>
-          )}
-          {group === 'changes' && !gitChange.outside && access.can('edit', gitChange.project ?? project) && (
-            <button aria-label={`Add ${gitChange.path} to .gitignore`} title="Add to .gitignore" onClick={() => setIgnoring(ignoring === gitChange.path ? null : gitChange.path)}>
-              <EyeOff size={13} />
-            </button>
-          )}
-          {group === 'staged' ? (
-            <button
-              aria-label={`Unstage ${gitChange.path}`}
-              title={access.control('stage').title ?? 'Unstage'}
-              onClick={() => act(() => scm.stageChanges(project, [gitChange.repoPath], false))}
-              disabled={busy || !access.can('stage', gitChange.project ?? project)}
-            >
-              <Minus size={13} />
-            </button>
-          ) : (
-            <button
-              aria-label={`Stage ${gitChange.path}`}
-              title={access.control('stage').title ?? (group === 'conflicts' ? 'Mark as resolved (stage)' : 'Stage')}
-              onClick={() => act(() => scm.stageChanges(project, [gitChange.repoPath], true))}
-              disabled={busy || !access.can('stage', gitChange.project ?? project)}
-            >
-              <Plus size={13} />
-            </button>
-          )}
-        </span>
-        <span className={`scm-state s-${statusLetter === '?' ? 'u' : statusLetter.toLowerCase()}`} title={STATE[statusLetter] ?? statusLetter}>
-          {statusLetter}
-        </span>
-        {ignoring === gitChange.path && (
-          <IgnoreChooser
-            path={gitChange.path}
-            onCancel={() => setIgnoring(null)}
-            onAdd={pattern =>
-              act(
-                () => scm.ignore(project, pattern),
-                ignored => {
-                  setIgnoring(null);
-                  setSelected(null);
-                  setNote(
-                    ignored.tracked.length
-                      ? {
-                          tone: 'warning',
-                          text: `Added ${pattern} to .gitignore. These files are already committed, so Git keeps tracking them until they are removed from the repository (git rm --cached):`,
-                          paths: ignored.tracked,
-                        }
-                      : {
-                          tone: 'info',
-                          text: ignored.added ? `Added ${pattern} to .gitignore.` : `${pattern} was already in .gitignore.`,
-                        },
-                  );
-                },
-              )
-            }
-          />
-        )}
-      </li>
-    );
+  const selectChange = (gitChange: GitChange, group: Group) => {
+    setSelected({ path: gitChange.repoPath, group });
+    setHistoryFile(gitChange.outside ? undefined : gitChange.path);
   };
-  const section = (group: Group, title: string, items: GitChange[], all?: { label: string; run: () => void }) =>
-    items.length > 0 && (
-      <section className="scm-group" aria-label={title}>
-        <h3>
-          <span>{title}</span>
-          <small>{items.length}</small>
-          {all && (
-            <button className="link" onClick={all.run} disabled={busy || !access.can('stage')}>
-              {all.label}
-            </button>
-          )}
-        </h3>
-        <ul>{items.map(c => row(c, group))}</ul>
-      </section>
+  const stageChange = (gitChange: GitChange, staged: boolean) => act(() => scm.stageChanges(project, [gitChange.repoPath], staged));
+  const addToGitignore = (pattern: string) =>
+    act(
+      () => scm.ignore(project, pattern),
+      ignored => {
+        setIgnoring(null);
+        setSelected(null);
+        setNote(
+          ignored.tracked.length
+            ? {
+                tone: 'warning',
+                text: `Added ${pattern} to .gitignore. These files are already committed, so Git keeps tracking them until they are removed from the repository (git rm --cached):`,
+                paths: ignored.tracked,
+              }
+            : {
+                tone: 'info',
+                text: ignored.added ? `Added ${pattern} to .gitignore.` : `${pattern} was already in .gitignore.`,
+              },
+        );
+      },
     );
-  let mainPane: React.ReactNode;
-  if (selected && diff) {
-    if (diff.binary) {
-      mainPane = <p className="scm-empty">{diff.path} is a binary file; it can be staged and committed, but not shown.</p>;
-    } else {
-      mainPane = (
-        <DiffView
-          label={`Changes in ${diff.path}`}
-          filename={diff.path}
-          before={diff.before}
-          after={diff.after}
-          beforeLabel={`${diff.path} · ${diff.beforeExists ? versionName(diff.from) : 'new file'}`}
-          afterLabel={diff.afterExists ? versionName(diff.to) : 'Deleted'}
-        />
-      );
-    }
-  } else if (historyFile && range && versions) {
-    mainPane = (
-      <>
-        <div className="scm-versions" role="group" aria-label="Compare versions">
-          <label>
-            <span>From</span>
-            <select aria-label="From version" value={range.from} onChange={e => setRange({ ...range, from: e.target.value })}>
-              {log.map(gitCommit => (
-                <option key={gitCommit.commit} value={gitCommit.commit}>
-                  {gitCommit.commit.slice(0, 7)} {gitCommit.message}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            <span>To</span>
-            <select aria-label="To version" value={range.to} onChange={e => setRange({ ...range, to: e.target.value })}>
-              <option value="worktree">Working tree</option>
-              {log.map(gitCommit => (
-                <option key={gitCommit.commit} value={gitCommit.commit}>
-                  {gitCommit.commit.slice(0, 7)} {gitCommit.message}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-        {versions.binary ? (
-          <p className="scm-empty">Binary file.</p>
-        ) : (
-          <DiffView
-            label={`Versions of ${historyFile}`}
-            filename={historyFile}
-            before={versions.before}
-            after={versions.after}
-            beforeLabel={`${historyFile} · ${versionName(range.from, log)}`}
-            afterLabel={versionName(range.to, log)}
-          />
-        )}
-      </>
-    );
-  } else {
-    mainPane = <EmptyState title="No file selected">Select a changed file to see its diff, or a file's history to compare two of its versions.</EmptyState>;
-  }
+  const rowProps = {
+    project,
+    selected,
+    ignoring,
+    busy,
+    access,
+    onSelect: selectChange,
+    onOpen,
+    onStage: stageChange,
+    onToggleIgnore: (path: string) => setIgnoring(ignoring === path ? null : path),
+    onCancelIgnore: () => setIgnoring(null),
+    onIgnore: addToGitignore,
+  };
   return (
     <section className="scm" aria-label="Source Control">
       <div className="scm-side">
@@ -705,15 +498,9 @@ export function SourceControl({ projects, project, version, unsaved, historyPath
         </div>
         {!scoped.inProject.length && <p className="scm-empty">{status.changes.length ? 'No changes in this project.' : cleanTreeText(status)}</p>}
         {scoped.elsewhere > 0 && <p className="scm-elsewhere">{elsewhereLine(scoped.elsewhere)}</p>}
-        {section('conflicts', 'Merge conflicts', groups.conflicts)}
-        {section('staged', 'Staged changes', groups.staged, {
-          label: 'Unstage all',
-          run: () => void act(() => scm.unstage(project, 'all')),
-        })}
-        {section('changes', 'Changes', groups.changes, {
-          label: 'Stage all',
-          run: () => void act(() => scm.stage(project, 'all')),
-        })}
+        <ChangeGroup group="conflicts" title="Merge conflicts" items={groups.conflicts} {...rowProps} />
+        <ChangeGroup group="staged" title="Staged changes" items={groups.staged} all={{ label: 'Unstage all', run: () => void act(() => scm.unstage(project, 'all')) }} {...rowProps} />
+        <ChangeGroup group="changes" title="Changes" items={groups.changes} all={{ label: 'Stage all', run: () => void act(() => scm.stage(project, 'all')) }} {...rowProps} />
         <section className="scm-group scm-history" aria-label="History">
           <h3>
             <History size={13} />
@@ -771,53 +558,9 @@ export function SourceControl({ projects, project, version, unsaved, historyPath
           onPushDefault={() => fromSync(pushDefault)}
         />
       )}
-      <div className="scm-main">{mainPane}</div>
-    </section>
-  );
-}
-/** Counts commits to push and pull, or says the branch was never published. */
-function SyncCounters({ status }: { status: GitStatus }) {
-  if (!isPublished(status.upstream)) {
-    return (
-      <span className="scm-sync" aria-label="Not published" title="This branch has no upstream branch yet. Publish branch creates it.">
-        Not published
-      </span>
-    );
-  }
-  return (
-    <span className="scm-sync" aria-label={`${status.ahead} commits to push, ${status.behind} to pull`} title={`Tracking ${status.upstream}`}>
-      <ArrowUp size={12} />
-      {status.ahead} to push
-      <ArrowDown size={12} />
-      {status.behind} to pull
-    </span>
-  );
-}
-function versionName(rev: string, log: Commit[] = []) {
-  if (rev === 'worktree') return 'Working tree';
-  if (rev === 'index') return 'Last commit and staged changes';
-  if (rev === 'HEAD') return 'Last commit';
-  const gitCommit = log.find(x => x.commit === rev);
-  return gitCommit ? `${rev.slice(0, 7)} ${gitCommit.message}` : rev.slice(0, 7);
-}
-function IgnoreChooser({ path, onAdd, onCancel }: { path: string; onAdd: (pattern: string) => void; onCancel: () => void }) {
-  const choices = ignoreChoices(path);
-  const [pattern, setPattern] = useState(choices[0].pattern);
-  return (
-    <div className="scm-ignore" role="group" aria-label={`Add ${path} to .gitignore`}>
-      {choices.map(choice => (
-        <label key={choice.pattern}>
-          <input type="radio" name={'ignore-' + path} checked={pattern === choice.pattern} onChange={() => setPattern(choice.pattern)} />
-          <span>{choice.label}</span>
-          <code>{choice.pattern}</code>
-        </label>
-      ))}
-      <div>
-        <button onClick={onCancel}>Cancel</button>
-        <button className="primary" onClick={() => onAdd(pattern)}>
-          Add to .gitignore
-        </button>
+      <div className="scm-main">
+        <DiffPane selected={selected} diff={diff} historyFile={historyFile} range={range} onRange={setRange} versions={versions} log={log} />
       </div>
-    </div>
+    </section>
   );
 }

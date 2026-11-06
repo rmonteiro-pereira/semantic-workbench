@@ -224,7 +224,9 @@ The integration view shows what the application reads and contacts, and what it 
   `Sidebar.tsx` keeps the selected file reachable in the scrolling project list.
 - `src/app/scm/` owns Source Control, diffs, branch/commit/remote/clone dialogs and personal-credential
   prompts. Its `*.ts` files hold the pure wording rules for Git state: push rejection, tracking,
-  clone summary and sign-in command. `src/app/workspace/EmptyProject.tsx` is the canvas for a project with
+  clone summary and sign-in command. `SourceControl.tsx` composes `ChangeGroup.tsx` (changed-file rows),
+  `DiffPane.tsx` (diff and version compare), `SyncCounters.tsx`, `IgnoreChooser.tsx` and `useRemoteActions.ts`
+  (pull, push, publish and remote-action feedback). `src/app/workspace/EmptyProject.tsx` is the canvas for a project with
   no definitions. `src/app/projects/Modal.tsx`, `Menu.tsx`, `WizardStepper.tsx`, `EmptyState.tsx` and
   `src/app/components/ScrollStrip.tsx` provide shared interaction and layout behavior;
   `src/app/projects/useAnchoredPopup.ts` places and dismisses the popups that menus and the Settings
