@@ -164,7 +164,8 @@ The integration view shows what the application reads and contacts, and what it 
   pick the data file and runs it in a worker (`shacl-run.ts`) that is stopped after 30 s. `src/shared/odcs/foreign-keys.ts`
   resolves contract relationships. These modules are reused by browser and server logic.
 - `src/shared/mappings/` owns mapping schemas and built-ins; `src/app/mappings/` the mapping
-  explorer. `src/shared/core/` holds the model and document references; `src/app/core/export.ts`
+  explorer, which reads the agent catalog, context and plan only through the `api.agent*` methods in
+  `src/app/projects/api.ts`. `src/shared/core/` holds the model and document references; `src/app/core/export.ts`
   the export projection.
 - `schemas/` contains pinned standards and application schemas. `scripts/compile-schemas.ts`
   produces checked-in, formatted standalone browser validators grouped by schema family in

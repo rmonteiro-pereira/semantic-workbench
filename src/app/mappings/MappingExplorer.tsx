@@ -1,6 +1,6 @@
 /** Displays resolved concept mappings and their validation findings. */
 import { useRecordedState } from '../workspace/hooks/useRecordedState';
-import { apiFetch } from '../projects/api';
+import { api, type AgentMapping } from '../projects/api';
 import React, { useEffect, useState, useRef } from 'react';
 import { Code } from 'lucide-react';
 import type { Binding, Finding, RuntimeContext } from '../../server/agent/runtime';
@@ -8,17 +8,9 @@ import { QueryComposer } from './QueryComposer';
 import { EmptyState } from '../projects/EmptyState';
 import { ShowMoreControl } from './ShowMoreControl';
 import { AiContextPanel } from './AiContextPanel';
-import { agentCatalogPath, agentContextPath } from './agent-paths';
 import { chooseMapping, mappingsOfProject, shownMapping } from './mapping-choice';
 import { BINDINGS_PER_GROUP, BINDINGS_STEP, CONCEPTS_SHOWN, CONCEPTS_STEP, GROUPS_SHOWN, GROUPS_STEP, limitCovering, visibleCount } from './list-window';
 import './mapping-explorer.css';
-type MappingOption = {
-  id: string;
-  name: string;
-  filename: string;
-  embedded: boolean;
-  project?: string;
-};
 const BINDING_ERROR = 'mapping-binding-finding mapping-error';
 const BINDING_NOTICE = 'mapping-binding-finding mapping-notice';
 const stepLabels = {
@@ -96,7 +88,7 @@ export function MappingExplorer({
   onOpenSource?: (documentId: string) => void;
 }) {
   const requestVersion = useRef(0);
-  const [catalog, setCatalog] = useState<MappingOption[]>([]);
+  const [catalog, setCatalog] = useState<AgentMapping[]>([]);
   // Derived while rendering, so switching project hides the last project's mapping at once.
   const options = mappingsOfProject(catalog, currentProject);
   const [mappingId, setMappingId] = useRecordedState('mappings.mapping', '');
@@ -122,10 +114,9 @@ export function MappingExplorer({
       return;
     }
     const abort = new AbortController();
-    apiFetch(agentCatalogPath(currentProject), { signal: abort.signal })
-      .then(async response => {
-        const body = await response.json();
-        if (!response.ok) throw Error(body.error);
+    api
+      .agentCatalog(currentProject, abort.signal)
+      .then(body => {
         setCatalog(body.mappings);
         setMappingId(old => chooseMapping(body.mappings, currentId, currentProject, old));
       })
@@ -155,12 +146,9 @@ export function MappingExplorer({
     if (!activeMappingId) return;
     const abort = new AbortController();
     setLoading(true);
-    apiFetch(agentContextPath(currentProject, activeMappingId), { signal: abort.signal })
-      .then(async response => {
-        const data = await response.json();
-        if (!response.ok) throw Error(data.error);
-        setContext(data);
-      })
+    api
+      .agentContext(currentProject, activeMappingId, undefined, abort.signal)
+      .then(setContext)
       .catch(e => {
         if (e.name !== 'AbortError') setLoadError(e.message);
       })
@@ -251,19 +239,7 @@ export function MappingExplorer({
     setPlanError('');
     setPlan(null);
     try {
-      const response = await apiFetch('/api/agent/plan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          project: currentProject,
-          mappingId: activeMappingId,
-          concepts: concept ? [concept] : [],
-          metrics,
-          dimensions,
-        }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw Error(data.error);
+      const data = await api.agentPlan({ project: currentProject, mappingId: activeMappingId, concepts: concept ? [concept] : [], metrics, dimensions });
       if (version === requestVersion.current) setPlan(data);
     } catch (error) {
       if (version === requestVersion.current) setPlanError((error as Error).message);

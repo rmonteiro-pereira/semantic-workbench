@@ -1,13 +1,12 @@
 /** Displays a mapping's resolved graph at the saved revision and indicates unsaved edits. */
 import { useRecordedState } from '../workspace/hooks/useRecordedState';
-import { apiFetch } from '../projects/api';
+import { api } from '../projects/api';
 import React, { useEffect, useMemo, useState } from 'react';
 import { LineageCanvas } from '../odcs/LineageCanvas';
 import { Modal } from '../projects/Modal';
 import type { Fullscreen } from '../graph/fullscreen';
 import type { LineageCard, LineageGraph } from '../odcs/lineage';
 import { buildMappingGraph, defaultMappingCenter, type MappingContext, type MappingGraph } from './mapping-graph';
-import { agentContextPath } from './agent-paths';
 // The resolver reads the saved revision for standalone and embedded mappings. The canvas indicates
 // when the open document has unsaved edits.
 type EditItem = (docId: string, path: (string | number)[]) => void;
@@ -33,12 +32,9 @@ export function MappingCanvas({ project, mappingId, revisionKey, dirty, fullscre
     const abort = new AbortController();
     setLoading(true);
     setError('');
-    apiFetch(agentContextPath(project, mappingId), { signal: abort.signal })
-      .then(async response => {
-        const body = await response.json();
-        if (!response.ok) throw Error(body.error);
-        setContext(body);
-      })
+    api
+      .agentContext(project, mappingId, undefined, abort.signal)
+      .then(body => setContext(body as typeof context))
       .catch(failure => {
         if (failure.name !== 'AbortError') {
           setError(failure.message);

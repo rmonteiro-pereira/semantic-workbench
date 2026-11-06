@@ -1,8 +1,7 @@
 /** Shows the context the agent API returns for the selected concept, fetched from that API. */
 import { useEffect, useState } from 'react';
-import { apiFetch } from '../projects/api';
+import { api } from '../projects/api';
 import type { RuntimeContext } from '../../server/agent/runtime';
-import { agentContextPath } from './agent-paths';
 
 type Props = {
   project: string;
@@ -24,12 +23,9 @@ export function AiContextPanel({ project, mappingId, concept, revisionKey, fullC
     setError('');
     if (!open || !concept) return;
     const abort = new AbortController();
-    apiFetch(agentContextPath(project, mappingId, concept), { signal: abort.signal })
-      .then(async response => {
-        const body = await response.json();
-        if (!response.ok) throw Error(body.error || `The agent context could not be loaded (HTTP ${response.status}).`);
-        setNarrowed(body);
-      })
+    api
+      .agentContext(project, mappingId, concept, abort.signal)
+      .then(setNarrowed)
       .catch(failure => {
         if (failure.name !== 'AbortError') setError(failure.message);
       });
