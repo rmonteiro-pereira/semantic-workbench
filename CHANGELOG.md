@@ -4,6 +4,15 @@ Source release tags identify the versions below. Image build metadata and approv
 also require a matching package version in the target release checkout; a source tag alone does
 not configure a production deployment.
 
+## Unreleased
+
+### Fixed
+
+- A fresh development server no longer reloads the page while the Network graph loads for the first
+  time. `cytoscape` and `cytoscape-fcose`, which only the layout worker imports, are now optimized
+  at start-up. This was the cause of the `test:ui` "Fit model" timeout (the v0.6.1 known issue):
+  the reload dropped a file open and Graph tab click made just before it.
+
 ## v0.6.1 — 2026-11-03
 
 ### Changed
