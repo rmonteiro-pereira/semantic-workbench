@@ -126,8 +126,10 @@ The integration view shows what the application reads and contacts, and what it 
 - `working-copies.ts` selects published versus personal read/write locations. `worktrees.ts`
   owns Git worktree/branch transitions. `publishing.ts`, `published-checkout.ts` and
   `unpublished-work.ts` coordinate default-branch publication, recovery and retained local work.
-- `trash.ts`, `personal-state.ts` and `suggestions.ts` own deletion/restore, owner-specific state
-  moves and explicit-evidence grouping suggestions.
+- `trash.ts` owns deletion and the delete preview; `trash-restore.ts` restores entries and
+  `trash-access.ts` holds the pure rules about what a guard sees and who may see or restore an
+  entry. `personal-state.ts` and `suggestions.ts` own owner-specific state moves and
+  explicit-evidence grouping suggestions.
 - `project-export.ts` selects permitted files/history and checks limits before streaming;
   `zip.ts` writes the archive. Export logic must not bypass a Reader's permissions.
 
