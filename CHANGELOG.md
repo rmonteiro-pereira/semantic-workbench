@@ -12,6 +12,9 @@ not configure a production deployment.
   time. `cytoscape` and `cytoscape-fcose`, which only the layout worker imports, are now optimized
   at start-up. This was the cause of the `test:ui` "Fit model" timeout (the v0.6.1 known issue):
   the reload dropped a file open and Graph tab click made just before it.
+- `test:back-history` walks to a side table that is in view. The first side table of the mall
+  contract sits partly above the pane on opening, with its **Walk here** button under the page
+  header.
 
 ## v0.6.1 — 2026-11-03
 

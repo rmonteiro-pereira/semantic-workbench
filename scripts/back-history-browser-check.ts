@@ -141,6 +141,23 @@ const openTab = (name: string): Action => ({
 const neighbours = () => page.locator('.neighborhood-node:not(.center)');
 const lineage = () => page.getByRole('region', { name: 'Lineage graph' });
 
+// The lineage canvas draws only the cards in view, and its first view can leave the first side card
+// partly above the pane with its button under the page header. A person walks to a card they can
+// reach, so this picks the first side card whose Walk here button is not covered by anything.
+const clickWalkHereOnReachableCard = async () => {
+  const buttons = lineage().locator('.lineage-card:not(.center):not(.group)').getByRole('button', { name: 'Walk here' });
+  const reachableIndex = () =>
+    buttons.evaluateAll(candidates =>
+      candidates.findIndex(candidate => {
+        const box = candidate.getBoundingClientRect();
+        const topmost = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2);
+        return box.width > 0 && Boolean(topmost && candidate.contains(topmost));
+      }),
+    );
+  await expect.poll(reachableIndex).toBeGreaterThanOrEqual(0);
+  await buttons.nth(await reachableIndex()).click();
+};
+
 const journey: Action[] = [
   openFile('mall.ontology.yaml'),
   openTab('Neighborhood'),
@@ -227,8 +244,7 @@ const journey: Action[] = [
   {
     name: 'recentre the lineage on another card',
     run: async () => {
-      const side = lineage().locator('.lineage-card:not(.center):not(.group)').first();
-      await side.getByRole('button', { name: 'Walk here' }).click();
+      await clickWalkHereOnReachableCard();
     },
   },
   openFile('sales.ossie.yaml'),
@@ -257,16 +273,7 @@ async function checkArrows() {
       name: 'lineage',
       trail: '.lineage-trail',
       start: [openFile('mall.odcs.yaml'), openTab('Graph')],
-      steps: [
-        async () => {
-          const side = lineage().locator('.lineage-card:not(.center):not(.group)').first();
-          await side.getByRole('button', { name: 'Walk here' }).click();
-        },
-        async () => {
-          const side = lineage().locator('.lineage-card:not(.center):not(.group)').first();
-          await side.getByRole('button', { name: 'Walk here' }).click();
-        },
-      ],
+      steps: [clickWalkHereOnReachableCard, clickWalkHereOnReachableCard],
     },
   ];
   for (const walk of walks) {
