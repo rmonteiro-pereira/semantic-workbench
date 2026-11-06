@@ -191,7 +191,8 @@ The integration view shows what the application reads and contacts, and what it 
   regions; `src/app/sql/` highlights it in the browser. None of them access a data source.
 - `src/server/agent/explain.ts`, `context.ts`, `runtime.ts` and `sql.ts` produce filtered catalog/context,
   definition-preserving metric explanations and governed query plans. `context.ts` resolves a mapping into
-  fields, metrics, bindings and findings; `runtime.ts` is the public entry point and holds `planQuery`. They never execute a plan or
+  fields, metrics, bindings and findings; `query-plan.ts` builds the SQL preview;
+  `runtime.ts` re-exports both as the public entry point. They never execute a plan or
   call an LLM. Synthetic example execution belongs only to verification scripts/tests.
 
 ### Browser shell and graph rendering
