@@ -4,6 +4,7 @@ import { agentContextPath } from '../src/app/mappings/agent-paths';
 import { mappingsOfProject } from '../src/app/mappings/mapping-choice';
 import type { RuntimeContext } from '../src/server/agent/runtime';
 import { LOCAL_READER } from '../src/server/projects/reader';
+import { publishFixture } from './helpers/published-workspace';
 import { testWorkspace } from './helpers/temp-data-dir';
 
 const UBL_PROJECT = 'ubl-business-model';
@@ -14,11 +15,12 @@ async function loadUblProject() {
   const files = [];
   for (const path of UBL_FILES) files.push({ path, source: await Bun.file(`public/examples/ubl/${path}`).text() });
   await workspace.ws.importBatch({ name: 'UBL business model', files }, LOCAL_READER);
+  await publishFixture(workspace);
   return workspace;
 }
 
 async function readJson(workspace: Awaited<ReturnType<typeof loadUblProject>>, path: string) {
-  return (await workspace.handler(new Request('http://localhost' + path))).json();
+  return (await workspace.handler(new Request('http://localhost' + path.replace('/api/preview/', '/api/agent/')))).json();
 }
 
 test('the UBL example loads in its project with one mapping, 599 bindings and a concept-narrowed context from the agent API', async () => {
@@ -46,6 +48,7 @@ test('the catalog of another project does not offer the UBL mapping document', a
   const workspace = await loadUblProject();
   try {
     await workspace.ws.importBatch({ name: 'Other project', files: [{ path: 'billing.ontology.yaml', source: await Bun.file('public/examples/billing/billing.ontology.yaml').text() }] }, LOCAL_READER);
+    await publishFixture(workspace);
     const other = await readJson(workspace, '/api/agent/catalog?project=other-project');
     expect(other.mappings ?? []).toEqual([]);
     const offered = mappingsOfProject([{ id: `${UBL_PROJECT}/ubl.semantic-mapping.yaml`, project: UBL_PROJECT }], 'other-project');

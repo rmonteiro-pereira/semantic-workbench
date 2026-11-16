@@ -80,10 +80,10 @@ test('edits commit and push inside the folder and leave the other folders untouc
       }),
     );
     expect(committed.pushed).toMatchObject({ ok: true });
-    const changed = sh(team.bare, ['show', '--name-only', '--format=', 'main']).split('\n').filter(Boolean);
+    const changed = sh(team.bare, ['show', '--name-only', '--format=', 'work/local']).split('\n').filter(Boolean);
     expect(changed.sort()).toEqual([`${PROJECT_FOLDER}/extra.yaml`, `${PROJECT_FOLDER}/shop.yaml`]);
-    expect(sh(team.bare, ['rev-parse', `main:${OTHER_FOLDER}`]).trim()).toBe(otherBefore);
-    expect(sh(team.bare, ['show', `main:${PROJECT_FOLDER}/shop.yaml`])).toBe(ontology('Changed.'));
+    expect(sh(team.bare, ['rev-parse', `work/local:${OTHER_FOLDER}`]).trim()).toBe(otherBefore);
+    expect(sh(team.bare, ['show', `work/local:${PROJECT_FOLDER}/shop.yaml`])).toBe(ontology('Changed.'));
     const status = await ok(call(app, 'GET', base + '/git/status'));
     expect(status).toMatchObject({ ahead: 0, behind: 0, changes: [] });
   } finally {
@@ -191,7 +191,7 @@ test('a folder the remote branch lacks is reported, and the first push can creat
       }),
     );
     expect(committed.pushed).toMatchObject({ ok: true });
-    expect(sh(team.bare, ['ls-tree', '-r', '--name-only', 'main']).split('\n').filter(Boolean)).toEqual(
+    expect(sh(team.bare, ['ls-tree', '-r', '--name-only', 'work/local']).split('\n').filter(Boolean)).toEqual(
       expect.arrayContaining([`${missing}/fresh.yaml`, `${PROJECT_FOLDER}/shop.yaml`, `${OTHER_FOLDER}/crm.yaml`]),
     );
   } finally {

@@ -2802,6 +2802,7 @@ if (category === 'copy-publish') {
     };
     // A remote's default branch that reads as an option is refused.
     const hr = join(layout.projects, 'hr-people');
+    run(hr, ['config', '--unset', 'workbench.defaultBranch']);
     run(hr, ['checkout', '-q', '--detach']);
     run(hr, ['update-ref', 'refs/remotes/origin/-evil', 'HEAD']);
     run(hr, ['symbolic-ref', 'refs/remotes/origin/HEAD', 'refs/remotes/origin/-evil']);

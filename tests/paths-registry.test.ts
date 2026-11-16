@@ -63,7 +63,7 @@ test('a legacy registry file loads unchanged and its projects keep working', asy
     const file = await ok(call(workspace, 'GET', `/api/projects/${created.slug}/files/shop.yaml`));
     expect(file.source).toContain('Customer');
     const status = await ok(call(workspace, 'GET', `/api/projects/${created.slug}/git/status`));
-    expect(status.branch).toBe('main');
+    expect(status.branch).toBe('work/local');
     expect(readFileSync(workspace.ws.layout.registry, 'utf8')).toBe(before);
   } finally {
     workspace.dispose();

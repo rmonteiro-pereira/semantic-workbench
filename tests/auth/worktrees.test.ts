@@ -117,7 +117,7 @@ test('publish fast-forwards main with a compare-and-swap and refreshes what ever
   const updates = run.mock.calls.filter(([, args]) => args.includes('update-ref'));
   run.mockRestore();
   expect(published.status).toBe(200);
-  expect(published.body).toEqual({ published: 'main', commit: committed.body.commit });
+  expect(published.body).toEqual({ published: 'main', previous, commit: committed.body.commit });
   expect(updates.map(([, args]) => args)).toEqual([['update-ref', 'refs/heads/main', committed.body.commit, previous]]);
   expect(gitOutput(base, ['rev-parse', 'HEAD']).text).toBe(committed.body.commit);
   expect(gitOutput(base, ['symbolic-ref', '-q', 'HEAD']).code).not.toBe(0);

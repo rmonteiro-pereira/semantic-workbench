@@ -9,7 +9,7 @@ import { LOCAL_READER } from '../src/server/projects/reader';
 import { agentCatalogPath, agentContextPath } from '../src/app/mappings/agent-paths';
 // Scope labels, binding kinds and metric bindings extend the legacy context.
 // All remaining fields retain their saved digests.
-const req = (path: string) => new Request('http://localhost' + path);
+const req = (path: string) => new Request('http://localhost' + path.replace('/api/preview/', '/api/agent/'));
 const stable = (value: any): any => {
   if (Array.isArray(value)) {
     return value.map(stable);
