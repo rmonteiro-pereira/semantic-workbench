@@ -3,7 +3,6 @@ import { useCallback, useEffect, useRef, type RefObject } from 'react';
 import type { ReactFlowInstance } from '@xyflow/react';
 import { useViewRestore, type Fullscreen } from '../graph/fullscreen';
 import type { ExpansionSet } from '../graph/expansion';
-import { cardOfNode, type LineageGraph } from './lineage';
 import { fitsReadableView } from './lineage-view';
 import { cardHeight, CARD_W, type LayoutCard } from './lineage-layout';
 import type { StageSize } from '../graph/stage-size';
@@ -70,8 +69,6 @@ type ViewportInputs = {
   reach: { cards: Set<string> };
   lastSet: ExpansionSet | undefined;
   path: { nodes: Set<string> } | null;
-  graph: LineageGraph;
-  selected: string;
 };
 
 export function useLineageViewport({
@@ -91,8 +88,6 @@ export function useLineageViewport({
   reach,
   lastSet,
   path,
-  graph,
-  selected,
 }: ViewportInputs) {
   const viewHeld = useViewRestore(
     fullscreen?.active ?? false,

@@ -484,8 +484,6 @@ export function LineageCanvas({
     reach,
     lastSet,
     path,
-    graph,
-    selected,
   });
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
