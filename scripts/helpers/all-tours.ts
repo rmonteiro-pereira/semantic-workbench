@@ -13,6 +13,16 @@ import { odcsScreens } from './odcs-tour';
 import { projectDialogScreens } from './project-dialog-tour';
 import { sparseScreens } from './sparse-tour';
 import { tourScreens, type Screen } from './screen-tour';
+// lane A imports
+// end lane A imports
+// lane B imports
+// end lane B imports
+// lane C imports
+// end lane C imports
+// lane D imports
+// end lane D imports
+// lane E imports
+// end lane E imports
 
 /** Files the tours open. */
 export type AllTourFiles = {
@@ -69,6 +79,16 @@ export function tourGroups(files: AllTourFiles): TourGroup[] {
       summary: 'readable text and no overlaps',
       screens: sparseScreens(files.serverMode),
     },
+    // lane A tours
+    // end lane A tours
+    // lane B tours
+    // end lane B tours
+    // lane C tours
+    // end lane C tours
+    // lane D tours
+    // end lane D tours
+    // lane E tours
+    // end lane E tours
   ];
 }
 

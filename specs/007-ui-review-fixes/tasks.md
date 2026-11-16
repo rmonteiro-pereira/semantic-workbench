@@ -40,7 +40,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Several screenshot names do not appear literally in the scripts (for example `source-control--diff-modified`); resolve each to a command by reading the scripts, and run one command per script to prove it produces the named file.
   - Proof: Every row has a command; one run per script produced the named file in a scratch folder.
 
-- [ ] T003 Add lane sentinels so lanes never edit the same lines of the shared registration files.
+- [x] T003 Add lane sentinels so lanes never edit the same lines of the shared registration files.
   - Files: `scripts/mutation-tests.ts`, `scripts/helpers/all-tours.ts`
   - Change: Insert five comment pairs (`// lane A imports` and `// lane A mutants` through lane E) after the last existing import and mutant registration lines, so each lane adds its own import and `mutants.push(...)` under its own sentinel. Do the same in `scripts/helpers/all-tours.ts` for tour entries.
   - Proof: `bun --bun run check` and `bun scripts/mutation-tests.ts` still pass with no mutant added.

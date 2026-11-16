@@ -16,6 +16,16 @@ import { brandMutants } from './brand-mutants';
 import { observabilityMutants } from './observability-mutants';
 import { chmod, mkdtemp, readdir, rm, symlink } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
+// lane A imports
+// end lane A imports
+// lane B imports
+// end lane B imports
+// lane C imports
+// end lane C imports
+// lane D imports
+// end lane D imports
+// lane E imports
+// end lane E imports
 const root = process.cwd();
 const temp = await mkdtemp(resolve(tmpdir(), 'workbench-mutations-'));
 // Candidate modules live outside the project; give their bare package imports the same dependency
@@ -570,6 +580,16 @@ mutants.push(...brandMutants);
 mutants.push(...observabilityMutants);
 
 mutants.push(...operationBoundaryMutants);
+// lane A mutants
+// end lane A mutants
+// lane B mutants
+// end lane B mutants
+// lane C mutants
+// end lane C mutants
+// lane D mutants
+// end lane D mutants
+// lane E mutants
+// end lane E mutants
 
 // Split modules import their siblings, so a mutant runs inside a copy of the whole folder: only
 // imports that leave the folder point back at the real sources.
