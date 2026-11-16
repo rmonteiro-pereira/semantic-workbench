@@ -453,3 +453,6 @@ assertions, which retain their existing limits.
 Published snapshot measurements use `scripts/published-snapshot-performance-fixture.ts` and
 `scripts/published-snapshot-performance.ts`. The serial remote browser/mutation driver is
 `scripts/published-snapshot-remote-gate.ts`; it owns its temporary frontend and stops it on completion.
+It runs the affected browser suites and authentication, the full responsive suite and remaining groups
+after the documented inherited mall-canvas failure, then all mutation cases. Each stage retains its own
+exit file; any other failure stops the gate. Remote output is collected under `out/008-review-gate/`.
