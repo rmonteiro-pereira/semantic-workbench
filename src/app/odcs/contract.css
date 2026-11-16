@@ -144,7 +144,13 @@
   color: var(--color-text-secondary);
 }
 .odcs-form-field :is(input, select, textarea) {
-  font: inherit;
+  font-family: var(--font-sans);
+  font-size: inherit;
+  font-style: inherit;
+  font-weight: inherit;
+  font-variant: inherit;
+  font-stretch: inherit;
+  line-height: inherit;
   padding: 7px 9px;
   border: 1px solid var(--color-border-strong);
   border-radius: 6px;
@@ -339,7 +345,13 @@
 
 /* Controls that edit a property in its table row look like text until hovered or focused. */
 .odcs-edit {
-  font: inherit;
+  font-family: var(--font-sans);
+  font-size: inherit;
+  font-style: inherit;
+  font-weight: inherit;
+  font-variant: inherit;
+  font-stretch: inherit;
+  line-height: inherit;
   font-size: var(--text-small);
   color: inherit;
   border: 1px solid transparent;

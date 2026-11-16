@@ -24,6 +24,7 @@ import { startUiProfiling, UiProfiler } from './observability/ui-profiling';
 // Stylesheet order matters: React Flow's base styles must come after the component styles and
 // before the app's own overrides, as they always have.
 import '@xyflow/react/dist/style.css';
+import '../shared/fonts/fonts.css';
 import '../shared/theme/theme.css';
 import './style.css';
 function App() {

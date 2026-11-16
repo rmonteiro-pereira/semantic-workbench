@@ -57,7 +57,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Download the variable woff2 files (Latin and Latin-extended subsets) from each family's official release, check the SHA-256 against the upstream release, and store the licence text beside them. No npm font package is added, so no new runtime dependency is introduced.
   - Proof: Files exist; the README lists a checksum that `sha256sum` reproduces.
 
-- [ ] T005 [E] Declare the fonts and give every font declaration a fallback.
+- [x] T005 [E] Declare the fonts and give every font declaration a fallback.
   - Findings: M7 · Requirements: FR-053
   - Files: `src/shared/fonts/fonts.css`, `src/app/main.tsx`, `src/app/style.css`, `src/app/graph/graph-canvas.css`, `src/app/scm/scm.css`, `src/app/editor/editor.css`, `src/app/odcs/odcs.css`, `src/app/odcs/contract.css`, `src/app/edit/edit.css`, `src/app/metrics/metrics.css`, `src/app/admin/admin.css`, `src/app/workspace/WorkspaceHeader.css`
   - Change: Add `@font-face` rules (`font-display: swap`) and `--font-sans` and `--font-display` custom properties in `fonts.css`, import it before the theme stylesheet, and replace every `font` shorthand and `font-family` that names `DM Sans`, `Manrope` or nothing with the tokens, so each ends in `sans-serif` (monospace stays monospace). This is the only task in the plan that edits font lines in every lane's stylesheet; it merges first so no lane meets those lines again.

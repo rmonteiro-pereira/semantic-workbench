@@ -6,7 +6,7 @@
   --text-muted: var(--color-text-muted);
   /* The widest a page of text and tables grows. Wider windows centre it instead of stretching it. */
   --content-max-width: 1600px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-sans);
   color: var(--color-text);
   background: var(--color-surface-page);
   font-synthesis: none;
@@ -20,7 +20,13 @@ body {
 button,
 input,
 textarea {
-  font: inherit;
+  font-family: var(--font-sans);
+  font-size: inherit;
+  font-style: inherit;
+  font-weight: inherit;
+  font-variant: inherit;
+  font-stretch: inherit;
+  line-height: inherit;
 }
 /* Keyboard focus, including focus handed back to a button when its dialog closes, shows in the
    theme's focus colour. The browser's own ring is a thick black outline that looks broken on the
@@ -104,9 +110,7 @@ button[aria-disabled='true']:hover {
   align-items: center;
   gap: 12px;
   color: var(--color-accent);
-  font:
-    800 22px Manrope,
-    sans-serif;
+  font: 800 22px var(--font-display);
 }
 .brand-logo {
   display: block;
@@ -231,9 +235,7 @@ header {
   font-weight: 700;
 }
 h1 {
-  font:
-    700 29px Manrope,
-    sans-serif;
+  font: 700 29px var(--font-display);
   margin: 8px 0;
 }
 p {
@@ -315,7 +317,7 @@ p {
   margin-left: 0;
 }
 .inspector h2 {
-  font: 700 22px Manrope;
+  font: 700 22px var(--font-display);
   margin: 12px 0;
 }
 .entity-icon,
@@ -366,7 +368,7 @@ p {
   padding: 25px;
 }
 .empty h2 {
-  font: 700 24px Manrope;
+  font: 700 24px var(--font-display);
   margin: 23px 0 10px;
 }
 .empty button {
@@ -404,7 +406,7 @@ p {
 }
 .node strong {
   display: block;
-  font: 700 16px Manrope;
+  font: 700 16px var(--font-display);
   margin: 8px 0;
 }
 .node span {
@@ -3598,7 +3600,13 @@ main > .status {
   min-width: 0;
   max-width: none;
   width: 100%;
-  font: inherit;
+  font-family: var(--font-sans);
+  font-size: inherit;
+  font-style: inherit;
+  font-weight: inherit;
+  font-variant: inherit;
+  font-stretch: inherit;
+  line-height: inherit;
   padding: 7px 8px;
   border: 1px solid var(--color-border-subtle);
   border-radius: 6px;

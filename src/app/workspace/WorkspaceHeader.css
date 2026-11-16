@@ -129,7 +129,13 @@
   border: 0;
   background: transparent;
   color: inherit;
-  font: inherit;
+  font-family: var(--font-sans);
+  font-size: inherit;
+  font-style: inherit;
+  font-weight: inherit;
+  font-variant: inherit;
+  font-stretch: inherit;
+  line-height: inherit;
   cursor: pointer;
 }
 .header-meta > .save-state:disabled {

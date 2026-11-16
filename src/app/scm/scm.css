@@ -681,7 +681,13 @@
 .commit-dialog .commit-message textarea {
   width: 100%;
   box-sizing: border-box;
-  font: inherit;
+  font-family: var(--font-sans);
+  font-size: inherit;
+  font-style: inherit;
+  font-weight: inherit;
+  font-variant: inherit;
+  font-stretch: inherit;
+  line-height: inherit;
   font-size: 13px;
   padding: 8px;
   border: 1px solid var(--color-border);

@@ -165,7 +165,13 @@
   border: 0;
   border-radius: 0;
   background: var(--color-surface);
-  font: inherit;
+  font-family: var(--font-sans);
+  font-size: inherit;
+  font-style: inherit;
+  font-weight: inherit;
+  font-variant: inherit;
+  font-stretch: inherit;
+  line-height: inherit;
 }
 .code-editor-bar,
 .code-editor-document-findings {

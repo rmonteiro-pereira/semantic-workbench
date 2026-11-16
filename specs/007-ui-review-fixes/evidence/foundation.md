@@ -22,3 +22,13 @@ Existing theme styles name DM Sans and Manrope; local font faces supply their gl
 - `sha256sum src/shared/fonts/*.woff2`:
   - DM Sans: `0add1329f56a835a5df780b431ece97fff8b2a2deaa930aee93f1d4b9f3b2f5e`
   - Manrope: `30b83738add8c9edd9e3450b98036a9a8fb5668d0cbd4eb0ce5fe6761197f21f`
+
+## Typography
+
+- T005: local font-face declarations use swap; family stacks use `--font-sans` and `--font-display`. Inherited font shorthands are expanded into longhands so size, style, weight, variant, stretch and line height remain inherited while the family has its generic fallback. Existing explicit system and monospace stacks stay unchanged.
+- `bun test tests/fonts.test.ts`: `1 pass`, `0 fail`.
+- `SW_BASE_URL=http://127.0.0.1:5201 bun run test:theme`: `10 theme checks passed` (`/tmp/sw-foundation/theme-final.log`).
+- M7 / FR-053, first-run workspace, no project/file, 1440×900, light: before `/home/rodrigo/projetos/semantic-workbench-ui-review-20261115/screenshots/states/local-workspace--first-run-empty-1440.png`; after `/tmp/sw-foundation/final-after/states/local-workspace--first-run-empty-1440.png`.
+- Same state and viewport, dark: before `/home/rodrigo/projetos/semantic-workbench-ui-review-20261115/screenshots/states/local-dark-workspace--first-run-empty-1440.png`; after `/tmp/sw-foundation/final-after/states/local-dark-workspace--first-run-empty-1440.png`.
+- Both final after images and both before images were opened. The title changes from serif to Manrope sans-serif. The centered composition, colours, controls and spacing remain intact.
+- Capture command: `SW_BASE_URL=http://127.0.0.1:5201 bun scripts/ui-review/empty-states.ts /tmp/sw-foundation/final-after/states`. Unrelated invalid-empty-document fixture states still produce validation-backdrop geometry records; the first-run states above have empty problem arrays. No application behaviour outside typography was changed for those records.
