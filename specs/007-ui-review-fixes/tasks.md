@@ -379,7 +379,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Describe the review step name, the refusal notice and the support link; update the 'reserved for support navigation' sentence.
   - Proof: `rg -n 'Dry run' docs README.md` returns nothing; `bun run test:terminology` passes.
 
-- [ ] T055 [US4] [D] Run lane D checks: `bun test`, `bun --bun run check`, `bun --bun run build`, `bun run test:admin`, `bun run test:auth`, `bun run test:brand`, `bun scripts/admin-last-admin-check.ts`, `bun run test:responsive`, `bun scripts/mutation-tests.ts`.
+- [x] T055 [US4] [D] Run lane D checks: `bun test`, `bun --bun run check`, `bun --bun run build`, `bun run test:admin`, `bun run test:auth`, `bun run test:brand`, `bun scripts/admin-last-admin-check.ts`, `bun run test:responsive`, `bun scripts/mutation-tests.ts`.
   - Files: `scripts/admin-mutants.ts`, `scripts/admin-mutation-cases.ts`
   - Change: Add mutants for the e-mail check and the last-admin confirm guard under lane D's sentinel (existing admin mutants stay).
   - Proof: All commands pass; results and image paths in `specs/007-ui-review-fixes/evidence/D.md`.

@@ -1,10 +1,12 @@
 # Lane D
 
+T048–T055 are complete with documented foundation exceptions. No lane-introduced gate failure remains.
+
 ## Scope and execution
 
 The existing API owns validation, authorization and the last-Admin guard. The form adds early address feedback; presentation changes do not change grants or server decisions. Authentication pages retain their existing CSP and contain no scripts.
 
-Completed captures and browser checks use ports 5241 and 5242. An initial terminology invocation omitted SW_BASE_URL and failed to connect to its default 5173; the assigned-port rerun passed. The dev server was started on 5241 with a temporary proxy configuration to the isolated API on 5242. Captures stay inside this worktree in ignored `out/lane-d/after/`, respecting the lane safety boundary. Runtime preload adaptations keep shared capture files unchanged: fixed fixture ports, the renamed review action, and waiting for field feedback instead of clicking a disabled invalid proposal.
+The original capture pass used ports 5241 and 5242. Resumed gate checks also use OS-assigned fixture ports, as authorized by the integrator. An initial terminology invocation omitted SW_BASE_URL and failed to connect to its default 5173; the assigned-port rerun passed. The dev server was started on 5241 with a temporary proxy configuration to the isolated API on 5242. Captures stay inside this worktree in ignored `out/lane-d/after/`, respecting the lane safety boundary. Runtime preload adaptations keep shared capture files unchanged: fixed fixture ports, the renamed review action, and waiting for field feedback instead of clicking a disabled invalid proposal.
 
 ## T048 — grant validation
 
@@ -63,7 +65,7 @@ Completed captures and browser checks use ports 5241 and 5242. An initial termin
 - `rg -l 'Dry run' docs README.md` retains only `docs/diagrams/identities.svg`, outside lane D ownership. The integrator must update that diagram label to meet the literal zero-match proof; no cross-lane edit was made.
 - Deliverable scanner: 0 hits in the three documentation files and `changelog/D.md`.
 
-## T055 — focused guard coverage complete; full green gate skipped
+## T055 — initial gate before the port correction (superseded)
 
 The new e-mail and refused-confirmation mutants are registered under lane D's sentinel. Existing mutants remain unchanged. A refused operation also refuses a repeated submission through its existing handler.
 
@@ -86,11 +88,11 @@ Broad gate limitations:
 - `bun run test:responsive` passed all four Admin viewports, then timed out in `scripts/helpers/odcs-graph-tour.ts:49` waiting for the unrelated Foreign keys button. No graph or lineage file was edited.
 - `scripts/commit_cadence.py` is absent; the requested command reports file not found. Every coherent lane step has a local commit.
 
-The full gate is explicitly skipped as a green completion, not claimed as passed. The assigned two-port limit prevents its multi-service fixtures, and the stale assertions require edits outside this lane. The integrator must resolve those constraints and rerun the complete gate.
+This initial run was not claimed as a green completion. Its two-port constraint and retired wording assertions are superseded by the integrator-authorized gate resumption below.
 
 ## Integrator notes
 
-- Update the three retired wording assertions, the identities diagram's Dry run label, and the shared brand manifest comment that still calls support navigation reserved.
+- The retired wording assertions are reconciled with the authentication-page wording. Update the identities diagram's Dry run label and the shared brand manifest comment that still calls support navigation reserved; both remain outside lane D ownership.
 - Shared capture sources remain unchanged. The ignored runtime adapter updates their old Dry run selector, the disabled invalid-email submission, the deactivation dialog title and the last-admin code matcher. Those selectors need to be reconciled centrally for future stock captures.
 - Audit snapshot counts depend on preceding fixture requests; their count differs between full-matrix and narrowed captures. The proposal, file, viewport, theme and review stage are unchanged.
 - Fixture factories initially used their normal disposable temporary roots and cleaned them up. Later checks set TMPDIR inside ignored lane output. No owner data or other worktree was used.
@@ -107,3 +109,54 @@ Final capture and shutdown notes:
 - All 17 requested before/after pairs were opened and compared. The wide empty access-check state is `out/lane-d/after/server-light/server-admin-access-check-2560.png` (2560x1440); the decision states are additional captures.
 - The isolated ODCS repeat exited 143 without output, so it provides no conclusive result and does not change the full responsive timeout finding.
 - The lane dev server was stopped after browser checks. No push, merge or deployment was performed.
+
+## Integrator-authorized gate resumption
+
+- Dynamic OS-assigned fixture ports are now permitted. The previous strict two-port run is superseded by the following gate results.
+- Scope ledger: authentication handlers retain their existing response statuses and script-free CSP. Only test expectations for deliberately changed plain-language failure messages are reconciled. No route, public API or access decision changes. The existing request-entry tests verify this delta.
+- Updated the three retired wording assertions in `tests/auth/sign-in-failure-status.test.ts` and `tests/auth/server-boundary.test.ts`, explicitly authorized by the integrator. Their status assertions remain intact.
+- The identities diagram is outside lane D ownership and remains an integrator follow-up.
+- Wording reconciliation entry-point tests: 6 pass, 0 fail, 48 expect() calls.
+
+Resumed gate results (logs in ignored `out/lane-d/`):
+
+| Command | Result | Log |
+| --- | --- | --- |
+| `bun test` | 2076 pass, 2 fail, 130824 expect() calls; 2078 tests, 286 files | `unit-resume.log` |
+| `bun --bun run check` | Exit 0: types, formatting, lint, comments, theme and brand | `check-resume.log` |
+| `bun --bun run build` | Exit 0; built in 3.17s, existing chunk-size warning | `build-resume.log` |
+| `bun run test:admin` | Exit 0 | `admin-resume.log` |
+| `bun run test:auth` | Exit 0; 36 PASS lines | `auth-resume.log` |
+| `bun run test:brand` | Exit 0; five PASS lines | `brand-resume.log` |
+| `bun scripts/admin-last-admin-check.ts` | Last-admin check passed: refusal has no enabled Confirm. | `last-admin-resume.log` |
+
+The two full-unit failures were checked on the foundation archive at `593f2c18`:
+
+- `tests/auth/audit.test.ts`: the thousand-appends test exceeds the default 5000ms timeout on both versions (lane 6070.61ms; foundation 6815.85ms). Foundation: 0 pass, 1 fail, 5 filtered out, 1002 expect() calls (`audit-foundation.log`). Lane focused default run: 5 pass, 1 fail; lane `--timeout 20000`: 6 pass, 0 fail, 1018 expect() calls (`audit-current-extended-timeout.log`). No assertion or timeout setting was changed in the repository.
+- `tests/pipeline/deploy-azure.test.ts:100`: assumes a literal `/tmp/sw-deploy-registry-` prefix, so the isolated worktree `TMPDIR` fails on both versions. Foundation with the same isolated TMPDIR: 4 pass, 1 fail (`deploy-foundation-isolated-tmp.log`). Lane with `TMPDIR=/tmp`: 5 pass, 0 fail, 20 expect() calls (`deploy-current-default-tmp.log`). This focused file uses simulated deployment commands; no external deployment occurred.
+
+The full responsive run reached 123 PASS lines and stopped at the integrator-confirmed pre-existing Mall ODCS canvas measurement: 407px against a 421px minimum at 1280x720 (`responsive-resume.log`). The integrator already reproduced this exact failure on foundation `593f2c18` and main; lane B owns it. All four Admin viewports and all four ODCS graph viewports passed. The earlier Foreign keys timeout did not recur with the unmodified harness. Remaining groups are run individually below.
+
+Responsive continuation, one group at a time with `RESPONSIVE_ONLY` and `SW_BASE_URL=http://127.0.0.1:5241`:
+
+| Group | Summary | Log |
+| --- | --- | --- |
+| `examples: 1440` | 2 responsive UI checks passed; exit 0 | `responsive-examples-1440-resume.log` |
+| `examples: 2560` | 2 responsive UI checks passed; exit 0 | `responsive-examples-2560-resume.log` |
+| `dark theme:` | 5 responsive UI checks passed; exit 0 | `responsive-dark-theme-resume.log` |
+| `graph canvases:` | 5 responsive UI checks passed; exit 0 | `responsive-graph-canvases-resume.log` |
+| `shell screens:` | 5 responsive UI checks passed; exit 0 | `responsive-shell-screens-resume.log` |
+| `sidebar: the phone drawer` | 2 responsive UI checks passed; exit 0 | `responsive-sidebar-loading-resume.log` |
+
+Each continuation includes the uncaught-browser-error assertion. No responsive assertion or repository script was modified or disabled. `responsive-remaining-results.json` records all six exit codes.
+
+Final mutation and gate completion:
+
+- `bun scripts/mutation-tests.ts`: **668/668 targeted mutants killed; all unmodified module baselines passed. Run test:ui for the full browser baseline.** Exit 0 (`mutations-final.log`). Includes both new review guards, all existing modules, askpass cases and all nine UI mutants.
+- New review guards: 2 generated, 2 killed, 0 survived, 100%, exceeding a 95% target. The invalid-address and refused-operation assertions each kill a mutant; valid-address and allowed-confirmation assertions provide positive controls. The browser checks also exercise the entry points.
+- Existing Bun mutation runner, Bun 1.4.0. Approximate wall time 1124 seconds (log creation through final output). Nice 19; affinity to CPUs 21 and 17, selected from the least-busy allowed CPUs. A supervisor sampled its own process group's RSS every two seconds with a 6 GiB stop limit; peak sampled RSS 430 MiB. The sampled RSS supervisor did not change host cgroup settings. The runner retains its ten-second module-child timeout and does not report a separate timeout-kill count.
+- An earlier concurrent mutation attempt stopped without a diagnostic at `write-body-legacy`; the isolated final run passed that baseline and the entire gate. This was a discarded attempt, not classified as a pre-existing code failure. The final unit run likewise supersedes its preparatory restart after the foundation archive was moved into the hidden ignored comparison directory.
+- All required commands have run with dynamic fixture ports permitted. Every browser suite and every remaining responsive group ran sequentially. No failed lane behavior remains; the full-unit and responsive command exit codes are not represented as green.
+- T055 is checked as completed with the foundation exceptions documented above, following the integrator's instruction to compare failures and continue. The remaining integrator work is the Mall canvas fix in lane B, the portable temporary-path assertion and audit timeout policy, and the already-noted shared diagram/comment/capture selectors.
+- All 17 before/after comparisons remain recorded above. No visual implementation changed during this resumed gate.
+- The lane dev server was stopped after the final mutation checks. No push, tag, merge, deployment or remote-setting change was performed. Browser checks used disposable local identity and Git fixtures.
