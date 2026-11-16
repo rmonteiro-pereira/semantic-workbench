@@ -2,6 +2,7 @@
 import { smallTextProblems, textCollisionProblems } from './helpers/text-geometry';
 import { openRemoteDialog, remoteActions, remoteButton, remoteDialog, runSyncAction } from './helpers/sync-dialog';
 import { appUrl } from './helpers/base-url';
+import { LOCAL_READER } from '../src/server/projects/reader';
 import { chromium, expect, type Page } from '@playwright/test';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -29,6 +30,8 @@ const sh = (cwd: string, args: string[]) => {
   return syncSubprocess.stdout.toString();
 };
 sh(extra, ['init', '-q', '--bare', '-b', 'main', bare]);
+await api.ws.publish(commerce.slug, LOCAL_READER);
+sh(dir, ['push', '-q', bare, 'main']);
 const read = (path: string) => readFileSync(projectFile(api.ws.layout, commerce.slug, path), 'utf8');
 const browser = await chromium.launch();
 const errors: string[] = [];
@@ -177,8 +180,8 @@ try {
     await saveSource();
     await openScm();
     await commitAll('Feature wording');
-    await panel().getByLabel('Branch').selectOption('main');
-    await expect(panel().getByRole('status').filter({ hasText: 'Switched to main' })).toBeVisible();
+    await panel().getByLabel('Branch').selectOption('work/local');
+    await expect(panel().getByRole('status').filter({ hasText: 'Switched to work/local' })).toBeVisible();
     await expect.poll(() => read(file)).toContain('Person or company that buys from us.');
     await openFile(file);
     await showSourceEditor(page);
@@ -197,11 +200,12 @@ try {
     await expect(panel().getByRole('status').filter({ hasText: 'Push finished' })).toBeVisible({
       timeout: 20000,
     });
-    await expect(panel().getByText('Tracking origin/main')).toBeVisible();
+    await expect(panel().getByText('Tracking origin/work/local')).toBeVisible();
     await expect(panel().getByLabel('0 commits to push, 0 to pull')).toBeVisible();
     await expect(remoteActions(page).getByRole('button', { name: 'Publish branch' })).toHaveCount(0);
-    expect(sh(bare, ['log', '-1', '--format=%s', 'main']).trim()).toBe('Ignore temporary files');
+    expect(sh(bare, ['log', '-1', '--format=%s', 'work/local']).trim()).toBe('Ignore temporary files');
     sh(extra, ['clone', '-q', bare, other]);
+    sh(other, ['switch', '-q', 'work/local']);
     writeFileSync(join(other, file), readFileSync(join(other, file), 'utf8').replace('Order in the order-to-cash process.', 'Order placed elsewhere.'));
     sh(other, ['commit', '-qam', 'Elsewhere']);
     sh(other, ['push', '-q']);
@@ -281,7 +285,7 @@ try {
     await expect(panel().getByRole('status').filter({ hasText: 'Sync finished' })).toBeVisible({
       timeout: 20000,
     });
-    expect(sh(bare, ['log', '-1', '--format=%s', 'main']).trim()).toBe('Merge their wording');
+    expect(sh(bare, ['log', '-1', '--format=%s', 'work/local']).trim()).toBe('Merge their wording');
   });
   await check('a rejected push leads with a plain summary and Pull remote changes; Git output is under Show details', async () => {
     sh(other, ['pull', '-q', '--no-rebase']);
@@ -307,7 +311,7 @@ try {
     await expect(panel().getByRole('status').filter({ hasText: 'Push finished' })).toBeVisible({
       timeout: 20000,
     });
-    expect(sh(bare, ['log', '-1', '--format=%P', 'main']).trim().split(' ')).toHaveLength(2);
+    expect(sh(bare, ['log', '-1', '--format=%P', 'work/local']).trim().split(' ')).toHaveLength(2);
   });
   await check('New branch form: Escape and Cancel return focus to the New branch button', async () => {
     const newBranch = panel().getByRole('button', { name: 'New branch' });
@@ -411,7 +415,7 @@ try {
     await expect(finished).toHaveCount(0);
     await setRemote(bare);
     await runSyncAction(page, 'Publish branch');
-    await expect(panel().getByText('Tracking origin/main')).toBeVisible({ timeout: 20000 });
+    await expect(panel().getByText('Tracking origin/work/local')).toBeVisible({ timeout: 20000 });
   });
   await check('Admin → Git remotes explains an empty workspace and leads back to Add project', async () => {
     const empty = await startIsolatedApi();
