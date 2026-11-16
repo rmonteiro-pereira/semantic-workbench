@@ -11,13 +11,9 @@ not configure a production deployment.
 - Reviewed operation inventory and generated reference, trusted in-process operation dispatch,
   connection effect restrictions, audit attribution fields and origin/tool filters.
 - Independent dry-run samples retain write and denial evidence during non-HTTP read floods.
-- Keep unnamed legacy ontology imports compatible while locators require an available root scope.
-
-- Keep mapping-center ties ordered by visible names when escaped locator keys differ.
 
 - Add pure ordered locator replay, retention-cut calculation and save-declaration validation APIs.
 
-- Use scoped item locators for structured mapping cards and rows, preserving names containing separators.
 
 - Derive and resolve structured definition addresses, including nested ODCS properties and volatile unnamed mappings.
 - Add the pure `sw1` item-locator grammar with canonical escaping, relative resolution and segment prefix operations.

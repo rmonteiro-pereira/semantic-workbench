@@ -5,8 +5,8 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { testWorkspace } from './helpers/temp-data-dir';
 import { LOCAL_READER } from '../src/server/projects/reader';
 import { agentCatalogPath, agentContextPath } from '../src/app/mappings/agent-paths';
-// Scope labels, binding kinds and metric bindings extend the legacy context.
-// All remaining fields retain their saved digests.
+// Only binding kinds and metric bindings may extend the existing agent context. The remaining
+// fields must match the saved digests; UPDATE_GOLDEN=1 deliberately replaces them.
 const req = (path: string) => new Request('http://localhost' + path);
 const stable = (value: any): any => {
   if (Array.isArray(value)) {
@@ -26,11 +26,7 @@ function withoutAdditions(agentContext: any) {
   void metricBindings;
   void boundMetricIds;
   const documents = agentContext.documents.map(({ role, ...document }: any) => (void role, document));
-  const { address: ontologyAddress, ...ontology } = agentContext.ontology;
-  const { address: modelAddress, ...semanticModel } = agentContext.semanticModel;
-  void ontologyAddress;
-  void modelAddress;
-  return { ...rest, ontology, semanticModel, documents, bindings: agentContext.bindings.map(({ kind, ...binding }: any) => (void kind, binding)) };
+  return { ...rest, documents, bindings: agentContext.bindings.map(({ kind, ...binding }: any) => (void kind, binding)) };
 }
 const digest = (c: any) =>
   createHash('sha256')
@@ -151,12 +147,4 @@ test('every document of a context has a role and the context lists the metrics b
   const context = all['mapped-commerce'].find(x => x.filename === 'commerce.mapping.yaml')!.context;
   expect(context.documents.map((document: any) => document.role)).toEqual(['mapping', 'ontology', 'semantic']);
   expect(Array.isArray(context.boundMetricIds)).toBe(true);
-});
-
-test('resolved contexts carry canonical scopes including embedded mapping ancestors', () => {
-  const embedded = all.flights.find(entry => entry.embedded)!.context;
-  expect(embedded.ontology.address.chain[0].kind).toBe('ontology');
-  expect(embedded.semanticModel.address.chain.map((segment: any) => segment.kind)).toEqual(['ontology', 'mapping', 'model']);
-  const standalone = all.flights.find(entry => entry.filename === 'flights.mapping.yaml')!.context;
-  expect(standalone.semanticModel.address.chain.map((segment: any) => segment.kind)).toEqual(['model']);
 });

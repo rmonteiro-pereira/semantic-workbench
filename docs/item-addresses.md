@@ -40,19 +40,13 @@ RDF/SHACL resources and implicit built-in concepts have no address in this featu
 
 The inspector retains its original result types and identifiers. The direct derivation API
 requires named ontology/model roots and reports an unaddressable item when a required name is
-absent. Accepted unnamed legacy roots have no context scope label.
+absent. Legacy inspection can accept unnamed roots that the derivation API cannot address.
 `addressAtModelPath` derives one displayed item's locator without enumerating unrelated children.
 
 `adaptItemKey` reads older concept, dataset, field, join and metric labels against a loaded model.
 It accepts a key only when exactly one definition matches. Dotted field collisions are ambiguous;
 alias-qualified text requires an explicit document-local resolver. Reading a key never rewrites
 the source document. Canonical locators should be parsed and resolved through the shared API.
-
-The mapping canvas formats concept, dataset, metric, field and direct relationship keys within
-the resolved ontology/model scope. Agent context exposes these scope labels as `ontology.address`
-and `semanticModel.address` (absent for unresolved targets). Built-in cards and multi-hop mapping
-rows use synthetic UI identifiers. Declared concepts retain their source locators even when
-their names match an implicit built-in. A model-only context has no ontology scope label. Row ownership is indexed explicitly instead of splitting keys.
 
 ## Pure migration API
 

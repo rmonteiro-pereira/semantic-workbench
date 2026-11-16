@@ -282,3 +282,15 @@ an unapproved compaction design. T024 is reopened. The unsafe compactor and its 
 tests were removed; the counterexample remains a positive test of ordered replay. No store or
 writer uses compaction. The replay, declaration validation, record types and deterministic
 retention-cut helper remain available. T025/T026 still cover those implemented decisions.
+
+## Dependent adoption backed out
+
+The mapping/agent scope prototype was backed out at the same phase boundary as inspector
+adoption. Mapping graph, context assembly, their existing tests and the mapping browser check
+are restored byte-for-byte from approved base 655df09. The mapping mutation assertions were
+restored too; the new address mutation categories remain registered. This avoids partial
+adoption for unnamed or otherwise unaddressable scopes and leaves existing persisted UI keys
+and agent response fields untouched. The earlier successful prototype checks remain historical
+evidence; they do not complete T017. Prototype commits remain available for resuming after the
+root scope contract is settled. The working implementation now adds only shared pure APIs and
+their verification. No application writer, inspector or canvas uses addresses yet.

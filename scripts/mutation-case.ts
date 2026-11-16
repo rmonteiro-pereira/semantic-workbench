@@ -1140,15 +1140,9 @@ if (category === 'mapping-graph') {
       project: 'p',
     }));
   const ctx = (d: any[]) => buildContext(d, agentCatalog(d).mappings[0].id);
-  const context = ctx(docs());
-  const conceptKey = (name: string) => loadedModule.conceptId(context.ontology.address, name);
-  const datasetKey = (name: string) => loadedModule.datasetId(context.semanticModel.address, name);
-  const metricKey = (name: string) => loadedModule.metricId(context.semanticModel.address, name);
-  const fieldKey = (dataset: string, field: string) => loadedModule.fieldId(context.semanticModel.address, dataset, field);
-  const mappingGraph = loadedModule.buildMappingGraph(context);
-  const customerRelationship = mappingGraph.cards.get(conceptKey('Order')).columns.find((column: any) => column.path === 'customer').id;
+  const mappingGraph = loadedModule.buildMappingGraph(ctx(docs()));
   // Link Order.customer passes through the join fields.
-  assert.deepEqual(mappingGraph.edges.find((e: any) => e.kind === 'link' && e.from === customerRelationship).via, [fieldKey('orders', 'customer_id'), fieldKey('customers', 'customer_id')]);
+  assert.deepEqual(mappingGraph.edges.find((e: any) => e.kind === 'link' && e.from === 'concept:Order/customer').via, ['dataset:orders/customer_id', 'dataset:customers/customer_id']);
   // A field nothing reads is unmapped, a mapped one is not.
   const g2 = loadedModule.buildMappingGraph(
     ctx(
@@ -1157,7 +1151,7 @@ if (category === 'mapping-graph') {
       ),
     ),
   );
-  const orders = g2.cards.get(datasetKey('orders'));
+  const orders = g2.cards.get('dataset:orders');
   assert(orders.columns.find((c: any) => c.path === 'notes').badges.some((b: any) => b.label === 'Unmapped'));
   assert(!orders.columns.find((c: any) => c.path === 'order_id').badges.some((b: any) => b.label === 'Unmapped'));
   // A finding sits on the concept mapping it comes from.
@@ -1170,8 +1164,8 @@ if (category === 'mapping-graph') {
       ),
     ),
   );
-  assert((g3.cards.get(conceptKey('Order')).findings ?? []).join().includes('no_such_field'));
-  assert.deepEqual(g3.cards.get(conceptKey('Revenue')).findings ?? [], []);
+  assert((g3.cards.get('concept:Order').findings ?? []).join().includes('no_such_field'));
+  assert.deepEqual(g3.cards.get('concept:Revenue').findings ?? [], []);
   // A KPI binding's `of` is dashed `of`, not `measures`.
   const g4 = loadedModule.buildMappingGraph(
     ctx(
@@ -1187,12 +1181,12 @@ if (category === 'mapping-graph') {
   );
   assert.deepEqual(
     g4.edges
-      .filter((e: any) => e.to === metricKey('gross_revenue') && e.kind !== 'object')
+      .filter((e: any) => e.to === 'metric:gross_revenue' && e.kind !== 'object')
       .map((e: any) => [e.kind, e.from])
       .sort(),
     [
-      ['measures', conceptKey('Revenue')],
-      ['of', conceptKey('Customer')],
+      ['measures', 'concept:Revenue'],
+      ['of', 'concept:Customer'],
     ],
   );
 }

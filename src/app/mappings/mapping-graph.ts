@@ -1,7 +1,5 @@
 /** Turns resolved concept mappings into lineage cards and binding edges without reparsing the
  * mapping. */
-import { formatAddress, type Address } from '../../shared/core/item-address';
-import type { ItemKind } from '../../shared/core/address-kinds';
 import { OSSIE_BUILTINS } from '../../shared/mappings/ossie-builtins';
 import { badge, type BadgeInfo } from '../components/PropertyBadges';
 import type { LineageCard, LineageColumn, ColumnEdge, LineageGraph } from '../odcs/lineage';
@@ -32,8 +30,6 @@ type ConceptRef = { input: string; concept: string | null };
 export type MappingContext = {
   mappingId: string;
   name: string;
-  ontology: { address?: Address };
-  semanticModel: { address?: Address };
   mapping: { conceptMappings?: any[] };
   concepts: any[];
   bindings: Binding[];
@@ -71,18 +67,18 @@ export type MappingGraph = Omit<LineageGraph, 'cards' | 'edges'> & {
   // Where each finding message points (for Edit item).
   findingEvidence: Map<string, { documentId: string; path: (string | number)[] }>;
 };
-/** Formats a named child within its resolved definition scope. */
-function namedId(scope: Address, kind: ItemKind, name: string): string {
-  return formatAddress({ ...scope, chain: [...scope.chain, { kind, name }] });
-}
 /** Builds a graph identifier for an ontology concept. */
-export const conceptId = (scope: Address, name: string) => namedId(scope, 'concept', name);
+export const conceptId = (name: string) => `concept:${name}`;
 /** Builds a graph identifier for a semantic dataset. */
-export const datasetId = (scope: Address, name: string) => namedId(scope, 'dataset', name);
+export const datasetId = (name: string) => `dataset:${name}`;
 /** Builds a graph identifier for a semantic metric. */
-export const metricId = (scope: Address, name: string) => namedId(scope, 'metric', name);
+export const metricId = (name: string) => `metric:${name}`;
 /** Builds a graph identifier for a dataset field. */
-export const fieldId = (scope: Address, dataset: string, field: string) => formatAddress({ ...scope, chain: [...scope.chain, { kind: 'dataset', name: dataset }, { kind: 'field', name: field }] });
+export const fieldId = (dataset: string, field: string) => `${datasetId(dataset)}/${field}`;
+const fieldOf = (key: string) => {
+  const [d, f] = JSON.parse(key) as [string, string];
+  return fieldId(d, f);
+};
 const ansi = (x: any) => {
   const ds = x?.expression?.dialects ?? [];
   return (ds.find((d: any) => d.dialect === 'ANSI_SQL') ?? ds[0])?.expression;
@@ -94,35 +90,6 @@ const cmIndex = (path: (string | number)[]) => {
 };
 /** Builds mapping cards and binding edges from the resolver's context. */
 export function buildMappingGraph(context: MappingContext, revision = ''): MappingGraph {
-  const conceptKey = (name: string) => {
-    if (context.concepts.find(concept => concept.concept === name)?.builtin === true) return `builtin:${encodeURIComponent(name)}`;
-    if (!context.ontology.address) return `unresolved-concept:${encodeURIComponent(name)}`;
-    return conceptId(context.ontology.address, name);
-  };
-  const datasetKey = (name: string) => {
-    if (!context.semanticModel.address) return `unresolved-dataset:${encodeURIComponent(name)}`;
-    return datasetId(context.semanticModel.address, name);
-  };
-  const metricKey = (name: string) => {
-    if (!context.semanticModel.address) return `unresolved-metric:${encodeURIComponent(name)}`;
-    return metricId(context.semanticModel.address, name);
-  };
-  const fieldKey = (dataset: string, field: string) => {
-    if (!context.semanticModel.address) return `unresolved-field:${JSON.stringify([dataset, field])}`;
-    return fieldId(context.semanticModel.address, dataset, field);
-  };
-  const fieldOf = (key: string) => {
-    const [dataset, field] = JSON.parse(key) as [string, string];
-    return fieldKey(dataset, field);
-  };
-  const relationshipKey = (concept: string, path: string) => {
-    const definition = context.concepts.find(candidate => candidate.concept === concept);
-    if (context.ontology.address && definition?.relationships?.some((relationship: any) => relationship.name === path)) {
-      const scope = context.ontology.address;
-      return formatAddress({ ...scope, chain: [...scope.chain, { kind: 'concept', name: concept }, { kind: 'relationship', name: path }] });
-    }
-    return `mapping-row:${JSON.stringify([conceptKey(concept), path])}`;
-  };
   const cards = new Map<string, MappingCard>();
   const edges: MappingEdge[] = [];
   const findings: string[] = [];
@@ -150,17 +117,17 @@ export function buildMappingGraph(context: MappingContext, revision = ''): Mappi
   // Cards: every ontology concept (built-in value types only when the mapping draws a line to
   // them), every dataset with its fields, metrics as lines reach them.
   const conceptCard = (name: string, missing = false): MappingCard => {
-    let card = cards.get(conceptKey(name));
+    let card = cards.get(conceptId(name));
     if (card) return card;
     const def = concepts.get(name);
     card = {
-      id: conceptKey(name),
+      id: conceptId(name),
       kind: 'concept' as any,
       label: name,
       file: context.mappingId,
       detail: def?.type ?? (missing ? 'not in the ontology' : undefined),
       columns: (def?.relationships ?? []).map((relationship: any): LineageColumn => ({
-        id: relationshipKey(name, relationship.name),
+        id: `${conceptId(name)}/${relationship.name}`,
         path: relationship.name,
         type: relationship.roles?.map((x: any) => x.concept).join(', ') || undefined,
         badges: [],
@@ -172,25 +139,25 @@ export function buildMappingGraph(context: MappingContext, revision = ''): Mappi
   };
   for (const concept of context.concepts) if (!builtin(concept.concept)) conceptCard(concept.concept);
   for (const dataset of context.datasets)
-    cards.set(datasetKey(dataset.name), {
-      id: datasetKey(dataset.name),
+    cards.set(datasetId(dataset.name), {
+      id: datasetId(dataset.name),
       kind: 'dataset',
       label: dataset.name,
       file: context.mappingId,
       detail: typeof dataset.source === 'string' ? dataset.source : undefined,
       columns: (dataset.fields ?? []).map((field: any): LineageColumn => ({
-        id: fieldKey(dataset.name, field.name),
+        id: fieldId(dataset.name, field.name),
         path: field.name,
         type: field.datatype ?? undefined,
         badges: [],
       })),
     });
   const metricCard = (name: string): MappingCard => {
-    let card = cards.get(metricKey(name));
+    let card = cards.get(metricId(name));
     if (card) return card;
     const metric = context.metrics.find(x => x.id === name);
     card = {
-      id: metricKey(name),
+      id: metricId(name),
       kind: 'metric',
       label: name,
       file: context.mappingId,
@@ -204,7 +171,7 @@ export function buildMappingGraph(context: MappingContext, revision = ''): Mappi
   };
   const row = (concept: string, path: string) => {
     const card = conceptCard(concept, !concepts.has(concept));
-    const id = relationshipKey(concept, path);
+    const id = `${card.id}/${path}`;
     if (!card.columns.some(x => x.id === id)) card.columns.push({ id, path, badges: [] });
     return id;
   };
@@ -297,7 +264,7 @@ export function buildMappingGraph(context: MappingContext, revision = ''): Mappi
           });
         if (ident.has(binding.relationships[0])) for (const field of binding.fields) identifying.add(fieldOf(field));
         for (const field of binding.fields) {
-          const datasetCardId = datasetKey(JSON.parse(field)[0]);
+          const datasetCardId = datasetId(JSON.parse(field)[0]);
           (datasets.get(datasetCardId) ?? datasets.set(datasetCardId, []).get(datasetCardId)!).push(binding.id);
         }
       } else
@@ -326,10 +293,10 @@ export function buildMappingGraph(context: MappingContext, revision = ''): Mappi
       const fc = j.from_columns ?? [];
       const tc = j.to_columns ?? [];
       fc.forEach((c: string, i: number) => {
-        if (fieldKey(j.from, c) === field && tc[i]) out.push(fieldKey(j.to, tc[i]));
+        if (fieldId(j.from, c) === field && tc[i]) out.push(fieldId(j.to, tc[i]));
       });
       tc.forEach((c: string, i: number) => {
-        if (fieldKey(j.to, c) === field && fc[i]) out.push(fieldKey(j.from, fc[i]));
+        if (fieldId(j.to, c) === field && fc[i]) out.push(fieldId(j.from, fc[i]));
       });
     }
     return out;
@@ -435,14 +402,11 @@ export function buildMappingGraph(context: MappingContext, revision = ''): Mappi
 /** Chooses the concept card with the most mapping connections. */
 export function defaultMappingCenter(mappingGraph: MappingGraph) {
   const count = new Map<string, number>();
-  const rowOwners = new Map([...mappingGraph.cards.values()].flatMap(card => card.columns.map(column => [column.id, card.id] as const)));
-  const owner = (node: string) => (mappingGraph.cards.has(node) ? node : (rowOwners.get(node) ?? node));
+  const owner = (n: string) => (mappingGraph.cards.has(n) ? n : n.slice(0, n.lastIndexOf('/')));
   for (const edge of mappingGraph.edges)
     for (const name of [edge.from, edge.to]) {
       const ownerCard = owner(name);
       if ((mappingGraph.cards.get(ownerCard)?.kind as string) === 'concept') count.set(ownerCard, (count.get(ownerCard) ?? 0) + 1);
     }
-  // Escaping a key must not change the previous name-based tie order.
-  const ranked = [...count].sort((left, right) => right[1] - left[1] || mappingGraph.cards.get(left[0])!.label.localeCompare(mappingGraph.cards.get(right[0])!.label));
-  return ranked[0]?.[0] ?? [...mappingGraph.cards.keys()][0] ?? '';
+  return [...count].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0]?.[0] ?? [...mappingGraph.cards.keys()][0] ?? '';
 }
