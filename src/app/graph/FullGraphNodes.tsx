@@ -6,6 +6,7 @@ import { pointAtHalf, roundedPath, type Point } from '../odcs/edge-route';
 import { pathMatchesEndpoints } from './edge-path';
 import { edgeAppearance } from './edge-styles';
 import { RoutedEdge } from './RoutedEdge';
+import { EntityName } from './EntityName';
 import { shownName } from './text-fit';
 
 const sides = [
@@ -34,7 +35,7 @@ export const EntityNode = memo(({ data }: NodeProps) => (
         Metric
       </small>
     )}
-    <strong style={{ '--entity-name-cap': data.nameCap } as React.CSSProperties}>{shownName(String(data.name))}</strong>
+    <EntityName name={shownName(String(data.name))} style={{ '--entity-name-cap': data.nameCap } as React.CSSProperties} />
     {!!data.collapsedArea && (
       <small>
         {String(data.internalCount ?? 0)} internal relationship
@@ -52,8 +53,8 @@ export const EntityNode = memo(({ data }: NodeProps) => (
 export const AreaNode = memo(({ data }: NodeProps) => (
   <div className="full-area-title" title={String(data.name)} style={{ '--area-title-cap': data.titleCap } as React.CSSProperties}>
     <span style={{ background: String(data.color) }} />
-    <strong>{String(data.name)}</strong>
-    <small>{String(data.count)} entities</small>
+    <EntityName name={String(data.name)} />
+    {!data.collapsed && <small>{String(data.count)} entities</small>}
     {Boolean(data.linksText) && <em className="area-links">{String(data.linksText)}</em>}
   </div>
 ));

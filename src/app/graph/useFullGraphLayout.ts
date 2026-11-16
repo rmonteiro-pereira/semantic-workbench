@@ -40,7 +40,10 @@ type LayoutInputs = {
 
 function nodeData(node: LayoutResult['nodes'][number], group: Group | undefined, entityById: Map<string, Entity>, display: Display) {
   if (node.group) {
-    return areaTileData({ name: group!.name, color: group!.color, entityCount: group!.entities.length }, node.width);
+    return {
+      ...areaTileData({ name: group!.name, color: group!.color, entityCount: group!.entities.length }, node.width),
+      collapsed: display.entities.some(entity => entity.definition?.collapsedArea === node.group),
+    };
   }
   const entity = entityById.get(node.id);
   const collapsedArea = entity?.definition?.collapsedArea;

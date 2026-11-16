@@ -62,7 +62,7 @@ export function useFullGraphEdges({ connections, positions, selectedEdge, focus,
           position.y * viewport.zoom + viewport.y < size.height + 30;
         const routeDetailed = !dragging && connection.source !== connection.target && (active || adjacent || (viewport.zoom >= 0.35 && visible(fromPosition) && visible(toPosition)));
         let label: string | undefined;
-        if (labels || active || hoverEdge === connection.id) {
+        if ((labels && (viewport.zoom >= 0.75 || adjacent)) || active || hoverEdge === connection.id) {
           if (connection.data.relationships.length > 1) {
             label = `${connection.data.relationships.length} relationships`;
           } else {

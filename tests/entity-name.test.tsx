@@ -21,7 +21,7 @@ test.each([80, 100, 120, 160])('long graph names have no orphan suffix at %ipx',
           display: block;
           width: ${width}px;
           font: 600 14px/20px sans-serif;
-          overflow-wrap: anywhere;
+          overflow-wrap: normal;
         }
       </style>
       ${title}
@@ -47,4 +47,9 @@ test.each([80, 100, 120, 160])('long graph names have no orphan suffix at %ipx',
   } finally {
     await page.close();
   }
+});
+
+test('identifier boundaries preserve complete words', () => {
+  expect(renderToStaticMarkup(<EntityName name="DocumentReference" />)).toContain('Document<wbr/>Reference');
+  expect(renderToStaticMarkup(<EntityName name="XMLParser" />)).toContain('XML<wbr/>Parser');
 });
