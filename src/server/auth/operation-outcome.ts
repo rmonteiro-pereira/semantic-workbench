@@ -1,11 +1,18 @@
 // Classifiers see a bounded copy after existence hiding has been settled.
 /** Semantic result of an authorized operation. */
-export type OperationOutcome = 'ok' | 'refused' | 'failed' | 'degraded';
+export type OperationOutcome = (typeof OPERATION_OUTCOMES)[number];
+/** Closed outcomes accepted by audit classification and operation metrics. */
+export const OPERATION_OUTCOMES = ['ok', 'refused', 'failed', 'degraded'] as const;
 /** Classifies a bounded response without consuming the caller's response. */
 export type OutcomeClassifier = (response: Response) => OperationOutcome | Promise<OperationOutcome>;
 /** Maximum bytes buffered for semantic classification. */
 export const MAX_CLASSIFIED_RESPONSE_BYTES = 1_000_000;
-const outcomes: readonly OperationOutcome[] = ['ok', 'refused', 'failed', 'degraded'];
+/** Maps a handler status or an access refusal without changing legacy allowed-call audit outcomes. */
+export function statusOutcome(status: number, accessRefusal = false): OperationOutcome {
+  if (accessRefusal && [401, 403, 404].includes(status)) return 'refused';
+  if (status >= 200 && status < 300) return 'ok';
+  return [409, 412, 428].includes(status) ? 'refused' : 'failed';
+}
 
 async function boundedCopy(response: Response): Promise<Response> {
   if (response.headers.get('Content-Type')?.includes('text/event-stream')) throw Error('Stream responses cannot be classified.');
@@ -32,7 +39,7 @@ async function boundedCopy(response: Response): Promise<Response> {
 export async function classifyOutcome(response: Response, classifier: OutcomeClassifier): Promise<OperationOutcome> {
   try {
     const result = await classifier(await boundedCopy(response));
-    return outcomes.includes(result) ? result : 'failed';
+    return OPERATION_OUTCOMES.includes(result) ? result : 'failed';
   } catch {
     // Classification cannot turn a completed operation into a retryable failure response.
     return 'failed';

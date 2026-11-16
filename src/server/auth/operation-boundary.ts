@@ -4,7 +4,7 @@ import { emptyAccessConfig } from './access-config';
 import { operationClassifiers } from './operation-classifiers';
 import { recordOperation } from '../observability/metrics';
 import { withSpan } from '../observability/tracing';
-import { classifyOutcome, type OperationOutcome, type OutcomeClassifier } from './operation-outcome';
+import { classifyOutcome, statusOutcome, type OperationOutcome, type OutcomeClassifier } from './operation-outcome';
 import type { Workspace } from '../projects/workspace';
 import { readableTrash, restoreAction } from '../projects/trash';
 import type { RemoteCredentials } from './remote-credentials';
@@ -25,7 +25,7 @@ import { auditDenial, agentRefusal } from './refusal';
 
 /** Dependencies needed to decide and execute authenticated operations. */
 export type OperationBoundaryOptions = {
-  mode: 'local' | 'server';
+  mode?: 'local' | 'server';
   access: AccessControl;
   audit: AuditLog;
   remoteCredentials?: RemoteCredentials;
@@ -48,12 +48,6 @@ function auditScope(scope: AccessScope, ws: Workspace): Set<string> | null {
 function projectSlugs(ws: Workspace): string[] {
   return ws.state.registry().projects.map(project => project.slug);
 }
-function outcome(status: number): 'ok' | 'refused' | 'failed' {
-  if (status >= 200 && status < 300) return 'ok';
-  if ([409, 412, 428].includes(status)) return 'refused';
-  return 'failed';
-}
-
 /** Selects denials, explicitly audited routes, and operations other than ordinary reads. */
 export function shouldAudit(row: RouteAction, method: string, decision: 'allow' | 'deny', origin: CallerOrigin = 'http'): boolean {
   if (decision === 'deny' || origin !== 'http') return true;
@@ -280,7 +274,7 @@ export function createOperationBoundary(ws: Workspace, options: OperationBoundar
       });
       return failure ?? Response.json({ error: 'Not found.' }, { status: 404 });
     }
-    const semanticOutcome = classifier ? await classifyOutcome(response, classifier) : outcome(response.status);
+    const semanticOutcome = classifier ? await classifyOutcome(response, classifier) : statusOutcome(response.status);
     if (observation) observation.outcome = semanticOutcome;
     if (shouldAudit(row, request.method, 'allow', caller.origin)) {
       try {
@@ -325,8 +319,8 @@ export function createOperationBoundary(ws: Workspace, options: OperationBoundar
     const classifier = call.outcome ?? (caller.origin !== 'http' && entry?.outcomeClassifier ? operationClassifiers[entry.outcomeClassifier] : undefined);
     const invoke = () => execute(request, requestId, { row, resource: row.resource(found.match, url) }, caller, audit, classifier, observation);
     const response = caller.origin === 'http' ? await invoke() : await withSpan('operation.' + entry!.id, { attributes: { origin: caller.origin, operation: entry!.id } }, invoke);
-    const statusOutcome = [401, 403, 404].includes(response.status) ? 'refused' : outcome(response.status);
-    recordOperation(caller.origin, entry!.id, observation.outcome ?? statusOutcome, performance.now() - started);
+    const responseOutcome = statusOutcome(response.status, true);
+    recordOperation(caller.origin, entry!.id, observation.outcome ?? responseOutcome, performance.now() - started);
     return { response, requestId };
   }
   /** Records one protocol interaction independently of returned item count. */

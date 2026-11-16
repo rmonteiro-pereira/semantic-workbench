@@ -1,9 +1,10 @@
 // Runtime provenance distinguishes authenticated callers from structural TypeScript copies.
 import type { Principal } from './principal';
 import type { Session } from './sessions';
+import { CALLER_ORIGINS, type OperationEffect } from './operation-inventory';
 
 /** Transport that authenticated one operation's caller. */
-export type CallerOrigin = 'http' | 'mcp' | 'acp';
+export type CallerOrigin = (typeof CALLER_ORIGINS)[number];
 
 /** Authenticated identity and connection context, created by authentication code. */
 export type Caller = Readonly<{
@@ -12,7 +13,7 @@ export type Caller = Readonly<{
   sourceIp?: string;
   session?: Session | null;
   connection?: string;
-  scope?: readonly ('read' | 'localWrite' | 'commit' | 'remote' | 'publish' | 'administration' | 'destroy' | 'credential')[];
+  scope?: readonly OperationEffect[];
 }>;
 
 const minted = new WeakSet<Caller>();
