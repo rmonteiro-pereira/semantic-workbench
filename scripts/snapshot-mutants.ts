@@ -21,4 +21,10 @@ export const snapshotMutants: [string, string, string, string][] = [
     'for (const validate of checks) await validate(candidate);',
     'context.publication?.pointers.complete(repo, branch, next);\n  for (const validate of checks) await validate(candidate);',
   ],
+  [
+    'snapshot-inventory',
+    'src/server/auth/route-actions.ts',
+    "...row('GET', '/api/agent/catalog', 'read', workspace),\n    readSource: 'published',",
+    "...row('GET', '/api/agent/catalog', 'read', workspace),",
+  ],
 ];

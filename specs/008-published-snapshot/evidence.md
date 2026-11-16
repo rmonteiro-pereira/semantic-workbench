@@ -102,3 +102,9 @@ is necessary: a persisted recoverable intent must represent a validated candidat
 then intent, ref compare-and-swap, pointer, resolver supersede and checkout refresh. Only this ordering
 fragment of the task was corrected; its restart proof runs at all three requested interruption points.
 The existing publishing safety tests live under tests/auth/, rather than the flat path named by the task.
+
+## Read-source inventory
+
+`bun test tests/auth/route-actions.test.ts`: 7 pass, 0 fail, 358 expect() calls.
+Content-producing inventory rows explicitly declare their source. The registered mutant deleting
+the catalog declaration fails the focused inventory assertion; its baseline passes.

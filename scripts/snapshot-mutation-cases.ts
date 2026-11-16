@@ -1,5 +1,6 @@
 // Focused assertions for immutable publication faults.
 import assert from 'node:assert/strict';
+import type { RouteAction } from '../src/server/auth/route-actions';
 import type { createWorktrees } from '../src/server/projects/worktrees';
 import { publicationMoveFixture } from '../tests/helpers/publication-fixture';
 import type { surfaceFromCredential } from '../src/server/auth/request-surface';
@@ -20,6 +21,7 @@ export async function snapshotMutationCase(
   candidate: {
     surfaceFromCredential?: typeof surfaceFromCredential;
     createWorktrees?: typeof createWorktrees;
+    ROUTE_ACTIONS?: RouteAction[];
     classify?: typeof classify;
     publicationChecks?: typeof publicationChecks;
     createPublishedSnapshots?: typeof createPublishedSnapshots;
@@ -41,6 +43,9 @@ export async function snapshotMutationCase(
     } finally {
       fixture.fixture.dispose();
     }
+  }
+  if (category === 'snapshot-inventory') {
+    assert.equal(candidate.ROUTE_ACTIONS!.find(row => row.path === 'GET /api/agent/catalog')?.readSource, 'published');
   }
   if (category === 'snapshot-pointer') {
     const pointer = { branch: 'main', commit: 'a'.repeat(40) };

@@ -111,3 +111,11 @@ test('server pages have a real read row for GET and HEAD only', () => {
   }
   expect(routeFor('POST', '/catalog', 'server')).toBeNull();
 });
+
+test('every content-producing route declares its definition source', () => {
+  const content =
+    /(?:\/agent\/(?:catalog|context|plan)|\/metrics(?:\/preview)?$|\/kpis\/preview$|\/explain\/|\/files\/\*$|\/projects\/:slug\/export$|\/documents$|\/drafts(?:\/|$)|\/git\/(?:show|versions|diff)$)/;
+  for (const row of ROUTE_ACTIONS.filter(row => content.test(row.path))) {
+    expect(row.readSource, row.path).toBeDefined();
+  }
+});
