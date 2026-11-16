@@ -123,3 +123,38 @@ The `read-agent` mutation now exercises the extracted route with an attached aut
 its baseline passes and the unfiltered-document mutant fails. The two `export-access` cases keep
 the new source declaration in their anchors; both baselines pass and both mutants fail.
 The initial full mutation retry stopped at these two orphaned anchors, before executing mutants.
+
+## Scoped architecture review and fixes
+
+The independent architecture review covered completed foundation work only, not the remaining stories.
+Its ranked findings were corrected and the reviewer confirmed no remaining blocker in that scope:
+
+- Unknown detached defaults keep the workspace usable without a snapshot.
+- Publication refuses an outside ref move before guards, retaining the durable commit as validation baseline.
+- Server startup validates dirty local state before any forced checkout repair.
+- Registry layouts are captured per pin; later pins see changes and prior pins keep their original scope.
+- Snapshot parsing reuses the current copy's matching cache entry before checking other copies.
+
+`bun test tests/published-initialization.test.ts tests/published-snapshot.test.ts tests/publishing.test.ts tests/snapshot-index.test.ts tests/auth/published-checkout.test.ts`:
+28 pass, 0 fail, 152 expect() calls.
+The resolver cases also prove eviction across publications with no reads and no-Git refusal
+when a durable pointer already exists. The focused mutation runner passes every baseline and detects
+all registered snapshot mutants, including the review fixes.
+
+All registry writers were inspected: import, clone, project/folder registration, rename and trash
+changes settle through the existing registry lock. Its completion refreshes the resolver's in-memory
+registry; taking a pin does not read the registry file.
+
+## Validation tooling
+
+`bun --bun run check`: exit 0; all TypeScript, formatting, lint, comments, theme and brand checks pass.
+`bun --bun run build`: exit 0; `✓ built in 2.50s`. The existing large-chunk warning remains.
+The readability checker and documentation-sync checker exit 0 for the changed implementation.
+`python3 scripts/commit_cadence.py .` cannot run because this checkout has no such script.
+The public documentation leak scan passes README, architecture, changelog, server-mode and
+agent-runtime pages. The configuration page retains its existing documented cache-path example,
+which the scanner classifies as a local path; that pre-existing example was not removed.
+
+`bun test`: 2134 pass, 0 fail, 131043 expect() calls;
+`Ran 2134 tests across 294 files. [359.26s]`.
+The preceding run also passed (2132 tests); this fresh run includes the two latest resolver cases.
