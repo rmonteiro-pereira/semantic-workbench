@@ -327,7 +327,9 @@ costs, see [observability operations](openwiki/observability-operations.md).
 
 Operational logging is separate from the security audit. Server mode writes JSON lines to stdout;
 local mode writes readable lines. `SW_LOG_LEVEL` selects the level. Request IDs link API responses,
-operational records and audit entries. Actors are pseudonyms, not names or e-mail addresses.
+operational records and audit entries. Successful agent reads add the pinned `snapshotCommit`
+to the request log; this field carries only the full Git id. Actors are pseudonyms, not names or
+e-mail addresses.
 Free-text stdout redaction is best effort; the telemetry export field allow-list is stricter.
 
 Telemetry is off by default and never exports in local mode. In server mode, a valid

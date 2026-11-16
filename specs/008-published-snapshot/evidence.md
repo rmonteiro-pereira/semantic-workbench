@@ -255,3 +255,9 @@ The mutant loading availability before project authorization is detected (baseli
 definitions for browser calls and committed definitions otherwise, with no agent snapshot header.
 The always-editing mutant is detected (baseline 0, mutant 1). Existing UI-oriented HTTP fixtures
 now explicitly send browser fetch metadata rather than depending on the old implicit source.
+
+## Snapshot request logging
+
+`TMPDIR=/tmp/sw-008 bun test tests/observability/request-log.test.ts tests/observability/redaction.test.ts`:
+26 pass, 0 fail, 62 assertions. The finished request carries the header commit and the exact existing
+field set plus `snapshotCommit`; no content, path or project name is added.

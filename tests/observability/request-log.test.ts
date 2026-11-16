@@ -155,3 +155,23 @@ test('a separate logger does not disturb the configured one', () => {
   expect(own).toHaveLength(1);
   expect(lines).toHaveLength(0);
 });
+
+test('production reads log only the pinned commit alongside existing request fields', async () => {
+  const { authWorkspace } = await import('../helpers/auth-workspace');
+  using fixture = await authWorkspace();
+  const access = createAccessControl(accessFixture());
+  const handler = createHandler(fixture.ws, {
+    mode: 'server',
+    remoteCredentials: allowEveryRemote(),
+    publicOrigin: 'http://localhost',
+    access,
+    principal: () => access.principalFor(person('alice')),
+  });
+  const response = await handler(request('/api/agent/catalog?project=sales-contracts'));
+  expect(response.status).toBe(200);
+  const finished = records.find(record => record.event === 'http.request' && record.fields.requestId === response.headers.get('X-Request-Id'))!;
+  expect(finished.fields.snapshotCommit).toBe(response.headers.get('X-Workbench-Snapshot'));
+  expect(finished.fields.snapshotCommit).toMatch(/^[0-9a-f]{40,64}$/);
+  expect(Object.keys(finished.fields).sort()).toEqual(['actor', 'durationMs', 'method', 'requestId', 'route', 'snapshotCommit', 'status']);
+  expect(JSON.stringify(finished.fields)).not.toContain('sales-contracts');
+});

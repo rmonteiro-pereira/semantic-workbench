@@ -40,13 +40,15 @@ export async function observeRequest(observed: ObservedRequest): Promise<Respons
     withSpan(`${method} ${route}`, { kind: SpanKind.SERVER }, async span => {
       const started = performance.now();
       let status = 500;
+      let snapshotCommit: string | undefined;
       try {
         const response = await observed.handle();
         status = response.status;
+        snapshotCommit = response.headers.get('X-Workbench-Snapshot') ?? undefined;
         return response;
       } finally {
         const durationMs = Math.round(performance.now() - started);
-        finishRequest(span, { method, route, status, durationMs, actor: context.actor });
+        finishRequest(span, { method, route, status, durationMs, actor: context.actor, snapshotCommit });
       }
     }),
   );
@@ -58,6 +60,7 @@ type Finished = {
   status: number;
   durationMs: number;
   actor?: string;
+  snapshotCommit?: string;
 };
 
 function finishRequest(span: Span, finished: Finished): void {
@@ -70,5 +73,5 @@ function finishRequest(span: Span, finished: Finished): void {
     'sw.actor': actor,
   });
   recordRequest(route, method, status, durationMs);
-  log[levelForStatus(status)]('http.request', { method, route, status, durationMs, actor });
+  log[levelForStatus(status)]('http.request', { method, route, status, durationMs, actor, ...(finished.snapshotCommit ? { snapshotCommit: finished.snapshotCommit } : {}) });
 }
