@@ -4,16 +4,20 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 const targetCompensation = 'Math.max(24, 24 / zoom)';
+const nameCompensation = 'Math.max(CARD_NAME_PX, NAME_MIN_PX / zoom)';
 const reachDecision = '(right - left) * zoom + margin * 2 <= view.width && (bottom - top) * zoom + margin * 2 <= view.height';
 const source = await Bun.file(resolve(process.cwd(), 'src/app/odcs/lineage-view.ts')).text();
 const candidate = source
   .replace('Math.max(24, 24 / zoom)', targetCompensation)
+  .replace('Math.max(CARD_NAME_PX, NAME_MIN_PX / zoom)', nameCompensation)
   .replace('(right - left) * zoom + margin * 2 <= view.width && (bottom - top) * zoom + margin * 2 <= view.height', reachDecision);
 const temporary = await mkdtemp('/tmp/sw-B-lineage-case-');
 try {
   const path = resolve(temporary, 'lineage-view.ts');
   await writeFile(path, candidate);
-  const { walkTargetSize, fitsReadableView } = await import(path);
+  const { walkTargetSize, fitsReadableView, overviewNameSize } = await import(path);
+  assert.equal(overviewNameSize(1), 14);
+  assert.equal(overviewNameSize(0.1) * 0.1, 9);
   assert.equal(walkTargetSize(0.5, 360), 48);
   assert.equal(walkTargetSize(0.05, 360), null);
   const cards = [{ x: 0, y: 0, width: 360, height: 200 }];
