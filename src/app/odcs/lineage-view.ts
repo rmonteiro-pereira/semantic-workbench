@@ -86,3 +86,9 @@ export function planFirstView(plan: Plan): Set<string> {
   }
   return chosen;
 }
+
+/** Keeps a walk target usable without making it wider than its card. */
+export function walkTargetSize(zoom: number, cardWidth: number): number | null {
+  const size = Math.max(24, 24 / zoom);
+  return size <= cardWidth ? size : null;
+}

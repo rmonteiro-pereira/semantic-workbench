@@ -1,8 +1,9 @@
 /** Renders asset columns with row ports, path highlights and controls for hidden columns and
  * neighbors. */
 import React, { memo } from 'react';
-import type { NodeProps } from '@xyflow/react';
+import { useStore, type NodeProps } from '@xyflow/react';
 import { AlertTriangle, ExternalLink, Footprints, Minus, Plus } from 'lucide-react';
+import { walkTargetSize } from './lineage-view';
 import { KindIcon, KIND_LABEL } from './LineageLegend';
 import { moreRowId, type LineageCard as Card, type LineageColumn } from './lineage';
 import { CARD_W, MORE_H, cardHeaderHeight, cardGeometry, columnHeight, portY } from './lineage-layout';
@@ -46,6 +47,8 @@ const KIND_NAME: Record<string, string> = {
 
 /** Renders an asset card with row ports, a scrolling column list and neighbor expansion. */
 export const LineageCardNode = memo(({ data }: NodeProps) => {
+  const zoom = useStore(state => state.transform[2]);
+  const walkSize = walkTargetSize(zoom, CARD_W);
   const cardData = data as unknown as CardData;
   const lineageCard = cardData.card;
   const dim = !!cardData.onPath && !cardData.onPath.has(lineageCard.id) && !lineageCard.columns.some(x => cardData.onPath!.has(x.id));
@@ -107,9 +110,15 @@ export const LineageCardNode = memo(({ data }: NodeProps) => {
           </span>
         ) : null}
         <span className="lineage-card-actions nodrag">
-          {!cardData.center && !cardData.group && (
-            <button aria-label="Walk here" title="Walk here (re-center)" onClick={() => cardData.onWalk(lineageCard.id)}>
-              <Footprints size={13} />
+          {!cardData.center && !cardData.group && walkSize !== null && (
+            <button
+              className="lineage-walk-target"
+              style={{ width: walkSize, height: walkSize, padding: 0 }}
+              aria-label="Walk here"
+              title="Walk here (re-center)"
+              onClick={() => cardData.onWalk(lineageCard.id)}
+            >
+              <Footprints size={13 / zoom} />
             </button>
           )}
           {cardData.expanded && cardData.onCollapse ? (
