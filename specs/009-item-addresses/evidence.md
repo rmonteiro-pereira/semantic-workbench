@@ -552,4 +552,10 @@ Proof: reconciliation and migration-store tests — 11 pass, 0 fail, 144 asserti
 
 A local bare-remote SCM fixture performs a real pull of an external item rename and switches between the original and renamed branches. Neither operation records history. Switching back restores resolution of the original locator without applying stale changes. The independent diff consumer reports remove/add until reconciliation, then one rename, and preserves a resolving original after undo.
 
-Proof: external-change and toy-consumer tests — 4 pass, 0 fail, 52 assertions. No network remote is involved.
+Proof: external-change and toy-consumer tests — 4 pass, 0 fail, 49 assertions. No network remote is involved.
+
+### Caller-aware resolution
+
+Hidden projects, absent projects outside the reader's view, guarded paths and malformed locators return exactly `{status: 'missing'}` with zero project, file or store reads. Visible current items bypass history; missing items replay only visible prefixes, and deletion terminates replay before a reused destination can inherit history. Results omit private source text. The absent unrestricted-project check opens no definition or history file. Opaque snapshot text survives replay; the interim resolver reads current definitions until feature 008 supplies version lookup.
+
+Proof: resolution and reconciliation tests — 6 pass, 0 fail, 34 assertions; TypeScript passes. The semantic fixture needed its actual format version to exercise semantic-model resolution rather than format detection.

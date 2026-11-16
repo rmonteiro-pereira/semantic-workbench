@@ -1,7 +1,8 @@
 /** Resolves structured items only after the caller's project and path visibility checks. */
 import { inspect } from '../../shared/core/model';
 import { resolveInModel, type AddressedItem } from '../../shared/core/model-addresses';
-import type { Address } from '../../shared/core/item-address';
+import { formatAddress, hasPrefix, parseAddress, replacePrefix, type Address } from '../../shared/core/item-address';
+import type { MigrationRecord } from '../../shared/core/address-migration';
 import { InputError } from '../../shared/validation/diagnostics';
 import { NotFoundError } from './errors';
 import { assertSlug, projectPath, PathError } from './paths';
@@ -34,4 +35,45 @@ export function resolveCurrentItem(context: AddressReadContext, address: Address
     if (error instanceof NotFoundError || error instanceof InputError || error instanceof PathError) return { status: 'missing' };
     throw error;
   }
+}
+
+/** Supplies history already filtered by the same reader used for definition reads. */
+export type AddressResolutionContext = AddressReadContext & {
+  readMigrations: (project: string, reader: Reader) => readonly MigrationRecord[];
+};
+/** Returns no source text or hidden locator details in a missing result. */
+export type CallerResolution = { status: 'found'; address: string; item: AddressedItem } | { status: 'ambiguous'; items: AddressedItem[] } | { status: 'missing' };
+
+function readable(address: Address, reader: Reader): boolean {
+  if (!address.project || !address.document) return false;
+  return !reader.view || (reader.view.readableProjects.has(address.project) && reader.view.canRead(address.project, address.document.join('/')));
+}
+
+function publicResult(result: CurrentItemResolution, address: Address): CallerResolution {
+  if (result.status === 'found') return { status: 'found', address: formatAddress(address), item: result.item };
+  return result;
+}
+
+/** Resolves visible current locators first and only then replays visible ordered migration prefixes. */
+export function resolveForCaller(context: AddressResolutionContext, text: string, reader: Reader): CallerResolution {
+  const parsed = parseAddress(text);
+  if (!parsed.ok || parsed.address.form !== 'absolute' || !parsed.address.chain.length || !readable(parsed.address, reader)) return { status: 'missing' };
+  let address = parsed.address;
+  const current = resolveCurrentItem(context, address, reader);
+  if (current.status !== 'missing') return publicResult(current, address);
+  if (!context.projectExists(address.project!)) return { status: 'missing' };
+  const records = context.readMigrations(address.project!, reader);
+  const applied = new Set<string>();
+  for (const record of records) {
+    if (applied.has(record.id)) continue;
+    applied.add(record.id);
+    const from = parseAddress(record.from);
+    if (!from.ok || !readable(from.address, reader) || !hasPrefix(address, from.address)) continue;
+    if (record.kind === 'deleted') return { status: 'missing' };
+    const to = parseAddress(record.to ?? '');
+    if (!to.ok || !readable(to.address, reader)) continue;
+    address = replacePrefix(address, from.address, to.address);
+  }
+  if (formatAddress(address) === text) return { status: 'missing' };
+  return publicResult(resolveCurrentItem(context, address, reader), address);
 }

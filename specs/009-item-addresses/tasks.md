@@ -217,7 +217,7 @@ changes.
 
 ## Phase 8: User Story 6, hidden equals missing (adoption step 6)
 
-- [ ] T037 [US6] Write the server resolver `resolveForCaller` in
+- [x] T037 [US6] Write the server resolver `resolveForCaller` in
   `src/server/projects/address-resolution.ts`: unreadable project returns the missing result
   without opening project data; migration reads filtered by the reader. Proof:
   `tests/address-hidden-missing.test.ts` comparing responses and the set of files opened (a spy on

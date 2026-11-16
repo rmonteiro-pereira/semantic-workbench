@@ -1,3 +1,5 @@
+import { readAddressMigrations } from './address-migrations';
+import { resolveForCaller } from './address-resolution';
 import { recordReconciliation, type ReconciliationRequest } from './address-reconciliation';
 import { convertAddressKeys } from './address-key-conversion';
 import { inspect } from '../../shared/core/model';
@@ -709,6 +711,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     registrySteps,
     readFile,
     saveFile,
+    resolveAddress: (address: string, reader: Reader) => resolveForCaller({ ...addressReads, readMigrations: (project, caller) => readAddressMigrations(layout, project, caller) }, address, reader),
     reconcileAddress: (request: Request, declaration: ReconciliationRequest) => recordReconciliation(addressReconciliation, request, declaration),
     saveFiles: documentSave.saveFiles,
     documents: () => documentsFor(LOCAL_READER),
