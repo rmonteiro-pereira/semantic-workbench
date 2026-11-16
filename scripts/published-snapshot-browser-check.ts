@@ -1,5 +1,5 @@
 // Checks publication controls using isolated definitions and mocked publication responses.
-import { chromium, expect, type Page } from '@playwright/test';
+import { chromium, expect, type Page, type Locator } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { appUrl } from './helpers/base-url';
@@ -22,6 +22,20 @@ const sizes = [
   [1920, 1080],
   [2560, 1440],
 ];
+async function assertPublicationGeometry(page: Page, publication: Locator, name: string) {
+  for (const [width, height] of sizes) {
+    await page.setViewportSize({ width, height });
+    const geometry = await publication.evaluate(element => {
+      const box = element.getBoundingClientRect();
+      return { left: box.left, right: box.right, overflow: element.scrollWidth > element.clientWidth + 1, viewport: innerWidth };
+    });
+    expect(geometry.left).toBeGreaterThanOrEqual(0);
+    expect(geometry.right).toBeLessThanOrEqual(geometry.viewport);
+    expect(geometry.overflow).toBe(false);
+    await capture(page, name);
+  }
+}
+
 const commit = 'a'.repeat(40);
 const next = 'b'.repeat(40);
 const api = await startIsolatedApi({ watch: false });
@@ -79,7 +93,7 @@ try {
     const publication = page.getByLabel('Published snapshot');
     await expect(publication).toContainText('Published: main @ aaaaaaa');
     await expect(publication).toContainText('1 ahead');
-    await capture(page, `${mode}-snapshot-notice`);
+    await assertPublicationGeometry(page, publication, `${mode}-snapshot-notice`);
     await publication.getByRole('button', { name: 'Got it' }).click();
     await expect(publication.getByRole('button', { name: 'Got it' })).toHaveCount(0);
     expect(actions).toContain('acknowledge-publication');
@@ -92,17 +106,7 @@ try {
     await page.reload();
     await page.getByRole('button', { name: /^Source control/ }).click();
     await expect(publication).toContainText('Outside move: fast-forward');
-    for (const [width, height] of sizes) {
-      await page.setViewportSize({ width, height });
-      const geometry = await publication.evaluate(element => {
-        const box = element.getBoundingClientRect();
-        return { left: box.left, right: box.right, overflow: element.scrollWidth > element.clientWidth + 1, viewport: innerWidth };
-      });
-      expect(geometry.left).toBeGreaterThanOrEqual(0);
-      expect(geometry.right).toBeLessThanOrEqual(geometry.viewport);
-      expect(geometry.overflow).toBe(false);
-      await capture(page, `${mode}-snapshot-adopt`);
-    }
+    await assertPublicationGeometry(page, publication, `${mode}-snapshot-adopt`);
     await publication.getByRole('button', { name: 'Adopt', exact: true }).click();
     await expect(publication).toContainText('Published: main @ bbbbbbb');
     expect(actions).toContain('adopt');
@@ -143,6 +147,16 @@ try {
     const unavailableDialog = await openExport();
     await expect(unavailableDialog.getByRole('option', { name: 'Published', exact: true })).toHaveCount(0);
     await unavailableDialog.getByRole('button', { name: 'Cancel', exact: true }).click();
+    if (mode === 'local') {
+      withoutHistory = false;
+      published = { state: 'none', reason: 'no-commit', notice: true };
+      await page.reload();
+      await page.getByRole('button', { name: /^Source control/ }).click();
+      await expect(publication).toContainText('Choose the default branch with git config workbench.defaultBranch');
+      await assertPublicationGeometry(page, publication, 'local-unknown-default-notice');
+      await publication.getByRole('button', { name: 'Got it' }).click();
+      await expect(publication.getByRole('button', { name: 'Got it' })).toHaveCount(0);
+    }
     await page.close();
     passed++;
     console.log(`PASS ${mode} publication controls and six viewport geometries (${project.slug})`);

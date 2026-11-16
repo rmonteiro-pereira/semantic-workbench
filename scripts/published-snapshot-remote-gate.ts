@@ -31,11 +31,17 @@ async function runGate(args: string[], name: string, environment: Record<string,
   await Bun.write(join(output, `${name}.log`), '');
   await Bun.write(join(output, `${name}-error.log`), '');
   const child = Bun.spawn([process.execPath, ...args], {
+    detached: true,
     env: { ...process.env, ...environment, SW_BASE_URL: 'http://127.0.0.1:5481' },
     stdout: Bun.file(join(output, `${name}.log`)),
     stderr: Bun.file(join(output, `${name}-error.log`)),
   });
-  const code = await child.exited;
+  let code: number;
+  try {
+    code = await child.exited;
+  } finally {
+    await stopVite(child);
+  }
   await Bun.write(join(output, `${name}.exit`), String(code));
   console.log(`${name}: exit ${code}`);
   if (code !== 0 && !allowFailure) throw new Error(`${name} failed; inspect its captured logs.`);
@@ -54,8 +60,11 @@ try {
   }
   if (!ready) throw new Error('The remote frontend did not become ready.');
   for (const command of ['test:published-snapshot', 'test:ui', 'test:edges', 'test:grouping-validation', 'test:examples:ui', 'test:scm', 'test:mappings-layout', 'test:projects', 'test:auth']) {
-    await runGate(['--bun', 'run', command], command.replaceAll(':', '-'));
+    const captures = command === 'test:published-snapshot' ? { SW_SCREENSHOT_DIR: join(output, 'publication-captures') } : {};
+    await runGate(['--bun', 'run', command], command.replaceAll(':', '-'), captures);
   }
+  await runGate(['scripts/polish-capture.ts', join(output, 'capture-local')], 'capture-local');
+  await runGate(['scripts/polish-capture-server.ts', join(output, 'capture-server')], 'capture-server');
   const responsive = await runGate(['scripts/responsive-ui-tests.ts'], 'responsive', {}, true);
   if (responsive !== 0) {
     const failure = await Bun.file(join(output, 'responsive-error.log')).text();

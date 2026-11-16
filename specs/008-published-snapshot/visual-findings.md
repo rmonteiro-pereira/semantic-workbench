@@ -14,7 +14,9 @@ browser error. Focused sidebar recaptures also passed all sixteen measurements a
 modes. Light-theme captures are paired here; the separate dark-theme responsive checks passed five checks.
 
 The release is v0.6.1 (`3b1c2c10bc6ae96c6c603301764bde4cfdc4dcd4`). Feature application source was frozen at
-`bab84471`; no `src/` file changed afterward. Capture-only corrections are recorded by the driver hashes in
+`bab84471` for the original completion gate. The later architecture corrections change server ownership
+and the publication notice; their new browser geometry checks and captures are recorded separately in
+verification. These 928 PNGs remain evidence for the original compared revisions. Capture-only corrections are recorded by the driver hashes in
 [capture manifest](capture-manifest.json). It records original dimensions, capture timestamps, full-file
 SHA-256 hashes, changed-pixel bounds, RGB differences and the classification of every pair. Image paths point
 to the retained temporary capture directories on this host; the PNG files are not embedded in Git.

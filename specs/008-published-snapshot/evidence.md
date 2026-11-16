@@ -836,3 +836,11 @@ responses across 20 publications under its original 60-second deadline. Its focu
 assertions in 1.78 s. Metric list/explanation headers now assert the exact pinned commit (1 test,
 11 assertions). The reserved-name fixture explicitly configures its default, retaining the refusal and
 recovery checks (5 tests, 27 assertions). The complete local check passes; no assertion is removed.
+
+The first transferred unit run finished: 2195 pass, 3 fail, 134126 assertions, 305 files, 1234.29 s, exit 1.
+All three failures are the fixture updates above; it did not enter the browser or mutation stages.
+The next serial remote gate includes those fixes and the corrected export anchor. The published-controls
+browser proof now checks both notice layouts and the unknown-default prompt across six viewport sizes,
+retains captures, and explicitly acknowledges the new notice. Both full current capture journeys also run
+in the gate; each suite has its own process group and the existing CI cleanup. The original native release
+comparison remains labeled with its actual source revision, separately from the architecture corrections.
