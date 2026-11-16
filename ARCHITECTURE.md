@@ -80,6 +80,9 @@ The integration view shows what the application reads and contacts, and what it 
 ## Code map
 
 `src/shared/core/address-kinds.ts` owns the versioned item-address kind registry and parent rules.
+`item-address.ts` owns canonical parsing, formatting, relative resolution and whole-segment prefix
+operations. These pure modules do not read application state. Address consumers build text through
+`formatAddress`, never by concatenating project, document or item names.
 
 ### HTTP, startup and ownership
 

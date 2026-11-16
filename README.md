@@ -570,6 +570,13 @@ invalid files fall back to defaults. Vite development serves `public/brand/` dir
 See [theme tokens and brand bundles](docs/theme.md) for exact files, limits, sanitization rules,
 local/Compose setup and Azure mount examples.
 
+## Item address grammar
+
+The shared `sw1` API parses and formats item locators with escaped names and explicit kinds.
+A locator describes a position by name; it does not supply persistent identity or survive a rename.
+This API is available for developers; existing UI keys and save behavior are unchanged.
+See [item addresses](docs/item-addresses.md) for the pure API and tests.
+
 ## Development and verification
 
 Basic checks:

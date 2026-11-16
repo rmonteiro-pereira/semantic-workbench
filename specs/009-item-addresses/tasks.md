@@ -37,23 +37,23 @@ no ambiguity.
 
 **Independent test**: `bun test tests/item-address.test.ts tests/item-address-properties.test.ts`.
 
-- [ ] T004 [US1] Write the types, the escaping rule and `formatAddress` in
+- [x] T004 [US1] Write the types, the escaping rule and `formatAddress` in
   `src/shared/core/item-address.ts` (canonical uppercase hex, rejects empty names, lone surrogates,
   empty slug in an absolute address, dot path parts, over-limit length and depth). Proof:
   `tests/item-address.test.ts` format cases from the fixtures. (FR-001 to FR-005, FR-008, FR-004)
-- [ ] T005 [US1] Write `parseAddress` (length checked first, single linear scan, closed failure
+- [x] T005 [US1] Write `parseAddress` (length checked first, single linear scan, closed failure
   reasons, never throws, rejects non-canonical text). Proof: every conformance entry passes;
   `tests/item-address.test.ts` has a 4,096-character timing case under 10 ms. (FR-003, FR-008,
   FR-045; SC-004)
-- [ ] T006 [US1] Add relative resolution (`resolveAddress`), prefix operations (`hasPrefix`,
+- [x] T006 [US1] Add relative resolution (`resolveAddress`), prefix operations (`hasPrefix`,
   `replacePrefix` on whole segments), and `displayName`. Proof: unit cases for the three forms, a
   relative form without a base, `Customer` not matching `CustomerGroup`, a snapshot kept through a
   prefix replacement. (FR-006, FR-007, FR-021, FR-030)
-- [ ] T007 [US1] Write `tests/item-address-properties.test.ts`: round trip both ways over at least
+- [x] T007 [US1] Write `tests/item-address-properties.test.ts`: round trip both ways over at least
   10,000 generated items per run, canonical uniqueness (injective), rejection of every mutation of
   a canonical text that makes it non-canonical, relative resolution, prefix replacement keeps the
   suffix. Proof: the file itself; the seed is printed on failure (SC-001). (FR-025; SC-001)
-- [ ] T008 [P] [US1] Write `tests/item-address-purity.test.ts`: the shared address modules import
+- [x] T008 [P] [US1] Write `tests/item-address-purity.test.ts`: the shared address modules import
   only each other, `iri.ts` and type-only model imports, and no `node:*`, `fetch` or `Date` use
   appears in them. Proof: the test. (FR-022, FR-046)
 - [ ] T009 [US1] Add grammar mutants in `scripts/address-mutants.ts` and register them in
