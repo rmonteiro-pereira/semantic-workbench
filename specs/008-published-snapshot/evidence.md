@@ -379,3 +379,7 @@ Both adoption mutants are detected independently: skipping the content guard and
 ## Published export option
 
 `TMPDIR=/tmp/sw-008 SW_BASE_URL=http://127.0.0.1:5321 bun scripts/published-snapshot-browser-check.ts`: 2 published snapshot browser checks passed. In both modes the option appears only with a snapshot, disables history, downloads the published ZIP and excludes the unpublished expression that appears in the preview plan. The option is absent when status has no commit. `bun --bun run check`: exit 0.
+
+## Gate corrections for local authoring
+
+The first broad unit run exposed old branch expectations and selected-path validation running after authoring preparation. Selected paths and merge state are now validated before a branch switch through the existing selection logic. `TMPDIR=/tmp/sw-008 bun test tests/files-api.test.ts tests/git-commit-api.test.ts tests/route-security.test.ts tests/local-commit-branch.test.ts`: 26 pass, 0 fail, 196 assertions. An additional assertion confirms a refused path does not change the selected branch: `tests/git-commit-api.test.ts`, 5 pass, 0 fail, 43 assertions. `bun --bun run check`: exit 0.

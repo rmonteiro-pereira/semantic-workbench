@@ -41,7 +41,7 @@ test('import creates one project per batch, named after its ontology, with one c
       slug: 'shop',
       name: 'Shop',
       origin: 'import',
-      branch: 'main',
+      branch: 'work/local',
       changes: 0,
     });
     expect(projects[0].files.map((f: any) => [f.path, f.docType, f.valid, f.gitState])).toEqual([

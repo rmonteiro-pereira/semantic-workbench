@@ -176,7 +176,7 @@ export function createScm(deps: ScmDeps) {
     await after(slug, altered);
     return { commit: head, altered };
   }
-  async function commitChosen(slug: string, message: string, list: unknown, base: PathBase, author?: CommitAuthor) {
+  async function commitSelection(slug: string, list: unknown, base: PathBase) {
     const directory = dir(slug);
     const chosen = paths(slug, list, base);
     await assertInsideFolder(slug, directory, chosen);
@@ -184,6 +184,10 @@ export function createScm(deps: ScmDeps) {
       const gitStatus = await git.status(directory);
       throw new MergingError(gitStatus.entries.filter(e => e.conflicted).map(e => fromRepo(slug, e.path).path));
     }
+    return chosen;
+  }
+  async function commitChosen(slug: string, message: string, chosen: string[], author?: CommitAuthor) {
+    const directory = dir(slug);
     const clean = chosen.filter(p => existsSync(join(directory, p)));
     const before = await git.worktreeIds(directory, clean);
     const commitPathsResult = await git.commitPaths(directory, chosen, message, author);
@@ -272,8 +276,9 @@ export function createScm(deps: ScmDeps) {
       // A missing credential stops the request before the commit, so a retry commits only once.
       const choice = options.push ? await chooseRemote(slug, options.credentialFor) : null;
       const { author } = options;
+      const chosen = options.paths === undefined ? null : await commitSelection(slug, options.paths, options.base ?? 'project');
       const authoring = await deps.beforeCommit?.(slug);
-      const committed = options.paths === undefined ? await commitIndex(slug, message, author) : await commitChosen(slug, message, options.paths, options.base ?? 'project', author);
+      const committed = chosen === null ? await commitIndex(slug, message, author) : await commitChosen(slug, message, chosen, author);
       const result = { ...committed, ...authoring };
       if (!options.push) return result;
       let pushed: { ok: boolean; message: string };

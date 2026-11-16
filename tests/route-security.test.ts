@@ -85,7 +85,7 @@ test('a branch name cannot smuggle an option, and transport helpers are refused 
   try {
     for (const branch of [' --detach', ' --orphan=x', '-x', '\t-c']) expect((await api(workspace, 'POST', '/api/projects/shop/git/switch', { branch })).status).toBe(400);
     const status = await (await api(workspace, 'GET', '/api/projects/shop/git/status')).json();
-    expect(status.branch).toBe('main');
+    expect(status.branch).toBe('work/local');
     const marker = join(workspace.root, 'ext-ran');
     for (const url of [`ext::sh -c touch% ${marker}`, 'fd::17', 'EXT::x']) expect((await api(workspace, 'PUT', '/api/projects/shop/git/remote', { name: 'origin', url })).status).toBe(400);
     expect(existsSync(marker)).toBe(false);

@@ -26,7 +26,7 @@ test('commit with paths commits exactly those paths; push reports its outcome', 
     expect(commitResult.pushed).toMatchObject({ ok: true });
     expect(sh(project.dir, ['show', '--name-only', '--format=', 'HEAD']).trim().split('\n').sort()).toEqual(['extra.yaml', 'shop.yaml']);
     expect(sh(project.dir, ['status', '--porcelain']).trim()).toBe('A  other.yaml');
-    expect(sh(project.bare, ['log', '-1', '--format=%s', 'main']).trim()).toBe('Update shop.yaml');
+    expect(sh(project.bare, ['log', '-1', '--format=%s', 'work/local']).trim()).toBe('Update shop.yaml');
     // Without explicit paths, the commit uses the staged index.
     const idx = await ok(call(project.t, 'POST', project.base + '/git/commit', { message: 'Index' }));
     expect(idx.pushed).toBeUndefined();
@@ -72,6 +72,7 @@ test('empty message and path escapes are refused; commit with paths is refused d
         })
       ).status,
     ).toBe(400);
+    expect(sh(project.dir, ['branch', '--show-current']).trim()).toBe('main');
     sh(project.dir, ['switch', '-q', '-c', 'other']);
     project.write('shop.yaml', ontology('Other'));
     sh(project.dir, ['commit', '-qam', 'other']);
