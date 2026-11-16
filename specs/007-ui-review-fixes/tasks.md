@@ -51,7 +51,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
 
 **Purpose**: the font change alters text width on every screen, so it merges first and every lane rebases on it before capturing an 'after' image. **No lane captures an 'after' image before this phase is merged.**
 
-- [ ] T004 [P] [E] Vendor DM Sans and Manrope as woff2 files in `src/shared/fonts/` with each family's OFL.txt and a `README.md` recording upstream URL, version and SHA-256.
+- [x] T004 [P] [E] Vendor DM Sans and Manrope as woff2 files in `src/shared/fonts/` with each family's OFL.txt and a `README.md` recording upstream URL, version and SHA-256.
   - Findings: M7 · Requirements: FR-053
   - Files: `src/shared/fonts/*.woff2`, `src/shared/fonts/OFL-DM-Sans.txt`, `src/shared/fonts/OFL-Manrope.txt`, `src/shared/fonts/README.md`
   - Change: Download the variable woff2 files (Latin and Latin-extended subsets) from each family's official release, check the SHA-256 against the upstream release, and store the licence text beside them. No npm font package is added, so no new runtime dependency is introduced.
