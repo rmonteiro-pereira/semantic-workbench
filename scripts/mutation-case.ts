@@ -8,6 +8,8 @@ import assert from 'node:assert/strict';
 import { dirname, resolve } from 'node:path';
 import { loadBrandBundle, setActiveBrand } from '../src/server/brand/bundle';
 import { allowEveryRemote } from '../tests/helpers/remote-credentials-fixture';
+import { worktreesWithPublication } from './publication-mutation-cases';
+import type { WorktreeContext } from '../src/server/projects/worktrees';
 import { snapshotMutationCase } from './snapshot-mutation-cases';
 import { observabilityCase } from './observability-cases';
 // Sign-in pages render the brand, so every candidate runs with the shipped bundle active.
@@ -31,6 +33,9 @@ if (category === 'address-store') (await import('./server-address-cases')).addre
 if (category === 'address-migration') addressMigrationCase(loadedModule as typeof import('../src/shared/core/address-migration'));
 if (category === 'address-model') modelAddressCase(loadedModule as typeof import('../src/shared/core/model-addresses'));
 if (category === 'address-grammar') addressGrammarCase(loadedModule as typeof import('../src/shared/core/item-address'));
+if (category.startsWith('copy-writer-')) {
+  loadedModule.createWorktrees = (options: Omit<WorktreeContext, 'listings'>) => worktreesWithPublication(loadedModule.createPublication, options);
+}
 if (category === 'edge-appearance') {
   const appearance = loadedModule.edgeAppearance({
     id: 'edge',
@@ -2744,7 +2749,7 @@ if (category === 'copy-author') {
   }
 }
 
-if (category === 'copy-worktrees') {
+if (category === 'copy-worktrees' || category === 'copy-writer-ancestry') {
   const { createGit } = await import('../src/server/projects/git');
   const { writeFileSync } = await import('node:fs');
   const { join } = await import('node:path');
@@ -2777,7 +2782,7 @@ if (category === 'copy-worktrees') {
   }
 }
 
-if (category === 'copy-publish') {
+if (category === 'copy-publish' || category === 'copy-writer-publish') {
   const { createGit } = await import('../src/server/projects/git');
   const { rmSync, writeFileSync } = await import('node:fs');
   const { join } = await import('node:path');

@@ -427,20 +427,20 @@ mutants.push(
 // published state is never edited, and protected branches need the publish right.
 mutants.push(
   ['copy-author', 'src/server/routes/git.ts', 'author: reader.copy?.author,', 'author: undefined,'],
-  ['copy-worktrees', 'src/server/projects/worktrees.ts', 'isAncestor: (_repo, from, to) => git.isAncestor(base, from, to),', 'isAncestor: async () => true,'],
+  ['copy-writer-ancestry', 'src/server/projects/publication.ts', 'isAncestor: (_repository, from, to) => git.isAncestor(directory, from, to),', 'isAncestor: async () => true,'],
   ['copy-worktrees', 'src/server/projects/worktrees.ts', 'if (holder && holder.key !== key) throw new BranchInUseError(branch, holder.name);\n}', 'void holder;\n}'],
-  ['copy-publish', 'src/server/projects/worktrees.ts', "const swap = ['update-ref', 'refs/heads/' + branch, next, previous ?? ''];", "const swap = ['update-ref', 'refs/heads/' + branch, next];"],
-  ['copy-publish', 'src/server/projects/worktrees.ts', 'guard: async () => check(previous, next),', 'guard: async () => {},'],
-  ['copy-publish', 'src/server/projects/worktrees.ts', 'if (changed.stdout.trim()) throw new BaseChangedError(repo);', 'void changed;'],
+  ['copy-writer-publish', 'src/server/projects/publication.ts', "next, expected ?? ''", 'next'],
+  ['copy-writer-publish', 'src/server/projects/publication.ts', 'guard: () => guard(previous, next),', 'guard: async () => {},'],
+  ['copy-publish', 'src/server/projects/worktrees.ts', 'if (changed.stdout.trim()) throw new BaseChangedError(repository);', 'void changed;'],
   [
     'copy-publish',
     'src/server/projects/worktrees.ts',
-    "git.run(base, ['status', '--porcelain'], { readOnly: true })",
-    "git.run(base, ['status', '--porcelain', '--untracked-files=no'], { readOnly: true })",
+    "context.git.run(baseDir(context, repository), ['status', '--porcelain'], { readOnly: true })",
+    "context.git.run(baseDir(context, repository), ['status', '--porcelain', '--untracked-files=no'], { readOnly: true })",
   ],
   ['copy-publish', 'src/server/projects/worktrees.ts', "  await git.run(dir, ['checkout', '-q', '--force', '--detach', tip]);\n", ''],
-  ['copy-publish', 'src/server/projects/worktrees.ts', 'return await moveDefault(context, repo, move, check);', 'return await moveDefault(context, repo, move, async () => {});'],
-  ['copy-publish', 'src/server/projects/worktrees.ts', 'if (named && (await isBranchName(git, dir, named))) return named;', 'if (named) return named;'],
+  ['copy-publish', 'src/server/projects/worktrees.ts', 'return await moveDefault(context, repo, move, check, advance);', 'return await moveDefault(context, repo, move, async () => {}, advance);'],
+  ['copy-publish', 'src/server/projects/worktrees.ts', 'if (await isBranchName(git, dir, named)) return named;', 'if (named) return named;'],
   ['copy-drafts', 'src/server/projects/state.ts', "ownerState('u' + sha256(owner).slice(0, 20))", "ownerState('u' + sha256('').slice(0, 20))"],
   [
     'copy-save',

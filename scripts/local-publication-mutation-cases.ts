@@ -21,7 +21,7 @@ export async function localPublicationCase(candidate: { createLocalPublication?:
       await fixture.git.run(fixture.repository, ['update-ref', 'refs/heads/main', fixture.foreign!]);
     }),
   );
-  assert.equal(fixture.pointers.get('definitions')?.commit, fixture.published);
+  assert.deepEqual(fixture.pointers.get('definitions'), { branch: 'main', commit: fixture.published });
 }
 
 /** A local commit must advance authoring while preserving the recorded default tip. */

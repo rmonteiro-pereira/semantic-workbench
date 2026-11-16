@@ -15,7 +15,11 @@ import { accessFixture, person } from '../tests/auth/access-fixture';
 import { requestAccess } from '../src/server/auth/request-scope';
 import { LOCAL_READER } from '../src/server/projects/reader';
 import type { RouteAction } from '../src/server/auth/route-actions';
-import type { createWorktrees } from '../src/server/projects/worktrees';
+import { type createWorktrees, type defaultBranchAt } from '../src/server/projects/worktrees';
+import type { createPublication } from '../src/server/projects/publication';
+import { createLocalPublication } from '../src/server/projects/local-publication';
+import { worktreesWithPublication } from './publication-mutation-cases';
+import { publicationQueueCase } from '../tests/helpers/publication-queue-case';
 import { publicationMoveFixture } from '../tests/helpers/publication-fixture';
 import { attachRequestSurface } from '../src/server/auth/request-surface';
 import type { surfaceFromCredential } from '../src/server/auth/request-surface';
@@ -46,6 +50,8 @@ export async function snapshotMutationCase(
     publishedAgentDocuments?: typeof agentRoutes.publishedAgentDocuments;
     surfaceFromCredential?: typeof surfaceFromCredential;
     createWorktrees?: typeof createWorktrees;
+    createPublication?: typeof createPublication;
+    defaultBranchAt?: typeof defaultBranchAt;
     ROUTE_ACTIONS?: RouteAction[];
     openWorkspace?: typeof openWorkspace;
     initializePublishedPointers?: typeof initializePublishedPointers;
@@ -141,8 +147,34 @@ export async function snapshotMutationCase(
   if (category === 'snapshot-surface') {
     assert.equal(candidate.surfaceFromCredential!(new Request('http://localhost/'), { mode: 'local', session: false, originAllowed: true }), 'agent');
   }
+  if (category === 'snapshot-default') {
+    const fixture = publicationRepository();
+    const git = createGit({ projectsRoot: dataLayout(fixture.dir).projects });
+    try {
+      await git.run(fixture.repository, ['switch', '-c', 'feature-x', 'work/local']);
+      assert.equal(await candidate.defaultBranchAt!(git, fixture.repository, 'definitions'), 'main');
+      await git.run(fixture.repository, ['branch', 'trunk', fixture.authoring]);
+      await git.run(fixture.repository, ['config', '--local', 'init.defaultBranch', 'trunk']);
+      assert.equal(await candidate.defaultBranchAt!(git, fixture.repository, 'definitions'), 'trunk');
+      await git.run(fixture.repository, ['branch', '-D', 'main', 'trunk']);
+      await assert.rejects(() => candidate.defaultBranchAt!(git, fixture.repository, 'definitions'), /Choose its default branch/);
+    } finally {
+      fixture.dispose();
+    }
+  }
+  if (category === 'snapshot-queue') await publicationQueueCase(candidate.createPublication!);
+  if (category === 'snapshot-writer') {
+    const { moveToAuthoringBranch } = await import('../src/server/projects/local-publication');
+    await localPublicationCase({
+      moveToAuthoringBranch,
+      createLocalPublication: deps => createLocalPublication({ ...deps, publication: candidate.createPublication!(deps) }),
+    });
+  }
+  if (category === 'snapshot-adoption-writer') {
+    await adoptionCase({ createLocalPublication: deps => createLocalPublication({ ...deps, publication: candidate.createPublication!(deps) }) });
+  }
   if (category === 'snapshot-publication') {
-    const fixture = await publicationMoveFixture(candidate.createWorktrees!);
+    const fixture = await publicationMoveFixture(options => worktreesWithPublication(candidate.createPublication!, options));
     try {
       await assert.rejects(() =>
         fixture.worktrees.publish('definitions', fixture.owner.key, async () => {
@@ -159,6 +191,7 @@ export async function snapshotMutationCase(
   }
   if (category === 'snapshot-inventory') {
     assert.equal(candidate.ROUTE_ACTIONS!.find(row => row.path === 'GET /api/agent/catalog')?.readSource, 'published');
+    assert.equal(candidate.ROUTE_ACTIONS!.find(row => row.path === 'GET /api/projects/:slug/export')?.readSource, 'by-query');
   }
   if (category === 'snapshot-initialization' || category === 'snapshot-workspace') await startupCase(category, candidate);
   if (category === 'snapshot-pointer') {

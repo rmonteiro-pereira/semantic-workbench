@@ -806,3 +806,10 @@ A local HTTP adoption race against a second fast-forward returns 409 and clears 
 success promotes its index to the current generation, while refusal releases it. The first agent read
 performs no second blob build, and a failed later candidate leaves retention unchanged (15 publication
 tests, 91 assertions). The complete local check passed after both corrections.
+
+The architecture reviewer returned PASS at `0e363ec2` after confirming adoption race classification and
+candidate retention. Remote focused baselines for default selection, the writer, guarded adoption,
+publication ordering and the shared queue all exited 0. The same command also passed the existing
+working-copy baseline. Existing mutations follow their predicates into the single writer; none is removed.
+New faults cover checked-out-feature preference, configured-default precedence, abandoned intent and queue
+bypass, plus export inventory accuracy. The local check passes with these registered cases.
