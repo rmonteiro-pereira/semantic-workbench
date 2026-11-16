@@ -2380,7 +2380,7 @@ if (category.startsWith('guard-')) {
         ['add', file],
         [...identity, 'commit', '-q', '-m', 'Add catalog'],
       ])
-        assert.equal(Bun.spawnSync(['git', ...args], { cwd: repository }).exitCode, 0);
+        assert.equal(Bun.spawnSync(['git', ...args], { cwd: repository, env: { ...process.env } }).exitCode, 0);
       const deletion = {
         ...cases.deleteCase(),
         path: `/api/projects/sales-contracts/files/${file}`,
@@ -2530,7 +2530,7 @@ async function redirectedPasswords(args: string[], env: Record<string, string>) 
   const redirect = servers.startRedirectingServer(elsewhere.origin);
   try {
     const repo = path.join(root, 'repo');
-    const git = (...more: string[]) => Bun.spawnSync(['git', ...more], { cwd: root });
+    const git = (...more: string[]) => Bun.spawnSync(['git', ...more], { cwd: root, env: { ...process.env } });
     git('init', '-q', '-b', 'main', repo);
     fs.writeFileSync(path.join(repo, 'a.yaml'), 'a: 1\n');
     git('-C', repo, 'add', '.');
@@ -2612,7 +2612,7 @@ if (category === 'remote-guarded-fetch') {
     });
     const repo = repoDir(team.ws.layout, team.sales);
     const git = (cwd: string, args: string[]) => {
-      const result = Bun.spawnSync(['git', ...args], { cwd });
+      const result = Bun.spawnSync(['git', ...args], { cwd, env: { ...process.env } });
       assert.equal(result.exitCode, 0, result.stderr.toString());
       return result.stdout.toString().trim();
     };
@@ -2733,7 +2733,7 @@ if (category === 'copy-author') {
     const response = await loadedModule.gitRoutes(fixture.ws, request, new URL(request.url));
     assert.equal(response.status, 200);
     const copy = join(fixture.ws.layout.worktrees, keyOf('alice'), 'sales-contracts');
-    const log = Bun.spawnSync(['git', 'log', '-1', '--format=%an'], { cwd: copy });
+    const log = Bun.spawnSync(['git', 'log', '-1', '--format=%an'], { cwd: copy, env: { ...process.env } });
     assert.equal(log.stdout.toString().trim(), 'Alice Andrade');
   } finally {
     fixture.dispose();
@@ -2757,7 +2757,7 @@ if (category === 'copy-worktrees') {
         ['add', name],
         ['commit', '-q', '-m', name],
       ])
-        assert.equal(Bun.spawnSync(['git', ...args], { cwd: dir }).exitCode, 0);
+        assert.equal(Bun.spawnSync(['git', ...args], { cwd: dir, env: { ...process.env } }).exitCode, 0);
     };
     commitIn((await worktrees.ensure('sales-contracts', ann)).dir, 'ann.txt');
     commitIn((await worktrees.ensure('sales-contracts', ben)).dir, 'ben.txt');
@@ -2786,7 +2786,7 @@ if (category === 'copy-publish') {
     const worktrees = loadedModule.createWorktrees({ layout, git, people: () => [ann, ben] });
     const run = (dir: string, args: string[]) => {
       const identity = ['-c', 'user.name=Someone', '-c', 'user.email=someone@example.org'];
-      const result = Bun.spawnSync(['git', ...identity, ...args], { cwd: dir });
+      const result = Bun.spawnSync(['git', ...identity, ...args], { cwd: dir, env: { ...process.env } });
       assert.equal(result.exitCode, 0, result.stderr.toString());
       return result.stdout.toString().trim();
     };
@@ -3270,7 +3270,8 @@ if (category === 'deploy-promote-rerun') {
 }
 if (category === 'deploy-ancestry' || category === 'deploy-ancestry-cli') {
   const { mkdtempSync, rmSync, writeFileSync } = await import('node:fs');
-  const repository = mkdtempSync('/tmp/sw-mutation-ancestry-');
+  const { tmpdir } = await import('node:os');
+  const repository = mkdtempSync(resolve(tmpdir(), 'sw-mutation-ancestry-'));
   const git = (...args: string[]) => {
     const result = Bun.spawnSync(['git', '-C', repository, ...args], {
       env: {

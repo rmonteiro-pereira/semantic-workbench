@@ -718,3 +718,19 @@ No production builder is restored, and assertions still compare independently fo
 Proof: `bun scripts/mutation-case.ts <worktree>/src/app/mappings/mapping-graph.ts mapping-graph` exits 0.
 The full static and readability checks pass. Only the mutation case and this evidence changed;
 production source remains unchanged from 10408a68. The full remote mutation gate must be rerun.
+
+### Portable mutation Git fixtures
+
+The next real mutation run stopped at copy-worktrees before mutating source. Its Git subprocess
+inherited Bun's initial environment rather than the fixture's isolated Git configuration. The same
+focused case fails on unchanged main (exit 1, Git exit 128); the corrected case passes remotely
+(exit 0). Logs: out/gate-009/main-copy-worktrees.log and current-copy-worktrees.log.
+
+Mutation-case Git subprocesses now explicitly receive process.env, matching the existing fixture
+contract. The deployment-ancestry fixture also uses the assigned TMPDIR instead of a fixed /tmp
+prefix. The focused case passes locally with initially disabled global Git configuration; the full
+static check and readability check pass. No production source changed.
+
+Main's production responsive comparison has now completed: both branches measure the graph at
+481 px and fail the same greater-than-504 px assertion. Logs are production-responsive.log and
+main-production-responsive.log under out/gate-009/. This is a reproduced baseline failure.
