@@ -16,8 +16,8 @@ export const exportMutants: [string, string, string, string][] = [
   [
     'export-plan',
     'src/server/projects/project-export.ts',
-    'read: () => readFileSync(item.file),',
-    "read: () => new TextEncoder().encode(readFileSync(item.file, 'utf8').replaceAll('\\r\\n', '\\n')),",
+    'read: () => readFileSync(found.file)',
+    "read: () => new TextEncoder().encode(readFileSync(found.file, 'utf8').replaceAll('\\r\\n', '\\n'))",
   ],
   ['export-zip', 'src/server/projects/zip.ts', 'controller.enqueue(content);', 'controller.enqueue(new TextEncoder().encode(new TextDecoder().decode(content).trim()));'],
   ['export-zip', 'src/server/projects/zip.ts', 'const crc = crc32(content);', 'const crc = 0;'],

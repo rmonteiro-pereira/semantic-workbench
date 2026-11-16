@@ -438,7 +438,7 @@ mutants.push(
     "git.run(base, ['status', '--porcelain'], { readOnly: true })",
     "git.run(base, ['status', '--porcelain', '--untracked-files=no'], { readOnly: true })",
   ],
-  ['copy-publish', 'src/server/projects/worktrees.ts', "  await git.run(dir, ['checkout', '-q', '--force', '--detach', 'refs/heads/' + remembered]);\n", ''],
+  ['copy-publish', 'src/server/projects/worktrees.ts', "  await git.run(dir, ['checkout', '-q', '--force', '--detach', tip]);\n", ''],
   ['copy-publish', 'src/server/projects/worktrees.ts', 'return await moveDefault(context, repo, move, check);', 'return await moveDefault(context, repo, move, async () => {});'],
   ['copy-publish', 'src/server/projects/worktrees.ts', 'if (named && (await isBranchName(git, dir, named))) return named;', 'if (named) return named;'],
   ['copy-drafts', 'src/server/projects/state.ts', "ownerState('u' + sha256(owner).slice(0, 20))", "ownerState('u' + sha256('').slice(0, 20))"],
