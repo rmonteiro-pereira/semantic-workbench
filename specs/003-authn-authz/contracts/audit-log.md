@@ -18,6 +18,10 @@ the line itself has `"type":"audit"`).
 | `snapshot` | `{grants: [grantId], roles: [roleId], groups, emailMatched: boolean, resourceAttrs}` | for policy dry runs; no names of unreadable items beyond the resource itself |
 | `version` | string? | admin repository commit for `adminChange` |
 | `suppressed` | number? | refusals of the same kind from the same client address left out of the log since the previous record |
+| `origin` | `mcp` or `acp`, optional | absence means HTTP; explicit HTTP is omitted |
+| `tool` | inventory id, optional | validated against the operation inventory |
+| `method` | protocol method, optional | fixed discovery/tool/resource/prompt/subscription vocabulary |
+| `connection` | opaque id, optional | 1–64 ASCII letters, digits, underscore or hyphen |
 | `prev` | hex | SHA-256 of the previous line in the file |
 
 Never present: tokens, cookies, secrets, document text, diff text, commit messages.
