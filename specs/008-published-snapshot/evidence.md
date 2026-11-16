@@ -931,3 +931,20 @@ before browser navigation and is not comparison evidence. The successful compari
 `node_modules/vite-plus/bin/vp` executable. No dependency or source change was made.
 The previously demonstrated main 407/421 mall failure remains separately documented above. Targeted
 responsive groups continue below so the earlier remote failure does not hide their results.
+
+The targeted dark-theme run passed its four named checks (390, 1280, 1440 and 2560 px), then exited 1
+while preparing a subsequent page outside the selected checks: its UBL title was not present within
+five seconds. No theme assertion failed. The remaining targeted groups are retried against the built
+frontend, with the same scripts and assertions, avoiding development-module reloads.
+
+The first resumed mutation wrapper lost its local session with SIGTERM. A wrapper-only process audit
+confirmed the original remote test was still running; no second test was started. Monitoring that run
+found exit 141 before any mutation summary, consistent with SIGPIPE from its `tee` output after the
+connection closed. The retry writes directly to its remote log so test output does not depend on SSH.
+That full retry exited 1 at the unmodified `admin-proposals` baseline, with empty assertion stderr.
+An isolated remote measurement of the same original module passed: `admin-proposals baseline: exit 0,
+16732ms`. Its ten-second harness deadline therefore cannot accommodate this measured remote runtime.
+Only that category now shares the existing 30-second example-category deadline, equally for original
+and mutated candidates. All assertions, mutation anchors and other deadlines remain unchanged.
+The complete mutation gate must pass after this harness correction; the interrupted attempts are not
+reported as killed mutants or as successful gates.
