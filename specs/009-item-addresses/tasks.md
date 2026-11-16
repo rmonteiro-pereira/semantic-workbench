@@ -104,7 +104,7 @@ changes.
 
 **Independent test**: each consumer's tests plus the named browser suites.
 
-- [ ] T016 [US4] Write `src/shared/core/item-key-adapters.ts`: read `concept:C/R`, `dataset:D/F`,
+- [x] T016 [US4] Write `src/shared/core/item-key-adapters.ts`: read `concept:C/R`, `dataset:D/F`,
   `field:d.f`, `dataset.field`, `join:J`, `metric:M` into addresses against a model, refusing
   alias-qualified or QName text unless a resolver turns it into a name, and refusing ambiguous
   dotted forms instead of guessing. Proof: `tests/item-key-adapters.test.ts` including the cases

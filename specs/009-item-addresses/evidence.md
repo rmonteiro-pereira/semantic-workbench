@@ -128,3 +128,9 @@ current 6.594 s, main 5.719 s (both exit 0). The copied baseline is `git archive
 built-in/RDF checks: 1 pass, 0 fail, 7,966 assertions in 2.86 s. `bun --bun run check` passed.
 The reusable timing check is `bun scripts/item-address-timing.ts`; locators on inspector output
 are document-relative and become absolute only with an explicit document location.
+
+## Legacy adapter proof
+
+`bun test tests/item-key-adapters.test.ts`: 4 pass, 0 fail, 22 assertions. The cases include
+ambiguous dotted fields, duplicate model scopes, slash names, explicit alias resolution and
+unchanged source values.

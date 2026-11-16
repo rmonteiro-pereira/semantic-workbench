@@ -47,3 +47,8 @@ Run `bun scripts/item-address-timing.ts` to compare the largest synthetic fixtur
 base commit. The script alternates baseline/current samples after warmup and enforces the 5%
 median overhead limit. It requires that base commit in the local Git object database and writes
 its baseline module under the ignored `out/009-addresses/` directory.
+
+`adaptItemKey` reads older concept, dataset, field, join and metric labels against a loaded model.
+It accepts a key only when exactly one definition matches. Dotted field collisions are ambiguous;
+alias-qualified text requires an explicit document-local resolver. Reading a key never rewrites
+the source document. Canonical locators should be parsed and resolved through the shared API.
