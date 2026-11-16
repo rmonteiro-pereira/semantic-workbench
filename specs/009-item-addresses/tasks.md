@@ -301,3 +301,15 @@ changes.
 | Constitution VI, R2 | SC-011 | T009, T014, T026, T039, T045 |
 | Constitution VII, R2 | SC-012 | T041 to T043 |
 | Requirements without a decision source (design choices) | FR-037, FR-039, FR-043, FR-045, SC-013 | T015, T017 to T021, T029, T034, T005 |
+
+
+## Operation-boundary integration
+
+- [x] T046 Rebase onto fetched origin/main a153c20f, preserving both features' limits, classifiers,
+  inventory and mutation registrations. Proof: focused operation-inventory test, 7 pass, 0 fail.
+- [ ] T047 Expose item resolution and reconciliation through the shared boundary with inventory,
+  authorization matrix and HTTP/twin parity cases; preserve opaque snapshot suffixes.
+- [ ] T048 Prove declared rename and deletion history through inventoried save/batch/move/delete
+  operations, register targeted mutants and remove obsolete operation-boundary deferral claims.
+- [ ] T049 Run all completion commands serially through the remote wrapper, retaining reproduced
+  main browser failures as baseline exceptions and pasting command summaries into evidence.md.

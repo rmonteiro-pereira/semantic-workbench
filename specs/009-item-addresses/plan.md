@@ -52,7 +52,7 @@ address migration store and versioned application formats; persisted adoption ma
 
 | Principle | How the plan complies |
 | --- | --- |
-| I. Local and Server Modes | No network call, no new route, no new outbound destination. Addresses contain project and file names, so they never enter logs or telemetry labels (a redaction test and a mutant cover it); the server resolver gives hidden and missing addresses the same answer (FR-044) and migration reads use the project's read boundary. Local mode behaves the same through the implicit Admin principal. |
+| I. Local and Server Modes | No outbound network call. Inventoried item-address HTTP twins reuse the shared operation boundary. Addresses contain project and file names, so they never enter logs or telemetry labels (a redaction test and a mutant cover it); the server resolver gives hidden and missing addresses the same answer (FR-044) and migration reads use the project's read boundary. Local mode behaves the same through the implicit Admin principal. |
 | II. Byte-Exact Source Preservation | Adoption never rewrites a file. The `dataset.field` notation in metric extensions and every name in a file are read through adapters (FR-041). Rename edits only the edited item and the references the user ticked, as today. Migration records live outside the files. |
 | III. One Validation Rule Set | One parser and one formatter in `src/shared/`, used by the browser and the server. The declared-migration check on save is the same function the browser uses before sending. The parser is bounded: length checked first, linear scan, depth limit 32. |
 | IV. Atomic, Hash-Checked File Persistence | The migration store is durable state, written atomically, and updated as one more step of the journaled operation that writes the renamed files, so recovery completes both or neither. Conversion of persisted keys backs up the old store, checks every converted file's hash against its original and stops on any failure (FR-040). Saves still carry base hashes; the new request field changes none of that. **Amendment**: name the migration store in the list of durable state files. |
@@ -171,7 +171,7 @@ a file.
   define its own. The hidden-equals-missing resolver (FR-044) is provided here and reused there.
 - **008 published snapshot**: defines the `@<snapshot>` token. Until it lands, the suffix is parsed
   and formatted as opaque text and no resolver returns published content for it.
-- **010 operation boundary**: when it lands, the declared-migration check and the store append move
+- **010 operation boundary**: main includes the boundary; the declared-migration check and store append run
   inside the operation it defines. Until then they run in the existing save and batch save.
 - **Constitution amendments** (Principles IV and V): needed before steps 5 and 6.
 - **Item diff (roadmap row 4)**, **governance (row 5)**, **usage counters (row 12)**, **mesh and

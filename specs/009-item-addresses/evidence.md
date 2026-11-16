@@ -936,3 +936,28 @@ The final task records command execution and classification, not a claim that th
 browser failures satisfy their thresholds. All task checkboxes are addressed, including the
 explicit compaction omission. Integration remains subject to the non-green baseline gates
 reported here. The evidence-only completion commit follows the feature commit ledger above.
+
+## Operation-boundary integration continuation
+
+The following results supersede the prior completion checkpoint for integration onto main.
+Fetched origin/main is a153c20f, including operation-boundary contracts and constitution 4.0.1.
+The branch rebased successfully; conflicts retained both changelog streams, shared body limits,
+save classifiers, address declarations and both mutation inventories. The boundary's longer
+remote deadlines and timeout-as-failure behavior replace the earlier address-only deadline edit.
+Focused proof after rebase: `bun test ./tests/auth/operation-inventory.test.ts`: `7 pass`, `0 fail`,
+`224 expect() calls`; `Ran 7 tests across 1 file. [600.00ms]`.
+
+### Integration scope ledger
+
+- The operation boundary owns trusted caller admission, effects, refusal mapping and audit.
+- Workspace readers and write authorizers already enforce concrete project/file visibility.
+- Save, batch-save, move, delete and grouping operations keep their existing handlers and journals.
+- Resolution/reconciliation gain inventoried twins; parity must preserve hidden/missing behavior.
+- Snapshot text remains opaque; boundary dispatch adds neither receipts nor save replay settlement.
+
+The installed remote wrapper pushes scratch refs with --force. To honor the new no-force-push
+instruction, a temporary copy removes that flag and uses the fresh scratch name
+009-item-addresses-operation-boundary. The installed wrapper, Git remotes and other worktrees
+remain untouched. Remote work still uses the wrapper's unprivileged capped execution and pulls.
+The original no-new-HTTP-route assumption is superseded by this integration request, as recorded
+in the spec Clarifications. No new MCP transport or tool is introduced.

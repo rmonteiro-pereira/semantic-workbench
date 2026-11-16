@@ -90,6 +90,10 @@ owner.
 
 ### Session 2026-11-16 — decided by the integrator
 
+- The operation-boundary integration request supersedes the interim no-new-route assumption.
+  Item resolution and reconciliation gain HTTP twins, inventory entries and parity cases. Saves
+  retain their existing routes and enter the same boundary. Snapshot suffixes stay opaque.
+
 - Every item without a usable name uses `kind:#n`, its index among siblings of the same kind
   under the same parent. It and its descendants are volatile and never stored as history.
   This includes unnamed ontology roots (`ontology:#0`), embedded mappings and ODCS array-item
@@ -555,13 +559,13 @@ guarded projects and compares the responses.
   address (the document limit is 2,000,000 bytes and ODCS nests a few levels) while keeping the
   parser bounded (Principle III). They are constants with tests, so a change is mechanical.
 - **Retention**: the migration store keeps uncompacted records up to its 50,000-record hard bound. The
-  number has no external source; it is a default chosen to cover a year of releases, set with
-  `SW_ADDRESS_MIGRATION_RETENTION_DAYS`.
+  number is an application limit, not an age-retention promise. No retention environment setting
+  is introduced.
 - **Randomized tests use a small seeded generator** under `tests/helpers/`, not a new package, so
   that the module adds no dependency. A library can replace it later without changing tests.
-- **No new HTTP route.** Migrations are written inside the existing save and batch-save requests
-  and read by server code that already has a caller; a public read route, if later needed, is
-  added by the feature that needs it, and the authorization matrix is extended then.
+- **Operation entry points.** Migration appends remain inside save, batch-save, move and delete
+  operations. Item resolution and explicit reconciliation have inventoried HTTP twins so both
+  HTTP and trusted callers enter the shared operation boundary and its authorization matrix.
 - **Branches.** A migration records the commit that was the branch head when it was saved. Which
   migrations apply to a diff between two refs (those reachable from the later ref and not from the
   earlier) is decided by the item diff feature using that field. This feature supplies the field
@@ -577,7 +581,7 @@ guarded projects and compares the responses.
 - **Dependencies on parallel work**: the snapshot token and its meaning come from the published
   snapshot feature (008); resource URIs and the hidden-equals-missing answer for subscriptions
   from the MCP feature (006); the rename save runs inside the operation boundary of feature 010
-  when that lands, and keeps working through today's save path until then; the constitution
+  now that it is on main; the constitution
   amendments name Principle IV (state files and address-keyed migrations) and Principle V
   (application formats labelled and versioned) and are drafted on the amendment branch.
 
