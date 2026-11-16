@@ -531,3 +531,7 @@ Proofs: editor/context/rename/acknowledgement tests — 43 pass, 0 fail, 157 ass
 File moves, including the suggestions path through the same module, record document prefixes and stage identical records in both projects for a cross-project move. Project, subproject and repository trash/restore carry complete stores beside view state. Historical records retain their original endpoints even when a project is restored under another slug; reads validate record shape while ownership is enforced for each new append. Another active store is never overwritten. Crash staging survives restore interruptions.
 
 The broader move/trash tests exposed a conversion regression: grouping reads with no assignments tried to open a file that had already moved or been deleted. Empty/non-item grouping state now returns without reading definitions, preserving the prior contract. Proof: migration-store, project API and trash tests — 17 pass, 0 fail, 212 assertions; TypeScript passes.
+
+### Deleted-history decisions
+
+Pure deletion derivation emits minimal stable prefixes and excludes positional or ambiguous items. The history reader reports a reset after the most recent matching item/document deletion and exposes only later records, including an explicit later reconciliation. Item/file delete and reuse integration tests are implemented and passing in the working tree; the save/delete wiring is the next coherent commit.

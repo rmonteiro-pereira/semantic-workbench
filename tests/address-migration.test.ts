@@ -1,6 +1,6 @@
 /** Exercises migration decisions through the public pure API. */
 import { expect, test } from 'bun:test';
-import { migrateAddress, migrationRetentionCut, validateDeclaredMigrations, type MigrationRecord } from '../src/shared/core/address-migration';
+import { migrateAddress, historySinceDeletion, migrationRetentionCut, validateDeclaredMigrations, type MigrationRecord } from '../src/shared/core/address-migration';
 import { formatAddress, parseAddress, type Address } from '../src/shared/core/item-address';
 import { withAddressSeed } from './helpers/seeded-random';
 
@@ -90,4 +90,13 @@ test('ordered replay keeps a field rename between two dataset renames', () => {
     { kind: 'dataset', name: 'C' },
     { kind: 'field', name: 'g' },
   ]);
+});
+
+test('history at a reused locator resets at its last deletion and retains only later explicit records', () => {
+  const past = record('A', 'B', 'rename');
+  const removed: MigrationRecord = { id: 'delete', kind: 'deleted', from: text('B'), at: past.at, commit: '' };
+  const explicit = { ...record('C', 'B', 'reconcile'), kind: 'reconciliation' as const };
+  expect(historySinceDeletion(address(text('B')), [past, removed])).toEqual({ reset: true, records: [] });
+  expect(historySinceDeletion(address(text('B')), [past, removed, explicit])).toEqual({ reset: true, records: [explicit] });
+  expect(historySinceDeletion(address(text('Other')), [past, removed])).toEqual({ reset: false, records: [past, removed] });
 });

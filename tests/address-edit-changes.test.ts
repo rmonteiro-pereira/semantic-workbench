@@ -1,7 +1,7 @@
 /** Exercises rename declarations through the workbench's source-edit decision boundary. */
 import { expect, test } from 'bun:test';
 import { stringify } from 'yaml';
-import { declaredRenames } from '../src/shared/edit/address-changes';
+import { declaredRenames, deletedItemAddresses } from '../src/shared/edit/address-changes';
 import { migrateAddress } from '../src/shared/core/address-migration';
 import { formatAddress, parseAddress } from '../src/shared/core/item-address';
 
@@ -33,4 +33,9 @@ test('reordering named roots and editing under unnamed scopes declare no history
   expect(declaredRenames(stringify({ semantic_model: roots }), stringify({ semantic_model: [...roots].reverse() }), location)).toEqual([]);
   expect(declaredRenames(stringify({ ontology: before.ontology }), stringify({ ontology: [{ concept: 'B' }] }), location, ['ontology', 0])).toEqual([]);
   expect(declaredRenames('name: old\n', 'name: new\n', { ...location, document: ['.gitignore'] })).toEqual([]);
+});
+
+test('deleting a named subtree records only its stable parent, while positional deletion records nothing', () => {
+  expect(deletedItemAddresses(stringify(before), stringify({ ...before, ontology: [] }), location)).toEqual(['sw1:sample/model.yaml#ontology:O/concept:A']);
+  expect(deletedItemAddresses(stringify({ ontology: before.ontology }), stringify({ ontology: [] }), location)).toEqual([]);
 });

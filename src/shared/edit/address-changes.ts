@@ -51,3 +51,21 @@ export function declaredRenames(before: string, after: string, location: Address
   }
   return declarations;
 }
+
+/** Lists minimal stable prefixes removed by an explicit workbench delete operation. */
+export function deletedItemAddresses(before: string, after: string, location: AddressDocument): string[] {
+  const filename = location.document.join('/');
+  if (rdfSyntax(before, filename) || rdfSyntax(after, filename)) return [];
+  const previous = addressesOfModel(parsedModel(before), location);
+  const next = new Set(addressesOfModel(parsedModel(after), location).map(item => formatAddress(item.address)));
+  const removed = previous.filter(item => stable(item) && !next.has(formatAddress(item.address)));
+  const keys = new Set(removed.map(item => formatAddress(item.address)));
+  return removed
+    .filter(item => {
+      for (let length = 1; length < item.address.chain.length; length++) {
+        if (keys.has(formatAddress({ ...item.address, chain: item.address.chain.slice(0, length) }))) return false;
+      }
+      return true;
+    })
+    .map(item => formatAddress(item.address));
+}
