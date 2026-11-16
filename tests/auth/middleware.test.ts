@@ -166,7 +166,7 @@ test('network refusals precede routing and identity decisions', async () => {
     runs++;
     return Response.json({ reached: true });
   };
-  const cases = [
+  const cases: { name: string; path: string; method: string; headers: Record<string, string>; status: number; body: unknown }[] = [
     { name: 'bearer before cross-site', path: '/api/agent/plan', method: 'POST', headers: { Authorization: 'Bearer invalid' }, status: 401, body: { error: 'sign-in required' } },
     { name: 'cross-site before routing', path: '/api/unmapped', method: 'POST', headers: {}, status: 403, body: 'Forbidden' },
     { name: 'principal before decision', path: '/api/projects', method: 'GET', headers: {}, status: 401, body: { error: 'sign-in required' } },
