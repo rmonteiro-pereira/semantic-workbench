@@ -23,6 +23,9 @@ import { migrateLegacy, type MigrationReport } from './migration';
 import { createTrash, deleteImpact as reportDeleteImpact, guardDeletion, type TrashEntry } from './trash';
 import { restoreTrashedDeletions } from './published-checkout';
 import { createScm } from './scm';
+import { createPublishedPointers } from './published-pointer';
+import { createPublishedSnapshots } from './published-snapshot';
+import { initializePublishedPointers } from './published-initialization';
 import { createWorktrees } from './worktrees';
 import { copyScmHooks, createWorkingCopies, projectLockKey, type Place, type RepositoryFacts } from './working-copies';
 import { createPublishing } from './publishing';
@@ -78,6 +81,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   const layout: DataLayout = dataLayout(options.root, options.cacheDir);
   for (const dir of [layout.projects, layout.state, layout.trash, layout.backup]) mkdirSync(dir, { recursive: true });
   const state = createState(layout);
+  const pointers = createPublishedPointers(state);
   const journal = createJournal(layout, options.journalHooks);
   const events = createEvents({
     suggestionIndex: () => indexedFiles(LOCAL_READER),
@@ -103,6 +107,14 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   mkdirSync(dirname(layout.cache), { recursive: true });
   const cache: Cache = createCache(layout.cache);
   const scanner = createScanner(layout, cache, git, () => gitAvailable);
+  const snapshots = createPublishedSnapshots({
+    git,
+    directory: repository => join(layout.projects, repository),
+    cache,
+    projects: () => state.registry().projects,
+    pointers,
+    gitAvailable: () => gitAvailable,
+  });
   const examplesDir = options.examplesDir ?? 'public/examples';
   // One queue for registry changes and one per project for file mutations.
   const locks = new Map<string, Promise<unknown>>();
@@ -350,8 +362,19 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     }
   }
   // A stop between moving the default branch and moving the published files is finished here.
-  if (gitAvailable) for (const repo of new Set(projects().map(project => locationOf(project).repo))) if (existsSync(join(layout.projects, repo, '.git'))) await worktrees.repairBase(repo);
+  if (gitAvailable && options.reconcilePublished)
+    for (const repo of new Set(projects().map(project => locationOf(project).repo))) if (existsSync(join(layout.projects, repo, '.git'))) await worktrees.repairBase(repo);
   if (gitAvailable && options.reconcilePublished) await reconcilePublishedCheckouts();
+  if (gitAvailable) {
+    await initializePublishedPointers({
+      git,
+      layout,
+      state,
+      pointers,
+      serverMode: options.reconcilePublished === true,
+      defaultBranch: repository => worktrees.defaultBranch(repository),
+    });
+  }
   for (const projectEntry of projects())
     if (existsSync(projectDir(layout, projectEntry.slug))) {
       await scanner.scan(projectEntry.slug);
@@ -626,6 +649,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     recovery,
     migration,
     repositoryStatus,
+    published: snapshots,
     ...gitIdentity,
     revertFile: documentSave.revertFile,
     importBatch: importBatch.importBatch,

@@ -532,6 +532,13 @@ trash/Undo, sparse folders and multi-project repositories. The
 and publication. For old local database migration, consult
 [upgrade and recovery guidance](docs/configuration.md#data-layout-and-upgrades).
 
+### Existing Git data on upgrade
+
+Opening an existing data root records each repository's default-branch tip as its first durable
+snapshot. The default branch name is remembered from Git configuration, then the remote default,
+then the checked-out branch. Local startup preserves branch refs, commits, staged changes,
+unstaged changes and untracked files; it does not repair or detach the local checkout.
+
 ## Configuration and integrations
 
 Use [docs/configuration.md](docs/configuration.md) for runtime variables and defaults.

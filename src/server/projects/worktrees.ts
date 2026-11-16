@@ -124,15 +124,13 @@ const copyExists = (context: WorktreeContext, key: string, repo: string) => exis
 
 /**
  * The repository's default branch: remembered once the base was detached, otherwise the branch
- * the base has checked out, otherwise the remote's default branch.
+ * the remote announces, otherwise the branch checked out when first adopted.
  */
 async function defaultBranch(context: WorktreeContext, repo: string) {
   const { git } = context;
   const dir = baseDir(context, repo);
   const remembered = await git.configValue(dir, DEFAULT_BRANCH_KEY, 'local');
   if (remembered) return remembered;
-  const checkedOut = await symbolicBranch(git, dir);
-  if (checkedOut) return checkedOut;
   const remote = await git.run(dir, ['symbolic-ref', '-q', '--short', 'refs/remotes/origin/HEAD'], {
     readOnly: true,
     allowFailure: true,
@@ -140,6 +138,8 @@ async function defaultBranch(context: WorktreeContext, repo: string) {
   const named = remote.code === 0 ? remote.stdout.trim().replace(/^origin\//, '') : '';
   // The remote chooses this name, so it must be a plain branch name before Git sees it again.
   if (named && (await isBranchName(git, dir, named))) return named;
+  const checkedOut = await symbolicBranch(git, dir);
+  if (checkedOut) return checkedOut;
   throw new GitError(`Cannot tell the default branch of ${repo}: its checkout is detached.`);
 }
 

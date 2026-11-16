@@ -73,3 +73,17 @@ local boundary. Missing Fetch Metadata fails closed. Replace this seam when inte
 
 `bun test tests/request-surface.test.ts`: 9 pass, 0 fail, 27 expect() calls.
 The missing-Fetch-Metadata-as-browser mutant exits 1; its baseline exits 0.
+
+## First-start initialization and copied-root upgrade
+
+`bun test tests/published-initialization.test.ts tests/auth/published-checkout.test.ts tests/auth/worktrees.test.ts`:
+21 pass, 0 fail, 134 expect() calls.
+The upgrade fixture starts without published state, stages one source, leaves another unstaged,
+adds an untracked file and then copies the entire root before opening it twice. Both opens preserve
+all refs, HEAD bytes, index bytes, staged content and working content. The first pointer names the
+pre-upgrade default tip; server initialization preserves source output; an unborn default records no pointer.
+
+The existing startup called `repairBase` in local mode too. Persisting the local default name would
+make that path destructive on restart. Recovery of the detached base now runs only for the existing
+server-startup option. The default-name lookup now follows recorded, remote default, checked-out,
+as required; the old implementation put checked-out before remote default.

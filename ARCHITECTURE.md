@@ -145,6 +145,8 @@ concatenating project, document or item names.
   changes. Cache rows are not another authoritative copy of the definitions.
 - `src/server/auth/request-surface.ts` records the browser or consumer surface after credential
   validation at the existing middleware. Local browser markers are a guardrail.
+- `published-initialization.ts` adopts the existing default-branch tip on first open without
+  touching the checkout or index. Only server startup repairs the detached published checkout.
 - `published-snapshot.ts` resolves pinned commits independently of editing readers, filters no
   permissions, checks historical provenance and retains current, previous and actively pinned indexes.
 - `snapshot-index.ts` reads committed project files with the shared byte validator. Concurrent

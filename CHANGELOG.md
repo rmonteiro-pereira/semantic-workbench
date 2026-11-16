@@ -29,6 +29,8 @@ not configure a production deployment.
   The operation inventory is the complete reference for ids. Listing and invocation share one verdict.
 - Operation listing reuses equivalent policy probes within each call, preserving exact project
   checks for administrator rules and clients.
+- Existing repositories record their default-branch tip as the first durable snapshot on startup.
+  Local startup preserves branch refs, staged and unstaged changes and untracked files.
 
 - Agent context: every document of a context names its `role` (`mapping`, `ontology` or `semantic`),
   and the answer lists `boundMetricIds`, the metrics bound directly to the selected concepts
