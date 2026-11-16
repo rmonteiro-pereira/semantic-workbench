@@ -156,3 +156,87 @@ Dynamic connection-scope refusals now retain the enclosing operation's action an
 audit record. The scoped push-on-commit denial is recorded as `commit`, and the static publish
 denial as `publish`. `bun test tests/auth/connection-scope.test.ts tests/auth/http-characterization.test.ts`:
 `3 pass`, `0 fail`, `1558 expect() calls`, `Ran 3 tests across 2 files. [7.45s]`.
+
+
+## Validation after resuming the extraction
+
+Completed tasks are T001–T016, T037–T040 and T049. T017 blocks Phase 3 under FR-014 and Q5;
+T018 and the later phases remain pending. No remaining task is marked complete or silently skipped.
+The unobservable adjacent-check cases and equivalent swap-only mutant are described above.
+
+- `bun test`: `2109 pass`, `0 fail`, `196733 expect() calls`, `Ran 2109 tests across 294 files. [436.37s]`.
+  This full run preceded the final scoped-denial attribution correction; its affected entry-point
+  tests and the frozen characterization were rerun afterward: `3 pass`, `0 fail`, `1558 expect() calls`.
+- `bun --bun run check`: exit 0. `All matched files use the correct format.`;
+  `Comments are free of specification and task IDs.` Theme, brand, TypeScript and lint checks pass.
+- `bun --bun run build`: exit 0, `✓ built in 2.45s`. The existing large-chunk warning remains.
+- `bun scripts/mutation-tests.ts`: exit 1, `error: Mutation anchors missing:`.
+  The orphaned anchors are in the extracted authentication/execution functions and named draft
+  limit. Retargeting the existing cases and registering the new mutants remain T044 work.
+  No mutation kill-rate or completion claim is made.
+- `bun run test:auth`: exit 0, 36 `PASS` lines; final summary line:
+  `PASS Git history is refused for a person who cannot read every file`.
+- `bun run test:admin`: exit 0. This script emits no overall summary line.
+- `bun test tests/auth/http-characterization.test.ts`: `1 pass`, `0 fail`, `1548 expect() calls`,
+  `Ran 1 test across 1 file. [7.17s]`. The later scope correction's combined run also passed.
+- `bun run audit:verify tests/fixtures/audit-v1`: `Audit log intact: 9 records in 3 months.`
+- `bun run test:terminology`: exit 0. `Terminology check passed: no "KPI" or "contract object" in 8 files' views, the metric detail, the wizard, README and docs (isolated data root /tmp/sw-010/workbench-browser-vAmD0t).`
+
+Auth, Admin and terminology browser suites ran sequentially. The terminology frontend served only
+this worktree's built files on assigned port 5311, with no API proxy. Its owned process was stopped.
+Browser harnesses used their own dynamic listeners. No other process was signalled.
+
+Later checks explicitly set `TMPDIR=/tmp/sw-010` and `DATA_DIR=/tmp/sw-010/data`. Earlier resumption
+commands used the existing test harness's disposable OS temporary roots; no owner's data root or
+other worktree was used. No shared temporary Git fixture file was removed.
+
+The frozen HTTP fixture is byte-identical to `1ad23ed7`; the original audit months are byte-identical
+to `66e51af5` (`git diff --exit-code` for each). No fixture was regenerated. The constitution is
+unchanged. The two handover sentences above complete T049 under the integrator's clarification.
+
+The readable-code checker passes for every changed TypeScript file, and the leak scanner passes
+for all changed deliverable files. Internal feature records use its confidential-only mode.
+The requested cadence checker remains unavailable: `scripts/commit_cadence.py` does not exist.
+
+## Local commits
+
+No push was performed. The following history includes the feature's specification commits:
+
+```text
+f8557cdb Attribute dynamic scope refusals to their enclosing operation
+570715eb Wait for clone jobs before disposing parity workspaces
+59ed7d2d Compare HTTP and twin authorization through real operation handlers
+8c5bc527 Preserve asynchronous publication checks for scoped fetches
+95c772bf Restrict static and dynamic operation effects by connection scope
+d4ae3573 Use the attached caller session for delegated remote credentials
+797f8cab Refuse non-dispatchable and mismatched twin operations
+21b67e43 test(auth): generate hostile twin parameters for every route shape
+3a4df028 feat(auth): build credential-free operation twin requests
+0f0c68fc data: inventory administration and transport-owned operations
+d78bb876 data: inventory source control and repository operations
+c795e759 data: inventory workspace and definition operations
+a6aa2a0e feat(auth): parse the reviewed operation inventory contract
+3537fa62 refactor(http): name existing request byte limits
+b1367dee test(auth): type refusal table headers explicitly
+7f16b6d1 test(auth): prove reachable authentication refusal precedence
+d650a81d refactor(auth): keep HTTP adaptation separate from operation decisions
+7c2343e8 refactor(auth): move operation execution into the shared boundary
+8e0810cd refactor(auth): attach handler identity in one place
+1d840619 refactor(auth): extract network request authentication
+086c013b test(auth): compare unordered audit rules without changing stored bytes
+f063ba8d docs(auth): record original-code characterization blocker
+a2e1aaad test(auth): compare replay fixture as serialized data
+3c15f949 feat(auth): mint authenticated operation callers
+3fdb78dd test(auth): record in-process boundary performance baseline
+453463f1 test(auth): freeze administration audit replay baseline
+66e51af5 test(audit): preserve original monthly chain fixtures
+1ad23ed7 test(auth): freeze HTTP behavior before boundary extraction
+ffac0dbe docs(spec): resolve analysis findings
+6b89ff97 docs(spec): task list for the operation boundary
+ce93abfd docs(spec): quickstart for the operation boundary
+d6244715 docs(spec): contracts of the operation boundary
+13cf2dd4 docs(spec): data model of the operation boundary
+a24f4880 docs(spec): plan the operation boundary
+5a501cf2 docs(spec): research the operation boundary design
+2ad5dcb3 docs(spec): specify the operation boundary
+```
