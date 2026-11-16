@@ -87,3 +87,18 @@ The existing startup called `repairBase` in local mode too. Persisting the local
 make that path destructive on restart. Recovery of the detached base now runs only for the existing
 server-startup option. The default-name lookup now follows recorded, remote default, checked-out,
 as required; the old implementation put checked-out before remote default.
+
+## Checked publication and interrupted intent recovery
+
+`bun test tests/publishing.test.ts`: 4 pass, 0 fail, 15 expect() calls.
+`bun test tests/auth/publish-safety.test.ts tests/auth/working-copy-routes.test.ts`:
+12 pass, 0 fail, 43 expect() calls.
+The registered pointer-before-checks mutant fails its focused refusal case; baseline passes.
+Publication operations serialize per repository so one intent cannot overwrite another active move.
+Existing published events continue to come from publishing.ts.
+
+T010's wording puts intent before checks, while plan.md puts checks before intent. The latter order
+is necessary: a persisted recoverable intent must represent a validated candidate. Checks run first,
+then intent, ref compare-and-swap, pointer, resolver supersede and checkout refresh. Only this ordering
+fragment of the task was corrected; its restart proof runs at all three requested interruption points.
+The existing publishing safety tests live under tests/auth/, rather than the flat path named by the task.

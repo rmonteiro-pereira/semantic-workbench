@@ -220,6 +220,9 @@ are serialized across its worktrees.
 | Push default | Sends already published state to the remote; does not publish first |
 
 Publishing checks the exact proposed commits, requires a fast-forward and uses compare-and-swap.
+The candidate tree is read completely within the snapshot limits before content guards run.
+A durable intent surrounds the ref move; startup completes or drops an interrupted intent before
+refreshing the published checkout.
 If another publish won the race, pull from the default branch first. A fetch can follow a remote
 default branch only when the caller may publish and the content guards accept it. Otherwise the
 fetch succeeds without moving the published state. Diverged histories are not silently joined.

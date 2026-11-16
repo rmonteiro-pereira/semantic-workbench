@@ -2,10 +2,12 @@
 import { expect, test } from 'bun:test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { createGit } from '../src/server/projects/git';
 import { tempDataDir } from './helpers/temp-data-dir';
 
 async function objectRepository() {
+  mkdirSync(join(tmpdir(), 'sw-008'), { recursive: true });
   const temporary = tempDataDir('sw-008/objects-');
   const repository = join(temporary.root, 'objects');
   mkdirSync(repository);

@@ -3,6 +3,8 @@
 // default branch and holds the published state; only publishing moves it.
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { publicationChecks, type PublicationCandidate } from './publication-checks';
+import type { PublishedPointers } from './published-pointer';
 import { BranchInUseError, NotFastForwardError } from './errors';
 import { authorship, commitOf, GitError, isBranchName, symbolicBranch, type CommitAuthor, type Git } from './git';
 import { USER_KEY, type DataLayout } from './paths';
@@ -104,6 +106,12 @@ export type WorktreeContext = {
   layout: DataLayout;
   git: Git;
   people: () => CopyOwner[];
+  publication?: {
+    pointers: PublishedPointers;
+    readable: (candidate: PublicationCandidate) => Promise<unknown>;
+    supersede: () => void;
+    stage?: (stage: 'intent' | 'ref' | 'pointer') => void;
+  };
   /**
    * Each repository's worktree list, kept until a copy is created, removed or switches branch,
    * or the default branch moves, so a project listing does not ask Git again for every project.
@@ -235,21 +243,25 @@ async function moveDefault(context: WorktreeContext, repo: string, move: { branc
   // files included, is refused before anything changes.
   const changed = await git.run(base, ['status', '--porcelain'], { readOnly: true });
   if (changed.stdout.trim()) throw new BaseChangedError(repo);
-  if (previous && previous !== next) {
-    const ancestor = await git.run(base, ['merge-base', '--is-ancestor', previous, next], {
-      readOnly: true,
-      allowFailure: true,
-    });
-    if (ancestor.code !== 0) throw new NotFastForwardError(branch);
-  }
-  // The commits judged are the ones published: the swap below fails if the branch moved.
-  await check(previous, next);
+  const candidate = { repo, branch, previous, next };
+  const checks = publicationChecks({
+    isAncestor: (_repo, from, to) => git.isAncestor(base, from, to),
+    readable: context.publication?.readable ?? (async () => {}),
+    guard: async () => check(previous, next),
+  });
+  for (const validate of checks) await validate(candidate);
+  context.publication?.pointers.intent(repo, branch, next);
+  context.publication?.stage?.('intent');
   if (previous !== next) {
     // The old value makes the update fail when someone else published meanwhile.
     const swap = ['update-ref', 'refs/heads/' + branch, next, previous ?? ''];
     const swapped = await git.run(base, swap, { allowFailure: true });
     if (swapped.code !== 0) throw new NotFastForwardError(branch);
   }
+  context.publication?.stage?.('ref');
+  context.publication?.pointers.complete(repo, branch, next);
+  context.publication?.supersede();
+  context.publication?.stage?.('pointer');
   try {
     await git.run(base, ['checkout', '-q', '--force', '--detach', 'refs/heads/' + branch]);
   } catch (error) {
@@ -358,6 +370,18 @@ async function remove(context: WorktreeContext, repo: string, key: string) {
 /** Creates, lists, publishes and removes the per-person working copies of repositories. */
 export function createWorktrees(options: Omit<WorktreeContext, 'listings'>) {
   const context: WorktreeContext = { ...options, listings: new Map() };
+  const publications = new Map<string, Promise<unknown>>();
+  function serialized<T>(repository: string, move: () => Promise<T>): Promise<T> {
+    const previous = publications.get(repository) ?? Promise.resolve();
+    const next = previous.catch(() => {}).then(move);
+    publications.set(repository, next);
+    void next
+      .finally(() => {
+        if (publications.get(repository) === next) publications.delete(repository);
+      })
+      .catch(() => {});
+    return next;
+  }
   return {
     /** Forgets the cached worktree list after a branch switch in one of the copies. */
     branchesMoved: (repo: string) => context.listings?.delete(repo),
@@ -373,9 +397,9 @@ export function createWorktrees(options: Omit<WorktreeContext, 'listings'>) {
     releaseCopies: (repo: string) => releaseCopies(context, repo),
     ensure: (repo: string, owner: CopyOwner) => ensure(context, repo, owner),
     assertFree: (repo: string, key: string, branch: string) => assertFree(context, repo, key, branch),
-    publish: (repo: string, key: string, check: (previous: string | null, next: string) => Promise<void>) => publish(context, repo, key, check),
+    publish: (repo: string, key: string, check: (previous: string | null, next: string) => Promise<void>) => serialized(repo, () => publish(context, repo, key, check)),
     remoteAhead: (repo: string, remote: string) => remoteAhead(context, repo, remote),
-    followRemote: (repo: string, remote: string, check: (previous: string | null, next: string) => Promise<void>) => followRemote(context, repo, remote, check),
+    followRemote: (repo: string, remote: string, check: (previous: string | null, next: string) => Promise<void>) => serialized(repo, () => followRemote(context, repo, remote, check)),
     mergeDefault: (repo: string, key: string, author: CommitAuthor | undefined, check: (tip: string) => Promise<void>) => mergeDefault(context, repo, key, author, check),
     remove: (repo: string, key: string) => remove(context, repo, key),
   };

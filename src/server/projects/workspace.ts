@@ -23,6 +23,7 @@ import { migrateLegacy, type MigrationReport } from './migration';
 import { createTrash, deleteImpact as reportDeleteImpact, guardDeletion, type TrashEntry } from './trash';
 import { restoreTrashedDeletions } from './published-checkout';
 import { createScm } from './scm';
+import { createSnapshotIndexes } from './snapshot-index';
 import { createPublishedPointers } from './published-pointer';
 import { createPublishedSnapshots } from './published-snapshot';
 import { initializePublishedPointers } from './published-initialization';
@@ -336,7 +337,22 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
         locate: slug => locationOf(entry(slug)),
       })
     : null;
-  const worktrees = createWorktrees({ layout, git, people: () => copies.owners() });
+  const publicationIndexes = createSnapshotIndexes({ git, directory: repository => join(layout.projects, repository), cache });
+  const worktrees = createWorktrees({
+    layout,
+    git,
+    people: () => copies.owners(),
+    publication: {
+      pointers,
+      readable: candidate =>
+        publicationIndexes.build(
+          candidate.repo,
+          candidate.next,
+          projects().filter(project => locationOf(project).repo === candidate.repo),
+        ),
+      supersede: () => snapshots.supersede(),
+    },
+  });
   // The repository paths of files that copy-less trash entries hold, per repository folder.
   function trashedPaths(): Map<string, Set<string>> {
     const byRepo = new Map<string, Set<string>>();
@@ -359,6 +375,14 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       const report = options.log ?? ((line: string) => log.info('workspace.reconcile', { detail: line }));
       const paths = trashed.get(repo) ?? new Set<string>();
       await restoreTrashedDeletions({ git, dir, repo, trashed: paths, log: report });
+    }
+  }
+  if (gitAvailable) {
+    for (const [repository, pointer] of pointers.entries()) {
+      if (!pointer.intent) continue;
+      const directory = join(layout.projects, repository);
+      const ref = await git.revParse(directory, `refs/heads/${pointer.branch}`);
+      await pointers.reconcile(repository, ref, (from, to) => git.isAncestor(directory, from, to));
     }
   }
   // A stop between moving the default branch and moving the published files is finished here.

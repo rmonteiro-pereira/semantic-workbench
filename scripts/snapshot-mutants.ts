@@ -15,4 +15,10 @@ export const snapshotMutants: [string, string, string, string][] = [
   ['snapshot-resolver', 'src/server/projects/published-snapshot.ts', 'if (!keep.has(key)) retained.delete(key);', 'void key;'],
   ['snapshot-resolver', 'src/server/projects/published-snapshot.ts', 'JSON.stringify([repository, commit, folderDigest(projects)])', 'JSON.stringify([repository, commit])'],
   ['snapshot-surface', 'src/server/auth/request-surface.ts', "site !== 'same-origin' && site !== 'same-site'", "site !== null && site !== 'same-origin' && site !== 'same-site'"],
+  [
+    'snapshot-publication',
+    'src/server/projects/worktrees.ts',
+    'for (const validate of checks) await validate(candidate);',
+    'context.publication?.pointers.complete(repo, branch, next);\n  for (const validate of checks) await validate(candidate);',
+  ],
 ];

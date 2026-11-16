@@ -1,5 +1,7 @@
 // Focused assertions for immutable publication faults.
 import assert from 'node:assert/strict';
+import type { createWorktrees } from '../src/server/projects/worktrees';
+import { publicationMoveFixture } from '../tests/helpers/publication-fixture';
 import type { surfaceFromCredential } from '../src/server/auth/request-surface';
 import { join } from 'node:path';
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -17,6 +19,7 @@ export async function snapshotMutationCase(
   category: string,
   candidate: {
     surfaceFromCredential?: typeof surfaceFromCredential;
+    createWorktrees?: typeof createWorktrees;
     classify?: typeof classify;
     publicationChecks?: typeof publicationChecks;
     createPublishedSnapshots?: typeof createPublishedSnapshots;
@@ -25,6 +28,19 @@ export async function snapshotMutationCase(
 ) {
   if (category === 'snapshot-surface') {
     assert.equal(candidate.surfaceFromCredential!(new Request('http://localhost/'), { mode: 'local', session: false, originAllowed: true }), 'agent');
+  }
+  if (category === 'snapshot-publication') {
+    const fixture = await publicationMoveFixture(candidate.createWorktrees!);
+    try {
+      await assert.rejects(() =>
+        fixture.worktrees.publish('definitions', fixture.owner.key, async () => {
+          throw Error('Refused');
+        }),
+      );
+      assert.equal(fixture.pointers.get('definitions')?.commit, fixture.fixture.published);
+    } finally {
+      fixture.fixture.dispose();
+    }
   }
   if (category === 'snapshot-pointer') {
     const pointer = { branch: 'main', commit: 'a'.repeat(40) };

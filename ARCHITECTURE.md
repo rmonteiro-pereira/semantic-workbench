@@ -152,7 +152,9 @@ concatenating project, document or item names.
 - `snapshot-index.ts` reads committed project files with the shared byte validator. Concurrent
   builds share one promise per repository, commit and folder digest; limits reject whole builds.
 - `publication-checks.ts` orders ancestry, complete bounded reads and content-guard judgement
-  before a publication can move its ref or durable pointer.
+  before a publication can move its ref or durable pointer. Publication then writes its intent,
+  compare-and-swaps the ref, records the pointer and supersedes the resolver; startup reconciles
+  interrupted intents before repairing the server checkout.
 - `published-pointer.ts` owns atomic publication records and interrupted-publication transitions.
   `state.ts` persists these records in `state/published.json`, separately from the derived cache.
 - `git.ts` is the subprocess boundary for Git. Immutable object reads use queued `ls-tree` and

@@ -427,10 +427,10 @@ mutants.push(
 // published state is never edited, and protected branches need the publish right.
 mutants.push(
   ['copy-author', 'src/server/routes/git.ts', 'author: reader.copy?.author,', 'author: undefined,'],
-  ['copy-worktrees', 'src/server/projects/worktrees.ts', 'if (ancestor.code !== 0) throw new NotFastForwardError(branch);', 'if (false) throw new NotFastForwardError(branch);'],
+  ['copy-worktrees', 'src/server/projects/worktrees.ts', 'isAncestor: (_repo, from, to) => git.isAncestor(base, from, to),', 'isAncestor: async () => true,'],
   ['copy-worktrees', 'src/server/projects/worktrees.ts', 'if (holder && holder.key !== key) throw new BranchInUseError(branch, holder.name);\n}', 'void holder;\n}'],
   ['copy-publish', 'src/server/projects/worktrees.ts', "const swap = ['update-ref', 'refs/heads/' + branch, next, previous ?? ''];", "const swap = ['update-ref', 'refs/heads/' + branch, next];"],
-  ['copy-publish', 'src/server/projects/worktrees.ts', '  await check(previous, next);\n', ''],
+  ['copy-publish', 'src/server/projects/worktrees.ts', 'guard: async () => check(previous, next),', 'guard: async () => {},'],
   ['copy-publish', 'src/server/projects/worktrees.ts', 'if (changed.stdout.trim()) throw new BaseChangedError(repo);', 'void changed;'],
   [
     'copy-publish',
