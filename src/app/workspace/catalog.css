@@ -80,7 +80,7 @@
   font-size: var(--text-small);
 }
 @media (min-width: 651px) {
-  .toolbar .search {
+  .catalog-toolbar .search {
     min-width: 240px;
   }
 }

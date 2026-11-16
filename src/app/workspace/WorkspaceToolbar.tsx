@@ -52,7 +52,7 @@ export const WorkspaceToolbar = React.memo(function WorkspaceToolbar({
 
   return (
     <>
-      <div className="toolbar">
+      <div className={tab === 'catalog' ? 'toolbar catalog-toolbar' : 'toolbar'}>
         <ScrollStrip className="tabs" selection={tab}>
           {isContract && (
             <button className={tab === 'contract' ? 'selected' : ''} aria-current={tab === 'contract' ? 'page' : undefined} onClick={() => setTab('contract')}>
