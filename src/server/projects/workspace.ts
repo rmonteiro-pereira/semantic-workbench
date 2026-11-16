@@ -1,3 +1,7 @@
+import { convertAddressKeys } from './address-key-conversion';
+import { inspect } from '../../shared/core/model';
+import { encodeGrouping, decodeGrouping, type GroupingAssignments } from '../../shared/core/grouping-addresses';
+import { InputError } from '../../shared/validation/diagnostics';
 // Coordinates project files, durable state, and workspace services. Project folders are the source
 // of truth; the SQLite cache can be rebuilt.
 import { existsSync, mkdirSync, readFileSync, readdirSync } from 'node:fs';
@@ -92,6 +96,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   const recovery: RecoveryOutcome[] = journal.recover();
   recovery.push(...rollBackInterruptedClones(layout));
   const migration: MigrationReport | null = await migrateLegacy({ layout, state, journal, git, gitAvailable, identityConfigured }, options.migrationHooks);
+  convertAddressKeys({ layout, journal });
   mkdirSync(dirname(layout.cache), { recursive: true });
   const cache: Cache = createCache(layout.cache);
   const scanner = createScanner(layout, cache, git, () => gitAvailable);
@@ -190,6 +195,15 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   // A payload-free trigger: the event hub debounces it and counts for each connected client.
   function notifySuggestions() {
     if (!closed) events.emit('suggestions', {}, { audience: 'all' });
+  }
+  function groupingEntities(reference: { project: string; path: string }, reader: Reader) {
+    const document = readFile(reference.project, reference.path, reader);
+    try {
+      return inspect(document.source, reference.path).entities;
+    } catch (error) {
+      if (!(error instanceof InputError)) throw error;
+      return [];
+    }
   }
   function readFile(slug: string, path: string, reader: Reader = LOCAL_READER) {
     entry(slug);
@@ -833,11 +847,13 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       await saveFile(ref.project, ref.path, { baseHash: base, source }, reader);
       return documentsFor(reader).find(d => d.project === ref.project && d.path === ref.path)!;
     },
-    grouping(id: string, { view, owner }: Reader) {
+    grouping(id: string, reader: Reader) {
+      const { view, owner } = reader;
       const personal = owner ? state.forOwner(owner) : state;
       const ref = resolveId(id);
       if (view && !view.canRead(ref.project, ref.path)) throw new HiddenResourceError();
-      return (personal.view(ref.project).files[ref.path] ?? {}) as object;
+      const value = (personal.view(ref.project).files[ref.path] ?? {}) as GroupingAssignments;
+      return decodeGrouping(value, groupingEntities(ref, reader), { project: ref.project, document: ref.path.split('/') }) as object;
     },
     saveGrouping(id: string, value: unknown, reader: Reader) {
       const { view, owner } = reader;
@@ -849,7 +865,8 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       if (!indexed) throw new NotFoundError('Document not found.');
       return lock(projectLockKey(ref.project, place.copy), () => {
         const view = personal.view(ref.project);
-        personal.writeView(ref.project, { ...view.files, [ref.path]: value });
+        const encoded = encodeGrouping(value as GroupingAssignments, groupingEntities(ref, reader), { project: ref.project, document: ref.path.split('/') });
+        personal.writeView(ref.project, { ...view.files, [ref.path]: encoded.value });
         return value;
       });
     },

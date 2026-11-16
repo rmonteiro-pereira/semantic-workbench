@@ -126,7 +126,9 @@ IDs and the existing grouping/persistence boundaries.
   state; `reader.ts` defines the caller's filtered view, owner and content guard.
 - `atomic.ts` replaces files without modifying untouched bytes. `journal.ts` coordinates
   multi-file/folder/registry changes. `migration.ts` reads legacy databases through protected
-  copies and stages the file-store migration.
+  copies and stages the file-store migration. `address-key-stores.ts` locates active and archived grouping stores;
+  `address-key-conversion.ts` backs them up, verifies original hashes, and journals their one-time conversion.
+  Shared `grouping-addresses.ts` translates stable assignment keys while keeping renderer IDs at the UI boundary.
 - `scanner.ts`, `cache.ts` and `watcher.ts` maintain derived models/findings and detect disk
   changes. Cache rows are not another authoritative copy of the definitions.
 - `git.ts` is the subprocess boundary for Git; `scm.ts` owns Source Control behavior and converts

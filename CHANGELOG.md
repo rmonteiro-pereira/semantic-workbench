@@ -11,6 +11,8 @@ not configure a production deployment.
 - Reviewed operation inventory and generated reference, trusted in-process operation dispatch,
   connection effect restrictions, audit attribution fields and origin/tool filters.
 - Independent dry-run samples retain write and denial evidence during non-HTTP read floods.
+- Back up and convert stable grouping assignments to item locators, retaining unconvertible keys and existing grouping API behavior.
+
 - Agent context field IDs and metadata scope labels use canonical locators; metric extension references retain their source spelling.
 
 - Mapping canvas cards and rows use scoped item addresses, preserving visible labels and binding behavior.

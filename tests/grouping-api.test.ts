@@ -19,7 +19,7 @@ test('grouping corrections persist in view state files without changing source o
     expect(await (await handler(new Request(url))).json()).toEqual(grouping);
     expect(workspace.ws.documents()[0].hash).toEqual(doc.hash);
     expect(workspace.ws.grouping(doc.id, LOCAL_READER)).toEqual(grouping);
-    expect(workspace.ws.state.view('ungrouped').files['sample.yaml']).toEqual(grouping);
+    expect(workspace.ws.state.view('ungrouped').files['sample.yaml']).toEqual({ ...grouping, assignments: { 'sw1:ungrouped/sample.yaml#ontology:Sample/concept:A': 'custom:Review' } });
   } finally {
     workspace.dispose();
   }

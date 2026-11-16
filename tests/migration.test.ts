@@ -127,7 +127,10 @@ test('v0.1.0 migration backs up, exports byte for byte, verifies, commits and ma
       workspace.ws.close();
       const again = await testWorkspace({ root: dataDir.root });
       expect(again.ws.migration).toBeNull();
-      expect(readdirSync(join(dataDir.root, 'backup')).sort()).toEqual([migrationReport.backup!, migrationReport.backup + '-shm', migrationReport.backup + '-wal'].map(p => p.split('/').pop()!));
+      const conversion = JSON.parse(readFileSync(join(dataDir.root, 'state/address-key-conversion.json'), 'utf8'));
+      expect(readdirSync(join(dataDir.root, 'backup')).sort()).toEqual(
+        [conversion.backup, migrationReport.backup!, migrationReport.backup + '-shm', migrationReport.backup + '-wal'].map(path => path.split('/').pop()!).sort(),
+      );
       again.ws.close();
     } finally {
       workspace.ws.close();

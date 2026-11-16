@@ -103,3 +103,5 @@ preserves unchanged step references so Back and Forward retain their existing re
 | Browser action history | Selection and neighborhood centers use addresses in memory. Browser history entries contain a session/cursor, not serialized item keys; reload does not restore an action recording. |
 
 The inventory test checks the fields of each durable type so a new field requires a conversion decision.
+
+At startup, `state/address-key-conversion.json` marks completed server-side conversion. Before installation, each affected view is backed up beneath `backup/address-keys-<operation>/` with its original relative path and SHA-256. Source and store hashes are rechecked before a single journal installs the converted views and completion marker. A failure leaves the existing stores untouched. Unknown grouping shapes stop conversion; missing, ambiguous, volatile, RDF and built-in keys are retained in the completion report. Personal views use their owner's working-copy definitions where present. The grouping API still returns renderer keys, while stable structured assignments are stored as absolute locators.
