@@ -143,7 +143,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: After a pierce publishes, fit to the result when the fitted zoom is at least the readable zoom, otherwise show the '<N> entities, Fit' prompt in the toolbar.
   - Proof: Before `followup/local-ubl-neighborhood--pierce-alone-1440.png` (review baseline); after: same state recaptured with `scripts/ui-review/followup-local.ts <out> graphs`; check: `bun run test:graph` pierce budget unchanged and the result is inside the pane or the prompt is present.
 
-- [ ] T019 [US1] [A] Draw edges under area titles, separate bundle outlines, and space the metric badge.
+- [x] T019 [US1] [A] Draw edges under area titles, separate bundle outlines, and space the metric badge.
   - Findings: m9 · Requirements: FR-008
   - Files: `src/app/graph/FullGraphNodes.tsx`, `src/app/graph/RoutedEdge.tsx`, `src/app/graph/edge-styles.ts`, `src/app/graph/graph-canvas.css`, `tests/edge-appearance.test.ts`
   - Change: Give the area title a plate above the edge layer, draw a bundle outline with the edge style rather than the area-frame style, and add the gap between the badge icon and its number.

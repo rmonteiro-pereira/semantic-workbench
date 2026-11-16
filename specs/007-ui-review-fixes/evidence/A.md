@@ -28,6 +28,14 @@ Before root: `/home/rodrigo/projetos/semantic-workbench-ui-review-20261115/scree
 
 Every after image above was opened. The capture helper reports no geometry problems. The review's Layered 1440 image named first-view carries an already selected Order and mini-map from preceding interactions; the new independent opening capture is intentionally fresh. A matched selected-state comparison is also provided separately by the Person follow-up pair. Title strokes crossing headings remain visible in these opening captures pending the separate title-layer fix.
 
+## Title layering completed
+
+T019 now completes through layering, as authorized by the integrator. Actual SVG edges already have z-index -2 and area nodes -1. The earlier conclusion that a title plate could not cover them was incorrect. The existing title receives an opaque page-surface plate above the stroke; no route, node position or dragging behavior changes. There is one relationship stroke rather than an independent bundle-outline renderer, so no additional outline renderer is introduced. The previously completed metric-badge gap remains.
+
+`/tmp/sw-A/resume/titles.log`: `PASS opaque area titles stay above the SVG edge and outline layer`; `PASS title layering, complete names, nonoverlapping areas, cross-area links and selected Fit`. The geometry check inserts and removes a temporary stroke into the actual SVG edge plane under a visible title and verifies the title wins hit testing. It also asserts an opaque background. This proves visible occlusion, rather than incorrectly claiming the underlying route never enters the title rectangle.
+
+Before `screenshots/states/local-full-graph-network--zoomed-in-1440.png` in the review → after `/tmp/sw-A/resume/after/states/local-full-graph-network--zoomed-in-1440.png`. Opened both: the Allowance charge heading is clear above the crossing strokes, with no routing change. Also reopened the updated Network 1440 first view: the vertical edge under Document reference is covered by its title plate. Capture log `/tmp/sw-A/resume/capture-title.log`: both captures report `[]` geometry problems.
+
 ## Baseline
 
 T011 complete. All 24 fresh light-theme first views measured against an archive of e8b7d69. Locked thresholds and numbers are in research.md. Command: `SW_BASE_URL=http://127.0.0.1:5211 bun --preload /tmp/sw-A/port.ts scripts/ui-review/measure-graph.ts`. The temporary preload binds isolated APIs to 5212 instead of ephemeral ports. Raw output: `/tmp/sw-A/baseline.jsonl`; images: `/tmp/sw-A/baseline-measurements/`.
@@ -67,7 +75,7 @@ The first terminology attempt omitted the base URL and preload, attempted 5173 a
 
 ## Scope exceptions and shared registration
 
-T019 partially implemented, left unticked: metric-badge spacing is present. A title background inside an area node cannot rise above edges because its parent has z-index -1. That ineffective trial was removed; title/edge layering needs a separate rendered label plane and remains unresolved. `RoutedEdge` has one BaseEdge/BezierEdge stroke; there is no separate bundle-outline renderer using the area-frame style to replace. Adding one would exceed this finding. The requested geometric prohibition on any underlying path crossing a title is not claimed: no title masking is claimed. The lane B edge-suite failure above prevents its required green check.
+Original T019 partial result (superseded): metric-badge spacing is present. A title background inside an area node cannot rise above edges because its parent has z-index -1. That ineffective trial was removed; title/edge layering needs a separate rendered label plane and remains unresolved. `RoutedEdge` has one BaseEdge/BezierEdge stroke; there is no separate bundle-outline renderer using the area-frame style to replace. Adding one would exceed this finding. The requested geometric prohibition on any underlying path crossing a title is not claimed: no title masking is claimed. The lane B edge-suite failure above prevents its required green check.
 
 The shared responsive suite has one changed call inside its existing Neighborhood details block, plus its helper import, as plan.md permits. The lane-owned `selectNeighborhoodCenter` helper selects the visible center instead of the former last node, which is now legitimately offscreen at readable opening zoom. No unrelated responsive blocks changed.
 

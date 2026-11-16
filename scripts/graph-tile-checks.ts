@@ -1,6 +1,7 @@
+import { checkGraphTitleLayer } from './helpers/graph-title-checks';
 import { expect, type Browser, type Page } from '@playwright/test';
 import { appUrl } from './helpers/base-url';
-import { revealGraphControls } from './helpers/graph-options';
+import { revealGraphControls, showEveryEntity } from './helpers/graph-options';
 import { routeApi, type IsolatedApi } from './helpers/isolated-api';
 import { groupRelationships } from '../src/app/graph/graph-view';
 import { inspect } from '../src/shared/core/model';
@@ -19,6 +20,8 @@ async function openGraph(page: Page, api: IsolatedApi, filename = 'ubl.ontology.
   if ((page.viewportSize()?.width ?? 0) < 1100) await workspace.click();
   await page.getByRole('tree', { name: 'Projects' }).getByRole('button', { name: filename, exact: true }).click();
   await page.locator('.tabs').getByRole('button', { name: 'Graph', exact: true }).click();
+  await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60000 });
+  await showEveryEntity(page);
   await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60000 });
   await page.getByRole('button', { name: 'Fit model', exact: true }).click();
   await expect(page.locator('.full-graph .react-flow__node-entity').first()).toBeVisible();
@@ -87,7 +90,8 @@ export async function checkTiles(page: Page, api: IsolatedApi) {
     for (let second = first + 1; second < boxes.length; second++) expect(overlapping(boxes[first], boxes[second])).toBe(false);
   }
   const backgrounds = await page.locator('.full-graph .full-area-title').evaluateAll(titles => titles.map(title => getComputedStyle(title).backgroundColor));
-  expect(backgrounds.every(background => background === 'rgba(0, 0, 0, 0)')).toBe(true);
+  expect(backgrounds.every(background => background !== 'rgba(0, 0, 0, 0)')).toBe(true);
+  await checkGraphTitleLayer(page);
   await expect(page.locator('.full-graph .react-flow__edge')).toHaveCount(connections.length);
   const linksBefore = await crossAreaLinks(page, connections);
   expect(linksBefore.length).toBeGreaterThan(0);
