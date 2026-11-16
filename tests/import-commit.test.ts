@@ -134,7 +134,7 @@ test('during a merge the import is written but not committed', async () => {
     sh(dir, ['switch', '-q', 'main']);
     writeFileSync(join(dir, 'a.yaml'), ontology('Main'));
     sh(dir, ['commit', '-qam', 'main']);
-    Bun.spawnSync(['git', 'merge', 'other'], { cwd: dir });
+    Bun.spawnSync(['git', 'merge', 'other'], { cwd: dir, env: { ...process.env } });
     const reimported = await ok(
       call(workspace, 'POST', `/api/projects/${imported.slug}/import`, {
         files: [{ path: 'b.yaml', source: ontology('B') }],

@@ -165,7 +165,7 @@ test('deletion records its principal; only a Steward can restore other or legacy
   // Local mode left both deletions committed on the default branch. A restore in server mode goes
   // into the person's copy, which starts from that branch without the files.
   const published = join(fixture.ws.layout.projects, 'sales-contracts');
-  const git = (...args: string[]) => Bun.spawnSync(['git', ...args], { cwd: published });
+  const git = (...args: string[]) => Bun.spawnSync(['git', ...args], { cwd: published, env: { ...process.env } });
   const legacy = [
     [undefined, 'orders.odcs.yaml'],
     [person('bob').id, 'people.mapping.yaml'],

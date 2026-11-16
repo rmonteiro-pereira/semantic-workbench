@@ -1,3 +1,5 @@
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { expect, spyOn, test } from 'bun:test';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';

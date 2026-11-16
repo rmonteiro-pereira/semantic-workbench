@@ -8,7 +8,7 @@ import { isolateGit } from './helpers/temp-data-dir';
 // Selected-path commits stage untracked files before using `git commit --only`.
 // Other staged and unstaged work must remain untouched.
 const sh = (cwd: string, args: string[]) => {
-  const syncSubprocess = Bun.spawnSync(['git', ...args], { cwd });
+  const syncSubprocess = Bun.spawnSync(['git', ...args], { cwd, env: { ...process.env } });
   if (syncSubprocess.exitCode !== 0) throw Error(syncSubprocess.stderr.toString());
   return syncSubprocess.stdout.toString();
 };
@@ -78,7 +78,7 @@ test('refuses during a merge and reports it', async () => {
     sh(scratchRepo.dir, ['switch', '-q', 'main']);
     scratchRepo.write('a.yaml', 'a: main\n');
     sh(scratchRepo.dir, ['commit', '-qam', 'main']);
-    Bun.spawnSync(['git', 'merge', 'other'], { cwd: scratchRepo.dir });
+    Bun.spawnSync(['git', 'merge', 'other'], { cwd: scratchRepo.dir, env: { ...process.env } });
     scratchRepo.write('z.yaml', 'z: 1\n');
     expect(await scratchRepo.git.commitPaths(scratchRepo.dir, ['z.yaml'], 'Import z')).toEqual({
       committed: false,
@@ -104,7 +104,7 @@ test('without a Git identity nothing is committed and the reason is given', asyn
       committed: false,
       reason: 'no-identity',
     });
-    expect(Bun.spawnSync(['git', 'rev-parse', '-q', '--verify', 'HEAD'], { cwd: scratchRepo.dir }).exitCode).not.toBe(0);
+    expect(Bun.spawnSync(['git', 'rev-parse', '-q', '--verify', 'HEAD'], { cwd: scratchRepo.dir, env: { ...process.env } }).exitCode).not.toBe(0);
     // A repository-local identity is seen at once (no restart).
     sh(scratchRepo.dir, ['config', 'user.name', 'Local Person']);
     sh(scratchRepo.dir, ['config', 'user.email', 'local@example.invalid']);

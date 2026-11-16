@@ -51,7 +51,7 @@ export function signedIn(ws: Workspace, access = createAccessControl(accessFixtu
 
 /** Runs Git in a folder of the test and returns its trimmed output. */
 export function gitOutput(cwd: string, args: string[]) {
-  const result = Bun.spawnSync(['git', ...args], { cwd });
+  const result = Bun.spawnSync(['git', ...args], { cwd, env: { ...process.env } });
   return { code: result.exitCode, text: result.stdout.toString().trim() };
 }
 

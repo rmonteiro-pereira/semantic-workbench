@@ -78,7 +78,7 @@ test('empty message and path escapes are refused; commit with paths is refused d
     sh(project.dir, ['switch', '-q', 'main']);
     project.write('shop.yaml', ontology('Main'));
     sh(project.dir, ['commit', '-qam', 'main']);
-    Bun.spawnSync(['git', 'merge', 'other'], { cwd: project.dir });
+    Bun.spawnSync(['git', 'merge', 'other'], { cwd: project.dir, env: { ...process.env } });
     project.write('new.yaml', ontology('New'));
     const response = await call(project.t, 'POST', project.base + '/git/commit', {
       message: 'x',
