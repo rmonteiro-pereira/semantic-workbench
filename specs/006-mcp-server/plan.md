@@ -65,7 +65,7 @@ route, response or permission of the browser changes except the fixes listed in 
 
 | Feature | What 006 needs | If it is late |
 |---------|----------------|---------------|
-| 010 operation boundary | One function that takes an already resolved principal, an origin tag and a `Request`, selects the route, runs authorization, target checks and the handler, maps refusals and writes the one audit record; a way to mark the transport row unaudited and without a blanket action; room for the extra audit fields | tools cannot be dispatched; no tool ships. Only `src/server/mcp/dispatch.ts` adapts to 010's exact signature |
+| 010 operation boundary | One function that takes an already resolved principal, an origin tag and a `Request`, selects the route, runs authorization, target checks and the handler, maps refusals and writes the one audit record; a way to mark the transport row unaudited and without a blanket action; room for the extra audit fields; a check that asks whether the principal holds an action on at least one permissible target, used to filter `tools/list` | tools cannot be dispatched; no tool ships. Only `src/server/mcp/dispatch.ts` adapts to 010's exact signature |
 | 008 published snapshot | The agent routes and the explain route read the published snapshot and report its id; a way to ask whether a commit would advance the published ref; the reasons a project is not published | the four published-only tools are not registered; the other 17 ship |
 | 009 item addresses | Nothing in this release; tools take a project and a path | no effect; locators are adopted by a later increment |
 | Constitution amendments (`constitution-tessera`) | Principle I (authenticated agent authoring and the local capability, the content statement), IV (receipts as durable state), VI (tools in the matrix, new mutants), VII (the model statement) | tasks that mount tools wait; the reading foundation can be built |
@@ -120,7 +120,8 @@ amendments on `constitution-tessera` are named by the principle they change.*
 - **VI. Verification Gate**: every tool is in the authorization matrix with every test role and
   scope; the new route rows are in the matrix; targeted mutants cover dispatch, caps, receipts,
   cursors, the capability check and the published-ref refusal; a browser check covers the editor
-  refresh and the audit view; `bun test`, `bun --bun run check`, `bun --bun run build` and
+  refresh and the audit view, and the audit view change goes through the UI regression comparison
+  (the view before and after, captured from a fresh worktree); `bun test`, `bun --bun run check`, `bun --bun run build` and
   `test:mutation` run. Pass.
 - **VII. Honest Claims**: README and `docs/mcp.md` describe only what ships; the tool list and
   counts are produced by code and compared by a test; limits (browser-only validation, no push, no
@@ -185,6 +186,9 @@ src/server/routes/validate.ts            # POST /api/projects/:slug/files/*/vali
 src/server/auth/route-actions.ts         # rows for the MCP transport and the validate twin
 src/server/auth/audit.ts                 # serializer lists the new fields; retention passed in
 src/server/auth/dry-run.ts               # replay built from separate groups
+src/server/projects/workspace/document-save.ts  # the validate-without-write step shared by save and validation
+src/server/routes/git.ts, src/server/projects/scm.ts  # optional commit preconditions checked inside the repository serialization
+src/app/admin/AuditSection.tsx           # shows the tool beside the action; nothing else in the view changes
 src/server/handler.ts                    # mounts the route in local mode; passes audit retention
 scripts/mcp-stdio.ts                     # the bridge
 scripts/mcp-capability.ts                # `bun run mcp:rotate`
@@ -193,6 +197,7 @@ scripts/mcp-browser-check.ts             # editor refresh and audit view
 scripts/mcp-mutants.ts                   # targeted mutants, imported by mutation-tests.ts
 tests/mcp/                               # contract, conformance, gate, bounds, receipts, race and parity tests
 docs/mcp.md                              # new: connect, tools, limits, content statement
+docs/mcp-acceptance.md                   # new: exact client versions and configuration of the acceptance run
 README.md, ARCHITECTURE.md, docs/agent-runtime.md, docs/configuration.md, CHANGELOG.md
 ```
 

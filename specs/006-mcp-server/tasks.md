@@ -34,7 +34,7 @@
 - [ ] T008 [P] Write `src/server/mcp/tool-results.ts`: the success and failure shapes, the closed error-code set, the result cap and byte ranges that end on a character boundary and report `nextOffset`. Proof: `tests/mcp/tool-results.test.ts` reproduces a 2,000,000-byte multi-byte file exactly from ranges and rejects a range against a changed version.
 - [ ] T009 [P] Write `src/server/mcp/cursors.ts`: opaque cursors authenticated with a per-process key and bound to query, ordering, index generation, principal and a ten-minute expiry. Proof: `tests/mcp/cursors.test.ts` refuses a cursor from another query, generation, principal, or after expiry, and after a process restart.
 - [ ] T010 [P] Write `src/server/mcp/call-limits.ts`: calls per second, concurrent calls and a deadline per caller, answering `rate_limited` or `limit_exceeded`. Proof: `tests/mcp/limits.test.ts` covers the burst, the concurrency cap and the deadline with an injected clock.
-- [ ] T011 Write `src/server/mcp/twin-dispatch.ts`: build the twin request, call the operation boundary with the local principal and the `mcp` origin, and map status and JSON to the result shape (hidden to `not_found`, 409 to `conflict`, guard refusals to `guard_refused`, 5xx to a generic `internal`). Proof: `tests/mcp/twin-dispatch.test.ts` covers each mapping and that no path or file text appears in an `internal` message.
+- [ ] T011 Write `src/server/mcp/twin-dispatch.ts`: build the twin request, call the operation boundary with the local principal and the `mcp` origin, and map status and JSON to the result shape (hidden to `not_found`, 409 to `conflict`, guard refusals to `guard_refused`, 5xx to a generic `internal`). Local-mode agent routes answer every error as 400 with a message; map those to `invalid_input` or `not_found` by the route's own classification. Proof: `tests/mcp/twin-dispatch.test.ts` covers each mapping and that no path or file text appears in an `internal` message.
 - [ ] T012 Extend `src/server/auth/audit.ts` so the serializer keeps `origin`, `method`, `tool`, `connection`, `clientLabel` and `result`, and pass the configured retention in `src/server/handler.ts`. Proof: `tests/auth/audit-mcp-fields.test.ts` fails when a written field is missing from the stored line, old fixture records still verify with `bun run audit:verify`, and `tests/auth/audit-retention.test.ts` shows the configured days applied.
 - [ ] T013 Change `src/server/auth/dry-run.ts` to build the replay from a group of up to 600 writes and denials, a group of up to 300 de-duplicated reads and the configured cases. Proof: `tests/auth/dry-run-groups.test.ts` writes 5,000 reads and 20 writes and denials and finds all 20 in the sample; the existing `tests/auth/dry-run.test.ts` passes.
 - [ ] T014 [P] Write `tests/mcp/route-inventory.test.ts`, which reads `ROUTE_ACTIONS` and `contracts/mcp-inventory.md` and fails on a missing row, a stale row or a tool name outside the registry, and prints the counts. Proof: the test fails when a row is removed from either side.
@@ -50,14 +50,14 @@
 **Independent Test**: connect the reference client and Codex CLI; run every refused case in `tests/mcp/request-gate.test.ts`.
 
 - [ ] T015 [P] [US1] Write `tests/mcp/request-gate.test.ts`: no capability, wrong capability, any `Origin` including `null` and the development origins, a foreign `Host`, a rebinding name, a malformed `Host`, a form post, a non-JSON content type, `GET`, `DELETE`. Expected: the status in `contracts/mcp-local-access.md`, and no tool, version or file information in any refusal.
-- [ ] T016 [P] [US1] Write `tests/mcp/local-capability.test.ts`: first-start creation with owner-only mode, atomic write, re-read on modification, rotation invalidates the old value, constant-time comparison, refusal to mount when the mode cannot be set. Proof: tests pass on Linux and the permission check is skipped with a logged reason on Windows.
+- [ ] T016 [P] [US1] Write `tests/mcp/local-capability.test.ts`: first-start creation with owner-only mode, atomic write, re-read on modification, rotation invalidates the old value, constant-time comparison, refusal to mount when the mode cannot be set. Proof: the mode check runs on Linux and macOS, the access-list check runs where `process.platform` is `win32`, and the endpoint is not mounted when neither can be set.
 - [ ] T017 [P] [US1] Write `tests/mcp/conformance.test.ts` for rows C1 to C10, C16, C17 and C18 of `contracts/mcp-conformance.md` through the mounted route with the reference client and raw requests; and `tests/mcp/legacy-era.test.ts` for C14, and assert that no response sets or requires a session id. Expected: the statuses and error codes in the contract.
-- [ ] T065 [US1] Write `src/server/mcp/request-gate.ts`, a pure decision function over method, `Origin`, `Host`, content type and bearer value, in the order of `contracts/mcp-local-access.md`.
+- [ ] T018 [US1] Write `src/server/mcp/request-gate.ts`, a pure decision function over method, `Origin`, `Host`, content type and bearer value, in the order of `contracts/mcp-local-access.md`.
 - [ ] T019 [US1] Write `src/server/mcp/local-capability.ts` and `scripts/mcp-capability.ts` (`bun run mcp:rotate`): create on first start, read when the modification time changes, rotate, compare with `timingSafeEqual`, never log the value.
 - [ ] T020 [US1] Write `src/server/mcp/body-limits.ts`: stream the body under the global cap, choose the per-tool cap from `Mcp-Name`, check it again after parsing for clients without a name. Proof: `tests/mcp/body-caps.test.ts` for row C18, including a body that lies about its length.
-- [ ] T021 [US1] Write `src/server/mcp/server-factory.ts` (library `McpServer` from the registry, `fromJsonSchema` with the ajv validator, `legacy: 'stateless'`, `maxRequestBodySize` raised to the global cap) and `src/server/routes/mcp.ts` (gate, capability, caps, library).
+- [ ] T021 [US1] Write `src/server/mcp/server-factory.ts` (library `McpServer` from the registry, `fromJsonSchema` with the ajv validator, `legacy: 'stateless'`, `maxRequestBodySize` raised to the global cap) and `src/server/routes/mcp.ts` (gate, capability, caps, library). The factory filters the tool list by asking the boundary whether the caller holds each tool's action on at least one permissible target.
 - [ ] T022 [US1] Mount the route in `src/server/handler.ts` in local mode only. Proof: `tests/mcp/server-mode-absent.test.ts` shows server mode answers 404 on the path, serves no tool, and leaves every existing route's response unchanged.
-- [ ] T023 [US1] Write `scripts/mcp-stdio.ts`: read `DATA_DIR`, the port and the capability file, derive `MCP-Protocol-Version`, `Mcp-Method` and `Mcp-Name` from each message, post it, write the answer; clear errors when the workbench is not running or runs in server mode; never print the capability; open no port. Proof: `tests/mcp/bridge.test.ts` covers header derivation, both error cases and a scan of its output for the capability.
+- [ ] T023 [US1] Write `scripts/mcp-stdio.ts`: read `DATA_DIR`, the port and the capability file, derive `MCP-Protocol-Version`, `Mcp-Method` and `Mcp-Name` from each message, post it, write the answer; clear errors when the workbench is not running or runs in server mode; re-read the capability file for every message so a rotation needs no reconfiguration; never print the capability; open no port. Proof: `tests/mcp/bridge.test.ts` covers header derivation, both error cases, a rotation between two messages and a scan of its output for the capability.
 - [ ] T024 [US1] Write `tests/mcp/cancellation.test.ts` for row C11: closing the response during a read stops it, and closing it during a write leaves the file either fully changed or untouched.
 - [ ] T025 [US1] Create `scripts/mcp-mutants.ts` with the access mutants (capability check removed, `Origin` check removed, `Host` check loosened, method check removed) and import it in `scripts/mutation-tests.ts`. Proof: `bun run test:mutation` kills each.
 - [ ] T026 [US1] Start `scripts/mcp-acceptance.ts` (`bun run test:mcp`): isolated server, discovery, tool list, and the refused cases of `quickstart.md` section 4. Proof: the script exits non-zero when a refused case is accepted.
@@ -73,7 +73,7 @@
 **Independent Test**: call each read tool against the shipped examples and compare with the twin routes.
 
 - [ ] T027 [P] [US2] Write `tests/mcp/read-parity.test.ts`: each read tool's normalized result equals its twin's on every shipped example project. Expected: 100 percent equal.
-- [ ] T028 [P] [US2] Write `tests/mcp/tool-matrix.test.ts`: every tool with every test role and scope through the same dispatcher, with hidden equal to missing and no unreadable byte in any answer; extend `tests/auth/access-fixture.ts` if a role is missing.
+- [ ] T028 [P] [US2] Write `tests/mcp/tool-matrix.test.ts`: every tool with every test role and scope through the same dispatcher, with hidden equal to missing, a tool list that matches the caller's effective permissions, and no unreadable byte in any answer; extend `tests/auth/access-fixture.ts` if a role is missing.
 - [ ] T029 [P] [US2] Write `tests/mcp/paging.test.ts` and `tests/mcp/ranges.test.ts`: pages end with a cursor, a rescan between pages gives `cursor_expired`, a 2,000,000-byte file is reproduced from ranges, a range against an old version gives `version_changed`.
 - [ ] T030 [P] [US2] Write `tests/mcp/tool-errors.test.ts` and `tests/mcp/header-body-agreement.test.ts` for rows C12, C13, C15 and C19: invalid input names the field; a header naming a read tool with a body naming a write tool is refused before dispatch; annotations equal the contract.
 - [ ] T031 [P] [US2] Write `tests/mcp/unavailable.test.ts`: Git absent, a project outside Git and a rebuilding index give `unavailable` or `not_ready`, and file tools keep working.
@@ -134,8 +134,9 @@
 **Independent Test**: run a scripted session and read the audit view and the dry run.
 
 - [ ] T055 [P] [US5] Write `tests/mcp/audit-calls.test.ts`: one record per call, one per discovery or list call, a denial for an unknown tool or a gate refusal, the outcome mapping of `contracts/mcp-audit.md`, no tool arguments or file text in any record, and a scan of logs, audit and errors for the capability value.
-- [ ] T056 [US5] Extend `scripts/mcp-browser-check.ts` to open the audit view in the Admin panel and assert the MCP records show their tool and result, and that the dry run's sample still lists the writes after many reads.
-- [ ] T057 [US5] Add the audit mutants: a field dropped by the serializer, the outer request recorded as a second success, the retention not passed. Proof: `bun run test:mutation` kills each.
+- [ ] T056 [US5] Extend `scripts/mcp-browser-check.ts` to open the audit view in the Admin panel and assert the MCP records show their tool, and that the dry run's sample still lists the writes after many reads.
+- [ ] T057 [US5] Show the tool beside the action in `src/app/admin/AuditSection.tsx` when a record has one, and nothing else. Proof: the audit browser check in `scripts/mcp-browser-check.ts` and the existing admin checks pass; the audit view before and after is captured from a fresh worktree by Codex and compared by the UI regression gate, and records of the browser look as before.
+- [ ] T058 [US5] Add the audit mutants: a field dropped by the serializer, the outer request recorded as a second success, the retention not passed. Proof: `bun run test:mutation` kills each.
 
 **Checkpoint**: US5 works and is testable on its own.
 
@@ -145,15 +146,15 @@
 
 **Purpose**: claims that match the code, the acceptance run, and the full gate.
 
-- [ ] T058 [P] Write `docs/mcp.md`: connect Codex CLI and the reference client through the bridge and directly, the tool list with effects, the limits, the threat model, the residual injection risk, the model statement, the later increments with their decisions, and what the earlier protocol era does not get. The exact client registration syntax is copied from the acceptance run.
-- [ ] T059 [P] Update `README.md`: local-mode MCP section, the constitution's required statements for both modes, the model statement, and the explicit absence of MCP in server mode.
-- [ ] T060 [P] Update `ARCHITECTURE.md` with the `src/server/mcp/` area and the request flow; update `docs/agent-runtime.md` to point at the tools and to correct any statement about outbound calls; update `docs/configuration.md` with the capability file and `mcp:rotate`.
-- [ ] T061 [P] Add the unreleased entry to `CHANGELOG.md` listing the tools, the fixes (audit retention, audit fields, dry-run groups) and the commit route's optional keys.
-- [ ] T062 [P] Write `tests/mcp/no-outbound-calls.test.ts`: run start-up and the acceptance flows with every non-loopback connection and `fetch` to a non-loopback address blocked, and fail on any attempt; assert no tool executes a plan, contacts a warehouse or calls a model. Proof: the test fails when a deliberate outbound call is added to a tool.
-- [ ] T063 Write `tests/mcp/docs-claims.test.ts`: the tool names and counts in `docs/mcp.md`, `README.md` and the spec equal the registry; the later-increment list equals the spec's; no document claims results are marked untrusted; the model statement is present word for word. Proof: the test fails when a tool is added without its documentation.
-- [ ] T064 Finish `scripts/mcp-acceptance.ts` with the ten steps of `quickstart.md`; run it with the reference client and with Codex CLI; write the exact client versions and configuration in `docs/mcp-acceptance.md`. Proof: both runs pass and the record is committed.
-- [ ] T065 Run `bun test`, `bun --bun run check`, `bun --bun run build`, `bun run test:mutation`, `bun run test:mcp`, `bun run test:mcp:browser`, `test:ui` and the suites the constitution lists; fix every failure at its cause. Proof: all pass; the output is attached to the release acceptance record.
-- [ ] T066 Run `bun run check:comments` and read every new file's comments for plain English with no feature, task or decision ids (Principle VIII); confirm the formatter ran on every changed file. Proof: the check passes.
+- [ ] T059 [P] Write `docs/mcp.md`: connect Codex CLI and the reference client through the bridge and directly, the tool list with effects, the limits, the threat model, the residual injection risk, the model statement, the later increments with their decisions, and what the earlier protocol era does not get. The exact client registration syntax is copied from the acceptance run.
+- [ ] T060 [P] Update `README.md`: local-mode MCP section, the constitution's required statements for both modes, the new files under `data/state/`, the model statement, and the explicit absence of MCP in server mode.
+- [ ] T061 [P] Update `ARCHITECTURE.md` with the `src/server/mcp/` area and the request flow; update `docs/agent-runtime.md` to point at the tools and to correct any statement about outbound calls; update `docs/configuration.md` with the capability file and `mcp:rotate`.
+- [ ] T062 [P] Add the unreleased entry to `CHANGELOG.md` listing the tools, the fixes (audit retention, audit fields, dry-run groups) and the commit route's optional keys.
+- [ ] T063 [P] Write `tests/mcp/no-outbound-calls.test.ts`: run start-up and the acceptance flows with every non-loopback connection and `fetch` to a non-loopback address blocked, and fail on any attempt; assert no tool executes a plan, contacts a warehouse or calls a model. Proof: the test fails when a deliberate outbound call is added to a tool.
+- [ ] T064 Write `tests/mcp/docs-claims.test.ts`: the tool names and counts in `docs/mcp.md`, `README.md` and the spec equal the registry; the later-increment list equals the spec's; no document claims results are marked untrusted; the model statement is present word for word. Proof: the test fails when a tool is added without its documentation.
+- [ ] T065 Finish `scripts/mcp-acceptance.ts` with the ten steps of `quickstart.md`; run it with the reference client and with Codex CLI; write the exact client versions and configuration in `docs/mcp-acceptance.md`. Proof: both runs pass and the record is committed.
+- [ ] T066 Run `bun test`, `bun --bun run check`, `bun --bun run build`, `bun run test:mutation`, `bun run test:mcp`, `bun run test:mcp:browser`, `test:ui` and the suites the constitution lists; fix every failure at its cause. Proof: all pass; the output is attached to the release acceptance record.
+- [ ] T067 Run `bun run check:comments` and read every new file's comments for plain English with no feature, task or decision ids (Principle VIII); confirm the formatter ran on every changed file. Proof: the check passes.
 
 ---
 
@@ -195,7 +196,7 @@ Each step ends with the gate green and its documentation written.
 
 | Criterion | Tasks |
 |-----------|-------|
-| SC-001 | T064, T058 |
+| SC-001 | T065, T059 |
 | SC-002 | T027 |
 | SC-003 | T028, T006 |
 | SC-004 | T039, T048 |
@@ -204,10 +205,10 @@ Each step ends with the gate green and its documentation written.
 | SC-007 | T017, T030 |
 | SC-008 | T015, T016, T055, T025 |
 | SC-009 | T029, T036, T008, T010 |
-| SC-010 | T013, T055, T056 |
-| SC-011 | T065, T022 |
-| SC-012 | T025, T037, T048, T054, T057 |
-| SC-013 | T063, T014, T007 |
+| SC-010 | T013, T055, T056, T057 |
+| SC-011 | T066, T022 |
+| SC-012 | T025, T037, T048, T054, T058 |
+| SC-013 | T064, T014, T007 |
 
 ## Traceability
 
@@ -218,24 +219,26 @@ Astra 1 to 14).
 | Source | Requirements | Tasks |
 |--------|--------------|-------|
 | E4, E5 published-only reads | FR-025, FR-040 | T034, T035, T052 |
-| E23 constitution amendments | plan.md Constitution Check | T005, T063 |
+| E23 constitution amendments | plan.md Constitution Check | T005, T064 |
 | M1 twin dispatch; Fable B1, Astra 1; Fable m3 | FR-019, FR-020, FR-021, FR-022 | T006, T011, T007, T014, T028, T030 |
-| M8 local capability; Fable M9, Astra 10; old R3 | FR-004 to FR-009 | T015, T016, T065, T019, T023, T025 |
+| M8 local capability; Fable M9, Astra 10; old R3 | FR-004 to FR-009 | T015, T016, T018, T019, T023, T025 |
 | M9 default scopes | FR-002, FR-040 | T052, T049 |
 | M10 no agent marker in Git | FR-038 | T049 |
-| M11 content statement; Fable M11; Astra 13 | FR-048, FR-049 | T058, T059, T063 |
+| M11 content statement; Fable M11; Astra 13 | FR-048, FR-049 | T059, T060, T064 |
 | M12 shared copy; Astra 6 | FR-036, FR-038, FR-039 | T049, T050, T051, T039, T047 |
 | M13 retry safety; Fable M5, Astra 5 | FR-032 to FR-035, FR-041, FR-042 | T040, T041, T045, T046, T044, T048, T053 |
-| M14 audit; Fable M8, Astra 11 | FR-043 to FR-046 | T012, T013, T055, T056, T057 |
-| M15 protocol; Fable M1, Astra 7, 4; Fable fact 19 | FR-010 to FR-017 | T017, T021, T030, T024, T063, T064 |
+| M14 audit; Fable M8, Astra 11 | FR-043 to FR-046 | T012, T013, T055, T056, T057, T058 |
+| M15 protocol; Fable M1, Astra 7, 4; Fable fact 19 | FR-010 to FR-017 | T017, T021, T030, T024, T064, T065 |
 | M16 state and cursors; Astra 8 | FR-018, FR-028 | T009, T029 |
 | M17 inventory and bounds; Fable M10, M6, Astra 12 | FR-022, FR-024, FR-026 to FR-031 | T014, T008, T010, T020, T029, T036, T031, T042 |
-| M18 first release split; Fable M10 split; Astra 14 | FR-001 to FR-003 | T022, T032, T033, T059 |
+| M18 first release split; Fable M10 split; Astra 14 | FR-001 to FR-003 | T022, T032, T033, T060 |
 | R2 authorization matrix; Astra 12 | FR-023 | T028, T006 |
 | Principles II and III: path rules and content guards | FR-037 | T039, T038 |
-| Principle I: no outbound call, no plan execution, no model call | FR-047 | T062, T034 |
-| R1 order, R2 increment gates | FR-050, SC-011, SC-012 | T065, T063, T066 |
-| Later increments M2 to M7, M16, M19 | Later increments table; FR-003 | T058, T063 |
-| Fixed errors: settings without dry run, sessions, outbound calls, discover, untrusted marker, Host and Origin checks | Later increments; FR-009, FR-010, FR-049, FR-047 | T058, T060, T063 |
+| Principle I: no outbound call, no plan execution, no model call | FR-047 | T063, T034 |
+| Technical Constraints: new dependency justified; Principle VI gate; Fable M11 dependency note | FR-015, FR-050 | T001, T002, T003, T004, T005, T062 |
+| Fable M10 testable success criteria | FR-031, SC-002, SC-012 | T026, T027, T037, T043, T054 |
+| R1 order, R2 increment gates | FR-050, SC-011, SC-012 | T066, T064, T067 |
+| Later increments M2 to M7, M16, M19 | Later increments table; FR-003 | T059, T064 |
+| Fixed errors: settings without dry run, sessions, outbound calls, discover, untrusted marker, Host and Origin checks | Later increments; FR-009, FR-010, FR-049, FR-047 | T059, T061, T064 |
 | Fable m1 reusable registry; m2; m7 agent API error shape | Structure Decision; FR-021 | T007, T011 |
-| Fable M7 older clients; M4 administration; M3 sign-in | FR-014; later increments | T017, T058 |
+| Fable M7 older clients; M4 administration; M3 sign-in | FR-014; later increments | T017, T059 |

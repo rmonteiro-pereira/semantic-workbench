@@ -7,8 +7,9 @@
 - Read by the route when its modification time changes; never logged, audited, echoed in an error,
   placed in telemetry or put in a tool argument.
 - Replaced by `bun run mcp:rotate`; the old value stops working on the next request.
-- On a platform where owner-only permissions cannot be set, local mode refuses to mount the endpoint
-  and logs why.
+- On Windows the file's access list is reduced to the current user with `icacls` (argument list, no
+  shell). When owner-only access cannot be set on any platform, local mode refuses to mount the
+  endpoint and logs why.
 
 ## Order of checks
 
@@ -33,7 +34,7 @@ anonymous denials by the existing anonymous-audit gate, with no header values.
 ## Bridge
 
 `scripts/mcp-stdio.ts` reads the data root the same way the server does (`DATA_DIR`, default
-`data`) and the server's port from the same environment the server reads, reads the capability file,
+`data`) and the port from `SW_PORT` (default 4310), the variables the server reads, reads the capability file,
 and for each message from standard input posts it with the capability and the three mirrored
 headers derived from the message. It writes each answer to standard output, one message per line,
 never prints the capability, starts no server and opens no port. When the server cannot be reached

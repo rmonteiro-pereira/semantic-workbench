@@ -67,6 +67,13 @@ generation, the principal id and an expiry, authenticated with a random key made
 restart therefore expires every cursor, and a cursor from another query, generation, principal or
 time is refused as `cursor_expired`. A cursor grants nothing; each page is authorized again.
 
+## Connection (not stored)
+
+In this release the only connection is the installation's local capability, so its id is the fixed
+value `local`. The client name the client sends in its request envelope is kept as `clientLabel`, an
+untrusted label cut to 64 characters; it never decides access. Person connections arrive with the
+sign-in increment.
+
 ## Audit record additions
 
 See [contracts/mcp-audit.md](./contracts/mcp-audit.md): `origin`, `method`, `tool`, `connection`,

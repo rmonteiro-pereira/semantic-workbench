@@ -51,9 +51,9 @@ operations, resources and prompts, and administration are committed later increm
 - Q: What do the published-only tools return when a project has no published snapshot, or a branch
   is unpublished? → A: A defined "not published" result that names the reason. They never fall back
   to dirty files or a personal branch, for any caller including the author's own agent. (E4, E5)
-- Q: How large may a request, a result and a page be? → A: Defaults are named in the success
-  criteria and the tool contract: a global request cap before parsing, a per-tool cap chosen by tool
-  name, a result cap, pages with cursors, and byte ranges pinned to a version. The existing
+- Q: How large may a request, a result and a page be? → A: The plan's defaults table names
+  them: a global request cap before parsing, a per-tool cap chosen by tool name, a result cap, pages
+  with cursors, and byte ranges pinned to a version. The existing
   2,000,000-byte document limit still applies to saves and validation. The numeric defaults are
   assumptions tagged with their source in the plan. (M17)
 
@@ -221,8 +221,9 @@ the policy dry run.
 **Acceptance Scenarios**:
 
 1. **Given** any MCP call, **Then** exactly one audit record names the validated method or tool,
-   the actual targets, the connection, that it came through MCP and the semantic outcome (done,
-   denied, conflict, refused, error), and the outer request is not recorded a second time.
+   the actual targets, the connection, that it came through MCP and the result code of the tool
+   contract (`ok`, `conflict`, `not_found` and so on), and the outer request is not recorded a
+   second time.
 2. **Given** discovery or a list call, **Then** one record is written per call, not per item.
 3. **Given** 5,000 reads followed by a few writes and denials, **When** an Admin runs a dry run,
    **Then** the replay sample still contains those writes and denials.
@@ -230,6 +231,8 @@ the policy dry run.
 5. **Given** the configured audit retention, **Then** the running log applies it.
 6. **Given** any record or log line, **Then** it contains no tool arguments, file text, capability
    or token.
+7. **Given** an Admin opens the audit view, **Then** each MCP record shows its tool beside its
+   action, and records of the browser look as before.
 
 ---
 
@@ -251,8 +254,9 @@ the policy dry run.
   can read and commit can be steered by what it reads. Nothing server-side depends on file text.
 - A tool result would exceed the cap: the answer is a page, a range or a `limit_exceeded` error with
   how to narrow the request; it is never silently shortened.
-- The capability file is missing at start: it is created. It is unreadable by others on a platform
-  that cannot set file permissions: local mode refuses to start the endpoint and says why.
+- The capability file is missing at start: it is created. On Windows its access list is restricted
+  to the current user. When owner-only access cannot be set on any platform, the endpoint is not
+  mounted and the reason is logged.
 - The same person works in the browser while an agent commits: operations on one repository are
   serialized across the check and the execution.
 - Git is not installed: Git tools answer "unavailable"; file tools keep working.
@@ -412,12 +416,12 @@ the policy dry run.
 **Audit**
 
 - **FR-043**: Every substantive MCP method MUST be audited once with the validated method or tool,
-  the actual targets, the connection, the MCP origin and the semantic outcome, and the outer request
-  MUST NOT be recorded as a second success. Discovery and list calls are one record per call.
+  the actual targets, the connection, the MCP origin and the result code of the tool contract, and
+  the outer request MUST NOT be recorded as a second success. Discovery and list calls are one record per call.
   (M14)
 - **FR-044**: The audit record format MUST gain these fields without breaking the reading or the
-  tamper-evidence check of older records, and the configured retention MUST reach the running log.
-  (M14)
+  tamper-evidence check of older records, the configured retention MUST reach the running log, and
+  the Admin panel's audit view MUST show the tool beside the action. (M14)
 - **FR-045**: The dry-run replay MUST be built from separately bounded groups of writes and denials
   and of de-duplicated reads, alongside the configured cases, so read volume cannot evict the
   meaningful sample. (M14)
@@ -482,8 +486,10 @@ the policy dry run.
 - **SC-010**: After 5,000 MCP reads and 20 writes and denials, the dry-run sample contains all 20.
   Every call produces exactly one audit record.
 - **SC-011**: The existing test suite, browser suites and mutation tests pass; the only changes to
-  existing behaviour are the listed fixes (audit retention, audit fields, dry-run strata, and the
-  publication, guard, concurrency and security changes the boundary features make).
+  existing behaviour are the listed fixes: audit retention, audit fields and the tool shown in the
+  audit view, dry-run groups, optional preconditions on the commit route, a shared validate step in
+  the save pipeline, and the publication, guard, concurrency and security changes the boundary
+  features make.
 - **SC-012**: Every targeted mutant listed in the plan is detected.
 - **SC-013**: The tool names, counts and later-increment list in the documentation equal what the
   code and the spec declare, checked by a test.
