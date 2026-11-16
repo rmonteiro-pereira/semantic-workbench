@@ -148,3 +148,11 @@ The delegated overlay comparison ran the same injected scenario against archived
 this branch. Both killed it with the intended assertion and the same ten overlaps. The earlier
 null-root exception did not reproduce and is not classified as a main baseline failure.
 This limited comparison does not complete the full journey regression task.
+
+## Pure migration proof
+
+`bun test tests/address-migration.test.ts tests/item-address-purity.test.ts`: 6 pass, 0 fail,
+3,035 assertions. The public API covers append order, duplicate record IDs, rename back,
+resolved-input preservation, whole-segment boundaries, snapshots, declaration ownership,
+retention and 1,000 seeded histories. `bun --bun run check` passed. No migration persistence
+is connected yet. The pure phase is independent of the blocked consumer adoption phase.

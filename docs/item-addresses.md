@@ -56,3 +56,20 @@ The mapping canvas formats concept, dataset, metric, field and direct relationsh
 the resolved ontology/model scope. Agent context exposes these scope labels as `ontology.address`
 and `semanticModel.address` (null for unresolved targets). Built-in cards and multi-hop mapping
 rows use synthetic UI identifiers. Row ownership is indexed explicitly instead of splitting keys.
+
+## Pure migration API
+
+`migrateAddress(address, records, resolved)` leaves a resolving locator unchanged. Otherwise it
+applies distinct record IDs once in append order, using whole-segment prefixes and preserving
+descendants and the opaque snapshot suffix. Deleted markers stop further replay.
+`validateDeclaredMigrations(value, project, writtenDocuments)` accepts at most 64 item/scope
+declarations, requiring canonical absolute, snapshot-free, non-positional locators within the
+request's project and files. It returns typed declarations or a closed validation reason.
+
+`compactMigrations(file, cutoff)` collapses expired exact-prefix chains, expires old deleted
+markers and retains recent records. `migrationRetentionCut(instant, days)` receives the time from
+its caller. These APIs do not append history or change save routes yet.
+
+```sh
+bun test tests/address-migration.test.ts
+```

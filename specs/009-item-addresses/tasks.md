@@ -145,12 +145,12 @@ changes.
 
 **Independent test**: `bun test tests/address-migration.test.ts`.
 
-- [ ] T024 [US3] Write `src/shared/core/address-migration.ts`: record types, `migrateAddress`
+- [x] T024 [US3] Write `src/shared/core/address-migration.ts`: record types, `migrateAddress`
   (resolved input returns unchanged; each record applied once in order; terminates), compaction,
   `validateDeclaredMigrations` (FR-049 rules), retention cut. Proof: `tests/address-migration.test.ts`
   with chains, rename back, segment boundary, snapshot kept, a record where `from` equals `to`
   refused. (FR-029, FR-030, FR-031, FR-037, FR-047, FR-049)
-- [ ] T025 [P] [US3] Property tests for migration: any record list terminates; migrating twice
+- [x] T025 [P] [US3] Property tests for migration: any record list terminates; migrating twice
   equals migrating once when the first result resolves; prefix migration keeps the suffix. Proof:
   `tests/address-migration.test.ts`, seeded. (FR-025, FR-031)
 - [ ] T026 [P] [US3] Mutants: apply records out of order, apply a record twice, ignore the

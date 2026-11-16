@@ -577,6 +577,7 @@ A locator describes a position by name; it does not supply persistent identity o
 Structured Ossie and ODCS items can be derived and resolved through the shared API. RDF/SHACL
 resources and built-ins have no locator. The mapping canvas uses locators for structured cards and rows;
 other UI keys and save behavior are unchanged.
+The pure API also validates declared renames and applies ordered history; persistence is not connected yet.
 See [item addresses](docs/item-addresses.md) for the pure API and tests.
 
 ## Development and verification

@@ -3,7 +3,7 @@ import { expect, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
 
 test('address grammar modules use only pure shared dependencies', () => {
-  for (const filename of ['address-kinds', 'item-address', 'model-addresses']) {
+  for (const filename of ['address-kinds', 'item-address', 'model-addresses', 'address-migration']) {
     const source = readFileSync(`src/shared/core/${filename}.ts`, 'utf8');
     expect(source).not.toMatch(/\b(?:fetch|Date)\b|node:/);
     const imports = [...source.matchAll(/import\s+(type\s+)?[^;]*?from\s+['"]([^'"]+)['"]/g)];
