@@ -2,10 +2,12 @@
 import { LOCAL_READER } from '../src/server/projects/reader';
 import { test, expect } from 'bun:test';
 import { testWorkspace } from './helpers/temp-data-dir';
+import { publishFixture } from './helpers/published-workspace';
 async function fixture() {
   const workspace = await testWorkspace();
   for (const file of ['commerce.mapping.yaml', 'commerce.mapped-ontology.yaml', 'commerce.mapped-semantic.yaml'])
     await workspace.ws.saveDocument(file, await Bun.file('public/examples/commerce/' + file).text(), LOCAL_READER);
+  await publishFixture(workspace);
   return workspace;
 }
 const PROJECT = 'ungrouped';
@@ -74,7 +76,7 @@ test('agent requests cannot override metrics, inject expressions or select unkno
     workspace.dispose();
   }
 });
-test('reference diagnostics update immediately when referenced documents are saved', async () => {
+test('unpublished reference edits do not change production context or plans', async () => {
   const workspace = await fixture();
   try {
     const handler = workspace.handler;
@@ -83,7 +85,7 @@ test('reference diagnostics update immediately when referenced documents are sav
     const ontology = workspace.ws.documents().find(d => d.filename === 'commerce.mapped-ontology.yaml')!;
     await workspace.ws.saveDocument(ontology.filename, ontology.source.replace('Mapped commerce ontology', 'Renamed ontology'), LOCAL_READER, ontology.id, { revision: ontology.revision });
     const context = await (await handler(req(`/api/agent/context?project=${PROJECT}&mappingId=` + encodeURIComponent(id)))).json();
-    expect(context.findings.some((f: any) => f.code === 'reference')).toBe(true);
+    expect(context.findings.some((f: any) => f.code === 'reference')).toBe(false);
     const response = await handler(
       req('/api/agent/plan', {
         project: PROJECT,
@@ -92,7 +94,7 @@ test('reference diagnostics update immediately when referenced documents are sav
         dimensions: [],
       }),
     );
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(200);
   } finally {
     workspace.dispose();
   }
@@ -130,6 +132,7 @@ test('an agent request names its project and never resolves references in anothe
     );
     await workspace.ws.deleteFile(PROJECT, ontology.filename, LOCAL_READER);
     await workspace.ws.deleteFile(PROJECT, semantic.filename, LOCAL_READER);
+    await publishFixture(workspace);
     const id = mapping.id;
     const context = await (await workspace.handler(req(`/api/agent/context?project=${PROJECT}&mappingId=${encodeURIComponent(id)}`))).json();
     expect(context.findings.some((f: any) => f.code === 'reference')).toBe(true);
@@ -159,6 +162,7 @@ test('agent requests refuse a missing or malformed project and a mapping of anot
       },
       LOCAL_READER,
     );
+    await publishFixture(workspace);
     const id = 'ungrouped/commerce.mapping.yaml';
     const encoded = encodeURIComponent(id);
     const noProject = await workspace.handler(req(`/api/agent/context?mappingId=${encoded}`));

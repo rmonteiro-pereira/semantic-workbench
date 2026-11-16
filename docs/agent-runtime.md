@@ -1,9 +1,14 @@
 # Agent runtime: grounded metadata and query plans
 
-The agent API resolves saved ontology, mapping and semantic definitions into metadata, metric
+The agent API resolves published ontology, mapping and semantic definitions into metadata, metric
 explanations and SQL previews. It does not execute a plan, contact a warehouse, call a hosted LLM
 or provide an autonomous agent. The calling agent supplies language interpretation and its own
 explicitly configured execution tool, if one is needed outside this application.
+
+Agent catalog, context and plan responses use one immutable published commit per request, in both
+local and server modes, including requests made by the author. `X-Workbench-Snapshot` identifies
+that full commit. A readable project without a snapshot returns 409 with code
+`no-published-snapshot` and reason `no-git`, `no-commit` or `unavailable`.
 
 The Mappings view and agent endpoints use the same resolver/planner. Metric formulas stay in the
 semantic definition; they are not copied into an ontology, mapping or agent request.

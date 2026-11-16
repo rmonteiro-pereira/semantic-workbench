@@ -215,3 +215,28 @@ measurements are also still absent, as their task checkboxes show.
 All browser suites ran serially. The temporary frontend used port 5321 with its API proxy pointed
 only at port 5322; isolated browser harnesses owned their ephemeral API listeners. No push, merge,
 tag, deployment, owner checkout mutation or external service was performed.
+
+## Resumed scope ledger
+
+- Agent handlers already authorize project readability before invoking their document source.
+- Snapshot reads are identity-free and pinned; the route adds caller filtering after loading them.
+- Browser previews retain the editing source and existing request validation and context algorithms.
+- The delta changes production definition selection and provenance; it does not change query semantics.
+
+## Published agent routes
+
+`TMPDIR=/tmp/sw-008 bun test tests/agent-sources.test.ts`: 2 pass, 0 fail, 34 expect() calls.
+Local browser/programmatic calls and server person/application calls use the same pinned commit;
+unpublished edits and a new WIP mapping are excluded. The source mutant baseline exits 0 and
+substituting editing documents exits 1. Existing agent suites also pass: 16 pass, 0 fail, 248 assertions.
+
+## Main responsive comparison
+
+A fresh `git fetch origin main` resolved `origin/main` to `655df094b1783aa9fc40570cb3d40d51949da481`;
+that is the reference tested, rather than assuming the supplied `e8b7d69` was its current value.
+A temporary worktree was created from that ref, with the same installed dependencies and Vite on
+5321. `TMPDIR=/tmp/sw-008 SW_BASE_URL=http://127.0.0.1:5321 RESPONSIVE_ONLY=examples: bun scripts/responsive-ui-tests.ts`
+exited 1 at the identical `mall.odcs.yaml canvas height` assertion: expected >= 421, received 407.
+This establishes the failure as pre-existing to this feature. The canvas and assertion were not
+changed; the lineage-toolbar layout is owned by the separate UI fix. The temporary frontend was
+stopped and the worktree removed after the comparison.

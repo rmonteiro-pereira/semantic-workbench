@@ -1,5 +1,11 @@
 // Focused assertions for immutable publication faults.
 import assert from 'node:assert/strict';
+import type * as agentRoutes from '../src/server/routes/agent';
+import { authWorkspace } from '../tests/helpers/auth-workspace';
+import { createAccessControl } from '../src/server/auth/authorize';
+import { accessFixture, person } from '../tests/auth/access-fixture';
+import { requestAccess } from '../src/server/auth/request-scope';
+import { LOCAL_READER } from '../src/server/projects/reader';
 import type { RouteAction } from '../src/server/auth/route-actions';
 import type { createWorktrees } from '../src/server/projects/worktrees';
 import { publicationMoveFixture } from '../tests/helpers/publication-fixture';
@@ -24,6 +30,8 @@ import type { createSnapshotIndexes } from '../src/server/projects/snapshot-inde
 export async function snapshotMutationCase(
   category: string,
   candidate: {
+    createAgentRoutes?: typeof agentRoutes.createAgentRoutes;
+    publishedAgentDocuments?: typeof agentRoutes.publishedAgentDocuments;
     surfaceFromCredential?: typeof surfaceFromCredential;
     createWorktrees?: typeof createWorktrees;
     ROUTE_ACTIONS?: RouteAction[];
@@ -35,6 +43,18 @@ export async function snapshotMutationCase(
     createSnapshotIndexes?: typeof createSnapshotIndexes;
   },
 ) {
+  if (category === 'snapshot-agent') {
+    using fixture = await authWorkspace();
+    const access = createAccessControl(accessFixture());
+    const request = Object.assign(new Request('http://localhost/api/agent/catalog?project=sales-contracts'), {
+      [requestAccess]: access.forRequest(access.principalFor(person('alice'))),
+    });
+    const file = fixture.ws.readFile('sales-contracts', 'sales.mapping.yaml', LOCAL_READER);
+    await fixture.ws.saveFile('sales-contracts', 'sales.mapping.yaml', { baseHash: file.hash, source: file.source.replace('Sales mapping', 'Unpublished mapping') }, LOCAL_READER);
+    const response = await candidate.createAgentRoutes!(candidate.publishedAgentDocuments!)(fixture.ws, request, new URL(request.url));
+    assert.equal(response!.status, 200);
+    assert.ok(!(await response!.text()).includes('Unpublished mapping'));
+  }
   if (category === 'snapshot-surface') {
     assert.equal(candidate.surfaceFromCredential!(new Request('http://localhost/'), { mode: 'local', session: false, originAllowed: true }), 'agent');
   }

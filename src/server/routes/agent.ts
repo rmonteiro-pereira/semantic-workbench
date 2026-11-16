@@ -4,6 +4,7 @@ import { agentCatalog, buildContext, selectContext, wholeContext, planQuery } fr
 import { requestReader } from '../auth/request-scope';
 import { BadRequestError, HiddenResourceError } from '../projects/errors';
 import type { Workspace } from '../projects/workspace';
+import { locationOf } from '../projects/paths';
 import { readJson } from '../request';
 import type { Route } from './http';
 
@@ -17,6 +18,17 @@ export type AgentDocumentSource = (
 
 /** Reads the caller's authoring view for browser planning and context previews. */
 export const editingAgentDocuments: AgentDocumentSource = async (workspace, request, project, use) => use(documentsOfProject(workspace.documentsFor(requestReader(request)), project));
+
+/** Holds one immutable publication through the response and applies the caller's current visibility. */
+export const publishedAgentDocuments: AgentDocumentSource = (workspace, request, project, use) =>
+  workspace.published.withPin(async pin => {
+    const { view } = requestReader(request);
+    const documents = await workspace.published.documents(pin, project);
+    const response = await use(documents.filter(document => !view || view.canRead(project, document.path)));
+    const repository = locationOf(workspace.project(project)).repo;
+    response.headers.set('X-Workbench-Snapshot', pin.commits.get(repository)!.commit);
+    return response;
+  });
 
 function requireReadableDocument(ws: Workspace, request: Request, id: string) {
   const { view } = requestReader(request);

@@ -3,6 +3,7 @@
 import { cpSync, mkdirSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { testWorkspace } from './temp-data-dir';
+import { publishFixture } from './published-workspace';
 
 /** Folder of the access fixture. */
 export const AUTH_FIXTURE = 'tests/fixtures/auth-workspace';
@@ -44,5 +45,6 @@ export async function authWorkspace(options: { keycloak?: boolean } = {}) {
   if (options.keycloak) {
     cpSync(join(AUTH_FIXTURE, 'admin-keycloak', 'grants.json'), join(admin, 'grants.json'));
   }
+  await publishFixture(workspace);
   return workspace;
 }

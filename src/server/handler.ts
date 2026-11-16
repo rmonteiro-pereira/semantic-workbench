@@ -8,7 +8,7 @@ import { createAccessAdmin, type AccessAdmin } from './auth/access-admin';
 import type { AdminRepository } from './auth/admin-repo';
 import { adminRoutes } from './routes/admin';
 import { auditRoutes } from './routes/audit';
-import { createAgentRoutes, editingAgentDocuments } from './routes/agent';
+import { createAgentRoutes, publishedAgentDocuments } from './routes/agent';
 import { FILE_SAVE_REQUEST_LIMIT, GROUPING_REQUEST_LIMIT, decodeSegment, readJson, requestAuditId, type AuditRequest } from './request';
 import { InputError } from '../shared/validation/diagnostics';
 import { NotFoundError, StaleError, type Workspace } from './projects/workspace';
@@ -158,7 +158,7 @@ function workspaceRoutes(administration: AdminRepository, access: AccessControl,
     itemAddressRoutes,
     fileRoutes,
     draftRoutes,
-    createAgentRoutes(editingAgentDocuments),
+    createAgentRoutes(publishedAgentDocuments),
     legacyRoutes,
   ];
 }

@@ -4,6 +4,7 @@ import { test, expect } from 'bun:test';
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { testWorkspace } from './helpers/temp-data-dir';
+import { publishFixture } from './helpers/published-workspace';
 import { LOCAL_READER } from '../src/server/projects/reader';
 import { agentCatalogPath, agentContextPath } from '../src/app/mappings/agent-paths';
 // Scope labels, binding kinds and metric bindings extend the legacy context.
@@ -58,6 +59,7 @@ const golden: Record<string, string> = existsSync(goldenFile) ? JSON.parse(readF
 async function contexts(example: string) {
   const workspace = await testWorkspace();
   const { slug } = await workspace.ws.loadExample(example);
+  await publishFixture(workspace);
   const catalog = await (await workspace.handler(req(agentCatalogPath(slug)))).json();
   const out: { id: string; filename: string; embedded: boolean; context: any }[] = [];
   for (const mapping of catalog.mappings) {
@@ -154,6 +156,7 @@ test('metricBindings findings: an unknown metric or concept is reported on its b
     },
     LOCAL_READER,
   );
+  await publishFixture(workspace);
   const catalog = await (await workspace.handler(req(agentCatalogPath(slug)))).json();
   const id = catalog.mappings.find((m: any) => m.filename === 'mall.mapping.yaml').id;
   const agentContext = await (await workspace.handler(req(agentContextPath(slug, id)))).json();
