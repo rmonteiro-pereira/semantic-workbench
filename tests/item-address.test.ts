@@ -68,6 +68,7 @@ test('formatting rejects unaddressable structures at the boundary', () => {
 test('relative resolution requires an absolute base and preserves the intended location', () => {
   const base = parsed('sw1:p/a#ontology:Example');
   expect(resolveAddress(parsed('sw1:#concept:C'))).toEqual({ ok: false, reason: 'form' });
+  expect(resolveAddress(parsed('sw1:#concept:C'), parsed('sw1:p'))).toEqual({ ok: false, reason: 'form' });
   expect(resolveAddress(parsed('sw1:#concept:C'), base)).toEqual({ ok: true, address: parsed('sw1:p/a#concept:C') });
   expect(resolveAddress(parsed('sw1:/b#concept:C'), base)).toEqual({ ok: true, address: parsed('sw1:p/b#concept:C') });
   expect(resolveAddress(base)).toEqual({ ok: true, address: base });

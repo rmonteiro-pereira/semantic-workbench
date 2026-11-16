@@ -145,6 +145,7 @@ export function parseAddress(text: string): AddressResult {
 export function resolveAddress(address: Address, base?: Address): AddressResult {
   if (address.form === 'absolute') return { ok: true, address };
   if (!base || base.form !== 'absolute') return { ok: false, reason: 'form' };
+  if (address.form === 'document-relative' && !base.document) return { ok: false, reason: 'form' };
   const resolved: Address = { ...address, form: 'absolute', project: base.project };
   if (address.form === 'document-relative') resolved.document = base.document;
   return parseAddress(formatAddress(resolved));
