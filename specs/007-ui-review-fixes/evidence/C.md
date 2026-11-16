@@ -24,3 +24,20 @@ The script's History button selector is stale. Its generic geometry checker also
 The surface assertion failed before the fix: expected `rgb(15, 21, 20)`, received `rgb(245, 245, 245)`. The four comparison screens then passed (modified, added, staged-deleted, stale-save). This failure demonstration used the unchanged foundation's comparison code, rather than a separate e8b7d69 checkout.
 
 Viewed after images `/tmp/sw-C/theme-fixed/local-dark-source-control--diff-modified-1440.png` and `/tmp/sw-C/theme-fixed/local-dark-source-editor--stale-save-warning-1440.png`, paired with the same basenames under the review's `screenshots/states/`. Gutters and collapsed-line strips are dark; no white bands remain. The old overwrite-primary and clipped header are still visible in these captures and belong to later fixes.
+
+## Staged deletion and phone comparisons
+
+The new HTTP regression in `tests/git-status.test.ts` passes without a server change: HEAD contains the committed bytes and index correctly reports absence. The defect was the client's retained `changes` group after staging, which then asked for index → worktree (both absent). Selection now follows the path to the staged group. `tests/scm-presentation.test.ts` covers the staged label and missing-side identical guard.
+
+`test:scm`: **20 source-control checks passed**, including staged-deletion content, selected-row retention, no New file/identical text, phone viewport containment, unified rendering, Back, and read-access controls. `/tmp/sw-C/scm-browser.log` holds the output.
+
+Viewed pairs (before root: `/home/rodrigo/projetos/semantic-workbench-ui-review-20261115/screenshots/states/`; after root: `/tmp/sw-C/after/states/`):
+
+| Finding | Matching basename | Observation |
+| --- | --- | --- |
+| M6 | `local-source-control--staged-changes-1440.png` | Committed deletion content replaces two empty sides; selected row stays highlighted; Deleted (staged) replaces Deleted and no identical claim remains. |
+| M12 | `local-source-control--diff-modified-390.png` | A unified diff and Back row occupy the phone pane instead of a diff below the change list. |
+| M12, m24 | `local-dark-source-editor--stale-save-warning-390.png` | Three complete stacked buttons fit; Keep editing is primary, overwrite is outlined danger; comparison is unified and gutters stay dark. |
+| M12, m24 | `local-source-editor--stale-save-warning-1440.png` | Side-by-side comparison remains; safe action is primary on the right. |
+
+The same source-control state sequence was recaptured in light/dark at 1440×900 and 390×844. The temporary copy presses Back between phone selections so the next change can be selected. Its generic geometry checker assumes a Branch selector always exists, so it reports that expected absence while a phone diff replaces the list; the dedicated SCM geometry assertion passes.

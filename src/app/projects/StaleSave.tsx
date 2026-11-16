@@ -41,12 +41,14 @@ export function StaleSaveDialog({
         ) : (
           <DiffView label="Your version and the current file" filename={filename} before={current} after={mine} beforeLabel="Current file on disk" afterLabel="Your version (not saved)" />
         )}
-        <div className="repair-actions">
-          <button onClick={onCancel}>Keep editing</button>
+        <div className="stale-actions">
+          <button className="primary" onClick={onCancel}>
+            Keep editing
+          </button>
           <button onClick={onLoadCurrent} disabled={current === null}>
             Discard my edits and load the current file
           </button>
-          <button className="primary" onClick={onKeepMine}>
+          <button className="stale-overwrite" onClick={onKeepMine}>
             Keep my version and save over it
           </button>
         </div>

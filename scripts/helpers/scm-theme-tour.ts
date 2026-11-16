@@ -76,6 +76,16 @@ async function showStaleSave(page: Page, file: string) {
   await fillEditor(editor, original + '\n# Unsaved comparison\n');
   await expect(page.getByRole('dialog', { name: /changed since you opened it/ })).toBeVisible({ timeout: 10000 });
   await assertDiffSurfaces(page);
+  const dialog = page.getByRole('dialog', { name: /changed since you opened it/ });
+  const viewport = page.viewportSize()!;
+  const dialogBox = (await dialog.boundingBox())!;
+  for (const button of await dialog.locator('.stale-actions button').all()) {
+    const box = (await button.boundingBox())!;
+    expect(box.x).toBeGreaterThanOrEqual(Math.max(0, dialogBox.x));
+    expect(box.x + box.width).toBeLessThanOrEqual(Math.min(viewport.width, dialogBox.x + dialogBox.width));
+    expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
+  }
+  if (viewport.width <= 650) await expect(dialog.locator('.cm-mergeView')).toHaveCount(0);
 }
 
 /** Lists modified, added, staged-deleted and stale-save comparisons for viewport and theme tours. */

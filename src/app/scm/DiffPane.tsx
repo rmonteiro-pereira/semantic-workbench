@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { EmptyState } from '../projects/EmptyState';
 import type { GitCommit as Commit, GitDiff } from '../projects/api';
 import { DiffView } from './DiffView';
+import { diffAfterLabel } from './diff-presentation';
 import type { Selection } from './ChangeGroup';
 
 type VersionRange = { from: string; to: string };
@@ -17,6 +18,7 @@ type DiffPaneProps = {
   log: Commit[];
 };
 
+/** Shows the selected change or the chosen history comparison. */
 export function DiffPane({ selected, diff, historyFile, range, onRange, versions, log }: DiffPaneProps): ReactNode {
   let mainPane: ReactNode;
   if (selected && diff) {
@@ -29,8 +31,11 @@ export function DiffPane({ selected, diff, historyFile, range, onRange, versions
           filename={diff.path}
           before={diff.before}
           after={diff.after}
-          beforeLabel={`${diff.path} · ${diff.beforeExists ? versionName(diff.from) : 'new file'}`}
-          afterLabel={diff.afterExists ? versionName(diff.to) : 'Deleted'}
+          beforeLabel={diff.beforeExists ? versionName(diff.from) : 'New file'}
+          afterLabel={diffAfterLabel(diff.afterExists, diff.to, versionName(diff.to))}
+          beforeExists={diff.beforeExists}
+          afterExists={diff.afterExists}
+          newFile={!diff.beforeExists}
         />
       );
     }
@@ -68,7 +73,7 @@ export function DiffPane({ selected, diff, historyFile, range, onRange, versions
             filename={historyFile}
             before={versions.before}
             after={versions.after}
-            beforeLabel={`${historyFile} · ${versionName(range.from, log)}`}
+            beforeLabel={versionName(range.from, log)}
             afterLabel={versionName(range.to, log)}
           />
         )}
@@ -82,7 +87,7 @@ export function DiffPane({ selected, diff, historyFile, range, onRange, versions
 
 function versionName(rev: string, log: Commit[] = []) {
   if (rev === 'worktree') return 'Working tree';
-  if (rev === 'index') return 'Last commit and staged changes';
+  if (rev === 'index') return 'Staged changes';
   if (rev === 'HEAD') return 'Last commit';
   const gitCommit = log.find(x => x.commit === rev);
   return gitCommit ? `${rev.slice(0, 7)} ${gitCommit.message}` : rev.slice(0, 7);

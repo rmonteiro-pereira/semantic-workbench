@@ -1,8 +1,9 @@
 // Covers the wording the Source control panel and Clone dialog derive from Git state.
+import { diffAfterLabel, identicalVersions } from '../src/app/scm/diff-presentation';
 import { expect, test } from 'bun:test';
 import { isPublished, trackingLine, upstreamRemote } from '../src/app/scm/branch-tracking';
 import { terminalSignInCommand } from '../src/app/scm/credential-command';
-import { definitionsSummary } from '../src/app/scm/clone-summary';
+import { definitionsSummary, cloneStatus } from '../src/app/scm/clone-summary';
 import { cleanTreeText } from '../src/app/scm/empty-repository';
 import { isRejectedPush } from '../src/app/scm/push-rejection';
 
@@ -48,4 +49,22 @@ test('Fetch, Pull and Push use the upstream remote, not the first one listed', (
   expect(upstreamRemote({ upstream: 'upstream/main', remotes })).toBe('upstream');
   expect(upstreamRemote({ upstream: '', remotes })).toBe('origin');
   expect(upstreamRemote({ upstream: '', remotes: {} })).toBeUndefined();
+});
+
+test('a missing staged destination is labelled as a staged deletion', () => {
+  expect(diffAfterLabel(false, 'index', 'Staged')).toBe('Deleted (staged)');
+  expect(diffAfterLabel(false, 'worktree', 'Working tree')).toBe('Deleted');
+  expect(diffAfterLabel(true, 'index', 'Staged')).toBe('Staged');
+});
+
+test('missing versions are not identical even when both text fields are empty', () => {
+  expect(identicalVersions('', '', true, true)).toBe(true);
+  expect(identicalVersions('', '', false, true)).toBe(false);
+  expect(identicalVersions('', '', true, false)).toBe(false);
+  expect(identicalVersions('before', 'after', true, true)).toBe(false);
+});
+
+test('the finished clone names its repository in a plain sentence', () => {
+  expect(cloneStatus('finance', 'done', 'Cloned.')).toBe('Cloned finance.');
+  expect(cloneStatus('finance', 'scanning', 'Checking the files…')).toBe('finance: Checking the files…');
 });

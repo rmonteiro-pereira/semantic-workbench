@@ -141,3 +141,16 @@ test('porcelain v2 reports an initial repository as having no commits', () => {
   const committed = ['# branch.oid abc123', '# branch.head main', ''].join('\0');
   expect(parseStatus(committed).hasCommits).toBe(true);
 });
+
+test('a staged deletion compares committed bytes with an absent index side', async () => {
+  const project = await scmProject({ remote: false });
+  try {
+    const { unlinkSync } = await import('node:fs');
+    unlinkSync(join(project.dir, 'shop.yaml'));
+    await ok(call(project.t, 'POST', project.base + '/git/stage', { paths: ['shop.yaml'] }));
+    const diff = await ok(call(project.t, 'GET', project.base + '/git/diff?repoPath=shop.yaml&from=HEAD&to=index'));
+    expect(diff).toMatchObject({ before: ontology('Buys.'), after: '', beforeExists: true, afterExists: false, binary: false });
+  } finally {
+    project.dispose();
+  }
+});

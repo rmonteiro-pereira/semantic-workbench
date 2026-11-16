@@ -4,7 +4,7 @@ import { openRemoteDialog, remoteActions, remoteButton, remoteDialog, runSyncAct
 import { appUrl } from './helpers/base-url';
 import { LOCAL_READER } from '../src/server/projects/reader';
 import { chromium, expect, type Page } from '@playwright/test';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync, unlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { startIsolatedApi, routeApi, type IsolatedApi } from './helpers/isolated-api';
@@ -127,6 +127,33 @@ try {
     await expect(panel().getByText('No changes. The working tree matches the last commit.')).toBeVisible();
     expect(sh(dir, ['log', '-1', '--format=%s']).trim()).toBe('Describe customers');
     expect(sh(dir, ['status', '--porcelain'])).toBe('');
+  });
+  await check('staging a selected deletion keeps its committed side and the phone diff stays in the viewport', async () => {
+    const removed = 'sales.mapping.yaml';
+    unlinkSync(join(dir, removed));
+    await api.ws.rescan(commerce.slug);
+    await openScm();
+    await rowButton(removed).click();
+    await panel()
+      .getByRole('button', { name: `Stage ${removed}`, exact: true })
+      .click();
+    await expect(group('Staged changes').getByRole('button', { name: new RegExp('^sales') })).toHaveAttribute('aria-pressed', 'true');
+    await expect(panel().getByText('Deleted (staged)', { exact: true })).toBeVisible();
+    await expect(panel().getByText('New file', { exact: true })).toHaveCount(0);
+    await expect(panel().getByText('The two versions are identical.')).toHaveCount(0);
+    await expect(panel().locator('.cm-merge-a')).toContainText('version:');
+    await page.setViewportSize({ width: 390, height: 844 });
+    const box = await panel().locator('.scm-main').boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.x).toBeGreaterThanOrEqual(0);
+    expect(box!.x + box!.width).toBeLessThanOrEqual(390);
+    await expect(panel().getByRole('button', { name: 'Back to changes' })).toBeVisible();
+    await expect(panel().locator('.cm-mergeView')).toHaveCount(0);
+    await panel().getByRole('button', { name: 'Back to changes' }).click();
+    await expect(group('Staged changes')).toBeVisible();
+    await page.setViewportSize({ width: 1440, height: 900 });
+    sh(dir, ['restore', '--staged', '--worktree', '--', removed]);
+    await api.ws.rescan(commerce.slug);
   });
   await check('Source control keeps the model tabs and Find an entity, and a tab leaves the panel', async () => {
     await openScm();
@@ -492,6 +519,41 @@ try {
       }
     }
     await page.setViewportSize({ width: 1440, height: 900 });
+  });
+  await check('read access replaces commit and branch creation controls', async () => {
+    const viewer = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+    try {
+      await routeApi(viewer, api);
+      await viewer.route('**/api/me', route =>
+        route.fulfill({
+          json: {
+            mode: 'server',
+            id: 'viewer',
+            name: 'Viewer',
+            verifiedEmail: null,
+            roles: { workspace: [], projects: { [commerce.slug]: ['viewer'] } },
+            roleNames: { viewer: 'Viewer' },
+            can: {},
+            requires: {},
+          },
+        }),
+      );
+      await viewer.route('**/api/projects', async route => {
+        const response = await api.handler(new Request('http://127.0.0.1:5232/api/projects'));
+        const projects = await response.json();
+        await route.fulfill({ json: projects.map((project: object) => ({ ...project, actions: ['read'] })) });
+      });
+      await viewer.goto(appUrl());
+      await viewer.getByRole('button', { name: /^Source control/ }).click();
+      const sourceControl = viewer.getByRole('region', { name: 'Source Control', exact: true });
+      await expect(sourceControl.getByText('You have read access.')).toBeVisible();
+      await expect(sourceControl.getByRole('textbox', { name: 'Commit message' })).toHaveCount(0);
+      await expect(sourceControl.getByRole('button', { name: 'New branch', exact: true })).toHaveCount(0);
+      await expect(sourceControl.getByRole('button', { name: /^Commit to/ })).toHaveCount(0);
+      await viewer.screenshot({ path: '/tmp/sw-C/read-access-1440.png' });
+    } finally {
+      await viewer.close();
+    }
   });
   await check('no browser errors', async () => {
     expect(errors).toEqual([]);

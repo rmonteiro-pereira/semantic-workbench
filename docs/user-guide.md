@@ -233,19 +233,30 @@ The **Source control** panel provides:
   diffs. In a repository shared by several projects, changes of the other projects are counted in a
   note rather than listed; Stage all, Unstage all and Commit act on the whole repository. Switch
   project in the sidebar to see another project's changes.
-- Per-file or bulk stage/unstage, commit messages and commit actions.
+- Per-file or bulk stage/unstage, commit messages and commit actions. A selected deletion stays
+  selected when staged; its comparison shows the last committed content and **Deleted (staged)**.
+  On phones, selecting a change opens its unified diff in place of the list; **Back to changes**
+  returns to the list.
+- People without commit permission see **You have read access.** in place of the commit message,
+  commit action and new-branch control. Editors and Stewards retain their permitted actions.
 - Local and remote branches, new branches and branch switching. A **Tracking origin/main** line
   under the picker names the remote branch Pull and Push use; a branch with no upstream shows
   **Not published** instead of counters, and its first push is **Publish branch**.
 - The remote address, and **Fetch**, **Pull**, **Push** and **Sync** buttons under it. **Remote…**
   to set the address up appears for Admins only (always in local mode); everyone else sees the
-  address without the button. On a server, **Sync…** opens Pull, Publish and Push for the published
+  address without the button. On a server, **Sync** opens Pull, Publish and Push for the published
   branch.
 - The same model tabs and **Find an entity** search as the model views, so a tab is one click away.
 - Exact-path, extension and folder ignore rules, plus a Source editor for `.gitignore`.
 - File history and comparison of two revisions or a revision with the working tree. Source
   reads through Show and Versions accept published history and your own branch ancestry;
   another person’s unpublished commit is missing even when its full id is known.
+
+An invalid draft keeps its **Not saved** header state and one located message in Source. The
+footer keeps **Validation details** without repeating the validation-failure banner. If a save
+finds newer disk content, the comparison dialog offers **Keep editing** as the primary action;
+overwriting the current file is an outlined danger action. On phones, its buttons stack beneath
+a unified comparison.
 
 Pull merges rather than rebases. Conflicts remain visible until repaired in Source and staged.
 Pull, Sync and branch switching refuse unsaved or uncommitted work rather than stashing it. Git

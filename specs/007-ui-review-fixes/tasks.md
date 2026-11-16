@@ -276,19 +276,19 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Create tour entries that open Source control with a modified, an added and a deleted file, and the stale-save dialog, and assert the computed background of `.cm-collapsedLines`, `.cm-gutters` and merge gutters is not lighter than the surface token in dark.
   - Proof: `bun run test:theme` fails on e8b7d69 with these entries (run once) and passes after the previous task.
 
-- [ ] T039 [US3] [C] Find where the staged-deletion diff goes wrong, then fix it with a test.
+- [x] T039 [US3] [C] Find where the staged-deletion diff goes wrong, then fix it with a test.
   - Findings: M6 · Requirements: FR-032
   - Files: `src/app/scm/DiffPane.tsx`, `src/app/scm/DiffView.tsx`, `src/app/scm/SourceControl.tsx`, `src/server/projects/scm.ts`, `tests/scm-presentation.test.ts`, `tests/git-status.test.ts`
   - Change: Reproduce with a committed file that is staged for deletion. The client asks for HEAD to index and labels the left side 'new file' only when `beforeExists` is false, so the cause may be the server's diff for a path missing from the index; fix whichever side is wrong, label 'Deleted (staged)', hide 'identical' when a side is missing (`DiffView.tsx:70`) and keep the selected row.
   - Proof: Before `states/local-source-control--staged-changes-1440.png`, `states/local-source-control--commit-message-filled-1440.png` (review baseline); after: same state recaptured with `scripts/ui-review/source-control-states.ts <out>`; check: unit test of the label function; `bun run test:scm` asserts the left label is not 'new file' and no 'identical' text for a staged delete.
 
-- [ ] T040 [US3] [C] Fix the stale-save dialog at 390 and the order of its buttons.
+- [x] T040 [US3] [C] Fix the stale-save dialog at 390 and the order of its buttons.
   - Findings: M12, m24 · Requirements: FR-033, FR-040
   - Files: `src/app/projects/StaleSave.tsx`, src/app/style.css (selectors `.stale-*` only), `src/app/scm/DiffView.tsx`
   - Change: Stack the three buttons full width in the dialog footer (`style.css:2146-2160` region), make the safe choice primary and the overwrite an outlined danger button, and render a unified diff under 650 px using the merge view's unified mode already used for added files.
   - Proof: Before `states/local-dark-source-editor--stale-save-warning-390.png`, `states/local-source-editor--stale-save-warning-1440.png` (review baseline); after: same state recaptured with `scripts/ui-review/source-control-states.ts <out>` at 390 and 1440, light and dark; check: `bun run test:editor` and the dialog geometry check assert every button box is inside the dialog and the viewport at 390.
 
-- [ ] T041 [US3] [C] Open the diff as its own view on a phone.
+- [x] T041 [US3] [C] Open the diff as its own view on a phone.
   - Findings: M12 · Requirements: FR-034
   - Files: `src/app/scm/SourceControl.tsx`, `src/app/scm/DiffPane.tsx`, `src/app/scm/scm.css`, `src/app/workspace/SourceControlView.tsx`
   - Change: At 650 px and narrower, selecting a change shows the diff in place of the side column with a Back row; the desktop layout is unchanged. A swipe or a full-screen diff screen is out of scope.

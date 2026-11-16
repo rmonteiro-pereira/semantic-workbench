@@ -1296,6 +1296,9 @@ main {
   box-shadow: 0 20px 80px color-mix(in srgb, var(--color-shadow) 20%, transparent);
   padding: 24px;
   width: min(1100px, 100%);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
   max-height: 92vh;
   overflow: auto;
 }
@@ -2152,6 +2155,9 @@ main > .status {
   box-shadow: 0 20px 80px color-mix(in srgb, var(--color-shadow) 20%, transparent);
   padding: 24px;
   width: min(1100px, 100%);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
   max-height: 92vh;
   overflow: auto;
 }
@@ -2162,6 +2168,42 @@ main > .status {
 .stale-save > p {
   color: var(--color-text-muted);
   font-size: 13px;
+}
+.stale-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 12px;
+  flex: none;
+}
+.stale-actions .primary {
+  order: 1;
+}
+.stale-actions .stale-overwrite {
+  background: transparent;
+  border-color: var(--color-danger-border);
+  color: var(--color-danger-text);
+}
+.stale-save > .diff-view {
+  flex: 1 1 auto;
+  min-height: 100px;
+}
+@media (max-width: 650px) {
+  .stale-save {
+    padding: 16px;
+    max-height: 88vh;
+  }
+  .stale-save h2 {
+    font-size: 18px;
+  }
+  .stale-actions {
+    flex-direction: column;
+  }
+  .stale-actions button {
+    width: 100%;
+    white-space: normal;
+  }
 }
 .stale-columns {
   display: grid;

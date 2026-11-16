@@ -6,3 +6,8 @@ export function definitionsSummary(event: Extract<CloneEvent, { phase: 'done' }>
   if (event.definitions === 0) return 'Repository cloned; no definitions yet.';
   return 'Every definition file is valid.';
 }
+
+/** Names the completed clone in a sentence and preserves ongoing Git progress descriptions. */
+export function cloneStatus(name: string, phase: CloneEvent['phase'], progress: string): string {
+  return phase === 'done' ? `Cloned ${name}.` : `${name}: ${progress}`;
+}

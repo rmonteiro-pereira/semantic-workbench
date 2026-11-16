@@ -20,6 +20,7 @@ import { RemoteActions } from './RemoteActions';
 import { changesOfProject, elsewhereLine } from './project-changes';
 import { PublishedSnapshot } from './PublishedSnapshot';
 import './scm.css';
+import { usePhoneScreen } from '../workspace/hooks/useNarrowScreen';
 
 /** Names the remote, branch and folder a sparse project lives in. */
 export function repositoryLocation(status: Pick<GitStatus, 'upstream' | 'remotes' | 'branch' | 'folder'>): string {
@@ -82,6 +83,8 @@ type Props = {
 /** Displays project Git changes and actions with progress and cancellation. */
 export function SourceControl({ projects, project, version, unsaved, historyPath, onOpen, onChanged, onBusy, onCommit }: Props) {
   const access = useCapabilities(project);
+  const phone = usePhoneScreen();
+  const [phoneDiff, setPhoneDiff] = useState(false);
   // Remotes are managed by Admins only, and the project's own rules can still refuse the change.
   const canManageRemotes = access.admin && access.can('setRemote');
   // Server mode: the person's own working copy of this project's repository.
@@ -112,6 +115,7 @@ export function SourceControl({ projects, project, version, unsaved, historyPath
   useResumeAfterConnect(project, status !== null, action => void remote(action));
   useEffect(() => {
     setSelected(null);
+    setPhoneDiff(false);
     setDiff(null);
     setNote(null);
     setConnect(null);
@@ -156,6 +160,14 @@ export function SourceControl({ projects, project, version, unsaved, historyPath
   const groups = useMemo(() => groupsOf(scoped.inProject), [scoped]);
   // Selections name the file from the repository root: two projects may hold the same path.
   const change = selected && status?.changes.find(c => c.repoPath === selected.path);
+  // Staging moves a path between groups; comparing the old range would compare two absent sides.
+  useEffect(() => {
+    if (!selected || !change) return;
+    const remainsInGroup = groups[selected.group].some(entry => entry.repoPath === selected.path);
+    if (remainsInGroup) return;
+    const nextGroup = (['conflicts', 'staged', 'changes'] as const).find(group => groups[group].some(entry => entry.repoPath === selected.path));
+    if (nextGroup) setSelected({ path: selected.path, group: nextGroup });
+  }, [selected, change, groups]);
   // The diff of the selected change; it follows the file as it changes.
   useEffect(() => {
     if (!selected || !change) {
@@ -353,8 +365,17 @@ export function SourceControl({ projects, project, version, unsaved, historyPath
   // The dialog holds only the published-branch actions of a server working copy.
   const offersSync = copy !== null;
   const canCommit = access.can('commit') && !!message.trim() && (groups.staged.length > 0 || status.merging) && !groups.conflicts.length && status.identityConfigured && !busy;
+  function commitReason() {
+    if (busy) return 'Wait for the current Git action to finish.';
+    if (!status?.identityConfigured) return 'Set your Git identity before committing.';
+    if (groups.conflicts.length) return 'Resolve and stage the conflicted files first.';
+    if (!groups.staged.length && !status?.merging) return 'Stage changes before committing.';
+    if (!message.trim()) return 'Enter a commit message.';
+    return '';
+  }
   const selectChange = (gitChange: GitChange, group: Group) => {
     setSelected({ path: gitChange.repoPath, group });
+    setPhoneDiff(true);
     setHistoryFile(gitChange.outside ? undefined : gitChange.path);
   };
   const stageChange = (gitChange: GitChange, staged: boolean) => act(() => scm.stageChanges(project, [gitChange.repoPath], staged));
@@ -392,16 +413,20 @@ export function SourceControl({ projects, project, version, unsaved, historyPath
     onIgnore: addToGitignore,
   };
   return (
-    <section className="scm" aria-label="Source Control">
+    <section className={`scm${phone && phoneDiff ? ' scm-show-diff' : ''}`} aria-label="Source Control">
       <div className="scm-side">
         <h2 className="scm-title">Source control</h2>
         <div className="scm-head">
-          <BranchPicker project={project} current={status.branch} version={version + tick} disabled={busy || !access.can('branch')} inUse={copy?.inUseBranches} onSwitch={switchTo} />
+          {access.can('commit') ? (
+            <BranchPicker project={project} current={status.branch} version={version + tick} disabled={busy || !access.can('branch')} inUse={copy?.inUseBranches} onSwitch={switchTo} />
+          ) : (
+            <span>{status.branch}</span>
+          )}
           <SyncCounters status={status} />
           {offersSync && (
             <button className="scm-sync-open" onClick={() => setSyncOpen(true)}>
               <RefreshCw size={13} />
-              Sync…
+              Sync
             </button>
           )}
         </div>
@@ -420,7 +445,7 @@ export function SourceControl({ projects, project, version, unsaved, historyPath
               {remoteNames[0]}: {status.remotes[remoteNames[0]]}
             </span>
           ) : (
-            <span className="scm-remote-url">No remote yet. Add one to push and pull.</span>
+            <span className="scm-remote-note">No remote yet. Add one to push and pull.</span>
           )}
           <button hidden={!canManageRemotes} onClick={() => openGitSetup({ kind: 'remote', project })}>
             Remote…
@@ -488,33 +513,38 @@ export function SourceControl({ projects, project, version, unsaved, historyPath
             <span>A merge is in progress. Repair each conflicted file in Source, stage it, then commit.</span>
           </p>
         )}
-        <div className="scm-commit">
-          <textarea
-            aria-label="Commit message"
-            placeholder={`Message (commit on ${status.branch})`}
-            rows={2}
-            value={message}
-            onChange={e => setMessage(e.target.value)}
-            onKeyDown={event => {
-              if (event.key === 'Enter' && (event.ctrlKey || event.metaKey) && canCommit) {
-                event.preventDefault();
-                void commit();
-              }
-            }}
-          />
-          <button className="primary" onClick={() => void commit()} disabled={!canCommit} title={access.control('commit').title ?? 'Commit (Ctrl+Enter)'}>
-            <GitCommit size={14} />
-            Commit to {status.branch}
-          </button>
-          {access.local && !status.identityConfigured && (
-            <small>
-              Git has no user.name or user.email, so commits are not possible yet.{' '}
-              <button className="link" onClick={() => openGitSetup({ kind: 'identity', project })}>
-                Set Git identity…
-              </button>
-            </small>
-          )}
-        </div>
+        {access.can('commit') ? (
+          <div className="scm-commit">
+            <textarea
+              aria-label="Commit message"
+              placeholder={`Message (commit on ${status.branch})`}
+              rows={2}
+              value={message}
+              onChange={e => setMessage(e.target.value)}
+              onKeyDown={event => {
+                if (event.key === 'Enter' && (event.ctrlKey || event.metaKey) && canCommit) {
+                  event.preventDefault();
+                  void commit();
+                }
+              }}
+            />
+            <button className="primary" onClick={() => void commit()} disabled={!canCommit} title={commitReason() || 'Commit (Ctrl+Enter)'}>
+              <GitCommit size={14} />
+              Commit to {status.branch}
+            </button>
+            {!canCommit && <p className="scm-commit-reason">{commitReason()}</p>}
+            {access.local && !status.identityConfigured && (
+              <small>
+                Git has no user.name or user.email, so commits are not possible yet.{' '}
+                <button className="link" onClick={() => openGitSetup({ kind: 'identity', project })}>
+                  Set Git identity…
+                </button>
+              </small>
+            )}
+          </div>
+        ) : (
+          <p className="scm-read-access">You have read access.</p>
+        )}
         {!scoped.inProject.length && <p className="scm-empty">{status.changes.length ? 'No changes in this project.' : cleanTreeText(status)}</p>}
         {scoped.elsewhere > 0 && <p className="scm-elsewhere">{elsewhereLine(scoped.elsewhere)}</p>}
         <ChangeGroup group="conflicts" title="Merge conflicts" items={groups.conflicts} {...rowProps} />
@@ -578,6 +608,11 @@ export function SourceControl({ projects, project, version, unsaved, historyPath
         />
       )}
       <div className="scm-main">
+        {phone && phoneDiff && (
+          <button className="scm-back" onClick={() => setPhoneDiff(false)}>
+            Back to changes
+          </button>
+        )}
         <DiffPane selected={selected} diff={diff} historyFile={historyFile} range={range} onRange={setRange} versions={versions} log={log} />
       </div>
     </section>
