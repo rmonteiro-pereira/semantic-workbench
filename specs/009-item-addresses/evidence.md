@@ -487,3 +487,7 @@ The complete lineage retry passed the opened-column alignment assertions after h
 ### Graph selection acceptance
 
 The in-memory selection and neighborhood address boundary passed the new address browser proof (3 checks), existing graph suite (18 checks), UI suite (20 checks), and now the complete lineage suite (25 checks, UBL first view 1,900 ms). Logs: `/tmp/sw-009/addresses-browser-selection.log`, `adoption-browser-graph.log`, `adoption-browser-ui.log`, `lineage-browser-display-fixed.log`. No source or durable-state conversion was introduced during these adoption steps. Agent and mapping portable mutation baselines also pass against the unchanged modules.
+
+### Persisted-key inventory
+
+The documented inventory distinguishes entity-keyed grouping assignments and browser center values from document paths, source patches, group display names and in-memory layout hints. Active shared/personal views and file/project/personal trash views carry the same grouping assignments. The compiler-AST inventory test rejects additions to those durable type shapes until their conversion treatment is recorded: 1 pass, 0 fail, 13 assertions. Source and draft contents are not address stores and must remain untouched.

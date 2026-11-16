@@ -87,3 +87,19 @@ item again without changing source bytes. `selectionAddress` and `selectionId` t
 renderer boundary, so an in-memory selection follows a named item through sibling reordering.
 RDF and built-in selections explicitly retain unaddressable renderer keys. Walk translation
 preserves unchanged step references so Back and Forward retain their existing reconciliation.
+
+## Persisted-key inventory
+
+| Store or field | Meaning and conversion |
+| --- | --- |
+| Shared `state/views/<project>.json` and personal `state/users/<owner>/views/<project>.json` | `files` keys are document paths. Each grouping value contains `mode`, `assignments` and `names`; only `assignments` keys are entity locators. Group names and grouping-mode values retain their meaning. |
+| Grouping corrections | `assignments` maps an inspector entity ID to a group ID. Stable structured entities can be converted; RDF, built-ins, volatile and unresolved keys must be kept and reported. `names` maps group IDs to display names, not item addresses. |
+| Graph layout hints | Node coordinates and layout caches are held in memory. There is no durable item-keyed layout file. |
+| Personal and shared drafts | `project` and `path` locate documents; `baseHash`, `text` and `patches` preserve authoring content. They contain no separate entity key to convert. |
+| Rejected suggestions | `project`, `path` and `target` are document/project locations; `hash` and `rejectedAt` describe the decision. They contain no item key. |
+| File trash metadata | `view` holds the deleted file's grouping value. Its `assignments` keys need the same conversion; document metadata remains document metadata. |
+| Project and personal trash views | Archived `view.json` and `views/<project>.json` use the same view shape; archived definitions supply conversion context. |
+| Browser `workbench:mapping-center:*` and `workbench:lineage-center:*` | Values are card keys. A uniquely matched stable card can be converted, retaining a backup of the original value. Unconvertible values stay unchanged. Hop counts, hidden-kind flags, sidebar sizes and theme preferences contain no item keys. |
+| Browser action history | Selection and neighborhood centers use addresses in memory. Browser history entries contain a session/cursor, not serialized item keys; reload does not restore an action recording. |
+
+The inventory test checks the fields of each durable type so a new field requires a conversion decision.

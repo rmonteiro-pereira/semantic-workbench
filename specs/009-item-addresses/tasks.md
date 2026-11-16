@@ -159,7 +159,7 @@ changes.
 
 ## Phase 6: Persisted keys (adoption step 5; needs the amendments)
 
-- [ ] T027 [US4] Inventory every persisted key shape that holds an entity id or an item name (view
+- [x] T027 [US4] Inventory every persisted key shape that holds an entity id or an item name (view
   state, grouping corrections, layout hints, drafts, suggestions, trash log). Proof:
   `tests/address-key-inventory.test.ts` fails on an unknown shape; the inventory is listed in
   `docs/item-addresses.md`. (FR-040)
