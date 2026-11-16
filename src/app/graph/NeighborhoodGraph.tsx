@@ -1,4 +1,7 @@
 /** Displays a centered relationship graph with expansion and navigation history. */
+import { isStructuredEntity } from '../../shared/core/model';
+import { formatAddress } from '../../shared/core/item-address';
+
 import { VALUE_KINDS, readHideValues, writeHideValues } from './hidden-kinds';
 import { DETAIL_ZOOM, LOWEST_FIT_ZOOM, useFarZoom } from './FarZoom';
 import { EntityName } from './EntityName';
@@ -277,7 +280,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
           data: {
             ...node.data,
             label: (
-              <div className={`node${entity.kind === 'Metric' ? ' kpi-node' : ''}`}>
+              <div data-address={isStructuredEntity(entity) ? formatAddress(entity.address) : undefined} className={`node${entity.kind === 'Metric' ? ' kpi-node' : ''}`}>
                 <small>
                   {centerTag}
                   {entity.kind === 'Metric' ? (

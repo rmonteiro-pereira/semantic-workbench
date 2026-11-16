@@ -15,7 +15,11 @@ const sides = [
   ['w', Position.Left],
 ] as const;
 export const EntityNode = memo(({ data }: NodeProps) => (
-  <div className={`full-entity ${data.focused ? 'focused' : ''} ${data.collapsedArea ? 'collapsed' : ''} ${data.kind === 'Metric' ? 'kpi-node' : ''}`} style={{ '--entity-color': data.color } as any}>
+  <div
+    data-address={data.address as string | undefined}
+    className={`full-entity ${data.focused ? 'focused' : ''} ${data.collapsedArea ? 'collapsed' : ''} ${data.kind === 'Metric' ? 'kpi-node' : ''}`}
+    style={{ '--entity-color': data.color } as any}
+  >
     <NodeToolbar isVisible={!!data.tooltip} position={Position.Top}>
       <div className="entity-tooltip">{String(data.name)}</div>
     </NodeToolbar>

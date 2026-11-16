@@ -24,8 +24,8 @@ ADDRESS_TEST_SEED=9721 bun test tests/item-address-properties.test.ts
 
 `ADDRESS_TEST_SEED` accepts an integer. A failing property includes its seed for replay.
 The fixtures are in `tests/fixtures/addresses/conformance.json`. The mapping canvas uses resolved scope addresses for cards and rows. Synthetic built-ins and
-unresolved evidence rows keep explicit non-address UI keys. General graph selection and
-persisted-key conversion are not adopted yet. ODCS lineage derives addresses from actual schema
+unresolved evidence rows keep explicit non-address UI keys. Graph selection and neighborhood centers use addresses in memory; persisted-key conversion
+is not adopted yet. ODCS lineage derives addresses from actual schema
 objects, nested properties and array-item definitions, without parsing dotted display labels.
 Dataset fields and metrics use their resolved model scopes. External stubs remain synthetic.
 
@@ -80,3 +80,9 @@ never from address separators. During the first adoption steps, center preferenc
 serialized through `legacyMappingKey` and `legacyLineageKey`; volatile locators are not written.
 The adapters preserve existing store shapes until explicit persisted-key conversion. Built-in
 mapping cards keep their unaddressable legacy UI keys. The standard source bytes stay untouched.
+
+`test:addresses` selects a graph card through its canonical address, reloads and selects the same
+item again without changing source bytes. `selectionAddress` and `selectionId` translate at the
+renderer boundary, so an in-memory selection follows a named item through sibling reordering.
+RDF and built-in selections explicitly retain unaddressable renderer keys. Walk translation
+preserves unchanged step references so Back and Forward retain their existing reconciliation.

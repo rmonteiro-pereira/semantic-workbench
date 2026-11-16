@@ -3,7 +3,7 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { type CodeEditorHandle } from '../../editor/CodeEditor';
 import { exportDocument } from '../../core/export';
 import { resolveSelectedProject } from '../../../shared/core/selected-project';
-import { emptyWalk, reconcileWalk, walkReducer, walkWithinProject, type WalkAction } from '../../graph/walk';
+import { walkReducer, walkWithinProject, type WalkAction } from '../../graph/walk';
 import { modelOverview } from '../../graph/overview';
 import { type Deleted, type Doc, type ProjectInfo, type Suggestion, type WorkspaceStatus } from '../../projects/api';
 import { type DeleteTarget } from '../../projects/DeleteDialog';
@@ -24,6 +24,7 @@ import { useProjectActions } from './useProjectActions';
 import { useReferences } from './useReferences';
 import { useSaving } from './useSaving';
 import { useSidebar } from './useSidebar';
+import { useGraphAddresses } from './useGraphAddresses';
 import { useValidation } from './useValidation';
 import { useWalkNavigation } from './useWalkNavigation';
 import { useWorkspaceEvents } from './useWorkspaceEvents';
@@ -34,7 +35,6 @@ export function useWorkbench({ setMessage }: Options) {
   const [docs, setDocs] = useState<Doc[]>([]);
   const [current, setCurrentState] = useState<Doc | null>(null);
   const [source, setSource] = useState('');
-  const [selected, setSelected] = useRecordedState('workbench.selected', '');
   const [selectedEdge, setSelectedEdge] = useRecordedState('workbench.selectedEdge', '');
   const [tab, setTabState] = useRecordedState('workbench.tab', 'fullgraph');
   const [search, setSearch] = useState('');
@@ -102,12 +102,24 @@ export function useWorkbench({ setMessage }: Options) {
   const [definition, setDefinition] = useState<{ title: string; value: unknown } | null>(null);
   const [importing, setImporting] = useState<{ project?: string } | null>(null);
   const [creatingFile, setCreatingFile] = useState<string | null>(null);
+  const validationState = useValidation({
+    current,
+    source,
+    tab,
+  });
+  const { model, editorIssuesRef } = validationState;
+  const selectionDocument = (id: string) => {
+    const document = id === current?.id ? current : docsRef.current.get(id);
+    if (!document) return null;
+    const inspected = id === current?.id ? model : parsedDoc(document).model;
+    return inspected ? { project: document.project, document: document.path.split('/'), entities: inspected.entities } : null;
+  };
+  const { selected, setSelected, walk, setWalk } = useGraphAddresses(current?.id, selectionDocument);
   const grouping = useGrouping(current?.id);
   const metrics = useMetrics({ project: selectedProject, docs });
   const { kpiProject } = metrics;
   const sourceEditor = useRef<CodeEditorHandle | null>(null);
   // Neighborhood walk across centers and files.
-  const [walk, setWalk] = useRecordedState('neighborhood.walk', emptyWalk, reconcileWalk);
   const dispatchWalk = useCallback((action: WalkAction) => setWalk(previous => walkReducer(previous, action)), [setWalk]);
   const walkStep = walk.steps[walk.index];
   const neighborhoodFocus = walkStep && walkStep.doc === current?.id ? walkStep.center : '';
@@ -161,12 +173,6 @@ export function useWorkbench({ setMessage }: Options) {
     setChosenProject: selectProjectOf,
   });
   const { openDocument, closeDocument, selectProject } = fileNavigation;
-  const validationState = useValidation({
-    current,
-    source,
-    tab,
-  });
-  const { model, editorIssuesRef } = validationState;
   const lineageState = useLineage({
     model,
     current,

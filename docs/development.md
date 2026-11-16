@@ -174,6 +174,7 @@ suites use `SW_BASE_URL`. The full runner supplies fresh frontend processes as n
 | `test:trash` | Delete warnings, Undo, restore, suggestions, row actions and Clear |
 | `test:sidebar` | Sidebar footer visibility and project list fill at short heights, resize and delete |
 | `test:metrics` | Metric list, definitions, explanations and graph navigation |
+| `test:addresses` | Item selection by canonical address, reload and unchanged source bytes |
 | `test:graph` | Whole graph, neighborhood walk, expansion, scale and response budget |
 | `test:editor` | Serialization colors, located findings, byte preservation and typing |
 | `test:item-edit` | Forms, new items, rename/delete and metric wizard |

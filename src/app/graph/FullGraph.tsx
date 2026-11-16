@@ -1,4 +1,6 @@
 /** Displays the complete model graph with grouping, filtering and a detail inspector. */
+import { isStructuredEntity } from '../../shared/core/model';
+import { formatAddress } from '../../shared/core/item-address';
 import { flushSync } from 'react-dom';
 import { ScrollStrip } from '../components/ScrollStrip';
 import type { GroupingOptions } from './overview';
@@ -19,6 +21,11 @@ import { VALUE_KINDS, kpisKey, readFlag, readHideValues, writeFlag, writeHideVal
 import type { Entity, Relationship } from '../../shared/core/model';
 import { edgeTypes, nodeTypes } from './FullGraphNodes';
 import { useFullGraphLayout } from './useFullGraphLayout';
+
+function entityAddress(entity: import('../../shared/core/model').Entity | undefined) {
+  return entity && isStructuredEntity(entity) ? formatAddress(entity.address) : undefined;
+}
+
 function relationshipOpacity(emphasized: boolean, hasFocus: boolean) {
   if (emphasized) return 0.95;
   if (hasFocus) return 0.07;
@@ -253,6 +260,7 @@ export function FullGraph(props: Props) {
               data: {
                 ...node.data,
                 kind: entityById.get(node.id)?.kind,
+                address: entityAddress(entityById.get(node.id)),
                 kpis: props.kpiBadges?.get(String(node.data.name)),
                 focused: connected.has(node.id),
                 tooltip: node.id === hover || node.id === props.selected,

@@ -444,3 +444,18 @@ conversion; volatile addresses are never written. Built-in mapping cards retain 
 40 pass, 0 fail, 8,382 assertions, 3.27 s. The full lineage browser reached the UBL first-view check
 but measured 2,082 ms, then 2,071 ms against 2,000 ms. No threshold was raised; a main comparison
 is being run before classifying that failure. Unrelated ontology-only address indexing was removed.
+
+## Graph selection and neighborhood state
+
+Recorded structured selections and neighborhood centers use absolute item addresses. Renderer
+IDs stay at the canvas boundary; no grouping or durable state shape changed. RDF/built-in absence
+is handled explicitly. The pure entry test proves a selection follows its name after reorder,
+and unchanged walk steps retain reference identity required by the existing history reconciler.
+`bun test tests/selection-addresses.test.ts tests/walk.test.ts`: 11 pass, 0 fail, 46 assertions
+before the added step-identity assertion; the subsequent combined run includes that assertion.
+`TMPDIR=/tmp/sw-009 SW_BASE_URL=http://127.0.0.1:5301 bun --bun run test:addresses`:
+3 item address browser checks passed (selection, reload, byte preservation and no browser errors).
+Existing `test:graph`: 18 graph and neighborhood checks passed. Existing `test:ui`: 20 UI checks
+passed. The lineage performance follow-up remains recorded separately, so T019 is not yet ticked.
+The temporary UBL comparison initially resolved an unrelated Playwright cache; it was corrected to
+absolute locked repository dependency paths and `bun --no-install` before the actual comparison.
