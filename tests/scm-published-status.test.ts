@@ -60,3 +60,24 @@ test('status distinguishes a missing Git binary from an unborn default', async (
   const response = await empty.handler(new Request(`http://localhost/api/projects/${slug}/git/status`));
   expect((await response.json()).published).toEqual({ state: 'none', reason: 'no-commit', notice: false });
 });
+
+test('pending ancestry and counts are cached by observed ref and invalidated by Git events', async () => {
+  const { repository, workspace } = await fixture();
+  using _owned = workspace;
+  await workspace.ws.git.run(repository.repository, ['update-ref', 'refs/heads/main', repository.authoring]);
+  const original = workspace.ws.git.isAncestor;
+  let checks = 0;
+  workspace.ws.git.isAncestor = (...args) => {
+    checks++;
+    return original(...args);
+  };
+  expect(await workspace.ws.published.status('definitions')).toMatchObject({ state: 'pending', move: 'fast-forward', commits: 1 });
+  await workspace.ws.published.status('definitions');
+  expect(checks).toBe(1);
+  workspace.ws.published.invalidateStatus('definitions');
+  await workspace.ws.published.status('definitions');
+  expect(checks).toBe(2);
+  await workspace.ws.git.run(repository.repository, ['update-ref', 'refs/heads/main', repository.previous!]);
+  expect(await workspace.ws.published.status('definitions')).toMatchObject({ state: 'pending', move: 'diverged', commits: 0, commit: repository.published });
+  expect(checks).toBe(3);
+});

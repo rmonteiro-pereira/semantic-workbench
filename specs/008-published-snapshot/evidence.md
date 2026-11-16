@@ -345,3 +345,7 @@ principal is allowed while the server Viewer refusal remains unchanged.
 ## Preview client and local guardrail
 
 `TMPDIR=/tmp/sw-008 bun test tests/request-surface.test.ts tests/agent-paths.test.ts`: 12 pass, 0 fail, 37 assertions. Browser URLs point to preview; unmarked local requests receive 404 while marked requests, including the allowed dev origin, succeed. `TMPDIR=/tmp/sw-008 SW_BASE_URL=http://127.0.0.1:5321 bun scripts/published-snapshot-browser-check.ts`: 2 published snapshot browser checks passed. Both modes display the preview label and published commit and plan an unpublished expression containing `+ 17`. The frontend and isolated API use different ports. Chromium adds fetch metadata after interception, so the existing write forwarder now reconstructs missing metadata from the actual page/request origins; production surface enforcement remains unchanged. `bun --bun run check`: exit 0.
+
+## Pending movement cache
+
+`TMPDIR=/tmp/sw-008 bun test tests/scm-published-status.test.ts tests/published-pointer.test.ts`: 18 pass, 0 fail, 47 assertions. Ref identity is compared on each status request, while ancestry/count results are cached for the observed ref and pointer. Git events invalidate and refresh that result. This reconciles the task’s status-comparison and cache-until-event requirements without hiding external changes when watching is disabled. All eight resolver mutants are detected, including serving the outside ref while pending (baseline 0, mutant 1).

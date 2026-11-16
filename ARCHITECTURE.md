@@ -442,3 +442,7 @@ concatenating project, document or item names.
 Use [the development guide](docs/development.md) for command syntax, fixture rules and validation.
 Keep configuration/API/operation details in their canonical guides instead of appending release
 history or per-control instructions to this architecture map.
+
+Published status compares the default ref on status requests and Git-change events. Ancestry and
+commit counts are cached by the observed ref and durable pointer; Git events invalidate that cache.
+Pending movement never changes a request pin.

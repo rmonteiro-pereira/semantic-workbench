@@ -308,6 +308,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   const pendingGitEvents = new Set<string>();
   function announceGitChange(slug: string) {
     const repo = locationOf(entry(slug)).repo;
+    snapshots.invalidateStatus(repo);
     if (pendingGitEvents.has(repo)) return;
     pendingGitEvents.add(repo);
     setTimeout(async () => {
@@ -317,6 +318,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
         .filter(project => locationOf(project).repo === repo)
         .map(project => project.slug);
       try {
+        await snapshots.status(repo);
         const status = await git.status(join(layout.projects, repo));
         events.emit(
           'git',

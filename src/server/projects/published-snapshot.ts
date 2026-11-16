@@ -24,6 +24,7 @@ const fullId = /^(?:[0-9a-f]{40}|[0-9a-f]{64})$/;
 /** Creates the shared resolver without accepting an editing reader or caller permissions. */
 export function createPublishedSnapshots(deps: PublishedSnapshotDeps) {
   const indexes = createSnapshotIndexes(deps);
+  const statuses = new Map<string, { key: string; result: Promise<SnapshotStatus> }>();
   const retained = new Map<string, SnapshotIndex>();
   const recent = new Map<string, string[]>();
   const generations = new Map<string, { current?: string; previous?: string }>();
@@ -35,7 +36,10 @@ export function createPublishedSnapshots(deps: PublishedSnapshotDeps) {
   function supersede() {
     for (const [repository, pointer] of deps.pointers.entries()) {
       const known = generations.get(repository);
-      if (known?.current !== pointer.commit) generations.set(repository, { current: pointer.commit, previous: known?.current });
+      if (known?.current !== pointer.commit) {
+        generations.set(repository, { current: pointer.commit, previous: known?.current });
+        statuses.delete(repository);
+      }
     }
     prune();
   }
@@ -137,24 +141,37 @@ export function createPublishedSnapshots(deps: PublishedSnapshotDeps) {
     try {
       const directory = deps.directory(repository);
       const ref = await deps.git.revParse(directory, `refs/heads/${pointer.branch}`);
-      const transition = await classify(ref, pointer, (from, to) => deps.git.isAncestor(directory, from, to));
-      if (transition === 'in-sync') return { state: 'in-sync', branch: pointer.branch, commit: pointer.commit };
-      if (!ref) return { state: 'none', reason: 'unavailable' };
-      const count = await deps.git.run(directory, ['rev-list', '--count', `${pointer.commit}..${ref}`]);
-      return {
-        state: 'pending',
-        branch: pointer.branch,
-        commit: pointer.commit,
-        next: ref,
-        commits: Number(count.stdout.trim()),
-        move: transition === 'fast-forward' ? 'fast-forward' : 'diverged',
-      };
+      const key = JSON.stringify([pointer.branch, pointer.commit, ref]);
+      const cached = statuses.get(repository);
+      if (cached?.key === key) return await cached.result;
+      const result = describeStatus(directory, { branch: pointer.branch, commit: pointer.commit }, ref);
+      statuses.set(repository, { key, result });
+      return await result;
     } catch {
+      statuses.delete(repository);
       return { state: 'none', reason: 'unavailable' };
     }
   }
+  async function describeStatus(directory: string, pointer: { branch: string; commit: string }, ref: string | null): Promise<SnapshotStatus> {
+    const transition = await classify(ref, pointer, (from, to) => deps.git.isAncestor(directory, from, to));
+    if (transition === 'in-sync') return { state: 'in-sync', branch: pointer.branch, commit: pointer.commit };
+    if (!ref) return { state: 'none', reason: 'unavailable' };
+    const count = await deps.git.run(directory, ['rev-list', '--count', `${pointer.commit}..${ref}`]);
+    return {
+      state: 'pending',
+      branch: pointer.branch,
+      commit: pointer.commit,
+      next: ref,
+      commits: Number(count.stdout.trim()),
+      move: transition === 'fast-forward' ? 'fast-forward' : 'diverged',
+    };
+  }
   return {
     pin,
+    /** Invalidates cached ancestry and counts when the repository reports a Git change. */
+    invalidateStatus(repository: string) {
+      statuses.delete(repository);
+    },
     async withPin<T>(use: (pin: PublishedPin) => Promise<T> | T): Promise<T> {
       const chosen = pin();
       held.set(chosen, new Set());
