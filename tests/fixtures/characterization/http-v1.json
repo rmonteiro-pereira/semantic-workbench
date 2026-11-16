@@ -1263,6 +1263,106 @@
   {
     "caller": "local",
     "method": "POST",
+    "path": "/api/projects/missing/item-addresses/resolve",
+    "status": 200,
+    "body": {
+      "status": "missing"
+    },
+    "headers": {
+      "requestId": true,
+      "contentType": "application/json;charset=utf-8",
+      "authenticate": null,
+      "retryAfter": null
+    },
+    "audit": [
+      {
+        "action": "read",
+        "decision": "allow",
+        "rules": [
+          "role:admin:1"
+        ],
+        "outcome": "ok",
+        "type": "audit",
+        "principal": {
+          "id": "local",
+          "kind": "local",
+          "name": "Local"
+        },
+        "resource": {
+          "type": "project",
+          "project": "missing"
+        },
+        "snapshot": {
+          "grants": [
+            "local"
+          ],
+          "roles": [
+            "admin"
+          ],
+          "groups": [],
+          "emailMatched": false,
+          "resourceAttrs": {
+            "type": "project",
+            "project": "missing"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "caller": "local",
+    "method": "POST",
+    "path": "/api/projects/missing/item-addresses/reconcile/example.yaml",
+    "status": 400,
+    "body": {
+      "error": "Expected {operationId, from, to}."
+    },
+    "headers": {
+      "requestId": true,
+      "contentType": "application/json;charset=utf-8",
+      "authenticate": null,
+      "retryAfter": null
+    },
+    "audit": [
+      {
+        "action": "edit",
+        "decision": "allow",
+        "rules": [
+          "role:admin:1"
+        ],
+        "outcome": "failed",
+        "type": "audit",
+        "principal": {
+          "id": "local",
+          "kind": "local",
+          "name": "Local"
+        },
+        "resource": {
+          "type": "file",
+          "project": "missing",
+          "path": "example.yaml"
+        },
+        "snapshot": {
+          "grants": [
+            "local"
+          ],
+          "roles": [
+            "admin"
+          ],
+          "groups": [],
+          "emailMatched": false,
+          "resourceAttrs": {
+            "type": "file",
+            "project": "missing",
+            "path": "example.yaml"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "caller": "local",
+    "method": "POST",
     "path": "/api/projects/missing/gitignore",
     "status": 400,
     "body": {
@@ -6928,6 +7028,110 @@
   {
     "caller": "alice",
     "method": "POST",
+    "path": "/api/projects/missing/item-addresses/resolve",
+    "status": 404,
+    "body": {
+      "error": "Not found."
+    },
+    "headers": {
+      "requestId": true,
+      "contentType": "application/json;charset=utf-8",
+      "authenticate": null,
+      "retryAfter": null
+    },
+    "audit": [
+      {
+        "action": "read",
+        "decision": "deny",
+        "rules": [
+          "F2-no-domain"
+        ],
+        "reason": "not-readable",
+        "type": "audit",
+        "principal": {
+          "id": "<uuid>:<uuid>",
+          "kind": "person",
+          "name": "Alice Andrade"
+        },
+        "resource": {
+          "type": "project",
+          "project": "missing"
+        },
+        "snapshot": {
+          "grants": [
+            "g-sales-editors"
+          ],
+          "roles": [
+            "editor"
+          ],
+          "groups": [
+            "<uuid>"
+          ],
+          "emailMatched": false,
+          "resourceAttrs": {
+            "type": "project",
+            "project": "missing"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "caller": "alice",
+    "method": "POST",
+    "path": "/api/projects/missing/item-addresses/reconcile/example.yaml",
+    "status": 404,
+    "body": {
+      "error": "Not found."
+    },
+    "headers": {
+      "requestId": true,
+      "contentType": "application/json;charset=utf-8",
+      "authenticate": null,
+      "retryAfter": null
+    },
+    "audit": [
+      {
+        "action": "edit",
+        "decision": "deny",
+        "rules": [
+          "F2-no-domain"
+        ],
+        "reason": "not-readable",
+        "type": "audit",
+        "principal": {
+          "id": "<uuid>:<uuid>",
+          "kind": "person",
+          "name": "Alice Andrade"
+        },
+        "resource": {
+          "type": "file",
+          "project": "missing",
+          "path": "example.yaml"
+        },
+        "snapshot": {
+          "grants": [
+            "g-sales-editors"
+          ],
+          "roles": [
+            "editor"
+          ],
+          "groups": [
+            "<uuid>"
+          ],
+          "emailMatched": false,
+          "resourceAttrs": {
+            "type": "file",
+            "project": "missing",
+            "path": "example.yaml"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "caller": "alice",
+    "method": "POST",
     "path": "/api/projects/missing/gitignore",
     "status": 404,
     "body": {
@@ -12452,6 +12656,106 @@
   {
     "caller": "bob",
     "method": "POST",
+    "path": "/api/projects/missing/item-addresses/resolve",
+    "status": 404,
+    "body": {
+      "error": "Not found."
+    },
+    "headers": {
+      "requestId": true,
+      "contentType": "application/json;charset=utf-8",
+      "authenticate": null,
+      "retryAfter": null
+    },
+    "audit": [
+      {
+        "action": "read",
+        "decision": "deny",
+        "rules": [
+          "F2-no-domain"
+        ],
+        "reason": "not-readable",
+        "type": "audit",
+        "principal": {
+          "id": "<uuid>:<uuid>",
+          "kind": "person",
+          "name": "Bob Barros"
+        },
+        "resource": {
+          "type": "project",
+          "project": "missing"
+        },
+        "snapshot": {
+          "grants": [
+            "g-bob"
+          ],
+          "roles": [
+            "steward"
+          ],
+          "groups": [],
+          "emailMatched": true,
+          "resourceAttrs": {
+            "type": "project",
+            "project": "missing"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "caller": "bob",
+    "method": "POST",
+    "path": "/api/projects/missing/item-addresses/reconcile/example.yaml",
+    "status": 404,
+    "body": {
+      "error": "Not found."
+    },
+    "headers": {
+      "requestId": true,
+      "contentType": "application/json;charset=utf-8",
+      "authenticate": null,
+      "retryAfter": null
+    },
+    "audit": [
+      {
+        "action": "edit",
+        "decision": "deny",
+        "rules": [
+          "F2-no-domain"
+        ],
+        "reason": "not-readable",
+        "type": "audit",
+        "principal": {
+          "id": "<uuid>:<uuid>",
+          "kind": "person",
+          "name": "Bob Barros"
+        },
+        "resource": {
+          "type": "file",
+          "project": "missing",
+          "path": "example.yaml"
+        },
+        "snapshot": {
+          "grants": [
+            "g-bob"
+          ],
+          "roles": [
+            "steward"
+          ],
+          "groups": [],
+          "emailMatched": true,
+          "resourceAttrs": {
+            "type": "file",
+            "project": "missing",
+            "path": "example.yaml"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "caller": "bob",
+    "method": "POST",
     "path": "/api/projects/missing/gitignore",
     "status": 404,
     "body": {
@@ -17679,6 +17983,112 @@
           "resourceAttrs": {
             "type": "project",
             "project": "missing"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "caller": "carol",
+    "method": "POST",
+    "path": "/api/projects/missing/item-addresses/resolve",
+    "status": 404,
+    "body": {
+      "error": "Not found."
+    },
+    "headers": {
+      "requestId": true,
+      "contentType": "application/json;charset=utf-8",
+      "authenticate": null,
+      "retryAfter": null
+    },
+    "audit": [
+      {
+        "action": "read",
+        "decision": "deny",
+        "rules": [
+          "F2-no-domain"
+        ],
+        "reason": "not-readable",
+        "type": "audit",
+        "principal": {
+          "id": "<uuid>:<uuid>",
+          "kind": "person",
+          "name": "Carol Costa"
+        },
+        "resource": {
+          "type": "project",
+          "project": "missing"
+        },
+        "snapshot": {
+          "grants": [
+            "g-hr-viewers",
+            "g-carol-lab"
+          ],
+          "roles": [
+            "viewer"
+          ],
+          "groups": [
+            "<uuid>"
+          ],
+          "emailMatched": true,
+          "resourceAttrs": {
+            "type": "project",
+            "project": "missing"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "caller": "carol",
+    "method": "POST",
+    "path": "/api/projects/missing/item-addresses/reconcile/example.yaml",
+    "status": 404,
+    "body": {
+      "error": "Not found."
+    },
+    "headers": {
+      "requestId": true,
+      "contentType": "application/json;charset=utf-8",
+      "authenticate": null,
+      "retryAfter": null
+    },
+    "audit": [
+      {
+        "action": "edit",
+        "decision": "deny",
+        "rules": [
+          "F2-no-domain"
+        ],
+        "reason": "not-readable",
+        "type": "audit",
+        "principal": {
+          "id": "<uuid>:<uuid>",
+          "kind": "person",
+          "name": "Carol Costa"
+        },
+        "resource": {
+          "type": "file",
+          "project": "missing",
+          "path": "example.yaml"
+        },
+        "snapshot": {
+          "grants": [
+            "g-hr-viewers",
+            "g-carol-lab"
+          ],
+          "roles": [
+            "viewer"
+          ],
+          "groups": [
+            "<uuid>"
+          ],
+          "emailMatched": true,
+          "resourceAttrs": {
+            "type": "file",
+            "project": "missing",
+            "path": "example.yaml"
           }
         }
       }
@@ -23729,6 +24139,110 @@
   {
     "caller": "dave",
     "method": "POST",
+    "path": "/api/projects/missing/item-addresses/resolve",
+    "status": 200,
+    "body": {
+      "status": "missing"
+    },
+    "headers": {
+      "requestId": true,
+      "contentType": "application/json;charset=utf-8",
+      "authenticate": null,
+      "retryAfter": null
+    },
+    "audit": [
+      {
+        "action": "read",
+        "decision": "allow",
+        "rules": [
+          "role:admin:1"
+        ],
+        "outcome": "ok",
+        "type": "audit",
+        "principal": {
+          "id": "<uuid>:<uuid>",
+          "kind": "person",
+          "name": "Dave Dias"
+        },
+        "resource": {
+          "type": "project",
+          "project": "missing"
+        },
+        "snapshot": {
+          "grants": [
+            "g-admins"
+          ],
+          "roles": [
+            "admin"
+          ],
+          "groups": [
+            "<uuid>"
+          ],
+          "emailMatched": false,
+          "resourceAttrs": {
+            "type": "project",
+            "project": "missing"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "caller": "dave",
+    "method": "POST",
+    "path": "/api/projects/missing/item-addresses/reconcile/example.yaml",
+    "status": 400,
+    "body": {
+      "error": "Expected {operationId, from, to}."
+    },
+    "headers": {
+      "requestId": true,
+      "contentType": "application/json;charset=utf-8",
+      "authenticate": null,
+      "retryAfter": null
+    },
+    "audit": [
+      {
+        "action": "edit",
+        "decision": "allow",
+        "rules": [
+          "role:admin:1"
+        ],
+        "outcome": "failed",
+        "type": "audit",
+        "principal": {
+          "id": "<uuid>:<uuid>",
+          "kind": "person",
+          "name": "Dave Dias"
+        },
+        "resource": {
+          "type": "file",
+          "project": "missing",
+          "path": "example.yaml"
+        },
+        "snapshot": {
+          "grants": [
+            "g-admins"
+          ],
+          "roles": [
+            "admin"
+          ],
+          "groups": [
+            "<uuid>"
+          ],
+          "emailMatched": false,
+          "resourceAttrs": {
+            "type": "file",
+            "project": "missing",
+            "path": "example.yaml"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "caller": "dave",
+    "method": "POST",
     "path": "/api/projects/missing/gitignore",
     "status": 400,
     "body": {
@@ -29105,6 +29619,94 @@
   {
     "caller": "erin",
     "method": "POST",
+    "path": "/api/projects/missing/item-addresses/resolve",
+    "status": 403,
+    "body": {
+      "error": "no access"
+    },
+    "headers": {
+      "requestId": true,
+      "contentType": "application/json;charset=utf-8",
+      "authenticate": null,
+      "retryAfter": null
+    },
+    "audit": [
+      {
+        "action": "read",
+        "decision": "deny",
+        "rules": [],
+        "reason": "no-grant",
+        "type": "audit",
+        "principal": {
+          "id": "<uuid>:<uuid>",
+          "kind": "person",
+          "name": "Erin Esteves"
+        },
+        "resource": {
+          "type": "project",
+          "project": "missing"
+        },
+        "snapshot": {
+          "grants": [],
+          "roles": [],
+          "groups": [],
+          "emailMatched": false,
+          "resourceAttrs": {
+            "type": "project",
+            "project": "missing"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "caller": "erin",
+    "method": "POST",
+    "path": "/api/projects/missing/item-addresses/reconcile/example.yaml",
+    "status": 403,
+    "body": {
+      "error": "no access"
+    },
+    "headers": {
+      "requestId": true,
+      "contentType": "application/json;charset=utf-8",
+      "authenticate": null,
+      "retryAfter": null
+    },
+    "audit": [
+      {
+        "action": "edit",
+        "decision": "deny",
+        "rules": [],
+        "reason": "no-grant",
+        "type": "audit",
+        "principal": {
+          "id": "<uuid>:<uuid>",
+          "kind": "person",
+          "name": "Erin Esteves"
+        },
+        "resource": {
+          "type": "file",
+          "project": "missing",
+          "path": "example.yaml"
+        },
+        "snapshot": {
+          "grants": [],
+          "roles": [],
+          "groups": [],
+          "emailMatched": false,
+          "resourceAttrs": {
+            "type": "file",
+            "project": "missing",
+            "path": "example.yaml"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "caller": "erin",
+    "method": "POST",
     "path": "/api/projects/missing/gitignore",
     "status": 403,
     "body": {
@@ -34154,6 +34756,116 @@
           "resourceAttrs": {
             "type": "project",
             "project": "missing"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "caller": "frank",
+    "method": "POST",
+    "path": "/api/projects/missing/item-addresses/resolve",
+    "status": 404,
+    "body": {
+      "error": "Not found."
+    },
+    "headers": {
+      "requestId": true,
+      "contentType": "application/json;charset=utf-8",
+      "authenticate": null,
+      "retryAfter": null
+    },
+    "audit": [
+      {
+        "action": "read",
+        "decision": "deny",
+        "rules": [
+          "F2-no-domain"
+        ],
+        "reason": "not-readable",
+        "type": "audit",
+        "principal": {
+          "id": "<uuid>:<uuid>",
+          "kind": "person",
+          "name": "Frank Freitas"
+        },
+        "resource": {
+          "type": "project",
+          "project": "missing"
+        },
+        "snapshot": {
+          "grants": [
+            "g-sales-editors",
+            "g-finance"
+          ],
+          "roles": [
+            "editor",
+            "viewer"
+          ],
+          "groups": [
+            "<uuid>",
+            "<uuid>"
+          ],
+          "emailMatched": false,
+          "resourceAttrs": {
+            "type": "project",
+            "project": "missing"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "caller": "frank",
+    "method": "POST",
+    "path": "/api/projects/missing/item-addresses/reconcile/example.yaml",
+    "status": 404,
+    "body": {
+      "error": "Not found."
+    },
+    "headers": {
+      "requestId": true,
+      "contentType": "application/json;charset=utf-8",
+      "authenticate": null,
+      "retryAfter": null
+    },
+    "audit": [
+      {
+        "action": "edit",
+        "decision": "deny",
+        "rules": [
+          "F2-no-domain"
+        ],
+        "reason": "not-readable",
+        "type": "audit",
+        "principal": {
+          "id": "<uuid>:<uuid>",
+          "kind": "person",
+          "name": "Frank Freitas"
+        },
+        "resource": {
+          "type": "file",
+          "project": "missing",
+          "path": "example.yaml"
+        },
+        "snapshot": {
+          "grants": [
+            "g-sales-editors",
+            "g-finance"
+          ],
+          "roles": [
+            "editor",
+            "viewer"
+          ],
+          "groups": [
+            "<uuid>",
+            "<uuid>"
+          ],
+          "emailMatched": false,
+          "resourceAttrs": {
+            "type": "file",
+            "project": "missing",
+            "path": "example.yaml"
           }
         }
       }
@@ -39588,6 +40300,94 @@
   {
     "caller": "gina",
     "method": "POST",
+    "path": "/api/projects/missing/item-addresses/resolve",
+    "status": 403,
+    "body": {
+      "error": "no access"
+    },
+    "headers": {
+      "requestId": true,
+      "contentType": "application/json;charset=utf-8",
+      "authenticate": null,
+      "retryAfter": null
+    },
+    "audit": [
+      {
+        "action": "read",
+        "decision": "deny",
+        "rules": [],
+        "reason": "no-grant",
+        "type": "audit",
+        "principal": {
+          "id": "<uuid>:<uuid>",
+          "kind": "person",
+          "name": "Gina Gomes"
+        },
+        "resource": {
+          "type": "project",
+          "project": "missing"
+        },
+        "snapshot": {
+          "grants": [],
+          "roles": [],
+          "groups": [],
+          "emailMatched": false,
+          "resourceAttrs": {
+            "type": "project",
+            "project": "missing"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "caller": "gina",
+    "method": "POST",
+    "path": "/api/projects/missing/item-addresses/reconcile/example.yaml",
+    "status": 403,
+    "body": {
+      "error": "no access"
+    },
+    "headers": {
+      "requestId": true,
+      "contentType": "application/json;charset=utf-8",
+      "authenticate": null,
+      "retryAfter": null
+    },
+    "audit": [
+      {
+        "action": "edit",
+        "decision": "deny",
+        "rules": [],
+        "reason": "no-grant",
+        "type": "audit",
+        "principal": {
+          "id": "<uuid>:<uuid>",
+          "kind": "person",
+          "name": "Gina Gomes"
+        },
+        "resource": {
+          "type": "file",
+          "project": "missing",
+          "path": "example.yaml"
+        },
+        "snapshot": {
+          "grants": [],
+          "roles": [],
+          "groups": [],
+          "emailMatched": false,
+          "resourceAttrs": {
+            "type": "file",
+            "project": "missing",
+            "path": "example.yaml"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "caller": "gina",
+    "method": "POST",
     "path": "/api/projects/missing/gitignore",
     "status": 403,
     "body": {
@@ -44493,6 +45293,106 @@
           "resourceAttrs": {
             "type": "project",
             "project": "missing"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "caller": "hank",
+    "method": "POST",
+    "path": "/api/projects/missing/item-addresses/resolve",
+    "status": 404,
+    "body": {
+      "error": "Not found."
+    },
+    "headers": {
+      "requestId": true,
+      "contentType": "application/json;charset=utf-8",
+      "authenticate": null,
+      "retryAfter": null
+    },
+    "audit": [
+      {
+        "action": "read",
+        "decision": "deny",
+        "rules": [
+          "F2-no-domain"
+        ],
+        "reason": "not-readable",
+        "type": "audit",
+        "principal": {
+          "id": "<uuid>:<uuid>",
+          "kind": "person",
+          "name": "Hank Hall"
+        },
+        "resource": {
+          "type": "project",
+          "project": "missing"
+        },
+        "snapshot": {
+          "grants": [
+            "g-hank"
+          ],
+          "roles": [
+            "r_metric_reviewer"
+          ],
+          "groups": [],
+          "emailMatched": true,
+          "resourceAttrs": {
+            "type": "project",
+            "project": "missing"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "caller": "hank",
+    "method": "POST",
+    "path": "/api/projects/missing/item-addresses/reconcile/example.yaml",
+    "status": 404,
+    "body": {
+      "error": "Not found."
+    },
+    "headers": {
+      "requestId": true,
+      "contentType": "application/json;charset=utf-8",
+      "authenticate": null,
+      "retryAfter": null
+    },
+    "audit": [
+      {
+        "action": "edit",
+        "decision": "deny",
+        "rules": [
+          "F2-no-domain"
+        ],
+        "reason": "not-readable",
+        "type": "audit",
+        "principal": {
+          "id": "<uuid>:<uuid>",
+          "kind": "person",
+          "name": "Hank Hall"
+        },
+        "resource": {
+          "type": "file",
+          "project": "missing",
+          "path": "example.yaml"
+        },
+        "snapshot": {
+          "grants": [
+            "g-hank"
+          ],
+          "roles": [
+            "r_metric_reviewer"
+          ],
+          "groups": [],
+          "emailMatched": true,
+          "resourceAttrs": {
+            "type": "file",
+            "project": "missing",
+            "path": "example.yaml"
           }
         }
       }
@@ -49899,6 +50799,110 @@
   {
     "caller": "olga",
     "method": "POST",
+    "path": "/api/projects/missing/item-addresses/resolve",
+    "status": 404,
+    "body": {
+      "error": "Not found."
+    },
+    "headers": {
+      "requestId": true,
+      "contentType": "application/json;charset=utf-8",
+      "authenticate": null,
+      "retryAfter": null
+    },
+    "audit": [
+      {
+        "action": "read",
+        "decision": "deny",
+        "rules": [
+          "F2-no-domain"
+        ],
+        "reason": "not-readable",
+        "type": "audit",
+        "principal": {
+          "id": "<uuid>:<uuid>",
+          "kind": "person",
+          "name": "Olga Oliveira"
+        },
+        "resource": {
+          "type": "project",
+          "project": "missing"
+        },
+        "snapshot": {
+          "grants": [
+            "g-sales-editors"
+          ],
+          "roles": [
+            "editor"
+          ],
+          "groups": [
+            "<uuid>"
+          ],
+          "emailMatched": false,
+          "resourceAttrs": {
+            "type": "project",
+            "project": "missing"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "caller": "olga",
+    "method": "POST",
+    "path": "/api/projects/missing/item-addresses/reconcile/example.yaml",
+    "status": 404,
+    "body": {
+      "error": "Not found."
+    },
+    "headers": {
+      "requestId": true,
+      "contentType": "application/json;charset=utf-8",
+      "authenticate": null,
+      "retryAfter": null
+    },
+    "audit": [
+      {
+        "action": "edit",
+        "decision": "deny",
+        "rules": [
+          "F2-no-domain"
+        ],
+        "reason": "not-readable",
+        "type": "audit",
+        "principal": {
+          "id": "<uuid>:<uuid>",
+          "kind": "person",
+          "name": "Olga Oliveira"
+        },
+        "resource": {
+          "type": "file",
+          "project": "missing",
+          "path": "example.yaml"
+        },
+        "snapshot": {
+          "grants": [
+            "g-sales-editors"
+          ],
+          "roles": [
+            "editor"
+          ],
+          "groups": [
+            "<uuid>"
+          ],
+          "emailMatched": false,
+          "resourceAttrs": {
+            "type": "file",
+            "project": "missing",
+            "path": "example.yaml"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "caller": "olga",
+    "method": "POST",
     "path": "/api/projects/missing/gitignore",
     "status": 404,
     "body": {
@@ -54867,6 +55871,38 @@
   {
     "caller": "anonymous",
     "method": "POST",
+    "path": "/api/projects/missing/item-addresses/resolve",
+    "status": 401,
+    "body": {
+      "error": "sign-in required"
+    },
+    "headers": {
+      "requestId": true,
+      "contentType": "application/json;charset=utf-8",
+      "authenticate": null,
+      "retryAfter": null
+    },
+    "audit": []
+  },
+  {
+    "caller": "anonymous",
+    "method": "POST",
+    "path": "/api/projects/missing/item-addresses/reconcile/example.yaml",
+    "status": 401,
+    "body": {
+      "error": "sign-in required"
+    },
+    "headers": {
+      "requestId": true,
+      "contentType": "application/json;charset=utf-8",
+      "authenticate": null,
+      "retryAfter": null
+    },
+    "audit": []
+  },
+  {
+    "caller": "anonymous",
+    "method": "POST",
     "path": "/api/projects/missing/gitignore",
     "status": 401,
     "body": {
@@ -57291,6 +58327,98 @@
           "resourceAttrs": {
             "type": "project",
             "project": "missing"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "caller": "deactivated",
+    "method": "POST",
+    "path": "/api/projects/missing/item-addresses/resolve",
+    "status": 403,
+    "body": {
+      "error": "no access"
+    },
+    "headers": {
+      "requestId": true,
+      "contentType": "application/json;charset=utf-8",
+      "authenticate": null,
+      "retryAfter": null
+    },
+    "audit": [
+      {
+        "action": "read",
+        "decision": "deny",
+        "rules": [],
+        "reason": "no-grant",
+        "type": "audit",
+        "principal": {
+          "id": "<uuid>:<uuid>",
+          "kind": "person",
+          "name": "Alice Andrade"
+        },
+        "resource": {
+          "type": "project",
+          "project": "missing"
+        },
+        "snapshot": {
+          "grants": [],
+          "roles": [],
+          "groups": [
+            "<uuid>"
+          ],
+          "emailMatched": false,
+          "resourceAttrs": {
+            "type": "project",
+            "project": "missing"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "caller": "deactivated",
+    "method": "POST",
+    "path": "/api/projects/missing/item-addresses/reconcile/example.yaml",
+    "status": 403,
+    "body": {
+      "error": "no access"
+    },
+    "headers": {
+      "requestId": true,
+      "contentType": "application/json;charset=utf-8",
+      "authenticate": null,
+      "retryAfter": null
+    },
+    "audit": [
+      {
+        "action": "edit",
+        "decision": "deny",
+        "rules": [],
+        "reason": "no-grant",
+        "type": "audit",
+        "principal": {
+          "id": "<uuid>:<uuid>",
+          "kind": "person",
+          "name": "Alice Andrade"
+        },
+        "resource": {
+          "type": "file",
+          "project": "missing",
+          "path": "example.yaml"
+        },
+        "snapshot": {
+          "grants": [],
+          "roles": [],
+          "groups": [
+            "<uuid>"
+          ],
+          "emailMatched": false,
+          "resourceAttrs": {
+            "type": "file",
+            "project": "missing",
+            "path": "example.yaml"
           }
         }
       }
@@ -61907,6 +63035,38 @@
     "caller": "client",
     "method": "POST",
     "path": "/api/projects/missing/save-batch",
+    "status": 401,
+    "body": {
+      "error": "sign-in required"
+    },
+    "headers": {
+      "requestId": true,
+      "contentType": "application/json;charset=utf-8",
+      "authenticate": "Bearer error=\"invalid_token\"",
+      "retryAfter": null
+    },
+    "audit": []
+  },
+  {
+    "caller": "client",
+    "method": "POST",
+    "path": "/api/projects/missing/item-addresses/resolve",
+    "status": 401,
+    "body": {
+      "error": "sign-in required"
+    },
+    "headers": {
+      "requestId": true,
+      "contentType": "application/json;charset=utf-8",
+      "authenticate": "Bearer error=\"invalid_token\"",
+      "retryAfter": null
+    },
+    "audit": []
+  },
+  {
+    "caller": "client",
+    "method": "POST",
+    "path": "/api/projects/missing/item-addresses/reconcile/example.yaml",
     "status": 401,
     "body": {
       "error": "sign-in required"

@@ -268,6 +268,23 @@
       }
     },
     {
+      "case": "POST /api/projects/:slug/item-addresses/resolve",
+      "action": "read",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/item-addresses/reconcile/*",
+      "action": "edit",
+      "resource": {
+        "type": "file",
+        "project": "sales-metrics",
+        "path": "example.yaml"
+      }
+    },
+    {
       "case": "POST /api/projects/:slug/gitignore",
       "action": "edit",
       "resource": {
