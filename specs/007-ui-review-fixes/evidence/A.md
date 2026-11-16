@@ -36,6 +36,10 @@ T019 now completes through layering, as authorized by the integrator. Actual SVG
 
 Before `screenshots/states/local-full-graph-network--zoomed-in-1440.png` in the review → after `/tmp/sw-A/resume/after/states/local-full-graph-network--zoomed-in-1440.png`. Opened both: the Allowance charge heading is clear above the crossing strokes, with no routing change. Also reopened the updated Network 1440 first view: the vertical edge under Document reference is covered by its title plate. Capture log `/tmp/sw-A/resume/capture-title.log`: both captures report `[]` geometry problems.
 
+## Full-gate corrections
+
+The first complete mutation run exposed an introduced dispatch error: using the `graph-` prefix routed the existing `graph-detail-zoom` category to the new graph-opening runner. Dispatch now matches only `graph-capacity` and `graph-opening`. The original detail-zoom case passes both on foundation `593f2c18` and the lane (`bun scripts/mutation-case.ts` with each checkout's overview-capacity module), exit 0. Logs: `/tmp/sw-A/resume/foundation-mutation-detail.log` and the direct lane command. The full mutation run is repeated after this correction; the first failure is not classified as pre-existing.
+
 ## Baseline
 
 T011 complete. All 24 fresh light-theme first views measured against an archive of e8b7d69. Locked thresholds and numbers are in research.md. Command: `SW_BASE_URL=http://127.0.0.1:5211 bun --preload /tmp/sw-A/port.ts scripts/ui-review/measure-graph.ts`. The temporary preload binds isolated APIs to 5212 instead of ephemeral ports. Raw output: `/tmp/sw-A/baseline.jsonl`; images: `/tmp/sw-A/baseline-measurements/`.

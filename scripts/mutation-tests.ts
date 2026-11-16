@@ -632,7 +632,7 @@ async function writeFolderCopy(folder: string, file: string, mutatedSource: stri
   return resolve(copyRoot, mutatedPath.slice(folderRoot.length + 1));
 }
 async function run(category: string, file: string, source: string, index: string, env: Record<string, string> = {}) {
-  if (category.startsWith('graph-')) return runGraphCase(root, temp, file, source, index, category);
+  if (category === 'graph-capacity' || category === 'graph-opening') return runGraphCase(root, temp, file, source, index, category);
   if (category === 'fonts') return runFontCase(root, temp, file, source, index);
   if (category.startsWith('admin-')) {
     source = source.replace(/new URL\('(?:\.\.\/)+policies\//g, `new URL('${root}/policies/`);
