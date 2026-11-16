@@ -269,7 +269,7 @@ are documented in [target setup](../deploy/README.md), not read as application c
 DATA_DIR/
   projects/       repositories or roots containing declared subprojects
   worktrees/      personal server working copies
-  state/          registry, views, drafts, journals, sessions and audit
+  state/          registry, views, drafts, journals, sessions, audit and published.json
   admin/          versioned access configuration
   trash/          recoverable deleted content and metadata
   backup/         protected legacy migration copies

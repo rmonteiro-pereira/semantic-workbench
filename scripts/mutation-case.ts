@@ -8,6 +8,7 @@ import assert from 'node:assert/strict';
 import { dirname, resolve } from 'node:path';
 import { loadBrandBundle, setActiveBrand } from '../src/server/brand/bundle';
 import { allowEveryRemote } from '../tests/helpers/remote-credentials-fixture';
+import { snapshotMutationCase } from './snapshot-mutation-cases';
 import { observabilityCase } from './observability-cases';
 // Sign-in pages render the brand, so every candidate runs with the shipped bundle active.
 setActiveBrand(loadBrandBundle());
@@ -3434,3 +3435,5 @@ if (category === 'sparse-partial-clone') {
   assert(!clones[1].includes('--filter') && !clones[1].includes('--no-checkout'));
 }
 await observabilityCase(category, loadedModule);
+
+await snapshotMutationCase(category, loadedModule);

@@ -8,6 +8,7 @@ import { securityReviewMutants } from './security-review-mutants';
 import { checkoutMutants } from './security-review-checkout-mutants';
 import { polishMutants } from './polish-mutants';
 import { exportMutants } from './export-mutants';
+import { snapshotMutants } from './snapshot-mutants';
 import { sparseMutants } from './sparse-mutants';
 import { exampleMetricMutants } from './example-metric-mutants';
 import { themeMutants } from './theme-mutants';
@@ -558,6 +559,7 @@ mutants.push(...polishMutants);
 mutants.push(...exportMutants);
 // The folder a project lives in, and the Git arguments that check out only that folder.
 mutants.push(...sparseMutants);
+mutants.push(...snapshotMutants);
 // Example sets that lose a metric, its binding or its contract.
 mutants.push(...exampleMetricMutants);
 // Colour literals: the scanner, the theme check and the codemod.

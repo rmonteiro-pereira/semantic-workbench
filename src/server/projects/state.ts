@@ -1,5 +1,6 @@
 // Stores durable application state in versioned JSON files replaced atomically. This state survives
 // deletion of the SQLite cache.
+import { parsePublishedState, type PublishedState } from './published-pointer';
 import { existsSync, readdirSync, rmSync } from 'node:fs';
 import type { Principal } from '../auth/principal';
 import { join } from 'node:path';
@@ -127,6 +128,8 @@ export function createState(layout: DataLayout) {
   const usersFile = join(layout.state, 'users.json');
   return {
     ...personal,
+    published: () => parsePublishedState(load<PublishedState>(join(layout.state, 'published.json'), () => ({ formatVersion: 1, repositories: {} }))),
+    writePublished: (value: PublishedState) => atomicWriteJson(join(layout.state, 'published.json'), parsePublishedState(value)),
     personalStates,
     ownerState,
     forOwner: (owner: string): PersonalState => ownerState('u' + sha256(owner).slice(0, 20)),

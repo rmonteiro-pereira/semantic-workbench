@@ -25,3 +25,10 @@ an unborn default ref, an outside fast-forward and an outside reset using real G
 `bun test tests/api-validation.test.ts`: 16 pass, 0 fail, 51 expect() calls.
 The HTTP entry point preserves 409 and the complete contract body for all three absence reasons,
 and 422 for unreadable candidates. Snapshot refusals bypass the legacy local 400 conversion.
+
+## Durable pointer
+
+`bun test tests/published-pointer.test.ts`: 13 pass, 0 fail, 22 expect() calls.
+The targeted mutation runner used the registered snapshot-pointer case with the baseline and
+with divergence classified as a fast-forward: baseline exit 0, mutant exit 1.
+The full mutation gate is also running; its final result is recorded separately.
