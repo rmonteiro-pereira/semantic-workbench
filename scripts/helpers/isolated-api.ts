@@ -20,10 +20,10 @@ export type IsolatedApi = {
 export async function startIsolatedApi(options: { root?: string; watch?: boolean; gitBinary?: string } = {}): Promise<IsolatedApi> {
   // Routine request lines would bury a check's own output.
   configureLogging({ level: 'error', format: 'text' });
-  process.env.GIT_AUTHOR_NAME = 'Workbench Fixture';
-  process.env.GIT_AUTHOR_EMAIL = 'fixture@example.invalid';
-  process.env.GIT_COMMITTER_NAME = 'Workbench Fixture';
-  process.env.GIT_COMMITTER_EMAIL = 'fixture@example.invalid';
+  process.env.GIT_AUTHOR_NAME = 'Workbench Test';
+  process.env.GIT_AUTHOR_EMAIL = 'workbench-test@example.invalid';
+  process.env.GIT_COMMITTER_NAME = 'Workbench Test';
+  process.env.GIT_COMMITTER_EMAIL = 'workbench-test@example.invalid';
   const dir = options.root ? { root: options.root, cleanup: () => rmSync(options.root!, { recursive: true, force: true }) } : tempDataDir('workbench-browser-');
   let port = 0;
   const start = async () => {
