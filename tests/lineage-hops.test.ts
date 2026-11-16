@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { MAX_HOPS } from '../src/app/odcs/ForeignKeyHops';
 // Tests that foreign keys read as sentences and group by hop.
 import { test, expect } from 'bun:test';
 import { around, buildLineage as buildAddressedLineage, foreignKeyHop, foreignKeyPath, hopSentence } from '../src/app/odcs/lineage';
@@ -51,4 +53,14 @@ test('two hops add the next tables and number their keys as hop 2', () => {
     child: 'customers',
     parent: 'regions',
   });
+});
+
+test('the documented foreign-key limit matches the hop control', () => {
+  expect(MAX_HOPS).toBe(3);
+  for (const path of ['docs/user-guide.md', 'docs/graph-design.md']) {
+    const guide = readFileSync(path, 'utf8');
+    expect(guide).toContain('one to three foreign keys');
+    expect(guide).not.toContain('one to five foreign keys');
+    expect(guide).toContain('**Steps** (1–5)');
+  }
 });

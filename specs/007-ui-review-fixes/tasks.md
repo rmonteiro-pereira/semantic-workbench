@@ -239,7 +239,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Reject label slots that a line crosses or the pane clips (the placement code already ranks gaps), and pass the layout state to the toolbar so layout-dependent controls are disabled.
   - Proof: Before `states/local-contract-lineage--hops-3-list-1440.png`, `states/local-contract-lineage--node-selected-1440.png`, `states/local-contract-lineage--loading-1-1440.png` (review baseline); after: same state recaptured with `scripts/ui-review/capture-states.ts <out> graphs` and `scripts/ui-review/graph-loading-states.ts <out>`; check: `tests/edge-labels.test.ts`; `bun run test:edges`.
 
-- [ ] T034 [P] [US2] [B] Make the docs and code agree on hops and steps.
+- [x] T034 [P] [US2] [B] Make the docs and code agree on hops and steps.
   - Findings: m6 · Requirements: FR-027
   - Files: `docs/user-guide.md`, `docs/graph-design.md`, `specs/007-ui-review-fixes/changelog/B.md`
   - Change: Change 'one to five foreign keys' (user guide line 409, graph-design line 118) to 'one to three', describe the mapping graph's **Steps** (1-5, in View options) separately, and update the 'first view frames the nearest cards whole' paragraph to what the new first view does. `MAX_HOPS` stays 3.

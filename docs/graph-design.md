@@ -126,13 +126,16 @@ counting rows above/below. Filtered connected rows also retain an edge anchor. T
 connections while avoiding hundreds of rendered row controls.
 
 Lineage labels are placed in available gaps, not on unrelated cards or labels. Bundles carry a
-count once. The hop control follows one to five foreign keys and lists the reached paths without
-changing the meaning or direction of the declared key.
+count once. The hop control follows one to three foreign keys and lists the reached paths without
+changing the meaning or direction of the declared key. Mapping graphs use **Steps** (1–5)
+in **View options**, counting mapping lines rather than foreign keys. The shared asset and line
+legend belongs to the lineage module and is also used by mapping canvases.
 
 ### First-view readability
 
-`lineage-view.ts` chooses the nearby cards that fit whole at the readable entry zoom and the canvas
-frames them. It prioritizes tables, then datasets and metrics. If the actual layout is larger than
+`lineage-view.ts` checks the actual laid-out bounds against the pane at the readable entry zoom.
+When the whole reach fits, the canvas fits it with a small margin. Otherwise it chooses nearby
+cards and centres that set. It prioritizes tables, then datasets and metrics. If the actual layout is larger than
 estimated, the farthest chosen card leaves the frame until the rest fit. Every card of the reach
 is still laid out, so the others sit past the edge of the frame, a pan away, and no card waits
 behind a control. Explicit Fit zooms out beyond the readable entry scale to show every card; it

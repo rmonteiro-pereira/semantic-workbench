@@ -63,3 +63,7 @@ Walk trail names the current and original centre after a walk. CENTER now sits b
 ## T033 — implementation
 
 Label placement rejects a slot intersected by any laid-out route, including diagonal segments; renderer suppresses placed labels clipped by the current pane. Layout state disables the native controls fieldset and hop buttons while ELK runs. The route-crossing test distinguishes a blocked slot from a clear route. Focused unit summary: 17 pass, 0 fail, 40 expect calls. Loading/edge browser proof remains part of the final checks.
+
+## T034 — complete
+
+Foreign-key docs now state one to three. Mapping Steps (1–5) is described separately, and first-view docs describe the actual bounds decision and nearest-set fallback. `bun test tests/lineage-hops.test.ts`: 4 pass, 0 fail, 13 expect calls. `rg -n 'one to five' docs README.md` has no matches. The changelog fragment and both edited guides pass the deliverable leak scanner with zero hits.

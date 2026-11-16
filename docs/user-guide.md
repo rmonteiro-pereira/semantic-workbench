@@ -446,8 +446,9 @@ card shows, or its top when the card is taller than the canvas. **Show fewer** c
 sentence reads child to parent, such as `orders.customer_id → customers.id`, even though dependency
 lines run from referenced columns toward their consumers.
 
-The **Hops** control follows one to five foreign keys in either direction and lists the reached
-tables and keys by hop. Toolbar switches show or hide **Metrics** and **Other contracts**
+The **Hops** control follows one to three foreign keys in either direction and lists the reached
+tables and keys by hop. Mapping graphs instead use **Steps** (1–5) in **View options**,
+counting mapping lines. Toolbar switches show or hide **Metrics** and **Other contracts**
 (references to tables in other contracts). Badges and the legend distinguish PK, FK, Required, Unique and line kinds.
 Labels without room remain available on hover. **Open in lineage** centers on the selected table.
 
