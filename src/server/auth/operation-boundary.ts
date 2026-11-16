@@ -1,5 +1,7 @@
 // Decides and executes operations through the same handler and durable audit path.
-import { classifyOutcome, type OutcomeClassifier } from './operation-outcome';
+import { recordOperation } from '../observability/metrics';
+import { withSpan } from '../observability/tracing';
+import { classifyOutcome, type OperationOutcome, type OutcomeClassifier } from './operation-outcome';
 import type { Workspace } from '../projects/workspace';
 import { readableTrash, restoreAction } from '../projects/trash';
 import type { HandlerOptions } from './middleware';
@@ -174,6 +176,7 @@ export function createOperationBoundary(ws: Workspace, options: HandlerOptions &
     caller: Caller,
     audit: AuditLog,
     classifier?: OutcomeClassifier,
+    observation?: { outcome?: OperationOutcome },
   ): Promise<Response> {
     const { principal } = caller;
     const scope = access.forRequest(principal, { sourceIp: caller.sourceIp });
@@ -247,6 +250,7 @@ export function createOperationBoundary(ws: Workspace, options: HandlerOptions &
       return failure ?? Response.json({ error: 'Not found.' }, { status: 404 });
     }
     const semanticOutcome = classifier ? await classifyOutcome(response, classifier) : outcome(response.status);
+    if (observation) observation.outcome = semanticOutcome;
     if (shouldAudit(row, request.method, 'allow', caller.origin)) {
       try {
         audit.append({ ...input, decision: 'allow', outcome: semanticOutcome });
@@ -285,7 +289,12 @@ export function createOperationBoundary(ws: Workspace, options: HandlerOptions &
     if (refused) return { response: agentRefusal(audit, { requestId, principal: caller.principal, ...refused }), requestId };
     if (!found) return { response: new Response('Not found', { status: 404 }), requestId };
     const row = caller.principal.kind === 'client' ? clientRow(found.row) : found.row;
-    const response = await execute(request, requestId, { row, resource: row.resource(found.match, url) }, caller, audit, call.outcome);
+    const started = performance.now();
+    const observation: { outcome?: OperationOutcome } = {};
+    const invoke = () => execute(request, requestId, { row, resource: row.resource(found.match, url) }, caller, audit, call.outcome, observation);
+    const response = caller.origin === 'http' ? await invoke() : await withSpan('operation.' + entry!.id, { attributes: { origin: caller.origin, operation: entry!.id } }, invoke);
+    const statusOutcome = [401, 403, 404].includes(response.status) ? 'refused' : outcome(response.status);
+    recordOperation(caller.origin, entry!.id, observation.outcome ?? statusOutcome, performance.now() - started);
     return { response, requestId };
   }
   /** Records one protocol interaction independently of returned item count. */

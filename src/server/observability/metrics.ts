@@ -1,5 +1,8 @@
 // The metrics the server records. Instruments come from the OpenTelemetry API, so they record
 // nothing until telemetry registers a meter provider.
+import { CALLER_ORIGINS, operationById } from '../auth/operation-inventory';
+import type { CallerOrigin } from '../auth/caller';
+import type { OperationOutcome } from '../auth/operation-outcome';
 import { metrics, type Attributes } from '@opentelemetry/api';
 import type { ReactRenderReport } from '../../shared/observability/browser-report';
 
@@ -13,6 +16,8 @@ let instrumentsProvider: unknown;
 function createInstruments() {
   const meter = metrics.getMeter(METER_NAME);
   return {
+    operations: meter.createCounter('sw.operation.calls'),
+    operationDuration: meter.createHistogram('sw.operation.duration', { unit: 'ms' }),
     requests: meter.createCounter('sw.http.server.requests', {
       description: 'Handled HTTP requests by route template and status.',
     }),
@@ -125,4 +130,12 @@ export function recordReactRender(report: ReactRenderReport): void {
   const attributes = { area: report.area, phase: report.phase };
   use().reactRender.record(report.actualDurationMs, attributes);
   use().reactBase.record(report.baseDurationMs, attributes);
+}
+
+/** Records an operation using only fixed origin, inventory id and outcome labels. */
+export function recordOperation(origin: CallerOrigin, operation: string, outcome: OperationOutcome, durationMs: number): void {
+  if (!CALLER_ORIGINS.includes(origin) || !operationById(operation) || !['ok', 'refused', 'failed', 'degraded'].includes(outcome)) throw Error('Invalid operation metric labels.');
+  const attributes = { origin, operation, outcome };
+  use().operations.add(1, attributes);
+  use().operationDuration.record(durationMs, attributes);
 }

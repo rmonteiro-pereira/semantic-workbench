@@ -16,7 +16,9 @@ import { authWorkspace } from '../helpers/auth-workspace';
 import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 import { TEST_USERS } from '../helpers/auth-identities';
 import { useQuietLogging } from '../helpers/quiet-logging';
-import { recordRequest } from '../../src/server/observability/metrics';
+import { mintCaller } from '../../src/server/auth/caller';
+import { buildTwinRequest } from '../../src/server/auth/twin-request';
+import { recordOperation, recordRequest } from '../../src/server/observability/metrics';
 
 const SUCCESS = { code: 0 };
 const SECRET_TOKEN = 'SECRETBEARERTOKEN0123456789';
@@ -147,6 +149,10 @@ beforeAll(async () => {
   const open = metrics.batches.length;
   await stream.body!.cancel();
   expect(open).toBeGreaterThanOrEqual(0);
+  await handler.boundary.operate({
+    caller: mintCaller({ principal: access.principalFor(dave), origin: 'mcp' }),
+    request: buildTwinRequest('projects.list', { params: {}, query: { secret: DOCUMENT_TEXT } }),
+  });
   await telemetry.shutdown();
 });
 
@@ -284,3 +290,11 @@ describe('what never leaves the server', () => {
 function access(principal: ReturnType<typeof person>) {
   return createAccessControl(accessFixture()).principalFor(principal).key;
 }
+
+test('operation spans and metrics expose only fixed labels', () => {
+  const operation = spans.spans.find(span => span.name === 'operation.projects.list' && span.attributes.origin === 'mcp');
+  expect(operation?.attributes).toEqual({ origin: 'mcp', operation: 'projects.list' });
+  const recorded = points('sw.operation.calls').find(point => point.attributes.origin === 'mcp');
+  expect(recorded?.attributes).toEqual({ origin: 'mcp', operation: 'projects.list', outcome: 'ok' });
+  expect(() => recordOperation('mcp', '/private/path', 'ok', 1)).toThrow('Invalid operation metric labels');
+});
