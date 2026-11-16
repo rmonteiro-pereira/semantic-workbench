@@ -140,3 +140,33 @@ test('a publish-route swap failure abandons its intent and cannot publish itself
     restarted.close();
   }
 });
+
+test('the first agent read after Publish reuses the validated index and releases it on refusal', async () => {
+  const { testWorkspace } = await import('./helpers/temp-data-dir');
+  const { ontologyText } = await import('./helpers/git-fixtures');
+  const { LOCAL_READER } = await import('../src/server/projects/reader');
+  using fixture = await testWorkspace();
+  const { slug } = await fixture.seed([{ path: 'shop.ontology.yaml', source: ontologyText('Committed', ['Customer']) }], 'Shop');
+  const original = fixture.ws.git.catFileBatch;
+  let builds = 0;
+  fixture.ws.git.catFileBatch = (...args) => {
+    builds++;
+    return original(...args);
+  };
+  await fixture.ws.publish(slug, LOCAL_READER);
+  expect(builds).toBe(1);
+  const response = await fixture.handler(new Request(`http://localhost/api/agent/catalog?project=${slug}`));
+  expect(response.status).toBe(200);
+  expect(builds).toBe(1);
+  expect(fixture.ws.published.retainedCount()).toBe(1);
+  await fixture.ws.git.commit(`${fixture.root}/projects/${slug}`, 'Next candidate', true);
+  const run = fixture.ws.git.run;
+  fixture.ws.git.run = (directory, args, options) => {
+    if (args[0] === 'update-ref') return Promise.resolve({ code: 1, stdout: '', stderr: 'Ref locked.', bytes: new Uint8Array() });
+    return run(directory, args, options);
+  };
+  const refused = await fixture.handler(new Request(`http://localhost/api/projects/${slug}/git/publish`, { method: 'POST', body: '{}' }));
+  expect(refused.status).toBe(409);
+  expect(builds).toBe(2);
+  expect(fixture.ws.published.retainedCount()).toBe(1);
+});

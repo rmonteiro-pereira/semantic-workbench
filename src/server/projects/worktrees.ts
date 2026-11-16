@@ -7,7 +7,7 @@ import type { PublicationCandidate } from './publication-checks';
 import { createPublication, type Publication, type PublicationAdvance, type PublicationGuard } from './publication';
 import type { PublicationObserver } from './local-publication';
 import type { PublishedPointers } from './published-pointer';
-import { BranchInUseError, NotFastForwardError, PublicationAdoptionError } from './errors';
+import { BranchInUseError, NotFastForwardError, PublicationRefChangedError, PublicationAdoptionError } from './errors';
 import { authorship, commitOf, GitError, isBranchName, symbolicBranch, type CommitAuthor, type Git } from './git';
 import { USER_KEY, type DataLayout } from './paths';
 import { checkOutFolders, sparseFolders } from './sparse-folder';
@@ -291,6 +291,7 @@ async function adopt(context: WorktreeContext, repository: string, guard: Public
     context.listings?.delete(repository);
     return result;
   } catch (error) {
+    if (error instanceof PublicationRefChangedError) throw new PublicationAdoptionError('changed');
     if (error instanceof NotFastForwardError) throw new PublicationAdoptionError('diverged', previous);
     throw error;
   }
@@ -341,7 +342,7 @@ async function followRemote(context: WorktreeContext, repo: string, remote: stri
   try {
     return await moveDefault(context, repo, move, check, advance);
   } catch (error) {
-    if (error instanceof NotFastForwardError || error instanceof BaseChangedError) return null;
+    if (error instanceof NotFastForwardError || error instanceof PublicationRefChangedError || error instanceof BaseChangedError) return null;
     throw error;
   }
 }

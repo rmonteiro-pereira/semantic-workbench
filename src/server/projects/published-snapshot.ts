@@ -41,6 +41,11 @@ export function createPublishedSnapshots(deps: PublishedSnapshotDeps) {
       if (known?.current !== pointer.commit) {
         generations.set(repository, { current: pointer.commit, previous: known?.current });
         statuses.delete(repository);
+        for (const [key, index] of retained) {
+          if (index.repository !== repository || index.commit !== pointer.commit) continue;
+          const latest = recent.get(repository) ?? [];
+          recent.set(repository, [key, ...latest.filter(previous => previous !== key)].slice(0, 2));
+        }
       }
     }
     prune();
@@ -187,7 +192,21 @@ export function createPublishedSnapshots(deps: PublishedSnapshotDeps) {
     },
     documents,
     /** Validates a publication through the same deduplicated build cache used by pinned reads. */
-    validate: (candidate: PublicationCandidate) => load(candidate.repo, candidate.next),
+    async validate(candidate: PublicationCandidate) {
+      const validationPin = pin();
+      held.set(validationPin, new Set());
+      const release = () => {
+        held.delete(validationPin);
+        prune();
+      };
+      try {
+        await load(candidate.repo, candidate.next, validationPin);
+        return release;
+      } catch (error) {
+        release();
+        throw error;
+      }
+    },
     /** Resolves identity and visibility from the pin's registry before exposing documents. */
     async readableDocuments(requestPin: PublishedPin, project: string, reader: Reader) {
       const repository = projectRepository(project, requestPin);

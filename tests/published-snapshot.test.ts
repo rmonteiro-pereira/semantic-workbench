@@ -179,7 +179,8 @@ test('publication validation reuses an index already loaded by a pinned request'
     };
     await published.withPin(async pin => {
       const before = await published.readableDocuments(pin, 'definitions', LOCAL_READER);
-      await published.validate({ repo: 'definitions', branch: 'main', previous: fixture.previous, next: before.commit });
+      const release = await published.validate({ repo: 'definitions', branch: 'main', previous: fixture.previous, next: before.commit });
+      release();
       expect(builds).toBe(1);
     });
   } finally {

@@ -161,7 +161,8 @@ concatenating project, document or item names.
   before streaming, so eviction or publication cannot change an archive in flight.
 - `snapshot-index.ts` reads committed project files with the shared byte validator. Concurrent
   builds share one promise per repository, commit and folder digest; limits reject whole builds.
-  Publication validation uses the resolver's build cache rather than a second index builder.
+  Publication validation holds an active candidate pin through settlement, then releases it on success
+  or refusal. The first published read reuses that index within the existing retention bound.
 - `publication.ts` is the single publication writer and repository queue for local Publish, server Publish,
   remote follow and adoption. It applies `publication-checks.ts`, writes intent, compare-and-swaps the ref,
   records the pointer and supersedes the resolver. A failed swap abandons intent; startup reconciles

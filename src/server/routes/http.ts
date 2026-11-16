@@ -25,6 +25,7 @@ import {
   BranchInUseError,
   PersonalBranchError,
   NotFastForwardError,
+  PublicationRefChangedError,
   NothingToPublishError,
   TooLargeError,
   SnapshotUnavailableError,
@@ -88,7 +89,7 @@ export function errorResponse(error: unknown, publicUrl?: string, context: Error
   if (error instanceof PersonalBranchError) return Response.json({ error: error.message, branch: error.branch }, { status: 403 });
   if (error instanceof PublicationAdoptionError) return Response.json({ error: error.message }, { status: 409 });
   if (error instanceof PendingPublicationError) return Response.json({ error: error.message }, { status: 409 });
-  if (error instanceof NotFastForwardError) return Response.json({ error: error.message, notFastForward: true }, { status: 409 });
+  if (error instanceof NotFastForwardError || error instanceof PublicationRefChangedError) return Response.json({ error: error.message, notFastForward: true }, { status: 409 });
   if (error instanceof NothingToPublishError) return Response.json({ error: error.message, nothingToPublish: true }, { status: 409 });
   if (error instanceof MissingFolderError) return Response.json({ error: error.message, missingFolder: error.folder }, { status: 409 });
   if (error instanceof NotFoundError) return Response.json({ error: error.message }, { status: 404 });

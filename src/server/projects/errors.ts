@@ -96,6 +96,14 @@ export class NotFastForwardError extends Error {
   }
 }
 
+/** A concurrent writer changed the default ref after publication validation. */
+export class PublicationRefChangedError extends Error {
+  constructor(branch: string) {
+    super(`Publishing must be a fast-forward of ${branch}; its ref changed during validation.`);
+    this.name = 'PublicationRefChangedError';
+  }
+}
+
 /** A publish asked of someone who has no working copy of the repository yet. */
 export class NothingToPublishError extends Error {
   constructor() {

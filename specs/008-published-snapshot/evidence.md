@@ -798,3 +798,11 @@ The three executable TypeScript proof drivers moved from the specification direc
 `published-snapshot-performance-fixture.ts`, `published-snapshot-performance.ts` and
 `published-snapshot-remote-gate.ts`. Imports and documented commands follow their executable home.
 The repository formatter and complete local check passed after the moves. No runtime dependency changed.
+
+The follow-up architecture review identified two remaining semantic gaps before the gate. A ref swap race
+now has its own error, distinct from an ancestry refusal, so adoption preserves the `changed` response.
+A local HTTP adoption race against a second fast-forward returns 409 and clears intent (3 tests,
+17 assertions). Candidate validation now holds an active pin until the publication writer settles;
+success promotes its index to the current generation, while refusal releases it. The first agent read
+performs no second blob build, and a failed later candidate leaves retention unchanged (15 publication
+tests, 91 assertions). The complete local check passed after both corrections.

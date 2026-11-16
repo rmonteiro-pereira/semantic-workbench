@@ -1,6 +1,6 @@
 // Moves local authoring away from the served default ref without replacing working files.
 import { GitError, symbolicBranch, type Git } from './git';
-import { NothingToPublishError, NotFastForwardError, PendingPublicationError, PublicationAdoptionError } from './errors';
+import { NothingToPublishError, NotFastForwardError, PublicationRefChangedError, PendingPublicationError, PublicationAdoptionError } from './errors';
 import { type PublicationCandidate } from './publication-checks';
 import type { PublishedPointers } from './published-pointer';
 import { createPublication, type Publication, type PublicationAdvance, type PublicationGuard } from './publication';
@@ -73,6 +73,7 @@ export function createLocalPublication(deps: LocalPublicationDeps) {
     try {
       return await advance(repository, branch, { previous, next, expectedRef: next }, guard);
     } catch (error) {
+      if (error instanceof PublicationRefChangedError) throw new PublicationAdoptionError('changed');
       if (error instanceof NotFastForwardError) throw new PublicationAdoptionError('diverged', previous);
       throw error;
     }

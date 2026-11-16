@@ -1,6 +1,6 @@
 // Owns publication ordering, durable intent and the atomic default-ref transition.
 import { publicationChecks, type PublicationCandidate } from './publication-checks';
-import { NotFastForwardError, PendingPublicationError } from './errors';
+import { PublicationRefChangedError, PendingPublicationError } from './errors';
 import type { Git } from './git';
 import type { PublishedPointers } from './published-pointer';
 
@@ -17,6 +17,7 @@ export type PublicationDeps = {
   git: Git;
   directory: (repository: string) => string;
   pointers?: PublishedPointers;
+  /** A successful validation may return a release callback for its active candidate index. */
   readable: (candidate: PublicationCandidate) => Promise<unknown>;
   supersede: () => void;
   stage?: (stage: 'intent' | 'ref' | 'pointer') => void;
@@ -32,27 +33,35 @@ export function createPublication(deps: PublicationDeps) {
     const recorded = pointers?.get(repository)?.commit;
     if (recorded && recorded !== previous) throw new PendingPublicationError(recorded);
     const candidate = { repo: repository, branch, previous, next };
+    let release: (() => void) | undefined;
     const checks = publicationChecks({
       isAncestor: (_repository, from, to) => git.isAncestor(directory, from, to),
-      readable: deps.readable,
+      readable: async candidate => {
+        const validated = await deps.readable(candidate);
+        if (typeof validated === 'function') release = validated as () => void;
+      },
       guard: () => guard(previous, next),
     });
-    for (const check of checks) await check(candidate);
-    pointers?.intent(repository, branch, next);
-    deps.stage?.('intent');
     try {
-      const expected = move.expectedRef === undefined ? previous : move.expectedRef;
-      const swapped = await git.run(directory, ['update-ref', `refs/heads/${branch}`, next, expected ?? ''], { allowFailure: true });
-      if (swapped.code !== 0) throw new NotFastForwardError(branch);
-    } catch (error) {
-      pointers?.abandon(repository);
-      throw error;
+      for (const check of checks) await check(candidate);
+      pointers?.intent(repository, branch, next);
+      deps.stage?.('intent');
+      try {
+        const expected = move.expectedRef === undefined ? previous : move.expectedRef;
+        const swapped = await git.run(directory, ['update-ref', `refs/heads/${branch}`, next, expected ?? ''], { allowFailure: true });
+        if (swapped.code !== 0) throw new PublicationRefChangedError(branch);
+      } catch (error) {
+        pointers?.abandon(repository);
+        throw error;
+      }
+      deps.stage?.('ref');
+      pointers?.complete(repository, branch, next);
+      deps.supersede();
+      deps.stage?.('pointer');
+      return { published: branch, previous, commit: next };
+    } finally {
+      release?.();
     }
-    deps.stage?.('ref');
-    pointers?.complete(repository, branch, next);
-    deps.supersede();
-    deps.stage?.('pointer');
-    return { published: branch, previous, commit: next };
   };
   function serialized<T>(repository: string, use: (advance: PublicationAdvance) => Promise<T>): Promise<T> {
     const operation = (active.get(repository) ?? Promise.resolve()).catch(() => {}).then(() => use(advance));
