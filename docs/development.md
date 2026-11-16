@@ -309,6 +309,11 @@ Keep source, formatting and builds frozen throughout capture; schema generation 
 Review native-resolution images. Saved release manifests retain dimensions and source/output
 hashes; image conversion must not silently crop or resize the viewport.
 
+Build the capture inventory with `bun scripts/ui-review/catalog-artifacts.ts OUTPUT_ROOT`, then
+run `bun scripts/ui-review/capture-report.ts OUTPUT_ROOT BASELINE_ROOT` to compare failed states.
+The report exits with a failure when a state fails only in the current inventory. Both roots
+contain `manifest.json` and `unreachable.json`; omitting the baseline produces an inventory only.
+
 ## Mock identity provider
 
 ```sh

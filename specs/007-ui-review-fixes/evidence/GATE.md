@@ -125,3 +125,135 @@ No product name or logo is hard-coded outside public/brand.
 - Full leak scan on `docs/development.md`: exit 0 after replacing machine-specific sample output paths with ignored relative output paths.
 
 These scratch captures are driver verification only. Final merged-branch capture and pair classification remain pending.
+
+`bun test`: exit 0.
+
+```text
+{"ok":false,"restored":"restored","before":{"name":"previous","version":"0.3.0","commit":"cccccccccccccccccccccccccccccccccccccccc","digest":"sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"},"smoke":"passed"}
+{"event":"record","before":{"name":"previous","version":"0.3.0","commit":"cccccccccccccccccccccccccccccccccccccccc","digest":"sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"}}
+{"ok":true,"restored":{"name":"updated","version":"0.3.0","commit":"cccccccccccccccccccccccccccccccccccccccc","digest":"sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"}}
+{"event":"record","before":{"name":"previous","version":"0.3.0","commit":"cccccccccccccccccccccccccccccccccccccccc","digest":"sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"}}
+{"ok":true,"restored":{"tag":"v0.4.0-alpha.1","version":"0.4.0","packageVersion":"0.4.0","commit":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","digest":"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","name":"updated"}}
+
+ 2090 pass
+ 0 fail
+ 130847 expect() calls
+Ran 2090 tests across 287 files. [329.58s]
+```
+
+`bun --bun run check`: exit 0.
+
+```text
+
+All matched files use the correct format.
+Finished in 51ms on 1042 files using 28 threads.
+$ bunx --bun oxlint --quiet src scripts tests
+$ bun scripts/check-comments.ts
+Comments are free of specification and task IDs.
+$ bun scripts/check-theme.ts
+No colour literals outside src/shared/theme/theme.css and src/app/theme/theme-palette.ts.
+$ bun scripts/check-brand.ts
+No product name or logo is hard-coded outside public/brand.
+```
+
+`bun --bun run build`: exit 0.
+
+```text
+   │
+   │ Help: For more information, see https://rolldown.rs/in-depth/directives#other-directives
+───╯
+
+[plugin builtin:vite-reporter]
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 1.77s
+```
+
+### Merge D
+
+`git merge --no-ff 007-lane-d -m merge: integrate UI review fixes from lane D`: exit 0. Full output: `D-merge.log`.
+
+`bun test`: exit 0.
+
+```text
+{"ok":false,"restored":"restored","before":{"name":"previous","version":"0.3.0","commit":"cccccccccccccccccccccccccccccccccccccccc","digest":"sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"},"smoke":"passed"}
+{"event":"record","before":{"name":"previous","version":"0.3.0","commit":"cccccccccccccccccccccccccccccccccccccccc","digest":"sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"}}
+{"ok":true,"restored":{"name":"updated","version":"0.3.0","commit":"cccccccccccccccccccccccccccccccccccccccc","digest":"sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"}}
+{"event":"record","before":{"name":"previous","version":"0.3.0","commit":"cccccccccccccccccccccccccccccccccccccccc","digest":"sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"}}
+{"ok":true,"restored":{"tag":"v0.4.0-alpha.1","version":"0.4.0","packageVersion":"0.4.0","commit":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","digest":"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","name":"updated"}}
+
+ 2097 pass
+ 0 fail
+ 130894 expect() calls
+Ran 2097 tests across 287 files. [302.60s]
+```
+
+`bun --bun run check`: exit 0.
+
+```text
+
+All matched files use the correct format.
+Finished in 80ms on 1042 files using 28 threads.
+$ bunx --bun oxlint --quiet src scripts tests
+$ bun scripts/check-comments.ts
+Comments are free of specification and task IDs.
+$ bun scripts/check-theme.ts
+No colour literals outside src/shared/theme/theme.css and src/app/theme/theme-palette.ts.
+$ bun scripts/check-brand.ts
+No product name or logo is hard-coded outside public/brand.
+```
+
+`bun --bun run build`: exit 0.
+
+```text
+   │
+   │ Help: For more information, see https://rolldown.rs/in-depth/directives#other-directives
+───╯
+
+[plugin builtin:vite-reporter]
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 1.55s
+```
+
+### Merge E
+
+`git merge --no-ff 007-lane-e -m merge: integrate UI review fixes from lane E`: exit 1. Full output: `E-merge.log`.
+
+### Portable registry-isolation assertion
+
+The CLI adapter already chooses the system temporary directory. The assertion now compares with that same standard location, preserving its registry-directory prefix and cleanup checks.
+`TMPDIR="$PWD/.data/gate/tmp" bun test tests/pipeline/deploy-azure.test.ts`: `5 pass`, `0 fail`, `20 expect() calls`, 79 ms. The archived-main result above proves the original failure.
+Formatter and readability checks passed. Commit: `c8e08bbc`.
+
+### Source-control driver completion
+
+The full scratch run finished with 144 captures, light/dark at all four widths, no `failures.jsonl` and exit 0. Generic modal-background coverage messages remain in the raw log and are not treated as
+geometry passes. Final merged-branch captures remain separate.
+
+### Capture report
+
+The old report contained historical counts and hard-coded commands. It now reads the current manifests and optionally compares unreachable-state identities with a baseline.
+Synthetic CLI fixtures proved both branches: an existing failed state exits 0 (`1 images, 1 failed attempts, 0 new failed states`); a new failed state exits 1 (`1 images, 1 failed attempts, 1 new failed states`).
+`bun --bun run check`: exit 0 (`capture-report-check.log`). Readability and the public documentation leak scan passed.
+
+### Lineage truncation investigation
+
+Three lane-B additions used CSS ellipsis in the dataset summary, lineage context and name-only card. The gate rule forbids those cuts. Removing the cuts and allowing wrapping passes the suite's
+functional and geometry checks, including readable names, whole frames and native Walk clicks. Its final browser-error check failed on two React Flow parent-size warnings. This is not yet green;
+the final merged run and baseline comparison must settle those warnings before delivery. Raw log: `lineage-unclipped.log`.
+
+### Lane E boundary conflicts
+
+`git merge --no-ff 007-lane-e` conflicted in `tests/footer-counts.test.ts` and `tests/theme-check.test.ts`. Neither test file appears in the plan's permitted shared-file list.
+These are lane-boundary errors: C added Source footer/validation and dark YAML contrast coverage; E added Mall relationship isolation and non-red group-palette coverage. Both imports and both sets of
+assertions are retained. No intent was dropped. The shared stylesheet/doc/sentinel edits merged mechanically.
+
+`bun test tests/footer-counts.test.ts tests/theme-check.test.ts`: `23 pass`, `0 fail`, `98 expect() calls`, 511 ms. Merge commit: `1416dac2`.
+`rg -n humanizeIdentifier src/app/graph/EntityName.tsx src/app/workspace/CatalogView.tsx`: A exports the function; E imports it directly; no temporary placeholder exists.
+
+The five merge commits, in order, are A `f1398bf8`, B `6f632145`, C `5b13344c`, D `9d77dd22`, E `1416dac2`. E's complete checks are still running.
