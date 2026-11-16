@@ -386,6 +386,8 @@ existing distinction between hidden-trash denials and unaudited missing entries.
 
 `bun scripts/boundary-benchmark.ts` measures 5,000 in-process HTTP requests with isolated temporary data and prints median and 95th-percentile durations.
 `bun test tests/auth/http-characterization.test.ts` compares responses and audit records against the original HTTP contract; preserve that fixture unchanged when refactoring the boundary.
+For new operations, regenerate `policies/matrix-cases.json` with `bun scripts/generate-access-matrix.ts` and record the new HTTP cases with
+`bun scripts/record-http-characterization.ts`. Preserve all existing caller/route records when adding the new cases.
 
 Trusted adapters use `buildTwinRequest(operationId, { params, query, body, signal })`; parameter
 keys match the route template, including `*` for a splat. The builder rejects non-dispatchable

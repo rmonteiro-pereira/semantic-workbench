@@ -1024,3 +1024,37 @@ migration parity, generic operation parity, inventory and route-action checks pa
 existing authorization-matrix tests timed out (two at 60 seconds and three at five seconds),
 with two follow-on errors after timeout cancellation. These are not classified as baseline
 exceptions until the same matrix has run on unchanged main at a153c20f remotely.
+
+
+### Completed boundary admission and compatibility proof
+
+The scoped-role correction was independently reviewed with no remaining architecture blocker.
+`bun test ./tests/auth/guard-inventory.test.ts`: `3 pass`, `0 fail`, `259 expect() calls`;
+`Ran 3 tests across 1 file. [9.59s]`.
+
+Unchanged main a153c20f was archived inside this wrapper checkout, with the same dependencies,
+and the real authorization matrix ran without changing its timeouts or assertions:
+`bun test ./tests/auth/matrix.test.ts`: `15 pass`, `1 fail`, `1 error`, `36341 expect() calls`;
+`Ran 16 tests across 1 file. [125.75s]`. Its read-route test exceeded 60 seconds and cancellation
+caused a follow-on Git status refusal. The archive was removed by the command's exit trap.
+All other main matrix checks passed. The feature's subsequent full run passed that read-route
+matrix in 46.65 seconds; the other earlier focused timeouts did not recur either.
+
+The first full integration `bun test` returned `2273 pass`, `2 fail`, `340064 expect() calls`;
+`Ran 2275 tests across 327 files. [1630.60s]`. Both failures were introduced by the two new
+inventory rows being absent from generated fixtures, not baseline exceptions. The shipped
+matrix now includes the new project-read and file-edit cases; HTTP characterization adds 26
+caller/route records. All 1,547 original HTTP records are retained exactly, including their
+original Cedar rule ordering. Every original matrix principal and case is unchanged.
+
+After regeneration, focused checks passed:
+
+- `bun test ./tests/auth/http-characterization.test.ts`: `1 pass`, `0 fail`,
+  `1574 expect() calls`; `Ran 1 test across 1 file. [17.12s]`.
+- `bun test ./tests/auth/dry-run.test.ts`: `8 pass`, `0 fail`, `37 expect() calls`;
+  `Ran 8 tests across 1 file. [22.90s]`.
+
+The first full integration run also passed both migration-history parity journeys, all address
+entry points, the conditional-file role regression and generic operation parity for both new
+IDs. A fresh plain full unit gate is running on the corrected generated fixtures. No runtime
+implementation changed to repair these two failures.

@@ -307,7 +307,7 @@ changes.
 
 - [x] T046 Rebase onto fetched origin/main a153c20f, preserving both features' limits, classifiers,
   inventory and mutation registrations. Proof: focused operation-inventory test, 7 pass, 0 fail.
-- [ ] T047 Expose item resolution and reconciliation through the shared boundary with inventory,
+- [x] T047 Expose item resolution and reconciliation through the shared boundary with inventory,
   authorization matrix and HTTP/twin parity cases; preserve opaque snapshot suffixes.
 - [ ] T048 Prove declared rename and deletion history through inventoried save/batch/move/delete
   operations, register targeted mutants and remove obsolete operation-boundary deferral claims.
