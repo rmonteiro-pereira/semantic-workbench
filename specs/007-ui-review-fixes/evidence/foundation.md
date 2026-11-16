@@ -57,3 +57,46 @@ Existing theme styles name DM Sans and Manrope; local font faces supply their gl
 - T008: README stack/licensing row, shared-layer architecture, theme font/replacement guidance and `changelog/E.md` describe the local fonts. `src/server/static.ts` has no font-src override; its existing default-src self permits same-origin font assets without a policy edit.
 - `bun --bun run check`: exit 0; formatting, lint, comment, theme and brand checks pass (`/tmp/sw-foundation/final-check.log`).
 - Document leak scan: five font/application documents clean, zero hits; internal evidence/index and imported capture tooling also pass the confidential-only scan. Logs are under `/tmp/sw-foundation/`.
+
+## Foundation gate and handoff
+
+T009 is explicitly skipped as a completion claim: all six requested commands ran, but the responsive gate failed. The branch is **not READY for a green foundation handoff**. There is no merge operation to perform: the implementation is committed directly on `007-ui-review-fixes`.
+
+Final implementation commit tested by the gate: `e833c6bdf0d4855410a5e612e30ae416d8dc7d1c`. The following receipt commit changes only this evidence file; its ID is the last commit touching this file (`git log -1 --format=%H -- specs/007-ui-review-fixes/evidence/foundation.md`).
+
+| Command | Result and literal summary | Log |
+| --- | --- | --- |
+| `bun test` | Exit 0: `2071 pass`, `0 fail`, `130779 expect() calls`; `Ran 2071 tests across 286 files. [303.73s]` | `/tmp/sw-foundation/tests-final.log` |
+| `bun --bun run check` | Exit 0: `All matched files use the correct format.`; `Comments are free of specification and task IDs.`; theme and brand checks pass | `/tmp/sw-foundation/final-check.log` |
+| `bun --bun run build` | Exit 0: `✓ built in 916ms` | `/tmp/sw-foundation/build.log` |
+| `SW_BASE_URL=http://127.0.0.1:5201 bun run test:theme` | Exit 0: `10 theme checks passed` | `/tmp/sw-foundation/theme-final.log` |
+| `SW_BASE_URL=http://127.0.0.1:5201 bun run test:responsive` | Exit 1: fixed header geometry expects `Save state@763,32,45,16`; actual is `Save state@763,32,48,16` | `/tmp/sw-foundation/responsive-final.log` |
+| `SW_BASE_URL=http://127.0.0.1:5201 bun scripts/mutation-tests.ts` | Exit 0: `666/666 targeted mutants killed; all unmodified module baselines passed. Run test:ui for the full browser baseline.` | `/tmp/sw-foundation/final-mutations.log` |
+
+The responsive failure is at `scripts/responsive-ui-tests.ts:1583`: the desktop header's saved-state text is three pixels wider with the bundled font. Position, height and the other compared control boxes match. The plan assigns this shared suite to no lane for direct edits. No geometry assertion was relaxed and no header layout was redesigned. The integrator must review the font-sensitive snapshot under its shared-file authority, then rerun the complete responsive gate. That run stops at the failed snapshot, so later checks have no passing result from this run.
+
+The complete run passed all four widths for the main/edit/ODCS/project/export/file/folder tours, shell and Admin, and the phone header before reaching that desktop snapshot. The earlier longer fixture-name overlap is absent with the existing neutral identity. The focused ODCS rerun also passed all four widths.
+
+Additional final after images opened: first-run light/dark at 390×844 under `/tmp/sw-foundation/final-after/states/`. The title wraps to two lines inside the viewport; the action and status remain visible. The required same-state before/after pairs remain the 1440×900 pairs listed above.
+
+Final hygiene:
+
+- No package/dependency changes, push, tag, cross-branch merge, deployment or lane worktree creation. No T010 or lane task was executed.
+- Both frontend processes (branch 5201 and disposable base 5202) are stopped; both ports have no listener. Browser/API fixtures exited through their cleanup paths. Proof images and logs remain under `/tmp/sw-foundation/`.
+- `git diff --check` passes. The repo formatter, static gate and changed-code readability checks pass. Markdown is excluded by the repo formatter configuration.
+- `scripts/commit_cadence.py` does not exist in this repository; the requested command exits 2 for that missing file. No checker was added.
+- Font/application docs and licences pass the full leak scan. Evidence/index and copied capture tooling pass the confidential-only scan. A full scan of `docs/development.md` reports six pre-existing temporary-path command examples; those commands are preserved under the scope and documentation rules. The newly added development documentation contains none of those flagged paths.
+- T002 remains partial: 109 image references have command mappings, but only local known-issues and empty-states have fresh smoke runs. Server/follow-up scripts need more ports than this lane's allocation; the integrator must validate each driver and the remaining mappings before treating the index as proven.
+
+Implementation commits:
+
+- 3cc502eb4270781c4e1784ec8e955ddd8e3b47c1 test: preserve reproducible UI review capture tools
+- 59c291240a5dc3305fd29abcf098a649f944a860 docs: map review screenshots to capture commands
+- 453f5e46c93725b4f3c2de524a6f9d242d3671f5 test: reserve lane registration blocks in shared tooling
+- 6a4b28c1795024a47379de2f44bdefcc226a4ef6 data: bundle licensed upstream variable fonts
+- 575327a0a36cfc16cf37bdec556ed66ef9787679 fix: load local font faces and retain explicit fallback stacks
+- 1e6ff01b4610115097814b575569b8183de892a1 test: detect missing font assets licences and fallbacks
+- cb4922d7f8fdba9f0a56ad6f827988fe992641d5 test: verify first-run font loading without external network
+- bab0af949c4554ffcdf4c484135827556b3deefc test: retain the established neutral Git fixture identity
+- 54e1e2b7d7f873668e6a3b8edaf49a6251ce7383 docs: refine state capture commands from the capture inventory
+- e833c6bdf0d4855410a5e612e30ae416d8dc7d1c docs: describe bundled typography licences and replacement
