@@ -247,7 +247,7 @@
 .graph-layout-controls {
   display: contents;
 }
-.full-graph .zoom-to-group select {
+.full-graph .option-group .zoom-to-group select {
   width: auto;
   max-width: min(360px, 80vw);
 }

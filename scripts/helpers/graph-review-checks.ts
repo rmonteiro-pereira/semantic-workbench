@@ -10,6 +10,16 @@ async function checkLayoutControls(page: Page) {
   const graph = (await page.locator('.full-graph').boundingBox())!;
   expect(panel.x).toBeGreaterThanOrEqual(graph.x);
   expect(panel.x + panel.width).toBeLessThanOrEqual(graph.x + graph.width);
+  const groupNameFits = await page.getByRole('combobox', { name: 'Zoom to group' }).evaluate(select => {
+    const element = select as HTMLSelectElement;
+    const style = getComputedStyle(element);
+    const context = document.createElement('canvas').getContext('2d')!;
+    context.font = style.font;
+    const nameWidth = context.measureText(element.selectedOptions[0].text).width;
+    const padding = Number.parseFloat(style.paddingLeft) + Number.parseFloat(style.paddingRight);
+    return element.getBoundingClientRect().width >= nameWidth + padding + 16;
+  });
+  expect(groupNameFits).toBe(true);
   await page.evaluate(() => {
     const original = Worker.prototype.postMessage;
     (window as any).restoreGraphWorker = () => {
