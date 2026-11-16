@@ -149,6 +149,39 @@
         "increment": "local-edit"
       }
     },
+    "POST /api/clone": {
+      "id": "repositories.clone",
+      "service": "projects/clone",
+      "action": "clone",
+      "targets": "workspace",
+      "handlerChecks": [
+        "creationDomain",
+        "remoteAddress"
+      ],
+      "input": {
+        "query": [],
+        "body": [
+          "url",
+          "name",
+          "domain",
+          "folder",
+          "createFolder"
+        ]
+      },
+      "limits": {
+        "request": "PROJECT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "network"
+      },
+      "effects": [
+        "administration",
+        "remote"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "workspace-scm"
+      }
+    },
     "POST /api/documents": {
       "id": "documents.save",
       "service": "projects/workspace",
@@ -334,6 +367,33 @@
       },
       "limits": {
         "request": "FILE_SAVE_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "localWrite"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "POST /api/projects/:slug/gitignore": {
+      "id": "projects.gitignore.run",
+      "service": "projects/scm",
+      "action": "edit",
+      "targets": "project",
+      "handlerChecks": [
+        "authorizeWrite"
+      ],
+      "input": {
+        "query": [],
+        "body": [
+          "pattern"
+        ]
+      },
+      "limits": {
+        "request": "GIT_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
@@ -746,6 +806,769 @@
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
+      }
+    },
+    "GET /api/git/credential-helper": {
+      "id": "git.credential.helper",
+      "service": "projects/scm",
+      "action": "setIdentity",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": [
+        "credential"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "GET /api/projects/:slug/git/status": {
+      "id": "git.status",
+      "service": "projects/scm",
+      "action": "history",
+      "targets": "project",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "GET /api/projects/:slug/git/diff": {
+      "id": "git.diff",
+      "service": "projects/scm",
+      "action": "history",
+      "targets": "project",
+      "handlerChecks": [],
+      "input": {
+        "query": [
+          "path",
+          "repoPath",
+          "from",
+          "to"
+        ],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "GET /api/projects/:slug/git/branches": {
+      "id": "git.branches",
+      "service": "projects/scm",
+      "action": "history",
+      "targets": "project",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "GET /api/projects/:slug/git/folder": {
+      "id": "git.folder.read",
+      "service": "projects/scm",
+      "action": "history",
+      "targets": "project",
+      "handlerChecks": [],
+      "input": {
+        "query": [
+          "folder"
+        ],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "GET /api/projects/:slug/git/log": {
+      "id": "git.log",
+      "service": "projects/scm",
+      "action": "history",
+      "targets": "project",
+      "handlerChecks": [],
+      "input": {
+        "query": [
+          "path",
+          "limit"
+        ],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "GET /api/projects/:slug/git/versions": {
+      "id": "git.versions",
+      "service": "projects/scm",
+      "action": "history",
+      "targets": "project",
+      "handlerChecks": [],
+      "input": {
+        "query": [
+          "path",
+          "limit"
+        ],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "GET /api/projects/:slug/git/show": {
+      "id": "git.show",
+      "service": "projects/scm",
+      "action": "history",
+      "targets": "project",
+      "handlerChecks": [],
+      "input": {
+        "query": [
+          "path",
+          "commit"
+        ],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "GET /api/projects/:slug/git/identity": {
+      "id": "git.identity.read",
+      "service": "projects/scm",
+      "action": "setIdentity",
+      "targets": "project",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": [
+        "credential"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "PUT /api/projects/:slug/git/identity": {
+      "id": "git.identity.set",
+      "service": "projects/scm",
+      "action": "setIdentity",
+      "targets": "project",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": [
+          "name",
+          "email",
+          "allRepositories"
+        ]
+      },
+      "limits": {
+        "request": "GIT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": [
+        "credential"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "POST /api/projects/:slug/git/stage": {
+      "id": "git.stage",
+      "service": "projects/scm",
+      "action": "stage",
+      "targets": "project",
+      "handlerChecks": [
+        "authorizeGitPaths"
+      ],
+      "input": {
+        "query": [],
+        "body": [
+          "paths",
+          "repoPaths",
+          "all"
+        ]
+      },
+      "limits": {
+        "request": "GIT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": [
+        "localWrite"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "POST /api/projects/:slug/git/unstage": {
+      "id": "git.unstage",
+      "service": "projects/scm",
+      "action": "stage",
+      "targets": "project",
+      "handlerChecks": [
+        "authorizeGitPaths"
+      ],
+      "input": {
+        "query": [],
+        "body": [
+          "paths",
+          "repoPaths",
+          "all"
+        ]
+      },
+      "limits": {
+        "request": "GIT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": [
+        "localWrite"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "POST /api/projects/:slug/git/commit": {
+      "id": "git.commit",
+      "service": "projects/scm",
+      "action": "commit",
+      "targets": "project",
+      "handlerChecks": [
+        "authorizeGitPaths",
+        "authorizeGitPush"
+      ],
+      "input": {
+        "query": [],
+        "body": [
+          "message",
+          "paths",
+          "repoPaths",
+          "push"
+        ]
+      },
+      "limits": {
+        "request": "GIT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": [
+        "commit"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "POST /api/projects/:slug/git/revert": {
+      "id": "git.revert",
+      "service": "projects/scm",
+      "action": "revert",
+      "targets": "project",
+      "handlerChecks": [
+        "authorizeWrite"
+      ],
+      "input": {
+        "query": [],
+        "body": [
+          "path",
+          "baseHash"
+        ]
+      },
+      "limits": {
+        "request": "GIT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": [
+        "localWrite"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "POST /api/projects/:slug/git/switch": {
+      "id": "git.switch",
+      "service": "projects/scm",
+      "action": "branch",
+      "targets": "project",
+      "handlerChecks": [
+        "authorizeRepository",
+        "authorizeCheckout"
+      ],
+      "input": {
+        "query": [],
+        "body": [
+          "branch",
+          "create"
+        ]
+      },
+      "limits": {
+        "request": "GIT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": [
+        "localWrite"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "POST /api/projects/:slug/git/fetch": {
+      "id": "git.fetch",
+      "service": "projects/scm",
+      "action": "fetch",
+      "targets": "project",
+      "handlerChecks": [
+        "authorizeRepository"
+      ],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "GIT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "network"
+      },
+      "effects": [
+        "localWrite",
+        "remote"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "workspace-scm"
+      }
+    },
+    "POST /api/projects/:slug/git/pull": {
+      "id": "git.pull",
+      "service": "projects/scm",
+      "action": "pull",
+      "targets": "project",
+      "handlerChecks": [
+        "authorizeRepository"
+      ],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "GIT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "network"
+      },
+      "effects": [
+        "localWrite",
+        "remote"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "workspace-scm"
+      }
+    },
+    "POST /api/projects/:slug/git/sync": {
+      "id": "git.sync",
+      "service": "projects/scm",
+      "action": "pull",
+      "targets": "project",
+      "handlerChecks": [
+        "authorizeRepository",
+        "authorizeGitPush"
+      ],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "GIT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "network"
+      },
+      "effects": [
+        "localWrite",
+        "remote"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "workspace-scm"
+      }
+    },
+    "POST /api/projects/:slug/git/push": {
+      "id": "git.push",
+      "service": "projects/scm",
+      "action": "push",
+      "targets": "project",
+      "handlerChecks": [
+        "authorizeGitPush"
+      ],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "GIT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "network"
+      },
+      "effects": [
+        "localWrite",
+        "remote"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "workspace-scm"
+      }
+    },
+    "POST /api/projects/:slug/git/cancel": {
+      "id": "git.cancel",
+      "service": "projects/scm",
+      "action": "cancelOwn",
+      "targets": "project",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "GIT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": [
+        "localWrite"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "POST /api/projects/:slug/git/publish": {
+      "id": "git.publish",
+      "service": "projects/scm",
+      "action": "publish",
+      "targets": "project",
+      "handlerChecks": [
+        "authorizePublish"
+      ],
+      "input": {
+        "query": [],
+        "body": [
+          "branch"
+        ]
+      },
+      "limits": {
+        "request": "GIT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": [
+        "publish"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "workspace-scm"
+      }
+    },
+    "POST /api/projects/:slug/git/pull-default": {
+      "id": "git.pull.default",
+      "service": "projects/scm",
+      "action": "pull",
+      "targets": "project",
+      "handlerChecks": [
+        "authorizeRepository"
+      ],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "GIT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": [
+        "localWrite",
+        "remote"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "workspace-scm"
+      }
+    },
+    "POST /api/projects/:slug/git/push-default": {
+      "id": "git.push.default",
+      "service": "projects/scm",
+      "action": "publish",
+      "targets": "project",
+      "handlerChecks": [
+        "authorizePublish"
+      ],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "GIT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "network"
+      },
+      "effects": [
+        "publish",
+        "remote"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "workspace-scm"
+      }
+    },
+    "PUT /api/projects/:slug/git/remote": {
+      "id": "git.remote.set",
+      "service": "projects/scm",
+      "action": "setRemote",
+      "targets": "project",
+      "handlerChecks": [
+        "authorizeRepository",
+        "remoteAddress"
+      ],
+      "input": {
+        "query": [],
+        "body": [
+          "name",
+          "url"
+        ]
+      },
+      "limits": {
+        "request": "GIT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": [
+        "administration"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "workspace-scm"
+      }
+    },
+    "DELETE /api/projects/:slug/git/remote": {
+      "id": "git.remote.delete",
+      "service": "projects/scm",
+      "action": "setRemote",
+      "targets": "project",
+      "handlerChecks": [
+        "authorizeRepository",
+        "remoteAddress"
+      ],
+      "input": {
+        "query": [],
+        "body": [
+          "name",
+          "url"
+        ]
+      },
+      "limits": {
+        "request": "GIT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": [
+        "administration"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "workspace-scm"
+      }
+    },
+    "PUT /api/projects/:slug/git/folder": {
+      "id": "git.folder.set",
+      "service": "projects/scm",
+      "action": "setRemote",
+      "targets": "project",
+      "handlerChecks": [
+        "authorizeRepository"
+      ],
+      "input": {
+        "query": [],
+        "body": [
+          "folder"
+        ]
+      },
+      "limits": {
+        "request": "GIT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": [
+        "administration"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "workspace-scm"
+      }
+    },
+    "POST /api/clone/:operation/cancel": {
+      "id": "clone.cancel.run",
+      "service": "projects/clone",
+      "action": "clone",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "localWrite"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "GET /api/repos/:repo/project-candidates": {
+      "id": "repos.project.candidates.read",
+      "service": "projects/repositories",
+      "action": "registerProjects",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": [
+        "administration"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "workspace-scm"
+      }
+    },
+    "PUT /api/repos/:repo/projects": {
+      "id": "repos.projects.set",
+      "service": "projects/repositories",
+      "action": "registerProjects",
+      "targets": "workspace",
+      "handlerChecks": [
+        "remoteAddress"
+      ],
+      "input": {
+        "query": [],
+        "body": [
+          "projects",
+          "saveManifest",
+          "manifestBaseHash"
+        ]
+      },
+      "limits": {
+        "request": "METRIC_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": [
+        "administration"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "workspace-scm"
       }
     },
     "GET /api/agent/projects": {
