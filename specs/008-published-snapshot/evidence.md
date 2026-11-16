@@ -672,3 +672,8 @@ adapter already uses `tmpdir()`. Its expectation now follows that same directory
 isolation check. These are test portability corrections exposed by the required remote execution, not
 changes to production migration or deployment. Focused empty-global trash tests and custom-TMPDIR deployment
 tests passed without a host configuration change.
+
+The worktree mutation baseline contained one equivalent raw commit call. It now receives the same fixture
+environment. `GIT_CONFIG_GLOBAL=/dev/null bun scripts/mutation-case.ts
+"$PWD/src/server/projects/worktrees.ts" copy-worktrees` exited 0 in the focused baseline, with all original
+assertions retained. This prepares that baseline for the host without a configured personal Git identity.
