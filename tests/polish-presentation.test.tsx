@@ -69,4 +69,9 @@ test('catalog search explains no matches and keeps its total', () => {
   const matching = renderToStaticMarkup(<CatalogView {...props} search="Address" />);
   expect(matching).toContain('1 of 1');
   expect(matching).not.toContain('Clear search');
+  const description = 'A complete description '.repeat(12);
+  const describedModel = { ...props.model!, entities: [{ ...props.model!.entities[0], description }] };
+  const described = renderToStaticMarkup(<CatalogView {...props} model={describedModel} search="Address" />);
+  expect(described).toContain('description…</p>');
+  expect(described).toContain(`title="${description}"`);
 });

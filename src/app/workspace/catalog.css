@@ -18,11 +18,6 @@
   background: transparent;
 }
 .catalog-card > button:first-child p {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
-  overflow: hidden;
   margin: 0;
 }
 .catalog .catalog-card .catalog-edit {
@@ -88,4 +83,24 @@
   .toolbar .search {
     min-width: 240px;
   }
+}
+
+.catalog {
+  align-content: start;
+  align-items: start;
+}
+.catalog-card > button:first-child {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 8px;
+}
+.catalog-card small {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.catalog-empty button {
+  padding: 9px 13px;
 }

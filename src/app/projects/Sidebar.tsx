@@ -102,7 +102,7 @@ function FileItem({ project, file, currentId, onOpen, onAction }: { project: Pro
         />
       </div>
       <small className="file-meta">
-        {typeLabel(file.docType)}
+        <span className="file-type-badge">{typeLabel(file.docType)}</span>
         {file.layout === 'embedded (deprecated)' && (
           <span title="Consolidated Ossie file: the ontology embeds its semantic model in ontology_mappings. Apache Ossie deprecates this layout in favour of split files.">
             {' '}

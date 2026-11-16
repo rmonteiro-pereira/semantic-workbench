@@ -124,3 +124,12 @@
 - `bun --bun run check`: TypeScript, formatter, lint, comment, theme and brand checks passed before the lane-A dependent import.
 - Full leak scanner: 0 hits in README, user guide, theme guide and changelog.
 - Safety deviation: two earlier terminology attempts omitted SW_BASE_URL and attempted the harness default 5173. Both were refused (no listener reached); the successful run explicitly used 5251. No service was started on 5173.
+
+### T057 — partial; integration dependency and skipped hover behavior
+
+- Cards top-align their rows and content; descriptions end at a word boundary with an ellipsis, with the complete description in the title. Sidebar types are inline badges and the scrolling tree has an edge fade.
+- Before: review `screenshots/local-light/local-catalog-1440.png`; after: `/tmp/sw-E/final-stock/local-catalog-1440.png`. Both opened: headings and type labels align; descriptions no longer end in a cut word; sidebar types have a badge background. Same UBL file, light theme, 1440×900, four example projects.
+- The stock capture driver ran with only catalog/item-editor selected and the 1440×900 viewport; its state setup and screenshot code are unchanged. `/tmp/sw-E/final-stock/local-item-editor-1440.png` was also opened: source action has standard padding and one native select chevron remains.
+- `test:sidebar`: 4 checks passed; `test:clipping`: 6 checks passed, errors []. Catalog presentation: 17 pass, 0 fail, 31 assertions (including word-boundary truncation through CatalogView).
+- Hover-only Edit is explicitly skipped. Hiding Edit breaks the shared edit-tour entry point, which locates and clicks Edit before hovering; that driver is outside lane E ownership. The attempted hiding rules were removed. Edit remains accessible and visible.
+- The final catalog edit imports `humanizeIdentifier` from `src/app/graph/EntityName.tsx`, as directed. Verified its export on branch 007-lane-a with git show; it is absent on this branch. No local copy or graph-file edit was made. The inspected catalog image precedes this final dependent import and still shows EntityType. Integrator must merge A before E, then capture the humanized type label and rerun checks. T057 remains unchecked because that proof and hover-only behavior are incomplete.

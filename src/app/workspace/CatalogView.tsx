@@ -2,7 +2,7 @@
 import { Gauge, Pencil } from 'lucide-react';
 import React from 'react';
 import type { Entity } from '../../shared/core/model';
-import { EntityName } from '../graph/EntityName';
+import { EntityName, humanizeIdentifier } from '../graph/EntityName';
 import type { AreaFilter } from '../graph/overview';
 import type { ItemTarget, RdfTarget, ValidatedModel } from './types';
 import './catalog.css';
@@ -23,6 +23,12 @@ type Props = {
 };
 function metricCountLabel(count: number) {
   return count === 1 ? '1 metric' : `${count} metrics`;
+}
+function catalogDescription(description: string | undefined) {
+  if (!description) return 'No description yet';
+  if (description.length <= 160) return description;
+  const boundary = description.lastIndexOf(' ', 160);
+  return boundary > 0 ? `${description.slice(0, boundary)}…` : description;
 }
 /** Renders catalog view. */
 export function CatalogView({ model, search, clearSearch, area, clearArea, selectEntity, kpiBadges, entityTarget, rdfTarget, setEditing, setRdfEditing }: Props) {
@@ -63,7 +69,7 @@ export function CatalogView({ model, search, clearSearch, area, clearArea, selec
           <div className="catalog-card" key={entity.id}>
             <button onClick={() => selectEntity(entity.id)}>
               <small>
-                {entity.kind === 'Metric' ? 'Metric' : entity.kind}
+                {humanizeIdentifier(entity.kind)}
                 {(kpiBadges.get(entity.name)?.length ?? 0) > 0 && (
                   <span className="kpi-badge" title={`Metrics: ${kpiBadges.get(entity.name)!.join(', ')}`}>
                     <Gauge size={10} />
@@ -72,7 +78,7 @@ export function CatalogView({ model, search, clearSearch, area, clearArea, selec
                 )}
               </small>
               <EntityName name={entity.name} />
-              <p title={entity.description || undefined}>{entity.description || 'No description yet'}</p>
+              <p title={entity.description || undefined}>{catalogDescription(entity.description)}</p>
               <span className="catalog-details">View details</span>
             </button>
             {(entityTarget(entity) || rdfTarget(entity)) && (

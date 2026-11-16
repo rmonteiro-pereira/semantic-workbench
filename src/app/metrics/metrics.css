@@ -1038,7 +1038,7 @@
 @media (min-width: 1920px) {
   .metrics-view:not(.has-detail) .metrics-list {
     width: 100%;
-    max-width: var(--content-max);
+    max-width: var(--content-max-width);
     justify-self: center;
   }
   .metrics-filters {
