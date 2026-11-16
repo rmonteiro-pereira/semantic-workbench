@@ -197,7 +197,7 @@ export function findReferences(target: Target, docs: ProjectDoc[]): Reference[] 
           else if (key === 'relationship') {
             const resolved = relationshipTargets.get(JSON.stringify(path));
             if (resolved?.owner === owner && resolved.name === name)
-              add(path, within(src, node, new RegExp(`(${escape(name)})(?=[\'"]?$)`, 'g')), dep(upTo(path, 'referent_mappings') ?? upTo(path, 'children')));
+              add(path, within(src, node, new RegExp(`(${escape(name)})(?=['"]?$)`, 'g')), dep(upTo(path, 'referent_mappings') ?? upTo(path, 'children')));
           }
           break;
         case 'dataset':

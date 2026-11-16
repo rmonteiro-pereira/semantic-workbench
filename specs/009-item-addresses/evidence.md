@@ -565,3 +565,7 @@ Proof: resolution and reconciliation tests — 6 pass, 0 fail, 33 assertions; Ty
 An actual HTTP save with a declared rename, workspace resolution and reader-filtered history read run with debug logging and in-memory OpenTelemetry exporters. The test requires nonempty request logs, spans and metric batches, then checks all captured labels/attributes and lines for canonical prefixes, project slug, document path and item names. Audit records remain the existing separate security ledger.
 
 Proof: address-redaction test — 1 pass, 0 fail, 12 assertions; TypeScript passes.
+
+### Adoption lint cleanup
+
+The real mutation gate's formatting/lint baseline found an unused governance type import and an unnecessary quote escape in the adopted reference rewrite. Both are removed without behavior changes. Lint passes; targeted edit/acknowledgement tests pass (6 tests, 16 assertions). The first full mutation attempt then stopped at two stale existing anchors (lineage foreign-key construction and batch-save options); these are being updated to the composed entry points, rather than bypassed.
