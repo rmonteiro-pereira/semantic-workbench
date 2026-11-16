@@ -250,7 +250,7 @@ changes.
 - [x] T043 [P] Update `ARCHITECTURE.md`: code-map rows for the new shared modules and the store, a
   line in "Where to change a behavior" (adding an item kind), and the invariant that no code builds
   an address by concatenation. Proof: docs-sync check. (SC-012)
-- [ ] T044 Retire the private key builders (`conceptId`, `datasetId`, `metricId`, `fieldId`,
+- [x] T044 Retire the private key builders (`conceptId`, `datasetId`, `metricId`, `fieldId`,
   context label builders) and add a lint-style test that fails when a template string builds one of
   the old key shapes outside the adapters. Proof: `tests/item-address-no-private-keys.test.ts`;
   `bun --bun run check`. (FR-038)

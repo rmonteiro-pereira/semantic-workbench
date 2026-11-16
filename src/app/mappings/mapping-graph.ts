@@ -76,14 +76,6 @@ export type MappingGraph = Omit<LineageGraph, 'cards' | 'edges'> & {
 function namedId(scope: Address, kind: ItemKind, name: string): string {
   return formatAddress({ ...scope, chain: [...scope.chain, { kind, name }] });
 }
-/** Builds a graph identifier for an ontology concept. */
-export const conceptId = (scope: Address, name: string) => namedId(scope, 'concept', name);
-/** Builds a graph identifier for a semantic dataset. */
-export const datasetId = (scope: Address, name: string) => namedId(scope, 'dataset', name);
-/** Builds a graph identifier for a semantic metric. */
-export const metricId = (scope: Address, name: string) => namedId(scope, 'metric', name);
-/** Builds a graph identifier for a dataset field. */
-export const fieldId = (scope: Address, dataset: string, field: string) => formatAddress({ ...scope, chain: [...scope.chain, { kind: 'dataset', name: dataset }, { kind: 'field', name: field }] });
 const ansi = (x: any) => {
   const ds = x?.expression?.dialects ?? [];
   return (ds.find((d: any) => d.dialect === 'ANSI_SQL') ?? ds[0])?.expression;
@@ -98,19 +90,20 @@ export function buildMappingGraph(context: MappingContext, revision = ''): Mappi
   const conceptKey = (name: string) => {
     if (context.concepts.find(concept => concept.concept === name)?.builtin === true) return legacyMappingCardKey('concept', name);
     if (!context.ontology.address) return `unresolved-concept:${encodeURIComponent(name)}`;
-    return conceptId(context.ontology.address, name);
+    return namedId(context.ontology.address, 'concept', name);
   };
   const datasetKey = (name: string) => {
     if (!context.semanticModel.address) return `unresolved-dataset:${encodeURIComponent(name)}`;
-    return datasetId(context.semanticModel.address, name);
+    return namedId(context.semanticModel.address, 'dataset', name);
   };
   const metricKey = (name: string) => {
     if (!context.semanticModel.address) return `unresolved-metric:${encodeURIComponent(name)}`;
-    return metricId(context.semanticModel.address, name);
+    return namedId(context.semanticModel.address, 'metric', name);
   };
   const fieldKey = (dataset: string, field: string) => {
     if (!context.semanticModel.address) return `unresolved-field:${JSON.stringify([dataset, field])}`;
-    return fieldId(context.semanticModel.address, dataset, field);
+    const scope = context.semanticModel.address;
+    return formatAddress({ ...scope, chain: [...scope.chain, { kind: 'dataset', name: dataset }, { kind: 'field', name: field }] });
   };
   const relationshipKey = (concept: string, path: string) => {
     const definition = context.concepts.find(candidate => candidate.concept === concept);
