@@ -671,7 +671,10 @@ try {
     await expect(selectedLine).toHaveAttribute('data-on-path', 'true');
     const selectedPath = page.getByRole('region', { name: 'Selected path' });
     await expect(selectedPath).toBeVisible();
-    const columnLabel = (id: string) => id.slice(id.indexOf('#') + 1).replace('/', '.');
+    const columnLabel = (id: string) => {
+      const label = lineageDisplayKey(id);
+      return label.slice(label.indexOf('#') + 1).replace('/', '.');
+    };
     await expect(selectedPath).toContainText(columnLabel(fkFrom!));
     await expect(selectedPath).toContainText(columnLabel(fkTo!));
     await selectedPath.getByRole('button', { name: 'Clear the selected path' }).click();

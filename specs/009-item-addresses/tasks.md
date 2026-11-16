@@ -120,7 +120,7 @@ changes.
   React key. Proof: `scripts/item-address-browser-check.ts` (new, `test:addresses`) selects a node
   by address, reloads, and shows the same card; existing `test:graph`, `test:lineage`, `test:ui`
   pass. (FR-038, FR-039)
-- [ ] T020 [US4] Regression gate for steps 3: run the `ui-regression-gate` comparison of the whole
+- [x] T020 [US4] Regression gate for steps 3: run the `ui-regression-gate` comparison of the whole
   journey against the last good release, delegated to Codex, covering every graph state stage
   (overview, neighbourhood, full graph, lineage, mapping). Proof: the capture folder and a
   findings file with every difference classified; every unrequested change fixed or reverted. (FR-039;

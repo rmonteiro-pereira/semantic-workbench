@@ -477,3 +477,9 @@ Metric dimension, time and filter references are read through the compatibility 
 Independent pointer, usage-counter and diff examples exercise only public operations and conformance fixtures: 3 pass, 0 fail, 35 assertions. External edits remain remove/add until a reconciliation record is supplied; a resolving original remains unchanged.
 
 The legacy-wrapper IRI regression assertion now expects its context field's canonical locator; its scope, evidence path and resolution assertions are unchanged. Proof: `bun test tests/iri.test.ts` — 4 pass, 0 fail, 36 assertions.
+
+### Consumer visual regression comparison
+
+The delegated comparison is recorded in `/tmp/sw-009/ui-comparison/findings.md`, with captures under `main/`, `current/` and `main-repeat/`, mechanical results in `comparison.json`, and highlighted differences under `differences/`. Approved base: 655df094b1783aa9fc40570cb3d40d51949da481. Both primary runs: 20 captures each, zero geometry problems and zero browser page errors. Six repeat-main captures establish the unchanged randomized network layout and animated zoom variation. Overview, initial/expanded neighborhood and mapping are unchanged; lineage differs only by subpixel arithmetic and a temporary fixture commit hash in dataset metadata. No unrequested visible changes remain. The final build still requires a fresh comparison.
+
+The complete lineage retry passed the opened-column alignment assertions after header classification was corrected, then reached a second assertion that derived a visible label by splitting the old key. It now translates the key through the existing test-only display adapter before asserting the same displayed label. Product labels were already correct.
