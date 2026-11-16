@@ -12,6 +12,7 @@ import type { Workspace } from '../../src/server/projects/workspace';
 import { LOCAL_READER } from '../../src/server/projects/reader';
 import { projectFile } from '../../src/server/projects/paths';
 import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
+import { sh } from '../helpers/scm';
 
 const origin = 'http://127.0.0.1:4310';
 function request(path: string, method = 'POST', body: unknown = {}) {
@@ -162,10 +163,9 @@ test('deletion records its principal; only a Steward can restore other or legacy
   const { entryId } = await response.json();
   expect(fixture.ws.trash.entry(entryId).deletedBy).toBe(person('alice').id);
   expect((await editor(request('/api/trash/' + entryId + '/undo'))).status).toBe(200);
-  // Local mode left both deletions committed on the default branch. A restore in server mode goes
-  // into the person's copy, which starts from that branch without the files.
+  // Legacy deletions are committed on the default branch so a new personal copy starts without them.
   const published = join(fixture.ws.layout.projects, 'sales-contracts');
-  const git = (...args: string[]) => Bun.spawnSync(['git', ...args], { cwd: published, env: { ...process.env } });
+  const git = (...args: string[]) => sh(published, args);
   const legacy = [
     [undefined, 'orders.odcs.yaml'],
     [person('bob').id, 'people.mapping.yaml'],

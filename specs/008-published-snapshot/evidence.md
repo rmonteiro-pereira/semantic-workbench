@@ -677,3 +677,10 @@ The worktree mutation baseline contained one equivalent raw commit call. It now 
 environment. `GIT_CONFIG_GLOBAL=/dev/null bun scripts/mutation-case.ts
 "$PWD/src/server/projects/worktrees.ts" copy-worktrees` exited 0 in the focused baseline, with all original
 assertions retained. This prepares that baseline for the host without a configured personal Git identity.
+
+The first remote `bun test` completed with 2163 pass, 24 fail, 134542 assertions, 304 files, 1245.42 s.
+Twenty-one failures traced to the startup-environment Git identity dependency, one to the hard-coded
+temporary-directory expectation and two to the five-second default execution deadline. A final restore
+fixture had silently ignored failed raw Git commits; it now reuses the existing checked `sh` fixture edge.
+Its empty-startup-global focused case passes. The complete rerun uses `bun test --timeout 30000` under the
+same remote caps. No assertion, explicit test deadline or production behavior is relaxed.
