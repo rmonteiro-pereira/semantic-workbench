@@ -599,6 +599,7 @@ export function LineageCanvas({
         toolbarExtra={toolbarExtra}
       />
       <LineageSubbar
+        context={center !== initial ? `Lineage around ${centreName} (opened from ${graph.cards.get(initial)?.label ?? initial})` : undefined}
         viewportControls={
           <LineageViewportControls fullscreen={fullscreen} onZoomIn={() => void flow.current?.zoomIn({ duration: 150 })} onZoomOut={() => void flow.current?.zoomOut({ duration: 150 })} />
         }
@@ -652,6 +653,11 @@ export function LineageCanvas({
             <MeasurementWatchdog />
             {farZoom.watcher}
           </ReactFlow>
+          {!busy && lines.length === 0 && (
+            <p className="lineage-empty" role="status">
+              No linked assets for {centreName}.
+            </p>
+          )}
           {busy && !nodes.length && (
             <p className="lineage-busy" role="status">
               Laying out the lineage…
@@ -671,7 +677,7 @@ export function LineageCanvas({
         )}
       </div>
       <div className="lineage-foot">
-        <LineageLegend kinds={legendKinds} lines={legendLines} keys={!mapping} bundles={lines.some(line => line.count > 1)} />
+        <LineageLegend kinds={legendKinds} lines={legendLines} keys={!mapping} tint={!!groupOf} bundles={lines.some(line => line.count > 1)} />
         {mapping ? (
           <small className="lineage-reading">
             Saved mapping · {reach.cards.size} reachable assets · {graph.cards.size} total assets

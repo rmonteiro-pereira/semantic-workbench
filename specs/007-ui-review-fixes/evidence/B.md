@@ -55,3 +55,7 @@ Hops uses a non-wrapping row, with only the path text growing/shrinking. Zoom an
 ## T031 — implementation and capture
 
 The existing 1400 px content measure now includes `.odcs-lineage-host`; no second page-width rule was added. Opened `out/lane-b/t031/local-odcs-dataset--lineage-2560.png`: header and canvas align at both edges. The task's `rest`/`SW_ONLY=odcs` command emits `local-odcs-dataset--lineage`, rather than its stated `local-dataset-lineage--first-view` basename; both open Mall/properties on Lineage. The latter baseline is the graph-state sequence and needs a separate recapture for an exact stage pair. Browser width assertion was added to test:odcs at 2560 and restores the previous viewport afterwards.
+
+## T032 — implementation
+
+Walk trail names the current and original centre after a walk. CENTER now sits beside the name, independently of the kind line hidden at far zoom. The legend explains grouping tint and collapses behind a Legend disclosure on narrow screens; expanded content retains keys and line kinds. Empty reaches show one explanatory line and disable hop buttons. `out/lane-b/t032/local-contract-lineage--no-links-390.png` opened: disabled Hops, visible CENTER, one message and the collapsed Legend are present. The underlying fixed header/port geometry is retained; removing its unused band would require relayout on zoom and is not included.

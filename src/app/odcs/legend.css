@@ -54,3 +54,17 @@
   font-size: var(--text-small);
   line-height: 1;
 }
+
+.lineage-legend-disclosure > summary {
+  display: none;
+}
+@media (max-width: 650px) {
+  .lineage-legend-disclosure > summary {
+    display: list-item;
+    cursor: pointer;
+    font-size: var(--text-small);
+  }
+  .lineage-legend-disclosure .lineage-legend {
+    margin-top: 6px;
+  }
+}

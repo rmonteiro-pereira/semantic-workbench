@@ -94,9 +94,11 @@ export const LineageCardNode = memo(({ data }: NodeProps) => {
           <span className="lineage-card-kind">
             <KindIcon kind={legendKind} />
             {kindLabel}
-            {cardData.center && <em>center</em>}
           </span>
-          <strong>{lineageCard.label}</strong>
+          <span className="lineage-card-name">
+            <strong>{lineageCard.label}</strong>
+            {cardData.center && <em className="lineage-center-badge">center</em>}
+          </span>
           {lineageCard.detail && <small>{lineageCard.detail}</small>}
           {lineageCard.badges?.length ? <PropertyBadges badges={lineageCard.badges} /> : null}
         </button>

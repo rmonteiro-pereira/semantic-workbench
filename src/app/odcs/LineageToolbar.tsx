@@ -188,6 +188,7 @@ export function LineageToolbar(props: ToolbarProps) {
 }
 
 type TrailProps = {
+  context?: string;
   viewportControls: ReactNode;
   foreignKeys: ForeignKeyPath | null;
   steps: number;
@@ -200,7 +201,7 @@ type TrailProps = {
   onOpenPath: () => void;
 };
 
-export function LineageSubbar({ viewportControls, foreignKeys, steps, onHops, actionHistory, walk, dispatch, showPathToggle, pathCount, onOpenPath }: TrailProps) {
+export function LineageSubbar({ context, viewportControls, foreignKeys, steps, onHops, actionHistory, walk, dispatch, showPathToggle, pathCount, onOpenPath }: TrailProps) {
   return (
     <div className="lineage-subbar">
       {foreignKeys && <ForeignKeyHops path={foreignKeys} hops={steps} onHops={onHops} />}
@@ -211,6 +212,11 @@ export function LineageSubbar({ viewportControls, foreignKeys, steps, onHops, ac
         <button aria-label="Forward" disabled={!actionHistory.canForward} onClick={actionHistory.forward}>
           <ArrowRight size={13} />
         </button>
+        {context && (
+          <span className="lineage-context" title={context}>
+            {context}
+          </span>
+        )}
         <ol>
           {walk.steps.map((step, i) => (
             <li key={i}>

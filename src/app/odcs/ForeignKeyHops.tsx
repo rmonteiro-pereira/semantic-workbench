@@ -28,6 +28,7 @@ export function ForeignKeyHops({ path, hops, onHops }: Props) {
       <div className="lineage-hops-steps" role="group" aria-label="How far to follow foreign keys">
         {Array.from({ length: MAX_HOPS }, (_, i) => i + 1).map(hopCount => (
           <button
+            disabled={path.steps.length === 0}
             key={hopCount}
             aria-label={hopsWord(hopCount)}
             aria-pressed={hops === hopCount}

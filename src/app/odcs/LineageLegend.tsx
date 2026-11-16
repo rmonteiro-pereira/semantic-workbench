@@ -1,5 +1,6 @@
 /** Shares asset icons and line-style labels between lineage and mapping canvases. */
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useNarrowScreen } from '../workspace/hooks/useNarrowScreen';
 import { Boxes, Columns3, Database, Gauge, Table2, Link2 } from 'lucide-react';
 import { Badge, badge } from '../components/PropertyBadges';
 import { LEGEND_LINES, type LegendLine } from '../graph/edge-styles';
@@ -40,6 +41,7 @@ export function LineageLegend({
   lines = ['foreign-key', 'feeds'],
   keys = false,
   bundles = false,
+  tint = false,
   className = '',
 }: {
   kinds?: LegendKind[];
@@ -48,45 +50,53 @@ export function LineageLegend({
   keys?: boolean;
   /** Explains the number on a line that stands for several lines. */
   bundles?: boolean;
+  tint?: boolean;
   className?: string;
 }) {
+  const narrow = useNarrowScreen();
+  const [open, setOpen] = useState(!narrow);
+  useEffect(() => setOpen(!narrow), [narrow]);
   return (
-    <ul className={`lineage-legend ${className}`.trim()} aria-label="Legend">
-      {kinds.map(kind => (
-        <li key={kind} className={`k-${kind}`}>
-          <KindIcon kind={kind} />
-          {KIND_LABEL[kind]}
-        </li>
-      ))}
-      {keys && (
-        <>
+    <details className="lineage-legend-disclosure" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
+      <summary>Legend</summary>
+      <ul className={`lineage-legend ${className}`.trim()} aria-label="Legend">
+        {kinds.map(kind => (
+          <li key={kind} className={`k-${kind}`}>
+            <KindIcon kind={kind} />
+            {KIND_LABEL[kind]}
+          </li>
+        ))}
+        {tint && <li>Card tint: application grouping</li>}
+        {keys && (
+          <>
+            <li className="key">
+              <Badge kind="pk" title={badge('pk').title} />
+              Primary key
+            </li>
+            <li className="key">
+              <Badge kind="fk" title="Foreign key to another table" />
+              Points to another table
+            </li>
+          </>
+        )}
+        {bundles && (
           <li className="key">
-            <Badge kind="pk" title={badge('pk').title} />
-            Primary key
+            <span className="legend-count">5</span>
+            Several links in one line
           </li>
-          <li className="key">
-            <Badge kind="fk" title="Foreign key to another table" />
-            Points to another table
-          </li>
-        </>
-      )}
-      {bundles && (
-        <li className="key">
-          <span className="legend-count">5</span>
-          Several links in one line
-        </li>
-      )}
-      {lines.map(legendLine => {
-        const lineStyle = LEGEND_LINES[legendLine];
-        return (
-          <li key={legendLine} className={`line l-${legendLine}`}>
-            <svg width="18" height="6" aria-hidden="true">
-              <line x1="0" y1="3" x2="18" y2="3" stroke={lineStyle.stroke} strokeWidth="2" strokeDasharray={lineStyle.dash} />
-            </svg>
-            {lineStyle.label}
-          </li>
-        );
-      })}
-    </ul>
+        )}
+        {lines.map(legendLine => {
+          const lineStyle = LEGEND_LINES[legendLine];
+          return (
+            <li key={legendLine} className={`line l-${legendLine}`}>
+              <svg width="18" height="6" aria-hidden="true">
+                <line x1="0" y1="3" x2="18" y2="3" stroke={lineStyle.stroke} strokeWidth="2" strokeDasharray={lineStyle.dash} />
+              </svg>
+              {lineStyle.label}
+            </li>
+          );
+        })}
+      </ul>
+    </details>
   );
 }
