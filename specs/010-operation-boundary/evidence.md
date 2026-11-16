@@ -305,3 +305,5 @@ the future transport's listing budget; it is a reported performance finding, not
 Body-targeted routes keep the existing project-level pass; file-target listing probes reuse the
 dry-run samples. This preserves HTTP behavior instead of broadening body-route admission for
 roles that can edit only a path but cannot pass that route's project gate.
+
+Browser capability review: SHACL already uses the shared validator, but its invocation is browser-only (also documented in docs/agent-runtime.md). Editor diagnostics and graph layout are presentation concerns. Lineage asset search and path traversal have no reviewed HTTP operations. Each inventory capability names its implementation source; none claims protocol availability.

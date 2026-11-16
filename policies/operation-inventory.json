@@ -15,9 +15,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": {
         "no": "browser-only"
       },
@@ -41,9 +39,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": {
         "no": "public"
       },
@@ -67,9 +63,7 @@
         "response": "stream",
         "work": "light"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": {
         "no": "stream"
       },
@@ -86,18 +80,14 @@
       "handlerChecks": [],
       "input": {
         "query": [],
-        "body": [
-          "reports"
-        ]
+        "body": ["reports"]
       },
       "limits": {
         "request": "BROWSER_REPORT_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "localWrite"
-      ],
+      "effects": ["localWrite"],
       "dispatch": {
         "no": "browser-only"
       },
@@ -121,9 +111,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -144,9 +132,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -167,9 +153,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -190,9 +174,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -213,9 +195,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -226,24 +206,17 @@
       "service": "projects/workspace",
       "action": "createProject",
       "targets": "workspace",
-      "handlerChecks": [
-        "creationDomain"
-      ],
+      "handlerChecks": ["creationDomain"],
       "input": {
         "query": [],
-        "body": [
-          "name",
-          "domain"
-        ]
+        "body": ["name", "domain"]
       },
       "limits": {
         "request": "PROJECT_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "localWrite"
-      ],
+      "effects": ["localWrite"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -254,25 +227,17 @@
       "service": "projects/workspace",
       "action": "createProject",
       "targets": "workspace",
-      "handlerChecks": [
-        "creationDomain"
-      ],
+      "handlerChecks": ["creationDomain"],
       "input": {
         "query": [],
-        "body": [
-          "name",
-          "domain",
-          "files"
-        ]
+        "body": ["name", "domain", "files"]
       },
       "limits": {
         "request": "IMPORT_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "localWrite"
-      ],
+      "effects": ["localWrite"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -287,18 +252,14 @@
       "handlerChecks": [],
       "input": {
         "query": [],
-        "body": [
-          "confirm"
-        ]
+        "body": ["confirm"]
       },
       "limits": {
         "request": "TRASH_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "destroy"
-      ],
+      "effects": ["destroy"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -309,29 +270,17 @@
       "service": "projects/clone",
       "action": "clone",
       "targets": "workspace",
-      "handlerChecks": [
-        "creationDomain",
-        "remoteAddress"
-      ],
+      "handlerChecks": ["creationDomain", "remoteAddress"],
       "input": {
         "query": [],
-        "body": [
-          "url",
-          "name",
-          "domain",
-          "folder",
-          "createFolder"
-        ]
+        "body": ["url", "name", "domain", "folder", "createFolder"]
       },
       "limits": {
         "request": "PROJECT_REQUEST_LIMIT",
         "response": "bounded",
         "work": "network"
       },
-      "effects": [
-        "administration",
-        "remote"
-      ],
+      "effects": ["administration", "remote"],
       "dispatch": "twin",
       "exposure": {
         "increment": "workspace-scm"
@@ -343,28 +292,17 @@
       "service": "projects/workspace",
       "action": "edit",
       "targets": "body",
-      "handlerChecks": [
-        "authorizeWrite",
-        "bodyTargets"
-      ],
+      "handlerChecks": ["authorizeWrite", "bodyTargets"],
       "input": {
         "query": [],
-        "body": [
-          "filename",
-          "source",
-          "id",
-          "baseHash",
-          "revision"
-        ]
+        "body": ["filename", "source", "id", "baseHash", "revision"]
       },
       "limits": {
         "request": "FILE_SAVE_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "localWrite"
-      ],
+      "effects": ["localWrite"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -375,23 +313,17 @@
       "service": "projects/workspace",
       "action": "createProject",
       "targets": "workspace",
-      "handlerChecks": [
-        "creationDomain"
-      ],
+      "handlerChecks": ["creationDomain"],
       "input": {
         "query": [],
-        "body": [
-          "domain"
-        ]
+        "body": ["domain"]
       },
       "limits": {
         "request": "PROJECT_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "localWrite"
-      ],
+      "effects": ["localWrite"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -405,18 +337,14 @@
       "handlerChecks": [],
       "input": {
         "query": [],
-        "body": [
-          "name"
-        ]
+        "body": ["name"]
       },
       "limits": {
         "request": "PROJECT_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "localWrite"
-      ],
+      "effects": ["localWrite"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -430,19 +358,14 @@
       "handlerChecks": [],
       "input": {
         "query": [],
-        "body": [
-          "confirm",
-          "mode"
-        ]
+        "body": ["confirm", "mode"]
       },
       "limits": {
         "request": "TRASH_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "destroy"
-      ],
+      "effects": ["destroy"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -453,26 +376,17 @@
       "service": "projects/workspace",
       "action": "move",
       "targets": "project",
-      "handlerChecks": [
-        "authorizeWrite",
-        "bodyTargets"
-      ],
+      "handlerChecks": ["authorizeWrite", "bodyTargets"],
       "input": {
         "query": [],
-        "body": [
-          "path",
-          "toProject",
-          "toPath"
-        ]
+        "body": ["path", "toProject", "toPath"]
       },
       "limits": {
         "request": "PROJECT_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "localWrite"
-      ],
+      "effects": ["localWrite"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -483,25 +397,17 @@
       "service": "projects/workspace",
       "action": "import",
       "targets": "project",
-      "handlerChecks": [
-        "authorizeWrite",
-        "bodyTargets"
-      ],
+      "handlerChecks": ["authorizeWrite", "bodyTargets"],
       "input": {
         "query": [],
-        "body": [
-          "files",
-          "onConflict"
-        ]
+        "body": ["files", "onConflict"]
       },
       "limits": {
         "request": "IMPORT_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "localWrite"
-      ],
+      "effects": ["localWrite"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -515,9 +421,7 @@
       "targets": "project",
       "handlerChecks": [],
       "input": {
-        "query": [
-          "history"
-        ],
+        "query": ["history"],
         "body": []
       },
       "limits": {
@@ -525,9 +429,7 @@
         "response": "binary",
         "work": "scan"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -538,24 +440,17 @@
       "service": "projects/workspace",
       "action": "edit",
       "targets": "project",
-      "handlerChecks": [
-        "authorizeWrite",
-        "bodyTargets"
-      ],
+      "handlerChecks": ["authorizeWrite", "bodyTargets"],
       "input": {
         "query": [],
-        "body": [
-          "files"
-        ]
+        "body": ["files"]
       },
       "limits": {
         "request": "FILE_SAVE_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "localWrite"
-      ],
+      "effects": ["localWrite"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -567,23 +462,17 @@
       "service": "projects/scm",
       "action": "edit",
       "targets": "project",
-      "handlerChecks": [
-        "authorizeWrite"
-      ],
+      "handlerChecks": ["authorizeWrite"],
       "input": {
         "query": [],
-        "body": [
-          "pattern"
-        ]
+        "body": ["pattern"]
       },
       "limits": {
         "request": "GIT_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "localWrite"
-      ],
+      "effects": ["localWrite"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -604,9 +493,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -619,9 +506,7 @@
       "targets": "project",
       "handlerChecks": [],
       "input": {
-        "query": [
-          "path"
-        ],
+        "query": ["path"],
         "body": []
       },
       "limits": {
@@ -629,9 +514,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -642,30 +525,17 @@
       "service": "projects/workspace",
       "action": "edit",
       "targets": "project",
-      "handlerChecks": [
-        "authorizeWrite",
-        "bodyTargets"
-      ],
+      "handlerChecks": ["authorizeWrite", "bodyTargets"],
       "input": {
         "query": [],
-        "body": [
-          "semanticPath",
-          "existing",
-          "metric",
-          "extension",
-          "binding",
-          "modelPath",
-          "baseHashes"
-        ]
+        "body": ["semanticPath", "existing", "metric", "extension", "binding", "modelPath", "baseHashes"]
       },
       "limits": {
         "request": "METRIC_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "localWrite"
-      ],
+      "effects": ["localWrite"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -687,9 +557,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -703,24 +571,14 @@
       "handlerChecks": [],
       "input": {
         "query": [],
-        "body": [
-          "semanticPath",
-          "existing",
-          "metric",
-          "extension",
-          "binding",
-          "modelPath",
-          "baseHashes"
-        ]
+        "body": ["semanticPath", "existing", "metric", "extension", "binding", "modelPath", "baseHashes"]
       },
       "limits": {
         "request": "METRIC_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "localWrite"
-      ],
+      "effects": ["localWrite"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -731,30 +589,17 @@
       "service": "projects/workspace",
       "action": "edit",
       "targets": "project",
-      "handlerChecks": [
-        "authorizeWrite",
-        "bodyTargets"
-      ],
+      "handlerChecks": ["authorizeWrite", "bodyTargets"],
       "input": {
         "query": [],
-        "body": [
-          "semanticPath",
-          "existing",
-          "metric",
-          "extension",
-          "binding",
-          "modelPath",
-          "baseHashes"
-        ]
+        "body": ["semanticPath", "existing", "metric", "extension", "binding", "modelPath", "baseHashes"]
       },
       "limits": {
         "request": "METRIC_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "localWrite"
-      ],
+      "effects": ["localWrite"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -769,24 +614,14 @@
       "handlerChecks": [],
       "input": {
         "query": [],
-        "body": [
-          "semanticPath",
-          "existing",
-          "metric",
-          "extension",
-          "binding",
-          "modelPath",
-          "baseHashes"
-        ]
+        "body": ["semanticPath", "existing", "metric", "extension", "binding", "modelPath", "baseHashes"]
       },
       "limits": {
         "request": "METRIC_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "localWrite"
-      ],
+      "effects": ["localWrite"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -799,11 +634,7 @@
       "targets": "file",
       "handlerChecks": [],
       "input": {
-        "query": [
-          "dimension",
-          "grain",
-          "rollup"
-        ],
+        "query": ["dimension", "grain", "rollup"],
         "body": []
       },
       "limits": {
@@ -811,9 +642,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -834,9 +663,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -850,20 +677,14 @@
       "handlerChecks": [],
       "input": {
         "query": [],
-        "body": [
-          "baseHash",
-          "source",
-          "patches"
-        ]
+        "body": ["baseHash", "source", "patches"]
       },
       "limits": {
         "request": "FILE_SAVE_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "localWrite"
-      ],
+      "effects": ["localWrite"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -878,18 +699,14 @@
       "handlerChecks": [],
       "input": {
         "query": [],
-        "body": [
-          "confirm"
-        ]
+        "body": ["confirm"]
       },
       "limits": {
         "request": "TRASH_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "localWrite"
-      ],
+      "effects": ["localWrite"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -910,9 +727,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -933,9 +748,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -949,20 +762,14 @@
       "handlerChecks": [],
       "input": {
         "query": [],
-        "body": [
-          "baseHash",
-          "text",
-          "patches"
-        ]
+        "body": ["baseHash", "text", "patches"]
       },
       "limits": {
         "request": "DRAFT_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "localWrite"
-      ],
+      "effects": ["localWrite"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -976,18 +783,14 @@
       "handlerChecks": [],
       "input": {
         "query": [],
-        "body": [
-          "confirm"
-        ]
+        "body": ["confirm"]
       },
       "limits": {
         "request": "TRASH_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "localWrite"
-      ],
+      "effects": ["localWrite"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -1001,18 +804,14 @@
       "handlerChecks": [],
       "input": {
         "query": [],
-        "body": [
-          "confirm"
-        ]
+        "body": ["confirm"]
       },
       "limits": {
         "request": "TRASH_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "destroy"
-      ],
+      "effects": ["destroy"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -1026,18 +825,14 @@
       "handlerChecks": [],
       "input": {
         "query": [],
-        "body": [
-          "confirm"
-        ]
+        "body": ["confirm"]
       },
       "limits": {
         "request": "TRASH_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "destroy"
-      ],
+      "effects": ["destroy"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -1048,26 +843,17 @@
       "service": "projects/trash",
       "action": "restoreOwn",
       "targets": "body",
-      "handlerChecks": [
-        "authorizeWrite",
-        "trashTarget",
-        "creationDomain",
-        "bodyTargets"
-      ],
+      "handlerChecks": ["authorizeWrite", "trashTarget", "creationDomain", "bodyTargets"],
       "input": {
         "query": [],
-        "body": [
-          "domain"
-        ]
+        "body": ["domain"]
       },
       "limits": {
         "request": "TRASH_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "localWrite"
-      ],
+      "effects": ["localWrite"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -1078,29 +864,17 @@
       "service": "projects/trash",
       "action": "restoreOwn",
       "targets": "body",
-      "handlerChecks": [
-        "authorizeWrite",
-        "trashTarget",
-        "creationDomain",
-        "bodyTargets"
-      ],
+      "handlerChecks": ["authorizeWrite", "trashTarget", "creationDomain", "bodyTargets"],
       "input": {
         "query": [],
-        "body": [
-          "toProject",
-          "toPath",
-          "onConflict",
-          "domain"
-        ]
+        "body": ["toProject", "toPath", "onConflict", "domain"]
       },
       "limits": {
         "request": "TRASH_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "localWrite"
-      ],
+      "effects": ["localWrite"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -1111,10 +885,7 @@
       "service": "projects/suggestions",
       "action": "move",
       "targets": "body",
-      "handlerChecks": [
-        "authorizeWrite",
-        "bodyTargets"
-      ],
+      "handlerChecks": ["authorizeWrite", "bodyTargets"],
       "input": {
         "query": [],
         "body": []
@@ -1124,9 +895,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "localWrite"
-      ],
+      "effects": ["localWrite"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -1137,10 +906,7 @@
       "service": "projects/suggestions",
       "action": "edit",
       "targets": "body",
-      "handlerChecks": [
-        "authorizeWrite",
-        "bodyTargets"
-      ],
+      "handlerChecks": ["authorizeWrite", "bodyTargets"],
       "input": {
         "query": [],
         "body": []
@@ -1150,9 +916,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "localWrite"
-      ],
+      "effects": ["localWrite"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -1173,9 +937,7 @@
         "response": "bounded",
         "work": "git"
       },
-      "effects": [
-        "credential"
-      ],
+      "effects": ["credential"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -1196,9 +958,7 @@
         "response": "bounded",
         "work": "git"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -1211,12 +971,7 @@
       "targets": "project",
       "handlerChecks": [],
       "input": {
-        "query": [
-          "path",
-          "repoPath",
-          "from",
-          "to"
-        ],
+        "query": ["path", "repoPath", "from", "to"],
         "body": []
       },
       "limits": {
@@ -1224,9 +979,7 @@
         "response": "bounded",
         "work": "git"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -1247,9 +1000,7 @@
         "response": "bounded",
         "work": "git"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -1262,9 +1013,7 @@
       "targets": "project",
       "handlerChecks": [],
       "input": {
-        "query": [
-          "folder"
-        ],
+        "query": ["folder"],
         "body": []
       },
       "limits": {
@@ -1272,9 +1021,7 @@
         "response": "bounded",
         "work": "git"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -1287,10 +1034,7 @@
       "targets": "project",
       "handlerChecks": [],
       "input": {
-        "query": [
-          "path",
-          "limit"
-        ],
+        "query": ["path", "limit"],
         "body": []
       },
       "limits": {
@@ -1298,9 +1042,7 @@
         "response": "bounded",
         "work": "git"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -1313,10 +1055,7 @@
       "targets": "project",
       "handlerChecks": [],
       "input": {
-        "query": [
-          "path",
-          "limit"
-        ],
+        "query": ["path", "limit"],
         "body": []
       },
       "limits": {
@@ -1324,9 +1063,7 @@
         "response": "bounded",
         "work": "git"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -1339,10 +1076,7 @@
       "targets": "project",
       "handlerChecks": [],
       "input": {
-        "query": [
-          "path",
-          "commit"
-        ],
+        "query": ["path", "commit"],
         "body": []
       },
       "limits": {
@@ -1350,9 +1084,7 @@
         "response": "bounded",
         "work": "git"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -1373,9 +1105,7 @@
         "response": "bounded",
         "work": "git"
       },
-      "effects": [
-        "credential"
-      ],
+      "effects": ["credential"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -1389,20 +1119,14 @@
       "handlerChecks": [],
       "input": {
         "query": [],
-        "body": [
-          "name",
-          "email",
-          "allRepositories"
-        ]
+        "body": ["name", "email", "allRepositories"]
       },
       "limits": {
         "request": "GIT_REQUEST_LIMIT",
         "response": "bounded",
         "work": "git"
       },
-      "effects": [
-        "credential"
-      ],
+      "effects": ["credential"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -1413,25 +1137,17 @@
       "service": "projects/scm",
       "action": "stage",
       "targets": "project",
-      "handlerChecks": [
-        "authorizeGitPaths"
-      ],
+      "handlerChecks": ["authorizeGitPaths"],
       "input": {
         "query": [],
-        "body": [
-          "paths",
-          "repoPaths",
-          "all"
-        ]
+        "body": ["paths", "repoPaths", "all"]
       },
       "limits": {
         "request": "GIT_REQUEST_LIMIT",
         "response": "bounded",
         "work": "git"
       },
-      "effects": [
-        "localWrite"
-      ],
+      "effects": ["localWrite"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -1442,25 +1158,17 @@
       "service": "projects/scm",
       "action": "stage",
       "targets": "project",
-      "handlerChecks": [
-        "authorizeGitPaths"
-      ],
+      "handlerChecks": ["authorizeGitPaths"],
       "input": {
         "query": [],
-        "body": [
-          "paths",
-          "repoPaths",
-          "all"
-        ]
+        "body": ["paths", "repoPaths", "all"]
       },
       "limits": {
         "request": "GIT_REQUEST_LIMIT",
         "response": "bounded",
         "work": "git"
       },
-      "effects": [
-        "localWrite"
-      ],
+      "effects": ["localWrite"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -1471,27 +1179,17 @@
       "service": "projects/scm",
       "action": "commit",
       "targets": "project",
-      "handlerChecks": [
-        "authorizeGitPaths",
-        "authorizeGitPush"
-      ],
+      "handlerChecks": ["authorizeGitPaths", "authorizeGitPush"],
       "input": {
         "query": [],
-        "body": [
-          "message",
-          "paths",
-          "repoPaths",
-          "push"
-        ]
+        "body": ["message", "paths", "repoPaths", "push"]
       },
       "limits": {
         "request": "GIT_REQUEST_LIMIT",
         "response": "bounded",
         "work": "git"
       },
-      "effects": [
-        "commit"
-      ],
+      "effects": ["commit"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -1503,24 +1201,17 @@
       "service": "projects/scm",
       "action": "revert",
       "targets": "project",
-      "handlerChecks": [
-        "authorizeWrite"
-      ],
+      "handlerChecks": ["authorizeWrite"],
       "input": {
         "query": [],
-        "body": [
-          "path",
-          "baseHash"
-        ]
+        "body": ["path", "baseHash"]
       },
       "limits": {
         "request": "GIT_REQUEST_LIMIT",
         "response": "bounded",
         "work": "git"
       },
-      "effects": [
-        "localWrite"
-      ],
+      "effects": ["localWrite"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -1532,25 +1223,17 @@
       "service": "projects/scm",
       "action": "branch",
       "targets": "project",
-      "handlerChecks": [
-        "authorizeRepository",
-        "authorizeCheckout"
-      ],
+      "handlerChecks": ["authorizeRepository", "authorizeCheckout"],
       "input": {
         "query": [],
-        "body": [
-          "branch",
-          "create"
-        ]
+        "body": ["branch", "create"]
       },
       "limits": {
         "request": "GIT_REQUEST_LIMIT",
         "response": "bounded",
         "work": "git"
       },
-      "effects": [
-        "localWrite"
-      ],
+      "effects": ["localWrite"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -1561,9 +1244,7 @@
       "service": "projects/scm",
       "action": "fetch",
       "targets": "project",
-      "handlerChecks": [
-        "authorizeRepository"
-      ],
+      "handlerChecks": ["authorizeRepository"],
       "input": {
         "query": [],
         "body": []
@@ -1573,10 +1254,7 @@
         "response": "bounded",
         "work": "network"
       },
-      "effects": [
-        "localWrite",
-        "remote"
-      ],
+      "effects": ["localWrite", "remote"],
       "dispatch": "twin",
       "exposure": {
         "increment": "workspace-scm"
@@ -1588,9 +1266,7 @@
       "service": "projects/scm",
       "action": "pull",
       "targets": "project",
-      "handlerChecks": [
-        "authorizeRepository"
-      ],
+      "handlerChecks": ["authorizeRepository"],
       "input": {
         "query": [],
         "body": []
@@ -1600,10 +1276,7 @@
         "response": "bounded",
         "work": "network"
       },
-      "effects": [
-        "localWrite",
-        "remote"
-      ],
+      "effects": ["localWrite", "remote"],
       "dispatch": "twin",
       "exposure": {
         "increment": "workspace-scm"
@@ -1615,10 +1288,7 @@
       "service": "projects/scm",
       "action": "pull",
       "targets": "project",
-      "handlerChecks": [
-        "authorizeRepository",
-        "authorizeGitPush"
-      ],
+      "handlerChecks": ["authorizeRepository", "authorizeGitPush"],
       "input": {
         "query": [],
         "body": []
@@ -1628,10 +1298,7 @@
         "response": "bounded",
         "work": "network"
       },
-      "effects": [
-        "localWrite",
-        "remote"
-      ],
+      "effects": ["localWrite", "remote"],
       "dispatch": "twin",
       "exposure": {
         "increment": "workspace-scm"
@@ -1643,9 +1310,7 @@
       "service": "projects/scm",
       "action": "push",
       "targets": "project",
-      "handlerChecks": [
-        "authorizeGitPush"
-      ],
+      "handlerChecks": ["authorizeGitPush"],
       "input": {
         "query": [],
         "body": []
@@ -1655,10 +1320,7 @@
         "response": "bounded",
         "work": "network"
       },
-      "effects": [
-        "localWrite",
-        "remote"
-      ],
+      "effects": ["localWrite", "remote"],
       "dispatch": "twin",
       "exposure": {
         "increment": "workspace-scm"
@@ -1680,9 +1342,7 @@
         "response": "bounded",
         "work": "git"
       },
-      "effects": [
-        "localWrite"
-      ],
+      "effects": ["localWrite"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -1693,23 +1353,17 @@
       "service": "projects/scm",
       "action": "publish",
       "targets": "project",
-      "handlerChecks": [
-        "authorizePublish"
-      ],
+      "handlerChecks": ["authorizePublish"],
       "input": {
         "query": [],
-        "body": [
-          "branch"
-        ]
+        "body": ["branch"]
       },
       "limits": {
         "request": "GIT_REQUEST_LIMIT",
         "response": "bounded",
         "work": "git"
       },
-      "effects": [
-        "publish"
-      ],
+      "effects": ["publish"],
       "dispatch": "twin",
       "exposure": {
         "increment": "workspace-scm"
@@ -1720,9 +1374,7 @@
       "service": "projects/scm",
       "action": "pull",
       "targets": "project",
-      "handlerChecks": [
-        "authorizeRepository"
-      ],
+      "handlerChecks": ["authorizeRepository"],
       "input": {
         "query": [],
         "body": []
@@ -1732,10 +1384,7 @@
         "response": "bounded",
         "work": "git"
       },
-      "effects": [
-        "localWrite",
-        "remote"
-      ],
+      "effects": ["localWrite", "remote"],
       "dispatch": "twin",
       "exposure": {
         "increment": "workspace-scm"
@@ -1747,9 +1396,7 @@
       "service": "projects/scm",
       "action": "publish",
       "targets": "project",
-      "handlerChecks": [
-        "authorizePublish"
-      ],
+      "handlerChecks": ["authorizePublish"],
       "input": {
         "query": [],
         "body": []
@@ -1759,10 +1406,7 @@
         "response": "bounded",
         "work": "network"
       },
-      "effects": [
-        "publish",
-        "remote"
-      ],
+      "effects": ["publish", "remote"],
       "dispatch": "twin",
       "exposure": {
         "increment": "workspace-scm"
@@ -1774,25 +1418,17 @@
       "service": "projects/scm",
       "action": "setRemote",
       "targets": "project",
-      "handlerChecks": [
-        "authorizeRepository",
-        "remoteAddress"
-      ],
+      "handlerChecks": ["authorizeRepository", "remoteAddress"],
       "input": {
         "query": [],
-        "body": [
-          "name",
-          "url"
-        ]
+        "body": ["name", "url"]
       },
       "limits": {
         "request": "GIT_REQUEST_LIMIT",
         "response": "bounded",
         "work": "git"
       },
-      "effects": [
-        "administration"
-      ],
+      "effects": ["administration"],
       "dispatch": "twin",
       "exposure": {
         "increment": "workspace-scm"
@@ -1803,25 +1439,17 @@
       "service": "projects/scm",
       "action": "setRemote",
       "targets": "project",
-      "handlerChecks": [
-        "authorizeRepository",
-        "remoteAddress"
-      ],
+      "handlerChecks": ["authorizeRepository", "remoteAddress"],
       "input": {
         "query": [],
-        "body": [
-          "name",
-          "url"
-        ]
+        "body": ["name", "url"]
       },
       "limits": {
         "request": "GIT_REQUEST_LIMIT",
         "response": "bounded",
         "work": "git"
       },
-      "effects": [
-        "administration"
-      ],
+      "effects": ["administration"],
       "dispatch": "twin",
       "exposure": {
         "increment": "workspace-scm"
@@ -1832,23 +1460,17 @@
       "service": "projects/scm",
       "action": "setRemote",
       "targets": "project",
-      "handlerChecks": [
-        "authorizeRepository"
-      ],
+      "handlerChecks": ["authorizeRepository"],
       "input": {
         "query": [],
-        "body": [
-          "folder"
-        ]
+        "body": ["folder"]
       },
       "limits": {
         "request": "GIT_REQUEST_LIMIT",
         "response": "bounded",
         "work": "git"
       },
-      "effects": [
-        "administration"
-      ],
+      "effects": ["administration"],
       "dispatch": "twin",
       "exposure": {
         "increment": "workspace-scm"
@@ -1869,9 +1491,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "localWrite"
-      ],
+      "effects": ["localWrite"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -1892,9 +1512,7 @@
         "response": "bounded",
         "work": "git"
       },
-      "effects": [
-        "administration"
-      ],
+      "effects": ["administration"],
       "dispatch": "twin",
       "exposure": {
         "increment": "workspace-scm"
@@ -1905,25 +1523,17 @@
       "service": "projects/repositories",
       "action": "registerProjects",
       "targets": "workspace",
-      "handlerChecks": [
-        "remoteAddress"
-      ],
+      "handlerChecks": ["remoteAddress"],
       "input": {
         "query": [],
-        "body": [
-          "projects",
-          "saveManifest",
-          "manifestBaseHash"
-        ]
+        "body": ["projects", "saveManifest", "manifestBaseHash"]
       },
       "limits": {
         "request": "METRIC_REQUEST_LIMIT",
         "response": "bounded",
         "work": "git"
       },
-      "effects": [
-        "administration"
-      ],
+      "effects": ["administration"],
       "dispatch": "twin",
       "exposure": {
         "increment": "workspace-scm"
@@ -1937,11 +1547,7 @@
       "targets": "workspace",
       "handlerChecks": [],
       "input": {
-        "query": [
-          "project",
-          "mappingId",
-          "concept"
-        ],
+        "query": ["project", "mappingId", "concept"],
         "body": []
       },
       "limits": {
@@ -1949,9 +1555,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -1965,11 +1569,7 @@
       "targets": "workspace",
       "handlerChecks": [],
       "input": {
-        "query": [
-          "project",
-          "mappingId",
-          "concept"
-        ],
+        "query": ["project", "mappingId", "concept"],
         "body": []
       },
       "limits": {
@@ -1977,9 +1577,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -1993,11 +1591,7 @@
       "targets": "workspace",
       "handlerChecks": [],
       "input": {
-        "query": [
-          "project",
-          "mappingId",
-          "concept"
-        ],
+        "query": ["project", "mappingId", "concept"],
         "body": []
       },
       "limits": {
@@ -2005,9 +1599,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -2021,27 +1613,15 @@
       "targets": "workspace",
       "handlerChecks": [],
       "input": {
-        "query": [
-          "project",
-          "mappingId",
-          "concept"
-        ],
-        "body": [
-          "project",
-          "mappingId",
-          "concepts",
-          "metrics",
-          "dimensions"
-        ]
+        "query": ["project", "mappingId", "concept"],
+        "body": ["project", "mappingId", "concepts", "metrics", "dimensions"]
       },
       "limits": {
         "request": "GIT_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "localWrite"
-      ],
+      "effects": ["localWrite"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -2062,9 +1642,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -2078,20 +1656,14 @@
       "handlerChecks": [],
       "input": {
         "query": [],
-        "body": [
-          "mode",
-          "assignments",
-          "names"
-        ]
+        "body": ["mode", "assignments", "names"]
       },
       "limits": {
         "request": "GROUPING_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "localWrite"
-      ],
+      "effects": ["localWrite"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -2104,10 +1676,7 @@
       "targets": "workspace",
       "handlerChecks": [],
       "input": {
-        "query": [
-          "q",
-          "access"
-        ],
+        "query": ["q", "access"],
         "body": []
       },
       "limits": {
@@ -2115,9 +1684,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "administration"
-      ],
+      "effects": ["administration"],
       "dispatch": "twin",
       "exposure": {
         "increment": "administration"
@@ -2138,9 +1705,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "administration"
-      ],
+      "effects": ["administration"],
       "dispatch": "twin",
       "exposure": {
         "increment": "administration"
@@ -2161,9 +1726,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "administration"
-      ],
+      "effects": ["administration"],
       "dispatch": "twin",
       "exposure": {
         "increment": "administration"
@@ -2184,9 +1747,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "administration"
-      ],
+      "effects": ["administration"],
       "dispatch": "twin",
       "exposure": {
         "increment": "administration"
@@ -2207,9 +1768,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "administration"
-      ],
+      "effects": ["administration"],
       "dispatch": "twin",
       "exposure": {
         "increment": "administration"
@@ -2230,9 +1789,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "administration"
-      ],
+      "effects": ["administration"],
       "dispatch": "twin",
       "exposure": {
         "increment": "administration"
@@ -2253,9 +1810,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "administration"
-      ],
+      "effects": ["administration"],
       "dispatch": "twin",
       "exposure": {
         "increment": "administration"
@@ -2268,9 +1823,7 @@
       "targets": "workspace",
       "handlerChecks": [],
       "input": {
-        "query": [
-          "area"
-        ],
+        "query": ["area"],
         "body": []
       },
       "limits": {
@@ -2278,9 +1831,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "administration"
-      ],
+      "effects": ["administration"],
       "dispatch": "twin",
       "exposure": {
         "increment": "administration"
@@ -2301,9 +1852,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "administration"
-      ],
+      "effects": ["administration"],
       "dispatch": "twin",
       "exposure": {
         "increment": "administration"
@@ -2324,9 +1873,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "administration"
-      ],
+      "effects": ["administration"],
       "dispatch": "twin",
       "exposure": {
         "increment": "administration"
@@ -2339,10 +1886,7 @@
       "targets": "workspace",
       "handlerChecks": [],
       "input": {
-        "query": [
-          "project",
-          "path"
-        ],
+        "query": ["project", "path"],
         "body": []
       },
       "limits": {
@@ -2350,9 +1894,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "administration"
-      ],
+      "effects": ["administration"],
       "dispatch": "twin",
       "exposure": {
         "increment": "administration"
@@ -2373,9 +1915,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "administration"
-      ],
+      "effects": ["administration"],
       "dispatch": "twin",
       "exposure": {
         "increment": "administration"
@@ -2388,9 +1928,7 @@
       "targets": "workspace",
       "handlerChecks": [],
       "input": {
-        "query": [
-          "against"
-        ],
+        "query": ["against"],
         "body": []
       },
       "limits": {
@@ -2398,9 +1936,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "administration"
-      ],
+      "effects": ["administration"],
       "dispatch": "twin",
       "exposure": {
         "increment": "administration"
@@ -2414,20 +1950,14 @@
       "handlerChecks": [],
       "input": {
         "query": [],
-        "body": [
-          "baseVersion",
-          "proposal",
-          "receipt"
-        ]
+        "body": ["baseVersion", "proposal", "receipt"]
       },
       "limits": {
         "request": "ADMIN_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "administration"
-      ],
+      "effects": ["administration"],
       "dispatch": "twin",
       "exposure": {
         "increment": "administration"
@@ -2441,20 +1971,14 @@
       "handlerChecks": [],
       "input": {
         "query": [],
-        "body": [
-          "baseVersion",
-          "proposal",
-          "receipt"
-        ]
+        "body": ["baseVersion", "proposal", "receipt"]
       },
       "limits": {
         "request": "ADMIN_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "administration"
-      ],
+      "effects": ["administration"],
       "dispatch": "twin",
       "exposure": {
         "increment": "administration"
@@ -2468,20 +1992,14 @@
       "handlerChecks": [],
       "input": {
         "query": [],
-        "body": [
-          "baseVersion",
-          "proposal",
-          "receipt"
-        ]
+        "body": ["baseVersion", "proposal", "receipt"]
       },
       "limits": {
         "request": "ADMIN_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "administration"
-      ],
+      "effects": ["administration"],
       "dispatch": "twin",
       "exposure": {
         "increment": "administration"
@@ -2495,20 +2013,14 @@
       "handlerChecks": [],
       "input": {
         "query": [],
-        "body": [
-          "baseVersion",
-          "proposal",
-          "receipt"
-        ]
+        "body": ["baseVersion", "proposal", "receipt"]
       },
       "limits": {
         "request": "ADMIN_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "administration"
-      ],
+      "effects": ["administration"],
       "dispatch": "twin",
       "exposure": {
         "increment": "administration"
@@ -2522,20 +2034,14 @@
       "handlerChecks": [],
       "input": {
         "query": [],
-        "body": [
-          "baseVersion",
-          "proposal",
-          "receipt"
-        ]
+        "body": ["baseVersion", "proposal", "receipt"]
       },
       "limits": {
         "request": "ADMIN_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "administration"
-      ],
+      "effects": ["administration"],
       "dispatch": "twin",
       "exposure": {
         "increment": "administration"
@@ -2549,20 +2055,14 @@
       "handlerChecks": [],
       "input": {
         "query": [],
-        "body": [
-          "baseVersion",
-          "proposal",
-          "receipt"
-        ]
+        "body": ["baseVersion", "proposal", "receipt"]
       },
       "limits": {
         "request": "ADMIN_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "administration"
-      ],
+      "effects": ["administration"],
       "dispatch": "twin",
       "exposure": {
         "increment": "administration"
@@ -2576,18 +2076,14 @@
       "handlerChecks": [],
       "input": {
         "query": [],
-        "body": [
-          "reason"
-        ]
+        "body": ["reason"]
       },
       "limits": {
         "request": "ADMIN_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "administration"
-      ],
+      "effects": ["administration"],
       "dispatch": "twin",
       "exposure": {
         "increment": "administration"
@@ -2601,18 +2097,14 @@
       "handlerChecks": [],
       "input": {
         "query": [],
-        "body": [
-          "reason"
-        ]
+        "body": ["reason"]
       },
       "limits": {
         "request": "ADMIN_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "administration"
-      ],
+      "effects": ["administration"],
       "dispatch": "twin",
       "exposure": {
         "increment": "administration"
@@ -2626,18 +2118,14 @@
       "handlerChecks": [],
       "input": {
         "query": [],
-        "body": [
-          "rules"
-        ]
+        "body": ["rules"]
       },
       "limits": {
         "request": "ADMIN_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "administration"
-      ],
+      "effects": ["administration"],
       "dispatch": "twin",
       "exposure": {
         "increment": "administration"
@@ -2651,20 +2139,14 @@
       "handlerChecks": [],
       "input": {
         "query": [],
-        "body": [
-          "baseVersion",
-          "proposal",
-          "receipt"
-        ]
+        "body": ["baseVersion", "proposal", "receipt"]
       },
       "limits": {
         "request": "ADMIN_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "administration"
-      ],
+      "effects": ["administration"],
       "dispatch": "twin",
       "exposure": {
         "increment": "administration"
@@ -2678,20 +2160,14 @@
       "handlerChecks": [],
       "input": {
         "query": [],
-        "body": [
-          "baseVersion",
-          "proposal",
-          "receipt"
-        ]
+        "body": ["baseVersion", "proposal", "receipt"]
       },
       "limits": {
         "request": "ADMIN_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "administration"
-      ],
+      "effects": ["administration"],
       "dispatch": "twin",
       "exposure": {
         "increment": "administration"
@@ -2705,20 +2181,14 @@
       "handlerChecks": [],
       "input": {
         "query": [],
-        "body": [
-          "baseVersion",
-          "proposal",
-          "receipt"
-        ]
+        "body": ["baseVersion", "proposal", "receipt"]
       },
       "limits": {
         "request": "ADMIN_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "administration"
-      ],
+      "effects": ["administration"],
       "dispatch": "twin",
       "exposure": {
         "increment": "administration"
@@ -2732,20 +2202,14 @@
       "handlerChecks": [],
       "input": {
         "query": [],
-        "body": [
-          "baseVersion",
-          "proposal",
-          "receipt"
-        ]
+        "body": ["baseVersion", "proposal", "receipt"]
       },
       "limits": {
         "request": "ADMIN_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "administration"
-      ],
+      "effects": ["administration"],
       "dispatch": "twin",
       "exposure": {
         "increment": "administration"
@@ -2766,9 +2230,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "administration"
-      ],
+      "effects": ["administration"],
       "dispatch": "twin",
       "exposure": {
         "increment": "administration"
@@ -2781,18 +2243,7 @@
       "targets": "workspace",
       "handlerChecks": [],
       "input": {
-        "query": [
-          "from",
-          "to",
-          "principal",
-          "action",
-          "project",
-          "decision",
-          "origin",
-          "tool",
-          "cursor",
-          "format"
-        ],
+        "query": ["from", "to", "principal", "action", "project", "decision", "origin", "tool", "cursor", "format"],
         "body": []
       },
       "limits": {
@@ -2800,9 +2251,7 @@
         "response": "paged",
         "work": "light"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -2815,9 +2264,7 @@
       "targets": "workspace",
       "handlerChecks": [],
       "input": {
-        "query": [
-          "history"
-        ],
+        "query": ["history"],
         "body": []
       },
       "limits": {
@@ -2825,9 +2272,7 @@
         "response": "binary",
         "work": "scan"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -2848,9 +2293,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": {
         "no": "public"
       },
@@ -2874,9 +2317,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": {
         "no": "public"
       },
@@ -2900,9 +2341,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "localWrite"
-      ],
+      "effects": ["localWrite"],
       "dispatch": {
         "no": "public"
       },
@@ -2926,9 +2365,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": {
         "no": "public"
       },
@@ -2952,9 +2389,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": {
         "no": "public"
       },
@@ -2978,9 +2413,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": {
         "no": "public"
       },
@@ -3004,9 +2437,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": {
         "no": "public"
       },
@@ -3030,9 +2461,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": {
         "no": "public"
       },
@@ -3056,9 +2485,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": {
         "no": "public"
       },
@@ -3082,9 +2509,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": {
         "no": "public"
       },
@@ -3108,9 +2533,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": {
         "no": "public"
       },
@@ -3134,9 +2557,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": {
         "no": "page"
       },
@@ -3146,5 +2567,46 @@
       }
     }
   },
-  "browserCapabilities": []
+  "browserCapabilities": [
+    {
+      "id": "validation.shacl",
+      "summary": "SHACL validation",
+      "status": "needs-shared-implementation",
+      "reason": "The worker invokes a shared validator, but no reviewed server operation exposes it.",
+      "increment": "resources-prompts",
+      "source": "src/app/validation/shacl.worker.ts"
+    },
+    {
+      "id": "validation.editor",
+      "summary": "Live syntax and SQL editor feedback",
+      "status": "browser-only-by-design",
+      "reason": "Editor diagnostics depend on the current unsaved buffer and worker lifecycle.",
+      "increment": "never",
+      "source": "src/app/editor/lint.worker.ts"
+    },
+    {
+      "id": "lineage.assets",
+      "summary": "Lineage asset search",
+      "status": "needs-shared-implementation",
+      "reason": "Asset ranking is implemented in the browser lineage model without a server operation.",
+      "increment": "later",
+      "source": "src/app/odcs/lineage.ts"
+    },
+    {
+      "id": "lineage.traversal",
+      "summary": "Lineage path traversal",
+      "status": "needs-shared-implementation",
+      "reason": "Browser lineage traversal has no reviewed server operation.",
+      "increment": "later",
+      "source": "src/app/odcs/lineage-pierce.ts"
+    },
+    {
+      "id": "graph.layout",
+      "summary": "Graph positioning",
+      "status": "browser-only-by-design",
+      "reason": "Node coordinates are presentation state for the browser canvas.",
+      "increment": "never",
+      "source": "src/app/graph/layout.ts"
+    }
+  ]
 }
