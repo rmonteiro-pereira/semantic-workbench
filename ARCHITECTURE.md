@@ -279,6 +279,7 @@ The integration view shows what the application reads and contacts, and what it 
   real acceptance; those operations do not happen during application startup.
 
 `src/server/auth/caller.ts` defines authenticated caller context and runtime mint provenance for the operation boundary.
+`request-scope.ts` attaches the caller, access scope, audit context, delegated session and remote-credential mode in one function for handlers.
 
 ## Request and state flow
 

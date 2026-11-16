@@ -18,7 +18,7 @@ import type { GroupName } from './directory';
 import type { ProviderStatus } from './oidc';
 import { GuardedChangeError } from './guards';
 import { READ_ACTIONS } from '../../shared/auth/actions';
-import { requestAccess, requestAuditProjects, type AccessRequest } from './request-scope';
+import { attachIdentity, type AccessRequest } from './request-scope';
 import { hiddenResponses, internalErrorResponse, requestAuditId, requestSourceIp } from '../request';
 import type { RequestLimits } from './rate-limit';
 import type { RemoteCredentials } from './remote-credentials';
@@ -292,7 +292,17 @@ export function createAccessMiddleware(
   }
   async function execute(request: AccessRequest, requestId: string, target: { row: RouteAction; resource: ResourceRef }, principal: Principal): Promise<Response> {
     const scope = access.forRequest(principal, { sourceIp: options.sourceIp?.(request) });
-    request[requestAccess] = scope;
+    const projects = target.row.action === 'readAudit' ? auditScope(scope, ws) : undefined;
+    attachIdentity(
+      request,
+      { principal, origin: 'http', sourceIp: options.sourceIp?.(request), session: await options.authentication?.session(request) },
+      {
+        scope,
+        requestId,
+        remote: options.remoteCredentials ?? 'local',
+        auditProjects: projects,
+      },
+    );
     setRequestActor(actorPseudonym(scope.principal));
     // A client never holds grants of its own: its agents.json entry decides through the policies.
     const withoutGrants = scope.principal.kind !== 'client' && !scope.principal.grants.length;
@@ -312,8 +322,6 @@ export function createAccessMiddleware(
     let decision = verdict.decision;
     resource = verdict.resource;
     if (row.action === 'readAudit') {
-      const projects = auditScope(scope, ws);
-      request[requestAuditProjects] = projects;
       // Audit routes are workspace routes, yet a Steward may read the records of their projects.
       // The rule name records in the audit why the workspace route was allowed.
       if (projects?.size) decision = { allow: true, status: 200, rules: ['steward-audit'] };

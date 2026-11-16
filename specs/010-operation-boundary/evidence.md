@@ -91,3 +91,5 @@ The integrator permits OS-assigned ephemeral listeners and dynamic harness alloc
 Original full authorization suite: `bun test tests/auth/`: `659 pass`, `0 fail`, `48430 expect() calls`, `Ran 659 tests across 107 files.`
 
 T006 extraction: the same six-file characterization/authentication command reports `36 pass`, `0 fail`, `1792 expect() calls`. Rate limiting, local checks, bearer validation, cross-site checks, principal resolution and anonymous audit gating moved to `request-authentication.ts` without changing their order.
+
+T007: `bun test tests/auth/http-characterization.test.ts tests/auth/request-identity.test.ts tests/auth/middleware.test.ts`: `9 pass`, `0 fail`, `1601 expect() calls`. Identity attachment covers every exported identity symbol and preserves Reader/copy derivation. Session lookup reuses authentication's request cache.

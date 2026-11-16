@@ -5,6 +5,11 @@ import type { RemoteCredentials } from './remote-credentials';
 import { LOCAL_READER, type CopyAccess, type Reader } from '../projects/reader';
 import { requestAuditId, requestSourceIp } from '../request';
 import { guardFor } from './guards';
+import type { Caller } from './caller';
+import type { Session } from './sessions';
+
+/** Delegated-credential session supplied by the caller, including an explicit absence. */
+export const requestSession = Symbol('requestSession');
 
 /** Request scope attached after identity resolution, so routes never resolve identity again. */
 export const requestAccess = Symbol('requestAccess');
@@ -17,12 +22,33 @@ export type AccessRequest = Request & {
   [requestAccess]?: AccessScope;
   [requestAuditProjects]?: Set<string> | null;
   [requestRemote]?: RemoteCredentials | 'local';
+  [requestSession]?: Session | null;
 };
 /**
  * The projects whose audit records an audit request may read, decided once by the access
  * boundary: null for an Admin, who reads every project's records.
  */
 export const requestAuditProjects = Symbol('requestAuditProjects');
+
+/** Attaches the identity context shared by HTTP requests and in-process twins. */
+export function attachIdentity(
+  request: Request,
+  caller: Caller,
+  context: {
+    scope: AccessScope;
+    requestId: string;
+    remote: RemoteCredentials | 'local';
+    auditProjects?: Set<string> | null;
+  },
+): void {
+  const attached = request as AccessRequest;
+  attached[requestAccess] = context.scope;
+  attached[requestAuditId] = context.requestId;
+  attached[requestSourceIp] ??= caller.sourceIp;
+  attached[requestRemote] = context.remote;
+  attached[requestAuditProjects] = context.auditProjects;
+  attached[requestSession] = caller.session ?? null;
+}
 
 /**
  * Makes the server's credential service reachable from the routes of this request; `local` says

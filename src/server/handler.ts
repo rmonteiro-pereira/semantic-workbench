@@ -33,7 +33,6 @@ import { cloneRoutes } from './routes/clone';
 import { repoRoutes } from './routes/repos';
 import { peopleRoutes } from './routes/people';
 import type { AccessControl } from './auth/authorize';
-import { attachRemoteCredentials } from './auth/request-scope';
 import { browserReportRoutes } from './routes/browser-reports';
 /** Local browser origins allowed to call the API. */
 export const ALLOWED_ORIGINS = allowedOrigins(4310);
@@ -239,7 +238,6 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
   if (options.mode === 'server' && !options.remoteCredentials) {
     throw new Error('Server mode needs the remote credential service.');
   }
-  const remoteMode = options.remoteCredentials ?? 'local';
   const access = options.access ?? defaultAccess(ws, options.mode ?? 'local');
   const administration = options.administration ?? defaultAdministration(ws, access);
   options = {
@@ -288,7 +286,6 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
   }
   const run = async (req: Request) => {
     const url = new URL(req.url);
-    attachRemoteCredentials(req, remoteMode);
     try {
       if (options.mode === 'server') {
         const staticResponse = await serveStatic(req, options.staticRoot, options.publicOrigin, options.mode);
