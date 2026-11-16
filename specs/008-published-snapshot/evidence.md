@@ -329,3 +329,7 @@ principal is allowed while the server Viewer refusal remains unchanged.
 ## Published revision provenance
 
 `TMPDIR=/tmp/sw-008 bun test tests/snapshot-provenance.test.ts`: 2 pass, 0 fail, 46 assertions. Real SHA-1 and SHA-256 repositories accept full historical ids and an inside-history tag; abbreviated ids, branch names, personal/proposal-only commits, blob ids and outside tags all refuse identically through both resolver entry points. Both added provenance mutants are detected, along with the five existing resolver mutants (each baseline 0, mutant 1).
+
+## Registry changes and eviction
+
+`TMPDIR=/tmp/sw-008 bun test tests/published-snapshot.test.ts tests/snapshot-provenance.test.ts`: 9 pass, 0 fail, 124 assertions. Adding, removing and moving project folders affects new pins without changing old pins or restarting. After eviction, deleting a historical blob makes that revision unavailable; current content still serves. `bun --bun run check`: exit 0.

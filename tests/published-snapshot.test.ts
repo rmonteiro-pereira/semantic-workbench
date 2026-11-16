@@ -1,6 +1,6 @@
 // Exercises request pins, bounded retention and registry-sensitive immutable indexes.
 import { expect, test } from 'bun:test';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createGit } from '../src/server/projects/git';
 import { createState, type ProjectEntry } from '../src/server/projects/state';
@@ -83,6 +83,10 @@ test('registry changes rebuild the project layout without restarting', async () 
     const pin = published.pin();
     const root = await published.documents(pin, 'definitions');
     expect(root).toHaveLength(2);
+    registry([initialProject, { ...initialProject, slug: 'nested', folder: 'definitions/nested', repo: 'definitions' }]);
+    const added = published.pin();
+    expect((await published.documents(added, 'nested'))[0].path).toBe('nested.yaml');
+    await expect(published.documents(pin, 'nested')).rejects.toMatchObject({ reason: 'unavailable' });
     registry([{ ...initialProject, folder: 'definitions/nested', repo: 'definitions' }]);
     expect(await published.documents(pin, 'definitions')).toEqual(root);
     const nextPin = published.pin();
@@ -136,6 +140,28 @@ test('a retained pointer without Git reports no-git instead of attempting a work
     await expect(published.documents(published.pin(), 'definitions')).rejects.toMatchObject({ reason: 'no-git' });
     await expect(published.documentsAt(fixture.published!, 'definitions')).rejects.toMatchObject({ reason: 'no-git' });
     expect(await published.resolveRevision(fixture.published!)).toBeNull();
+  } finally {
+    fixture.dispose();
+  }
+});
+
+test('an evicted historical snapshot refuses a removed blob without returning cached partial content', async () => {
+  const { fixture, pointers, published, git } = setup();
+  try {
+    await published.documents(published.pin(), 'definitions');
+    const blob = (await git.lsTree(fixture.repository, fixture.published!))[0].id;
+    for (let generation = 0; generation < 2; generation++) {
+      writeFileSync(join(fixture.repository, 'shop.ontology.yaml'), `name: New ${generation}\nontology: []\n`);
+      await git.addAll(fixture.repository);
+      await git.commit(fixture.repository, 'Replace prior blob');
+      pointers.complete('definitions', 'main', (await git.head(fixture.repository))!);
+      published.supersede();
+      await published.documents(published.pin(), 'definitions');
+    }
+    expect(published.retainedCount()).toBe(2);
+    unlinkSync(join(fixture.repository, '.git', 'objects', blob.slice(0, 2), blob.slice(2)));
+    await expect(published.documentsAt(fixture.published!, 'definitions')).rejects.toMatchObject({ reason: 'unavailable' });
+    expect((await published.documents(published.pin(), 'definitions'))[0].source).toContain('New 1');
   } finally {
     fixture.dispose();
   }
