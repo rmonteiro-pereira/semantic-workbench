@@ -106,7 +106,7 @@ const mutants: [string, string, string, string][] = [
   ['auth-decision', 'src/server/auth/authorize.ts', "status: 404, reason: 'not-readable'", "status: 403, reason: 'not-readable'"],
   ['auth-decision', 'src/server/auth/authorize.ts', 'adminRules: validated.adminRules,', 'adminRules: {},'],
   ['auth-admin-guard', 'src/server/auth/admin-guard.ts', 'if (allowed) return { ok: true };', 'if (true) return { ok: true };'],
-  ['auth-middleware', 'src/server/auth/operation-boundary.ts', "const failure = auditDenial(audit, { ...input, decision: 'deny' });", 'const failure = null;'],
+  ['auth-middleware', 'src/server/auth/operation-boundary.ts', "const failure = auditDenial(audit, { ...record, decision: 'deny' });", 'const failure = null;'],
 
   ['auth-admin-repo', 'src/server/auth/admin-repo.ts', 'if ((await version()) !== change.baseVersion) throw new AdminStaleError();', ''],
   ['auth-admin-repo', 'src/server/auth/admin-repo.ts', ' || /[<>]/.test(value)', ''],

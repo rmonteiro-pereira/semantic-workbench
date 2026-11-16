@@ -102,6 +102,15 @@ async function listingCases(target: string, fixture: Awaited<ReturnType<typeof a
     const context = await setup(target, fixture, options);
     assert(context.boundary.availableOperations(context.caller('alice')).includes('files.save'), 'listing preserves distinct policy scopes');
   }
+  const options = accessFixture();
+  options.config.roles = [
+    { id: 'r_project_clear', name: 'Project clear', description: 'Project grant', createdBy: 'test', createdAt: '2026-11-16T00:00:00Z', permissions: [{ actions: ['read', 'clear'] }] },
+  ];
+  const grant = options.config.grants.find(grant => grant.id === 'g-sales-editors')!;
+  options.config.grants = [{ ...grant, roleId: 'r_project_clear', scope: { kind: 'projects', projects: ['sales-contracts'] } }];
+  const context = await setup(target, fixture, options);
+  assert(!context.boundary.availableOperations(context.caller('alice')).includes('workspace.clear'), 'workspace-only listing');
+  assert.equal((await context.invoke(context.caller('alice'), '/api/clear', 'POST')).status, 403, 'workspace-only invocation');
 }
 
 /** Runs named behavioral assertions against a copied boundary and its sibling modules. */

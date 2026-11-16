@@ -117,3 +117,10 @@ test('generated operation reference equals the reviewed inventory', async () => 
   expect(actual).toBe(operationInventoryTable());
   expect(actual + '\nHand edit\n').not.toBe(operationInventoryTable());
 });
+
+import schema from '../../schemas/semantic-workbench-operations-v1.json';
+
+test('schema classifier names and body limits match their typed owners', () => {
+  expect(schema.$defs.operation.properties.outcomeClassifier.enum).toEqual(Object.keys(operationClassifiers));
+  expect(schema.$defs.operation.properties.limits.properties.request.enum).toEqual(['none', ...Object.keys(REQUEST_LIMITS)]);
+});

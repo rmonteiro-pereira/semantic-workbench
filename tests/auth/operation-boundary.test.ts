@@ -1,5 +1,5 @@
 // Structural identity copies must not acquire authenticated caller provenance.
-import { expect, test } from 'bun:test';
+import { expect, test, spyOn } from 'bun:test';
 import { assertMinted, mintCaller, type Caller } from '../../src/server/auth/caller';
 import { localPrincipal } from '../../src/server/auth/principal';
 
@@ -105,4 +105,24 @@ test('semantic outcomes classify bounded copies after hidden responses and prese
   expect((await invoke()).response.status).toBe(404);
   expect(audit.recent(10).at(-1)).toMatchObject({ decision: 'deny', reason: 'not-readable' });
   expect(calls).toBe(1);
+});
+
+import * as operationMetrics from '../../src/server/observability/metrics';
+
+test('a metric exporter failure cannot change the success of a completed write', async () => {
+  using workspace = await testWorkspace();
+  const handler = createHandler(workspace.ws);
+  const metric = spyOn(operationMetrics, 'recordOperation').mockImplementation(() => {
+    throw new Error('Exporter unavailable');
+  });
+  try {
+    const caller = mintCaller({ principal: localPrincipal(), origin: 'mcp' });
+    const request = buildTwinRequest('projects.create', { params: {}, body: { name: 'Completed write' } });
+    const result = await handler.boundary.operate({ caller, request });
+    expect(result.response.status).toBe(200);
+    expect(metric).toHaveBeenCalledTimes(1);
+    expect(workspace.ws.state.registry().projects.some(project => project.name === 'Completed write')).toBe(true);
+  } finally {
+    metric.mockRestore();
+  }
 });
