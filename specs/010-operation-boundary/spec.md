@@ -425,6 +425,13 @@ inventory; later increments (006 and its successors) are planned against this ta
 
 ## Assumptions
 
+- **Listing cost — accepted gap.** The current measured listing time is **63.6 ms**, replacing
+  the initial 50 ms estimate. Listing runs once per tool listing, never writes audit records and
+  grants nothing; invocation re-checks the actual target. Before feature 006 ships MCP, measure
+  client listing and Admin project-rule listing with at least 100 projects, because those cases
+  skip the representative-project shortcut. The measurement and any required optimization are
+  a follow-up for feature 006, not a permission cache in this boundary.
+
 - **Origins** are `http` and `mcp`. ACP support is deferred until its first transport caller.
 - **Outcome classification.** Most routes map failures to non-2xx statuses, so the status default is
   right for them. Where a 2xx body reports a failed or partial effect, the inventory names a

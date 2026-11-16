@@ -161,6 +161,8 @@ The integration view shows what the application reads and contacts, and what it 
   reuses action and target-kind probes within one call. `authorize.ts` supplies representative
   projects with identical metadata and effective role membership; arbitrary administrator rules and
   clients retain exact project probing. No listing decision cache survives the call.
+- `src/shared/observability/operation.ts` owns the origin and outcome vocabulary shared by audit,
+  authorization and instrumentation; operation label validation stays in the boundary.
 - `caller.ts` mints authenticated caller context with runtime provenance. `middleware.ts` is the HTTP
   adapter; `route-actions.ts` maps method/path rows to actions and resources. `request-scope.ts`
   attaches identity, delegated session and the filtered scope together. Unmapped protected routes fail closed.

@@ -24,7 +24,7 @@ export const HANDLER_CHECKS = [
   'bodyTargets',
 ] as const;
 /** Audit transport origins. */
-export const CALLER_ORIGINS = ['http', 'mcp'] as const;
+export { CALLER_ORIGINS } from '../../shared/observability/operation';
 const DISPATCH_REASONS = ['public', 'stream', 'page', 'redirect', 'browser-only'] as const;
 const INCREMENTS = ['local-edit', 'team-sign-in', 'workspace-scm', 'resources-prompts', 'administration', 'later', 'never'] as const;
 

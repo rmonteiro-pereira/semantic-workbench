@@ -768,3 +768,25 @@ Architecture-review correction commits before this final evidence update:
 - `65d5e7cc` test: register the isolated operation mutation harness
 - `6d353368` docs: preserve the frozen HTTP contract during refactors
 - `d1d3ecbf` test: record paired HTTP and shared-verdict listing measurements
+
+
+## Merge-review cleanups
+
+Existing route limits come from `request.ts`; HTTP responses and audit behavior stay fixed.
+The boundary already selects inventory classifiers and validates bounded metric labels.
+The cleanup removes caller overrides and route re-exports, and gives authentication only its read dependencies.
+Shared label types keep instrumentation independent of authorization without changing the vocabulary.
+
+The six requested cleanups remove the unused `OperationCall.outcome`, route limit re-exports
+and redundant Git braces; move metric-label validation to `operate`; narrow authentication
+options without a middleware type import; and gather boundary documentation under one heading.
+The shared origin/outcome vocabulary lives in `src/shared/observability/operation.ts`, with existing
+auth exports preserved. Classification tests invoke the inventory's real file-save classifier.
+
+The specification accepts the measured 63.6 ms listing figure as a gap against the initial
+50 ms estimate. Listing runs once per tool listing, never audits or grants access, and invocation
+re-checks the target. Feature 006 must measure client and Admin project-rule listings at 100 or
+more projects before MCP ships, because those cases retain exact project probing.
+
+Focused route/inventory checks: 13 pass, 0 fail, 251 assertions. Boundary, telemetry and frozen
+HTTP characterization checks: 23 pass, 0 fail, 1641 assertions. Static check passes.

@@ -14,6 +14,7 @@ test('only the minted caller has authenticated provenance', () => {
   expect(Object.isFrozen(caller)).toBe(true);
 });
 
+import { operationClassifiers } from '../../src/server/auth/operation-classifiers';
 import { createOperationBoundary } from '../../src/server/auth/operation-boundary';
 import { createAccessControl } from '../../src/server/auth/authorize';
 import { createAuditLog } from '../../src/server/auth/audit';
@@ -82,29 +83,30 @@ test('semantic outcomes classify bounded copies after hidden responses and prese
   using fixture = await testWorkspace();
   const audit = createAuditLog({ dir: join(fixture.root, 'outcomes') });
   const access = createAccessControl({ ...accessFixture(), mode: 'local' });
-  let response = Response.json({ ok: false });
+  const body = { path: 'saved.yaml', hash: 'saved-hash', demoted: ['dependent.yaml'] };
+  let response = Response.json(body);
   const boundary = createOperationBoundary(fixture.ws, { mode: 'server', audit, access }, async () => response);
   const caller = mintCaller({ principal: localPrincipal(), origin: 'mcp' });
-  let calls = 0;
-  const classifier = async (copy: Response) => {
-    calls++;
-    return (await copy.json()).ok === true ? ('ok' as const) : ('degraded' as const);
-  };
-  const invoke = () => boundary.operate({ caller, request: buildTwinRequest('projects.list', { params: {} }), outcome: classifier });
-  expect(await (await invoke()).response.json()).toEqual({ ok: false });
-  expect(audit.recent(10).at(-1)?.outcome).toBe('degraded');
-  response = new Response('event', { headers: { 'Content-Type': 'text/event-stream' } });
-  await invoke();
-  expect(audit.recent(10).at(-1)?.outcome).toBe('failed');
-  response = new Response('x'.repeat(MAX_CLASSIFIED_RESPONSE_BYTES + 1));
-  const oversized = await invoke();
-  expect((await oversized.response.text()).length).toBe(MAX_CLASSIFIED_RESPONSE_BYTES + 1);
-  expect(audit.recent(10).at(-1)?.outcome).toBe('failed');
-  response = Response.json({ secret: 'hidden' });
-  hiddenResponses.add(response);
-  expect((await invoke()).response.status).toBe(404);
-  expect(audit.recent(10).at(-1)).toMatchObject({ decision: 'deny', reason: 'not-readable' });
-  expect(calls).toBe(1);
+  const classifier = spyOn(operationClassifiers, 'fileSave');
+  const invoke = () => boundary.operate({ caller, request: buildTwinRequest('files.save', { params: { slug: 'sales-metrics', '*': 'saved.yaml' }, body: {} }) });
+  try {
+    expect(await (await invoke()).response.json()).toEqual(body);
+    expect(audit.recent(10).at(-1)?.outcome).toBe('degraded');
+    response = new Response('event', { headers: { 'Content-Type': 'text/event-stream' } });
+    await invoke();
+    expect(audit.recent(10).at(-1)?.outcome).toBe('failed');
+    response = new Response('x'.repeat(MAX_CLASSIFIED_RESPONSE_BYTES + 1));
+    const oversized = await invoke();
+    expect((await oversized.response.text()).length).toBe(MAX_CLASSIFIED_RESPONSE_BYTES + 1);
+    expect(audit.recent(10).at(-1)?.outcome).toBe('failed');
+    response = Response.json({ secret: 'hidden' });
+    hiddenResponses.add(response);
+    expect((await invoke()).response.status).toBe(404);
+    expect(audit.recent(10).at(-1)).toMatchObject({ decision: 'deny', reason: 'not-readable' });
+    expect(classifier).toHaveBeenCalledTimes(1);
+  } finally {
+    classifier.mockRestore();
+  }
 });
 
 import * as operationMetrics from '../../src/server/observability/metrics';

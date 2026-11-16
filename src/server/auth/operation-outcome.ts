@@ -1,8 +1,9 @@
 // Classifiers see a bounded copy after existence hiding has been settled.
+import { OPERATION_OUTCOMES, type OperationOutcome } from '../../shared/observability/operation';
 /** Semantic result of an authorized operation. */
-export type OperationOutcome = (typeof OPERATION_OUTCOMES)[number];
+export type { OperationOutcome } from '../../shared/observability/operation';
 /** Closed outcomes accepted by audit classification and operation metrics. */
-export const OPERATION_OUTCOMES = ['ok', 'refused', 'failed', 'degraded'] as const;
+export { OPERATION_OUTCOMES } from '../../shared/observability/operation';
 /** Classifies a bounded response without consuming the caller's response. */
 export type OutcomeClassifier = (response: Response) => OperationOutcome | Promise<OperationOutcome>;
 /** Maximum bytes buffered for semantic classification. */

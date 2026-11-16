@@ -28,7 +28,8 @@ The twin has no cookies, no `Authorization`, no `Origin`, no `Host`, and no forw
 
 ## Dispatching
 
-`operate({ caller, request, operationId?, outcome? })` returns `{ response, requestId }`.
+`operate({ caller, request, operationId? })` returns `{ response, requestId }`.
+Classification is selected only by the operation inventory, never supplied by the caller.
 
 Steps, in order:
 

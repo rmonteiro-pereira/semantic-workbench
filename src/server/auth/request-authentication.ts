@@ -1,5 +1,7 @@
 // Authenticates network requests before operation routing and policy evaluation.
-import type { HandlerOptions } from './middleware';
+import type { BearerValidator } from './bearer';
+import type { ServerAuthentication } from './authentication';
+import type { RequestLimits } from './rate-limit';
 import { localPrincipal, type Principal } from './principal';
 import { acceptsBearer, BearerError } from './bearer';
 import { validCsrf } from './csrf';
@@ -11,6 +13,17 @@ import { auditDenial, agentRefusal } from './refusal';
 import { createAnonymousAuditGate, createRateLimitReport, createRateLimiter, DEFAULT_REQUEST_LIMITS, SIGN_IN_PATHS } from './rate-limit';
 import { recordAuthFailure } from '../observability/metrics';
 
+/** Dependencies read by network authentication and request admission. */
+export type RequestAuthenticationOptions = {
+  mode?: 'local' | 'server';
+  principal?: (request: Request) => Principal | null | Promise<Principal | null>;
+  requestLimits?: RequestLimits;
+  now?: () => number;
+  bearer?: BearerValidator;
+  publicOrigin?: string;
+  authentication?: ServerAuthentication['authentication'];
+};
+
 /** The 429 answer for a source address that used up its allowance. */
 function tooManyRequests(retryAfterSeconds: number): Response {
   const headers = { 'Retry-After': String(retryAfterSeconds) };
@@ -18,7 +31,7 @@ function tooManyRequests(retryAfterSeconds: number): Response {
 }
 
 /** Builds the network authentication stage with request-local limit and audit state. */
-export function createRequestAuthentication(options: HandlerOptions, audit: AuditLog, localCheck: (request: Request) => Response | null) {
+export function createRequestAuthentication(options: RequestAuthenticationOptions, audit: AuditLog, localCheck: (request: Request) => Response | null) {
   const mode = options.mode ?? 'local';
   const resolve = options.principal ?? (() => (mode === 'local' ? localPrincipal() : null));
   const limits = options.requestLimits ?? DEFAULT_REQUEST_LIMITS;

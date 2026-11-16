@@ -2,7 +2,7 @@
 import { operationClassifiers } from './operation-classifiers';
 import { recordOperation } from '../observability/metrics';
 import { withSpan } from '../observability/tracing';
-import { classifyOutcome, statusOutcome, type OperationOutcome, type OutcomeClassifier } from './operation-outcome';
+import { classifyOutcome, statusOutcome, OPERATION_OUTCOMES, type OperationOutcome, type OutcomeClassifier } from './operation-outcome';
 import type { Workspace } from '../projects/workspace';
 import { routeVerdict, routeTargets, type RouteVerdict } from './route-verdict';
 import type { RemoteCredentials } from './remote-credentials';
@@ -10,7 +10,7 @@ import type { AccessControl, AccessScope } from './authorize';
 import { auditableProjects, reportAuditFailure, type AuditLog } from './audit';
 import { assertMinted, type Caller, type CallerOrigin } from './caller';
 import { log } from '../observability/log';
-import { operationForRow } from './operation-inventory';
+import { CALLER_ORIGINS, operationById, operationForRow } from './operation-inventory';
 import { ROUTE_ACTIONS, routeFor, routeResourceKind, type RouteAction } from './route-actions';
 import type { ResourceRef, Decision } from './resource';
 import { WriteAccessError } from './write-access';
@@ -34,7 +34,6 @@ export type OperationCall = {
   caller: Caller;
   request: Request;
   operationId?: string;
-  outcome?: OutcomeClassifier;
 };
 
 /** The projects whose audit records the caller may read: null for an Admin, who reads them all. */
@@ -219,12 +218,16 @@ export function createOperationBoundary(ws: Workspace, options: OperationBoundar
     const row = found.row;
     const started = performance.now();
     const observation: { outcome?: OperationOutcome } = {};
-    const classifier = call.outcome ?? (caller.origin !== 'http' && entry?.outcomeClassifier ? operationClassifiers[entry.outcomeClassifier] : undefined);
+    const classifier = caller.origin !== 'http' && entry?.outcomeClassifier ? operationClassifiers[entry.outcomeClassifier] : undefined;
     const invoke = () => execute({ request, requestId, target: { row, resource: row.resource(found.match, url) }, caller, audit, classifier, observation });
     const response = caller.origin === 'http' || !entry ? await invoke() : await withSpan('operation.' + entry.id, { attributes: { origin: caller.origin, operation: entry.id } }, invoke);
     const responseOutcome = statusOutcome(response.status, true);
     try {
-      if (entry) recordOperation(caller.origin, entry.id, observation.outcome ?? responseOutcome, performance.now() - started);
+      if (entry) {
+        const outcome = observation.outcome ?? responseOutcome;
+        if (!CALLER_ORIGINS.includes(caller.origin) || !operationById(entry.id) || !OPERATION_OUTCOMES.includes(outcome)) throw Error('Invalid operation metric labels.');
+        recordOperation(caller.origin, entry.id, outcome, performance.now() - started);
+      }
     } catch (error) {
       // A telemetry exporter cannot make a completed write appear retryable.
       log.warn('operation.metrics-failed', { requestId, operation: entry?.id, errorMessage: error instanceof Error ? error.message : String(error) });

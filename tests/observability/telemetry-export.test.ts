@@ -18,7 +18,7 @@ import { TEST_USERS } from '../helpers/auth-identities';
 import { useQuietLogging } from '../helpers/quiet-logging';
 import { mintCaller } from '../../src/server/auth/caller';
 import { buildTwinRequest } from '../../src/server/auth/twin-request';
-import { recordOperation, recordRequest } from '../../src/server/observability/metrics';
+import { recordRequest } from '../../src/server/observability/metrics';
 
 const SUCCESS = { code: 0 };
 const SECRET_TOKEN = 'SECRETBEARERTOKEN0123456789';
@@ -296,5 +296,4 @@ test('operation spans and metrics expose only fixed labels', () => {
   expect(operation?.attributes).toEqual({ origin: 'mcp', operation: 'projects.list' });
   const recorded = points('sw.operation.calls').find(point => point.attributes.origin === 'mcp');
   expect(recorded?.attributes).toEqual({ origin: 'mcp', operation: 'projects.list', outcome: 'ok' });
-  expect(() => recordOperation('mcp', '/private/path', 'ok', 1)).toThrow('Invalid operation metric labels');
 });

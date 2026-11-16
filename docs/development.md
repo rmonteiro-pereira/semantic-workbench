@@ -71,16 +71,6 @@ bun run build
 - `build` runs `schemas:compile` and then the production browser build. The Bun server runs
   TypeScript directly; this is not a separate compiled backend output.
 
-Connection effects narrow allowed decisions; they preserve existence-hiding refusals and the
-existing distinction between hidden-trash denials and unaudited missing entries.
-
-`bun scripts/boundary-benchmark.ts` measures 5,000 in-process HTTP requests with isolated temporary data and prints median and 95th-percentile durations.
-`bun test tests/auth/http-characterization.test.ts` compares responses and audit records against the original HTTP contract; preserve that fixture unchanged when refactoring the boundary.
-
-Trusted adapters use `buildTwinRequest(operationId, { params, query, body, signal })`; parameter keys match the route template, including `*` for a splat. The builder rejects non-dispatchable routes and bodies above the operation's existing byte limit.
-
-HTTP body limits are exported from `src/server/request.ts`; route handlers and the operation inventory use those same constants.
-
 Generated standalone schema validators are checked in and formatted with the project rules.
 Regenerate with `bun run schemas:compile`; tests verify reproducible output. The browser uses these
 validators without eval under the CSP. Do not edit pinned upstream schemas to make a fixture pass.
@@ -388,6 +378,20 @@ For API work, maintain the action inventory and relevant HTTP/configuration cont
 handlers, schemas and tests remain authoritative when an older design contract describes an
 unimplemented or superseded detail.
 
+## Operation boundary
+
+Connection effects narrow allowed decisions; they preserve existence-hiding refusals and the
+existing distinction between hidden-trash denials and unaudited missing entries.
+
+`bun scripts/boundary-benchmark.ts` measures 5,000 in-process HTTP requests with isolated temporary data and prints median and 95th-percentile durations.
+`bun test tests/auth/http-characterization.test.ts` compares responses and audit records against the original HTTP contract; preserve that fixture unchanged when refactoring the boundary.
+
+Trusted adapters use `buildTwinRequest(operationId, { params, query, body, signal })`; parameter
+keys match the route template, including `*` for a splat. The builder rejects non-dispatchable
+routes and bodies above the operation's existing byte limit.
+
+HTTP body limits are exported from `src/server/request.ts`; route handlers and the operation inventory use those same constants.
+
 `buildTwinRequest` reports malformed parameters and non-JSON bodies with `BadRequestError`, so
 adapters can return a client error without treating caller mistakes as server failures.
 
@@ -409,9 +413,9 @@ route passes and connection effects, without running handlers or writing audit r
 advisory: invocation always checks the actual target again. File probes cover custom path and
 document-type conditions; body routes retain the existing project-level pass before target checks.
 
-
 The operation inventory is validated by `schemas/semantic-workbench-operations-v1.json` through
 the same Ajv setup as access configuration. Route rows own actions, client actions and initial
 resource kinds; the inventory adds public ids, effects, limits, exposure, dispatch and handler-check
-coverage. Classifier names are keys of `operationClassifiers`. Agent plan bodies have their own
+coverage. Classifier names are keys of `operationClassifiers`; calls cannot override the selected
+classifier. Agent plan bodies have their own
 `AGENT_PLAN_REQUEST_LIMIT` (64,000 bytes), independent of the Git request limit.

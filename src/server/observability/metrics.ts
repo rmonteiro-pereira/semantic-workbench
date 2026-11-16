@@ -1,8 +1,6 @@
 // The metrics the server records. Instruments come from the OpenTelemetry API, so they record
 // nothing until telemetry registers a meter provider.
-import { CALLER_ORIGINS, operationById } from '../auth/operation-inventory';
-import type { CallerOrigin } from '../auth/caller';
-import { OPERATION_OUTCOMES, type OperationOutcome } from '../auth/operation-outcome';
+import type { CallerOrigin, OperationOutcome } from '../../shared/observability/operation';
 import { metrics, type Attributes } from '@opentelemetry/api';
 import type { ReactRenderReport } from '../../shared/observability/browser-report';
 
@@ -132,9 +130,8 @@ export function recordReactRender(report: ReactRenderReport): void {
   use().reactBase.record(report.baseDurationMs, attributes);
 }
 
-/** Records an operation using only fixed origin, inventory id and outcome labels. */
+/** Records an operation with labels already validated by the operation boundary. */
 export function recordOperation(origin: CallerOrigin, operation: string, outcome: OperationOutcome, durationMs: number): void {
-  if (!CALLER_ORIGINS.includes(origin) || !operationById(operation) || !OPERATION_OUTCOMES.includes(outcome)) throw Error('Invalid operation metric labels.');
   const attributes = { origin, operation, outcome };
   use().operations.add(1, attributes);
   use().operationDuration.record(durationMs, attributes);
