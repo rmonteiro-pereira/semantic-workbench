@@ -10,14 +10,14 @@ For current package versions, see [the technology stack](../README.md#technology
 
 ## Rendering and layout engines
 
-| Component | Implemented responsibility |
-| --- | --- |
-| React Flow | HTML/SVG interaction, compound nodes, selection and handles |
-| Cytoscape with fCoSE | Network view: force-directed layout of entities inside compound areas, run in a worker |
-| ELK Layered | Layered view: directed layout with areas, ports and orthogonal routes |
-| ELK sporeOverlap and box | Network view: removes overlaps inside each area, then packs the areas |
-| React Flow Smart Edge | Shared worker routes for detailed/visible connections |
-| Local graph functions | Traversal, projection, labels and incremental placement |
+| Component                | Implemented responsibility                                                             |
+| ------------------------ | -------------------------------------------------------------------------------------- |
+| React Flow               | HTML/SVG interaction, compound nodes, selection and handles                            |
+| Cytoscape with fCoSE     | Network view: force-directed layout of entities inside compound areas, run in a worker |
+| ELK Layered              | Layered view: directed layout with areas, ports and orthogonal routes                  |
+| ELK sporeOverlap and box | Network view: removes overlaps inside each area, then packs the areas                  |
+| React Flow Smart Edge    | Shared worker routes for detailed/visible connections                                  |
+| Local graph functions    | Traversal, projection, labels and incremental placement                                |
 
 Sigma/WebGL was considered for very large networks but is not an implemented mode. Adding another
 renderer would need explicit behavior for editable cards, port identity, selection and provenance;
@@ -52,7 +52,6 @@ it is not a drop-in performance switch.
    Counted-card text compensates for zoom. Explicit area choices bypass the automatic decision.
    Layered opens on the first area at readable name scale without moving its orthogonal routes;
    Fit returns to the whole model. Resizing does not change the automatic representation.
-
 
 `src/app/graph/full-layout.ts` and its workers own engine input/output.
 `full-graph-viewport.ts` owns Fit and readable selection framing; `useFullGraphEdges.ts` builds

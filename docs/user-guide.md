@@ -280,10 +280,7 @@ A repository-root `.semantic-workbench.json` can declare project folders:
 ```json
 {
   "schema": "semantic-workbench/repository/v1",
-  "projects": [
-    { "path": "domains/sales", "name": "Sales" },
-    { "path": "domains/finance" }
-  ]
+  "projects": [{ "path": "domains/sales", "name": "Sales" }, { "path": "domains/finance" }]
 }
 ```
 
@@ -479,12 +476,12 @@ edit must produce exactly the original graph minus intended removals plus intend
 Changing unrelated resources is refused. Statements with adjacent comments require confirmation
 before removal. A refusal is shown once and retains its jump to Source.
 
-| Serialization | Preserved-edit scope | Source-only cases |
-| --- | --- | --- |
-| N-Triples | Changed whole lines | Unsupported document syntax |
-| Turtle | Changed predicate/object pairs | Statements the editor cannot split safely |
-| N3 | Turtle-style statement edits | Resources involved in formulae or rules |
-| RDF/XML | Changed property elements | Collections, reification, `rdf:li`, nested descriptions |
+| Serialization | Preserved-edit scope           | Source-only cases                                       |
+| ------------- | ------------------------------ | ------------------------------------------------------- |
+| N-Triples     | Changed whole lines            | Unsupported document syntax                             |
+| Turtle        | Changed predicate/object pairs | Statements the editor cannot split safely               |
+| N3            | Turtle-style statement edits   | Resources involved in formulae or rules                 |
+| RDF/XML       | Changed property elements      | Collections, reification, `rdf:li`, nested descriptions |
 
 The source editor supports YAML, JSON, Turtle, N3, N-Triples and RDF/XML highlighting, folding,
 search/replace, Go to line, undo/redo and inline findings. Extension JSON inside YAML is colored as

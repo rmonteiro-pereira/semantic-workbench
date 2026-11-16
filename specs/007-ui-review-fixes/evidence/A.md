@@ -6,21 +6,21 @@ T011–T022 are complete, including the formerly skipped T012–T014 and the rem
 failures reproduce on foundation `593f2c18` outside lane A ownership. The full gate was executed; it is not reported as green. The following results supersede the original skips and gate limitations
 retained below.
 
-| Command | Final output summary | Log under `/tmp/sw-A/resume/` |
-| --- | --- | --- |
-| `bun test` | `2076 pass`; `1 fail`; `130793 expect() calls`; `Ran 2077 tests across 286 files` | `unit.log` |
-| Graph-focused unit repetition | `129 pass`; `0 fail`; `4765 expect() calls`; `Ran 129 tests across 21 files` | `graph-unit-final.log` |
-| `bun --bun run check` | Exit 0; formatting, lint, comments, theme and brand checks pass | `check-delivery.log` |
-| `bun --bun run build` | Exit 0; `built in 2.37s`; existing chunk-size warning | `build-after-selection.log` |
-| `bun run test:graph` | `18 graph and neighborhood checks passed`; all 16 opening cases pass; longest pierce task 98 ms | `graph-final-retry.log` |
-| `bun run test:overview-areas` | `7 overview area checks passed` | `overview.log` |
-| `bun run test:edges` | `6 edge attachment UI checks passed` | `edges-retry.log` |
-| `bun run test:grouping-validation` | `8 grouping and validation UI checks passed` | `grouping.log` |
-| `bun run test:responsive` | Fails only at Mall ODCS canvas height: 407 px, expected at least 421 px, after the preceding blocks pass | `responsive-retry.log` |
-| `bun run test:ui` | `20 UI checks passed` | `ui-after-selection.log` |
-| `bun run test:examples:ui` | `19 example UI checks passed; no browser runtime errors` | `examples-retry.log` |
-| `bun scripts/mutation-tests.ts` | `670/670 targeted mutants killed; all unmodified module baselines passed` | `mutation-retry.log` |
-| `bun run test:terminology` | No KPI or contract object in the eight files' views, metric detail, wizard, README and docs | `terminology-final.log` |
+| Command                            | Final output summary                                                                                     | Log under `/tmp/sw-A/resume/` |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| `bun test`                         | `2076 pass`; `1 fail`; `130793 expect() calls`; `Ran 2077 tests across 286 files`                        | `unit.log`                    |
+| Graph-focused unit repetition      | `129 pass`; `0 fail`; `4765 expect() calls`; `Ran 129 tests across 21 files`                             | `graph-unit-final.log`        |
+| `bun --bun run check`              | Exit 0; formatting, lint, comments, theme and brand checks pass                                          | `check-delivery.log`          |
+| `bun --bun run build`              | Exit 0; `built in 2.37s`; existing chunk-size warning                                                    | `build-after-selection.log`   |
+| `bun run test:graph`               | `18 graph and neighborhood checks passed`; all 16 opening cases pass; longest pierce task 98 ms          | `graph-final-retry.log`       |
+| `bun run test:overview-areas`      | `7 overview area checks passed`                                                                          | `overview.log`                |
+| `bun run test:edges`               | `6 edge attachment UI checks passed`                                                                     | `edges-retry.log`             |
+| `bun run test:grouping-validation` | `8 grouping and validation UI checks passed`                                                             | `grouping.log`                |
+| `bun run test:responsive`          | Fails only at Mall ODCS canvas height: 407 px, expected at least 421 px, after the preceding blocks pass | `responsive-retry.log`        |
+| `bun run test:ui`                  | `20 UI checks passed`                                                                                    | `ui-after-selection.log`      |
+| `bun run test:examples:ui`         | `19 example UI checks passed; no browser runtime errors`                                                 | `examples-retry.log`          |
+| `bun scripts/mutation-tests.ts`    | `670/670 targeted mutants killed; all unmodified module baselines passed`                                | `mutation-retry.log`          |
+| `bun run test:terminology`         | No KPI or contract object in the eight files' views, metric detail, wizard, README and docs              | `terminology-final.log`       |
 
 ### Foundation comparisons and integrator follow-ups
 
@@ -63,7 +63,6 @@ working directory. Cleanup log: `/tmp/sw-A/resume/process-cleanup.log`. All fina
 covers all lane files and final after images with zero confidential-term hits.
 
 Implementation commits in this continuation: `2898b6d1`, `a2517826`, `4ee6dcc4`, `9a12f12f`, `bcbc51c7`, `bad5978e`, `663cd561`. The final evidence and formatting commits follow these.
-
 
 ## Integrator continuation: measured openings
 
@@ -137,7 +136,6 @@ Original T014 skip: the current Layered result includes compound cross-area edge
 
 T015 implementation: Controls folds secondary switches before the desktop toolbar wraps, and Exit stays outside it. Unrelated node opacity is 0.35. Selection fits neighbors when readable and otherwise centers the selected node at readable zoom. Fresh selected-node captures: review `screenshots/followup/local-ubl-full-graph--network-node-selected-1440.png` → `/tmp/sw-A/after/screenshots/followup/local-ubl-full-graph--network-node-selected-1440.png`. Opened both: one toolbar row; names larger; initial trial exposed a selected node outside the pane, corrected by centering the selected node when its neighborhood cannot fit at readable zoom. Fullscreen restoration and rendered-geometry checks passed in the final graph suite.
 
-
 ## Original documentation and checks (superseded)
 
 T022 complete with the T012–T014 limitation preserved: docs no longer promise every initial name is readable, and accurately retain the existing 250-entity collapse rule. Graph controls, neighborhood opening, Other files and Full pierce Fit are documented. `test:terminology`: “Terminology check passed: no KPI or contract object in 8 files' views, the metric detail, the wizard, README and docs.” Public documentation and changelog scanner: 0 hits in 3 files.
@@ -145,7 +143,6 @@ T022 complete with the T012–T014 limitation preserved: docs no longer promise 
 T021 shared browser export for lane E: `humanizeIdentifier(identifier: string): string` from `src/app/graph/EntityName.tsx`. It handles camel case, acronym boundaries and namespace labels without rewriting model identifiers. No new shared path was named in plan.md; the task's existing EntityName module is the reuse point.
 
 The first terminology attempt omitted the base URL and preload, attempted 5173 and failed with connection refused; rerun succeeded using 5211/5212. No changes to another checkout or service.
-
 
 ## Original gate findings (rechecked in the final gate)
 
@@ -166,23 +163,22 @@ The original all-graphs capture was stopped after the 1280 pass because it conti
 
 All successful browser checks below use `SW_BASE_URL=http://127.0.0.1:5211`, `TMPDIR=/tmp/sw-A` and `BUN_OPTIONS=--preload=/tmp/sw-A/port.cjs`. The preload binds Bun listeners to 5212. Checks ran sequentially; no API fixtures shared a listener concurrently.
 
-| Command | Final summary | Log |
-| --- | --- | --- |
-| Graph-focused `bun test` over 21 files | `127 pass`, `0 fail`, `4761 expect() calls`; 13.54 s | `/tmp/sw-A/graph-unit.log` |
-| `bun --bun run check` | Exit 0; all 1027 files formatted; comments, theme and brand checks pass | `/tmp/sw-A/check.log` |
-| `bun --bun run build` | Exit 0; `built in 2.17s`; existing chunk-size warning remains | `/tmp/sw-A/build.log` |
-| `bun run test:graph` | `18 graph and neighborhood checks passed`; longest pierce main-thread task 78 ms | `/tmp/sw-A/graph-check.log` |
-| `bun run test:overview-areas` | `7 overview area checks passed` | `/tmp/sw-A/overview-areas.log` |
-| `bun run test:grouping-validation` | `8 grouping and validation UI checks passed` | `/tmp/sw-A/grouping-validation.log` |
-| `bun run test:ui` | `20 UI checks passed` | `/tmp/sw-A/ui.log` |
-| `bun run test:terminology` | `Terminology check passed` | `/tmp/sw-A/terminology.log` |
-| `bun run test:edges` | Exit 1 after initial and zoomed attachment checks; visible-path count after readable selection fails | `/tmp/sw-A/edges.log` |
-| `bun run test:examples:ui` | Exit 1 after 17 checks; missing `.mapping-layer-chain` | `/tmp/sw-A/examples-ui.log` |
-| `bun test --max-concurrency 1` | Stopped, exit 143; repeated `EADDRINUSE` at 5212 in API/OIDC fixtures | `/tmp/sw-A/unit.log` |
-| `bun scripts/mutation-tests.ts` | Exit 1: `Baseline failed (remote-redirect)`; redirect fixture needs two simultaneous listeners and gets `EADDRINUSE` | `/tmp/sw-A/mutation.log` |
+| Command                                | Final summary                                                                                                        | Log                                 |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| Graph-focused `bun test` over 21 files | `127 pass`, `0 fail`, `4761 expect() calls`; 13.54 s                                                                 | `/tmp/sw-A/graph-unit.log`          |
+| `bun --bun run check`                  | Exit 0; all 1027 files formatted; comments, theme and brand checks pass                                              | `/tmp/sw-A/check.log`               |
+| `bun --bun run build`                  | Exit 0; `built in 2.17s`; existing chunk-size warning remains                                                        | `/tmp/sw-A/build.log`               |
+| `bun run test:graph`                   | `18 graph and neighborhood checks passed`; longest pierce main-thread task 78 ms                                     | `/tmp/sw-A/graph-check.log`         |
+| `bun run test:overview-areas`          | `7 overview area checks passed`                                                                                      | `/tmp/sw-A/overview-areas.log`      |
+| `bun run test:grouping-validation`     | `8 grouping and validation UI checks passed`                                                                         | `/tmp/sw-A/grouping-validation.log` |
+| `bun run test:ui`                      | `20 UI checks passed`                                                                                                | `/tmp/sw-A/ui.log`                  |
+| `bun run test:terminology`             | `Terminology check passed`                                                                                           | `/tmp/sw-A/terminology.log`         |
+| `bun run test:edges`                   | Exit 1 after initial and zoomed attachment checks; visible-path count after readable selection fails                 | `/tmp/sw-A/edges.log`               |
+| `bun run test:examples:ui`             | Exit 1 after 17 checks; missing `.mapping-layer-chain`                                                               | `/tmp/sw-A/examples-ui.log`         |
+| `bun test --max-concurrency 1`         | Stopped, exit 143; repeated `EADDRINUSE` at 5212 in API/OIDC fixtures                                                | `/tmp/sw-A/unit.log`                |
+| `bun scripts/mutation-tests.ts`        | Exit 1: `Baseline failed (remote-redirect)`; redirect fixture needs two simultaneous listeners and gets `EADDRINUSE` | `/tmp/sw-A/mutation.log`            |
 
 The full unit and mutation commands cannot pass with the one assigned API port: serial test execution does not remove fixtures' simultaneous API/issuer or origin/redirect listeners. No additional port was allocated to bypass the restriction. No new legibility mutants were added because T013 was skipped.
-
 
 The final responsive run passed all Graph/Neighborhood fullscreen, resize and overlay blocks, then failed in `scripts/helpers/edit-tour.ts:17`: opening `sales.ossie.yaml` left `ubl.ontology.yaml` chosen (`screen-tour.ts:40`, called from responsive-ui-tests.ts:1474). Exit 1; log `/tmp/sw-A/responsive.log`. This editing-tour failure is outside lane A ownership.
 
@@ -195,23 +191,22 @@ The initial remaining-graphs driver reached every required 1440 Network state, t
 Before root: `/home/rodrigo/projetos/semantic-workbench-ui-review-20261115/screenshots/`.
 After root: `/tmp/sw-A/after/`. Every row below was opened on both sides, with the same example, file, state stage, viewport and light theme. fCoSE positions vary between fresh layouts.
 
-| Task | Before, relative to before root | After, relative to after root | Observation |
-| --- | --- | --- | --- |
-| T015 | `followup/local-ubl-full-graph--network-node-selected-1440.png` | `screenshots/followup/local-ubl-full-graph--network-node-selected-1440.png` | Order is readable and centered beside details; toolbar occupies one row. |
-| T015 | `states/local-full-graph-network--fullscreen-node-selected-1440.png` | `states/local-full-graph-network--fullscreen-node-selected-1440.png` | Fit, Controls and Exit remain in the top row; selected name readable; unrelated cards retain visible names. |
-| T016 | `states/local-full-graph-network--labels-on-1440.png` | `states/local-full-graph-network--labels-on-1440.png` | Readable selected neighborhood; labels remain dense at readable zoom. The browser assertion separately proves that unfocused fit zoom paints no global labels. |
-| T016 | `states/local-full-graph-network--areas-collapsed-1440.png` | `states/local-full-graph-network--areas-collapsed-1440.png` | Each count appears once; Document reference and Allowance charge remain complete words. |
-| T017 | `states/local-neighborhood--first-view-1280.png` | `targeted/local-neighborhood--first-view-1280.png` | Center description is legible, canvas taller; cross-file chips are folded into Other files. |
-| T017, T021 | `states/local-neighborhood--walk-3-1440.png` | `targeted/local-neighborhood--walk-3-1440.png` | Identifier and its description remain readable beside details; the center picker displays its full text. |
-| T018 | `followup/local-ubl-neighborhood--pierce-alone-1440.png` | `targeted/local-ubl-neighborhood--pierce-alone-1440.png` | Party/Both result retains readable cards and offers “45 entities, Fit”; no inspector is open. |
-| Historical T019 partial (superseded) | `states/local-full-graph-network--zoomed-in-1440.png` | `states/local-full-graph-network--zoomed-in-1440.png` | Routing still resembles frames; title layering is unresolved. Badge spacing is visible in the selected-node pairs, not this random zoom crop. |
-| T020 | `states/local-full-graph--empty-1440.png` | `states/local-full-graph--empty-1440.png` | Area count reads “1 entity”. |
-| T020 | `states/local-neighborhood--empty-1440.png` | `states/local-neighborhood--empty-1440.png` | Lone card stays at natural size; “0 of 0 neighbors” is absent. |
-| T020 | `states/local-full-graph-network--mini-map-on-1440.png` | `states/local-full-graph-network--mini-map-on-1440.png` | Mini-map has a visible border and viewport rectangle. |
-| T020 | `states/local-full-graph-network--zoomed-minimum-1440.png` | `states/local-full-graph-network--zoomed-minimum-1440.png` | Minimum zoom retains a recognizable graph instead of a near-dot; it remains a quarter of fit zoom, not a reading view. |
-| T021 | `states/local-neighborhood--fullscreen-390.png` | `targeted/local-neighborhood--fullscreen-390.png` | AllocationShare stays readable, labelled Exit is visible and details occupy the bottom 40%. |
-| T021 | `states/local-full-graph-network--first-view-2560.png` | `states/local-full-graph-network--first-view-2560.png` | Area headings use Document reference and Allowance charge; identifiers in source and card names retain identity. Title crossings remain the T019 limitation. |
-
+| Task                                 | Before, relative to before root                                      | After, relative to after root                                               | Observation                                                                                                                                                    |
+| ------------------------------------ | -------------------------------------------------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T015                                 | `followup/local-ubl-full-graph--network-node-selected-1440.png`      | `screenshots/followup/local-ubl-full-graph--network-node-selected-1440.png` | Order is readable and centered beside details; toolbar occupies one row.                                                                                       |
+| T015                                 | `states/local-full-graph-network--fullscreen-node-selected-1440.png` | `states/local-full-graph-network--fullscreen-node-selected-1440.png`        | Fit, Controls and Exit remain in the top row; selected name readable; unrelated cards retain visible names.                                                    |
+| T016                                 | `states/local-full-graph-network--labels-on-1440.png`                | `states/local-full-graph-network--labels-on-1440.png`                       | Readable selected neighborhood; labels remain dense at readable zoom. The browser assertion separately proves that unfocused fit zoom paints no global labels. |
+| T016                                 | `states/local-full-graph-network--areas-collapsed-1440.png`          | `states/local-full-graph-network--areas-collapsed-1440.png`                 | Each count appears once; Document reference and Allowance charge remain complete words.                                                                        |
+| T017                                 | `states/local-neighborhood--first-view-1280.png`                     | `targeted/local-neighborhood--first-view-1280.png`                          | Center description is legible, canvas taller; cross-file chips are folded into Other files.                                                                    |
+| T017, T021                           | `states/local-neighborhood--walk-3-1440.png`                         | `targeted/local-neighborhood--walk-3-1440.png`                              | Identifier and its description remain readable beside details; the center picker displays its full text.                                                       |
+| T018                                 | `followup/local-ubl-neighborhood--pierce-alone-1440.png`             | `targeted/local-ubl-neighborhood--pierce-alone-1440.png`                    | Party/Both result retains readable cards and offers “45 entities, Fit”; no inspector is open.                                                                  |
+| Historical T019 partial (superseded) | `states/local-full-graph-network--zoomed-in-1440.png`                | `states/local-full-graph-network--zoomed-in-1440.png`                       | Routing still resembles frames; title layering is unresolved. Badge spacing is visible in the selected-node pairs, not this random zoom crop.                  |
+| T020                                 | `states/local-full-graph--empty-1440.png`                            | `states/local-full-graph--empty-1440.png`                                   | Area count reads “1 entity”.                                                                                                                                   |
+| T020                                 | `states/local-neighborhood--empty-1440.png`                          | `states/local-neighborhood--empty-1440.png`                                 | Lone card stays at natural size; “0 of 0 neighbors” is absent.                                                                                                 |
+| T020                                 | `states/local-full-graph-network--mini-map-on-1440.png`              | `states/local-full-graph-network--mini-map-on-1440.png`                     | Mini-map has a visible border and viewport rectangle.                                                                                                          |
+| T020                                 | `states/local-full-graph-network--zoomed-minimum-1440.png`           | `states/local-full-graph-network--zoomed-minimum-1440.png`                  | Minimum zoom retains a recognizable graph instead of a near-dot; it remains a quarter of fit zoom, not a reading view.                                         |
+| T021                                 | `states/local-neighborhood--fullscreen-390.png`                      | `targeted/local-neighborhood--fullscreen-390.png`                           | AllocationShare stays readable, labelled Exit is visible and details occupy the bottom 40%.                                                                    |
+| T021                                 | `states/local-full-graph-network--first-view-2560.png`               | `states/local-full-graph-network--first-view-2560.png`                      | Area headings use Document reference and Allowance charge; identifiers in source and card names retain identity. Title crossings remain the T019 limitation.   |
 
 ## Completion and handoff
 

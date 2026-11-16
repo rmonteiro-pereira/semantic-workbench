@@ -53,59 +53,58 @@ Decisions, the source of every number, the review's inferences to confirm, and t
 - **Proof**: the opening browser checks cover UBL and Mall at 390, 1280, 1440 and 2560. Additional-layout times, captures and the comparison against the foundation are recorded in `evidence/A.md`.
   These decisions supersede the earlier aspect-ratio-only proposals without changing any locked threshold.
 
-
 ## Provenance of numbers
 
 See the spec's Measured thresholds table. The lane A baseline task measures UBL and Mall at the four widths on e8b7d69 and writes the locked values into this section as the first change of lane A:
 
-| Name | Locked value | Measured baseline |
-| --- | --- | --- |
-| `NAME_MIN_PX` | 9 px | Network names below this at 390, 1280 and 1440; retained from the review proposal. |
-| `DIM_MIN_OPACITY` | 0.35 | Existing unrelated-node opacity is 0.32; retained proposed floor. |
-| `NEIGHBORHOOD_CANVAS_MIN_PX` | 480 px | UBL and Mall canvas height is 414 px at 1280; retained proposed target. |
-| `MIN_ZOOM_FRACTION` | 0.25 | Existing minimum is fixed at 0.001; retained proposed quarter-fit floor. |
+| Name                         | Locked value | Measured baseline                                                                  |
+| ---------------------------- | ------------ | ---------------------------------------------------------------------------------- |
+| `NAME_MIN_PX`                | 9 px         | Network names below this at 390, 1280 and 1440; retained from the review proposal. |
+| `DIM_MIN_OPACITY`            | 0.35         | Existing unrelated-node opacity is 0.32; retained proposed floor.                  |
+| `NEIGHBORHOOD_CANVAS_MIN_PX` | 480 px       | UBL and Mall canvas height is 414 px at 1280; retained proposed target.            |
+| `MIN_ZOOM_FRACTION`          | 0.25         | Existing minimum is fixed at 0.001; retained proposed quarter-fit floor.           |
 
 ### Graph baseline on e8b7d69
 
 Light theme; fresh browser state per row. Name height is the minimum rendered strong-element box, including line height. Network starts randomly, so these are observations, not golden positions. The review's 6 px is an approximate glyph size; the DOM line boxes below are taller. Layered UBL at 1440 occupies 19.6% of the canvas.
 
-| Model | Viewport width | Layout | Name box height | Graph box | Pane box |
-| --- | --- | --- | --- | --- | --- |
-| ubl | 390 | network | 3.23 px | 336.0 × 241.2 | 376 × 587 |
-| ubl | 390 | layered | 1.05 px | 336.0 × 45.5 | 376 × 587 |
-| ubl | 390 | neighborhood | 7.20 px | 555.0 × 353.4 | 376 × 528 |
-| mall | 390 | network | 0.84 px | 336.0 × 270.0 | 376 × 587 |
-| mall | 390 | layered | 0.59 px | 336.0 × 139.7 | 376 × 587 |
-| mall | 390 | neighborhood | 8.14 px | 356.0 × 361.8 | 376 × 495 |
-| ubl | 1280 | network | 7.23 px | 847.6 × 455.0 | 954 × 509 |
-| ubl | 1280 | layered | 2.67 px | 852.0 × 115.4 | 954 × 509 |
-| ubl | 1280 | neighborhood | 7.20 px | 555.0 × 353.4 | 954 × 414 |
-| mall | 1280 | network | 1.72 px | 811.4 × 424.0 | 954 × 474 |
-| mall | 1280 | layered | 1.49 px | 852.0 × 354.2 | 954 × 474 |
-| mall | 1280 | neighborhood | 8.08 px | 353.6 × 359.3 | 954 × 414 |
-| ubl | 1440 | network | 8.29 px | 996.0 × 524.3 | 1114 × 689 |
-| ubl | 1440 | layered | 3.12 px | 996.0 × 135.0 | 1114 × 689 |
-| ubl | 1440 | neighborhood | 9.90 px | 763.4 × 486.1 | 1114 × 627 |
-| mall | 1440 | network | 2.29 px | 996.0 × 556.5 | 1114 × 689 |
-| mall | 1440 | layered | 1.75 px | 996.0 × 414.0 | 1114 × 689 |
-| mall | 1440 | neighborhood | 11.59 px | 507.0 × 515.2 | 1114 × 594 |
-| ubl | 2560 | network | 18.20 px | 1988.6 × 1099.0 | 2234 × 1229 |
-| ubl | 2560 | layered | 6.26 px | 1996.0 × 270.5 | 2234 × 1229 |
-| ubl | 2560 | neighborhood | 18.97 px | 1462.5 × 931.3 | 2234 × 1204 |
-| mall | 2560 | network | 4.59 px | 1905.5 × 1099.0 | 2234 × 1229 |
-| mall | 2560 | layered | 3.50 px | 1996.0 × 829.7 | 2234 × 1229 |
-| mall | 2560 | neighborhood | 23.42 px | 1024.7 × 1041.3 | 2234 × 1204 |
+| Model | Viewport width | Layout       | Name box height | Graph box       | Pane box    |
+| ----- | -------------- | ------------ | --------------- | --------------- | ----------- |
+| ubl   | 390            | network      | 3.23 px         | 336.0 × 241.2   | 376 × 587   |
+| ubl   | 390            | layered      | 1.05 px         | 336.0 × 45.5    | 376 × 587   |
+| ubl   | 390            | neighborhood | 7.20 px         | 555.0 × 353.4   | 376 × 528   |
+| mall  | 390            | network      | 0.84 px         | 336.0 × 270.0   | 376 × 587   |
+| mall  | 390            | layered      | 0.59 px         | 336.0 × 139.7   | 376 × 587   |
+| mall  | 390            | neighborhood | 8.14 px         | 356.0 × 361.8   | 376 × 495   |
+| ubl   | 1280           | network      | 7.23 px         | 847.6 × 455.0   | 954 × 509   |
+| ubl   | 1280           | layered      | 2.67 px         | 852.0 × 115.4   | 954 × 509   |
+| ubl   | 1280           | neighborhood | 7.20 px         | 555.0 × 353.4   | 954 × 414   |
+| mall  | 1280           | network      | 1.72 px         | 811.4 × 424.0   | 954 × 474   |
+| mall  | 1280           | layered      | 1.49 px         | 852.0 × 354.2   | 954 × 474   |
+| mall  | 1280           | neighborhood | 8.08 px         | 353.6 × 359.3   | 954 × 414   |
+| ubl   | 1440           | network      | 8.29 px         | 996.0 × 524.3   | 1114 × 689  |
+| ubl   | 1440           | layered      | 3.12 px         | 996.0 × 135.0   | 1114 × 689  |
+| ubl   | 1440           | neighborhood | 9.90 px         | 763.4 × 486.1   | 1114 × 627  |
+| mall  | 1440           | network      | 2.29 px         | 996.0 × 556.5   | 1114 × 689  |
+| mall  | 1440           | layered      | 1.75 px         | 996.0 × 414.0   | 1114 × 689  |
+| mall  | 1440           | neighborhood | 11.59 px        | 507.0 × 515.2   | 1114 × 594  |
+| ubl   | 2560           | network      | 18.20 px        | 1988.6 × 1099.0 | 2234 × 1229 |
+| ubl   | 2560           | layered      | 6.26 px         | 1996.0 × 270.5  | 2234 × 1229 |
+| ubl   | 2560           | neighborhood | 18.97 px        | 1462.5 × 931.3  | 2234 × 1204 |
+| mall  | 2560           | network      | 4.59 px         | 1905.5 × 1099.0 | 2234 × 1229 |
+| mall  | 2560           | layered      | 3.50 px         | 1996.0 × 829.7  | 2234 × 1229 |
+| mall  | 2560           | neighborhood | 23.42 px        | 1024.7 × 1041.3 | 2234 × 1204 |
 
 ## Inferences in the review to confirm before fixing
 
-| Finding | What the review inferred | Confirm in task | Result |
-| --- | --- | --- | --- |
-| M5 | CodeMirror's light defaults show through (`.cm-collapsedLines`, merge gutters) | lane C 'Confirm first' | pending, `evidence/C.md` |
-| M17 | Cause in `hops.css:39-45` and `odcs.css:628-636` | lane B 'Confirm first' | pending, `evidence/B.md` |
-| M20 | Empty trash may remove a file the dialog does not list | lane E 'Confirm first' | code reading below; pending test, `evidence/E.md` |
-| M24 | The detail is below the list on a phone | lane E 'Confirm first' | pending, `evidence/E.md` |
-| m4 | The pink tint comes from `theme-palette.ts` | lane E 'Confirm first' | `#ab6d64` is a palette entry; pending, `evidence/E.md` |
-| Status bar | 277 may be metric links | lane E investigation | see below; pending, `evidence/E.md` |
+| Finding    | What the review inferred                                                       | Confirm in task        | Result                                                 |
+| ---------- | ------------------------------------------------------------------------------ | ---------------------- | ------------------------------------------------------ |
+| M5         | CodeMirror's light defaults show through (`.cm-collapsedLines`, merge gutters) | lane C 'Confirm first' | pending, `evidence/C.md`                               |
+| M17        | Cause in `hops.css:39-45` and `odcs.css:628-636`                               | lane B 'Confirm first' | pending, `evidence/B.md`                               |
+| M20        | Empty trash may remove a file the dialog does not list                         | lane E 'Confirm first' | code reading below; pending test, `evidence/E.md`      |
+| M24        | The detail is below the list on a phone                                        | lane E 'Confirm first' | pending, `evidence/E.md`                               |
+| m4         | The pink tint comes from `theme-palette.ts`                                    | lane E 'Confirm first' | `#ab6d64` is a palette entry; pending, `evidence/E.md` |
+| Status bar | 277 may be metric links                                                        | lane E investigation   | see below; pending, `evidence/E.md`                    |
 
 ## Review items judged wrong, partly wrong or not reproducible
 
