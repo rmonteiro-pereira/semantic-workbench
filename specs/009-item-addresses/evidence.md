@@ -509,3 +509,9 @@ Store and pure replay proof: `bun test tests/address-migration-store.test.ts tes
 ### Interrupted history writes
 
 The journal test hook now supports interruption before as well as after a rename. The three-definition fixture interrupts every one of its eight rename steps on both sides, including the store steps. Recovery settles definitions and history together, and a second recovery changes nothing. A missing staged source separately proves complete rollback to old definitions and empty history. Proof: `bun test tests/address-migration-store.test.ts tests/journal.test.ts` — 14 pass, 0 fail, 141 assertions.
+
+### Save-route migration append
+
+Single and batch routes validate optional declarations into typed entries and use the same enforcement in workspace entry points. Invalid project/document ownership and more than 64 entries refuse the whole request; omission preserves the existing path. Store steps join the source journal with the same operation ID. The existing batch error cleanup discarded staged data on JournalCrash; that newly relevant recovery bug is fixed by retaining crash staging, as the journal requires. Route plus Viewer/Editor/Steward write matrix proof: 16 pass, 0 fail, 1,278 assertions.
+
+Operation-boundary follow-up: feature 010 is absent. Existing save/batch routes generate the journal operation ID, and recovery replays its staged records without recomputing IDs or timestamps. A lost-reply retry with the old base hash is stale; client-stable operation keys and completed-operation replies remain for 010 integration. Appends are staged and committed synchronously in one workspace process, with no await between the store decision and journal execution; multiple processes sharing DATA_DIR remain unsupported.

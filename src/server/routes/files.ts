@@ -1,3 +1,4 @@
+import { declaredAddressMigrations } from '../projects/address-migrations';
 // Serves project files and validates save requests against their original content hashes.
 import { FILE_SAVE_REQUEST_LIMIT } from '../request';
 import { requestReader } from '../auth/request-scope';
@@ -15,13 +16,14 @@ export const fileRoutes: Route = async (ws, req, url) => {
   if (req.method === 'GET') return Response.json(ws.readFile(slug, path, reader));
   if (req.method === 'PUT') {
     const body = await readJson(req, FILE_SAVE_REQUEST_LIMIT);
-    if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).some(k => !['baseHash', 'source', 'patches'].includes(k)))
+    if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).some(k => !['baseHash', 'source', 'patches', 'declaredMigrations'].includes(k)))
       throw new BadRequestError('Expected {baseHash, source} or {baseHash, patches}.');
     if (body.baseHash !== null && (typeof body.baseHash !== 'string' || !HASH.test(body.baseHash)))
       throw new BadRequestError('baseHash must be the SHA-256 of the file version the edit started from, or null for a new file.');
     if ((body.source === undefined) === (body.patches === undefined)) throw new BadRequestError('Send either source or patches.');
     if (body.source !== undefined && typeof body.source !== 'string') throw new BadRequestError('source must be text.');
-    return Response.json(await ws.saveFile(slug, path, body, reader));
+    const declaredMigrations = declaredAddressMigrations(body.declaredMigrations, slug, [path]);
+    return Response.json(await ws.saveFile(slug, path, { ...body, declaredMigrations }, reader));
   }
   return null;
 };

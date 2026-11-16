@@ -1,4 +1,5 @@
 import type { OperationOutcome } from '../../auth/operation-outcome';
+import { declaredAddressMigrations, operationMigrations, stageAddressMigrations } from '../address-migrations';
 // Saves and reverts documents: a stale base is refused, the reader's guard judges the text, and the
 // swap is journaled so a crash leaves either the old or the new bytes.
 import { existsSync, readFileSync, rmSync } from 'node:fs';
@@ -6,7 +7,7 @@ import { join } from 'node:path';
 import { InputError, MAX_INPUT_BYTES } from '../../../shared/validation/diagnostics';
 import { atomicWrite, decode, encode, sha256 } from '../atomic';
 import type { Git } from '../git';
-import type { Journal } from '../journal';
+import { JournalCrash, type Journal } from '../journal';
 import { projectFile, projectPath, projectPrefix, repoDir, type DataLayout } from '../paths';
 import { clearPersonalDrafts } from '../personal-state';
 import type { Reader } from '../reader';
@@ -79,10 +80,11 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
     const change = { project: slug, path, before, after: edited, committed };
     return { edited, guarded: guard?.([change]) };
   }
-  async function saveFile(slug: string, path: string, body: { baseHash: string | null; source?: string; patches?: Patch[] }, reader: Reader) {
+  async function saveFile(slug: string, path: string, body: { baseHash: string | null; source?: string; patches?: Patch[]; declaredMigrations?: unknown }, reader: Reader) {
     const { guard } = reader;
     entry(slug);
     const relativePath = projectPath(path);
+    const declarations = declaredAddressMigrations(body.declaredMigrations, slug, [relativePath]);
     const check = (at: Place) => guardedEdit(at, { slug, path: relativePath }, body, guard);
     const place = await copies.writePlace(reader, slug, check);
     const file = projectFile(place.layout, slug, relativePath);
@@ -102,13 +104,22 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
       const indexed = indexBytes(slug, relativePath, bytes);
       if (!indexed.file.visible) throw new InputError([{ severity: 'error', code: 'unsupported', path: '/', message: 'Unsupported file type.' }]);
       if (!indexed.file.valid) throw new InputError(indexed.findings);
-      const staging = join(layout.state, `.staging-${journal.newId()}`);
+      const opId = journal.newId();
+      const staging = join(layout.state, `.staging-${opId}`);
       const staged = join(staging, 'source');
       const hash = atomicWrite(staged, bytes);
       const steps = clearPersonalDrafts(state, slug, [relativePath], staging, place.copy ?? undefined);
       if (existsSync(file)) steps.push({ from: file, to: join(staging, 'previous') });
       steps.push({ from: staged, to: file });
-      journal.run('save', steps, [staging]);
+      const commit = declarations.length && gitAvailable ? ((await git.head(repoDir(place.layout, slug))) ?? '') : '';
+      const records = operationMigrations({ id: opId, at: new Date().toISOString(), commit }, declarations);
+      try {
+        steps.push(...stageAddressMigrations({ layout, project: slug, staging }, records));
+        journal.run('save', steps, [staging], opId);
+      } catch (error) {
+        if (!(error instanceof JournalCrash)) rmSync(staging, { recursive: true, force: true });
+        throw error;
+      }
       await rescanIn(place, slug);
       const demoted = guarded ? demotionsOf(guarded) : [];
       // A demoted metric means the stored text differs from what was sent, so it is returned.
@@ -145,11 +156,22 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
     return { edited, guarded: guard?.(changes) };
   }
   // Journal the file swaps together so related edits can be recovered after a crash.
-  async function saveFiles(slug: string, writes: { path: string; baseHash: string | null; source?: string; patches?: Patch[] }[], reader: Reader, kind = 'save-files') {
+  async function saveFiles(
+    slug: string,
+    writes: { path: string; baseHash: string | null; source?: string; patches?: Patch[] }[],
+    reader: Reader,
+    options: string | { kind?: string; declaredMigrations?: unknown } = 'save-files',
+  ) {
     const { guard } = reader;
+    const kind = typeof options === 'string' ? options : (options.kind ?? 'save-files');
     entry(slug);
     if (!Array.isArray(writes) || !writes.length || writes.length > 50) throw new BadRequestError('Expected 1–50 files.');
     const files = writes.map(w => ({ ...w, path: projectPath(w.path) }));
+    const declarations = declaredAddressMigrations(
+      typeof options === 'string' ? undefined : options.declaredMigrations,
+      slug,
+      files.map(file => file.path),
+    );
     if (new Set(files.map(f => f.path)).size !== files.length) throw new BadRequestError('Each file may appear once.');
     if (reader.view && files.some(file => !reader.view!.canRead(slug, file.path))) {
       throw new OccupiedError('The target is unavailable.', {});
@@ -211,9 +233,12 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
             place.copy ?? undefined,
           ),
         );
+        const commit = declarations.length && gitAvailable ? ((await git.head(repoDir(place.layout, slug))) ?? '') : '';
+        const records = operationMigrations({ id: opId, at: new Date().toISOString(), commit }, declarations);
+        steps.push(...stageAddressMigrations({ layout, project: slug, staging }, records));
         journal.run(kind, steps, [staging], opId);
       } catch (error) {
-        rmSync(staging, { recursive: true, force: true });
+        if (!(error instanceof JournalCrash)) rmSync(staging, { recursive: true, force: true });
         throw error;
       }
       await rescanIn(place, slug);

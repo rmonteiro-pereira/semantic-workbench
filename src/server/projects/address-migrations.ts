@@ -2,6 +2,7 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseAddress } from '../../shared/core/item-address';
+import { validateDeclaredMigrations, type DeclaredMigration } from '../../shared/core/address-migration';
 import type { MigrationFile, MigrationKind, MigrationRecord } from '../../shared/core/address-migration';
 import { atomicWriteJson, readJsonFile } from './atomic';
 import { BadRequestError } from './errors';
@@ -99,4 +100,11 @@ export function stageAddressMigrations(context: { layout: DataLayout; project: s
   const staged = join(staging, `address-migrations-${project}.json`);
   atomicWriteJson(staged, { formatVersion: 1, records });
   return [...(existsSync(destination) ? [{ from: destination, to: staged + '.previous' }] : []), { from: staged, to: destination }];
+}
+
+/** Validates an optional save declaration list without exposing locator text in refusal errors. */
+export function declaredAddressMigrations(input: unknown, project: string, documents: readonly string[]): DeclaredMigration[] {
+  const result = validateDeclaredMigrations(input, project, documents);
+  if (!result.ok) throw new BadRequestError(`Invalid declared migrations: ${result.reason}.`);
+  return result.migrations;
 }

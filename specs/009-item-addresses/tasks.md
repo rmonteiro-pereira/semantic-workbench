@@ -186,7 +186,7 @@ changes.
   (before each file, after each file, before and after the store step) using the journal's crash
   hook, then recover twice. Proof: SC-006 test; the store and files are all new or all old, and the
   second recovery adds nothing. (FR-034; SC-006)
-- [ ] T031 [US3] Extend the save and save-batch bodies (`src/server/routes/kpis.ts`,
+- [x] T031 [US3] Extend the save and save-batch bodies (`src/server/routes/kpis.ts`,
   `src/server/routes/files.ts`, `src/server/projects/workspace.ts` `saveFiles`) with the optional
   declared migrations; validate at the boundary into typed objects; refuse the whole request when a
   declaration breaks FR-049; a body without the field behaves as before. Proof: route tests

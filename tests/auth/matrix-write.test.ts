@@ -302,3 +302,28 @@ test('restore and undo authorize original paths and cross-project destinations',
   expect(restore.status).toBe(404);
   expect(snapshot(fixture.root)).toEqual(before);
 });
+
+test('save and batch declarations retain the existing Viewer, Editor and Steward write boundaries', async () => {
+  using fixture = await authWorkspace();
+  const access = createAccessControl(accessFixture());
+  for (const name of ['carol', 'alice', 'bob'] as const) {
+    const handler = createHandler(fixture.ws, { mode: 'server', remoteCredentials: allowEveryRemote(), publicOrigin: origin, access, principal: () => access.principalFor(person(name)) });
+    for (const batch of [false, true]) {
+      for (const project of ['sales-contracts', 'hr-people']) {
+        const path = project === 'sales-contracts' ? 'orders.odcs.yaml' : 'people.odcs.yaml';
+        const file = fixture.ws.readFile(project, path);
+        const declaredMigrations = [{ kind: 'scope', from: `sw1:${project}/${path}#contract:Old`, to: `sw1:${project}/${path}#contract:New` }];
+        const write = { baseHash: file.hash, source: file.source };
+        const body = batch ? { files: [{ path, ...write }], declaredMigrations } : { ...write, declaredMigrations };
+        const url = batch ? `/api/projects/${project}/save-batch` : `/api/projects/${project}/files/${path}`;
+        const before = snapshot(fixture.root);
+        const response = await handler(request(url, batch ? 'POST' : 'PUT', body));
+        if (project === 'sales-contracts' && name !== 'carol') expect(response.status).toBe(200);
+        else {
+          expect([403, 404]).toContain(response.status);
+          expect(snapshot(fixture.root)).toEqual(before);
+        }
+      }
+    }
+  }
+});
