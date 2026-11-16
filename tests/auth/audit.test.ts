@@ -165,7 +165,7 @@ test('origin and tool filters preserve Admin and Steward project visibility', ()
     expect(queryAudit(entries, { origin: 'http' }, steward)).toEqual([entries[3]]);
     expect(queryAudit(entries, { origin: 'mcp', tool: 'projects.list' }, admin)).toEqual([entries[2]]);
     expect(queryAudit(entries, { origin: 'http', tool: 'files.read' }, admin)).toEqual([]);
-    expect(exportAudit(entries, 'csv').split('\r\n')[0]).toEndWith(',origin,tool,method,connection');
+    expect(exportAudit(entries, 'csv').split('\r\n')[0]).toEndWith(',origin,tool,connection');
     expect(exportAudit(entries, 'jsonl')).toContain('"origin":"mcp"');
   } finally {
     dir.cleanup();

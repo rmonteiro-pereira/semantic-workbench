@@ -7,9 +7,8 @@ named here is unchanged.
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `origin` | `"mcp"` or `"acp"` | Absent for HTTP. |
+| `origin` | `"mcp"` | Absent for HTTP. |
 | `tool` | string | An inventory operation id. Never an argument. |
-| `method` | string | A protocol method from the fixed list, for calls that are not operations. |
 | `connection` | string | At most 64 characters of `A-Z a-z 0-9 _ -`. Opaque. |
 
 Invalid values make the append fail; they are never stored. Records written before this change have
@@ -18,11 +17,10 @@ none of these fields and are read as HTTP.
 ## Semantics
 
 - One record per operation. The outer request that carries a tool call writes none.
-- For `mcp` and `acp` origins, an allowed operation is recorded even when it is a plain read.
+- For the `mcp` origin, an allowed operation is recorded even when it is a plain read.
 - `outcome` is the semantic outcome: the caller's classifier when given, otherwise the status
   mapping (`2xx` ok; `409`, `412`, `428` refused; others failed).
-- Protocol calls are recorded once per call: discovery, listing, resource and prompt access, and
-  subscription open and close; denials always.
+- Protocol-call recording is deferred until a transport has its first caller.
 
 ## Verification
 
@@ -33,7 +31,7 @@ records. `bun run audit:verify` and the mirror checks are unchanged.
 
 - `GET /api/audit` and the export accept `origin` and `tool` filters. Visibility is unchanged.
 - JSON Lines carries every stored field. CSV keeps its columns in order and appends `origin`,
-  `tool`, `method`, `connection`.
+  `tool`, `connection`.
 
 ## Retention
 
