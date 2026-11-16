@@ -227,6 +227,10 @@ If another publish won the race, pull from the default branch first. A fetch can
 default branch only when the caller may publish and the content guards accept it. Otherwise the
 fetch succeeds without moving the published state. Diverged histories are not silently joined.
 
+Publication audit records include a `publication` object with `previous` (null for the first
+publication) and `commit`, in local and server mode. Publication emits the existing `published`
+event only after the durable pointer moves.
+
 Publishing never pushes by itself. Pulling from the local default branch never contacts a remote.
 Protected branches require publish permission. An interrupted publication is repaired at startup.
 Startup refuses unexplained staged or unstaged changes before repairing the published checkout,

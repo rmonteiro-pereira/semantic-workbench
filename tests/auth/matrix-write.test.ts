@@ -327,3 +327,14 @@ test('save and batch declarations retain the existing Viewer, Editor and Steward
     }
   }
 });
+
+test('the local principal may publish while a server Viewer keeps the publish refusal', async () => {
+  const { testWorkspace } = await import('../helpers/temp-data-dir');
+  using local = await testWorkspace();
+  const { slug } = await local.seed([{ path: 'shop.ontology.yaml', source: 'name: Shop\nontology:\n  - concept: Customer\n    type: EntityType\n' }], 'Shop');
+  expect((await local.handler(request(`/api/projects/${slug}/git/publish`, 'POST'))).status).toBe(200);
+  using server = await authWorkspace();
+  const access = createAccessControl(accessFixture());
+  const handler = createHandler(server.ws, { mode: 'server', access, principal: () => access.principalFor(person('carol')), remoteCredentials: allowEveryRemote(), publicOrigin: origin });
+  expect((await handler(request('/api/projects/hr-people/git/publish', 'POST'))).status).toBe(403);
+});

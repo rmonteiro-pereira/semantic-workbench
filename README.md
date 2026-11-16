@@ -538,6 +538,8 @@ Opening an existing data root records each repository's default-branch tip as it
 snapshot. A local commit, including an import or folder-move commit, on the default branch first switches to `work/local`, carrying staged and unstaged
 changes. Commits on other branches keep their chosen branch. The commit response identifies the
 authoring branch; committing does not move the published snapshot.
+`POST /api/projects/:slug/git/publish` advances the default ref to the committed authoring head
+after publication checks. It preserves working files and staged changes and does not push.
 
 The default branch name is remembered from Git configuration, then the remote default,
 then the checked-out branch. Local startup preserves branch refs, commits, staged changes,

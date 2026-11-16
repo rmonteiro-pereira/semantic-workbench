@@ -20,6 +20,8 @@ not configure a production deployment.
   connection effect restrictions, audit attribution fields and origin/tool filters.
 - Independent dry-run samples retain write and denial evidence during non-HTTP read floods.
 - Local Source Control commits on the default branch move to `work/local`, preserving staged and unstaged work and keeping the published ref unchanged.
+- Local publication validates and advances the default ref without replacing authoring files. Publication audit records identify both commits in either mode.
+
 - Local Source Control, import and folder-move commits on the default branch move to `work/local`, preserving staged and unstaged work and keeping the published ref unchanged.
 
 - Agent catalog, context and plans now read a pinned published commit in both modes and identify it in `X-Workbench-Snapshot`. Unpublished author edits are excluded.

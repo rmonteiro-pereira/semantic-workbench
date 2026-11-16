@@ -27,7 +27,15 @@ export type AccessRequest = Request & {
   [requestRemote]?: RemoteCredentials | 'local';
   [requestSession]?: Session | null;
   [requestConnectionScope]?: Caller['scope'];
+  [requestPublication]?: { previous: string | null; commit: string };
 };
+/** The completed publication attached by its route for the one request audit record. */
+export const requestPublication = Symbol('requestPublication');
+
+/** Records immutable publication identifiers after the ref and durable pointer have settled. */
+export function recordPublication(request: Request, publication: { previous: string | null; commit: string }) {
+  (request as AccessRequest)[requestPublication] = { previous: publication.previous, commit: publication.commit };
+}
 /**
  * The projects whose audit records an audit request may read, decided once by the access
  * boundary: null for an Admin, who reads every project's records.

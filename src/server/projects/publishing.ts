@@ -18,6 +18,8 @@ export type PublishingDeps = {
   /** Rescans one project of the published state and announces what changed. */
   rescan: (slug: string) => Promise<unknown>;
   emit: (event: string, data: unknown, tags: EventTags) => void;
+  /** Local authoring publication uses the same checks without checking out the default ref. */
+  localPublish?: (slug: string, reader: Reader) => Promise<{ published: string; previous: string | null; commit: string }>;
 };
 
 /**
@@ -48,13 +50,18 @@ async function announce(deps: PublishingDeps, slug: string, branch: string, comm
 async function publish(deps: PublishingDeps, slug: string, reader: Reader) {
   const repo = deps.repoOf(slug);
   const key = reader.copy?.key;
-  if (!key) throw new BadRequestError('Publishing works on a personal working copy in server mode.');
+  if (!key) {
+    if (reader.view || !deps.localPublish) throw new BadRequestError('Publishing works on a personal working copy in server mode.');
+    const result = await deps.localPublish(slug, reader);
+    await announce(deps, slug, result.published, result.commit);
+    return result;
+  }
   if (!deps.worktrees.exists(key, repo)) throw new NothingToPublishError();
   const place = await deps.copies.writePlace(reader, slug);
   const result = await deps.worktrees.publish(repo, key, judgePublish(place, slug, reader.guard));
   await announce(deps, slug, result.published, result.commit);
   await place.scm.refresh(slug);
-  return { published: result.published, commit: result.commit };
+  return { published: result.published, previous: result.previous, commit: result.commit };
 }
 
 /**

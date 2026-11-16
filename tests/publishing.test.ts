@@ -60,3 +60,25 @@ for (const move of ['outside-forward', 'outside-diverged'] as const) {
     }
   });
 }
+
+test('the local HTTP publication creates the first snapshot, preserves dirty authoring and emits published', async () => {
+  const { testWorkspace } = await import('./helpers/temp-data-dir');
+  const { LOCAL_READER } = await import('../src/server/projects/reader');
+  const { ontologyText } = await import('./helpers/git-fixtures');
+  using fixture = await testWorkspace();
+  const { slug } = await fixture.seed([{ path: 'shop.ontology.yaml', source: ontologyText('Committed', ['Customer']) }], 'Shop');
+  const current = fixture.ws.readFile(slug, 'shop.ontology.yaml', LOCAL_READER);
+  const dirty = current.source.replace('Committed', 'Saved unpublished edit');
+  await fixture.ws.saveFile(slug, 'shop.ontology.yaml', { baseHash: current.hash, source: dirty }, LOCAL_READER);
+  const before = fixture.ws.events.lastId;
+  expect((await fixture.handler(new Request(`http://localhost/api/agent/catalog?project=${slug}`))).status).toBe(409);
+  const response = await fixture.handler(new Request(`http://localhost/api/projects/${slug}/git/publish`, { method: 'POST', body: '{}' }));
+  expect(response.status).toBe(200);
+  const publication = await response.json();
+  expect(publication.previous).toBeNull();
+  expect(publication.published).toBe('main');
+  expect(fixture.ws.readFile(slug, 'shop.ontology.yaml', LOCAL_READER).source).toBe(dirty);
+  const pin = fixture.ws.published.pin();
+  expect((await fixture.ws.published.documents(pin, slug))[0].source).toBe(current.source);
+  expect(fixture.ws.events.replay(before)?.find(event => event.event === 'published')?.data).toEqual({ project: slug, branch: 'main', commit: publication.commit });
+});

@@ -196,3 +196,43 @@ test('published agent reads preserve the application audit record shape', async 
   expect(Object.keys(entry).sort()).toEqual(['action', 'at', 'decision', 'outcome', 'prev', 'principal', 'requestId', 'resource', 'rules', 'snapshot', 'type']);
   expect(entry).not.toHaveProperty('snapshotCommit');
 });
+
+for (const mode of ['local', 'server'] as const) {
+  test(`${mode} publication audit records both immutable commits`, async () => {
+    const { authWorkspace } = await import('../helpers/auth-workspace');
+    const { testWorkspace } = await import('../helpers/temp-data-dir');
+    const { createHandler } = await import('../../src/server/handler');
+    const { createAccessControl } = await import('../../src/server/auth/authorize');
+    const { accessFixture, person } = await import('./access-fixture');
+    const { allowEveryRemote } = await import('../helpers/remote-credentials-fixture');
+    using fixture = mode === 'server' ? await authWorkspace() : await testWorkspace();
+    const project =
+      mode === 'server' ? 'sales-contracts' : (await fixture.seed([{ path: 'shop.ontology.yaml', source: 'name: Shop\nontology:\n  - concept: Customer\n    type: EntityType\n' }], 'Shop')).slug;
+    const audit = createAuditLog({ dir: join(fixture.root, 'state', 'publication-audit'), mirror: () => {} });
+    const access = createAccessControl(accessFixture());
+    const principal = access.principalFor(person('bob'));
+    const handler = createHandler(fixture.ws, {
+      audit,
+      ...(mode === 'server' ? { mode, access, principal: () => principal, remoteCredentials: allowEveryRemote(), publicOrigin: 'http://localhost' } : {}),
+    });
+    const send = (operation: string, body: unknown) =>
+      handler(
+        new Request(`http://localhost/api/projects/${project}/git/${operation}`, {
+          method: 'POST',
+          headers: mode === 'server' ? { Origin: 'http://localhost', 'X-SW-Request': '1' } : {},
+          body: JSON.stringify(body),
+        }),
+      );
+    if (mode === 'server') {
+      expect((await send('stage', { all: true })).status).toBe(200);
+      await fixture.ws.git.commit(join(fixture.ws.layout.worktrees, principal.key, project), 'Candidate', true);
+    }
+    const previous = fixture.ws.state.published().repositories[project]?.commit ?? null;
+    const response = await send('publish', {});
+    expect(response.status).toBe(200);
+    const result = await response.json();
+    const [entry] = audit.recent(1, entry => entry.action === 'publish');
+    expect(entry.publication).toEqual({ previous, commit: result.commit });
+    expect(entry.outcome).toBe('ok');
+  });
+}

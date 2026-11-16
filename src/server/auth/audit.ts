@@ -28,6 +28,8 @@ export type AuditInput = {
     resourceAttrs: Record<string, unknown>;
   };
   version?: string;
+  /** The served commits before and after a successful publication. */
+  publication?: { previous: string | null; commit: string };
   /** How many refusals of this kind from this source were left out since the last record. */
   suppressed?: number;
   [key: string]: unknown;
@@ -57,6 +59,7 @@ function record(input: AuditInput, at: string, prev: string): AuditEntry {
   } as AuditEntry;
   if (input.origin && input.origin !== 'http') entry.origin = input.origin;
   if (input.suppressed) entry.suppressed = input.suppressed;
+  if (input.publication) entry.publication = { previous: input.publication.previous, commit: input.publication.commit };
   if (input.snapshot) {
     entry.snapshot = {
       grants: [...input.snapshot.grants],

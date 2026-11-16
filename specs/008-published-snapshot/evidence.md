@@ -300,3 +300,12 @@ manifest writes reuse the same preparation. In-progress merge imports retain the
 written-but-not-committed result. The existing explicit pull path uses the remembered default for
 `work/local` without an upstream; no network listener was added. Fixture publication now keeps
 existing commits rather than adding empty commits and represents published roots explicitly.
+
+## Local publication HTTP and audit
+
+`TMPDIR=/tmp/sw-008 bun test tests/publishing.test.ts tests/auth/audit.test.ts tests/auth/matrix-write.test.ts`:
+28 pass, 0 fail, 2292 assertions. First local publication is authorized through the existing publish
+route, keeps dirty authoring source unchanged and emits `published` after the pointer settles.
+Both local and server publication audit records contain the old and new full commit ids. A local
+principal is allowed while the server Viewer refusal remains unchanged.
+`bun --bun run check`: exit 0.

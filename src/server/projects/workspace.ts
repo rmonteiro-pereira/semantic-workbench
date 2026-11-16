@@ -30,7 +30,9 @@ import { initializePublishedPointers } from './published-initialization';
 import { createWorktrees } from './worktrees';
 import { copyScmHooks, createWorkingCopies, projectLockKey, type Place, type RepositoryFacts } from './working-copies';
 import { createPublishing } from './publishing';
-import { prepareLocalCommit } from './local-publication';
+import { createLocalPublication, prepareLocalCommit } from './local-publication';
+import type { PublicationCandidate } from './publication-checks';
+import { judgePublish } from './publishing';
 import { createUnpublishedWork } from './unpublished-work';
 import { createCloner, rollBackInterruptedClones, type AssignProject, type FolderRequest } from './clone';
 import { createRepositoryProjects } from './repository-projects';
@@ -348,18 +350,20 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       })
     : null;
   const publicationIndexes = createSnapshotIndexes({ git, directory: repository => join(layout.projects, repository), cache });
+  const readablePublication = (candidate: PublicationCandidate) =>
+    publicationIndexes.build(
+      candidate.repo,
+      candidate.next,
+      projects().filter(project => locationOf(project).repo === candidate.repo),
+    );
+  const localPublication = createLocalPublication({ git, pointers, directory: repository => join(layout.projects, repository), readable: readablePublication, supersede: () => snapshots.supersede() });
   const worktrees = createWorktrees({
     layout,
     git,
     people: () => copies.owners(),
     publication: {
       pointers,
-      readable: candidate =>
-        publicationIndexes.build(
-          candidate.repo,
-          candidate.next,
-          projects().filter(project => locationOf(project).repo === candidate.repo),
-        ),
+      readable: readablePublication,
       supersede: () => snapshots.supersede(),
     },
   });
@@ -472,6 +476,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     idleMs: options.copyIdleMs,
   });
   const publishing = createPublishing({
+    localPublish: async (slug, reader) => localPublication.publishLocal(repoOf(slug), await worktrees.defaultBranch(repoOf(slug)), judgePublish(published, slug, reader.guard)),
     worktrees,
     copies,
     repoOf,

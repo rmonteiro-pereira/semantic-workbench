@@ -1,6 +1,6 @@
 // Exposes project source control operations. Remote actions run only through explicit requests.
 import { GIT_REQUEST_LIMIT } from '../request';
-import { requestReader } from '../auth/request-scope';
+import { requestReader, recordPublication } from '../auth/request-scope';
 import { authorizeCheckout, authorizeGitPaths, authorizeGitPush, authorizePublish, authorizeRepository, mayPublish } from '../auth/git-access';
 import { checkRemoteAddress, delegatedCredentials } from '../auth/remote-credentials';
 import { authorizeWrite } from '../auth/write-access';
@@ -129,7 +129,9 @@ export const createGitRoutes =
       if (action === 'git/publish') {
         const requestBody = await body(['branch']);
         await authorizePublish(gitTarget, requestBody.branch);
-        return Response.json(await ws.publish(slug, reader));
+        const publication = await ws.publish(slug, reader);
+        recordPublication(req, publication);
+        return Response.json(publication);
       }
       if (action === 'git/pull-default') {
         authorizeRepository(gitTarget, 'pull');
