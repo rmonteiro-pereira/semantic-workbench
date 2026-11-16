@@ -1950,7 +1950,7 @@
       "handlerChecks": [],
       "input": {
         "query": [],
-        "body": ["baseVersion", "proposal", "receipt"]
+        "body": ["formatVersion", "roles", "baseVersion", "dryRunId", "confirmDeleteInUse"]
       },
       "limits": {
         "request": "ADMIN_REQUEST_LIMIT",
@@ -1971,7 +1971,7 @@
       "handlerChecks": [],
       "input": {
         "query": [],
-        "body": ["baseVersion", "proposal", "receipt"]
+        "body": ["formatVersion", "grants", "baseVersion", "dryRunId", "confirmDeleteInUse"]
       },
       "limits": {
         "request": "ADMIN_REQUEST_LIMIT",
@@ -1992,7 +1992,7 @@
       "handlerChecks": [],
       "input": {
         "query": [],
-        "body": ["baseVersion", "proposal", "receipt"]
+        "body": ["formatVersion", "projects", "baseVersion", "dryRunId", "confirmDeleteInUse", "domains"]
       },
       "limits": {
         "request": "ADMIN_REQUEST_LIMIT",
@@ -2013,7 +2013,7 @@
       "handlerChecks": [],
       "input": {
         "query": [],
-        "body": ["baseVersion", "proposal", "receipt"]
+        "body": ["formatVersion", "clients", "baseVersion", "dryRunId", "confirmDeleteInUse"]
       },
       "limits": {
         "request": "ADMIN_REQUEST_LIMIT",
@@ -2034,7 +2034,7 @@
       "handlerChecks": [],
       "input": {
         "query": [],
-        "body": ["baseVersion", "proposal", "receipt"]
+        "body": ["formatVersion", "session", "remote", "audit", "baseVersion", "dryRunId"]
       },
       "limits": {
         "request": "ADMIN_REQUEST_LIMIT",
@@ -2055,7 +2055,7 @@
       "handlerChecks": [],
       "input": {
         "query": [],
-        "body": ["baseVersion", "proposal", "receipt"]
+        "body": ["formatVersion", "rules", "baseVersion", "dryRunId", "confirmDeleteInUse"]
       },
       "limits": {
         "request": "ADMIN_REQUEST_LIMIT",
@@ -2139,7 +2139,7 @@
       "handlerChecks": [],
       "input": {
         "query": [],
-        "body": ["baseVersion", "proposal", "receipt"]
+        "body": ["id", "template", "domain", "groups", "role", "actions", "branch", "hours", "ranges"]
       },
       "limits": {
         "request": "ADMIN_REQUEST_LIMIT",
@@ -2160,7 +2160,7 @@
       "handlerChecks": [],
       "input": {
         "query": [],
-        "body": ["baseVersion", "proposal", "receipt"]
+        "body": ["baseVersion", "roles", "grants", "projects", "domains", "clients", "rules", "rollbackTo"]
       },
       "limits": {
         "request": "ADMIN_REQUEST_LIMIT",
@@ -2181,7 +2181,7 @@
       "handlerChecks": [],
       "input": {
         "query": [],
-        "body": ["baseVersion", "proposal", "receipt"]
+        "body": ["principal", "action", "resource"]
       },
       "limits": {
         "request": "ADMIN_REQUEST_LIMIT",
@@ -2202,7 +2202,7 @@
       "handlerChecks": [],
       "input": {
         "query": [],
-        "body": ["baseVersion", "proposal", "receipt"]
+        "body": ["baseVersion", "dryRunId"]
       },
       "limits": {
         "request": "ADMIN_REQUEST_LIMIT",
