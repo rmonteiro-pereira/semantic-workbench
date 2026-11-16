@@ -47,3 +47,7 @@ T029 / M17 confirmed at 1280×720 and 2560×1440. `.lineage-hops` has `flex-wrap
 Proof: `out/lane-b/hops.jsonl` and `out/lane-b/t029/local-contract-graph-{1280,1440,2560}.png`, reproduced by `scripts/ui-review/capture-tour.ts`. An ignored preload restricts the tour inventory to the two owned canvases and its viewport matrix to the requested desktop sizes. All example/state navigation remains the stock tour.
 
 T026 after images at `out/lane-b/t029/local-{contract,mapping}-graph-1440.png` were opened. Contract centre is whole, but right-side cards/labels remain clipped. Mapping top cards are still clipped after readable fallback. The change is therefore not accepted yet.
+
+## T030 — complete
+
+Hops uses a non-wrapping row, with only the path text growing/shrinking. Zoom and fullscreen now share one icon group beside the walk trail, leaving the primary toolbar on one row at 1280. Opened all three after images `out/lane-b/t030-final/local-contract-graph-{1280,1440,2560}.png`, paired with `local-light/local-contract-graph-{1280,1440,2560}.png`. Hops is visibly one row at each width and there are two rows of controls above the canvas at 1280. The 2560 second-row Foreign keys defect is gone. Unit summary: 10 pass, 0 fail (`lineage-hops` and `lineage-view`). Dedicated `checkHopsRow` checks child centre-lines through the browser entry point.

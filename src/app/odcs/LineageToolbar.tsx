@@ -149,13 +149,9 @@ type ToolbarProps = ViewOptionsProps &
     onUndo: () => void;
     pierceTitle: string;
     toolbarExtra?: ReactNode;
-    fullscreen?: Fullscreen;
-    onZoomIn: () => void;
-    onZoomOut: () => void;
   };
 
 export function LineageToolbar(props: ToolbarProps) {
-  const { fullscreen } = props;
   return (
     <div className="lineage-toolbar">
       <LineageSearch query={props.query} onQuery={props.onQuery} showResults={props.showResults} onShowResults={props.onShowResults} results={props.results} onChoose={props.onChoose} />
@@ -186,18 +182,13 @@ export function LineageToolbar(props: ToolbarProps) {
           showExternal={props.showExternal}
           onToggleExternal={props.onToggleExternal}
         />
-        <ZoomButtons onZoomIn={props.onZoomIn} onZoomOut={props.onZoomOut} />
-        {fullscreen && (
-          <button onClick={fullscreen.toggle} aria-label={fullscreen.active ? 'Exit full screen' : 'Full screen'} title="Full screen (F)">
-            {fullscreen.active ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
-          </button>
-        )}
       </CompactControls>
     </div>
   );
 }
 
 type TrailProps = {
+  viewportControls: ReactNode;
   foreignKeys: ForeignKeyPath | null;
   steps: number;
   onHops: (count: number) => void;
@@ -209,7 +200,7 @@ type TrailProps = {
   onOpenPath: () => void;
 };
 
-export function LineageSubbar({ foreignKeys, steps, onHops, actionHistory, walk, dispatch, showPathToggle, pathCount, onOpenPath }: TrailProps) {
+export function LineageSubbar({ viewportControls, foreignKeys, steps, onHops, actionHistory, walk, dispatch, showPathToggle, pathCount, onOpenPath }: TrailProps) {
   return (
     <div className="lineage-subbar">
       {foreignKeys && <ForeignKeyHops path={foreignKeys} hops={steps} onHops={onHops} />}
@@ -236,6 +227,21 @@ export function LineageSubbar({ foreignKeys, steps, onHops, actionHistory, walk,
           </button>
         )}
       </div>
+      {viewportControls}
     </div>
+  );
+}
+
+/** Groups viewport actions beside the walk and hop controls. */
+export function LineageViewportControls({ fullscreen, onZoomIn, onZoomOut }: { fullscreen?: Fullscreen; onZoomIn: () => void; onZoomOut: () => void }) {
+  return (
+    <span className="lineage-viewport-controls" role="group" aria-label="Viewport">
+      <ZoomButtons onZoomIn={onZoomIn} onZoomOut={onZoomOut} />
+      {fullscreen && (
+        <button onClick={fullscreen.toggle} aria-label={fullscreen.active ? 'Exit full screen' : 'Full screen'} title="Full screen (F)">
+          {fullscreen.active ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+        </button>
+      )}
+    </span>
   );
 }

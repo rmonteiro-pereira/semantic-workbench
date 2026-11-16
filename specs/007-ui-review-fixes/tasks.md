@@ -215,7 +215,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Read the computed layout of `.lineage-hops` and its children at 2560x1440 and 1280x720 and write which rule causes the wrap (the review suspects `hops.css:39-45` and `odcs.css:628-636`) in the 'Confirmed inferences' section of `evidence/B.md`.
   - Proof: `evidence/B.md` names the rule and its computed width values for `local-light/local-contract-graph-2560.png` reproduced with `scripts/ui-review/capture-tour.ts`.
 
-- [ ] T030 [US2] [B] Make the hops row one row, and move zoom and full screen into an icon group.
+- [x] T030 [US2] [B] Make the hops row one row, and move zoom and full screen into an icon group.
   - Findings: M17, m7 · Requirements: FR-021, FR-028
   - Files: `src/app/odcs/hops.css`, `src/app/odcs/odcs.css`, `src/app/odcs/ForeignKeyHops.tsx`, `src/app/odcs/LineageToolbar.tsx`, `tests/lineage-hops.test.ts`
   - Change: Make `.lineage-hops` a non-wrapping flex row with the path text shrinking (`hops.css:39-45`, `odcs.css:628-636`) and render the zoom and full-screen buttons icon-only in one group with accessible names.

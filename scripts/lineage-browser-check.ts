@@ -3,7 +3,7 @@ import { screenshotPath } from './helpers/screenshots';
 import { addressesOfModel } from '../src/shared/core/model-addresses';
 import { formatAddress } from '../src/shared/core/item-address';
 import { lineageDisplayKey } from '../tests/helpers/lineage-display-keys';
-import { checkDatasetLineageRoom } from './helpers/odcs-graph-review';
+import { checkDatasetLineageRoom, checkHopsRow } from './helpers/odcs-graph-review';
 import { appUrl } from './helpers/base-url';
 import { recordResizeErrors } from './helpers/resize-errors';
 import { chromium, expect, type Page } from '@playwright/test';
@@ -281,6 +281,7 @@ try {
     await openContract('commerce.odcs.yaml', 'Commerce workspace');
     await openOrdersDatasetLineage();
     await checkDatasetLineageRoom(page);
+    await checkHopsRow(page);
     const opened = await datasetLineageCards();
     const px = await renderedRowPx();
     console.log(`  orders dataset lineage: ${opened.whole} of ${opened.total} cards whole, column names at ${px.toFixed(1)} px`);

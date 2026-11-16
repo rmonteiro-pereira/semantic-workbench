@@ -25,7 +25,7 @@ import { cardHeight, cardGeometry, CARD_W, HEADER_H, ROW_H, MORE_H, FILTER_H, FO
 import { buildLineLabels, type LineLabel } from './edge-labels';
 import { kindOrder, planFirstView } from './lineage-view';
 import { edgeTypes } from './LineageEdge';
-import { LineageSubbar, LineageToolbar } from './LineageToolbar';
+import { LineageSubbar, LineageToolbar, LineageViewportControls } from './LineageToolbar';
 import { MeasurementWatchdog, useLayout, useMeasuredNodeSizes } from './useLineageLayout';
 import { useLineagePierce } from './useLineagePierce';
 import { useLineageReach } from './useLineageReach';
@@ -597,11 +597,11 @@ export function LineageCanvas({
         onUndo={actionHistory.back}
         pierceTitle={`Open every card on the path of ${pierceOriginLabel}`}
         toolbarExtra={toolbarExtra}
-        fullscreen={fullscreen}
-        onZoomIn={() => void flow.current?.zoomIn({ duration: 150 })}
-        onZoomOut={() => void flow.current?.zoomOut({ duration: 150 })}
       />
       <LineageSubbar
+        viewportControls={
+          <LineageViewportControls fullscreen={fullscreen} onZoomIn={() => void flow.current?.zoomIn({ duration: 150 })} onZoomOut={() => void flow.current?.zoomOut({ duration: 150 })} />
+        }
         foreignKeys={foreignKeys}
         steps={steps}
         onHops={changeHops}

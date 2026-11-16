@@ -3,7 +3,7 @@
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 6px 10px;
   padding: 5px 10px;
   border-bottom: 1px solid var(--color-border-subtle);
@@ -37,7 +37,7 @@
   font-weight: 700;
 }
 .lineage-hops-path {
-  flex: 1 1 160px;
+  flex: 1 1 0;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -90,4 +90,8 @@
   .lineage-view.compact .lineage-hops-title {
     display: none;
   }
+}
+
+.lineage-hops > :not(.lineage-hops-path) {
+  flex-shrink: 0;
 }
