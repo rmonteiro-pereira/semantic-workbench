@@ -684,3 +684,26 @@ The archive was removed after its servers stopped. No performance budget or geom
 All listed logs are under out/gate-009/. These failures are not claimed as passing gates or feature
 regressions. The remaining named browser suites, actual remote mutation runner and final paired
 visual comparison still require completion after this checkpoint.
+
+### Functional browser gate results
+
+The remaining browser commands ran sequentially against the owned production frontend/API on 5489.
+Each suite used its own isolated workspace/browser and closed them before the next command.
+
+- `bun run test:metrics`: `11 metrics checks passed` (exit 0).
+- `bun run test:item-edit`: `11 item-edit checks passed` (exit 0).
+- `bun run test:ui`: `20 UI checks passed` (exit 0).
+- `bun run test:edges`: `6 edge attachment UI checks passed` (exit 0).
+- `bun run test:auth`: exit 0, 36 PASS lines; its final line is
+  `PASS Git history is refused for a person who cannot read every file`.
+- `bun run test:responsive`: exit 1 at its first graph-height assertion: 481 px versus a required
+  value greater than 504 px. Its main comparison has not run yet, so this failure is not classified.
+
+Full outputs are out/gate-009/production-{metrics,item-edit,ui,responsive,edges,auth}.log. The static
+check passes again after the evidence checkpoint. Production code remains unchanged from 10408a68.
+
+Three consecutive wrapper attempts to run main's responsive comparison failed at SSH transport
+before executing tests. No AVX2-specific error occurred, so heavy work has not fallen back locally.
+The responsive baseline comparison, actual remote mutation gate and final delegated visual comparison
+remain pending. All server processes started by the completed browser commands were stopped by their
+cleanup traps; the failed transport attempts started no test server.
