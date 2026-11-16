@@ -6,8 +6,9 @@ All 51 tasks are accounted for. The unused protocol-recording surface is deferre
 first transport caller, as directed by the architecture review; the revised task records that
 decision. The specified rate-limit/local-check order-swap mutant is equivalent because its
 checks run in mutually exclusive server and local modes, and is excluded with that reason.
-Earlier stop-point and performance sections are historical; the final review measurements and
-gate below supersede them.
+All 20 registered feature mutants and all existing mutants are killed: 683/683 total. Earlier
+stop-point and performance sections are historical; the final review measurements and gate below
+supersede them.
 
 The frozen HTTP fixture and original audit months remain byte-identical to their recording
 commits. The integrator's constitution 4.0.1 commit `d3a4181b` is retained unchanged. The final
@@ -715,3 +716,55 @@ project-only workspace-clear grant regression and custom path/document condition
 The first full gate found the new isolated mutation harness missing from the boundary scan's
 fixture-script list. Registering that harness preserves the enforcement rule and passes the
 two focused scan tests; the complete gate is rerun after that correction.
+
+
+## Final architecture-review completion gate
+
+Every command below completed successfully after the scope-scan fixture registration fix.
+Browser suites ran one at a time. The frozen characterization was not regenerated, and the
+original audit-month files remain unchanged.
+
+| Command | Observed summary |
+| --- | --- |
+| `bun test` | `2147 pass`, `0 fail`, `203698 expect() calls`; `Ran 2147 tests across 301 files. [445.61s]` |
+| `bun --bun run check` | `All matched files use the correct format.`; 1019 files; TypeScript, lint, comments, theme and brand checks exited 0. |
+| `bun --bun run build` | `✓ built in 1.56s`; existing chunk-size advisory only. |
+| `bun scripts/mutation-tests.ts` | `683/683 targeted mutants killed; all unmodified module baselines passed. Run test:ui for the full browser baseline.` |
+| `bun run test:auth` | 36 `PASS` lines; final line: `PASS Git history is refused for a person who cannot read every file`; exit 0. |
+| `bun run test:admin` | Exit 0; this harness emits no aggregate summary. |
+| `bun run test:ui` | `20 UI checks passed`; `PASS no browser runtime errors`. |
+| `bun run test:terminology` | `Terminology check passed: no "KPI" or "contract object" in 8 files' views, the metric detail, the wizard, README and docs`; isolated temporary data root. |
+| `bun test tests/auth/http-characterization.test.ts` | `1 pass`, `0 fail`, `1548 expect() calls`; `Ran 1 test across 1 file. [6.38s]` |
+| `bun run audit:verify tests/fixtures/audit-v1` | `Audit log intact: 9 records in 3 months.` |
+
+All 20 feature mutants are killed, including the new direct Git authorizer effect check and
+workspace-only admission regression. There are no surviving or invalid mutants. The existing
+equivalent mode-order swap remains excluded with its recorded reason; no mutant was removed
+to conceal a failure.
+
+The final readability scan reports 73 files and zero findings. Confidential-content scanning
+reports zero hits across 105 changed files; full scanning of added public documentation also
+reports zero hits. The repository formatter excludes Markdown, which was formatted manually.
+The requested `scripts/commit_cadence.py` command was attempted again; that script is absent.
+The independent architecture review found no remaining blocking source finding after the
+unmapped-client and unused CSV-field corrections. The final review marker covers the committed
+tree. The temporary base worktree is removed, owned servers are stopped, and ports 5311/5312
+have no listeners. Constitution commit `d3a4181b` remains an ancestor, and its file has no changes.
+
+Architecture-review correction commits before this final evidence update:
+
+- `6154d300` refactor: point operation dependencies away from HTTP authentication
+- `a562bc48` fix: enforce dynamic Git effects inside authorizers
+- `f2e8aee1` fix: classify invalid twin parameters as request errors
+- `c08cc6bd` refactor: share operation outcomes and caller vocabularies
+- `6ce2d49c` refactor: keep only the operation surface with current callers
+- `2caedfff` test: replay supported MCP audit records after transport trimming
+- `b5b30efc` data: use reviewed domain operation names and remove duplicated route metadata
+- `6e006422` refactor: validate operation metadata with the application schema
+- `eb3abe75` fix: share one route admission verdict with operation listing
+- `3db96764` refactor: remove the unused protocol method export column
+- `66652782` test: detect workspace grants and completed-write telemetry regressions
+- `f0c4c598` docs: align the operation contract with the architecture review
+- `65d5e7cc` test: register the isolated operation mutation harness
+- `6d353368` docs: preserve the frozen HTTP contract during refactors
+- `d1d3ecbf` test: record paired HTTP and shared-verdict listing measurements
