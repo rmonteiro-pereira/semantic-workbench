@@ -77,3 +77,13 @@ Proposed Technical Constraints sentence: “Every operation, whatever transport 
 Proposed Principle VI sentence: “Every new route, and every MCP tool beside its HTTP twin, MUST be added to the authorization matrix and operation inventory, including its parity case.”
 
 These are handover text only. Their inclusion on the constitution amendment branch has not been established, so T049 remains unchecked.
+
+## Integrator decisions and resumed baseline
+
+The integrator defines audit rules as a set and permits comparison of sorted copies only. The characterization comparison applies that normalization to audit entries; the frozen fixture was not regenerated or edited, and audit serialization is unchanged. The comparison has a one-sentence explanation of the unordered Cedar result.
+
+The characterization now explicitly uses an empty isolated static root. Its original recording was made without a built frontend; allowing the handler to discover a later `dist/` build made public fallback responses depend on the build directory. This fixture-lifetime correction reproduces the recording without changing its expected values.
+
+Original middleware confirmation: `bun test tests/auth/http-characterization.test.ts tests/auth/middleware.test.ts tests/auth/bearer.test.ts tests/auth/rate-limit.test.ts tests/auth/csrf.test.ts tests/auth/csrf-body-limit.test.ts`: `36 pass`, `0 fail`, `1792 expect() calls`, `Ran 36 tests across 6 files.` No extraction was present for this run.
+
+The integrator permits OS-assigned ephemeral listeners and dynamic harness allocation. The full browser and mutation gates can therefore run; the fixed reserved ports remain forbidden. The constitution wording handover above completes T049; the integrator applies it, and the constitution file remains unchanged.

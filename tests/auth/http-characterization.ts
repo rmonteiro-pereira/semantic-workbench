@@ -47,6 +47,7 @@ function callerHandler(caller: CallerName, fixture: Awaited<ReturnType<typeof au
     audit,
     principal: () => principal,
     port: 5312,
+    staticRoot: join(fixture.root, 'characterization-static'),
     publicOrigin: 'http://localhost:5312',
     remoteCredentials: allowEveryRemote(),
     bearer: async () => clientPrincipal('sw-agent'),
