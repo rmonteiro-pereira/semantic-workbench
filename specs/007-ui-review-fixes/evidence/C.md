@@ -73,3 +73,11 @@ The ValidationPanel regression retains the parser explanation and location while
 `test:editor`: **10 editor checks passed** (`/tmp/sw-C/check-editor.log`). The new browser assertion checks the actual rendered `name` key and `Shop` value against the dark tokens, then restores light. The large-save typing check releases its earlier API and page before starting its separate-process fixture, permitting reuse of the assigned API port. It measured 17.6 ms/key during saving versus 17.8 ms/key baseline, with no long task.
 
 `test:validation`: **PASS invalid Source draft keeps its header state and one located message; {"errors":[]}** (`/tmp/sw-C/final-validation.log`). The malformed `name: [` input locates the missing closing bracket at line 2; the assertion uses that parser location.
+
+Viewed `states/local-source-control--diff-modified-390.png` before and `/tmp/sw-C/after/header/local-source-control--diff-modified-390.png` after: the Commit icon is complete beside the visible count 3, and the unified comparison stays inside the phone viewport. This final header capture supersedes the earlier phone image for the count fix. The capture follows the original source-control state sequence through the modified selection, then stops.
+
+Viewed `states/local-source-editor--validation-details-1440.png` before and `/tmp/sw-C/after/states/local-source-editor--validation-details-1440.png` after: the same Commerce malformed description retains the explanation, source excerpt and line/column; the raw caret is absent from the dialog message. Also viewed both Alice persona images: the same orders contract retains the commit textarea, commit action and New branch.
+
+## Documentation
+
+The Source control section in `docs/user-guide.md` describes staged deletion, the phone diff, read access and invalid drafts. These correspond respectively to the passing staged-deletion/phone SCM check, read-access SCM check, and invalid-Source-draft validation check named above. `changelog/C.md` records the visible changes. `test:terminology`: **Terminology check passed: no retired terms in 8 files' views, metric detail, wizard, README and docs** (`/tmp/sw-C/check-terminology.log`). Documentation leak scan: **0 hits in 2 files**.

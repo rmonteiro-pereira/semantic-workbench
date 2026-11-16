@@ -312,13 +312,13 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Show the file name once above both columns and let each column label take its text; add a dark `--color-syntax-key` (or reuse the existing key token with a distinct dark value) at least 1.5:1 from the value colour and 4.5:1 on the editor surface; `tests/theme-check.test.ts` keeps light and dark token sets equal.
   - Proof: Before `states/local-source-control--diff-modified-1440.png`, `local-dark/local-dark-ontology-source-1440.png` (review baseline); after: same state recaptured with `scripts/ui-review/source-control-states.ts <out>` and `scripts/ui-review/capture-tour.ts <out> local dark`; check: `bun test tests/theme-check.test.ts` (adds the two contrast assertions); `bun run test:scm`.
 
-- [ ] T045 [US3] [C] Make Source control wording and button weight consistent; show the header Commit count; plain clone and validation wording.
+- [x] T045 [US3] [C] Make Source control wording and button weight consistent; show the header Commit count; plain clone and validation wording.
   - Findings: m22, m24, m21, m28, P7 · Requirements: FR-039, FR-040, FR-041, FR-042, FR-043
   - Files: `src/app/scm/SourceControl.tsx`, `src/app/scm/RemoteActions.tsx`, `src/app/scm/RemoteDialog.tsx`, `src/app/scm/CloneDialog.tsx`, `src/app/scm/clone-summary.ts`, `src/app/scm/scm.css`, `src/app/workspace/HeaderActions.tsx`, `src/app/validation/ValidationPanel.tsx`
   - Change: Move the no-remote sentence out of the URL style (`scm.css:130`, `SourceControl.tsx:404`); one **Sync** name; 'Not published' as a label; a disabled Commit shows its reason; **Remove remote** becomes an outlined danger button beside a primary Cancel; a spinner and the plain reason in the clone wait (`CloneDialog.tsx:273`); count badge in the header Commit at 390; 'Cloned finance.'; remove the raw caret line from Validation details.
   - Proof: Before `local-light/local-source-control-1440.png`, `states/local-remote-folder--refused-1440.png`, `states/local-clone-repository--connecting-wait-1440.png`, `states/local-source-control--diff-modified-390.png` (review baseline); after: same state recaptured with `scripts/ui-review/source-control-states.ts`, `scripts/ui-review/clone-states.ts`, `scripts/ui-review/capture-tour.ts <out> local light`; check: `bun run test:scm`, `bun run test:git-setup`, `bun run test:dialogs`.
 
-- [ ] T046 [P] [US3] [C] Document Source control changes in `docs/user-guide.md` (Source control section) and write `changelog/C.md`.
+- [x] T046 [P] [US3] [C] Document Source control changes in `docs/user-guide.md` (Source control section) and write `changelog/C.md`.
   - Findings: M6, M12, M21, M22 · Requirements: FR-032, FR-034, FR-035, FR-036
   - Files: `docs/user-guide.md`, `specs/007-ui-review-fixes/changelog/C.md`
   - Change: Describe the staged-delete label, the phone diff view, the single invalid-draft message and the read-access note; no other section is edited.
