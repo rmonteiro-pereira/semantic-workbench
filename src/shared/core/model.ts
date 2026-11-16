@@ -1,4 +1,6 @@
 /** Inspects structured and RDF documents into entities, relationships and validation findings. */
+import { addressAtModelPath } from './model-addresses';
+import type { Address } from './item-address';
 import { OSSIE_BUILTINS, builtinConcept } from '../mappings/ossie-builtins';
 import { isMapping } from '../mappings/mapping-schema';
 import { expandIri, namespaceOf, prefixMap, type Namespace } from '../validation/iri';
@@ -24,6 +26,10 @@ export type Entity = {
   declaredDomains?: string[];
   namespace?: Namespace;
 };
+/** Describes a structured definition item with its required locator. */
+export type StructuredEntity = Entity & { address: Address };
+/** Describes a built-in concept with no source-document locator. */
+export type BuiltinEntity = Entity & { kind: 'Built-in concept' };
 /** Describes a directed, labeled link between model entities. */
 export type Relationship = {
   id: string;
@@ -32,6 +38,12 @@ export type Relationship = {
   label: string;
   data: { path: (string | number)[]; definition: any; kind: string; readOnlyForm?: boolean };
 };
+/** Describes a structured link through the locator of its source definition. */
+export type StructuredRelationship = Relationship & { address: Address };
+/** Narrows mixed display entities to structured, addressable definitions. */
+export function isStructuredEntity(entity: Entity): entity is StructuredEntity {
+  return Object.hasOwn(entity, 'address');
+}
 /** Parses a document into model entities, relationships and validation findings. */
 export function inspect(source: string, filename = 'definition.yaml', options: ValidationOptions = {}) {
   validateEnvelope(source, filename);
@@ -281,12 +293,30 @@ export function inspect(source: string, filename = 'definition.yaml', options: V
   } else {
     layout = undefined;
   }
+  const addressByPath = new Map<string, Address>();
+  const addressOf = (path: (string | number)[]) => {
+    const key = path.join('/');
+    const cached = addressByPath.get(key);
+    if (cached) return cached;
+    const address = addressAtModelPath(data, path);
+    addressByPath.set(key, address);
+    return address;
+  };
+  const addressedEntities: (StructuredEntity | BuiltinEntity)[] = entities.map(entity => {
+    if (entity.id.startsWith('builtin/')) return entity as BuiltinEntity;
+    const address = addressOf(entity.path);
+    return Object.assign(entity, { address });
+  });
+  const addressedEdges: StructuredRelationship[] = edges.map(edge => {
+    const address = addressOf(edge.data.path);
+    return Object.assign(edge, { address });
+  });
   return {
     kind,
     layout,
     name: data.name ?? data.semantic_model?.[0]?.name ?? 'Untitled',
-    entities,
-    edges,
+    entities: addressedEntities,
+    edges: addressedEdges,
     issues,
     document: data,
   };

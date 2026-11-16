@@ -11,6 +11,8 @@ not configure a production deployment.
 - Reviewed operation inventory and generated reference, trusted in-process operation dispatch,
   connection effect restrictions, audit attribution fields and origin/tool filters.
 - Independent dry-run samples retain write and denial evidence during non-HTTP read floods.
+- Structured inspector results now include item addresses; unnamed scopes use volatile positional segments. RDF and built-ins remain unaddressed.
+
 
 - Add pure ordered locator replay, retention-cut calculation and save-declaration validation APIs.
 

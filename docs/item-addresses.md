@@ -39,7 +39,9 @@ siblings of the same kind under the same parent, including named siblings. Posit
 ancestors make every descendant volatile, so those locators must not be persisted as history.
 RDF/SHACL resources and implicit built-in concepts have no address in this feature. Unsupported depth or length reports the source path.
 
-The inspector currently retains its original result types and identifiers. An unnamed ontology
+The inspector exposes `StructuredEntity` and `StructuredRelationship` with required `address`
+fields, while retaining internal identifiers. `isStructuredEntity` narrows mixed results; RDF
+and built-in entities have no address. An unnamed ontology
 root derives `ontology:#0`; missing, empty, non-string or malformed names derive positional
 segments rather than invented names. An array-item node follows declared child properties in
 the same parent's property sibling order.

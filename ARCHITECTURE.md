@@ -83,8 +83,8 @@ The integration view shows what the application reads and contacts, and what it 
 `item-address.ts` owns canonical parsing, formatting, relative resolution and whole-segment prefix
 operations. `address-migration.ts` validates declared rename ownership and applies ordered prefix records
 without I/O. `model-addresses.ts` derives and resolves structured definition items, detects duplicates and
-flags positional ancestors as volatile. The inspector retains its original result types;
-consumers request locators from this shared module. `item-key-adapters.ts` resolves older labels against
+flags positional ancestors as volatile. The inspector derives required locators for structured
+entities and links in narrower result types; RDF and built-in entities stay unaddressable. `item-key-adapters.ts` resolves older labels against
 that derivation and refuses ambiguous or unresolved qualified names. These pure modules do not read application state. Address consumers build text through
 `formatAddress`, never by concatenating project, document or item names.
 

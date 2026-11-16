@@ -575,8 +575,8 @@ local/Compose setup and Azure mount examples.
 The shared `sw1` API parses and formats item locators with escaped names and explicit kinds.
 A locator describes a position by name; it does not supply persistent identity or survive a rename.
 Structured Ossie and ODCS items can be derived and resolved through the shared API. RDF/SHACL
-resources and implicit built-ins have no locator. Existing UI keys, inspector results and save
-behavior are unchanged.
+resources and implicit built-ins have no locator. Structured inspector entities and links carry
+required addresses in narrower result types; existing internal IDs remain unchanged.
 The pure API also validates declared renames and applies ordered history; persistence is not connected yet.
 See [item addresses](docs/item-addresses.md) for the pure API and tests.
 

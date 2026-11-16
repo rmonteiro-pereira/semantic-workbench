@@ -398,3 +398,12 @@ No positional locator or descendant may enter migration history.
 array-item subtree. Constitution 4.0.0 includes the required IV/V amendments; the plan records it.
 The earlier compaction counterexample remains the reason for the integrator's dropped task.
 The remaining store implementation will enforce the specified 50,000-record bound uncompacted.
+
+## Inspector adoption restored with positional roots
+
+`bun test tests/model-address-inspect.test.ts tests/grouping-api.test.ts`: 5 pass, 0 fail,
+7,990 assertions, 1.65 s. `bun test tests/formats.test.ts tests/ossie-layouts.test.ts tests/validation.test.ts`:
+121 pass, 0 fail, 527 assertions, 1.358 s. Existing tests were unchanged.
+`bun scripts/item-address-timing.ts`: baseline median 277.196 ms, addressed median 280.598 ms,
+1.2275% overhead on enterprise-1000. Structured entity/relationship types require an address;
+RDF and built-ins expose none. Internal IDs and persisted keys remain unchanged in this step.
