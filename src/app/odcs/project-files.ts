@@ -19,7 +19,7 @@ export function projectFiles(docs: Doc[]): ProjectFile[] {
       parsedCache.set(key, value);
     }
     const data = parsedCache.get(key);
-    return data && typeof data === 'object' ? [{ path: doc.path, data }] : [];
+    return data && typeof data === 'object' ? [{ path: doc.path, data, project: doc.project }] : [];
   });
 }
 /** Builds a revision key from project file paths and content hashes. */

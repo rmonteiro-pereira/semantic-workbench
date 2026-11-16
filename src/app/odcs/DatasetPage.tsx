@@ -7,7 +7,7 @@ import { ArrowLeft, ShieldCheck, Table2, Workflow } from 'lucide-react';
 import { odcsForeignKeys } from '../../shared/odcs/foreign-keys';
 import { scm, type Doc, type GitCommit as Commit } from '../projects/api';
 import { diffObject, flattenProperties, lastChange, type ObjectDiff } from './odcs-diff';
-import { buildLineage, closure, objectId, cardOfNode, type ForeignKeyHop, type LineageCard } from './lineage';
+import { buildLineage, closure, cardOfNode, type ForeignKeyHop, type LineageCard } from './lineage';
 import { EmptyState } from '../projects/EmptyState';
 import { LineageCanvas } from './LineageCanvas';
 import { projectFiles, projectRevision } from './project-files';
@@ -219,7 +219,7 @@ function LineageTab({
 }) {
   const rev = projectRevision(projectDocs);
   const graph = useMemo(() => buildLineage(projectFiles(projectDocs), doc.path, rev), [rev, doc.path]);
-  const id = objectId(doc.path, objectName);
+  const id = [...graph.cards.values()].find(card => card.kind === 'object' && card.file === doc.path && card.label === objectName)?.id ?? '';
   const host = useRef<HTMLDivElement | null>(null);
   const fullscreen = useFullscreen(host);
   const card = graph.cards.get(id);

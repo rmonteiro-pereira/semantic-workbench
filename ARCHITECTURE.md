@@ -87,6 +87,8 @@ flags positional ancestors as volatile. The inspector derives required locators 
 entities and links in narrower result types; RDF and built-in entities stay unaddressable. `item-key-adapters.ts` resolves older labels against
 that derivation and refuses ambiguous or unresolved qualified names. These pure modules do not read application state. Address consumers build text through
 `formatAddress`, never by concatenating project, document or item names.
+`src/app/odcs/lineage-addresses.ts` indexes structured card and row locators for lineage; dotted
+labels remain presentation text and ambiguous labels are never guessed as references.
 
 ### HTTP, startup and ownership
 

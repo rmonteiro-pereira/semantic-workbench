@@ -1,6 +1,8 @@
 // Tests neighborhood reachability and directional lineage paths.
 import { test, expect } from 'bun:test';
-import { buildLineage, around, closure, findAssets, selectionNodes } from '../src/app/odcs/lineage';
+import { buildLineage as buildAddressedLineage, around, closure, findAssets, selectionNodes } from '../src/app/odcs/lineage';
+import { lineageDisplayKeys } from './helpers/lineage-display-keys';
+const buildLineage: typeof buildAddressedLineage = (...args) => lineageDisplayKeys(buildAddressedLineage(...args));
 const schemaObject = (name: string, props: any[], extra: any = {}) => ({
   name: name,
   physicalName: 'db.' + name,

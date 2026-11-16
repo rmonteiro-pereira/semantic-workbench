@@ -2,7 +2,9 @@
 import { test, expect } from 'bun:test';
 import { readFileSync, readdirSync } from 'node:fs';
 import { parse } from 'yaml';
-import { buildLineage, closure, cardOfNode, selectionNodes } from '../src/app/odcs/lineage';
+import { buildLineage as buildAddressedLineage, closure, cardOfNode, selectionNodes } from '../src/app/odcs/lineage';
+import { lineageDisplayKeys } from './helpers/lineage-display-keys';
+const buildLineage: typeof buildAddressedLineage = (...args) => lineageDisplayKeys(buildAddressedLineage(...args));
 import { lineagePierce } from '../src/app/odcs/lineage-pierce';
 // Lineage Show all connected: the cards of a column's complete upstream and downstream path.
 const files = readdirSync('public/examples/ubl')

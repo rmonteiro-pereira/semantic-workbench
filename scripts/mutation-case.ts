@@ -1098,7 +1098,8 @@ if (category === 'lineage') {
       },
     },
   ];
-  const lineage = loadedModule.buildLineage(files, 'c.odcs.yaml');
+  const { lineageDisplayKeys } = await import('../tests/helpers/lineage-display-keys');
+  const lineage = lineageDisplayKeys(loadedModule.buildLineage(files, 'c.odcs.yaml'));
   // Foreign key: referenced (parent) column → referencing column.
   assert.deepEqual(
     lineage.edges.filter((e: any) => e.kind === 'foreign-key').map((e: any) => [e.from, e.to]),

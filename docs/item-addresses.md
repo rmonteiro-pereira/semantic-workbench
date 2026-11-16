@@ -25,7 +25,9 @@ ADDRESS_TEST_SEED=9721 bun test tests/item-address-properties.test.ts
 `ADDRESS_TEST_SEED` accepts an integer. A failing property includes its seed for replay.
 The fixtures are in `tests/fixtures/addresses/conformance.json`. The mapping canvas uses resolved scope addresses for cards and rows. Synthetic built-ins and
 unresolved evidence rows keep explicit non-address UI keys. General graph selection and
-persisted-key conversion are not adopted yet.
+persisted-key conversion are not adopted yet. ODCS lineage derives addresses from actual schema
+objects, nested properties and array-item definitions, without parsing dotted display labels.
+Dataset fields and metrics use their resolved model scopes. External stubs remain synthetic.
 
 ## Structured definitions
 

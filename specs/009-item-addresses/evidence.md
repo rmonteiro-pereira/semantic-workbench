@@ -417,3 +417,16 @@ mapping rows use explicit synthetic UI keys. Equal-degree center ordering remain
 `bun test tests/mapping-graph.test.ts tests/agent-context-kinds.test.ts`: 26 pass, 0 fail,
 6,869 assertions, 6.25 s. `TMPDIR=/tmp/sw-009 SW_BASE_URL=http://127.0.0.1:5301 bun scripts/mapping-graph-browser-check.ts`:
 12 mapping graph checks passed on isolated data. No source or persisted UI state was rewritten.
+
+## Lineage adoption
+
+ODCS lineage indexes actual structured definitions, including unnamed array-item schemas.
+A literal dotted property and nested properties retain distinct addresses despite equal visible
+labels. Ambiguous dotted references are not guessed. Real project files carry absolute addresses;
+standalone fixture inputs without project metadata use project-relative locators. External stubs
+remain synthetic. Existing semantic-edge oracle/golden assertions retain their exact expectations
+through a test-only key translation that refuses duplicate display keys. A separate direct-entry
+case asserts actual canonical keys, uniqueness and model resolution for dotted and array nodes.
+`bun test tests/lineage.test.ts tests/lineage-query.test.ts tests/lineage-hops.test.ts tests/lineage-pierce.test.ts tests/lineage-addresses.test.ts`:
+16 pass, 0 fail, 1,672 assertions, 1.046 s. The direct address case subsequently moved into
+lineage.test.ts; no assertion was removed. The mutation baseline retains its semantic assertions.

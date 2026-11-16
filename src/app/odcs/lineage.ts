@@ -1,12 +1,13 @@
 /** Builds column-level lineage from declared names and parsed expressions without fetching or
  * running data. */
+import { lineageAddresses } from './lineage-addresses';
 import { odcsForeignKeys } from '../../shared/odcs/foreign-keys';
 import { ansiExpression, expressionRefs, metricDependencies } from '../../shared/metrics/deps';
 import { readMetricExtension } from '../../shared/metrics/extension';
 // Shared readers for the column-level lineage below: semantic models in a project file, physical
 // names of objects and columns. Matching is by declared names and parsed expressions only.
 /** Pairs a project path with its parsed definition for lineage construction. */
-export type ProjectFile = { path: string; data: any };
+export type ProjectFile = { path: string; data: any; project?: string };
 const list = (value: unknown): any[] => {
   if (Array.isArray(value)) {
     return value;
@@ -17,8 +18,6 @@ const list = (value: unknown): any[] => {
   return [value];
 };
 const isObject = (v: unknown): v is Record<string, any> => !!v && typeof v === 'object' && !Array.isArray(v);
-/** Builds an identifier for a contract object within a project file. */
-export const objectId = (file: string, name: string) => `object:${file}#${name}`;
 // Semantic models in a file: flat, legacy `semantic_model` lists, and models embedded in a
 // consolidated ontology's `ontology_mappings`.
 function models(projectFile: ProjectFile): { file: string; key: string; model: any }[] {
@@ -120,10 +119,6 @@ export type LineageGraph = {
   revision: string;
   unmatchedDatasets: number;
 };
-const datasetCardId = (file: string, key: string, name: string) => `dataset:${file}#${key}/${name}`;
-const metricCardId = (file: string, key: string, name: string) => `metric:${file}#${key}/${name}`;
-/** Builds a column identifier under its owning card. */
-export const columnId = (card: string, path: string) => `${card}/${path}`;
 // The card a node (column or card) belongs to. Ids contain file paths, so this is a lookup, not a
 // parse.
 /** Looks up a node's owning card without parsing identifiers that contain file paths. */
@@ -161,6 +156,11 @@ export const hopSentence = (hop: ForeignKeyHop) => `${hop.child} → ${hop.paren
 export function buildLineage(files: ProjectFile[], contractPath: string, revision = ''): LineageGraph {
   const contract = files.find(f => f.path === contractPath)?.data;
   const schema = list(contract?.schema);
+  const addresses = lineageAddresses(files, contractPath);
+  const objectAddress = (file: string, name: string) => addresses.item(file, 'object', '', name);
+  const datasetAddress = (file: string, scope: string, name: string) => addresses.item(file, 'dataset', scope, name);
+  const metricAddress = (file: string, scope: string, name: string) => addresses.item(file, 'metric', scope, name);
+  const columnAddress = addresses.column;
   const cards = new Map<string, LineageCard>();
   const edges: ColumnEdge[] = [];
   const seen = new Set<string>();
@@ -175,15 +175,15 @@ export function buildLineage(files: ProjectFile[], contractPath: string, revisio
   const fkTargets = new Map<string, string[]>();
   for (const foreignKey of keys)
     foreignKey.fromColumns.forEach((fromColumn, i) => {
-      const id = columnId(objectId(contractPath, String(schema[foreignKey.from]?.name)), fromColumn);
+      const id = columnAddress(objectAddress(contractPath, String(schema[foreignKey.from]?.name)), fromColumn);
       const target = `${schema[foreignKey.to]?.name}.${foreignKey.toColumns[i]}`;
       fkTargets.set(id, [...(fkTargets.get(id) ?? []), target]);
     });
   schema.forEach((schemaObject: any) => {
     if (!isObject(schemaObject)) return;
-    const id = objectId(contractPath, String(schemaObject.name));
+    const id = objectAddress(contractPath, String(schemaObject.name));
     const columns = flattenProperties(schemaObject.properties).map(flat => {
-      const cid = columnId(id, flat.path);
+      const cid = addresses.property(flat.property);
       const fk = fkTargets.get(cid);
       let type: string | undefined;
       if (typeof flat.property.logicalType === 'string') {
@@ -210,12 +210,12 @@ export function buildLineage(files: ProjectFile[], contractPath: string, revisio
   });
   // Referenced (parent) column → referencing (child) column , pairwise by position.
   for (const foreignKey of keys) {
-    const parent = objectId(contractPath, String(schema[foreignKey.to]?.name));
-    const child = objectId(contractPath, String(schema[foreignKey.from]?.name));
+    const parent = objectAddress(contractPath, String(schema[foreignKey.to]?.name));
+    const child = objectAddress(contractPath, String(schema[foreignKey.from]?.name));
     foreignKey.fromColumns.forEach((fromColumn, i) =>
       edge({
-        from: columnId(parent, foreignKey.toColumns[i]),
-        to: columnId(child, fromColumn),
+        from: columnAddress(parent, foreignKey.toColumns[i]),
+        to: columnAddress(child, fromColumn),
         kind: 'foreign-key',
         source: { file: contractPath, path: foreignKey.path },
         label: foreignKey.label,
@@ -233,11 +233,11 @@ export function buildLineage(files: ProjectFile[], contractPath: string, revisio
         detail: 'Reference to another contract; not resolved',
         columns: [],
       });
-    const child = objectId(contractPath, String(schema[x.from]?.name));
+    const child = objectAddress(contractPath, String(schema[x.from]?.name));
     for (const fromColumn of x.fromColumns)
       edge({
         from: id,
-        to: columnId(child, fromColumn),
+        to: columnAddress(child, fromColumn),
         kind: 'foreign-key',
         source: { file: contractPath, path: x.path },
       });
@@ -245,7 +245,7 @@ export function buildLineage(files: ProjectFile[], contractPath: string, revisio
   // Declared transforms: source objects → the property (card to column).
   schema.forEach((schemaObject: any, i: number) => {
     if (!isObject(schemaObject)) return;
-    const id = objectId(contractPath, String(schemaObject.name));
+    const id = objectAddress(contractPath, String(schemaObject.name));
     const walk = (props: unknown, prefix: string, path: (string | number)[]) =>
       list(props).forEach((property: any, j: number) => {
         if (!isObject(property)) return;
@@ -254,7 +254,7 @@ export function buildLineage(files: ProjectFile[], contractPath: string, revisio
         for (const src of list(property.transformSourceObjects).filter((s: unknown): s is string => typeof s === 'string')) {
           const match = schema.find((x: any) => isObject(x) && (x.name === src || physical(x) === src));
           let from: string;
-          if (match) from = objectId(contractPath, String(match.name));
+          if (match) from = objectAddress(contractPath, String(match.name));
           else {
             from = `external:${src}`;
             if (!cards.has(from))
@@ -269,7 +269,7 @@ export function buildLineage(files: ProjectFile[], contractPath: string, revisio
           }
           edge({
             from,
-            to: columnId(id, at),
+            to: columnAddress(id, at),
             kind: 'transform',
             source: { file: contractPath, path: [...pp, 'transformSourceObjects'] },
             label: 'declared transform',
@@ -293,7 +293,7 @@ export function buildLineage(files: ProjectFile[], contractPath: string, revisio
       const names = new Set<string>(metrics.map((m: any) => m.name).filter((n: unknown) => typeof n === 'string'));
       const base = key ? key.split('/').map(s => (/^\d+$/.test(s) ? Number(s) : s)) : [];
       const metricCard = (metric: any) => {
-        const id = metricCardId(file, key, String(metric.name));
+        const id = metricAddress(file, key, String(metric.name));
         if (!cards.has(id)) {
           const ext = readMetricExtension(metric).value;
           cards.set(id, {
@@ -318,13 +318,13 @@ export function buildLineage(files: ProjectFile[], contractPath: string, revisio
         }
         const copied = readers.length === 1 ? copiedColumns(dataset, readers[0]) : null;
         if (copied) {
-          const objId = objectId(contractPath, String(readers[0].name));
+          const objId = objectAddress(contractPath, String(readers[0].name));
           const table = cards.get(objId);
           if (table) markCopy(table, String(dataset.name), [...copied.values()]);
-          for (const [field, property] of copied) fieldColumns.set(`${dataset.name}.${field}`, columnId(objId, property));
+          for (const [field, property] of copied) fieldColumns.set(`${dataset.name}.${field}`, columnAddress(objId, property));
           return;
         }
-        const id = datasetCardId(file, key, String(dataset.name));
+        const id = datasetAddress(file, key, String(dataset.name));
         const pk = new Set(list(dataset.primary_key).map(String));
         const fields = list(dataset.fields).filter(isObject);
         cards.set(id, {
@@ -334,7 +334,7 @@ export function buildLineage(files: ProjectFile[], contractPath: string, revisio
           file,
           detail: String(source),
           columns: fields.map((fd: any) => ({
-            id: columnId(id, String(fd.name)),
+            id: columnAddress(id, String(fd.name)),
             path: String(fd.name),
             type: typeof fd.datatype === 'string' ? fd.datatype : undefined,
             badges: pk.has(String(fd.name)) ? [badge('pk')] : [],
@@ -342,7 +342,7 @@ export function buildLineage(files: ProjectFile[], contractPath: string, revisio
         });
         const ambiguous = readers.length > 1;
         for (const reader of readers) {
-          const objId = objectId(contractPath, String(reader.name));
+          const objId = objectAddress(contractPath, String(reader.name));
           const props = new Map(
             list(reader.properties)
               .filter(isObject)
@@ -355,8 +355,8 @@ export function buildLineage(files: ProjectFile[], contractPath: string, revisio
               const propertyName = props.get(col);
               if (propertyName)
                 edge({
-                  from: columnId(objId, propertyName),
-                  to: columnId(id, String(fd.name)),
+                  from: columnAddress(objId, propertyName),
+                  to: columnAddress(id, String(fd.name)),
                   kind: 'reads',
                   source: { file, path: [...base, 'datasets', di, 'fields', fi] },
                   ...(ambiguous ? { ambiguous: true } : {}),
@@ -364,7 +364,7 @@ export function buildLineage(files: ProjectFile[], contractPath: string, revisio
             }
           });
         }
-        fields.forEach((fd: any) => fieldColumns.set(`${dataset.name}.${fd.name}`, columnId(id, String(fd.name))));
+        fields.forEach((fd: any) => fieldColumns.set(`${dataset.name}.${fd.name}`, columnAddress(id, String(fd.name))));
       });
       // Field → metric (aggregates); metric → metric (uses).
       metrics.forEach((metric: any, mi: number) => {
@@ -389,8 +389,8 @@ export function buildLineage(files: ProjectFile[], contractPath: string, revisio
         }
         for (const dep of metricDependencies(sql, names))
           metricEdges.push({
-            from: metricCardId(file, key, dep),
-            to: metricCardId(file, key, String(metric.name)),
+            from: metricAddress(file, key, dep),
+            to: metricAddress(file, key, String(metric.name)),
             source: { file, path: [...base, 'metrics', mi] },
           });
       });
@@ -401,7 +401,7 @@ export function buildLineage(files: ProjectFile[], contractPath: string, revisio
         added = false;
         for (const metricEdge of metricEdges)
           if (cards.has(metricEdge.from) && !seen.has(`${metricEdge.from}>${metricEdge.to}>uses`)) {
-            const metric = metrics.find((x: any) => metricCardId(file, key, String(x.name)) === metricEdge.to);
+            const metric = metrics.find((x: any) => metricAddress(file, key, String(x.name)) === metricEdge.to);
             if (!metric) continue;
             metricCard(metric);
             edge({ ...metricEdge, kind: 'uses' });

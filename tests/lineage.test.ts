@@ -1,8 +1,12 @@
+import { parseAddress } from '../src/shared/core/item-address';
+import { resolveInModel } from '../src/shared/core/model-addresses';
 // Tests column lineage against independently derived edges and saved reference graphs.
 import { test, expect } from 'bun:test';
 import { readFileSync, readdirSync, existsSync, writeFileSync, mkdirSync } from 'node:fs';
 import { parse } from 'yaml';
-import { buildLineage, objectId, closure, around, type LineageGraph } from '../src/app/odcs/lineage';
+import { buildLineage as buildAddressedLineage, closure, around, type LineageGraph } from '../src/app/odcs/lineage';
+import { lineageDisplayKeys } from './helpers/lineage-display-keys';
+const buildLineage: typeof buildAddressedLineage = (...args) => lineageDisplayKeys(buildAddressedLineage(...args));
 // Expected edges are derived independently from parsed YAML, without the lineage builder. Saved
 // reference graphs make edge changes visible in review.
 type Edge = [string, string, string];
@@ -131,7 +135,7 @@ for (const [dir, contract] of [
 }
 test('commerce: customers.customer_id → orders.customer_id (parent left of child), fields and metrics to the right', () => {
   const lineageGraph = buildLineage(load('commerce'), 'commerce.odcs.yaml');
-  const tableId = (n: string) => objectId('commerce.odcs.yaml', n);
+  const tableId = (name: string) => `object:commerce.odcs.yaml#${name}`;
   expect(lineageGraph.edges).toContainEqual(
     expect.objectContaining({
       from: `${tableId('customers')}/customer_id`,
@@ -261,4 +265,26 @@ test('nested columns, composite keys, external stubs, declared transforms, cycle
   );
   expect(g2.unmatchedDatasets).toBe(1);
   void around;
+});
+
+test('literal dotted properties, nested properties and unnamed array schemas have distinct locators', () => {
+  const data = {
+    kind: 'DataContract',
+    id: 'C',
+    schema: [{ name: 'O', properties: [{ name: 'a.b' }, { name: 'a', properties: [{ name: 'b' }] }, { name: 'rows', items: { properties: [{ name: 'code' }] } }] }],
+  };
+  const graph = buildAddressedLineage([{ path: 'c.yaml', project: 'p', data }], 'c.yaml');
+  const card = [...graph.cards.values()][0];
+  expect(card.columns.map(column => column.path)).toEqual(['a.b', 'a', 'a.b', 'rows', 'rows[]', 'rows[].code']);
+  expect(new Set(card.columns.map(column => column.id)).size).toBe(6);
+  expect(card.columns[0].id).toEndWith('/property:a.b');
+  expect(card.columns[2].id).toEndWith('/property:a/property:b');
+  expect(card.columns[4].id).toEndWith('/property:rows/property:#0');
+  for (const id of [card.id, ...card.columns.map(column => column.id)]) {
+    const parsed = parseAddress(id);
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) throw new Error(parsed.reason);
+    expect(parsed.address.form).toBe('absolute');
+    expect(resolveInModel(data, parsed.address, { project: 'p', document: ['c.yaml'] }).status).toBe('found');
+  }
 });

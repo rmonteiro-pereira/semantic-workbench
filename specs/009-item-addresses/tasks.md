@@ -113,7 +113,7 @@ changes.
   (`conceptId`, `datasetId`, `metricId`, `fieldId` become calls to the formatter; their callers
   receive addresses). Proof: `tests/` for mapping graph pass unchanged apart from key text; a
   field named `a/b` and a dataset named `a` stay distinct. (FR-038, FR-039)
-- [ ] T018 [P] [US4] Move ODCS lineage ids to addresses in `src/app/odcs/lineage.ts` and
+- [x] T018 [P] [US4] Move ODCS lineage ids to addresses in `src/app/odcs/lineage.ts` and
   `src/app/odcs/*` consumers. Proof: lineage tests; a dotted property name case. (FR-014, FR-038)
 - [ ] T019 [US4] Move graph selection and neighbourhood state to addresses
   (`src/app/workspace/WorkspaceCanvas.tsx`, `src/app/graph/`), keeping `Entity.id` only as the

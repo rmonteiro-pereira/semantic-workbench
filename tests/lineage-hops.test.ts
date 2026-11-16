@@ -1,6 +1,8 @@
 // Tests that foreign keys read as sentences and group by hop.
 import { test, expect } from 'bun:test';
-import { around, buildLineage, foreignKeyHop, foreignKeyPath, hopSentence } from '../src/app/odcs/lineage';
+import { around, buildLineage as buildAddressedLineage, foreignKeyHop, foreignKeyPath, hopSentence } from '../src/app/odcs/lineage';
+import { lineageDisplayKeys } from './helpers/lineage-display-keys';
+const buildLineage: typeof buildAddressedLineage = (...args) => lineageDisplayKeys(buildAddressedLineage(...args));
 
 const table = (name: string, properties: any[]) => ({
   name,
