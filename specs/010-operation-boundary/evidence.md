@@ -194,8 +194,12 @@ The frozen HTTP fixture is byte-identical to `1ad23ed7`; the original audit mont
 to `66e51af5` (`git diff --exit-code` for each). No fixture was regenerated. The constitution is
 unchanged. The two handover sentences above complete T049 under the integrator's clarification.
 
-The readable-code checker passes for every changed TypeScript file, and the leak scanner passes
-for all changed deliverable files. Internal feature records use its confidential-only mode.
+The readable-code checker passes for every changed TypeScript file. The full leak scanner reports
+seven existing technical false positives: six `/tmp/` usage examples in `docs/development.md` and
+the unchanged remote-credentials consent docstring referring to an authentication session. These
+lines are outside this feature diff and are retained under the instruction to preserve commands
+and public docstrings. Full scanning of all added deliverable content passes, and confidential-only
+scanning of every changed file passes. Internal feature records use confidential-only mode.
 The requested cadence checker remains unavailable: `scripts/commit_cadence.py` does not exist.
 
 ## Local commits
