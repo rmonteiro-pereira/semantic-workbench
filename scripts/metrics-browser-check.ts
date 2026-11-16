@@ -326,9 +326,17 @@ try {
     await page.getByRole('region', { name: 'Metric gross_revenue' }).getByRole('button', { name: 'Add attributes', exact: true }).click();
     const wizard = page.getByRole('dialog', { name: 'Add attributes to gross_revenue' });
     await expect(wizard).toBeVisible();
-    const next = () => wizard.getByRole('button', { name: 'Next' }).click();
+    const titleTops: number[] = [];
+    const rememberTitle = async () => titleTops.push((await wizard.locator('h2').boundingBox())!.y);
+    const next = async () => {
+      await rememberTitle();
+      await wizard.getByRole('button', { name: 'Next' }).click();
+    };
     await next();
     await expect(wizard).toContainText('sales.ossie.yaml');
+    await expect(wizard).toContainText('4 datasets · 3 metrics');
+    await wizard.getByRole('searchbox', { name: 'Find datasets or metrics' }).fill('gross_revenue');
+    await expect(wizard.getByRole('list', { name: 'Available datasets and metrics' }).locator('li')).toHaveCount(1);
     await next();
     await expect(wizard.getByLabel('Name')).toHaveValue('gross_revenue');
     await expect(wizard.getByLabel('Metric type')).toHaveValue('simple');
@@ -341,6 +349,8 @@ try {
     await next();
     await expect(wizard.getByLabel('Preview · not executed')).toBeVisible({ timeout: 10000 });
     await next();
+    await rememberTitle();
+    expect(Math.max(...titleTops) - Math.min(...titleTops), 'wizard title stays put across every step').toBeLessThanOrEqual(2);
     await wizard.getByRole('button', { name: 'Save to file' }).click();
     await expect(wizard).toBeHidden({ timeout: 10000 });
     const after = await Bun.file(path).text();

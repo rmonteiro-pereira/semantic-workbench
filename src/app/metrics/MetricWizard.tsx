@@ -116,6 +116,7 @@ export function MetricWizard({
   const models = useMemo(() => modelsOf(docs), []);
   const concepts = useMemo(() => conceptsOf(docs), []);
   const [step, setStep] = useState(0);
+  const [dataSearch, setDataSearch] = useState('');
   const [done, setDone] = useState(0);
   const [draft, setDraft] = useState<Draft>({
     measures: '',
@@ -183,27 +184,28 @@ export function MetricWizard({
     ...(draft.measures && !bound ? { binding: { measures: draft.measures, ...(draft.of ? { of: draft.of } : {}) } } : {}),
   };
   // What blocks each step.
-  const problems = (i: number): string[] => {
-    const out: string[] = [];
-    if (i === 1 && !model) out.push('Choose the semantic model that holds the data.');
+  const problems = (i: number): { field: string; message: string }[] => {
+    const out: { field: string; message: string }[] = [];
+    if (i === 1 && !model) out.push({ field: 'Semantic model', message: 'Choose the semantic model that holds the data.' });
     if (i === 2) {
-      if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(draft.name)) out.push('Give the metric a name of letters, digits and underscores.');
-      else if (!existing && model?.metrics.includes(draft.name)) out.push(`${draft.name} already exists in ${model.name}.`);
-      if (!draft.label.trim()) out.push('Give the metric a label people will read.');
+      if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(draft.name)) out.push({ field: 'Name', message: 'Give the metric a name of letters, digits and underscores.' });
+      else if (!existing && model?.metrics.includes(draft.name)) out.push({ field: 'Name', message: `${draft.name} already exists in ${model.name}.` });
+      if (!draft.label.trim()) out.push({ field: 'Label', message: 'Give the metric a label people will read.' });
     }
     if (i === 2 && !existing) {
-      if (draft.type === 'simple' && !draft.field) out.push('Choose the field to aggregate.');
-      if (draft.type === 'ratio' && (!draft.numerator || !draft.denominator)) out.push('Choose the numerator and the denominator.');
-      if (draft.type === 'ratio' && draft.numerator && draft.numerator === draft.denominator) out.push('Numerator and denominator must differ.');
-      if (['derived', 'cumulative', 'filtered'].includes(draft.type) && !list(draft.inputs).length) out.push('Choose the input metrics.');
-      if (['derived', 'cumulative', 'filtered'].includes(draft.type) && !expression) out.push('Write the expression over the input metrics.');
-      if (draft.type === 'filtered' && !draft.filterField) out.push('Choose the filter field.');
+      if (draft.type === 'simple' && !draft.field) out.push({ field: 'Field', message: 'Choose the field to aggregate.' });
+      if (draft.type === 'ratio' && (!draft.numerator || !draft.denominator)) out.push({ field: 'Numerator', message: 'Choose the numerator and the denominator.' });
+      if (draft.type === 'ratio' && draft.numerator && draft.numerator === draft.denominator) out.push({ field: 'Denominator', message: 'Numerator and denominator must differ.' });
+      if (['derived', 'cumulative', 'filtered'].includes(draft.type) && !list(draft.inputs).length) out.push({ field: 'Input metrics', message: 'Choose the input metrics.' });
+      if (['derived', 'cumulative', 'filtered'].includes(draft.type) && !expression) out.push({ field: 'Expression', message: 'Write the expression over the input metrics.' });
+      if (draft.type === 'filtered' && !draft.filterField) out.push({ field: 'Filter field', message: 'Choose the filter field.' });
     }
-    if (i === 3 && draft.timeDimension && !/^[^.\s]+\.[^.\s]+$/.test(draft.timeDimension)) out.push('The time dimension is a dataset.field.');
-    if (i === 3 && draft.minGrain && draft.grains.length && !draft.grains.includes(draft.minGrain)) out.push('The allowed grains must include the minimum grain.');
-    if (i === 4 && draft.direction && (draft.target.trim() === '' || Number.isNaN(Number(draft.target)))) out.push('The target is a number.');
-    if (i === 4 && [draft.warning, draft.critical].some(v => v.trim() !== '' && Number.isNaN(Number(v)))) out.push('Thresholds are numbers.');
-    if (i === 5 && !draft.owner.trim()) out.push('Name the owner who answers for this metric.');
+    if (i === 3 && draft.timeDimension && !/^[^.\s]+\.[^.\s]+$/.test(draft.timeDimension)) out.push({ field: 'Time dimension', message: 'The time dimension is a dataset.field.' });
+    if (i === 3 && draft.minGrain && draft.grains.length && !draft.grains.includes(draft.minGrain))
+      out.push({ field: 'Allowed grains', message: 'The allowed grains must include the minimum grain.' });
+    if (i === 4 && draft.direction && (draft.target.trim() === '' || Number.isNaN(Number(draft.target)))) out.push({ field: 'Target', message: 'The target is a number.' });
+    if (i === 4 && [draft.warning, draft.critical].some(v => v.trim() !== '' && Number.isNaN(Number(v)))) out.push({ field: 'Warning at', message: 'Thresholds are numbers.' });
+    if (i === 5 && !draft.owner.trim()) out.push({ field: 'Owner', message: 'Name the owner who answers for this metric.' });
     if (i >= 2 && i <= 5) {
       const checked = readMetricExtension({
         custom_extensions: [
@@ -213,7 +215,7 @@ export function MetricWizard({
           },
         ],
       });
-      if (i === 5) out.push(...checked.issues.map(x => x.message));
+      if (i === 5) out.push(...checked.issues.map(issue => ({ field: 'Status', message: issue.message })));
     }
     return out;
   };
@@ -255,13 +257,24 @@ export function MetricWizard({
     setStep(i);
     setDone(x => Math.max(x, i));
   };
-  const field = (label: string, control: React.ReactNode, hint?: string, wide = false) => (
-    <label className={wide ? 'wide' : ''}>
-      <span>{label}</span>
-      {control}
-      {hint && <small>{hint}</small>}
-    </label>
-  );
+  const field = (label: string, control: React.ReactNode, hint?: string, wide = false) => {
+    const findings = blocking.filter(problem => problem.field === label);
+    const errorId = `wizard-error-${label.replaceAll(' ', '-').toLowerCase()}`;
+    const markedControl =
+      findings.length && React.isValidElement(control) ? React.cloneElement(control as React.ReactElement<Record<string, unknown>>, { 'aria-invalid': true, 'aria-describedby': errorId }) : control;
+    return (
+      <label className={wide ? 'wide' : ''}>
+        <span>{label}</span>
+        {markedControl}
+        {hint && <small>{hint}</small>}
+        {findings.length > 0 && (
+          <small id={errorId} className="field-error">
+            {findings.map(problem => problem.message).join(' ')}
+          </small>
+        )}
+      </label>
+    );
+  };
   const select = ({ value, onChange, options, aria, empty = '—' }: SelectProps) => (
     <select aria-label={aria} value={value} onChange={e => onChange(e.target.value)}>
       <option value="">{empty}</option>
@@ -300,13 +313,7 @@ export function MetricWizard({
     </>
   );
   return (
-    <Modal
-      title={existing ? `Add attributes to ${existing.label}` : 'New metric'}
-      onCancel={onClose}
-      className="item-editor kpi-wizard"
-      footer={footer}
-      footerNote={step < 7 ? blocking[0] : undefined}
-    >
+    <Modal title={existing ? `Add attributes to ${existing.label}` : 'New metric'} onCancel={onClose} className="item-editor kpi-wizard" footer={footer} footerNote={undefined}>
       <section className="wizard-body" aria-label={STEPS[step]}>
         <WizardStepper steps={STEPS} current={step} reachable={done} onGo={setStep} />
         <div className="wizard-step">
@@ -377,9 +384,25 @@ export function MetricWizard({
                   )
                 )}
                 {model && (
-                  <p className="wide">
-                    {model.datasets.length} datasets · {model.metrics.length} metrics: {model.datasets.map(x => x.name).join(', ')}
-                  </p>
+                  <div className="wide wizard-data">
+                    <p>
+                      {model.datasets.length} datasets · {model.metrics.length} metrics
+                    </p>
+                    <label>
+                      Find datasets or metrics
+                      <input type="search" value={dataSearch} onChange={event => setDataSearch(event.target.value)} />
+                    </label>
+                    <ul aria-label="Available datasets and metrics">
+                      {[...model.datasets.map(dataset => ({ name: dataset.name, kind: 'Dataset' })), ...model.metrics.map(name => ({ name, kind: 'Metric' }))]
+                        .filter(item => item.name.toLowerCase().includes(dataSearch.toLowerCase()))
+                        .map(item => (
+                          <li key={`${item.kind}:${item.name}`}>
+                            <span>{item.name}</span>
+                            <small>{item.kind}</small>
+                          </li>
+                        ))}
+                    </ul>
+                  </div>
                 )}
               </div>
             </>
@@ -647,16 +670,6 @@ export function MetricWizard({
                 </div>
               ))}
             </div>
-          )}
-          {blocking.length > 0 && (
-            <ul className="item-findings" aria-label="Before the next step">
-              {blocking.map(problem => (
-                <li key={problem} className="error">
-                  <AlertTriangle size={12} />
-                  {problem}
-                </li>
-              ))}
-            </ul>
           )}
           {error && (
             <p role="alert" className="dialog-error">

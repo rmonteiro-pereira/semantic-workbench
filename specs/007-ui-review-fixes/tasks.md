@@ -404,7 +404,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Top-align card rows (`style.css:469-490` region), cut descriptions at word boundaries, show Edit on hover and focus and in details, add the scroll fade, and render the type as an inline badge. The raw 'EntityType' label uses lane A's humanise function once lane A has merged.
   - Proof: Before `local-light/local-catalog-1440.png`, `local-light/local-metric-detail-1280.png` (review baseline); after: same state recaptured with `scripts/ui-review/capture-tour.ts <out> local light` and `SW_ONLY=catalog scripts/ui-review/capture-states.ts <out> rest`; check: `bun run test:sidebar` and `bun run test:clipping`.
 
-- [ ] T058 [US5] [E] Make the metric wizard stable and its step 2 usable.
+- [x] T058 [US5] [E] Make the metric wizard stable and its step 2 usable.
   - Findings: M18 · Requirements: FR-055
   - Files: `src/app/metrics/MetricWizard.tsx`, `src/app/metrics/metrics.css`, `src/app/projects/Modal.tsx`
   - Change: Show '<N> datasets · <M> metrics' with a searchable list in step 2 (`MetricWizard.tsx:381`); give the dialog one height and a scrolling body so the title stays put across steps 1-8.

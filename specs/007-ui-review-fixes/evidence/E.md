@@ -41,3 +41,11 @@
 
 - Mall contract Graph at 1440×900: properties and portfolios carry computed `--card-tint: #ab6d64`, the sixth (index 5) GROUP_PALETTE entry.
 - Cards themselves have surface-white backgrounds; the tint is applied to their children. The domain group uses this entry; the inference about the palette source is confirmed.
+
+### T058 — stable metric wizard
+
+- The eight-step title position and the step-2 searchable dataset/metric list pass `test:metrics`: 11 checks passed.
+- Before: review `screenshots/states/local-metric-wizard--step-{1-empty-validation,2,4}-1440.png`.
+- After: `/tmp/sw-E/final-metrics/local-metric-wizard--step-{1-empty-validation,2,4}-1440.png`.
+- Opened all three after images: title at the same top position, 142 datasets / 25 metrics count above a bounded searchable list, and fixed footer visible. The step 2 review image was also opened for comparison.
+- Capture geometry incorrectly counts text behind an open native dialog as covered/overlapping; this is retained in capture logs, not suppressed.

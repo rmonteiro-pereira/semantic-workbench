@@ -1038,7 +1038,7 @@
 @media (min-width: 1920px) {
   .metrics-view:not(.has-detail) .metrics-list {
     width: 100%;
-    max-width: 1600px;
+    max-width: var(--content-max);
     justify-self: center;
   }
   .metrics-filters {
@@ -1149,4 +1149,30 @@
   .metrics-table .metrics-name strong {
     font-size: 14px;
   }
+}
+
+.workbench-dialog.item-editor.kpi-wizard.has-footer {
+  height: min(760px, calc(100dvh - 40px));
+}
+.kpi-wizard .dialog-body {
+  min-height: 0;
+  overflow-y: auto;
+}
+.wizard-data ul {
+  max-height: 240px;
+  overflow-y: auto;
+  list-style: none;
+  padding: 0;
+}
+.wizard-data li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.kpi-wizard .wizard-preview pre[aria-label^='Changes to'] {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
