@@ -19,3 +19,12 @@ T014 skipped: the current Layered result includes compound cross-area edge secti
 ## Selection
 
 T015 implementation: Controls folds secondary switches before the desktop toolbar wraps, and Exit stays outside it. Unrelated node opacity is 0.35. Selection fits neighbors when readable and otherwise centers the selected node at readable zoom. Fresh selected-node captures: review `screenshots/followup/local-ubl-full-graph--network-node-selected-1440.png` → `/tmp/sw-A/after/screenshots/followup/local-ubl-full-graph--network-node-selected-1440.png`. Opened both: one toolbar row; names larger; initial trial exposed a selected node outside the pane, corrected by centering the selected node when its neighborhood cannot fit at readable zoom. Fullscreen and geometry verification remain in the final lane check.
+
+
+## Documentation and checks
+
+T022 complete with the T012–T014 limitation preserved: docs no longer promise every initial name is readable, and accurately retain the existing 250-entity collapse rule. Graph controls, neighborhood opening, Other files and Full pierce Fit are documented. `test:terminology`: “Terminology check passed: no KPI or contract object in 8 files' views, the metric detail, the wizard, README and docs.” Public documentation and changelog scanner: 0 hits in 3 files.
+
+T021 shared browser export for lane E: `humanizeIdentifier(identifier: string): string` from `src/app/graph/EntityName.tsx`. It handles camel case, acronym boundaries and namespace labels without rewriting model identifiers. No new shared path was named in plan.md; the task's existing EntityName module is the reuse point.
+
+The first terminology attempt omitted the base URL and preload, attempted 5173 and failed with connection refused; rerun succeeded using 5211/5212. No changes to another checkout or service.

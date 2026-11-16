@@ -267,7 +267,7 @@
   min-width: 0;
 }
 @media (max-width: 650px) {
-  .canvas-row.is-fullscreen > .inspector {
+  .canvas-row.is-fullscreen.has-inspector > .inspector {
     max-height: 40%;
   }
 }

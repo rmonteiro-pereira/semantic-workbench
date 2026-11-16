@@ -344,26 +344,28 @@ for the entity you select. Switch to **Layered (ELK)**, which preserves orthogon
 they match current handles, with the **Layered / Network** control in the graph toolbar. The
 toolbar also holds **Re-layout**, the crosshair select that zooms to an area (**Zoom to group**; a long area name ends in an ellipsis and hovering the select shows the full name),
 **Collapse areas**, **Expand all**, and switches for **Labels**, **Value types**, **Metrics** and **Mini-map**; a check mark shows which
-are on. On a phone these controls fold behind **Controls**. The canvas supports grouped areas,
+are on. When space is limited these controls fold behind **Controls**. The canvas supports grouped areas,
 dragging, area zoom and selection. Resizing the window or the sidebar does not rearrange the
 graph or undo your drags; **Re-layout** plans it again for the current window. Network detail routing uses a shared background worker;
 whole-model views use less expensive paths.
 
-The first view shows every entity by name; models above 250 visible business entities start with
+The first view fits the complete layout; dense models can have small names. Select an entity to
+center it at readable zoom, or zoom in. Models above 250 visible business entities start with
 one counted card per area. Expand an area or choose **Expand all** to
 show every entity. Internal relationships remain available when the area opens. **Fit model**
-returns the complete layout to view. A finite viewport cannot show unlimited full-size labels.
+returns the complete layout to view. A finite viewport cannot show unlimited full-size labels. At fit zoom, **Labels** shows names only
+for selected or hovered relationships; zooming in reveals all enabled labels.
 
 ### Neighborhood and expansion
 
-Incoming neighbors appear left of the center; outgoing neighbors appear right. The initial view
+Incoming neighbors appear left of the center; outgoing neighbors appear right. The initial view centers the current card at readable zoom and
 shows up to twelve neighbors, on a phone too, with a shown/hidden count and **N more neighbors**.
 Cards keep their type (in words, such as "Entity type"), their whole description, wrapped to as many
 lines as it needs, and metric count at every zoom. Cards never overlap, links stop at the card border
 and never cross a card, and links that arrive at one card are spread along its side. **Labels** shows
 every relationship name when it is on.
 The picker ranks exact name matches first. Walking to a neighbor records a trail; Back, Forward
-and breadcrumbs restore earlier centers (see [Back and Forward](#back-and-forward)). **Continue in <file>** follows an explicitly shared
+and breadcrumbs restore earlier centers (see [Back and Forward](#back-and-forward)). **Other files → Continue in <file>** follows an explicitly shared
 identity into another project file and retains return navigation.
 
 **+** expands a node in place without moving already placed nodes. **−**, **Undo expansion** and
@@ -372,7 +374,8 @@ Outgoing, Incoming or Both directions from the selection or center. It stops at 
 frontier markers explain hidden reachable nodes. **Expand further** permits up to 500, and **Stop**
 cancels the worker operation. Each run is one trail step, "All connected to <name>"; repeating the
 same run goes back to that step, and a run that adds nothing new adds no step. The Neighborhood, lineage and mapping views share the
-same bounded traversal and the same step wording.
+same bounded traversal and the same step wording. A result that cannot fit at readable zoom offers
+**N entities, Fit** to show the complete result.
 
 The toolbar filters neighbors by **Relationship** and switches **Links between neighbors**,
 **Technical resources**, **Labels**, **Value types** and **Metrics** on or off. **Re-arrange** puts

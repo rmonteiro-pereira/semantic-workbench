@@ -1,5 +1,6 @@
 // Checks graph navigation and rendering at multiple scales in an isolated browser workspace.
 import { screenshotPath } from './helpers/screenshots';
+import { checkGraphReview } from './helpers/graph-review-checks';
 import { appUrl } from './helpers/base-url';
 import { recordResizeErrors } from './helpers/resize-errors';
 import { checkExpansionViewports } from './graph-expansion-checks';
@@ -81,6 +82,7 @@ const shot = (name: string) => page.screenshot({ path: screenshotPath(`/tmp/work
 try {
   await routeApi(page, api);
   await page.goto(appUrl());
+  await checkGraphReview(page);
   await check('full graph keeps all 45 UBL entities and 277 relationships; area zoom and layered layout', async () => {
     await openFile('ubl.ontology.yaml');
     await tab('Graph').click();

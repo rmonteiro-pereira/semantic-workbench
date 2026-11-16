@@ -46,8 +46,8 @@ it is not a drop-in performance switch.
    metadata is not forwarded onto DOM elements.
 6. Compute obstacle-aware worker routes only at useful detail levels or for selected connections.
    Whole-model views use inexpensive native paths instead of routing thousands of tiny edges.
-7. Fit the actual pane and show every entity by name. Models above 250 visible business
-   entities start with counted area cards; expanding restores all entities and their folded
+7. Fit the actual pane. Name legibility depends on the model and pane size; zoom or select an
+   entity to read dense layouts. Models above 250 visible business entities start with counted area cards; expanding restores all entities and their folded
    relationships.
 
 `src/app/graph/full-layout.ts` and its workers own engine input/output.
@@ -81,6 +81,10 @@ It follows requested direction and visibility switches. Frontier counts distingu
 content from content already drawn. Large additions are revealed over multiple frames so input
 remains responsive. `expansion-viewport.ts` chooses a readable target viewport before publishing
 an expanded canvas instead of briefly mounting it at fit-all scale.
+
+The opening viewport centers the current card at readable zoom instead of shrinking descriptions
+to fit distant neighbors. **Other files** groups cross-file navigation in one menu at every width.
+A Full pierce result fits when readable; otherwise **N entities, Fit** offers the complete extent.
 
 Names use identifier-boundary breaks without changing text. Relationship labels compensate for
 zoom, reserve their painted bounds and stay above edge paths. Displaced labels have leader lines;
