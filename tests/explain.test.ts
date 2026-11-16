@@ -17,7 +17,7 @@ async function mall() {
   return { ...workspace, slug };
 }
 const get = async (t: { handler: (request: Request) => Promise<Response> }, path: string) => {
-  const r = await t.handler(new Request('http://localhost' + path));
+  const r = await t.handler(new Request('http://localhost' + path, { headers: { 'Sec-Fetch-Site': 'same-origin' } }));
   return { status: r.status, body: await r.json() };
 };
 const explain = (t: any, metric: string, query = '') => get(t, `/api/projects/${t.slug}/files/mall.semantic.yaml/explain/${metric}${query}`);

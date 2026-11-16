@@ -1,5 +1,9 @@
 // Focused assertions for immutable publication faults.
 import assert from 'node:assert/strict';
+import type { metricRoutes } from '../src/server/routes/metrics';
+import { testWorkspace } from '../tests/helpers/temp-data-dir';
+import { publishFixture } from '../tests/helpers/published-workspace';
+import { localPrincipal } from '../src/server/auth/principal';
 import type * as agentRoutes from '../src/server/routes/agent';
 import { authWorkspace } from '../tests/helpers/auth-workspace';
 import { createAccessControl } from '../src/server/auth/authorize';
@@ -30,6 +34,7 @@ import type { createSnapshotIndexes } from '../src/server/projects/snapshot-inde
 export async function snapshotMutationCase(
   category: string,
   candidate: {
+    metricRoutes?: typeof metricRoutes;
     createAgentRoutes?: typeof agentRoutes.createAgentRoutes;
     publishedAgentDocuments?: typeof agentRoutes.publishedAgentDocuments;
     surfaceFromCredential?: typeof surfaceFromCredential;
@@ -43,6 +48,18 @@ export async function snapshotMutationCase(
     createSnapshotIndexes?: typeof createSnapshotIndexes;
   },
 ) {
+  if (category === 'snapshot-metrics') {
+    using fixture = await testWorkspace();
+    const { slug } = await fixture.ws.loadExample('mapped-commerce');
+    await publishFixture(fixture);
+    const file = fixture.ws.documents().find(document => document.filename === 'commerce.mapped-semantic.yaml')!;
+    await fixture.ws.saveFile(slug, file.path, { baseHash: file.hash, source: file.source.replaceAll('gross_revenue', 'unpublished_revenue') }, LOCAL_READER);
+    const access = createAccessControl({ ...accessFixture(), mode: 'local', knownProjects: () => [slug] });
+    const request = Object.assign(new Request(`http://localhost/api/projects/${slug}/metrics`), { [requestAccess]: access.forRequest(access.principalFor(localPrincipal())) });
+    const response = await candidate.metricRoutes!(fixture.ws, request, new URL(request.url));
+    assert.equal(response!.status, 200);
+    assert.ok(!(await response!.text()).includes('unpublished_revenue'));
+  }
   if (category === 'snapshot-agent-permissions') {
     using fixture = await authWorkspace({ published: false });
     const access = createAccessControl(accessFixture());

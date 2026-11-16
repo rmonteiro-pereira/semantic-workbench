@@ -247,3 +247,11 @@ stopped and the worktree removed after the comparison.
 1 pass, 0 fail, 270 assertions. All fixture roles compare unknown and unreadable projects across
 catalog, context and plan; readable projects without pointers return the exact 409 contract.
 The mutant loading availability before project authorization is detected (baseline 0, mutant 1).
+
+## Metrics read surface
+
+`TMPDIR=/tmp/sw-008 bun test tests/metrics-surface.test.ts tests/metrics-api.test.ts tests/kpi-save.test.ts tests/explain.test.ts`:
+16 pass, 0 fail, 331 assertions. The new case proves both metric listing and explanation use editing
+definitions for browser calls and committed definitions otherwise, with no agent snapshot header.
+The always-editing mutant is detected (baseline 0, mutant 1). Existing UI-oriented HTTP fixtures
+now explicitly send browser fetch metadata rather than depending on the old implicit source.

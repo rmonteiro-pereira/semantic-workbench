@@ -1,6 +1,7 @@
 // Deliberate faults in immutable publication selection and validation.
 /** Targeted publication faults exercised by the mutation gate. */
 export const snapshotMutants: [string, string, string, string][] = [
+  ['snapshot-metrics', 'src/server/routes/metrics.ts', "requestSurface(request) === 'browser'", 'true'],
   [
     'snapshot-agent-permissions',
     'src/server/routes/agent.ts',

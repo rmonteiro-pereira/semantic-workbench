@@ -7,7 +7,8 @@ explicitly configured execution tool, if one is needed outside this application.
 
 Agent catalog, context and plan responses use one immutable published commit per request, in both
 local and server modes, including requests made by the author. `X-Workbench-Snapshot` identifies
-that full commit. A readable project without a snapshot returns 409 with code
+that full commit. Metric listings and explanations use saved editing definitions for browser
+requests and the published snapshot for programmatic requests. A readable project without a snapshot returns 409 with code
 `no-published-snapshot` and reason `no-git`, `no-commit` or `unavailable`.
 
 The Mappings view and agent endpoints use the same resolver/planner. Metric formulas stay in the

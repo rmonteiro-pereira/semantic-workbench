@@ -15,7 +15,7 @@ const api = (workspace: { handler: (request: Request) => Promise<Response> }, me
   workspace.handler(
     new Request('http://127.0.0.1:4310' + path, {
       method,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Sec-Fetch-Site': 'same-origin' },
       ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
     }),
   );
