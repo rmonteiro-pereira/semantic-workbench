@@ -129,7 +129,7 @@ changes.
   `src/server/agent/context-assembly.ts` and the keys in `explain.ts` and `query-plan.ts`. Proof:
   `tests/agent-context-kinds.test.ts` and the plan snapshots unchanged except the documented
   labels; a test that two fields whose dotted names would collide now differ. (FR-038, FR-039)
-- [ ] T022 [US4] Read the metric extension's `dataset.field` through the adapter in
+- [x] T022 [US4] Read the metric extension's `dataset.field` through the adapter in
   `src/shared/metrics/extension.ts` readers; write nothing back. Proof: a byte-exact test that
   opening and saving a metric file leaves it identical and contains no `sw1:` text. (FR-010,
   FR-041)

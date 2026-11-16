@@ -1,3 +1,4 @@
+import { adaptItemKey } from '../core/item-key-adapters';
 /** Reads and validates workbench metric attributes stored as JSON in Ossie custom extensions. */
 import type { ValidateFunction } from 'ajv';
 import { metric as checkMetric, mapping as checkMapping } from '../../generated/validators.js';
@@ -229,7 +230,7 @@ const GRAIN_ORDER = new Map(GRAINS.map((g, i) => [g, i]));
 // Cross-references within one semantic model: inputs exist, no cycles, grains and fields exist,
 // and the declared type agrees with the expression.
 /** Checks metric dependencies, cycles, fields, grains and declared calculation types. */
-export function metricLayerIssues(model: any, prefix: string, fieldNames: Map<string, Set<string>>): Issue[] {
+export function metricLayerIssues(model: any, prefix: string, _fieldNames: Map<string, Set<string>>): Issue[] {
   const issues: Issue[] = [];
   const metrics: any[] = Array.isArray(model?.metrics) ? model.metrics.filter(object) : [];
   const names = new Set(metrics.map(m => m.name).filter((n: unknown) => typeof n === 'string'));
@@ -253,8 +254,9 @@ export function metricLayerIssues(model: any, prefix: string, fieldNames: Map<st
       if (!names.has(ref)) err(`/inputs/${j}`, `Input "${ref}" is not a metric of this semantic model.`);
     });
     const field = (ref: string, inner: string) => {
-      const [dataset, fieldName] = ref.split('.');
-      if (!fieldNames.get(dataset)?.has(fieldName)) err(inner, `Field ${ref} does not exist in this semantic model.`);
+      const resolved = adaptItemKey(ref, model);
+      if (resolved.status === 'ambiguous') err(inner, `Field ${ref} is ambiguous in this semantic model.`);
+      else if (resolved.status !== 'found' || resolved.address.chain.at(-1)?.kind !== 'field') err(inner, `Field ${ref} does not exist in this semantic model.`);
     };
     if (value.time) {
       field(value.time.dimension, '/time/dimension');

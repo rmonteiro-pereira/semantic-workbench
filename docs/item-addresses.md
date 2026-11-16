@@ -3,6 +3,7 @@
 `src/shared/core/item-address.ts` exports `parseAddress`, `formatAddress`, `resolveAddress`,
 `hasPrefix`, `replacePrefix` and `displayName`. The application-defined `sw1` format is a locator,
 not an official Ossie or ODCS format. It is never written into those documents automatically.
+Metric-extension `dataset.field` references are interpreted through the compatibility adapter without rewriting source text; ambiguous matches are refused.
 The closed registry and parent rules live in `src/shared/core/address-kinds.ts`.
 
 An absolute item locator looks like `sw1:sales/orders.yaml#model:Orders/dataset:orders`.

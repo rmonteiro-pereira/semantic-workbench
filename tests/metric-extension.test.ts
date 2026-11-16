@@ -1,9 +1,11 @@
+import { LOCAL_READER } from '../src/server/projects/reader';
+import { testWorkspace } from './helpers/temp-data-dir';
 // Tests metric extension validation across shipped examples.
 import { test, expect } from 'bun:test';
 import { parseDocument, stringify } from 'yaml';
 import { validateInput } from '../src/shared/validation/input';
 import { ansiExpression } from '../src/shared/metrics/deps';
-import { inferredAdditivity, inferredType, readMetricExtension } from '../src/shared/metrics/extension';
+import { inferredAdditivity, inferredType, readMetricExtension, metricLayerIssues } from '../src/shared/metrics/extension';
 // Metric extensions on copies of the 59 metrics shipped in the examples.
 const shipped = [
   'billing/billing.semantic.yaml',
@@ -174,4 +176,36 @@ test('type and additivity are inferred from the expression when not declared', (
   expect(inferredAdditivity('a - b', 'derived', () => 'additive', ['a', 'b'])).toBe('additive');
   expect(inferredAdditivity('a - b', 'derived', n => (n === 'a' ? 'semi_additive' : 'additive'), ['a', 'b'])).toBe('semi_additive');
   expect(inferredAdditivity('t.x', 'simple', () => null)).toBe(null);
+});
+
+test('opening and saving governed metric definitions preserves source bytes and legacy references', async () => {
+  using workspace = await testWorkspace();
+  const { slug } = await workspace.ws.loadExample('mall');
+  const original = workspace.ws.readFile(slug, 'mall.semantic.yaml');
+  const opened = validateInput(original.source, 'mall.semantic.yaml');
+  expect(opened.valid).toBe(true);
+  await workspace.ws.saveFile(slug, 'mall.semantic.yaml', { baseHash: original.hash, patches: [] }, LOCAL_READER);
+  const saved = workspace.ws.readFile(slug, 'mall.semantic.yaml');
+  expect(saved.source).toBe(original.source);
+  expect(saved.hash).toBe(original.hash);
+  expect(saved.source).not.toContain('sw1:');
+});
+
+test('dotted metric references are refused when two real fields share the old spelling', () => {
+  const model = {
+    name: 'M',
+    datasets: [
+      { name: 'a', fields: [{ name: 'b' }] },
+      { name: 'a', fields: [{ name: 'b' }] },
+    ],
+    metrics: [
+      {
+        name: 'count',
+        expression: { dialects: [{ dialect: 'ANSI_SQL', expression: 'COUNT(*)' }] },
+        custom_extensions: [{ vendor_name: 'SEMANTIC_WORKBENCH', data: JSON.stringify({ schema: 'semantic-workbench/metric/v1', type: 'simple', dimensions: ['a.b'] }) }],
+      },
+    ],
+  };
+  const findings = metricLayerIssues(model, '', new Map());
+  expect(findings.some(finding => finding.message === 'Field a.b is ambiguous in this semantic model.')).toBe(true);
 });

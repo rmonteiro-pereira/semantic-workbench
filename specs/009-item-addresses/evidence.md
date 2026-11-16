@@ -469,3 +469,7 @@ A focused comparison of the existing UBL first-view browser assertion measured 1
 Context field IDs and AI-context labels now use formatted addresses, including embedded model scopes. The query planner accepts existing tuple selectors through the compatibility adapter, while its resolved field keys are canonical. Metric names remain the public metric selectors. Legacy semantic digests normalize only the documented key/label spelling changes; their saved digests and SQL assertions remain unchanged. Context, planner and mapping graph proof: 57 pass, 0 fail, 6,981 assertions. The added dotted-name collision proof enters through buildContext and verifies source bytes remain untouched.
 
 The lineage browser suite passed UBL first view at 1,876 ms and all earlier stages, then its opened-list measurement misclassified the card header as a row because it inferred row identity from a slash. The measurement now compares the handle with the actual card ID; row/edge coordinate assertions remain intact. Full suite rerun remains pending.
+
+### Metric extension reader
+
+Metric dimension, time and filter references are read through the compatibility adapter. Missing-reference messages retain their existing wording; ambiguous matches are refused explicitly. Existing schema restrictions on the extension's dataset.field notation remain unchanged. A workspace read plus empty-patch save preserves the source and hash byte-for-byte and contains no sw1 text. Adapter, extension and independent consumer proofs: 15 pass, 0 fail, 353 assertions.
