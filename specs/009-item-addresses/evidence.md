@@ -42,9 +42,44 @@ No UI, persisted-key conversion or migration-store behavior is claimed by this d
 `SW_BASE_URL=http://127.0.0.1:5301 DATA_DIR=<temporary data root> bun scripts/mutation-tests.ts`
 ran all unmodified module baselines and detected all six new grammar mutants: widened unreserved
 characters, lowercase escapes, removed early length rejection, depth off-by-one, textual prefix
-matching and leading-zero positions. The complete runner result is recorded below when it exits.
+matching and leading-zero positions. The runner was interrupted during later browser cases because their API harness uses unassigned ephemeral ports. There is no complete global mutation result.
 
 The project-only base case for document-relative resolution also returns a typed `form` failure;
 it does not throw. Its focused regression test passes.
 
 The requested commit-cadence command cannot run: `scripts/commit_cadence.py` is absent.
+
+## Final verification status
+
+| Command | Result |
+| --- | --- |
+| `ADDRESS_TEST_SEED=9721 bun test tests/seeded-random.test.ts tests/item-address.test.ts tests/item-address-properties.test.ts tests/item-address-purity.test.ts` | 12 pass, 0 fail, 61,987 expect() calls; 4 files, 310 ms. |
+| `bun test --preload /tmp/sw-009/ports.ts` | 2,024 pass, 45 fail, 192,325 expect() calls; 2,069 tests across 289 files, 359.62 s. |
+| `bun --bun run check` | Passed TypeScript, fmt:check, lint, comments, theme and brand checks. |
+| `bun --bun run build` | Built in 2.37 s; large-chunk warning only. |
+| `bun scripts/mutation-tests.ts` | All six address mutants killed; global run interrupted during browser mutants, without a final total. |
+| Docs sync, readable-code check, `git diff --check` | Passed. |
+| Document leak scan | README, architecture, item-address documentation and changelog clean; internal evidence clean under the confidential-only scan. |
+
+The full test command used a temporary preload to constrain `Bun.serve` to port 5302, with
+`DATA_DIR` and `TMPDIR` inside the assigned temporary root. Existing multi-server tests collide
+on that single port; cleanup failures cascade after failed setup. The deployment CLI test also
+hard-codes a `/tmp/sw-deploy-registry-` prefix and fails under the assigned `TMPDIR`.
+The complete suite is not green, and an unrestricted baseline is not claimed.
+
+An initial attempt to supply the preload through `BUN_OPTIONS` recursed into the package test
+script instead of running the test runner; the table records the corrected explicit invocation.
+The global mutation runner was started with the assigned frontend URL. Its browser helpers were
+later found to bind ephemeral API ports; the runner and its owned descendants were stopped.
+The pure grammar mutation cases had already passed and require no network listener.
+
+The remaining browser commands (`test:addresses`, `test:graph`, `test:lineage`, `test:metrics`,
+`test:item-edit`, `test:ui`, `test:responsive`, `test:edges`, `test:auth`) have no positive completion
+result here. The new address suite is not implemented. The release regression comparison also
+remains pending; its requested updated-main worktree is outside this lane's allowed scope.
+No browser adoption task or final completion gate is marked complete.
+
+T001–T009 are complete. T010–T045 remain unchecked, following the ordered phase stop at model
+derivation. No task was silently skipped or marked complete without its stated feature proof.
+The API, key conversion, migration persistence and authorization adoption must not be advertised
+as implemented. All started verification processes and the frontend are stopped before handoff.
