@@ -87,8 +87,11 @@ export class PersonalBranchError extends Error {
 
 /** Refuses a publish whose working copy does not contain the current default branch tip. */
 export class NotFastForwardError extends Error {
-  constructor(public branch: string) {
-    super(`Pull from ${branch} first: publishing must be a fast-forward of ${branch}.`);
+  constructor(
+    public branch: string,
+    message = `Pull from ${branch} first: publishing must be a fast-forward of ${branch}.`,
+  ) {
+    super(message);
     this.name = 'NotFastForwardError';
   }
 }

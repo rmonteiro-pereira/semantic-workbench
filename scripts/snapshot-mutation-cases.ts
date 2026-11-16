@@ -1,5 +1,6 @@
 // Focused assertions for immutable publication faults.
 import assert from 'node:assert/strict';
+import { localPublicationCase } from './local-publication-mutation-cases';
 import type { metricRoutes } from '../src/server/routes/metrics';
 import { testWorkspace } from '../tests/helpers/temp-data-dir';
 import { publishFixture } from '../tests/helpers/published-workspace';
@@ -33,7 +34,7 @@ import type { createSnapshotIndexes } from '../src/server/projects/snapshot-inde
 /** Exercises the publication predicate belonging to a candidate module. */
 export async function snapshotMutationCase(
   category: string,
-  candidate: {
+  candidate: Parameters<typeof localPublicationCase>[0] & {
     metricRoutes?: typeof metricRoutes;
     createAgentRoutes?: typeof agentRoutes.createAgentRoutes;
     publishedAgentDocuments?: typeof agentRoutes.publishedAgentDocuments;
@@ -48,6 +49,7 @@ export async function snapshotMutationCase(
     createSnapshotIndexes?: typeof createSnapshotIndexes;
   },
 ) {
+  if (category === 'snapshot-local') await localPublicationCase(candidate);
   if (category === 'snapshot-metrics') {
     using fixture = await testWorkspace();
     const { slug } = await fixture.ws.loadExample('mapped-commerce');

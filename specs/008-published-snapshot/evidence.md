@@ -269,3 +269,16 @@ field set plus `snapshotCommit`; no content, path or project name is added.
 other application routes retain their existing refusal statuses. The successful agent audit keeps
 its exact field shape and action `agentRead`. Tasks referring to `tests/audit.test.ts` use the
 existing `tests/auth/audit.test.ts` instead; no parallel audit suite was introduced.
+
+## Local publication primitive
+
+`TMPDIR=/tmp/sw-008 bun test tests/local-publication.test.ts`: 7 pass, 0 fail, 25 assertions.
+Real Git fixtures cover creating/reusing authoring, staged and unstaged bytes, dirty publication,
+unborn default creation, one concurrent winner, detached/diverged refusals and an outside CAS race.
+Both registered local mutants are detected: destructive reset and omission of the CAS old value.
+`bun --bun run check`: exit 0. Phase-three matrix/audit/inventory: 32 pass, 0 fail, 41866 assertions.
+
+The local commit wiring must include existing automatic writers, not just the SCM HTTP route:
+imports, project-folder moves and manifest commits also commit through Git. Legacy data migration
+runs before snapshot initialization and establishes the existing history adopted on upgrade.
+The extension keeps those existing writers and uses one authoring preparation function.
