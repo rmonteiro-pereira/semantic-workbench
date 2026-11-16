@@ -675,11 +675,11 @@ main 655df09 was archived inside the wrapper checkout and tested with its own fr
 its screenshot destinations were redirected into the owned output folder; assertions were unchanged.
 The archive was removed after its servers stopped. No performance budget or geometry assertion changed.
 
-| Command and serving mode | Feature result | Unchanged main result | Retained logs |
+| Command | Feature result | Main result | Log pair (.log) |
 | --- | --- | --- | --- |
-| test:graph, development | Pierce long task 227 ms exceeds 100 ms | 233 ms exceeds 100 ms | browser-graph.log, main-graph.log |
-| test:graph, production | Pierce passes at 63 ms; later reports Whole model cut off inside its select | Same select-clipping failure | production-graph.log, main-production-graph.log |
-| test:lineage, production | Large UBL first view 3,482 ms exceeds 2,000 ms | 3,494 ms exceeds 2,000 ms | production-lineage.log, main-production-lineage.log |
+| test:graph, dev | 227 ms > 100 ms | 233 ms > 100 ms | browser-graph / main-graph |
+| test:graph, build | 63 ms; later select clipping | Same select clipping | production-graph / main-production-graph |
+| test:lineage, build | 3,482 ms > 2,000 ms | 3,494 ms > 2,000 ms | production-lineage / main-production-lineage |
 
 All listed logs are under out/gate-009/. These failures are not claimed as passing gates or feature
 regressions. The remaining named browser suites, actual remote mutation runner and final paired
