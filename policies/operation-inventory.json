@@ -578,7 +578,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": ["localWrite"],
+      "effects": ["read"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -621,7 +621,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": ["localWrite"],
+      "effects": ["read"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -1384,7 +1384,7 @@
         "response": "bounded",
         "work": "git"
       },
-      "effects": ["localWrite", "remote"],
+      "effects": ["localWrite"],
       "dispatch": "twin",
       "exposure": {
         "increment": "workspace-scm"
@@ -1621,7 +1621,7 @@
         "response": "bounded",
         "work": "light"
       },
-      "effects": ["localWrite"],
+      "effects": ["read"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"

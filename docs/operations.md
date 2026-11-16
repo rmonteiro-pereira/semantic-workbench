@@ -31,9 +31,9 @@ Regenerate this page with `bun scripts/operation-inventory-table.ts` after revie
 | projects.delete.impact.read | GET /api/projects/:slug/delete-impact | read | project | read | none | local-edit |
 | projects.metrics.run | POST /api/projects/:slug/metrics | edit | project | localWrite | METRIC_REQUEST_LIMIT | local-edit |
 | projects.people.read | GET /api/projects/:slug/people | edit | project | read | none | local-edit |
-| projects.metrics.preview.run | POST /api/projects/:slug/metrics/preview | read | project | localWrite | METRIC_REQUEST_LIMIT | local-edit |
+| projects.metrics.preview.run | POST /api/projects/:slug/metrics/preview | read | project | read | METRIC_REQUEST_LIMIT | local-edit |
 | projects.kpis.run | POST /api/projects/:slug/kpis | edit | project | localWrite | METRIC_REQUEST_LIMIT | local-edit |
-| projects.kpis.preview.run | POST /api/projects/:slug/kpis/preview | read | project | localWrite | METRIC_REQUEST_LIMIT | local-edit |
+| projects.kpis.preview.run | POST /api/projects/:slug/kpis/preview | read | project | read | METRIC_REQUEST_LIMIT | local-edit |
 | projects.files.file.explain.read | GET /api/projects/:slug/files/*/explain/:metric | read | file | read | none | local-edit |
 | files.read | GET /api/projects/:slug/files/* | read | file | read | none | local-edit |
 | files.save | PUT /api/projects/:slug/files/* | edit | file | localWrite | FILE_SAVE_REQUEST_LIMIT | local-edit |
@@ -69,7 +69,7 @@ Regenerate this page with `bun scripts/operation-inventory-table.ts` after revie
 | git.push | POST /api/projects/:slug/git/push | push | project | localWrite, remote | GIT_REQUEST_LIMIT | workspace-scm |
 | git.cancel | POST /api/projects/:slug/git/cancel | cancelOwn | project | localWrite | GIT_REQUEST_LIMIT | local-edit |
 | git.publish | POST /api/projects/:slug/git/publish | publish | project | publish | GIT_REQUEST_LIMIT | workspace-scm |
-| git.pull.default | POST /api/projects/:slug/git/pull-default | pull | project | localWrite, remote | GIT_REQUEST_LIMIT | workspace-scm |
+| git.pull.default | POST /api/projects/:slug/git/pull-default | pull | project | localWrite | GIT_REQUEST_LIMIT | workspace-scm |
 | git.push.default | POST /api/projects/:slug/git/push-default | publish | project | publish, remote | GIT_REQUEST_LIMIT | workspace-scm |
 | git.remote.set | PUT /api/projects/:slug/git/remote | setRemote | project | administration | GIT_REQUEST_LIMIT | workspace-scm |
 | git.remote.delete | DELETE /api/projects/:slug/git/remote | setRemote | project | administration | GIT_REQUEST_LIMIT | workspace-scm |
@@ -80,7 +80,7 @@ Regenerate this page with `bun scripts/operation-inventory-table.ts` after revie
 | agent.projects.read | GET /api/agent/projects | read | workspace | read | none | local-edit |
 | agent.catalog.read | GET /api/agent/catalog | read | workspace | read | none | local-edit |
 | agent.context.read | GET /api/agent/context | read | workspace | read | none | local-edit |
-| agent.plan.run | POST /api/agent/plan | read | workspace | localWrite | GIT_REQUEST_LIMIT | local-edit |
+| agent.plan.run | POST /api/agent/plan | read | workspace | read | GIT_REQUEST_LIMIT | local-edit |
 | documents.grouping.read | GET /api/documents/:id/grouping | viewOwnState | workspace | read | none | local-edit |
 | documents.grouping.set | PUT /api/documents/:id/grouping | viewOwnState | body | localWrite | GROUPING_REQUEST_LIMIT | local-edit |
 | admin.users.read | GET /api/admin/users | admin | workspace | administration | none | administration |

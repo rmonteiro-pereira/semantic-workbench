@@ -41,3 +41,34 @@ test('an unrestricted connection cannot grant an action the role refuses', async
   const request = buildTwinRequest('projects.create', { params: {}, body: { name: 'Forbidden', domain: 'hr' } });
   expect((await handler.boundary.operate({ caller, request })).response.status).toBe(403);
 });
+
+import { createAccessMiddleware } from '../../src/server/auth/middleware';
+
+test('read-only computations and local default-branch merges use their actual effects', async () => {
+  using fixture = await authWorkspace();
+  let runs = 0;
+  const adapter = createAccessMiddleware(
+    fixture.ws,
+    {},
+    () => null,
+    async () => {
+      runs++;
+      return Response.json({ ran: true });
+    },
+  );
+  const cases = [
+    { id: 'agent.plan.run', scope: ['read'] as const, params: {} },
+    { id: 'projects.metrics.preview.run', scope: ['read'] as const, params: { slug: 'sales-contracts' } },
+    { id: 'projects.kpis.preview.run', scope: ['read'] as const, params: { slug: 'sales-contracts' } },
+    { id: 'git.pull.default', scope: ['localWrite'] as const, params: { slug: 'sales-contracts' } },
+  ];
+  for (const entry of cases) {
+    const caller = mintCaller({ principal: localPrincipal(), origin: 'mcp', scope: [...entry.scope] });
+    expect(adapter.boundary.availableOperations(caller), entry.id).toContain(entry.id);
+    const request = buildTwinRequest(entry.id, { params: entry.params, body: {} });
+    expect((await adapter.boundary.operate({ caller, request })).response.status, entry.id).toBe(200);
+  }
+  expect(runs).toBe(cases.length);
+  const localOnly = mintCaller({ principal: localPrincipal(), origin: 'mcp', scope: ['localWrite'] });
+  expect(adapter.boundary.availableOperations(localOnly)).not.toContain('git.pull');
+});
