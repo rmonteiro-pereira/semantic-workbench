@@ -348,6 +348,8 @@ export function queryAudit(entries: AuditEntry[], filters: Record<string, string
   return entries.filter(entry => {
     if (projects && !projects.has(String(entry.resource.project ?? ''))) return false;
     if (!readableResource(entry, scope)) return false;
+    if (filters.origin && (entry.origin ?? 'http') !== filters.origin) return false;
+    if (filters.tool && entry.tool !== filters.tool) return false;
     if (filters.principal && entry.principal.id !== filters.principal) return false;
     if (filters.action && entry.action !== filters.action) return false;
     if (filters.project && entry.resource.project !== filters.project) return false;
@@ -361,7 +363,7 @@ export function queryAudit(entries: AuditEntry[], filters: Record<string, string
 /** Encodes filtered records for download without allowing spreadsheet formula execution. */
 export function exportAudit(entries: AuditEntry[], format: 'csv' | 'jsonl'): string {
   if (format === 'jsonl') return entries.map(entry => JSON.stringify(entry) + '\n').join('');
-  const keys = ['at', 'requestId', 'principal', 'action', 'resource', 'decision', 'outcome', 'rules'];
+  const keys = ['at', 'requestId', 'principal', 'action', 'resource', 'decision', 'outcome', 'rules', 'origin', 'tool', 'method', 'connection'];
   const cell = (value: unknown) => {
     let text = typeof value === 'string' ? value : JSON.stringify(value ?? '');
     if (/^[=+@\-\t\r]/.test(text)) text = "'" + text;

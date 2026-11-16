@@ -142,3 +142,31 @@ test('a failed audit write after an operation is one JSON line with request and 
     reason: 'disk full',
   });
 });
+
+import { queryAudit, exportAudit } from '../../src/server/auth/audit';
+import { createAccessControl } from '../../src/server/auth/authorize';
+import { accessFixture, person } from './access-fixture';
+
+test('origin and tool filters preserve Admin and Steward project visibility', () => {
+  const dir = tempDataDir();
+  try {
+    const audit = createAuditLog({ dir: dir.root });
+    const entries = [
+      audit.append({ ...input, origin: 'mcp', tool: 'files.read', resource: { type: 'project', project: 'sales-contracts' } }),
+      audit.append({ ...input, origin: 'mcp', tool: 'files.read', resource: { type: 'project', project: 'hr-people' } }),
+      audit.append({ ...input, origin: 'acp', tool: 'projects.list', resource: { type: 'project', project: 'sales-contracts' } }),
+      audit.append({ ...input, resource: { type: 'project', project: 'sales-contracts' } }),
+    ];
+    const access = createAccessControl(accessFixture());
+    const admin = { scope: access.forRequest(access.principalFor(person('dave'))), projects: null };
+    const steward = { scope: access.forRequest(access.principalFor(person('bob'))), projects: new Set(['sales-contracts']) };
+    expect(queryAudit(entries, { origin: 'mcp', tool: 'files.read' }, admin)).toHaveLength(2);
+    expect(queryAudit(entries, { origin: 'mcp', tool: 'files.read' }, steward)).toEqual([entries[0]]);
+    expect(queryAudit(entries, { origin: 'http' }, steward)).toEqual([entries[3]]);
+    expect(queryAudit(entries, { origin: 'mcp', tool: 'projects.list' }, admin)).toEqual([]);
+    expect(exportAudit(entries, 'csv').split('\r\n')[0]).toEndWith(',origin,tool,method,connection');
+    expect(exportAudit(entries, 'jsonl')).toContain('"origin":"mcp"');
+  } finally {
+    dir.cleanup();
+  }
+});

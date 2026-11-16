@@ -61,3 +61,7 @@ record. A Steward reads the records of the projects they are allowed `readAudit`
 records whose `resource.path` they may not `read`: a restricted path stays hidden from a Steward
 who is not listed on it, because the record names the file and who opened it. Records without a
 path are kept.
+
+Queries accept `origin` (`http`, `mcp`, `acp`) and inventory `tool` filters after project visibility
+is applied. CSV exports append `origin`, `tool`, `method` and `connection`; existing columns keep
+their order. JSONL exports retain optional attribution fields as stored.

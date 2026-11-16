@@ -3,6 +3,7 @@ import type { Route } from './http';
 import type { HandlerOptions } from '../auth/middleware';
 import { auditProjects, requestScope } from '../auth/request-scope';
 import { exportAudit, queryAudit } from '../auth/audit';
+import { CALLER_ORIGINS, operationById } from '../auth/operation-inventory';
 import { AdminConfigError } from '../auth/admin-repo';
 
 /** The first instant of the UTC month that contains `now`, as an ISO time. */
@@ -17,6 +18,8 @@ export function auditRoutes(options: HandlerOptions): Route {
     const scope = requestScope(request);
     const projects = auditProjects(request);
     const filters = Object.fromEntries(url.searchParams);
+    if (filters.origin && !CALLER_ORIGINS.includes(filters.origin as (typeof CALLER_ORIGINS)[number])) throw new AdminConfigError('Invalid audit origin.');
+    if (filters.tool && !operationById(filters.tool)) throw new AdminConfigError('Invalid audit tool.');
     if (filters.decision && !['allow', 'deny'].includes(filters.decision)) throw new AdminConfigError('Invalid audit decision.');
     for (const key of ['from', 'to']) {
       if (!filters[key]) continue;
