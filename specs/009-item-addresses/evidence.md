@@ -601,3 +601,9 @@ The four additional mutants reveal hidden-vs-missing, read project data before v
 `681/681 targeted mutants killed; all unmodified module baselines passed. Run test:ui for the full browser baseline.`
 
 This proof precedes the final frozen-tree gate. The new server cases are loaded only for their own categories, avoiding unnecessary workspace initialization in every other candidate.
+
+### Public documentation and code map
+
+The address guide covers all 17 kinds and 43 conformance fixtures, relative forms, canonical escaping, stability, IRI identity, volatile names, consumer obligations, persistence inventory and bounded ordered migrations. README, configuration, user/development guides and Unreleased entries describe the final behavior. The architecture map identifies derivation, adapters, persistence, caller resolution and reconciliation, and the place to extend a kind. The dropped retention environment variable is explicitly unsupported rather than introduced as a no-op.
+
+Proof: documentation-count test — 1 pass, 0 fail, 20 assertions; docs-sync exits 0. Full public leak scans pass for README, architecture, changelog, address and user guides. The full scanner flags pre-existing public /tmp command examples in configuration/development; these usage commands must be preserved under the brief. Their confidential-only scans pass, as do internal evidence/tasks scans. The requested repository scripts/commit_cadence.py is absent (the actual command exits 2); no replacement checker is added.

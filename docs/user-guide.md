@@ -427,7 +427,9 @@ named document-scope changes record address history with those writes; unnamed s
 volatile. Explicit item and file deletion retain a tombstone, so recreating the same
 name does not attach the deleted item's history. File moves record a document-prefix change; a move between projects records it in both histories.
 Project trash and restore carry the history with the definitions. Editing files outside the
-workbench or switching Git branches does not infer renames.
+workbench, pulling Git changes or switching branches does not infer renames. Such changes appear as removal and addition
+until explicitly reconciled; reconciliation is reserved for the future item-diff interface. A still-resolving address is
+left unchanged. History is bounded rather than silently compacted or expired.
 
 RDF item editing uses predicate/object rows or a resource-local Source fragment. Every proposed
 edit must produce exactly the original graph minus intended removals plus intended additions.

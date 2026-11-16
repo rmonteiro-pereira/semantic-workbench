@@ -570,17 +570,22 @@ invalid files fall back to defaults. Vite development serves `public/brand/` dir
 See [theme tokens and brand bundles](docs/theme.md) for exact files, limits, sanitization rules,
 local/Compose setup and Azure mount examples.
 
-## Item address grammar
+## Item addresses
 
-The shared `sw1` API parses and formats item locators with escaped names and explicit kinds.
-A locator describes a position by name; it does not supply persistent identity or survive a rename.
-Structured Ossie and ODCS items can be derived and resolved through the shared API. RDF/SHACL
-resources and implicit built-ins have no locator. Structured inspector entities and links carry
-required addresses in narrower result types; existing internal IDs remain unchanged.
-Graph selection and neighborhood history use item addresses in memory, with renderer keys kept
-at the canvas boundary. The mapping and lineage canvases share the same grammar.
-The pure API validates declared renames and applies ordered history. Caller-aware resolution checks visibility before reading definitions or history, including subsequent renames after a cross-project move.
-Workbench save routes can accept declared item/scope renames and journal their history with the definitions. Stable grouping assignments and canvas centers are converted after a backup; unconvertible keys are kept. Agent context field IDs and metadata scope labels use the same grammar; legacy tuple selectors remain readable. See [item addresses](docs/item-addresses.md) for the pure API and tests.
+A `sw1` address locates a structured Ossie or ODCS item by project, document and named segments.
+It supplies location, not persistent identity: a named item's address survives sibling reordering,
+while renames and moves need recorded history. Unnamed items use volatile positional segments.
+RDF/SHACL resources and built-ins remain unaddressed.
+
+Mapping, lineage, selection and agent context share the grammar. Workbench renames and moves
+record ordered prefix changes with their definition writes; external edits and branch switches
+infer nothing. Explicit deletions stop old history at reused locators. Grouping keys and canvas
+centers convert only after a verified backup, retaining unconvertible values.
+
+History remains uncompacted, with a 50,000-record limit per project and no age-retention setting.
+Caller-aware resolution checks visibility before opening definitions or history. Snapshot suffixes
+remain opaque pending published-snapshot integration. See [item addresses](docs/item-addresses.md)
+for the grammar, API, stability rules, storage and limits.
 
 ## Development and verification
 

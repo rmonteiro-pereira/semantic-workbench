@@ -174,7 +174,7 @@ suites use `SW_BASE_URL`. The full runner supplies fresh frontend processes as n
 | `test:trash` | Delete warnings, Undo, restore, suggestions, row actions and Clear |
 | `test:sidebar` | Sidebar footer visibility and project list fill at short heights, resize and delete |
 | `test:metrics` | Metric list, definitions, explanations and graph navigation |
-| `test:addresses` | Item selection by canonical address, reload and unchanged source bytes |
+| `test:addresses` | Canonical selection, reload, unchanged source bytes and declared rename with ticked references |
 | `test:graph` | Whole graph, neighborhood walk, expansion, scale and response budget |
 | `test:editor` | Serialization colors, located findings, byte preservation and typing |
 | `test:item-edit` | Forms, new items, rename/delete and metric wizard |
@@ -420,4 +420,13 @@ resource kinds; the inventory adds public ids, effects, limits, exposure, dispat
 coverage. Classifier names are keys of `operationClassifiers`; calls cannot override the selected
 classifier. Agent plan bodies have their own
 `AGENT_PLAN_REQUEST_LIMIT` (64,000 bytes), independent of the Git request limit.
-Address-history recovery tests use the journal's `crashBefore` and `crashAfter` hooks to interrupt every definition/store rename, then recover twice. Run `bun test tests/address-migration-store.test.ts tests/journal.test.ts` for both forward completion and rollback proofs.
+
+Address-history recovery tests use the journal's `crashBefore` and `crashAfter` hooks to interrupt every
+definition/store rename, then recover twice. Run `bun test tests/address-migration-store.test.ts tests/journal.test.ts`
+for both forward completion and rollback proofs.
+
+
+Item locator conformance, properties and documentation checks run with `bun test tests/item-address.test.ts tests/item-address-properties.test.ts tests/item-address-docs.test.ts`.
+Set `ADDRESS_TEST_SEED` to an integer to replay a property run; a failure reports its seed.
+Use `bun run test:addresses` for the real selection/rename browser proof and `bun scripts/mutation-tests.ts`
+for grammar, model, replay and permission mutants. The browser suite is included in the shared gate inventory and pipeline matrix.

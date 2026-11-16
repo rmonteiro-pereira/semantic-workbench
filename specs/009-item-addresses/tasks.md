@@ -236,18 +236,18 @@ changes.
 - [x] T040 Confirm the Principle IV and V amendments are merged on the constitution branch before
   starting Phases 6 and 7; record the version in the plan's Constitution Check. Proof: the plan
   line updated with the version. (Constitution)
-- [ ] T041 [P] Write `docs/item-addresses.md`: the grammar, the three forms, escaping, kinds table,
+- [x] T041 [P] Write `docs/item-addresses.md`: the grammar, the three forms, escaping, kinds table,
   the stability table, the migration rules, limits, what a consumer must do, and the persisted-key
   inventory. Counts (kinds, fixtures) are asserted by `tests/item-address-docs.test.ts`, which
   reads the registry and fixture file. Proof: the test. (FR-010, FR-017, FR-020, FR-042; SC-012)
-- [ ] T042 [P] Update `README.md` (a short Item addresses section: what an address is, what it
+- [x] T042 **The retention environment variable is dropped with compaction; document the bounded uncompacted store instead.** [P] Update `README.md` (a short Item addresses section: what an address is, what it
   promises, what it does not, the retention setting), `docs/configuration.md`
   (`SW_ADDRESS_MIGRATION_RETENTION_DAYS`, the `state/address-migrations/` folder),
   `docs/user-guide.md` (rename and move behaviour and the external-change limit),
   `docs/development.md` (test commands, `ADDRESS_TEST_SEED`, `test:addresses`) and `CHANGELOG.md`.
   Proof: the docs-sync check passes; a reviewer reads the claims against the tests. (FR-020;
   SC-012)
-- [ ] T043 [P] Update `ARCHITECTURE.md`: code-map rows for the new shared modules and the store, a
+- [x] T043 [P] Update `ARCHITECTURE.md`: code-map rows for the new shared modules and the store, a
   line in "Where to change a behavior" (adding an item kind), and the invariant that no code builds
   an address by concatenation. Proof: docs-sync check. (SC-012)
 - [ ] T044 Retire the private key builders (`conceptId`, `datasetId`, `metricId`, `fieldId`,

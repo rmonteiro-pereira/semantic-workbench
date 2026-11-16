@@ -84,7 +84,9 @@ The integration view shows what the application reads and contacts, and what it 
 operations. `address-migration.ts` validates declared rename ownership and applies ordered prefix records
 without I/O. `model-addresses.ts` derives and resolves structured definition items, detects duplicates and
 flags positional ancestors as volatile. The inspector derives required locators for structured
-entities and links in narrower result types; RDF and built-in entities stay unaddressable. `shared/mappings/relationship-reference.ts` owns inherited relationship matching shared by the agent and rename reference analysis.
+entities and links in narrower result types; RDF and built-in entities stay unaddressable.
+`shared/mappings/relationship-reference.ts` owns inherited relationship matching shared by the agent and rename
+reference analysis.
 `app/edit/relationship-references.ts` walks mapping targets without guessing their defining concept.
 `shared/edit/address-changes.ts` derives explicit item/scope declarations from workbench edits;
 `app/projects/save-reply.ts` validates acknowledgements before client base versions advance.
@@ -134,6 +136,8 @@ IDs and the existing grouping/persistence boundaries.
   copies and stages the file-store migration. `address-key-stores.ts` locates active and archived grouping stores;
   `address-key-conversion.ts` backs them up, verifies original hashes, and journals their one-time conversion.
   `address-migrations.ts` validates and stages bounded, ordered history without committing a separate transaction.
+  `address-resolution.ts` resolves current items and visible history behind the reader boundary;
+  `address-reconciliation.ts` records explicit reconciliation through save authority, the project lock and journal.
   Shared `grouping-addresses.ts` translates stable assignment keys while keeping renderer IDs at the UI boundary.
 - `scanner.ts`, `cache.ts` and `watcher.ts` maintain derived models/findings and detect disk
   changes. Cache rows are not another authoritative copy of the definitions.
@@ -396,6 +400,7 @@ IDs and the existing grouping/persistence boundaries.
 | Route/resource | `src/server/routes/` and `auth/route-actions.ts` |
 | Access decision | `auth/authorize.ts`, Cedar policies and grant/compiler modules |
 | Content protection | `src/shared/governance/`, then server/client bindings |
+| Item address kind | `shared/core/address-kinds.ts`, model derivation, conformance fixtures, properties and `docs/item-addresses.md` |
 | Definition syntax | `src/shared/core/model.ts`, `src/shared/validation/`, `src/shared/odcs/` and pinned schemas |
 | Byte-preserving item edit | `src/shared/edit/`, `src/app/edit/` and `src/shared/editor/patch.ts` |
 | Metrics/bindings/plans | `src/shared/metrics/`, `src/app/metrics/`, `src/server/agent/` |
@@ -408,5 +413,3 @@ IDs and the existing grouping/persistence boundaries.
 Use [the development guide](docs/development.md) for command syntax, fixture rules and validation.
 Keep configuration/API/operation details in their canonical guides instead of appending release
 history or per-control instructions to this architecture map.
-
-`projects/address-resolution.ts` performs structured-item reads behind the existing reader boundary. `projects/address-reconciliation.ts` combines that read with request edit authority and the existing project lock/journal; it changes history without editing definitions.

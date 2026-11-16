@@ -11,6 +11,9 @@ not configure a production deployment.
 - Reviewed operation inventory and generated reference, trusted in-process operation dispatch,
   connection effect restrictions, audit attribution fields and origin/tool filters.
 - Independent dry-run samples retain write and denial evidence during non-HTTP read floods.
+- Resolve structured item locators behind caller visibility checks and support authorized explicit reconciliation with idempotent retries.
+- Keep migration history uncompacted and bounded at 50,000 records per project; no age-retention setting is introduced.
+
 - Explicit item/file deletes retain address tombstones; reusing a locator does not automatically inherit prior history.
 
 - File moves record document-prefix history in both affected projects, and project trash/restore carries the history store.
@@ -25,9 +28,7 @@ not configure a production deployment.
 
 - Structured inspector results now include item addresses; unnamed scopes use volatile positional segments. RDF and built-ins remain unaddressed.
 
-
 - Add pure ordered locator replay, retention-cut calculation and save-declaration validation APIs.
-
 
 - Derive and resolve structured definition addresses, including nested ODCS properties and volatile unnamed mappings.
 - Add the pure `sw1` item-locator grammar with canonical escaping, relative resolution and segment prefix operations.
