@@ -8,6 +8,7 @@ export const gateSuites: string[] = [
   'test:edges',
   'test:grouping-validation',
   'test:overview-areas',
+  'test:published-snapshot',
   'test:examples:ui',
   'test:projects',
   'test:trash',

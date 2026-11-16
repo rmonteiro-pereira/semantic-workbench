@@ -38,6 +38,8 @@ jobs:
           suite: test:grouping-validation
         overview_areas:
           suite: test:overview-areas
+        published_snapshot:
+          suite: test:published-snapshot
         examples_ui:
           suite: test:examples:ui
         projects:
