@@ -81,7 +81,7 @@ The integration view shows what the application reads and contacts, and what it 
 
 `src/shared/core/address-kinds.ts` owns the versioned item-address kind registry and parent rules.
 `item-address.ts` owns canonical parsing, formatting, relative resolution and whole-segment prefix
-operations. `address-migration.ts` validates declared rename ownership and applies/compacts ordered prefix records
+operations. `address-migration.ts` validates declared rename ownership and applies ordered prefix records
 without I/O. `model-addresses.ts` derives and resolves structured definition items, detects duplicates and
 flags positional ancestors as volatile. The inspector retains its original result types;
 consumers request locators from this shared module. `item-key-adapters.ts` resolves older labels against

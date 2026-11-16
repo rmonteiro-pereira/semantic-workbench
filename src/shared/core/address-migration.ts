@@ -80,31 +80,6 @@ export function validateDeclaredMigrations(input: unknown, project: string, writ
   return { ok: true, migrations };
 }
 
-/** Collapses expired exact-prefix chains while retaining recent records and the retention cut. */
-export function compactMigrations(file: MigrationFile, cutoff: string): MigrationFile {
-  const old: MigrationRecord[] = [];
-  const recent: MigrationRecord[] = [];
-  for (const record of file.records) {
-    if (record.at >= cutoff) recent.push(record);
-    else old.push(record);
-  }
-  if (!old.length) return file;
-  const consumed = new Set<string>();
-  const compacted: MigrationRecord[] = [];
-  for (const [index, record] of old.entries()) {
-    if (consumed.has(record.id) || record.kind === 'deleted') continue;
-    let collapsed = { ...record };
-    for (const next of old.slice(index + 1)) {
-      if (collapsed.to !== next.from) continue;
-      consumed.add(next.id);
-      collapsed = { ...collapsed, kind: next.kind, to: next.to };
-      if (next.kind === 'deleted') break;
-    }
-    if (collapsed.kind !== 'deleted' && collapsed.from !== collapsed.to) compacted.push(collapsed);
-  }
-  return { formatVersion: 1, records: [...compacted, ...recent], compactedBefore: cutoff };
-}
-
 /** Computes a deterministic retention cut from an instant and a whole-day setting. */
 export function migrationRetentionCut(nowMilliseconds: number, retentionDays: number): number {
   if (!Number.isFinite(nowMilliseconds) || !Number.isSafeInteger(retentionDays) || retentionDays < 1) throw new RangeError('Migration retention requires a finite instant and positive whole days.');

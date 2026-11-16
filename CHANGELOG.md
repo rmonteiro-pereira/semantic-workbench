@@ -15,7 +15,7 @@ not configure a production deployment.
 
 - Keep mapping-center ties ordered by visible names when escaped locator keys differ.
 
-- Add pure ordered locator migration, retention compaction and save-declaration validation APIs.
+- Add pure ordered locator replay, retention-cut calculation and save-declaration validation APIs.
 
 - Use scoped item locators for structured mapping cards and rows, preserving names containing separators.
 

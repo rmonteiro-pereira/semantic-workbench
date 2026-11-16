@@ -267,3 +267,18 @@ Its assertions now run as one case per sample, with the same deadline and shared
 fixtures. This is a test-structure correction, not a waived harness limitation.
 `bun test tests/model-addresses.test.ts -t 'structured sample'`: 28 pass, 0 fail,
 6 filtered out, 21,635 assertions in 7.54 s.
+
+## Compaction counterexample and skipped remainder
+
+The exact-chain compactor was not sufficient for the requested prefix migrations. A public-API
+regression test actually failed on this ordered history: dataset A → B, field B.f → B.g, dataset
+B → C. Ordinary replay yields C.g; the compacted history yielded C.f. Collapsing the surrounding
+dataset chain across its descendant rename changes the program's append order.
+
+Full prefix-aware compaction is larger than the exact-chain implementation: it must preserve
+interleaved ancestor/descendant rewrites and their original source prefixes under the retention
+and record bound. Per the brief's skip rule, that remainder is skipped rather than replaced by
+an unapproved compaction design. T024 is reopened. The unsafe compactor and its positive-only
+tests were removed; the counterexample remains a positive test of ordered replay. No store or
+writer uses compaction. The replay, declaration validation, record types and deterministic
+retention-cut helper remain available. T025/T026 still cover those implemented decisions.

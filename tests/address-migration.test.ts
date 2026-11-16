@@ -1,6 +1,6 @@
 /** Exercises migration decisions through the public pure API. */
 import { expect, test } from 'bun:test';
-import { compactMigrations, migrateAddress, migrationRetentionCut, validateDeclaredMigrations, type MigrationRecord } from '../src/shared/core/address-migration';
+import { migrateAddress, migrationRetentionCut, validateDeclaredMigrations, type MigrationRecord } from '../src/shared/core/address-migration';
 import { formatAddress, parseAddress, type Address } from '../src/shared/core/item-address';
 import { withAddressSeed } from './helpers/seeded-random';
 
@@ -58,18 +58,7 @@ test('declarations are typed at the request boundary and restricted to written p
   expect(validateDeclaredMigrations([scope], 'p', ['model.yaml'])).toMatchObject({ ok: true });
 });
 
-test('compaction collapses expired chains, retains recent records and expires deleted markers', () => {
-  const recent = { ...record('C', 'D', 'recent'), at: '2026-11-16T00:00:00Z' };
-  const file = { formatVersion: 1 as const, records: [record('A', 'B'), record('B', 'C'), recent] };
-  const compacted = compactMigrations(file, '2026-01-01T00:00:00Z');
-  expect(compacted.records).toEqual([{ ...file.records[0], to: text('C') }, recent]);
-  expect(compacted.compactedBefore).toBe('2026-01-01T00:00:00Z');
-  expect(compactMigrations(compacted, '2026-01-01T00:00:00Z')).toEqual(compacted);
-  expect(compactMigrations({ formatVersion: 1, records: [record('A', 'B'), record('B', 'A')] }, '2026')).toMatchObject({ records: [] });
-  const deleted: MigrationRecord = { id: 'gone', kind: 'deleted', from: text('C'), at: '2025-01-02T00:00:00Z', commit: '' };
-  expect(compactMigrations({ formatVersion: 1, records: [record('A', 'C'), deleted] }, '2026').records).toEqual([]);
-  const recentDeleted = { ...deleted, at: '2026-11-16T00:00:00Z' };
-  expect(compactMigrations({ formatVersion: 1, records: [recentDeleted] }, '2026-01-01T00:00:00Z').records).toEqual([recentDeleted]);
+test('retention cut uses the supplied instant and positive whole days', () => {
   expect(migrationRetentionCut(86_400_000 * 400, 365)).toBe(86_400_000 * 35);
   expect(() => migrationRetentionCut(0, 0)).toThrow(RangeError);
 });
@@ -86,4 +75,19 @@ test('generated histories terminate and a resolving second application is idempo
       expect(parseAddress(formatAddress(migrated)).ok).toBe(true);
     }
   });
+});
+
+test('ordered replay keeps a field rename between two dataset renames', () => {
+  const source = address(text('A'));
+  source.chain.push({ kind: 'field', name: 'f' });
+  const beforeField = address(text('B'));
+  beforeField.chain.push({ kind: 'field', name: 'f' });
+  const afterField = { ...beforeField, chain: [...beforeField.chain.slice(0, -1), { kind: 'field' as const, name: 'g' }] };
+  const field = { ...record('B', 'B', 'field'), from: formatAddress(beforeField), to: formatAddress(afterField) };
+  const records = [record('A', 'B', 'first'), field, record('B', 'C', 'last')];
+  const result = migrateAddress(source, records, false);
+  expect(result.chain.slice(-2)).toEqual([
+    { kind: 'dataset', name: 'C' },
+    { kind: 'field', name: 'g' },
+  ]);
 });

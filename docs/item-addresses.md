@@ -63,9 +63,8 @@ descendants and the opaque snapshot suffix. Deleted markers stop further replay.
 declarations, requiring canonical absolute, snapshot-free, non-positional locators within the
 request's project and files. It returns typed declarations or a closed validation reason.
 
-`compactMigrations(file, cutoff)` collapses expired exact-prefix chains, expires old deleted
-markers and retains recent records. `migrationRetentionCut(instant, days)` receives the time from
-its caller. These APIs do not append history or change save routes yet.
+`migrationRetentionCut(instant, days)` receives the time from its caller. Retention compaction
+is not implemented. These APIs do not append history or change save routes yet.
 
 ```sh
 bun test tests/address-migration.test.ts
