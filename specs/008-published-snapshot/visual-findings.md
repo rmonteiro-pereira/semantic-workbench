@@ -84,3 +84,19 @@ nor assertion was changed here; subsequent responsive groups passed in focused r
 Eighteen supplemental mock-state PNGs are also hashed in the manifest. Native review included local phone
 Adopt, the local upgrade notice, server Mappings and local Published export. The server notice image is a
 synthetic shared-component state; the real server API does not emit the local migration notice.
+
+## Architecture correction captures
+
+Fresh correction captures are indexed by dimensions and SHA-256 in `review-capture-index.tsv`:
+232 local journey images, 232 server journey images and 34 focused publication-control images.
+Both complete journeys measured zero geometry problems at every state. Native inspection included
+390 px migration and unknown-default notices, 390 px Adopt, both Source Control panes at 1280 px,
+and Published export and the server Mappings preview at 2560 px. Controls and text remained readable
+without clipping or overlap in those inspected states. These captures supplement the original release
+comparison; its original source revision and difference classifications remain unchanged.
+
+The remote responsive run also encountered a first-canvas failure of 481 px against more than 504 px.
+An unchanged copy of the exact main/base revision `655df094` reproduced the same values at the same
+assertion on the remote host. Its temporary source copy and frontend were removed. This is additional
+pre-existing remote-environment evidence, not a full responsive pass; the 407/421 exception above remains.
+Neither the canvas nor its assertions were changed in this feature.
