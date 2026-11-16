@@ -56,6 +56,7 @@ async function showDiff(page: Page, file: string, kind: 'modified' | 'added' | '
     .click();
   await page.locator('.scm-file').first().click();
   await expect(page.locator('.diff-host .cm-editor').first()).toBeVisible();
+  if (kind === 'added' && page.viewportSize()!.width > 650) await expect(page.locator('.cm-mergeView')).toHaveCount(1);
   await assertDiffSurfaces(page);
 }
 

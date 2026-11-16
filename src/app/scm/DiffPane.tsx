@@ -35,7 +35,6 @@ export function DiffPane({ selected, diff, historyFile, range, onRange, versions
           afterLabel={diffAfterLabel(diff.afterExists, diff.to, versionName(diff.to))}
           beforeExists={diff.beforeExists}
           afterExists={diff.afterExists}
-          newFile={!diff.beforeExists}
         />
       );
     }
