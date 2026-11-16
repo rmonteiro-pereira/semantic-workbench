@@ -82,3 +82,32 @@ test('the local HTTP publication creates the first snapshot, preserves dirty aut
   expect((await fixture.ws.published.documents(pin, slug))[0].source).toBe(current.source);
   expect(fixture.ws.events.replay(before)?.find(event => event.event === 'published')?.data).toEqual({ project: slug, branch: 'main', commit: publication.commit });
 });
+
+for (const stage of ['intent', 'ref', 'pointer'] as const) {
+  for (const movement of ['fast-forward', 'diverged'] as const) {
+    test(`restart after ${stage} and an outside ${movement} retains the settled snapshot and reports the move`, async () => {
+      const { fixture, worktrees, owner, next } = await publicationMoveFixture(createWorktrees, stage);
+      try {
+        await expect(worktrees.publish('definitions', owner.key, async () => {})).rejects.toThrow('Stopped');
+        const copy = `${fixture.dir}/worktrees/${owner.key}/definitions`;
+        const committed = Bun.spawnSync(['git', 'commit', '--allow-empty', '-qm', 'Outside follow-up'], { cwd: copy });
+        expect(committed.exitCode).toBe(0);
+        const outside = movement === 'fast-forward' ? Bun.spawnSync(['git', 'rev-parse', 'HEAD'], { cwd: copy }).stdout.toString().trim() : fixture.previous!;
+        expect(Bun.spawnSync(['git', 'update-ref', 'refs/heads/main', outside], { cwd: fixture.repository }).exitCode).toBe(0);
+        const settled = stage === 'pointer' ? next : fixture.published!;
+        const ws = await openWorkspace({ root: fixture.dir, reconcilePublished: true });
+        try {
+          expect(ws.state.published().repositories.definitions).toEqual({ branch: 'main', commit: settled, ...(stage === 'pointer' ? {} : { intent: next }) });
+          expect(ws.published.pin().commits.get('definitions')?.commit).toBe(settled);
+          expect(await ws.git.head(fixture.repository)).toBe(settled);
+          expect(await ws.git.revParse(fixture.repository, 'refs/heads/main')).toBe(outside);
+          expect(await ws.published.status('definitions')).toMatchObject({ state: 'pending', move: movement, next: outside, commit: settled });
+        } finally {
+          ws.close();
+        }
+      } finally {
+        fixture.dispose();
+      }
+    });
+  }
+}

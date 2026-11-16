@@ -241,6 +241,9 @@ existing authorization reasons.
 
 Publishing never pushes by itself. Pulling from the local default branch never contacts a remote.
 Protected branches require publish permission. An interrupted publication is repaired at startup.
+When an outside move arrives during the stop, the old settled pointer remains served and the
+move remains pending; the base checkout is restored to the settled commit, leaving the outside
+ref intact for review and adoption.
 Startup refuses unexplained staged or unstaged changes before repairing the published checkout,
 including when a previously local data folder is opened in server mode.
 Copies idle for thirty minutes stop being watched but retain their files, index and drafts.

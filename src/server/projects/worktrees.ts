@@ -183,11 +183,11 @@ async function repairBase(context: WorktreeContext, repo: string) {
   const dir = baseDir(context, repo);
   const remembered = await git.configValue(dir, DEFAULT_BRANCH_KEY, 'local');
   if (!remembered) return;
-  const tip = await commitOf(git, dir, 'refs/heads/' + remembered);
+  const tip = context.publication?.pointers.get(repo)?.commit ?? (await commitOf(git, dir, 'refs/heads/' + remembered));
   if (!tip) return;
   const attached = await symbolicBranch(git, dir);
   if (!attached && (await commitOf(git, dir, 'HEAD')) === tip) return;
-  await git.run(dir, ['checkout', '-q', '--force', '--detach', 'refs/heads/' + remembered]);
+  await git.run(dir, ['checkout', '-q', '--force', '--detach', tip]);
 }
 
 async function listed(context: WorktreeContext, repo: string) {
