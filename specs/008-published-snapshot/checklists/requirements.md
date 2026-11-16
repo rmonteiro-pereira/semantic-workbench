@@ -32,4 +32,4 @@
 ## Notes
 
 - The 10% latency budget in SC-008 is a default chosen in the spec and is marked as such.
-- Eleven questions were answered from the decisions document and the code; none needs the owner.
+- Fourteen questions were answered from the decisions document and the code; none needs the owner.

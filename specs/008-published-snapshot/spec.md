@@ -95,6 +95,19 @@ code, the way the owner's decisions would answer it.
   only when it carries the local frontend's origin. That is a guardrail against accidental
   unpublished planning, not a security boundary against a deliberate local script, and the docs say
   so.
+- Q: After an interrupted publication, does the ref or the pointer decide what is served? → A: The
+  pointer decides, and it records the intended commit before the ref moves. At the next start, an
+  intent that equals the ref is completed, an intent the ref never reached is dropped, and a ref
+  that differs from both is an outside move. A stop therefore never serves a commit nobody
+  published and never loses a completed publication.
+- Q: What bounds a snapshot build? → A: The existing 2,000,000-byte document limit, a 64,000,000
+  byte aggregate (the ceiling export and import already use), 10,000 files per project and the
+  30-second Git command timeout that exists today. The file count is a default chosen in this spec
+  because no per-project count limit exists yet; the aggregate and time limits are existing values.
+  Exceeding a limit gives the "no published snapshot" answer, never a partial one.
+- Q: How long is a superseded snapshot kept? → A: While a pin or retained read holds it, plus the
+  previous one so a request that began just before a publication can finish. Everything else is
+  dropped, and Git still holds the objects for an on-demand rebuild.
 - Q: Does the response tell the agent which commit it read? → A: Yes, in a response header, so
   existing clients that parse the body see no change (M7: existing grants keep their exact meaning).
 
@@ -458,9 +471,10 @@ contents with the snapshot and with the working files.
 - **FR-035**: The resolver MUST retain the current snapshot, the previous one and any snapshot held
   by an in-flight pin or retained read, and MUST drop the rest. Memory MUST be bounded by that
   rule and by the per-snapshot limits of FR-036.
-- **FR-036**: Building a snapshot MUST be bounded by the existing document-size limit, a maximum file
-  count and a time limit per build, and MUST fail closed with "no published snapshot" when exceeded.
-  Concurrent first requests for one snapshot MUST share one build.
+- **FR-036**: Building a snapshot MUST be bounded by the 2,000,000-byte document limit, a
+  64,000,000-byte aggregate, 10,000 files per project and the 30-second Git timeout, and MUST fail
+  closed with "no published snapshot" when any is exceeded. Concurrent first requests for one
+  snapshot MUST share one build.
 - **FR-037**: Parse results MUST reuse the content-hash cache already shared between copies, so a
   file that is identical in the snapshot and in a working copy is parsed once. A change to the
   cache version MUST rebuild snapshots lazily after restart.
