@@ -16,6 +16,7 @@ const sides = [
   ['s', Position.Bottom],
   ['w', Position.Left],
 ] as const;
+/** Renders an entity or counted-area card in the whole-model view. */
 export const EntityNode = memo(({ data }: NodeProps) => (
   <div
     data-address={data.address as string | undefined}
@@ -51,6 +52,7 @@ export const EntityNode = memo(({ data }: NodeProps) => (
     )}
   </div>
 ));
+/** Renders the title and count of a whole-model area. */
 export const AreaNode = memo(({ data }: NodeProps) => (
   <div className="full-area-title" title={String(data.name)} style={{ '--area-title-cap': data.titleCap } as React.CSSProperties}>
     <span style={{ background: String(data.color) }} />
@@ -59,6 +61,7 @@ export const AreaNode = memo(({ data }: NodeProps) => (
     {Boolean(data.linksText) && <em className="area-links">{String(data.linksText)}</em>}
   </div>
 ));
+/** Keeps a relationship attached while layout routes are pending or stale. */
 export const GraphEdge = memo((props: EdgeProps) => {
   const appearance = edgeAppearance(props);
   const points = props.data?.layoutRoute as Point[] | undefined;

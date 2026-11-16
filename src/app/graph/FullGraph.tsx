@@ -337,7 +337,7 @@ export function FullGraph(props: Props) {
                 </button>
                 <label className="zoom-to-group">
                   <Crosshair size={13} aria-hidden="true" />
-                  <select aria-label="Zoom to group" title={zoomedGroupName ?? overview.groupingLabel} defaultValue="" onChange={e => zoomToGroup(e.target.value)}>
+                  <select aria-label="Zoom to group" title={humanizeIdentifier(zoomedGroupName ?? overview.groupingLabel)} defaultValue="" onChange={e => zoomToGroup(e.target.value)}>
                     <option value="">Whole model</option>
                     {overview.groups.map(group => (
                       <option key={group.id} value={group.id}>

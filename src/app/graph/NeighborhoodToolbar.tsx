@@ -3,7 +3,7 @@ import type { Dispatch, RefObject, SetStateAction } from 'react';
 import { ArrowLeft, ArrowRight, FileSymlink, Gauge, LocateFixed } from 'lucide-react';
 import { ScrollStrip } from '../components/ScrollStrip';
 import { EntityName } from './EntityName';
-import { CompactControls } from './CompactControls';
+import { CompactControls, useCompactToolbar } from './CompactControls';
 import { GraphOptions, OptionGroup, ShowToggle } from './GraphOptions';
 import { PierceControls } from './PierceControls';
 import { ZoomButtons } from './ZoomButtons';
@@ -251,12 +251,13 @@ export function NeighborhoodTools({
   fullscreen,
 }: ToolsProps) {
   const { lateral } = options;
+  const foldControls = useCompactToolbar(1440);
   return (
     <ScrollStrip className="neighborhood-tools">
       <CenterPicker {...picker} />
       {fitPrompt > 0 && <button onClick={onFit}>{fitPrompt} entities, Fit</button>}
       {!compact && <NeighborCounts {...counts} />}
-      <CompactControls folded>
+      <CompactControls folded={foldControls}>
         <PierceControls
           direction={direction}
           onDirection={onDirection}

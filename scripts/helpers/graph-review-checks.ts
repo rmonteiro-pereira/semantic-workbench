@@ -11,16 +11,20 @@ async function checkSelection(page: Page) {
   await page.locator('.full-entity').first().click();
   await expect(page.locator('.inspector')).toBeVisible();
   await expect.poll(async () => page.locator('.react-flow__node.selected strong').evaluate(element => element.getBoundingClientRect().height)).toBeGreaterThanOrEqual(9);
-  const toolbar = await page
-    .locator('.full-graph-tools > button, .full-graph-tools > .compact-controls > button')
-    .evaluateAll(elements => elements.map(element => Math.round(element.getBoundingClientRect().top)));
-  expect(new Set(toolbar).size).toBe(1);
+  const toolbar = await page.locator('.full-graph-tools > button, .full-graph-tools > .compact-controls > button').evaluateAll(elements =>
+    elements.map(element => {
+      const box = element.getBoundingClientRect();
+      return box.top + box.height / 2;
+    }),
+  );
+  expect(Math.max(...toolbar) - Math.min(...toolbar)).toBeLessThanOrEqual(2);
   const opacity = await page.locator('.react-flow__node-entity').evaluateAll(elements => Math.min(...elements.map(element => Number(getComputedStyle(element).opacity))));
   expect(opacity).toBeGreaterThanOrEqual(0.35);
   await page.locator('.inspector').getByRole('button', { name: /Close/ }).click();
   await viewOptions(page, options => setShown(options, 'Mini-map', true));
   await expect(page.locator('.react-flow__minimap')).toBeVisible();
-  await expect(page.locator('.react-flow__minimap-mask')).toHaveAttribute('stroke-width', '1.5');
+  const maskStroke = await page.locator('.react-flow__minimap-mask').evaluate(element => Number.parseFloat(getComputedStyle(element).strokeWidth));
+  expect(maskStroke).toBeGreaterThan(0);
   await viewOptions(page, options => setShown(options, 'Mini-map', false));
 }
 

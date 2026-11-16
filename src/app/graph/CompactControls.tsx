@@ -7,15 +7,15 @@ import './graph-canvas.css';
 export const COMPACT_TOOLBAR_PX = 650;
 
 /** Tracks whether the window is narrow enough for the folded toolbar. */
-export function useCompactToolbar() {
-  const [compact, setCompact] = useState(() => window.innerWidth <= COMPACT_TOOLBAR_PX);
+export function useCompactToolbar(maxWidth = COMPACT_TOOLBAR_PX) {
+  const [compact, setCompact] = useState(() => window.innerWidth <= maxWidth);
   useEffect(() => {
-    const query = window.matchMedia(`(max-width: ${COMPACT_TOOLBAR_PX}px)`);
+    const query = window.matchMedia(`(max-width: ${maxWidth}px)`);
     const update = () => setCompact(query.matches);
     update();
     query.addEventListener('change', update);
     return () => query.removeEventListener('change', update);
-  }, []);
+  }, [maxWidth]);
   return compact;
 }
 

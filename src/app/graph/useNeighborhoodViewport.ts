@@ -40,6 +40,7 @@ export function useNeighborhoodViewport({ nodes, center, boxes, routes, separate
   // canvas even when one side has more columns; it leaves room for the lanes above and below.
   const fitRef = useRef<(fitAll?: boolean) => void>(() => {});
   fitRef.current = (fitAll = false) => {
+    setFitPrompt(0);
     const box = boxes.get(center ?? '');
     if (!box || !boxes.size) return;
     const all = [...boxes.values()];

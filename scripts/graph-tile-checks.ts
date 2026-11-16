@@ -201,6 +201,7 @@ export async function checkFittedTextSizes(browser: Browser, api: IsolatedApi) {
     await expect(laptop.locator('.full-area-title').first()).toHaveCSS('font-size', '20px');
     const viewport = () => laptop.locator('.full-graph .react-flow__viewport').getAttribute('style');
     const fitted = await viewport();
+    await revealGraphControls(laptop);
     await laptop.getByRole('button', { name: 'Zoom in', exact: true }).click();
     await expect.poll(viewport).not.toBe(fitted);
     await expect.poll(nameSizes).toEqual(['16px']);
