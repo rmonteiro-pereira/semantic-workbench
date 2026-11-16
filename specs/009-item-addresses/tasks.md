@@ -153,7 +153,7 @@ changes.
 - [x] T025 [P] [US3] Property tests for migration: any record list terminates; migrating twice
   equals migrating once when the first result resolves; prefix migration keeps the suffix. Proof:
   `tests/address-migration.test.ts`, seeded. (FR-025, FR-031)
-- [ ] T026 [P] [US3] Mutants: apply records out of order, apply a record twice, ignore the
+- [x] T026 [P] [US3] Mutants: apply records out of order, apply a record twice, ignore the
   resolved flag, string-prefix match, accept a record outside the project. Proof:
   `bun run test:mutation`. (SC-011)
 

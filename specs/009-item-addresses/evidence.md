@@ -210,3 +210,11 @@ The first full mutation rerun stopped at its unmodified mapping-graph baseline b
 case still expected the retired private key strings. Its assertions now use the public mapping
 key formatters with resolved scope labels. `bun scripts/mutation-case.ts <mapping-graph.ts>
 mapping-graph` passes. This was an introduced test-adoption omission, not a harness failure.
+
+## Migration mutation proof
+
+The subsequent real `SW_BASE_URL=http://127.0.0.1:5301 bun scripts/mutation-tests.ts` run
+passed every unmodified module baseline and killed all five registered migration mutants,
+as well as the six grammar and three non-equivalent model mutants. Mutation preparation is
+therefore complete for the pure migration phase. The overall runner result, including its
+browser candidates, is reported separately below.
