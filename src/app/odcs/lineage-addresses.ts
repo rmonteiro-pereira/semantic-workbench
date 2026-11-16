@@ -18,7 +18,11 @@ export function lineageAddresses(files: ProjectFile[], contractPath: string) {
   };
   for (const file of files) {
     if (!file.data || typeof file.data !== 'object') continue;
-    const model = file.path === contractPath ? { ...file.data, kind: 'DataContract' } : file.data;
+    let model = file.path === contractPath ? { ...file.data, kind: 'DataContract' } : file.data;
+    if (Array.isArray(model.ontology)) {
+      if (!model.ontology_mappings?.length) continue;
+      model = { ...model, ontology: [] };
+    }
     const locate = (chain: Address['chain']) =>
       formatAddress({
         grammar: 1,

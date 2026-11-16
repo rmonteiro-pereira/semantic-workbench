@@ -1,3 +1,4 @@
+import { nodeLabel } from './lineage';
 /** Holds the recorded walk through the lineage graph: the current centre, the hop count and the expansions on this centre. */
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useRecordedState } from '../workspace/hooks/useRecordedState';
@@ -79,7 +80,7 @@ export function useLineageWalk({ graph, initial, historyKey, storageKey, onCente
           doc: graph.contract,
           center: id,
           name: lineageCard.label,
-          ...(via ? { via: { id: via, label: via.slice(via.lastIndexOf('/') + 1) } } : {}),
+          ...(via ? { via: { id: via, label: nodeLabel(graph, via) } } : {}),
         },
       });
     },

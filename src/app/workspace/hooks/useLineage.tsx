@@ -1,3 +1,6 @@
+import { resolveInModel } from '../../../shared/core/model-addresses';
+import { displayName, parseAddress } from '../../../shared/core/item-address';
+import { legacyLineageKey } from '../../../shared/core/item-key-adapters';
 /** Selects contract lineage centers and routes navigation into related documents. */
 import React, { useEffect, useMemo } from 'react';
 import { useRecordedState } from './useRecordedState';
@@ -28,6 +31,15 @@ export function useLineage({ model, current, docs, tab, setTab, openDocument, pa
       return `${current.id}#ontology_mappings/0`;
     }
     return '';
+  }
+
+  function storedCenter(id: string) {
+    const parsed = parseAddress(id);
+    if (!parsed.ok) return id;
+    const document = docs.find(doc => doc.project === current?.project && doc.path === parsed.address.document?.join('/'));
+    const inspected = document ? parsedDoc(document).model : null;
+    const resolved = inspected && 'document' in inspected ? resolveInModel(inspected.document, parsed.address) : null;
+    return legacyLineageKey(parsed.address, resolved?.status === 'found' ? resolved.item.path : undefined);
   }
 
   function getLineageCenterId() {
@@ -74,21 +86,27 @@ export function useLineage({ model, current, docs, tab, setTab, openDocument, pa
     try {
       stored = localStorage.getItem(lineageKey) ?? '';
     } catch {}
-    setLineageCenter(lineage.cards.has(stored) ? stored : defaultCenter(lineage));
+    const matches = [...lineage.cards.values()].filter(card => {
+      return card.id === stored || storedCenter(card.id) === stored;
+    });
+    setLineageCenter(matches.length === 1 ? matches[0].id : defaultCenter(lineage));
   }, [lineage?.contract, current?.id, !!lineage]);
   // The stored centre belongs to the previous contract for one render after switching files.
   const lineageCenterId = getLineageCenterId();
   const lineageShown = tab === 'fullgraph' && ((isContract && !!lineage && !!lineageCenterId) || (!!mappingId && mappingView === 'mapping'));
   function lineageCenterChanged(id: string) {
     try {
-      localStorage.setItem(lineageKey, id);
+      const stored = storedCenter(id);
+      if (stored) localStorage.setItem(lineageKey, stored);
     } catch {}
   }
   function openInLineage(name: string) {
     if (!lineage || !current) return;
-    const id = `object:${current.path}#${name}`;
+    const id = [...lineage.cards.values()].find(card => card.kind === 'object' && card.file === current.path && card.label === name)?.id;
+    if (!id) return;
     try {
-      localStorage.setItem(lineageKey, id);
+      const stored = storedCenter(id);
+      if (stored) localStorage.setItem(lineageKey, stored);
     } catch {}
     setLineageCenter(id);
     setTab('fullgraph');
@@ -97,7 +115,8 @@ export function useLineage({ model, current, docs, tab, setTab, openDocument, pa
   function continueInNeighborhood(card: LineageCard) {
     const doc = docs.find(x => x.project === current?.project && x.path === card.file);
     if (!doc || !openDocument(doc)) return;
-    const name = card.kind === 'metric' ? card.id.slice(card.id.lastIndexOf('/') + 1) : card.label;
+    const parsed = parseAddress(card.id);
+    const name = parsed.ok ? displayName(parsed.address) : card.label;
     const target = parsedDoc(doc).model?.entities.find(e => e.name === name && (e.kind === 'Dataset' || e.kind === 'Metric'));
     setTab('neighborhood');
     if (target) {

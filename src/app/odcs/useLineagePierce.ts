@@ -65,7 +65,7 @@ export function useLineagePierce({ graph, center, selected, pierceFromCenter, di
             budget,
             steps: lineagePierceResult.steps,
           }),
-          allConnectedLabel(start === from ? labelOf(from) : start.slice(start.lastIndexOf('/') + 1)),
+          allConnectedLabel(labelOf(start)),
         ),
       );
     };

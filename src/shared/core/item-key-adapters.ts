@@ -48,3 +48,37 @@ function uniqueKey(matches: AddressedItem[]): ItemKeyResult {
   if (!matches.length) return { status: 'missing' };
   return { status: 'found', address: matches[0].address };
 }
+
+/** Encodes a stable lineage center in the previous UI store format during staged adoption. */
+export function legacyLineageKey(address: Address, path?: readonly (string | number)[]): string | null {
+  if (!address.document || address.chain.some(segment => 'position' in segment)) return null;
+  const ownerIndex = address.chain.findIndex(segment => ['object', 'dataset', 'metric'].includes(segment.kind));
+  const owner = address.chain[ownerIndex];
+  if (!owner || !('name' in owner)) return null;
+  if (owner.kind !== 'object' && address.chain.slice(0, ownerIndex).some(segment => segment.kind === 'mapping') && !path) return null;
+  const scope = path
+    ? path
+        .slice(0, -2)
+        .join('/')
+        .replace(/\/semantic_model$/, '')
+    : '';
+  const ownerName = owner.kind === 'object' ? owner.name : scope + '/' + owner.name;
+  const suffix = address.chain
+    .slice(ownerIndex + 1)
+    .map(segment => ('name' in segment ? segment.name : ''))
+    .join('.');
+  return `${owner.kind}:${address.document.join('/')}#${ownerName}${suffix ? '/' + suffix : ''}`;
+}
+
+/** Preserves the former key of a mapping card that has no structured locator. */
+export function legacyMappingCardKey(kind: 'concept' | 'dataset' | 'metric', name: string): string {
+  return `${kind}:${name}`;
+}
+
+/** Encodes a stable mapping card in the previous UI store format during staged adoption. */
+export function legacyMappingKey(address: Address): string | null {
+  if (address.chain.some(segment => 'position' in segment)) return null;
+  const segment = address.chain.at(-1);
+  if (!segment || !('name' in segment) || !['concept', 'dataset', 'metric'].includes(segment.kind)) return null;
+  return legacyMappingCardKey(segment.kind as 'concept' | 'dataset' | 'metric', segment.name);
+}

@@ -1,3 +1,5 @@
+import { parseAddress } from '../../shared/core/item-address';
+import { legacyMappingCardKey, legacyMappingKey } from '../../shared/core/item-key-adapters';
 /** Displays a mapping's resolved graph at the saved revision and indicates unsaved edits. */
 import { useRecordedState } from '../workspace/hooks/useRecordedState';
 import { api } from '../projects/api';
@@ -57,7 +59,11 @@ export function MappingCanvas({ project, mappingId, revisionKey, dirty, fullscre
     try {
       stored = localStorage.getItem(storageKey) ?? '';
     } catch {}
-    return graph.cards.has(stored) ? stored : defaultMappingCenter(graph);
+    const matches = [...graph.cards.values()].filter(card => {
+      const parsed = parseAddress(card.id);
+      return card.id === stored || (parsed.ok && legacyMappingKey(parsed.address) === stored);
+    });
+    return matches.length === 1 ? matches[0].id : defaultMappingCenter(graph);
   }, [graph, requested]);
   const evidenceOf = (message: string) => graph?.findingEvidence.get(message);
   // While resolving or when nothing can be drawn, the toolbar's extra controls (the consolidated
@@ -107,7 +113,12 @@ export function MappingCanvas({ project, mappingId, revisionKey, dirty, fullscre
         storageKey={`workbench:mapping-steps:${mappingId}`}
         onCenterChange={id => {
           try {
-            localStorage.setItem(storageKey, id);
+            const parsed = parseAddress(id);
+            const card = graph.cards.get(id);
+            const builtinKey = card?.kind === 'concept' ? legacyMappingCardKey('concept', card.label) : null;
+            let stored = builtinKey === id ? id : null;
+            if (parsed.ok) stored = legacyMappingKey(parsed.address);
+            if (stored) localStorage.setItem(storageKey, stored);
           } catch {}
         }}
         cardFilter={onlyUnmapped ? unmapped : undefined}

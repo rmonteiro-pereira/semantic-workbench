@@ -143,6 +143,11 @@ export function nodeName(graph: LineageGraph, node: string) {
   const column = owner.columns.find(c => c.id === node);
   return column ? `${owner.label}.${column.path}` : owner.label;
 }
+/** Returns the existing visible card or row label without parsing its locator. */
+export function nodeLabel(graph: LineageGraph, node: string): string {
+  const card = graph.cards.get(cardOfNode(graph, node));
+  return card?.columns.find(column => column.id === node)?.path ?? card?.label ?? node;
+}
 /** The two ends of a foreign key as `table.column` names. */
 export type ForeignKeyHop = { child: string; parent: string };
 /** Reads a foreign-key line as child to parent; returns null for any other kind of line. */

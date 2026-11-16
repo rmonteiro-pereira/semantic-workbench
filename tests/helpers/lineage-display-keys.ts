@@ -26,3 +26,20 @@ export function lineageDisplayKeys(graph: LineageGraph): LineageGraph {
     edges: graph.edges.map(edge => ({ ...edge, from: key(edge.from), to: key(edge.to), ...(edge.via ? { via: edge.via.map(key) } : {}) })),
   };
 }
+
+/** Translates canonical identifiers solely for the frozen semantic-edge browser fixtures. */
+export function lineageDisplayKey(key: string): string {
+  const parsed = parseAddress(key);
+  if (!parsed.ok) return key;
+  const address = parsed.address;
+  const ownerIndex = address.chain.findIndex(segment => ['object', 'dataset', 'metric'].includes(segment.kind));
+  const owner = address.chain[ownerIndex];
+  if (!owner || !('name' in owner)) throw new Error('The reference graph requires named card definitions.');
+  const ownerName = owner.kind === 'object' ? owner.name : '/' + owner.name;
+  let suffix = '';
+  for (const segment of address.chain.slice(ownerIndex + 1)) {
+    if ('position' in segment) suffix += '[]';
+    else suffix += (suffix ? '.' : '/') + segment.name;
+  }
+  return `${owner.kind}:${address.document!.join('/')}#${ownerName}${suffix}`;
+}

@@ -430,3 +430,17 @@ case asserts actual canonical keys, uniqueness and model resolution for dotted a
 `bun test tests/lineage.test.ts tests/lineage-query.test.ts tests/lineage-hops.test.ts tests/lineage-pierce.test.ts tests/lineage-addresses.test.ts`:
 16 pass, 0 fail, 1,672 assertions, 1.046 s. The direct address case subsequently moved into
 lineage.test.ts; no assertion was removed. The mutation baseline retains its semantic assertions.
+
+## Lineage labels, reference fixtures and staged UI storage
+
+Browser comparison first exposed its obsolete private-key expectations. Frozen semantic-edge
+fixtures now translate only key spelling through the test-only adapter; actual DOM path assertions
+use canonical keys derived from the declared definitions. No edge/content assertion was removed.
+A later run found an introduced visible label `property:line_extension_amount` from slicing keys.
+Consumers now read card/row labels via nodeLabel, preserving nested dotted and array labels.
+The mapping/lineage preference writers bridge to the original stable center format until explicit
+conversion; volatile addresses are never written. Built-in mapping cards retain their old UI keys.
+`bun test tests/item-key-adapters.test.ts tests/lineage.test.ts tests/mapping-graph.test.ts tests/selection-addresses.test.ts tests/walk.test.ts`:
+40 pass, 0 fail, 8,382 assertions, 3.27 s. The full lineage browser reached the UBL first-view check
+but measured 2,082 ms, then 2,071 ms against 2,000 ms. No threshold was raised; a main comparison
+is being run before classifying that failure. Unrelated ontology-only address indexing was removed.

@@ -4,7 +4,7 @@ import { resolveInModel } from '../src/shared/core/model-addresses';
 import { test, expect } from 'bun:test';
 import { readFileSync, readdirSync, existsSync, writeFileSync, mkdirSync } from 'node:fs';
 import { parse } from 'yaml';
-import { buildLineage as buildAddressedLineage, closure, around, type LineageGraph } from '../src/app/odcs/lineage';
+import { buildLineage as buildAddressedLineage, closure, around, nodeLabel, type LineageGraph } from '../src/app/odcs/lineage';
 import { lineageDisplayKeys } from './helpers/lineage-display-keys';
 const buildLineage: typeof buildAddressedLineage = (...args) => lineageDisplayKeys(buildAddressedLineage(...args));
 // Expected edges are derived independently from parsed YAML, without the lineage builder. Saved
@@ -280,6 +280,8 @@ test('literal dotted properties, nested properties and unnamed array schemas hav
   expect(card.columns[0].id).toEndWith('/property:a.b');
   expect(card.columns[2].id).toEndWith('/property:a/property:b');
   expect(card.columns[4].id).toEndWith('/property:rows/property:#0');
+  expect(nodeLabel(graph, card.columns[2].id)).toBe('a.b');
+  expect(nodeLabel(graph, card.columns[4].id)).toBe('rows[]');
   for (const id of [card.id, ...card.columns.map(column => column.id)]) {
     const parsed = parseAddress(id);
     expect(parsed.ok).toBe(true);

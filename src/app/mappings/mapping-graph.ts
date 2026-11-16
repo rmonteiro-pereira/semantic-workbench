@@ -1,5 +1,6 @@
 /** Turns resolved concept mappings into lineage cards and binding edges without reparsing the
  * mapping. */
+import { legacyMappingCardKey } from '../../shared/core/item-key-adapters';
 import { formatAddress, type Address } from '../../shared/core/item-address';
 import type { ItemKind } from '../../shared/core/address-kinds';
 import { OSSIE_BUILTINS } from '../../shared/mappings/ossie-builtins';
@@ -95,7 +96,7 @@ const cmIndex = (path: (string | number)[]) => {
 /** Builds mapping cards and binding edges from the resolver's context. */
 export function buildMappingGraph(context: MappingContext, revision = ''): MappingGraph {
   const conceptKey = (name: string) => {
-    if (context.concepts.find(concept => concept.concept === name)?.builtin === true) return `builtin:${encodeURIComponent(name)}`;
+    if (context.concepts.find(concept => concept.concept === name)?.builtin === true) return legacyMappingCardKey('concept', name);
     if (!context.ontology.address) return `unresolved-concept:${encodeURIComponent(name)}`;
     return conceptId(context.ontology.address, name);
   };

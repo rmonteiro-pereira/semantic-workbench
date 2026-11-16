@@ -72,3 +72,11 @@ can change replay results. The store must refuse writes exceeding 50,000 records
 ```sh
 bun test tests/address-migration.test.ts
 ```
+
+## UI adoption boundary
+
+The mapping and lineage canvases use canonical keys in memory and read labels from definitions,
+never from address separators. During the first adoption steps, center preferences are still
+serialized through `legacyMappingKey` and `legacyLineageKey`; volatile locators are not written.
+The adapters preserve existing store shapes until explicit persisted-key conversion. Built-in
+mapping cards keep their unaddressable legacy UI keys. The standard source bytes stay untouched.

@@ -1,3 +1,4 @@
+import { nodeLabel } from './lineage';
 /** Displays column-level lineage with path highlighting, paging and reversible graph expansion. */
 import { useFarZoom } from '../graph/FarZoom';
 import { useStageSize } from '../graph/stage-size';
@@ -308,7 +309,7 @@ export function LineageCanvas({
       type: 'push',
       step: { doc: graph.contract, center, name, kind: 'expand', set: set.id },
     });
-  const labelOf = (id: string) => graph.cards.get(id)?.label ?? id;
+  const labelOf = (id: string) => nodeLabel(graph, id);
   const expand = (cid: string) => {
     const neighbourhood = reachOf(graph, cid, 1);
     const nodes = [...neighbourhood.cards].filter(card => card !== cid && (mapping || graph.cards.get(card)?.kind === 'object' || graph.cards.get(card)?.kind === 'external'));
@@ -348,8 +349,7 @@ export function LineageCanvas({
   const { piercing, stopPierce, fullPierce } = useLineagePierce({ graph, center, selected, pierceFromCenter, direction, actionHistory, record, labelOf });
   const lastSet = reach.active.at(-1);
   // A selected column is named by its last path segment; a selected card by its label.
-  const selectedColumnOnly = !!selected && selected.includes('/') && !graph.cards.has(selected);
-  const selectedLabel = selectedColumnOnly ? selected.slice(selected.lastIndexOf('/') + 1) : labelOf(selected);
+  const selectedLabel = labelOf(selected);
   const pierceOriginLabel = selected && !pierceFromCenter ? selectedLabel : labelOf(center);
   const changeHops = (count: number) => {
     stopPierce();

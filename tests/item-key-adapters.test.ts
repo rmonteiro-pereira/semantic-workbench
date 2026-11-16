@@ -1,3 +1,4 @@
+import { legacyLineageKey, legacyMappingKey } from '../src/shared/core/item-key-adapters';
 /** Proves legacy labels are converted by model meaning instead of delimiter guessing. */
 import { expect, test } from 'bun:test';
 import { adaptItemKey } from '../src/shared/core/item-key-adapters';
@@ -40,4 +41,29 @@ test('opening legacy labels never changes the document or its extension values',
   const before = JSON.stringify(model);
   adaptItemKey('a.plain', model, location);
   expect(JSON.stringify(model)).toBe(before);
+});
+
+test('staged UI adoption writes only stable legacy center keys', () => {
+  const address = {
+    grammar: 1 as const,
+    form: 'absolute' as const,
+    project: 'p',
+    document: ['c.yaml'],
+    chain: [
+      { kind: 'contract' as const, name: 'C' },
+      { kind: 'object' as const, name: 'O' },
+    ],
+  };
+  expect(legacyLineageKey(address)).toBe('object:c.yaml#O');
+  const mapping = {
+    ...address,
+    chain: [
+      { kind: 'ontology' as const, name: 'O' },
+      { kind: 'concept' as const, name: 'C' },
+    ],
+  };
+  expect(legacyMappingKey(mapping)).toBe('concept:C');
+  const volatile = { ...mapping, chain: [{ kind: 'ontology' as const, position: 0 }, mapping.chain[1]] };
+  expect(legacyMappingKey(volatile)).toBeNull();
+  expect(legacyLineageKey(volatile)).toBeNull();
 });

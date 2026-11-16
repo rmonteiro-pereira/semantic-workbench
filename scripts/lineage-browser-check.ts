@@ -1,4 +1,7 @@
 // Checks column lineage against reference edges and measures browser interaction latency.
+import { addressesOfModel } from '../src/shared/core/model-addresses';
+import { formatAddress } from '../src/shared/core/item-address';
+import { lineageDisplayKey } from '../tests/helpers/lineage-display-keys';
 import { appUrl } from './helpers/base-url';
 import { recordResizeErrors } from './helpers/resize-errors';
 import { chromium, expect, type Page } from '@playwright/test';
@@ -91,7 +94,7 @@ async function openContract(path: string, project: string) {
   if (await drawer.isVisible()) await drawer.click();
   await tree().getByRole('treeitem', { name: project }).getByRole('button', { name: path, exact: true }).click();
   await page.locator('.tabs').getByRole('button', { name: 'Graph' }).click();
-  await expect(graph().locator(`.lineage-card[data-id^="object:${path}#"]`).first()).toBeVisible({
+  await expect(graph().locator('.lineage-card[data-id*="/object:"]').first()).toBeVisible({
     timeout: 8000,
   });
   await page.waitForTimeout(300); // The first view settles once the pane is measured.
@@ -179,14 +182,15 @@ async function compare(name: string) {
   }));
   expect(lines.length).toBeGreaterThan(0);
   const drawn = new Set<string>();
-  for (const line of lines) {
+  for (const actual of lines) {
+    const line = { ...actual, from: lineageDisplayKey(actual.from), to: lineageDisplayKey(actual.to) };
     if (line.from.startsWith('group:') || line.to.startsWith('group:')) continue;
     if (line.count > 1 || line.from.endsWith('/#more') || line.to.endsWith('/#more')) continue;
     const key = `${line.from}>${line.to}>${line.kind}`;
     drawn.add(key);
     if (!expectedLines.has(key)) throw new Error(`${name}: unexpected line ${key}`);
   }
-  const shown = new Set(ports);
+  const shown = new Set(ports.map(lineageDisplayKey));
   const bundled = lines.some(l => l.count > 1);
   for (const key of expectedLines) {
     const [from, to] = key.split('>');
@@ -383,8 +387,24 @@ try {
     // The orders dataset copies its table, so the amount column feeds Gross revenue directly,
     // and Gross revenue feeds the average order value.
     const onPath = (from: string, to: string) => graph().locator(`g[data-on-path="true"][data-from="${from}"][data-to="${to}"]`);
-    await expect(onPath('object:commerce.odcs.yaml#orders/amount', 'metric:sales.ossie.yaml#/gross_revenue')).toHaveCount(1);
-    await expect(onPath('metric:sales.ossie.yaml#/gross_revenue', 'metric:sales.ossie.yaml#/average_order_value')).toHaveCount(1);
+    const amount = await card('Table orders').getByRole('button', { name: 'orders.amount', exact: true }).locator('..').getAttribute('data-id');
+    const sales = parse(api.ws.readFile(examples.commerce.slug, 'sales.ossie.yaml', LOCAL_READER).source);
+    const metricItems = addressesOfModel(sales, { project: examples.commerce.slug, document: ['sales.ossie.yaml'] });
+    const metricAddress = (name: string) => {
+      const item = metricItems.find(item => {
+        const segment = item.address.chain.at(-1)!;
+        return segment.kind === 'metric' && 'name' in segment && segment.name === name;
+      });
+      if (!item) throw new Error('Expected a declared metric in the browser fixture.');
+      return formatAddress(item.address);
+    };
+    const revenue = metricAddress('gross_revenue');
+    const average = metricAddress('average_order_value');
+    expect(amount).toBeTruthy();
+    expect(revenue).toBeTruthy();
+    expect(average).toBeTruthy();
+    await expect(onPath(amount!, revenue!)).toHaveCount(1);
+    await expect(onPath(revenue!, average!)).toHaveCount(1);
     await expect(card('Table customers')).toHaveClass(/dim/);
     const panel = graph().getByRole('region', { name: 'Selected path' });
     await expect(panel).toContainText('orders.amount');
@@ -496,10 +516,12 @@ try {
       .filter(f => /\.ya?ml$/.test(f))
       .map(f => ({
         path: f,
+        project: examples.ubl.slug,
         data: parse(readFileSync(`public/examples/ubl/${f}`, 'utf8')),
       }));
     const lineageGraph = buildLineage(files, 'ubl.odcs.yaml');
-    const col = 'object:ubl.odcs.yaml#invoice_line/line_extension_amount';
+    const invoiceLine = [...lineageGraph.cards.values()].find(card => card.kind === 'object' && card.label === 'invoice_line')!;
+    const col = invoiceLine.columns.find(column => column.path === 'line_extension_amount')!.id;
     const want = lineagePierce({
       edges: lineageGraph.edges.map(e => [e.from, e.to] as [string, string]),
       owners: Object.fromEntries([...lineageGraph.cards.values()].flatMap(c => c.columns.map(x => [x.id, c.id]))),
