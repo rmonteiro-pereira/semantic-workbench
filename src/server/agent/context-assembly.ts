@@ -1,5 +1,6 @@
 // Resolves one mapping entry into a RuntimeContext: finds its ontology and semantic model, collects
 // fields, metrics and bindings, and records every problem as a finding instead of failing.
+import { formatAddress, type Address } from '../../shared/core/item-address';
 import { absoluteItemAddress, addressAtModelPath } from '../../shared/core/model-addresses';
 import { OSSIE_BUILTINS, builtinConcept } from '../../shared/mappings/ossie-builtins';
 import { metricDependencies as syntaxDependencies } from '../../shared/metrics/deps';
@@ -136,21 +137,28 @@ function emptyContext(assembly: Assembly, { ontologyTarget, semanticTarget }: Re
     policy,
   };
 }
+function definitionLabel(scope: Address, model: any, path: (string | number)[] = []): string {
+  const relative = addressAtModelPath(model, path);
+  return formatAddress({ ...scope, chain: [...scope.chain, ...relative.chain.slice(1)] });
+}
 function addAiContext(context: RuntimeContext, definition: any, scope: string, definitionEvidence: Evidence) {
   if (definition?.ai_context !== undefined) context.aiContext.push({ scope, value: definition.ai_context, evidence: definitionEvidence });
 }
 /** Registers each dataset field and the AI context of the ontology, model, concepts, datasets and fields. */
 function collectFields(context: RuntimeContext, catalog: Catalog, { ontologyTarget, semanticTarget }: { ontologyTarget: Target; semanticTarget: Target }) {
   const semanticPrefix = semanticTarget.path;
-  addAiContext(context, ontologyTarget.data, 'ontology', evidence(ontologyTarget.doc));
-  addAiContext(context, semanticTarget.data, 'semantic model', evidence(semanticTarget.doc, semanticPrefix));
-  context.concepts.forEach((concept, i) => addAiContext(context, concept, `concept:${concept.concept}`, evidence(ontologyTarget.doc, ['ontology', i])));
+  if (context.ontology.address) addAiContext(context, ontologyTarget.data, formatAddress(context.ontology.address), evidence(ontologyTarget.doc));
+  addAiContext(context, semanticTarget.data, formatAddress(context.semanticModel.address), evidence(semanticTarget.doc, semanticPrefix));
+  context.concepts.forEach((concept, i) => {
+    if (concept.ai_context !== undefined)
+      addAiContext(context, concept, definitionLabel(context.ontology.address, ontologyTarget.data, ['ontology', i]), evidence(ontologyTarget.doc, ['ontology', i]));
+  });
   context.datasets.forEach((dataset, i) => {
-    addAiContext(context, dataset, `dataset:${dataset.name}`, evidence(semanticTarget.doc, [...semanticPrefix, 'datasets', i]));
+    addAiContext(context, dataset, definitionLabel(context.semanticModel.address, semanticTarget.data, ['datasets', i]), evidence(semanticTarget.doc, [...semanticPrefix, 'datasets', i]));
     (dataset.fields ?? []).forEach((field: any, j: number) => {
       const fieldEvidence = evidence(semanticTarget.doc, [...semanticPrefix, 'datasets', i, 'fields', j]);
       const runtimeField = {
-        id: fieldKey(dataset.name, field.name),
+        id: fieldKey(context.semanticModel.address, dataset.name, field.name),
         dataset: dataset.name,
         name: field.name,
         definition: field,
@@ -158,7 +166,7 @@ function collectFields(context: RuntimeContext, catalog: Catalog, { ontologyTarg
       };
       catalog.fields.set(runtimeField.id, runtimeField);
       context.fields.push(runtimeField);
-      addAiContext(context, field, `field:${dataset.name}.${field.name}`, fieldEvidence);
+      addAiContext(context, field, runtimeField.id, fieldEvidence);
     });
   });
 }
@@ -178,9 +186,11 @@ function collectMetrics(context: RuntimeContext, catalog: Catalog, semanticTarge
     };
     catalog.metrics.set(metricDefinition.name, metric);
     context.metrics.push(metric);
-    addAiContext(context, metricDefinition, `metric:${metricDefinition.name}`, metricEvidence);
+    addAiContext(context, metricDefinition, definitionLabel(context.semanticModel.address, semanticTarget.data, ['metrics', i]), metricEvidence);
   });
-  context.joins.forEach((join, i) => addAiContext(context, join, `join:${join.name}`, evidence(semanticTarget.doc, [...semanticPrefix, 'relationships', i])));
+  context.joins.forEach((join, i) =>
+    addAiContext(context, join, definitionLabel(context.semanticModel.address, semanticTarget.data, ['relationships', i]), evidence(semanticTarget.doc, [...semanticPrefix, 'relationships', i])),
+  );
 }
 type ExpressionRefs = { fields: string[]; metrics: string[]; condition: unknown };
 /** Resolves the fields and metrics an expression names, refusing unknown or ambiguous references. */
@@ -191,7 +201,7 @@ function resolveExpressionRefs(context: RuntimeContext, catalog: Catalog, expres
   const metrics = new Set<string>();
   for (const ref of columnRefs([ast.expression, ast.condition])) {
     if (ref.table) {
-      const id = fieldKey(ref.table, ref.column);
+      const id = fieldKey(context.semanticModel.address, ref.table, ref.column);
       if (!fieldMap.has(id)) throw new BadRequestError(`Unknown semantic field ${ref.table}.${ref.column}. Mapping expressions must use declared logical fields.`);
       fields.add(id);
     } else if (catalog.metrics.has(ref.column)) metrics.add(ref.column);

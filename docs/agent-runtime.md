@@ -135,6 +135,8 @@ curl "$SW_URL/api/agent/plan" \
   --data @plan-request.json
 ```
 
+Context field IDs and AI-context scope labels use the canonical item-address formatter, including their document and model scopes. Use field IDs returned by context responses for dimensions and time fields. Existing JSON tuple field selectors are accepted when they exactly identify a declared field; metric selectors retain their declared metric names.
+
 Use actual context IDs and authorized project names. An empty or invented request is not a valid
 revenue query. A refusal is a modeling/access result to explain, not permission to replace the
 stored formula with SQL supplied by the caller.

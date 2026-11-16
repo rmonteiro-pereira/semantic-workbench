@@ -1,4 +1,5 @@
 // Types of the resolved agent context, the planning policy and the evidence helpers every context step shares.
+import { formatAddress, type Address } from '../../shared/core/item-address';
 import type { ConceptRef } from '../../shared/metrics/bindings';
 /** Stored source text with its identifier, revision, and optional project. */
 export type StoredDocument = {
@@ -102,5 +103,5 @@ export const evidence = (storedDocument: StoredDocument, path: (string | number)
   path,
 });
 export const contextDocument = (role: DocumentRole, storedDocument: StoredDocument, path: (string | number)[] = []): ContextDocument => ({ ...evidence(storedDocument, path), role });
-/** The id of a dataset field: the JSON of its dataset and name. */
-export const fieldKey = (dataset: string, field: string) => JSON.stringify([dataset, field]);
+/** Locates a field within its resolved semantic model. */
+export const fieldKey = (scope: Address, dataset: string, field: string) => formatAddress({ ...scope, chain: [...scope.chain, { kind: 'dataset', name: dataset }, { kind: 'field', name: field }] });

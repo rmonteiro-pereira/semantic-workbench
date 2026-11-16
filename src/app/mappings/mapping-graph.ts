@@ -1,7 +1,7 @@
 /** Turns resolved concept mappings into lineage cards and binding edges without reparsing the
  * mapping. */
 import { legacyMappingCardKey } from '../../shared/core/item-key-adapters';
-import { formatAddress, type Address } from '../../shared/core/item-address';
+import { formatAddress, parseAddress, type Address } from '../../shared/core/item-address';
 import type { ItemKind } from '../../shared/core/address-kinds';
 import { OSSIE_BUILTINS } from '../../shared/mappings/ossie-builtins';
 import { badge, type BadgeInfo } from '../components/PropertyBadges';
@@ -112,10 +112,6 @@ export function buildMappingGraph(context: MappingContext, revision = ''): Mappi
     if (!context.semanticModel.address) return `unresolved-field:${JSON.stringify([dataset, field])}`;
     return fieldId(context.semanticModel.address, dataset, field);
   };
-  const fieldOf = (key: string) => {
-    const [dataset, field] = JSON.parse(key) as [string, string];
-    return fieldKey(dataset, field);
-  };
   const relationshipKey = (concept: string, path: string) => {
     const definition = context.concepts.find(candidate => candidate.concept === concept);
     if (context.ontology.address && definition?.relationships?.some((relationship: any) => relationship.name === path)) {
@@ -219,7 +215,7 @@ export function buildMappingGraph(context: MappingContext, revision = ''): Mappi
     edges.push(mappingEdge);
     return mappingEdge;
   };
-  const targets = (b: Binding) => [...b.fields.map(fieldOf), ...b.metrics.map(m => metricCard(m).id)];
+  const targets = (b: Binding) => [...b.fields, ...b.metrics.map(m => metricCard(m).id)];
   const identifying = new Set<string>();
   const used = new Set<string>();
   const mapped = new Set<string>();
@@ -237,7 +233,7 @@ export function buildMappingGraph(context: MappingContext, revision = ''): Mappi
   for (const binding of context.bindings) {
     mapped.add(binding.rootConcept);
     mapped.add(binding.concept);
-    for (const field of binding.fields) used.add(fieldOf(field));
+    for (const field of binding.fields) used.add(field);
     const bindingPath = binding.evidence.path.slice(0, -1);
     const cm = bindingPath.indexOf('concept_mappings');
     if (binding.kind === 'link') {
@@ -296,9 +292,12 @@ export function buildMappingGraph(context: MappingContext, revision = ''): Mappi
             bindings: [binding.id],
             source: source(binding.evidence.path),
           });
-        if (ident.has(binding.relationships[0])) for (const field of binding.fields) identifying.add(fieldOf(field));
+        if (ident.has(binding.relationships[0])) for (const field of binding.fields) identifying.add(field);
         for (const field of binding.fields) {
-          const datasetCardId = datasetKey(JSON.parse(field)[0]);
+          const parsedField = parseAddress(field);
+          const datasetSegment = parsedField.ok ? parsedField.address.chain.at(-2) : undefined;
+          if (!datasetSegment || !('name' in datasetSegment)) continue;
+          const datasetCardId = datasetKey(datasetSegment.name);
           (datasets.get(datasetCardId) ?? datasets.set(datasetCardId, []).get(datasetCardId)!).push(binding.id);
         }
       } else
@@ -344,7 +343,7 @@ export function buildMappingGraph(context: MappingContext, revision = ''): Mappi
     const via: string[] = [];
     for (const binding of linkChild.bindings)
       for (const field of binding.fields) {
-        const id = fieldOf(field);
+        const id = field;
         if (!via.includes(id)) via.push(id);
         for (const partner of joinPartners(id)) if (!via.includes(partner)) via.push(partner);
       }

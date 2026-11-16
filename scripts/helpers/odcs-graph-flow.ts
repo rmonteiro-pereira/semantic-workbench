@@ -23,7 +23,7 @@ export async function anchorReport(page: Page, cardName: string): Promise<Anchor
     const centre = (r: DOMRect) => (r.top + r.bottom) / 2;
     for (const handle of card.querySelectorAll('.react-flow__handle.source')) {
       const id = (handle.getAttribute('data-handleid') ?? '').replace(/:out$/, '');
-      if (!id.includes('/')) continue;
+      if (id === card.getAttribute('data-id')) continue;
       const at = centre(handle.getBoundingClientRect());
       const row = rows.get(id);
       if (row && Math.abs(at - centre(row.getBoundingClientRect())) <= 3) report.onRow++;

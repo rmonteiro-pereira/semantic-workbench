@@ -1,3 +1,4 @@
+import { parseAddress } from '../src/shared/core/item-address';
 // Tests mapping kinds and metric bindings without changing existing agent context fields.
 import { test, expect } from 'bun:test';
 import { createHash } from 'node:crypto';
@@ -30,7 +31,23 @@ function withoutAdditions(agentContext: any) {
   const { address: modelAddress, ...semanticModel } = agentContext.semanticModel;
   void ontologyAddress;
   void modelAddress;
-  return { ...rest, ontology, semanticModel, documents, bindings: agentContext.bindings.map(({ kind, ...binding }: any) => (void kind, binding)) };
+  return legacyContextKeys({ ...rest, ontology, semanticModel, documents, bindings: agentContext.bindings.map(({ kind, ...binding }: any) => (void kind, binding)) });
+}
+function legacyContextKeys(value: any): any {
+  if (typeof value === 'string') {
+    const parsed = parseAddress(value);
+    if (!parsed.ok) return value;
+    const last = parsed.address.chain.at(-1)!;
+    const parent = parsed.address.chain.at(-2);
+    if (!('name' in last)) return value;
+    if (last.kind === 'field' && parent && 'name' in parent) return JSON.stringify([parent.name, last.name]);
+    if (last.kind === 'ontology') return 'ontology';
+    if (last.kind === 'model') return 'semantic model';
+    return `${last.kind}:${last.name}`;
+  }
+  if (Array.isArray(value)) return value.map(legacyContextKeys);
+  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, child]) => [key, legacyContextKeys(child)]));
+  return value;
 }
 const digest = (c: any) =>
   createHash('sha256')

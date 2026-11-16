@@ -1,10 +1,11 @@
+import { formatAddress } from '../src/shared/core/item-address';
 // Tests grounded agent queries and rejection of invalid requests.
 import { test, expect } from 'bun:test';
 import { parse, stringify } from 'yaml';
 import { Database } from 'bun:sqlite';
 import { inspect } from '../src/shared/core/model';
 import { validateInput } from '../src/shared/validation/input';
-import { agentCatalog, buildContext, selectContext, planQuery, type StoredDocument } from '../src/server/agent/runtime';
+import { fieldKey, agentCatalog, buildContext, selectContext, planQuery, type StoredDocument } from '../src/server/agent/runtime';
 import { parseExpression, columnRefs } from '../src/server/agent/sql';
 const names = ['commerce.mapping.yaml', 'commerce.mapped-ontology.yaml', 'commerce.mapped-semantic.yaml'];
 const fixture: StoredDocument[] = await Promise.all(
@@ -57,17 +58,17 @@ test('mapping runtime exposes concept → nested mapping → field → physical 
   expect(region.concept).toBe('Region');
   expect(region.rootConcept).toBe('Customer');
   expect(region.relationships).toEqual(['region']);
-  expect(region.fields).toEqual(['["customers","region"]']);
+  expect(region.fields).toEqual([fieldKey(runtimeContext.semanticModel.address, 'customers', 'region')]);
   expect(region.evidence.path).toEqual(['concept_mappings', 0, 'link_mappings', 0, 'children', 0, 'object_mapping', 'expression']);
   expect(runtimeContext.datasets.find(d => d.name === 'customers').source).toBe('analytics.commerce.customers');
-  expect(runtimeContext.aiContext.map(a => a.scope)).toEqual(['ontology', 'semantic model']);
+  expect(runtimeContext.aiContext.map(a => a.scope)).toEqual([formatAddress(runtimeContext.ontology.address), formatAddress(runtimeContext.semanticModel.address)]);
   expect(runtimeContext.concepts.find(c => c.concept === 'Order').identify_by).toEqual(['id']);
 });
 test('governed metrics are reached by mapping, retain source formulas, and resolve dataset dependencies', () => {
   const runtimeContext = context();
   const metric = runtimeContext.metrics.find(m => m.id === 'gross_revenue')!;
   expect(runtimeContext.bindings.find(b => b.rootConcept === 'Revenue')!.metrics).toEqual(['gross_revenue']);
-  expect(metric.fields).toEqual(['["orders","amount"]']);
+  expect(metric.fields).toEqual([fieldKey(runtimeContext.semanticModel.address, 'orders', 'amount')]);
   expect(metric.datasets).toEqual(['orders']);
   expect(metric.definition.expression.dialects[0].expression).toBe('SUM(orders.amount)');
   const selected = selectContext(runtimeContext, ['Revenue']);
@@ -150,7 +151,7 @@ test('conditional mapping population is preserved in context and blocks automati
 test('metric dependencies are reusable and cyclic formulas cannot be traversed or queried', () => {
   let docs = change(fixture, 2, d => (d.metrics[0].expression.dialects[0].expression = 'order_count * 5'));
   const runtimeContext = buildContext(docs, '0');
-  expect(runtimeContext.metrics.find(m => m.id === 'gross_revenue')!.fields).toEqual(['["orders","order_id"]']);
+  expect(runtimeContext.metrics.find(m => m.id === 'gross_revenue')!.fields).toEqual([fieldKey(runtimeContext.semanticModel.address, 'orders', 'order_id')]);
   expect(plan(runtimeContext).sql).toContain('COUNT(DISTINCT');
   docs = change(docs, 2, d => (d.metrics[1].expression.dialects[0].expression = 'gross_revenue'));
   expect(buildContext(docs, '0').findings.some(f => f.code === 'metric' && f.message.includes('cycle'))).toBe(true);
@@ -353,4 +354,21 @@ test('embedded semantic definitions receive the same duplicate and reference int
   const validation = validateInput(stringify(ontology), 'embedded.yaml');
   expect(validation.valid).toBe(false);
   expect(validation.issues.some(i => i.code === 'duplicate' && i.path.startsWith('/ontology_mappings/0/semantic_model/datasets'))).toBe(true);
+});
+
+test('context field locators distinguish dotted dataset and field names without changing definitions', () => {
+  const documents = change(fixture, 2, model => {
+    const field = model.datasets[0].fields[0];
+    const dataset = model.datasets[0];
+    model.datasets.push({ ...dataset, name: 'a.b', fields: [{ ...field, name: 'c' }] });
+    model.datasets.push({ ...dataset, name: 'a', fields: [{ ...field, name: 'b.c' }] });
+  });
+  const before = documents.map(document => document.source);
+  const resolved = buildContext(documents, '0');
+  const left = resolved.fields.find(field => field.dataset === 'a.b' && field.name === 'c')!;
+  const right = resolved.fields.find(field => field.dataset === 'a' && field.name === 'b.c')!;
+  expect(left.id).not.toBe(right.id);
+  expect(left.id).toContain('/dataset:a.b/field:c');
+  expect(right.id).toContain('/dataset:a/field:b.c');
+  expect(documents.map(document => document.source)).toEqual(before);
 });

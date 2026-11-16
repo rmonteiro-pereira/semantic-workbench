@@ -125,7 +125,7 @@ changes.
   (overview, neighbourhood, full graph, lineage, mapping). Proof: the capture folder and a
   findings file with every difference classified; every unrequested change fixed or reverted. (FR-039;
   SC-007)
-- [ ] T021 [US4] Build agent context labels from the formatter in
+- [x] T021 [US4] Build agent context labels from the formatter in
   `src/server/agent/context-assembly.ts` and the keys in `explain.ts` and `query-plan.ts`. Proof:
   `tests/agent-context-kinds.test.ts` and the plan snapshots unchanged except the documented
   labels; a test that two fields whose dotted names would collide now differ. (FR-038, FR-039)

@@ -82,3 +82,8 @@ export function legacyMappingKey(address: Address): string | null {
   if (!segment || !('name' in segment) || !['concept', 'dataset', 'metric'].includes(segment.kind)) return null;
   return legacyMappingCardKey(segment.kind as 'concept' | 'dataset' | 'metric', segment.name);
 }
+
+/** Recognizes the former tuple encoding only against an already resolved field. */
+export function matchesLegacyFieldKey(key: string, dataset: string, field: string): boolean {
+  return key === JSON.stringify([dataset, field]);
+}

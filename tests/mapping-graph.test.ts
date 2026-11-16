@@ -52,7 +52,8 @@ for (const [name, context] of contexts)
       if (binding.kind === 'referent') {
         // Exactly one line per field (or metric) the expression reads, from the concept's row.
         for (const fieldJson of binding.fields) {
-          const field = JSON.parse(fieldJson) as [string, string];
+          const definition = context.fields.find(field => field.id === fieldJson)!;
+          const field = [definition.dataset, definition.name];
           expect(own.filter(e => e.to === fieldId(field[0], field[1])).length).toBe(1);
         }
         for (const metric of binding.metrics) expect(own.filter(e => e.to === metricId(metric)).length).toBe(1);
@@ -62,8 +63,8 @@ for (const [name, context] of contexts)
       // identifies the subject).
       if (binding.kind === 'link' && binding.evidence.path.includes('children')) {
         const fields = binding.fields.map(f => {
-          const [d, n] = JSON.parse(f);
-          return fieldId(d, n);
+          const definition = context.fields.find(field => field.id === f)!;
+          return fieldId(definition.dataset, definition.name);
         });
         expect(own.some(e => fields.every(x => e.via?.includes(x)))).toBe(true);
       }

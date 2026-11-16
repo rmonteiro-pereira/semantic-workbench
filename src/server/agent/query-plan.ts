@@ -1,5 +1,6 @@
 // Builds an unexecuted SQL plan from a resolved context: picks governed metrics and dimensions, finds
 // a fan-out-safe declared join path and compiles the expressions. The plan is a preview; nothing is run.
+import { matchesLegacyFieldKey } from '../../shared/core/item-key-adapters';
 import { columnRefs, parseExpression, scalar, expressionSql, quoteIdentifier, sourceSql } from './sql';
 import { BadRequestError } from '../projects/errors';
 import { fieldKey, policy, selectContext, type Binding, type RuntimeContext, type RuntimeField, type RuntimeMetric } from './context';
@@ -32,15 +33,15 @@ function resolveSelections(context: RuntimeContext, request: PlanRequest): Selec
     return runtimeMetric;
   });
   const dimensions = request.dimensions.map(id => {
-    const runtimeField = selected.fields.find(f => f.id === id);
+    const runtimeField = selected.fields.find(f => f.id === id || matchesLegacyFieldKey(id, f.dataset, f.name));
     if (!runtimeField) throw new BadRequestError(`Field ${id} is not reachable through the selected ontology mappings.`);
     return runtimeField;
   });
-  const timeField = request.timeGrain ? selected.fields.find(f => f.id === request.timeGrain!.field) : undefined;
+  const timeField = request.timeGrain ? selected.fields.find(f => f.id === request.timeGrain!.field || matchesLegacyFieldKey(request.timeGrain!.field, f.dataset, f.name)) : undefined;
   if (request.timeGrain && (!timeField || !TIME_GRAINS.includes(request.timeGrain.grain))) throw new BadRequestError('The time field or grain is not available in this model.');
   if (!metrics.length && !dimensions.length) throw new BadRequestError('Select at least one mapped field or governed metric.');
-  if (new Set(request.metrics).size !== metrics.length || new Set(request.dimensions).size !== dimensions.length) throw new BadRequestError('Duplicate query selections.');
-  const conditional = selected.bindings.filter(b => b.condition && (b.metrics.some(m => request.metrics.includes(m)) || b.fields.some(f => request.dimensions.includes(f))));
+  if (new Set(request.metrics).size !== metrics.length || new Set(dimensions.map(field => field.id)).size !== dimensions.length) throw new BadRequestError('Duplicate query selections.');
+  const conditional = selected.bindings.filter(b => b.condition && (b.metrics.some(m => request.metrics.includes(m)) || b.fields.some(id => dimensions.some(field => field.id === id))));
   if (conditional.length)
     throw new BadRequestError('Selected bindings have population conditions. Review their meaning before query generation; the planner will not silently turn them into query filters.');
   return { selected, metrics, dimensions, timeField };
@@ -157,7 +158,7 @@ function createCompiler(context: RuntimeContext, aliases: Set<string>): Compile 
         continue;
       }
       const dataset = ref.table ?? currentDataset;
-      const runtimeField = dataset ? fieldMap.get(fieldKey(dataset, ref.column)) : null;
+      const runtimeField = dataset ? fieldMap.get(fieldKey(context.semanticModel.address, dataset, ref.column)) : null;
       if (!runtimeField) throw new BadRequestError(`Unresolved query field ${dataset ?? ''}.${ref.column}.`);
       replaceNode(ref.node, physicalExpression(runtimeField, aliases));
     }
