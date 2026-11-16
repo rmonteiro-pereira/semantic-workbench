@@ -25,8 +25,8 @@ export type PublishedSnapshots = {
   withPin<T>(use: (pin: PublishedPin) => Promise<T> | T): Promise<T>;
 
   /**
-   * The documents of one project at the pin, in the shape of the editing view's documents and
-   * unfiltered. Throws SnapshotUnavailableError when the project has no snapshot at the pin.
+   * The documents of one project at the pin, in the shape of the editing view's documents: the
+   * files the editing view would list as visible, and no caller's permissions applied. Throws SnapshotUnavailableError when the project has no snapshot at the pin.
    */
   documents(pin: PublishedPin, project: string): Promise<PublishedDocument[]>;
 
@@ -57,7 +57,7 @@ export type PublishedSnapshots = {
 | Behaviour | Guarantee |
 |---|---|
 | Consistency | Every call that takes the same `pin` reads the same commit per repository, whatever is published meanwhile. |
-| Filtering | None. The route applies the caller's view with the predicate `documentsFor` uses (`visible` and `view.canRead`). Filtering after reading is what keeps the index shareable. |
+| Filtering | No permissions. The route applies the caller's view with the predicate `documentsFor` uses (`visible` and `view.canRead`). Filtering after reading is what keeps the index shareable. |
 | Unavailable | `SnapshotUnavailableError` carries `reason`. Routes raise it only after the caller's readable check. |
 | Revision input | Full commit ids and tags only. A branch name, an abbreviated id, a non-commit object, a tag outside published history and an id that exists only on another branch return `null`, with no difference a caller can observe. |
 | `documentsAt` | Rebuilds on demand within the limits, or throws `SnapshotUnavailableError('unavailable')` when objects are gone. It never answers from another commit. |

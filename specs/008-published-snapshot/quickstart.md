@@ -34,10 +34,10 @@ These steps use a scratch data root and a spare port, never a real workspace.
 ## Automated
 
 ```bash
-bun test tests/server/published-pointer.test.ts tests/server/snapshot-index.test.ts \
-  tests/server/published-snapshot.test.ts tests/server/publication-checks.test.ts \
-  tests/server/local-publication.test.ts tests/server/request-surface.test.ts \
-  tests/server/agent-sources.test.ts tests/server/snapshot-history.test.ts
+bun test tests/published-pointer.test.ts tests/snapshot-index.test.ts \
+  tests/published-snapshot.test.ts tests/publication-checks.test.ts \
+  tests/local-publication.test.ts tests/request-surface.test.ts \
+  tests/agent-sources.test.ts tests/snapshot-history.test.ts
 bun run test:mutation
 bun scripts/published-snapshot-browser-check.ts
 ```

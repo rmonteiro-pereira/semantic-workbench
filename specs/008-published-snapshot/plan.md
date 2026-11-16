@@ -31,7 +31,7 @@ file mechanism in `src/server/projects/state.ts`; the content-hash parse cache i
 **Storage**: one new durable state file, `data/state/published.json`. The SQLite cache is unchanged.
 Snapshot indexes are in memory and rebuildable from Git.
 
-**Testing**: `bun test` (new files under `tests/server/`), targeted mutants in
+**Testing**: `bun test` (new files under `tests/`, with route and matrix cases under `tests/auth/`), targeted mutants in
 `scripts/mutation-tests.ts`, the authorization matrix and route inventory tests, a browser check for
 the Mappings preview label and Source Control publish state (`scripts/`), and the examples
 verification for the performance measure.
@@ -208,7 +208,7 @@ src/app/
 ├── mappings/agent-paths.ts, projects/api.ts   # (changed) preview paths
 ├── mappings/MappingExplorer.tsx               # (changed) preview label
 └── scm/ ...                                   # (changed) published block, Publish in local mode, notice
-tests/server/   published-pointer, snapshot-index, published-snapshot, publication-checks,
+tests/           published-pointer, snapshot-index, published-snapshot, publication-checks,
                 local-publication, request-surface, agent-sources, snapshot-history, snapshot-export
 scripts/        published-snapshot-browser-check.ts, snapshot-mutants.ts, snapshot-mutation-cases.ts
 ```

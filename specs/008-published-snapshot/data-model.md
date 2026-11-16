@@ -42,10 +42,11 @@ A missing or unreadable file is not rebuilt from any working tree. The first-sta
 server mode records the default branch tip of a clean base; local mode records the default-branch tip
 and raises the notice flag.
 
-### Local identity
+### Local identity and notice
 
 Local mode's authoring branch is `work/local`. No state is stored for it: the branch itself is the
-record.
+record. Whether the person has acknowledged the first-start notice is kept in the person's view state
+file, not in the pointer file and not in Git.
 
 ## In-memory entities
 
