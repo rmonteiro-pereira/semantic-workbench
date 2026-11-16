@@ -112,6 +112,32 @@
         ]
       },
       "canonical": "sw1:sales/a.yaml#ontology:O/concept:C/relationship:r/role:#0"
+    },
+    {
+      "text": "sw1:sales/a.yaml#ontology:O/mapping:#0/model:M",
+      "parsed": {
+        "grammar": 1,
+        "form": "absolute",
+        "project": "sales",
+        "document": [
+          "a.yaml"
+        ],
+        "chain": [
+          {
+            "kind": "ontology",
+            "name": "O"
+          },
+          {
+            "kind": "mapping",
+            "position": 0
+          },
+          {
+            "kind": "model",
+            "name": "M"
+          }
+        ]
+      },
+      "canonical": "sw1:sales/a.yaml#ontology:O/mapping:#0/model:M"
     }
   ],
   "invalid": [
