@@ -156,3 +156,87 @@ test('audit failures preserve completed writes and prevent denied routes from ru
     logging.mockRestore();
   }
 });
+
+test('network refusals precede routing and identity decisions', async () => {
+  using workspace = await testWorkspace();
+  const mode = 'server';
+  const access = createAccessControl(accessFixture());
+  let runs = 0;
+  const run = async () => {
+    runs++;
+    return Response.json({ reached: true });
+  };
+  const cases = [
+    { name: 'bearer before cross-site', path: '/api/agent/plan', method: 'POST', headers: { Authorization: 'Bearer invalid' }, status: 401, body: { error: 'sign-in required' } },
+    { name: 'cross-site before routing', path: '/api/unmapped', method: 'POST', headers: {}, status: 403, body: 'Forbidden' },
+    { name: 'principal before decision', path: '/api/projects', method: 'GET', headers: {}, status: 401, body: { error: 'sign-in required' } },
+  ];
+  for (const entry of cases) {
+    const audit = createAuditLog({ dir: join(workspace.root, entry.name) });
+    const handler = createAccessMiddleware(workspace.ws, { mode, access, audit, principal: () => null }, () => null, run);
+    const response = await handler(new Request('http://localhost' + entry.path, { method: entry.method, headers: entry.headers }));
+    expect(response.status, entry.name).toBe(entry.status);
+    const body = response.headers.get('content-type')?.includes('application/json') ? await response.json() : await response.text();
+    expect(body, entry.name).toEqual(entry.body);
+  }
+  expect(runs).toBe(0);
+});
+
+test('client refusal precedes not-found and public routes precede principal resolution', async () => {
+  using workspace = await testWorkspace();
+  const audit = createAuditLog({ dir: join(workspace.root, 'order-audit') });
+  let resolutions = 0;
+  const principal = () => {
+    resolutions++;
+    return null;
+  };
+  const handler = createAccessMiddleware(
+    workspace.ws,
+    {
+      mode: 'server',
+      audit,
+      principal,
+      bearer: async () => ({ ...localPrincipal(), kind: 'client', id: 'client:order', clientId: 'order' }),
+    },
+    () => null,
+    async () => new Response('public'),
+  );
+  const publicResponse = await handler(new Request('http://localhost/auth/style.css'));
+  expect(await publicResponse.text()).toBe('public');
+  // Rate limiting resolves the identity once before the public route bypasses operation authentication.
+  expect(resolutions).toBe(1);
+  const client = await handler(new Request('http://localhost/api/agent/unmapped', { headers: { Authorization: 'Bearer valid' } }));
+  expect(client.status).toBe(404);
+  expect(await client.json()).toEqual({ error: 'Not found.' });
+  expect(audit.entries(new Date().toISOString().slice(0, 7)).at(-1)?.reason).toBe('unmapped-route');
+});
+
+test('rate limiting precedes bearer and local checks precede route selection', async () => {
+  using workspace = await testWorkspace();
+  let bearerCalls = 0;
+  const limited = createAccessMiddleware(
+    workspace.ws,
+    {
+      mode: 'server',
+      principal: () => null,
+      requestLimits: { requests: { burst: 0, perSecond: 1 }, signIn: { burst: 0, perSecond: 1 } },
+      bearer: async () => {
+        bearerCalls++;
+        return localPrincipal();
+      },
+    },
+    () => null,
+    async () => new Response('ran'),
+  );
+  const response = await limited(new Request('http://localhost/api/agent/unmapped', { headers: { Authorization: 'Bearer invalid' } }));
+  expect(response.status).toBe(429);
+  expect(response.headers.get('Retry-After')).toBe('1');
+  expect(bearerCalls).toBe(0);
+  const local = createAccessMiddleware(
+    workspace.ws,
+    {},
+    () => new Response('local refusal', { status: 403 }),
+    async () => new Response('ran'),
+  );
+  expect(await (await local(new Request('http://localhost/api/unmapped'))).text()).toBe('local refusal');
+});
