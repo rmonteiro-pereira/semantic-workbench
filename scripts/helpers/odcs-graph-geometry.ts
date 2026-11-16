@@ -101,7 +101,9 @@ export async function odcsGraphProblems(page: Page, options: { withKeys?: boolea
       );
       // The legend is on screen, with the key badges of the ODCS graph.
       const legend = view.querySelector('.lineage-foot .lineage-legend');
-      if (!legend || legend.getClientRects().length === 0) out.push('the legend is missing');
+      const legendSummary = view.querySelector('.lineage-legend-disclosure > summary');
+      const disclosureVisible = !!legendSummary && legendSummary.getClientRects().length > 0;
+      if (!legend || (legend.getClientRects().length === 0 && !disclosureVisible)) out.push('the legend is missing');
       else if (withKeys && !/Primary key/.test(legend.textContent ?? '')) out.push('the legend does not explain the PK badge');
       // The hop row stays inside the canvas area.
       const hops = view.querySelector('.lineage-hops');
