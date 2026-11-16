@@ -205,3 +205,8 @@ completion gate.
 items instead of constructing the retired key notation. Concept selection, mapped rows, link
 paths, findings, expansion/collapse, standalone/embedded layouts, KPI bindings, responsive text
 and browser errors were checked. This is not the whole-journey comparison or the final gate.
+
+The first full mutation rerun stopped at its unmodified mapping-graph baseline because that
+case still expected the retired private key strings. Its assertions now use the public mapping
+key formatters with resolved scope labels. `bun scripts/mutation-case.ts <mapping-graph.ts>
+mapping-graph` passes. This was an introduced test-adoption omission, not a harness failure.
