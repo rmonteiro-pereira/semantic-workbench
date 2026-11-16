@@ -389,3 +389,8 @@ reference, including an explicit absent session, before considering cookie-based
 The boundary's `permittedSomewhere` uses effective policy decisions for route passes. File-target
 listing probes reuse `projectResources` from the dry run so path and document-type conditions are
 represented without duplicating policy evaluation.
+
+`handler.boundary.availableOperations(caller)` returns sorted inventory ids using current policy,
+route passes and connection effects, without running handlers or writing audit records. Listing is
+advisory: invocation always checks the actual target again. File probes cover custom path and
+document-type conditions; body routes retain the existing project-level pass before target checks.

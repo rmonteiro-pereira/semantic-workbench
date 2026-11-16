@@ -334,5 +334,21 @@ export function createOperationBoundary(ws: Workspace, options: HandlerOptions &
       connection: input.caller.connection,
     });
   }
-  return { operate, recordProtocolCall };
+  /** Lists sorted operation ids admitted by effective policy and connection effects. */
+  function availableOperations(caller: Caller): string[] {
+    assertMinted(caller);
+    const scope = access.forRequest(caller.principal, { sourceIp: caller.sourceIp });
+    if (scope.principal.deactivated || (mode === 'server' && scope.principal.kind !== 'client' && !scope.principal.grants.length)) return [];
+    const ids: string[] = [];
+    for (const original of ROUTE_ACTIONS) {
+      const entry = operationForRow(original.path);
+      if (entry?.dispatch !== 'twin' || !scopeAllows(caller.scope, entry.effects)) continue;
+      if (scope.principal.kind === 'client' && !original.clientAction) continue;
+      const row = scope.principal.kind === 'client' ? clientRow(original) : original;
+      if (mode === 'server' && row.action === 'setIdentity') continue;
+      if (permittedSomewhere(scope, row)) ids.push(entry.id);
+    }
+    return ids.sort();
+  }
+  return { operate, recordProtocolCall, availableOperations };
 }

@@ -89,9 +89,9 @@ the existing suite are green; each task is its own commit.
 **Independent Test**: `bun test tests/auth/operation-listing.test.ts`.
 
 - [x] T033 [US5] Factor the pass logic of `routeDecision` into `permittedSomewhere(scope, row)` inside `operation-boundary.ts`, used by both invocation and listing; export the dry run's sample-resource builder from `dry-run.ts` unchanged (FR-016, FR-019). Proof: characterization green.
-- [ ] T034 [US5] Implement `availableOperations(caller)`: dispatchable operations whose action (or client action) is allowed on at least one target, in id order, within the connection scope, with no resource names in the result (FR-016 to FR-018). Proof: implemented with T035.
-- [ ] T035 [US5] Write `tests/auth/operation-listing.test.ts` with fixtures: built-in roles, a role limited to `docs/**`, a role limited to one document type, a role on one project, an application client, a person without grants, a deactivated person, a scoped connection; equal permissions under different role names give equal lists; a listed operation on a forbidden target is refused (SC-008). Proof: tests pass.
-- [ ] T036 [US5] Measure listing time for 20 projects and every operation on the fixture and record it in the pull request description (plan performance goal). Proof: number recorded against the 50 ms goal; a finding is opened if missed.
+- [x] T034 [US5] Implement `availableOperations(caller)`: dispatchable operations whose action (or client action) is allowed on at least one target, in id order, within the connection scope, with no resource names in the result (FR-016 to FR-018). Proof: implemented with T035.
+- [x] T035 [US5] Write `tests/auth/operation-listing.test.ts` with fixtures: built-in roles, a role limited to `docs/**`, a role limited to one document type, a role on one project, an application client, a person without grants, a deactivated person, a scoped connection; equal permissions under different role names give equal lists; a listed operation on a forbidden target is refused (SC-008). Proof: tests pass.
+- [x] T036 [US5] Measure listing time for 20 projects and every operation on the fixture and record it in the pull request description (plan performance goal). Proof: number recorded against the 50 ms goal; a finding is opened if missed.
 
 ## Phase 7: User Story 6 - The operation inventory (P2)
 

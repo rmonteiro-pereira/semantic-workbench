@@ -287,3 +287,21 @@ named test. The no-transport dry-run baseline remains unchanged.
 50,300-record dry-run comparison: HTTP-only baseline 962.984258 ms (1,000 cases); with transport
 reads 757.089097 ms (800 cases); ratio 0.7861905225453852. The 20% overhead goal is met without
 changing the 1,000/500 bounds.
+
+## Effective-permission operation listing
+
+`bun test tests/auth/operation-listing.test.ts`: `4 pass`, `0 fail`, `37 expect() calls`,
+`Ran 4 tests across 1 file. [5.59s]`. Fixtures cover built-in roles, an application client, no grant,
+deactivation, one-project grants, path and document-type conditions, role renaming and connection
+scope. A listed file-save operation is refused on a forbidden concrete target. Listing writes no
+operation audit records; a transport records its protocol listing call separately.
+
+Open performance finding: fresh listing across 20 projects returned 54 operations in 621.30286 ms,
+missing the 50 ms goal. Earlier measurements were 747.415833 and 683.678139 ms. No permission
+shortcut or stale cross-request cache was introduced to hide the cost. Invocation and listing use
+real Cedar decisions and the existing per-scope decision cache. This cost must be considered by
+the future transport's listing budget; it is a reported performance finding, not a passing 50 ms claim.
+
+Body-targeted routes keep the existing project-level pass; file-target listing probes reuse the
+dry-run samples. This preserves HTTP behavior instead of broadening body-route admission for
+roles that can edit only a path but cannot pass that route's project gate.
