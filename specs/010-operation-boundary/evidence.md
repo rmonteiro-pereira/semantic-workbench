@@ -307,3 +307,5 @@ dry-run samples. This preserves HTTP behavior instead of broadening body-route a
 roles that can edit only a path but cannot pass that route's project gate.
 
 Browser capability review: SHACL already uses the shared validator, but its invocation is browser-only (also documented in docs/agent-runtime.md). Editor diagnostics and graph layout are presentation concerns. Lineage asset search and path traversal have no reviewed HTTP operations. Each inventory capability names its implementation source; none claims protocol availability.
+
+Inventory validation: 6 pass, 0 fail, 222 assertions. Synthetic deletion, unreviewed route and action changes fail with the route named. Handler vocabulary coverage reads the executable parity table without importing its test lifecycle. All request limits and classifiers resolve, capability sources exist, and the generated reference matches exactly. Regeneration produces identical bytes.

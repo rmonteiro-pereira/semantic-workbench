@@ -20,6 +20,7 @@ specific tasks without duplicating the same instructions in several places.
 | Understand graph engines, ports and measurements | [Graph design](graph-design.md) |
 | Integrate an agent or request a governed query plan | [Agent runtime](agent-runtime.md) |
 | Change colors, logos or deployment identity | [Theme and branding](theme.md) |
+| Review dispatchable operations and browser capabilities | [Operation inventory](operations.md) |
 | Verify the security audit chain | [Audit integrity](audit-tamper-evidence.md) |
 | Prepare an Azure target and delivery pipeline | [Target setup](../deploy/README.md) |
 | Accept a real deployment or test rollback | [Operator runbook](../deploy/trial-runbook.md) |
