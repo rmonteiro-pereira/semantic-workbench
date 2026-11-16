@@ -43,6 +43,7 @@ test('an unrestricted connection cannot grant an action the role refuses', async
 });
 
 import { createAccessMiddleware } from '../../src/server/auth/middleware';
+import type { OperationEffect } from '../../src/server/auth/operation-inventory';
 
 test('read-only computations and local default-branch merges use their actual effects', async () => {
   using fixture = await authWorkspace();
@@ -56,11 +57,11 @@ test('read-only computations and local default-branch merges use their actual ef
       return Response.json({ ran: true });
     },
   );
-  const cases = [
-    { id: 'agent.plan.run', scope: ['read'] as const, params: {} },
-    { id: 'projects.metrics.preview.run', scope: ['read'] as const, params: { slug: 'sales-contracts' } },
-    { id: 'projects.kpis.preview.run', scope: ['read'] as const, params: { slug: 'sales-contracts' } },
-    { id: 'git.pull.default', scope: ['localWrite'] as const, params: { slug: 'sales-contracts' } },
+  const cases: { id: string; scope: OperationEffect[]; params: Record<string, string> }[] = [
+    { id: 'agent.plan.run', scope: ['read'], params: {} },
+    { id: 'projects.metrics.preview.run', scope: ['read'], params: { slug: 'sales-contracts' } },
+    { id: 'projects.kpis.preview.run', scope: ['read'], params: { slug: 'sales-contracts' } },
+    { id: 'git.pull.default', scope: ['localWrite'], params: { slug: 'sales-contracts' } },
   ];
   for (const entry of cases) {
     const caller = mintCaller({ principal: localPrincipal(), origin: 'mcp', scope: [...entry.scope] });
