@@ -428,7 +428,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: The review inferred the detail sits below the list because its full-page capture stopped at the viewport. Scroll the page at 390x844 after selecting 'Identifier, 5 bindings' and record where the detail is and how far it is from the list.
   - Proof: `evidence/E.md` gives the pixel offset of the detail under the selected row.
 
-- [ ] T062 [US5] [E] Confirm first (inferred in the review): the pink group tint is the `#ab6d64` palette entry.
+- [x] T062 [US5] [E] Confirm first (inferred in the review): the pink group tint is the `#ab6d64` palette entry.
   - Findings: m4 · Requirements: FR-070
   - Files: `specs/007-ui-review-fixes/evidence/E.md`
   - Change: Read the computed fill of the tinted cards in `states/local-contract-lineage--first-view-1440.png` reproduced with `scripts/ui-review/capture-states.ts` and match it to a `GROUP_PALETTE` entry.

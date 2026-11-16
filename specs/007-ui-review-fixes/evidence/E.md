@@ -36,3 +36,8 @@
 - Scrolling reaches the detail; it is below the concept list rather than missing.
 - Before-fix capture: `/tmp/sw-E/confirmation/screenshots/followup/local-mapped-commerce-mappings--concept-with-bindings-390-full.png`.
 - Follow-up drivers' fixed fixture ports are remapped in a temporary Bun preload to 5252; no repository capture driver changed.
+
+### T062 — palette confirmation
+
+- Mall contract Graph at 1440×900: properties and portfolios carry computed `--card-tint: #ab6d64`, the sixth (index 5) GROUP_PALETTE entry.
+- Cards themselves have surface-white backgrounds; the tint is applied to their children. The domain group uses this entry; the inference about the palette source is confirmed.
