@@ -54,11 +54,11 @@ test('a lost reconciliation reply replays through the twin with one migration an
   const invoke = (body = declaration, scope?: ('read' | 'localWrite')[]) =>
     context.handler.boundary.operate({
       caller: mintCaller({ principal: context.principal, origin: 'mcp', scope }),
-      request: buildTwinRequest('itemAddresses.reconcile', { params: { slug: project }, body }),
+      request: buildTwinRequest('itemAddresses.reconcile', { params: { slug: project, '*': 'sales.semantic.yaml' }, body }),
     });
   expect((await invoke(declaration, ['read'])).response.status).toBe(403);
   const accepted = await context.handler(
-    new Request(`http://localhost/api/projects/${project}/item-addresses/reconcile`, {
+    new Request(`http://localhost/api/projects/${project}/item-addresses/reconcile/sales.semantic.yaml`, {
       method: 'POST',
       body: JSON.stringify(declaration),
       headers: { Origin: 'http://localhost', 'X-SW-Request': '1' },
@@ -93,7 +93,7 @@ test('address requests reject malformed or foreign bodies and hide unreadable fi
   const viewer = setup(workspace, 'carol');
   const denied = await viewer.handler.boundary.operate({
     caller: mintCaller({ principal: viewer.principal, origin: 'mcp' }),
-    request: buildTwinRequest('itemAddresses.reconcile', { params: { slug: project }, body: declaration }),
+    request: buildTwinRequest('itemAddresses.reconcile', { params: { slug: project, '*': 'sales.semantic.yaml' }, body: declaration }),
   });
   expect([403, 404]).toContain(denied.response.status);
 });

@@ -200,8 +200,8 @@ these prefixes for the selected item and removed dependents. A file delete recor
 delete journal. Creating an item/file later at the same locator is allowed, but its previous history remains behind the
 tombstone.
 
-`POST /api/projects/:slug/item-addresses/reconcile` is the `itemAddresses.reconcile` operation. Its JSON body is
-`{operationId, from, to}`. It requires the same edit
+`POST /api/projects/:slug/item-addresses/reconcile/*` is the `itemAddresses.reconcile` operation. Its JSON body is
+`{operationId, from, to}`; the wildcard is the target file path and must match `to`. It requires the same edit
 authority as saving the target file, both locators readable, the old locator missing and the new locator unique. It
 preserves guarded source text and records only history. The caller supplies a stable operation key; replay returns the
 original record and conflicting reuse is refused. Both addresses must be canonical absolute item locators in `:slug`;

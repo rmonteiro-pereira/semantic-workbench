@@ -22,12 +22,12 @@ function routeBoundary(candidate: typeof ItemAddresses, fixture: Awaited<ReturnT
       return errorResponse(error, undefined, { serverMode: true });
     }
   });
-  return async (action: string, body: unknown, project = 'sales-metrics') =>
+  return async (action: string, body: unknown, project = 'sales-metrics', path = 'sales.semantic.yaml') =>
     (
       await boundary.operate({
         caller,
         operationId: `itemAddresses.${action}`,
-        request: new Request(`http://operation.internal/api/projects/${project}/item-addresses/${action}`, { method: 'POST', body: JSON.stringify(body) }),
+        request: new Request(`http://operation.internal/api/projects/${project}/item-addresses/${action}${action === 'reconcile' ? '/' + path : ''}`, { method: 'POST', body: JSON.stringify(body) }),
       })
     ).response;
 }
@@ -47,6 +47,7 @@ export async function itemAddressOperationCase(candidate: typeof ItemAddresses) 
   const declaration = { operationId: 'route-mutation', from: target.replace('gross_revenue', 'missing_old'), to: target };
   assert.equal((await invoke('reconcile', { ...declaration, extra: true })).status, 400);
   assert.equal((await invoke('reconcile', { ...declaration, operationId: 123 })).status, 400);
+  assert.equal((await invoke('reconcile', declaration, 'sales-metrics', 'other.yaml')).status, 400);
   const oversized = await invoke('resolve', { address: target, padding: 'x'.repeat(64_000) });
   assert.equal(oversized.status, 400);
   assert.equal((await oversized.json()).error, 'Request too large.');

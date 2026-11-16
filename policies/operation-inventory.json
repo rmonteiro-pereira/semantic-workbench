@@ -324,9 +324,9 @@
         "increment": "local-edit"
       }
     },
-    "POST /api/projects/:slug/item-addresses/reconcile": {
+    "POST /api/projects/:slug/item-addresses/reconcile/*": {
       "id": "itemAddresses.reconcile",
-      "handlerChecks": ["authorizeWrite", "bodyTargets"],
+      "handlerChecks": ["authorizeWrite"],
       "limits": {
         "request": "ITEM_ADDRESS_REQUEST_LIMIT",
         "response": "bounded",

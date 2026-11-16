@@ -27,7 +27,7 @@ export const routeExamples: { method: string; path: string; body?: unknown }[] =
   { method: 'GET', path: '/api/projects/missing/export' },
   { method: 'POST', path: '/api/projects/missing/save-batch' },
   { method: 'POST', path: '/api/projects/missing/item-addresses/resolve', body: { address: 'sw1:missing/example.yaml#ontology:O' } },
-  { method: 'POST', path: '/api/projects/missing/item-addresses/reconcile' },
+  { method: 'POST', path: '/api/projects/missing/item-addresses/reconcile/example.yaml' },
   { method: 'POST', path: '/api/projects/missing/gitignore' },
   { method: 'GET', path: '/api/projects/missing/metrics' },
   { method: 'GET', path: '/api/projects/missing/delete-impact' },

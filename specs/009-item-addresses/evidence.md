@@ -999,3 +999,28 @@ reconciliation. Focused checks after these changes:
 
 Formatter, readability and docs-sync checks pass. Generic remote parity/matrix execution is still
 running; all full completion commands will run on the final committed source, without a preload.
+
+### File-scoped reconciliation admission correction
+
+The subsequent architecture review found that workspace/body-target admission rejected a caller
+whose edit permission was limited to the target file, even though saving that file succeeded.
+The new real-entry-point regression demonstrated save `200` followed by reconciliation `403`.
+Reconciliation now uses the existing file-target admission with
+`POST /api/projects/:slug/item-addresses/reconcile/*`; the parsed destination document must
+match the wildcard. No generic boundary admission logic changed. The earlier workspace/body
+route description above is superseded by this correction. The seventh registered route mutant
+removes the URI/document binding predicate.
+
+- `bun test ./tests/auth/item-address-scope.test.ts`: `1 pass`, `0 fail`, `4 expect() calls`;
+  `Ran 1 test across 1 file. [1402.00ms]`.
+- `bun test ./tests/item-address-operations.test.ts`: `3 pass`, `0 fail`, `21 expect() calls`;
+  `Ran 3 tests across 1 file. [3.68s]`.
+- `bun test ./tests/auth/write-regressions.test.ts`: `9 pass`, `0 fail`, `168 expect() calls`;
+  `Ran 9 tests across 1 file. [7.36s]`.
+
+The earlier remote focused run completed with `53 pass`, `5 fail`, `2 errors`,
+`31522 expect() calls`; `Ran 58 tests across 6 files. [850.37s]`. All address entry points,
+migration parity, generic operation parity, inventory and route-action checks passed. Five
+existing authorization-matrix tests timed out (two at 60 seconds and three at five seconds),
+with two follow-on errors after timeout cancellation. These are not classified as baseline
+exceptions until the same matrix has run on unchanged main at a153c20f remotely.

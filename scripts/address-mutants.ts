@@ -63,4 +63,5 @@ export const addressOperationMutants: [string, string, string, string][] = [
   ['address-operation', 'src/server/routes/item-addresses.ts', "Object.keys(body).some(key => !['operationId', 'from', 'to'].includes(key))", 'false'],
   ['address-operation', 'src/server/routes/item-addresses.ts', "typeof body.operationId !== 'string'", 'false'],
   ['address-operation', 'src/server/routes/item-addresses.ts', 'readJson(request, ITEM_ADDRESS_REQUEST_LIMIT)', 'readJson(request, ITEM_ADDRESS_REQUEST_LIMIT * 2)'],
+  ['address-operation', 'src/server/routes/item-addresses.ts', "path !== undefined && parsed.address.document?.join('/') !== path", 'false'],
 ];
