@@ -618,3 +618,31 @@ previous document and asynchronous lineage layout. The paired native view expose
 background. Capture preparation now opens the fixture ontology Overview before the sidebar; normal browser
 tours and all geometry assertions remain unchanged. Focused local and server captures replace all four
 sidebar widths on both revisions. The rest of each completed 232-image journey remains unchanged.
+
+## Native visual comparison
+
+[Comparison index](comparison-index.md), [findings](visual-findings.md) and
+[hashed manifest](capture-manifest.json) cover 464 pairs: 928 PNGs, both modes, 58 states and four native
+viewports. Each complete journey produced 232 zero-problem measurements and exited 0. All pairs are
+classified; no unrequested product regression remains. The sidebar's asynchronous background and duplicate
+filename selector were corrected in the capture preparation, with focused proof on both revisions.
+
+```sh
+TMPDIR=/tmp/sw-008 SW_BASE_URL=http://127.0.0.1:5321 bun scripts/polish-capture.ts <local-output>
+TMPDIR=/tmp/sw-008 bun scripts/polish-capture-server.ts <server-output>
+```
+
+Both commands ran on v0.6.1 and the feature source. Each log ends with
+`MEASURE admin-access-check 2560 problems=0`; all 232 measurements in each log report zero problems.
+Focused sidebar recaptures report four `MEASURE sidebar-projects ... problems=0` lines per revision/mode.
+Server commands ran in isolated subprocess sessions with their actual return codes recorded in files,
+confirming zero after earlier direct-launcher signal statuses. The inherited 407/421 responsive failure
+remains documented separately and is not described as a passing assertion.
+
+The complete native inventory classifies 171 identical, 94 subthreshold raster-only, 8 publication-control,
+20 preview-label, 16 export-source, 50 fixture-metadata, 37 randomized-graph and 68 dialog-background pairs.
+The only loading-only sidebar background was replaced after explicit Overview preparation. A release Vite
+dependency reload interrupted its first image; separate temporary cache directories and a warm-up supplied
+the final native capture. Neither change touches application layout or a browser assertion.
+Independent architecture review confirmed that adoption detaches the existing shared base while a person's
+write still creates their personal branch. No product source changed after `bab84471`.

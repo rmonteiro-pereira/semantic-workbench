@@ -92,3 +92,23 @@ The full run passed its preceding groups before reaching the known assertion.
 
 An initial frontend transport interruption invalidated later browser attempts. A fresh frontend and
 serial reruns supplied the successful results above; those interrupted attempts are not acceptance proof.
+
+## Native visual comparison
+
+[Comparison index](comparison-index.md), [findings](visual-findings.md) and
+[hashed manifest](capture-manifest.json) cover 464 pairs: 928 PNGs, both modes, 58 states and four native
+viewports. Each complete journey produced 232 zero-problem measurements and exited 0. All pairs are
+classified; no unrequested product regression remains. The sidebar's asynchronous background and duplicate
+filename selector were corrected in the capture preparation, with focused proof on both revisions.
+
+```sh
+TMPDIR=/tmp/sw-008 SW_BASE_URL=http://127.0.0.1:5321 bun scripts/polish-capture.ts <local-output>
+TMPDIR=/tmp/sw-008 bun scripts/polish-capture-server.ts <server-output>
+```
+
+Both commands ran on v0.6.1 and the feature source. Each log ends with
+`MEASURE admin-access-check 2560 problems=0`; all 232 measurements in each log report zero problems.
+Focused sidebar recaptures report four `MEASURE sidebar-projects ... problems=0` lines per revision/mode.
+Server commands ran in isolated subprocess sessions with their actual return codes recorded in files,
+confirming zero after earlier direct-launcher signal statuses. The inherited 407/421 responsive failure
+remains documented separately and is not described as a passing assertion.
