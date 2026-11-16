@@ -226,6 +226,7 @@ type ToolsProps = {
   fullscreen?: Fullscreen;
 };
 
+/** Renders the compact neighborhood toolbar with persistent primary controls. */
 export function NeighborhoodTools({
   picker,
   counts,
@@ -248,7 +249,7 @@ export function NeighborhoodTools({
     <ScrollStrip className="neighborhood-tools">
       <CenterPicker {...picker} />
       {!compact && <NeighborCounts {...counts} />}
-      <CompactControls>
+      <CompactControls folded>
         <PierceControls
           direction={direction}
           onDirection={onDirection}
@@ -289,6 +290,7 @@ type LinksProps = {
   onOpenKpis?: (concept: string) => void;
 };
 
+/** Renders walk history and cross-file navigation below the canvas toolbar. */
 export function NeighborhoodLinks({ compact, counts, actionHistory, trail, walk, docId, docLabel, offTrail, centerEntity, onWalkTo, cross, onCrossFile, kpiFor, onOpenKpis }: LinksProps) {
   return (
     <div className="neighborhood-links">
@@ -324,7 +326,7 @@ export function NeighborhoodLinks({ compact, counts, actionHistory, trail, walk,
         </ol>
       </nav>
       {cross.length > 0 && (
-        <CompactControls label="Other files">
+        <CompactControls label="Other files" folded>
           {cross.map(crossFileTarget => (
             <button key={crossFileTarget.doc + crossFileTarget.entity} onClick={() => onCrossFile?.(crossFileTarget)} title={crossFileTarget.reason}>
               <FileSymlink size={13} />

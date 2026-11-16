@@ -1,7 +1,7 @@
 /** Owns first-view, expansion and resize viewports for the neighborhood canvas. */
 import { useEffect, useRef, useState } from 'react';
 import { useReactFlow, type Node } from '@xyflow/react';
-import { DETAIL_ZOOM, LOWEST_FIT_ZOOM } from './FarZoom';
+import { DETAIL_ZOOM } from './FarZoom';
 import { useViewRestore, type Fullscreen } from './fullscreen';
 import { expansionViewport } from './expansion-viewport';
 import { NEIGHBOR_COLUMN } from './layout';
@@ -25,7 +25,7 @@ type Inputs = {
 export function useNeighborhoodViewport({ nodes, center, boxes, routes, separatedKey, heightKey, membership, sets, canvasState, fullscreen }: Inputs) {
   // Fit once the nodes of a new membership are measured; refit when the canvas is resized.
   const canvas = useRef<HTMLDivElement>(null);
-  const { fitBounds, getViewport, setViewport, setCenter, zoomIn, zoomOut } = useReactFlow();
+  const { getViewport, setViewport, zoomIn, zoomOut } = useReactFlow();
   const [fitted, setFitted] = useState('');
   const held = useViewRestore(
     !!fullscreen?.active,
@@ -47,12 +47,10 @@ export function useNeighborhoodViewport({ nodes, center, boxes, routes, separate
     const halfW = Math.max(...all.map(b => Math.max(cx - b.x, b.x + b.width - cx)));
     const lanes = [...routes.values()].filter(r => r.route === 'lane' || r.route === 'loop').length;
     const halfH = Math.max(...all.map(b => Math.max(cy - b.y, b.y + b.height - cy))) + Math.min(160, 30 + lanes * 16);
-    void fitBounds({ x: cx - halfW, y: cy - halfH, width: 2 * halfW, height: 2 * halfH }, { padding: 0.06, duration: 0 }).then(() => {
-      // A canvas too wide for the pane opens on the centre at a zoom where names still read.
-      if (getViewport().zoom < LOWEST_FIT_ZOOM) {
-        void setCenter(cx, cy, { zoom: LOWEST_FIT_ZOOM, duration: 0 });
-      }
-    });
+    const pane = canvas.current;
+    if (!pane) return;
+    const viewport = expansionViewport({ x: cx - halfW, y: cy - halfH, width: 2 * halfW, height: 2 * halfH }, { x: cx, y: cy }, { width: pane.clientWidth, height: pane.clientHeight }, 0.8, 1);
+    void setViewport(viewport, { duration: 0 });
   };
   // After an expansion or pierce, show what it added around its origin at the unscaled card size;
   // the zoom-out controls and Re-center show the whole canvas.
