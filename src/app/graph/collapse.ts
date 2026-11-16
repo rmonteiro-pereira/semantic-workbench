@@ -1,4 +1,5 @@
 /** Projects collapsed model areas into group nodes and their connecting edges. */
+import { entityCountLabel } from './overview-capacity';
 import type { Entity, Relationship } from '../../shared/core/model';
 import type { modelOverview } from './overview';
 /** Replaces collapsed areas with group nodes and their aggregate relationships. */
@@ -15,7 +16,7 @@ export function collapseAreas(overview: ReturnType<typeof modelOverview>, collap
     if (collapsed.has(group.id)) {
       entities.push({
         id: 'collapsed:' + group.id,
-        name: `${group.entities.length} entities`,
+        name: entityCountLabel(group.entities.length),
         kind: group.id,
         path: [],
         fields: [],

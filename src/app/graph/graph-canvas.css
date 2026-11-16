@@ -237,9 +237,16 @@
   z-index: 3;
 }
 .full-graph .full-entity .node-kpi-badge {
+  display: var(--entity-badge-display, inline-flex);
   align-items: center;
   gap: 4px;
 }
 .full-graph .full-entity .node-kpi-badge svg {
   flex: none;
+}
+
+.full-graph .react-flow__minimap {
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  background: var(--color-surface);
 }

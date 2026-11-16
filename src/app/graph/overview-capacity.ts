@@ -37,3 +37,13 @@ export function textSizesAt(zoom: number, layout: 'network' | 'layered' = 'layer
 export function startsCollapsed(entityCount: number): boolean {
   return entityCount > LARGE_MODEL;
 }
+
+/** Formats the entity count consistently in area headers and collapsed cards. */
+export function entityCountLabel(count: number): string {
+  return `${count} ${count === 1 ? 'entity' : 'entities'}`;
+}
+
+/** Keeps the zoom floor proportional to the current whole-model Fit viewport. */
+export function minimumGraphZoom(fittedZoom: number): number {
+  return fittedZoom * 0.25;
+}

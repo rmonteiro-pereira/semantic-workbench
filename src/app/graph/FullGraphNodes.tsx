@@ -6,6 +6,7 @@ import { pointAtHalf, roundedPath, type Point } from '../odcs/edge-route';
 import { pathMatchesEndpoints } from './edge-path';
 import { edgeAppearance } from './edge-styles';
 import { RoutedEdge } from './RoutedEdge';
+import { entityCountLabel } from './overview-capacity';
 import { EntityName } from './EntityName';
 import { shownName } from './text-fit';
 
@@ -54,7 +55,7 @@ export const AreaNode = memo(({ data }: NodeProps) => (
   <div className="full-area-title" title={String(data.name)} style={{ '--area-title-cap': data.titleCap } as React.CSSProperties}>
     <span style={{ background: String(data.color) }} />
     <EntityName name={String(data.name)} />
-    {!data.collapsed && <small>{String(data.count)} entities</small>}
+    {!data.collapsed && <small>{entityCountLabel(Number(data.count))}</small>}
     {Boolean(data.linksText) && <em className="area-links">{String(data.linksText)}</em>}
   </div>
 ));

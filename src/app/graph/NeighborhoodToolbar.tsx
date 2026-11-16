@@ -26,6 +26,7 @@ type CountsProps = {
 };
 
 function NeighborCounts({ centerEntity, view, limit, setLimit }: CountsProps) {
+  if (centerEntity && view.total === 0) return null;
   return (
     <>
       <span className="neighborhood-counts" role="status" aria-label="Neighbor counts">

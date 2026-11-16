@@ -12,7 +12,7 @@ import { Crosshair, Maximize, RefreshCw } from 'lucide-react';
 import { useViewRestore, type Fullscreen } from './fullscreen';
 import { GraphOptions, OptionGroup, Segmented, ShowToggle } from './GraphOptions';
 import { ZoomButtons } from './ZoomButtons';
-import { MODEL_CARD_WIDTH, startsCollapsed, textSizesAt } from './overview-capacity';
+import { MODEL_CARD_WIDTH, minimumGraphZoom, startsCollapsed, textSizesAt } from './overview-capacity';
 import { CompactControls } from './CompactControls';
 import { modelOverview } from './overview';
 import { groupRelationships } from './graph-view';
@@ -57,6 +57,7 @@ export function FullGraph(props: Props) {
   const [viewport, setViewport] = useState({ x: 0, y: 0, zoom: 1 });
   // The zoom rounded down in steps of 0.05. Text sizes follow it while the canvas moves, never
   // read smaller than planned, and do not redraw every edge on each frame.
+  const [fittedZoom, setFittedZoom] = useState(0.05);
   const [zoomStep, setZoomStep] = useState(1);
   const [zoomedGroupId, setZoomedGroupId] = useState('');
   const followZoom = (zoom: number) => setZoomStep(Math.floor(zoom * 20) / 20);
@@ -153,9 +154,13 @@ export function FullGraph(props: Props) {
   // An animated move reads the canvas size one frame later. If the workspace is hidden by then
   // (Admin opening), the size is zero and the viewport becomes NaN. So resize refits move at once,
   // and a NaN viewport is replaced without animating from it.
-  const fitWithin = useCallback((duration: number) => {
-    fitFullGraph(flow.current, container.current?.querySelector('.react-flow'), duration);
-  }, []);
+  const fitWithin = useCallback(
+    (duration: number) => {
+      const zoom = fitFullGraph(flow.current, container.current?.querySelector('.react-flow'), duration, miniMap ? 216 : 0);
+      if (zoom !== undefined) setFittedZoom(zoom);
+    },
+    [miniMap],
+  );
   const fit = useCallback(() => fitWithin(250), [fitWithin]);
   const { nodes, onNodesChange, layoutRoutes, busy, error } = useFullGraphLayout({
     name: props.name,
@@ -299,6 +304,7 @@ export function FullGraph(props: Props) {
     '--area-title-size': `${sizes.areaTitle}px`,
     '--area-links-size': `${sizes.areaLinks}px`,
     '--entity-detail-display': sizes.showDetail ? 'block' : 'none',
+    '--entity-badge-display': sizes.showDetail ? 'inline-flex' : 'none',
   } as React.CSSProperties;
   const zoomedGroupName = overview.groups.find(group => group.id === zoomedGroupId)?.name;
   const metrics = useCallback((m: SmartEdgeMetrics) => setRouteMetrics(m), []);
@@ -409,12 +415,12 @@ export function FullGraph(props: Props) {
             onEdgeClick={(_, e) => props.onSelectEdge(e.id)}
             nodesConnectable={false}
             edgesReconnectable={false}
-            minZoom={0.001}
+            minZoom={minimumGraphZoom(fittedZoom)}
             maxZoom={2}
             onlyRenderVisibleElements
           >
             <Background gap={24} color="var(--color-border)" />
-            {miniMap && <MiniMap pannable zoomable nodeColor={n => String(n.data.color ?? 'var(--color-neutral)')} />}
+            {miniMap && <MiniMap pannable zoomable maskStrokeColor="var(--color-text-secondary)" maskStrokeWidth={1.5} nodeColor={n => String(n.data.color ?? 'var(--color-neutral)')} />}
           </ReactFlow>
         </SmartEdgeProvider>
       )}

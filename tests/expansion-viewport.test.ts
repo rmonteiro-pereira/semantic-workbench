@@ -19,3 +19,8 @@ test('readable centering follows the actual pane dimensions and chosen zoom', ()
   const viewport = expansionViewport({ x: -500, y: -500, width: 5000, height: 5000 }, { x: -200, y: 300 }, { width: 390, height: 500 }, 0.75);
   expect(viewport).toEqual({ x: 345, y: 25, zoom: 0.75 });
 });
+
+test('a lone opening card retains its natural size', () => {
+  const viewport = expansionViewport({ x: 0, y: 0, width: 250, height: 96 }, { x: 125, y: 48 }, { width: 1114, height: 689 }, 0.8, 1);
+  expect(viewport.zoom).toBe(1);
+});

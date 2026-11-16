@@ -38,8 +38,8 @@ export function useNeighborhoodViewport({ nodes, center, boxes, routes, separate
   const measured = nodes.length > 0 && separatedKey === heightKey && nodes.every(n => n.measured?.width) && JSON.stringify([center, nodes.map(n => n.id)]) === membership;
   // The fitted area is symmetric around the center node, so the center sits in the middle of the
   // canvas even when one side has more columns; it leaves room for the lanes above and below.
-  const fitRef = useRef<(all?: boolean) => void>(() => {});
-  fitRef.current = (all = false) => {
+  const fitRef = useRef<(fitAll?: boolean) => void>(() => {});
+  fitRef.current = (fitAll = false) => {
     const box = boxes.get(center ?? '');
     if (!box || !boxes.size) return;
     const all = [...boxes.values()];
@@ -51,7 +51,7 @@ export function useNeighborhoodViewport({ nodes, center, boxes, routes, separate
     const pane = canvas.current;
     if (!pane) return;
     const viewport = expansionViewport({ x: cx - halfW, y: cy - halfH, width: 2 * halfW, height: 2 * halfH }, { x: cx, y: cy }, { width: pane.clientWidth, height: pane.clientHeight }, 0.8, 1);
-    if (all) {
+    if (fitAll) {
       const bounds = { x: cx - halfW, y: cy - halfH, width: 2 * halfW, height: 2 * halfH };
       void setViewport(getViewportForBounds(bounds, pane.clientWidth, pane.clientHeight, 0.05, 1, 0.08), { duration: 0 });
       setFitPrompt(0);
