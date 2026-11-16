@@ -416,13 +416,13 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Replace the dashed border at `style.css:71-84` with a solid muted border and a dimmer label token that still meets 3:1; apply `--color-focus` to `select`, `textarea`, `input[type=checkbox]` and the commit and branch inputs.
   - Proof: Before `local-dark/local-dark-metric-wizard-1440.png`, `local-dark/local-dark-item-editor-1440.png`, `followup/local-interaction--focus-native-select-1440.png` (review baseline); after: same state recaptured with `scripts/ui-review/capture-tour.ts <out> local dark` and `scripts/ui-review/followup-local.ts <out> content`; check: `bun run test:theme` (`lowDisabledContrastProblems` 3:1 holds; a new assertion compares disabled and enabled borders).
 
-- [ ] T060 [US5] [E] Confirm first (risk inferred in the review): does Empty trash remove a deleted file that the dialog does not list?
+- [x] T060 [US5] [E] Confirm first (risk inferred in the review): does Empty trash remove a deleted file that the dialog does not list?
   - Findings: M20 · Requirements: FR-057
   - Files: `tests/trash-sections.test.ts`, `specs/007-ui-review-fixes/evidence/E.md`
   - Change: In an isolated workspace delete a file in project A, select project B, open the trash and run Empty trash; read `data/trash/` before and after. The server calls `ws.trash.purgeAll()` and the confirmation says 'from every project', so the expected answer is yes; write the observed answer in 'Confirmed inferences' of `evidence/E.md` and keep a test that records it.
   - Proof: `evidence/E.md` states the observed result; the test passes.
 
-- [ ] T061 [US5] [E] Confirm first (not seen in the review): where the Mappings detail renders on a phone after a selection.
+- [x] T061 [US5] [E] Confirm first (not seen in the review): where the Mappings detail renders on a phone after a selection.
   - Findings: M24 · Requirements: FR-059
   - Files: `specs/007-ui-review-fixes/evidence/E.md`
   - Change: The review inferred the detail sits below the list because its full-page capture stopped at the viewport. Scroll the page at 390x844 after selecting 'Identifier, 5 bindings' and record where the detail is and how far it is from the list.

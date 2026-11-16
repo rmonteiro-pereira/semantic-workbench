@@ -23,3 +23,16 @@
 ## Checks and limitations
 
 - Capture console identifies missing drafts (`/api/drafts/ubl/ubl.ontology.yaml`) as the recurring 404; investigation belongs to T071.
+
+### T060 — cross-project purge confirmation
+
+- Real handler scenario imports Alpha and Beta, deletes Alpha's file, evaluates the dialog split with Beta selected, and invokes confirmed DELETE `/api/trash`.
+- The deleted entry exists in the temporary trash directory before Empty trash and is absent afterwards, even though Beta's file list is empty. The risk is confirmed.
+- `bun test tests/trash-sections.test.ts`: 3 pass, 0 fail.
+
+### T061 — phone mapping confirmation
+
+- At 390×844, selecting Identifier (5 bindings) puts its row at y=669.1875–730.1875 and the detail at y=1165.1875: 435 px below the selected row's bottom.
+- Scrolling reaches the detail; it is below the concept list rather than missing.
+- Before-fix capture: `/tmp/sw-E/confirmation/screenshots/followup/local-mapped-commerce-mappings--concept-with-bindings-390-full.png`.
+- Follow-up drivers' fixed fixture ports are remapped in a temporary Bun preload to 5252; no repository capture driver changed.
