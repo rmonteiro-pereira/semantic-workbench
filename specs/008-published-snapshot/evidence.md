@@ -955,3 +955,21 @@ The next complete mutation attempt passed `admin-proposals` but stopped at the u
 so its ten-second bound remains. The harness now prints each successful baseline duration and names an
 expired deadline in the error, instead of returning empty stderr on a timer kill. The complete gate is
 rerun with these diagnostics; no baseline failure is counted as a detected mutant.
+
+## Complete correction mutation gate
+
+`sw-midgard-run --pull out/008-review-gate -- bash -c ...` ran
+`SW_BASE_URL=http://127.0.0.1:5481 bun scripts/mutation-tests.ts` with its own frontend and direct log
+redirection. At source revision `06ce59e6`, both the mutation result and wrapper exited 0:
+
+`700/700 targeted mutants killed; all unmodified module baselines passed. Run test:ui for the full browser baseline.`
+
+All 686 source mutants, five askpass mutants and nine visual mutants were detected. No mutant was removed,
+excluded or classified as equivalent. The log explicitly detects configured-default precedence,
+checked-out-feature preference, omitted `pointers.abandon(repository)` and bypassed publication ordering.
+Successful baseline timings include `BASELINE admin-proposals: 13962ms` and
+`BASELINE secrev-trash-routes: 4840ms`. The measured administration deadline is necessary; the trash-route
+category remains within its original ten-second deadline. The nine browser baselines already passed above.
+Its owned frontend was stopped by the exit trap before the wrapper returned zero.
+The remaining responsive groups now run serially against the built frontend, served by the application
+on 5481 with a separate temporary data root. No source or check was changed for that run.
