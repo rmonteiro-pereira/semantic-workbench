@@ -102,14 +102,14 @@ export function emptyBareRepository(): Pick<BareFixture, 'bare' | 'dir' | 'dispo
 /** Selects a publication history, unborn default branch or outside default-ref move. */
 export type PublicationFixtureKind = 'history' | 'unborn' | 'outside-forward' | 'outside-diverged';
 /** Creates a repository with distinct published, authoring and foreign personal commits. */
-export function publicationRepository(kind: PublicationFixtureKind = 'history') {
+export function publicationRepository(kind: PublicationFixtureKind = 'history', objectFormat: 'sha1' | 'sha256' = 'sha1') {
   isolateGit();
   const parent = '/tmp/sw-008';
   mkdirSync(parent, { recursive: true });
   const dir = mkdtempSync(join(parent, 'publication-'));
   const repository = join(dir, 'projects', 'definitions');
   mkdirSync(repository, { recursive: true });
-  git(repository, ['init', '-q', '-b', 'main']);
+  git(repository, ['init', '-q', '-b', 'main', `--object-format=${objectFormat}`]);
   const commit = (text: string) => {
     writeFileSync(join(repository, 'shop.ontology.yaml'), ontologyText(text, ['Customer']));
     git(repository, ['add', '-A']);

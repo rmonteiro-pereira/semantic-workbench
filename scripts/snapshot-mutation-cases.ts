@@ -176,6 +176,8 @@ async function resolverCase(create: typeof createPublishedSnapshots) {
     const git = createGit({ projectsRoot: layout.projects });
     let projects: ProjectEntry[] = [{ slug: 'definitions', name: 'Definitions', createdAt: '', origin: '' }];
     const snapshots = create({ git, pointers, projects: () => projects, directory: () => fixture.repository, gitAvailable: () => true });
+    assert.equal(await snapshots.resolveRevision(fixture.foreign!), null);
+    assert.equal(await snapshots.resolveRevision('main'), null);
     await snapshots.withPin(async pin => {
       const original = await snapshots.documents(pin, 'definitions');
       pointers.complete('definitions', 'main', fixture.authoring);

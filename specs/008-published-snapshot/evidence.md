@@ -325,3 +325,7 @@ principal is allowed while the server Viewer refusal remains unchanged.
 ## Request interleaving
 
 `TMPDIR=/tmp/sw-008 bun test tests/published-snapshot-stress.test.ts`: 1 pass, 0 fail, 601 assertions. Two hundred HTTP agent calls cross twenty real publications. Each group pauses after its request pins and resumes after the next publication; every complete catalog equals the catalog of the commit in its header. All five focused resolver mutants are detected (baseline 0, mutant 1), including replacing the request pin on each read. Remote-status final `bun --bun run check`: exit 0.
+
+## Published revision provenance
+
+`TMPDIR=/tmp/sw-008 bun test tests/snapshot-provenance.test.ts`: 2 pass, 0 fail, 46 assertions. Real SHA-1 and SHA-256 repositories accept full historical ids and an inside-history tag; abbreviated ids, branch names, personal/proposal-only commits, blob ids and outside tags all refuse identically through both resolver entry points. Both added provenance mutants are detected, along with the five existing resolver mutants (each baseline 0, mutant 1).
