@@ -8,6 +8,7 @@ import { startIsolatedApi, routeApi } from '../helpers/isolated-api';
 import { withCleanup } from '../helpers/processes';
 import { loadFollowupFixtures } from './followup-fixtures';
 import { freshCapture, followupViews, type State, type View } from './followup-capture';
+import { captureThemes } from './capture-records';
 import { fullGraphStates, neighborhoodStates } from './followup-graphs';
 import { lineageStates, emptyMappingStates } from './followup-lineage';
 import { mappingStates, formStates, interactionStates, statusStates } from './followup-content';
@@ -38,7 +39,7 @@ await withCleanup(
   },
   async () => {
     await loadFollowupFixtures(api);
-    for (const view of views) {
+    for (const view of views.filter(view => captureThemes().includes(view.theme))) {
       if (process.env.SW_FOLLOWUP_WIDTH && view.width !== Number(process.env.SW_FOLLOWUP_WIDTH)) continue;
       for (const state of inventory(view)) {
         await freshCapture(browser, root, view, state, async page => {

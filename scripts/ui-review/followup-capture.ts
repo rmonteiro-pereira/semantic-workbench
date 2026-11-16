@@ -1,8 +1,9 @@
 // Captures isolated follow-up states and verifies them after each image. Imported by follow-up drivers.
-// OUTPUT_ROOT is supplied by the driver; no environment variables.
+// OUTPUT_ROOT is supplied by the driver; SW_THEME optionally selects one theme.
 import { expect, type Browser, type Page } from '@playwright/test';
 import { appendFileSync, mkdirSync, renameSync } from 'node:fs';
 import { screenProblems } from '../helpers/screen-tour';
+import { captureThemes } from './capture-records';
 
 /** One requested viewport and theme. */
 export type View = { width: number; height: number; theme: 'light' | 'dark' };
@@ -16,11 +17,13 @@ export type State = {
   timed?: boolean;
 };
 /** The standard follow-up viewport inventory. */
-export const followupViews: View[] = [
-  { width: 1440, height: 900, theme: 'light' },
-  { width: 390, height: 844, theme: 'light' },
-  { width: 1440, height: 900, theme: 'dark' },
-];
+export const followupViews: View[] = (
+  [
+    { width: 1440, height: 900, theme: 'light' },
+    { width: 390, height: 844, theme: 'light' },
+    { width: 1440, height: 900, theme: 'dark' },
+  ] satisfies View[]
+).filter(view => captureThemes().includes(view.theme));
 
 /** Records one structured observation without interpreting appearance. */
 export function observation(root: string, value: unknown) {

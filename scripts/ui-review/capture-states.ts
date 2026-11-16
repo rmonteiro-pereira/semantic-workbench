@@ -6,7 +6,7 @@ import { authViewports } from '../helpers/sign-in';
 import { withCleanup } from '../helpers/processes';
 import { captureGraphStates } from './graph-states';
 import { captureRestStates } from './workspace-states';
-import { watchCaptureErrors, failure, type CaptureIdentity } from './capture-records';
+import { captureThemes, watchCaptureErrors, failure, type CaptureIdentity } from './capture-records';
 import { mkdirSync, readFileSync } from 'node:fs';
 import { LOCAL_READER } from '../../src/server/projects/reader';
 
@@ -33,7 +33,7 @@ await withCleanup(
     await api.stop();
   },
   async () => {
-    for (const theme of process.env.SW_THEME ? [process.env.SW_THEME] : ['light', 'dark']) {
+    for (const theme of captureThemes()) {
       for (const [width, height] of authViewports) {
         const identity: CaptureIdentity = { output, mode: 'local', theme, width, height };
         const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 1, colorScheme: theme as 'light' | 'dark' });
