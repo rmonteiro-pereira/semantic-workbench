@@ -31,7 +31,10 @@ flowchart LR
 | Security audit | The server's authentication/access audit path, independently of telemetry | Durable audit files and server stdout mirror; see [audit integrity](../audit-tamper-evidence.md) |
 | Platform CPU, memory, requests and HTTP response time | Azure platform metrics | App Service Metrics; plan-level metrics require access to the plan |
 
-The backend already measures HTTP, Git, scans, validation, access reload and authentication.
+The backend measures HTTP, Git, scans, validation, access reload, authentication and operations.
+Operation counters and durations use only the fixed origin, inventory id and outcome. Non-HTTP
+spans use `operation.<id>`; HTTP keeps its request-span hierarchy. Arguments, resource names and
+concrete paths are excluded from operation labels and span attributes.
 This is not a Bun CPU/heap profiler. The React feature does not add backend event-loop lag,
 queue-wait measurements or a complete request-phase breakdown.
 
