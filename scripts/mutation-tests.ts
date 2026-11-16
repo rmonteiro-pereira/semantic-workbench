@@ -23,6 +23,7 @@ import { graphMutants, runGraphCase } from './graph-mutants';
 import { lineageMutants } from './lineage-mutants';
 // end lane B imports
 // lane C imports
+import { runScmMutants } from './scm-mutants';
 // end lane C imports
 // lane D imports
 // end lane D imports
@@ -590,6 +591,7 @@ mutants.push(...graphMutants);
 mutants.push(...lineageMutants);
 // end lane B mutants
 // lane C mutants
+await runScmMutants(root, temp);
 // end lane C mutants
 // lane D mutants
 // end lane D mutants
