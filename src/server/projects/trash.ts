@@ -189,6 +189,7 @@ export function createTrash(ctx: TrashContext) {
         throw new NotFoundError('File not found.');
       }
       guardDeletion(filesOf(copy), slug, relativePath, guard);
+      const commit = ctx.head ? await ctx.head(filesOf(copy), slug) : '';
       const view = state.view(slug).files[relativePath];
       const trashEntry = newEntry(
         {
@@ -210,7 +211,6 @@ export function createTrash(ctx: TrashContext) {
       if (existsSync(state.draftFile(slug, relativePath))) steps.push({ from: state.draftFile(slug, relativePath), to: join(dir, 'draft.json') });
       steps.push(...archivePersonalState(state, slug, relativePath, join(dir, 'personal')));
       const staging = join(dir, '.address-history');
-      const commit = ctx.head ? await ctx.head(filesOf(copy), slug) : '';
       const from = formatAddress({ grammar: 1, form: 'absolute', project: slug, document: relativePath.split('/'), chain: [] });
       const records = operationMigrations({ id: trashEntry.entryId, at: trashEntry.deletedAt, commit }, [{ kind: 'deleted', from }]);
       try {

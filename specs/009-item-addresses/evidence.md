@@ -579,3 +579,9 @@ The named browser drivers previously hard-coded screenshot destinations directly
 Review found that following only the original project's store would miss a later rename in the destination project after an explicit cross-project move. Resolution now opens each additional visible project's history once, and replays each operation record once. A workspace integration test moves a file across projects, renames the moved item, and resolves its original address through both stores.
 
 Proof: hidden/missing and migration-store integration — 14 pass, 0 fail, 152 assertions; readability passes.
+
+### Commit-lookup failure cleanup
+
+The added local HEAD lookup originally happened after trash metadata or personal staging preparation. A lookup failure could therefore leave an orphan directory despite no journal starting. HEAD is now read before those writes. A real temporary Git wrapper is removed after workspace setup to force the lookup failure through move/delete entry points; source, state, trash and history remain unchanged.
+
+Proof: migration-store tests — 11 pass, 0 fail, 138 assertions; TypeScript passes.

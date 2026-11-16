@@ -83,11 +83,11 @@ export function createFileMove(ctx: FileMoveContext) {
         guardAt(place, to);
         const steps = [{ from: src, to: projectFile(place.layout, toProject, to) }];
         if (existsSync(state.draftFile(slug, from)) && !existsSync(state.draftFile(toProject, to))) steps.push({ from: state.draftFile(slug, from), to: state.draftFile(toProject, to) });
+        const commit = gitAvailable ? ((await git.head(repoDir(place.layout, slug))) ?? '') : '';
         const opId = journal.newId();
         const personalStaging = join(layout.state, `.staging-${opId}`);
         steps.push(...movePersonalState(state, { project: slug, path: from, target: toProject, targetPath: to }, personalStaging, place.copy ?? undefined));
         const address = (project: string, path: string) => formatAddress({ grammar: 1, form: 'absolute', project, document: path.split('/'), chain: [] });
-        const commit = gitAvailable ? ((await git.head(repoDir(place.layout, slug))) ?? '') : '';
         const records = operationMigrations({ id: opId, at: new Date().toISOString(), commit }, [{ kind: 'document', from: address(slug, from), to: address(toProject, to) }]);
         try {
           for (const project of new Set([slug, toProject])) steps.push(...stageAddressMigrations({ layout, project, staging: personalStaging }, records));

@@ -2,7 +2,7 @@ import { historySinceDeletion } from '../src/shared/core/address-migration';
 import { parseAddress } from '../src/shared/core/item-address';
 /** Exercises durable address history through staged journal operations. */
 import { expect, test } from 'bun:test';
-import { existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { addressMigrationFile, ADDRESS_MIGRATION_LIMIT, operationMigrations, readAddressMigrations, stageAddressMigrations } from '../src/server/projects/address-migrations';
 import { atomicWrite, atomicWriteJson } from '../src/server/projects/atomic';
@@ -214,4 +214,25 @@ test('a cross-project move followed by a target-project rename resolves through 
     LOCAL_READER,
   );
   expect(workspace.ws.resolveAddress(from, LOCAL_READER)).toMatchObject({ status: 'found', address: target });
+});
+
+test('a failed local commit lookup leaves no deletion metadata or migration staging', async () => {
+  const temporary = tempDataDir('address-head-failure-');
+  const binary = join(temporary.root, 'git-wrapper');
+  writeFileSync(binary, '#!/bin/sh\nexec git "$@"\n', { mode: 0o755 });
+  try {
+    using workspace = await testWorkspace({ root: join(temporary.root, 'data'), gitBinary: binary });
+    const project = await workspace.seed([{ path: 'a.yaml', source: 'name: O\nontology: [{concept: A}]' }], 'Sample');
+    rmSync(binary);
+    const layout = dataLayout(workspace.root);
+    const before = readdirSync(layout.state).sort();
+    await expect(workspace.ws.moveFile(project.slug, 'a.yaml', project.slug, 'moved.yaml', false, LOCAL_READER)).rejects.toThrow();
+    await expect(workspace.ws.trash.deleteFile(project.slug, 'a.yaml', undefined, LOCAL_READER)).rejects.toThrow();
+    expect(readdirSync(layout.trash)).toEqual([]);
+    expect(readdirSync(layout.state).sort()).toEqual(before);
+    expect(workspace.ws.readFile(project.slug, 'a.yaml').source).toContain('concept: A');
+    expect(readAddressMigrations(layout, project.slug, LOCAL_READER)).toEqual([]);
+  } finally {
+    temporary.cleanup();
+  }
 });
