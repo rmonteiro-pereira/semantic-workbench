@@ -75,7 +75,7 @@ Connection effects narrow allowed decisions; they preserve existence-hiding refu
 existing distinction between hidden-trash denials and unaudited missing entries.
 
 `bun scripts/boundary-benchmark.ts` measures 5,000 in-process HTTP requests with isolated temporary data and prints median and 95th-percentile durations.
-`bun test tests/auth/http-characterization.test.ts` compares responses and audit records against the original HTTP contract; regenerate that fixture only before a boundary change.
+`bun test tests/auth/http-characterization.test.ts` compares responses and audit records against the original HTTP contract; preserve that fixture unchanged when refactoring the boundary.
 
 Trusted adapters use `buildTwinRequest(operationId, { params, query, body, signal })`; parameter keys match the route template, including `*` for a splat. The builder rejects non-dispatchable routes and bodies above the operation's existing byte limit.
 

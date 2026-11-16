@@ -639,7 +639,7 @@ and audit-month bytes remain the compatibility contract.
 3. `refusal.ts` shares durable refusals without an authentication-stage dependency. The boundary
    accepts only mode, access, audit and remote credentials; the HTTP adapter builds those options.
 4. Git push, publish and fetch-follow effects are enforced by their authorizers. A new mutant
-   removes only the push author's remote-effect check while retaining valid syntax.
+   removes only the push authorizer's remote-effect check while retaining valid syntax.
 5. `statusOutcome` and `OPERATION_OUTCOMES` own the mapping and vocabulary. The access-refusal
    argument preserves the old distinction between a denied call's metric and an authorized
    handler's failure status in HTTP audit. Caller origins and scopes derive from their constants.
