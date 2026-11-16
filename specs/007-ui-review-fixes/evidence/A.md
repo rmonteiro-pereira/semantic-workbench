@@ -44,6 +44,14 @@ The edge suite passed all six checks on foundation `593f2c18`, so its selected-v
 
 Updated selection pairs: review `screenshots/followup/local-ubl-full-graph--network-node-selected-1440.png` → `/tmp/sw-A/resume/after/followup/local-ubl-full-graph--network-node-selected-1440.png` (Order), and the corresponding `layered-node-selected` pair (Person). Both new after images were opened: each selected entity remains centered and readable; more connected context is visible; the toolbar stays on one row. `/tmp/sw-A/resume/capture-selection-final.log` reports `[]` for both selected captures and their first views. Static check and build passed again in `check-after-selection.log` and `build-after-selection.log`.
 
+## Interaction-budget fixture lifetime
+
+A graph repetition measured a 109 ms main-thread task during the 1,000-entity pierce, exceeding the unchanged 100 ms limit. The 16 new opening cases had been inserted before that existing interaction test. They now run after the original graph, expansion and tile checks, preserving the interaction test's previous fixture lifetime. No production behavior, assertion, timeout or budget changes.
+
+The complete foundation graph suite passed with a 99 ms longest task (`/tmp/sw-A/resume/foundation-graph-performance.log`). The final lane repetition passed with 98 ms (`/tmp/sw-A/resume/graph-final-retry.log`): `18 graph and neighborhood checks passed`, plus all 16 opening cases. This supersedes the failed 109 ms repetition; it is not classified as an existing foundation failure.
+
+The complete mutation gate passed: `/tmp/sw-A/resume/mutation-retry.log`, `670/670 targeted mutants killed; all unmodified module baselines passed.` The four new graph mutants are included, with no survivors or timeouts reported. It ran under a 6 GB memory cap, nice 19 and CPU affinity 24–27 using the repository's existing Bun runner. Both new graph-opening tests kill relevant mutants; no new test is redundant within that predicate's gate.
+
 ## Baseline
 
 T011 complete. All 24 fresh light-theme first views measured against an archive of e8b7d69. Locked thresholds and numbers are in research.md. Command: `SW_BASE_URL=http://127.0.0.1:5211 bun --preload /tmp/sw-A/port.ts scripts/ui-review/measure-graph.ts`. The temporary preload binds isolated APIs to 5212 instead of ephemeral ports. Raw output: `/tmp/sw-A/baseline.jsonl`; images: `/tmp/sw-A/baseline-measurements/`.

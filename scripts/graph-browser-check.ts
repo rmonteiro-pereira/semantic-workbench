@@ -83,7 +83,6 @@ const shot = (name: string) => page.screenshot({ path: screenshotPath(`/tmp/work
 try {
   await routeApi(page, api);
   await page.goto(appUrl());
-  await checkGraphOpening(browser, api);
   await checkGraphReview(page);
   await check('Expand all restores all 45 UBL entities and 277 relationships; area zoom and layered layout', async () => {
     await openFile('ubl.ontology.yaml');
@@ -473,6 +472,7 @@ try {
   });
   await checkExpansionViewports(browser, api);
   await checkGraphTiles(browser, api);
+  await checkGraphOpening(browser, api);
   console.log(`${passed} graph and neighborhood checks passed on isolated data root ${api.root}.`);
 } finally {
   await browser.close();
