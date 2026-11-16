@@ -1,10 +1,18 @@
 // Checks publication controls using isolated definitions and mocked publication responses.
-import { chromium, expect } from '@playwright/test';
+import { chromium, expect, type Page } from '@playwright/test';
+import { mkdirSync } from 'node:fs';
+import { join } from 'node:path';
 import { appUrl } from './helpers/base-url';
 import { routeApi, startIsolatedApi } from './helpers/isolated-api';
 import { readZip } from '../tests/helpers/zip-reader';
 import { LOCAL_READER } from '../src/server/projects/reader';
 import type { PublishedStatus } from '../src/shared/scm/published-status';
+
+const screenshotDirectory = process.env.SW_SCREENSHOT_DIR;
+if (screenshotDirectory) mkdirSync(screenshotDirectory, { recursive: true });
+async function capture(page: Page, name: string) {
+  if (screenshotDirectory) await page.screenshot({ path: join(screenshotDirectory, `${name}-${page.viewportSize()!.width}.png`) });
+}
 
 const sizes = [
   [390, 844],
@@ -71,6 +79,7 @@ try {
     const publication = page.getByLabel('Published snapshot');
     await expect(publication).toContainText('Published: main @ aaaaaaa');
     await expect(publication).toContainText('1 ahead');
+    await capture(page, `${mode}-snapshot-notice`);
     await publication.getByRole('button', { name: 'Got it' }).click();
     await expect(publication.getByRole('button', { name: 'Got it' })).toHaveCount(0);
     expect(actions).toContain('acknowledge-publication');
@@ -92,6 +101,7 @@ try {
       expect(geometry.left).toBeGreaterThanOrEqual(0);
       expect(geometry.right).toBeLessThanOrEqual(geometry.viewport);
       expect(geometry.overflow).toBe(false);
+      await capture(page, `${mode}-snapshot-adopt`);
     }
     await publication.getByRole('button', { name: 'Adopt', exact: true }).click();
     await expect(publication).toContainText('Published: main @ bbbbbbb');
@@ -99,6 +109,7 @@ try {
     await page.getByRole('tree', { name: 'Projects' }).getByRole('button', { name: 'commerce.mapping.yaml', exact: true }).first().click();
     await page.getByRole('button', { name: 'Mappings', exact: true }).click();
     await expect(page.locator('.mapping-heading-note')).toContainText('Preview of your working copy · Published: main @ bbbbbbb');
+    await capture(page, `${mode}-mappings-preview`);
     await page.getByRole('button', { name: 'Show query', exact: true }).click();
     const composer = page.getByRole('dialog', { name: 'Compose a query' });
     await composer.getByRole('checkbox', { name: 'Metric gross_revenue', exact: true }).check();
@@ -119,6 +130,7 @@ try {
     await expect(dialog.getByRole('option', { name: 'Published', exact: true })).toHaveCount(1);
     await dialog.getByLabel('Files to export').selectOption('published');
     await expect(dialog.getByRole('checkbox')).toBeDisabled();
+    await capture(page, `${mode}-published-export`);
     const exported = page.waitForResponse(response => response.url().includes('/export?source=published'));
     const downloaded = page.waitForEvent('download');
     await dialog.getByRole('button', { name: 'Export', exact: true }).click();
