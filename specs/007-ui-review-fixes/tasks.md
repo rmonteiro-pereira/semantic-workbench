@@ -505,7 +505,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
 
 ## Phase 8: Cross-lane regression gate and release
 
-- [ ] T074 Merge the lanes in the stated order (A, B, C, D, then E) onto the 007 branch, resolving only the shared-file cases the plan lists, and run the full gate after each merge: `bun test`, `bun --bun run check`, `bun --bun run build`.
+- [x] T074 Merge the lanes in the stated order (A, B, C, D, then E) onto the 007 branch, resolving only the shared-file cases the plan lists, and run the full gate after each merge: `bun test`, `bun --bun run check`, `bun --bun run build`.
   - Change: A conflict outside the plan's shared-file list is a lane-boundary error: report it, do not patch it.
   - Proof: Three commands green after each of the five merges; merge commit ids in `evidence/GATE.md`.
 
@@ -518,7 +518,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Use the `ui-regression-gate` procedure: same example, file, state stage, viewport and theme for each pair; classify each as fixed (a finding id), intended side effect, unchanged, or regression; fix or revert every regression; list the 3,559 baseline images by folder with counts. Screenshot capture and viewing is delegated to Codex as the owner's rules require. Images stay outside git (they can show the machine's committer name).
   - Proof: `GATE.md` has zero rows marked regression and every finding id has at least one 'fixed' pair; `capture-report.ts` shows no failed screen that the baseline did not also fail.
 
-- [ ] T077 Assemble `CHANGELOG.md` Unreleased from `specs/007-ui-review-fixes/changelog/A.md` to `E.md`, check counts quoted in docs against test output (Constitution VII), then delete the fragment folder.
+- [x] T077 Assemble `CHANGELOG.md` Unreleased from `specs/007-ui-review-fixes/changelog/A.md` to `E.md`, check counts quoted in docs against test output (Constitution VII), then delete the fragment folder.
   - Files: `CHANGELOG.md`, `specs/007-ui-review-fixes/changelog/`
   - Change: One integrator edits CHANGELOG.md once so lanes never conflict on it.
   - Proof: `bun --bun run check` passes; `rg -n 'one to five|Dry run|first view shows every entity' docs README.md` shows only intended text.

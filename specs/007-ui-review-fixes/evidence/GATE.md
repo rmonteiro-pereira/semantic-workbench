@@ -256,4 +256,396 @@ assertions are retained. No intent was dropped. The shared stylesheet/doc/sentin
 `bun test tests/footer-counts.test.ts tests/theme-check.test.ts`: `23 pass`, `0 fail`, `98 expect() calls`, 511 ms. Merge commit: `1416dac2`.
 `rg -n humanizeIdentifier src/app/graph/EntityName.tsx src/app/workspace/CatalogView.tsx`: A exports the function; E imports it directly; no temporary placeholder exists.
 
-The five merge commits, in order, are A `f1398bf8`, B `6f632145`, C `5b13344c`, D `9d77dd22`, E `1416dac2`. E's complete checks are still running.
+The five merge commits, in order, are A `f1398bf8`, B `6f632145`, C `5b13344c`, D `9d77dd22`, E `1416dac2`. E's complete checks passed: `bun test` 2102 pass, 0 fail, 130929 assertions in 287 files (294.46 s); `bun --bun run check` exit 0; `bun --bun run build` exit 0 (1.64 s).
+
+### bun run test:ui
+
+Exit 1; raw output `suite-ui.log`.
+
+```text
+  ariaSnapshot: "- complementary \"Workspace documents\":\n  - img \"Semantic Workbench\"\n  - button \"Add project\":\n    - img\n    - text: Add project\n  - text: LOCAL WORKSPACE\n  - button \"Model explorer\":\n    - img\n    - text: Model explorer\n  - button \"Source editor\":\n    - img\n    - text: Source editor\n  - button \"Source control 1 changed files\":\n    - img\n    - text: Source control 1\n  - text: PROJECTS 7\n  - tree \"Projects\":\n    - treeitem \"UBL business model\" [expanded]:\n      - button \"UBL business model\":\n        - img\n        - img\n        - text: UBL business model 6\n      - button \"Delete project UBL business model\"\n      - button \"Actions for UBL business model\":\n        - img\n      - group:\n        - treeitem \"ubl.odcs.yaml\" [selected]:\n          - button \"ubl.odcs.yaml\":\n            - img\n            - text: ubl.odcs.yaml\n          - button \"Delete ubl.odcs.yaml\"\n          - button \"Actions for ubl.odcs.yaml in UBL business model\":\n            - img\n          - text: ODCS\n        - treeitem \"ubl.ontology.yaml\":\n          - button \"ubl.ontology.yaml\":\n            - img\n            - text: ubl.ontology.yaml\n          - button \"Delete ubl.ontology.yaml\"\n          - button \"Actions for ubl.ontology.yaml in UBL business model\":\n            - img\n          - text: Ossie ontology · modified\n        - treeitem \"ubl.owl.ttl\":\n          - button \"ubl.owl.ttl\":\n            - img\n            - text: ubl.owl.ttl\n          - button \"Delete ubl.owl.ttl\"\n          - button \"Actions for ubl.owl.ttl in UBL business model\":\n            - img\n          - text: OWL\n        - treeitem \"ubl.semantic-mapping.yaml\":\n          - button \"ubl.semantic-mapping.yaml\":\n            - img\n            - text: ubl.semantic-mapping.yaml\n          - button \"Delete ubl.semantic-mapping.yaml\"\n          - button \"Actions for ubl.semantic-mapping.yaml in UBL business model\":\n            - img\n          - text: Ossie mappings\n        - treeitem \"ubl.semantic.yaml\":\n          - button \"ubl.semantic.yaml\":\n            - img\n            - text: ubl.semantic.yaml\n          - button \"Delete ubl.semantic.yaml\"\n          - button \"Actions for ubl.semantic.yaml in UBL business model\":\n            - img\n          - text: Ossie semantic\n        - treeitem \"ubl.shacl.ttl\":\n          - button \"ubl.shacl.ttl\":\n            - img\n            - text: ubl.shacl.ttl\n          - button \"Delete ubl.shacl.ttl\"\n          - button \"Actions for ubl.shacl.ttl in UBL business model\":\n            - img\n          - text: SHACL\n    - treeitem \"commerce\" [expanded]:\n      - button \"commerce\":\n        - img\n        - img\n        - text: commerce 1\n      - button \"Delete project commerce\"\n      - button \"Actions for commerce\":\n        - img\n      - group:\n        - treeitem \"commerce.owl\":\n          - button \"commerce.owl\":\n            - img\n            - text: commerce.owl\n          - button \"Delete commerce.owl\"\n          - button \"Actions for commerce.owl in commerce\":\n            - img\n          - text: OWL\n    - treeitem \"UBL 2.3 procurement-to-payment · 45 business entities\" [expanded]:\n      - button \"UBL 2.3 procurement-to-payment · 45 business entities\":\n        - img\n        - img\n        - text: UBL 2.3 procurement-to-payment · 45 business entities 1\n      - button \"Delete project UBL 2.3 procurement-to-payment · 45 business entities\"\n      - button \"Actions for UBL 2.3 procurement-to-payment · 45 business entities\":\n        - img\n      - group:\n        - treeitem \"roundtrip.ontology.yaml\":\n          - button \"roundtrip.ontology.yaml\":\n            - img\n            - text: roundtrip.ontology.yaml\n          - button \"Delete roundtrip.ontology.yaml\"\n          - button \"Actions for roundtrip.ontology.yaml in UBL 2.3 procurement-to-payment · 45 business entities\":\n            - img\n          - text: Ossie ontology\n    - treeitem \"JSON round trip\" [expanded]:\n      - button \"JSON round trip\":\n        - img\n        - img\n        - text: JSON round trip 1\n      - button \"Delete project JSON round trip\"\n      - button \"Actions for JSON round trip\":\n        - img\n      - group:\n        - treeitem \"roundtrip.json\":\n          - button \"roundtrip.json\":\n            - img\n            - text: roundtrip.json\n          - button \"Delete roundtrip.json\"\n          - button \"Actions for roundtrip.json in JSON round trip\":\n            - img\n          - text: Ossie ontology\n    - treeitem \"Batch valid\" [expanded]:\n      - button \"Batch valid\":\n        - img\n        - img\n        - text: Batch valid 2\n      - button \"Delete project Batch valid\"\n      - button \"Actions for Batch valid\":\n        - img\n      - group:\n        - treeitem \"batch-good.yaml\":\n          - button \"batch-good.yaml\":\n            - img\n            - text: batch-good.yaml\n          - button \"Delete batch-good.yaml\"\n          - button \"Actions for batch-good.yaml in Batch valid\":\n            - img\n          - text: Ossie ontology\n        - treeitem \"batch-repaired.json\":\n          - button \"batch-repaired.json\":\n            - img\n            - text: batch-repaired.json\n          - button \"Delete batch-repaired.json\"\n          - button \"Actions for batch-repaired.json in Batch valid\":\n            - img\n          - text: Ossie ontology\n    - treeitem \"retry\" [expanded]:\n      - button \"retry\":\n        - img\n        - img\n        - text: retry 1\n      - button \"Delete project retry\"\n      - button \"Actions for retry\":\n        - img\n      - group:\n        - treeitem \"retry.ttl\":\n          - button \"retry.ttl\":\n            - img\n            - text: retry.ttl\n          - button \"Delete retry.ttl\"\n          - button \"Actions for retry.ttl in retry\":\n            - img\n          - text: RDF\n    - treeitem \"Mapped commerce\" [expanded]:\n      - button \"Mapped commerce\":\n        - img\n        - img\n        - text: Mapped commerce 4\n      - button \"Delete project Mapped commerce\"\n      - button \"Actions for Mapped commerce\":\n        - img\n      - group:\n        - treeitem \"commerce.mapped-ontology.yaml\":\n          - button \"commerce.mapped-ontology.yaml\":\n            - img\n            - text: commerce.mapped-ontology.yaml\n          - button \"Delete commerce.mapped-ontology.yaml\"\n          - button \"Actions for commerce.mapped-ontology.yaml in Mapped commerce\":\n            - img\n          - text: Ossie ontology\n        - treeitem \"commerce.mapped-semantic.yaml\":\n          - button \"commerce.mapped-semantic.yaml\":\n            - img\n            - text: commerce.mapped-semantic.yaml\n          - button \"Delete commerce.mapped-semantic.yaml\"\n          - button \"Actions for commerce.mapped-semantic.yaml in Mapped commerce\":\n            - img\n          - text: Ossie semantic\n        - treeitem \"commerce.mapping.yaml\":\n          - button \"commerce.mapping.yaml\":\n            - img\n            - text: commerce.mapping.yaml\n          - button \"Delete commerce.mapping.yaml\"\n          - button \"Actions for commerce.mapping.yaml in Mapped commerce\":\n            - img\n          - text: Ossie mappings\n        - treeitem \"commerce.odcs.yaml\":\n          - button \"commerce.odcs.yaml\":\n            - img\n            - text: commerce.odcs.yaml\n          - button \"Delete commerce.odcs.yaml\"\n          - button \"Actions for commerce.odcs.yaml in Mapped commerce\":\n            - img\n          - text: ODCS\n  - button \"2 grouping suggestions\":\n    - img\n    - text: 2 grouping suggestions\n  - button \"Trash\":\n    - img\n    - text: Trash\n  - button \"Settings\":\n    - img\n    - text: Settings\n  - text: Project folders · on your machine Your definitions stay local.\n- separator \"Resize sidebar\"\n- main:\n  - button \"Hide sidebar\" [expanded]:\n    - img\n  - heading \"ubl.odcs.yaml\" [level=1]\n  - text: UBL business model ODCS\n  - status \"Save state\": Saved to file · 1 uncommitted change\n  - button \"Commit\":\n    - img\n    - text: Commit\n  - button \"More actions\":\n    - img\n  - group \"Account\":\n    - button \"Person menu\"\n  - button \"Contract\":\n    - img\n    - text: Contract\n  - button \"Overview\":\n    - img\n    - text: Overview\n  - button \"Graph\":\n    - img\n    - text: Graph\n  - button \"Neighborhood\":\n    - img\n    - text: Neighborhood\n  - button \"Catalog\":\n    - img\n    - text: Catalog\n  - button \"Source\":\n    - img\n    - text: Source\n  - button \"Mappings\":\n    - img\n    - text: Mappings\n  - button \"Metrics 9\":\n    - img\n    - text: Metrics 9\n  - region \"Lineage graph\":\n    - group \"Lineage controls\":\n      - combobox:\n        - img\n        - textbox \"Find assets\":\n          - /placeholder: Find assets…\n      - button \"Fit\":\n        - img\n        - text: Fit\n      - button \"Full pierce\":\n        - img\n        - text: Full pierce\n      - text: \"Expand:\"\n      - radiogroup \"Pierce direction\":\n        - radio \"Outgoing\"\n        - radio \"Incoming\"\n        - radio \"Both\" [checked]\n      - button \"Undo expansion\" [disabled]:\n        - img\n      - 'button \"Group by: Suggested communities\"':\n        - img\n        - text: Suggested communities\n        - img\n      - group \"View options\":\n        - group \"Show\":\n          - button \"Metrics\" [pressed]\n          - button \"Other contracts\" [pressed]\n    - group \"Foreign-key hops\":\n      - text: Hops\n      - group \"How far to follow foreign keys\":\n        - button \"1 hop\" [pressed]: \"1\"\n        - button \"2 hops\": \"2\"\n        - button \"3 hops\": \"3\"\n      - text: party · 22 connected tables 1 hop\n      - button \"Foreign keys (93)\"\n    - button \"Back\" [disabled]:\n      - img\n    - button \"Forward\" [disabled]:\n      - img\n    - list:\n      - listitem:\n        - button \"party\"\n    - group \"Viewport\":\n      - button \"Zoom out\":\n        - img\n      - button \"Zoom in\":\n        - img\n      - button \"Full screen\":\n        - img\n    - application:\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#document_reference to object:ubl.odcs.yaml#purchase_order\": purchase_order.quotation_document_reference_id → document_reference.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#document_reference to object:ubl.odcs.yaml#purchase_order\": purchase_order.originator_document_reference_id → document_reference.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#customer_party to object:ubl.odcs.yaml#purchase_order\": purchase_order.buyer_customer_party_id → customer_party.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#customer_party to object:ubl.odcs.yaml#purchase_order\": purchase_order.originator_customer_party_id → customer_party.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#customer_party to object:ubl.odcs.yaml#purchase_order\": purchase_order.accounting_customer_party_id → customer_party.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#supplier_party to object:ubl.odcs.yaml#purchase_order\": purchase_order.seller_supplier_party_id → supplier_party.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#party to object:ubl.odcs.yaml#purchase_order\": purchase_order.freight_forwarder_party_id → party.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#supplier_party to object:ubl.odcs.yaml#invoice\": invoice.accounting_supplier_party_id → supplier_party.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#supplier_party to object:ubl.odcs.yaml#invoice\": invoice.seller_supplier_party_id → supplier_party.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#customer_party to object:ubl.odcs.yaml#invoice\": invoice.accounting_customer_party_id → customer_party.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#customer_party to object:ubl.odcs.yaml#invoice\": invoice.buyer_customer_party_id → customer_party.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#party to object:ubl.odcs.yaml#invoice\": invoice.payee_party_id → party.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#party to object:ubl.odcs.yaml#invoice\": invoice.tax_representative_party_id → party.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#supplier_party to object:ubl.odcs.yaml#credit_note\": credit_note.accounting_supplier_party_id → supplier_party.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#supplier_party to object:ubl.odcs.yaml#credit_note\": credit_note.seller_supplier_party_id → supplier_party.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#customer_party to object:ubl.odcs.yaml#credit_note\": credit_note.accounting_customer_party_id → customer_party.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#customer_party to object:ubl.odcs.yaml#credit_note\": credit_note.buyer_customer_party_id → customer_party.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#party to object:ubl.odcs.yaml#credit_note\": credit_note.payee_party_id → party.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#party to object:ubl.odcs.yaml#credit_note\": credit_note.tax_representative_party_id → party.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#party to object:ubl.odcs.yaml#party__person\": party__person.source_id → party.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#address to object:ubl.odcs.yaml#party\": party.postal_address_id → address.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#location to object:ubl.odcs.yaml#party\": party.physical_location_id → location.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#contact to object:ubl.odcs.yaml#party\": party.contact_id → contact.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#party to object:ubl.odcs.yaml#party\": party.agent_party_id → party.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#financial_account to object:ubl.odcs.yaml#party\": party.financial_account_id → financial_account.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#party to object:ubl.odcs.yaml#customer_party\": customer_party.party_id → party.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#contact to object:ubl.odcs.yaml#customer_party\": customer_party.delivery_contact_id → contact.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#contact to object:ubl.odcs.yaml#customer_party\": customer_party.accounting_contact_id → contact.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#contact to object:ubl.odcs.yaml#customer_party\": customer_party.buyer_contact_id → contact.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#party to object:ubl.odcs.yaml#supplier_party\": supplier_party.party_id → party.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#contact to object:ubl.odcs.yaml#supplier_party\": supplier_party.despatch_contact_id → contact.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#contact to object:ubl.odcs.yaml#supplier_party\": supplier_party.accounting_contact_id → contact.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#contact to object:ubl.odcs.yaml#supplier_party\": supplier_party.seller_contact_id → contact.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#address to object:ubl.odcs.yaml#location\": location.address_id → address.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#item to object:ubl.odcs.yaml#item__manufacturer_party\": item__manufacturer_party.source_id → item.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#party to object:ubl.odcs.yaml#item__manufacturer_party\": item__manufacturer_party.target_id → party.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#document_reference to object:ubl.odcs.yaml#item\": item.catalogue_document_reference_id → document_reference.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#party to object:ubl.odcs.yaml#item\": item.information_content_provider_party_id → party.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#party to object:ubl.odcs.yaml#line_item\": line_item.originator_party_id → party.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#party to object:ubl.odcs.yaml#line_item\": line_item.warranty_party_id → party.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#item to object:ubl.odcs.yaml#line_item\": line_item.item_id → item.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#delivery to object:ubl.odcs.yaml#delivery__notify_party\": delivery__notify_party.source_id → delivery.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#party to object:ubl.odcs.yaml#delivery__notify_party\": delivery__notify_party.target_id → party.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#address to object:ubl.odcs.yaml#delivery\": delivery.delivery_address_id → address.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#location to object:ubl.odcs.yaml#delivery\": delivery.delivery_location_id → location.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#location to object:ubl.odcs.yaml#delivery\": delivery.alternative_delivery_location_id → location.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#party to object:ubl.odcs.yaml#delivery\": delivery.carrier_party_id → party.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#party to object:ubl.odcs.yaml#delivery\": delivery.delivery_party_id → party.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#party to object:ubl.odcs.yaml#consignment\": \"17\"\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#transportation_service to object:ubl.odcs.yaml#consignment\": \"2\"\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#location to object:ubl.odcs.yaml#consignment\": \"9\"\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#party to object:ubl.odcs.yaml#transport_equipment\": transport_equipment.provider_party_id → party.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#party to object:ubl.odcs.yaml#transport_equipment\": transport_equipment.loading_proof_party_id → party.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#party to object:ubl.odcs.yaml#transport_equipment\": transport_equipment.owner_party_id → party.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#party to object:ubl.odcs.yaml#transport_equipment\": transport_equipment.operating_party_id → party.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#supplier_party to object:ubl.odcs.yaml#transport_equipment\": transport_equipment.supplier_party_id → supplier_party.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#location to object:ubl.odcs.yaml#transport_equipment\": transport_equipment.loading_location_id → location.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#location to object:ubl.odcs.yaml#transport_equipment\": transport_equipment.unloading_location_id → location.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#location to object:ubl.odcs.yaml#transport_equipment\": transport_equipment.storage_location_id → location.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#transport_means to object:ubl.odcs.yaml#transport_equipment\": transport_equipment.applicable_transport_means_id → transport_means.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#delivery to object:ubl.odcs.yaml#transport_equipment\": transport_equipment.delivery_id → delivery.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#party to object:ubl.odcs.yaml#invoice_line\": invoice_line.originator_party_id → party.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#item to object:ubl.odcs.yaml#invoice_line\": invoice_line.item_id → item.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#party to object:ubl.odcs.yaml#credit_note_line\": credit_note_line.originator_party_id → party.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#item to object:ubl.odcs.yaml#credit_note_line\": credit_note_line.item_id → item.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#party to object:ubl.odcs.yaml#document_reference\": document_reference.issuer_party_id → party.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#party to object:ubl.odcs.yaml#transportation_service\": transportation_service.responsible_transport_service_provider_party_id → party.record_id\n      - img:\n        - group \"Edge from object:ubl.odcs.yaml#party to object:ubl.odcs.yaml#transport_means\": transport_means.owner_party_id → party.record_id\n      - group:\n        - group \"Table party\":\n          - button \"party center\":\n            - strong: party\n            - emphasis: center\n      - group:\n        - group \"Table purchase_order\":\n          - button \"purchase_order\":\n            - strong: purchase_order\n      - group:\n        - group \"Table invoice\":\n          - button \"invoice\":\n            - strong: invoice\n      - group:\n        - group \"Table credit_note\":\n          - button \"credit_note\":\n            - strong: credit_note\n      - group:\n        - group \"Table party__person\":\n          - button \"party__person\":\n            - strong: party__person\n      - group:\n        - group \"Table customer_party\":\n          - button \"customer_party\":\n            - strong: customer_party\n      - group:\n        - group \"Table supplier_party\":\n          - button \"supplier_party\":\n            - strong: supplier_party\n      - group:\n        - group \"Table item__manufacturer_party\":\n          - button \"item__manufacturer_party\":\n            - strong: item__manufacturer_party\n      - group:\n        - group \"Table item\":\n          - button \"item\":\n            - strong: item\n      - group:\n        - group \"Table line_item\":\n          - button \"line_item\":\n            - strong: line_item\n      - group:\n        - group \"Table delivery__notify_party\":\n          - button \"delivery__notify_party\":\n            - strong: delivery__notify_party\n      - group:\n        - group \"Table delivery\":\n          - button \"delivery\":\n            - strong: delivery\n      - group:\n        - group \"Table consignment\":\n          - button \"consignment\":\n            - strong: consignment\n      - group:\n        - group \"Table transport_equipment\":\n          - button \"transport_equipment\":\n            - strong: transport_equipment\n      - group:\n        - group \"Table invoice_line\":\n          - button \"invoice_line\":\n            - strong: invoice_line\n      - group:\n        - group \"Table credit_note_line\":\n          - button \"credit_note_line\":\n            - strong: credit_note_line\n      - group:\n        - group \"Table document_reference\":\n          - button \"document_reference\":\n            - strong: document_reference\n      - group:\n        - group \"Table transportation_service\":\n          - button \"transportation_service\":\n            - strong: transportation_service\n      - group:\n        - group \"Table transport_means\":\n          - button \"transport_means\":\n            - strong: transport_means\n      - group:\n        - group \"Table address\":\n          - button \"address\":\n            - strong: address\n      - group:\n        - group \"Table location\":\n          - button \"location\":\n            - strong: location\n      - group:\n        - group \"Table contact\":\n          - button \"contact\":\n            - strong: contact\n      - group:\n        - group \"Table financial_account\":\n          - button \"financial_account\":\n            - strong: financial_account\n      - img\n      - link \"React Flow attribution\":\n        - /url: https://reactflow.dev/attribution\n        - text: React Flow\n    - group:\n      - list \"Legend\":\n        - listitem:\n          - img\n          - text: Table\n        - listitem: \"Card tint: application grouping\"\n        - listitem: PK Primary key\n        - listitem: FK Points to another table\n        - listitem: 5 Several links in one line\n        - listitem: Foreign key\n        - listitem: Feeds\n    - text: Links follow the names declared in this contract.\n  - img\n  - text: Structure checked\n  - button \"Validation details\"\n  - text: 169 entities · 401 relationships",
+},
+
+      at captureRawStack (/home/rodrigo/projetos/semantic-workbench-wt/007-ui-review-fixes/node_modules/playwright-core/lib/coreBundle.js:9282:21)
+      at callMatcherAsStep (/home/rodrigo/projetos/semantic-workbench-wt/007-ui-review-fixes/node_modules/playwright/lib/matchers/expect.js:13316:57)
+      at expectResolvedBindings (/home/rodrigo/projetos/semantic-workbench-wt/007-ui-review-fixes/scripts/helpers/mapping-bindings.ts:6:61)
+      at /home/rodrigo/projetos/semantic-workbench-wt/007-ui-review-fixes/scripts/ui-tests.ts:464:11
+      at check (/home/rodrigo/projetos/semantic-workbench-wt/007-ui-review-fixes/scripts/ui-tests.ts:46:9)
+      at processTicksAndRejections (native:7:39)
+
+Bun v1.4.0 (Linux x64)
+error: script "test:ui" exited with code 1
+```
+
+
+### Complete text and integrated canvas geometry
+
+The existing card geometry, row ports and semantic edge set remain the layout contract. Compact names must stay whole at the existing nine-pixel minimum.
+Only compact reaches whose layered fit cannot hold the full wrapped names use the existing ELK box algorithm; detailed cards retain layered routes.
+Expansion placement remains incremental: an attempted relayout of existing expansion cards failed the stability assertion and was removed.
+Packed links use the empty row and column gutters, retaining every original endpoint. No text is shortened to satisfy geometry.
+
+- `bun test tests/lineage-view.test.ts`: 10 pass, 0 fail, 33 assertions, 82 ms (`packing-unit.log`); rerun after routing: `packing-final-unit.log`.
+- `bun scripts/lineage-mutation-cases.ts`: exit 0 (`packing-case.log`). Two packing predicate mutants were added to the existing registry.
+- `bun --bun run check`: exit 0 (`packing-routes-check.log`); final CSS follow-up: `packing-final-check.log`.
+- `python3 ~/.claude/skills/readable-code/scripts/readable_check.py --changed <changed code files>`: exit 0.
+- `bun .data/gate/measure-lineage.ts`: four widths, 19 compact names each, zero text rectangles outside their cards (`lineage-final-geometry.log`).
+  The phone and 1280-pixel screenshots were opened: all names wrap, the full reach is visible, and the summary/back action share one row.
+- `bun .data/gate/measure-ubl.ts`: diagnostic UBL expansion exposed six overflowing names with a one-column compact pack.
+  Keeping the compact pack's aspect ratio at least square preserves room for complete wrapped names (`ubl-pack-debug4.log`).
+- `bun run test:lineage`: intermediate failures and fixes are retained in `lineage-complete-names.log`, `lineage-packed-final.log`, `lineage-packed-final2.log`,
+  `lineage-frozen.log`, `lineage-preserve-expansion.log`, and `lineage-routed-packing.log`.
+  The first exposed overflowing full names; the second attempt moved existing cards and was reverted; the third exposed links crossing cards and led to gutter routing.
+  The next run passed full-text, four-width geometry and stable expansion checks, but found only 280 px of visible dataset canvas.
+  The compact dataset header now puts All tables beside the summary and keeps a 300 px minimum stage. Final suite result remains pending.
+- `bun run test:responsive`: the first run passed the resize/lineage checks, then found unequal catalog row heights after complete descriptions were restored.
+  Grid items now stretch to their row height, preserving every description (`suite-responsive.log`). The final rerun is in `suite-responsive-complete-text.log`.
+- `bun run test:ui`: the first run was invalidated by Vite reloading regenerated validators during another command's build (`suite-ui.log`).
+  Frozen rerun: 20 UI checks passed, no browser runtime errors (`suite-ui-frozen.log`).
+- Archived `e8b7d69`, `bun run test:ui`: 20 UI checks passed (`main-suite-ui-valid-root.log`). The invalidated merged run is not claimed as a main failure.
+  An earlier archived-root configuration returned HTTP 404 and was corrected before the valid comparison (`main-suite-ui.log`, `main-smoke.log`).
+- `bun scripts/mutation-tests.ts`: all ordinary mutants, including example-registry, ran before the UI phase failed at the unconfigured default frontend port 5173 (`mutation-final.log`).
+  Rerun uses `SW_BASE_URL=http://127.0.0.1:5261` (`mutation-assigned-port.log`); no deadline or assertion was relaxed.
+- `bun --bun run build`: exit 0, built in 1.87 s (`frozen-build.log`). Builds rewrite validators and trigger Vite reloads; the suite driver is paused during captures.
+
+### Changelog assembly
+
+`CHANGELOG.md` Unreleased contains the five lane fragments and their font foundation entry; the fragment folder was deleted in `dc829ba8`.
+Historical release counts remain attached to their named releases. Current mapping hops match `MAX_HOPS = 3`.
+`rg -n 'one to five|Dry run|first view shows every entity' docs README.md` found only the intended architecture SVG Dry run label.
+`bun --bun run check` and the public-document leak scanner passed for this step.
+
+### Capture restart
+
+The first partial local-light run was interrupted when the full lineage suite found the expansion-placement regression.
+Its partial images will be replaced, not accepted as final evidence. Capture and browser fixtures use isolated temporary data and the assigned frontend or dynamic listener ports.
+
+### bun run test:edges
+
+Exit 0; raw output `suite-edges.log`.
+
+```text
+$ bun scripts/edge-attachment-ui-tests.ts
+PASS network graph path endpoints attach to actual entity borders
+PASS zoomed worker routes attach after hover and selection
+PASS individual entity dragging preserves endpoints
+PASS parent area dragging preserves child edge attachment
+PASS layered and network layout changes preserve attachment
+PASS browser has no runtime errors
+6 edge attachment UI checks passed
+```
+
+### bun run test:grouping-validation
+
+Exit 0; raw output `suite-grouping-validation.log`.
+
+```text
+$ bun scripts/grouping-validation-ui-tests.ts
+PASS Flights grouping modes state provenance honestly and retain all graph connections
+PASS grouping corrections persist across views, documents and reload without rewriting source
+PASS UBL grouping provenance remains explicit and source exports remain unchanged
+PASS contracts and semantic models group into communities; lineage cards carry the group tint
+PASS invalid source highlights the precise feature and finding action selects its offending line
+PASS mixed import repair highlights and locates the faulty file without modifying saved documents
+PASS fixture exports preserve the exact upstream source of every fixture
+PASS browser has no uncaught runtime errors
+8 grouping and validation UI checks passed
+```
+
+### bun run test:examples:ui
+
+Exit 1; raw output `suite-examples-ui.log`.
+
+```text
+232 |     await page.screenshot({ path: '/tmp/workbench-mapping-chains.png' });
+233 |     await page.setViewportSize({ width: 390, height: 844 });
+234 |     const e2 = (await page.locator('.mapping-bindings').boundingBox())!;
+235 |     const k2 = (await page.locator('.mapping-concepts').boundingBox())!;
+236 |     expect(k2.y).toBeLessThan(e2.y);
+                 ^
+TypeError: null is not an object (evaluating 'k2.y')
+      at <anonymous> (/home/rodrigo/projetos/semantic-workbench-wt/007-ui-review-fixes/scripts/examples-ui-tests.ts:236:12)
+      at async check (/home/rodrigo/projetos/semantic-workbench-wt/007-ui-review-fixes/scripts/examples-ui-tests.ts:36:9)
+
+Bun v1.4.0 (Linux x64)
+error: script "test:examples:ui" exited with code 1
+```
+
+### bun run test:graph
+
+Exit 1; raw output `suite-graph.log`.
+
+```text
+  timeout: 5000,
+  ariaSnapshot: "- complementary \"Workspace documents\":\n  - img \"Semantic Workbench\"\n  - button \"Add project\":\n    - img\n    - text: Add project\n  - text: LOCAL WORKSPACE\n  - button \"Model explorer\":\n    - img\n    - text: Model explorer\n  - button \"Source editor\":\n    - img\n    - text: Source editor\n  - button \"Source control\":\n    - img\n    - text: Source control\n  - text: PROJECTS 3\n  - tree \"Projects\":\n    - treeitem \"UBL business model\" [expanded]:\n      - button \"UBL business model\":\n        - img\n        - img\n        - text: UBL business model 6\n      - button \"Delete project UBL business model\"\n      - button \"Actions for UBL business model\":\n        - img\n      - group:\n        - treeitem \"ubl.odcs.yaml\":\n          - button \"ubl.odcs.yaml\":\n            - img\n            - text: ubl.odcs.yaml\n          - button \"Delete ubl.odcs.yaml\"\n          - button \"Actions for ubl.odcs.yaml in UBL business model\":\n            - img\n          - text: ODCS\n        - treeitem \"ubl.ontology.yaml\":\n          - button \"ubl.ontology.yaml\":\n            - img\n            - text: ubl.ontology.yaml\n          - button \"Delete ubl.ontology.yaml\"\n          - button \"Actions for ubl.ontology.yaml in UBL business model\":\n            - img\n          - text: Ossie ontology\n        - treeitem \"ubl.owl.ttl\":\n          - button \"ubl.owl.ttl\":\n            - img\n            - text: ubl.owl.ttl\n          - button \"Delete ubl.owl.ttl\"\n          - button \"Actions for ubl.owl.ttl in UBL business model\":\n            - img\n          - text: OWL\n        - treeitem \"ubl.semantic-mapping.yaml\":\n          - button \"ubl.semantic-mapping.yaml\":\n            - img\n            - text: ubl.semantic-mapping.yaml\n          - button \"Delete ubl.semantic-mapping.yaml\"\n          - button \"Actions for ubl.semantic-mapping.yaml in UBL business model\":\n            - img\n          - text: Ossie mappings\n        - treeitem \"ubl.semantic.yaml\":\n          - button \"ubl.semantic.yaml\":\n            - img\n            - text: ubl.semantic.yaml\n          - button \"Delete ubl.semantic.yaml\"\n          - button \"Actions for ubl.semantic.yaml in UBL business model\":\n            - img\n          - text: Ossie semantic\n        - treeitem \"ubl.shacl.ttl\":\n          - button \"ubl.shacl.ttl\":\n            - img\n            - text: ubl.shacl.ttl\n          - button \"Delete ubl.shacl.ttl\"\n          - button \"Actions for ubl.shacl.ttl in UBL business model\":\n            - img\n          - text: SHACL\n    - treeitem \"Shopping center administration\" [expanded]:\n      - button \"Shopping center administration\":\n        - img\n        - img\n        - text: Shopping center administration 7\n      - button \"Delete project Shopping center administration\"\n      - button \"Actions for Shopping center administration\":\n        - img\n      - group:\n        - treeitem \"mall-data.ttl\":\n          - button \"mall-data.ttl\":\n            - img\n            - text: mall-data.ttl\n          - button \"Delete mall-data.ttl\"\n          - button \"Actions for mall-data.ttl in Shopping center administration\":\n            - img\n          - text: RDF\n        - treeitem \"mall.mapping.yaml\":\n          - button \"mall.mapping.yaml\":\n            - img\n            - text: mall.mapping.yaml\n          - button \"Delete mall.mapping.yaml\"\n          - button \"Actions for mall.mapping.yaml in Shopping center administration\":\n            - img\n          - text: Ossie mappings\n        - treeitem \"mall.odcs.yaml\":\n          - button \"mall.odcs.yaml\":\n            - img\n            - text: mall.odcs.yaml\n          - button \"Delete mall.odcs.yaml\"\n          - button \"Actions for mall.odcs.yaml in Shopping center administration\":\n            - img\n          - text: ODCS\n        - treeitem \"mall.ontology.yaml\":\n          - button \"mall.ontology.yaml\":\n            - img\n            - text: mall.ontology.yaml\n          - button \"Delete mall.ontology.yaml\"\n          - button \"Actions for mall.ontology.yaml in Shopping center administration\":\n            - img\n          - text: Ossie ontology\n        - treeitem \"mall.owl.ttl\":\n          - button \"mall.owl.ttl\":\n            - img\n            - text: mall.owl.ttl\n          - button \"Delete mall.owl.ttl\"\n          - button \"Actions for mall.owl.ttl in Shopping center administration\":\n            - img\n          - text: OWL\n        - treeitem \"mall.semantic.yaml\":\n          - button \"mall.semantic.yaml\":\n            - img\n            - text: mall.semantic.yaml\n          - button \"Delete mall.semantic.yaml\"\n          - button \"Actions for mall.semantic.yaml in Shopping center administration\":\n            - img\n          - text: Ossie semantic\n        - treeitem \"mall.shacl.ttl\":\n          - button \"mall.shacl.ttl\":\n            - img\n            - text: mall.shacl.ttl\n          - button \"Delete mall.shacl.ttl\"\n          - button \"Actions for mall.shacl.ttl in Shopping center administration\":\n            - img\n          - text: SHACL\n    - treeitem \"Commerce scale data\" [expanded]:\n      - button \"Commerce scale data\":\n        - img\n        - img\n        - text: Commerce scale data 1\n      - button \"Delete project Commerce scale data\"\n      - button \"Actions for Commerce scale data\":\n        - img\n      - group:\n        - treeitem \"commerce-scale.ttl\" [selected]:\n          - button \"commerce-scale.ttl\":\n            - img\n            - text: commerce-scale.ttl\n          - button \"Delete commerce-scale.ttl\"\n          - button \"Actions for commerce-scale.ttl in Commerce scale data\":\n            - img\n          - text: RDF\n  - button \"Trash\":\n    - img\n    - text: Trash\n  - button \"Settings\":\n    - img\n    - text: Settings\n  - text: Project folders · on your machine Your definitions stay local.\n- separator \"Resize sidebar\"\n- main:\n  - button \"Hide sidebar\" [expanded]:\n    - img\n  - heading \"commerce-scale.ttl\" [level=1]\n  - text: Commerce scale data RDF\n  - status \"Save state\": Saved to file · 0 uncommitted changes\n  - button \"Commit\" [disabled]:\n    - img\n    - text: Commit\n  - button \"More actions\":\n    - img\n  - group \"Account\":\n    - button \"Person menu\"\n  - button \"Overview\":\n    - img\n    - text: Overview\n  - button \"Graph\":\n    - img\n    - text: Graph\n  - button \"Neighborhood\":\n    - img\n    - text: Neighborhood\n  - button \"Catalog\":\n    - img\n    - text: Catalog\n  - button \"Source\":\n    - img\n    - text: Source\n  - button \"Mappings\":\n    - img\n    - text: Mappings\n  - button \"Metrics\":\n    - img\n    - text: Metrics\n  - img\n  - textbox:\n    - /placeholder: Find an entity…\n  - combobox:\n    - img\n    - textbox \"Find a center\":\n      - /placeholder: \"Center: Customer 10000\"\n  - button \"150 entities, Fit\"\n  - status \"Neighbor counts\":\n    - text: 12 of 13 neighbors ·\n    - strong: 1 hidden\n  - button \"1 more neighbor\"\n  - button \"Full pierce\":\n    - img\n    - text: Full pierce\n  - text: \"Expand:\"\n  - radiogroup \"Pierce direction\":\n    - radio \"Outgoing\"\n    - radio \"Incoming\"\n    - radio \"Both\" [checked]\n  - button \"Undo expansion\":\n    - img\n  - button \"Zoom out\":\n    - img\n  - button \"Zoom in\":\n    - img\n  - group \"View options\":\n    - group \"Neighbors\":\n      - text: Relationship\n      - combobox \"Filter neighbors by relationship\":\n        - option \"All (14)\" [selected]\n        - option \"placedBy (2)\"\n        - option \"soldTo (2)\"\n        - option \"billedTo (1)\"\n        - option \"lastInvoice (1)\"\n        - option \"lastPayment (1)\"\n        - option \"lastShipment (1)\"\n        - option \"paidBy (1)\"\n        - option \"places (1)\"\n        - option \"preferredProduct (1)\"\n        - option \"purchasedBy (1)\"\n        - option \"recipient (1)\"\n        - option \"serves (1)\"\n      - button \"Links between neighbors (6)\" [pressed]\n    - group \"Show\":\n      - button \"Labels\"\n    - group \"Layout\":\n      - button \"Re-arrange\"\n  - button \"Enter full screen\":\n    - img\n  - navigation \"Walk\":\n    - button \"Back\":\n      - img\n    - button \"Forward\" [disabled]:\n      - img\n    - list:\n      - listitem:\n        - button \"Customer 10000\"\n      - listitem:\n        - text: ›\n        - button \"All connected to Customer 10000\"\n  - status:\n    - text: 150 entities shown in 3 steps ·\n    - strong: 850 more reachable\n    - button \"Expand further\"\n  - application:\n    - img:\n      - group \"Edge from https://example.org/commerce#customer_0 to https://example.org/commerce#order_0\"\n    - img:\n      - group \"Edge from https://example.org/commerce#customer_0 to https://example.org/commerce#product_13\"\n    - img:\n      - group \"Edge from https://example.org/commerce#customer_0 to https://example.org/commerce#invoice_26\"\n    - img:\n      - group \"Edge from https://example.org/commerce#customer_0 to https://example.org/commerce#payment_39\"\n    - img:\n      - group \"Edge from https://example.org/commerce#customer_0 to https://example.org/commerce#shipment_52\"\n    - img:\n      - group \"Edge from https://example.org/commerce#order_0 to https://example.org/commerce#customer_0\"\n    - img:\n      - group \"Edge from https://example.org/commerce#order_0 to https://example.org/commerce#invoice_26\"\n    - img:\n      - group \"Edge from https://example.org/commerce#order_100 to https://example.org/commerce#customer_0\"\n    - img:\n      - group \"Edge from https://example.org/commerce#order_100 to https://example.org/commerce#invoice_26\"\n    - img:\n      - group \"Edge from https://example.org/commerce#line_74 to https://example.org/commerce#customer_0\"\n    - img:\n      - group \"Edge from https://example.org/commerce#line_174 to https://example.org/commerce#customer_0\"\n    - img:\n      - group \"Edge from https://example.org/commerce#product_13 to https://example.org/commerce#shipment_52\"\n    - img:\n      - group \"Edge from https://example.org/commerce#product_48 to https://example.org/commerce#warehouse_48\"\n    - img:\n      - group \"Edge from https://example.org/commerce#product_48 to https://example.org/commerce#customer_0\"\n    - img:\n      - group \"Edge from https://example.org/commerce#invoice_87 to https://example.org/commerce#customer_0\"\n    - img:\n      - group \"Edge from https://example.org/commerce#payment_87 to https://example.org/commerce#invoice_87\"\n    - img:\n      - group \"Edge from https://example.org/commerce#payment_87 to https://example.org/commerce#customer_0\"\n    - img:\n      - group \"Edge from https://example.org/commerce#warehouse_48 to https://example.org/commerce#product_48\"\n    - img:\n      - group \"Edge from https://example.org/commerce#warehouse_48 to https://example.org/commerce#customer_0\"\n    - img:\n      - group \"Edge from https://example.org/commerce#customer_35 to https://example.org/commerce#product_48\"\n    - img:\n      - group \"Edge from https://example.org/commerce#customer_48 to https://example.org/commerce#payment_87\"\n    - img:\n      - group \"Edge from https://example.org/commerce#customer_61 to https://example.org/commerce#invoice_87\"\n    - img:\n      - group \"Edge from https://example.org/commerce#order_0 to https://example.org/commerce#line_13\"\n    - img:\n      - group \"Edge from https://example.org/commerce#order_0 to https://example.org/commerce#warehouse_52\"\n    - img:\n      - group \"Edge from https://example.org/commerce#order_13 to https://example.org/commerce#shipment_52\"\n    - img:\n      - group \"Edge from https://example.org/commerce#order_35 to https://example.org/commerce#line_48\"\n    - img:\n      - group \"Edge from https://example.org/commerce#order_48 to https://example.org/commerce#shipment_87\"\n    - img:\n      - group \"Edge from https://example.org/commerce#order_61 to https://example.org/commerce#invoice_87\"\n    - img:\n      - group \"Edge from https://example.org/commerce#order_78 to https://example.org/commerce#invoice_4\"\n    - img:\n      - group \"Edge from https://example.org/commerce#order_100 to https://example.org/commerce#line_113\"\n    - img:\n      - group \"Edge from https://example.org/commerce#order_113 to https://example.org/commerce#shipment_52\"\n    - img:\n      - group \"Edge from https://example.org/commerce#order_148 to https://example.org/commerce#shipment_87\"\n    - img:\n      - group \"Edge from https://example.org/commerce#order_161 to https://example.org/commerce#invoice_87\"\n    - img:\n      - group \"Edge from https://example.org/commerce#order_178 to https://example.org/commerce#invoice_4\"\n    - img:\n      - group \"Edge from https://example.org/commerce#line_0 to https://example.org/commerce#order_0\"\n    - img:\n      - group \"Edge from https://example.org/commerce#line_35 to https://example.org/commerce#product_48\"\n    - img:\n      - group \"Edge from https://example.org/commerce#line_48 to https://example.org/commerce#invoice_87\"\n    - img:\n      - group \"Edge from https://example.org/commerce#line_48 to https://example.org/commerce#warehouse_0\"\n    - img:\n      - group \"Edge from https://example.org/commerce#line_74 to https://example.org/commerce#product_87\"\n    - img:\n      - group \"Edge from https://example.org/commerce#line_74 to https://example.org/commerce#warehouse_26\"\n    - img:\n      - group \"Edge from https://example.org/commerce#line_87 to https://example.org/commerce#invoice_26\"\n    - img:\n      - group \"Edge from https://example.org/commerce#line_96 to https://example.org/commerce#warehouse_48\"\n    - img:\n      - group \"Edge from https://example.org/commerce#line_100 to https://example.org/commerce#order_100\"\n    - img:\n      - group \"Edge from https://example.org/commerce#line_135 to https://example.org/commerce#product_48\"\n    - img:\n      - group \"Edge from https://example.org/commerce#line_148 to https://example.org/commerce#invoice_87\"\n    - img:\n      - group \"Edge from https://example.org/commerce#line_174 to https://example.org/commerce#order_174\"\n    - img:\n      - group \"Edge from https://example.org/commerce#line_187 to https://example.org/commerce#invoice_26\"\n    - img:\n      - group \"Edge from https://example.org/commerce#line_196 to https://example.org/commerce#warehouse_48\"\n    - img:\n      - group \"Edge from https://example.org/commerce#product_13 to https://example.org/commerce#warehouse_13\"\n    - img:\n      - group \"Edge from https://example.org/commerce#product_13 to https://example.org/commerce#line_26\"\n    - img:\n      - group \"Edge from https://example.org/commerce#product_13 to https://example.org/commerce#order_39\"\n    - img:\n      - group \"Edge from https://example.org/commerce#product_35 to https://example.org/commerce#line_48\"\n    - img:\n      - group \"Edge from https://example.org/commerce#product_48 to https://example.org/commerce#line_61\"\n    - img:\n      - group \"Edge from https://example.org/commerce#product_48 to https://example.org/commerce#order_74\"\n    - img:\n      - group \"Edge from https://example.org/commerce#product_61 to https://example.org/commerce#line_74\"\n    - img:\n      - group \"Edge from https://example.org/commerce#product_74 to https://example.org/commerce#order_100\"\n    - img:\n      - group \"Edge from https://example.org/commerce#shipment_0 to https://example.org/commerce#order_0\"\n    - img:\n      - group \"Edge from https://example.org/commerce#shipment_9 to https://example.org/commerce#product_48\"\n    - img:\n      - group \"Edge from https://example.org/commerce#shipment_22 to https://example.org/commerce#warehouse_48\"\n    - img:\n      - group \"Edge from https://example.org/commerce#shipment_35 to https://example.org/commerce#invoice_87\"\n    - img:\n      - group \"Edge from https://example.org/commerce#shipment_52 to https://example.org/commerce#order_52\"\n    - img:\n      - group \"Edge from https://example.org/commerce#shipment_52 to https://example.org/commerce#customer_65\"\n    - img:\n      - group \"Edge from https://example.org/commerce#shipment_52 to https://example.org/commerce#warehouse_78\"\n    - img:\n      - group \"Edge from https://example.org/commerce#shipment_52 to https://example.org/commerce#product_91\"\n    - img:\n      - group \"Edge from https://example.org/commerce#shipment_52 to https://example.org/commerce#invoice_4\"\n    - img:\n      - group \"Edge from https://example.org/commerce#shipment_74 to https://example.org/commerce#invoice_26\"\n    - img:\n      - group \"Edge from https://example.org/commerce#shipment_87 to https://example.org/commerce#customer_0\"\n    - img:\n      - group \"Edge from https://example.org/commerce#shipment_87 to https://example.org/commerce#product_26\"\n    - img:\n      - group \"Edge from https://example.org/commerce#invoice_0 to https://example.org/commerce#shipment_52\"\n    - img:\n      - group \"Edge from https://example.org/commerce#invoice_4 to https://example.org/commerce#order_4\"\n    - img:\n      - group \"Edge from https://example.org/commerce#invoice_4 to https://example.org/commerce#customer_17\"\n    - img:\n      - group \"Edge from https://example.org/commerce#invoice_9 to https://example.org/commerce#line_48\"\n    - img:\n      - group \"Edge from https://example.org/commerce#invoice_13 to https://example.org/commerce#payment_39\"\n    - img:\n      - group \"Edge from https://example.org/commerce#invoice_22 to https://example.org/commerce#line_61\"\n    - img:\n      - group \"Edge from https://example.org/commerce#invoice_26 to https://example.org/commerce#order_26\"\n    - img:\n      - group \"Edge from https://example.org/commerce#invoice_26 to https://example.org/commerce#customer_39\"\n    - img:\n      - group \"Edge from https://example.org/commerce#invoice_26 to https://example.org/commerce#payment_52\"\n    - img:\n      - group \"Edge from https://example.org/commerce#invoice_26 to https://example.org/commerce#line_65\"\n    - img:\n      - group \"Edge from https://example.org/commerce#invoice_26 to https://example.org/commerce#shipment_78\"\n    - img:\n      - group \"Edge from https://example.org/commerce#invoice_35 to https://example.org/commerce#shipment_87\"\n    - img:\n      - group \"Edge from https://example.org/commerce#invoice_48 to https://example.org/commerce#line_87\"\n    - img:\n      - group \"Edge from https://example.org/commerce#invoice_61 to https://example.org/commerce#payment_87\"\n    - img:\n      - group \"Edge from https://example.org/commerce#invoice_87 to https://example.org/commerce#order_87\"\n    - img:\n      - group \"Edge from https://example.org/commerce#invoice_87 to https://example.org/commerce#payment_13\"\n    - img:\n      - group \"Edge from https://example.org/commerce#invoice_87 to https://example.org/commerce#line_126\"\n    - img:\n      - group \"Edge from https://example.org/commerce#invoice_87 to https://example.org/commerce#shipment_39\"\n    - img:\n      - group \"Edge from https://example.org/commerce#payment_0 to https://example.org/commerce#shipment_52\"\n    - img:\n      - group \"Edge from https://example.org/commerce#payment_9 to https://example.org/commerce#line_48\"\n    - img:\n      - group \"Edge from https://example.org/commerce#payment_22 to https://example.org/commerce#line_61\"\n    - img:\n      - group \"Edge from https://example.org/commerce#payment_26 to https://example.org/commerce#invoice_26\"\n    - img:\n      - group \"Edge from https://example.org/commerce#payment_35 to https://example.org/commerce#shipment_87\"\n    - img:\n      - group \"Edge from https://example.org/commerce#payment_39 to https://example.org/commerce#invoice_39\"\n    - img:\n      - group \"Edge from https://example.org/commerce#payment_39 to https://example.org/commerce#customer_52\"\n    - img:\n      - group \"Edge from https://example.org/commerce#payment_39 to https://example.org/commerce#order_65\"\n    - img:\n      - group \"Edge from https://example.org/commerce#payment_39 to https://example.org/commerce#line_78\"\n    - img:\n      - group \"Edge from https://example.org/commerce#payment_39 to https://example.org/commerce#shipment_91\"\n    - img:\n      - group \"Edge from https://example.org/commerce#payment_48 to https://example.org/commerce#line_87\"\n    - img:\n      - group \"Edge from https://example.org/commerce#payment_74 to https://example.org/commerce#order_100\"\n    - img:\n      - group \"Edge from https://example.org/commerce#warehouse_35 to https://example.org/commerce#line_74\"\n    - img:\n      - group \"Edge from https://example.org/commerce#warehouse_39 to https://example.org/commerce#shipment_52\"\n    - img:\n      - group \"Edge from https://example.org/commerce#warehouse_48 to https://example.org/commerce#shipment_61\"\n    - img:\n      - group \"Edge from https://example.org/commerce#warehouse_74 to https://example.org/commerce#order_100\"\n    - group:\n      - img\n      - text: Center Customer\n      - strong: Customer 10000\n      - text: 1 field\n    - group:\n      - text: Invoice\n      - strong: Invoice 10026\n      - text: 1 field\n      - button \"Expand Invoice 10026\":\n        - img\n      - button \"Walk to Invoice 10026\":\n        - img\n        - text: Walk here\n    - group:\n      - text: Invoice\n      - strong: Invoice 10087\n      - text: 1 field\n      - button \"Expand Invoice 10087\":\n        - img\n      - button \"Walk to Invoice 10087\":\n        - img\n        - text: Walk here\n    - group:\n      - text: Product\n      - strong: Monitor arm · SKU 10013\n      - text: 1 field\n      - button \"Expand Monitor arm · SKU 10013\":\n        - img\n      - button \"Walk to Monitor arm · SKU 10013\":\n        - img\n        - text: Walk here\n    - group:\n      - text: Product\n      - strong: Monitor arm · SKU 10048\n      - text: 1 field\n      - button \"Expand Monitor arm · SKU 10048\":\n        - img\n      - button \"Walk to Monitor arm · SKU 10048\":\n        - img\n        - text: Walk here\n    - group:\n      - text: Order\n      - strong: Order 10000\n      - text: 1 field\n      - button \"Expand Order 10000\":\n        - img\n      - button \"Walk to Order 10000\":\n        - img\n        - text: Walk here\n    - group:\n      - text: Order\n      - strong: Order 10100\n      - text: 1 field\n      - button \"Expand Order 10100\":\n        - img\n      - button \"Walk to Order 10100\":\n        - img\n        - text: Walk here\n    - group:\n      - text: Order line\n      - strong: OrderLine 10074\n      - text: 1 field\n      - button \"Expand OrderLine 10074\":\n        - img\n      - button \"Walk to OrderLine 10074\":\n        - img\n        - text: Walk here\n    - group:\n      - text: Payment\n      - strong: Payment 10039\n      - text: 1 field\n      - button \"Expand Payment 10039\":\n        - img\n      - button \"Walk to Payment 10039\":\n        - img\n        - text: Walk here\n    - group:\n      - text: Shipment\n      - strong: Shipment 10052\n      - text: 1 field\n      - button \"Expand Shipment 10052\":\n        - img\n      - button \"Walk to Shipment 10052\":\n        - img\n        - text: Walk here\n    - group:\n      - text: Shipment\n      - strong: Shipment 10087\n      - text: 1 field\n      - button \"Expand Shipment 10087\":\n        - img\n      - button \"Walk to Shipment 10087\":\n        - img\n        - text: Walk here\n    - img\n    - link \"React Flow attribution\":\n      - /url: https://reactflow.dev/attribution\n      - text: React Flow\n  - img\n  - text: Structure checked\n  - button \"Validation details\"\n  - text: 1000 entities · 5000 relationships",
+},
+
+      at captureRawStack (/home/rodrigo/projetos/semantic-workbench-wt/007-ui-review-fixes/node_modules/playwright-core/lib/coreBundle.js:9282:21)
+      at callMatcherAsStep (/home/rodrigo/projetos/semantic-workbench-wt/007-ui-review-fixes/node_modules/playwright/lib/matchers/expect.js:13316:57)
+      at /home/rodrigo/projetos/semantic-workbench-wt/007-ui-review-fixes/scripts/graph-browser-check.ts:452:60
+      at check (/home/rodrigo/projetos/semantic-workbench-wt/007-ui-review-fixes/scripts/graph-browser-check.ts:47:9)
+      at processTicksAndRejections (native:7:39)
+
+Bun v1.4.0 (Linux x64)
+error: script "test:graph" exited with code 1
+```
+
+### bun run test:odcs
+
+Exit 1; raw output `suite-odcs.log`.
+
+```text
+  name: "toBeLessThanOrEqual",
+},
+
+      at captureRawStack (/home/rodrigo/projetos/semantic-workbench-wt/007-ui-review-fixes/node_modules/playwright-core/lib/coreBundle.js:9282:21)
+      at callMatcherAsStep (/home/rodrigo/projetos/semantic-workbench-wt/007-ui-review-fixes/node_modules/playwright/lib/matchers/expect.js:13316:57)
+      at checkDatasetLineageWidth (/home/rodrigo/projetos/semantic-workbench-wt/007-ui-review-fixes/scripts/helpers/odcs-graph-review.ts:34:43)
+      at /home/rodrigo/projetos/semantic-workbench-wt/007-ui-review-fixes/scripts/odcs-browser-check.ts:160:11
+      at check (/home/rodrigo/projetos/semantic-workbench-wt/007-ui-review-fixes/scripts/odcs-browser-check.ts:55:9)
+      at processTicksAndRejections (native:7:39)
+
+Bun v1.4.0 (Linux x64)
+error: script "test:odcs" exited with code 1
+```
+
+### bun run test:mapping-graph
+
+Exit 0; raw output `suite-mapping-graph.log`.
+
+```text
+PASS selecting a concept (Region) emphasises its mappings, dims the rest, and lists its bindings with Edit item (0.3 s)
+PASS link Order.customer → Customer is labelled and passes through orders.customer_id and customers.customer_id (7.5 s)
+PASS Unmapped only: unmapped concepts and fields carry the badge; the filter leaves only them (2.8 s)
+PASS warning markers: a resolver finding shows on the affected card with its message and Edit item (2.9 s)
+PASS Expand, Collapse and Show all connected work on the mapping canvas: Show all connected from Customer opens exactly the cards its mappings reach (3.6 s)
+PASS Flights standalone: drawn lines are the resolver bindings (5.7 s)
+PASS Flights consolidated: the same mapping graph for the embedded mappings, and Ontology graph switches to the entity graph (1.6 s)
+PASS billing: drawn lines are the resolver bindings (4.9 s)
+PASS shopping center: KPI bindings as metric cards, measures solid and of dashed (11.5 s)
+PASS readable first view: whole cards retain names at least 9 px at 1280×720 and 1440×900 (5.4 s)
+PASS no browser errors (0.0 s)
+12 mapping graph checks passed on isolated data root /home/rodrigo/projetos/semantic-workbench-wt/007-ui-review-fixes/.data/gate/tmp/workbench-browser-rKtMkw.
+```
+
+### bun run test:scm
+
+Exit 0; raw output `suite-scm.log`.
+
+```text
+PASS the Remote dialog starts on the address field; Escape returns to Remote… (0.1 s)
+PASS file history: compare two versions of a file (0.3 s)
+PASS waiting for credentials: the panel says so and Cancel stops the operation (0.5 s)
+PASS Admin → Git remotes sets and removes a local bare remote (1.1 s)
+PASS feedback about a remote ends when the remote is removed (0.9 s)
+PASS Admin → Git remotes explains an empty workspace and leads back to Add project (1.1 s)
+10:30:33 ERROR http.request requestId=98bf020c-340f-4db0-bb02-155f2511a569 actor=local method=GET route=/api/projects/:slug/git/log status=500 durationMs=1
+PASS missing Git: the banner explains it, the panel says so, editing and saving still work (3.8 s)
+PASS the panel and its remote actions fit at 390, 1280, 1440 and 2560 px (1.4 s)
+PASS read access replaces commit and branch creation controls (0.9 s)
+PASS no browser errors (0.0 s)
+20 source-control checks passed on isolated data root /home/rodrigo/projetos/semantic-workbench-wt/007-ui-review-fixes/.data/gate/tmp/workbench-browser-0fxQNE.
+```
+
+### bun run test:editor
+
+Exit 0; raw output `suite-editor.log`.
+
+```text
+PASS a finding appears inline within 500 ms of a typing pause, with gutter marker and message; fixing it clears it
+PASS a CRLF/mixed-ending file: one edited line changes only that line, and the save sends a patch
+PASS the import-repair dialog uses the same editor: findings, Go to line from the report, repair and import
+PASS keyboard: the editor is reachable by Tab with its accessible name; search opens with Ctrl+F
+  1153 ms for 39 keystrokes (30 ms each)
+  in the page: 35.5 ms mean per key without a save running
+PASS typing in a 1.9 MB file stays responsive
+  no save running: 425 ms wall clock for 39 keystrokes; in the page 44.9 ms mean per key, longest task 0 ms
+  automatic save in flight: 375 ms wall clock for 39 keystrokes; in the page 18.3 ms mean per key, longest task 0 ms
+PASS typing in a 1.9 MB file stays responsive to each keystroke while an automatic save runs
+PASS no browser errors
+10 editor checks passed on isolated data root /home/rodrigo/projetos/semantic-workbench-wt/007-ui-review-fixes/.data/gate/tmp/workbench-browser-JQLEFf.
+```
+
+### bun run test:validation
+
+Exit 0; raw output `suite-validation.log`.
+
+```text
+$ bun scripts/validation-browser-check.ts
+PASS invalid Source draft keeps its header state and one located message
+{"errors":[]}
+```
+
+### bun run test:theme
+
+Exit 1; raw output `suite-theme.log`.
+
+```text
+  "      - element is visible, enabled and stable", "      - scrolling into view if needed",
+  "      - done scrolling", "      - <div role=\"status\" class=\"full-graph-loading\">Arranging 4 graph nodes…</div> intercepts pointer events",
+  "    - retrying click action", "      - waiting 100ms", "    - waiting for element to be visible, enabled and stable",
+  "  - element was detached from the DOM, retrying"
+],
+
+      at accentCheck (/home/rodrigo/projetos/semantic-workbench-wt/007-ui-review-fixes/scripts/theme-browser-check.ts:53:78)
+      at check (/home/rodrigo/projetos/semantic-workbench-wt/007-ui-review-fixes/scripts/theme-browser-check.ts:20:9)
+      at processTicksAndRejections (native:7:39)
+
+Bun v1.4.0 (Linux x64)
+error: script "test:theme" exited with code 1
+```
+
+### bun run test:dialogs
+
+Exit 0; raw output `suite-dialogs.log`.
+
+```text
+$ bun scripts/dialogs-browser-check.ts
+PASS Commit: opens from its trigger, fits the six viewports, traps focus, Escape closes and returns focus
+PASS Validation details: opens from its trigger, fits the six viewports, traps focus, Escape closes and returns focus
+PASS Add concept: opens from its trigger, fits the six viewports, traps focus, Escape closes and returns focus
+PASS Grouping suggestions: opens from its trigger, fits the six viewports, traps focus, Escape closes and returns focus
+PASS Import: opens from its trigger, fits the six viewports, traps focus, Escape closes and returns focus
+PASS New file: opens from its trigger, fits the six viewports, traps focus, Escape closes and returns focus
+PASS View definition: opens from its trigger, fits the six viewports, traps focus, Escape closes and returns focus
+PASS Trash: opens from its trigger, fits the six viewports, traps focus, Escape closes and returns focus
+PASS menus: opaque, inside the window and reachable at four sizes
+9 dialog checks passed at six viewports on isolated data root /home/rodrigo/projetos/semantic-workbench-wt/007-ui-review-fixes/.data/gate/tmp/workbench-browser-QKj32f.
+```
+
+### bun run test:metrics
+
+Exit 1; raw output `suite-metrics.log`.
+
+```text
+  timeout: 5000,
+  ariaSnapshot: undefined,
+},
+
+      at captureRawStack (/home/rodrigo/projetos/semantic-workbench-wt/007-ui-review-fixes/node_modules/playwright-core/lib/coreBundle.js:9282:21)
+      at callMatcherAsStep (/home/rodrigo/projetos/semantic-workbench-wt/007-ui-review-fixes/node_modules/playwright/lib/matchers/expect.js:13316:57)
+      at /home/rodrigo/projetos/semantic-workbench-wt/007-ui-review-fixes/scripts/metrics-browser-check.ts:253:57
+      at check (/home/rodrigo/projetos/semantic-workbench-wt/007-ui-review-fixes/scripts/metrics-browser-check.ts:111:9)
+      at processTicksAndRejections (native:7:39)
+
+Bun v1.4.0 (Linux x64)
+error: script "test:metrics" exited with code 1
+```
+
+### bun run test:trash
+
+Exit 0; raw output `suite-trash.log`.
+
+```text
+PASS the row icon runs the same confirmation, undo and trash flow for a single file
+PASS rows never overlap or run under the icons at 390 px and 2560 px; touch shows the icons without hover
+PASS a mapping imported on its own is suggested for Flights with evidence, and accepting moves it
+PASS a dismissed suggestion is not offered again
+PASS delete names the file, warns about unsaved edits and broken references; Cancel keeps it
+PASS confirmed delete updates every view; Undo within 10 s restores the exact file
+PASS after the undo window the file is restored from the trash, and another is purged
+PASS deleting a project removes it with its history; restore from the trash brings it back
+PASS Clear empties the workspace; Undo brings every project back
+PASS Clear again, then empty the trash with confirmation
+PASS no page reload and no browser errors
+13 trash checks passed on isolated data root /home/rodrigo/projetos/semantic-workbench-wt/007-ui-review-fixes/.data/gate/tmp/workbench-browser-WajKpG.
+```
+
+### bun run test:projects
+
+Exit 0; raw output `suite-projects.log`.
+
+```text
+$ bun scripts/projects-browser-check.ts
+PASS sidebar tree lists projects with their files, types and validity
+PASS an invalid file opens in Source for repair
+  external edit visible after 396 ms
+PASS an external edit appears in the open tab within 2 s without a reload
+PASS a save based on an older version is rejected with both versions shown (two tabs)
+PASS deleting the cache and restarting restores projects, files, view settings and drafts
+PASS export project downloads a zip that imports back byte-exact
+PASS the selected project is the context: fallbacks and Import stay in it, never in another project
+PASS New file creates each kind in an empty project, opens it and validates
+8 project checks passed on isolated data root /home/rodrigo/projetos/semantic-workbench-wt/007-ui-review-fixes/.data/gate/tmp/workbench-browser-XXoTDc.
+```
+
+### bun run test:sidebar
+
+Exit 1; raw output `suite-sidebar.log`.
+
+```text
+Call log:
+[2m  - navigating to "http://127.0.0.1:5261/", waiting until "load"[22m
+
+  log: [ "  - navigating to \"http://127.0.0.1:5261/\", waiting until \"load\"" ],
+
+      at openPage (/home/rodrigo/projetos/semantic-workbench-wt/007-ui-review-fixes/scripts/sidebar-layout-browser-check.ts:24:14)
+      at /home/rodrigo/projetos/semantic-workbench-wt/007-ui-review-fixes/scripts/sidebar-layout-browser-check.ts:109:28
+      at check (/home/rodrigo/projetos/semantic-workbench-wt/007-ui-review-fixes/scripts/sidebar-layout-browser-check.ts:15:9)
+      at processTicksAndRejections (native:7:39)
+
+Bun v1.4.0 (Linux x64)
+error: script "test:sidebar" exited with code 1
+```
+
+### bun run test:mappings-layout
+
+Exit 1; raw output `suite-mappings-layout.log`.
+
+```text
+59167 |     e = Object.assign(new PlaywrightError(error.error.message), { name: error.error.name });
+                                  ^
+error: goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:5261/
+Call log:
+[2m  - navigating to "http://127.0.0.1:5261/", waiting until "load"[22m
+
+  log: [ "  - navigating to \"http://127.0.0.1:5261/\", waiting until \"load\"" ],
+
+      at /home/rodrigo/projetos/semantic-workbench-wt/007-ui-review-fixes/node_modules/playwright-core/lib/coreBundle.js:59167:27
+
+Bun v1.4.0 (Linux x64)
+error: script "test:mappings-layout" exited with code 1
+```
+
+### bun run test:back-history
+
+Exit 1; raw output `suite-back-history.log`.
+
+```text
+59167 |     e = Object.assign(new PlaywrightError(error.error.message), { name: error.error.name });
+                                  ^
+error: goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:5261/
+Call log:
+[2m  - navigating to "http://127.0.0.1:5261/", waiting until "load"[22m
+
+  log: [ "  - navigating to \"http://127.0.0.1:5261/\", waiting until \"load\"" ],
+
+      at /home/rodrigo/projetos/semantic-workbench-wt/007-ui-review-fixes/node_modules/playwright-core/lib/coreBundle.js:59167:27
+
+Bun v1.4.0 (Linux x64)
+error: script "test:back-history" exited with code 1
+```
+
+### Browser action readiness
+
+The whole-graph loading overlay already marks unfinished layout, and Expand all is disabled while that work is pending.
+The shared browser driver tested that disabled state immediately after switching graphs and could skip the expansion entirely.
+The driver will wait for the existing loading indicator before deciding whether expansion is needed and after requesting it.
+Existing timeouts and assertions remain unchanged; metrics and theme checks exercise the same entry point.
+
+### Mapping disclosure selection
+
+Resolved bindings now open by default, as the lane-E change requires. Native disclosure toggles still let the reader close the current evidence.
+Selecting a different concept must open that concept's evidence, the behavior already required by the examples browser suite.
+A stable key per selected concept resets only that disclosure when selection changes; ordinary renders preserve the reader's open/closed choice.
+
+### Resume after external memory stop
+
+The owner confirmed the previous run was stopped externally because other sessions exhausted machine memory. Interrupted commands and connection-refused results remain recorded, but are not accepted as product failures or passes.
+All five pending edits are retained: the examples checks follow the approved phone detail view and humanized type label; the graph driver waits for existing layout readiness; mapping evidence resets on a new concept; this journal preserves results; the merge/changelog checkboxes reflect completed commits.
+The resumed gate runs one browser or capture script at a time, checks `free -g` before each heavy step, waits below 8 GB available, and verifies that its frontend, API and browser processes exit before the next step.
+`bun scripts/mutation-tests.ts` with the assigned frontend completed before the stop: `679/679 targeted mutants killed; all unmodified module baselines passed.` The two new packing mutants were detected.
+`bun run test:lineage`: `26 lineage checks passed`, including four readable Walk targets, stable expansion, complete names and no browser errors (`suite-lineage-private-cache.log`).
+`bun run test:odcs`: `10 ODCS checks passed`, including the dataset/header alignment (`suite-odcs-aligned-summary.log`).
+`bun .data/gate/mall-canvas.ts`: Mall ODCS canvas at 1280×720 is 954×424 px; required minimum is 421 px. The original 407 px regression is fixed.
+The full unit attempt reported 2102 pass / 1 timeout in the unchanged audit append benchmark under machine pressure. Focused reruns passed on both archived main (6 tests, 1018 assertions, 5.22 s) and merged code (6 tests, 1018 assertions, 4.85 s). A final serial full run remains required.
