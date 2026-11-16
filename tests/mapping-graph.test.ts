@@ -2,7 +2,7 @@
 import { test, expect } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { buildContext, agentCatalog, type StoredDocument, type RuntimeContext } from '../src/server/agent/runtime';
-import { buildMappingGraph, conceptId, datasetId, fieldId, metricId, type MappingGraph } from '../src/app/mappings/mapping-graph';
+import { buildMappingGraph, type MappingGraph } from '../src/app/mappings/mapping-graph';
 import { aroundHops } from '../src/app/odcs/lineage';
 // The concept-mapping graph: built from the resolver's context, so every drawn line is a binding
 // the Mappings tab and the agent context also see.
@@ -21,6 +21,15 @@ const sets: Record<string, StoredDocument[]> = {
   mall: docs('mall', ['mall.ontology.yaml', 'mall.semantic.yaml', 'mall.mapping.yaml']),
 };
 const contexts: [string, RuntimeContext][] = Object.entries(sets).flatMap(([name, d]) => agentCatalog(d).mappings.map(m => [`${name}:${m.id}`, buildContext(d, m.id)] as [string, RuntimeContext]));
+function graphKeys(graph: MappingGraph) {
+  const cardKey = (kind: string, name: string) => [...graph.cards.values()].find(card => card.kind === kind && card.label === name)!.id;
+  const conceptId = (name: string) => cardKey('concept', name);
+  const datasetId = (name: string) => cardKey('dataset', name);
+  const metricId = (name: string) => cardKey('metric', name);
+  const fieldId = (dataset: string, field: string) => graph.cards.get(datasetId(dataset))!.columns.find(column => column.path === field)!.id;
+  const relationshipId = (concept: string, relationship: string) => graph.cards.get(conceptId(concept))!.columns.find(column => column.path === relationship)!.id;
+  return { conceptId, datasetId, metricId, fieldId, relationshipId };
+}
 const edgesOf = (g: MappingGraph, binding: string) => g.edges.filter(e => e.bindings?.includes(binding));
 test('five mappings are covered: Flights standalone and consolidated, mapped commerce, billing, mall', () => {
   expect(contexts.map(([n]) => n.split(':')[0]).sort()).toEqual(['billing', 'commerce', 'flights', 'flights', 'mall']);
@@ -29,6 +38,7 @@ test('five mappings are covered: Flights standalone and consolidated, mapped com
 for (const [name, context] of contexts)
   test(`${name}: every binding is drawn as its own kind of line, ends on known rows and cards`, () => {
     const mappingGraph = buildMappingGraph(context);
+    const { conceptId, metricId, fieldId, relationshipId } = graphKeys(mappingGraph);
     const nodes = new Set([...mappingGraph.cards.keys(), ...[...mappingGraph.cards.values()].flatMap(c => c.columns.map(x => x.id))]);
     for (const edge of mappingGraph.edges) {
       expect(nodes.has(edge.from)).toBe(true);
@@ -45,7 +55,7 @@ for (const [name, context] of contexts)
           expect(own.filter(e => e.to === fieldId(field[0], field[1])).length).toBe(1);
         }
         for (const metric of binding.metrics) expect(own.filter(e => e.to === metricId(metric)).length).toBe(1);
-        for (const mappingEdge of own) expect(mappingEdge.from).toBe(`${conceptId(binding.rootConcept)}/${binding.relationships.join('.')}`);
+        for (const mappingEdge of own) expect(mappingEdge.from).toBe(relationshipId(binding.rootConcept, binding.relationships.join('.')));
       }
       // A link child's fields are the rows its line passes through (the link's anchor only
       // identifies the subject).
@@ -69,34 +79,38 @@ for (const [name, context] of contexts)
 const commerce = () => buildMappingGraph(contexts.find(([n]) => n.startsWith('commerce'))![1]);
 test('commerce: object mapping Customer → customers with customer_id identifying; referent Customer.id → customers.customer_id', () => {
   const mappingGraph = commerce();
+  const { conceptId, datasetId, fieldId, relationshipId } = graphKeys(mappingGraph);
   expect(mappingGraph.cards.get(conceptId('Customer'))!.kind).toBe('concept');
   expect(mappingGraph.cards.get(datasetId('customers'))!.kind).toBe('dataset');
   expect(mappingGraph.edges.filter(e => e.kind === 'object' && e.from === conceptId('Customer') && e.to === datasetId('customers'))).toHaveLength(1);
   const customers = mappingGraph.cards.get(datasetId('customers'))!;
   expect(customers.columns.find(c => c.path === 'customer_id')!.badges.map(b => b.label)).toContain('Identifying');
   expect(customers.columns.find(c => c.path === 'region')!.badges.map(b => b.label)).not.toContain('Identifying');
-  expect(mappingGraph.edges.some(e => e.kind === 'referent' && e.from === `${conceptId('Customer')}/id` && e.to === fieldId('customers', 'customer_id'))).toBe(true);
+  expect(mappingGraph.edges.some(e => e.kind === 'referent' && e.from === relationshipId('Customer', 'id') && e.to === fieldId('customers', 'customer_id'))).toBe(true);
   // Concept rows are its relationships, in declared order.
   expect(mappingGraph.cards.get(conceptId('Order'))!.columns.map(c => c.path)).toEqual(['id', 'customer', 'amount']);
 });
 test('commerce: link Order.customer → Customer through the join fields orders.customer_id → customers.customer_id, labelled', () => {
   const mappingGraph = commerce();
-  const link = mappingGraph.edges.find(e => e.kind === 'link' && e.from === `${conceptId('Order')}/customer`)!;
+  const { conceptId, fieldId, relationshipId } = graphKeys(mappingGraph);
+  const link = mappingGraph.edges.find(e => e.kind === 'link' && e.from === relationshipId('Order', 'customer'))!;
   expect(link.to).toBe(conceptId('Customer'));
   expect(link.label).toBe('customer');
   expect(link.via).toEqual([fieldId('orders', 'customer_id'), fieldId('customers', 'customer_id')]);
-  const region = mappingGraph.edges.find(e => e.kind === 'link' && e.from === `${conceptId('Customer')}/region`)!;
+  const region = mappingGraph.edges.find(e => e.kind === 'link' && e.from === relationshipId('Customer', 'region'))!;
   expect(region.to).toBe(conceptId('Region'));
   expect(region.via).toEqual([fieldId('customers', 'region')]);
 });
 test('commerce: an object mapping whose expression is a governed metric draws concept → metric', () => {
   const mappingGraph = commerce();
+  const { conceptId, metricId } = graphKeys(mappingGraph);
   expect(mappingGraph.edges.some(e => e.kind === 'object' && e.from === conceptId('Revenue') && e.to === metricId('gross_revenue'))).toBe(true);
   expect(mappingGraph.cards.get(metricId('gross_revenue'))!.kind).toBe('metric');
 });
 test('mall: KPI bindings: billed_amount measures kpi:BilledAmount (solid) and is of Lease (dashed)', () => {
   const runtimeContext = contexts.find(([n]) => n.startsWith('mall'))![1];
   const mappingGraph = buildMappingGraph(runtimeContext);
+  const { conceptId, metricId } = graphKeys(mappingGraph);
   const metricBinding = runtimeContext.metricBindings.find(m => m.metric === 'billed_amount')!;
   expect(
     mappingGraph.edges
@@ -131,6 +145,7 @@ test('unmapped: a concept with no mapping and a field nothing reads carry the Un
     );
   });
   const mappingGraph = buildMappingGraph(runtimeContext);
+  const { conceptId, datasetId } = graphKeys(mappingGraph);
   const labels = (x: { badges?: { label: string }[] } | undefined) => (x?.badges ?? []).map(b => b.label);
   expect(labels(mappingGraph.cards.get(conceptId('Shipment')))).toContain('Unmapped');
   expect(labels(mappingGraph.cards.get(conceptId('Customer')))).not.toContain('Unmapped');
@@ -145,6 +160,7 @@ test('findings sit on the affected card: unknown concept, missing field, ambiguo
       .replace('            - relationship: id\n              expression: orders.order_id', '            - relationship: id\n              expression: orders.no_such_field');
   });
   const mappingGraph = buildMappingGraph(runtimeContext);
+  const { conceptId, metricId } = graphKeys(mappingGraph);
   expect(mappingGraph.cards.get(conceptId('Ghost'))!.findings!.join(' ')).toContain('Unknown ontology concept Ghost');
   expect(mappingGraph.cards.get(conceptId('Order'))!.findings!.join(' ')).toContain('no_such_field');
   // A finding is never attached to an unrelated card.
@@ -165,7 +181,20 @@ test('findings sit on the affected card: unknown concept, missing field, ambiguo
 test('the view around a metric also holds the datasets of the concepts it binds', () => {
   const [, context] = contexts.find(([name]) => name.startsWith('mall:'))!;
   const graph = buildMappingGraph(context);
+  const { datasetId, metricId } = graphKeys(graph);
   const metric = metricId('billed_amount');
   const view = aroundHops(graph as never, metric, 1);
   expect(view.cards.has(datasetId('leases'))).toBe(true);
+});
+test('reserved field names stay distinct from dataset cards and carry the resolved model scope', () => {
+  const context = changed(files => {
+    files['commerce.mapped-semantic.yaml'] += '\n';
+  });
+  context.datasets.push({ name: 'a', fields: [{ name: 'a/b' }, { name: 'b' }] });
+  const graph = buildMappingGraph(context);
+  const card = [...graph.cards.values()].find(candidate => candidate.kind === 'dataset' && candidate.label === 'a')!;
+  expect(new Set([card.id, ...card.columns.map(column => column.id)]).size).toBe(3);
+  expect(card.columns[0].id).toContain('/dataset:a/field:a%2Fb');
+  expect(card.columns[1].id).toContain('/dataset:a/field:b');
+  expect(card.id).toStartWith('sw1:#model:');
 });

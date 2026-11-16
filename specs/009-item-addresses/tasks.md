@@ -109,7 +109,7 @@ changes.
   alias-qualified or QName text unless a resolver turns it into a name, and refusing ambiguous
   dotted forms instead of guessing. Proof: `tests/item-key-adapters.test.ts` including the cases
   that were ambiguous in the old notations. (FR-009, FR-041)
-- [ ] T017 [US4] Move the mapping canvas to addresses in `src/app/mappings/mapping-graph.ts`
+- [x] T017 [US4] Move the mapping canvas to addresses in `src/app/mappings/mapping-graph.ts`
   (`conceptId`, `datasetId`, `metricId`, `fieldId` become calls to the formatter; their callers
   receive addresses). Proof: `tests/` for mapping graph pass unchanged apart from key text; a
   field named `a/b` and a dataset named `a` stay distinct. (FR-038, FR-039)

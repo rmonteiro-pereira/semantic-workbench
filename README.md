@@ -575,7 +575,8 @@ local/Compose setup and Azure mount examples.
 The shared `sw1` API parses and formats item locators with escaped names and explicit kinds.
 A locator describes a position by name; it does not supply persistent identity or survive a rename.
 Structured Ossie and ODCS items can be derived and resolved through the shared API. RDF/SHACL
-resources and built-ins have no locator. Existing UI keys and save behavior are unchanged.
+resources and built-ins have no locator. The mapping canvas uses locators for structured cards and rows;
+other UI keys and save behavior are unchanged.
 See [item addresses](docs/item-addresses.md) for the pure API and tests.
 
 ## Development and verification

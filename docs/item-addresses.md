@@ -23,8 +23,7 @@ ADDRESS_TEST_SEED=9721 bun test tests/item-address-properties.test.ts
 ```
 
 `ADDRESS_TEST_SEED` accepts an integer. A failing property includes its seed for replay.
-The fixtures are in `tests/fixtures/addresses/conformance.json`. UI selection, model derivation
-and persisted-key migration have not adopted this API yet.
+The fixtures are in `tests/fixtures/addresses/conformance.json`. General graph selection and persisted-key migration have not adopted this API yet.
 
 ## Structured definitions
 
@@ -52,3 +51,8 @@ its baseline module under the ignored `out/009-addresses/` directory.
 It accepts a key only when exactly one definition matches. Dotted field collisions are ambiguous;
 alias-qualified text requires an explicit document-local resolver. Reading a key never rewrites
 the source document. Canonical locators should be parsed and resolved through the shared API.
+
+The mapping canvas formats concept, dataset, metric, field and direct relationship keys within
+the resolved ontology/model scope. Agent context exposes these scope labels as `ontology.address`
+and `semanticModel.address` (null for unresolved targets). Built-in cards and multi-hop mapping
+rows use synthetic UI identifiers. Row ownership is indexed explicitly instead of splitting keys.

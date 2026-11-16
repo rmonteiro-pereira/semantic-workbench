@@ -134,3 +134,17 @@ are document-relative and become absolute only with an explicit document locatio
 `bun test tests/item-key-adapters.test.ts`: 4 pass, 0 fail, 22 assertions. The cases include
 ambiguous dotted fields, duplicate model scopes, slash names, explicit alias resolution and
 unchanged source values.
+
+## Mapping consumer proof
+
+The mapping graph formats keys within context assembly's resolved ontology/model scope labels.
+Direct relationship rows are locators; built-ins and aggregate mapping paths remain synthetic rows.
+Row ownership no longer splits identifiers. Reserved slash names stay distinct.
+`bun test tests/mapping-graph.test.ts tests/agent-context-kinds.test.ts`: 22 pass, 0 fail,
+6,861 assertions. Legacy context digests exclude only the documented new scope labels; all
+other context fields retain their original digests. `bun --bun run check` passed.
+
+The delegated overlay comparison ran the same injected scenario against archived main and
+this branch. Both killed it with the intended assertion and the same ten overlaps. The earlier
+null-root exception did not reproduce and is not classified as a main baseline failure.
+This limited comparison does not complete the full journey regression task.
