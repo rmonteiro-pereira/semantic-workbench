@@ -34,8 +34,16 @@ The first-view hook now checks actual laid-out bounds before choosing the comple
 
 ## T027 — skipped: incompatible geometry
 
-The requested 12 px names cannot fit inside the measured fitted card heights. At 1440 the existing walk button scales to 2.78×2.96 px, with the entire card only a few pixels wide. A font compensated to 12 screen pixels and bounded by that card's header height cannot simultaneously satisfy both bounds. Fixing this requires changing Fit semantics, layout density or the representation beyond the named font adjustment. No name-only rendering change is made.
+The requested 9 px names cannot fit inside the measured fitted card heights. At 1440 the existing walk button scales to 2.78×2.96 px, with the entire card only a few pixels wide. A font compensated to 9 screen pixels and bounded by that card's header height cannot simultaneously satisfy both bounds. Fixing this requires changing Fit semantics, layout density or the representation beyond the named font adjustment. No name-only rendering change is made.
 
 ## T028 — partial implementation; bundling skipped
 
 Opening the side panel fits every currently laid-out card into the reduced pane instead of returning to one readable centre with neighbours under the panel. Bundling across a shared source column is larger than the described existing bundle split: the current bundle groups by *card pair and edge kind*, while the Mall hub has distinct destination cards. Combining those into at most three paths needs shared route trunks with multiple endpoints and changed attachment/selection behavior, rather than one counted edge between existing ports. That routing change is skipped; T028 remains unchecked.
+
+## Confirmed inferences
+
+T029 / M17 confirmed at 1280×720 and 2560×1440. `.lineage-hops` has `flex-wrap: wrap` and a computed width of 488.421875 px at both widths. Its path uses `flex: 1 1 160px`. The children have widths 27.09375, 103.609375, 259.515625, 48.203125 and 105.21875 px. The final Foreign keys button wraps to y=249 at 1280 (steps y=213), and y=209 at 2560 (steps y=173), despite the wide pane. The flex basis participates in intrinsic sizing of the non-growing hops item, then its path grows on the first row, leaving the final button alone on the second. `.lineage-subbar > .lineage-hops` only caps max-width; it does not allocate remaining width or prevent this wrapping.
+
+Proof: `out/lane-b/hops.jsonl` and `out/lane-b/t029/local-contract-graph-{1280,1440,2560}.png`, reproduced by `scripts/ui-review/capture-tour.ts`. An ignored preload restricts the tour inventory to the two owned canvases and its viewport matrix to the requested desktop sizes. All example/state navigation remains the stock tour.
+
+T026 after images at `out/lane-b/t029/local-{contract,mapping}-graph-1440.png` were opened. Contract centre is whole, but right-side cards/labels remain clipped. Mapping top cards are still clipped after readable fallback. The change is therefore not accepted yet.

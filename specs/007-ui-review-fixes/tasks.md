@@ -209,7 +209,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Draw the lines that join the same column as one line with a count (the bundle split already exists), and shift the viewport when the panel opens so cards stay beside it.
   - Proof: Before `states/local-contract-lineage--column-selected-1440.png`, `states/local-mapping-graph--node-selected-1440.png` (review baseline); after: same state recaptured with `scripts/ui-review/capture-states.ts <out> graphs`; check: `bun run test:lineage` and `bun run test:mapping-graph` assert no card box intersects the panel box and at most 3 visible paths for the hub column.
 
-- [ ] T029 [P] [US2] [B] Confirm first (cause inferred in the review): find why the hops row wraps at 2560 with room to spare.
+- [x] T029 [P] [US2] [B] Confirm first (cause inferred in the review): find why the hops row wraps at 2560 with room to spare.
   - Findings: M17 · Requirements: FR-021
   - Files: `specs/007-ui-review-fixes/evidence/B.md`
   - Change: Read the computed layout of `.lineage-hops` and its children at 2560x1440 and 1280x720 and write which rule causes the wrap (the review suspects `hops.css:39-45` and `odcs.css:628-636`) in the 'Confirmed inferences' section of `evidence/B.md`.
