@@ -45,7 +45,7 @@ contains 12 calls.
 `TMPDIR=/tmp/sw-008 SW_BASE_URL=http://127.0.0.1:5321 bun scripts/mutation-tests.ts`
 
 ```text
-694/694 targeted mutants killed; all unmodified module baselines passed. Run test:ui for the full browser baseline.
+695/695 targeted mutants killed; all unmodified module baselines passed. Run test:ui for the full browser baseline.
 ```
 
 The snapshot predicates, provenance, publication/adoption checks, request surfaces and pinned export mutants

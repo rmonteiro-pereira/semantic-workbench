@@ -584,3 +584,15 @@ serial reruns supplied the successful results above; those interrupted attempts 
 The full public-document scan reports only seven pre-existing `/tmp/` command examples in configuration
 and development documentation. Those usage commands are preserved. Scanning all added public-document
 lines separately exits 0 with no hits; the confidential-only internal evidence scan also exits 0.
+
+## Final complete mutation gate
+
+`TMPDIR=/tmp/sw-008 SW_BASE_URL=http://127.0.0.1:5321 bun scripts/mutation-tests.ts` exited 0:
+
+```text
+695/695 targeted mutants killed; all unmodified module baselines passed. Run test:ui for the full browser baseline.
+```
+
+This supersedes the earlier 694-mutant run and includes the reserved-default-name predicate. All nine visual
+mutants were detected. No mutant was excluded, made equivalent or accepted because of an invalid import or
+syntax error. The full run completed before either final capture journey started.
