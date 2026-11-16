@@ -20,6 +20,7 @@ export function SelectedPath({
   onSelect,
   selectedCard,
   onNeighborhood,
+  onWalk,
   extra,
 }: {
   items: PathItem[];
@@ -27,6 +28,7 @@ export function SelectedPath({
   onSelect: (id: string) => void;
   selectedCard?: LineageCard;
   onNeighborhood?: (card: LineageCard) => void;
+  onWalk?: (card: string) => void;
   extra?: React.ReactNode;
 }) {
   const canContinue = selectedCard && (selectedCard.kind === 'dataset' || selectedCard.kind === 'metric');
@@ -42,6 +44,11 @@ export function SelectedPath({
           </li>
         ))}
       </ol>
+      {selectedCard && onWalk && (
+        <button className="lineage-path-action" onClick={() => onWalk(selectedCard.id)}>
+          Walk here
+        </button>
+      )}
       {canContinue && onNeighborhood && (
         <button className="lineage-path-action" onClick={() => onNeighborhood(selectedCard)}>
           Continue in Neighborhood

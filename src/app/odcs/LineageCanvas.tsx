@@ -23,7 +23,7 @@ import { closure, findAssets, foreignKeyPath, cardRows, COLLAPSED_MAX, selection
 import { LineageCardNode, type CardData } from './LineageCard';
 import { cardHeight, cardGeometry, CARD_W, HEADER_H, ROW_H, MORE_H, FILTER_H, FOOT_H, LIST_ROWS, type LayoutCard, type LayoutEdge } from './lineage-layout';
 import { buildLineLabels, type LineLabel } from './edge-labels';
-import { kindOrder, planFirstView } from './lineage-view';
+import { kindOrder, planFirstView, CARD_NAME_PX, NAME_MIN_PX } from './lineage-view';
 import { edgeTypes } from './LineageEdge';
 import { LineageSubbar, LineageToolbar, LineageViewportControls } from './LineageToolbar';
 import { MeasurementWatchdog, useLayout, useMeasuredNodeSizes } from './useLineageLayout';
@@ -60,7 +60,6 @@ type Props = {
   ariaLabel?: string;
   fullscreen?: Fullscreen;
   compact?: boolean;
-  initialFit?: 'readable' | 'all';
   storageKey?: string;
   historyKey?: string;
   pierceFromCenter?: boolean;
@@ -81,7 +80,6 @@ export function LineageCanvas({
   ariaLabel = 'Lineage graph',
   fullscreen,
   compact = false,
-  initialFit = 'readable',
   storageKey,
   historyKey = 'lineage',
   pierceFromCenter = false,
@@ -91,6 +89,7 @@ export function LineageCanvas({
   groupOf,
 }: Props) {
   const actionHistory = useActionHistory();
+  const [overview, setOverview] = useState(false);
   const mapping = mode === 'mapping';
   const reachOf = mapping ? aroundHops : around;
   const { walk, dispatch, center, steps, setSteps, sets, walkTo } = useLineageWalk({ graph, initial, historyKey, storageKey, onCenterChange });
@@ -232,6 +231,7 @@ export function LineageCanvas({
           const columns = cardFor(id).columns.map(c => c.id);
           return {
             id,
+            overview,
             ...cardGeometry(cardFor(id), cardFor(id).columns),
             rows: columns,
             portRows: columns.filter(c => why.connected.has(c)),
@@ -240,9 +240,9 @@ export function LineageCanvas({
           };
         }
         const shown = rows.rows.map(r => r.id);
-        return { id, ...cardGeometry(cardFor(id), rows.rows), rows: shown, portRows: shown, more: rows.hidden > 0 };
+        return { id, overview, ...cardGeometry(cardFor(id), rows.rows), rows: shown, portRows: shown, more: rows.hidden > 0 };
       }),
-    [reach, rowsByCard, openColumns, why, listRows],
+    [reach, rowsByCard, openColumns, why, listRows, overview],
   );
   const cardHeights = useMemo(() => new Map(allLayoutCards.map(c => [c.id, cardHeight(c)])), [allLayoutCards]);
   // The first view frames the centre and the nearest cards that fit whole at a readable size.
@@ -302,7 +302,13 @@ export function LineageCanvas({
       },
     };
   }, [elk, reach, cardHeights, graph]);
-  const select = useCallback((id: string) => setSelected(s => (s === id ? '' : id)), []);
+  const select = useCallback(
+    (id: string) => {
+      setSelected(previous => (previous === id ? '' : id));
+      if (overview && pathInDialog) setPathOpen(true);
+    },
+    [overview, pathInDialog],
+  );
   // Expand / Collapse / Full pierce, recorded on the trail.
   const record = (set: ReturnType<typeof registerSet>, name: string) =>
     dispatch({
@@ -372,6 +378,7 @@ export function LineageCanvas({
           kindNames: mapping ? MAPPING_KINDS : undefined,
           onFinding,
           card: lineageCard,
+          overview,
           rows: cardRowSet.rows,
           more: cardRowSet.hidden,
           columnsOpen: openColumns.has(id),
@@ -403,7 +410,8 @@ export function LineageCanvas({
           id,
           type: 'card',
           position: result.layout.positions[id],
-          ...(initialFit === 'all' ? { initialWidth: CARD_W, initialHeight: cardHeights.get(id) } : {}),
+          initialWidth: CARD_W,
+          initialHeight: cardHeights.get(id),
           measured: sizeFor(
             id,
             JSON.stringify([
@@ -411,6 +419,7 @@ export function LineageCanvas({
               cardGeometry(lineageCard, cardRowSet.rows),
               cardRowSet.hidden,
               data.columnsOpen,
+              overview,
               data.columnsOpen ? listRows : 0,
               data.columnsOpen ? lineageCard.columns.filter(row => why.connected.has(row.id)).map(row => row.id) : [],
             ]),
@@ -421,7 +430,7 @@ export function LineageCanvas({
           style: { pointerEvents: 'all' as const },
         };
       });
-  }, [result, reach, rowsByCard, openColumns, why, listRows, selected, path, center, select, walkTo, onOpenAsset, groupOf, mapping, onFinding, sets, initialFit, cardHeights]);
+  }, [result, reach, rowsByCard, openColumns, why, listRows, selected, path, center, select, walkTo, onOpenAsset, groupOf, mapping, onFinding, sets, cardHeights, overview]);
   const lineLabels = useMemo(() => {
     if (!result || mapping) return new Map<string, LineLabel>();
     const layoutCards = new Map(allLayoutCards.map(c => [c.id, c]));
@@ -479,7 +488,8 @@ export function LineageCanvas({
     stageSize,
     center,
     steps,
-    initialFit,
+    overview,
+    onOverview: setOverview,
     framedCards,
     reach,
     lastSet,
@@ -564,9 +574,42 @@ export function LineageCanvas({
     }
     setSelected((edge.data as { from: string }).from);
   };
+  function updateRepresentation(anchor: string = center) {
+    const instance = flow.current;
+    if (!instance) return;
+    const compactNames = instance.getZoom() * CARD_NAME_PX < NAME_MIN_PX;
+    if (compactNames === overview) return;
+    keepOnScreen(anchor);
+    setOverview(compactNames);
+  }
+  async function zoomCanvas(inward: boolean) {
+    const instance = flow.current;
+    if (!instance) return;
+    if (inward) await instance.zoomIn({ duration: 150 });
+    else await instance.zoomOut({ duration: 150 });
+    updateRepresentation();
+  }
+  function finishViewportMove(event: MouseEvent | TouchEvent | null) {
+    if (!event) return;
+    const target = event.target instanceof Element ? event.target.closest('.lineage-card') : null;
+    updateRepresentation(target?.getAttribute('data-id') ?? center);
+  }
+  function walkSelected(id: string) {
+    setPathOpen(false);
+    setSelected('');
+    walkTo(id);
+  }
   const selectedPathList =
     path && summary.length > 0 ? (
-      <SelectedPath items={summary} selected={selected} onSelect={setSelected} selectedCard={selectedCard} onNeighborhood={onNeighborhood} extra={selectionExtra?.(selected, path)} />
+      <SelectedPath
+        items={summary}
+        selected={selected}
+        onSelect={setSelected}
+        selectedCard={selectedCard}
+        onWalk={walkSelected}
+        onNeighborhood={onNeighborhood}
+        extra={selectionExtra?.(selected, path)}
+      />
     ) : null;
   return (
     <section className={`lineage-view${compact ? ' compact' : ''}`} role="region" aria-label={ariaLabel}>
@@ -600,9 +643,7 @@ export function LineageCanvas({
       <LineageSubbar
         busy={busy}
         context={center !== initial ? `Lineage around ${centreName} (opened from ${graph.cards.get(initial)?.label ?? initial})` : undefined}
-        viewportControls={
-          <LineageViewportControls fullscreen={fullscreen} onZoomIn={() => void flow.current?.zoomIn({ duration: 150 })} onZoomOut={() => void flow.current?.zoomOut({ duration: 150 })} />
-        }
+        viewportControls={<LineageViewportControls fullscreen={fullscreen} onZoomIn={() => void zoomCanvas(true)} onZoomOut={() => void zoomCanvas(false)} />}
         foreignKeys={foreignKeys}
         steps={steps}
         onHops={changeHops}
@@ -641,6 +682,7 @@ export function LineageCanvas({
             onInit={i => {
               flow.current = i;
             }}
+            onMoveEnd={finishViewportMove}
             onPaneClick={() => setSelected('')}
             onEdgeClick={openLine}
             minZoom={MIN_ZOOM}

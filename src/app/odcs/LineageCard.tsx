@@ -3,6 +3,7 @@
 import React, { memo } from 'react';
 import { useStore, type NodeProps } from '@xyflow/react';
 import { AlertTriangle, ExternalLink, Footprints, Minus, Plus } from 'lucide-react';
+import { LineageOverviewCard } from './LineageOverviewCard';
 import { walkTargetSize } from './lineage-view';
 import { KindIcon, KIND_LABEL } from './LineageLegend';
 import { moreRowId, type LineageCard as Card, type LineageColumn } from './lineage';
@@ -14,6 +15,7 @@ import { PropertyBadges } from '../components/PropertyBadges';
 /** Supplies visible rows, selection state and actions for a lineage card. */
 export type CardData = {
   card: Card;
+  overview: boolean;
   rows: LineageColumn[];
   more: number;
   columnsOpen: boolean;
@@ -67,6 +69,7 @@ export const LineageCardNode = memo(({ data }: NodeProps) => {
   const legendLabel = KIND_LABEL[legendKind as keyof typeof KIND_LABEL] ?? kindLabel;
   const openCard = () => (cardData.group ? cardData.onExpand(lineageCard.id) : cardData.onSelect(lineageCard.id));
   const detailLine = lineageCard.detail ? `\n${lineageCard.detail}` : '';
+  if (cardData.overview) return <LineageOverviewCard data={cardData} zoom={zoom} className={className} kindLabel={kindLabel} />;
   return (
     <div
       role="group"

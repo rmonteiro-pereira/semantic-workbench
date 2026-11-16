@@ -138,13 +138,17 @@ When the whole reach fits, the canvas fits it with a small margin. Otherwise it 
 cards and centres that set. It prioritizes tables, then datasets and metrics. If the actual layout is larger than
 estimated, the farthest chosen card leaves the frame until the rest fit. Every card of the reach
 is still laid out, so the others sit past the edge of the frame, a pan away, and no card waits
-behind a control. Explicit Fit zooms out beyond the readable entry scale to show every card; it
-takes precedence over a pending automatic first-view adjustment.
+behind a control. When the detailed reach needs smaller text, lineage and mapping share compact
+name-only cards through `LineageOverviewCard.tsx`, with names compensated to at least 9 screen pixels. Their semantic edge endpoints
+anchor to the compact header; detailed cards keep the existing row ports. First view fits the
+complete compact reach when its names fit readably, otherwise it centres a whole chosen set.
+Explicit Fit requests the complete compact reach and takes precedence over a pending first view.
+Selecting a name-only card offers Walk in Selected path; zooming in restores rows and the
+compensated 24 screen-pixel Walk targets when the header can hold them.
 
-Whole-model and lineage card names use zoom-dependent typography, and whole-model detail lines
-disappear rather than being shown at an unreadable size. Neighborhood cards keep their name, type,
-description and metric count at every zoom. Compensated names are bounded by card height. These are
-initial/readable-view guarantees, not a claim that arbitrary user zoom cannot make text small.
+Whole-model card names use zoom-dependent typography, and whole-model detail lines disappear
+rather than being shown at an unreadable size. Neighborhood cards keep their name, type,
+description and metric count at every zoom.
 
 ## Measurement and resize lifecycle
 

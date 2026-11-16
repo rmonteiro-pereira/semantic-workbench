@@ -1,6 +1,7 @@
 // Tests which cards open whole in the first view of the lineage canvas.
+import { cardHeight, portY, elkGraph, OVERVIEW_H } from '../src/app/odcs/lineage-layout';
 import { test, expect } from 'bun:test';
-import { planFirstView, walkTargetSize, fitsReadableView } from '../src/app/odcs/lineage-view';
+import { planFirstView, walkTargetSize, fitsReadableView, overviewNameSize, NAME_MIN_PX } from '../src/app/odcs/lineage-view';
 
 // customers -> orders -> order_lines -> metric, each 200 tall.
 const heights = new Map([
@@ -88,4 +89,21 @@ test('first view uses the whole reach only when its actual bounds fit readably',
   expect(fitsReadableView(cards, { width: 1007, height: 398 }, 1, 24)).toBe(false);
   expect(fitsReadableView(cards, { width: 1008, height: 397 }, 1, 24)).toBe(false);
   expect(fitsReadableView([], { width: 1008, height: 398 }, 1, 24)).toBe(false);
+});
+
+test('overview names retain the minimum screen size beyond the old font cap', () => {
+  expect(overviewNameSize(1)).toBe(14);
+  for (const zoom of [0.5, 0.1, 0.02]) expect(overviewNameSize(zoom) * zoom).toBeCloseTo(NAME_MIN_PX);
+});
+
+test('overview layout preserves semantic ports while anchoring them inside the name card', () => {
+  const card = { id: 'orders', rows: ['orders/id'], portRows: ['orders/id'], more: true, overview: true };
+  expect(cardHeight(card)).toBe(OVERVIEW_H);
+  expect(portY(card, 'orders/id')).toBe(OVERVIEW_H / 2);
+  expect(portY(card, 'orders/#more')).toBe(OVERVIEW_H / 2);
+  const layout = elkGraph([card], []);
+  expect(layout.children[0].height).toBe(OVERVIEW_H);
+  expect(layout.children[0].ports.map(port => port.id)).toContain('orders/id:out');
+  expect(layout.children[0].ports.every(port => port.y === OVERVIEW_H / 2)).toBe(true);
+  expect(cardHeight({ ...card, overview: false })).toBeGreaterThan(OVERVIEW_H);
 });

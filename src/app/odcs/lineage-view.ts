@@ -87,9 +87,19 @@ export function planFirstView(plan: Plan): Set<string> {
   return chosen;
 }
 
+/** Smallest on-screen card name used by both lineage and mapping overviews. */
+export const NAME_MIN_PX = 9;
+/** Native card-name size shared by detailed and compact cards. */
+export const CARD_NAME_PX = 14;
+
+/** Compensates an overview name without shrinking its normal typography. */
+export function overviewNameSize(zoom: number): number {
+  return Math.max(CARD_NAME_PX, NAME_MIN_PX / zoom);
+}
+
 /** Keeps a walk target usable while it fits the available card space. */
 export function walkTargetSize(zoom: number, availableSize: number): number | null {
-  const size = Math.max(24, 24 / zoom);
+  const size = Math.ceil(Math.max(24, 24 / zoom));
   return size <= availableSize ? size : null;
 }
 

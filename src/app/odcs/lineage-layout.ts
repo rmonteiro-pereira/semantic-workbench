@@ -5,6 +5,7 @@ import type { LineageCard, LineageColumn } from './lineage';
 // run happens in ELK's own worker (elk-worker), off the main thread.
 export const CARD_W = 360;
 export const HEADER_H = 64;
+export const OVERVIEW_H = 128;
 export const ROW_H = 52;
 export const MORE_H = 28;
 // An opened card lists all its columns in a scrolling list of at most LIST_ROWS rows, with an
@@ -58,6 +59,7 @@ export type LayoutCard = {
   rows: string[];
   portRows: string[];
   more: boolean;
+  overview?: boolean;
   headerHeight?: number;
   rowHeights?: number[];
   open?: { filter: boolean; visibleRows: number };
@@ -73,6 +75,7 @@ export const listBox = (columnCount: number, filter: boolean, visibleRows = LIST
 export const rowTop = (card: LayoutCard, index: number) => card.rowHeights?.slice(0, index).reduce((sum, height) => sum + height, 0) ?? index * ROW_H;
 /** Computes a card's height from its rows and visible footer sections. */
 export function cardHeight(layoutCard: LayoutCard) {
+  if (layoutCard.overview) return OVERVIEW_H;
   if (layoutCard.open) {
     const box = listBox(layoutCard.rows.length, layoutCard.open.filter, layoutCard.open.visibleRows, layoutCard.headerHeight, layoutCard.rowHeights);
     return box.top + box.height + FOOT_H;
@@ -83,6 +86,7 @@ export function cardHeight(layoutCard: LayoutCard) {
 /** Returns a row port's vertical offset, using the header for a column-less card. A row of an
  * opened card that is out of the list's view sits on the list's edge. */
 export function portY(layoutCard: LayoutCard, row: string) {
+  if (layoutCard.overview) return OVERVIEW_H / 2;
   const header = layoutCard.headerHeight ?? HEADER_H;
   if (row === layoutCard.id) return header / 2;
   const i = layoutCard.rows.indexOf(row);

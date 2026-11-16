@@ -3,8 +3,8 @@ import { useCallback, useEffect, useRef, type RefObject } from 'react';
 import type { ReactFlowInstance } from '@xyflow/react';
 import { useViewRestore, type Fullscreen } from '../graph/fullscreen';
 import type { ExpansionSet } from '../graph/expansion';
-import { fitsReadableView } from './lineage-view';
-import { cardHeight, CARD_W, type LayoutCard } from './lineage-layout';
+import { fitsReadableView, NAME_MIN_PX } from './lineage-view';
+import { cardHeight, CARD_W, OVERVIEW_H, type LayoutCard } from './lineage-layout';
 import type { StageSize } from '../graph/stage-size';
 
 // Column names are 13 px, so this zoom keeps them at 12 px or more on screen.
@@ -65,7 +65,8 @@ type ViewportInputs = {
   stageSize: StageSize;
   center: string;
   steps: number;
-  initialFit: 'readable' | 'all';
+  overview: boolean;
+  onOverview: (overview: boolean) => void;
   framedCards: Set<string> | null;
   reach: { cards: Set<string> };
   lastSet: ExpansionSet | undefined;
@@ -85,7 +86,8 @@ export function useLineageViewport({
   stageSize,
   center,
   steps,
-  initialFit,
+  overview,
+  onOverview,
   framedCards,
   reach,
   lastSet,
@@ -98,118 +100,87 @@ export function useLineageViewport({
   );
   const fitted = useRef('');
   const firstViewTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
-  // Keep column names at least 12 px on entry by fitting the nearest readable neighborhood. Fall
-  // back to the center alone when needed; explicit Fit may zoom out further.
+  const fitRequested = useRef(false);
   const readableFit = useCallback(async (focus: string, group: string[]) => {
-    const reactFlowInstance = flow.current;
-    if (!reactFlowInstance) return;
-    await reactFlowInstance.fitView({ padding: 0.12, maxZoom: 1, duration: 0 });
-    if (reactFlowInstance.getZoom() >= READABLE) return;
-    const ids = [...new Set([focus, ...group])].filter(id => reactFlowInstance.getNode(id));
-    if (ids.length > 1) {
-      await reactFlowInstance.fitView({
-        nodes: ids.map(id => ({ id })),
-        padding: 0.1,
-        maxZoom: 1,
-        duration: 0,
-      });
-      if (reactFlowInstance.getZoom() >= READABLE) return;
-    }
-    const node = reactFlowInstance.getNode(focus);
-    const lc = layoutCardsRef.current.find(c => c.id === focus);
-    if (node) {
-      const width = CARD_W;
-      // A card taller than the canvas shows its top (header and first rows), not its middle.
-      const height = lc ? cardHeight(lc) : (node.measured?.height ?? 200);
-      const visible = (stage.current?.clientHeight ?? 600) / READABLE - 48;
-      reactFlowInstance.setCenter(node.position.x + width / 2, node.position.y + Math.min(height, visible) / 2 + (height > visible ? -8 : 0), { zoom: READABLE, duration: 0 });
-    }
+    const instance = flow.current;
+    if (!instance) return;
+    const ids = [...new Set([focus, ...group])].filter(id => instance.getNode(id));
+    await instance.fitView({ nodes: ids.map(id => ({ id })), padding: 0.06, maxZoom: 1, duration: 0 });
   }, []);
   const viewKey = [center, steps].join('|');
-  // Frames the nearest cards at a readable zoom. When the real layout is wider than the estimate,
-  // the farthest framed card is dropped from the frame, never from the canvas, until it fits.
   const firstView = useCallback(async () => {
     if (viewHeld()) return;
-    const reactFlowInstance = flow.current;
-    if (!reactFlowInstance) return;
+    const instance = flow.current;
+    if (!instance) return;
     const cards = nodes.flatMap(node => {
       const layoutCard = layoutCardsRef.current.find(card => card.id === node.id);
-      if (!layoutCard) return [];
-      return [{ ...node.position, width: CARD_W, height: cardHeight(layoutCard) }];
+      return layoutCard ? [{ ...node.position, width: CARD_W, height: cardHeight(layoutCard) }] : [];
     });
-    if (fitsReadableView(cards, stageSize, READABLE, FIRST_VIEW_MARGIN)) {
-      await reactFlowInstance.fitView({ padding: 0.02, maxZoom: FIRST_VIEW_MAX_ZOOM, duration: 0 });
+    const minimumZoom = overview ? (NAME_MIN_PX * 1.1) / (OVERVIEW_H - 16) : READABLE;
+    if (fitRequested.current || fitsReadableView(cards, stageSize, minimumZoom, FIRST_VIEW_MARGIN)) {
+      await instance.fitView({ padding: 0.06, maxZoom: FIRST_VIEW_MAX_ZOOM, duration: 0 });
+    } else if (!overview) {
+      onOverview(true);
       return;
+    } else {
+      const framed = [...(framedCards ?? reach.cards)].filter(id => instance.getNode(id));
+      while (framed.length > 1) {
+        await instance.fitView({ nodes: framed.map(id => ({ id })), padding: 0.06, maxZoom: 1, duration: 0 });
+        if (instance.getZoom() >= minimumZoom) break;
+        framed.pop();
+      }
+      if (framed.length === 1) await readableFit(center, []);
     }
-    const framed = [...(framedCards ?? reach.cards)].filter(id => reactFlowInstance.getNode(id));
-    while (framed.length > 1) {
-      await reactFlowInstance.fitView({
-        nodes: framed.map(id => ({ id })),
-        padding: 0.06,
-        maxZoom: FIRST_VIEW_MAX_ZOOM,
-        duration: 0,
-      });
-      if (reactFlowInstance.getZoom() >= READABLE - 0.005) return;
-      framed.pop();
-    }
-    await readableFit(center, []);
-  }, [center, reach, framedCards, readableFit, viewHeld, nodes, stageSize]);
-  useEffect(() => {
-    if (initialFit === 'all') return;
-    if (!result || result.key !== layoutKey || !nodes.length) return;
-    if (fitted.current === viewKey) return;
     fitted.current = viewKey;
-    // A card that opened or closed its columns keeps its place; the view does not start over.
-    if (anchoredCard.current) return;
-    // Wait until React Flow has measured the pane and the cards with its ResizeObserver.
-    firstViewTimer.current = setTimeout(() => requestAnimationFrame(() => void firstView()), 80);
-  }, [result, layoutKey, viewKey, nodes.length, initialFit]);
+    fitRequested.current = false;
+  }, [overview, onOverview, center, reach, framedCards, readableFit, viewHeld, nodes, stageSize, viewKey]);
   useEffect(() => {
-    if (initialFit !== 'all' || !result || result.key !== layoutKey || !nodes.length || !stageSize.width || !stageSize.height) return;
-    if (fitted.current === viewKey || anchoredCard.current || viewHeld()) return;
+    if (!result || result.key !== layoutKey || !nodes.length || !stageSize.width || !stageSize.height) return;
+    if ((fitted.current === viewKey && !fitRequested.current) || anchoredCard.current || viewHeld()) return;
     let cancelled = false;
     let frame: number;
     let framesWaited = 0;
-    const fitOptions = { padding: 0.12, minZoom: MIN_ZOOM, maxZoom: 1, duration: 0 };
-    const fitReadyNeighborhood = async () => {
+    const fitWhenMeasured = async () => {
       const instance = flow.current;
-      // Offscreen cards have layout dimensions too; wait until React Flow holds this layout,
-      // rather than fitting only the cards its first viewport happened to render.
       const ready =
         instance?.viewportInitialized &&
         nodes.every(node => {
           const current = instance.getNode(node.id);
+          const layoutCard = layoutCardsRef.current.find(card => card.id === node.id);
           return (
             current &&
+            layoutCard &&
             current.position.x === node.position.x &&
             current.position.y === node.position.y &&
-            (current.measured?.width ?? current.initialWidth) &&
-            (current.measured?.height ?? current.initialHeight)
+            Math.abs((current.measured?.height ?? current.initialHeight ?? 0) - cardHeight(layoutCard)) < 1
           );
         });
-      // A card that never reports a size must not keep this loop running; fit what is there instead.
-      const gaveUpWaiting = framesWaited >= MAX_FIT_WAIT_FRAMES;
-      if ((ready || gaveUpWaiting) && (await instance?.fitView(fitOptions))) {
-        if (cancelled) return;
-        fitted.current = viewKey;
-        // Showing everything only helps while names stay legible; otherwise frame the nearest cards.
-        if (instance && instance.getZoom() < READABLE - 0.005) await firstView();
+      if (ready || framesWaited >= MAX_FIT_WAIT_FRAMES) {
+        if (!cancelled) await firstView();
         return;
       }
       framesWaited += 1;
-      if (!cancelled) frame = requestAnimationFrame(() => void fitReadyNeighborhood());
+      if (!cancelled) frame = requestAnimationFrame(() => void fitWhenMeasured());
     };
-    frame = requestAnimationFrame(() => void fitReadyNeighborhood());
+    firstViewTimer.current = setTimeout(() => {
+      frame = requestAnimationFrame(() => void fitWhenMeasured());
+    }, 80);
     return () => {
       cancelled = true;
+      clearTimeout(firstViewTimer.current);
       cancelAnimationFrame(frame);
     };
-  }, [initialFit, result, layoutKey, viewKey, nodes, stageSize.width, stageSize.height, viewHeld, firstView]);
+  }, [result, layoutKey, viewKey, nodes, stageSize, overview, firstView, viewHeld]);
   useEffect(() => () => clearTimeout(firstViewTimer.current), []);
   // An explicit Fit wins over a first view that is still waiting to run, and shows every card.
   function fitAll() {
     clearTimeout(firstViewTimer.current);
-    void flow.current?.fitView({ padding: 0.12, maxZoom: 1, duration: 200 });
+    if (!overview) {
+      fitRequested.current = true;
+      onOverview(true);
+      return;
+    }
+    void flow.current?.fitView({ padding: 0.06, maxZoom: 1, duration: 200 });
   }
   useEffect(() => {
     const anchor = anchoredCard.current;
@@ -240,12 +211,22 @@ export function useLineageViewport({
   // The path panel takes room beside the canvas: when a path opens, bring its cards into a
   // readable view (React Flow learns the new width from a ResizeObserver, so this waits for it).
   const panelOpen = !!path;
+  const pendingPanelFit = useRef(false);
   useEffect(() => {
-    if (!result || !path) return;
+    pendingPanelFit.current = panelOpen;
+  }, [panelOpen]);
+  useEffect(() => {
+    if (!pendingPanelFit.current || !result || !path) return;
+    if (!overview) {
+      onOverview(true);
+      return;
+    }
+    if (result.key !== layoutKey) return;
     const timer = setTimeout(() => {
+      pendingPanelFit.current = false;
       void flow.current?.fitView({ padding: 0.06, maxZoom: 1, duration: 0 });
     }, 120);
     return () => clearTimeout(timer);
-  }, [panelOpen]);
+  }, [panelOpen, overview, result?.key]);
   return { fitAll };
 }

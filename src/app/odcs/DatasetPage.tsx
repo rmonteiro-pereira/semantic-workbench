@@ -264,7 +264,6 @@ function LineageTab({
           graph={graph}
           center={id}
           compact
-          initialFit="all"
           ariaLabel="Lineage graph"
           historyKey={`lineage.detail:${doc.id}:${id}`}
           pierceFromCenter

@@ -423,10 +423,10 @@ fields are that table's columns, unchanged, is a copy: the table card stands for
 a **Semantic dataset** badge beside its type, and metrics connect to the table's columns. A dataset that renames,
 computes or adds a field keeps its own card.
 
-The Lineage tab of a table opens with every card on screen when that keeps column names legible.
-When the lineage is too large for that, it opens on the table and its nearest cards at a readable
-size, with the table whole; **Fit** then shows every card. On a short pane a small table collapses to
-its most relevant columns so that it fits whole.
+The Lineage tab fits the complete reach when its card names stay readable. Larger reaches use
+compact name-only cards with compensated names; otherwise the table and its nearest chosen cards
+open whole. **Fit** shows the complete compact reach. Zoom in to restore columns and card actions.
+At far zoom, select a card and choose **Walk here** in Selected path.
 
 Click a line to see what it stands for. A single line selects its relationship, highlighting
 both columns and listing them under **Selected path**. A bundled line, labelled with the number
@@ -436,8 +436,8 @@ opened cards stay on screen.
 
 Select a column to highlight its upstream/downstream path. **Selected path** appears beside the
 canvas or in a phone dialog. **Find assets**, Walk here, Back/Forward and expansion retain context.
-The first view frames the nearest cards whole at a readable size; the other cards are laid out
-beside them, a pan away, and **Fit** shows every card.
+The first view fits the readable complete reach or centres a whole chosen set; **Fit** shows every
+card in the shared name-only representation used by lineage and mappings.
 
 A wide table shows relevant columns and **+ N more columns**, which opens one scrolling list,
 not pagination. Lists above thirty columns offer filtering. Edges for offscreen connected rows
