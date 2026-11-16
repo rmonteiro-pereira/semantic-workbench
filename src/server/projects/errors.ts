@@ -152,3 +152,19 @@ export class PendingPublicationError extends Error {
     this.name = 'PendingPublicationError';
   }
 }
+
+/** Refuses an outside-ref adoption without changing the durable publication. */
+export class PublicationAdoptionError extends Error {
+  constructor(
+    public reason: 'nothing-pending' | 'diverged' | 'changed',
+    commit?: string,
+  ) {
+    const messages = {
+      'nothing-pending': 'Nothing to adopt.',
+      diverged: `The default branch was moved outside the workbench and no longer contains the published commit. Make it a descendant of ${commit} in Git.`,
+      changed: 'The default branch changed during adoption. Review the pending move and try again.',
+    };
+    super(messages[reason]);
+    this.name = 'PublicationAdoptionError';
+  }
+}

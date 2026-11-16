@@ -19,6 +19,7 @@ export type PublishingDeps = {
   rescan: (slug: string) => Promise<unknown>;
   emit: (event: string, data: unknown, tags: EventTags) => void;
   /** Local authoring publication uses the same checks without checking out the default ref. */
+  adopt: (slug: string, reader: Reader) => Promise<{ published: string; previous: string | null; commit: string }>;
   localPublish?: (slug: string, reader: Reader) => Promise<{ published: string; previous: string | null; commit: string }>;
 };
 
@@ -92,6 +93,11 @@ async function followRemote(deps: PublishingDeps, slug: string, remote: string, 
 /** Creates the publishing operations of one workspace. */
 export function createPublishing(deps: PublishingDeps) {
   return {
+    async adopt(slug: string, reader: Reader) {
+      const result = await deps.adopt(slug, reader);
+      await announce(deps, slug, result.published, result.commit);
+      return result;
+    },
     publish: (slug: string, reader: Reader) => publish(deps, slug, reader),
     followRemote: (slug: string, remote: string, follow: FollowRequest) => followRemote(deps, slug, remote, follow),
   };

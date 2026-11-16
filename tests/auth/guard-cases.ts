@@ -392,6 +392,13 @@ export const GUARD_CASES = {
   switch: ({ ws, root }: CaseContext) => branchWithReclassification(ws, root),
   'pull-default': pullDefaultCase,
   publish: publishCase,
+  adopt: async (context: CaseContext) => {
+    const candidate = await publishCase(context);
+    const copy = await openCopyAs(context.ws, 'bob', 'sales-metrics');
+    const branch = (await context.ws.git.configValue(copy, 'workbench.defaultBranch', 'local')) || 'main';
+    sh(copy, ['update-ref', `refs/heads/${branch}`, 'HEAD']);
+    return { ...candidate, name: 'adopt', path: '/api/projects/sales-metrics/git/adopt' };
+  },
 } satisfies Record<string, (context: CaseContext) => BuiltCase | Promise<BuiltCase>>;
 
 /**
@@ -419,6 +426,7 @@ export const GUARDED_ROUTES: Record<string, keyof typeof GUARD_CASES> = {
   // Publishing is guarded rather than exempt: commits made in a copy reach the default branch
   // only when the publisher may make the guarded changes they hold.
   'POST /api/projects/:slug/git/publish': 'publish',
+  'POST /api/projects/:slug/git/adopt': 'adopt',
 };
 
 /** Every Admin panel route: the Admin edits access rules there, never project content. */

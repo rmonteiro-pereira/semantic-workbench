@@ -220,6 +220,12 @@ are serialized across its worktrees.
 | Push default | Sends already published state to the remote; does not publish first |
 
 Publishing checks the exact proposed commits, requires a fast-forward and uses compare-and-swap.
+An outside default-branch move remains pending until someone with the same publication right
+uses **Adopt** (`POST /api/projects/:slug/git/adopt`). Adoption validates the entire candidate
+and records both commits before announcing the new snapshot. A diverged move must be repaired
+in Git to contain the previous published commit; an unchanged ref has nothing to adopt.
+Local adoption keeps working files and the index untouched.
+
 The candidate tree is read completely within the snapshot limits before content guards run.
 A durable intent surrounds the ref move; startup completes or drops an interrupted intent before
 refreshing the published checkout.

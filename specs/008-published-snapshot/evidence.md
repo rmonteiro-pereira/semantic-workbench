@@ -349,3 +349,7 @@ principal is allowed while the server Viewer refusal remains unchanged.
 ## Pending movement cache
 
 `TMPDIR=/tmp/sw-008 bun test tests/scm-published-status.test.ts tests/published-pointer.test.ts`: 18 pass, 0 fail, 47 assertions. Ref identity is compared on each status request, while ancestry/count results are cached for the observed ref and pointer. Git events invalidate and refresh that result. This reconciles the task’s status-comparison and cache-until-event requirements without hiding external changes when watching is disabled. All eight resolver mutants are detected, including serving the outside ref while pending (baseline 0, mutant 1).
+
+## Adoption endpoint
+
+`TMPDIR=/tmp/sw-008 bun test tests/adopt-published.test.ts tests/auth/matrix-write.test.ts tests/auth/guard-inventory.test.ts`: 17 pass, 0 fail, 1554 assertions. A local HTTP adoption preserves dirty source and index, records previous/new commits and emits only after settlement. Empty/diverged moves return the exact conflicts. The route uses publication authorization across the repository; Viewer and guarded approval cases remain refused. Server adoption first refuses a dirty base and refreshes only the validated commit. `bun --bun run check`: exit 0.

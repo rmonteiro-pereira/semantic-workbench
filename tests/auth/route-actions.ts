@@ -70,6 +70,7 @@ export const routeExamples: { method: string; path: string; body?: unknown }[] =
   { method: 'POST', path: '/api/projects/missing/git/sync' },
   { method: 'POST', path: '/api/projects/missing/git/push' },
   { method: 'POST', path: '/api/projects/missing/git/cancel' },
+  { method: 'POST', path: '/api/projects/missing/git/adopt' },
   { method: 'POST', path: '/api/projects/missing/git/publish' },
   { method: 'POST', path: '/api/projects/missing/git/acknowledge-publication', body: {} },
   { method: 'POST', path: '/api/projects/missing/git/pull-default' },

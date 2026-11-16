@@ -1,6 +1,6 @@
 // Moves local authoring away from the served default ref without replacing working files.
 import { GitError, symbolicBranch, type Git } from './git';
-import { NothingToPublishError, NotFastForwardError, PendingPublicationError } from './errors';
+import { NothingToPublishError, NotFastForwardError, PendingPublicationError, PublicationAdoptionError } from './errors';
 import { publicationChecks, type PublicationCandidate } from './publication-checks';
 import type { PublishedPointers } from './published-pointer';
 import { defaultBranchAt, DEFAULT_BRANCH_KEY } from './worktrees';
@@ -64,13 +64,37 @@ export function createLocalPublication(deps: LocalPublicationDeps) {
     deps.supersede();
     return { published: branch, previous, commit: next };
   }
+  async function adopt(repository: string, branch: string, guard: (previous: string | null, next: string) => Promise<void>) {
+    const { git, pointers } = deps;
+    const directory = deps.directory(repository);
+    const previous = pointers.get(repository)?.commit;
+    const next = await git.revParse(directory, `refs/heads/${branch}`);
+    if (!previous || !next || previous === next) throw new PublicationAdoptionError('nothing-pending');
+    const candidate = { repo: repository, branch, previous, next };
+    const checks = publicationChecks({ isAncestor: (_repository, from, to) => git.isAncestor(directory, from, to), readable: deps.readable, guard: () => guard(previous, next) });
+    try {
+      for (const check of checks) await check(candidate);
+    } catch (error) {
+      if (error instanceof NotFastForwardError) throw new PublicationAdoptionError('diverged', previous);
+      throw error;
+    }
+    if (pointers.get(repository)?.commit !== previous) throw new PublicationAdoptionError('changed');
+    pointers.intent(repository, branch, next);
+    const verified = await git.run(directory, ['update-ref', `refs/heads/${branch}`, next, next], { allowFailure: true });
+    if (verified.code !== 0) throw new PublicationAdoptionError('changed');
+    pointers.complete(repository, branch, next);
+    deps.supersede();
+    return { published: branch, previous, commit: next };
+  }
+  function serialized<T>(repository: string, run: () => Promise<T>) {
+    const operation = (active.get(repository) ?? Promise.resolve()).catch(() => {}).then(run);
+    active.set(repository, operation);
+    return operation.finally(() => {
+      if (active.get(repository) === operation) active.delete(repository);
+    });
+  }
   return {
-    publishLocal(repository: string, branch: string, guard: (previous: string | null, next: string) => Promise<void>) {
-      const operation = (active.get(repository) ?? Promise.resolve()).catch(() => {}).then(() => publish(repository, branch, guard));
-      active.set(repository, operation);
-      return operation.finally(() => {
-        if (active.get(repository) === operation) active.delete(repository);
-      });
-    },
+    publishLocal: (repository: string, branch: string, guard: (previous: string | null, next: string) => Promise<void>) => serialized(repository, () => publish(repository, branch, guard)),
+    adopt: (repository: string, branch: string, guard: (previous: string | null, next: string) => Promise<void>) => serialized(repository, () => adopt(repository, branch, guard)),
   };
 }

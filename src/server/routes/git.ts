@@ -133,6 +133,13 @@ export const createGitRoutes =
         const credentialFor = delegatedCredentials(req);
         return Response.json(await scm.switchBranch(slug, requestBody.branch, create, reader, checkout, credentialFor));
       }
+      if (action === 'git/adopt') {
+        await body([]);
+        await authorizePublish(gitTarget, undefined);
+        const publication = await ws.adopt(slug, reader);
+        recordPublication(req, publication);
+        return Response.json(publication);
+      }
       if (action === 'git/publish') {
         const requestBody = await body(['branch']);
         await authorizePublish(gitTarget, requestBody.branch);

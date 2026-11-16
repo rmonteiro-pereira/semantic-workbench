@@ -28,7 +28,7 @@ import { createSnapshotIndexes } from './snapshot-index';
 import { createPublishedPointers } from './published-pointer';
 import { createPublishedSnapshots } from './published-snapshot';
 import { initializePublishedPointers } from './published-initialization';
-import { createWorktrees } from './worktrees';
+import { BaseChangedError, createWorktrees } from './worktrees';
 import { copyScmHooks, createWorkingCopies, projectLockKey, type Place, type RepositoryFacts } from './working-copies';
 import { createPublishing } from './publishing';
 import { createLocalPublication, prepareLocalCommit } from './local-publication';
@@ -480,6 +480,14 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     idleMs: options.copyIdleMs,
   });
   const publishing = createPublishing({
+    adopt: async (slug, reader) => {
+      const repository = repoOf(slug);
+      const server = options.reconcilePublished || Boolean(reader.view);
+      if (server && (await git.run(join(layout.projects, repository), ['status', '--porcelain'], { readOnly: true })).stdout.trim()) throw new BaseChangedError(repository);
+      const result = await localPublication.adopt(repository, await worktrees.defaultBranch(repository), judgePublish(published, slug, reader.guard));
+      if (server) await worktrees.repairBase(repository);
+      return result;
+    },
     localPublish: async (slug, reader) => localPublication.publishLocal(repoOf(slug), await worktrees.defaultBranch(repoOf(slug)), judgePublish(published, slug, reader.guard)),
     worktrees,
     copies,
@@ -732,6 +740,11 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     cancelClone: cloner.cancel,
     lock,
     rescan,
+    /** Adopts a validated outside fast-forward as the published snapshot. */
+    adopt: (slug: string, reader: Reader) => {
+      entry(slug);
+      return publishing.adopt(slug, reader);
+    },
     /** Fast-forwards the default branch to the person's working copy. */
     publish: (slug: string, reader: Reader) => {
       entry(slug);
