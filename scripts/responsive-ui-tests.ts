@@ -1,5 +1,6 @@
 // Checks responsive layouts, overlays and navigation in an isolated browser workspace.
 import { screenshotPath } from './helpers/screenshots';
+import { selectNeighborhoodCenter } from './helpers/graph-review-checks';
 import { tabStripProblems } from './helpers/strip-geometry';
 import { recordResizeErrors } from './helpers/resize-errors';
 import { appUrl } from './helpers/base-url';
@@ -834,7 +835,7 @@ try {
       await targetPage.locator('.react-flow__node-entity').first().click();
     },
     Neighborhood: async p => {
-      await p.locator('.react-flow__node').last().click();
+      await selectNeighborhoodCenter(p);
     },
     Overview: async p => {
       await p.locator('.area-entities button').first().click();

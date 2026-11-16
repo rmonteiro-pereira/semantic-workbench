@@ -63,3 +63,8 @@ export async function checkGraphReview(page: Page) {
   await page.getByRole('button', { name: 'Exit full screen', exact: true }).click();
   await page.setViewportSize({ width: 1600, height: 1000 });
 }
+
+/** Selects the visible center instead of an offscreen neighbor at readable opening zoom. */
+export async function selectNeighborhoodCenter(page: Page) {
+  await page.locator('.neighborhood-node.center').click();
+}
