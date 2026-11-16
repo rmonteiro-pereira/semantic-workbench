@@ -16,9 +16,9 @@ The first start creates the file. `bun run mcp:rotate` replaces it.
 
 Through the bridge (clients that run a command):
 
-```bash
-codex mcp add semantic-workbench -- bun scripts/mcp-stdio.ts
-```
+The command is `bun scripts/mcp-stdio.ts`, registered in the client's MCP server list as a standard
+input and output server. The exact registration syntax of each client is written in `docs/mcp.md`
+from what the acceptance run observed, not from memory.
 
 Directly over HTTP (clients that take a URL and a header): URL `http://127.0.0.1:4310/api/mcp` and the
 header `Authorization: Bearer <contents of data/state/mcp-capability>`.
