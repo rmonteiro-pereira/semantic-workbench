@@ -7,7 +7,7 @@ import { withSpan } from '../observability/tracing';
 import { classifyOutcome, type OperationOutcome, type OutcomeClassifier } from './operation-outcome';
 import type { Workspace } from '../projects/workspace';
 import { readableTrash, restoreAction } from '../projects/trash';
-import type { HandlerOptions } from './middleware';
+import type { RemoteCredentials } from './remote-credentials';
 import type { AccessControl, AccessScope } from './authorize';
 import { auditableProjects, reportAuditFailure, type AuditLog } from './audit';
 import { assertMinted, type Caller, type CallerOrigin } from './caller';
@@ -21,7 +21,15 @@ import { READ_ACTIONS } from '../../shared/auth/actions';
 import { attachIdentity, type AccessRequest } from './request-scope';
 import { hiddenResponses, requestAuditId } from '../request';
 import { actorPseudonym, setRequestActor } from '../observability/request-context';
-import { auditDenial, agentRefusal } from './request-authentication';
+import { auditDenial, agentRefusal } from './refusal';
+
+/** Dependencies needed to decide and execute authenticated operations. */
+export type OperationBoundaryOptions = {
+  mode: 'local' | 'server';
+  access: AccessControl;
+  audit: AuditLog;
+  remoteCredentials?: RemoteCredentials;
+};
 
 /** One authenticated request to authorize and execute. */
 export type OperationCall = {
@@ -189,7 +197,7 @@ function clientRow(row: RouteAction): RouteAction {
 }
 
 /** Creates the shared operation decision and execution boundary. */
-export function createOperationBoundary(ws: Workspace, options: HandlerOptions & { access: AccessControl; audit: AuditLog }, run: (request: Request) => Promise<Response>) {
+export function createOperationBoundary(ws: Workspace, options: OperationBoundaryOptions, run: (request: Request) => Promise<Response>) {
   const { access, audit: sharedAudit } = options;
   const mode = options.mode ?? 'local';
   async function execute(

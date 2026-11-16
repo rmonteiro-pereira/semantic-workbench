@@ -149,6 +149,8 @@ The integration view shows what the application reads and contacts, and what it 
   build policy entities, compile/load Cedar policies and make access decisions.
   `policies/` holds the baseline, built-in roles and replay matrix.
 - `request-authentication.ts` owns network rate limits, local Host/Origin checks, bearer validation, cross-site checks and principal resolution.
+  `refusal.ts` shares durable denial responses with the operation boundary. The boundary accepts only
+  mode, access, audit and remote-credential dependencies and does not depend on the HTTP adapter.
 - `twin-request.ts` builds credential-free requests from inventory ids, encoded parameters, sorted queries and the existing body limits.
 - `operation-inventory.ts` parses `policies/operation-inventory.json`, validates its vocabularies and resolves operation ids and route rows.
 - `operation-boundary.ts` owns route decisions, effective-permission listing, target refusal mapping,

@@ -142,7 +142,7 @@ export function createAccessMiddleware(
   const access = options.access ?? defaultAccess(ws, mode);
   const audit = options.audit ?? defaultAudit(ws, mode, options.administration ?? defaultAdministration(ws, access));
   const authentication = createRequestAuthentication(options, audit, localCheck);
-  const boundary = createOperationBoundary(ws, { ...options, access, audit }, run);
+  const boundary = createOperationBoundary(ws, { mode, access, audit, remoteCredentials: options.remoteCredentials }, run);
   async function dispatch(request: AccessRequest, requestId: string): Promise<Response> {
     const client = await authentication.authenticate(request, requestId);
     if (client instanceof Response) return client;
