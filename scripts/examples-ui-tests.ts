@@ -314,7 +314,9 @@ try {
   });
   await check('shopping center example loads seven documents and groups its ontology by namespace', async () => {
     const before = store.list().length;
+    const imported = page.waitForResponse(response => new URL(response.url()).pathname === '/api/examples/mall' && response.request().method() === 'POST');
     await (await example(page, /Shopping center administration/)).click();
+    expect((await imported).status()).toBe(200);
     await expectModelName(page, /Shopping center administration ontology/);
     if (store.list().length !== before + 7) throw Error('Shopping center loader did not save seven documents');
     await page.locator('.tabs').getByRole('button', { name: 'Overview', exact: true }).click();

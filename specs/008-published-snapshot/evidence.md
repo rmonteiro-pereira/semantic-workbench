@@ -856,3 +856,22 @@ attempt first failed in wrapper quoting before executing; the successful one-lin
 unsupported shell form. The next heavy command starts only after verified wrapper completion.
 The stress barrier now reuses the existing bounded `waitUntil` helper, so a missed hook fails inside five
 seconds and reaches `finally` instead of leaving the test promise active after the suite summary.
+
+The corrected remote unit gate passed: `2198 pass`, `0 fail`, `134740 expect() calls`,
+`Ran 2198 tests across 305 files. [1221.61s]`; `unit.exit` is 0. The publication, general UI,
+edge and grouping browser suites then exited 0. The examples suite failed while the previous billing
+model was still selected five seconds after requesting the mall import. Its browser check now awaits
+that import's HTTP response and asserts status 200 before the unchanged title assertion. No production
+code, canvas assertion or assertion timeout changed. The wrapper completed with exit 1 and transferred
+its logs before the next remote command. All browser stages and mutation are rerun serially below.
+
+### Remote availability prevents the remaining correction gate
+
+Three serial retries of `sw-midgard-run --pull out/008-review-gate -- bun
+scripts/published-snapshot-remote-gate.ts` could not start tests. Verified wrapper exits were 255, 128 and
+255, with SSH connection timeouts and rsync connection closures. Each wrapper completed before the next
+started. The last failure occurred while copying the changed browser check, before the execution command.
+The production correction is complete; the updated example synchronization remains browser-unverified.
+`verification.md` now distinguishes the confirmed corrected-source unit/check/build and four browser
+passes from the pending remaining browser, capture and 700-mutant gate. No earlier mutation result is
+claimed for the corrections, no heavy local fallback ran, and no responsive assertion changed.

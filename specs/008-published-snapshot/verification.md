@@ -167,3 +167,31 @@ also returned PASS at that revision. Production source at that original completi
 The subsequent architecture corrections and their fresh gate are recorded below.
 The architecture marker is refreshed for the final evidence-only commit. All tasks are complete, with the
 explicit inherited responsive exception above; no full responsive pass is claimed.
+
+## Architecture correction gate status
+
+The production corrections are complete and the architecture review returned PASS at `5a5a64e5`.
+The ten requested corrections and their focused proofs are recorded in `evidence.md`.
+The latest gate is incomplete; the original completion results above do not stand in for this rerun.
+
+| Command | Latest verified result | Exit |
+| --- | --- | --- |
+| `sw-midgard-run -- bun test --timeout 30000` | 2198 pass, 0 fail, 134740 assertions, 305 files, 1221.61 s | 0 |
+| `bun --bun run check` | TypeScript, formatting, lint, comments, theme and brand checks pass | 0 |
+| `bun --bun run build` | `✓ built in 1.13s` | 0 |
+| `test:published-snapshot` through remote driver | 2 published snapshot browser checks passed | 0 |
+| `test:ui` through remote driver | 20 UI checks passed | 0 |
+| `test:edges` through remote driver | 6 edge attachment UI checks passed | 0 |
+| `test:grouping-validation` through remote driver | 8 grouping and validation UI checks passed | 0 |
+| `test:examples:ui` through remote driver | The mall import had not selected its model within the title assertion's five-second window | 1 |
+
+The examples check now awaits the mall import response and requires status 200 before the unchanged
+model-title assertion. This harness correction passes `check` but has not yet been verified in a browser.
+Three consecutive wrapper retries could not start the tests because SSH or rsync connections timed out
+(exit 255, 128, 255). No heavy local fallback was run.
+
+Remaining gate work: rerun the remote driver, including examples, SCM, mappings layout, projects, auth,
+both full capture journeys, responsive checks and mutation. The complete mutation result of 695/695 above
+belongs to the earlier source; the correction harness now registers 700 mutants and has not completed
+its full run. The inherited responsive 407/421 exception remains unchanged. Fresh correction captures
+must also be reviewed after transfer. This correction must not be reported READY until those proofs finish.
