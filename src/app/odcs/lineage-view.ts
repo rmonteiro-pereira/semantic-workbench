@@ -92,3 +92,13 @@ export function walkTargetSize(zoom: number, cardWidth: number): number | null {
   const size = Math.max(24, 24 / zoom);
   return size <= cardWidth ? size : null;
 }
+
+/** Tests whether the complete laid-out reach fits without shrinking column text. */
+export function fitsReadableView(cards: readonly { x: number; y: number; width: number; height: number }[], view: ViewSize, zoom: number, margin: number): boolean {
+  if (!cards.length) return false;
+  const left = Math.min(...cards.map(card => card.x));
+  const top = Math.min(...cards.map(card => card.y));
+  const right = Math.max(...cards.map(card => card.x + card.width));
+  const bottom = Math.max(...cards.map(card => card.y + card.height));
+  return (right - left) * zoom + margin * 2 <= view.width && (bottom - top) * zoom + margin * 2 <= view.height;
+}

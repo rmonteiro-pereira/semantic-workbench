@@ -27,3 +27,11 @@ The stock `lineage-visibility.ts` initially captured the loading state after its
 ## T025 — partial implementation; acceptance skipped
 
 Walk targets now use `max(24, 24 / zoom)` canvas pixels, and are omitted when wider than the card. Unit checks: 6 pass, 0 fail. The four-click-after-Fit acceptance conflicts with the required hiding rule: the fitted 1440 baseline measurement has a 2.78×2.96 px button, corresponding to a card narrower than 24 screen pixels. Such a button must be absent under FR-017. No claim of four successful fitted clicks is made. The task remains unchecked for the integrator to reconcile this acceptance condition. No new neighbour-list UI was added.
+
+## T026 — implementation
+
+The first-view hook now checks actual laid-out bounds before choosing the complete reach. Small reaches use a low-padding Fit; larger reaches retain the existing nearest-card framing. Mapping entry requests the measured all-card readiness path before falling back to the readable neighbourhood. Unit checks: 7 pass, 0 fail, including horizontal and vertical one-pixel boundary cases. Browser validation is in progress.
+
+## T027 — skipped: incompatible geometry
+
+The requested 12 px names cannot fit inside the measured fitted card heights. At 1440 the existing walk button scales to 2.78×2.96 px, with the entire card only a few pixels wide. A font compensated to 12 screen pixels and bounded by that card's header height cannot simultaneously satisfy both bounds. Fixing this requires changing Fit semantics, layout density or the representation beyond the named font adjustment. No name-only rendering change is made.

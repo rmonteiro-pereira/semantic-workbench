@@ -130,6 +130,7 @@ export function MappingCanvas({ project, mappingId, revisionKey, dirty, fullscre
       )}
       <LineageCanvas
         mode="mapping"
+        initialFit="all"
         key={mappingId}
         graph={graph as unknown as LineageGraph}
         center={center}

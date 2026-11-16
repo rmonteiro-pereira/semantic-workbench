@@ -4,6 +4,7 @@ import type { ReactFlowInstance } from '@xyflow/react';
 import { useViewRestore, type Fullscreen } from '../graph/fullscreen';
 import type { ExpansionSet } from '../graph/expansion';
 import { cardOfNode, type LineageGraph } from './lineage';
+import { fitsReadableView } from './lineage-view';
 import { cardHeight, CARD_W, type LayoutCard } from './lineage-layout';
 import type { StageSize } from '../graph/stage-size';
 
@@ -134,6 +135,15 @@ export function useLineageViewport({
     if (viewHeld()) return;
     const reactFlowInstance = flow.current;
     if (!reactFlowInstance) return;
+    const cards = nodes.flatMap(node => {
+      const layoutCard = layoutCardsRef.current.find(card => card.id === node.id);
+      if (!layoutCard) return [];
+      return [{ ...node.position, width: CARD_W, height: cardHeight(layoutCard) }];
+    });
+    if (fitsReadableView(cards, stageSize, READABLE, FIRST_VIEW_MARGIN)) {
+      await reactFlowInstance.fitView({ padding: 0.02, maxZoom: FIRST_VIEW_MAX_ZOOM, duration: 0 });
+      return;
+    }
     const framed = [...(framedCards ?? reach.cards)].filter(id => reactFlowInstance.getNode(id));
     while (framed.length > 1) {
       await reactFlowInstance.fitView({
@@ -146,7 +156,7 @@ export function useLineageViewport({
       framed.pop();
     }
     await readableFit(center, []);
-  }, [center, reach, framedCards, readableFit, viewHeld]);
+  }, [center, reach, framedCards, readableFit, viewHeld, nodes, stageSize]);
   useEffect(() => {
     if (initialFit === 'all') return;
     if (!result || result.key !== layoutKey || !nodes.length) return;

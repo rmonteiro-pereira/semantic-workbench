@@ -1,6 +1,6 @@
 // Tests which cards open whole in the first view of the lineage canvas.
 import { test, expect } from 'bun:test';
-import { planFirstView, walkTargetSize } from '../src/app/odcs/lineage-view';
+import { planFirstView, walkTargetSize, fitsReadableView } from '../src/app/odcs/lineage-view';
 
 // customers -> orders -> order_lines -> metric, each 200 tall.
 const heights = new Map([
@@ -76,4 +76,15 @@ test('walk targets compensate zoom and disappear when the card cannot hold them'
   expect(walkTargetSize(0.1, 360)).toBe(240);
   expect(walkTargetSize(0.05, 360)).toBeNull();
   expect(walkTargetSize(2, 360)).toBe(24);
+});
+
+test('first view uses the whole reach only when its actual bounds fit readably', () => {
+  const cards = [
+    { x: -100, y: -50, width: 360, height: 200 },
+    { x: 500, y: 0, width: 360, height: 300 },
+  ];
+  expect(fitsReadableView(cards, { width: 1008, height: 398 }, 1, 24)).toBe(true);
+  expect(fitsReadableView(cards, { width: 1007, height: 398 }, 1, 24)).toBe(false);
+  expect(fitsReadableView(cards, { width: 1008, height: 397 }, 1, 24)).toBe(false);
+  expect(fitsReadableView([], { width: 1008, height: 398 }, 1, 24)).toBe(false);
 });
