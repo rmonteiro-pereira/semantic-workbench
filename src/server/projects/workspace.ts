@@ -25,11 +25,11 @@ import { createTrash, deleteImpact as reportDeleteImpact, guardDeletion, type Tr
 import { restoreTrashedDeletions } from './published-checkout';
 import { createScm } from './scm';
 import { scmPublishedStatus } from './scm-published';
-import { createSnapshotIndexes } from './snapshot-index';
+import { createPublication } from './publication';
 import { createPublishedPointers } from './published-pointer';
 import { createPublishedSnapshots } from './published-snapshot';
 import { initializePublishedPointers } from './published-initialization';
-import { BaseChangedError, createWorktrees } from './worktrees';
+import { createWorktrees } from './worktrees';
 import { copyScmHooks, createWorkingCopies, projectLockKey, type Place, type RepositoryFacts } from './working-copies';
 import { createPublishing } from './publishing';
 import { createLocalPublication, prepareLocalCommit } from './local-publication';
@@ -353,18 +353,27 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
         locate: slug => locationOf(entry(slug)),
       })
     : null;
-  const publicationIndexes = createSnapshotIndexes({ git, directory: repository => join(layout.projects, repository), cache });
-  const readablePublication = (candidate: PublicationCandidate) =>
-    publicationIndexes.build(
-      candidate.repo,
-      candidate.next,
-      projects().filter(project => locationOf(project).repo === candidate.repo),
-    );
-  const localPublication = createLocalPublication({ git, pointers, directory: repository => join(layout.projects, repository), readable: readablePublication, supersede: () => snapshots.supersede() });
+  const readablePublication = (candidate: PublicationCandidate) => snapshots.validate(candidate);
+  const publication = createPublication({
+    git,
+    pointers,
+    directory: repository => join(layout.projects, repository),
+    readable: readablePublication,
+    supersede: () => snapshots.supersede(),
+  });
+  const localPublication = createLocalPublication({
+    git,
+    pointers,
+    publication,
+    directory: repository => join(layout.projects, repository),
+    readable: readablePublication,
+    supersede: () => snapshots.supersede(),
+  });
   const worktrees = createWorktrees({
     layout,
     git,
     people: () => copies.owners(),
+    publisher: publication,
     publication: {
       pointers,
       readable: readablePublication,
@@ -487,14 +496,9 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     adopt: async (slug, reader, observe) => {
       const repository = repoOf(slug);
       const server = options.reconcilePublished || Boolean(reader.view);
-      const judge = judgePublish(published, slug, reader.guard);
-      const guard = async (previous: string | null, next: string) => {
-        if (server && (await git.run(join(layout.projects, repository), ['status', '--porcelain'], { readOnly: true })).stdout.trim()) throw new BaseChangedError(repository);
-        await judge(previous, next);
-      };
-      const result = await localPublication.adopt(repository, await worktrees.defaultBranch(repository), guard, observe);
-      if (server) await worktrees.repairBase(repository);
-      return result;
+      const guard = judgePublish(published, slug, reader.guard);
+      if (server) return worktrees.adopt(repository, guard, observe);
+      return localPublication.adopt(repository, await worktrees.defaultBranch(repository), guard, observe);
     },
     localPublish: async (slug, reader) => localPublication.publishLocal(repoOf(slug), await worktrees.defaultBranch(repoOf(slug)), judgePublish(published, slug, reader.guard)),
     worktrees,

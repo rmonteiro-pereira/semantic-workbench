@@ -111,3 +111,32 @@ for (const stage of ['intent', 'ref', 'pointer'] as const) {
     });
   }
 }
+
+test('a publish-route swap failure abandons its intent and cannot publish itself after restart', async () => {
+  const { publicationRepository } = await import('./helpers/git-fixtures');
+  const { createState } = await import('../src/server/projects/state');
+  const { dataLayout } = await import('../src/server/projects/paths');
+  const { testWorkspace } = await import('./helpers/temp-data-dir');
+  const repository = publicationRepository();
+  createState(dataLayout(repository.dir)).writeRegistry([{ slug: 'definitions', name: 'Definitions', origin: '', createdAt: '' }]);
+  using fixture = await testWorkspace({ root: repository.dir });
+  await fixture.ws.git.run(repository.repository, ['switch', 'work/local']);
+  const original = fixture.ws.git.run;
+  fixture.ws.git.run = (directory, args, options) => {
+    if (args[0] === 'update-ref') return Promise.resolve({ code: 1, stdout: '', stderr: 'Ref locked by an outside writer.', bytes: new Uint8Array() });
+    return original(directory, args, options);
+  };
+  const response = await fixture.handler(new Request('http://localhost/api/projects/definitions/git/publish', { method: 'POST', body: '{}' }));
+  expect(response.status).toBe(409);
+  expect(fixture.ws.state.published().repositories.definitions).toEqual({ branch: 'main', commit: repository.published! });
+  fixture.ws.git.run = original;
+  await original(repository.repository, ['update-ref', 'refs/heads/main', repository.authoring]);
+  fixture.ws.close();
+  const restarted = await openWorkspace({ root: repository.dir });
+  try {
+    expect(restarted.state.published().repositories.definitions).toEqual({ branch: 'main', commit: repository.published! });
+    expect(await restarted.published.status('definitions')).toMatchObject({ state: 'pending', next: repository.authoring });
+  } finally {
+    restarted.close();
+  }
+});

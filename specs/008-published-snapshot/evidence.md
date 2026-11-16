@@ -778,3 +778,10 @@ Default selection now prefers existing configured initial/main/master refs after
 without publishing an arbitrary feature checkout. The local upgrade tests pass (8 tests, 38 assertions),
 including feature-x with and without main. Typed personal notices migrate legacy synthetic file entries;
 status tests pass (7 tests, 35 assertions), preserving other per-file state and explicit acknowledgement.
+
+The single publication module now owns checks, intent, compare-and-swap, completion and supersession.
+Local Publish/Adopt and server Publish/follow/Adopt use its repository queue, including base repair.
+The publish-route failed-swap/restart proof passed with the publication recovery file (14 tests, 84 assertions).
+Local publication tests passed (8 tests, 33 assertions); server publish safety passed (6 tests, 16 assertions).
+A separate cross-entry-point race proves local Publish and server Adopt wait behind remote follow.
+Publication validation now calls `snapshots.validate`, reusing the resolver's index construction boundary.

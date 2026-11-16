@@ -162,18 +162,19 @@ concatenating project, document or item names.
   before streaming, so eviction or publication cannot change an archive in flight.
 - `snapshot-index.ts` reads committed project files with the shared byte validator. Concurrent
   builds share one promise per repository, commit and folder digest; limits reject whole builds.
-- `publication-checks.ts` orders ancestry, complete bounded reads and content-guard judgement
-  before a publication can move its ref or durable pointer. Publication then writes its intent,
-  compare-and-swaps the ref, records the pointer and supersedes the resolver; startup reconciles
-  interrupted intents before repairing the server checkout.
+  Publication validation uses the resolver's build cache rather than a second index builder.
+- `publication.ts` is the single publication writer and repository queue for local Publish, server Publish,
+  remote follow and adoption. It applies `publication-checks.ts`, writes intent, compare-and-swaps the ref,
+  records the pointer and supersedes the resolver. A failed swap abandons intent; startup reconciles
+  interrupted intents before repairing the server checkout. Server adoption and base repair live in `worktrees.ts`.
 - `scm-published.ts` formats publication identity and authoring distance for Source Control; its
   acknowledgement writes only the caller's typed personal publication notice. Legacy synthetic file entries
   migrate into that notice on read. Status checks compare ref identity and cache
   ancestry/counts by ref and pointer; Git events invalidate and refresh that cache. The wire shape lives in shared SCM types.
 - `local-publication.ts` preserves the local index and working files when authoring moves to
   `work/local`, and advances the default ref through the shared checks and durable pointer protocol.
-  Its serialized adoption operation is shared by both modes; it validates the already-moved ref
-  without replacing local authoring files. Publishing coordinates rescans and events.
+  Its Publish and Adopt callers use the shared publication queue without replacing local authoring files.
+  Publishing coordinates rescans and events.
 - `published-pointer.ts` owns atomic publication records and interrupted-publication transitions.
   `state.ts` persists these records in `state/published.json`, separately from the derived cache.
 - `git.ts` is the subprocess boundary for Git. Immutable object reads use queued `ls-tree` and

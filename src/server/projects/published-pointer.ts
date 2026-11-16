@@ -13,21 +13,21 @@ const fullId = /^(?:[0-9a-f]{40}|[0-9a-f]{64})$/;
 
 /** Validates durable pointer data without attempting recovery from a checkout. */
 export function parsePublishedState(value: unknown): PublishedState {
-  if (!value || typeof value !== 'object') throw Error('Invalid published pointer state.');
+  if (!value || typeof value !== 'object') throw Error('Invalid state/published.json pointer state.');
   const state = value as PublishedState;
   if (state.formatVersion !== 1 || !state.repositories || typeof state.repositories !== 'object' || Array.isArray(state.repositories)) {
-    throw Error('Invalid published pointer state.');
+    throw Error('Invalid state/published.json pointer state.');
   }
   for (const [repository, pointer] of Object.entries(state.repositories)) {
     if (projectPath(repository) !== repository || !pointer || typeof pointer !== 'object' || Array.isArray(pointer)) {
-      throw Error('Invalid published repository pointer.');
+      throw Error('Invalid state/published.json repository pointer.');
     }
     if (typeof pointer.branch !== 'string' || !pointer.branch || hasControlCharacters(pointer.branch) || /\s/.test(pointer.branch)) {
-      throw Error('Invalid published branch.');
+      throw Error('Invalid state/published.json branch.');
     }
     for (const revision of [pointer.commit, pointer.intent]) {
       if (revision !== undefined && (typeof revision !== 'string' || !fullId.test(revision))) {
-        throw Error('Invalid published commit.');
+        throw Error('Invalid state/published.json commit.');
       }
     }
   }
@@ -65,6 +65,10 @@ export function createPublishedPointers(state: Pick<State, 'published' | 'writeP
     record,
     intent(repository: string, branch: string, next: string) {
       record(repository, { ...current.repositories[repository], branch, intent: next });
+    },
+    abandon(repository: string) {
+      const pointer = current.repositories[repository];
+      if (pointer) record(repository, { branch: pointer.branch, ...(pointer.commit ? { commit: pointer.commit } : {}) });
     },
     complete(repository: string, branch: string, commit: string) {
       record(repository, { branch, commit });

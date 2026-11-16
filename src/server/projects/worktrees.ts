@@ -3,9 +3,11 @@
 // default branch and holds the published state; only publishing moves it.
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { publicationChecks, type PublicationCandidate } from './publication-checks';
+import type { PublicationCandidate } from './publication-checks';
+import { createPublication, type Publication, type PublicationAdvance, type PublicationGuard } from './publication';
+import type { PublicationObserver } from './local-publication';
 import type { PublishedPointers } from './published-pointer';
-import { BranchInUseError, NotFastForwardError, PendingPublicationError } from './errors';
+import { BranchInUseError, NotFastForwardError, PublicationAdoptionError } from './errors';
 import { authorship, commitOf, GitError, isBranchName, symbolicBranch, type CommitAuthor, type Git } from './git';
 import { USER_KEY, type DataLayout } from './paths';
 import { checkOutFolders, sparseFolders } from './sparse-folder';
@@ -106,6 +108,7 @@ export type WorktreeContext = {
   layout: DataLayout;
   git: Git;
   people: () => CopyOwner[];
+  publisher?: Publication;
   publication?: {
     pointers: PublishedPointers;
     readable: (candidate: PublicationCandidate) => Promise<unknown>;
@@ -260,59 +263,50 @@ async function ensure(context: WorktreeContext, repo: string, owner: CopyOwner) 
  * changed published checkout, a move that is not a fast-forward, or someone else moving the
  * branch first is refused, and nothing changes. `check` judges the exact commits before the move.
  */
-async function moveDefault(context: WorktreeContext, repo: string, move: { branch: string; previous: string | null; next: string }, check: (previous: string | null, next: string) => Promise<void>) {
-  const { git } = context;
+async function moveDefault(context: WorktreeContext, repo: string, move: { branch: string; previous: string | null; next: string }, check: PublicationGuard, advance: PublicationAdvance) {
   const { branch, previous, next } = move;
-  const base = baseDir(context, repo);
-  // Moving the published files must not fail after the branch moved, so a changed base, new
-  // files included, is refused before anything changes.
-  const changed = await git.run(base, ['status', '--porcelain'], { readOnly: true });
-  if (changed.stdout.trim()) throw new BaseChangedError(repo);
-  const recorded = context.publication?.pointers.get(repo)?.commit;
-  if (recorded && recorded !== previous) {
-    throw new PendingPublicationError(recorded);
-  }
-  const candidate = { repo, branch, previous: recorded ?? previous, next };
-  const checks = publicationChecks({
-    isAncestor: (_repo, from, to) => git.isAncestor(base, from, to),
-    readable: context.publication?.readable ?? (async () => {}),
-    guard: async () => check(previous, next),
-  });
-  for (const validate of checks) await validate(candidate);
-  context.publication?.pointers.intent(repo, branch, next);
-  context.publication?.stage?.('intent');
-  if (previous !== next) {
-    // The old value makes the update fail when someone else published meanwhile.
-    const swap = ['update-ref', 'refs/heads/' + branch, next, previous ?? ''];
-    const swapped = await git.run(base, swap, { allowFailure: true });
-    if (swapped.code !== 0) throw new NotFastForwardError(branch);
-  }
-  context.publication?.stage?.('ref');
-  context.publication?.pointers.complete(repo, branch, next);
-  context.publication?.supersede();
-  context.publication?.stage?.('pointer');
+  const result = await advance(repo, branch, { previous, next }, baseGuard(context, repo, check));
+  await repairBase(context, repo);
+  context.listings?.delete(repo);
+  return result;
+}
+
+function baseGuard(context: WorktreeContext, repository: string, guard: PublicationGuard): PublicationGuard {
+  return async (previous, next) => {
+    const changed = await context.git.run(baseDir(context, repository), ['status', '--porcelain'], { readOnly: true });
+    if (changed.stdout.trim()) throw new BaseChangedError(repository);
+    await guard(previous, next);
+  };
+}
+
+async function adopt(context: WorktreeContext, repository: string, guard: PublicationGuard, advance: PublicationAdvance, observe?: PublicationObserver) {
+  const branch = await defaultBranch(context, repository);
+  const previous = context.publication?.pointers.get(repository)?.commit;
+  const next = await commitOf(context.git, baseDir(context, repository), `refs/heads/${branch}`);
+  observe?.(previous ?? null, next);
+  if (!previous || !next || previous === next) throw new PublicationAdoptionError('nothing-pending');
   try {
-    await git.run(base, ['checkout', '-q', '--force', '--detach', 'refs/heads/' + branch]);
+    const result = await advance(repository, branch, { previous, next, expectedRef: next }, baseGuard(context, repository, guard));
+    await repairBase(context, repository);
+    context.listings?.delete(repository);
+    return result;
   } catch (error) {
-    // The branch already moved; the published files follow it now or at the next start.
-    await repairBase(context, repo).catch(() => {});
+    if (error instanceof NotFastForwardError) throw new PublicationAdoptionError('diverged', previous);
     throw error;
   }
-  context.listings?.delete(repo);
-  return { published: branch, commit: next, previous };
 }
 
 /**
  * Fast-forwards the default branch to the copy's HEAD with a compare-and-swap, then moves the
  * published state to it. A copy that does not contain the current tip is refused.
  */
-async function publish(context: WorktreeContext, repo: string, key: string, check: (previous: string | null, next: string) => Promise<void>) {
+async function publish(context: WorktreeContext, repo: string, key: string, check: PublicationGuard, advance: PublicationAdvance) {
   const { git } = context;
   const branch = await defaultBranch(context, repo);
   const next = await commitOf(git, copyDir(context, key, repo), 'HEAD');
   if (!next) throw new GitError('Commit your changes before publishing.');
   const previous = await commitOf(git, baseDir(context, repo), 'refs/heads/' + branch);
-  return moveDefault(context, repo, { branch, previous, next }, check);
+  return moveDefault(context, repo, { branch, previous, next }, check, advance);
 }
 
 /**
@@ -341,11 +335,11 @@ async function remoteAhead(context: WorktreeContext, repo: string, remote: strin
  * judging the commits it brings. Null when nothing could move, such as a changed checkout or
  * someone publishing first.
  */
-async function followRemote(context: WorktreeContext, repo: string, remote: string, check: (previous: string | null, next: string) => Promise<void>) {
+async function followRemote(context: WorktreeContext, repo: string, remote: string, check: PublicationGuard, advance: PublicationAdvance) {
   const move = await remoteAhead(context, repo, remote);
   if (!move) return null;
   try {
-    return await moveDefault(context, repo, move, check);
+    return await moveDefault(context, repo, move, check, advance);
   } catch (error) {
     if (error instanceof NotFastForwardError || error instanceof BaseChangedError) return null;
     throw error;
@@ -399,18 +393,16 @@ async function remove(context: WorktreeContext, repo: string, key: string) {
 /** Creates, lists, publishes and removes the per-person working copies of repositories. */
 export function createWorktrees(options: Omit<WorktreeContext, 'listings'>) {
   const context: WorktreeContext = { ...options, listings: new Map() };
-  const publications = new Map<string, Promise<unknown>>();
-  function serialized<T>(repository: string, move: () => Promise<T>): Promise<T> {
-    const previous = publications.get(repository) ?? Promise.resolve();
-    const next = previous.catch(() => {}).then(move);
-    publications.set(repository, next);
-    void next
-      .finally(() => {
-        if (publications.get(repository) === next) publications.delete(repository);
-      })
-      .catch(() => {});
-    return next;
-  }
+  const publisher =
+    options.publisher ??
+    createPublication({
+      git: context.git,
+      directory: repository => baseDir(context, repository),
+      pointers: context.publication?.pointers,
+      readable: context.publication?.readable ?? (async () => {}),
+      supersede: context.publication?.supersede ?? (() => {}),
+      stage: context.publication?.stage,
+    });
   return {
     /** Forgets the cached worktree list after a branch switch in one of the copies. */
     branchesMoved: (repo: string) => context.listings?.delete(repo),
@@ -426,9 +418,11 @@ export function createWorktrees(options: Omit<WorktreeContext, 'listings'>) {
     releaseCopies: (repo: string) => releaseCopies(context, repo),
     ensure: (repo: string, owner: CopyOwner) => ensure(context, repo, owner),
     assertFree: (repo: string, key: string, branch: string) => assertFree(context, repo, key, branch),
-    publish: (repo: string, key: string, check: (previous: string | null, next: string) => Promise<void>) => serialized(repo, () => publish(context, repo, key, check)),
+    publish: (repo: string, key: string, check: (previous: string | null, next: string) => Promise<void>) => publisher.serialized(repo, advance => publish(context, repo, key, check, advance)),
+    adopt: (repo: string, guard: PublicationGuard, observe?: PublicationObserver) => publisher.serialized(repo, advance => adopt(context, repo, guard, advance, observe)),
     remoteAhead: (repo: string, remote: string) => remoteAhead(context, repo, remote),
-    followRemote: (repo: string, remote: string, check: (previous: string | null, next: string) => Promise<void>) => serialized(repo, () => followRemote(context, repo, remote, check)),
+    followRemote: (repo: string, remote: string, check: (previous: string | null, next: string) => Promise<void>) =>
+      publisher.serialized(repo, advance => followRemote(context, repo, remote, check, advance)),
     mergeDefault: (repo: string, key: string, author: CommitAuthor | undefined, check: (tip: string) => Promise<void>) => mergeDefault(context, repo, key, author, check),
     remove: (repo: string, key: string) => remove(context, repo, key),
   };

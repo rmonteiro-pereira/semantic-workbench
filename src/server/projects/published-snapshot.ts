@@ -4,6 +4,8 @@ import type { PublishedPointers } from './published-pointer';
 import { classify } from './published-pointer';
 import { locationOf } from './paths';
 import { createSnapshotIndexes, folderDigest, type PublishedDocument, type SnapshotIndex, type SnapshotIndexDeps } from './snapshot-index';
+import type { PublicationCandidate } from './publication-checks';
+import type { Reader } from './reader';
 import type { ProjectEntry } from './state';
 
 /** One request's consistent commit choice for each repository with a published snapshot. */
@@ -75,7 +77,7 @@ export function createPublishedSnapshots(deps: PublishedSnapshotDeps) {
     if (!registry) throw new SnapshotUnavailableError('unavailable');
     const projects = registry.filter(entry => locationOf(entry).repo === repository);
     const key = JSON.stringify([repository, commit, folderDigest(projects)]);
-    held.get(requestPin!)?.add(key);
+    if (requestPin) held.get(requestPin)?.add(key);
     const cached = retained.get(key);
     if (cached) return cached;
     let building = pending.get(key);
@@ -184,6 +186,16 @@ export function createPublishedSnapshots(deps: PublishedSnapshotDeps) {
       }
     },
     documents,
+    /** Validates a publication through the same deduplicated build cache used by pinned reads. */
+    validate: (candidate: PublicationCandidate) => load(candidate.repo, candidate.next),
+    /** Resolves identity and visibility from the pin's registry before exposing documents. */
+    async readableDocuments(requestPin: PublishedPin, project: string, reader: Reader) {
+      const repository = projectRepository(project, requestPin);
+      const chosen = requestPin.commits.get(repository);
+      if (!chosen) throw absence();
+      const visible = await documents(requestPin, project);
+      return { commit: chosen.commit, documents: visible.filter(document => !reader.view || reader.view.canRead(project, document.path)) };
+    },
     /** Lists every committed file path, including tracked files outside the document view. */
     async filePaths(requestPin: PublishedPin, project: string) {
       return (await files(requestPin, project)).map(file => file.document.path);

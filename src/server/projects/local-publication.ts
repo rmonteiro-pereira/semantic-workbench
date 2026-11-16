@@ -1,8 +1,9 @@
 // Moves local authoring away from the served default ref without replacing working files.
 import { GitError, symbolicBranch, type Git } from './git';
 import { NothingToPublishError, NotFastForwardError, PendingPublicationError, PublicationAdoptionError } from './errors';
-import { publicationChecks, type PublicationCandidate } from './publication-checks';
+import { type PublicationCandidate } from './publication-checks';
 import type { PublishedPointers } from './published-pointer';
+import { createPublication, type Publication, type PublicationAdvance, type PublicationGuard } from './publication';
 import { defaultBranchAt, rememberDefaultBranch } from './worktrees';
 
 /** Observes the immutable commits considered by one serialized adoption attempt. */
@@ -33,6 +34,7 @@ export async function moveToAuthoringBranch(git: Git, directory: string, default
 
 /** The workspace's existing Git, pointer and bounded-read boundaries for local publication. */
 export type LocalPublicationDeps = {
+  publication?: Publication;
   git: Git;
   directory: (repository: string) => string;
   pointers: PublishedPointers;
@@ -42,8 +44,8 @@ export type LocalPublicationDeps = {
 
 /** Creates serialized local publication operations; compare-and-swap also rejects outside Git races. */
 export function createLocalPublication(deps: LocalPublicationDeps) {
-  const active = new Map<string, Promise<unknown>>();
-  async function publish(repository: string, branch: string, guard: (previous: string | null, next: string) => Promise<void>) {
+  const publication = deps.publication ?? createPublication(deps);
+  async function publish(repository: string, branch: string, guard: PublicationGuard, advance: PublicationAdvance) {
     const { git, pointers } = deps;
     const directory = deps.directory(repository);
     const previous = pointers.get(repository)?.commit ?? null;
@@ -53,54 +55,33 @@ export function createLocalPublication(deps: LocalPublicationDeps) {
     if (!next || next === previous) throw new NothingToPublishError();
     const authoring = await symbolicBranch(git, directory);
     if (!authoring || authoring === branch) throw new GitError('Choose an authoring branch before publishing.');
-    const candidate = { repo: repository, branch, previous, next };
-    const checks = publicationChecks({ isAncestor: (_repository, from, to) => git.isAncestor(directory, from, to), readable: deps.readable, guard: () => guard(previous, next) });
     try {
-      for (const check of checks) await check(candidate);
+      return await advance(repository, branch, { previous, next }, guard);
     } catch (error) {
-      if (error instanceof NotFastForwardError) throw new NotFastForwardError(branch, `Merge ${branch} into ${authoring} first.`);
+      if (error instanceof NotFastForwardError) throw new NotFastForwardError(branch, `Publishing must be a fast-forward. Merge ${branch} into ${authoring} first.`);
       throw error;
     }
-    pointers.intent(repository, branch, next);
-    const swapped = await git.run(directory, ['update-ref', `refs/heads/${branch}`, next, previous ?? ''], { allowFailure: true });
-    if (swapped.code !== 0) throw new NotFastForwardError(branch);
-    pointers.complete(repository, branch, next);
-    deps.supersede();
-    return { published: branch, previous, commit: next };
   }
-  async function adopt(repository: string, branch: string, guard: (previous: string | null, next: string) => Promise<void>, observe?: PublicationObserver) {
+
+  async function adopt(repository: string, branch: string, guard: PublicationGuard, advance: PublicationAdvance, observe?: PublicationObserver) {
     const { git, pointers } = deps;
     const directory = deps.directory(repository);
     const previous = pointers.get(repository)?.commit;
     const next = await git.revParse(directory, `refs/heads/${branch}`);
     observe?.(previous ?? null, next);
     if (!previous || !next || previous === next) throw new PublicationAdoptionError('nothing-pending');
-    const candidate = { repo: repository, branch, previous, next };
-    const checks = publicationChecks({ isAncestor: (_repository, from, to) => git.isAncestor(directory, from, to), readable: deps.readable, guard: () => guard(previous, next) });
     try {
-      for (const check of checks) await check(candidate);
+      return await advance(repository, branch, { previous, next, expectedRef: next }, guard);
     } catch (error) {
       if (error instanceof NotFastForwardError) throw new PublicationAdoptionError('diverged', previous);
       throw error;
     }
-    if (pointers.get(repository)?.commit !== previous) throw new PublicationAdoptionError('changed');
-    pointers.intent(repository, branch, next);
-    const verified = await git.run(directory, ['update-ref', `refs/heads/${branch}`, next, next], { allowFailure: true });
-    if (verified.code !== 0) throw new PublicationAdoptionError('changed');
-    pointers.complete(repository, branch, next);
-    deps.supersede();
-    return { published: branch, previous, commit: next };
   }
-  function serialized<T>(repository: string, run: () => Promise<T>) {
-    const operation = (active.get(repository) ?? Promise.resolve()).catch(() => {}).then(run);
-    active.set(repository, operation);
-    return operation.finally(() => {
-      if (active.get(repository) === operation) active.delete(repository);
-    });
-  }
+
   return {
-    publishLocal: (repository: string, branch: string, guard: (previous: string | null, next: string) => Promise<void>) => serialized(repository, () => publish(repository, branch, guard)),
+    publishLocal: (repository: string, branch: string, guard: (previous: string | null, next: string) => Promise<void>) =>
+      publication.serialized(repository, advance => publish(repository, branch, guard, advance)),
     adopt: (repository: string, branch: string, guard: (previous: string | null, next: string) => Promise<void>, observe?: PublicationObserver) =>
-      serialized(repository, () => adopt(repository, branch, guard, observe)),
+      publication.serialized(repository, advance => adopt(repository, branch, guard, advance, observe)),
   };
 }
