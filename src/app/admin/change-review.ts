@@ -1,3 +1,4 @@
+import { AdminApiError, problemText } from './api';
 import type { DryRun, Proposal } from './types';
 /** Binds a review to the exact proposal and base version that produced it. */
 export function proposalKey(proposal: Proposal, baseVersion: string): string {
@@ -17,4 +18,17 @@ export function commaList(text: string): string[] {
         .filter(Boolean),
     ),
   ];
+}
+
+/** Checks the normalized address against the grant schema's address pattern. */
+export function validGrantEmail(value: string): boolean {
+  return /^[^\sA-Z@]+@[^\sA-Z@]+\.[^\sA-Z@]+$/.test(value.trim().toLowerCase());
+}
+
+/** Keeps schema diagnostics out of the access-change review. */
+export function reviewProblemText(problem: unknown): string {
+  if (problem instanceof AdminApiError && problem.status === 400 && /grantsFile|must match|oneOf|data\//.test(problem.reason)) {
+    return 'Check the change fields and review the change again.';
+  }
+  return problemText(problem);
 }

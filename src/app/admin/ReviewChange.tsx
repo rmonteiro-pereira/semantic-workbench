@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { adminApi, AdminApiError, problemText } from './api';
+import { adminApi, AdminApiError } from './api';
 import { AdminConfirmation } from './AdminConfirmation';
-import { canConfirm, proposalKey } from './change-review';
+import { canConfirm, proposalKey, reviewProblemText } from './change-review';
 import type { AccessArea, DryRun, Proposal } from './types';
 
 const previewLabels: Partial<Record<AccessArea, string>> = {
@@ -88,7 +88,7 @@ export function ReviewChange({
     }
   }
   function showError(problem: unknown) {
-    let message = problemText(problem);
+    let message = reviewProblemText(problem);
     if (problem instanceof AdminApiError && problem.details.error === 'stale') {
       message += ' Reopen this area to load the current version. No change was saved.';
     }
@@ -130,7 +130,7 @@ export function ReviewChange({
       {inline && ready && review && <DryRunResult result={review.result} />}
       <div className="admin-actions">
         <button className={ready ? '' : 'primary'} disabled={busy || disabled} onClick={preview}>
-          {previewLabels[area] ?? 'Dry run'}
+          {previewLabels[area] ?? 'Review change'}
         </button>
         {inline && ready && review && confirmButtons}
       </div>

@@ -337,7 +337,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
 
 **Goal**: the admin forms speak plainly, the access check shows its answer, refused addresses explain themselves. **Independent test**: `bun run test:admin` and `test:auth` pass on the lane branch alone. **Owner**: lane D, worktree `007-lane-d`.
 
-- [ ] T048 [US4] [D] Validate the grant e-mail in the form and map server errors to field messages.
+- [x] T048 [US4] [D] Validate the grant e-mail in the form and map server errors to field messages.
   - Findings: M9 · Requirements: FR-044
   - Files: `src/app/admin/GrantForm.tsx`, `src/app/admin/ReviewChange.tsx`, `src/app/admin/change-review.ts`, `src/app/admin/AdminNotices.tsx`, `tests/admin-presentation.test.tsx`
   - Change: Check the address with one shared pattern before review, mark the field invalid with 'Enter a valid e-mail address', translate known server schema failures to a plain sentence (`change-review.ts`), never print the validator text (`ReviewChange.tsx:98`), and rename 'Dry run' to **Review change** (`ReviewChange.tsx:133`).

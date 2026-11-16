@@ -1,3 +1,5 @@
+import { validGrantEmail, reviewProblemText } from '../src/app/admin/change-review';
+import { AdminApiError } from '../src/app/admin/api';
 import { actionLabel, newIdentifier, whenLabel } from '../src/app/admin/helpers';
 import { expect, test } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -165,4 +167,12 @@ test('action identifiers read as labels', () => {
   expect(actionLabel('approveMetric')).toBe('Approve metric');
   expect(actionLabel('viewOwnState')).toBe('View own state');
   expect(actionLabel('read')).toBe('Read');
+});
+
+test('grant validation shares the schema address rule and hides server diagnostics', () => {
+  expect(validGrantEmail('invalid-address')).toBe(false);
+  expect(validGrantEmail(' Erin@Example.org ')).toBe(true);
+  const message = reviewProblemText(new AdminApiError(400, { error: 'grantsFile must match oneOf' }, 'review'));
+  expect(message).toBe('Check the change fields and review the change again.');
+  for (const diagnostic of ['must match', 'oneOf', 'grantsFile']) expect(message).not.toContain(diagnostic);
 });

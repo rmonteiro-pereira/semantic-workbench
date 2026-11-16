@@ -13,7 +13,7 @@ import { openSettings } from './helpers/sidebar-menus';
  * Runs the dry run in `scope`, checks the result and confirms. The result is in a dialog for a
  * form and inside the scope for a confirmation dialog, so the buttons are found on the page.
  */
-async function review(page: Page, scope: Locator, name = 'save changes', previewName = 'Dry run') {
+async function review(page: Page, scope: Locator, name = 'save changes', previewName = 'Review change') {
   await scope.getByRole('button', { name: previewName, exact: true }).click();
   await expect(page.getByRole('region', { name: 'Dry-run result', exact: true })).toBeVisible();
   const confirm = page.getByRole('button', { name: `Confirm ${name}`, exact: true });

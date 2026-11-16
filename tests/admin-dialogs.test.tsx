@@ -24,14 +24,14 @@ test('cancelled grant reviews require a new dry run and server guard errors stay
   const form = page.getByRole('region', { name: 'Add grant', exact: true });
   await form.getByLabel('Member kind').selectOption('email');
   await form.getByLabel('E-mail address').fill('Erin@Example.org');
-  await form.getByRole('button', { name: 'Dry run', exact: true }).click();
+  await form.getByRole('button', { name: 'Review change', exact: true }).click();
   const preview = page.getByRole('dialog');
   await browserExpect(preview.getByRole('region', { name: 'Dry-run result' })).toContainText('Erin');
   expect(await preview.evaluate(element => element.matches(':modal'))).toBe(true);
   await preview.getByRole('button', { name: 'Cancel changes', exact: true }).click();
   await form.getByLabel('Role', { exact: true }).selectOption('editor');
   await browserExpect(page.getByRole('button', { name: 'Confirm save changes' })).toHaveCount(0);
-  await form.getByRole('button', { name: 'Dry run', exact: true }).click();
+  await form.getByRole('button', { name: 'Review change', exact: true }).click();
   await browserExpect(page.getByRole('button', { name: 'Confirm save changes' })).toBeVisible();
   state.refuseSaves = true;
   await page.getByRole('button', { name: 'Confirm save changes' }).click();
@@ -76,7 +76,7 @@ test('invalid raw policies show line and column and cannot reach dry run', async
   await editor.getByLabel('Advanced raw editor').check();
   await editor.getByRole('button', { name: 'Validate', exact: true }).click();
   await browserExpect(editor.getByRole('alert').last()).toContainText('Line 1, column 2: Invalid policy');
-  await browserExpect(editor.getByRole('button', { name: 'Dry run', exact: true })).toBeDisabled();
+  await browserExpect(editor.getByRole('button', { name: 'Review change', exact: true })).toBeDisabled();
 }, 20_000);
 
 test('access check sends hypothetical attributes and renders provenance', async () => {
@@ -131,7 +131,7 @@ test('Escape closes only the dialog on top, leaving the page and its pane open',
   const form = page.getByRole('region', { name: 'Add grant', exact: true });
   await form.getByLabel('Member kind').selectOption('email');
   await form.getByLabel('E-mail address').fill('erin@example.org');
-  await form.getByRole('button', { name: 'Dry run', exact: true }).click();
+  await form.getByRole('button', { name: 'Review change', exact: true }).click();
   await browserExpect(page.getByRole('dialog')).toBeVisible();
   await page.keyboard.press('Escape');
   await browserExpect(page.getByRole('dialog')).toHaveCount(0);
@@ -163,13 +163,13 @@ test('a proposal update while review is open requires a fresh component review',
     const { script, style } = await buildAdminHarness();
     await reviewPage.addStyleTag({ content: style });
     await reviewPage.addScriptTag({ content: script, type: 'module' });
-    await reviewPage.getByRole('button', { name: 'Dry run', exact: true }).click();
+    await reviewPage.getByRole('button', { name: 'Review change', exact: true }).click();
     await browserExpect(reviewPage.getByRole('button', { name: 'Confirm save changes' })).toBeVisible();
     await reviewPage.evaluate(() => window.dispatchEvent(new Event('review-proposal-changed')));
     await browserExpect(reviewPage.getByRole('dialog')).toHaveCount(0);
     await browserExpect(reviewPage.getByRole('button', { name: 'Confirm save changes' })).toHaveCount(0);
     expect(reviewState.requests.filter(request => request.method === 'PUT')).toHaveLength(0);
-    await reviewPage.getByRole('button', { name: 'Dry run', exact: true }).click();
+    await reviewPage.getByRole('button', { name: 'Review change', exact: true }).click();
     await reviewPage.getByRole('button', { name: 'Confirm save changes' }).click();
     await browserExpect(reviewPage.getByRole('dialog')).toHaveCount(0);
     const proposals = reviewState.requests.filter(request => request.method === 'POST');

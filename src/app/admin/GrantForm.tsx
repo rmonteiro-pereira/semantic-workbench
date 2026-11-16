@@ -4,7 +4,7 @@ import { SelectField } from './SelectField';
 import { AdminPane, type PaneProps } from './AdminPane';
 import { newIdentifier } from './helpers';
 import { adminApi, problemText } from './api';
-import { commaList } from './change-review';
+import { commaList, validGrantEmail } from './change-review';
 import { ReviewChange } from './ReviewChange';
 import { useAdminData } from './useAdminData';
 import type { Grant, Role, ProjectsConfig } from './types';
@@ -126,6 +126,12 @@ function GrantFields({
   };
   const changeLabel = `${initial ? 'Change' : 'Add'} ${role} grant for ${member}: ${scopeLabel(selectedScope)}`;
   const proposal = { grants: [...grants.filter(grant => grant.id !== initial?.id), proposed] };
+  const invalidEmail = kind === 'email' && Boolean(member) && !validGrantEmail(member);
+  function changeMember(event: React.ChangeEvent<HTMLInputElement>) {
+    setMember(event.target.value);
+    setDisplayName('');
+    setLookup(null);
+  }
   const emptyScope = selectedScope.kind !== 'workspace' && !commaList(scope === 'domains' ? targets : projectTargets).length;
   return (
     <>
@@ -138,13 +144,16 @@ function GrantFields({
         <input
           value={member}
           type={kind === 'email' ? 'email' : 'text'}
-          onChange={event => {
-            setMember(event.target.value);
-            setDisplayName('');
-            setLookup(null);
-          }}
+          aria-invalid={invalidEmail || undefined}
+          aria-describedby={invalidEmail ? 'grant-email-error' : undefined}
+          onChange={changeMember}
         />
       </label>
+      {invalidEmail && (
+        <p id="grant-email-error" role="alert">
+          Enter a valid e-mail address
+        </p>
+      )}
       {kind === 'group' && member.trim() && (
         <p>
           Group name:{' '}
@@ -185,7 +194,7 @@ function GrantFields({
           <small>Available: {Object.keys(projects.projects).join(', ')}</small>
         </label>
       )}
-      <ReviewChange area="grants" changeLabel={changeLabel} proposal={proposal} baseVersion={version} onSaved={onSaved} disabled={!member.trim() || emptyScope || !proposed.addedBy} />
+      <ReviewChange area="grants" changeLabel={changeLabel} proposal={proposal} baseVersion={version} onSaved={onSaved} disabled={!member.trim() || invalidEmail || emptyScope || !proposed.addedBy} />
     </>
   );
 }
