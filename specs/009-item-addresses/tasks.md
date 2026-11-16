@@ -133,7 +133,7 @@ changes.
   `src/shared/metrics/extension.ts` readers; write nothing back. Proof: a byte-exact test that
   opening and saving a metric file leaves it identical and contains no `sw1:` text. (FR-010,
   FR-041)
-- [ ] T023 [US4] Write `tests/address-consumer-contract.test.ts`: a toy diff, a toy usage counter
+- [x] T023 [US4] Write `tests/address-consumer-contract.test.ts`: a toy diff, a toy usage counter
   and a toy pointer, built only from the public functions and the conformance fixtures, to show a
   later consumer needs no change to the grammar. Proof: the test. (FR-042)
 
