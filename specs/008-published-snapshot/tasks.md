@@ -56,7 +56,7 @@ and local mode with uncommitted work; agent routes answer from the snapshot.
 - [ ] T019 [US2] Wire the local commit path: in local mode a commit with the default branch checked out calls `moveToAuthoringBranch` first, and the commit response reports the branch. In `src/server/routes/git.ts` and `src/server/projects/scm.ts`. (proof: `tests/commit-availability.test.ts` and a new `tests/local-commit-branch.test.ts`: a commit on another branch is unchanged; mutant: commit on the default branch)
 - [ ] T020 [US2] Let `ws.publish` and the `git/publish` route serve local mode through `publishLocal` with the same authorization call, and send the `published` event in local mode. (proof: `tests/publishing.test.ts` local cases; `tests/auth/matrix-write.test.ts` shows the local principal allowed and a refused role unchanged)
 - [ ] T021 [US2] Add the `published` block to `git/status` in `src/server/projects/scm.ts` and the first-run notice flag to the status the browser reads (shown once, cleared by an explicit acknowledgement that writes to the person's view state, not to Git). (proof: `tests/scm-published-status.test.ts`: in sync, ahead, pending, none with each reason, the notice shown once)
-- [ ] T022 [P] [US2] Source Control UI: show `Published: <branch> @ <short commit>`, the ahead and behind of the person's branch, the pending move, the Publish action in local mode (label "Adopt" for an outside move) and the one-time notice, in `src/app/scm/`. Keep the existing components' layout; add one row and one action. (proof: `scripts/published-snapshot-browser-check.ts` against a mocked API for local and server mode; geometry assertions across the responsive viewport matrix; capture and comparison through T067)
+- [ ] T022 [P] [US2] Source Control UI: show `Published: <branch> @ <short commit>`, the ahead and behind of the person's branch, the pending move, the Publish action in local mode (label "Adopt" for an outside move) and the one-time notice, in `src/app/scm/`. Keep the existing components' layout; add one row and one action. (proof: `scripts/published-snapshot-browser-check.ts` against a mocked API for local and server mode; geometry assertions across the responsive viewport matrix; capture and comparison through T046)
 - [ ] T023 [US2] Remote-ahead handling in local mode: Source Control reports a remote default branch that is ahead, and nothing fetches in the background. (proof: `tests/local-publication.test.ts` case with a bare remote; the existing "no background network" listener test still passes)
 
 ## Phase 5: User Story 3 - A consumer is never changed underneath its request (P1)
@@ -73,7 +73,7 @@ and local mode with uncommitted work; agent routes answer from the snapshot.
 **Goal**: FR-027-FR-030.
 
 - [ ] T028 [US4] Add `/api/preview/catalog`, `/api/preview/context` and `/api/preview/plan` to `src/server/routes/agent.ts` with the editing source and a surface guard that answers an `agent` surface as an unknown route; add the rows to the inventory (`readSource: 'editing'`), the audit exemptions that mirror the agent rows, and the authorization matrix. (proof: `tests/auth/matrix.test.ts` with application, session and local-without-origin; mutant: remove the surface guard)
-- [ ] T029 [P] [US4] Frontend: change `src/app/mappings/agent-paths.ts` and `src/app/projects/api.ts` to the preview paths, and show the preview label with the published commit in `src/app/mappings/MappingExplorer.tsx`, reading the commit from the status block. (proof: `tests/agent-paths.test.ts` updated; browser check asserts the label text and that the plan includes an unpublished edit; capture comparison through T067)
+- [ ] T029 [P] [US4] Frontend: change `src/app/mappings/agent-paths.ts` and `src/app/projects/api.ts` to the preview paths, and show the preview label with the published commit in `src/app/mappings/MappingExplorer.tsx`, reading the commit from the status block. (proof: `tests/agent-paths.test.ts` updated; browser check asserts the label text and that the plan includes an unpublished edit; capture comparison through T046)
 - [ ] T030 [P] [US4] Local guardrail test and note: a local request without `Sec-Fetch-Site` is refused by the preview routes; one with it is served; the dev server on a different port still works. (proof: `tests/request-surface.test.ts` and the browser check run against the Vite dev origin)
 
 ## Phase 7: User Story 5 - Outside Git changes need adoption (P2)
@@ -97,7 +97,7 @@ and local mode with uncommitted work; agent routes answer from the snapshot.
 **Goal**: FR-039.
 
 - [ ] T037 [US7] Add `source` to `ws.exportProject` and the export route; feed the zip planner the snapshot's paths and bytes for `published`; refuse `history=1` with it; keep the default. (proof: `tests/snapshot-export.test.ts`: published zip equals the blobs and has no draft, default zip unchanged byte for byte, history refused; the existing export tests pass; mutant: export working files for `published`)
-- [ ] T038 [P] [US7] Export dialog option in the UI: "Published" next to the default, only when a snapshot exists. (proof: browser check; capture through T067)
+- [ ] T038 [P] [US7] Export dialog option in the UI: "Published" next to the default, only when a snapshot exists. (proof: browser check; capture through T046)
 
 ## Phase 10: Documentation, measurement and gates
 
@@ -131,7 +131,7 @@ and local mode with uncommitted work; agent routes answer from the snapshot.
 | E4 no fallback without a commit or Git | FR-006 | T003, T013, T014, T027 |
 | E5 agents plan from the snapshot, own agent included | FR-025, FR-026, FR-031 | T011, T013, T015 |
 | E5 browser previews remain | FR-027-FR-030 | T008, T028-T030 |
-| E11 not changed underneath; fail closed | FR-019, FR-020, FR-034-FR-036 | T007, T024, T026, T027 |
+| E11 not changed underneath; fail closed | FR-019, FR-020, FR-034-FR-038 | T006, T007, T024, T026, T027 |
 | E11 pins only to published history | FR-032 | T025, T007 |
 | Fable B1 / Astra B3 | FR-018, FR-025, FR-032, FR-033 | T012, T013, T025, T035 |
 | M7 grants keep meaning, history separate | FR-021, FR-025 | T013, T014 |
@@ -142,4 +142,4 @@ and local mode with uncommitted work; agent routes answer from the snapshot.
 | E16 never branch-only WIP in exports | FR-039 | T037 |
 | Observability and audit | FR-040-FR-042 | T016, T020, T032, T033 |
 | Principle VII honest claims | FR-030, FR-043 | T039-T042, T044 |
-| Spec success criteria | SC-001-SC-012 | T013, T014, T024, T025, T034, T035, T040-T047 |
+| Spec success criteria | SC-001-SC-012 | SC-001 T013; SC-002 T043; SC-003 T024; SC-004 T009, T013; SC-005 T014; SC-006 T034; SC-007 T025, T035; SC-008 T044; SC-009 T007; SC-010 T045, T046; SC-011 T039-T042; SC-012 T014, T027 |

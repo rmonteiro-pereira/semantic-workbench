@@ -602,4 +602,8 @@ contents with the snapshot and with the working files.
 | M18 published context and plans in the first MCP release | FR-018, FR-026, FR-031 | SC-002 |
 | E10 cache by snapshot and authorization version | FR-022, FR-034 | SC-005 |
 | E16 never branch-only WIP in exports | FR-039 | SC-001 |
+| E4 first start changes nothing for readers | FR-008, FR-013 | SC-004 |
+| E5 no redaction; whole bytes only (Principle II) | FR-024 | SC-001 |
+| E10 bounded, shareable cache | FR-035, FR-037, FR-038 | SC-008, SC-009 |
+| Observability and audit | FR-040-FR-042 | SC-006 |
 | Principle VII honest claims | FR-030, FR-043 | SC-011 |
