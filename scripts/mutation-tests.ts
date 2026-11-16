@@ -20,6 +20,7 @@ import { resolve, dirname } from 'node:path';
 import { graphMutants, runGraphCase } from './graph-mutants';
 // end lane A imports
 // lane B imports
+import { lineageMutants } from './lineage-mutants';
 // end lane B imports
 // lane C imports
 // end lane C imports
@@ -586,6 +587,7 @@ mutants.push(...operationBoundaryMutants);
 mutants.push(...graphMutants);
 // end lane A mutants
 // lane B mutants
+mutants.push(...lineageMutants);
 // end lane B mutants
 // lane C mutants
 // end lane C mutants
