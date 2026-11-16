@@ -128,6 +128,9 @@ An unauthenticated page request redirects directly to the provider and returns t
 path. There is no application-owned login form. An anonymous API request receives 401.
 A signed-in person with no grant, or a deactivated identity, receives the identity-only
 **No access** page; workspace API requests receive 403, including `/api/me`.
+The script-free page offers **Sign out** and “Ask an administrator for access”. The latter links
+to the brand's `supportUrl` when configured; otherwise it is plain text. Sign-in failures use
+plain explanations and a primary **Try again** action, with the same support line.
 
 **Signed out** stays signed out until **Sign in again** is selected. Sign-in failures display a
 safe reason with a retry action. Invalid attempts/tokens or tenant mismatches receive 400;
@@ -305,7 +308,7 @@ This differs from local mode, which uses the machine's own Git helper/SSH config
 settings and access checks. Editors replace their list in place; dialogs are used for review and
 confirmation rather than nesting whole administration screens.
 
-Access changes require a **Dry run** followed by **Confirm**. The review is bound to the proposal
+Access changes require **Review change** followed by **Confirm**. The review is bound to the proposal
 and current version. Editing the proposal invalidates it; a stale version must be reopened and
 reviewed again. The server replays configured matrix cases, recent audit snapshots and known
 identities without changing live policies during preview.

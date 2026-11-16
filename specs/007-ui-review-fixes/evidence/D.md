@@ -55,3 +55,10 @@ Only ports 5241 and 5242 are used for browser checks. The dev server was started
 - Request-entry tests keep the HTTP status checks while expecting the new expired-link and service-unavailable explanations, so deliberate wording changes remain covered.
 - No inline styles, script, CSP relaxation, or new route is introduced. Brand URLs pass through the existing sanitized manifest boundary.
 - `bun test` on the admin dialog and geometry components: 18 pass, 0 fail.
+
+## T054 — documentation
+
+- User guidance names Review change, the last-Admin refusal, visible access results and the direct-address notice. Server guidance explains the script-free support line; the theme paragraph describes the optional support link.
+- Terminology check passed: no "KPI" or "contract object" in 8 files' views, the metric detail, the wizard, README and docs.
+- `rg -l 'Dry run' docs README.md` retains only `docs/diagrams/identities.svg`, outside lane D ownership. The integrator must update that diagram label to meet the literal zero-match proof; no cross-lane edit was made.
+- Deliverable scanner: 0 hits in the three documentation files and `changelog/D.md`.

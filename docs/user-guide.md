@@ -54,6 +54,12 @@ shows the initials of who is working and opens **Admin** for those allowed. In s
 menu also contains **Connected accounts** and **Sign out**; in local mode there is no sign-in, and
 the avatar reads "L" for the local workspace.
 
+Access grants validate e-mail addresses beside the field. Choose **Review change** to inspect
+who gains or loses access, then confirm the reviewed proposal. A refusal to deactivate the last
+active Admin replaces the confirmation with an explanation. **Access check** shows its allowed
+or denied answer immediately below the actions, including on a phone. Opening an Admin address
+without the Admin role shows a notice with **Back to workspace**.
+
 ### Back and Forward
 
 Back undoes the last action a click caused, and Forward redoes it. The browser's Back and Forward

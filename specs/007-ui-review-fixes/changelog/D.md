@@ -1,0 +1,6 @@
+- Access grants validate e-mail addresses beside the field and use **Review change** before confirmation.
+- Refusing deactivation of the last active Admin removes the confirmation action and explains why.
+- Access checks display allowed or denied results beside their actions, with details folded away.
+- Direct Admin addresses explain when the Admin role is required and provide a workspace link.
+- Admin forms and tables have consistent width limits, readable audit labels and dates without seconds. Review dialogs place the primary action on the right.
+- Script-free authentication pages use primary actions, plain explanations and the configured support address, with administrator guidance when none is configured.

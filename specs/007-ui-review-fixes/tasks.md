@@ -373,7 +373,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Render the one action as `button primary`, rewrite the reason strings in plain words, and link `supportUrl` from the brand bundle when it is set, otherwise print 'Ask an administrator for access'; the pages stay script-free and the sanitised brand rules in `docs/theme.md` still hold (the paragraph that calls `supportUrl` reserved is updated).
   - Proof: Before `auth-pages/auth-page-sign-in-error--page-1440.png`, `auth-pages/auth-page-no-access--page-1440.png` (review baseline); after: same state recaptured with `scripts/ui-review/server-pages.ts <out_root>`; check: `bun test tests/auth/auth-pages.test.ts`; `bun run test:brand`; `bun run test:auth`.
 
-- [ ] T054 [US4] [D] Document the admin changes in `docs/user-guide.md` (Admin section), `docs/server-mode.md` (no-access pages) and `docs/theme.md`; write `changelog/D.md`.
+- [x] T054 [US4] [D] Document the admin changes in `docs/user-guide.md` (Admin section), `docs/server-mode.md` (no-access pages) and `docs/theme.md`; write `changelog/D.md`.
   - Findings: M9, M10, M11, M22, m26 · Requirements: FR-044, FR-045, FR-046, FR-047, FR-051
   - Files: `docs/user-guide.md`, `docs/server-mode.md`, `docs/theme.md`, `specs/007-ui-review-fixes/changelog/D.md`
   - Change: Describe the review step name, the refusal notice and the support link; update the 'reserved for support navigation' sentence.
