@@ -4,7 +4,7 @@ import { whenLabel } from './helpers';
 import { MenuButton } from '../projects/Menu';
 import { AdminConfirmation } from './AdminConfirmation';
 import { AdminPane } from './AdminPane';
-import { adminApi, problemText } from './api';
+import { adminApi, AdminApiError, problemText } from './api';
 import { useAdminData } from './useAdminData';
 import { GrantForm, scopeLabel } from './GrantForm';
 import { AccessCheckSection } from './AccessCheckSection';
@@ -140,6 +140,7 @@ function UserOperation({ user, kind, onCancel, onSaved }: { user: AdminUser; kin
   const [reason, setReason] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [refused, setRefused] = useState(false);
   const title = kind === 'sessions' ? 'End sessions' : kind[0].toUpperCase() + kind.slice(1);
   async function confirm() {
     setBusy(true);
@@ -148,27 +149,32 @@ function UserOperation({ user, kind, onCancel, onSaved }: { user: AdminUser; kin
       else await adminApi.changeUser(user.id, kind, reason);
       onSaved();
     } catch (problem) {
-      setError(`${title} ${user.name}: ${problemText(problem)}`);
+      if (problem instanceof AdminApiError && problem.details.error === 'last-admin') {
+        setRefused(true);
+        setError('This change would remove the last active Admin.');
+      } else {
+        setError(`${title} ${user.name}: ${problemText(problem)}`);
+      }
     } finally {
       setBusy(false);
     }
   }
   return (
     <AdminConfirmation
-      title={title}
+      title={`${title} ${user.name}?`}
       onCancel={onCancel}
       size="narrow"
-      lastAdminNotice={kind === 'deactivate'}
+      lastAdminNotice={kind === 'deactivate' && !refused}
       actions={
-        <button className="primary" disabled={busy || (kind !== 'sessions' && !reason.trim())} onClick={confirm}>
-          Confirm {title.toLowerCase()}
-        </button>
+        !refused && (
+          <button className={kind === 'reactivate' ? 'primary' : 'danger'} disabled={busy || (kind !== 'sessions' && !reason.trim())} onClick={confirm}>
+            Confirm {title.toLowerCase()}
+          </button>
+        )
       }
     >
-      <p>
-        {title} for {user.name}? This changes only this workbench.
-      </p>
-      {kind !== 'sessions' && (
+      {!refused && <p>This changes only this workbench.</p>}
+      {!refused && kind !== 'sessions' && (
         <label>
           Reason
           <input value={reason} onChange={event => setReason(event.target.value)} />

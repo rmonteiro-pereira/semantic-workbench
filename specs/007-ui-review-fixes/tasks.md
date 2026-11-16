@@ -343,7 +343,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Check the address with one shared pattern before review, mark the field invalid with 'Enter a valid e-mail address', translate known server schema failures to a plain sentence (`change-review.ts`), never print the validator text (`ReviewChange.tsx:98`), and rename 'Dry run' to **Review change** (`ReviewChange.tsx:133`).
   - Proof: Before `states/server-admin-grant-form--validation-error-1440.png`, `states/server-admin-grant-form--validation-error-390.png` (review baseline); after: same state recaptured with `scripts/ui-review/admin-states.ts <out>`; check: `bun run test:admin` asserts none of 'must match', 'oneOf', 'grantsFile' is on the page and the field has `aria-invalid`.
 
-- [ ] T049 [US4] [D] Refuse the last-admin change without an enabled Confirm.
+- [x] T049 [US4] [D] Refuse the last-admin change without an enabled Confirm.
   - Findings: M10 · Requirements: FR-045
   - Files: `src/app/admin/UsersSection.tsx`, `src/app/admin/AdminNotices.tsx`, `src/app/admin/AdminConfirmation.tsx`, `tests/admin-dialogs.test.tsx`
   - Change: When the server answers 'last-admin', replace the confirmation by one sentence, remove the code prefix, write the title as 'Deactivate Dave Dias?', and use the `danger` class for a lone destructive confirm (`UsersSection.tsx:164`).

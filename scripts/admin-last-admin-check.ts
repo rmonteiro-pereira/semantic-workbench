@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { expect, type Browser, type Route } from '@playwright/test';
+import { chromium, expect, type Browser, type Route } from '@playwright/test';
 import { useDefaultBrand } from '../tests/helpers/brand-fixture';
 import { authWorkspace } from '../tests/helpers/auth-workspace';
 import { oidcTransport } from '../tests/helpers/oidc-transport';
@@ -67,13 +67,25 @@ export async function lastAdminBrowserCheck(browser: Browser) {
     const users = await adminArea(page, 'Users & groups');
     await users.getByRole('button', { name: 'Actions for Dave Dias', exact: true }).click();
     await page.getByRole('menuitem', { name: 'Deactivate', exact: true }).click();
-    const dialog = page.getByRole('dialog', { name: 'Deactivate', exact: true });
+    const dialog = page.getByRole('dialog', { name: 'Deactivate Dave Dias?', exact: true });
     await dialog.getByLabel('Reason', { exact: true }).fill('Verify the last administrator guard');
     await dialog.getByRole('button', { name: 'Confirm deactivate', exact: true }).click();
-    await expect(dialog.getByRole('alert')).toContainText(/last.admin/i);
+    await expect(dialog.getByRole('alert')).toContainText(/last active Admin/i);
+    await expect(dialog.getByRole('button', { name: /^Confirm/ })).toHaveCount(0);
+    await expect(dialog.getByRole('alert')).not.toContainText('last-admin:');
     await adminGeometry(page, 'last-admin-refusal');
   } finally {
     await context.close();
     auth.close();
+  }
+}
+
+if (import.meta.main) {
+  const browser = await chromium.launch();
+  try {
+    await lastAdminBrowserCheck(browser);
+    console.log('Last-admin check passed: refusal has no enabled Confirm.');
+  } finally {
+    await browser.close();
   }
 }
