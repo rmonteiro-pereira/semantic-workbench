@@ -36,3 +36,44 @@ The unchanged administration comparison replays six fixed-clock read/edit snapsh
 ## Caller provenance
 
 `bun test tests/auth/operation-boundary.test.ts`: 1 pass, 0 fail, 6 expect() calls. The caller module has no production importers yet.
+
+## Blocking finding: audit rule order varies on original code
+
+Phase 2 stops at T006. The proposed extraction was discarded. The production middleware, handler and Cedar evaluator are byte-identical to their original versions. Only the unused caller module from T005 was added.
+
+The frozen characterization initially passed on unchanged code, including a repeat before its commit. When run with the existing authorization tests it fails on the original middleware:
+
+```sh
+bun test tests/auth/http-characterization.test.ts tests/auth/middleware.test.ts tests/auth/bearer.test.ts tests/auth/rate-limit.test.ts tests/auth/csrf.test.ts tests/auth/csrf-body-limit.test.ts
+```
+
+Summary: `35 pass`, `1 fail`, `319 expect() calls`, `Ran 36 tests across 6 files.`
+
+Case: local `GET /api/agent/catalog`. Expected audit rules are `["B1-workspace-lists", "role:admin:1"]`; actual rules are `["role:admin:1", "B1-workspace-lists"]`. The Cedar evaluator returns `diagnostics.reason` directly as `rules`, and the audit serializer stores that array unchanged. The extraction and the restored original middleware fail on the same difference.
+
+The requirement that every audit field except time, request id and chain hash remain identical cannot produce a stable whole-suite characterization when the original evaluator changes rule order. Sorting stored rules would change existing audit bytes. Sorting only the comparison would require changing the frozen test/fixture contract. Neither change is made here. Recommendation: explicitly permit canonicalization of the audit rule list, then repeat and commit the baseline against the original middleware before resuming extraction.
+
+The characterization recorder, test and fixture remain byte-identical to commit `1ad23ed7`. The three old audit month files remain byte-identical to commit `66e51af5`. T006 through T051 remain unchecked; the dependency order prevents implementing the later phases while the phase-2 characterization gate is blocked. No task was silently omitted or marked complete without its proof.
+
+## Validation at the stop point
+
+- `bun test tests/auth/dry-run-baseline.test.ts tests/auth/audit-compat.test.ts tests/auth/operation-boundary.test.ts`: `4 pass`, `0 fail`, `15 expect() calls`, `Ran 4 tests across 3 files.`
+- `bun test tests/auth/http-characterization.test.ts tests/auth/audit-compat.test.ts tests/auth/dry-run-baseline.test.ts tests/auth/operation-boundary.test.ts`: `4 pass`, `1 fail`, `89 expect() calls`, `Ran 5 tests across 4 files.` The original middleware has the same audit-rule ordering difference.
+- `bun --bun run check`: exit 0. Formatting, lint, comments, theme and brand checks pass.
+- `bun --bun run build`: exit 0, `built in 2.92s`. The build reports its existing large-chunk warning.
+- `bun run audit:verify tests/fixtures/audit-v1`: `Audit log intact: 9 records in 3 months.`
+- `bun run test:terminology`: exit 1, `net::ERR_CONNECTION_REFUSED` at the script's default frontend. No frontend was started. Further browser checks were stopped after inspecting their port allocation.
+- Readability checker: exit 0 on the changed TypeScript files.
+- Leak scanner: exit 0 on all 15 added code/fixture files.
+- Full `bun test`, `bun scripts/mutation-tests.ts`, `bun run test:auth` and `bun run test:admin` were not run. Their current harnesses allocate listeners with port 0 or launch servers on dynamically chosen ports; the authorization browser suite needs the main API, remote-credential API and identity provider concurrently. They do not expose a configuration that confines all listeners to the two assigned ports. The full release gate remains pending; it is not reported as passing.
+- The requested `scripts/commit_cadence.py` does not exist in this worktree.
+
+## Constitution wording handover
+
+The constitution is unchanged. Its current version is 4.0.0; the plan's reference to 3.2.0 is stale. The existing technical constraints already require MCP twins through the shared path, and Principle VI already mentions MCP tools beside HTTP twins, but the matrix sentence does not yet mention the operation inventory.
+
+Proposed Technical Constraints sentence: “Every operation, whatever transport it arrives by, MUST go through the operation boundary for route selection, authorization, handler execution, refusal mapping and audit; no transport, adapter or tool decides access.”
+
+Proposed Principle VI sentence: “Every new route, and every MCP tool beside its HTTP twin, MUST be added to the authorization matrix and operation inventory, including its parity case.”
+
+These are handover text only. Their inclusion on the constitution amendment branch has not been established, so T049 remains unchecked.
