@@ -70,21 +70,21 @@ address says whether it is ambiguous or volatile.
 
 **Independent test**: `bun test tests/model-addresses.test.ts`.
 
-- [ ] T010 [US2] Write `addressesOfModel` in `src/shared/core/model-addresses.ts` for ontology and
+- [x] T010 [US2] Write `addressesOfModel` in `src/shared/core/model-addresses.ts` for ontology and
   standalone model documents (root scope segment, concepts, relationships, concept mappings,
   datasets, fields, joins, metrics). Proof: `tests/model-addresses.test.ts` against the sample
   project documents. (FR-011, FR-012, FR-014, FR-023)
-- [ ] T011 [US5] Extend it to the consolidated layout, the legacy `semantic_model` list and ODCS
+- [x] T011 [US5] Extend it to the consolidated layout, the legacy `semantic_model` list and ODCS
   (objects, nested properties with one segment per level, foreign keys as positional segments).
   Add fixture documents with dotted, colon and hash names. Proof: SC-008 test resolving every
   derived address of every layout back to its item; dotted ODCS property case. (FR-013, FR-014,
   FR-015; SC-008)
-- [ ] T012 [US2] Write `resolveInModel` (`found`, `ambiguous`, `missing`; parent-kind rule) and
+- [x] T012 [US2] Write `resolveInModel` (`found`, `ambiguous`, `missing`; parent-kind rule) and
   `itemIdentity` (expanded IRI through `src/shared/validation/iri.ts`, none otherwise; no generated
   ids). Proof: tests for duplicate same-kind siblings returning both matches, a dataset and a join
   with one name, an IRI kept across a rename, a field with no identity. (FR-016, FR-017, FR-018,
   FR-024)
-- [ ] T013 [US2] Add the model-level property tests: reorder invariance over 1,000 shuffles per
+- [x] T013 [US2] Add the model-level property tests: reorder invariance over 1,000 shuffles per
   sample project, uniqueness of non-ambiguous addresses per document, positional segments flagged
   volatile. Proof: `tests/model-addresses.test.ts`. (FR-019, FR-025; SC-002, SC-003)
 - [ ] T014 [P] [US2] Add mutants: ignore the kind when matching, choose the first of ambiguous

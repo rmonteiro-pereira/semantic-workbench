@@ -98,3 +98,14 @@ removing only that precheck cannot admit a child the traversal never visits. Tha
 is equivalent, rather than an undetected fault. Illegal parent chains are exercised through the
 public resolver. The three non-equivalent model mutants target kind matching, choosing the first
 duplicate and losing positional volatility.
+
+## Structured derivation proof
+
+- Model derivation tests: seven passed, including all structured sample locators resolving to
+  their source items and 1,000 permutations per sample project. Combined grammar/model run:
+  15 pass, 0 fail, 37,984 assertions in 54.80 s.
+- The later inspector test used an invalid concept type in its synthetic fixture; it was corrected
+  to the pinned schema's `EntityType`. No production schema was changed.
+- Timing after integrating only requested inspector paths and reusing repeated edge paths:
+  `enterprise-1000.ossie.yaml`, 15 alternating samples after four warmups, baseline median
+  292.13984 ms, current median 297.252631 ms, overhead 1.7501176833671472%.

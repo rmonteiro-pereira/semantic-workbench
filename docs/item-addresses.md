@@ -25,3 +25,15 @@ ADDRESS_TEST_SEED=9721 bun test tests/item-address-properties.test.ts
 `ADDRESS_TEST_SEED` accepts an integer. A failing property includes its seed for replay.
 The fixtures are in `tests/fixtures/addresses/conformance.json`. UI selection, model derivation
 and persisted-key migration have not adopted this API yet.
+
+## Structured definitions
+
+`addressesOfModel(document, location)` derives locators for Ossie ontology, semantic-model and
+mapping documents and ODCS contracts, including embedded and legacy layouts. `location` contains
+the project slug and document path parts; without it the locators are document-relative.
+`resolveInModel` returns found, ambiguous or missing and never selects the first duplicate.
+`itemIdentity` returns a declared expanded IRI or null, independently of a name-based locator.
+
+An embedded mapping uses its name when present and `mapping:#<index>` otherwise. Positional
+ancestors make every descendant volatile, so those locators must not be persisted as history.
+RDF/SHACL resources and built-in concepts have no address in this feature. Unsupported depth or length reports the source path.
