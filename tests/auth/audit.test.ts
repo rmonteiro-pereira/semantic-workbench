@@ -258,3 +258,28 @@ test('refused adoptions retain a bounded reason and a verifiable audit chain', a
   expect(audit.recent(1)[0].publication).toEqual({ previous: repository.published, commit: repository.previous });
   expect(verifyAuditChain(readStoredMonths(join(repository.dir, 'state', 'adoption-audit')))).toMatchObject({ ok: true, records: 2 });
 });
+
+test('a content guard refusal audits the exact adoption attempt once', async () => {
+  const { authWorkspace } = await import('../helpers/auth-workspace');
+  const { signedIn } = await import('./working-copy-fixture');
+  const { person } = await import('./access-fixture');
+  using fixture = await authWorkspace();
+  const project = 'sales-metrics';
+  const directory = join(fixture.ws.layout.projects, project);
+  const previous = fixture.ws.state.published().repositories[project].commit;
+  const path = join(directory, 'sales.semantic.yaml');
+  writeFileSync(path, readFileSync(path, 'utf8').replace('"owner": "alice@example.org", "status": "proposed"', '"owner": "bob@example.org", "status": "approved"'));
+  await fixture.ws.git.addAll(directory);
+  await fixture.ws.git.commit(directory, 'Outside approval', true);
+  const commit = await fixture.ws.git.head(directory);
+  const bob = signedIn(fixture.ws)(person('bob'));
+  const auditDirectory = join(fixture.ws.layout.state, 'audit');
+  const audit = createAuditLog({ dir: auditDirectory, mirror: () => {} });
+  const before = audit.recent(100).length;
+  const response = await bob.call(`/api/projects/${project}/git/adopt`, 'POST', {});
+  expect(response.status).toBe(403);
+  const records = audit.recent(100);
+  expect(records).toHaveLength(before + 1);
+  expect(records[0]).toMatchObject({ decision: 'deny', reason: 'guarded:metric-status', publication: { previous, commit } });
+  expect(verifyAuditChain(readStoredMonths(auditDirectory))).toMatchObject({ ok: true });
+});

@@ -81,7 +81,7 @@ function refusal(decision: Decision, error?: WriteAccessError): Response {
 }
 
 /** Audits the target a route refused and answers like a refusal at the boundary. */
-function refusedTarget(audit: AuditLog, requestId: string, scope: AccessScope, error: WriteAccessError): Response {
+function refusedTarget(audit: AuditLog, requestId: string, scope: AccessScope, error: WriteAccessError, publication: AccessRequest[typeof requestPublication]): Response {
   const denied = auditInput({
     requestId,
     principal: scope.principal,
@@ -89,7 +89,7 @@ function refusedTarget(audit: AuditLog, requestId: string, scope: AccessScope, e
     resource: error.resource,
     decision: error.decision,
   });
-  const failure = auditDenial(audit, { ...denied, decision: 'deny' });
+  const failure = auditDenial(audit, { ...denied, decision: 'deny', ...(publication ? { publication } : {}) });
   return failure ?? refusal(error.decision, error);
 }
 
@@ -159,7 +159,7 @@ export function createOperationBoundary(ws: Workspace, options: OperationBoundar
       if (!(error instanceof WriteAccessError)) throw error;
       // Dynamic effects belong to the enclosing operation's audit record.
       const denied = error.decision.reason === 'connection-scope' ? new WriteAccessError(verdict.row.action, verdict.resource, error.decision) : error;
-      return { response: refusedTarget(input.audit, input.requestId, scope, denied), denied: true };
+      return { response: refusedTarget(input.audit, input.requestId, scope, denied, input.request[requestPublication]), denied: true };
     }
     if (mode === 'server' && hiddenResponses.has(response)) {
       const failure = auditDenial(input.audit, { ...record, decision: 'deny', reason: 'not-readable' });
