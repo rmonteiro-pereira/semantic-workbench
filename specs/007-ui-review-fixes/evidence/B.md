@@ -181,87 +181,154 @@ The integrator must reconcile the skipped Fit/name/target acceptance conditions,
 - The detailed layout retains its fixed header/row geometry and semantic edge endpoints. Name-only overview geometry anchors those same endpoints to the card header.
 - Initial framing may choose the compact complete reach only when its measured names fit readably; otherwise it frames a whole chosen neighbourhood. Fit explicitly requests the complete compact reach.
 - Card selection remains available at far zoom and offers Walk in the existing Selected path panel; readable Walk buttons retain their compensated 24 px target.
-- The integrator permits dynamic fixture listeners. Shared-source routing and removing the fixed detailed header band are excluded; previous skip dispositions below are superseded by the completion results.
+- The integrator permits dynamic fixture listeners. Shared-source routing and removing the fixed detailed header band are excluded; previous skip dispositions below are superseded by the completion
+  results.
 
 
-The integrator accepts the panel-fitting portion of T028 and the existing T032 changes. Both are ticked; the spec records shared-source cross-destination trunks and removal of the detailed fixed header band as out of scope. The original skipped audit is historical and superseded for these two tasks. Existing panel fits, empty-state/legend captures and checks above establish their delivered portion; final responsive checks will cover the shared name-only rendering as well.
+The integrator accepts the panel-fitting portion of T028 and the existing T032 changes. Both are ticked; the spec records shared-source cross-destination trunks and removal of the detailed fixed
+header band as out of scope. The original skipped audit is historical and superseded for these two tasks. Existing panel fits, empty-state/legend captures and checks above establish their delivered
+portion; final responsive checks will cover the shared name-only rendering as well.
 
 ### Viewport settlement and representation transitions
 
-The compact layout now fits its controlled layout bounds with React Flow's viewport calculation instead of relying on the currently mounted subset of cards. Explicit Fit clears an obsolete resize anchor, records a fresh request even when the representation is unchanged, and ignores stale layout completions. A representation change refreshes semantic handle measurements. Overview ports retain their semantic `data-id` ownership for the existing edge checks.
+The compact layout now fits its controlled layout bounds with React Flow's viewport calculation instead of relying on the currently mounted subset of cards. Explicit Fit clears an obsolete resize
+anchor, records a fresh request even when the representation is unchanged, and ignores stale layout completions. A representation change refreshes semantic handle measurements. Overview ports retain
+their semantic `data-id` ownership for the existing edge checks.
 
-Validation for this step: `bun test tests/lineage-view.test.ts tests/edge-labels.test.ts`: `16 pass`, `0 fail`, `46 expect() calls` (`out/lane-b/resume-focused-current.log`). `bun --bun run check` passes TypeScript, format, lint, comments, theme and brand (`out/lane-b/resume-check-current.log`). Readability and whitespace checks pass. Completion captures and full browser gates follow below.
+Validation for this step: `bun test tests/lineage-view.test.ts tests/edge-labels.test.ts`: `16 pass`, `0 fail`, `46 expect() calls` (`out/lane-b/resume-focused-current.log`). `bun --bun run check`
+passes TypeScript, format, lint, comments, theme and brand (`out/lane-b/resume-check-current.log`). Readability and whitespace checks pass. Completion captures and full browser gates follow below.
 
-An initial resumed mapping invocation used `BASE_URL` instead of the harness's `SW_BASE_URL` and refused its default 5173 connection; subsequent checks explicitly use 5221. Browser attempts overlapping schema generation/build or creating the foundation archive under the watched tree were invalidated by page reloads. The foundation archive now lives under `/tmp/sw-B/foundation`; builds and browser checks run separately.
+An initial resumed mapping invocation used `BASE_URL` instead of the harness's `SW_BASE_URL` and refused its default 5173 connection; subsequent checks explicitly use 5221. Browser attempts
+overlapping schema generation/build or creating the foundation archive under the watched tree were invalidated by page reloads. The foundation archive now lives under `/tmp/sw-B/foundation`; builds
+and browser checks run separately.
 
 ### Explicit fits and whole chosen frames
 
-A native probe of the large Mall mapping exposed an older first-view loop overwriting an explicit Fit. Fit now invalidates that loop and queued measurement callbacks stop after a completed fit. The large mapping's explicit Fit settles at zoom 0.0441352 with all 99 cards mounted (`out/lane-b/mall-entry-debug4.log`). The pane dimensions used for fitting come from the current DOM pane, while the existing frozen size continues to budget rows during selection. A Fit requested during full-screen restoration waits until restoration finishes rather than being dropped.
+A native probe of the large Mall mapping exposed an older first-view loop overwriting an explicit Fit. Fit now invalidates that loop and queued measurement callbacks stop after a completed fit. The
+large mapping's explicit Fit settles at zoom 0.0441352 with all 99 cards mounted (`out/lane-b/mall-entry-debug4.log`). The pane dimensions used for fitting come from the current DOM pane, while the
+existing frozen size continues to budget rows during selection. A Fit requested during full-screen restoration waits until restoration finishes rather than being dropped.
 
-When a complete compact reach cannot fit readable names, the entry frame draws only its whole chosen cards. Panning, zooming, Fit and a selected-path fit release that temporary frame. This prevents outer cards from appearing cut beside the chosen set. Compact layout is available on entry without a preliminary detailed layout.
+When a complete compact reach cannot fit readable names, the entry frame draws only its whole chosen cards. Panning, zooming, Fit and a selected-path fit release that temporary frame. This prevents
+outer cards from appearing cut beside the chosen set. Compact layout is available on entry without a preliminary detailed layout.
 
-`bun --bun run check` passes (`out/lane-b/resume-check-latest.log`); the focused predicates remain `16 pass`, `0 fail`, `46 expect() calls` (`out/lane-b/resume-focused-last.log`). The full unit/integration run reports `2077 pass`, `0 fail`, `130809 expect() calls`, across 286 files (`out/lane-b/resume-unit-full.log`). The continuing browser diagnostics retain all semantic and geometry assertions; their entry-latency failure is not classified until compared with the foundation.
+`bun --bun run check` passes (`out/lane-b/resume-check-latest.log`); the focused predicates remain `16 pass`, `0 fail`, `46 expect() calls` (`out/lane-b/resume-focused-last.log`). The full
+unit/integration run reports `2077 pass`, `0 fail`, `130809 expect() calls`, across 286 files (`out/lane-b/resume-unit-full.log`). The continuing browser diagnostics retain all semantic and geometry
+assertions; their entry-latency failure is not classified until compared with the foundation.
 
 ### Completed header, first-view and Walk acceptance
 
-T024, T025 and T026 are complete under the integrator's acceptance. The new shared browser helper pans a card into the pane before using native wheel zoom, then checks the native Walk target and waits for the recorded walk before Back. Both capture scripts now test four candidates rather than three. The phone's gradual wheel zoom avoids jumping from a fitted overview to a card wider than the pane.
+T024, T025 and T026 are complete under the integrator's acceptance. The new shared browser helper pans a card into the pane before using native wheel zoom, then checks the native Walk target and waits
+for the recorded walk before Back. Both capture scripts now test four candidates rather than three. The phone's gradual wheel zoom avoids jumping from a fitted overview to a card wider than the pane.
 
-- `scripts/ui-review/known-issues.ts out/lane-b/resume-known 1 1` reports `readableClicks: 4` and `fittedSelection: success` at 1280, 1440 and 390. All twelve targets are at least 24 px in both dimensions, wholly in the pane and uncovered; all walks preserve page scroll. The 1440 targets measure 24.42 by 24.42 px. Log: `out/lane-b/resume-known.log`. The first graph-reopen attempt also succeeds on 5221.
-- `scripts/ui-review/lineage-visibility.ts out/lane-b/resume-walk` supplies the matched first-view pairs at 1280, 1440 and 390. Its original desktop-target run passed four clicks at 1280 and 1440; the later known-issues run includes the phone pan/gradual-zoom correction and passes at all three widths.
-- Inspected `states/local-lineage-walk--first-view-{1280,1440,390}.png` against `out/lane-b/resume-walk/local-lineage-walk--first-view-{1280,1440,390}.png`. The header is one line; at 1280 the centre and multiple whole neighbours fit in the recovered pane. At 390 the chosen centre is whole instead of a clipped card below the large header.
-- Inspected the four `out/lane-b/resume-known/local-lineage-walk--readable-{1,2,3,4}-after-1440.png` images. The centres become valuations, permits, equipment and legal_proceedings, and the context identifies properties as the opened table. `...--fitted-selection-after-1440.png` shows the native Walk action in Selected path. The companion before captures retain each readable target or fitted selection stage.
-- Inspected `local-light/local-contract-graph-1440.png` against `out/lane-b/resume-tour/local-contract-graph-1440.png`: all six commerce cards fit whole instead of leaving outer cards cut. Inspected `local-light/local-mapping-graph-1440.png` against `out/lane-b/resume-tour/local-mapping-graph-1440.png`: all nine reachable cards fit, including the formerly cut top cards. Both recaptures use `capture-tour.ts`, light, the same files and 1440x900.
+- `scripts/ui-review/known-issues.ts out/lane-b/resume-known 1 1` reports `readableClicks: 4` and `fittedSelection: success` at 1280, 1440 and 390. All twelve targets are at least 24 px in both
+  dimensions, wholly in the pane and uncovered; all walks preserve page scroll. The 1440 targets measure 24.42 by 24.42 px. Log: `out/lane-b/resume-known.log`. The first graph-reopen attempt also
+  succeeds on 5221.
+- `scripts/ui-review/lineage-visibility.ts out/lane-b/resume-walk` supplies the matched first-view pairs at 1280, 1440 and 390. Its original desktop-target run passed four clicks at 1280 and 1440; the
+  later known-issues run includes the phone pan/gradual-zoom correction and passes at all three widths.
+- Inspected `states/local-lineage-walk--first-view-{1280,1440,390}.png` against `out/lane-b/resume-walk/local-lineage-walk--first-view-{1280,1440,390}.png`. The header is one line; at 1280 the centre
+  and multiple whole neighbours fit in the recovered pane. At 390 the chosen centre is whole instead of a clipped card below the large header.
+- Inspected the four `out/lane-b/resume-known/local-lineage-walk--readable-{1,2,3,4}-after-1440.png` images. The centres become valuations, permits, equipment and legal_proceedings, and the context
+  identifies properties as the opened table. `...--fitted-selection-after-1440.png` shows the native Walk action in Selected path. The companion before captures retain each readable target or fitted
+  selection stage.
+- Inspected `local-light/local-contract-graph-1440.png` against `out/lane-b/resume-tour/local-contract-graph-1440.png`: all six commerce cards fit whole instead of leaving outer cards cut. Inspected
+  `local-light/local-mapping-graph-1440.png` against `out/lane-b/resume-tour/local-mapping-graph-1440.png`: all nine reachable cards fit, including the formerly cut top cards. Both recaptures use
+  `capture-tour.ts`, light, the same files and 1440x900.
 
-The original review screenshots are under the supplied review's `screenshots/` root. Capture filters in ignored `out/lane-b/` select owned screens and keep the stock writers. They do not replace browser or API responses. The full mutation rerun and all final browser suites use temporary fixtures under `/tmp/sw-B/tmp`, dynamic fixture ports, and frontend 5221. Earlier unprefixed temporary fixture runs cleaned up their own temporary roots.
+The original review screenshots are under the supplied review's `screenshots/` root. Capture filters in ignored `out/lane-b/` select owned screens and keep the stock writers. They do not replace
+browser or API responses. The full mutation rerun and all final browser suites use temporary fixtures under `/tmp/sw-B/tmp`, dynamic fixture ports, and frontend 5221. Earlier unprefixed temporary
+fixture runs cleaned up their own temporary roots.
 
 ### Completed compensated Fit and panel proof
 
-T027 is complete. Both canvases use the same overview card and semantic ports. The normal header switches to name-only form when its 14 px name would fall below NAME_MIN_PX; overview names compensate to at least 9 screen px. Detail rows return on native zoom.
+T027 is complete. Both canvases use the same overview card and semantic ports. The normal header switches to name-only form when its 14 px name would fall below NAME_MIN_PX; overview names compensate
+to at least 9 screen px. Detail rows return on native zoom.
 
-Inspected the review's `states/local-contract-lineage--after-fit-1440.png` against `out/lane-b/resume-states/local-contract-lineage--after-fit-1440.png`: the same properties, three-hop reach now has readable name-only boxes instead of microscopic rows. Inspected `states/local-contract-lineage--after-fit-2560.png` against `out/lane-b/resume-brands-matched/local-contract-lineage--after-fit-2560.png`: the centre is brands, 65 connected tables, three hops, with the original properties → portfolios → tenants → brands trail. Names remain legible and every box fits. The earlier properties-centred 2560 capture is not used as this pair.
+Inspected the review's `states/local-contract-lineage--after-fit-1440.png` against `out/lane-b/resume-states/local-contract-lineage--after-fit-1440.png`: the same properties, three-hop reach now has
+readable name-only boxes instead of microscopic rows. Inspected `states/local-contract-lineage--after-fit-2560.png` against
+`out/lane-b/resume-brands-matched/local-contract-lineage--after-fit-2560.png`: the centre is brands, 65 connected tables, three hops, with the original properties → portfolios → tenants → brands
+trail. Names remain legible and every box fits. The earlier properties-centred 2560 capture is not used as this pair.
 
-Inspected the review's `followup/local-mall-properties-lineage--more-columns-open-1440.png` against `out/lane-b/resume-followup/screenshots/followup/local-mall-properties-lineage--more-columns-open-1440.png`: the same expanded-column state survives Fit; far zoom shows names rather than tiny rows. Inspected `states/local-contract-lineage--column-selected-1440.png` against `out/lane-b/resume-column/local-contract-lineage--column-selected-1440.png`, and `states/local-mapping-graph--node-selected-1440.png` against `out/lane-b/resume-mapping-states/local-mapping-graph--node-selected-1440.png`: the selected paths remain beside whole cards, clear of the panel. Shared-source trunks remain excluded.
+Inspected the review's `followup/local-mall-properties-lineage--more-columns-open-1440.png` against
+`out/lane-b/resume-followup/screenshots/followup/local-mall-properties-lineage--more-columns-open-1440.png`: the same expanded-column state survives Fit; far zoom shows names rather than tiny rows.
+Inspected `states/local-contract-lineage--column-selected-1440.png` against `out/lane-b/resume-column/local-contract-lineage--column-selected-1440.png`, and
+`states/local-mapping-graph--node-selected-1440.png` against `out/lane-b/resume-mapping-states/local-mapping-graph--node-selected-1440.png`: the selected paths remain beside whole cards, clear of the
+panel. Shared-source trunks remain excluded.
 
-The shared responsive suite imports the native zoom helper and adds one call before each existing orders.amount selection in its lineage blocks. The selection still tests detailed rows after compact first-view rendering. Existing lineage/mapping assertions similarly zoom before testing rows, badges and actions; wording assertions now match the deliberate one-to-three-hop wording. No semantic or geometry assertion is removed.
+The shared responsive suite imports the native zoom helper and adds one call before each existing orders.amount selection in its lineage blocks. The selection still tests detailed rows after compact
+first-view rendering. Existing lineage/mapping assertions similarly zoom before testing rows, badges and actions; wording assertions now match the deliberate one-to-three-hop wording. No semantic or
+geometry assertion is removed.
 
 ### Final gate comparison notes
 
-The final build succeeds (`out/lane-b/resume-build-final.log`, `built in 6.16s`). The current `bun --bun run check` succeeds (`out/lane-b/resume-check-final.log`): TypeScript, format, lint, comments, theme and brand. Public guides and changelog pass the full leak scan; internal evidence passes the confidential-only scan. Documentation synchronization and whitespace checks pass.
+The final build succeeds (`out/lane-b/resume-build-final.log`, `built in 6.16s`). The current `bun --bun run check` succeeds (`out/lane-b/resume-check-final.log`): TypeScript, format, lint, comments,
+theme and brand. Public guides and changelog pass the full leak scan; internal evidence passes the confidential-only scan. Documentation synchronization and whitespace checks pass.
 
-The root full mutation invocations `out/lane-b/resume-mutation-complete.log` and `out/lane-b/resume-mutation-unrestricted-cpu.log` both stop at `Baseline failed (example-registry)` with an empty child error after the runner's 10-second kill budget. The first uses four CPUs, the second unrestricted CPUs; both retain a 6 GiB memory cap. The same unmodified category on foundation 593f2c18 also exceeds exactly that 10-second budget (`out/lane-b/foundation-example-registry-timeout.log`). No registry or runner timeout is changed by this lane. The earlier misnamed `out/lane-b/foundation-mutation.log` is a root partial run: all module baselines and module mutants passed there, but its UI child used the default frontend URL and is invalid as a full-gate result. `foundation-mutation-actual.log` is the corresponding foundation partial run.
+The root full mutation invocations `out/lane-b/resume-mutation-complete.log` and `out/lane-b/resume-mutation-unrestricted-cpu.log` both stop at `Baseline failed (example-registry)` with an empty child
+error after the runner's 10-second kill budget. The first uses four CPUs, the second unrestricted CPUs; both retain a 6 GiB memory cap. The same unmodified category on foundation 593f2c18 also exceeds
+exactly that 10-second budget (`out/lane-b/foundation-example-registry-timeout.log`). No registry or runner timeout is changed by this lane. The earlier misnamed `out/lane-b/foundation-mutation.log`
+is a root partial run: all module baselines and module mutants passed there, but its UI child used the default frontend URL and is invalid as a full-gate result. `foundation-mutation-actual.log` is
+the corresponding foundation partial run.
 
-The original foundation lineage suite stops at its covered native Walk target (`out/lane-b/foundation-lineage-full.log`). A disposable copy selecting only its original Mall setup and Mall-to-UBL timing check reproduces `2581 ms`, exceeding the unchanged `2000 ms` requirement (`out/lane-b/foundation-lineage-timing.log`). Lane runs observed both `1353 ms` and failures at `2264`/`2350 ms`; the budget remains intact. A diagnostic functional run, if needed, omits only this single timing assertion and is labelled separately from the required suite.
+The original foundation lineage suite stops at its covered native Walk target (`out/lane-b/foundation-lineage-full.log`). A disposable copy selecting only its original Mall setup and Mall-to-UBL
+timing check reproduces `2581 ms`, exceeding the unchanged `2000 ms` requirement (`out/lane-b/foundation-lineage-timing.log`). Lane runs observed both `1353 ms` and failures at `2264`/`2350 ms`; the
+budget remains intact. A diagnostic functional run, if needed, omits only this single timing assertion and is labelled separately from the required suite.
 
-The lane's unmodified mutation case exits 0 (`out/lane-b/resume-lineage-mutation-baseline.log`); `resume-focused-mutants-final.log` reports `KILLED lineage viewport mutant 1`, `KILLED lineage viewport mutant 2` and `2/2 lineage viewport mutants killed`. The focused runner's baseline wording is supported by that separate unmodified invocation.
+The lane's unmodified mutation case exits 0 (`out/lane-b/resume-lineage-mutation-baseline.log`); `resume-focused-mutants-final.log` reports `KILLED lineage viewport mutant 1`, `KILLED lineage viewport
+mutant 2` and `2/2 lineage viewport mutants killed`. The focused runner's baseline wording is supported by that separate unmodified invocation.
 
-Inspected the corrected empty-state pair: `states/local-dark-mapping-graph--empty-bindings-2560.png` and `out/lane-b/resume-empty-proof/local-dark-mapping-graph--empty-bindings-2560.png`. The same Identifier centre is whole with an explicit “No linked assets for Identifier.” message. Earlier empty captures caught loading and are excluded. The detailed fixed header band remains, as directed.
+Inspected the corrected empty-state pair: `states/local-dark-mapping-graph--empty-bindings-2560.png` and `out/lane-b/resume-empty-proof/local-dark-mapping-graph--empty-bindings-2560.png`. The same
+Identifier centre is whole with an explicit “No linked assets for Identifier.” message. Earlier empty captures caught loading and are excluded. The detailed fixed header band remains, as directed.
 
 ### Detail-row browser setup
 
-The shared responsive suite now has two one-line calls in its existing lineage sections: the direct path-panel check and the final lineage overlay sweep. Both enter detailed rows through native pan and wheel gestures before the existing orders.amount click. The helper retries transient missing bounds during the representation layout; it still requires a visible detailed card and an enabled toolbar. The dedicated ODCS tour adds a detailed-row screen so the existing 8 px column mutation cannot disappear behind the compact representation.
+The shared responsive suite now has two one-line calls in its existing lineage sections: the direct path-panel check and the final lineage overlay sweep. Both enter detailed rows through native pan
+and wheel gestures before the existing orders.amount click. The helper retries transient missing bounds during the representation layout; it still requires a visible detailed card and an enabled
+toolbar. The dedicated ODCS tour adds a detailed-row screen so the existing 8 px column mutation cannot disappear behind the compact representation.
 
-Validation: `RESPONSIVE_ONLY='ODCS graph: 1280×720' bun scripts/responsive-ui-tests.ts` reports `PASS ODCS graph: 1280×720 whole cards, clear lines, legend, readable`, `PASS no uncaught browser errors`, `2 responsive UI checks passed` (`out/lane-b/resume-column-baseline.log`). The mapping suite reports `12 mapping graph checks passed` (`out/lane-b/resume-gate-mapping-graph-browser-check.log`). The current static gate passes (`out/lane-b/resume-check-complete.log`). The full responsive and column-mutant runs remain separate results below.
+Validation: `RESPONSIVE_ONLY='ODCS graph: 1280×720' bun scripts/responsive-ui-tests.ts` reports `PASS ODCS graph: 1280×720 whole cards, clear lines, legend, readable`, `PASS no uncaught browser
+errors`, `2 responsive UI checks passed` (`out/lane-b/resume-column-baseline.log`). The mapping suite reports `12 mapping graph checks passed`
+(`out/lane-b/resume-gate-mapping-graph-browser-check.log`). The current static gate passes (`out/lane-b/resume-check-complete.log`). The full responsive and column-mutant runs remain separate results
+below.
 
 ### Compensated-name mutation coverage
 
-The existing disposable production-module case also covers overview-name compensation. A new registered mutant removes compensation while keeping the natural font size. The unmodified case exits 0, and `out/lane-b/resume-three-mutants.log` reports `KILLED lineage viewport mutant 1`, `KILLED lineage viewport mutant 2`, `KILLED lineage viewport mutant 3`, `3/3 lineage viewport mutants killed.` The prior two-mutant results remain historical. The detailed-row browser mutant also fails for its intended reason: `odcs-graph-columns: column names are 8.0 canvas px` (`out/lane-b/resume-column-mutant.log`), while its matching baseline passes.
+The existing disposable production-module case also covers overview-name compensation. A new registered mutant removes compensation while keeping the natural font size. The unmodified case exits 0,
+and `out/lane-b/resume-three-mutants.log` reports `KILLED lineage viewport mutant 1`, `KILLED lineage viewport mutant 2`, `KILLED lineage viewport mutant 3`, `3/3 lineage viewport mutants killed.` The
+prior two-mutant results remain historical. The detailed-row browser mutant also fails for its intended reason: `odcs-graph-columns: column names are 8.0 canvas px`
+(`out/lane-b/resume-column-mutant.log`), while its matching baseline passes.
 
 ### Complete lineage gate
 
-The required, unmodified-budget suite now passes: `26 lineage checks passed on isolated data root /tmp/sw-B/tmp/workbench-browser-wWrcCJ.` (`out/lane-b/resume-lineage-last.log`). UBL entry is `1370 ms`; path emphasis is within 200 ms. Existing row, badge, expansion, semantic-edge and panel assertions all pass after native zoom into detailed cards. The Mall case waits for actual cards and whole framing instead of an arbitrary second. It reports all four readable Walk targets at `24.38×24.38 px`, preserves scroll, and passes fitted-card selection followed by Walk. There are no browser errors.
+The required, unmodified-budget suite now passes: `26 lineage checks passed on isolated data root /tmp/sw-B/tmp/workbench-browser-wWrcCJ.` (`out/lane-b/resume-lineage-last.log`). UBL entry is `1370
+ms`; path emphasis is within 200 ms. Existing row, badge, expansion, semantic-edge and panel assertions all pass after native zoom into detailed cards. The Mall case waits for actual cards and whole
+framing instead of an arbitrary second. It reports all four readable Walk targets at `24.38×24.38 px`, preserves scroll, and passes fitted-card selection followed by Walk. There are no browser errors.
 
-This actual full-suite pass supersedes the earlier timing failures and diagnostic-only runs as the final lineage result. The queued isolated Mall repeat detects that full pass and skips its redundant run. The final full unit suite and responsive suite continue separately; the responsive mapping block has one additional native zoom call before its existing detailed-card selection so its manual path-toggle flow remains intact. Compact fitted-card selection and its immediate Walk dialog remain proved by the dedicated acceptance.
+This actual full-suite pass supersedes the earlier timing failures and diagnostic-only runs as the final lineage result. The queued isolated Mall repeat detects that full pass and skips its redundant
+run. The final full unit suite and responsive suite continue separately; the responsive mapping block has one additional native zoom call before its existing detailed-card selection so its manual
+path-toggle flow remains intact. Compact fitted-card selection and its immediate Walk dialog remain proved by the dedicated acceptance.
 
 ### Responsive mapping selection setup
 
-The mapping block now has the same one-line native zoom setup used by the lineage blocks before selecting a detailed card. At fitted compact zoom, card selection intentionally opens Selected path immediately; the existing responsive check separately exercises opening it from the path toggle. The setup preserves both flows and every original geometry assertion. The full run now reports `PASS mapping graph: cards, rows, badges, finding markers and toolbar fit; cards never overlap; the canvas stays usable beside the path panel` (`out/lane-b/resume-responsive-final-pass.log`); the remaining page tours continue.
+The mapping block now has the same one-line native zoom setup used by the lineage blocks before selecting a detailed card. At fitted compact zoom, card selection intentionally opens Selected path
+immediately; the existing responsive check separately exercises opening it from the path toggle. The setup preserves both flows and every original geometry assertion. The full run now reports `PASS
+mapping graph: cards, rows, badges, finding markers and toolbar fit; cards never overlap; the canvas stays usable beside the path panel` (`out/lane-b/resume-responsive-final-pass.log`); the remaining
+page tours continue.
 
-A full unit rerun with the temporary-directory override reports 2076 pass and one failure in the unrelated registry-credential path assertion. Foundation reproduces `4 pass`, `1 fail` in that same file (`out/lane-b/foundation-unit-tempdir.log`). With the ordinary temp-directory setting and DATA_DIR still under the lane scratch root, the file reports `5 pass`, `0 fail`, `20 expect() calls` (`out/lane-b/resume-unit-tempdir-fixed.log`). The next full unit run uses that fixture-compatible environment. No deployment code or test is changed.
+A full unit rerun with the temporary-directory override reports 2076 pass and one failure in the unrelated registry-credential path assertion. Foundation reproduces `4 pass`, `1 fail` in that same
+file (`out/lane-b/foundation-unit-tempdir.log`). With the ordinary temp-directory setting and DATA_DIR still under the lane scratch root, the file reports `5 pass`, `0 fail`, `20 expect() calls`
+(`out/lane-b/resume-unit-tempdir-fixed.log`). The next full unit run uses that fixture-compatible environment. No deployment code or test is changed.
 
 ### Complete responsive gate and exact fresh Fit pair
 
-The required full responsive suite reports `140 responsive UI checks passed` and `PASS no uncaught browser errors` (`out/lane-b/resume-responsive-final-pass.log`). This includes all four mapping-panel sizes, both lineage sections, Admin, ODCS graph/detail tours, examples, dark themes and the final shell checks. Earlier responsive failures and the historical Admin timeout are superseded by this complete pass.
+The required full responsive suite reports `140 responsive UI checks passed` and `PASS no uncaught browser errors` (`out/lane-b/resume-responsive-final-pass.log`). This includes all four mapping-panel
+sizes, both lineage sections, Admin, ODCS graph/detail tours, examples, dark themes and the final shell checks. Earlier responsive failures and the historical Admin timeout are superseded by this
+complete pass.
 
-A fresh `lineage-visibility.ts` capture adds one native Fit capture before calling the unchanged four-Walk helper. It uses the actual API, stock screenshot writer and ordinary helper assertions. `out/lane-b/resume-fresh-fit.log` reports four readable clicks and successful fitted selection at 1280, 1440 and 390. The ignored capture adapter only inserts `fitted-1-before`; it does not replace the walks or responses.
+A fresh `lineage-visibility.ts` capture adds one native Fit capture before calling the unchanged four-Walk helper. It uses the actual API, stock screenshot writer and ordinary helper assertions.
+`out/lane-b/resume-fresh-fit.log` reports four readable clicks and successful fitted selection at 1280, 1440 and 390. The ignored capture adapter only inserts `fitted-1-before`; it does not replace
+the walks or responses.
 
-Inspected `states/local-lineage-walk--fitted-1-before-1440.png` against `out/lane-b/resume-fresh-fit/local-lineage-walk--fitted-1-before-1440.png`: both have Mall properties, one hop, 34 connected tables, one project and an untouched properties-only history. The latter shows whole compensated name-only cards in the larger pane. This is the exact fitted baseline pair; the later fitted-selection captures remain additional interaction proof. Also inspected all four `resume-known` readable-before images alongside their previously inspected readable-after images; the target headers and Walk actions are visible before each centre change.
+Inspected `states/local-lineage-walk--fitted-1-before-1440.png` against `out/lane-b/resume-fresh-fit/local-lineage-walk--fitted-1-before-1440.png`: both have Mall properties, one hop, 34 connected
+tables, one project and an untouched properties-only history. The latter shows whole compensated name-only cards in the larger pane. This is the exact fitted baseline pair; the later fitted-selection
+captures remain additional interaction proof. Also inspected all four `resume-known` readable-before images alongside their previously inspected readable-after images; the target headers and Walk
+actions are visible before each centre change.
