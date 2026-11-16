@@ -114,6 +114,7 @@ type Props = {
   /** A project the person opened that has no definitions, shown instead of the welcome text. */
   emptyProject?: ProjectInfo;
   onImportInto: (slug: string) => void;
+  loadExample: (id: string) => Promise<void>;
   onNewFileInto: (slug: string) => void;
 };
 /** Renders workspace canvas. */
@@ -192,6 +193,7 @@ export function WorkspaceCanvas({
   crossTo,
   emptyProject,
   onImportInto,
+  loadExample,
   onNewFileInto,
 }: Props) {
   // "Show all" on an Overview card opens the Catalog filtered to that area. The filter ends when
@@ -265,6 +267,8 @@ export function WorkspaceCanvas({
     if (tab === 'mappings') {
       return (
         <MappingExplorer
+          onImport={() => onImportInto(project)}
+          onLoadExample={() => void loadExample('mapped-commerce')}
           onEditItem={editMappingItem}
           onOpenSource={openMappingSource}
           currentId={current?.id}
@@ -289,9 +293,12 @@ export function WorkspaceCanvas({
             <br />
             Explore its relationships and edit its definitions.
           </p>
-          <button className="primary" onClick={handlePrimaryClick}>
-            Open example ontology
-          </button>
+          <div className="empty-actions">
+            <button onClick={() => onImportInto(project)}>Import files</button>
+            <button className="primary" onClick={handlePrimaryClick}>
+              Open example ontology
+            </button>
+          </div>
         </div>
       );
     }

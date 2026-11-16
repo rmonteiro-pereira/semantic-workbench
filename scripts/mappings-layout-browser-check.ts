@@ -211,6 +211,22 @@ try {
     const revenue = page.locator('.mapping-concepts').getByRole('button', { name: /^Revenue/ });
     await expect(revenue).toContainText(/(^|\D)1 binding$/);
   });
+  await check('phone selection replaces the list with a visible detail and Back row', async () => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await openProjectMappings(page, 'Commerce', 'commerce.mapped-ontology.yaml');
+    await page
+      .locator('.mapping-concept-list button')
+      .filter({ hasText: /^Revenue/ })
+      .click();
+    await expect(page.getByRole('button', { name: 'Back to concepts' })).toBeVisible();
+    await expect(page.locator('.mapping-concepts')).toBeHidden();
+    const heading = (await page.locator('.mapping-detail h3').boundingBox())!;
+    expect(heading.y).toBeGreaterThanOrEqual(0);
+    expect(heading.y + heading.height).toBeLessThanOrEqual(844);
+    await expect(page.locator('.mapping-bindings')).toHaveAttribute('open', '');
+    await page.getByRole('button', { name: 'Back to concepts' }).click();
+    await expect(page.locator('.mapping-concepts')).toBeVisible();
+  });
   await check('every binding stays inside its card at six viewports', async () => {
     const found: string[] = [];
     for (const [width, height] of VIEWPORTS) {
@@ -278,7 +294,8 @@ try {
       await showSidebar(page);
       await fileTab('mall.ontology.yaml', 'Mappings')(page);
       await expect(page.locator('.mapping-binding').first()).toBeAttached();
-      await page.locator('.mapping-bindings > summary').click();
+      if (width === 390) await page.getByRole('button', { name: 'All concepts', exact: true }).click();
+      await expect(page.locator('.mapping-bindings')).toHaveAttribute('open', '');
       const first = await boundedLayoutProblems(page, height);
       found.push(...first.map(problem => `${width}: ${problem}`));
       const more = page.locator('.mapping-group .mapping-show-more button').first();

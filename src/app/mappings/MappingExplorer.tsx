@@ -78,7 +78,11 @@ export function MappingExplorer({
   dirty,
   onEditItem,
   onOpenSource,
+  onImport,
+  onLoadExample,
 }: {
+  onImport?: () => void;
+  onLoadExample?: () => void;
   currentId?: string;
   /** The selected project; the tab offers its mappings only, and none when it is empty. */
   currentProject: string;
@@ -96,6 +100,7 @@ export function MappingExplorer({
   const [context, setContext] = useState<RuntimeContext | null>(null);
   const [concept, setConcept] = useRecordedState('mappings.concept', '');
   const [query, setQuery] = useState('');
+  const [detailShown, setDetailShown] = useRecordedState('mappings.detailShown', false);
   const [metrics, setMetrics] = useRecordedState<string[]>('mappings.metrics', []);
   const [dimensions, setDimensions] = useRecordedState<string[]>('mappings.dimensions', []);
   const [plan, setPlan] = useState<any>(null);
@@ -133,6 +138,7 @@ export function MappingExplorer({
     setMetrics([]);
     setDimensions([]);
     setConcept('');
+    setDetailShown(false);
     setBindingLimits({});
     setConceptLimit(CONCEPTS_SHOWN);
     setGroupLimit(GROUPS_SHOWN);
@@ -217,6 +223,7 @@ export function MappingExplorer({
     requestVersion.current++;
     setLoading(false);
     setConcept(name);
+    setDetailShown(true);
     setBindingLimits({});
     setGroupLimit(GROUPS_SHOWN);
     setMetrics([]);
@@ -224,6 +231,10 @@ export function MappingExplorer({
     setPlan(null);
     setPlanError('');
   };
+  function backToConcepts() {
+    openConcept('');
+    setDetailShown(false);
+  }
   function download() {
     if (!context) return;
     const data = { ...context, selectedConcept: concept || null, selectedBindings: bindings };
@@ -257,7 +268,7 @@ export function MappingExplorer({
           <p>Follow concepts into fields, metrics and physical sources.</p>
           <PublishedPreview project={currentProject} revisionKey={revisionKey} />
         </div>
-        <div className="mapping-heading-actions">
+        <div className="mapping-heading-actions" hidden={!options.length}>
           <button onClick={() => setComposing(true)} disabled={!context}>
             <Code size={16} aria-hidden="true" />
             Show query
@@ -268,19 +279,33 @@ export function MappingExplorer({
         </div>
       </div>
       {dirty && <p className="mapping-notice">This view uses saved document revisions. Save your changes to update the runtime context.</p>}
-      <label>
-        Mapping document
-        <select aria-label="Mapping document" value={activeMappingId} onChange={e => setMappingId(e.target.value)}>
-          <option value="">Choose a mapping</option>
-          {options.map(mappingOption => (
-            <option key={mappingOption.id} value={mappingOption.id}>
-              {mappingOption.name}
-              {mappingOption.embedded ? ' · embedded' : ''}
-            </option>
-          ))}
-        </select>
-      </label>
-      {!options.length && !loadError && <NoMappings projectOpen={Boolean(currentProject)} />}
+      {options.length > 0 && (
+        <label>
+          Mapping document
+          <select aria-label="Mapping document" value={activeMappingId} onChange={e => setMappingId(e.target.value)}>
+            <option value="">Choose a mapping</option>
+            {options.map(mappingOption => (
+              <option key={mappingOption.id} value={mappingOption.id}>
+                {mappingOption.name}
+                {mappingOption.embedded ? ' · embedded' : ''}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+      {!options.length && !loadError && (
+        <>
+          <NoMappings projectOpen={Boolean(currentProject)} />
+          <div className="empty-actions">
+            {onImport && <button onClick={onImport}>Import</button>}
+            {onLoadExample && (
+              <button className="primary" onClick={onLoadExample}>
+                Load example
+              </button>
+            )}
+          </div>
+        </>
+      )}
       {loading && <p role="status">Resolving saved layers…</p>}
       {loadError && (
         <p role="alert" className="mapping-error">
@@ -332,7 +357,7 @@ export function MappingExplorer({
               ))}
             </div>
           )}
-          <div className="mapping-columns">
+          <div className={`mapping-columns${detailShown ? ' has-selection' : ''}${context.bindings.length ? ' has-bindings' : ''}`}>
             <div className="mapping-concepts">
               <label>
                 Find concept
@@ -368,6 +393,11 @@ export function MappingExplorer({
               </div>
             </div>
             <div className="mapping-detail">
+              {detailShown && (
+                <button type="button" className="mapping-back" onClick={backToConcepts}>
+                  Back to concepts
+                </button>
+              )}
               <h3>{concept || 'All concepts'}</h3>
               {!bindings.length && (
                 <EmptyState title={concept ? `No binding for ${concept}` : 'No bindings in this mapping'} action={onOpenSource && <button onClick={openBindingSource}>Open Source to add one</button>}>
@@ -376,7 +406,7 @@ export function MappingExplorer({
                 </EmptyState>
               )}
               {bindings.length > 0 && <p className="mapping-grouping-note">View grouped by dataset.</p>}
-              <details className="mapping-bindings" open={bindings.length <= 12} hidden={!bindings.length}>
+              <details className="mapping-bindings" open hidden={!bindings.length}>
                 <summary>
                   {bindings.length} resolved {bindings.length === 1 ? 'binding' : 'bindings'} · source evidence
                 </summary>

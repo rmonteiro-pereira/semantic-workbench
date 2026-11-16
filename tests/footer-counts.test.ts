@@ -1,5 +1,7 @@
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { readFileSync } from 'node:fs';
+import { inspect } from '../src/shared/core/model';
 import { expect, test } from 'bun:test';
 import { footerCounts, StatusFooter } from '../src/app/workspace/StatusFooter';
 
@@ -32,4 +34,13 @@ test('Source keeps validation details without repeating the invalid-draft banner
   expect(source).not.toContain('Validation failed');
   const overview = renderToStaticMarkup(React.createElement(StatusFooter, { ...props, tab: 'overview' }));
   expect(overview).toContain('Validation failed. Review the findings and repair in Source.');
+});
+
+test('Mall semantic relationships include metric dataset dependencies without carrying UBL state', () => {
+  const mall = () => inspect(readFileSync('public/examples/mall/mall.semantic.yaml', 'utf8'), 'mall.semantic.yaml');
+  const alone = mall();
+  expect(alone.edges.filter(edge => edge.id.startsWith('join-'))).toHaveLength(259);
+  expect(alone.edges.filter(edge => edge.id.startsWith('metric-'))).toHaveLength(18);
+  inspect(readFileSync('public/examples/ubl/ubl.ontology.yaml', 'utf8'), 'ubl.ontology.yaml');
+  expect(mall().edges).toEqual(alone.edges);
 });

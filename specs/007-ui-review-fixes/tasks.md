@@ -446,7 +446,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Define one `--content-max` and use it for Catalog, Overview, Metrics list, Metric detail and Mappings; keep the same top spacing under the logo when **Add project** is absent.
   - Proof: Before `local-light/local-catalog-2560.png`, `local-light/local-ontology-overview-2560.png`, `local-light/local-metric-detail-2560.png`, `server-personas/server-carol-source-control-1440.png` (review baseline); after: same state recaptured with `scripts/ui-review/capture-tour.ts <out> local light` at 2560 and `scripts/ui-review/server-pages.ts <out_root>`; check: `bun run test:responsive` asserts the same left edge (within 2 px) of the main content in the five tabs at 2560 and `bun run test:sidebar`.
 
-- [ ] T065 [P] [US5] [E] Make Mappings usable on a phone and fill the desktop pane.
+- [x] T065 [P] [US5] [E] Make Mappings usable on a phone and fill the desktop pane.
   - Findings: M24 · Requirements: FR-059
   - Files: `src/app/mappings/MappingExplorer.tsx`, `src/app/mappings/mapping-explorer.css`, `tests/mapping-choice.test.ts`
   - Change: At 650 px and narrower selecting a concept swaps the list for its detail with a Back row; open resolved bindings by default; style the disclosure rows like other app sections (`<details>` markers replaced by a chevron).
@@ -482,7 +482,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Replace `#ab6d64` (hue about 7 degrees) in `GROUP_PALETTE` with a non-red mid-tone that keeps the light and dark contrast, and add a unit test that no entry has a hue between 345 and 20 degrees, make **Explore neighborhood** and **Open Source tab** the standard button size, use one form-label colour, render the step 8 diff as wrapped lines, remove 'Moved to trash' wording before a delete, and label or remove the unlabelled green dot (`WorkspaceSidebar.tsx:193`). The drawer-versus-modal difference is out of scope.
   - Proof: Before `states/local-contract-lineage--first-view-1440.png`, `local-light/local-item-editor-1440.png`, `states/local-metric-wizard--step-8-1440.png` (review baseline); after: same state recaptured with `scripts/ui-review/capture-states.ts <out> graphs`, `scripts/ui-review/capture-tour.ts <out> local light`, `SW_ONLY=metrics scripts/ui-review/capture-states.ts <out> rest`; check: `bun test tests/theme-check.test.ts`; `bun run test:theme`.
 
-- [ ] T071 [US5] [E] Investigate the status-bar relationship count and the 404 logged on every page.
+- [x] T071 [US5] [E] Investigate the status-bar relationship count and the 404 logged on every page.
   - Findings: P10 · Requirements: FR-072
   - Files: `src/app/workspace/StatusFooter.tsx`, `src/app/workspace/hooks/useWorkbench.tsx`, `src/app/workspace/types.ts`, `specs/007-ui-review-fixes/evidence/E.md`, `tests/footer-counts.test.ts`
   - Change: Open `mall.semantic.yaml` after `ubl.ontology.yaml` and alone, read where `relationshipCount` comes from, and compare with the 259 declared relationships. 277 is the UBL count and appears for the Mall semantic file, which points at a stale count, so write the finding in `evidence/E.md` and change code only if the count is wrong. Also name the resource behind the 'Failed to load resource: 404' console error every follow-up capture logged and fix it if it is the application's.

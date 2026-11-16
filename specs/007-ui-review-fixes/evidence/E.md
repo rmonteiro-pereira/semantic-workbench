@@ -55,3 +55,16 @@
 - Other-project deleted files are now listed under project names, with the existing project-selection action behind Switch to project. Empty trash has danger styling and keeps the explicit every-project confirmation.
 - Before: review `screenshots/followup/local-trash--populated-1440.png`; after: `/tmp/sw-E/final-trash/screenshots/followup/local-trash--populated-1440.png` (both opened; the neutral action is now red).
 - `test:trash`: 13 checks passed. Its cross-project scenario asserts the formerly hidden filename and the switch action. `tests/trash-sections.test.ts`: 3 pass, including filesystem purge confirmation.
+
+### T065 — phone mappings
+
+- Before: review `screenshots/followup/local-mapped-commerce-mappings--concept-with-bindings-390-full.png`.
+- After: `/tmp/sw-E/final-content-phone/screenshots/followup/local-mapped-commerce-mappings--concept-with-bindings-390.png` (opened). Identifier and Back to concepts now sit inside the viewport, replacing the concept list. Resolved bindings are open with styled disclosure rows.
+- `test:mappings-layout`: 8 checks passed, including the added phone-selection geometry assertion and the existing long-list bounds.
+
+### T071 — footer and missing-resource investigation
+
+- Parsing Mall semantic alone yields 167 entities and 277 edges: 259 declared joins plus 18 metric-to-dataset dependencies. Parsing UBL first does not change Mall's result. There is no stale relationship count to correct.
+- `tests/footer-counts.test.ts` retains the real parsing regression through the model entry point.
+- The repeated 404 is an optional draft read, not a missing font or favicon. Navigation now consults the existing draft inventory before fetching a draft. A concurrent deletion can still race that read and yield the existing harmless 404.
+- Follow-up status captures: `/tmp/sw-E/final-content-phone/screenshots/followup/local-status-bar--mall-semantic-yaml{,-after-ubl}-390.png`; capture records retain both results.

@@ -297,24 +297,27 @@ function App() {
             setCommitting={saving.setCommitting}
             status={status}
           />
-          <WorkspaceToolbar
-            tab={tab}
-            isContract={lineageState.isContract}
-            setTab={setTab}
-            setSearch={setSearch}
-            showNeighborhood={showNeighborhood}
-            neighborhoodFocus={neighborhoodFocus}
-            selected={selected}
-            relationship={references.relationship}
-            compact={sidebar.compact}
-            closeWorkspace={closeWorkspace}
-            kpis={metrics.kpis}
-            lineageShown={lineageState.lineageShown}
-            search={search}
-          />
+          {(!!current || !!source) && (
+            <WorkspaceToolbar
+              tab={tab}
+              isContract={lineageState.isContract}
+              setTab={setTab}
+              setSearch={setSearch}
+              showNeighborhood={showNeighborhood}
+              neighborhoodFocus={neighborhoodFocus}
+              selected={selected}
+              relationship={references.relationship}
+              compact={sidebar.compact}
+              closeWorkspace={closeWorkspace}
+              kpis={metrics.kpis}
+              lineageShown={lineageState.lineageShown}
+              search={search}
+            />
+          )}
           <div ref={inspector.canvasRow} className={canvasClassName}>
             <UiProfiler area="canvas">
               <WorkspaceCanvas
+                loadExample={loadExample}
                 pageDetails={inspector.pageDetails}
                 tab={tab}
                 isContract={lineageState.isContract}

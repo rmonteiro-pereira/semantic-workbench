@@ -1,5 +1,5 @@
 /** Opens documents and restores unsaved drafts without discarding current edits. */
-import { apiFetch } from '../../projects/api';
+import { api, apiFetch } from '../../projects/api';
 import React from 'react';
 import { firstDocumentOfProject } from '../../../shared/core/project-scope';
 import { validateInput } from '../../../shared/validation/input';
@@ -135,6 +135,8 @@ export function useFileNavigation({
   // A draft kept for this file (invalid or not yet saved text) comes back when the file opens.
   async function restoreDraft(doc: Doc) {
     try {
+      const drafts = await api.drafts();
+      if (!drafts.some(draft => draft.project === doc.project && draft.path === doc.path)) return;
       const project = encodeURIComponent(doc.project);
       const path = doc.path.split('/').map(encodeURIComponent).join('/');
       const response = await apiFetch(`/api/drafts/${project}/${path}`);
