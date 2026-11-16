@@ -116,3 +116,11 @@
 - Before: review `screenshots/states/local-metric-wizard--step-8-1440.png`; after: `/tmp/sw-E/final-metrics/local-metric-wizard--step-8-1440.png` (opened). Preview lines wrap inside the bounded pane.
 - Explore neighborhood and the item editor's source action use standard button spacing; labels share their token. Removed the unlabelled sidebar dot; deletion preview now says Will move to trash.
 - `bun test tests/theme-check.test.ts`: 18 pass, 0 fail, 85 assertions. `test:theme`: 10 checks passed.
+
+### T072 — documentation
+
+- Updated the existing first-run, catalog, wizard, mappings and trash guidance; theme guidance describes palette exclusions and solid disabled borders. README reflects the searchable inventory and catalog count. The changelog retains the foundation font entry.
+- `SW_BASE_URL=http://127.0.0.1:5251 bun run test:terminology`: Terminology check passed across 8 files' views, metric detail, wizard, README and docs.
+- `bun --bun run check`: TypeScript, formatter, lint, comment, theme and brand checks passed before the lane-A dependent import.
+- Full leak scanner: 0 hits in README, user guide, theme guide and changelog.
+- Safety deviation: two earlier terminology attempts omitted SW_BASE_URL and attempted the harness default 5173. Both were refused (no listener reached); the successful run explicitly used 5251. No service was started on 5173.

@@ -55,7 +55,7 @@ No sign-in, identity provider, cloud account or external database is needed in l
 Choose **Add project → Load an example** in the sidebar to load a workspace, or **Add project →
 Import files** to open your definitions. A project can also start from nothing: **New file** (on an
 empty project, or in a project's actions menu) creates a valid ontology, semantic model, mapping or
-data contract to edit.
+data contract to edit. Catalog search reports matching counts; the metric wizard offers a searchable inventory of its data.
 Configure a Git identity globally or through **Set Git identity…** in the app. The in-app action
 writes repository-local settings, never your global Git configuration. Missing Git/identity does
 not prevent file editing; unavailable commit operations are explained in the UI.

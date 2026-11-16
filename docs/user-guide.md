@@ -18,6 +18,10 @@ the Neighborhood trail, Source control, the files in Trash and the project that 
 Nothing falls back to another project's documents, and Back and Forward return to the project you
 left. Other projects stay in the tree so you can switch to them.
 
+Unsupported file extensions are skipped at selection with a one-line notice, without opening the Source repair editor.
+
+On first run, **Import files** and **Open example ontology** start the workspace; tabs and entity search appear after a definition opens.
+
 The sidebar starts with **Add project**, whose menu holds **Import files**, **Clone a repository**
 and **Load an example**. The examples open beside the menu; on a phone they replace it, under a
 **Back** row. Below it are **Model explorer**, **Source editor**, **Source control** and the
@@ -339,7 +343,7 @@ folder. Server working copies each retain their own sparse configuration.
 read top to bottom, each card keeping its own height, and list at most eight entities;
 **Show all N** opens that area in **Catalog**, filtered to it. The filter ends when you leave
 **Catalog** or change file. A line above the cards says how the model is grouped, as in Graph.
-**Catalog** exposes definitions;
+**Catalog** exposes definitions; search shows the matching count and offers **Clear search** when no entity matches.
 a long entity name wraps between its words on the card instead of being cut. **Graph** shows the
 complete interactive model; ODCS and mapping documents use their specialized canvases.
 **Neighborhood** centers exploration on one entity.
@@ -567,7 +571,7 @@ combination such as summing ratios or rolling up incompatible stock grains. Thes
 checks, not measured results.
 
 **New metric** is an eight-step wizard: concept, model, type and inputs, time/breakdowns, targets,
-ownership/status, explanation/preview and exact file changes. It stores one governed expression,
+ownership/status, explanation/preview and exact file changes. The Data step shows dataset and metric counts with a searchable list. The title and footer stay in place while the body scrolls. It stores one governed expression,
 not a second copy of a formula. Save writes the semantic definition and its concept binding as one
 journaled operation. Projects without a mapping document receive a minimal standalone mapping.
 
@@ -587,11 +591,11 @@ reason. See [the server governance rules](server-mode.md#governed-content).
 
 The **Mappings** view resolves ontology → mapping → semantic model → physical source. Object,
 referent and link mappings retain source evidence and report missing or ambiguous references.
-Bindings are grouped by dataset. The tab scrolls as one page. The concept list starts with 12
+Bindings are grouped by dataset and resolved bindings open by default. On phones, selecting a concept replaces the list with its detail; **Back to concepts** returns to the list. The tab scrolls as one page. The concept list starts with 12
 concepts and the binding list with 3 dataset groups, then **Show N more datasets** reveals the
 rest; each group shows its first five bindings and **Show N more** reveals ten at a time, **Show
 fewer** folds them again, and **Show N more concepts** works the same way. The tab lists only the
-mappings of the open file's project, says so when that project has none, and asks you to open a
+mappings of the open file's project, offers **Import** and **Load example** when that project has none, and asks you to open a
 project when no file is open. Search includes unbound concepts; empty views offer Source navigation
 for the selected mapping document. **Show query** selects mapped fields/metrics and previews a
 newly composed governed query without running it. **AI context** shows the same context

@@ -488,7 +488,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Open `mall.semantic.yaml` after `ubl.ontology.yaml` and alone, read where `relationshipCount` comes from, and compare with the 259 declared relationships. 277 is the UBL count and appears for the Mall semantic file, which points at a stale count, so write the finding in `evidence/E.md` and change code only if the count is wrong. Also name the resource behind the 'Failed to load resource: 404' console error every follow-up capture logged and fix it if it is the application's.
   - Proof: Written finding in `evidence/E.md` with the counts read from the document; if code changed, `tests/footer-counts.test.ts` and before/after of `followup/local-status-bar--mall-semantic-yaml-1440.png` from `scripts/ui-review/followup-local.ts <out> content`.
 
-- [ ] T072 [US5] [E] Update docs for lane E: `docs/user-guide.md` (first run, catalog, metrics wizard, mappings, trash), `docs/theme.md` (palette and disabled style), `README.md`; write `changelog/E.md`.
+- [x] T072 [US5] [E] Update docs for lane E: `docs/user-guide.md` (first run, catalog, metrics wizard, mappings, trash), `docs/theme.md` (palette and disabled style), `README.md`; write `changelog/E.md`.
   - Findings: M8, M18, M19, M20, M24, m20, m27 · Requirements: FR-054, FR-055, FR-056, FR-057, FR-059, FR-066, FR-069
   - Files: `docs/user-guide.md`, `docs/theme.md`, `README.md`, `specs/007-ui-review-fixes/changelog/E.md`
   - Change: Edit only the sections named; keep each claim tied to a passing check.

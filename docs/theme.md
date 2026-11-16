@@ -66,7 +66,7 @@ variables to the tokens so those follow the theme as well.
 
 Groups of entities take a color from a list at run time. The list is the one place besides the
 theme file where literals may live: `src/app/theme/theme-palette.ts`. Every entry is a mid-tone that
-reads on a light and on a dark page.
+reads on a light and on a dark page. Group hues exclude the red family reserved for problem states.
 
 ## Changing the palette
 
@@ -127,7 +127,7 @@ Run `bun run test:theme` to check that:
 
 The tour lives in `scripts/helpers/theme-tour.ts`. Contrast checks in
 `scripts/helpers/text-geometry.ts` include `lowContrastProblems` and
-`lowDisabledContrastProblems`, with a 3:1 target for disabled buttons. The `controlThemeProblems`
+`lowDisabledContrastProblems`, with a 3:1 target for disabled buttons. Disabled buttons use a solid muted border and a subdued label on the sunken surface; form controls share the focus token. The `controlThemeProblems`
 check in `scripts/helpers/control-geometry.ts` verifies theme colors on input backgrounds,
 textareas, selects, checkboxes and radio buttons. Their base styles live in `src/app/style.css`.
 
