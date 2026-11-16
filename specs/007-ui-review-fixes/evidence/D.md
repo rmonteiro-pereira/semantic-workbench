@@ -28,3 +28,11 @@ Only ports 5241 and 5242 are used for browser checks. The dev server was started
 - After: `out/lane-d/after/states/server-admin-access-check--{allowed,refused}-{390,1440,2560}.png`.
 - Opened the phone refusal, desktop allowed/refused and wide allowed images. The red/green sentence sits immediately below the actions; the phone refusal is fully inside the 844 px viewport. Empty headings are absent and attributes are folded.
 - `bun test tests/admin-presentation.test.tsx`: 14 pass, 0 fail, 53 expect() calls. Added a real-browser viewport assertion to the admin check.
+
+## T051 — direct Admin address
+
+- Before: review `screenshots/followup/server-{alice,carol}-admin--direct-address-1440.png`.
+- After: `out/lane-d/after/screenshots/followup/server-{alice,carol}-admin--direct-address-1440.png`.
+- Opened both after images: the Admin-role notice and workspace link replace the silent workspace fallthrough. The real browser suite also covers Bob and the return link.
+- `bun test tests/admin-route.test.ts`: 4 pass, 0 fail, 19 expect() calls.
+- The follow-up capture's unrelated Git fixture is omitted at runtime for direct-address-only captures; the real identity provider and application use 5241/5242.

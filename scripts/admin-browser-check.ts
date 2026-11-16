@@ -250,8 +250,17 @@ export async function adminBrowserCheck() {
         await expect(aliceSettings.getByRole('button', { name: 'Admin', exact: true })).toHaveCount(0);
         await alice.keyboard.press('Escape');
         await alice.goto(url + '/#/admin/grants');
-        await expect(alice.locator('.admin-page')).toHaveCount(0);
+        await expect(alice.getByRole('heading', { name: 'Admin requires the Admin role' })).toBeVisible();
         await remoteChangeRefused(alice, url);
+        for (const person of ['bob', 'carol']) {
+          const visitor = await browser.newPage();
+          await signIn(visitor, target, person);
+          await visitor.goto(url + '/#/admin/grants');
+          await expect(visitor.getByRole('heading', { name: 'Admin requires the Admin role' })).toBeVisible();
+          await visitor.getByRole('link', { name: 'Back to workspace' }).click();
+          await expect(visitor.getByRole('heading', { name: 'Admin requires the Admin role' })).toHaveCount(0);
+          await visitor.close();
+        }
         await signIn(erin, target, 'erin');
         await signIn(page, target, 'dave');
         await timedAdministration(page, erin, target);

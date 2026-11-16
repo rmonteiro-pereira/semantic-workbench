@@ -12,13 +12,28 @@ export function AdminHost({ children }: { children: ReactNode }) {
   const { section, close } = useAdminRoute();
   const { me, error } = useMe();
   // While the identity loads the page holds the screen, so a reload does not flash the workspace.
-  const adminShown = section !== null && (me ? canOpenAdmin(me) : !error);
+  const adminShown = section !== null && Boolean(me || !error);
+  const permitted = canOpenAdmin(me);
   return (
     <>
       <div className="admin-workspace" hidden={adminShown}>
         {children}
       </div>
-      {adminShown && me && section && <AdminPage section={section} onBackToWorkspace={close} />}
+      {adminShown && me && !permitted && <AdminAccessNotice />}
+      {adminShown && me && permitted && section && <AdminPage section={section} onBackToWorkspace={close} />}
     </>
+  );
+}
+
+/** Explains a refused Admin address and provides a route back to the workspace. */
+export function AdminAccessNotice() {
+  return (
+    <main className="admin-page admin-scope">
+      <section className="admin-content">
+        <h1>Admin requires the Admin role</h1>
+        <p>Ask an administrator if you need to manage access.</p>
+        <a href="#">Back to workspace</a>
+      </section>
+    </main>
   );
 }

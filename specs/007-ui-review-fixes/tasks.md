@@ -355,7 +355,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Render a result banner (allowed green, denied red, one sentence naming the reason) right under the buttons and scroll it into view; hide empty sections; fold the raw attributes into a disclosure; cap input widths with the shared admin form width.
   - Proof: Before `states/server-admin-access-check--refused-1440.png`, `states/server-admin-access-check--allowed-1440.png`, `states/server-admin-access-check--refused-390.png`, `server-light/server-admin-access-check-2560.png` (review baseline); after: same state recaptured with `scripts/ui-review/admin-states.ts <out>`; check: `bun run test:admin` asserts the banner box is inside an 844 px viewport at 390 after the check.
 
-- [ ] T051 [P] [US4] [D] Tell a non-admin who opens an Admin address that Admin needs the Admin role.
+- [x] T051 [P] [US4] [D] Tell a non-admin who opens an Admin address that Admin needs the Admin role.
   - Findings: M22 · Requirements: FR-047
   - Files: `src/app/admin/AdminHost.tsx`, `src/app/admin/admin-entry.ts`, `src/app/admin/admin-route.ts`, `tests/admin-route.test.ts`
   - Change: When the route names an Admin section and `canOpenAdmin(me)` is false, show a short notice with a link back to the workspace instead of the hidden-workspace fallthrough; local mode (always Admin) is unaffected.
