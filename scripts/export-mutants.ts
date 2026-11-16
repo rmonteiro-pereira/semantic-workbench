@@ -30,7 +30,7 @@ export const exportMutants: [string, string, string, string][] = [
   [
     'export-access',
     'src/server/auth/route-actions.ts',
-    "{ ...row('GET', '/api/projects/:slug/export', 'export', project), audited: true }",
+    "{ ...row('GET', '/api/projects/:slug/export', 'export', project), audited: true, readSource: 'editing' }",
     "row('GET', '/api/projects/:slug/export', 'export', project)",
   ],
   ['export-access', 'src/server/auth/route-actions.ts', "'/api/projects/:slug/export', 'export', project", "'/api/projects/:slug/export', 'edit', project"],

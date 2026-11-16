@@ -1936,12 +1936,12 @@ if (category.startsWith('read-')) {
       }
     }
     if (category === 'read-agent') {
-      const handler = loadedModule.createHandler(fixture.ws, {
-        mode: 'server',
-        remoteCredentials: allowEveryRemote(),
-        access,
-        principal: () => principal,
-      });
+      const { requestAccess } = await import('../src/server/auth/request-scope');
+      const routes = loadedModule.createAgentRoutes(loadedModule.editingAgentDocuments);
+      const handler = async (request: Request) => {
+        Object.assign(request, { [requestAccess]: access.forRequest(principal) });
+        return routes(fixture.ws, request, new URL(request.url));
+      };
       const response = await handler(new Request('http://localhost/api/agent/context?project=sales-contracts&mappingId=sales-contracts/people.mapping.yaml'));
       assert.equal(response.status, 200);
       assert(!(await response.text()).includes('LEAK-hr-'));

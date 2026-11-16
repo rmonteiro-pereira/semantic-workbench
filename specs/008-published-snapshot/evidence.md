@@ -116,3 +116,10 @@ the catalog declaration fails the focused inventory assertion; its baseline pass
 The catalog/context/plan implementation now lives in routes/agent.ts and receives a document-source
 callback. The callback encloses the entire deterministic operation, allowing a later published
 source to retain its request pin until the response is built. The extraction preserves editing reads.
+
+## Existing mutation coverage after extraction
+
+The `read-agent` mutation now exercises the extracted route with an attached authorized scope;
+its baseline passes and the unfiltered-document mutant fails. The two `export-access` cases keep
+the new source declaration in their anchors; both baselines pass and both mutants fail.
+The initial full mutation retry stopped at these two orphaned anchors, before executing mutants.

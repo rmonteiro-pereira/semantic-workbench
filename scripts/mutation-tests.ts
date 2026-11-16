@@ -382,7 +382,7 @@ mutants.push(
   ['read-drafts', 'src/server/routes/drafts.ts', 'owner ? ws.state.forOwner(owner) : ws.state', 'ws.state'],
   ['read-trash', 'src/server/projects/trash-access.ts', "scope.authorize(action, { type: 'file', project: file.project, path: file.path }).allow", 'true'],
   ['read-git', 'src/server/routes/git.ts', 'scm.show(slug, commit, path, reader)', 'scm.show(slug, commit, path, { view: undefined, owner: undefined })'],
-  ['read-agent', 'src/server/handler.ts', 'documentsOfProject(ws.documentsFor(requestReader(request)), project)', 'documentsOfProject(ws.documents(), project)'],
+  ['read-agent', 'src/server/routes/agent.ts', 'documentsOfProject(workspace.documentsFor(requestReader(request)), project)', 'documentsOfProject(workspace.documents(), project)'],
 );
 
 // Agent clients: a bearer token outside the agent API, an unchecked audience, an ignored grant,
