@@ -4,7 +4,6 @@ import assert from 'node:assert/strict';
 import { dirname, resolve } from 'node:path';
 import { loadBrandBundle, setActiveBrand } from '../src/server/brand/bundle';
 import { allowEveryRemote } from '../tests/helpers/remote-credentials-fixture';
-import { operationBoundaryCases } from './operation-boundary-mutation-cases';
 import { observabilityCase } from './observability-cases';
 // Sign-in pages render the brand, so every candidate runs with the shipped bundle active.
 setActiveBrand(loadBrandBundle());
@@ -17,7 +16,10 @@ const composed = {};
 for (const name of [...entryModules, ...authModules]) Object.assign(composed, await import(resolve(treeRoot!, name)));
 const loadedModule = { ...composed, ...mutatedModule };
 const category = process.argv[3];
-if (category === 'operation-boundary') await operationBoundaryCases(process.argv[2]);
+if (category === 'operation-boundary') {
+  const { operationBoundaryCases } = await import('./operation-boundary-mutation-cases');
+  await operationBoundaryCases(process.argv[2]);
+}
 if (category === 'edge-appearance') {
   const appearance = loadedModule.edgeAppearance({
     id: 'edge',

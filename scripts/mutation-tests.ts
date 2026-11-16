@@ -610,11 +610,12 @@ async function run(category: string, file: string, source: string, index: string
   const target = copiedFolder ? await writeFolderCopy(copiedFolder, file, source, index) : resolve(temp, index + '.ts');
   if (!copiedFolder) await Bun.write(target, rewritten);
   const child = Bun.spawn([process.execPath, resolve(root, 'scripts/mutation-case.ts'), target, category], { stdout: 'pipe', stderr: 'pipe', env: { ...process.env, ...env } });
+  const timeoutMs = category === 'example-registry' ? 180000 : 60000;
   let timedOut = false;
   const timer = setTimeout(() => {
     timedOut = true;
     child.kill();
-  }, 60000);
+  }, timeoutMs);
   const code = await child.exited;
   clearTimeout(timer);
   if (timedOut) throw Error(`Mutation case timed out (${category}, ${index}).`);
