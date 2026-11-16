@@ -1,8 +1,16 @@
 # Capture index
 
-Use a temporary frontend on port 5201. `OUT` is a scratch output root inside the worktree or under `/tmp/sw-foundation/`. Images remain outside Git. The Group/filter column gives optional filters to prepend to the command; an unfiltered command preserves the complete original state sequence. Commands preserve the original state sequence; width lists below describe the requested output, not an invented filter. Most original scripts always run the full 390×844, 1280×720, 1440×900, 2560×1440 matrix.
+Use the frontend port assigned to the current lane. Commands below show the foundation lane's port 5201; the integration gate uses 5261.
+`OUT` is an authorized scratch output root. Images remain outside Git. The Group/filter column lists optional command prefixes.
+An unfiltered command preserves the original state sequence. The width column describes the requested output rather than an additional filter.
+The standard matrix is 390×844, 1280×720, 1440×900 and 2560×1440.
 
-Server and follow-up drivers bind fixed additional ports as documented in their headers. Their smoke runs are skipped for the foundation lane because only ports 5201 and 5202 are assigned. No claim of successful reproduction is made for those drivers.
+Additional-state and follow-up scripts accept `SW_THEME=light` or `SW_THEME=dark` for one theme per batch; omitting it retains both.
+Stock tours receive their theme as the final command argument. Server and follow-up fixtures allocate loopback ports dynamically.
+Run one browser script at a time and stop its frontend, API and browser before the next batch. Check `free -g` before heavy steps;
+with less than 8 GB available, wait and check again.
+
+The foundation lane did not smoke-run the server and follow-up drivers. Integrated results belong in `evidence/GATE.md`.
 
 | Review image | Script and arguments | Group/filter | Theme | Width |
 | --- | --- | --- | --- | --- |
