@@ -282,3 +282,11 @@ The local commit wiring must include existing automatic writers, not just the SC
 imports, project-folder moves and manifest commits also commit through Git. Legacy data migration
 runs before snapshot initialization and establishes the existing history adopted on upgrade.
 The extension keeps those existing writers and uses one authoring preparation function.
+
+## Local SCM commit wiring
+
+`TMPDIR=/tmp/sw-008 bun test tests/local-commit-branch.test.ts tests/commit-availability.test.ts tests/local-publication.test.ts`:
+11 pass, 0 fail, 42 assertions. The HTTP commit path reports `work/local` and `movedFrom` only when
+moving from the default; another selected branch remains selected, and the default tip is unchanged.
+The mutant omitting local commit preparation is detected (baseline 0, mutant 1).
+`bun --bun run check`: exit 0. Automatic local commit writers are the remaining part of this step.

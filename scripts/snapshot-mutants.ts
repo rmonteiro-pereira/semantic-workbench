@@ -1,6 +1,7 @@
 // Deliberate faults in immutable publication selection and validation.
 /** Targeted publication faults exercised by the mutation gate. */
 export const snapshotMutants: [string, string, string, string][] = [
+  ['snapshot-local-commit', 'src/server/projects/workspace.ts', '!own && !options.reconcilePublished ? slug => prepareLocalCommit(git, repoDir(place.layout, slug)) : undefined', 'undefined'],
   ['snapshot-local', 'src/server/projects/local-publication.ts', "next, previous ?? ''", 'next'],
   [
     'snapshot-local',

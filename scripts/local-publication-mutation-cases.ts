@@ -22,3 +22,23 @@ export async function localPublicationCase(candidate: { createLocalPublication?:
   );
   assert.equal(fixture.pointers.get('definitions')?.commit, fixture.published);
 }
+
+/** A local commit must advance authoring while preserving the recorded default tip. */
+export async function localCommitCase(candidate: { openWorkspace?: typeof import('../src/server/projects/workspace').openWorkspace }) {
+  const { publicationRepository } = await import('../tests/helpers/git-fixtures');
+  const { createState } = await import('../src/server/projects/state');
+  const { dataLayout } = await import('../src/server/projects/paths');
+  const fixture = publicationRepository();
+  let workspace: Awaited<ReturnType<NonNullable<typeof candidate.openWorkspace>>> | undefined;
+  try {
+    createState(dataLayout(fixture.dir)).writeRegistry([{ slug: 'definitions', name: 'Definitions', origin: '', createdAt: '' }]);
+    workspace = await candidate.openWorkspace!({ root: fixture.dir });
+    writeFileSync(join(fixture.repository, 'new.ontology.yaml'), 'name: New\nontology: []\n');
+    const result = await workspace.scm.commit('definitions', 'Add definition', { paths: ['new.ontology.yaml'] });
+    assert.equal(result.branch, 'work/local');
+    assert.equal(await workspace.git.revParse(fixture.repository, 'refs/heads/main'), fixture.published);
+  } finally {
+    workspace?.close();
+    fixture.dispose();
+  }
+}

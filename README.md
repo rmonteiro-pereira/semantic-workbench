@@ -535,7 +535,11 @@ and publication. For old local database migration, consult
 ### Existing Git data on upgrade
 
 Opening an existing data root records each repository's default-branch tip as its first durable
-snapshot. The default branch name is remembered from Git configuration, then the remote default,
+snapshot. A local commit on the default branch first switches to `work/local`, carrying staged and unstaged
+changes. Commits on other branches keep their chosen branch. The commit response identifies the
+authoring branch; committing does not move the published snapshot.
+
+The default branch name is remembered from Git configuration, then the remote default,
 then the checked-out branch. Local startup preserves branch refs, commits, staged changes,
 unstaged changes and untracked files; it does not repair or detach the local checkout.
 

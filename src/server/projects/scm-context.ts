@@ -79,6 +79,8 @@ export type ScmDeps = {
   branchesMoved?: (slug: string) => void;
   /** Commits here carry the signed-in person, so no repository identity is needed. */
   signedCommits?: boolean;
+  /** Prepares local authoring before a commit; personal server copies already choose their branch. */
+  beforeCommit?: (slug: string) => Promise<{ branch: string; movedFrom?: string }>;
   /**
    * Merges the default branch into a working copy's branch; absent in local mode. `check` judges
    * the exact commit before it is merged.

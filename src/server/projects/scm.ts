@@ -268,7 +268,9 @@ export function createScm(deps: ScmDeps) {
       // A missing credential stops the request before the commit, so a retry commits only once.
       const choice = options.push ? await chooseRemote(slug, options.credentialFor) : null;
       const { author } = options;
-      const result = options.paths === undefined ? await commitIndex(slug, message, author) : await commitChosen(slug, message, options.paths, options.base ?? 'project', author);
+      const authoring = await deps.beforeCommit?.(slug);
+      const committed = options.paths === undefined ? await commitIndex(slug, message, author) : await commitChosen(slug, message, options.paths, options.base ?? 'project', author);
+      const result = { ...committed, ...authoring };
       if (!options.push) return result;
       let pushed: { ok: boolean; message: string };
       try {

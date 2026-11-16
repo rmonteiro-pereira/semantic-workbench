@@ -30,6 +30,7 @@ import { initializePublishedPointers } from './published-initialization';
 import { createWorktrees } from './worktrees';
 import { copyScmHooks, createWorkingCopies, projectLockKey, type Place, type RepositoryFacts } from './working-copies';
 import { createPublishing } from './publishing';
+import { prepareLocalCommit } from './local-publication';
 import { createUnpublishedWork } from './unpublished-work';
 import { createCloner, rollBackInterruptedClones, type AssignProject, type FolderRequest } from './clone';
 import { createRepositoryProjects } from './repository-projects';
@@ -438,6 +439,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       rescan: slug => rescanIn(place, slug),
       emit: (e, d, tags) => events.emit(e, d, place.tags(tags)),
       defaultBranch: slug => worktrees.defaultBranch(repoOf(slug)),
+      beforeCommit: !own && !options.reconcilePublished ? slug => prepareLocalCommit(git, repoDir(place.layout, slug)) : undefined,
       ...(own
         ? copyScmHooks(own, {
             worktrees,

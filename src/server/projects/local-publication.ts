@@ -3,6 +3,14 @@ import { GitError, symbolicBranch, type Git } from './git';
 import { NothingToPublishError, NotFastForwardError, PendingPublicationError } from './errors';
 import { publicationChecks, type PublicationCandidate } from './publication-checks';
 import type { PublishedPointers } from './published-pointer';
+import { defaultBranchAt, DEFAULT_BRANCH_KEY } from './worktrees';
+
+/** Remembers the default name before a local commit can create or advance its authoring branch. */
+export async function prepareLocalCommit(git: Git, directory: string) {
+  const branch = await defaultBranchAt(git, directory, 'the local repository');
+  await git.run(directory, ['config', '--local', DEFAULT_BRANCH_KEY, branch]);
+  return moveToAuthoringBranch(git, directory, branch);
+}
 
 /** Switches a default checkout to authoring while Git preserves staged and unstaged changes. */
 export async function moveToAuthoringBranch(git: Git, directory: string, defaultBranch: string) {

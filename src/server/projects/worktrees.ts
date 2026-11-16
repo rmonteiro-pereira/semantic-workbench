@@ -144,6 +144,11 @@ const copyExists = (context: WorktreeContext, key: string, repo: string) => exis
 async function defaultBranch(context: WorktreeContext, repo: string) {
   const { git } = context;
   const dir = baseDir(context, repo);
+  return defaultBranchAt(git, dir, repo);
+}
+
+/** Resolves the remembered, remote or checked-out default name without changing a checkout. */
+export async function defaultBranchAt(git: Git, dir: string, repo: string) {
   const remembered = await git.configValue(dir, DEFAULT_BRANCH_KEY, 'local');
   if (remembered) return remembered;
   const remote = await git.run(dir, ['symbolic-ref', '-q', '--short', 'refs/remotes/origin/HEAD'], {

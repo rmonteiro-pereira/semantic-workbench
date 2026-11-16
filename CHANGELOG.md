@@ -19,6 +19,8 @@ not configure a production deployment.
 - Reviewed operation inventory and generated reference, trusted in-process operation dispatch,
   connection effect restrictions, audit attribution fields and origin/tool filters.
 - Independent dry-run samples retain write and denial evidence during non-HTTP read floods.
+- Local Source Control commits on the default branch move to `work/local`, preserving staged and unstaged work and keeping the published ref unchanged.
+
 - Agent catalog, context and plans now read a pinned published commit in both modes and identify it in `X-Workbench-Snapshot`. Unpublished author edits are excluded.
 
 ### Changed

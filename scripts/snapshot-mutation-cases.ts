@@ -1,6 +1,6 @@
 // Focused assertions for immutable publication faults.
 import assert from 'node:assert/strict';
-import { localPublicationCase } from './local-publication-mutation-cases';
+import { localPublicationCase, localCommitCase } from './local-publication-mutation-cases';
 import type { metricRoutes } from '../src/server/routes/metrics';
 import { testWorkspace } from '../tests/helpers/temp-data-dir';
 import { publishFixture } from '../tests/helpers/published-workspace';
@@ -49,6 +49,7 @@ export async function snapshotMutationCase(
     createSnapshotIndexes?: typeof createSnapshotIndexes;
   },
 ) {
+  if (category === 'snapshot-local-commit') await localCommitCase(candidate);
   if (category === 'snapshot-local') await localPublicationCase(candidate);
   if (category === 'snapshot-metrics') {
     using fixture = await testWorkspace();
