@@ -10,9 +10,9 @@ decisions and subsequent fixes.
 
 The frozen HTTP fixture and original audit months remain byte-identical to their recording
 commits. Constitution wording is handed over below; the constitution itself is unchanged.
-Two performance findings remain open: operation listing exceeds 50 ms, and the measured HTTP
-median exceeds the recorded base by more than 5%. These tasks explicitly permit a recorded
-finding when the goal is missed. No transport implementation or external deployment is included.
+Both performance findings are settled by the matched measurements below: listing meets the
+unchanged 50 ms goal, and HTTP latency differs by less than 5% under interleaved comparisons.
+No transport implementation or external deployment is included.
 
 ## Scope
 
@@ -529,3 +529,26 @@ mutants remove the project-role distinction and the administrator-rule exception
 
 Performance scope: HTTP response and audit bytes stay frozen; listing answers remain exact;
 reuse is confined to one synchronous listing and cannot retain revoked grants.
+
+### Final-code HTTP repeat
+
+After the listing optimization and shared role-selection extraction, the same five-round
+interleaved HTTP comparison was repeated on `4c370fca`, before starting the release tests.
+
+| Round | Base median (ms) | Final branch median (ms) | Base p95 (ms) | Final branch p95 (ms) |
+| --- | --- | --- | --- | --- |
+| 1 | 2.510712 | 2.579164 | 5.277382 | 5.483216 |
+| 2 | 2.521223 | 2.447281 | 5.092136 | 4.865721 |
+| 3 | 2.391060 | 2.365829 | 4.695597 | 4.616646 |
+| 4 | 2.429291 | 2.361978 | 5.142489 | 4.553113 |
+| 5 | 2.354639 | 2.404410 | 4.487453 | 4.700047 |
+
+Final median of medians: base **2.429291 ms**, branch **2.404410 ms** (-1.02%).
+The remaining difference is within run-to-run noise; there is no measured HTTP regression above
+5%. The temporary main worktree was removed after the final comparison.
+
+The independent architecture review found no blocking correctness issue. It confirmed scope
+equivalence, domainless explicit grants, exact administrator/client probing and request-local
+cache lifetimes. `bun test tests/auth`: 727 pass, 0 fail, 113238 assertions, 119 files.
+`bun --bun run check`: TypeScript, formatting, lint, comments, theme and brand checks pass.
+Branch readability: 69 files, 0 findings.
