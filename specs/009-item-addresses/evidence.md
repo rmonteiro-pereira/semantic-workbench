@@ -741,3 +741,16 @@ now receive the same explicit environment. Unchanged main's focused SCM case fai
 missing Git identity (exit 1); the corrected case passes (exit 0), as does its local counterpart.
 Logs: out/gate-009/main-secrev-scm.log and current-secrev-scm.log. Formatting, full static checks
 and readability checks pass. No test assertion or production source changed.
+
+### Remote example baseline deadline
+
+The actual mutation runner next stopped at the example-registry baseline with no assertion error:
+its ten-second child deadline expired. The exact focused case passes on both branches when timed
+without that deadline: `Main example baseline: 17.516 s` (exit 0) and
+`Current example baseline: 18.190 s` (exit 0). Logs are main-example-registry.log and
+current-example-registry.log under out/gate-009/.
+
+Only this six-example category now receives thirty seconds on the capped remote CPU; other
+categories retain ten seconds. Assertions and mutation anchors are unchanged. Full static and
+readability checks pass. This is a measured baseline deadline correction, not an AVX2 failure
+or a claimed mutation-gate pass; the real gate must complete with the corrected deadline.
