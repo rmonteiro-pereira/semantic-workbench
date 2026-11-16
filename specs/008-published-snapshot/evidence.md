@@ -321,3 +321,7 @@ principal is allowed while the server Viewer refusal remains unchanged.
 ## Remote default status
 
 `TMPDIR=/tmp/sw-008 bun test tests/local-publication.test.ts tests/git-remote.test.ts`: 16 pass, 0 fail, 117 assertions. A real bare remote populates the tracking ref; after replacing its address with an HTTP listener, startup, watcher and repeated status reads make zero network calls. Status reports the last fetched remote default ahead of the durable snapshot. No existing network-listener test matching the task description exists; this case provides the requested proof. The existing pull/sync case now explicitly chooses work/local before pulling and verifies pushing that authoring branch. `bun --bun run check`: exit 0 before the fixture-only correction; repeated below with the next test additions.
+
+## Request interleaving
+
+`TMPDIR=/tmp/sw-008 bun test tests/published-snapshot-stress.test.ts`: 1 pass, 0 fail, 601 assertions. Two hundred HTTP agent calls cross twenty real publications. Each group pauses after its request pins and resumes after the next publication; every complete catalog equals the catalog of the commit in its header. All five focused resolver mutants are detected (baseline 0, mutant 1), including replacing the request pin on each read. Remote-status final `bun --bun run check`: exit 0.
