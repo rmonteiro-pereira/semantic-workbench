@@ -398,7 +398,7 @@ guarded projects and compares the responses.
   document migration; a change of a document's own `name` MUST record one document-scope
   migration; a move of a file to another project MUST record a document migration across projects.
 - **FR-029**: A migration record MUST hold a record id, the old address prefix, the new address
-  prefix, a kind (item, document, scope or project-move), the instant it was recorded, and the
+  prefix, a kind (item, scope, document, reconciliation or deleted), the instant it was recorded, and the
   repository commit that was the branch head when it was saved. It MUST hold no person
   identity.
 - **FR-030**: A prefix migration MUST match on segment boundaries (the old prefix `Customer` does
@@ -454,8 +454,9 @@ guarded projects and compares the responses.
 **Safety**
 
 - **FR-044**: A resolver used for a caller MUST return the same result for an address in a project
-  the caller may not read as for an address that does not exist, and the resolution of one address
-  MUST NOT take more time or produce different events for the two cases.
+  the caller may not read as for an address that does not exist, and for an unreadable project it
+  MUST NOT open any project data or the project's migration store, so no difference in work,
+  events or timing can reveal the project.
 - **FR-045**: Parsing MUST never throw on arbitrary input; it returns a failure with a reason from a
   closed list. Formatting throws only on a programming error (an invalid kind or name), with a
   message that does not repeat document content beyond the offending name.
@@ -467,6 +468,12 @@ guarded projects and compares the responses.
   return the address unchanged when it resolved.
 - **FR-048**: Recording a reconciliation MUST require the same permission as saving the file that
   holds the new address, and MUST be refused for an address in a project the person cannot read.
+
+- **FR-049**: The server MUST accept a migration declared in a save request only when both its
+  addresses are in the request's project and its documents are written by that same request (the
+  old document may instead be one the request rewrote or deleted). Any other declaration MUST
+  refuse the whole request with a validation error and write nothing. A request that declares no
+  migration MUST behave exactly as before.
 
 ### Key Entities
 
@@ -521,6 +528,8 @@ guarded projects and compares the responses.
   is detected.
 - **SC-012**: Documentation. The README, ARCHITECTURE.md and docs describe the grammar, the
   stability promise and its limits, and every count they quote comes from a test.
+- **SC-013**: Cost. Deriving addresses adds less than 5% to the time `inspect()` takes on the
+  largest sample project, measured by the existing example timing check on the CI machine.
 
 ## Assumptions
 
@@ -531,7 +540,8 @@ guarded projects and compares the responses.
   address (the document limit is 2,000,000 bytes and ODCS nests a few levels) while keeping the
   parser bounded (Principle III). They are constants with tests, so a change is mechanical.
 - **Retention**: the migration store keeps full records for 365 days and compacts older ones. The
-  number has no external source; it is a configurable default chosen to cover a year of releases.
+  number has no external source; it is a default chosen to cover a year of releases, set with
+  `SW_ADDRESS_MIGRATION_RETENTION_DAYS`.
 - **Randomized tests use a small seeded generator** under `tests/helpers/`, not a new package, so
   that the module adds no dependency. A library can replace it later without changing tests.
 - **No new HTTP route.** Migrations are written inside the existing save and batch-save requests
@@ -542,8 +552,7 @@ guarded projects and compares the responses.
   earlier) is decided by the item diff feature using that field. This feature supplies the field
   and the pure application function, not the Git walk.
 - **Project slug is immutable.** Verified for rename; moving a project between repositories and
-  restore from trash keep the slug. If a later feature allows changing a slug it must record a
-  project migration of kind project-move.
+  restore from trash keep the slug. If a later feature allows changing a slug it must record a document migration whose prefix is the project address.
 - **Kind registry is a superset of today's editable kinds** (`ItemKind` in
   `src/shared/edit/item-model.ts`) plus structural kinds (ontology, model, mapping, contract,
   role, object-mapping, link-mapping). Roles and mapping children are positional.
@@ -565,9 +574,15 @@ guarded projects and compares the responses.
 | E6 name-based locator promises no identity | FR-017 to FR-021 | identity, location, display |
 | E6 IRI supplies global identity | FR-018 | no invented ids |
 | E6 nested ODCS and embedded layouts as locators | FR-012 to FR-015 | layouts and nesting |
-| E6 renames update references, record migrations | FR-027 to FR-031, FR-034, FR-035 | |
+| E6 renames update references, record migrations | FR-027 to FR-031, FR-034, FR-035, FR-049 | |
 | E6 ambiguous external changes become remove/add | FR-016, FR-032, FR-033, FR-047, FR-048 | |
 | E6 snapshot version for history | FR-005, FR-007 | |
+| Design choice: application format is labelled, not written into standard files | FR-010 | Constitution V |
+| Design choice: bounded store with retention | FR-037 | Constitution III, IV |
+| Design choice: adoption changes nothing the user sees | FR-039 | R2 |
+| Design choice: deletion does not inherit history | FR-043 | E20 counters |
+| Design choice: parser never throws | FR-045 | Constitution III |
+| Design choice: no dependency, no network | FR-046 | Constitution I, Technical Constraints |
 | E6 A1 is M | Summary, FR-038 | adoption order and size |
 | Evaluation A1 (parse and format used by graph, mapping, context, metrics, MCP) | FR-022 to FR-026, FR-038, FR-041 | |
 | Evaluation: `concept:C/R` and `Document#Item.child` | FR-001, Clarifications | one notation |

@@ -39,7 +39,7 @@
 2. `id` is derived from the operation id, so a retried operation produces the same ids and the
    append is idempotent.
 3. Prefix matching is by whole segments. `item` and `scope` prefixes are item-chain prefixes;
-   a `document` prefix is a document address and covers every item chain in it.
+   a `document` prefix is a document address, or a project address when a whole project changes slug, and covers every item chain beneath it.
 4. Application order is append order. Each record is applied once. A record whose `from` equals
    its `to` is refused when written.
 5. The server accepts a declared `item` or `scope` record only when `from` and `to` are in the
