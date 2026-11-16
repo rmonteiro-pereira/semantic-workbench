@@ -100,3 +100,7 @@ Implementation commits:
 - bab0af949c4554ffcdf4c484135827556b3deefc test: retain the established neutral Git fixture identity
 - 54e1e2b7d7f873668e6a3b8edaf49a6251ce7383 docs: refine state capture commands from the capture inventory
 - e833c6bdf0d4855410a5e612e30ae416d8dc7d1c docs: describe bundled typography licences and replacement
+
+## Integrator decision on the header snapshot
+
+The desktop header geometry pin in `scripts/responsive-ui-tests.ts` stores the width of the "Saved" text. With the bundled DM Sans that text is 48 px instead of 45 px; position, height and every other control box are unchanged. This is the intended effect of shipping the font, not a layout regression, so the pin is updated to 48 px at 1280 and 1440. The complete responsive suite is rerun in the cross-lane gate (T075).
