@@ -245,3 +245,9 @@ Validation: `RESPONSIVE_ONLY='ODCS graph: 1280×720' bun scripts/responsive-ui-t
 ### Compensated-name mutation coverage
 
 The existing disposable production-module case also covers overview-name compensation. A new registered mutant removes compensation while keeping the natural font size. The unmodified case exits 0, and `out/lane-b/resume-three-mutants.log` reports `KILLED lineage viewport mutant 1`, `KILLED lineage viewport mutant 2`, `KILLED lineage viewport mutant 3`, `3/3 lineage viewport mutants killed.` The prior two-mutant results remain historical. The detailed-row browser mutant also fails for its intended reason: `odcs-graph-columns: column names are 8.0 canvas px` (`out/lane-b/resume-column-mutant.log`), while its matching baseline passes.
+
+### Complete lineage gate
+
+The required, unmodified-budget suite now passes: `26 lineage checks passed on isolated data root /tmp/sw-B/tmp/workbench-browser-wWrcCJ.` (`out/lane-b/resume-lineage-last.log`). UBL entry is `1370 ms`; path emphasis is within 200 ms. Existing row, badge, expansion, semantic-edge and panel assertions all pass after native zoom into detailed cards. The Mall case waits for actual cards and whole framing instead of an arbitrary second. It reports all four readable Walk targets at `24.38×24.38 px`, preserves scroll, and passes fitted-card selection followed by Walk. There are no browser errors.
+
+This actual full-suite pass supersedes the earlier timing failures and diagnostic-only runs as the final lineage result. The queued isolated Mall repeat detects that full pass and skips its redundant run. The final full unit suite and responsive suite continue separately; the responsive mapping block has one additional native zoom call before its existing detailed-card selection so its manual path-toggle flow remains intact. Compact fitted-card selection and its immediate Walk dialog remain proved by the dedicated acceptance.

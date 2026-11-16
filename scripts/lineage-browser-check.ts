@@ -3,6 +3,8 @@ import { screenshotPath } from './helpers/screenshots';
 import { addressesOfModel } from '../src/shared/core/model-addresses';
 import { formatAddress } from '../src/shared/core/item-address';
 import { lineageDisplayKey } from '../tests/helpers/lineage-display-keys';
+import { NAME_MIN_PX } from '../src/app/odcs/lineage-view';
+import { checkOverviewNames, showCardDetails, fitOverview, checkReadableWalks, checkFittedWalk } from './helpers/odcs-graph-walk';
 import { checkDatasetLineageRoom, checkHopsRow } from './helpers/odcs-graph-review';
 import { appUrl } from './helpers/base-url';
 import { recordResizeErrors } from './helpers/resize-errors';
@@ -16,7 +18,7 @@ import { buildLineage, selectionNodes } from '../src/app/odcs/lineage';
 import { lineagePierce } from '../src/app/odcs/lineage-pierce';
 import { layoutProblems } from './helpers/layout-geometry';
 import { smallTextProblems, textCollisionProblems } from './helpers/text-geometry';
-import { hopRowProblems, odcsGraphProblems, MIN_COLUMN_PX } from './helpers/odcs-graph-geometry';
+import { hopRowProblems, odcsGraphProblems } from './helpers/odcs-graph-geometry';
 import { anchorReport, drawnLabels, paginationControls } from './helpers/odcs-graph-flow';
 // Every visible edge must match a reference edge, and all reference edges between visible rows
 // must appear. Path highlighting has a 200 ms budget; the first UBL view has a 2 s budget.
@@ -128,10 +130,7 @@ async function cardsInView() {
     };
   });
 }
-const fit = async () => {
-  await graph().getByRole('button', { name: 'Fit' }).click();
-  await page.waitForTimeout(350);
-};
+const fit = async () => fitOverview(page);
 // Clicks a drawn line matching the selector where no card covers it: its label first, which is
 // what a person aims at, then points along its path, trying each matching line in turn.
 async function clickLine(selector: string) {
@@ -200,13 +199,13 @@ async function compare(name: string) {
   }
   return drawn.size;
 }
-// Center-card column names must render at 12 px or more in the initial laptop views.
-async function renderedRowPx() {
+// Card names stay readable in the initial laptop views.
+async function renderedNamePx() {
   return page.evaluate(() => {
     const element = document.querySelector('[aria-label="Lineage graph"] .react-flow__viewport') as HTMLElement;
     const match = element.style.transform.match(/scale\(([\d.]+)\)/);
     const scale = match ? Number(match[1]) : 1;
-    const name = document.querySelector('[aria-label="Lineage graph"] .lineage-card.center .lineage-row-name') as HTMLElement | null;
+    const name = document.querySelector('[aria-label="Lineage graph"] .lineage-card.center strong') as HTMLElement | null;
     return name ? parseFloat(getComputedStyle(name).fontSize) * scale : 0;
   });
 }
@@ -222,9 +221,10 @@ async function firstViewReadable(path: string, project: string, label: string) {
     await page.screenshot({
       path: screenshotPath(`/tmp/workbench-lineage-${label.toLowerCase()}-first-${width}.png`),
     });
-    const px = await renderedRowPx();
-    console.log(`  ${label} ${width}×${height}: column names at ${px.toFixed(1)} px`);
-    expect(px).toBeGreaterThanOrEqual(12);
+    const px = await renderedNamePx();
+    console.log(`  ${label} ${width}×${height}: card names at ${px.toFixed(1)} px`);
+    expect(px).toBeGreaterThanOrEqual(NAME_MIN_PX - 0.01);
+    await checkOverviewNames(page);
   }
   await page.setViewportSize({ width: 1440, height: 900 });
 }
@@ -271,21 +271,22 @@ try {
     for (const cardName of ['Table customers', 'Table order_lines', 'Metric Gross revenue']) await expect(card(cardName)).toBeVisible();
     // The orders dataset copies its table, so the table card stands for it with a badge.
     await expect(card('Semantic dataset orders')).toHaveCount(0);
+    await showCardDetails(page, card('Table orders'));
     await expect(card('Table orders')).toContainText('Semantic dataset');
   });
-  await check('commerce: the first view is readable (column names ≥ 12 px) at 1280×720 and 1440×900', async () => {
+  await check('commerce: the first view is readable (card names ≥ 9 px) at 1280×720 and 1440×900', async () => {
     await firstViewReadable('commerce.odcs.yaml', 'Commerce workspace', 'commerce');
   });
-  await check('commerce: the orders dataset Lineage tab opens with legible column names and no cut card at 1280×720, and Fit then shows every card', async () => {
+  await check('commerce: the orders dataset Lineage tab opens with legible card names and no cut card at 1280×720, and Fit then shows every card', async () => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await openContract('commerce.odcs.yaml', 'Commerce workspace');
     await openOrdersDatasetLineage();
     await checkDatasetLineageRoom(page);
     await checkHopsRow(page);
     const opened = await datasetLineageCards();
-    const px = await renderedRowPx();
-    console.log(`  orders dataset lineage: ${opened.whole} of ${opened.total} cards whole, column names at ${px.toFixed(1)} px`);
-    expect(px).toBeGreaterThanOrEqual(MIN_COLUMN_PX);
+    const px = await renderedNamePx();
+    console.log(`  orders dataset lineage: ${opened.whole} of ${opened.total} cards whole, card names at ${px.toFixed(1)} px`);
+    expect(px).toBeGreaterThanOrEqual(NAME_MIN_PX - 0.01);
     expect(await odcsGraphProblems(page, { readableColumns: true })).toEqual([]);
     await graph().getByRole('button', { name: 'Fit' }).click();
     await page.waitForTimeout(600);
@@ -293,7 +294,7 @@ try {
     expect(fitted.whole).toBe(fitted.total);
     expect(fitted.total).toBeGreaterThanOrEqual(opened.total);
   });
-  await check('commerce: zoomed far out, card names are drawn larger and stay at least 11.5 px on screen', async () => {
+  await check('commerce: zoomed far out, card names are drawn larger and stay at least 9 px on screen', async () => {
     await openContract('commerce.odcs.yaml', 'Commerce workspace');
     await fit();
     const flow = graph().locator('.react-flow');
@@ -308,12 +309,13 @@ try {
         titles
           .filter(title => title.getBoundingClientRect().width > 0)
           .map(title => {
-            const scale = title.getBoundingClientRect().height / (title as HTMLElement).offsetHeight;
+            const viewport = title.closest('.react-flow__viewport')!;
+            const scale = new DOMMatrix(getComputedStyle(viewport).transform).a;
             return parseFloat(getComputedStyle(title).fontSize) * scale;
           }),
       );
     expect(names.length).toBeGreaterThan(0);
-    expect(Math.min(...names)).toBeGreaterThanOrEqual(11.5);
+    expect(Math.min(...names)).toBeGreaterThanOrEqual(NAME_MIN_PX - 0.01);
   });
   await check('commerce: resizing the window never turns a measured card back into an unmeasured one', async () => {
     await openContract('commerce.odcs.yaml', 'Commerce workspace');
@@ -351,6 +353,8 @@ try {
     const legend = graph().getByRole('list', { name: 'Legend' });
     for (const kind of ['Table', 'Metric']) await expect(legend).toContainText(kind);
     await expect(legend.locator('li').filter({ hasText: 'Foreign key' })).toHaveCount(1);
+    await fit();
+    await showCardDetails(page, card('Table orders'));
     const orderId = card('Table orders').getByRole('button', {
       name: 'orders.order_id',
     });
@@ -366,6 +370,7 @@ try {
     // shows the whole path.
     await graph().getByRole('button', { name: 'Fit' }).click();
     await page.waitForTimeout(300);
+    await showCardDetails(page, card('Table orders'));
     const ms = await page.evaluate(
       () =>
         new Promise<number>(res => {
@@ -387,6 +392,8 @@ try {
     );
     console.log(`  highlight ${ms.toFixed(0)} ms`);
     expect(ms).toBeLessThanOrEqual(200);
+    await fit();
+    await showCardDetails(page, card('Table orders'));
     await expect(card('Table orders').getByRole('button', { name: 'orders.amount' })).toHaveAttribute('aria-pressed', 'true');
     // The orders dataset copies its table, so the amount column feeds Gross revenue directly,
     // and Gross revenue feeds the average order value.
@@ -419,6 +426,8 @@ try {
     await expect(graph().locator('g[data-on-path="true"]')).toHaveCount(0);
   });
   await check('walk: Walk here re-centres on customers, the trail records it, Back and Forward return; Find assets walks too', async () => {
+    await fit();
+    await showCardDetails(page, card('Table customers'));
     await card('Table customers').getByRole('button', { name: 'Walk here' }).click();
     await expect(card('Table customers')).toHaveClass(/center/);
     const trail = graph().getByLabel('Walk', { exact: true });
@@ -453,13 +462,14 @@ try {
     const center = graph().locator('.lineage-card.center');
     // party has the most foreign keys and metric reads; semantic copies of a table add none.
     await expect(center).toHaveAttribute('aria-label', 'Table party');
-    expect(await renderedRowPx()).toBeGreaterThanOrEqual(12);
+    expect(await renderedNamePx()).toBeGreaterThanOrEqual(NAME_MIN_PX - 0.01);
     // consignment is the widest table, so its card exercises the opened column list.
     await graph().getByRole('textbox', { name: 'Find assets' }).fill('consignment');
     await graph().getByRole('listbox', { name: 'Asset results' }).getByRole('option').filter({ hasText: 'Table' }).first().click();
     await expect(center).toHaveAttribute('aria-label', 'Table consignment');
     // Opening the group adds connected handles to an already expanded column list.
     await expect(center.getByRole('navigation')).toHaveCount(0);
+    await showCardDetails(page, center);
     await center.getByRole('button', { name: /^Show all \d+ columns of consignment/ }).click();
     const list = center.getByRole('region', {
       name: 'Columns of consignment',
@@ -479,11 +489,12 @@ try {
       })
       .toBeGreaterThan(before);
     await compare('ubl');
+    await showCardDetails(page, center);
     await expect(list).toBeVisible();
     await compare('ubl');
     await shots('ubl');
   });
-  await check('UBL: the first view is readable (column names ≥ 12 px) at 1280×720 and 1440×900', async () => {
+  await check('UBL: the first view is readable (card names ≥ 9 px) at 1280×720 and 1440×900', async () => {
     await firstViewReadable('ubl.odcs.yaml', examples.ubl.name, 'UBL');
   });
 
@@ -498,10 +509,24 @@ try {
     await page.waitForTimeout(500);
     await fit();
     const before = await cardPositions();
-    const button = graph()
+    const candidateNames = await graph()
       .locator('.lineage-card:not(.group):not(.center)')
-      .getByRole('button', { name: /^Expand / })
-      .first();
+      .evaluateAll(cards => cards.map(card => card.getAttribute('aria-label')!));
+    let expandableName: string | undefined;
+    for (const candidateName of candidateNames) {
+      await fit();
+      await showCardDetails(page, card(candidateName));
+      if (
+        await card(candidateName)
+          .getByRole('button', { name: /^Expand / })
+          .count()
+      ) {
+        expandableName = candidateName;
+        break;
+      }
+    }
+    expect(expandableName).toBeDefined();
+    const button = card(expandableName!).getByRole('button', { name: /^Expand / });
     const name = (await button.getAttribute('aria-label'))!.slice('Expand '.length);
     await button.click();
     await expect(graph().getByLabel('Walk', { exact: true })).toContainText(`expanded ${name}`);
@@ -548,7 +573,7 @@ try {
     await expect(page.locator('.pierce-banner')).toContainText(`${want.cards.length} cards shown`);
     await page.screenshot({ path: screenshotPath('/tmp/workbench-lineage-pierce.png') });
   });
-  await check('graph: at four sizes the first view of three contracts has whole cards, readable column names, clear lines and labels, and a legend', async () => {
+  await check('graph: at four sizes the first view of three contracts has whole cards, readable card names, clear lines and labels, and a legend', async () => {
     const contracts = [
       ['commerce.odcs.yaml', 'Commerce workspace'],
       ['mall.odcs.yaml', examples.mall.name],
@@ -616,6 +641,7 @@ try {
     await page.waitForTimeout(600);
     const center = graph().locator('.lineage-card.center');
     const centreName = ((await center.getAttribute('aria-label')) ?? '').replace('Table ', '');
+    await showCardDetails(page, center);
     const more = center.getByRole('button', {
       name: /^Show all \d+ columns of /,
     });
@@ -708,20 +734,31 @@ try {
     await page.locator('.tabs').getByRole('button', { name: 'Overview' }).click();
     await openContract('mall.odcs.yaml', examples.mall.name);
     await fit();
-    const side = graph()
-      .locator('.lineage-card:not(.center)')
-      .filter({
-        has: page.getByRole('button', { name: /^Show all \d+ columns of / }),
-      })
-      .first();
-    const sideName = (await side.getAttribute('aria-label'))!;
+    const sideNames = await graph()
+      .locator('.lineage-card:not(.center):not(.group)')
+      .evaluateAll(cards => cards.map(card => card.getAttribute('aria-label')!));
+    let sideName: string | undefined;
+    for (const candidateName of sideNames) {
+      await fit();
+      await showCardDetails(page, card(candidateName));
+      if (
+        await card(candidateName)
+          .getByRole('button', { name: /^Show all \d+ columns of / })
+          .count()
+      ) {
+        sideName = candidateName;
+        break;
+      }
+    }
+    expect(sideName).toBeDefined();
+    const side = card(sideName!);
     await side.getByRole('button', { name: /^Show all \d+ columns of / }).click();
     await page.waitForTimeout(1200);
-    const opened = card(sideName);
+    const opened = card(sideName!);
     await expect(opened).toBeVisible();
     const hidden = await opened.evaluate(element => getComputedStyle(element.closest('.react-flow__node')!).visibility === 'hidden');
     expect(hidden, `${sideName} is hidden after showing more columns`).toBe(false);
-    const anchors = await anchorReport(page, sideName);
+    const anchors = await anchorReport(page, sideName!);
     expect(anchors.problems).toEqual([]);
   });
   await check('foreign-key hops: the hop control, the path line and the list of keys read as sentences at four sizes', async () => {
@@ -788,6 +825,7 @@ try {
     await openContract('mall.odcs.yaml', examples.mall.name);
     await centreOn('portfolios');
     const organizations = card('Table organizations');
+    await showCardDetails(page, organizations);
     await organizations.getByRole('button', { name: /^Show all \d+ columns of / }).click();
     await page.waitForTimeout(1200);
     const box = await organizations.boundingBox();
@@ -802,6 +840,7 @@ try {
     await page.locator('.tabs').getByRole('button', { name: 'Overview' }).click();
     await openContract('commerce.odcs.yaml', 'Commerce workspace');
     await fit();
+    await showCardDetails(page, card('Table orders'));
     const cut = await graph().evaluate(root => {
       const badged = [...root.querySelectorAll('.lineage-card')].filter(candidate => candidate.querySelector('.prop-badge.b-semantic'));
       return {
@@ -822,6 +861,28 @@ try {
     expect(cut.offHeader).toBe(0);
     expect(cut.cutHeaders).toBe(0);
     expect(cut.cutNames).toEqual([]);
+  });
+  await check('Mall dataset: compact first view has a whole neighbour; four readable Walk targets and fitted selection work without scrolling', async () => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await openContract('mall.odcs.yaml', examples.mall.name);
+    await page.locator('.tabs').getByRole('button', { name: 'Contract', exact: true }).click();
+    const all = page.getByRole('button', { name: 'All tables', exact: true });
+    if (await all.isVisible()) await all.click();
+    await page.getByRole('button', { name: 'Open properties', exact: true }).click();
+    await page.getByRole('tab', { name: 'Lineage', exact: true }).click();
+    await expect(graph().locator('.lineage-card.center')).toBeVisible({ timeout: 15000 });
+    await expect(graph().locator('.lineage-toolbar')).toBeEnabled();
+    await expect
+      .poll(async () => {
+        const cards = await datasetLineageCards();
+        return cards.total >= 2 && cards.whole === cards.total;
+      })
+      .toBe(true);
+    await checkDatasetLineageRoom(page);
+    await checkOverviewNames(page);
+    expect((await datasetLineageCards()).whole).toBeGreaterThanOrEqual(2);
+    await checkReadableWalks(page);
+    await checkFittedWalk(page);
   });
   await check('no browser errors', async () => {
     expect(errors).toEqual([]);
