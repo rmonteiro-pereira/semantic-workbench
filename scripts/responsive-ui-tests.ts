@@ -1330,6 +1330,7 @@ try {
       await sweep.waitForTimeout(300);
       for (const problem of await lineageProblems(sweep)) found.push(`${width}×${height}: ${problem}`);
       for (const problem of await layoutProblems(sweep)) found.push(`${width}×${height}: ${problem}`);
+      await showCardDetails(sweep, graph.getByRole('group', { name: 'Concept Customer' }));
       await graph.getByRole('group', { name: 'Concept Customer' }).locator('.lineage-card-title').click({ force: true });
       await showSelectedPath(graph, sweep);
       await hideSelectedPath(graph, sweep);
