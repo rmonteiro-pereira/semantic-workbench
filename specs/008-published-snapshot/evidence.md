@@ -820,3 +820,9 @@ Inspection of the existing journal writers found that replacing file-view settin
 separate notice. Those writes now preserve personal metadata, and whole-project restore brings it back.
 The existing move/delete/restore entry-point case passes with notice assertions for both owners (1 test,
 36 assertions, 17 unrelated cases filtered); the complete local check also passes.
+
+A read-only preflight found one older export mutation still anchored to the inventory's former `editing`
+label. Its anchor now follows `by-query`, preserving the same audit-removal fault. All 686 source mutation
+anchors are present. The active remote gate uses its original transferred tree, so its later mutation stage
+will need this corrected test-tool snapshot; the completed unit/browser results remain applicable because
+no production source changed. A final mutation repeat will retain the current browser baselines.
