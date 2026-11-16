@@ -166,7 +166,9 @@ repository groups so their history and unpublished work can be retained together
 
 **Export project…** downloads a streaming, uncompressed ZIP containing the project's stored files,
 relative folders and `.gitignore`. It excludes `.git/`, ignored files and unsaved drafts. The dialog
-names known unsaved edits and can offer **Save and export** for the open file.
+names known unsaved edits and can offer **Save and export** for the open file. When a snapshot
+exists, **Files to export → Published** selects it instead of **Working copy (saved files)**.
+Published disables Git history and does not save or include the open draft.
 
 `GET /api/projects/:slug/export?source=published` instead archives exact committed snapshot bytes
 for the files the caller may read. `source=editing` is the default. Published exports never include

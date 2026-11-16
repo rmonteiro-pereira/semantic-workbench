@@ -2,6 +2,7 @@
 import { chromium, expect } from '@playwright/test';
 import { appUrl } from './helpers/base-url';
 import { routeApi, startIsolatedApi } from './helpers/isolated-api';
+import { readZip } from '../tests/helpers/zip-reader';
 import { LOCAL_READER } from '../src/server/projects/reader';
 import type { PublishedStatus } from '../src/shared/scm/published-status';
 
@@ -18,6 +19,7 @@ const next = 'b'.repeat(40);
 const api = await startIsolatedApi({ watch: false });
 const project = await api.ws.loadExample('commerce');
 const mapped = await api.ws.loadExample('mapped-commerce');
+await api.ws.publish(mapped.slug, LOCAL_READER);
 const model = api.ws.documents().find(document => document.project === mapped.slug && document.filename === 'commerce.mapped-semantic.yaml')!;
 await api.ws.saveFile(mapped.slug, model.path, { baseHash: model.hash, source: model.source.replace('SUM(orders.amount)', 'SUM(orders.amount) + 17') }, LOCAL_READER);
 const browser = await chromium.launch();
@@ -32,7 +34,7 @@ try {
       if (path === '/api/me' || path === '/api/projects') {
         const response = await route.fetch({ url: api.url + path });
         const value = await response.json();
-        const json = path === '/api/me' ? { ...value, mode } : value.map((item: object) => ({ ...item, actions: ['publish', 'commit', 'branch', 'setRemote'] }));
+        const json = path === '/api/me' ? { ...value, mode } : value.map((item: object) => ({ ...item, actions: ['publish', 'commit', 'branch', 'setRemote', 'export', 'history'] }));
         await route.fulfill({ response, json });
         return true;
       }
@@ -94,6 +96,28 @@ try {
     expect(plan.status(), await plan.text()).toBe(200);
     expect(await plan.text()).toContain('+ 17');
     await composer.getByRole('button', { name: 'Close', exact: true }).click();
+    const projectName = api.ws.project(mapped.slug).name;
+    async function openExport() {
+      await page.getByRole('button', { name: `Actions for ${projectName}`, exact: true }).click();
+      await page.getByRole('menuitem', { name: 'Export project…' }).click();
+      return page.getByRole('dialog', { name: `Export ${projectName}`, exact: true });
+    }
+    const dialog = await openExport();
+    await expect(dialog.getByRole('option', { name: 'Published', exact: true })).toHaveCount(1);
+    await dialog.getByLabel('Files to export').selectOption('published');
+    await expect(dialog.getByRole('checkbox')).toBeDisabled();
+    const exported = page.waitForResponse(response => response.url().includes('/export?source=published'));
+    const downloaded = page.waitForEvent('download');
+    await dialog.getByRole('button', { name: 'Export', exact: true }).click();
+    const exportResponse = await exported;
+    expect(exportResponse.status()).toBe(200);
+    const archive = readZip(new Uint8Array(await Bun.file((await (await downloaded).path())!).arrayBuffer()));
+    expect(new TextDecoder().decode(archive.get(model.path)!)).not.toContain('+ 17');
+    await expect(dialog).toHaveCount(0);
+    published = { state: 'none', reason: 'no-commit', notice: false };
+    const unavailableDialog = await openExport();
+    await expect(unavailableDialog.getByRole('option', { name: 'Published', exact: true })).toHaveCount(0);
+    await unavailableDialog.getByRole('button', { name: 'Cancel', exact: true }).click();
     await page.close();
     passed++;
     console.log(`PASS ${mode} publication controls and six viewport geometries (${project.slug})`);

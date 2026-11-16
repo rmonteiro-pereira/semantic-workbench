@@ -423,8 +423,11 @@ export const api = {
    * Downloads a project's files as a zip. `omitted` counts the files the person may not read,
    * which the server leaves out and never names.
    */
-  async exportProject(project: string, includeHistory: boolean) {
-    const query = includeHistory ? '?history=1' : '';
+  async exportProject(project: string, includeHistory: boolean, source: 'editing' | 'published' = 'editing') {
+    const parameters = new URLSearchParams();
+    if (includeHistory) parameters.set('history', '1');
+    if (source === 'published') parameters.set('source', source);
+    const query = parameters.size ? `?${parameters}` : '';
     const response = await apiFetch(`/api/projects/${encodeURIComponent(project)}/export${query}`);
     if (!response.ok) return json<never>(response);
     const disposition = response.headers.get('Content-Disposition') ?? '';

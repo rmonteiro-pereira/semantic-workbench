@@ -1,7 +1,7 @@
 /** Downloads a project's files as a zip, with an optional Git bundle of its history. */
 import React, { useEffect, useState } from 'react';
 import { Modal } from './Modal';
-import { api, type ProjectInfo } from './api';
+import { api, scm, type ProjectInfo } from './api';
 import './export-dialog.css';
 
 // Only saved files are exported. Edits that are still unsaved, in the open file or kept as
@@ -65,19 +65,47 @@ function UnsavedNote({ paths }: { paths: string[] }) {
   );
 }
 
+function usePublicationOption(project: string) {
+  const [state, setState] = useState({ project: '', available: false, error: '' });
+  useEffect(() => {
+    let active = true;
+    scm.status(project).then(
+      status => {
+        if (active) setState({ project, available: Boolean(status.published && status.published.state !== 'none'), error: '' });
+      },
+      () => {
+        if (active) setState({ project, available: false, error: 'Published status unavailable.' });
+      },
+    );
+    return () => {
+      active = false;
+    };
+  }, [project]);
+  return state.project === project ? state : { available: false, error: '' };
+}
+
 /** Asks what to include, then downloads the zip the server streams. */
 export function ExportDialog({ project, dirty, saveOpenFile, onClose, onDone }: Props) {
   const [includeHistory, setIncludeHistory] = useState(false);
+  const [source, setSource] = useState<'editing' | 'published'>('editing');
+  const publication = usePublicationOption(project.slug);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const { paths, openFileIsUnsaved } = useUnsavedDrafts(project.slug, dirty);
+
+  const savesFirst = source === 'editing' && openFileIsUnsaved;
+  function chooseSource(event: React.ChangeEvent<HTMLSelectElement>) {
+    const next = event.target.value === 'published' ? 'published' : 'editing';
+    setSource(next);
+    if (next === 'published') setIncludeHistory(false);
+  }
 
   async function exportNow(saveFirst: boolean) {
     setBusy(true);
     setError('');
     try {
       if (saveFirst) await saveOpenFile();
-      const result = await api.exportProject(project.slug, includeHistory);
+      const result = await api.exportProject(project.slug, includeHistory, source);
       downloadBlob(result.blob, result.fileName);
       onDone(doneMessage(project.name, result.files, result.omitted));
     } catch (error) {
@@ -91,13 +119,13 @@ export function ExportDialog({ project, dirty, saveOpenFile, onClose, onDone }: 
       <button type="button" onClick={onClose} disabled={busy}>
         Cancel
       </button>
-      {openFileIsUnsaved && (
+      {savesFirst && (
         <button type="button" onClick={() => void exportNow(false)} disabled={busy}>
           Export without them
         </button>
       )}
-      <button type="button" className="primary" disabled={busy} onClick={() => void exportNow(openFileIsUnsaved)}>
-        {exportLabel(busy, openFileIsUnsaved)}
+      <button type="button" className="primary" disabled={busy} onClick={() => void exportNow(savesFirst)}>
+        {exportLabel(busy, savesFirst)}
       </button>
     </>
   );
@@ -105,16 +133,25 @@ export function ExportDialog({ project, dirty, saveOpenFile, onClose, onDone }: 
   return (
     <Modal title={`Export ${project.name}`} onCancel={onClose} footer={footer} size="narrow">
       <p className="dialog-intro">Downloads a .zip of the project's files in their folders. Files that Git ignores are left out. You can include the full change history.</p>
+      <label>
+        Files to export
+        <select aria-label="Files to export" value={source} onChange={chooseSource} disabled={busy}>
+          <option value="editing">Working copy (saved files)</option>
+          {publication.available && <option value="published">Published</option>}
+        </select>
+      </label>
+      {source === 'published' && <p className="export-note">Only committed files in the published snapshot are included. Drafts and Git history are excluded.</p>}
+      {publication.error && <p className="export-note">{publication.error}</p>}
       <fieldset className="export-choice">
         <label className="check-row">
-          <input type="checkbox" checked={includeHistory} onChange={event => setIncludeHistory(event.target.checked)} />
+          <input type="checkbox" disabled={source === 'published'} checked={includeHistory} onChange={event => setIncludeHistory(event.target.checked)} />
           <span className="choice-text">
             <span className="choice-title">Include Git history</span>
             <span className="choice-hint">Includes the full change history in a file you can reopen with Git.</span>
           </span>
         </label>
       </fieldset>
-      <UnsavedNote paths={paths} />
+      {source === 'editing' && <UnsavedNote paths={paths} />}
       {error && (
         <p role="alert" className="dialog-error">
           {error}

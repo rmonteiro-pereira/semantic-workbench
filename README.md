@@ -516,7 +516,8 @@ state, audit/session records, the Admin repository, trash and migration backups.
 - Back up the **complete data root with the app stopped**. Project remotes alone do not include
   drafts, access settings, sessions, grouping state or trash.
 - **More actions → Export** downloads the open source, including unsaved/invalid text, without saving it.
-  **Export project…** instead archives stored files and excludes drafts; it is not a draft backup.
+  **Export project…** archives saved working files by default, or the published snapshot when
+  **Published** is selected. Both exclude drafts; neither is a draft backup. Published excludes Git history.
 - The SQLite index is rebuildable. Stop the app before removing it, and expect a startup rescan.
   A cache directory on local disk is appropriate when durable files live on a network share.
 - Atomic writes and journal recovery protect interrupted file/project operations. They do not

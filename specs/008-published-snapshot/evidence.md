@@ -375,3 +375,7 @@ Both adoption mutants are detected independently: skipping the content guard and
 ## Published ZIP source
 
 `TMPDIR=/tmp/sw-008 bun test tests/snapshot-export.test.ts tests/project-export.test.ts tests/auth/project-export-access.test.ts`: 15 pass, 0 fail, 71 assertions. Published ZIP paths and bytes equal Git blobs, omit saved/untracked drafts, and reject history. Default and explicit editing archives stay byte-identical before and after the published download. The existing planner accepts pinned byte entries; streaming retains those bytes after releasing the pin. The working-files-for-published mutant is detected (baseline 0, mutant 1). `bun --bun run check`: exit 0.
+
+## Published export option
+
+`TMPDIR=/tmp/sw-008 SW_BASE_URL=http://127.0.0.1:5321 bun scripts/published-snapshot-browser-check.ts`: 2 published snapshot browser checks passed. In both modes the option appears only with a snapshot, disables history, downloads the published ZIP and excludes the unpublished expression that appears in the preview plan. The option is absent when status has no commit. `bun --bun run check`: exit 0.
