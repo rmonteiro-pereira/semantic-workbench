@@ -374,8 +374,10 @@ inventory; later increments (006 and its successors) are planned against this ta
 - **FR-041**: ARCHITECTURE.md, the audit contract and tamper-evidence guide, the policy model, the
   README's description of the audit log, and the changelog MUST describe the new boundary, fields
   and inventory in the same change.
-- **FR-042**: The constitution MUST be amended where it describes the single authorization boundary
-  and the verification gate (see the plan's Constitution Check).
+- **FR-042**: The constitution MUST say that every operation, whatever transport it arrives by, goes
+  through the operation boundary, and that the verification gate covers the operation inventory.
+  The wording is supplied to the constitution amendments drafted on `constitution-tessera`; this
+  feature does not edit the constitution itself (see the plan's Constitution Check).
 
 ### Key Entities
 
@@ -501,14 +503,14 @@ owner.
 
 | Decision or finding | Requirements | Tasks |
 | --- | --- | --- |
-| M1 (twin request through shared boundary) | FR-001 to FR-009, FR-012, FR-013 | see tasks.md |
-| MCP review (Fable) B1: action fixed before body, `execute` holds eleven behaviours | FR-003, FR-004, FR-008, FR-040 | see tasks.md |
-| MCP review (Fable) B1: target checks in handlers | FR-012, FR-013, FR-014 | see tasks.md |
-| MCP review (Fable) B1: identity read by symbol | FR-005, FR-006 | see tasks.md |
-| MCP review (Astra) 2: separate authentication from authorization, no action-equality proof | FR-001, FR-003, FR-013 | see tasks.md |
-| M9 (effects, scopes narrow authority) | FR-015 | see tasks.md |
-| M14 (audit schema, replay strata, retention) and MCP reviews (Fable M8, Astra 11) | FR-020 to FR-032 | see tasks.md |
-| M17 (tool lists by effective permission) | FR-016 to FR-019 | see tasks.md |
-| M17 (inventory of every operation) and MCP review (Astra 12, Fable inventory) | FR-033 to FR-037 | see tasks.md |
-| R2 (no existing behaviour changes, mutation and recovery gates) | FR-038 to FR-040, SC-001, SC-007 | see tasks.md |
-| E23 (constitution amendment), project documentation rules | FR-041, FR-042 | see tasks.md |
+| M1 (twin request through shared boundary) | FR-001 to FR-011, FR-012, FR-013 | T005 to T016 |
+| MCP review (Fable) B1: action fixed before body, `execute` holds eleven behaviours | FR-003, FR-004, FR-008, FR-040 | T008, T009, T013, T044 |
+| MCP review (Fable) B1: target checks in handlers | FR-012, FR-013, FR-014 | T016, T017 |
+| MCP review (Fable) B1: identity read by symbol | FR-005, FR-006 | T007, T013, T014 |
+| MCP review (Astra) 2: separate authentication from authorization, no action-equality proof | FR-001, FR-003, FR-013 | T006, T010, T016 |
+| M9 (effects, scopes narrow authority) | FR-015 | T015 |
+| M14 (audit schema, replay strata, retention) and MCP reviews (Fable M8, Astra 11) | FR-020 to FR-032 | T019 to T032 |
+| M17 (tool lists by effective permission) | FR-016 to FR-019 | T033 to T036 |
+| M17 (inventory of every operation) and MCP review (Astra 12, Fable inventory) | FR-033 to FR-037 | T018, T037 to T043 |
+| R2 (no existing behaviour changes, mutation and recovery gates) | FR-038 to FR-040, SC-001, SC-007 | T001 to T004, T010, T021, T044, T045, T050 |
+| E23 (constitution amendment), project documentation rules | FR-041, FR-042, SC-010 | T046 to T049, T051 |

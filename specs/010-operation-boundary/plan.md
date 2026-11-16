@@ -181,7 +181,7 @@ src/server/auth/
 ├── remote-credentials.ts             # session lookup through the caller first
 ├── audit.ts                          # origin, tool, method, connection, filters, CSV columns
 ├── dry-run.ts, access-admin.ts       # replay strata
-└── route-actions.ts                  # unchanged rows; exports the dispatchability helpers
+└── route-actions.ts                  # unchanged
 src/server/observability/metrics.ts   # recordOperation
 src/server/handler.ts, authentication.ts, index.ts   # one audit log with mirror and retention
 scripts/
@@ -215,7 +215,7 @@ one module per concept. Nothing is added under `src/server/mcp/`; that folder be
 imports `operation-boundary.ts`, `twin-request.ts`, `caller.ts` and `operation-inventory.ts` only
 (enforced by `boundary-scan.test.ts` once the folder exists).
 
-## Delivery phases (detail in tasks.md)
+## Delivery phases (tasks.md splits them into eight)
 
 1. **Record**: the HTTP characterization and the old-format audit fixture, on unchanged code.
 2. **Split**: extract authentication, boundary and adapter with no behaviour change; characterization
