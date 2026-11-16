@@ -49,6 +49,13 @@ export async function controlThemeProblems(page: Page, within = 'body'): Promise
         problems.add(`${(choice as HTMLInputElement).type} keeps the browser's own accent colour`);
       }
     }
+    for (const button of scope.querySelectorAll<HTMLButtonElement>('button:disabled')) {
+      if (!button.getClientRects().length) continue;
+      const style = getComputedStyle(button);
+      if (style.borderTopStyle !== 'solid') problems.add('disabled button must have a solid border');
+      const enabled = scope.querySelector<HTMLButtonElement>('button.primary:not(:disabled)');
+      if (enabled && getComputedStyle(enabled).borderColor === style.borderColor) problems.add('disabled border must differ from the primary action');
+    }
     return [...problems];
   }, within);
 }

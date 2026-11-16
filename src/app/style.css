@@ -31,7 +31,7 @@ textarea {
 /* Keyboard focus, including focus handed back to a button when its dialog closes, shows in the
    theme's focus colour. The browser's own ring is a thick black outline that looks broken on the
    brand buttons. :where() keeps this weaker than any control that styles its own focus. */
-:where(button, a, summary, [tabindex]):focus-visible {
+:where(button, a, summary, select, textarea, input, [tabindex]):focus-visible {
   outline: 2px solid var(--color-focus);
   outline-offset: 2px;
 }
@@ -84,7 +84,7 @@ button[aria-disabled='true']:hover {
   opacity: 1;
   background: var(--color-surface-sunken);
   border-color: var(--color-border);
-  border-style: dashed;
+  border-style: solid;
   color: var(--text-muted);
   cursor: default;
 }
@@ -652,7 +652,7 @@ main {
   font-size: var(--text-small);
   letter-spacing: 2px;
   color: var(--text-muted);
-  font-weight: 650;
+  font-weight: 700;
 }
 .overview-top h2 {
   margin: 6px 0;
@@ -3865,4 +3865,21 @@ main > .status {
     max-width: var(--content-max-width);
     margin-inline: auto;
   }
+}
+
+select {
+  border: 1px solid var(--color-border);
+  border-radius: 7px;
+  padding: 8px;
+}
+.workbench-dialog label > span:first-child {
+  color: var(--color-text-secondary);
+}
+.catalog-card > button:first-child {
+  text-align: left;
+}
+
+.inspector .inspect-neighborhood {
+  padding: 9px 13px;
+  font-size: 13px;
 }

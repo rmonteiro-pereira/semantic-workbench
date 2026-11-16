@@ -97,3 +97,13 @@
 - Before: review `screenshots/states/local-import--refused-file-1440.png`; after: `/tmp/sw-E/final-files/local-import--refused-file-1440.png` (opened: single notice, no YAML repair editor).
 - `tests/new-file.test.ts` includes extension refusal; focused files total 37 pass. `test:ui`: 20 checks passed; `test:projects`: 8 checks passed.
 - The empty-state decision belongs to MappingExplorer: QueryComposer is rendered only after a mapping context resolves, so changing the composer itself is unnecessary.
+
+### T059 and T069 — shared controls
+
+- Disabled buttons use a solid muted border instead of a dashed outline; the existing muted label retains its contrast. Inputs, selects, textareas and checkboxes share the focus token.
+- Before: review `screenshots/local-dark/local-dark-metric-wizard-1440.png` and `screenshots/followup/local-interaction--focus-native-select-1440.png`.
+- After (opened): `/tmp/sw-E/final-dark-metrics/local-dark-metric-wizard--step-1-empty-validation-1440.png` and `/tmp/sw-E/final-content-desktop/screenshots/followup/local-interaction--focus-native-select-1440.png`. Disabled Back is subdued with a solid border; select focus uses the theme ring.
+- Modal already used the required 18 px title and primary-last footer. The dialog gate now asserts the title scale and solid disabled border. Selects retain one native chevron with the token border; the custom-chevron experiment was removed after it shrank intrinsic widths.
+- Eyebrow weight is consistent; form label color is shared.
+- `test:theme`: 10 checks passed; `test:dialogs`: 9 checks passed at six viewports. `tests/admin-clipping.test.tsx` and `tests/admin-dialogs.test.tsx`: 13 pass, 0 fail after removing the custom-chevron experiment.
+- Some earlier capture runs overlapped source edits; only the explicitly listed inspected states are evidence. Logs retain those earlier failures.

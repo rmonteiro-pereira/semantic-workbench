@@ -65,6 +65,7 @@ export async function dialogStandardProblems(page: Page): Promise<string[]> {
         problems.push('the dialog scrim does not separate it from the page');
       }
       const title = panel.querySelector<HTMLElement>(':scope > h2')!;
+      if (getComputedStyle(title).fontSize !== '18px') problems.push('the dialog title must be 18px');
       const titleInset = getComputedStyle(title).paddingLeft;
       const footerInset = getComputedStyle(footer).paddingLeft;
       if (titleInset !== footerInset) problems.push('the footer padding differs from the title');
@@ -76,8 +77,8 @@ export async function dialogStandardProblems(page: Page): Promise<string[]> {
       }
       for (const button of buttons.filter(candidate => candidate.disabled)) {
         const style = getComputedStyle(button);
-        if (style.borderTopStyle !== 'dashed') {
-          problems.push(`the disabled "${button.textContent}" action has a dashed border`);
+        if (style.borderTopStyle !== 'solid') {
+          problems.push(`the disabled "${button.textContent}" action must have a solid border`);
         }
         const readable = style.opacity === '1' && style.color === mutedText && style.backgroundColor === sunkenBackground;
         if (!readable) problems.push(`the disabled "${button.textContent}" button is faint`);

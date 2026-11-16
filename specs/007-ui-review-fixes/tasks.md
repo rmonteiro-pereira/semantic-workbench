@@ -410,7 +410,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Show '<N> datasets · <M> metrics' with a searchable list in step 2 (`MetricWizard.tsx:381`); give the dialog one height and a scrolling body so the title stays put across steps 1-8.
   - Proof: Before `states/local-metric-wizard--step-2-1440.png`, `states/local-metric-wizard--step-1-empty-validation-1440.png`, `states/local-metric-wizard--step-4-1440.png` (review baseline); after: same state recaptured with `SW_ONLY=metrics scripts/ui-review/capture-states.ts <out> rest`; check: `bun run test:metrics` asserts the title's top varies by at most 2 px across steps.
 
-- [ ] T059 [US5] [E] Make disabled buttons read as disabled and unify the focus ring.
+- [x] T059 [US5] [E] Make disabled buttons read as disabled and unify the focus ring.
   - Findings: M19, m17 · Requirements: FR-056, FR-064
   - Files: src/app/style.css (lines 25-100: base, focus, disabled), src/shared/theme/theme.css (button and focus tokens only), `scripts/helpers/control-geometry.ts`
   - Change: Replace the dashed border at `style.css:71-84` with a solid muted border and a dimmer label token that still meets 3:1; apply `--color-focus` to `select`, `textarea`, `input[type=checkbox]` and the commit and branch inputs.
@@ -470,7 +470,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Drop unsupported file types at selection with one sentence and never open them in a YAML editor; when the project has no mapping document, show **Load example** and **Import** instead of the empty select and disabled buttons.
   - Proof: Before `states/local-import--refused-file-1440.png`, `server-light/server-query-composer-1440.png` (review baseline); after: same state recaptured with `scripts/ui-review/file-states.ts <out>` and `scripts/ui-review/capture-tour.ts <out> server light`; check: `bun run test:projects`; `bun run test:ui`.
 
-- [ ] T069 [US5] [E] Give every dialog one scale and one button order; unify native selects and eyebrow labels.
+- [x] T069 [US5] [E] Give every dialog one scale and one button order; unify native selects and eyebrow labels.
   - Findings: m23, P2, P3, P4, P5, P6, P7, P9 · Requirements: FR-068, FR-071
   - Files: src/app/style.css (lines 2294-2420 and 3510-3600: dialogs; select and eyebrow selectors), `src/app/projects/Modal.tsx`, `src/app/workspace/FileDialogs.tsx`, `src/app/workspace/SaveDialogs.tsx`, `scripts/helpers/dialog-geometry.ts`
   - Change: Use the 18 px dialog title scale everywhere, put the primary on the right (the admin review dialogs are lane D's), style `select` with the token border and one chevron, and use one eyebrow style. SaveDialogs content belongs to lane C; only its title class changes here.
