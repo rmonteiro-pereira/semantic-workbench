@@ -245,7 +245,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Change 'one to five foreign keys' (user guide line 409, graph-design line 118) to 'one to three', describe the mapping graph's **Steps** (1-5, in View options) separately, and update the 'first view frames the nearest cards whole' paragraph to what the new first view does. `MAX_HOPS` stays 3.
   - Proof: `rg -n 'one to five' docs README.md` returns nothing; `tests/lineage-hops.test.ts` asserts `MAX_HOPS` equals the number the docs state.
 
-- [ ] T035 [US2] [B] Run lane B checks: `bun test`, `bun --bun run check`, `bun --bun run build`, `bun run test:lineage`, `bun run test:odcs`, `bun run test:mapping-graph`, `bun run test:edges`, `bun run test:responsive`, `bun run test:ui`, `bun scripts/mutation-tests.ts`.
+- [x] T035 [US2] [B] Run lane B checks: `bun test`, `bun --bun run check`, `bun --bun run build`, `bun run test:lineage`, `bun run test:odcs`, `bun run test:mapping-graph`, `bun run test:edges`, `bun run test:responsive`, `bun run test:ui`, `bun scripts/mutation-tests.ts`.
   - Files: `scripts/lineage-mutants.ts`, `scripts/lineage-mutation-cases.ts`
   - Change: Add a mutant for the Fit-versus-centre decision and the 24 px compensation in `scripts/lineage-mutants.ts` (registered under lane B's sentinel).
   - Proof: All commands pass; results and image paths in `specs/007-ui-review-fixes/evidence/B.md`.

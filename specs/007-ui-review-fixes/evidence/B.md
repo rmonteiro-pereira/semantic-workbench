@@ -1,5 +1,7 @@
 # Lane B
 
+Final status: T024–T035 are complete with no skipped tasks. The final gate passes. The initial partial audit and handoff below are historical; the final completion section supersedes them.
+
 ## Scope ledger
 
 - Existing lineage closure, navigation history and ELK row-port geometry remain authoritative.
@@ -123,7 +125,7 @@ The first two use `capture-states.ts`; the last uses `lineage-panel-states.ts` r
 The full mutation command initially identified the old bounds anchor as missing after route-aware placement added an argument. Route context now belongs to each `LabelRequest`, preserving the existing three-argument placement call and the existing bounds mutant. Focused edge-label tests pass (7 pass, 0 fail, 20 expect calls), and the complete `check` command passes. No shared mutation anchor was changed.
 
 
-## Final gate results
+## Initial gate results (superseded)
 
 Commands use the assigned frontend `SW_BASE_URL=http://127.0.0.1:5221` and an ignored Bun preload restricting API listeners to 5222. Final isolated fixtures use `TMPDIR=/tmp/sw-B/tmp`. The wrappers are local harness configuration, not product changes.
 
@@ -169,7 +171,7 @@ The aggregate readable-code scan over this lane's changed lines, docs synchroniz
 - `9ac5ad5c` fix: preserve bounds mutation coverage with route-aware label requests
 
 
-## Handoff
+## Historical handoff before integrator decisions
 
 The final UI smoke run reports `20 UI checks passed`. All lane-owned changes are committed locally; nothing was pushed or merged. The dev server was stopped and neither 5221 nor 5222 has a listener. A process scan found no remaining browser or Bun check process in this worktree.
 
@@ -332,3 +334,73 @@ Inspected `states/local-lineage-walk--fitted-1-before-1440.png` against `out/lan
 tables, one project and an untouched properties-only history. The latter shows whole compensated name-only cards in the larger pane. This is the exact fitted baseline pair; the later fitted-selection
 captures remain additional interaction proof. Also inspected all four `resume-known` readable-before images alongside their previously inspected readable-after images; the target headers and Walk
 actions are visible before each centre change.
+
+## Final completion
+
+All lane tasks are ticked. T028 delivers panel fitting; shared-source trunks across destination cards remain the documented follow-up. T032 retains the fixed detailed header band, as directed. No lane
+task is skipped and no gate failure remains.
+
+Every required browser suite ran separately against frontend 5221 and isolated fixture APIs. OS-assigned and harness dynamic listeners were permitted; reserved fixed ports stayed protected. Browser
+aliases used their exact script entry points below. The final unit and mutation runs use the ordinary temp-directory setting required by the deployment fixture and explicit lane DATA_DIR values.
+Earlier failed, interrupted and diagnostic runs do not replace these final passes.
+
+| Command | Output summary | Log under out/lane-b/ |
+| --- | --- | --- |
+| `bun test` | `2077 pass`; `0 fail`; `130809 expect() calls` | `resume-unit-normal-temp.log` |
+| `bun --bun run check` | Exit 0: TypeScript, format, lint, comments, theme and brand | `resume-static-final.log` |
+| `bun --bun run build` | `built in 6.16s` | `resume-build-final.log` |
+| `bun scripts/lineage-browser-check.ts` | `26 lineage checks passed` | `resume-lineage-last.log` |
+| `bun scripts/odcs-browser-check.ts` | `10 ODCS checks passed` | `resume-gate-odcs-browser-check.log` |
+| `bun scripts/mapping-graph-browser-check.ts` | `12 mapping graph checks passed` | `resume-gate-mapping-graph-browser-check.log` |
+| `bun scripts/edge-attachment-ui-tests.ts` | `6 edge attachment UI checks passed` | `resume-gate-edge-attachment-ui-tests.log` |
+| `bun scripts/responsive-ui-tests.ts` | `140 responsive UI checks passed` | `resume-responsive-final-pass.log` |
+| `bun scripts/ui-tests.ts` | `20 UI checks passed` | `resume-gate-ui-tests.log` |
+| `bun scripts/mutation-tests.ts` | `669/669 targeted mutants killed; all unmodified module baselines passed.` | `resume-mutation-final.log` |
+
+The final full unit suite runs 2077 tests across 286 files in 322.27 seconds. All nine browser mutants are killed, including the detailed-row and whole-model name-size faults. The actual lineage suite
+meets its unchanged two-second entry budget (1370 ms) and 200 ms path-highlighting budget. No acceptance threshold is relaxed.
+
+The build retains the existing bundle-size warning. A build timing diagnostic is informational. Neither is a failing check. The final responsive pass also supersedes the initial Admin loading failure;
+no Admin change was needed. The original registry baseline timeout and the temp-directory mismatch are superseded by the final full mutation and unit passes.
+
+Proof pairs and observations are listed above, including the fresh untouched-history fitted baseline, whole commerce first views, properties/brands fitted reaches, selected paths, the dark empty state
+and earlier minor fixes. Every claimed after image was opened and inspected. Fresh captures additionally prove four native Walk clicks plus fitted selection at 1280, 1440 and 390. Source whitespace,
+readability, documentation synchronization and leak checks pass. Oxfmt excludes Markdown; completion prose is wrapped manually at 200 columns.
+
+The lane dev server was stopped by its own verified PID. Both 5221 and 5222 have no listener. Final process inspection found no remaining lane-started browser, API, test or capture worker. All changes
+are committed locally on 007-lane-b; nothing was pushed or merged. The requested scripts/commit_cadence.py is absent, as recorded in the initial audit. The integrator's only design follow-up is
+shared-source bundling; retaining the detailed header band is intentional.
+
+### Local commits before this completion record
+
+- 4e296cd6 refactor: move lineage legend into its owning module
+- 670aa9ca fix: reclaim table header space for lineage canvas
+- 3b20b25d fix: compensate lineage walk targets for canvas zoom
+- 8804223a fix: fit complete lineage reaches when readable bounds allow
+- deb88de0 fix: fit lineage cards beside the selected path panel
+- 1836742b docs: confirm intrinsic sizing behind lineage hops wrapping
+- c8aa982f fix: keep lineage hops and viewport actions on one row
+- 2dca1556 fix: align embedded lineage with the dataset content width
+- 3f0923f4 fix: clarify lineage centres legends and unlinked states
+- 1ab09121 fix: reject crossed lineage labels and disable pending layout controls
+- 62e4031d docs: distinguish foreign-key hops from mapping steps
+- b34dfb62 refactor: remove unused path-fit inputs
+- fb80f2a3 test: register readable-fit and walk-target mutants
+- cc16978c test: recognize the visible phone lineage legend disclosure
+- 2eb3fee0 fix: contain compensated walk targets within card headers
+- d4a36270 docs: describe lineage control and viewport exports
+- b5e867b4 fix: prevent clipped mapping labels from using legacy fallback
+- 212af55f docs: record settled dataset width acceptance
+- 9ac5ad5c fix: preserve bounds mutation coverage with route-aware label requests
+- db38b418 docs: record lane B checks and unresolved acceptance limits
+- b3d46e8b docs: apply integrator decisions for lineage acceptance and follow-ups
+- e299283b fix: share readable name-only cards and fit complete lineage reaches
+- f4b7beca fix: settle lineage fits against the current layout bounds
+- 24d9d1b3 fix: give explicit fits priority and frame only whole entry cards
+- 8ec6c8bf test: prove readable lineage entries and native walk targets
+- b838e122 test: exercise detailed graph rows after compact fits
+- e49d0ba5 test: guard compensated overview names with a targeted mutant
+- b7217102 test: verify whole lineage frames and fitted-card walks
+- 7bb3e242 test: retain detailed mapping selection in responsive checks
+- f5cb05bf docs: record the complete responsive gate and fresh fitted proof
+- 238ba147 style: wrap completion evidence at the documented width
