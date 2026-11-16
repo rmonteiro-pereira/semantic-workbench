@@ -587,7 +587,7 @@ lines separately exits 0 with no hits; the confidential-only internal evidence s
 
 ## Final complete mutation gate
 
-`TMPDIR=/tmp/sw-008 SW_BASE_URL=http://127.0.0.1:5321 bun scripts/mutation-tests.ts` exited 0:
+`TMPDIR=/tmp/sw-008 SW_BASE_URL=http://127.0.0.1:5321 bun scripts/mutation-tests.ts` printed the complete summary:
 
 ```text
 695/695 targeted mutants killed; all unmodified module baselines passed. Run test:ui for the full browser baseline.
@@ -596,3 +596,7 @@ lines separately exits 0 with no hits; the confidential-only internal evidence s
 This supersedes the earlier 694-mutant run and includes the reserved-default-name predicate. All nine visual
 mutants were detected. No mutant was excluded, made equivalent or accepted because of an invalid import or
 syntax error. The full run completed before either final capture journey started.
+
+The long-lived launcher subsequently reported exit 143 rather than a verified zero exit. The summary
+proves all mutant assertions ran, but does not by itself prove a clean process exit. A detached suite-runner
+repeat will supply the final exit status after the serial capture journeys.
