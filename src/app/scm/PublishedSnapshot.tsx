@@ -26,6 +26,11 @@ export function PublishedSnapshot({ status, local, canPublish, busy, onPublish, 
           {status.ahead} ahead · {status.behind} behind published
         </span>
       )}
+      {!unavailable && status.remote && (
+        <span>
+          Remote {status.remote.branch}: {status.remote.ahead} commits ahead of published (last fetch)
+        </span>
+      )}
       {pending && (
         <span>
           Outside move: {status.pending.move}, {status.pending.commits} commits. {status.pending.move === 'diverged' && 'Restore a descendant of the published commit before adopting.'}

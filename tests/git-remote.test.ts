@@ -22,6 +22,8 @@ test('push to a local bare remote sets the upstream; pull merges a commit made e
     sh(project.other, ['push', '-q']);
     const fetched = await ok(call(project.t, 'POST', project.base + '/git/fetch'));
     expect(fetched).toMatchObject({ ok: true, behind: 1, ahead: 0 });
+    sh(project.dir, ['switch', 'work/local']);
+    sh(project.dir, ['branch', '--set-upstream-to=origin/main']);
     const pulled = await ok(call(project.t, 'POST', project.base + '/git/pull'));
     expect(pulled).toMatchObject({ ok: true, conflicted: [], altered: [], behind: 0 });
     expect(project.t.ws.readFile(project.slug, 'shop.yaml').source).toBe(ontology('From elsewhere.'));
@@ -31,7 +33,7 @@ test('push to a local bare remote sets the upstream; pull merges a commit made e
     expect((await ok(call(project.t, 'GET', project.base + '/git/status'))).ahead).toBe(1);
     const pushed = await ok(call(project.t, 'POST', project.base + '/git/sync'));
     expect(pushed).toMatchObject({ ok: true, ahead: 0, behind: 0 });
-    sh(project.other, ['pull', '-q', '--no-rebase']);
+    sh(project.other, ['pull', '-q', '--no-rebase', 'origin', 'work/local']);
     expect(readFileSync(join(project.other, 'shop.yaml'), 'utf8')).toBe(ontology('Local.'));
   } finally {
     project.dispose();

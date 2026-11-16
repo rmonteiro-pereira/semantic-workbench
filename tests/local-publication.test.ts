@@ -77,3 +77,38 @@ test('a non-descendant publication names the default and authoring branches to m
   await expect(fixture.publication.publishLocal('definitions', 'main', async () => {})).rejects.toThrow('Merge main into work/other first.');
   expect(fixture.pointers.get('definitions')?.commit).toBe(fixture.authoring);
 });
+
+test('local status reports the last fetched remote default without making network requests', async () => {
+  const { testWorkspace } = await import('./helpers/temp-data-dir');
+  const { createState } = await import('../src/server/projects/state');
+  const { dataLayout } = await import('../src/server/projects/paths');
+  using fixture = setup();
+  createState(dataLayout(fixture.dir)).writeRegistry([{ slug: 'definitions', name: 'Definitions', origin: '', createdAt: '' }]);
+  const bare = join(fixture.dir, 'remote.git');
+  await fixture.git.run(fixture.repository, ['clone', '--bare', fixture.repository, bare], { remote: true });
+  await fixture.git.run(fixture.repository, ['remote', 'add', 'origin', bare]);
+  await fixture.git.run(fixture.repository, ['fetch', 'origin', 'work/local:refs/remotes/origin/main'], { remote: true });
+  let requests = 0;
+  const listener = Bun.serve({
+    hostname: '127.0.0.1',
+    port: 0,
+    fetch: () => {
+      requests++;
+      return new Response('unexpected request', { status: 500 });
+    },
+  });
+  try {
+    await fixture.git.run(fixture.repository, ['remote', 'set-url', 'origin', `http://127.0.0.1:${listener.port}/remote.git`]);
+    using workspace = await testWorkspace({ root: fixture.dir, watch: true });
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const response = await workspace.handler(new Request('http://localhost/api/projects/definitions/git/status'));
+      expect(response.status).toBe(200);
+      expect((await response.json()).published.remote).toEqual({ branch: 'origin/main', ahead: 1 });
+    }
+    await Bun.sleep(250);
+    expect(requests).toBe(0);
+    expect(workspace.ws.published.pin().commits.get('definitions')?.commit).toBe(fixture.published!);
+  } finally {
+    await listener.stop(true);
+  }
+});

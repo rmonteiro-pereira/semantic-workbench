@@ -201,7 +201,8 @@ and changes no Git ref, index or file.
 
 The **Source control** panel shows **Published: branch @ commit** separately from the authoring
 branch and its ahead/behind counts. In local mode, **Publish** advances the snapshot without pushing.
-An outside default-branch move instead offers **Adopt**; a diverged move remains disabled until
+A remote default branch also shows its commits ahead of published, using only the last fetched
+tracking ref. Status never fetches in the background. An outside default-branch move instead offers **Adopt**; a diverged move remains disabled until
 repaired. **Got it** dismisses the upgrade notice for the current person.
 
 The **Source control** panel provides:

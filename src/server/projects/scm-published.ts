@@ -13,6 +13,17 @@ function noticeVisible(state: State, slug: string, reader: Reader) {
   return Boolean(value && typeof value === 'object' && 'notice' in value && value.notice === true);
 }
 
+async function remoteDefault(git: Git, directory: string, branch: string, commit: string) {
+  const remotes = await git.remotes(directory);
+  const remote = remotes.has('origin') ? 'origin' : remotes.keys().next().value;
+  if (!remote) return {};
+  const ref = `refs/remotes/${remote}/${branch}`;
+  const tip = await git.revParse(directory, ref);
+  if (!tip) return {};
+  const count = await git.run(directory, ['rev-list', '--count', `${commit}..${tip}`]);
+  return { remote: { branch: `${remote}/${branch}`, ahead: Number(count.stdout.trim()) } };
+}
+
 /** Adds the caller's distance and personal notice to the repository's immutable published identity. */
 export async function scmPublishedStatus(
   deps: { git: Git; snapshots: PublishedSnapshots; state: State },
@@ -27,7 +38,7 @@ export async function scmPublishedStatus(
   const head = await deps.git.head(directory);
   const result = head ? await deps.git.run(directory, ['rev-list', '--left-right', '--count', `${snapshot.commit}...${head}`]) : null;
   const [behind, ahead] = result ? result.stdout.trim().split(/\s+/).map(Number) : [0, 0];
-  const common = { branch: snapshot.branch, commit: snapshot.commit, ahead, behind, notice };
+  const common = { branch: snapshot.branch, commit: snapshot.commit, ahead, behind, notice, ...(await remoteDefault(deps.git, directory, snapshot.branch, snapshot.commit)) };
   if (snapshot.state === 'in-sync') return { ...common, state: 'in-sync' };
   return { ...common, state: 'pending', pending: { next: snapshot.next, commits: snapshot.commits, move: snapshot.move } };
 }
