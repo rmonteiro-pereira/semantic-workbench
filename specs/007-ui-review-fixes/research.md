@@ -42,6 +42,18 @@ Decisions, the source of every number, the review's inferences to confirm, and t
 
 - No stored data, no API field and no authorization decision changes, so there is no `data-model.md` and no `contracts/`. If the staged-deletion investigation finds the cause in `src/server/projects/scm.ts`, the response keeps its fields and a test pins the corrected values.
 
+### D9. Graph openings use the completed layout
+
+- **Decision**: compare the smallest rendered name against the locked 9 px floor after the actual Fit viewport has painted. Network opens with the existing counted areas when the expanded result
+  fails; 250 entities remains an upper layout safety cap. One additional layout is permitted for the counted result. Explicit area choices persist.
+- **Layered**: retain the existing area order and orthogonal cross-area routes. Open on the first area at readable scale; pan and Fit model reach the remaining areas. Wrapping is rejected because it
+  would invalidate the existing compound routes.
+- **Measurement**: use the smaller of the rendered name box and its font size multiplied by the actual viewport zoom, so line height or wrapping cannot conceal undersized glyphs. Counted-card fit
+  keeps a small subpixel margin above 9 px. Narrow first views are counted; wide UBL can remain expanded when its real layout passes.
+- **Proof**: the opening browser checks cover UBL and Mall at 390, 1280, 1440 and 2560. Additional-layout times, captures and the comparison against the foundation are recorded in `evidence/A.md`.
+  These decisions supersede the earlier aspect-ratio-only proposals without changing any locked threshold.
+
+
 ## Provenance of numbers
 
 See the spec's Measured thresholds table. The lane A baseline task measures UBL and Mall at the four widths on e8b7d69 and writes the locked values into this section as the first change of lane A:
