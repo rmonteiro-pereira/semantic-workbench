@@ -44,7 +44,7 @@ export function useNewItems({ model, current, currentIsRdf, setAdding, setRdfAdd
         if (current) setAdding({ docId: current.id, kind });
       },
     });
-    return [
+    const items: MenuItem[] = [
       item('concept', 'Open an Ossie ontology to add a concept.'),
       item('dataset', 'Open an Ossie semantic model to add a dataset.'),
       item('join', 'Open an Ossie semantic model to add a dataset relationship.'),
@@ -59,6 +59,7 @@ export function useNewItems({ model, current, currentIsRdf, setAdding, setRdfAdd
         },
       },
     ];
+    return items.sort((left, right) => Number(Boolean(left.disabled)) - Number(Boolean(right.disabled)));
   }, [model, current, currentIsRdf, setAdding, setRdfAdding]);
 
   return { newItems };

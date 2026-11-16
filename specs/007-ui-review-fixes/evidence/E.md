@@ -76,3 +76,24 @@
 - After (opened): `/tmp/sw-E/final-metrics/local-metric-wizard--step-3-validation-error-1440.png` and `/tmp/sw-E/final-content-desktop/screenshots/followup/local-item-editor--duplicate-name-refusal-1440.png`.
 - Name and numerator feedback sit under their controls; the wizard no longer repeats them below the form. Follow-up reports `field_error: 1` for duplicate Name in both forms.
 - `test:item-edit`: 11 checks passed; `test:metrics`: 11 checks passed.
+
+### T064 — scope exception
+
+- Sidebar reserves the Add project slot for readers without that action; `test:sidebar`: 4 checks passed.
+- Width portion skipped: at 2560×1440 measured content starts are Catalog 650, Overview 648, Mappings 648, Metrics 656 and Metric detail 1234.71875 px. The detail is deliberately beside the metric list, so making it share the other pages' content edge requires changing the master/detail layout, beyond a content-width correction. No such layout redesign is included.
+- The common-root width experiment was removed. The existing content cap is reused by the metric list.
+
+### T067 — first run and menus
+
+- Before: review `screenshots/states/local-shell--new-menu-1440.png`, `local-shell--avatar-menu-1440.png`, `local-workspace--first-run-empty-1440.png`.
+- After: `/tmp/sw-E/final-shell/local-shell--{new-menu,avatar-menu}-1440.png` and `/tmp/sw-E/final-empty/local-workspace--first-run-empty-1440.png`.
+- Opened new-menu and first-run after images: Add table is first for the contract, unavailable entries retain their explanations, desktop Back is absent, and first run offers Import files without the tab/search toolbar.
+- Local Admin menu wording is Local administration.
+- `test:projects`: 8 checks passed; `test:sidebar`: 4 checks passed.
+
+### T068 — import refusal and empty mappings
+
+- Unsupported extensions are rejected before repair for both import destinations. A project without a mapping hides its empty selector/disabled actions and offers Import and Load example instead.
+- Before: review `screenshots/states/local-import--refused-file-1440.png`; after: `/tmp/sw-E/final-files/local-import--refused-file-1440.png` (opened: single notice, no YAML repair editor).
+- `tests/new-file.test.ts` includes extension refusal; focused files total 37 pass. `test:ui`: 20 checks passed; `test:projects`: 8 checks passed.
+- The empty-state decision belongs to MappingExplorer: QueryComposer is rendered only after a mapping context resolves, so changing the composer itself is unnecessary.

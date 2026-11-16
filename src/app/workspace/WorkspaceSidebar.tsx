@@ -1,5 +1,6 @@
 /** Presentation and event handling for workspace sidebar. */
 import './WorkspaceSidebar.css';
+import { supportedImportFile } from './hooks/useImport';
 import { useCapabilities } from '../auth/Capabilities';
 import { useMe } from '../auth/useMe';
 import { useGitSetup } from '../scm/GitSetup';
@@ -157,7 +158,9 @@ export const WorkspaceSidebar = React.memo(function WorkspaceSidebar({
   }
 
   function handleImportInputChange(event: React.ChangeEvent<HTMLInputElement, HTMLInputElement>) {
-    const files = Array.from(event.target.files ?? []);
+    const selectedFiles = Array.from(event.target.files ?? []);
+    const files = selectedFiles.filter(file => supportedImportFile(file.name));
+    if (files.length !== selectedFiles.length) setMessage('Unsupported files were skipped. Choose YAML, JSON or RDF definitions.');
     const into = importInto.current;
     importInto.current = '';
     event.target.value = '';
@@ -188,9 +191,11 @@ export const WorkspaceSidebar = React.memo(function WorkspaceSidebar({
         <div className="brand">
           <BrandLogo className="brand-logo" />
         </div>
-        {access.can('createProject') && <AddProjectMenu onImport={() => setImporting({})} onClone={() => openGitSetup({ kind: 'clone' })} loadExample={loadExample} busy={busy} />}
+        <div className="workspace-project-actions">
+          {access.can('createProject') && <AddProjectMenu onImport={() => setImporting({})} onClone={() => openGitSetup({ kind: 'clone' })} loadExample={loadExample} busy={busy} />}
+        </div>
         <div className="workspace-label" title={me?.mode === 'server' ? 'Project folders live on the shared server.' : 'Project folders live on this machine.'}>
-          {me?.mode === 'server' ? 'SHARED WORKSPACE' : 'LOCAL WORKSPACE'} <span className="dot" />
+          {me?.mode === 'server' ? 'SHARED WORKSPACE' : 'LOCAL WORKSPACE'}
         </div>
         <button className={`nav${tab !== 'scm' && tab !== 'source' ? ' active' : ''}`} aria-current={tab !== 'scm' && tab !== 'source' ? 'page' : undefined} onClick={handleButtonClick}>
           <Network size={18} /> Model explorer

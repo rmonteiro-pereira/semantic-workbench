@@ -6,6 +6,11 @@ import type { Doc } from '../../projects/api';
 import { api } from '../../projects/api';
 import { type ImportDraft } from '../../validation/ValidationPanel';
 
+/** Accepts the definition file extensions offered by the import picker. */
+export function supportedImportFile(filename: string) {
+  return /\.(yaml|yml|json|odcs|ossie|ttl|nt|rdf|owl|xml|shacl|n3)$/i.test(filename);
+}
+
 type Options = {
   setPendingImport: React.Dispatch<React.SetStateAction<ImportDraft[] | null>>;
   refresh: () => Promise<Doc[]>;
@@ -76,10 +81,13 @@ export function useImport({
   }
   async function importFiles(files: File[]) {
     if (!files.length) return;
+    const supported = files.filter(file => supportedImportFile(file.name));
+    if (supported.length !== files.length) setMessage('Unsupported files were skipped. Choose YAML, JSON or RDF definitions.');
+    if (!supported.length) return;
     if (compact) closeWorkspace();
     await leaveCurrent();
     try {
-      const drafts = await Promise.all(files.map(async file => ({ filename: file.name, source: await file.text() })));
+      const drafts = await Promise.all(supported.map(async file => ({ filename: file.name, source: await file.text() })));
       if (drafts.some(d => !validateInput(d.source, d.filename).valid)) {
         setPendingImport(drafts);
         return;

@@ -225,7 +225,8 @@ export function MenuButton({
     icon: <ChevronLeft size={15} />,
     run: () => setOpenSubmenu(null),
   };
-  const shownItems = openSubmenu?.submenu ? [back, ...openSubmenu.submenu] : items;
+  const backItems = typeof window !== 'undefined' && window.innerWidth <= 650 ? [back] : [];
+  const shownItems = openSubmenu?.submenu ? [...backItems, ...openSubmenu.submenu] : items;
 
   const choose = (item: MenuItem, row?: HTMLElement) => {
     if (item.disabled) return;

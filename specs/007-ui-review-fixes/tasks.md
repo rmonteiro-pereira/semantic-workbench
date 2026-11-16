@@ -458,13 +458,13 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Pass each finding's field path to the field that owns it, mark it invalid, drop the duplicate footer message, and mark Name on a duplicate-name refusal.
   - Proof: Before `states/local-metric-wizard--step-3-validation-error-1440.png`, `followup/local-item-editor--duplicate-name-refusal-1440.png` (review baseline); after: same state recaptured with `SW_ONLY=metrics scripts/ui-review/capture-states.ts <out> rest` and `scripts/ui-review/followup-local.ts <out> content`; check: `bun run test:item-edit`; `bun run test:metrics`.
 
-- [ ] T067 [US5] [E] Clean up menus and the first-run screen.
+- [x] T067 [US5] [E] Clean up menus and the first-run screen.
   - Findings: m19, m20 · Requirements: FR-065, FR-066
   - Files: `src/app/projects/Menu.tsx`, `src/app/workspace/AddProjectMenu.tsx`, `src/app/auth/PersonMenu.tsx`, `src/app/projects/EmptyState.tsx`, `src/app/workspace/EmptyProject.tsx`, `src/app/main.tsx`
   - Change: Order the New menu with enabled items first, give disabled items a reason, drop the Back row on desktop, rename the local avatar-menu entry; hide the tabs and search on the first-run screen and add **Import files** beside **Open example ontology**.
   - Proof: Before `states/local-shell--new-menu-1440.png`, `states/local-shell--avatar-menu-1440.png`, `states/local-workspace--first-run-empty-1440.png` (review baseline); after: same state recaptured with `SW_ONLY=shell scripts/ui-review/capture-states.ts <out> rest` and `scripts/ui-review/empty-states.ts <out>`; check: `bun run test:projects` and `bun run test:sidebar`.
 
-- [ ] T068 [P] [US5] [E] Reject unsupported imports in one line, and hide the empty query composer controls.
+- [x] T068 [P] [US5] [E] Reject unsupported imports in one line, and hide the empty query composer controls.
   - Findings: m21, m27 · Requirements: FR-067, FR-069
   - Files: `src/app/projects/ImportDialog.tsx`, `src/app/workspace/hooks/useImport.tsx`, `src/app/mappings/QueryComposer.tsx`, `tests/new-file.test.ts`
   - Change: Drop unsupported file types at selection with one sentence and never open them in a YAML editor; when the project has no mapping document, show **Load example** and **Import** instead of the empty select and disabled buttons.

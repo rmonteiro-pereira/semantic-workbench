@@ -1,3 +1,4 @@
+import { supportedImportFile } from '../src/app/workspace/hooks/useImport';
 import { describe, expect, test } from 'bun:test';
 import { mappingBlocker, mappingTargets, newFileName, newFileProblem, newFileSource, type NewFileKind } from '../src/shared/projects/new-file';
 import { validateInput } from '../src/shared/validation/input';
@@ -83,4 +84,11 @@ describe('mapping targets', () => {
     expect(mappingBlocker(mappingTargets(files.slice(0, 1)))).toContain('needs a semantic model');
     expect(mappingBlocker(mappingTargets(files.slice(1, 2)))).toContain('needs an ontology');
   });
+});
+
+test('import picker refuses unsupported files before source repair', () => {
+  expect(supportedImportFile('notes.txt')).toBe(false);
+  expect(supportedImportFile('photo.png')).toBe(false);
+  expect(supportedImportFile('contract.YAML')).toBe(true);
+  expect(supportedImportFile('ontology.ttl')).toBe(true);
 });

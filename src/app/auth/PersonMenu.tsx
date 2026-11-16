@@ -35,7 +35,7 @@ export function PersonMenu() {
     form.current?.requestSubmit();
   }
   const items: MenuItem[] = [];
-  if (openAdmin) items.push({ label: 'Admin', run: openAdmin });
+  if (openAdmin) items.push({ label: local ? 'Local administration' : 'Admin', run: openAdmin });
   if (!local) {
     items.push({ label: 'Connected accounts', hint: accountsSummary(me), run: () => setAccounts(true) });
     items.push({ label: 'Sign out', run: signOut, disabled: !me.csrf && 'Session token unavailable' });

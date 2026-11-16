@@ -74,3 +74,23 @@
     display: none;
   }
 }
+
+.workspace-sidebar .brand + .workspace-label {
+  margin-top: 14px;
+}
+
+.workspace-project-actions {
+  min-height: 64px;
+  flex: none;
+}
+
+.file-type-badge {
+  display: inline-block;
+  padding: 1px 5px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 4px;
+  background: var(--color-surface-sunken);
+}
+.workspace-sidebar .documents {
+  mask-image: linear-gradient(to bottom, var(--color-text) calc(100% - 14px), transparent);
+}
