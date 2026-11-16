@@ -4,6 +4,7 @@ import { api, type AgentMapping } from '../projects/api';
 import React, { useEffect, useState, useRef } from 'react';
 import { Code } from 'lucide-react';
 import type { Binding, Finding, RuntimeContext } from '../../server/agent/runtime';
+import { PublishedPreview } from './PublishedPreview';
 import { QueryComposer } from './QueryComposer';
 import { EmptyState } from '../projects/EmptyState';
 import { ShowMoreControl } from './ShowMoreControl';
@@ -254,7 +255,7 @@ export function MappingExplorer({
           <small>CONNECTED LAYERS</small>
           <h2>Ontology mappings</h2>
           <p>Follow concepts into fields, metrics and physical sources.</p>
-          <p className="mapping-heading-note">Export agent context saves mapping JSON for AI tools.</p>
+          <PublishedPreview project={currentProject} revisionKey={revisionKey} />
         </div>
         <div className="mapping-heading-actions">
           <button onClick={() => setComposing(true)} disabled={!context}>

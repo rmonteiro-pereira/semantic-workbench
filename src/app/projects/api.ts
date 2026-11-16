@@ -294,13 +294,13 @@ export type AgentMapping = { id: string; name: string; filename: string; embedde
 export type AgentPlan = { sql: string } & Record<string, unknown>;
 /** Provides browser operations for projects, documents, imports and metrics. */
 export const api = {
-  /** Lists the mappings of one project, as the agent API reports them. */
+  /** Lists the mappings of one project, from the saved authoring view. */
   agentCatalog: (project: string, signal?: AbortSignal) => apiFetch(agentCatalogPath(project), { signal }).then(r => json<{ mappings: AgentMapping[] }>(r)),
   /** Reads one mapping's context, narrowed to one concept when it is named. */
   agentContext: (project: string, mappingId: string, concept?: string, signal?: AbortSignal) => apiFetch(agentContextPath(project, mappingId, concept), { signal }).then(r => json<SelectedContext>(r)),
   /** Asks for an unexecuted SQL plan over the chosen metrics and dimensions. */
   agentPlan: (request: Pick<PlanRequest, 'mappingId' | 'concepts' | 'metrics' | 'dimensions'> & { project: string }) =>
-    apiFetch('/api/agent/plan', send('POST', request)).then(r => json<AgentPlan>(r)),
+    apiFetch('/api/preview/plan', send('POST', request)).then(r => json<AgentPlan>(r)),
   metrics: (project: string) => apiFetch(`/api/projects/${encodeURIComponent(project)}/metrics`).then(r => json<KpiSummary[]>(r)),
   explain: (project: string, path: string, metric: string, query: ExplainQuery = {}, signal?: AbortSignal) =>
     apiFetch(`${fileUrl(project, path)}/explain/${encodeURIComponent(metric)}${explainQuery(query)}`, {

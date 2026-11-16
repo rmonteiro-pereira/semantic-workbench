@@ -73,8 +73,8 @@ and local mode with uncommitted work; agent routes answer from the snapshot.
 **Goal**: FR-027-FR-030.
 
 - [x] T028 [US4] Add `/api/preview/catalog`, `/api/preview/context` and `/api/preview/plan` to `src/server/routes/agent.ts` with the editing source and a surface guard that answers an `agent` surface as an unknown route; add the rows to the inventory (`readSource: 'editing'`), the audit exemptions that mirror the agent rows, and the authorization matrix. (proof: `tests/auth/matrix.test.ts` with application, session and local-without-origin; mutant: remove the surface guard)
-- [ ] T029 [P] [US4] Frontend: change `src/app/mappings/agent-paths.ts` and `src/app/projects/api.ts` to the preview paths, and show the preview label with the published commit in `src/app/mappings/MappingExplorer.tsx`, reading the commit from the status block. (proof: `tests/agent-paths.test.ts` updated; browser check asserts the label text and that the plan includes an unpublished edit; capture comparison through T046)
-- [ ] T030 [P] [US4] Local guardrail test and note: a local request without `Sec-Fetch-Site` is refused by the preview routes; one with it is served; the dev server on a different port still works. (proof: `tests/request-surface.test.ts` and the browser check run against the Vite dev origin)
+- [x] T029 [P] [US4] Frontend: change `src/app/mappings/agent-paths.ts` and `src/app/projects/api.ts` to the preview paths, and show the preview label with the published commit in `src/app/mappings/MappingExplorer.tsx`, reading the commit from the status block. (proof: `tests/agent-paths.test.ts` updated; browser check asserts the label text and that the plan includes an unpublished edit; capture comparison through T046)
+- [x] T030 [P] [US4] Local guardrail test and note: a local request without `Sec-Fetch-Site` is refused by the preview routes; one with it is served; the dev server on a different port still works. (proof: `tests/request-surface.test.ts` and the browser check run against the Vite dev origin)
 
 ## Phase 7: User Story 5 - Outside Git changes need adoption (P2)
 

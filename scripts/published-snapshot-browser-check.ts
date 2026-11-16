@@ -2,6 +2,7 @@
 import { chromium, expect } from '@playwright/test';
 import { appUrl } from './helpers/base-url';
 import { routeApi, startIsolatedApi } from './helpers/isolated-api';
+import { LOCAL_READER } from '../src/server/projects/reader';
 import type { PublishedStatus } from '../src/shared/scm/published-status';
 
 const sizes = [
@@ -16,6 +17,9 @@ const commit = 'a'.repeat(40);
 const next = 'b'.repeat(40);
 const api = await startIsolatedApi({ watch: false });
 const project = await api.ws.loadExample('commerce');
+const mapped = await api.ws.loadExample('mapped-commerce');
+const model = api.ws.documents().find(document => document.project === mapped.slug && document.filename === 'commerce.mapped-semantic.yaml')!;
+await api.ws.saveFile(mapped.slug, model.path, { baseHash: model.hash, source: model.source.replace('SUM(orders.amount)', 'SUM(orders.amount) + 17') }, LOCAL_READER);
 const browser = await chromium.launch();
 let passed = 0;
 try {
@@ -78,6 +82,18 @@ try {
     await publication.getByRole('button', { name: 'Adopt', exact: true }).click();
     await expect(publication).toContainText('Published: main @ bbbbbbb');
     expect(actions).toContain('adopt');
+    await page.getByRole('tree', { name: 'Projects' }).getByRole('button', { name: 'commerce.mapping.yaml', exact: true }).first().click();
+    await page.getByRole('button', { name: 'Mappings', exact: true }).click();
+    await expect(page.locator('.mapping-heading-note')).toContainText('Preview of your working copy · Published: main @ bbbbbbb');
+    await page.getByRole('button', { name: 'Show query', exact: true }).click();
+    const composer = page.getByRole('dialog', { name: 'Compose a query' });
+    await composer.getByRole('checkbox', { name: 'Metric gross_revenue', exact: true }).check();
+    const planned = page.waitForResponse(response => response.url().includes('/api/preview/plan'));
+    await composer.getByRole('button', { name: 'Preview governed query', exact: true }).click();
+    const plan = await planned;
+    expect(plan.status(), await plan.text()).toBe(200);
+    expect(await plan.text()).toContain('+ 17');
+    await composer.getByRole('button', { name: 'Close', exact: true }).click();
     await page.close();
     passed++;
     console.log(`PASS ${mode} publication controls and six viewport geometries (${project.slug})`);

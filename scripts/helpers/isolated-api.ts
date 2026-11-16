@@ -80,7 +80,10 @@ export async function routeApi(page: Page, api: IsolatedApi, intercept?: (route:
 // not let a route change the Origin of a write. The harness sends writes from Playwright's own
 // client with an accepted origin instead, so the API's origin check stays exactly as in production.
 async function forwardWrite(route: Route, url: string) {
-  const headers = { ...route.request().headers(), origin: ALLOWED_ORIGINS[0] };
+  const original = await route.request().allHeaders();
+  const sameOrigin = new URL(route.request().url()).origin === new URL(route.request().frame().url()).origin;
+  // Chromium adds fetch metadata after interception; the HTTP forwarder must carry that browser context.
+  const headers = { ...original, origin: ALLOWED_ORIGINS[0], 'sec-fetch-site': original['sec-fetch-site'] ?? (sameOrigin ? 'same-origin' : 'cross-site') };
   try {
     const response = await route.fetch({ url, headers, maxRedirects: 0 });
     await route.fulfill({ response });

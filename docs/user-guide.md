@@ -199,6 +199,10 @@ upgrade notice remains visible until explicitly acknowledged;
 `POST /api/projects/:slug/git/acknowledge-publication` stores that choice in the person's view state
 and changes no Git ref, index or file.
 
+Mappings labels its context and SQL as a **Preview of your working copy** and displays the
+current published commit from Source Control. Preview includes saved, unpublished edits; exported
+context from Mappings is a preview too. Agents use the published endpoints instead.
+
 The **Source control** panel shows **Published: branch @ commit** separately from the authoring
 branch and its ahead/behind counts. In local mode, **Publish** advances the snapshot without pushing.
 A remote default branch also shows its commits ahead of published, using only the last fetched
