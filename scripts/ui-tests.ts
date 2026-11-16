@@ -71,7 +71,7 @@ await routeApi(page, api, async route => {
     await route.fulfill({ status: 503, json: { error: 'Temporary API failure' } });
     return true;
   }
-  if (holdPlan && request.method() === 'POST' && path === '/api/agent/plan') {
+  if (holdPlan && request.method() === 'POST' && path === '/api/preview/plan') {
     holdPlan = false;
     await new Promise<void>(resolve => {
       releasePlan = resolve;
