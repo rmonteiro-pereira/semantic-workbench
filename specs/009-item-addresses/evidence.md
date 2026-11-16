@@ -120,3 +120,11 @@ The example-registry case initially expired under the runner's 10-second limit. 
 comparison after removing whole-contract derivation from each foreign-key lookup passed:
 current 6.594 s, main 5.719 s (both exit 0). The copied baseline is `git archive main`, commit
 655df094b1783aa9fc40570cb3d40d51949da481, under the assigned temporary root.
+
+## Inspector proof
+
+`bun test tests/formats.test.ts tests/grouping.test.ts tests/grouping-modes.test.ts tests/model-address-inspect.test.ts`:
+28 pass, 0 fail, 8,445 assertions in 25.39 s. The focused inspector run after strengthening the
+built-in/RDF checks: 1 pass, 0 fail, 7,966 assertions in 2.86 s. `bun --bun run check` passed.
+The reusable timing check is `bun scripts/item-address-timing.ts`; locators on inspector output
+are document-relative and become absolute only with an explicit document location.

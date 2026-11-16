@@ -37,3 +37,13 @@ the project slug and document path parts; without it the locators are document-r
 An embedded mapping uses its name when present and `mapping:#<index>` otherwise. Positional
 ancestors make every descendant volatile, so those locators must not be persisted as history.
 RDF/SHACL resources and built-in concepts have no address in this feature. Unsupported depth or length reports the source path.
+
+The inspector uses `StructuredEntity` and `StructuredRelationship` for required locators. RDF
+results and built-ins carry none; `isStructuredEntity` narrows mixed displays. Inspector locators
+are document-relative until a caller supplies a project/file location. `addressAtModelPath` avoids
+enumerating unrelated children when only a displayed item is needed.
+
+Run `bun scripts/item-address-timing.ts` to compare the largest synthetic fixture with the feature
+base commit. The script alternates baseline/current samples after warmup and enforces the 5%
+median overhead limit. It requires that base commit in the local Git object database and writes
+its baseline module under the ignored `out/009-addresses/` directory.
