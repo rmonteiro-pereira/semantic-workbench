@@ -272,3 +272,18 @@ other 2xx statuses are unsupported.
   Legacy document saves return the stored document rather than an explicit partial-effect result.
 
 Classifier and boundary tests: 12 pass, 0 fail, including the frozen HTTP characterization.
+
+
+## Stratified replay proof and performance
+
+The durable test writes 300 ordinary write/denial snapshots before 50,000 transport reads, the
+order that can evict older evidence. It retains all 300 and exactly 500 distinct reads, and excludes
+protocol records. A second ordering is checked in memory. Removing the stratum split fails the
+named test. The no-transport dry-run baseline remains unchanged.
+
+`bun test tests/auth/dry-run-strata.test.ts tests/auth/replay-sample.test.ts tests/auth/dry-run-baseline.test.ts`:
+`5 pass`, `0 fail`, `13 expect() calls`, `Ran 5 tests across 3 files. [4.77s]`.
+
+50,300-record dry-run comparison: HTTP-only baseline 962.984258 ms (1,000 cases); with transport
+reads 757.089097 ms (800 cases); ratio 0.7861905225453852. The 20% overhead goal is met without
+changing the 1,000/500 bounds.

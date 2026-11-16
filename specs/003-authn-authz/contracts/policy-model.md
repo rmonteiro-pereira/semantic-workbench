@@ -123,8 +123,8 @@ The last-Admin guard holds against policy text in two ways:
   decision, the matching grants, the roles they give, the deciding policy ids and the attributes
   used.
 - A proposed change of roles or grants, or a rollback to an earlier version, is compiled and
-  loaded beside the active set; the dry run replays the matrix cases and the last 1,000 audit
-  snapshots (read from the newest month files backwards until enough are found) and also
+  loaded beside the active set; the dry run replays the matrix cases, up to 1,000 ordinary audit
+  snapshots and 500 distinct allowed non-HTTP read snapshots (one backward scan fills both strata) and also
   computes, for every person in `users.json` (stored groups and address) and every agent client,
   the allowed actions per readable project before and after: `people: [{principal, name,
   project, gained: [action], lost: [action], access: 'kept'|'gained'|'lost'}]` ("what changes for

@@ -2,26 +2,11 @@
 import { expect, test } from 'bun:test';
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { createAuditLog, type AuditEntry } from '../../src/server/auth/audit';
+import { createAuditLog } from '../../src/server/auth/audit';
 import { replaySample, sampleReplayEntries } from '../../src/server/auth/replay-sample';
 import { tempDataDir } from '../helpers/temp-data-dir';
 
-/** Minimal replayable record with a distinct identity and target. */
-export function replayEntry(index: number, origin?: 'mcp' | 'acp'): AuditEntry {
-  return {
-    type: 'audit',
-    at: '2026-10-01T00:00:00Z',
-    prev: '',
-    requestId: String(index),
-    principal: { id: 'person', kind: 'person' },
-    action: 'read',
-    resource: { type: 'project', project: 'p' },
-    decision: 'allow',
-    rules: [],
-    origin,
-    snapshot: { grants: ['grant'], roles: ['role'], groups: [], emailMatched: false, resourceAttrs: { type: 'file', project: 'p', path: String(index) } },
-  };
-}
+import { replayEntry } from './replay-fixture';
 
 test('ordinary snapshots and distinct transport reads have independent bounds', () => {
   const ordinary = Array.from({ length: 1100 }, (_, index) => replayEntry(index));
