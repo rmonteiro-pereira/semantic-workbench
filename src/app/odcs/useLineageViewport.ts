@@ -246,8 +246,7 @@ export function useLineageViewport({
   useEffect(() => {
     if (!result || !path) return;
     const timer = setTimeout(() => {
-      const cards = [...new Set([...path.nodes].map(n => cardOfNode(graph, n)))].filter(c => reach.cards.has(c));
-      void readableFit(cardOfNode(graph, selected), cards);
+      void flow.current?.fitView({ padding: 0.06, maxZoom: 1, duration: 0 });
     }, 120);
     return () => clearTimeout(timer);
   }, [panelOpen]);
