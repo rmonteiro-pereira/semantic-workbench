@@ -276,8 +276,10 @@ inventory; later increments (006 and its successors) are planned against this ta
   (ignoring request id, time, chain hash, origin, tool and connection). Cases: allowed, denied
   action, denied target, hidden target, missing target, and, for body-targeted rows, one denied
   target among several.
-- **FR-014**: A twin MUST NOT be able to tell a hidden resource from a missing one in status, body or
-  audit reason, in server mode.
+- **FR-014**: A twin MUST NOT expose a difference between hidden and missing resources in caller-visible
+  status, headers, body or timing class in server mode. Audit records remain the privileged security
+  record and preserve HTTP selection: a hidden trash entry records a `not-readable` denial; a missing
+  entry records nothing.
 - **FR-015**: A caller MAY carry a connection scope that narrows its authority to a set of effects
   (read, local write, commit, remote, publish, administration). The boundary MUST check the static
   effects of the operation from the inventory, and handlers MUST be able to require a dynamic effect
@@ -463,6 +465,13 @@ inventory; later increments (006 and its successors) are planned against this ta
 
 ## Clarifications
 
+### 2026-11-16 — decided by the integrator
+
+Hidden equals missing concerns the caller-visible response, including status, headers, body and
+timing class. The caller cannot read the audit log. Preserve existing HTTP audit outcomes for twins:
+a hidden trash entry writes a `not-readable` denial, while a missing entry writes no record.
+
+
 Questions raised while specifying, answered from the decisions and the code. None is left for the
 owner.
 
@@ -477,8 +486,8 @@ owner.
   is read before the clone. Source: M14, MCP review (Astra, finding 11).
 - **Q4. What does a refusal by connection scope look like?** A 403 with reason `connection-scope`,
   audited as a denial. Listing omits the operation (FR-015, FR-016). Source: M9.
-- **Q5. Do MCP reads of hidden resources behave like missing ones?** Yes, with the same status, body
-  and audit reason as HTTP (FR-014). Source: M17, MCP review (Fable, M1 risks).
+- **Q5. Do MCP reads of hidden resources behave like missing ones?** Yes, with the same caller-visible status, headers, body
+  and timing class as HTTP; privileged audit outcomes are asserted separately (FR-014). Source: M17, MCP review (Fable, M1 risks).
 - **Q6. Where do the inventory and its schema live, and who validates it?** JSON in `policies/`,
   validated by a typed parser in the test (Assumptions). Source: M17, constitution Principle V.
 - **Q7. Does the boundary store idempotency receipts?** No (Out of Scope). Source: M13.

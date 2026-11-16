@@ -244,3 +244,11 @@ a24f4880 docs(spec): plan the operation boundary
 5a501cf2 docs(spec): research the operation boundary design
 2ad5dcb3 docs(spec): specify the operation boundary
 ```
+
+## Hidden-resource clarification resolved
+
+The integrator's 2026-11-16 decision supersedes the T017 blocker. The spec and task now separate
+caller-visible equality from privileged audit outcomes. The dedicated twin test compares status,
+headers and body, checks the bounded local refusal timing class, and asserts the hidden-trash denial
+and missing-trash absence separately. Local missing-file text still matches HTTP. The audit writer
+and all frozen fixtures are unchanged. `bun test tests/auth/operation-parity.test.ts -t 'hidden and missing twins'`: 1 pass, 0 fail.

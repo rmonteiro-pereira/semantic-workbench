@@ -155,3 +155,46 @@ for (const entry of parityCases) {
     }
   }, 60000);
 }
+
+async function visibleResponse(response: Response) {
+  const headers = Object.fromEntries(response.headers);
+  if (headers['x-request-id']) headers['x-request-id'] = '<request-id>';
+  return { status: response.status, headers, body: await response.text() };
+}
+
+test('hidden and missing twins have identical visible responses and preserve separate trash audit outcomes', async () => {
+  using fixture = await authWorkspace();
+  const access = createAccessControl(accessFixture());
+  const principal = access.principalFor(person('alice'));
+  const audit = createAuditLog({ dir: join(fixture.root, 'hidden-audit') });
+  const handler = createHandler(fixture.ws, { mode: 'server', access, audit, principal: () => principal, publicOrigin: origin, remoteCredentials: allowEveryRemote() });
+  const caller = mintCaller({ principal, origin: 'mcp' });
+  const deleted = await fixture.ws.trash.deleteFile('hr-people', 'people.odcs.yaml', undefined, LOCAL_READER);
+  const cases = [
+    ['files.read', { slug: 'sales-contracts', '*': restrictedFile }, { slug: 'sales-contracts', '*': 'finance/missing.yaml' }],
+    ['projects.metrics.read', { slug: 'hr-people' }, { slug: 'missing' }],
+    ['trash.restore.run', { entry: deleted.entryId }, { entry: '00000000000000000000000000' }],
+  ] as const;
+  for (const [operation, hidden, missing] of cases) {
+    const results = [];
+    for (const params of [hidden, missing]) {
+      const before = audit.recent(100).length;
+      const request = buildTwinRequest(operation, { params, ...(operation === 'trash.restore.run' ? { body: {} } : {}) });
+      const started = performance.now();
+      const result = await handler.boundary.operate({ caller, request });
+      results.push(await visibleResponse(result.response));
+      // Both refusals perform bounded local checks rather than dispatching remote work.
+      expect(performance.now() - started).toBeLessThan(5000);
+      const records = audit.recent(100).slice(before);
+      if (operation === 'trash.restore.run' && params === missing) expect(records).toHaveLength(0);
+      else expect(records).toMatchObject([{ decision: 'deny', reason: 'not-readable' }]);
+    }
+    expect(results[0]).toEqual(results[1]);
+    expect(results[0].status).toBe(404);
+  }
+  const local = createHandler(fixture.ws);
+  const request = buildTwinRequest('files.read', { params: { slug: 'missing', '*': 'missing.yaml' } });
+  const http = await local(new Request(origin + new URL(request.url).pathname));
+  const twin = await local.boundary.operate({ caller: mintCaller({ principal: (await import('../../src/server/auth/principal')).localPrincipal(), origin: 'mcp' }), request });
+  expect(await twin.response.text()).toBe(await http.text());
+});
