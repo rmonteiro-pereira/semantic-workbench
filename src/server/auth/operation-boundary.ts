@@ -7,7 +7,7 @@ import type { AccessControl, AccessScope } from './authorize';
 import { auditableProjects, reportAuditFailure, type AuditLog } from './audit';
 import { assertMinted, type Caller, type CallerOrigin } from './caller';
 import { scopeAllows } from './connection-scope';
-import { operationForRow } from './operation-inventory';
+import { PROTOCOL_METHODS, operationForRow } from './operation-inventory';
 import { routeFor, type RouteAction } from './route-actions';
 import type { ResourceRef, Decision } from './resource';
 import { WriteAccessError } from './write-access';
@@ -288,5 +288,22 @@ export function createOperationBoundary(ws: Workspace, options: HandlerOptions &
     const response = await execute(request, requestId, { row, resource: row.resource(found.match, url) }, caller, audit, call.outcome);
     return { response, requestId };
   }
-  return { operate };
+  /** Records one protocol interaction independently of returned item count. */
+  function recordProtocolCall(input: { caller: Caller; method: (typeof PROTOCOL_METHODS)[number]; decision: 'allow' | 'deny'; reason?: string; outcome: 'ok' | 'refused' | 'failed' | 'degraded' }) {
+    assertMinted(input.caller);
+    return sharedAudit.append({
+      requestId: crypto.randomUUID(),
+      principal: input.caller.principal,
+      action: 'protocol',
+      resource: { type: 'workspace' },
+      decision: input.decision,
+      rules: [],
+      reason: input.reason,
+      outcome: input.outcome,
+      origin: input.caller.origin,
+      method: input.method,
+      connection: input.caller.connection,
+    });
+  }
+  return { operate, recordProtocolCall };
 }

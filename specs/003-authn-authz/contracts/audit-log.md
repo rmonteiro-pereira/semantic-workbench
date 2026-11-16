@@ -9,7 +9,7 @@ the line itself has `"type":"audit"`).
 | `at` | ISO 8601 UTC | |
 | `requestId` | string | also returned as `X-Request-Id` |
 | `principal` | `{id, kind, name?, clientId?}` | `local` in local mode |
-| `action` | string | action of policy-model.md, or `signIn`, `signOut`, `sessionEnded`, `directoryLookup`, `policyReload`, `adminChange` |
+| `action` | string | action of policy-model.md, or `signIn`, `signOut`, `sessionEnded`, `directoryLookup`, `policyReload`, `adminChange`, `protocol` |
 | `resource` | `{type, project?, path?, branch?, metric?, entry?, area?, role?, grant?}` | paths only, never content |
 | `decision` | `'allow'\|'deny'` | |
 | `rules` | string[] | deciding policy ids |
@@ -66,3 +66,6 @@ path are kept.
 Queries accept `origin` (`http`, `mcp`, `acp`) and inventory `tool` filters after project visibility
 is applied. CSV exports append `origin`, `tool`, `method` and `connection`; existing columns keep
 their order. JSONL exports retain optional attribution fields as stored.
+
+Protocol discovery, listing and subscription lifecycle calls each append one record, independently
+of the number of returned items. Protocol records have `action: protocol` and no replay snapshot.

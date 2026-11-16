@@ -105,3 +105,19 @@ test('semantic outcomes classify bounded copies after hidden responses and prese
   expect(audit.recent(10).at(-1)).toMatchObject({ decision: 'deny', reason: 'not-readable' });
   expect(calls).toBe(1);
 });
+
+test('protocol discovery, listing, subscription lifecycle and denial each record once', async () => {
+  using fixture = await testWorkspace();
+  const audit = createAuditLog({ dir: join(fixture.root, 'protocol') });
+  const handler = createHandler(fixture.ws, { audit });
+  const caller = mintCaller({ principal: localPrincipal(), origin: 'mcp', connection: 'protocol_connection' });
+  for (const method of ['discover', 'tools/list', 'resources/subscribe', 'subscriptions/listen'] as const) {
+    handler.boundary.recordProtocolCall({ caller, method, decision: 'allow', outcome: 'ok' });
+  }
+  handler.boundary.recordProtocolCall({ caller, method: 'tools/list', decision: 'deny', reason: 'no-grant', outcome: 'refused' });
+  const records = audit.recent(100);
+  expect(records).toHaveLength(5);
+  expect(records.every(entry => entry.origin === 'mcp' && entry.connection === 'protocol_connection' && entry.action === 'protocol')).toBe(true);
+  expect(records.at(-1)).toMatchObject({ decision: 'deny', reason: 'no-grant' });
+  expect(() => handler.boundary.recordProtocolCall({ caller: { ...caller }, method: 'tools/list', decision: 'allow', outcome: 'ok' })).toThrow('not minted');
+});
