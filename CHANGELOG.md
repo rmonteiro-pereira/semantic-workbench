@@ -12,6 +12,7 @@ not configure a production deployment.
   connection effect restrictions, audit attribution fields and origin/tool filters.
 - Independent dry-run samples retain write and denial evidence during non-HTTP read floods.
 - Preserve rename order across project moves and ignore destination history that predates the arrival.
+- Leave no staged save files when the local Git metadata lookup fails before an address-history write.
 
 - Reuse a model-local index for repeated metric field references, preserving canonical priority and ambiguity checks.
 

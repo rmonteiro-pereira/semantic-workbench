@@ -254,7 +254,7 @@ test('cross-project arrival ignores destination history recorded before the shar
   expect(workspace.ws.resolveAddress(original, LOCAL_READER)).toMatchObject({ status: 'found', address: destination });
 });
 
-test('a failed local commit lookup leaves no deletion metadata or migration staging', async () => {
+test('a failed local commit lookup leaves no save staging, deletion metadata or migration history', async () => {
   const temporary = tempDataDir('address-head-failure-');
   const binary = join(temporary.root, 'git-wrapper');
   writeFileSync(binary, '#!/bin/sh\nexec git "$@"\n', { mode: 0o755 });
@@ -264,6 +264,20 @@ test('a failed local commit lookup leaves no deletion metadata or migration stag
     rmSync(binary);
     const layout = dataLayout(workspace.root);
     const before = readdirSync(layout.state).sort();
+    const current = workspace.ws.readFile(project.slug, 'a.yaml');
+    const originalAddress = `sw1:${project.slug}/a.yaml#ontology:O/concept:A`;
+    await expect(
+      workspace.ws.saveFile(
+        project.slug,
+        'a.yaml',
+        {
+          baseHash: current.hash,
+          source: current.source.replace('concept: A', 'concept: Renamed'),
+          declaredMigrations: [{ kind: 'item', from: originalAddress, to: originalAddress.replace('concept:A', 'concept:Renamed') }],
+        },
+        LOCAL_READER,
+      ),
+    ).rejects.toThrow();
     await expect(workspace.ws.moveFile(project.slug, 'a.yaml', project.slug, 'moved.yaml', false, LOCAL_READER)).rejects.toThrow();
     await expect(workspace.ws.trash.deleteFile(project.slug, 'a.yaml', undefined, LOCAL_READER)).rejects.toThrow();
     expect(readdirSync(layout.trash)).toEqual([]);

@@ -124,6 +124,7 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
       const indexed = indexBytes(slug, relativePath, bytes);
       if (!indexed.file.visible) throw new InputError([{ severity: 'error', code: 'unsupported', path: '/', message: 'Unsupported file type.' }]);
       if (!indexed.file.valid) throw new InputError(indexed.findings);
+      const commit = (declarations.length || deletedItems.length) && gitAvailable ? ((await git.head(repoDir(place.layout, slug))) ?? '') : '';
       const opId = journal.newId();
       const staging = join(layout.state, `.staging-${opId}`);
       const staged = join(staging, 'source');
@@ -131,7 +132,6 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
       const steps = clearPersonalDrafts(state, slug, [relativePath], staging, place.copy ?? undefined);
       if (existsSync(file)) steps.push({ from: file, to: join(staging, 'previous') });
       steps.push({ from: staged, to: file });
-      const commit = (declarations.length || deletedItems.length) && gitAvailable ? ((await git.head(repoDir(place.layout, slug))) ?? '') : '';
       const records = operationMigrations({ id: opId, at: new Date().toISOString(), commit }, [...declarations, ...deletedItems.map(from => ({ kind: 'deleted' as const, from }))]);
       try {
         steps.push(...stageAddressMigrations({ layout, project: slug, staging }, records));

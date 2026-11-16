@@ -643,3 +643,9 @@ Proof: remote focused run — `32 pass`, `0 fail`, `Ran 32 tests across 5 files.
 The required pre-push architecture review found that appending a destination's entire history could replay a rename from before arrival or miss an intervening rename when a document moved back. Both scenarios were reproduced through workspace save/move/resolve entry points: 10 tests passed and two failed before the fix. Resolution now follows each destination immediately after the shared document-move record; both stores install that record in one journal and never prune it. Cached project histories still avoid repeated reads, while later re-entry resumes after its new shared marker. No timestamp ordering is inferred.
 
 Proof: `TMPDIR=/tmp/sw-009 bun test ./tests/address-migration-store.test.ts` — `12 pass`, `0 fail`, `140 expect() calls`, `Ran 12 tests across 1 file. [2.71s]`. The earlier full remote unit gate passed 2,189 tests with zero failures before this review correction; the final gate must be rerun on the corrected tree.
+
+### Architecture review: save metadata failure cleanup
+
+The second review finding was a new Git metadata lookup after single-file save staging but outside its cleanup block. Deleting the configured Git wrapper reproduced an orphaned .staging directory through saveFile; 11 tests passed and the staging assertion failed. The lookup now runs before staging, matching move/delete ordering. The existing failed-lookup fixture also checks save, move and deletion together, without introducing another isolation layer.
+
+Proof: `TMPDIR=/tmp/sw-009 bun test ./tests/address-migration-store.test.ts` — `12 pass`, `0 fail`, `141 expect() calls`, `Ran 12 tests across 1 file. [3.16s]`. Visibility regression proof — `4 pass`, `0 fail`, `20 expect() calls`. The reviewer reported no other blocking architecture findings.
