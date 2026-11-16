@@ -238,3 +238,12 @@ test('default mapping center breaks connection ties by visible names rather than
   };
   expect(defaultMappingCenter(graph)).toBe(cards[0].id);
 });
+
+test('model context preserves accepted unnamed legacy roots without fabricating a scope label', () => {
+  const original = sets.flights.find(entry => entry.filename === 'flights.yaml')!;
+  const document = { ...original, source: original.source.replace(/^(?:name|version):.*\n/gm, '') };
+  const context = modelContext([document], document.id, ['ontology_mappings', 0, 'semantic_model']);
+  expect(context.datasets.length).toBeGreaterThan(0);
+  expect(context.ontology.address).toBeUndefined();
+  expect(context.semanticModel.address).toBeUndefined();
+});

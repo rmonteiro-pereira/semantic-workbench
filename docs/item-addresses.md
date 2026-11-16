@@ -28,7 +28,8 @@ The fixtures are in `tests/fixtures/addresses/conformance.json`. General graph s
 ## Structured definitions
 
 `addressesOfModel(document, location)` derives locators for Ossie ontology, semantic-model and
-mapping documents and ODCS contracts, including embedded and legacy layouts. `location` contains
+mapping documents and ODCS contracts, including embedded and legacy layouts. Nested `properties`
+lists are covered; array-item schemas and their descendants are not yet covered. `location` contains
 the project slug and document path parts; without it the locators are document-relative.
 `resolveInModel` returns found, ambiguous or missing and never selects the first duplicate.
 `itemIdentity` returns a declared expanded IRI or null, independently of a name-based locator.
@@ -37,15 +38,10 @@ An embedded mapping uses its name when present and `mapping:#<index>` otherwise.
 ancestors make every descendant volatile, so those locators must not be persisted as history.
 RDF/SHACL resources and implicit built-in concepts have no address in this feature. Unsupported depth or length reports the source path.
 
-The inspector uses `StructuredEntity` and `StructuredRelationship` for required locators. RDF
-results and built-ins carry none; `isStructuredEntity` narrows mixed displays. Inspector locators
-are document-relative until a caller supplies a project/file location. `addressAtModelPath` avoids
-enumerating unrelated children when only a displayed item is needed.
-
-Run `bun scripts/item-address-timing.ts` to compare the largest synthetic fixture with the feature
-base commit. The script alternates baseline/current samples after warmup and enforces the 5%
-median overhead limit. It requires that base commit in the local Git object database and writes
-its baseline module under the ignored `out/009-addresses/` directory.
+The inspector retains its original result types and identifiers. The direct derivation API
+requires named ontology/model roots and reports an unaddressable item when a required name is
+absent. Accepted unnamed legacy roots have no context scope label.
+`addressAtModelPath` derives one displayed item's locator without enumerating unrelated children.
 
 `adaptItemKey` reads older concept, dataset, field, join and metric labels against a loaded model.
 It accepts a key only when exactly one definition matches. Dotted field collisions are ambiguous;

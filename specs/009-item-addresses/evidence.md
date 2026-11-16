@@ -240,3 +240,20 @@ a different center than the former visible-name order. The comparator now uses c
 for equal connection counts. Focused verification with the root acceptance restoration:
 `bun test tests/grouping-api.test.ts tests/mapping-graph.test.ts`: 21 pass, 0 fail,
 6,699 assertions in 4.83 s.
+
+## Restore accepted inputs at the phase stop
+
+The blocked inspector adoption was backed out to the exact model implementation at approved
+base 655df09. Its newly added adoption test and timing script were removed with the integration;
+existing model and grouping tests were not weakened. The proposed narrower result types remain
+a specification target, not a current implementation claim. No positional root or fallback name
+was invented. Context scope labels are omitted for accepted unnamed legacy roots.
+The public graph-context test uses the Flights layout without its root name/version headers:
+the real inspector accepts that legacy source with no error diagnostics.
+
+`bun test tests/grouping-api.test.ts tests/mapping-graph.test.ts`: 21 pass, 0 fail,
+6,699 assertions in 4.83 s. This restores the two grouping API failures observed in the full run.
+T011 is also reopened because `items.properties` traversal and unnamed array-item row semantics
+are not settled. T017 remains partial: named-scope mapping graphs pass their proofs, but adoption
+for accepted unnamed scopes awaits the same root decision. No blocked adoption task is advertised
+as complete. The pure migration phase remains complete independently.

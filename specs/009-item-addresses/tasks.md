@@ -74,7 +74,7 @@ address says whether it is ambiguous or volatile.
   standalone model documents (root scope segment, concepts, relationships, concept mappings,
   datasets, fields, joins, metrics). Proof: `tests/model-addresses.test.ts` against the sample
   project documents. (FR-011, FR-012, FR-014, FR-023)
-- [x] T011 [US5] Extend it to the consolidated layout, the legacy `semantic_model` list and ODCS
+- [ ] T011 [US5] Extend it to the consolidated layout, the legacy `semantic_model` list and ODCS
   (objects, nested properties with one segment per level, foreign keys as positional segments).
   Add fixture documents with dotted, colon and hash names. Proof: SC-008 test resolving every
   derived address of every layout back to its item; dotted ODCS property case. (FR-013, FR-014,
@@ -109,7 +109,7 @@ changes.
   alias-qualified or QName text unless a resolver turns it into a name, and refusing ambiguous
   dotted forms instead of guessing. Proof: `tests/item-key-adapters.test.ts` including the cases
   that were ambiguous in the old notations. (FR-009, FR-041)
-- [x] T017 [US4] Move the mapping canvas to addresses in `src/app/mappings/mapping-graph.ts`
+- [ ] T017 [US4] Move the mapping canvas to addresses in `src/app/mappings/mapping-graph.ts`
   (`conceptId`, `datasetId`, `metricId`, `fieldId` become calls to the formatter; their callers
   receive addresses). Proof: `tests/` for mapping graph pass unchanged apart from key text; a
   field named `a/b` and a dataset named `a` stay distinct. (FR-038, FR-039)

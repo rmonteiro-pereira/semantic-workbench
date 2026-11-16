@@ -50,9 +50,9 @@ type Resolution =
 type ItemIdentity = { iri: string } | null;   // expanded IRI, or none
 ```
 
-`StructuredEntity` and `StructuredRelationship` in `src/shared/core/model.ts` carry required
+The inspector integration must use `StructuredEntity` and `StructuredRelationship` with required
 `address: Address` values. RDF/SHACL entities and built-ins have no address; mixed views narrow
-with `isStructuredEntity` before using it. `Entity.id` stays as the in-document React key; no new code may use it as a
+with a type guard before using it. `Entity.id` stays as the in-document React key; no new code may use it as a
 reference.
 
 ## Migration record

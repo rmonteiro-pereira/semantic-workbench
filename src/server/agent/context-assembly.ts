@@ -90,8 +90,9 @@ function emptyContext(assembly: Assembly, { ontologyTarget, semanticTarget }: Re
   const semanticPrefix = semanticTarget?.path ?? [];
   const declaredConcepts: any[] = ontology.ontology ?? [];
   const scopeAddress = (target: Target | null, kind: 'ontology' | 'model') => {
-    if (!target) return {};
+    if (!target || typeof target.data.name !== 'string' || !target.data.name) return {};
     const document = assembly.parsed.find(candidate => candidate.doc.id === target.doc.id)?.data;
+    if (!Array.isArray(document?.semantic_model) && (typeof document?.name !== 'string' || !document.name)) return {};
     const address = addressAtModelPath(document, target.path);
     return address.chain.at(-1)?.kind === kind ? { address } : {};
   };
