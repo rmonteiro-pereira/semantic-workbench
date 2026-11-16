@@ -463,3 +463,69 @@ The following commits precede this final evidence commit, in chronological order
 - `0f0e39b5` fix: retain existence-hiding denials when narrowing connection effects
 - `d9baec68` docs: state the development frontend requirement for browser mutants
 - `e234c7d7` test: record the complete operation boundary mutation gate
+
+## Performance follow-up: matched measurements
+
+The HTTP comparison uses a detached temporary worktree of `origin/main` (`655df094`) and the
+unchanged `scripts/boundary-benchmark.ts` copied into it. Its imported fixture and workspace
+helpers are identical on both revisions. Each fresh process warms 150 requests, then measures
+5,000 requests with the same 200/403/400 response mix, consumes every response and asserts its
+status. Runs alternate base then branch, five rounds each, without concurrent work from this
+feature. Shared machine load is not assumed constant across hours.
+
+| Round | Base median (ms) | Branch median (ms) | Base p95 (ms) | Branch p95 (ms) |
+| --- | --- | --- | --- | --- |
+| 1 | 2.533263 | 2.577054 | 5.170348 | 5.402725 |
+| 2 | 2.628995 | 2.654446 | 6.017790 | 6.142043 |
+| 3 | 2.559604 | 2.555854 | 5.660251 | 5.655181 |
+| 4 | 2.620984 | 2.585494 | 5.560039 | 5.328331 |
+| 5 | 2.507203 | 2.537583 | 5.118427 | 5.117718 |
+
+Median of medians: base **2.559604 ms**, branch **2.577054 ms** (+0.68%).
+Base round medians range from 2.507 to 2.629 ms; branch rounds range from 2.538 to 2.654 ms.
+The difference is within run-to-run noise and below the 5% threshold. The earlier 4.19 ms
+comparison with an hours-old 2.51 ms baseline is superseded. No HTTP cost removal is needed.
+
+Listing profiling measured 1,055 explicit authorization calls and 81 readable-view builds per
+20-project listing. A representative warmed sample took 356.603 ms: 334.816 ms inside explicit
+authorization calls and 20.589 ms building readable views. Cedar already uses the compiled policy
+set; repeated project/action probes, rather than policy compilation, dominated.
+
+Listing now probes each action and file-probe kind once per call. The access scope supplies one
+representative per identical project metadata and effective role set, retaining exact project
+probes for clients and arbitrary administrator rules. The baseline and role-compiled policies
+inspect those attributes and role-holder membership; their only project-name predicate is client
+membership, which is not coalesced. File probes retain the same role-condition resources and
+metadata. Invocation continues to inspect actual targets and does not use the representatives.
+No cache survives a listing call.
+
+The listing comparison alternates the pre-optimization implementation from `12060136` and the
+optimized implementation, five rounds each. Main has no listing boundary, so it cannot be the
+listing baseline. Original boundary and authorizer sources are copied to temporary paths with
+relative imports resolved back to their dependencies; neither original source is changed. Each
+process uses the same 20 Sales-project fixture and Alice caller, discards two warm-up listings,
+then measures five fresh request scopes and reports their median. Policy loading and fixture
+creation are excluded equally on both sides. All samples return the same 54 operations.
+
+| Round | Before median (ms) | Optimized median (ms) |
+| --- | --- | --- |
+| 1 | 310.032989 | 49.976465 |
+| 2 | 322.515310 | 47.473352 |
+| 3 | 327.391251 | 46.589231 |
+| 4 | 323.900780 | 47.176555 |
+| 5 | 325.753547 | 47.435513 |
+
+Median of medians: **323.900780 → 47.435513 ms**, a **85.35% reduction** (6.83× faster).
+Explicit authorization calls fall from 1,055 to 58. The measured median meets the original 50 ms
+goal, which remains unchanged. Cold calls and shared-load outliers can exceed that goal; it is
+not a response-time SLA. The old 623 ms observation is superseded by this matched comparison.
+
+Before production edits, the exact sorted operation ids were recorded for all nine fixture
+people with unrestricted and read-only effects, both fixture clients, a deactivated caller,
+and both conditional-role fixtures. The unchanged implementation passed the comparison
+(5 tests, 38 assertions), and the optimized implementation preserves it. Additional tests exercise
+distinct grants, project-name administrator rules, grant revocation and restoration. Two added
+mutants remove the project-role distinction and the administrator-rule exception respectively.
+
+Performance scope: HTTP response and audit bytes stay frozen; listing answers remain exact;
+reuse is confined to one synchronous listing and cannot retain revoked grants.

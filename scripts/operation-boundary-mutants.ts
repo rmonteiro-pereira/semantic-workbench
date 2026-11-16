@@ -1,6 +1,8 @@
 // Faults that exercise the guarantees preserved by the shared operation entry point.
 /** Deliberate boundary faults paired with the focused operation assertions. */
 export const operationBoundaryMutants: [string, string, string, string][] = [
+  ['operation-boundary', 'src/server/auth/authorize.ts', 'snapshot.policy.exactResources || principal.kind', 'false || principal.kind'],
+  ['operation-boundary', 'src/server/auth/authorize.ts', 'roles(project).sort()', '[]'],
   ['operation-boundary', 'src/server/auth/operation-boundary.ts', "mode === 'server' && (scope.principal.deactivated || withoutGrants)", 'false'],
   ['operation-boundary', 'src/server/auth/operation-boundary.ts', "const trash = mode === 'server' ? trashLookup(ws, request) : undefined;", 'const trash = undefined;'],
   ['operation-boundary', 'src/server/auth/operation-boundary.ts', "caller.principal.kind === 'client' ? clientRow(found.row) : found.row", 'found.row'],

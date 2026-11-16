@@ -9,7 +9,7 @@ import { LOCAL_READER } from '../src/server/projects/reader';
 import type { Caller } from '../src/server/auth/caller';
 import type { OperationCall } from '../src/server/auth/operation-boundary';
 
-async function setup(target: string, fixture: Awaited<ReturnType<typeof authWorkspace>>) {
+async function setup(target: string, fixture: Awaited<ReturnType<typeof authWorkspace>>, options = accessFixture()) {
   const folder = dirname(target);
   const { createAccessMiddleware } = await import(join(folder, 'middleware.ts'));
   const { createAccessControl } = await import(join(folder, 'authorize.ts'));
@@ -18,7 +18,7 @@ async function setup(target: string, fixture: Awaited<ReturnType<typeof authWork
   const { WriteAccessError } = await import(join(folder, 'write-access-error.ts'));
   const { buildTwinRequest } = await import(join(folder, 'twin-request.ts'));
   const { sampleReplayEntries } = await import(join(folder, 'replay-sample.ts'));
-  const access = createAccessControl(accessFixture());
+  const access = createAccessControl(options);
   const audit = createAuditLog({ dir: join(fixture.root, 'operation-mutations') });
   const state = { response: Response.json({ ran: true }), error: undefined as Error | undefined };
   const handler = createAccessMiddleware(
@@ -33,7 +33,7 @@ async function setup(target: string, fixture: Awaited<ReturnType<typeof authWork
   const caller = (name: 'alice' | 'bob' | 'dave' | 'erin') => mintCaller({ principal: access.principalFor(person(name)), origin: 'mcp' });
   const invoke = async (identity: Caller, path: string, method = 'GET', operation?: string) =>
     (await handler.boundary.operate({ caller: identity, request: new Request('http://operation.internal' + path, { method }), operation } satisfies OperationCall)).response;
-  return { folder, fixture, audit, caller, invoke, state, mintCaller, access, WriteAccessError, buildTwinRequest, sampleReplayEntries };
+  return { folder, fixture, audit, caller, invoke, state, mintCaller, access, boundary: handler.boundary, WriteAccessError, buildTwinRequest, sampleReplayEntries };
 }
 
 type Context = Awaited<ReturnType<typeof setup>>;
@@ -85,6 +85,25 @@ function builderAndReplayCases({ buildTwinRequest, sampleReplayEntries }: Contex
   assert.equal(sampled.filter((entry: { origin?: string }) => entry.origin === 'mcp').length, 500, 'read stratum bound');
 }
 
+async function listingCases(target: string, fixture: Awaited<ReturnType<typeof authWorkspace>>) {
+  for (const administratorRule of [false, true]) {
+    const options = accessFixture();
+    const project = { domain: 'sales', everyoneCanRead: true, stewards: [], restricted: [], protectedBranches: [] };
+    options.config.projects.projects['sales-metrics'] = project;
+    options.config.projects.projects['sales-contracts'] = structuredClone(project);
+    const grant = options.config.grants.find(grant => grant.id === 'g-sales-editors')!;
+    if (administratorRule) {
+      options.config.adminRules = {
+        'last-project': 'forbid (principal, action == SW::Action::"edit", resource) unless { resource.project == "sales-contracts" };',
+      };
+    } else {
+      grant.scope = { kind: 'projects', projects: ['sales-contracts'] };
+    }
+    const context = await setup(target, fixture, options);
+    assert(context.boundary.availableOperations(context.caller('alice')).includes('files.save'), 'listing preserves distinct policy scopes');
+  }
+}
+
 /** Runs named behavioral assertions against a copied boundary and its sibling modules. */
 export async function operationBoundaryCases(target: string): Promise<void> {
   using fixture = await authWorkspace();
@@ -92,4 +111,5 @@ export async function operationBoundaryCases(target: string): Promise<void> {
   await dispatchCases(context);
   await responseCases(context);
   builderAndReplayCases(context);
+  await listingCases(target, fixture);
 }

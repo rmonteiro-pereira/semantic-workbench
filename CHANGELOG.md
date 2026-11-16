@@ -16,6 +16,8 @@ not configure a production deployment.
 
 - Network authentication and shared operation decisions have separate modules; existing HTTP
   behavior and audit bytes are preserved.
+- Operation listing reuses equivalent policy probes within each call, preserving exact project
+  checks for administrator rules and clients.
 
 - Agent context: every document of a context names its `role` (`mapping`, `ontology` or `semantic`),
   and the answer lists `boundMetricIds`, the metrics bound directly to the selected concepts

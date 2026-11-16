@@ -229,6 +229,23 @@ export function createAccessControl(options: AccessOptions) {
       return accessView(snapshot, principal, authorize);
     }
 
+    /** Distinct readable policy scopes needed when probing operation availability. */
+    function probeProjects(): string[] {
+      synchronize();
+      const roles = projectRoles(snapshot, principal);
+      const seen = new Set<string>();
+      const readAction = principal.kind === 'client' ? 'agentRead' : 'read';
+      return snapshot.projects.filter(project => {
+        // Administrator rules can name project ids, beyond the compiler's scope and attribute tests.
+        const exact = snapshot.policy.exactResources || principal.kind === 'client';
+        // Compiled policies distinguish these projects only by attributes and role-holder membership.
+        const key = exact ? project : JSON.stringify([snapshot.config.projects.projects[project], roles(project).sort()]);
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return authorize(readAction, { type: 'project', project }).allow;
+      });
+    }
+
     return {
       get principal() {
         synchronize();
@@ -255,6 +272,7 @@ export function createAccessControl(options: AccessOptions) {
       },
       filter,
       view,
+      probeProjects,
     };
   }
 
@@ -339,26 +357,26 @@ export type AccessControl = ReturnType<typeof createAccessControl>;
 /** One principal's decisions and readable view, resolved once per request or event stream. */
 export type AccessScope = ReturnType<AccessControl['forRequest']>;
 
+function projectRoles(active: ActiveAccess, principal: Principal): AccessView['roles'] {
+  const projects = active.projects.map(slug => ({ slug, domain: active.config.projects.projects[slug]?.domain ?? null }));
+  return project => [
+    ...new Set(
+      principal.grants
+        .filter(grant => {
+          const holders = holdersOfGrant(grant, projects);
+          return holders.includes('admin@workspace') || holders.includes(`${grant.roleId}@${project}`);
+        })
+        .map(grant => grant.roleId),
+    ),
+  ];
+}
+
 function accessView(active: ActiveAccess, principal: Principal, authorize: (action: Action, resource: ResourceRef) => Decision): AccessView {
-  const projects = active.projects.map(slug => ({
-    slug,
-    domain: active.config.projects.projects[slug]?.domain ?? null,
-  }));
-  const grants = principal.grants;
   const readAction = principal.kind === 'client' ? 'agentRead' : 'read';
   return {
     readableProjects: new Set(active.projects.filter(project => authorize(readAction, { type: 'project', project }).allow)),
     canRead: (project, path) => authorize(readAction, { type: 'file', project, path }).allow,
-    roles: project => [
-      ...new Set(
-        grants
-          .filter(grant => {
-            const holders = holdersOfGrant(grant, projects);
-            return holders.includes('admin@workspace') || holders.includes(`${grant.roleId}@${project}`);
-          })
-          .map(grant => grant.roleId),
-      ),
-    ],
+    roles: projectRoles(active, principal),
   };
 }
 

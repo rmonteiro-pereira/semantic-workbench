@@ -147,15 +147,19 @@ function routeDecision(scope: AccessScope, row: RouteAction, { resource, mode, r
   return { decision, resource };
 }
 
+function needsFileProbes(row: RouteAction): boolean {
+  const entry = operationForRow(row.path);
+  return row.targets !== 'body' && (entry?.targets === 'file' || entry?.targets === 'path');
+}
+
 /** Finds one target admitted by the same route pass used during invocation. */
-function permittedSomewhere(scope: AccessScope, row: RouteAction): RouteVerdict | undefined {
+function permittedSomewhere(scope: AccessScope, row: RouteAction, projects: () => Iterable<string> = () => scope.view().readableProjects): RouteVerdict | undefined {
   const workspace: ResourceRef = { type: 'workspace' };
   const workspaceDecision = scope.authorize(row.action, workspace);
   if (workspaceDecision.allow) return { decision: workspaceDecision, resource: workspace };
-  const entry = operationForRow(row.path);
-  const sampleFiles = row.targets !== 'body' && (entry?.targets === 'file' || entry?.targets === 'path');
+  const sampleFiles = needsFileProbes(row);
   const config = { ...emptyAccessConfig(), roles: scope.customRoles() };
-  for (const project of scope.view().readableProjects) {
+  for (const project of projects()) {
     const candidates: ResourceRef[] = [{ type: 'project', project }];
     if (sampleFiles) candidates.push(...projectResources(project, config, config));
     for (const resource of candidates) {
@@ -340,13 +344,18 @@ export function createOperationBoundary(ws: Workspace, options: HandlerOptions &
     const scope = access.forRequest(caller.principal, { sourceIp: caller.sourceIp });
     if (scope.principal.deactivated || (mode === 'server' && scope.principal.kind !== 'client' && !scope.principal.grants.length)) return [];
     const ids: string[] = [];
+    let projects: string[] | undefined;
+    const probeProjects = () => (projects ??= scope.probeProjects());
+    const permitted = new Map<string, boolean>();
     for (const original of ROUTE_ACTIONS) {
       const entry = operationForRow(original.path);
       if (entry?.dispatch !== 'twin' || !scopeAllows(caller.scope, entry.effects)) continue;
       if (scope.principal.kind === 'client' && !original.clientAction) continue;
       const row = scope.principal.kind === 'client' ? clientRow(original) : original;
       if (mode === 'server' && row.action === 'setIdentity') continue;
-      if (permittedSomewhere(scope, row)) ids.push(entry.id);
+      const key = JSON.stringify([row.action, needsFileProbes(row)]);
+      if (!permitted.has(key)) permitted.set(key, Boolean(permittedSomewhere(scope, row, probeProjects)));
+      if (permitted.get(key)) ids.push(entry.id);
     }
     return ids.sort();
   }

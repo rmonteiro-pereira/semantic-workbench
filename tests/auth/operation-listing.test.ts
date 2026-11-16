@@ -144,3 +144,31 @@ test('listing exactly preserves the recorded answers for every fixture caller', 
   const answers = await listingAnswers();
   expect(answers).toEqual(listingBaseline);
 });
+
+test('listing keeps distinct grant scopes and project-specific administrator rules', async () => {
+  for (const administratorRule of [false, true]) {
+    const options: AccessOptions = accessFixture();
+    const projects = Array.from({ length: 20 }, (_, index) => 'project-' + index);
+    for (const project of projects) options.config.projects.projects[project] = { domain: 'sales', everyoneCanRead: true, stewards: [], restricted: [], protectedBranches: [] };
+    options.knownProjects = () => projects;
+    if (administratorRule) {
+      options.config.adminRules = {
+        'last-project': 'forbid (principal, action == SW::Action::"edit", resource) unless { resource.project == "project-19" };',
+      };
+    } else {
+      const grant = options.config.grants.find(grant => grant.id === 'g-sales-editors')!;
+      grant.scope = { kind: 'projects', projects: ['project-19'] };
+    }
+    using context = await setup(options);
+    const principal = context.access.principalFor(person('alice'));
+    const caller = mintCaller({ principal, origin: 'mcp' });
+    const original = context.boundary.availableOperations(caller);
+    expect(original).toContain('files.save');
+    const revoked = structuredClone(options.config);
+    revoked.grants = [];
+    context.access.reload(revoked);
+    expect(context.boundary.availableOperations(caller)).toEqual([]);
+    context.access.reload(options.config);
+    expect(context.boundary.availableOperations(caller)).toEqual(original);
+  }
+});
