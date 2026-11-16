@@ -1,5 +1,6 @@
 // Runs focused assertions against candidate modules to detect deliberately introduced faults.
 import { addressMigrationCase } from './address-migration-cases';
+import { formatAddress } from '../src/shared/core/item-address';
 import { modelAddressCase } from './model-address-cases';
 import { addressGrammarCase } from './address-cases';
 import { LOCAL_READER } from '../src/server/projects/reader';
@@ -1144,10 +1145,14 @@ if (category === 'mapping-graph') {
     }));
   const ctx = (d: any[]) => buildContext(d, agentCatalog(d).mappings[0].id);
   const context = ctx(docs());
-  const conceptKey = (name: string) => loadedModule.conceptId(context.ontology.address, name);
-  const datasetKey = (name: string) => loadedModule.datasetId(context.semanticModel.address, name);
-  const metricKey = (name: string) => loadedModule.metricId(context.semanticModel.address, name);
-  const fieldKey = (dataset: string, field: string) => loadedModule.fieldId(context.semanticModel.address, dataset, field);
+  const ontologyAddress = context.ontology.address;
+  const modelAddress = context.semanticModel.address;
+  assert(ontologyAddress);
+  assert(modelAddress);
+  const conceptKey = (name: string) => formatAddress({ ...ontologyAddress, chain: [...ontologyAddress.chain, { kind: 'concept', name }] });
+  const datasetKey = (name: string) => formatAddress({ ...modelAddress, chain: [...modelAddress.chain, { kind: 'dataset', name }] });
+  const metricKey = (name: string) => formatAddress({ ...modelAddress, chain: [...modelAddress.chain, { kind: 'metric', name }] });
+  const fieldKey = (dataset: string, field: string) => formatAddress({ ...modelAddress, chain: [...modelAddress.chain, { kind: 'dataset', name: dataset }, { kind: 'field', name: field }] });
   const mappingGraph = loadedModule.buildMappingGraph(context);
   const customerRelationship = mappingGraph.cards.get(conceptKey('Order')).columns.find((column: any) => column.path === 'customer').id;
   // Link Order.customer passes through the join fields.

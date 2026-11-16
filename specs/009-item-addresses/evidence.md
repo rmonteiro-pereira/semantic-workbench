@@ -707,3 +707,14 @@ before executing tests. No AVX2-specific error occurred, so heavy work has not f
 The responsive baseline comparison, actual remote mutation gate and final delegated visual comparison
 remain pending. All server processes started by the completed browser commands were stopped by their
 cleanup traps; the failed transport attempts started no test server.
+
+### Retired mapping API in the mutation baseline
+
+The actual remote mutation runner passed formatting/lint and reached its unmodified mapping-graph
+baseline, then stopped because that case still called the retired conceptId/datasetId/metricId/fieldId
+exports. Expected keys now use the public formatAddress function and the fixture's resolved scopes.
+No production builder is restored, and assertions still compare independently formatted endpoints.
+
+Proof: `bun scripts/mutation-case.ts <worktree>/src/app/mappings/mapping-graph.ts mapping-graph` exits 0.
+The full static and readability checks pass. Only the mutation case and this evidence changed;
+production source remains unchanged from 10408a68. The full remote mutation gate must be rerun.
