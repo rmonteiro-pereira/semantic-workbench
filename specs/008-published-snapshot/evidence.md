@@ -53,3 +53,12 @@ This run is not a passing full gate.
 The index cases cover byte-exact blobs despite dirty files, tracked ignored files, absent untracked
 files, all three build limits, case collisions and twenty concurrent callers sharing one build.
 The registered working-file substitution mutant exits 1; its baseline exits 0.
+
+## Pinned resolver
+
+`bun test tests/published-snapshot.test.ts`: 4 pass, 0 fail, 66 expect() calls.
+Pins preserve committed bytes across pointer changes, fifty publication moves stay within the
+current/previous/live-pin retention bound, registry folder changes rebuild, and history reads
+rebuild or refuse missing blobs. Returned byte buffers are copies.
+All three registered resolver mutants fail their focused cases, with passing baselines:
+ignoring the request pin, retaining every index and omitting the folder digest from the key.

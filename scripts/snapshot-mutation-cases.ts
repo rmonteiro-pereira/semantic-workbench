@@ -1,11 +1,15 @@
 // Focused assertions for immutable publication faults.
 import assert from 'node:assert/strict';
 import { join } from 'node:path';
-import { writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { publicationRepository } from '../tests/helpers/git-fixtures';
 import { createGit } from '../src/server/projects/git';
 import type { classify } from '../src/server/projects/published-pointer';
 import type { publicationChecks } from '../src/server/projects/publication-checks';
+import { createState, type ProjectEntry } from '../src/server/projects/state';
+import { dataLayout } from '../src/server/projects/paths';
+import { createPublishedPointers } from '../src/server/projects/published-pointer';
+import type { createPublishedSnapshots } from '../src/server/projects/published-snapshot';
 import type { createSnapshotIndexes } from '../src/server/projects/snapshot-index';
 /** Exercises the publication predicate belonging to a candidate module. */
 export async function snapshotMutationCase(
@@ -13,6 +17,7 @@ export async function snapshotMutationCase(
   candidate: {
     classify?: typeof classify;
     publicationChecks?: typeof publicationChecks;
+    createPublishedSnapshots?: typeof createPublishedSnapshots;
     createSnapshotIndexes?: typeof createSnapshotIndexes;
   },
 ) {
@@ -24,6 +29,7 @@ export async function snapshotMutationCase(
   if (category === 'snapshot-checks') {
     await checksCase(candidate.publicationChecks!);
   }
+  if (category === 'snapshot-resolver') await resolverCase(candidate.createPublishedSnapshots!);
   if (category === 'snapshot-index') {
     await indexCase(candidate.createSnapshotIndexes!);
   }
@@ -65,6 +71,41 @@ async function indexCase(indexes: typeof createSnapshotIndexes) {
     const loader = indexes({ git, directory: () => fixture.repository });
     const snapshot = await loader.build('definitions', fixture.published!, [{ slug: 'definitions', name: 'Definitions', createdAt: '', origin: '' }]);
     assert.equal(snapshot.projects.get('definitions')![0].document.source, committed);
+  } finally {
+    fixture.dispose();
+  }
+}
+
+async function resolverCase(create: typeof createPublishedSnapshots) {
+  const fixture = publicationRepository();
+  try {
+    const layout = dataLayout(fixture.dir);
+    mkdirSync(layout.state, { recursive: true });
+    const pointers = createPublishedPointers(createState(layout));
+    pointers.complete('definitions', 'main', fixture.published!);
+    const git = createGit({ projectsRoot: layout.projects });
+    let projects: ProjectEntry[] = [{ slug: 'definitions', name: 'Definitions', createdAt: '', origin: '' }];
+    const snapshots = create({ git, pointers, projects: () => projects, directory: () => fixture.repository, gitAvailable: () => true });
+    await snapshots.withPin(async pin => {
+      const original = await snapshots.documents(pin, 'definitions');
+      pointers.complete('definitions', 'main', fixture.authoring);
+      assert.deepEqual(await snapshots.documents(pin, 'definitions'), original);
+      for (let index = 0; index < 5; index++) {
+        await git.commit(fixture.repository, 'Publication', true);
+        pointers.complete('definitions', 'main', (await git.head(fixture.repository))!);
+        await snapshots.documents(snapshots.pin(), 'definitions');
+        assert(snapshots.retainedCount() <= 3);
+      }
+    });
+    mkdirSync(join(fixture.repository, 'nested'));
+    writeFileSync(join(fixture.repository, 'nested', 'nested.yaml'), 'name: Nested\nontology: [{concept: Nested}]\n');
+    await git.addAll(fixture.repository);
+    await git.commit(fixture.repository, 'Nested project');
+    pointers.complete('definitions', 'main', (await git.head(fixture.repository))!);
+    const pin = snapshots.pin();
+    assert.equal((await snapshots.documents(pin, 'definitions')).length, 2);
+    projects = [{ ...projects[0], folder: 'definitions/nested', repo: 'definitions' }];
+    assert.equal((await snapshots.documents(pin, 'definitions')).length, 1);
   } finally {
     fixture.dispose();
   }

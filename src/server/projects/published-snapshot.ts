@@ -1,0 +1,164 @@
+// Resolves production definitions from durable pointers and retains indexes for live request pins.
+import { SnapshotUnavailableError } from './errors';
+import type { PublishedPointers } from './published-pointer';
+import { classify } from './published-pointer';
+import { locationOf } from './paths';
+import { createSnapshotIndexes, folderDigest, type PublishedDocument, type SnapshotIndex, type SnapshotIndexDeps } from './snapshot-index';
+import type { ProjectEntry } from './state';
+
+/** One request's consistent commit choice for each repository with a published snapshot. */
+export type PublishedPin = { readonly commits: ReadonlyMap<string, Readonly<{ branch: string; commit: string }>> };
+/** The durable publication and any outside default-ref movement. */
+export type SnapshotStatus =
+  | { state: 'none'; reason: 'no-git' | 'no-commit' | 'unavailable' }
+  | { state: 'in-sync'; branch: string; commit: string }
+  | { state: 'pending'; branch: string; commit: string; next: string; commits: number; move: 'fast-forward' | 'diverged' };
+/** Registry, durable publication state and object access owned by the workspace. */
+export type PublishedSnapshotDeps = SnapshotIndexDeps & {
+  pointers: PublishedPointers;
+  projects: () => ProjectEntry[];
+  gitAvailable: () => boolean;
+};
+const fullId = /^(?:[0-9a-f]{40}|[0-9a-f]{64})$/;
+
+/** Creates the shared resolver without accepting an editing reader or caller permissions. */
+export function createPublishedSnapshots(deps: PublishedSnapshotDeps) {
+  const indexes = createSnapshotIndexes(deps);
+  const retained = new Map<string, SnapshotIndex>();
+  const recent = new Map<string, string[]>();
+  const held = new Map<PublishedPin, Set<string>>();
+  const pending = new Map<string, Promise<SnapshotIndex>>();
+
+  function pin(): PublishedPin {
+    const commits = new Map<string, Readonly<{ branch: string; commit: string }>>();
+    for (const [repository, pointer] of deps.pointers.entries()) {
+      if (pointer.commit) commits.set(repository, Object.freeze({ branch: pointer.branch, commit: pointer.commit }));
+    }
+    return Object.freeze({ commits });
+  }
+  function prune() {
+    const keep = new Set([...recent.values()].flat());
+    for (const keys of held.values()) for (const key of keys) keep.add(key);
+    for (const key of retained.keys()) if (!keep.has(key)) retained.delete(key);
+  }
+  function projectRepository(project: string) {
+    const entry = deps.projects().find(entry => entry.slug === project);
+    if (!entry) throw new SnapshotUnavailableError('unavailable');
+    return locationOf(entry).repo;
+  }
+  async function load(repository: string, commit: string, requestPin?: PublishedPin) {
+    const projects = deps.projects().filter(entry => locationOf(entry).repo === repository);
+    const key = JSON.stringify([repository, commit, folderDigest(projects)]);
+    held.get(requestPin!)?.add(key);
+    const cached = retained.get(key);
+    if (cached) return cached;
+    let building = pending.get(key);
+    if (!building) {
+      building = indexes.build(repository, commit, projects);
+      pending.set(key, building);
+    }
+    try {
+      const index = await building;
+      retained.set(key, index);
+      const latest = recent.get(repository) ?? [];
+      if (deps.pointers.get(repository)?.commit === commit) {
+        recent.set(repository, [key, ...latest.filter(previous => previous !== key)].slice(0, 2));
+      }
+      prune();
+      return index;
+    } finally {
+      if (pending.get(key) === building) pending.delete(key);
+    }
+  }
+  function absence(): SnapshotUnavailableError {
+    return new SnapshotUnavailableError(deps.gitAvailable() ? 'no-commit' : 'no-git');
+  }
+  async function files(requestPin: PublishedPin, project: string) {
+    const repository = projectRepository(project);
+    const chosen = requestPin.commits.get(repository);
+    if (!chosen) throw absence();
+    const index = await load(repository, chosen.commit, requestPin);
+    const files = index.projects.get(project);
+    if (!files) throw new SnapshotUnavailableError('unavailable');
+    return files;
+  }
+  async function documents(requestPin: PublishedPin, project: string): Promise<PublishedDocument[]> {
+    return (await files(requestPin, project)).filter(file => file.metadata.visible).map(file => file.document);
+  }
+  async function resolveRevision(revision: string): Promise<string | null> {
+    for (const [repository, pointer] of deps.pointers.entries()) {
+      if (!pointer.commit) continue;
+      const directory = deps.directory(repository);
+      const commit = fullId.test(revision) ? await deps.git.revParse(directory, `${revision}^{commit}`) : await deps.git.peelTag(directory, revision);
+      if (!commit || (fullId.test(revision) && commit !== revision)) continue;
+      if (await deps.git.isAncestor(directory, commit, pointer.commit)) return commit;
+    }
+    return null;
+  }
+  async function isReadableRevision(revision: string, head: string | null): Promise<boolean> {
+    if (await resolveRevision(revision)) return true;
+    if (!head || !fullId.test(revision)) return false;
+    for (const repository of new Set(deps.projects().map(entry => locationOf(entry).repo))) {
+      const directory = deps.directory(repository);
+      if ((await deps.git.revParse(directory, `${revision}^{commit}`)) !== revision) continue;
+      if ((await deps.git.revParse(directory, `${head}^{commit}`)) !== head) continue;
+      if (await deps.git.isAncestor(directory, revision, head)) return true;
+    }
+    return false;
+  }
+  async function status(repository: string): Promise<SnapshotStatus> {
+    if (!deps.gitAvailable()) return { state: 'none', reason: 'no-git' };
+    const pointer = deps.pointers.get(repository);
+    if (!pointer?.commit) return { state: 'none', reason: 'no-commit' };
+    try {
+      const directory = deps.directory(repository);
+      const ref = await deps.git.revParse(directory, `refs/heads/${pointer.branch}`);
+      const transition = await classify(ref, pointer, (from, to) => deps.git.isAncestor(directory, from, to));
+      if (transition === 'in-sync') return { state: 'in-sync', branch: pointer.branch, commit: pointer.commit };
+      if (!ref) return { state: 'none', reason: 'unavailable' };
+      const count = await deps.git.run(directory, ['rev-list', '--count', `${pointer.commit}..${ref}`]);
+      return {
+        state: 'pending',
+        branch: pointer.branch,
+        commit: pointer.commit,
+        next: ref,
+        commits: Number(count.stdout.trim()),
+        move: transition === 'fast-forward' ? 'fast-forward' : 'diverged',
+      };
+    } catch {
+      return { state: 'none', reason: 'unavailable' };
+    }
+  }
+  return {
+    pin,
+    async withPin<T>(use: (pin: PublishedPin) => Promise<T> | T): Promise<T> {
+      const chosen = pin();
+      held.set(chosen, new Set());
+      try {
+        return await use(chosen);
+      } finally {
+        held.delete(chosen);
+        prune();
+      }
+    },
+    documents,
+    async fileBytes(requestPin: PublishedPin, project: string, path: string) {
+      const file = (await files(requestPin, project)).find(file => file.document.path === path);
+      return file ? file.bytes.slice() : null;
+    },
+    async documentsAt(commit: string, project: string) {
+      if (!(await resolveRevision(commit))) throw new SnapshotUnavailableError('unavailable');
+      const repository = projectRepository(project);
+      const pointer = deps.pointers.get(repository);
+      if (!pointer?.commit || !(await deps.git.isAncestor(deps.directory(repository), commit, pointer.commit))) throw new SnapshotUnavailableError('unavailable');
+      return documents({ commits: new Map([[repository, { branch: pointer.branch, commit }]]) }, project);
+    },
+    resolveRevision,
+    isReadableRevision,
+    status,
+    retainedCount: () => retained.size,
+    supersede: () => prune(),
+  };
+}
+/** Shared immutable definition reads and historical provenance. */
+export type PublishedSnapshots = ReturnType<typeof createPublishedSnapshots>;

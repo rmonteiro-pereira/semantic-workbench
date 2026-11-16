@@ -11,4 +11,7 @@ export const snapshotMutants: [string, string, string, string][] = [
     'const blobs = await deps.git.catFileBatch(\n    directory,\n    files.map(file => file.id),\n    limits,\n  );',
     "const blobs = new Map(await Promise.all(files.map(async file => [file.id, new Uint8Array(await Bun.file(directory + '/' + file.path).arrayBuffer())] as const))));",
   ],
+  ['snapshot-resolver', 'src/server/projects/published-snapshot.ts', 'const chosen = requestPin.commits.get(repository);', 'const chosen = pin().commits.get(repository);'],
+  ['snapshot-resolver', 'src/server/projects/published-snapshot.ts', 'if (!keep.has(key)) retained.delete(key);', 'void key;'],
+  ['snapshot-resolver', 'src/server/projects/published-snapshot.ts', 'JSON.stringify([repository, commit, folderDigest(projects)])', 'JSON.stringify([repository, commit])'],
 ];
