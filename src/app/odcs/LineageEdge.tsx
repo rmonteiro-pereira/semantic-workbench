@@ -1,6 +1,6 @@
 /** Draws one lineage line between two card rows, with its label pill and path emphasis. */
 import React, { memo } from 'react';
-import { BaseEdge, getBezierPath, type EdgeProps } from '@xyflow/react';
+import { useStore, BaseEdge, getBezierPath, type EdgeProps } from '@xyflow/react';
 import { edgeSvgStyle, type EdgeKind } from '../graph/edge-styles';
 import { labelSize, type LineLabel } from './edge-labels';
 import { pointAtHalf, roundedPath, type Point } from './edge-route';
@@ -34,8 +34,14 @@ export const LineageEdge = memo((edgeProps: EdgeProps) => {
   const middle = routed ? pointAtHalf(points) : { x: curve[1], y: curve[2] };
   const lx = middle.x;
   const ly = middle.y;
+  const labelClipped = useStore(state => {
+    const place = data.lineLabel?.place;
+    if (!place) return false;
+    const [offsetX, offsetY, zoom] = state.transform;
+    return place.x * zoom + offsetX < 0 || place.y * zoom + offsetY < 0 || (place.x + place.w) * zoom + offsetX > state.width || (place.y + place.h) * zoom + offsetY > state.height;
+  });
   let labelElement: React.ReactNode;
-  if (data.lineLabel) {
+  if (data.lineLabel && !labelClipped) {
     labelElement = <LineLabelPill label={data.lineLabel} bundle={(data.count ?? 1) > 1} at={{ x: lx, y: ly }} />;
   } else if (data.label) {
     labelElement = (

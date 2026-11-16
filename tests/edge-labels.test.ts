@@ -53,3 +53,16 @@ test('labels stay inside fitted card bounds or remain available on hover', () =>
   }
   expect(placeEdgeLabels([request('outside', -200)], [], bounds).size).toBe(0);
 });
+
+test('a crossing route blocks every otherwise available label slot', () => {
+  const route = [
+    { x: 130, y: 0 },
+    { x: 130, y: 200 },
+  ];
+  expect(placeEdgeLabels([request('a', 100)], [], undefined, [route]).size).toBe(0);
+  const clearRoute = [
+    { x: 390, y: 0 },
+    { x: 390, y: 200 },
+  ];
+  expect(placeEdgeLabels([request('a', 100)], [], undefined, [clearRoute]).size).toBe(1);
+});

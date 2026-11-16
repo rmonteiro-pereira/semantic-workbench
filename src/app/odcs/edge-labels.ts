@@ -36,8 +36,28 @@ export function labelSize(lines: readonly string[]): { w: number; h: number } {
 
 const touches = (a: Rect, b: Rect, gap = 0) => a.x < b.x + b.w + gap && b.x < a.x + a.w + gap && a.y < b.y + b.h + gap && b.y < a.y + a.h + gap;
 
+function lineCrossesRect(from: Point, to: Point, rect: Rect): boolean {
+  let enter = 0;
+  let leave = 1;
+  for (const axis of ['x', 'y'] as const) {
+    const minimum = rect[axis];
+    const maximum = minimum + (axis === 'x' ? rect.w : rect.h);
+    const delta = to[axis] - from[axis];
+    if (delta === 0) {
+      if (from[axis] < minimum || from[axis] > maximum) return false;
+      continue;
+    }
+    const first = (minimum - from[axis]) / delta;
+    const second = (maximum - from[axis]) / delta;
+    enter = Math.max(enter, Math.min(first, second));
+    leave = Math.min(leave, Math.max(first, second));
+    if (enter > leave) return false;
+  }
+  return true;
+}
+
 /** Chooses a place for as many labels as fit; the rest are left out, in request order. */
-export function placeEdgeLabels(requests: readonly LabelRequest[], obstacles: readonly Rect[], bounds?: Rect): Map<string, Rect> {
+export function placeEdgeLabels(requests: readonly LabelRequest[], obstacles: readonly Rect[], bounds?: Rect, routes: readonly (readonly Point[])[] = []): Map<string, Rect> {
   const placed = new Map<string, Rect>();
   const ordered = [...requests].sort((a, b) => a.priority - b.priority || a.at.y - b.at.y);
   for (const request of ordered) {
@@ -57,7 +77,8 @@ export function placeEdgeLabels(requests: readonly LabelRequest[], obstacles: re
       const outside = bounds && (spot.x < bounds.x || spot.y < bounds.y || spot.x + spot.w > bounds.x + bounds.w || spot.y + spot.h > bounds.y + bounds.h);
       if (outside) continue;
       const blocked = obstacles.some(o => touches(spot, o)) || [...placed.values()].some(o => touches(spot, o, GAP_AROUND));
-      if (blocked) continue;
+      const crossed = routes.some(route => route.slice(1).some((point, index) => lineCrossesRect(route[index], point, spot)));
+      if (blocked || crossed) continue;
       placed.set(request.id, spot);
       break;
     }
@@ -144,6 +165,10 @@ export function buildLineLabels(context: LabelContext, lines: readonly LabelledL
   const right = Math.max(...obstacles.map(card => card.x + card.w));
   const bottom = Math.max(...obstacles.map(card => card.y + card.h));
   const bounds = { x: left, y: top, w: right - left, h: bottom - top };
-  const placed = placeEdgeLabels(requests, obstacles, bounds);
+  const routes = lines.flatMap(line => {
+    const ends = lineEnds(context, line);
+    return ends ? [[ends.from, ...(context.routes[line.id] ?? []), ends.to]] : [];
+  });
+  const placed = placeEdgeLabels(requests, obstacles, bounds, routes);
   return new Map([...texts].map(([id, text]) => [id, { lines: text, place: placed.get(id) }]));
 }

@@ -139,6 +139,7 @@ function LineageViewOptions({ mapping, centreName, steps, onSteps, showMetrics, 
 
 type ToolbarProps = ViewOptionsProps &
   SearchProps & {
+    busy: boolean;
     onFit: () => void;
     direction: Direction;
     onDirection: (direction: Direction) => void;
@@ -153,7 +154,7 @@ type ToolbarProps = ViewOptionsProps &
 
 export function LineageToolbar(props: ToolbarProps) {
   return (
-    <div className="lineage-toolbar">
+    <fieldset className="lineage-toolbar" disabled={props.busy} aria-label="Lineage controls">
       <LineageSearch query={props.query} onQuery={props.onQuery} showResults={props.showResults} onShowResults={props.onShowResults} results={props.results} onChoose={props.onChoose} />
       <button onClick={props.onFit} aria-label="Fit" title="Fit the graph">
         <Scan size={14} />
@@ -183,11 +184,12 @@ export function LineageToolbar(props: ToolbarProps) {
           onToggleExternal={props.onToggleExternal}
         />
       </CompactControls>
-    </div>
+    </fieldset>
   );
 }
 
 type TrailProps = {
+  busy: boolean;
   context?: string;
   viewportControls: ReactNode;
   foreignKeys: ForeignKeyPath | null;
@@ -201,10 +203,10 @@ type TrailProps = {
   onOpenPath: () => void;
 };
 
-export function LineageSubbar({ context, viewportControls, foreignKeys, steps, onHops, actionHistory, walk, dispatch, showPathToggle, pathCount, onOpenPath }: TrailProps) {
+export function LineageSubbar({ busy, context, viewportControls, foreignKeys, steps, onHops, actionHistory, walk, dispatch, showPathToggle, pathCount, onOpenPath }: TrailProps) {
   return (
     <div className="lineage-subbar">
-      {foreignKeys && <ForeignKeyHops path={foreignKeys} hops={steps} onHops={onHops} />}
+      {foreignKeys && <ForeignKeyHops disabled={busy} path={foreignKeys} hops={steps} onHops={onHops} />}
       <div className="lineage-trail" aria-label="Walk">
         <button aria-label="Back" disabled={!actionHistory.canBack} onClick={actionHistory.back}>
           <ArrowLeft size={13} />

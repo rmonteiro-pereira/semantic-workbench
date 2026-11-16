@@ -573,6 +573,7 @@ export function LineageCanvas({
   return (
     <section className={`lineage-view${compact ? ' compact' : ''}`} role="region" aria-label={ariaLabel}>
       <LineageToolbar
+        busy={busy}
         mapping={mapping}
         centreName={centreName}
         steps={steps}
@@ -599,6 +600,7 @@ export function LineageCanvas({
         toolbarExtra={toolbarExtra}
       />
       <LineageSubbar
+        busy={busy}
         context={center !== initial ? `Lineage around ${centreName} (opened from ${graph.cards.get(initial)?.label ?? initial})` : undefined}
         viewportControls={
           <LineageViewportControls fullscreen={fullscreen} onZoomIn={() => void flow.current?.zoomIn({ duration: 150 })} onZoomOut={() => void flow.current?.zoomOut({ duration: 150 })} />

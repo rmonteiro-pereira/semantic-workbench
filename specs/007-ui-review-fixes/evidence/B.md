@@ -59,3 +59,7 @@ The existing 1400 px content measure now includes `.odcs-lineage-host`; no secon
 ## T032 — implementation
 
 Walk trail names the current and original centre after a walk. CENTER now sits beside the name, independently of the kind line hidden at far zoom. The legend explains grouping tint and collapses behind a Legend disclosure on narrow screens; expanded content retains keys and line kinds. Empty reaches show one explanatory line and disable hop buttons. `out/lane-b/t032/local-contract-lineage--no-links-390.png` opened: disabled Hops, visible CENTER, one message and the collapsed Legend are present. The underlying fixed header/port geometry is retained; removing its unused band would require relayout on zoom and is not included.
+
+## T033 — implementation
+
+Label placement rejects a slot intersected by any laid-out route, including diagonal segments; renderer suppresses placed labels clipped by the current pane. Layout state disables the native controls fieldset and hop buttons while ELK runs. The route-crossing test distinguishes a blocked slot from a clear route. Focused unit summary: 17 pass, 0 fail, 40 expect calls. Loading/edge browser proof remains part of the final checks.

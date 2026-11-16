@@ -10,10 +10,10 @@ export const MAX_HOPS = 3;
 const HELP = 'A hop is one foreign key, followed from the centre table in either direction. Each key reads column → the column it references.';
 const hopsWord = (n: number) => (n === 1 ? '1 hop' : `${n} hops`);
 
-type Props = { path: ForeignKeyPath; hops: number; onHops: (hops: number) => void };
+type Props = { disabled?: boolean; path: ForeignKeyPath; hops: number; onHops: (hops: number) => void };
 
 /** Renders the hop control, the path line and the button that opens the list of keys. */
-export function ForeignKeyHops({ path, hops, onHops }: Props) {
+export function ForeignKeyHops({ disabled = false, path, hops, onHops }: Props) {
   const [listOpen, setListOpen] = useState(false);
   const reached = Math.max(0, path.levels.length - 1);
   const route = path.levels
@@ -28,7 +28,7 @@ export function ForeignKeyHops({ path, hops, onHops }: Props) {
       <div className="lineage-hops-steps" role="group" aria-label="How far to follow foreign keys">
         {Array.from({ length: MAX_HOPS }, (_, i) => i + 1).map(hopCount => (
           <button
-            disabled={path.steps.length === 0}
+            disabled={disabled || path.steps.length === 0}
             key={hopCount}
             aria-label={hopsWord(hopCount)}
             aria-pressed={hops === hopCount}
