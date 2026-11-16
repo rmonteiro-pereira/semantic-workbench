@@ -1,5 +1,6 @@
 // Focused assertions for immutable publication faults.
 import assert from 'node:assert/strict';
+import type { surfaceFromCredential } from '../src/server/auth/request-surface';
 import { join } from 'node:path';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { publicationRepository } from '../tests/helpers/git-fixtures';
@@ -15,12 +16,16 @@ import type { createSnapshotIndexes } from '../src/server/projects/snapshot-inde
 export async function snapshotMutationCase(
   category: string,
   candidate: {
+    surfaceFromCredential?: typeof surfaceFromCredential;
     classify?: typeof classify;
     publicationChecks?: typeof publicationChecks;
     createPublishedSnapshots?: typeof createPublishedSnapshots;
     createSnapshotIndexes?: typeof createSnapshotIndexes;
   },
 ) {
+  if (category === 'snapshot-surface') {
+    assert.equal(candidate.surfaceFromCredential!(new Request('http://localhost/'), { mode: 'local', session: false, originAllowed: true }), 'agent');
+  }
   if (category === 'snapshot-pointer') {
     const pointer = { branch: 'main', commit: 'a'.repeat(40) };
     assert.equal(await candidate.classify!('b'.repeat(40), pointer, async () => false), 'diverged');

@@ -62,3 +62,14 @@ current/previous/live-pin retention bound, registry folder changes rebuild, and 
 rebuild or refuse missing blobs. Returned byte buffers are copies.
 All three registered resolver mutants fail their focused cases, with passing baselines:
 ignoring the request pin, retaining every index and omitting the folder digest from the key.
+
+## Interim request surface
+
+The operation boundary is not present on this branch. `surfaceFromCredential` is the one interim
+classification seam; the existing middleware calls `attachRequestSurface` after credential resolution.
+A validated server session is browser; bearers remain agents, including when a cookie is also sent.
+Local requests need same-origin or same-site Fetch Metadata and an origin accepted by the existing
+local boundary. Missing Fetch Metadata fails closed. Replace this seam when integrating the operation boundary.
+
+`bun test tests/request-surface.test.ts`: 9 pass, 0 fail, 27 expect() calls.
+The missing-Fetch-Metadata-as-browser mutant exits 1; its baseline exits 0.
