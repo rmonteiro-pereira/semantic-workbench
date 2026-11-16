@@ -13,15 +13,15 @@ export async function publishFixture(fixture: Awaited<ReturnType<typeof testWork
   for (const repository of repositories) {
     const directory = join(fixture.root, 'projects', repository);
     const run = (args: string[]) => {
-      const result = Bun.spawnSync(['git', ...args], { cwd: directory });
+      const result = Bun.spawnSync(['git', ...args], { cwd: directory, env: process.env });
       if (result.exitCode !== 0) throw new Error(result.stderr.toString());
       return result.stdout.toString().trim();
     };
     run(['add', '-A']);
-    const changes = Bun.spawnSync(['git', 'diff', '--cached', '--quiet'], { cwd: directory });
+    const changes = Bun.spawnSync(['git', 'diff', '--cached', '--quiet'], { cwd: directory, env: process.env });
     if (changes.exitCode === 1) run(['commit', '-qm', 'Publish fixture definitions']);
     else if (changes.exitCode !== 0) throw new Error(changes.stderr.toString());
-    const configured = Bun.spawnSync(['git', 'config', '--local', '--get', 'workbench.defaultBranch'], { cwd: directory });
+    const configured = Bun.spawnSync(['git', 'config', '--local', '--get', 'workbench.defaultBranch'], { cwd: directory, env: process.env });
     const branch = configured.exitCode === 0 ? configured.stdout.toString().trim() : run(['branch', '--show-current']);
     const commit = run(['rev-parse', 'HEAD']);
     run(['update-ref', `refs/heads/${branch}`, commit]);

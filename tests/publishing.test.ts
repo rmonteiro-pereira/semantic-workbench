@@ -44,7 +44,7 @@ for (const move of ['outside-forward', 'outside-diverged'] as const) {
     const { fixture, pointers, worktrees, owner, next } = await publicationMoveFixture(createWorktrees);
     try {
       const ref = move === 'outside-forward' ? fixture.authoring : fixture.previous!;
-      const result = Bun.spawnSync(['git', 'update-ref', 'refs/heads/main', ref], { cwd: fixture.repository });
+      const result = Bun.spawnSync(['git', 'update-ref', 'refs/heads/main', ref], { cwd: fixture.repository, env: process.env });
       expect(result.exitCode).toBe(0);
       let guarded = false;
       await expect(
@@ -90,10 +90,10 @@ for (const stage of ['intent', 'ref', 'pointer'] as const) {
       try {
         await expect(worktrees.publish('definitions', owner.key, async () => {})).rejects.toThrow('Stopped');
         const copy = `${fixture.dir}/worktrees/${owner.key}/definitions`;
-        const committed = Bun.spawnSync(['git', 'commit', '--allow-empty', '-qm', 'Outside follow-up'], { cwd: copy });
+        const committed = Bun.spawnSync(['git', 'commit', '--allow-empty', '-qm', 'Outside follow-up'], { cwd: copy, env: process.env });
         expect(committed.exitCode).toBe(0);
-        const outside = movement === 'fast-forward' ? Bun.spawnSync(['git', 'rev-parse', 'HEAD'], { cwd: copy }).stdout.toString().trim() : fixture.previous!;
-        expect(Bun.spawnSync(['git', 'update-ref', 'refs/heads/main', outside], { cwd: fixture.repository }).exitCode).toBe(0);
+        const outside = movement === 'fast-forward' ? Bun.spawnSync(['git', 'rev-parse', 'HEAD'], { cwd: copy, env: process.env }).stdout.toString().trim() : fixture.previous!;
+        expect(Bun.spawnSync(['git', 'update-ref', 'refs/heads/main', outside], { cwd: fixture.repository, env: process.env }).exitCode).toBe(0);
         const settled = stage === 'pointer' ? next : fixture.published!;
         const ws = await openWorkspace({ root: fixture.dir, reconcilePublished: true });
         try {

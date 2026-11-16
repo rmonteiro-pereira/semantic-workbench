@@ -7,6 +7,8 @@ listed in [the README stack](../README.md#technology-stack).
 All commands below run from the repository root. Tests must use temporary workspaces, loopback
 identity fixtures and local remotes, never a person's real `data/` or a real Azure/Entra tenant.
 Set `TMPDIR` to an existing isolated directory when all test scratch files must share one root.
+Git fixture subprocesses pass their isolated environment explicitly; Bun's default synchronous spawn
+environment does not include variables changed after startup.
 
 ## Install and run
 

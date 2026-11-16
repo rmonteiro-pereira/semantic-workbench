@@ -646,3 +646,22 @@ dependency reload interrupted its first image; separate temporary cache director
 the final native capture. Neither change touches application layout or a browser assertion.
 Independent architecture review confirmed that adoption detaches the existing shared base while a person's
 write still creates their personal branch. No product source changed after `bab84471`.
+
+## Remote completion and fixture environment
+
+The local completion rerun was externally stopped during shared-host memory exhaustion and has no final
+result. Heavy commands now run only through the user-supplied `sw-midgard-run` wrapper; its scratch push and
+capped unprivileged execution are explicitly authorized. No GitHub remote or owner checkout is changed.
+
+Fixture scope: `isolateGit` already writes a test identity and changes `process.env`; production Git calls
+and the shared fixture Git helper already pass that environment explicitly. Some raw synchronous test
+commands omitted it. A two-case Bun probe confirmed that an environment variable added after startup is
+absent from a default `spawnSync` child and present with `env: process.env`. Remote Git reported an unknown
+author, masking merge setup and breaking six recovery cases plus merge fixtures. Only those test command
+edges now receive the existing isolated environment; production behavior and isolation policy are unchanged.
+`GIT_CONFIG_GLOBAL=/dev/null bun test tests/publishing.test.ts`: 13 pass, 0 fail, 80 assertions, 3.83 s.
+
+The published-fixture helper had the same omission and now passes the same isolated environment. Focused
+checks with `GIT_CONFIG_GLOBAL=/dev/null` passed: Git commit paths 5 tests / 14 assertions; imports 6 / 35;
+commit HTTP 5 / 43; agent sources 3 / 37. The publishing recovery file passed 13 / 80. No host Git
+configuration was changed, and no new isolation mechanism was introduced.
