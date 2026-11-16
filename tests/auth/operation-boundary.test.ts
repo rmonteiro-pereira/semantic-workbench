@@ -73,3 +73,35 @@ test('each non-HTTP read records its actual operation and connection exactly onc
   }
   expect(audit.recent(10)).toHaveLength(2);
 });
+
+import { hiddenResponses } from '../../src/server/request';
+import { MAX_CLASSIFIED_RESPONSE_BYTES } from '../../src/server/auth/operation-outcome';
+
+test('semantic outcomes classify bounded copies after hidden responses and preserve the original body', async () => {
+  using fixture = await testWorkspace();
+  const audit = createAuditLog({ dir: join(fixture.root, 'outcomes') });
+  const access = createAccessControl({ ...accessFixture(), mode: 'local' });
+  let response = Response.json({ ok: false });
+  const boundary = createOperationBoundary(fixture.ws, { mode: 'server', audit, access }, async () => response);
+  const caller = mintCaller({ principal: localPrincipal(), origin: 'mcp' });
+  let calls = 0;
+  const classifier = async (copy: Response) => {
+    calls++;
+    return (await copy.json()).ok === true ? ('ok' as const) : ('degraded' as const);
+  };
+  const invoke = () => boundary.operate({ caller, request: buildTwinRequest('projects.list', { params: {} }), outcome: classifier });
+  expect(await (await invoke()).response.json()).toEqual({ ok: false });
+  expect(audit.recent(10).at(-1)?.outcome).toBe('degraded');
+  response = new Response('event', { headers: { 'Content-Type': 'text/event-stream' } });
+  await invoke();
+  expect(audit.recent(10).at(-1)?.outcome).toBe('failed');
+  response = new Response('x'.repeat(MAX_CLASSIFIED_RESPONSE_BYTES + 1));
+  const oversized = await invoke();
+  expect((await oversized.response.text()).length).toBe(MAX_CLASSIFIED_RESPONSE_BYTES + 1);
+  expect(audit.recent(10).at(-1)?.outcome).toBe('failed');
+  response = Response.json({ secret: 'hidden' });
+  hiddenResponses.add(response);
+  expect((await invoke()).response.status).toBe(404);
+  expect(audit.recent(10).at(-1)).toMatchObject({ decision: 'deny', reason: 'not-readable' });
+  expect(calls).toBe(1);
+});

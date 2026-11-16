@@ -377,3 +377,7 @@ boundary and dynamic remote or publication effects in Git handlers. They never g
 
 `tests/auth/boundary-scan.test.ts` enforces scope construction at the named authorization modules;
 mutation and security-review harnesses are explicit exceptions for isolated test identities.
+
+`auth/operation-outcome.ts` buffers at most 1 MB from a cloned, non-stream response for semantic
+classification. Existence hiding runs first; classification failure records `failed` without
+changing an operation's response or consuming the caller's body.

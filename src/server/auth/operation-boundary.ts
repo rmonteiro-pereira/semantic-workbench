@@ -1,4 +1,5 @@
 // Decides and executes operations through the same handler and durable audit path.
+import { classifyOutcome, type OutcomeClassifier } from './operation-outcome';
 import type { Workspace } from '../projects/workspace';
 import { readableTrash, restoreAction } from '../projects/trash';
 import type { HandlerOptions } from './middleware';
@@ -23,7 +24,7 @@ export type OperationCall = {
   request: Request;
   operation?: string;
   tool?: string;
-  outcome?: (response: Response) => Promise<'ok' | 'refused' | 'failed' | 'degraded'> | 'ok' | 'refused' | 'failed' | 'degraded';
+  outcome?: OutcomeClassifier;
 };
 
 /** The projects whose audit records the caller may read: null for an Admin, who reads them all. */
@@ -166,7 +167,14 @@ function clientRow(row: RouteAction): RouteAction {
 export function createOperationBoundary(ws: Workspace, options: HandlerOptions & { access: AccessControl; audit: AuditLog }, run: (request: Request) => Promise<Response>) {
   const { access, audit: sharedAudit } = options;
   const mode = options.mode ?? 'local';
-  async function execute(request: AccessRequest, requestId: string, target: { row: RouteAction; resource: ResourceRef }, caller: Caller, audit: AuditLog): Promise<Response> {
+  async function execute(
+    request: AccessRequest,
+    requestId: string,
+    target: { row: RouteAction; resource: ResourceRef },
+    caller: Caller,
+    audit: AuditLog,
+    classifier?: OutcomeClassifier,
+  ): Promise<Response> {
     const { principal } = caller;
     const scope = access.forRequest(principal, { sourceIp: caller.sourceIp });
     const projects = target.row.action === 'readAudit' ? auditScope(scope, ws) : undefined;
@@ -238,9 +246,10 @@ export function createOperationBoundary(ws: Workspace, options: HandlerOptions &
       });
       return failure ?? Response.json({ error: 'Not found.' }, { status: 404 });
     }
+    const semanticOutcome = classifier ? await classifyOutcome(response, classifier) : outcome(response.status);
     if (shouldAudit(row, request.method, 'allow', caller.origin)) {
       try {
-        audit.append({ ...input, decision: 'allow', outcome: outcome(response.status) });
+        audit.append({ ...input, decision: 'allow', outcome: semanticOutcome });
       } catch (error) {
         // The operation already ran; a failure response could trigger a duplicate write on retry.
         reportAuditFailure({ requestId, action: row.action, error });
@@ -276,7 +285,7 @@ export function createOperationBoundary(ws: Workspace, options: HandlerOptions &
     if (refused) return { response: agentRefusal(audit, { requestId, principal: caller.principal, ...refused }), requestId };
     if (!found) return { response: new Response('Not found', { status: 404 }), requestId };
     const row = caller.principal.kind === 'client' ? clientRow(found.row) : found.row;
-    const response = await execute(request, requestId, { row, resource: row.resource(found.match, url) }, caller, audit);
+    const response = await execute(request, requestId, { row, resource: row.resource(found.match, url) }, caller, audit, call.outcome);
     return { response, requestId };
   }
   return { operate };
