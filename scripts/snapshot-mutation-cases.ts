@@ -1,6 +1,9 @@
 // Focused assertions for immutable publication faults.
 import assert from 'node:assert/strict';
+import { localPublicationFixture as localPublicationFixtureForHistory } from '../tests/helpers/local-publication-fixture';
+import { createPublishedSnapshots as makeSnapshots } from '../src/server/projects/published-snapshot';
 import { localPublicationCase, localCommitCase, adoptionCase } from './local-publication-mutation-cases';
+import type { createScm } from '../src/server/projects/scm';
 import type { metricRoutes } from '../src/server/routes/metrics';
 import { testWorkspace } from '../tests/helpers/temp-data-dir';
 import { publishFixture } from '../tests/helpers/published-workspace';
@@ -37,6 +40,7 @@ export async function snapshotMutationCase(
   category: string,
   candidate: Parameters<typeof localPublicationCase>[0] & {
     metricRoutes?: typeof metricRoutes;
+    createScm?: typeof createScm;
     createAgentRoutes?: typeof agentRoutes.createAgentRoutes;
     createPreviewRoutes?: typeof agentRoutes.createPreviewRoutes;
     publishedAgentDocuments?: typeof agentRoutes.publishedAgentDocuments;
@@ -51,6 +55,24 @@ export async function snapshotMutationCase(
     createSnapshotIndexes?: typeof createSnapshotIndexes;
   },
 ) {
+  if (category === 'snapshot-history') {
+    using fixture = localPublicationFixtureForHistory();
+    const layout = dataLayout(fixture.dir);
+    const published = makeHistorySnapshots(fixture);
+    const scm = candidate.createScm!({
+      layout,
+      git: fixture.git,
+      gitAvailable: true,
+      siblings: () => ['definitions'],
+      project: () => ({}),
+      drafts: () => [],
+      rescan: async () => {},
+      emit: () => {},
+      isReadableRevision: (_slug, revision, head) => published.isReadableRevision(revision, head, 'definitions'),
+    });
+    assert.equal((await scm.show('definitions', fixture.published!, 'shop.ontology.yaml', LOCAL_READER)).exists, true);
+    assert.deepEqual(await scm.show('definitions', fixture.foreign!, 'shop.ontology.yaml', LOCAL_READER), { source: '', exists: false });
+  }
   if (category === 'snapshot-preview') {
     using fixture = await testWorkspace();
     const { slug } = await fixture.ws.loadExample('mapped-commerce');
@@ -262,4 +284,14 @@ async function startupCase(category: string, candidate: { openWorkspace?: typeof
   } finally {
     fixture.dispose();
   }
+}
+
+function makeHistorySnapshots(fixture: ReturnType<typeof localPublicationFixtureForHistory>) {
+  return makeSnapshots({
+    git: fixture.git,
+    pointers: fixture.pointers,
+    directory: () => fixture.repository,
+    projects: () => [{ slug: 'definitions', name: 'Definitions', origin: '', createdAt: '' }],
+    gitAvailable: () => true,
+  });
 }

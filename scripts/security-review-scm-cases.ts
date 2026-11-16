@@ -57,6 +57,7 @@ async function scmFixture(candidate: Candidate, wrap?: (git: any) => any, deps: 
   const ws = fixture.ws;
   const scm = candidate.createScm({
     layout: ws.layout,
+    isReadableRevision: (_slug, revision, head) => ws.published.isReadableRevision(revision, head),
     git: wrap ? wrap(ws.git) : ws.git,
     gitAvailable: true,
     siblings: () => [slug],

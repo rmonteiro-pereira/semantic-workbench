@@ -225,7 +225,9 @@ The **Source control** panel provides:
   branch.
 - The same model tabs and **Find an entity** search as the model views, so a tab is one click away.
 - Exact-path, extension and folder ignore rules, plus a Source editor for `.gitignore`.
-- File history and comparison of two revisions or a revision with the working tree.
+- File history and comparison of two revisions or a revision with the working tree. Source
+  reads through Show and Versions accept published history and your own branch ancestry;
+  another person’s unpublished commit is missing even when its full id is known.
 
 Pull merges rather than rebases. Conflicts remain visible until repaired in Source and staged.
 Pull, Sync and branch switching refuse unsaved or uncommitted work rather than stashing it. Git

@@ -57,6 +57,8 @@ export type ScmDeps = {
   layout: DataLayout;
   git: Git;
   gitAvailable: boolean;
+  /** Checks provenance in this project repository against published and personal ancestry. */
+  isReadableRevision: (slug: string, revision: string, head: string | null) => Promise<boolean>;
   drafts: (slug: string) => string[];
   rescan: (slug: string) => Promise<unknown>;
   /** The projects that share this project's repository, itself included. */

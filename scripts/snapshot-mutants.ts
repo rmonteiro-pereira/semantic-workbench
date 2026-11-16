@@ -1,6 +1,12 @@
 // Deliberate faults in immutable publication selection and validation.
 /** Targeted publication faults exercised by the mutation gate. */
 export const snapshotMutants: [string, string, string, string][] = [
+  [
+    'snapshot-history',
+    'src/server/projects/scm.ts',
+    "if (!revision || !(await deps.isReadableRevision(slug, revision, head))) return { source: '', exists: false };",
+    "if (!revision) return { source: '', exists: false };",
+  ],
   ['snapshot-adoption', 'src/server/projects/local-publication.ts', 'guard: () => guard(previous, next)', 'guard: async () => {}'],
   ['snapshot-adoption', 'src/server/projects/local-publication.ts', 'isAncestor: (_repository, from, to) => git.isAncestor(directory, from, to)', 'isAncestor: async () => true'],
   [

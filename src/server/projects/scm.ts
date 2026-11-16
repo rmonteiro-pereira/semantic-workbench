@@ -306,7 +306,11 @@ export function createScm(deps: ScmDeps) {
     async show(slug: string, commit: string, path: string, { view }: Reader) {
       requireReadable(slug, path, view);
       if (!REV.test(commit)) throw new BadRequestError('commit must be a commit id.');
-      const bytes = await git.blob(dir(slug), commit, prefix(slug) + projectPath(path));
+      const directory = dir(slug);
+      const head = await git.head(directory);
+      const revision = commit === 'HEAD' ? head : commit;
+      if (!revision || !(await deps.isReadableRevision(slug, revision, head))) return { source: '', exists: false };
+      const bytes = await git.blob(directory, revision, prefix(slug) + projectPath(path));
       if (!bytes) return { source: '', exists: false };
       return { source: decode(bytes), exists: true, hash: sha256(bytes) };
     },
@@ -323,7 +327,9 @@ export function createScm(deps: ScmDeps) {
         message: string;
         source: string;
       }[] = [];
+      const head = await git.head(directory);
       for (const entry of log) {
+        if (!(await deps.isReadableRevision(slug, entry.commit, head))) continue;
         const bytes = await git.blob(directory, entry.commit, repoPath);
         if (!bytes) continue;
         try {

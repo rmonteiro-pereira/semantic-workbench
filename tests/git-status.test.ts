@@ -123,7 +123,7 @@ test("branches: create, list, switch; a switched branch's content is rescanned",
     await ok(call(project.t, 'POST', project.base + '/git/commit', { message: 'Feature' }));
     expect(await ok(call(project.t, 'GET', project.base + '/git/branches'))).toEqual({
       current: 'feature',
-      local: ['feature', 'main'],
+      local: ['feature', 'main', 'work/local'],
       remote: [],
     });
     await ok(call(project.t, 'POST', project.base + '/git/switch', { branch: 'main' }));

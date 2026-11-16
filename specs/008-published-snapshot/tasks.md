@@ -89,7 +89,7 @@ and local mode with uncommitted work; agent routes answer from the snapshot.
 
 **Goal**: FR-033.
 
-- [ ] T035 [US6] Make `show` and `versions` in `src/server/projects/scm.ts` accept a commit only when `isReadableRevision(revision, head)` passes, answering as a missing commit otherwise; `log` and `diff` unchanged. (proof: `tests/snapshot-history.test.ts`: two editors, A cannot read B's unpublished commit by id; published commits and own commits still read; mutant: skip the check; the existing history tests pass)
+- [x] T035 [US6] Make `show` and `versions` in `src/server/projects/scm.ts` accept a commit only when `isReadableRevision(revision, head)` passes, answering as a missing commit otherwise; `log` and `diff` unchanged. (proof: `tests/snapshot-history.test.ts`: two editors, A cannot read B's unpublished commit by id; published commits and own commits still read; mutant: skip the check; the existing history tests pass)
 - [ ] T036 [P] [US6] Matrix row for `git/show` and `git/versions` with a foreign personal commit id. (proof: `tests/auth/matrix.test.ts`)
 
 ## Phase 9: User Story 7 - Download exactly what is published (P3)

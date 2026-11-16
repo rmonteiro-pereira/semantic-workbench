@@ -1472,6 +1472,7 @@ if (category === 'subproject-rescan') {
   try {
     const scm = loadedModule.createScm({
       layout: ws.layout,
+      isReadableRevision: (_slug: string, revision: string, head: string | null) => ws.published.isReadableRevision(revision, head),
       git: ws.git,
       gitAvailable: true,
       siblings: () => [team.sales, team.finance],
@@ -2604,6 +2605,7 @@ if (category === 'remote-guarded-fetch') {
   try {
     const scm = loadedModule.createScm({
       layout: team.ws.layout,
+      isReadableRevision: (_slug: string, revision: string, head: string | null) => team.ws.published.isReadableRevision(revision, head),
       git: team.ws.git,
       gitAvailable: true,
       siblings: () => [team.sales, team.finance],

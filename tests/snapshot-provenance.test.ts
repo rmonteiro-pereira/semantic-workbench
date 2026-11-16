@@ -1,4 +1,6 @@
 // Checks provenance against real ref histories in both supported object formats.
+import { cpSync } from 'node:fs';
+import { join } from 'node:path';
 import { expect, test } from 'bun:test';
 import { createGit } from '../src/server/projects/git';
 import { createState } from '../src/server/projects/state';
@@ -41,3 +43,22 @@ for (const format of ['sha1', 'sha256'] as const) {
     }
   });
 }
+
+test('a commit published in another repository does not widen the selected repository history', async () => {
+  const fixture = publicationRepository();
+  try {
+    const layout = dataLayout(fixture.dir);
+    cpSync(fixture.repository, join(layout.projects, 'other'), { recursive: true });
+    const git = createGit({ projectsRoot: layout.projects });
+    const pointers = createPublishedPointers(createState(layout));
+    pointers.complete('definitions', 'main', fixture.published!);
+    pointers.complete('other', 'main', fixture.foreign!);
+    const projects = ['definitions', 'other'].map(slug => ({ slug, name: slug, origin: '', createdAt: '' }));
+    const published = createPublishedSnapshots({ git, pointers, directory: repository => join(layout.projects, repository), projects: () => projects, gitAvailable: () => true });
+    expect(await published.isReadableRevision(fixture.foreign!, fixture.published!)).toBe(true);
+    expect(await published.isReadableRevision(fixture.foreign!, fixture.published!, 'definitions')).toBe(false);
+    expect(await published.isReadableRevision(fixture.foreign!, fixture.published!, 'other')).toBe(true);
+  } finally {
+    fixture.dispose();
+  }
+});

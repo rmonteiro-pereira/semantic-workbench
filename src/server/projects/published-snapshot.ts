@@ -112,10 +112,10 @@ export function createPublishedSnapshots(deps: PublishedSnapshotDeps) {
   async function documents(requestPin: PublishedPin, project: string): Promise<PublishedDocument[]> {
     return (await files(requestPin, project)).filter(file => file.metadata.visible).map(file => file.document);
   }
-  async function resolveRevision(revision: string): Promise<string | null> {
+  async function resolveRevision(revision: string, onlyRepository?: string): Promise<string | null> {
     if (!deps.gitAvailable()) return null;
     for (const [repository, pointer] of deps.pointers.entries()) {
-      if (!pointer.commit) continue;
+      if (!pointer.commit || (onlyRepository && repository !== onlyRepository)) continue;
       const directory = deps.directory(repository);
       const commit = fullId.test(revision) ? await deps.git.revParse(directory, `${revision}^{commit}`) : await deps.git.peelTag(directory, revision);
       if (!commit || (fullId.test(revision) && commit !== revision)) continue;
@@ -123,10 +123,11 @@ export function createPublishedSnapshots(deps: PublishedSnapshotDeps) {
     }
     return null;
   }
-  async function isReadableRevision(revision: string, head: string | null): Promise<boolean> {
-    if (await resolveRevision(revision)) return true;
+  async function isReadableRevision(revision: string, head: string | null, onlyRepository?: string): Promise<boolean> {
+    if (await resolveRevision(revision, onlyRepository)) return true;
     if (!head || !fullId.test(revision)) return false;
     for (const repository of new Set(deps.projects().map(entry => locationOf(entry).repo))) {
+      if (onlyRepository && repository !== onlyRepository) continue;
       const directory = deps.directory(repository);
       if ((await deps.git.revParse(directory, `${revision}^{commit}`)) !== revision) continue;
       if ((await deps.git.revParse(directory, `${head}^{commit}`)) !== head) continue;

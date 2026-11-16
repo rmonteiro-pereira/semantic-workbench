@@ -363,3 +363,7 @@ Both adoption mutants are detected independently: skipping the content guard and
 ## Interrupted publication and outside movement
 
 `TMPDIR=/tmp/sw-008 bun test tests/publishing.test.ts tests/published-initialization.test.ts`: 19 pass, 0 fail, 107 assertions. The nine recovery scenarios are the original three stop points plus both outside movement classes at each stop. When the external ref differs from both intent and settled commit, existing reconciliation retains the intent as evidence and reports an outside move, as research D10 prescribes; it does not infer that the intent completed. Server checkout repair now targets the settled pointer rather than the unadopted ref. Local copied-root upgrade safety remains covered. `bun --bun run check`: exit 0.
+
+## History provenance
+
+`TMPDIR=/tmp/sw-008 bun test tests/snapshot-history.test.ts tests/snapshot-provenance.test.ts tests/git-status.test.ts`: 9 pass, 0 fail, 129 assertions. Through HTTP, Bob reads his own commit, Alice cannot read it by full id, and Alice’s own HEAD/history and published commits remain readable. Versions has no revision parameter in the existing API: its HEAD log entries are checked individually rather than adding an unrequested selector. The provenance predicate is bound to the project repository, so publication in another repository cannot widen it. The skipped-show-check mutant is detected (baseline 0, mutant 1). Log and Diff are unchanged. `bun --bun run check`: exit 0.
