@@ -55,3 +55,21 @@ test('twins refuse forged callers, transport routes and a different named row be
   expect(runs).toBe(0);
   expect(audit.entries(new Date().toISOString().slice(0, 7))).toHaveLength(cases.length);
 });
+
+import { createHandler } from '../../src/server/handler';
+import { buildTwinRequest } from '../../src/server/auth/twin-request';
+
+test('each non-HTTP read records its actual operation and connection exactly once', async () => {
+  using fixture = await testWorkspace();
+  const audit = createAuditLog({ dir: join(fixture.root, 'read-origins') });
+  const handler = createHandler(fixture.ws, { audit });
+  const request = () => buildTwinRequest('projects.list', { params: {} });
+  expect((await handler(new Request('http://localhost/api/projects'))).status).toBe(200);
+  expect(audit.recent(10)).toEqual([]);
+  for (const origin of ['mcp', 'acp'] as const) {
+    const caller = mintCaller({ principal: localPrincipal(), origin, connection: origin + '_connection' });
+    expect((await handler.boundary.operate({ caller, request: request() })).response.status).toBe(200);
+    expect(audit.recent(10).at(-1)).toMatchObject({ origin, tool: 'projects.list', connection: origin + '_connection', decision: 'allow', outcome: 'ok' });
+  }
+  expect(audit.recent(10)).toHaveLength(2);
+});

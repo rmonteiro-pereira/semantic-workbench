@@ -31,7 +31,8 @@ came from a decision, every write of FR-050, approvals and guarded changes, remo
 remote and clone changes, Admin changes and rollbacks (custom role created, changed or deleted
 with `confirmDeleteInUse`; grant added, changed or removed), agent calls, policy reloads, bootstrap
 Admin use. Reads that are allowed are not audited, except agent calls and exports of agent
-context.
+context. Non-HTTP operations record one decision even for allowed reads, with their origin,
+inventory tool id and optional connection. HTTP selection and serialized records are unchanged.
 
 Authentication uses `signIn`, `signOut`, and `sessionEnded`. A failed directory lookup uses
 `directoryLookup`, decision `allow`, outcome `degraded`, and reason `directory-unavailable`.

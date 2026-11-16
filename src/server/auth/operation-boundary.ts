@@ -4,7 +4,7 @@ import { readableTrash, restoreAction } from '../projects/trash';
 import type { HandlerOptions } from './middleware';
 import type { AccessControl, AccessScope } from './authorize';
 import { auditableProjects, reportAuditFailure, type AuditLog } from './audit';
-import { assertMinted, type Caller } from './caller';
+import { assertMinted, type Caller, type CallerOrigin } from './caller';
 import { scopeAllows } from './connection-scope';
 import { operationForRow } from './operation-inventory';
 import { routeFor, type RouteAction } from './route-actions';
@@ -41,8 +41,8 @@ function outcome(status: number): 'ok' | 'refused' | 'failed' {
 }
 
 /** Selects denials, explicitly audited routes, and operations other than ordinary reads. */
-export function shouldAudit(row: RouteAction, method: string, decision: 'allow' | 'deny'): boolean {
-  if (decision === 'deny') return true;
+export function shouldAudit(row: RouteAction, method: string, decision: 'allow' | 'deny', origin: CallerOrigin = 'http'): boolean {
+  if (decision === 'deny' || origin !== 'http') return true;
   if (row.unaudited) return false;
   return row.audited === true || !(READ_ACTIONS.includes(row.action) && method === 'GET');
 }
@@ -164,9 +164,9 @@ function clientRow(row: RouteAction): RouteAction {
 
 /** Creates the shared operation decision and execution boundary. */
 export function createOperationBoundary(ws: Workspace, options: HandlerOptions & { access: AccessControl; audit: AuditLog }, run: (request: Request) => Promise<Response>) {
-  const { access, audit } = options;
+  const { access, audit: sharedAudit } = options;
   const mode = options.mode ?? 'local';
-  async function execute(request: AccessRequest, requestId: string, target: { row: RouteAction; resource: ResourceRef }, caller: Caller): Promise<Response> {
+  async function execute(request: AccessRequest, requestId: string, target: { row: RouteAction; resource: ResourceRef }, caller: Caller, audit: AuditLog): Promise<Response> {
     const { principal } = caller;
     const scope = access.forRequest(principal, { sourceIp: caller.sourceIp });
     const projects = target.row.action === 'readAudit' ? auditScope(scope, ws) : undefined;
@@ -238,7 +238,7 @@ export function createOperationBoundary(ws: Workspace, options: HandlerOptions &
       });
       return failure ?? Response.json({ error: 'Not found.' }, { status: 404 });
     }
-    if (shouldAudit(row, request.method, 'allow')) {
+    if (shouldAudit(row, request.method, 'allow', caller.origin)) {
       try {
         audit.append({ ...input, decision: 'allow', outcome: outcome(response.status) });
       } catch (error) {
@@ -259,6 +259,13 @@ export function createOperationBoundary(ws: Workspace, options: HandlerOptions &
     const url = new URL(request.url);
     const found = routeFor(request.method, url.pathname, mode);
     const entry = found ? operationForRow(found.row.path) : undefined;
+    const audit: AuditLog =
+      caller.origin === 'http'
+        ? sharedAudit
+        : {
+            ...sharedAudit,
+            append: input => sharedAudit.append({ ...input, origin: caller.origin, tool: entry?.id, connection: caller.connection }),
+          };
     const wrongRow = call.operation !== undefined && call.operation !== entry?.id;
     const wrongTool = call.tool !== undefined && call.tool !== entry?.id;
     if (wrongRow || wrongTool || (caller.origin !== 'http' && (!found || found.row.public || entry?.dispatch !== 'twin'))) {
@@ -269,7 +276,7 @@ export function createOperationBoundary(ws: Workspace, options: HandlerOptions &
     if (refused) return { response: agentRefusal(audit, { requestId, principal: caller.principal, ...refused }), requestId };
     if (!found) return { response: new Response('Not found', { status: 404 }), requestId };
     const row = caller.principal.kind === 'client' ? clientRow(found.row) : found.row;
-    const response = await execute(request, requestId, { row, resource: row.resource(found.match, url) }, caller);
+    const response = await execute(request, requestId, { row, resource: row.resource(found.match, url) }, caller, audit);
     return { response, requestId };
   }
   return { operate };
