@@ -58,6 +58,60 @@
         ]
       },
       "canonical": "sw1:#model:Orders"
+    },
+    {
+      "text": "sw1:sales/a.yaml",
+      "parsed": {
+        "grammar": 1,
+        "form": "absolute",
+        "project": "sales",
+        "document": [
+          "a.yaml"
+        ],
+        "chain": []
+      },
+      "canonical": "sw1:sales/a.yaml"
+    },
+    {
+      "text": "sw1:sales@release-1",
+      "parsed": {
+        "grammar": 1,
+        "form": "absolute",
+        "project": "sales",
+        "chain": [],
+        "snapshot": "release-1"
+      },
+      "canonical": "sw1:sales@release-1"
+    },
+    {
+      "text": "sw1:sales/a.yaml#ontology:O/concept:C/relationship:r/role:#0",
+      "parsed": {
+        "grammar": 1,
+        "form": "absolute",
+        "project": "sales",
+        "document": [
+          "a.yaml"
+        ],
+        "chain": [
+          {
+            "kind": "ontology",
+            "name": "O"
+          },
+          {
+            "kind": "concept",
+            "name": "C"
+          },
+          {
+            "kind": "relationship",
+            "name": "r"
+          },
+          {
+            "kind": "role",
+            "position": 0
+          }
+        ]
+      },
+      "canonical": "sw1:sales/a.yaml#ontology:O/concept:C/relationship:r/role:#0"
     }
   ],
   "invalid": [
