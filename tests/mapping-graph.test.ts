@@ -2,7 +2,8 @@
 import { test, expect } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { buildContext, agentCatalog, modelContext, type StoredDocument, type RuntimeContext } from '../src/server/agent/runtime';
-import { buildMappingGraph, type MappingGraph } from '../src/app/mappings/mapping-graph';
+import { buildMappingGraph, defaultMappingCenter, type MappingGraph } from '../src/app/mappings/mapping-graph';
+import { formatAddress } from '../src/shared/core/item-address';
 import { aroundHops } from '../src/app/odcs/lineage';
 // The concept-mapping graph: built from the resolver's context, so every drawn line is a binding
 // the Mappings tab and the agent context also see.
@@ -219,4 +220,21 @@ test('a declared concept with a built-in name retains its source locator', () =>
   const declared = [...graph.cards.values()].find(card => card.kind === 'concept' && card.label === 'String')!;
   expect(declared.id).toStartWith('sw1:#ontology:');
   expect(declared.id).toEndWith('/concept:String');
+});
+
+test('default mapping center breaks connection ties by visible names rather than escaped keys', () => {
+  const scope = contexts[0][1].ontology.address;
+  const cards = ['A', 'é'].map(name => ({
+    id: formatAddress({ ...scope, chain: [...scope.chain, { kind: 'concept' as const, name }] }),
+    kind: 'concept' as const,
+    label: name,
+    file: 'ontology.yaml',
+    columns: [],
+  }));
+  const graph: MappingGraph = {
+    ...commerce(),
+    cards: new Map(cards.map(card => [card.id, card])),
+    edges: [{ from: cards[0].id, to: cards[1].id, kind: 'object', bindings: [], source: { file: 'mapping.yaml', path: [] } }],
+  };
+  expect(defaultMappingCenter(graph)).toBe(cards[0].id);
 });

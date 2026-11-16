@@ -232,3 +232,11 @@ fixture is accepted by the real inspector without error diagnostics.
 `bun --bun run check` passed. The full mutation run began before these two scope-edge changes;
 its address/migration modules and mutation candidates were unchanged. The final completion
 gate must still be rerun after resolving the phase stop.
+
+## Mapping center ordering
+
+The new Unicode tie case failed against the key-based comparator: escaped key order selected
+a different center than the former visible-name order. The comparator now uses card labels
+for equal connection counts. Focused verification with the root acceptance restoration:
+`bun test tests/grouping-api.test.ts tests/mapping-graph.test.ts`: 21 pass, 0 fail,
+6,699 assertions in 4.83 s.

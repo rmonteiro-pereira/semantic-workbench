@@ -11,6 +11,8 @@ not configure a production deployment.
 - Reviewed operation inventory and generated reference, trusted in-process operation dispatch,
   connection effect restrictions, audit attribution fields and origin/tool filters.
 - Independent dry-run samples retain write and denial evidence during non-HTTP read floods.
+- Keep mapping-center ties ordered by visible names when escaped locator keys differ.
+
 - Add pure ordered locator migration, retention compaction and save-declaration validation APIs.
 
 - Use scoped item locators for structured mapping cards and rows, preserving names containing separators.

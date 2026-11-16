@@ -442,5 +442,7 @@ export function defaultMappingCenter(mappingGraph: MappingGraph) {
       const ownerCard = owner(name);
       if ((mappingGraph.cards.get(ownerCard)?.kind as string) === 'concept') count.set(ownerCard, (count.get(ownerCard) ?? 0) + 1);
     }
-  return [...count].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0]?.[0] ?? [...mappingGraph.cards.keys()][0] ?? '';
+  // Escaping a key must not change the previous name-based tie order.
+  const ranked = [...count].sort((left, right) => right[1] - left[1] || mappingGraph.cards.get(left[0])!.label.localeCompare(mappingGraph.cards.get(right[0])!.label));
+  return ranked[0]?.[0] ?? [...mappingGraph.cards.keys()][0] ?? '';
 }
