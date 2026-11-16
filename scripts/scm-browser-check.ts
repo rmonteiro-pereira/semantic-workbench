@@ -143,6 +143,10 @@ try {
     await expect(panel().getByText('The two versions are identical.')).toHaveCount(0);
     await expect(panel().locator('.cm-merge-a')).toContainText('version:');
     await page.setViewportSize({ width: 390, height: 844 });
+    const headerCommit = page.locator('.header-phone .commit-button');
+    await expect(headerCommit.locator('.commit-count')).toHaveText('1');
+    const iconBox = await headerCommit.locator('svg').boundingBox();
+    expect(iconBox!.width).toBe(16);
     const box = await panel().locator('.scm-main').boundingBox();
     expect(box).not.toBeNull();
     expect(box!.x).toBeGreaterThanOrEqual(0);

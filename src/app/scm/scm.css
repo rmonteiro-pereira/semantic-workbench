@@ -1126,7 +1126,7 @@
   padding: 0;
   border-radius: 0;
 }
-.scm-remove-remote {
+.workbench-dialog .dialog-footer button.scm-remove-remote:not(:disabled) {
   background: transparent;
   color: var(--color-danger-text);
   border-color: var(--color-danger-border);
@@ -1138,4 +1138,22 @@
 }
 .header-actions .commit-count {
   display: inline-flex;
+}
+.header-phone .header-actions .commit-button {
+  width: auto;
+  padding-inline: 7px;
+}
+.header-phone .commit-button > svg,
+.header-phone .commit-count {
+  flex: none;
+}
+.clone-connecting {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+.clone-connecting .spinner {
+  flex: none;
 }

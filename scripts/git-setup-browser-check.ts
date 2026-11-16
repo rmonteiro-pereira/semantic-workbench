@@ -16,6 +16,8 @@ import { addProjectItem } from './helpers/sidebar-menus';
 import { expectNoFileOpen } from './helpers/header';
 
 const api = await startIsolatedApi();
+// Repository identity is the subject of this check, so ambient author overrides must not win.
+for (const variable of ['GIT_AUTHOR_NAME', 'GIT_AUTHOR_EMAIL', 'GIT_COMMITTER_NAME', 'GIT_COMMITTER_EMAIL']) delete process.env[variable];
 const extra = mkdtempSync(join(tmpdir(), 'workbench-git-setup-'));
 // Git sees no identity anywhere until the app sets one.
 const isolatedGlobal = process.env.GIT_CONFIG_GLOBAL;
@@ -92,7 +94,7 @@ async function expectCloneWaiting(dialog: Locator) {
     ]) {
       await page.setViewportSize({ width, height });
       await expect(cloneButton).toBeDisabled();
-      await expect(dialog).toContainText('Connecting to workspace updates…');
+      await expect(dialog).toContainText('Waiting for the workspace connection before cloning.');
       await expectDialogGeometry(page, `Clone connecting ${theme} at ${width}`);
       expect(await smallTextProblems(page, 'dialog[open]')).toEqual([]);
       expect(await lowContrastProblems(page, 'dialog[open]')).toEqual([]);
@@ -246,7 +248,7 @@ try {
     await expect(dialog).toBeVisible();
     await dialog.getByLabel('Repository URL or path').fill(teamBare);
     await dialog.getByRole('button', { name: 'Clone', exact: true }).click();
-    await expect(dialog.getByRole('status')).toContainText('Cloned.', { timeout: 20_000 });
+    await expect(dialog.getByRole('status')).toContainText(/^Cloned .+\.$/, { timeout: 20_000 });
     await expect(dialog.getByRole('list', { name: 'Invalid files' })).toHaveText('broken.yaml');
     await page.screenshot({ path: '/tmp/workbench-git-clone.png' });
     await dialog.getByRole('button', { name: 'Open project' }).click();
@@ -284,13 +286,13 @@ try {
     });
     await expect(dialog).toContainText('does not exist on the remote branch');
     await dialog.getByRole('button', { name: 'Create semantic/none with the first push' }).click();
-    await expect(dialog.getByRole('status')).toContainText('Cloned.', { timeout: 20_000 });
+    await expect(dialog.getByRole('status')).toContainText(/^Cloned .+\.$/, { timeout: 20_000 });
     await dialog.getByRole('button', { name: 'Close' }).click();
     await (await addProjectItem(page, 'Clone a repository')).click();
     await dialog.getByLabel('Repository URL or path').fill(folderBare);
     await dialog.getByLabel('Folder in repository').fill('semantic/ubl');
     await dialog.getByRole('button', { name: 'Clone', exact: true }).click();
-    await expect(dialog.getByRole('status')).toContainText('Cloned.', { timeout: 20_000 });
+    await expect(dialog.getByRole('status')).toContainText(/^Cloned .+\.$/, { timeout: 20_000 });
     await dialog.getByRole('button', { name: 'Open project' }).click();
     const folderProject = api.ws.state.registry().projects.find(entry => entry.folder?.endsWith('semantic/ubl'))!;
     const repository = join(api.root, 'projects', folderProject.repo!);
@@ -321,7 +323,7 @@ try {
       await expect(dialog.getByLabel('Project name')).toHaveValue('Typo project');
       await dialog.getByLabel('Repository URL or path').fill(fixed.bare);
       await dialog.getByRole('button', { name: 'Clone', exact: true }).click();
-      await expect(dialog.getByRole('status')).toContainText('Cloned.', { timeout: 20_000 });
+      await expect(dialog.getByRole('status')).toContainText(/^Cloned .+\.$/, { timeout: 20_000 });
       await dialog.getByRole('button', { name: 'Close' }).click();
     } finally {
       fixed.dispose();
@@ -338,7 +340,7 @@ try {
         const dialog = page.getByRole('dialog', { name: 'Clone repository' });
         await dialog.getByLabel('Repository URL or path').fill(address);
         await dialog.getByRole('button', { name: 'Clone', exact: true }).click();
-        await expect(dialog.getByRole('status')).toContainText('Cloned.', { timeout: 20_000 });
+        await expect(dialog.getByRole('status')).toContainText(/^Cloned .+\.$/, { timeout: 20_000 });
         return dialog;
       };
       const notes = await cloneFrom(documentation.bare);

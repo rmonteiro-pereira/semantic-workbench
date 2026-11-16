@@ -58,7 +58,12 @@ export function ValidationPanel({
             <strong>
               {issue.severity === 'error' ? 'Error' : 'Warning'} · {issue.code}
             </strong>
-            <span>{issue.message}</span>
+            <span>
+              {issue.message
+                .split('\n')
+                .filter(line => !/^\s*\^+\s*$/.test(line))
+                .join('\n')}
+            </span>
             <span className="validation-feature-label">Affected feature</span>
             <span className="validation-feature">{feature(issue.path)}</span>
             {source && issue.line && (

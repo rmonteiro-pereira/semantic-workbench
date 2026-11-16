@@ -57,3 +57,13 @@ The persona capture follows the `server-pages.ts` contract/open-Source-control s
 Viewed the review's `states/local-source-editor--invalid-unsaved-draft-1440.png` and `-390.png`, paired with `/tmp/sw-C/after/editing-matched/local-source-editor--invalid-unsaved-draft-1440.png` and `-390.png`. The full original light editing sequence reproduces three findings at 1440 and one at 390. The header retains Not saved, the editor retains its located finding, the pill wraps at 390, and the footer no longer repeats the failure banner. Earlier reduced-matrix captures used a different accumulated draft and are superseded by these matched images.
 
 `bun test tests/footer-counts.test.ts tests/editor-presentation.test.tsx`: **4 pass, 0 fail, 10 expect() calls**. The footer regression retains Validation details and checks that the overview still has its repair banner. The raw-caret regression belongs to the wording change below.
+
+## Wording and action weight
+
+Viewed the review's `states/local-clone-repository--connecting-wait-1440.png` against `/tmp/sw-C/after/states/local-clone-repository--connecting-wait-1440.png`: a complete circular spinner accompanies the plain workspace-connection explanation. Viewed `states/local-remote-folder--refused-1440.png` before and `/tmp/sw-C/after/states/local-remote-folder--refused-1440.png` after: Remove remote is outlined danger and Cancel is primary. Viewed `local-light/local-source-control-1440.png` and `/tmp/sw-C/after/local-light/local-source-control-1440.png`: the no-remote explanation uses normal text and Sync has one name.
+
+The final header fix lets the phone Commit button grow around its existing count and prevents the icon and badge from shrinking. Its new SCM browser assertion measures the icon at 16 px and checks the visible count. The disabled-count policy is unchanged.
+
+`test:git-setup`: **13 Git setup checks passed** (`/tmp/sw-C/final-git-setup.log`). Its repository-identity fixture now clears the foundation's ambient author overrides so repository-local Ana Lima remains the subject of its existing assertion. Completed-clone checks expect the new plain project sentence; waiting checks expect the workspace-connection explanation. `test:dialogs`: **9 dialog checks passed at six viewports** (`/tmp/sw-C/check-dialogs.log`). `test:scm`: **20 source-control checks passed** (`/tmp/sw-C/final-scm.log`).
+
+The ValidationPanel regression retains the parser explanation and location while removing a caret-only line. `bun test tests/footer-counts.test.ts tests/editor-presentation.test.tsx`: **4 pass, 0 fail**.

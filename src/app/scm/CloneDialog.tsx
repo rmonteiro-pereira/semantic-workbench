@@ -6,7 +6,7 @@ import { scm, type CloneEvent } from '../projects/api';
 import { useEvents } from '../projects/useEvents';
 import { cloneProgressReducer, initialCloneProgress } from './clone-progress';
 import { looksLikeAuthFailure } from './CredentialGuide';
-import { definitionsSummary } from './clone-summary';
+import { definitionsSummary, cloneStatus } from './clone-summary';
 import { FolderField, useFolderInput } from './FolderField';
 
 type Props = {
@@ -270,7 +270,7 @@ export function CloneDialog({ onClose, onOpenProject, onCredentials, onChoosePro
   );
 
   function footerNote() {
-    if (!updatesConnected) return 'Connecting to workspace updates…';
+    if (!updatesConnected) return undefined;
     if (op) return undefined;
     if (!url.trim()) return 'Enter a repository URL or path to clone.';
     return undefined;
@@ -280,11 +280,17 @@ export function CloneDialog({ onClose, onOpenProject, onCredentials, onChoosePro
   if (domainChoice.dialog) return domainChoice.dialog;
   return (
     <Modal title="Clone repository" onCancel={running ? () => {} : onClose} footer={footer} footerNote={footerNote()}>
+      {!updatesConnected && (
+        <p className="clone-connecting" role="status">
+          <span className="spinner" aria-hidden />
+          Waiting for the workspace connection before cloning.
+        </p>
+      )}
       {op ? (
         <div className="clone-progress" aria-live="polite">
           <p role="status">
             {running && <span className="spinner" aria-hidden />}
-            {op.name}: {PHASE_TEXT[progress?.phase ?? 'cloning']}
+            {cloneStatus(op.name, progress?.phase ?? 'cloning', PHASE_TEXT[progress?.phase ?? 'cloning'])}
           </p>
           {progress && finished(progress) && <CloneResult event={progress} />}
         </div>

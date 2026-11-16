@@ -50,15 +50,15 @@ function RemoteFooter(props: FooterProps) {
   return (
     <>
       {existing && (
-        <button type="button" className="danger" disabled={busy} onClick={props.onRemove}>
+        <button type="button" className="scm-remove-remote" disabled={busy} onClick={props.onRemove}>
           Remove remote
         </button>
       )}
       <span className="dialog-footer-spacer" />
-      <button type="button" onClick={props.onCancel}>
+      <button type="button" className={existing ? 'primary' : undefined} onClick={props.onCancel}>
         Cancel
       </button>
-      <button type="button" className="primary" disabled={busy || !canSave} onClick={props.onSave}>
+      <button type="button" className={existing ? undefined : 'primary'} disabled={busy || !canSave} onClick={props.onSave}>
         Save remote
       </button>
     </>
