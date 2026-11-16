@@ -48,8 +48,12 @@ export function focusFullGraph(instance: ReactFlowInstance<any, any> | null, can
   const bounds = instance.getNodesBounds(nodes);
   const pane = canvas.getBoundingClientRect();
   const fitted = getViewportForBounds(bounds, pane.width, pane.height, 0.001, 1, 0.1);
-  const framed = fitted.zoom >= 0.75 ? nodes : nodes.filter(node => node.id === selected);
-  void instance.fitView({ nodes: framed, minZoom: 0.75, maxZoom: 1, padding: 0.1, duration: 0 });
+  const minimumNameSize = Math.min(16, ...nodes.map(node => Number.parseFloat(String(node.data.nameCap ?? 16))));
+  const readableZoom = NAME_MIN_PX / minimumNameSize + 0.001;
+  const neighborsFit = fitted.zoom >= readableZoom;
+  const framed = neighborsFit ? nodes : nodes.filter(node => node.id === selected);
+  const maximumZoom = neighborsFit ? 1 : readableZoom;
+  void instance.fitView({ nodes: framed, minZoom: readableZoom, maxZoom: maximumZoom, padding: 0.1, duration: 0 });
 }
 
 /** Opens an existing area at readable scale without moving its nodes or edge routes. */
