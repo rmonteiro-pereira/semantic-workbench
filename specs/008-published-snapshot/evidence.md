@@ -19,3 +19,9 @@ Object reads disable Git lazy fetching so missing objects cannot initiate a netw
 `bun test tests/git-fixtures.test.ts`: 4 pass, 0 fail, 14 expect() calls.
 The fixtures assert published history, a separate authoring tip, a foreign personal tip,
 an unborn default ref, an outside fast-forward and an outside reset using real Git queries.
+
+## Snapshot error contract
+
+`bun test tests/api-validation.test.ts`: 16 pass, 0 fail, 51 expect() calls.
+The HTTP entry point preserves 409 and the complete contract body for all three absence reasons,
+and 422 for unreadable candidates. Snapshot refusals bypass the legacy local 400 conversion.

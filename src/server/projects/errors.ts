@@ -122,3 +122,19 @@ export class MissingFolderError extends Error {
     this.name = 'MissingFolderError';
   }
 }
+
+/** Explains why immutable published definitions cannot be served. */
+export class SnapshotUnavailableError extends Error {
+  constructor(public reason: 'no-git' | 'no-commit' | 'unavailable') {
+    super('no published snapshot');
+    this.name = 'SnapshotUnavailableError';
+  }
+}
+
+/** Refuses publication when the candidate tree cannot be read completely within its limits. */
+export class SnapshotUnreadableError extends Error {
+  constructor(message = 'The candidate snapshot is unreadable or exceeds its limits.') {
+    super(message);
+    this.name = 'SnapshotUnreadableError';
+  }
+}

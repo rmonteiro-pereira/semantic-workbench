@@ -1,6 +1,6 @@
 // Routes API requests and preserves the legacy document interface. Host and origin checks restrict
 // access to local clients.
-import { BadRequestError, HiddenResourceError } from './projects/errors';
+import { BadRequestError, HiddenResourceError, SnapshotUnavailableError, SnapshotUnreadableError } from './projects/errors';
 import { requestReader } from './auth/request-scope';
 import { authorizeWrite, WriteAccessError } from './auth/write-access';
 import { createAccessMiddleware, defaultAccess, defaultAdministration, defaultAudit, type HandlerOptions } from './auth/middleware';
@@ -306,6 +306,9 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
       }
       // Local legacy document and agent clients expect every error to use HTTP 400. A server
       // maps errors alike for every route, so an unexpected failure cannot leak its text.
+      if (error instanceof SnapshotUnavailableError || error instanceof SnapshotUnreadableError) {
+        return errorResponse(error, options.publicOrigin, context);
+      }
       const legacyClient = url.pathname.startsWith('/api/documents') || url.pathname.startsWith('/api/agent/');
       if (legacyClient && !serverMode) {
         return Response.json(

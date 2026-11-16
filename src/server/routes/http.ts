@@ -27,6 +27,8 @@ import {
   NotFastForwardError,
   NothingToPublishError,
   TooLargeError,
+  SnapshotUnavailableError,
+  SnapshotUnreadableError,
 } from '../projects/errors';
 import { log } from '../observability/log';
 /** Handles a request or returns null so the next route can try it. */
@@ -56,6 +58,10 @@ function gitFailureResponse(gitError: GitError, context: ErrorContext) {
  * person reading it owns the machine.
  */
 export function errorResponse(error: unknown, publicUrl?: string, context: ErrorContext = {}) {
+  if (error instanceof SnapshotUnavailableError) {
+    return Response.json({ error: error.message, code: 'no-published-snapshot', reason: error.reason }, { status: 409 });
+  }
+  if (error instanceof SnapshotUnreadableError) return Response.json({ error: error.message }, { status: 422 });
   if (error instanceof AdminRefusal) return Response.json(error.body, { status: error.status });
   // Marks the hidden-resource 404 so the access middleware can audit it as a denial; the body
   // stays identical to an ordinary missing error, so the client cannot tell them apart.

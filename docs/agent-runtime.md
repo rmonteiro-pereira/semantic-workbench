@@ -298,3 +298,10 @@ workbench runtime. Mutations check meaningful omissions in those guarantees.
 Ossie schema/fixture provenance is recorded in [schema snapshots](../schemas/README.md) and
 [official examples](../public/examples/ossie/README.md). The pinned upstream revision is
 `64a1ae44035f5360dcd53401a29bcd900fdce349`; the source files retain their ASF license headers.
+
+## Snapshot refusal responses
+
+An unavailable published snapshot returns HTTP 409 with `error: "no published snapshot"`,
+`code: "no-published-snapshot"` and `reason` equal to `no-git`, `no-commit` or `unavailable`.
+A publication candidate that cannot be read completely returns HTTP 422. These responses retain
+their status in local mode as well as server mode.

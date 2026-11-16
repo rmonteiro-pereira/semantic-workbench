@@ -1,5 +1,6 @@
 // Tests validation failures through the HTTP API.
 import { test, expect } from 'bun:test';
+import { SnapshotUnavailableError, SnapshotUnreadableError } from '../src/server/projects/errors';
 import { testWorkspace } from './helpers/temp-data-dir';
 const source = 'name: Test\nontology: [{concept: A}]';
 const request = (body: any) =>
@@ -85,6 +86,35 @@ test('API rejects malformed JSON, oversized requests, and untrusted origins', as
     ).toBe(403);
     expect((await handler(new Request('http://localhost/nope'))).status).toBe(404);
     expect(workspace.ws.documents()).toHaveLength(0);
+  } finally {
+    workspace.dispose();
+  }
+});
+
+for (const reason of ['no-git', 'no-commit', 'unavailable'] as const) {
+  test(`API reports snapshot absence as ${reason}`, async () => {
+    const workspace = await testWorkspace();
+    try {
+      workspace.ws.documentsFor = () => {
+        throw new SnapshotUnavailableError(reason);
+      };
+      const response = await workspace.handler(new Request('http://localhost/api/documents'));
+      expect(response.status).toBe(409);
+      expect(await response.json()).toEqual({ error: 'no published snapshot', code: 'no-published-snapshot', reason });
+    } finally {
+      workspace.dispose();
+    }
+  });
+}
+test('API reports an unreadable publication candidate with its actionable refusal', async () => {
+  const workspace = await testWorkspace();
+  try {
+    workspace.ws.documentsFor = () => {
+      throw new SnapshotUnreadableError();
+    };
+    const response = await workspace.handler(new Request('http://localhost/api/documents'));
+    expect(response.status).toBe(422);
+    expect(await response.json()).toEqual({ error: 'The candidate snapshot is unreadable or exceeds its limits.' });
   } finally {
     workspace.dispose();
   }
