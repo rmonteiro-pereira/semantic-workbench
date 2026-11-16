@@ -246,6 +246,7 @@ racing the loader's own initial-document selection.
 bun run test:mutation
 ```
 
+Browser mutants require the Vite development server because they intercept source modules.
 The runner mutates temporary source copies and browser pages. Unmodified baselines must pass;
 each targeted fault must be caught. Coverage includes parsing, file/journal behavior, Git safety,
 exports, access/governance, authentication, working copies, Admin review, examples, theming,
