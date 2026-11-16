@@ -395,3 +395,22 @@ The full architecture review identified and prompted fixes for registration-time
 ## Complete mutation gate
 
 `TMPDIR=/tmp/sw-008 SW_BASE_URL=http://127.0.0.1:5321 bun scripts/mutation-tests.ts`: **694/694 targeted mutants killed; all unmodified module baselines passed. Run test:ui for the full browser baseline.** All named snapshot faults and the nine visual faults were detected. Earlier concurrent broad runs exceeded short harness deadlines; the final run was serialized against the other heavy suites and required no timeout changes.
+
+## Broad completion checks
+
+`DATA_DIR=/tmp/sw-008/unit-gate bun test` (through the suite runner):
+
+```text
+2186 pass
+0 fail
+134675 expect() calls
+Ran 2186 tests across 304 files. [383.70s]
+```
+
+`bun --bun run check`: exit 0. Formatter: `All matched files use the correct format.` Comment check: `Comments are free of specification and task IDs.` Final brand check: `No product name or logo is hard-coded outside public/brand.`
+
+`bun --bun run build`: `✓ built in 1.50s` (exit 0; existing large-chunk advisory only).
+
+`TMPDIR=/tmp/sw-008 SW_BASE_URL=http://127.0.0.1:5321 SW_SCREENSHOT_DIR=/tmp/sw-008/captures/snapshot-controls bun scripts/published-snapshot-browser-check.ts`: `2 published snapshot browser checks passed.` The reviewed native phone capture prompted singular commit wording; the repeated browser run passed and replaced the supplemental images.
+
+The final documentation reviewer returned accuracy PASS after registration, audit and no-history metadata corrections. Three new prose lines were wrapped to meet the width rule. The full architecture reviewer returned PASS after the guarded refusal audit correction. The marker will be recorded at the final committed head.
