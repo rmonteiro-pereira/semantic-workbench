@@ -109,3 +109,5 @@ T038: reviewed workspace/project/file/draft/metric/KPI/export/document/suggestio
 T039: Git, clone and repository registration entries name the existing Git path/push/repository/checkout/publication checks and credential-host checks. Commit's remote effect remains dynamic when `push` is requested. Parser suite: `2 pass`, `0 fail`, `15 expect() calls`. Per-check execution coverage is completed by T016 before the inventory coverage gate.
 
 T040: all 119 route rows now have reviewed metadata, including public, stream, page and browser-only dispatch refusals. Trash entry and whole-trash purge use distinct ids. Parser suite: `2 pass`, `0 fail`, `15 expect() calls`.
+
+T011–T012: twin builder tests cover credential-free headers, exact path encoding, sorted query serialization, abort propagation, body byte limits and generated hostile values. Every parameterized dispatchable row receives at least 500 generated values per parameter. Successful builds preserve both the intended row and the encoded value; failures are confined to the builder, never swallowed assertions.

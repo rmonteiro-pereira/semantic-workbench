@@ -25,3 +25,34 @@ test('twins refuse unknown operations, missing parameters, dot segments and over
   expect(() => buildTwinRequest('files.read', { params: { slug: 'sales', '*': 'docs/../a.yaml' } })).toThrow('addressable');
   expect(() => buildTwinRequest('git.commit', { params: { slug: 'sales' }, body: { message: 'é'.repeat(64_000) } })).toThrow('request limit');
 });
+
+test('generated hostile parameters preserve every intended row and encoded value', async () => {
+  const { operationInventory } = await import('../../src/server/auth/operation-inventory');
+  const { routeFor } = await import('../../src/server/auth/route-actions');
+  const hostile = ['../', '%2f', '?', '#', '\u0000', '\n', 'é文', 'x'.repeat(2048), '/', '%', '\ud800', 'a?b#c'];
+  const shapes = new Set<string>();
+  let generated = 0;
+  for (const [row, operation] of Object.entries(operationInventory.operations)) {
+    const names = [...row.matchAll(/:([a-z]+)|\*/g)].map(match => match[1] ?? '*');
+    if (operation.dispatch !== 'twin' || names.length === 0) continue;
+    shapes.add(row);
+    for (const name of names) {
+      for (let index = 0; index < 500; index++) {
+        const value = hostile[index % hostile.length] + index;
+        const params = Object.fromEntries(names.map(key => [key, key === name ? value : 'fixture']));
+        generated++;
+        let request: Request;
+        try {
+          request = buildTwinRequest(operation.id, { params });
+        } catch {
+          continue;
+        }
+        const pathname = new URL(request.url).pathname;
+        expect(routeFor(request.method, pathname, 'server')?.row.path, row).toBe(row);
+        const encoded = name === '*' ? value.split('/').map(encodeURIComponent).join('/') : encodeURIComponent(value);
+        expect(pathname, `${row}: ${JSON.stringify(value)}`).toContain(encoded);
+      }
+    }
+  }
+  expect(generated).toBeGreaterThanOrEqual(shapes.size * 500);
+}, 30_000);
