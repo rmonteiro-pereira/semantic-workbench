@@ -56,7 +56,7 @@ no ambiguity.
 - [x] T008 [P] [US1] Write `tests/item-address-purity.test.ts`: the shared address modules import
   only each other, `iri.ts` and type-only model imports, and no `node:*`, `fetch` or `Date` use
   appears in them. Proof: the test. (FR-022, FR-046)
-- [ ] T009 [US1] Add grammar mutants in `scripts/address-mutants.ts` and register them in
+- [x] T009 [US1] Add grammar mutants in `scripts/address-mutants.ts` and register them in
   `scripts/mutation-tests.ts`: widen the unreserved set, accept lowercase hex, drop the length
   check, off-by-one on the depth limit, string-prefix instead of segment-prefix match, drop the
   position leading-zero rule. Proof: `bun run test:mutation` detects every one. (SC-011)

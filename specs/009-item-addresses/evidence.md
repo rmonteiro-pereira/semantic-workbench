@@ -16,7 +16,7 @@
 - `bun test tests/seeded-random.test.ts tests/item-address.test.ts tests/item-address-properties.test.ts tests/item-address-purity.test.ts`: 12 pass, 0 fail, 61,989 expect() calls (the randomized assertion count varies with the seed).
 - The property run covers 10,000 generated items; boundary tests accept exactly 4,096 characters and 32 segments.
 - `bun --bun run check`: passed TypeScript, formatter, lint, comment, theme and brand checks.
-- `bun --bun run build`: built in 2.55s; existing large-chunk warning remains.
+- `bun --bun run build`: built in 2.37s; existing large-chunk warning remains.
 
 ## Phase 3 blocked: missing derivation contracts
 
@@ -36,3 +36,15 @@ Phase 3 and its dependent adoption phases remain pending, with no boxes marked c
 The requested clarification offers either a structured-only contract or explicit RDF derivation
 rules. The unnamed embedded mapping also needs a named-versus-positional decision before T011.
 No UI, persisted-key conversion or migration-store behavior is claimed by this delivery.
+
+## Grammar mutation proof
+
+`SW_BASE_URL=http://127.0.0.1:5301 DATA_DIR=<temporary data root> bun scripts/mutation-tests.ts`
+ran all unmodified module baselines and detected all six new grammar mutants: widened unreserved
+characters, lowercase escapes, removed early length rejection, depth off-by-one, textual prefix
+matching and leading-zero positions. The complete runner result is recorded below when it exits.
+
+The project-only base case for document-relative resolution also returns a typed `form` failure;
+it does not throw. Its focused regression test passes.
+
+The requested commit-cadence command cannot run: `scripts/commit_cadence.py` is absent.
