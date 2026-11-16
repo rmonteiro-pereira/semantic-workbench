@@ -20,13 +20,8 @@ export type AccessChange = {
 /** One replayed request whose decision differs between the active and the proposed set. */
 export type ChangedDecision = { case: string; before: boolean; after: boolean; rules: string[] };
 
-import { MAX_AUDIT_SNAPSHOTS } from './replay-sample';
-export { MAX_AUDIT_SNAPSHOTS } from './replay-sample';
-
-/** An audit record the dry run can decide again: it kept a snapshot of an access action. */
-export function isReplayable(entry: AuditEntry): boolean {
-  return Boolean(entry.snapshot) && isAction(entry.action);
-}
+import { sampleReplayEntries } from './replay-sample';
+export { MAX_AUDIT_SNAPSHOTS, isReplayable } from './replay-sample';
 
 type AccessControl = ReturnType<typeof createAccessControl>;
 type RequestScope = ReturnType<AccessControl['forRequest']>;
@@ -85,7 +80,7 @@ function replayDecisions(scopeFor: (identity: NormalizedPrincipal) => ScopePair,
       matrixCases++;
     }
   }
-  const snapshots = audit.filter(isReplayable).slice(-MAX_AUDIT_SNAPSHOTS);
+  const snapshots = sampleReplayEntries(audit);
   for (const entry of snapshots) {
     const identity = snapshotIdentity(entry, identities, config);
     const resource = entry.snapshot!.resourceAttrs as ResourceRef;

@@ -78,7 +78,7 @@ the existing suite are green; each task is its own commit.
 **Independent Test**: `bun test tests/auth/dry-run-strata.test.ts`.
 
 - [x] T029 [US4] Create `src/server/auth/replay-sample.ts` with `MAX_AUDIT_SNAPSHOTS` (moved from `dry-run.ts`, same value), `MAX_READ_SNAPSHOTS` (500), the dedup key and `replaySample(audit)`; extend `audit.recent` or add `recentStrata` so one backward scan fills both strata (FR-030, FR-031). Proof: unit tests for each stratum, dedup and early stop.
-- [ ] T030 [US4] Wire `replaySample` into `access-admin.ts` `compare` and `dry-run.ts` `replayDecisions`; protocol-call records are not replayable (`isReplayable`) (FR-030, FR-032). Proof: `tests/auth/dry-run.test.ts` unchanged and green; the baseline test of T003 passes with no MCP records.
+- [x] T030 [US4] Wire `replaySample` into `access-admin.ts` `compare` and `dry-run.ts` `replayDecisions`; protocol-call records are not replayable (`isReplayable`) (FR-030, FR-032). Proof: `tests/auth/dry-run.test.ts` unchanged and green; the baseline test of T003 passes with no MCP records.
 - [ ] T031 [US4] Write `tests/auth/dry-run-strata.test.ts`: 50,000 MCP read records followed by 300 write and denial records yield all 300 and at most 500 reads; identical reads appear once; no MCP records equals the baseline of T003; protocol-call records never appear (spec scenarios 1 to 3, SC-005). Proof: the test passes, and with the stratum split removed (T044) it fails.
 - [ ] T032 [US4] Measure a dry run over the 50,300-record log against a 50,300-record log without MCP records and record both times in the pull request description (plan performance goal). Proof: numbers recorded; if the goal is missed, a finding is opened and the strata constants or scan are revisited before release.
 

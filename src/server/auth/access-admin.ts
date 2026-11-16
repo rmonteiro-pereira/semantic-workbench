@@ -5,7 +5,8 @@ import { validateAccessDocument, validateAgentReferences, type AccessConfig } fr
 import { BUILTIN_ROLE_IDS } from '../../shared/auth/actions';
 import { checkLastAdmin, isBootstrapAdmin } from './admin-guard';
 import { commitMessage, describeChange } from './change-summary';
-import { compareAccess, isReplayable, MAX_AUDIT_SNAPSHOTS } from './dry-run';
+import { compareAccess } from './dry-run';
+import { replaySample } from './replay-sample';
 import { createGroupNameCache, unresolvedGroupName, type GroupLookup, type GroupName } from './directory';
 import { listPolicies, policyTexts, validatePolicies } from './policies';
 import type { AccessControl } from './middleware';
@@ -153,7 +154,7 @@ export function createAccessAdmin(options: AccessAdminOptions) {
     return checkedProposal(await repository.versionFiles(target), 'rollback');
   }
   function compare(next: AccessConfig) {
-    const audit = options.audit.recent(MAX_AUDIT_SNAPSHOTS, isReplayable);
+    const audit = replaySample(options.audit);
     const names = identityNames(next.agents.clients);
     return compareAccess(access.snapshot(), next, { users: users(), audit, names });
   }
