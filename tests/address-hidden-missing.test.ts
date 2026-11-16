@@ -21,7 +21,7 @@ function fixture(records: MigrationRecord[] = [record]) {
     readFile: (project, path) => {
       opened.push('file:' + project + '/' + path);
       if (path !== 'model.yaml') throw new NotFoundError('Missing file.');
-      return { source: 'version: 0.2.0.dev0\nname: M\ndatasets: [{name: New, fields: [{name: id}]}]' };
+      return { source: 'version: 0.2.0.dev0\nname: M\ndatasets: [{name: New, source: table_name, fields: []}]' };
     },
     readMigrations: project => {
       opened.push('history:' + project);
