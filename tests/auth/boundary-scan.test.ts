@@ -26,7 +26,7 @@ function violations(path: string, source: string): string[] {
   const syntax = ts.createSourceFile(path, source, ts.ScriptTarget.Latest, true);
   function visit(node: ts.Node) {
     const scopeCall = ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) && node.expression.name.text === 'forRequest';
-    const scopeAssignment = ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.EqualsToken && /\[requestAccess\]$/.test(node.left.getText(syntax));
+    const scopeAssignment = ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.EqualsToken && node.left.getText(syntax).endsWith('[requestAccess]');
     const scopeProperty = ts.isPropertyAssignment(node) && node.name.getText(syntax) === '[requestAccess]';
     if ((scopeCall || scopeAssignment || scopeProperty) && !scopeOwners.has(path) && !fixtureScripts.has(path)) result.push(path + ': scope constructed outside the boundary');
     if (path.startsWith('src/server/mcp/') && ts.isImportDeclaration(node) && ts.isStringLiteral(node.moduleSpecifier)) {

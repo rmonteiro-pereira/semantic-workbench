@@ -1,7 +1,6 @@
 // Routes API requests and preserves the legacy document interface. Host and origin checks restrict
 // access to local clients.
 import { BadRequestError, HiddenResourceError } from './projects/errors';
-import { join } from 'node:path';
 import { requestReader } from './auth/request-scope';
 import { authorizeWrite, WriteAccessError } from './auth/write-access';
 import { createAccessMiddleware, defaultAccess, defaultAdministration, defaultAudit, type HandlerOptions } from './auth/middleware';
