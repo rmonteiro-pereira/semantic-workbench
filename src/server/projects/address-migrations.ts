@@ -123,3 +123,18 @@ export function restoreAddressMigrations(layout: DataLayout, originalProject: st
   if (existsSync(to)) throw new OccupiedError('Address history already exists for the restored project.', {});
   return [{ from, to }];
 }
+
+/** Validates explicit item-deletion prefixes within the files owned by a save request. */
+export function declaredDeletedItems(input: unknown, project: string, documents: readonly string[]): string[] {
+  if (input === undefined) return [];
+  if (!Array.isArray(input) || input.length > ADDRESS_MIGRATION_LIMIT) throw new BadRequestError('Invalid deleted item list.');
+  const written = new Set(documents);
+  const addresses = input.map(value => {
+    const address = recordAddress(value);
+    if (address.project !== project || !address.document || !written.has(address.document.join('/')) || !address.chain.length)
+      throw new BadRequestError('Deleted items must belong to the written files.');
+    return value as string;
+  });
+  if (new Set(addresses).size !== addresses.length) throw new BadRequestError('Each deleted item may be declared once.');
+  return addresses;
+}

@@ -439,6 +439,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   const { createProjectFolder } = importBatch;
   const trash = createTrash({
     layout,
+    head: async (files, project) => (gitAvailable ? ((await git.head(repoDir(files, project))) ?? '') : ''),
     state,
     journal,
     lock,

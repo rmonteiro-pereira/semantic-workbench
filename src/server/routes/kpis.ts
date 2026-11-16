@@ -1,4 +1,4 @@
-import { declaredAddressMigrations } from '../projects/address-migrations';
+import { declaredAddressMigrations, declaredDeletedItems } from '../projects/address-migrations';
 // Previews metric changes and saves related files in one journaled operation. Previews never
 // execute SQL.
 import { FILE_SAVE_REQUEST_LIMIT, METRIC_REQUEST_LIMIT } from '../request';
@@ -19,7 +19,7 @@ export const kpiRoutes: Route = async (ws, req, url) => {
   if (batch) {
     const slug = decodeSegment(batch[1]);
     const body = await readJson(req, FILE_SAVE_REQUEST_LIMIT);
-    if (!object(body) || !Array.isArray(body.files) || Object.keys(body).some(key => !['files', 'declaredMigrations'].includes(key)))
+    if (!object(body) || !Array.isArray(body.files) || Object.keys(body).some(key => !['files', 'declaredMigrations', 'deletedItems'].includes(key)))
       throw new BadRequestError('Expected {files: [{path, baseHash, source} or {path, baseHash, patches}]}.');
     for (const file of body.files)
       if (
@@ -45,7 +45,12 @@ export const kpiRoutes: Route = async (ws, req, url) => {
       slug,
       body.files.map((file: { path: string }) => file.path),
     );
-    return Response.json(await ws.saveFiles(slug, body.files, reader, { kind: 'save-batch', declaredMigrations }));
+    const deletedItems = declaredDeletedItems(
+      body.deletedItems,
+      slug,
+      body.files.map((file: { path: string }) => file.path),
+    );
+    return Response.json(await ws.saveFiles(slug, body.files, reader, { kind: 'save-batch', declaredMigrations, deletedItems }));
   }
   // Keep the older `kpis` paths as aliases for existing clients.
   const match = url.pathname.match(/^\/api\/projects\/([^/]+)\/(?:metrics|kpis)(\/preview)?$/);

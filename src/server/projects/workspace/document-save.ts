@@ -1,5 +1,7 @@
 import type { OperationOutcome } from '../../auth/operation-outcome';
-import { declaredAddressMigrations, operationMigrations, stageAddressMigrations } from '../address-migrations';
+import { parseAddress } from '../../../shared/core/item-address';
+import { deletedItemAddresses } from '../../../shared/edit/address-changes';
+import { declaredAddressMigrations, declaredDeletedItems, operationMigrations, stageAddressMigrations } from '../address-migrations';
 // Saves and reverts documents: a stale base is refused, the reader's guard judges the text, and the
 // swap is journaled so a crash leaves either the old or the new bytes.
 import { existsSync, readFileSync, rmSync } from 'node:fs';
@@ -45,6 +47,18 @@ export async function committedText(source: { git: Git; gitAvailable: boolean },
   }
 }
 
+function addressDocument(value: string): string {
+  const parsed = parseAddress(value);
+  if (!parsed.ok) throw new BadRequestError('Invalid deleted item locator.');
+  return parsed.address.document!.join('/');
+}
+
+function verifyDeletedItems(addresses: string[], change: { project: string; path: string; before: string; after: string }) {
+  if (!addresses.length) return;
+  const removed = new Set(deletedItemAddresses(change.before, change.after, { project: change.project, document: change.path.split('/') }));
+  if (addresses.some(address => !removed.has(address))) throw new BadRequestError('A declared item was not removed by this save.');
+}
+
 /** The workspace services document saving runs on; the composition root supplies them. */
 export type DocumentSaveContext = {
   layout: DataLayout;
@@ -78,14 +92,20 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
     const before = current ? base : null;
     const committed = guard ? await committedText({ git, gitAvailable }, place.layout, slug, path) : null;
     const change = { project: slug, path, before, after: edited, committed };
-    return { edited, guarded: guard?.([change]) };
+    return { edited, before, guarded: guard?.([change]) };
   }
-  async function saveFile(slug: string, path: string, body: { baseHash: string | null; source?: string; patches?: Patch[]; declaredMigrations?: unknown }, reader: Reader) {
+  async function saveFile(slug: string, path: string, body: { baseHash: string | null; source?: string; patches?: Patch[]; declaredMigrations?: unknown; deletedItems?: unknown }, reader: Reader) {
     const { guard } = reader;
     entry(slug);
     const relativePath = projectPath(path);
     const declarations = declaredAddressMigrations(body.declaredMigrations, slug, [relativePath]);
-    const check = (at: Place) => guardedEdit(at, { slug, path: relativePath }, body, guard);
+    const deletedItems = declaredDeletedItems(body.deletedItems, slug, [relativePath]);
+    const check = async (at: Place) => {
+      const result = await guardedEdit(at, { slug, path: relativePath }, body, guard);
+      const after = result.guarded?.changes[0].after ?? result.edited;
+      verifyDeletedItems(deletedItems, { project: slug, path: relativePath, before: result.before ?? '', after });
+      return result;
+    };
     const place = await copies.writePlace(reader, slug, check);
     const file = projectFile(place.layout, slug, relativePath);
     return lock(projectLock(place, slug), async () => {
@@ -111,8 +131,8 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
       const steps = clearPersonalDrafts(state, slug, [relativePath], staging, place.copy ?? undefined);
       if (existsSync(file)) steps.push({ from: file, to: join(staging, 'previous') });
       steps.push({ from: staged, to: file });
-      const commit = declarations.length && gitAvailable ? ((await git.head(repoDir(place.layout, slug))) ?? '') : '';
-      const records = operationMigrations({ id: opId, at: new Date().toISOString(), commit }, declarations);
+      const commit = (declarations.length || deletedItems.length) && gitAvailable ? ((await git.head(repoDir(place.layout, slug))) ?? '') : '';
+      const records = operationMigrations({ id: opId, at: new Date().toISOString(), commit }, [...declarations, ...deletedItems.map(from => ({ kind: 'deleted' as const, from }))]);
       try {
         steps.push(...stageAddressMigrations({ layout, project: slug, staging }, records));
         journal.run('save', steps, [staging], opId);
@@ -160,7 +180,7 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
     slug: string,
     writes: { path: string; baseHash: string | null; source?: string; patches?: Patch[] }[],
     reader: Reader,
-    options: string | { kind?: string; declaredMigrations?: unknown } = 'save-files',
+    options: string | { kind?: string; declaredMigrations?: unknown; deletedItems?: unknown } = 'save-files',
   ) {
     const { guard } = reader;
     const kind = typeof options === 'string' ? options : (options.kind ?? 'save-files');
@@ -172,11 +192,24 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
       slug,
       files.map(file => file.path),
     );
+    const deletedItems = declaredDeletedItems(
+      typeof options === 'string' ? undefined : options.deletedItems,
+      slug,
+      files.map(file => file.path),
+    );
     if (new Set(files.map(f => f.path)).size !== files.length) throw new BadRequestError('Each file may appear once.');
     if (reader.view && files.some(file => !reader.view!.canRead(slug, file.path))) {
       throw new OccupiedError('The target is unavailable.', {});
     }
-    const check = (at: Place) => guardedEdits(at, slug, files, guard);
+    const check = async (at: Place) => {
+      const result = await guardedEdits(at, slug, files, guard);
+      result.edited.forEach((edit, index) => {
+        const ownDeleted = deletedItems.filter(address => addressDocument(address) === edit.path);
+        const after = result.guarded?.changes[index].after ?? edit.next;
+        verifyDeletedItems(ownDeleted, { project: slug, path: edit.path, before: edit.before ?? '', after });
+      });
+      return result;
+    };
     const place = await copies.writePlace(reader, slug, check);
     return lock(projectLock(place, slug), async () => {
       const { edited, guarded } = await check(place);
@@ -233,8 +266,8 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
             place.copy ?? undefined,
           ),
         );
-        const commit = declarations.length && gitAvailable ? ((await git.head(repoDir(place.layout, slug))) ?? '') : '';
-        const records = operationMigrations({ id: opId, at: new Date().toISOString(), commit }, declarations);
+        const commit = (declarations.length || deletedItems.length) && gitAvailable ? ((await git.head(repoDir(place.layout, slug))) ?? '') : '';
+        const records = operationMigrations({ id: opId, at: new Date().toISOString(), commit }, [...declarations, ...deletedItems.map(from => ({ kind: 'deleted' as const, from }))]);
         steps.push(...stageAddressMigrations({ layout, project: slug, staging }, records));
         journal.run(kind, steps, [staging], opId);
       } catch (error) {

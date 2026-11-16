@@ -1,3 +1,4 @@
+import { deletedItemAddresses } from '../../shared/edit/address-changes';
 /** Confirms item deletion with its dependents and broken references before a journaled save. */
 import { useCapabilities } from '../auth/Capabilities';
 import React, { useEffect, useState } from 'react';
@@ -73,10 +74,11 @@ export function DeleteItem({ doc, base, path, kind, name, owner, projectDocs, on
     setError('');
     try {
       const disk = (d: Doc) => projectDocs.find(x => x.id === d.id)!;
+      const deletedItems = plan.files.flatMap(file => deletedItemAddresses(disk(file.doc).source, file.source, { project: file.doc.project, document: file.doc.path.split('/') }));
       let written: Saved[];
       if (plan.files.length === 1) {
         const file = plan.files[0];
-        const saved = await api.save(file.doc.project, file.doc.path, disk(file.doc).hash, file.source, diffPatches(disk(file.doc).source, file.source));
+        const saved = await api.save(file.doc.project, file.doc.path, disk(file.doc).hash, file.source, { patches: diffPatches(disk(file.doc).source, file.source), deletedItems });
         written = [{ docId: file.doc.id, source: file.source, hash: saved.hash }];
       } else {
         const batchSaved = await api.saveBatch(
@@ -86,6 +88,7 @@ export function DeleteItem({ doc, base, path, kind, name, owner, projectDocs, on
             baseHash: disk(file.doc).hash,
             patches: diffPatches(disk(file.doc).source, file.source),
           })),
+          { deletedItems },
         );
         written = plan.files.map((file, i) => ({
           docId: file.doc.id,

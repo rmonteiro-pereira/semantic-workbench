@@ -535,3 +535,9 @@ The broader move/trash tests exposed a conversion regression: grouping reads wit
 ### Deleted-history decisions
 
 Pure deletion derivation emits minimal stable prefixes and excludes positional or ambiguous items. The history reader reports a reset after the most recent matching item/document deletion and exposes only later records, including an explicit later reconciliation. Item/file delete and reuse integration tests are implemented and passing in the working tree; the save/delete wiring is the next coherent commit.
+
+### Explicit deletion wiring
+
+The item-delete dialog sends deletedItems with the existing save/batch routes; this separate optional field keeps declaredMigrations restricted to item/scope renames as specified. Boundary validation confines stable prefixes to written files, and the guarded before/after check verifies actual minimal removals before a working copy or source is written. File deletion stages a document tombstone in its own journal using the existing trash entry ID, and preserves crash staging. Delete/recreate tests exercise the history reset through workspace entry points, while ordinary saves without explicit deletion declarations retain their existing behavior.
+
+Proof: migration store, declared-save routes, trash and write-authorization matrix — 33 pass, 0 fail, 1,474 assertions; TypeScript passes. Pure deletion/history decisions — 11 pass, 0 fail, 3,032 assertions.

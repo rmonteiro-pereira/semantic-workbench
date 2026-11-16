@@ -315,11 +315,14 @@ export const api = {
     path: string,
     baseHash: string | null,
     source: string,
-    options?: { from: number; to: number; insert: string }[] | { patches: { from: number; to: number; insert: string }[]; declaredMigrations: DeclaredMigration[] },
+    options?: { from: number; to: number; insert: string }[] | { patches: { from: number; to: number; insert: string }[]; declaredMigrations?: DeclaredMigration[]; deletedItems?: string[] },
   ) {
-    const { patches, declaredMigrations } = Array.isArray(options) ? { patches: options, declaredMigrations: undefined } : (options ?? {});
+    const { patches, declaredMigrations, deletedItems } = Array.isArray(options) ? { patches: options, declaredMigrations: undefined, deletedItems: undefined } : (options ?? {});
     const write = patches && baseHash !== null ? { baseHash, patches } : { baseHash, source };
-    const response = await apiFetch(fileUrl(project, path), send('PUT', { ...write, ...(declaredMigrations?.length ? { declaredMigrations } : {}) }));
+    const response = await apiFetch(
+      fileUrl(project, path),
+      send('PUT', { ...write, ...(declaredMigrations?.length ? { declaredMigrations } : {}), ...(deletedItems?.length ? { deletedItems } : {}) }),
+    );
     if (response.status === 409) {
       const body = await response.json();
       throw new StaleSave(body.currentHash, body.currentSource);
@@ -335,9 +338,13 @@ export const api = {
       source?: string;
       patches?: { from: number; to: number; insert: string }[];
     }[],
-    declaredMigrations?: DeclaredMigration[],
+    options?: DeclaredMigration[] | { declaredMigrations?: DeclaredMigration[]; deletedItems?: string[] },
   ) {
-    const response = await apiFetch(`/api/projects/${encodeURIComponent(project)}/save-batch`, send('POST', { files, ...(declaredMigrations?.length ? { declaredMigrations } : {}) }));
+    const { declaredMigrations, deletedItems } = Array.isArray(options) ? { declaredMigrations: options, deletedItems: undefined } : (options ?? {});
+    const response = await apiFetch(
+      `/api/projects/${encodeURIComponent(project)}/save-batch`,
+      send('POST', { files, ...(declaredMigrations?.length ? { declaredMigrations } : {}), ...(deletedItems?.length ? { deletedItems } : {}) }),
+    );
     if (response.status === 409) {
       const body = await response.json();
       throw new StaleSave(body.currentHash, body.currentSource);

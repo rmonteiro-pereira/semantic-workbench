@@ -1,3 +1,5 @@
+import { historySinceDeletion } from '../src/shared/core/address-migration';
+import { parseAddress } from '../src/shared/core/item-address';
 /** Exercises durable address history through staged journal operations. */
 import { expect, test } from 'bun:test';
 import { existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
@@ -156,4 +158,38 @@ test('moves record document prefixes in both projects and history follows projec
   await workspace.ws.trash.restore(archived.entryId, { toProject: 'restored' }, LOCAL_READER);
   expect(readFileSync(addressMigrationFile(layout, 'restored'))).toEqual(bytes);
   expect(readAddressMigrations(layout, 'restored', LOCAL_READER)).toEqual(targetHistory);
+});
+
+test('explicit item deletion records a tombstone and recreating the same address cannot inherit history', async () => {
+  using workspace = await testWorkspace();
+  const source = 'name: O\nontology: [{concept: A}, {concept: Keep}]';
+  const project = await workspace.seed([{ path: 'a.yaml', source }], 'Sample');
+  const old = workspace.ws.readFile(project.slug, 'a.yaml');
+  const address = `sw1:${project.slug}/a.yaml#ontology:O/concept:A`;
+  const removed = 'name: O\nontology: [{concept: Keep}]';
+  await workspace.ws.saveFile(project.slug, 'a.yaml', { baseHash: old.hash, source: removed, deletedItems: [address] }, LOCAL_READER);
+  const records = readAddressMigrations(dataLayout(workspace.root), project.slug, LOCAL_READER);
+  expect(records.map(record => ({ kind: record.kind, from: record.from, to: record.to }))).toEqual([{ kind: 'deleted', from: address, to: undefined }]);
+  const deleted = workspace.ws.readFile(project.slug, 'a.yaml');
+  await workspace.ws.saveFile(project.slug, 'a.yaml', { baseHash: deleted.hash, source }, LOCAL_READER);
+  const parsed = parseAddress(address);
+  if (!parsed.ok) throw new Error('Invalid test locator.');
+  expect(historySinceDeletion(parsed.address, readAddressMigrations(dataLayout(workspace.root), project.slug, LOCAL_READER))).toEqual({ reset: true, records: [] });
+  const recreated = workspace.ws.readFile(project.slug, 'a.yaml');
+  await expect(workspace.ws.saveFile(project.slug, 'a.yaml', { baseHash: recreated.hash, source, deletedItems: [address] }, LOCAL_READER)).rejects.toThrow('not removed');
+  expect(workspace.ws.readFile(project.slug, 'a.yaml').hash).toBe(recreated.hash);
+  expect(readAddressMigrations(dataLayout(workspace.root), project.slug, LOCAL_READER)).toEqual(records);
+});
+
+test('file deletion records a document marker that also resets descendant history after recreation', async () => {
+  using workspace = await testWorkspace();
+  const source = 'name: O\nontology: [{concept: A}]';
+  const project = await workspace.seed([{ path: 'a.yaml', source }], 'Sample');
+  await workspace.ws.trash.deleteFile(project.slug, 'a.yaml', undefined, LOCAL_READER);
+  const records = readAddressMigrations(dataLayout(workspace.root), project.slug, LOCAL_READER);
+  expect(records[0]).toMatchObject({ kind: 'deleted', from: `sw1:${project.slug}/a.yaml` });
+  await workspace.ws.saveFile(project.slug, 'a.yaml', { baseHash: null, source }, LOCAL_READER);
+  const parsed = parseAddress(`sw1:${project.slug}/a.yaml#ontology:O/concept:A`);
+  if (!parsed.ok) throw new Error('Invalid test locator.');
+  expect(historySinceDeletion(parsed.address, readAddressMigrations(dataLayout(workspace.root), project.slug, LOCAL_READER)).reset).toBe(true);
 });

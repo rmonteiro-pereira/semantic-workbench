@@ -1,4 +1,5 @@
-import { archiveAddressMigrations } from './address-migrations';
+import { formatAddress } from '../../shared/core/item-address';
+import { archiveAddressMigrations, operationMigrations, stageAddressMigrations } from './address-migrations';
 // Moves deleted files and project folders into journaled trash without rewriting Git history.
 // Restoration refuses occupied paths and suggests a free alternative.
 import { archivePersonalState, clearPersonalDrafts } from './personal-state';
@@ -70,6 +71,8 @@ export type UnpublishedWork = { userKey: string; name: string; patch: string; dr
 /** Workspace services and optional clock used by journaled trash operations. */
 export type TrashContext = {
   layout: DataLayout;
+  /** Reads the current local commit before history is staged. */
+  head?: (files: DataLayout, project: string) => Promise<string>;
   /** Where a person's working copy keeps its files; absent where there are no copies. */
   copyLayout?: (copy: string) => DataLayout;
   state: State;
@@ -206,9 +209,15 @@ export function createTrash(ctx: TrashContext) {
       const steps = [{ from: file, to: join(dir, 'payload', posix.basename(relativePath)) }];
       if (existsSync(state.draftFile(slug, relativePath))) steps.push({ from: state.draftFile(slug, relativePath), to: join(dir, 'draft.json') });
       steps.push(...archivePersonalState(state, slug, relativePath, join(dir, 'personal')));
+      const staging = join(dir, '.address-history');
+      const commit = ctx.head ? await ctx.head(filesOf(copy), slug) : '';
+      const from = formatAddress({ grammar: 1, form: 'absolute', project: slug, document: relativePath.split('/'), chain: [] });
+      const records = operationMigrations({ id: trashEntry.entryId, at: trashEntry.deletedAt, commit }, [{ kind: 'deleted', from }]);
       try {
-        journal.run('delete', steps);
+        steps.push(...stageAddressMigrations({ layout, project: slug, staging }, records));
+        journal.run('delete', steps, [staging], trashEntry.entryId);
       } catch (err) {
+        if (err instanceof JournalCrash) throw err;
         rmSync(dir, { recursive: true, force: true });
         throw err;
       }

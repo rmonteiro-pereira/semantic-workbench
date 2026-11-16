@@ -203,7 +203,7 @@ changes.
   store with the project through trash and restore like view state. Proof:
   `tests/address-migration-store.test.ts` cases for move, cross-project move, trash and restore.
   (FR-028, FR-035)
-- [ ] T034 [P] [US3] Write deleted markers from item delete (`src/app/edit/DeleteItem.tsx`) and
+- [x] T034 [P] [US3] Write deleted markers from item delete (`src/app/edit/DeleteItem.tsx`) and
   file delete, and refuse inheriting history at a reused address without a reconciliation. Proof:
   tests delete then create at the same address. (FR-043)
 - [ ] T035 [US3] Reconciliation: a server function that records a `reconciliation` record only for

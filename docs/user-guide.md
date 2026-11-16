@@ -424,7 +424,8 @@ referents and link-child targets, resolved through the owning concept and its in
 and mappings; references that cannot be safely rewritten are left for Source repair. Multi-file
 changes are journaled, not silently applied in separate partial operations. Stable item renames and
 named document-scope changes record address history with those writes; unnamed scopes remain
-volatile. File moves record a document-prefix change; a move between projects records it in both histories.
+volatile. Explicit item and file deletion retain a tombstone, so recreating the same
+name does not attach the deleted item's history. File moves record a document-prefix change; a move between projects records it in both histories.
 Project trash and restore carry the history with the definitions. Editing files outside the
 workbench or switching Git branches does not infer renames.
 
