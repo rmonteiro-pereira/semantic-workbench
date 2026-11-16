@@ -42,7 +42,7 @@ async function gitRoutesCase(candidate: Candidate) {
     const reader = requestReader(scoped('alice', '/'));
     await fixture.ws.scmFor('sales-contracts', reader);
     const copy = join(fixture.ws.layout.worktrees, keyOf('alice'), 'sales-contracts');
-    Bun.spawnSync(['git', 'branch', 'work/bob'], { cwd: copy });
+    Bun.spawnSync(['git', 'branch', 'work/bob'], { cwd: copy, env: { ...process.env } });
     mkdirSync(join(copy, 'finance'), { recursive: true });
     writeFileSync(join(copy, 'finance', 'budget.txt'), 'hidden');
     const post = async (action: string, body: unknown) => {

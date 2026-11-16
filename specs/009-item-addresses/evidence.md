@@ -734,3 +734,10 @@ static check and readability check pass. No production source changed.
 Main's production responsive comparison has now completed: both branches measure the graph at
 481 px and fail the same greater-than-504 px assertion. Logs are production-responsive.log and
 main-production-responsive.log under out/gate-009/. This is a reproduced baseline failure.
+
+The next unmodified baseline exposed the same implicit-environment issue in the security-review
+SCM fixture. Remaining Git subprocesses in the security-review and export mutation case modules
+now receive the same explicit environment. Unchanged main's focused SCM case fails remotely with
+missing Git identity (exit 1); the corrected case passes (exit 0), as does its local counterpart.
+Logs: out/gate-009/main-secrev-scm.log and current-secrev-scm.log. Formatting, full static checks
+and readability checks pass. No test assertion or production source changed.

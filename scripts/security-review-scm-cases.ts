@@ -4,10 +4,12 @@ import assert from 'node:assert/strict';
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+/** A candidate Source Control module under mutation. */
 export type Candidate = any;
 
+/** Runs Git with the fixture configuration installed in the current environment. */
 export function git(cwd: string, ...args: string[]) {
-  const result = Bun.spawnSync(['git', ...args], { cwd });
+  const result = Bun.spawnSync(['git', ...args], { cwd, env: { ...process.env } });
   if (result.exitCode !== 0) throw Error(`git ${args.join(' ')}: ${result.stderr.toString()}`);
   return result.stdout.toString().trim();
 }

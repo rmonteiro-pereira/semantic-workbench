@@ -24,7 +24,7 @@ function filterCase(candidate: any) {
 type Fixture = { root: string; layout: any; git: any; repo: string; cleanup: () => void };
 
 function sh(cwd: string, ...args: string[]) {
-  const result = Bun.spawnSync(['git', ...args], { cwd });
+  const result = Bun.spawnSync(['git', ...args], { cwd, env: { ...process.env } });
   assert.equal(result.exitCode, 0, result.stderr.toString());
 }
 
@@ -66,7 +66,7 @@ const serverReader = (hidden: string[] = [HIDDEN_FILE]) => ({
 async function bundleHeads(bytes: Uint8Array, folder: string) {
   const file = join(folder, 'check.bundle');
   writeFileSync(file, bytes);
-  const result = Bun.spawnSync(['git', 'bundle', 'list-heads', file]);
+  const result = Bun.spawnSync(['git', 'bundle', 'list-heads', file], { env: { ...process.env } });
   return result.stdout.toString();
 }
 
