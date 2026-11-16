@@ -637,3 +637,9 @@ The API alias timeout was introduced by rebuilding the model address index for e
 The exact open/save, ratio KPI and unknown metric-binding cases receive a 30-second framework budget because main also exceeded their default five-second budget remotely. The metrics API case keeps its existing 30-second limit; explicit graph and view performance limits are unchanged.
 
 Proof: remote focused run — `32 pass`, `0 fail`, `Ran 32 tests across 5 files. [70.81s]`. The API alias case takes 21.21 seconds, compared with 20.82 seconds on main and over 30 seconds before index reuse. Local adapter tests pass 5/5 with 26 assertions; metric extension tests pass 8/8 with 293 assertions. The full static check, readability check and docs-sync pass. The remote log is out/gate-009/metric-index-fixed.log.
+
+### Architecture review: cross-project history order
+
+The required pre-push architecture review found that appending a destination's entire history could replay a rename from before arrival or miss an intervening rename when a document moved back. Both scenarios were reproduced through workspace save/move/resolve entry points: 10 tests passed and two failed before the fix. Resolution now follows each destination immediately after the shared document-move record; both stores install that record in one journal and never prune it. Cached project histories still avoid repeated reads, while later re-entry resumes after its new shared marker. No timestamp ordering is inferred.
+
+Proof: `TMPDIR=/tmp/sw-009 bun test ./tests/address-migration-store.test.ts` — `12 pass`, `0 fail`, `140 expect() calls`, `Ran 12 tests across 1 file. [2.71s]`. The earlier full remote unit gate passed 2,189 tests with zero failures before this review correction; the final gate must be rerun on the corrected tree.

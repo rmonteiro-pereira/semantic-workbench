@@ -62,10 +62,11 @@ export function resolveForCaller(context: AddressResolutionContext, text: string
   const current = resolveCurrentItem(context, address, reader);
   if (current.status !== 'missing') return publicResult(current, address);
   if (!context.projectExists(address.project!)) return { status: 'missing' };
-  const records = [...context.readMigrations(address.project!, reader)];
-  const visitedProjects = new Set([address.project!]);
+  let records = context.readMigrations(address.project!, reader);
+  const histories = new Map([[address.project!, records]]);
   const applied = new Set<string>();
-  for (const record of records) {
+  for (let index = 0; index < records.length; index++) {
+    const record = records[index];
     if (applied.has(record.id)) continue;
     applied.add(record.id);
     const from = parseAddress(record.from);
@@ -73,11 +74,17 @@ export function resolveForCaller(context: AddressResolutionContext, text: string
     if (record.kind === 'deleted') return { status: 'missing' };
     const to = parseAddress(record.to ?? '');
     if (!to.ok || !readable(to.address, reader)) continue;
+    const previousProject = address.project;
     address = replacePrefix(address, from.address, to.address);
-    if (address.project && !visitedProjects.has(address.project)) {
-      visitedProjects.add(address.project);
-      if (!context.projectExists(address.project)) return { status: 'missing' };
-      records.push(...context.readMigrations(address.project, reader));
+    if (address.project && address.project !== previousProject) {
+      if (!histories.has(address.project)) {
+        if (!context.projectExists(address.project)) return { status: 'missing' };
+        histories.set(address.project, context.readMigrations(address.project, reader));
+      }
+      records = histories.get(address.project)!;
+      // Both stores share the move marker, so earlier destination history belongs to another arrival.
+      index = records.findIndex(candidate => candidate.id === record.id);
+      if (index < 0) return { status: 'missing' };
     }
   }
   if (formatAddress(address) === text) return { status: 'missing' };

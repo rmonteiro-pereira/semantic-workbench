@@ -214,6 +214,44 @@ test('a cross-project move followed by a target-project rename resolves through 
     LOCAL_READER,
   );
   expect(workspace.ws.resolveAddress(from, LOCAL_READER)).toMatchObject({ status: 'found', address: target });
+  await workspace.ws.moveFile(second.slug, 'moved.yaml', first.slug, 'returned.yaml', false, LOCAL_READER);
+  const returned = workspace.ws.readFile(first.slug, 'returned.yaml');
+  const returnedAddress = target.replace(`${second.slug}/moved.yaml`, `${first.slug}/returned.yaml`);
+  const finalAddress = returnedAddress.replace('concept:Renamed', 'concept:Final');
+  await workspace.ws.saveFile(
+    first.slug,
+    'returned.yaml',
+    {
+      baseHash: returned.hash,
+      source: returned.source.replace('concept: Renamed', 'concept: Final'),
+      declaredMigrations: [{ kind: 'item', from: returnedAddress, to: finalAddress }],
+    },
+    LOCAL_READER,
+  );
+  expect(workspace.ws.resolveAddress(from, LOCAL_READER)).toMatchObject({ status: 'found', address: finalAddress });
+});
+
+test('cross-project arrival ignores destination history recorded before the shared move', async () => {
+  using workspace = await testWorkspace();
+  const source = 'name: O\nontology: [{concept: A}]';
+  const first = await workspace.seed([{ path: 'a.yaml', source }], 'First');
+  const second = await workspace.seed([{ path: 'moved.yaml', source }], 'Second');
+  const old = workspace.ws.readFile(second.slug, 'moved.yaml');
+  const destination = `sw1:${second.slug}/moved.yaml#ontology:O/concept:A`;
+  await workspace.ws.saveFile(
+    second.slug,
+    'moved.yaml',
+    {
+      baseHash: old.hash,
+      source: old.source.replace('concept: A', 'concept: Old'),
+      declaredMigrations: [{ kind: 'item', from: destination, to: destination.replace('concept:A', 'concept:Old') }],
+    },
+    LOCAL_READER,
+  );
+  await workspace.ws.moveFile(second.slug, 'moved.yaml', second.slug, 'archived.yaml', false, LOCAL_READER);
+  await workspace.ws.moveFile(first.slug, 'a.yaml', second.slug, 'moved.yaml', false, LOCAL_READER);
+  const original = `sw1:${first.slug}/a.yaml#ontology:O/concept:A`;
+  expect(workspace.ws.resolveAddress(original, LOCAL_READER)).toMatchObject({ status: 'found', address: destination });
 });
 
 test('a failed local commit lookup leaves no deletion metadata or migration staging', async () => {

@@ -206,6 +206,7 @@ original record and conflicting reuse is refused. No reconciliation HTTP route i
 
 The workspace resolver returns the same missing result for unreadable and absent items. It checks project and path
 visibility before opening definitions or history, resolves current items before applying history, and follows only
-visible migration endpoints. A deletion ends replay even when the destination was later reused. Snapshot suffixes remain
+visible migration endpoints. Cross-project replay resumes after the move marker shared by both stores, preserving
+arrival order even when a document moves back. A deletion ends replay even when the destination was later reused. Snapshot suffixes remain
 opaque and are preserved during prefix replacement; until published-snapshot integration, this resolver reads the
 current definition and makes no historical-version claim.
