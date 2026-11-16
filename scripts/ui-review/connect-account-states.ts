@@ -10,7 +10,7 @@ import { freeAuthPort, startAuthApi } from '../auth-environment';
 import { authViewports, signIn } from '../helpers/sign-in';
 import { showSidebar } from '../helpers/screen-tour';
 import { runSyncAction } from '../helpers/sync-dialog';
-import { capture, attempt, watchCaptureErrors } from './capture-records';
+import { captureThemes, capture, attempt, watchCaptureErrors } from './capture-records';
 
 const output = process.argv[2];
 if (!output) throw new Error('Expected OUTPUT');
@@ -38,7 +38,7 @@ const api = await startAuthApi(
 );
 const browser = await chromium.launch();
 try {
-  for (const theme of ['light', 'dark'] as const) {
+  for (const theme of captureThemes()) {
     const context = await browser.newContext({ colorScheme: theme });
     await context.addInitScript(value => localStorage.setItem('workbench.theme', value), theme);
     const page = await context.newPage();

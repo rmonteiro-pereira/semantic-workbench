@@ -1,5 +1,5 @@
 // Captures server contract screens with the stock capture contract preparation. Usage: bun scripts/ui-review/server-contract-states.ts OUTPUT_ROOT.
-// Uses a temporary server fixture and loopback mock provider; no environment variables.
+// Uses a temporary server fixture and loopback mock provider; SW_THEME optionally selects one theme.
 import { chromium } from '@playwright/test';
 import { readFileSync, writeFileSync, existsSync, renameSync, appendFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -9,6 +9,7 @@ import { freeAuthPort, startAuthApi } from '../auth-environment';
 import { authViewports, signIn } from '../helpers/sign-in';
 import { captureScreens } from '../helpers/all-tours';
 import { showScreen, screenProblems } from '../helpers/screen-tour';
+import { captureThemes } from './capture-records';
 
 const root = process.argv[2];
 if (!root) throw new Error('Expected OUTPUT_ROOT');
@@ -39,7 +40,7 @@ async function prepare(directory: string) {
 const api = await startAuthApi(url, { ...mock, kind: 'entra' }, { prepare });
 const browser = await chromium.launch();
 try {
-  for (const theme of ['light', 'dark']) {
+  for (const theme of captureThemes()) {
     const context = await browser.newContext();
     await context.addInitScript(value => localStorage.setItem('workbench.theme', value), theme);
     const page = await context.newPage();

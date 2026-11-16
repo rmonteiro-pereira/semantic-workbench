@@ -7,7 +7,7 @@ import { authViewports } from '../helpers/sign-in';
 import { fileTab, showSidebar, showScreen } from '../helpers/screen-tour';
 import { dialogsTourScreens } from '../helpers/dialogs-tour';
 import { addProjectItem } from '../helpers/sidebar-menus';
-import { capture, attempt, failure, watchCaptureErrors, type CaptureIdentity } from './capture-records';
+import { captureThemes, capture, attempt, failure, watchCaptureErrors, type CaptureIdentity } from './capture-records';
 
 const output = process.argv[2];
 if (!output) throw new Error('Expected OUTPUT');
@@ -83,7 +83,7 @@ async function importAndHistory(page: Page, identity: CaptureIdentity) {
 }
 
 try {
-  for (const theme of ['light', 'dark']) {
+  for (const theme of captureThemes()) {
     for (const [width, height] of authViewports) {
       const api = await startIsolatedApi();
       await api.ws.loadExample('commerce');

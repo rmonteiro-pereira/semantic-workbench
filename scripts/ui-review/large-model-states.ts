@@ -6,7 +6,7 @@ import { startIsolatedApi, routeApi } from '../helpers/isolated-api';
 import { LOCAL_READER } from '../../src/server/projects/reader';
 import { fileTab } from '../helpers/screen-tour';
 import { viewOptions, chooseLayout } from '../helpers/graph-options';
-import { capture, attempt, watchCaptureErrors, failure } from './capture-records';
+import { captureThemes, capture, attempt, watchCaptureErrors, failure } from './capture-records';
 
 const output = process.argv[2];
 if (!output) throw new Error('Expected OUTPUT');
@@ -16,7 +16,7 @@ const source = await Bun.file('public/examples/commerce/commerce-scale.ttl').tex
 await api.ws.importBatch({ files: [{ path: 'commerce-scale.ttl', source }] }, LOCAL_READER);
 const browser = await chromium.launch();
 try {
-  for (const theme of ['light', 'dark']) {
+  for (const theme of captureThemes()) {
     for (const [width, height] of [
       [1440, 900],
       [2560, 1440],

@@ -5,7 +5,7 @@ import { mkdirSync } from 'node:fs';
 import { startIsolatedApi, routeApi } from '../helpers/isolated-api';
 import { fileTab } from '../helpers/screen-tour';
 import { authViewports } from '../helpers/sign-in';
-import { capture, failure, attempt, watchCaptureErrors, type CaptureIdentity } from './capture-records';
+import { captureThemes, capture, failure, attempt, watchCaptureErrors, type CaptureIdentity } from './capture-records';
 
 const output = process.argv[2];
 if (!output) throw new Error('Expected OUTPUT');
@@ -40,7 +40,7 @@ async function walks(page: Page, identity: CaptureIdentity, screen: string) {
 }
 
 try {
-  for (const theme of ['light', 'dark']) {
+  for (const theme of captureThemes()) {
     for (const [width, height] of authViewports) {
       const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 1 });
       page.setDefaultTimeout(5000);

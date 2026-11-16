@@ -268,7 +268,8 @@ Additional reproducible state captures live in `scripts/ui-review/`. Run
 `SW_BASE_URL=http://127.0.0.1:5201 bun scripts/ui-review/known-issues.ts OUTPUT 1 1`
 against a frontend using temporary data. The shared local fixture sets neutral Git author and
 committer names and emails. See `specs/007-ui-review-fixes/capture-index.md` for state commands.
-`SW_ONLY` and `SW_THEME` select supported state groups and themes; follow-up captures use
+`SW_ONLY` selects supported state groups. Additional-state scripts accept `SW_THEME=light` or
+`SW_THEME=dark` for a single-theme batch and reject unsupported themes; omitting it retains both. Follow-up captures use
 `SW_FOLLOWUP_WIDTH` and `SW_FOLLOWUP_ONLY`. Follow-up and server fixtures use dynamically allocated
 loopback ports. The graph-reopen probe also allocates its second frontend port dynamically and
 uses its own cache. All captures retain disposable data roots and honor `TMPDIR` for scratch

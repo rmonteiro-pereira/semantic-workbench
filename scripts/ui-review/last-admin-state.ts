@@ -9,7 +9,7 @@ import { createServerAuthentication } from '../../src/server/auth/authentication
 import { createHandler } from '../../src/server/handler';
 import { adminArea } from '../helpers/admin-browser';
 import { authViewports } from '../helpers/sign-in';
-import { capture, failure } from './capture-records';
+import { captureThemes, capture, failure } from './capture-records';
 
 const output = process.argv[2];
 if (!output) throw new Error('Expected OUTPUT');
@@ -41,7 +41,7 @@ async function forward(route: Route) {
 }
 
 try {
-  for (const theme of ['light', 'dark']) {
+  for (const theme of captureThemes()) {
     const context = await browser.newContext();
     await context.addInitScript(value => localStorage.setItem('workbench.theme', value), theme);
     const initial = await handler(new Request(config.publicUrl + '/'));

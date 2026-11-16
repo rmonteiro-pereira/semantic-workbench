@@ -7,7 +7,7 @@ import { freeAuthPort, startAuthApi } from '../auth-environment';
 import { authViewports, signIn } from '../helpers/sign-in';
 import { fileTab, showSidebar } from '../helpers/screen-tour';
 import { withCleanup } from '../helpers/processes';
-import { capture, attempt, failure, type CaptureIdentity } from './capture-records';
+import { captureThemes, capture, attempt, failure, type CaptureIdentity } from './capture-records';
 
 const root = process.argv[2];
 if (!root) throw new Error('Expected OUTPUT_ROOT');
@@ -20,7 +20,7 @@ const browser = await chromium.launch();
 const target = { url, issuer: mock.endpointBase, kind: 'entra' as const };
 
 async function personas() {
-  for (const theme of ['light', 'dark']) {
+  for (const theme of captureThemes()) {
     for (const user of ['alice', 'bob', 'carol', 'erin', 'gina'] as const) {
       const context = await browser.newContext({ colorScheme: theme as 'light' | 'dark' });
       await context.addInitScript(value => localStorage.setItem('workbench.theme', value), theme);
@@ -84,7 +84,7 @@ async function personas() {
 async function authPages() {
   const output = root + '/screenshots/auth-pages';
   mkdirSync(output, { recursive: true });
-  for (const theme of ['light', 'dark'] as const) {
+  for (const theme of captureThemes()) {
     for (const [width, height] of authViewports) {
       const context = await browser.newContext({ colorScheme: theme, viewport: { width, height }, deviceScaleFactor: 1 });
       const page = await context.newPage();

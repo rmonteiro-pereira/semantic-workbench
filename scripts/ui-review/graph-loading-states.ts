@@ -7,7 +7,7 @@ import { authViewports } from '../helpers/sign-in';
 import { fileTab } from '../helpers/screen-tour';
 import { revealGraphControls, viewOptions, chooseLayout } from '../helpers/graph-options';
 import { groupingMenuLabels, chooseGrouping } from '../helpers/grouping-menu';
-import { capture, attempt, failure, watchCaptureErrors, type CaptureIdentity } from './capture-records';
+import { captureThemes, capture, attempt, failure, watchCaptureErrors, type CaptureIdentity } from './capture-records';
 
 const output = process.argv[2];
 if (!output) throw new Error('Expected OUTPUT');
@@ -25,7 +25,7 @@ async function burst(page: import('@playwright/test').Page, identity: CaptureIde
 }
 
 try {
-  for (const theme of ['light', 'dark']) {
+  for (const theme of captureThemes()) {
     for (const [width, height] of authViewports) {
       const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 1 });
       page.setDefaultTimeout(5000);

@@ -6,7 +6,7 @@ import { startIsolatedApi, routeApi } from '../helpers/isolated-api';
 import { bareRepository } from '../../tests/helpers/git-fixtures';
 import { openCloneDialog } from '../helpers/project-dialog-tour';
 import { authViewports } from '../helpers/sign-in';
-import { capture, attempt, watchCaptureErrors, failure } from './capture-records';
+import { captureThemes, capture, attempt, watchCaptureErrors, failure } from './capture-records';
 
 const output = process.argv[2];
 if (!output) throw new Error('Expected OUTPUT');
@@ -14,7 +14,7 @@ mkdirSync(output, { recursive: true });
 const fixture = bareRepository('monorepo');
 const browser = await chromium.launch();
 try {
-  for (const theme of ['light', 'dark']) {
+  for (const theme of captureThemes()) {
     for (const [width, height] of authViewports) {
       const api = await startIsolatedApi();
       const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 1 });

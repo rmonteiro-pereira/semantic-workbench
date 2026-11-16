@@ -7,14 +7,14 @@ import { authViewports } from '../helpers/sign-in';
 import { LOCAL_READER } from '../../src/server/projects/reader';
 import { fileTab, showSidebar } from '../helpers/screen-tour';
 import { addProjectItem } from '../helpers/sidebar-menus';
-import { capture, attempt, watchCaptureErrors, failure } from './capture-records';
+import { captureThemes, capture, attempt, watchCaptureErrors, failure } from './capture-records';
 
 const output = process.argv[2];
 if (!output) throw new Error('Expected OUTPUT');
 mkdirSync(output, { recursive: true });
 const browser = await chromium.launch();
 try {
-  for (const theme of ['light', 'dark']) {
+  for (const theme of captureThemes()) {
     for (const [width, height] of authViewports) {
       const api = await startIsolatedApi();
       const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 1 });

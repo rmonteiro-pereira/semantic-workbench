@@ -667,3 +667,26 @@ The shared graph driver waits for the existing layout indicator before and after
 Frontend startup attempts `examples-current-labels`, `examples-final`, `examples-capped`, `examples-api-launch`,
 `examples-fresh-cache` and `examples-start-debug` did not reach browser execution. Their driver logs preserve readiness timeouts or explicit diagnostic stops.
 Direct Vite API startup with an isolated cache subsequently succeeded; no product timeout or assertion was relaxed.
+
+### Serial browser and capture preparation
+
+Existing Vite configuration and the disposable API fixtures remain authoritative. Capture drivers previously iterated both themes internally.
+The capture-record module now validates an optional theme selection; no selection retains the original matrix.
+Drivers reuse that selection so a batch can finish and release its servers before the next theme starts.
+No viewport, fixture, screenshot identity or assertion is removed.
+
+- `python3 .data/gate/serial-step.py graph-direct-http bun run test:graph`: exit 0; `18 graph and neighborhood checks passed`.
+  Additional checks passed for expansion at all four widths in both themes, complete names, tile geometry, stable dragged positions,
+  and first opening of UBL/Mall in Network/Layered layouts at all four widths. The 150-node budget/frontier check passed.
+- `free -g`: 25 GB available before graph; 26 GB before the capture-driver check.
+- `bun -e` importing `captureThemes`: default returns light/dark; light and dark each return only themselves; invalid input throws `Unsupported SW_THEME`.
+- `bunx --bun oxfmt` on the changed capture drivers: exit 0.
+- `python3 ~/.claude/skills/readable-code/scripts/readable_check.py --changed` on all changed capture TypeScript files: exit 0.
+- `python3 ~/.codex/skills/never-leak-process/scripts/leak_scan.py docs/development.md`: `CLEAN`, 0 hits.
+
+Startup diagnostics used `ps`, `ss`, `/proc` status and temporary Vite/Node-net logging inside the ignored gate folder.
+The trace stopped after the wildcard IPv6 probe's listening event, before its close callback and before Vite buildStart.
+A delayed close did not resolve it. The temporary launcher now uses Vite's supported middleware mode with its existing configuration,
+a real HTTP listener on 5261 and the same listener for HMR. This avoids the failing port probe; it changes no application or suite assertions.
+Every stopped diagnostic and completed suite reported `OWNED_PROCESSES_REMAINING []`.
+- `bun --bun run check` after theme selection changes: exit 0; all 1044 matched files formatted; TypeScript, lint, comments, theme and brand passed.

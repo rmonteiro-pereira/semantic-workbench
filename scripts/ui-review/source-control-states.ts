@@ -10,7 +10,7 @@ import { authViewports } from '../helpers/sign-in';
 import { fileTab, showSidebar } from '../helpers/screen-tour';
 import { openRemoteDialog, remoteDialog } from '../helpers/sync-dialog';
 import { fillEditor } from '../helpers/code-editor';
-import { capture, attempt, watchCaptureErrors, failure, type CaptureIdentity } from './capture-records';
+import { captureThemes, capture, attempt, watchCaptureErrors, failure, type CaptureIdentity } from './capture-records';
 
 const output = process.argv[2];
 if (!output) throw new Error('Expected OUTPUT');
@@ -189,7 +189,7 @@ async function draft(page: Page, identity: CaptureIdentity, file: string, origin
 }
 
 try {
-  for (const theme of ['light', 'dark']) {
+  for (const theme of captureThemes()) {
     for (const [width, height] of authViewports) await captureFixture({ output, mode: 'local', theme, width, height });
   }
 } finally {

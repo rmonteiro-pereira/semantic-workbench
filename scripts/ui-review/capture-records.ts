@@ -1,10 +1,18 @@
-// Records native PNG captures and errors incrementally. Imported by capture scripts; no CLI arguments or environment variables.
+// Records native PNG captures and errors incrementally. SW_THEME optionally selects one theme for a serial batch.
 import type { Page } from '@playwright/test';
 import { mkdirSync, appendFileSync } from 'node:fs';
 import { screenProblems } from '../helpers/screen-tour';
 
 /** Capture identity shared by every additional-state screenshot. */
 export type CaptureIdentity = { output: string; mode: string; theme: string; width: number; height: number; user?: string };
+
+/** Selects the requested capture theme while preserving the default matrix. */
+export function captureThemes(): ('light' | 'dark')[] {
+  const theme = process.env.SW_THEME;
+  if (!theme) return ['light', 'dark'];
+  if (theme === 'light' || theme === 'dark') return [theme];
+  throw new Error(`Unsupported SW_THEME: ${theme}. Expected light or dark.`);
+}
 
 const currentScreens = new WeakMap<Page, { screen: string; state: string }>();
 const errorIdentities = new WeakMap<Page, CaptureIdentity>();

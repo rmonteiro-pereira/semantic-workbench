@@ -7,7 +7,7 @@ import { TEST_TENANT_ID, TEST_USERS } from '../../tests/helpers/auth-identities'
 import { freeAuthPort, startAuthApi } from '../auth-environment';
 import { adminArea } from '../helpers/admin-browser';
 import { authViewports, signIn } from '../helpers/sign-in';
-import { capture, attempt, failure, watchCaptureErrors, type CaptureIdentity } from './capture-records';
+import { captureThemes, capture, attempt, failure, watchCaptureErrors, type CaptureIdentity } from './capture-records';
 
 const output = process.argv[2];
 if (!output) throw new Error('Expected OUTPUT');
@@ -70,7 +70,7 @@ try {
   const editor = await browser.newPage();
   await signIn(editor, target, 'alice');
   await editor.close();
-  for (const theme of ['light', 'dark']) {
+  for (const theme of captureThemes()) {
     const context = await browser.newContext();
     await context.addInitScript(value => localStorage.setItem('workbench.theme', value), theme);
     const page = await context.newPage();
