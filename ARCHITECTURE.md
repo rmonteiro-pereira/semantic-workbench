@@ -152,11 +152,13 @@ The integration view shows what the application reads and contacts, and what it 
   `refusal.ts` shares durable denial responses with the operation boundary. The boundary accepts only
   mode, access, audit and remote-credential dependencies and does not depend on the HTTP adapter.
 - `twin-request.ts` builds credential-free requests from inventory ids, encoded parameters, sorted queries and the existing body limits.
-- `operation-inventory.ts` parses `policies/operation-inventory.json`, validates its vocabularies and resolves operation ids and route rows.
+- `operation-inventory.ts` validates `policies/operation-inventory.json` with the application Ajv schema and resolves operation ids and route rows.
 - `operation-boundary.ts` owns route decisions, effective-permission listing, target refusal mapping,
   handler execution and audit for authenticated callers. `createHandler` exposes that same instance
   as `handler.boundary` to trusted in-process adapters; invocation requires a minted caller.
-  Listing reuses action and target-kind probes within one call. `authorize.ts` supplies representative
+  `route-verdict.ts` owns the pure admission decision shared by invocation and listing, including
+  client actions, no-access refusals, Steward audit passes and resolved trash targets. Listing
+  reuses action and target-kind probes within one call. `authorize.ts` supplies representative
   projects with identical metadata and effective role membership; arbitrary administrator rules and
   clients retain exact project probing. No listing decision cache survives the call.
 - `caller.ts` mints authenticated caller context with runtime provenance. `middleware.ts` is the HTTP
@@ -295,7 +297,6 @@ The integration view shows what the application reads and contacts, and what it 
 - `scripts/deploy.ts` owns delivery decisions behind real/fake Azure clients. Pipeline lint and
   dry-run interpret the shipped YAML offline. `deploy/` owns target setup, release hand-over and
   real acceptance; those operations do not happen during application startup.
-
 
 ## Request and state flow
 

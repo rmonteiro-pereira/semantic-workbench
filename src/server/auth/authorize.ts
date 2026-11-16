@@ -229,12 +229,11 @@ export function createAccessControl(options: AccessOptions) {
       return accessView(snapshot, principal, authorize);
     }
 
-    /** Distinct readable policy scopes needed when probing operation availability. */
+    /** Distinct policy scopes needed when probing operation availability. */
     function probeProjects(): string[] {
       synchronize();
       const roles = projectRoles(snapshot, principal);
       const seen = new Set<string>();
-      const readAction = principal.kind === 'client' ? 'agentRead' : 'read';
       return snapshot.projects.filter(project => {
         // Administrator rules can name project ids, beyond the compiler's scope and attribute tests.
         const exact = snapshot.policy.exactResources || principal.kind === 'client';
@@ -242,7 +241,7 @@ export function createAccessControl(options: AccessOptions) {
         const key = exact ? project : JSON.stringify([snapshot.config.projects.projects[project], roles(project).sort()]);
         if (seen.has(key)) return false;
         seen.add(key);
-        return authorize(readAction, { type: 'project', project }).allow;
+        return true;
       });
     }
 

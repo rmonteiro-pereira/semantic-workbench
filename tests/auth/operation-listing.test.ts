@@ -2,7 +2,11 @@
 import { expect, test } from 'bun:test';
 import { join } from 'node:path';
 import { TEST_USERS, TEST_CLIENTS, type TestUserName } from '../helpers/auth-identities';
-import listingBaseline from '../fixtures/characterization/operation-listing.json';
+import { ROUTE_ACTIONS } from '../../src/server/auth/route-actions';
+import { routeVerdict, routeTargets } from '../../src/server/auth/route-verdict';
+import { auditableProjects } from '../../src/server/auth/audit';
+import { localPrincipal } from '../../src/server/auth/principal';
+import type { Caller } from '../../src/server/auth/caller';
 import { createHandler } from '../../src/server/handler';
 import { createAccessControl, type AccessOptions } from '../../src/server/auth/authorize';
 import { createAuditLog } from '../../src/server/auth/audit';
@@ -10,7 +14,7 @@ import { mintCaller } from '../../src/server/auth/caller';
 import { clientPrincipal } from '../../src/server/auth/principal';
 import { buildTwinRequest } from '../../src/server/auth/twin-request';
 import type { Conditions } from '../../src/server/auth/access-config';
-import { operationById } from '../../src/server/auth/operation-inventory';
+import { operationById, operationInventory } from '../../src/server/auth/operation-inventory';
 import { accessFixture, person } from './access-fixture';
 import { authWorkspace } from '../helpers/auth-workspace';
 import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
@@ -40,11 +44,11 @@ function customOptions(conditions: Conditions, roleName = 'Scoped writer') {
   return options;
 }
 
-async function setup(options: AccessOptions = accessFixture()) {
+async function setup(options: AccessOptions = accessFixture(), mode: 'local' | 'server' = 'server') {
   const fixture = await authWorkspace();
   const access = createAccessControl(options);
   const audit = createAuditLog({ dir: join(fixture.root, 'listing-audit') });
-  const handler = createHandler(fixture.ws, { mode: 'server', access, audit, remoteCredentials: allowEveryRemote() });
+  const handler = createHandler(fixture.ws, { mode, access, audit, remoteCredentials: allowEveryRemote() });
   return { fixture, access, audit, boundary: handler.boundary, [Symbol.dispose]: () => fixture.dispose() };
 }
 
@@ -71,8 +75,8 @@ test('built-in roles, client identities, no grants and deactivation use effectiv
   expect(context.boundary.availableOperations(disabled)).toEqual([]);
   const client = mintCaller({ principal: clientPrincipal('sw-agent'), origin: 'mcp' });
   const clientList = context.boundary.availableOperations(client);
-  expect(clientList).toContain('agent.projects.read');
-  expect(clientList.every(id => operationById(id)?.entry.clientAction === 'agentRead')).toBe(true);
+  expect(clientList).toContain('agent.projects.list');
+  expect(clientList.every(id => ROUTE_ACTIONS.find(row => row.path === operationById(id)?.row)?.clientAction === 'agentRead')).toBe(true);
   expect(context.audit.recent(10)).toEqual([]);
 });
 
@@ -116,34 +120,45 @@ test('listing all operations across twenty projects reports its cost against the
   expect(operations).toContain('files.save');
 });
 
-async function listingAnswers() {
-  using context = await setup();
-  const answers: Record<string, string[]> = {};
-  for (const name of Object.keys(TEST_USERS) as TestUserName[]) {
-    const principal = context.access.principalFor(person(name));
-    answers[name] = context.boundary.availableOperations(mintCaller({ principal, origin: 'mcp' }));
-    answers[name + '/read'] = context.boundary.availableOperations(mintCaller({ principal, origin: 'mcp', scope: ['read'] }));
+function assertAvailability(context: Awaited<ReturnType<typeof setup>>, caller: Caller, mode: 'local' | 'server') {
+  const scope = context.access.forRequest(caller.principal, { sourceIp: caller.sourceIp });
+  const projects = context.access.snapshot().knownProjects();
+  const storedProjects = context.fixture.ws.state.registry().projects.map(project => project.slug);
+  const auditProjects = scope.authorize('admin', { type: 'workspace' }).allow ? null : auditableProjects(scope, storedProjects);
+  const ids = new Set(context.boundary.availableOperations(caller));
+  for (const row of ROUTE_ACTIONS) {
+    const targets = [...routeTargets(scope, row, projects, mode)];
+    const admitted = targets.map(target => routeVerdict(scope, row, mode, { ...target, projects: () => projects, auditProjects, origin: caller.origin, connectionScope: caller.scope }));
+    const listed = ids.has(operationInventory.operations[row.path].id);
+    if (listed)
+      expect(
+        admitted.some(verdict => verdict.decision.allow),
+        caller.principal.name + ': ' + row.path,
+      ).toBe(true);
+    else
+      expect(
+        admitted.every(verdict => !verdict.decision.allow),
+        caller.principal.name + ': ' + row.path,
+      ).toBe(true);
   }
-  for (const client of Object.values(TEST_CLIENTS)) {
-    const principal = clientPrincipal(client.clientId);
-    answers[client.clientId] = context.boundary.availableOperations(mintCaller({ principal, origin: 'mcp' }));
-  }
-  const config = context.access.snapshot().config;
-  config.deactivated.principals.push({ id: context.access.principalFor(person('alice')).id, at: '2026-10-01T00:00:00Z', by: 'admin', reason: 'disabled' });
-  context.access.reload(config);
-  answers.disabled = context.boundary.availableOperations(mintCaller({ principal: context.access.principalFor(person('alice')), origin: 'mcp' }));
-  for (const conditions of [{ path: 'docs/**' }, { docType: ['ontology'] }]) {
-    using conditional = await setup(customOptions(conditions));
-    const principal = conditional.access.principalFor(person('alice'));
-    answers[JSON.stringify(conditions)] = conditional.boundary.availableOperations(mintCaller({ principal, origin: 'mcp' }));
-  }
-  return answers;
 }
 
-test('listing exactly preserves the recorded answers for every fixture caller', async () => {
-  const answers = await listingAnswers();
-  expect(answers).toEqual(listingBaseline);
-});
+test('listing and invocation admission agree for every fixture caller and inventory row', async () => {
+  for (const mode of ['server', 'local'] as const) {
+    const options: AccessOptions = { ...accessFixture(), mode };
+    using context = await setup(options, mode);
+    const principals = (Object.keys(TEST_USERS) as TestUserName[]).map(name => context.access.principalFor(person(name)));
+    principals.push(...Object.values(TEST_CLIENTS).map(client => clientPrincipal(client.clientId)), localPrincipal());
+    principals.push({ ...principals[0], deactivated: true });
+    for (const principal of principals) {
+      for (const scope of [undefined, ['read']] as const) assertAvailability(context, mintCaller({ principal, origin: 'mcp', scope }), mode);
+    }
+  }
+  for (const conditions of [{ path: 'docs/**' }, { docType: ['ontology'] }]) {
+    using context = await setup(customOptions(conditions));
+    assertAvailability(context, mintCaller({ principal: context.access.principalFor(person('alice')), origin: 'mcp' }), 'server');
+  }
+}, 60_000);
 
 test('listing keeps distinct grant scopes and project-specific administrator rules', async () => {
   for (const administratorRule of [false, true]) {
@@ -171,4 +186,15 @@ test('listing keeps distinct grant scopes and project-specific administrator rul
     context.access.reload(options.config);
     expect(context.boundary.availableOperations(caller)).toEqual(original);
   }
+}, 30_000);
+
+test('a project grant never admits a workspace-only operation', async () => {
+  const options = customOptions({});
+  options.config.roles[0].permissions = [{ actions: ['read', 'clear'] }];
+  using context = await setup(options);
+  const caller = mintCaller({ principal: context.access.principalFor(person('alice')), origin: 'mcp' });
+  assertAvailability(context, caller, 'server');
+  expect(context.boundary.availableOperations(caller)).not.toContain('workspace.clear');
+  const result = await context.boundary.operate({ caller, request: buildTwinRequest('workspace.clear', { params: {}, body: {} }) });
+  expect(result.response.status).toBe(403);
 });

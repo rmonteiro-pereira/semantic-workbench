@@ -394,9 +394,11 @@ adapters can return a client error without treating caller mistakes as server fa
 Twin requests carry the authenticated caller's session reference. Remote credentials use that
 reference, including an explicit absent session, before considering cookie-based session lookup.
 
-The boundary's `permittedSomewhere` uses effective policy decisions for route passes. File-target
-listing probes reuse `projectResources` from the dry run so path and document-type conditions are
-represented without duplicating policy evaluation.
+The pure `routeVerdict(scope, row, mode, target)` owns admission for both invocation and listing.
+Listing supplies candidate targets of the route's actual resource kind; a workspace-only row
+cannot acquire permission through a project grant. File probes reuse `projectResources` from the
+dry run. The listing invariant checks every fixture caller and inventory row, including unlisted
+operations, client rows, local mode, deactivation and connection effects.
 
 `handler.boundary.operate({ caller, request, operationId })` accepts one optional inventory id;
 the request must resolve to that exact operation. Only HTTP and MCP origins are supported.
@@ -406,3 +408,10 @@ The in-process boundary exposes invocation and operation listing.
 route passes and connection effects, without running handlers or writing audit records. Listing is
 advisory: invocation always checks the actual target again. File probes cover custom path and
 document-type conditions; body routes retain the existing project-level pass before target checks.
+
+
+The operation inventory is validated by `schemas/semantic-workbench-operations-v1.json` through
+the same Ajv setup as access configuration. Route rows own actions, client actions and initial
+resource kinds; the inventory adds public ids, effects, limits, exposure, dispatch and handler-check
+coverage. Classifier names are keys of `operationClassifiers`. Agent plan bodies have their own
+`AGENT_PLAN_REQUEST_LIMIT` (64,000 bytes), independent of the Git request limit.
