@@ -112,3 +112,20 @@ Focused sidebar recaptures report four `MEASURE sidebar-projects ... problems=0`
 Server commands ran in isolated subprocess sessions with their actual return codes recorded in files,
 confirming zero after earlier direct-launcher signal statuses. The inherited 407/421 responsive failure
 remains documented separately and is not described as a passing assertion.
+
+## Remote completion protocol
+
+After the shared desktop was externally stopped for memory exhaustion, heavy completion runs moved to the
+user-supplied capped wrapper. The remote unit command uses `bun test --timeout 30000` because the slower
+shared machine exceeded Bun's five-second default in unrelated KPI and refresh cases. Assertions and
+explicit per-test deadlines are unchanged. Final results are recorded below when each run completes.
+
+```sh
+sw-midgard-run -- bun test --timeout 30000
+sw-midgard-run --pull out/008-remote-gate -- bun specs/008-published-snapshot/remote-mutation-gate.ts
+```
+
+The versioned support driver starts its own frontend on 5481, points the API proxy at 5482, and runs the
+snapshot browser baseline, full UI baseline and full mutation suite serially. Browser harnesses own their
+isolated dynamic API listeners. The frontend is stopped in `finally`; logs and exit files are pulled from
+the dedicated output directory. No production source, dependencies or public environment settings change.
