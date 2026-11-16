@@ -32,3 +32,16 @@ and 422 for unreadable candidates. Snapshot refusals bypass the legacy local 400
 The targeted mutation runner used the registered snapshot-pointer case with the baseline and
 with divergence classified as a fast-forward: baseline exit 0, mutant exit 1.
 The full mutation gate is also running; its final result is recorded separately.
+
+## Ordered publication checks
+
+`bun test tests/publication-checks.test.ts`: 5 pass, 0 fail, 8 expect() calls.
+Registered mutants skipping ancestry, skipping bounded reads and executing guards before bounds
+all fail their focused cases; each unmodified baseline passes.
+
+## Full mutation attempt
+
+`bun scripts/mutation-tests.ts` detected the registered pointer mutant and completed the module
+and askpass mutations, then failed its UI-mutant setup: the default frontend URL was unavailable.
+The browser stage needs `SW_BASE_URL` pointed at the assigned frontend port and a running dev server.
+This run is not a passing full gate.

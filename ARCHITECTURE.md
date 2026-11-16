@@ -143,6 +143,8 @@ concatenating project, document or item names.
 - Shared `grouping-addresses.ts` translates stable assignment keys while keeping renderer IDs at the UI boundary.
 - `scanner.ts`, `cache.ts` and `watcher.ts` maintain derived models/findings and detect disk
   changes. Cache rows are not another authoritative copy of the definitions.
+- `publication-checks.ts` orders ancestry, complete bounded reads and content-guard judgement
+  before a publication can move its ref or durable pointer.
 - `published-pointer.ts` owns atomic publication records and interrupted-publication transitions.
   `state.ts` persists these records in `state/published.json`, separately from the derived cache.
 - `git.ts` is the subprocess boundary for Git. Immutable object reads use queued `ls-tree` and
