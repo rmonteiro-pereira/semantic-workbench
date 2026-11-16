@@ -26,3 +26,9 @@ The unchanged audit writer produced January, February and March records at fixed
 The unchanged administration comparison replays six fixed-clock read/edit snapshots for an Editor, custom-role holder and Admin, against removal of the custom-role grant.
 
 `bun test tests/auth/dry-run-baseline.test.ts`: 1 pass, 0 fail, 1 expect() call.
+
+## HTTP performance baseline
+
+`TMPDIR` and `DATA_DIR` point to the assigned temporary area. The in-process benchmark uses 150 warm-up requests followed by 5,000 measured requests, alternating an allowed read, a no-grant denial and an authorized write with invalid input. Every response status is checked. No network listener is opened.
+
+`bun scripts/boundary-benchmark.ts`: requests=5000, medianMs=2.5063719999998284, p95Ms=5.346923000000061.
