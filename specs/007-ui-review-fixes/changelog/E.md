@@ -1,8 +1,0 @@
-- Bundle DM Sans and Manrope under the SIL Open Font License so the workspace typography works offline; add sans-serif fallbacks to display headings and controls.
-- Catalog searches explain empty results and offer Clear search with a result count.
-- Metric authoring keeps its title and actions stable, provides a searchable data inventory, and places validation feedback beside fields.
-- Trash lists deleted files from other projects and marks Empty trash as destructive.
-- Phone mappings open concept details with Back to concepts; resolved bindings open by default.
-- First run offers import and an example without inactive tabs, and menus put available actions first.
-- Disabled actions have solid muted borders; native controls share the theme focus ring and selects use a single chevron.
-- Group colors avoid red hues, metric change previews wrap long lines, and deletion previews describe the future action.

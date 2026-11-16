@@ -64,11 +64,15 @@ and protect release tags. Existing tags inside published history remain usable a
 - Examples: the Mapped commerce and Subscription billing ontologies describe their value types and
   the commerce entities, so the Mappings AI context and the graph show a definition for each.
 
+- Bundle DM Sans and Manrope under the SIL Open Font License so the workspace typography works offline; add sans-serif fallbacks to display headings and controls.
+
 ### Fixed
 
 - Older item-address aliases resume after deletion when the current locator is explicitly reconciled.
 
 - The administration audit retention setting reaches the single production audit log.
+- Catalog cards show complete descriptions, and the wider catalog search stays scoped to that view.
+- Compact lineage cards wrap complete names and pack to the pane when a layered fit would make them too small.
 
 - A fresh development server no longer reloads the page while the Network graph loads for the first
   time. `cytoscape` and `cytoscape-fcose`, which only the layout worker imports, are now optimized
@@ -77,6 +81,41 @@ and protect release tags. Existing tags inside published history remain usable a
 - `test:back-history` walks to a side table that is in view. The first side table of the mall
   contract sits partly above the pane on opening, with its **Walk here** button under the page
   header.
+
+- Keep the selected entity readable and fold graph controls before the toolbar wraps.
+- Open neighborhoods at readable scale and group cross-file links under Other files.
+- Offer Fit for a Full pierce result that cannot fit at readable scale.
+- Preserve identifier word boundaries, humanize area labels and correct singular entity counts.
+- Keep area titles above relationship strokes, space metric badges, frame the mini-map and bound minimum zoom relative to Fit.
+- Keep the full-screen Exit visible on phones and limit the details pane height.
+- Open Network as counted area cards when names at Fit would be too small. Open Layered on the first area at readable scale while preserving its routes.
+- Compact table headers on the Lineage tab and align embedded canvases with the table content width.
+- Keep lineage hop controls on one row and group viewport actions beside the walk trail.
+- Keep walk targets usable at reduced zoom, hiding them when their card cannot hold the target.
+- Identify walked lineage centres, retain CENTER beside the card name and provide a collapsible phone legend.
+- Explain unlinked assets and disable unavailable hops; disable layout controls while positions are pending.
+- Reject edge-label positions crossed by routes or clipped by the pane.
+- Correct the documented foreign-key range to one through three; distinguish mapping steps one through five.
+- Share compensated name-only cards between lineage and mappings; fit readable complete reaches on entry and keep chosen fallback cards whole.
+- Offer Walk from a selected fitted card and retain 24 px targets after zooming in.
+- Dark source comparisons use themed gutters and collapsed-line surfaces.
+- Staged deletions keep their selection and show committed content with a Deleted (staged) label.
+- Phone Source control opens a unified diff with Back to changes; stale-save dialogs keep their actions inside the viewport and distinguish overwriting from safe actions.
+- Invalid Source drafts keep one located message beyond the header state. Read access replaces unavailable commit and branch-creation controls.
+- Diff headers show the filename once, dark YAML keys differ from values, and Source control, clone and validation wording is clearer.
+- Access grants validate e-mail addresses beside the field and use **Review change** before confirmation.
+- Refusing deactivation of the last active Admin removes the confirmation action and explains why.
+- Access checks display allowed or denied results beside their actions, with details folded away.
+- Direct Admin addresses explain when the Admin role is required and provide a workspace link.
+- Admin forms and tables have consistent width limits, readable audit labels and dates without seconds. Review dialogs place the primary action on the right.
+- Script-free authentication pages use primary actions, plain explanations and the configured support address, with administrator guidance when none is configured.
+- Catalog searches explain empty results and offer Clear search with a result count.
+- Metric authoring keeps its title and actions stable, provides a searchable data inventory, and places validation feedback beside fields.
+- Trash lists deleted files from other projects and marks Empty trash as destructive.
+- Phone mappings open concept details with Back to concepts; resolved bindings open by default.
+- First run offers import and an example without inactive tabs, and menus put available actions first.
+- Disabled actions have solid muted borders; native controls share the theme focus ring and selects use a single chevron.
+- Group colors avoid red hues, metric change previews wrap long lines, and deletion previews describe the future action.
 
 ## v0.6.1 — 2026-11-03
 

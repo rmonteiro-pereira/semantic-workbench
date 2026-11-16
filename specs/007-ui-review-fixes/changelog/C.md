@@ -1,5 +1,0 @@
-- Dark source comparisons use themed gutters and collapsed-line surfaces.
-- Staged deletions keep their selection and show committed content with a Deleted (staged) label.
-- Phone Source control opens a unified diff with Back to changes; stale-save dialogs keep their actions inside the viewport and distinguish overwriting from safe actions.
-- Invalid Source drafts keep one located message beyond the header state. Read access replaces unavailable commit and branch-creation controls.
-- Diff headers show the filename once, dark YAML keys differ from values, and Source control, clone and validation wording is clearer.
