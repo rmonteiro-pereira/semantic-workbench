@@ -94,3 +94,29 @@ test('every export is recorded in the audit log with the person and the project'
   expect(entry.principal.id).toBe(createAccessControl(accessFixture()).principalFor(salesViewer()).id);
   expect(JSON.stringify(entry)).not.toContain('revenue-recognition');
 });
+
+test('published identity and export remain available without history permission', async () => {
+  using fixture = await authWorkspace();
+  const configuration = accessFixture();
+  configuration.config.roles[0].permissions = [{ actions: ['read', 'export'] }];
+  configuration.config.grants = configuration.config.grants.filter(grant => grant.roleId === configuration.config.roles[0].id);
+  const access = createAccessControl(configuration);
+  const principal = access.principalFor(person('hank'));
+  const handler = createHandler(fixture.ws, {
+    mode: 'server',
+    remoteCredentials: allowEveryRemote(),
+    publicOrigin: ORIGIN,
+    access,
+    principal: () => principal,
+  });
+  const projects = await handler(apiRequest('/api/projects'));
+  expect(projects.status).toBe(200);
+  const project = (await projects.json()).find((candidate: any) => candidate.slug === CONTRACTS);
+  expect(project.published).toEqual(fixture.ws.published.pin().commits.get(CONTRACTS));
+  expect(project.actions).toContain('export');
+  expect(project.actions).not.toContain('history');
+  expect((await handler(apiRequest(`/api/projects/${CONTRACTS}/git/status`))).status).toBe(403);
+  const response = await handler(apiRequest(`/api/projects/${CONTRACTS}/export?source=published`));
+  expect(response.status).toBe(200);
+  expect(readZip(new Uint8Array(await response.arrayBuffer())).size).toBeGreaterThan(0);
+});

@@ -29,16 +29,28 @@ try {
     const page = await browser.newPage();
     let published: PublishedStatus = { state: 'in-sync', branch: 'main', commit, ahead: 1, behind: 0, notice: true };
     const actions: string[] = [];
+    let withoutHistory = false;
     await routeApi(page, api, async route => {
       const path = new URL(route.request().url()).pathname;
       if (path === '/api/me' || path === '/api/projects') {
         const response = await route.fetch({ url: api.url + path });
         const value = await response.json();
-        const json = path === '/api/me' ? { ...value, mode } : value.map((item: object) => ({ ...item, actions: ['publish', 'commit', 'branch', 'setRemote', 'export', 'history'] }));
+        const json =
+          path === '/api/me'
+            ? { ...value, mode }
+            : value.map((item: object) => ({
+                ...item,
+                published: published.state === 'none' ? null : { branch: published.branch, commit: published.commit },
+                actions: ['publish', 'commit', 'branch', 'setRemote', 'export', ...(withoutHistory ? [] : ['history'])],
+              }));
         await route.fulfill({ response, json });
         return true;
       }
       if (path.endsWith('/git/status')) {
+        if (withoutHistory) {
+          await route.fulfill({ status: 403, json: { error: 'History is not granted.' } });
+          return true;
+        }
         const response = await route.fetch({ url: api.url + path });
         await route.fulfill({ response, json: { ...(await response.json()), published } });
         return true;
@@ -96,6 +108,7 @@ try {
     expect(plan.status(), await plan.text()).toBe(200);
     expect(await plan.text()).toContain('+ 17');
     await composer.getByRole('button', { name: 'Close', exact: true }).click();
+    withoutHistory = true;
     const projectName = api.ws.project(mapped.slug).name;
     async function openExport() {
       await page.getByRole('button', { name: `Actions for ${projectName}`, exact: true }).click();

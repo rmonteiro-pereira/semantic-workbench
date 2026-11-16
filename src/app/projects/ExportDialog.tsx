@@ -1,7 +1,7 @@
 /** Downloads a project's files as a zip, with an optional Git bundle of its history. */
 import React, { useEffect, useState } from 'react';
 import { Modal } from './Modal';
-import { api, scm, type ProjectInfo } from './api';
+import { api, type ProjectInfo } from './api';
 import './export-dialog.css';
 
 // Only saved files are exported. Edits that are still unsaved, in the open file or kept as
@@ -69,9 +69,9 @@ function usePublicationOption(project: string) {
   const [state, setState] = useState({ project: '', available: false, error: '' });
   useEffect(() => {
     let active = true;
-    scm.status(project).then(
-      status => {
-        if (active) setState({ project, available: Boolean(status.published && status.published.state !== 'none'), error: '' });
+    api.projects().then(
+      projects => {
+        if (active) setState({ project, available: Boolean(projects.find(candidate => candidate.slug === project)?.published), error: '' });
       },
       () => {
         if (active) setState({ project, available: false, error: 'Published status unavailable.' });

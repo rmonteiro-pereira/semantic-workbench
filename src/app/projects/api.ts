@@ -31,6 +31,8 @@ export type WorkingCopyInfo = {
 };
 /** Summarizes a project, its Git state and indexed files. */
 export type ProjectInfo = {
+  /** Settled production identity, available with project read access independently of history. */
+  published?: { branch: string; commit: string } | null;
   /** Server mode only: the person's working copy, or null when they read the published state. */
   copy?: WorkingCopyInfo | null;
   hiddenFiles?: number;

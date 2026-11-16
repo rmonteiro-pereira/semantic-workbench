@@ -1,6 +1,6 @@
 // Labels editing previews independently of the production request source.
 import { useEffect, useState } from 'react';
-import { scm } from '../projects/api';
+import { api } from '../projects/api';
 
 /** Names the saved authoring view and the production commit reported by Source Control. */
 export function PublishedPreview({ project, revisionKey }: { project: string; revisionKey: string }) {
@@ -8,11 +8,11 @@ export function PublishedPreview({ project, revisionKey }: { project: string; re
   useEffect(() => {
     let active = true;
     if (!project) return;
-    scm.status(project).then(
-      status => {
+    api.projects().then(
+      projects => {
         if (!active) return;
-        const snapshot = status.published;
-        const text = snapshot && snapshot.state !== 'none' ? `${snapshot.branch} @ ${snapshot.commit.slice(0, 7)}` : 'none';
+        const snapshot = projects.find(candidate => candidate.slug === project)?.published;
+        const text = snapshot ? `${snapshot.branch} @ ${snapshot.commit.slice(0, 7)}` : 'none';
         setPublication({ project, text });
       },
       () => {

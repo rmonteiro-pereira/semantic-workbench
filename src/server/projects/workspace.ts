@@ -886,7 +886,9 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
                 };
               } catch {}
             const location = locationOf(projectEntry);
+            const snapshot = gitAvailable ? pointers.get(location.repo) : undefined;
             return {
+              published: snapshot?.commit ? { branch: snapshot.branch, commit: snapshot.commit } : null,
               slug: projectEntry.slug,
               name: projectEntry.name,
               origin: projectEntry.origin,

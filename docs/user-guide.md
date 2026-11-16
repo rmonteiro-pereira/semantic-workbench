@@ -170,6 +170,8 @@ names known unsaved edits and can offer **Save and export** for the open file. W
 exists, **Files to export → Published** selects it instead of **Working copy (saved files)**.
 Published disables Git history and does not save or include the open draft.
 
+`GET /api/projects` includes each readable project's settled `published` identity (`branch` and full `commit`, or null). This metadata and the Published export choice require no Git history permission.
+
 `GET /api/projects/:slug/export?source=published` instead archives exact committed snapshot bytes
 for the files the caller may read. `source=editing` is the default. Published exports never include
 unpublished work and reject `history=1` with “history is not available for the published source”.
