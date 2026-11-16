@@ -4,10 +4,9 @@ import { BadRequestError, HiddenResourceError } from './projects/errors';
 import { join } from 'node:path';
 import { requestReader } from './auth/request-scope';
 import { authorizeWrite, WriteAccessError } from './auth/write-access';
-import { createAccessMiddleware, defaultAccess, defaultAdministration, type HandlerOptions } from './auth/middleware';
+import { createAccessMiddleware, defaultAccess, defaultAdministration, defaultAudit, type HandlerOptions } from './auth/middleware';
 import { createAccessAdmin, type AccessAdmin } from './auth/access-admin';
 import type { AdminRepository } from './auth/admin-repo';
-import { createAuditLog } from './auth/audit';
 import { adminRoutes } from './routes/admin';
 import { auditRoutes } from './routes/audit';
 import { documentsOfProject } from '../shared/core/project-scope';
@@ -244,7 +243,7 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
     ...options,
     access,
     administration,
-    audit: options.audit ?? createAuditLog({ dir: join(ws.layout.state, 'audit') }),
+    audit: options.audit ?? defaultAudit(ws, options.mode ?? 'local', administration),
   };
   let accessAdmin: Promise<AccessAdmin> | undefined;
   // The service shares the process's one administration repository, whose commits reload the

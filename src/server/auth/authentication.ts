@@ -76,7 +76,7 @@ export async function createServerAuthentication(ws: Workspace, config: ServerCo
     knownProjects: () => ws.state.registry().projects.map(project => project.slug),
     context: () => ({ hour: new Date().getUTCHours() }),
   });
-  const audit = createAuditLog({ dir: join(ws.layout.state, 'audit'), mirror: console.log });
+  const audit = createAuditLog({ dir: join(ws.layout.state, 'audit'), mirror: console.log, retentionDays: settings.audit?.retentionDays });
   function record({ action, principal, outcome, reason, request, suppressed }: SignInEvent) {
     audit.append({
       requestId: (request as AuditRequest | undefined)?.[requestAuditId] ?? crypto.randomUUID(),

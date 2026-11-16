@@ -381,3 +381,7 @@ mutation and security-review harnesses are explicit exceptions for isolated test
 `auth/operation-outcome.ts` buffers at most 1 MB from a cloned, non-stream response for semantic
 classification. Existence hiding runs first; classification failure records `failed` without
 changing an operation's response or consuming the caller's body.
+
+Server authentication constructs the mirrored audit log once with administration retention and
+passes the same instance to the handler and administration service. Standalone handlers use
+`defaultAudit` with configured retention; a supplied log prevents a second construction.

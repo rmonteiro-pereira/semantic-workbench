@@ -93,6 +93,19 @@ export function defaultAccess(ws: Workspace, mode: 'local' | 'server'): AccessCo
 export function defaultAdministration(ws: Workspace, access: AccessControl): AdminRepository {
   return openAdminRepository({ root: ws.layout.root, committed: config => access.reload(config) });
 }
+/** Builds the standalone handler's audit log with the administration retention setting. */
+export function defaultAudit(ws: Workspace, mode: 'local' | 'server', administration: AdminRepository): AuditLog {
+  let retentionDays: number | undefined;
+  if (existsSync(join(ws.layout.root, 'admin', 'settings.json'))) {
+    try {
+      retentionDays = administration.settings().audit?.retentionDays;
+    } catch (error) {
+      if (mode !== 'local' || !(error instanceof AdminConfigError)) throw error;
+      log.warn('admin.config-invalid', { detail: error.message, fallback: 'local defaults' });
+    }
+  }
+  return createAuditLog({ dir: join(ws.layout.state, 'audit'), retentionDays });
+}
 function projectSlugs(ws: Workspace): string[] {
   return ws.state.registry().projects.map(project => project.slug);
 }
@@ -127,7 +140,7 @@ export function createAccessMiddleware(
 ) {
   const mode = options.mode ?? 'local';
   const access = options.access ?? defaultAccess(ws, mode);
-  const audit = options.audit ?? createAuditLog({ dir: join(ws.layout.state, 'audit') });
+  const audit = options.audit ?? defaultAudit(ws, mode, options.administration ?? defaultAdministration(ws, access));
   const authentication = createRequestAuthentication(options, audit, localCheck);
   const boundary = createOperationBoundary(ws, { ...options, access, audit }, run);
   async function dispatch(request: AccessRequest, requestId: string): Promise<Response> {
