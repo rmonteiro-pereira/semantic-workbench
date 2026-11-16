@@ -65,6 +65,11 @@ async function showStaleSave(page: Page, file: string) {
   await fileTab(file, 'Source')(page);
   const editor = page.getByRole('textbox', { name: 'Definition source', exact: true });
   const original = await editorValue(editor);
+  // This presentation fixture must not leave a durable draft for later tours of the same file.
+  await page.route('**/api/drafts/**', route => {
+    if (route.request().method() === 'PUT') return route.fulfill({ status: 204 });
+    return route.fallback();
+  });
   await page.route(
     '**/api/projects/*/files/*',
     async route => {

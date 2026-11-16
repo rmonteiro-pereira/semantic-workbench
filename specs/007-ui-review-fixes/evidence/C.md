@@ -21,7 +21,7 @@ The script's History button selector is stale. Its generic geometry checker also
 
 ## Dark comparison surfaces
 
-The surface assertion failed before the fix: expected `rgb(15, 21, 20)`, received `rgb(245, 245, 245)`. The four comparison screens then passed (modified, added, staged-deleted, stale-save). This failure demonstration used the unchanged foundation's comparison code, rather than a separate e8b7d69 checkout.
+The surface assertion failed before the fix: expected `rgb(15, 21, 20)`, received `rgb(245, 245, 245)`. The four comparison screens then passed (modified, added, staged-deleted, stale-save). The initial failure demonstration used the unchanged foundation. A later run against an archived e8b7d69 frontend on 5231 failed at the same assertion: expected rgb(15, 21, 20), received rgb(245, 245, 245), recorded in /tmp/sw-C/e8b7d69-surface.log. The baseline server was stopped before returning to the fixed frontend.
 
 Viewed after images `/tmp/sw-C/theme-fixed/local-dark-source-control--diff-modified-1440.png` and `/tmp/sw-C/theme-fixed/local-dark-source-editor--stale-save-warning-1440.png`, paired with the same basenames under the review's `screenshots/states/`. Gutters and collapsed-line strips are dark; no white bands remain. The old overwrite-primary and clipped header are still visible in these captures and belong to later fixes.
 
@@ -81,3 +81,9 @@ Viewed `states/local-source-editor--validation-details-1440.png` before and `/tm
 ## Documentation
 
 The Source control section in `docs/user-guide.md` describes staged deletion, the phone diff, read access and invalid drafts. These correspond respectively to the passing staged-deletion/phone SCM check, read-access SCM check, and invalid-Source-draft validation check named above. `changelog/C.md` records the visible changes. `test:terminology`: **Terminology check passed: no retired terms in 8 files' views, metric detail, wizard, README and docs** (`/tmp/sw-C/check-terminology.log`). Documentation leak scan: **0 hits in 2 files**.
+
+## Comparison fixture lifetime
+
+A full responsive run reached the desktop header and found Not saved plus a count where its unchanged saved-header baseline expects Saved. The newly added stale-save tour had persisted its draft to the shared API workspace. Its draft PUT is now intercepted, like its simulated conflicting file PUT. A focused entry-point run exercises all four comparisons at 1440 and 390, closes each page, then asserts `api.ws.state.drafts()` is empty: **8 comparison screens passed; both durable-draft assertions passed** (`/tmp/sw-C/tour-lifetime.log`). The first responsive attempt was interrupted by a frontend reload while changes/build generation were still occurring; the next run exposed this fixture leak. The final rerun uses settled sources.
+
+The temporary full-unit port adapter originally prefixed the mock issuer path, correctly refused by the Entra authority validator. The revised temporary adapter exposes the provider on 5232 with its original tenant path and multiplexes other fixtures by path. Authentication preflight: **13 pass, 0 fail, 67 expect() calls** (`/tmp/sw-C/unit-port-preflight.log`). The invalid harness run was stopped and does not count as a successful unit gate.
