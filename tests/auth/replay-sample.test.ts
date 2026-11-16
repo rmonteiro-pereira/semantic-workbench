@@ -23,7 +23,7 @@ test('a complete pair of strata stops before opening corrupt older months', () =
   try {
     const audit = createAuditLog({ dir: dir.root, now: () => new Date('2026-10-01Z') });
     writeFileSync(join(dir.root, '2026-09.jsonl'), 'invalid json\n');
-    const entries = [...Array.from({ length: 1000 }, (_, index) => replayEntry(index)), ...Array.from({ length: 500 }, (_, index) => replayEntry(index, 'acp'))];
+    const entries = [...Array.from({ length: 1000 }, (_, index) => replayEntry(index)), ...Array.from({ length: 500 }, (_, index) => replayEntry(index, 'mcp'))];
     writeFileSync(join(dir.root, '2026-10.jsonl'), entries.map(entry => JSON.stringify(entry)).join('\n') + '\n');
     expect(replaySample(audit)).toHaveLength(1500);
   } finally {

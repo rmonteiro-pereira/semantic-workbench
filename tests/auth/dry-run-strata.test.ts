@@ -20,7 +20,7 @@ test('fifty thousand reads preserve all ordinary evidence, deduplicate reads and
     }));
     for (const entry of ordinary) audit.append(entry);
     for (let index = 0; index < 50000; index++) audit.append({ ...replayEntry(index % 800, 'mcp'), requestId: 'read-' + index });
-    audit.append({ ...replayEntry(0, 'mcp'), requestId: 'protocol', action: 'protocol', method: 'tools/list' });
+    audit.append({ ...replayEntry(0, 'mcp'), requestId: 'protocol', action: 'protocol' });
     const sampled = replaySample(audit);
     expect(sampled.filter(entry => !entry.origin).map(entry => entry.requestId)).toEqual(ordinary.map(entry => entry.requestId));
     const reads = sampled.filter(entry => entry.origin);
@@ -40,7 +40,7 @@ test('stratified dry-run timings are compared against the same-size HTTP history
     const transport = createAuditLog({ dir: join(dir.root, 'transport'), now: () => new Date('2026-10-01Z') });
     for (let index = 0; index < 50300; index++) {
       ordinary.append(replayEntry(index));
-      transport.append(replayEntry(index, index < 300 ? undefined : 'acp'));
+      transport.append(replayEntry(index, index < 300 ? undefined : 'mcp'));
     }
     const options = accessFixture();
     function measure(audit: typeof ordinary) {
