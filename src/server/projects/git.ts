@@ -9,6 +9,11 @@ import { observeGitCommand } from '../observability/git-command';
 export const LOCAL_TIMEOUT_MS = 30_000;
 /** Default time limit for remote Git commands. */
 export const REMOTE_TIMEOUT_MS = 600_000;
+/** A blob entry listed from an immutable Git tree. */
+export type GitTreeEntry = { path: string; id: string; size: number };
+/** Maximum bytes accepted when reading immutable definition objects. */
+export type GitObjectLimits = { documentBytes: number; totalBytes: number };
+const OBJECT_LIMITS: GitObjectLimits = { documentBytes: 2_000_000, totalBytes: 64_000_000 };
 /** Git exit status, decoded output, and raw stdout bytes. */
 export type GitResult = { code: number; stdout: string; stderr: string; bytes: Uint8Array };
 /** Reports Git failure or cancellation with optional command output. */
@@ -354,9 +359,66 @@ export function createGit(options: GitOptions) {
     const head = await read(cwd, ['rev-parse', '-q', '--verify', 'HEAD']);
     return { committed: true, commit: head.stdout.trim() };
   }
+  async function lsTree(cwd: string, revision: string, prefix = ''): Promise<GitTreeEntry[]> {
+    const result = await run(cwd, ['ls-tree', '-r', '-l', '-z', revision, '--', ...(prefix ? [prefix] : [])], {
+      env: { GIT_NO_LAZY_FETCH: '1' },
+    });
+    return result.stdout
+      .split('\0')
+      .filter(Boolean)
+      .flatMap(entry => {
+        const tab = entry.indexOf('\t');
+        const fields = entry.slice(0, tab).trim().split(/\s+/);
+        if (fields[1] !== 'blob') return [];
+        return [{ path: entry.slice(tab + 1), id: fields[2], size: Number(fields[3]) }];
+      });
+  }
+  async function catFileBatch(cwd: string, ids: string[], limits = OBJECT_LIMITS) {
+    const unique = [...new Set(ids)];
+    if (unique.some(id => !/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(id))) {
+      throw new GitError('Blob reads require full object identifiers.');
+    }
+    if (!unique.length) return new Map<string, Uint8Array>();
+    const stdin = unique.join('\n') + '\n';
+    const options = { stdin, env: { GIT_NO_LAZY_FETCH: '1' } };
+    const checked = await run(cwd, ['cat-file', '--batch-check'], options);
+    let total = 0;
+    for (const line of checked.stdout.trim().split('\n')) {
+      const [id, kind, length] = line.split(' ');
+      const size = Number(length);
+      if (kind !== 'blob' || !Number.isSafeInteger(size) || size < 0) {
+        throw new GitError(`Blob ${id} is unavailable.`);
+      }
+      total += size;
+      if (size > limits.documentBytes || total > limits.totalBytes) {
+        throw new GitError('Git objects exceed the snapshot byte limits.');
+      }
+    }
+    const result = await run(cwd, ['cat-file', '--batch'], options);
+    return parseBlobBatch(result.bytes, unique);
+  }
   const chunks = <T>(list: T[], n = 200) => Array.from({ length: Math.ceil(list.length / n) }, (_, i) => list.slice(i * n, i * n + n));
   return {
     run,
+    lsTree,
+    catFileBatch,
+    /** Tests commit ancestry without accepting other command failures as a negative answer. */
+    async isAncestor(cwd: string, ancestor: string, descendant: string) {
+      const result = await run(cwd, ['merge-base', '--is-ancestor', ancestor, descendant], { allowFailure: true });
+      if (result.code > 1) throw new GitError('Cannot determine Git ancestry.', result);
+      return result.code === 0;
+    },
+    /** Resolves a revision to a full object id, or null when it does not exist. */
+    async revParse(cwd: string, ref: string) {
+      const result = await run(cwd, ['rev-parse', '--verify', '--end-of-options', ref], { allowFailure: true });
+      return result.code === 0 ? result.stdout.trim() : null;
+    },
+    /** Resolves only a tag, peeling annotated tags to their commit. */
+    async peelTag(cwd: string, name: string) {
+      const ref = name.startsWith('refs/tags/') ? name : `refs/tags/${name}`;
+      const result = await run(cwd, ['rev-parse', '--verify', '--end-of-options', `${ref}^{commit}`], { allowFailure: true });
+      return result.code === 0 ? result.stdout.trim() : null;
+    },
     // Kill the running remote operation of this repository (the UI's Cancel).
     cancel(cwd: string) {
       const kill = cancels.get(insideProjects(cwd));
@@ -522,6 +584,25 @@ export function createGit(options: GitOptions) {
         });
     },
   };
+}
+function parseBlobBatch(bytes: Uint8Array, ids: string[]): Map<string, Uint8Array> {
+  const blobs = new Map<string, Uint8Array>();
+  let offset = 0;
+  for (const id of ids) {
+    const newline = bytes.indexOf(10, offset);
+    if (newline < 0) throw new GitError('Incomplete Git blob header.');
+    const [actual, kind, length] = new TextDecoder().decode(bytes.subarray(offset, newline)).split(' ');
+    const size = Number(length);
+    const start = newline + 1;
+    const end = start + size;
+    if (actual !== id || kind !== 'blob' || !Number.isSafeInteger(size) || size < 0 || bytes[end] !== 10) {
+      throw new GitError(`Incomplete Git blob ${id}.`);
+    }
+    blobs.set(id, bytes.slice(start, end));
+    offset = end + 1;
+  }
+  if (offset !== bytes.length) throw new GitError('Unexpected trailing Git blob data.');
+  return blobs;
 }
 /** A repository's user.name and user.email and the configuration that sets them. */
 export type GitIdentity = {
