@@ -532,3 +532,22 @@ preparation now refuses that collision before staging or committing. The same en
 authoring branch, commits successfully without moving the snapshot, then explicitly publishes it. Targeted
 proof: 13 pass, 0 fail, 59 assertions. The mutation baseline exits 0; deleting the reserved-name check exits 1
 with the expected missing-rejection assertion. That mutant is registered for the complete gate.
+
+## Final unit, static and build verification
+
+The complete rerun includes the reserved-default-name regression and the aligned SCM browser fixture.
+`DATA_DIR=/tmp/sw-008/unit-gate-final bun test` ran through the suite runner:
+
+```text
+2187 pass
+0 fail
+134686 expect() calls
+Ran 2187 tests across 304 files. [401.57s]
+```
+
+`bun --bun run check`: exit 0; `All matched files use the correct format.`; `Comments are free of
+specification and task IDs.`; `No product name or logo is hard-coded outside public/brand.`
+`bun --bun run build`: exit 0, `✓ built in 1.59s`, with the existing large-chunk advisory.
+The final documentation review returned PASS at `6eab45fa`, including the reserved-name migration case.
+`docs_sync.py --worktree .` exited 0. The requested `python3 scripts/commit_cadence.py "$PWD"` cannot run:
+this checkout does not contain that script (exit 2). No substitute tooling was added.
