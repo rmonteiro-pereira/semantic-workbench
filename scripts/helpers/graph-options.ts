@@ -54,7 +54,9 @@ export async function setShown(options: Locator, name: string | RegExp, shown: b
 /** Opens every area of the whole-model graph, which starts with one card per area when the model is very large. */
 export async function showEveryEntity(page: Page) {
   await viewOptions(page, async options => {
+    await expect(page.locator('.full-graph-loading')).toHaveCount(0);
     const expandAll = options.getByRole('button', { name: 'Expand all', exact: true });
     if (await expandAll.isEnabled()) await expandAll.click();
+    await expect(page.locator('.full-graph-loading')).toHaveCount(0);
   });
 }

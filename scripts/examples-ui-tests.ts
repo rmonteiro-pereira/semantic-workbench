@@ -231,9 +231,14 @@ try {
     expect(evidence.x + evidence.width).toBeGreaterThan(explorer.x + explorer.width - 40);
     await page.screenshot({ path: '/tmp/workbench-mapping-chains.png' });
     await page.setViewportSize({ width: 390, height: 844 });
-    const e2 = (await page.locator('.mapping-bindings').boundingBox())!;
-    const k2 = (await page.locator('.mapping-concepts').boundingBox())!;
-    expect(k2.y).toBeLessThan(e2.y);
+    await expect(page.locator('.mapping-concepts')).toBeHidden();
+    await expect(page.getByRole('button', { name: 'Back to concepts', exact: true })).toBeVisible();
+    await expect(page.locator('.mapping-bindings')).toBeVisible();
+    const phoneBindings = (await page.locator('.mapping-bindings').boundingBox())!;
+    expect(phoneBindings.y).toBeGreaterThanOrEqual(0);
+    expect(phoneBindings.y).toBeLessThan(844);
+    expect(phoneBindings.x).toBeGreaterThanOrEqual(0);
+    expect(phoneBindings.x + phoneBindings.width).toBeLessThanOrEqual(390);
     await openComposer(page);
     const dialogBox = (await composerDialog(page).locator('.workbench-dialog').boundingBox())!;
     expect(dialogBox.x).toBeGreaterThanOrEqual(0);
@@ -259,6 +264,8 @@ try {
     await expect(page.locator('.mapping-layer-chain')).toContainText('Subscription billing mappings');
     await expect(page.locator('.mapping-layer-chain')).toContainText('36 datasets');
     await expectResolvedBindings(page, 119);
+    await expect(page.locator('.mapping-bindings')).toHaveAttribute('open', '');
+    await page.locator('.mapping-bindings > summary').click();
     await expect(page.locator('.mapping-bindings')).not.toHaveAttribute('open', '');
     await chooseConcept(page, /^Plan /);
     await expectResolvedBindings(page, 4);
@@ -334,7 +341,7 @@ try {
     await page.getByRole('button', { name: 'mall.ontology.yaml', exact: true }).click();
     await page.locator('.tabs').getByRole('button', { name: 'Catalog', exact: true }).click();
     await page
-      .getByRole('button', { name: /^EntityType\s*Organization\b/ })
+      .getByRole('button', { name: /^Entity type\s*Organization\b/ })
       .first()
       .click();
     await expect(page.locator('.inspector')).toContainText('mall.odcs.yaml');
@@ -403,6 +410,7 @@ try {
   });
   await check('mapped commerce Customer chains reach fields, datasets and sources; a mapping finding opens the item editor', async () => {
     await (await example(page, /Mapped commerce/)).click();
+    await expect(page.locator('main > .status')).toHaveText(exampleSet('mapped-commerce')!.message);
     await page.locator('.tabs').getByRole('button', { name: 'Mappings', exact: true }).click();
     await expect(page.locator('.mapping-layer-chain')).toContainText('Mapped commerce ontology');
     await page

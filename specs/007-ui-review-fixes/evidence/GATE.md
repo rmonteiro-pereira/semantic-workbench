@@ -649,3 +649,21 @@ The resumed gate runs one browser or capture script at a time, checks `free -g` 
 `bun run test:odcs`: `10 ODCS checks passed`, including the dataset/header alignment (`suite-odcs-aligned-summary.log`).
 `bun .data/gate/mall-canvas.ts`: Mall ODCS canvas at 1280×720 is 954×424 px; required minimum is 421 px. The original 407 px regression is fixed.
 The full unit attempt reported 2102 pass / 1 timeout in the unchanged audit append benchmark under machine pressure. Focused reruns passed on both archived main (6 tests, 1018 assertions, 5.22 s) and merged code (6 tests, 1018 assertions, 4.85 s). A final serial full run remains required.
+
+### Pending edits completed on serial resume
+
+All five pending edits were retained. The evidence and task status updates are committed in `c9bb867b`.
+The examples driver now checks the approved phone detail navigation and humanized catalog label, waits for example loading to finish,
+and verifies that manually closed evidence reopens for a newly selected concept. The disclosure key changes only on concept selection.
+The shared graph driver waits for the existing layout indicator before and after expansion, without changing timeouts.
+
+- `python3 .data/gate/serial-step.py examples-listen-debug bun run test:examples:ui`: exit 0; `19 example UI checks passed; no browser runtime errors.`
+- `free -g`: 25 GB available before that browser step; 24 GB before the following check.
+- `bunx --bun oxfmt scripts/examples-ui-tests.ts scripts/helpers/graph-options.ts src/app/mappings/MappingExplorer.tsx`: finished on 3 files.
+- `bun --bun run check`: exit 0; all 1044 matched files formatted; lint, comment, theme and brand checks passed.
+- `python3 ~/.claude/skills/readable-code/scripts/readable_check.py --changed scripts/examples-ui-tests.ts scripts/helpers/graph-options.ts src/app/mappings/MappingExplorer.tsx`: exit 0.
+- Process cleanup: `OWNED_PROCESSES_REMAINING []`; no gate frontend or API listener remains.
+
+Frontend startup attempts `examples-current-labels`, `examples-final`, `examples-capped`, `examples-api-launch`,
+`examples-fresh-cache` and `examples-start-debug` did not reach browser execution. Their driver logs preserve readiness timeouts or explicit diagnostic stops.
+Direct Vite API startup with an isolated cache subsequently succeeded; no product timeout or assertion was relaxed.

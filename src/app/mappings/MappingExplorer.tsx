@@ -406,7 +406,7 @@ export function MappingExplorer({
                 </EmptyState>
               )}
               {bindings.length > 0 && <p className="mapping-grouping-note">View grouped by dataset.</p>}
-              <details className="mapping-bindings" open hidden={!bindings.length}>
+              <details key={concept} className="mapping-bindings" open hidden={!bindings.length}>
                 <summary>
                   {bindings.length} resolved {bindings.length === 1 ? 'binding' : 'bindings'} · source evidence
                 </summary>
