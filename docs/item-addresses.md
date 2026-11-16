@@ -29,18 +29,20 @@ The fixtures are in `tests/fixtures/addresses/conformance.json`. General graph s
 
 `addressesOfModel(document, location)` derives locators for Ossie ontology, semantic-model and
 mapping documents and ODCS contracts, including embedded and legacy layouts. Nested `properties`
-lists are covered; array-item schemas and their descendants are not yet covered. `location` contains
+lists and array-item schemas are covered. Array-item schemas use the `property` kind. `location` contains
 the project slug and document path parts; without it the locators are document-relative.
 `resolveInModel` returns found, ambiguous or missing and never selects the first duplicate.
 `itemIdentity` returns a declared expanded IRI or null, independently of a name-based locator.
 
-An embedded mapping uses its name when present and `mapping:#<index>` otherwise. Positional
+Every item uses its usable name when present and `kind:#<index>` otherwise. The index counts
+siblings of the same kind under the same parent, including named siblings. Positional
 ancestors make every descendant volatile, so those locators must not be persisted as history.
 RDF/SHACL resources and implicit built-in concepts have no address in this feature. Unsupported depth or length reports the source path.
 
-The inspector retains its original result types and identifiers. The direct derivation API
-requires named ontology/model roots and reports an unaddressable item when a required name is
-absent. Legacy inspection can accept unnamed roots that the derivation API cannot address.
+The inspector currently retains its original result types and identifiers. An unnamed ontology
+root derives `ontology:#0`; missing, empty, non-string or malformed names derive positional
+segments rather than invented names. An array-item node follows declared child properties in
+the same parent's property sibling order.
 `addressAtModelPath` derives one displayed item's locator without enumerating unrelated children.
 
 `adaptItemKey` reads older concept, dataset, field, join and metric labels against a loaded model.
@@ -57,8 +59,9 @@ descendants and the opaque snapshot suffix. Deleted markers stop further replay.
 declarations, requiring canonical absolute, snapshot-free, non-positional locators within the
 request's project and files. It returns typed declarations or a closed validation reason.
 
-`migrationRetentionCut(instant, days)` receives the time from its caller. Retention compaction
-is not implemented. These APIs do not append history or change save routes yet.
+Migrations remain uncompacted because collapsing interleaved ancestor and descendant rewrites
+can change replay results. The store must refuse writes exceeding 50,000 records atomically.
+`migrationRetentionCut(instant, days)` is a pure calculation and does not delete history. These APIs do not append history or change save routes yet.
 
 ```sh
 bun test tests/address-migration.test.ts

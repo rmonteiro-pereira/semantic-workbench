@@ -28,8 +28,7 @@ export class UnaddressableItemError extends Error {
 function segmentOf(kind: ItemKind, value: any, index: number): ItemSegment {
   const rule = addressKinds[kind];
   const name = rule.nameField === null ? undefined : value?.[rule.nameField];
-  if (kind === 'mapping' && name === undefined) return { kind, position: index };
-  if (!rule.named) return { kind, position: index };
+  if (!rule.named || typeof name !== 'string' || !name.length || !name.isWellFormed()) return { kind, position: index };
   return { kind, name };
 }
 
@@ -98,6 +97,10 @@ function visitRoots(model: any, visit: Visit) {
 function visitChildren(value: any, kind: ItemKind, path: (string | number)[], chain: ItemSegment[], children: (key: string, kind: ItemKind) => void, visit: Visit) {
   for (const [key, childKind] of childLists[kind] ?? []) children(key, childKind);
   if (kind === 'mapping' && value?.semantic_model) visit(value.semantic_model, 'model', [...path, 'semantic_model'], chain);
+  if (kind === 'property' && value?.items && typeof value.items === 'object' && !Array.isArray(value.items)) {
+    const position = Array.isArray(value.properties) ? value.properties.length : 0;
+    visit(value.items, 'property', [...path, 'items'], chain, position);
+  }
   if (kind === 'contract') visitForeignKeys(value, chain, visit);
 }
 
@@ -107,6 +110,7 @@ function visitForeignKeys(contract: any, chain: ItemSegment[], visit: Visit) {
     if (!value || typeof value !== 'object') return;
     const foreignKeys = Array.isArray(value.relationships) ? value.relationships : [];
     foreignKeys.forEach((foreignKey: any, index: number) => visit(foreignKey, 'foreign-key', [...path, 'relationships', index], chain, position++));
+    if (value.items && typeof value.items === 'object') scan(value.items, [...path, 'items']);
     for (const key of ['schema', 'properties']) {
       if (Array.isArray(value[key])) value[key].forEach((entry: any, index: number) => scan(entry, [...path, key, index]));
     }
@@ -174,9 +178,17 @@ export function addressAtModelPath(model: any, path: (string | number)[]): Addre
     value = model.semantic_model[path[1]];
     offset = 2;
   }
-  const chain: ItemSegment[] = [segmentOf(kind, value, 0)];
+  const rootIndex = offset === 2 ? Number(path[1]) : 0;
+  const chain: ItemSegment[] = [segmentOf(kind, value, rootIndex)];
   while (offset < path.length) {
     const key = path[offset];
+    if (kind === 'property' && key === 'items') {
+      const position = Array.isArray(value.properties) ? value.properties.length : 0;
+      value = value.items;
+      chain.push(segmentOf('property', value, position));
+      offset++;
+      continue;
+    }
     if (kind === 'mapping' && key === 'semantic_model') {
       kind = 'model';
       value = value.semantic_model;

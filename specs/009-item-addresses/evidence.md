@@ -380,3 +380,21 @@ repository has no such script (exit 2). No formatter or gate tooling was added t
 - `e8c1136e` fix: remove unsafe exact-chain migration compaction
 - `35abe71d` fix: defer mapping adoption until scope contracts are settled
 - `73069d44` fix: reject coerced model names at the address boundary
+
+## General positional rule and resumed adoption
+
+The integrator resolved the unnamed-root/array-item scope decisions and dropped compaction.
+The registry now allows named-when-present segments everywhere a name field exists. Array-item
+schemas use `property` and follow the parent's declared properties in same-kind sibling order.
+Unnamed ontology roots, unnamed mappings, unusable concept names and unnamed array-item nodes
+are covered through public derivation/resolution and 1,000 generated sibling permutations.
+Other potential unnamed cases use the same rule: model roots/legacy entries, contract IDs,
+relationships, concept mappings, datasets, fields, joins, metrics, schema objects and properties.
+Roles, object mappings, link mappings and foreign keys already use positions by definition.
+No positional locator or descendant may enter migration history.
+
+`bun test tests/model-addresses.test.ts tests/item-address.test.ts`: 44 pass, 0 fail,
+61,082 assertions, 49.52 s. The conformance fixtures include an unnamed ontology root and an
+array-item subtree. Constitution 4.0.0 includes the required IV/V amendments; the plan records it.
+The earlier compaction counterexample remains the reason for the integrator's dropped task.
+The remaining store implementation will enforce the specified 50,000-record bound uncompacted.

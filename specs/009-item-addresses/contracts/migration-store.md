@@ -17,8 +17,7 @@
       "commit": "<head commit of the branch when saved>"
     },
     { "id": "d-<operation id>-0", "kind": "deleted", "from": "sw1:sales/old.yaml", "at": "...", "commit": "..." }
-  ],
-  "compactedBefore": "2025-11-16T00:00:00Z"
+  ]
 }
 ```
 
@@ -48,9 +47,8 @@
    is written.
 6. The file is written as a staged copy and renamed into place by the journal in the same
    operation as the files. A recovery either completes both or rolls back both.
-7. Records older than the retention period (default 365 days) are compacted: chains are collapsed
-   to one record from the oldest `from` to the newest `to`, deleted markers are kept for the same
-   period, and `compactedBefore` records the cut.
+7. Records remain uncompacted. Interleaved subtree rewrites keep their original append order.
+   Retention does not delete history. A write exceeding 50,000 records is refused atomically.
 8. Reads go through the project's read boundary. The store holds no person identity and is never
    sent to logs or telemetry. It is not served by any HTTP route in this feature.
 9. A migrated project file set moves with the project through trash and restore, the same way the
@@ -58,6 +56,5 @@
 
 ## Limits
 
-At most 64 declared records per request, 50,000 records per project file (compaction runs before
-the limit is reached, and a write that would exceed it is refused with a message that names the
-setting).
+At most 64 declared records per request, 50,000 uncompacted records per project file. A write that would exceed the bound is
+refused without changing definitions or history.

@@ -78,8 +78,12 @@ test('declared identity survives renames without inventing identities for fields
   expect(itemIdentity({ name: 'field' }, ontology)).toBeNull();
 });
 
-test('raw model names must be strings rather than coerced locator names', () => {
-  expect(() => addressesOfModel({ name: 7, ontology: [{ concept: 'C' }] })).toThrow(UnaddressableItemError);
+test('unusable root names use a volatile position rather than a coerced name', () => {
+  for (const name of [undefined, '', 7, '\ud800']) {
+    const items = addressesOfModel({ name, ontology: [{ concept: 'C' }] });
+    expect(items[0].address.chain).toEqual([{ kind: 'ontology', position: 0 }]);
+    expect(items.every(item => item.volatile)).toBe(true);
+  }
 });
 
 test('deep properties report their source path instead of truncating a locator', () => {
@@ -146,6 +150,32 @@ test('unnamed mappings stay volatile across generated sibling permutations', () 
       const mapped = addressesOfModel(permuted).filter(item => item.path[0] === 'ontology_mappings');
       expect(mapped.every(item => item.volatile)).toBe(true);
       for (const item of mapped) expect(resolveInModel(permuted, item.address).status).toBe('found');
+    }
+  });
+});
+
+test('unnamed roots and array-item schemas resolve through generated sibling permutations', () => {
+  withAddressSeed(random => {
+    for (let index = 0; index < 1000; index++) {
+      const model = {
+        kind: 'DataContract',
+        id: 'C',
+        schema: [{ name: 'O', properties: shuffled([{ name: 'array', properties: [{ name: 'declared' }], items: { properties: [{ name: 'nested' }] } }, { name: 'other' }], random) }],
+      };
+      const items = addressesOfModel(model);
+      const arrayItem = items.find(item => item.path.at(-1) === 'items')!;
+      expect(arrayItem.address.chain.at(-1)).toEqual({ kind: 'property', position: 1 });
+      expect(arrayItem.volatile).toBe(true);
+      expect(items.find(item => item.path.includes('items') && item.path.at(-1) === 0)!.volatile).toBe(true);
+      for (const item of items) {
+        expect(resolveInModel(model, item.address).status).toBe('found');
+        expect(addressAtModelPath(model, item.path)).toEqual(item.address);
+      }
+      const unnamed = { ontology: shuffled([{ concept: 'C' }, { concept: '' }], random) };
+      for (const item of addressesOfModel(unnamed)) {
+        expect(item.volatile).toBe(true);
+        expect(resolveInModel(unnamed, item.address).status).toBe('found');
+      }
     }
   });
 });

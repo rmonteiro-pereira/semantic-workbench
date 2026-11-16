@@ -47,7 +47,8 @@ files up to 50,000 records.
 
 ## Constitution Check
 
-Checked against constitution 3.2.0.
+Checked against constitution 4.0.0, amended 2026-11-16. Principles IV and V include the durable
+address migration store and versioned application formats; persisted adoption may proceed.
 
 | Principle | How the plan complies |
 | --- | --- |
@@ -111,10 +112,10 @@ src/shared/core/
 ├── item-address.ts           # types, parse, format, escaping, display, relative resolution, prefix operations
 ├── address-kinds.ts          # the closed kind registry and parent rules
 ├── model-addresses.ts        # addressesOfModel, resolveInModel, itemIdentity (read the parsed model)
-├── address-migration.ts      # record types, migrateAddress, compaction, declared-migration validation
+├── address-migration.ts      # record types, migrateAddress, declared-migration validation
 └── item-key-adapters.ts      # read the older notations (concept:C/R, field:d.f, dataset.field) into addresses
 src/server/projects/
-├── address-migrations.ts     # the per-project store: read, append inside the journal, compact
+├── address-migrations.ts     # the per-project store: read, bounded uncompacted append inside the journal
 └── address-key-conversion.ts # one-time conversion of persisted keys, with backup and hash check
 tests/
 ├── item-address.test.ts

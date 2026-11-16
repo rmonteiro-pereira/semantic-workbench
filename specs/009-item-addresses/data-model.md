@@ -69,14 +69,14 @@ type MigrationRecord = {
   commit: string;            // branch head when saved; empty when the project has no commits
 };
 
-type MigrationFile = { formatVersion: 1; records: MigrationRecord[]; compactedBefore?: string };
+type MigrationFile = { formatVersion: 1; records: MigrationRecord[] };
 ```
 
 Constraints: `from !== to`; both parse and share the record's project (a cross-project document
 move appears in both projects' files); `deleted` has no `to`; count at most 50,000 per file.
 
-State changes: append (inside a journaled operation), compact (at write when the oldest record
-passes retention or the file nears its bound), delete with the project.
+State changes: append inside a journaled operation and delete with the project. Records remain
+uncompacted and a write exceeding 50,000 records is refused atomically.
 
 ## Declared migration (request body)
 

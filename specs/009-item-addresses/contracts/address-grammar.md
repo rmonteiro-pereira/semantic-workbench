@@ -45,22 +45,22 @@ to parse, so each name has one spelling. No Unicode normalization or case foldin
 
 | Kind | Names | Parent kinds | Name field | Named |
 | --- | --- | --- | --- | --- |
-| `ontology` | an ontology document | document root | `name` | yes |
-| `model` | a semantic model (standalone, legacy list entry, or embedded) | root, `mapping` | `name` | yes |
+| `ontology` | an ontology document | document root | `name` | when present; position otherwise |
+| `model` | a semantic model (standalone, legacy list entry, or embedded) | root, `mapping` | `name` | when present; position otherwise |
 | `mapping` | a standalone mapping, or an embedded `ontology_mappings` entry | root, `ontology` | `name` | when present; position otherwise |
-| `contract` | an ODCS data contract | root | `id` | yes |
-| `concept` | an ontology concept | `ontology` | `concept` | yes |
-| `relationship` | a relationship of a concept (an attribute is one) | `concept` | `name` | yes |
+| `contract` | an ODCS data contract | root | `id` | when present; position otherwise |
+| `concept` | an ontology concept | `ontology` | `concept` | when present; position otherwise |
+| `relationship` | a relationship of a concept (an attribute is one) | `concept` | `name` | when present; position otherwise |
 | `role` | a role of a relationship | `relationship` | none | position |
-| `concept-mapping` | a concept mapping | `mapping` | `concept` | yes |
+| `concept-mapping` | a concept mapping | `mapping` | `concept` | when present; position otherwise |
 | `object-mapping` | an object mapping of a concept mapping | `concept-mapping` | none | position |
 | `link-mapping` | a link mapping of a concept mapping | `concept-mapping` | none | position |
-| `dataset` | a dataset | `model` | `name` | yes |
-| `field` | a field of a dataset | `dataset` | `name` | yes |
-| `join` | a model relationship between datasets | `model` | `name` | yes |
-| `metric` | a metric | `model` | `name` | yes |
-| `object` | an ODCS schema object | `contract` | `name` | yes |
-| `property` | an ODCS property, nested to any depth up to the segment limit | `object`, `property` | `name` | yes |
+| `dataset` | a dataset | `model` | `name` | when present; position otherwise |
+| `field` | a field of a dataset | `dataset` | `name` | when present; position otherwise |
+| `join` | a model relationship between datasets | `model` | `name` | when present; position otherwise |
+| `metric` | a metric | `model` | `name` | when present; position otherwise |
+| `object` | an ODCS schema object | `contract` | `name` | when present; position otherwise |
+| `property` | an ODCS property or array-item schema node, nested to any depth up to the segment limit | `object`, `property` | `name` | when present; position otherwise |
 | `foreign-key` | an ODCS foreign key | `contract` | none | position |
 
 The registry is code, in one table, and the parent column is enforced when an address is resolved

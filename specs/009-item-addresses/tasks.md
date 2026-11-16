@@ -74,7 +74,7 @@ address says whether it is ambiguous or volatile.
   standalone model documents (root scope segment, concepts, relationships, concept mappings,
   datasets, fields, joins, metrics). Proof: `tests/model-addresses.test.ts` against the sample
   project documents. (FR-011, FR-012, FR-014, FR-023)
-- [ ] T011 [US5] Extend it to the consolidated layout, the legacy `semantic_model` list and ODCS
+- [x] T011 [US5] Extend it to the consolidated layout, the legacy `semantic_model` list and ODCS
   (objects, nested properties with one segment per level, foreign keys as positional segments).
   Add fixture documents with dotted, colon and hash names. Proof: SC-008 test resolving every
   derived address of every layout back to its item; dotted ODCS property case. (FR-013, FR-014,
@@ -145,7 +145,7 @@ changes.
 
 **Independent test**: `bun test tests/address-migration.test.ts`.
 
-- [ ] T024 [US3] Write `src/shared/core/address-migration.ts`: record types, `migrateAddress`
+- [x] T024 **Compaction dropped by the integrator (2026-11-16): interleaved subtree rewrites change replay results. Remaining pure replay/validation is implemented; bounded uncompacted storage belongs to T029.** [US3] Write `src/shared/core/address-migration.ts`: record types, `migrateAddress`
   (resolved input returns unchanged; each record applied once in order; terminates), compaction,
   `validateDeclaredMigrations` (FR-049 rules), retention cut. Proof: `tests/address-migration.test.ts`
   with chains, rename back, segment boundary, snapshot kept, a record where `from` equals `to`
@@ -233,7 +233,7 @@ changes.
 
 ## Phase 9: Constitution, documentation and retirement
 
-- [ ] T040 Confirm the Principle IV and V amendments are merged on the constitution branch before
+- [x] T040 Confirm the Principle IV and V amendments are merged on the constitution branch before
   starting Phases 6 and 7; record the version in the plan's Constitution Check. Proof: the plan
   line updated with the version. (Constitution)
 - [ ] T041 [P] Write `docs/item-addresses.md`: the grammar, the three forms, escaping, kinds table,

@@ -90,9 +90,15 @@ owner.
 
 ### Session 2026-11-16 — decided by the integrator
 
-- An embedded mapping with `name` uses a named segment. Without `name`, it uses
-  `mapping:#<index>`. That mapping and its descendants are volatile and must never be stored as
-  history. This uses the existing positional grammar without adding kinds or persistent ids.
+- Every item without a usable name uses `kind:#n`, its index among siblings of the same kind
+  under the same parent. It and its descendants are volatile and never stored as history.
+  This includes unnamed ontology roots (`ontology:#0`), embedded mappings and ODCS array-item
+  schema nodes (kind `property`). A usable name is a nonempty, well-formed string in the registry's
+  name field; numeric, missing, empty or malformed values use the positional rule.
+- Migration compaction is dropped: interleaved ancestor and descendant rewrites cannot be
+  collapsed without changing ordered replay. Records remain uncompacted, with a hard limit of
+  50,000 per project. A write exceeding that bound is refused atomically; retention does not
+  delete records or rewrite history.
 - Addresses cover structured Ossie ontology, semantic-model and mapping definitions and ODCS
   only. Structured entities carry a required address in a narrower type. RDF/SHACL resources,
   blank nodes and built-in concepts carry none; mixed consumers handle that explicitly. No RDF
@@ -432,9 +438,8 @@ guarded projects and compares the responses.
   boundary of the project the records belong to.
 - **FR-036**: A migration store MUST never be sent to, or influence, telemetry or logs. Log and
   telemetry labels MUST NOT contain an address, a project slug, a file path or an item name.
-- **FR-037**: The migration store MUST have a size bound: records older than the retention period
-  are compacted into one record per surviving item chain, so a long-lived project does not grow
-  without limit. The default retention is 365 days, configurable (see Assumptions).
+- **FR-037**: The migration store MUST have a size bound: uncompacted records are limited to 50,000 per project; a write exceeding the bound is
+  refused atomically. Retention never rewrites or deletes replay history.
 
 **Consumers and adoption**
 
@@ -549,7 +554,7 @@ guarded projects and compares the responses.
 - **Limits**: 4,096 characters and 32 segments are chosen to sit well above any realistic
   address (the document limit is 2,000,000 bytes and ODCS nests a few levels) while keeping the
   parser bounded (Principle III). They are constants with tests, so a change is mechanical.
-- **Retention**: the migration store keeps full records for 365 days and compacts older ones. The
+- **Retention**: the migration store keeps uncompacted records up to its 50,000-record hard bound. The
   number has no external source; it is a default chosen to cover a year of releases, set with
   `SW_ADDRESS_MIGRATION_RETENTION_DAYS`.
 - **Randomized tests use a small seeded generator** under `tests/helpers/`, not a new package, so
