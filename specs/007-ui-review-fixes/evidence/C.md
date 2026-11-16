@@ -67,3 +67,9 @@ The final header fix lets the phone Commit button grow around its existing count
 `test:git-setup`: **13 Git setup checks passed** (`/tmp/sw-C/final-git-setup.log`). Its repository-identity fixture now clears the foundation's ambient author overrides so repository-local Ana Lima remains the subject of its existing assertion. Completed-clone checks expect the new plain project sentence; waiting checks expect the workspace-connection explanation. `test:dialogs`: **9 dialog checks passed at six viewports** (`/tmp/sw-C/check-dialogs.log`). `test:scm`: **20 source-control checks passed** (`/tmp/sw-C/final-scm.log`).
 
 The ValidationPanel regression retains the parser explanation and location while removing a caret-only line. `bun test tests/footer-counts.test.ts tests/editor-presentation.test.tsx`: **4 pass, 0 fail**.
+
+## Rendered editor check
+
+`test:editor`: **10 editor checks passed** (`/tmp/sw-C/check-editor.log`). The new browser assertion checks the actual rendered `name` key and `Shop` value against the dark tokens, then restores light. The large-save typing check releases its earlier API and page before starting its separate-process fixture, permitting reuse of the assigned API port. It measured 17.6 ms/key during saving versus 17.8 ms/key baseline, with no long task.
+
+`test:validation`: **PASS invalid Source draft keeps its header state and one located message; {"errors":[]}** (`/tmp/sw-C/final-validation.log`). The malformed `name: [` input locates the missing closing bracket at line 2; the assertion uses that parser location.

@@ -69,6 +69,7 @@ await routeApi(page, api, async route => {
   return false;
 });
 let passed = 0;
+let apiStopped = false;
 async function check(name: string, run: () => Promise<void>) {
   await run();
   passed++;
@@ -141,6 +142,18 @@ try {
         path: `/tmp/workbench-editor-${syntax.replace(/\W/g, '').toLowerCase()}.png`,
       });
     }
+  });
+  await check('dark YAML keys and plain values use distinct readable tokens', async () => {
+    await page.evaluate(() => document.documentElement.setAttribute('data-theme', 'dark'));
+    await openSource('shop.yaml');
+    const tokens = await page.evaluate(() => {
+      const style = getComputedStyle(document.documentElement);
+      return { key: style.getPropertyValue('--color-syntax-key').trim(), value: style.getPropertyValue('--color-syntax-keyword').trim() };
+    });
+    await expect.poll(() => colorOf('name')).toBe(rgb(tokens.key));
+    await expect.poll(() => colorOf('Shop')).toBe(rgb(tokens.value));
+    expect(tokens.key).not.toBe(tokens.value);
+    await page.evaluate(() => document.documentElement.setAttribute('data-theme', 'light'));
   });
   await check('the JSON inside a SEMANTIC_WORKBENCH block is colored as JSON; Go to line moves there', async () => {
     await openSource('mall.semantic.yaml');
@@ -262,6 +275,9 @@ try {
   // Typing is measured while a large save is in flight to expose blocking work. The API runs in a
   // separate process so its work cannot stall the input driver.
   await check('typing in a 1.9 MB file stays responsive to each keystroke while an automatic save runs', async () => {
+    await page.close();
+    await api.stop();
+    apiStopped = true;
     const root = mkdtempSync(join(tmpdir(), 'workbench-latency-'));
     const child = await startApiProcess(root);
     const typingPage = await browser.newPage({ viewport: { width: 1440, height: 900 } });
@@ -349,5 +365,5 @@ try {
   console.log(`${passed} editor checks passed on isolated data root ${api.root}.`);
 } finally {
   await browser.close();
-  await api.stop();
+  if (!apiStopped) await api.stop();
 }
