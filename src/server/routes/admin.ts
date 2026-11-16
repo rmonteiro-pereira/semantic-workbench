@@ -1,7 +1,5 @@
-import { ADMIN_REQUEST_LIMIT } from '../request';
-/** Named body limits shared with in-process request construction. */
-export { ADMIN_REQUEST_LIMIT } from '../request';
 // Parses administrative requests and delegates all saves to the versioned access service.
+import { ADMIN_REQUEST_LIMIT } from '../request';
 import type { Route } from './http';
 import { decodeSegment, readJson, requestAuditId, type AuditRequest } from '../request';
 import type { HandlerOptions } from '../auth/middleware';

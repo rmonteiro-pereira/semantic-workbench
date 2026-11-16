@@ -79,7 +79,7 @@ existing distinction between hidden-trash denials and unaudited missing entries.
 
 Trusted adapters use `buildTwinRequest(operationId, { params, query, body, signal })`; parameter keys match the route template, including `*` for a splat. The builder rejects non-dispatchable routes and bodies above the operation's existing byte limit.
 
-HTTP body limits are exported from `src/server/request.ts` and re-exported beside the routes that enforce them; the operation inventory uses those same constants.
+HTTP body limits are exported from `src/server/request.ts`; route handlers and the operation inventory use those same constants.
 
 Generated standalone schema validators are checked in and formatted with the project rules.
 Regenerate with `bun run schemas:compile`; tests verify reproducible output. The browser uses these

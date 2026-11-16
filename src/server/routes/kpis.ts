@@ -1,8 +1,6 @@
-import { FILE_SAVE_REQUEST_LIMIT, METRIC_REQUEST_LIMIT } from '../request';
-/** Named body limits shared with in-process request construction. */
-export { FILE_SAVE_REQUEST_LIMIT, METRIC_REQUEST_LIMIT } from '../request';
 // Previews metric changes and saves related files in one journaled operation. Previews never
 // execute SQL.
+import { FILE_SAVE_REQUEST_LIMIT, METRIC_REQUEST_LIMIT } from '../request';
 import { BadRequestError, OccupiedError } from '../projects/errors';
 import { requestReader } from '../auth/request-scope';
 import { authorizeWrite } from '../auth/write-access';

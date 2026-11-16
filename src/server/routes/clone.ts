@@ -1,8 +1,6 @@
-import { PROJECT_REQUEST_LIMIT } from '../request';
-/** Named body limits shared with in-process request construction. */
-export { PROJECT_REQUEST_LIMIT } from '../request';
 // Clones a repository as a new project. Cloning contacts the remote, so it runs only from this
 // explicit request.
+import { PROJECT_REQUEST_LIMIT } from '../request';
 import { requestReader } from '../auth/request-scope';
 import { creationDomain, assignProjectDomains } from '../auth/project-creation';
 import type { AdminRepository } from '../auth/admin-repo';

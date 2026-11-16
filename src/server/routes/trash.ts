@@ -1,8 +1,6 @@
-import { TRASH_REQUEST_LIMIT } from '../request';
-/** Named body limits shared with in-process request construction. */
-export { TRASH_REQUEST_LIMIT } from '../request';
 // Handles deletion, undo, restoration, and permanent removal with explicit confirmation for
 // destructive calls.
+import { TRASH_REQUEST_LIMIT } from '../request';
 import type { AdminRepository } from '../auth/admin-repo';
 import { creationDomain, assignProjectDomain } from '../auth/project-creation';
 import { requestReader, requestScope } from '../auth/request-scope';

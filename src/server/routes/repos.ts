@@ -1,7 +1,5 @@
-import { METRIC_REQUEST_LIMIT } from '../request';
-/** Named body limits shared with in-process request construction. */
-export { METRIC_REQUEST_LIMIT } from '../request';
 // Lists and registers the project folders of a Git repository that holds several projects.
+import { METRIC_REQUEST_LIMIT } from '../request';
 import { decodeSegment, readJson } from '../request';
 import { requestReader } from '../auth/request-scope';
 import { checkRepositoryRemotes } from '../auth/remote-credentials';

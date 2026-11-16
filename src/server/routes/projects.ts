@@ -1,7 +1,5 @@
-import { PROJECT_REQUEST_LIMIT, IMPORT_REQUEST_LIMIT } from '../request';
-/** Named body limits shared with in-process request construction. */
-export { PROJECT_REQUEST_LIMIT, IMPORT_REQUEST_LIMIT } from '../request';
 // Handles project management, imports, example loading, and workspace status.
+import { PROJECT_REQUEST_LIMIT, IMPORT_REQUEST_LIMIT } from '../request';
 import { creationDomain, assignProjectDomain } from '../auth/project-creation';
 import { ACTIONS } from '../../shared/auth/actions';
 import { requestReader, requestScope } from '../auth/request-scope';

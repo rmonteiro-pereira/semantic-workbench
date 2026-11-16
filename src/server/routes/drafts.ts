@@ -1,7 +1,5 @@
-import { DRAFT_REQUEST_LIMIT } from '../request';
-/** Named body limits shared with in-process request construction. */
-export { DRAFT_REQUEST_LIMIT } from '../request';
 // Serves durable drafts, including the source hash needed to detect conflicting edits.
+import { DRAFT_REQUEST_LIMIT } from '../request';
 import { requestReader } from '../auth/request-scope';
 import { decodeSegment, decodePath, readJson } from '../request';
 import { projectPath, assertSlug } from '../projects/paths';

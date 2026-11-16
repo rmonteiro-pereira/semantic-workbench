@@ -1,7 +1,5 @@
-import { GIT_REQUEST_LIMIT } from '../request';
-/** Named body limits shared with in-process request construction. */
-export { GIT_REQUEST_LIMIT } from '../request';
 // Exposes project source control operations. Remote actions run only through explicit requests.
+import { GIT_REQUEST_LIMIT } from '../request';
 import { requestReader } from '../auth/request-scope';
 import { authorizeCheckout, authorizeGitPaths, authorizeGitPush, authorizePublish, authorizeRepository, mayPublish } from '../auth/git-access';
 import { checkRemoteAddress, delegatedCredentials } from '../auth/remote-credentials';
@@ -24,7 +22,7 @@ function chosenPaths(body: { paths?: unknown; repoPaths?: unknown }) {
 // a byte, so their connections are kept open.
 const REMOTE_ACTIONS = new Set(['git/fetch', 'git/pull', 'git/push', 'git/sync', 'git/pull-default', 'git/push-default']);
 
-/** Handles source control requests, including explicitly requested remote actions. */
+/** Creates source control routes that keep explicitly requested remote actions connected. */
 export const createGitRoutes =
   (options: HandlerOptions = {}): Route =>
   async (ws, req, url) => {
@@ -99,9 +97,7 @@ export const createGitRoutes =
           paths: requestBody.repoPaths ?? requestBody.paths,
           repository: requestBody.repoPaths !== undefined,
         });
-        if (requestBody.push === true) {
-          await authorizeGitPush(gitTarget);
-        }
+        if (requestBody.push === true) await authorizeGitPush(gitTarget);
         const chosen = requestBody.paths === undefined && requestBody.repoPaths === undefined ? null : chosenPaths(requestBody);
         const scm = await sourceControl();
         return Response.json(

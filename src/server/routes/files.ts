@@ -1,7 +1,5 @@
-import { FILE_SAVE_REQUEST_LIMIT } from '../request';
-/** Named body limits shared with in-process request construction. */
-export { FILE_SAVE_REQUEST_LIMIT } from '../request';
 // Serves project files and validates save requests against their original content hashes.
+import { FILE_SAVE_REQUEST_LIMIT } from '../request';
 import { requestReader } from '../auth/request-scope';
 import { decodeSegment, decodePath, readJson } from '../request';
 import type { Route } from './http';
