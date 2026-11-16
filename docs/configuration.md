@@ -303,3 +303,5 @@ definitions or history change. There is no retention setting because deleting or
 replay results. There is no bulk history HTTP listing; scoped resolution and reconciliation use the shared operation
 boundary. Conversion backups and the
 completion report are described in [item addresses](item-addresses.md).
+
+Repositories cloned or registered while the application is running use the same first-snapshot adoption as startup. Existing default-branch commits become available immediately without moving a ref or rewriting a commit.

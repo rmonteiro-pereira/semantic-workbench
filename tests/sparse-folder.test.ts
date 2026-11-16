@@ -57,6 +57,12 @@ test('a clone into a folder checks out only that folder and makes it the project
     const status = await ok(call(app, 'GET', `/api/projects/${cloned.slug}/git/status`));
     expect(status).toMatchObject({ branch: 'main', folder: PROJECT_FOLDER, changes: [] });
     expect(status.remotes).toEqual({ origin: team.address });
+    const commit = sh(cloned.repository, ['rev-parse', 'HEAD']).trim();
+    expect(status.published).toMatchObject({ commit, notice: true });
+    const catalog = await call(app, 'GET', `/api/agent/catalog?project=${cloned.slug}`);
+    expect(catalog.status).toBe(200);
+    const response = await app.handler(new Request(`http://localhost/api/agent/catalog?project=${cloned.slug}`));
+    expect(response.headers.get('X-Workbench-Snapshot')).toBe(commit);
   } finally {
     app.dispose();
     team.dispose();
@@ -86,6 +92,8 @@ test('edits commit and push inside the folder and leave the other folders untouc
     expect(sh(team.bare, ['show', `work/local:${PROJECT_FOLDER}/shop.yaml`])).toBe(ontology('Changed.'));
     const status = await ok(call(app, 'GET', base + '/git/status'));
     expect(status).toMatchObject({ ahead: 0, behind: 0, changes: [] });
+    const publication = await ok(call(app, 'POST', base + '/git/publish', {}));
+    expect(publication.commit).toBe(sh(cloned.repository, ['rev-parse', 'HEAD']).trim());
   } finally {
     app.dispose();
     team.dispose();

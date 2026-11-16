@@ -406,7 +406,8 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   // A stop between moving the default branch and moving the published files is finished here.
   if (gitAvailable && options.reconcilePublished)
     for (const repo of new Set(projects().map(project => locationOf(project).repo))) if (existsSync(join(layout.projects, repo, '.git'))) await worktrees.repairBase(repo);
-  if (gitAvailable) {
+  async function initializePublications() {
+    if (!gitAvailable) return;
     await initializePublishedPointers({
       git,
       layout,
@@ -416,6 +417,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       defaultBranch: repository => worktrees.defaultBranch(repository),
     });
   }
+  await initializePublications();
   for (const projectEntry of projects())
     if (existsSync(projectDir(layout, projectEntry.slug))) {
       await scanner.scan(projectEntry.slug);
@@ -592,7 +594,10 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     projects,
     lock,
     registrySteps,
-    scan: slug => scanner.scan(slug),
+    scan: async slug => {
+      await initializePublications();
+      return scanner.scan(slug);
+    },
     invalidFiles: slug =>
       cache
         .files(slug)
@@ -647,6 +652,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     projects,
     lock,
     added: async slugs => {
+      await initializePublications();
       for (const slug of slugs) {
         await scanner.scan(slug);
         watcher?.add(slug);
