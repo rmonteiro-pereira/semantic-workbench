@@ -277,6 +277,8 @@ The integration view shows what the application reads and contacts, and what it 
   dry-run interpret the shipped YAML offline. `deploy/` owns target setup, release hand-over and
   real acceptance; those operations do not happen during application startup.
 
+`src/server/auth/caller.ts` defines authenticated caller context and runtime mint provenance for the operation boundary.
+
 ## Request and state flow
 
 ![How a request and an edit travel: browser, HTTP handler, access boundary, routes and the workspace service down to project files, the SQLite index and durable state, and the edit path from byte patch through validation, autosave and the server write gate to an atomic save, live events and an explicit Git commit.](docs/diagrams/flow.svg)
