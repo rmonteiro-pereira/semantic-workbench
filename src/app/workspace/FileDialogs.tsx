@@ -32,6 +32,7 @@ type Props = {
   setDeleted: React.Dispatch<React.SetStateAction<Deleted | null>>;
   refresh: () => Promise<Doc[]>;
   selectedProject: string;
+  onSelectProject: (project: string) => boolean;
   trashOpen: boolean;
   trashVersion: number;
   setTrashOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -76,6 +77,7 @@ export function FileDialogs({
   setDeleted,
   refresh,
   selectedProject,
+  onSelectProject,
   trashOpen,
   trashVersion,
   setTrashOpen,
@@ -186,6 +188,7 @@ export function FileDialogs({
       )}
       {trashOpen && (
         <TrashDialog
+          onSelectProject={onSelectProject}
           version={trashVersion}
           selectedProject={selectedProject}
           selectedProjectName={projects.find(project => project.slug === selectedProject)?.name ?? selectedProject}

@@ -9,12 +9,13 @@ import { otherProjectFilesLine, trashSections } from '../src/app/projects/trash-
 
 const entry = (entryId: string, kind: TrashItem['kind'], project: string) => ({ entryId, kind, project, projectName: project }) as TrashItem;
 
-test('files of other projects stay out of the list, and deleted projects get their own section', () => {
+test('files of other projects get a separate list, and deleted projects get their own section', () => {
   const items = [entry('1', 'file', 'sales'), entry('2', 'file', 'billing'), entry('3', 'project', 'billing'), entry('4', 'repository', 'monorepo')];
-  const { files, projects, otherProjectFiles } = trashSections(items, 'sales');
+  const { files, projects, otherProjectFiles, otherFiles } = trashSections(items, 'sales');
   expect(files.map(item => item.entryId)).toEqual(['1']);
   expect(projects.map(item => item.entryId)).toEqual(['3', '4']);
   expect(otherProjectFiles).toBe(1);
+  expect(otherFiles.map(item => item.entryId)).toEqual(['2']);
 });
 
 test('the note counts deleted files of other projects', () => {

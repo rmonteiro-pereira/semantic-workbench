@@ -49,3 +49,9 @@
 - After: `/tmp/sw-E/final-metrics/local-metric-wizard--step-{1-empty-validation,2,4}-1440.png`.
 - Opened all three after images: title at the same top position, 142 datasets / 25 metrics count above a bounded searchable list, and fixed footer visible. The step 2 review image was also opened for comparison.
 - Capture geometry incorrectly counts text behind an open native dialog as covered/overlapping; this is retained in capture logs, not suppressed.
+
+### T063 — all-project trash visibility
+
+- Other-project deleted files are now listed under project names, with the existing project-selection action behind Switch to project. Empty trash has danger styling and keeps the explicit every-project confirmation.
+- Before: review `screenshots/followup/local-trash--populated-1440.png`; after: `/tmp/sw-E/final-trash/screenshots/followup/local-trash--populated-1440.png` (both opened; the neutral action is now red).
+- `test:trash`: 13 checks passed. Its cross-project scenario asserts the formerly hidden filename and the switch action. `tests/trash-sections.test.ts`: 3 pass, including filesystem purge confirmation.

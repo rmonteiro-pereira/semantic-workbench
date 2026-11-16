@@ -1,15 +1,12 @@
 /** The trash shows the selected project's deleted files apart from whole deleted projects. */
 import type { TrashItem } from './api';
 
-/**
- * Splits trash entries into the deleted files of the selected project and the deleted projects.
- * A file deleted from another project is not listed, as it belongs to that project's context;
- * `otherProjectFiles` counts them so the list can say they exist.
- */
+/** Splits deleted files by their project and keeps whole deleted projects separate. */
 export function trashSections(items: TrashItem[], selectedProject: string) {
   const files = items.filter(item => item.kind === 'file' && item.project === selectedProject);
   const projects = items.filter(item => item.kind !== 'file');
-  return { files, projects, otherProjectFiles: items.length - files.length - projects.length };
+  const otherFiles = items.filter(item => item.kind === 'file' && item.project !== selectedProject);
+  return { files, projects, otherProjectFiles: otherFiles.length, otherFiles };
 }
 
 /** The sentence that says how many deleted files of other projects are not listed. */

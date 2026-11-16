@@ -104,6 +104,7 @@ type Props = {
   wizard: boolean | KpiSummary;
   kpiProject: string | null;
   selectedProject: string;
+  onSelectProject: (project: string) => boolean;
   docs: Doc[];
   kpis: KpiSummary[];
   setWizard: React.Dispatch<React.SetStateAction<boolean | KpiSummary>>;
@@ -203,6 +204,7 @@ export function AppDialogs({
   wizard,
   kpiProject,
   selectedProject,
+  onSelectProject,
   docs,
   kpis,
   setWizard,
@@ -250,6 +252,7 @@ export function AppDialogs({
   return (
     <>
       <FileDialogs
+        onSelectProject={onSelectProject}
         stale={stale}
         current={current}
         source={source}

@@ -161,7 +161,7 @@ history is not rewritten.
 
 **Undo** is available for ten seconds and restores files, drafts and grouping corrections.
 Afterward, **Trash** can restore entries or permanently purge them. It lists the selected
-project's deleted files, says how many deleted files of other projects are not listed, and a separate
+project's deleted files and lists other projects' deleted files under their project names, with a switch action. A separate
 section lists deleted projects. Emptying the trash asks for
 confirmation and removes the entries of every project. Restore never silently overwrites another file: it offers a free name when needed.
 A file whose original project no longer exists can be restored into a newly created project.

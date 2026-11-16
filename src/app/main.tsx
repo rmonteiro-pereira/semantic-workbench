@@ -150,6 +150,7 @@ function App() {
         {examples.domainDialog}
         <UiProfiler area="dialogs">
           <AppDialogs
+            onSelectProject={selectProject}
             stale={stale}
             current={current}
             source={source}

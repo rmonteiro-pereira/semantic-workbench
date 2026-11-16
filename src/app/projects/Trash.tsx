@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { EmptyState } from './EmptyState';
 import { Modal } from './Modal';
 import { api, type TrashItem } from './api';
-import { otherProjectFilesLine, trashSections } from './trash-sections';
+import { trashSections } from './trash-sections';
 // Restore or permanently delete trash entries; emptying the trash asks for confirmation. A restore
 // never overwrites; when the location is taken, the free alternative is offered.
 // How a trash entry reads in the list.
@@ -16,7 +16,19 @@ function entryLabel(item: TrashItem) {
   return `Project ${item.projectName}`;
 }
 /** Reviews trash entries and offers restore or confirmed permanent deletion. */
-export function TrashDialog({ onClose, version, selectedProject, selectedProjectName }: { onClose: () => void; version: number; selectedProject: string; selectedProjectName: string }) {
+export function TrashDialog({
+  onClose,
+  version,
+  selectedProject,
+  selectedProjectName,
+  onSelectProject,
+}: {
+  onClose: () => void;
+  version: number;
+  selectedProject: string;
+  selectedProjectName: string;
+  onSelectProject: (project: string) => boolean;
+}) {
   const access = useCapabilities();
   const [items, setItems] = useState<TrashItem[] | null>(null);
   const [error, setError] = useState('');
@@ -104,7 +116,11 @@ export function TrashDialog({ onClose, version, selectedProject, selectedProject
       </>
     ) : (
       <>
-        {access.can('purge') && !!items?.length && <button onClick={() => setConfirming('*')}>Empty trash</button>}
+        {access.can('purge') && !!items?.length && (
+          <button className="danger" onClick={() => setConfirming('*')}>
+            Empty trash
+          </button>
+        )}
         <button onClick={onClose}>Close</button>
       </>
     );
@@ -116,7 +132,21 @@ export function TrashDialog({ onClose, version, selectedProject, selectedProject
   } else {
     dialogBody = (
       <>
-        {sections.otherProjectFiles > 0 && <p className="trash-elsewhere">{otherProjectFilesLine(sections.otherProjectFiles)}</p>}
+        {[...new Set(sections.otherFiles.map(item => item.project))].map(project => (
+          <section key={project} aria-label={`Deleted files in ${project}`}>
+            <h3>Deleted files in {sections.otherFiles.find(item => item.project === project)!.projectName}</h3>
+            <button
+              type="button"
+              className="link"
+              onClick={() => {
+                if (onSelectProject(project)) onClose();
+              }}
+            >
+              Switch to project
+            </button>
+            <ul className="trash-list">{sections.otherFiles.filter(item => item.project === project).map(renderRow)}</ul>
+          </section>
+        ))}
         {sections.files.length > 0 && (
           <section aria-label="Deleted files">
             <h3>Deleted files in {selectedProjectName}</h3>

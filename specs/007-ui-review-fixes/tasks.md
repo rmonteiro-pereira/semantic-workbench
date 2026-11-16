@@ -434,7 +434,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Read the computed fill of the tinted cards in `states/local-contract-lineage--first-view-1440.png` reproduced with `scripts/ui-review/capture-states.ts` and match it to a `GROUP_PALETTE` entry.
   - Proof: `evidence/E.md` names the entry and the group that picked it.
 
-- [ ] T063 [US5] [E] List the deleted files of other projects in the trash dialog and mark Empty trash as dangerous.
+- [x] T063 [US5] [E] List the deleted files of other projects in the trash dialog and mark Empty trash as dangerous.
   - Findings: M20 · Requirements: FR-057
   - Files: `src/app/projects/Trash.tsx`, `src/app/projects/trash-sections.ts`, `src/app/projects/api.ts`, `tests/trash-sections.test.ts`, docs/user-guide.md (Trash paragraph)
   - Change: List those files under their project name with a switch link, use the `danger` class on Empty trash, and keep the confirmation naming what it removes.
