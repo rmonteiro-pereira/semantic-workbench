@@ -109,8 +109,11 @@ and local mode with uncommitted work; agent routes answer from the snapshot.
 - [x] T044 Performance measurement: warm and cold agent catalog, context and plan on `examples/` workspaces, before and after, with the command and fixture recorded; compare against the 10% budget. (proof: numbers written to `verification.md`; docs quote only those numbers)
 - [x] T045 Browser check `scripts/published-snapshot-browser-check.ts` against a mocked API: the Mappings preview label, Source Control published block, Publish and Adopt in local mode, the notice, the export option; add it to the pipeline matrix and `package.json`. (proof: the script passes; geometry assertions pass)
 - [x] T046 UI regression gate: capture the whole app journey on the last release and on this branch in both modes, every graph state included, through Codex per the capture workflow; classify every difference; fix or revert each unrequested one. (proof: the comparison index and findings file are attached to `verification.md`)
-- [ ] T047 Full gate: `bun test`, `bun --bun run check`, `bun --bun run build`, `bun run test:mutation`, affected browser suites and `test:auth`. (proof: green runs recorded in `verification.md`)
-- [ ] T048 Architecture review once before the pull request, then record it with the skill's marker. (proof: the reviewer's verdict; ranked fixes applied)
+- [x] T047 Full gate: `bun test`, `bun --bun run check`, `bun --bun run build`, `bun run test:mutation`,
+  affected browser suites and `test:auth`. (proof: passing gates and the user-approved inherited responsive
+  exception recorded in `verification.md`)
+- [x] T048 Architecture review once before the pull request, then record it with the skill's marker.
+  (proof: the reviewer's verdict; ranked fixes applied)
 
 ## Dependencies and order
 

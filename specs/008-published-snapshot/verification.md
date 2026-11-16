@@ -144,3 +144,25 @@ Ran 2187 tests across 304 files. [1168.81s]
 All prior host-identity and temporary-directory fixture failures now pass, including the recovery matrix,
 agent source equivalence and legacy restore. The two default-deadline failures also pass. The final local
 `bun --bun run check` exited 0, and `bun --bun run build` exited 0 with `✓ built in 5.92s`.
+
+## Final remote mutation and review result
+
+`sw-midgard-run --pull out/008-remote-gate -- bun
+specs/008-published-snapshot/remote-mutation-gate.ts` exited 0 at source revision `c73807e4`.
+The driver ran these commands serially with `SW_BASE_URL=http://127.0.0.1:5481`:
+
+| Command | Summary | Exit |
+|---|---|---:|
+| `bun scripts/published-snapshot-browser-check.ts` | `2 published snapshot browser checks passed.` | 0 |
+| `bun scripts/ui-tests.ts` | `20 UI checks passed` | 0 |
+| `bun scripts/mutation-tests.ts` | `695/695 targeted mutants killed; all unmodified module baselines passed.` | 0 |
+
+All nine visual mutants were detected. No mutant was excluded or classified as equivalent. The measured
+remote example baseline needs 17.234 s; only its category receives a 30 s deadline for original and mutated
+candidates. Other mutation deadlines and every assertion remain unchanged. The frontend and its descendants
+were stopped by the existing CI process-group cleanup before the wrapper returned zero.
+
+The architecture reviewer returned PASS at `c73807e4`, with no actionable issue. The documentation reviewer
+also returned PASS at that revision. Production source remains identical to the captured `bab84471` tree.
+The architecture marker is refreshed for the final evidence-only commit. All tasks are complete, with the
+explicit inherited responsive exception above; no full responsive pass is claimed.

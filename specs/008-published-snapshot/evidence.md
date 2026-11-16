@@ -725,3 +725,44 @@ baseline with empty stderr. Its isolated remote command, `sw-midgard-run -- bash
 in 17.234 s. The mutation runner previously killed it after 10 s. Only that category now has a bounded
 30 s deadline, shared by its original and mutated candidates. All assertions and other category deadlines
 remain unchanged. This is a remote execution-speed correction, not a surviving mutant or an exclusion.
+
+## Completion gate and handoff
+
+The final serial wrapper command exited 0 at `c73807e4`:
+
+```sh
+sw-midgard-run --pull out/008-remote-gate -- bun specs/008-published-snapshot/remote-mutation-gate.ts
+```
+
+```text
+snapshot-browser: exit 0
+ui-browser: exit 0
+mutation: exit 0
+2 published snapshot browser checks passed.
+20 UI checks passed
+695/695 targeted mutants killed; all unmodified module baselines passed. Run test:ui for the full browser baseline.
+```
+
+The wrapper exit file and each stage exit file contain zero. All nine visual mutants were detected.
+No mutant was excluded, survived or declared equivalent. The pulled `mutation-error.log` retains its
+15:08 UTC timestamp from the earlier failed run; the final run produced no stderr. The final stdout and
+exit file were written at 15:46 UTC. Historical stderr is not evidence of a failure in the successful run.
+
+Together with the complete unit result above, the final gates are: `bun test --timeout 30000`, 2187 pass,
+0 fail, 134686 assertions, 304 files; `bun --bun run check`, exit 0; `bun --bun run build`,
+`✓ built in 5.92s`, exit 0; and the full mutation result above. The affected browser and authentication
+suites passed as recorded in verification. The sole exception is the unchanged 407/421 responsive assertion
+reproduced on `origin/main` (`655df094`) and explicitly assigned elsewhere by the user. No task is skipped.
+
+Architecture and documentation reviewers both returned PASS at `c73807e4`; no ranked finding remains.
+The final architecture marker is recorded after this evidence-only commit. Public documentation additions
+passed the leak scanner with zero hits; required internal proof files passed its confidential-content check.
+The requested `scripts/commit_cadence.py` is absent (exit 2); no replacement tool was introduced.
+
+The integrator must replace the interim `surfaceFromCredential` function in
+`src/server/auth/request-surface.ts` when operation-boundary metadata arrives from feature 010. The local
+migration adopts existing default-branch commits without rewriting them; the copied pre-change data-root
+test proves preservation of commits, refs, index and staged, unstaged and untracked contents across restart.
+No production source changed after the native visual comparison. The final owned frontend was stopped by
+the remote driver's cleanup; local ports 5321 and 5322 have no listener. No GitHub push, tag, merge or deploy
+was performed. The wrapper's authorized scratch push is the only remote publication.
