@@ -5,6 +5,7 @@ import type { HandlerOptions } from './middleware';
 import type { AccessControl, AccessScope } from './authorize';
 import { auditableProjects, reportAuditFailure, type AuditLog } from './audit';
 import { assertMinted, type Caller } from './caller';
+import { scopeAllows } from './connection-scope';
 import { operationForRow } from './operation-inventory';
 import { routeFor, type RouteAction } from './route-actions';
 import type { ResourceRef, Decision } from './resource';
@@ -200,6 +201,8 @@ export function createOperationBoundary(ws: Workspace, options: HandlerOptions &
     } else if (trash?.entry && !readableTrash(trash.entry, scope)) {
       decision = { allow: false, status: 404, rules: [], reason: 'not-readable' };
     }
+    const entry = operationForRow(target.row.path);
+    if (entry && !scopeAllows(caller.scope, entry.effects)) decision = { allow: false, status: 403, rules: [], reason: 'connection-scope' };
     if (noAccess) decision = { allow: false, status: 403, rules: [], reason: 'no-grant' };
     const input = auditInput({
       requestId,

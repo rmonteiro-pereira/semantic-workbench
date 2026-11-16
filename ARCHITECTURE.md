@@ -371,3 +371,6 @@ The integration view shows what the application reads and contacts, and what it 
 Use [the development guide](docs/development.md) for command syntax, fixture rules and validation.
 Keep configuration/API/operation details in their canonical guides instead of appending release
 history or per-control instructions to this architecture map.
+
+Connection effects in `auth/connection-scope.ts` restrict static inventory effects at the operation
+boundary and dynamic remote or publication effects in Git handlers. They never grant policy access.

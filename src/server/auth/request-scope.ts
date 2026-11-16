@@ -8,6 +8,9 @@ import { guardFor } from './guards';
 import type { Caller } from './caller';
 import type { Session } from './sessions';
 
+/** Effects allowed by this connection, independent of the caller's policy grants. */
+export const requestConnectionScope = Symbol('requestConnectionScope');
+
 /** Delegated-credential session supplied by the caller, including an explicit absence. */
 export const requestSession = Symbol('requestSession');
 
@@ -23,6 +26,7 @@ export type AccessRequest = Request & {
   [requestAuditProjects]?: Set<string> | null;
   [requestRemote]?: RemoteCredentials | 'local';
   [requestSession]?: Session | null;
+  [requestConnectionScope]?: Caller['scope'];
 };
 /**
  * The projects whose audit records an audit request may read, decided once by the access
@@ -48,6 +52,7 @@ export function attachIdentity(
   attached[requestRemote] = context.remote;
   attached[requestAuditProjects] = context.auditProjects;
   attached[requestSession] = caller.session ?? null;
+  attached[requestConnectionScope] = caller.scope;
 }
 
 /**

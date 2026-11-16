@@ -326,7 +326,7 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
     });
   const boundary = createAccessMiddleware(ws, options, localCheck, run, failure);
   if (options.mode !== 'server') return boundary;
-  return async (request: Request) => {
+  const httpHandler = async (request: Request) => {
     const response = await boundary(request);
     // Only the provider's sign-out page may frame the front-channel logout route.
     const frontChannel = new URL(request.url).pathname === FRONT_CHANNEL_LOGOUT_PATH;
@@ -343,4 +343,5 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
     if (!response.headers.has('Cache-Control')) response.headers.set('Cache-Control', 'no-store');
     return response;
   };
+  return Object.assign(httpHandler, { boundary: boundary.boundary });
 }
