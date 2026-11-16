@@ -649,3 +649,38 @@ Proof: `TMPDIR=/tmp/sw-009 bun test ./tests/address-migration-store.test.ts` —
 The second review finding was a new Git metadata lookup after single-file save staging but outside its cleanup block. Deleting the configured Git wrapper reproduced an orphaned .staging directory through saveFile; 11 tests passed and the staging assertion failed. The lookup now runs before staging, matching move/delete ordering. The existing failed-lookup fixture also checks save, move and deletion together, without introducing another isolation layer.
 
 Proof: `TMPDIR=/tmp/sw-009 bun test ./tests/address-migration-store.test.ts` — `12 pass`, `0 fail`, `141 expect() calls`, `Ran 12 tests across 1 file. [3.16s]`. Visibility regression proof — `4 pass`, `0 fail`, `20 expect() calls`. The reviewer reported no other blocking architecture findings.
+
+### Reviewed implementation: remote gate checkpoint
+
+Production source at 10408a68 includes both verified architecture-review corrections. The required review
+marker is recorded, and the pre-push check reports `79 unpushed commits checked, 0 findings`.
+
+- Remote `bun test`: `2190 pass`, `0 fail`, `265122 expect() calls`,
+  `Ran 2190 tests across 308 files. [1136.23s]`. Full output: out/gate-009/unit-reviewed.log.
+- Local `bun --bun run check`: TypeScript, formatting, lint, comments, theme and brand checks pass.
+- Local `bun --bun run build`: `✓ built in 2.92s`. Remote build also passes: `✓ built in 3.04s`.
+  The existing large-chunk warning remains.
+- Remote `bun run test:addresses`: `4 item address browser checks passed`. This uses the owned
+  frontend on 5489 and API on 5490, including the actual rename/reference/history round trip.
+
+The initial server-backed mutation attempt never reached its runner: a readiness curl had no timeout,
+and the forced-Bun Vite launcher did not open its port. The interrupted command has no mutation result.
+Its identified API/frontend/probe processes were stopped through the wrapper. A later 5401 collision
+reached another frontend; that attempt is invalid evidence, and the existing listener was left alone.
+Subsequent launchers use the repository's bun x vite-plus command, bounded readiness, isolated process
+groups, and a unique response marker to verify endpoint ownership before opening a browser.
+
+The real graph and lineage suites then exposed these existing remote baseline failures. Unchanged
+main 655df09 was archived inside the wrapper checkout and tested with its own frontend and API. Only
+its screenshot destinations were redirected into the owned output folder; assertions were unchanged.
+The archive was removed after its servers stopped. No performance budget or geometry assertion changed.
+
+| Command and serving mode | Feature result | Unchanged main result | Retained logs |
+| --- | --- | --- | --- |
+| test:graph, development | Pierce long task 227 ms exceeds 100 ms | 233 ms exceeds 100 ms | browser-graph.log, main-graph.log |
+| test:graph, production | Pierce passes at 63 ms; later reports Whole model cut off inside its select | Same select-clipping failure | production-graph.log, main-production-graph.log |
+| test:lineage, production | Large UBL first view 3,482 ms exceeds 2,000 ms | 3,494 ms exceeds 2,000 ms | production-lineage.log, main-production-lineage.log |
+
+All listed logs are under out/gate-009/. These failures are not claimed as passing gates or feature
+regressions. The remaining named browser suites, actual remote mutation runner and final paired
+visual comparison still require completion after this checkpoint.
