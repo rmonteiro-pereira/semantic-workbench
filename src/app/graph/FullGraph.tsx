@@ -6,9 +6,9 @@ import { ScrollStrip } from '../components/ScrollStrip';
 import type { GroupingOptions } from './overview';
 import { useRecordedState } from '../workspace/hooks/useRecordedState';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ReactFlow, getViewportForBounds, Background, MiniMap, MarkerType, type ReactFlowInstance } from '@xyflow/react';
+import { ReactFlow, Background, MiniMap, type ReactFlowInstance } from '@xyflow/react';
 import { SmartEdgeProvider, type SmartEdgeMetrics } from '@tisoap/react-flow-smart-edge';
-import { Crosshair, Maximize, Maximize2, Minimize2, RefreshCw } from 'lucide-react';
+import { Crosshair, Maximize, RefreshCw } from 'lucide-react';
 import { useViewRestore, type Fullscreen } from './fullscreen';
 import { GraphOptions, OptionGroup, Segmented, ShowToggle } from './GraphOptions';
 import { ZoomButtons } from './ZoomButtons';
@@ -20,16 +20,14 @@ import { collapseAreas } from './collapse';
 import { VALUE_KINDS, kpisKey, readFlag, readHideValues, writeFlag, writeHideValues } from './hidden-kinds';
 import type { Entity, Relationship } from '../../shared/core/model';
 import { edgeTypes, nodeTypes } from './FullGraphNodes';
+import { FullscreenButton } from './FullscreenButton';
+export { FullscreenButton } from './FullscreenButton';
+import { useFullGraphEdges } from './useFullGraphEdges';
+import { fitFullGraph } from './full-graph-viewport';
 import { useFullGraphLayout } from './useFullGraphLayout';
 
 function entityAddress(entity: import('../../shared/core/model').Entity | undefined) {
   return entity && isStructuredEntity(entity) ? formatAddress(entity.address) : undefined;
-}
-
-function relationshipOpacity(emphasized: boolean, hasFocus: boolean) {
-  if (emphasized) return 0.95;
-  if (hasFocus) return 0.07;
-  return 0.48;
 }
 
 const routingOptions = { nodePadding: 10, gridRatio: 10 };
@@ -156,40 +154,7 @@ export function FullGraph(props: Props) {
   // (Admin opening), the size is zero and the viewport becomes NaN. So resize refits move at once,
   // and a NaN viewport is replaced without animating from it.
   const fitWithin = useCallback((duration: number) => {
-    const instance = flow.current;
-    const canvas = container.current?.querySelector('.react-flow');
-    if (!instance || !canvas) return;
-    const current = instance.getNodes();
-    const byId = new Map(current.map(n => [n.id, n]));
-    if (!current.length) return;
-    const boxes = current.map(node => {
-      let x = node.position.x;
-      let y = node.position.y;
-      let parent = node.parentId;
-      const seen = new Set<string>();
-      while (parent && !seen.has(parent)) {
-        seen.add(parent);
-        const parentNode = byId.get(parent);
-        if (!parentNode) break;
-        x += parentNode.position.x;
-        y += parentNode.position.y;
-        parent = parentNode.parentId;
-      }
-      return {
-        x,
-        y,
-        width: Number(node.style?.width ?? node.measured?.width ?? MODEL_CARD_WIDTH),
-        height: Number(node.style?.height ?? node.measured?.height ?? 60),
-      };
-    });
-    const x = Math.min(...boxes.map(n => n.x));
-    const y = Math.min(...boxes.map(n => n.y));
-    const width = Math.max(...boxes.map(n => n.x + n.width)) - x;
-    const height = Math.max(...boxes.map(n => n.y + n.height)) - y;
-    const rect = canvas.getBoundingClientRect();
-    if (!rect.width || !rect.height) return;
-    const startsValid = Number.isFinite(instance.getViewport().zoom);
-    void instance.setViewport(getViewportForBounds({ x, y, width, height }, rect.width, rect.height, 0.001, 1, 0.12), { duration: startsValid ? duration : 0 });
+    fitFullGraph(flow.current, container.current?.querySelector('.react-flow'), duration);
   }, []);
   const fit = useCallback(() => fitWithin(250), [fitWithin]);
   const { nodes, onNodesChange, layoutRoutes, busy, error } = useFullGraphLayout({
@@ -291,81 +256,7 @@ export function FullGraph(props: Props) {
     );
   }, [nodes]);
   const dragging = nodes.some(n => n.dragging);
-  const edges = useMemo(
-    () =>
-      connections.map(connection => {
-        const fromPosition = positions.get(connection.source);
-        const toPosition = positions.get(connection.target);
-        let source = 'e';
-        let target = 'w';
-        if (fromPosition && toPosition) {
-          const dx = toPosition.x - fromPosition.x;
-          const dy = toPosition.y - fromPosition.y;
-          if (Math.abs(dx) > Math.abs(dy)) {
-            source = dx >= 0 ? 'e' : 'w';
-            target = dx >= 0 ? 'w' : 'e';
-          } else {
-            source = dy >= 0 ? 's' : 'n';
-            target = dy >= 0 ? 'n' : 's';
-          }
-        }
-        if (connection.source === connection.target) {
-          source = 'e';
-          target = 's';
-        }
-        if (algorithm === 'layered') {
-          source = 'e';
-          target = 'w';
-        }
-        const active = connection.data.relationships.some(r => r.id === props.selectedEdge);
-        const adjacent = connection.source === focus || connection.target === focus;
-        const visible = (position: any) =>
-          position &&
-          position.x * viewport.zoom + viewport.x > -220 * viewport.zoom &&
-          position.x * viewport.zoom + viewport.x < size.width + 30 &&
-          position.y * viewport.zoom + viewport.y > -90 * viewport.zoom &&
-          position.y * viewport.zoom + viewport.y < size.height + 30;
-        const routeDetailed = !dragging && connection.source !== connection.target && (active || adjacent || (viewport.zoom >= 0.35 && visible(fromPosition) && visible(toPosition)));
-        let label: string | undefined;
-        if (labels || active || hoverEdge === connection.id) {
-          if (connection.data.relationships.length > 1) {
-            label = `${connection.data.relationships.length} relationships`;
-          } else {
-            label = connection.label;
-          }
-        } else {
-          label = undefined;
-        }
-        return {
-          ...connection,
-          data: {
-            ...connection.data,
-            algorithm,
-            routeDetailed,
-            layoutRoute: algorithm === 'layered' ? layoutRoutes[connection.id]?.flat() : undefined,
-          },
-          type: 'routed',
-          sourceHandle: 'source-' + source,
-          targetHandle: 'target-' + target,
-          selected: active,
-          label,
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            color: active || adjacent ? 'var(--color-edge-active)' : 'var(--color-edge-idle)',
-            width: 13,
-            height: 13,
-          },
-          zIndex: -2,
-          interactionWidth: 24,
-          style: {
-            stroke: active || adjacent ? 'var(--color-edge-active)' : 'var(--color-edge-idle)',
-            strokeWidth: active ? 2 : 1.2,
-            strokeOpacity: relationshipOpacity(active || adjacent, Boolean(focus)),
-          },
-        };
-      }),
-    [connections, positions, props.selectedEdge, focus, labels, hoverEdge, algorithm, layoutRoutes, viewport, size, dragging],
-  );
+  const edges = useFullGraphEdges({ connections, positions, selectedEdge: props.selectedEdge, focus, labels, hoverEdge, algorithm, layoutRoutes, viewport, size, dragging });
   useEffect(() => {
     if (!props.search || busy) return;
     const match = overview.entities.find(e => e.name.toLowerCase().includes(props.search.toLowerCase()) || e.id.toLowerCase().includes(props.search.toLowerCase()));
@@ -539,16 +430,3 @@ export function FullGraph(props: Props) {
     </div>
   );
 }
-/** Toggles the graph's full-screen view. */
-export const FullscreenButton = ({ fullscreen }: { fullscreen: Fullscreen }) => (
-  <button
-    className="fullscreen-toggle"
-    onClick={fullscreen.toggle}
-    aria-pressed={fullscreen.active}
-    aria-label={fullscreen.active ? 'Exit full screen' : 'Enter full screen'}
-    title={fullscreen.active ? 'Exit full screen (Esc)' : 'Full screen (F)'}
-  >
-    {fullscreen.active ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
-    {fullscreen.active && 'Exit full screen'}
-  </button>
-);
