@@ -875,3 +875,28 @@ The production correction is complete; the updated example synchronization remai
 `verification.md` now distinguishes the confirmed corrected-source unit/check/build and four browser
 passes from the pending remaining browser, capture and 700-mutant gate. No earlier mutation result is
 claimed for the corrections, no heavy local fallback ran, and no responsive assertion changed.
+
+## Resumed remote browser gate
+
+The wrapper now reuses one shared SSH connection. The working tree was clean on resumption:
+the example-response synchronization and its evidence were already committed in `378537fe`.
+`sw-midgard-run --pull out/008-review-gate -- bun scripts/published-snapshot-remote-gate.ts`
+ran the following suites serially at source revision `a3419c2d`. Every listed suite exited 0:
+
+| Command | Summary line |
+| --- | --- |
+| `bun run test:published-snapshot` | `2 published snapshot browser checks passed.` |
+| `bun run test:ui` | `20 UI checks passed` |
+| `bun run test:edges` | `6 edge attachment UI checks passed` |
+| `bun run test:grouping-validation` | `8 grouping and validation UI checks passed` |
+| `bun run test:examples:ui` | `19 example UI checks passed; no browser runtime errors.` |
+| `bun run test:scm` | `18 source-control checks passed` (followed by its isolated temporary root) |
+| `bun run test:mappings-layout` | `7 mapping layout checks passed` (followed by its isolated temporary root) |
+| `bun run test:projects` | `8 project checks passed` (followed by its isolated temporary root) |
+| `bun run test:auth` | `PASS Git history is refused for a person who cannot read every file` (last check; suite exit 0) |
+
+The updated mall-import synchronization is browser-verified. The driver then stopped at the first local
+capture state because `.workspace-toggle` was absent. No image had yet been captured. The auth stage had
+rebuilt generated validators while Vite was running; this is an observed reload, not an established cause.
+The local capture is retried alone with a fresh frontend; no geometry assertion or production code changed.
+The original nine suite results remain valid. Mutation and the capture/responsive stages are still pending.
