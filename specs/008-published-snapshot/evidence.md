@@ -600,3 +600,13 @@ syntax error. The full run completed before either final capture journey started
 The long-lived launcher subsequently reported exit 143 rather than a verified zero exit. The summary
 proves all mutant assertions ran, but does not by itself prove a clean process exit. A detached suite-runner
 repeat will supply the final exit status after the serial capture journeys.
+
+## Complete server capture selector
+
+The file-move tour opens a file before locating its action menu. The server fixture contains the same
+ontology filename in two projects, so a filename-only menu locator violates strict selection. A focused
+release capture reproduced the identical two-element failure on v0.6.1. The tour now locates the already
+selected sidebar file row and its existing menu; no UI or geometry assertion changed. The same driver
+adjustment is applied to the ignored release source. `TMPDIR=/tmp/sw-008 SW_ONLY=file-move
+bun scripts/polish-capture-server.ts ...`: four native viewports, four `problems=0` measurements, exit 0.
+The failed full server output is retained separately and will not enter the final comparison inventory.
