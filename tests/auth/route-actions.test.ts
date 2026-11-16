@@ -78,6 +78,7 @@ test('every implemented inventory example reaches a route in local mode', async 
     const controller = new AbortController();
     const request = new Request('http://localhost' + example.path, {
       method: example.method,
+      headers: { 'Sec-Fetch-Site': 'same-origin' },
       signal: controller.signal,
       ...(example.method === 'GET' ? {} : { body: JSON.stringify(example.body ?? {}) }),
     });

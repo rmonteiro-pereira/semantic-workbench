@@ -1,4 +1,5 @@
 // Read coverage stays separate so write cases can extend the matrix independently.
+import { clientPrincipal } from '../../src/server/auth/principal';
 import { LOCAL_READER } from '../../src/server/projects/reader';
 import { describe, expect, test } from 'bun:test';
 import { authWorkspace, AUTH_PROJECTS, fixtureFiles, leakMarker } from '../helpers/auth-workspace';
@@ -86,7 +87,7 @@ async function expectAllowedReadResponse(method: string, path: string, response:
   }
   // The project is checked first: a person who cannot read the project the example names is told
   // it is not found, exactly as for an unknown one.
-  if (path.startsWith('/api/agent/') && response.status === 400) {
+  if ((path.startsWith('/api/agent/') || path.startsWith('/api/preview/')) && response.status === 400) {
     expect(await response.clone().json()).toEqual({ error: 'Project not found.' });
     return;
   }
@@ -130,15 +131,15 @@ describe('read route inventory', () => {
           if (path.includes('/explain/')) {
             path = `/api/projects/${project}/files/preview.semantic.yaml/explain/preview_metric`;
           }
-          if (path === '/api/agent/catalog') {
+          if (['/api/agent/catalog', '/api/preview/catalog'].includes(path)) {
             // A project the person cannot read answers like an unknown one, so ask for one they can.
             const readable = scope.view().readableProjects;
             const named = readable.has(project) ? project : ([...readable][0] ?? project);
             path += `?project=${named}`;
           }
           if (path.endsWith('/item-addresses/resolve')) requestBody = { address: `sw1:${project}/${fixtureFiles(project)[0].path}#ontology:O` };
-          if (path === '/api/agent/context') path += '?project=sales-contracts&mappingId=sales-contracts/sales.mapping.yaml';
-          if (path === '/api/agent/plan') {
+          if (['/api/agent/context', '/api/preview/context'].includes(path)) path += '?project=sales-contracts&mappingId=sales-contracts/sales.mapping.yaml';
+          if (['/api/agent/plan', '/api/preview/plan'].includes(path)) {
             requestBody = {
               project: 'sales-contracts',
               mappingId: 'sales-contracts/sales.mapping.yaml',
@@ -626,5 +627,39 @@ test('application grants retain the fixed four-route agent allowlist', async () 
   for (const path of ['/api/projects', '/api/documents', '/api/projects/sales-contracts/metrics', '/api/preview/catalog', '/api/agent/unknown']) {
     const response = await handler(new Request('http://localhost' + path, { headers: { Authorization: 'Bearer fixture' } }));
     expect(response.status).toBe(path.startsWith('/api/agent/') ? 404 : 401);
+  }
+});
+
+test('preview routes admit session and marked local browsers while other surfaces answer as unknown routes', async () => {
+  using fixture = await authWorkspace();
+  const access = createAccessControl(accessFixture());
+  const principal = access.principalFor(person('alice'));
+  const server = createHandler(fixture.ws, {
+    mode: 'server',
+    access,
+    principal: () => principal,
+    bearer: async () => clientPrincipal('sw-agent'),
+    remoteCredentials: allowEveryRemote(),
+    publicOrigin: 'http://localhost:5173',
+  });
+  const local = createHandler(fixture.ws);
+  for (const handler of [server, local]) {
+    for (const operation of ['catalog', 'context', 'plan']) {
+      const path = operation === 'plan' ? '/api/preview/plan' : `/api/preview/${operation}?project=sales-contracts&mappingId=sales-contracts/sales.mapping.yaml`;
+      const options = {
+        method: operation === 'plan' ? 'POST' : 'GET',
+        ...(operation === 'plan' ? { body: JSON.stringify({ project: 'sales-contracts', mappingId: 'sales-contracts/sales.mapping.yaml', metrics: ['gross_revenue'], dimensions: [] }) } : {}),
+      };
+      const browser = await handler(
+        new Request('http://localhost:5173' + path, { ...options, headers: { Cookie: 'session=fixture', Origin: 'http://localhost:5173', 'X-SW-Request': '1', 'Sec-Fetch-Site': 'same-origin' } }),
+      );
+      expect(browser.status).toBe(200);
+      expect(browser.headers.has('X-Workbench-Snapshot')).toBe(false);
+      const headers = { Origin: 'http://localhost:5173', 'X-SW-Request': '1', ...(handler === server ? { Authorization: 'Bearer fixture' } : {}) };
+      const refused = await handler(new Request('http://localhost:5173' + path, { ...options, headers }));
+      const unknown = await handler(new Request('http://localhost:5173/api/unknown-preview', { ...options, headers }));
+      expect(refused.status).toBe(unknown.status);
+      expect(await refused.text()).toBe(await unknown.text());
+    }
   }
 });

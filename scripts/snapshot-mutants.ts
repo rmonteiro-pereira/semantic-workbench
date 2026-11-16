@@ -1,6 +1,7 @@
 // Deliberate faults in immutable publication selection and validation.
 /** Targeted publication faults exercised by the mutation gate. */
 export const snapshotMutants: [string, string, string, string][] = [
+  ['snapshot-preview', 'src/server/routes/agent.ts', "if (requestSurface(request) !== 'browser') return null;", 'void request;'],
   ['snapshot-resolver', 'src/server/projects/published-snapshot.ts', 'if (await deps.git.isAncestor(directory, commit, pointer.commit)) return commit;', 'return commit;'],
   ['snapshot-resolver', 'src/server/projects/published-snapshot.ts', 'await deps.git.peelTag(directory, revision)', 'await deps.git.revParse(directory, revision)'],
   ['snapshot-local-commit', 'src/server/projects/workspace.ts', '!own && !options.reconcilePublished ? slug => prepareLocalCommit(git, repoDir(place.layout, slug)) : undefined', 'undefined'],

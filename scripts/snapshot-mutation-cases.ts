@@ -14,6 +14,7 @@ import { LOCAL_READER } from '../src/server/projects/reader';
 import type { RouteAction } from '../src/server/auth/route-actions';
 import type { createWorktrees } from '../src/server/projects/worktrees';
 import { publicationMoveFixture } from '../tests/helpers/publication-fixture';
+import { attachRequestSurface } from '../src/server/auth/request-surface';
 import type { surfaceFromCredential } from '../src/server/auth/request-surface';
 import { join } from 'node:path';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -37,6 +38,7 @@ export async function snapshotMutationCase(
   candidate: Parameters<typeof localPublicationCase>[0] & {
     metricRoutes?: typeof metricRoutes;
     createAgentRoutes?: typeof agentRoutes.createAgentRoutes;
+    createPreviewRoutes?: typeof agentRoutes.createPreviewRoutes;
     publishedAgentDocuments?: typeof agentRoutes.publishedAgentDocuments;
     surfaceFromCredential?: typeof surfaceFromCredential;
     createWorktrees?: typeof createWorktrees;
@@ -49,6 +51,18 @@ export async function snapshotMutationCase(
     createSnapshotIndexes?: typeof createSnapshotIndexes;
   },
 ) {
+  if (category === 'snapshot-preview') {
+    using fixture = await testWorkspace();
+    const { slug } = await fixture.ws.loadExample('mapped-commerce');
+    const route = candidate.createPreviewRoutes!();
+    const access = createAccessControl({ ...accessFixture(), mode: 'local', knownProjects: () => [slug] });
+    const request = Object.assign(new Request(`http://localhost/api/preview/catalog?project=${slug}`), { [requestAccess]: access.forRequest(localPrincipal()) });
+    assert.equal(await route(fixture.ws, request, new URL(request.url)), null);
+    attachRequestSurface(request, { mode: 'local', session: false, originAllowed: true });
+    const browser = Object.assign(new Request(request, { headers: { 'Sec-Fetch-Site': 'same-origin' } }), { [requestAccess]: access.forRequest(localPrincipal()) });
+    attachRequestSurface(browser, { mode: 'local', session: false, originAllowed: true });
+    assert.equal((await route(fixture.ws, browser, new URL(browser.url)))?.status, 200);
+  }
   if (category === 'snapshot-local-commit') await localCommitCase(candidate);
   if (category === 'snapshot-local') await localPublicationCase(candidate);
   if (category === 'snapshot-metrics') {

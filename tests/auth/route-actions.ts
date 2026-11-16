@@ -84,6 +84,9 @@ export const routeExamples: { method: string; path: string; body?: unknown }[] =
   { method: 'GET', path: '/api/agent/catalog' },
   { method: 'GET', path: '/api/agent/context' },
   { method: 'POST', path: '/api/agent/plan' },
+  { method: 'GET', path: '/api/preview/catalog' },
+  { method: 'GET', path: '/api/preview/context' },
+  { method: 'POST', path: '/api/preview/plan' },
   { method: 'GET', path: '/api/documents/00000000000000000000/grouping' },
   { method: 'PUT', path: '/api/documents/00000000000000000000/grouping' },
   // Administration requests, in the same order as their rows.
@@ -136,5 +139,5 @@ export const readRouteExamples = routeExamples.filter(
     example.path.startsWith('/api/') &&
     // Administration and audit reads are Admin or Steward pages that name no project.
     !/^\/api\/(admin|audit)(\/|$)/.test(example.path) &&
-    (example.method === 'GET' || example.path.endsWith('/preview') || example.path === '/api/agent/plan' || example.path.endsWith('/item-addresses/resolve')),
+    (example.method === 'GET' || example.path.endsWith('/preview') || ['/api/agent/plan', '/api/preview/plan'].includes(example.path) || example.path.endsWith('/item-addresses/resolve')),
 );

@@ -311,3 +311,9 @@ An unavailable published snapshot returns HTTP 409 with `error: "no published sn
 `code: "no-published-snapshot"` and `reason` equal to `no-git`, `no-commit` or `unavailable`.
 A publication candidate that cannot be read completely returns HTTP 422. These responses retain
 their status in local mode as well as server mode.
+
+Browser authoring previews use `GET /api/preview/catalog`, `GET /api/preview/context` and
+`POST /api/preview/plan`, with the same parameters as their agent counterparts. They read the
+person’s editing view and carry no snapshot header. Applications cannot use these routes.
+Local requests need the trusted browser fetch metadata; a script without it receives the same
+answer as an unknown route.

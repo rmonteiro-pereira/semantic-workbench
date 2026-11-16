@@ -337,3 +337,7 @@ principal is allowed while the server Viewer refusal remains unchanged.
 ## Object failures and build limits
 
 `TMPDIR=/tmp/sw-008 bun test tests/snapshot-index.test.ts`: 9 pass, 0 fail, 19 assertions. Each configured bound and a case collision fail closed. Deleting a real loose blob produces no partial index, repeated failures are retryable, and restoring the object permits a complete build. A real sleeping Git executable times out twice without retaining an unfinished build.
+
+## Browser-only preview routes
+
+`TMPDIR=/tmp/sw-008 bun test tests/auth/matrix.test.ts tests/auth/route-actions.test.ts tests/auth/guard-inventory.test.ts`: 29 pass, 0 fail, 43401 assertions. Catalog/context/plan previews use the existing source-injected handlers, require the browser surface, have no snapshot header, and preserve the application allowlist. Sessions and marked local requests pass; applications and unmarked local requests match unknown-route answers. The surface-guard mutant is detected (baseline 0, mutant 1). The inventory also now documents acknowledgement as personal-state-only, correcting its previously missing content-guard exemption.

@@ -161,6 +161,9 @@ export const ROUTE_ACTIONS: RouteAction[] = [
     audited: true,
     clientAction: 'agentRead',
   },
+  { ...row('GET', '/api/preview/catalog', 'read', workspace), readSource: 'editing', audited: true },
+  { ...row('GET', '/api/preview/context', 'read', workspace), readSource: 'editing', audited: true },
+  { ...row('POST', '/api/preview/plan', 'read', workspace), readSource: 'editing', audited: true },
   row('GET', '/api/documents/:id/grouping', 'viewOwnState', workspace),
   // Grouping views are personal; the route resolves the document and refuses a hidden one.
   { ...row('PUT', '/api/documents/:id/grouping', 'viewOwnState', workspace), targets: 'body' },

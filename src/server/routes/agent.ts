@@ -1,6 +1,7 @@
 // Shares catalog, context and planning handlers across explicit definition sources.
 import { documentsOfProject } from '../../shared/core/project-scope';
 import { agentCatalog, buildContext, selectContext, wholeContext, planQuery } from '../agent/runtime';
+import { requestSurface } from '../auth/request-surface';
 import { requestReader } from '../auth/request-scope';
 import { BadRequestError, HiddenResourceError } from '../projects/errors';
 import type { Workspace } from '../projects/workspace';
@@ -55,7 +56,7 @@ function requireProject(ws: Workspace, request: Request, project: unknown): asse
 }
 
 /** Creates the agent route group using one explicit source of definition documents. */
-export function createAgentRoutes(source: AgentDocumentSource): Route {
+export function createAgentRoutes(source: AgentDocumentSource, prefix = '/api/agent'): Route {
   return async (ws, req, url) => {
     // Mapping fragments identify embedded mappings and must survive legacy document ID translation.
     const mappingRef = (id: string) => {
@@ -65,13 +66,13 @@ export function createAgentRoutes(source: AgentDocumentSource): Route {
       const legacy = ws.state.legacyIds().ids[doc];
       return legacy ? `${legacy.project}/${legacy.path}${rest}` : id;
     };
-    if (url.pathname === '/api/agent/projects' && req.method === 'GET') return Response.json({ projects: agentProjects(ws, req) });
-    if (url.pathname === '/api/agent/catalog' && req.method === 'GET') {
+    if (prefix === '/api/agent' && url.pathname === '/api/agent/projects' && req.method === 'GET') return Response.json({ projects: agentProjects(ws, req) });
+    if (url.pathname === `${prefix}/catalog` && req.method === 'GET') {
       const project = url.searchParams.get('project');
       requireProject(ws, req, project);
       return source(ws, req, project, documents => Response.json(agentCatalog(documents)));
     }
-    if (url.pathname === '/api/agent/context' && req.method === 'GET') {
+    if (url.pathname === `${prefix}/context` && req.method === 'GET') {
       const mappingId = url.searchParams.get('mappingId');
       if (!mappingId) throw new BadRequestError('mappingId is required. List mappings at /api/agent/catalog.');
       const project = url.searchParams.get('project') ?? '';
@@ -84,7 +85,7 @@ export function createAgentRoutes(source: AgentDocumentSource): Route {
         return Response.json(concepts.length ? selectContext(context, concepts) : wholeContext(context));
       });
     }
-    if (url.pathname === '/api/agent/plan' && req.method === 'POST') {
+    if (url.pathname === `${prefix}/plan` && req.method === 'POST') {
       const body = await readJson(req, 64_000);
       if (!body || Array.isArray(body) || Object.keys(body).some(k => !['project', 'mappingId', 'concepts', 'metrics', 'dimensions'].includes(k)) || typeof body.mappingId !== 'string')
         throw new BadRequestError('Expected project, mappingId, optional concepts, metrics and dimensions. Expressions and metric overrides are not accepted.');
@@ -102,5 +103,14 @@ export function createAgentRoutes(source: AgentDocumentSource): Route {
       });
     }
     return null;
+  };
+}
+
+/** Serves authoring previews only to requests admitted through the browser surface. */
+export function createPreviewRoutes(): Route {
+  const preview = createAgentRoutes(editingAgentDocuments, '/api/preview');
+  return (workspace, request, url) => {
+    if (requestSurface(request) !== 'browser') return null;
+    return preview(workspace, request, url);
   };
 }
