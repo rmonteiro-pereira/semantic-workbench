@@ -13,3 +13,9 @@
 The real repositories cover Unicode and spaces, binary bytes, missing and oversized objects,
 aggregate byte refusal, annotated and lightweight tags, ancestry and unborn HEAD.
 Object reads disable Git lazy fetching so missing objects cannot initiate a network request.
+
+## Publication fixtures
+
+`bun test tests/git-fixtures.test.ts`: 4 pass, 0 fail, 14 expect() calls.
+The fixtures assert published history, a separate authoring tip, a foreign personal tip,
+an unborn default ref, an outside fast-forward and an outside reset using real Git queries.

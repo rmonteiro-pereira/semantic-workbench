@@ -98,3 +98,38 @@ export function emptyBareRepository(): Pick<BareFixture, 'bare' | 'dir' | 'dispo
   git(dir, ['init', '-q', '--bare', '-b', 'main', bare]);
   return { bare, dir, dispose: () => rmSync(dir, { recursive: true, force: true }) };
 }
+
+/** Selects a publication history, unborn default branch or outside default-ref move. */
+export type PublicationFixtureKind = 'history' | 'unborn' | 'outside-forward' | 'outside-diverged';
+/** Creates a repository with distinct published, authoring and foreign personal commits. */
+export function publicationRepository(kind: PublicationFixtureKind = 'history') {
+  isolateGit();
+  const parent = '/tmp/sw-008';
+  mkdirSync(parent, { recursive: true });
+  const dir = mkdtempSync(join(parent, 'publication-'));
+  const repository = join(dir, 'projects', 'definitions');
+  mkdirSync(repository, { recursive: true });
+  git(repository, ['init', '-q', '-b', 'main']);
+  const commit = (text: string) => {
+    writeFileSync(join(repository, 'shop.ontology.yaml'), ontologyText(text, ['Customer']));
+    git(repository, ['add', '-A']);
+    git(repository, ['commit', '-q', '-m', text]);
+    return git(repository, ['rev-parse', 'HEAD']).trim();
+  };
+  const dispose = () => rmSync(dir, { recursive: true, force: true });
+  if (kind === 'unborn') {
+    git(repository, ['checkout', '-q', '--orphan', 'work/local']);
+    const authoring = commit('First authoring');
+    return { dir, repository, published: null, previous: null, authoring, foreign: null, dispose };
+  }
+  const previous = commit('Previous publication');
+  const published = commit('Published');
+  git(repository, ['checkout', '-q', '-b', 'work/local']);
+  const authoring = commit('Authoring');
+  git(repository, ['checkout', '-q', '-b', 'work/other', published]);
+  const foreign = commit('Other person');
+  git(repository, ['checkout', '-q', 'main']);
+  if (kind === 'outside-forward') git(repository, ['update-ref', 'refs/heads/main', authoring, published]);
+  if (kind === 'outside-diverged') git(repository, ['update-ref', 'refs/heads/main', previous, published]);
+  return { dir, repository, published, previous, authoring, foreign, dispose };
+}
