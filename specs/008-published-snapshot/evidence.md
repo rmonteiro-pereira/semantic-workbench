@@ -706,3 +706,13 @@ expectation and bounded remote execution deadline address all 24 first-run failu
 The serial browser/mutation command started only after this wrapper returned zero. Its pre-push content
 check reported `97 unpushed commits checked, 0 findings`; the architecture marker was updated before that
 authorized scratch push. No GitHub push occurred.
+
+## First remote mutation baseline
+
+The remote snapshot browser baseline exited 0 (`2 published snapshot browser checks passed.`), and the
+full UI baseline exited 0 (`20 UI checks passed`). The mutation command stopped before introducing faults:
+`Baseline failed (secrev-scm-case)` reported unknown Git author in its standalone Source Control fixture.
+That helper now passes the existing isolated environment, matching the test-helper correction.
+`GIT_CONFIG_GLOBAL=/dev/null bun scripts/mutation-case.ts "$PWD/src/server/projects/scm.ts"
+secrev-scm-case` exited 0. No mutant, assertion or candidate behavior changed. The failed gate is retained
+separately; the existing CI process-group cleanup stopped its frontend before the repeat.
