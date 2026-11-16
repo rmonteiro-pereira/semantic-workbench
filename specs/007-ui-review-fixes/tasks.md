@@ -367,7 +367,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Use one `max-width` for forms and one for tables (`admin.css:54`); drop the lock emoji (`RoleMatrix.tsx:14`); show allow and deny as different styles and map audit codes such as 'signIn' to labels; align the filter row; place **Save settings** under its fields (`SettingsSection.tsx:162`); reword the counts at `ReviewChange.tsx:117-122`; put the primary on the right; format dates with `toLocaleString` without seconds.
   - Proof: Before `server-light/server-admin-grants-2560.png`, `server-light/server-admin-roles-1440.png`, `server-light/server-admin-audit-1440.png`, `server-light/server-admin-settings-1440.png`, `states/server-admin-access-change--review-confirm-1440.png` (review baseline); after: same state recaptured with `scripts/ui-review/capture-tour.ts <out> server light` and `scripts/ui-review/admin-states.ts <out>`; check: `bun run test:admin`; `bun scripts/admin-pane-geometry.ts` asserts the width caps at 2560.
 
-- [ ] T053 [US4] [D] Restyle the script-free pages and add the support line.
+- [x] T053 [US4] [D] Restyle the script-free pages and add the support line.
   - Findings: m26 · Requirements: FR-051
   - Files: `src/server/routes/auth.ts`, `src/server/routes/auth-stylesheet.ts`, `tests/auth/auth-pages.test.ts`, docs/theme.md (the `supportUrl` paragraph only)
   - Change: Render the one action as `button primary`, rewrite the reason strings in plain words, and link `supportUrl` from the brand bundle when it is set, otherwise print 'Ask an administrator for access'; the pages stay script-free and the sanitised brand rules in `docs/theme.md` still hold (the paragraph that calls `supportUrl` reserved is updated).

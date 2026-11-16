@@ -27,7 +27,7 @@ test('a callback without a sign-in attempt answers 400', async () => {
   try {
     const response = await context.handler(new Request(context.origin + '/auth/callback?code=x'));
     expect(response.status).toBe(400);
-    expect(await response.text()).toContain('Expired or replayed sign-in attempt');
+    expect(await response.text()).toContain('This sign-in link expired or was already used. Sign in again.');
   } finally {
     log.mockRestore();
   }
@@ -49,7 +49,7 @@ test('an unreachable provider answers 503, at the callback and at the start', as
   try {
     const response = await context.handler(new Request(context.origin + '/auth/login'));
     expect(response.status).toBe(503);
-    expect(await response.text()).toContain('Provider unreachable');
+    expect(await response.text()).toContain('The sign-in service is unavailable. Try again shortly.');
   } finally {
     login.mockRestore();
     log.mockRestore();

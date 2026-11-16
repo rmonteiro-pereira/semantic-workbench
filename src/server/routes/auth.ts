@@ -30,7 +30,7 @@ function brandMarkup(): string {
 
 function pageContent(page: AuthPageKind, options: AuthPageOptions) {
   let title = 'Signed out';
-  let content = '<p>You are signed out.</p><a href="/auth/login">Sign in again</a>';
+  let content = '<p>You are signed out.</p><a class="button primary" href="/auth/login">Sign in again</a>';
   if (page === 'no-access') {
     title = 'No access';
     const person = options.principal!;
@@ -46,16 +46,24 @@ function pageContent(page: AuthPageKind, options: AuthPageOptions) {
       '<input type="hidden" name="csrf" value="' +
       escapeHtml(options.csrf ?? '') +
       '">' +
-      '<button type="submit">Sign out</button></form>';
+      '<button class="button primary" type="submit">Sign out</button></form>';
   }
   if (page === 'error') {
     title = 'Sign-in error';
-    content = '<p>' + escapeHtml(options.reason ?? 'Provider unreachable') + '</p><a href="/auth/login?returnTo=' + escapeHtml(encodeURIComponent(safeReturnTo(options.returnTo))) + '">Try again</a>';
+    content =
+      '<p>' +
+      escapeHtml(options.reason ?? 'The sign-in service is unavailable. Try again shortly.') +
+      '</p><a class="button primary" href="/auth/login?returnTo=' +
+      escapeHtml(encodeURIComponent(safeReturnTo(options.returnTo))) +
+      '">Try again</a>';
   }
   if (page === 'connect-failed') {
     title = 'GitHub not connected';
-    content = '<p>Your GitHub account could not be connected. Nothing was changed.</p><a href="' + escapeHtml(safeReturnTo(options.returnTo)) + '">Back to the workbench</a>';
+    content = '<p>Your GitHub account could not be connected. Nothing was changed.</p><a class="button primary" href="' + escapeHtml(safeReturnTo(options.returnTo)) + '">Back to the workbench</a>';
   }
+  const supportUrl = activeBrand().manifest.supportUrl;
+  const support = supportUrl ? '<a href="' + escapeHtml(supportUrl) + '">Ask an administrator for access</a>' : 'Ask an administrator for access';
+  content += '<p class="support">' + support + '</p>';
   return { title, content };
 }
 
@@ -173,11 +181,11 @@ const SIGN_IN_FAILURE_STATUS: Partial<Record<SignInReason, number>> = {
 /** Renders only safe sign-in reasons, including failures starting from a protected page. */
 export function signInErrorResponse(error: SignInError, publicUrl?: string) {
   const reasons: Record<SignInReason, string> = {
-    'tenant-mismatch': 'Tenant mismatch.',
-    'attempt-invalid': 'Expired or replayed sign-in attempt.',
-    'token-invalid': 'Invalid or expired provider token.',
-    'provider-unreachable': 'Provider unreachable.',
-    'provider-unsupported': 'Not supported by the identity provider.',
+    'tenant-mismatch': 'This account belongs to a different organization. Sign in with your workbench account.',
+    'attempt-invalid': 'This sign-in link expired or was already used. Sign in again.',
+    'token-invalid': 'Your sign-in could not be verified. Sign in again.',
+    'provider-unreachable': 'The sign-in service is unavailable. Try again shortly.',
+    'provider-unsupported': 'Your sign-in service does not support this action.',
     'session-upgraded': 'Signed out after an update; sign in again.',
   };
   const response = authPage('error', { reason: reasons[error.reason], returnTo: error.returnTo }, SIGN_IN_FAILURE_STATUS[error.reason]);

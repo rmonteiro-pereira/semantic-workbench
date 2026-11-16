@@ -92,8 +92,30 @@ test('the HTTP error mapper clears the attempt cookie and preserves a safe retur
     expect(response.headers.get('set-cookie')).toContain('Max-Age=0');
     expect(response.headers.get('set-cookie')).toContain('sw-auth=');
     const html = await response.text();
-    expect(html).toContain('Expired or replayed sign-in attempt');
+    expect(html).toContain('This sign-in link expired or was already used. Sign in again.');
     expect(html).toContain('returnTo=%2Fcatalog');
     expect(error.returnTo).toBe('/catalog');
+  }
+});
+
+test('identity pages have a primary action and safe brand support navigation', async () => {
+  const { activeBrand, setActiveBrand } = await import('../../src/server/brand/bundle');
+  const brand = activeBrand();
+  try {
+    for (const supportUrl of [undefined, 'https://support.example.org/?team=access&lang=en']) {
+      setActiveBrand({ ...brand, manifest: { ...brand.manifest, supportUrl } });
+      for (const page of ['error', 'signed-out', 'no-access'] as const) {
+        const response = authPage(page, { principal: localPrincipal() });
+        const body = await response.text();
+        expect(body).toContain('class="button primary"');
+        expect(body).toContain('Ask an administrator for access');
+        expect(body).not.toContain('<script');
+        expect(response.headers.get('content-security-policy')).toContain("script-src 'self'");
+        if (supportUrl) expect(body).toContain('href="https://support.example.org/?team=access&amp;lang=en"');
+        else expect(body).toContain('<p class="support">Ask an administrator for access</p>');
+      }
+    }
+  } finally {
+    setActiveBrand(brand);
   }
 });

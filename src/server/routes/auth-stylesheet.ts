@@ -23,7 +23,11 @@ const AUTH_LAYOUT =
   'gap:8px;padding:9px 13px;border:1px solid var(--color-border);border-radius:7px;' +
   'background:var(--color-surface);' +
   'color:inherit;text-decoration:none;cursor:pointer}' +
-  'button:hover,a:hover{background:var(--color-surface-hover)}';
+  'button:hover,a:hover{background:var(--color-surface-hover)}' +
+  '.primary{background:var(--color-accent);border-color:var(--color-accent);color:var(--color-on-accent)}' +
+  '.primary:hover{background:var(--color-accent-hover)}' +
+  '.support{margin:1rem 0 0;color:var(--color-text-muted);font-size:0.8125rem}' +
+  '.support a{display:inline;padding:0;border:0;border-radius:0;background:none;color:var(--color-accent-text);text-decoration:underline}';
 
 let cached: string | undefined;
 

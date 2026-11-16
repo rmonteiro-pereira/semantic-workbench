@@ -45,3 +45,13 @@ Only ports 5241 and 5242 are used for browser checks. The dev server was started
 - `bun test tests/admin-presentation.test.tsx`: 14 pass, 0 fail, 53 expect() calls.
 - Admin width check passed: form <= 640px, table <= 1200px, aligned left edges.
 - `capture-tour.ts`: all eight admin captures at 1440 and 2560 reported `[]` geometry problems.
+
+## T053 — script-free authentication pages
+
+- Before: review `screenshots/auth-pages/auth-page-{sign-in-error,no-access}--page-1440.png`.
+- After: matching names in `out/lane-d/after/screenshots/auth-pages/`.
+- Opened both after images: the single action is filled, the expired-link explanation is plain, and the administrator support line is visible.
+- `bun test tests/auth/auth-pages.test.ts`: 6 pass, 0 fail, 63 expect() calls. Includes configured support links, HTML escaping, fallback text, script absence and the existing CSP.
+- Request-entry tests keep the HTTP status checks while expecting the new expired-link and service-unavailable explanations, so deliberate wording changes remain covered.
+- No inline styles, script, CSP relaxation, or new route is introduced. Brand URLs pass through the existing sanitized manifest boundary.
+- `bun test` on the admin dialog and geometry components: 18 pass, 0 fail.

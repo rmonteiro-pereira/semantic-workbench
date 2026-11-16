@@ -156,8 +156,9 @@ Example manifest:
 
 `productName` is required, with 1–60 characters. `shortName` is also required, with 1–24 characters,
 but is reserved for compact naming rather than currently replacing the workspace header.
-`supportUrl` is optional and reserved for support navigation. Unknown manifest keys are dropped.
-Do not promise visible UI behavior for those reserved fields.
+`supportUrl` is optional. The script-free sign-in, signed-out and no-access pages link it from
+“Ask an administrator for access”; without it they show that sentence without a link. Only HTTP
+and HTTPS support addresses are accepted. Unknown manifest keys are dropped.
 
 Files are read once at server startup. Restart after changing the bundle. An unreadable configured
 directory stops startup. A missing file keeps the shipped default. An oversized or invalid file

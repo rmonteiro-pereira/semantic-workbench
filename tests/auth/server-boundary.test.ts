@@ -76,7 +76,7 @@ test('pages redirect, denied identities stay outside, refresh removes grants, lo
     const me = await handler(new Request(origin + '/api/me', { headers: { Cookie: bob.cookie } }));
     expect((await me.json()).roleSources[0].via).toBe('email');
     const replay = await handler(bob.request.clone());
-    expect(await replay.text()).toContain('Expired or replayed');
+    expect(await replay.text()).toContain('This sign-in link expired or was already used. Sign in again.');
 
     const alice = await signIn('alice');
     const headers = { Cookie: alice.cookie };
