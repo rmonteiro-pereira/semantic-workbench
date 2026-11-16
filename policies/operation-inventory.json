@@ -2607,6 +2607,38 @@
       "reason": "Node coordinates are presentation state for the browser canvas.",
       "increment": "never",
       "source": "src/app/graph/layout.ts"
+    },
+    {
+      "id": "lineage.projection",
+      "summary": "Column-level lineage derivation",
+      "status": "needs-shared-implementation",
+      "reason": "The browser builds column lineage from contract sources without a reviewed server operation.",
+      "increment": "resources-prompts",
+      "source": "src/app/odcs/lineage.ts"
+    },
+    {
+      "id": "mappings.projection",
+      "summary": "Mapping graph derivation",
+      "status": "needs-shared-implementation",
+      "reason": "Mapping cards and edges are derived in the browser without a reviewed server operation.",
+      "increment": "resources-prompts",
+      "source": "src/app/mappings/mapping-graph.ts"
+    },
+    {
+      "id": "graph.neighborhood",
+      "summary": "Searchable and paged graph neighborhoods",
+      "status": "needs-shared-implementation",
+      "reason": "Browser neighborhood selection has no reviewed server operation.",
+      "increment": "later",
+      "source": "src/app/graph/graph-view.ts"
+    },
+    {
+      "id": "graph.traversal",
+      "summary": "Bounded graph closure",
+      "status": "needs-shared-implementation",
+      "reason": "The browser owns bounded graph traversal without a reviewed server operation.",
+      "increment": "later",
+      "source": "src/app/graph/pierce.ts"
     }
   ]
 }

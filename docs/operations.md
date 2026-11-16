@@ -134,3 +134,7 @@ Regenerate this page with `bun scripts/operation-inventory-table.ts` after revie
 | lineage.assets | needs-shared-implementation | Asset ranking is implemented in the browser lineage model without a server operation. | later | src/app/odcs/lineage.ts |
 | lineage.traversal | needs-shared-implementation | Browser lineage traversal has no reviewed server operation. | later | src/app/odcs/lineage-pierce.ts |
 | graph.layout | browser-only-by-design | Node coordinates are presentation state for the browser canvas. | never | src/app/graph/layout.ts |
+| lineage.projection | needs-shared-implementation | The browser builds column lineage from contract sources without a reviewed server operation. | resources-prompts | src/app/odcs/lineage.ts |
+| mappings.projection | needs-shared-implementation | Mapping cards and edges are derived in the browser without a reviewed server operation. | resources-prompts | src/app/mappings/mapping-graph.ts |
+| graph.neighborhood | needs-shared-implementation | Browser neighborhood selection has no reviewed server operation. | later | src/app/graph/graph-view.ts |
+| graph.traversal | needs-shared-implementation | The browser owns bounded graph traversal without a reviewed server operation. | later | src/app/graph/pierce.ts |
