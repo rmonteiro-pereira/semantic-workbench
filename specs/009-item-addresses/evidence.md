@@ -1,7 +1,14 @@
 # Item address evidence
 
-Earlier sections retain the initial attempt. The current scope stop and unshimmed gate results
-are recorded in the later sections.
+Earlier sections retain the initial attempts and resolved blockers. The final status and
+unshimmed completion-gate results are recorded in the later sections.
+
+## Scope ledger
+
+- Existing save routes enforce file ownership, base hashes and governance before committed writes.
+- Structured inspection already owns entity paths and internal IDs; RDF and built-ins keep their narrower unaddressable contract.
+- This change adds canonical locators and explicit ordered history without changing standard document bytes or guessing external identity.
+- Visibility-before-read, atomic journal recovery, volatile-name fallback and operation replay are verified through their owning entry points.
 
 ## Foundations
 
@@ -585,3 +592,12 @@ Proof: hidden/missing and migration-store integration — 14 pass, 0 fail, 152 a
 The added local HEAD lookup originally happened after trash metadata or personal staging preparation. A lookup failure could therefore leave an orphan directory despite no journal starting. HEAD is now read before those writes. A real temporary Git wrapper is removed after workspace setup to force the lookup failure through move/delete entry points; source, state, trash and history remain unchanged.
 
 Proof: migration-store tests — 11 pass, 0 fail, 138 assertions; TypeScript passes.
+
+### Server boundary mutation proof
+
+The four additional mutants reveal hidden-vs-missing, read project data before visibility, duplicate an operation replay, or log an address field. Each is killed through real parsing/model resolution or journal installation. The existing lineage-direction and save-guard anchors now target the adopted function/options shape; the save-client baseline supplies the required requested path and valid SHA-256. The new address browser command is registered in the shared gate inventory and pipeline matrix. Mutation temporary trees now honor TMPDIR; no preload shim is used.
+
+`TMPDIR=/tmp/sw-009 SW_BASE_URL=http://127.0.0.1:5301 bun scripts/mutation-tests.ts`:
+`681/681 targeted mutants killed; all unmodified module baselines passed. Run test:ui for the full browser baseline.`
+
+This proof precedes the final frozen-tree gate. The new server cases are loaded only for their own categories, avoiding unnecessary workspace initialization in every other candidate.

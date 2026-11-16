@@ -23,6 +23,8 @@ if (category === 'operation-boundary') {
   const { operationBoundaryCases } = await import('./operation-boundary-mutation-cases');
   await operationBoundaryCases(process.argv[2]);
 }
+if (category === 'address-server') (await import('./server-address-cases')).serverAddressCase(loadedModule as typeof import('../src/server/projects/address-resolution'));
+if (category === 'address-store') (await import('./server-address-cases')).addressStoreCase(loadedModule as typeof import('../src/server/projects/address-migrations'));
 if (category === 'address-migration') addressMigrationCase(loadedModule as typeof import('../src/shared/core/address-migration'));
 if (category === 'address-model') modelAddressCase(loadedModule as typeof import('../src/shared/core/model-addresses'));
 if (category === 'address-grammar') addressGrammarCase(loadedModule as typeof import('../src/shared/core/item-address'));
@@ -954,7 +956,7 @@ if (category === 'save-client') {
   let body: any;
   (globalThis as any).fetch = async (_u: string, init: any) => {
     body = JSON.parse(init.body);
-    return new Response(JSON.stringify({ path: 'a', hash: 'h' }), { status: 200 });
+    return new Response(JSON.stringify({ path: 'a.yaml', hash: 'b'.repeat(64) }), { status: 200 });
   };
   await loadedModule.api.save('p', 'a.yaml', 'a'.repeat(64), 'new', [{ from: 0, to: 1, insert: 'x' }]);
   assert.deepEqual(body, { baseHash: 'a'.repeat(64), patches: [{ from: 0, to: 1, insert: 'x' }] });

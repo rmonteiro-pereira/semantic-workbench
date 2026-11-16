@@ -54,6 +54,8 @@ jobs:
           suite: test:editor
         item_edit:
           suite: test:item-edit
+        addresses:
+          suite: test:addresses
         rdf_edit:
           suite: test:rdf-edit
         validation:

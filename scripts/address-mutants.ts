@@ -41,3 +41,21 @@ export const migrationAddressMutants: [string, string, string, string][] = [
   ],
   ['address-migration', 'src/shared/core/address-migration.ts', 'from.project !== project || to.project !== project', 'false'],
 ];
+
+/** Faults in hidden-equals-missing, read ordering, durable replay and locator logging. */
+export const serverAddressMutants: [string, string, string, string][] = [
+  [
+    'address-server',
+    'src/server/projects/address-resolution.ts',
+    "!readable(parsed.address, reader)) return { status: 'missing' };",
+    "!readable(parsed.address, reader)) return { status: 'forbidden' } as any;",
+  ],
+  [
+    'address-server',
+    'src/server/projects/address-resolution.ts',
+    'const parsed = parseAddress(text);',
+    'const parsed = parseAddress(text);\n  if (parsed.ok && parsed.address.project) context.projectExists(parsed.address.project);',
+  ],
+  ['address-store', 'src/server/projects/address-migrations.ts', '      continue;\n    }\n    records.push(record);', '    }\n    records.push(record);'],
+  ['address-server', 'src/server/projects/address-resolution.ts', 'const parsed = parseAddress(text);', "const parsed = parseAddress(text);\n  console.log('address.resolve', { address: text });"],
+];

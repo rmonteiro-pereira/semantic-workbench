@@ -1,6 +1,7 @@
+import { tmpdir } from 'node:os';
 // Introduces faults into temporary source copies and checks that the test suite detects them.
 import { operationBoundaryMutants } from './operation-boundary-mutants';
-import { addressMutants, modelAddressMutants, migrationAddressMutants } from './address-mutants';
+import { addressMutants, modelAddressMutants, migrationAddressMutants, serverAddressMutants } from './address-mutants';
 import { adminMutants } from './admin-mutants';
 import { sessionSecurityMutants } from './session-security-mutants';
 import { securityReviewMutants } from './security-review-mutants';
@@ -15,7 +16,7 @@ import { observabilityMutants } from './observability-mutants';
 import { chmod, mkdtemp, readdir, rm, symlink } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 const root = process.cwd();
-const temp = await mkdtemp(resolve(process.env.TMPDIR ?? '/tmp', 'workbench-mutations-'));
+const temp = await mkdtemp(resolve(tmpdir(), 'workbench-mutations-'));
 // Candidate modules live outside the project; give their bare package imports the same dependency
 // tree as the real sources, without relying on Bun caches.
 await symlink(resolve(root, 'node_modules'), resolve(temp, 'node_modules'), 'dir');
@@ -253,8 +254,8 @@ const mutants: [string, string, string, string][] = [
   [
     'lineage',
     'src/app/odcs/lineage.ts',
-    "edge({\n        from: columnId(parent, foreignKey.toColumns[i]),\n        to: columnId(child, fromColumn),\n        kind: 'foreign-key'",
-    "edge({to:columnId(parent,foreignKey.toColumns[i]),from:columnId(child,fromColumn),kind:'foreign-key'",
+    "edge({\n        from: columnAddress(parent, foreignKey.toColumns[i]),\n        to: columnAddress(child, fromColumn),\n        kind: 'foreign-key'",
+    "edge({to:columnAddress(parent,foreignKey.toColumns[i]),from:columnAddress(child,fromColumn),kind:'foreign-key'",
   ],
   ['lineage', 'src/app/odcs/lineage.ts', "if (direction !== 'up') walk('down');\n  if (direction !== 'down') walk('up')", "walk('down');walk('up');"],
   ['lineage', 'src/app/odcs/lineage.ts', 'port: (id: string) => (shown.has(id) || !all.some(c => c.id === id) ? id : moreRowId(card.id)),', 'port:(id:string)=>id,'],
@@ -353,7 +354,12 @@ mutants.push(
   ['guard-engine', 'src/shared/governance/guards.ts', "status === 'approved' &&", 'false &&'],
   ['guard-engine', 'src/shared/governance/guards.ts', 'if (options.demote && guarded.demotable) demoted.push(guarded);', 'if (false) demoted.push(guarded);'],
   ['guard-engine', 'src/shared/governance/guards.ts', 'if (!deepEqual(old?.classification, current.classification)) {', 'if (false) {'],
-  ['guard-save-batch', 'src/server/routes/kpis.ts', "ws.saveFiles(slug, body.files, reader, 'save-batch')", "ws.saveFiles(slug, body.files, { ...reader, guard: undefined }, 'save-batch')"],
+  [
+    'guard-save-batch',
+    'src/server/routes/kpis.ts',
+    "ws.saveFiles(slug, body.files, reader, { kind: 'save-batch', declaredMigrations, deletedItems })",
+    "ws.saveFiles(slug, body.files, { ...reader, guard: undefined }, { kind: 'save-batch', declaredMigrations, deletedItems })",
+  ],
   ['guard-pull', 'src/server/routes/git.ts', 'scm!.pull(slug, reader, credentialFor)', 'scm!.pull(slug, { ...reader, guard: undefined }, credentialFor)'],
   ['guard-revert', 'src/server/routes/git.ts', 'ws.revertFile(slug, requestBody.path, baseHash, reader)', 'ws.revertFile(slug, requestBody.path, baseHash, { ...reader, guard: undefined })'],
   ['guard-delete', 'src/server/routes/trash.ts', 'decodePath(file[2]), reader)', 'decodePath(file[2]), { ...reader, guard: undefined })'],
@@ -541,7 +547,7 @@ const askpassMutants: [string, string][] = [
   [`"Password for 'https://"*"@$host': " | "Password for 'http://"*"@$host': ")`, `"Password for "*)\n    printf '%s\\n' "\${SW_GIT_TOKEN-}"\n    exit 0\n    ;;\n  "never")`],
 ];
 // Administration cases extend the existing inventory without changing its categories.
-mutants.push(...adminMutants, ...addressMutants, ...modelAddressMutants, ...migrationAddressMutants);
+mutants.push(...adminMutants, ...addressMutants, ...modelAddressMutants, ...migrationAddressMutants, ...serverAddressMutants);
 // Authentication, session and HTTP boundary cases extend the inventory the same way.
 mutants.push(...sessionSecurityMutants);
 // Data access, files and Git cases extend the inventory the same way.

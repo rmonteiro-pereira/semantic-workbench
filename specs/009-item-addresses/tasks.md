@@ -227,7 +227,7 @@ changes.
   resolution and a migration read produce no log line, span name or metric label containing an
   address, slug, path or item name. Proof: `tests/observability/address-redaction.test.ts`.
   (FR-036)
-- [ ] T039 [P] [US6] Mutants: resolver returns `forbidden` for unreadable, resolver reads project
+- [x] T039 [P] [US6] Mutants: resolver returns `forbidden` for unreadable, resolver reads project
   data before the check, a retried operation appends a second record, log field includes the
   address. Proof: `bun run test:mutation`. (SC-011)
 

@@ -16,6 +16,7 @@ export const gateSuites: string[] = [
   'test:graph',
   'test:editor',
   'test:item-edit',
+  'test:addresses',
   'test:rdf-edit',
   'test:validation',
   'test:scm',
