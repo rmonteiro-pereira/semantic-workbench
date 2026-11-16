@@ -1,4 +1,5 @@
 // Checks that Group by lives only in the Graph toolbar and that Overview cards pack as a masonry with a cap.
+import { revealGraphControls } from './helpers/graph-options';
 import { appUrl } from './helpers/base-url';
 import { chromium, expect } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
@@ -54,6 +55,7 @@ try {
     await expect(page.getByLabel('Group model by')).toHaveCount(0);
     await expect(page.locator('.grouping-controls')).toHaveCount(0);
     await page.locator('.overview-grouping-note').getByRole('button', { name: 'Change in Graph' }).click();
+    await revealGraphControls(page);
     await expect(groupTrigger(page)).toBeVisible();
   });
 
@@ -121,6 +123,7 @@ try {
     await page.getByRole('button', { name: 'plain.ontology.yaml', exact: true }).click();
     await expectModelName(page, 'Plain list');
     await openTab('Graph');
+    await revealGraphControls(page);
     await expect(groupTrigger(page)).toBeVisible();
     expect(await groupingMenuLabels(page)).toEqual(['Automatic']);
     await (await openGroupMenu(page)).getByRole('button', { name: 'Adjust grouping…' }).click();

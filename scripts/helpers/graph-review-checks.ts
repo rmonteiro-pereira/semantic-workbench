@@ -8,6 +8,11 @@ async function checkSelection(page: Page) {
   await page.locator('.full-graph-loading').waitFor({ state: 'hidden', timeout: 60000 });
   await page.getByRole('button', { name: 'Fit model', exact: true }).click();
   await page.waitForTimeout(400);
+  await viewOptions(page, options => setShown(options, 'Labels', true));
+  await page.getByRole('button', { name: 'Fit model', exact: true }).click();
+  await page.mouse.move(10, 10);
+  await expect(page.locator('.full-graph .react-flow__edge-text')).toHaveCount(0);
+  await viewOptions(page, options => setShown(options, 'Labels', false));
   await page.locator('.full-entity').first().click();
   await expect(page.locator('.inspector')).toBeVisible();
   await expect.poll(async () => page.locator('.react-flow__node.selected strong').evaluate(element => element.getBoundingClientRect().height)).toBeGreaterThanOrEqual(9);
@@ -33,8 +38,11 @@ async function checkNeighborhood(page: Page) {
   await expect(page.locator('.neighborhood-canvas')).toHaveAttribute('data-viewport-ready', 'true');
   const pane = await page.locator('.neighborhood-canvas').boundingBox();
   expect(pane!.height).toBeGreaterThanOrEqual(480);
-  const description = await page.locator('.neighborhood-node.center .node > span').boundingBox();
-  expect(description!.height).toBeGreaterThanOrEqual(9);
+  const descriptionSize = await page.locator('.neighborhood-node.center .node > span').evaluate(element => {
+    const viewport = element.closest('.react-flow__viewport')!;
+    return Number.parseFloat(getComputedStyle(element).fontSize) * new DOMMatrix(getComputedStyle(viewport).transform).a;
+  });
+  expect(descriptionSize).toBeGreaterThanOrEqual(9);
   await expect(page.getByRole('button', { name: 'Other files', exact: true })).toBeVisible();
 }
 

@@ -28,3 +28,11 @@ T022 complete with the T012–T014 limitation preserved: docs no longer promise 
 T021 shared browser export for lane E: `humanizeIdentifier(identifier: string): string` from `src/app/graph/EntityName.tsx`. It handles camel case, acronym boundaries and namespace labels without rewriting model identifiers. No new shared path was named in plan.md; the task's existing EntityName module is the reuse point.
 
 The first terminology attempt omitted the base URL and preload, attempted 5173 and failed with connection refused; rerun succeeded using 5211/5212. No changes to another checkout or service.
+
+
+## Integration findings during the lane check
+
+- `test:edges`: `scripts/edge-attachment-ui-tests.ts:186` requires more than five visible path measurements after selection. The requested readable selection view can show fewer; initial and zoomed network attachment checks passed. The script belongs to lane B and was not edited.
+- `test:examples:ui`: `scripts/examples-ui-tests.ts:405` finds no `.mapping-layer-chain` after loading Mapped commerce and opening Mappings. The preceding 17 checks passed. This is a lane E mapping flow; no cross-lane edit.
+- The first responsive run exposed selection auto-framing overwriting the saved viewport on full-screen exit. Fixed in lane A by respecting `useViewRestore`'s existing hold; rerun pending.
+- Captures log 404s for absent `/api/drafts/...` documents, also present in the baseline. These are not missing font assets.

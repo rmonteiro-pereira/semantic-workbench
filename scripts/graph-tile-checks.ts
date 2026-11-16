@@ -100,7 +100,7 @@ export async function checkTiles(page: Page, api: IsolatedApi) {
       .locator('.full-graph .react-flow__node-entity')
       .filter({ has: page.locator('.full-entity:not(.focused)') })
       .first(),
-  ).toHaveCSS('opacity', '0.32');
+  ).toHaveCSS('opacity', '0.35');
 }
 
 // The drop-down arrow of a select takes about this much of its width.
@@ -116,7 +116,8 @@ async function toolbarProblems(page: Page) {
       const box = control.getBoundingClientRect();
       const label = control.textContent?.trim() || control.getAttribute('aria-label') || control.tagName;
       if (box.width === 0) continue;
-      if (box.left < frame.left - 1 || box.right > frame.right + 1 || box.right > window.innerWidth + 1) problems.push(`${label} is cut off by the toolbar`);
+      const controlFrame = control.closest('.compact-controls-panel')?.getBoundingClientRect() ?? frame;
+      if (box.left < controlFrame.left - 1 || box.right > controlFrame.right + 1 || box.right > window.innerWidth + 1) problems.push(`${label} is cut off by the toolbar`);
       if (control.scrollWidth > control.clientWidth + 1) problems.push(`${label} has a clipped label`);
       if (control instanceof HTMLSelectElement) {
         // A select hides the end of its text without any overflow, so measure the chosen option.

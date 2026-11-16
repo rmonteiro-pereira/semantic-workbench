@@ -197,7 +197,7 @@ export function FullGraph(props: Props) {
     focusFullGraph(flow.current, container.current?.querySelector('.react-flow'), props.selected, neighbors);
   }, [props.selected, display]);
   useEffect(() => {
-    if (!busy) focusSelection();
+    if (!busy && !held()) focusSelection();
   }, [busy, focusSelection, size.width]);
   // Refit after the remaining canvas changes size (panels, monitor, wrapped controls).
   useEffect(() => {

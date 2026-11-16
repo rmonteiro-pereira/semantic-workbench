@@ -288,6 +288,7 @@ try {
   await check('shopping center: the walk continues into the mapping file that maps Property, and Back returns to the ontology', async () => {
     await tab('Neighborhood').click();
     await expect.poll(async () => (await neighborhoodState(page)).center).toBe(id(mall, 'Property'));
+    await page.getByRole('button', { name: 'Other files', exact: true }).click();
     await page.getByRole('button', { name: /Continue in mall\.mapping\.yaml/ }).click();
     await expectModelName(page, /mappings/);
     await expect(page.locator('.react-flow__node.center')).toContainText('Property');

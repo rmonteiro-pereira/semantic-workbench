@@ -1,4 +1,5 @@
 // Checks grouping suggestions and validation dialogs in an isolated browser workspace.
+import { revealGraphControls } from './helpers/graph-options';
 import { appUrl } from './helpers/base-url';
 import { recordResizeErrors } from './helpers/resize-errors';
 import { showEveryEntity } from './helpers/graph-options';
@@ -169,6 +170,7 @@ try {
       await attachedFlights();
       await allFlightsContained();
       if (value === 'Definition types') {
+        await revealGraphControls(page);
         await expect(groupTrigger(page)).toContainText(/type/i);
         await page.locator('.tabs').getByRole('button', { name: 'Overview', exact: true }).click();
         await expect(page.getByRole('button', { name: 'Business areas', exact: true })).toHaveCount(0);
@@ -177,7 +179,10 @@ try {
         await page.locator('.tabs').getByRole('button', { name: 'Graph', exact: true }).click();
         await graphReady();
       }
-      if (value === 'Suggested communities') await expect(groupTrigger(page)).toContainText(/suggest/i);
+      if (value === 'Suggested communities') {
+        await revealGraphControls(page);
+        await expect(groupTrigger(page)).toContainText(/suggest/i);
+      }
     }
     await unchangedExport('flights.ontology.yaml');
     await page.getByRole('button', { name: 'Fit model', exact: true }).click();
@@ -224,6 +229,7 @@ try {
     await expectModelName(page, /UBL/);
     await page.locator('.tabs').getByRole('button', { name: 'Graph', exact: true }).click();
     await chooseGrouping(page, 'Suggested communities');
+    await revealGraphControls(page);
     await expect(groupTrigger(page)).toContainText('Suggested communities');
     await page.locator('.tabs').getByRole('button', { name: 'Overview', exact: true }).click();
     await expect(page.locator('.overview-grouping-note')).toContainText('suggested communities');
@@ -233,6 +239,7 @@ try {
   await check('contracts and semantic models group into communities; lineage cards carry the group tint', async () => {
     await page.getByRole('button', { name: 'ubl.odcs.yaml', exact: true }).click();
     await page.locator('.tabs').getByRole('button', { name: 'Graph', exact: true }).click();
+    await revealGraphControls(page);
     await expect(groupTrigger(page)).toBeVisible();
     // The contract-level domain alone is not a grouping, and the contract has no IRIs, so the menu leaves both out.
     const labels = await groupingMenuLabels(page);

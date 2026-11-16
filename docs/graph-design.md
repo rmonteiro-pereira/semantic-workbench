@@ -51,6 +51,8 @@ it is not a drop-in performance switch.
    relationships.
 
 `src/app/graph/full-layout.ts` and its workers own engine input/output.
+`full-graph-viewport.ts` owns Fit and readable selection framing; `useFullGraphEdges.ts` builds
+connections from the current layout and focus.
 `src/app/graph/overview-capacity.ts` sizes cards and decides when areas start as counted cards.
 `src/app/graph/edge-styles.ts` supplies line/legend styles and SVG-safe appearance;
 `src/app/graph/RoutedEdge.tsx` keeps fallback routes attached while a worker result is pending or no
@@ -64,7 +66,8 @@ area collapse, zoom and focused views make that trade-off explicit.
 
 `src/app/graph/NeighborhoodGraph.tsx` places the center between incoming and outgoing neighbors. Local
 functions group links, assign distinct routes and place labels; full model layout engines are not
-rerun for every small walk.
+rerun for every small walk. `useNeighborhoodViewport.ts` synchronizes opening, expansion and
+resize viewports with measured node membership.
 
 A walk records centers and the relationship used to reach them. Expansion sets record their
 origin, nodes, edges and direction. `src/app/graph/incremental-layout.ts` places new nodes beside
