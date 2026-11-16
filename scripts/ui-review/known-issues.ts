@@ -1,5 +1,6 @@
 // Captures lineage click evidence and graph reopen timing. Usage: bun scripts/ui-review/known-issues.ts OUTPUT [FIRST_ATTEMPT] [LAST_ATTEMPT].
 // SW_BASE_URL selects the first Vite server; the second server is started on verified-free port 5191.
+import { checkReadableWalks, checkFittedWalk } from '../helpers/odcs-graph-walk';
 import { chromium, type Page } from '@playwright/test';
 import { mkdirSync, appendFileSync, rmSync, realpathSync, existsSync, mkdtempSync } from 'node:fs';
 import { startIsolatedApi, routeApi } from '../helpers/isolated-api';
@@ -50,37 +51,12 @@ async function lineageEvidence(width: number, height: number) {
   const page = await pageAt(process.env.SW_BASE_URL ?? 'http://127.0.0.1:5190', width, height);
   try {
     await datasetLineage(page);
-    const names = await page.locator('.lineage-card:not(.center):not(.group)').evaluateAll(cards => cards.slice(0, 3).map(card => card.getAttribute('data-id')!));
-    log({ type: 'lineage-neighbors', width, count: names.length, names });
-    for (const [index, id] of names.entries()) {
-      await datasetLineage(page);
-      const card = page.locator('.lineage-card').filter({ has: page.locator(`:scope[data-id=${JSON.stringify(id)}]`) });
-      const button = page.locator(`.lineage-card[data-id=${JSON.stringify(id)}]`).getByRole('button', { name: 'Walk here', exact: true });
-      const stem = `${output}/local-lineage-walk--table-${index + 1}`;
-      await page.screenshot({ path: `${stem}-before-${width}.png` });
-      const geometry = await button.evaluate(element => {
-        const box = element.getBoundingClientRect();
-        const pane = element.closest('.react-flow')!.getBoundingClientRect();
-        const top = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2);
-        return {
-          box: box.toJSON(),
-          pane: pane.toJSON(),
-          inside: box.left >= pane.left && box.right <= pane.right && box.top >= pane.top && box.bottom <= pane.bottom,
-          uncovered: !!top && element.contains(top),
-          top: top ? { tag: top.tagName, class: top.getAttribute('class'), text: top.textContent?.slice(0, 100) } : null,
-        };
-      });
-      let outcome = 'success';
-      try {
-        await button.click({ timeout: 5000 });
-      } catch (error) {
-        outcome = String(error);
-      }
-      await page.waitForTimeout(600);
-      await page.screenshot({ path: `${stem}-after-${width}.png` });
-      log({ type: 'lineage-walk', width, height, id, geometry, outcome });
-      void card;
-    }
+    const captureWalk = async (stage: string) => {
+      await page.screenshot({ path: `${output}/local-lineage-walk--${stage}-${width}.png` });
+    };
+    await checkReadableWalks(page, captureWalk);
+    await checkFittedWalk(page, captureWalk);
+    log({ type: 'lineage-walk', width, height, readableClicks: 4, fittedSelection: 'success' });
   } catch (error) {
     log({ type: 'lineage-unreachable', width, height, error: String(error) });
     await page.screenshot({ path: `${output}/local-lineage-walk--failure-${width}.png` });

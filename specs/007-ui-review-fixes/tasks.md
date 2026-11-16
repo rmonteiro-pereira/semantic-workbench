@@ -179,25 +179,25 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
 
 **Goal**: the Lineage tab starts above the fold, Walk here is reachable, Fit is readable. **Independent test**: `known-issues.ts` reports 4 of 4 clicks and `bun run test:lineage` passes on the lane branch alone. **Owner**: lane B, worktree `007-lane-b`.
 
-- [ ] T024 [US2] [B] Collapse the table header card on the Lineage tab and give the canvas the rest of the viewport.
+- [x] T024 [US2] [B] Collapse the table header card on the Lineage tab and give the canvas the rest of the viewport.
   - Findings: M1 · Requirements: FR-016
   - Files: `src/app/odcs/DatasetPage.tsx`, `src/app/odcs/odcs.css`, `src/app/odcs/LineageCanvas.tsx`, `src/app/workspace/ContractView.tsx`
   - Change: While the Lineage tab is active show the table header as one line (name and a link to Properties) and let the pane take the remaining height (`odcs.css:518` region). A 'Walk to…' neighbour list stays out of scope.
   - Proof: Before `states/local-lineage-walk--first-view-1280.png`, `states/local-lineage-walk--first-view-1440.png`, `states/local-lineage-walk--first-view-390.png` (review baseline); after: same state recaptured with `scripts/ui-review/lineage-walk-states.ts <out>` (Mall dataset, light); check: `bun run test:lineage` asserts pane top at most 50% of the viewport at 1280x720 and one neighbour card whole.
 
-- [ ] T025 [US2] [B] Keep Walk here a 24 px target at every zoom and prove the four scripted clicks.
+- [x] T025 [US2] [B] Keep Walk here a 24 px target at every zoom and prove the four scripted clicks.
   - Findings: M1 · Requirements: FR-017
   - Files: `src/app/odcs/LineageCard.tsx`, `src/app/odcs/odcs.css`, `src/app/odcs/useLineageViewport.ts`, `tests/lineage-view.test.ts`
   - Change: Size the 13 px icon button at `LineageCard.tsx:111` as `max(24px, 24px / zoom)`, hide it when the card is narrower than the button, and make the pane's z-order put the button above the dataset header.
   - Proof: Before `states/local-lineage-walk--first-view-1280.png`, `states/local-lineage-walk--fitted-1-before-1440.png` (review baseline); after: same state recaptured with `scripts/ui-review/known-issues.ts <out> 1 1` and `scripts/ui-review/lineage-visibility.ts <out>`; check: the known-issues script reports 4 of 4 clicks succeeding with no scroll and a button box at least 24 by 24; `test:lineage` runs the same assertion.
 
-- [ ] T026 [US2] [B] Make the first view frame whole cards, using Fit when everything fits.
+- [x] T026 [US2] [B] Make the first view frame whole cards, using Fit when everything fits.
   - Findings: M4 · Requirements: FR-018
   - Files: `src/app/odcs/lineage-view.ts`, `src/app/odcs/useLineageViewport.ts`, `src/app/odcs/lineage-layout.ts`, `src/app/mappings/MappingCanvas.tsx`, `src/app/mappings/mapping-graph.ts`, `tests/lineage-view.test.ts`, `tests/mapping-graph.test.ts`
   - Change: In `lineage-view.ts` choose Fit as the first view when the whole reach fits at the readable entry zoom; otherwise centre the chosen set in the pane; fix the mapping graph's top-card cut.
   - Proof: Before `local-light/local-contract-graph-1440.png`, `local-light/local-mapping-graph-1440.png` (review baseline); after: same state recaptured with `scripts/ui-review/capture-tour.ts <out> local light` (screens contract-graph and mapping-graph); check: `tests/lineage-view.test.ts`; `bun run test:lineage` and `bun run test:mapping-graph` assert no card or label cut by the pane edge in the first view.
 
-- [ ] T027 [US2] [B] Draw name-only compensated cards after Fit.
+- [x] T027 [US2] [B] Draw name-only compensated cards after Fit.
   - Findings: M4 · Requirements: FR-019
   - Files: `src/app/odcs/LineageCard.tsx`, `src/app/odcs/LineageColumnList.tsx`, `src/app/odcs/odcs.css`, `src/app/odcs/lineage.ts`
   - Change: Below the card-detail zoom threshold render the name only, with a font size compensated for zoom and bounded by the card height, as the mapping graph does (`states/local-mapping-graph--after-fit-1440.png`).

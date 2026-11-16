@@ -5,3 +5,5 @@
 - Explain unlinked assets and disable unavailable hops; disable layout controls while positions are pending.
 - Reject edge-label positions crossed by routes or clipped by the pane.
 - Correct the documented foreign-key range to one through three; distinguish mapping steps one through five.
+- Share compensated name-only cards between lineage and mappings; fit readable complete reaches on entry and keep chosen fallback cards whole.
+- Offer Walk from a selected fitted card and retain 24 px targets after zooming in.
