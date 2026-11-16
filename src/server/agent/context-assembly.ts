@@ -90,9 +90,9 @@ function emptyContext(assembly: Assembly, { ontologyTarget, semanticTarget }: Re
   const semanticPrefix = semanticTarget?.path ?? [];
   const declaredConcepts: any[] = ontology.ontology ?? [];
   const scopeAddress = (target: Target | null) => {
-    if (!target) return null;
+    if (!target) return {};
     const document = assembly.parsed.find(candidate => candidate.doc.id === target.doc.id)?.data;
-    return addressAtModelPath(document, target.path);
+    return { address: addressAtModelPath(document, target.path) };
   };
   const builtinConcepts = [...OSSIE_BUILTINS].filter(name => !declaredConcepts.some(c => c.concept === name)).map(builtinConcept);
   return {
@@ -113,13 +113,13 @@ function emptyContext(assembly: Assembly, { ontologyTarget, semanticTarget }: Re
       evidence: evidence(entry.doc, entry.path),
     },
     ontology: {
-      address: scopeAddress(ontologyTarget),
+      ...scopeAddress(ontologyTarget),
       name: ontology.name,
       description: ontology.description,
       requires: ontology.requires,
       prefixes: ontology.prefixes,
     },
-    semanticModel: { address: scopeAddress(semanticTarget), name: model.name, description: model.description, version: model.version },
+    semanticModel: { ...scopeAddress(semanticTarget), name: model.name, description: model.description, version: model.version },
     concepts: [...declaredConcepts, ...builtinConcepts],
     bindings: [],
     fields: [],

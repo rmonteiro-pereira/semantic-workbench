@@ -54,7 +54,7 @@ the source document. Canonical locators should be parsed and resolved through th
 
 The mapping canvas formats concept, dataset, metric, field and direct relationship keys within
 the resolved ontology/model scope. Agent context exposes these scope labels as `ontology.address`
-and `semanticModel.address` (null for unresolved targets). Built-in cards and multi-hop mapping
+and `semanticModel.address` (absent for unresolved targets). Built-in cards and multi-hop mapping
 rows use synthetic UI identifiers. Row ownership is indexed explicitly instead of splitting keys.
 
 ## Pure migration API

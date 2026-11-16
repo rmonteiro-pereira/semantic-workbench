@@ -32,8 +32,8 @@ type ConceptRef = { input: string; concept: string | null };
 export type MappingContext = {
   mappingId: string;
   name: string;
-  ontology: { address: Address | null };
-  semanticModel: { address: Address | null };
+  ontology: { address?: Address };
+  semanticModel: { address?: Address };
   mapping: { conceptMappings?: any[] };
   concepts: any[];
   bindings: Binding[];

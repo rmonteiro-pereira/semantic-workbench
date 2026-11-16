@@ -185,3 +185,23 @@ Lineage adoption also needs the treatment of existing unnamed `property.items` r
 The registry describes named properties and no array-item segment. A clarification was requested
 before choosing whether these remain synthetic rows. Consumer adoption stops at this boundary;
 its remaining tasks and full regression comparison are not marked complete.
+
+## Real gate and mapping browser follow-up
+
+`DATA_DIR=/tmp/sw-009/data bun test`: 2,098 pass, 3 fail, 241,504 assertions,
+2,101 tests across 293 files in 437.51 s. No preload, BUN_OPTIONS or TMPDIR override was used.
+Two failures are the accepted unnamed-root regression above. The third was the addition of
+`address: null` to an unresolved agent target whose previous response was empty. That introduced
+response change is fixed: unresolved metadata has no scope label. The exact old bearer test
+passes without changing its expectations. This full run preceded that fix and is not a green
+completion gate.
+
+`bun test tests/auth/bearer.test.ts tests/mapping-graph.test.ts tests/agent-context-kinds.test.ts`:
+37 pass, 0 fail, 7,000 assertions in 14.49 s. `bun --bun run check` passed after the fix.
+`bun --bun run build`: built in 1.82 s (exit 0; existing large-chunk advisory).
+
+`TMPDIR=/tmp/sw-009 SW_BASE_URL=http://127.0.0.1:5301 bun scripts/mapping-graph-browser-check.ts`:
+12 mapping graph checks passed on isolated data. The selectors now look up addressed source
+items instead of constructing the retired key notation. Concept selection, mapped rows, link
+paths, findings, expansion/collapse, standalone/embedded layouts, KPI bindings, responsive text
+and browser errors were checked. This is not the whole-journey comparison or the final gate.

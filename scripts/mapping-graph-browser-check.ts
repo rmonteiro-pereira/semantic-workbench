@@ -36,6 +36,15 @@ function expected(filename: string, embedded = false): MappingGraph {
   const mapping = agentCatalog(docs).mappings.find(x => x.filename === filename && x.embedded === embedded)!;
   return buildMappingGraph(buildContext(docs, mapping.id) as any);
 }
+function nodeKey(filename: string, kind: string, name: string, column?: string): string {
+  const mappingGraph = expected(filename);
+  const asset = [...mappingGraph.cards.values()].find(candidate => candidate.kind === kind && candidate.label === name);
+  if (!asset) throw new Error(`Missing expected ${kind} ${name}`);
+  if (column === undefined) return asset.id;
+  const row = asset.columns.find(candidate => candidate.path === column);
+  if (!row) throw new Error(`Missing expected row ${name}.${column}`);
+  return row.id;
+}
 async function openMapping(path: string, project: string) {
   await tree().getByRole('treeitem', { name: project }).getByRole('button', { name: path, exact: true }).click();
   await page.locator('.tabs').getByRole('button', { name: 'Graph' }).click();
@@ -101,7 +110,9 @@ try {
     const legend = graph().getByRole('list', { name: 'Legend' });
     for (const term of ['Concept', 'Semantic dataset', 'Object mapping', 'Referent']) await expect(legend).toContainText(term);
     expect(await compare(expected('commerce.mapping.yaml'), 'commerce')).toBeGreaterThan(2);
-    await expect(graph().locator('g[data-edge-kind="object"][data-from="concept:Customer"][data-to="dataset:customers"]')).toHaveCount(1);
+    await expect(
+      graph().locator(`g[data-edge-kind="object"][data-from="${nodeKey('commerce.mapping.yaml', 'concept', 'Customer')}"][data-to="${nodeKey('commerce.mapping.yaml', 'dataset', 'customers')}"]`),
+    ).toHaveCount(1);
     await expect(card('Dataset customers').getByRole('button', { name: 'customers.customer_id' })).toContainText('Identifying');
   });
   await check('selecting a concept (Region) emphasises its mappings, dims the rest, and lists its bindings with Edit item', async () => {
@@ -125,7 +136,7 @@ try {
     await graph().getByRole('textbox', { name: 'Find assets' }).fill('Order');
     await graph().getByRole('listbox', { name: 'Asset results' }).getByRole('option').first().click();
     await expect(card('Concept Order')).toHaveClass(/center/);
-    const link = graph().locator('g[data-edge-kind="link"][data-from="concept:Order/customer"]');
+    const link = graph().locator(`g[data-edge-kind="link"][data-from="${nodeKey('commerce.mapping.yaml', 'concept', 'Order', 'customer')}"]`);
     await expect(link).toHaveCount(1);
     await expect(link).toContainText('customer');
     await card('Concept Order').getByRole('button', { name: 'Order.customer', exact: true }).click();
@@ -136,7 +147,7 @@ try {
       ['orders', 'customer_id'],
       ['customers', 'customer_id'],
     ])
-      await expect(card(`Dataset ${dataset}`).locator(`li[data-id="dataset:${dataset}/${field}"]`)).toHaveClass(/on-path/);
+      await expect(card(`Dataset ${dataset}`).locator(`li[data-id="${nodeKey('commerce.mapping.yaml', 'dataset', dataset, field)}"]`)).toHaveClass(/on-path/);
     await page.keyboard.press('Escape');
     await shots('commerce');
   });
@@ -219,7 +230,7 @@ try {
     const want = lineagePierce({
       edges: mappingGraph.edges.map(e => [e.from, e.to] as [string, string]),
       owners: Object.fromEntries([...mappingGraph.cards.values()].flatMap(c => c.columns.map(x => [x.id, c.id]))),
-      start: selectionNodes(mappingGraph as any, 'concept:Customer'),
+      start: selectionNodes(mappingGraph as any, nodeKey('commerce.mapping.yaml', 'concept', 'Customer')),
       direction: 'both',
       budget: 150,
     });
@@ -263,7 +274,7 @@ try {
     await graph().getByRole('textbox', { name: 'Find assets' }).fill('BilledAmount');
     await graph().getByRole('listbox', { name: 'Asset results' }).getByRole('option').first().click();
     await expect(card('Metric billed_amount')).toBeVisible();
-    await expect(graph().locator('g[data-edge-kind="measures"][data-to="metric:billed_amount"]')).toHaveCount(1);
+    await expect(graph().locator(`g[data-edge-kind="measures"][data-to="${nodeKey('mall.mapping.yaml', 'metric', 'billed_amount')}"]`)).toHaveCount(1);
     await graph().getByRole('textbox', { name: 'Find assets' }).fill('billed_amount');
     await graph().getByRole('listbox', { name: 'Asset results' }).getByRole('option').filter({ hasText: 'Metric' }).first().click();
     await page.waitForTimeout(400);
@@ -271,7 +282,9 @@ try {
     await expect(graph().locator('g[data-edge-kind="object"]').first()).toBeAttached();
     await graph().getByRole('button', { name: 'Fit', exact: true }).click();
     await page.waitForTimeout(300);
-    await expect(graph().locator('g[data-edge-kind="of"][data-to="metric:billed_amount"][data-from="concept:Lease"]')).toHaveCount(1);
+    await expect(
+      graph().locator(`g[data-edge-kind="of"][data-to="${nodeKey('mall.mapping.yaml', 'metric', 'billed_amount')}"][data-from="${nodeKey('mall.mapping.yaml', 'concept', 'Lease')}"]`),
+    ).toHaveCount(1);
     expect(await graph().locator('g[data-edge-kind="of"] path.react-flow__edge-path').first().getAttribute('style')).toContain('dasharray');
     await compare(expected('mall.mapping.yaml'), 'mall');
     await shots('mall');
