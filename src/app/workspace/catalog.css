@@ -74,3 +74,18 @@
   color: var(--color-accent-text);
   text-decoration: underline;
 }
+
+.catalog-result-count,
+.catalog-empty {
+  grid-column: 1 / -1;
+  color: var(--color-text-secondary);
+}
+.catalog-result-count {
+  margin: 0;
+  font-size: var(--text-small);
+}
+@media (min-width: 651px) {
+  .toolbar .search {
+    min-width: 240px;
+  }
+}

@@ -1,3 +1,5 @@
+import React from 'react';
+import { CatalogView } from '../src/app/workspace/CatalogView';
 import { expect, test } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { ValidationPanel } from '../src/app/validation/ValidationPanel';
@@ -44,4 +46,27 @@ test.each([
   const html = renderToStaticMarkup(<EntityName name={name} />);
   expect(html).toContain(`>${broken}</strong>`);
   expect(html.replaceAll('<wbr/>', '')).toContain(`>${name}</strong>`);
+});
+
+test('catalog search explains no matches and keeps its total', () => {
+  const props = {
+    model: { entities: [{ id: 'address', name: 'Address', kind: 'EntityType' }], relationships: [] },
+    search: 'missing',
+    clearSearch: () => {},
+    area: null,
+    clearArea: () => {},
+    selectEntity: () => {},
+    kpiBadges: new Map(),
+    entityTarget: () => null,
+    rdfTarget: () => null,
+    setEditing: () => {},
+    setRdfEditing: () => {},
+  } as unknown as React.ComponentProps<typeof CatalogView>;
+  const empty = renderToStaticMarkup(<CatalogView {...props} />);
+  expect(empty).toContain('No entity matches');
+  expect(empty).toContain('Clear search');
+  expect(empty).toContain('0 of 1');
+  const matching = renderToStaticMarkup(<CatalogView {...props} search="Address" />);
+  expect(matching).toContain('1 of 1');
+  expect(matching).not.toContain('Clear search');
 });

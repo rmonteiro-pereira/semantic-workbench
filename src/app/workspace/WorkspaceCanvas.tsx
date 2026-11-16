@@ -331,6 +331,7 @@ export function WorkspaceCanvas({
         <CatalogView
           model={model}
           search={search}
+          clearSearch={() => setSearch('')}
           area={catalogArea}
           clearArea={() => setCatalogArea(null)}
           selectEntity={selectEntity}

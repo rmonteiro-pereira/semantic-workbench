@@ -392,7 +392,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
 
 **Goal**: first run, catalog, wizard, trash, mappings, dialogs and shared styles are consistent. **Independent test**: `bun run test:ui`, `test:responsive`, `test:theme`, `test:dialogs` pass on the lane branch alone. **Owner**: lane E, worktree `007-lane-e` (fonts already merged in Phase 2).
 
-- [ ] T056 [US5] [E] Show an empty result for catalog search.
+- [x] T056 [US5] [E] Show an empty result for catalog search.
   - Findings: M8 · Requirements: FR-054
   - Files: `src/app/workspace/CatalogView.tsx`, `src/app/workspace/catalog.css`, `src/app/workspace/WorkspaceToolbar.tsx`, `tests/polish-presentation.test.tsx`
   - Change: Add the empty branch at `CatalogView.tsx:42-45` with the message, **Clear search** and 'N of M', modelled on the Metrics list's no-result state; widen the search box to at least SEARCH_MIN_PX.
