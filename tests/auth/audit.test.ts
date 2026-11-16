@@ -171,3 +171,28 @@ test('origin and tool filters preserve Admin and Steward project visibility', ()
     dir.cleanup();
   }
 });
+
+test('published agent reads preserve the application audit record shape', async () => {
+  const { authWorkspace } = await import('../helpers/auth-workspace');
+  const { createHandler } = await import('../../src/server/handler');
+  const { createAccessControl } = await import('../../src/server/auth/authorize');
+  const { clientPrincipal } = await import('../../src/server/auth/principal');
+  const { accessFixture } = await import('./access-fixture');
+  const { allowEveryRemote } = await import('../helpers/remote-credentials-fixture');
+  using fixture = await authWorkspace();
+  const audit = createAuditLog({ dir: join(fixture.root, 'state', 'application-audit'), mirror: () => {} });
+  const handler = createHandler(fixture.ws, {
+    mode: 'server',
+    audit,
+    access: createAccessControl(accessFixture()),
+    bearer: async () => clientPrincipal('sw-agent'),
+    remoteCredentials: allowEveryRemote(),
+  });
+  const response = await handler(new Request('http://localhost/api/agent/catalog?project=sales-contracts', { headers: { Authorization: 'Bearer fixture' } }));
+  expect(response.status).toBe(200);
+  const [entry] = audit.recent(1);
+  expect(entry.action).toBe('agentRead');
+  expect(entry.principal).toMatchObject({ kind: 'client', clientId: 'sw-agent' });
+  expect(Object.keys(entry).sort()).toEqual(['action', 'at', 'decision', 'outcome', 'prev', 'principal', 'requestId', 'resource', 'rules', 'snapshot', 'type']);
+  expect(entry).not.toHaveProperty('snapshotCommit');
+});

@@ -261,3 +261,11 @@ now explicitly send browser fetch metadata rather than depending on the old impl
 `TMPDIR=/tmp/sw-008 bun test tests/observability/request-log.test.ts tests/observability/redaction.test.ts`:
 26 pass, 0 fail, 62 assertions. The finished request carries the header commit and the exact existing
 field set plus `snapshotCommit`; no content, path or project name is added.
+
+## Application grant compatibility
+
+`TMPDIR=/tmp/sw-008 bun test tests/auth/matrix.test.ts tests/auth/audit.test.ts --test-name-pattern application`:
+2 pass, 0 fail, 15 assertions. A fixed allowlist contains projects, catalog, context and plan only;
+other application routes retain their existing refusal statuses. The successful agent audit keeps
+its exact field shape and action `agentRead`. Tasks referring to `tests/audit.test.ts` use the
+existing `tests/auth/audit.test.ts` instead; no parallel audit suite was introduced.

@@ -160,7 +160,7 @@ describe('read route inventory', () => {
           const response = await handler(
             new Request(url, {
               method: example.method,
-              headers: { Origin: url.origin, 'X-SW-Request': '1' },
+              headers: { Origin: url.origin, 'X-SW-Request': '1', Cookie: 'session=fixture' },
               ...(example.method === 'POST' ? { body: JSON.stringify(requestBody ?? {}) } : {}),
             }),
           );
@@ -597,3 +597,34 @@ test('snapshot availability is reported only after project readability for every
     }
   }
 }, 30000);
+
+test('application grants retain the fixed four-route agent allowlist', async () => {
+  const { ROUTE_ACTIONS } = await import('../../src/server/auth/route-actions');
+  const { clientPrincipal } = await import('../../src/server/auth/principal');
+  const allowed = ['GET /api/agent/projects', 'GET /api/agent/catalog', 'GET /api/agent/context', 'POST /api/agent/plan'];
+  expect(
+    ROUTE_ACTIONS.filter(row => row.clientAction)
+      .map(row => row.path)
+      .sort(),
+  ).toEqual([...allowed].sort());
+  using fixture = await authWorkspace();
+  const access = createAccessControl(accessFixture());
+  const handler = createHandler(fixture.ws, { mode: 'server', access, bearer: async () => clientPrincipal('sw-agent'), remoteCredentials: allowEveryRemote() });
+  for (const route of allowed) {
+    const [method, path] = route.split(' ');
+    const project = 'sales-contracts';
+    const mappingId = `${project}/sales.mapping.yaml`;
+    const response = await handler(
+      new Request(`http://localhost${path}?project=${project}&mappingId=${mappingId}`, {
+        method,
+        headers: { Authorization: 'Bearer fixture' },
+        ...(method === 'POST' ? { body: JSON.stringify({ project, mappingId, metrics: ['gross_revenue'], dimensions: [] }) } : {}),
+      }),
+    );
+    expect(response.status, `${route}: ${await response.clone().text()}`).toBe(200);
+  }
+  for (const path of ['/api/projects', '/api/documents', '/api/projects/sales-contracts/metrics', '/api/preview/catalog', '/api/agent/unknown']) {
+    const response = await handler(new Request('http://localhost' + path, { headers: { Authorization: 'Bearer fixture' } }));
+    expect(response.status).toBe(path.startsWith('/api/agent/') ? 404 : 401);
+  }
+});
