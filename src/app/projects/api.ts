@@ -1,3 +1,5 @@
+import { fileSaveReply, batchSaveReply } from './save-reply';
+import type { DeclaredMigration } from '../../shared/core/address-migration';
 /** Defines browser requests and response types for project files, metrics and source control. */
 import type { KpiSummary, KpiExplanation } from '../../server/agent/explain';
 import type { PlanRequest, SelectedContext } from '../../server/agent/runtime';
@@ -308,13 +310,21 @@ export const api = {
   people: (project: string) => apiFetch(`/api/projects/${encodeURIComponent(project)}/people`).then(response => json<Person[]>(response)),
   file: (project: string, path: string) => apiFetch(fileUrl(project, path)).then(r => json<{ path: string; source: string; hash: string; docType: string }>(r)),
   // A save sends patches against the version it started from when it has them, else the text.
-  async save(project: string, path: string, baseHash: string | null, source: string, patches?: { from: number; to: number; insert: string }[]) {
-    const response = await apiFetch(fileUrl(project, path), send('PUT', patches && baseHash !== null ? { baseHash, patches } : { baseHash, source }));
+  async save(
+    project: string,
+    path: string,
+    baseHash: string | null,
+    source: string,
+    options?: { from: number; to: number; insert: string }[] | { patches: { from: number; to: number; insert: string }[]; declaredMigrations: DeclaredMigration[] },
+  ) {
+    const { patches, declaredMigrations } = Array.isArray(options) ? { patches: options, declaredMigrations: undefined } : (options ?? {});
+    const write = patches && baseHash !== null ? { baseHash, patches } : { baseHash, source };
+    const response = await apiFetch(fileUrl(project, path), send('PUT', { ...write, ...(declaredMigrations?.length ? { declaredMigrations } : {}) }));
     if (response.status === 409) {
       const body = await response.json();
       throw new StaleSave(body.currentHash, body.currentSource);
     }
-    return json<{ path: string; hash: string; source?: string; demoted?: Demotion[] }>(response);
+    return fileSaveReply(await json<unknown>(response), path, response.status);
   },
   // Several files of one project in one journaled save; a stale base hash rejects the whole batch.
   async saveBatch(
@@ -325,16 +335,18 @@ export const api = {
       source?: string;
       patches?: { from: number; to: number; insert: string }[];
     }[],
+    declaredMigrations?: DeclaredMigration[],
   ) {
-    const response = await apiFetch(`/api/projects/${encodeURIComponent(project)}/save-batch`, send('POST', { files }));
+    const response = await apiFetch(`/api/projects/${encodeURIComponent(project)}/save-batch`, send('POST', { files, ...(declaredMigrations?.length ? { declaredMigrations } : {}) }));
     if (response.status === 409) {
       const body = await response.json();
       throw new StaleSave(body.currentHash, body.currentSource);
     }
-    return json<{
-      written: { path: string; hash: string; created: boolean; source?: string }[];
-      demoted?: Demotion[];
-    }>(response);
+    return batchSaveReply(
+      await json<unknown>(response),
+      files.map(file => file.path),
+      response.status,
+    );
   },
   previewKpi: (project: string, body: KpiSaveRequest) =>
     apiFetch(`/api/projects/${encodeURIComponent(project)}/metrics/preview`, send('POST', body)).then(response =>

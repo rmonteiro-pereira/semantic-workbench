@@ -1,3 +1,4 @@
+import { declaredRenames } from '../../shared/edit/address-changes';
 /** Edits one item's fields or source as a draft, then validates and saves against its base hash. */
 import { useCapabilities } from '../auth/Capabilities';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -130,9 +131,12 @@ export function ItemEditor({ doc, base, path, kind, projectDocs, choices, onClos
         chosen.filter(r => r.docId !== doc.id),
         newName,
       );
+      const savedName = itemName(kind, itemValue(doc.source, path));
+      const selectedPath = renamed && savedName === oldName ? path : undefined;
+      const declaredMigrations = declaredRenames(doc.source, main, { project: doc.project, document: doc.path.split('/') }, selectedPath);
       const written: Saved[] = [];
       if (!others.length) {
-        const saved = await api.save(doc.project, doc.path, doc.hash, main, diffPatches(doc.source, main));
+        const saved = await api.save(doc.project, doc.path, doc.hash, main, { patches: diffPatches(doc.source, main), declaredMigrations });
         written.push({ docId: doc.id, source: saved.source ?? main, hash: saved.hash });
       } else {
         const files = [{ doc, source: main }, ...others.map(o => ({ doc: projectDocs.find(d => d.id === o.docId)!, source: o.source }))];
@@ -143,6 +147,7 @@ export function ItemEditor({ doc, base, path, kind, projectDocs, choices, onClos
             baseHash: file.doc.hash,
             patches: diffPatches(file.doc.source, file.source),
           })),
+          declaredMigrations,
         );
         files.forEach((file, i) =>
           written.push({

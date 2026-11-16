@@ -1,3 +1,6 @@
+import { readAddressMigrations } from '../src/server/projects/address-migrations';
+import { dataLayout } from '../src/server/projects/paths';
+import { absoluteItemAddress } from '../src/shared/core/model-addresses';
 /** Checks stable item selection through the address-bearing graph cards in isolated data. */
 import { chromium, expect } from '@playwright/test';
 import { appUrl } from './helpers/base-url';
@@ -39,7 +42,28 @@ try {
   expect(api.ws.readFile(project.slug, filename, LOCAL_READER).source).toBe(original.source);
   expect(errors).toEqual([]);
   console.log('PASS selection and reload preserve source bytes and raise no browser errors');
-  console.log('3 item address browser checks passed');
+  await page.locator('.tabs').getByRole('button', { name: 'Catalog', exact: true }).click();
+  await page.locator('.inspector').getByRole('button', { name: 'Edit Customer', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Edit Customer', exact: true });
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole('textbox', { name: 'Name', exact: true }).fill('Client');
+  const references = dialog.getByRole('region', { name: 'References to the old name' });
+  const checkboxes = references.getByRole('checkbox');
+  expect(await checkboxes.count()).toBeGreaterThan(0);
+  for (const checkbox of await checkboxes.all()) await checkbox.check();
+  const save = dialog.getByRole('button', { name: 'Save to file', exact: true });
+  await expect(save).toBeEnabled({ timeout: 10000 });
+  await save.click();
+  await expect(dialog).toHaveCount(0);
+  const from = formatAddress(absoluteItemAddress(customer.address, { project: project.slug, document: [filename] }));
+  const history = readAddressMigrations(dataLayout(api.root), project.slug, LOCAL_READER);
+  expect(history.filter(record => record.from === from)).toHaveLength(1);
+  expect(history.find(record => record.from === from)!.to).toBe(from.replace('/concept:Customer', '/concept:Client'));
+  expect(api.ws.readFile(project.slug, filename).source).toContain('concept: Client');
+  expect(api.ws.readFile(project.slug, 'commerce.mapping.yaml').source).toContain('concept: Client');
+  expect(errors).toEqual([]);
+  console.log('PASS a concept rename and ticked cross-file references share one migration append');
+  console.log('4 item address browser checks passed');
 } finally {
   await browser.close();
   await api.stop();

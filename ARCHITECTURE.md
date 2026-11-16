@@ -86,6 +86,8 @@ without I/O. `model-addresses.ts` derives and resolves structured definition ite
 flags positional ancestors as volatile. The inspector derives required locators for structured
 entities and links in narrower result types; RDF and built-in entities stay unaddressable. `shared/mappings/relationship-reference.ts` owns inherited relationship matching shared by the agent and rename reference analysis.
 `app/edit/relationship-references.ts` walks mapping targets without guessing their defining concept.
+`shared/edit/address-changes.ts` derives explicit item/scope declarations from workbench edits;
+`app/projects/save-reply.ts` validates acknowledgements before client base versions advance.
 `item-key-adapters.ts` resolves older labels against
 that derivation and refuses ambiguous or unresolved qualified names. These pure modules do not read application state. Address consumers build text through
 `formatAddress`, never by concatenating project, document or item names.

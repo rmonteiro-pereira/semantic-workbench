@@ -192,7 +192,7 @@ changes.
   declaration breaks FR-049; a body without the field behaves as before. Proof: route tests
   (valid, cross-project, file not in request, over 64 entries, field absent), and the existing
   authorization matrix entries for both routes gain a declared-migration case. (FR-027, FR-049)
-- [ ] T032 [US3] Client side: build the declared migration on an item rename (subtree prefix) and
+- [x] T032 [US3] Client side: build the declared migration on an item rename (subtree prefix) and
   on a document-name change; send it with `api.save` and `api.saveBatch`
   (`src/app/projects/api.ts`, `src/app/edit/ItemEditor.tsx`, `src/app/edit/references.ts`). Include
   the relationship-target reference rewrite that E18 names as missing, with its own test. Proof:

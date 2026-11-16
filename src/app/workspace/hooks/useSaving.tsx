@@ -1,3 +1,4 @@
+import { declaredRenames } from '../../../shared/edit/address-changes';
 /** Coordinates automatic saves, conflict recovery, and drafts when leaving a file. */
 import React, { useRef, useState } from 'react';
 import type { Issue } from '../../../shared/validation/diagnostics';
@@ -52,7 +53,8 @@ export function useSaving({ current, source, currentRef, editorIssuesRef, docsRe
     save: request => {
       const doc = docsRef.current.get(request.file);
       if (!doc) return Promise.reject(Error('The file is no longer in the workspace.'));
-      return api.save(doc.project, doc.path, request.baseHash, request.to, diffPatches(request.from, request.to));
+      const declaredMigrations = declaredRenames(request.from, request.to, { project: doc.project, document: doc.path.split('/') });
+      return api.save(doc.project, doc.path, request.baseHash, request.to, { patches: diffPatches(request.from, request.to), declaredMigrations });
     },
     onSaved: (file, text, hash, sent) => {
       const doc = docsRef.current.get(file);

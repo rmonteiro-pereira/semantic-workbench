@@ -519,3 +519,9 @@ Operation-boundary follow-up: feature 010 is absent. Existing save/batch routes 
 ### Relationship rename coverage
 
 Relationship-target rewrites now include mapping referents and link children, using the same inherited relationship lookup as agent context. Only a unique defining owner matches; another concept's same-named relationship remains unchanged. Existing identify_by handling remains local to the edited definition's document. The targeted editor/context/rename tests pass: 41 pass, 0 fail, 149 assertions. The concept-rename browser proof initially encountered two valid Edit Customer buttons (catalog and inspector); its locator is now scoped to the selected inspector.
+
+### Client rename declarations
+
+Item edits send stable subtree declarations with the selected reference rewrites; Source autosave sends named root/embedded-scope changes. Scope changes replay in parent order, and named root reordering produces no declaration. The edited item's old disk name must match the open item before its path can declare a rename, avoiding a guessed item after unsaved reordering. Unnamed ontology roots, embedded mappings and array-item schemas remain volatile and do not produce history. Save acknowledgements now validate completion status, required file identifiers, SHA-256 hashes, batch order and creation flags before accepting a new base.
+
+Proofs: editor/context/rename/acknowledgement tests — 43 pass, 0 fail, 157 assertions; new address browser suite — 4 checks passed, including a concept rename with ticked cross-file references and exactly one recorded migration; existing item-edit browser suite — 11 checks passed, no browser errors. Logs: `/tmp/sw-009/client-renames-validation-proof.log`, `address-rename-browser-proof-2.log`, `item-edit-address-adoption-browser.log`. TypeScript passes.
