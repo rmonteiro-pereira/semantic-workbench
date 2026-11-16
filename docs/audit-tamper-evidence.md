@@ -65,3 +65,7 @@ Investigate a nonzero exit: missing anchors, unreadable files, an incorrect veri
 or actual log changes can all prevent verification. Preserve both copies before comparing them;
 a failure is not, by itself, proof of malicious tampering. Do not rewrite an audit record to make
 the checker pass.
+
+Attribution fields are optional: an absent `origin` means HTTP. Existing months and attributed
+records can share a month and continue across a month boundary without rewriting old bytes.
+`tests/auth/audit-compat.test.ts` checks mixed records, mirrored lines and verification exit codes.
