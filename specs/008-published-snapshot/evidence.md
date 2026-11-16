@@ -158,3 +158,60 @@ which the scanner classifies as a local path; that pre-existing example was not 
 `bun test`: 2134 pass, 0 fail, 131043 expect() calls;
 `Ran 2134 tests across 294 files. [359.26s]`.
 The preceding run also passed (2132 tests); this fresh run includes the two latest resolver cases.
+
+## Implementation boundary
+
+Completed: T001–T012. T013–T048 remain unchecked and unimplemented; none was discarded as
+unnecessary. This is not full-feature completion. Agent routes still use the editing document
+source. Local authoring-branch switching, local Publish, preview routes, status/adoption UI,
+historical route enforcement, published export and the feature-specific browser/performance
+proofs remain pending. The existing-suite results do not replace those proofs.
+
+An outside default-ref move is already refused by publication until the ref is restored or the
+pending adoption flow is implemented. Do not integrate this checkpoint as the complete feature.
+
+### Implementation commits
+
+- `d0032ab4` feat: add bounded immutable Git object reads
+- `fa439574` test: add isolated publication history fixtures
+- `f0d902ec` feat: preserve snapshot refusal responses at the HTTP boundary
+- `449ceced` feat: persist and reconcile published commit pointers
+- `23d6eaa7` feat: define ordered publication checks
+- `b325ba9f` feat: build bounded snapshot indexes from Git blobs
+- `c6aaea3e` feat: resolve immutable published snapshots under request pins
+- `cc8ed124` feat: classify browser and agent request surfaces at access middleware
+- `b9afc42d` feat: adopt existing default tips without changing local work
+- `1914a92e` feat: recover checked publications through durable intents
+- `23ed1290` feat: declare definition sources in the route inventory
+- `07d57970` refactor: extract agent handlers behind a document source
+- `c9ecdca5` test: preserve access mutants after agent route extraction
+- `a3ee14b3` fix: preserve snapshot integrity across registry and default-ref changes
+
+## Existing-suite completion checks
+
+`bun scripts/mutation-tests.ts` (through `bun --bun run test:mutation`): exit 0;
+`680/680 targeted mutants killed; all unmodified module baselines passed. Run test:ui for the full browser baseline.`
+`bun --bun run test:ui`: exit 0; `20 UI checks passed`.
+
+`bun --bun run test:responsive`: exit 1, in
+`examples: 1280×720 mall Graph toolbars keep the canvas height they had as dialogs`.
+The assertion reports `mall.odcs.yaml canvas height`, expected >= 421 px, received 407 px.
+No frontend or shared source file differs from the starting implementation commit, but no baseline
+comparison has established the cause. This remains an unresolved gate failure, not a passing run.
+`bun --bun run test:edges`: exit 0; `6 edge attachment UI checks passed`.
+`bun --bun run test:grouping-validation`: exit 0; `8 grouping and validation UI checks passed`.
+
+`bun --bun run test:examples:ui`: exit 0;
+`19 example UI checks passed; no browser runtime errors.`
+`bun --bun run test:auth`: exit 0; its final check is
+`PASS Git history is refused for a person who cannot read every file`.
+
+`TMPDIR=/tmp/sw-008 SW_BASE_URL=http://127.0.0.1:5321 RESPONSIVE_ONLY=examples: bun scripts/responsive-ui-tests.ts`:
+exit 1; the focused repetition reproduces the same canvas-height assertion, 407 px against >= 421 px.
+No threshold or frontend layout was changed. The remaining responsive checks after this assertion
+were not reached. The full feature-specific browser script, release comparison and performance
+measurements are also still absent, as their task checkboxes show.
+
+All browser suites ran serially. The temporary frontend used port 5321 with its API proxy pointed
+only at port 5322; isolated browser harnesses owned their ephemeral API listeners. No push, merge,
+tag, deployment, owner checkout mutation or external service was performed.
