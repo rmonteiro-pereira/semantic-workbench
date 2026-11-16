@@ -900,3 +900,13 @@ capture state because `.workspace-toggle` was absent. No image had yet been capt
 rebuilt generated validators while Vite was running; this is an observed reload, not an established cause.
 The local capture is retried alone with a fresh frontend; no geometry assertion or production code changed.
 The original nine suite results remain valid. Mutation and the capture/responsive stages are still pending.
+
+The isolated local capture completed with exit 0: `232` `MEASURE` lines, every one ending
+`problems=0`; final line `MEASURE admin-access-check 2560 problems=0`. Its output contains 232 PNGs.
+It used `sw-midgard-run --pull out/008-review-gate -- bash -c ...` to start a fresh Vite frontend on
+5481, run `SW_BASE_URL=http://127.0.0.1:5481 bun scripts/polish-capture.ts
+out/008-review-gate/capture-local`, and stop that owned frontend's process group on exit.
+The earlier startup failure did not recur; no source, assertion or timeout changed for this retry.
+The 34 publication-control PNGs are present. Native inspection of the 390 px known-default notice,
+unknown-default notice and server Adopt state found readable text, accessible buttons, and no horizontal
+clipping or overlap. The measured six-width publication checks already passed in both modes.
