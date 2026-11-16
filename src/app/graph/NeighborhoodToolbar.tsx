@@ -220,6 +220,8 @@ type ToolsProps = {
   canUndo: boolean;
   onUndo: () => void;
   pierceOrigin: string;
+  fitPrompt: number;
+  onFit: () => void;
   onZoomIn: () => void;
   onZoomOut: () => void;
   options: OptionsProps;
@@ -239,6 +241,8 @@ export function NeighborhoodTools({
   canUndo,
   onUndo,
   pierceOrigin,
+  fitPrompt,
+  onFit,
   onZoomIn,
   onZoomOut,
   options,
@@ -248,6 +252,7 @@ export function NeighborhoodTools({
   return (
     <ScrollStrip className="neighborhood-tools">
       <CenterPicker {...picker} />
+      {fitPrompt > 0 && <button onClick={onFit}>{fitPrompt} entities, Fit</button>}
       {!compact && <NeighborCounts {...counts} />}
       <CompactControls folded>
         <PierceControls

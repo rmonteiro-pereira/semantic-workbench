@@ -1,6 +1,6 @@
 /** Owns first-view, expansion and resize viewports for the neighborhood canvas. */
 import { useEffect, useRef, useState } from 'react';
-import { useReactFlow, type Node } from '@xyflow/react';
+import { getViewportForBounds, useReactFlow, type Node } from '@xyflow/react';
 import { DETAIL_ZOOM } from './FarZoom';
 import { useViewRestore, type Fullscreen } from './fullscreen';
 import { expansionViewport } from './expansion-viewport';
@@ -27,6 +27,7 @@ export function useNeighborhoodViewport({ nodes, center, boxes, routes, separate
   const canvas = useRef<HTMLDivElement>(null);
   const { getViewport, setViewport, zoomIn, zoomOut } = useReactFlow();
   const [fitted, setFitted] = useState('');
+  const [fitPrompt, setFitPrompt] = useState(0);
   const held = useViewRestore(
     !!fullscreen?.active,
     () => getViewport(),
@@ -37,8 +38,8 @@ export function useNeighborhoodViewport({ nodes, center, boxes, routes, separate
   const measured = nodes.length > 0 && separatedKey === heightKey && nodes.every(n => n.measured?.width) && JSON.stringify([center, nodes.map(n => n.id)]) === membership;
   // The fitted area is symmetric around the center node, so the center sits in the middle of the
   // canvas even when one side has more columns; it leaves room for the lanes above and below.
-  const fitRef = useRef(() => {});
-  fitRef.current = () => {
+  const fitRef = useRef<(all?: boolean) => void>(() => {});
+  fitRef.current = (all = false) => {
     const box = boxes.get(center ?? '');
     if (!box || !boxes.size) return;
     const all = [...boxes.values()];
@@ -50,6 +51,12 @@ export function useNeighborhoodViewport({ nodes, center, boxes, routes, separate
     const pane = canvas.current;
     if (!pane) return;
     const viewport = expansionViewport({ x: cx - halfW, y: cy - halfH, width: 2 * halfW, height: 2 * halfH }, { x: cx, y: cy }, { width: pane.clientWidth, height: pane.clientHeight }, 0.8, 1);
+    if (all) {
+      const bounds = { x: cx - halfW, y: cy - halfH, width: 2 * halfW, height: 2 * halfH };
+      void setViewport(getViewportForBounds(bounds, pane.clientWidth, pane.clientHeight, 0.05, 1, 0.08), { duration: 0 });
+      setFitPrompt(0);
+      return;
+    }
     void setViewport(viewport, { duration: 0 });
   };
   // After an expansion or pierce, show what it added around its origin at the unscaled card size;
@@ -74,6 +81,16 @@ export function useNeighborhoodViewport({ nodes, center, boxes, routes, separate
     const origin = boxes.get(expansionSet.from)!;
     const pane = canvas.current;
     if (!pane) return false;
+    setFitPrompt(0);
+    const bounds = { x: x0, y: y0, width: x1 - x0, height: y1 - y0 };
+    if (expansionSet.kind === 'pierce') {
+      const fitted = getViewportForBounds(bounds, pane.clientWidth, pane.clientHeight, 0.05, 2, 0.08);
+      if (fitted.zoom >= READABLE) {
+        void setViewport(fitted, { duration: 0 });
+        return true;
+      }
+      setFitPrompt(ids.length);
+    }
     const originShift = expansionSet.kind === 'pierce' && expansionSet.direction !== 'in' ? NEIGHBOR_COLUMN * 0.9 : 0;
     const viewport = expansionViewport(
       { x: x0, y: y0, width: x1 - x0, height: y1 - y0 },
@@ -114,5 +131,5 @@ export function useNeighborhoodViewport({ nodes, center, boxes, routes, separate
       observer.disconnect();
     };
   }, []);
-  return { canvas, measured, fitted, setFitted, fitRef, zoomIn, zoomOut };
+  return { canvas, measured, fitted, setFitted, fitRef, fitPrompt, zoomIn, zoomOut };
 }

@@ -435,7 +435,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
         },
       };
     });
-  const { canvas, measured, fitted, setFitted, fitRef, zoomIn, zoomOut } = useNeighborhoodViewport({
+  const { canvas, measured, fitted, setFitted, fitRef, fitPrompt, zoomIn, zoomOut } = useNeighborhoodViewport({
     nodes,
     center,
     boxes,
@@ -493,6 +493,8 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
         canUndo={undoable}
         onUndo={actionHistory.back}
         pierceOrigin={pierceOrigin}
+        fitPrompt={fitPrompt}
+        onFit={() => fitRef.current(true)}
         onZoomIn={() => void zoomIn({ duration: 150 })}
         onZoomOut={() => void zoomOut({ duration: 150 })}
         options={{
