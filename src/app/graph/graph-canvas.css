@@ -259,6 +259,7 @@
   max-width: min(360px, 80vw);
 }
 .neighborhood-tools .center-picker {
+  flex: 0 1 auto;
   width: max-content;
   max-width: min(420px, calc(100vw - 130px));
 }
