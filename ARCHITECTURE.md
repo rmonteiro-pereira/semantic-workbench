@@ -408,3 +408,5 @@ IDs and the existing grouping/persistence boundaries.
 Use [the development guide](docs/development.md) for command syntax, fixture rules and validation.
 Keep configuration/API/operation details in their canonical guides instead of appending release
 history or per-control instructions to this architecture map.
+
+`projects/address-resolution.ts` performs structured-item reads behind the existing reader boundary. `projects/address-reconciliation.ts` combines that read with request edit authority and the existing project lock/journal; it changes history without editing definitions.

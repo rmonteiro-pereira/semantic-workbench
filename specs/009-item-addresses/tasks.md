@@ -206,7 +206,7 @@ changes.
 - [x] T034 [P] [US3] Write deleted markers from item delete (`src/app/edit/DeleteItem.tsx`) and
   file delete, and refuse inheriting history at a reused address without a reconciliation. Proof:
   tests delete then create at the same address. (FR-043)
-- [ ] T035 [US3] Reconciliation: a server function that records a `reconciliation` record only for
+- [x] T035 [US3] Reconciliation: a server function that records a `reconciliation` record only for
   someone allowed to save the file that holds the new address and refuses an unreadable project's
   address. Proof: `tests/address-migration-store.test.ts` and authorization cases for readable,
   unreadable and guarded files; the interface is left to the item diff feature. (FR-032, FR-048)

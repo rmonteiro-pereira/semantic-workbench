@@ -541,3 +541,9 @@ Pure deletion derivation emits minimal stable prefixes and excludes positional o
 The item-delete dialog sends deletedItems with the existing save/batch routes; this separate optional field keeps declaredMigrations restricted to item/scope renames as specified. Boundary validation confines stable prefixes to written files, and the guarded before/after check verifies actual minimal removals before a working copy or source is written. File deletion stages a document tombstone in its own journal using the existing trash entry ID, and preserves crash staging. Delete/recreate tests exercise the history reset through workspace entry points, while ordinary saves without explicit deletion declarations retain their existing behavior.
 
 Proof: migration store, declared-save routes, trash and write-authorization matrix — 33 pass, 0 fail, 1,474 assertions; TypeScript passes. Pure deletion/history decisions — 11 pass, 0 fail, 3,032 assertions.
+
+### Explicit reconciliation authority
+
+The server workspace function requires edit authority on the new file, visibility of both endpoints, a missing old item and a unique new item. It checks the existing governance guard against unchanged target text; an approved metric is not demoted. A caller-stable operation ID makes a lost-reply retry return the original record without another append. The initial hidden-file fixture used an unrestricted sales-metrics path; correcting it to the fixture's actual sales-contracts/finance restriction makes the intended policy proof meaningful.
+
+Proof: reconciliation and migration-store tests — 11 pass, 0 fail, 144 assertions; TypeScript passes. No reconciliation HTTP interface is added; item diff will call the server function.

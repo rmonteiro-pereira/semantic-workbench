@@ -1,3 +1,4 @@
+import { recordReconciliation, type ReconciliationRequest } from './address-reconciliation';
 import { convertAddressKeys } from './address-key-conversion';
 import { inspect } from '../../shared/core/model';
 import { encodeGrouping, decodeGrouping, type GroupingAssignments } from '../../shared/core/grouping-addresses';
@@ -196,6 +197,14 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   function notifySuggestions() {
     if (!closed) events.emit('suggestions', {}, { audience: 'all' });
   }
+  const addressReads = { projectExists: (project: string) => projects().some(entry => entry.slug === project), readFile };
+  const addressReconciliation = {
+    ...addressReads,
+    layout,
+    journal,
+    lock,
+    head: async (project: string, reader: Reader) => (gitAvailable ? ((await git.head(repoDir(copies.readPlace(reader, project).layout, project))) ?? '') : ''),
+  };
   function groupingEntities(reference: { project: string; path: string }, reader: Reader) {
     const document = readFile(reference.project, reference.path, reader);
     try {
@@ -700,6 +709,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     registrySteps,
     readFile,
     saveFile,
+    reconcileAddress: (request: Request, declaration: ReconciliationRequest) => recordReconciliation(addressReconciliation, request, declaration),
     saveFiles: documentSave.saveFiles,
     documents: () => documentsFor(LOCAL_READER),
     documentsFor,
