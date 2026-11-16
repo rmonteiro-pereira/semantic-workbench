@@ -252,3 +252,23 @@ caller-visible equality from privileged audit outcomes. The dedicated twin test 
 headers and body, checks the bounded local refusal timing class, and asserts the hidden-trash denial
 and missing-trash absence separately. Local missing-file text still matches HTTP. The audit writer
 and all frozen fixtures are unchanged. `bun test tests/auth/operation-parity.test.ts -t 'hidden and missing twins'`: 1 pass, 0 fail.
+
+## Response outcome review
+
+Reviewed the dispatchable handlers in handler.ts and routes/projects, files, drafts, metrics, kpis,
+git, clone, repos, trash, suggestions, export, people, admin and audit. Non-HTTP defaults select the
+reviewed inventory classifier; HTTP retains its recorded outcome behavior. Explicit caller classifiers
+remain supported. The response classifier accepts the routes' existing HTTP 200 success status;
+other 2xx statuses are unsupported.
+
+- git.commit: commit identifier and explicit non-commit reasons; a failed push after commit is degraded.
+- git.fetch/pull/push/sync and default-ref pull/push: explicit boolean success, conflicts and supported follow results.
+- repositories.clone: nonempty operation, name and slug mean job acceptance, not background completion.
+- files.save, git.revert: nonempty saved path/hash, with governance demotions reported as degraded.
+- files.save.batch and metric/KPI saves: atomic batch results, including governance demotions.
+- files.import and projects.import: written identifiers plus the separate import commit outcome.
+- Other handlers either throw/map failures to non-2xx responses, return bounded read data, or report
+  intentional no-ops (already absent/cancelled, unchanged ignore pattern, already loaded example).
+  Legacy document saves return the stored document rather than an explicit partial-effect result.
+
+Classifier and boundary tests: 12 pass, 0 fail, including the frozen HTTP characterization.

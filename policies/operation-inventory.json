@@ -276,7 +276,8 @@
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
-      }
+      },
+      "outcomeClassifier": "import"
     },
     "POST /api/clear": {
       "id": "clear.run",
@@ -334,7 +335,8 @@
       "dispatch": "twin",
       "exposure": {
         "increment": "workspace-scm"
-      }
+      },
+      "outcomeClassifier": "cloneAcceptance"
     },
     "POST /api/documents": {
       "id": "documents.save",
@@ -503,7 +505,8 @@
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
-      }
+      },
+      "outcomeClassifier": "import"
     },
     "GET /api/projects/:slug/export": {
       "id": "projects.export",
@@ -556,7 +559,8 @@
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
-      }
+      },
+      "outcomeClassifier": "batchSave"
     },
     "POST /api/projects/:slug/gitignore": {
       "id": "projects.gitignore.run",
@@ -665,7 +669,8 @@
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
-      }
+      },
+      "outcomeClassifier": "batchSave"
     },
     "GET /api/projects/:slug/people": {
       "id": "projects.people.read",
@@ -753,7 +758,8 @@
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
-      }
+      },
+      "outcomeClassifier": "batchSave"
     },
     "POST /api/projects/:slug/kpis/preview": {
       "id": "projects.kpis.preview.run",
@@ -861,7 +867,8 @@
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
-      }
+      },
+      "outcomeClassifier": "fileSave"
     },
     "DELETE /api/projects/:slug/files/*": {
       "id": "files.delete",
@@ -1488,7 +1495,8 @@
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
-      }
+      },
+      "outcomeClassifier": "commit"
     },
     "POST /api/projects/:slug/git/revert": {
       "id": "git.revert",
@@ -1516,7 +1524,8 @@
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
-      }
+      },
+      "outcomeClassifier": "fileSave"
     },
     "POST /api/projects/:slug/git/switch": {
       "id": "git.switch",
@@ -1571,7 +1580,8 @@
       "dispatch": "twin",
       "exposure": {
         "increment": "workspace-scm"
-      }
+      },
+      "outcomeClassifier": "remote"
     },
     "POST /api/projects/:slug/git/pull": {
       "id": "git.pull",
@@ -1597,7 +1607,8 @@
       "dispatch": "twin",
       "exposure": {
         "increment": "workspace-scm"
-      }
+      },
+      "outcomeClassifier": "remote"
     },
     "POST /api/projects/:slug/git/sync": {
       "id": "git.sync",
@@ -1624,7 +1635,8 @@
       "dispatch": "twin",
       "exposure": {
         "increment": "workspace-scm"
-      }
+      },
+      "outcomeClassifier": "remote"
     },
     "POST /api/projects/:slug/git/push": {
       "id": "git.push",
@@ -1650,7 +1662,8 @@
       "dispatch": "twin",
       "exposure": {
         "increment": "workspace-scm"
-      }
+      },
+      "outcomeClassifier": "remote"
     },
     "POST /api/projects/:slug/git/cancel": {
       "id": "git.cancel",
@@ -1726,7 +1739,8 @@
       "dispatch": "twin",
       "exposure": {
         "increment": "workspace-scm"
-      }
+      },
+      "outcomeClassifier": "remote"
     },
     "POST /api/projects/:slug/git/push-default": {
       "id": "git.push.default",
@@ -1752,7 +1766,8 @@
       "dispatch": "twin",
       "exposure": {
         "increment": "workspace-scm"
-      }
+      },
+      "outcomeClassifier": "remote"
     },
     "PUT /api/projects/:slug/git/remote": {
       "id": "git.remote.set",

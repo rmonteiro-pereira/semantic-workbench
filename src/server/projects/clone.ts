@@ -1,3 +1,4 @@
+import type { OperationOutcome } from '../auth/operation-outcome';
 // Clones a remote repository into a new project. The clone lands in a staging folder under
 // data/projects/ and moves into place with the registry in one journaled step, so a failed,
 // cancelled or interrupted clone leaves nothing behind.
@@ -234,4 +235,14 @@ export function createCloner(deps: CloneDeps) {
       return { cancelled: clone ? git.cancel(clone.staging) : false };
     },
   };
+}
+
+/** Reports acceptance of a clone job, without claiming that the background job settled. */
+export function classifyCloneAcceptance(value: unknown): OperationOutcome {
+  if (!value || typeof value !== 'object') return 'failed';
+  for (const field of ['op', 'name', 'slug'] as const) {
+    const identifier = Reflect.get(value, field);
+    if (typeof identifier !== 'string' || !identifier.trim()) return 'failed';
+  }
+  return 'ok';
 }

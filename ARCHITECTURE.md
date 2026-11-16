@@ -385,3 +385,7 @@ changing an operation's response or consuming the caller's body.
 Server authentication constructs the mirrored audit log once with administration retention and
 passes the same instance to the handler and administration service. Standalone handlers use
 `defaultAudit` with configured retention; a supplied log prevents a second construction.
+
+`auth/operation-classifiers.ts` registers inventory classifier names; pure classifiers live beside
+the response owner's SCM, clone, document-save or import implementation. Non-HTTP calls select
+these defaults. Clone acceptance records acceptance only; the background job settles independently.

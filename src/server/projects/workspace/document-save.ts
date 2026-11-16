@@ -1,3 +1,4 @@
+import type { OperationOutcome } from '../../auth/operation-outcome';
 // Saves and reverts documents: a stale base is refused, the reader's guard judges the text, and the
 // swap is journaled so a crash leaves either the old or the new bytes.
 import { existsSync, readFileSync, rmSync } from 'node:fs';
@@ -248,4 +249,21 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
     return reverted;
   }
   return { saveFile, saveFiles, revertFile };
+}
+
+/** Classifies an atomic batch save and any governance demotions it reports. */
+export function classifyBatchSave(value: unknown): OperationOutcome {
+  if (!value || typeof value !== 'object' || !('written' in value) || !Array.isArray(value.written) || !value.written.length) return 'failed';
+  for (const file of value.written) {
+    if (!file || typeof file.path !== 'string' || !file.path.trim() || typeof file.hash !== 'string' || !file.hash.trim()) return 'failed';
+  }
+  if (!('demoted' in value)) return 'ok';
+  if (!Array.isArray(value.demoted)) return 'failed';
+  return value.demoted.length ? 'degraded' : 'ok';
+}
+
+/** Classifies one stored file and any governance demotions reported with it. */
+export function classifyFileSave(value: unknown): OperationOutcome {
+  if (!value || typeof value !== 'object') return 'failed';
+  return classifyBatchSave({ written: [value], ...('demoted' in value ? { demoted: value.demoted } : {}) });
 }

@@ -1,3 +1,4 @@
+import type { OperationOutcome } from '../../auth/operation-outcome';
 // Imports files into a project or into a new project: it checks the batch, picks names that do not
 // clash, commits the imported paths, and stages a new project folder with the registry change.
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync } from 'node:fs';
@@ -21,7 +22,7 @@ import { demotionsOf, type ContentGuard, type Demotion } from '../../auth/guards
 import { NEW_PROJECT } from '../../auth/resource';
 import { log } from '../../observability/log';
 import { clearPersonalDrafts } from '../personal-state';
-import { committedText } from './document-save';
+import { classifyBatchSave, committedText } from './document-save';
 
 /** A project-relative path and the source text to import there. */
 export type ImportFile = { path: string; source: string };
@@ -368,4 +369,15 @@ function safeDirs(dir: string) {
   } catch {
     return [];
   }
+}
+
+/** Classifies persisted import files separately from a missing import commit. */
+export function classifyImportResult(value: unknown): OperationOutcome {
+  const saved = classifyBatchSave(value);
+  if (saved === 'failed' || !value || typeof value !== 'object' || !('commit' in value)) return 'failed';
+  const commit = value.commit;
+  if (!commit || typeof commit !== 'object' || !('committed' in commit)) return 'failed';
+  if (commit.committed === true) return 'commit' in commit && typeof commit.commit === 'string' && commit.commit.trim() ? saved : 'failed';
+  if (commit.committed !== false || !('reason' in commit) || typeof commit.reason !== 'string' || !['no-git', 'no-identity', 'merging', 'nothing'].includes(commit.reason)) return 'failed';
+  return 'degraded';
 }

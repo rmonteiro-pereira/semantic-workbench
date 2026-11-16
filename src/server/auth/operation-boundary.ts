@@ -1,4 +1,5 @@
 // Decides and executes operations through the same handler and durable audit path.
+import { operationClassifiers } from './operation-classifiers';
 import { recordOperation } from '../observability/metrics';
 import { withSpan } from '../observability/tracing';
 import { classifyOutcome, type OperationOutcome, type OutcomeClassifier } from './operation-outcome';
@@ -291,7 +292,8 @@ export function createOperationBoundary(ws: Workspace, options: HandlerOptions &
     const row = caller.principal.kind === 'client' ? clientRow(found.row) : found.row;
     const started = performance.now();
     const observation: { outcome?: OperationOutcome } = {};
-    const invoke = () => execute(request, requestId, { row, resource: row.resource(found.match, url) }, caller, audit, call.outcome, observation);
+    const classifier = call.outcome ?? (caller.origin !== 'http' && entry?.outcomeClassifier ? operationClassifiers[entry.outcomeClassifier] : undefined);
+    const invoke = () => execute(request, requestId, { row, resource: row.resource(found.match, url) }, caller, audit, classifier, observation);
     const response = caller.origin === 'http' ? await invoke() : await withSpan('operation.' + entry!.id, { attributes: { origin: caller.origin, operation: entry!.id } }, invoke);
     const statusOutcome = [401, 403, 404].includes(response.status) ? 'refused' : outcome(response.status);
     recordOperation(caller.origin, entry!.id, observation.outcome ?? statusOutcome, performance.now() - started);

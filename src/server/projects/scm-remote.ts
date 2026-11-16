@@ -1,3 +1,4 @@
+import type { OperationOutcome } from '../auth/operation-outcome';
 import { type Reader } from './reader';
 import { BadRequestError } from './errors';
 import { GitError, redactCredentials, remoteAddress, remoteName, type Git, type GitResult, type RemoteAddresses, type RemoteCredential } from './git';
@@ -279,3 +280,18 @@ export function createScmRemote(ctx: ScmContext) {
 }
 /** Remote actions of Source Control. */
 export type ScmRemote = ReturnType<typeof createScmRemote>;
+
+/** Classifies remote Git responses, including conflicts and withheld publication. */
+export function classifyRemoteResult(value: unknown): OperationOutcome {
+  if (!value || typeof value !== 'object' || !('ok' in value) || typeof value.ok !== 'boolean') return 'failed';
+  if (!('conflicted' in value) || !Array.isArray(value.conflicted) || value.conflicted.some(path => typeof path !== 'string')) return 'failed';
+  if (!('altered' in value) || !Array.isArray(value.altered) || value.altered.some(path => typeof path !== 'string')) return 'failed';
+  if (!value.ok) return 'failed';
+  if (value.conflicted.length) return 'degraded';
+  if (!('follow' in value)) return 'ok';
+  const follow = value.follow;
+  if (!follow || typeof follow !== 'object' || !('followed' in follow) || typeof follow.followed !== 'boolean') return 'failed';
+  if (!('branch' in follow) || typeof follow.branch !== 'string' || !follow.branch.trim() || !('remote' in follow) || typeof follow.remote !== 'string' || !follow.remote.trim()) return 'failed';
+  if (follow.followed) return 'ok';
+  return 'reason' in follow && typeof follow.reason === 'string' && ['publish', 'guard'].includes(follow.reason) ? 'degraded' : 'failed';
+}

@@ -1,3 +1,4 @@
+import type { OperationOutcome } from '../auth/operation-outcome';
 // Connects project source control actions to Git and workspace updates. Checks after mutations
 // detect bytes rewritten by hooks or filters.
 import type { AccessView } from '../auth/authorize';
@@ -335,3 +336,16 @@ export function createScm(deps: ScmDeps) {
 }
 /** Project source control operations, gitStatus, and history. */
 export type Scm = ReturnType<typeof createScm>;
+
+/** Classifies a commit and its optional push without treating partial success as success. */
+export function classifyCommitResult(value: unknown): OperationOutcome {
+  if (!value || typeof value !== 'object' || !('committed' in value)) return 'failed';
+  if (value.committed === false) {
+    return 'reason' in value && typeof value.reason === 'string' && ['no-identity', 'merging', 'nothing'].includes(value.reason) ? 'refused' : 'failed';
+  }
+  if (value.committed !== true || !('commit' in value) || typeof value.commit !== 'string' || !value.commit.trim()) return 'failed';
+  if (!('pushed' in value)) return 'ok';
+  const pushed = value.pushed;
+  if (!pushed || typeof pushed !== 'object' || !('ok' in pushed) || typeof pushed.ok !== 'boolean' || !('message' in pushed) || typeof pushed.message !== 'string') return 'failed';
+  return pushed.ok ? 'ok' : 'degraded';
+}
