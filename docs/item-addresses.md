@@ -67,7 +67,7 @@ request's project and files. It returns typed declarations or a closed validatio
 
 Migrations remain uncompacted because collapsing interleaved ancestor and descendant rewrites
 can change replay results. The store must refuse writes exceeding 50,000 records atomically.
-`migrationRetentionCut(instant, days)` is a pure calculation and does not delete history. These APIs do not append history or change save routes yet.
+`migrationRetentionCut(instant, days)` is a pure calculation and does not delete history. The server store stages uncompacted appends in the owning journal. Operation-derived record IDs make replay idempotent, and conflicting reuse of an operation ID is refused.
 
 ```sh
 bun test tests/address-migration.test.ts

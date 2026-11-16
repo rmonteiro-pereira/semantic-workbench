@@ -177,7 +177,7 @@ changes.
 
 **Independent test**: `bun test tests/address-migration-store.test.ts` and the rename browser check.
 
-- [ ] T029 [US3] Write `src/server/projects/address-migrations.ts`: read, append inside a journal
+- [x] T029 **Compaction and the associated retention setting are dropped: ordered history is never pruned; the hard bound remains.** [US3] Write `src/server/projects/address-migrations.ts`: read, append inside a journal
   step, compaction by retention and bound, ids derived from the operation id; add the
   `SW_ADDRESS_MIGRATION_RETENTION_DAYS` setting (default 365) to `src/server/config.ts`. Proof:
   `tests/address-migration-store.test.ts` including retry idempotency and the 50,000 bound. (FR-029,

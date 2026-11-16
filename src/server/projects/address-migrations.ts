@@ -1,0 +1,102 @@
+/** Stages bounded ordered address history inside the journal that owns the definition change. */
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import { parseAddress } from '../../shared/core/item-address';
+import type { MigrationFile, MigrationKind, MigrationRecord } from '../../shared/core/address-migration';
+import { atomicWriteJson, readJsonFile } from './atomic';
+import { BadRequestError } from './errors';
+import { assertSlug, type DataLayout } from './paths';
+import type { Reader } from './reader';
+
+/** Maximum uncompacted records retained by one project's durable history. */
+export const ADDRESS_MIGRATION_LIMIT = 50_000;
+const kinds = new Set<MigrationKind>(['item', 'scope', 'document', 'reconciliation', 'deleted']);
+
+/** Locates a project's migration file without opening its contents. */
+export const addressMigrationFile = (layout: DataLayout, project: string) => join(layout.state, 'address-migrations', assertSlug(project) + '.json');
+
+function recordAddress(value: unknown) {
+  if (typeof value !== 'string') throw new BadRequestError('Invalid migration address.');
+  const parsed = parseAddress(value);
+  if (!parsed.ok || parsed.address.form !== 'absolute' || parsed.address.snapshot !== undefined || parsed.address.chain.some(segment => 'position' in segment)) {
+    throw new BadRequestError('Migration addresses must be stable absolute locators.');
+  }
+  return parsed.address;
+}
+
+function checkedRecord(input: unknown, project: string): MigrationRecord {
+  const value = input as MigrationRecord | null;
+  if (
+    !value ||
+    typeof value !== 'object' ||
+    !kinds.has(value.kind) ||
+    typeof value.id !== 'string' ||
+    !value.id ||
+    typeof value.at !== 'string' ||
+    !Number.isFinite(Date.parse(value.at)) ||
+    typeof value.commit !== 'string'
+  ) {
+    throw new BadRequestError('Invalid address migration record.');
+  }
+  const from = recordAddress(value.from);
+  const to = value.kind === 'deleted' ? null : recordAddress(value.to);
+  if (value.kind === 'deleted' && value.to !== undefined) throw new BadRequestError('Deleted markers cannot redirect an address.');
+  if (value.from === value.to) throw new BadRequestError('An address migration must change its prefix.');
+  if (value.kind === 'document') {
+    if (from.chain.length || to!.chain.length || (from.project !== project && to!.project !== project)) throw new BadRequestError('Invalid document migration scope.');
+  } else if (from.project !== project || (to && to.project !== project)) throw new BadRequestError('Migration is outside its project.');
+  return { id: value.id, kind: value.kind, from: value.from, ...(to ? { to: value.to } : {}), at: value.at, commit: value.commit };
+}
+
+function loadRecords(layout: DataLayout, project: string): MigrationRecord[] {
+  const value = readJsonFile<MigrationFile>(addressMigrationFile(layout, project));
+  if (value === null) return [];
+  if (value.formatVersion !== 1 || !Array.isArray(value.records) || value.records.length > ADDRESS_MIGRATION_LIMIT) throw new BadRequestError('Unsupported address migration store.');
+  return value.records.map(record => checkedRecord(record, project));
+}
+
+function readableRecord(record: MigrationRecord, reader: Reader): boolean {
+  if (!reader.view) return true;
+  return [record.from, record.to]
+    .filter((value): value is string => value !== undefined)
+    .every(value => {
+      const address = parseAddress(value);
+      if (!address.ok || !reader.view!.readableProjects.has(address.address.project!)) return false;
+      return !address.address.document || reader.view!.canRead(address.address.project!, address.address.document.join('/'));
+    });
+}
+
+/** Reads history only after project visibility is established and filters every record's endpoints. */
+export function readAddressMigrations(layout: DataLayout, project: string, reader: Reader): MigrationRecord[] {
+  if (reader.view && !reader.view.readableProjects.has(project)) return [];
+  return loadRecords(layout, project).filter(record => readableRecord(record, reader));
+}
+
+/** Assigns repeatable record identifiers from the journal's business operation identifier. */
+export function operationMigrations(operation: { id: string; at: string; commit: string }, changes: readonly Omit<MigrationRecord, 'id' | 'at' | 'commit'>[]): MigrationRecord[] {
+  if (!operation.id) throw new BadRequestError('A migration operation identifier is required.');
+  return changes.map((change, index) => ({ ...change, id: `${change.kind === 'deleted' ? 'd' : 'm'}-${operation.id}-${index}`, at: operation.at, commit: operation.commit }));
+}
+
+/** Prepares an idempotent append, refusing overflow before any existing file is moved. */
+export function stageAddressMigrations(context: { layout: DataLayout; project: string; staging: string }, appended: readonly MigrationRecord[]): { from: string; to: string }[] {
+  if (!appended.length) return [];
+  const { layout, project, staging } = context;
+  const records = loadRecords(layout, project);
+  const byId = new Map(records.map(record => [record.id, record]));
+  for (const input of appended) {
+    const record = checkedRecord(input, project);
+    const previous = byId.get(record.id);
+    if (previous) {
+      if (JSON.stringify(previous) !== JSON.stringify(record)) throw new BadRequestError('A migration operation was replayed with different content.');
+      continue;
+    }
+    records.push(record);
+    byId.set(record.id, record);
+  }
+  if (records.length > ADDRESS_MIGRATION_LIMIT) throw new BadRequestError('Address migration history reached its 50,000-record limit. Definitions were not changed.');
+  const destination = addressMigrationFile(layout, project);
+  const staged = join(staging, `address-migrations-${project}.json`);
+  atomicWriteJson(staged, { formatVersion: 1, records });
+  return [...(existsSync(destination) ? [{ from: destination, to: staged + '.previous' }] : []), { from: staged, to: destination }];
+}

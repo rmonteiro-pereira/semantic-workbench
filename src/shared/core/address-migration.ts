@@ -14,7 +14,7 @@ export type MigrationRecord = {
   commit: string;
 };
 /** Holds the bounded migration history for one project. */
-export type MigrationFile = { formatVersion: 1; records: MigrationRecord[]; compactedBefore?: string };
+export type MigrationFile = { formatVersion: 1; records: MigrationRecord[] };
 /** Declares a client-observed rename within the files being saved. */
 export type DeclaredMigration = { kind: 'item' | 'scope'; from: string; to: string };
 /** Gives a closed validation failure without returning source locator text. */

@@ -499,3 +499,9 @@ Server grouping conversion now backs up original shared, personal and archived v
 Browser centers convert only a unique stable graph match. Original local-storage values are kept in adjacent before-item-addresses entries and verified before replacement; positional locators are never written. Errors use existing UI messages/alerts. Personal working-copy and archived-definition tests cover distinct names and preserve group display names. Conversion, grouping API and browser preference proofs: 10 pass, 0 fail, 53 assertions. TypeScript passes. The mapping browser suite is running against the converted preference writers.
 
 The mapping browser suite with canonical preference writers passed all 12 checks, with no browser errors (`/tmp/sw-009/mapping-center-conversion-browser.log`).
+
+### Uncompacted migration store
+
+The store validates supported record kinds and stable absolute endpoints, stages replacement steps for the owning journal, derives IDs from the operation ID, and treats exact replay as a no-op append. A conflicting reuse of an ID is refused. The 50,000-record boundary allows replay at capacity and refuses a new record before any definition or store rename. The compaction-dependent retention configuration is dropped as unnecessary after the integrator's decision: a setting that cannot delete or rewrite history would misleadingly promise retention. No new environment variable is introduced. The pure retention-cut function remains a calculation only.
+
+Store and pure replay proof: `bun test tests/address-migration-store.test.ts tests/address-migration.test.ts` — 9 pass, 0 fail, 3,035 assertions.

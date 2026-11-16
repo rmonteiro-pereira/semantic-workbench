@@ -129,6 +129,7 @@ IDs and the existing grouping/persistence boundaries.
   multi-file/folder/registry changes. `migration.ts` reads legacy databases through protected
   copies and stages the file-store migration. `address-key-stores.ts` locates active and archived grouping stores;
   `address-key-conversion.ts` backs them up, verifies original hashes, and journals their one-time conversion.
+  `address-migrations.ts` validates and stages bounded, ordered history without committing a separate transaction.
   Shared `grouping-addresses.ts` translates stable assignment keys while keeping renderer IDs at the UI boundary.
 - `scanner.ts`, `cache.ts` and `watcher.ts` maintain derived models/findings and detect disk
   changes. Cache rows are not another authoritative copy of the definitions.
