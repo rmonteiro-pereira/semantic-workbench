@@ -28,12 +28,13 @@ export function PublishedSnapshot({ status, local, canPublish, busy, onPublish, 
       )}
       {!unavailable && status.remote && (
         <span>
-          Remote {status.remote.branch}: {status.remote.ahead} commits ahead of published (last fetch)
+          Remote {status.remote.branch}: {status.remote.ahead} {status.remote.ahead === 1 ? 'commit' : 'commits'} ahead of published (last fetch)
         </span>
       )}
       {pending && (
         <span>
-          Outside move: {status.pending.move}, {status.pending.commits} commits. {status.pending.move === 'diverged' && 'Restore a descendant of the published commit before adopting.'}
+          Outside move: {status.pending.move}, {status.pending.commits} {status.pending.commits === 1 ? 'commit' : 'commits'}.{' '}
+          {status.pending.move === 'diverged' && 'Restore a descendant of the published commit before adopting.'}
         </span>
       )}
       {canPublish && (local || pending) && (
