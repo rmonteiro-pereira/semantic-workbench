@@ -59,10 +59,10 @@ test('a crossing route blocks every otherwise available label slot', () => {
     { x: 130, y: 0 },
     { x: 130, y: 200 },
   ];
-  expect(placeEdgeLabels([request('a', 100)], [], undefined, [route]).size).toBe(0);
+  expect(placeEdgeLabels([{ ...request('a', 100), routes: [route] }], []).size).toBe(0);
   const clearRoute = [
     { x: 390, y: 0 },
     { x: 390, y: 200 },
   ];
-  expect(placeEdgeLabels([request('a', 100)], [], undefined, [clearRoute]).size).toBe(1);
+  expect(placeEdgeLabels([{ ...request('a', 100), routes: [clearRoute] }], []).size).toBe(1);
 });

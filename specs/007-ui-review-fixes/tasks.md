@@ -233,7 +233,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Add 'Lineage around X (opened from Y)' after a walk; always show the CENTER badge and drop the empty band (`odcs.css:890`); add a legend row for the grouping tint and make the 390 legend collapsible with PK, FK and line kinds; show one line in an empty canvas and disable Hops.
   - Proof: Before `states/local-lineage-walk--fitted-1-after-1440.png`, `local-light/local-contract-graph-1280.png`, `states/local-contract-lineage--first-view-1440.png`, `states/local-contract-lineage--no-links-1440.png`, `states/local-contract-lineage--first-view-390.png` (review baseline); after: same state recaptured with `scripts/ui-review/lineage-walk-states.ts`, `scripts/ui-review/empty-graph-states.ts`, `scripts/ui-review/capture-states.ts <out> graphs`; check: `bun run test:lineage`; the pair for the empty state is also taken for `states/local-dark-mapping-graph--empty-bindings-2560.png`.
 
-- [ ] T033 [US2] [B] Keep edge labels clear of lines and the pane edge; disable the toolbar while laying out.
+- [x] T033 [US2] [B] Keep edge labels clear of lines and the pane edge; disable the toolbar while laying out.
   - Findings: m8, P8 · Requirements: FR-029, FR-030
   - Files: `src/app/odcs/edge-labels.ts`, `src/app/odcs/LineageEdge.tsx`, `src/app/odcs/useLineageLayout.ts`, `src/app/odcs/LineageToolbar.tsx`, `tests/edge-labels.test.ts`
   - Change: Reject label slots that a line crosses or the pane clips (the placement code already ranks gaps), and pass the layout state to the toolbar so layout-dependent controls are disabled.

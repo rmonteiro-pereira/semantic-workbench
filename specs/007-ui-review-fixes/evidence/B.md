@@ -96,7 +96,7 @@ Foreign-key docs now state one to three. Mapping Steps (1–5) is described sepa
 | T030 | Complete | All three desktop pairs inspected; hops occupy one row. |
 | T031 | Complete | Settled 2560 first-view pair inspected; header and canvas share both edges. |
 | T032 | Skipped after partial implementation | Empty state, legend, centre badge and walked label are implemented. Removing the fixed empty header band changes row-port geometry; the fitted walk proof also conflicts with hidden targets. Full requested state matrix is not proved. |
-| T033 | Pending final visual proof | Route/pane rejection and pending controls are implemented and covered by focused checks. |
+| T033 | Complete | Loading, three-hop list and one-hop node-selected pairs inspected; route/pane rejection and disabled pending controls verified. |
 | T034 | Complete | Documentation and MAX_HOPS agree. |
 | T035 | Skipped as an incomplete gate | Full unit suite cannot use the sole permitted API port for concurrent identity fixtures. Other command results are recorded separately; no all-green claim. |
 
@@ -108,3 +108,16 @@ Final renderer review found that a clipped mapping label could reappear through 
 ## Settled width proof
 
 Opened the exact T031 pair: baseline `states/local-dataset-lineage--first-view-2560.png` and after `out/lane-b/final-dataset/local-dataset-lineage--first-view-2560.png`. The compact header and canvas now share x=652 and x=2052 edges (1400 px). The view contains settled cards; neighbouring clipping remains the separately skipped first-view issue. The stock graph-state entry point was restricted to the dataset stages and 2560/light using an ignored preload; its initial navigation and first-view capture are unchanged. The capture recorded resource 404 console entries, so it is visual width proof, not an error-free browser-suite claim.
+
+
+## Label and pending-control proof
+
+Opened all three T033 review baselines and their after images:
+
+- `states/local-contract-lineage--loading-1-1440.png` → `out/lane-b/final-states/local-contract-lineage--loading-1-1440.png`: pending layout is visible and primary layout actions/hop choices are disabled. Viewport-only controls remain available.
+- `states/local-contract-lineage--hops-3-list-1440.png` → `out/lane-b/final-states/local-contract-lineage--hops-3-list-1440.png`: same three-hop dialog and selected path; no clipped label pill is drawn in the visible strip. The capture overlap checker treats modal backdrops as coverage, which is expected for this state.
+- `states/local-contract-lineage--node-selected-1440.png` → `out/lane-b/final-node/local-contract-lineage--node-selected-1440.png`: same Mall/properties, one-hop selected centre with expanded columns. The reach fits beside the panel and labels are suppressed at this small zoom. This does not establish the separately skipped readable-name requirement.
+
+The first two use `capture-states.ts`; the last uses `lineage-panel-states.ts` restricted to 1440/light and the centre expansion/selection stages. All captures use the stock capture writer. The broad graph-state attempt's node-selected capture remained at three hops, so it is not used as the exact one-hop pair.
+
+The full mutation command initially identified the old bounds anchor as missing after route-aware placement added an argument. Route context now belongs to each `LabelRequest`, preserving the existing three-argument placement call and the existing bounds mutant. Focused edge-label tests pass (7 pass, 0 fail, 20 expect calls), and the complete `check` command passes. No shared mutation anchor was changed.

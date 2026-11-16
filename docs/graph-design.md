@@ -112,7 +112,7 @@ Reads, transforms, aggregations and metric dependencies continue toward their co
 
 `lineage-layout.ts` assigns incoming/outgoing row ports. ELK positions cards and routes lines in a
 worker. `LineageCard.tsx` and `LineageColumnList.tsx` render those ports and rows; `edge-route.ts`
-and `edge-labels.ts` handle drawn routes, rounded corners and labels.
+and `edge-labels.ts` handle drawn routes, rounded corners and labels. Label requests carry the laid-out routes so placement can reject crossed slots alongside card and pane bounds.
 
 ### Visible, hidden and scrolling columns
 
