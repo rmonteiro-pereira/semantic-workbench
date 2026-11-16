@@ -1,6 +1,6 @@
 # Capture index
 
-Use a temporary frontend on port 5201. `OUT` is a scratch output root inside the worktree or under `/tmp/sw-foundation/`. Images remain outside Git. Commands preserve the original state sequence; width lists below describe the requested output, not an invented filter. Most original scripts always run the full 390×844, 1280×720, 1440×900, 2560×1440 matrix.
+Use a temporary frontend on port 5201. `OUT` is a scratch output root inside the worktree or under `/tmp/sw-foundation/`. Images remain outside Git. The Group/filter column gives optional filters to prepend to the command; an unfiltered command preserves the complete original state sequence. Commands preserve the original state sequence; width lists below describe the requested output, not an invented filter. Most original scripts always run the full 390×844, 1280×720, 1440×900, 2560×1440 matrix.
 
 Server and follow-up drivers bind fixed additional ports as documented in their headers. Their smoke runs are skipped for the foundation lane because only ports 5201 and 5202 are assigned. No claim of successful reproduction is made for those drivers.
 
@@ -46,7 +46,7 @@ Server and follow-up drivers bind fixed additional ports as documented in their 
 | `server-personas/server-carol-source-control-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/server-pages.ts $OUT` | all | light | 1440 |
 | `states/local-catalog--search-no-result-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states rest` | SW_ONLY=catalog; rest | light | 1440 |
 | `states/local-catalog--search-no-result-390.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states rest` | SW_ONLY=catalog; rest | light | 390 |
-| `states/local-clone-repository--connecting-wait-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states rest` | SW_ONLY=editing; rest | light | 1440 |
+| `states/local-clone-repository--connecting-wait-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/clone-states.ts $OUT/states` | all | light | 1440 |
 | `states/local-contract-lineage--after-fit-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states graphs` | graphs | light | 1440 |
 | `states/local-contract-lineage--after-fit-2560.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states graphs` | graphs | light | 2560 |
 | `states/local-contract-lineage--column-selected-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states graphs` | graphs | light | 1440 |
@@ -54,14 +54,14 @@ Server and follow-up drivers bind fixed additional ports as documented in their 
 | `states/local-contract-lineage--first-view-390.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states graphs` | graphs | light | 390 |
 | `states/local-contract-lineage--hops-3-list-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states graphs` | graphs | light | 1440 |
 | `states/local-contract-lineage--loading-1-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states graphs` | graphs | light | 1440 |
-| `states/local-contract-lineage--no-links-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states graphs` | graphs | light | 1440 |
-| `states/local-contract-lineage--node-selected-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states graphs` | graphs | light | 1440 |
+| `states/local-contract-lineage--no-links-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/empty-graph-states.ts $OUT/states` | all | light | 1440 |
+| `states/local-contract-lineage--node-selected-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/lineage-panel-states.ts $OUT/states` | all | light | 1440 |
 | `states/local-dark-mapping-graph--empty-bindings-2560.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=dark bun scripts/ui-review/capture-states.ts $OUT/states graphs` | graphs | dark | 2560 |
 | `states/local-dark-source-control--diff-modified-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=dark bun scripts/ui-review/source-control-states.ts $OUT/states` | all | dark | 1440 |
 | `states/local-dark-source-editor--stale-save-warning-390.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=dark bun scripts/ui-review/source-control-states.ts $OUT/states` | all | dark | 390 |
 | `states/local-dark-workspace--first-run-empty-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=dark bun scripts/ui-review/empty-states.ts $OUT/states` | all | dark | 1440 |
 | `states/local-dataset-lineage--first-view-2560.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states graphs` | graphs | light | 2560 |
-| `states/local-full-graph--empty-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states graphs` | graphs | light | 1440 |
+| `states/local-full-graph--empty-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/empty-graph-states.ts $OUT/states` | all | light | 1440 |
 | `states/local-full-graph-layered--first-view-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states graphs` | graphs | light | 1440 |
 | `states/local-full-graph-network--areas-collapsed-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states graphs` | graphs | light | 1440 |
 | `states/local-full-graph-network--first-view-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states graphs` | graphs | light | 1440 |
@@ -72,31 +72,31 @@ Server and follow-up drivers bind fixed additional ports as documented in their 
 | `states/local-full-graph-network--mini-map-on-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states graphs` | graphs | light | 1440 |
 | `states/local-full-graph-network--zoomed-in-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states graphs` | graphs | light | 1440 |
 | `states/local-full-graph-network--zoomed-minimum-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states graphs` | graphs | light | 1440 |
-| `states/local-import--file-chosen-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states rest` | SW_ONLY=editing; rest | light | 1440 |
-| `states/local-import--refused-file-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states rest` | SW_ONLY=editing; rest | light | 1440 |
+| `states/local-import--file-chosen-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/empty-states.ts $OUT/states` | all | light | 1440 |
+| `states/local-import--refused-file-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/file-states.ts $OUT/states` | all | light | 1440 |
 | `states/local-lineage-walk--first-view-1280.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/lineage-walk-states.ts $OUT/states` | all | light | 1280 |
 | `states/local-lineage-walk--first-view-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/lineage-walk-states.ts $OUT/states` | all | light | 1440 |
 | `states/local-lineage-walk--first-view-390.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/lineage-walk-states.ts $OUT/states` | all | light | 390 |
 | `states/local-lineage-walk--fitted-1-after-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/lineage-walk-states.ts $OUT/states` | all | light | 1440 |
 | `states/local-lineage-walk--fitted-1-before-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/lineage-walk-states.ts $OUT/states` | all | light | 1440 |
-| `states/local-mall-full-graph--group-automatic-1280.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states graphs` | graphs | light | 1280 |
-| `states/local-mall-full-graph--group-definition-types-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states graphs` | graphs | light | 1440 |
+| `states/local-mall-full-graph--group-automatic-1280.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/graph-loading-states.ts $OUT/states` | all | light | 1280 |
+| `states/local-mall-full-graph--group-definition-types-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/graph-loading-states.ts $OUT/states` | all | light | 1440 |
 | `states/local-mapping-graph--after-fit-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states graphs` | graphs | light | 1440 |
-| `states/local-mapping-graph--node-selected-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states graphs` | graphs | light | 1440 |
+| `states/local-mapping-graph--node-selected-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/lineage-panel-states.ts $OUT/states` | all | light | 1440 |
 | `states/local-mappings--selected-binding-390.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states rest` | SW_ONLY=mappings; rest | light | 390 |
-| `states/local-metric-wizard--step-1-empty-validation-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states rest` | SW_ONLY=editing; rest | light | 1440 |
-| `states/local-metric-wizard--step-2-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states rest` | SW_ONLY=editing; rest | light | 1440 |
-| `states/local-metric-wizard--step-3-validation-error-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states rest` | SW_ONLY=editing; rest | light | 1440 |
-| `states/local-metric-wizard--step-4-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states rest` | SW_ONLY=editing; rest | light | 1440 |
-| `states/local-metric-wizard--step-8-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states rest` | SW_ONLY=editing; rest | light | 1440 |
-| `states/local-neighborhood--empty-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states graphs` | graphs | light | 1440 |
+| `states/local-metric-wizard--step-1-empty-validation-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states rest` | SW_ONLY=metrics; rest | light | 1440 |
+| `states/local-metric-wizard--step-2-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states rest` | SW_ONLY=metrics; rest | light | 1440 |
+| `states/local-metric-wizard--step-3-validation-error-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states rest` | SW_ONLY=metrics; rest | light | 1440 |
+| `states/local-metric-wizard--step-4-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states rest` | SW_ONLY=metrics; rest | light | 1440 |
+| `states/local-metric-wizard--step-8-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states rest` | SW_ONLY=metrics; rest | light | 1440 |
+| `states/local-neighborhood--empty-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/empty-graph-states.ts $OUT/states` | all | light | 1440 |
 | `states/local-neighborhood--first-view-1280.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states graphs` | graphs | light | 1280 |
 | `states/local-neighborhood--fullscreen-390.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states graphs` | graphs | light | 390 |
 | `states/local-neighborhood--walk-3-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states graphs` | graphs | light | 1440 |
-| `states/local-remote-folder--refused-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states rest` | SW_ONLY=editing; rest | light | 1440 |
+| `states/local-remote-folder--refused-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/source-control-states.ts $OUT/states` | all | light | 1440 |
 | `states/local-shell--avatar-menu-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states rest` | SW_ONLY=shell; rest | light | 1440 |
 | `states/local-shell--new-menu-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states rest` | SW_ONLY=shell; rest | light | 1440 |
-| `states/local-source-control--branch-menu-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/source-control-states.ts $OUT/states` | all | light | 1440 |
+| `states/local-source-control--branch-menu-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/file-states.ts $OUT/states` | all | light | 1440 |
 | `states/local-source-control--commit-message-filled-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/source-control-states.ts $OUT/states` | all | light | 1440 |
 | `states/local-source-control--diff-modified-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/source-control-states.ts $OUT/states` | all | light | 1440 |
 | `states/local-source-control--diff-modified-390.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/source-control-states.ts $OUT/states` | all | light | 390 |
@@ -104,14 +104,14 @@ Server and follow-up drivers bind fixed additional ports as documented in their 
 | `states/local-source-editor--invalid-unsaved-draft-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states rest` | SW_ONLY=editing; rest | light | 1440 |
 | `states/local-source-editor--invalid-unsaved-draft-390.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states rest` | SW_ONLY=editing; rest | light | 390 |
 | `states/local-source-editor--stale-save-warning-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/source-control-states.ts $OUT/states` | all | light | 1440 |
-| `states/local-trash--populated-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/followup-trash.ts $OUT/states` | all | light | 1440 |
+| `states/local-trash--populated-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/empty-states.ts $OUT/states` | all | light | 1440 |
 | `states/local-workspace--first-run-empty-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/empty-states.ts $OUT/states` | all | light | 1440 |
-| `states/local-workspace--project-no-files-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states rest` | SW_ONLY=editing; rest | light | 1440 |
-| `states/server-admin-access-change--review-confirm-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states rest` | SW_ONLY=editing; rest | light | 1440 |
-| `states/server-admin-access-check--allowed-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states rest` | SW_ONLY=editing; rest | light | 1440 |
-| `states/server-admin-access-check--refused-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states rest` | SW_ONLY=editing; rest | light | 1440 |
-| `states/server-admin-access-check--refused-390.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states rest` | SW_ONLY=editing; rest | light | 390 |
-| `states/server-admin-grant-form--validation-error-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states rest` | SW_ONLY=editing; rest | light | 1440 |
-| `states/server-admin-grant-form--validation-error-390.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states rest` | SW_ONLY=editing; rest | light | 390 |
-| `states/server-admin-protection--last-admin-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/capture-states.ts $OUT/states rest` | SW_ONLY=editing; rest | light | 1440 |
-| `states/server-dark-admin-protection--last-admin-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=dark bun scripts/ui-review/capture-states.ts $OUT/states rest` | SW_ONLY=editing; rest | dark | 1440 |
+| `states/local-workspace--project-no-files-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/empty-states.ts $OUT/states` | all | light | 1440 |
+| `states/server-admin-access-change--review-confirm-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/admin-states.ts $OUT/states` | all | light | 1440 |
+| `states/server-admin-access-check--allowed-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/admin-states.ts $OUT/states` | all | light | 1440 |
+| `states/server-admin-access-check--refused-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/admin-states.ts $OUT/states` | all | light | 1440 |
+| `states/server-admin-access-check--refused-390.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/admin-states.ts $OUT/states` | all | light | 390 |
+| `states/server-admin-grant-form--validation-error-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/admin-states.ts $OUT/states` | all | light | 1440 |
+| `states/server-admin-grant-form--validation-error-390.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/admin-states.ts $OUT/states` | all | light | 390 |
+| `states/server-admin-protection--last-admin-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=light bun scripts/ui-review/last-admin-state.ts $OUT/states` | all | light | 1440 |
+| `states/server-dark-admin-protection--last-admin-1440.png` | `SW_BASE_URL=http://127.0.0.1:5201 SW_THEME=dark bun scripts/ui-review/last-admin-state.ts $OUT/states` | all | dark | 1440 |
