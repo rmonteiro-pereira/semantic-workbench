@@ -234,6 +234,10 @@ autosave before another action occurs. Assert the draft and unchanged disk versi
 loss-warning scenario. Await actual example-load completion before choosing a tab, rather than
 racing the loader's own initial-document selection.
 
+Font asset checks run with `bun test tests/fonts.test.ts`. For only the offline first-run
+font assertions, run `SW_BASE_URL=http://127.0.0.1:5201 bun scripts/theme-browser-check.ts --fonts-only`. The mutation runner also verifies
+that removing a fallback, breaking a local font URL or removing a family licence fails the font gate.
+
 ## Mutation and rendering safeguards
 
 ```sh

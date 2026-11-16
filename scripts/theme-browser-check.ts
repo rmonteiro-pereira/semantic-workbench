@@ -5,13 +5,13 @@ import { chromium, expect, type Page } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { tourGroups } from './helpers/all-tours';
 import { openFile, showScreen } from './helpers/screen-tour';
-import { chooseTheme, themedScreenProblems, tokenContrast, tokenValue } from './helpers/theme-tour';
+import { assertBundledFonts, chooseTheme, themedScreenProblems, tokenContrast, tokenValue } from './helpers/theme-tour';
 import { luminance, parseColor } from './helpers/color-literals';
 import { showEveryEntity } from './helpers/graph-options';
 import { openSettings } from './helpers/sidebar-menus';
 
 const api = await startIsolatedApi();
-for (const id of ['ubl', 'commerce', 'mall']) await api.ws.loadExample(id);
+
 const browser = await chromium.launch();
 const errors: string[] = [];
 let passed = 0;
@@ -153,19 +153,50 @@ async function tourCheck(scheme: 'light' | 'dark', groupTitles: string[]) {
   await page.close();
 }
 
+async function offlineFontsCheck() {
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  const origin = new URL(appUrl()).origin;
+  const external: string[] = [];
+  await page.route('**/*', async route => {
+    const url = new URL(route.request().url());
+    console.log('FONT_REQUEST_HOST', url.host);
+    if (url.origin !== origin) {
+      external.push(url.host);
+      await route.abort();
+      return;
+    }
+    await route.continue();
+  });
+  await routeApi(page, api);
+  try {
+    await page.goto(appUrl());
+    await expect(page.locator('.workspace-header')).toBeVisible();
+    await assertBundledFonts(page);
+    expect(external, 'all font-screen requests use the application origin').toEqual([]);
+  } finally {
+    await page.close();
+  }
+}
+
 try {
-  await check('the accent token drives the primary button, the selected tab and the graph selection', accentCheck);
-  await check('the Theme control sets, stores and clears dark', controlCheck);
-  await check('System follows the browser and an explicit choice overrides it', systemCheck);
-  await check('the stored theme is applied by a blocking script before the app loads', firstPaintCheck);
-  await check('muted text keeps 4.5:1 on its surfaces in the light theme', () => contrastCheck('light'));
-  await check('muted text keeps 4.5:1 on its surfaces in the dark theme', () => contrastCheck('dark'));
-  await check('the main tour is readable and free of overlaps in the light theme at 1280×720', () => tourCheck('light', ['screens']));
-  await check('every tour is readable and free of overlaps in the dark theme at 1280×720', () =>
-    tourCheck('dark', ['screens', 'edit screens', 'ODCS screens', 'project dialogs', 'export dialog', 'folder dialogs']),
-  );
-  await check('no uncaught browser errors', async () => expect(errors).toEqual([]));
-  console.log(`${passed} theme checks passed`);
+  await check('first-run fonts load with external network blocked', offlineFontsCheck);
+  if (process.argv.includes('--fonts-only')) {
+    console.log(`${passed} theme font checks passed`);
+  } else {
+    for (const id of ['ubl', 'commerce', 'mall']) await api.ws.loadExample(id);
+    await check('the accent token drives the primary button, the selected tab and the graph selection', accentCheck);
+    await check('the Theme control sets, stores and clears dark', controlCheck);
+    await check('System follows the browser and an explicit choice overrides it', systemCheck);
+    await check('the stored theme is applied by a blocking script before the app loads', firstPaintCheck);
+    await check('muted text keeps 4.5:1 on its surfaces in the light theme', () => contrastCheck('light'));
+    await check('muted text keeps 4.5:1 on its surfaces in the dark theme', () => contrastCheck('dark'));
+    await check('the main tour is readable and free of overlaps in the light theme at 1280×720', () => tourCheck('light', ['screens']));
+    await check('every tour is readable and free of overlaps in the dark theme at 1280×720', () =>
+      tourCheck('dark', ['screens', 'edit screens', 'ODCS screens', 'project dialogs', 'export dialog', 'folder dialogs']),
+    );
+    await check('no uncaught browser errors', async () => expect(errors).toEqual([]));
+    console.log(`${passed} theme checks passed`);
+  }
 } finally {
   await browser.close();
   await api.stop();

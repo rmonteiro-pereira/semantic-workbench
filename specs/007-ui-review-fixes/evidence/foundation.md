@@ -39,3 +39,10 @@ Existing theme styles name DM Sans and Manrope; local font faces supply their gl
 - `bun test tests/fonts.test.ts`: `1 pass`, `0 fail`, `1 expect() calls`.
 - Three asset mutants are registered under the E sentinel: raw family without fallback, missing WOFF2 URL, removed Manrope licence. All three are killed by the same `fontProblems` entry point used by the test. `/tmp/sw-foundation/font-mutants.log` records the focused baseline and three failures; `/tmp/sw-foundation/final-mutations.log` includes all three `KILLED fonts` entries in the complete runner.
 - Shared-file exception: the runner's `run` function dispatches the fonts category to a disposable asset-tree runner. The existing runner only handles TypeScript candidate modules, so CSS and licence faults need this foundation dispatch. Lane imports and registrations remain inside the E sentinels.
+
+## Offline browser proof
+
+- T007: first-run browser requests outside the application origin are aborted and every request host is printed. The check requires registered, loaded faces as well as both requested document.fonts.check calls; the API alone can return true for an unregistered family. Every first-run heading must have a sans-serif generic fallback.
+- Before: `git archive e8b7d69` extracted into `/tmp/sw-foundation/base`, with only the new theme-check driver/helper copied into that disposable tree. A temporary Vite on 5202 served the unchanged base application. `SW_BASE_URL=http://127.0.0.1:5202 bun scripts/theme-browser-check.ts --fonts-only` exited 1: `DM Sans is registered and loaded locally`, expected true, received false. Log: `/tmp/sw-foundation/fonts-browser-before.log`. The baseline server was stopped after the check.
+- After: the same focused check on port 5201 exited 0 and prints `PASS document.fonts.check(16px "DM Sans") with a registered face`, `PASS document.fonts.check(700 22px Manrope) with a registered face`, `PASS first-run heading stacks end in sans-serif`. `/tmp/sw-foundation/fonts-browser-after.log`.
+- Complete theme check on the final styles: `10 theme checks passed`; all recorded request hosts are `127.0.0.1:5201`. `/tmp/sw-foundation/theme-final.log`.

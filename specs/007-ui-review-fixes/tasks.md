@@ -69,7 +69,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Pattern after `tests/theme-check.test.ts`. Add mutants that drop a fallback, point a URL at a missing file and remove a licence file, registered under lane E's sentinel.
   - Proof: `bun test tests/fonts.test.ts` passes; `bun scripts/mutation-tests.ts` detects the three new mutants.
 
-- [ ] T007 [P] [E] Extend the theme browser check so it loads the first-run screen with network access to anything but the origin blocked, and asserts `document.fonts.check('16px "DM Sans"')` and `document.fonts.check('700 22px Manrope')` and that no heading's computed font stack falls to a serif face.
+- [x] T007 [P] [E] Extend the theme browser check so it loads the first-run screen with network access to anything but the origin blocked, and asserts `document.fonts.check('16px "DM Sans"')` and `document.fonts.check('700 22px Manrope')` and that no heading's computed font stack falls to a serif face.
   - Findings: M7 · Requirements: FR-053
   - Files: `scripts/theme-browser-check.ts`, `scripts/helpers/theme-tour.ts`
   - Change: Add the font assertions beside the existing accent and contrast checks; log every request host and fail on any host other than the application's.

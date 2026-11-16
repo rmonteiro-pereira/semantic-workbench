@@ -1,6 +1,6 @@
 // The Theme control, and the problems a screen can have in a given theme, for the responsive
 // suite and the theme browser check.
-import type { Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import { contrastRatio, parseColor } from './color-literals';
 import type { TourGroup } from './all-tours';
 import { screenProblems, type Screen } from './screen-tour';
@@ -67,4 +67,28 @@ export function darkTourScreens(groups: TourGroup[], width: number): Screen[] {
   const main = groups.find(group => group.title === 'screens')?.screens ?? [];
   const every = groups.flatMap(group => group.screens);
   return [...themeScreens, ...(width === 1280 ? every : main)];
+}
+
+/** Verifies the registered local faces and the first-run heading fallback stack. */
+export async function assertBundledFonts(page: Page) {
+  const fonts = await page.evaluate(async () => {
+    await document.fonts.ready;
+    const sans = await document.fonts.load('16px "DM Sans"');
+    const display = await document.fonts.load('700 22px Manrope');
+    return {
+      sans: sans.length > 0 && document.fonts.check('16px "DM Sans"'),
+      display: display.length > 0 && document.fonts.check('700 22px Manrope'),
+      headings: [...document.querySelectorAll('h1, h2, h3')].map(element => getComputedStyle(element).fontFamily),
+    };
+  });
+  expect(fonts.sans, 'DM Sans is registered and loaded locally').toBe(true);
+  console.log('PASS document.fonts.check(16px "DM Sans") with a registered face');
+  expect(fonts.display, 'Manrope is registered and loaded locally').toBe(true);
+  console.log('PASS document.fonts.check(700 22px Manrope) with a registered face');
+  expect(fonts.headings.length, 'first-run headings are present').toBeGreaterThan(0);
+  for (const stack of fonts.headings) {
+    expect(stack, 'heading has a sans-serif generic fallback').toMatch(/(?:^|,)\s*sans-serif\s*$/);
+    expect(stack, 'heading does not fall to a serif face').not.toMatch(/(?:^|,)\s*serif(?:,|$)/);
+  }
+  console.log('PASS first-run heading stacks end in sans-serif');
 }
