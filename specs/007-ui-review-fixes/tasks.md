@@ -300,7 +300,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Do not render the 'Validation failed. Review the findings and repair in Source.' banner at `StatusFooter.tsx:77` while the Source tab is open, keep the header state and one located editor message, and let the editor toolbar pill size to its text.
   - Proof: Before `states/local-source-editor--invalid-unsaved-draft-1440.png`, `states/local-source-editor--invalid-unsaved-draft-390.png` (review baseline); after: same state recaptured with `scripts/ui-review/capture-states.ts <out> rest` (SW_ONLY=editing); check: `bun run test:validation` counts failure messages on the Source tab: at most two, one of them the header.
 
-- [ ] T043 [US3] [C] Replace the commit block with 'You have read access' for roles that cannot commit.
+- [x] T043 [US3] [C] Replace the commit block with 'You have read access' for roles that cannot commit.
   - Findings: M22 · Requirements: FR-036
   - Files: `src/app/scm/SourceControl.tsx`, `src/app/workspace/commit-availability.ts`, `src/app/workspace/SourceControlView.tsx`, `tests/commit-availability.test.ts`
   - Change: Use the existing `access.can('commit')` result to show one sentence instead of the message box, **Commit to main** and **New branch**; Editor and Steward are unchanged.

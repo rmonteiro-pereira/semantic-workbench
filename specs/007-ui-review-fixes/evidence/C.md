@@ -45,3 +45,9 @@ The same source-control state sequence was recaptured in light/dark at 1440×900
 ## Diff headings and syntax keys
 
 Viewed `states/local-source-control--diff-modified-1440.png` before and `/tmp/sw-C/after/states/local-source-control--diff-modified-1440.png` after: the filename has its own line and both version labels are whole. Viewed `local-dark/local-dark-ontology-source-1440.png` before and `/tmp/sw-C/after/local-dark/local-dark-ontology-source-1440.png` after: YAML keys are visibly lighter than plain values, with the same UBL file and viewport. `tests/theme-check.test.ts`: **18 pass, 0 fail**, including token parity and the key/value/surface contrast assertions. The source-control suite's history and diff checks also pass.
+
+## Read access
+
+Viewed the matching `server-personas/server-carol-source-control-1440.png` before and `/tmp/sw-C/after/server-personas/server-carol-source-control-1440.png` after: the same `hr-people/people.odcs.yaml` state now shows You have read access, with no commit textarea, commit action or New branch. `/tmp/sw-C/after/server-personas/server-alice-source-control-1440.png` retains the textarea, Commit and New branch for `sales-contracts/orders.odcs.yaml`.
+
+The persona capture follows the `server-pages.ts` contract/open-Source-control sequence using `authWorkspace`, `accessFixture`, `createAccessControl` and `createHandler` in server mode. Its existing trusted-principal injection supplies Carol/Alice without a separate OIDC listener. Permissions and project filtering are real; identity-provider sign-in is outside this comparison. The driver is `/tmp/sw-C/persona-capture.ts`, output `/tmp/sw-C/persona-capture.log`. This keeps all HTTP listeners on 5231/5232. The dedicated SCM browser assertion and existing commit-availability unit assertions pass.
