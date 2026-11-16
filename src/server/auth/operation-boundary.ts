@@ -5,6 +5,7 @@ import type { HandlerOptions } from './middleware';
 import type { AccessControl, AccessScope } from './authorize';
 import { auditableProjects, reportAuditFailure, type AuditLog } from './audit';
 import { assertMinted, type Caller } from './caller';
+import { operationForRow } from './operation-inventory';
 import { routeFor, type RouteAction } from './route-actions';
 import type { ResourceRef, Decision } from './resource';
 import { WriteAccessError } from './write-access';
@@ -252,6 +253,13 @@ export function createOperationBoundary(ws: Workspace, options: HandlerOptions &
     const requestId = request[requestAuditId] ?? crypto.randomUUID();
     const url = new URL(request.url);
     const found = routeFor(request.method, url.pathname, mode);
+    const entry = found ? operationForRow(found.row.path) : undefined;
+    const wrongRow = call.operation !== undefined && call.operation !== entry?.id;
+    const wrongTool = call.tool !== undefined && call.tool !== entry?.id;
+    if (wrongRow || wrongTool || (caller.origin !== 'http' && (!found || found.row.public || entry?.dispatch !== 'twin'))) {
+      const failure = auditDenial(audit, { requestId, principal: caller.principal, action: 'read', resource: { type: 'workspace' }, decision: 'deny', rules: [], reason: 'unmapped-route' });
+      return { response: failure ?? Response.json({ error: 'Not found.' }, { status: 404 }), requestId };
+    }
     const refused = caller.principal.kind === 'client' ? clientRouteRefusal(found) : null;
     if (refused) return { response: agentRefusal(audit, { requestId, principal: caller.principal, ...refused }), requestId };
     if (!found) return { response: new Response('Not found', { status: 404 }), requestId };
