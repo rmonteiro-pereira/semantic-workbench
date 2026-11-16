@@ -579,7 +579,7 @@ resources and implicit built-ins have no locator. Structured inspector entities 
 required addresses in narrower result types; existing internal IDs remain unchanged.
 Graph selection and neighborhood history use item addresses in memory, with renderer keys kept
 at the canvas boundary. The mapping and lineage canvases share the same grammar.
-The pure API also validates declared renames and applies ordered history; persistence is not connected yet.
+The pure API validates declared renames and applies ordered history. Caller-aware resolution checks visibility before reading definitions or history, including subsequent renames after a cross-project move.
 Workbench save routes can accept declared item/scope renames and journal their history with the definitions. Stable grouping assignments and canvas centers are converted after a backup; unconvertible keys are kept. Agent context field IDs and metadata scope labels use the same grammar; legacy tuple selectors remain readable. See [item addresses](docs/item-addresses.md) for the pure API and tests.
 
 ## Development and verification

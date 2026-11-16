@@ -62,7 +62,8 @@ export function resolveForCaller(context: AddressResolutionContext, text: string
   const current = resolveCurrentItem(context, address, reader);
   if (current.status !== 'missing') return publicResult(current, address);
   if (!context.projectExists(address.project!)) return { status: 'missing' };
-  const records = context.readMigrations(address.project!, reader);
+  const records = [...context.readMigrations(address.project!, reader)];
+  const visitedProjects = new Set([address.project!]);
   const applied = new Set<string>();
   for (const record of records) {
     if (applied.has(record.id)) continue;
@@ -73,6 +74,11 @@ export function resolveForCaller(context: AddressResolutionContext, text: string
     const to = parseAddress(record.to ?? '');
     if (!to.ok || !readable(to.address, reader)) continue;
     address = replacePrefix(address, from.address, to.address);
+    if (address.project && !visitedProjects.has(address.project)) {
+      visitedProjects.add(address.project);
+      if (!context.projectExists(address.project)) return { status: 'missing' };
+      records.push(...context.readMigrations(address.project, reader));
+    }
   }
   if (formatAddress(address) === text) return { status: 'missing' };
   return publicResult(resolveCurrentItem(context, address, reader), address);

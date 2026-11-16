@@ -573,3 +573,9 @@ The real mutation gate's formatting/lint baseline found an unused governance typ
 ### Isolated browser artifacts
 
 The named browser drivers previously hard-coded screenshot destinations directly under /tmp. They now use the existing screenshotPath seam, which honors SW_SCREENSHOT_DIR and otherwise TMPDIR, preserving their ordinary defaults. This keeps final browser and mutation artifacts under the assigned temporary root. Earlier runs used the drivers' hard-coded screenshot locations before this was corrected; test fixture helpers also defaulted to /tmp before TMPDIR was consistently supplied. No unrelated file or shared Git configuration was removed. Future commands explicitly set TMPDIR=/tmp/sw-009.
+
+### Cross-project resolution continuation
+
+Review found that following only the original project's store would miss a later rename in the destination project after an explicit cross-project move. Resolution now opens each additional visible project's history once, and replays each operation record once. A workspace integration test moves a file across projects, renames the moved item, and resolves its original address through both stores.
+
+Proof: hidden/missing and migration-store integration — 14 pass, 0 fail, 152 assertions; readability passes.

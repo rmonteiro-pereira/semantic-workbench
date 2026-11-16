@@ -193,3 +193,25 @@ test('file deletion records a document marker that also resets descendant histor
   if (!parsed.ok) throw new Error('Invalid test locator.');
   expect(historySinceDeletion(parsed.address, readAddressMigrations(dataLayout(workspace.root), project.slug, LOCAL_READER)).reset).toBe(true);
 });
+
+test('a cross-project move followed by a target-project rename resolves through both visible stores', async () => {
+  using workspace = await testWorkspace();
+  const first = await workspace.seed([{ path: 'a.yaml', source: 'name: O\nontology: [{concept: A}]' }], 'First');
+  const second = await workspace.seed([{ path: 'other.yaml', source: 'name: P\nontology: [{concept: B}]' }], 'Second');
+  const from = `sw1:${first.slug}/a.yaml#ontology:O/concept:A`;
+  await workspace.ws.moveFile(first.slug, 'a.yaml', second.slug, 'moved.yaml', false, LOCAL_READER);
+  const moved = workspace.ws.readFile(second.slug, 'moved.yaml');
+  const intermediate = `sw1:${second.slug}/moved.yaml#ontology:O/concept:A`;
+  const target = intermediate.replace('concept:A', 'concept:Renamed');
+  await workspace.ws.saveFile(
+    second.slug,
+    'moved.yaml',
+    {
+      baseHash: moved.hash,
+      source: moved.source.replace('concept: A', 'concept: Renamed'),
+      declaredMigrations: [{ kind: 'item', from: intermediate, to: target }],
+    },
+    LOCAL_READER,
+  );
+  expect(workspace.ws.resolveAddress(from, LOCAL_READER)).toMatchObject({ status: 'found', address: target });
+});
