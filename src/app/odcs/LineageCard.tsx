@@ -3,7 +3,7 @@
 import React, { memo } from 'react';
 import type { NodeProps } from '@xyflow/react';
 import { AlertTriangle, ExternalLink, Footprints, Minus, Plus } from 'lucide-react';
-import { KindIcon, KIND_LABEL } from '../graph/LineageLegend';
+import { KindIcon, KIND_LABEL } from './LineageLegend';
 import { moreRowId, type LineageCard as Card, type LineageColumn } from './lineage';
 import { CARD_W, MORE_H, cardHeaderHeight, cardGeometry, columnHeight, portY } from './lineage-layout';
 import { ColumnList, ColumnRow, Port } from './LineageColumnList';

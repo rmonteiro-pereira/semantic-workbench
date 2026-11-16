@@ -7,7 +7,7 @@ import { useActionHistory } from '../workspace/ActionHistoryContext';
 import { useRecordedState } from '../workspace/hooks/useRecordedState';
 import { ReactFlow, Background, type Edge, type ReactFlowInstance } from '@xyflow/react';
 import { X } from 'lucide-react';
-import { LineageLegend, type LegendKind } from '../graph/LineageLegend';
+import { LineageLegend, type LegendKind } from './LineageLegend';
 import { type EdgeKind } from '../graph/edge-styles';
 import { currentStep } from '../graph/walk';
 import { aroundHops, around } from './lineage';
