@@ -258,7 +258,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
 
 **Goal**: the diff is true and readable in both themes and on a phone, one message for an invalid draft, no commit block for read-only roles. **Independent test**: `bun run test:scm`, `test:editor`, `test:theme` pass on the lane branch alone. **Owner**: lane C, worktree `007-lane-c`.
 
-- [ ] T036 [P] [US3] [C] Confirm first (inferred in the review): open the dark diff and the stale-save dialog in the browser and name the exact selectors that paint white.
+- [x] T036 [P] [US3] [C] Confirm first (inferred in the review): open the dark diff and the stale-save dialog in the browser and name the exact selectors that paint white.
   - Findings: M5 · Requirements: FR-031
   - Files: `specs/007-ui-review-fixes/evidence/C.md`
   - Change: The review inferred that CodeMirror's light defaults for `.cm-collapsedLines` and the merge gutters show through. Read the computed background of every element in `.diff-host` and in the stale-save dialog's columns, and write the list of selectors, with their computed colours, in the 'Confirmed inferences' section of `evidence/C.md`.
