@@ -1,3 +1,6 @@
+import { GIT_REQUEST_LIMIT } from '../request';
+/** Named body limits shared with in-process request construction. */
+export { GIT_REQUEST_LIMIT } from '../request';
 // Exposes project source control operations. Remote actions run only through explicit requests.
 import { requestReader } from '../auth/request-scope';
 import { authorizeCheckout, authorizeGitPaths, authorizeGitPush, authorizePublish, authorizeRepository, mayPublish } from '../auth/git-access';
@@ -40,7 +43,7 @@ export const createGitRoutes =
     const gitTarget = { ws, request: req, slug };
 
     const body = async (keys: string[]) => {
-      const requestBody = await readJson(req, 64_000);
+      const requestBody = await readJson(req, GIT_REQUEST_LIMIT);
       if (!requestBody || typeof requestBody !== 'object' || Array.isArray(requestBody) || Object.keys(requestBody).some(k => !keys.includes(k)))
         throw new BadRequestError(`Expected {${keys.join(', ')}}.`);
       return requestBody;

@@ -1,10 +1,12 @@
+import { FILE_SAVE_REQUEST_LIMIT, METRIC_REQUEST_LIMIT } from '../request';
+/** Named body limits shared with in-process request construction. */
+export { FILE_SAVE_REQUEST_LIMIT, METRIC_REQUEST_LIMIT } from '../request';
 // Previews metric changes and saves related files in one journaled operation. Previews never
 // execute SQL.
 import { BadRequestError, OccupiedError } from '../projects/errors';
 import { requestReader } from '../auth/request-scope';
 import { authorizeWrite } from '../auth/write-access';
 import { decodeSegment, readJson } from '../request';
-import { MAX_INPUT_BYTES } from '../../shared/validation/diagnostics';
 import { explainMetric } from '../agent/explain';
 import { planKpiSave, KpiError, type KpiRequest } from '../../shared/metrics/metric-save';
 import { InputError } from '../../shared/validation/diagnostics';
@@ -17,7 +19,7 @@ export const kpiRoutes: Route = async (ws, req, url) => {
   const batch = url.pathname.match(/^\/api\/projects\/([^/]+)\/save-batch$/);
   if (batch) {
     const slug = decodeSegment(batch[1]);
-    const body = await readJson(req, MAX_INPUT_BYTES * 6 + 4096);
+    const body = await readJson(req, FILE_SAVE_REQUEST_LIMIT);
     if (!object(body) || !Array.isArray(body.files) || Object.keys(body).some(k => k !== 'files'))
       throw new BadRequestError('Expected {files: [{path, baseHash, source} or {path, baseHash, patches}]}.');
     for (const file of body.files)
@@ -47,7 +49,7 @@ export const kpiRoutes: Route = async (ws, req, url) => {
   const slug = decodeSegment(match[1]);
   const preview = !!match[2];
   ws.project(slug);
-  const body = await readJson(req, 256_000);
+  const body = await readJson(req, METRIC_REQUEST_LIMIT);
   if (
     !object(body) ||
     Object.keys(body).some(key => !['semanticPath', 'modelPath', 'existing', 'metric', 'extension', 'binding', 'baseHashes'].includes(key)) ||

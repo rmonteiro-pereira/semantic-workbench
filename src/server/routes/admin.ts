@@ -1,3 +1,6 @@
+import { ADMIN_REQUEST_LIMIT } from '../request';
+/** Named body limits shared with in-process request construction. */
+export { ADMIN_REQUEST_LIMIT } from '../request';
 // Parses administrative requests and delegates all saves to the versioned access service.
 import type { Route } from './http';
 import { decodeSegment, readJson, requestAuditId, type AuditRequest } from '../request';
@@ -40,7 +43,7 @@ const LOCAL_PROVIDER: ProviderStatus = {
 };
 
 async function objectBody(request: Request): Promise<Record<string, unknown>> {
-  const body = await readJson(request, 1_000_000);
+  const body = await readJson(request, ADMIN_REQUEST_LIMIT);
   if (!body || typeof body !== 'object' || Array.isArray(body)) {
     throw new AdminConfigError('Expected a JSON object.');
   }

@@ -1,6 +1,8 @@
+import { DRAFT_REQUEST_LIMIT } from '../request';
+/** Named body limits shared with in-process request construction. */
+export { DRAFT_REQUEST_LIMIT } from '../request';
 // Serves durable drafts, including the source hash needed to detect conflicting edits.
 import { requestReader } from '../auth/request-scope';
-import { MAX_INPUT_BYTES } from '../../shared/validation/diagnostics';
 import { decodeSegment, decodePath, readJson } from '../request';
 import { projectPath, assertSlug } from '../projects/paths';
 import type { PersonalState } from '../projects/state';
@@ -13,7 +15,6 @@ export const MAX_DRAFTS_PER_PROJECT = 200;
 /** The most unsaved edits one person keeps across all projects. */
 export const MAX_DRAFTS_PER_OWNER = 1000;
 // A draft holds the text and the patches that produced it, so it may be about twice a saved file.
-const MAX_DRAFT_BODY_BYTES = MAX_INPUT_BYTES * 2 + 4096;
 
 // A new draft is refused once the person holds the most drafts allowed; replacing one is not new.
 export function assertRoomForDraft(drafts: { project: string; path: string }[], slug: string, path: string) {
@@ -30,7 +31,7 @@ type DraftTarget = {
 
 // Stores the text of one draft, if the person has the file and keeps room for another draft.
 async function saveDraft({ ws, req, reader, state }: DraftTarget, slug: string, path: string) {
-  const body = await readJson(req, MAX_DRAFT_BODY_BYTES);
+  const body = await readJson(req, DRAFT_REQUEST_LIMIT);
   if (!body || typeof body !== 'object' || (body.baseHash !== null && typeof body.baseHash !== 'string') || typeof body.text !== 'string')
     throw new BadRequestError('Expected {baseHash, text, patches}.');
   const patches = body.patches ?? [];

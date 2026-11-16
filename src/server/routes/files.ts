@@ -1,5 +1,7 @@
+import { FILE_SAVE_REQUEST_LIMIT } from '../request';
+/** Named body limits shared with in-process request construction. */
+export { FILE_SAVE_REQUEST_LIMIT } from '../request';
 // Serves project files and validates save requests against their original content hashes.
-import { MAX_INPUT_BYTES } from '../../shared/validation/diagnostics';
 import { requestReader } from '../auth/request-scope';
 import { decodeSegment, decodePath, readJson } from '../request';
 import type { Route } from './http';
@@ -14,7 +16,7 @@ export const fileRoutes: Route = async (ws, req, url) => {
   const reader = requestReader(req);
   if (req.method === 'GET') return Response.json(ws.readFile(slug, path, reader));
   if (req.method === 'PUT') {
-    const body = await readJson(req, MAX_INPUT_BYTES * 6 + 4096);
+    const body = await readJson(req, FILE_SAVE_REQUEST_LIMIT);
     if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).some(k => !['baseHash', 'source', 'patches'].includes(k)))
       throw new BadRequestError('Expected {baseHash, source} or {baseHash, patches}.');
     if (body.baseHash !== null && (typeof body.baseHash !== 'string' || !HASH.test(body.baseHash)))

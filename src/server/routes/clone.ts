@@ -1,3 +1,6 @@
+import { PROJECT_REQUEST_LIMIT } from '../request';
+/** Named body limits shared with in-process request construction. */
+export { PROJECT_REQUEST_LIMIT } from '../request';
 // Clones a repository as a new project. Cloning contacts the remote, so it runs only from this
 // explicit request.
 import { requestReader } from '../auth/request-scope';
@@ -13,7 +16,7 @@ export function cloneRoutes(administration: AdminRepository): Route {
   return async (ws, req, url) => {
     const path = url.pathname;
     if (path === '/api/clone' && req.method === 'POST') {
-      const body = await readJson(req, 16_000);
+      const body = await readJson(req, PROJECT_REQUEST_LIMIT);
       if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).some(key => !['url', 'name', 'domain', 'folder', 'createFolder'].includes(key)))
         throw new BadRequestError('Expected {url, name?, folder?, createFolder?}.');
       if (body.createFolder !== undefined && typeof body.createFolder !== 'boolean') throw new BadRequestError('createFolder must be true or false.');

@@ -12,8 +12,8 @@ import { adminRoutes } from './routes/admin';
 import { auditRoutes } from './routes/audit';
 import { documentsOfProject } from '../shared/core/project-scope';
 import { agentCatalog, buildContext, selectContext, wholeContext, planQuery } from './agent/runtime';
-import { decodeSegment, readJson, requestAuditId, type AuditRequest } from './request';
-import { InputError, MAX_INPUT_BYTES } from '../shared/validation/diagnostics';
+import { FILE_SAVE_REQUEST_LIMIT, GIT_REQUEST_LIMIT, GROUPING_REQUEST_LIMIT, decodeSegment, readJson, requestAuditId, type AuditRequest } from './request';
+import { InputError } from '../shared/validation/diagnostics';
 import { NotFoundError, StaleError, type Workspace } from './projects/workspace';
 import { errorResponse, type Route } from './routes/http';
 import { authRoutes, FRONT_CHANNEL_LOGOUT_PATH } from './routes/auth';
@@ -72,7 +72,7 @@ const legacyRoutes: Route = async (ws, req, url) => {
     return Response.json(concepts.length ? selectContext(context, concepts) : wholeContext(context));
   }
   if (url.pathname === '/api/agent/plan' && req.method === 'POST') {
-    const body = await readJson(req, 64_000);
+    const body = await readJson(req, GIT_REQUEST_LIMIT);
     if (!body || Array.isArray(body) || Object.keys(body).some(k => !['project', 'mappingId', 'concepts', 'metrics', 'dimensions'].includes(k)) || typeof body.mappingId !== 'string')
       throw new BadRequestError('Expected project, mappingId, optional concepts, metrics and dimensions. Expressions and metric overrides are not accepted.');
     for (const key of ['concepts', 'metrics', 'dimensions'])
@@ -93,7 +93,7 @@ const legacyRoutes: Route = async (ws, req, url) => {
     try {
       if (req.method === 'GET') return Response.json(migrateGrouping(ws.grouping(id, reader)));
       if (req.method === 'PUT') {
-        const value = migrateGrouping(await readJson(req, 256_000));
+        const value = migrateGrouping(await readJson(req, GROUPING_REQUEST_LIMIT));
         if (
           !value ||
           typeof value !== 'object' ||
@@ -131,7 +131,7 @@ const legacyRoutes: Route = async (ws, req, url) => {
       const { value, done } = await reader.read();
       if (done) break;
       bytes += value.byteLength;
-      if (bytes > MAX_INPUT_BYTES * 6 + 4096) {
+      if (bytes > FILE_SAVE_REQUEST_LIMIT) {
         await reader.cancel();
         return Response.json({ error: 'Request too large.' }, { status: 413 });
       }

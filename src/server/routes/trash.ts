@@ -1,3 +1,6 @@
+import { TRASH_REQUEST_LIMIT } from '../request';
+/** Named body limits shared with in-process request construction. */
+export { TRASH_REQUEST_LIMIT } from '../request';
 // Handles deletion, undo, restoration, and permanent removal with explicit confirmation for
 // destructive calls.
 import type { AdminRepository } from '../auth/admin-repo';
@@ -80,12 +83,12 @@ const handleTrash = async (ws: Workspace, req: Request, url: URL, administration
   }
   const file = pathname.match(/^\/api\/projects\/([^/]+)\/files\/(.+)$/);
   if (file && req.method === 'DELETE') {
-    requireConfirm(await readJson(req, 4096));
+    requireConfirm(await readJson(req, TRASH_REQUEST_LIMIT));
     return Response.json(await ws.deleteFile(decodeSegment(file[1]), decodePath(file[2]), reader));
   }
   const project = pathname.match(/^\/api\/projects\/([^/]+)$/);
   if (project && req.method === 'DELETE') {
-    const body = await readJson(req, 4096);
+    const body = await readJson(req, TRASH_REQUEST_LIMIT);
     // Remove from workspace deletes nothing; deleting the folder needs the confirmation.
     if (body?.mode === 'remove') return Response.json(await ws.removeProject(decodeSegment(project[1])));
     if (body?.mode !== undefined && body.mode !== 'delete') throw new BadRequestError('mode is "remove" or "delete".');
@@ -93,12 +96,12 @@ const handleTrash = async (ws: Workspace, req: Request, url: URL, administration
     return Response.json(await ws.trash.deleteProject(decodeSegment(project[1]), owner));
   }
   if (pathname === '/api/clear' && req.method === 'POST') {
-    requireConfirm(await readJson(req, 4096));
+    requireConfirm(await readJson(req, TRASH_REQUEST_LIMIT));
     return Response.json(await ws.trash.clear(owner));
   }
   if (pathname === '/api/trash' && req.method === 'GET') return Response.json(visibleEntries());
   if (pathname === '/api/trash' && req.method === 'DELETE') {
-    requireConfirm(await readJson(req, 4096));
+    requireConfirm(await readJson(req, TRASH_REQUEST_LIMIT));
     if (view) {
       for (const entry of visibleEntries()) ws.trash.purge(entry.entryId);
     } else ws.trash.purgeAll();
@@ -111,14 +114,14 @@ const handleTrash = async (ws: Workspace, req: Request, url: URL, administration
       const target = ws.trash.entry(id);
       authorizeWrite(req, restoreAction(target, scope), restoreResources(target));
       const context = { ws, req, administration };
-      const body = await readJson(req, 4096, {});
+      const body = await readJson(req, TRASH_REQUEST_LIMIT, {});
       if (!body || typeof body !== 'object' || Object.keys(body).some(key => key !== 'domain') || (body.domain !== undefined && typeof body.domain !== 'string'))
         throw new BadRequestError('Expected {domain?}.');
       const undone = () => ws.trash.undo(id, reader);
       return Response.json(await restoring(context, target, body, undone));
     }
     if (entry[2] === '/restore' && req.method === 'POST') {
-      const body = await readJson(req, 4096, {});
+      const body = await readJson(req, TRASH_REQUEST_LIMIT, {});
       if (!body || typeof body !== 'object' || Object.keys(body).some(k => !['toProject', 'toPath', 'domain'].includes(k))) throw new BadRequestError('Expected {toProject?, toPath?, domain?}.');
       for (const key of ['toProject', 'toPath']) if (body[key] !== undefined && typeof body[key] !== 'string') throw new BadRequestError(`${key} must be text.`);
       const target = ws.trash.entry(id);
@@ -127,7 +130,7 @@ const handleTrash = async (ws: Workspace, req: Request, url: URL, administration
       return Response.json(await restoring(context, target, body, () => ws.trash.restore(id, body, reader)));
     }
     if (!entry[2] && req.method === 'DELETE') {
-      requireConfirm(await readJson(req, 4096));
+      requireConfirm(await readJson(req, TRASH_REQUEST_LIMIT));
       ws.trash.purge(id);
       return new Response(null, { status: 204 });
     }

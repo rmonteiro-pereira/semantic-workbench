@@ -73,6 +73,8 @@ bun run build
 `bun scripts/boundary-benchmark.ts` measures 5,000 in-process HTTP requests with isolated temporary data and prints median and 95th-percentile durations.
 `bun test tests/auth/http-characterization.test.ts` compares responses and audit records against the original HTTP contract; regenerate that fixture only before a boundary change.
 
+HTTP body limits are exported from `src/server/request.ts` and re-exported beside the routes that enforce them; the operation inventory uses those same constants.
+
 Generated standalone schema validators are checked in and formatted with the project rules.
 Regenerate with `bun run schemas:compile`; tests verify reproducible output. The browser uses these
 validators without eval under the CSP. Do not edit pinned upstream schemas to make a fixture pass.

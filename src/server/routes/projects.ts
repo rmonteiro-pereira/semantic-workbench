@@ -1,3 +1,6 @@
+import { PROJECT_REQUEST_LIMIT, IMPORT_REQUEST_LIMIT } from '../request';
+/** Named body limits shared with in-process request construction. */
+export { PROJECT_REQUEST_LIMIT, IMPORT_REQUEST_LIMIT } from '../request';
 // Handles project management, imports, example loading, and workspace status.
 import { creationDomain, assignProjectDomain } from '../auth/project-creation';
 import { ACTIONS } from '../../shared/auth/actions';
@@ -7,7 +10,7 @@ import { decodeSegment, readJson } from '../request';
 import type { AdminRepository } from '../auth/admin-repo';
 import type { Route } from './http';
 import { BadRequestError } from '../projects/errors';
-const IMPORT_LIMIT = 64_000_000;
+
 /**
  * Handles project management and imports, creating one project per new import batch. A created
  * project's domain is written to the given administration repository.
@@ -38,7 +41,7 @@ export function projectRoutes(administration: AdminRepository): Route {
       );
     }
     if (pathname === '/api/projects' && req.method === 'POST') {
-      const body = await readJson(req, 16_000);
+      const body = await readJson(req, PROJECT_REQUEST_LIMIT);
       const domain = creationDomain(req, body?.domain);
       const project = await ws.createProject(body?.name);
       await assignProjectDomain(deps, req, project.slug, domain);
@@ -46,12 +49,12 @@ export function projectRoutes(administration: AdminRepository): Route {
     }
     const one = pathname.match(/^\/api\/projects\/([^/]+)$/);
     if (one && req.method === 'PATCH') {
-      const body = await readJson(req, 16_000);
+      const body = await readJson(req, PROJECT_REQUEST_LIMIT);
       if (!body || typeof body !== 'object' || Object.keys(body).some(k => k !== 'name')) throw new BadRequestError('Expected {name}.');
       return Response.json(await ws.renameProject(decodeSegment(one[1]), body.name));
     }
     if (pathname === '/api/import' && req.method === 'POST') {
-      const body = await readJson(req, IMPORT_LIMIT);
+      const body = await readJson(req, IMPORT_REQUEST_LIMIT);
       if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).some(k => !['name', 'files', 'domain'].includes(k)))
         throw new BadRequestError('Expected {name?, files: [{path, source}]}.');
       const domain = creationDomain(req, body.domain);
@@ -61,7 +64,7 @@ export function projectRoutes(administration: AdminRepository): Route {
     }
     const move = pathname.match(/^\/api\/projects\/([^/]+)\/move$/);
     if (move && req.method === 'POST') {
-      const body = await readJson(req, 16_000);
+      const body = await readJson(req, PROJECT_REQUEST_LIMIT);
       if (
         !body ||
         typeof body !== 'object' ||
@@ -79,7 +82,7 @@ export function projectRoutes(administration: AdminRepository): Route {
     }
     const into = pathname.match(/^\/api\/projects\/([^/]+)\/import$/);
     if (into && req.method === 'POST') {
-      const body = await readJson(req, IMPORT_LIMIT);
+      const body = await readJson(req, IMPORT_REQUEST_LIMIT);
       if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).some(k => !['files', 'onConflict'].includes(k)))
         throw new BadRequestError('Expected {files: [{path, source}], onConflict?}.');
       if (!Array.isArray(body.files)) throw new BadRequestError('files must be an array.');
@@ -96,7 +99,7 @@ export function projectRoutes(administration: AdminRepository): Route {
     }
     const example = pathname.match(/^\/api\/examples\/([a-z0-9-]+)$/);
     if (example && req.method === 'POST') {
-      const body = await readJson(req, 16_000, {});
+      const body = await readJson(req, PROJECT_REQUEST_LIMIT, {});
       const domain = creationDomain(req, body.domain);
       const result = await ws.loadExample(example[1]);
       if (result.created) await assignProjectDomain(deps, req, result.slug, domain);

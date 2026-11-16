@@ -4,6 +4,43 @@ import { PathError } from './projects/paths';
 import { BadRequestError } from './projects/errors';
 import { log } from './observability/log';
 
+import { MAX_INPUT_BYTES } from '../shared/validation/diagnostics';
+import { MAX_REPORT_BODY_BYTES } from '../shared/observability/browser-report';
+
+/** Maximum encoded JSON body for a file or batch save. */
+export const FILE_SAVE_REQUEST_LIMIT = MAX_INPUT_BYTES * 6 + 4096;
+/** Maximum body for project metadata and clone requests. */
+export const PROJECT_REQUEST_LIMIT = 16_000;
+/** Maximum body for Git and deterministic agent plan requests. */
+export const GIT_REQUEST_LIMIT = 64_000;
+/** Maximum body for imported project definitions. */
+export const IMPORT_REQUEST_LIMIT = 64_000_000;
+/** Maximum body for metric edits and repository registration. */
+export const METRIC_REQUEST_LIMIT = 256_000;
+/** Maximum body for personal grouping corrections. */
+export const GROUPING_REQUEST_LIMIT = 256_000;
+/** Maximum body for a personal draft and its patches. */
+export const DRAFT_REQUEST_LIMIT = MAX_INPUT_BYTES * 2 + 4096;
+/** Maximum body for confirmed trash operations. */
+export const TRASH_REQUEST_LIMIT = 4096;
+/** Maximum body for administration proposals. */
+export const ADMIN_REQUEST_LIMIT = 1_000_000;
+/** Maximum body for a browser diagnostic report. */
+export const BROWSER_REPORT_REQUEST_LIMIT = MAX_REPORT_BODY_BYTES;
+/** Named byte limits consumed by route parsers and the operation inventory. */
+export const REQUEST_LIMITS = {
+  FILE_SAVE_REQUEST_LIMIT,
+  PROJECT_REQUEST_LIMIT,
+  GIT_REQUEST_LIMIT,
+  IMPORT_REQUEST_LIMIT,
+  METRIC_REQUEST_LIMIT,
+  GROUPING_REQUEST_LIMIT,
+  DRAFT_REQUEST_LIMIT,
+  TRASH_REQUEST_LIMIT,
+  ADMIN_REQUEST_LIMIT,
+  BROWSER_REPORT_REQUEST_LIMIT,
+} as const;
+
 /** Parses a body within maxBytes, using empty for an absent or empty optional body. */
 export async function readJson(req: Request, maxBytes: number, empty?: object) {
   const reader = req.body?.getReader();
