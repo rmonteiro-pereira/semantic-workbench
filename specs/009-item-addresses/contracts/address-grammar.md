@@ -47,7 +47,7 @@ to parse, so each name has one spelling. No Unicode normalization or case foldin
 | --- | --- | --- | --- | --- |
 | `ontology` | an ontology document | document root | `name` | yes |
 | `model` | a semantic model (standalone, legacy list entry, or embedded) | root, `mapping` | `name` | yes |
-| `mapping` | a standalone mapping, or an embedded `ontology_mappings` entry | root, `ontology` | `name` | yes |
+| `mapping` | a standalone mapping, or an embedded `ontology_mappings` entry | root, `ontology` | `name` | when present; position otherwise |
 | `contract` | an ODCS data contract | root | `id` | yes |
 | `concept` | an ontology concept | `ontology` | `concept` | yes |
 | `relationship` | a relationship of a concept (an attribute is one) | `concept` | `name` | yes |

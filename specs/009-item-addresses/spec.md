@@ -88,6 +88,16 @@ owner.
   resolved item. The mesh feature supplies the alias resolver. QNames are display text and IRI
   shorthand, never addresses.
 
+### Session 2026-11-16 — decided by the integrator
+
+- An embedded mapping with `name` uses a named segment. Without `name`, it uses
+  `mapping:#<index>`. That mapping and its descendants are volatile and must never be stored as
+  history. This uses the existing positional grammar without adding kinds or persistent ids.
+- Addresses cover structured Ossie ontology, semantic-model and mapping definitions and ODCS
+  only. Structured entities carry a required address in a narrower type. RDF/SHACL resources,
+  blank nodes and built-in concepts carry none; mixed consumers handle that explicitly. No RDF
+  kinds are added to the grammar.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - A developer formats and parses any address without ambiguity (Priority: P1)

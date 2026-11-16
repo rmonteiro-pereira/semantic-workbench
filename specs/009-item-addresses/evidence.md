@@ -83,3 +83,18 @@ T001–T009 are complete. T010–T045 remain unchecked, following the ordered ph
 derivation. No task was silently skipped or marked complete without its stated feature proof.
 The API, key conversion, migration persistence and authorization adoption must not be advertised
 as implemented. All started verification processes and the frontend are stopped before handoff.
+
+## Integrator decisions, 2026-11-16
+
+The phase 3 blockers are resolved: unnamed embedded mappings use volatile positional segments;
+addressable result types cover structured definitions only. RDF resources may later use their
+IRI as a locator; blank nodes and built-ins remain unaddressable. No RDF kind is introduced.
+Port 0 and dynamic harness allocations are allowed. Subsequent gates run without the port shim.
+
+## Model mutation scope
+
+The explicit parent-kind precheck in resolution is redundant with the typed root/child traversal:
+removing only that precheck cannot admit a child the traversal never visits. That requested mutant
+is equivalent, rather than an undetected fault. Illegal parent chains are exercised through the
+public resolver. The three non-equivalent model mutants target kind matching, choosing the first
+duplicate and losing positional volatility.

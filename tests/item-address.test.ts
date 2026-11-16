@@ -20,7 +20,8 @@ test('the kind registry agrees with every row of the versioned grammar contract'
     const cells = row[0].split('|').map(cell => cell.trim());
     const rule = addressKinds[kind];
     expect(cells[4].replaceAll('`', '')).toBe(rule.nameField ?? 'none');
-    expect(cells[5]).toBe(rule.named ? 'yes' : 'position');
+    const naming = rule.named === 'when-present' ? 'when present; position otherwise' : rule.named ? 'yes' : 'position';
+    expect(cells[5]).toBe(naming);
     for (const parent of rule.parents) expect(cells[3]).toContain(parent);
   }
 });

@@ -5,14 +5,14 @@ import type { ItemKind as EditableItemKind } from '../edit/item-model';
 export type AddressKindRule = {
   parents: readonly string[];
   nameField: string | null;
-  named: boolean;
+  named: boolean | 'when-present';
 };
 
 /** Closed kind registry for the sw1 grammar. */
 export const addressKinds = {
   ontology: { parents: ['root'], nameField: 'name', named: true },
   model: { parents: ['root', 'mapping'], nameField: 'name', named: true },
-  mapping: { parents: ['root', 'ontology'], nameField: 'name', named: true },
+  mapping: { parents: ['root', 'ontology'], nameField: 'name', named: 'when-present' },
   contract: { parents: ['root'], nameField: 'id', named: true },
   concept: { parents: ['ontology'], nameField: 'concept', named: true },
   relationship: { parents: ['concept'], nameField: 'name', named: true },
