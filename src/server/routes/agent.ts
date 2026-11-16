@@ -5,7 +5,6 @@ import { requestSurface } from '../auth/request-surface';
 import { requestReader } from '../auth/request-scope';
 import { BadRequestError, HiddenResourceError } from '../projects/errors';
 import type { Workspace } from '../projects/workspace';
-import { locationOf } from '../projects/paths';
 import { readJson } from '../request';
 import type { Route } from './http';
 
@@ -23,11 +22,9 @@ export const editingAgentDocuments: AgentDocumentSource = async (workspace, requ
 /** Holds one immutable publication through the response and applies the caller's current visibility. */
 export const publishedAgentDocuments: AgentDocumentSource = (workspace, request, project, use) =>
   workspace.published.withPin(async pin => {
-    const { view } = requestReader(request);
-    const repository = locationOf(workspace.project(project)).repo;
-    const documents = await workspace.published.documents(pin, project);
-    const response = await use(documents.filter(document => !view || view.canRead(project, document.path)));
-    response.headers.set('X-Workbench-Snapshot', pin.commits.get(repository)!.commit);
+    const { commit, documents } = await workspace.published.readableDocuments(pin, project, requestReader(request));
+    const response = await use(documents);
+    response.headers.set('X-Workbench-Snapshot', commit);
     return response;
   });
 

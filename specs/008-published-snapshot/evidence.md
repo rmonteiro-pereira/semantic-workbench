@@ -785,3 +785,11 @@ The publish-route failed-swap/restart proof passed with the publication recovery
 Local publication tests passed (8 tests, 33 assertions); server publish safety passed (6 tests, 16 assertions).
 A separate cross-entry-point race proves local Publish and server Adopt wait behind remote follow.
 Publication validation now calls `snapshots.validate`, reusing the resolver's index construction boundary.
+
+Pinned agent and metric reads now share `readableDocuments`; both return the same immutable commit header.
+Removing the registry project before loading documents still produces the pinned response (4 route tests,
+42 assertions). A later pin refuses the removed project. The resolver's registry cache follows the registry
+file version, with no registry concern in the generic lock. Initialization only visits newly seen repositories;
+registration does not re-adopt a repository after its initial attempt (9 upgrade tests, 40 assertions).
+The request surface is attached by one setter to a request symbol. `readSource` is explicitly an inventory;
+export is `by-query`. The shared resolver cache proof passed (8 tests, 79 assertions).

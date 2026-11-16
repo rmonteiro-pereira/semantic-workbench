@@ -6,7 +6,8 @@ or provide an autonomous agent. The calling agent supplies language interpretati
 explicitly configured execution tool, if one is needed outside this application.
 
 Agent catalog, context and plan responses use one immutable published commit per request, in both
-local and server modes, including requests made by the author. `X-Workbench-Snapshot` identifies
+local and server modes, including requests made by the author. Programmatic metric responses use
+the same pinned read and header. `X-Workbench-Snapshot` identifies
 that full commit. Metric listings and explanations use saved editing definitions for browser
 requests and the published snapshot for programmatic requests. A readable project without a
 snapshot returns 409 with code

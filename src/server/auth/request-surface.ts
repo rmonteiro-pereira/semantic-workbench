@@ -1,5 +1,7 @@
 // Carries the browser-versus-agent choice made from credentials at the existing access boundary.
-const surfaces = new WeakMap<Request, RequestSurface>();
+/** Definition surface attached by the existing credential boundary. */
+export const requestDefinitionSurface = Symbol('requestDefinitionSurface');
+type SurfaceRequest = Request & { [requestDefinitionSurface]?: RequestSurface };
 /** Whether a request comes through the browser authoring surface or a consumer surface. */
 export type RequestSurface = 'browser' | 'agent';
 /** Existing middleware signals used until the operation boundary supplies an explicit surface. */
@@ -19,10 +21,10 @@ export function surfaceFromCredential(request: Request, credential: SurfaceCrede
 
 /** Records the surface after the existing middleware has validated the credential and origin. */
 export function attachRequestSurface(request: Request, credential: SurfaceCredential): void {
-  surfaces.set(request, surfaceFromCredential(request, credential));
+  (request as SurfaceRequest)[requestDefinitionSurface] = surfaceFromCredential(request, credential);
 }
 
 /** Unclassified requests fail closed to the consumer surface. */
 export function requestSurface(request: Request): RequestSurface {
-  return surfaces.get(request) ?? 'agent';
+  return (request as SurfaceRequest)[requestDefinitionSurface] ?? 'agent';
 }

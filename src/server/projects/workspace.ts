@@ -1,6 +1,6 @@
-import type { PublicationObserver } from './local-publication';
 // Coordinates project files, durable state, and workspace services. Project folders are the source
 // of truth; the SQLite cache can be rebuilt.
+import type { PublicationObserver } from './local-publication';
 import { readAddressMigrations } from './address-migrations';
 import { resolveForCaller } from './address-resolution';
 import { recordReconciliation, type ReconciliationRequest } from './address-reconciliation';
@@ -8,7 +8,7 @@ import { convertAddressKeys } from './address-key-conversion';
 import { inspect } from '../../shared/core/model';
 import { encodeGrouping, decodeGrouping, type GroupingAssignments } from '../../shared/core/grouping-addresses';
 import { InputError } from '../../shared/validation/diagnostics';
-import { existsSync, mkdirSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join, posix } from 'node:path';
 import { atomicWriteJson, decode, readJsonFile, sha256 } from './atomic';
 import { createCache, type Cache } from './cache';
@@ -114,11 +114,24 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   const cache: Cache = createCache(layout.cache);
   const scanner = createScanner(layout, cache, git, () => gitAvailable);
   let snapshotRegistry = state.registry().projects;
+  function registryVersion() {
+    const version = statSync(layout.registry, { throwIfNoEntry: false });
+    return version ? `${version.ino}:${version.mtimeMs}:${version.ctimeMs}:${version.size}` : 'missing';
+  }
+  let snapshotRegistryVersion = registryVersion();
+  function snapshotProjects() {
+    const version = registryVersion();
+    if (version !== snapshotRegistryVersion) {
+      snapshotRegistry = state.registry().projects;
+      snapshotRegistryVersion = version;
+    }
+    return snapshotRegistry;
+  }
   const snapshots = createPublishedSnapshots({
     git,
     directory: repository => join(layout.projects, repository),
     cache,
-    projects: () => snapshotRegistry,
+    projects: snapshotProjects,
     pointers,
     gitAvailable: () => gitAvailable,
   });
@@ -126,15 +139,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   // One queue for registry changes and one per project for file mutations.
   const locks = new Map<string, Promise<unknown>>();
   function lock<T>(key: string, fn: () => Promise<T> | T): Promise<T> {
-    const next = (locks.get(key) ?? Promise.resolve())
-      .catch(() => {})
-      .then(async () => {
-        try {
-          return await fn();
-        } finally {
-          if (key === 'registry') snapshotRegistry = state.registry().projects;
-        }
-      });
+    const next = (locks.get(key) ?? Promise.resolve()).catch(() => {}).then(fn);
     locks.set(key, next);
     next
       .catch(() => {})
@@ -416,9 +421,13 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   // A stop between moving the default branch and moving the published files is finished here.
   if (gitAvailable && options.reconcilePublished)
     for (const repo of new Set(projects().map(project => locationOf(project).repo))) if (existsSync(join(layout.projects, repo, '.git'))) await worktrees.repairBase(repo);
+  const initializedRepositories = new Set<string>();
   async function initializePublications() {
     if (!gitAvailable) return;
+    const repositories = [...new Set(projects().map(project => locationOf(project).repo))].filter(repository => !initializedRepositories.has(repository));
+    if (!repositories.length) return;
     await initializePublishedPointers({
+      repositories,
       git,
       layout,
       state,
@@ -426,6 +435,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       serverMode: options.reconcilePublished === true,
       defaultBranch: repository => worktrees.defaultBranch(repository),
     });
+    for (const repository of repositories) initializedRepositories.add(repository);
   }
   await initializePublications();
   for (const projectEntry of projects())

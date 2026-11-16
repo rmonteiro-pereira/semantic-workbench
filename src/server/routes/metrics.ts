@@ -12,8 +12,10 @@ async function withMetricDocuments(ws: Workspace, request: Request, project: str
   const reader = requestReader(request);
   if (requestSurface(request) === 'browser') return use(ws.documentsFor(reader));
   return ws.published.withPin(async pin => {
-    const documents = await ws.published.documents(pin, project);
-    return use(documents.filter(document => !reader.view || reader.view.canRead(project, document.path)));
+    const { commit, documents } = await ws.published.readableDocuments(pin, project, reader);
+    const response = use(documents);
+    response.headers.set('X-Workbench-Snapshot', commit);
+    return response;
   });
 }
 // Match before the files route so `explain` is not treated as part of a file path.

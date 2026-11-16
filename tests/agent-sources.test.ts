@@ -72,20 +72,26 @@ for (const mode of ['local', 'server'] as const) {
   });
 }
 
-test('a catalog response retains its pinned header when its project is removed during the read', async () => {
-  using fixture = await testWorkspace();
-  const { slug } = await fixture.ws.loadExample('mapped-commerce');
-  await fixture.ws.publish(slug, LOCAL_READER);
-  const repository = locationOf(fixture.ws.project(slug)).repo;
-  const commit = fixture.ws.published.pin().commits.get(repository)!.commit;
-  const documents = fixture.ws.published.documents.bind(fixture.ws.published);
-  fixture.ws.published.documents = async (...args) => {
-    const result = await documents(...args);
-    fixture.ws.state.writeRegistry([]);
-    return result;
-  };
-  const response = await fixture.handler(new Request(`${origin}/api/agent/catalog?project=${slug}`));
-  expect(response.status).toBe(200);
-  expect(response.headers.get('X-Workbench-Snapshot')).toBe(commit);
-  expect((await response.json()).mappings.length).toBeGreaterThan(0);
-});
+for (const route of ['agent/catalog?project=', 'projects/']) {
+  test(`${route} retains its pinned bytes and header when its project is removed before loading`, async () => {
+    using fixture = await testWorkspace();
+    const { slug } = await fixture.ws.loadExample('mapped-commerce');
+    await fixture.ws.publish(slug, LOCAL_READER);
+    const repository = locationOf(fixture.ws.project(slug)).repo;
+    const commit = fixture.ws.published.pin().commits.get(repository)!.commit;
+    const withPin = fixture.ws.published.withPin.bind(fixture.ws.published);
+    fixture.ws.published.withPin = use =>
+      withPin(pin => {
+        fixture.ws.state.writeRegistry([]);
+        return use(pin);
+      });
+    const path = route === 'projects/' ? `${route}${slug}/metrics` : route + slug;
+    const response = await fixture.handler(new Request(`${origin}/api/${path}`));
+    expect(response.status).toBe(200);
+    expect(response.headers.get('X-Workbench-Snapshot')).toBe(commit);
+    const result = await response.json();
+    if (route === 'projects/') expect(JSON.stringify(result)).toContain('gross_revenue');
+    else expect(result.mappings).toHaveLength(1);
+    await expect(fixture.ws.published.readableDocuments(fixture.ws.published.pin(), slug, LOCAL_READER)).rejects.toMatchObject({ reason: 'unavailable' });
+  });
+}

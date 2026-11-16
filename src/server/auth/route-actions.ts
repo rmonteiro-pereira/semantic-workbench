@@ -15,8 +15,8 @@ export type RouteAction = {
   public?: true;
   audited?: true;
   targets?: 'body';
-  /** Definition content comes from an explicit authoring, published or surface-dependent source. */
-  readSource?: 'published' | 'editing' | 'by-surface';
+  /** Inventory of definition sources; owning route handlers select and enforce the actual source. */
+  readSource?: 'published' | 'editing' | 'by-surface' | 'by-query';
   /** The action an agent client is decided by on this row; a row without one refuses clients. */
   clientAction?: 'agentRead';
   /** Allowed requests leave no audit record: operational telemetry is not a security event. */
@@ -80,7 +80,7 @@ export const ROUTE_ACTIONS: RouteAction[] = [
   row('POST', '/api/projects/:slug/move', 'move', project),
   row('POST', '/api/projects/:slug/import', 'import', project),
   // Reads are audited only when asked; an export leaves the server, so each one is recorded.
-  { ...row('GET', '/api/projects/:slug/export', 'export', project), audited: true, readSource: 'editing' },
+  { ...row('GET', '/api/projects/:slug/export', 'export', project), audited: true, readSource: 'by-query' },
   row('POST', '/api/projects/:slug/save-batch', 'edit', project),
   { ...row('POST', '/api/projects/:slug/item-addresses/resolve', 'read', project), audited: true },
   row('POST', '/api/projects/:slug/item-addresses/reconcile/*', 'edit', file),

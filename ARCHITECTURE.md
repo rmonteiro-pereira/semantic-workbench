@@ -113,6 +113,12 @@ concatenating project, document or item names.
   behavior, and `src/server/routes/http.ts` maps typed failures to HTTP responses.
 - `src/server/routes/` parses resource-specific requests and calls owning services. It must not
   implement Git subprocesses, filesystem transactions or independent authorization rules.
+- `src/server/routes/agent.ts` owns catalog, context and plan handlers, with one document-source
+  callback shared by all three operations. Production uses the pinned snapshot; browser-only
+  preview routes use the editing source and retain the same resolver and planner.
+- The route inventory declares `readSource` for definition content, context, plans and explanations.
+  It is an inventory, not router enforcement: owning handlers select the source. Agent rows
+  use published data, metrics use the request surface and export uses its source query.
 - `src/server/static.ts` serves `dist/` with path confinement and security policy.
   `src/server/routes/health.ts` exposes liveness/readiness without workspace inspection.
 - `src/server/projects/data-root.ts` probes writable storage. `instance-lock.ts` owns the exclusive
@@ -143,21 +149,14 @@ concatenating project, document or item names.
 - Shared `grouping-addresses.ts` translates stable assignment keys while keeping renderer IDs at the UI boundary.
 - `scanner.ts`, `cache.ts` and `watcher.ts` maintain derived models/findings and detect disk
   changes. Cache rows are not another authoritative copy of the definitions.
-- `src/server/routes/agent.ts` owns catalog, context and plan handlers, with one document-source
-  callback shared by all three operations. Production uses the pinned snapshot; browser-only
-  preview routes use the editing source and retain the same resolver and planner.
-- The route inventory declares `readSource` for definition content, context, plans and explanations.
-  Agent rows select published data; metrics declare a surface-dependent source.
-- `src/server/auth/request-surface.ts` records the browser or consumer surface after credential
-  validation at the existing middleware. Local browser markers are a guardrail.
 - `published-initialization.ts` adopts the existing default-branch tip on first open without
   touching the checkout or index. Only server startup repairs the detached published checkout,
   after validating that existing changes can be preserved. Defaults resolve from the remembered name, remote HEAD, then an existing configured initial branch,
   main or master. Unknown defaults remain usable without a snapshot and ask the person to choose one.
 - `published-snapshot.ts` resolves pinned commits independently of editing readers, filters no
-  permissions, checks historical provenance and retains current, previous and actively pinned indexes.
+  permissions until `readableDocuments` applies the supplied reader, checks historical provenance and retains current, previous and actively pinned indexes.
   Pins also capture registry layouts, so folder changes apply to subsequent requests. The workspace
-  refreshes its in-memory registry after the existing registry lock settles.
+  memoizes the registry by its file version; each pin captures that registry, independent of later writes.
 - `project-export.ts` plans both editing and published ZIPs; published entries capture pinned bytes
   before streaming, so eviction or publication cannot change an archive in flight.
 - `snapshot-index.ts` reads committed project files with the shared byte validator. Concurrent
@@ -198,6 +197,9 @@ concatenating project, document or item names.
 
 ### Identity, authorization, governance and administration
 
+- `src/server/auth/request-surface.ts` records the browser or consumer surface after credential
+  validation at the existing middleware, using a symbol on the request and one setter.
+  Local browser markers are a guardrail.
 - `src/server/auth/authentication.ts` composes provider identity, sessions, directory membership and
   the single administration repository and mirrored audit log with configured retention. The same
   log reaches the handler and administration service. Standalone handlers construct one through

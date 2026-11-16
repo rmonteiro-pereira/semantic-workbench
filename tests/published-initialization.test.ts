@@ -176,3 +176,22 @@ for (const known of [true, false]) {
     }
   });
 }
+
+test('registering projects in an already seen repository does not retry initial adoption', async () => {
+  const fixture = preChangeRoot();
+  try {
+    git(fixture.repository, ['checkout', '-b', 'feature-x', 'work/local']);
+    git(fixture.repository, ['branch', '-D', 'main']);
+    const ws = await openWorkspace({ root: fixture.dir });
+    try {
+      git(fixture.repository, ['config', '--local', 'workbench.defaultBranch', 'feature-x']);
+      await ws.registerRepositoryProjects('definitions', [{ path: '', name: 'Definitions' }]);
+      expect(ws.state.published().repositories).toEqual({});
+      expect(git(fixture.repository, ['branch', '--show-current'])).toBe('feature-x');
+    } finally {
+      ws.close();
+    }
+  } finally {
+    fixture.dispose();
+  }
+});

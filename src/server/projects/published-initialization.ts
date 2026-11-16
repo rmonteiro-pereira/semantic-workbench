@@ -17,6 +17,7 @@ export type PublishedInitializationDeps = {
   state: State;
   pointers: PublishedPointers;
   serverMode: boolean;
+  repositories?: readonly string[];
   defaultBranch: (repository: string) => Promise<string>;
 };
 
@@ -24,7 +25,7 @@ export type PublishedInitializationDeps = {
 export async function initializePublishedPointers(deps: PublishedInitializationDeps): Promise<void> {
   const { git, layout, state, pointers } = deps;
   const projects = state.registry().projects;
-  for (const repository of new Set(projects.map(project => locationOf(project).repo))) {
+  for (const repository of deps.repositories ?? new Set(projects.map(project => locationOf(project).repo))) {
     const directory = join(layout.projects, repository);
     if (!existsSync(join(directory, '.git'))) continue;
     const existing = pointers.get(repository);

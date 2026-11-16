@@ -1,5 +1,6 @@
 // Exercises request pins, bounded retention and registry-sensitive immutable indexes.
 import { expect, test } from 'bun:test';
+import { LOCAL_READER } from '../src/server/projects/reader';
 import { mkdirSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createGit } from '../src/server/projects/git';
@@ -162,6 +163,25 @@ test('an evicted historical snapshot refuses a removed blob without returning ca
     unlinkSync(join(fixture.repository, '.git', 'objects', blob.slice(0, 2), blob.slice(2)));
     await expect(published.documentsAt(fixture.published!, 'definitions')).rejects.toMatchObject({ reason: 'unavailable' });
     expect((await published.documents(published.pin(), 'definitions'))[0].source).toContain('New 1');
+  } finally {
+    fixture.dispose();
+  }
+});
+
+test('publication validation reuses an index already loaded by a pinned request', async () => {
+  const { fixture, published, git } = setup();
+  try {
+    const original = git.catFileBatch;
+    let builds = 0;
+    git.catFileBatch = (...args) => {
+      builds++;
+      return original(...args);
+    };
+    await published.withPin(async pin => {
+      const before = await published.readableDocuments(pin, 'definitions', LOCAL_READER);
+      await published.validate({ repo: 'definitions', branch: 'main', previous: fixture.previous, next: before.commit });
+      expect(builds).toBe(1);
+    });
   } finally {
     fixture.dispose();
   }
