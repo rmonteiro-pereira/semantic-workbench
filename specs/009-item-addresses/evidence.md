@@ -407,3 +407,13 @@ The remaining store implementation will enforce the specified 50,000-record boun
 `bun scripts/item-address-timing.ts`: baseline median 277.196 ms, addressed median 280.598 ms,
 1.2275% overhead on enterprise-1000. Structured entity/relationship types require an address;
 RDF and built-ins expose none. Internal IDs and persisted keys remain unchanged in this step.
+
+## Mapping adoption restored
+
+Mapping cards/rows use the formatter and document-qualified scopes when project metadata exists.
+Unnamed root scopes now propagate positional addresses instead of losing scope information.
+The synthetic ontology of a model-only context remains unaddressed; built-ins and unresolved
+mapping rows use explicit synthetic UI keys. Equal-degree center ordering remains by visible name.
+`bun test tests/mapping-graph.test.ts tests/agent-context-kinds.test.ts`: 26 pass, 0 fail,
+6,869 assertions, 6.25 s. `TMPDIR=/tmp/sw-009 SW_BASE_URL=http://127.0.0.1:5301 bun scripts/mapping-graph-browser-check.ts`:
+12 mapping graph checks passed on isolated data. No source or persisted UI state was rewritten.

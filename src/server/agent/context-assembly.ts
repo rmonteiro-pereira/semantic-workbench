@@ -1,5 +1,6 @@
 // Resolves one mapping entry into a RuntimeContext: finds its ontology and semantic model, collects
 // fields, metrics and bindings, and records every problem as a finding instead of failing.
+import { absoluteItemAddress, addressAtModelPath } from '../../shared/core/model-addresses';
 import { OSSIE_BUILTINS, builtinConcept } from '../../shared/mappings/ossie-builtins';
 import { metricDependencies as syntaxDependencies } from '../../shared/metrics/deps';
 import { readKpiBindings, workbenchEntry } from '../../shared/metrics/extension';
@@ -88,6 +89,15 @@ function emptyContext(assembly: Assembly, { ontologyTarget, semanticTarget }: Re
   const model = semanticTarget?.data ?? {};
   const semanticPrefix = semanticTarget?.path ?? [];
   const declaredConcepts: any[] = ontology.ontology ?? [];
+  const scopeAddress = (target: Target | null, kind: 'ontology' | 'model') => {
+    if (!target) return {};
+    const document = assembly.parsed.find(candidate => candidate.doc.id === target.doc.id)?.data;
+    const relative = addressAtModelPath(document, target.path);
+    const project = target.doc.project;
+    const path = project && target.doc.id.startsWith(project + '/') ? target.doc.id.slice(project.length + 1) : target.doc.filename;
+    const address = project ? absoluteItemAddress(relative, { project, document: path.split('/') }) : relative;
+    return address.chain.at(-1)?.kind === kind ? { address } : {};
+  };
   const builtinConcepts = [...OSSIE_BUILTINS].filter(name => !declaredConcepts.some(c => c.concept === name)).map(builtinConcept);
   return {
     mappingId: entry.id,
@@ -107,12 +117,13 @@ function emptyContext(assembly: Assembly, { ontologyTarget, semanticTarget }: Re
       evidence: evidence(entry.doc, entry.path),
     },
     ontology: {
+      ...scopeAddress(ontologyTarget, 'ontology'),
       name: ontology.name,
       description: ontology.description,
       requires: ontology.requires,
       prefixes: ontology.prefixes,
     },
-    semanticModel: { name: model.name, description: model.description, version: model.version },
+    semanticModel: { ...scopeAddress(semanticTarget, 'model'), name: model.name, description: model.description, version: model.version },
     concepts: [...declaredConcepts, ...builtinConcepts],
     bindings: [],
     fields: [],

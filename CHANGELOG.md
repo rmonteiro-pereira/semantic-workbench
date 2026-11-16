@@ -11,6 +11,8 @@ not configure a production deployment.
 - Reviewed operation inventory and generated reference, trusted in-process operation dispatch,
   connection effect restrictions, audit attribution fields and origin/tool filters.
 - Independent dry-run samples retain write and denial evidence during non-HTTP read floods.
+- Mapping canvas cards and rows use scoped item addresses, preserving visible labels and binding behavior.
+
 - Structured inspector results now include item addresses; unnamed scopes use volatile positional segments. RDF and built-ins remain unaddressed.
 
 

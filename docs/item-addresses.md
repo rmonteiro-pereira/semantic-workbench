@@ -23,7 +23,9 @@ ADDRESS_TEST_SEED=9721 bun test tests/item-address-properties.test.ts
 ```
 
 `ADDRESS_TEST_SEED` accepts an integer. A failing property includes its seed for replay.
-The fixtures are in `tests/fixtures/addresses/conformance.json`. General graph selection and persisted-key migration have not adopted this API yet.
+The fixtures are in `tests/fixtures/addresses/conformance.json`. The mapping canvas uses resolved scope addresses for cards and rows. Synthetic built-ins and
+unresolved evidence rows keep explicit non-address UI keys. General graph selection and
+persisted-key conversion are not adopted yet.
 
 ## Structured definitions
 
