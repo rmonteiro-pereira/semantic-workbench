@@ -44,7 +44,7 @@ export const LineageEdge = memo((edgeProps: EdgeProps) => {
   let labelElement: React.ReactNode;
   if (data.lineLabel && !labelClipped) {
     labelElement = <LineLabelPill label={data.lineLabel} bundle={(data.count ?? 1) > 1} at={{ x: lx, y: ly }} />;
-  } else if (data.label) {
+  } else if (data.label && !data.lineLabel) {
     labelElement = (
       <text x={lx} y={ly - 4} className="lineage-bundle" textAnchor="middle">
         {data.label}

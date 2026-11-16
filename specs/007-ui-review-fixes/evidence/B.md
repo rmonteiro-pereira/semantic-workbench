@@ -10,7 +10,7 @@
 ## Commits and progress
 
 - Legend moved from graph to odcs in a separate commit, with imports updated.
-- T024: compact table header on Lineage; pane begins at y=358 (1280×720 and 1440×900), y=399 (390×844). Visible height is 309, 449 and 445 px respectively. Header height no longer includes facts or prose. `checkDatasetLineageRoom` passes at all three widths. A whole neighbour still depends on the first-view work in T026, so T024 is not ticked yet.
+- T024: compact table header on Lineage; pane begins at y=358 (1280×720 and 1440×900), y=399 (390×844). Visible height is 309, 449 and 445 px respectively. Header height no longer includes facts or prose. `checkDatasetLineageRoom` passes at all three widths. A whole neighbour still depends on the first-view work in T026, so T024 is explicitly skipped as incomplete.
 
 ## Captures
 
@@ -30,7 +30,7 @@ Walk targets now use `max(24, 24 / zoom)` canvas pixels, and are omitted when wi
 
 ## T026 — implementation
 
-The first-view hook now checks actual laid-out bounds before choosing the complete reach. Small reaches use a low-padding Fit; larger reaches retain the existing nearest-card framing. Mapping entry requests the measured all-card readiness path before falling back to the readable neighbourhood. Unit checks: 7 pass, 0 fail, including horizontal and vertical one-pixel boundary cases. Browser validation is in progress.
+The first-view hook now checks actual laid-out bounds before choosing the complete reach. Small reaches use a low-padding Fit; larger reaches retain the existing nearest-card framing. Mapping entry requests the measured all-card readiness path before falling back to the readable neighbourhood. Unit checks: 7 pass, 0 fail, including horizontal and vertical one-pixel boundary cases. The required first-view pair still shows clipped neighbours after the readable fallback; this task is explicitly skipped as incomplete.
 
 ## T027 — skipped: incompatible geometry
 
@@ -46,7 +46,7 @@ T029 / M17 confirmed at 1280×720 and 2560×1440. `.lineage-hops` has `flex-wrap
 
 Proof: `out/lane-b/hops.jsonl` and `out/lane-b/t029/local-contract-graph-{1280,1440,2560}.png`, reproduced by `scripts/ui-review/capture-tour.ts`. An ignored preload restricts the tour inventory to the two owned canvases and its viewport matrix to the requested desktop sizes. All example/state navigation remains the stock tour.
 
-T026 after images at `out/lane-b/t029/local-{contract,mapping}-graph-1440.png` were opened. Contract centre is whole, but right-side cards/labels remain clipped. Mapping top cards are still clipped after readable fallback. The change is therefore not accepted yet.
+T026 after images at `out/lane-b/t029/local-{contract,mapping}-graph-1440.png` were opened. Contract centre is whole, but right-side cards/labels remain clipped. Mapping top cards are still clipped after readable fallback. The change is therefore not accepted. The supplied mapping fixture has nine reachable assets, while the task describes eight.
 
 ## T030 — complete
 
@@ -81,3 +81,25 @@ Foreign-key docs now state one to three. Mapping Steps (1–5) is described sepa
 - The complete unit command with a port preload encountered ten identity-fixture failures needing concurrent listeners on 5222. It was stopped after confirming this infrastructure conflict. A bare command with `BUN_OPTIONS` also caused Bun's package-script recursion; the corrected invocation was `bun test ./tests --preload ./out/lane-b/ports.ts`. No full-unit pass is claimed.
 - `python3 scripts/commit_cadence.py <worktree>` cannot run: this repository has no such file.
 - Focused production baseline and both registered viewport mutants passed: `2/2 lineage viewport mutants killed; production baseline passed.`
+
+
+## Acceptance audit
+
+| Task | Disposition | Remaining reason |
+| --- | --- | --- |
+| T024 | Skipped after partial implementation | More canvas room is proved, but the required whole neighbour at 1280 still depends on unresolved first-view framing. |
+| T025 | Skipped after partial implementation | Compensated targets are contained safely; four fitted clicks conflict with hiding targets when their cards cannot hold 24 screen pixels. The supplied script also selects at most three candidates per viewport. |
+| T026 | Skipped after partial implementation | The actual-bounds predicate is covered, but the commerce mapping's top cards remain cut under the existing readable fallback. Fitting all cards requires a smaller representation. |
+| T027 | Skipped | The required name size and fitted header bounds cannot both hold for the measured tiny cards without changing Fit or card representation. |
+| T028 | Skipped after partial implementation | Panel fitting is implemented; shared-source trunks across distinct destination cards need routing/attachment changes beyond the existing per-card-pair bundle. |
+| T029 | Complete | Computed rule, widths and wrapping positions recorded above. |
+| T030 | Complete | All three desktop pairs inspected; hops occupy one row. |
+| T031 | Pending final settled proof | Width assertion passes; exact baseline state is being recaptured. |
+| T032 | Skipped after partial implementation | Empty state, legend, centre badge and walked label are implemented. Removing the fixed empty header band changes row-port geometry; the fitted walk proof also conflicts with hidden targets. Full requested state matrix is not proved. |
+| T033 | Pending final visual proof | Route/pane rejection and pending controls are implemented and covered by focused checks. |
+| T034 | Complete | Documentation and MAX_HOPS agree. |
+| T035 | Skipped as an incomplete gate | Full unit suite cannot use the sole permitted API port for concurrent identity fixtures. Other command results are recorded separately; no all-green claim. |
+
+Unchecked tasks above are deliberate explicit skips, not merge-ready acceptance. No new representation, cross-card routing or neighbouring-list design was improvised.
+
+Final renderer review found that a clipped mapping label could reappear through its legacy text fallback. The fallback now applies only when no structured label exists. `bun test tests/edge-labels.test.ts`: 7 pass, 0 fail, 20 expect calls. The full `check` command passes again after this correction.
