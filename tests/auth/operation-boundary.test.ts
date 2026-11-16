@@ -43,12 +43,12 @@ test('twins refuse forged callers, transport routes and a different named row be
     { path: '/api/events' },
     { path: '/catalog' },
     { path: '/api/me' },
-    { path: '/api/projects/fixture/git/stage', method: 'POST', operation: 'git.unstage' },
-    { path: '/api/projects', operation: 'unknown.operation' },
-    { path: '/api/projects', tool: 'files.read' },
+    { path: '/api/projects/fixture/git/stage', method: 'POST', operationId: 'git.unstage' },
+    { path: '/api/projects', operationId: 'unknown.operation' },
+    { path: '/api/projects', operationId: 'files.read' },
   ];
   for (const entry of cases) {
-    const result = await boundary.operate({ caller, request: new Request('http://operation.internal' + entry.path, { method: entry.method ?? 'GET' }), operation: entry.operation, tool: entry.tool });
+    const result = await boundary.operate({ caller, request: new Request('http://operation.internal' + entry.path, { method: entry.method ?? 'GET' }), operationId: entry.operationId });
     expect(result.response.status, entry.path).toBe(404);
     expect(await result.response.json()).toEqual({ error: 'Not found.' });
   }
@@ -66,10 +66,11 @@ test('each non-HTTP read records its actual operation and connection exactly onc
   const request = () => buildTwinRequest('projects.list', { params: {} });
   expect((await handler(new Request('http://localhost/api/projects'))).status).toBe(200);
   expect(audit.recent(10)).toEqual([]);
-  for (const origin of ['mcp', 'acp'] as const) {
-    const caller = mintCaller({ principal: localPrincipal(), origin, connection: origin + '_connection' });
+  for (const connection of ['first', 'second']) {
+    const origin = 'mcp' as const;
+    const caller = mintCaller({ principal: localPrincipal(), origin, connection: connection + '_connection' });
     expect((await handler.boundary.operate({ caller, request: request() })).response.status).toBe(200);
-    expect(audit.recent(10).at(-1)).toMatchObject({ origin, tool: 'projects.list', connection: origin + '_connection', decision: 'allow', outcome: 'ok' });
+    expect(audit.recent(10).at(-1)).toMatchObject({ origin, tool: 'projects.list', connection: connection + '_connection', decision: 'allow', outcome: 'ok' });
   }
   expect(audit.recent(10)).toHaveLength(2);
 });
@@ -104,20 +105,4 @@ test('semantic outcomes classify bounded copies after hidden responses and prese
   expect((await invoke()).response.status).toBe(404);
   expect(audit.recent(10).at(-1)).toMatchObject({ decision: 'deny', reason: 'not-readable' });
   expect(calls).toBe(1);
-});
-
-test('protocol discovery, listing, subscription lifecycle and denial each record once', async () => {
-  using fixture = await testWorkspace();
-  const audit = createAuditLog({ dir: join(fixture.root, 'protocol') });
-  const handler = createHandler(fixture.ws, { audit });
-  const caller = mintCaller({ principal: localPrincipal(), origin: 'mcp', connection: 'protocol_connection' });
-  for (const method of ['discover', 'tools/list', 'resources/subscribe', 'subscriptions/listen'] as const) {
-    handler.boundary.recordProtocolCall({ caller, method, decision: 'allow', outcome: 'ok' });
-  }
-  handler.boundary.recordProtocolCall({ caller, method: 'tools/list', decision: 'deny', reason: 'no-grant', outcome: 'refused' });
-  const records = audit.recent(100);
-  expect(records).toHaveLength(5);
-  expect(records.every(entry => entry.origin === 'mcp' && entry.connection === 'protocol_connection' && entry.action === 'protocol')).toBe(true);
-  expect(records.at(-1)).toMatchObject({ decision: 'deny', reason: 'no-grant' });
-  expect(() => handler.boundary.recordProtocolCall({ caller: { ...caller }, method: 'tools/list', decision: 'allow', outcome: 'ok' })).toThrow('not minted');
 });

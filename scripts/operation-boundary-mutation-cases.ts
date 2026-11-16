@@ -32,7 +32,7 @@ async function setup(target: string, fixture: Awaited<ReturnType<typeof authWork
   );
   const caller = (name: 'alice' | 'bob' | 'dave' | 'erin') => mintCaller({ principal: access.principalFor(person(name)), origin: 'mcp' });
   const invoke = async (identity: Caller, path: string, method = 'GET', operation?: string) =>
-    (await handler.boundary.operate({ caller: identity, request: new Request('http://operation.internal' + path, { method }), operation } satisfies OperationCall)).response;
+    (await handler.boundary.operate({ caller: identity, request: new Request('http://operation.internal' + path, { method }), operationId: operation } satisfies OperationCall)).response;
   return { folder, fixture, audit, caller, invoke, state, mintCaller, access, boundary: handler.boundary, WriteAccessError, buildTwinRequest, sampleReplayEntries };
 }
 

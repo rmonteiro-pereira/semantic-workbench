@@ -20,10 +20,8 @@ export const HANDLER_CHECKS = [
   'trashTarget',
   'bodyTargets',
 ] as const;
-/** Protocol methods allowed into durable audit records. */
-export const PROTOCOL_METHODS = ['discover', 'tools/list', 'tools/call', 'resources/list', 'resources/read', 'resources/subscribe', 'prompts/list', 'prompts/get', 'subscriptions/listen'] as const;
 /** Audit transport origins. */
-export const CALLER_ORIGINS = ['http', 'mcp', 'acp'] as const;
+export const CALLER_ORIGINS = ['http', 'mcp'] as const;
 const DISPATCH_REASONS = ['public', 'stream', 'page', 'redirect', 'browser-only'] as const;
 const INCREMENTS = ['local-edit', 'team-sign-in', 'workspace-scm', 'resources-prompts', 'administration', 'later', 'never'] as const;
 

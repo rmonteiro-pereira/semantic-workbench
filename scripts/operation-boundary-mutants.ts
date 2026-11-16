@@ -14,7 +14,7 @@ export const operationBoundaryMutants: [string, string, string, string][] = [
   ['operation-boundary', 'src/server/auth/operation-boundary.ts', "mode === 'server' && hiddenResponses.has(response)", 'false'],
   ['operation-boundary', 'src/server/auth/operation-boundary.ts', "mode === 'server' && response.status === 404", 'false'],
   ['operation-boundary', 'src/server/auth/operation-boundary.ts', 'assertMinted(call.caller);', ''],
-  ['operation-boundary', 'src/server/auth/operation-boundary.ts', 'call.operation !== undefined && call.operation !== entry?.id', 'false'],
+  ['operation-boundary', 'src/server/auth/operation-boundary.ts', 'call.operationId !== undefined && call.operationId !== entry?.id', 'false'],
   ['operation-boundary', 'src/server/auth/twin-request.ts', 'return encodeURIComponent(value);', 'return value;'],
   ['operation-boundary', 'src/server/auth/operation-boundary.ts', 'decision.allow && entry && !scopeAllows(caller.scope, entry.effects)', 'entry && !scopeAllows(caller.scope, entry.effects)'],
   ['operation-boundary', 'src/server/auth/connection-scope.ts', 'return scope === undefined || effects.every(effect => scope.includes(effect));', 'return true;'],
@@ -24,5 +24,5 @@ export const operationBoundaryMutants: [string, string, string, string][] = [
     "entry.origin !== undefined && entry.origin !== 'http' && entry.decision === 'allow' && READ_ACTIONS.includes(entry.action as (typeof READ_ACTIONS)[number])",
     'false',
   ],
-  ['operation-boundary', 'src/server/auth/audit.ts', "'version', 'tool', 'method'", "'version', 'method'"],
+  ['operation-boundary', 'src/server/auth/audit.ts', "'version', 'tool'", "'version'"],
 ];

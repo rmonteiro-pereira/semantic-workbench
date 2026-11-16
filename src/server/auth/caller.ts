@@ -1,7 +1,7 @@
 // Runtime provenance distinguishes authenticated callers from structural TypeScript copies.
 import type { Principal } from './principal';
 import type { Session } from './sessions';
-import { CALLER_ORIGINS, type OperationEffect } from './operation-inventory';
+import type { CALLER_ORIGINS, OperationEffect } from './operation-inventory';
 
 /** Transport that authenticated one operation's caller. */
 export type CallerOrigin = (typeof CALLER_ORIGINS)[number];

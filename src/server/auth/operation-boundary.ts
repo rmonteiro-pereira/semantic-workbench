@@ -12,7 +12,7 @@ import type { AccessControl, AccessScope } from './authorize';
 import { auditableProjects, reportAuditFailure, type AuditLog } from './audit';
 import { assertMinted, type Caller, type CallerOrigin } from './caller';
 import { scopeAllows } from './connection-scope';
-import { PROTOCOL_METHODS, operationForRow } from './operation-inventory';
+import { operationForRow } from './operation-inventory';
 import { ROUTE_ACTIONS, routeFor, type RouteAction } from './route-actions';
 import type { ResourceRef, Decision } from './resource';
 import { WriteAccessError } from './write-access';
@@ -35,8 +35,7 @@ export type OperationBoundaryOptions = {
 export type OperationCall = {
   caller: Caller;
   request: Request;
-  operation?: string;
-  tool?: string;
+  operationId?: string;
   outcome?: OutcomeClassifier;
 };
 
@@ -304,9 +303,8 @@ export function createOperationBoundary(ws: Workspace, options: OperationBoundar
             ...sharedAudit,
             append: input => sharedAudit.append({ ...input, origin: caller.origin, tool: entry?.id, connection: caller.connection }),
           };
-    const wrongRow = call.operation !== undefined && call.operation !== entry?.id;
-    const wrongTool = call.tool !== undefined && call.tool !== entry?.id;
-    if (wrongRow || wrongTool || (caller.origin !== 'http' && (!found || found.row.public || entry?.dispatch !== 'twin'))) {
+    const wrongRow = call.operationId !== undefined && call.operationId !== entry?.id;
+    if (wrongRow || (caller.origin !== 'http' && (!found || found.row.public || entry?.dispatch !== 'twin'))) {
       const failure = auditDenial(audit, { requestId, principal: caller.principal, action: 'read', resource: { type: 'workspace' }, decision: 'deny', rules: [], reason: 'unmapped-route' });
       return { response: failure ?? Response.json({ error: 'Not found.' }, { status: 404 }), requestId };
     }
@@ -322,23 +320,6 @@ export function createOperationBoundary(ws: Workspace, options: OperationBoundar
     const responseOutcome = statusOutcome(response.status, true);
     recordOperation(caller.origin, entry!.id, observation.outcome ?? responseOutcome, performance.now() - started);
     return { response, requestId };
-  }
-  /** Records one protocol interaction independently of returned item count. */
-  function recordProtocolCall(input: { caller: Caller; method: (typeof PROTOCOL_METHODS)[number]; decision: 'allow' | 'deny'; reason?: string; outcome: 'ok' | 'refused' | 'failed' | 'degraded' }) {
-    assertMinted(input.caller);
-    return sharedAudit.append({
-      requestId: crypto.randomUUID(),
-      principal: input.caller.principal,
-      action: 'protocol',
-      resource: { type: 'workspace' },
-      decision: input.decision,
-      rules: [],
-      reason: input.reason,
-      outcome: input.outcome,
-      origin: input.caller.origin,
-      method: input.method,
-      connection: input.caller.connection,
-    });
   }
   /** Lists sorted operation ids admitted by effective policy and connection effects. */
   function availableOperations(caller: Caller): string[] {
@@ -361,5 +342,5 @@ export function createOperationBoundary(ws: Workspace, options: OperationBoundar
     }
     return ids.sort();
   }
-  return { operate, recordProtocolCall, availableOperations };
+  return { operate, availableOperations };
 }

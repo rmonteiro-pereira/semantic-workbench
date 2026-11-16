@@ -398,6 +398,10 @@ The boundary's `permittedSomewhere` uses effective policy decisions for route pa
 listing probes reuse `projectResources` from the dry run so path and document-type conditions are
 represented without duplicating policy evaluation.
 
+`handler.boundary.operate({ caller, request, operationId })` accepts one optional inventory id;
+the request must resolve to that exact operation. Only HTTP and MCP origins are supported.
+The in-process boundary exposes invocation and operation listing.
+
 `handler.boundary.availableOperations(caller)` returns sorted inventory ids using current policy,
 route passes and connection effects, without running handlers or writing audit records. Listing is
 advisory: invocation always checks the actual target again. File probes cover custom path and

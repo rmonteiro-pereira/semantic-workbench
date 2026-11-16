@@ -55,7 +55,7 @@ test('old and attributed records verify in one month, across months and against 
   };
   log.append(input);
   now = new Date('2026-04-01T00:00:00Z');
-  log.append({ ...input, origin: 'acp' });
+  log.append({ ...input, origin: 'mcp' });
   const parsed = parseMirror(mirrored.join('\n'));
   expect(parsed.records).toHaveLength(11);
   expect(parsed.anchors).toHaveLength(1);

@@ -3,7 +3,7 @@
 import { mkdirSync, readdirSync, readFileSync, existsSync, openSync, writeSync, fsyncSync, closeSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { sha256 } from '../projects/atomic';
-import { CALLER_ORIGINS, PROTOCOL_METHODS, operationById } from './operation-inventory';
+import { CALLER_ORIGINS, operationById } from './operation-inventory';
 import type { CallerOrigin } from './caller';
 import type { ResourceRef } from './resource';
 
@@ -12,7 +12,6 @@ export type AuditInput = {
   requestId: string;
   origin?: CallerOrigin;
   tool?: string;
-  method?: (typeof PROTOCOL_METHODS)[number];
   connection?: string;
   principal: { id: string; kind: string; name?: string; clientId?: string; [key: string]: unknown };
   action: string;
@@ -49,7 +48,7 @@ function pick(value: Record<string, unknown>, keys: string[]) {
 const resourceKeys = ['type', 'project', 'path', 'branch', 'metric', 'entry', 'area', 'role', 'grant'];
 function record(input: AuditInput, at: string, prev: string): AuditEntry {
   const entry = {
-    ...pick(input, ['requestId', 'action', 'decision', 'rules', 'reason', 'outcome', 'version', 'tool', 'method', 'connection']),
+    ...pick(input, ['requestId', 'action', 'decision', 'rules', 'reason', 'outcome', 'version', 'tool', 'connection']),
     type: 'audit',
     at,
     prev,
@@ -73,7 +72,6 @@ function record(input: AuditInput, at: string, prev: string): AuditEntry {
 function validateAttribution(input: AuditInput): void {
   if (input.origin !== undefined && !CALLER_ORIGINS.includes(input.origin)) throw new Error('Invalid audit origin.');
   if (input.tool !== undefined && (typeof input.tool !== 'string' || !operationById(input.tool))) throw new Error('Invalid audit tool: expected an inventory id.');
-  if (input.method !== undefined && !PROTOCOL_METHODS.includes(input.method)) throw new Error('Invalid audit protocol method.');
   if (input.connection !== undefined && (typeof input.connection !== 'string' || !/^[A-Za-z0-9_-]{1,64}$/.test(input.connection))) throw new Error('Invalid audit connection id.');
 }
 
