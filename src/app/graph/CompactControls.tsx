@@ -20,16 +20,22 @@ export function useCompactToolbar(maxWidth = COMPACT_TOOLBAR_PX) {
 }
 
 // The panel is fixed to the window so the toolbar's own scrolling cannot clip it.
-function usePanelTop(button: React.RefObject<HTMLButtonElement | null>, open: boolean) {
-  const [top, setTop] = useState(0);
-  useLayoutEffect(() => {
-    if (open && button.current) setTop(button.current.getBoundingClientRect().bottom + 4);
-  });
+function usePanelPosition(button: React.RefObject<HTMLButtonElement | null>, open: boolean) {
+  const [position, setPosition] = useState({ top: 0, left: 8, right: 8 });
+  const positionPanel = () => {
+    const trigger = button.current;
+    if (!open || !trigger) return;
+    const pane = trigger.closest('.full-graph, .neighborhood-graph')?.getBoundingClientRect();
+    const next = {
+      top: trigger.getBoundingClientRect().bottom + 4,
+      left: Math.max(8, (pane?.left ?? 0) + 8),
+      right: Math.max(8, window.innerWidth - (pane?.right ?? window.innerWidth) + 8),
+    };
+    setPosition(previous => (previous.top === next.top && previous.left === next.left && previous.right === next.right ? previous : next));
+  };
+  useLayoutEffect(positionPanel);
   useEffect(() => {
     if (!open) return;
-    const positionPanel = () => {
-      if (button.current) setTop(button.current.getBoundingClientRect().bottom + 4);
-    };
     window.addEventListener('resize', positionPanel);
     window.addEventListener('scroll', positionPanel, true);
     document.addEventListener('fullscreenchange', positionPanel);
@@ -39,7 +45,7 @@ function usePanelTop(button: React.RefObject<HTMLButtonElement | null>, open: bo
       document.removeEventListener('fullscreenchange', positionPanel);
     };
   }, [open, button]);
-  return top;
+  return position;
 }
 
 /**
@@ -50,7 +56,7 @@ export function CompactControls({ label = 'Controls', children, folded = false }
   const compact = useCompactToolbar();
   const [open, setOpen] = useState(false);
   const button = useRef<HTMLButtonElement>(null);
-  const top = usePanelTop(button, open);
+  const position = usePanelPosition(button, open);
   useEffect(() => {
     const canvas = button.current?.closest('.canvas-row');
     if (!canvas) return;
@@ -82,7 +88,7 @@ export function CompactControls({ label = 'Controls', children, folded = false }
         {label}
       </button>
       {open && (
-        <div className="compact-controls-panel" role="group" aria-label="Graph controls" style={{ top }}>
+        <div className="compact-controls-panel" role="group" aria-label="Graph controls" style={position}>
           {children}
         </div>
       )}

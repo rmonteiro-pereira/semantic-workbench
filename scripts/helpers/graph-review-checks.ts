@@ -4,9 +4,45 @@ import { fileTab } from './screen-tour';
 import { pickCenter } from './edge-geometry';
 import { revealGraphControls, hideGraphControls, viewOptions, setShown } from './graph-options';
 
+async function checkLayoutControls(page: Page) {
+  await revealGraphControls(page);
+  const panel = (await page.locator('.compact-controls-panel').boundingBox())!;
+  const graph = (await page.locator('.full-graph').boundingBox())!;
+  expect(panel.x).toBeGreaterThanOrEqual(graph.x);
+  expect(panel.x + panel.width).toBeLessThanOrEqual(graph.x + graph.width);
+  await page.evaluate(() => {
+    const original = Worker.prototype.postMessage;
+    (window as any).restoreGraphWorker = () => {
+      Worker.prototype.postMessage = original;
+    };
+    // Hold the real request so the pending state is observable even on fast machines.
+    Worker.prototype.postMessage = function (message, options: any) {
+      setTimeout(() => original.call(this, message, options), 1200);
+    };
+  });
+  try {
+    await page.getByRole('button', { name: 'Re-layout', exact: true }).click();
+    await expect(page.locator('.full-graph-loading')).toBeVisible();
+    for (const name of ['Re-layout', 'Zoom in', 'Zoom out', 'Fit model']) {
+      await expect(page.getByRole('button', { name, exact: true })).toBeDisabled();
+    }
+    await expect(page.locator('.grouping-trigger')).toBeDisabled();
+    await page.locator('.full-graph-loading').waitFor({ state: 'hidden', timeout: 60000 });
+    await expect(page.getByRole('button', { name: 'Re-layout', exact: true })).toBeEnabled();
+    console.log('PASS pending layout disables grouping, re-layout, zoom and Fit; completion restores them');
+  } finally {
+    await page.evaluate(() => {
+      (window as any).restoreGraphWorker();
+      delete (window as any).restoreGraphWorker;
+    });
+    await hideGraphControls(page);
+  }
+}
+
 async function checkSelection(page: Page) {
   await fileTab('ubl.ontology.yaml', 'Graph')(page);
   await page.locator('.full-graph-loading').waitFor({ state: 'hidden', timeout: 60000 });
+  await checkLayoutControls(page);
   await page.getByRole('button', { name: 'Fit model', exact: true }).click();
   await page.waitForTimeout(400);
   await viewOptions(page, options => setShown(options, 'Labels', true));
@@ -86,6 +122,12 @@ export async function checkGraphReview(page: Page) {
   await page.getByRole('button', { name: 'Enter full screen', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Exit full screen', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Exit full screen', exact: true }).click();
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await fileTab('mall.ontology.yaml', 'Graph')(page);
+  await page.locator('.full-graph-loading').waitFor({ state: 'hidden', timeout: 60000 });
+  const mallCanvas = await page.locator('.full-graph .react-flow').boundingBox();
+  expect(mallCanvas!.height).toBeGreaterThanOrEqual(473);
+  console.log('PASS Mall Graph canvas retains at least 473 px at 1280×720');
   await page.setViewportSize({ width: 1600, height: 1000 });
 }
 
