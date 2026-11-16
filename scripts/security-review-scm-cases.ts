@@ -54,6 +54,7 @@ async function scmFixture(candidate: Candidate, wrap?: (git: any) => any, deps: 
   const dir = join(fixture.root, 'projects', slug);
   git(dir, 'add', '-A');
   git(dir, 'commit', '-q', '--allow-empty', '-m', 'base');
+  git(dir, 'branch', '-M', 'main');
   const ws = fixture.ws;
   const scm = candidate.createScm({
     layout: ws.layout,
