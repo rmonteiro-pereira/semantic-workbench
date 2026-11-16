@@ -66,6 +66,10 @@ test('compaction collapses expired chains, retains recent records and expires de
   expect(compacted.compactedBefore).toBe('2026-01-01T00:00:00Z');
   expect(compactMigrations(compacted, '2026-01-01T00:00:00Z')).toEqual(compacted);
   expect(compactMigrations({ formatVersion: 1, records: [record('A', 'B'), record('B', 'A')] }, '2026')).toMatchObject({ records: [] });
+  const deleted: MigrationRecord = { id: 'gone', kind: 'deleted', from: text('C'), at: '2025-01-02T00:00:00Z', commit: '' };
+  expect(compactMigrations({ formatVersion: 1, records: [record('A', 'C'), deleted] }, '2026').records).toEqual([]);
+  const recentDeleted = { ...deleted, at: '2026-11-16T00:00:00Z' };
+  expect(compactMigrations({ formatVersion: 1, records: [recentDeleted] }, '2026-01-01T00:00:00Z').records).toEqual([recentDeleted]);
   expect(migrationRetentionCut(86_400_000 * 400, 365)).toBe(86_400_000 * 35);
   expect(() => migrationRetentionCut(0, 0)).toThrow(RangeError);
 });

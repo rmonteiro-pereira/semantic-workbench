@@ -156,3 +156,32 @@ This limited comparison does not complete the full journey regression task.
 resolved-input preservation, whole-segment boundaries, snapshots, declaration ownership,
 retention and 1,000 seeded histories. `bun --bun run check` passed. No migration persistence
 is connected yet. The pure phase is independent of the blocked consumer adoption phase.
+
+## Migration mutation preparation
+
+The five registered migration candidates are killed by assertion failures through the public
+entry point (focused temporary candidate run: 5/5). Ordering, duplicate IDs, resolved-input
+preservation, segment boundaries and cross-project declaration rejection are covered.
+The first prefix-check candidate was equivalent because `replacePrefix` independently enforces
+the boundary. The redundant rename precheck was removed; the candidate now changes replacement
+itself to textual prefix matching. The updated pure tests report 6 pass, 0 fail, 3,037 assertions.
+The full repository mutation command remains required before its task is checked.
+
+## Accepted unnamed roots: phase stop
+
+The real unshimmed `bun test` exposes an introduced inspector regression on an input that the
+existing API accepts: `ontology: [{concept: A}]` has no root `name`. Address derivation throws
+`Invalid item address: empty`, so import rejects a previously accepted file.
+`bun test tests/grouping-api.test.ts` on this branch: 1 pass, 2 fail, 6 assertions (520 ms).
+The identical command against archived main 655df09: 3 pass, 0 fail, 22 assertions (579 ms).
+This is not a harness limit. The inspector adoption task is reopened pending the scope decision.
+
+The current root-name rule requires `ontology:<name>` and the structured-result rule requires an
+address. Keeping unnamed roots inspectable without addresses or choosing a positional root
+requires reconciling those rules. No fallback name or new root rule was invented.
+
+Lineage adoption also needs the treatment of existing unnamed `property.items` rows: UBL's
+`note.items` has only `logicalType: string`; the lineage flattener renders `note[]` separately.
+The registry describes named properties and no array-item segment. A clarification was requested
+before choosing whether these remain synthetic rows. Consumer adoption stops at this boundary;
+its remaining tasks and full regression comparison are not marked complete.

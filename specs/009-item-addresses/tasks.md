@@ -90,7 +90,7 @@ address says whether it is ambiguous or volatile.
 - [x] T014 [P] [US2] Add mutants: ignore the kind when matching, choose the first of ambiguous
   matches, treat positional as stable, skip the parent-kind rule. Proof: `bun run test:mutation`.
   (SC-011)
-- [x] T015 [US2] Add `address` to `Entity` and `Relationship` in `src/shared/core/model.ts`, derived
+- [ ] T015 [US2] Add `address` to `Entity` and `Relationship` in `src/shared/core/model.ts`, derived
   in `inspect()`; leave `id` as it is. Proof: the existing model tests unchanged and passing; a new
   test that every sample project entity has a unique address; the timing check shows under 5%
   extra on the largest sample (SC-013). (FR-020, FR-023; SC-002, SC-013)

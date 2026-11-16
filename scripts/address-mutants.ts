@@ -27,3 +27,17 @@ export const modelAddressMutants: [string, string, string, string][] = [
   ],
   ['address-model', 'src/shared/core/model-addresses.ts', "chain.some(segment => 'position' in segment)", 'false'],
 ];
+
+/** Faults in migration ordering, stable replay and request ownership. */
+export const migrationAddressMutants: [string, string, string, string][] = [
+  ['address-migration', 'src/shared/core/address-migration.ts', 'for (const record of records)', 'for (const record of [...records].reverse())'],
+  ['address-migration', 'src/shared/core/address-migration.ts', 'if (applied.has(record.id)) continue;', ''],
+  ['address-migration', 'src/shared/core/address-migration.ts', 'if (resolved) return address;', ''],
+  [
+    'address-migration',
+    'src/shared/core/address-migration.ts',
+    'if (to) current = replacePrefix(current, from, to);',
+    'if (to && itemAddress.formatAddress(current).startsWith(record.from)) current = { ...current, ...to, chain: [...to.chain, ...current.chain.slice(from.chain.length)], snapshot: current.snapshot };',
+  ],
+  ['address-migration', 'src/shared/core/address-migration.ts', 'from.project !== project || to.project !== project', 'false'],
+];

@@ -1,4 +1,5 @@
 // Runs focused assertions against candidate modules to detect deliberately introduced faults.
+import { addressMigrationCase } from './address-migration-cases';
 import { modelAddressCase } from './model-address-cases';
 import { addressGrammarCase } from './address-cases';
 import { LOCAL_READER } from '../src/server/projects/reader';
@@ -22,6 +23,7 @@ if (category === 'operation-boundary') {
   const { operationBoundaryCases } = await import('./operation-boundary-mutation-cases');
   await operationBoundaryCases(process.argv[2]);
 }
+if (category === 'address-migration') addressMigrationCase(loadedModule as typeof import('../src/shared/core/address-migration'));
 if (category === 'address-model') modelAddressCase(loadedModule as typeof import('../src/shared/core/model-addresses'));
 if (category === 'address-grammar') addressGrammarCase(loadedModule as typeof import('../src/shared/core/item-address'));
 if (category === 'edge-appearance') {

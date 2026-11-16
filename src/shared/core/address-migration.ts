@@ -37,8 +37,11 @@ export function migrateAddress(address: Address, records: readonly MigrationReco
     if (applied.has(record.id)) continue;
     applied.add(record.id);
     const from = stableAbsolute(record.from);
-    if (!from || !itemAddress.hasPrefix(current, from)) continue;
-    if (record.kind === 'deleted') return current;
+    if (!from) continue;
+    if (record.kind === 'deleted') {
+      if (itemAddress.hasPrefix(current, from)) return current;
+      continue;
+    }
     const to = record.to === undefined ? null : stableAbsolute(record.to);
     if (to) current = replacePrefix(current, from, to);
   }
