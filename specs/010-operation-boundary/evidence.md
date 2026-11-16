@@ -1,5 +1,19 @@
 # Operation boundary evidence
 
+## Completion status
+
+All 51 tasks are complete. No task was skipped. The specified rate-limit/local-check order-swap
+mutant is equivalent because the checks run in mutually exclusive server and local modes; it is
+excluded with that reason, while all 16 registered feature mutants and every existing mutant are
+killed. Earlier stop-point sections below are historical and have been resolved by the integrator
+decisions and subsequent fixes.
+
+The frozen HTTP fixture and original audit months remain byte-identical to their recording
+commits. Constitution wording is handed over below; the constitution itself is unchanged.
+Two performance findings remain open: operation listing exceeds 50 ms, and the measured HTTP
+median exceeds the recorded base by more than 5%. These tasks explicitly permit a recorded
+finding when the goal is missed. No transport implementation or external deployment is included.
+
 ## Scope
 
 - Existing HTTP middleware owns authentication order, authorization, handler execution and audit; concrete-target checks remain in handlers.
@@ -335,3 +349,117 @@ A final typed-caller seam check found a newly reachable hiding regression: an Al
 Final full unit gate on 0f0e39b5: 2,142 pass, 0 fail, 197,145 assertions across 301 files (810.24 seconds). The mutation run then killed all module and askpass mutants (670 reported kills) but its source-intercepting browser mutant survived because the frontend was a built static preview. No browser mutation had been injected. The frontend now runs the existing Vite configuration on 5311 with its API proxy restricted to assigned port 5312; the live development module contains the original anchor. The existing UI test source is unchanged from 655df09. A positive UI run had one canceled Chromium download; an unchanged repeat passed all 20 UI checks, including that download, without runtime errors. The complete mutation gate is rerun against the development frontend; no mutant or assertion was weakened.
 
 Full mutation gate on the committed implementation and Vite development frontend: `679/679 targeted mutants killed; all unmodified module baselines passed.` This includes all 16 operation-boundary mutants and every existing authorization, audit, export, observability and browser mutant. No registered mutant survived or timed out. The one specified order-swap mutant remains excluded as documented equivalent. The separate positive browser baseline passed all 20 UI checks.
+
+## Final completion gate
+
+All commands ran in this worktree with isolated data and the assigned frontend port. Browser
+suites ran one at a time. The final implementation commit is `0f0e39b5`; subsequent commits record
+documentation and validation only.
+
+| Command | Actual summary |
+| --- | --- |
+| `bun test` | `2142 pass`, `0 fail`, `197145 expect() calls`; `Ran 2142 tests across 301 files. [810.24s]` |
+| `bun --bun run check` | Exit 0; format, lint, comments, theme and brand checks passed after TypeScript. |
+| `bun --bun run build` | `✓ built in 2.37s`; existing large-chunk warning remains. |
+| `bun scripts/mutation-tests.ts` | `679/679 targeted mutants killed; all unmodified module baselines passed.` |
+| `bun run test:auth` | Exit 0; 36 `PASS` checks; last: `PASS Git history is refused for a person who cannot read every file`. |
+| `bun run test:admin` | Exit 0; this script emits no success summary line. |
+| `bun run test:terminology` | `Terminology check passed: no "KPI" or "contract object" in 8 files' views, the metric detail, the wizard, README and docs`. |
+| `bun test tests/auth/http-characterization.test.ts` | `1 pass`, `0 fail`, `1548 expect() calls`; `Ran 1 test across 1 file. [7.49s]` |
+| `bun run audit:verify tests/fixtures/audit-v1` | `Audit log intact: 9 records in 3 months.` |
+| `bun run test:ui` | `20 UI checks passed`. |
+
+The final full-suite performance observations were: 50,300-record ordinary replay 1303.972244 ms,
+replay with reads 1419.208974 ms (ratio 1.088374); effective listing over 20 projects and 54
+operations 623.204103 ms against 50 ms. The HTTP benchmark remains 4.192204 ms median and
+9.185390 ms p95 against the recorded base 2.506372 ms median and 5.346923 ms p95. Listing and HTTP
+latency are open integration findings; no permission shortcut or stale cache was introduced.
+
+Architecture review resolved the four incorrect effect declarations and omitted browser graph
+derivations. The final denial-precedence correction was reviewed with no blocking findings.
+Exactly-once refers to the boundary decision; existing administration `adminChange` business
+records remain separate and unchanged. The final review marker is recorded for the completed
+committed tree with the skill's `review_marker.py mark --head`.
+
+Readability: the requested checker examined all branch-added lines across 68 changed code files
+relative to `655df09`, with zero findings. The global comment check passed. Confidential-content
+scanning passed for all 97 changed files; all public documentation additions passed the full
+scanner. Previously documented unchanged technical examples and session terminology are retained.
+The requested repository `scripts/commit_cadence.py` is absent; the attempted command reports
+`[Errno 2] No such file or directory`. No push, deployment, tag, merge or constitution edit was
+performed. Owned frontend and gate processes are stopped after validation.
+
+## Implementation and validation commits
+
+The following commits precede this final evidence commit, in chronological order:
+
+- `2ad5dcb3` docs(spec): specify the operation boundary
+- `5a501cf2` docs(spec): research the operation boundary design
+- `a24f4880` docs(spec): plan the operation boundary
+- `13cf2dd4` docs(spec): data model of the operation boundary
+- `d6244715` docs(spec): contracts of the operation boundary
+- `ce93abfd` docs(spec): quickstart for the operation boundary
+- `6b89ff97` docs(spec): task list for the operation boundary
+- `ffac0dbe` docs(spec): resolve analysis findings
+- `1ad23ed7` test(auth): freeze HTTP behavior before boundary extraction
+- `66e51af5` test(audit): preserve original monthly chain fixtures
+- `453463f1` test(auth): freeze administration audit replay baseline
+- `3fdb78dd` test(auth): record in-process boundary performance baseline
+- `3c15f949` feat(auth): mint authenticated operation callers
+- `a2e1aaad` test(auth): compare replay fixture as serialized data
+- `f063ba8d` docs(auth): record original-code characterization blocker
+- `086c013b` test(auth): compare unordered audit rules without changing stored bytes
+- `1d840619` refactor(auth): extract network request authentication
+- `8e0810cd` refactor(auth): attach handler identity in one place
+- `7c2343e8` refactor(auth): move operation execution into the shared boundary
+- `d650a81d` refactor(auth): keep HTTP adaptation separate from operation decisions
+- `7f16b6d1` test(auth): prove reachable authentication refusal precedence
+- `b1367dee` test(auth): type refusal table headers explicitly
+- `3537fa62` refactor(http): name existing request byte limits
+- `a6aa2a0e` feat(auth): parse the reviewed operation inventory contract
+- `c795e759` data: inventory workspace and definition operations
+- `d78bb876` data: inventory source control and repository operations
+- `0f0c68fc` data: inventory administration and transport-owned operations
+- `3a4df028` feat(auth): build credential-free operation twin requests
+- `21b67e43` test(auth): generate hostile twin parameters for every route shape
+- `797f8cab` Refuse non-dispatchable and mismatched twin operations
+- `d4ae3573` Use the attached caller session for delegated remote credentials
+- `95c772bf` Restrict static and dynamic operation effects by connection scope
+- `8c5bc527` Preserve asynchronous publication checks for scoped fetches
+- `59ed7d2d` Compare HTTP and twin authorization through real operation handlers
+- `570715eb` Wait for clone jobs before disposing parity workspaces
+- `f8557cdb` Attribute dynamic scope refusals to their enclosing operation
+- `aae6aae5` Record parity blocker and validation results for the extracted boundary
+- `191bc8bb` Distinguish unchanged technical scanner matches from added content
+- `fb166c71` Clarify caller-visible hiding while preserving privileged trash auditing
+- `459ae8bc` Guard request scope construction and future transport imports
+- `c99602b4` Validate and serialize optional audit attribution without changing HTTP bytes
+- `fbc33243` Check completeness of the audit serializer against its declared input
+- `37c33b72` Verify mixed legacy and attributed audit chains and mirror failures
+- `aa60972b` Filter audit attribution after visibility and append CSV attribution columns
+- `2d35b6fe` Attribute every non-HTTP operation while preserving HTTP audit selection
+- `5d29a491` Classify bounded operation responses after existence hiding
+- `a655a664` Record protocol interactions once without replay snapshots
+- `d75d17ff` Measure operation outcomes with fixed inventory labels and non-HTTP spans
+- `16487fcd` Keep operation telemetry documentation in the established observability guide
+- `5ad87c7d` Apply configured retention to the shared production and standalone audit logs
+- `284729b7` Classify reported partial effects beside their response owners
+- `1d6dd58b` Bound ordinary replay evidence separately from distinct transport reads
+- `95d5866d` Use stratified snapshots for administrative comparison and decision replay
+- `bdac188f` Prove replay bounds under a durable read flood and measure dry-run cost
+- `3c751750` Share route pass logic and dry-run resource probes for operation discovery
+- `4a093ef0` List operations by effective route permissions and connection effects
+- `f0d2c44c` docs: inventory browser capabilities and their exposure limits
+- `3b4cd0b3` feat: validate and publish the complete operation inventory
+- `b72bdac9` fix: satisfy boundary lint checks
+- `f69cb05d` test: retarget authorization mutants and exercise shared operation guards
+- `3ac0c30a` fix: align administration inventory inputs with request validation
+- `6f8cb6b7` docs: explain operation ownership audit attribution and replay limits
+- `8c613745` fix: scope computation and local merge operations by their actual effects
+- `7706ca8a` docs: inventory browser graph and lineage derivations
+- `d2dea3bd` test: type scoped operation fixtures as validated parameter maps
+- `273b7456` test: isolate boundary case loading and budget the unchanged registry baseline
+- `4afd4bc0` test: preserve registry credential isolation under a configured temporary root
+- `0f0e39b5` fix: retain existence-hiding denials when narrowing connection effects
+- `d9baec68` docs: state the development frontend requirement for browser mutants
+- `e234c7d7` test: record the complete operation boundary mutation gate
