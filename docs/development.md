@@ -260,6 +260,14 @@ verified upstream fix.
 
 ## Visual capture
 
+Additional reproducible state captures live in `scripts/ui-review/`. Run
+`SW_BASE_URL=http://127.0.0.1:5201 bun scripts/ui-review/known-issues.ts OUTPUT 1 1`
+against a frontend using temporary data. The shared local fixture sets neutral Git author and
+committer names and emails. See `specs/007-ui-review-fixes/capture-index.md` for state commands.
+`SW_ONLY` and `SW_THEME` select supported state groups and themes; follow-up captures use
+`SW_FOLLOWUP_WIDTH` and `SW_FOLLOWUP_ONLY`. Server captures require their documented fixture ports.
+
+
 With a frontend on port 5180:
 
 ```sh

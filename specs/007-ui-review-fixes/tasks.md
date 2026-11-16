@@ -30,7 +30,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
 
 **Purpose**: tooling every lane needs before it starts. Done once, on the 007 branch.
 
-- [ ] T001 Copy the review's capture scripts into `scripts/ui-review/` on the 007 branch and make them pass `bun --bun run check`.
+- [x] T001 Copy the review's capture scripts into `scripts/ui-review/` on the 007 branch and make them pass `bun --bun run check`.
   - Files: scripts/ui-review/*.ts (from /home/rodrigo/projetos/semantic-workbench-ui-review-20261115/capture-scripts/)
   - Change: The scripts import `../helpers/*` and `../../src/*`, so they only run from inside the repository. Copy them unchanged apart from formatting, set `GIT_AUTHOR_NAME`, `GIT_AUTHOR_EMAIL`, `GIT_COMMITTER_NAME` and `GIT_COMMITTER_EMAIL` to a neutral identity in the shared fixture helper so no capture shows the owner's name, and keep them as a development tool documented in `docs/development.md`.
   - Proof: `bun --bun run check` passes; `bun scripts/ui-review/known-issues.ts <out> 1 1` runs against a lane dev server and writes images.
