@@ -114,6 +114,14 @@ test('each body target row refuses hidden files before mutation and audits exact
       method: 'PUT',
       body: { mode: 'types' },
     },
+    {
+      path: '/api/projects/sales-contracts/item-addresses/reconcile',
+      body: {
+        operationId: 'hidden-reconcile',
+        from: 'sw1:sales-contracts/finance/revenue-recognition.odcs.yaml#contract:Old',
+        to: 'sw1:sales-contracts/finance/revenue-recognition.odcs.yaml#contract:New',
+      },
+    },
     { path: '/api/suggestions/' + suggestion.id + '/accept' },
     { path: '/api/suggestions/' + suggestion.id + '/reject' },
     { path: '/api/trash/' + deleted.entryId + '/undo' },

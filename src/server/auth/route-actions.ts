@@ -81,7 +81,7 @@ export const ROUTE_ACTIONS: RouteAction[] = [
   { ...row('GET', '/api/projects/:slug/export', 'export', project), audited: true },
   row('POST', '/api/projects/:slug/save-batch', 'edit', project),
   { ...row('POST', '/api/projects/:slug/item-addresses/resolve', 'read', project), audited: true },
-  { ...row('POST', '/api/projects/:slug/item-addresses/reconcile', 'edit', project), targets: 'body' },
+  { ...row('POST', '/api/projects/:slug/item-addresses/reconcile', 'edit', workspace), targets: 'body' },
   row('POST', '/api/projects/:slug/gitignore', 'edit', project),
   row('GET', '/api/projects/:slug/metrics', 'read', project),
   row('GET', '/api/projects/:slug/delete-impact', 'read', project),

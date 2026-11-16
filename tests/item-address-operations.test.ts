@@ -57,9 +57,15 @@ test('a lost reconciliation reply replays through the twin with one migration an
       request: buildTwinRequest('itemAddresses.reconcile', { params: { slug: project }, body }),
     });
   expect((await invoke(declaration, ['read'])).response.status).toBe(403);
-  const accepted = await invoke();
-  expect(accepted.response.status).toBe(200);
-  const record = await accepted.response.json();
+  const accepted = await context.handler(
+    new Request(`http://localhost/api/projects/${project}/item-addresses/reconcile`, {
+      method: 'POST',
+      body: JSON.stringify(declaration),
+      headers: { Origin: 'http://localhost', 'X-SW-Request': '1' },
+    }),
+  );
+  expect(accepted.status).toBe(200);
+  const record = await accepted.json();
   const bytes = readFileSync(addressMigrationFile(layout, project));
   const repeated = await invoke();
   expect(repeated.response.status).toBe(200);
@@ -81,6 +87,8 @@ test('address requests reject malformed or foreign bodies and hide unreadable fi
   expect(await hidden.response.json()).toEqual(await missing.response.json());
   expect((await invoke({ address: target })).response.status).toBe(400);
   expect((await invoke({ address: 'sw1:#metric:X' })).response.status).toBe(400);
+  expect((await invoke({ address: 'sw1:sales-contracts' })).response.status).toBe(400);
+  expect((await invoke({ address: 42 })).response.status).toBe(400);
   expect((await invoke({ address: target, extra: true })).response.status).toBe(400);
   const viewer = setup(workspace, 'carol');
   const denied = await viewer.handler.boundary.operate({

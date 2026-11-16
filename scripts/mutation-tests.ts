@@ -1,7 +1,7 @@
 import { tmpdir } from 'node:os';
 // Introduces faults into temporary source copies and checks that the test suite detects them.
 import { operationBoundaryMutants } from './operation-boundary-mutants';
-import { addressMutants, modelAddressMutants, migrationAddressMutants, serverAddressMutants } from './address-mutants';
+import { addressMutants, modelAddressMutants, migrationAddressMutants, serverAddressMutants, addressOperationMutants } from './address-mutants';
 import { adminMutants } from './admin-mutants';
 import { sessionSecurityMutants } from './session-security-mutants';
 import { securityReviewMutants } from './security-review-mutants';
@@ -547,7 +547,7 @@ const askpassMutants: [string, string][] = [
   [`"Password for 'https://"*"@$host': " | "Password for 'http://"*"@$host': ")`, `"Password for "*)\n    printf '%s\\n' "\${SW_GIT_TOKEN-}"\n    exit 0\n    ;;\n  "never")`],
 ];
 // Administration cases extend the existing inventory without changing its categories.
-mutants.push(...adminMutants, ...addressMutants, ...modelAddressMutants, ...migrationAddressMutants, ...serverAddressMutants);
+mutants.push(...adminMutants, ...addressMutants, ...modelAddressMutants, ...migrationAddressMutants, ...serverAddressMutants, ...addressOperationMutants);
 // Authentication, session and HTTP boundary cases extend the inventory the same way.
 mutants.push(...sessionSecurityMutants);
 // Data access, files and Git cases extend the inventory the same way.

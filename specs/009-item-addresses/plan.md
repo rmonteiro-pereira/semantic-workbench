@@ -52,12 +52,12 @@ address migration store and versioned application formats; persisted adoption ma
 
 | Principle | How the plan complies |
 | --- | --- |
-| I. Local and Server Modes | No outbound network call. Inventoried item-address HTTP twins reuse the shared operation boundary. Addresses contain project and file names, so they never enter logs or telemetry labels (a redaction test and a mutant cover it); the server resolver gives hidden and missing addresses the same answer (FR-044) and migration reads use the project's read boundary. Local mode behaves the same through the implicit Admin principal. |
+| I. Local and Server Modes | No outbound calls. Inventoried twins reuse the boundary; hidden and missing match. Locators stay out of operational logs. |
 | II. Byte-Exact Source Preservation | Adoption never rewrites a file. The `dataset.field` notation in metric extensions and every name in a file are read through adapters (FR-041). Rename edits only the edited item and the references the user ticked, as today. Migration records live outside the files. |
 | III. One Validation Rule Set | One parser and one formatter in `src/shared/`, used by the browser and the server. The declared-migration check on save is the same function the browser uses before sending. The parser is bounded: length checked first, linear scan, depth limit 32. |
 | IV. Atomic, Hash-Checked File Persistence | The migration store is durable state, written atomically, and updated as one more step of the journaled operation that writes the renamed files, so recovery completes both or neither. Conversion of persisted keys backs up the old store, checks every converted file's hash against its original and stops on any failure (FR-040). Saves still carry base hashes; the new request field changes none of that. **Amendment**: name the migration store in the list of durable state files. |
 | V. Pinned Official Standards | No pinned schema is edited. The grammar is an application choice, labelled as such in docs and the contract (FR-010). Nothing is written into a standard Ossie or ODCS file. **Amendment**: add application-defined formats (`sw1`) to the list of workbench interpretations that must be labelled and versioned. |
-| VI. Verification Gate | Unit and property tests with a seeded generator; conformance fixtures; store and interrupted-operation tests; an authorization test for hidden-equals-missing (no new route, so the route inventory is unchanged; the save and save-batch bodies are extended and their existing matrix entries gain a case); targeted mutants (SC-011); browser checks for graph, mapping, lineage and rename; unchanged geometry suites run as the no-visible-change proof. |
+| VI. Verification Gate | Conformance, seeded properties, recovery, inventory/parity, authorization matrices, targeted mutants and existing browser/geometry suites. |
 | VII. Honest Claims | The README and docs state that names do not survive renames made outside the workbench, that positional addresses are volatile, and that migrations exist only for workbench renames. Counts quoted (kinds, fixtures, records) come from tests. |
 | VIII. Readable Code | One module per concept (grammar, kinds, model addresses, migration, store, key adapters); functions about 40 lines; no spec IDs in comments; header comment and JSDoc on every export. |
 | Technical Constraints | No dependency. Every server decision stays behind the existing boundary; the store is read by server code that already has a caller and a reader. Document size limit unchanged. Heavy work: derivation is linear and runs in the existing parse path. |
@@ -172,7 +172,8 @@ a file.
 - **008 published snapshot**: defines the `@<snapshot>` token. Until it lands, the suffix is parsed
   and formatted as opaque text and no resolver returns published content for it.
 - **010 operation boundary**: main includes the boundary; the declared-migration check and store append run
-  inside the operation it defines. Until then they run in the existing save and batch save.
+  inside the existing inventoried save and batch-save handlers. Resolution and reconciliation
+  also have inventoried twins. The boundary does not implement receipt storage or save replay settlement.
 - **Constitution amendments** (Principles IV and V): needed before steps 5 and 6.
 - **Item diff (roadmap row 4)**, **governance (row 5)**, **usage counters (row 12)**, **mesh and
   Tessera (rows 8 and 9)**: later consumers; they use the contract and own their adoption tasks.

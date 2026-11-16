@@ -971,3 +971,31 @@ itemAddresses.reconcile had no twin dispatch. After registration and route compo
 a read-only connection refusal, same-key lost reconciliation reply recovery, unchanged bytes,
 conflicting key reuse, malformed/foreign bodies and hidden/missing equivalence. Generic parity
 and full-role matrix cases are registered and will run remotely before this integration is done.
+
+### Migration operation parity and targeted predicates
+
+`bun test ./tests/address-operation-parity.test.ts`: `2 pass`, `0 fail`, `34 expect() calls`;
+`Ran 2 tests across 1 file. [4.61s]`. Both server-mode transports preserve ordered rename,
+item-deletion, recreation, document-move and file-deletion history. The baseline definition is
+committed before the person's first write, and the checks read that person's working copy.
+
+The focused remote driver uses the registered route mutations and the normal mutation case
+entry point: `6/6 address route mutants killed; unmodified baseline passed.` The faults remove
+project/item scoping, unknown-field rejection, operation-key typing or the bounded body read.
+The canonical parser already guarantees canonical spelling, so the route no longer repeats it.
+The full unmodified global mutation runner remains required after the final implementation edit.
+
+Reconciliation uses the boundary's workspace/body-target admission pattern; concrete target
+visibility and edit authorization remain inside its owning service. Both metadata-only routes
+join the guard inventory with explicit reasons, and the hidden-body-target regression includes
+reconciliation. Focused checks after these changes:
+
+- `bun test ./tests/item-address-operations.test.ts`: `3 pass`, `0 fail`, `21 expect() calls`;
+  `Ran 3 tests across 1 file. [2.05s]`; HTTP acceptance is retried through a twin with one record.
+- `bun test ./tests/auth/write-regressions.test.ts`: `9 pass`, `0 fail`, `169 expect() calls`;
+  `Ran 9 tests across 1 file. [7.95s]`.
+- `bun test ./tests/auth/guard-inventory.test.ts`: `3 pass`, `0 fail`, `259 expect() calls`;
+  `Ran 3 tests across 1 file. [10.64s]`.
+
+Formatter, readability and docs-sync checks pass. Generic remote parity/matrix execution is still
+running; all full completion commands will run on the final committed source, without a preload.

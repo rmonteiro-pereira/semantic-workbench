@@ -54,3 +54,13 @@ export const serverAddressMutants: [string, string, string, string][] = [
   ['address-store', 'src/server/projects/address-migrations.ts', '      continue;\n    }\n    records.push(record);', '    }\n    records.push(record);'],
   ['address-server', 'src/server/projects/address-resolution.ts', 'const parsed = parseAddress(text);', "const parsed = parseAddress(text);\n  console.log('address.resolve', { address: text });"],
 ];
+
+/** Faults in the scoped, typed request predicates of address operation routes. */
+export const addressOperationMutants: [string, string, string, string][] = [
+  ['address-operation', 'src/server/routes/item-addresses.ts', 'parsed.address.project !== project || ', ''],
+  ['address-operation', 'src/server/routes/item-addresses.ts', ' || !parsed.address.chain.length', ''],
+  ['address-operation', 'src/server/routes/item-addresses.ts', "Object.keys(body).some(key => key !== 'address')", 'false'],
+  ['address-operation', 'src/server/routes/item-addresses.ts', "Object.keys(body).some(key => !['operationId', 'from', 'to'].includes(key))", 'false'],
+  ['address-operation', 'src/server/routes/item-addresses.ts', "typeof body.operationId !== 'string'", 'false'],
+  ['address-operation', 'src/server/routes/item-addresses.ts', 'readJson(request, ITEM_ADDRESS_REQUEST_LIMIT)', 'readJson(request, ITEM_ADDRESS_REQUEST_LIMIT * 2)'],
+];

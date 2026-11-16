@@ -426,6 +426,8 @@ export const ADMIN_EXEMPTION = 'Admin panel: changes access rules and settings, 
 
 /** Routes beyond plain reads that are not content-guarded, and why. */
 export const GUARD_EXEMPTIONS: Record<string, string> = {
+  'POST /api/projects/:slug/item-addresses/resolve': 'resolves visible locators and writes no definitions or history',
+  'POST /api/projects/:slug/item-addresses/reconcile': 'records history only; target edit authority and unchanged guarded source are checked without editing definitions',
   'POST /api/telemetry/browser': 'records an error or timing report and writes no content',
   'POST /api/projects': 'creates an empty project; its files arrive through guarded saves',
   'POST /api/examples/:name': 'loads the shipped examples, which hold no person’s approvals',

@@ -1,4 +1,4 @@
-import { formatAddress, parseAddress } from '../../shared/core/item-address';
+import { parseAddress } from '../../shared/core/item-address';
 import { requestReader } from '../auth/request-scope';
 import { BadRequestError } from '../projects/errors';
 import { ITEM_ADDRESS_REQUEST_LIMIT, decodeSegment, readJson } from '../request';
@@ -7,7 +7,7 @@ import type { Route } from './http';
 function projectItemAddress(value: unknown, project: string): string {
   if (typeof value !== 'string') throw new BadRequestError('An item address must be text.');
   const parsed = parseAddress(value);
-  if (!parsed.ok || parsed.address.form !== 'absolute' || parsed.address.project !== project || !parsed.address.chain.length || formatAddress(parsed.address) !== value) {
+  if (!parsed.ok || parsed.address.project !== project || !parsed.address.chain.length) {
     throw new BadRequestError('Expected a canonical absolute item address in the request project.');
   }
   return value;
