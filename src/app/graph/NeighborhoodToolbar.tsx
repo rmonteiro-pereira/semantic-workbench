@@ -71,6 +71,7 @@ function CenterPicker({ centerEntity, pick, setPick, pickOpen, setPickOpen, acti
     <div className="center-picker" role="combobox" aria-expanded={pickOpen && pickResults.length > 0} aria-haspopup="listbox" aria-owns="center-picker-results">
       <LocateFixed size={14} />
       <input
+        size={Math.max(22, (centerEntity?.name.length ?? 0) + 8)}
         aria-label="Find a center"
         aria-controls="center-picker-results"
         aria-autocomplete="list"
@@ -268,13 +269,13 @@ export function NeighborhoodTools({
         />
         <ZoomButtons onZoomIn={onZoomIn} onZoomOut={onZoomOut} />
         <NeighborhoodOptions {...options} />
-        {fullscreen && <FullscreenButton fullscreen={fullscreen} />}
         <span className="neighborhood-legend" aria-hidden="true">
           <span className="in">Incoming</span>
           <span className="out">Outgoing</span>
           {lateral && <span className="lateral">Between neighbors</span>}
         </span>
       </CompactControls>
+      {fullscreen && <FullscreenButton fullscreen={fullscreen} />}
     </ScrollStrip>
   );
 }

@@ -14,3 +14,20 @@ export function EntityName({ name, style }: { name: string; style?: CSSPropertie
     </strong>
   );
 }
+
+/** Converts a display identifier to sentence case without changing its source identity. */
+export function humanizeIdentifier(identifier: string): string {
+  const label = identifier.replace(/^[^:/\s]+:(?=[^/])/, '').replace(/:$/, '');
+  const words = label
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/([A-Z])([A-Z][a-z])/g, '$1 $2')
+    .replace(/[_-]+/g, ' ')
+    .trim()
+    .split(/\s+/);
+  return words
+    .map((word, index) => {
+      if (index === 0) return word.charAt(0).toUpperCase() + word.slice(1);
+      return /^[A-Z0-9]+$/.test(word) ? word : word.toLowerCase();
+    })
+    .join(' ');
+}

@@ -13,6 +13,7 @@ import { useViewRestore, type Fullscreen } from './fullscreen';
 import { GraphOptions, OptionGroup, Segmented, ShowToggle } from './GraphOptions';
 import { ZoomButtons } from './ZoomButtons';
 import { MODEL_CARD_WIDTH, minimumGraphZoom, startsCollapsed, textSizesAt } from './overview-capacity';
+import { humanizeIdentifier } from './EntityName';
 import { CompactControls } from './CompactControls';
 import { modelOverview } from './overview';
 import { groupRelationships } from './graph-view';
@@ -312,66 +313,68 @@ export function FullGraph(props: Props) {
     <div className="full-graph" ref={container} style={textStyle} data-layout={algorithm}>
       <ScrollStrip className="full-graph-tools">
         {props.toolbarExtra}
-        <button onClick={fit}>
+        <button onClick={fit} disabled={busy}>
           <Maximize size={13} />
           Fit model
         </button>
         <CompactControls folded={size.width < 1400}>
-          {props.groupMenu}
-          <ZoomButtons onZoomIn={() => void flow.current?.zoomIn({ duration: 150 })} onZoomOut={() => void flow.current?.zoomOut({ duration: 150 })} />
-          <GraphOptions>
-            <OptionGroup title="Layout">
-              <Segmented
-                label="Graph layout"
-                value={algorithm}
-                onChange={setAlgorithm}
-                options={[
-                  { value: 'layered', label: 'Layered', title: 'Layered layout (ELK)' },
-                  { value: 'network', label: 'Network', title: 'Network layout (fCoSE)' },
-                ]}
-              />
-              <button onClick={relayout} disabled={busy} title="Re-layout" aria-label="Re-layout">
-                <RefreshCw size={13} />
-              </button>
-              <label className="zoom-to-group">
-                <Crosshair size={13} aria-hidden="true" />
-                <select aria-label="Zoom to group" title={zoomedGroupName ?? overview.groupingLabel} defaultValue="" onChange={e => zoomToGroup(e.target.value)}>
-                  <option value="">Whole model</option>
-                  {overview.groups.map(group => (
-                    <option key={group.id} value={group.id}>
-                      {group.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </OptionGroup>
-            <OptionGroup title="Areas">
-              <button onClick={() => setCollapsed(new Set(overview.groups.map(g => g.id)))} disabled={collapsed.size === overview.groups.length}>
-                Collapse areas
-              </button>
-              <button onClick={() => setCollapsed(new Set())} disabled={!collapsed.size}>
-                Expand all
-              </button>
-            </OptionGroup>
-            <OptionGroup title="Show">
-              <ShowToggle on={labels} onToggle={() => setLabels(shown => !shown)}>
-                Labels
-              </ShowToggle>
-              {valueIds.size > 0 && (
-                <ShowToggle on={!hideValues} onToggle={toggleValues} title={`${valueIds.size} value types and their relationships`}>
-                  Value types
+          <fieldset className="graph-layout-controls" disabled={busy}>
+            {props.groupMenu}
+            <ZoomButtons onZoomIn={() => void flow.current?.zoomIn({ duration: 150 })} onZoomOut={() => void flow.current?.zoomOut({ duration: 150 })} />
+            <GraphOptions>
+              <OptionGroup title="Layout">
+                <Segmented
+                  label="Graph layout"
+                  value={algorithm}
+                  onChange={setAlgorithm}
+                  options={[
+                    { value: 'layered', label: 'Layered', title: 'Layered layout (ELK)' },
+                    { value: 'network', label: 'Network', title: 'Network layout (fCoSE)' },
+                  ]}
+                />
+                <button onClick={relayout} disabled={busy} title="Re-layout" aria-label="Re-layout">
+                  <RefreshCw size={13} />
+                </button>
+                <label className="zoom-to-group">
+                  <Crosshair size={13} aria-hidden="true" />
+                  <select aria-label="Zoom to group" title={zoomedGroupName ?? overview.groupingLabel} defaultValue="" onChange={e => zoomToGroup(e.target.value)}>
+                    <option value="">Whole model</option>
+                    {overview.groups.map(group => (
+                      <option key={group.id} value={group.id}>
+                        {humanizeIdentifier(group.name)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </OptionGroup>
+              <OptionGroup title="Areas">
+                <button onClick={() => setCollapsed(new Set(overview.groups.map(g => g.id)))} disabled={collapsed.size === overview.groups.length}>
+                  Collapse areas
+                </button>
+                <button onClick={() => setCollapsed(new Set())} disabled={!collapsed.size}>
+                  Expand all
+                </button>
+              </OptionGroup>
+              <OptionGroup title="Show">
+                <ShowToggle on={labels} onToggle={() => setLabels(shown => !shown)}>
+                  Labels
                 </ShowToggle>
-              )}
-              {kpiIds.size > 0 && (
-                <ShowToggle on={!hideKpis} onToggle={toggleKpis} title={`${kpiIds.size} metric nodes and their relationships`}>
-                  Metrics
+                {valueIds.size > 0 && (
+                  <ShowToggle on={!hideValues} onToggle={toggleValues} title={`${valueIds.size} value types and their relationships`}>
+                    Value types
+                  </ShowToggle>
+                )}
+                {kpiIds.size > 0 && (
+                  <ShowToggle on={!hideKpis} onToggle={toggleKpis} title={`${kpiIds.size} metric nodes and their relationships`}>
+                    Metrics
+                  </ShowToggle>
+                )}
+                <ShowToggle on={miniMap} onToggle={toggleMiniMap} title="Mini-map of the whole model">
+                  Mini-map
                 </ShowToggle>
-              )}
-              <ShowToggle on={miniMap} onToggle={toggleMiniMap} title="Mini-map of the whole model">
-                Mini-map
-              </ShowToggle>
-            </OptionGroup>
-          </GraphOptions>
+              </OptionGroup>
+            </GraphOptions>
+          </fieldset>
         </CompactControls>
         {props.fullscreen && <FullscreenButton fullscreen={props.fullscreen} />}
       </ScrollStrip>

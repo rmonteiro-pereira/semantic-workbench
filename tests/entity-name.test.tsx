@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, expect, test } from 'bun:test';
 import { chromium, type Browser } from '@playwright/test';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { EntityName } from '../src/app/graph/EntityName';
+import { EntityName, humanizeIdentifier } from '../src/app/graph/EntityName';
 
 let browser: Browser;
 beforeAll(async () => {
@@ -52,4 +52,12 @@ test.each([80, 100, 120, 160])('long graph names have no orphan suffix at %ipx',
 test('identifier boundaries preserve complete words', () => {
   expect(renderToStaticMarkup(<EntityName name="DocumentReference" />)).toContain('Document<wbr/>Reference');
   expect(renderToStaticMarkup(<EntityName name="XMLParser" />)).toContain('XML<wbr/>Parser');
+});
+
+test('display identifiers become readable without losing acronyms', () => {
+  expect(humanizeIdentifier('EntityType')).toBe('Entity type');
+  expect(humanizeIdentifier('DocumentReference')).toBe('Document reference');
+  expect(humanizeIdentifier('core:')).toBe('Core');
+  expect(humanizeIdentifier('fin:RevenueTotal')).toBe('Revenue total');
+  expect(humanizeIdentifier('XMLParser')).toBe('XML parser');
 });
