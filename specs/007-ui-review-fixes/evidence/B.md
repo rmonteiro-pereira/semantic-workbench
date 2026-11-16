@@ -26,7 +26,7 @@ The stock `lineage-visibility.ts` initially captured the loading state after its
 
 ## T025 — partial implementation; acceptance skipped
 
-Walk targets now use `max(24, 24 / zoom)` canvas pixels, and are omitted when wider than the card. Unit checks: 6 pass, 0 fail. The four-click-after-Fit acceptance conflicts with the required hiding rule: the fitted 1440 baseline measurement has a 2.78×2.96 px button, corresponding to a card narrower than 24 screen pixels. Such a button must be absent under FR-017. No claim of four successful fitted clicks is made. The task remains unchecked for the integrator to reconcile this acceptance condition. No new neighbour-list UI was added.
+Walk targets now use `max(24, 24 / zoom)` canvas pixels, and are omitted when the available card header cannot contain them. Unit checks: 6 pass, 0 fail. The four-click-after-Fit acceptance conflicts with the required hiding rule: the fitted 1440 baseline measurement has a 2.78×2.96 px button, corresponding to a card narrower than 24 screen pixels. Such a button must be absent under FR-017. No claim of four successful fitted clicks is made. The task remains unchecked for the integrator to reconcile this acceptance condition. No new neighbour-list UI was added.
 
 ## T026 — implementation
 
@@ -54,7 +54,7 @@ Hops uses a non-wrapping row, with only the path text growing/shrinking. Zoom an
 
 ## T031 — implementation and capture
 
-The existing 1400 px content measure now includes `.odcs-lineage-host`; no second page-width rule was added. Opened `out/lane-b/t031/local-odcs-dataset--lineage-2560.png`: header and canvas align at both edges. The task's `rest`/`SW_ONLY=odcs` command emits `local-odcs-dataset--lineage`, rather than its stated `local-dataset-lineage--first-view` basename; both open Mall/properties on Lineage. The latter baseline is the graph-state sequence and needs a separate recapture for an exact stage pair. Browser width assertion was added to test:odcs at 2560 and restores the previous viewport afterwards.
+The existing 1400 px content measure now includes `.odcs-lineage-host`; no second page-width rule was added. Opened `out/lane-b/t031/local-odcs-dataset--lineage-2560.png`: header and canvas align at both edges. The task's `rest`/`SW_ONLY=odcs` command emits `local-odcs-dataset--lineage`, rather than its stated `local-dataset-lineage--first-view` basename; both open Mall/properties on Lineage. The latter baseline is the graph-state sequence and was separately recaptured for the exact settled stage below. Browser width assertion was added to test:odcs at 2560 and restores the previous viewport afterwards.
 
 ## T032 — implementation
 
@@ -62,7 +62,7 @@ Walk trail names the current and original centre after a walk. CENTER now sits b
 
 ## T033 — implementation
 
-Label placement rejects a slot intersected by any laid-out route, including diagonal segments; renderer suppresses placed labels clipped by the current pane. Layout state disables the native controls fieldset and hop buttons while ELK runs. The route-crossing test distinguishes a blocked slot from a clear route. Focused unit summary: 17 pass, 0 fail, 40 expect calls. Loading/edge browser proof remains part of the final checks.
+Label placement rejects a slot intersected by any laid-out route, including diagonal segments; renderer suppresses placed labels clipped by the current pane. Layout state disables the native controls fieldset and hop buttons while ELK runs. The route-crossing test distinguishes a blocked slot from a clear route. Focused unit summary: 17 pass, 0 fail, 40 expect calls. The final visual pairs and edge-check results are recorded below.
 
 ## T034 — complete
 
@@ -98,7 +98,7 @@ Foreign-key docs now state one to three. Mapping Steps (1–5) is described sepa
 | T032 | Skipped after partial implementation | Empty state, legend, centre badge and walked label are implemented. Removing the fixed empty header band changes row-port geometry; the fitted walk proof also conflicts with hidden targets. Full requested state matrix is not proved. |
 | T033 | Complete | Loading, three-hop list and one-hop node-selected pairs inspected; route/pane rejection and disabled pending controls verified. |
 | T034 | Complete | Documentation and MAX_HOPS agree. |
-| T035 | Skipped as an incomplete gate | Full unit suite cannot use the sole permitted API port for concurrent identity fixtures. Other command results are recorded separately; no all-green claim. |
+| T035 | Skipped as an incomplete gate | Full units and mutation baselines need concurrent listeners; responsive also timed out on the unowned full-model loading state. Other checks pass; no all-green claim. |
 
 Unchecked tasks above are deliberate explicit skips, not merge-ready acceptance. No new representation, cross-card routing or neighbouring-list design was improvised.
 
@@ -121,3 +121,56 @@ Opened all three T033 review baselines and their after images:
 The first two use `capture-states.ts`; the last uses `lineage-panel-states.ts` restricted to 1440/light and the centre expansion/selection stages. All captures use the stock capture writer. The broad graph-state attempt's node-selected capture remained at three hops, so it is not used as the exact one-hop pair.
 
 The full mutation command initially identified the old bounds anchor as missing after route-aware placement added an argument. Route context now belongs to each `LabelRequest`, preserving the existing three-argument placement call and the existing bounds mutant. Focused edge-label tests pass (7 pass, 0 fail, 20 expect calls), and the complete `check` command passes. No shared mutation anchor was changed.
+
+
+## Final gate results
+
+Commands use the assigned frontend `SW_BASE_URL=http://127.0.0.1:5221` and an ignored Bun preload restricting API listeners to 5222. Final isolated fixtures use `TMPDIR=/tmp/sw-B/tmp`. The wrappers are local harness configuration, not product changes.
+
+| Required check | Result / output summary | Log |
+| --- | --- | --- |
+| `bun test` | Not passed: ten identity-fixture listener conflicts on 5222; corrected explicit test-directory invocation stopped after confirming the conflict (exit 130). | `out/lane-b/bun-test-fixed.log` |
+| `bun --bun run check` | Passed: TypeScript, format, lint, comments, theme and brand. | `out/lane-b/check-complete.log` |
+| `bun --bun run build` | Passed: `built in 1.84s`; existing chunk-size warning. | `out/lane-b/build-complete.log` |
+| `bun run test:lineage` | `25 lineage checks passed`; corrected target containment and UBL Expand/Undo pass. | `out/lane-b/test-lineage-final.log` |
+| `bun run test:odcs` | `10 ODCS checks passed`. | `out/lane-b/final-odcs.log` |
+| `bun run test:mapping-graph` | `12 mapping graph checks passed`. | `out/lane-b/final-mapping-graph.log` |
+| `bun run test:edges` | `6 edge attachment UI checks passed`. | `out/lane-b/final-edges.log` |
+| `bun run test:responsive` | Not passed: 110 checks passed before Admin at 2560 timed out waiting five seconds for `.full-graph-loading` to disappear in the existing screen-tour helper. Lineage, mapping, ODCS and the viewport overlap checks passed earlier in this run. | `out/lane-b/test-responsive-final.log` |
+| `bun run test:ui` | `20 UI checks passed`. | `out/lane-b/final-ui.log` |
+| `bun scripts/mutation-tests.ts` | Not passed: `Baseline failed (remote-redirect)` because the redirect-credential fixture needs concurrent servers on 5222. The earlier missing bounds anchor was corrected first. | `out/lane-b/mutation-full.log` |
+
+Additional focused results: `18 pass`, `0 fail`, `48 expect() calls` across three test files (`out/lane-b/focused-final.log`); `2/2 lineage viewport mutants killed; production baseline passed` (`out/lane-b/viewport-mutants-final.log`); `PASS production bounds baseline` and `KILLED existing edge-label-bounds mutant` (`out/lane-b/bounds-mutants.log`). All mutation-anchor presence checks passed before the full runner reached the unrelated redirect baseline.
+
+Observed integrity issues outside this presentation delta: the final ODCS process printed a shutdown-time watcher `RangeError: Cannot use a closed database` after its passing summary; capture scripts logged draft-resource 404s. Neither is treated as a successful error-free capture run or changed under this lane.
+
+The aggregate readable-code scan over this lane's changed lines, docs synchronization check and `git diff --check` passed. Public guides/changelog pass the full leak scanner; the internal evidence/tasks and all changed source files pass its confidential-only check. No attribution trailers were added.
+
+## Local commits
+
+- `4e296cd6` refactor: move lineage legend into its owning module
+- `670aa9ca` fix: reclaim table header space for lineage canvas
+- `3b20b25d` fix: compensate lineage walk targets for canvas zoom
+- `8804223a` fix: fit complete lineage reaches when readable bounds allow
+- `deb88de0` fix: fit lineage cards beside the selected path panel
+- `1836742b` docs: confirm intrinsic sizing behind lineage hops wrapping
+- `c8aa982f` fix: keep lineage hops and viewport actions on one row
+- `2dca1556` fix: align embedded lineage with the dataset content width
+- `3f0923f4` fix: clarify lineage centres legends and unlinked states
+- `1ab09121` fix: reject crossed lineage labels and disable pending layout controls
+- `62e4031d` docs: distinguish foreign-key hops from mapping steps
+- `b34dfb62` refactor: remove unused path-fit inputs
+- `fb80f2a3` test: register readable-fit and walk-target mutants
+- `cc16978c` test: recognize the visible phone lineage legend disclosure
+- `2eb3fee0` fix: contain compensated walk targets within card headers
+- `d4a36270` docs: describe lineage control and viewport exports
+- `b5e867b4` fix: prevent clipped mapping labels from using legacy fallback
+- `212af55f` docs: record settled dataset width acceptance
+- `9ac5ad5c` fix: preserve bounds mutation coverage with route-aware label requests
+
+
+## Handoff
+
+The final UI smoke run reports `20 UI checks passed`. All lane-owned changes are committed locally; nothing was pushed or merged. The dev server was stopped and neither 5221 nor 5222 has a listener. A process scan found no remaining browser or Bun check process in this worktree.
+
+The integrator must reconcile the skipped Fit/name/target acceptance conditions, decide whether shared-source routing belongs in a separate change, and rerun the complete unit/mutation gates with fixture-compatible listener allocation. The responsive Admin loading timeout and shutdown watcher error remain reported separately. The supplied `scripts/commit_cadence.py` command is unavailable in this repository. This lane is not declared ready to merge.
