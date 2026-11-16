@@ -56,3 +56,16 @@ test('generated hostile parameters preserve every intended row and encoded value
   }
   expect(generated).toBeGreaterThanOrEqual(shapes.size * 500);
 }, 30_000);
+
+import { BadRequestError } from '../../src/server/projects/errors';
+
+test('caller mistakes have a request error that adapters can answer as a client failure', () => {
+  const circular: Record<string, unknown> = {};
+  circular.self = circular;
+  for (const body of [circular, 1n]) {
+    expect(() => buildTwinRequest('projects.create', { params: {}, body })).toThrow(BadRequestError);
+  }
+  expect(() => buildTwinRequest('files.read', { params: { slug: 'sales', '*': '\ud800' } })).toThrow(BadRequestError);
+  expect(() => buildTwinRequest('files.read', { params: { slug: 'sales', '*': 'file.yaml' }, body: {} })).toThrow(BadRequestError);
+  expect(() => buildTwinRequest('files.read', { params: {} })).toThrow(BadRequestError);
+});

@@ -388,6 +388,9 @@ For API work, maintain the action inventory and relevant HTTP/configuration cont
 handlers, schemas and tests remain authoritative when an older design contract describes an
 unimplemented or superseded detail.
 
+`buildTwinRequest` reports malformed parameters and non-JSON bodies with `BadRequestError`, so
+adapters can return a client error without treating caller mistakes as server failures.
+
 Twin requests carry the authenticated caller's session reference. Remote credentials use that
 reference, including an explicit absent session, before considering cookie-based session lookup.
 
