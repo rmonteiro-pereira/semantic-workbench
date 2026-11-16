@@ -1,5 +1,5 @@
 // Tests which cards open whole in the first view of the lineage canvas.
-import { cardHeight, portY, elkGraph, OVERVIEW_H } from '../src/app/odcs/lineage-layout';
+import { cardHeight, portY, elkGraph, compactOverviewNeedsPacking, OVERVIEW_H } from '../src/app/odcs/lineage-layout';
 import { test, expect } from 'bun:test';
 import { planFirstView, walkTargetSize, fitsReadableView, overviewNameSize, NAME_MIN_PX } from '../src/app/odcs/lineage-view';
 
@@ -106,4 +106,17 @@ test('overview layout preserves semantic ports while anchoring them inside the n
   expect(layout.children[0].ports.map(port => port.id)).toContain('orders/id:out');
   expect(layout.children[0].ports.every(port => port.y === OVERVIEW_H / 2)).toBe(true);
   expect(cardHeight({ ...card, overview: false })).toBeGreaterThan(OVERVIEW_H);
+});
+
+test('compact fits pack only when the layered bounds cannot contain complete wrapped names', () => {
+  const cards = [{ id: 'properties', rows: [], portRows: [], more: false, overview: true }];
+  const bounds = { width: 4000, height: 2400 };
+  expect(compactOverviewNeedsPacking(cards, { width: 350, height: 378 }, bounds)).toBe(true);
+  expect(compactOverviewNeedsPacking(cards, { width: 1200, height: 700 }, bounds)).toBe(false);
+  const longNames = [{ ...cards[0], label: 'consignment__consolidated_shipment' }];
+  expect(compactOverviewNeedsPacking(longNames, { width: 1200, height: 700 }, bounds)).toBe(true);
+  expect(compactOverviewNeedsPacking([{ ...cards[0], overview: false }], { width: 350, height: 378 }, bounds)).toBe(false);
+  expect(compactOverviewNeedsPacking(cards, undefined, bounds)).toBe(false);
+  expect(elkGraph(cards, [], 350 / 378).layoutOptions['elk.algorithm']).toBe('box');
+  expect(elkGraph(cards, []).layoutOptions['elk.algorithm']).toBe('layered');
 });

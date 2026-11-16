@@ -48,7 +48,12 @@ async function overviewReport(page: Page) {
     return [...view.querySelectorAll('.lineage-card')].map(card => {
       const rect = card.getBoundingClientRect();
       const name = card.querySelector('strong')!;
+      const range = document.createRange();
+      range.selectNodeContents(name);
+      const text = range.getBoundingClientRect();
+      const nameWhole = text.left >= rect.left - 1 && text.right <= rect.right + 1 && text.top >= rect.top - 1 && text.bottom <= rect.bottom + 1;
       return {
+        nameWhole,
         name: card.getAttribute('aria-label'),
         pixels: parseFloat(getComputedStyle(name).fontSize) * zoom,
         whole: rect.left >= pane.left - 1 && rect.right <= pane.right + 1 && rect.top >= pane.top - 1 && rect.bottom <= pane.bottom + 1,
@@ -63,6 +68,7 @@ export async function checkOverviewNames(page: Page) {
   expect(report.length).toBeGreaterThan(0);
   for (const card of report) {
     expect(card.whole, card.name ?? 'card').toBe(true);
+    expect(card.nameWhole, card.name ?? 'complete card name').toBe(true);
     expect(card.pixels, card.name ?? 'card').toBeGreaterThanOrEqual(NAME_MIN_PX - 0.01);
   }
 }
@@ -77,9 +83,10 @@ export async function fitOverview(page: Page) {
   await expect
     .poll(async () => {
       const cards = await overviewReport(page);
-      return cards.length > 0 && cards.every(card => card.whole && card.pixels >= NAME_MIN_PX - 0.01);
+      if (!cards.length) return ['No cards'];
+      return cards.filter(card => !card.whole || !card.nameWhole || card.pixels < NAME_MIN_PX - 0.01).map(card => JSON.stringify(card));
     })
-    .toBe(true);
+    .toEqual([]);
   await checkOverviewNames(page);
 }
 

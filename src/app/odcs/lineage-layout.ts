@@ -1,5 +1,6 @@
 /** Builds left-to-right ELK geometry with row ports; layout runs in ELK's worker. */
 import type { LineageCard, LineageColumn } from './lineage';
+import { NAME_MIN_PX, type ViewSize } from './lineage-view';
 // Layout of the lineage canvas: ELK `layered`, left to right, one port per visible row on each
 // side of a card (FIXED_POS, so lines leave and enter at their rows). Pure geometry here; the ELK
 // run happens in ELK's own worker (elk-worker), off the main thread.
@@ -56,6 +57,7 @@ export const cardGeometry = (card: LineageCard, columns: LineageColumn[]) => ({
  * `filter` when the list has a filter box. */
 export type LayoutCard = {
   id: string;
+  label?: string;
   rows: string[];
   portRows: string[];
   more: boolean;
@@ -98,11 +100,13 @@ export function portY(layoutCard: LayoutCard, row: string) {
   return header + rowTop(layoutCard, layoutCard.rows.length) + MORE_H / 2;
 }
 /** Builds an ELK graph with fixed ports aligned to visible card rows. */
-export function elkGraph(cards: LayoutCard[], edges: LayoutEdge[]) {
+export function elkGraph(cards: LayoutCard[], edges: LayoutEdge[], aspectRatio?: number) {
+  const packOverview = aspectRatio !== undefined && cards.every(card => card.overview);
   return {
     id: 'root',
     layoutOptions: {
-      'elk.algorithm': 'layered',
+      'elk.algorithm': packOverview ? 'box' : 'layered',
+      ...(packOverview ? { 'elk.aspectRatio': String(aspectRatio) } : {}),
       'elk.direction': 'RIGHT',
       'elk.edgeRouting': 'POLYLINE',
       'elk.layered.spacing.nodeNodeBetweenLayers': '230',
@@ -136,9 +140,19 @@ export function elkGraph(cards: LayoutCard[], edges: LayoutEdge[]) {
         },
       ]),
     })),
-    edges: edges.map(e => ({ id: e.id, sources: [e.from + ':out'], targets: [e.to + ':in'] })),
+    edges: packOverview ? [] : edges.map(edge => ({ id: edge.id, sources: [edge.from + ':out'], targets: [edge.to + ':in'] })),
   };
 }
+/** Detects compact fits that cannot contain complete names at the minimum name size. */
+export function compactOverviewNeedsPacking(cards: LayoutCard[], pane: ViewSize | undefined, bounds: { width: number; height: number }): boolean {
+  if (!pane?.width || !pane.height || !cards.length || !cards.every(card => card.overview)) return false;
+  const zoom = Math.min(pane.width / (bounds.width * 1.12), pane.height / (bounds.height * 1.12), 1);
+  const nameWidth = Math.max(1, (CARD_W - 20) * zoom);
+  const requiredLines = Math.max(2, ...cards.map(card => textLines(card.label ?? '', nameWidth, NAME_MIN_PX * 0.6)));
+  const minimumNameHeight = NAME_MIN_PX * 1.1 * requiredLines;
+  return (OVERVIEW_H - 16) * zoom < minimumNameHeight;
+}
+
 /** Maps card identifiers to layout coordinates, and line identifiers to the bend points of the
  * route the layout chose for them. */
 export type LayoutResult = {
@@ -150,3 +164,28 @@ export const positionsOf = (result: any): LayoutResult => ({
   positions: Object.fromEntries((result.children ?? []).map((n: any) => [n.id, { x: n.x ?? 0, y: n.y ?? 0 }])),
   routes: Object.fromEntries((result.edges ?? []).map((e: any) => [e.id, (e.sections?.[0]?.bendPoints ?? []).map((p: any) => ({ x: p.x, y: p.y }))])),
 });
+
+/** Keeps compact overview links in the free gutters between the packed card rows and columns. */
+export function compactOverviewRoutes(positions: LayoutResult['positions'], edges: LayoutEdge[]): LayoutResult['routes'] {
+  return Object.fromEntries(
+    edges.flatMap(edge => {
+      const source = positions[edge.fromCard];
+      const target = positions[edge.toCard];
+      if (!source || !target) return [];
+      const sourceRail = source.x + CARD_W + 17;
+      const targetRail = target.x - 17;
+      const rowGutter = source.y + OVERVIEW_H + 17;
+      return [
+        [
+          edge.id,
+          [
+            { x: sourceRail, y: source.y + OVERVIEW_H / 2 },
+            { x: sourceRail, y: rowGutter },
+            { x: targetRail, y: rowGutter },
+            { x: targetRail, y: target.y + OVERVIEW_H / 2 },
+          ],
+        ],
+      ];
+    }),
+  );
+}

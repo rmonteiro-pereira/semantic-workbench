@@ -231,6 +231,7 @@ export function LineageCanvas({
           const columns = cardFor(id).columns.map(c => c.id);
           return {
             id,
+            label: cardFor(id).label,
             overview,
             ...cardGeometry(cardFor(id), cardFor(id).columns),
             rows: columns,
@@ -240,7 +241,7 @@ export function LineageCanvas({
           };
         }
         const shown = rows.rows.map(r => r.id);
-        return { id, overview, ...cardGeometry(cardFor(id), rows.rows), rows: shown, portRows: shown, more: rows.hidden > 0 };
+        return { id, label: cardFor(id).label, overview, ...cardGeometry(cardFor(id), rows.rows), rows: shown, portRows: shown, more: rows.hidden > 0 };
       }),
     [reach, rowsByCard, openColumns, why, listRows, overview],
   );
@@ -272,8 +273,9 @@ export function LineageCanvas({
     () => lines.filter(l => ![l.fromCard, l.toCard].some(c => reach.incremental.has(c))).map(l => ({ id: l.id, from: l.from, to: l.to, fromCard: l.fromCard, toCard: l.toCard })),
     [lines, reach],
   );
-  const layoutKey = useMemo(() => JSON.stringify([layoutCards, layoutEdges.map(e => e.id)]), [layoutCards, layoutEdges]);
-  const { result: elk, busy } = useLayout(layoutCards, layoutEdges, layoutKey);
+  const layoutPane = overview ? stageSize : undefined;
+  const layoutKey = useMemo(() => JSON.stringify([layoutCards, layoutEdges.map(edge => edge.id), layoutPane]), [layoutCards, layoutEdges, layoutPane]);
+  const { result: elk, busy } = useLayout(layoutCards, layoutEdges, layoutKey, layoutPane);
   const { sizeFor, recordSizes } = useMeasuredNodeSizes();
   // ELK positions, then each expansion's new cards beside their origin, in order; nothing placed
   // moves.

@@ -107,14 +107,18 @@ export function DatasetPage({ doc, data, objectName, projectDocs, onBack, onOpen
   const rules = rulesOf(object);
   const changed = versions ? lastChange(versions, objectName) : null;
   const tags = list(object.tags);
+  const backToTables = (
+    <button className="odcs-back" onClick={onBack}>
+      <ArrowLeft size={14} />
+      All tables
+    </button>
+  );
   return (
     <section className={`odcs-page odcs-dataset${tab === 'Lineage' ? ' lineage-active' : ''}`} aria-label={`Table ${objectName}`}>
-      <button className="odcs-back" onClick={onBack}>
-        <ArrowLeft size={14} />
-        All tables
-      </button>
+      {tab !== 'Lineage' && backToTables}
       {tab === 'Lineage' ? (
         <header className="odcs-head odcs-lineage-summary">
+          {backToTables}
           <strong title={objectName}>{objectName}</strong>
           <button className="odcs-link" onClick={() => setTab('Properties')}>
             Properties

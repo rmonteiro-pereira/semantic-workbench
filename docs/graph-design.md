@@ -144,6 +144,10 @@ anchor to the compact header; detailed cards keep the existing row ports. First 
 complete compact reach when its names fit readably, otherwise it centres a whole chosen set.
 The remaining cards appear when the person pans, zooms or presses Fit.
 Explicit Fit requests the complete compact reach and takes precedence over a pending first view.
+Compact overviews that cannot contain their complete wrapped names at the minimum name size pack cards
+to the pane aspect ratio through ELK. Detailed views and already readable compact layouts retain
+their layered placement. Complete compact names wrap inside their cards. The embedded
+canvas uses the remaining visible panel height, with property details available below it by scrolling.
 Selecting a name-only card offers Walk in Selected path; zooming in restores rows and the
 compensated 24 screen-pixel Walk targets when the header can hold them.
 
