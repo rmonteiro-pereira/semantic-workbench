@@ -223,7 +223,7 @@ changes.
   `tests/address-hidden-missing.test.ts` comparing responses and the set of files opened (a spy on
   the store and the file reads) for readable, unreadable, guarded and absent projects. (FR-044;
   SC-009)
-- [ ] T038 [P] [US6] Telemetry and log guard: a test that a save with declared migrations, a
+- [x] T038 [P] [US6] Telemetry and log guard: a test that a save with declared migrations, a
   resolution and a migration read produce no log line, span name or metric label containing an
   address, slug, path or item name. Proof: `tests/observability/address-redaction.test.ts`.
   (FR-036)

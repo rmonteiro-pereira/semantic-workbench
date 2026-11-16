@@ -559,3 +559,9 @@ Proof: external-change and toy-consumer tests — 4 pass, 0 fail, 49 assertions.
 Hidden projects, absent projects outside the reader's view, guarded paths and malformed locators return exactly `{status: 'missing'}` with zero project, file or store reads. Visible current items bypass history; missing items replay only visible prefixes, and deletion terminates replay before a reused destination can inherit history. Results omit private source text. The absent unrestricted-project check opens no definition or history file. Opaque snapshot text survives replay; the interim resolver reads current definitions until feature 008 supplies version lookup.
 
 Proof: resolution and reconciliation tests — 6 pass, 0 fail, 33 assertions; TypeScript passes. The semantic fixture needed its actual format version, required dataset source and valid empty fields to exercise semantic-model resolution rather than validation refusal. The preceding resolver commit mistakenly preceded the completed proof; the immediate corrective commit contains the validated fixture and actual passing summary.
+
+### Address observability boundary
+
+An actual HTTP save with a declared rename, workspace resolution and reader-filtered history read run with debug logging and in-memory OpenTelemetry exporters. The test requires nonempty request logs, spans and metric batches, then checks all captured labels/attributes and lines for canonical prefixes, project slug, document path and item names. Audit records remain the existing separate security ledger.
+
+Proof: address-redaction test — 1 pass, 0 fail, 12 assertions; TypeScript passes.
