@@ -355,3 +355,7 @@ principal is allowed while the server Viewer refusal remains unchanged.
 `TMPDIR=/tmp/sw-008 bun test tests/adopt-published.test.ts tests/auth/matrix-write.test.ts tests/auth/guard-inventory.test.ts`: 17 pass, 0 fail, 1554 assertions. A local HTTP adoption preserves dirty source and index, records previous/new commits and emits only after settlement. Empty/diverged moves return the exact conflicts. The route uses publication authorization across the repository; Viewer and guarded approval cases remain refused. Server adoption first refuses a dirty base and refreshes only the validated commit. `bun --bun run check`: exit 0.
 
 Both adoption mutants are detected independently: skipping the content guard and accepting a non-descendant default ref (each baseline 0, mutant 1). The tests reuse the real Git publication fixture and assert that the durable pointer stays at the old commit after each refusal.
+
+## Refused adoption audit
+
+`TMPDIR=/tmp/sw-008 bun test tests/auth/audit.test.ts tests/auth/audit-chain.test.ts tests/adopt-published.test.ts`: 23 pass, 0 fail, 1082 assertions. Empty/diverged adoption outcomes record their bounded refusal reason without a successful-publication object. The real appended chain verifies, and existing guard reasons remain owned by the authorization audit path. `bun --bun run check`: exit 0.

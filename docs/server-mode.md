@@ -235,7 +235,9 @@ fetch succeeds without moving the published state. Diverged histories are not si
 
 Publication audit records include a `publication` object with `previous` (null for the first
 publication) and `commit`, in local and server mode. Publication emits the existing `published`
-event only after the durable pointer moves.
+event only after the durable pointer moves. Refused adoptions record a bounded reason such as
+`nothing-pending`, `diverged`, `changed` or `unreadable`; content-guard refusals retain their
+existing authorization reasons.
 
 Publishing never pushes by itself. Pulling from the local default branch never contacts a remote.
 Protected branches require publish permission. An interrupted publication is repaired at startup.

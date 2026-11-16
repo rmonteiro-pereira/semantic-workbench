@@ -2,7 +2,7 @@
 import { expect, test } from 'bun:test';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { createAuditLog, reportAuditFailure } from '../../src/server/auth/audit';
+import { createAuditLog, readStoredMonths, verifyAuditChain, reportAuditFailure } from '../../src/server/auth/audit';
 import { sha256 } from '../../src/server/projects/atomic';
 import { tempDataDir } from '../helpers/temp-data-dir';
 
@@ -236,3 +236,24 @@ for (const mode of ['local', 'server'] as const) {
     expect(entry.outcome).toBe('ok');
   });
 }
+
+test('refused adoptions retain a bounded reason and a verifiable audit chain', async () => {
+  const { publicationRepository } = await import('../helpers/git-fixtures');
+  const { createState } = await import('../../src/server/projects/state');
+  const { dataLayout } = await import('../../src/server/projects/paths');
+  const { testWorkspace } = await import('../helpers/temp-data-dir');
+  const { createHandler } = await import('../../src/server/handler');
+  const repository = publicationRepository();
+  createState(dataLayout(repository.dir)).writeRegistry([{ slug: 'definitions', name: 'Definitions', origin: '', createdAt: '' }]);
+  using workspace = await testWorkspace({ root: repository.dir });
+  const audit = createAuditLog({ dir: join(repository.dir, 'state', 'adoption-audit'), mirror: () => {} });
+  const handler = createHandler(workspace.ws, { audit });
+  const adopt = () => handler(new Request('http://localhost/api/projects/definitions/git/adopt', { method: 'POST', body: '{}' }));
+  expect((await adopt()).status).toBe(409);
+  expect(audit.recent(1)[0]).toMatchObject({ action: 'publish', outcome: 'refused', reason: 'nothing-pending' });
+  await workspace.ws.git.run(repository.repository, ['update-ref', 'refs/heads/main', repository.previous!]);
+  expect((await adopt()).status).toBe(409);
+  expect(audit.recent(1)[0]).toMatchObject({ action: 'publish', outcome: 'refused', reason: 'diverged' });
+  expect(audit.recent(1)[0]).not.toHaveProperty('publication');
+  expect(verifyAuditChain(readStoredMonths(join(repository.dir, 'state', 'adoption-audit')))).toMatchObject({ ok: true, records: 2 });
+});

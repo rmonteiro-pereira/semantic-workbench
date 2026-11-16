@@ -1,6 +1,6 @@
 // Exposes project source control operations. Remote actions run only through explicit requests.
 import { GIT_REQUEST_LIMIT } from '../request';
-import { requestReader, recordPublication } from '../auth/request-scope';
+import { requestReader, recordPublication, recordPublicationRefusal } from '../auth/request-scope';
 import { authorizeCheckout, authorizeGitPaths, authorizeGitPush, authorizePublish, authorizeRepository, mayPublish } from '../auth/git-access';
 import { checkRemoteAddress, delegatedCredentials } from '../auth/remote-credentials';
 import { authorizeWrite } from '../auth/write-access';
@@ -10,7 +10,7 @@ import { decode, sha256 } from '../projects/atomic';
 import { appendIgnore } from '../../shared/scm/gitignore';
 import type { Route } from './http';
 import type { HandlerOptions } from '../auth/middleware';
-import { BadRequestError } from '../projects/errors';
+import { BadRequestError, PublicationAdoptionError, SnapshotUnreadableError } from '../projects/errors';
 import { acknowledgePublication } from '../projects/scm-published';
 // Files are named relative to the project (`paths`) or to its repository root (`repoPaths`), the
 // latter for files of sibling projects in a shared repository.
@@ -136,9 +136,15 @@ export const createGitRoutes =
       if (action === 'git/adopt') {
         await body([]);
         await authorizePublish(gitTarget, undefined);
-        const publication = await ws.adopt(slug, reader);
-        recordPublication(req, publication);
-        return Response.json(publication);
+        try {
+          const publication = await ws.adopt(slug, reader);
+          recordPublication(req, publication);
+          return Response.json(publication);
+        } catch (error) {
+          if (error instanceof PublicationAdoptionError) recordPublicationRefusal(req, error.reason);
+          if (error instanceof SnapshotUnreadableError) recordPublicationRefusal(req, 'unreadable');
+          throw error;
+        }
       }
       if (action === 'git/publish') {
         const requestBody = await body(['branch']);

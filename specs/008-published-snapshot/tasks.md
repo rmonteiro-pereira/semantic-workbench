@@ -82,7 +82,7 @@ and local mode with uncommitted work; agent routes answer from the snapshot.
 
 - [x] T031 [US5] Pending-move detection: compare the default ref with the pointer on Git change events and on status requests, cache until the next event, and report fast-forward or diverged with the commit count. (proof: `tests/published-pointer.test.ts` and `tests/scm-published-status.test.ts`; mutant: serve the new ref while pending)
 - [x] T032 [US5] Add `POST /api/projects/:slug/git/adopt` in `src/server/routes/git.ts` with the publish authorization, the check list, the audit record and the `published` event; local mode by explicit action; diverged and empty refusals as the contract. Add it to the inventory and the matrix. (proof: `tests/adopt-published.test.ts` and matrix rows: fast-forward adopted, diverged refused, no right refused as publish is, nothing pending refused, audit record has both commits; mutants: skip the guard check, adopt a diverged move)
-- [ ] T033 [P] [US5] Record refused adoptions in the audit log with the reason. (proof: `tests/audit.test.ts` addition; the audit chain verification still passes)
+- [x] T033 [P] [US5] Record refused adoptions in the audit log with the reason. (proof: `tests/audit.test.ts` addition; the audit chain verification still passes)
 - [ ] T034 [US5] Start-up reconciliation for outside moves and intents, with an interrupted-publication matrix (stop after intent, after ref, after pointer, plus an outside move during the stop). (proof: `tests/publishing.test.ts` additions; SC-006 numbers recorded in `verification.md` at the end)
 
 ## Phase 8: User Story 6 - History reads cannot reach unpublished commits (P2)
