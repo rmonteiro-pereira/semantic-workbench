@@ -151,3 +151,8 @@ passed (`1 pass`, `0 fail`, `15 expect() calls`).
 The clone parity case now waits for the accepted background job's terminal event before disposing
 its fixture. `bun test tests/auth/operation-parity.test.ts -t 'repositories.clone preserves'`:
 `1 pass`, `0 fail`, `13 expect() calls`, `Ran 1 test across 1 file. [3.27s]`.
+
+Dynamic connection-scope refusals now retain the enclosing operation's action and target in the
+audit record. The scoped push-on-commit denial is recorded as `commit`, and the static publish
+denial as `publish`. `bun test tests/auth/connection-scope.test.ts tests/auth/http-characterization.test.ts`:
+`3 pass`, `0 fail`, `1558 expect() calls`, `Ran 3 tests across 2 files. [7.45s]`.

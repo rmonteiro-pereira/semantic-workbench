@@ -226,7 +226,9 @@ export function createOperationBoundary(ws: Workspace, options: HandlerOptions &
       response = await run(request);
     } catch (error) {
       if (!(error instanceof WriteAccessError)) throw error;
-      return refusedTarget(audit, requestId, scope, error);
+      // Dynamic effects belong to the enclosing operation's audit record.
+      const denied = error.decision.reason === 'connection-scope' ? new WriteAccessError(row.action, resource, error.decision) : error;
+      return refusedTarget(audit, requestId, scope, denied);
     }
     if (mode === 'server' && hiddenResponses.has(response)) {
       const failure = auditDenial(audit, {

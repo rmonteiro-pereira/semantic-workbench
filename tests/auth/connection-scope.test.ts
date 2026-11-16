@@ -25,6 +25,7 @@ test('connection effects restrict dynamic pushes and static publish before mutat
   expect((await handler.boundary.operate({ caller, request: publish })).response.status).toBe(403);
   const records = audit.recent(10);
   expect(records).toHaveLength(2);
+  expect(records.map(record => record.action)).toEqual(['commit', 'publish']);
   expect(records.every(record => record.reason === 'connection-scope')).toBe(true);
   expect(scopeAllows(undefined, ['remote', 'publish'])).toBe(true);
   expect(scopeAllows(['remote'], ['remote', 'publish'])).toBe(false);
