@@ -226,7 +226,7 @@ Client/presentation checks are separate from Chromium-backed dialog/geometry che
 ```sh
 bun test tests/admin-client.test.ts tests/admin-presentation.test.tsx
 bun test tests/admin-dialogs.test.tsx
-SW_SCREENSHOT_DIR=/tmp/admin-shots bun test tests/admin-geometry.test.tsx
+SW_SCREENSHOT_DIR=out/admin-shots bun test tests/admin-geometry.test.tsx
 ```
 
 Use a genuinely invalid draft for tests that require text to remain unsaved; a valid comment can
@@ -271,22 +271,23 @@ committer names and emails. See `specs/007-ui-review-fixes/capture-index.md` for
 `SW_ONLY` and `SW_THEME` select supported state groups and themes; follow-up captures use
 `SW_FOLLOWUP_WIDTH` and `SW_FOLLOWUP_ONLY`. Follow-up and server fixtures use dynamically allocated
 loopback ports. The graph-reopen probe also allocates its second frontend port dynamically and
-uses its own cache. All captures retain disposable data roots.
+uses its own cache. All captures retain disposable data roots and honor `TMPDIR` for scratch
+fixtures.
 
 
 With a frontend on port 5180:
 
 ```sh
-SW_BASE_URL=http://127.0.0.1:5180 bun run polish:capture /tmp/local-shots
-SW_BASE_URL=http://127.0.0.1:5180 SW_THEME=dark bun run polish:capture /tmp/local-dark-shots
+SW_BASE_URL=http://127.0.0.1:5180 bun run polish:capture out/local-shots
+SW_BASE_URL=http://127.0.0.1:5180 SW_THEME=dark bun run polish:capture out/local-dark-shots
 ```
 
 Server captures build/use their own isolated API and loopback mock provider:
 
 ```sh
 bun run build
-bun run polish:capture:server /tmp/server-shots
-SW_THEME=dark bun run polish:capture:server /tmp/server-dark-shots
+bun run polish:capture:server out/server-shots
+SW_THEME=dark bun run polish:capture:server out/server-dark-shots
 ```
 
 `SW_ONLY` is a screen-name substring filter, not a regular expression. Filtering to a screen not
@@ -300,8 +301,8 @@ opens the fixture ontology Overview first so its background does not depend on p
 The graph capture includes expanded areas, open controls, additional neighbors, hover labels,
 zoomed labels and full-screen views.
 
-`SW_SCREENSHOT_DIR` selects screenshot output; the graph, lineage, metrics, item-edit, UI, responsive and edge suites also honor `TMPDIR` when it is unset. Older drivers retain their documented
-`/tmp/workbench-*.png` locations. Capture collection must check timestamps so an old successful
+`SW_SCREENSHOT_DIR` selects screenshot output. The graph, lineage, metrics, item-edit, UI, responsive and edge suites also honor `TMPDIR` when it is unset.
+Older drivers retain their documented `workbench-*.png` files in the system temporary directory. Capture collection must check timestamps so an old successful
 image is not mistaken for evidence from a newer failed run.
 
 Keep source, formatting and builds frozen throughout capture; schema generation can reload Vite.

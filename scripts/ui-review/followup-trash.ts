@@ -1,3 +1,5 @@
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 // Captures one UI deletion per fresh temporary workspace. Usage: bun scripts/ui-review/followup-trash.ts OUTPUT_ROOT.
 // SW_FOLLOWUP_WIDTH optionally selects one width. SW_BASE_URL defaults to port 5190. The API binds a dynamic port; every state has its own DATA_DIR and context.
 import { chromium, expect, type Page } from '@playwright/test';
@@ -10,7 +12,7 @@ import { freshCapture, followupViews, type State } from './followup-capture';
 
 const root = process.argv[2];
 if (!root) throw new Error('Expected OUTPUT_ROOT');
-process.env.DATA_DIR = mkdtempSync('/tmp/sw-followup-trash-driver-');
+process.env.DATA_DIR = mkdtempSync(join(tmpdir(), 'sw-followup-trash-driver-'));
 const browser = await chromium.launch();
 
 async function removeFile(page: Page) {
@@ -71,7 +73,7 @@ await withCleanup(
     for (const view of followupViews) {
       if (process.env.SW_FOLLOWUP_WIDTH && view.width !== Number(process.env.SW_FOLLOWUP_WIDTH)) continue;
       for (const name of ['undo-toast', 'populated', 'row-actions', 'empty']) {
-        const data = mkdtempSync('/tmp/sw-followup-trash-');
+        const data = mkdtempSync(join(tmpdir(), 'sw-followup-trash-'));
         process.env.DATA_DIR = data;
         const api = await startIsolatedApi({ root: data });
         try {

@@ -1,3 +1,4 @@
+import { tmpdir } from 'node:os';
 // Captures fresh persona access surfaces, connected GitHub, and scoped file move. Usage: bun scripts/ui-review/followup-server.ts OUTPUT_ROOT.
 // SW_FOLLOWUP_ONLY filters screen/state names. Mock provider, application, and Git fixture use dynamic ports; all data is temporary.
 import { chromium, expect, type Page } from '@playwright/test';
@@ -14,7 +15,7 @@ import { freshCapture, followupViews, type State } from './followup-capture';
 
 const root = process.argv[2];
 if (!root) throw new Error('Expected OUTPUT_ROOT');
-const directory = mkdtempSync('/tmp/sw-followup-server-');
+const directory = mkdtempSync(join(tmpdir(), 'sw-followup-server-'));
 process.env.DATA_DIR = directory;
 const url = `http://127.0.0.1:${freeAuthPort()}`;
 const mock = await startMockOidc({ shape: 'entra', layout: 'entra', port: 0, redirectUris: [url + '/auth/callback'] });

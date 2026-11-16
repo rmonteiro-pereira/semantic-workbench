@@ -1,7 +1,7 @@
 // Defines fresh Full graph and Neighborhood states. Imported by followup-local; no additional environment variables.
 import { expect, type Page } from '@playwright/test';
 import { fileTab } from '../helpers/screen-tour';
-import { viewOptions, chooseLayout, setShown } from '../helpers/graph-options';
+import { viewOptions, chooseLayout, setShown, showEveryEntity } from '../helpers/graph-options';
 import type { State, View } from './followup-capture';
 
 /** Measures the rendered viewport and the union of node boxes in pane coordinates. */
@@ -69,6 +69,8 @@ export async function clickConnection(page: Page, selector: string) {
 async function fullGraph(page: Page, layout: 'network' | 'layered') {
   await fileTab('ubl.ontology.yaml', 'Graph')(page);
   await viewOptions(page, options => chooseLayout(options, layout));
+  await page.locator('.full-graph-loading').waitFor({ state: 'hidden', timeout: 60000 });
+  await showEveryEntity(page);
   await page.locator('.full-graph-loading').waitFor({ state: 'hidden', timeout: 60000 });
   await page.getByRole('button', { name: 'Fit model', exact: true }).click();
   await page.waitForTimeout(500);

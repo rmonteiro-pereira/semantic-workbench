@@ -1,3 +1,4 @@
+import { tmpdir } from 'node:os';
 // Captures real source-control, draft, and local-remote states. Usage: bun scripts/ui-review/source-control-states.ts OUTPUT.
 // SW_BASE_URL selects Vite. All Git commands and file changes target a temporary isolated project.
 import { chromium, type Page } from '@playwright/test';
@@ -32,13 +33,18 @@ async function scm(page: Page) {
   await page.waitForTimeout(500);
 }
 
+async function returnToChanges(page: Page) {
+  const back = page.getByRole('button', { name: 'Back to changes', exact: true });
+  if (await back.isVisible()) await back.click();
+}
+
 async function captureFixture(identity: CaptureIdentity) {
   const api = await startIsolatedApi();
   const project = await api.ws.loadExample('commerce');
   const directory = projectDir(api.ws.layout, project.slug);
   const file = 'commerce-business.ossie.yaml';
   const original = readFileSync(join(directory, file), 'utf8');
-  const extra = mkdtempSync('/tmp/sw-capture-remote-');
+  const extra = mkdtempSync(join(tmpdir(), 'sw-capture-remote-'));
   const bare = join(extra, 'remote.git');
   const page = await browser.newPage({ viewport: { width: identity.width, height: identity.height }, deviceScaleFactor: 1 });
   watchCaptureErrors(page, identity);
@@ -52,10 +58,7 @@ async function captureFixture(identity: CaptureIdentity) {
     await scm(page);
     await capture(page, identity, 'source-control', 'nothing-to-commit');
     await attempt(page, identity, 'source-control', 'history-list', async () => {
-      await page
-        .getByRole('button', { name: /^History/, exact: false })
-        .first()
-        .click();
+      await page.getByRole('region', { name: 'History', exact: true }).waitFor();
     });
     await scm(page);
     writeFileSync(join(directory, file), original.replace('Customer in the order-to-cash process.', 'Customer account that placed the order.'));
@@ -71,6 +74,7 @@ async function captureFixture(identity: CaptureIdentity) {
       [removed, 'deleted'],
     ]) {
       await attempt(page, identity, 'source-control', `diff-${kind}`, async () => {
+        await returnToChanges(page);
         await page
           .getByRole('region', { name: 'Source Control', exact: true })
           .getByRole('button', { name: new RegExp('^' + path.replaceAll('.', '\\.') + ', ') })
@@ -78,9 +82,11 @@ async function captureFixture(identity: CaptureIdentity) {
       });
     }
     await attempt(page, identity, 'source-control', 'staged-changes', async () => {
+      await returnToChanges(page);
       await page.getByRole('region', { name: 'Changes', exact: true }).getByRole('button', { name: 'Stage all', exact: true }).click();
     });
     await attempt(page, identity, 'source-control', 'commit-message-filled', async () => {
+      await returnToChanges(page);
       await page.getByLabel('Commit message', { exact: true }).fill('Update customer definition');
     });
     git(directory, ['add', '.']);

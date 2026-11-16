@@ -1,3 +1,5 @@
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 // Captures lineage click evidence and graph reopen timing. Usage: bun scripts/ui-review/known-issues.ts OUTPUT [FIRST_ATTEMPT] [LAST_ATTEMPT].
 // SW_BASE_URL selects the first Vite server; the second server uses a dynamically allocated port and an isolated cache.
 import { checkReadableWalks, checkFittedWalk } from '../helpers/odcs-graph-walk';
@@ -93,7 +95,7 @@ async function stopSecond() {
 async function startSecond(clearCache: boolean) {
   await stopSecond();
   secondPort = freeLoopbackPort();
-  const data = mkdtempSync('/tmp/sw-GATE-second-');
+  const data = mkdtempSync(join(tmpdir(), 'sw-capture-second-'));
   secondData = data;
   const config = `${data}/vite.config.ts`;
   const baseConfig = JSON.stringify(`${process.cwd()}/vite.config.ts`);

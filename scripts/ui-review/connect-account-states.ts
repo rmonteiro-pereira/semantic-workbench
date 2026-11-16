@@ -1,3 +1,4 @@
+import { tmpdir } from 'node:os';
 // Captures account connection prompts and the passive connection-error page. Usage: bun scripts/ui-review/connect-account-states.ts OUTPUT.
 // Uses the existing credential Git server fixture, loopback mock identity, and a temporary DATA_DIR; no external service.
 import { chromium } from '@playwright/test';
@@ -14,7 +15,7 @@ import { capture, attempt, watchCaptureErrors } from './capture-records';
 const output = process.argv[2];
 if (!output) throw new Error('Expected OUTPUT');
 mkdirSync(output, { recursive: true });
-const directory = mkdtempSync('/tmp/sw-capture-connect-');
+const directory = mkdtempSync(join(tmpdir(), 'sw-capture-connect-'));
 process.env.DATA_DIR = directory;
 const url = `http://127.0.0.1:${freeAuthPort()}`;
 const app = { clientId: 'sw-capture-github', clientSecret: crypto.randomUUID(), redirectUri: url + '/auth/github/callback' };

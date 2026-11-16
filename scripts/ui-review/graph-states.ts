@@ -1,7 +1,7 @@
 // Captures graph stages using existing navigation and control helpers. Imported by capture-states; no additional environment variables.
 import type { Page } from '@playwright/test';
 import { fileTab, openFile } from '../helpers/screen-tour';
-import { revealGraphControls, viewOptions, chooseLayout, setShown } from '../helpers/graph-options';
+import { revealGraphControls, viewOptions, chooseLayout, setShown, showEveryEntity } from '../helpers/graph-options';
 import { openGroupMenu, groupingMenuLabels, chooseGrouping } from '../helpers/grouping-menu';
 import { capture, attempt, type CaptureIdentity } from './capture-records';
 
@@ -27,6 +27,12 @@ async function loadingBurst(page: Page, identity: CaptureIdentity, screen: strin
 }
 
 async function selectReachableNode(page: Page) {
+  if (await page.locator('.full-entity.collapsed').count()) {
+    await showEveryEntity(page);
+    await page.locator('.full-graph-loading').waitFor({ state: 'hidden', timeout: 60000 });
+    await page.getByRole('button', { name: 'Fit model', exact: true }).click();
+    await page.waitForTimeout(400);
+  }
   const point = await page.locator('.full-entity, .neighborhood-node, .lineage-card:not(.group) .lineage-card-title').evaluateAll(elements => {
     for (const element of elements) {
       const box = element.getBoundingClientRect();

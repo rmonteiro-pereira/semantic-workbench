@@ -1,3 +1,5 @@
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 // Captures independent local follow-up states. Usage: bun scripts/ui-review/followup-local.ts OUTPUT_ROOT [graphs|lineage|content|all].
 // SW_FOLLOWUP_WIDTH optionally selects one width. SW_BASE_URL defaults to loopback port 5190; SW_FOLLOWUP_ONLY filters screen/state names. Fixtures use dynamic ports with temporary DATA_DIR.
 import { chromium } from '@playwright/test';
@@ -12,7 +14,7 @@ import { mappingStates, formStates, interactionStates, statusStates } from './fo
 
 const [root, group = 'all'] = process.argv.slice(2);
 if (!root) throw new Error('Expected OUTPUT_ROOT [graphs|lineage|content|all]');
-const data = mkdtempSync('/tmp/sw-followup-local-');
+const data = mkdtempSync(join(tmpdir(), 'sw-followup-local-'));
 process.env.DATA_DIR = data;
 const api = await startIsolatedApi({ root: data });
 const browser = await chromium.launch();
