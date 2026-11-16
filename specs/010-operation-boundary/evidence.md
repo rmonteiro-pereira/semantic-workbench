@@ -107,3 +107,5 @@ T037: existing body limits are now named and shared by HTTP parsers and inventor
 T038: reviewed workspace/project/file/draft/metric/KPI/export/document/suggestion route inputs, targets, effects and existing checks against their handlers. Checked-in entries parse successfully: inventory parser suite `2 pass`, `0 fail`, `15 expect() calls`. File save authorization is the route decision and governance guard, not a fictitious direct `authorizeWrite` call; its parity coverage remains required.
 
 T039: Git, clone and repository registration entries name the existing Git path/push/repository/checkout/publication checks and credential-host checks. Commit's remote effect remains dynamic when `push` is requested. Parser suite: `2 pass`, `0 fail`, `15 expect() calls`. Per-check execution coverage is completed by T016 before the inventory coverage gate.
+
+T040: all 119 route rows now have reviewed metadata, including public, stream, page and browser-only dispatch refusals. Trash entry and whole-trash purge use distinct ids. Parser suite: `2 pass`, `0 fail`, `15 expect() calls`.

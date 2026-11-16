@@ -1,5 +1,111 @@
 {
   "operations": {
+    "GET /api/me": {
+      "id": "me.read",
+      "service": "auth/authentication",
+      "action": "read",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": {
+        "no": "browser-only"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The browser-only route belongs to its HTTP transport."
+      }
+    },
+    "GET /auth/style.css": {
+      "id": "auth.style.css.read",
+      "service": "auth/authentication",
+      "action": "read",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": {
+        "no": "public"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The public route belongs to its HTTP transport."
+      }
+    },
+    "GET /api/events": {
+      "id": "events.read",
+      "service": "projects/events",
+      "action": "read",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "stream",
+        "work": "light"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": {
+        "no": "stream"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The stream route belongs to its HTTP transport."
+      }
+    },
+    "POST /api/telemetry/browser": {
+      "id": "telemetry.browser.run",
+      "service": "observability/browser-report",
+      "action": "viewOwnState",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": [
+          "reports"
+        ]
+      },
+      "limits": {
+        "request": "BROWSER_REPORT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "localWrite"
+      ],
+      "dispatch": {
+        "no": "browser-only"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The browser-only route belongs to its HTTP transport."
+      }
+    },
     "GET /api/status": {
       "id": "status.read",
       "service": "projects/workspace",
@@ -26,6 +132,29 @@
     "GET /api/projects": {
       "id": "projects.list",
       "service": "projects/workspace",
+      "action": "read",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "GET /api/trash": {
+      "id": "trash.read",
+      "service": "projects/trash",
       "action": "read",
       "targets": "workspace",
       "handlerChecks": [],
@@ -149,6 +278,31 @@
         "increment": "local-edit"
       }
     },
+    "POST /api/clear": {
+      "id": "clear.run",
+      "service": "projects/trash",
+      "action": "clear",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": [
+          "confirm"
+        ]
+      },
+      "limits": {
+        "request": "TRASH_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "destroy"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
     "POST /api/clone": {
       "id": "repositories.clone",
       "service": "projects/clone",
@@ -260,6 +414,32 @@
       },
       "effects": [
         "localWrite"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "DELETE /api/projects/:slug": {
+      "id": "projects.delete",
+      "service": "projects/trash",
+      "action": "deleteProject",
+      "targets": "project",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": [
+          "confirm",
+          "mode"
+        ]
+      },
+      "limits": {
+        "request": "TRASH_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "destroy"
       ],
       "dispatch": "twin",
       "exposure": {
@@ -683,6 +863,31 @@
         "increment": "local-edit"
       }
     },
+    "DELETE /api/projects/:slug/files/*": {
+      "id": "files.delete",
+      "service": "projects/trash",
+      "action": "delete",
+      "targets": "file",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": [
+          "confirm"
+        ]
+      },
+      "limits": {
+        "request": "TRASH_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "localWrite"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
     "GET /api/drafts": {
       "id": "drafts.read",
       "service": "projects/state",
@@ -745,6 +950,144 @@
       },
       "limits": {
         "request": "DRAFT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "localWrite"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "DELETE /api/drafts/:slug/*": {
+      "id": "drafts.file.delete",
+      "service": "projects/trash",
+      "action": "edit",
+      "targets": "file",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": [
+          "confirm"
+        ]
+      },
+      "limits": {
+        "request": "TRASH_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "localWrite"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "DELETE /api/trash": {
+      "id": "trash.purge.all",
+      "service": "projects/trash",
+      "action": "purge",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": [
+          "confirm"
+        ]
+      },
+      "limits": {
+        "request": "TRASH_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "destroy"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "DELETE /api/trash/:entry": {
+      "id": "trash.purge",
+      "service": "projects/trash",
+      "action": "purge",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": [
+          "confirm"
+        ]
+      },
+      "limits": {
+        "request": "TRASH_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "destroy"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "POST /api/trash/:entry/undo": {
+      "id": "trash.undo.run",
+      "service": "projects/trash",
+      "action": "restoreOwn",
+      "targets": "body",
+      "handlerChecks": [
+        "authorizeWrite",
+        "trashTarget",
+        "creationDomain",
+        "bodyTargets"
+      ],
+      "input": {
+        "query": [],
+        "body": [
+          "domain"
+        ]
+      },
+      "limits": {
+        "request": "TRASH_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "localWrite"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "POST /api/trash/:entry/restore": {
+      "id": "trash.restore.run",
+      "service": "projects/trash",
+      "action": "restoreOwn",
+      "targets": "body",
+      "handlerChecks": [
+        "authorizeWrite",
+        "trashTarget",
+        "creationDomain",
+        "bodyTargets"
+      ],
+      "input": {
+        "query": [],
+        "body": [
+          "toProject",
+          "toPath",
+          "onConflict",
+          "domain"
+        ]
+      },
+      "limits": {
+        "request": "TRASH_REQUEST_LIMIT",
         "response": "bounded",
         "work": "light"
       },
@@ -1737,6 +2080,1054 @@
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
+      }
+    },
+    "GET /api/admin/users": {
+      "id": "admin.users.read",
+      "service": "auth/access-admin",
+      "action": "admin",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [
+          "q",
+          "access"
+        ],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "administration"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "administration"
+      }
+    },
+    "GET /api/admin/roles": {
+      "id": "admin.roles.read",
+      "service": "auth/access-admin",
+      "action": "admin",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "administration"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "administration"
+      }
+    },
+    "GET /api/admin/grants": {
+      "id": "admin.grants.read",
+      "service": "auth/access-admin",
+      "action": "admin",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "administration"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "administration"
+      }
+    },
+    "GET /api/admin/projects": {
+      "id": "admin.projects.read",
+      "service": "auth/access-admin",
+      "action": "admin",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "administration"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "administration"
+      }
+    },
+    "GET /api/admin/agents": {
+      "id": "admin.agents.read",
+      "service": "auth/access-admin",
+      "action": "admin",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "administration"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "administration"
+      }
+    },
+    "GET /api/admin/settings": {
+      "id": "admin.settings.read",
+      "service": "auth/access-admin",
+      "action": "admin",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "administration"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "administration"
+      }
+    },
+    "GET /api/admin/policies": {
+      "id": "admin.policies.read",
+      "service": "auth/access-admin",
+      "action": "admin",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "administration"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "administration"
+      }
+    },
+    "GET /api/admin/versions": {
+      "id": "admin.versions.read",
+      "service": "auth/access-admin",
+      "action": "admin",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [
+          "area"
+        ],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "administration"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "administration"
+      }
+    },
+    "GET /api/admin/sessions": {
+      "id": "admin.sessions.read",
+      "service": "auth/access-admin",
+      "action": "admin",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "administration"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "administration"
+      }
+    },
+    "GET /api/admin/provider": {
+      "id": "admin.provider.read",
+      "service": "auth/access-admin",
+      "action": "admin",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "administration"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "administration"
+      }
+    },
+    "GET /api/admin/who-can": {
+      "id": "admin.who.can.read",
+      "service": "auth/access-admin",
+      "action": "admin",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [
+          "project",
+          "path"
+        ],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "administration"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "administration"
+      }
+    },
+    "GET /api/admin/groups/:id": {
+      "id": "admin.groups.read",
+      "service": "auth/access-admin",
+      "action": "admin",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "administration"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "administration"
+      }
+    },
+    "GET /api/admin/versions/:v/diff": {
+      "id": "admin.versions.diff.read",
+      "service": "auth/access-admin",
+      "action": "admin",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [
+          "against"
+        ],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "administration"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "administration"
+      }
+    },
+    "PUT /api/admin/roles": {
+      "id": "admin.roles.set",
+      "service": "auth/access-admin",
+      "action": "admin",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": [
+          "baseVersion",
+          "proposal",
+          "receipt"
+        ]
+      },
+      "limits": {
+        "request": "ADMIN_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "administration"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "administration"
+      }
+    },
+    "PUT /api/admin/grants": {
+      "id": "admin.grants.set",
+      "service": "auth/access-admin",
+      "action": "admin",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": [
+          "baseVersion",
+          "proposal",
+          "receipt"
+        ]
+      },
+      "limits": {
+        "request": "ADMIN_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "administration"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "administration"
+      }
+    },
+    "PUT /api/admin/projects": {
+      "id": "admin.projects.set",
+      "service": "auth/access-admin",
+      "action": "admin",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": [
+          "baseVersion",
+          "proposal",
+          "receipt"
+        ]
+      },
+      "limits": {
+        "request": "ADMIN_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "administration"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "administration"
+      }
+    },
+    "PUT /api/admin/agents": {
+      "id": "admin.agents.set",
+      "service": "auth/access-admin",
+      "action": "admin",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": [
+          "baseVersion",
+          "proposal",
+          "receipt"
+        ]
+      },
+      "limits": {
+        "request": "ADMIN_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "administration"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "administration"
+      }
+    },
+    "PUT /api/admin/settings": {
+      "id": "admin.settings.set",
+      "service": "auth/access-admin",
+      "action": "admin",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": [
+          "baseVersion",
+          "proposal",
+          "receipt"
+        ]
+      },
+      "limits": {
+        "request": "ADMIN_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "administration"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "administration"
+      }
+    },
+    "PUT /api/admin/policies": {
+      "id": "admin.policies.set",
+      "service": "auth/access-admin",
+      "action": "admin",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": [
+          "baseVersion",
+          "proposal",
+          "receipt"
+        ]
+      },
+      "limits": {
+        "request": "ADMIN_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "administration"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "administration"
+      }
+    },
+    "POST /api/admin/users/:id/deactivate": {
+      "id": "admin.users.deactivate.run",
+      "service": "auth/access-admin",
+      "action": "admin",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": [
+          "reason"
+        ]
+      },
+      "limits": {
+        "request": "ADMIN_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "administration"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "administration"
+      }
+    },
+    "POST /api/admin/users/:id/reactivate": {
+      "id": "admin.users.reactivate.run",
+      "service": "auth/access-admin",
+      "action": "admin",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": [
+          "reason"
+        ]
+      },
+      "limits": {
+        "request": "ADMIN_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "administration"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "administration"
+      }
+    },
+    "POST /api/admin/policies/validate": {
+      "id": "admin.policies.validate.run",
+      "service": "auth/access-admin",
+      "action": "admin",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": [
+          "rules"
+        ]
+      },
+      "limits": {
+        "request": "ADMIN_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "administration"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "administration"
+      }
+    },
+    "POST /api/admin/policies/template": {
+      "id": "admin.policies.template.run",
+      "service": "auth/access-admin",
+      "action": "admin",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": [
+          "baseVersion",
+          "proposal",
+          "receipt"
+        ]
+      },
+      "limits": {
+        "request": "ADMIN_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "administration"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "administration"
+      }
+    },
+    "POST /api/admin/policies/dry-run": {
+      "id": "admin.policies.dry.run.run",
+      "service": "auth/access-admin",
+      "action": "admin",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": [
+          "baseVersion",
+          "proposal",
+          "receipt"
+        ]
+      },
+      "limits": {
+        "request": "ADMIN_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "administration"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "administration"
+      }
+    },
+    "POST /api/admin/check": {
+      "id": "admin.check.run",
+      "service": "auth/access-admin",
+      "action": "admin",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": [
+          "baseVersion",
+          "proposal",
+          "receipt"
+        ]
+      },
+      "limits": {
+        "request": "ADMIN_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "administration"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "administration"
+      }
+    },
+    "POST /api/admin/versions/:v/rollback": {
+      "id": "admin.versions.rollback.run",
+      "service": "auth/access-admin",
+      "action": "admin",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": [
+          "baseVersion",
+          "proposal",
+          "receipt"
+        ]
+      },
+      "limits": {
+        "request": "ADMIN_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "administration"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "administration"
+      }
+    },
+    "DELETE /api/admin/sessions/:principal": {
+      "id": "admin.sessions.delete",
+      "service": "auth/access-admin",
+      "action": "admin",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "administration"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "administration"
+      }
+    },
+    "GET /api/audit": {
+      "id": "audit.read",
+      "service": "auth/audit",
+      "action": "readAudit",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [
+          "from",
+          "to",
+          "principal",
+          "action",
+          "project",
+          "decision",
+          "origin",
+          "tool",
+          "cursor",
+          "format"
+        ],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "paged",
+        "work": "light"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "GET /api/audit/export": {
+      "id": "audit.export.read",
+      "service": "auth/audit",
+      "action": "readAudit",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [
+          "history"
+        ],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "binary",
+        "work": "scan"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "GET /auth/login": {
+      "id": "auth.login.read",
+      "service": "auth/authentication",
+      "action": "read",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": {
+        "no": "public"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The public route belongs to its HTTP transport."
+      }
+    },
+    "GET /auth/callback": {
+      "id": "auth.callback.read",
+      "service": "auth/authentication",
+      "action": "read",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": {
+        "no": "public"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The public route belongs to its HTTP transport."
+      }
+    },
+    "POST /auth/logout": {
+      "id": "auth.logout.run",
+      "service": "auth/authentication",
+      "action": "read",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "localWrite"
+      ],
+      "dispatch": {
+        "no": "public"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The public route belongs to its HTTP transport."
+      }
+    },
+    "GET /auth/no-access": {
+      "id": "auth.no.access.read",
+      "service": "auth/authentication",
+      "action": "read",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": {
+        "no": "public"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The public route belongs to its HTTP transport."
+      }
+    },
+    "GET /auth/signed-out": {
+      "id": "auth.signed.out.read",
+      "service": "auth/authentication",
+      "action": "read",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": {
+        "no": "public"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The public route belongs to its HTTP transport."
+      }
+    },
+    "GET /auth/front-channel-logout": {
+      "id": "auth.front.channel.logout.read",
+      "service": "auth/authentication",
+      "action": "read",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": {
+        "no": "public"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The public route belongs to its HTTP transport."
+      }
+    },
+    "GET /auth/github/start": {
+      "id": "auth.github.start.read",
+      "service": "auth/authentication",
+      "action": "read",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": {
+        "no": "public"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The public route belongs to its HTTP transport."
+      }
+    },
+    "GET /auth/github/callback": {
+      "id": "auth.github.callback.read",
+      "service": "auth/authentication",
+      "action": "read",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": {
+        "no": "public"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The public route belongs to its HTTP transport."
+      }
+    },
+    "GET /healthz": {
+      "id": "healthz.read",
+      "service": "auth/authentication",
+      "action": "read",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": {
+        "no": "public"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The public route belongs to its HTTP transport."
+      }
+    },
+    "GET /readyz": {
+      "id": "readyz.read",
+      "service": "auth/authentication",
+      "action": "read",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": {
+        "no": "public"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The public route belongs to its HTTP transport."
+      }
+    },
+    "GET /brand/:file": {
+      "id": "brand.read",
+      "service": "auth/authentication",
+      "action": "read",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": {
+        "no": "public"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The public route belongs to its HTTP transport."
+      }
+    },
+    "GET/HEAD pages": {
+      "id": "pages.read",
+      "service": "projects/workspace",
+      "action": "read",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": {
+        "no": "page"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The page route belongs to its HTTP transport."
       }
     }
   },
