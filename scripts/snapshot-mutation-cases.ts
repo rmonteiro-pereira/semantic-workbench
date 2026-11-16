@@ -43,6 +43,14 @@ export async function snapshotMutationCase(
     createSnapshotIndexes?: typeof createSnapshotIndexes;
   },
 ) {
+  if (category === 'snapshot-agent-permissions') {
+    using fixture = await authWorkspace({ published: false });
+    const access = createAccessControl(accessFixture());
+    const request = Object.assign(new Request('http://localhost/api/agent/catalog?project=hr-people'), {
+      [requestAccess]: access.forRequest(access.principalFor(person('alice'))),
+    });
+    await assert.rejects(() => Promise.resolve(candidate.createAgentRoutes!(candidate.publishedAgentDocuments!)(fixture.ws, request, new URL(request.url))), /Project not found/);
+  }
   if (category === 'snapshot-agent') {
     using fixture = await authWorkspace();
     const access = createAccessControl(accessFixture());

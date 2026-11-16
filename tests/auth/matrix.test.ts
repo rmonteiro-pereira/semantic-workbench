@@ -565,3 +565,35 @@ describe('guard matrix', () => {
     expect(dataSnapshot(fixture.root)).toEqual(before);
   });
 });
+
+test('snapshot availability is reported only after project readability for every role', async () => {
+  using fixture = await authWorkspace({ published: false });
+  const access = createAccessControl(accessFixture());
+  for (const name of Object.keys(TEST_USERS) as TestUserName[]) {
+    const principal = access.principalFor(person(name));
+    const view = access.view(principal);
+    const handler = createHandler(fixture.ws, { mode: 'server', remoteCredentials: allowEveryRemote(), access, principal: () => principal, publicOrigin: 'http://localhost' });
+    for (const operation of ['catalog', 'context', 'plan']) {
+      const send = (project: string) =>
+        handler(
+          new Request(`http://localhost/api/agent/${operation}?project=${project}&mappingId=${project}/missing.yaml`, {
+            method: operation === 'plan' ? 'POST' : 'GET',
+            headers: { Origin: 'http://localhost', 'X-SW-Request': '1' },
+            ...(operation === 'plan' ? { body: JSON.stringify({ project, mappingId: `${project}/missing.yaml`, metrics: [], dimensions: [] }) } : {}),
+          }),
+        );
+      const unknown = await send('unknown');
+      const unknownBody = await unknown.text();
+      for (const project of AUTH_PROJECTS) {
+        const response = await send(project);
+        if (!principal.grants.length || !view.readableProjects.has(project)) {
+          expect(response.status).toBe(unknown.status);
+          expect(await response.text()).toBe(unknownBody);
+        } else {
+          expect(response.status).toBe(409);
+          expect(await response.json()).toEqual({ error: 'no published snapshot', code: 'no-published-snapshot', reason: 'no-commit' });
+        }
+      }
+    }
+  }
+}, 30000);

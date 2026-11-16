@@ -240,3 +240,10 @@ exited 1 at the identical `mall.odcs.yaml canvas height` assertion: expected >= 
 This establishes the failure as pre-existing to this feature. The canvas and assertion were not
 changed; the lineage-toolbar layout is owned by the separate UI fix. The temporary frontend was
 stopped and the worktree removed after the comparison.
+
+## Availability authorization matrix
+
+`TMPDIR=/tmp/sw-008 bun test tests/auth/matrix.test.ts --test-name-pattern "snapshot availability"`:
+1 pass, 0 fail, 270 assertions. All fixture roles compare unknown and unreadable projects across
+catalog, context and plan; readable projects without pointers return the exact 409 contract.
+The mutant loading availability before project authorization is detected (baseline 0, mutant 1).

@@ -1,6 +1,12 @@
 // Deliberate faults in immutable publication selection and validation.
 /** Targeted publication faults exercised by the mutation gate. */
 export const snapshotMutants: [string, string, string, string][] = [
+  [
+    'snapshot-agent-permissions',
+    'src/server/routes/agent.ts',
+    'requireProject(ws, req, project);',
+    'await ws.published.documents(ws.published.pin(), String(project));\n      requireProject(ws, req, project);',
+  ],
   ['snapshot-agent', 'src/server/routes/agent.ts', 'await workspace.published.documents(pin, project)', 'documentsOfProject(workspace.documentsFor(requestReader(request)), project)'],
   ['snapshot-pointer', 'src/server/projects/published-pointer.ts', "return (await isAncestor(pointer.commit, ref)) ? 'fast-forward' : 'diverged';", "return 'fast-forward';"],
   ['snapshot-checks', 'src/server/projects/publication-checks.ts', 'candidate.previous && !(await deps.isAncestor(candidate.repo, candidate.previous, candidate.next))', 'false'],

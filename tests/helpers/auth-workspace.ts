@@ -33,7 +33,7 @@ export const leakMarker = (project: string, path: string) => `LEAK-${project}-${
  * Opens a disposable workspace holding the fixture projects. With `keycloak`, the grants keyed
  * by group names replace the Entra-shaped ones.
  */
-export async function authWorkspace(options: { keycloak?: boolean } = {}) {
+export async function authWorkspace(options: { keycloak?: boolean; published?: boolean } = {}) {
   const workspace = await testWorkspace();
   for (const project of AUTH_PROJECTS) {
     const imported = await workspace.seed(fixtureFiles(project), project);
@@ -45,6 +45,6 @@ export async function authWorkspace(options: { keycloak?: boolean } = {}) {
   if (options.keycloak) {
     cpSync(join(AUTH_FIXTURE, 'admin-keycloak', 'grants.json'), join(admin, 'grants.json'));
   }
-  await publishFixture(workspace);
+  if (options.published !== false) await publishFixture(workspace);
   return workspace;
 }
