@@ -716,3 +716,12 @@ That helper now passes the existing isolated environment, matching the test-help
 `GIT_CONFIG_GLOBAL=/dev/null bun scripts/mutation-case.ts "$PWD/src/server/projects/scm.ts"
 secrev-scm-case` exited 0. No mutant, assertion or candidate behavior changed. The failed gate is retained
 separately; the existing CI process-group cleanup stopped its frontend before the repeat.
+
+## Remote example baseline deadline
+
+The second remote run passed both browser baselines, then stopped at the unmodified `example-registry`
+baseline with empty stderr. Its isolated remote command, `sw-midgard-run -- bash -c
+'time bun scripts/mutation-case.ts "$PWD/src/shared/projects/examples.ts" example-registry'`, exited 0
+in 17.234 s. The mutation runner previously killed it after 10 s. Only that category now has a bounded
+30 s deadline, shared by its original and mutated candidates. All assertions and other category deadlines
+remain unchanged. This is a remote execution-speed correction, not a surviving mutant or an exclusion.
