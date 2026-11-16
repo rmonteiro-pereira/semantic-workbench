@@ -313,3 +313,7 @@ principal is allowed while the server Viewer refusal remains unchanged.
 ## Published status and notice
 
 `TMPDIR=/tmp/sw-008 bun test tests/scm-published-status.test.ts tests/auth/route-actions.test.ts`: 11 pass, 0 fail, 380 assertions. Status distinguishes all unavailable reasons, authoring distance and pending movement. Explicit acknowledgement persists only in personal view state; refs and index remain byte-identical. The HTTP adapter nests pending details as the HTTP contract specifies while retaining the resolver’s flat internal status. `bun --bun run check`: exit 0.
+
+## Publication controls
+
+`TMPDIR=/tmp/sw-008 SW_BASE_URL=http://127.0.0.1:5321 bun scripts/published-snapshot-browser-check.ts`: 2 published snapshot browser checks passed. Mocked publication responses cover local Publish, both modes’ Adopt and notice acknowledgement; all six responsive sizes keep the new row inside the viewport without horizontal overflow. The Adopt client is wired for the later adoption endpoint. Capture comparison remains scheduled with the complete journey. `bun --bun run check`: exit 0.

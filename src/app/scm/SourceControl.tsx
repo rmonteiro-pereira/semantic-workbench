@@ -18,6 +18,7 @@ import { BranchPicker } from './BranchPicker';
 import { SyncDialog } from './SyncDialog';
 import { RemoteActions } from './RemoteActions';
 import { changesOfProject, elsewhereLine } from './project-changes';
+import { PublishedSnapshot } from './PublishedSnapshot';
 import './scm.css';
 
 /** Names the remote, branch and folder a sparse project lives in. */
@@ -261,6 +262,15 @@ export function SourceControl({ projects, project, version, unsaved, historyPath
     return true;
   }
   const { reportRemote, pullDefault, pushDefault, publishCopy, fromSync } = useRemoteActions({ project, act, guard, altered, setNote, setError, setSyncOpen });
+  function acknowledgePublication() {
+    void act(() => scm.acknowledgePublication(project));
+  }
+  function adoptPublication() {
+    void act(
+      () => scm.adopt(project),
+      adopted => setNote({ tone: 'info', text: `Adopted ${adopted.commit.slice(0, 7)}.` }),
+    );
+  }
   // A missing account is not a failure: the panel asks for it and keeps the action to continue.
   async function remoteOrConnect(action: RemoteAction) {
     setConnect(null);
@@ -395,6 +405,15 @@ export function SourceControl({ projects, project, version, unsaved, historyPath
             </button>
           )}
         </div>
+        <PublishedSnapshot
+          status={status.published}
+          local={!!access.local}
+          canPublish={access.can('publish')}
+          busy={busy}
+          onPublish={publishCopy}
+          onAdopt={adoptPublication}
+          onAcknowledge={acknowledgePublication}
+        />
         <div className="scm-remote">
           {remoteNames.length ? (
             <span className="scm-remote-url" title={status.remotes[remoteNames[0]]}>

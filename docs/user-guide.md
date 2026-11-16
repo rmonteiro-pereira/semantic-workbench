@@ -199,6 +199,11 @@ upgrade notice remains visible until explicitly acknowledged;
 `POST /api/projects/:slug/git/acknowledge-publication` stores that choice in the person's view state
 and changes no Git ref, index or file.
 
+The **Source control** panel shows **Published: branch @ commit** separately from the authoring
+branch and its ahead/behind counts. In local mode, **Publish** advances the snapshot without pushing.
+An outside default-branch move instead offers **Adopt**; a diverged move remains disabled until
+repaired. **Got it** dismisses the upgrade notice for the current person.
+
 The **Source control** panel provides:
 
 - Staged changes, unstaged changes and merge conflicts of the selected project, with side-by-side

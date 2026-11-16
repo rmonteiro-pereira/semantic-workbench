@@ -1,3 +1,4 @@
+import type { PublishedStatus } from '../../shared/scm/published-status';
 /** Defines browser requests and response types for project files, metrics and source control. */
 import { fileSaveReply, batchSaveReply } from './save-reply';
 import type { DeclaredMigration } from '../../shared/core/address-migration';
@@ -140,6 +141,7 @@ export type GitChange = {
 };
 /** Summarizes branch tracking, repository capabilities and changed files. */
 export type GitStatus = {
+  published?: PublishedStatus;
   branch: string;
   upstream: string;
   /** Server mode: where Pull takes from on a personal branch, such as `origin/main`. */
@@ -507,6 +509,10 @@ export const scm = {
   remote: (p: string, action: 'fetch' | 'pull' | 'push' | 'sync') => gitPost<RemoteResult>(p, 'git/' + action),
   cancel: (p: string) => gitPost<{ cancelled: boolean }>(p, 'git/cancel'),
   /** Server mode: fast-forwards the default branch to the person's copy. */
+  /** Acknowledges the person's publication notice without changing Git. */
+  acknowledgePublication: (p: string) => gitPost<{ acknowledged: boolean }>(p, 'git/acknowledge-publication', {}),
+  /** Adopts a checked outside fast-forward as the published snapshot. */
+  adopt: (p: string) => gitPost<{ published: string; commit: string }>(p, 'git/adopt', {}),
   publish: (p: string) => gitPost<{ published: string; commit: string }>(p, 'git/publish', {}),
   /** Server mode: merges the default branch into the person's branch. */
   pullDefault: (p: string) => gitPost<RemoteResult>(p, 'git/pull-default', {}),

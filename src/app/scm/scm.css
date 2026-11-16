@@ -1058,3 +1058,18 @@
   color: var(--color-text-muted);
   overflow-wrap: anywhere;
 }
+
+.scm-publication {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.scm-publication > span {
+  flex-basis: 100%;
+}
+.scm-publication-notice p {
+  margin: 0 0 6px;
+}
