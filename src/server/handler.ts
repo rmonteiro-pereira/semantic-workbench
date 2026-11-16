@@ -10,7 +10,7 @@ import { adminRoutes } from './routes/admin';
 import { auditRoutes } from './routes/audit';
 import { documentsOfProject } from '../shared/core/project-scope';
 import { agentCatalog, buildContext, selectContext, wholeContext, planQuery } from './agent/runtime';
-import { FILE_SAVE_REQUEST_LIMIT, GIT_REQUEST_LIMIT, GROUPING_REQUEST_LIMIT, decodeSegment, readJson, requestAuditId, type AuditRequest } from './request';
+import { FILE_SAVE_REQUEST_LIMIT, AGENT_PLAN_REQUEST_LIMIT, GROUPING_REQUEST_LIMIT, decodeSegment, readJson, requestAuditId, type AuditRequest } from './request';
 import { InputError } from '../shared/validation/diagnostics';
 import { NotFoundError, StaleError, type Workspace } from './projects/workspace';
 import { errorResponse, type Route } from './routes/http';
@@ -70,7 +70,7 @@ const legacyRoutes: Route = async (ws, req, url) => {
     return Response.json(concepts.length ? selectContext(context, concepts) : wholeContext(context));
   }
   if (url.pathname === '/api/agent/plan' && req.method === 'POST') {
-    const body = await readJson(req, GIT_REQUEST_LIMIT);
+    const body = await readJson(req, AGENT_PLAN_REQUEST_LIMIT);
     if (!body || Array.isArray(body) || Object.keys(body).some(k => !['project', 'mappingId', 'concepts', 'metrics', 'dimensions'].includes(k)) || typeof body.mappingId !== 'string')
       throw new BadRequestError('Expected project, mappingId, optional concepts, metrics and dimensions. Expressions and metric overrides are not accepted.');
     for (const key of ['concepts', 'metrics', 'dimensions'])

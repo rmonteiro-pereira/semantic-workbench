@@ -6,11 +6,7 @@ const valid = {
   operations: {
     'GET /example': {
       id: 'example.read',
-      service: 'projects/workspace',
-      action: 'read',
-      targets: 'workspace',
       handlerChecks: [],
-      input: { query: [], body: [] },
       limits: { request: 'none', response: 'bounded', work: 'light' },
       effects: ['read'],
       dispatch: 'twin',
@@ -28,16 +24,13 @@ test('inventory parser names the invalid row and field', () => {
   const changes = [
     { id: 'Bad id' },
     { action: 'unknown' },
-    { service: '' },
-    { targets: 'unknown' },
     { handlerChecks: ['unknown'] },
-    { input: { query: 'text', body: [] } },
     { limits: { request: 'MISSING', response: 'bounded', work: 'light' } },
     { limits: { request: 'none', response: 'unknown', work: 'light' } },
     { limits: { request: 'none', response: 'bounded', work: 'unknown' } },
     { effects: ['unknown'] },
     { dispatch: { no: 'public' } },
-    { clientAction: 'edit' },
+    { outcomeClassifier: 'unknown' },
     { exposure: { increment: 'later' } },
   ];
   for (const change of changes) {
@@ -52,7 +45,7 @@ test('inventory parser names the invalid row and field', () => {
 import { existsSync, readFileSync } from 'node:fs';
 import ts from 'typescript';
 import { operationInventory, HANDLER_CHECKS, type OperationInventory } from '../../src/server/auth/operation-inventory';
-import { ROUTE_ACTIONS, type RouteAction } from '../../src/server/auth/route-actions';
+import { ROUTE_ACTIONS, routeResourceKind, type RouteAction } from '../../src/server/auth/route-actions';
 import { REQUEST_LIMITS } from '../../src/server/request';
 import { operationClassifiers } from '../../src/server/auth/operation-classifiers';
 import { operationInventoryTable } from '../../scripts/operation-inventory-table';
@@ -62,10 +55,7 @@ function checkRows(inventory: OperationInventory, rows: RouteAction[]) {
   for (const row of rows) {
     const entry = inventory.operations[row.path];
     if (!entry) throw Error(`${row.path}: missing inventory entry`);
-    if (entry.action !== row.action) throw Error(`${row.path}: action differs`);
-    if (entry.clientAction !== row.clientAction) throw Error(`${row.path}: client action differs`);
     if (Boolean(row.public) !== (entry.dispatch !== 'twin' && entry.dispatch.no === 'public')) throw Error(`${row.path}: public flag differs`);
-    if (row.targets === 'body' && entry.targets !== 'body') throw Error(`${row.path}: body target differs`);
   }
   for (const path of Object.keys(inventory.operations)) {
     if (!rows.some(row => row.path === path)) throw Error(`${path}: inventory entry without row`);
@@ -79,16 +69,15 @@ test('every row and entry agree, with named failures for contract drift', () => 
   delete deleted.operations[first.path];
   expect(() => checkRows(deleted, ROUTE_ACTIONS)).toThrow(first.path);
   expect(() => checkRows(operationInventory, [...ROUTE_ACTIONS, { ...first, path: 'GET /unreviewed' }])).toThrow('GET /unreviewed');
-  expect(() => checkRows(operationInventory, [{ ...first, action: 'admin' }, ...ROUTE_ACTIONS.slice(1)])).toThrow(first.path);
 });
 
 test('resource kinds, request limits and classifiers resolve to their owners', () => {
   for (const row of ROUTE_ACTIONS) {
     const entry = operationInventory.operations[row.path];
     const example = routeExamples.find(example => (row.methods ?? [row.method]).includes(example.method) && row.pattern.test(example.path));
-    if (example && !row.targets && !['handler', 'path'].includes(entry.targets)) {
+    if (example && !row.targets) {
       const url = new URL(example.path, 'http://inventory.internal');
-      expect(entry.targets, row.path).toBe(row.resource(url.pathname.match(row.pattern)!, url).type);
+      expect(routeResourceKind(row), row.path).toBe(row.resource(url.pathname.match(row.pattern)!, url).type);
     }
     if (entry.limits.request !== 'none') {
       const limit = REQUEST_LIMITS[entry.limits.request];

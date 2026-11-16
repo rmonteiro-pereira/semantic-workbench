@@ -29,12 +29,12 @@ export const parityCases: ParityCase[] = [
   { id: 'git.revert', body: path => ({ path, baseHash: null }) },
   { id: 'git.switch', body: () => ({ branch: 'parity', create: true }) },
   { id: 'git.publish', body: () => ({}) },
-  { id: 'git.push.default' },
+  { id: 'git.pushDefault' },
   { id: 'git.remote.set', body: () => ({ name: 'origin', url: '/unavailable-parity-remote' }) },
   { id: 'git.folder.set', body: () => ({ folder: '.' }) },
   { id: 'files.save', body: () => ({ baseHash: null, source: 'ontology: []' }) },
   {
-    id: 'files.save.batch',
+    id: 'files.saveBatch',
     body: (path, _project, scenario) => ({ files: (scenario === 'mixed' ? [ordinaryFile, path] : [path]).map(file => ({ path: file, baseHash: null, source: 'ontology: []' })) }),
   },
   { id: 'files.delete', body: () => ({ confirm: true }) },
@@ -42,9 +42,9 @@ export const parityCases: ParityCase[] = [
   { id: 'files.import', body: (path, _project, scenario) => ({ files: (scenario === 'mixed' ? [ordinaryFile, path] : [path]).map(file => ({ path: file, source: 'ontology: []' })) }) },
   { id: 'documents.save', body: (path, project) => ({ id: `${project}/${path}`, filename: path, source: 'ontology: []' }) },
   { id: 'repositories.clone', body: () => ({ url: '/unavailable-parity-remote', domain: 'sales' }) },
-  { id: 'trash.restore.run', body: () => ({}) },
-  { id: 'trash.undo.run', body: () => ({}) },
-  { id: 'suggestions.accept.run' },
+  { id: 'trash.restore', body: () => ({}) },
+  { id: 'trash.undo', body: () => ({}) },
+  { id: 'suggestions.accept' },
   { id: 'projects.create', body: (_path, _project, scenario) => ({ name: 'Parity project', domain: scenario === 'denied-target' ? 'hr' : 'sales' }) },
 ];
 
@@ -172,21 +172,21 @@ test('hidden and missing twins have identical visible responses and preserve sep
   const deleted = await fixture.ws.trash.deleteFile('hr-people', 'people.odcs.yaml', undefined, LOCAL_READER);
   const cases = [
     ['files.read', { slug: 'sales-contracts', '*': restrictedFile }, { slug: 'sales-contracts', '*': 'finance/missing.yaml' }],
-    ['projects.metrics.read', { slug: 'hr-people' }, { slug: 'missing' }],
-    ['trash.restore.run', { entry: deleted.entryId }, { entry: '00000000000000000000000000' }],
+    ['metrics.list', { slug: 'hr-people' }, { slug: 'missing' }],
+    ['trash.restore', { entry: deleted.entryId }, { entry: '00000000000000000000000000' }],
   ] as const;
   for (const [operation, hidden, missing] of cases) {
     const results = [];
     for (const params of [hidden, missing]) {
       const before = audit.recent(100).length;
-      const request = buildTwinRequest(operation, { params, ...(operation === 'trash.restore.run' ? { body: {} } : {}) });
+      const request = buildTwinRequest(operation, { params, ...(operation === 'trash.restore' ? { body: {} } : {}) });
       const started = performance.now();
       const result = await handler.boundary.operate({ caller, request });
       results.push(await visibleResponse(result.response));
       // Both refusals perform bounded local checks rather than dispatching remote work.
       expect(performance.now() - started).toBeLessThan(5000);
       const records = audit.recent(100).slice(before);
-      if (operation === 'trash.restore.run' && params === missing) expect(records).toHaveLength(0);
+      if (operation === 'trash.restore' && params === missing) expect(records).toHaveLength(0);
       else expect(records).toMatchObject([{ decision: 'deny', reason: 'not-readable' }]);
     }
     expect(results[0]).toEqual(results[1]);

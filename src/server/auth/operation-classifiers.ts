@@ -7,14 +7,14 @@ import { classifyImportResult } from '../projects/workspace/import-batch';
 import { statusOutcome, type OperationOutcome, type OutcomeClassifier } from './operation-outcome';
 
 /** Semantic classifiers supported by the checked-in operation inventory. */
-export const operationClassifiers: Record<string, OutcomeClassifier> = {
+export const operationClassifiers = {
   commit: responseClassifier(classifyCommitResult),
   remote: responseClassifier(classifyRemoteResult),
   cloneAcceptance: responseClassifier(classifyCloneAcceptance),
   batchSave: responseClassifier(classifyBatchSave),
   fileSave: responseClassifier(classifyFileSave),
   import: responseClassifier(classifyImportResult),
-};
+} satisfies Record<string, OutcomeClassifier>;
 
 function responseClassifier<T>(classify: (body: T) => OperationOutcome): OutcomeClassifier {
   return async response => {

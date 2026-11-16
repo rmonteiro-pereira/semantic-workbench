@@ -59,10 +59,10 @@ test('read-only computations and local default-branch merges use their actual ef
     },
   );
   const cases: { id: string; scope: OperationEffect[]; params: Record<string, string> }[] = [
-    { id: 'agent.plan.run', scope: ['read'], params: {} },
-    { id: 'projects.metrics.preview.run', scope: ['read'], params: { slug: 'sales-contracts' } },
-    { id: 'projects.kpis.preview.run', scope: ['read'], params: { slug: 'sales-contracts' } },
-    { id: 'git.pull.default', scope: ['localWrite'], params: { slug: 'sales-contracts' } },
+    { id: 'agent.plan', scope: ['read'], params: {} },
+    { id: 'metrics.preview', scope: ['read'], params: { slug: 'sales-contracts' } },
+    { id: 'kpis.preview', scope: ['read'], params: { slug: 'sales-contracts' } },
+    { id: 'git.pullDefault', scope: ['localWrite'], params: { slug: 'sales-contracts' } },
   ];
   for (const entry of cases) {
     const caller = mintCaller({ principal: localPrincipal(), origin: 'mcp', scope: [...entry.scope] });
@@ -84,7 +84,7 @@ test('connection restrictions preserve hidden and missing trash responses and au
   const deleted = await fixture.ws.trash.deleteFile('hr-people', 'people.odcs.yaml', undefined, LOCAL_READER);
   const responses: string[] = [];
   for (const entry of [deleted.entryId, 'missing-entry']) {
-    const request = buildTwinRequest('trash.restore.run', { params: { entry }, body: {} });
+    const request = buildTwinRequest('trash.restore', { params: { entry }, body: {} });
     const { response } = await handler.boundary.operate({ caller, request });
     expect(response.status).toBe(404);
     responses.push(await response.text());

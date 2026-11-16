@@ -1,4 +1,5 @@
 // Renders the reviewed operation contract as its public reference table.
+import { ROUTE_ACTIONS, routeResourceKind } from '../src/server/auth/route-actions';
 import { operationInventory, type OperationInventory } from '../src/server/auth/operation-inventory';
 
 function cell(value: string): string {
@@ -8,7 +9,7 @@ function cell(value: string): string {
 /** Builds the deterministic documentation view of the operation inventory. */
 export function operationInventoryTable(inventory: OperationInventory = operationInventory): string {
   const lines = [
-    '# Operations',
+    '# Operation inventory',
     '',
     'This reference describes the shared operation boundary. It does not imply that a protocol transport is available.',
     'Regenerate this page with `bun scripts/operation-inventory-table.ts` after reviewing the inventory.',
@@ -17,7 +18,9 @@ export function operationInventoryTable(inventory: OperationInventory = operatio
     '| --- | --- | --- | --- | --- | --- | --- |',
   ];
   for (const [route, entry] of Object.entries(inventory.operations)) {
-    lines.push('| ' + [entry.id, route, entry.action, entry.targets, entry.effects.join(', '), entry.limits.request, entry.exposure.increment].map(cell).join(' | ') + ' |');
+    const row = ROUTE_ACTIONS.find(row => row.path === route);
+    if (!row) throw new Error(`Missing route ${route}.`);
+    lines.push('| ' + [entry.id, route, row.action, row.targets ?? routeResourceKind(row), entry.effects.join(', '), entry.limits.request, entry.exposure.increment].map(cell).join(' | ') + ' |');
   }
   lines.push('', '## Browser capabilities', '', '| Capability | Status | Reason | Exposure | Source |', '| --- | --- | --- | --- | --- |');
   for (const entry of inventory.browserCapabilities) {

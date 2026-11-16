@@ -1,0 +1,269 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "semantic-workbench/operations/v1",
+  "title": "Semantic Workbench operation inventory",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "operations",
+    "browserCapabilities"
+  ],
+  "properties": {
+    "operations": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "$ref": "#/$defs/operation"
+      }
+    },
+    "browserCapabilities": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/browserCapability"
+      }
+    }
+  },
+  "$defs": {
+    "operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "handlerChecks",
+        "limits",
+        "effects",
+        "dispatch",
+        "exposure"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-z][a-zA-Z0-9]*)+$"
+        },
+        "handlerChecks": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "authorizeWrite",
+              "authorizeGitPaths",
+              "authorizeGitPush",
+              "authorizeRepository",
+              "authorizeCheckout",
+              "authorizePublish",
+              "creationDomain",
+              "remoteAddress",
+              "trashTarget",
+              "bodyTargets"
+            ]
+          }
+        },
+        "limits": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "request",
+            "response",
+            "work"
+          ],
+          "properties": {
+            "request": {
+              "enum": [
+                "none",
+                "FILE_SAVE_REQUEST_LIMIT",
+                "PROJECT_REQUEST_LIMIT",
+                "GIT_REQUEST_LIMIT",
+                "AGENT_PLAN_REQUEST_LIMIT",
+                "IMPORT_REQUEST_LIMIT",
+                "METRIC_REQUEST_LIMIT",
+                "GROUPING_REQUEST_LIMIT",
+                "DRAFT_REQUEST_LIMIT",
+                "TRASH_REQUEST_LIMIT",
+                "ADMIN_REQUEST_LIMIT",
+                "BROWSER_REPORT_REQUEST_LIMIT"
+              ]
+            },
+            "response": {
+              "enum": [
+                "bounded",
+                "paged",
+                "binary",
+                "stream"
+              ]
+            },
+            "work": {
+              "enum": [
+                "light",
+                "scan",
+                "git",
+                "network"
+              ]
+            }
+          }
+        },
+        "effects": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "read",
+              "localWrite",
+              "commit",
+              "remote",
+              "publish",
+              "administration",
+              "destroy",
+              "credential"
+            ]
+          }
+        },
+        "dispatch": {
+          "oneOf": [
+            {
+              "const": "twin"
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "no"
+              ],
+              "properties": {
+                "no": {
+                  "enum": [
+                    "public",
+                    "stream",
+                    "page",
+                    "redirect",
+                    "browser-only"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "exposure": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "increment"
+          ],
+          "properties": {
+            "increment": {
+              "enum": [
+                "local-edit",
+                "team-sign-in",
+                "workspace-scm",
+                "resources-prompts",
+                "administration",
+                "later",
+                "never"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "increment": {
+                    "enum": [
+                      "later",
+                      "never"
+                    ]
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "reason"
+                ]
+              }
+            }
+          ]
+        },
+        "outcomeClassifier": {
+          "enum": [
+            "commit",
+            "remote",
+            "cloneAcceptance",
+            "batchSave",
+            "fileSave",
+            "import"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "dispatch": {
+                "type": "object"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "exposure": {
+                "type": "object",
+                "required": [
+                  "reason"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "browserCapability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "summary",
+        "status",
+        "reason",
+        "increment",
+        "source"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "needs-shared-implementation",
+            "browser-only-by-design"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "increment": {
+          "enum": [
+            "local-edit",
+            "team-sign-in",
+            "workspace-scm",
+            "resources-prompts",
+            "administration",
+            "later",
+            "never"
+          ]
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

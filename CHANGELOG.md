@@ -16,6 +16,9 @@ not configure a production deployment.
 
 - Network authentication and shared operation decisions have separate modules; existing HTTP
   behavior and audit bytes are preserved.
+- Operation names use domain terms, including `metrics.explain`, `policies.dryRun`, `trash.undo`,
+  `trash.restore`, `workspace.clear`, `files.saveBatch`, `git.pullDefault` and `agent.plan`.
+  The operation inventory is the complete reference for ids. Listing and invocation share one verdict.
 - Operation listing reuses equivalent policy probes within each call, preserving exact project
   checks for administrator rules and clients.
 

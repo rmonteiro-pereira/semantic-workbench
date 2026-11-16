@@ -11,8 +11,10 @@ import { MAX_REPORT_BODY_BYTES } from '../shared/observability/browser-report';
 export const FILE_SAVE_REQUEST_LIMIT = MAX_INPUT_BYTES * 6 + 4096;
 /** Maximum body for project metadata and clone requests. */
 export const PROJECT_REQUEST_LIMIT = 16_000;
-/** Maximum body for Git and deterministic agent plan requests. */
+/** Maximum body for Git requests. */
 export const GIT_REQUEST_LIMIT = 64_000;
+/** Maximum body for deterministic agent plan requests. */
+export const AGENT_PLAN_REQUEST_LIMIT = 64_000;
 /** Maximum body for imported project definitions. */
 export const IMPORT_REQUEST_LIMIT = 64_000_000;
 /** Maximum body for metric edits and repository registration. */
@@ -32,6 +34,7 @@ export const REQUEST_LIMITS = {
   FILE_SAVE_REQUEST_LIMIT,
   PROJECT_REQUEST_LIMIT,
   GIT_REQUEST_LIMIT,
+  AGENT_PLAN_REQUEST_LIMIT,
   IMPORT_REQUEST_LIMIT,
   METRIC_REQUEST_LIMIT,
   GROUPING_REQUEST_LIMIT,

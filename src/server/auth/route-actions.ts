@@ -225,3 +225,13 @@ export function routeTemplate(method: string, pathname: string, mode: 'local' | 
   if (!found) return 'unmatched';
   return found.row.path.replace(/^[A-Z/]+ /, '');
 }
+
+/** The initial resource kind owned by a route, before body or handler target resolution. */
+export function routeResourceKind(row: RouteAction): ResourceRef['type'] {
+  const template = row.path.replace(/^[A-Z/]+ /, '');
+  const path = template.startsWith('/') ? template.replace(/:[a-z]+/g, 'example').replace('*', 'example.yaml') : '/';
+  const url = new URL(path, 'http://operation.internal');
+  const match = url.pathname.match(row.pattern);
+  if (!match) throw new Error(`Route ${row.path} has no representative path.`);
+  return row.resource(match, url).type;
+}
