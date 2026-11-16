@@ -333,3 +333,7 @@ principal is allowed while the server Viewer refusal remains unchanged.
 ## Registry changes and eviction
 
 `TMPDIR=/tmp/sw-008 bun test tests/published-snapshot.test.ts tests/snapshot-provenance.test.ts`: 9 pass, 0 fail, 124 assertions. Adding, removing and moving project folders affects new pins without changing old pins or restarting. After eviction, deleting a historical blob makes that revision unavailable; current content still serves. `bun --bun run check`: exit 0.
+
+## Object failures and build limits
+
+`TMPDIR=/tmp/sw-008 bun test tests/snapshot-index.test.ts`: 9 pass, 0 fail, 19 assertions. Each configured bound and a case collision fail closed. Deleting a real loose blob produces no partial index, repeated failures are retryable, and restoring the object permits a complete build. A real sleeping Git executable times out twice without retaining an unfinished build.

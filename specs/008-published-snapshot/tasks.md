@@ -66,7 +66,7 @@ and local mode with uncommitted work; agent routes answer from the snapshot.
 - [x] T024 [US3] Interleaving stress test: at least 200 agent calls against at least 20 publications in one process; every response's documents all come from the commit in its header. (proof: `tests/published-snapshot-stress.test.ts`; mutant: take the pin per read instead of per request)
 - [x] T025 [P] [US3] Revision provenance tests through `resolveRevision` and `documentsAt`: full id in history accepted; abbreviated id, branch name, a commit only on a personal branch, one only on a proposal-style branch, a blob id and a tag outside history refused identically; a tag inside history accepted; sha-256 length ids accepted. (proof: `tests/snapshot-provenance.test.ts`; mutants: accept any reachable-from-any-ref commit, accept branch names)
 - [x] T026 [P] [US3] Registry-change and eviction tests: add, remove and move a project between two pins; objects removed after eviction give `unavailable`; a registry change needs no restart. (proof: `tests/published-snapshot.test.ts` additions)
-- [ ] T027 [P] [US3] Build limits and failure modes: each limit, a missing blob (partial clone), a case-variant pair and a Git timeout give `unavailable` and never a partial answer. (proof: `tests/snapshot-index.test.ts` additions)
+- [x] T027 [P] [US3] Build limits and failure modes: each limit, a missing blob (partial clone), a case-variant pair and a Git timeout give `unavailable` and never a partial answer. (proof: `tests/snapshot-index.test.ts` additions)
 
 ## Phase 6: User Story 4 - The author's preview stays in the workbench (P2)
 

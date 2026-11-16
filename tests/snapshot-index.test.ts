@@ -1,6 +1,6 @@
 // Confirms snapshot indexes read only immutable blobs, enforce bounds and share concurrent work.
 import { expect, test } from 'bun:test';
-import { writeFileSync } from 'node:fs';
+import { unlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createGit } from '../src/server/projects/git';
 import { createSnapshotIndexes, SNAPSHOT_LIMITS } from '../src/server/projects/snapshot-index';
@@ -106,6 +106,36 @@ test('an identical file reuses the parse already held by the local cache', async
     expect(snapshot.projects.get('definitions')![0].document.updated).toBe(cached.indexedAt);
   } finally {
     cache.close();
+    fixture.dispose();
+  }
+});
+
+test('a missing partial-clone blob never yields a partial index and a repaired object can be retried', async () => {
+  const { fixture, git, directory } = setup();
+  try {
+    const entry = (await git.lsTree(fixture.repository, fixture.published!))[0];
+    const bytes = (await git.blob(fixture.repository, fixture.published!, entry.path))!;
+    unlinkSync(join(fixture.repository, '.git', 'objects', entry.id.slice(0, 2), entry.id.slice(2)));
+    const indexes = createSnapshotIndexes({ git, directory });
+    for (let attempt = 0; attempt < 2; attempt++) await expect(indexes.build('definitions', fixture.published!, [project])).rejects.toMatchObject({ reason: 'unavailable' });
+    await git.run(fixture.repository, ['hash-object', '-w', '--stdin'], { stdin: new TextDecoder().decode(bytes) });
+    expect((await indexes.build('definitions', fixture.published!, [project])).projects.get('definitions')![0].bytes).toEqual(bytes);
+  } finally {
+    fixture.dispose();
+  }
+});
+
+test('an object-read timeout fails closed and does not retain an unfinished build', async () => {
+  const { fixture } = setup();
+  try {
+    const binary = join(fixture.dir, 'slow-git');
+    writeFileSync(binary, '#!/bin/sh\nexec sleep 5\n', { mode: 0o700 });
+    const git = createGit({ projectsRoot: join(fixture.dir, 'projects'), binary, timeoutMs: 50 });
+    const indexes = createSnapshotIndexes({ git, directory: () => fixture.repository });
+    for (let attempt = 0; attempt < 2; attempt++) {
+      await expect(indexes.build('definitions', fixture.published!, [project])).rejects.toMatchObject({ reason: 'unavailable' });
+    }
+  } finally {
     fixture.dispose();
   }
 });
