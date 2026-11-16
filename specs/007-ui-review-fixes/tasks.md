@@ -221,7 +221,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Make `.lineage-hops` a non-wrapping flex row with the path text shrinking (`hops.css:39-45`, `odcs.css:628-636`) and render the zoom and full-screen buttons icon-only in one group with accessible names.
   - Proof: Before `local-light/local-contract-graph-1280.png`, `local-light/local-contract-graph-1440.png`, `local-light/local-contract-graph-2560.png` (review baseline); after: same state recaptured with `scripts/ui-review/capture-tour.ts <out> local light`; check: `bun run test:lineage` asserts one row for the hops block at 1280 and wider and at most two toolbar rows at 1280x720.
 
-- [ ] T031 [US2] [B] Align the dataset page card widths.
+- [x] T031 [US2] [B] Align the dataset page card widths.
   - Findings: M23 · Requirements: FR-022
   - Files: `src/app/odcs/contract.css`, `src/app/odcs/odcs.css`
   - Change: Give the lineage card the header card's width rule (`contract.css:326`) and do not add a second page-width rule; the shared content-width rule is lane E's.

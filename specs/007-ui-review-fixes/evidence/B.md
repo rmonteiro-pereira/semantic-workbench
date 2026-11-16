@@ -94,7 +94,7 @@ Foreign-key docs now state one to three. Mapping Steps (1–5) is described sepa
 | T028 | Skipped after partial implementation | Panel fitting is implemented; shared-source trunks across distinct destination cards need routing/attachment changes beyond the existing per-card-pair bundle. |
 | T029 | Complete | Computed rule, widths and wrapping positions recorded above. |
 | T030 | Complete | All three desktop pairs inspected; hops occupy one row. |
-| T031 | Pending final settled proof | Width assertion passes; exact baseline state is being recaptured. |
+| T031 | Complete | Settled 2560 first-view pair inspected; header and canvas share both edges. |
 | T032 | Skipped after partial implementation | Empty state, legend, centre badge and walked label are implemented. Removing the fixed empty header band changes row-port geometry; the fitted walk proof also conflicts with hidden targets. Full requested state matrix is not proved. |
 | T033 | Pending final visual proof | Route/pane rejection and pending controls are implemented and covered by focused checks. |
 | T034 | Complete | Documentation and MAX_HOPS agree. |
@@ -103,3 +103,8 @@ Foreign-key docs now state one to three. Mapping Steps (1–5) is described sepa
 Unchecked tasks above are deliberate explicit skips, not merge-ready acceptance. No new representation, cross-card routing or neighbouring-list design was improvised.
 
 Final renderer review found that a clipped mapping label could reappear through its legacy text fallback. The fallback now applies only when no structured label exists. `bun test tests/edge-labels.test.ts`: 7 pass, 0 fail, 20 expect calls. The full `check` command passes again after this correction.
+
+
+## Settled width proof
+
+Opened the exact T031 pair: baseline `states/local-dataset-lineage--first-view-2560.png` and after `out/lane-b/final-dataset/local-dataset-lineage--first-view-2560.png`. The compact header and canvas now share x=652 and x=2052 edges (1400 px). The view contains settled cards; neighbouring clipping remains the separately skipped first-view issue. The stock graph-state entry point was restricted to the dataset stages and 2560/light using an ignored preload; its initial navigation and first-view capture are unchanged. The capture recorded resource 404 console entries, so it is visual width proof, not an error-free browser-suite claim.
