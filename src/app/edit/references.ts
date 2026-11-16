@@ -1,3 +1,4 @@
+import { mappingRelationshipTargets } from './relationship-references';
 /** Finds broken dependencies and rename occurrences across project files for explicit user
  * review. */
 import { isMap, isScalar, isSeq, parseDocument, type Document } from 'yaml';
@@ -92,6 +93,9 @@ export function findReferences(target: Target, docs: ProjectDoc[]): Reference[] 
   const out: Reference[] = [];
   const name = target.name;
   if (!name) return out;
+  const ownSource = docs.find(document => document.id === target.docId)?.source;
+  const ownOntology = target.kind === 'ontology-relationship' && ownSource ? parseDocument(ownSource).toJS() : null;
+  const owner = target.owner ?? (ownOntology && target.path.slice(0, -2).reduce((value: any, part) => value?.[part], ownOntology)?.concept);
   const quoted = JSON.stringify(name);
   const word = new RegExp(`(?<![\\w$.'"])(${escape(name)})(?![\\w$'"(])`, 'g');
   const qualifier = new RegExp(`(?<![\\w$.'"])(${escape(name)})(?=\\s*\\.)`, 'g');
@@ -106,6 +110,7 @@ export function findReferences(target: Target, docs: ProjectDoc[]): Reference[] 
       continue;
     }
     const data = doc.toJS();
+    const relationshipTargets = ownOntology ? mappingRelationshipTargets(data, ownOntology) : new Map();
     const src = projectDoc.source;
     const self = projectDoc.id === target.docId;
     const add = (path: Path, spans: [number, number][], dependent: Dependent | null) => {
@@ -188,7 +193,12 @@ export function findReferences(target: Target, docs: ProjectDoc[]): Reference[] 
             add(path, within(src, node, new RegExp(escape(name), 'g')).slice(0, 1), dep(upTo(path, 'concept_mappings')));
           break;
         case 'ontology-relationship':
-          if (path.at(-2) === 'identify_by' && value === name && startsWith(path, target.path.slice(0, -2))) add(path, within(src, node, new RegExp(escape(name), 'g')).slice(0, 1), dep(path));
+          if (self && path.at(-2) === 'identify_by' && value === name && startsWith(path, target.path.slice(0, -2))) add(path, within(src, node, new RegExp(escape(name), 'g')).slice(0, 1), dep(path));
+          else if (key === 'relationship') {
+            const resolved = relationshipTargets.get(JSON.stringify(path));
+            if (resolved?.owner === owner && resolved.name === name)
+              add(path, within(src, node, new RegExp(`(${escape(name)})(?=[\'"]?$)`, 'g')), dep(upTo(path, 'referent_mappings') ?? upTo(path, 'children')));
+          }
           break;
         case 'dataset':
           if ((key === 'from' || key === 'to') && path.at(-3) === 'relationships' && data?.kind !== 'DataContract' && value === name)

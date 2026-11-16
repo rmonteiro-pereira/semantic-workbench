@@ -1,3 +1,4 @@
+import { relationshipMatches } from '../../shared/mappings/relationship-reference';
 // Resolves one mapping entry into a RuntimeContext: finds its ontology and semantic model, collects
 // fields, metrics and bindings, and records every problem as a finding instead of failing.
 import { formatAddress, type Address } from '../../shared/core/item-address';
@@ -250,29 +251,9 @@ function resolveMetricDependencies(assembly: Assembly, context: RuntimeContext, 
     }
 }
 function inheritedRelationship(concepts: Map<string, any>, concept: string, name: string): any {
-  const qualified = name.split('.');
-  if (qualified.length === 2) {
-    concept = qualified[0];
-    name = qualified[1];
-  }
-  const queue = [concept];
-  const seen = new Set<string>();
-  const matches: any[] = [];
-  for (let i = 0; i < queue.length; i++) {
-    const current = queue[i];
-    if (seen.has(current)) continue;
-    seen.add(current);
-    const conceptDefinition = concepts.get(current);
-    if (!conceptDefinition) continue;
-    const own = (conceptDefinition.relationships ?? []).filter((r: any) => r.name === name);
-    if (own.length) {
-      matches.push(...own);
-      continue;
-    }
-    queue.push(...(conceptDefinition.extends ?? []));
-  }
-  if (matches.length !== 1) throw new BadRequestError(`Relationship ${concept}.${name} resolves to ${matches.length} definitions (including inheritance).`);
-  return matches[0];
+  const resolved = relationshipMatches(concepts, concept, name);
+  if (resolved.matches.length !== 1) throw new BadRequestError(`Relationship ${resolved.concept}.${resolved.name} resolves to ${resolved.matches.length} definitions (including inheritance).`);
+  return resolved.matches[0].definition;
 }
 type MappingTask = {
   node: any;

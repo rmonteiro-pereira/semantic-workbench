@@ -114,3 +114,28 @@ test('a rename lists the remaining references and rewrites only the ones confirm
   expect(renamed.split('\n').filter((l, n) => l !== docs[0].source.split('\n')[n]).length).toBe(local.length + 1);
   expect(docs[0].source.match(/\{Order\} contains \{OrderLine\}/)).not.toBeNull();
 });
+
+test('relationship renames find mapping targets, inherited referents and nested links without changing another owner', () => {
+  const ontology = {
+    id: 'p/ontology.yaml',
+    path: 'ontology.yaml',
+    filename: 'ontology.yaml',
+    source:
+      'name: O\nontology:\n  - concept: Parent\n    identify_by: [id]\n    relationships:\n      - name: id\n        roles: [{concept: String}]\n      - name: child\n        roles: [{concept: Other}]\n  - concept: Sub\n    extends: [Parent]\n  - concept: Other\n    relationships:\n      - name: id\n        roles: [{concept: String}]\n',
+  };
+  const mapping = {
+    id: 'p/mapping.yaml',
+    path: 'mapping.yaml',
+    filename: 'mapping.yaml',
+    source:
+      'ontology_ref: {name: O}\nconcept_mappings:\n  - concept: Sub\n    object_mappings:\n      - referent_mappings:\n          - relationship: "id"\n            expression: d.id\n    link_mappings:\n      - children:\n          - relationship: child\n            object_mapping:\n              concept: Other\n              referent_mappings:\n                - relationship: id\n                  expression: d.other\n  - concept: Other\n    object_mappings:\n      - referent_mappings:\n          - relationship: id\n            expression: d.other\n',
+  };
+  const references = findReferences({ kind: 'ontology-relationship', name: 'id', docId: ontology.id, path: ['ontology', 0, 'relationships', 0] }, [ontology, mapping]);
+  expect(references.map(reference => reference.docId)).toEqual([ontology.id, mapping.id]);
+  const rewritten = rewriteReferences([ontology, mapping], references, 'identifier');
+  expect(rewritten.find(document => document.docId === ontology.id)!.source).toContain('identify_by: [identifier]');
+  const nextMapping = rewritten.find(document => document.docId === mapping.id)!.source;
+  expect(nextMapping).toContain('relationship: "identifier"');
+  expect(nextMapping.match(/relationship: id/g)).toHaveLength(2);
+  expect(mapping.source).toContain('relationship: "id"');
+});

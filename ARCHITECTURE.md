@@ -84,7 +84,9 @@ The integration view shows what the application reads and contacts, and what it 
 operations. `address-migration.ts` validates declared rename ownership and applies ordered prefix records
 without I/O. `model-addresses.ts` derives and resolves structured definition items, detects duplicates and
 flags positional ancestors as volatile. The inspector derives required locators for structured
-entities and links in narrower result types; RDF and built-in entities stay unaddressable. `item-key-adapters.ts` resolves older labels against
+entities and links in narrower result types; RDF and built-in entities stay unaddressable. `shared/mappings/relationship-reference.ts` owns inherited relationship matching shared by the agent and rename reference analysis.
+`app/edit/relationship-references.ts` walks mapping targets without guessing their defining concept.
+`item-key-adapters.ts` resolves older labels against
 that derivation and refuses ambiguous or unresolved qualified names. These pure modules do not read application state. Address consumers build text through
 `formatAddress`, never by concatenating project, document or item names.
 `src/app/odcs/lineage-addresses.ts` indexes structured card and row locators for lineage; dotted

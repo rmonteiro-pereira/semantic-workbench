@@ -419,7 +419,8 @@ centered dialog. Fields and Source edit the selected definition, with pinned Sav
 The whole draft is validated before saving.
 
 **New**, **Add relationship** and **Add property** preview inserted text in the file's style.
-Renames list references and rewrite only the selected ones. Deletion lists dependent definitions
+Renames list references and rewrite only the selected ones. Relationship renames include mapping
+referents and link-child targets, resolved through the owning concept and its inheritance. Deletion lists dependent definitions
 and mappings; references that cannot be safely rewritten are left for Source repair. Multi-file
 changes are journaled, not silently applied in separate partial operations.
 
