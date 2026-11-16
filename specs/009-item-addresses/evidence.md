@@ -303,3 +303,80 @@ non-string values at its encoding boundary. The model API reports the existing p
 unaddressable-item error; it does not invent a string name.
 `bun test tests/item-address.test.ts tests/item-address-properties.test.ts tests/model-addresses.test.ts -t 'raw model names|canonical|round|prefix|format|parse|relative'`:
 6 pass, 0 fail, 38 filtered out, 61,561 assertions in 1.316 s.
+
+## Current handoff: blocked, not ready
+
+The current tree completes T001–T010, T012–T014, T016 and T025–T026 (16 tasks).
+T011/T015 and their dependent consumer tasks remain blocked by accepted unnamed ontology roots
+and unnamed ODCS array-item nodes. These need explicit scope contracts; the two clarification
+questions remain unanswered. No positional root, array-item kind or synthetic name was added.
+T024 is partial and unchecked: its unsafe compaction remainder is skipped for the counterexample
+and scope reason above. All other unchecked tasks remain pending, including persistence,
+conversion, consumer retirement, the structured-only inspector types and the new address browser
+journey. This is not feature completion or a request to merge the feature as ready.
+
+Application, server and inspector code are byte-for-byte the approved base 655df09. The current
+change adds shared pure APIs, verification and documentation only. Earlier adoption and timing
+results are historical prototypes, not claims about current behavior. Feature 008's suffix stays
+opaque. Feature 010's future append integration must use existing save/batch-save routes until
+its operation boundary is available. No migration store, setting or append route is implemented.
+
+### Final-tree verification
+
+No preload shim was used. Browser suites ran sequentially, after the full unit suite, with
+`TMPDIR=/tmp/sw-009`, temporary data and `SW_BASE_URL=http://127.0.0.1:5301`.
+
+| Command | Observed summary |
+| --- | --- |
+| `DATA_DIR=/tmp/sw-009/data bun test` | 2,127 pass; 0 fail; 233,446 expect() calls; 2,127 tests across 292 files; 757.30 s. |
+| `bun --bun run check` | Passed TypeScript, formatter, lint, comments, theme and brand checks. |
+| `bun --bun run build` | Built in 5.04 s; existing chunk-size advisory. |
+| `bun /tmp/sw-009/check-address-mutants.ts` | 14/14 registered address mutants killed by assertion failures on the final tree. |
+| `SW_BASE_URL=http://127.0.0.1:5301 bun scripts/mutation-tests.ts` | Earlier real run: 677/677 targeted mutants killed; all unmodified module baselines passed. This predates final adoption rollback and raw-name guard; the final focused 14-mutant check above supplements it. |
+| `bun --bun run test:addresses` | Not run: the script and adopted journey are not implemented; T019/T032/T045 remain pending. |
+| `bun --bun run test:graph` | Failed: pierce main-thread task 229 ms exceeded 100 ms. (59.88 s.) |
+| `bun --bun run test:lineage` | Failed: sidebar separator intercepted Walk here at line 398. (62.85 s.) |
+| `bun --bun run test:metrics` | 11 metrics checks passed. (27.76 s.) |
+| `bun --bun run test:item-edit` | 11 item-edit checks passed. (49.24 s.) |
+| `bun --bun run test:ui` | 20 UI checks passed (56.99 s.) |
+| `bun --bun run test:responsive` | Failed: full-screen exit restored a different graph transform at line 550. (135.11 s.) |
+| `bun --bun run test:edges` | 6 edge attachment UI checks passed (23.62 s.) |
+| `bun --bun run test:auth` | Passed; process exit 0. (176.97 s.) |
+| `bun --bun run test:mapping-graph` | 12 mapping graph checks passed. (100.84 s.) |
+
+The failed suites were actually run against archived main 655df09, served from the temporary
+archive on OS-assigned port 44515, also sequentially. Graph reproduced the same 100 ms assertion
+at 205 ms. Lineage reproduced the same separator interception at line 398. Main responsive passed
+the full-screen assertion but later failed the mall ODCS canvas-height assertion at line 1668:
+407 px instead of at least 421 px. These are recorded as failures, not waived harness limits.
+`RESPONSIVE_ONLY='full screen:' bun scripts/responsive-ui-tests.ts` on the branch finished with
+3 responsive UI checks passed (including no uncaught browser errors), exit 0. The unchanged
+focused repeat passed both full-screen checks; that does
+not turn the failed complete responsive run green. T045 remains unchecked.
+
+Formatter/check and the changed-code readability check passed. The docs-sync and public-doc leak
+scans passed. Oxfmt excludes the Markdown evidence file; its final documentation-only change
+was checked with `git diff --check`. The requested `python3 scripts/commit_cadence.py <worktree>` could not run: the
+repository has no such script (exit 2). No formatter or gate tooling was added to compensate.
+
+### Continuation commits
+
+- `75013451` data: include unnamed embedded mapping address
+- `37629f86` feat: define volatile unnamed mappings and structured address scope
+- `bc01bbab` feat: derive and resolve structured item locators
+- `66b65af0` test: cover model locator ambiguity and volatility guards
+- `1cee6bbf` feat: attach locators to structured inspector results
+- `6b639b21` feat: adapt legacy item labels without delimiter guessing
+- `f703231a` feat: use scoped locators in mapping graphs
+- `0f1ca13b` feat: apply and validate ordered address migrations
+- `6ecfa7aa` test: detect migration replay and ownership faults
+- `4f051ad4` fix: preserve unresolved context responses with addressed mapping keys
+- `c1baad5b` test: use scoped keys in mapping mutation cases
+- `43504926` test: record killed address migration mutants
+- `3fa4f1f8` fix: label only source-backed mapping scopes and concepts
+- `114ffd9a` fix: preserve mapping center ordering across escaped names
+- `38321846` fix: restore unnamed legacy inspection at the scope boundary
+- `9830ceee` test: verify address samples in independent cases
+- `e8c1136e` fix: remove unsafe exact-chain migration compaction
+- `35abe71d` fix: defer mapping adoption until scope contracts are settled
+- `73069d44` fix: reject coerced model names at the address boundary
