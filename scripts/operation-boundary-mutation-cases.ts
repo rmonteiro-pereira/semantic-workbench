@@ -52,9 +52,14 @@ async function dispatchCases(context: Context) {
   assert.equal((await invoke(scoped, '/api/projects', 'POST')).status, 403, 'connection effect restriction');
 }
 
-async function responseCases({ fixture, audit, caller, invoke, state, WriteAccessError }: Context) {
+async function responseCases({ fixture, audit, caller, invoke, state, mintCaller, WriteAccessError }: Context) {
   const deleted = await fixture.ws.trash.deleteFile('hr-people', 'people.odcs.yaml', undefined, LOCAL_READER);
   assert.equal((await invoke(caller('alice'), '/api/trash/' + deleted.entryId + '/restore', 'POST')).status, 404, 'trash target resolution');
+  const scoped = mintCaller({ ...caller('alice'), scope: ['read'] });
+  const beforeScoped = audit.recent(100).length;
+  assert.equal((await invoke(scoped, '/api/trash/' + deleted.entryId + '/restore', 'POST')).status, 404, 'scope preserves hidden denial');
+  assert.equal((await invoke(scoped, '/api/trash/missing-entry/restore', 'POST')).status, 404, 'scope preserves missing response');
+  assert.equal(audit.recent(100).length, beforeScoped + 1, 'scope preserves trash audit distinction');
   state.error = new WriteAccessError('edit', { type: 'project', project: 'sales-contracts' }, { allow: false, status: 403, rules: [], reason: 'test-target' });
   assert.equal((await invoke(caller('dave'), '/api/projects', 'POST')).status, 403, 'handler refusal conversion');
   state.error = undefined;

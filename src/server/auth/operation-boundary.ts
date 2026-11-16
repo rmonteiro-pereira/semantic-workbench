@@ -232,7 +232,7 @@ export function createOperationBoundary(ws: Workspace, options: HandlerOptions &
       decision = { allow: false, status: 404, rules: [], reason: 'not-readable' };
     }
     const entry = operationForRow(target.row.path);
-    if (entry && !scopeAllows(caller.scope, entry.effects)) decision = { allow: false, status: 403, rules: [], reason: 'connection-scope' };
+    if (decision.allow && entry && !scopeAllows(caller.scope, entry.effects)) decision = { allow: false, status: 403, rules: [], reason: 'connection-scope' };
     if (noAccess) decision = { allow: false, status: 403, rules: [], reason: 'no-grant' };
     const input = auditInput({
       requestId,

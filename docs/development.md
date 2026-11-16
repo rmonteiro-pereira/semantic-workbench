@@ -71,6 +71,9 @@ bun run build
 - `build` runs `schemas:compile` and then the production browser build. The Bun server runs
   TypeScript directly; this is not a separate compiled backend output.
 
+Connection effects narrow allowed decisions; they preserve existence-hiding refusals and the
+existing distinction between hidden-trash denials and unaudited missing entries.
+
 `bun scripts/boundary-benchmark.ts` measures 5,000 in-process HTTP requests with isolated temporary data and prints median and 95th-percentile durations.
 `bun test tests/auth/http-characterization.test.ts` compares responses and audit records against the original HTTP contract; regenerate that fixture only before a boundary change.
 

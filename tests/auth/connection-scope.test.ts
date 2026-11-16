@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { createHandler } from '../../src/server/handler';
 import { createAuditLog } from '../../src/server/auth/audit';
 import { mintCaller } from '../../src/server/auth/caller';
+import { LOCAL_READER } from '../../src/server/projects/reader';
 import { localPrincipal } from '../../src/server/auth/principal';
 import { scopeAllows } from '../../src/server/auth/connection-scope';
 import { buildTwinRequest } from '../../src/server/auth/twin-request';
@@ -72,4 +73,23 @@ test('read-only computations and local default-branch merges use their actual ef
   expect(runs).toBe(cases.length);
   const localOnly = mintCaller({ principal: localPrincipal(), origin: 'mcp', scope: ['localWrite'] });
   expect(adapter.boundary.availableOperations(localOnly)).not.toContain('git.pull');
+});
+
+test('connection restrictions preserve hidden and missing trash responses and audit distinction', async () => {
+  using fixture = await authWorkspace();
+  const access = createAccessControl(accessFixture());
+  const audit = createAuditLog({ dir: join(fixture.root, 'scoped-trash-audit') });
+  const handler = createHandler(fixture.ws, { mode: 'server', access, audit, remoteCredentials: allowEveryRemote() });
+  const caller = mintCaller({ principal: access.principalFor(person('alice')), origin: 'mcp', scope: ['read'] });
+  const deleted = await fixture.ws.trash.deleteFile('hr-people', 'people.odcs.yaml', undefined, LOCAL_READER);
+  const responses: string[] = [];
+  for (const entry of [deleted.entryId, 'missing-entry']) {
+    const request = buildTwinRequest('trash.restore.run', { params: { entry }, body: {} });
+    const { response } = await handler.boundary.operate({ caller, request });
+    expect(response.status).toBe(404);
+    responses.push(await response.text());
+  }
+  expect(responses[0]).toBe(responses[1]);
+  expect(audit.recent(10)).toHaveLength(1);
+  expect(audit.recent(10)[0]).toMatchObject({ decision: 'deny', reason: 'not-readable' });
 });

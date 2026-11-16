@@ -13,6 +13,7 @@ export const operationBoundaryMutants: [string, string, string, string][] = [
   ['operation-boundary', 'src/server/auth/operation-boundary.ts', 'assertMinted(call.caller);', ''],
   ['operation-boundary', 'src/server/auth/operation-boundary.ts', 'call.operation !== undefined && call.operation !== entry?.id', 'false'],
   ['operation-boundary', 'src/server/auth/twin-request.ts', 'return encodeURIComponent(value);', 'return value;'],
+  ['operation-boundary', 'src/server/auth/operation-boundary.ts', 'decision.allow && entry && !scopeAllows(caller.scope, entry.effects)', 'entry && !scopeAllows(caller.scope, entry.effects)'],
   ['operation-boundary', 'src/server/auth/connection-scope.ts', 'return scope === undefined || effects.every(effect => scope.includes(effect));', 'return true;'],
   [
     'operation-boundary',
