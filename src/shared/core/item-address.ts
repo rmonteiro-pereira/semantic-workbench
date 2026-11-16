@@ -28,6 +28,7 @@ function refuse(reason: AddressFailure): never {
 }
 
 function encode(value: string): string {
+  if (typeof value !== 'string') refuse('encoding');
   if (!value) refuse('empty');
   try {
     return encodeURIComponent(value).replace(/[!'()*]/g, character => '%' + character.charCodeAt(0).toString(16).toUpperCase());

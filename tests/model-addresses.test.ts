@@ -78,6 +78,10 @@ test('declared identity survives renames without inventing identities for fields
   expect(itemIdentity({ name: 'field' }, ontology)).toBeNull();
 });
 
+test('raw model names must be strings rather than coerced locator names', () => {
+  expect(() => addressesOfModel({ name: 7, ontology: [{ concept: 'C' }] })).toThrow(UnaddressableItemError);
+});
+
 test('deep properties report their source path instead of truncating a locator', () => {
   const deep = structuredClone(contract);
   let property: any = deep.schema[0].properties[0];

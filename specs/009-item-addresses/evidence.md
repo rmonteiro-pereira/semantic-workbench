@@ -294,3 +294,12 @@ and agent response fields untouched. The earlier successful prototype checks rem
 evidence; they do not complete T017. Prototype commits remain available for resuming after the
 root scope contract is settled. The working implementation now adds only shared pure APIs and
 their verification. No application writer, inspector or canvas uses addresses yet.
+
+## Raw-name boundary validation
+
+The raw model API could coerce numeric name 7 into the same locator as string name "7". A
+representative public-entry test failed before the fix and passes after the formatter rejects
+non-string values at its encoding boundary. The model API reports the existing path-bearing
+unaddressable-item error; it does not invent a string name.
+`bun test tests/item-address.test.ts tests/item-address-properties.test.ts tests/model-addresses.test.ts -t 'raw model names|canonical|round|prefix|format|parse|relative'`:
+6 pass, 0 fail, 38 filtered out, 61,561 assertions in 1.316 s.
