@@ -165,7 +165,7 @@ export const createGitRoutes =
       // Remote commands run in the person's own copy with their own credential for the remote.
       const credentialFor = delegatedCredentials(req);
       if (action === 'git/fetch') {
-        const follow = { reader, mayPublish: () => scopeAllows((req as AccessRequest)[requestConnectionScope], ['publish']) && mayPublish(gitTarget) };
+        const follow = { reader, mayPublish: async () => scopeAllows((req as AccessRequest)[requestConnectionScope], ['publish']) && mayPublish(gitTarget) };
         return Response.json(await scm!.fetch(slug, credentialFor, follow));
       }
       if (action === 'git/pull') return Response.json(await scm!.pull(slug, reader, credentialFor));
