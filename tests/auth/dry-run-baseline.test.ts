@@ -4,5 +4,6 @@ import expected from '../fixtures/dry-run/baseline.json';
 import { dryRunBaseline } from './dry-run-baseline';
 
 test('administration comparison reproduces the original audit replay', () => {
-  expect(dryRunBaseline()).toEqual(expected);
+  const actual: unknown = dryRunBaseline();
+  expect(actual).toEqual(expected);
 }, 30_000);
