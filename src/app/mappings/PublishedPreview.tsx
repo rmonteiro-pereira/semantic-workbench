@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../projects/api';
 
-/** Names the saved authoring view and the production commit reported by Source Control. */
+/** Names the saved authoring view and the readable project's settled production commit. */
 export function PublishedPreview({ project, revisionKey }: { project: string; revisionKey: string }) {
   const [publication, setPublication] = useState({ project: '', text: 'loading…' });
   useEffect(() => {
