@@ -42,3 +42,20 @@ export async function localCommitCase(candidate: { openWorkspace?: typeof import
     fixture.dispose();
   }
 }
+
+/** Adopting must run the content guard and refuse a non-descendant default ref. */
+export async function adoptionCase(candidate: { createLocalPublication?: typeof local.createLocalPublication }) {
+  using fixture = localPublicationFixture('history', candidate.createLocalPublication);
+  await fixture.git.run(fixture.repository, ['update-ref', 'refs/heads/main', fixture.authoring]);
+  await assert.rejects(
+    () =>
+      fixture.publication.adopt('definitions', 'main', async () => {
+        throw Error('Content refused');
+      }),
+    /Content refused/,
+  );
+  assert.equal(fixture.pointers.get('definitions')?.commit, fixture.published);
+  await fixture.git.run(fixture.repository, ['update-ref', 'refs/heads/main', fixture.previous!]);
+  await assert.rejects(() => fixture.publication.adopt('definitions', 'main', async () => {}), /no longer contains/);
+  assert.equal(fixture.pointers.get('definitions')?.commit, fixture.published);
+}
