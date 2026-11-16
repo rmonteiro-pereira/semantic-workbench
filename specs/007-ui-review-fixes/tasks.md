@@ -203,11 +203,11 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Below the card-detail zoom threshold render the name only, with a font size compensated for zoom and bounded by the card height, as the mapping graph does (`states/local-mapping-graph--after-fit-1440.png`).
   - Proof: Before `states/local-contract-lineage--after-fit-1440.png`, `states/local-contract-lineage--after-fit-2560.png`, `followup/local-mall-properties-lineage--more-columns-open-1440.png` (review baseline); after: same state recaptured with `scripts/ui-review/capture-states.ts <out> graphs` and `scripts/ui-review/followup-local.ts <out> lineage`; check: `bun run test:lineage` asserts every card name at least NAME_MIN_PX after Fit for the Mall dataset at 1 hop.
 
-- [ ] T028 [US2] [B] Bundle same-column lines and keep cards clear of the Selected path panel.
+- [x] T028 [US2] [B] Bundle same-column lines and keep cards clear of the Selected path panel.
   - Findings: M16 · Requirements: FR-020
   - Files: `src/app/odcs/LineageEdge.tsx`, `src/app/odcs/edge-route.ts`, `src/app/odcs/SelectedPath.tsx`, `src/app/odcs/LineageCanvas.tsx`, `tests/edge-route.test.ts`
-  - Change: Draw the lines that join the same column as one line with a count (the bundle split already exists), and shift the viewport when the panel opens so cards stay beside it.
-  - Proof: Before `states/local-contract-lineage--column-selected-1440.png`, `states/local-mapping-graph--node-selected-1440.png` (review baseline); after: same state recaptured with `scripts/ui-review/capture-states.ts <out> graphs`; check: `bun run test:lineage` and `bun run test:mapping-graph` assert no card box intersects the panel box and at most 3 visible paths for the hub column.
+  - Change: Shift the viewport when the panel opens so cards stay beside it. Per the integrator, shared-source bundling across destination cards is a follow-up in spec.md; existing card-pair bundles stay.
+  - Proof: Before `states/local-contract-lineage--column-selected-1440.png`, `states/local-mapping-graph--node-selected-1440.png` (review baseline); after: same state recaptured with `scripts/ui-review/capture-states.ts <out> graphs`; check: `bun run test:lineage` and `bun run test:mapping-graph` assert no card box intersects the panel box beside the panel; the cross-destination path-count check is excluded by the integrator.
 
 - [x] T029 [P] [US2] [B] Confirm first (cause inferred in the review): find why the hops row wraps at 2560 with room to spare.
   - Findings: M17 · Requirements: FR-021
@@ -227,10 +227,10 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Give the lineage card the header card's width rule (`contract.css:326`) and do not add a second page-width rule; the shared content-width rule is lane E's.
   - Proof: Before `states/local-dataset-lineage--first-view-2560.png` (review baseline); after: same state recaptured with `scripts/ui-review/capture-states.ts <out> rest` (SW_ONLY=odcs) at 2560 light; check: `bun run test:odcs` asserts equal left and right edges.
 
-- [ ] T032 [US2] [B] Label the walked canvas, keep the card header stable, add the legend entries and the empty state.
+- [x] T032 [US2] [B] Label the walked canvas, keep the card header stable, add the legend entries and the empty state.
   - Findings: m2, m3, m4, m28, m5 · Requirements: FR-023, FR-024, FR-025, FR-026
   - Files: `src/app/odcs/LineageCanvas.tsx`, `src/app/odcs/LineageCard.tsx`, `src/app/odcs/odcs.css`, `src/app/graph/LineageLegend.tsx`, `src/app/graph/legend.css`, `src/app/odcs/LineageToolbar.tsx`, `src/app/odcs/ForeignKeyHops.tsx`
-  - Change: Add 'Lineage around X (opened from Y)' after a walk; always show the CENTER badge and drop the empty band (`odcs.css:890`); add a legend row for the grouping tint and make the 390 legend collapsible with PK, FK and line kinds; show one line in an empty canvas and disable Hops.
+  - Change: Add 'Lineage around X (opened from Y)' after a walk; always show the CENTER badge and retain the fixed detailed header band (integrator decision) (`odcs.css:890`); add a legend row for the grouping tint and make the 390 legend collapsible with PK, FK and line kinds; show one line in an empty canvas and disable Hops.
   - Proof: Before `states/local-lineage-walk--fitted-1-after-1440.png`, `local-light/local-contract-graph-1280.png`, `states/local-contract-lineage--first-view-1440.png`, `states/local-contract-lineage--no-links-1440.png`, `states/local-contract-lineage--first-view-390.png` (review baseline); after: same state recaptured with `scripts/ui-review/lineage-walk-states.ts`, `scripts/ui-review/empty-graph-states.ts`, `scripts/ui-review/capture-states.ts <out> graphs`; check: `bun run test:lineage`; the pair for the empty state is also taken for `states/local-dark-mapping-graph--empty-bindings-2560.png`.
 
 - [x] T033 [US2] [B] Keep edge labels clear of lines and the pane edge; disable the toolbar while laying out.

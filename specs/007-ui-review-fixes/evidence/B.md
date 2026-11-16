@@ -174,3 +174,14 @@ The aggregate readable-code scan over this lane's changed lines, docs synchroniz
 The final UI smoke run reports `20 UI checks passed`. All lane-owned changes are committed locally; nothing was pushed or merged. The dev server was stopped and neither 5221 nor 5222 has a listener. A process scan found no remaining browser or Bun check process in this worktree.
 
 The integrator must reconcile the skipped Fit/name/target acceptance conditions, decide whether shared-source routing belongs in a separate change, and rerun the complete unit/mutation gates with fixture-compatible listener allocation. The responsive Admin loading timeout and shutdown watcher error remain reported separately. The supplied `scripts/commit_cadence.py` command is unavailable in this repository. This lane is not declared ready to merge.
+
+## Integrator-directed completion — scope ledger
+
+- Mapping and lineage already share the same card renderer, graph closure, layout worker and viewport hook; these remain the single implementation.
+- The detailed layout retains its fixed header/row geometry and semantic edge endpoints. Name-only overview geometry anchors those same endpoints to the card header.
+- Initial framing may choose the compact complete reach only when its measured names fit readably; otherwise it frames a whole chosen neighbourhood. Fit explicitly requests the complete compact reach.
+- Card selection remains available at far zoom and offers Walk in the existing Selected path panel; readable Walk buttons retain their compensated 24 px target.
+- The integrator permits dynamic fixture listeners. Shared-source routing and removing the fixed detailed header band are excluded; previous skip dispositions below are superseded by the completion results.
+
+
+The integrator accepts the panel-fitting portion of T028 and the existing T032 changes. Both are ticked; the spec records shared-source cross-destination trunks and removal of the detailed fixed header band as out of scope. The original skipped audit is historical and superseded for these two tasks. Existing panel fits, empty-state/legend captures and checks above establish their delivered portion; final responsive checks will cover the shared name-only rendering as well.
