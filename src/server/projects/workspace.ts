@@ -447,7 +447,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
             owners: () => copies.owners(),
             followRemote: (slug, remote, follow) => publishing.followRemote(slug, remote, follow),
           })
-        : {}),
+        : { untrackedPull: async (slug, branch) => (branch === 'work/local' ? worktrees.defaultBranch(repoOf(slug)) : null) }),
     });
   }
   const publishedBase = { copy: null, layout, cache, scanner, tags: (tags: EventTags) => tags };
@@ -507,6 +507,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     watchProject: slug => watcher?.add(slug),
     notifySuggestions,
     examplesDir,
+    prepareCommit: options.reconcilePublished ? undefined : directory => prepareLocalCommit(git, directory),
   });
   const { createProjectFolder } = importBatch;
   const trash = createTrash({
@@ -603,6 +604,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   }
   const gitIdentity = createGitIdentity({ layout, git, gitAvailable, events, projects, entry, repositories });
   const projectFolders = createProjectFolders({
+    prepareCommit: directory => prepareLocalCommit(git, directory),
     layout,
     git,
     journal,
@@ -644,7 +646,11 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     withCurrentReaders: (event, tags) => events.withCurrentReaders(event, tags),
     manifestFolder: async (repo, reader, write) => {
       const slug = projectsIn(repo)[0];
-      if (!slug || !reader.copy) return join(layout.projects, repo);
+      if (!slug || !reader.copy) {
+        const directory = join(layout.projects, repo);
+        if (write && !reader.view && !reader.copy) await prepareLocalCommit(git, directory);
+        return directory;
+      }
       const place = write ? await copies.writePlace(reader, slug) : copies.readPlace(reader, slug);
       const dir = repoDir(place.layout, slug);
       // A copy in the middle of a merge cannot commit the manifest, so nothing is written.

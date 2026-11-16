@@ -290,3 +290,13 @@ The extension keeps those existing writers and uses one authoring preparation fu
 moving from the default; another selected branch remains selected, and the default tip is unchanged.
 The mutant omitting local commit preparation is detected (baseline 0, mutant 1).
 `bun --bun run check`: exit 0. Automatic local commit writers are the remaining part of this step.
+
+## Automatic local commits
+
+`TMPDIR=/tmp/sw-008 bun test tests/local-commit-branch.test.ts tests/import-commit.test.ts tests/project-folder.test.ts`:
+22 pass, 0 fail, 142 assertions. New imports leave the default unborn and remember its name before
+the first authoring commit. Imports into an upgraded root keep its published ref. Folder moves and
+manifest writes reuse the same preparation. In-progress merge imports retain their existing
+written-but-not-committed result. The existing explicit pull path uses the remembered default for
+`work/local` without an upstream; no network listener was added. Fixture publication now keeps
+existing commits rather than adding empty commits and represents published roots explicitly.

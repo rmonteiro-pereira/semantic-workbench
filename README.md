@@ -535,7 +535,7 @@ and publication. For old local database migration, consult
 ### Existing Git data on upgrade
 
 Opening an existing data root records each repository's default-branch tip as its first durable
-snapshot. A local commit on the default branch first switches to `work/local`, carrying staged and unstaged
+snapshot. A local commit, including an import or folder-move commit, on the default branch first switches to `work/local`, carrying staged and unstaged
 changes. Commits on other branches keep their chosen branch. The commit response identifies the
 authoring branch; committing does not move the published snapshot.
 

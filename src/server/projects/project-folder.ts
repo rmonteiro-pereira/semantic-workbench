@@ -52,6 +52,8 @@ export type ProjectFolderDeps = {
   drafts: (slug: string) => string[];
   /** Rescans the project and tells open tabs, after its folder changed. */
   refreshed: (slug: string) => Promise<void>;
+  /** Keeps the commit recording a local folder move on the authoring branch. */
+  prepareCommit?: (directory: string) => Promise<unknown>;
 };
 
 /** The pure part of a preview: where each of a project's files will be under the folder. */
@@ -231,10 +233,15 @@ export function createProjectFolders(deps: ProjectFolderDeps) {
     assertLocalMode(reader);
     const folder = repositoryFolder(requested);
     return exclusively([slug], async () => {
-      const shown = await preview(slug, folder, reader);
+      let shown = await preview(slug, folder, reader);
       if (shown.kind === 'none') return shown;
       if (shown.blocked) throw new BlockedError(shown.blocked.reason, shown.blocked.paths);
       const place = await situation(slug);
+      if (shown.kind === 'move' || shown.kind === 'finish') {
+        await deps.prepareCommit?.(place.dir);
+        shown = await preview(slug, folder, reader);
+        if (shown.blocked) throw new BlockedError(shown.blocked.reason, shown.blocked.paths);
+      }
       if (shown.kind === 'move') await moveFiles(place, shown.folder);
       else if (shown.kind === 'finish') await finishMove(place.dir, shown.folder);
       else await changeFolder(place, shown.folder, options.createFolder === true);

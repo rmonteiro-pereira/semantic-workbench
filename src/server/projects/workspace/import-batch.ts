@@ -160,6 +160,8 @@ export type ImportBatchContext = {
   watchProject: (slug: string) => void;
   notifySuggestions: () => void;
   examplesDir: string;
+  /** Separates local authoring before automatic import commits can advance the default ref. */
+  prepareCommit?: (directory: string) => Promise<unknown>;
 };
 
 /** Import use cases: files into a project, a batch into a new project, and bundled examples. */
@@ -199,7 +201,10 @@ export function createImportBatch(ctx: ImportBatchContext) {
               stagedProject,
               files.map(f => f.path),
             );
-          else if (await git.identity(stagedProject)) await git.commit(stagedProject, 'Create project', true);
+          else if (await git.identity(stagedProject)) {
+            await ctx.prepareCommit?.(stagedProject);
+            await git.commit(stagedProject, 'Create project', true);
+          }
         }
         const project: ProjectEntry = {
           slug,
@@ -224,6 +229,7 @@ export function createImportBatch(ctx: ImportBatchContext) {
   // Commit only imported paths to preserve unrelated work; prefix paths for subfolder projects.
   async function commitFiles(repo: string, paths: string[], prefix = '', author?: CommitAuthor): Promise<ImportCommit> {
     if (!gitAvailable) return { committed: false, reason: 'no-git' };
+    if (!author && !(await git.merging(repo))) await ctx.prepareCommit?.(repo);
     const message = importMessage(paths, prefix.replace(/\/$/, ''));
     const commitPathsResult = await git.commitPaths(
       repo,
@@ -271,6 +277,8 @@ export function createImportBatch(ctx: ImportBatchContext) {
     const check = (at: Place) => guardedImport(at.layout, slug, batch, planned, guard);
     const place = await copies.writePlace(reader, slug, check);
     return lock(projectLock(place, slug), async () => {
+      const repository = repoDir(place.layout, slug);
+      if (!reader.view && !reader.copy && !(await git.merging(repository))) await ctx.prepareCommit?.(repository);
       const dir = projectDir(place.layout, slug);
       const existing = existingNames(place, slug, batch);
       const conflicts = batch.filter(f => existing.has(f.path)).map(f => f.path);

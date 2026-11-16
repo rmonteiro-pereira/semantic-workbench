@@ -3,6 +3,7 @@ import { test, expect } from 'bun:test';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { publishFixture } from './helpers/published-workspace';
 import { testWorkspace, isolateGit } from './helpers/temp-data-dir';
 import { call, ok, ontology, sh } from './helpers/scm';
 // Every import commits exactly the written paths ("Import N files", one file "Import <name>");
@@ -128,6 +129,7 @@ test('during a merge the import is written but not committed', async () => {
       }),
     );
     const dir = join(workspace.root, 'projects', imported.slug);
+    await publishFixture(workspace);
     sh(dir, ['switch', '-q', '-c', 'other']);
     writeFileSync(join(dir, 'a.yaml'), ontology('Other'));
     sh(dir, ['commit', '-qam', 'other']);

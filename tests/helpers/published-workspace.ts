@@ -1,5 +1,6 @@
 // Commits fixture definitions explicitly before reopening them as production snapshots.
 import { join } from 'node:path';
+import { LOCAL_READER } from '../../src/server/projects/reader';
 import { createHandler } from '../../src/server/handler';
 import { locationOf } from '../../src/server/projects/paths';
 import { openWorkspace } from '../../src/server/projects/workspace';
@@ -17,8 +18,15 @@ export async function publishFixture(fixture: Awaited<ReturnType<typeof testWork
       return result.stdout.toString().trim();
     };
     run(['add', '-A']);
-    run(['commit', '--allow-empty', '-qm', 'Publish fixture definitions']);
-    published.repositories[repository] = { branch: run(['branch', '--show-current']), commit: run(['rev-parse', 'HEAD']) };
+    const changes = Bun.spawnSync(['git', 'diff', '--cached', '--quiet'], { cwd: directory });
+    if (changes.exitCode === 1) run(['commit', '-qm', 'Publish fixture definitions']);
+    else if (changes.exitCode !== 0) throw new Error(changes.stderr.toString());
+    const configured = Bun.spawnSync(['git', 'config', '--local', '--get', 'workbench.defaultBranch'], { cwd: directory });
+    const branch = configured.exitCode === 0 ? configured.stdout.toString().trim() : run(['branch', '--show-current']);
+    const commit = run(['rev-parse', 'HEAD']);
+    run(['update-ref', `refs/heads/${branch}`, commit]);
+    run(['switch', branch]);
+    published.repositories[repository] = { branch, commit };
   }
   fixture.ws.state.writePublished(published);
   fixture.ws.close();
@@ -26,6 +34,7 @@ export async function publishFixture(fixture: Awaited<ReturnType<typeof testWork
   const workspace = await openWorkspace({ root: fixture.root });
   fixture.ws = workspace;
   fixture.handler = createHandler(workspace);
+  fixture.seed = (files, name) => workspace.importBatch({ files, ...(name ? { name } : {}) }, LOCAL_READER);
   fixture.dispose = () => {
     workspace.close();
     previousDispose();

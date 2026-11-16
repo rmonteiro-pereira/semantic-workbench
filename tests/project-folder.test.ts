@@ -95,7 +95,7 @@ test('a moved project joins a team repository: its first pull merges, its push a
     expect(existsSync(join(fixture.dir, PROJECT_FOLDER))).toBe(false);
     const pushed = await ok(call(fixture.t, 'POST', `${fixture.base}/git/push`));
     expect(pushed.ok).toBe(true);
-    const tree = sh(team.bare, ['ls-tree', '-r', '--name-only', 'main']).split('\n').filter(Boolean);
+    const tree = sh(team.bare, ['ls-tree', '-r', '--name-only', 'work/local']).split('\n').filter(Boolean);
     expect(tree).toEqual(expect.arrayContaining(['README.md', `${PROJECT_FOLDER}/shop.yaml`, `${OTHER_FOLDER}/crm.yaml`, 'semantic/shop/shop.yaml']));
   } finally {
     fixture.dispose();
@@ -203,6 +203,7 @@ test('a folder named like an existing top-level folder keeps every file', async 
     mkdirSync(join(fixture.dir, 'semantic'));
     writeFileSync(join(fixture.dir, 'semantic/inner.yaml'), ontology('Inner.'));
     sh(fixture.dir, ['add', '-A']);
+    sh(fixture.dir, ['switch', 'work/local']);
     sh(fixture.dir, ['commit', '-qm', 'Add a semantic folder']);
     await ok(call(fixture.t, 'PUT', `${fixture.base}/git/folder`, { folder: 'semantic/ubl' }));
     expect(existsSync(join(fixture.dir, 'semantic/ubl/shop.yaml'))).toBe(true);

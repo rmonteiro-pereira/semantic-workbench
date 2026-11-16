@@ -4,6 +4,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { testWorkspace } from './temp-data-dir';
+import { publishFixture } from './published-workspace';
 // Source Control fixtures: an isolated workspace with one project, a local bare remote and a
 // second clone standing for "someone else" — never a network remote or the owner's repositories.
 /** Calls the workspace HTTP handler and returns the status and decoded JSON body. */
@@ -42,6 +43,7 @@ export async function scmProject(options: { remote?: boolean } = {}) {
       files: [{ path: 'shop.yaml', source: ontology('Buys.') }],
     }),
   );
+  await publishFixture(workspace);
   const slug = created.slug;
   const dir = join(workspace.root, 'projects', slug);
   const base = `/api/projects/${slug}`;
