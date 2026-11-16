@@ -125,8 +125,11 @@ export class MissingFolderError extends Error {
 
 /** Explains why immutable published definitions cannot be served. */
 export class SnapshotUnavailableError extends Error {
-  constructor(public reason: 'no-git' | 'no-commit' | 'unavailable') {
-    super('no published snapshot');
+  constructor(
+    public reason: 'no-git' | 'no-commit' | 'unavailable',
+    options?: ErrorOptions,
+  ) {
+    super('no published snapshot', options);
     this.name = 'SnapshotUnavailableError';
   }
 }

@@ -5,4 +5,10 @@ export const snapshotMutants: [string, string, string, string][] = [
   ['snapshot-checks', 'src/server/projects/publication-checks.ts', 'candidate.previous && !(await deps.isAncestor(candidate.repo, candidate.previous, candidate.next))', 'false'],
   ['snapshot-checks', 'src/server/projects/publication-checks.ts', 'await deps.readable(candidate);', 'void candidate;'],
   ['snapshot-checks', 'src/server/projects/publication-checks.ts', '    async candidate => {\n      try {', '    async candidate => {\n      await deps.guard(candidate);\n      try {'],
+  [
+    'snapshot-index',
+    'src/server/projects/snapshot-index.ts',
+    'const blobs = await deps.git.catFileBatch(\n    directory,\n    files.map(file => file.id),\n    limits,\n  );',
+    "const blobs = new Map(await Promise.all(files.map(async file => [file.id, new Uint8Array(await Bun.file(directory + '/' + file.path).arrayBuffer())] as const))));",
+  ],
 ];

@@ -1,13 +1,19 @@
 // Focused assertions for immutable publication faults.
 import assert from 'node:assert/strict';
+import { join } from 'node:path';
+import { writeFileSync } from 'node:fs';
+import { publicationRepository } from '../tests/helpers/git-fixtures';
+import { createGit } from '../src/server/projects/git';
 import type { classify } from '../src/server/projects/published-pointer';
 import type { publicationChecks } from '../src/server/projects/publication-checks';
+import type { createSnapshotIndexes } from '../src/server/projects/snapshot-index';
 /** Exercises the publication predicate belonging to a candidate module. */
 export async function snapshotMutationCase(
   category: string,
   candidate: {
     classify?: typeof classify;
     publicationChecks?: typeof publicationChecks;
+    createSnapshotIndexes?: typeof createSnapshotIndexes;
   },
 ) {
   if (category === 'snapshot-pointer') {
@@ -17,6 +23,9 @@ export async function snapshotMutationCase(
   }
   if (category === 'snapshot-checks') {
     await checksCase(candidate.publicationChecks!);
+  }
+  if (category === 'snapshot-index') {
+    await indexCase(candidate.createSnapshotIndexes!);
   }
 }
 
@@ -44,5 +53,19 @@ async function checksCase(checks: typeof publicationChecks) {
     else await publish();
     const expected = ['ancestor', 'bounds', 'guard'];
     assert.deepEqual(calls, failure ? expected.slice(0, expected.indexOf(failure) + 1) : expected);
+  }
+}
+
+async function indexCase(indexes: typeof createSnapshotIndexes) {
+  const fixture = publicationRepository();
+  try {
+    const git = createGit({ projectsRoot: join(fixture.dir, 'projects') });
+    const committed = new TextDecoder().decode((await git.blob(fixture.repository, fixture.published!, 'shop.ontology.yaml'))!);
+    writeFileSync(join(fixture.repository, 'shop.ontology.yaml'), 'dirty');
+    const loader = indexes({ git, directory: () => fixture.repository });
+    const snapshot = await loader.build('definitions', fixture.published!, [{ slug: 'definitions', name: 'Definitions', createdAt: '', origin: '' }]);
+    assert.equal(snapshot.projects.get('definitions')![0].document.source, committed);
+  } finally {
+    fixture.dispose();
   }
 }

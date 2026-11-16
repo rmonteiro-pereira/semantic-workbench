@@ -45,3 +45,11 @@ all fail their focused cases; each unmodified baseline passes.
 and askpass mutations, then failed its UI-mutant setup: the default frontend URL was unavailable.
 The browser stage needs `SW_BASE_URL` pointed at the assigned frontend port and a running dev server.
 This run is not a passing full gate.
+
+## Immutable indexes
+
+`bun test tests/snapshot-index.test.ts tests/published-pointer.test.ts tests/publication-checks.test.ts`:
+24 pass, 0 fail, 41 expect() calls.
+The index cases cover byte-exact blobs despite dirty files, tracked ignored files, absent untracked
+files, all three build limits, case collisions and twenty concurrent callers sharing one build.
+The registered working-file substitution mutant exits 1; its baseline exits 0.

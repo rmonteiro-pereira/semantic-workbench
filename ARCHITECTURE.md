@@ -143,6 +143,8 @@ concatenating project, document or item names.
 - Shared `grouping-addresses.ts` translates stable assignment keys while keeping renderer IDs at the UI boundary.
 - `scanner.ts`, `cache.ts` and `watcher.ts` maintain derived models/findings and detect disk
   changes. Cache rows are not another authoritative copy of the definitions.
+- `snapshot-index.ts` reads committed project files with the shared byte validator. Concurrent
+  builds share one promise per repository, commit and folder digest; limits reject whole builds.
 - `publication-checks.ts` orders ancestry, complete bounded reads and content-guard judgement
   before a publication can move its ref or durable pointer.
 - `published-pointer.ts` owns atomic publication records and interrupted-publication transitions.
