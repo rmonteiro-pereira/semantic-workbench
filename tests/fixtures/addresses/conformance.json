@@ -138,6 +138,62 @@
         ]
       },
       "canonical": "sw1:sales/a.yaml#ontology:O/mapping:#0/model:M"
+    },
+    {
+      "text": "sw1:p/legacy.yaml#ontology:#0/concept:C",
+      "parsed": {
+        "grammar": 1,
+        "form": "absolute",
+        "project": "p",
+        "document": [
+          "legacy.yaml"
+        ],
+        "chain": [
+          {
+            "kind": "ontology",
+            "position": 0
+          },
+          {
+            "kind": "concept",
+            "name": "C"
+          }
+        ]
+      },
+      "canonical": "sw1:p/legacy.yaml#ontology:#0/concept:C"
+    },
+    {
+      "text": "sw1:p/c.yaml#contract:C/object:O/property:rows/property:#0/property:code",
+      "parsed": {
+        "grammar": 1,
+        "form": "absolute",
+        "project": "p",
+        "document": [
+          "c.yaml"
+        ],
+        "chain": [
+          {
+            "kind": "contract",
+            "name": "C"
+          },
+          {
+            "kind": "object",
+            "name": "O"
+          },
+          {
+            "kind": "property",
+            "name": "rows"
+          },
+          {
+            "kind": "property",
+            "position": 0
+          },
+          {
+            "kind": "property",
+            "name": "code"
+          }
+        ]
+      },
+      "canonical": "sw1:p/c.yaml#contract:C/object:O/property:rows/property:#0/property:code"
     }
   ],
   "invalid": [
