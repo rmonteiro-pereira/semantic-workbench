@@ -52,3 +52,21 @@ test('invalid attribution writes neither a record nor a mirror anchor', async ()
   expect(audit.entries('2026-02')).toEqual([]);
   expect(mirrored).toHaveLength(1);
 });
+
+import ts from 'typescript';
+
+test('every declared audit input field has an explicit serializer disposition', async () => {
+  using fixture = await testWorkspace();
+  const syntax = ts.createSourceFile('audit.ts', await Bun.file('src/server/auth/audit.ts').text(), ts.ScriptTarget.Latest, true);
+  const declaration = syntax.statements.find(node => ts.isTypeAliasDeclaration(node) && node.name.text === 'AuditInput');
+  if (!declaration || !ts.isTypeAliasDeclaration(declaration) || !ts.isTypeLiteralNode(declaration.type)) throw Error('AuditInput must declare its serializer fields.');
+  const fields = declaration.type.members.filter(ts.isPropertySignature).map(member => member.name.getText(syntax));
+  const intentionallyNotStored: string[] = [];
+  expect(Object.keys(attributedInput).sort()).toEqual(fields.sort());
+  const stored = createAuditLog({ dir: join(fixture.root, 'complete-audit') }).append(attributedInput);
+  for (const field of fields) {
+    if (intentionallyNotStored.includes(field)) continue;
+    expect(Object.hasOwn(stored, field), field + ' must be stored').toBe(true);
+    expect(stored[field], field).toEqual(attributedInput[field]);
+  }
+});
