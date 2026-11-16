@@ -13,12 +13,7 @@ export const addressMutants: [string, string, string, string][] = [
 
 /** Faults in model matching and positional stability. */
 export const modelAddressMutants: [string, string, string, string][] = [
-  [
-    'address-model',
-    'src/shared/core/model-addresses.ts',
-    'if (!wanted || wanted.kind !== kind || JSON.stringify(wanted) !== JSON.stringify(segment)) return;',
-    "if (!wanted || ('name' in wanted ? wanted.name : wanted.position) !== ('name' in segment ? segment.name : segment.position)) return;",
-  ],
+  ['address-model', 'src/shared/core/model-addresses.ts', 'if (!wanted || wanted.kind !== kind) return false;', 'if (!wanted) return false;'],
   [
     'address-model',
     'src/shared/core/model-addresses.ts',

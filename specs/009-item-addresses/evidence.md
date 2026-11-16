@@ -613,3 +613,9 @@ Proof: documentation-count test — 1 pass, 0 fail, 20 assertions; docs-sync exi
 The mapping graph's exported conceptId/datasetId/metricId/fieldId wrappers are retired; its resolved-scope keys use the canonical formatter directly. No production caller imported those wrappers. A TypeScript syntax-tree scan rejects legacy concept/dataset/field/join/metric template shapes outside the compatibility adapter. Renderer document IDs, evidence paths and explicit unresolved UI keys retain their separate meanings.
 
 Proof: private-key guard and mapping graph tests — 19 pass, 0 fail, 6,679 assertions; the full static check passes. The documentation and private-key guard together pass 2 tests with 22 assertions.
+
+### Remote completion-gate continuation
+
+The local full-suite run was interrupted externally during shared-machine memory pressure, and has no completion result. Heavy verification now uses the authorized sw-midgard-run wrapper, one remote command at a time, with its memory/CPU caps and temporary root. The wrapper's scratch-repository push is the only newly authorized transport; no GitHub push or remote-setting change is made. The old local frontend listeners are gone.
+
+The first remote run exposed the exhaustive enterprise resolver test exceeding Bun's default timeout. Segment matching now compares typed name/position values instead of repeatedly serializing them, and rejects nonmatching children before allocating their paths. One shared predicate preserves kind checking and duplicate detection. The focused enterprise proof passes locally with 11,002 assertions; no timeout or correctness assertion is relaxed. The kind-mismatch mutant is retargeted to that predicate and remains in the full mutation gate.

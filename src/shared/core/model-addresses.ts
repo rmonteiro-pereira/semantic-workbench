@@ -125,23 +125,31 @@ function validParents(address: Address): boolean {
   });
 }
 
+function matchesSegment(value: any, kind: ItemKind, index: number, wanted: ItemSegment | undefined): boolean {
+  if (!wanted || wanted.kind !== kind) return false;
+  const actual = segmentOf(kind, value, index);
+  if ('name' in wanted) return 'name' in actual && wanted.name === actual.name;
+  return 'position' in actual && wanted.position === actual.position;
+}
+
 /** Resolves only exact kind-qualified chains, returning all duplicate matches. */
 export function resolveInModel(model: any, address: Address, document?: AddressDocument): Resolution {
   if (!validParents(address)) return { status: 'missing' };
   if (address.form === 'absolute' && document && (address.project !== document.project || JSON.stringify(address.document) !== JSON.stringify(document.document))) return { status: 'missing' };
   const matches: AddressedItem[] = [];
   const walk: Visit = (value, kind, path, ancestors, index = 0) => {
-    const segment = segmentOf(kind, value, index);
-    const wanted = address.chain[ancestors.length];
-    if (!wanted || wanted.kind !== kind || JSON.stringify(wanted) !== JSON.stringify(segment)) return;
-    const chain = [...ancestors, segment];
+    if (!matchesSegment(value, kind, index, address.chain[ancestors.length])) return;
+    const chain = [...ancestors, segmentOf(kind, value, index)];
     if (chain.length === address.chain.length) {
       matches.push({ address, kind, path, volatile: chain.some(entry => 'position' in entry), ambiguous: false });
       return;
     }
     const children = (key: string, childKind: ItemKind) => {
       if (!Array.isArray(value?.[key])) return;
-      value[key].forEach((child: any, childIndex: number) => walk(child, childKind, [...path, key, childIndex], chain, childIndex));
+      value[key].forEach((child: any, childIndex: number) => {
+        if (!matchesSegment(child, childKind, childIndex, address.chain[chain.length])) return;
+        walk(child, childKind, [...path, key, childIndex], chain, childIndex);
+      });
     };
     visitChildren(value, kind, path, chain, children, walk);
   };
