@@ -36,6 +36,7 @@ type LaidOutResult = { key: string; layout: { positions: Record<string, { x: num
 
 // Opening or closing a card's columns changes its height, and the new layout can move that card
 // far away, so it seemed to vanish. The view follows the card: it stays where it was on screen.
+/** Anchors an opened or closed card to its previous position on screen. */
 export function useCardAnchor(flow: FlowRef, layoutKey: string | undefined) {
   const anchoredCard = useRef<AnchoredCard | null>(null);
   function keepOnScreen(cardId: string) {
@@ -71,6 +72,7 @@ type ViewportInputs = {
   path: { nodes: Set<string> } | null;
 };
 
+/** Coordinates initial framing and explicit fits with card and pane changes. */
 export function useLineageViewport({
   flow,
   anchoredCard,

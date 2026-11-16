@@ -5,6 +5,7 @@ import { edgeSvgStyle, type EdgeKind } from '../graph/edge-styles';
 import { labelSize, type LineLabel } from './edge-labels';
 import { pointAtHalf, roundedPath, type Point } from './edge-route';
 
+/** Draws a routed dependency and its unobstructed, visible label. */
 export const LineageEdge = memo((edgeProps: EdgeProps) => {
   const data = edgeProps.data as {
     kind: EdgeKind;

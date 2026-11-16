@@ -152,6 +152,7 @@ type ToolbarProps = ViewOptionsProps &
     toolbarExtra?: ReactNode;
   };
 
+/** Renders lineage actions and disables layout-dependent controls while positions are pending. */
 export function LineageToolbar(props: ToolbarProps) {
   return (
     <fieldset className="lineage-toolbar" disabled={props.busy} aria-label="Lineage controls">
@@ -203,6 +204,7 @@ type TrailProps = {
   onOpenPath: () => void;
 };
 
+/** Groups hop controls, walk history and viewport actions beneath the primary toolbar. */
 export function LineageSubbar({ busy, context, viewportControls, foreignKeys, steps, onHops, actionHistory, walk, dispatch, showPathToggle, pathCount, onOpenPath }: TrailProps) {
   return (
     <div className="lineage-subbar">
