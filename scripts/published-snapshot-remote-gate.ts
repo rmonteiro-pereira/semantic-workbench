@@ -1,7 +1,7 @@
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { isConnectionRetry } from '../../scripts/helpers/processes';
-import { stopVite } from '../../scripts/ci-validate';
+import { isConnectionRetry } from './helpers/processes';
+import { stopVite } from './ci-validate';
 
 const output = join(process.cwd(), 'out', '008-remote-gate');
 mkdirSync(output, { recursive: true });

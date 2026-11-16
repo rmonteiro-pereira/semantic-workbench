@@ -449,3 +449,7 @@ address reads, HTTP/twin reconciliation replay and save/move/delete history pari
 Correctness cases that load and save the mall metric fixture use a 30-second execution budget
 on capped development CPUs. This framework timeout is separate from explicit graph/view timing
 assertions, which retain their existing limits.
+
+Published snapshot measurements use `scripts/published-snapshot-performance-fixture.ts` and
+`scripts/published-snapshot-performance.ts`. The serial remote browser/mutation driver is
+`scripts/published-snapshot-remote-gate.ts`; it owns its temporary frontend and stops it on completion.

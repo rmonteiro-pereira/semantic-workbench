@@ -18,12 +18,12 @@ subsequent calls per opening, with 12 openings per endpoint. Requests include re
 consume the full body. This is a shared host measurement, not a load test.
 
 ```sh
-TMPDIR=/tmp/sw-008 bun specs/008-published-snapshot/performance-fixture.ts
+TMPDIR=/tmp/sw-008 bun scripts/published-snapshot-performance-fixture.ts
 mkdir -p out/008-main-source
 git archive 655df094 | tar -x -C out/008-main-source
 ln -sfn "$PWD/node_modules" out/008-main-source/node_modules
-TMPDIR=/tmp/sw-008 bun specs/008-published-snapshot/performance-measurement.ts "$PWD/out/008-main-source"
-TMPDIR=/tmp/sw-008 bun specs/008-published-snapshot/performance-measurement.ts "$PWD"
+TMPDIR=/tmp/sw-008 bun scripts/published-snapshot-performance.ts "$PWD/out/008-main-source"
+TMPDIR=/tmp/sw-008 bun scripts/published-snapshot-performance.ts "$PWD"
 ```
 
 | Endpoint | Base cold p95 ms | Snapshot cold p95 ms | Base warm p95 ms | Snapshot warm p95 ms | Warm change |
@@ -122,7 +122,7 @@ explicit per-test deadlines are unchanged. Final results are recorded below when
 
 ```sh
 sw-midgard-run -- bun test --timeout 30000
-sw-midgard-run --pull out/008-remote-gate -- bun specs/008-published-snapshot/remote-mutation-gate.ts
+sw-midgard-run --pull out/008-remote-gate -- bun scripts/published-snapshot-remote-gate.ts
 ```
 
 The versioned support driver starts its own frontend on 5481, points the API proxy at 5482, and runs the
@@ -148,7 +148,7 @@ agent source equivalence and legacy restore. The two default-deadline failures a
 ## Final remote mutation and review result
 
 `sw-midgard-run --pull out/008-remote-gate -- bun
-specs/008-published-snapshot/remote-mutation-gate.ts` exited 0 at source revision `c73807e4`.
+scripts/published-snapshot-remote-gate.ts` exited 0 at source revision `c73807e4`.
 The driver ran these commands serially with `SW_BASE_URL=http://127.0.0.1:5481`:
 
 | Command | Summary | Exit |

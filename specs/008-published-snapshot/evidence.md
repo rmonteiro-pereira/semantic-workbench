@@ -793,3 +793,8 @@ file version, with no registry concern in the generic lock. Initialization only 
 registration does not re-adopt a repository after its initial attempt (9 upgrade tests, 40 assertions).
 The request surface is attached by one setter to a request symbol. `readSource` is explicitly an inventory;
 export is `by-query`. The shared resolver cache proof passed (8 tests, 79 assertions).
+
+The three executable TypeScript proof drivers moved from the specification directory to `scripts/`:
+`published-snapshot-performance-fixture.ts`, `published-snapshot-performance.ts` and
+`published-snapshot-remote-gate.ts`. Imports and documented commands follow their executable home.
+The repository formatter and complete local check passed after the moves. No runtime dependency changed.
