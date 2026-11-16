@@ -119,25 +119,25 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Wrap the ELK areas into rows for the pane's aspect ratio (the existing `elk.aspectRatio: '1.5'` does not take effect on the root), and when names would still be under NAME_MIN_PX open zoomed on the first area with **Fit model** returning to the whole layout.
   - Proof: Before `followup/local-ubl-full-graph--layered-node-selected-1440.png`, `states/local-full-graph-layered--first-view-1440.png` (review baseline); after: same state recaptured with `scripts/ui-review/capture-states.ts <out> graphs` (full-graph-layered first-view at 390, 1440, 2560) and `scripts/ui-review/followup-local.ts <out> graphs`; check: `bun run test:graph` asserts the drawn graph height is at least 60% of the canvas at 1440 and that no two area frames overlap.
 
-- [ ] T015 [US1] [A] Keep the graph readable and the toolbar on one row when a node is selected.
+- [x] T015 [US1] [A] Keep the graph readable and the toolbar on one row when a node is selected.
   - Findings: M13 · Requirements: FR-004
   - Files: `src/app/graph/FullGraph.tsx`, `src/app/graph/CompactControls.tsx`, `src/app/graph/fullscreen.ts`, `src/app/graph/graph-canvas.css`, `src/app/workspace/DetailsPanel.tsx`, src/app/style.css (selectors `.graph-toolbar*`, `.fullscreen-*` only)
   - Change: Fit to the selected node and its neighbours when the details pane opens, raise the dimmed opacity to DIM_MIN_OPACITY, and move the Labels, Value types, Metrics and Mini-map switches into the existing **Controls** overflow before the toolbar wraps; keep **Exit full screen** in the first row.
   - Proof: Before `followup/local-ubl-full-graph--network-node-selected-1440.png`, `states/local-full-graph-network--fullscreen-node-selected-1440.png` (review baseline); after: same state recaptured with `scripts/ui-review/followup-local.ts <out> graphs` and `scripts/ui-review/capture-states.ts <out> graphs`; check: `bun run test:graph` asserts one toolbar row at 1280 and 1440 with the pane open and names at least NAME_MIN_PX after selection; the same suite asserts the Mall Graph canvas is at least 421 px tall at 1280x720 with no pane open (`local-light/local-contract-graph-1280.png`, `states/local-mall-full-graph--group-automatic-1280.png`).
 
-- [ ] T016 [US1] [A] Make Labels on and collapsed-area labels readable.
+- [x] T016 [US1] [A] Make Labels on and collapsed-area labels readable.
   - Findings: M14 · Requirements: FR-005
   - Files: `src/app/graph/FullGraphNodes.tsx`, `src/app/graph/graph-canvas.css`, `src/app/graph/text-fit.ts`, `src/app/graph/EntityName.tsx`, `tests/entity-name.test.tsx`
   - Change: At fit zoom render labels only for the selected or hovered item, drop `overflow-wrap: anywhere` at `graph-canvas.css:119` in favour of the identifier-boundary break `EntityName` already has, and print the count once in a collapsed-area card.
   - Proof: Before `states/local-full-graph-network--labels-on-1440.png`, `states/local-full-graph-network--areas-collapsed-1440.png` (review baseline); after: same state recaptured with `scripts/ui-review/capture-states.ts <out> graphs`; check: unit test for the break points in `tests/entity-name.test.tsx`; `bun run test:graph` asserts no name text node is split inside a word.
 
-- [ ] T017 [US1] [A] Open the Neighborhood at readable zoom and fold the file chips.
+- [x] T017 [US1] [A] Open the Neighborhood at readable zoom and fold the file chips.
   - Findings: M15 · Requirements: FR-006
   - Files: `src/app/graph/NeighborhoodGraph.tsx`, `src/app/graph/NeighborhoodToolbar.tsx`, `src/app/graph/useNeighborhoodView.ts`, `src/app/graph/expansion-viewport.ts`, `tests/expansion-viewport.test.ts`, src/app/style.css (selectors `.neighborhood-*` only)
   - Change: Compute the first viewport with `expansion-viewport.ts` (centre on the centre card at readable zoom) instead of fit-all bounds at `NeighborhoodGraph.tsx:460`, and replace the 'Continue in…' chip row with the **Other files** menu already used on a phone.
   - Proof: Before `states/local-neighborhood--first-view-1280.png`, `states/local-neighborhood--walk-3-1440.png` (review baseline); after: same state recaptured with `SW_ONLY=neighborhood scripts/ui-review/capture-states.ts <out> graphs`; check: `bun run test:graph` asserts canvas height at least NEIGHBORHOOD_CANVAS_MIN_PX at 1280x720 and the centre description at least NAME_MIN_PX.
 
-- [ ] T018 [US1] [A] Fit a Full pierce result, or offer Fit.
+- [x] T018 [US1] [A] Fit a Full pierce result, or offer Fit.
   - Findings: m1 · Requirements: FR-007
   - Files: `src/app/graph/NeighborhoodGraph.tsx`, `src/app/graph/pierce.ts`, `src/app/graph/PierceControls.tsx`, `tests/pierce.test.ts`
   - Change: After a pierce publishes, fit to the result when the fitted zoom is at least the readable zoom, otherwise show the '<N> entities, Fit' prompt in the toolbar.
@@ -149,13 +149,13 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Give the area title a plate above the edge layer, draw a bundle outline with the edge style rather than the area-frame style, and add the gap between the badge icon and its number.
   - Proof: Before `states/local-full-graph-network--zoomed-in-1440.png` (review baseline); after: same state recaptured with `scripts/ui-review/capture-states.ts <out> graphs`; check: `bun run test:edges` stays green; geometry assertion that no edge path crosses an area title box in the zoomed-in state.
 
-- [ ] T020 [US1] [A] Fix plurals, the single-entity Neighborhood card, mini-map frame and minimum zoom.
+- [x] T020 [US1] [A] Fix plurals, the single-entity Neighborhood card, mini-map frame and minimum zoom.
   - Findings: m10, m11, m12 · Requirements: FR-009, FR-010, FR-011
   - Files: `src/app/graph/FullGraphNodes.tsx`, `src/app/graph/collapse.ts`, `src/app/graph/NeighborhoodGraph.tsx`, `src/app/graph/FullGraph.tsx`, `src/app/graph/graph-canvas.css`, `tests/collapse.test.ts`, `tests/neighborhood-layout.test.ts`
   - Change: Use one plural helper for entity counts (`FullGraphNodes.tsx:52`, `collapse.ts:18`); cap the lone card's size and hide '0 of 0 neighbors' at `NeighborhoodGraph.tsx:666`; add a border and a viewport rectangle to the mini-map and reserve its corner; replace `minZoom={0.001}` at `FullGraph.tsx:496` with a value computed from the fitted zoom.
   - Proof: Before `states/local-full-graph--empty-1440.png`, `states/local-neighborhood--empty-1440.png`, `states/local-full-graph-network--mini-map-on-1440.png`, `states/local-full-graph-network--zoomed-minimum-1440.png` (review baseline); after: same state recaptured with `scripts/ui-review/empty-graph-states.ts <out>` and `scripts/ui-review/capture-states.ts <out> graphs`; check: unit tests for the plural and the minimum-zoom function; `bun run test:graph`.
 
-- [ ] T021 [US1] [A] Stop truncating toolbar controls, humanise identifiers in graph labels, disable controls while laying out, and give the phone full-screen an Exit.
+- [x] T021 [US1] [A] Stop truncating toolbar controls, humanise identifiers in graph labels, disable controls while laying out, and give the phone full-screen an Exit.
   - Findings: m13, P1, P8, m28 · Requirements: FR-012, FR-013, FR-014, FR-015
   - Files: `src/app/graph/NeighborhoodToolbar.tsx`, `src/app/graph/GroupingControls.tsx`, `src/app/graph/EntityName.tsx`, `src/app/graph/overview.ts`, `src/app/graph/fullscreen.ts`, `src/app/graph/graph-canvas.css`, `tests/entity-name.test.tsx`
   - Change: Let the grouping select and the centre picker size to their content up to a maximum; add one exported function that turns 'EntityType' into 'Entity type' (the catalog task in lane E reuses it) and strips 'core:' style area prefixes in labels only; disable Re-layout, grouping and zoom controls while the layout worker runs; cap the details pane at 40% in phone full screen and show a labelled Exit.
