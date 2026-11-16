@@ -79,6 +79,8 @@ The integration view shows what the application reads and contacts, and what it 
 
 ## Code map
 
+`src/shared/core/address-kinds.ts` owns the versioned item-address kind registry and parent rules.
+
 ### HTTP, startup and ownership
 
 - `src/` has three runtime areas. `src/app/` is the browser application, `src/server/` the Bun-only

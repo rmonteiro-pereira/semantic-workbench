@@ -15,16 +15,16 @@ other `[P]` tasks of the same phase (different files, no dependency).
 
 ## Phase 1: Foundations (adoption step 1, part 1)
 
-- [ ] T001 [P] Write the seeded generator in `tests/helpers/seeded-random.ts` (seed from
+- [x] T001 [P] Write the seeded generator in `tests/helpers/seeded-random.ts` (seed from
   `ADDRESS_TEST_SEED` or the clock, printed on failure; helpers for hostile names and sibling
   shuffles). Proof: `tests/seeded-random.test.ts` shows the same seed gives the same sequence.
   (FR-025)
-- [ ] T002 [P] Write `tests/fixtures/addresses/conformance.json` with valid, invalid and hostile
+- [x] T002 [P] Write `tests/fixtures/addresses/conformance.json` with valid, invalid and hostile
   cases: every escape class, `:` `.` `#` `/` `@` `%`, spaces, emoji, empty name, lowercase hex,
   escaped unreserved byte, unknown kind, trailing separator, over-long, over-deep, relative forms,
   snapshot on a relative form. Proof: loaded by T005; the file's own schema test checks every entry
   has the fields in `data-model.md`. (FR-026)
-- [ ] T003 [P] Write `src/shared/core/address-kinds.ts`: the closed kind registry with parent
+- [x] T003 [P] Write `src/shared/core/address-kinds.ts`: the closed kind registry with parent
   rules, name field and named/positional flag, exactly as in `contracts/address-grammar.md`.
   Proof: `tests/item-address.test.ts` asserts every `ItemKind` of
   `src/shared/edit/item-model.ts` maps to a registry kind and every registry row appears in the
