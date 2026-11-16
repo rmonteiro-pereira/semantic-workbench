@@ -1,0 +1,361 @@
+{
+  "valid": [
+    {
+      "text": "sw1:sales/a.yaml#model:Orders",
+      "parsed": {
+        "grammar": 1,
+        "form": "absolute",
+        "project": "sales",
+        "document": [
+          "a.yaml"
+        ],
+        "chain": [
+          {
+            "kind": "model",
+            "name": "Orders"
+          }
+        ]
+      },
+      "canonical": "sw1:sales/a.yaml#model:Orders"
+    },
+    {
+      "text": "sw1:sales",
+      "parsed": {
+        "grammar": 1,
+        "form": "absolute",
+        "project": "sales",
+        "chain": []
+      },
+      "canonical": "sw1:sales"
+    },
+    {
+      "text": "sw1:/a.yaml#model:Orders",
+      "parsed": {
+        "grammar": 1,
+        "form": "project-relative",
+        "document": [
+          "a.yaml"
+        ],
+        "chain": [
+          {
+            "kind": "model",
+            "name": "Orders"
+          }
+        ]
+      },
+      "canonical": "sw1:/a.yaml#model:Orders"
+    },
+    {
+      "text": "sw1:#model:Orders",
+      "parsed": {
+        "grammar": 1,
+        "form": "document-relative",
+        "chain": [
+          {
+            "kind": "model",
+            "name": "Orders"
+          }
+        ]
+      },
+      "canonical": "sw1:#model:Orders"
+    }
+  ],
+  "invalid": [
+    {
+      "text": "sw2:p",
+      "reason": "prefix"
+    },
+    {
+      "text": "sw1:p/a#concept:",
+      "reason": "empty"
+    },
+    {
+      "text": "sw1:p/a#concept:%2f",
+      "reason": "escape"
+    },
+    {
+      "text": "sw1:p/a#concept:%41",
+      "reason": "escape"
+    },
+    {
+      "text": "sw1:p/a#concept:%",
+      "reason": "escape"
+    },
+    {
+      "text": "sw1:p/a#concept:%FF",
+      "reason": "encoding"
+    },
+    {
+      "text": "sw1:p/a#unknown:x",
+      "reason": "kind"
+    },
+    {
+      "text": "sw1:p/a#concept:x/",
+      "reason": "trailing"
+    },
+    {
+      "text": "sw1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "reason": "length"
+    },
+    {
+      "text": "sw1:p/a#concept:x/concept:x/concept:x/concept:x/concept:x/concept:x/concept:x/concept:x/concept:x/concept:x/concept:x/concept:x/concept:x/concept:x/concept:x/concept:x/concept:x/concept:x/concept:x/concept:x/concept:x/concept:x/concept:x/concept:x/concept:x/concept:x/concept:x/concept:x/concept:x/concept:x/concept:x/concept:x/concept:x",
+      "reason": "depth"
+    },
+    {
+      "text": "sw1:#concept:x@v1",
+      "reason": "snapshot"
+    },
+    {
+      "text": "sw1:/a#concept:x@v1",
+      "reason": "snapshot"
+    },
+    {
+      "text": "sw1:p/a#role:#01",
+      "reason": "position"
+    },
+    {
+      "text": "sw1:p/../a",
+      "reason": "form"
+    },
+    {
+      "text": "sw1:p/a#concept:a:b",
+      "reason": "escape"
+    }
+  ],
+  "hostile": [
+    {
+      "text": "sw1:sales/a.yaml#concept:%3A",
+      "parsed": {
+        "grammar": 1,
+        "form": "absolute",
+        "project": "sales",
+        "document": [
+          "a.yaml"
+        ],
+        "chain": [
+          {
+            "kind": "concept",
+            "name": ":"
+          }
+        ]
+      },
+      "canonical": "sw1:sales/a.yaml#concept:%3A"
+    },
+    {
+      "text": "sw1:sales/a.yaml#concept:.",
+      "parsed": {
+        "grammar": 1,
+        "form": "absolute",
+        "project": "sales",
+        "document": [
+          "a.yaml"
+        ],
+        "chain": [
+          {
+            "kind": "concept",
+            "name": "."
+          }
+        ]
+      },
+      "canonical": "sw1:sales/a.yaml#concept:."
+    },
+    {
+      "text": "sw1:sales/a.yaml#concept:%23",
+      "parsed": {
+        "grammar": 1,
+        "form": "absolute",
+        "project": "sales",
+        "document": [
+          "a.yaml"
+        ],
+        "chain": [
+          {
+            "kind": "concept",
+            "name": "#"
+          }
+        ]
+      },
+      "canonical": "sw1:sales/a.yaml#concept:%23"
+    },
+    {
+      "text": "sw1:sales/a.yaml#concept:%2F",
+      "parsed": {
+        "grammar": 1,
+        "form": "absolute",
+        "project": "sales",
+        "document": [
+          "a.yaml"
+        ],
+        "chain": [
+          {
+            "kind": "concept",
+            "name": "/"
+          }
+        ]
+      },
+      "canonical": "sw1:sales/a.yaml#concept:%2F"
+    },
+    {
+      "text": "sw1:sales/a.yaml#concept:%40",
+      "parsed": {
+        "grammar": 1,
+        "form": "absolute",
+        "project": "sales",
+        "document": [
+          "a.yaml"
+        ],
+        "chain": [
+          {
+            "kind": "concept",
+            "name": "@"
+          }
+        ]
+      },
+      "canonical": "sw1:sales/a.yaml#concept:%40"
+    },
+    {
+      "text": "sw1:sales/a.yaml#concept:%25",
+      "parsed": {
+        "grammar": 1,
+        "form": "absolute",
+        "project": "sales",
+        "document": [
+          "a.yaml"
+        ],
+        "chain": [
+          {
+            "kind": "concept",
+            "name": "%"
+          }
+        ]
+      },
+      "canonical": "sw1:sales/a.yaml#concept:%25"
+    },
+    {
+      "text": "sw1:sales/a.yaml#concept:%20",
+      "parsed": {
+        "grammar": 1,
+        "form": "absolute",
+        "project": "sales",
+        "document": [
+          "a.yaml"
+        ],
+        "chain": [
+          {
+            "kind": "concept",
+            "name": " "
+          }
+        ]
+      },
+      "canonical": "sw1:sales/a.yaml#concept:%20"
+    },
+    {
+      "text": "sw1:sales/a.yaml#concept:%F0%9F%98%80",
+      "parsed": {
+        "grammar": 1,
+        "form": "absolute",
+        "project": "sales",
+        "document": [
+          "a.yaml"
+        ],
+        "chain": [
+          {
+            "kind": "concept",
+            "name": "😀"
+          }
+        ]
+      },
+      "canonical": "sw1:sales/a.yaml#concept:%F0%9F%98%80"
+    },
+    {
+      "text": "sw1:sales/a.yaml#concept:%C3%A9",
+      "parsed": {
+        "grammar": 1,
+        "form": "absolute",
+        "project": "sales",
+        "document": [
+          "a.yaml"
+        ],
+        "chain": [
+          {
+            "kind": "concept",
+            "name": "é"
+          }
+        ]
+      },
+      "canonical": "sw1:sales/a.yaml#concept:%C3%A9"
+    },
+    {
+      "text": "sw1:sales/a.yaml#concept:%E6%9D%B1%E4%BA%AC",
+      "parsed": {
+        "grammar": 1,
+        "form": "absolute",
+        "project": "sales",
+        "document": [
+          "a.yaml"
+        ],
+        "chain": [
+          {
+            "kind": "concept",
+            "name": "東京"
+          }
+        ]
+      },
+      "canonical": "sw1:sales/a.yaml#concept:%E6%9D%B1%E4%BA%AC"
+    },
+    {
+      "text": "sw1:sales/a.yaml#concept:a%3Ab.c%23d%2Fe%40f%25g",
+      "parsed": {
+        "grammar": 1,
+        "form": "absolute",
+        "project": "sales",
+        "document": [
+          "a.yaml"
+        ],
+        "chain": [
+          {
+            "kind": "concept",
+            "name": "a:b.c#d/e@f%g"
+          }
+        ]
+      },
+      "canonical": "sw1:sales/a.yaml#concept:a%3Ab.c%23d%2Fe%40f%25g"
+    },
+    {
+      "text": "sw1:sales/a.yaml#concept:..",
+      "parsed": {
+        "grammar": 1,
+        "form": "absolute",
+        "project": "sales",
+        "document": [
+          "a.yaml"
+        ],
+        "chain": [
+          {
+            "kind": "concept",
+            "name": ".."
+          }
+        ]
+      },
+      "canonical": "sw1:sales/a.yaml#concept:.."
+    },
+    {
+      "text": "sw1:sales/a.yaml#concept:%230",
+      "parsed": {
+        "grammar": 1,
+        "form": "absolute",
+        "project": "sales",
+        "document": [
+          "a.yaml"
+        ],
+        "chain": [
+          {
+            "kind": "concept",
+            "name": "#0"
+          }
+        ]
+      },
+      "canonical": "sw1:sales/a.yaml#concept:%230"
+    }
+  ]
+}
