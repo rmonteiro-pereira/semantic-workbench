@@ -689,3 +689,20 @@ Remote browser preparation reuses the existing CI `bun x vite-plus` launch and e
 with a detached process group. This stops the owned frontend and its child processes together. The existing
 CI-runner test file passed 8 tests, 32 assertions; no new process-management implementation was added.
 The final local `bun --bun run check` exited 0, and `bun --bun run build` exited 0 (`✓ built in 5.92s`).
+
+## Complete remote unit gate
+
+`sw-midgard-run -- bun test --timeout 30000`: exit 0.
+
+```text
+2187 pass
+0 fail
+134686 expect() calls
+Ran 2187 tests across 304 files. [1168.81s]
+```
+
+The final run retains every assertion. The isolated Git environment fixes, platform temporary-directory
+expectation and bounded remote execution deadline address all 24 first-run failures. No test was skipped.
+The serial browser/mutation command started only after this wrapper returned zero. Its pre-push content
+check reported `97 unpushed commits checked, 0 findings`; the architecture marker was updated before that
+authorized scratch push. No GitHub push occurred.

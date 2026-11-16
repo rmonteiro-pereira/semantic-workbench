@@ -59,7 +59,7 @@ corrected; the final run passed each unmodified baseline before executing mutant
 |---|---|
 | `bun test` | 2,187 pass, 0 fail; 134,686 assertions; 304 files; 401.57 s |
 | `bun --bun run check` | Exit 0; formatter, TypeScript, lint, comments, theme and brand checks passed |
-| `bun --bun run build` | `✓ built in 1.59s`; exit 0 |
+| `bun --bun run build` | `✓ built in 5.92s`; exit 0 |
 | `bun scripts/published-snapshot-browser-check.ts` | `2 published snapshot browser checks passed.` |
 
 The test run used `DATA_DIR=/tmp/sw-008/unit-gate-final`. Browser runs use `TMPDIR=/tmp/sw-008` and the assigned frontend on port 5321; API/mock listeners allocate their own dynamic ports.
@@ -129,3 +129,18 @@ The versioned support driver starts its own frontend on 5481, points the API pro
 snapshot browser baseline, full UI baseline and full mutation suite serially. Browser harnesses own their
 isolated dynamic API listeners. The frontend is stopped in `finally`; logs and exit files are pulled from
 the dedicated output directory. No production source, dependencies or public environment settings change.
+
+## Final remote unit result
+
+`sw-midgard-run -- bun test --timeout 30000` exited 0:
+
+```text
+2187 pass
+0 fail
+134686 expect() calls
+Ran 2187 tests across 304 files. [1168.81s]
+```
+
+All prior host-identity and temporary-directory fixture failures now pass, including the recovery matrix,
+agent source equivalence and legacy restore. The two default-deadline failures also pass. The final local
+`bun --bun run check` exited 0, and `bun --bun run build` exited 0 with `✓ built in 5.92s`.
