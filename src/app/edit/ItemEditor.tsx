@@ -220,9 +220,12 @@ export function ItemEditor({ doc, base, path, kind, projectDocs, choices, onClos
             const ref = (el: HTMLElement | null) => {
               if (fieldIndex === 0) firstField.current = el;
             };
+            const fieldPath = '/' + [...path, ...spec.at].join('/');
+            const fieldIssues = errors.filter(issue => issue.path === fieldPath || (spec.label === 'Name' && /already exists|duplicate/i.test(issue.message)));
             const common = {
               id,
               'aria-labelledby': id + '-label',
+              'aria-invalid': fieldIssues.length > 0 || undefined,
               'aria-describedby': spec.hint ? id + '-hint' : undefined,
             };
             let input: React.ReactNode;
@@ -270,6 +273,7 @@ export function ItemEditor({ doc, base, path, kind, projectDocs, choices, onClos
                   </datalist>
                 ) : null}
                 {spec.hint && <small id={id + '-hint'}>{spec.hint}</small>}
+                {fieldIssues.length > 0 && <small className="field-error">{fieldIssues.map(issue => issue.message).join(' ')}</small>}
               </label>
             );
           })}

@@ -452,7 +452,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: At 650 px and narrower selecting a concept swaps the list for its detail with a Back row; open resolved bindings by default; style the disclosure rows like other app sections (`<details>` markers replaced by a chevron).
   - Proof: Before `followup/local-mapped-commerce-mappings--concept-with-bindings-390-full.png`, `states/local-mappings--selected-binding-390.png`, `local-light/local-mappings-1440.png` (review baseline); after: same state recaptured with `scripts/ui-review/followup-local.ts <out> content` and `SW_ONLY=mappings scripts/ui-review/capture-states.ts <out> rest`; check: `bun run test:mappings-layout` asserts the detail box is inside the 390 viewport after selection.
 
-- [ ] T066 [US5] [E] Show errors under the fields in the wizard and the item editor.
+- [x] T066 [US5] [E] Show errors under the fields in the wizard and the item editor.
   - Findings: m16 · Requirements: FR-063
   - Files: `src/app/metrics/MetricWizard.tsx`, `src/app/edit/ItemEditor.tsx`, `src/app/edit/AddItem.tsx`, `src/app/edit/edit.css`, `tests/item-add-delete.test.ts`
   - Change: Pass each finding's field path to the field that owns it, mark it invalid, drop the duplicate footer message, and mark Name on a duplicate-name refusal.

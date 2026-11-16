@@ -201,6 +201,7 @@ export function AddItem({ doc, base, document, kind: fixed, owner, preset = {}, 
         <div className="item-fields">
           {fields.map(spec => {
             const id = `add-field-${spec.key}`;
+            const nameError = spec.label === 'Name' && plan.error && /already exists/.test(plan.error) ? plan.error : '';
             let fieldControl;
             if (spec.input === 'boolean') {
               fieldControl = <input id={id} aria-labelledby={id + '-label'} type="checkbox" checked={!!raw[spec.key]} onChange={e => set(spec, e.target.checked)} />;
@@ -228,14 +229,15 @@ export function AddItem({ doc, base, document, kind: fixed, owner, preset = {}, 
                   {spec.label}
                   {spec.required && <em aria-hidden> *</em>}
                 </span>
-                {fieldControl}
+                {nameError && React.isValidElement(fieldControl) ? React.cloneElement(fieldControl as React.ReactElement<Record<string, unknown>>, { 'aria-invalid': true }) : fieldControl}
+                {nameError && <small className="field-error">{nameError}</small>}
                 {spec.hint && <small>{spec.hint}</small>}
               </label>
             );
           })}
         </div>
       )}
-      {plan.error !== undefined && !plan.incomplete && <p className="item-note">{plan.error}</p>}
+      {plan.error !== undefined && !plan.incomplete && !/already exists/.test(plan.error) && <p className="item-note">{plan.error}</p>}
       {plan.error === undefined && (
         <div className="item-preview">
           <strong>Will be added at line {plan.line}</strong>

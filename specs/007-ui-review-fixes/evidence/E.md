@@ -68,3 +68,11 @@
 - `tests/footer-counts.test.ts` retains the real parsing regression through the model entry point.
 - The repeated 404 is an optional draft read, not a missing font or favicon. Navigation now consults the existing draft inventory before fetching a draft. A concurrent deletion can still race that read and yield the existing harmless 404.
 - Follow-up status captures: `/tmp/sw-E/final-content-phone/screenshots/followup/local-status-bar--mall-semantic-yaml{,-after-ubl}-390.png`; capture records retain both results.
+
+### T066 — findings beside fields
+
+- Wizard blocking findings now carry their owning field; the repeated footer/list copies are removed. Item editor findings mark their field, and duplicate-name refusal marks Name in both forms.
+- Before: review `screenshots/states/local-metric-wizard--step-3-validation-error-1440.png` and `screenshots/followup/local-item-editor--duplicate-name-refusal-1440.png`.
+- After (opened): `/tmp/sw-E/final-metrics/local-metric-wizard--step-3-validation-error-1440.png` and `/tmp/sw-E/final-content-desktop/screenshots/followup/local-item-editor--duplicate-name-refusal-1440.png`.
+- Name and numerator feedback sit under their controls; the wizard no longer repeats them below the form. Follow-up reports `field_error: 1` for duplicate Name in both forms.
+- `test:item-edit`: 11 checks passed; `test:metrics`: 11 checks passed.

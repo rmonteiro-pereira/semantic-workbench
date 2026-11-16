@@ -509,3 +509,10 @@ dialog.validation-backdrop:has(.kpi-wizard) {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.item-fields .field-error {
+  color: var(--color-danger-text);
+}
+[aria-invalid='true'] {
+  border-color: var(--color-danger-border);
+}
