@@ -95,3 +95,5 @@ T006 extraction: the same six-file characterization/authentication command repor
 T007: `bun test tests/auth/http-characterization.test.ts tests/auth/request-identity.test.ts tests/auth/middleware.test.ts`: `9 pass`, `0 fail`, `1601 expect() calls`. Identity attachment covers every exported identity symbol and preserves Reader/copy derivation. Session lookup reuses authentication's request cache.
 
 T008: `bun test tests/auth/`: `660 pass`, `0 fail`, `48443 expect() calls`, `Ran 660 tests across 108 files.` The execution and decision blocks were moved together; the new wrapper supplies a minted caller and selects the existing route. The moved-code diff was inspected. `tsc --noEmit`, formatting, lint and readability checks pass.
+
+T009: characterization and middleware tests: `8 pass`, `0 fail`, `1588 expect() calls`. `bun --bun run check`: exit 0. The adapter is below 400 lines and its `boundary` property exposes the existing handler path to trusted in-process callers without constructing a second router.

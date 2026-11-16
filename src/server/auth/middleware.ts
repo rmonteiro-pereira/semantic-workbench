@@ -3,7 +3,7 @@ import type { BearerValidator } from './bearer';
 import { createOperationBoundary } from './operation-boundary';
 import { mintCaller } from './caller';
 export { shouldAudit } from './operation-boundary';
-import { createRequestAuthentication, agentRefusal } from './request-authentication';
+import { createRequestAuthentication } from './request-authentication';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import type { Workspace } from '../projects/workspace';
@@ -12,7 +12,7 @@ import { emptyAccessConfig } from './access-config';
 import { openAdminRepository, AdminConfigError, type AdminRepository } from './admin-repo';
 import { createAuditLog, type AuditLog } from './audit';
 import type { Principal } from './principal';
-import { routeFor, routeTemplate, type RouteAction } from './route-actions';
+import { routeFor, routeTemplate } from './route-actions';
 import type { ServerAuthentication } from './authentication';
 import type { GroupName } from './directory';
 import type { ProviderStatus } from './oidc';
@@ -111,24 +111,6 @@ function requestIdResponse(response: Response, requestId: string): Response {
   }
 }
 
-/**
- * How an agent client is decided, in one place with the functions after it. The bearer path
- * validated its token on the agent API, and it skips the cross-site check that guards cookies.
- * Only a row that declares a client action admits it, and that action replaces the row's own.
- * The policies in auth/authorize.ts give the client the projects of its agents.json entry, so
- * routeDecision passes a workspace row when one of them is readable.
- */
-function clientRouteRefusal(found: ReturnType<typeof routeFor>): { reason: string; status: 403 | 404 } | null {
-  if (!found) return { reason: 'unmapped-route', status: 404 };
-  if (!found.row.clientAction) return { reason: 'bearer-scope', status: 403 };
-  return null;
-}
-
-/** The row as a client is decided on it: by its client action instead of its own. */
-function clientRow(row: RouteAction): RouteAction {
-  return { ...row, action: row.clientAction ?? row.action };
-}
-
 // The handler passes the shared error mapping in; this fallback only keeps isolated tests from
 // leaking an exception, and never reveals the error text.
 function internalError(error: unknown, requestId: string): Response {
@@ -154,14 +136,11 @@ export function createAccessMiddleware(
     const url = new URL(request.url);
     const page = mode === 'server' && !/^\/(api|auth)(\/|$)/.test(url.pathname);
     const found = routeFor(request.method, url.pathname, mode);
-    const clientRefused = client ? clientRouteRefusal(found) : null;
-    if (client && clientRefused) {
-      return agentRefusal(audit, { requestId, principal: client, ...clientRefused });
-    }
+    if (client) return invoke(client, request);
     if (!found) return new Response('Not found', { status: 404 });
-    const row = client ? clientRow(found.row) : found.row;
+    const row = found.row;
     if (row.public) return run(request);
-    const principal = client ?? (await authentication.resolve(request));
+    const principal = await authentication.resolve(request);
     if (!principal) {
       const failure = authentication.auditAnonymousDenial(request, requestId, row.action);
       if (failure) return failure;
@@ -170,10 +149,14 @@ export function createAccessMiddleware(
       }
       return Response.json({ error: 'sign-in required' }, { status: 401 });
     }
-    const caller = mintCaller({ principal, origin: 'http', sourceIp: options.sourceIp?.(request), session: await options.authentication?.session(request) });
+    return invoke(principal, request);
+  }
+  async function invoke(principal: Principal, request: Request): Promise<Response> {
+    const session = principal.kind === 'person' ? await options.authentication?.session(request) : undefined;
+    const caller = mintCaller({ principal, origin: 'http', sourceIp: options.sourceIp?.(request), session });
     return (await boundary.operate({ caller, request })).response;
   }
-  return async (request: Request): Promise<Response> => {
+  const httpAdapter = async (request: Request): Promise<Response> => {
     const requestId = crypto.randomUUID();
     (request as AccessRequest)[requestAuditId] = requestId;
     const address = (options.clientAddress ?? options.sourceIp)?.(request);
@@ -193,4 +176,5 @@ export function createAccessMiddleware(
       },
     });
   };
+  return Object.assign(httpAdapter, { boundary });
 }
