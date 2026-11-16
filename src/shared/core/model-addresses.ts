@@ -105,12 +105,10 @@ function visitForeignKeys(contract: any, chain: ItemSegment[], visit: Visit) {
   let position = 0;
   const scan = (value: any, path: (string | number)[]) => {
     if (!value || typeof value !== 'object') return;
-    for (const [key, child] of Object.entries(value)) {
-      if (key === 'relationships' && Array.isArray(child)) {
-        child.forEach((foreignKey, index) => visit(foreignKey, 'foreign-key', [...path, key, index], chain, position++));
-      } else if (Array.isArray(child)) {
-        child.forEach((entry, index) => scan(entry, [...path, key, index]));
-      }
+    const foreignKeys = Array.isArray(value.relationships) ? value.relationships : [];
+    foreignKeys.forEach((foreignKey: any, index: number) => visit(foreignKey, 'foreign-key', [...path, 'relationships', index], chain, position++));
+    for (const key of ['schema', 'properties']) {
+      if (Array.isArray(value[key])) value[key].forEach((entry: any, index: number) => scan(entry, [...path, key, index]));
     }
   };
   scan(contract, []);
@@ -186,11 +184,14 @@ export function addressAtModelPath(model: any, path: (string | number)[]): Addre
       chain.push(segmentOf(kind, value, 0));
       continue;
     }
-    const childKind = childLists[kind]?.find(([list]) => list === key)?.[1];
+    const childKind: ItemKind | undefined = childLists[kind]?.find(([list]) => list === key)?.[1];
     const index = path[offset + 1];
     if (!childKind || typeof index !== 'number') {
-      const foreignKey = addressesOfModel(model).find(item => JSON.stringify(item.path) === JSON.stringify(path));
-      if (foreignKey) return foreignKey.address;
+      const foreignKey = foreignKeyAddressAtPath(model, path);
+      if (foreignKey) {
+        formatAddress(foreignKey);
+        return foreignKey;
+      }
       throw new UnaddressableItemError(path, 'Unknown item path');
     }
     value = value[key][index];
@@ -200,5 +201,15 @@ export function addressAtModelPath(model: any, path: (string | number)[]): Addre
   }
   const address: Address = { grammar: 1, form: 'document-relative', chain };
   formatAddress(address);
+  return address;
+}
+
+function foreignKeyAddressAtPath(model: any, path: (string | number)[]): Address | undefined {
+  if (model.kind !== 'DataContract') return undefined;
+  const wanted = JSON.stringify(path);
+  let address: Address | undefined;
+  visitForeignKeys(model, [segmentOf('contract', model, 0)], (_value, _kind, candidate, chain, position = 0) => {
+    if (JSON.stringify(candidate) === wanted) address = { grammar: 1, form: 'document-relative', chain: [...chain, { kind: 'foreign-key', position }] };
+  });
   return address;
 }

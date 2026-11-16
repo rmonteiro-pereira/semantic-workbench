@@ -109,3 +109,14 @@ duplicate and losing positional volatility.
 - Timing after integrating only requested inspector paths and reusing repeated edge paths:
   `enterprise-1000.ossie.yaml`, 15 alternating samples after four warmups, baseline median
   292.13984 ms, current median 297.252631 ms, overhead 1.7501176833671472%.
+
+## Model mutation result
+
+The real `bun scripts/mutation-tests.ts` run passed its unmodified module baselines and killed
+all three non-equivalent model mutants. The separate parent precheck mutant is equivalent for
+the structural traversal, as documented above. No port preload or `BUN_OPTIONS` shim was used.
+
+The example-registry case initially expired under the runner's 10-second limit. Its standalone
+comparison after removing whole-contract derivation from each foreign-key lookup passed:
+current 6.594 s, main 5.719 s (both exit 0). The copied baseline is `git archive main`, commit
+655df094b1783aa9fc40570cb3d40d51949da481, under the assigned temporary root.

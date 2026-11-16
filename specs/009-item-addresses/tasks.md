@@ -87,7 +87,7 @@ address says whether it is ambiguous or volatile.
 - [x] T013 [US2] Add the model-level property tests: reorder invariance over 1,000 shuffles per
   sample project, uniqueness of non-ambiguous addresses per document, positional segments flagged
   volatile. Proof: `tests/model-addresses.test.ts`. (FR-019, FR-025; SC-002, SC-003)
-- [ ] T014 [P] [US2] Add mutants: ignore the kind when matching, choose the first of ambiguous
+- [x] T014 [P] [US2] Add mutants: ignore the kind when matching, choose the first of ambiguous
   matches, treat positional as stable, skip the parent-kind rule. Proof: `bun run test:mutation`.
   (SC-011)
 - [ ] T015 [US2] Add `address` to `Entity` and `Relationship` in `src/shared/core/model.ts`, derived
