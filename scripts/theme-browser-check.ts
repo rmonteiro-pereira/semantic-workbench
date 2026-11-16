@@ -192,7 +192,7 @@ try {
     await check('muted text keeps 4.5:1 on its surfaces in the dark theme', () => contrastCheck('dark'));
     await check('the main tour is readable and free of overlaps in the light theme at 1280×720', () => tourCheck('light', ['screens']));
     await check('every tour is readable and free of overlaps in the dark theme at 1280×720', () =>
-      tourCheck('dark', ['screens', 'edit screens', 'ODCS screens', 'project dialogs', 'export dialog', 'folder dialogs']),
+      tourCheck('dark', ['screens', 'edit screens', 'ODCS screens', 'project dialogs', 'export dialog', 'folder dialogs', 'source comparisons']),
     );
     await check('no uncaught browser errors', async () => expect(errors).toEqual([]));
     console.log(`${passed} theme checks passed`);

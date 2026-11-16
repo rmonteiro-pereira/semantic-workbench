@@ -497,6 +497,15 @@
 }
 .diff-host .cm-editor {
   height: auto;
+  color: var(--color-editor-text);
+  background: var(--color-surface);
+}
+.diff-host .cm-gutters,
+.diff-host .cm-collapsedLines,
+.diff-host .cm-merge-revert {
+  background: var(--color-surface-sunken);
+  color: var(--color-text-muted);
+  border-color: var(--color-border);
 }
 .diff-same {
   font-size: var(--text-small);

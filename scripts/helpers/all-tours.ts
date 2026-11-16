@@ -18,6 +18,7 @@ import { tourScreens, type Screen } from './screen-tour';
 // lane B imports
 // end lane B imports
 // lane C imports
+import { scmThemeScreens } from './scm-theme-tour';
 // end lane C imports
 // lane D imports
 // end lane D imports
@@ -84,6 +85,7 @@ export function tourGroups(files: AllTourFiles): TourGroup[] {
     // lane B tours
     // end lane B tours
     // lane C tours
+    { title: 'source comparisons', summary: 'themed comparison surfaces', screens: scmThemeScreens(files.ontology) },
     // end lane C tours
     // lane D tours
     // end lane D tours

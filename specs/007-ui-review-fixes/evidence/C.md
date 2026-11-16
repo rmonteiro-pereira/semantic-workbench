@@ -18,3 +18,9 @@ Confirmation captures: `/tmp/sw-C/confirmation-target/local-dark-source-control-
 The source-control capture script ignores SW_THEME and runs all viewports. A temporary copy preserves the script's state sequence, with imports resolved to this worktree and the matrix restricted to 1440×900 and 390×844, dark then light. A temporary Bun preload binds its isolated API to 5232. Images remain under `/tmp/sw-C/`, respecting the restriction to this worktree and temporary folders.
 
 The script's History button selector is stale. Its generic geometry checker also counts the background behind modal dialogs as covered; those messages are not new dialog regressions. Expected draft lookup 404s identify `/api/drafts/<project>/<file>`.
+
+## Dark comparison surfaces
+
+The surface assertion failed before the fix: expected `rgb(15, 21, 20)`, received `rgb(245, 245, 245)`. The four comparison screens then passed (modified, added, staged-deleted, stale-save). This failure demonstration used the unchanged foundation's comparison code, rather than a separate e8b7d69 checkout.
+
+Viewed after images `/tmp/sw-C/theme-fixed/local-dark-source-control--diff-modified-1440.png` and `/tmp/sw-C/theme-fixed/local-dark-source-editor--stale-save-warning-1440.png`, paired with the same basenames under the review's `screenshots/states/`. Gutters and collapsed-line strips are dark; no white bands remain. The old overwrite-primary and clipped header are still visible in these captures and belong to later fixes.

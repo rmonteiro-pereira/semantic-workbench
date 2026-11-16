@@ -264,13 +264,13 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: The review inferred that CodeMirror's light defaults for `.cm-collapsedLines` and the merge gutters show through. Read the computed background of every element in `.diff-host` and in the stale-save dialog's columns, and write the list of selectors, with their computed colours, in the 'Confirmed inferences' section of `evidence/C.md`.
   - Proof: `evidence/C.md` lists the selectors with computed values from `local-dark-source-control--diff-modified-1440` reproduced with `scripts/ui-review/source-control-states.ts`.
 
-- [ ] T037 [US3] [C] Theme the dark diff and the stale-save gutters with surface tokens.
+- [x] T037 [US3] [C] Theme the dark diff and the stale-save gutters with surface tokens.
   - Findings: M5 · Requirements: FR-031
   - Files: `src/app/scm/DiffView.tsx`, `src/app/scm/scm.css`, src/app/style.css (selectors `.stale-*` only), src/shared/theme/theme.css (editor token group only)
   - Change: Using the selectors confirmed in the previous task, add rules or a CodeMirror theme extension using `--color-surface-sunken`, `--color-border` and `--color-text-muted`.
   - Proof: Before `states/local-dark-source-control--diff-modified-1440.png`, `states/local-dark-source-editor--stale-save-warning-390.png` (review baseline); after: same state recaptured with `SW_THEME=dark scripts/ui-review/source-control-states.ts <out>`; check: `bun run test:theme` with the diff and stale-save states (next task) shows no pixel region above the white threshold.
 
-- [ ] T038 [US3] [C] Put the diff and the stale-save dialog in the theme tour.
+- [x] T038 [US3] [C] Put the diff and the stale-save dialog in the theme tour.
   - Findings: M5 · Requirements: FR-031
   - Files: `scripts/helpers/scm-theme-tour.ts`, scripts/helpers/all-tours.ts (lane C sentinel), scripts/theme-browser-check.ts (no edit unless the tour list needs it)
   - Change: Create tour entries that open Source control with a modified, an added and a deleted file, and the stale-save dialog, and assert the computed background of `.cm-collapsedLines`, `.cm-gutters` and merge gutters is not lighter than the surface token in dark.
