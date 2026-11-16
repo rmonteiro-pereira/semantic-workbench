@@ -147,3 +147,7 @@ Removing the stage handler's `authorizeGitPaths` call caused the named `git.stag
 fail with status 200 where 404 was required (`0 pass`, `1 fail`). The original source was restored
 in a `finally` block. After extracting the parameter builder for readability, the same named test
 passed (`1 pass`, `0 fail`, `15 expect() calls`).
+
+The clone parity case now waits for the accepted background job's terminal event before disposing
+its fixture. `bun test tests/auth/operation-parity.test.ts -t 'repositories.clone preserves'`:
+`1 pass`, `0 fail`, `13 expect() calls`, `Ran 1 test across 1 file. [3.27s]`.

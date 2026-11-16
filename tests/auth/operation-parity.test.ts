@@ -7,6 +7,7 @@ import { createAuditLog } from '../../src/server/auth/audit';
 import { mintCaller } from '../../src/server/auth/caller';
 import { buildTwinRequest } from '../../src/server/auth/twin-request';
 import { operationById } from '../../src/server/auth/operation-inventory';
+import type { Workspace } from '../../src/server/projects/workspace';
 import { LOCAL_READER } from '../../src/server/projects/reader';
 import { authWorkspace } from '../helpers/auth-workspace';
 import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
@@ -84,6 +85,20 @@ function parityRequest(entry: ParityCase, scenario: Scenario, project: string, p
   return buildTwinRequest(entry.id, { params, body });
 }
 
+async function settleClone(ws: Workspace, payload: unknown) {
+  if (!payload || typeof payload !== 'object' || !('op' in payload) || typeof payload.op !== 'string') throw Error('Clone acceptance lacks an operation id.');
+  for (let attempt = 0; attempt < 400; attempt++) {
+    const finished = ws.events.replay(0)?.some(event => {
+      const data = event.data as { op?: string; phase?: string };
+      return event.event === 'clone' && data.op === payload.op && ['done', 'failed', 'cancelled'].includes(data.phase ?? '');
+    });
+    if (finished) return;
+    await Bun.sleep(10);
+  }
+  ws.cancelClone(payload.op);
+  throw Error('Clone did not settle before parity workspace disposal.');
+}
+
 async function invoke(entry: ParityCase, scenario: Scenario, twin: boolean) {
   using fixture = await authWorkspace();
   const access = createAccessControl(accessFixture());
@@ -119,6 +134,7 @@ async function invoke(entry: ParityCase, scenario: Scenario, twin: boolean) {
     } catch {
       /* Empty and text responses retain their HTTP representation. */
     }
+    if (entry.id === 'repositories.clone' && response.status === 200) await settleClone(fixture.ws, payload);
     return { status: response.status, body: normalized(payload), audit: audit.recent(10).map(normalized) };
   } finally {
     suggestions.mockRestore();
