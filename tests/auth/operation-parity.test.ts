@@ -37,6 +37,8 @@ export const parityCases: ParityCase[] = [
     id: 'files.saveBatch',
     body: (path, _project, scenario) => ({ files: (scenario === 'mixed' ? [ordinaryFile, path] : [path]).map(file => ({ path: file, baseHash: null, source: 'ontology: []' })) }),
   },
+  { id: 'itemAddresses.resolve', body: (path, project) => ({ address: `sw1:${project}/${path}#ontology:O` }) },
+  { id: 'itemAddresses.reconcile', body: (path, project) => ({ operationId: 'parity-reconcile', from: `sw1:${project}/${path}#ontology:Old`, to: `sw1:${project}/${path}#ontology:New` }) },
   { id: 'files.delete', body: () => ({ confirm: true }) },
   { id: 'files.move', body: (path, project, scenario) => ({ path: scenario === 'mixed' ? ordinaryFile : path, toProject: scenario === 'mixed' ? 'hr-people' : project, toPath: 'moved.yaml' }) },
   { id: 'files.import', body: (path, _project, scenario) => ({ files: (scenario === 'mixed' ? [ordinaryFile, path] : [path]).map(file => ({ path: file, source: 'ontology: []' })) }) },

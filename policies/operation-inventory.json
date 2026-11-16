@@ -310,6 +310,34 @@
       },
       "outcomeClassifier": "batchSave"
     },
+    "POST /api/projects/:slug/item-addresses/resolve": {
+      "id": "itemAddresses.resolve",
+      "handlerChecks": [],
+      "limits": {
+        "request": "ITEM_ADDRESS_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "scan"
+      },
+      "effects": ["read"],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "POST /api/projects/:slug/item-addresses/reconcile": {
+      "id": "itemAddresses.reconcile",
+      "handlerChecks": ["authorizeWrite", "bodyTargets"],
+      "limits": {
+        "request": "ITEM_ADDRESS_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "scan"
+      },
+      "effects": ["localWrite"],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
     "POST /api/projects/:slug/gitignore": {
       "id": "files.ignore",
       "handlerChecks": ["authorizeWrite"],

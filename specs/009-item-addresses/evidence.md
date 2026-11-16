@@ -961,3 +961,13 @@ instruction, a temporary copy removes that flag and uses the fresh scratch name
 remain untouched. Remote work still uses the wrapper's unprivileged capped execution and pulls.
 The original no-new-HTTP-route assumption is superseded by this integration request, as recorded
 in the spec Clarifications. No new MCP transport or tool is introduced.
+
+### Inventoried address entry points
+
+The new focused entry-point tests first failed because itemAddresses.resolve and
+itemAddresses.reconcile had no twin dispatch. After registration and route composition,
+`bun test ./tests/item-address-operations.test.ts`: `3 pass`, `0 fail`, `19 expect() calls`;
+`Ran 3 tests across 1 file. [1.96s]`. This covers HTTP/twin resolution with an opaque suffix,
+a read-only connection refusal, same-key lost reconciliation reply recovery, unchanged bytes,
+conflicting key reuse, malformed/foreign bodies and hidden/missing equivalence. Generic parity
+and full-role matrix cases are registered and will run remotely before this integration is done.

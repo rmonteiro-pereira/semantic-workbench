@@ -173,8 +173,9 @@ field preserves existing save behavior. File authorization and content guards st
 The server derives record IDs from its journal operation ID and records the current local HEAD (or an empty commit
 without Git). History staging and journal execution are synchronous with no intervening await, so concurrent operations
 in one workspace process cannot lose an append. Recovery reuses staged records. This does not add client operation keys
-or make separate processes sharing one data root supported. The operation-boundary integration will supply the eventual
-stable request-operation identity.
+or make separate processes sharing one data root supported. These requests enter the shared operation boundary as
+`files.save` and `files.saveBatch`; the boundary owns authorization, effect restrictions and audit, not durable receipts
+or stable client operation keys. A lost save reply retried against the old base remains a stale save.
 
 The structured item editor declares a stable item's subtree rename in the same single/batch request as ticked reference
 rewrites. Source autosave declares named document and embedded scope changes; named-root reordering declares nothing.
@@ -199,10 +200,19 @@ these prefixes for the selected item and removed dependents. A file delete recor
 delete journal. Creating an item/file later at the same locator is allowed, but its previous history remains behind the
 tombstone.
 
-Explicit reconciliation is a workspace server function for the future item-diff interface. It requires the same edit
+`POST /api/projects/:slug/item-addresses/reconcile` is the `itemAddresses.reconcile` operation. Its JSON body is
+`{operationId, from, to}`. It requires the same edit
 authority as saving the target file, both locators readable, the old locator missing and the new locator unique. It
 preserves guarded source text and records only history. The caller supplies a stable operation key; replay returns the
-original record and conflicting reuse is refused. No reconciliation HTTP route is introduced.
+original record and conflicting reuse is refused. Both addresses must be canonical absolute item locators in `:slug`;
+volatile or snapshot-qualified reconciliation endpoints are refused. The connection must permit `localWrite`.
+
+`POST /api/projects/:slug/item-addresses/resolve` is the `itemAddresses.resolve` operation. It accepts `{address}` with
+a canonical absolute item locator in `:slug` and returns `found`, `ambiguous` or `missing`. It requires project read
+access and the connection effect `read`; hidden and absent items both return `{status: "missing"}`. Both routes bound
+JSON bodies at `ITEM_ADDRESS_REQUEST_LIMIT` (64,000 bytes) and reject unknown fields with 400. HTTP and trusted
+in-process twins share the same handlers and security audit; resolution reads are explicitly audited. No MCP transport
+is added. Trusted adapters use `buildTwinRequest` and `handler.boundary.operate`, never direct workspace dispatch.
 
 The workspace resolver returns the same missing result for unreadable and absent items. It checks project and path
 visibility before opening definitions or history, resolves current items before applying history, and follows only

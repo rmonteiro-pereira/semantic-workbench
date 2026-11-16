@@ -20,6 +20,7 @@ import { serveStatic, securityHeaders } from './static';
 import { eventRoutes } from './routes/events';
 import { projectRoutes } from './routes/projects';
 import { fileRoutes } from './routes/files';
+import { itemAddressRoutes } from './routes/item-addresses';
 import { exportRoutes } from './routes/export';
 import { draftRoutes } from './routes/drafts';
 import { trashRoutesWith } from './routes/trash';
@@ -219,6 +220,7 @@ function workspaceRoutes(administration: AdminRepository, access: AccessControl,
     cloneRoutes(administration),
     repoRoutes,
     exportRoutes,
+    itemAddressRoutes,
     fileRoutes,
     draftRoutes,
     legacyRoutes,

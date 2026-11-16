@@ -19,6 +19,8 @@ export const AGENT_PLAN_REQUEST_LIMIT = 64_000;
 export const IMPORT_REQUEST_LIMIT = 64_000_000;
 /** Maximum body for metric edits and repository registration. */
 export const METRIC_REQUEST_LIMIT = 256_000;
+/** Maximum body for canonical item resolution and reconciliation. */
+export const ITEM_ADDRESS_REQUEST_LIMIT = 64_000;
 /** Maximum body for personal grouping corrections. */
 export const GROUPING_REQUEST_LIMIT = 256_000;
 /** Maximum body for a personal draft and its patches. */
@@ -37,6 +39,7 @@ export const REQUEST_LIMITS = {
   AGENT_PLAN_REQUEST_LIMIT,
   IMPORT_REQUEST_LIMIT,
   METRIC_REQUEST_LIMIT,
+  ITEM_ADDRESS_REQUEST_LIMIT,
   GROUPING_REQUEST_LIMIT,
   DRAFT_REQUEST_LIMIT,
   TRASH_REQUEST_LIMIT,

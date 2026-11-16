@@ -26,6 +26,8 @@ Regenerate this page with `bun scripts/operation-inventory-table.ts` after revie
 | files.import | POST /api/projects/:slug/import | import | project | localWrite | IMPORT_REQUEST_LIMIT | local-edit |
 | projects.export | GET /api/projects/:slug/export | export | project | read | none | local-edit |
 | files.saveBatch | POST /api/projects/:slug/save-batch | edit | project | localWrite | FILE_SAVE_REQUEST_LIMIT | local-edit |
+| itemAddresses.resolve | POST /api/projects/:slug/item-addresses/resolve | read | project | read | ITEM_ADDRESS_REQUEST_LIMIT | local-edit |
+| itemAddresses.reconcile | POST /api/projects/:slug/item-addresses/reconcile | edit | body | localWrite | ITEM_ADDRESS_REQUEST_LIMIT | local-edit |
 | files.ignore | POST /api/projects/:slug/gitignore | edit | project | localWrite | GIT_REQUEST_LIMIT | local-edit |
 | metrics.list | GET /api/projects/:slug/metrics | read | project | read | none | local-edit |
 | projects.deleteImpact | GET /api/projects/:slug/delete-impact | read | project | read | none | local-edit |

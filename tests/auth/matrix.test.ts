@@ -136,6 +136,7 @@ describe('read route inventory', () => {
             const named = readable.has(project) ? project : ([...readable][0] ?? project);
             path += `?project=${named}`;
           }
+          if (path.endsWith('/item-addresses/resolve')) requestBody = { address: `sw1:${project}/${fixtureFiles(project)[0].path}#ontology:O` };
           if (path === '/api/agent/context') path += '?project=sales-contracts&mappingId=sales-contracts/sales.mapping.yaml';
           if (path === '/api/agent/plan') {
             requestBody = {

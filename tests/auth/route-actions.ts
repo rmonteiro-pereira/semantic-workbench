@@ -26,6 +26,8 @@ export const routeExamples: { method: string; path: string; body?: unknown }[] =
   { method: 'POST', path: '/api/projects/missing/import' },
   { method: 'GET', path: '/api/projects/missing/export' },
   { method: 'POST', path: '/api/projects/missing/save-batch' },
+  { method: 'POST', path: '/api/projects/missing/item-addresses/resolve', body: { address: 'sw1:missing/example.yaml#ontology:O' } },
+  { method: 'POST', path: '/api/projects/missing/item-addresses/reconcile' },
   { method: 'POST', path: '/api/projects/missing/gitignore' },
   { method: 'GET', path: '/api/projects/missing/metrics' },
   { method: 'GET', path: '/api/projects/missing/delete-impact' },
@@ -133,5 +135,5 @@ export const readRouteExamples = routeExamples.filter(
     example.path.startsWith('/api/') &&
     // Administration and audit reads are Admin or Steward pages that name no project.
     !/^\/api\/(admin|audit)(\/|$)/.test(example.path) &&
-    (example.method === 'GET' || example.path.endsWith('/preview') || example.path === '/api/agent/plan'),
+    (example.method === 'GET' || example.path.endsWith('/preview') || example.path === '/api/agent/plan' || example.path.endsWith('/item-addresses/resolve')),
 );

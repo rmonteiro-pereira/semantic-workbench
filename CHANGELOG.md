@@ -8,6 +8,8 @@ not configure a production deployment.
 
 ### Added
 
+- Item-address resolution and explicit reconciliation share inventoried HTTP/twin operations, scoped effects and audit.
+
 - Reviewed operation inventory and generated reference, trusted in-process operation dispatch,
   connection effect restrictions, audit attribution fields and origin/tool filters.
 - Independent dry-run samples retain write and denial evidence during non-HTTP read floods.
