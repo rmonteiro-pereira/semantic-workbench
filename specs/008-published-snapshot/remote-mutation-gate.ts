@@ -1,6 +1,7 @@
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { isConnectionRetry } from '../../scripts/helpers/processes';
+import { stopVite } from '../../scripts/ci-validate';
 
 const output = join(process.cwd(), 'out', '008-remote-gate');
 mkdirSync(output, { recursive: true });
@@ -20,8 +21,9 @@ export default environment => {
 };
 `,
 );
-const frontend = Bun.spawn([process.execPath, 'node_modules/vite-plus/bin/vp', 'dev', '--config', configuration, '--host', '127.0.0.1', '--strictPort', '--port', '5481'], {
+const frontend = Bun.spawn([process.execPath, 'x', 'vite-plus', 'dev', '--config', configuration, '--host', '127.0.0.1', '--strictPort', '--port', '5481'], {
   env: { ...process.env, DATA_DIR: join(output, 'data') },
+  detached: true,
   stdout: Bun.file(join(output, 'frontend.log')),
   stderr: Bun.file(join(output, 'frontend-error.log')),
 });
@@ -52,6 +54,5 @@ try {
   await runGate('scripts/ui-tests.ts', 'ui-browser');
   await runGate('scripts/mutation-tests.ts', 'mutation');
 } finally {
-  frontend.kill('SIGTERM');
-  await frontend.exited;
+  await stopVite(frontend);
 }

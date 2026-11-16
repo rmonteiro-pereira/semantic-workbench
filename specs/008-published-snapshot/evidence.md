@@ -684,3 +684,8 @@ temporary-directory expectation and two to the five-second default execution dea
 fixture had silently ignored failed raw Git commits; it now reuses the existing checked `sh` fixture edge.
 Its empty-startup-global focused case passes. The complete rerun uses `bun test --timeout 30000` under the
 same remote caps. No assertion, explicit test deadline or production behavior is relaxed.
+
+Remote browser preparation reuses the existing CI `bun x vite-plus` launch and exported `stopVite` cleanup
+with a detached process group. This stops the owned frontend and its child processes together. The existing
+CI-runner test file passed 8 tests, 32 assertions; no new process-management implementation was added.
+The final local `bun --bun run check` exited 0, and `bun --bun run build` exited 0 (`✓ built in 5.92s`).
