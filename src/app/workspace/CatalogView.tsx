@@ -24,12 +24,6 @@ type Props = {
 function metricCountLabel(count: number) {
   return count === 1 ? '1 metric' : `${count} metrics`;
 }
-function catalogDescription(description: string | undefined) {
-  if (!description) return 'No description yet';
-  if (description.length <= 160) return description;
-  const boundary = description.lastIndexOf(' ', 160);
-  return boundary > 0 ? `${description.slice(0, boundary)}…` : description;
-}
 /** Renders catalog view. */
 export function CatalogView({ model, search, clearSearch, area, clearArea, selectEntity, kpiBadges, entityTarget, rdfTarget, setEditing, setRdfEditing }: Props) {
   const areaIds = area ? new Set(area.entityIds) : null;
@@ -78,7 +72,7 @@ export function CatalogView({ model, search, clearSearch, area, clearArea, selec
                 )}
               </small>
               <EntityName name={entity.name} />
-              <p title={entity.description || undefined}>{catalogDescription(entity.description)}</p>
+              <p title={entity.description || undefined}>{entity.description || 'No description yet'}</p>
               <span className="catalog-details">View details</span>
             </button>
             {(entityTarget(entity) || rdfTarget(entity)) && (
