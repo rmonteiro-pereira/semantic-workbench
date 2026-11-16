@@ -109,6 +109,16 @@ export async function operationBoundaryCases(target: string): Promise<void> {
   using fixture = await authWorkspace();
   const context = await setup(target, fixture);
   await dispatchCases(context);
+  const { attachIdentity } = await import(join(context.folder, 'request-scope.ts'));
+  const { authorizeGitPush } = await import(join(context.folder, 'git-access.ts'));
+  const request = new Request('http://operation.internal/api/projects/sales-contracts/git/commit', { method: 'POST' });
+  const caller = context.mintCaller({ ...context.caller('dave'), scope: ['read', 'commit'] });
+  attachIdentity(request, caller, { scope: context.access.forRequest(caller.principal), requestId: 'push-effect', remote: 'local' });
+  await assert.rejects(
+    authorizeGitPush({ ws: fixture.ws, slug: 'sales-contracts', request }),
+    (error: unknown) => error instanceof context.WriteAccessError && error.decision.reason === 'connection-scope',
+    'dynamic push effect belongs to the authorizer',
+  );
   await responseCases(context);
   builderAndReplayCases(context);
   await listingCases(target, fixture);

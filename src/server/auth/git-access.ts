@@ -6,6 +6,8 @@ import type { Action } from '../../shared/auth/actions';
 import type { ResourceRef, DecisionContext } from './resource';
 import { authorizeWrite } from './write-access';
 import { requestReader, requestScope } from './request-scope';
+import { requireEffect, scopeAllows } from './connection-scope';
+import { requestConnectionScope, type AccessRequest } from './request-scope';
 import { BadRequestError } from '../projects/errors';
 
 /** The request and the project whose shared repository a Git command acts on. */
@@ -49,6 +51,7 @@ export async function authorizeGitPaths(target: GitTarget, action: Action, { pat
 
 /** Checks push separately, including a commit or sync that requests a push. */
 export async function authorizeGitPush(target: GitTarget): Promise<void> {
+  requireEffect(target.request, 'remote');
   const scm = target.ws.pendingScm(target.slug, requestReader(target.request));
   const status = await scm.status(target.slug, LOCAL_READER);
   authorizeRepository(target, 'push', { branch: status.branch });
@@ -72,6 +75,7 @@ export function authorizeCheckout(target: GitTarget, branch: string): void {
  * branch follow the remote only for someone who may publish it.
  */
 export async function mayPublish(target: GitTarget): Promise<boolean> {
+  if (!scopeAllows((target.request as AccessRequest)[requestConnectionScope], ['publish'])) return false;
   const scope = requestScope(target.request);
   if (scope.principal.kind === 'local') return true;
   const { ws, slug } = target;
@@ -80,7 +84,9 @@ export async function mayPublish(target: GitTarget): Promise<boolean> {
 }
 
 /** Publishing moves the default branch, so it needs `publish` there on every sharing project. */
-export async function authorizePublish(target: GitTarget, branch: unknown): Promise<void> {
+export async function authorizePublish(target: GitTarget, branch: unknown, { push = false }: { push?: boolean } = {}): Promise<void> {
+  requireEffect(target.request, 'publish');
+  if (push) requireEffect(target.request, 'remote');
   const { ws, slug } = target;
   const published = await ws.worktrees.defaultBranch(ws.repoOf(slug));
   if (branch !== undefined && branch !== published) throw new BadRequestError(`Publishing goes to the default branch, ${published}.`);

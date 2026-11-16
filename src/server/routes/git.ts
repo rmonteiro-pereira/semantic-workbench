@@ -1,5 +1,3 @@
-import { requireEffect, scopeAllows } from '../auth/connection-scope';
-import { requestConnectionScope, type AccessRequest } from '../auth/request-scope';
 import { GIT_REQUEST_LIMIT } from '../request';
 /** Named body limits shared with in-process request construction. */
 export { GIT_REQUEST_LIMIT } from '../request';
@@ -102,7 +100,6 @@ export const createGitRoutes =
           repository: requestBody.repoPaths !== undefined,
         });
         if (requestBody.push === true) {
-          requireEffect(req, 'remote');
           await authorizeGitPush(gitTarget);
         }
         const chosen = requestBody.paths === undefined && requestBody.repoPaths === undefined ? null : chosenPaths(requestBody);
@@ -134,7 +131,6 @@ export const createGitRoutes =
         return Response.json(await scm.switchBranch(slug, requestBody.branch, create, reader, checkout, credentialFor));
       }
       if (action === 'git/publish') {
-        requireEffect(req, 'publish');
         const requestBody = await body(['branch']);
         await authorizePublish(gitTarget, requestBody.branch);
         return Response.json(await ws.publish(slug, reader));
@@ -146,9 +142,7 @@ export const createGitRoutes =
       }
       // Pushing the default branch changes what everyone pulls, so it needs the right to publish.
       if (action === 'git/push-default') {
-        requireEffect(req, 'publish');
-        requireEffect(req, 'remote');
-        await authorizePublish(gitTarget, undefined);
+        await authorizePublish(gitTarget, undefined, { push: true });
         // The default branch is shared, so pushing it needs no copy and never starts one.
         const scm = ws.readScm(slug, reader);
         return Response.json(await scm.pushDefault(slug, delegatedCredentials(req)));
@@ -165,7 +159,7 @@ export const createGitRoutes =
       // Remote commands run in the person's own copy with their own credential for the remote.
       const credentialFor = delegatedCredentials(req);
       if (action === 'git/fetch') {
-        const follow = { reader, mayPublish: async () => scopeAllows((req as AccessRequest)[requestConnectionScope], ['publish']) && mayPublish(gitTarget) };
+        const follow = { reader, mayPublish: () => mayPublish(gitTarget) };
         return Response.json(await scm!.fetch(slug, credentialFor, follow));
       }
       if (action === 'git/pull') return Response.json(await scm!.pull(slug, reader, credentialFor));

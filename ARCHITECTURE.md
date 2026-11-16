@@ -167,7 +167,8 @@ The integration view shows what the application reads and contacts, and what it 
   `operation-classifiers.ts` registers pure classifiers owned by SCM, clone and save modules.
 - `replay-sample.ts` fills independent ordinary and non-HTTP read strata in one backward audit scan.
 - `write-access.ts`, `git-access.ts` and `project-creation.ts` authorize concrete write targets,
-  repository-wide actions and new-project domains before mutation.
+  repository-wide actions and new-project domains before mutation. Git authorizers also enforce
+  dynamic remote and publish connection effects, including fetch follow-up eligibility.
 - `src/shared/governance/guards.ts` contains shared pure content rules and classification levels. Server
   `auth/guards.ts` binds them to a principal. Browser `src/app/auth/guards-client.ts` explains the
   controls but cannot authorize a write.
