@@ -12,7 +12,7 @@ import type { RemoteTokens, Session, SessionStore } from './sessions';
 import type { Workspace } from '../projects/workspace';
 import type { CredentialFor } from '../projects/scm';
 import { locationOf } from '../projects/paths';
-import { requestRemote, type AccessRequest } from './request-scope';
+import { requestRemote, requestSession, type AccessRequest } from './request-scope';
 import { BadRequestError } from '../projects/errors';
 
 /** The Azure DevOps resource whose token Git accepts in place of a password. */
@@ -95,6 +95,10 @@ function withoutAttempt(remote: RemoteTokens): RemoteTokens {
 /** Creates the per-person credential service of server mode. */
 export function createRemoteCredentials(deps: RemoteCredentialDependencies) {
   const now = deps.now ?? Date.now;
+  function sessionFor(request: Request): Promise<Session | null> {
+    if (requestSession in request) return Promise.resolve((request as AccessRequest)[requestSession] ?? null);
+    return deps.session(request);
+  }
   const azureDevOpsHosts = deps.azureDevOpsHosts ?? AZURE_DEVOPS_HOSTS;
   const github = deps.config.github;
   const allowedHosts = () => deps.settings().remote?.allowedHosts ?? [];
@@ -117,7 +121,7 @@ export function createRemoteCredentials(deps: RemoteCredentialDependencies) {
         azureDevOps: azureDevOpsHosts,
       });
       if (kind === 'none') return { kind: 'none' };
-      const session = await deps.session(request);
+      const session = await sessionFor(request);
       // A request without a session cannot hold any delegated token; signing in again gives one.
       if (!session) throw new ConnectRequiredError(kind);
       if (kind === 'azure-devops') {
@@ -129,7 +133,7 @@ export function createRemoteCredentials(deps: RemoteCredentialDependencies) {
     },
     /** Which accounts the person can use now; never the tokens themselves. */
     async status(request: Request) {
-      const session = await deps.session(request);
+      const session = await sessionFor(request);
       return {
         connected: {
           azureDevOps: Boolean(session && azureDevOps.cached(session)),

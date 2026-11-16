@@ -11,7 +11,9 @@ import { AZURE_DEVOPS_AUDIENCE, GITHUB_APP, MACHINE_HELPER, git, lastPush, origi
 import { repoDir } from '../../src/server/projects/paths';
 import { ASKPASS_PROGRAM, credentialSetup, maskToken } from '../../src/server/projects/git';
 import { AZURE_DEVOPS_HOSTS, RemoteHostError, allowedRemoteAddresses, allowedRemoteHost, credentialKind } from '../../src/server/auth/remote-hosts';
-import { githubUsable } from '../../src/server/auth/remote-credentials';
+import { requestSession, type AccessRequest } from '../../src/server/auth/request-scope';
+import { buildTwinRequest } from '../../src/server/auth/twin-request';
+import { githubUsable, ConnectRequiredError } from '../../src/server/auth/remote-credentials';
 
 beforeAll(useDefaultBrand);
 
@@ -335,4 +337,26 @@ test('the askpass program answers only a whole prompt for its own host', () => {
       env: { ...env, SW_GIT_HOST: '' },
     }).stdout.toString(),
   ).toBe('\n');
+});
+
+test('twins use the attached delegated session and explicit absence never falls back to cookies', async () => {
+  const cookie = await signIn('alice');
+  const session = await setup.auth.authentication.session(new Request(origin + '/api/me', { headers: { cookie } }));
+  expect(session).not.toBeNull();
+  if (!session) throw Error('Sign-in did not create a session.');
+  session.remote =
+    (await setup.auth.authentication.sessions.updateRemote(session.id, remote => ({
+      ...remote,
+      github: { host: setup.github.host, token: 'twin-credential' },
+    }))) ?? undefined;
+  const twin = buildTwinRequest('projects.list', { params: {} }) as AccessRequest;
+  twin[requestSession] = session;
+  expect(twin.headers.has('cookie')).toBe(false);
+  const service = setup.auth.remoteCredentials;
+  expect(await service.credentialFor(twin, setup.github.host)).toMatchObject({ kind: 'token', token: 'twin-credential' });
+  expect(await service.credentialFor(twin, setup.azureDevOps.host)).toMatchObject({ kind: 'token', host: setup.azureDevOps.host });
+  const absent = new Request(origin + '/api/me', { headers: { cookie } }) as AccessRequest;
+  absent[requestSession] = null;
+  await expect(service.credentialFor(absent, setup.github.host)).rejects.toBeInstanceOf(ConnectRequiredError);
+  await expect(service.credentialFor(new Request(origin), setup.github.host)).rejects.toBeInstanceOf(ConnectRequiredError);
 });

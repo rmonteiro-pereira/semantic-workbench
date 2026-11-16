@@ -382,3 +382,6 @@ A test in `tests/validation-honesty.test.ts` checks that a `SERVICE` clause make
 For API work, maintain the action inventory and relevant HTTP/configuration contracts. The actual
 handlers, schemas and tests remain authoritative when an older design contract describes an
 unimplemented or superseded detail.
+
+Twin requests carry the authenticated caller's session reference. Remote credentials use that
+reference, including an explicit absent session, before considering cookie-based session lookup.
