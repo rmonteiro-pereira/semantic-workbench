@@ -1,1 +1,921 @@
-{"operations":{},"browserCapabilities":[]}
+{
+  "operations": {
+    "GET /api/status": {
+      "id": "status.read",
+      "service": "projects/workspace",
+      "action": "read",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "GET /api/projects": {
+      "id": "projects.list",
+      "service": "projects/workspace",
+      "action": "read",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "GET /api/suggestions": {
+      "id": "suggestions.read",
+      "service": "projects/workspace",
+      "action": "read",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "GET /api/documents": {
+      "id": "documents.list",
+      "service": "projects/workspace",
+      "action": "read",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "POST /api/projects": {
+      "id": "projects.create",
+      "service": "projects/workspace",
+      "action": "createProject",
+      "targets": "workspace",
+      "handlerChecks": [
+        "creationDomain"
+      ],
+      "input": {
+        "query": [],
+        "body": [
+          "name",
+          "domain"
+        ]
+      },
+      "limits": {
+        "request": "PROJECT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "localWrite"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "POST /api/import": {
+      "id": "projects.import",
+      "service": "projects/workspace",
+      "action": "createProject",
+      "targets": "workspace",
+      "handlerChecks": [
+        "creationDomain"
+      ],
+      "input": {
+        "query": [],
+        "body": [
+          "name",
+          "domain",
+          "files"
+        ]
+      },
+      "limits": {
+        "request": "IMPORT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "localWrite"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "POST /api/documents": {
+      "id": "documents.save",
+      "service": "projects/workspace",
+      "action": "edit",
+      "targets": "body",
+      "handlerChecks": [
+        "authorizeWrite",
+        "bodyTargets"
+      ],
+      "input": {
+        "query": [],
+        "body": [
+          "filename",
+          "source",
+          "id",
+          "baseHash",
+          "revision"
+        ]
+      },
+      "limits": {
+        "request": "FILE_SAVE_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "localWrite"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "POST /api/examples/:name": {
+      "id": "examples.run",
+      "service": "projects/workspace",
+      "action": "createProject",
+      "targets": "workspace",
+      "handlerChecks": [
+        "creationDomain"
+      ],
+      "input": {
+        "query": [],
+        "body": [
+          "domain"
+        ]
+      },
+      "limits": {
+        "request": "PROJECT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "localWrite"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "PATCH /api/projects/:slug": {
+      "id": "projects.update",
+      "service": "projects/workspace",
+      "action": "renameProject",
+      "targets": "project",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": [
+          "name"
+        ]
+      },
+      "limits": {
+        "request": "PROJECT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "localWrite"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "POST /api/projects/:slug/move": {
+      "id": "files.move",
+      "service": "projects/workspace",
+      "action": "move",
+      "targets": "project",
+      "handlerChecks": [
+        "authorizeWrite",
+        "bodyTargets"
+      ],
+      "input": {
+        "query": [],
+        "body": [
+          "path",
+          "toProject",
+          "toPath"
+        ]
+      },
+      "limits": {
+        "request": "PROJECT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "localWrite"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "POST /api/projects/:slug/import": {
+      "id": "files.import",
+      "service": "projects/workspace",
+      "action": "import",
+      "targets": "project",
+      "handlerChecks": [
+        "authorizeWrite",
+        "bodyTargets"
+      ],
+      "input": {
+        "query": [],
+        "body": [
+          "files",
+          "onConflict"
+        ]
+      },
+      "limits": {
+        "request": "IMPORT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "localWrite"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "GET /api/projects/:slug/export": {
+      "id": "projects.export",
+      "service": "projects/workspace",
+      "action": "export",
+      "targets": "project",
+      "handlerChecks": [],
+      "input": {
+        "query": [
+          "history"
+        ],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "binary",
+        "work": "scan"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "POST /api/projects/:slug/save-batch": {
+      "id": "files.save.batch",
+      "service": "projects/workspace",
+      "action": "edit",
+      "targets": "project",
+      "handlerChecks": [
+        "authorizeWrite",
+        "bodyTargets"
+      ],
+      "input": {
+        "query": [],
+        "body": [
+          "files"
+        ]
+      },
+      "limits": {
+        "request": "FILE_SAVE_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "localWrite"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "GET /api/projects/:slug/metrics": {
+      "id": "projects.metrics.read",
+      "service": "projects/workspace",
+      "action": "read",
+      "targets": "project",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "GET /api/projects/:slug/delete-impact": {
+      "id": "projects.delete.impact.read",
+      "service": "projects/workspace",
+      "action": "read",
+      "targets": "project",
+      "handlerChecks": [],
+      "input": {
+        "query": [
+          "path"
+        ],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "POST /api/projects/:slug/metrics": {
+      "id": "projects.metrics.run",
+      "service": "projects/workspace",
+      "action": "edit",
+      "targets": "project",
+      "handlerChecks": [
+        "authorizeWrite",
+        "bodyTargets"
+      ],
+      "input": {
+        "query": [],
+        "body": [
+          "semanticPath",
+          "existing",
+          "metric",
+          "extension",
+          "binding",
+          "modelPath",
+          "baseHashes"
+        ]
+      },
+      "limits": {
+        "request": "METRIC_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "localWrite"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "GET /api/projects/:slug/people": {
+      "id": "projects.people.read",
+      "service": "projects/workspace",
+      "action": "edit",
+      "targets": "project",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "POST /api/projects/:slug/metrics/preview": {
+      "id": "projects.metrics.preview.run",
+      "service": "projects/workspace",
+      "action": "read",
+      "targets": "project",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": [
+          "semanticPath",
+          "existing",
+          "metric",
+          "extension",
+          "binding",
+          "modelPath",
+          "baseHashes"
+        ]
+      },
+      "limits": {
+        "request": "METRIC_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "localWrite"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "POST /api/projects/:slug/kpis": {
+      "id": "projects.kpis.run",
+      "service": "projects/workspace",
+      "action": "edit",
+      "targets": "project",
+      "handlerChecks": [
+        "authorizeWrite",
+        "bodyTargets"
+      ],
+      "input": {
+        "query": [],
+        "body": [
+          "semanticPath",
+          "existing",
+          "metric",
+          "extension",
+          "binding",
+          "modelPath",
+          "baseHashes"
+        ]
+      },
+      "limits": {
+        "request": "METRIC_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "localWrite"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "POST /api/projects/:slug/kpis/preview": {
+      "id": "projects.kpis.preview.run",
+      "service": "projects/workspace",
+      "action": "read",
+      "targets": "project",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": [
+          "semanticPath",
+          "existing",
+          "metric",
+          "extension",
+          "binding",
+          "modelPath",
+          "baseHashes"
+        ]
+      },
+      "limits": {
+        "request": "METRIC_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "localWrite"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "GET /api/projects/:slug/files/*/explain/:metric": {
+      "id": "projects.files.file.explain.read",
+      "service": "agent/runtime",
+      "action": "read",
+      "targets": "file",
+      "handlerChecks": [],
+      "input": {
+        "query": [
+          "dimension",
+          "grain",
+          "rollup"
+        ],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "GET /api/projects/:slug/files/*": {
+      "id": "files.read",
+      "service": "projects/workspace",
+      "action": "read",
+      "targets": "file",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "PUT /api/projects/:slug/files/*": {
+      "id": "files.save",
+      "service": "projects/workspace",
+      "action": "edit",
+      "targets": "file",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": [
+          "baseHash",
+          "source",
+          "patches"
+        ]
+      },
+      "limits": {
+        "request": "FILE_SAVE_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "localWrite"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "GET /api/drafts": {
+      "id": "drafts.read",
+      "service": "projects/state",
+      "action": "viewOwnState",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "GET /api/drafts/:slug/*": {
+      "id": "drafts.file.read",
+      "service": "projects/state",
+      "action": "viewOwnState",
+      "targets": "file",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "PUT /api/drafts/:slug/*": {
+      "id": "drafts.file.set",
+      "service": "projects/state",
+      "action": "edit",
+      "targets": "file",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": [
+          "baseHash",
+          "text",
+          "patches"
+        ]
+      },
+      "limits": {
+        "request": "DRAFT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "localWrite"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "POST /api/suggestions/:id/accept": {
+      "id": "suggestions.accept.run",
+      "service": "projects/suggestions",
+      "action": "move",
+      "targets": "body",
+      "handlerChecks": [
+        "authorizeWrite",
+        "bodyTargets"
+      ],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "localWrite"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "POST /api/suggestions/:id/reject": {
+      "id": "suggestions.reject.run",
+      "service": "projects/suggestions",
+      "action": "edit",
+      "targets": "body",
+      "handlerChecks": [
+        "authorizeWrite",
+        "bodyTargets"
+      ],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "localWrite"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "GET /api/agent/projects": {
+      "id": "agent.projects.read",
+      "service": "agent/runtime",
+      "action": "read",
+      "clientAction": "agentRead",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [
+          "project",
+          "mappingId",
+          "concept"
+        ],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "GET /api/agent/catalog": {
+      "id": "agent.catalog.read",
+      "service": "agent/runtime",
+      "action": "read",
+      "clientAction": "agentRead",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [
+          "project",
+          "mappingId",
+          "concept"
+        ],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "GET /api/agent/context": {
+      "id": "agent.context.read",
+      "service": "agent/runtime",
+      "action": "read",
+      "clientAction": "agentRead",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [
+          "project",
+          "mappingId",
+          "concept"
+        ],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "POST /api/agent/plan": {
+      "id": "agent.plan.run",
+      "service": "agent/runtime",
+      "action": "read",
+      "clientAction": "agentRead",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [
+          "project",
+          "mappingId",
+          "concept"
+        ],
+        "body": [
+          "project",
+          "mappingId",
+          "concepts",
+          "metrics",
+          "dimensions"
+        ]
+      },
+      "limits": {
+        "request": "GIT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "localWrite"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "GET /api/documents/:id/grouping": {
+      "id": "documents.grouping.read",
+      "service": "projects/workspace",
+      "action": "viewOwnState",
+      "targets": "workspace",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": []
+      },
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
+    "PUT /api/documents/:id/grouping": {
+      "id": "documents.grouping.set",
+      "service": "projects/workspace",
+      "action": "viewOwnState",
+      "targets": "body",
+      "handlerChecks": [],
+      "input": {
+        "query": [],
+        "body": [
+          "mode",
+          "assignments",
+          "names"
+        ]
+      },
+      "limits": {
+        "request": "GROUPING_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": [
+        "localWrite"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    }
+  },
+  "browserCapabilities": []
+}
