@@ -32,3 +32,10 @@ Existing theme styles name DM Sans and Manrope; local font faces supply their gl
 - Same state and viewport, dark: before `/home/rodrigo/projetos/semantic-workbench-ui-review-20261115/screenshots/states/local-dark-workspace--first-run-empty-1440.png`; after `/tmp/sw-foundation/final-after/states/local-dark-workspace--first-run-empty-1440.png`.
 - Both final after images and both before images were opened. The title changes from serif to Manrope sans-serif. The centered composition, colours, controls and spacing remain intact.
 - Capture command: `SW_BASE_URL=http://127.0.0.1:5201 bun scripts/ui-review/empty-states.ts /tmp/sw-foundation/final-after/states`. Unrelated invalid-empty-document fixture states still produce validation-backdrop geometry records; the first-run states above have empty problem arrays. No application behaviour outside typography was changed for those records.
+
+## Font gate
+
+- T006: the filesystem gate checks local font-face URLs, both OFL files and generic/token fallback declarations across source CSS. Font-face family descriptors are excluded because CSS descriptors name one face, not a fallback stack.
+- `bun test tests/fonts.test.ts`: `1 pass`, `0 fail`, `1 expect() calls`.
+- Three asset mutants are registered under the E sentinel: raw family without fallback, missing WOFF2 URL, removed Manrope licence. All three are killed by the same `fontProblems` entry point used by the test. `/tmp/sw-foundation/font-mutants.log` records the focused baseline and three failures; `/tmp/sw-foundation/final-mutations.log` includes all three `KILLED fonts` entries in the complete runner.
+- Shared-file exception: the runner's `run` function dispatches the fonts category to a disposable asset-tree runner. The existing runner only handles TypeScript candidate modules, so CSS and licence faults need this foundation dispatch. Lane imports and registrations remain inside the E sentinels.

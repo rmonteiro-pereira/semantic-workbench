@@ -63,7 +63,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Add `@font-face` rules (`font-display: swap`) and `--font-sans` and `--font-display` custom properties in `fonts.css`, import it before the theme stylesheet, and replace every `font` shorthand and `font-family` that names `DM Sans`, `Manrope` or nothing with the tokens, so each ends in `sans-serif` (monospace stays monospace). This is the only task in the plan that edits font lines in every lane's stylesheet; it merges first so no lane meets those lines again.
   - Proof: Before `states/local-workspace--first-run-empty-1440.png` (serif heading); after: same state with `scripts/ui-review/empty-states.ts` at 1440 light and `states/local-dark-workspace--first-run-empty-1440.png` at 1440 dark; check: `tests/fonts.test.ts` (next task) and `bun run test:theme`.
 
-- [ ] T006 [E] Add `tests/fonts.test.ts`: every `@font-face` URL resolves to a file in `src/shared/fonts/`, each family has a licence file, and no CSS file under `src/` has a `font` or `font-family` declaration without a generic family or a `--font-*` token.
+- [x] T006 [E] Add `tests/fonts.test.ts`: every `@font-face` URL resolves to a file in `src/shared/fonts/`, each family has a licence file, and no CSS file under `src/` has a `font` or `font-family` declaration without a generic family or a `--font-*` token.
   - Findings: M7 · Requirements: FR-053
   - Files: `tests/fonts.test.ts`, `scripts/font-mutants.ts`, `scripts/font-mutation-cases.ts`, `scripts/mutation-tests.ts`
   - Change: Pattern after `tests/theme-check.test.ts`. Add mutants that drop a fallback, point a URL at a missing file and remove a licence file, registered under lane E's sentinel.

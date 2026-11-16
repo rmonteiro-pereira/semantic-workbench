@@ -25,6 +25,7 @@ import { resolve, dirname } from 'node:path';
 // lane D imports
 // end lane D imports
 // lane E imports
+import { fontMutants, runFontCase } from './font-mutants';
 // end lane E imports
 const root = process.cwd();
 const temp = await mkdtemp(resolve(tmpdir(), 'workbench-mutations-'));
@@ -589,6 +590,7 @@ mutants.push(...operationBoundaryMutants);
 // lane D mutants
 // end lane D mutants
 // lane E mutants
+mutants.push(...fontMutants);
 // end lane E mutants
 
 // Split modules import their siblings, so a mutant runs inside a copy of the whole folder: only
@@ -628,6 +630,7 @@ async function writeFolderCopy(folder: string, file: string, mutatedSource: stri
   return resolve(copyRoot, mutatedPath.slice(folderRoot.length + 1));
 }
 async function run(category: string, file: string, source: string, index: string, env: Record<string, string> = {}) {
+  if (category === 'fonts') return runFontCase(root, temp, file, source, index);
   if (category.startsWith('admin-')) {
     source = source.replace(/new URL\('(?:\.\.\/)+policies\//g, `new URL('${root}/policies/`);
   }
