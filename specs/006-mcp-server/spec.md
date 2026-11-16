@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-15, rewritten through Spec Kit 2026-11-16
 
-**Status**: Draft
+**Status**: Clarified
 
 **Input**: The owner wants an agent to work in the workbench the way a person works in the
 browser: read definitions, change the YAML, get validation, commit. The workbench receives the
@@ -30,6 +30,32 @@ operations, resources and prompts, and administration are committed later increm
   output and forwards each message to the running workbench.
 - **Tessera**: the working name of the extended authoring format (decision E24). To this feature
   such documents are ordinary files; no tool depends on the format.
+
+## Clarifications
+
+### Session 2026-11-16
+
+- Q: Is the MCP endpoint available in server mode in this release? → A: No. It is mounted in local
+  mode only; in server mode the path answers as an unknown route and nothing about server mode
+  changes. Person sign-in is a separate feature, and the constitution accepts bearer tokens only on
+  the agent API until it amends that rule. (M18, M2)
+- Q: What may a default local connection do, and what happens to an effect that needs a wider
+  scope such as push or publish? → A: Read, validate, edit and commit to the authoring branch.
+  Tools for remote operations, publication and administration are absent, not refused. A commit that
+  would advance the published branch is refused with an explanation, because advancing it needs the
+  publication scope this release does not offer. (M9, E4, M18)
+- Q: Which write tools need an idempotency key, and which are protected by a version check
+  alone? → A: Saving and creating a file are protected by their version check. Deleting to trash,
+  restoring and committing change state a retry cannot detect, so they require a key. A conflict
+  answer says when the file already equals the proposed text. (M13)
+- Q: What do the published-only tools return when a project has no published snapshot, or a branch
+  is unpublished? → A: A defined "not published" result that names the reason. They never fall back
+  to dirty files or a personal branch, for any caller including the author's own agent. (E4, E5)
+- Q: How large may a request, a result and a page be? → A: Defaults are named in the success
+  criteria and the tool contract: a global request cap before parsing, a per-tool cap chosen by tool
+  name, a result cap, pages with cursors, and byte ranges pinned to a version. The existing
+  2,000,000-byte document limit still applies to saves and validation. The numeric defaults are
+  assumptions tagged with their source in the plan. (M17)
 
 ## User Scenarios & Testing *(mandatory)*
 
