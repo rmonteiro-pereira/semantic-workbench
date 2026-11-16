@@ -46,13 +46,18 @@ it is not a drop-in performance switch.
    metadata is not forwarded onto DOM elements.
 6. Compute obstacle-aware worker routes only at useful detail levels or for selected connections.
    Whole-model views use inexpensive native paths instead of routing thousands of tiny edges.
-7. Fit the actual pane. Name legibility depends on the model and pane size; zoom or select an
-   entity to read dense layouts. Models above 250 visible business entities start with counted area cards; expanding restores all entities and their folded
-   relationships.
+7. Fit the actual pane, then measure painted entity names. Network starts as counted area cards
+   when its smallest name is below 9 screen pixels; a 250-entity safety cap bounds very large
+   initial layouts. A failed legibility check costs one additional layout of the counted cards.
+   Counted-card text compensates for zoom. Explicit area choices bypass the automatic decision.
+   Layered opens on the first area at readable name scale without moving its orthogonal routes;
+   Fit returns to the whole model. Resizing does not change the automatic representation.
+
 
 `src/app/graph/full-layout.ts` and its workers own engine input/output.
 `full-graph-viewport.ts` owns Fit and readable selection framing; `useFullGraphEdges.ts` builds
-connections from the current layout and focus.
+connections from the current layout and focus. `useFullGraphOpening.ts` measures the painted
+first viewport and chooses its automatic representation after layout.
 `src/app/graph/overview-capacity.ts` sizes cards and decides when areas start as counted cards.
 `src/app/graph/edge-styles.ts` supplies line/legend styles and SVG-safe appearance;
 `src/app/graph/RoutedEdge.tsx` keeps fallback routes attached while a worker result is pending or no

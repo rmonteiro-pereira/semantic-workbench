@@ -12,7 +12,7 @@ import { Crosshair, Maximize, RefreshCw } from 'lucide-react';
 import { useViewRestore, type Fullscreen } from './fullscreen';
 import { GraphOptions, OptionGroup, Segmented, ShowToggle } from './GraphOptions';
 import { ZoomButtons } from './ZoomButtons';
-import { MODEL_CARD_WIDTH, minimumGraphZoom, startsCollapsed, textSizesAt } from './overview-capacity';
+import { MODEL_CARD_WIDTH, minimumGraphZoom, textSizesAt } from './overview-capacity';
 import { humanizeIdentifier } from './EntityName';
 import { CompactControls } from './CompactControls';
 import { modelOverview } from './overview';
@@ -24,8 +24,9 @@ import { edgeTypes, nodeTypes } from './FullGraphNodes';
 import { FullscreenButton } from './FullscreenButton';
 export { FullscreenButton } from './FullscreenButton';
 import { useFullGraphEdges } from './useFullGraphEdges';
-import { fitFullGraph, focusFullGraph } from './full-graph-viewport';
+import { fitFullGraph, fitGraphArea, focusFullGraph } from './full-graph-viewport';
 import { useFullGraphLayout } from './useFullGraphLayout';
+import { useFullGraphOpening } from './useFullGraphOpening';
 
 function entityAddress(entity: import('../../shared/core/model').Entity | undefined) {
   return entity && isStructuredEntity(entity) ? formatAddress(entity.address) : undefined;
@@ -90,9 +91,10 @@ export function FullGraph(props: Props) {
   const graphEntities = useMemo(() => (hidden.size ? props.entities.filter(e => !hidden.has(e.id)) : props.entities), [hidden, props.entities]);
   const graphEdges = useMemo(() => (hidden.size ? props.edges.filter(e => !hidden.has(e.source) && !hidden.has(e.target)) : props.edges), [hidden, props.edges]);
   const overview = useMemo(() => modelOverview(graphEntities, graphEdges, props.name, false, props.grouping), [graphEntities, graphEdges, props.name, props.grouping]);
-  // Until a person collapses or expands areas, only a very large model starts as one card per area.
+  // Explicit area choices survive automatic first-view decisions.
   const [collapseChoice, setCollapseChoice] = useRecordedState<Set<string> | null>('graph.collapsedAreas', null);
-  const autoCollapsed = useMemo(() => (startsCollapsed(overview.entities.length) ? new Set(overview.groups.map(g => g.id)) : new Set<string>()), [overview]);
+  const opening = useFullGraphOpening({ overview, algorithm, collapseChoice, flow, container, reservedWidth: miniMap ? 216 : 0, onFitZoom: setFittedZoom, onArea: setZoomedGroupId });
+  const autoCollapsed = useMemo(() => (opening.automaticCollapse ? new Set(overview.groups.map(group => group.id)) : new Set<string>()), [overview, opening.automaticCollapse]);
   const collapsed = collapseChoice ?? autoCollapsed;
   const setCollapsed = (next: Set<string>) => setCollapseChoice(next);
   const display = useMemo(() => collapseAreas(overview, collapsed), [overview, collapsed]);
@@ -162,8 +164,11 @@ export function FullGraph(props: Props) {
     },
     [miniMap],
   );
-  const fit = useCallback(() => fitWithin(250), [fitWithin]);
-  const { nodes, onNodesChange, layoutRoutes, busy, error } = useFullGraphLayout({
+  const fit = useCallback(() => {
+    setZoomedGroupId('');
+    fitWithin(250);
+  }, [fitWithin]);
+  const { nodes, onNodesChange, layoutRoutes, busy, error, layoutMs, layoutPasses } = useFullGraphLayout({
     name: props.name,
     algorithm,
     version,
@@ -173,7 +178,7 @@ export function FullGraph(props: Props) {
     layoutGrouping,
     entityById,
     groupById,
-    fit,
+    fit: opening.openLayout,
     setRouteMetrics,
   });
   // Full screen keeps the view it started from and puts it back on exit.
@@ -197,8 +202,8 @@ export function FullGraph(props: Props) {
     focusFullGraph(flow.current, container.current?.querySelector('.react-flow'), props.selected, neighbors);
   }, [props.selected, display]);
   useEffect(() => {
-    if (!busy && !held()) focusSelection();
-  }, [busy, focusSelection, size.width]);
+    if (!busy && !opening.checking && !held()) focusSelection();
+  }, [busy, opening.checking, focusSelection, size.width]);
   // Refit after the remaining canvas changes size (panels, monitor, wrapped controls).
   useEffect(() => {
     const el = container.current?.querySelector('.react-flow');
@@ -208,7 +213,9 @@ export function FullGraph(props: Props) {
       clearTimeout(timer);
       timer = setTimeout(() => {
         if (!held()) {
-          if (props.selected) focusSelection();
+          if (opening.checking || (opening.automaticCollapse && collapseChoice === null)) void opening.openLayout();
+          else if (props.selected) focusSelection();
+          else if (algorithm === 'layered' && zoomedGroupId) fitGraphArea(flow.current!, el, zoomedGroupId, miniMap ? 216 : 0);
           else fitWithin(0);
         }
       }, 100);
@@ -218,7 +225,7 @@ export function FullGraph(props: Props) {
       observer.disconnect();
       clearTimeout(timer);
     };
-  }, [busy, fitWithin, focusSelection]);
+  }, [busy, opening.checking, opening.automaticCollapse, collapseChoice, fitWithin, focusSelection, algorithm, zoomedGroupId, miniMap]);
   useEffect(() => {
     // A person who opened every area keeps them open under another grouping; any other choice
     // belonged to the old groups.
@@ -297,7 +304,7 @@ export function FullGraph(props: Props) {
   const selectedConnection = collapsed.size ? connections.find(e => e.data.relationships.some(r => r.id === props.selectedEdge)) : undefined;
   const originalById = useMemo(() => new Map(props.edges.map(e => [e.id, e])), [props.edges]);
   const originalEntities = useMemo(() => new Map(props.entities.map(e => [e.id, e])), [props.entities]);
-  const sizes = textSizesAt(zoomStep, algorithm);
+  const sizes = textSizesAt(zoomStep, algorithm, collapsed.size === overview.groups.length);
   const textStyle = {
     '--entity-name-size': `${sizes.entityName}px`,
     '--entity-name-lines': sizes.entityLines,
@@ -310,15 +317,24 @@ export function FullGraph(props: Props) {
   const zoomedGroupName = overview.groups.find(group => group.id === zoomedGroupId)?.name;
   const metrics = useCallback((m: SmartEdgeMetrics) => setRouteMetrics(m), []);
   return (
-    <div className="full-graph" ref={container} style={textStyle} data-layout={algorithm}>
+    <div
+      className="full-graph"
+      ref={container}
+      style={textStyle}
+      data-layout={algorithm}
+      data-opening-name-px={opening.minimumName}
+      data-opening-ms={opening.decisionMs}
+      data-layout-ms={layoutMs}
+      data-layout-passes={layoutPasses}
+    >
       <ScrollStrip className="full-graph-tools">
         {props.toolbarExtra}
-        <button onClick={fit} disabled={busy}>
+        <button onClick={fit} disabled={busy || opening.checking}>
           <Maximize size={13} />
           Fit model
         </button>
         <CompactControls folded={size.width < 1400}>
-          <fieldset className="graph-layout-controls" disabled={busy}>
+          <fieldset className="graph-layout-controls" disabled={busy || opening.checking}>
             {props.groupMenu}
             <ZoomButtons onZoomIn={() => void flow.current?.zoomIn({ duration: 150 })} onZoomOut={() => void flow.current?.zoomOut({ duration: 150 })} />
             <GraphOptions>
@@ -332,12 +348,12 @@ export function FullGraph(props: Props) {
                     { value: 'network', label: 'Network', title: 'Network layout (fCoSE)' },
                   ]}
                 />
-                <button onClick={relayout} disabled={busy} title="Re-layout" aria-label="Re-layout">
+                <button onClick={relayout} disabled={busy || opening.checking} title="Re-layout" aria-label="Re-layout">
                   <RefreshCw size={13} />
                 </button>
                 <label className="zoom-to-group">
                   <Crosshair size={13} aria-hidden="true" />
-                  <select aria-label="Zoom to group" title={humanizeIdentifier(zoomedGroupName ?? overview.groupingLabel)} defaultValue="" onChange={e => zoomToGroup(e.target.value)}>
+                  <select aria-label="Zoom to group" title={humanizeIdentifier(zoomedGroupName ?? overview.groupingLabel)} value={zoomedGroupId} onChange={e => zoomToGroup(e.target.value)}>
                     <option value="">Whole model</option>
                     {overview.groups.map(group => (
                       <option key={group.id} value={group.id}>
@@ -442,7 +458,7 @@ export function FullGraph(props: Props) {
           </select>
         </label>
       )}
-      {busy && (
+      {!error && (busy || opening.checking) && (
         <div className="full-graph-loading" role="status">
           Arranging {display.entities.length} graph nodes…
         </div>

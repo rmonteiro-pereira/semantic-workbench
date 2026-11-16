@@ -17,6 +17,7 @@ import { observabilityMutants } from './observability-mutants';
 import { chmod, mkdtemp, readdir, rm, symlink } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 // lane A imports
+import { graphMutants, runGraphCase } from './graph-mutants';
 // end lane A imports
 // lane B imports
 // end lane B imports
@@ -582,6 +583,7 @@ mutants.push(...observabilityMutants);
 
 mutants.push(...operationBoundaryMutants);
 // lane A mutants
+mutants.push(...graphMutants);
 // end lane A mutants
 // lane B mutants
 // end lane B mutants
@@ -630,6 +632,7 @@ async function writeFolderCopy(folder: string, file: string, mutatedSource: stri
   return resolve(copyRoot, mutatedPath.slice(folderRoot.length + 1));
 }
 async function run(category: string, file: string, source: string, index: string, env: Record<string, string> = {}) {
+  if (category.startsWith('graph-')) return runGraphCase(root, temp, file, source, index, category);
   if (category === 'fonts') return runFontCase(root, temp, file, source, index);
   if (category.startsWith('admin-')) {
     source = source.replace(/new URL\('(?:\.\.\/)+policies\//g, `new URL('${root}/policies/`);

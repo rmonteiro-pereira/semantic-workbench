@@ -349,11 +349,15 @@ dragging, area zoom and selection. Resizing the window or the sidebar does not r
 graph or undo your drags; **Re-layout** plans it again for the current window. Network detail routing uses a shared background worker;
 whole-model views use less expensive paths.
 
-The first view fits the complete layout; dense models can have small names. Select an entity to
-center it at readable zoom, or zoom in. Models above 250 visible business entities start with
-one counted card per area. Expand an area or choose **Expand all** to
-show every entity. Internal relationships remain available when the area opens. **Fit model**
-returns the complete layout to view. A finite viewport cannot show unlimited full-size labels. At fit zoom, **Labels** shows names only
+Network first lays out the model and measures its smallest rendered entity name at the actual
+Fit zoom. If any name is smaller than 9 screen pixels, it opens with one counted card per area
+instead; models above 250 visible entities use counted cards immediately as a layout safety cap.
+Expand an area or choose **Expand all** to show its entities and internal relationships. Your
+explicit area choices are preserved. Counted-card text compensates for zoom.
+
+Layered opens on the first area in the existing area order, at readable name scale. Pan to reach
+the other areas, or choose **Fit model** to see the complete layout. Fit may make individual
+names small; select an entity to center it at readable zoom. At fit zoom, **Labels** shows names only
 for selected or hovered relationships; zooming in reveals all enabled labels.
 
 ### Neighborhood and expansion

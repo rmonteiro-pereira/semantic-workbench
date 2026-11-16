@@ -34,7 +34,7 @@ type LayoutInputs = {
   layoutGrouping: GroupingOptions;
   entityById: Map<string, Entity>;
   groupById: Map<string, Group>;
-  fit: () => void;
+  fit: () => void | Promise<void>;
   setRouteMetrics: (metrics: SmartEdgeMetrics | null) => void;
 };
 
@@ -115,16 +115,23 @@ function arrangeNetwork(request: NetworkLayoutRequest, signal: AbortSignal, isCa
   });
 }
 
+/** Publishes worker layouts and records their duration without rerunning them on canvas resize. */
+/** Publishes completed worker layouts and fits their measured nodes without relaying out on resize. */
 export function useFullGraphLayout({ name, algorithm, version, paneMeasured, overview, display, layoutGrouping, entityById, groupById, fit, setRouteMetrics }: LayoutInputs) {
   const laidOutKey = useRef('');
   const [nodes, setNodes, onNodesChange] = useNodesState<any>([]);
   const [layoutRoutes, setLayoutRoutes] = useState<LayoutResult['routes']>({});
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState('');
+  const [layoutMs, setLayoutMs] = useState(0);
+  const passes = useRef({ overview, algorithm, count: 0 });
+  if (passes.current.overview !== overview || passes.current.algorithm !== algorithm) passes.current = { overview, algorithm, count: 0 };
   useEffect(() => {
     let cancelled = false;
+    const started = performance.now();
     if (!paneMeasured) return;
     const controller = new AbortController();
+    let fitTimer: ReturnType<typeof setTimeout>;
     const handles: LayoutHandles = {};
     const key = JSON.stringify([algorithm, layoutGrouping, name, display.entities.map(e => [e.id, e.name, e.kind]), display.edges.map(e => [e.source, e.target])]);
     setBusy(true);
@@ -134,12 +141,14 @@ export function useFullGraphLayout({ name, algorithm, version, paneMeasured, ove
     function apply(result: LayoutResult) {
       if (cancelled) return;
       laidOutKey.current = key;
+      passes.current.count++;
+      setLayoutMs(performance.now() - started);
       setLayoutRoutes(result.routes ?? {});
       cache.set(key, result);
       if (cache.size > 6) cache.delete(cache.keys().next().value!);
       setNodes(previous => flowNodes(result, previous, overview, display, groupById, entityById));
       setBusy(false);
-      setTimeout(fit, 150);
+      fitTimer = setTimeout(() => void fit(), 150);
     }
     if (cache.has(key) && !version) {
       apply(cache.get(key)!);
@@ -167,10 +176,11 @@ export function useFullGraphLayout({ name, algorithm, version, paneMeasured, ove
     }
     return () => {
       cancelled = true;
+      clearTimeout(fitTimer);
       controller.abort();
       handles.worker?.terminate();
       handles.elk?.terminateWorker();
     };
   }, [overview, display, algorithm, version, layoutGrouping, paneMeasured]);
-  return { nodes, onNodesChange, layoutRoutes, busy, error };
+  return { nodes, onNodesChange, layoutRoutes, busy, error, layoutMs, layoutPasses: passes.current.count };
 }

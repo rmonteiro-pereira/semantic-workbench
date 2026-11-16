@@ -6,6 +6,8 @@ const CARD_HEIGHT = 60;
 /** Width of an entity card on the whole-model graph. */
 export const MODEL_CARD_WIDTH = 184;
 const LARGE_MODEL = 250;
+/** Smallest readable entity-name size in screen pixels. */
+export const NAME_MIN_PX = 9;
 /** Area titles also grow as the graph zooms out, up to this size. */
 export const LARGEST_AREA_TITLE_PX = 48;
 /** Room above an area's entities for its title (two lines at the largest size) and its link summary. */
@@ -21,8 +23,8 @@ export function modelCardHeight(collapsed: boolean): number {
 }
 
 /** Network text scales with its original cards; Layered text compensates for zoom. */
-export function textSizesAt(zoom: number, layout: 'network' | 'layered' = 'layered') {
-  const entityName = layout === 'network' || zoom >= READABLE_ZOOM ? 16 : Math.min(LARGEST_ENTITY_NAME_PX, Math.ceil(12 / zoom));
+export function textSizesAt(zoom: number, layout: 'network' | 'layered' = 'layered', counted = false) {
+  const entityName = (layout === 'network' && !counted) || zoom >= READABLE_ZOOM ? 16 : Math.min(LARGEST_ENTITY_NAME_PX, Math.ceil(12 / zoom));
   const areaTitle = layout === 'network' ? 20 : Math.min(LARGEST_AREA_TITLE_PX, Math.max(20, Math.ceil(13 / zoom)));
   // Two lines of the larger name no longer fit the card, so it keeps one.
   const areaLinks = Math.min(LARGEST_AREA_LINKS_PX, Math.max(12, Math.ceil(10 / zoom)));
@@ -33,9 +35,9 @@ export function textSizesAt(zoom: number, layout: 'network' | 'layered' = 'layer
   return { entityName, areaTitle, areaLinks, entityLines, entityPadding, showDetail };
 }
 
-/** Says whether the first view shows each area as one card, because the model is very large. */
-export function startsCollapsed(entityCount: number): boolean {
-  return entityCount > LARGE_MODEL;
+/** Uses measured fit legibility, retaining a count cap to bound very large first layouts. */
+export function startsCollapsed(entityCount: number, minimumNameHeight = Number.POSITIVE_INFINITY): boolean {
+  return entityCount > LARGE_MODEL || minimumNameHeight < NAME_MIN_PX;
 }
 
 /** Formats the entity count consistently in area headers and collapsed cards. */

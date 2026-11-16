@@ -1,10 +1,12 @@
 // Tests when the whole-model graph opens with one card per area and how its text sizes follow zoom.
 import { test, expect } from 'bun:test';
+import { measureGraphOpening } from '../src/app/graph/useFullGraphOpening';
 import { startsCollapsed, textSizesAt, modelCardHeight, entityCountLabel, minimumGraphZoom } from '../src/app/graph/overview-capacity';
 
-test('the 45-entity model opens with every entity visible, whatever the pane', () => {
-  expect(startsCollapsed(45)).toBe(false);
-  expect(startsCollapsed(250)).toBe(false);
+test('the same model opens expanded only when its measured fit names are readable', () => {
+  expect(startsCollapsed(45, 8.9)).toBe(true);
+  expect(startsCollapsed(45, 9)).toBe(false);
+  expect(startsCollapsed(195, 9.5)).toBe(false);
 });
 
 test('a model of more than 250 entities opens as areas', () => {
@@ -62,4 +64,19 @@ test('entity counts and zoom floors preserve singular and fitted scale', () => {
   expect(entityCountLabel(2)).toBe('2 entities');
   expect(minimumGraphZoom(0.4)).toBeCloseTo(0.1);
   expect(minimumGraphZoom(0.8)).toBeCloseTo(0.2);
+});
+
+test('opening measures the published fit rather than the earlier unscaled names', async () => {
+  let nameHeight = 16;
+  const afterPaint = async () => {
+    await Promise.resolve();
+    nameHeight = 8.9;
+  };
+  expect(await measureGraphOpening(45, () => nameHeight, afterPaint)).toEqual({ minimumName: 8.9, collapsed: true });
+});
+
+test('counted Network cards compensate names while titles keep their header scale', () => {
+  const sizes = textSizesAt(0.5, 'network', true);
+  expect(sizes.entityName).toBe(24);
+  expect(sizes.areaTitle).toBe(20);
 });

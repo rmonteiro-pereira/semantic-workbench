@@ -1,5 +1,33 @@
 # Lane A evidence
 
+## Integrator continuation: measured openings
+
+The integrator authorized measuring completed layouts and opening Layered on its first existing area. This supersedes the three original skips, the earlier documentation limitation, and the earlier fixed-port-only gate attempt. The thresholds locked before implementation remain unchanged.
+
+Network fits the completed expanded layout, waits for two animation frames, and measures the smallest name box and its rendered font size. Below `NAME_MIN_PX = 9`, it runs one additional layout using the existing counted-area projection. The 250-entity limit remains an upper safety cap. Explicit Expand all and area choices remain explicit. Fit padding is 0.08 instead of 0.12; counted names have a minimum fit zoom, including a subpixel margin. Counted Network cards compensate their count text while area titles retain their existing Network scale, avoiding a new two-line header overlap on the phone.
+
+Layered preserves the node positions, existing area order and orthogonal routes. It opens at the first area's readable viewport; pan reaches other areas and Fit model returns to the whole layout. `docs/user-guide.md` describes this exact behavior.
+
+Checks so far: `bun test tests/overview-capacity.test.ts`: `11 pass`, `0 fail`, `68 expect() calls`. The graph suite completed `18 graph and neighborhood checks passed`, plus all 16 new opening cases (UBL/Mall, Network/Layered, 390/1280/1440/2560). The initial expanded-only 45-entity assertion now explicitly uses Expand all: its prior wording described the behavior deliberately replaced here. Selection/tile checks also expand explicitly so they continue testing actual entities. The measured-opening fixture waits for the loading state before changing layouts.
+
+Opening output: `/tmp/sw-A/resume/graph.log`. All names met 9 px; Mall at 390 measured 9.022002 px. The second Network layout took 577.0–996.0 ms in that run; no browser deadline or 100 ms interaction budget was relaxed. The 1,000-entity pierce's longest task was 52 ms. Raw graph-layout and opening durations are exposed separately to the capture/check scripts.
+
+Four legibility mutants are killed by the entry point: inverted comparison, wrong threshold, reading before layout paint, and skipped collapse. Focused log: `/tmp/sw-A/resume/graph-mutants.log`. The paint case measures an actual browser name before and after delayed layout publication. The lane A sentinel registers the mutants; the runner dispatches those two categories to the lane-owned case runner.
+
+Final capture driver: `/tmp/sw-A/resume/capture.ts`, using `scripts/ui-review/capture-records.ts`, the same example files, light theme and native viewport dimensions as the review. Output: `/tmp/sw-A/resume/after/states/` and `/tmp/sw-A/resume/after/followup/`. Capture and final gate use `TMPDIR=/tmp/sw-A`; isolated APIs use port 0. An early resumed graph run omitted TMPDIR and used its disposable default `/tmp/workbench-browser-*` root, which it deleted on completion; subsequent commands explicitly set TMPDIR.
+
+### Opening image pairs inspected
+
+Before root: `/home/rodrigo/projetos/semantic-workbench-ui-review-20261115/screenshots/`. After root: `/tmp/sw-A/resume/after/`. Matching relative names:
+
+- `states/local-full-graph-network--first-view-{390,1280,1440,2560}.png`: counted and legible at narrow widths; the wide view retains individually readable entities.
+- `states/local-mall-full-graph--group-automatic-{1280,1440}.png`: twelve counted areas replace the unreadable 195-card view.
+- `states/local-full-graph-layered--first-view-{390,1440,2560}.png`: the existing first area opens at readable scale, with unchanged orthogonal routes; on the phone, pan is necessary to reach its wider contents.
+- `followup/local-ubl-full-graph--layered-node-selected-1440.png`: Person remains the selected entity; names are readable and the toolbar stays on one row.
+- `states/local-large-synthetic-graph--first-view-1440.png`: eight counted areas retain the existing large-model safety opening.
+
+Every after image above was opened. The capture helper reports no geometry problems. The review's Layered 1440 image named first-view carries an already selected Order and mini-map from preceding interactions; the new independent opening capture is intentionally fresh. A matched selected-state comparison is also provided separately by the Person follow-up pair. Title strokes crossing headings remain visible in these opening captures pending the separate title-layer fix.
+
 ## Baseline
 
 T011 complete. All 24 fresh light-theme first views measured against an archive of e8b7d69. Locked thresholds and numbers are in research.md. Command: `SW_BASE_URL=http://127.0.0.1:5211 bun --preload /tmp/sw-A/port.ts scripts/ui-review/measure-graph.ts`. The temporary preload binds isolated APIs to 5212 instead of ephemeral ports. Raw output: `/tmp/sw-A/baseline.jsonl`; images: `/tmp/sw-A/baseline-measurements/`.
@@ -8,13 +36,13 @@ Scope: workers and React Flow retain layout and measurement ownership; resize do
 
 The repository has no `scripts/commit_cadence.py`; its requested cadence command is unavailable.
 
-## Major layout gates
+## Original major-layout investigation (superseded by the integrator decision below)
 
-T012 skipped: a trial passing the measured pane ratio into ELK box and reducing fit padding from 0.12 to 0.02 filled the phone canvas (577/587 px) but rendered minimum name boxes at 4.96 px. At 1280 the minimum was 5.52 px, below 9 px and worse than baseline. Packing only area rectangles cannot control fCoSE's internal area density. Trial changes discarded; no unsupported guarantee ships. Trial measurements `/tmp/sw-A/packing.jsonl`; trial images `/tmp/sw-A/packing/` are diagnostic, not after proof.
+Original T012 skip: a trial passing the measured pane ratio into ELK box and reducing fit padding from 0.12 to 0.02 filled the phone canvas (577/587 px) but rendered minimum name boxes at 4.96 px. At 1280 the minimum was 5.52 px, below 9 px and worse than baseline. Packing only area rectangles cannot control fCoSE's internal area density. Trial changes discarded; no unsupported guarantee ships. Trial measurements `/tmp/sw-A/packing.jsonl`; trial images `/tmp/sw-A/packing/` are diagnostic, not after proof.
 
-T013 skipped: count, pane size and card size cannot determine fit-name legibility under current callers: grouping, random fCoSE area bounds and long-name caps also determine it. Baseline UBL needs the uncollapsed 390 view while its names are below 9 px. A count-based estimator would repeat the unsupported first-view claim. An implementation needs actual layout bounds and a revised phone acceptance rule; no replacement count threshold added.
+Original T013 skip: count, pane size and card size cannot determine fit-name legibility under current callers: grouping, random fCoSE area bounds and long-name caps also determine it. Baseline UBL needs the uncollapsed 390 view while its names are below 9 px. A count-based estimator would repeat the unsupported first-view claim. An implementation needs actual layout bounds and a revised phone acceptance rule; no replacement count threshold added.
 
-T014 skipped: the current Layered result includes compound cross-area edge sections with container-relative origins (`layoutFullGraph`), not independent area tiles. Wrapping root areas would invalidate those routes and require redesigning routing or dropping the requested orthogonal paths. The task's aspect-ratio-only change is insufficient; no layout change retained.
+Original T014 skip: the current Layered result includes compound cross-area edge sections with container-relative origins (`layoutFullGraph`), not independent area tiles. Wrapping root areas would invalidate those routes and require redesigning routing or dropping the requested orthogonal paths. The task's aspect-ratio-only change is insufficient; no layout change retained.
 
 ## Selection
 

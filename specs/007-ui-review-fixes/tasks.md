@@ -101,19 +101,19 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Write a small Playwright script that, for UBL and Mall at 390, 1280, 1440 and 2560, opens the Network, Layered and Neighborhood first views and prints the rendered entity-name height, the drawn-graph box against the pane, and the canvas height. Record the numbers and keep 9 px, 0.35, 480 and 0.25 unless the numbers argue otherwise.
   - Proof: Numbers table in `research.md` matches the review's measurements (UBL at 1440 near 6 px; Layered near 17% of canvas height; Neighborhood canvas near 390 px).
 
-- [ ] T012 [US1] [A] Pack the Network layout to the pane's aspect ratio and shrink the fit padding.
+- [x] T012 [US1] [A] Pack the Network layout to the pane's aspect ratio and shrink the fit padding.
   - Findings: M2 · Requirements: FR-001
   - Files: `src/app/graph/full-layout.ts`, `src/app/graph/FullGraph.tsx`, `src/app/graph/stage-size.ts`, `tests/full-layout.test.ts`
   - Change: Pass the pane's width over height into `packNetwork` instead of the fixed `elk.aspectRatio: '2.0'`, re-plan when **Re-layout** is used (resizing still does not re-layout, as `docs/graph-design.md` says), and cut the fit padding at `FullGraph.tsx` to the smallest value that keeps edge cards whole.
   - Proof: Before `states/local-full-graph-network--first-view-1440.png` (review baseline); after: same state recaptured with `scripts/ui-review/capture-states.ts <out> graphs` at 1440 and 390 light, and `states/local-full-graph-network--first-view-390.png`; check: `bun run test:graph` extended to assert name height at least NAME_MIN_PX and fill at least 80% for UBL at 1280, 1440, 390; unit test in `tests/full-layout.test.ts` for the packed aspect ratio.
 
-- [ ] T013 [US1] [A] Decide counted-area first views from legibility.
+- [x] T013 [US1] [A] Decide counted-area first views from legibility.
   - Findings: M2 · Requirements: FR-002
   - Files: `src/app/graph/overview-capacity.ts`, `src/app/graph/overview.ts`, `src/app/graph/useFullGraphLayout.ts`, `tests/overview-capacity.test.ts`, `scripts/graph-mutants.ts`, `scripts/graph-mutation-cases.ts`
   - Change: Replace the `LARGE_MODEL = 250` count with a pure function that takes the entity count, the pane size and the card size and returns whether names at fit zoom reach NAME_MIN_PX; the existing test 'the 45-entity model opens with every entity visible' must still pass, and the Mall model must now open as counted area cards. Add mutants for the comparison and the pane-size input, registered under lane A's sentinel in `scripts/mutation-tests.ts`.
   - Proof: Before `states/local-mall-full-graph--group-automatic-1280.png` (review baseline); after: same state recaptured with `scripts/ui-review/capture-states.ts <out> graphs` (mall-full-graph, 1280 and 1440 light) and `scripts/ui-review/large-model-states.ts <out>` for the 1,000-entity model; check: `bun test tests/overview-capacity.test.ts`; `bun run test:overview-areas`; `bun scripts/mutation-tests.ts` kills the new mutants.
 
-- [ ] T014 [US1] [A] Open Layered filling the pane.
+- [x] T014 [US1] [A] Open Layered filling the pane.
   - Findings: M3 · Requirements: FR-003
   - Files: `src/app/graph/full-layout.ts`, `src/app/graph/layout.ts`, `src/app/graph/useFullGraphLayout.ts`, `tests/layout.test.ts`
   - Change: Wrap the ELK areas into rows for the pane's aspect ratio (the existing `elk.aspectRatio: '1.5'` does not take effect on the root), and when names would still be under NAME_MIN_PX open zoomed on the first area with **Fit model** returning to the whole layout.

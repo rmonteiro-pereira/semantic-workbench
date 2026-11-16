@@ -1,9 +1,9 @@
 /** Fits whole-model nodes using their compound positions and measured card dimensions. */
 import { getViewportForBounds, type ReactFlowInstance } from '@xyflow/react';
-import { MODEL_CARD_WIDTH } from './overview-capacity';
+import { NAME_MIN_PX, MODEL_CARD_WIDTH } from './overview-capacity';
 
 /** Fits all current nodes, retaining the current viewport when the pane is hidden. */
-export function fitFullGraph(instance: ReactFlowInstance<any, any> | null, canvas: Element | null | undefined, duration: number, reservedWidth = 0) {
+export function fitFullGraph(instance: ReactFlowInstance<any, any> | null, canvas: Element | null | undefined, duration: number, reservedWidth = 0, minimumZoom = 0.001) {
   if (!instance || !canvas) return;
   const current = instance.getNodes();
   const byId = new Map(current.map(n => [n.id, n]));
@@ -35,7 +35,7 @@ export function fitFullGraph(instance: ReactFlowInstance<any, any> | null, canva
   const rect = canvas.getBoundingClientRect();
   if (!rect.width || !rect.height) return;
   const startsValid = Number.isFinite(instance.getViewport().zoom);
-  const viewport = getViewportForBounds({ x, y, width, height }, Math.max(1, rect.width - reservedWidth), rect.height, 0.001, 1, 0.12);
+  const viewport = getViewportForBounds({ x, y, width, height }, Math.max(1, rect.width - reservedWidth), rect.height, minimumZoom, Math.max(1, minimumZoom), 0.08);
   void instance.setViewport(viewport, { duration: startsValid ? duration : 0 });
   return viewport.zoom;
 }
@@ -50,4 +50,17 @@ export function focusFullGraph(instance: ReactFlowInstance<any, any> | null, can
   const fitted = getViewportForBounds(bounds, pane.width, pane.height, 0.001, 1, 0.1);
   const framed = fitted.zoom >= 0.75 ? nodes : nodes.filter(node => node.id === selected);
   void instance.fitView({ nodes: framed, minZoom: 0.75, maxZoom: 1, padding: 0.1, duration: 0 });
+}
+
+/** Opens an existing area at readable scale without moving its nodes or edge routes. */
+export function fitGraphArea(instance: ReactFlowInstance<any, any>, canvas: Element, areaId: string, reservedWidth = 0) {
+  const area = instance.getNode('area:' + areaId);
+  if (!area) return;
+  const entities = instance.getNodes().filter(node => node.parentId === area.id);
+  const minimumCap = Math.min(16, ...entities.map(node => Number.parseFloat(String(node.data.nameCap ?? 16))));
+  const readableZoom = Math.max(0.75, NAME_MIN_PX / minimumCap);
+  const bounds = instance.getNodesBounds([area]);
+  const pane = canvas.getBoundingClientRect();
+  const viewport = getViewportForBounds(bounds, Math.max(1, pane.width - reservedWidth), pane.height, readableZoom, Math.max(1, readableZoom), 0.08);
+  void instance.setViewport(viewport, { duration: 0 });
 }
