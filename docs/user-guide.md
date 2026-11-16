@@ -425,7 +425,7 @@ computes or adds a field keeps its own card.
 
 The Lineage tab fits the complete reach when its card names stay readable. Larger reaches use
 compact name-only cards with compensated names; otherwise the table and its nearest chosen cards
-open whole. **Fit** shows the complete compact reach. Zoom in to restore columns and card actions.
+open whole. Pan or zoom to reveal the remaining cards. **Fit** shows the complete compact reach. Zoom in to restore columns and card actions.
 At far zoom, select a card and choose **Walk here** in Selected path.
 
 Click a line to see what it stands for. A single line selects its relationship, highlighting

@@ -99,10 +99,12 @@ export function useLineageViewport({
     viewport => void flow.current?.setViewport(viewport),
   );
   const fitted = useRef('');
+  const [framedOnly, setFramedOnly] = useState<Set<string> | null>(null);
   const activeLayout = useRef(layoutKey);
   activeLayout.current = layoutKey;
   const firstViewTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const fitRequested = useRef(false);
+  const fitGeneration = useRef(0);
   const [fitRevision, setFitRevision] = useState(0);
   const fitCards = useCallback(
     async (ids?: string[]) => {
@@ -119,7 +121,14 @@ export function useLineageViewport({
       const top = Math.min(...cards.map(card => card.y));
       const right = Math.max(...cards.map(card => card.x + card.width));
       const bottom = Math.max(...cards.map(card => card.y + card.height));
-      const viewport = getViewportForBounds({ x: left, y: top, width: right - left, height: bottom - top }, stageSize.width, stageSize.height, MIN_ZOOM, FIRST_VIEW_MAX_ZOOM, 0.06);
+      const viewport = getViewportForBounds(
+        { x: left, y: top, width: right - left, height: bottom - top },
+        stage.current?.clientWidth ?? stageSize.width,
+        stage.current?.clientHeight ?? stageSize.height,
+        MIN_ZOOM,
+        FIRST_VIEW_MAX_ZOOM,
+        0.06,
+      );
       await instance.setViewport(viewport, { duration: 0 });
     },
     [layoutKey, nodes, stageSize],
@@ -132,7 +141,12 @@ export function useLineageViewport({
   );
   const viewKey = [center, steps].join('|');
   const firstView = useCallback(async () => {
+    const generation = fitGeneration.current;
     if (viewHeld()) return;
+    if (fitRequested.current && !overview) {
+      onOverview(true);
+      return;
+    }
     const instance = flow.current;
     if (!instance) return;
     const cards = nodes.flatMap(node => {
@@ -141,6 +155,7 @@ export function useLineageViewport({
     });
     const minimumZoom = overview ? (NAME_MIN_PX * 1.1) / (OVERVIEW_H - 16) : READABLE;
     if (fitRequested.current || fitsReadableView(cards, stageSize, minimumZoom, FIRST_VIEW_MARGIN)) {
+      setFramedOnly(null);
       await fitCards();
     } else if (!overview) {
       onOverview(true);
@@ -148,23 +163,31 @@ export function useLineageViewport({
     } else {
       const framed = [...(framedCards ?? reach.cards)].filter(id => instance.getNode(id));
       while (framed.length > 1) {
+        if (generation !== fitGeneration.current) return;
         await fitCards(framed);
+        if (generation !== fitGeneration.current) return;
         if (instance.getZoom() >= minimumZoom) break;
         framed.pop();
       }
       if (framed.length === 1) await readableFit(center, []);
+      setFramedOnly(new Set(framed));
     }
-    if (activeLayout.current !== layoutKey) return;
+    if (generation !== fitGeneration.current || activeLayout.current !== layoutKey) return;
     fitted.current = viewKey;
     fitRequested.current = false;
   }, [overview, onOverview, center, reach, framedCards, readableFit, viewHeld, nodes, stageSize, viewKey, layoutKey, fitCards]);
   useEffect(() => {
     if (!result || result.key !== layoutKey || !nodes.length || !stageSize.width || !stageSize.height) return;
-    if ((fitted.current === viewKey && !fitRequested.current) || anchoredCard.current || viewHeld()) return;
+    if ((fitted.current === viewKey && !fitRequested.current) || anchoredCard.current || (viewHeld() && !fitRequested.current)) return;
     let cancelled = false;
     let frame: number;
     let framesWaited = 0;
     const fitWhenMeasured = async () => {
+      if (fitted.current === viewKey && !fitRequested.current) return;
+      if (viewHeld()) {
+        if (!cancelled) frame = requestAnimationFrame(() => void fitWhenMeasured());
+        return;
+      }
       const instance = flow.current;
       const ready =
         instance?.viewportInitialized &&
@@ -198,6 +221,8 @@ export function useLineageViewport({
   useEffect(() => () => clearTimeout(firstViewTimer.current), []);
   // An explicit Fit wins over a first view that is still waiting to run, and shows every card.
   function fitAll() {
+    fitGeneration.current += 1;
+    setFramedOnly(null);
     anchoredCard.current = null;
     setFitRevision(revision => revision + 1);
     fitRequested.current = true;
@@ -206,7 +231,7 @@ export function useLineageViewport({
       onOverview(true);
       return;
     }
-    if (result?.key === layoutKey) void firstView();
+    if (result?.key === layoutKey && !viewHeld()) void firstView();
   }
   useEffect(() => {
     const anchor = anchoredCard.current;
@@ -244,6 +269,7 @@ export function useLineageViewport({
   useEffect(() => {
     if (!pendingPanelFit.current || !result || !path) return;
     anchoredCard.current = null;
+    setFramedOnly(null);
     if (!overview) {
       onOverview(true);
       return;
@@ -255,5 +281,5 @@ export function useLineageViewport({
     }, 120);
     return () => clearTimeout(timer);
   }, [panelOpen, overview, result?.key, fitCards]);
-  return { fitAll };
+  return { fitAll, framedOnly, releaseFrame: () => setFramedOnly(null) };
 }

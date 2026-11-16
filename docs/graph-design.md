@@ -142,6 +142,7 @@ behind a control. When the detailed reach needs smaller text, lineage and mappin
 name-only cards through `LineageOverviewCard.tsx`, with names compensated to at least 9 screen pixels. Their semantic edge endpoints
 anchor to the compact header; detailed cards keep the existing row ports. First view fits the
 complete compact reach when its names fit readably, otherwise it centres a whole chosen set.
+The remaining cards appear when the person pans, zooms or presses Fit.
 Explicit Fit requests the complete compact reach and takes precedence over a pending first view.
 Selecting a name-only card offers Walk in Selected path; zooming in restores rows and the
 compensated 24 screen-pixel Walk targets when the header can hold them.

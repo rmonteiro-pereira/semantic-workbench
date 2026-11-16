@@ -89,7 +89,7 @@ export function LineageCanvas({
   groupOf,
 }: Props) {
   const actionHistory = useActionHistory();
-  const [overview, setOverview] = useState(false);
+  const [overview, setOverview] = useState(true);
   const mapping = mode === 'mapping';
   const reachOf = mapping ? aroundHops : around;
   const { walk, dispatch, center, steps, setSteps, sets, walkTo } = useLineageWalk({ graph, initial, historyKey, storageKey, onCenterChange });
@@ -476,7 +476,7 @@ export function LineageCanvas({
         },
       }));
   }, [lines, result, path, graph, mapping, lineLabels]);
-  const { fitAll } = useLineageViewport({
+  const { fitAll, framedOnly, releaseFrame } = useLineageViewport({
     flow,
     anchoredCard,
     stage,
@@ -583,6 +583,7 @@ export function LineageCanvas({
     setOverview(compactNames);
   }
   async function zoomCanvas(inward: boolean) {
+    releaseFrame();
     const instance = flow.current;
     if (!instance) return;
     if (inward) await instance.zoomIn({ duration: 150 });
@@ -591,6 +592,7 @@ export function LineageCanvas({
   }
   function finishViewportMove(event: MouseEvent | TouchEvent | null) {
     if (!event) return;
+    releaseFrame();
     const target = event.target instanceof Element ? event.target.closest('.lineage-card') : null;
     updateRepresentation(target?.getAttribute('data-id') ?? center);
   }
@@ -674,7 +676,7 @@ export function LineageCanvas({
           <ReactFlow
             className={farZoom.className}
             style={farZoom.style}
-            nodes={nodes}
+            nodes={framedOnly ? nodes.map(node => ({ ...node, hidden: !framedOnly.has(node.id) })) : nodes}
             edges={edges}
             onNodesChange={recordSizes}
             nodeTypes={nodeTypes}

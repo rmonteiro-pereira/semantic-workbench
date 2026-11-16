@@ -193,3 +193,11 @@ The compact layout now fits its controlled layout bounds with React Flow's viewp
 Validation for this step: `bun test tests/lineage-view.test.ts tests/edge-labels.test.ts`: `16 pass`, `0 fail`, `46 expect() calls` (`out/lane-b/resume-focused-current.log`). `bun --bun run check` passes TypeScript, format, lint, comments, theme and brand (`out/lane-b/resume-check-current.log`). Readability and whitespace checks pass. Completion captures and full browser gates follow below.
 
 An initial resumed mapping invocation used `BASE_URL` instead of the harness's `SW_BASE_URL` and refused its default 5173 connection; subsequent checks explicitly use 5221. Browser attempts overlapping schema generation/build or creating the foundation archive under the watched tree were invalidated by page reloads. The foundation archive now lives under `/tmp/sw-B/foundation`; builds and browser checks run separately.
+
+### Explicit fits and whole chosen frames
+
+A native probe of the large Mall mapping exposed an older first-view loop overwriting an explicit Fit. Fit now invalidates that loop and queued measurement callbacks stop after a completed fit. The large mapping's explicit Fit settles at zoom 0.0441352 with all 99 cards mounted (`out/lane-b/mall-entry-debug4.log`). The pane dimensions used for fitting come from the current DOM pane, while the existing frozen size continues to budget rows during selection. A Fit requested during full-screen restoration waits until restoration finishes rather than being dropped.
+
+When a complete compact reach cannot fit readable names, the entry frame draws only its whole chosen cards. Panning, zooming, Fit and a selected-path fit release that temporary frame. This prevents outer cards from appearing cut beside the chosen set. Compact layout is available on entry without a preliminary detailed layout.
+
+`bun --bun run check` passes (`out/lane-b/resume-check-latest.log`); the focused predicates remain `16 pass`, `0 fail`, `46 expect() calls` (`out/lane-b/resume-focused-last.log`). The full unit/integration run reports `2077 pass`, `0 fail`, `130809 expect() calls`, across 286 files (`out/lane-b/resume-unit-full.log`). The continuing browser diagnostics retain all semantic and geometry assertions; their entry-latency failure is not classified until compared with the foundation.
