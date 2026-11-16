@@ -516,3 +516,12 @@ dialog.validation-backdrop:has(.kpi-wizard) {
 [aria-invalid='true'] {
   border-color: var(--color-danger-border);
 }
+
+.item-editor-where button {
+  padding: 9px 13px;
+  border: 1px solid var(--color-border);
+  border-radius: 7px;
+  background: var(--color-surface);
+  font-size: 13px;
+  text-decoration: none;
+}

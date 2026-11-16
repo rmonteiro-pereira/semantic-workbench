@@ -1,3 +1,4 @@
+import { GROUP_PALETTE } from '../src/app/theme/theme-palette';
 // The theme check finds colour literals outside the theme files, and the codemod moves them in.
 import { expect, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
@@ -142,4 +143,24 @@ test('dark YAML keys differ from values and both remain readable on the editor s
   expect(ratio('--color-syntax-key', '--color-syntax-keyword')).toBeGreaterThanOrEqual(1.5);
   expect(ratio('--color-syntax-key', '--color-surface')).toBeGreaterThanOrEqual(4.5);
   expect(ratio('--color-syntax-keyword', '--color-surface')).toBeGreaterThanOrEqual(4.5);
+});
+
+test('group palette avoids red hues reserved for warnings', () => {
+  for (const color of GROUP_PALETTE) {
+    const channels = color
+      .slice(1)
+      .match(/../g)!
+      .map(channel => parseInt(channel, 16) / 255);
+    const [red, green, blue] = channels;
+    const maximum = Math.max(...channels);
+    const delta = maximum - Math.min(...channels);
+    if (!delta) continue;
+    let hue = 0;
+    if (maximum === red) hue = (green - blue) / delta;
+    else if (maximum === green) hue = (blue - red) / delta + 2;
+    else hue = (red - green) / delta + 4;
+    hue = (hue * 60 + 360) % 360;
+    expect(hue, color).toBeGreaterThan(20);
+    expect(hue, color).toBeLessThan(345);
+  }
 });

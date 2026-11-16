@@ -256,7 +256,7 @@ export function DeleteDialog({ target, projects, dirty, onCancel, onDeleted, onR
       {shared && impact && <SubprojectChoice impact={impact} mode={mode} onChange={setMode} name={name} />}
       {!removing && (
         <>
-          <h3>Moved to trash</h3>
+          <h3>Will move to trash</h3>
           {target.kind === 'project' && impact && <p>The project, {deletedScope(impact)}.</p>}
           <RemovedSummary line={removedSummary(target, impact, projects)} />
           <ul className="delete-list">

@@ -102,8 +102,17 @@
 
 - Disabled buttons use a solid muted border instead of a dashed outline; the existing muted label retains its contrast. Inputs, selects, textareas and checkboxes share the focus token.
 - Before: review `screenshots/local-dark/local-dark-metric-wizard-1440.png` and `screenshots/followup/local-interaction--focus-native-select-1440.png`.
-- After (opened): `/tmp/sw-E/final-dark-metrics/local-dark-metric-wizard--step-1-empty-validation-1440.png` and `/tmp/sw-E/final-content-desktop/screenshots/followup/local-interaction--focus-native-select-1440.png`. Disabled Back is subdued with a solid border; select focus uses the theme ring.
+- After (opened): `/tmp/sw-E/final-dark-metrics/local-dark-metric-wizard--step-1-empty-validation-1440.png` and `/tmp/sw-E/final-focus/screenshots/followup/local-interaction--focus-native-select-1440.png`. Disabled Back is subdued with a solid border; select focus uses the theme ring.
 - Modal already used the required 18 px title and primary-last footer. The dialog gate now asserts the title scale and solid disabled border. Selects retain one native chevron with the token border; the custom-chevron experiment was removed after it shrank intrinsic widths.
 - Eyebrow weight is consistent; form label color is shared.
 - `test:theme`: 10 checks passed; `test:dialogs`: 9 checks passed at six viewports. `tests/admin-clipping.test.tsx` and `tests/admin-dialogs.test.tsx`: 13 pass, 0 fail after removing the custom-chevron experiment.
 - Some earlier capture runs overlapped source edits; only the explicitly listed inspected states are evidence. Logs retain those earlier failures.
+
+### T070 — palette and polish
+
+- Replaced the confirmed red-family group entry with blue-gray #6d819b; unit coverage rejects group hues in 345–20 degrees.
+- Before: review `screenshots/states/local-contract-lineage--first-view-1440.png`; after: `/tmp/sw-E/focused-lineage/local-contract-lineage--first-view-1440.png`. Both opened: the same properties/portfolios cards retain their layout and use blue-gray instead of pink.
+- The focused capture invokes the original lineage capture routine on a fresh browser; the full graph sweep accumulated fullscreen state failures, retained in its log.
+- Before: review `screenshots/states/local-metric-wizard--step-8-1440.png`; after: `/tmp/sw-E/final-metrics/local-metric-wizard--step-8-1440.png` (opened). Preview lines wrap inside the bounded pane.
+- Explore neighborhood and the item editor's source action use standard button spacing; labels share their token. Removed the unlabelled sidebar dot; deletion preview now says Will move to trash.
+- `bun test tests/theme-check.test.ts`: 18 pass, 0 fail, 85 assertions. `test:theme`: 10 checks passed.
