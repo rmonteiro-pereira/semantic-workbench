@@ -312,89 +312,185 @@ principal is allowed while the server Viewer refusal remains unchanged.
 
 ## Published status and notice
 
-`TMPDIR=/tmp/sw-008 bun test tests/scm-published-status.test.ts tests/auth/route-actions.test.ts`: 11 pass, 0 fail, 380 assertions. Status distinguishes all unavailable reasons, authoring distance and pending movement. Explicit acknowledgement persists only in personal view state; refs and index remain byte-identical. The HTTP adapter nests pending details as the HTTP contract specifies while retaining the resolver’s flat internal status. `bun --bun run check`: exit 0.
+`TMPDIR=/tmp/sw-008 bun test tests/scm-published-status.test.ts tests/auth/route-actions.test.ts`: 11 pass, 0
+fail, 380 assertions. Status distinguishes all unavailable reasons, authoring distance and pending movement.
+Explicit acknowledgement persists only in personal view state; refs and index remain byte-identical. The HTTP
+adapter nests pending details as the HTTP contract specifies while retaining the resolver’s flat internal
+status. `bun --bun run check`: exit 0.
 
 ## Publication controls
 
-`TMPDIR=/tmp/sw-008 SW_BASE_URL=http://127.0.0.1:5321 bun scripts/published-snapshot-browser-check.ts`: 2 published snapshot browser checks passed. Mocked publication responses cover local Publish, both modes’ Adopt and notice acknowledgement; all six responsive sizes keep the new row inside the viewport without horizontal overflow. The Adopt client is wired for the later adoption endpoint. Capture comparison remains scheduled with the complete journey. `bun --bun run check`: exit 0.
+`TMPDIR=/tmp/sw-008 SW_BASE_URL=http://127.0.0.1:5321 bun scripts/published-snapshot-browser-check.ts`: 2
+published snapshot browser checks passed. Mocked publication responses cover local Publish, both modes’ Adopt
+and notice acknowledgement; all six responsive sizes keep the new row inside the viewport without horizontal
+overflow. The Adopt client is wired for the later adoption endpoint. Capture comparison remains scheduled with
+the complete journey. `bun --bun run check`: exit 0.
 
 ## Remote default status
 
-`TMPDIR=/tmp/sw-008 bun test tests/local-publication.test.ts tests/git-remote.test.ts`: 16 pass, 0 fail, 117 assertions. A real bare remote populates the tracking ref; after replacing its address with an HTTP listener, startup, watcher and repeated status reads make zero network calls. Status reports the last fetched remote default ahead of the durable snapshot. No existing network-listener test matching the task description exists; this case provides the requested proof. The existing pull/sync case now explicitly chooses work/local before pulling and verifies pushing that authoring branch. `bun --bun run check`: exit 0 before the fixture-only correction; repeated below with the next test additions.
+`TMPDIR=/tmp/sw-008 bun test tests/local-publication.test.ts tests/git-remote.test.ts`: 16 pass, 0 fail, 117
+assertions. A real bare remote populates the tracking ref; after replacing its address with an HTTP listener,
+startup, watcher and repeated status reads make zero network calls. Status reports the last fetched remote
+default ahead of the durable snapshot. No existing network-listener test matching the task description exists;
+this case provides the requested proof. The existing pull/sync case now explicitly chooses work/local before
+pulling and verifies pushing that authoring branch. `bun --bun run check`: exit 0 before the fixture-only
+correction; repeated below with the next test additions.
 
 ## Request interleaving
 
-`TMPDIR=/tmp/sw-008 bun test tests/published-snapshot-stress.test.ts`: 1 pass, 0 fail, 601 assertions. Two hundred HTTP agent calls cross twenty real publications. Each group pauses after its request pins and resumes after the next publication; every complete catalog equals the catalog of the commit in its header. All five focused resolver mutants are detected (baseline 0, mutant 1), including replacing the request pin on each read. Remote-status final `bun --bun run check`: exit 0.
+`TMPDIR=/tmp/sw-008 bun test tests/published-snapshot-stress.test.ts`: 1 pass, 0 fail, 601 assertions. Two
+hundred HTTP agent calls cross twenty real publications. Each group pauses after its request pins and resumes
+after the next publication; every complete catalog equals the catalog of the commit in its header. All five
+focused resolver mutants are detected (baseline 0, mutant 1), including replacing the request pin on each
+read. Remote-status final `bun --bun run check`: exit 0.
 
 ## Published revision provenance
 
-`TMPDIR=/tmp/sw-008 bun test tests/snapshot-provenance.test.ts`: 2 pass, 0 fail, 46 assertions. Real SHA-1 and SHA-256 repositories accept full historical ids and an inside-history tag; abbreviated ids, branch names, personal/proposal-only commits, blob ids and outside tags all refuse identically through both resolver entry points. Both added provenance mutants are detected, along with the five existing resolver mutants (each baseline 0, mutant 1).
+`TMPDIR=/tmp/sw-008 bun test tests/snapshot-provenance.test.ts`: 2 pass, 0 fail, 46 assertions. Real SHA-1 and
+SHA-256 repositories accept full historical ids and an inside-history tag; abbreviated ids, branch names,
+personal/proposal-only commits, blob ids and outside tags all refuse identically through both resolver entry
+points. Both added provenance mutants are detected, along with the five existing resolver mutants (each
+baseline 0, mutant 1).
 
 ## Registry changes and eviction
 
-`TMPDIR=/tmp/sw-008 bun test tests/published-snapshot.test.ts tests/snapshot-provenance.test.ts`: 9 pass, 0 fail, 124 assertions. Adding, removing and moving project folders affects new pins without changing old pins or restarting. After eviction, deleting a historical blob makes that revision unavailable; current content still serves. `bun --bun run check`: exit 0.
+`TMPDIR=/tmp/sw-008 bun test tests/published-snapshot.test.ts tests/snapshot-provenance.test.ts`: 9 pass, 0
+fail, 124 assertions. Adding, removing and moving project folders affects new pins without changing old pins
+or restarting. After eviction, deleting a historical blob makes that revision unavailable; current content
+still serves. `bun --bun run check`: exit 0.
 
 ## Object failures and build limits
 
-`TMPDIR=/tmp/sw-008 bun test tests/snapshot-index.test.ts`: 9 pass, 0 fail, 19 assertions. Each configured bound and a case collision fail closed. Deleting a real loose blob produces no partial index, repeated failures are retryable, and restoring the object permits a complete build. A real sleeping Git executable times out twice without retaining an unfinished build.
+`TMPDIR=/tmp/sw-008 bun test tests/snapshot-index.test.ts`: 9 pass, 0 fail, 19 assertions. Each configured
+bound and a case collision fail closed. Deleting a real loose blob produces no partial index, repeated
+failures are retryable, and restoring the object permits a complete build. A real sleeping Git executable
+times out twice without retaining an unfinished build.
 
 ## Browser-only preview routes
 
-`TMPDIR=/tmp/sw-008 bun test tests/auth/matrix.test.ts tests/auth/route-actions.test.ts tests/auth/guard-inventory.test.ts`: 29 pass, 0 fail, 43401 assertions. Catalog/context/plan previews use the existing source-injected handlers, require the browser surface, have no snapshot header, and preserve the application allowlist. Sessions and marked local requests pass; applications and unmarked local requests match unknown-route answers. The surface-guard mutant is detected (baseline 0, mutant 1). The inventory also now documents acknowledgement as personal-state-only, correcting its previously missing content-guard exemption.
+`TMPDIR=/tmp/sw-008 bun test tests/auth/matrix.test.ts tests/auth/route-actions.test.ts
+tests/auth/guard-inventory.test.ts`: 29 pass, 0 fail, 43401 assertions. Catalog/context/plan previews use the
+existing source-injected handlers, require the browser surface, have no snapshot header, and preserve the
+application allowlist. Sessions and marked local requests pass; applications and unmarked local requests match
+unknown-route answers. The surface-guard mutant is detected (baseline 0, mutant 1). The inventory also now
+documents acknowledgement as personal-state-only, correcting its previously missing content-guard exemption.
 
 ## Preview client and local guardrail
 
-`TMPDIR=/tmp/sw-008 bun test tests/request-surface.test.ts tests/agent-paths.test.ts`: 12 pass, 0 fail, 37 assertions. Browser URLs point to preview; unmarked local requests receive 404 while marked requests, including the allowed dev origin, succeed. `TMPDIR=/tmp/sw-008 SW_BASE_URL=http://127.0.0.1:5321 bun scripts/published-snapshot-browser-check.ts`: 2 published snapshot browser checks passed. Both modes display the preview label and published commit and plan an unpublished expression containing `+ 17`. The frontend and isolated API use different ports. Chromium adds fetch metadata after interception, so the existing write forwarder now reconstructs missing metadata from the actual page/request origins; production surface enforcement remains unchanged. `bun --bun run check`: exit 0.
+`TMPDIR=/tmp/sw-008 bun test tests/request-surface.test.ts tests/agent-paths.test.ts`: 12 pass, 0 fail, 37
+assertions. Browser URLs point to preview; unmarked local requests receive 404 while marked requests,
+including the allowed dev origin, succeed. `TMPDIR=/tmp/sw-008 SW_BASE_URL=http://127.0.0.1:5321 bun
+scripts/published-snapshot-browser-check.ts`: 2 published snapshot browser checks passed. Both modes display
+the preview label and published commit and plan an unpublished expression containing `+ 17`. The frontend and
+isolated API use different ports. Chromium adds fetch metadata after interception, so the existing write
+forwarder now reconstructs missing metadata from the actual page/request origins; production surface
+enforcement remains unchanged. `bun --bun run check`: exit 0.
 
 ## Pending movement cache
 
-`TMPDIR=/tmp/sw-008 bun test tests/scm-published-status.test.ts tests/published-pointer.test.ts`: 18 pass, 0 fail, 47 assertions. Ref identity is compared on each status request, while ancestry/count results are cached for the observed ref and pointer. Git events invalidate and refresh that result. This reconciles the task’s status-comparison and cache-until-event requirements without hiding external changes when watching is disabled. All eight resolver mutants are detected, including serving the outside ref while pending (baseline 0, mutant 1).
+`TMPDIR=/tmp/sw-008 bun test tests/scm-published-status.test.ts tests/published-pointer.test.ts`: 18 pass, 0
+fail, 47 assertions. Ref identity is compared on each status request, while ancestry/count results are cached
+for the observed ref and pointer. Git events invalidate and refresh that result. This reconciles the task’s
+status-comparison and cache-until-event requirements without hiding external changes when watching is
+disabled. All eight resolver mutants are detected, including serving the outside ref while pending (baseline
+0, mutant 1).
 
 ## Adoption endpoint
 
-`TMPDIR=/tmp/sw-008 bun test tests/adopt-published.test.ts tests/auth/matrix-write.test.ts tests/auth/guard-inventory.test.ts`: 17 pass, 0 fail, 1554 assertions. A local HTTP adoption preserves dirty source and index, records previous/new commits and emits only after settlement. Empty/diverged moves return the exact conflicts. The route uses publication authorization across the repository; Viewer and guarded approval cases remain refused. Server adoption first refuses a dirty base and refreshes only the validated commit. `bun --bun run check`: exit 0.
+`TMPDIR=/tmp/sw-008 bun test tests/adopt-published.test.ts tests/auth/matrix-write.test.ts
+tests/auth/guard-inventory.test.ts`: 17 pass, 0 fail, 1554 assertions. A local HTTP adoption preserves dirty
+source and index, records previous/new commits and emits only after settlement. Empty/diverged moves return
+the exact conflicts. The route uses publication authorization across the repository; Viewer and guarded
+approval cases remain refused. Server adoption first refuses a dirty base and refreshes only the validated
+commit. `bun --bun run check`: exit 0.
 
-Both adoption mutants are detected independently: skipping the content guard and accepting a non-descendant default ref (each baseline 0, mutant 1). The tests reuse the real Git publication fixture and assert that the durable pointer stays at the old commit after each refusal.
+Both adoption mutants are detected independently: skipping the content guard and accepting a non-descendant
+default ref (each baseline 0, mutant 1). The tests reuse the real Git publication fixture and assert that the
+durable pointer stays at the old commit after each refusal.
 
 ## Refused adoption audit
 
-`TMPDIR=/tmp/sw-008 bun test tests/auth/audit.test.ts tests/auth/audit-chain.test.ts tests/adopt-published.test.ts`: 23 pass, 0 fail, 1082 assertions. Empty/diverged adoption outcomes record their bounded refusal reason without a successful-publication object. The real appended chain verifies, and existing guard reasons remain owned by the authorization audit path. `bun --bun run check`: exit 0.
+`TMPDIR=/tmp/sw-008 bun test tests/auth/audit.test.ts tests/auth/audit-chain.test.ts
+tests/adopt-published.test.ts`: 23 pass, 0 fail, 1082 assertions. Empty/diverged adoption outcomes record
+their bounded refusal reason without a successful-publication object. The real appended chain verifies, and
+existing guard reasons remain owned by the authorization audit path. `bun --bun run check`: exit 0.
 
 ## Interrupted publication and outside movement
 
-`TMPDIR=/tmp/sw-008 bun test tests/publishing.test.ts tests/published-initialization.test.ts`: 19 pass, 0 fail, 107 assertions. The nine recovery scenarios are the original three stop points plus both outside movement classes at each stop. When the external ref differs from both intent and settled commit, existing reconciliation retains the intent as evidence and reports an outside move, as research D10 prescribes; it does not infer that the intent completed. Server checkout repair now targets the settled pointer rather than the unadopted ref. Local copied-root upgrade safety remains covered. `bun --bun run check`: exit 0.
+`TMPDIR=/tmp/sw-008 bun test tests/publishing.test.ts tests/published-initialization.test.ts`: 19 pass, 0
+fail, 107 assertions. The nine recovery scenarios are the original three stop points plus both outside
+movement classes at each stop. When the external ref differs from both intent and settled commit, existing
+reconciliation retains the intent as evidence and reports an outside move, as research D10 prescribes; it does
+not infer that the intent completed. Server checkout repair now targets the settled pointer rather than the
+unadopted ref. Local copied-root upgrade safety remains covered. `bun --bun run check`: exit 0.
 
 ## History provenance
 
-`TMPDIR=/tmp/sw-008 bun test tests/snapshot-history.test.ts tests/snapshot-provenance.test.ts tests/git-status.test.ts`: 9 pass, 0 fail, 129 assertions. Through HTTP, Bob reads his own commit, Alice cannot read it by full id, and Alice’s own HEAD/history and published commits remain readable. Versions has no revision parameter in the existing API: its HEAD log entries are checked individually rather than adding an unrequested selector. The provenance predicate is bound to the project repository, so publication in another repository cannot widen it. The skipped-show-check mutant is detected (baseline 0, mutant 1). Log and Diff are unchanged. `bun --bun run check`: exit 0.
+`TMPDIR=/tmp/sw-008 bun test tests/snapshot-history.test.ts tests/snapshot-provenance.test.ts
+tests/git-status.test.ts`: 9 pass, 0 fail, 129 assertions. Through HTTP, Bob reads his own commit, Alice
+cannot read it by full id, and Alice’s own HEAD/history and published commits remain readable. Versions has no
+revision parameter in the existing API: its HEAD log entries are checked individually rather than adding an
+unrequested selector. The provenance predicate is bound to the project repository, so publication in another
+repository cannot widen it. The skipped-show-check mutant is detected (baseline 0, mutant 1). Log and Diff are
+unchanged. `bun --bun run check`: exit 0.
 
 ## Foreign history authorization matrix
 
-`TMPDIR=/tmp/sw-008 bun test tests/auth/matrix.test.ts -t "history source matrix"`: 1 pass, 0 fail, 60 assertions. Every fixture identity receives identical status/body for a foreign personal id and a missing id through Show; Versions ignores that unsupported selector and returns only its normal readable HEAD history. Neither response exposes the foreign payload.
+`TMPDIR=/tmp/sw-008 bun test tests/auth/matrix.test.ts -t "history source matrix"`: 1 pass, 0 fail, 60
+assertions. Every fixture identity receives identical status/body for a foreign personal id and a missing id
+through Show; Versions ignores that unsupported selector and returns only its normal readable HEAD history.
+Neither response exposes the foreign payload.
 
 ## Published ZIP source
 
-`TMPDIR=/tmp/sw-008 bun test tests/snapshot-export.test.ts tests/project-export.test.ts tests/auth/project-export-access.test.ts`: 15 pass, 0 fail, 71 assertions. Published ZIP paths and bytes equal Git blobs, omit saved/untracked drafts, and reject history. Default and explicit editing archives stay byte-identical before and after the published download. The existing planner accepts pinned byte entries; streaming retains those bytes after releasing the pin. The working-files-for-published mutant is detected (baseline 0, mutant 1). `bun --bun run check`: exit 0.
+`TMPDIR=/tmp/sw-008 bun test tests/snapshot-export.test.ts tests/project-export.test.ts
+tests/auth/project-export-access.test.ts`: 15 pass, 0 fail, 71 assertions. Published ZIP paths and bytes equal
+Git blobs, omit saved/untracked drafts, and reject history. Default and explicit editing archives stay
+byte-identical before and after the published download. The existing planner accepts pinned byte entries;
+streaming retains those bytes after releasing the pin. The working-files-for-published mutant is detected
+(baseline 0, mutant 1). `bun --bun run check`: exit 0.
 
 ## Published export option
 
-`TMPDIR=/tmp/sw-008 SW_BASE_URL=http://127.0.0.1:5321 bun scripts/published-snapshot-browser-check.ts`: 2 published snapshot browser checks passed. In both modes the option appears only with a snapshot, disables history, downloads the published ZIP and excludes the unpublished expression that appears in the preview plan. The option is absent when status has no commit. `bun --bun run check`: exit 0.
+`TMPDIR=/tmp/sw-008 SW_BASE_URL=http://127.0.0.1:5321 bun scripts/published-snapshot-browser-check.ts`: 2
+published snapshot browser checks passed. In both modes the option appears only with a snapshot, disables
+history, downloads the published ZIP and excludes the unpublished expression that appears in the preview plan.
+The option is absent when status has no commit. `bun --bun run check`: exit 0.
 
 ## Gate corrections for local authoring
 
-The first broad unit run exposed old branch expectations and selected-path validation running after authoring preparation. Selected paths and merge state are now validated before a branch switch through the existing selection logic. `TMPDIR=/tmp/sw-008 bun test tests/files-api.test.ts tests/git-commit-api.test.ts tests/route-security.test.ts tests/local-commit-branch.test.ts`: 26 pass, 0 fail, 196 assertions. An additional assertion confirms a refused path does not change the selected branch: `tests/git-commit-api.test.ts`, 5 pass, 0 fail, 43 assertions. `bun --bun run check`: exit 0.
+The first broad unit run exposed old branch expectations and selected-path validation running after authoring
+preparation. Selected paths and merge state are now validated before a branch switch through the existing
+selection logic. `TMPDIR=/tmp/sw-008 bun test tests/files-api.test.ts tests/git-commit-api.test.ts
+tests/route-security.test.ts tests/local-commit-branch.test.ts`: 26 pass, 0 fail, 196 assertions. An
+additional assertion confirms a refused path does not change the selected branch:
+`tests/git-commit-api.test.ts`, 5 pass, 0 fail, 43 assertions. `bun --bun run check`: exit 0.
 
 ### Final documentation review
 
-README, architecture, configuration, server and agent guides and the Unreleased migration table now describe the settled snapshot and local publication. The independent documentation reviewer returned PASS after narrowing the response-header claim to catalog/context/plan and correcting the server storage description. `docs_sync.py --worktree .` exited 0. Existing fixture alignment: 40 pass, 0 fail, 423 assertions across five files; the copy-publish mutation baseline also exited 0.
+README, architecture, configuration, server and agent guides and the Unreleased migration table now describe
+the settled snapshot and local publication. The independent documentation reviewer returned PASS after
+narrowing the response-header claim to catalog/context/plan and correcting the server storage description.
+`docs_sync.py --worktree .` exited 0. Existing fixture alignment: 40 pass, 0 fail, 423 assertions across five
+files; the copy-publish mutation baseline also exited 0.
 
 ## Final review corrections
 
-The full architecture review identified and prompted fixes for registration-time initialization, the agent response header during registry changes, remote-follow publication audit identifiers, adoption refusal audit identifiers and publication availability without history permission. The corrections reuse existing initialization, request audit and project-list boundaries. Proof: agent source tests 3 pass / 37 assertions; clone and migration targeted run 42 pass / 311 assertions; audit, remote and adoption tests 18 pass / 1,084 assertions; export access 6 pass / 29 assertions. `bun --bun run check` exited 0. The snapshot browser check passed both modes and all six publication geometries, including Published export while history requests return 403. The command is registered in package.json, the shared gate list and the pipeline matrix.
+The full architecture review identified and prompted fixes for registration-time initialization, the agent
+response header during registry changes, remote-follow publication audit identifiers, adoption refusal audit
+identifiers and publication availability without history permission. The corrections reuse existing
+initialization, request audit and project-list boundaries. Proof: agent source tests 3 pass / 37 assertions;
+clone and migration targeted run 42 pass / 311 assertions; audit, remote and adoption tests 18 pass / 1,084
+assertions; export access 6 pass / 29 assertions. `bun --bun run check` exited 0. The snapshot browser check
+passed both modes and all six publication geometries, including Published export while history requests return
+403. The command is registered in package.json, the shared gate list and the pipeline matrix.
 
 ## Complete mutation gate
 
-`TMPDIR=/tmp/sw-008 SW_BASE_URL=http://127.0.0.1:5321 bun scripts/mutation-tests.ts`: **694/694 targeted mutants killed; all unmodified module baselines passed. Run test:ui for the full browser baseline.** All named snapshot faults and the nine visual faults were detected. Earlier concurrent broad runs exceeded short harness deadlines; the final run was serialized against the other heavy suites and required no timeout changes.
+`TMPDIR=/tmp/sw-008 SW_BASE_URL=http://127.0.0.1:5321 bun scripts/mutation-tests.ts`: **694/694 targeted
+mutants killed; all unmodified module baselines passed. Run test:ui for the full browser baseline.** All named
+snapshot faults and the nine visual faults were detected. Earlier concurrent broad runs exceeded short harness
+deadlines; the final run was serialized against the other heavy suites and required no timeout changes.
 
 ## Broad completion checks
 
@@ -407,16 +503,32 @@ The full architecture review identified and prompted fixes for registration-time
 Ran 2186 tests across 304 files. [383.70s]
 ```
 
-`bun --bun run check`: exit 0. Formatter: `All matched files use the correct format.` Comment check: `Comments are free of specification and task IDs.` Final brand check: `No product name or logo is hard-coded outside public/brand.`
+`bun --bun run check`: exit 0. Formatter: `All matched files use the correct format.` Comment check: `Comments
+are free of specification and task IDs.` Final brand check: `No product name or logo is hard-coded outside
+public/brand.`
 
 `bun --bun run build`: `✓ built in 1.50s` (exit 0; existing large-chunk advisory only).
 
-`TMPDIR=/tmp/sw-008 SW_BASE_URL=http://127.0.0.1:5321 SW_SCREENSHOT_DIR=/tmp/sw-008/captures/snapshot-controls bun scripts/published-snapshot-browser-check.ts`: `2 published snapshot browser checks passed.` The reviewed native phone capture prompted singular commit wording; the repeated browser run passed and replaced the supplemental images.
+`TMPDIR=/tmp/sw-008 SW_BASE_URL=http://127.0.0.1:5321 SW_SCREENSHOT_DIR=/tmp/sw-008/captures/snapshot-controls
+bun scripts/published-snapshot-browser-check.ts`: `2 published snapshot browser checks passed.` The reviewed
+native phone capture prompted singular commit wording; the repeated browser run passed and replaced the
+supplemental images.
 
-The final documentation reviewer returned accuracy PASS after registration, audit and no-history metadata corrections. Three new prose lines were wrapped to meet the width rule. The full architecture reviewer returned PASS after the guarded refusal audit correction. The marker will be recorded at the final committed head.
+The final documentation reviewer returned accuracy PASS after registration, audit and no-history metadata
+corrections. Three new prose lines were wrapped to meet the width rule. The full architecture reviewer
+returned PASS after the guarded refusal audit correction. The marker will be recorded at the final committed
+head.
 
 ## Reserved authoring name scope ledger
 
-Local commit preparation already preserves arbitrary non-default authoring branches and staged files. Git permits a repository default itself to be named `work/local`; the fixed fallback name must not turn that default into an ordinary authoring target. A focused HTTP case will exercise this valid existing-root configuration and, if necessary, require a refusal before a commit and successful recovery by choosing another authoring branch. No ref rename or migration rewrite is authorized or needed.
+Local commit preparation already preserves arbitrary non-default authoring branches and staged files. Git
+permits a repository default itself to be named `work/local`; the fixed fallback name must not turn that
+default into an ordinary authoring target. A focused HTTP case will exercise this valid existing-root
+configuration and, if necessary, require a refusal before a commit and successful recovery by choosing another
+authoring branch. No ref rename or migration rewrite is authorized or needed.
 
-The reserved-name HTTP test first failed because the request returned 200 and advanced the default. Commit preparation now refuses that collision before staging or committing. The same entry-point test selects another authoring branch, commits successfully without moving the snapshot, then explicitly publishes it. Targeted proof: 13 pass, 0 fail, 59 assertions. The mutation baseline exits 0; deleting the reserved-name check exits 1 with the expected missing-rejection assertion. That mutant is registered for the complete gate.
+The reserved-name HTTP test first failed because the request returned 200 and advanced the default. Commit
+preparation now refuses that collision before staging or committing. The same entry-point test selects another
+authoring branch, commits successfully without moving the snapshot, then explicitly publishes it. Targeted
+proof: 13 pass, 0 fail, 59 assertions. The mutation baseline exits 0; deleting the reserved-name check exits 1
+with the expected missing-rejection assertion. That mutant is registered for the complete gate.
