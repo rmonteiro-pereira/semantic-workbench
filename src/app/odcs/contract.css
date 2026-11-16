@@ -328,7 +328,7 @@
 }
 /* The ODCS pages keep a readable measure on wide screens instead of stretching their tables. */
 .odcs-page > :not(.odcs-back, .odcs-panel, dialog),
-.odcs-panel > :not(.odcs-lineage-host, dialog) {
+.odcs-panel > :not(dialog) {
   max-width: min(100%, 1400px);
 }
 /* The dialogs of these pages use the same gap under the title as the other dialogs. */

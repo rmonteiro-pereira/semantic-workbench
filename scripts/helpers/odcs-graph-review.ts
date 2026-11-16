@@ -24,3 +24,13 @@ export async function checkHopsRow(page: Page) {
   );
   for (const row of centres) expect(Math.max(...row) - Math.min(...row)).toBeLessThanOrEqual(1);
 }
+
+/** Requires the embedded canvas to use its table header's content measure. */
+export async function checkDatasetLineageWidth(page: Page) {
+  const header = await page.locator('.odcs-dataset .odcs-head').boundingBox();
+  const canvas = await page.locator('.odcs-lineage-host').boundingBox();
+  expect(header).not.toBeNull();
+  expect(canvas).not.toBeNull();
+  expect(Math.abs(header!.x - canvas!.x)).toBeLessThanOrEqual(1);
+  expect(Math.abs(header!.x + header!.width - canvas!.x - canvas!.width)).toBeLessThanOrEqual(1);
+}

@@ -1,3 +1,4 @@
+import { checkDatasetLineageWidth } from './helpers/odcs-graph-review';
 // Checks contract pages, history and byte-preserving property edits in the browser.
 import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Locator, type Page } from '@playwright/test';
@@ -154,6 +155,10 @@ try {
     // The first view is a readable zoom that may leave outer cards off screen; Fit shows them
     // all.
     await expect(graph.locator('.lineage-card.center')).toBeVisible({ timeout: 8000 });
+    const originalViewport = page.viewportSize()!;
+    await page.setViewportSize({ width: 2560, height: 1440 });
+    await checkDatasetLineageWidth(page);
+    await page.setViewportSize(originalViewport);
     await graph.getByRole('button', { name: 'Fit' }).click();
     await page.waitForTimeout(300);
     for (const name of ['Table orders', 'Table customers', 'Table order_lines']) await expect(graph.getByRole('group', { name }).first()).toBeVisible({ timeout: 8000 });
