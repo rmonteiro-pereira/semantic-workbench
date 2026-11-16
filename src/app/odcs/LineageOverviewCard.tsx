@@ -19,7 +19,9 @@ export function LineageOverviewCard({ data, zoom, className, kindLabel }: { data
       style={{ width: CARD_W, height: OVERVIEW_H, ...(data.tint ? { '--card-tint': data.tint } : {}) } as CSSProperties}
     >
       {ports.map(id => (
-        <Port key={id} id={id} top={OVERVIEW_H / 2} />
+        <span key={id} data-id={id} style={{ display: 'contents' }}>
+          <Port id={id} top={OVERVIEW_H / 2} />
+        </span>
       ))}
       <button className="lineage-card-title nodrag" onClick={select} aria-label={data.group ? `Expand ${card.label}` : undefined} title={card.label} style={{ fontSize: overviewNameSize(zoom) }}>
         <strong style={{ fontSize: 'inherit' }}>{card.label}</strong>

@@ -185,3 +185,11 @@ The integrator must reconcile the skipped Fit/name/target acceptance conditions,
 
 
 The integrator accepts the panel-fitting portion of T028 and the existing T032 changes. Both are ticked; the spec records shared-source cross-destination trunks and removal of the detailed fixed header band as out of scope. The original skipped audit is historical and superseded for these two tasks. Existing panel fits, empty-state/legend captures and checks above establish their delivered portion; final responsive checks will cover the shared name-only rendering as well.
+
+### Viewport settlement and representation transitions
+
+The compact layout now fits its controlled layout bounds with React Flow's viewport calculation instead of relying on the currently mounted subset of cards. Explicit Fit clears an obsolete resize anchor, records a fresh request even when the representation is unchanged, and ignores stale layout completions. A representation change refreshes semantic handle measurements. Overview ports retain their semantic `data-id` ownership for the existing edge checks.
+
+Validation for this step: `bun test tests/lineage-view.test.ts tests/edge-labels.test.ts`: `16 pass`, `0 fail`, `46 expect() calls` (`out/lane-b/resume-focused-current.log`). `bun --bun run check` passes TypeScript, format, lint, comments, theme and brand (`out/lane-b/resume-check-current.log`). Readability and whitespace checks pass. Completion captures and full browser gates follow below.
+
+An initial resumed mapping invocation used `BASE_URL` instead of the harness's `SW_BASE_URL` and refused its default 5173 connection; subsequent checks explicitly use 5221. Browser attempts overlapping schema generation/build or creating the foundation archive under the watched tree were invalidated by page reloads. The foundation archive now lives under `/tmp/sw-B/foundation`; builds and browser checks run separately.

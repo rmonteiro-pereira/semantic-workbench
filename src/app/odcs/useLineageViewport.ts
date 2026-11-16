@@ -1,6 +1,6 @@
 /** Keeps the lineage view where the person expects it: first framing, Fit, card anchoring and refits after expansions. */
-import { useCallback, useEffect, useRef, type RefObject } from 'react';
-import type { ReactFlowInstance } from '@xyflow/react';
+import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
+import { getViewportForBounds, type ReactFlowInstance } from '@xyflow/react';
 import { useViewRestore, type Fullscreen } from '../graph/fullscreen';
 import type { ExpansionSet } from '../graph/expansion';
 import { fitsReadableView, NAME_MIN_PX } from './lineage-view';
@@ -99,14 +99,37 @@ export function useLineageViewport({
     viewport => void flow.current?.setViewport(viewport),
   );
   const fitted = useRef('');
+  const activeLayout = useRef(layoutKey);
+  activeLayout.current = layoutKey;
   const firstViewTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const fitRequested = useRef(false);
-  const readableFit = useCallback(async (focus: string, group: string[]) => {
-    const instance = flow.current;
-    if (!instance) return;
-    const ids = [...new Set([focus, ...group])].filter(id => instance.getNode(id));
-    await instance.fitView({ nodes: ids.map(id => ({ id })), padding: 0.06, maxZoom: 1, duration: 0 });
-  }, []);
+  const [fitRevision, setFitRevision] = useState(0);
+  const fitCards = useCallback(
+    async (ids?: string[]) => {
+      const instance = flow.current;
+      if (!instance || activeLayout.current !== layoutKey) return;
+      const cards = nodes
+        .filter(node => !ids || ids.includes(node.id))
+        .flatMap(node => {
+          const layoutCard = layoutCardsRef.current.find(card => card.id === node.id);
+          return layoutCard ? [{ ...node.position, width: CARD_W, height: cardHeight(layoutCard) }] : [];
+        });
+      if (!cards.length || !stageSize.width || !stageSize.height) return;
+      const left = Math.min(...cards.map(card => card.x));
+      const top = Math.min(...cards.map(card => card.y));
+      const right = Math.max(...cards.map(card => card.x + card.width));
+      const bottom = Math.max(...cards.map(card => card.y + card.height));
+      const viewport = getViewportForBounds({ x: left, y: top, width: right - left, height: bottom - top }, stageSize.width, stageSize.height, MIN_ZOOM, FIRST_VIEW_MAX_ZOOM, 0.06);
+      await instance.setViewport(viewport, { duration: 0 });
+    },
+    [layoutKey, nodes, stageSize],
+  );
+  const readableFit = useCallback(
+    async (focus: string, group: string[]) => {
+      await fitCards([...new Set([focus, ...group])]);
+    },
+    [fitCards],
+  );
   const viewKey = [center, steps].join('|');
   const firstView = useCallback(async () => {
     if (viewHeld()) return;
@@ -118,22 +141,23 @@ export function useLineageViewport({
     });
     const minimumZoom = overview ? (NAME_MIN_PX * 1.1) / (OVERVIEW_H - 16) : READABLE;
     if (fitRequested.current || fitsReadableView(cards, stageSize, minimumZoom, FIRST_VIEW_MARGIN)) {
-      await instance.fitView({ padding: 0.06, maxZoom: FIRST_VIEW_MAX_ZOOM, duration: 0 });
+      await fitCards();
     } else if (!overview) {
       onOverview(true);
       return;
     } else {
       const framed = [...(framedCards ?? reach.cards)].filter(id => instance.getNode(id));
       while (framed.length > 1) {
-        await instance.fitView({ nodes: framed.map(id => ({ id })), padding: 0.06, maxZoom: 1, duration: 0 });
+        await fitCards(framed);
         if (instance.getZoom() >= minimumZoom) break;
         framed.pop();
       }
       if (framed.length === 1) await readableFit(center, []);
     }
+    if (activeLayout.current !== layoutKey) return;
     fitted.current = viewKey;
     fitRequested.current = false;
-  }, [overview, onOverview, center, reach, framedCards, readableFit, viewHeld, nodes, stageSize, viewKey]);
+  }, [overview, onOverview, center, reach, framedCards, readableFit, viewHeld, nodes, stageSize, viewKey, layoutKey, fitCards]);
   useEffect(() => {
     if (!result || result.key !== layoutKey || !nodes.length || !stageSize.width || !stageSize.height) return;
     if ((fitted.current === viewKey && !fitRequested.current) || anchoredCard.current || viewHeld()) return;
@@ -170,17 +194,19 @@ export function useLineageViewport({
       clearTimeout(firstViewTimer.current);
       cancelAnimationFrame(frame);
     };
-  }, [result, layoutKey, viewKey, nodes, stageSize, overview, firstView, viewHeld]);
+  }, [result, layoutKey, viewKey, nodes, stageSize, overview, firstView, viewHeld, fitRevision]);
   useEffect(() => () => clearTimeout(firstViewTimer.current), []);
   // An explicit Fit wins over a first view that is still waiting to run, and shows every card.
   function fitAll() {
-    clearTimeout(firstViewTimer.current);
+    anchoredCard.current = null;
+    setFitRevision(revision => revision + 1);
+    fitRequested.current = true;
+    fitted.current = '';
     if (!overview) {
-      fitRequested.current = true;
       onOverview(true);
       return;
     }
-    void flow.current?.fitView({ padding: 0.06, maxZoom: 1, duration: 200 });
+    if (result?.key === layoutKey) void firstView();
   }
   useEffect(() => {
     const anchor = anchoredCard.current;
@@ -217,6 +243,7 @@ export function useLineageViewport({
   }, [panelOpen]);
   useEffect(() => {
     if (!pendingPanelFit.current || !result || !path) return;
+    anchoredCard.current = null;
     if (!overview) {
       onOverview(true);
       return;
@@ -224,9 +251,9 @@ export function useLineageViewport({
     if (result.key !== layoutKey) return;
     const timer = setTimeout(() => {
       pendingPanelFit.current = false;
-      void flow.current?.fitView({ padding: 0.06, maxZoom: 1, duration: 0 });
+      void fitCards();
     }, 120);
     return () => clearTimeout(timer);
-  }, [panelOpen, overview, result?.key]);
+  }, [panelOpen, overview, result?.key, fitCards]);
   return { fitAll };
 }

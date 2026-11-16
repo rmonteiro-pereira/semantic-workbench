@@ -1,7 +1,7 @@
 /** Renders asset columns with row ports, path highlights and controls for hidden columns and
  * neighbors. */
-import React, { memo } from 'react';
-import { useStore, type NodeProps } from '@xyflow/react';
+import React, { memo, useLayoutEffect } from 'react';
+import { useStore, useUpdateNodeInternals, type NodeProps } from '@xyflow/react';
 import { AlertTriangle, ExternalLink, Footprints, Minus, Plus } from 'lucide-react';
 import { LineageOverviewCard } from './LineageOverviewCard';
 import { walkTargetSize } from './lineage-view';
@@ -52,6 +52,10 @@ export const LineageCardNode = memo(({ data }: NodeProps) => {
   const zoom = useStore(state => state.transform[2]);
   const cardData = data as unknown as CardData;
   const lineageCard = cardData.card;
+  const updateNodeInternals = useUpdateNodeInternals();
+  useLayoutEffect(() => {
+    updateNodeInternals(lineageCard.id);
+  }, [lineageCard.id, cardData.overview, cardData.rows, cardData.columnsOpen, updateNodeInternals]);
   const walkRoom = Math.min(CARD_W - 20, cardHeaderHeight(lineageCard) - 12);
   const walkSize = walkTargetSize(zoom, walkRoom);
   const dim = !!cardData.onPath && !cardData.onPath.has(lineageCard.id) && !lineageCard.columns.some(x => cardData.onPath!.has(x.id));
@@ -171,6 +175,10 @@ export const LineageCardNode = memo(({ data }: NodeProps) => {
 // A card that is not opened lists the columns that matter, then one line that opens the rest.
 function CollapsedRows({ data: cardData }: { data: CardData }) {
   const lineageCard = cardData.card;
+  const updateNodeInternals = useUpdateNodeInternals();
+  useLayoutEffect(() => {
+    updateNodeInternals(lineageCard.id);
+  }, [lineageCard.id, cardData.overview, cardData.rows, cardData.columnsOpen, updateNodeInternals]);
   const geometry = { id: lineageCard.id, rows: cardData.rows.map(row => row.id), portRows: [], more: cardData.more > 0, ...cardGeometry(lineageCard, cardData.rows) };
   if (cardData.rows.length === 0 && cardData.more === 0) return null;
   return (
