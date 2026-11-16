@@ -1,5 +1,6 @@
 // Forces publication between every request's pin and its first document read.
 import { expect, test } from 'bun:test';
+import { waitUntil } from '../scripts/helpers/processes';
 import { agentCatalog } from '../src/server/agent/runtime';
 import { LOCAL_READER } from '../src/server/projects/reader';
 import { locationOf, repoDir } from '../src/server/projects/paths';
@@ -32,7 +33,7 @@ test('two hundred interleaved agent requests keep their header and every catalog
     });
     const pending = Array.from({ length: 10 }, () => fixture.handler(new Request(`http://localhost/api/agent/catalog?project=${slug}`)));
     try {
-      while (calls < 10) await Bun.sleep(1);
+      await waitUntil('ten agent requests reaching their pinned read', async () => calls === 10, 5000);
       const file = fixture.ws.documents().find(document => document.project === slug && document.filename === 'commerce.mapping.yaml')!;
       await fixture.ws.saveFile(slug, file.path, { baseHash: file.hash, source: file.source.replace(/Commerce mapping[^\n]*/, `Commerce mapping ${publication}`) }, LOCAL_READER);
       await fixture.ws.git.addAll(directory);

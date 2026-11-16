@@ -837,10 +837,22 @@ assertions in 1.78 s. Metric list/explanation headers now assert the exact pinne
 11 assertions). The reserved-name fixture explicitly configures its default, retaining the refusal and
 recovery checks (5 tests, 27 assertions). The complete local check passes; no assertion is removed.
 
-The first transferred unit run finished: 2195 pass, 3 fail, 134126 assertions, 305 files, 1234.29 s, exit 1.
+The first transferred unit run printed: 2195 pass, 3 fail, 134126 assertions, 305 files, 1234.29 s.
+Its timed-out barrier kept the process alive after that summary; no verified unit exit 1 is claimed.
+The wrapper eventually exited 255 during its artifact-transfer connection failure.
 All three failures are the fixture updates above; it did not enter the browser or mutation stages.
 The next serial remote gate includes those fixes and the corrected export anchor. The published-controls
 browser proof now checks both notice layouts and the unknown-default prompt across six viewport sizes,
 retains captures, and explicitly acknowledges the new notice. Both full current capture journeys also run
 in the gate; each suite has its own process group and the existing CI cleanup. The original native release
 comparison remains labeled with its actual source revision, separately from the architecture corrections.
+
+
+The unit summary was mistaken for process completion when starting its retry. That retry was stopped;
+its local wrapper returned 143. Cleanup ran only through the authorized remote wrapper and selected test
+processes by the exact checkout cwd, dev uid and `bun test --timeout` argv. It terminated the one matching
+process (3336963) and exited 0. No other checkout or service was selected. The multiline inline cleanup
+attempt first failed in wrapper quoting before executing; the successful one-line argument avoided that
+unsupported shell form. The next heavy command starts only after verified wrapper completion.
+The stress barrier now reuses the existing bounded `waitUntil` helper, so a missed hook fails inside five
+seconds and reaches `finally` instead of leaving the test promise active after the suite summary.
