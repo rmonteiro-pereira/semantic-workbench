@@ -2,11 +2,12 @@
 
 ## Completion status
 
-Implementation and merge-review cleanups are committed. The final remote gate is **incomplete**:
-UI, terminology, standalone HTTP characterization and standalone audit verification are blocked
-by SSH transport timeouts before their commands start. Unit tests, all mutants, auth and admin
-browser suites passed remotely; check and build passed locally. The latest section records the
-remote timing allowances and the remaining gate commands. Earlier completed gates are historical.
+Implementation and merge-review cleanups are committed. The final remote gate is **complete**:
+UI, terminology, standalone frozen HTTP characterization and audit verification passed after
+wrapper connectivity was restored. Unit tests, all mutants, auth and admin previously passed
+remotely on the same source; check and build passed locally. The documented remote test and
+Admin assertion timing allowances remain part of those results. Earlier incomplete-gate and
+connection-failure sections are historical and are superseded by the final section below.
 
 All 51 tasks are accounted for. The unused protocol-recording surface is deferred until its
 first transport caller, as directed by the architecture review; the revised task records that
@@ -846,3 +847,37 @@ process-group cleanup traps. The successful auth/admin harnesses close their own
 servers. The blocked UI attempts never started their remote test commands. All local processes
 started for the interrupted gates are stopped; local ports 5311/5312 have no listeners. The
 frozen HTTP fixture and original audit months remain unchanged, and `d3a4181b` is retained.
+
+
+## Completion after restored wrapper connectivity
+
+All four remaining gate items passed through the updated, unchanged `sw-midgard-run` wrapper,
+one remote command at a time. The wrapper's shared SSH connection stayed available; each command
+passed on its first attempt, so the requested five-minute retry delay was not needed. No heavy
+command ran locally. No source, tests, fixture or dependency file changed after the earlier gate
+results; this update only records completion.
+
+| Command inside the wrapper | Observed summary |
+| --- | --- |
+| `bun run test:ui` | `20 UI checks passed`; `PASS no browser runtime errors`; wrapper exit 0. |
+| `bun run test:terminology` | `Terminology check passed: no "KPI" or "contract object" in 8 files' views, the metric detail, the wizard, README and docs`; isolated temporary data root; wrapper exit 0. |
+| `bun test tests/auth/http-characterization.test.ts` | `1 pass`, `0 fail`, `1548 expect() calls`; `Ran 1 test across 1 file. [19.96s]`; wrapper exit 0. |
+| `bun run audit:verify tests/fixtures/audit-v1` | `Audit log intact: 9 records in 3 months.`; wrapper exit 0. |
+
+UI and terminology each start their own API on 5402 and Vite frontend on 5401 inside the same
+remote command, with isolated data, readiness checks and process-group cleanup traps. Their
+servers stop before the next command. The browser harnesses close their browsers. Characterization
+and audit verification run without those development servers. No remote access outside the
+wrapper was used, and the wrapper-managed shared SSH connection is left for its configured idle
+expiry rather than disrupting other jobs.
+
+The complete gate now combines these four results with the recorded 2147/0 remote unit result,
+683/683 killed mutants, 36 auth browser checks, successful admin browser run, and local check/build.
+The remote 30-second unit/assertion wait allowances and disposable test Git configuration are
+recorded in the preceding section; assertions and the administration time limit are unchanged.
+There are no remaining gate items or SSH blockers. The frozen HTTP fixture and original audit
+months are byte-identical to their recording commits; constitution commit `d3a4181b` is retained.
+
+This completion record follows `6e75f0e1`; cleanup source remains in `a48dcf9b` and `50683d3e`.
+The evidence content scan and branch readability check pass. No local development server or
+browser was started for this completion run, and local ports 5311/5312 have no listeners.
