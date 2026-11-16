@@ -2,16 +2,17 @@
 
 ## Completion status
 
-All 51 tasks are complete. No task was skipped. The specified rate-limit/local-check order-swap
-mutant is equivalent because the checks run in mutually exclusive server and local modes; it is
-excluded with that reason, while all 18 registered feature mutants and every existing mutant are
-killed. Earlier stop-point sections below are historical and have been resolved by the integrator
-decisions and subsequent fixes.
+All 51 tasks are accounted for. The unused protocol-recording surface is deferred until its
+first transport caller, as directed by the architecture review; the revised task records that
+decision. The specified rate-limit/local-check order-swap mutant is equivalent because its
+checks run in mutually exclusive server and local modes, and is excluded with that reason.
+Earlier stop-point and performance sections are historical; the final review measurements and
+gate below supersede them.
 
 The frozen HTTP fixture and original audit months remain byte-identical to their recording
-commits. Constitution wording is handed over below; the constitution itself is unchanged.
-Both performance findings are settled by the matched measurements below: listing meets the
-unchanged 50 ms goal, and HTTP latency differs by less than 5% under interleaved comparisons.
+commits. The integrator's constitution 4.0.1 commit `d3a4181b` is retained unchanged. The final
+paired HTTP measurement shows no regression. Listing takes 63.623 ms on the measured fixture,
+above the unchanged 50 ms goal; the shared verdict includes checks the earlier listing omitted.
 No transport implementation or external deployment is included.
 
 ## Scope
@@ -665,3 +666,52 @@ All mutation anchors resolve after moving their original fault intents to the ex
 The new listing's preliminary profile is about 70 ms (69 explicit authorization calls, six view
 builds); this includes the trash readability and Steward checks the old predicate omitted. The
 50 ms goal is unchanged; final measurements and the complete revalidation follow below.
+
+
+## Final architecture-review measurements
+
+The same benchmark ran against detached `origin/main` (`655df094`) and the branch, alternating
+base and branch for five rounds. Each round used 150 warmups and 5,000 measured requests.
+The temporary base worktree was removed after the comparison. No production source changed
+after this measurement; the subsequent correction only registered the isolated mutation
+harness in the existing scope-construction scan.
+
+| Round | Base median (ms) | Branch median (ms) | Base p95 (ms) | Branch p95 (ms) |
+| --- | ---: | ---: | ---: | ---: |
+| 1 | 2.574404 | 2.483392 | 5.321092 | 4.860611 |
+| 2 | 2.613875 | 2.584304 | 5.394254 | 5.109737 |
+| 3 | 2.469242 | 2.519593 | 4.874522 | 4.981234 |
+| 4 | 2.585404 | 2.460431 | 5.161588 | 4.811450 |
+| 5 | 2.405461 | 2.620256 | 4.733631 | 5.191601 |
+
+The median of medians is **2.574404 ms base versus 2.519593 ms branch**, a **2.13% decrease**.
+The branch is faster in three rounds and slower in two. The difference is within run-to-run
+noise and below the 5% regression threshold.
+
+Listing used the same 20-project Alice fixture, two warmups and five measured samples per
+fresh-process round. It returned 54 operations in every sample, with 69 explicit authorization
+calls and six policy-view builds.
+
+| Round | Listing median (ms) |
+| --- | ---: |
+| 1 | 65.303199 |
+| 2 | 63.167086 |
+| 3 | 63.622838 |
+| 4 | 66.443617 |
+| 5 | 63.426282 |
+
+The median of medians is **63.622838 ms**. This misses the unchanged 50 ms goal by 13.623 ms.
+The earlier 47 ms result used the separate listing predicate that omitted the required trash
+readability and Steward checks. The shared verdict is authoritative; probe reuse cannot skip
+those decisions. The preliminary profile attributed roughly 52 ms to authorization calls and
+15 ms to policy-view construction. The review explicitly permits reporting the new figure;
+this records the miss rather than raising the target or claiming a lower bound.
+
+The listing invariant replaces the frozen listing comparison and covers every fixture caller
+and inventory row, both server modes and connection restrictions. A listed operation must
+admit at least one candidate, and an unlisted operation must refuse every candidate. The
+project-only workspace-clear grant regression and custom path/document conditions also pass.
+
+The first full gate found the new isolated mutation harness missing from the boundary scan's
+fixture-script list. Registering that harness preserves the enforcement rule and passes the
+two focused scan tests; the complete gate is rerun after that correction.
