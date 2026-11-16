@@ -95,7 +95,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
 
 **Goal**: Network, Layered and Neighborhood views are readable at 1280, 1440 and 390 and the Mall model opens as counted areas. **Independent test**: the lane A capture pairs and `bun run test:graph` pass on the lane branch alone. **Owner**: lane A, worktree `007-lane-a`.
 
-- [ ] T011 [P] [US1] [A] Measure the baseline thresholds on e8b7d69 and lock `NAME_MIN_PX`, `DIM_MIN_OPACITY`, `NEIGHBORHOOD_CANVAS_MIN_PX` and `MIN_ZOOM_FRACTION` in `research.md`.
+- [x] T011 [P] [US1] [A] Measure the baseline thresholds on e8b7d69 and lock `NAME_MIN_PX`, `DIM_MIN_OPACITY`, `NEIGHBORHOOD_CANVAS_MIN_PX` and `MIN_ZOOM_FRACTION` in `research.md`.
   - Findings: M2, M3, M13, M15, m12 · Requirements: FR-001, FR-002, FR-003, FR-004, FR-006, FR-011
   - Files: `scripts/ui-review/measure-graph.ts`, `specs/007-ui-review-fixes/research.md`
   - Change: Write a small Playwright script that, for UBL and Mall at 390, 1280, 1440 and 2560, opens the Network, Layered and Neighborhood first views and prints the rendered entity-name height, the drawn-graph box against the pane, and the canvas height. Record the numbers and keep 9 px, 0.35, 480 and 0.25 unless the numbers argue otherwise.
