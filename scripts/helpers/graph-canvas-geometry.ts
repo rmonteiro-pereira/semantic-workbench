@@ -41,7 +41,7 @@ export async function graphCanvasProblems(page: Page, which: Which): Promise<str
       for (const name of root.querySelectorAll(nameSelector)) {
         if (!onScreen(name.getBoundingClientRect())) continue;
         const px = sizeOnScreen(name);
-        const network = which === 'model' && root.getAttribute('data-layout') === 'network';
+        const network = which === 'model' && root.getAttribute('data-layout') === 'network' && !name.closest('.collapsed');
         const largestName = which === 'model' && !network ? largestModelNamePx : standardNamePx;
         // A card also never draws a name larger than its whole name fits, so that no name is cut.
         const fittingName = parseFloat(getComputedStyle(name).getPropertyValue('--entity-name-cap')) || largestName;

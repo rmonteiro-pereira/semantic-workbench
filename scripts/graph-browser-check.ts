@@ -1,3 +1,4 @@
+import { checkGraphOpening } from './helpers/graph-opening-checks';
 // Checks graph navigation and rendering at multiple scales in an isolated browser workspace.
 import { screenshotPath } from './helpers/screenshots';
 import { checkGraphReview } from './helpers/graph-review-checks';
@@ -5,7 +6,7 @@ import { appUrl } from './helpers/base-url';
 import { recordResizeErrors } from './helpers/resize-errors';
 import { checkExpansionViewports } from './graph-expansion-checks';
 import { checkGraphTiles } from './graph-tile-checks';
-import { chooseLayout, setShown, viewOptions } from './helpers/graph-options';
+import { chooseLayout, setShown, showEveryEntity, viewOptions } from './helpers/graph-options';
 import { chromium, expect } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { neighborhoodCardProblems } from './helpers/card-geometry';
@@ -82,15 +83,18 @@ const shot = (name: string) => page.screenshot({ path: screenshotPath(`/tmp/work
 try {
   await routeApi(page, api);
   await page.goto(appUrl());
+  await checkGraphOpening(browser, api);
   await checkGraphReview(page);
-  await check('full graph keeps all 45 UBL entities and 277 relationships; area zoom and layered layout', async () => {
+  await check('Expand all restores all 45 UBL entities and 277 relationships; area zoom and layered layout', async () => {
     await openFile('ubl.ontology.yaml');
     await tab('Graph').click();
     await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60000 });
     await page.getByRole('button', { name: 'Fit model', exact: true }).click();
     await expect(page.locator('.full-graph-status')).toHaveAttribute('data-entity-count', '45');
     await expect(page.locator('.full-graph-status')).toHaveAttribute('data-relationship-count', '277');
-    // The first view names every entity in the Network layout; no area is folded into a count.
+    await showEveryEntity(page);
+    await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60000 });
+    // Expand all preserves every entity and relationship after a counted first view.
     await expect(page.locator('.full-graph-status strong')).toHaveCount(0);
     await expect(page.locator('.full-graph .react-flow__node-entity')).toHaveCount(45);
     await viewOptions(page, async options => {

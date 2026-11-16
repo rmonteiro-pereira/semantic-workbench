@@ -43,6 +43,8 @@ try {
           await page.goto(process.env.SW_BASE_URL ?? 'http://127.0.0.1:5211');
           await fileTab(`${example}.ontology.yaml`, layout === 'neighborhood' ? 'Neighborhood' : 'Graph')(page);
           if (layout !== 'neighborhood') {
+            await page.locator('.full-graph-loading').waitFor({ state: 'hidden', timeout: 60000 });
+            await page.waitForTimeout(300);
             await viewOptions(page, options => chooseLayout(options, layout));
             await page.locator('.full-graph-loading').waitFor({ state: 'hidden', timeout: 60000 });
           }

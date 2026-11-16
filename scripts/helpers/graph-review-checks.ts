@@ -2,7 +2,7 @@
 import { expect, type Page } from '@playwright/test';
 import { fileTab } from './screen-tour';
 import { pickCenter } from './edge-geometry';
-import { revealGraphControls, hideGraphControls, viewOptions, setShown } from './graph-options';
+import { revealGraphControls, hideGraphControls, viewOptions, setShown, showEveryEntity } from './graph-options';
 
 async function checkLayoutControls(page: Page) {
   await revealGraphControls(page);
@@ -51,6 +51,8 @@ async function checkLayoutControls(page: Page) {
 
 async function checkSelection(page: Page) {
   await fileTab('ubl.ontology.yaml', 'Graph')(page);
+  await page.locator('.full-graph-loading').waitFor({ state: 'hidden', timeout: 60000 });
+  await showEveryEntity(page);
   await page.locator('.full-graph-loading').waitFor({ state: 'hidden', timeout: 60000 });
   await checkLayoutControls(page);
   await page.getByRole('button', { name: 'Fit model', exact: true }).click();
