@@ -77,7 +77,9 @@ export function createScm(deps: ScmDeps) {
     const outside = repoPaths.filter(path => !path.startsWith(folder + '/'));
     if (outside.length) throw new BadRequestError(`Only files inside ${folder} can be committed from this project. Outside: ${outside.join(', ')}`);
   }
-  async function status(slug: string, { view }: Reader) {
+  async function status(slug: string, reader: Reader) {
+    const { view } = reader;
+    const published = await deps.publishedStatus?.(slug, reader);
     if (!deps.gitAvailable)
       return {
         branch: '',
@@ -85,6 +87,7 @@ export function createScm(deps: ScmDeps) {
         ahead: 0,
         behind: 0,
         gitAvailable: false,
+        ...(published ? { published } : {}),
         identityConfigured: false,
         merging: false,
         hasCommits: false,
@@ -109,6 +112,7 @@ export function createScm(deps: ScmDeps) {
       ahead: gitStatus.ahead,
       behind: gitStatus.behind,
       gitAvailable: true,
+      ...(published ? { published } : {}),
       ...(await sparseProjectFolder(slug, directory)),
       identityConfigured: deps.signedCommits || (await git.identity(directory)),
       merging,

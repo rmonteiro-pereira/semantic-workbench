@@ -1,4 +1,5 @@
 import type { EventTags } from './events';
+import type { PublishedStatus } from '../../shared/scm/published-status';
 import { type Reader } from './reader';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -81,6 +82,8 @@ export type ScmDeps = {
   signedCommits?: boolean;
   /** Prepares local authoring before a commit; personal server copies already choose their branch. */
   beforeCommit?: (slug: string) => Promise<{ branch: string; movedFrom?: string }>;
+  /** The durable publication and caller-specific notice, supplied by the workspace. */
+  publishedStatus?: (slug: string, reader: Reader) => Promise<PublishedStatus>;
   /**
    * Merges the default branch into a working copy's branch; absent in local mode. `check` judges
    * the exact commit before it is merged.

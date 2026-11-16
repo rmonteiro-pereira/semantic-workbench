@@ -71,6 +71,7 @@ export const routeExamples: { method: string; path: string; body?: unknown }[] =
   { method: 'POST', path: '/api/projects/missing/git/push' },
   { method: 'POST', path: '/api/projects/missing/git/cancel' },
   { method: 'POST', path: '/api/projects/missing/git/publish' },
+  { method: 'POST', path: '/api/projects/missing/git/acknowledge-publication', body: {} },
   { method: 'POST', path: '/api/projects/missing/git/pull-default' },
   { method: 'POST', path: '/api/projects/missing/git/push-default' },
   { method: 'PUT', path: '/api/projects/missing/git/remote' },

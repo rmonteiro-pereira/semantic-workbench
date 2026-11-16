@@ -129,6 +129,7 @@ export const ROUTE_ACTIONS: RouteAction[] = [
   row('POST', '/api/projects/:slug/git/cancel', 'cancelOwn', project),
   // Publishing and pulling the default branch work on server-mode working copies.
   row('POST', '/api/projects/:slug/git/publish', 'publish', project),
+  { ...row('POST', '/api/projects/:slug/git/acknowledge-publication', 'viewOwnState', project), unaudited: true },
   row('POST', '/api/projects/:slug/git/pull-default', 'pull', project),
   row('POST', '/api/projects/:slug/git/push-default', 'publish', project),
   row('PUT', '/api/projects/:slug/git/remote', 'setRemote', project),

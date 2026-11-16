@@ -163,6 +163,8 @@ concatenating project, document or item names.
   before a publication can move its ref or durable pointer. Publication then writes its intent,
   compare-and-swaps the ref, records the pointer and supersedes the resolver; startup reconciles
   interrupted intents before repairing the server checkout.
+- `scm-published.ts` formats publication identity and authoring distance for Source Control; its
+  acknowledgement writes only the caller's view state. The wire shape lives in shared SCM types.
 - `local-publication.ts` preserves the local index and working files when authoring moves to
   `work/local`, and advances the default ref through the shared checks and durable pointer protocol.
 - `published-pointer.ts` owns atomic publication records and interrupted-publication transitions.

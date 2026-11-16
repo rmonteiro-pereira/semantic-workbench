@@ -309,3 +309,7 @@ route, keeps dirty authoring source unchanged and emits `published` after the po
 Both local and server publication audit records contain the old and new full commit ids. A local
 principal is allowed while the server Viewer refusal remains unchanged.
 `bun --bun run check`: exit 0.
+
+## Published status and notice
+
+`TMPDIR=/tmp/sw-008 bun test tests/scm-published-status.test.ts tests/auth/route-actions.test.ts`: 11 pass, 0 fail, 380 assertions. Status distinguishes all unavailable reasons, authoring distance and pending movement. Explicit acknowledgement persists only in personal view state; refs and index remain byte-identical. The HTTP adapter nests pending details as the HTTP contract specifies while retaining the resolver’s flat internal status. `bun --bun run check`: exit 0.

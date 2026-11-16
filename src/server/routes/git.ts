@@ -11,6 +11,7 @@ import { appendIgnore } from '../../shared/scm/gitignore';
 import type { Route } from './http';
 import type { HandlerOptions } from '../auth/middleware';
 import { BadRequestError } from '../projects/errors';
+import { acknowledgePublication } from '../projects/scm-published';
 // Files are named relative to the project (`paths`) or to its repository root (`repoPaths`), the
 // latter for files of sibling projects in a shared repository.
 function chosenPaths(body: { paths?: unknown; repoPaths?: unknown }) {
@@ -77,6 +78,12 @@ export const createGitRoutes =
       return null;
     }
     if (req.method === 'POST') {
+      if (action === 'git/acknowledge-publication') {
+        await body([]);
+        ws.project(slug);
+        acknowledgePublication(ws.state, slug, reader);
+        return Response.json({ acknowledged: true });
+      }
       if (action === 'git/stage' || action === 'git/unstage') {
         const requestBody = await body(['paths', 'repoPaths', 'all']);
         const stage = action === 'git/stage';
