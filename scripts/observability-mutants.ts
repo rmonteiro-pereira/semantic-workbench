@@ -58,6 +58,6 @@ export const observabilityMutants: [string, string, string, string][] = [
   // The exporter's own usage reporting to Microsoft stays off.
   ['observability-azure-backends', 'src/server/observability/azure-backends.ts', "process.env.APPLICATION_INSIGHTS_NO_STATSBEAT = 'true';", ''],
   // Operational telemetry is not a security event and never reaches the audit log.
-  ['observability-unaudited', 'src/server/auth/middleware.ts', 'if (row.unaudited) return false;', ''],
-  ['observability-unaudited', 'src/server/auth/middleware.ts', "if (decision === 'deny') return true;", ''],
+  ['observability-unaudited', 'src/server/auth/operation-boundary.ts', 'if (row.unaudited) return false;', ''],
+  ['observability-unaudited', 'src/server/auth/operation-boundary.ts', "if (decision === 'deny' || origin !== 'http') return true;", ''],
 ];

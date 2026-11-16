@@ -4,17 +4,20 @@ import assert from 'node:assert/strict';
 import { dirname, resolve } from 'node:path';
 import { loadBrandBundle, setActiveBrand } from '../src/server/brand/bundle';
 import { allowEveryRemote } from '../tests/helpers/remote-credentials-fixture';
+import { operationBoundaryCases } from './operation-boundary-mutation-cases';
 import { observabilityCase } from './observability-cases';
 // Sign-in pages render the brand, so every candidate runs with the shipped bundle active.
 setActiveBrand(loadBrandBundle());
 const mutatedModule = await import(process.argv[2]);
 // A mutant of a split module runs inside a copy of its folder; the cases call the composed entry points.
 const treeRoot = process.argv[2].match(/^(.*-tree)\//)?.[1];
+const authModules = treeRoot && (await Bun.file(resolve(treeRoot, 'middleware.ts')).exists()) ? ['middleware.ts'] : [];
 const entryModules = treeRoot && treeRoot.includes('/') && (await Bun.file(resolve(treeRoot, 'workspace.ts')).exists()) ? ['workspace.ts', 'scm.ts', 'trash.ts'] : [];
 const composed = {};
-for (const name of entryModules) Object.assign(composed, await import(resolve(treeRoot!, name)));
+for (const name of [...entryModules, ...authModules]) Object.assign(composed, await import(resolve(treeRoot!, name)));
 const loadedModule = { ...composed, ...mutatedModule };
 const category = process.argv[3];
+if (category === 'operation-boundary') await operationBoundaryCases(process.argv[2]);
 if (category === 'edge-appearance') {
   const appearance = loadedModule.edgeAppearance({
     id: 'edge',

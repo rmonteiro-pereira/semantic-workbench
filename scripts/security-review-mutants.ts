@@ -78,7 +78,7 @@ export const securityReviewMutants: [string, string, string, string][] = [
   ['secrev-git-routes', 'src/server/routes/git.ts', 'await scm.branches(slug, reader)', 'await scm.branches(slug)'],
   // Drafts are bounded in size and number, and belong to files the person has.
   ['secrev-drafts', 'src/server/routes/drafts.ts', 'if (!ws.hasFile(slug, path, reader))', 'if (false)'],
-  ['secrev-drafts', 'src/server/routes/drafts.ts', 'MAX_INPUT_BYTES * 2 + 4096', 'MAX_INPUT_BYTES * 12 + 4096'],
+  ['secrev-drafts', 'src/server/routes/drafts.ts', 'readJson(req, DRAFT_REQUEST_LIMIT)', 'readJson(req, DRAFT_REQUEST_LIMIT * 6)'],
   ['secrev-drafts', 'src/server/routes/drafts.ts', 'if (drafts.some(draft => draft.project === slug && draft.path === path)) return;', ''],
   ['secrev-drafts', 'src/server/routes/drafts.ts', 'if (drafts.length >= MAX_DRAFTS_PER_OWNER)', 'if (false)'],
   ['secrev-drafts', 'src/server/routes/drafts.ts', 'if (drafts.filter(draft => draft.project === slug).length >= MAX_DRAFTS_PER_PROJECT)', 'if (false)'],

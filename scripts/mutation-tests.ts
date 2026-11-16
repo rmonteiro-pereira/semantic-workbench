@@ -1,4 +1,5 @@
 // Introduces faults into temporary source copies and checks that the test suite detects them.
+import { operationBoundaryMutants } from './operation-boundary-mutants';
 import { adminMutants } from './admin-mutants';
 import { sessionSecurityMutants } from './session-security-mutants';
 import { securityReviewMutants } from './security-review-mutants';
@@ -13,7 +14,7 @@ import { observabilityMutants } from './observability-mutants';
 import { chmod, mkdtemp, readdir, rm, symlink } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 const root = process.cwd();
-const temp = await mkdtemp('/tmp/workbench-mutations-');
+const temp = await mkdtemp(resolve(process.env.TMPDIR ?? '/tmp', 'workbench-mutations-'));
 // Candidate modules live outside the project; give their bare package imports the same dependency
 // tree as the real sources, without relying on Bun caches.
 await symlink(resolve(root, 'node_modules'), resolve(temp, 'node_modules'), 'dir');
@@ -105,14 +106,14 @@ const mutants: [string, string, string, string][] = [
   ['auth-decision', 'src/server/auth/authorize.ts', "status: 404, reason: 'not-readable'", "status: 403, reason: 'not-readable'"],
   ['auth-decision', 'src/server/auth/authorize.ts', 'adminRules: validated.adminRules,', 'adminRules: {},'],
   ['auth-admin-guard', 'src/server/auth/admin-guard.ts', 'if (allowed) return { ok: true };', 'if (true) return { ok: true };'],
-  ['auth-middleware', 'src/server/auth/middleware.ts', "const failure = auditDenial(audit, { ...input, decision: 'deny' });", 'const failure = null;'],
+  ['auth-middleware', 'src/server/auth/operation-boundary.ts', "const failure = auditDenial(audit, { ...input, decision: 'deny' });", 'const failure = null;'],
 
   ['auth-admin-repo', 'src/server/auth/admin-repo.ts', 'if ((await version()) !== change.baseVersion) throw new AdminStaleError();', ''],
   ['auth-admin-repo', 'src/server/auth/admin-repo.ts', ' || /[<>]/.test(value)', ''],
   ['auth-audit', 'src/server/auth/audit.ts', 'pick(input.resource, resourceKeys)', 'input.resource'],
   ['auth-middleware', 'src/server/auth/middleware.ts', "if (!found) return new Response('Not found', { status: 404 });", 'if (!found) return run(request);'],
-  ['auth-middleware', 'src/server/auth/middleware.ts', "mode === 'server' && !(await validCsrf(", 'false && !(await validCsrf('],
-  ['auth-middleware', 'src/server/auth/middleware.ts', 'row.audited === true ||', ''],
+  ['auth-middleware', 'src/server/auth/request-authentication.ts', "mode === 'server' && !(await validCsrf(", 'false && !(await validCsrf('],
+  ['auth-middleware', 'src/server/auth/operation-boundary.ts', 'row.audited === true ||', ''],
 
   ['agent', 'src/server/agent/query-plan.ts', 'physical.parentheses = true', 'physical.parentheses=false'],
   ['agent', 'src/server/agent/context-assembly.ts', 'if (!fieldMap.has(id)) throw', 'if(false)throw'],
@@ -382,7 +383,7 @@ mutants.push(
   ['bearer-scope', 'src/server/auth/bearer.ts', "pathname.startsWith('/api/agent/')", 'true'],
   ['bearer-audience', 'src/server/auth/bearer.ts', '        audience,\n', ''],
   ['bearer-grants', 'src/server/auth/cedar.ts', 'client?.projects.includes(slug) ||', 'true ||'],
-  ['bearer-cookie', 'src/server/auth/middleware.ts', 'client ?? (await resolve(request))', '(await resolve(request)) ?? client'],
+  ['bearer-cookie', 'src/server/auth/middleware.ts', 'if (client) return invoke(client, request);', 'if (client) return invoke((await authentication.resolve(request)) ?? client, request);'],
   ['bearer-delegated', 'src/server/auth/principal.ts', ' || claims.scp !== undefined', ''],
 );
 
@@ -559,11 +560,14 @@ mutants.push(...brandMutants);
 // Logging, telemetry and browser report faults.
 mutants.push(...observabilityMutants);
 
+mutants.push(...operationBoundaryMutants);
+
 // Split modules import their siblings, so a mutant runs inside a copy of the whole folder: only
 // imports that leave the folder point back at the real sources.
 const SPLIT_PROJECT_MODULES = /^src\/server\/projects\/(workspace\.ts|workspace\/|scm|trash)/;
 function copiedFolderOf(category: string, file: string) {
   if (category === 'agent') return 'src/server/agent';
+  if (['auth-middleware', 'sec-request-limits', 'signin-redirect', 'bearer-cookie', 'observability-unaudited', 'operation-boundary'].includes(category)) return 'src/server/auth';
   return SPLIT_PROJECT_MODULES.test(file) ? 'src/server/projects' : undefined;
 }
 async function writeFolderCopy(folder: string, file: string, mutatedSource: string, index: string) {
@@ -585,6 +589,7 @@ async function writeFolderCopy(folder: string, file: string, mutatedSource: stri
       if (!entry.name.endsWith('.ts')) continue;
       const text = entryPath === mutatedPath ? mutatedSource : await Bun.file(entryPath).text();
       const rewritten = text
+        .replace(/new URL\('(?:\.\.\/)+policies\//g, `new URL('${root}/policies/`)
         .replace(/\bfrom\s*(['"])(\.[^'"]+)\1/g, (all, quote, path) => `from ${keepInside(directory)(all, quote, path)}`)
         .replace(/\bimport\(\s*(['"])(\.[^'"]+)\1\s*\)/g, (all, quote, path) => `import(${keepInside(directory)(all, quote, path)})`);
       await Bun.write(resolve(copyRoot, entryPath.slice(folderRoot.length + 1)), rewritten);
@@ -605,9 +610,14 @@ async function run(category: string, file: string, source: string, index: string
   const target = copiedFolder ? await writeFolderCopy(copiedFolder, file, source, index) : resolve(temp, index + '.ts');
   if (!copiedFolder) await Bun.write(target, rewritten);
   const child = Bun.spawn([process.execPath, resolve(root, 'scripts/mutation-case.ts'), target, category], { stdout: 'pipe', stderr: 'pipe', env: { ...process.env, ...env } });
-  const timer = setTimeout(() => child.kill(), 10000);
+  let timedOut = false;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    child.kill();
+  }, 60000);
   const code = await child.exited;
   clearTimeout(timer);
+  if (timedOut) throw Error(`Mutation case timed out (${category}, ${index}).`);
   const error = await new Response(child.stderr).text();
   return { code, error };
 }
