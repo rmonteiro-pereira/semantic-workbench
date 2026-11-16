@@ -387,3 +387,7 @@ The first broad unit run exposed old branch expectations and selected-path valid
 ### Final documentation review
 
 README, architecture, configuration, server and agent guides and the Unreleased migration table now describe the settled snapshot and local publication. The independent documentation reviewer returned PASS after narrowing the response-header claim to catalog/context/plan and correcting the server storage description. `docs_sync.py --worktree .` exited 0. Existing fixture alignment: 40 pass, 0 fail, 423 assertions across five files; the copy-publish mutation baseline also exited 0.
+
+## Final review corrections
+
+The full architecture review identified and prompted fixes for registration-time initialization, the agent response header during registry changes, remote-follow publication audit identifiers, adoption refusal audit identifiers and publication availability without history permission. The corrections reuse existing initialization, request audit and project-list boundaries. Proof: agent source tests 3 pass / 37 assertions; clone and migration targeted run 42 pass / 311 assertions; audit, remote and adoption tests 18 pass / 1,084 assertions; export access 6 pass / 29 assertions. `bun --bun run check` exited 0. The snapshot browser check passed both modes and all six publication geometries, including Published export while history requests return 403. The command is registered in package.json, the shared gate list and the pipeline matrix.
