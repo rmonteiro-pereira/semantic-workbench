@@ -76,6 +76,13 @@ owner.
   document-relative form `sw1:#...` for the same file, the project-relative form `sw1:/path#...`
   for another file of the project. Only stores outside the files (usage counters, migrations,
   audit, MCP) use the absolute form.
+- Q: Who may record a reconciliation of an external change? -> A: Anyone who may edit the file that
+  holds the new address, through the same authorization boundary as a save, because a
+  reconciliation only links two addresses the person can already read and cannot widen access
+  (Constitution: one authorization boundary).
+- Q: What if a recorded rename is undone in Git (reset, revert, branch switch)? -> A: A stored
+  address is migrated only when it no longer resolves in the model being read. An address that
+  still resolves is left alone, so a stale record has no effect (FR-047).
 - Q: Do import aliases and Ossie QNames (`core:Party`) appear in addresses? -> A: No. An alias is
   a document-local spelling resolved before an address is formed; an address always names the
   resolved item. The mesh feature supplies the alias resolver. QNames are display text and IRI
@@ -454,6 +461,13 @@ guarded projects and compares the responses.
   message that does not repeat document content beyond the offending name.
 - **FR-046**: The module MUST add no runtime dependency and MUST add no network call.
 
+- **FR-047**: A consumer MUST apply migrations to a stored address only when that address does not
+  resolve in the model it is read against, so that an undone rename leaves stored addresses
+  untouched. The shared function that applies migrations MUST take the resolver result as input and
+  return the address unchanged when it resolved.
+- **FR-048**: Recording a reconciliation MUST require the same permission as saving the file that
+  holds the new address, and MUST be refused for an address in a project the person cannot read.
+
 ### Key Entities
 
 - **Address**: the parsed form of an address: project, document path, item chain, optional
@@ -552,7 +566,7 @@ guarded projects and compares the responses.
 | E6 IRI supplies global identity | FR-018 | no invented ids |
 | E6 nested ODCS and embedded layouts as locators | FR-012 to FR-015 | layouts and nesting |
 | E6 renames update references, record migrations | FR-027 to FR-031, FR-034, FR-035 | |
-| E6 ambiguous external changes become remove/add | FR-016, FR-032, FR-033 | |
+| E6 ambiguous external changes become remove/add | FR-016, FR-032, FR-033, FR-047, FR-048 | |
 | E6 snapshot version for history | FR-005, FR-007 | |
 | E6 A1 is M | Summary, FR-038 | adoption order and size |
 | Evaluation A1 (parse and format used by graph, mapping, context, metrics, MCP) | FR-022 to FR-026, FR-038, FR-041 | |

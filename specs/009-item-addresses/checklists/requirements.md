@@ -31,7 +31,7 @@
 
 ## Notes
 
-- Seven clarification questions were answered from the decisions document, the evaluation and the
+- Nine clarification questions were answered from the decisions document, the evaluation and the
   reviews; none needs the owner. They are recorded in the spec's Clarifications section.
 - The grammar is the deliverable, so the spec states it. The module layout and file names are left
   to the plan.
