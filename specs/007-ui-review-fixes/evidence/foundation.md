@@ -51,3 +51,9 @@ Existing theme styles name DM Sans and Manrope; local font faces supply their gl
 
 - The first full responsive run found `odcs-dataset-properties` overlap between a commit hash and the newly chosen `Workbench Fixture` name. The neutral environment now uses the existing fixture convention, `Workbench Test <workbench-test@example.invalid>`, instead of inventing a longer name. No ODCS layout or assertion was changed. Focused rerun: `RESPONSIVE_ONLY='ODCS screens' SW_BASE_URL=http://127.0.0.1:5201 bun run test:responsive` passed all four requested widths (390, 1280, 1440, 2560), log `/tmp/sw-foundation/responsive-odcs.log`.
 - Capture-index command mapping was refined against original capture log stems; some states come from dedicated file/lineage tools rather than capture-states. T002 remains partial until each driver has a fresh smoke run.
+
+## Documentation
+
+- T008: README stack/licensing row, shared-layer architecture, theme font/replacement guidance and `changelog/E.md` describe the local fonts. `src/server/static.ts` has no font-src override; its existing default-src self permits same-origin font assets without a policy edit.
+- `bun --bun run check`: exit 0; formatting, lint, comment, theme and brand checks pass (`/tmp/sw-foundation/final-check.log`).
+- Document leak scan: five font/application documents clean, zero hits; internal evidence/index and imported capture tooling also pass the confidential-only scan. Logs are under `/tmp/sw-foundation/`.

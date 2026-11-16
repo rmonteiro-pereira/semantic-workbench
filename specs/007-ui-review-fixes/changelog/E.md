@@ -1,0 +1,1 @@
+- Bundle DM Sans and Manrope under the SIL Open Font License so the workspace typography works offline; add sans-serif fallbacks to display headings and controls.

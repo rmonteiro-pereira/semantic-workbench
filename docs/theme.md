@@ -25,6 +25,21 @@ fills.
 Translucent colors are written as `color-mix(in srgb, var(--color-shadow) 8%, transparent)`, so
 they follow the token in both themes.
 
+## Fonts
+
+DM Sans (body text) and Manrope (display text) are bundled variable WOFF2 files under
+`src/shared/fonts/`, licensed under SIL Open Font License 1.1. `fonts.css` declares the faces
+with `font-display: swap` and exposes `--font-sans` and `--font-display`, each ending in
+`sans-serif`. Monospace stacks keep their existing generic fallback. No CDN is required.
+The server policy in `src/server/static.ts` already permits these fonts through
+`default-src 'self'`; no CSP change is necessary.
+
+To replace them, swap the font files and corresponding `@font-face` URLs/ranges, retain the
+licence texts and provenance in the font README, and update the two stack tokens. Run
+`bun test tests/fonts.test.ts` and `bun run test:theme`. For the focused first-run assertion,
+run `bun scripts/theme-browser-check.ts --fonts-only` against the frontend selected by
+`SW_BASE_URL`; it blocks external requests and prints every request host.
+
 ## Light and dark
 
 The light values live under `:root`. Both dark blocks use the same token names with dark-theme
@@ -102,6 +117,7 @@ distance, and paths limit the run: `bun scripts/theme-codemod.ts --dry-run src/a
 
 Run `bun run test:theme` to check that:
 
+- The first-run screen loads both bundled faces with external requests blocked, and heading stacks end in sans-serif.
 - Changing `--color-accent` updates the primary button, selected tab and focused graph node.
 - The Theme control, system preference and stored choice select the expected theme.
 - `theme-init.js` blocks the first paint until the saved choice is applied.

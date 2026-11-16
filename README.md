@@ -106,6 +106,7 @@ not necessarily the versions installed from the lockfile.
 | Rebuildable index | `bun:sqlite` | File/model caches and search metadata |
 | Source editor | CodeMirror 6 / Lezer | Highlighting, lint, folding, search and diffs |
 | UI icons/styles | Lucide React 0.468.0, CSS tokens | Icons, responsive layout, light/dark themes |
+| Fonts | Bundled DM Sans 4.004 and Manrope 4.505 | Variable WOFF2, SIL Open Font License 1.1; [licences and hashes](src/shared/fonts/README.md) |
 
 There is no ORM, external database server or application LLM dependency. SQLite is an internal
 index, not a warehouse connected to the metric planner. Node is used by development tooling; the

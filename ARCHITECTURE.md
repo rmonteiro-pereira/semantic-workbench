@@ -98,6 +98,10 @@ Repeated metric reference reads share a model-local index within one validation/
 The pure address modules do not read application state. Consumers build text through `formatAddress`, never by
 concatenating project, document or item names.
 
+`src/shared/fonts/` owns bundled DM Sans and Manrope variable WOFF2 assets, their SIL Open Font
+License texts and the `--font-sans` / `--font-display` stacks. The browser entry imports their
+font-face declarations before the theme stylesheet. Fonts are served from the application origin.
+
 ### HTTP, startup and ownership
 
 - `src/` has three runtime areas. `src/app/` is the browser application, `src/server/` the Bun-only

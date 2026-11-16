@@ -75,7 +75,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Add the font assertions beside the existing accent and contrast checks; log every request host and fail on any host other than the application's.
   - Proof: `bun run test:theme` passes and the new assertions are listed in its output; before the fix the same assertions fail on `main` (run once on e8b7d69 to show they bite).
 
-- [ ] T008 [E] Document the fonts: README technology stack and licences, `docs/theme.md` (fonts section), `ARCHITECTURE.md` (shared layer), CHANGELOG fragment.
+- [x] T008 [E] Document the fonts: README technology stack and licences, `docs/theme.md` (fonts section), `ARCHITECTURE.md` (shared layer), CHANGELOG fragment.
   - Findings: M7 · Requirements: FR-053
   - Files: `README.md`, `docs/theme.md`, `ARCHITECTURE.md`, `specs/007-ui-review-fixes/changelog/E.md`
   - Change: State that the fonts are bundled, name the licence, and describe how to replace them (swap files and the two tokens). The CSP needs no change because `default-src 'self'` already covers fonts from the origin; say so.
