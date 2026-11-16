@@ -1,5 +1,5 @@
 // Captures one UI deletion per fresh temporary workspace. Usage: bun scripts/ui-review/followup-trash.ts OUTPUT_ROOT.
-// SW_FOLLOWUP_WIDTH optionally selects one width. SW_BASE_URL defaults to port 5190. The API binds checked port 5192; every state has its own DATA_DIR and context.
+// SW_FOLLOWUP_WIDTH optionally selects one width. SW_BASE_URL defaults to port 5190. The API binds a dynamic port; every state has its own DATA_DIR and context.
 import { chromium, expect, type Page } from '@playwright/test';
 import { mkdtempSync } from 'node:fs';
 import { startIsolatedApi, routeApi } from '../helpers/isolated-api';
@@ -7,7 +7,6 @@ import { LOCAL_READER } from '../../src/server/projects/reader';
 import { fileTab, showSidebar } from '../helpers/screen-tour';
 import { withCleanup } from '../helpers/processes';
 import { freshCapture, followupViews, type State } from './followup-capture';
-import { fixtureAtPort } from './followup-ports';
 
 const root = process.argv[2];
 if (!root) throw new Error('Expected OUTPUT_ROOT');
@@ -74,7 +73,7 @@ await withCleanup(
       for (const name of ['undo-toast', 'populated', 'row-actions', 'empty']) {
         const data = mkdtempSync('/tmp/sw-followup-trash-');
         process.env.DATA_DIR = data;
-        const api = await fixtureAtPort(5192, () => startIsolatedApi({ root: data }));
+        const api = await startIsolatedApi({ root: data });
         try {
           const source = 'name: Scratch\nontology:\n  - concept: Scratch\n    type: EntityType\n';
           await api.ws.importBatch(

@@ -1,10 +1,9 @@
 // Captures independent local follow-up states. Usage: bun scripts/ui-review/followup-local.ts OUTPUT_ROOT [graphs|lineage|content|all].
-// SW_FOLLOWUP_WIDTH optionally selects one width. SW_BASE_URL defaults to loopback port 5190; SW_FOLLOWUP_ONLY filters screen/state names. Fixtures bind checked port 5191 with temporary DATA_DIR.
+// SW_FOLLOWUP_WIDTH optionally selects one width. SW_BASE_URL defaults to loopback port 5190; SW_FOLLOWUP_ONLY filters screen/state names. Fixtures use dynamic ports with temporary DATA_DIR.
 import { chromium } from '@playwright/test';
 import { mkdtempSync } from 'node:fs';
 import { startIsolatedApi, routeApi } from '../helpers/isolated-api';
 import { withCleanup } from '../helpers/processes';
-import { fixtureAtPort } from './followup-ports';
 import { loadFollowupFixtures } from './followup-fixtures';
 import { freshCapture, followupViews, type State, type View } from './followup-capture';
 import { fullGraphStates, neighborhoodStates } from './followup-graphs';
@@ -15,7 +14,7 @@ const [root, group = 'all'] = process.argv.slice(2);
 if (!root) throw new Error('Expected OUTPUT_ROOT [graphs|lineage|content|all]');
 const data = mkdtempSync('/tmp/sw-followup-local-');
 process.env.DATA_DIR = data;
-const api = await fixtureAtPort(5191, () => startIsolatedApi({ root: data }));
+const api = await startIsolatedApi({ root: data });
 const browser = await chromium.launch();
 const views: View[] = [...followupViews, { width: 1280, height: 720, theme: 'light' }];
 

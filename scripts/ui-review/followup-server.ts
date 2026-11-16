@@ -1,29 +1,26 @@
 // Captures fresh persona access surfaces, connected GitHub, and scoped file move. Usage: bun scripts/ui-review/followup-server.ts OUTPUT_ROOT.
-// SW_FOLLOWUP_ONLY filters screen/state names. Mock provider, application, and Git fixture bind checked ports 5194, 5193, and 5195; all data is temporary.
+// SW_FOLLOWUP_ONLY filters screen/state names. Mock provider, application, and Git fixture use dynamic ports; all data is temporary.
 import { chromium, expect, type Page } from '@playwright/test';
 import { mkdtempSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { startMockOidc } from '../../tests/helpers/mock-oidc';
 import { startCredentialGitServer } from '../../tests/auth/credential-git-server';
-import { startAuthApi } from '../auth-environment';
+import { freeAuthPort, startAuthApi } from '../auth-environment';
 import { signIn } from '../helpers/sign-in';
 import { showSidebar } from '../helpers/screen-tour';
 import { openSettings } from '../helpers/sidebar-menus';
 import { withCleanup } from '../helpers/processes';
 import { freshCapture, followupViews, type State } from './followup-capture';
-import { assertFreePort, fixtureAtPort } from './followup-ports';
 
 const root = process.argv[2];
 if (!root) throw new Error('Expected OUTPUT_ROOT');
 const directory = mkdtempSync('/tmp/sw-followup-server-');
 process.env.DATA_DIR = directory;
-const url = 'http://127.0.0.1:5193';
-assertFreePort(5193);
-assertFreePort(5194);
-const mock = await startMockOidc({ shape: 'entra', layout: 'entra', port: 5194, redirectUris: [url + '/auth/callback'] });
+const url = `http://127.0.0.1:${freeAuthPort()}`;
+const mock = await startMockOidc({ shape: 'entra', layout: 'entra', port: 0, redirectUris: [url + '/auth/callback'] });
 const app = { clientId: 'sw-followup-github', clientSecret: crypto.randomUUID(), redirectUri: url + '/auth/github/callback' };
 const tokens = new Map<string, string>();
-const github = await fixtureAtPort(5195, () => startCredentialGitServer(join(directory, 'github'), async (_username, password) => tokens.get(password) ?? null, app));
+const github = await startCredentialGitServer(join(directory, 'github'), async (_username, password) => tokens.get(password) ?? null, app);
 const api = await startAuthApi(
   url,
   { ...mock, kind: 'entra' },

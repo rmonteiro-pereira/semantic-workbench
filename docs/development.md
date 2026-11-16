@@ -269,7 +269,9 @@ Additional reproducible state captures live in `scripts/ui-review/`. Run
 against a frontend using temporary data. The shared local fixture sets neutral Git author and
 committer names and emails. See `specs/007-ui-review-fixes/capture-index.md` for state commands.
 `SW_ONLY` and `SW_THEME` select supported state groups and themes; follow-up captures use
-`SW_FOLLOWUP_WIDTH` and `SW_FOLLOWUP_ONLY`. Server captures require their documented fixture ports.
+`SW_FOLLOWUP_WIDTH` and `SW_FOLLOWUP_ONLY`. Follow-up and server fixtures use dynamically allocated
+loopback ports. The graph-reopen probe also allocates its second frontend port dynamically and
+uses its own cache. All captures retain disposable data roots.
 
 
 With a frontend on port 5180:

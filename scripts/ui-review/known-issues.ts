@@ -1,11 +1,11 @@
 // Captures lineage click evidence and graph reopen timing. Usage: bun scripts/ui-review/known-issues.ts OUTPUT [FIRST_ATTEMPT] [LAST_ATTEMPT].
-// SW_BASE_URL selects the first Vite server; the second server is started on verified-free port 5191.
+// SW_BASE_URL selects the first Vite server; the second server uses a dynamically allocated port and an isolated cache.
 import { checkReadableWalks, checkFittedWalk } from '../helpers/odcs-graph-walk';
 import { chromium, type Page } from '@playwright/test';
-import { mkdirSync, appendFileSync, rmSync, realpathSync, existsSync, mkdtempSync } from 'node:fs';
+import { mkdirSync, appendFileSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { startIsolatedApi, routeApi } from '../helpers/isolated-api';
 import { fileTab, openFile, showSidebar } from '../helpers/screen-tour';
-import { withCleanup } from '../helpers/processes';
+import { freeLoopbackPort, withCleanup } from '../helpers/processes';
 
 const output = process.argv[2];
 const firstAttempt = Number(process.argv[3] ?? 1);
@@ -18,6 +18,8 @@ const browser = await chromium.launch();
 let second: ReturnType<typeof Bun.spawn> | undefined;
 let secondStart = 0;
 let secondServerPid: number | undefined;
+let secondPort = 0;
+let secondData: string | undefined;
 const records = `${output}/known-issues.jsonl`;
 const log = (entry: object) => {
   console.log(JSON.stringify(entry));
@@ -75,8 +77,13 @@ async function stopSecond() {
     await second.exited;
     second = undefined;
   }
+  if (secondData) {
+    rmSync(secondData, { recursive: true, force: true });
+    secondData = undefined;
+  }
+  if (!secondPort) return;
   for (let attempt = 0; attempt < 50; attempt++) {
-    const listeners = Bun.spawnSync(['ss', '-ltnH', 'sport = :5191']);
+    const listeners = Bun.spawnSync(['ss', '-ltnH', `sport = :${secondPort}`]);
     if (!listeners.stdout.toString().trim()) return;
     await Bun.sleep(100);
   }
@@ -85,13 +92,15 @@ async function stopSecond() {
 
 async function startSecond(clearCache: boolean) {
   await stopSecond();
-  const check = Bun.spawnSync(['ss', '-ltnH', 'sport = :5191']);
-  if (new TextDecoder().decode(check.stdout).trim()) throw new Error('5191 is busy');
-  const cache = `${process.cwd()}/node_modules/.vite`;
-  if (clearCache && existsSync(cache) && realpathSync(cache).startsWith(process.cwd() + '/')) rmSync(cache, { recursive: true });
-  const data = mkdtempSync('/tmp/sw-capture-second-');
+  secondPort = freeLoopbackPort();
+  const data = mkdtempSync('/tmp/sw-GATE-second-');
+  secondData = data;
+  const config = `${data}/vite.config.ts`;
+  const baseConfig = JSON.stringify(`${process.cwd()}/vite.config.ts`);
+  const cacheDirectory = JSON.stringify(`${data}/vite-cache`);
+  writeFileSync(config, `import base from ${baseConfig};\nexport default env => ({ ...base(env), cacheDir: ${cacheDirectory} });\n`);
   secondStart++;
-  second = Bun.spawn(['bun', 'x', 'vite-plus', 'dev', '--host', '127.0.0.1', '--strictPort', '--port', '5191'], {
+  second = Bun.spawn(['bun', 'x', 'vite-plus', 'dev', '--host', '127.0.0.1', '--strictPort', '--port', String(secondPort), '--config', config], {
     env: { ...process.env, DATA_DIR: data },
     stdout: Bun.file(`${output}/vite-second-${firstAttempt}-${secondStart}.log`),
     stderr: 'inherit',
@@ -99,8 +108,8 @@ async function startSecond(clearCache: boolean) {
   log({ type: 'second-start', pid: second.pid, clearCache });
   for (let attempt = 0; attempt < 300; attempt++) {
     try {
-      if ((await fetch('http://127.0.0.1:5191', { signal: AbortSignal.timeout(1000) })).ok) {
-        const listeners = Bun.spawnSync(['ss', '-ltnpH', 'sport = :5191']);
+      if ((await fetch(`http://127.0.0.1:${secondPort}`, { signal: AbortSignal.timeout(1000) })).ok) {
+        const listeners = Bun.spawnSync(['ss', '-ltnpH', `sport = :${secondPort}`]);
         const match = listeners.stdout.toString().match(/pid=(\d+)/);
         if (!match) throw new Error('Cannot identify the second Vite listener PID');
         secondServerPid = Number(match[1]);
@@ -171,7 +180,7 @@ await withCleanup(
     for (let attempt = Math.max(1, firstAttempt); attempt <= Math.min(10, lastAttempt); attempt++) await reopenEvidence(process.env.SW_BASE_URL ?? 'http://127.0.0.1:5190', attempt);
     for (let attempt = Math.max(11, firstAttempt); attempt <= lastAttempt; attempt++) {
       await startSecond(attempt <= 13);
-      await reopenEvidence('http://127.0.0.1:5191', attempt);
+      await reopenEvidence(`http://127.0.0.1:${secondPort}`, attempt);
     }
   },
 );
