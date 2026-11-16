@@ -367,3 +367,7 @@ Both adoption mutants are detected independently: skipping the content guard and
 ## History provenance
 
 `TMPDIR=/tmp/sw-008 bun test tests/snapshot-history.test.ts tests/snapshot-provenance.test.ts tests/git-status.test.ts`: 9 pass, 0 fail, 129 assertions. Through HTTP, Bob reads his own commit, Alice cannot read it by full id, and Alice’s own HEAD/history and published commits remain readable. Versions has no revision parameter in the existing API: its HEAD log entries are checked individually rather than adding an unrequested selector. The provenance predicate is bound to the project repository, so publication in another repository cannot widen it. The skipped-show-check mutant is detected (baseline 0, mutant 1). Log and Diff are unchanged. `bun --bun run check`: exit 0.
+
+## Foreign history authorization matrix
+
+`TMPDIR=/tmp/sw-008 bun test tests/auth/matrix.test.ts -t "history source matrix"`: 1 pass, 0 fail, 60 assertions. Every fixture identity receives identical status/body for a foreign personal id and a missing id through Show; Versions ignores that unsupported selector and returns only its normal readable HEAD history. Neither response exposes the foreign payload.

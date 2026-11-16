@@ -663,3 +663,31 @@ test('preview routes admit session and marked local browsers while other surface
     }
   }
 });
+
+test('history source matrix never reveals a foreign personal commit by its id', async () => {
+  using fixture = await authWorkspace();
+  const project = 'sales-contracts';
+  const path = 'sales.mapping.yaml';
+  const base = join(fixture.ws.layout.projects, project);
+  const foreignCopy = join(fixture.ws.layout.worktrees, 'u' + 'f'.repeat(20), project);
+  await fixture.ws.git.run(base, ['worktree', 'add', '-q', '-b', 'work/foreign', foreignCopy, 'main']);
+  const marker = 'private foreign history payload';
+  writeFileSync(join(foreignCopy, path), readFileSync(join(foreignCopy, path), 'utf8') + `\n# ${marker}\n`);
+  await fixture.ws.git.run(foreignCopy, ['commit', '-qam', 'Foreign personal change']);
+  const foreign = (await fixture.ws.git.head(foreignCopy))!;
+  const access = createAccessControl(accessFixture());
+  for (const name of Object.keys(TEST_USERS) as TestUserName[]) {
+    const principal = access.principalFor(person(name));
+    const handler = createHandler(fixture.ws, { mode: 'server', access, principal: () => principal, remoteCredentials: allowEveryRemote() });
+    for (const operation of ['show', 'versions']) {
+      const read = (commit: string) => handler(new Request(`http://localhost/api/projects/${project}/git/${operation}?path=${path}&commit=${commit}`, { headers: { Cookie: 'session=fixture' } }));
+      const response = await read(foreign);
+      const missing = await read('0'.repeat(40));
+      expect(response.status).toBe(missing.status);
+      const text = await response.text();
+      expect(text).toBe(await missing.text());
+      expect(text).not.toContain(marker);
+      if (response.status === 200 && operation === 'show') expect(JSON.parse(text)).toEqual({ source: '', exists: false });
+    }
+  }
+});
