@@ -141,7 +141,7 @@ Writing reads to a separate file: it would split the hash chain.
 readable project (`scope.view().readableProjects`). `dry-run.ts` builds sample resources
 (`projectResources`) that every role condition tells apart.
 
-**Decision.** Factor the pass logic of `routeDecision` into `permittedSomewhere(scope, row)` used by
+**Decision.** Use one pure `routeVerdict(scope, row, mode, target)` for
 both invocation and listing, so the two cannot drift. Listing probes each readable project with the
 dry run's sample resources (exported from `dry-run.ts` unchanged) and the workspace resource for
 workspace rows. A path-limited custom role therefore lists save operations. The result contains only

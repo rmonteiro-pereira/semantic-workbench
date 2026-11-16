@@ -26,7 +26,7 @@ of it; feature 006 builds on this one.
 - Request authentication (rate limits, local Host and Origin checks, bearer tokens, the cross-site
   check, sessions) becomes a separate stage that produces the caller. Nothing that a tool supplies
   can choose an action, a resource or a route.
-- The audit record gains `origin`, `tool`, `method` and `connection`, records the semantic outcome
+- The audit record gains `origin`, `tool` and `connection`, records the semantic outcome
   of an operation even when the failure travels inside HTTP 200, and keeps every old record
   verifiable. The dry-run sample reads writes and denials separately from deduplicated MCP reads, so
   read volume cannot evict the decisions an Admin needs to review.
@@ -110,8 +110,8 @@ origin and tool.
 
 **Acceptance Scenarios**:
 
-1. **Given** a record written by this feature, **When** it is read back, **Then** `origin`, `tool`,
-   `method` and `connection` are present when supplied and absent otherwise.
+1. **Given** a record written by this feature, **When** it is read back, **Then** `origin`, `tool`
+   and `connection` are present when supplied and absent otherwise.
 2. **Given** audit months written before this feature, **When** `bun run audit:verify` runs on them
    alone and on them followed by new records, **Then** both pass.
 3. **Given** a twin whose response is HTTP 200 with a failed result, **When** the caller supplies the
@@ -226,7 +226,7 @@ inventory; later increments (006 and its successors) are planned against this ta
   holds the per-address rate limits, the local Host and Origin check, bearer validation, the
   cross-site check and session or principal resolution, and it yields a caller or a response. The
   order of these checks MUST NOT change for HTTP.
-- **FR-002**: A caller MUST carry the principal, the origin (`http`, `mcp` or `acp`), the source
+- **FR-002**: A caller MUST carry the principal, the origin (`http` or `mcp`), the source
   address, a reference to the session that owns the person's delegated credentials, and optionally a
   connection id and a connection scope. A caller MUST be creatable only by authentication code; the
   boundary MUST refuse any value it did not mint.
@@ -302,9 +302,8 @@ inventory; later increments (006 and its successors) are planned against this ta
 
 **Audit record**
 
-- **FR-020**: The audit input and record MUST gain optional `origin` (`http`, `mcp`, `acp`), `tool`
-  (an inventory operation id), `method` (a protocol method from a fixed list, for calls that are not
-  tool calls) and `connection` (an opaque id of at most 64 characters from a fixed alphabet). A
+- **FR-020**: The audit input and record MUST gain optional `origin` (`http`, `mcp`), `tool`
+  (an inventory operation id) and `connection` (an opaque id of at most 64 characters from a fixed alphabet). A
   record without `origin` means HTTP. Values outside these sets MUST make the append fail rather
   than be stored.
 - **FR-021**: A test MUST fail when a field of the audit input is neither serialized nor on an
@@ -317,9 +316,8 @@ inventory; later increments (006 and its successors) are planned against this ta
   the new ones. Visibility rules for Admins and Stewards MUST NOT change.
 - **FR-024**: Operations whose caller origin is not `http` MUST be audited when allowed, including
   plain reads, once per operation. The audit rule for HTTP callers MUST NOT change.
-- **FR-025**: The boundary MUST offer one call to record a protocol call that is not an operation
-  (discovery, listing, resource and prompt access, subscription open and close, denial), once per
-  call and never once per returned item.
+- **FR-025**: Protocol-call recording and its method vocabulary are deferred until the first
+  transport caller. The operation boundary MUST NOT expose an unused protocol-recording API.
 - **FR-026**: The boundary MUST accept an optional outcome classifier from the caller. It receives a
   clone of a bounded, non-streamed response and returns `ok`, `refused`, `failed` or `degraded`.
   Without one, the outcome comes from the status as today. The record MUST carry the classified
@@ -345,14 +343,14 @@ inventory; later increments (006 and its successors) are planned against this ta
 **Operation inventory**
 
 - **FR-033**: `policies/operation-inventory.json` MUST contain one entry per row of `ROUTE_ACTIONS`,
-  keyed by the row's path, with: a stable operation id, service module, action, client action,
-  target kind (path, body or handler), the names of the handler checks, input fields (query and
-  body), request limit, response bound, side effects, dispatchability with a reason when not, and
-  MCP exposure (the increment that will expose it, or the reason it is not an agent operation).
+  keyed by the row's path, with: a stable domain operation id, handler-check coverage, request
+  limit, response bound, side effects, dispatchability with a reason when not, a typed classifier
+  name when needed, and MCP exposure. Actions, client actions and initial resource kinds belong
+  only to route rows. Unused service and hand-copied input descriptions MUST NOT be duplicated.
 - **FR-034**: It MUST also list the browser-only capabilities that the whole-workbench claim covers
   (at least SHACL validation) with their status and increment.
 - **FR-035**: A test MUST fail when a route row has no entry or an entry has no row, when an entry's
-  action, client action or target kind differs from its row, when a field is empty, when a value is
+  id is duplicated, when a required field is empty, when a value is
   outside its vocabulary, when a limit names a constant that does not exist, and when a handler
   check named in the inventory is not covered by a parity case.
 - **FR-036**: A generated table in `docs/` MUST be produced from the inventory and checked for drift.
@@ -391,10 +389,10 @@ inventory; later increments (006 and its successors) are planned against this ta
   credentials.
 - **Operation boundary**: route selection, authorization, handler, refusal and audit as one
   function.
-- **Operation call**: caller, twin request, optional tool or method name, optional outcome
+- **Operation call**: caller, twin request, optional operation id, optional outcome
   classifier.
 - **Inventory entry**: the contract row of one operation (FR-033).
-- **Audit record (extended)**: the existing record plus origin, tool, method and connection.
+- **Audit record (extended)**: the existing record plus origin, tool and connection.
 - **Replay stratum**: a bounded group of audit records used by the dry run.
 - **Connection scope**: the set of effects a connection may use.
 
@@ -427,8 +425,7 @@ inventory; later increments (006 and its successors) are planned against this ta
 
 ## Assumptions
 
-- **Origins** are `http`, `mcp` and `acp`. ACP reuses the boundary as decision M19 requires; adding a
-  fourth origin means changing the audit contract.
+- **Origins** are `http` and `mcp`. ACP support is deferred until its first transport caller.
 - **Outcome classification.** Most routes map failures to non-2xx statuses, so the status default is
   right for them. Where a 2xx body reports a failed or partial effect, the inventory names a
   classifier. A task reviews every dispatchable route for this; none is assumed to exist.
@@ -479,7 +476,7 @@ owner.
   limited once at authentication (FR-001). A twin has no network address of its own, and counting
   twins would let one MCP call exhaust a browser user's allowance. Per-principal tool limits are
   006's (M17). Source: M1, M17.
-- **Q2. Which origins exist?** `http`, `mcp`, `acp` (FR-020). ACP reuses the dispatcher (M1, M19).
+- **Q2. Which origins exist?** `http` and `mcp` (FR-020); ACP is deferred until its first caller.
 - **Q3. How does an operation's outcome reach the audit when the HTTP status says success?** Through
   an optional classifier that the caller supplies and that reads a clone of a bounded response
   (FR-026). Cloning only a non-streamed response keeps memory bounded, and the hidden-response mark

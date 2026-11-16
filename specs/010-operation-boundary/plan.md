@@ -12,10 +12,10 @@ request and runs route selection, authorization, the existing handler, refusal m
 A thin HTTP adapter composes them, so the server calls the same boundary that the MCP tools of
 feature 006 will call with a twin request. Identity reaches handlers through one attach function
 that also carries the session for delegated Git credentials. The audit record gains origin, tool,
-method and connection and a semantic outcome; the dry run samples writes and MCP reads in separate
+connection and a semantic outcome; the dry run samples writes and MCP reads in separate
 strata; tool lists are computed from effective permissions with the dry run's probe resources; and
-`policies/operation-inventory.json` records every route row's service, action, targets, handler
-checks, limits, effects and exposure, checked by a test. A characterization of HTTP behaviour is
+`policies/operation-inventory.json` adds each route's public id, handler checks, limits, effects
+and exposure, checked by a test. A characterization of HTTP behaviour is
 recorded first, on the unchanged code, and must pass unchanged at the end.
 
 The reasoning and rejected alternatives are in [research.md](./research.md).
@@ -81,7 +81,8 @@ its problem (see "Patterns used").
 |---|---|---|
 | `src/server/auth/caller.ts` | Who is calling, minted once | `Caller`, `CallerOrigin`, `mintCaller`, `assertMinted` |
 | `src/server/auth/request-authentication.ts` | Proving who sent a network request | rate limits, local check, bearer, cross-site check, principal resolution, anonymous audit gate (from `middleware.ts`) |
-| `src/server/auth/operation-boundary.ts` | Deciding and running one operation | `operate`, `availableOperations`, `recordProtocolCall`; `execute`, `routeDecision`, `refusal`, `refusedTarget`, trash lookup, audit input (from `middleware.ts`) |
+| `src/server/auth/route-verdict.ts` | Pure admission and candidate resources shared by invocation and listing | `routeVerdict`, `routeTargets` |
+| `src/server/auth/operation-boundary.ts` | Deciding and running one operation | `operate`, `availableOperations`; `execute`, `routeVerdict`, `refusal`, `refusedTarget`, trash lookup, audit input (from `middleware.ts`) |
 | `src/server/auth/operation-inventory.ts` | The contract of every operation | typed parser of `policies/operation-inventory.json`, lookups by row path and operation id |
 | `src/server/auth/twin-request.ts` | Building an in-process request | `buildTwinRequest` |
 | `src/server/auth/connection-scope.ts` | Effects a connection may use | effect vocabulary, `scopeAllows`, `requireEffect` |
@@ -122,8 +123,8 @@ No other pattern is introduced.
 
 ### Audit and dry run
 
-`AuditInput` and `record()` gain `origin`, `tool`, `method`, `connection`. `tool` is checked
-against the inventory's ids, `method` against a fixed list, `connection` against
+`AuditInput` and `record()` gain `origin`, `tool`, `connection`. `tool` is checked
+against the inventory's ids, `connection` against
 `/^[A-Za-z0-9_-]{1,64}$/`. The serializer-completeness test lists every input key. `queryAudit` and
 `exportAudit` gain filters and CSV columns appended after the existing ones. `replaySample` builds
 the strata of research R8; `MAX_AUDIT_SNAPSHOTS` keeps its value for stratum A, and the read cap
@@ -179,7 +180,7 @@ src/server/auth/
 ├── middleware.ts                     # shrinks to the HTTP adapter
 ├── request-scope.ts                  # attachIdentity, requestSession
 ├── remote-credentials.ts             # session lookup through the caller first
-├── audit.ts                          # origin, tool, method, connection, filters, CSV columns
+├── audit.ts                          # origin, tool, connection, filters, CSV columns
 ├── dry-run.ts, access-admin.ts       # replay strata
 └── route-actions.ts                  # unchanged
 src/server/observability/metrics.ts   # recordOperation

@@ -303,7 +303,9 @@ client headers. Behind ingress, that peer is ingress rather than the end user.
 
 Allowed writes and refused requests are recorded in monthly hash-chained audit files under
 `state/audit/`, without credentials or document content. Allowed agent reads are audited too.
-Retention is 400 days. Anonymous denial records are throttled and carry suppressed counts.
+Retention comes from `audit.retentionDays` in administration settings and defaults to 400 days.
+It is applied at startup; changing it requires a restart. Anonymous denial records are throttled
+and carry suppressed counts.
 Audit export is filtered to the caller's readable scope.
 
 ```sh

@@ -618,3 +618,50 @@ The final branch readability check reports 69 files and 0 findings. Confidential
 reports 0 hits across all 99 changed files, and 0 hits after the final evidence update. Full scanning
 of added public documentation reports 0 hits. Architecture review found no blocking issue; the
 review marker is recorded on the final committed tree.
+
+
+## Architecture review corrections
+
+The integrator's constitution 4.0.1 commit `d3a4181b` is retained unchanged. The review supersedes
+the earlier unused transport surface and the frozen listing snapshot; the frozen HTTP fixture
+and audit-month bytes remain the compatibility contract.
+
+1. `routeVerdict(scope, row, mode, target)` is shared by execution and listing. It owns no-access,
+   local-only identity, client rows, Steward audit passes, body/workspace passes, trash action
+   substitution/readability and static connection effects. Listing supplies candidates of the
+   route's actual kind and reuses only equivalent probes within the call. The invariant tests
+   every inventory row and every fixture caller, both modes and read-only connections; custom
+   path/document conditions and a project-only clear grant are included. Listed entries must
+   admit a candidate; every candidate of an unlisted entry must be refused.
+2. All 119 operation ids were individually reviewed and named in domain terms. The generated
+   reference is titled “Operation inventory”. Examples include `metrics.explain`, `policies.dryRun`,
+   `trash.undo`, `trash.restore`, `workspace.clear`, `files.saveBatch` and `git.pullDefault`.
+3. `refusal.ts` shares durable refusals without an authentication-stage dependency. The boundary
+   accepts only mode, access, audit and remote credentials; the HTTP adapter builds those options.
+4. Git push, publish and fetch-follow effects are enforced by their authorizers. A new mutant
+   removes only the push author's remote-effect check while retaining valid syntax.
+5. `statusOutcome` and `OPERATION_OUTCOMES` own the mapping and vocabulary. The access-refusal
+   argument preserves the old distinction between a denied call's metric and an authorized
+   handler's failure status in HTTP audit. Caller origins and scopes derive from their constants.
+6. The application Ajv validator uses `semantic-workbench-operations-v1.json`. Inventory action,
+   client action and target duplication is removed; route getters own those values. Classifier
+   names are typed registry keys, with schema/registry and schema/limit drift tests.
+7. `operationId` replaces the two binding fields. Protocol recording, its method vocabulary and
+   CSV column, ACP origin, service and copied input descriptions are removed. Limits remain
+   because the generated table and twin request parser consume them. The transport-specific
+   requirement and task are explicitly deferred until the first caller, as directed by the review.
+8. Twin parameter, JSON, encoding and size failures use `BadRequestError`, including circular
+   values and invalid Unicode. Forged caller provenance remains a programming error.
+9. `execute` takes one options object and reads as decide, audit denial, run, classify, audit allow.
+   Metrics are protected after completion; no inventory non-null assertions remain. A real project
+   creation test forces an exporter failure and verifies the successful write remains successful.
+   Agent plans use their own unchanged 64,000-byte limit.
+
+The independent review found and resolved the unmapped HTTP client refusal and the remaining
+unused protocol CSV column. No blocking source finding remains. Existing middleware/bearer tests:
+25 pass, 0 fail. Frozen HTTP characterization and listing invariant: 8 pass, 0 fail, 8138 assertions.
+Inventory, listing and boundary tests: 19 pass, 0 fail, 6855 assertions. Type/format/lint checks pass.
+All mutation anchors resolve after moving their original fault intents to the extracted code.
+The new listing's preliminary profile is about 70 ms (69 explicit authorization calls, six view
+builds); this includes the trash readability and Steward checks the old predicate omitted. The
+50 ms goal is unchanged; final measurements and the complete revalidation follow below.

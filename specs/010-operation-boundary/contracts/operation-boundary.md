@@ -1,7 +1,6 @@
 # Contract: the operation boundary
 
-This is what feature 006 (and, later, ACP) imports. Names are final at plan time; signatures are
-described in words.
+The HTTP adapter and trusted in-process callers use this contract. Signatures are described in words.
 
 ## Minting a caller
 
@@ -22,11 +21,14 @@ mint with `origin: 'mcp'` and its connection id.
 4. Returns a `Request` whose URL host is a fixed internal name, whose method is the row's method, and
    whose only header is `Content-Type: application/json` when there is a body.
 
+`BadRequestError` identifies malformed caller parameters, invalid JSON and oversized bodies.
+Programming errors such as a forged caller remain exceptions.
+
 The twin has no cookies, no `Authorization`, no `Origin`, no `Host`, and no forwarding headers.
 
 ## Dispatching
 
-`operate({ caller, request, operation?, tool?, outcome? })` returns `{ response, requestId }`.
+`operate({ caller, request, operationId?, outcome? })` returns `{ response, requestId }`.
 
 Steps, in order:
 
@@ -34,7 +36,7 @@ Steps, in order:
 2. Attach identity to the request (`attachIdentity`), including the session reference.
 3. `routeFor(method, pathname, mode)`. No match: 404 unmapped. A public row, a stream row or a row
    whose inventory entry is not `dispatch: twin`: refused as unmapped.
-4. If `operation` is named, the row's inventory entry id must equal it; otherwise refuse.
+4. If `operationId` is named, the row's inventory entry id must equal it; otherwise refuse.
 5. Application clients: the row's client action replaces its action; a row without one refuses.
 6. Connection scope: static effects (403, reason `connection-scope`).
 7. Authorization decision, trash target resolution, Steward audit scope, local-only rule, pass for
@@ -52,19 +54,13 @@ those belong to the request that carried it.
 
 `availableOperations(caller)` returns operation ids, sorted. An id is present when the caller's
 effective permissions allow the operation's action (or its client action) on at least one target,
-using the same pass logic as `operate`, and the connection scope covers its static effects. It
+using `routeVerdict(scope, row, mode, target)` shared with `operate`, and the connection scope covers its static effects. It
 performs no handler work and returns no resource names.
-
-## Recording a protocol call
-
-`recordProtocolCall({ caller, method, decision, reason?, outcome })` writes one audit record with
-`origin`, `method` and `connection`. It is used once per discovery, listing, resource, prompt or
-subscription call, and never per returned item. These records are never replay cases.
 
 ## Requiring a dynamic effect
 
-`requireEffect(request, effect)` is called by a handler that discovers an effect at run time (for
-example a commit with `push: true` calls `requireEffect(request, 'remote')`). With no connection
+`requireEffect(request, effect)` is called inside the owning authorizer when an effect is known
+(for example `authorizeGitPush` requires the `remote` effect for a commit with `push: true`). With no connection
 scope it does nothing. Without it, a scoped connection could push through a commit tool.
 
 ## What the boundary does not do
