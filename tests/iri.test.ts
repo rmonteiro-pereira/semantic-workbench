@@ -5,7 +5,7 @@ import { validateInput } from '../src/shared/validation/input';
 import { inspect } from '../src/shared/core/model';
 import { modelOverview } from '../src/app/graph/overview';
 import { expandIri, namespaceOf } from '../src/shared/validation/iri';
-import { buildContext, type StoredDocument } from '../src/server/agent/runtime';
+import { fieldKey, buildContext, type StoredDocument } from '../src/server/agent/runtime';
 const uriSource = await Bun.file('tests/fixtures/issue-2/uri.ontology.yaml').text();
 const iriSource = uriSource.replaceAll('uri:', 'iri:');
 const edit = (source: string, change: (data: any) => void) => {
@@ -121,7 +121,7 @@ test('issue 3: a legacy semantic_model wrapper resolves by its inner model name'
   expect(runtimeContext.datasets.map(d => d.name)).toEqual(['orders']);
   const binding = runtimeContext.bindings.find(b => b.expression === 'orders.order_id')!;
   expect(binding.rootConcept).toBe('Order');
-  expect(binding.fields).toEqual(['["orders","order_id"]']);
+  expect(binding.fields).toEqual([fieldKey(runtimeContext.semanticModel.address, 'orders', 'order_id')]);
   expect(runtimeContext.fields[0].evidence.path).toEqual(['semantic_model', 0, 'datasets', 0, 'fields', 0]);
   const flat = docs.map(d => (d.id === '2' ? { ...d, source: stringify({ version: '0.2.0.dev0', ...parse(d.source).semantic_model[0] }) } : d));
   expect(buildContext(flat, '0').findings).toEqual([]);

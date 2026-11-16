@@ -475,3 +475,5 @@ The lineage browser suite passed UBL first view at 1,876 ms and all earlier stag
 Metric dimension, time and filter references are read through the compatibility adapter. Missing-reference messages retain their existing wording; ambiguous matches are refused explicitly. Existing schema restrictions on the extension's dataset.field notation remain unchanged. A workspace read plus empty-patch save preserves the source and hash byte-for-byte and contains no sw1 text. Adapter, extension and independent consumer proofs: 15 pass, 0 fail, 353 assertions.
 
 Independent pointer, usage-counter and diff examples exercise only public operations and conformance fixtures: 3 pass, 0 fail, 35 assertions. External edits remain remove/add until a reconciliation record is supplied; a resolving original remains unchanged.
+
+The legacy-wrapper IRI regression assertion now expects its context field's canonical locator; its scope, evidence path and resolution assertions are unchanged. Proof: `bun test tests/iri.test.ts` — 4 pass, 0 fail, 36 assertions.
