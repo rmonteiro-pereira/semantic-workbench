@@ -389,3 +389,7 @@ passes the same instance to the handler and administration service. Standalone h
 `auth/operation-classifiers.ts` registers inventory classifier names; pure classifiers live beside
 the response owner's SCM, clone, document-save or import implementation. Non-HTTP calls select
 these defaults. Clone acceptance records acceptance only; the background job settles independently.
+
+`auth/replay-sample.ts` selects separate bounded strata for ordinary decision snapshots and distinct
+non-HTTP allowed reads. The audit store's backward scan stops when both strata are full, so reads
+cannot displace write or denial evidence.

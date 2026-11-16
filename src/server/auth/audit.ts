@@ -148,13 +148,16 @@ export function createAuditLog(options: { dir: string; mirror?: (line: string) =
    * The newest `limit` records that `keep` accepts, oldest first. Month files are read from the
    * newest backwards and reading stops once enough records are found.
    */
-  function recent(limit: number, keep: (entry: AuditEntry) => boolean = () => true) {
-    let found: AuditEntry[] = [];
+  function recent(limit: number, keep: (entry: AuditEntry) => boolean = () => true, complete?: () => boolean) {
+    const found: AuditEntry[] = [];
     for (const month of months().reverse()) {
-      found = [...entries(month).filter(keep), ...found];
-      if (found.length >= limit) break;
+      for (const line of lines(month).reverse()) {
+        const entry = JSON.parse(line) as AuditEntry;
+        if (keep(entry)) found.push(entry);
+        if (found.length >= limit || complete?.()) return found.reverse();
+      }
     }
-    return found.slice(-limit);
+    return found.reverse();
   }
   /** Records of the months from `from` through `to` (ISO times); other months are not read. */
   function between(from: string, to?: string): AuditEntry[] {

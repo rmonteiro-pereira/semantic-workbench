@@ -20,8 +20,8 @@ export type AccessChange = {
 /** One replayed request whose decision differs between the active and the proposed set. */
 export type ChangedDecision = { case: string; before: boolean; after: boolean; rules: string[] };
 
-/** How many of the newest audit snapshots a dry run replays. */
-export const MAX_AUDIT_SNAPSHOTS = 1000;
+import { MAX_AUDIT_SNAPSHOTS } from './replay-sample';
+export { MAX_AUDIT_SNAPSHOTS } from './replay-sample';
 
 /** An audit record the dry run can decide again: it kept a snapshot of an access action. */
 export function isReplayable(entry: AuditEntry): boolean {
