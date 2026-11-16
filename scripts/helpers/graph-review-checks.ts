@@ -1,7 +1,8 @@
 /** Verifies graph review changes through real workspace navigation and rendered geometry. */
 import { expect, type Page } from '@playwright/test';
 import { fileTab } from './screen-tour';
-import { viewOptions, setShown } from './graph-options';
+import { pickCenter } from './edge-geometry';
+import { revealGraphControls, hideGraphControls, viewOptions, setShown } from './graph-options';
 
 async function checkSelection(page: Page) {
   await fileTab('ubl.ontology.yaml', 'Graph')(page);
@@ -46,6 +47,29 @@ async function checkNeighborhood(page: Page) {
   await expect(page.getByRole('button', { name: 'Other files', exact: true })).toBeVisible();
 }
 
+async function checkPierceFit(page: Page) {
+  await pickCenter(page, 'Party');
+  if (await page.locator('.inspector').isVisible()) await page.locator('.inspector').getByRole('button', { name: /Close/ }).click();
+  await revealGraphControls(page);
+  await page.getByRole('radiogroup', { name: 'Pierce direction' }).getByRole('radio', { name: 'Both', exact: true }).click();
+  await page.getByRole('button', { name: 'Full pierce', exact: true }).click();
+  await page.getByRole('button', { name: 'Stop', exact: true }).waitFor({ state: 'hidden' });
+  await hideGraphControls(page);
+  const fit = page.getByRole('button', { name: '45 entities, Fit', exact: true });
+  await expect(fit).toBeVisible();
+  await fit.click();
+  await expect(fit).toBeHidden();
+  const wholeCards = await page.locator('.neighborhood-canvas').evaluate(canvas => {
+    const pane = canvas.getBoundingClientRect();
+    return [...canvas.querySelectorAll('.neighborhood-node')].every(node => {
+      const box = node.getBoundingClientRect();
+      return box.left >= pane.left - 1 && box.right <= pane.right + 1 && box.top >= pane.top - 1 && box.bottom <= pane.bottom + 1;
+    });
+  });
+  expect(wholeCards).toBe(true);
+  console.log('PASS full pierce offers Fit for 45 entities; Fit frames every card');
+}
+
 /** Checks selection, neighborhood entry and the persistent phone full-screen exit. */
 export async function checkGraphReview(page: Page) {
   for (const [width, height] of [
@@ -57,6 +81,7 @@ export async function checkGraphReview(page: Page) {
     await checkNeighborhood(page);
     console.log(`PASS graph review selection and neighborhood ${width}`);
   }
+  await checkPierceFit(page);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole('button', { name: 'Enter full screen', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Exit full screen', exact: true })).toBeVisible();
