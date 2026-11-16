@@ -229,13 +229,6 @@
   }
 }
 
-/* A surface plate keeps relationship strokes from obscuring area titles. */
-.full-graph .full-area-title {
-  background: var(--color-surface-page);
-  border-radius: 4px;
-  padding: 3px 5px;
-  z-index: 3;
-}
 .full-graph .full-entity .node-kpi-badge {
   display: var(--entity-badge-display, inline-flex);
   align-items: center;
