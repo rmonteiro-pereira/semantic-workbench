@@ -1,3 +1,4 @@
+import { screenshotPath } from './helpers/screenshots';
 // Checks that graph edges stay attached to their nodes during browser interactions.
 import { appUrl } from './helpers/base-url';
 import { chooseLayout, showEveryEntity, viewOptions } from './helpers/graph-options';
@@ -79,7 +80,7 @@ async function attached(label: string) {
       .toBeLessThanOrEqual(4.5);
   } catch (error) {
     console.log('DETACHED_ENDPOINTS', JSON.stringify((await distances()).filter(m => m.source > 4.5 || m.target > 4.5)));
-    await page.screenshot({ path: '/tmp/edge-attachment-failure.png' });
+    await page.screenshot({ path: screenshotPath('/tmp/edge-attachment-failure.png') });
     throw error;
   }
 }
@@ -143,10 +144,10 @@ async function drag(page: Page, selector: string, dx: number, dy: number) {
       const worst = Math.max(...metrics.flatMap(m => [m.source, m.target]));
       if (worst > 4.5) {
         console.log('DURING_DRAG_DETACHED', step, JSON.stringify(metrics.filter(m => m.source > 4.5 || m.target > 4.5)));
-        await page.screenshot({ path: '/tmp/edge-attachment-failure.png' });
+        await page.screenshot({ path: screenshotPath('/tmp/edge-attachment-failure.png') });
       }
       expect(worst, 'Every drag frame endpoint attaches to live entity border').toBeLessThanOrEqual(4.5);
-      if (step === 7 && selector.includes('businessArea')) await page.screenshot({ path: '/tmp/edge-attachment-parent-drag-fixed.png' });
+      if (step === 7 && selector.includes('businessArea')) await page.screenshot({ path: screenshotPath('/tmp/edge-attachment-parent-drag-fixed.png') });
     }
   } finally {
     await page.mouse.up();
@@ -204,7 +205,7 @@ try {
       await attached(`${layout} after dragging`);
     }
   });
-  await page.screenshot({ path: '/tmp/edge-attachment-network.png' });
+  await page.screenshot({ path: screenshotPath('/tmp/edge-attachment-network.png') });
   await check('browser has no runtime errors', async () => expect(errors).toEqual([]));
   console.log(`${passed} edge attachment UI checks passed`);
 } finally {

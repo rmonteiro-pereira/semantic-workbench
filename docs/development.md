@@ -277,7 +277,7 @@ in that tool's inventory produces no evidence for that screen. The server tool d
 fixture administrator; its optional final username selects another fixture identity. Administrator
 captures reject skipped screens. Both tools reject uncaught errors and measured geometry failures.
 
-`SW_SCREENSHOT_DIR` selects output for supporting suites. Older drivers retain their documented
+`SW_SCREENSHOT_DIR` selects screenshot output; the graph, lineage, metrics, item-edit, UI, responsive and edge suites also honor `TMPDIR` when it is unset. Older drivers retain their documented
 `/tmp/workbench-*.png` locations. Capture collection must check timestamps so an old successful
 image is not mistaken for evidence from a newer failed run.
 

@@ -1,3 +1,4 @@
+import { screenshotPath } from './helpers/screenshots';
 // Checks column lineage against reference edges and measures browser interaction latency.
 import { addressesOfModel } from '../src/shared/core/model-addresses';
 import { formatAddress } from '../src/shared/core/item-address';
@@ -218,7 +219,7 @@ async function firstViewReadable(path: string, project: string, label: string) {
     await openContract(path, project);
     await page.waitForTimeout(500);
     await page.screenshot({
-      path: `/tmp/workbench-lineage-${label.toLowerCase()}-first-${width}.png`,
+      path: screenshotPath(`/tmp/workbench-lineage-${label.toLowerCase()}-first-${width}.png`),
     });
     const px = await renderedRowPx();
     console.log(`  ${label} ${width}×${height}: column names at ${px.toFixed(1)} px`);
@@ -253,7 +254,7 @@ async function shots(name: string) {
     await page.setViewportSize({ width, height });
     await page.waitForTimeout(300);
     await fit();
-    await page.screenshot({ path: `/tmp/workbench-lineage-${name}-${width}.png` });
+    await page.screenshot({ path: screenshotPath(`/tmp/workbench-lineage-${name}-${width}.png`) });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
   }
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -542,7 +543,7 @@ try {
     for (const cardId of want.cards) expect(ids).toContain(cardId);
     expect(await graph().locator('g[data-on-path="true"]').count()).toBeGreaterThan(0);
     await expect(page.locator('.pierce-banner')).toContainText(`${want.cards.length} cards shown`);
-    await page.screenshot({ path: '/tmp/workbench-lineage-pierce.png' });
+    await page.screenshot({ path: screenshotPath('/tmp/workbench-lineage-pierce.png') });
   });
   await check('graph: at four sizes the first view of three contracts has whole cards, readable column names, clear lines and labels, and a legend', async () => {
     const contracts = [
@@ -824,7 +825,7 @@ try {
   });
   console.log(`${passed} lineage checks passed on isolated data root ${api.root}.`);
 } catch (error) {
-  await page.screenshot({ path: '/tmp/workbench-lineage-failure.png' });
+  await page.screenshot({ path: screenshotPath('/tmp/workbench-lineage-failure.png') });
   console.log('browser errors:', errors.join('\n').slice(0, 3000));
   throw error;
 } finally {

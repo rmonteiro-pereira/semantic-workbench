@@ -1,3 +1,4 @@
+import { screenshotPath } from './helpers/screenshots';
 // Checks responsive layouts, overlays and navigation in an isolated browser workspace.
 import { tabStripProblems } from './helpers/strip-geometry';
 import { recordResizeErrors } from './helpers/resize-errors';
@@ -342,7 +343,7 @@ try {
         }),
       ).toBeVisible();
       await page.screenshot({
-        path: `/tmp/workbench-responsive-${width}x${height}.png`,
+        path: screenshotPath(`/tmp/workbench-responsive-${width}x${height}.png`),
       });
     });
     await check(`${width}×${height}: workspace toggle preserves graph and document access`, async () => {
@@ -372,7 +373,7 @@ try {
       expect(await treeRowProblems(page)).toEqual([]);
       if (width === 390)
         await page.screenshot({
-          path: '/tmp/workbench-responsive-drawer-390.png',
+          path: screenshotPath('/tmp/workbench-responsive-drawer-390.png'),
         });
       if (desktop) await page.getByRole('button', { name: 'Hide sidebar', exact: true }).click();
       else await page.keyboard.press('Escape');
@@ -395,7 +396,7 @@ try {
       await viewOptions(page, options => setShown(options, 'Labels', false));
       if (width === 1280)
         await page.screenshot({
-          path: '/tmp/workbench-responsive-neighborhood-1280.png',
+          path: screenshotPath('/tmp/workbench-responsive-neighborhood-1280.png'),
         });
       const focused = page.locator('.react-flow__node[data-id="ontology/40"]');
       await expect(focused).toBeVisible();
@@ -544,7 +545,7 @@ try {
     expect(graphBox.x + graphBox.width).toBeLessThanOrEqual(detailsBox.x + 1);
     expect(graphBox.width + detailsBox.width).toBeGreaterThan(1400);
     expect(await layoutProblems(fsPage)).toEqual([]);
-    await fsPage.screenshot({ path: '/tmp/workbench-fullscreen-graph.png' });
+    await fsPage.screenshot({ path: screenshotPath('/tmp/workbench-fullscreen-graph.png') });
     await fsPage.keyboard.press('Escape');
     await expect(fsPage.locator('.canvas-row.is-fullscreen')).toHaveCount(0);
     await expect.poll(() => transform(fsPage), { timeout: 3000 }).toBe(before);
@@ -562,7 +563,7 @@ try {
     await expect(fsPage.locator('.canvas-row.is-fullscreen')).toBeVisible();
     await expect.poll(() => neighborhoodEdgeProblems(fsPage)).toEqual([]);
     await fsPage.screenshot({
-      path: '/tmp/workbench-fullscreen-neighborhood.png',
+      path: screenshotPath('/tmp/workbench-fullscreen-neighborhood.png'),
     });
     await fsPage.getByRole('button', { name: 'Exit full screen' }).click();
     await expect(fsPage.locator('.canvas-row.is-fullscreen')).toHaveCount(0);
@@ -687,7 +688,7 @@ try {
         // screen).
         if ([390, 1280, 1440, 2560].includes(width))
           await sweep.screenshot({
-            path: `/tmp/workbench-sweep-${view.toLowerCase().replace(/ /g, '-')}-${width}.png`,
+            path: screenshotPath(`/tmp/workbench-sweep-${view.toLowerCase().replace(/ /g, '-')}-${width}.png`),
           });
       }
       expect(found).toEqual([]);
@@ -819,7 +820,7 @@ try {
       for (const problem of await lineageProblems(sweep)) found.push(`${width}×${height} with a path: ${problem}`);
       for (const problem of await layoutProblems(sweep)) found.push(`${width}×${height} with a path: ${problem}`);
       await sweep.screenshot({
-        path: `/tmp/workbench-lineage-path-${width}.png`,
+        path: screenshotPath(`/tmp/workbench-lineage-path-${width}.png`),
       });
       await clearSelectedPath(graph, sweep);
     }
@@ -866,7 +867,7 @@ try {
           found.push(...(await overlapProblems(sweep, `${width}×${height} with details`)));
           if (width === 1280 || width === 390) {
             const slug = view.toLowerCase().replace(/ /g, '-');
-            await sweep.screenshot({ path: `/tmp/workbench-overlap-${slug}-${width}.png` });
+            await sweep.screenshot({ path: screenshotPath(`/tmp/workbench-overlap-${slug}-${width}.png`) });
           }
           await closeDetails(sweep);
         }
@@ -927,7 +928,7 @@ try {
       else found.push(`${width}×${height}: bundle selector not visible`);
       if (width === 390 || width === 1280)
         await sweep.screenshot({
-          path: `/tmp/workbench-overlap-bundle-${width}.png`,
+          path: screenshotPath(`/tmp/workbench-overlap-bundle-${width}.png`),
         });
     }
     await closeDetails(sweep);
@@ -983,7 +984,7 @@ try {
       if (menuBox.y < controlBox.y - 1) found.push(`${width}×${height}: Group menu opens above its button`);
       if (width === 390)
         await sweep.screenshot({
-          path: '/tmp/workbench-grouping-popover-390.png',
+          path: screenshotPath('/tmp/workbench-grouping-popover-390.png'),
         });
       await sweep.keyboard.press('Escape');
       await expect(menu).toHaveCount(0);
@@ -1050,7 +1051,7 @@ try {
     await selectLineagePath(targetPage);
     await assertFinalOverlays(targetPage, lineageOverlays);
     await targetPage.screenshot({
-      path: `/tmp/workbench-final-sweep-lineage-${width}.png`,
+      path: screenshotPath(`/tmp/workbench-final-sweep-lineage-${width}.png`),
     });
   }
   async function sweepPierce(targetPage: Page, width: number) {
@@ -1074,7 +1075,7 @@ try {
     await expect(targetPage.locator('.pierce-banner')).toBeVisible();
     await assertFinalOverlays(targetPage, pierceOverlays);
     await targetPage.screenshot({
-      path: `/tmp/workbench-final-sweep-pierce-${width}.png`,
+      path: screenshotPath(`/tmp/workbench-final-sweep-pierce-${width}.png`),
     });
     await closeDetails(targetPage);
   }
@@ -1171,7 +1172,7 @@ try {
     await assertDialogLayout(targetPage);
     const area = name.toLowerCase().replaceAll(' ', '-');
     await targetPage.screenshot({
-      path: `/tmp/workbench-final-sweep-dialog-${area}-${width}.png`,
+      path: screenshotPath(`/tmp/workbench-final-sweep-dialog-${area}-${width}.png`),
     });
     await targetPage.keyboard.press('Escape');
     await closeDrawer(targetPage);
@@ -1332,7 +1333,7 @@ try {
       for (const problem of await lineageProblems(sweep)) found.push(`${width}×${height} with a selection: ${problem}`);
       for (const problem of await layoutProblems(sweep)) found.push(`${width}×${height} with a selection: ${problem}`);
       await sweep.screenshot({
-        path: `/tmp/workbench-mapping-graph-path-${width}.png`,
+        path: screenshotPath(`/tmp/workbench-mapping-graph-path-${width}.png`),
       });
       await clearSelectedPath(graph, sweep);
     }
@@ -1408,7 +1409,7 @@ try {
     );
     expect(clipped).toEqual([]);
     expect(await treeRowProblems(page)).toEqual([]);
-    await page.screenshot({ path: '/tmp/workbench-sidebar-220.png' });
+    await page.screenshot({ path: screenshotPath('/tmp/workbench-sidebar-220.png') });
     // Add project: a closed menu button that opens on demand, even in the narrowest sidebar.
     const addProject = page.getByRole('button', {
       name: 'Add project',

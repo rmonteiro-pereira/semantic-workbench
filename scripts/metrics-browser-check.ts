@@ -1,3 +1,4 @@
+import { screenshotPath } from './helpers/screenshots';
 // Checks metric details, explanations and graph navigation in an isolated browser workspace.
 import { LOCAL_READER } from '../src/server/projects/reader';
 import { appUrl } from './helpers/base-url';
@@ -191,7 +192,7 @@ try {
     await expectSection('SQL preview');
     await expect(region.locator('.not-executed')).toHaveText('Preview · not executed');
     await expect(region.getByLabel('SQL preview, not executed')).toContainText("DATE_TRUNC('month'");
-    await page.screenshot({ path: '/tmp/workbench-metrics-detail.png' });
+    await page.screenshot({ path: screenshotPath('/tmp/workbench-metrics-detail.png') });
   });
   await check('refused rollups: summing a ratio, and a stock summed over a quarter', async () => {
     const region = page.getByRole('region', { name: 'How this metric is calculated' });
@@ -298,7 +299,7 @@ try {
           await metricsPage.getByRole('button', { name: 'All metrics' }).click();
           await expect(list(metricsPage)).toBeVisible();
         } else await expect(list(metricsPage)).toBeVisible();
-        await metricsPage.screenshot({ path: `/tmp/workbench-metrics-${width}.png` });
+        await metricsPage.screenshot({ path: screenshotPath(`/tmp/workbench-metrics-${width}.png`) });
       } finally {
         await context.close();
       }

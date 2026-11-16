@@ -1,3 +1,4 @@
+import { screenshotPath } from './helpers/screenshots';
 // Checks workspace interactions in the browser using isolated example projects.
 import { LOCAL_READER } from '../src/server/projects/reader';
 import { appUrl } from './helpers/base-url';
@@ -100,7 +101,7 @@ try {
       await expect(page.locator('.react-flow__node').first()).toBeVisible();
     }
     await page.waitForTimeout(300);
-    await page.screenshot({ path: '/tmp/workbench-ui-focus.png' });
+    await page.screenshot({ path: screenshotPath('/tmp/workbench-ui-focus.png') });
   });
   await check('canvas is calm and graph controls remain visible', async () => {
     await page.mouse.move(250, 100);
@@ -208,14 +209,14 @@ try {
     const name = await row.locator('strong').innerText();
     await row.click();
     await expect(page.locator('.inspector h2')).toHaveText(name);
-    await page.screenshot({ path: '/tmp/workbench-ui-matrix.png' });
+    await page.screenshot({ path: screenshotPath('/tmp/workbench-ui-matrix.png') });
     await page.getByRole('button', { name: 'Close relationship list', exact: true }).click();
     await page.getByRole('button', { name: ublOverview.groupingLabel, exact: true }).click();
     await page.getByPlaceholder('Find an entity…').fill('Shipment');
     await expect(page.locator('.area-entities button')).toHaveCount(1);
     await page.getByPlaceholder('Find an entity…').fill('');
     await expectAreaEntityTotal(page, 45);
-    await page.screenshot({ path: '/tmp/workbench-ui-overview.png' });
+    await page.screenshot({ path: screenshotPath('/tmp/workbench-ui-overview.png') });
     await page.locator('.tabs').getByRole('button', { name: 'Neighborhood', exact: true }).click();
     await expectNeighborhood();
   });
@@ -290,7 +291,7 @@ try {
     await expect(dialog).toContainText('Unknown parent concept');
     await expect(dialog.getByRole('button', { name: 'Import repaired files' })).toBeDisabled();
     if (store.list().length !== before) throw Error('Invalid import wrote to the workspace');
-    await page.screenshot({ path: '/tmp/workbench-validation-import.png' });
+    await page.screenshot({ path: screenshotPath('/tmp/workbench-validation-import.png') });
     await page.keyboard.press('Escape');
     await expect(dialog).toHaveCount(0);
     await expect(page.locator('h1')).toHaveText(heading);
@@ -361,7 +362,7 @@ try {
     await expect(page.locator('.validation-details')).toHaveCount(0);
     await page.locator('.tabs').getByRole('button', { name: 'Overview', exact: true }).click();
     await expect(page.locator('.area-entities button')).toHaveCount(1);
-    await page.screenshot({ path: '/tmp/workbench-validation-recovered.png' });
+    await page.screenshot({ path: screenshotPath('/tmp/workbench-validation-recovered.png') });
   });
   await check('invalid ODCS, semantic, RDF, XML, OWL, SHACL and N-Triples use the repair flow', async () => {
     const before = store.list().length;
@@ -425,7 +426,7 @@ try {
     await expect(page.getByLabel('Governed SQL preview')).toContainText('GROUP BY "customers".region');
     await expect(page.getByLabel('Governed SQL preview')).toContainText('LEFT JOIN');
     await page.getByLabel('Governed SQL preview').scrollIntoViewIfNeeded();
-    await page.screenshot({ path: '/tmp/workbench-mapping-query.png' });
+    await page.screenshot({ path: screenshotPath('/tmp/workbench-mapping-query.png') });
     await closeComposer(page);
   });
   await check('agent context download retains mapping provenance and governed formulas', async () => {
@@ -438,7 +439,7 @@ try {
     if (context.metrics.find((m: any) => m.name === 'gross_revenue')?.definition.expression.dialects[0].expression !== 'SUM(orders.amount)') throw Error('Governed formula changed');
     if (!context.bindings.every((b: any) => b.evidence.documentId && b.evidence.path.length && b.evidence.revision)) throw Error('Provenance lost');
     await page.locator('.mapping-explorer').evaluate(el => (el.scrollTop = 0));
-    await page.screenshot({ path: '/tmp/workbench-mapping-layers.png' });
+    await page.screenshot({ path: screenshotPath('/tmp/workbench-mapping-layers.png') });
   });
   await check('mapping runtime reports missing targets and refreshes on repaired saved references', async () => {
     await page.getByRole('button', { name: 'commerce.mapping.yaml', exact: true }).click();
@@ -454,7 +455,7 @@ try {
     await openComposer(page);
     await expect(page.getByRole('button', { name: 'Preview governed query', exact: true })).toBeDisabled();
     await closeComposer(page);
-    await page.screenshot({ path: '/tmp/workbench-mapping-unresolved.png' });
+    await page.screenshot({ path: screenshotPath('/tmp/workbench-mapping-unresolved.png') });
     await page.locator('.tabs').getByRole('button', { name: 'Source', exact: true }).click();
     await fillEditor(editor, original);
     await expect(page.getByRole('status', { name: 'Save state' })).toHaveText(/^Saved to file/, {

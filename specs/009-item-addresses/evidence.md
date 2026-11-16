@@ -569,3 +569,7 @@ Proof: address-redaction test — 1 pass, 0 fail, 12 assertions; TypeScript pass
 ### Adoption lint cleanup
 
 The real mutation gate's formatting/lint baseline found an unused governance type import and an unnecessary quote escape in the adopted reference rewrite. Both are removed without behavior changes. Lint passes; targeted edit/acknowledgement tests pass (6 tests, 16 assertions). The first full mutation attempt then stopped at two stale existing anchors (lineage foreign-key construction and batch-save options); these are being updated to the composed entry points, rather than bypassed.
+
+### Isolated browser artifacts
+
+The named browser drivers previously hard-coded screenshot destinations directly under /tmp. They now use the existing screenshotPath seam, which honors SW_SCREENSHOT_DIR and otherwise TMPDIR, preserving their ordinary defaults. This keeps final browser and mutation artifacts under the assigned temporary root. Earlier runs used the drivers' hard-coded screenshot locations before this was corrected; test fixture helpers also defaulted to /tmp before TMPDIR was consistently supplied. No unrelated file or shared Git configuration was removed. Future commands explicitly set TMPDIR=/tmp/sw-009.

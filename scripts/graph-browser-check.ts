@@ -1,3 +1,4 @@
+import { screenshotPath } from './helpers/screenshots';
 // Checks graph navigation and rendering at multiple scales in an isolated browser workspace.
 import { appUrl } from './helpers/base-url';
 import { recordResizeErrors } from './helpers/resize-errors';
@@ -76,7 +77,7 @@ async function expectCentered() {
     })
     .toBe(true);
 }
-const shot = (name: string) => page.screenshot({ path: `/tmp/workbench-neighborhood-${name}.png` });
+const shot = (name: string) => page.screenshot({ path: screenshotPath(`/tmp/workbench-neighborhood-${name}.png`) });
 try {
   await routeApi(page, api);
   await page.goto(appUrl());
@@ -98,17 +99,17 @@ try {
         }),
       ).toBeChecked();
     });
-    await page.screenshot({ path: '/tmp/real-graph-network.png' });
+    await page.screenshot({ path: screenshotPath('/tmp/real-graph-network.png') });
     await viewOptions(page, async options => {
       await chooseLayout(options, 'layered');
     });
     await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60000 });
-    await page.screenshot({ path: '/tmp/real-graph-layered.png' });
+    await page.screenshot({ path: screenshotPath('/tmp/real-graph-layered.png') });
     await viewOptions(page, async options => {
       await chooseLayout(options, 'network');
     });
     await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60000 });
-    await page.screenshot({ path: '/tmp/real-graph-network.png' });
+    await page.screenshot({ path: screenshotPath('/tmp/real-graph-network.png') });
   });
   await check('full graph: the mini-map is off until switched on, and the choice is remembered', async () => {
     const miniMap = page.locator('.react-flow__minimap');

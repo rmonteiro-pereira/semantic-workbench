@@ -1,3 +1,4 @@
+import { screenshotPath } from './helpers/screenshots';
 // Checks item editing and dependent changes in an isolated browser workspace.
 import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Locator, type Page } from '@playwright/test';
@@ -115,7 +116,7 @@ try {
     await expect(dialog.getByRole('textbox', { name: 'Name', exact: true })).toHaveValue('Customer');
     await expect(dialog.getByLabel('Type')).toHaveValue('EntityType');
     await dialog.getByLabel('Description').fill('Person or company that buys from us.');
-    await page.screenshot({ path: '/tmp/workbench-item-concept.png' });
+    await page.screenshot({ path: screenshotPath('/tmp/workbench-item-concept.png') });
     await saveDialog(dialog);
     expect(await changed(commerce.slug, 'commerce-business.ossie.yaml')).toEqual({
       removed: ['    description: Customer in the order-to-cash process.'],
@@ -141,7 +142,7 @@ try {
     await fillEditor(source, fragment.replace('  type: EntityType\n', '  type: EntityType\n  extends: [Nowhere]\n'));
     await expect(dialog.locator('.cm-lintRange-error')).toBeVisible({ timeout: 3000 });
     await expect(dialog.getByRole('button', { name: 'Save to file', exact: true })).toBeDisabled();
-    await page.screenshot({ path: '/tmp/workbench-item-source-invalid.png' });
+    await page.screenshot({ path: screenshotPath('/tmp/workbench-item-source-invalid.png') });
     await fillEditor(
       source,
       fragment.replace('      verbalizes:\n        - "{Order} contains {OrderLine}"', '      multiplicity: OneToOne\n      verbalizes:\n        - "{Order} contains {OrderLine}"'),
@@ -184,7 +185,7 @@ try {
     await expect(propertyDialog.getByLabel('Logical type')).toHaveValue('string');
     await propertyDialog.getByLabel('Unique').check();
     await propertyDialog.getByLabel('Classification').fill('restricted');
-    await page.screenshot({ path: '/tmp/workbench-item-odcs-property.png' });
+    await page.screenshot({ path: screenshotPath('/tmp/workbench-item-odcs-property.png') });
     await saveDialog(propertyDialog);
     expect(await changed(commerce.slug, 'commerce.odcs.yaml')).toEqual({
       removed: [],
@@ -218,7 +219,7 @@ try {
     await dialog.getByLabel('Type').selectOption('EntityType');
     await dialog.getByLabel('Description').fill('Sells products to us.');
     await expect(dialog.getByLabel('Text to insert')).toHaveText('  - concept: Supplier\n    type: EntityType\n    description: Sells products to us.\n');
-    await page.screenshot({ path: '/tmp/workbench-item-add.png' });
+    await page.screenshot({ path: screenshotPath('/tmp/workbench-item-add.png') });
     await dialog.getByRole('button', { name: 'Save to file' }).click();
     await expect(dialog).toHaveCount(0);
     await tabs().getByRole('button', { name: 'Catalog' }).click();
@@ -248,7 +249,7 @@ try {
     await page.getByRole('complementary', { name: 'Definition details' }).getByRole('button', { name: 'Delete Supplier' }).click();
     const del = page.getByRole('dialog', { name: 'Delete Supplier?' });
     await expect(del.locator('.delete-list')).toContainText('relationship supplied_by of Product');
-    await page.screenshot({ path: '/tmp/workbench-item-delete.png' });
+    await page.screenshot({ path: screenshotPath('/tmp/workbench-item-delete.png') });
     await del.getByRole('button', { name: 'Delete' }).click();
     await expect(del).toHaveCount(0);
     await expect.poll(() => read(commerce.slug, 'commerce-business.ossie.yaml')).toBe(before);
@@ -269,7 +270,7 @@ try {
     const count = await boxes.count();
     expect(count).toBeGreaterThan(0);
     for (let i = 0; i < count; i++) await boxes.nth(i).check();
-    await page.screenshot({ path: '/tmp/workbench-item-rename.png' });
+    await page.screenshot({ path: screenshotPath('/tmp/workbench-item-rename.png') });
     await saveDialog(dialog);
     const text = read(commerce.slug, 'commerce-business.ossie.yaml');
     expect(text).toContain('  - concept: LineItem\n');
@@ -314,7 +315,7 @@ try {
     await dialog.getByRole('button', { name: 'Next' }).click();
     await expect(dialog.getByRole('tree', { name: 'Composition tree' })).toContainText('Vacant GLA');
     await expect(dialog.getByLabel('Preview · not executed')).toContainText('SELECT');
-    await page.screenshot({ path: '/tmp/workbench-item-wizard-preview.png' });
+    await page.screenshot({ path: screenshotPath('/tmp/workbench-item-wizard-preview.png') });
     await dialog.getByRole('button', { name: 'Next' }).click();
     await expect(dialog.getByLabel('Changes to mall.mapping.yaml')).toContainText('vacancy_rate');
     await dialog.getByRole('button', { name: 'Save to file' }).click();
@@ -334,7 +335,7 @@ try {
     await expect(page.getByRole('region', { name: 'Metric Vacancy rate' })).toBeVisible({
       timeout: 10000,
     });
-    await page.screenshot({ path: '/tmp/workbench-item-wizard-saved.png' });
+    await page.screenshot({ path: screenshotPath('/tmp/workbench-item-wizard-saved.png') });
     await commit(mall.slug, 'new metric');
   });
   await check('metric edit: changing an approved metric returns it to proposed and lists its dependents before saving', async () => {
@@ -346,7 +347,7 @@ try {
     await dialog.getByLabel('Expression (ANSI SQL)').fill('SUM(occupancy_snapshots.gla_m2) + 0');
     await expect(dialog.getByRole('status').filter({ hasText: 'returns it to proposed' })).toBeVisible();
     await expect(dialog.getByLabel('Status')).toHaveValue('proposed');
-    await page.screenshot({ path: '/tmp/workbench-item-kpi-edit.png' });
+    await page.screenshot({ path: screenshotPath('/tmp/workbench-item-kpi-edit.png') });
     await saveDialog(dialog);
     const change = await changed(mall.slug, 'mall.semantic.yaml');
     expect(change.added.map(l => l.trim())).toEqual(['expression: SUM(occupancy_snapshots.gla_m2) + 0', '"status": "proposed",']);
