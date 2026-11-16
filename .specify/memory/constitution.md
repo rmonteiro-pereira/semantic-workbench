@@ -1,6 +1,8 @@
 <!--
 Sync Impact Report
-- Version change: 3.2.0 → 4.0.0 (MAJOR: Principles II, III and V are redefined and Principle I
+- Version change: 4.0.0 → 4.0.1 (PATCH, wording: every operation, whatever its transport, goes
+  through the one operation boundary; new routes and MCP tools join the operation inventory with a
+  parity case). Previous: 3.2.0 → 4.0.0 (MAJOR: Principles II, III and V are redefined and Principle I
   gains exceptions to rules it stated absolutely)
 - Why MAJOR: Governance reserves MAJOR for redefining a principle. V no longer says "only pinned
   standards are validated"; it now admits a workbench authoring format (Tessera) beside them.
@@ -334,7 +336,7 @@ reformatting breaks diffs, reviews and downstream tooling.
 - An authorization test matrix MUST call every route with every test role and scope (readable,
   unreadable, guarded) and compare each answer with the expected decision; any byte of an
   unreadable file in a response or event fails it. Every new route, and every MCP tool beside its
-  HTTP twin, MUST be added to the matrix.
+  HTTP twin, MUST be added to the matrix and to the operation inventory, with its parity case.
 - Layout and UI work MUST include geometry assertions (no overlapping controls, contained panels)
   across the viewport matrix of the responsive suite.
 
@@ -391,6 +393,9 @@ planning documents.
   network call; no route decides access by itself, and invalid policies stop the server. In local
   mode the loopback binding and origin check remain the outer boundary and MUST be preserved by
   every new endpoint.
+- Every operation, whatever transport it arrives by, goes through the one operation boundary for
+  route selection, authorization, handler execution, refusal mapping and audit; no transport,
+  adapter or tool decides access.
 - Every MCP tool is dispatched as an in-process twin of an HTTP request through the same route
   selection, authorization, handler, refusal and audit path with the already authenticated
   caller. The MCP gate authenticates and bounds input but grants no workspace action itself; a
@@ -435,4 +440,4 @@ planning documents.
 - Exceptions MUST be recorded in the feature's plan under "Complexity Tracking" with the reason
   and the simpler alternative that was rejected.
 
-**Version**: 4.0.0 | **Ratified**: 2026-10-20 | **Last Amended**: 2026-11-16
+**Version**: 4.0.1 | **Ratified**: 2026-10-20 | **Last Amended**: 2026-11-16
