@@ -5,7 +5,7 @@ import { parseAddress } from '../../shared/core/item-address';
 import { validateDeclaredMigrations, type DeclaredMigration } from '../../shared/core/address-migration';
 import type { MigrationFile, MigrationKind, MigrationRecord } from '../../shared/core/address-migration';
 import { atomicWriteJson, readJsonFile } from './atomic';
-import { BadRequestError } from './errors';
+import { BadRequestError, OccupiedError } from './errors';
 import { assertSlug, type DataLayout } from './paths';
 import type { Reader } from './reader';
 
@@ -25,7 +25,7 @@ function recordAddress(value: unknown) {
   return parsed.address;
 }
 
-function checkedRecord(input: unknown, project: string): MigrationRecord {
+function checkedRecord(input: unknown, project?: string): MigrationRecord {
   const value = input as MigrationRecord | null;
   if (
     !value ||
@@ -44,8 +44,8 @@ function checkedRecord(input: unknown, project: string): MigrationRecord {
   if (value.kind === 'deleted' && value.to !== undefined) throw new BadRequestError('Deleted markers cannot redirect an address.');
   if (value.from === value.to) throw new BadRequestError('An address migration must change its prefix.');
   if (value.kind === 'document') {
-    if (from.chain.length || to!.chain.length || (from.project !== project && to!.project !== project)) throw new BadRequestError('Invalid document migration scope.');
-  } else if (from.project !== project || (to && to.project !== project)) throw new BadRequestError('Migration is outside its project.');
+    if (from.chain.length || to!.chain.length || (project !== undefined && from.project !== project && to!.project !== project)) throw new BadRequestError('Invalid document migration scope.');
+  } else if ((project !== undefined && from.project !== project) || (to && to.project !== from.project)) throw new BadRequestError('Migration is outside its project.');
   return { id: value.id, kind: value.kind, from: value.from, ...(to ? { to: value.to } : {}), at: value.at, commit: value.commit };
 }
 
@@ -53,7 +53,7 @@ function loadRecords(layout: DataLayout, project: string): MigrationRecord[] {
   const value = readJsonFile<MigrationFile>(addressMigrationFile(layout, project));
   if (value === null) return [];
   if (value.formatVersion !== 1 || !Array.isArray(value.records) || value.records.length > ADDRESS_MIGRATION_LIMIT) throw new BadRequestError('Unsupported address migration store.');
-  return value.records.map(record => checkedRecord(record, project));
+  return value.records.map(record => checkedRecord(record));
 }
 
 function readableRecord(record: MigrationRecord, reader: Reader): boolean {
@@ -107,4 +107,19 @@ export function declaredAddressMigrations(input: unknown, project: string, docum
   const result = validateDeclaredMigrations(input, project, documents);
   if (!result.ok) throw new BadRequestError(`Invalid declared migrations: ${result.reason}.`);
   return result.migrations;
+}
+
+/** Moves a project's complete history into the same archive as its definitions. */
+export function archiveAddressMigrations(layout: DataLayout, project: string, archive: string): { from: string; to: string }[] {
+  const from = addressMigrationFile(layout, project);
+  return existsSync(from) ? [{ from, to: join(archive, 'address-migrations', assertSlug(project) + '.json') }] : [];
+}
+
+/** Restores archived history without rewriting its original endpoints or overwriting another store. */
+export function restoreAddressMigrations(layout: DataLayout, originalProject: string, targetProject: string, archive: string): { from: string; to: string }[] {
+  const from = join(archive, 'address-migrations', assertSlug(originalProject) + '.json');
+  if (!existsSync(from)) return [];
+  const to = addressMigrationFile(layout, targetProject);
+  if (existsSync(to)) throw new OccupiedError('Address history already exists for the restored project.', {});
+  return [{ from, to }];
 }

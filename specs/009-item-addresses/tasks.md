@@ -198,7 +198,7 @@ changes.
   the relationship-target reference rewrite that E18 names as missing, with its own test. Proof:
   editor tests; `scripts/item-address-browser-check.ts` renames a concept, ticks references, saves,
   and reads the store (`test:addresses`); `test:item-edit` passes. (FR-027, FR-028; SC-005)
-- [ ] T033 [P] [US3] Record a `document` migration in the file-move module used by `moveFile`
+- [x] T033 [P] [US3] Record a `document` migration in the file-move module used by `moveFile`
   (explicit move and suggestions), including a move to another project (both stores), and carry the
   store with the project through trash and restore like view state. Proof:
   `tests/address-migration-store.test.ts` cases for move, cross-project move, trash and restore.

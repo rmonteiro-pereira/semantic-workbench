@@ -1,9 +1,12 @@
+import { formatAddress } from '../../../shared/core/item-address';
+import { operationMigrations, stageAddressMigrations } from '../address-migrations';
+import type { Git } from '../git';
 // Moves a file inside a project or into another one, together with its draft and view settings.
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, rmSync } from 'node:fs';
 import { join, posix } from 'node:path';
 import { decode } from '../atomic';
-import type { Journal } from '../journal';
-import { projectFile, projectPath, type DataLayout } from '../paths';
+import { JournalCrash, type Journal } from '../journal';
+import { projectFile, projectPath, repoDir, type DataLayout } from '../paths';
 import { movePersonalState } from '../personal-state';
 import type { Reader } from '../reader';
 import type { ProjectEntry, State } from '../state';
@@ -15,6 +18,8 @@ import { freeReadableName } from './import-batch';
 /** The workspace services a file move runs on; the composition root supplies them. */
 export type FileMoveContext = {
   layout: DataLayout;
+  git: Git;
+  gitAvailable: boolean;
   journal: Journal;
   state: State;
   copies: WorkingCopies;
@@ -42,7 +47,7 @@ function guardMove(guard: ContentGuard, files: DataLayout, move: { slug: string;
 
 /** The file move use case. */
 export function createFileMove(ctx: FileMoveContext) {
-  const { layout, journal, state, copies, lock, entry, projectLock, rescanIn } = ctx;
+  const { layout, git, gitAvailable, journal, state, copies, lock, entry, projectLock, rescanIn } = ctx;
   async function moveFile(slug: string, path: string, toProject: string, toPath: string | undefined, keepBoth: boolean, reader: Reader) {
     const { view: accessView, guard } = reader;
     entry(slug);
@@ -78,9 +83,19 @@ export function createFileMove(ctx: FileMoveContext) {
         guardAt(place, to);
         const steps = [{ from: src, to: projectFile(place.layout, toProject, to) }];
         if (existsSync(state.draftFile(slug, from)) && !existsSync(state.draftFile(toProject, to))) steps.push({ from: state.draftFile(slug, from), to: state.draftFile(toProject, to) });
-        const personalStaging = join(layout.state, `.staging-${journal.newId()}`);
+        const opId = journal.newId();
+        const personalStaging = join(layout.state, `.staging-${opId}`);
         steps.push(...movePersonalState(state, { project: slug, path: from, target: toProject, targetPath: to }, personalStaging, place.copy ?? undefined));
-        journal.run('move', steps, [personalStaging]);
+        const address = (project: string, path: string) => formatAddress({ grammar: 1, form: 'absolute', project, document: path.split('/'), chain: [] });
+        const commit = gitAvailable ? ((await git.head(repoDir(place.layout, slug))) ?? '') : '';
+        const records = operationMigrations({ id: opId, at: new Date().toISOString(), commit }, [{ kind: 'document', from: address(slug, from), to: address(toProject, to) }]);
+        try {
+          for (const project of new Set([slug, toProject])) steps.push(...stageAddressMigrations({ layout, project, staging: personalStaging }, records));
+          journal.run('move', steps, [personalStaging], opId);
+        } catch (error) {
+          if (!(error instanceof JournalCrash)) rmSync(personalStaging, { recursive: true, force: true });
+          throw error;
+        }
         const view = state.view(slug).files[from];
         if (view !== undefined) {
           const files = { ...state.view(slug).files };

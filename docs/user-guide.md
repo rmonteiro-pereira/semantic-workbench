@@ -424,7 +424,9 @@ referents and link-child targets, resolved through the owning concept and its in
 and mappings; references that cannot be safely rewritten are left for Source repair. Multi-file
 changes are journaled, not silently applied in separate partial operations. Stable item renames and
 named document-scope changes record address history with those writes; unnamed scopes remain
-volatile. Editing files outside the workbench or switching Git branches does not infer renames.
+volatile. File moves record a document-prefix change; a move between projects records it in both histories.
+Project trash and restore carry the history with the definitions. Editing files outside the
+workbench or switching Git branches does not infer renames.
 
 RDF item editing uses predicate/object rows or a resource-local Source fragment. Every proposed
 edit must produce exactly the original graph minus intended removals plus intended additions.

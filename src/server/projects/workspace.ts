@@ -467,7 +467,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   });
   const documentSave = createDocumentSave({ layout, git, gitAvailable, journal, state, copies, trash, lock, entry, projectLock, rescanIn });
   const { saveFile } = documentSave;
-  const { moveFile } = createFileMove({ layout, journal, state, copies, lock, entry, projectLock, rescanIn });
+  const { moveFile } = createFileMove({ layout, git, gitAvailable, journal, state, copies, lock, entry, projectLock, rescanIn });
   async function acceptSuggestion(id: string, reader: Reader) {
     const suggestion = suggestions(reader).find(x => x.id === id);
     if (!suggestion) throw new NotFoundError('Suggestion not found or no longer valid.');
@@ -853,7 +853,8 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       const ref = resolveId(id);
       if (view && !view.canRead(ref.project, ref.path)) throw new HiddenResourceError();
       const value = (personal.view(ref.project).files[ref.path] ?? {}) as GroupingAssignments;
-      return decodeGrouping(value, groupingEntities(ref, reader), { project: ref.project, document: ref.path.split('/') }) as object;
+      const entities = value.assignments ? groupingEntities(ref, reader) : [];
+      return decodeGrouping(value, entities, { project: ref.project, document: ref.path.split('/') }) as object;
     },
     saveGrouping(id: string, value: unknown, reader: Reader) {
       const { view, owner } = reader;

@@ -7,7 +7,7 @@ import { atomicWrite, atomicWriteJson } from '../src/server/projects/atomic';
 import { createJournal } from '../src/server/projects/journal';
 import { dataLayout } from '../src/server/projects/paths';
 import { LOCAL_READER } from '../src/server/projects/reader';
-import { tempDataDir } from './helpers/temp-data-dir';
+import { tempDataDir, testWorkspace } from './helpers/temp-data-dir';
 
 const from = 'sw1:sample/a.yaml#model:M/dataset:Old';
 const to = 'sw1:sample/a.yaml#model:M/dataset:New';
@@ -130,4 +130,30 @@ test('recovery rolls back definitions and history together if an uninstalled sou
   } finally {
     context.cleanup();
   }
+});
+
+test('moves record document prefixes in both projects and history follows project trash and restore', async () => {
+  using workspace = await testWorkspace();
+  const first = await workspace.seed([{ path: 'a.yaml', source: 'name: O\nontology: [{concept: A}]' }], 'First');
+  const second = await workspace.seed([{ path: 'b.yaml', source: 'name: P\nontology: [{concept: B}]' }], 'Second');
+  const layout = dataLayout(workspace.root);
+  await workspace.ws.moveFile(first.slug, 'a.yaml', first.slug, 'nested/a.yaml', false, LOCAL_READER);
+  const within = readAddressMigrations(layout, first.slug, LOCAL_READER);
+  expect(within).toHaveLength(1);
+  expect(within[0]).toMatchObject({ kind: 'document', from: `sw1:${first.slug}/a.yaml`, to: `sw1:${first.slug}/nested/a.yaml` });
+  await workspace.ws.moveFile(first.slug, 'nested/a.yaml', second.slug, 'moved.yaml', false, LOCAL_READER);
+  const sourceHistory = readAddressMigrations(layout, first.slug, LOCAL_READER);
+  const targetHistory = readAddressMigrations(layout, second.slug, LOCAL_READER);
+  expect(sourceHistory).toHaveLength(2);
+  expect(targetHistory).toEqual([sourceHistory[1]]);
+  const bytes = readFileSync(addressMigrationFile(layout, second.slug));
+  const removed = await workspace.ws.trash.deleteProject(second.slug);
+  expect(existsSync(addressMigrationFile(layout, second.slug))).toBe(false);
+  expect(readFileSync(join(layout.trash, removed.entryId, 'address-migrations', second.slug + '.json'))).toEqual(bytes);
+  await workspace.ws.trash.restore(removed.entryId, {}, LOCAL_READER);
+  expect(readFileSync(addressMigrationFile(layout, second.slug))).toEqual(bytes);
+  const archived = await workspace.ws.trash.deleteProject(second.slug);
+  await workspace.ws.trash.restore(archived.entryId, { toProject: 'restored' }, LOCAL_READER);
+  expect(readFileSync(addressMigrationFile(layout, 'restored'))).toEqual(bytes);
+  expect(readAddressMigrations(layout, 'restored', LOCAL_READER)).toEqual(targetHistory);
 });

@@ -1,3 +1,4 @@
+import { archiveAddressMigrations } from './address-migrations';
 // Moves deleted files and project folders into journaled trash without rewriting Git history.
 // Restoration refuses occupied paths and suggests a free alternative.
 import { archivePersonalState, clearPersonalDrafts } from './personal-state';
@@ -374,6 +375,7 @@ export function createTrash(ctx: TrashContext) {
   function unitSteps(unit: DeletionUnit, dir: string) {
     const steps: { from: string; to: string }[] = [];
     const keepState = (slug: string, viewTo: string, draftsTo: string) => {
+      steps.push(...archiveAddressMigrations(layout, slug, dir));
       if (existsSync(state.viewFile(slug))) steps.push({ from: state.viewFile(slug), to: viewTo });
       if (existsSync(state.draftDir(slug))) steps.push({ from: state.draftDir(slug), to: draftsTo });
     };

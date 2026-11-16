@@ -11,6 +11,8 @@ not configure a production deployment.
 - Reviewed operation inventory and generated reference, trusted in-process operation dispatch,
   connection effect restrictions, audit attribution fields and origin/tool filters.
 - Independent dry-run samples retain write and denial evidence during non-HTTP read floods.
+- File moves record document-prefix history in both affected projects, and project trash/restore carries the history store.
+
 - Save and batch-save requests can declare stable item/scope renames, atomically recorded with their definition writes.
 
 - Back up and convert stable grouping assignments to item locators, retaining unconvertible keys and existing grouping API behavior.
