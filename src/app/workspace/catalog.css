@@ -87,7 +87,7 @@
 
 .catalog {
   align-content: start;
-  align-items: start;
+  align-items: stretch;
 }
 .catalog-card > button:first-child {
   display: flex;
