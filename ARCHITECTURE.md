@@ -143,6 +143,8 @@ concatenating project, document or item names.
 - Shared `grouping-addresses.ts` translates stable assignment keys while keeping renderer IDs at the UI boundary.
 - `scanner.ts`, `cache.ts` and `watcher.ts` maintain derived models/findings and detect disk
   changes. Cache rows are not another authoritative copy of the definitions.
+- `src/server/routes/agent.ts` owns catalog, context and plan handlers, with one document-source
+  callback shared by all three operations.
 - The route inventory declares `readSource` for definition content, context, plans and explanations.
   Agent rows select published data; metrics declare a surface-dependent source.
 - `src/server/auth/request-surface.ts` records the browser or consumer surface after credential

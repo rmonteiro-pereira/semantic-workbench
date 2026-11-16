@@ -108,3 +108,11 @@ The existing publishing safety tests live under tests/auth/, rather than the fla
 `bun test tests/auth/route-actions.test.ts`: 7 pass, 0 fail, 358 expect() calls.
 Content-producing inventory rows explicitly declare their source. The registered mutant deleting
 the catalog declaration fails the focused inventory assertion; its baseline passes.
+
+## Agent handler extraction
+
+`bun test tests/agent-api.test.ts tests/agent-context-kinds.test.ts tests/agent-paths.test.ts`:
+16 pass, 0 fail, 248 expect() calls, with those test files unchanged.
+The catalog/context/plan implementation now lives in routes/agent.ts and receives a document-source
+callback. The callback encloses the entire deterministic operation, allowing a later published
+source to retain its request pin until the response is built. The extraction preserves editing reads.
