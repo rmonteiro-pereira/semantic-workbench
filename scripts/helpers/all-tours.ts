@@ -93,6 +93,7 @@ export function captureScreens(files: CaptureFiles): Screen[] {
   return [
     ...tourGroups(files).flatMap(group => group.screens),
     { name: 'mapping-graph', show: fileTab(files.mapping, 'Graph') },
+    ...graphScreens(files.ontology).filter(screen => ['graph-model-all-areas', 'graph-model-options', 'graph-neighborhood-more'].includes(screen.name)),
     {
       ...graphScreens(files.ontology).find(screen => screen.name === 'graph-neighborhood-hover-label')!,
       name: 'ontology-neighborhood-hover-label',

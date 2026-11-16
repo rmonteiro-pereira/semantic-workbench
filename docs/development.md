@@ -277,6 +277,8 @@ SW_THEME=dark bun run polish:capture:server /tmp/server-dark-shots
 in that tool's inventory produces no evidence for that screen. The server tool defaults to the
 fixture administrator; its optional final username selects another fixture identity. Administrator
 captures reject skipped screens. Both tools reject uncaught errors and measured geometry failures.
+The graph capture includes expanded areas, open controls, additional neighbors, hover labels,
+zoomed labels and full-screen views.
 
 `SW_SCREENSHOT_DIR` selects screenshot output; the graph, lineage, metrics, item-edit, UI, responsive and edge suites also honor `TMPDIR` when it is unset. Older drivers retain their documented
 `/tmp/workbench-*.png` locations. Capture collection must check timestamps so an old successful
