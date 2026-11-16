@@ -95,7 +95,7 @@ const cmIndex = (path: (string | number)[]) => {
 /** Builds mapping cards and binding edges from the resolver's context. */
 export function buildMappingGraph(context: MappingContext, revision = ''): MappingGraph {
   const conceptKey = (name: string) => {
-    if (OSSIE_BUILTINS.has(name) && !context.concepts.find(concept => concept.concept === name)?.relationships) return `builtin:${encodeURIComponent(name)}`;
+    if (context.concepts.find(concept => concept.concept === name)?.builtin === true) return `builtin:${encodeURIComponent(name)}`;
     if (!context.ontology.address) return `unresolved-concept:${encodeURIComponent(name)}`;
     return conceptId(context.ontology.address, name);
   };

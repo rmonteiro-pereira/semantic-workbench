@@ -1,5 +1,8 @@
 # Item address evidence
 
+Earlier sections retain the initial attempt. The current scope stop and unshimmed gate results
+are recorded in the later sections.
+
 ## Foundations
 
 - Checklist: 16 checked, 0 unchecked. No extension hooks are configured.
@@ -218,3 +221,14 @@ passed every unmodified module baseline and killed all five registered migration
 as well as the six grammar and three non-equivalent model mutants. Mutation preparation is
 therefore complete for the pure migration phase. The overall runner result, including its
 browser candidates, is reported separately below.
+
+## Scope edge cases
+
+Context labels now verify the actual derived scope kind, so a model-only context does not label
+its synthetic ontology with the model's locator. A declared `String` concept retains its source
+locator when mapped; only the implicit built-in receives a synthetic UI key. The synthetic
+fixture is accepted by the real inspector without error diagnostics.
+`bun test tests/mapping-graph.test.ts`: 16 pass, 0 fail, 6,673 assertions in 3.72 s.
+`bun --bun run check` passed. The full mutation run began before these two scope-edge changes;
+its address/migration modules and mutation candidates were unchanged. The final completion
+gate must still be rerun after resolving the phase stop.

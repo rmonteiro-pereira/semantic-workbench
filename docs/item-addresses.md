@@ -35,7 +35,7 @@ the project slug and document path parts; without it the locators are document-r
 
 An embedded mapping uses its name when present and `mapping:#<index>` otherwise. Positional
 ancestors make every descendant volatile, so those locators must not be persisted as history.
-RDF/SHACL resources and built-in concepts have no address in this feature. Unsupported depth or length reports the source path.
+RDF/SHACL resources and implicit built-in concepts have no address in this feature. Unsupported depth or length reports the source path.
 
 The inspector uses `StructuredEntity` and `StructuredRelationship` for required locators. RDF
 results and built-ins carry none; `isStructuredEntity` narrows mixed displays. Inspector locators
@@ -55,7 +55,8 @@ the source document. Canonical locators should be parsed and resolved through th
 The mapping canvas formats concept, dataset, metric, field and direct relationship keys within
 the resolved ontology/model scope. Agent context exposes these scope labels as `ontology.address`
 and `semanticModel.address` (absent for unresolved targets). Built-in cards and multi-hop mapping
-rows use synthetic UI identifiers. Row ownership is indexed explicitly instead of splitting keys.
+rows use synthetic UI identifiers. Declared concepts retain their source locators even when
+their names match an implicit built-in. A model-only context has no ontology scope label. Row ownership is indexed explicitly instead of splitting keys.
 
 ## Pure migration API
 

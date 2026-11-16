@@ -1,7 +1,7 @@
 // Tests concept mapping graphs derived from resolved bindings.
 import { test, expect } from 'bun:test';
 import { readFileSync } from 'node:fs';
-import { buildContext, agentCatalog, type StoredDocument, type RuntimeContext } from '../src/server/agent/runtime';
+import { buildContext, agentCatalog, modelContext, type StoredDocument, type RuntimeContext } from '../src/server/agent/runtime';
 import { buildMappingGraph, type MappingGraph } from '../src/app/mappings/mapping-graph';
 import { aroundHops } from '../src/app/odcs/lineage';
 // The concept-mapping graph: built from the resolver's context, so every drawn line is a binding
@@ -197,4 +197,26 @@ test('reserved field names stay distinct from dataset cards and carry the resolv
   expect(card.columns[0].id).toContain('/dataset:a/field:a%2Fb');
   expect(card.columns[1].id).toContain('/dataset:a/field:b');
   expect(card.id).toStartWith('sw1:#model:');
+});
+
+test('a model-only context does not label its synthetic ontology with the model address', () => {
+  const context = modelContext(sets.commerce, 'p/commerce.mapped-semantic.yaml');
+  expect(context.ontology.address).toBeUndefined();
+  expect(context.semanticModel.address.chain).toEqual([{ kind: 'model', name: context.semanticModel.name }]);
+});
+
+test('a declared concept with a built-in name retains its source locator', () => {
+  const context = changed(files => {
+    files['commerce.mapped-ontology.yaml'] += '  - concept: String\n    type: ValueType\n';
+  });
+  context.metricBindings.push({
+    metric: 'gross_revenue',
+    measures: { input: 'String', concept: 'String' },
+    findings: [],
+    evidence: context.metrics[0].evidence,
+  });
+  const graph = buildMappingGraph(context);
+  const declared = [...graph.cards.values()].find(card => card.kind === 'concept' && card.label === 'String')!;
+  expect(declared.id).toStartWith('sw1:#ontology:');
+  expect(declared.id).toEndWith('/concept:String');
 });
