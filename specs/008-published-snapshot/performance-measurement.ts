@@ -32,6 +32,6 @@ for (let iteration = 0; iteration < 12; iteration++) {
 }
 for (const [key, values] of Object.entries(samples)) {
   values.sort((a, b) => a - b);
-  console.log(JSON.stringify({ key, count: values.length, p95ms: values[Math.ceil(values.length * .95) - 1], medianMs: values[Math.floor(values.length / 2)] }));
+  console.log(JSON.stringify({ key, count: values.length, p95ms: values[Math.ceil(values.length * 0.95) - 1], medianMs: values[Math.floor(values.length / 2)] }));
 }
 rmSync(root, { recursive: true, force: true });
