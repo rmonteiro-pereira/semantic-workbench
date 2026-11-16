@@ -551,3 +551,36 @@ specification and task IDs.`; `No product name or logo is hard-coded outside pub
 The final documentation review returned PASS at `6eab45fa`, including the reserved-name migration case.
 `docs_sync.py --worktree .` exited 0. The requested `python3 scripts/commit_cadence.py "$PWD"` cannot run:
 this checkout does not contain that script (exit 2). No substitute tooling was added.
+
+## Browser completion checks
+
+All browser suites ran serially with `TMPDIR=/tmp/sw-008` and `SW_BASE_URL=http://127.0.0.1:5321`.
+The package commands used `bun --bun run`; responsive follow-ups used the same script with
+`RESPONSIVE_ONLY` selecting groups after the inherited failure.
+
+| Command | Summary | Exit |
+|---|---|---:|
+| `test:ui` | `20 UI checks passed` | 0 |
+| `test:edges` | `6 edge attachment UI checks passed` | 0 |
+| `test:grouping-validation` | `8 grouping and validation UI checks passed` | 0 |
+| `test:examples:ui` | `19 example UI checks passed; no browser runtime errors.` | 0 |
+| `test:scm` | `18 source-control checks passed` | 0 |
+| `test:mappings-layout` | `7 mapping layout checks passed` | 0 |
+| `test:projects` | `8 project checks passed` | 0 |
+| `test:published-snapshot` | `2 published snapshot browser checks passed.` | 0 |
+| `test:auth` | Final assertion: `PASS Git history is refused for a person who cannot read every file` | 0 |
+| `test:responsive` | `mall.odcs.yaml canvas height`: expected >= 421 px, received 407 px | 1 |
+
+The responsive failure was reproduced unchanged in a temporary worktree from freshly fetched
+`origin/main` (`655df094`), then that worktree and its frontend were removed. The user assigned the
+lineage-toolbar fix to the UI branch and instructed that neither canvas nor assertion change here.
+This is an explicit inherited failure, not a passing full responsive run. Focused follow-ups passed:
+dark theme 5 checks, graph controls 5, shell 5, examples at 1440 px 2, loading 2 and examples at 2560 px 2.
+The full run passed its preceding groups before reaching the known assertion.
+
+An initial frontend transport interruption invalidated later browser attempts. A fresh frontend and
+serial reruns supplied the successful results above; those interrupted attempts are not acceptance proof.
+
+The full public-document scan reports only seven pre-existing `/tmp/` command examples in configuration
+and development documentation. Those usage commands are preserved. Scanning all added public-document
+lines separately exits 0 with no hits; the confidential-only internal evidence scan also exits 0.

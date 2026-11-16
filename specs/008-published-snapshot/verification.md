@@ -63,3 +63,32 @@ corrected; the final run passed each unmodified baseline before executing mutant
 | `bun scripts/published-snapshot-browser-check.ts` | `2 published snapshot browser checks passed.` |
 
 The test run used `DATA_DIR=/tmp/sw-008/unit-gate-final`. Browser runs use `TMPDIR=/tmp/sw-008` and the assigned frontend on port 5321; API/mock listeners allocate their own dynamic ports.
+
+## Browser completion checks
+
+All browser suites ran serially with `TMPDIR=/tmp/sw-008` and `SW_BASE_URL=http://127.0.0.1:5321`.
+The package commands used `bun --bun run`; responsive follow-ups used the same script with
+`RESPONSIVE_ONLY` selecting groups after the inherited failure.
+
+| Command | Summary | Exit |
+|---|---|---:|
+| `test:ui` | `20 UI checks passed` | 0 |
+| `test:edges` | `6 edge attachment UI checks passed` | 0 |
+| `test:grouping-validation` | `8 grouping and validation UI checks passed` | 0 |
+| `test:examples:ui` | `19 example UI checks passed; no browser runtime errors.` | 0 |
+| `test:scm` | `18 source-control checks passed` | 0 |
+| `test:mappings-layout` | `7 mapping layout checks passed` | 0 |
+| `test:projects` | `8 project checks passed` | 0 |
+| `test:published-snapshot` | `2 published snapshot browser checks passed.` | 0 |
+| `test:auth` | Final assertion: `PASS Git history is refused for a person who cannot read every file` | 0 |
+| `test:responsive` | `mall.odcs.yaml canvas height`: expected >= 421 px, received 407 px | 1 |
+
+The responsive failure was reproduced unchanged in a temporary worktree from freshly fetched
+`origin/main` (`655df094`), then that worktree and its frontend were removed. The user assigned the
+lineage-toolbar fix to the UI branch and instructed that neither canvas nor assertion change here.
+This is an explicit inherited failure, not a passing full responsive run. Focused follow-ups passed:
+dark theme 5 checks, graph controls 5, shell 5, examples at 1440 px 2, loading 2 and examples at 2560 px 2.
+The full run passed its preceding groups before reaching the known assertion.
+
+An initial frontend transport interruption invalidated later browser attempts. A fresh frontend and
+serial reruns supplied the successful results above; those interrupted attempts are not acceptance proof.
