@@ -130,6 +130,6 @@ The last-Admin guard holds against policy text in two ways:
   project, gained: [action], lost: [action], access: 'kept'|'gained'|'lost'}]` ("what changes for
   whom"). People a rollback reactivates appear with the access they regain.
 
-Audit replay keeps up to 1,000 ordinary snapshots and 500 distinct allowed MCP/ACP read snapshots.
-Deduplication uses identity snapshot, action and resource attributes. Protocol-call records are not
+The shared operation boundary supplies the snapshots for replay. Read deduplication uses identity
+snapshot, action and resource attributes. Protocol-call records are not
 policy decisions and are never replayed. Logs without transport reads retain the original sample.

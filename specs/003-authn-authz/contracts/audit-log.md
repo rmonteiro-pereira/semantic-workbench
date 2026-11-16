@@ -20,9 +20,12 @@ the line itself has `"type":"audit"`).
 | `suppressed` | number? | refusals of the same kind from the same client address left out of the log since the previous record |
 | `origin` | `mcp` or `acp`, optional | absence means HTTP; explicit HTTP is omitted |
 | `tool` | inventory id, optional | validated against the operation inventory |
-| `method` | protocol method, optional | fixed discovery/tool/resource/prompt/subscription vocabulary |
+| `method` | protocol method, optional | fixed vocabulary listed below |
 | `connection` | opaque id, optional | 1–64 ASCII letters, digits, underscore or hyphen |
 | `prev` | hex | SHA-256 of the previous line in the file |
+
+Supported methods: `discover`, `tools/list`, `tools/call`, `resources/list`, `resources/read`,
+`resources/subscribe`, `prompts/list`, `prompts/get`, `subscriptions/listen`.
 
 Never present: tokens, cookies, secrets, document text, diff text, commit messages.
 
@@ -69,3 +72,11 @@ their order. JSONL exports retain optional attribution fields as stored.
 
 Protocol discovery, listing and subscription lifecycle calls each append one record, independently
 of the number of returned items. Protocol records have `action: protocol` and no replay snapshot.
+
+For non-HTTP operations, reviewed classifiers distinguish partial effects (`degraded`) and refused
+effects from success, even when the HTTP status is 200. An unsupported body, stream or oversized
+response records `failed`; the response is unchanged. Clone acceptance confirms job acceptance,
+not background completion. HTTP outcome behavior remains unchanged.
+
+`tests/auth/audit-compat.test.ts` verifies original months, mixed records, month boundaries and
+mirror anchors. Attribution fields are optional so old bytes and hash chains need no rewrite.

@@ -136,7 +136,9 @@ The integration view shows what the application reads and contacts, and what it 
 ### Identity, authorization, governance and administration
 
 - `src/server/auth/authentication.ts` composes provider identity, sessions, directory membership and
-  the single administration repository. It does not depend on provider-specific protocol details.
+  the single administration repository and mirrored audit log with configured retention. The same
+  log reaches the handler and administration service. Standalone handlers construct one through
+  `defaultAudit` when none is supplied. Authentication does not depend on provider-specific protocol details.
 - `sign-in-provider.ts` selects a provider interface implementation: `msal-provider.ts` for
   Entra, `oidc.ts` for Keycloak/generic. `managed-identity.ts`, `id-token.ts` and
   `sign-in-error.ts` share token/assertion validation and safe failures.
@@ -149,9 +151,16 @@ The integration view shows what the application reads and contacts, and what it 
 - `request-authentication.ts` owns network rate limits, local Host/Origin checks, bearer validation, cross-site checks and principal resolution.
 - `twin-request.ts` builds credential-free requests from inventory ids, encoded parameters, sorted queries and the existing body limits.
 - `operation-inventory.ts` parses `policies/operation-inventory.json`, validates its vocabularies and resolves operation ids and route rows.
-- `operation-boundary.ts` owns route decisions, target refusal mapping, handler execution and audit for authenticated callers.
-- `route-actions.ts`, `middleware.ts` and `request-scope.ts` map requests to actions/resources,
-  resolve identity once and attach the filtered scope. Unmapped protected routes fail closed.
+- `operation-boundary.ts` owns route decisions, effective-permission listing, target refusal mapping,
+  handler execution and audit for authenticated callers. `createHandler` exposes that same instance
+  as `handler.boundary` to trusted in-process adapters; invocation requires a minted caller.
+- `caller.ts` mints authenticated caller context with runtime provenance. `middleware.ts` is the HTTP
+  adapter; `route-actions.ts` maps method/path rows to actions and resources. `request-scope.ts`
+  attaches identity, delegated session and the filtered scope together. Unmapped protected routes fail closed.
+- `connection-scope.ts` narrows inventory effects and dynamic Git effects without granting policy access.
+- `operation-outcome.ts` classifies bounded response copies after existence hiding.
+  `operation-classifiers.ts` registers pure classifiers owned by SCM, clone and save modules.
+- `replay-sample.ts` fills independent ordinary and non-HTTP read strata in one backward audit scan.
 - `write-access.ts`, `git-access.ts` and `project-creation.ts` authorize concrete write targets,
   repository-wide actions and new-project domains before mutation.
 - `src/shared/governance/guards.ts` contains shared pure content rules and classification levels. Server
@@ -281,9 +290,6 @@ The integration view shows what the application reads and contacts, and what it 
   dry-run interpret the shipped YAML offline. `deploy/` owns target setup, release hand-over and
   real acceptance; those operations do not happen during application startup.
 
-`src/server/auth/caller.ts` defines authenticated caller context and runtime mint provenance for the operation boundary.
-`createHandler` exposes the same boundary as `handler.boundary` for trusted in-process adapters; invocation requires a minted caller.
-`request-scope.ts` attaches the caller, access scope, audit context, delegated session and remote-credential mode in one function for handlers.
 
 ## Request and state flow
 
@@ -371,25 +377,3 @@ The integration view shows what the application reads and contacts, and what it 
 Use [the development guide](docs/development.md) for command syntax, fixture rules and validation.
 Keep configuration/API/operation details in their canonical guides instead of appending release
 history or per-control instructions to this architecture map.
-
-Connection effects in `auth/connection-scope.ts` restrict static inventory effects at the operation
-boundary and dynamic remote or publication effects in Git handlers. They never grant policy access.
-
-`tests/auth/boundary-scan.test.ts` enforces scope construction at the named authorization modules;
-mutation and security-review harnesses are explicit exceptions for isolated test identities.
-
-`auth/operation-outcome.ts` buffers at most 1 MB from a cloned, non-stream response for semantic
-classification. Existence hiding runs first; classification failure records `failed` without
-changing an operation's response or consuming the caller's body.
-
-Server authentication constructs the mirrored audit log once with administration retention and
-passes the same instance to the handler and administration service. Standalone handlers use
-`defaultAudit` with configured retention; a supplied log prevents a second construction.
-
-`auth/operation-classifiers.ts` registers inventory classifier names; pure classifiers live beside
-the response owner's SCM, clone, document-save or import implementation. Non-HTTP calls select
-these defaults. Clone acceptance records acceptance only; the background job settles independently.
-
-`auth/replay-sample.ts` selects separate bounded strata for ordinary decision snapshots and distinct
-non-HTTP allowed reads. The audit store's backward scan stops when both strata are full, so reads
-cannot displace write or denial evidence.

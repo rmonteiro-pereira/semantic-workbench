@@ -199,6 +199,12 @@ origin. Neither arrangement needs a warehouse or a hosted AI service.
 
 **Identities and access.** Who can act, how they sign in, and how roles, policies and the audit record decide each request.
 
+Network authentication lives in `src/server/auth/request-authentication.ts`. Authenticated HTTP
+requests enter `operation-boundary.ts` through the thin `middleware.ts` adapter. Trusted in-process
+adapters use that same boundary with minted callers and credential-free twin requests. The
+[operation inventory](docs/operations.md) lists routes, effects, limits and browser-only capabilities;
+this boundary does not add an MCP transport.
+
 ![Identities and access: people and agent clients are recognised through sign-in or a bearer token, receive roles from grants at a scope, and every request is decided by Cedar policies, content guards and an audit record; access changes pass a dry run and a last-Admin guard.](docs/diagrams/identities.svg)
 
 ### C4 level 1: system context
@@ -542,6 +548,12 @@ Operational logs are available in both modes. Telemetry export is server-only an
 contact Azure directly or collect clicks, keystrokes or file content. Audit is a separate
 hash-chained security record, not an operational telemetry feed.
 
+Each non-HTTP operation records one audit decision, including allowed reads, with `origin`, an
+inventory `tool` id and optional opaque `connection`. Protocol lifecycle records use `method`.
+HTTP audit selection and existing hash chains remain unchanged. Admin and Steward audit queries
+can filter by origin and tool within their existing visibility; CSV exports append these fields.
+The [audit contract](specs/003-authn-authz/contracts/audit-log.md) defines the stored fields.
+
 [Agent clients](docs/agent-runtime.md) use Entra application tokens only on `/api/agent/*`, with
 explicit project grants. The API exposes metadata, explanations and query plans, not execution.
 The application does not require or call a hosted language model.
@@ -639,6 +651,7 @@ by the locally recorded quality gate.
 | [Graph design](docs/graph-design.md) | Rendering/layout engines and graph measurement rules |
 | [Agent runtime](docs/agent-runtime.md) | Metadata APIs, token setup, planning and limits |
 | [Theme and branding](docs/theme.md) | Tokens, light/dark and white-label bundles |
+| [Operation inventory](docs/operations.md) | Reviewed operations, effects, limits and browser capabilities |
 | [Audit integrity](docs/audit-tamper-evidence.md) | Hash-chain checks, anchors and limitations |
 | [Azure setup](deploy/README.md) | Target resources, Entra, pipelines and source hand-over |
 | [Acceptance runbook](deploy/trial-runbook.md) | Real-target checks, smoke tests and rollback |

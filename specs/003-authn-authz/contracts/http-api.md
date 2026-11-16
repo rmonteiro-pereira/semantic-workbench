@@ -4,6 +4,10 @@ Base: [002 HTTP API](../../002-lineage-and-ux/contracts/http-api.md) and
 [001 HTTP API](../../001-workbench-improvements/contracts/http-api.md). Local mode keeps every
 rule there. Server mode adds the rules below.
 
+Authenticated operations share `src/server/auth/operation-boundary.ts`; network authentication
+and HTTP response wrapping remain in the HTTP adapter. Trusted in-process twins retain route and
+handler checks. See the [operation inventory](../../../docs/operations.md) for dispatch eligibility.
+
 ## Common rules (server mode)
 
 - Authentication: session cookie `__Host-sw-session` on every route except `/auth/*`,

@@ -6,7 +6,16 @@ not configure a production deployment.
 
 ## Unreleased
 
+### Added
+
+- Reviewed operation inventory and generated reference, trusted in-process operation dispatch,
+  connection effect restrictions, audit attribution fields and origin/tool filters.
+- Independent dry-run samples retain write and denial evidence during non-HTTP read floods.
+
 ### Changed
+
+- Network authentication and shared operation decisions have separate modules; existing HTTP
+  behavior and audit bytes are preserved.
 
 - Agent context: every document of a context names its `role` (`mapping`, `ontology` or `semantic`),
   and the answer lists `boundMetricIds`, the metrics bound directly to the selected concepts
@@ -15,6 +24,8 @@ not configure a production deployment.
   the commerce entities, so the Mappings AI context and the graph show a definition for each.
 
 ### Fixed
+
+- The administration audit retention setting reaches the single production audit log.
 
 - A fresh development server no longer reloads the page while the Network graph loads for the first
   time. `cytoscape` and `cytoscape-fcose`, which only the layout worker imports, are now optimized
