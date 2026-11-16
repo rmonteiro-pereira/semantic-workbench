@@ -46,7 +46,7 @@ function usePanelTop(button: React.RefObject<HTMLButtonElement | null>, open: bo
  * On a wide window the children sit in the toolbar as they are. On a phone they sit in a panel
  * behind one button, so the canvas keeps its height.
  */
-export function CompactControls({ label = 'Controls', children }: { label?: string; children: ReactNode }) {
+export function CompactControls({ label = 'Controls', children, folded = false }: { label?: string; children: ReactNode; folded?: boolean }) {
   const compact = useCompactToolbar();
   const [open, setOpen] = useState(false);
   const button = useRef<HTMLButtonElement>(null);
@@ -74,7 +74,7 @@ export function CompactControls({ label = 'Controls', children }: { label?: stri
     window.addEventListener('keydown', closeOnEscape);
     return () => window.removeEventListener('keydown', closeOnEscape);
   }, [open]);
-  if (!compact) return <>{children}</>;
+  if (!compact && !folded) return <>{children}</>;
   return (
     <span className="compact-controls">
       <button ref={button} aria-expanded={open} aria-haspopup="true" onClick={() => setOpen(value => !value)}>

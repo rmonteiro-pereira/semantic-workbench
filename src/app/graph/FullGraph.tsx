@@ -23,7 +23,7 @@ import { edgeTypes, nodeTypes } from './FullGraphNodes';
 import { FullscreenButton } from './FullscreenButton';
 export { FullscreenButton } from './FullscreenButton';
 import { useFullGraphEdges } from './useFullGraphEdges';
-import { fitFullGraph } from './full-graph-viewport';
+import { fitFullGraph, focusFullGraph } from './full-graph-viewport';
 import { useFullGraphLayout } from './useFullGraphLayout';
 
 function entityAddress(entity: import('../../shared/core/model').Entity | undefined) {
@@ -179,6 +179,20 @@ export function FullGraph(props: Props) {
       setViewport(v);
     },
   );
+  const focusSelection = useCallback(() => {
+    if (!props.selected) return;
+    const neighbors = new Set([props.selected]);
+    for (const edge of display.edges) {
+      if (edge.source === props.selected || edge.target === props.selected) {
+        neighbors.add(edge.source);
+        neighbors.add(edge.target);
+      }
+    }
+    focusFullGraph(flow.current, container.current?.querySelector('.react-flow'), props.selected, neighbors);
+  }, [props.selected, display]);
+  useEffect(() => {
+    if (!busy) focusSelection();
+  }, [busy, focusSelection, size.width]);
   // Refit after the remaining canvas changes size (panels, monitor, wrapped controls).
   useEffect(() => {
     const el = container.current?.querySelector('.react-flow');
@@ -187,7 +201,10 @@ export function FullGraph(props: Props) {
     const observer = new ResizeObserver(() => {
       clearTimeout(timer);
       timer = setTimeout(() => {
-        if (!held()) fitWithin(0);
+        if (!held()) {
+          if (props.selected) focusSelection();
+          else fitWithin(0);
+        }
       }, 100);
     });
     observer.observe(el);
@@ -195,7 +212,7 @@ export function FullGraph(props: Props) {
       observer.disconnect();
       clearTimeout(timer);
     };
-  }, [busy, fitWithin]);
+  }, [busy, fitWithin, focusSelection]);
   useEffect(() => {
     // A person who opened every area keeps them open under another grouping; any other choice
     // belonged to the old groups.
@@ -230,7 +247,7 @@ export function FullGraph(props: Props) {
                 focused: connected.has(node.id),
                 tooltip: node.id === hover || node.id === props.selected,
               },
-              style: { ...node.style, opacity: focus && !connected.has(node.id) ? 0.32 : 1 },
+              style: { ...node.style, opacity: focus && !connected.has(node.id) ? 0.35 : 1 },
             }
           : node,
       ),
@@ -293,7 +310,7 @@ export function FullGraph(props: Props) {
           <Maximize size={13} />
           Fit model
         </button>
-        <CompactControls>
+        <CompactControls folded={size.width < 1400}>
           {props.groupMenu}
           <ZoomButtons onZoomIn={() => void flow.current?.zoomIn({ duration: 150 })} onZoomOut={() => void flow.current?.zoomOut({ duration: 150 })} />
           <GraphOptions>
@@ -349,8 +366,8 @@ export function FullGraph(props: Props) {
               </ShowToggle>
             </OptionGroup>
           </GraphOptions>
-          {props.fullscreen && <FullscreenButton fullscreen={props.fullscreen} />}
         </CompactControls>
+        {props.fullscreen && <FullscreenButton fullscreen={props.fullscreen} />}
       </ScrollStrip>
       {error ? (
         <div role="alert" className="full-graph-loading">

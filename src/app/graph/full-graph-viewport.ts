@@ -37,3 +37,15 @@ export function fitFullGraph(instance: ReactFlowInstance<any, any> | null, canva
   const startsValid = Number.isFinite(instance.getViewport().zoom);
   void instance.setViewport(getViewportForBounds({ x, y, width, height }, rect.width, rect.height, 0.001, 1, 0.12), { duration: startsValid ? duration : 0 });
 }
+
+/** Frames neighbors when readable, otherwise keeps the selected entity at the pane center. */
+export function focusFullGraph(instance: ReactFlowInstance<any, any> | null, canvas: Element | null | undefined, selected: string, neighbors: Set<string>) {
+  if (!instance || !canvas) return;
+  const nodes = instance.getNodes().filter(node => neighbors.has(node.id));
+  if (!nodes.length) return;
+  const bounds = instance.getNodesBounds(nodes);
+  const pane = canvas.getBoundingClientRect();
+  const fitted = getViewportForBounds(bounds, pane.width, pane.height, 0.001, 1, 0.1);
+  const framed = fitted.zoom >= 0.75 ? nodes : nodes.filter(node => node.id === selected);
+  void instance.fitView({ nodes: framed, minZoom: 0.75, maxZoom: 1, padding: 0.1, duration: 0 });
+}
