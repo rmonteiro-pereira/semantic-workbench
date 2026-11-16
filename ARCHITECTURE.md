@@ -374,3 +374,6 @@ history or per-control instructions to this architecture map.
 
 Connection effects in `auth/connection-scope.ts` restrict static inventory effects at the operation
 boundary and dynamic remote or publication effects in Git handlers. They never grant policy access.
+
+`tests/auth/boundary-scan.test.ts` enforces scope construction at the named authorization modules;
+mutation and security-review harnesses are explicit exceptions for isolated test identities.
