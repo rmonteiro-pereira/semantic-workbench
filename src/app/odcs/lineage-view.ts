@@ -87,10 +87,10 @@ export function planFirstView(plan: Plan): Set<string> {
   return chosen;
 }
 
-/** Keeps a walk target usable without making it wider than its card. */
-export function walkTargetSize(zoom: number, cardWidth: number): number | null {
+/** Keeps a walk target usable while it fits the available card space. */
+export function walkTargetSize(zoom: number, availableSize: number): number | null {
   const size = Math.max(24, 24 / zoom);
-  return size <= cardWidth ? size : null;
+  return size <= availableSize ? size : null;
 }
 
 /** Tests whether the complete laid-out reach fits without shrinking column text. */

@@ -48,9 +48,10 @@ const KIND_NAME: Record<string, string> = {
 /** Renders an asset card with row ports, a scrolling column list and neighbor expansion. */
 export const LineageCardNode = memo(({ data }: NodeProps) => {
   const zoom = useStore(state => state.transform[2]);
-  const walkSize = walkTargetSize(zoom, CARD_W);
   const cardData = data as unknown as CardData;
   const lineageCard = cardData.card;
+  const walkRoom = Math.min(CARD_W - 20, cardHeaderHeight(lineageCard) - 12);
+  const walkSize = walkTargetSize(zoom, walkRoom);
   const dim = !!cardData.onPath && !cardData.onPath.has(lineageCard.id) && !lineageCard.columns.some(x => cardData.onPath!.has(x.id));
   const kindLabel = cardData.kindNames?.[lineageCard.kind] ?? KIND_NAME[lineageCard.kind] ?? lineageCard.kind;
   const legendKind = lineageCard.kind as any;

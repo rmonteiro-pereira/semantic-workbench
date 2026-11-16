@@ -67,3 +67,17 @@ Label placement rejects a slot intersected by any laid-out route, including diag
 ## T034 — complete
 
 Foreign-key docs now state one to three. Mapping Steps (1–5) is described separately, and first-view docs describe the actual bounds decision and nearest-set fallback. `bun test tests/lineage-hops.test.ts`: 4 pass, 0 fail, 13 expect calls. `rg -n 'one to five' docs README.md` has no matches. The changelog fragment and both edited guides pass the deliverable leak scanner with zero hits.
+
+## Final check progress and target containment correction
+
+- `bun --bun run check`: passed (TypeScript, formatting, lint, comments, theme and brand).
+- `bun --bun run build`: passed, `built in 1.92s` (existing chunk-size warning only).
+- `test:odcs`: `10 ODCS checks passed`.
+- `test:mapping-graph`: `12 mapping graph checks passed`.
+- `test:edges`: `6 edge attachment UI checks passed`.
+- `test:ui`: `20 UI checks passed`.
+- The initial lineage run exposed Walk here intercepting Expand at reduced zoom. The first containment attempt removed the overlay; responsive then caught targets taller than short metric headers. Targets now participate in normal action layout and are hidden when the available header height cannot contain 24 screen pixels. The corrected UBL Expand/Undo entry-point check passes; its first view measured 1906 ms against the unchanged 2000 ms limit.
+- The earlier repeat measured 2060 ms and failed that limit; no budget was changed.
+- The complete unit command with a port preload encountered ten identity-fixture failures needing concurrent listeners on 5222. It was stopped after confirming this infrastructure conflict. A bare command with `BUN_OPTIONS` also caused Bun's package-script recursion; the corrected invocation was `bun test ./tests --preload ./out/lane-b/ports.ts`. No full-unit pass is claimed.
+- `python3 scripts/commit_cadence.py <worktree>` cannot run: this repository has no such file.
+- Focused production baseline and both registered viewport mutants passed: `2/2 lineage viewport mutants killed; production baseline passed.`

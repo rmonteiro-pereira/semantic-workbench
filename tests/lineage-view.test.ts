@@ -76,6 +76,7 @@ test('walk targets compensate zoom and disappear when the card cannot hold them'
   expect(walkTargetSize(0.1, 360)).toBe(240);
   expect(walkTargetSize(0.05, 360)).toBeNull();
   expect(walkTargetSize(2, 360)).toBe(24);
+  expect(walkTargetSize(0.3, 52)).toBeNull();
 });
 
 test('first view uses the whole reach only when its actual bounds fit readably', () => {
