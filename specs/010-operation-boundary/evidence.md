@@ -111,3 +111,39 @@ T039: Git, clone and repository registration entries name the existing Git path/
 T040: all 119 route rows now have reviewed metadata, including public, stream, page and browser-only dispatch refusals. Trash entry and whole-trash purge use distinct ids. Parser suite: `2 pass`, `0 fail`, `15 expect() calls`.
 
 T011–T012: twin builder tests cover credential-free headers, exact path encoding, sorted query serialization, abort propagation, body byte limits and generated hostile values. Every parameterized dispatchable row receives at least 500 generated values per parameter. Successful builds preserve both the intended row and the encoded value; failures are confined to the builder, never swallowed assertions.
+
+## Additional parity finding: hidden and missing trash audit selection
+
+T017 blocks the remainder of Phase 3 pending clarification. The original middleware at `655df09`
+returns identical `404 {"error":"Not found."}` bodies for a hidden trash restore and a missing trash
+restore, but their audit histories differ. A hidden HR file restored by Alice appends one denial
+with `reason: not-readable`; the missing entry `00000000000000000000000000` appends nothing.
+The extracted boundary reproduces both outcomes. Requiring equal audit reasons contradicts the
+frozen HTTP audit behavior and T016's HTTP/twin audit parity. Neither production behavior nor the
+frozen fixture has been changed to hide that difference.
+
+The original middleware was obtained with `git show 655df09:src/server/auth/middleware.ts` into
+`/tmp/sw-010/original-middleware.ts`; only relative import specifiers were resolved to absolute
+module paths so it could run from the temporary folder. The probe used the real fixture, Alice's
+resolved grants, a real HR trash entry and the same durable audit implementation. Its two results:
+
+- hidden: status 404, body `{"error":"Not found."}`, audit `[{"reason":"not-readable","decision":"deny","rules":[]}]`.
+- missing: status 404, body `{"error":"Not found."}`, audit `[]`.
+
+An asynchronous clarification asks whether the trash comparison should preserve these separate
+audit behaviors, or whether twins may deliberately depart from HTTP auditing for missing entries.
+
+## Transport parity proof
+
+The parity table has 21 operation cases and runs each through HTTP and the actual handler's
+boundary in six authorization/target scenarios. Fresh fixture workspaces isolate the two
+transports. It compares normalized status, body and complete audit records, permitting the
+existing no-record result for missing trash. Git stage, unstage, commit and revert additionally
+assert that a restricted target is refused, so two equally broken transports cannot pass.
+
+`bun test tests/auth/operation-parity.test.ts`: `21 pass`, `0 fail`, `283 expect() calls`,
+`Ran 21 tests across 1 file. [72.53s]`.
+Removing the stage handler's `authorizeGitPaths` call caused the named `git.stage` parity test to
+fail with status 200 where 404 was required (`0 pass`, `1 fail`). The original source was restored
+in a `finally` block. After extracting the parameter builder for readability, the same named test
+passed (`1 pass`, `0 fail`, `15 expect() calls`).
