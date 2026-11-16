@@ -20,6 +20,7 @@ export async function moveToAuthoringBranch(git: Git, directory: string, default
   const branch = await symbolicBranch(git, directory);
   if (!branch) throw new GitError('Choose an authoring branch before committing a detached HEAD.');
   if (branch !== defaultBranch) return { branch };
+  if (defaultBranch === 'work/local') throw new GitError('The default branch is work/local. Choose another authoring branch before committing.');
   const head = await git.head(directory);
   const authoring = await git.revParse(directory, 'refs/heads/work/local');
   if (authoring && (!head || !(await git.isAncestor(directory, head, authoring)))) {

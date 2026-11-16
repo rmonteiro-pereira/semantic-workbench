@@ -414,3 +414,9 @@ Ran 2186 tests across 304 files. [383.70s]
 `TMPDIR=/tmp/sw-008 SW_BASE_URL=http://127.0.0.1:5321 SW_SCREENSHOT_DIR=/tmp/sw-008/captures/snapshot-controls bun scripts/published-snapshot-browser-check.ts`: `2 published snapshot browser checks passed.` The reviewed native phone capture prompted singular commit wording; the repeated browser run passed and replaced the supplemental images.
 
 The final documentation reviewer returned accuracy PASS after registration, audit and no-history metadata corrections. Three new prose lines were wrapped to meet the width rule. The full architecture reviewer returned PASS after the guarded refusal audit correction. The marker will be recorded at the final committed head.
+
+## Reserved authoring name scope ledger
+
+Local commit preparation already preserves arbitrary non-default authoring branches and staged files. Git permits a repository default itself to be named `work/local`; the fixed fallback name must not turn that default into an ordinary authoring target. A focused HTTP case will exercise this valid existing-root configuration and, if necessary, require a refusal before a commit and successful recovery by choosing another authoring branch. No ref rename or migration rewrite is authorized or needed.
+
+The reserved-name HTTP test first failed because the request returned 200 and advanced the default. Commit preparation now refuses that collision before staging or committing. The same entry-point test selects another authoring branch, commits successfully without moving the snapshot, then explicitly publishes it. Targeted proof: 13 pass, 0 fail, 59 assertions. The mutation baseline exits 0; deleting the reserved-name check exits 1 with the expected missing-rejection assertion. That mutant is registered for the complete gate.

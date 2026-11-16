@@ -1,6 +1,7 @@
 // Deliberate faults in immutable publication selection and validation.
 /** Targeted publication faults exercised by the mutation gate. */
 export const snapshotMutants: [string, string, string, string][] = [
+  ['snapshot-local', 'src/server/projects/local-publication.ts', "if (defaultBranch === 'work/local')", 'if (false)'],
   ['snapshot-export', 'src/server/projects/workspace.ts', "if (options.source === 'published')", 'if (false)'],
   [
     'snapshot-history',

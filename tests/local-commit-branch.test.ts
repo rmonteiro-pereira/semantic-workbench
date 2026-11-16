@@ -48,3 +48,37 @@ test('importing into an upgraded default checkout commits on authoring without m
   expect(await fixture.ws.git.revParse(repository.repository, 'refs/heads/main')).toBe(repository.published!);
   expect((await fixture.ws.git.run(repository.repository, ['branch', '--show-current'])).stdout.trim()).toBe('work/local');
 });
+
+test('a default named work/local is preserved until another authoring branch is selected', async () => {
+  const repository = publicationRepository();
+  const checkout = Bun.spawnSync(['git', 'checkout', '-q', 'work/local'], { cwd: repository.repository });
+  expect(checkout.exitCode).toBe(0);
+  createState(dataLayout(repository.dir)).writeRegistry([{ slug: 'definitions', name: 'Definitions', origin: '', createdAt: '' }]);
+  using fixture = await testWorkspace({ root: repository.dir });
+  const previous = await fixture.ws.git.head(repository.repository);
+  const path = join(repository.repository, 'new.ontology.yaml');
+  const source = ontologyText('New', ['Item']);
+  writeFileSync(path, source);
+  const commit = () =>
+    fixture.handler(
+      new Request('http://localhost/api/projects/definitions/git/commit', {
+        method: 'POST',
+        body: JSON.stringify({ message: 'Add definition', paths: ['new.ontology.yaml'] }),
+      }),
+    );
+  const refused = await commit();
+  expect(refused.status).not.toBe(200);
+  expect((await refused.json()).error).toContain('another authoring branch');
+  expect(await fixture.ws.git.revParse(repository.repository, 'refs/heads/work/local')).toBe(previous);
+  expect(await Bun.file(path).text()).toBe(source);
+  await fixture.ws.git.run(repository.repository, ['switch', '-c', 'authoring']);
+  const accepted = await commit();
+  expect(accepted.status).toBe(200);
+  const result = await accepted.json();
+  expect(result.branch).toBe('authoring');
+  expect(await fixture.ws.git.revParse(repository.repository, 'refs/heads/work/local')).toBe(previous);
+  const publication = await fixture.handler(new Request('http://localhost/api/projects/definitions/git/publish', { method: 'POST', body: '{}' }));
+  expect(publication.status).toBe(200);
+  expect((await publication.json()).previous).toBe(previous);
+  expect(await fixture.ws.git.revParse(repository.repository, 'refs/heads/work/local')).toBe(result.commit);
+});

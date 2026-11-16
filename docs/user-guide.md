@@ -202,6 +202,9 @@ Local mode uses the machine's Git configuration. **Set Git identity…** writes 
 changes global Git configuration. Without Git or an identity, definitions can still be edited;
 a banner explains which version-control operations are unavailable.
 
+When a repository's default branch is itself named `work/local`, select another authoring branch
+before committing. The application refuses to commit directly on that default branch.
+
 The Git status API includes a `published` block identifying the durable snapshot and the
 authoring branch's ahead/behind counts. A pending outside move is reported separately. The local
 upgrade notice remains visible until explicitly acknowledged;

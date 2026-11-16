@@ -13,6 +13,7 @@ export async function localPublicationCase(candidate: { createLocalPublication?:
   await fixture.git.stage(fixture.repository, ['unrelated.txt']);
   writeFileSync(path, 'unstaged');
   await candidate.moveToAuthoringBranch!(fixture.git, fixture.repository, 'main');
+  await assert.rejects(() => candidate.moveToAuthoringBranch!(fixture.git, fixture.repository, 'work/local'), /another authoring branch/);
   assert.equal(readFileSync(path, 'utf8'), 'unstaged');
   assert.equal(Buffer.from((await fixture.git.blob(fixture.repository, '', 'unrelated.txt'))!).toString(), 'staged');
   await assert.rejects(() =>
