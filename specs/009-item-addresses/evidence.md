@@ -754,3 +754,185 @@ Only this six-example category now receives thirty seconds on the capped remote 
 categories retain ten seconds. Assertions and mutation anchors are unchanged. Full static and
 readability checks pass. This is a measured baseline deadline correction, not an AVX2 failure
 or a claimed mutation-gate pass; the real gate must complete with the corrected deadline.
+
+## Completion gate and integration status
+
+All implementation tasks are addressed. The completion commands were executed without a preload
+shim. The strict browser gate is not entirely green: graph, lineage and responsive failures were
+reproduced on unchanged main 655df09. Their assertions remain unchanged.
+
+Production source is anchored at 10408a68. Subsequent commits correct mutation fixture portability,
+the retired mapping API assertion, and a measured remote baseline deadline; they do not change app
+behavior. Heavy runs used sw-midgard-run serially, with owned listeners on 5489/5490 and dynamic
+fixture ports. No AVX2-specific failure required a local heavy run.
+
+| Command | Actual summary or failure |
+| --- | --- |
+| `bun test` | `2190 pass`; `0 fail`; `265122 expect() calls`; `Ran 2190 tests across 308 files. [1136.23s]` |
+| `bun --bun run check` | `All matched files use the correct format.`; TypeScript, lint, comments, theme and brand checks exit 0. |
+| `bun --bun run build` | `✓ built in 2.92s`; existing chunk-size warning only. |
+| `bun run test:addresses` | `4 item address browser checks passed` |
+| `bun run test:metrics` | `11 metrics checks passed` |
+| `bun run test:item-edit` | `11 item-edit checks passed` |
+| `bun run test:ui` | `20 UI checks passed` |
+| `bun run test:edges` | `6 edge attachment UI checks passed` |
+| `bun run test:auth` | Exit 0; 36 PASS lines; final `PASS Git history is refused for a person who cannot read every file` |
+| `bun run test:graph` | Development long task 227 ms vs main 233 ms, both over 100 ms; production select clipped on both branches. |
+| `bun run test:lineage` | Production first view 3,482 ms vs main 3,494 ms, both over 2,000 ms. |
+| `bun run test:responsive` | Production graph height 481 px on both branches; same greater-than-504 px assertion fails. |
+| `bun scripts/mutation-tests.ts` | `681/681 targeted mutants killed; all unmodified module baselines passed. Run test:ui for the full browser baseline.` |
+
+Exact summaries for the suites whose output includes their isolated data root:
+
+```text
+11 metrics checks passed on isolated data root /srv/dev/tmp-009-item-addresses/workbench-browser-bLPhnG.
+11 item-edit checks passed on isolated data root /srv/dev/tmp-009-item-addresses/workbench-browser-Gv8fy5.
+```
+
+The three failing scripts finish with these unchanged error summaries:
+
+```text
+error: script "test:graph" exited with code 1
+error: script "test:lineage" exited with code 1
+error: script "test:responsive" exited with code 1
+```
+
+Gate logs are retained under out/gate-009/. The mutation log is mutation-reviewed.log; the unit
+log is unit-reviewed.log. Browser feature/main pairs use the production-* and main-production-*
+filenames recorded above. The full static check passed again after the final mutation runner edit.
+
+Compaction remains deliberately dropped: A→B, B.f→B.g, B→C resolves A.f to C.g, whereas compacting
+the outer moves to A→C loses the middle rewrite and yields C.f. The uncompacted project store
+refuses writes beyond 50,000 records atomically. Its unsupported retention environment setting
+was omitted, and the equivalent parent-kind mutant was documented rather than counted as killed.
+
+Integration follow-ups remain explicit: feature 008 supplies published-snapshot lookup; suffixes
+currently stay opaque. Feature 010 supplies operation-key settlement; migration appends use the
+existing save/batch-save routes, and stale old-base retries are not promised safe replay. RDF
+resources could later use IRIs; RDF blank nodes and built-in concepts remain unaddressable. The
+store currently assumes one workspace process per DATA_DIR. No unrelated baseline browser
+layout/performance behavior was changed.
+
+Docs-sync and the public documentation leak scan exit 0. The requested commit-cadence script
+cannot run because scripts/commit_cadence.py does not exist in the repository (exit 2).
+
+### Feature commit ledger
+
+```text
+d5e1ed2c docs(spec): specify item addresses (feature 009)
+3a53e72f docs(spec): clarify item addresses (reconciliation permission, undone renames)
+a9ab5f4d docs(spec): research for item addresses
+4b85e054 docs(spec): data model for item addresses
+ca4b11d7 docs(spec): address grammar and migration store contracts
+572913ee docs(spec): quickstart for item addresses
+1d2ad271 docs(spec): implementation plan for item addresses
+1f94bf28 docs(spec): tasks for item addresses with traceability
+65ceaca1 docs(spec): analysis fixes for item addresses (migration kinds, hidden-equals-missing wording, traceability)
+e87fed28 data: add item address conformance cases
+77e23866 feat: define item address kinds and seeded fixtures
+478704e3 data: cover reserved bytes and oversized malformed locators
+0ea842da feat: implement canonical item address grammar
+6a9dd8e1 fix: reject document-relative resolution without a document base
+5c6b5fef test: detect canonical item address grammar mutations
+d29141c9 data: cover document snapshot and positional address forms
+49ede3eb docs: record item address proofs and derivation blockers
+75013451 data: include unnamed embedded mapping address
+37629f86 feat: define volatile unnamed mappings and structured address scope
+bc01bbab feat: derive and resolve structured item locators
+66b65af0 test: cover model locator ambiguity and volatility guards
+1cee6bbf feat: attach locators to structured inspector results
+6b639b21 feat: adapt legacy item labels without delimiter guessing
+f703231a feat: use scoped locators in mapping graphs
+0f1ca13b feat: apply and validate ordered address migrations
+6ecfa7aa test: detect migration replay and ownership faults
+4f051ad4 fix: preserve unresolved context responses with addressed mapping keys
+c1baad5b test: use scoped keys in mapping mutation cases
+43504926 test: record killed address migration mutants
+3fa4f1f8 fix: label only source-backed mapping scopes and concepts
+114ffd9a fix: preserve mapping center ordering across escaped names
+38321846 fix: restore unnamed legacy inspection at the scope boundary
+9830ceee test: verify address samples in independent cases
+e8c1136e fix: remove unsafe exact-chain migration compaction
+35abe71d fix: defer mapping adoption until scope contracts are settled
+73069d44 fix: reject coerced model names at the address boundary
+369c8b36 docs: record address gate results and unresolved scope contracts
+1f2ec317 data: cover unnamed ontology roots and array item addresses
+0ad5beea feat: derive volatile locators for every unnamed structured item
+725f1cba feat: attach locators to structured inspector results including unnamed roots
+6ec7165c feat: restore scoped mapping canvas keys with positional roots
+aab85041 feat: address lineage cards and rows from structured definitions
+8f6be82d fix: preserve lineage labels and stored centers during address adoption
+df6332b5 feat: record graph selections and neighborhood centers as item addresses
+844920f9 fix: index ODCS item paths once during inspection
+6e94bf36 feat: use scoped item addresses in agent context and query plans
+275aa52b feat: resolve metric extension references through item key adapters
+2987094b test: exercise independent consumers of the item address grammar
+9decef4d test: expect scoped field locators in legacy wrapper resolution
+a017c265 test: compare canonical lineage keys against unchanged displayed labels
+cf93141c test: complete graph selection and lineage adoption browser proofs
+ffc70a50 docs: inventory durable item key shapes before conversion
+4fe520ce feat: back up and convert durable grouping keys atomically
+dd4560dd feat: convert saved canvas centers after verified backups
+f42e19e0 feat: stage bounded uncompacted address history in owning journals
+1a14974c test: recover definition changes and address history at every journal boundary
+b5563d35 feat: append declared renames atomically through save routes
+71fdfb50 fix: rewrite relationship mapping targets only for their defining concept
+7d53b1e0 feat: declare item and document scope renames from workbench edits
+334a814a feat: record document moves and carry history through project trash
+367a2e26 feat: reset reused locators at explicit deletion markers
+eb836ef0 feat: journal explicit item and file deletion tombstones
+040d1a49 feat: reconcile missing item locators with save authority and replay safety
+63b85a7a test: preserve external rename ambiguity through pull and branch switches
+9b42c75b feat: resolve item history behind the caller read boundary
+03e0c109 test: validate resolver fixtures through real structured inspection
+e12b122f test: keep item addresses out of logs and telemetry exports
+220bdfbc fix: clear adoption lint failures before the mutation gate
+cef829cf test: route browser artifacts through the existing isolated screenshot seam
+b574b960 fix: follow destination history after a cross-project item move
+c91862e9 fix: read local commit before preparing address history side effects
+cfa0dfd2 test: kill hidden-read replay and address logging faults in the real gate
+7fe3b2c9 docs: define item address stability storage and integration contracts
+726d167c refactor: retire private item key builders and guard their old spellings
+d6225bdb perf: compare locator segments before allocating unmatched sibling paths
+32d71cc9 test: isolate Git fixture subprocesses and honor the temporary root
+c479f88f perf: reuse model address indexes within metric validation and queries
+d0aafbdb fix: replay cross-project history after each shared arrival marker
+10408a68 fix: fetch save history metadata before creating staged files
+f83227ea test: record reviewed unit gate and paired browser baseline failures
+696084a5 style: keep remote gate evidence rows within the line limit
+09f8ecae test: record completed functional browser gates and pending remote checks
+8625d4e1 test: format mapping mutation keys through the public address API
+509ab839 test: pass isolated Git configuration to mutation fixtures
+c5b8f1ef test: preserve isolated Git environment across mutation case modules
+e42cab7d test: allow the measured remote example baseline to finish
+```
+
+### Final-build visual comparison
+
+The delegated review rebuilt unchanged main and e42cab7d, then captured 20 states per build and
+six repeated main controls at desktop and phone widths. No page errors occurred. Both builds
+reported the same three phone neighborhood warnings that the canvas occupies 50% of the screen.
+Those capture commands retain exit 1; this is not reported as an entirely passing visual gate.
+
+Visual inspection found no address-induced label or layout defect. Randomized Network layouts
+also vary on main. Label-view differences came from the unchanged tour clicking during the
+150 ms zoom animation. A separate focused run waited for 175 ms of unchanged viewport before
+and after animated zoom steps, preserving every geometry assertion on both builds. All four
+paired states then had identical viewport styles and node/path geometry. Phone images were
+pixel-identical; desktop differed in 13 low-intensity rasterization pixels, with zero pixels
+above RGB delta 25. No page errors occurred in this run either. The same two phone canvas
+warnings remain, and both focused capture commands retain exit 1.
+
+The reviewed journey contains 54 captures including the focused pairs. Address-copy and migration
+dialogs are outside this visual tour; their functional browser coverage is recorded separately.
+
+Primary artifacts: out/item-address-final-comparison-20261116-112755/ (20 + 20 + 6 captures).
+Focused proof: out/item-address-final-zoom-20261116-161342/settled-viewport-proof.json and paired
+PNGs. The final remote production build summary is `✓ built in 5.20s`. Owned servers stopped;
+temporary main source archives were removed. No unrequested application change was made to
+silence baseline geometry/performance failures or capture timing.
+
+The final task records command execution and classification, not a claim that the baseline
+browser failures satisfy their thresholds. All task checkboxes are addressed, including the
+explicit compaction omission. Integration remains subject to the non-green baseline gates
+reported here. The evidence-only completion commit follows the feature commit ledger above.

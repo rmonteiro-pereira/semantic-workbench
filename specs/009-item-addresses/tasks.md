@@ -254,7 +254,8 @@ changes.
   context label builders) and add a lint-style test that fails when a template string builds one of
   the old key shapes outside the adapters. Proof: `tests/item-address-no-private-keys.test.ts`;
   `bun --bun run check`. (FR-038)
-- [ ] T045 Run the full gate: `bun test`, `bun --bun run check`, `bun --bun run build`,
+- [x] T045 **Executed; graph, lineage and responsive failures reproduce on main, so the strict gate
+  remains non-green. See evidence.md.** Run the full gate: `bun test`, `bun --bun run check`, `bun --bun run build`,
   `test:addresses`, `test:graph`, `test:lineage`, `test:metrics`, `test:item-edit`, `test:ui`,
   `test:responsive`, `test:edges`, `test:auth`, `test:mutation`, and the regression comparison of
   T020 re-run on the final build. Proof: the gate output recorded in the feature's verification
