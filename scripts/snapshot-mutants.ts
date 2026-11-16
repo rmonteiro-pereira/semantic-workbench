@@ -27,4 +27,10 @@ export const snapshotMutants: [string, string, string, string][] = [
     "...row('GET', '/api/agent/catalog', 'read', workspace),\n    readSource: 'published',",
     "...row('GET', '/api/agent/catalog', 'read', workspace),",
   ],
+  ['snapshot-index', 'src/server/projects/snapshot-index.ts', 'own?.hash === hash ? own :', 'false ? own :'],
+  ['snapshot-resolver', 'src/server/projects/published-snapshot.ts', 'const registry = requestPin ? registries.get(requestPin) : deps.projects();', 'const registry = deps.projects();'],
+  ['snapshot-resolver', 'src/server/projects/published-snapshot.ts', 'return index.commit === generation?.current || index.commit === generation?.previous;', 'return true;'],
+  ['snapshot-publication', 'src/server/projects/worktrees.ts', 'if (recorded && recorded !== previous)', 'if (false)'],
+  ['snapshot-initialization', 'src/server/projects/published-initialization.ts', 'if (error instanceof UnknownDefaultBranchError) continue;', 'if (false) continue;'],
+  ['snapshot-workspace', 'src/server/projects/workspace.ts', 'if (gitAvailable && options.reconcilePublished) await reconcilePublishedCheckouts();', 'if (false) await reconcilePublishedCheckouts();'],
 ];

@@ -141,3 +141,11 @@ export class SnapshotUnreadableError extends Error {
     this.name = 'SnapshotUnreadableError';
   }
 }
+
+/** Refuses publication until an outside default-ref movement is reconciled explicitly. */
+export class PendingPublicationError extends Error {
+  constructor(commit: string) {
+    super(`The default branch moved outside the workbench. Restore it to ${commit} before publishing, or adopt the pending move.`);
+    this.name = 'PendingPublicationError';
+  }
+}

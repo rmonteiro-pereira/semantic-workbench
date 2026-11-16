@@ -1,6 +1,7 @@
 // Adopts existing default-branch commits without changing refs, files or the index.
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { UnknownDefaultBranchError } from './worktrees';
 import type { Git } from './git';
 import type { DataLayout } from './paths';
 import { locationOf } from './paths';
@@ -26,7 +27,13 @@ export async function initializePublishedPointers(deps: PublishedInitializationD
     if (!existsSync(join(directory, '.git'))) continue;
     const existing = pointers.get(repository);
     if (existing) continue;
-    const branch = await deps.defaultBranch(repository);
+    let branch: string;
+    try {
+      branch = await deps.defaultBranch(repository);
+    } catch (error) {
+      if (error instanceof UnknownDefaultBranchError) continue;
+      throw error;
+    }
     await git.run(directory, ['config', '--local', 'workbench.defaultBranch', branch]);
     const commit = await git.revParse(directory, `refs/heads/${branch}`);
     if (!commit) continue;

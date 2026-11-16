@@ -61,7 +61,8 @@ function projectEntries(tree: GitTreeEntry[], project: ProjectEntry, limits: Sna
 
 function indexedFile(deps: SnapshotIndexDeps, project: string, path: string, bytes: Uint8Array): SnapshotFile {
   const hash = sha256(bytes);
-  const cached = deps.cache?.parsedElsewhere(project, path, hash)?.file;
+  const own = deps.cache?.file(project, path);
+  const cached = own?.hash === hash ? own : deps.cache?.parsedElsewhere(project, path, hash)?.file;
   const metadata = Object.freeze({ ...(cached ?? indexBytes(project, path, bytes, 'clean', 'scan').file), gitState: 'clean' });
   const document = Object.freeze({
     id: `${project}/${path}`,

@@ -26,28 +26,50 @@ export function createPublishedSnapshots(deps: PublishedSnapshotDeps) {
   const indexes = createSnapshotIndexes(deps);
   const retained = new Map<string, SnapshotIndex>();
   const recent = new Map<string, string[]>();
+  const generations = new Map<string, { current?: string; previous?: string }>();
+  for (const [repository, pointer] of deps.pointers.entries()) generations.set(repository, { current: pointer.commit });
   const held = new Map<PublishedPin, Set<string>>();
+  const registries = new WeakMap<PublishedPin, readonly ProjectEntry[]>();
   const pending = new Map<string, Promise<SnapshotIndex>>();
 
+  function supersede() {
+    for (const [repository, pointer] of deps.pointers.entries()) {
+      const known = generations.get(repository);
+      if (known?.current !== pointer.commit) generations.set(repository, { current: pointer.commit, previous: known?.current });
+    }
+    prune();
+  }
   function pin(): PublishedPin {
+    supersede();
     const commits = new Map<string, Readonly<{ branch: string; commit: string }>>();
     for (const [repository, pointer] of deps.pointers.entries()) {
       if (pointer.commit) commits.set(repository, Object.freeze({ branch: pointer.branch, commit: pointer.commit }));
     }
-    return Object.freeze({ commits });
+    const chosen = Object.freeze({ commits });
+    registries.set(chosen, Object.freeze(deps.projects().map(project => Object.freeze({ ...project }))));
+    return chosen;
   }
   function prune() {
-    const keep = new Set([...recent.values()].flat());
+    const keep = new Set(
+      [...recent.values()].flat().filter(key => {
+        const index = retained.get(key);
+        if (!index) return false;
+        const generation = generations.get(index.repository);
+        return index.commit === generation?.current || index.commit === generation?.previous;
+      }),
+    );
     for (const keys of held.values()) for (const key of keys) keep.add(key);
     for (const key of retained.keys()) if (!keep.has(key)) retained.delete(key);
   }
-  function projectRepository(project: string) {
-    const entry = deps.projects().find(entry => entry.slug === project);
+  function projectRepository(project: string, requestPin: PublishedPin) {
+    const entry = registries.get(requestPin)?.find(entry => entry.slug === project);
     if (!entry) throw new SnapshotUnavailableError('unavailable');
     return locationOf(entry).repo;
   }
   async function load(repository: string, commit: string, requestPin?: PublishedPin) {
-    const projects = deps.projects().filter(entry => locationOf(entry).repo === repository);
+    const registry = requestPin ? registries.get(requestPin) : deps.projects();
+    if (!registry) throw new SnapshotUnavailableError('unavailable');
+    const projects = registry.filter(entry => locationOf(entry).repo === repository);
     const key = JSON.stringify([repository, commit, folderDigest(projects)]);
     held.get(requestPin!)?.add(key);
     const cached = retained.get(key);
@@ -74,7 +96,8 @@ export function createPublishedSnapshots(deps: PublishedSnapshotDeps) {
     return new SnapshotUnavailableError(deps.gitAvailable() ? 'no-commit' : 'no-git');
   }
   async function files(requestPin: PublishedPin, project: string) {
-    const repository = projectRepository(project);
+    if (!deps.gitAvailable()) throw absence();
+    const repository = projectRepository(project, requestPin);
     const chosen = requestPin.commits.get(repository);
     if (!chosen) throw absence();
     const index = await load(repository, chosen.commit, requestPin);
@@ -86,6 +109,7 @@ export function createPublishedSnapshots(deps: PublishedSnapshotDeps) {
     return (await files(requestPin, project)).filter(file => file.metadata.visible).map(file => file.document);
   }
   async function resolveRevision(revision: string): Promise<string | null> {
+    if (!deps.gitAvailable()) return null;
     for (const [repository, pointer] of deps.pointers.entries()) {
       if (!pointer.commit) continue;
       const directory = deps.directory(repository);
@@ -147,17 +171,21 @@ export function createPublishedSnapshots(deps: PublishedSnapshotDeps) {
       return file ? file.bytes.slice() : null;
     },
     async documentsAt(commit: string, project: string) {
+      if (!deps.gitAvailable()) throw absence();
+      const requestPin = pin();
       if (!(await resolveRevision(commit))) throw new SnapshotUnavailableError('unavailable');
-      const repository = projectRepository(project);
+      const repository = projectRepository(project, requestPin);
       const pointer = deps.pointers.get(repository);
       if (!pointer?.commit || !(await deps.git.isAncestor(deps.directory(repository), commit, pointer.commit))) throw new SnapshotUnavailableError('unavailable');
-      return documents({ commits: new Map([[repository, { branch: pointer.branch, commit }]]) }, project);
+      const historical = { commits: new Map([[repository, { branch: pointer.branch, commit }]]) };
+      registries.set(historical, registries.get(requestPin)!);
+      return documents(historical, project);
     },
     resolveRevision,
     isReadableRevision,
     status,
     retainedCount: () => retained.size,
-    supersede: () => prune(),
+    supersede,
   };
 }
 /** Shared immutable definition reads and historical provenance. */

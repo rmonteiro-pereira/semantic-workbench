@@ -5,8 +5,13 @@ import type { createWorktrees } from '../src/server/projects/worktrees';
 import { publicationMoveFixture } from '../tests/helpers/publication-fixture';
 import type { surfaceFromCredential } from '../src/server/auth/request-surface';
 import { join } from 'node:path';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { publicationRepository } from '../tests/helpers/git-fixtures';
+import { createCache } from '../src/server/projects/cache';
+import { indexBytes } from '../src/server/projects/scanner';
+import { UnknownDefaultBranchError } from '../src/server/projects/worktrees';
+import type { openWorkspace } from '../src/server/projects/workspace';
+import type { initializePublishedPointers } from '../src/server/projects/published-initialization';
 import { createGit } from '../src/server/projects/git';
 import type { classify } from '../src/server/projects/published-pointer';
 import type { publicationChecks } from '../src/server/projects/publication-checks';
@@ -22,6 +27,8 @@ export async function snapshotMutationCase(
     surfaceFromCredential?: typeof surfaceFromCredential;
     createWorktrees?: typeof createWorktrees;
     ROUTE_ACTIONS?: RouteAction[];
+    openWorkspace?: typeof openWorkspace;
+    initializePublishedPointers?: typeof initializePublishedPointers;
     classify?: typeof classify;
     publicationChecks?: typeof publicationChecks;
     createPublishedSnapshots?: typeof createPublishedSnapshots;
@@ -40,6 +47,9 @@ export async function snapshotMutationCase(
         }),
       );
       assert.equal(fixture.pointers.get('definitions')?.commit, fixture.fixture.published);
+      const moved = Bun.spawnSync(['git', 'update-ref', 'refs/heads/main', fixture.fixture.previous!], { cwd: fixture.fixture.repository });
+      assert.equal(moved.exitCode, 0);
+      await assert.rejects(() => fixture.worktrees.publish('definitions', fixture.owner.key, async () => {}), /moved outside/);
     } finally {
       fixture.fixture.dispose();
     }
@@ -47,6 +57,7 @@ export async function snapshotMutationCase(
   if (category === 'snapshot-inventory') {
     assert.equal(candidate.ROUTE_ACTIONS!.find(row => row.path === 'GET /api/agent/catalog')?.readSource, 'published');
   }
+  if (category === 'snapshot-initialization' || category === 'snapshot-workspace') await startupCase(category, candidate);
   if (category === 'snapshot-pointer') {
     const pointer = { branch: 'main', commit: 'a'.repeat(40) };
     assert.equal(await candidate.classify!('b'.repeat(40), pointer, async () => false), 'diverged');
@@ -90,14 +101,19 @@ async function checksCase(checks: typeof publicationChecks) {
 
 async function indexCase(indexes: typeof createSnapshotIndexes) {
   const fixture = publicationRepository();
+  const cache = createCache(join(fixture.dir, 'parse.sqlite'));
   try {
     const git = createGit({ projectsRoot: join(fixture.dir, 'projects') });
     const committed = new TextDecoder().decode((await git.blob(fixture.repository, fixture.published!, 'shop.ontology.yaml'))!);
+    const indexed = indexBytes('definitions', 'shop.ontology.yaml', new TextEncoder().encode(committed));
+    cache.put({ ...indexed.file, indexedAt: 'cached' }, indexed.entities, indexed.findings);
     writeFileSync(join(fixture.repository, 'shop.ontology.yaml'), 'dirty');
-    const loader = indexes({ git, directory: () => fixture.repository });
+    const loader = indexes({ git, directory: () => fixture.repository, cache });
     const snapshot = await loader.build('definitions', fixture.published!, [{ slug: 'definitions', name: 'Definitions', createdAt: '', origin: '' }]);
     assert.equal(snapshot.projects.get('definitions')![0].document.source, committed);
+    assert.equal(snapshot.projects.get('definitions')![0].document.updated, 'cached');
   } finally {
+    cache.close();
     fixture.dispose();
   }
 }
@@ -131,7 +147,50 @@ async function resolverCase(create: typeof createPublishedSnapshots) {
     const pin = snapshots.pin();
     assert.equal((await snapshots.documents(pin, 'definitions')).length, 2);
     projects = [{ ...projects[0], folder: 'definitions/nested', repo: 'definitions' }];
-    assert.equal((await snapshots.documents(pin, 'definitions')).length, 1);
+    assert.equal((await snapshots.documents(snapshots.pin(), 'definitions')).length, 1);
+    assert.equal((await snapshots.documents(pin, 'definitions')).length, 2);
+    for (let index = 0; index < 2; index++) {
+      await git.commit(fixture.repository, 'Unread publication', true);
+      pointers.complete('definitions', 'main', (await git.head(fixture.repository))!);
+      snapshots.supersede();
+    }
+    assert.equal(snapshots.retainedCount(), 0);
+  } finally {
+    fixture.dispose();
+  }
+}
+
+async function startupCase(category: string, candidate: { openWorkspace?: typeof openWorkspace; initializePublishedPointers?: typeof initializePublishedPointers }) {
+  const fixture = publicationRepository();
+  try {
+    const layout = dataLayout(fixture.dir);
+    const state = createState(layout);
+    state.writeRegistry([{ slug: 'definitions', name: 'Definitions', createdAt: '', origin: '' }]);
+    const git = createGit({ projectsRoot: layout.projects });
+    const pointers = createPublishedPointers(state);
+    if (category === 'snapshot-initialization') {
+      await candidate.initializePublishedPointers!({
+        git,
+        layout,
+        state,
+        pointers,
+        serverMode: false,
+        defaultBranch: async () => {
+          throw new UnknownDefaultBranchError('definitions');
+        },
+      });
+      assert.equal(pointers.entries().length, 0);
+      return;
+    }
+    await git.run(fixture.repository, ['config', '--local', 'workbench.defaultBranch', 'main']);
+    const path = join(fixture.repository, 'shop.ontology.yaml');
+    writeFileSync(path, 'staged');
+    await git.stage(fixture.repository, ['shop.ontology.yaml']);
+    writeFileSync(path, 'unstaged');
+    const index = readFileSync(join(fixture.repository, '.git', 'index'));
+    await assert.rejects(() => candidate.openWorkspace!({ root: fixture.dir, reconcilePublished: true }), /has changes/);
+    assert.equal(readFileSync(path, 'utf8'), 'unstaged');
+    assert.deepEqual(readFileSync(join(fixture.repository, '.git', 'index')), index);
   } finally {
     fixture.dispose();
   }

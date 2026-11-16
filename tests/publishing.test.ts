@@ -38,3 +38,25 @@ test('a refused publication never writes a candidate pointer or intent', async (
     fixture.dispose();
   }
 });
+
+for (const move of ['outside-forward', 'outside-diverged'] as const) {
+  test(`publication refuses ${move} before validating from an unserved baseline`, async () => {
+    const { fixture, pointers, worktrees, owner, next } = await publicationMoveFixture(createWorktrees);
+    try {
+      const ref = move === 'outside-forward' ? fixture.authoring : fixture.previous!;
+      const result = Bun.spawnSync(['git', 'update-ref', 'refs/heads/main', ref], { cwd: fixture.repository });
+      expect(result.exitCode).toBe(0);
+      let guarded = false;
+      await expect(
+        worktrees.publish('definitions', owner.key, async () => {
+          guarded = true;
+        }),
+      ).rejects.toThrow('moved outside');
+      expect(guarded).toBe(false);
+      expect(pointers.get('definitions')).toEqual({ branch: 'main', commit: fixture.published! });
+      expect(pointers.get('definitions')?.commit).not.toBe(next);
+    } finally {
+      fixture.dispose();
+    }
+  });
+}

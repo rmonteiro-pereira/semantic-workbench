@@ -5,7 +5,7 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { publicationChecks, type PublicationCandidate } from './publication-checks';
 import type { PublishedPointers } from './published-pointer';
-import { BranchInUseError, NotFastForwardError } from './errors';
+import { BranchInUseError, NotFastForwardError, PendingPublicationError } from './errors';
 import { authorship, commitOf, GitError, isBranchName, symbolicBranch, type CommitAuthor, type Git } from './git';
 import { USER_KEY, type DataLayout } from './paths';
 import { checkOutFolders, sparseFolders } from './sparse-folder';
@@ -119,6 +119,13 @@ export type WorktreeContext = {
   listings?: Map<string, Promise<WorktreeEntry[]>>;
 };
 
+/** A repository has no remembered, remote or attached default branch to adopt. */
+export class UnknownDefaultBranchError extends GitError {
+  constructor(repository: string) {
+    super(`Cannot tell the default branch of ${repository}: its checkout is detached.`);
+  }
+}
+
 /** Refuses a publish while the published checkout has changes, which a publish would overwrite. */
 export class BaseChangedError extends GitError {
   constructor(repo: string) {
@@ -148,7 +155,7 @@ async function defaultBranch(context: WorktreeContext, repo: string) {
   if (named && (await isBranchName(git, dir, named))) return named;
   const checkedOut = await symbolicBranch(git, dir);
   if (checkedOut) return checkedOut;
-  throw new GitError(`Cannot tell the default branch of ${repo}: its checkout is detached.`);
+  throw new UnknownDefaultBranchError(repo);
 }
 
 // The base checkout must not hold the default branch, or a publish would leave its files stale;
@@ -243,7 +250,11 @@ async function moveDefault(context: WorktreeContext, repo: string, move: { branc
   // files included, is refused before anything changes.
   const changed = await git.run(base, ['status', '--porcelain'], { readOnly: true });
   if (changed.stdout.trim()) throw new BaseChangedError(repo);
-  const candidate = { repo, branch, previous, next };
+  const recorded = context.publication?.pointers.get(repo)?.commit;
+  if (recorded && recorded !== previous) {
+    throw new PendingPublicationError(recorded);
+  }
+  const candidate = { repo, branch, previous: recorded ?? previous, next };
   const checks = publicationChecks({
     isAncestor: (_repo, from, to) => git.isAncestor(base, from, to),
     readable: context.publication?.readable ?? (async () => {}),

@@ -229,6 +229,8 @@ fetch succeeds without moving the published state. Diverged histories are not si
 
 Publishing never pushes by itself. Pulling from the local default branch never contacts a remote.
 Protected branches require publish permission. An interrupted publication is repaired at startup.
+Startup refuses unexplained staged or unstaged changes before repairing the published checkout,
+including when a previously local data folder is opened in server mode.
 Copies idle for thirty minutes stop being watched but retain their files, index and drafts.
 
 Deleting a project can archive each person's unpublished work and drafts in the trash entry.

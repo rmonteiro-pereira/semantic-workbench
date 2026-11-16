@@ -108,11 +108,12 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   mkdirSync(dirname(layout.cache), { recursive: true });
   const cache: Cache = createCache(layout.cache);
   const scanner = createScanner(layout, cache, git, () => gitAvailable);
+  let snapshotRegistry = state.registry().projects;
   const snapshots = createPublishedSnapshots({
     git,
     directory: repository => join(layout.projects, repository),
     cache,
-    projects: () => state.registry().projects,
+    projects: () => snapshotRegistry,
     pointers,
     gitAvailable: () => gitAvailable,
   });
@@ -120,7 +121,15 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   // One queue for registry changes and one per project for file mutations.
   const locks = new Map<string, Promise<unknown>>();
   function lock<T>(key: string, fn: () => Promise<T> | T): Promise<T> {
-    const next = (locks.get(key) ?? Promise.resolve()).catch(() => {}).then(fn);
+    const next = (locks.get(key) ?? Promise.resolve())
+      .catch(() => {})
+      .then(async () => {
+        try {
+          return await fn();
+        } finally {
+          if (key === 'registry') snapshotRegistry = state.registry().projects;
+        }
+      });
     locks.set(key, next);
     next
       .catch(() => {})
@@ -385,10 +394,10 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       await pointers.reconcile(repository, ref, (from, to) => git.isAncestor(directory, from, to));
     }
   }
+  if (gitAvailable && options.reconcilePublished) await reconcilePublishedCheckouts();
   // A stop between moving the default branch and moving the published files is finished here.
   if (gitAvailable && options.reconcilePublished)
     for (const repo of new Set(projects().map(project => locationOf(project).repo))) if (existsSync(join(layout.projects, repo, '.git'))) await worktrees.repairBase(repo);
-  if (gitAvailable && options.reconcilePublished) await reconcilePublishedCheckouts();
   if (gitAvailable) {
     await initializePublishedPointers({
       git,

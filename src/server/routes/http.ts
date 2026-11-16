@@ -29,6 +29,7 @@ import {
   TooLargeError,
   SnapshotUnavailableError,
   SnapshotUnreadableError,
+  PendingPublicationError,
 } from '../projects/errors';
 import { log } from '../observability/log';
 /** Handles a request or returns null so the next route can try it. */
@@ -84,6 +85,7 @@ export function errorResponse(error: unknown, publicUrl?: string, context: Error
   if (error instanceof MergingError) return Response.json({ error: 'merging', message: error.message, conflicts: error.conflicts }, { status: 409 });
   if (error instanceof BranchInUseError) return Response.json({ error: error.message, inUseBy: error.inUseBy }, { status: 409 });
   if (error instanceof PersonalBranchError) return Response.json({ error: error.message, branch: error.branch }, { status: 403 });
+  if (error instanceof PendingPublicationError) return Response.json({ error: error.message }, { status: 409 });
   if (error instanceof NotFastForwardError) return Response.json({ error: error.message, notFastForward: true }, { status: 409 });
   if (error instanceof NothingToPublishError) return Response.json({ error: error.message, nothingToPublish: true }, { status: 409 });
   if (error instanceof MissingFolderError) return Response.json({ error: error.message, missingFolder: error.folder }, { status: 409 });

@@ -10,7 +10,7 @@ import { createPublishedSnapshots } from '../src/server/projects/published-snaps
 import { publicationRepository } from './helpers/git-fixtures';
 const initialProject = { slug: 'definitions', name: 'Definitions', createdAt: '', origin: '' };
 
-function setup() {
+function setup(gitAvailable = () => true) {
   const fixture = publicationRepository();
   const layout = dataLayout(fixture.dir);
   mkdirSync(layout.state, { recursive: true });
@@ -18,7 +18,7 @@ function setup() {
   pointers.complete('definitions', 'main', fixture.published!);
   const git = createGit({ projectsRoot: layout.projects });
   let projects: ProjectEntry[] = [initialProject];
-  const published = createPublishedSnapshots({ git, directory: () => fixture.repository, pointers, projects: () => projects, gitAvailable: () => true });
+  const published = createPublishedSnapshots({ git, directory: () => fixture.repository, pointers, projects: () => projects, gitAvailable });
   return {
     fixture,
     git,
@@ -84,12 +84,15 @@ test('registry changes rebuild the project layout without restarting', async () 
     const root = await published.documents(pin, 'definitions');
     expect(root).toHaveLength(2);
     registry([{ ...initialProject, folder: 'definitions/nested', repo: 'definitions' }]);
-    const nested = await published.documents(pin, 'definitions');
+    expect(await published.documents(pin, 'definitions')).toEqual(root);
+    const nextPin = published.pin();
+    const nested = await published.documents(nextPin, 'definitions');
     expect(nested).toHaveLength(1);
     expect(nested[0].path).toBe('nested.yaml');
     expect(nested[0].source).toContain('Nested');
     registry([]);
-    await expect(published.documents(pin, 'definitions')).rejects.toThrow('no published snapshot');
+    expect(await published.documents(nextPin, 'definitions')).toEqual(nested);
+    await expect(published.documents(published.pin(), 'definitions')).rejects.toThrow('no published snapshot');
   } finally {
     fixture.dispose();
   }
@@ -106,6 +109,33 @@ test('remembered revisions rebuild only published history and refuse missing obj
     };
     await expect(published.documentsAt(fixture.published!, 'definitions')).rejects.toThrow('no published snapshot');
     git.catFileBatch = blob;
+  } finally {
+    fixture.dispose();
+  }
+});
+
+test('unread publications evict indexes that are no longer current or previous', async () => {
+  const { fixture, pointers, published, git } = setup();
+  try {
+    await published.documents(published.pin(), 'definitions');
+    expect(published.retainedCount()).toBe(1);
+    for (let index = 0; index < 2; index++) {
+      await git.commit(fixture.repository, 'Unread publication', true);
+      pointers.complete('definitions', 'main', (await git.head(fixture.repository))!);
+      published.supersede();
+    }
+    expect(published.retainedCount()).toBe(0);
+  } finally {
+    fixture.dispose();
+  }
+});
+
+test('a retained pointer without Git reports no-git instead of attempting a working-file fallback', async () => {
+  const { fixture, published } = setup(() => false);
+  try {
+    await expect(published.documents(published.pin(), 'definitions')).rejects.toMatchObject({ reason: 'no-git' });
+    await expect(published.documentsAt(fixture.published!, 'definitions')).rejects.toMatchObject({ reason: 'no-git' });
+    expect(await published.resolveRevision(fixture.published!)).toBeNull();
   } finally {
     fixture.dispose();
   }

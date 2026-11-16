@@ -150,9 +150,13 @@ concatenating project, document or item names.
 - `src/server/auth/request-surface.ts` records the browser or consumer surface after credential
   validation at the existing middleware. Local browser markers are a guardrail.
 - `published-initialization.ts` adopts the existing default-branch tip on first open without
-  touching the checkout or index. Only server startup repairs the detached published checkout.
+  touching the checkout or index. Only server startup repairs the detached published checkout,
+  after validating that existing changes can be preserved. Unknown detached defaults remain usable
+  without a snapshot.
 - `published-snapshot.ts` resolves pinned commits independently of editing readers, filters no
   permissions, checks historical provenance and retains current, previous and actively pinned indexes.
+  Pins also capture registry layouts, so folder changes apply to subsequent requests. The workspace
+  refreshes its in-memory registry after the existing registry lock settles.
 - `snapshot-index.ts` reads committed project files with the shared byte validator. Concurrent
   builds share one promise per repository, commit and folder digest; limits reject whole builds.
 - `publication-checks.ts` orders ancestry, complete bounded reads and content-guard judgement

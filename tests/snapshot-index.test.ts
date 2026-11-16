@@ -4,6 +4,8 @@ import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createGit } from '../src/server/projects/git';
 import { createSnapshotIndexes, SNAPSHOT_LIMITS } from '../src/server/projects/snapshot-index';
+import { createCache } from '../src/server/projects/cache';
+import { indexBytes } from '../src/server/projects/scanner';
 import { SnapshotUnavailableError } from '../src/server/projects/errors';
 import { publicationRepository } from './helpers/git-fixtures';
 const project = { slug: 'definitions', name: 'Definitions', createdAt: '', origin: '' };
@@ -87,6 +89,23 @@ test('case-variant paths refuse the entire snapshot', async () => {
     const indexes = createSnapshotIndexes({ git, directory });
     await expect(indexes.build('definitions', (await git.head(fixture.repository))!, [project])).rejects.toBeInstanceOf(SnapshotUnavailableError);
   } finally {
+    fixture.dispose();
+  }
+});
+
+test('an identical file reuses the parse already held by the local cache', async () => {
+  const { fixture, git, directory } = setup();
+  const cache = createCache(join(fixture.dir, 'parse-cache.sqlite'));
+  try {
+    const path = 'shop.ontology.yaml';
+    const bytes = (await git.blob(fixture.repository, fixture.published!, path))!;
+    const indexed = indexBytes('definitions', path, bytes);
+    const cached = { ...indexed.file, indexedAt: '2000-01-01T00:00:00.000Z' };
+    cache.put(cached, indexed.entities, indexed.findings);
+    const snapshot = await createSnapshotIndexes({ git, directory, cache }).build('definitions', fixture.published!, [project]);
+    expect(snapshot.projects.get('definitions')![0].document.updated).toBe(cached.indexedAt);
+  } finally {
+    cache.close();
     fixture.dispose();
   }
 });

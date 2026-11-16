@@ -95,3 +95,57 @@ test('an unborn default branch records no pointer even with an authoring commit'
     fixture.dispose();
   }
 });
+
+test('a detached local checkout with no known default still opens without a snapshot', async () => {
+  const fixture = preChangeRoot();
+  try {
+    git(fixture.repository, ['checkout', '--detach']);
+    const head = readFileSync(join(fixture.repository, '.git', 'HEAD'));
+    const ws = await openWorkspace({ root: fixture.dir });
+    try {
+      expect(ws.state.published().repositories).toEqual({});
+      expect(ws.documents()).toHaveLength(1);
+      expect(readFileSync(join(fixture.repository, '.git', 'HEAD'))).toEqual(head);
+    } finally {
+      ws.close();
+    }
+  } finally {
+    fixture.dispose();
+  }
+});
+
+test('a locally upgraded root refuses server startup before touching dirty staged or unstaged work', async () => {
+  const fixture = preChangeRoot();
+  try {
+    const local = await openWorkspace({ root: fixture.dir });
+    local.close();
+    const path = join(fixture.repository, 'shop.ontology.yaml');
+    writeFileSync(path, 'name: Staged\nontology: [{concept: Staged}]\n');
+    git(fixture.repository, ['add', '--', 'shop.ontology.yaml']);
+    writeFileSync(path, 'name: Unstaged\nontology: [{concept: Unstaged}]\n');
+    const index = readFileSync(join(fixture.repository, '.git', 'index'));
+    const head = readFileSync(join(fixture.repository, '.git', 'HEAD'));
+    const refs = git(fixture.repository, ['show-ref']);
+    await expect(openWorkspace({ root: fixture.dir, reconcilePublished: true })).rejects.toThrow('has changes');
+    expect(readFileSync(join(fixture.repository, '.git', 'index'))).toEqual(index);
+    expect(readFileSync(join(fixture.repository, '.git', 'HEAD'))).toEqual(head);
+    expect(git(fixture.repository, ['show-ref'])).toBe(refs);
+    expect(readFileSync(path, 'utf8')).toContain('Unstaged');
+  } finally {
+    fixture.dispose();
+  }
+});
+
+test('taking a pin never reads the registry from disk', async () => {
+  const fixture = preChangeRoot();
+  const ws = await openWorkspace({ root: fixture.dir });
+  try {
+    ws.state.registry = () => {
+      throw Error('Unexpected registry I/O');
+    };
+    expect(ws.published.pin().commits.get('definitions')?.commit).toBe(fixture.published!);
+  } finally {
+    ws.close();
+    fixture.dispose();
+  }
+});
