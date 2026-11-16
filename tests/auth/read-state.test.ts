@@ -189,12 +189,14 @@ test('save, move, delete and restore update every personal draft and grouping', 
     expect(personal.draft(project, path)).toBeNull();
     personal.writeDraft(project, path, { baseHash: file.hash, text: 'draft', patches: [] });
     personal.writeView(project, { [path]: { mode: 'declared' } });
+    personal.writePublicationNotice(project, true);
   }
   await fixture.ws.moveFile(project, path, project, 'moved.yaml', false, LOCAL_READER);
   for (const personal of owners) {
     expect(personal.draft(project, path)).toBeNull();
     expect(personal.draft(project, 'moved.yaml')).toMatchObject({ project, path: 'moved.yaml' });
     expect(personal.view(project).files).toEqual({ 'moved.yaml': { mode: 'declared' } });
+    expect(personal.view(project).publicationNotice).toBe(true);
   }
   const deleted = await fixture.ws.trash.deleteFile(project, 'moved.yaml', 'alice', LOCAL_READER);
   for (const personal of owners) {
@@ -205,6 +207,7 @@ test('save, move, delete and restore update every personal draft and grouping', 
   for (const personal of owners) {
     expect(personal.draft(project, 'restored.yaml')).toMatchObject({ path: 'restored.yaml' });
     expect(personal.view(project).files).toEqual({ 'restored.yaml': { mode: 'declared' } });
+    expect(personal.view(project).publicationNotice).toBe(true);
   }
   const deletedProject = await fixture.ws.trash.deleteProject(project, 'alice');
   for (const personal of owners) {
@@ -215,6 +218,7 @@ test('save, move, delete and restore update every personal draft and grouping', 
   for (const personal of owners) {
     expect(personal.draft(project, 'restored.yaml')).toMatchObject({ path: 'restored.yaml' });
     expect(personal.view(project).files).toEqual({ 'restored.yaml': { mode: 'declared' } });
+    expect(personal.view(project).publicationNotice).toBe(true);
   }
 });
 

@@ -2,14 +2,14 @@
 import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { atomicWriteJson, readJsonFile } from './atomic';
-import type { State, PersonalState, Draft } from './state';
+import type { State, PersonalState, Draft, ViewState } from './state';
 
 type Step = { from: string; to: string };
 
-function replaceView(state: PersonalState, project: string, files: Record<string, unknown>, staging: string): Step[] {
+function replaceView(state: PersonalState, project: string, view: Pick<ViewState, 'files' | 'publicationNotice'>, staging: string): Step[] {
   const destination = state.viewFile(project);
   const staged = join(staging, project + '.json');
-  atomicWriteJson(staged, { formatVersion: 1, files });
+  atomicWriteJson(staged, { ...state.view(project), ...view });
   return [...(existsSync(destination) ? [{ from: destination, to: staged + '.previous' }] : []), { from: staged, to: destination }];
 }
 
@@ -44,9 +44,9 @@ export function movePersonalState(state: State, move: PersonalMove, staging: str
     if (grouping !== undefined) {
       delete sourceFiles[path];
       if (project === target) sourceFiles[targetPath] = grouping;
-      steps.push(...replaceView(personal, project, sourceFiles, root));
+      steps.push(...replaceView(personal, project, { files: sourceFiles }, root));
       if (project !== target) {
-        steps.push(...replaceView(personal, target, { ...personal.view(target).files, [targetPath]: grouping }, root));
+        steps.push(...replaceView(personal, target, { files: { ...personal.view(target).files, [targetPath]: grouping } }, root));
       }
     }
     return steps;
@@ -73,7 +73,7 @@ export function archivePersonalState(state: State, project: string, path: string
         files: { [path]: files[path] },
       });
       delete files[path];
-      steps.push(...replaceView(personal, project, files, join(root, 'staging')));
+      steps.push(...replaceView(personal, project, { files }, join(root, 'staging')));
     }
     return steps;
   });
@@ -112,12 +112,13 @@ export function restorePersonalState(state: State, restore: PersonalRestore, arc
         }
       }
     }
-    const saved = readJsonFile<{ files: Record<string, unknown> }>(join(root, 'view.json'));
+    const saved = readJsonFile<ViewState>(join(root, 'view.json'));
     if (saved) {
       const files = { ...personal.view(target).files };
       if (path !== undefined && targetPath !== undefined) files[targetPath] = saved.files[path];
       else Object.assign(files, saved.files);
-      steps.push(...replaceView(personal, target, files, join(root, 'restore')));
+      const notice = path === undefined ? saved.publicationNotice : personal.view(target).publicationNotice;
+      steps.push(...replaceView(personal, target, { files, ...(notice === undefined ? {} : { publicationNotice: notice }) }, join(root, 'restore')));
     }
     return steps;
   });

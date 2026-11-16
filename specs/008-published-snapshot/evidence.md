@@ -813,3 +813,10 @@ publication ordering and the shared queue all exited 0. The same command also pa
 working-copy baseline. Existing mutations follow their predicates into the single writer; none is removed.
 New faults cover checked-out-feature preference, configured-default precedence, abandoned intent and queue
 bypass, plus export inventory accuracy. The local check passes with these registered cases.
+
+The first full remote unit attempt did not start tests: the wrapper's scratch Git transfer could not
+connect to the remote SSH port and exited 128. Heavy commands remain remote-only; a wrapper retry follows.
+Inspection of the existing journal writers found that replacing file-view settings could drop the newly
+separate notice. Those writes now preserve personal metadata, and whole-project restore brings it back.
+The existing move/delete/restore entry-point case passes with notice assertions for both owners (1 test,
+36 assertions, 17 unrelated cases filtered); the complete local check also passes.
