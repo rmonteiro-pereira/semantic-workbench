@@ -55,6 +55,24 @@ export async function snapshotMutationCase(
     createSnapshotIndexes?: typeof createSnapshotIndexes;
   },
 ) {
+  if (category === 'snapshot-export') {
+    const fixture = publicationRepository();
+    let workspace: Awaited<ReturnType<typeof openWorkspace>> | undefined;
+    try {
+      createState(dataLayout(fixture.dir)).writeRegistry([{ slug: 'definitions', name: 'Definitions', origin: '', createdAt: '' }]);
+      workspace = await candidate.openWorkspace!({ root: fixture.dir });
+      writeFileSync(join(fixture.repository, 'shop.ontology.yaml'), 'name: Draft\nontology: []\n');
+      const plan = await workspace.exportProject('definitions', LOCAL_READER, { source: 'published', includeHistory: false, historyAllowed: true }, 64_000_000);
+      assert(
+        Buffer.from(plan.entries.find(entry => entry.name === 'shop.ontology.yaml')!.read())
+          .toString()
+          .includes('Published'),
+      );
+    } finally {
+      workspace?.close();
+      fixture.dispose();
+    }
+  }
   if (category === 'snapshot-history') {
     using fixture = localPublicationFixtureForHistory();
     const layout = dataLayout(fixture.dir);

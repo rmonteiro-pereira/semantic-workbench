@@ -371,3 +371,7 @@ Both adoption mutants are detected independently: skipping the content guard and
 ## Foreign history authorization matrix
 
 `TMPDIR=/tmp/sw-008 bun test tests/auth/matrix.test.ts -t "history source matrix"`: 1 pass, 0 fail, 60 assertions. Every fixture identity receives identical status/body for a foreign personal id and a missing id through Show; Versions ignores that unsupported selector and returns only its normal readable HEAD history. Neither response exposes the foreign payload.
+
+## Published ZIP source
+
+`TMPDIR=/tmp/sw-008 bun test tests/snapshot-export.test.ts tests/project-export.test.ts tests/auth/project-export-access.test.ts`: 15 pass, 0 fail, 71 assertions. Published ZIP paths and bytes equal Git blobs, omit saved/untracked drafts, and reject history. Default and explicit editing archives stay byte-identical before and after the published download. The existing planner accepts pinned byte entries; streaming retains those bytes after releasing the pin. The working-files-for-published mutant is detected (baseline 0, mutant 1). `bun --bun run check`: exit 0.

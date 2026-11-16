@@ -96,7 +96,7 @@ and local mode with uncommitted work; agent routes answer from the snapshot.
 
 **Goal**: FR-039.
 
-- [ ] T037 [US7] Add `source` to `ws.exportProject` and the export route; feed the zip planner the snapshot's paths and bytes for `published`; refuse `history=1` with it; keep the default. (proof: `tests/snapshot-export.test.ts`: published zip equals the blobs and has no draft, default zip unchanged byte for byte, history refused; the existing export tests pass; mutant: export working files for `published`)
+- [x] T037 [US7] Add `source` to `ws.exportProject` and the export route; feed the zip planner the snapshot's paths and bytes for `published`; refuse `history=1` with it; keep the default. (proof: `tests/snapshot-export.test.ts`: published zip equals the blobs and has no draft, default zip unchanged byte for byte, history refused; the existing export tests pass; mutant: export working files for `published`)
 - [ ] T038 [P] [US7] Export dialog option in the UI: "Published" next to the default, only when a snapshot exists. (proof: browser check; capture through T046)
 
 ## Phase 10: Documentation, measurement and gates

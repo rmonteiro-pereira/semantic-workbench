@@ -168,6 +168,10 @@ repository groups so their history and unpublished work can be retained together
 relative folders and `.gitignore`. It excludes `.git/`, ignored files and unsaved drafts. The dialog
 names known unsaved edits and can offer **Save and export** for the open file.
 
+`GET /api/projects/:slug/export?source=published` instead archives exact committed snapshot bytes
+for the files the caller may read. `source=editing` is the default. Published exports never include
+unpublished work and reject `history=1` with “history is not available for the published source”.
+
 **Include Git history**, off by default, adds `git-history.bundle`. The bundle can be read by
 `git clone`; it is not a copy of the internal `.git` directory. Project exports larger than
 64,000,000 bytes are refused before response bytes are sent.

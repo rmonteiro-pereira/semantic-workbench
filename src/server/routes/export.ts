@@ -2,7 +2,7 @@
 import { requestReader, requestScope } from '../auth/request-scope';
 import { decodeSegment } from '../request';
 import { BadRequestError } from '../projects/errors';
-import { exportFileName } from '../projects/project-export';
+import { exportFileName, type ExportOptions } from '../projects/project-export';
 import { zipStream } from '../projects/zip';
 import type { Route } from './http';
 
@@ -24,7 +24,9 @@ export const exportRoutes: Route = async (ws, req, url) => {
   const slug = decodeSegment(match[1]);
   const scope = requestScope(req);
   const historyAllowed = scope.authorize('history', { type: 'project', project: slug }).allow;
-  const options = { includeHistory: includeHistory(url), historyAllowed };
+  const source = url.searchParams.get('source') ?? 'editing';
+  if (source !== 'editing' && source !== 'published') throw new BadRequestError('source must be editing or published.');
+  const options: ExportOptions = { includeHistory: includeHistory(url), historyAllowed, source };
   const plan = await ws.exportProject(slug, requestReader(req), options, EXPORT_LIMIT_BYTES);
   const headers = {
     'Content-Type': 'application/zip',

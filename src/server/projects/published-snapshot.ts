@@ -184,6 +184,10 @@ export function createPublishedSnapshots(deps: PublishedSnapshotDeps) {
       }
     },
     documents,
+    /** Lists every committed file path, including tracked files outside the document view. */
+    async filePaths(requestPin: PublishedPin, project: string) {
+      return (await files(requestPin, project)).map(file => file.document.path);
+    },
     async fileBytes(requestPin: PublishedPin, project: string, path: string) {
       const file = (await files(requestPin, project)).find(file => file.document.path === path);
       return file ? file.bytes.slice() : null;

@@ -16,6 +16,8 @@ export const HISTORY_BUNDLE_NAME = 'git-history.bundle';
 /** What a person chose in the export dialog. */
 export type ExportOptions = {
   includeHistory: boolean;
+  /** The saved editing files by default, or the immutable published tree. */
+  source?: 'editing' | 'published';
   /** Whether the access boundary lets this person read the project's Git history. */
   historyAllowed: boolean;
 };
@@ -41,6 +43,8 @@ export type ExportDeps = {
   scratchDir: string;
   maxBytes: number;
   listPaths: (dir: string) => Promise<string[]> | string[];
+  /** Supplies pinned in-memory entries for a published export instead of reading working files. */
+  readEntry?: (path: string) => Promise<ZipEntry>;
 };
 
 /**
@@ -114,22 +118,28 @@ async function bundleBytes(deps: ExportDeps, slug: string, reader: Reader, remai
   }
 }
 
+async function exportEntries(deps: ExportDeps, slug: string, paths: string[]): Promise<ZipEntry[]> {
+  const entries: ZipEntry[] = [];
+  for (const path of paths) {
+    if (deps.readEntry) {
+      entries.push(await deps.readEntry(path));
+      continue;
+    }
+    const found = sizedEntry(deps.layout, slug, path);
+    if (found) entries.push({ name: path, size: found.size, read: () => readFileSync(found.file) });
+  }
+  return entries;
+}
+
 /** Decides what the export holds and refuses an oversized one before any byte is sent. */
 export async function planProjectExport(deps: ExportDeps, slug: string, reader: Reader, options: ExportOptions): Promise<ExportPlan> {
+  if (options.source === 'published' && options.includeHistory) throw new BadRequestError('history is not available for the published source');
   const listed = await deps.listPaths(projectDir(deps.layout, slug));
   const canRead = (path: string) => !reader.view || reader.view.canRead(slug, path);
   const { included, restricted } = selectExportPaths(listed, canRead);
-  const sized = included.flatMap(path => {
-    const found = sizedEntry(deps.layout, slug, path);
-    return found ? [{ path, ...found }] : [];
-  });
-  const totalBytes = sized.reduce((sum, item) => sum + item.size, 0);
-  if (totalBytes > deps.maxBytes || sized.length >= ZIP_MAX_ENTRIES) throw tooLarge(deps.maxBytes);
-  const entries: ZipEntry[] = sized.map(item => ({
-    name: item.path,
-    size: item.size,
-    read: () => readFileSync(item.file),
-  }));
+  const entries = await exportEntries(deps, slug, included);
+  const totalBytes = entries.reduce((sum, item) => sum + item.size, 0);
+  if (totalBytes > deps.maxBytes || entries.length >= ZIP_MAX_ENTRIES) throw tooLarge(deps.maxBytes);
   if (options.includeHistory) {
     await assertHistoryReadable(deps, slug, reader, {
       restricted,

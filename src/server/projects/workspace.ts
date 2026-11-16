@@ -44,7 +44,7 @@ import { createFileMove } from './workspace/file-move';
 import { createGitIdentity } from './workspace/git-identity';
 import { MANIFEST_FILE } from './repositories';
 import { LOCAL_READER, type Reader } from './reader';
-import { BadRequestError, HiddenResourceError } from './errors';
+import { BadRequestError, HiddenResourceError, SnapshotUnavailableError } from './errors';
 import { factsOf, inferSuggestions, type FileFacts, type IndexedFile } from './suggestions';
 import { MergingError, OccupiedError } from './errors';
 import { StaleError, NotFoundError } from './errors';
@@ -827,6 +827,24 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
         maxBytes,
         listPaths: (dir: string) => (gitAvailable ? git.lsFiles(dir) : walk(dir)),
       };
+      if (options.source === 'published') {
+        return snapshots.withPin(pin =>
+          planProjectExport(
+            {
+              ...deps,
+              listPaths: () => snapshots.filePaths(pin, slug),
+              readEntry: async path => {
+                const bytes = await snapshots.fileBytes(pin, slug, path);
+                if (!bytes) throw new SnapshotUnavailableError('unavailable');
+                return { name: path, size: bytes.length, read: () => bytes };
+              },
+            },
+            slug,
+            reader,
+            options,
+          ),
+        );
+      }
       return planProjectExport(deps, slug, reader, options);
     },
     deleteImpact: (slug: string, path: string | undefined, reader: Reader) =>
