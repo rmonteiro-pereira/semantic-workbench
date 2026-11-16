@@ -1,6 +1,8 @@
 // Listing uses effective permissions and never grants invocation access to an arbitrary target.
 import { expect, test } from 'bun:test';
 import { join } from 'node:path';
+import { TEST_USERS, TEST_CLIENTS, type TestUserName } from '../helpers/auth-identities';
+import listingBaseline from '../fixtures/characterization/operation-listing.json';
 import { createHandler } from '../../src/server/handler';
 import { createAccessControl, type AccessOptions } from '../../src/server/auth/authorize';
 import { createAuditLog } from '../../src/server/auth/audit';
@@ -112,4 +114,33 @@ test('listing all operations across twenty projects reports its cost against the
   const operations = context.boundary.availableOperations(caller);
   console.log('Operation listing ' + JSON.stringify({ projects: 20, operations: operations.length, milliseconds: performance.now() - started, goalMs: 50 }));
   expect(operations).toContain('files.save');
+});
+
+async function listingAnswers() {
+  using context = await setup();
+  const answers: Record<string, string[]> = {};
+  for (const name of Object.keys(TEST_USERS) as TestUserName[]) {
+    const principal = context.access.principalFor(person(name));
+    answers[name] = context.boundary.availableOperations(mintCaller({ principal, origin: 'mcp' }));
+    answers[name + '/read'] = context.boundary.availableOperations(mintCaller({ principal, origin: 'mcp', scope: ['read'] }));
+  }
+  for (const client of Object.values(TEST_CLIENTS)) {
+    const principal = clientPrincipal(client.clientId);
+    answers[client.clientId] = context.boundary.availableOperations(mintCaller({ principal, origin: 'mcp' }));
+  }
+  const config = context.access.snapshot().config;
+  config.deactivated.principals.push({ id: context.access.principalFor(person('alice')).id, at: '2026-10-01T00:00:00Z', by: 'admin', reason: 'disabled' });
+  context.access.reload(config);
+  answers.disabled = context.boundary.availableOperations(mintCaller({ principal: context.access.principalFor(person('alice')), origin: 'mcp' }));
+  for (const conditions of [{ path: 'docs/**' }, { docType: ['ontology'] }]) {
+    using conditional = await setup(customOptions(conditions));
+    const principal = conditional.access.principalFor(person('alice'));
+    answers[JSON.stringify(conditions)] = conditional.boundary.availableOperations(mintCaller({ principal, origin: 'mcp' }));
+  }
+  return answers;
+}
+
+test('listing exactly preserves the recorded answers for every fixture caller', async () => {
+  const answers = await listingAnswers();
+  expect(answers).toEqual(listingBaseline);
 });
