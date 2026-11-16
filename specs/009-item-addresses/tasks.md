@@ -182,7 +182,7 @@ changes.
   `SW_ADDRESS_MIGRATION_RETENTION_DAYS` setting (default 365) to `src/server/config.ts`. Proof:
   `tests/address-migration-store.test.ts` including retry idempotency and the 50,000 bound. (FR-029,
   FR-034, FR-035, FR-037)
-- [ ] T030 [US3] Interrupted-operation tests: interrupt a three-file rename at every journal step
+- [x] T030 [US3] Interrupted-operation tests: interrupt a three-file rename at every journal step
   (before each file, after each file, before and after the store step) using the journal's crash
   hook, then recover twice. Proof: SC-006 test; the store and files are all new or all old, and the
   second recovery adds nothing. (FR-034; SC-006)

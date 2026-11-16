@@ -1,6 +1,6 @@
 /** Exercises durable address history through staged journal operations. */
 import { expect, test } from 'bun:test';
-import { existsSync, mkdirSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { addressMigrationFile, ADDRESS_MIGRATION_LIMIT, operationMigrations, readAddressMigrations, stageAddressMigrations } from '../src/server/projects/address-migrations';
 import { atomicWrite, atomicWriteJson } from '../src/server/projects/atomic';
@@ -71,6 +71,62 @@ test('store input rejects unsupported states, snapshots, positional history and 
     ])
       expect(() => append(context, [invalid as any])).toThrow();
     expect(existsSync(addressMigrationFile(context.layout, 'sample'))).toBe(false);
+  } finally {
+    context.cleanup();
+  }
+});
+
+for (const phase of ['before', 'after'] as const) {
+  test(`three definitions and their history recover together when interrupted ${phase} every rename`, () => {
+    for (let interruption = 0; interruption < 8; interruption++) {
+      const context = fixture();
+      try {
+        atomicWriteJson(addressMigrationFile(context.layout, 'sample'), { formatVersion: 1, records: [] });
+        const staging = join(context.layout.state, '.interrupted');
+        const steps: { from: string; to: string }[] = [];
+        const documents = Array.from({ length: 3 }, (_, index) => join(context.layout.projects, `sample/${index}.yaml`));
+        documents.forEach((document, index) => {
+          atomicWrite(document, new TextEncoder().encode(`old ${index}`));
+          const next = join(staging, `new-${index}`);
+          atomicWrite(next, new TextEncoder().encode(`new ${index}`));
+          steps.push({ from: document, to: join(staging, `old-${index}`) }, { from: next, to: document });
+        });
+        steps.push(...stageAddressMigrations({ layout: context.layout, project: 'sample', staging }, records));
+        const crash = (kind: string, step: number) => kind === 'rename-three' && step === interruption;
+        const journal = createJournal(context.layout, phase === 'before' ? { crashBefore: crash } : { crashAfter: crash });
+        expect(() => journal.run('rename-three', steps, [staging], operation.id)).toThrow('Simulated crash');
+        const recovery = createJournal(context.layout);
+        expect(recovery.recover().map(outcome => outcome.outcome)).toEqual(['completed']);
+        expect(documents.map(document => readFileSync(document, 'utf8'))).toEqual(['new 0', 'new 1', 'new 2']);
+        expect(readAddressMigrations(context.layout, 'sample', LOCAL_READER)).toEqual(records);
+        const settled = readFileSync(addressMigrationFile(context.layout, 'sample'));
+        expect(recovery.recover()).toEqual([]);
+        expect(readFileSync(addressMigrationFile(context.layout, 'sample'))).toEqual(settled);
+      } finally {
+        context.cleanup();
+      }
+    }
+  });
+}
+
+test('recovery rolls back definitions and history together if an uninstalled source disappeared', () => {
+  const context = fixture();
+  try {
+    atomicWriteJson(addressMigrationFile(context.layout, 'sample'), { formatVersion: 1, records: [] });
+    const staging = join(context.layout.state, '.rollback');
+    const document = join(context.layout.projects, 'sample/a.yaml');
+    const next = join(staging, 'new');
+    atomicWrite(document, new TextEncoder().encode('old'));
+    atomicWrite(next, new TextEncoder().encode('new'));
+    const steps = [{ from: document, to: join(staging, 'old') }, { from: next, to: document }, ...stageAddressMigrations({ layout: context.layout, project: 'sample', staging }, records)];
+    const journal = createJournal(context.layout, { crashAfter: (_kind, step) => step === 0 });
+    expect(() => journal.run('save', steps, [staging], operation.id)).toThrow('Simulated crash');
+    rmSync(next);
+    const recovery = createJournal(context.layout);
+    expect(recovery.recover().map(outcome => outcome.outcome)).toEqual(['rolled-back']);
+    expect(readFileSync(document, 'utf8')).toBe('old');
+    expect(readAddressMigrations(context.layout, 'sample', LOCAL_READER)).toEqual([]);
+    expect(recovery.recover()).toEqual([]);
   } finally {
     context.cleanup();
   }

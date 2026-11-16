@@ -505,3 +505,7 @@ The mapping browser suite with canonical preference writers passed all 12 checks
 The store validates supported record kinds and stable absolute endpoints, stages replacement steps for the owning journal, derives IDs from the operation ID, and treats exact replay as a no-op append. A conflicting reuse of an ID is refused. The 50,000-record boundary allows replay at capacity and refuses a new record before any definition or store rename. The compaction-dependent retention configuration is dropped as unnecessary after the integrator's decision: a setting that cannot delete or rewrite history would misleadingly promise retention. No new environment variable is introduced. The pure retention-cut function remains a calculation only.
 
 Store and pure replay proof: `bun test tests/address-migration-store.test.ts tests/address-migration.test.ts` — 9 pass, 0 fail, 3,035 assertions.
+
+### Interrupted history writes
+
+The journal test hook now supports interruption before as well as after a rename. The three-definition fixture interrupts every one of its eight rename steps on both sides, including the store steps. Recovery settles definitions and history together, and a second recovery changes nothing. A missing staged source separately proves complete rollback to old definitions and empty history. Proof: `bun test tests/address-migration-store.test.ts tests/journal.test.ts` — 14 pass, 0 fail, 141 assertions.

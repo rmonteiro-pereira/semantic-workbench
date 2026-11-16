@@ -420,3 +420,4 @@ resource kinds; the inventory adds public ids, effects, limits, exposure, dispat
 coverage. Classifier names are keys of `operationClassifiers`; calls cannot override the selected
 classifier. Agent plan bodies have their own
 `AGENT_PLAN_REQUEST_LIMIT` (64,000 bytes), independent of the Git request limit.
+Address-history recovery tests use the journal's `crashBefore` and `crashAfter` hooks to interrupt every definition/store rename, then recover twice. Run `bun test tests/address-migration-store.test.ts tests/journal.test.ts` for both forward completion and rollback proofs.

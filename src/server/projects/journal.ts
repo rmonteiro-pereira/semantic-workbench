@@ -30,8 +30,8 @@ export class JournalCrash extends Error {
     this.name = 'JournalCrash';
   }
 }
-/** Allows tests to simulate a crash immediately after a chosen rename step. */
-export type JournalHooks = { crashAfter?: (kind: string, step: number) => boolean };
+/** Allows tests to simulate interruption immediately before or after a chosen rename. */
+export type JournalHooks = { crashBefore?: (kind: string, step: number) => boolean; crashAfter?: (kind: string, step: number) => boolean };
 /** Creates journaled file operations and recovery confined to the data root. */
 export function createJournal(layout: DataLayout, hooks: JournalHooks = {}) {
   const abs = (path: string) => {
@@ -91,6 +91,7 @@ export function createJournal(layout: DataLayout, hooks: JournalHooks = {}) {
       save(j);
       try {
         for (const [i, step] of j.steps.entries()) {
+          if (hooks.crashBefore?.(kind, i)) throw new JournalCrash();
           if (existsSync(abs(step.to))) throw Error(`Destination already exists: ${step.to}`);
           move(step.from, step.to);
           step.done = true;
