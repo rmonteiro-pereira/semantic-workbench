@@ -89,7 +89,7 @@ passes on the refactored code without edits.
    they run against the refactored server, **Then** each status, normalized body, selected response
    headers and audit record equals the recording.
 2. **Given** the existing test suite, **When** it runs, **Then** it passes; any test changed only
-   because it named a moved internal is listed in the plan.
+   because it named a moved internal is listed in the pull request description.
 3. **Given** each mutation of the new boundary (an authorization step skipped, reordered or applied
    to the wrong request), **When** the mutation suite runs, **Then** a test fails.
 
@@ -364,7 +364,7 @@ inventory; later increments (006 and its successors) are planned against this ta
   a custom role, an application client, anonymous, deactivated, without grants), both allowed and
   refused, and compare status, normalized body, selected headers and audit fields.
 - **FR-039**: The characterization suite and the existing suite MUST pass on the refactored code.
-  Tests changed only because an internal moved MUST be listed in the plan.
+  Tests changed only because an internal moved MUST be listed in the pull request description.
 - **FR-040**: Mutation cases MUST cover the boundary: each authorization step removed, the order of
   steps changed, the client action not substituted, the hidden audit removed, the 404 normalisation
   removed, the caller check removed and the row-match check removed.
