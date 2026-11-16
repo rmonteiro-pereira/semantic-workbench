@@ -36,3 +36,12 @@ Only ports 5241 and 5242 are used for browser checks. The dev server was started
 - Opened both after images: the Admin-role notice and workspace link replace the silent workspace fallthrough. The real browser suite also covers Bob and the return link.
 - `bun test tests/admin-route.test.ts`: 4 pass, 0 fail, 19 expect() calls.
 - The follow-up capture's unrelated Git fixture is omitted at runtime for direct-address-only captures; the real identity provider and application use 5241/5242.
+
+## T052 — widths and admin tables
+
+- Before: review `screenshots/server-light/server-admin-{grants-2560,roles-1440,audit-1440,settings-1440}.png` and `screenshots/states/server-admin-access-change--review-confirm-1440.png`.
+- After: matching names under `out/lane-d/after/server-light/` and `out/lane-d/after/states/`.
+- Opened all five after images: grants stop at the table cap; role permissions use marks; audit decisions differ visually and signIn reads Signed in; settings save follows its fields; review uses plain counts and the primary is rightmost. Dates omit seconds.
+- `bun test tests/admin-presentation.test.tsx`: 14 pass, 0 fail, 53 expect() calls.
+- Admin width check passed: form <= 640px, table <= 1200px, aligned left edges.
+- `capture-tour.ts`: all eight admin captures at 1440 and 2560 reported `[]` geometry problems.

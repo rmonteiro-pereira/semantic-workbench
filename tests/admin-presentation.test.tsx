@@ -95,7 +95,7 @@ test('review renders gained and lost actions for people and clients', () => {
       }}
     />,
   );
-  for (const text of ['Alice', 'approveMetric', 'edit', 'client:agent', 'access lost', '20 matrix cases']) expect(html).toContain(text);
+  for (const text of ['Alice', 'approveMetric', 'edit', 'client:agent', 'access lost', '20 access scenarios']) expect(html).toContain(text);
 });
 
 test('role conditions only show for applicable selected actions', () => {
@@ -118,7 +118,7 @@ test('role conditions only show for applicable selected actions', () => {
 
 test('timestamps use the reader locale and unknown text passes through', () => {
   const iso = '2026-10-21T10:00:00Z';
-  expect(whenLabel(iso)).toBe(new Date(iso).toLocaleString());
+  expect(whenLabel(iso)).toBe(new Date(iso).toLocaleString(undefined, { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit' }));
   expect(whenLabel('today')).toBe('today');
 });
 

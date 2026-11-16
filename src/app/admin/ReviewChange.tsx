@@ -15,7 +15,7 @@ export function DryRunResult({ result }: { result: DryRun }) {
     <section aria-label="Dry-run result">
       <h3>What changes for whom</h3>
       <p>
-        {result.matrixCases} matrix cases · {result.auditCases} audit snapshots
+        Checked {result.matrixCases} access scenarios and {result.auditCases} recent access decisions.
       </p>
       {!result.people.length && <p>No known person or client changes access.</p>}
       {result.people.map((person, index) => (

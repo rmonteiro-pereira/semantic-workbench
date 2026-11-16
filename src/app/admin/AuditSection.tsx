@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { whenLabel } from './helpers';
+import { auditLabel, whenLabel } from './helpers';
 import { SelectField } from './SelectField';
 import { adminApi, problemText } from './api';
 import { useAdminData } from './useAdminData';
@@ -96,15 +96,19 @@ export function AuditSection() {
                   {entry.principal.name ?? entry.principal.id}
                 </td>
                 <td data-label="Action / resource">
-                  {entry.action}
+                  <span title={entry.action}>{auditLabel(entry.action)}</span>
                   <br />
                   {Object.values(entry.resource).join(' · ')}
                 </td>
-                <td data-label="Decision">
-                  {entry.decision}
+                <td data-label="Decision" className={`admin-audit-decision ${entry.decision}`}>
+                  {auditLabel(entry.decision)}
                   {entry.outcome && ` · ${entry.outcome}`}
                   <br />
-                  {entry.rules.join(', ')}
+                  {entry.rules.map(rule => (
+                    <span key={rule} title={rule}>
+                      {auditLabel(rule)}{' '}
+                    </span>
+                  ))}
                 </td>
               </tr>
             ))}

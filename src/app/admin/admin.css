@@ -51,7 +51,7 @@
 .admin-pane input:not([type='checkbox'], [type='radio']),
 .admin-pane select,
 .admin-pane textarea {
-  max-width: 640px;
+  max-width: var(--admin-form-width);
 }
 .admin-scope textarea {
   min-height: 64px;
@@ -106,7 +106,8 @@
 }
 .admin-table {
   overflow-x: auto;
-  max-width: 100%;
+  width: 100%;
+  max-width: var(--admin-table-width);
 }
 .admin-actions {
   display: flex;
@@ -375,7 +376,7 @@
 }
 /* Editors and their forms stay a readable width on a wide screen; lists use the full width. */
 .admin-pane {
-  max-width: 960px;
+  max-width: var(--admin-form-width);
 }
 .admin-pane-header {
   display: flex;
@@ -459,4 +460,33 @@
 .admin-decision.denied {
   color: var(--color-danger-text);
   background: var(--color-danger-soft);
+}
+
+.admin-scope label,
+.admin-scope .admin-field,
+.admin-facts {
+  max-width: var(--admin-form-width);
+}
+.admin-filter-disclosure {
+  max-width: var(--admin-table-width);
+}
+.admin-scope .admin-filters label {
+  margin-block: 4px;
+}
+.admin-permission.allowed,
+.admin-audit-decision.allow {
+  color: var(--color-success);
+  font-weight: 600;
+}
+.admin-permission.denied {
+  color: var(--color-text-muted);
+}
+.admin-audit-decision.deny {
+  color: var(--color-danger-text);
+  font-weight: 600;
+  background: var(--color-danger-soft);
+}
+.admin-workspace-link {
+  align-self: flex-start;
+  color: var(--color-accent);
 }

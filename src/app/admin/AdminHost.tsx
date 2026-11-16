@@ -32,7 +32,9 @@ export function AdminAccessNotice() {
       <section className="admin-content">
         <h1>Admin requires the Admin role</h1>
         <p>Ask an administrator if you need to manage access.</p>
-        <a href="#">Back to workspace</a>
+        <a className="admin-workspace-link" href="#">
+          Back to workspace
+        </a>
       </section>
     </main>
   );

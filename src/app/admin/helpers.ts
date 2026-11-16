@@ -10,7 +10,7 @@ export function actionLabel(action: string): string {
 export function whenLabel(timestamp: string): string {
   const date = new Date(timestamp);
   if (Number.isNaN(date.getTime())) return timestamp;
-  return date.toLocaleString();
+  return date.toLocaleString(undefined, { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit' });
 }
 
 /** Creates a random lower-case hex identifier for a new grant, role or policy rule. */
@@ -20,4 +20,11 @@ export function newIdentifier(prefix: 'g_' | 'r_' | 'p_'): string {
   const bytes = crypto.getRandomValues(new Uint8Array(16));
   const hex = [...bytes].map(byte => byte.toString(16).padStart(2, '0')).join('');
   return prefix + hex;
+}
+
+/** Turns audit action and rule codes into readable labels while preserving their titles. */
+export function auditLabel(code: string): string {
+  if (code === 'signIn') return 'Signed in';
+  if (code === 'signOut') return 'Signed out';
+  return actionLabel(code.replace(/^[BF]\d+-/, '').replaceAll('-', ' '));
 }

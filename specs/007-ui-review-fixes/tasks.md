@@ -361,7 +361,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: When the route names an Admin section and `canOpenAdmin(me)` is false, show a short notice with a link back to the workspace instead of the hidden-workspace fallthrough; local mode (always Admin) is unaffected.
   - Proof: Before `followup/server-carol-admin--direct-address-1440.png`, `followup/server-alice-admin--direct-address-1440.png` (review baseline); after: same state recaptured with `scripts/ui-review/followup-server.ts <out_root>`; check: `tests/admin-route.test.ts`; `bun run test:admin` persona block asserts the notice for alice, bob and carol.
 
-- [ ] T052 [US4] [D] Cap admin form and table widths and fix the admin tables.
+- [x] T052 [US4] [D] Cap admin form and table widths and fix the admin tables.
   - Findings: M23, m25, m23, P7 · Requirements: FR-048, FR-049, FR-050, FR-052
   - Files: `src/app/admin/admin.css`, `src/app/admin/RoleMatrix.tsx`, `src/app/admin/AuditSection.tsx`, `src/app/admin/SettingsSection.tsx`, `src/app/admin/ReviewChange.tsx`, `src/app/admin/AdminPane.tsx`, `src/app/admin/helpers.ts`, `tests/admin-geometry.test.tsx`
   - Change: Use one `max-width` for forms and one for tables (`admin.css:54`); drop the lock emoji (`RoleMatrix.tsx:14`); show allow and deny as different styles and map audit codes such as 'signIn' to labels; align the filter row; place **Save settings** under its fields (`SettingsSection.tsx:162`); reword the counts at `ReviewChange.tsx:117-122`; put the primary on the right; format dates with `toLocaleString` without seconds.

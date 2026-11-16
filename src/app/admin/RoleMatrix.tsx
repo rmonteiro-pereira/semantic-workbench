@@ -11,7 +11,7 @@ export function RoleMatrix({ roles, actions }: { roles: Role[]; actions: Action[
           <tr>
             <th>Action</th>
             {roles.map(role => (
-              <th key={role.id}>🔒 {role.name}</th>
+              <th key={role.id}>{role.name}</th>
             ))}
           </tr>
         </thead>
@@ -24,7 +24,14 @@ export function RoleMatrix({ roles, actions }: { roles: Role[]; actions: Action[
                 <small className="admin-id">{action}</small>
               </th>
               {roles.map(role => (
-                <td key={role.id}>{role.permissions.some(permission => permission.actions.includes(action)) ? 'Allowed' : '—'}</td>
+                <td key={role.id}>
+                  <span
+                    className={role.permissions.some(permission => permission.actions.includes(action)) ? 'admin-permission allowed' : 'admin-permission denied'}
+                    aria-label={role.permissions.some(permission => permission.actions.includes(action)) ? 'Allowed' : 'Denied'}
+                  >
+                    {role.permissions.some(permission => permission.actions.includes(action)) ? '✓' : '—'}
+                  </span>
+                </td>
               ))}
             </tr>
           ))}

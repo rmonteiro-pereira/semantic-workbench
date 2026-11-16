@@ -17,7 +17,7 @@ export function AdminConfirmation({
 }: {
   title: string;
   onCancel: () => void;
-  /** The buttons that carry out the change; they sit before the cancel button. */
+  /** The buttons that carry out the change; they sit after the cancel button. */
   actions?: ReactNode;
   cancelLabel?: string;
   size?: ModalSize;
@@ -32,8 +32,8 @@ export function AdminConfirmation({
       className="admin-scope"
       footer={
         <>
-          {actions}
           <button onClick={onCancel}>{cancelLabel}</button>
+          {actions}
         </>
       }
     >

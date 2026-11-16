@@ -62,7 +62,7 @@ test('grant panes fit each viewport, and the dry-run preview is a dialog', async
   await grant.getByLabel('Applies to', { exact: true }).selectOption('projects');
   await grant.getByLabel('Projects (comma separated)').fill('sales');
   await adminGeometry(page, 'add-grant');
-  await grant.getByRole('button', { name: 'Dry run', exact: true }).click();
+  await grant.getByRole('button', { name: 'Review change', exact: true }).click();
   await expect(page.getByRole('dialog').getByRole('region', { name: 'Dry-run result' })).toBeVisible();
   await adminGeometry(page, 'add-grant-preview');
   await cancelAdminDialog(page, 'Cancel changes');
@@ -141,3 +141,16 @@ test('people, access check and settings confirmations fit each viewport', async 
   await cancelAdminDialog(page);
   await leaveAdmin(page);
 }, 120_000);
+
+test('wide screens cap administration forms and tables', async () => {
+  await page.setViewportSize({ width: 2560, height: 1440 });
+  const grants = await adminArea(page, 'Access grants');
+  const table = await grants.locator('.admin-table').first().boundingBox();
+  expect(table!.width).toBeLessThanOrEqual(1200);
+  await grants.getByRole('button', { name: 'Add grant', exact: true }).click();
+  const form = await pane('Add grant').boundingBox();
+  expect(form!.width).toBeLessThanOrEqual(640);
+  expect(form!.x).toBe(table!.x);
+  await goBack('Add grant');
+  await page.setViewportSize({ width: 1440, height: 900 });
+});

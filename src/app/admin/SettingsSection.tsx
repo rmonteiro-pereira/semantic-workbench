@@ -151,12 +151,6 @@ function SettingsEditor({ initial, version, onSaved }: { initial: Settings; vers
         Absolute hours
         <input type="number" min="1" value={settings.session.absoluteHours} onChange={event => lifetime('absoluteHours', event.target.value)} />
       </label>
-      <h3>Remote-credential policy</h3>
-      <p>Allowed hosts: {settings.remote.allowedHosts.join(', ') || 'None configured (server mode refuses remote access).'}</p>
-      <p>Azure DevOps on-behalf-of: {settings.remote.azureDevOpsObo ? 'On' : 'Off'}</p>
-      <p>
-        GitHub: {settings.remote.github.host} · {settings.remote.github.appConfigured ? 'App configured' : 'App not configured'}
-      </p>
       {error && <p role="alert">{error}</p>}
       <button disabled={busy || settings.session.idleHours <= 0 || settings.session.absoluteHours <= 0} onClick={() => setConfirm(true)}>
         Save settings
@@ -170,6 +164,12 @@ function SettingsEditor({ initial, version, onSaved }: { initial: Settings; vers
           <button onClick={() => setConfirm(false)}>Cancel changes</button>
         </>
       )}
+      <h3>Remote-credential policy</h3>
+      <p>Allowed hosts: {settings.remote.allowedHosts.join(', ') || 'None configured (server mode refuses remote access).'}</p>
+      <p>Azure DevOps on-behalf-of: {settings.remote.azureDevOpsObo ? 'On' : 'Off'}</p>
+      <p>
+        GitHub: {settings.remote.github.host} · {settings.remote.github.appConfigured ? 'App configured' : 'App not configured'}
+      </p>
     </section>
   );
 }

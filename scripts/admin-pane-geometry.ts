@@ -35,3 +35,23 @@ async function domainFieldsAlign(page: Page) {
   expect(rightEdges.length).toBeGreaterThan(1);
   expect(new Set(rightEdges).size, `Domain field edges: ${rightEdges}`).toBe(1);
 }
+
+if (import.meta.main) {
+  const { chromium } = await import('@playwright/test');
+  const { openAdminHarness, adminMockState } = await import('../tests/helpers/admin-api-mock');
+  const browser = await chromium.launch();
+  try {
+    const page = await browser.newPage({ viewport: { width: 2560, height: 1440 } });
+    await openAdminHarness(page, adminMockState());
+    const grants = await adminArea(page, 'Access grants');
+    const table = await grants.locator('.admin-table').first().boundingBox();
+    expect(table!.width).toBeLessThanOrEqual(1200);
+    await grants.getByRole('button', { name: 'Add grant', exact: true }).click();
+    const form = await page.getByRole('region', { name: 'Add grant', exact: true }).boundingBox();
+    expect(form!.width).toBeLessThanOrEqual(640);
+    expect(form!.x).toBe(table!.x);
+    console.log('Admin width check passed: form <= 640px, table <= 1200px, aligned left edges.');
+  } finally {
+    await browser.close();
+  }
+}
