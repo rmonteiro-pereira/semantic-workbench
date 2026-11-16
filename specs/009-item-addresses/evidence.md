@@ -493,3 +493,9 @@ The in-memory selection and neighborhood address boundary passed the new address
 The documented inventory distinguishes entity-keyed grouping assignments and browser center values from document paths, source patches, group display names and in-memory layout hints. Active shared/personal views and file/project/personal trash views carry the same grouping assignments. The compiler-AST inventory test rejects additions to those durable type shapes until their conversion treatment is recorded: 1 pass, 0 fail, 13 assertions. Source and draft contents are not address stores and must remain untouched.
 
 Server grouping conversion now backs up original shared, personal and archived view stores, verifies their hashes and the source hashes, and journals all replacements with its completion marker. Unknown shapes and backup mismatches install nothing. A 1,000-key fixture converts 999 and retains/reports one missing key; restoring the backup reproduces the original bytes. Startup conversion, grouping API compatibility, legacy migration, state and cache proofs: 14 pass, 0 fail, 121 assertions. TypeScript validation passes. Browser center conversion and additional archive coverage remain before the conversion task is complete.
+
+### Persisted center preferences
+
+Browser centers convert only a unique stable graph match. Original local-storage values are kept in adjacent before-item-addresses entries and verified before replacement; positional locators are never written. Errors use existing UI messages/alerts. Personal working-copy and archived-definition tests cover distinct names and preserve group display names. Conversion, grouping API and browser preference proofs: 10 pass, 0 fail, 53 assertions. TypeScript passes. The mapping browser suite is running against the converted preference writers.
+
+The mapping browser suite with canonical preference writers passed all 12 checks, with no browser errors (`/tmp/sw-009/mapping-center-conversion-browser.log`).

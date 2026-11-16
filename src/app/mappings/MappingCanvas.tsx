@@ -1,3 +1,4 @@
+import { saveCenterPreference } from '../graph/center-preference';
 import { parseAddress } from '../../shared/core/item-address';
 import { legacyMappingCardKey, legacyMappingKey } from '../../shared/core/item-key-adapters';
 /** Displays a mapping's resolved graph at the saved revision and indicates unsaved edits. */
@@ -29,6 +30,7 @@ const unmapped = (c: LineageCard) => !!c.badges?.some(b => b.kind === 'unmapped'
 export function MappingCanvas({ project, mappingId, revisionKey, dirty, fullscreen, compact, center: requested, ariaLabel = 'Mapping graph', toolbarExtra, onEditItem }: Props) {
   const [context, setContext] = useState<(MappingContext & { bindings: any[] }) | null>(null);
   const [error, setError] = useState('');
+  const [preferenceError, setPreferenceError] = useState('');
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     const abort = new AbortController();
@@ -65,6 +67,29 @@ export function MappingCanvas({ project, mappingId, revisionKey, dirty, fullscre
     });
     return matches.length === 1 ? matches[0].id : defaultMappingCenter(graph);
   }, [graph, requested]);
+  function saveCenter(id: string) {
+    try {
+      const parsed = parseAddress(id);
+      const card = graph?.cards.get(id);
+      if (parsed.ok) saveCenterPreference(localStorage, storageKey, id);
+      else if (card?.kind === 'concept' && id === legacyMappingCardKey('concept', card.label)) localStorage.setItem(storageKey, id);
+    } catch (failure) {
+      setPreferenceError(failure instanceof Error ? failure.message : 'The canvas preference could not be saved.');
+    }
+  }
+  useEffect(() => {
+    if (!graph) return;
+    try {
+      const stored = localStorage.getItem(storageKey);
+      const matches = [...graph.cards.values()].filter(card => {
+        const parsed = parseAddress(card.id);
+        return parsed.ok && legacyMappingKey(parsed.address) === stored;
+      });
+      if (matches.length === 1) saveCenter(matches[0].id);
+    } catch (failure) {
+      setPreferenceError(failure instanceof Error ? failure.message : 'The saved canvas preference could not be read.');
+    }
+  }, [graph, storageKey]);
   const evidenceOf = (message: string) => graph?.findingEvidence.get(message);
   // While resolving or when nothing can be drawn, the toolbar's extra controls (the consolidated
   // file's Graph view switch) stay reachable.
@@ -94,6 +119,7 @@ export function MappingCanvas({ project, mappingId, revisionKey, dirty, fullscre
   const editBinding = (evidence: { documentId: string; path: (string | number)[] }) => onEditItem?.(evidence.documentId, evidence.path.slice(0, -1));
   return (
     <div className={`mapping-canvas${compact ? ' compact' : ''}`}>
+      {preferenceError && <p role="alert">{preferenceError}</p>}
       {dirty && <p className="mapping-notice">The graph shows the saved revision; your edits appear here once they are saved.</p>}
       {graph.findings.length > 0 && (
         <ul className="mapping-graph-findings" aria-label="Mapping findings">
@@ -111,16 +137,7 @@ export function MappingCanvas({ project, mappingId, revisionKey, dirty, fullscre
         fullscreen={fullscreen}
         compact={compact}
         storageKey={`workbench:mapping-steps:${mappingId}`}
-        onCenterChange={id => {
-          try {
-            const parsed = parseAddress(id);
-            const card = graph.cards.get(id);
-            const builtinKey = card?.kind === 'concept' ? legacyMappingCardKey('concept', card.label) : null;
-            let stored = builtinKey === id ? id : null;
-            if (parsed.ok) stored = legacyMappingKey(parsed.address);
-            if (stored) localStorage.setItem(storageKey, stored);
-          } catch {}
-        }}
+        onCenterChange={saveCenter}
         cardFilter={onlyUnmapped ? unmapped : undefined}
         onFinding={(card, message) => setFinding({ card: card.label, message })}
         toolbarExtra={

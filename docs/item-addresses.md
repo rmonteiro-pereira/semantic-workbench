@@ -25,8 +25,7 @@ ADDRESS_TEST_SEED=9721 bun test tests/item-address-properties.test.ts
 
 `ADDRESS_TEST_SEED` accepts an integer. A failing property includes its seed for replay.
 The fixtures are in `tests/fixtures/addresses/conformance.json`. The mapping canvas uses resolved scope addresses for cards and rows. Synthetic built-ins and
-unresolved evidence rows keep explicit non-address UI keys. Graph selection and neighborhood centers use addresses in memory; persisted-key conversion
-is not adopted yet. ODCS lineage derives addresses from actual schema
+unresolved evidence rows keep explicit non-address UI keys. Graph selection and neighborhood centers use addresses in memory; persisted grouping keys are converted after a verified backup. ODCS lineage derives addresses from actual schema
 objects, nested properties and array-item definitions, without parsing dotted display labels.
 Dataset fields and metrics use their resolved model scopes. External stubs remain synthetic.
 
@@ -77,7 +76,7 @@ bun test tests/address-migration.test.ts
 ## UI adoption boundary
 
 The mapping and lineage canvases use canonical keys in memory and read labels from definitions,
-never from address separators. During the first adoption steps, center preferences are still
+never from address separators. During the first adoption steps, center preferences were still
 serialized through `legacyMappingKey` and `legacyLineageKey`; volatile locators are not written.
 The adapters preserve existing store shapes until explicit persisted-key conversion. Built-in
 mapping cards keep their unaddressable legacy UI keys. The standard source bytes stay untouched.
@@ -105,3 +104,5 @@ preserves unchanged step references so Back and Forward retain their existing re
 The inventory test checks the fields of each durable type so a new field requires a conversion decision.
 
 At startup, `state/address-key-conversion.json` marks completed server-side conversion. Before installation, each affected view is backed up beneath `backup/address-keys-<operation>/` with its original relative path and SHA-256. Source and store hashes are rechecked before a single journal installs the converted views and completion marker. A failure leaves the existing stores untouched. Unknown grouping shapes stop conversion; missing, ambiguous, volatile, RDF and built-in keys are retained in the completion report. Personal views use their owner's working-copy definitions where present. The grouping API still returns renderer keys, while stable structured assignments are stored as absolute locators.
+
+Browser canvas centers are converted only when the loaded graph gives the old value one stable meaning. The original value is retained in the adjacent `:before-item-addresses` storage entry and read back for exact verification before replacement. Volatile and unaddressable values remain unchanged. Later center choices store canonical stable addresses; built-in mapping cards retain their explicit unaddressable preference keys. Storage failures keep navigation usable and report the failure through the existing message/alert surface.

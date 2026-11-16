@@ -174,6 +174,7 @@ export function useWorkbench({ setMessage }: Options) {
   });
   const { openDocument, closeDocument, selectProject } = fileNavigation;
   const lineageState = useLineage({
+    setMessage,
     model,
     current,
     docs,

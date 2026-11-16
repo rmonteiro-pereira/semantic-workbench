@@ -1,3 +1,4 @@
+import { saveCenterPreference } from '../../graph/center-preference';
 import { resolveInModel } from '../../../shared/core/model-addresses';
 import { displayName, parseAddress } from '../../../shared/core/item-address';
 import { legacyLineageKey } from '../../../shared/core/item-key-adapters';
@@ -20,9 +21,10 @@ type Options = {
   parsedDoc: (doc: Doc) => { hash: string; model: ValidatedModel; keys: Set<string> };
   dispatchWalk: React.ActionDispatch<[action: WalkAction]>;
   setSelected: React.Dispatch<React.SetStateAction<string>>;
+  setMessage: (message: string) => void;
 };
 /** Manages lineage. */
-export function useLineage({ model, current, docs, tab, setTab, openDocument, parsedDoc, dispatchWalk, setSelected }: Options) {
+export function useLineage({ model, current, docs, tab, setTab, openDocument, parsedDoc, dispatchWalk, setSelected, setMessage }: Options) {
   function getMappingId() {
     if (current && (isMappingDoc || isConsolidated)) {
       if (isMappingDoc) {
@@ -90,24 +92,23 @@ export function useLineage({ model, current, docs, tab, setTab, openDocument, pa
     } catch {}
     const matches = stored ? [...lineage.cards.values()].filter(card => card.id === stored || storedCenter(card.id) === stored) : [];
     setLineageCenter(matches.length === 1 ? matches[0].id : defaultCenter(lineage));
+    if (matches.length === 1 && matches[0].id !== stored) lineageCenterChanged(matches[0].id);
   }, [lineage?.contract, current?.id, !!lineage]);
   // The stored centre belongs to the previous contract for one render after switching files.
   const lineageCenterId = getLineageCenterId();
   const lineageShown = tab === 'fullgraph' && ((isContract && !!lineage && !!lineageCenterId) || (!!mappingId && mappingView === 'mapping'));
   function lineageCenterChanged(id: string) {
     try {
-      const stored = storedCenter(id);
-      if (stored) localStorage.setItem(lineageKey, stored);
-    } catch {}
+      saveCenterPreference(localStorage, lineageKey, id);
+    } catch (failure) {
+      setMessage(failure instanceof Error ? failure.message : 'The canvas preference could not be saved.');
+    }
   }
   function openInLineage(name: string) {
     if (!lineage || !current) return;
     const id = [...lineage.cards.values()].find(card => card.kind === 'object' && card.file === current.path && card.label === name)?.id;
     if (!id) return;
-    try {
-      const stored = storedCenter(id);
-      if (stored) localStorage.setItem(lineageKey, stored);
-    } catch {}
+    lineageCenterChanged(id);
     setLineageCenter(id);
     setTab('fullgraph');
   }

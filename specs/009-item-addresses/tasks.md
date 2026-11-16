@@ -163,7 +163,7 @@ changes.
   state, grouping corrections, layout hints, drafts, suggestions, trash log). Proof:
   `tests/address-key-inventory.test.ts` fails on an unknown shape; the inventory is listed in
   `docs/item-addresses.md`. (FR-040)
-- [ ] T028 [US4] Write `src/server/projects/address-key-conversion.ts`: one-time conversion with a
+- [x] T028 [US4] Write `src/server/projects/address-key-conversion.ts`: one-time conversion with a
   backup of the previous store, a hash check of every converted file against its original bytes, a
   stop without changes on any failure, and a report of unconvertible keys that are kept. Follow
   the conventions of `src/server/projects/migration.ts`. Proof:

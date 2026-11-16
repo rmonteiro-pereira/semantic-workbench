@@ -89,6 +89,7 @@ that derivation and refuses ambiguous or unresolved qualified names. These pure 
 `formatAddress`, never by concatenating project, document or item names.
 `src/app/odcs/lineage-addresses.ts` indexes structured card and row locators for lineage; dotted
 labels remain presentation text and ambiguous labels are never guessed as references.
+`src/app/graph/center-preference.ts` verifies the previous browser center preference before writing a stable locator.
 `src/app/graph/selection-addresses.ts` translates structured graph selections and walk centers
 at the renderer boundary. `useGraphAddresses` records canonical state while retaining renderer
 IDs and the existing grouping/persistence boundaries.

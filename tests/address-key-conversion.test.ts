@@ -72,3 +72,22 @@ test('unknown store shapes stop conversion without replacing any store', () => {
     context.cleanup();
   }
 });
+
+test('personal and archived views use their own definitions and preserve group display names', () => {
+  const context = fixture();
+  try {
+    const personal = context.state.forOwner('person');
+    personal.writeView('sample', { 'model.yaml': { assignments: { 'ontology/0': 'team' }, names: { team: 'Team' } } });
+    const owner = context.state.personalStates()[0].key;
+    atomicWrite(join(context.layout.worktrees, owner, 'sample/model.yaml'), new TextEncoder().encode('name: Personal\nontology: [{concept: Own}]'));
+    const directory = join(context.layout.trash, 'archived');
+    atomicWriteJson(join(directory, 'entry.json'), { formatVersion: 1, kind: 'file', project: 'sample', path: 'removed.yaml', view: { assignments: { 'ontology/0': 'team' } } });
+    atomicWrite(join(directory, 'payload/removed.yaml'), new TextEncoder().encode('name: Archived\nontology: [{concept: Old}]'));
+    convertAddressKeys(context);
+    expect(personal.view('sample').files['model.yaml']).toEqual({ assignments: { 'sw1:sample/model.yaml#ontology:Personal/concept:Own': 'team' }, names: { team: 'Team' } });
+    const archived = JSON.parse(readFileSync(join(directory, 'entry.json'), 'utf8'));
+    expect(archived.view.assignments).toEqual({ 'sw1:sample/removed.yaml#ontology:Archived/concept:Old': 'team' });
+  } finally {
+    context.cleanup();
+  }
+});
