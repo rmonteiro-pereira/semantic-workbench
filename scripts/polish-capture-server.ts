@@ -6,6 +6,8 @@ import { chromium } from '@playwright/test';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createGit } from '../src/server/projects/git';
+import { openWorkspace } from '../src/server/projects/workspace';
+import { LOCAL_READER } from '../src/server/projects/reader';
 import { withCleanup } from './helpers/processes';
 import { TEST_USERS } from '../tests/helpers/auth-identities';
 import { startMockOidc } from '../tests/helpers/mock-oidc';
@@ -52,6 +54,12 @@ async function prepareCaptureContract(root: string) {
   const git = createGit({ projectsRoot });
   const result = await git.commitPaths(join(projectsRoot, 'sales-contracts'), ['orders.odcs.yaml'], 'Prepare visual capture contract');
   if (!result.committed) throw Error(`Capture fixture commit refused: ${result.reason}`);
+  const workspace = await openWorkspace({ root, reconcilePublished: true });
+  try {
+    await workspace.adopt('sales-contracts', LOCAL_READER);
+  } finally {
+    workspace.close();
+  }
 }
 
 let api: Awaited<ReturnType<typeof startAuthApi>> | undefined;
@@ -97,7 +105,8 @@ await withCleanup(stopCapture, async () => {
       ontology: files.find(name => name.includes('ontology')) ?? files[0] ?? '',
       contract: files.find(name => name === 'orders.odcs.yaml') ?? files.find(name => name.includes('odcs')) ?? files[0] ?? '',
       metricsModel: files.find(name => name.includes('semantic')) ?? files[0] ?? '',
-      mapping: files.find(name => name.includes('mapping')) ?? '',
+      mappedFile: files.find(name => name === 'sales.mapping.yaml') ?? '',
+      mapping: files.find(name => name === 'sales.mapping.yaml') ?? '',
       serverMode: true,
     }).filter(screen => screen.name.includes(process.env.SW_ONLY ?? ''));
     for (const screen of screens) {

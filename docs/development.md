@@ -277,6 +277,8 @@ SW_THEME=dark bun run polish:capture:server /tmp/server-dark-shots
 in that tool's inventory produces no evidence for that screen. The server tool defaults to the
 fixture administrator; its optional final username selects another fixture identity. Administrator
 captures reject skipped screens. Both tools reject uncaught errors and measured geometry failures.
+Server capture preparation adopts its committed contract additions before starting the tour and
+opens Mappings in the project that owns the mapping fixture.
 The graph capture includes expanded areas, open controls, additional neighbors, hover labels,
 zoomed labels and full-screen views.
 
