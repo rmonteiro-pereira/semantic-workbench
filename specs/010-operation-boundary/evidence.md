@@ -2,6 +2,12 @@
 
 ## Completion status
 
+Implementation and merge-review cleanups are committed. The final remote gate is **incomplete**:
+UI, terminology, standalone HTTP characterization and standalone audit verification are blocked
+by SSH transport timeouts before their commands start. Unit tests, all mutants, auth and admin
+browser suites passed remotely; check and build passed locally. The latest section records the
+remote timing allowances and the remaining gate commands. Earlier completed gates are historical.
+
 All 51 tasks are accounted for. The unused protocol-recording surface is deferred until its
 first transport caller, as directed by the architecture review; the revised task records that
 decision. The specified rate-limit/local-check order-swap mutant is equivalent because its
@@ -13,7 +19,8 @@ supersede them.
 The frozen HTTP fixture and original audit months remain byte-identical to their recording
 commits. The integrator's constitution 4.0.1 commit `d3a4181b` is retained unchanged. The final
 paired HTTP measurement shows no regression. Listing takes 63.623 ms on the measured fixture,
-above the unchanged 50 ms goal; the shared verdict includes checks the earlier listing omitted.
+accepted as the current figure with a feature 006 follow-up for clients and Admin project rules
+at 100 or more projects. The shared verdict includes checks the earlier listing omitted.
 No transport implementation or external deployment is included.
 
 ## Scope
@@ -790,3 +797,52 @@ more projects before MCP ships, because those cases retain exact project probing
 
 Focused route/inventory checks: 13 pass, 0 fail, 251 assertions. Boundary, telemetry and frozen
 HTTP characterization checks: 23 pass, 0 fail, 1641 assertions. Static check passes.
+
+
+## Final remote gate after merge-review cleanups
+
+Source remains at cleanup commits `a48dcf9b` and `50683d3e`; only this evidence update follows.
+The interrupted local runs are not counted as a completed final gate. After the remote-run
+instruction, heavy commands ran only through the unchanged `sw-midgard-run` wrapper, one at
+a time, under its 24 GB memory and 1200% CPU limits. Check and build ran locally. No AVX2 failure
+occurred and no local heavy fallback was used.
+
+| Gate | Command and observed summary |
+| --- | --- |
+| Unit tests: passed remotely | Wrapper, `bun test --timeout 30000`: `2147 pass`, `0 fail`, `203697 expect() calls`; `Ran 2147 tests across 301 files. [1273.55s]`; wrapper exit 0. |
+| Check: passed locally | `bun --bun run check`: `All matched files use the correct format.`; 1020 files; TypeScript, lint, comments, theme and brand checks exited 0. |
+| Build: passed locally | `bun --bun run build`: `✓ built in 3.34s`; existing chunk-size advisory only. |
+| Mutations: passed remotely | Wrapper, `nice -n 19 bun scripts/mutation-tests.ts`: `683/683 targeted mutants killed; all unmodified module baselines passed. Run test:ui for the full browser baseline.`; wrapper exit 0. |
+| Auth: passed remotely | Wrapper, `bun run test:auth`: 36 `PASS` lines; final line `PASS Git history is refused for a person who cannot read every file`; `auth: wrapper exit 0`. |
+| Admin: passed remotely with timing allowance | Wrapper, the expanded `test:admin` commands: `bun run build` followed by `bun --preload "$TMPDIR/010-expect-timeout.cjs" scripts/admin-browser-check.ts`; `admin: wrapper exit 0`; no aggregate summary is emitted. |
+| UI: blocked before startup | Three wrapper attempts failed to connect to SSH. The first two returned exit 255; the third returned exit 128 during the wrapper's scratch-repository push. All reported `Connection timed out`; no UI test result exists. |
+| Terminology: pending | `sw-midgard-run -- … bun run test:terminology` was queued behind UI and never started. |
+| Frozen HTTP standalone: pending | `sw-midgard-run -- bun test tests/auth/http-characterization.test.ts` was queued and never started. It did pass inside the full remote unit suite: `HTTP responses and audit records equal the original characterization [18395.61ms]`. |
+| Audit standalone: pending | `sw-midgard-run -- bun run audit:verify tests/fixtures/audit-v1` was queued and never started. |
+
+The first plain remote `bun test` reported 2141 passes and six failures: five Git fixture
+operations lacked a default identity for direct Git subprocesses, and one metric-save test
+exceeded the default five-second timeout. A disposable Git config under the wrapper's temporary
+root supplies the same synthetic test identity and main branch as the fixture setup. It is
+selected with `XDG_CONFIG_HOME`; the remote user's settings are unchanged. All 30 focused tests
+across the five affected Git/trash fixture files passed with that setup, including the tests
+that intentionally remove identity. The full retry uses a 30-second per-test timeout, without
+changing assertions; the metric-save case took 8.7 seconds and passed. No source was edited.
+
+Admin's ordinary five-second assertion wait failed twice while the successful dry-run requests
+took 5386 ms and 5288 ms. The passing attempt uses a temporary preload that calls Playwright's
+`setExpectConfig` with `timeout: 30000`; stack-frame parsing and the remaining defaults are
+preserved. Only the default assertion wait changes. All assertions and the existing 180-second
+administration time limit remain in place. No repository or dependency files were patched.
+
+An earlier auth SSH timeout recovered on retry. UI then failed to connect on three consecutive
+attempts, including one retry after a pause. The wrapper is the only remote access used; no
+remote directories, services, settings or processes were accessed outside its commands. The
+remaining gate requires restored wrapper SSH connectivity. It is not an application failure or
+an AVX2 exception, and the gate must not be reported as complete.
+
+Remote mutation servers used frontend 5401 and API 5402, with isolated temporary data and
+process-group cleanup traps. The successful auth/admin harnesses close their own browsers and
+servers. The blocked UI attempts never started their remote test commands. All local processes
+started for the interrupted gates are stopped; local ports 5311/5312 have no listeners. The
+frozen HTTP fixture and original audit months remain unchanged, and `d3a4181b` is retained.
