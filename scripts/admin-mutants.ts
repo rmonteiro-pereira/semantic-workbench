@@ -13,3 +13,9 @@ export const adminMutants: [string, string, string, string][] = [
   ['admin-audit-scope', 'src/server/auth/audit.ts', "if (projects && !projects.has(String(entry.resource.project ?? ''))) return false;", ''],
   ['admin-audit-scope', 'src/server/auth/audit.ts', 'if (!readableResource(entry, scope)) return false;', ''],
 ];
+
+/** Presentation guards for grant review and refused identity operations. */
+export const adminReviewMutants: [string, string, string, string][] = [
+  ['admin-review-guards', 'src/app/admin/change-review.ts', 'return /^[^\\sA-Z@]+@[^\\sA-Z@]+\\.[^\\sA-Z@]+$/.test(value.trim().toLowerCase());', 'return true;'],
+  ['admin-review-guards', 'src/app/admin/change-review.ts', 'return !refused;', 'return true;'],
+];

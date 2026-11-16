@@ -1,4 +1,4 @@
-import { validGrantEmail, reviewProblemText } from '../src/app/admin/change-review';
+import { canOfferUserConfirmation, validGrantEmail, reviewProblemText } from '../src/app/admin/change-review';
 import { AdminApiError } from '../src/app/admin/api';
 import { actionLabel, newIdentifier, whenLabel } from '../src/app/admin/helpers';
 import { expect, test } from 'bun:test';
@@ -184,4 +184,14 @@ test('access results lead with a reason and hide empty sections', () => {
   expect(html).not.toContain('Matching grants');
   expect(html).not.toContain('<h3>Roles');
   expect(html).toContain('<details>');
+});
+
+test('a refused identity operation cannot offer confirmation again', () => {
+  expect(canOfferUserConfirmation(true)).toBe(false);
+  expect(canOfferUserConfirmation(false)).toBe(true);
+});
+
+test('an access refusal explains a missing readable project', () => {
+  const html = renderToStaticMarkup(<AccessResult result={{ decision: { allow: false, reason: 'not-readable' }, grants: [], roles: [], rules: [], attributes: {} }} />);
+  expect(html).toContain('Denied: This person cannot read the selected project or file.');
 });

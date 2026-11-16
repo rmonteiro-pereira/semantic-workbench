@@ -26,6 +26,7 @@ import { lineageMutants } from './lineage-mutants';
 import { runScmMutants } from './scm-mutants';
 // end lane C imports
 // lane D imports
+import { adminReviewMutants } from './admin-mutants';
 // end lane D imports
 // lane E imports
 import { fontMutants, runFontCase } from './font-mutants';
@@ -594,6 +595,7 @@ mutants.push(...lineageMutants);
 await runScmMutants(root, temp);
 // end lane C mutants
 // lane D mutants
+mutants.push(...adminReviewMutants);
 // end lane D mutants
 // lane E mutants
 mutants.push(...fontMutants);

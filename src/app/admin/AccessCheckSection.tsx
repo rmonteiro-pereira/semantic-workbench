@@ -147,6 +147,8 @@ export function AccessResult({ result }: { result: AccessExplanation }) {
   const reason = (result.decision as { reason?: string } | null)?.reason;
   let explanation = allowed ? 'The matching grants and access rules permit this action.' : 'No matching access rule permits this action.';
   if (!allowed && reason && reason !== 'no-permit') explanation = 'An access restriction prevents this action.';
+  if (!allowed && reason === 'not-readable') explanation = 'This person cannot read the selected project or file.';
+  if (!allowed && reason === 'evaluation-error') explanation = 'The access rules could not be evaluated.';
   useEffect(() => {
     banner.current?.scrollIntoView({ block: 'nearest' });
   }, [result]);

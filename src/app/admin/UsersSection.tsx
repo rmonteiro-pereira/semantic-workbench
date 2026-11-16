@@ -5,6 +5,7 @@ import { MenuButton } from '../projects/Menu';
 import { AdminConfirmation } from './AdminConfirmation';
 import { AdminPane } from './AdminPane';
 import { adminApi, AdminApiError, problemText } from './api';
+import { canOfferUserConfirmation } from './change-review';
 import { useAdminData } from './useAdminData';
 import { GrantForm, scopeLabel } from './GrantForm';
 import { AccessCheckSection } from './AccessCheckSection';
@@ -143,6 +144,7 @@ function UserOperation({ user, kind, onCancel, onSaved }: { user: AdminUser; kin
   const [refused, setRefused] = useState(false);
   const title = kind === 'sessions' ? 'End sessions' : kind[0].toUpperCase() + kind.slice(1);
   async function confirm() {
+    if (!canOfferUserConfirmation(refused)) return;
     setBusy(true);
     try {
       if (kind === 'sessions') await adminApi.endSessions(user.id);
@@ -166,7 +168,7 @@ function UserOperation({ user, kind, onCancel, onSaved }: { user: AdminUser; kin
       size="narrow"
       lastAdminNotice={kind === 'deactivate' && !refused}
       actions={
-        !refused && (
+        canOfferUserConfirmation(refused) && (
           <button className={kind === 'reactivate' ? 'primary' : 'danger'} disabled={busy || (kind !== 'sessions' && !reason.trim())} onClick={confirm}>
             Confirm {title.toLowerCase()}
           </button>

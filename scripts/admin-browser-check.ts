@@ -36,6 +36,14 @@ async function addGrant(page: Page, { member, value, role, scope, target }: Gran
   await grants.getByRole('button', { name: 'Add grant', exact: true }).click();
   const dialog = page.getByRole('region', { name: 'Add grant', exact: true });
   await dialog.getByLabel('Member kind').selectOption(member);
+  if (member === 'email') {
+    const address = dialog.getByLabel('E-mail address', { exact: true });
+    await address.fill('invalid-address');
+    await expect(address).toHaveAttribute('aria-invalid', 'true');
+    await expect(dialog.getByRole('alert')).toHaveText('Enter a valid e-mail address');
+    await expect(dialog.getByRole('button', { name: 'Review change', exact: true })).toBeDisabled();
+    for (const diagnostic of ['must match', 'oneOf', 'grantsFile']) await expect(dialog).not.toContainText(diagnostic);
+  }
   await dialog.getByLabel(member === 'group' ? 'Group object ID' : 'E-mail address').fill(value);
   if (member === 'group') {
     await expect(dialog).toContainText(TEST_GROUPS.salesEditors.name);

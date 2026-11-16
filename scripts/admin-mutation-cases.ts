@@ -60,6 +60,12 @@ async function proposals(candidate: any) {
 
 /** Executes one administration category against a dynamically imported candidate module. */
 export async function adminMutationCase(candidate: any, category: string) {
+  if (category === 'admin-review-guards') {
+    assert.equal(candidate.validGrantEmail('invalid-address'), false);
+    assert.equal(candidate.validGrantEmail(' Erin@Example.org '), true);
+    assert.equal(candidate.canOfferUserConfirmation(true), false);
+    assert.equal(candidate.canOfferUserConfirmation(false), true);
+  }
   if (category === 'admin-proposals') return proposals(candidate);
   if (category === 'admin-policy-validation') {
     assert.equal(candidate.validatePolicies([{ id: 'invalid', enabled: true, text: 'not cedar' }], []).ok, false);

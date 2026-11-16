@@ -32,3 +32,8 @@ export function reviewProblemText(problem: unknown): string {
   }
   return problemText(problem);
 }
+
+/** Stops a refused identity change from being offered or submitted again. */
+export function canOfferUserConfirmation(refused: boolean): boolean {
+  return !refused;
+}
