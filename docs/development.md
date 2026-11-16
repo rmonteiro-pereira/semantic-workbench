@@ -385,3 +385,7 @@ unimplemented or superseded detail.
 
 Twin requests carry the authenticated caller's session reference. Remote credentials use that
 reference, including an explicit absent session, before considering cookie-based session lookup.
+
+The boundary's `permittedSomewhere` uses effective policy decisions for route passes. File-target
+listing probes reuse `projectResources` from the dry run so path and document-type conditions are
+represented without duplicating policy evaluation.

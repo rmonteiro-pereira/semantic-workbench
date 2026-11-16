@@ -1,4 +1,6 @@
 // Decides and executes operations through the same handler and durable audit path.
+import { projectResources } from './dry-run';
+import { emptyAccessConfig } from './access-config';
 import { operationClassifiers } from './operation-classifiers';
 import { recordOperation } from '../observability/metrics';
 import { withSpan } from '../observability/tracing';
@@ -11,7 +13,7 @@ import { auditableProjects, reportAuditFailure, type AuditLog } from './audit';
 import { assertMinted, type Caller, type CallerOrigin } from './caller';
 import { scopeAllows } from './connection-scope';
 import { PROTOCOL_METHODS, operationForRow } from './operation-inventory';
-import { routeFor, type RouteAction } from './route-actions';
+import { ROUTE_ACTIONS, routeFor, type RouteAction } from './route-actions';
 import type { ResourceRef, Decision } from './resource';
 import { WriteAccessError } from './write-access';
 import { GuardedChangeError } from './guards';
@@ -139,13 +141,29 @@ function routeDecision(scope: AccessScope, row: RouteAction, { resource, mode, r
   if (decision.allow || resolvedTarget || (row.targets !== 'body' && !client)) {
     return { decision, resource };
   }
-  for (const project of scope.view().readableProjects) {
-    const candidate: ResourceRef = { type: 'project', project };
-    const allowed = scope.authorize(row.action, candidate);
-    if (allowed.allow) return { decision: allowed, resource: candidate };
-  }
+  const permitted = permittedSomewhere(scope, row);
+  if (permitted) return permitted;
   if (client) return { decision: { ...decision, status: 403, reason: 'no-grant' }, resource };
   return { decision, resource };
+}
+
+/** Finds one target admitted by the same route pass used during invocation. */
+function permittedSomewhere(scope: AccessScope, row: RouteAction): RouteVerdict | undefined {
+  const workspace: ResourceRef = { type: 'workspace' };
+  const workspaceDecision = scope.authorize(row.action, workspace);
+  if (workspaceDecision.allow) return { decision: workspaceDecision, resource: workspace };
+  const entry = operationForRow(row.path);
+  const sampleFiles = row.targets !== 'body' && (entry?.targets === 'file' || entry?.targets === 'path');
+  const config = { ...emptyAccessConfig(), roles: scope.customRoles() };
+  for (const project of scope.view().readableProjects) {
+    const candidates: ResourceRef[] = [{ type: 'project', project }];
+    if (sampleFiles) candidates.push(...projectResources(project, config, config));
+    for (const resource of candidates) {
+      const decision = scope.authorize(row.action, resource);
+      if (decision.allow) return { decision, resource };
+    }
+  }
+  return undefined;
 }
 
 /**

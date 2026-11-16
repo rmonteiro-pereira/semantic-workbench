@@ -90,7 +90,7 @@ function replayDecisions(scopeFor: (identity: NormalizedPrincipal) => ScopePair,
 }
 
 /** Sample files that every role condition of either configuration tells apart. */
-function projectResources(project: string, before: AccessConfig, after: AccessConfig) {
+export function projectResources(project: string, before: AccessConfig, after: AccessConfig) {
   const example = { name: 'Example', status: 'proposed' };
   const resources: ResourceRef[] = [{ type: 'file', project, path: 'example.yaml', metric: example }];
   const permissions = [...before.roles, ...after.roles].flatMap(role => role.permissions);
