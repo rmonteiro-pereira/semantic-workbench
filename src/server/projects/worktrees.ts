@@ -122,7 +122,7 @@ export type WorktreeContext = {
 /** A repository has no remembered, remote or attached default branch to adopt. */
 export class UnknownDefaultBranchError extends GitError {
   constructor(repository: string) {
-    super(`Cannot tell the default branch of ${repository}: its checkout is detached.`);
+    super(`Cannot tell the default branch of ${repository}. Choose its default branch in Git configuration.`);
   }
 }
 
@@ -139,7 +139,7 @@ const copyExists = (context: WorktreeContext, key: string, repo: string) => exis
 
 /**
  * The repository's default branch: remembered once the base was detached, otherwise the branch
- * the remote announces, otherwise the branch checked out when first adopted.
+ * the remote announces, otherwise an existing configured initial branch, main or master.
  */
 async function defaultBranch(context: WorktreeContext, repo: string) {
   const { git } = context;
@@ -147,7 +147,7 @@ async function defaultBranch(context: WorktreeContext, repo: string) {
   return defaultBranchAt(git, dir, repo);
 }
 
-/** Resolves the remembered, remote or checked-out default name without changing a checkout. */
+/** Resolves a known default name without treating an arbitrary authoring checkout as published. */
 export async function defaultBranchAt(git: Git, dir: string, repo: string) {
   const remembered = await git.configValue(dir, DEFAULT_BRANCH_KEY, 'local');
   if (remembered) return remembered;
@@ -157,10 +157,23 @@ export async function defaultBranchAt(git: Git, dir: string, repo: string) {
   });
   const named = remote.code === 0 ? remote.stdout.trim().replace(/^origin\//, '') : '';
   // The remote chooses this name, so it must be a plain branch name before Git sees it again.
-  if (named && (await isBranchName(git, dir, named))) return named;
+  if (named) {
+    if (await isBranchName(git, dir, named)) return named;
+    throw new UnknownDefaultBranchError(repo);
+  }
+  const initial = await git.configValue(dir, 'init.defaultBranch');
+  const candidates = [...new Set([initial, 'main', 'master'].filter((branch): branch is string => Boolean(branch)))];
+  for (const candidate of candidates) {
+    if ((await isBranchName(git, dir, candidate)) && (await commitOf(git, dir, `refs/heads/${candidate}`))) return candidate;
+  }
   const checkedOut = await symbolicBranch(git, dir);
-  if (checkedOut) return checkedOut;
+  if (checkedOut && candidates.includes(checkedOut) && !(await commitOf(git, dir, 'HEAD'))) return checkedOut;
   throw new UnknownDefaultBranchError(repo);
+}
+
+/** Remembers the chosen default name before a checkout or authoring branch can change. */
+export async function rememberDefaultBranch(git: Git, directory: string, branch: string): Promise<void> {
+  await git.run(directory, ['config', '--local', DEFAULT_BRANCH_KEY, branch]);
 }
 
 // The base checkout must not hold the default branch, or a publish would leave its files stale;
@@ -170,7 +183,7 @@ async function detachBase(context: WorktreeContext, repo: string) {
   const dir = baseDir(context, repo);
   const branch = await symbolicBranch(git, dir);
   if (!branch) return;
-  await git.run(dir, ['config', '--local', DEFAULT_BRANCH_KEY, branch]);
+  await rememberDefaultBranch(git, dir, await defaultBranch(context, repo));
   if (await commitOf(git, dir, 'HEAD')) await git.run(dir, ['checkout', '-q', '--detach']);
 }
 

@@ -14,7 +14,7 @@ function preChangeRoot(kind: 'history' | 'unborn' = 'history') {
   return fixture;
 }
 function git(cwd: string, args: string[]) {
-  const result = Bun.spawnSync(['git', '--no-optional-locks', ...args], { cwd });
+  const result = Bun.spawnSync(['git', '--no-optional-locks', ...args], { cwd, env: process.env });
   if (result.exitCode) throw Error(result.stderr.toString());
   return result.stdout.toString().trim();
 }
@@ -36,7 +36,7 @@ test('local upgrade adopts the old default tip from a copy without losing staged
     const ws = await openWorkspace({ root: copy });
     try {
       expect(ws.state.published().repositories.definitions.commit).toBe(fixture.published!);
-      expect(ws.state.view('definitions').files['@publication']).toEqual({ notice: true, branch: 'main', commit: fixture.published! });
+      expect(ws.state.view('definitions').publicationNotice).toBe(true);
       expect((await ws.published.documents(ws.published.pin(), 'definitions'))[0].source).toContain('Published');
       expect(readFileSync(join(repository, 'shop.ontology.yaml'), 'utf8')).toContain('Unstaged');
       expect(git(repository, ['show', ':shop.ontology.yaml'])).toContain('Staged');
@@ -72,7 +72,7 @@ test('server startup records a clean default tip without changing document sourc
     try {
       expect((await ws.published.documents(ws.published.pin(), 'definitions'))[0].source).toBe(before);
       expect(ws.documents()[0].source).toBe(before);
-      expect(ws.state.view('definitions').files['@publication']).toBeUndefined();
+      expect(ws.state.view('definitions').publicationNotice).toBeUndefined();
     } finally {
       ws.close();
     }
@@ -96,14 +96,14 @@ test('an unborn default branch records no pointer even with an authoring commit'
   }
 });
 
-test('a detached local checkout with no known default still opens without a snapshot', async () => {
+test('a detached local checkout adopts an existing main without moving HEAD', async () => {
   const fixture = preChangeRoot();
   try {
     git(fixture.repository, ['checkout', '--detach']);
     const head = readFileSync(join(fixture.repository, '.git', 'HEAD'));
     const ws = await openWorkspace({ root: fixture.dir });
     try {
-      expect(ws.state.published().repositories).toEqual({});
+      expect(ws.state.published().repositories.definitions.commit).toBe(fixture.published!);
       expect(ws.documents()).toHaveLength(1);
       expect(readFileSync(join(fixture.repository, '.git', 'HEAD'))).toEqual(head);
     } finally {
@@ -149,3 +149,30 @@ test('taking a pin never reads the registry from disk', async () => {
     fixture.dispose();
   }
 });
+
+for (const known of [true, false]) {
+  test(`upgrade on feature-x ${known ? 'adopts main' : 'asks for a default'} without publishing feature commits`, async () => {
+    const fixture = preChangeRoot();
+    try {
+      git(fixture.repository, ['checkout', '-b', 'feature-x', 'work/local']);
+      if (!known) git(fixture.repository, ['branch', '-D', 'main']);
+      const refs = git(fixture.repository, ['show-ref']);
+      const ws = await openWorkspace({ root: fixture.dir });
+      try {
+        expect(ws.state.published().repositories.definitions?.commit).toBe(known ? fixture.published! : undefined);
+        expect(ws.state.view('definitions').publicationNotice).toBe(true);
+        expect(git(fixture.repository, ['branch', '--show-current'])).toBe('feature-x');
+        expect(git(fixture.repository, ['show-ref'])).toBe(refs);
+        if (known) {
+          expect(await ws.git.configValue(fixture.repository, 'workbench.defaultBranch', 'local')).toBe('main');
+          expect(git(fixture.repository, ['branch', '--show-current'])).toBe('feature-x');
+          expect(ws.state.published().repositories.definitions.commit).toBe(fixture.published!);
+        }
+      } finally {
+        ws.close();
+      }
+    } finally {
+      fixture.dispose();
+    }
+  });
+}

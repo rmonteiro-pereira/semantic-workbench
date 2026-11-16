@@ -33,6 +33,7 @@ not configure a production deployment.
   metric reads use the snapshot; browser metric reads keep their editing view.
 - Local commits, including imports and folder moves, use `work/local` when starting on the default
   branch. **Publish** validates and advances the default ref while preserving working files and index.
+  New local projects have no published snapshot: agents answer 409 until the first **Publish**.
   Publication audit records identify both previous and new commits.
 - Source Control displays the published commit, authoring distance, pending outside moves and a
   dismissible upgrade notice. **Adopt** validates an outside fast-forward; diverged moves are refused.

@@ -152,8 +152,8 @@ concatenating project, document or item names.
   validation at the existing middleware. Local browser markers are a guardrail.
 - `published-initialization.ts` adopts the existing default-branch tip on first open without
   touching the checkout or index. Only server startup repairs the detached published checkout,
-  after validating that existing changes can be preserved. Unknown detached defaults remain usable
-  without a snapshot.
+  after validating that existing changes can be preserved. Defaults resolve from the remembered name, remote HEAD, then an existing configured initial branch,
+  main or master. Unknown defaults remain usable without a snapshot and ask the person to choose one.
 - `published-snapshot.ts` resolves pinned commits independently of editing readers, filters no
   permissions, checks historical provenance and retains current, previous and actively pinned indexes.
   Pins also capture registry layouts, so folder changes apply to subsequent requests. The workspace
@@ -167,7 +167,8 @@ concatenating project, document or item names.
   compare-and-swaps the ref, records the pointer and supersedes the resolver; startup reconciles
   interrupted intents before repairing the server checkout.
 - `scm-published.ts` formats publication identity and authoring distance for Source Control; its
-  acknowledgement writes only the caller's view state. Status checks compare ref identity and cache
+  acknowledgement writes only the caller's typed personal publication notice. Legacy synthetic file entries
+  migrate into that notice on read. Status checks compare ref identity and cache
   ancestry/counts by ref and pointer; Git events invalidate and refresh that cache. The wire shape lives in shared SCM types.
 - `local-publication.ts` preserves the local index and working files when authoring moves to
   `work/local`, and advances the default ref through the shared checks and durable pointer protocol.

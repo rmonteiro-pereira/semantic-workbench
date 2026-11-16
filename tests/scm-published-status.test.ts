@@ -33,7 +33,7 @@ test('status reports the durable snapshot, authoring distance and an explicitly 
   expect((await status(workspace)).notice).toBe(false);
   expect((await workspace.ws.git.run(repository.repository, ['show-ref'])).stdout).toBe(refs);
   expect(readFileSync(join(repository.repository, '.git', 'index'))).toEqual(index);
-  expect(workspace.ws.state.view('definitions').files['@publication']).toMatchObject({ notice: false });
+  expect(workspace.ws.state.view('definitions').publicationNotice).toBe(false);
 });
 
 test('an outside move appears as pending while the served commit remains unchanged', async () => {
@@ -81,3 +81,25 @@ test('pending ancestry and counts are cached by observed ref and invalidated by 
   expect(await workspace.ws.published.status('definitions')).toMatchObject({ state: 'pending', move: 'diverged', commits: 0, commit: repository.published });
   expect(checks).toBe(3);
 });
+
+for (const notice of [true, false]) {
+  test(`legacy publication notice ${notice} migrates separately from file views`, async () => {
+    const { workspace } = await fixture();
+    using _owned = workspace;
+    const view = workspace.ws.state.view('definitions');
+    delete view.publicationNotice;
+    const { atomicWriteJson } = await import('../src/server/projects/atomic');
+    atomicWriteJson(workspace.ws.state.viewFile('definitions'), {
+      ...view,
+      files: { 'shop.ontology.yaml': { zoom: 2 }, '@publication': { notice, branch: 'main' } },
+    });
+    expect((await status(workspace)).notice).toBe(notice);
+    expect(workspace.ws.state.view('definitions')).toEqual({
+      formatVersion: 1,
+      files: { 'shop.ontology.yaml': { zoom: 2 } },
+      publicationNotice: notice,
+    });
+    workspace.ws.state.writeView('definitions', { 'shop.ontology.yaml': { zoom: 3 } });
+    expect((await status(workspace)).notice).toBe(notice);
+  });
+}

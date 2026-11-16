@@ -44,7 +44,11 @@ export function PublishedSnapshot({ status, local, canPublish, busy, onPublish, 
       )}
       {status.notice && (
         <div className="scm-publication-notice" role="status">
-          <p>Existing default-branch commits are the first published snapshot. New local commits use work/local. Publish when your committed definitions are ready for agents.</p>
+          <p>
+            {unavailable
+              ? 'Choose the default branch with git config workbench.defaultBranch <branch>, then restart. No snapshot has been published.'
+              : 'Existing default-branch commits are the first published snapshot. Commits on the default branch move to work/local. Publish when your committed definitions are ready for agents.'}
+          </p>
           <button disabled={busy} onClick={onAcknowledge}>
             Got it
           </button>

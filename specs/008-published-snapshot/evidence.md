@@ -766,3 +766,15 @@ test proves preservation of commits, refs, index and staged, unstaged and untrac
 No production source changed after the native visual comparison. The final owned frontend was stopped by
 the remote driver's cleanup; local ports 5321 and 5322 have no listener. No GitHub push, tag, merge or deploy
 was performed. The wrapper's authorized scratch push is the only remote publication.
+
+## Architecture correction scope ledger
+
+Existing Git compare-and-swap and atomic pointer writes preserve outside-writer detection and durable commits.
+The correction removes checkout-based default guessing, duplicate publication writers and independent queues.
+Pinned reads must keep the captured registry and current reader visibility; personal notices must stay out of file views.
+Tests exercise migration, publish-route failure, cross-entry-point serialization and pinned metric responses.
+
+Default selection now prefers existing configured initial/main/master refs after remembered and remote names,
+without publishing an arbitrary feature checkout. The local upgrade tests pass (8 tests, 38 assertions),
+including feature-x with and without main. Typed personal notices migrate legacy synthetic file entries;
+status tests pass (7 tests, 35 assertions), preserving other per-file state and explicit acknowledgement.

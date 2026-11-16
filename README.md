@@ -549,7 +549,9 @@ authoring branch; committing does not move the published snapshot.
 after publication checks. It preserves working files and staged changes and does not push.
 
 The default branch name is remembered from Git configuration, then the remote default,
-then the checked-out branch. Local startup preserves branch refs, commits, staged changes,
+then an existing `init.defaultBranch`, `main` or `master`, in that order.
+An arbitrary feature checkout is never adopted as the default. If no default can be identified,
+no snapshot is recorded and the notice asks you to choose one. Local startup preserves branch refs, commits, staged changes,
 unstaged changes and untracked files; it does not repair or detach the local checkout.
 
 | Existing workflow | After upgrade |

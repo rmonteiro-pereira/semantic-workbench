@@ -23,7 +23,7 @@ export type ProjectEntry = {
 /** Versioned list of registered projects. */
 export type Registry = { formatVersion: 1; projects: ProjectEntry[] };
 /** Versioned per-file view settings for a project. */
-export type ViewState = { formatVersion: 1; files: Record<string, unknown> };
+export type ViewState = { formatVersion: 1; files: Record<string, unknown>; publicationNotice?: boolean };
 /** A text replacement using a half-open range of UTF-16 offsets in the base source. */
 export type Patch = { from: number; to: number; insert: string };
 /** Durable unsaved text and patches with the hash of the version they were based on. */
@@ -155,7 +155,16 @@ function createPersonalState(layout: DataLayout) {
     draftFile,
     draftDir: (slug: string) => join(layout.drafts, assertSlug(slug)),
     view: (slug: string) => load<ViewState>(viewFile(slug), () => ({ formatVersion: STATE_FORMAT, files: {} })),
-    writeView: (slug: string, files: Record<string, unknown>) => atomicWriteJson(viewFile(slug), { formatVersion: STATE_FORMAT, files }),
+    writeView: (slug: string, files: Record<string, unknown>) => {
+      const previous = load<ViewState>(viewFile(slug), () => ({ formatVersion: STATE_FORMAT, files: {} }));
+      atomicWriteJson(viewFile(slug), { ...previous, files });
+    },
+    writePublicationNotice: (slug: string, visible: boolean) => {
+      const previous = load<ViewState>(viewFile(slug), () => ({ formatVersion: STATE_FORMAT, files: {} }));
+      const { ['@publication']: legacy, ...files } = previous.files;
+      void legacy;
+      atomicWriteJson(viewFile(slug), { ...previous, files, publicationNotice: visible });
+    },
     draft: (slug: string, path: string) => {
       const draft = readJsonFile<Draft>(draftFile(slug, path));
       if (draft && draft.formatVersion !== STATE_FORMAT) throw Error('Unsupported draft format.');

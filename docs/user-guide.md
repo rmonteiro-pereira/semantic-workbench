@@ -116,7 +116,9 @@ possible, the files are still imported and the application explains why.
 
 Valid Source edits autosave one second after typing stops. Item editors, add/delete dialogs and
 the metric wizard retain explicit **Save to file** or confirmation actions. Saving never implies
-that a file has been committed or pushed.
+that a file has been committed or pushed. A commit on the default branch first moves authoring
+to `work/local`; commits on a feature branch keep that branch. Agents see no new definitions until
+you **Publish** the committed changes.
 
 The save-state indicator distinguishes saving, saved-but-uncommitted changes, validation errors
 and a changed disk version. Invalid text remains an unsaved draft that survives reload. Selecting
@@ -202,13 +204,17 @@ Local mode uses the machine's Git configuration. **Set Git identity…** writes 
 changes global Git configuration. Without Git or an identity, definitions can still be edited;
 a banner explains which version-control operations are unavailable.
 
+In local mode, commit on your authoring branch, then **Publish** when the definitions are ready
+for agents. Starting a commit on the default branch moves authoring to `work/local` while preserving
+staged and unstaged work. Existing feature branches stay selected.
+
 When a repository's default branch is itself named `work/local`, select another authoring branch
 before committing. The application refuses to commit directly on that default branch.
 
 The Git status API includes a `published` block identifying the durable snapshot and the
 authoring branch's ahead/behind counts. A pending outside move is reported separately. The local
 upgrade notice remains visible until explicitly acknowledged;
-`POST /api/projects/:slug/git/acknowledge-publication` stores that choice in the person's view state
+`POST /api/projects/:slug/git/acknowledge-publication` stores that choice as a typed personal publication notice
 and changes no Git ref, index or file.
 
 Mappings labels its context and SQL as a **Preview of your working copy** and displays the

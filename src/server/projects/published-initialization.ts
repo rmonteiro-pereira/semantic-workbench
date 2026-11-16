@@ -1,7 +1,9 @@
 // Adopts existing default-branch commits without changing refs, files or the index.
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { UnknownDefaultBranchError } from './worktrees';
+import { setPublicationNotice } from './scm-published';
+import { LOCAL_READER } from './reader';
+import { UnknownDefaultBranchError, rememberDefaultBranch } from './worktrees';
 import type { Git } from './git';
 import type { DataLayout } from './paths';
 import { locationOf } from './paths';
@@ -31,17 +33,23 @@ export async function initializePublishedPointers(deps: PublishedInitializationD
     try {
       branch = await deps.defaultBranch(repository);
     } catch (error) {
-      if (error instanceof UnknownDefaultBranchError) continue;
+      if (error instanceof UnknownDefaultBranchError) {
+        if (!deps.serverMode) {
+          for (const project of projects.filter(project => locationOf(project).repo === repository)) {
+            setPublicationNotice(state, project.slug, true, LOCAL_READER);
+          }
+        }
+        continue;
+      }
       throw error;
     }
-    await git.run(directory, ['config', '--local', 'workbench.defaultBranch', branch]);
+    await rememberDefaultBranch(git, directory, branch);
     const commit = await git.revParse(directory, `refs/heads/${branch}`);
     if (!commit) continue;
     if (deps.serverMode && (await git.status(directory)).entries.length) continue;
     if (!deps.serverMode) {
       for (const project of projects.filter(project => locationOf(project).repo === repository)) {
-        const view = state.view(project.slug);
-        state.writeView(project.slug, { ...view.files, '@publication': { notice: true, branch, commit } });
+        setPublicationNotice(state, project.slug, true, LOCAL_READER);
       }
     }
     pointers.complete(repository, branch, commit);

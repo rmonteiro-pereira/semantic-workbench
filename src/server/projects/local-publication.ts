@@ -3,7 +3,7 @@ import { GitError, symbolicBranch, type Git } from './git';
 import { NothingToPublishError, NotFastForwardError, PendingPublicationError, PublicationAdoptionError } from './errors';
 import { publicationChecks, type PublicationCandidate } from './publication-checks';
 import type { PublishedPointers } from './published-pointer';
-import { defaultBranchAt, DEFAULT_BRANCH_KEY } from './worktrees';
+import { defaultBranchAt, rememberDefaultBranch } from './worktrees';
 
 /** Observes the immutable commits considered by one serialized adoption attempt. */
 export type PublicationObserver = (previous: string | null, commit: string | null) => void;
@@ -11,7 +11,7 @@ export type PublicationObserver = (previous: string | null, commit: string | nul
 /** Remembers the default name before a local commit can create or advance its authoring branch. */
 export async function prepareLocalCommit(git: Git, directory: string) {
   const branch = await defaultBranchAt(git, directory, 'the local repository');
-  await git.run(directory, ['config', '--local', DEFAULT_BRANCH_KEY, branch]);
+  await rememberDefaultBranch(git, directory, branch);
   return moveToAuthoringBranch(git, directory, branch);
 }
 

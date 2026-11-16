@@ -8,9 +8,21 @@ import type { State } from './state';
 function personalState(state: State, reader: Reader) {
   return reader.owner ? state.forOwner(reader.owner) : state;
 }
-function noticeVisible(state: State, slug: string, reader: Reader) {
-  const value = personalState(state, reader).view(slug).files['@publication'];
-  return Boolean(value && typeof value === 'object' && 'notice' in value && value.notice === true);
+/** Reads the typed notice and migrates the old synthetic file entry once. */
+export function publicationNotice(state: State, slug: string, reader: Reader): boolean {
+  const personal = personalState(state, reader);
+  const view = personal.view(slug);
+  if (view.publicationNotice !== undefined) return view.publicationNotice;
+  const legacy = view.files['@publication'];
+  if (!legacy || typeof legacy !== 'object' || !('notice' in legacy)) return false;
+  const visible = legacy.notice === true;
+  personal.writePublicationNotice(slug, visible);
+  return visible;
+}
+
+/** Stores only the person's publication notice, separate from per-file settings. */
+export function setPublicationNotice(state: State, slug: string, visible: boolean, reader: Reader) {
+  personalState(state, reader).writePublicationNotice(slug, visible);
 }
 
 async function remoteDefault(git: Git, directory: string, branch: string, commit: string) {
@@ -33,7 +45,7 @@ export async function scmPublishedStatus(
   reader: Reader,
 ): Promise<PublishedStatus> {
   const snapshot = await deps.snapshots.status(repository);
-  const notice = noticeVisible(deps.state, slug, reader);
+  const notice = publicationNotice(deps.state, slug, reader);
   if (snapshot.state === 'none') return { ...snapshot, notice };
   const head = await deps.git.head(directory);
   const result = head ? await deps.git.run(directory, ['rev-list', '--left-right', '--count', `${snapshot.commit}...${head}`]) : null;
@@ -45,9 +57,5 @@ export async function scmPublishedStatus(
 
 /** Dismisses only this person's upgrade notice; publication state and Git history stay untouched. */
 export function acknowledgePublication(state: State, slug: string, reader: Reader) {
-  const personal = personalState(state, reader);
-  const view = personal.view(slug);
-  const previous = view.files['@publication'];
-  const publication = previous && typeof previous === 'object' ? previous : {};
-  personal.writeView(slug, { ...view.files, '@publication': { ...publication, notice: false } });
+  setPublicationNotice(state, slug, false, reader);
 }
