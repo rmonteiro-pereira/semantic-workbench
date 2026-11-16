@@ -133,3 +133,52 @@
 - `test:sidebar`: 4 checks passed; `test:clipping`: 6 checks passed, errors []. Catalog presentation: 17 pass, 0 fail, 31 assertions (including word-boundary truncation through CatalogView).
 - Hover-only Edit is explicitly skipped. Hiding Edit breaks the shared edit-tour entry point, which locates and clicks Edit before hovering; that driver is outside lane E ownership. The attempted hiding rules were removed. Edit remains accessible and visible.
 - The final catalog edit imports `humanizeIdentifier` from `src/app/graph/EntityName.tsx`, as directed. Verified its export on branch 007-lane-a with git show; it is absent on this branch. No local copy or graph-file edit was made. The inspected catalog image precedes this final dependent import and still shows EntityType. Integrator must merge A before E, then capture the humanized type label and rerun checks. T057 remains unchecked because that proof and hover-only behavior are incomplete.
+
+### T073 — checks executed; gate incomplete
+
+All browser suites below used `SW_BASE_URL=http://127.0.0.1:5251`; isolated fixtures used dynamic ports, or 5252 for the fixed-port follow-up capture driver. No test budget or assertion was relaxed.
+
+| Command | Observed summary | Log |
+| --- | --- | --- |
+| `bun test` | 2076 pass; 0 fail; 130812 assertions; 286 files; 524.57 s | `/tmp/sw-E-bun-test-final.log` |
+| `bun --bun run check` before A import | TypeScript, formatter, lint, comments, theme and brand passed | `/tmp/sw-E-check-final-before-A.log` |
+| `bun --bun run build` before A import | built in 3.42 s; existing chunk-size/directive warnings | `/tmp/sw-E-build.log` |
+| `bun run test:ui` | 20 UI checks passed | `/tmp/sw-E-ui.log` |
+| `bun run test:responsive` | Exit 1: mall.odcs.yaml canvas expected >=421, received 407 | `/tmp/sw-E-responsive-final.log` |
+| `bun run test:theme` | 10 theme checks passed | `/tmp/sw-E-theme3.log` |
+| `bun run test:dialogs` | 9 dialog checks passed at six viewports | `/tmp/sw-E-dialogs.log` |
+| `bun run test:metrics` | 11 metrics checks passed | `/tmp/sw-E-frozen-metrics.log` |
+| `bun run test:trash` | 13 trash checks passed | `/tmp/sw-E-frozen-trash.log` |
+| `bun run test:projects` | 8 project checks passed | `/tmp/sw-E-projects.log` |
+| `bun run test:sidebar` | 4 sidebar layout checks passed | `/tmp/sw-E-sidebar.log` |
+| `bun run test:mappings-layout` | 8 mapping layout checks passed | `/tmp/sw-E-frozen-mappings.log` |
+| `bun run test:item-edit` | 11 item-edit checks passed | `/tmp/sw-E-item-edit.log` |
+| `bun run test:clipping` | passed: 6, errors: [] | `/tmp/sw-E-clipping3.log` |
+| `bun scripts/mutation-tests.ts` | Exit 1: Baseline failed (example-registry), empty stderr, existing 10 s child limit | `/tmp/sw-E-mutations-final.log` |
+| `bun scripts/shell-mutants.ts` | 2 shell mutants killed; 2 baselines passed | `/tmp/sw-E-shell-mutants-final.log` |
+
+- Full unit/browser results and the focused mutants above precede the final A-dependent import. They are not a claim that the final unintegrated tree passes.
+- Final `bun --bun run check`: TS2305, EntityName has no exported member humanizeIdentifier. Final build: missing export of that same function. Logs `/tmp/sw-E-check-with-A-import.log` and `/tmp/sw-E-build-with-A-import.log`. Merge A first; no local substitute was created.
+- Responsive failure reproduced on an archived copy of foundation commit 593f2c18 inside this worktree's ignored out directory, served on 5251: canvas x313, y249, width954, height407. Log `/tmp/sw-E-baseline-canvas.log`. It belongs to the graph toolbar/canvas work; E does not change those selectors or lower its threshold.
+- The complete mutation runner failed twice at example-registry before reaching E mutants. The unmodified example-registry case also completed successfully when invoked without the runner's 10 s limit against the archived foundation module. A whole-run attempt inside ignored out stopped earlier because Oxlint ignores out; no pass is claimed for that attempt. Existing example-registry source and timeout remain unchanged.
+- The shell mutations reuse the existing isolated asset-category dispatch through E-owned font-mutants.ts. Shared mutation-tests.ts changes contain only the E import and registration within its sentinels.
+- Final formatter: All matched files use the correct format (1023 files); lint exit 0. Readability checker and docs-sync exit 0. The requested scripts/commit_cadence.py is absent (exit 2); no replacement tooling was added.
+- T073 remains unchecked: the full gate is not green. T057, T064 and T073 are explicitly incomplete/partially skipped for the reasons above. All other lane tasks are checked.
+- All started dev servers and browser processes have exited. Final process inspection found no Bun/Vite/Chromium process with this worktree as its working directory. No push, merge, tag, remote change or deployment was performed.
+
+## Lane commits
+
+```text
+4de9aad3 fix: explain empty catalog searches (T056)
+65dd27f2 test: confirm cross-project trash purge and phone mapping placement (T060 T061)
+ad5a1a88 docs: confirm the Mall lineage palette entry (T062)
+514cef73 fix: stabilize metric authoring and locate validation feedback (T058 T066)
+4689f358 fix: list deleted files from every project in Trash (T063)
+8da2d04d fix: keep mapping selection visible on phones and avoid absent draft reads (T065 T071)
+3f56ccbb fix: mark item fields that need correction (T066)
+3d1527f4 fix: clarify first-run creation and refuse unsupported imports (T067 T068)
+7e1d6909 fix: unify disabled actions and native control presentation (T059 T069)
+b0f80caf fix: reserve red for destructive feedback (T070)
+49c0cc37 docs: describe revised workspace flows (T072)
+816ac087 fix: align catalog content and reuse lane A type labels (T057 T064)
+```

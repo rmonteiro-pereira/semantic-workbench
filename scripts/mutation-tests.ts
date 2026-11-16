@@ -29,6 +29,7 @@ import { runScmMutants } from './scm-mutants';
 import { adminReviewMutants } from './admin-mutants';
 // end lane D imports
 // lane E imports
+import { shellMutants } from './shell-mutants';
 import { fontMutants, runFontCase } from './font-mutants';
 // end lane E imports
 const root = process.cwd();
@@ -598,6 +599,7 @@ await runScmMutants(root, temp);
 mutants.push(...adminReviewMutants);
 // end lane D mutants
 // lane E mutants
+mutants.push(...shellMutants);
 mutants.push(...fontMutants);
 // end lane E mutants
 

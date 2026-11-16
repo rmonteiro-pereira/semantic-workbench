@@ -1,4 +1,5 @@
 // Asset faults run against isolated copies of the real stylesheet and licence tree.
+import { runShellCase } from './shell-mutants';
 import { cp, mkdir, rm, writeFile } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -12,6 +13,7 @@ export const fontMutants: [string, string, string, string][] = [
 
 /** Runs the font gate on a disposable source tree containing one candidate asset. */
 export async function runFontCase(root: string, temporary: string, file: string, source: string, index: string) {
+  if (file.endsWith('trash-sections.ts') || file.endsWith('CatalogView.tsx')) return runShellCase(root, temporary, file, source, index);
   const candidate = resolve(temporary, `fonts-${index}`);
   await mkdir(candidate, { recursive: true });
   await cp(resolve(root, 'src'), resolve(candidate, 'src'), { recursive: true, filter: path => !path.includes('/generated/') });

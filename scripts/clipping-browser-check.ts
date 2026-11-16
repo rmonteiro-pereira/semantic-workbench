@@ -67,21 +67,23 @@ for (const [width, height] of VIEWPORTS) {
     expect(await verticallyCutBoxes(page, '.mapping-explorer')).toEqual([]);
     expect(await sidewaysOverflowProblems(page, '.mapping-explorer')).toEqual([]);
     await expect(page.getByLabel('Mapping document').locator('option')).toHaveCount(2);
+    if (width <= 650) await page.getByRole('button', { name: 'All concepts', exact: true }).click();
     const context = page.locator('summary', { hasText: 'AI context' });
     await context.click();
     await expect(page.locator('.mapping-detail pre').last()).toContainText('"concepts"');
-    // The concept list and the detail stack on a phone, and the detail stays reachable by the page's scroll.
-    const listBottom = await page.locator('.mapping-concepts').evaluate(element => element.getBoundingClientRect().bottom);
-    const detailTop = await page.locator('.mapping-detail').evaluate(element => element.getBoundingClientRect().top);
-    if (width < 760) expect(detailTop).toBeGreaterThanOrEqual(listBottom - 1);
-    else expect(await page.locator('.mapping-concepts').evaluate(element => element.clientHeight === element.scrollHeight)).toBe(true);
+    if (width <= 650) {
+      await expect(page.locator('.mapping-concepts')).toBeHidden();
+      await expect(page.getByRole('button', { name: 'Back to concepts' })).toBeVisible();
+    } else {
+      expect(await page.locator('.mapping-concepts').evaluate(element => element.clientHeight === element.scrollHeight)).toBe(true);
+    }
   });
 
   await check(`${width}px: entity details has no sideways scroll and no nested scroll box`, async () => {
     await tabButton('Catalog').click();
     await page
       .locator('.catalog-card')
-      .filter({ hasText: /^EntityType.*Invoice/ })
+      .filter({ hasText: /^Entity(?:Type| type).*Invoice/ })
       .locator('button')
       .first()
       .click();
