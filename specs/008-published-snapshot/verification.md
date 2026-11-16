@@ -14,8 +14,9 @@ The fixture loads the shipped UBL, commerce, mapped-commerce and mall examples, 
 
 ```sh
 TMPDIR=/tmp/sw-008 bun specs/008-published-snapshot/performance-fixture.ts
+mkdir -p out/008-main-source
 git archive 655df094 | tar -x -C out/008-main-source
-ln -s "$PWD/node_modules" out/008-main-source/node_modules
+ln -sfn "$PWD/node_modules" out/008-main-source/node_modules
 TMPDIR=/tmp/sw-008 bun specs/008-published-snapshot/performance-measurement.ts "$PWD/out/008-main-source"
 TMPDIR=/tmp/sw-008 bun specs/008-published-snapshot/performance-measurement.ts "$PWD"
 ```
@@ -26,4 +27,16 @@ TMPDIR=/tmp/sw-008 bun specs/008-published-snapshot/performance-measurement.ts "
 | context | 36.85 | 85.58 | 32.72 | 34.38 | +5.06% |
 | plan | 26.81 | 92.44 | 35.37 | 32.18 | -9.01% |
 
+Archived baseline test entry points are removed from the ignored source copy after extraction so subsequent `bun test` runs discover only this branch's tests. The fixture reset affects only its dedicated temporary root.
+
 All three warm p95 changes satisfy the 10% budget. Cold p95 is reported separately and includes Git object validation; the success criterion sets no cold-time budget. Each warm row contains 1,200 calls; each cold row contains 12 calls.
+
+## Mutation gate
+
+`TMPDIR=/tmp/sw-008 SW_BASE_URL=http://127.0.0.1:5321 bun scripts/mutation-tests.ts`
+
+```text
+694/694 targeted mutants killed; all unmodified module baselines passed. Run test:ui for the full browser baseline.
+```
+
+The snapshot predicates, provenance, publication/adoption checks, request surfaces and pinned export mutants are registered in the shared harness. The full run also detected all nine visual mutants. No mutant was excluded or treated as equivalent. Earlier baseline failures exposed stale fixture expectations and were corrected; the final run passed each unmodified baseline before executing mutants.

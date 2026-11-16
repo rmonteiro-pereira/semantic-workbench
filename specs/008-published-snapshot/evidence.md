@@ -391,3 +391,7 @@ README, architecture, configuration, server and agent guides and the Unreleased 
 ## Final review corrections
 
 The full architecture review identified and prompted fixes for registration-time initialization, the agent response header during registry changes, remote-follow publication audit identifiers, adoption refusal audit identifiers and publication availability without history permission. The corrections reuse existing initialization, request audit and project-list boundaries. Proof: agent source tests 3 pass / 37 assertions; clone and migration targeted run 42 pass / 311 assertions; audit, remote and adoption tests 18 pass / 1,084 assertions; export access 6 pass / 29 assertions. `bun --bun run check` exited 0. The snapshot browser check passed both modes and all six publication geometries, including Published export while history requests return 403. The command is registered in package.json, the shared gate list and the pipeline matrix.
+
+## Complete mutation gate
+
+`TMPDIR=/tmp/sw-008 SW_BASE_URL=http://127.0.0.1:5321 bun scripts/mutation-tests.ts`: **694/694 targeted mutants killed; all unmodified module baselines passed. Run test:ui for the full browser baseline.** All named snapshot faults and the nine visual faults were detected. Earlier concurrent broad runs exceeded short harness deadlines; the final run was serialized against the other heavy suites and required no timeout changes.
