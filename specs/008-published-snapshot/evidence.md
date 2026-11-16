@@ -910,3 +910,24 @@ The earlier startup failure did not recur; no source, assertion or timeout chang
 The 34 publication-control PNGs are present. Native inspection of the 390 px known-default notice,
 unknown-default notice and server Adopt state found readable text, accessible buttons, and no horizontal
 clipping or overlap. The measured six-width publication checks already passed in both modes.
+
+The isolated server journey also exited 0: `232` `MEASURE` lines, all `problems=0`, and 232 PNGs;
+final measurement `MEASURE admin-access-check 2560 problems=0`. It ran remotely as
+`bun scripts/polish-capture-server.ts out/008-review-gate/capture-server`. Both current full journeys
+therefore contain 464 images, in addition to 34 focused publication captures. Native review of the local
+and server Source Control captures at 1280 px found the publication status, branch and history readable.
+
+### Remote responsive baseline comparison
+
+`bun scripts/responsive-ui-tests.ts` through the wrapper exited 1 twice at its first assertion:
+`Expected: > 503.99999999999994`, `Received: 481` at `scripts/responsive-ui-tests.ts:334`.
+The assertion and all canvas code are unchanged. A temporary archive of the exact main/base revision
+`655df094` was extracted under the remote checkout's `out/008-review-gate/main-baseline`; its identical
+responsive suite and the already installed Vite executable reproduced the exact same values at the exact
+same line, exit 1. The archive and its owned frontend were removed by the command's exit trap. This is
+an additional pre-existing failure in the remote environment, not a passing full responsive gate.
+The first baseline launch used `bun x` from the archive and selected a mismatched tool version; it failed
+before browser navigation and is not comparison evidence. The successful comparison used the installed
+`node_modules/vite-plus/bin/vp` executable. No dependency or source change was made.
+The previously demonstrated main 407/421 mall failure remains separately documented above. Targeted
+responsive groups continue below so the earlier remote failure does not hide their results.
