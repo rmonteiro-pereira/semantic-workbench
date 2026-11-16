@@ -349,7 +349,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: When the server answers 'last-admin', replace the confirmation by one sentence, remove the code prefix, write the title as 'Deactivate Dave Dias?', and use the `danger` class for a lone destructive confirm (`UsersSection.tsx:164`).
   - Proof: Before `states/server-admin-protection--last-admin-1440.png`, `states/server-dark-admin-protection--last-admin-1440.png` (review baseline); after: same state recaptured with `scripts/ui-review/last-admin-state.ts <out>`; check: `bun scripts/admin-last-admin-check.ts` asserts no enabled button named Confirm in the refused state.
 
-- [ ] T050 [US4] [D] Make the access-check answer the most visible element.
+- [x] T050 [US4] [D] Make the access-check answer the most visible element.
   - Findings: M11 · Requirements: FR-046
   - Files: `src/app/admin/AccessCheckSection.tsx`, `src/app/admin/admin.css`, `tests/admin-presentation.test.tsx`
   - Change: Render a result banner (allowed green, denied red, one sentence naming the reason) right under the buttons and scroll it into view; hide empty sections; fold the raw attributes into a disclosure; cap input widths with the shared admin form width.

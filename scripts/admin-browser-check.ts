@@ -80,6 +80,17 @@ async function timedAdministration(page: Page, erin: Page, target: SignInTarget)
   await access.getByLabel('Project', { exact: true }).fill('sales-contracts');
   await access.getByRole('button', { name: 'Check access', exact: true }).click();
   await expect(access.getByRole('region', { name: 'Access result' })).toContainText('Allowed');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await access.getByRole('button', { name: 'Check access', exact: true }).click();
+  const banner = access.getByRole('status');
+  await expect(banner).toContainText('Allowed');
+  await expect
+    .poll(async () => {
+      const box = await banner.boundingBox();
+      return Boolean(box && box.y >= 0 && box.y + box.height <= 844);
+    })
+    .toBe(true);
+  await page.setViewportSize({ width: 1440, height: 900 });
   assert(withinAdministrationTime(start, performance.now()), 'Domain assignment, both grants and check exceeded three minutes');
   await access.getByLabel('Hypothetical person').check();
   await access.getByLabel('Groups (comma separated)').fill(TEST_GROUPS.salesEditors.id);

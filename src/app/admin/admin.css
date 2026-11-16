@@ -435,3 +435,28 @@
   min-width: min(100%, max-content);
   max-width: 100%;
 }
+
+.admin-scope {
+  --admin-form-width: 640px;
+  --admin-table-width: 1200px;
+}
+.admin-content > label,
+.admin-content > .admin-field,
+.admin-access-result {
+  width: 100%;
+  max-width: var(--admin-form-width);
+}
+.admin-decision {
+  padding: 12px;
+  border: 1px solid currentColor;
+  border-radius: 7px;
+  scroll-margin: 12px;
+}
+.admin-decision.allowed {
+  color: var(--color-success);
+  background: var(--color-surface);
+}
+.admin-decision.denied {
+  color: var(--color-danger-text);
+  background: var(--color-danger-soft);
+}

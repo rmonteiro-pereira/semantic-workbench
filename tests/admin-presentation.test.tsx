@@ -10,7 +10,7 @@ import { RoleEditor } from '../src/app/admin/RoleEditor';
 import { RolePermissions } from '../src/app/admin/RolePermissions';
 import type { Me } from '../src/app/auth/useMe';
 import builtin from '../policies/builtin-roles.json';
-import { decisionLabel } from '../src/app/admin/AccessCheckSection';
+import { AccessResult, decisionLabel } from '../src/app/admin/AccessCheckSection';
 import { inUseMessage } from '../src/app/admin/ReviewChange';
 import { grantSummary } from '../src/app/admin/RolesAccessSection';
 import type { Role } from '../src/app/admin/types';
@@ -175,4 +175,13 @@ test('grant validation shares the schema address rule and hides server diagnosti
   const message = reviewProblemText(new AdminApiError(400, { error: 'grantsFile must match oneOf' }, 'review'));
   expect(message).toBe('Check the change fields and review the change again.');
   for (const diagnostic of ['must match', 'oneOf', 'grantsFile']) expect(message).not.toContain(diagnostic);
+});
+
+test('access results lead with a reason and hide empty sections', () => {
+  const html = renderToStaticMarkup(<AccessResult result={{ decision: { allow: false, reason: 'no-permit' }, grants: [], roles: [], rules: [], attributes: {} }} />);
+  expect(html).toContain('Denied: No matching access rule permits this action.');
+  expect(html).toContain('admin-decision denied');
+  expect(html).not.toContain('Matching grants');
+  expect(html).not.toContain('<h3>Roles');
+  expect(html).toContain('<details>');
 });

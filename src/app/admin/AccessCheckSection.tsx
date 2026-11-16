@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { SelectField } from './SelectField';
 import { adminApi, problemText } from './api';
 import { useAdminData } from './useAdminData';
@@ -125,24 +125,7 @@ export function AccessCheckSection({ principal = '' }: { principal?: string }) {
           Who can access
         </button>
       </div>
-      {result && (
-        <section aria-label="Access result">
-          <h3>Decision</h3>
-          <p>{decisionLabel(result.decision)}</p>
-          <h3>Matching grants</h3>
-          {result.grants.map(grant => (
-            <p key={grant.grantId}>
-              {grant.grantId} · {grant.roleId} · {grant.via}
-            </p>
-          ))}
-          <h3>Roles</h3>
-          <p>{result.roles.join(', ')}</p>
-          <h3>Deciding rules</h3>
-          <p>{result.rules.join(', ')}</p>
-          <h3>Attributes</h3>
-          <pre>{JSON.stringify(result.attributes, null, 2)}</pre>
-        </section>
-      )}
+      {result && <AccessResult result={result} />}
       {who && (
         <section aria-label="Who can access results">
           {who.map((entry, index) => (
@@ -153,5 +136,51 @@ export function AccessCheckSection({ principal = '' }: { principal?: string }) {
         </section>
       )}
     </>
+  );
+}
+
+/** Presents the decision before its supporting details and keeps it in view. */
+export function AccessResult({ result }: { result: AccessExplanation }) {
+  const banner = useRef<HTMLParagraphElement>(null);
+  const label = decisionLabel(result.decision);
+  const allowed = label === 'Allowed';
+  const reason = (result.decision as { reason?: string } | null)?.reason;
+  let explanation = allowed ? 'The matching grants and access rules permit this action.' : 'No matching access rule permits this action.';
+  if (!allowed && reason && reason !== 'no-permit') explanation = 'An access restriction prevents this action.';
+  useEffect(() => {
+    banner.current?.scrollIntoView({ block: 'nearest' });
+  }, [result]);
+  return (
+    <section aria-label="Access result" className="admin-access-result">
+      <p ref={banner} role="status" className={allowed ? 'admin-decision allowed' : 'admin-decision denied'}>
+        {label}: {explanation}
+      </p>
+      {result.grants.length > 0 && (
+        <>
+          <h3>Matching grants</h3>
+          {result.grants.map(grant => (
+            <p key={grant.grantId}>
+              The {grant.roleId} role is granted through {grant.via} (grant {grant.grantId}).
+            </p>
+          ))}
+        </>
+      )}
+      {result.roles.length > 0 && (
+        <>
+          <h3>Roles</h3>
+          <p>{result.roles.join(', ')}</p>
+        </>
+      )}
+      {result.rules.length > 0 && (
+        <>
+          <h3>Deciding rules</h3>
+          <p>{result.rules.join(', ')}</p>
+        </>
+      )}
+      <details>
+        <summary>Attributes</summary>
+        <pre>{JSON.stringify(result.attributes, null, 2)}</pre>
+      </details>
+    </section>
   );
 }

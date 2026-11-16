@@ -21,3 +21,10 @@ Only ports 5241 and 5242 are used for browser checks. The dev server was started
 - Opened both after images: the title names Dave, the refusal is a single sentence, and only Cancel remains. No enabled Confirm survives the real server refusal.
 - `bun scripts/admin-last-admin-check.ts` now runs its exported check when invoked directly; previously that command did nothing. Runtime preload supplies the assigned browser origin.
 - Last-admin check passed: refusal has no enabled Confirm.
+
+## T050 — access result
+
+- Before: review `screenshots/states/server-admin-access-check--{allowed,refused}-1440.png`, `screenshots/states/server-admin-access-check--refused-390.png`, and `screenshots/server-light/server-admin-access-check-2560.png`.
+- After: `out/lane-d/after/states/server-admin-access-check--{allowed,refused}-{390,1440,2560}.png`.
+- Opened the phone refusal, desktop allowed/refused and wide allowed images. The red/green sentence sits immediately below the actions; the phone refusal is fully inside the 844 px viewport. Empty headings are absent and attributes are folded.
+- `bun test tests/admin-presentation.test.tsx`: 14 pass, 0 fail, 53 expect() calls. Added a real-browser viewport assertion to the admin check.
