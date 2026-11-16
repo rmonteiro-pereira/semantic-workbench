@@ -1,4 +1,6 @@
 import { expect, spyOn, test } from 'bun:test';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { appSettings, azureClient } from '../../scripts/deploy-azure';
 import { deploy } from '../../scripts/deploy';
 import { fakeApp, fakeRelease, fakeTarget } from '../../scripts/deploy-fake';
@@ -97,7 +99,7 @@ test('CLI adapter promotes recorded digest and isolates registry authentication'
   const update = calls.find(args => args.includes('update'))!;
   expect(update).toContain(`swfake.azurecr.io/semantic-workbench@${fakeRelease.digest}`);
   expect(calls.findIndex(args => args.includes('show-tags'))).toBeLessThan(calls.findIndex(args => args.includes('create')));
-  expect(credentialDirectories.every(directory => directory.startsWith('/tmp/sw-deploy-registry-'))).toBe(true);
+  expect(credentialDirectories.every(directory => directory.startsWith(join(tmpdir(), 'sw-deploy-registry-')))).toBe(true);
   for (const directory of credentialDirectories) {
     expect(await Bun.file(`${directory}/config.json`).exists()).toBe(false);
   }

@@ -6,6 +6,7 @@ listed in [the README stack](../README.md#technology-stack).
 
 All commands below run from the repository root. Tests must use temporary workspaces, loopback
 identity fixtures and local remotes, never a person's real `data/` or a real Azure/Entra tenant.
+Set `TMPDIR` to an existing isolated directory when all test scratch files must share one root.
 
 ## Install and run
 
