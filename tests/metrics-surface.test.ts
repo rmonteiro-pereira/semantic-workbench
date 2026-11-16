@@ -1,5 +1,6 @@
 // Separates author previews from programmatic production metric reads.
 import { expect, test } from 'bun:test';
+import { locationOf } from '../src/server/projects/paths';
 import { LOCAL_READER } from '../src/server/projects/reader';
 import { testWorkspace } from './helpers/temp-data-dir';
 import { publishFixture } from './helpers/published-workspace';
@@ -23,5 +24,11 @@ test('browser metrics include saved unpublished edits while agent surfaces keep 
   expect(browserExplanation.status).toBe(200);
   expect(agentExplanation.status).toBe(400);
   expect(await agentExplanation.json()).toEqual({ error: 'Metric unpublished_revenue is not in commerce.mapped-semantic.yaml.' });
-  expect(agent.headers.has('X-Workbench-Snapshot')).toBe(false);
+  const repository = locationOf(fixture.ws.project(slug)).repo;
+  const commit = fixture.ws.published.pin().commits.get(repository)!.commit;
+  expect(agent.headers.get('X-Workbench-Snapshot')).toBe(commit);
+  expect(browser.headers.has('X-Workbench-Snapshot')).toBe(false);
+  const publishedExplanation = await fixture.handler(new Request(explain.replace('unpublished_revenue', 'gross_revenue')));
+  expect(publishedExplanation.status).toBe(200);
+  expect(publishedExplanation.headers.get('X-Workbench-Snapshot')).toBe(commit);
 });

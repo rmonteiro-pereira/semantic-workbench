@@ -823,6 +823,16 @@ The existing move/delete/restore entry-point case passes with notice assertions 
 
 A read-only preflight found one older export mutation still anchored to the inventory's former `editing`
 label. Its anchor now follows `by-query`, preserving the same audit-removal fault. All 686 source mutation
-anchors are present. The active remote gate uses its original transferred tree, so its later mutation stage
-will need this corrected test-tool snapshot; the completed unit/browser results remain applicable because
-no production source changed. A final mutation repeat will retain the current browser baselines.
+anchors are present. The active remote unit attempt uses its original transferred tree. Its first failures exposed outdated
+fixture assumptions, so the complete unit/browser/mutation gate will restart with the corrected test tools.
+No production source changed after these observations.
+
+
+The remote unit attempt exposed three stale test assumptions: the stress barrier wrapped `documents`
+rather than the new `readableDocuments` entry point; the metric test expected no published header; and
+the reserved-name fixture relied on the checked-out branch implicitly becoming the default. The barrier
+now wraps the actual shared read, releases and joins every request in `finally`, and still verifies 200
+responses across 20 publications under its original 60-second deadline. Its focused run passes 601
+assertions in 1.78 s. Metric list/explanation headers now assert the exact pinned commit (1 test,
+11 assertions). The reserved-name fixture explicitly configures its default, retaining the refusal and
+recovery checks (5 tests, 27 assertions). The complete local check passes; no assertion is removed.

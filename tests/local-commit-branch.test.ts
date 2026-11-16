@@ -51,8 +51,10 @@ test('importing into an upgraded default checkout commits on authoring without m
 
 test('a default named work/local is preserved until another authoring branch is selected', async () => {
   const repository = publicationRepository();
-  const checkout = Bun.spawnSync(['git', 'checkout', '-q', 'work/local'], { cwd: repository.repository });
+  const checkout = Bun.spawnSync(['git', 'checkout', '-q', 'work/local'], { cwd: repository.repository, env: process.env });
   expect(checkout.exitCode).toBe(0);
+  const configured = Bun.spawnSync(['git', 'config', '--local', 'workbench.defaultBranch', 'work/local'], { cwd: repository.repository, env: process.env });
+  expect(configured.exitCode).toBe(0);
   createState(dataLayout(repository.dir)).writeRegistry([{ slug: 'definitions', name: 'Definitions', origin: '', createdAt: '' }]);
   using fixture = await testWorkspace({ root: repository.dir });
   const previous = await fixture.ws.git.head(repository.repository);

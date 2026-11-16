@@ -13,13 +13,14 @@ test('two hundred interleaved agent requests keep their header and every catalog
   await fixture.ws.publish(slug, LOCAL_READER);
   const expected = new Map<string, string>();
   const documents = fixture.ws.published.documents.bind(fixture.ws.published);
+  const readableDocuments = fixture.ws.published.readableDocuments.bind(fixture.ws.published);
   let calls = 0;
   let release = () => {};
   let gate = Promise.resolve();
-  fixture.ws.published.documents = async (...args) => {
+  fixture.ws.published.readableDocuments = async (...args) => {
     calls++;
     await gate;
-    return documents(...args);
+    return readableDocuments(...args);
   };
   const responses: Response[] = [];
   for (let publication = 0; publication < 20; publication++) {
@@ -30,14 +31,17 @@ test('two hundred interleaved agent requests keep their header and every catalog
       release = resolve;
     });
     const pending = Array.from({ length: 10 }, () => fixture.handler(new Request(`http://localhost/api/agent/catalog?project=${slug}`)));
-    while (calls < 10) await Bun.sleep(1);
-    const file = fixture.ws.documents().find(document => document.project === slug && document.filename === 'commerce.mapping.yaml')!;
-    await fixture.ws.saveFile(slug, file.path, { baseHash: file.hash, source: file.source.replace(/Commerce mapping[^\n]*/, `Commerce mapping ${publication}`) }, LOCAL_READER);
-    await fixture.ws.git.addAll(directory);
-    await fixture.ws.git.commit(directory, `Publish generation ${publication}`, true);
-    await fixture.ws.publish(slug, LOCAL_READER);
-    release();
-    responses.push(...(await Promise.all(pending)));
+    try {
+      while (calls < 10) await Bun.sleep(1);
+      const file = fixture.ws.documents().find(document => document.project === slug && document.filename === 'commerce.mapping.yaml')!;
+      await fixture.ws.saveFile(slug, file.path, { baseHash: file.hash, source: file.source.replace(/Commerce mapping[^\n]*/, `Commerce mapping ${publication}`) }, LOCAL_READER);
+      await fixture.ws.git.addAll(directory);
+      await fixture.ws.git.commit(directory, `Publish generation ${publication}`, true);
+      await fixture.ws.publish(slug, LOCAL_READER);
+    } finally {
+      release();
+      responses.push(...(await Promise.all(pending)));
+    }
   }
   expect(responses).toHaveLength(200);
   for (const response of responses) {
