@@ -165,8 +165,8 @@ were stopped by the existing CI process-group cleanup before the wrapper returne
 The architecture reviewer returned PASS at `c73807e4`, with no actionable issue. The documentation reviewer
 also returned PASS at that revision. Production source at that original completion gate remained identical to the captured `bab84471` tree.
 The subsequent architecture corrections and their fresh gate are recorded below.
-The architecture marker is refreshed for the final evidence-only commit. All tasks are complete, with the
-explicit inherited responsive exception above; no full responsive pass is claimed.
+At that original gate, all tasks were complete, with the explicit inherited responsive exception above;
+no full responsive pass was claimed. The correction gate status below supersedes that historical status.
 
 ## Architecture correction gate status
 
