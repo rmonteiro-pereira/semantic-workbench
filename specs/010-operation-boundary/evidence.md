@@ -4,7 +4,7 @@
 
 All 51 tasks are complete. No task was skipped. The specified rate-limit/local-check order-swap
 mutant is equivalent because the checks run in mutually exclusive server and local modes; it is
-excluded with that reason, while all 16 registered feature mutants and every existing mutant are
+excluded with that reason, while all 18 registered feature mutants and every existing mutant are
 killed. Earlier stop-point sections below are historical and have been resolved by the integrator
 decisions and subsequent fixes.
 
@@ -310,11 +310,12 @@ deactivation, one-project grants, path and document-type conditions, role renami
 scope. A listed file-save operation is refused on a forbidden concrete target. Listing writes no
 operation audit records; a transport records its protocol listing call separately.
 
-Open performance finding: fresh listing across 20 projects returned 54 operations in 621.30286 ms,
+Historical performance finding, resolved by the matched measurements below: fresh listing across
+20 projects returned 54 operations in 621.30286 ms,
 missing the 50 ms goal. Earlier measurements were 747.415833 and 683.678139 ms. No permission
 shortcut or stale cross-request cache was introduced to hide the cost. Invocation and listing use
-real Cedar decisions and the existing per-scope decision cache. This cost must be considered by
-the future transport's listing budget; it is a reported performance finding, not a passing 50 ms claim.
+real Cedar decisions and the existing per-scope decision cache. That observation did not meet the
+listing goal; the follow-up below replaces this implementation and measures the improvement.
 
 Body-targeted routes keep the existing project-level pass; file-target listing probes reuse the
 dry-run samples. This preserves HTTP behavior instead of broadening body-route admission for
@@ -330,7 +331,11 @@ The focused operation harness passes its baseline and kills all 15 non-equivalen
 
 Final inventory review corrected administration request metadata to the actual document fields and dryRunId receipt; no request behavior changed.
 
-Boundary benchmark: base 5,000 requests median 2.5063719999998284 ms, p95 5.346923000000061 ms; extracted boundary median 4.1922039999990375 ms, p95 9.185389999999643 ms. The median is 67.26% above the base and misses the 5% goal. This remains an open performance finding for integration; the shared machine and additional boundary telemetry are possible contributors, not an established cause. No security shortcut or fixture update was used.
+Boundary benchmark: base 5,000 requests median 2.5063719999998284 ms, p95 5.346923000000061 ms;
+extracted boundary median 4.1922039999990375 ms, p95 9.185389999999643 ms. The median is 67.26%
+above the base and misses the 5% goal. This historical comparison was superseded by the matched
+measurements below; its differently loaded runs did not establish a regression. No security shortcut
+or fixture update was used.
 
 Documentation gate: bun --bun run check passed (TypeScript, format, lint, comments, theme and brand); SW_BASE_URL=http://127.0.0.1:5311 bun run test:terminology passed. README links the reviewed inventory and audit contract. Existing architecture ownership bullets now describe authentication, caller provenance, dispatch, effects, outcome classification and replay without a parallel guide. Audit field and method names agree with audit.ts and the inventory vocabulary; mixed-byte verification is linked to audit-compat.test.ts. The repository formatter excludes Markdown; changed prose was formatted manually. The documentation synchronization pointer to docs/operations.md was inspected against its generation test. Leak scanner: seven changed public documents clean.
 
@@ -369,11 +374,11 @@ documentation and validation only.
 | `bun run audit:verify tests/fixtures/audit-v1` | `Audit log intact: 9 records in 3 months.` |
 | `bun run test:ui` | `20 UI checks passed`. |
 
-The final full-suite performance observations were: 50,300-record ordinary replay 1303.972244 ms,
+The earlier full-suite performance observations were: 50,300-record ordinary replay 1303.972244 ms,
 replay with reads 1419.208974 ms (ratio 1.088374); effective listing over 20 projects and 54
-operations 623.204103 ms against 50 ms. The HTTP benchmark remains 4.192204 ms median and
+operations 623.204103 ms against 50 ms. The earlier HTTP benchmark was 4.192204 ms median and
 9.185390 ms p95 against the recorded base 2.506372 ms median and 5.346923 ms p95. Listing and HTTP
-latency are open integration findings; no permission shortcut or stale cache was introduced.
+latency were integration findings; both are resolved by the matched comparisons below.
 
 Architecture review resolved the four incorrect effect declarations and omitted browser graph
 derivations. The final denial-precedence correction was reviewed with no blocking findings.
@@ -552,3 +557,64 @@ equivalence, domainless explicit grants, exact administrator/client probing and 
 cache lifetimes. `bun test tests/auth`: 727 pass, 0 fail, 113238 assertions, 119 files.
 `bun --bun run check`: TypeScript, formatting, lint, comments, theme and brand checks pass.
 Branch readability: 69 files, 0 findings.
+
+### Final-code listing repeat
+
+After all release checks passed and the dev server stopped, the same interleaved listing method
+was repeated against the final implementation, including the shared file-probe predicate.
+
+| Round | Before median (ms) | Final optimized median (ms) |
+| --- | --- | --- |
+| 1 | 335.798710 | 52.846418 |
+| 2 | 332.218872 | 52.261892 |
+| 3 | 331.431766 | 47.721360 |
+| 4 | 350.509323 | 47.545445 |
+| 5 | 326.466142 | 45.918184 |
+
+Final median of medians: **332.218872 → 47.721360 ms**, **85.64% less time**
+and **6.96× faster**. Every sample returned 54 operations, with 1,055 versus 58 explicit
+authorization calls. The full unit run independently measured a listing at 48.356545 ms.
+The 50 ms target remains unchanged. These numbers apply to the measured fixture; arbitrary
+administrator rules and many distinct policy scopes retain their necessary individual probes.
+
+### Final performance follow-up release gate
+
+All commands below exited 0 on the final code. Browser-bearing suites ran sequentially, including
+the browser tests inside `bun test` and inside the mutation harness. `TMPDIR` and `DATA_DIR` stayed
+under the assigned temporary directory; the browser frontend used port 5311 and harness APIs used
+dynamic ports. The dev server stopped after the gate, and both 5311 and 5312 are free.
+
+| Command | Recorded summary |
+| --- | --- |
+| `bun test` | `2144 pass`, `0 fail`, `197152 expect() calls`; `Ran 2144 tests across 301 files. [368.58s]` |
+| `bun --bun run check` | `All matched files use the correct format.`; `Finished in 284ms on 1017 files using 28 threads.`; TypeScript, lint, comments, theme and brand checks pass. |
+| `bun --bun run build` | `✓ built in 1.35s`; existing large-chunk warning only. |
+| `bun scripts/mutation-tests.ts` | `681/681 targeted mutants killed; all unmodified module baselines passed. Run test:ui for the full browser baseline.` |
+| `bun run test:auth` | 36 `PASS` checks; exit 0. |
+| `bun run test:admin` | Exit 0; the harness emits no overall success summary. |
+| `bun run test:ui` | `20 UI checks passed`. |
+| `bun run test:terminology` | `Terminology check passed: no "KPI" or "contract object" in 8 files' views, the metric detail, the wizard, README and docs`. |
+| `bun test tests/auth/http-characterization.test.ts` | `1 pass`, `0 fail`, `1548 expect() calls`; `Ran 1 test across 1 file. [6.31s]` |
+| `bun run audit:verify tests/fixtures/audit-v1` | `Audit log intact: 9 records in 3 months.` |
+
+All 18 feature mutants and every existing mutant are killed, including both added scope-probing
+faults. No registered mutant survived or timed out. The previously documented equivalent
+rate/local-order swap remains excluded for the same reason.
+
+The HTTP fixture remains byte-identical to `1ad23ed7`, and the audit months remain byte-identical
+to `66e51af5`. No constitution, runtime dependency, HTTP route, audit writer or stored audit format
+was changed in this performance follow-up. No new spec contradiction or skipped task was found.
+All 51 original tasks remain complete; the integrator still owns applying the constitution
+sentences handed over above. The requested commit-cadence script remains absent from this repo.
+
+Follow-up commits before this final evidence update:
+
+- `39a84c81` data: freeze operation listings before performance optimization
+- `b79dcde1` test: preserve exact operation lists for every fixture caller
+- `4c370fca` perf: reuse equivalent operation listing policy probes
+- `4111afb1` test: record final interleaved HTTP performance comparison
+
+The final branch readability check reports 69 files and 0 findings. Confidential-content scanning
+reports 0 hits across all 99 changed files, and 0 hits after the final evidence update. Full scanning
+of added public documentation reports 0 hits. Architecture review found no blocking issue; the
+review marker is recorded on the final committed tree.
