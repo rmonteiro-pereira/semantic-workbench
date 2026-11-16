@@ -108,70 +108,79 @@ export function DatasetPage({ doc, data, objectName, projectDocs, onBack, onOpen
   const changed = versions ? lastChange(versions, objectName) : null;
   const tags = list(object.tags);
   return (
-    <section className="odcs-page odcs-dataset" aria-label={`Table ${objectName}`}>
+    <section className={`odcs-page odcs-dataset${tab === 'Lineage' ? ' lineage-active' : ''}`} aria-label={`Table ${objectName}`}>
       <button className="odcs-back" onClick={onBack}>
         <ArrowLeft size={14} />
         All tables
       </button>
-      <header className="odcs-head">
-        <div className="odcs-title">
-          <Table2 size={20} />
-          <div>
-            <h2>
-              {objectName}
-              {tableTypeBadge(object) && <span className="odcs-type-badge">{tableTypeBadge(object)}</span>}
-            </h2>
-            {object.physicalName && (
-              <small>
-                <code>{text(object.physicalName)}</code>
-              </small>
+      {tab === 'Lineage' ? (
+        <header className="odcs-head odcs-lineage-summary">
+          <strong title={objectName}>{objectName}</strong>
+          <button className="odcs-link" onClick={() => setTab('Properties')}>
+            Properties
+          </button>
+        </header>
+      ) : (
+        <header className="odcs-head">
+          <div className="odcs-title">
+            <Table2 size={20} />
+            <div>
+              <h2>
+                {objectName}
+                {tableTypeBadge(object) && <span className="odcs-type-badge">{tableTypeBadge(object)}</span>}
+              </h2>
+              {object.physicalName && (
+                <small>
+                  <code>{text(object.physicalName)}</code>
+                </small>
+              )}
+            </div>
+            {onOpenInLineage && (
+              <button type="button" className="odcs-head-action" aria-label={`Open ${objectName} in lineage`} onClick={() => onOpenInLineage(objectName)}>
+                <Workflow size={14} />
+                Open in lineage
+              </button>
             )}
           </div>
-          {onOpenInLineage && (
-            <button type="button" className="odcs-head-action" aria-label={`Open ${objectName} in lineage`} onClick={() => onOpenInLineage(objectName)}>
-              <Workflow size={14} />
-              Open in lineage
-            </button>
-          )}
-        </div>
-        <div className="odcs-facts dataset-facts" role="group" aria-label="Table facts">
-          <span>
-            <b>Type</b>
-            <span>{[object.physicalType, object.logicalType].filter(Boolean).map(text).join(' · ') || '—'}</span>
-          </span>
-          <span>
-            <b>Properties</b>
+          <div className="odcs-facts dataset-facts" role="group" aria-label="Table facts">
             <span>
-              {properties.length} {properties.length === 1 ? 'property' : 'properties'}
+              <b>Type</b>
+              <span>{[object.physicalType, object.logicalType].filter(Boolean).map(text).join(' · ') || '—'}</span>
             </span>
-          </span>
-          <span>
-            <b>Quality</b>
             <span>
-              {rules.length} quality {rules.length === 1 ? 'rule' : 'rules'}
-            </span>
-          </span>
-          <span>
-            <b>Last change</b>
-            <span>
-              <LastChangeSummary loading={versions === null} change={changed} />
-            </span>
-          </span>
-          {tags.length > 0 && (
-            <span>
-              <b>Tags</b>
+              <b>Properties</b>
               <span>
-                {tags.map(tag => (
-                  <em key={text(tag)} className="odcs-tag">
-                    {text(tag)}
-                  </em>
-                ))}
+                {properties.length} {properties.length === 1 ? 'property' : 'properties'}
               </span>
             </span>
-          )}
-        </div>
-        {object.description && <ReadMore>{text(object.description)}</ReadMore>}
-      </header>
+            <span>
+              <b>Quality</b>
+              <span>
+                {rules.length} quality {rules.length === 1 ? 'rule' : 'rules'}
+              </span>
+            </span>
+            <span>
+              <b>Last change</b>
+              <span>
+                <LastChangeSummary loading={versions === null} change={changed} />
+              </span>
+            </span>
+            {tags.length > 0 && (
+              <span>
+                <b>Tags</b>
+                <span>
+                  {tags.map(tag => (
+                    <em key={text(tag)} className="odcs-tag">
+                      {text(tag)}
+                    </em>
+                  ))}
+                </span>
+              </span>
+            )}
+          </div>
+          {object.description && <ReadMore>{text(object.description)}</ReadMore>}
+        </header>
+      )}
       <ScrollStrip className="odcs-tabs" selection={tab} role="tablist" label="Asset views">
         {TABS.map(tabName => (
           <button key={tabName} role="tab" aria-selected={tab === tabName} className={tab === tabName ? 'selected' : ''} onClick={() => setTab(tabName)}>

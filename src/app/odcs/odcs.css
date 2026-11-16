@@ -1558,3 +1558,35 @@ button.odcs-link.fk:hover {
   height: auto;
   min-height: 0;
 }
+
+.odcs-dataset.lineage-active {
+  gap: 8px;
+}
+.odcs-page .odcs-lineage-summary {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+}
+.odcs-lineage-summary strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lineage-active > .odcs-panel {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.lineage-active .odcs-lineage-host {
+  height: 100%;
+  min-height: 460px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+@media (max-width: 700px) {
+  .lineage-active .odcs-lineage-host {
+    min-height: 580px;
+  }
+}
