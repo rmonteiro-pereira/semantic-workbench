@@ -383,3 +383,7 @@ Both adoption mutants are detected independently: skipping the content guard and
 ## Gate corrections for local authoring
 
 The first broad unit run exposed old branch expectations and selected-path validation running after authoring preparation. Selected paths and merge state are now validated before a branch switch through the existing selection logic. `TMPDIR=/tmp/sw-008 bun test tests/files-api.test.ts tests/git-commit-api.test.ts tests/route-security.test.ts tests/local-commit-branch.test.ts`: 26 pass, 0 fail, 196 assertions. An additional assertion confirms a refused path does not change the selected branch: `tests/git-commit-api.test.ts`, 5 pass, 0 fail, 43 assertions. `bun --bun run check`: exit 0.
+
+### Final documentation review
+
+README, architecture, configuration, server and agent guides and the Unreleased migration table now describe the settled snapshot and local publication. The independent documentation reviewer returned PASS after narrowing the response-header claim to catalog/context/plan and correcting the server storage description. `docs_sync.py --worktree .` exited 0. Existing fixture alignment: 40 pass, 0 fail, 423 assertions across five files; the copy-publish mutation baseline also exited 0.

@@ -8,10 +8,12 @@ explicitly configured execution tool, if one is needed outside this application.
 Agent catalog, context and plan responses use one immutable published commit per request, in both
 local and server modes, including requests made by the author. `X-Workbench-Snapshot` identifies
 that full commit. Metric listings and explanations use saved editing definitions for browser
-requests and the published snapshot for programmatic requests. A readable project without a snapshot returns 409 with code
+requests and the published snapshot for programmatic requests. A readable project without a
+snapshot returns 409 with code
 `no-published-snapshot` and reason `no-git`, `no-commit` or `unavailable`.
 
-The Mappings view and agent endpoints use the same resolver/planner. Metric formulas stay in the
+The Mappings view and agent endpoints use the same resolution and planning algorithms, with
+different definition sources. The browser preview includes saved unpublished edits. Metric formulas stay in the
 semantic definition; they are not copied into an ontology, mapping or agent request.
 
 ## Try it in the interface
@@ -23,11 +25,16 @@ semantic definition; they are not copied into an ontology, mapping or agent requ
 3. Choose All concepts, open **Show query**, and select `gross_revenue` with
    `customers.region`. Preview the composed query; the stored metric and declared join determine
    it rather than a predefined query or replacement formula.
-4. **Export agent context** downloads resolved layers, the original mapping tree, definitions,
+4. The **Preview of your working copy** label names the published commit separately.
+   **Export agent context** downloads resolved layers, the original mapping tree, definitions,
    AI context, revisions and evidence. **More actions → Export** still returns source bytes.
 5. Inspect missing or ambiguous references in findings. **Edit item** opens the affected form or
    Source line. Save a correction to refresh resolution. Unsaved drafts are not planner inputs;
    the view identifies the saved revisions it is using.
+
+Before calling the production agent endpoints after loading an example, commit any saved edits
+and use **Publish** in Source Control. The browser preview works before publication; it does not
+make those definitions available to production clients.
 
 ## Agent clients in server mode
 
@@ -317,3 +324,9 @@ Browser authoring previews use `GET /api/preview/catalog`, `GET /api/preview/con
 person’s editing view and carry no snapshot header. Applications cannot use these routes.
 Local requests need the trusted browser fetch metadata; a script without it receives the same
 answer as an unknown route.
+
+Local fetch metadata is a guardrail, not a security boundary: another local program can forge it.
+Server preview requires the person’s session and existing read authorization. Preview responses
+must not be represented as published context. Historical inputs accept full published-history ids
+or tags within that history, not branches or abbreviated ids. Publication does not create release
+tags, validate a whole definition set or supply dependency manifests; diverged history is not adopted.

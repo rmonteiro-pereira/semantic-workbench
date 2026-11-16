@@ -19,13 +19,6 @@ not configure a production deployment.
 - Reviewed operation inventory and generated reference, trusted in-process operation dispatch,
   connection effect restrictions, audit attribution fields and origin/tool filters.
 - Independent dry-run samples retain write and denial evidence during non-HTTP read floods.
-- Local Source Control commits on the default branch move to `work/local`, preserving staged and unstaged work and keeping the published ref unchanged.
-- Local publication validates and advances the default ref without replacing authoring files. Publication audit records identify both commits in either mode.
-
-- Local Source Control, import and folder-move commits on the default branch move to `work/local`, preserving staged and unstaged work and keeping the published ref unchanged.
-
-- Agent catalog, context and plans now read a pinned published commit in both modes and identify it in `X-Workbench-Snapshot`. Unpublished author edits are excluded.
-
 ### Changed
 
 - Network authentication and shared operation decisions have separate modules; existing HTTP
@@ -35,8 +28,31 @@ not configure a production deployment.
   The operation inventory is the complete reference for ids. Listing and invocation share one verdict.
 - Operation listing reuses equivalent policy probes within each call, preserving exact project
   checks for administrator rules and clients.
-- Existing repositories record their default-branch tip as the first durable snapshot on startup.
-  Local startup preserves branch refs, staged and unstaged changes and untracked files.
+- Agent catalogs, contexts and plans read one published Git snapshot per request in both modes,
+  including calls made by the author. `X-Workbench-Snapshot` identifies that commit. Programmatic
+  metric reads use the snapshot; browser metric reads keep their editing view.
+- Local commits, including imports and folder moves, use `work/local` when starting on the default
+  branch. **Publish** validates and advances the default ref while preserving working files and index.
+  Publication audit records identify both previous and new commits.
+- Source Control displays the published commit, authoring distance, pending outside moves and a
+  dismissible upgrade notice. **Adopt** validates an outside fast-forward; diverged moves are refused.
+- Mappings uses browser-only preview routes, labels its saved authoring context and displays the
+  published commit separately. Local preview metadata is a guardrail rather than a security boundary.
+- History source reads refuse other people’s unpublished commits. Project export adds **Published**
+  alongside the saved working files; published ZIPs exclude drafts and cannot include Git history.
+
+| Existing data or workflow | Migration |
+|---|---|
+| Existing default-branch history | Its tip becomes the first durable snapshot; commits and refs are preserved. |
+| Staged, unstaged and untracked local files | Preserved on startup; a later commit carries them to authoring as Git permits. |
+| Existing feature branch | Remains selected; publication is explicit. |
+| Application agent grants | Unchanged; no preview access is added. |
+| An older browser session | Reload to use the preview routes. |
+| Outside default-ref changes | Remain pending until adopted; no non-fast-forward adoption. |
+| Default project ZIP | Saved-file behavior is unchanged; published source is optional. |
+
+Publication does not validate an entire definition set, maintain dependency manifests, or create
+and protect release tags. Existing tags inside published history remain usable as historical inputs.
 
 - Agent context: every document of a context names its `role` (`mapping`, `ontology` or `semantic`),
   and the answer lists `boundMetricIds`, the metrics bound directly to the selected concepts

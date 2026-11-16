@@ -144,7 +144,8 @@ concatenating project, document or item names.
 - `scanner.ts`, `cache.ts` and `watcher.ts` maintain derived models/findings and detect disk
   changes. Cache rows are not another authoritative copy of the definitions.
 - `src/server/routes/agent.ts` owns catalog, context and plan handlers, with one document-source
-  callback shared by all three operations.
+  callback shared by all three operations. Production uses the pinned snapshot; browser-only
+  preview routes use the editing source and retain the same resolver and planner.
 - The route inventory declares `readSource` for definition content, context, plans and explanations.
   Agent rows select published data; metrics declare a surface-dependent source.
 - `src/server/auth/request-surface.ts` records the browser or consumer surface after credential
@@ -157,6 +158,8 @@ concatenating project, document or item names.
   permissions, checks historical provenance and retains current, previous and actively pinned indexes.
   Pins also capture registry layouts, so folder changes apply to subsequent requests. The workspace
   refreshes its in-memory registry after the existing registry lock settles.
+- `project-export.ts` plans both editing and published ZIPs; published entries capture pinned bytes
+  before streaming, so eviction or publication cannot change an archive in flight.
 - `snapshot-index.ts` reads committed project files with the shared byte validator. Concurrent
   builds share one promise per repository, commit and folder digest; limits reject whole builds.
 - `publication-checks.ts` orders ancestry, complete bounded reads and content-guard judgement
@@ -164,9 +167,12 @@ concatenating project, document or item names.
   compare-and-swaps the ref, records the pointer and supersedes the resolver; startup reconciles
   interrupted intents before repairing the server checkout.
 - `scm-published.ts` formats publication identity and authoring distance for Source Control; its
-  acknowledgement writes only the caller's view state. The wire shape lives in shared SCM types.
+  acknowledgement writes only the caller's view state. Status checks compare ref identity and cache
+  ancestry/counts by ref and pointer; Git events invalidate and refresh that cache. The wire shape lives in shared SCM types.
 - `local-publication.ts` preserves the local index and working files when authoring moves to
   `work/local`, and advances the default ref through the shared checks and durable pointer protocol.
+  Its serialized adoption operation is shared by both modes; it validates the already-moved ref
+  without replacing local authoring files. Publishing coordinates rescans and events.
 - `published-pointer.ts` owns atomic publication records and interrupted-publication transitions.
   `state.ts` persists these records in `state/published.json`, separately from the derived cache.
 - `git.ts` is the subprocess boundary for Git. Immutable object reads use queued `ls-tree` and
@@ -373,11 +379,15 @@ concatenating project, document or item names.
 
 ### Shared-server writes and publication
 
-1. Reads use the published checkout unless the caller may edit and already has a personal copy.
+1. Agent reads pin immutable published Git objects. Browser previews use the caller’s editing
+   view: a personal copy when it exists, otherwise the base checkout. Metrics choose by surface.
 2. The first authorized write is judged against published content before creating that copy.
 3. Edits and commits remain in the caller's branch; other readers are not silently moved to it.
-4. Publication checks exact commits and compare-and-swaps the default branch. Recovery finishes
-   an interrupted checkout update. Publication is separate from remote Push.
+4. Publication checks ancestry, the complete bounded tree and content guards before recording
+   intent, compare-and-swapping the default ref and settling the durable pointer. A request’s pin
+   remains unchanged. Outside moves await checked adoption; recovery retains the settled snapshot.
+   Local publication preserves authoring files; server publication refreshes the detached base.
+   Publication is separate from remote Push.
 5. All worktrees of a repository share its serialized Git queue. Sparse paths, multi-project
    ownership and protected content apply to both direct changes and incoming Git content.
 
@@ -442,7 +452,3 @@ concatenating project, document or item names.
 Use [the development guide](docs/development.md) for command syntax, fixture rules and validation.
 Keep configuration/API/operation details in their canonical guides instead of appending release
 history or per-control instructions to this architecture map.
-
-Published status compares the default ref on status requests and Git-change events. Ancestry and
-commit counts are cached by the observed ref and durable pointer; Git events invalidate that cache.
-Pending movement never changes a request pin.

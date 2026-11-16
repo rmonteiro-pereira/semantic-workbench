@@ -533,11 +533,17 @@ trash/Undo, sparse folders and multi-project repositories. The
 and publication. For old local database migration, consult
 [upgrade and recovery guidance](docs/configuration.md#data-layout-and-upgrades).
 
-### Existing Git data on upgrade
+### Published definitions and existing Git data
+
+A published snapshot is the immutable Git tree recorded for a repository’s default branch.
+Agent catalogs, contexts, plans and programmatic metric explanations use it in both modes,
+including when the author calls the agent API. Catalog, context and plan responses identify their pinned commit
+in `X-Workbench-Snapshot`. A readable project without Git or a published commit answers 409;
+editing remains available. Browser Mappings uses the saved working copy and labels it as a preview.
 
 Opening an existing data root records each repository's default-branch tip as its first durable
-snapshot. A local commit, including an import or folder-move commit, on the default branch first switches to `work/local`, carrying staged and unstaged
-changes. Commits on other branches keep their chosen branch. The commit response identifies the
+snapshot. A local commit, including an import or folder-move commit, on the default branch first
+switches to `work/local`, carrying staged and unstaged changes. Commits on other branches keep their chosen branch. The commit response identifies the
 authoring branch; committing does not move the published snapshot.
 `POST /api/projects/:slug/git/publish` advances the default ref to the committed authoring head
 after publication checks. It preserves working files and staged changes and does not push.
@@ -545,6 +551,26 @@ after publication checks. It preserves working files and staged changes and does
 The default branch name is remembered from Git configuration, then the remote default,
 then the checked-out branch. Local startup preserves branch refs, commits, staged changes,
 unstaged changes and untracked files; it does not repair or detach the local checkout.
+
+| Existing workflow | After upgrade |
+|---|---|
+| Local default-branch commits | Adopted as the first snapshot; future default-branch commits move to `work/local`. |
+| Existing local feature branch | Keeps its branch; commit and Publish when ready. |
+| Server editor’s agent | Reads published definitions; Mappings still previews the editor’s own saved work. |
+| Application agent | Keeps its grants and response bodies; snapshot identity is added. |
+| Outside default-ref move | Remains pending until **Adopt** validates a fast-forward; divergent moves need Git repair. |
+| Mapping preview URLs | Browser clients use `/api/preview/*`; reload an older open page after upgrade. |
+| History source reads | Published history and the caller’s own ancestry are readable; foreign unpublished ids are missing. |
+| Project ZIP | Working files remain the default; **Published** exports the committed snapshot without history. |
+
+Local browser fetch metadata is a guardrail for ordinary clients. A program on the same machine
+can forge it; local mode provides no security boundary between those programs. Shared-server
+credentials and authorization provide the access boundary. See the [agent guide](docs/agent-runtime.md).
+
+Publication checks ancestry, bounded tree readability and the existing content guards. It does
+not establish the validity of a whole definition set, record cross-project dependency manifests,
+create or protect release tags, or adopt non-fast-forward history. Existing tags in published
+ancestry can identify historical inputs. Remote Push remains a separate action.
 
 ## Configuration and integrations
 

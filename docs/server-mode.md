@@ -200,9 +200,10 @@ mode/readiness/Git information from `/api/status`.
 
 ## Personal working copies and publishing
 
-The published state lives under `DATA_DIR/projects/<repo>/`, detached at the repository's default
-branch. Viewers read it. Someone allowed to edit initially reads it too; their first permitted
-write creates a personal Git worktree under `worktrees/<userKey>/<repo>/` on `work/<handle>`.
+The authoritative published state is the commit recorded in `state/published.json`, read from Git
+objects independently of checkouts. `DATA_DIR/projects/<repo>/` is the detached editing base kept
+at that settled commit. Viewers and editors without a copy use this base in editing views;
+agent reads always use the immutable snapshot. The first permitted write creates a personal Git worktree under `worktrees/<userKey>/<repo>/` on `work/<handle>`.
 Read-only requests never create a copy. An unborn repository needs Git 2.42 or newer for orphan
 worktrees.
 

@@ -276,6 +276,12 @@ DATA_DIR/
   cache.sqlite    rebuildable index unless SW_CACHE_DIR moves it
 ```
 
+`state/published.json` stores versioned repository pointers: the remembered default branch,
+served full commit id and, during publication, its intended next commit. It is authoritative
+application state, not a cache. A damaged file is refused rather than rebuilt from working files.
+Do not delete it to rebuild the index. The first open of an existing repository records its
+existing default tip without rewriting commits or changing the local index or checkout.
+
 Back up the complete root with the application stopped. Git remotes are not backups of sessions,
 drafts, Admin settings, trash or personal view state. Stop before deleting a rebuildable index;
 startup recreates it by scanning the files.
