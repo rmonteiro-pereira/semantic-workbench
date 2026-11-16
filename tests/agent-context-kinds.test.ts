@@ -163,7 +163,7 @@ test('metricBindings findings: an unknown metric or concept is reported on its b
   expect(bad.of.concept).toBeNull();
   expect(agentContext.findings.some((f: any) => /no_such_metric/.test(f.message))).toBe(false);
   workspace.dispose();
-});
+}, 30_000);
 test('every document of a context has a role and the context lists the metrics bound directly', () => {
   const context = all['mapped-commerce'].find(x => x.filename === 'commerce.mapping.yaml')!.context;
   expect(context.documents.map((document: any) => document.role)).toEqual(['mapping', 'ontology', 'semantic']);

@@ -430,3 +430,8 @@ Item locator conformance, properties and documentation checks run with `bun test
 Set `ADDRESS_TEST_SEED` to an integer to replay a property run; a failure reports its seed.
 Use `bun run test:addresses` for the real selection/rename browser proof and `bun scripts/mutation-tests.ts`
 for grammar, model, replay and permission mutants. The browser suite is included in the shared gate inventory and pipeline matrix.
+
+
+Correctness cases that load and save the mall metric fixture use a 30-second execution budget
+on capped development CPUs. This framework timeout is separate from explicit graph/view timing
+assertions, which retain their existing limits.

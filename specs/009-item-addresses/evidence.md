@@ -629,3 +629,11 @@ Bun 1.4.0's implicit child environment does not include later process.env change
 An initial focused run also discovered the archived baseline because Bun treats unprefixed test paths as filters. The baseline archive was removed before the proof, and focused paths now begin with ./tests/. Heavy commands remain remote; transient wrapper SSH/artifact-copy errors are separate from test outcomes.
 
 Proof: remote fixture run — `41 pass`, `0 fail`, `340 expect() calls`, `Ran 41 tests across 7 files. [16.65s]`. Logs are retained in out/gate-009/fixture-fixed.log and main-focused.log. The optimized enterprise resolver also passes remotely: 11,002 assertions, with the test body taking 1.48 seconds and no timeout adjustment.
+
+### Metric lookup cost on the capped remote CPU
+
+The API alias timeout was introduced by rebuilding the model address index for every metric field reference. A model-local lookup now builds separate canonical and legacy indexes once per validation/query, lazily for metric validation. Canonical addresses win over colliding legacy labels. The lookup is recreated for each model value and no cache survives edits.
+
+The exact open/save, ratio KPI and unknown metric-binding cases receive a 30-second framework budget because main also exceeded their default five-second budget remotely. The metrics API case keeps its existing 30-second limit; explicit graph and view performance limits are unchanged.
+
+Proof: remote focused run — `32 pass`, `0 fail`, `Ran 32 tests across 5 files. [70.81s]`. The API alias case takes 21.21 seconds, compared with 20.82 seconds on main and over 30 seconds before index reuse. Local adapter tests pass 5/5 with 26 assertions; metric extension tests pass 8/8 with 293 assertions. The full static check, readability check and docs-sync pass. The remote log is out/gate-009/metric-index-fixed.log.

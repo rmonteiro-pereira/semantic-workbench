@@ -1,4 +1,4 @@
-import { adaptItemKey } from '../../shared/core/item-key-adapters';
+import { itemKeyLookup } from '../../shared/core/item-key-adapters';
 import { formatAddress } from '../../shared/core/item-address';
 // Explains project metrics using semantic models, mappings, and data contracts. SQL previews use
 // governed definitions and are never executed.
@@ -593,8 +593,9 @@ function preview(
   if (rollup === 'sum' && kpi.additivity === 'semi_additive' && !grain) return refuse(`${kpi.label} is semi-additive: it can be summed across dimensions but not across time. Choose a time grain.`);
   try {
     const context = modelContext(documents, ref.doc.id, ref.path);
+    const lookupField = itemKeyLookup(ref.model);
     const key = (reference: string) => {
-      const adapted = adaptItemKey(reference, ref.model);
+      const adapted = lookupField(reference);
       if (adapted.status !== 'found') throw new BadRequestError('The field reference is missing or ambiguous.');
       const scope = context.semanticModel.address;
       return formatAddress({ ...scope, chain: [...scope.chain, ...adapted.address.chain.slice(1)] });

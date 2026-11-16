@@ -11,6 +11,8 @@ not configure a production deployment.
 - Reviewed operation inventory and generated reference, trusted in-process operation dispatch,
   connection effect restrictions, audit attribution fields and origin/tool filters.
 - Independent dry-run samples retain write and denial evidence during non-HTTP read floods.
+- Reuse a model-local index for repeated metric field references, preserving canonical priority and ambiguity checks.
+
 - Resolve structured item locators behind caller visibility checks and support authorized explicit reconciliation with idempotent retries.
 - Keep migration history uncompacted and bounded at 50,000 records per project; no age-retention setting is introduced.
 

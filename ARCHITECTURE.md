@@ -91,7 +91,9 @@ reference analysis.
 `shared/edit/address-changes.ts` derives explicit item/scope declarations from workbench edits;
 `app/projects/save-reply.ts` validates acknowledgements before client base versions advance.
 `item-key-adapters.ts` resolves older labels against
-that derivation and refuses ambiguous or unresolved qualified names. These pure modules do not read application state. Address consumers build text through
+that derivation and refuses ambiguous or unresolved qualified names. Repeated metric reference reads share a model-local
+index within one validation/query; no index survives edits. These pure modules do not read application state. Address
+consumers build text through
 `formatAddress`, never by concatenating project, document or item names.
 `src/app/odcs/lineage-addresses.ts` indexes structured card and row locators for lineage; dotted
 labels remain presentation text and ambiguous labels are never guessed as references.

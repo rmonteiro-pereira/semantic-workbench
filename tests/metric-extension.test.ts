@@ -189,7 +189,7 @@ test('opening and saving governed metric definitions preserves source bytes and 
   expect(saved.source).toBe(original.source);
   expect(saved.hash).toBe(original.hash);
   expect(saved.source).not.toContain('sw1:');
-});
+}, 30_000);
 
 test('dotted metric references are refused when two real fields share the old spelling', () => {
   const model = {
@@ -208,4 +208,23 @@ test('dotted metric references are refused when two real fields share the old sp
   };
   const findings = metricLayerIssues(model, '', new Map());
   expect(findings.some(finding => finding.message === 'Field a.b is ambiguous in this semantic model.')).toBe(true);
+});
+
+test('canonical field references take precedence over colliding legacy labels', () => {
+  const reference = 'sw1:#model:M/dataset:D/field:x.y';
+  const model = {
+    name: 'M',
+    datasets: [
+      { name: 'D', fields: [{ name: 'x.y' }] },
+      { name: 'sw1:#model:M/dataset:D/field:x', fields: [{ name: 'y' }] },
+    ],
+    metrics: [
+      {
+        name: 'count',
+        expression: { dialects: [{ dialect: 'ANSI_SQL', expression: 'COUNT(*)' }] },
+        custom_extensions: [{ vendor_name: 'SEMANTIC_WORKBENCH', data: JSON.stringify({ schema: 'semantic-workbench/metric/v1', type: 'simple', dimensions: [reference] }) }],
+      },
+    ],
+  };
+  expect(metricLayerIssues(model, '', new Map())).toEqual([]);
 });

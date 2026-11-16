@@ -1,4 +1,4 @@
-import { adaptItemKey } from '../core/item-key-adapters';
+import { itemKeyLookup } from '../core/item-key-adapters';
 /** Reads and validates workbench metric attributes stored as JSON in Ossie custom extensions. */
 import type { ValidateFunction } from 'ajv';
 import { metric as checkMetric, mapping as checkMapping } from '../../generated/validators.js';
@@ -235,6 +235,7 @@ export function metricLayerIssues(model: any, prefix: string, _fieldNames: Map<s
   const metrics: any[] = Array.isArray(model?.metrics) ? model.metrics.filter(object) : [];
   const names = new Set(metrics.map(m => m.name).filter((n: unknown) => typeof n === 'string'));
   const deps = new Map<string, string[]>();
+  let lookupField: ReturnType<typeof itemKeyLookup> | undefined;
   metrics.forEach((metric: any, i: number) => {
     const path = `${prefix}/metrics/${i}`;
     const sql = ansiExpression(metric);
@@ -254,7 +255,7 @@ export function metricLayerIssues(model: any, prefix: string, _fieldNames: Map<s
       if (!names.has(ref)) err(`/inputs/${j}`, `Input "${ref}" is not a metric of this semantic model.`);
     });
     const field = (ref: string, inner: string) => {
-      const resolved = adaptItemKey(ref, model);
+      const resolved = (lookupField ??= itemKeyLookup(model))(ref);
       if (resolved.status === 'ambiguous') err(inner, `Field ${ref} is ambiguous in this semantic model.`);
       else if (resolved.status !== 'found' || resolved.address.chain.at(-1)?.kind !== 'field') err(inner, `Field ${ref} does not exist in this semantic model.`);
     };

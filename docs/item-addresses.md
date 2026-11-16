@@ -93,6 +93,9 @@ than invented names. An array-item node follows declared child properties in the
 when exactly one definition matches. Dotted field collisions are ambiguous; alias-qualified text requires an explicit
 document-local resolver. Reading a key never rewrites the source document. Canonical locators should be parsed and
 resolved through the shared API.
+For repeated reads, `itemKeyLookup` prepares canonical and legacy indexes for one unchanged model value.
+Validation builds the index lazily and reuses it within that call; callers recreate it after edits.
+Canonical keys take precedence over colliding legacy labels.
 
 ## Pure migration API
 

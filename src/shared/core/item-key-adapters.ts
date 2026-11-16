@@ -22,25 +22,38 @@ function legacyLabels(item: AddressedItem): string[] {
   return [];
 }
 
+function indexItemLabel(index: Map<string, AddressedItem[]>, label: string, item: AddressedItem) {
+  const matches = index.get(label) ?? [];
+  matches.push(item);
+  index.set(label, matches);
+}
+
+/** Prepares repeated key reads against one immutable model value without retaining global state. */
+export function itemKeyLookup(model: any, document?: AddressDocument, resolveAlias?: ItemAliasResolver): (key: string) => ItemKeyResult {
+  const canonicalKeys = new Map<string, AddressedItem[]>();
+  const legacyKeys = new Map<string, AddressedItem[]>();
+  for (const item of addressesOfModel(model, document)) {
+    indexItemLabel(canonicalKeys, formatAddress(item.address), item);
+    for (const label of legacyLabels(item)) indexItemLabel(legacyKeys, label, item);
+  }
+  return key => {
+    const canonical = parseAddress(key);
+    if (canonical.ok) return uniqueKey(canonicalKeys.get(formatAddress(canonical.address)) ?? []);
+    const marker = /^(concept|dataset|field|metric|join):/.exec(key)?.[0] ?? '';
+    let value = key.slice(marker.length);
+    if (value.includes(':')) {
+      if (!resolveAlias) return { status: 'qualified' };
+      const resolved = resolveAlias(value);
+      if (resolved === null) return { status: 'missing' };
+      value = resolved;
+    }
+    return uniqueKey(legacyKeys.get(marker + value) ?? []);
+  };
+}
+
 /** Converts an old locator only when the loaded definitions give it exactly one meaning. */
 export function adaptItemKey(key: string, model: any, document?: AddressDocument, resolveAlias?: ItemAliasResolver): ItemKeyResult {
-  const items = addressesOfModel(model, document);
-  const canonical = parseAddress(key);
-  if (canonical.ok) {
-    const text = formatAddress(canonical.address);
-    const matches = items.filter(item => formatAddress(item.address) === text);
-    return uniqueKey(matches);
-  }
-  const marker = /^(concept|dataset|field|metric|join):/.exec(key)?.[0] ?? '';
-  let value = key.slice(marker.length);
-  if (value.includes(':')) {
-    if (!resolveAlias) return { status: 'qualified' };
-    const resolved = resolveAlias(value);
-    if (resolved === null) return { status: 'missing' };
-    value = resolved;
-  }
-  const legacy = marker + value;
-  return uniqueKey(items.filter(item => legacyLabels(item).includes(legacy)));
+  return itemKeyLookup(model, document, resolveAlias)(key);
 }
 
 function uniqueKey(matches: AddressedItem[]): ItemKeyResult {

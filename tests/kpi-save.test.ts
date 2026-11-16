@@ -109,7 +109,7 @@ test('a ratio KPI writes the metric with its extension and one sorted binding li
   } finally {
     workspace.dispose();
   }
-});
+}, 30_000);
 test('any stale base hash is a 409 and nothing is written', async () => {
   const { t: workspace, slug, read, hashes } = await mall();
   try {
