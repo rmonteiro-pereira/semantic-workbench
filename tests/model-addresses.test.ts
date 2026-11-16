@@ -91,14 +91,14 @@ test('deep properties report their source path instead of truncating a locator',
 const sampleFiles = readdirSync('public/examples', { recursive: true }).filter((path): path is string => typeof path === 'string' && /\.ya?ml$/.test(path));
 const samples = sampleFiles.map(path => ({ path, model: parse(readFileSync(`public/examples/${path}`, 'utf8')) }));
 
-test('all structured sample addresses resolve uniquely unless explicitly ambiguous', () => {
-  for (const { path, model } of samples) {
+for (const { path, model } of samples) {
+  test(`structured sample ${path} resolves uniquely unless explicitly ambiguous`, () => {
     const items = addressesOfModel(model, { project: 'examples', document: path.split('/') });
     const unique = items.filter(item => !item.ambiguous);
     expect(new Set(unique.map(item => formatAddress(item.address))).size).toBe(unique.length);
     for (const item of unique) expect(resolveInModel(model, item.address, { project: 'examples', document: path.split('/') }).status).toBe('found');
-  }
-});
+  });
+}
 
 function reorder(value: any, random: () => number): any {
   if (Array.isArray(value))

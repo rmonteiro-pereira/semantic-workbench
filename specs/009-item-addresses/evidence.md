@@ -257,3 +257,13 @@ T011 is also reopened because `items.properties` traversal and unnamed array-ite
 are not settled. T017 remains partial: named-scope mapping graphs pass their proofs, but adoption
 for accepted unnamed scopes awaits the same root decision. No blocked adoption task is advertised
 as complete. The pure migration phase remains complete independently.
+
+## Per-fixture sample verification
+
+The restored unshimmed full suite finished with 2,103 pass, 1 fail, 233,558 assertions
+across 2,104 tests in 750.58 s. All existing tests passed. The sole failure was the newly
+introduced aggregate sample test exceeding Bun's five-second per-case deadline (5,169.70 ms).
+Its assertions now run as one case per sample, with the same deadline and shared immutable
+fixtures. This is a test-structure correction, not a waived harness limitation.
+`bun test tests/model-addresses.test.ts -t 'structured sample'`: 28 pass, 0 fail,
+6 filtered out, 21,635 assertions in 7.54 s.
