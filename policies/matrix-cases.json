@@ -620,8 +620,24 @@
       }
     },
     {
+      "case": "POST /api/projects/:slug/git/adopt",
+      "action": "publish",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
       "case": "POST /api/projects/:slug/git/publish",
       "action": "publish",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/git/acknowledge-publication",
+      "action": "viewOwnState",
       "resource": {
         "type": "project",
         "project": "sales-metrics"
@@ -711,6 +727,27 @@
     },
     {
       "case": "POST /api/agent/plan",
+      "action": "read",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/preview/catalog",
+      "action": "read",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/preview/context",
+      "action": "read",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "POST /api/preview/plan",
       "action": "read",
       "resource": {
         "type": "workspace"

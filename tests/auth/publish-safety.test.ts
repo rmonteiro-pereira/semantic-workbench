@@ -90,7 +90,8 @@ test('a stop between moving the branch and the files is repaired on the next sta
 test('a default branch name from the remote that reads as an option is refused', async () => {
   const { fixture, worktrees, base } = await copiesFixture();
   using _ = fixture;
-  // No remembered name and a detached checkout leave the remote's HEAD as the only source.
+  // A detached checkout without a remembered name uses the remote's HEAD.
+  gitOutput(base, ['config', '--unset', 'workbench.defaultBranch']);
   gitOutput(base, ['checkout', '-q', '--detach']);
   gitOutput(base, ['update-ref', 'refs/remotes/origin/-evil', 'HEAD']);
   gitOutput(base, ['symbolic-ref', 'refs/remotes/origin/HEAD', 'refs/remotes/origin/-evil']);
