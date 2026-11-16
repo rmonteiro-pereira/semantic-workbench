@@ -44,7 +44,7 @@ export const StatusFooter = React.memo(function StatusFooter({
 }: Props) {
   function getValidationStatus() {
     if (error) {
-      return 'Validation failed';
+      return tab === 'source' ? '' : 'Validation failed';
     }
     if (hasSource && !validated) {
       return 'Not validated';
@@ -56,7 +56,9 @@ export const StatusFooter = React.memo(function StatusFooter({
   }
 
   // A refused or failed save is a warning, not a success: it has the colours of a failure.
-  const showsWarning = Boolean(error && tab !== 'scm') || message.startsWith('Not saved');
+  const showFailure = Boolean(error && tab !== 'scm' && tab !== 'source');
+  const showMessage = Boolean(message && !(error && tab === 'source'));
+  const showsWarning = showFailure || message.startsWith('Not saved');
   return (
     <>
       <footer>
@@ -72,9 +74,9 @@ export const StatusFooter = React.memo(function StatusFooter({
         </span>
         <span>{footerCounts(kind, entityCount, relationshipCount)}</span>
       </footer>
-      {(message || (error && tab !== 'scm')) && (
+      {(showMessage || showFailure) && (
         <div role="status" className={`status ${showsWarning ? 'error' : ''}`}>
-          {error && tab !== 'scm' ? 'Validation failed. Review the findings and repair in Source.' : message}
+          {showFailure ? 'Validation failed. Review the findings and repair in Source.' : message}
         </div>
       )}
     </>

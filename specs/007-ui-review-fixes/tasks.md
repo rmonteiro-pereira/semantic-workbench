@@ -294,7 +294,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: At 650 px and narrower, selecting a change shows the diff in place of the side column with a Back row; the desktop layout is unchanged. A swipe or a full-screen diff screen is out of scope.
   - Proof: Before `states/local-source-control--diff-modified-390.png` (review baseline); after: same state recaptured with `scripts/ui-review/source-control-states.ts <out>` at 390 light; check: `bun run test:scm` and the responsive source-control block assert the diff is within the viewport after selection.
 
-- [ ] T042 [US3] [C] Announce an invalid draft once.
+- [x] T042 [US3] [C] Announce an invalid draft once.
   - Findings: M21 · Requirements: FR-035
   - Files: `src/app/workspace/StatusFooter.tsx`, `src/app/editor/EditorStatusBar.tsx`, `src/app/editor/editor.css`, `src/app/workspace/SaveStateButton.tsx`, `tests/footer-counts.test.ts`
   - Change: Do not render the 'Validation failed. Review the findings and repair in Source.' banner at `StatusFooter.tsx:77` while the Source tab is open, keep the header state and one located editor message, and let the editor toolbar pill size to its text.

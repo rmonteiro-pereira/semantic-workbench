@@ -1,6 +1,7 @@
 // Checks in the browser that validation is honest: bundled files show nothing to report, shapes run against a data file, and an unknown Ossie version is "Not validated".
 import { appUrl } from './helpers/base-url';
-import { chromium } from '@playwright/test';
+import { fillEditor } from './helpers/code-editor';
+import { chromium, expect } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { example } from './helpers/examples';
 import { join } from 'node:path';
@@ -71,6 +72,13 @@ if ((await page.locator('.cm-lintRange').count()) !== 0) throw Error('An unvalid
 await notice.getByRole('button', { name: 'Validate as Ossie 0.2.0.dev0' }).click();
 await page.locator('.cm-lintRange-error').first().waitFor();
 
+await fillEditor(page.getByRole('textbox', { name: 'Definition source', exact: true }), 'name: [\n');
+await expect(page.getByRole('status', { name: 'Save state' })).toContainText('Not saved', { timeout: 10000 });
+await expect(page.locator('.code-editor-finding')).toContainText('Line 2');
+await expect(page.locator('.status')).toHaveCount(0);
+await expect(footer).not.toContainText('Validation failed');
+await expect(page.locator('.code-editor-finding')).toHaveCount(1);
+console.log('PASS invalid Source draft keeps its header state and one located message');
 console.log(JSON.stringify({ errors }));
 if (errors.length) throw Error(errors.join('\n'));
 await browser.close();

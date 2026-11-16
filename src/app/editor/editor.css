@@ -265,9 +265,10 @@
   overflow-wrap: anywhere;
 }
 /* The status bar names the first finding, so the triangle in the gutter has a visible message. A
-   long message is cut with an ellipsis and stays complete in the tooltip. */
+   long message wraps so its source location remains readable. */
 .code-editor-bar .code-editor-finding {
-  max-width: min(520px, 100%);
+  width: fit-content;
+  max-width: 100%;
   min-width: 0;
   color: var(--color-warning-text);
   background: var(--color-warning-soft);
@@ -284,8 +285,8 @@
 .code-editor-finding span {
   min-width: 0;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 /* Phone navigation needs the room more than the optional cursor coordinate readout. */
