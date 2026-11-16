@@ -279,7 +279,8 @@ fixture administrator; its optional final username selects another fixture ident
 captures reject skipped screens. Both tools reject uncaught errors and measured geometry failures.
 Server capture preparation adopts its committed contract additions before starting the tour and
 opens Mappings in the project that owns the mapping fixture. File actions target the selected
-sidebar row so repeated file names in different projects remain unambiguous.
+sidebar row so repeated file names in different projects remain unambiguous. The sidebar capture
+opens the fixture ontology Overview first so its background does not depend on prior navigation.
 The graph capture includes expanded areas, open controls, additional neighbors, hover labels,
 zoomed labels and full-screen views.
 

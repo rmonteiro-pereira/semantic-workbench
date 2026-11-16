@@ -610,3 +610,11 @@ selected sidebar file row and its existing menu; no UI or geometry assertion cha
 adjustment is applied to the ignored release source. `TMPDIR=/tmp/sw-008 SW_ONLY=file-move
 bun scripts/polish-capture-server.ts ...`: four native viewports, four `problems=0` measurements, exit 0.
 The failed full server output is retained separately and will not enter the final comparison inventory.
+
+## Deterministic sidebar capture scope
+
+The sidebar tour previously opened only the sidebar, leaving its background dependent on the fixture's
+previous document and asynchronous lineage layout. The paired native view exposed one loading-only
+background. Capture preparation now opens the fixture ontology Overview before the sidebar; normal browser
+tours and all geometry assertions remain unchanged. Focused local and server captures replace all four
+sidebar widths on both revisions. The rest of each completed 232-image journey remains unchanged.

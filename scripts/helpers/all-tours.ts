@@ -5,7 +5,7 @@ import { graphScreens } from './graph-tour';
 import { adminScreens } from './admin-tour';
 import { revealGraphControls } from './graph-options';
 import { graphControlsProblems } from './graph-paint-geometry';
-import { fileTab } from './screen-tour';
+import { fileTab, showSidebar } from './screen-tour';
 import { editScreens } from './edit-tour';
 import { dialogsTourScreens } from './dialogs-tour';
 import { exportScreens } from './export-tour';
@@ -77,6 +77,14 @@ export type CaptureFiles = AllTourFiles & { mapping: string };
 
 /** Adds administration, mapping and full-screen views to the shared screen tours. */
 export function captureScreens(files: CaptureFiles): Screen[] {
+  const screens = tourGroups(files).flatMap(group => group.screens);
+  const showCaptureSidebar: Screen['show'] = async page => {
+    await fileTab(files.ontology, 'Overview')(page);
+    await showSidebar(page);
+  };
+  const sidebar = screens.find(screen => screen.name === 'sidebar-projects');
+  if (!sidebar) throw new Error('The capture tour has no sidebar screen.');
+  sidebar.show = showCaptureSidebar;
   const fullscreen = (tab: string): Screen => ({
     name: `ontology-${tab.toLowerCase()}-fullscreen`,
     show: async page => {
@@ -91,7 +99,7 @@ export function captureScreens(files: CaptureFiles): Screen[] {
     },
   });
   return [
-    ...tourGroups(files).flatMap(group => group.screens),
+    ...screens,
     { name: 'mapping-graph', show: fileTab(files.mapping, 'Graph') },
     ...graphScreens(files.ontology).filter(screen => ['graph-model-all-areas', 'graph-model-options', 'graph-neighborhood-more'].includes(screen.name)),
     {
