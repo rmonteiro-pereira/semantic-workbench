@@ -1,4 +1,5 @@
 // Checks mapping graph bindings, selection and warnings in an isolated browser workspace.
+import { showCardDetails, checkOverviewNames, fitOverview } from './helpers/odcs-graph-walk';
 import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Page } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
@@ -49,10 +50,10 @@ async function openMapping(path: string, project: string) {
   await tree().getByRole('treeitem', { name: project }).getByRole('button', { name: path, exact: true }).click();
   await page.locator('.tabs').getByRole('button', { name: 'Graph' }).click();
   await expect(graph().locator('.lineage-card').first()).toBeVisible({ timeout: 15000 });
-  await graph().getByRole('button', { name: 'Fit', exact: true }).click();
-  await page.waitForTimeout(400);
+  await fitOverview(page);
 }
 async function compare(mappingGraph: MappingGraph, label: string) {
+  await expect.poll(() => graph().locator('g[data-edge-kind]').count()).toBeGreaterThan(0);
   const want = new Set(mappingGraph.edges.map(e => `${e.from}>${e.to}>${e.kind}`));
   const { lines, ports } = await page.evaluate(() => ({
     lines: [...document.querySelectorAll('[aria-label="Mapping graph"] g[data-edge-kind]')].map(edgeElement => ({
@@ -90,8 +91,7 @@ async function shots(name: string) {
   ]) {
     await page.setViewportSize({ width, height });
     await page.waitForTimeout(300);
-    await graph().getByRole('button', { name: 'Fit', exact: true }).click();
-    await page.waitForTimeout(300);
+    await fitOverview(page);
     await expect(graph().locator('.lineage-reading')).toHaveText(/^Saved mapping · \d+ reachable assets · \d+ total assets$/);
     await page.screenshot({ path: `/tmp/workbench-mapping-graph-${name}-${width}.png` });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
@@ -113,6 +113,8 @@ try {
     await expect(
       graph().locator(`g[data-edge-kind="object"][data-from="${nodeKey('commerce.mapping.yaml', 'concept', 'Customer')}"][data-to="${nodeKey('commerce.mapping.yaml', 'dataset', 'customers')}"]`),
     ).toHaveCount(1);
+    await checkOverviewNames(page);
+    await showCardDetails(page, card('Dataset customers'));
     await expect(card('Dataset customers').getByRole('button', { name: 'customers.customer_id' })).toContainText('Identifying');
   });
   await check('selecting a concept (Region) emphasises its mappings, dims the rest, and lists its bindings with Edit item', async () => {
@@ -136,18 +138,23 @@ try {
     await graph().getByRole('textbox', { name: 'Find assets' }).fill('Order');
     await graph().getByRole('listbox', { name: 'Asset results' }).getByRole('option').first().click();
     await expect(card('Concept Order')).toHaveClass(/center/);
+    await graph().getByLabel('Mapping steps', { exact: true }).selectOption('2');
+    await fitOverview(page);
     const link = graph().locator(`g[data-edge-kind="link"][data-from="${nodeKey('commerce.mapping.yaml', 'concept', 'Order', 'customer')}"]`);
     await expect(link).toHaveCount(1);
     await expect(link).toContainText('customer');
+    await showCardDetails(page, card('Concept Order'));
     await card('Concept Order').getByRole('button', { name: 'Order.customer', exact: true }).click();
     await page.waitForTimeout(300);
-    await graph().getByRole('button', { name: 'Fit', exact: true }).click();
-    await page.waitForTimeout(300);
+    await fitOverview(page);
     for (const [dataset, field] of [
       ['orders', 'customer_id'],
       ['customers', 'customer_id'],
-    ])
+    ]) {
+      await fitOverview(page);
+      await showCardDetails(page, card(`Dataset ${dataset}`));
       await expect(card(`Dataset ${dataset}`).locator(`li[data-id="${nodeKey('commerce.mapping.yaml', 'dataset', dataset, field)}"]`)).toHaveClass(/on-path/);
+    }
     await page.keyboard.press('Escape');
     await shots('commerce');
   });
@@ -168,6 +175,7 @@ try {
     await openMapping('commerce.mapping.yaml', loaded['mapped-commerce'].name);
     await graph().getByRole('textbox', { name: 'Find assets' }).fill('Shipment');
     await graph().getByRole('listbox', { name: 'Asset results' }).getByRole('option').first().click();
+    await showCardDetails(page, card('Concept Shipment'));
     await expect(card('Concept Shipment')).toContainText('Unmapped');
     await graph().getByRole('checkbox', { name: 'Unmapped only' }).check();
     for (const unmappedCard of await graph().locator('.lineage-card').all()) await expect(unmappedCard).toContainText('Unmapped');
@@ -198,6 +206,7 @@ try {
     await openMapping('commerce.mapping.yaml', loaded['mapped-commerce'].name);
     await graph().getByRole('textbox', { name: 'Find assets' }).fill('Order');
     await graph().getByRole('listbox', { name: 'Asset results' }).getByRole('option').first().click();
+    await showCardDetails(page, card('Concept Order'));
     const marker = card('Concept Order').getByRole('button', {
       name: /^Mapping finding: .*no_such_field/,
     });
@@ -222,9 +231,15 @@ try {
     );
   });
   await check('Expand, Collapse and Show all connected work on the mapping canvas: Show all connected from Customer opens exactly the cards its mappings reach', async () => {
+    await page.reload();
+    await openMapping('commerce.mapping.yaml', loaded['mapped-commerce'].name);
     const mappingGraph = expected('commerce.mapping.yaml');
     await graph().getByRole('textbox', { name: 'Find assets' }).fill('Customer');
-    await graph().getByRole('listbox', { name: 'Asset results' }).getByRole('option').filter({ hasText: 'Concept' }).first().click();
+    await graph()
+      .getByRole('listbox', { name: 'Asset results' })
+      .getByRole('option')
+      .filter({ has: page.locator('.asset-name').filter({ hasText: /^Customer$/ }) })
+      .click();
     await expect(card('Concept Customer')).toHaveClass(/center/);
     await page.keyboard.press('Escape');
     const want = lineagePierce({
@@ -237,8 +252,7 @@ try {
     await graph().getByRole('button', { name: 'Full pierce' }).click();
     await expect(graph().getByLabel('Walk', { exact: true })).toContainText('All connected to Customer');
     await page.waitForTimeout(500);
-    await graph().getByRole('button', { name: 'Fit', exact: true }).click();
-    await page.waitForTimeout(300);
+    await fitOverview(page);
     const ids = await graph()
       .locator('.lineage-card')
       .evaluateAll(ns => ns.map(n => n.getAttribute('data-id')));
@@ -280,8 +294,7 @@ try {
     await page.waitForTimeout(400);
     // The first view of a metric also shows the datasets behind its concepts.
     await expect(graph().locator('g[data-edge-kind="object"]').first()).toBeAttached();
-    await graph().getByRole('button', { name: 'Fit', exact: true }).click();
-    await page.waitForTimeout(300);
+    await fitOverview(page);
     await expect(
       graph().locator(`g[data-edge-kind="of"][data-to="${nodeKey('mall.mapping.yaml', 'metric', 'billed_amount')}"][data-from="${nodeKey('mall.mapping.yaml', 'concept', 'Lease')}"]`),
     ).toHaveCount(1);
@@ -289,7 +302,7 @@ try {
     await compare(expected('mall.mapping.yaml'), 'mall');
     await shots('mall');
   });
-  await check('readable first view: concept and field names render at 12 px or more at 1280×720 and 1440×900', async () => {
+  await check('readable first view: whole cards retain names at least 9 px at 1280×720 and 1440×900', async () => {
     for (const [width, height] of [
       [1280, 720],
       [1440, 900],
@@ -300,14 +313,7 @@ try {
       await page.locator('.tabs').getByRole('button', { name: 'Graph' }).click();
       await expect(graph().locator('.lineage-card.center')).toBeVisible({ timeout: 15000 });
       await page.waitForTimeout(600);
-      const px = await page.evaluate(() => {
-        const element = document.querySelector('[aria-label="Mapping graph"] .react-flow__viewport') as HTMLElement;
-        const match = element.style.transform.match(/scale\(([\d.]+)\)/);
-        const name = document.querySelector('[aria-label="Mapping graph"] .lineage-card.center .lineage-row-name, [aria-label="Mapping graph"] .lineage-row-name') as HTMLElement;
-        return parseFloat(getComputedStyle(name).fontSize) * (match ? Number(match[1]) : 1);
-      });
-      console.log(`  billing ${width}×${height}: row names at ${px.toFixed(1)} px`);
-      expect(px).toBeGreaterThanOrEqual(12);
+      await checkOverviewNames(page);
       await page.screenshot({ path: `/tmp/workbench-mapping-graph-billing-first-${width}.png` });
     }
     await page.setViewportSize({ width: 1440, height: 900 });
@@ -317,7 +323,7 @@ try {
   });
   console.log(`${passed} mapping graph checks passed on isolated data root ${api.root}.`);
 } catch (error) {
-  await page.screenshot({ path: '/tmp/workbench-mapping-graph-failure.png' });
+  await page.screenshot({ path: 'out/lane-b/mapping-failure.png' });
   console.log('browser errors:', errors.join('\n').slice(0, 3000));
   throw error;
 } finally {

@@ -38,6 +38,7 @@ import { projectDialogBackdropProblems } from './helpers/project-dialog-tour';
 import { pageLayoutProblems } from './helpers/page-layout';
 import { dialogStandardProblems } from './helpers/dialog-geometry';
 import { contentWidthProblems, expectKeyboardTabReveal, headerTitleProblems, shellScreens, sidebarTreeProblems } from './helpers/shell-tour';
+import { showCardDetails } from './helpers/odcs-graph-walk';
 import { odcsGraphScreenProblems, odcsGraphScreens } from './helpers/odcs-graph-tour';
 import { graphScreenProblems, graphScreens } from './helpers/graph-tour';
 import { EXPECTED_EXAMPLE_METRICS } from './example-metric-checks';
@@ -813,6 +814,7 @@ try {
       await graph.getByRole('button', { name: 'Fit' }).click();
       await sweep.waitForTimeout(300);
       for (const problem of await lineageProblems(sweep)) found.push(`${width}×${height}: ${problem}`);
+      await showCardDetails(sweep, graph.getByRole('group', { name: 'Table orders' }));
       await graph.getByRole('group', { name: 'Table orders' }).getByRole('button', { name: 'orders.amount', exact: true }).click({ force: true });
       await showSelectedPath(graph, sweep);
       for (const problem of await layoutProblems(sweep)) found.push(`${width}×${height} with the path open: ${problem}`);
@@ -1016,6 +1018,7 @@ try {
     await graph.getByRole('button', { name: 'Fit', exact: true }).click();
     // Fit shows every card, which lays them out again before the view settles.
     await targetPage.waitForTimeout(800);
+    await showCardDetails(targetPage, graph.getByRole('group', { name: 'Table orders' }));
     await graph.getByRole('group', { name: 'Table orders' }).getByRole('button', { name: 'orders.amount', exact: true }).click({ force: true });
     await showSelectedPath(graph, targetPage);
     await hideSelectedPath(graph, targetPage);

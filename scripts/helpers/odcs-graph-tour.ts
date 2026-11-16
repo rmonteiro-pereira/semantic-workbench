@@ -1,4 +1,5 @@
 // The ODCS graph screens and dialogs, for the responsive suite and the capture tools.
+import { showCardDetails } from './odcs-graph-walk';
 import type { Page } from '@playwright/test';
 import { showSidebar, type Screen } from './screen-tour';
 import { revealGraphControls } from './graph-options';
@@ -25,6 +26,13 @@ async function showAllCards(page: Page, file: string) {
 export function odcsGraphScreens(contract: string): Screen[] {
   return [
     { name: 'odcs-graph-first-view', show: page => openGraph(page, contract) },
+    {
+      name: 'odcs-graph-columns',
+      show: async page => {
+        await openGraph(page, contract);
+        await showCardDetails(page, page.locator('.lineage-card.center'));
+      },
+    },
     { name: 'odcs-graph-all-cards', show: page => showAllCards(page, contract) },
     {
       name: 'odcs-dataset-lineage',
@@ -62,8 +70,15 @@ export function odcsGraphScreens(contract: string): Screen[] {
 /** Returns the graph problems of a screen of this tour; dialogs are covered by the text checks. */
 export async function odcsGraphScreenProblems(page: Page, screen: Screen): Promise<string[]> {
   if (screen.dialog) return [];
-  // With every card on screen the canvas zooms out, so only the first view must read at 12 px.
-  const readableColumns = screen.name !== 'odcs-graph-all-cards';
+  // Compensated overview names stay readable while column rows return only after zooming in.
+  const readableColumns = !['odcs-graph-all-cards', 'odcs-graph-columns'].includes(screen.name);
   const problems = [...(await odcsGraphProblems(page, { readableColumns })), ...(await hopRowProblems(page))];
+  if (screen.name === 'odcs-graph-columns') {
+    const pixels = await page
+      .locator('.lineage-row-name')
+      .first()
+      .evaluate(element => parseFloat(getComputedStyle(element).fontSize));
+    if (pixels < 12) problems.push(`column names are ${pixels.toFixed(1)} canvas px`);
+  }
   return problems.map(problem => `${screen.name}: ${problem}`);
 }

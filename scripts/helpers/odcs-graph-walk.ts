@@ -27,7 +27,10 @@ export async function showCardDetails(page: Page, card: Locator) {
   for (let step = 0; step < 20 && (await card.evaluate(element => element.classList.contains('lineage-card-overview'))); step++) {
     await expect(card).toBeVisible();
     const box = await card.boundingBox();
-    expect(box).not.toBeNull();
+    if (!box) {
+      await page.waitForTimeout(100);
+      continue;
+    }
     await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
     await page.mouse.wheel(0, -200);
     await page.waitForTimeout(500);

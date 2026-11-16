@@ -1,5 +1,6 @@
 // Measures the ODCS graph in screen coordinates: whole cards, no overlaps, readable column text,
 // clear lines and labels, the legend and the foreign-key hop row.
+import { NAME_MIN_PX } from '../../src/app/odcs/lineage-view';
 import type { Page } from '@playwright/test';
 
 /** The smallest size, on screen, of a column name in the first view. */
@@ -8,7 +9,7 @@ export const MIN_COLUMN_PX = 12;
 /** Returns what is wrong with the graph now shown; an empty list means it is clean. */
 export async function odcsGraphProblems(page: Page, options: { withKeys?: boolean; readableColumns?: boolean; fitAllCards?: boolean } = {}): Promise<string[]> {
   return page.evaluate(
-    ({ minimum, withKeys, readable, fitAllCards }) => {
+    ({ minimum, minimumName, withKeys, readable, fitAllCards }) => {
       const out: string[] = [];
       const view = document.querySelector('.lineage-view');
       const flow = view?.querySelector('.react-flow');
@@ -42,6 +43,10 @@ export async function odcsGraphProblems(page: Page, options: { withKeys?: boolea
       if (rowName && readable) {
         const px = parseFloat(getComputedStyle(rowName).fontSize) * (fitAllCards ? 1 : scale);
         if (px < minimum) out.push(`column names are ${px.toFixed(1)} ${fitAllCards ? 'canvas px' : 'px on screen'}`);
+      }
+      for (const card of cards.filter(card => card.element.classList.contains('lineage-card-overview'))) {
+        const name = card.element.querySelector('strong');
+        if (name && parseFloat(getComputedStyle(name).fontSize) * scale < minimumName - 0.01) out.push(`${card.name} has an unreadable overview name`);
       }
       // Lines never run across a card they do not join.
       const owner = new Map<string, Element>();
@@ -119,6 +124,7 @@ export async function odcsGraphProblems(page: Page, options: { withKeys?: boolea
     },
     {
       minimum: MIN_COLUMN_PX,
+      minimumName: NAME_MIN_PX,
       withKeys: options.withKeys ?? true,
       readable: options.readableColumns ?? true,
       fitAllCards: options.fitAllCards ?? false,
