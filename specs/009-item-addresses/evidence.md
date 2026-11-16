@@ -459,3 +459,7 @@ Existing `test:graph`: 18 graph and neighborhood checks passed. Existing `test:u
 passed. The lineage performance follow-up remains recorded separately, so T019 is not yet ticked.
 The temporary UBL comparison initially resolved an unrelated Playwright cache; it was corrected to
 absolute locked repository dependency paths and `bun --no-install` before the actual comparison.
+
+### ODCS inspection cost during consumer adoption
+
+A focused comparison of the existing UBL first-view browser assertion measured 1,654 ms on base 655df09 and 2,465 ms with consumer adoption. Investigation found repeated whole-document foreign-key traversal while attaching inspector addresses. The inspector now indexes ODCS paths once; legacy center restoration also skips conversion when no center was stored and uses direct conversions before loading definitions. Focused model, lineage and selection tests: 44 pass, 0 fail, 62,437 assertions. The complete lineage browser gate remains required; no performance threshold was raised.

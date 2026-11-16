@@ -1,5 +1,5 @@
 /** Inspects structured and RDF documents into entities, relationships and validation findings. */
-import { addressAtModelPath } from './model-addresses';
+import { addressAtModelPath, addressesOfModel } from './model-addresses';
 import type { Address } from './item-address';
 import { OSSIE_BUILTINS, builtinConcept } from '../mappings/ossie-builtins';
 import { isMapping } from '../mappings/mapping-schema';
@@ -294,6 +294,10 @@ export function inspect(source: string, filename = 'definition.yaml', options: V
     layout = undefined;
   }
   const addressByPath = new Map<string, Address>();
+  // Foreign keys require a document-wide traversal, so index their paths once per inspection.
+  if (kind === 'ODCS') {
+    for (const item of addressesOfModel(data)) addressByPath.set(item.path.join('/'), item.address);
+  }
   const addressOf = (path: (string | number)[]) => {
     const key = path.join('/');
     const cached = addressByPath.get(key);

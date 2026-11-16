@@ -36,6 +36,8 @@ export function useLineage({ model, current, docs, tab, setTab, openDocument, pa
   function storedCenter(id: string) {
     const parsed = parseAddress(id);
     if (!parsed.ok) return id;
+    const direct = legacyLineageKey(parsed.address);
+    if (direct) return direct;
     const document = docs.find(doc => doc.project === current?.project && doc.path === parsed.address.document?.join('/'));
     const inspected = document ? parsedDoc(document).model : null;
     const resolved = inspected && 'document' in inspected ? resolveInModel(inspected.document, parsed.address) : null;
@@ -86,9 +88,7 @@ export function useLineage({ model, current, docs, tab, setTab, openDocument, pa
     try {
       stored = localStorage.getItem(lineageKey) ?? '';
     } catch {}
-    const matches = [...lineage.cards.values()].filter(card => {
-      return card.id === stored || storedCenter(card.id) === stored;
-    });
+    const matches = stored ? [...lineage.cards.values()].filter(card => card.id === stored || storedCenter(card.id) === stored) : [];
     setLineageCenter(matches.length === 1 ? matches[0].id : defaultCenter(lineage));
   }, [lineage?.contract, current?.id, !!lineage]);
   // The stored centre belongs to the previous contract for one render after switching files.
