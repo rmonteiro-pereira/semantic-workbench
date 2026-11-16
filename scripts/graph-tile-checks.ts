@@ -87,12 +87,16 @@ export async function checkTiles(page: Page, api: IsolatedApi) {
     for (let second = first + 1; second < boxes.length; second++) expect(overlapping(boxes[first], boxes[second])).toBe(false);
   }
   const backgrounds = await page.locator('.full-graph .full-area-title').evaluateAll(titles => titles.map(title => getComputedStyle(title).backgroundColor));
-  expect(backgrounds.every(background => background === 'rgba(0, 0, 0, 0)')).toBe(true);
+  expect(backgrounds.every(background => background !== 'rgba(0, 0, 0, 0)')).toBe(true);
   await expect(page.locator('.full-graph .react-flow__edge')).toHaveCount(connections.length);
   const linksBefore = await crossAreaLinks(page, connections);
   expect(linksBefore.length).toBeGreaterThan(0);
   const invoice = ubl.entities.find(entity => entity.name === 'Invoice')!;
   await page.locator(`.full-graph .react-flow__node[data-id="${invoice.id}"]`).click();
+  await expect(page.locator('.inspector')).toBeVisible();
+  await page.waitForTimeout(300);
+  await expect(page.locator('.full-graph-status')).toHaveAttribute('data-relationship-count', String(ubl.edges.length));
+  await page.getByRole('button', { name: 'Fit model', exact: true }).click();
   await expect(page.locator('.full-graph .react-flow__edge')).toHaveCount(connections.length);
   expect(await crossAreaLinks(page, connections)).toEqual(linksBefore);
   await expect(
