@@ -948,3 +948,10 @@ Only that category now shares the existing 30-second example-category deadline, 
 and mutated candidates. All assertions, mutation anchors and other deadlines remain unchanged.
 The complete mutation gate must pass after this harness correction; the interrupted attempts are not
 reported as killed mutants or as successful gates.
+
+The next complete mutation attempt passed `admin-proposals` but stopped at the unmodified
+`secrev-trash-routes` baseline, again without assertion stderr. Its isolated remote retry passed:
+`secrev-trash-routes baseline: exit 0, 4810ms`. This does not justify extending that category's deadline,
+so its ten-second bound remains. The harness now prints each successful baseline duration and names an
+expired deadline in the error, instead of returning empty stderr on a timer kill. The complete gate is
+rerun with these diagnostics; no baseline failure is counted as a detected mutant.

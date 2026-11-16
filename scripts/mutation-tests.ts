@@ -618,6 +618,7 @@ async function run(category: string, file: string, source: string, index: string
   const copiedFolder = copiedFolderOf(category, file);
   const target = copiedFolder ? await writeFolderCopy(copiedFolder, file, source, index) : resolve(temp, index + '.ts');
   if (!copiedFolder) await Bun.write(target, rewritten);
+  const startedAt = performance.now();
   const child = Bun.spawn([process.execPath, resolve(root, 'scripts/mutation-case.ts'), target, category], { stdout: 'pipe', stderr: 'pipe', env: { ...process.env, ...env } });
   const timeoutMs = category === 'example-registry' ? 180000 : 60000;
   let timedOut = false;
@@ -629,7 +630,7 @@ async function run(category: string, file: string, source: string, index: string
   clearTimeout(timer);
   if (timedOut) throw Error(`Mutation case timed out (${category}, ${index}).`);
   const error = await new Response(child.stderr).text();
-  return { code, error };
+  return { code, error, durationMs: Math.round(performance.now() - startedAt) };
 }
 // Runs the askpass case with the script as it is, then with each mutant, which must fail it.
 async function askpassCases() {
@@ -675,6 +676,7 @@ try {
     const file = mutants.find(m => m[0] === category)![1];
     const result = await run(category, file, await Bun.file(file).text(), 'baseline-' + category);
     if (result.code !== 0) throw Error(`Baseline failed (${category}): ${result.error}`);
+    console.log(`BASELINE ${category}: ${result.durationMs}ms`);
   }
   for (const [i, [category, file, before, after]] of mutants.entries()) {
     const source = await Bun.file(file).text();
