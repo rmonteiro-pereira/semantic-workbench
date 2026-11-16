@@ -665,3 +665,10 @@ The published-fixture helper had the same omission and now passes the same isola
 checks with `GIT_CONFIG_GLOBAL=/dev/null` passed: Git commit paths 5 tests / 14 assertions; imports 6 / 35;
 commit HTTP 5 / 43; agent sources 3 / 37. The publishing recovery file passed 13 / 80. No host Git
 configuration was changed, and no new isolation mechanism was introduced.
+
+The server working-copy test helper also used the startup environment and now passes the existing isolated
+configuration explicitly. A pre-existing deployment-fixture assertion hard-coded `/tmp/`, while the real
+adapter already uses `tmpdir()`. Its expectation now follows that same directory, preserving the credential
+isolation check. These are test portability corrections exposed by the required remote execution, not
+changes to production migration or deployment. Focused empty-global trash tests and custom-TMPDIR deployment
+tests passed without a host configuration change.
