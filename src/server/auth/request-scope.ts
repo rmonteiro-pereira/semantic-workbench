@@ -28,7 +28,7 @@ export type AccessRequest = Request & {
   [requestSession]?: Session | null;
   [requestConnectionScope]?: Caller['scope'];
   [requestPublicationRefusal]?: string;
-  [requestPublication]?: { previous: string | null; commit: string };
+  [requestPublication]?: { previous: string | null; commit: string | null };
 };
 /** The completed publication attached by its route for the one request audit record. */
 export const requestPublication = Symbol('requestPublication');
@@ -38,6 +38,11 @@ export const requestPublicationRefusal = Symbol('requestPublicationRefusal');
 /** Records a domain refusal without copying definition content into the audit log. */
 export function recordPublicationRefusal(request: Request, reason: 'nothing-pending' | 'diverged' | 'changed' | 'unreadable') {
   (request as AccessRequest)[requestPublicationRefusal] = reason;
+}
+
+/** Records the commits actually observed inside a serialized adoption attempt. */
+export function recordPublicationAttempt(request: Request, previous: string | null, commit: string | null) {
+  (request as AccessRequest)[requestPublication] = { previous, commit };
 }
 
 /** Records immutable publication identifiers after the ref and durable pointer have settled. */

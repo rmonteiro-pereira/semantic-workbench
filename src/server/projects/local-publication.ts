@@ -5,6 +5,9 @@ import { publicationChecks, type PublicationCandidate } from './publication-chec
 import type { PublishedPointers } from './published-pointer';
 import { defaultBranchAt, DEFAULT_BRANCH_KEY } from './worktrees';
 
+/** Observes the immutable commits considered by one serialized adoption attempt. */
+export type PublicationObserver = (previous: string | null, commit: string | null) => void;
+
 /** Remembers the default name before a local commit can create or advance its authoring branch. */
 export async function prepareLocalCommit(git: Git, directory: string) {
   const branch = await defaultBranchAt(git, directory, 'the local repository');
@@ -64,11 +67,12 @@ export function createLocalPublication(deps: LocalPublicationDeps) {
     deps.supersede();
     return { published: branch, previous, commit: next };
   }
-  async function adopt(repository: string, branch: string, guard: (previous: string | null, next: string) => Promise<void>) {
+  async function adopt(repository: string, branch: string, guard: (previous: string | null, next: string) => Promise<void>, observe?: PublicationObserver) {
     const { git, pointers } = deps;
     const directory = deps.directory(repository);
     const previous = pointers.get(repository)?.commit;
     const next = await git.revParse(directory, `refs/heads/${branch}`);
+    observe?.(previous ?? null, next);
     if (!previous || !next || previous === next) throw new PublicationAdoptionError('nothing-pending');
     const candidate = { repo: repository, branch, previous, next };
     const checks = publicationChecks({ isAncestor: (_repository, from, to) => git.isAncestor(directory, from, to), readable: deps.readable, guard: () => guard(previous, next) });
@@ -95,6 +99,7 @@ export function createLocalPublication(deps: LocalPublicationDeps) {
   }
   return {
     publishLocal: (repository: string, branch: string, guard: (previous: string | null, next: string) => Promise<void>) => serialized(repository, () => publish(repository, branch, guard)),
-    adopt: (repository: string, branch: string, guard: (previous: string | null, next: string) => Promise<void>) => serialized(repository, () => adopt(repository, branch, guard)),
+    adopt: (repository: string, branch: string, guard: (previous: string | null, next: string) => Promise<void>, observe?: PublicationObserver) =>
+      serialized(repository, () => adopt(repository, branch, guard, observe)),
   };
 }

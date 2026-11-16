@@ -324,6 +324,8 @@ client headers. Behind ingress, that peer is ingress rather than the end user.
 
 Allowed writes and refused requests are recorded in monthly hash-chained audit files under
 `state/audit/`, without credentials or document content. Allowed agent reads are audited too.
+Publications, including remote advances accepted after fetch, record the previous and new commit.
+Refused adoptions record settled and candidate commits with the refusal reason.
 Retention comes from `audit.retentionDays` in administration settings and defaults to 400 days.
 It is applied at startup; changing it requires a restart. Anonymous denial records are throttled
 and carry suppressed counts.

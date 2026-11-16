@@ -251,9 +251,10 @@ test('refused adoptions retain a bounded reason and a verifiable audit chain', a
   const adopt = () => handler(new Request('http://localhost/api/projects/definitions/git/adopt', { method: 'POST', body: '{}' }));
   expect((await adopt()).status).toBe(409);
   expect(audit.recent(1)[0]).toMatchObject({ action: 'publish', outcome: 'refused', reason: 'nothing-pending' });
+  expect(audit.recent(1)[0].publication).toEqual({ previous: repository.published, commit: repository.published });
   await workspace.ws.git.run(repository.repository, ['update-ref', 'refs/heads/main', repository.previous!]);
   expect((await adopt()).status).toBe(409);
   expect(audit.recent(1)[0]).toMatchObject({ action: 'publish', outcome: 'refused', reason: 'diverged' });
-  expect(audit.recent(1)[0]).not.toHaveProperty('publication');
+  expect(audit.recent(1)[0].publication).toEqual({ previous: repository.published, commit: repository.previous });
   expect(verifyAuditChain(readStoredMonths(join(repository.dir, 'state', 'adoption-audit')))).toMatchObject({ ok: true, records: 2 });
 });

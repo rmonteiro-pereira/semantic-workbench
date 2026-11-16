@@ -8,6 +8,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { authWorkspace } from '../helpers/auth-workspace';
 import { person } from './access-fixture';
+import { createAuditLog } from '../../src/server/auth/audit';
 import { copyFolder, gitOutput, openCopy, signedIn } from './working-copy-fixture';
 
 const REPO = 'sales-contracts';
@@ -82,10 +83,13 @@ test('a Steward’s fetch moves the published default branch forward when the re
   using remote = withRemote(base);
   const bob = signedIn(fixture.ws)(person('bob'));
   expect((await openCopy(bob.call, REPO)).status).toBe(200);
+  const previous = fixture.ws.state.published().repositories[REPO].commit ?? null;
   const ahead = remote.pushFile('from-remote.md');
   const fetched = await bob.call(API + 'fetch', 'POST', {});
   expect(fetched.body.ok).toBe(true);
   expect(fetched.body.follow).toEqual({ branch: 'main', remote: 'origin', followed: true });
+  const audit = createAuditLog({ dir: join(fixture.ws.layout.state, 'audit'), mirror: () => {} });
+  expect(audit.recent(1)[0].publication).toEqual({ previous, commit: ahead });
   expect(gitOutput(base, ['rev-parse', 'refs/heads/main']).text).toBe(ahead);
   expect(gitOutput(base, ['rev-parse', 'HEAD']).text).toBe(ahead);
   expect(fixture.ws.readFile(REPO, 'from-remote.md').source).toBe('from-remote.md\n');

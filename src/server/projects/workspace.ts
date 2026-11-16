@@ -1,3 +1,4 @@
+import type { PublicationObserver } from './local-publication';
 // Coordinates project files, durable state, and workspace services. Project folders are the source
 // of truth; the SQLite cache can be rebuilt.
 import { readAddressMigrations } from './address-migrations';
@@ -483,11 +484,15 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     idleMs: options.copyIdleMs,
   });
   const publishing = createPublishing({
-    adopt: async (slug, reader) => {
+    adopt: async (slug, reader, observe) => {
       const repository = repoOf(slug);
       const server = options.reconcilePublished || Boolean(reader.view);
-      if (server && (await git.run(join(layout.projects, repository), ['status', '--porcelain'], { readOnly: true })).stdout.trim()) throw new BaseChangedError(repository);
-      const result = await localPublication.adopt(repository, await worktrees.defaultBranch(repository), judgePublish(published, slug, reader.guard));
+      const judge = judgePublish(published, slug, reader.guard);
+      const guard = async (previous: string | null, next: string) => {
+        if (server && (await git.run(join(layout.projects, repository), ['status', '--porcelain'], { readOnly: true })).stdout.trim()) throw new BaseChangedError(repository);
+        await judge(previous, next);
+      };
+      const result = await localPublication.adopt(repository, await worktrees.defaultBranch(repository), guard, observe);
       if (server) await worktrees.repairBase(repository);
       return result;
     },
@@ -748,9 +753,9 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     lock,
     rescan,
     /** Adopts a validated outside fast-forward as the published snapshot. */
-    adopt: (slug: string, reader: Reader) => {
+    adopt: (slug: string, reader: Reader, observe?: PublicationObserver) => {
       entry(slug);
-      return publishing.adopt(slug, reader);
+      return publishing.adopt(slug, reader, observe);
     },
     /** Fast-forwards the default branch to the person's working copy. */
     publish: (slug: string, reader: Reader) => {

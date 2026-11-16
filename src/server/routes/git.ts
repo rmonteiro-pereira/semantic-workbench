@@ -1,6 +1,6 @@
 // Exposes project source control operations. Remote actions run only through explicit requests.
 import { GIT_REQUEST_LIMIT } from '../request';
-import { requestReader, recordPublication, recordPublicationRefusal } from '../auth/request-scope';
+import { requestReader, recordPublication, recordPublicationAttempt, recordPublicationRefusal } from '../auth/request-scope';
 import { authorizeCheckout, authorizeGitPaths, authorizeGitPush, authorizePublish, authorizeRepository, mayPublish } from '../auth/git-access';
 import { checkRemoteAddress, delegatedCredentials } from '../auth/remote-credentials';
 import { authorizeWrite } from '../auth/write-access';
@@ -137,7 +137,7 @@ export const createGitRoutes =
         await body([]);
         await authorizePublish(gitTarget, undefined);
         try {
-          const publication = await ws.adopt(slug, reader);
+          const publication = await ws.adopt(slug, reader, (previous, commit) => recordPublicationAttempt(req, previous, commit));
           recordPublication(req, publication);
           return Response.json(publication);
         } catch (error) {
@@ -177,7 +177,7 @@ export const createGitRoutes =
       // Remote commands run in the person's own copy with their own credential for the remote.
       const credentialFor = delegatedCredentials(req);
       if (action === 'git/fetch') {
-        const follow = { reader, mayPublish: () => mayPublish(gitTarget) };
+        const follow = { reader, mayPublish: () => mayPublish(gitTarget), onPublished: (publication: { previous: string | null; commit: string }) => recordPublication(req, publication) };
         return Response.json(await scm!.fetch(slug, credentialFor, follow));
       }
       if (action === 'git/pull') return Response.json(await scm!.pull(slug, reader, credentialFor));

@@ -41,7 +41,7 @@ export type RemoteRequest = {
   follow?: FollowRequest;
 };
 /** Who fetched, and whether they hold `publish` on the repository's default branch. */
-export type FollowRequest = { reader: Reader; mayPublish: () => Promise<boolean> };
+export type FollowRequest = { reader: Reader; mayPublish: () => Promise<boolean>; onPublished?: (publication: { previous: string | null; commit: string }) => void };
 /**
  * What a fetch did to the published default branch when the remote's was ahead: followed it, or
  * not, because the person may not publish or the guards refused what the remote brings.

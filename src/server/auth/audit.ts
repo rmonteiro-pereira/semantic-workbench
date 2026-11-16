@@ -28,8 +28,8 @@ export type AuditInput = {
     resourceAttrs: Record<string, unknown>;
   };
   version?: string;
-  /** The served commits before and after a successful publication. */
-  publication?: { previous: string | null; commit: string };
+  /** The settled and candidate commits of a publication or adoption attempt. */
+  publication?: { previous: string | null; commit: string | null };
   /** How many refusals of this kind from this source were left out since the last record. */
   suppressed?: number;
   [key: string]: unknown;

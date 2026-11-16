@@ -5,6 +5,7 @@ import type { EventTags } from './events';
 import type { ContentGuard } from '../auth/guards';
 import { WriteAccessError } from '../auth/write-access-error';
 import type { Reader } from './reader';
+import type { PublicationObserver } from './local-publication';
 import type { FollowRequest, FollowResult } from './scm';
 import type { Place, WorkingCopies } from './working-copies';
 import type { Worktrees } from './worktrees';
@@ -19,7 +20,7 @@ export type PublishingDeps = {
   rescan: (slug: string) => Promise<unknown>;
   emit: (event: string, data: unknown, tags: EventTags) => void;
   /** Local authoring publication uses the same checks without checking out the default ref. */
-  adopt: (slug: string, reader: Reader) => Promise<{ published: string; previous: string | null; commit: string }>;
+  adopt: (slug: string, reader: Reader, observe?: PublicationObserver) => Promise<{ published: string; previous: string | null; commit: string }>;
   localPublish?: (slug: string, reader: Reader) => Promise<{ published: string; previous: string | null; commit: string }>;
 };
 
@@ -71,7 +72,7 @@ async function publish(deps: PublishingDeps, slug: string, reader: Reader) {
  * may publish and only when the guards accept what it brings. Otherwise both stay, and the
  * result says why; the fetch itself still succeeds.
  */
-async function followRemote(deps: PublishingDeps, slug: string, remote: string, { reader, mayPublish }: FollowRequest): Promise<FollowResult | null> {
+async function followRemote(deps: PublishingDeps, slug: string, remote: string, { reader, mayPublish, onPublished }: FollowRequest): Promise<FollowResult | null> {
   const repo = deps.repoOf(slug);
   const ahead = await deps.worktrees.remoteAhead(repo, remote);
   if (!ahead) return null;
@@ -82,6 +83,7 @@ async function followRemote(deps: PublishingDeps, slug: string, remote: string, 
     const check = judgePublish(place, slug, reader.guard);
     const moved = await deps.worktrees.followRemote(repo, remote, check);
     if (!moved) return stays;
+    onPublished?.(moved);
     await announce(deps, slug, moved.published, moved.commit);
     return { ...stays, followed: true };
   } catch (error) {
@@ -93,8 +95,8 @@ async function followRemote(deps: PublishingDeps, slug: string, remote: string, 
 /** Creates the publishing operations of one workspace. */
 export function createPublishing(deps: PublishingDeps) {
   return {
-    async adopt(slug: string, reader: Reader) {
-      const result = await deps.adopt(slug, reader);
+    async adopt(slug: string, reader: Reader, observe?: PublicationObserver) {
+      const result = await deps.adopt(slug, reader, observe);
       await announce(deps, slug, result.published, result.commit);
       return result;
     },
