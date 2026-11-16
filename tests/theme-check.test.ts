@@ -136,3 +136,10 @@ test('the dark theme draws strong borders and icons at 3:1 on its surfaces', () 
     }
   }
 });
+
+test('dark YAML keys differ from values and both remain readable on the editor surface', () => {
+  const ratio = (first: string, second: string) => contrastRatio(parseColor(dark.get(first)!)!, parseColor(dark.get(second)!)!);
+  expect(ratio('--color-syntax-key', '--color-syntax-keyword')).toBeGreaterThanOrEqual(1.5);
+  expect(ratio('--color-syntax-key', '--color-surface')).toBeGreaterThanOrEqual(4.5);
+  expect(ratio('--color-syntax-keyword', '--color-surface')).toBeGreaterThanOrEqual(4.5);
+});

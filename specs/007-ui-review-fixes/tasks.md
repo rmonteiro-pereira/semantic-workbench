@@ -306,7 +306,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Use the existing `access.can('commit')` result to show one sentence instead of the message box, **Commit to main** and **New branch**; Editor and Steward are unchanged.
   - Proof: Before `server-personas/server-carol-source-control-1440.png` (review baseline); after: same state recaptured with `scripts/ui-review/server-pages.ts <out_root>` (persona carol) and alice for the unchanged case; check: `tests/commit-availability.test.ts`; `bun run test:admin` persona block asserts no commit textarea for Carol.
 
-- [ ] T044 [US3] [C] Fix the diff header and the dark YAML key colour.
+- [x] T044 [US3] [C] Fix the diff header and the dark YAML key colour.
   - Findings: m13, m18 · Requirements: FR-037, FR-038
   - Files: `src/app/scm/DiffView.tsx`, `src/app/scm/scm.css`, `src/app/editor/editorExtensions.ts`, `src/app/editor/editor.css`, src/shared/theme/theme.css (editor token group only)
   - Change: Show the file name once above both columns and let each column label take its text; add a dark `--color-syntax-key` (or reuse the existing key token with a distinct dark value) at least 1.5:1 from the value colour and 4.5:1 on the editor surface; `tests/theme-check.test.ts` keeps light and dark token sets equal.

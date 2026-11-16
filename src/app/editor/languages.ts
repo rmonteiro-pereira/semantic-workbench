@@ -133,7 +133,7 @@ export function languageFor(syntax: SyntaxName, largeDocument = false) {
 /** Supplies the shared token colors for syntax trees and viewport decorations. */
 export const syntaxHighlight = HighlightStyle.define([
   { tag: t.propertyName, color: 'var(--color-syntax-property)' },
-  { tag: t.definition(t.propertyName), color: 'var(--color-syntax-tag)' },
+  { tag: t.definition(t.propertyName), color: 'var(--color-syntax-key)' },
   { tag: [t.tagName], color: 'var(--color-syntax-tag)' },
   { tag: [t.attributeName], color: 'var(--color-syntax-attribute)' },
   { tag: [t.attributeValue], color: 'var(--color-syntax-keyword)' },

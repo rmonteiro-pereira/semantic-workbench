@@ -90,6 +90,7 @@
   --color-edge-lateral: var(--color-edge-idle);
 
   /* Highlighting inside the code editor. */
+  --color-syntax-key: #800000;
   --color-syntax-property: #0451a5;
   --color-syntax-tag: #800000;
   --color-syntax-attribute: #e50000;
@@ -173,6 +174,7 @@
     --color-mask-opaque: #000000;
     --color-edge-idle: #a3b8b1;
     --color-edge-feeds: #86a99b;
+    --color-syntax-key: #9cdcfe;
     --color-syntax-property: #9cdcfe;
     --color-syntax-tag: #569cd6;
     --color-syntax-attribute: #9cdcfe;
@@ -252,6 +254,7 @@
   --color-mask-opaque: #000000;
   --color-edge-idle: #a3b8b1;
   --color-edge-feeds: #86a99b;
+  --color-syntax-key: #9cdcfe;
   --color-syntax-property: #9cdcfe;
   --color-syntax-tag: #569cd6;
   --color-syntax-attribute: #9cdcfe;

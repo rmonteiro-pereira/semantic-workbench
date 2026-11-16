@@ -41,3 +41,7 @@ Viewed pairs (before root: `/home/rodrigo/projetos/semantic-workbench-ui-review-
 | M12, m24 | `local-source-editor--stale-save-warning-1440.png` | Side-by-side comparison remains; safe action is primary on the right. |
 
 The same source-control state sequence was recaptured in light/dark at 1440×900 and 390×844. The temporary copy presses Back between phone selections so the next change can be selected. Its generic geometry checker assumes a Branch selector always exists, so it reports that expected absence while a phone diff replaces the list; the dedicated SCM geometry assertion passes.
+
+## Diff headings and syntax keys
+
+Viewed `states/local-source-control--diff-modified-1440.png` before and `/tmp/sw-C/after/states/local-source-control--diff-modified-1440.png` after: the filename has its own line and both version labels are whole. Viewed `local-dark/local-dark-ontology-source-1440.png` before and `/tmp/sw-C/after/local-dark/local-dark-ontology-source-1440.png` after: YAML keys are visibly lighter than plain values, with the same UBL file and viewport. `tests/theme-check.test.ts`: **18 pass, 0 fail**, including token parity and the key/value/surface contrast assertions. The source-control suite's history and diff checks also pass.
