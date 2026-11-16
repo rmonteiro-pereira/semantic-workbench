@@ -547,3 +547,9 @@ Proof: migration store, declared-save routes, trash and write-authorization matr
 The server workspace function requires edit authority on the new file, visibility of both endpoints, a missing old item and a unique new item. It checks the existing governance guard against unchanged target text; an approved metric is not demoted. A caller-stable operation ID makes a lost-reply retry return the original record without another append. The initial hidden-file fixture used an unrestricted sales-metrics path; correcting it to the fixture's actual sales-contracts/finance restriction makes the intended policy proof meaningful.
 
 Proof: reconciliation and migration-store tests — 11 pass, 0 fail, 144 assertions; TypeScript passes. No reconciliation HTTP interface is added; item diff will call the server function.
+
+### External changes
+
+A local bare-remote SCM fixture performs a real pull of an external item rename and switches between the original and renamed branches. Neither operation records history. Switching back restores resolution of the original locator without applying stale changes. The independent diff consumer reports remove/add until reconciliation, then one rename, and preserves a resolving original after undo.
+
+Proof: external-change and toy-consumer tests — 4 pass, 0 fail, 52 assertions. No network remote is involved.

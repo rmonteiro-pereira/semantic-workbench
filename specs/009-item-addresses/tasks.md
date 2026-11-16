@@ -210,7 +210,7 @@ changes.
   someone allowed to save the file that holds the new address and refuses an unreadable project's
   address. Proof: `tests/address-migration-store.test.ts` and authorization cases for readable,
   unreadable and guarded files; the interface is left to the item diff feature. (FR-032, FR-048)
-- [ ] T036 [P] [US3] External changes: a Git pull and a branch switch that rename an item record
+- [x] T036 [P] [US3] External changes: a Git pull and a branch switch that rename an item record
   nothing, and an undone rename leaves resolving stored addresses unchanged. Proof: tests using
   the SCM fixtures; the diff-style toy consumer from T023 shows remove plus add, then one rename
   after a reconciliation. (FR-033, FR-047; SC-005)
