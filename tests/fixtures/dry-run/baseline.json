@@ -1,0 +1,305 @@
+{
+  "changed": [
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET /api/me",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET /api/events",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:POST /api/telemetry/browser",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET /api/status",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET /api/projects",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET /api/trash",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET /api/suggestions",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET /api/documents",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET /api/projects/:slug/export",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET /api/projects/:slug/metrics",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET /api/projects/:slug/delete-impact",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:POST /api/projects/:slug/metrics/preview",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:POST /api/projects/:slug/kpis/preview",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET /api/projects/:slug/files/*/explain/:metric",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET /api/projects/:slug/files/*",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET /api/drafts",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET /api/drafts/:slug/*",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET /api/projects/:slug/git/status",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET /api/projects/:slug/git/diff",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET /api/projects/:slug/git/branches",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET /api/projects/:slug/git/folder",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET /api/projects/:slug/git/log",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET /api/projects/:slug/git/versions",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET /api/projects/:slug/git/show",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET /api/agent/projects",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET /api/agent/catalog",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET /api/agent/context",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:POST /api/agent/plan",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET /api/documents/:id/grouping",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:PUT /api/documents/:id/grouping",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET/HEAD pages",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "hankread",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    }
+  ],
+  "matrixCases": 963,
+  "auditCases": 6,
+  "people": [
+    {
+      "principal": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008",
+      "name": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008",
+      "project": "shared-reference",
+      "gained": [],
+      "lost": [
+        "read",
+        "export",
+        "history",
+        "viewOwnState"
+      ],
+      "access": "lost"
+    },
+    {
+      "principal": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008",
+      "name": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008",
+      "project": "sales-metrics",
+      "gained": [],
+      "lost": [
+        "read",
+        "export",
+        "history",
+        "viewOwnState",
+        "approveMetric"
+      ],
+      "access": "lost"
+    },
+    {
+      "principal": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008",
+      "name": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008",
+      "project": "sales-contracts",
+      "gained": [],
+      "lost": [
+        "read",
+        "export",
+        "history",
+        "viewOwnState",
+        "approveMetric"
+      ],
+      "access": "lost"
+    }
+  ]
+}

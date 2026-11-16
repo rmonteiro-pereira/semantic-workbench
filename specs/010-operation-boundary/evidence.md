@@ -20,3 +20,9 @@ The unchanged audit writer produced January, February and March records at fixed
 `bun test tests/auth/audit-compat.test.ts`: 2 pass, 0 fail, 8 expect() calls.
 
 `bun run audit:verify tests/fixtures/audit-v1`: Audit log intact: 9 records in 3 months.
+
+## Dry-run baseline
+
+The unchanged administration comparison replays six fixed-clock read/edit snapshots for an Editor, custom-role holder and Admin, against removal of the custom-role grant.
+
+`bun test tests/auth/dry-run-baseline.test.ts`: 1 pass, 0 fail, 1 expect() call.
