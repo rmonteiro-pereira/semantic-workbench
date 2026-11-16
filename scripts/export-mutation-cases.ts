@@ -168,9 +168,9 @@ async function routeCase(candidate: any) {
   await ask('?history=1');
   await ask('?history=0');
   assert.deepEqual(seen, [
-    { includeHistory: false, historyAllowed: false },
-    { includeHistory: true, historyAllowed: false },
-    { includeHistory: false, historyAllowed: false },
+    { includeHistory: false, historyAllowed: false, source: 'editing' },
+    { includeHistory: true, historyAllowed: false, source: 'editing' },
+    { includeHistory: false, historyAllowed: false, source: 'editing' },
   ]);
   await assert.rejects(ask('?history=maybe'), { name: 'BadRequestError' });
 }
