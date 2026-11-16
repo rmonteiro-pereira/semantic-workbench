@@ -73,6 +73,8 @@ bun run build
 `bun scripts/boundary-benchmark.ts` measures 5,000 in-process HTTP requests with isolated temporary data and prints median and 95th-percentile durations.
 `bun test tests/auth/http-characterization.test.ts` compares responses and audit records against the original HTTP contract; regenerate that fixture only before a boundary change.
 
+Trusted adapters use `buildTwinRequest(operationId, { params, query, body, signal })`; parameter keys match the route template, including `*` for a splat. The builder rejects non-dispatchable routes and bodies above the operation's existing byte limit.
+
 HTTP body limits are exported from `src/server/request.ts` and re-exported beside the routes that enforce them; the operation inventory uses those same constants.
 
 Generated standalone schema validators are checked in and formatted with the project rules.
