@@ -71,3 +71,21 @@ for (const mode of ['local', 'server'] as const) {
     expect(await unknown.text()).not.toContain('unpublished_revenue');
   });
 }
+
+test('a catalog response retains its pinned header when its project is removed during the read', async () => {
+  using fixture = await testWorkspace();
+  const { slug } = await fixture.ws.loadExample('mapped-commerce');
+  await fixture.ws.publish(slug, LOCAL_READER);
+  const repository = locationOf(fixture.ws.project(slug)).repo;
+  const commit = fixture.ws.published.pin().commits.get(repository)!.commit;
+  const documents = fixture.ws.published.documents.bind(fixture.ws.published);
+  fixture.ws.published.documents = async (...args) => {
+    const result = await documents(...args);
+    fixture.ws.state.writeRegistry([]);
+    return result;
+  };
+  const response = await fixture.handler(new Request(`${origin}/api/agent/catalog?project=${slug}`));
+  expect(response.status).toBe(200);
+  expect(response.headers.get('X-Workbench-Snapshot')).toBe(commit);
+  expect((await response.json()).mappings.length).toBeGreaterThan(0);
+});

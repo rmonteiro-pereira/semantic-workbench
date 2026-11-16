@@ -24,9 +24,9 @@ export const editingAgentDocuments: AgentDocumentSource = async (workspace, requ
 export const publishedAgentDocuments: AgentDocumentSource = (workspace, request, project, use) =>
   workspace.published.withPin(async pin => {
     const { view } = requestReader(request);
+    const repository = locationOf(workspace.project(project)).repo;
     const documents = await workspace.published.documents(pin, project);
     const response = await use(documents.filter(document => !view || view.canRead(project, document.path)));
-    const repository = locationOf(workspace.project(project)).repo;
     response.headers.set('X-Workbench-Snapshot', pin.commits.get(repository)!.commit);
     return response;
   });
