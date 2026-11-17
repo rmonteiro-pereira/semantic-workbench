@@ -1293,3 +1293,7 @@ and explicit per-test limit while budgeting the capped shared machine consistent
   407/421 assertion; it does not establish a new mall result. Neither the canvas nor its
   check was changed. This is the user-authorized pre-existing responsive exception, not a green suite.
   The six remaining responsive groups are rerun separately below.
+
+- Remote `RESPONSIVE_ONLY="dark theme:" bun scripts/published-snapshot-remote-gate.ts
+  test:responsive`: exit 0; `5 responsive UI checks passed` (four viewports plus no
+  uncaught browser errors). The canvas assertions remain unchanged.
