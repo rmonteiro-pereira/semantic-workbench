@@ -1,6 +1,8 @@
 import { operationStep } from '../auth/operation-execution';
 // Resolves production definitions from durable pointers and retains indexes for live request pins.
 import { SnapshotUnavailableError } from './errors';
+import { GitError } from './git';
+import { log } from '../observability/log';
 import type { PublishedPointers } from './published-pointer';
 import { classify } from './published-pointer';
 import { locationOf } from './paths';
@@ -157,8 +159,10 @@ export function createPublishedSnapshots(deps: PublishedSnapshotDeps) {
       const result = describeStatus(directory, { branch: pointer.branch, commit: pointer.commit }, ref);
       statuses.set(repository, { key, result });
       return await result;
-    } catch {
+    } catch (error) {
       statuses.delete(repository);
+      if (!(error instanceof GitError) && !(error instanceof SnapshotUnavailableError)) throw error;
+      log.warn('snapshot.status-unavailable', { repository, detail: error.message });
       return { state: 'none', reason: 'unavailable' };
     }
   }
