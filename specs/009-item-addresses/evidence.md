@@ -1431,3 +1431,5 @@ feb35ab7 test: record recovered authentication browser gate
 - Both existing reconciliation proofs now assert the user-visible result: after initial acceptance and same-key retry, resolving the old locator finds the declared target. The workspace and HTTP/twin lost-reply tests retain their unchanged-definition and single-record assertions.
 - `bun test tests/address-reconciliation.test.ts`: 2 pass, 0 fail, 14 expect() calls.
 - `bun test tests/item-address-operations.test.ts`: 3 pass, 0 fail, 22 expect() calls.
+- Registry conformance now reads the public `docs/item-addresses.md` kind table rather than a feature-spec artifact. Public documentation includes each kind's source shape, parent kinds, name field and positional fallback, so the test checks the complete supported registry.
+- `bun test tests/item-address.test.ts`: 8 pass, 0 fail, 296 expect() calls.

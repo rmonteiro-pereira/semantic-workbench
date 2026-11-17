@@ -10,9 +10,9 @@ test('every editable kind maps to a registered address kind', () => {
   for (const kind of Object.values(editableAddressKinds)) expect(Object.hasOwn(addressKinds, kind)).toBe(true);
 });
 
-test('the kind registry agrees with every row of the versioned grammar contract', () => {
-  const contract = readFileSync('specs/009-item-addresses/contracts/address-grammar.md', 'utf8');
-  const table = contract.split('## Kind registry (version 1)')[1].split('The registry is code')[0];
+test('the kind registry agrees with every row of the public grammar documentation', () => {
+  const contract = readFileSync('docs/item-addresses.md', 'utf8');
+  const table = contract.split('## Kinds and stability')[1].split('| Change | Locator behavior')[0];
   const rows = [...table.matchAll(/^\| `([^`]+)` \|.*$/gm)];
   expect(rows.map(row => row[1]).sort()).toEqual(Object.keys(addressKinds).sort());
   for (const row of rows) {

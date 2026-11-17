@@ -34,25 +34,25 @@ labels. Dataset fields and metrics use their resolved model scopes. External stu
 The registry contains **17 kinds**. The portable conformance corpus contains **43 fixtures**: 10 valid, 16 invalid and
 17 hostile-name cases.
 
-| Kind | Allowed parent | Segment value |
-| --- | --- | --- |
-| ontology | root | name when usable; positional otherwise |
-| model | root, mapping | name when usable; positional otherwise |
-| mapping | root, ontology | name when usable; positional otherwise |
-| contract | root | id when usable; positional otherwise |
-| concept | ontology | concept when usable; positional otherwise |
-| relationship | concept | name when usable; positional otherwise |
-| role | relationship | positional |
-| concept-mapping | mapping | concept when usable; positional otherwise |
-| object-mapping | concept-mapping | positional |
-| link-mapping | concept-mapping | positional |
-| dataset | model | name when usable; positional otherwise |
-| field | dataset | name when usable; positional otherwise |
-| join | model | name when usable; positional otherwise |
-| metric | model | name when usable; positional otherwise |
-| object | contract | name when usable; positional otherwise |
-| property | object, property | name when usable; positional otherwise |
-| foreign-key | contract | positional |
+| Kind | Names | Parent kinds | Name field | Named |
+| --- | --- | --- | --- | --- |
+| `ontology` | an ontology document | document root | `name` | when present; position otherwise |
+| `model` | a semantic model (standalone, legacy list entry, or embedded) | root, `mapping` | `name` | when present; position otherwise |
+| `mapping` | a standalone mapping, or an embedded `ontology_mappings` entry | root, `ontology` | `name` | when present; position otherwise |
+| `contract` | an ODCS data contract | root | `id` | when present; position otherwise |
+| `concept` | an ontology concept | `ontology` | `concept` | when present; position otherwise |
+| `relationship` | a relationship of a concept (an attribute is one) | `concept` | `name` | when present; position otherwise |
+| `role` | a role of a relationship | `relationship` | none | position |
+| `concept-mapping` | a concept mapping | `mapping` | `concept` | when present; position otherwise |
+| `object-mapping` | an object mapping of a concept mapping | `concept-mapping` | none | position |
+| `link-mapping` | a link mapping of a concept mapping | `concept-mapping` | none | position |
+| `dataset` | a dataset | `model` | `name` | when present; position otherwise |
+| `field` | a field of a dataset | `dataset` | `name` | when present; position otherwise |
+| `join` | a model relationship between datasets | `model` | `name` | when present; position otherwise |
+| `metric` | a metric | `model` | `name` | when present; position otherwise |
+| `object` | an ODCS schema object | `contract` | `name` | when present; position otherwise |
+| `property` | an ODCS property or array-item schema node, nested to any depth up to the segment limit | `object`, `property` | `name` | when present; position otherwise |
+| `foreign-key` | an ODCS foreign key | `contract` | none | position |
 
 | Change | Locator behavior |
 | --- | --- |
