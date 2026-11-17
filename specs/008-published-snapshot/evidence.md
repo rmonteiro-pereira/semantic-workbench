@@ -1305,3 +1305,17 @@ and explicit per-test limit while budgeting the capped shared machine consistent
 - Remote `RESPONSIVE_ONLY="shell screens:" bun scripts/published-snapshot-remote-gate.ts
   test:responsive`: exit 0; `5 responsive UI checks passed` (four viewports plus no
   uncaught browser errors). Headers, tab strip, tree and content width passed.
+
+- The examples group hit the existing five-second `expectModelName` preparation timeout
+  in four attempts through the nested `bun --bun run` launcher, before any selected check.
+  Warming the frontend entry did not fix that launcher path. An external observer ran the
+  unchanged responsive script to completion (`2 responsive UI checks passed`), without
+  changing its assertions; a separate startup probe rendered the header in 2107 ms.
+  The observer and probes are disposable remote diagnostics, not repository changes.
+- Final uninstrumented remote command, with the same disposable Vite frontend at 5481:
+  `RESPONSIVE_ONLY="examples: 1440" SW_BASE_URL=http://127.0.0.1:5481
+  bun scripts/responsive-ui-tests.ts`: exit 0; `2 responsive UI checks passed`.
+  Both `examples: 1440×900 metric screens readable, no overlaps` and
+  `no uncaught browser errors` passed. The direct launcher owns and stops its frontend
+  and child through the existing `stopVite`; no timeout or canvas assertion was changed.
+  This is a successful run of the original script, not an additional baseline exception.
