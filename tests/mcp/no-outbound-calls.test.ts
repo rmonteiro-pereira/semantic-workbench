@@ -6,6 +6,11 @@ import { startLocalServer } from './helpers/local-server';
 
 const LOOPBACK = new Set(['127.0.0.1', 'localhost', '::1', '[::1]']);
 
+function hostOf(first: { host?: string } | number | string, second: unknown): string | undefined {
+  if (typeof first === 'object' && first) return first.host;
+  return typeof second === 'string' ? second : undefined;
+}
+
 /** Records every attempt to open a connection to an address that is not this machine. */
 function watchOutbound() {
   const attempts: string[] = [];
@@ -21,7 +26,7 @@ function watchOutbound() {
   }) as typeof fetch;
   net.Socket.prototype.connect = function (this: net.Socket, ...args: unknown[]) {
     const first = args[0] as { host?: string } | number | string;
-    const host = typeof first === 'object' && first ? first.host : typeof args[1] === 'string' ? args[1] : undefined;
+    const host = hostOf(first, args[1]);
     if (host && !LOOPBACK.has(host)) {
       attempts.push(`socket ${host}`);
       throw new Error('blocked outbound socket');

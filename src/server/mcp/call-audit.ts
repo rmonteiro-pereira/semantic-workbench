@@ -48,9 +48,18 @@ export function createCallAudit(audit: AuditLog) {
 
 export type CallAudit = ReturnType<typeof createCallAudit>;
 
+/** Whether a character is one of the ASCII control characters that must never reach a log line. */
+export function isControlCharacter(character: string): boolean {
+  const code = character.charCodeAt(0);
+  return code < 32 || code === 127;
+}
+
 /** A client's own name for itself: control characters removed and at most 64 characters. */
 export function clientLabelOf(value: unknown): string | undefined {
   if (typeof value !== 'string') return undefined;
-  const cleaned = value.replace(/[\u0000-\u001f\u007f]/g, '').slice(0, 64);
+  const cleaned = [...value]
+    .filter(character => !isControlCharacter(character))
+    .join('')
+    .slice(0, 64);
   return cleaned || undefined;
 }

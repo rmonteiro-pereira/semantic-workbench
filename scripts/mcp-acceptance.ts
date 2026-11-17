@@ -112,7 +112,7 @@ try {
 
   // Refused cases: each must be refused, and none may reveal more than its status.
   const post = (headers: Record<string, string>, method = 'POST') =>
-    fetch(server.endpoint, { method, headers: { 'content-type': 'application/json', ...headers }, body: method === 'POST' ? '{}' : undefined });
+    fetch(server.endpoint, { method, headers: { 'content-type': 'application/json', ...headers }, ...(method === 'POST' ? { body: '{}' } : {}) });
   const bearer = { authorization: `Bearer ${server.capability()}` };
   const refusals: [string, Response, number][] = [
     ['no capability', await post({}), 401],

@@ -1,7 +1,7 @@
 // Tools that inspect Git history and status, and the tool that commits exactly the files it is given. Inspection tools only reshape what their twin routes answer; the commit tool adds the receipt and the preconditions the route checks.
 import { DEFAULT_TOOL_REQUEST_CAP_BYTES } from '../body-limits';
 import type { ToolDefinition } from '../tool-definition';
-import { PAGE_ARGUMENTS, pageBinding, pageOf } from '../tool-paging';
+import { pageBinding } from '../tool-paging';
 import { byteRange, fail, RESULT_CAP_BYTES, succeed } from '../tool-results';
 import { versionOf } from './projects-and-files';
 import { GLOBAL_REQUEST_CAP_BYTES } from '../body-limits';

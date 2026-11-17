@@ -116,7 +116,10 @@ function validateAttribution(input: AuditInput): void {
   if (input.origin !== undefined && !CALLER_ORIGINS.includes(input.origin)) throw new Error('Invalid audit origin.');
   if (input.tool !== undefined && (typeof input.tool !== 'string' || !operationById(input.tool))) throw new Error('Invalid audit tool: expected an inventory id.');
   if (input.method !== undefined && !ATTRIBUTED_METHODS.includes(input.method)) throw new Error('Invalid audit method.');
-  if (input.clientLabel !== undefined && (typeof input.clientLabel !== 'string' || input.clientLabel.length > 64 || /[\u0000-\u001f\u007f]/.test(input.clientLabel)))
+  if (
+    input.clientLabel !== undefined &&
+    (typeof input.clientLabel !== 'string' || input.clientLabel.length > 64 || [...input.clientLabel].some(character => character.charCodeAt(0) < 32 || character.charCodeAt(0) === 127))
+  )
     throw new Error('Invalid audit client label.');
   if (input.result !== undefined && (typeof input.result !== 'string' || !AUDIT_RESULTS.includes(input.result))) throw new Error('Invalid audit result.');
   if (input.connection !== undefined && (typeof input.connection !== 'string' || !/^[A-Za-z0-9_-]{1,64}$/.test(input.connection))) throw new Error('Invalid audit connection id.');

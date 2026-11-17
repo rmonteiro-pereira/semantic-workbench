@@ -25,7 +25,7 @@ test('the mounted route refuses every unsafe request without revealing anything'
   const server = await startLocalServer();
   try {
     const send = (headers: Record<string, string>, method = 'POST') =>
-      fetch(server.endpoint, { method, headers: { 'content-type': 'application/json', ...headers }, body: method === 'POST' ? '{}' : undefined });
+      fetch(server.endpoint, { method, headers: { 'content-type': 'application/json', ...headers }, ...(method === 'POST' ? { body: '{}' } : {}) });
     const bearer = { authorization: `Bearer ${server.capability()}` };
     const refused: [Response, number][] = [
       [await send({}), 401],

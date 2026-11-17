@@ -14,7 +14,7 @@ async function legacy(body: unknown, method = 'POST') {
   const response = await fetch(server.endpoint, {
     method,
     headers: { 'content-type': 'application/json', accept: 'application/json, text/event-stream', authorization: `Bearer ${server.capability()}` },
-    body: method === 'POST' ? JSON.stringify(body) : undefined,
+    ...(method === 'POST' ? { body: JSON.stringify(body) } : {}),
   });
   return { status: response.status, text: await response.text(), headers: response.headers };
 }
