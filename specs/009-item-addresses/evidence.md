@@ -1106,3 +1106,16 @@ loses access to the new resolve route. All original changed decisions and people
 unchanged. The small administration baseline now includes that additional read decision.
 `bun test ./tests/auth/dry-run-baseline.test.ts`: `1 pass`, `0 fail`, `1 expect() calls`;
 `Ran 1 test across 1 file. [5.92s]`. The full unit command will run again after this fixture fix.
+
+### Main comparison for audit-strata timeouts
+
+Unchanged main a153c20f ran `bun test ./tests/auth/dry-run-strata.test.ts` from an archive inside
+this wrapper checkout, with the same dependencies, temporary filesystem, assertions and limits.
+Result: `0 pass`, `2 fail`, `7 expect() calls`; `Ran 2 tests across 1 file. [303.19s]`.
+Both failures are the same timeout failures: 101.61 seconds against 60 seconds and 200.70 seconds
+against 120 seconds. The feature measured 98.41 and 206.05 seconds. Main completed all seven
+assertions; its sampled histories contain the expected 1,000 ordinary and 800 read cases.
+The audit writer, replay sampler and comparison modules have no feature diff. These two strict
+clock failures are now reproduced baseline exceptions, not addressed by weakening assertions,
+removing durable fsyncs or raising timeouts. The archive was removed by the exit trap.
+Only main-strata-summary.txt was pulled; the full baseline log remains remote.
