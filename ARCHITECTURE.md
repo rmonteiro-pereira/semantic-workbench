@@ -79,28 +79,24 @@ The integration view shows what the application reads and contacts, and what it 
 
 ## Code map
 
-`src/shared/core/address-kinds.ts` owns the versioned item-address kind registry and parent rules.
-`item-address.ts` owns canonical parsing, document-locator construction, formatting, relative resolution and whole-segment prefix
-operations. `address-migration.ts` validates declared rename ownership and applies ordered prefix records
-without I/O. `model-addresses.ts` derives and resolves structured definition items, detects duplicates and
-flags positional ancestors as volatile. The inspector derives required locators for structured
-entities and links in narrower result types; RDF and built-in entities stay unaddressable.
-`shared/mappings/relationship-reference.ts` owns inherited relationship matching shared by the agent and rename
-reference analysis.
-`app/edit/relationship-references.ts` walks mapping targets without guessing their defining concept.
-`shared/edit/address-changes.ts` derives explicit item/scope declarations from workbench edits;
-`app/projects/save-reply.ts` validates acknowledgements before client base versions advance.
-`item-key-adapters.ts` resolves older labels against
-that derivation and refuses ambiguous or unresolved qualified names. Repeated metric reference reads share a model-local
-index within one validation/query; no index survives edits. These pure modules do not read application state. Address
-consumers build text through
-`formatAddress`, never by concatenating project, document or item names.
-`src/app/odcs/lineage-addresses.ts` indexes structured card and row locators for lineage; dotted
-labels remain presentation text and ambiguous labels are never guessed as references.
-`src/app/graph/center-preference.ts` verifies the previous browser center preference before writing a stable locator.
-`src/app/graph/selection-addresses.ts` translates structured graph selections and walk centers
-at the renderer boundary. `useGraphAddresses` records canonical state while retaining renderer
-IDs and the existing grouping/persistence boundaries.
+- `src/shared/core/address-kinds.ts` owns the versioned item-address kind registry and parent rules.
+- `src/shared/core/item-address.ts` owns canonical parsing, document locators, formatting, relative resolution and whole-segment prefix operations.
+- `src/shared/core/address-migration.ts` validates rename ownership, matches deletion prefixes and applies ordered records without I/O.
+- `src/shared/core/model-addresses.ts` derives and resolves structured definition items, detects duplicates and flags positional ancestors as volatile.
+- `src/shared/core/model.ts` derives required locators for structured entities and links in narrower inspector results; RDF and built-ins stay unaddressable.
+- `src/shared/mappings/relationship-reference.ts` owns inherited relationship matching shared by the agent and rename reference analysis.
+- `src/app/edit/relationship-references.ts` walks mapping targets without guessing their defining concept.
+- `src/shared/edit/address-changes.ts` derives explicit item/scope declarations from workbench edits.
+- `src/app/projects/save-reply.ts` validates acknowledgements before client base versions advance.
+- `src/shared/core/item-key-adapters.ts` resolves older labels against derived locators and refuses ambiguous or unresolved qualified names.
+- `src/app/odcs/lineage-addresses.ts` indexes structured card and row locators for lineage; dotted labels are presentation text and ambiguous labels are never guessed as references.
+- `src/app/graph/center-preference.ts` verifies the previous browser center preference before writing a stable locator.
+- `src/app/graph/selection-addresses.ts` translates structured graph selections and walk centers at the renderer boundary.
+- `src/app/workspace/hooks/useGraphAddresses.ts` records canonical state while retaining renderer IDs and existing grouping/persistence boundaries.
+
+Repeated metric reference reads share a model-local index within one validation/query; no index survives edits.
+The pure address modules do not read application state. Consumers build text through `formatAddress`, never by
+concatenating project, document or item names.
 
 ### HTTP, startup and ownership
 

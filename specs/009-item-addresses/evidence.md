@@ -1511,3 +1511,4 @@ Branch `009-address-followups` starts from the merged `origin/main` at `56603266
 - `bun scripts/mutation-case.ts "$PWD/src/shared/core/address-migration.ts" address-migration`: **exit 0**.
 - `bun scripts/mutation-case.ts "$PWD/src/server/projects/address-resolution.ts" address-server`: **exit 0** after predicate extraction.
 - `bun test tests/address-migration-store.test.ts`: **17 pass, 0 fail, 150 expect() calls** after predicate extraction.
+- Split the opening Code map into one line per module, preserving the module roles and state/index boundaries. The pure migration module's role now includes its shared deletion predicate.
