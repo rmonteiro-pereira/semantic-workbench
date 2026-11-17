@@ -1280,3 +1280,8 @@ and explicit per-test limit while budgeting the capped shared machine consistent
   `8 project checks passed on isolated data root
   /srv/dev/tmp-008-published-snapshot-boundary-20261117/workbench-browser-zLR1zC.`
   Includes cache rebuild/restart, exact ZIP round trip, project context and new-file creation.
+
+- Remote `bun scripts/published-snapshot-remote-gate.ts test:auth`: exit 0;
+  `test-auth: exit 0`. The suite completed the real local mock-provider flow, visibility
+  checks, permitted-file project export and refusal of history for partial readers.
+  It has no numeric final summary, so no count is inferred.
