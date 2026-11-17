@@ -294,6 +294,7 @@ Do not simply expose a local-mode listener to the network.
 Address migration history is stored in `state/address-migrations/<project>.json`. Records retain their original append
 order and are not pruned by age. Each project is limited to 50,000 records; an overflowing operation is refused before
 definitions or history change. There is no retention setting because deleting or compacting ordered records can change
-replay results. The store is not exposed by an HTTP route. `SW_ADDRESS_MIGRATION_RETENTION_DAYS` is not a supported
+replay results. There is no bulk history HTTP listing; scoped resolution and reconciliation use the shared operation
+boundary. `SW_ADDRESS_MIGRATION_RETENTION_DAYS` is not a supported
 setting: retaining ordered replay semantics requires retaining the uncompacted records. Conversion backups and the
 completion report are described in [item addresses](item-addresses.md).
