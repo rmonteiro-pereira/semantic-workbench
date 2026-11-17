@@ -1138,3 +1138,12 @@ remaining completion work is the unmutated browser suites and the final full uni
 Canonical selection survives reload, preserves source bytes without page errors, and a concept
 rename with ticked cross-file references appends exactly one migration. The owned production
 frontend/API on 5489 stopped through the exit trap; large outputs remain remote.
+
+### Recovered graph browser suite
+
+`bun run test:graph`: exit 1; `error: script "test:graph" exited with code 1`.
+The failure is `Whole model is cut off inside its select` at checkToolbar, the same production
+select-clipping failure already reproduced on unchanged main above. Early graph interaction,
+empty-state/page-error and phone expansion checks passed. This remains a strict baseline
+exception, not a passing gate. The owned server stopped; graph-summary.txt is the small local
+summary and graph.log plus captures remain remote.
