@@ -1,7 +1,5 @@
 /** Records explicit reconciliation through the same write authority as saving the target file. */
 import { parseAddress } from '../../shared/core/item-address';
-import { requestReader } from '../auth/request-scope';
-import { authorizeWrite } from '../auth/write-access';
 import { resolveCurrentItem, type AddressReadContext } from './address-resolution';
 import { declaredAddressMigrations, operationMigrations, readAddressMigrations, stageAddressMigrations } from './address-migrations';
 import { BadRequestError, NotFoundError } from './errors';
@@ -24,8 +22,7 @@ export type AddressReconciliationContext = AddressReadContext & {
 export type ReconciliationRequest = { operationId: string; from: string; to: string };
 
 /** Records an authorized explicit relationship between a missing old locator and a unique current one. */
-export async function recordReconciliation(context: AddressReconciliationContext, request: Request, declaration: ReconciliationRequest) {
-  const reader = requestReader(request);
+export async function recordReconciliation(context: AddressReconciliationContext, declaration: ReconciliationRequest, reader: Reader) {
   const from = parseAddress(declaration.from);
   const to = parseAddress(declaration.to);
   if (!from.ok || !to.ok || !from.address.project || !to.address.project || !from.address.document || !to.address.document) throw new BadRequestError('Invalid reconciliation locators.');
@@ -41,7 +38,6 @@ export async function recordReconciliation(context: AddressReconciliationContext
   ) {
     throw new NotFoundError('Item not found.');
   }
-  authorizeWrite(request, 'edit', [{ type: 'file', project, path }]);
   const [pair] = declaredAddressMigrations([{ kind: 'item', from: declaration.from, to: declaration.to }], project, [previousPath, path]);
   if (!/^[A-Za-z0-9_-]{1,128}$/.test(declaration.operationId)) throw new BadRequestError('Invalid reconciliation operation identifier.');
   return context.lock(projectLockKey(project, reader.copy?.key ?? null), async () => {

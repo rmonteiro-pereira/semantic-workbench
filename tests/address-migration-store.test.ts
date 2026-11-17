@@ -1,7 +1,3 @@
-import { localPrincipal } from '../src/server/auth/principal';
-import { createAccessControl } from '../src/server/auth/authorize';
-import { requestAccess } from '../src/server/auth/request-scope';
-import { accessFixture } from './auth/access-fixture';
 import { historySinceDeletion } from '../src/shared/core/address-migration';
 import { parseAddress } from '../src/shared/core/item-address';
 /** Exercises durable address history through staged journal operations. */
@@ -301,9 +297,6 @@ test('a deleted item explicitly reconciled later resolves to its target', async 
   const target = oldAddress.replace('concept:A', 'concept:B');
   const file = workspace.ws.readFile(project.slug, 'a.yaml');
   await workspace.ws.saveFile(project.slug, 'a.yaml', { baseHash: file.hash, source: 'name: O\nontology: [{concept: B}]', deletedItems: [oldAddress] }, LOCAL_READER);
-  const access = createAccessControl(accessFixture());
-  const request = new Request('http://localhost/api');
-  Object.assign(request, { [requestAccess]: access.forRequest(localPrincipal()) });
-  await workspace.ws.reconcileAddress(request, { operationId: 'after-delete', from: oldAddress, to: target });
+  await workspace.ws.reconcileAddress({ operationId: 'after-delete', from: oldAddress, to: target }, LOCAL_READER);
   expect(workspace.ws.resolveAddress(oldAddress, LOCAL_READER)).toMatchObject({ status: 'found', address: target });
 });

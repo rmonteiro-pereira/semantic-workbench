@@ -1406,3 +1406,7 @@ feb35ab7 test: record recovered authentication browser gate
 - Resolver replay now delegates prefix changes and deletion cuts to the pure migration functions, including destination-store arrival cuts. A workspace deletion followed by explicit reconciliation reproduced `missing` before the fix and now resolves to the target. Existing hidden-endpoint and deleted-alias behavior stays covered.
 - `bun test tests/address-migration-store.test.ts`: 13 pass, 0 fail, 142 expect() calls.
 - `bun test tests/address-hidden-missing.test.ts`: 4 pass, 0 fail, 20 expect() calls.
+- Reconciliation authorization now runs in the HTTP route against the target file. The workspace and project service receive an already-authorized `Reader`; caller visibility, governance checks, locking and journaling remain inside the project service. Read-only refusal is exercised through the real handler.
+- `bun test tests/address-reconciliation.test.ts`: 2 pass, 0 fail, 13 expect() calls.
+- `bun test tests/auth/item-address-scope.test.ts`: 1 pass, 0 fail, 4 expect() calls.
+- `bun test tests/address-migration-store.test.ts`: 13 pass, 0 fail, 142 expect() calls after the reader-signature change.

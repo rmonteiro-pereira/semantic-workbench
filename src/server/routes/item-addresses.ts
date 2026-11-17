@@ -1,4 +1,5 @@
 import { parseAddress } from '../../shared/core/item-address';
+import { authorizeWrite } from '../auth/write-access';
 import { requestReader } from '../auth/request-scope';
 import { BadRequestError } from '../projects/errors';
 import { ITEM_ADDRESS_REQUEST_LIMIT, decodePath, decodeSegment, readJson } from '../request';
@@ -28,11 +29,12 @@ export const itemAddressRoutes: Route = async (workspace, request, url) => {
   if (!('operationId' in body) || typeof body.operationId !== 'string' || !('from' in body) || !('to' in body) || Object.keys(body).some(key => !['operationId', 'from', 'to'].includes(key))) {
     throw new BadRequestError('Expected {operationId, from, to}.');
   }
-  return Response.json(
-    await workspace.reconcileAddress(request, {
-      operationId: body.operationId,
-      from: projectItemAddress(body.from, project),
-      to: projectItemAddress(body.to, project, decodePath(reconciliation![2])),
-    }),
-  );
+  const path = decodePath(reconciliation![2]);
+  const declaration = {
+    operationId: body.operationId,
+    from: projectItemAddress(body.from, project),
+    to: projectItemAddress(body.to, project, path),
+  };
+  authorizeWrite(request, 'edit', [{ type: 'file', project, path }]);
+  return Response.json(await workspace.reconcileAddress(declaration, requestReader(request)));
 };

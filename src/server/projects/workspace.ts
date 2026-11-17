@@ -712,7 +712,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     readFile,
     saveFile,
     resolveAddress: (address: string, reader: Reader) => resolveForCaller({ ...addressReads, readMigrations: (project, caller) => readAddressMigrations(layout, project, caller) }, address, reader),
-    reconcileAddress: (request: Request, declaration: ReconciliationRequest) => recordReconciliation(addressReconciliation, request, declaration),
+    reconcileAddress: (declaration: ReconciliationRequest, reader: Reader) => recordReconciliation(addressReconciliation, declaration, reader),
     saveFiles: documentSave.saveFiles,
     documents: () => documentsFor(LOCAL_READER),
     documentsFor,
