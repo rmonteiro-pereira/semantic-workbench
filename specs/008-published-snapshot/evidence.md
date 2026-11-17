@@ -993,3 +993,10 @@ bun scripts/responsive-ui-tests.ts` against the built frontend exited 0:
 `PASS no uncaught browser errors`; `5 responsive UI checks passed`.
 The wrapper also exited 0. Full logs remain in `out/008-review-gate/restored-dark*.log` on midgard;
 only `out/008-review-summary/dark-theme.txt` was pulled. The owned application server was stopped.
+
+### Responsive graph canvases after repair
+
+Remote `RESPONSIVE_ONLY="graph canvases:" bun scripts/responsive-ui-tests.ts` against the built
+frontend exited 0: `PASS no uncaught browser errors`; `5 responsive UI checks passed`.
+The wrapper exited 0. Only `out/008-review-summary/graph-canvases.txt` was pulled; complete logs remain
+on midgard. The owned application server was stopped before starting another suite.
