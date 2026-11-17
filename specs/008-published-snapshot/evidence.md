@@ -1056,3 +1056,24 @@ runtime source changed to accommodate these failures. No complete responsive pas
 The six additional responsive groups all passed again after disk repair, with 21 checks in total.
 The architecture reviewer reconfirmed PASS at `cc9ba64d`; production and harness code remain unchanged
 from the already reviewed and tested revisions. No requested application task was skipped.
+
+### Final cleanup and consolidation
+
+The wrapper-only remote audit exited 0 and reported:
+`{"baseline_data_exists": false, "baseline_source_exists": false, "owned_runtime_processes": []}`.
+It checked only runtime processes owned by the remote dev user with this checkout as their working
+root. No other checkout, process or service was stopped. New heavy outputs stayed on midgard; only
+small summaries were pulled after disk repair. The local readable-code check for the changed harness,
+example test and stress test, the docs-sync check and `git diff --check` all exited 0.
+The repository formatter explicitly excludes `specs/**` and Markdown; new documentation paragraphs
+are wrapped within its 200-column convention. The final verification table now distinguishes every
+passing core gate from the proven pre-existing responsive failures. Architecture PASS was reconfirmed
+at `cc9ba64d`; the final documentation reconciliation is reviewed before handoff.
+
+The final documentation review returned PASS: the table separates successful core gates from responsive
+exits 1, keeps all three environment-specific height measurements distinct, and contains no stale pending
+claim in the latest status. Confidential-content scans of the four evidence/capture-index files exited 0;
+docs-sync and whitespace checks exited 0. Local ports 5321 and 5322 have no listeners.
+`python3 scripts/commit_cadence.py "$PWD"` was attempted again and exited 2 because the repository does
+not contain that script; no replacement tooling was introduced. Every completed post-repair gate step
+was committed separately, and no large artifact was written or pulled locally during this resumption.

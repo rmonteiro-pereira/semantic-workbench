@@ -170,28 +170,54 @@ no full responsive pass was claimed. The correction gate status below supersedes
 
 ## Architecture correction gate status
 
-The production corrections are complete and the architecture review returned PASS at `5a5a64e5`.
-The ten requested corrections and their focused proofs are recorded in `evidence.md`.
-The latest gate is incomplete; the original completion results above do not stand in for this rerun.
+The ten requested corrections are implemented. Architecture review remains PASS at `cc9ba64d`;
+production source is unchanged from the reviewed `5a5a64e5`, and the harness delta passed review at
+`06ce59e6`. The results below supersede the earlier incomplete correction attempt.
 
-| Command | Latest verified result | Exit |
+| Command | Verified result | Exit |
 | --- | --- | --- |
-| `sw-midgard-run -- bun test --timeout 30000` | 2198 pass, 0 fail, 134740 assertions, 305 files, 1221.61 s | 0 |
-| `bun --bun run check` | TypeScript, formatting, lint, comments, theme and brand checks pass | 0 |
-| `bun --bun run build` | `✓ built in 1.13s` | 0 |
-| `test:published-snapshot` through remote driver | 2 published snapshot browser checks passed | 0 |
-| `test:ui` through remote driver | 20 UI checks passed | 0 |
-| `test:edges` through remote driver | 6 edge attachment UI checks passed | 0 |
-| `test:grouping-validation` through remote driver | 8 grouping and validation UI checks passed | 0 |
-| `test:examples:ui` through remote driver | The mall import had not selected its model within the title assertion's five-second window | 1 |
+| Remote `bun test --timeout 30000` | 2198 pass, 0 fail, 134740 assertions, 305 files, 1221.61 s | 0 |
+| Local `bun --bun run check` after disk repair | TypeScript, formatting, lint, comments, theme and brand pass | 0 |
+| Local `bun --bun run build` | `✓ built in 1.13s`; production unchanged afterward | 0 |
+| Remote `test:published-snapshot` | 2 published snapshot browser checks passed | 0 |
+| Remote `test:ui` | 20 UI checks passed | 0 |
+| Remote `test:edges` | 6 edge attachment UI checks passed | 0 |
+| Remote `test:grouping-validation` | 8 grouping and validation UI checks passed | 0 |
+| Remote `test:examples:ui` | 19 example UI checks passed; no browser runtime errors | 0 |
+| Remote `test:scm` | 18 source-control checks passed | 0 |
+| Remote `test:mappings-layout` | 7 mapping layout checks passed | 0 |
+| Remote `test:projects` | 8 project checks passed | 0 |
+| Remote `test:auth` | Final check: Git history refused without access to every file; suite passed | 0 |
+| Remote `bun scripts/mutation-tests.ts` | 700/700 targeted mutants killed; all unmodified module baselines passed | 0 |
+| Remote complete local capture | 232 states, all `problems=0` | 0 |
+| Remote complete server capture | 232 states, all `problems=0` | 0 |
+| Remote targeted responsive groups after repair | 21 checks: dark theme, graphs, shell, examples at 1440/2560 px, phone drawer | 0 |
+| Remote complete responsive suite | First canvas 481 px against more than 504 px; identical on exact main/base | 1 |
+| Remote built-frontend mall at 1280 px | Canvas 389 px against at least 421 px; identical on exact main/base | 1 |
 
-The examples check now awaits the mall import response and requires status 200 before the unchanged
-model-title assertion. This harness correction passes `check` but has not yet been verified in a browser.
-Three consecutive wrapper retries could not start the tests because SSH or rsync connections timed out
-(exit 255, 128, 255). No heavy local fallback was run.
+The mall-import browser check now awaits the import response and requires status 200 before its
+unchanged model-title assertion. Its successful rerun is committed. All 686 source, five askpass and
+nine visual mutants were detected; none was removed or classified as equivalent. The measured
+administration baseline requires the same 30-second limit already used for examples; that limit applies
+equally to original and mutated candidates. All other deadlines and every assertion remain unchanged.
 
-Remaining gate work: rerun the remote driver, including examples, SCM, mappings layout, projects, auth,
-both full capture journeys, responsive checks and mutation. The complete mutation result of 695/695 above
-belongs to the earlier source; the correction harness now registers 700 mutants and has not completed
-its full run. The inherited responsive 407/421 exception remains unchanged. Fresh correction captures
-must also be reviewed after transfer. This correction must not be reported READY until those proofs finish.
+The complete responsive suite is not green. The original local 407/421 mall failure was reproduced
+on a temporary origin/main worktree and assigned to the UI lane. On midgard, exact main/base revision
+`655df094` independently reproduces both 481/>504 and the built-frontend mall 389/421 result. These are
+pre-existing failures; canvas code and responsive assertions were not changed. The six additional groups
+were rerun and committed individually after disk repair. No full responsive pass is claimed.
+
+Fresh correction captures comprise 464 full-journey images plus 34 publication-control images, indexed
+in [review-capture-index.tsv](review-capture-index.tsv). After repair, all 498 retained files matched their
+committed SHA-256 values. Native inspection and the historical release comparison are described in
+[visual-findings.md](visual-findings.md); no historical timing or capture is presented as a new measurement.
+
+Full heavy logs and new artifacts remain on midgard. Post-repair runs pulled only small summaries.
+The temporary baseline source and data roots are removed, and the final remote audit found no owned
+Bun, Node or Vite runtime process. The tree is committed before handoff. No requested application task
+was skipped and no blocking code/specification contradiction was found.
+
+Before merging feature 010, replace the interim `surfaceFromCredential` classification in
+`src/server/auth/request-surface.ts` with operation-boundary metadata. Its single request-symbol setter
+and the documented read-source inventory provide the existing integration point. Preserve the UI
+regression exceptions above until their owning lane resolves them.

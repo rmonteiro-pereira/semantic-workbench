@@ -100,3 +100,8 @@ An unchanged copy of the exact main/base revision `655df094` reproduced the same
 assertion on the remote host. Its temporary source copy and frontend were removed. This is additional
 pre-existing remote-environment evidence, not a full responsive pass; the 407/421 exception above remains.
 Neither the canvas nor its assertions were changed in this feature.
+
+The post-repair remote built-frontend comparison also reproduces the mall failure as 389/421 px on
+both this feature and exact main/base `655df094`. This environment-specific value is distinct from the
+original local 407/421 reproduction. The six additional responsive groups passed again, totaling 21
+checks. Neither the canvas nor its assertions were changed; no complete responsive pass is claimed.
