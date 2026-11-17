@@ -1201,3 +1201,10 @@ The graph-height assertion is unchanged: `Received: 481`, `Expected: > 503.99999
 This is the same 481-pixel failure already reproduced on unchanged main, and remains a strict
 baseline exception. No geometry threshold changed. The owned server stopped;
 responsive-summary.txt is the small local summary, with captures and full logs retained remote.
+
+### Recovered edge attachment browser suite
+
+`bun run test:edges`: exit 0; `6 edge attachment UI checks passed`.
+Actual borders, zoom/selection, entity/parent dragging and layout changes preserve attachment,
+with no browser runtime errors. The owned production server stopped;
+only edges-summary.txt was pulled.
