@@ -985,3 +985,11 @@ only small result summaries are copied back.
 
 `bun --bun run check` after repair exited 0: TypeScript, formatter, lint, comments, theme and brand checks
 all passed. Its final summary is `No product name or logo is hard-coded outside public/brand.`
+
+### Responsive dark theme after repair
+
+Remote `SW_BASE_URL=http://127.0.0.1:5481 RESPONSIVE_ONLY="dark theme:"
+bun scripts/responsive-ui-tests.ts` against the built frontend exited 0:
+`PASS no uncaught browser errors`; `5 responsive UI checks passed`.
+The wrapper also exited 0. Full logs remain in `out/008-review-gate/restored-dark*.log` on midgard;
+only `out/008-review-summary/dark-theme.txt` was pulled. The owned application server was stopped.
