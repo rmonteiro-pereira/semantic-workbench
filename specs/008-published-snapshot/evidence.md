@@ -1249,3 +1249,11 @@ and explicit per-test limit while budgeting the capped shared machine consistent
 - Remote `bun scripts/published-snapshot-remote-gate.ts test:ui`: exit 0;
   `20 UI checks passed`. This includes repaired saved mapping references, changed mapping
   selection, stale response protection and no browser runtime errors.
+
+- The first isolated `test:edges` run failed before any edge assertion: the cold frontend had
+  not rendered `.workspace-title h1` within the helper’s default five seconds. Its initial
+  model-readiness call now uses the existing 30-second option; attachment distances, geometry
+  and every edge assertion are unchanged.
+- Remote retry `bun scripts/published-snapshot-remote-gate.ts test:edges`: exit 0;
+  `6 edge attachment UI checks passed`. Includes worker routes, entity/area dragging,
+  layout changes and no browser runtime errors.

@@ -158,7 +158,7 @@ async function drag(page: Page, selector: string, dx: number, dy: number) {
 
 try {
   await page.goto(appUrl());
-  await expectModelName(page, /Flights/);
+  await expectModelName(page, /Flights/, { timeout: 30000 });
   await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60000 });
   await viewOptions(page, options => chooseLayout(options, 'network'));
   await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: 60000 });
