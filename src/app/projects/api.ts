@@ -1,6 +1,6 @@
+/** Defines browser requests and response types for project files, metrics and source control. */
 import { fileSaveReply, batchSaveReply } from './save-reply';
 import type { DeclaredMigration } from '../../shared/core/address-migration';
-/** Defines browser requests and response types for project files, metrics and source control. */
 import type { KpiSummary, KpiExplanation } from '../../server/agent/explain';
 import type { PlanRequest, SelectedContext } from '../../server/agent/runtime';
 import { agentCatalogPath, agentContextPath } from '../mappings/agent-paths';

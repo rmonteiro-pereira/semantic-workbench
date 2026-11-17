@@ -1,10 +1,10 @@
+// Saves and reverts documents: a stale base is refused, the reader's guard judges the text, and the
+// swap is journaled so a crash leaves either the old or the new bytes.
 import type { DeclaredMigration } from '../../../shared/core/address-migration';
 import type { OperationOutcome } from '../../auth/operation-outcome';
 import { parseAddress } from '../../../shared/core/item-address';
 import { deletedItemAddresses } from '../../../shared/edit/address-changes';
 import { operationMigrations, stageAddressMigrations } from '../address-migrations';
-// Saves and reverts documents: a stale base is refused, the reader's guard judges the text, and the
-// swap is journaled so a crash leaves either the old or the new bytes.
 import { existsSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { InputError, MAX_INPUT_BYTES } from '../../../shared/validation/diagnostics';

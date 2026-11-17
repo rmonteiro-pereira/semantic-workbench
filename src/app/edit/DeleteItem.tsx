@@ -1,5 +1,5 @@
-import { deletedItemAddresses } from '../../shared/edit/address-changes';
 /** Confirms item deletion with its dependents and broken references before a journaled save. */
+import { deletedItemAddresses } from '../../shared/edit/address-changes';
 import { useCapabilities } from '../auth/Capabilities';
 import React, { useEffect, useState } from 'react';
 import { Modal } from '../projects/Modal';

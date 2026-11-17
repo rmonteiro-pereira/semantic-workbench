@@ -1426,3 +1426,5 @@ feb35ab7 test: record recovered authentication browser gate
 - `bun test tests/address-migration-store.test.ts`: 14 pass, 0 fail, 144 expect() calls.
 - Removed the one-off inspector timing script from the production scripts directory: it depended on an old feature-base commit and a fixed temporary path. Earlier measured timing evidence stays historical; no package command or source caller referenced this script.
 - Reference inspection (`rg -n 'item-address-timing' scripts src tests docs README.md package.json`) found no remaining runtime, test or command references.
+- Restored module header comments before imports in all nine reported files and the touched migration-store test. This commit only reorders comments/imports.
+- `bunx --bun oxfmt --check` on the ten reordered files: all matched files use the correct format.

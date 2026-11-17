@@ -1,6 +1,6 @@
+/** Exercises durable address history through staged journal operations. */
 import { historySinceDeletion } from '../src/shared/core/address-migration';
 import { parseAddress } from '../src/shared/core/item-address';
-/** Exercises durable address history through staged journal operations. */
 import { expect, test } from 'bun:test';
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';

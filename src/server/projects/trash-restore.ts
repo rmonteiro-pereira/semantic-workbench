@@ -1,7 +1,7 @@
-import { restoreAddressMigrations } from './address-migrations';
-import { JournalCrash } from './journal';
 // Restores trash entries: a file back into a project, or a project, subproject or repository back into the
 // workspace. Nothing is overwritten; an occupied target gets a free alternative suggested.
+import { restoreAddressMigrations } from './address-migrations';
+import { JournalCrash } from './journal';
 import { restorePersonalState } from './personal-state';
 import type { Reader } from './reader';
 import { projectLockKey } from './working-copies';

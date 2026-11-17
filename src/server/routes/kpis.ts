@@ -1,6 +1,6 @@
-import { declaredAddressMigrations, declaredDeletedItems } from '../projects/address-migrations';
 // Previews metric changes and saves related files in one journaled operation. Previews never
 // execute SQL.
+import { declaredAddressMigrations, declaredDeletedItems } from '../projects/address-migrations';
 import { FILE_SAVE_REQUEST_LIMIT, METRIC_REQUEST_LIMIT } from '../request';
 import { BadRequestError, OccupiedError } from '../projects/errors';
 import { requestReader } from '../auth/request-scope';

@@ -1,7 +1,7 @@
-import { documentAddress } from '../../shared/core/item-address';
-import { archiveAddressMigrations, operationMigrations, stageAddressMigrations } from './address-migrations';
 // Moves deleted files and project folders into journaled trash without rewriting Git history.
 // Restoration refuses occupied paths and suggests a free alternative.
+import { documentAddress } from '../../shared/core/item-address';
+import { archiveAddressMigrations, operationMigrations, stageAddressMigrations } from './address-migrations';
 import { archivePersonalState, clearPersonalDrafts } from './personal-state';
 import type { EventTags } from './events';
 import type { Reader } from './reader';

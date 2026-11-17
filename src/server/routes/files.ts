@@ -1,5 +1,5 @@
-import { declaredAddressMigrations, declaredDeletedItems } from '../projects/address-migrations';
 // Serves project files and validates save requests against their original content hashes.
+import { declaredAddressMigrations, declaredDeletedItems } from '../projects/address-migrations';
 import { FILE_SAVE_REQUEST_LIMIT } from '../request';
 import { requestReader } from '../auth/request-scope';
 import { decodeSegment, decodePath, readJson } from '../request';

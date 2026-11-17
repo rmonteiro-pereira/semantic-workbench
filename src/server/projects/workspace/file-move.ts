@@ -1,6 +1,6 @@
+// Moves a file inside a project or into another one, together with its draft and view settings.
 import { documentAddress } from '../../../shared/core/item-address';
 import { operationMigrations, stageAddressMigrations } from '../address-migrations';
-// Moves a file inside a project or into another one, together with its draft and view settings.
 import { existsSync, readFileSync, rmSync } from 'node:fs';
 import { join, posix } from 'node:path';
 import { decode } from '../atomic';

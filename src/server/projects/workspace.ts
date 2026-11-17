@@ -1,3 +1,5 @@
+// Coordinates project files, durable state, and workspace services. Project folders are the source
+// of truth; the SQLite cache can be rebuilt.
 import { readAddressMigrations } from './address-migrations';
 import { resolveForCaller } from './address-resolution';
 import { recordReconciliation, type ReconciliationRequest } from './address-reconciliation';
@@ -5,8 +7,6 @@ import { convertAddressKeys } from './address-key-conversion';
 import { inspect } from '../../shared/core/model';
 import { encodeGrouping, decodeGrouping, type GroupingAssignments } from '../../shared/core/grouping-addresses';
 import { InputError } from '../../shared/validation/diagnostics';
-// Coordinates project files, durable state, and workspace services. Project folders are the source
-// of truth; the SQLite cache can be rebuilt.
 import { existsSync, mkdirSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join, posix } from 'node:path';
 import { atomicWriteJson, decode, readJsonFile, sha256 } from './atomic';
